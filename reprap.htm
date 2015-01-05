@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
+		<meta name="author" content="Christian Hammacher">
+		<link rel="icon" href="favicon.ico">
+		
+		<title id="title">Duet Web Control</title>
+		
+		<!-- CSS -->
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
+		<link href="css/defaults.css" rel="stylesheet">
+	</head>
+	
+	<body>
+		<!-- Navigation Bar -->
+		<nav class="navbar navbar-default" role="navigation">
+			<div class="container-fluid">
+				<!-- Grouping for better mobile display -->
+				<div class="navbar-header collapsed">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#mobile-navbar">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<span class="label label-default pull-right navbar-label visible-xs" id="lbl_status_mobile">Disconnected</span>
+					
+					<a class="navbar-brand visible-xs">Duet Web Control</a>
+				</div>
+					
+				<!-- Regular navbar entries -->
+				<div class="collapse navbar-collapse">
+					<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left">Connect</button>
+					
+					<form class="navbar-form padding-small navbar-left hidden-sm" role="search">
+						<div class="input-group">
+							<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode">
+							<div class="input-group-btn div-gcodes">
+								<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+								<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
+								</ul>
+							</div>
+						</div>
+						<button type="submit" class="btn btn-default disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+					</form>
+					
+					<button type="button" class="btn btn-default navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" id="btn_upload_and_print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+					
+					<button type="button" class="btn btn-danger navbar-btn navbar-right disabled" id="btn_stop">Emergency STOP</button>
+					<span class="label label-default navbar-label navbar-right" id="lbl_status">Disconnected</span>
+					
+					<ul class="nav nav-justified hidden-xs">
+						<li><a href="#" class="navbar-brand">Duet Web Control</a></li>
+					</ul>
+				</div>
+				
+				<!-- Collapsed navbar entries for mobile devices -->
+				<div class="nav collapse" id="mobile-navbar">
+					<table class="table navbar-table">
+						<tr>
+							<td>
+								<button type="button" class="btn btn-connect btn-info">Connect</button>
+							</td>
+							<td>
+								<button type="button" class="btn btn-danger pull-right disabled" id="btn_stop_mobile">Emergency STOP</button>
+							</td>
+						</tr>
+						<tr>
+							<td class="text-nowrap">
+								<div class="input-group">
+									<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode_mobile">
+									<div class="input-group-btn div-gcodes">
+										<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+										<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
+										</ul>
+									</div>
+								</div>
+							</td>
+							<td>
+								<button type="submit" class="btn btn-default btn-mobile-send disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2">
+								<ul class="nav nav-pills">
+									<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control">Control</a></li>
+									<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print">Print Job</a></li>
+									<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal">Terminal</a></li>
+									<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files">Files</a></li>
+									<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools">Spools</a></li>
+									<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance">Maintenance</a></li>
+									<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings">Settings</a></li>
+								</ul>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</nav>
+		
+		<!-- Page Content -->
+		<div class="container-fluid">
+			<div class="row" id="row_info">
+				<!-- Heater Temperatures -->
+				<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_heaters">
+					<div class="panel panel-info panel-status">
+						<div class="panel-heading">
+							<span class="title">Heater Temperatures</span>
+							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
+						</div>
+						
+						<div class="panel-collapse">
+							<table class="table table-bordered table-condensed table-centered-cells" id="table_heaters">
+								<tr>
+									<th class="col-xs-3"></th>
+									<th class="col-xs-3">Current</th>
+									<th class="col-xs-3">Active</th>
+									<th class="col-xs-3">Standby</th>
+								</tr>
+								
+								<tr id="tr_head_1">
+									<th><a href="#">Head 1</a></th>
+									<td>n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h1_active_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h1_standby_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+								
+								<tr id="tr_head_2">
+									<th><a href="#">Head 2</a></th>
+									<td>n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h2_active_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h2_standby_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+								
+								<tr id="tr_head_3">
+									<th><a href="#">Head 3</a></th>
+									<td>n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h3_active_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h3_standby_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+								
+								<tr id="tr_head_4">
+									<th><a href="#">Head 4</a></th>
+									<td>n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h4_active_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="h4_standby_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+								
+								<tr id="tr_bed">
+									<th>Bed</th>
+									<td>n/a</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="text" class="form-control" value="0" id="bed_temp">
+											<div class="input-group-btn div-head-temp">
+												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Temperature Chart -->
+				<div class="hidden-xs hidden-sm col-md-3 col-lg-3" id="div_temp_chart">
+					<div class="panel panel-info panel-status">
+						<div class="panel-heading">
+							<span class="title">Temperature Chart</span>
+						</div>
+						
+						<div class="panel-body panel-chart">
+							<div id="chart_temp">
+								<!-- See JS -->
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Machine Status -->
+				<div class="col-xs-12 col-sm-7 col-md-4 col-lg-5" id="div_status">
+					<div class="panel panel-info panel-status">
+						<div class="panel-heading">
+							<span class="title">Machine Status</span>
+							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
+						</div>
+						
+						<div class="panel-collapse" id="div_status_table">
+							<div class="row" id="row_status_1">
+								<div class="col-md-12">
+									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+										<tr>
+											<th rowspan="2" class="th-status">Head Position</th>
+											<th>X</th>
+											<th>Y</th>
+											<th>Z</th>
+										</tr>
+										<tr>
+											<td id="td_x">n/a</td>
+											<td id="td_y">n/a</td>
+											<td id="td_z">n/a</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							
+							<div class="row" id="row_status_2">
+								<div class="col-md-12">
+									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+										<tr>
+											<th rowspan="2" class="th-status">Extruder Drives</th>
+											<th class="hidden"><!-- only for HTML validation --></th>
+											<th class="hidden-md col-extr-1">D1</th>
+											<th class="hidden-md col-extr-2">D2</th>
+											<th class="hidden-md col-extr-3">D3</th>
+											<th class="hidden-md col-extr-4">D4</th>
+											<th class="hidden-md col-extr-5">D5</th>
+										</tr>
+										<tr>
+											<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
+											<td id="td_extr_drive_1" class="hidden-md col-extr-1">n/a</td>
+											<td id="td_extr_drive_2" class="hidden-md col-extr-2">n/a</td>
+											<td id="td_extr_drive_3" class="hidden-md col-extr-3">n/a</td>
+											<td id="td_extr_drive_4" class="hidden-md col-extr-4">n/a</td>
+											<td id="td_extr_drive_5" class="hidden-md col-extr-5">n/a</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+							
+							<div class="row" id="row_status_3">
+								<div class="col-md-12">
+									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+										<tr>
+											<th rowspan="2" class="th-status">Sensors</th>
+											<th>Z-Probe</th>
+											<th>Fan RPM</th>
+										</tr>
+										<tr>
+											<td>n/a</td>
+											<td>n/a</td>
+										</tr>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="row row-content fill-bottom">
+				<div class="col-sm-3 col-md-3 col-lg-2 sidebar fill-bottom">
+					<ul class="nav nav-sidebar">
+						<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
+						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
+					</ul>
+					<ul class="nav nav-sidebar">
+						<li class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-flash"></span> G-Code Terminal</a></li>
+						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files</a></li>
+					</ul>
+					<ul class="nav nav-sidebar">
+						<li class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
+						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
+						<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
+					</ul>
+				</div>
+				
+				<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10 main-container">
+					<div id="page_control" class="page active">
+						<div class="row">
+							<div class="col-lg-9">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span class="title">Head Movement</span>
+									</div>
+									
+									<div class="panel-body">
+										<table id="table_move_head">
+											<tr>
+												<td>
+													<div class="btn-group btn-group-lg" role="group">
+														<a type="button" class="btn btn-primary">Home X</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+													</div>											
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div class="btn-group btn-group-lg" role="group">
+														<a type="button" class="btn btn-primary">Home Y</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+													</div>											
+												</td>
+											</tr>
+											<tr>
+												<td>
+													<div class="btn-group btn-group-lg" role="group">
+														<a type="button" class="btn btn-primary">Home Z</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+														<a type="button" class="btn btn-default">Left</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-lg btn-group-justified" role="group">
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+														<a type="button" class="btn btn-default">Rigt</a>
+													</div>											
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+							</div>
+							
+							<div class="col-lg-3">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span class="title">User-Defined Commands</span>
+									</div>
+									
+									<div class="panel-body">
+										<h1>Some Codes</h1>
+									</div>
+								</div>
+							</div>
+							
+							<div class="col-lg-7">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span class="title">Extruder Control</span>
+									</div>
+									
+									<div class="panel-body">
+										<h3>Extruder Control</h3>
+									</div>
+								</div>
+							</div>
+							
+							<div class="col-lg-5">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span class="title">Miscellaneous (feedrate for head movement, speed+extrusion overrides)</span>
+									</div>
+									
+									<div class="panel-body">
+										<div class="row">
+											<div class="col-md-6">
+												<h3>Number of heaters (demo only)</h3>
+												<input type="text" class="input-small knob" id="knob_heaters" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF"  />
+											</div>
+											<div class="col-md-6">
+												<h3>Number of extruder drives (demo only)</h3>
+												<input type="text" class="input-small knob" id="knob_extr" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF"  />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
+					<div id="page_print" class="page">
+						<h1>Print Status</h1>
+					</div>
+					
+					<div id="page_terminal" class="page">
+						<h1>Terminal</h1>
+					</div>
+					<div id="page_files" class="page">
+						<h1>GCode Files</h1>
+					</div> 
+					<div id="page_maintenance" class="page">
+						<h1>Maintenance</h1>
+					</div>
+					<div id="page_spools" class="page">
+						<h1>Spools</h1>
+					</div>
+					<div id="page_settings" class="page">
+						<h1>Settings</h1>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Bootstrap core JavaScript
+		================================================== -->
+		<!-- Placed at the end of the document so the pages load faster -->
+		<script src="js/jquery-2.1.3.min.js"></script>
+		<script src="js/jquery.flot.min.js"></script>
+		<script src="js/jquery.flot.resize.min.js"></script>
+		<script src="js/jquery.knob.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+		<script src="js/interface.js"></script>
+	</body>
+</html>
