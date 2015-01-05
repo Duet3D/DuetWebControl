@@ -1,0 +1,260 @@
+/* Generic classes */
+
+body {
+	min-width: 465px;
+}
+
+@media (min-width: 768px) {
+	#mobile-navbar {
+		display: none !important;
+	}
+}
+
+.padding-small {
+	padding-left: 8px !important;
+	padding-right: 8px !important;
+}
+
+/* Navigation bar */
+
+.btn-mobile-send {
+	display: table-cell;
+	margin-left: 10%;
+	width: 90%;
+}
+
+.gcode {
+	display: inline;
+	padding-left: 12px !important;
+	padding-right: 8px !important;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.gcode span {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.gcode span.label {
+	display: inline-block;
+	margin-left: 15px;
+}
+
+/* There appears to be no easy way to right-align list item labels, so I use JS for now
+*  If anyone has a better solution for this, please implement it.
+*/
+.gcode-float span.label {
+	display: block;
+	float: right;
+	margin-top: 3px;
+}
+
+.navbar-default {
+	margin-bottom: 12px;
+}
+
+.navbar-brand {
+	float: none;
+	font-size: 20px;
+	display: inline-block;
+	padding-left: 15px !important;
+	padding-top: 15px !important;
+	padding-right: 0px !important;
+}
+
+@media (min-width: 768px) {
+	.navbar-collapse {
+		padding-left: 0px;
+	}
+}
+
+@media (max-width: 767px) {
+	#txt_instant_gcode_mobile {
+		width: 100%;
+	}
+}
+
+.navbar-label {
+	margin-left: 0px !important;
+	margin-right: 8px !important;
+	margin-top: 17px;
+	margin-bottom: 13px;
+}
+
+.navbar-table td {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
+
+.navbar-table {
+	margin-bottom: 0px;
+}
+
+/* Heater and Status elements */
+
+#chart_temp {
+	min-height: 50px;
+	min-width: 50px;
+	height: 200px;
+}
+
+.col-extr-1, .col-extr-2, .col-extr-3, .col-extr-4, .col-extr-5 {
+	white-space: nowrap;
+}
+
+#div_temp_chart {
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+.input-td {
+	padding-top: 6px !important;
+	padding-bottom: 6px !important;
+}
+
+.panel-chart {
+	padding-top: 0px;
+	padding-bottom: 15px;
+	padding-left: 15px;
+	padding-right: 5px;
+	border: 1px solid #ddd;
+}
+
+@media (min-width: 992px) {
+	.panel-collapse {
+		display: block !important;
+	}
+}
+
+.panel-heading {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.panel-status {
+	margin-bottom: 12px;
+}
+
+#row_info {
+	background-color: #FFFFFF;
+}
+
+.span-collapse {
+	cursor: pointer;
+}
+
+span.title {
+	font-size: 15px;
+	font-weight: bold;
+}
+
+.table-compact {
+	margin: 0px !important;
+}
+
+.table-centered-cells th, .table-centered-cells td {
+	text-align: center;
+	vertical-align: middle !important;
+}
+
+#table_move_head .btn-group {
+	padding-bottom: 6px;
+}
+
+#table_move_head .btn-group-justified {
+	padding-left: 15px;
+}
+
+.th-status {
+	width: 120px;
+}
+
+#tr_head_1 a {
+	color: #FF0000;
+}
+#tr_head_2 a {
+	color: #00DD00;
+}
+#tr_head_3 a {
+	color: #FFA000;
+}
+#tr_head_4 a {
+	color: #FF00FF;
+}
+#tr_bed th {
+	color: #0000FF;
+}
+
+/* Sidebar navigation */
+
+/* Hide for mobile, show later */
+.sidebar {
+	display: none;
+}
+@media (min-width: 768px) {
+	.sidebar {
+		display: block;
+		padding-left: 20px;
+		padding-right: 20px;
+		padding-top: 8px;
+		background-color: #f5f5f5;
+		border-right: 1px solid #bfbfbf;
+	}
+	
+	.fill-bottom {
+		padding-bottom: 9999px;
+		margin-bottom: -9999px;
+		overflow-y: hidden;
+	}
+}
+
+.nav-sidebar {
+	margin-right: -21px; /* 20px padding + 1px border */
+	margin-bottom: 20px;
+	margin-left: -20px;
+}
+
+.nav-sidebar > li > a {
+	font-size: 17px;
+	padding-right: 20px;
+	padding-left: 20px;
+}
+
+@media (min-width: 768px) and (max-width: 969px) {
+	.nav-sidebar {
+		margin-bottom: 10px;
+	}
+	.nav-sidebar > li > a {
+		font-size: 16px;
+	}
+}
+
+.nav-sidebar:last-child {
+	margin-bottom: 0px;
+}
+
+.nav-sidebar > .active > a,
+.nav-sidebar > .active > a:hover,
+.nav-sidebar > .active > a:focus {
+	color: #fff;
+	background-color: #428bca;
+}
+
+/* Main Content */
+
+.main-container {
+	padding-top: 8px;
+}
+
+.page {
+	display: none;
+}
+
+.page.active {
+	display: block !important;
+}
+
+.row-content {
+	background-color: #f8f8f8;
+}
