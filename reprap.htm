@@ -28,7 +28,7 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<span class="label label-default pull-right navbar-label visible-xs" id="lbl_status_mobile">Disconnected</span>
+					<span class="label label-default label-status pull-right navbar-label visible-xs">Disconnected</span>
 					
 					<a class="navbar-brand visible-xs">Duet Web Control</a>
 				</div>
@@ -52,7 +52,7 @@
 					<button type="button" class="btn btn-default navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" id="btn_upload_and_print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
 					<button type="button" class="btn btn-danger navbar-btn navbar-right disabled" id="btn_stop">Emergency STOP</button>
-					<span class="label label-default navbar-label navbar-right" id="lbl_status">Disconnected</span>
+					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 					
 					<ul class="nav nav-justified hidden-xs">
 						<li><a href="#" class="navbar-brand">Duet Web Control</a></li>
@@ -299,11 +299,11 @@
 										</tr>
 										<tr>
 											<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
-											<td id="td_extr_drive_1" class="hidden-md col-extr-1">n/a</td>
-											<td id="td_extr_drive_2" class="hidden-md col-extr-2">n/a</td>
-											<td id="td_extr_drive_3" class="hidden-md col-extr-3">n/a</td>
-											<td id="td_extr_drive_4" class="hidden-md col-extr-4">n/a</td>
-											<td id="td_extr_drive_5" class="hidden-md col-extr-5">n/a</td>
+											<td id="td_extr_1" class="hidden-md col-extr-1">n/a</td>
+											<td id="td_extr_2" class="hidden-md col-extr-2">n/a</td>
+											<td id="td_extr_3" class="hidden-md col-extr-3">n/a</td>
+											<td id="td_extr_4" class="hidden-md col-extr-4">n/a</td>
+											<td id="td_extr_5" class="hidden-md col-extr-5">n/a</td>
 										</tr>
 									</table>
 								</div>
@@ -318,8 +318,8 @@
 											<th>Fan RPM</th>
 										</tr>
 										<tr>
-											<td>n/a</td>
-											<td>n/a</td>
+											<td id="td_probe">n/a</td>
+											<td id="td_fanrpm">n/a</td>
 										</tr>
 									</table>
 								</div>
@@ -464,7 +464,7 @@
 							<div class="col-lg-5">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Miscellaneous (feedrate for head movement, speed+extrusion overrides)</span>
+										<span class="title">Miscellaneous (feedrate for head movement, speed+extrusion overrides, ATX on/off)</span>
 									</div>
 									
 									<div class="panel-body">
@@ -502,6 +502,47 @@
 					</div>
 					<div id="page_settings" class="page">
 						<h1>Settings</h1>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- Modal dialogs -->
+		<div class="modal fade" id="modal_pass_input">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<form id="form_password">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">Password required</h4>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<label for="input_password">Please enter your password:</label>
+								<input type="password" class="form-control" id="input_password">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-primary">Verify</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		
+		<div class="modal fade" id="modal_error">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Error</h4>
+					</div>
+					<div class="modal-body">
+						<p></p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
 					</div>
 				</div>
 			</div>
