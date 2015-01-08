@@ -35,9 +35,9 @@
 					
 				<!-- Regular navbar entries -->
 				<div class="collapse navbar-collapse">
-					<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left">Connect</button>
+					<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
 					
-					<form class="navbar-form padding-small navbar-left hidden-sm" role="search">
+					<form class="navbar-form padding-small navbar-left hidden-sm gcode-input" role="search">
 						<div class="input-group">
 							<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode">
 							<div class="input-group-btn div-gcodes">
@@ -51,7 +51,7 @@
 					
 					<button type="button" class="btn btn-default navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" id="btn_upload_and_print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
-					<button type="button" class="btn btn-danger navbar-btn navbar-right disabled" id="btn_stop">Emergency STOP</button>
+					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 					
 					<ul class="nav nav-justified hidden-xs">
@@ -61,44 +61,46 @@
 				
 				<!-- Collapsed navbar entries for mobile devices -->
 				<div class="nav collapse" id="mobile-navbar">
-					<table class="table navbar-table">
-						<tr>
-							<td>
-								<button type="button" class="btn btn-connect btn-info">Connect</button>
-							</td>
-							<td>
-								<button type="button" class="btn btn-danger pull-right disabled" id="btn_stop_mobile">Emergency STOP</button>
-							</td>
-						</tr>
-						<tr>
-							<td class="text-nowrap">
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode_mobile">
-									<div class="input-group-btn div-gcodes">
-										<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-										<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
-										</ul>
+					<form class="gcode-input">
+						<table class="table navbar-table">
+							<tr>
+								<td>
+									<button type="button" class="btn btn-connect btn-info"><span>Connect</span></button>
+								</td>
+								<td>
+									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled">Emergency STOP</button>
+								</td>
+							</tr>
+							<tr>
+								<td class="text-nowrap">
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode_mobile">
+										<div class="input-group-btn div-gcodes">
+											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
+											</ul>
+										</div>
 									</div>
-								</div>
-							</td>
-							<td>
-								<button type="submit" class="btn btn-default btn-mobile-send disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
-							</td>
-						</tr>
-						<tr>
-							<td colspan="2">
-								<ul class="nav nav-pills">
-									<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control">Control</a></li>
-									<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print">Print Job</a></li>
-									<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal">Terminal</a></li>
-									<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files">Files</a></li>
-									<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools">Spools</a></li>
-									<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance">Maintenance</a></li>
-									<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings">Settings</a></li>
-								</ul>
-							</td>
-						</tr>
-					</table>
+								</td>
+								<td>
+									<button type="submit" class="btn btn-default btn-mobile-send disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2">
+									<ul class="nav nav-pills">
+										<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control">Control</a></li>
+										<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print">Print Job</a></li>
+										<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal">Terminal</a></li>
+										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files">Files</a></li>
+										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools">Spools</a></li>
+										<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance">Maintenance</a></li>
+										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings">Settings</a></li>
+									</ul>
+								</td>
+							</tr>
+						</table>
+					</form>
 				</div>
 			</div>
 		</nav>
@@ -128,7 +130,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h1_active_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h1_active">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -138,7 +140,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h1_standby_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h1_standby">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -153,7 +155,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h2_active_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h2_active">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -163,7 +165,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h2_standby_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h2_standby">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -178,7 +180,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h3_active_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h3_active">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -188,7 +190,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h3_standby_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h3_standby">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -203,7 +205,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h4_active_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h4_active">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -213,7 +215,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="h4_standby_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_h4_standby">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-heat-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-heat-temp" role="menu">
@@ -228,7 +230,7 @@
 									<td>n/a</td>
 									<td>
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="bed_temp">
+											<input type="text" class="form-control" value="0" id="input_temp_bed">
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
@@ -329,8 +331,8 @@
 				</div>
 			</div>
 			
-			<div class="row row-content fill-bottom">
-				<div class="col-sm-3 col-md-3 col-lg-2 sidebar fill-bottom">
+			<div class="row fill-bottom">
+				<div class="col-sm-3 col-md-3 col-lg-2 fill-bottom" id="sidebar">
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
 						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
@@ -346,89 +348,90 @@
 					</ul>
 				</div>
 				
-				<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10 main-container">
+				<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10" id="main_content">
 					<div id="page_control" class="page active">
 						<div class="row">
 							<div class="col-lg-9">
 								<div class="panel panel-default">
-									<div class="panel-heading">
+									<div class="panel-heading text-center">
+										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
 										<span class="title">Head Movement</span>
 									</div>
 									
 									<div class="panel-body">
+										<div class="hidden-lg btn-group btn-group-justified" id="mobile_home_buttons">
+											<div class="btn-group" role="group"><button data-home="all" class="btn btn-primary disabled">Home All</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="X" class="btn btn-primary disabled">Home X</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="Y" class="btn btn-primary disabled">Home Y</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="Z" class="btn btn-primary disabled">Home Z</button></div>
+										</div>
 										<table id="table_move_head">
 											<tr>
-												<td>
-													<div class="btn-group btn-group-lg" role="group">
-														<a type="button" class="btn btn-primary">Home X</a>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a href="#" role="button" class="btn btn-primary disabled" data-home="X" id="btn_homex">Home X</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-x="-100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-100</a>
+														<a href="#" role="button" data-x="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-10</a>
+														<a href="#" role="button" data-x="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-1</a>
+														<a href="#" role="button" data-x="-0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-0.1</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-													</div>											
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-x="+0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+0.1</a>
+														<a href="#" role="button" data-x="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+1</a>
+														<a href="#" role="button" data-x="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+10</a>
+														<a href="#" role="button" data-x="+100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+100</a>
+													</div>
 												</td>
 											</tr>
 											<tr>
-												<td>
-													<div class="btn-group btn-group-lg" role="group">
-														<a type="button" class="btn btn-primary">Home Y</a>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary disabled" data-home="Y" id="btn_homey">Home Y</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-y="-100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-100</a>
+														<a role="button" data-y="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-10</a>
+														<a role="button" data-y="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-1</a>
+														<a role="button" data-y="-0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-0.1</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-													</div>											
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-y="+0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+0.1</a>
+														<a role="button" data-y="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+1</a>
+														<a role="button" data-y="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+10</a>
+														<a role="button" data-y="+100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+100</a>
+													</div>
 												</td>
 											</tr>
 											<tr>
-												<td>
-													<div class="btn-group btn-group-lg" role="group">
-														<a type="button" class="btn btn-primary">Home Z</a>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary disabled" data-home="Z" id="btn_homez">Home Z</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
-														<a type="button" class="btn btn-default">Left</a>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-z="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-100</a>
+														<a role="button" data-z="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-10</a>
+														<a role="button" data-z="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-1</a>
+														<a role="button" data-z="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-0.1</a>
 													</div>
 												</td>
 												<td>
-													<div class="btn-group btn-group-lg btn-group-justified" role="group">
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
-														<a type="button" class="btn btn-default">Rigt</a>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-z="+0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+0.1</a>
+														<a role="button" data-z="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+1</a>
+														<a role="button" data-z="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+10</a>
+														<a role="button" data-z="+100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+100</a>
 													</div>											
 												</td>
 											</tr>
@@ -440,7 +443,7 @@
 							<div class="col-lg-3">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">User-Defined Commands</span>
+										<span class="title">User-Defined Macros</span>
 									</div>
 									
 									<div class="panel-body">
@@ -531,18 +534,18 @@
 			</div>
 		</div>
 		
-		<div class="modal fade" id="modal_error">
+		<div class="modal fade" id="modal_message">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title">Error</h4>
+						<h4 class="modal-title"></h4>
 					</div>
 					<div class="modal-body">
 						<p></p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Close</button>
 					</div>
 				</div>
 			</div>
