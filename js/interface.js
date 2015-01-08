@@ -1,19 +1,10 @@
 /* Interface logic for the Duet Web Control */
 
-/* 
- * UNUSED INPUTS:
- * - h1_active_temp
- * - h1_standby_temp
- * - h2_active_temp
- * - h2_standby_temp
- * - h3_active_temp
- * - h3_standby_temp
- * - h4_active_temp
- * - h4_standby_temp
- * 
- */
-
 /* Constant values */
+
+var errorSpan = '<span class="glyphicon glyphicon-exclamation-sign"></span> ';
+var infoSpan = '<span class="glyphicon glyphicon-info-sign"></span> ';
+var warningSpan = '<span class="glyphicon glyphicon-warning-sign"></span> ';
 
 var tempChartOptions = 	{
 							grid: {
@@ -35,15 +26,16 @@ var updateFrequency = 250;			// in ms
 
 /* Variables */
 
-var isConnected = false;
+var isConnected = false, isDeltaPrinter = false;
 
 var drawTempPlot = false;
 
 var numHeads, numExtruderDrives;
 var recordedBedTemperatures, recordedHeadTemperatures;
 
-function resetGuiData()
-{
+var lastFirmwareMessage;
+
+function resetGuiData() {
 	numHeads = 4;			// 4 Heads max
 	numExtruderDrives = 5;	// 5 Extruder Drives max
 	
@@ -58,21 +50,24 @@ function resetGuiData()
 /* Connect / Disconnect */
 
 function connect(password, firstConnect) {
-	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").html("Connecting...");
+	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text("Connecting...");
+	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
 	$.ajax("rr_connect?password=" + password, {
 		async: true,
 		dataType: "json",
 		error: function() {
-			showError("Error", "Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again.", "md");
-			$("#modal_error").one("hide.bs.modal", function() {
-				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
+ 			showMessage(errorSpan + "Error", "Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again.", "md");
+			$("#modal_message").one("hide.bs.modal", function() {
+				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 			});
 		},
 		success: function(data) {
 			if (data.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				showError("Error", "Could not connect to Duet, because there are no more HTTP sessions available.", "md");
-				$("#modal_error").one("hide.bs.modal", function() {
-					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
+				showMessage(errorSpan + "Error", "Could not connect to Duet, because there are no more HTTP sessions available.", "md");
+				$("#modal_message").one("hide.bs.modal", function() {
+					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 				});
 			}
 			else if (firstConnect)
@@ -88,8 +83,11 @@ function connect(password, firstConnect) {
 				if (data.err == 0) {	// Connect successful
 					postConnect();
 				} else {
-					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
-					showError("Error", "Invalid password!", "sm");
+					showMessage(errorSpan + "Error", "Invalid password!", "sm");
+					$("#modal_message").one("hide.bs.modal", function() {
+						$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+						$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
+					});
 				}
 			}
 		}
@@ -102,17 +100,24 @@ function postConnect() {
 	updateStatus();
 	//updateFileInfo();
 	
-	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").html("Disconnect");
+	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text("Disconnect");
+	$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
+	
+	enableControls();
 }
 
 function disconnect() {
 	isConnected = false;
 	$.ajax("rr_disconnect", { async: true, dataType: "json" });
-	$(".btn-connect").removeClass("btn-success").addClass("btn-info").html("Connect");
+	
+	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
 	
 	resetGuiData();
 	resetGui();
 	updateGui();
+	
+	disableControls();
 }
 
 /* Automatic status update */
@@ -123,8 +128,7 @@ function updateStatus() {
 		dataType: "json",
 		error: function() {
 			if (isConnected) {
-				// TODO: message or log entry here
-				disconnect();
+				ajaxError();
 			}
 		},
 		success: function(status) {
@@ -136,31 +140,31 @@ function updateStatus() {
 			// Status
 			switch (status.status) {
 				case 'H':	// Halted
-					setStatusLabel("Halted", "label-danger");
+					setStatusLabel("Halted", "danger");
 					break;
 					
 				case 'D':	// Pausing / Decelerating
-					setStatusLabel("Pausing", "label-warning");
+					setStatusLabel("Pausing", "warning");
 					break;
 				
 				case 'S':	// Paused / Stopped
-					setStatusLabel("Paused", "label-info");
+					setStatusLabel("Paused", "info");
 					break;
 					
 				case 'R':	// Resuming
-					setStatusLabel("Resuming", "label-warning");
+					setStatusLabel("Resuming", "warning");
 					break;
 					
 				case 'P':	// Printing
-					setStatusLabel("Printing", "label-success");
+					setStatusLabel("Printing", "success");
 					break;
 					
 				case 'B':	// Busy
-					setStatusLabel("Busy", "label-success");
+					setStatusLabel("Busy", "success");
 					break;
 					
 				case 'I':	// Idle
-					setStatusLabel("Idle", "label-default");
+					setStatusLabel("Idle", "default");
 					break;
 			}
 			
@@ -170,13 +174,19 @@ function updateStatus() {
 				updateGui();
 			}
 			if (heatedBed) {
-				setCurrentTemperature("#tr_bed td",  status.heaters[0]);
+				setCurrentTemperature("bed", status.heaters[0]);
+				setTemperatureInput("bed", status.active[0], 1);
 			}
+			var heater;
 			for(var i=heatedBed; i<status.heaters.length; i++) {
-				setCurrentTemperature("#tr_head_" + (i + (1 - heatedBed)) + " td", status.heaters[i]);
+				heater = (i + (1 - heatedBed));
+				setCurrentTemperature(heater, status.heaters[i]);
+				setTemperatureInput(heater, status.active[i], 1);
+				setTemperatureInput(heater, status.standby[i], 0);
 			}
 			
 			// Live Coordinates
+			//if (isDeltaPrinter && status.homed != TRUE?!) <- set values to n/a if not homed
 			$("#td_x").html(status.pos[0].toFixed(2));
 			$("#td_y").html(status.pos[1].toFixed(2));
 			$("#td_z").html(status.pos[2].toFixed(2));
@@ -195,10 +205,31 @@ function updateStatus() {
 			$("#td_probe").html(status.probe);
 			$("#td_fanrpm").html(status.fanRPM);
 			
+			// Message from firmware
+			if (status.hasOwnProperty("message") && status.message != "" && status.message != lastFirmwareMessage) {
+				showMessage(infoSpan + "Message from Duet firmware", status.message, "md");
+				lastFirmwareMessage = status.message;
+			}
+			
 			// Set timer for next status update
 			setTimeout(updateStatus, updateFrequency);
 		}
 	});
+}
+
+function sendGCode(gcode) {
+	// Although rr_gcode gives us a JSON response, it doesn't provide any results.
+	// We only need to worry about an AJAX error event.
+	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
+		async: true,
+		dataType: "json",
+		error: function() { ajaxError(); }
+	});
+}
+
+function ajaxError() {
+	showMessage(warningSpan + "Communication Error", "An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
+	disconnect();
 }
 
 /* Cookies */
@@ -218,8 +249,17 @@ $(document).ready(function() {
 	updateGui();
 });
 
-function updateGui()
-{
+function enableControls() {
+	$(".btn-emergency-stop, .gcode-input button[type=submit]").removeClass("disabled");			// Navbar
+	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
+}
+
+function disableControls() {
+	$(".btn-emergency-stop, .gcode-input button[type=submit]").addClass("disabled");			// Navbar
+	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
+}
+
+function updateGui() {
 	// Visibility for Heater Temperatures
 	
 	if (heatedBed) {	// Heated Bed
@@ -280,8 +320,7 @@ function updateGui()
 	drawTemperaturePlot();
 }
 
-function resetGui()
-{
+function resetGui() {
 	// Auto-Complete items
 	
 	clearGCodeList();
@@ -290,13 +329,16 @@ function resetGui()
 	
 	// Navbar
 	
-	setStatusLabel("Disconnected", "label-default");
+	setStatusLabel("Disconnected", "default");
 	
 	// Heater Temperatures
 	
-	setCurrentTemperature("#tr_bed td",  undefined);
+	setCurrentTemperature("bed",  undefined);
+	setTemperatureInput("bed", 0, 1);
 	for(var i=1; i<=4; i++) {
-		setCurrentTemperature("#tr_head_" + i + " td", undefined);
+		setCurrentTemperature(i, undefined);
+		setTemperatureInput(i, 0, 1);
+		setTemperatureInput(i, 0, 0);
 	}
 	
 	// Head Position
@@ -315,75 +357,64 @@ function resetGui()
 	$("#td_probe, #td_fanrpm").text("n/a");
 }
 
-/* GUI Helpers */
-
-function clearGCodeList() {
-	$(".ul-gcodes").html("");
-	$(".btn-gcodes").addClass("disabled");
-}
-
-function addToGCodeList(label, gcode) {
-	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
- 	item +=		'<span>' + label + '</span>';
-	item +=		'<span class="label label-primary">' + gcode + '</span>';
-	item +=		'</a></li>';
-	
-	$(".ul-gcodes").append(item);
-	$(".btn-gcodes").removeClass("disabled");
-}
-
-function clearHeadTemperatures() {
-	$(".ul-heat-temp").html("");
-	$(".btn-head-temp").addClass("disabled");
-}
-
-function addToHeadTemperatures(label, gcode) {
-	$(".ul-head-temp").append("<li><a href=\"#\">" + label + "</a></li>");
-	$(".btn-head-temp").removeClass("disabled");
-}
-
-function clearBedTemperatures() {
-	$(".ul-bed-temp").html("");
-	$(".btn-bed-temp").addClass("disabled");
-}
-
-function addToBedTemperatures(label, gcode) {
-	$(".ul-bed-temp").append("<li><a href=\"#\">" + label + "</a></li>");
-	$(".btn-bed-temp").removeClass("disabled");
-}
-
-function setCurrentTemperature(field, temperature) {
-	if (temperature == undefined) {
-		$(field).first().html("n/a");
-	} else if (temperature == -273.15 /*ABS_ZERO*/) {
-		$(field).first().html("error");
-	} else {
-		$(field).first().html(temperature.toFixed(1) + " °C");
-	}
-}
-
-function setStatusLabel(text, style) {
-	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass(style).text(text);
-}
-
-function showPage(name) {
-	$(".navitem, .page").removeClass("active");
-	$(".navitem-" + name + ", #page_" + name).addClass("active");
-}
-
 /* GUI Events */
 
-$(".btn-connect").click(function() {
+$(".btn-connect").click(function(e) {
 	if (!isConnected) {
 		// Attempt to connect with the default password first
 		connect(defaultPassword, true);
 	} else {
 		disconnect();
 	}
+	e.preventDefault();
 });
 
-// This one should be replaced by proper CSS someday.
-// For now we only check which rows may float around.
+$(".btn-emergency-stop").click(function(e) {
+	sendGCode("M112\nM999");
+	e.preventDefault();
+});
+
+$("#btn_homex").resize(function() {
+	if (!$(this).hasClass("hidden")) {
+		$("#btn_homeall").css("width", $(this).parent().width());
+	}
+}).resize();
+
+$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(function(e) {
+	$this = $(this);
+	if ($this.data("home") != undefined) {
+		if ($this.data("home") == "all") {
+			sendGCode("G28");
+		} else {
+			sendGCode("G28 " + $this.data("home"));
+		}
+	} else {
+		var moveString = "M120\nG91\nG1";
+		if ($this.data("x") != undefined) {
+			moveString += " X" + $this.data("x");
+		}
+		if ($this.data("y") != undefined) {
+			moveString += " Y" + $this.data("y");
+		}
+		if ($this.data("z") != undefined) {
+			moveString += " Z" + $this.data("z");
+		}
+		moveString += "\nM121";
+		sendGCode(moveString);
+	}
+	e.preventDefault();
+});
+
+$(".gcode-input").submit(function(e) {
+	if (isConnected) {
+		sendGCode($(this).find("input").val());
+	}
+	e.preventDefault();
+});
+
+// Make the auto-complete dropdown items look proper.
+// This should be replaced by proper CSS someday, but
+// for now we only check which elements may float around.
 $(".div-gcodes").bind("shown.bs.dropdown", function() {
 	var maxWidth = 0;
 	$(this).find("ul > li > a").each(function() {
@@ -411,7 +442,7 @@ $(".div-gcodes").bind("shown.bs.dropdown", function() {
 	}
 });
 
-$(".span-collapse").click(function() {
+$(".span-collapse").click(function(e) {
 	var $this = $(this);
 	if(!$this.hasClass("panel-collapsed")) {
 		$this.parents(".panel").find(".panel-collapse").slideUp();
@@ -422,6 +453,7 @@ $(".span-collapse").click(function() {
 		$this.removeClass("panel-collapsed");
 		$this.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
 	}
+	e.preventDefault();
 });
 
 $("#row_info").resize(function() {
@@ -430,43 +462,14 @@ $("#row_info").resize(function() {
 
 /* List items */
 
-$(".navlink").click(function() {
+$(".navlink").click(function(e) {
 	var $target = $(this).data("target");
 	showPage($target);
+	e.preventDefault();
 });
 
-$(".gcode").click(function() {
-	// TODO
-});
-
-/* Modals */
-
-function showError(title, message, size) {
-	$("#modal_error h4").html(title);
-	$("#modal_error p").html(message);
-	$("#modal_error .modal-dialog").removeClass("modal-sm modal-md").addClass("modal-" + size);
-	$("#modal_error").modal("show");
-}
-
-function showPasswordPrompt() {
-	$('#input_password').val("");
-	$("#modal_pass_input").modal("show");
-	$("#modal_pass_input").one("hide.bs.modal", function() {
-		$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
-	});
-}
-
-$("#modal_pass_input").on('shown.bs.modal', function() {
-	$('#input_password').focus()
-});
-
-$("#modal_error").on('shown.bs.modal', function() {
-	$('#modal_error button').focus()
-});
-
-$("#form_password").submit(function(e) {
-	$("#modal_pass_input").off("hide.bs.modal").modal("hide");
-	connect($("#input_password").val(), false);
+$(".gcode").click(function(e) {
+	sendGCode($(this).data("gcode"));
 	e.preventDefault();
 });
 
@@ -505,6 +508,125 @@ function resizeCharts() {
 	if (drawTempPlot) {
 		drawTemperaturePlot();
 	}
+}
+
+/* Modals */
+
+function showMessage(title, message, size) {
+	$("#modal_message h4").html(title);
+	$("#modal_message p").html(message);
+	$("#modal_message .modal-dialog").removeClass("modal-sm modal-lg");
+	if (size != "md") {
+		$("#modal_message .modal-dialog").addClass("modal-" + size);
+	}
+	$("#modal_message").modal("show");
+}
+
+function showPasswordPrompt() {
+	$('#input_password').val("");
+	$("#modal_pass_input").modal("show");
+	$("#modal_pass_input").one("hide.bs.modal", function() {
+		$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
+	});
+}
+
+$("#modal_pass_input").on('shown.bs.modal', function() {
+	$('#input_password').focus()
+});
+
+$("#modal_message").on('shown.bs.modal', function() {
+	$('#modal_message button').focus()
+});
+
+$("#form_password").submit(function(e) {
+	$("#modal_pass_input").off("hide.bs.modal").modal("hide");
+	connect($("#input_password").val(), false);
+	e.preventDefault();
+});
+
+/* GUI Helpers */
+
+function clearGCodeList() {
+	$(".ul-gcodes").html("");
+	$(".btn-gcodes").addClass("disabled");
+}
+
+function addToGCodeList(label, gcode) {
+	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
+ 	item +=		'<span>' + label + '</span>';
+	item +=		'<span class="label label-primary">' + gcode + '</span>';
+	item +=		'</a></li>';
+	
+	$(".ul-gcodes").append(item);
+	$(".btn-gcodes").removeClass("disabled");
+}
+
+function clearHeadTemperatures() {
+	$(".ul-heat-temp").html("");
+	$(".btn-head-temp").addClass("disabled");
+}
+
+function addToHeadTemperatures(label, gcode) {
+	$(".ul-head-temp").append("<li><a href=\"#\">" + label + "</a></li>");
+	$(".btn-head-temp").removeClass("disabled");
+}
+
+function clearBedTemperatures() {
+	$(".ul-bed-temp").html("");
+	$(".btn-bed-temp").addClass("disabled");
+}
+
+function addToBedTemperatures(label, gcode) {
+	$(".ul-bed-temp").append("<li><a href=\"#\">" + label + "</a></li>");
+	$(".btn-bed-temp").removeClass("disabled");
+}
+
+function setCurrentTemperature(heater, temperature) {
+	var field = (heater == "bed") ? "#tr_bed td" : "#tr_head_" + heater + " td";
+	if (temperature == undefined) {
+		$(field).first().html("n/a");
+	} else if (temperature == -273.15 /*ABS_ZERO*/) {
+		$(field).first().html("error");
+	} else {
+		$(field).first().html(temperature.toFixed(1) + " °C");
+	}
+}
+
+function setStatusLabel(text, style) {
+	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
+}
+
+function setDeltaMode(deltaOn) {
+	if (deltaOn) {
+		$(".home-buttons div, div.home-buttons").addClass("hidden");
+		$("td.home-buttons").css("padding-right", "0px");
+		$("#btn_homeall").css("width", "");
+	} else {
+		$(".home-buttons div, div.home-buttons").removeClass("hidden");
+		$("td.home-buttons").css("padding-right", "");
+		$("#btn_homeall").resize();
+	}
+	isDeltaPrinter = deltaOn;
+}
+
+function setTemperatureInput(head, value, active) {
+	var tempInput;
+	
+	if (head == "bed") {
+		tempInput = "#input_temp_bed";
+	} else {
+		tempInput = "#input_temp_h" + head + "_";
+		tempInput += (active) ? "active": "standby";
+	}
+	
+	if (!$(tempInput).is(":focus")) {
+		$(tempInput).val((value < 0) ? 0 : value);
+	}
+}
+
+function showPage(name) {
+	$(".navitem, .page").removeClass("active");
+	$(".navitem-" + name + ", #page_" + name).addClass("active");
 }
 
 /* DEMO */
