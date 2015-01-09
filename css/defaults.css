@@ -170,16 +170,16 @@ body {
 	width: 100px;
 }
 
-#tr_head_1 a {
+#tr_head_1 th > a {
 	color: #FF0000;
 }
-#tr_head_2 a {
+#tr_head_2 th > a {
 	color: #00DD00;
 }
-#tr_head_3 a {
+#tr_head_3 th > a {
 	color: #FFA000;
 }
-#tr_head_4 a {
+#tr_head_4 th > a {
 	color: #FF00FF;
 }
 #tr_bed th {

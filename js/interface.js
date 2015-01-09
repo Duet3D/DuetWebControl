@@ -5,16 +5,13 @@
 var maxTemperatureSamples = 1000;
 
 var sessionPassword = "reprap";
-var heatedBed = 1;					// either 0 or 1
 
 var updateFrequency = 250;			// in ms
 var haltedReconnectDelay = 5000;	// in ms
+var extendedStatusInterval = 10;	// get extended status response every n requests
 
 // Probe highlighting
-var probeSlowDownValue = 400;
-var probeSlowDownColor = "#FFFFE0";
-var probeTriggerValue = 500;
-var probeTriggerColor = "#FFF0F0";
+var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 // Charts
 var tempChart;
@@ -35,21 +32,33 @@ var tempChartPadding = 15;
 
 /* Variables */
 
-var isConnected = false, isDelta = false;
+var isConnected = false, isDelta, isPrinting;
+var extendedStatusCounter;
+
+var lastSeq, lastSendGCode;
+
+var probeSlowDownValue, probeTriggerValue;
+
+var heatedBed, numHeads, numExtruderDrives;
+var toolMapping;
 
 var recordedBedTemperatures, recordedHeadTemperatures;
 var drawTempChart = false;
 
-var numHeads, numExtruderDrives;
-
-var lastFirmwareMessage;
-
 function resetGuiData() {
+	isDelta = isPrinting = false;
+	lastSeq = 0;
+	lastSendGCode = "";
+	probeSlowDownValue = probeTriggerValue = undefined;
+	
+	heatedBed = 1;
 	numHeads = 4;			// 4 Heads max
 	numExtruderDrives = 5;	// 5 Extruder Drives max
 	
 	recordedBedTemperatures = [];
 	recordedHeadTemperatures = [[], [], [], []];
+	
+	toolMapping = undefined;
 }
 
 /* Connect / Disconnect */
@@ -103,6 +112,7 @@ function connect(password, firstConnect) {
 
 function postConnect() {
 	isConnected = true;
+	extendedStatusCounter = 0;
 	
 	updateStatus();
 	//updateFileInfo();
@@ -130,7 +140,17 @@ function disconnect() {
 /* Automatic status update */
 
 function updateStatus() {
-	$.ajax("rr_status", {
+	var ajaxRequest = "rr_status";
+	if (extendedStatusCounter == 0) {
+		ajaxRequest += "?type=2";
+	} else {
+		extendedStatusCounter++;
+		if (extendedStatusCounter > extendedStatusInterval) {
+			extendedStatusCounter = 0;
+		}
+	}
+		
+	$.ajax(ajaxRequest, {
 		async: true,
 		dataType: "json",
 		error: function() {
@@ -143,8 +163,12 @@ function updateStatus() {
 			if (!isConnected) {
 				return;
 			}
+			var needGuiUpdate = false;
+			
+			/*** Ordinary status response ***/
 			
 			// Status
+			isPrinting = false;
 			switch (status.status) {
 				case 'H':	// Halted
 					setStatusLabel("Halted", "danger");
@@ -164,6 +188,7 @@ function updateStatus() {
 					
 				case 'P':	// Printing
 					setStatusLabel("Printing", "success");
+					isPrinting = true;
 					break;
 					
 				case 'B':	// Busy
@@ -175,55 +200,90 @@ function updateStatus() {
 					break;
 			}
 			
-			// Heaters
-			if (status.heaters.length != numHeads + heatedBed) {
-				numHeads = status.heaters.length - heatedBed;
-				updateGui();
-			}
-			if (heatedBed) {
-				setCurrentTemperature("bed", status.heaters[0]);
-				setTemperatureInput("bed", status.active[0], 1);
-			}
+			// Set homed axes
+			setAxesHomed(status.coords.axesHomed);
 			
-			var heater;
-			for(var i=heatedBed; i<status.heaters.length; i++) {
-				heater = (i + (1 - heatedBed));
-				setCurrentTemperature(heater, status.heaters[i]);
-				setTemperatureInput(heater, status.active[i], 1);
-				setTemperatureInput(heater, status.standby[i], 0);
-			}
-			
-			recordHeaterTemperatures(status.heaters);
-			drawTemperatureChart();
-			
-			// Live Coordinates
-			//if (isDelta && status.homed != TRUE?!) <- set values to n/a if not homed
-			$("#td_x").html(status.pos[0].toFixed(2));
-			$("#td_y").html(status.pos[1].toFixed(2));
-			$("#td_z").html(status.pos[2].toFixed(2));
-			
-			// Extruder Drives
-			if (status.extr.length != numExtruderDrives) {
-				numExtruderDrives = status.extr.length;
-				updateGui();
+			// Update extruder drives
+			if (status.coords.extr.length != numExtruderDrives) {
+				numExtruderDrives = status.coords.extr.length;
+				needGuiUpdate = true;
 			}
 			for(var i=1; i<=numExtruderDrives; i++) {
-				$("#td_extr_" + i).html(status.extr[i - 1].toFixed(1));
+				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
 			}
-			$("#td_extr_total").html(status.extr.reduce(function(a, b) { return a + b; }));
+			$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
+			// TODO: process extrRaw here
+			
+			// XYZ coordinates
+			if (isDelta && !status.coords.axesHomed[0]) {
+				$("#td_x, #td_y, #td_z").hmtl("n/a");
+			} else {
+				$("#td_x").html(status.coords.xyz[0].toFixed(2));
+				$("#td_y").html(status.coords.xyz[1].toFixed(2));
+				$("#td_z").html(status.coords.xyz[2].toFixed(2));
+			}
+			
+			// TODO: process currentTool here
+			
+			// Output
+			if (status.hasOwnProperty("output")) {
+				if (status.output.hasOwnProperty("beepDuration")) {
+					// TODO: implement beep here
+				}
+				if (status.output.hasOwnProperty("message")) {
+					showMessage("envelope", "Message from Duet firmware", status.output.message, "md");
+				}
+			}
+			
+			// TODO: process params here
+			// TODO: check seq here (see lastSeq)
 			
 			// Sensors
-			setProbeValue(status.probe);
-			$("#td_fanrpm").html(status.fanRPM);
+			setProbeValue(status.sensors.probe);
+			$("#td_fanrpm").html(status.sensors.fanRPM);
 			
-			// Homed axes
-			setAxesHomed(status.homed);
-			
-			// Message from firmware
-			if (status.hasOwnProperty("message") && status.message != "" && status.message != lastFirmwareMessage) {
-				showMessage("envelope", "Message from Duet firmware", status.message, "md");
-				lastFirmwareMessage = status.message;
+			// Heated bed
+			if (status.temps.hasOwnProperty("bed")) {
+				setCurrentTemperature("bed", status.temps.bed.current);
+				setTemperatureInput("bed", status.temps.bed.active, 1);
+				// TODO: process heater state
+			} else if (heatedBed) {
+				heatedBed = 0;
+				needGuiUpdate = true;
 			}
+			
+			// Heads
+			if (status.temps.heads.current.length != numHeads) {
+				numHeads = status.temps.heads.current.length;
+				needGuiUpdate = true;
+			}
+			for(var i=0; i<status.temps.heads.current.length; i++) {
+				setCurrentTemperature(i + 1, status.temps.heads.current[i]);
+				setTemperatureInput(i + 1, status.temps.heads.active[i], 1);
+				setTemperatureInput(i + 1, status.temps.heads.standby[i], 0);
+				// TODO: process heater state
+			}
+			recordHeaterTemperatures(status.temps.bed.current, status.temps.heads.current);
+			
+			/*** Extended status response ***/
+			
+			if (status.hasOwnProperty("tools")) {
+				toolMapping = status.tools;
+			}
+			if (status.hasOwnProperty("probe")) {
+				probeTriggerValue = status.probe.threshold;
+				probeSlowDownValue = probeTriggerValue * 0.9;	// see Platform::Stopped in dc42/zpl firmware forks
+			}
+			
+			/*** Print status response ***/
+			
+			// TODO
+			
+			// Update the GUI when we have processed the whole status response
+			if (needGuiUpdate) {
+				updateGui();
+			}
+			drawTemperatureChart();
 			
 			// Set timer for next status update
 			if (status.status != 'H') {
@@ -238,6 +298,8 @@ function updateStatus() {
 }
 
 function sendGCode(gcode) {
+	lastSendGCode = gcode;
+	
 	// Although rr_gcode gives us a JSON response, it doesn't provide any results.
 	// We only need to worry about an AJAX error event.
 	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
@@ -480,6 +542,16 @@ $("#input_temp_bed").keydown(function(e) {
 	}
 });
 
+$("input[id*='input_temp_h']").keydown(function(e) {
+	if (isConnected && e.which == 13) {
+		var activeOrStandby = ($(this).attr("id").match("active$")) ? "S" : "R";
+		var heater = $(this).attr("id").match("_h(.)_")[1];
+		
+		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + $(this).val());
+		e.preventDefault();
+	}
+});
+
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 
 $(".navlink").click(function(e) {
@@ -599,7 +671,7 @@ $("#form_password").submit(function(e) {
 /* GUI Helpers */
 
 function addToBedTemperatures(label, temperature) {
-	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">"' + label + '</a></li>');
+	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">' + label + '</a></li>');
 	$(".btn-bed-temp").removeClass("disabled");
 	
 	$(".bed-temp").click(function(e) {
@@ -631,19 +703,21 @@ function addToControlMacros(label, filename) {
 	$("#panel_macro_buttons h4").addClass("hidden");
 	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
 	
-	
 	$(".btn-macro").click(function() {
 		sendGCode("M98 P" + $(this).data("macro"));
 	});
 }
 
-function addToHeadTemperatures(label, gcode) {
-	$(".ul-head-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">"' + label + '</a></li>');
+function addToHeadTemperatures(label, temperature) {
+	$(".ul-head-temp").append('<li><a href="#" class="head-temp" data-temp="' + temperature + '">' + label + '</a></li>');
 	$(".btn-head-temp").removeClass("disabled");
 	
 	$(".head-temp").click(function(e) {
-		// TODO: get tool from tool mapping and check if it's meant to set the active or standby temperature
-		//sendGCode("G10 P" + tool + " " + activeOrStandby + " " + $(this).data("temp"));
+		var inputElement = $(this).parent().parent().parent().parent().children("input");
+		var activeOrStandby = (inputElement.attr("id").match("active$")) ? "S" : "R";
+		var heater = inputElement.attr("id").match("_h(.)_")[1];
+		
+		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + " " + $(this).data("temp"));
 		e.preventDefault();
 	});
 }
@@ -668,11 +742,10 @@ function clearHeadTemperatures() {
 	$(".btn-head-temp").addClass("disabled");
 }
 
-function recordHeaterTemperatures(values) {
+function recordHeaterTemperatures(bedTemp, headTemps) {
 	// Add bed temperature
 	if (heatedBed) {
-		recordedBedTemperatures.push(values[0]);
-		values.shift();
+		recordedBedTemperatures.push(bedTemp);
 	} else {
 		recordedBedTemperatures = [];
 	}
@@ -682,11 +755,16 @@ function recordHeaterTemperatures(values) {
 	}
 	
 	// Add heater temperatures
-	for(var i=0; i<values.length; i++) {
-		recordedHeadTemperatures[i].push(values[i]);
+	for(var i=0; i<headTemps.length; i++) {
+		recordedHeadTemperatures[i].push(headTemps[i]);
 		if (recordedHeadTemperatures[i].length > maxTemperatureSamples) {
 			recordedHeadTemperatures[i].shift();
 		}
+	}
+	
+	// Remove invalid data (in case the number of heads has changed)
+	for(var i=headTemps.length; i<4; i++) {
+		recordedHeadTemperatures[i] = [];
 	}
 }
 
@@ -768,9 +846,9 @@ function setDeltaMode(deltaOn) {
 
 function setProbeValue(value) {
 	$("#td_probe").html((value < 0) ? "n/a" : value);
-	if (value > probeTriggerValue) {
+	if (probeTriggerValue != undefined && value > probeTriggerValue && !isPrinting) {
 		$("#td_probe").css("background-color", probeTriggerColor);
-	} else if (value > probeSlowDownValue) {
+	} else if (probeSlowDownValue != undefined && value > probeSlowDownValue && !isPrinting) {
 		$("#td_probe").css("background-color", probeSlowDownColor);
 	} else {
 		$("#td_probe").css("background-color", "");
@@ -795,6 +873,23 @@ function setTemperatureInput(head, value, active) {
 function showPage(name) {
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
+}
+
+/* Data helpers */
+
+function getToolByHeater(heater) {
+	if (toolMapping == undefined) {
+		return 0;
+	}
+	
+	for(var i=0; i<toolMapping.length; i++) {
+		for(var k=0; k<toolMapping[i].heaters.length; k++) {
+			if (toolMapping[i].heaters[k] == heater) {
+				return i + 1;
+			}
+		}
+	}
+	return 0;
 }
 
 /* DEMO */
