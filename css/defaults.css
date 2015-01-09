@@ -152,12 +152,8 @@ body {
 	cursor: pointer;
 }
 
-span.title {
+.panel-heading span {
 	font-size: 14px;
-}
-
-.table-compact {
-	margin: 0px !important;
 }
 
 .table-centered-cells th, .table-centered-cells td {
@@ -165,8 +161,13 @@ span.title {
 	vertical-align: middle !important;
 }
 
+.table-status {
+	margin: 0px !important;
+	table-layout: fixed;
+}
+
 .th-status {
-	width: 120px;
+	width: 100px;
 }
 
 #tr_head_1 a {
@@ -243,9 +244,23 @@ span.title {
 /* Main Content */
 
 @media (min-width: 768px) {
-	#main_content div[class^='col-'] {
+	#main_content row > div[class^='col-'] {
 		padding-left: 8px !important;
 		padding-right: 8px !important;
+	}
+}
+
+.no-horizontal-padding {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
+
+@media (max-width: 991px) {
+	.no-horizontal-padding-sm {
+		padding-left: 0px !important;
+		padding-right: 0px !important;
+		padding-top: 9px;
+		padding-bottom: 9px;
 	}
 }
 
@@ -267,7 +282,32 @@ span.title {
 	display: block !important;
 }
 
+#panel_macro_buttons h4 {
+	margin-top: 15px;
+	margin-bottom: 0px;
+}
+
 /* Control Page */
+
+.btn-group-vertical-justified {
+	display: inline-block;
+	width: 100%;
+}
+
+#home_warning {
+	margin-top: -14px;
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
+.label-not-bold {
+	font-weight: inherit;
+}
+
+#panel_extrude label.btn {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+}
 
 #mobile_home_buttons {
 	padding-bottom: 9px;
@@ -278,8 +318,12 @@ span.title {
 }
 
 #table_move_head a {
-	padding-left: 8px;
-	padding-right: 8px;
+	padding-left: 6px;
+	padding-right: 6px;
+}
+#table_move_head a[class*='btn-home-'] {
+	padding-left: 12px;
+	padding-right: 12px;
 }
 
 #table_move_head td {

@@ -2,11 +2,24 @@
 
 /* Constant values */
 
-var errorSpan = '<span class="glyphicon glyphicon-exclamation-sign"></span> ';
-var infoSpan = '<span class="glyphicon glyphicon-info-sign"></span> ';
-var warningSpan = '<span class="glyphicon glyphicon-warning-sign"></span> ';
+var maxTemperatureSamples = 1000;
 
+var sessionPassword = "reprap";
+var heatedBed = 1;					// either 0 or 1
+
+var updateFrequency = 250;			// in ms
+var haltedReconnectDelay = 5000;	// in ms
+
+// Probe highlighting
+var probeSlowDownValue = 400;
+var probeSlowDownColor = "#FFFFE0";
+var probeTriggerValue = 500;
+var probeTriggerColor = "#FFF0F0";
+
+// Charts
+var tempChart;
 var tempChartOptions = 	{
+							colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF"],
 							grid: {
 								borderWidth: 0
 							},
@@ -20,18 +33,14 @@ var tempChartOptions = 	{
 						};
 var tempChartPadding = 15;
 
-var defaultPassword = "reprap";
-var heatedBed = 1;					// either 0 or 1
-var updateFrequency = 250;			// in ms
-
 /* Variables */
 
-var isConnected = false, isDeltaPrinter = false;
+var isConnected = false, isDelta = false;
 
-var drawTempPlot = false;
+var recordedBedTemperatures, recordedHeadTemperatures;
+var drawTempChart = false;
 
 var numHeads, numExtruderDrives;
-var recordedBedTemperatures, recordedHeadTemperatures;
 
 var lastFirmwareMessage;
 
@@ -40,11 +49,7 @@ function resetGuiData() {
 	numExtruderDrives = 5;	// 5 Extruder Drives max
 	
 	recordedBedTemperatures = [];
-	recordedHeadTemperatures = [];
-	for(var i=0; i<numHeads; i++)
-	{
-		recordedHeadTemperatures.push([]);
-	}
+	recordedHeadTemperatures = [[], [], [], []];
 }
 
 /* Connect / Disconnect */
@@ -56,7 +61,7 @@ function connect(password, firstConnect) {
 		async: true,
 		dataType: "json",
 		error: function() {
- 			showMessage(errorSpan + "Error", "Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again.", "md");
+ 			showMessage("exclamation-sign", "Error", "Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again.", "md");
 			$("#modal_message").one("hide.bs.modal", function() {
 				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
 				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
@@ -64,7 +69,7 @@ function connect(password, firstConnect) {
 		},
 		success: function(data) {
 			if (data.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				showMessage(errorSpan + "Error", "Could not connect to Duet, because there are no more HTTP sessions available.", "md");
+				showMessage("exclamation-sign", "Error", "Could not connect to Duet, because there are no more HTTP sessions available.", "md");
 				$("#modal_message").one("hide.bs.modal", function() {
 					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
 					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
@@ -73,6 +78,7 @@ function connect(password, firstConnect) {
 			else if (firstConnect)
 			{
 				if (data.err == 0) {	// No password authentication required
+					sessionPassword = password;
 					postConnect();
 				}
 				else {					// We can connect, but we need a password first
@@ -81,9 +87,10 @@ function connect(password, firstConnect) {
 			}
 			else {
 				if (data.err == 0) {	// Connect successful
+					sessionPassword = password;
 					postConnect();
 				} else {
-					showMessage(errorSpan + "Error", "Invalid password!", "sm");
+					showMessage("exclamation-sign", "Error", "Invalid password!", "sm");
 					$("#modal_message").one("hide.bs.modal", function() {
 						$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
 						$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
@@ -177,6 +184,7 @@ function updateStatus() {
 				setCurrentTemperature("bed", status.heaters[0]);
 				setTemperatureInput("bed", status.active[0], 1);
 			}
+			
 			var heater;
 			for(var i=heatedBed; i<status.heaters.length; i++) {
 				heater = (i + (1 - heatedBed));
@@ -185,8 +193,11 @@ function updateStatus() {
 				setTemperatureInput(heater, status.standby[i], 0);
 			}
 			
+			recordHeaterTemperatures(status.heaters);
+			drawTemperatureChart();
+			
 			// Live Coordinates
-			//if (isDeltaPrinter && status.homed != TRUE?!) <- set values to n/a if not homed
+			//if (isDelta && status.homed != TRUE?!) <- set values to n/a if not homed
 			$("#td_x").html(status.pos[0].toFixed(2));
 			$("#td_y").html(status.pos[1].toFixed(2));
 			$("#td_z").html(status.pos[2].toFixed(2));
@@ -202,17 +213,26 @@ function updateStatus() {
 			$("#td_extr_total").html(status.extr.reduce(function(a, b) { return a + b; }));
 			
 			// Sensors
-			$("#td_probe").html(status.probe);
+			setProbeValue(status.probe);
 			$("#td_fanrpm").html(status.fanRPM);
+			
+			// Homed axes
+			setAxesHomed(status.homed);
 			
 			// Message from firmware
 			if (status.hasOwnProperty("message") && status.message != "" && status.message != lastFirmwareMessage) {
-				showMessage(infoSpan + "Message from Duet firmware", status.message, "md");
+				showMessage("envelope", "Message from Duet firmware", status.message, "md");
 				lastFirmwareMessage = status.message;
 			}
 			
 			// Set timer for next status update
-			setTimeout(updateStatus, updateFrequency);
+			if (status.status != 'H') {
+				setTimeout(updateStatus, updateFrequency);
+			} else {
+				setTimeout(function() {
+					connect(sessionPassword, false);
+				}, haltedReconnectDelay);
+			}
 		}
 	});
 }
@@ -228,7 +248,7 @@ function sendGCode(gcode) {
 }
 
 function ajaxError() {
-	showMessage(warningSpan + "Communication Error", "An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
+	showMessage("warning-sign", "Communication Error", "An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
 	disconnect();
 }
 
@@ -250,13 +270,17 @@ $(document).ready(function() {
 });
 
 function enableControls() {
-	$(".btn-emergency-stop, .gcode-input button[type=submit]").removeClass("disabled");			// Navbar
+	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
+	$(".bed-temp, .head-temp").removeClass("disabled");											// Temperature auto-complete
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
+	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 }
 
 function disableControls() {
-	$(".btn-emergency-stop, .gcode-input button[type=submit]").addClass("disabled");			// Navbar
+	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
+	$(".bed-temp, .head-temp").addClass("disabled");											// Temperature auto-complete
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
+	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 }
 
 function updateGui() {
@@ -317,7 +341,7 @@ function updateGui() {
 	// Charts
 	
 	resizeCharts();
-	drawTemperaturePlot();
+	drawTemperatureChart();
 }
 
 function resetGui() {
@@ -341,40 +365,47 @@ function resetGui() {
 		setTemperatureInput(i, 0, 0);
 	}
 	
-	// Head Position
+	// Status fields
 	
 	$("#td_x, #td_y, #td_z").text("n/a");
-	
-	// Extruder Position
-	
 	for(var i=1; i<=numExtruderDrives; i++) {
 		$("#td_extr_" + i).text("n/a");
 	}
 	$("#td_extr_total").text("n/a");
+	setProbeValue(-1);
+	$("#td_fanrpm").text("n/a");
 	
-	// Sensors
-	
-	$("#td_probe, #td_fanrpm").text("n/a");
+	// Control page
+	setAxesHomed([1,1,1]);
 }
 
-/* GUI Events */
+/* Static GUI Events */
 
-$(".btn-connect").click(function(e) {
+$(".btn-connect").click(function() {
 	if (!isConnected) {
-		// Attempt to connect with the default password first
-		connect(defaultPassword, true);
+		// Attempt to connect with the last-known password first
+		connect(sessionPassword, true);
 	} else {
 		disconnect();
 	}
-	e.preventDefault();
 });
 
-$(".btn-emergency-stop").click(function(e) {
+$(".btn-emergency-stop").click(function() {
 	sendGCode("M112\nM999");
-	e.preventDefault();
 });
 
-$("#btn_homex").resize(function() {
+$("#btn_extrude").click(function(e) {
+	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
+	var amount = $("#panel_extrude input[name=feed]").val();
+	sendGCode("G1 E" + amount + " F" + feedrate);
+});
+$("#btn_retract").click(function(e) {
+	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
+	var amount = $("#panel_extrude input[name=feed]").val();
+	sendGCode("G1 E-" + amount + " F" + feedrate);
+});
+
+$(".btn-home-x").resize(function() {
 	if (!$(this).hasClass("hidden")) {
 		$("#btn_homeall").css("width", $(this).parent().width());
 	}
@@ -442,7 +473,27 @@ $(".div-gcodes").bind("shown.bs.dropdown", function() {
 	}
 });
 
-$(".span-collapse").click(function(e) {
+$("#input_temp_bed").keydown(function(e) {
+	if (isConnected && e.which == 13) {
+		sendGCode("M140 S" + $(this).val());
+		e.preventDefault();
+	}
+});
+
+$(".navbar-brand").click(function(e) { e.preventDefault(); });
+
+$(".navlink").click(function(e) {
+	var $target = $(this).data("target");
+	showPage($target);
+	e.preventDefault();
+});
+
+$("#panel_extrude label.btn").click(function() {
+	$(this).parent().find("label.btn").removeClass("btn-primary").addClass("btn-default");
+	$(this).removeClass("btn-default").addClass("btn-primary");
+});
+
+$(".span-collapse").click(function() {
 	var $this = $(this);
 	if(!$this.hasClass("panel-collapsed")) {
 		$this.parents(".panel").find(".panel-collapse").slideUp();
@@ -453,45 +504,45 @@ $(".span-collapse").click(function(e) {
 		$this.removeClass("panel-collapsed");
 		$this.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
 	}
-	e.preventDefault();
 });
 
 $("#row_info").resize(function() {
 	resizeCharts();
 });
 
-/* List items */
-
-$(".navlink").click(function(e) {
-	var $target = $(this).data("target");
-	showPage($target);
-	e.preventDefault();
-});
-
-$(".gcode").click(function(e) {
-	sendGCode($(this).data("gcode"));
-	e.preventDefault();
-});
-
 /* Temperature charts */
 
-function drawTemperaturePlot()
+function drawTemperatureChart()
 {
+	// Only draw the chart if it's possible
 	if ($("#chart_temp").width() === 0) {
-		drawTempPlot = true;
+		drawTempChart = true;
 		return;
 	}
 	
-	var plotData = [];
-	if (heatedBed) {
-		plotData.push(recordedBedTemperatures);
+	// Prepare the data
+	var preparedBedTemps = [];
+	for(var i=0; i<recordedBedTemperatures.length; i++) {
+		preparedBedTemps.push([i, recordedBedTemperatures[i]]);
 	}
-	for(var i=0; i<numHeads; i++) {
-		plotData.push(recordedHeadTemperatures[i]);
+	var preparedHeadTemps = [[], [], [], []], heaterSamples;
+	for(var head=0; head<recordedHeadTemperatures.length; head++) {
+		heaterSamples = recordedHeadTemperatures[head];
+		for(var k=0; k<heaterSamples.length; k++) {
+			preparedHeadTemps[head].push([k, heaterSamples[k]]);
+		}
 	}
-
-	$.plot("#chart_temp", plotData, tempChartOptions);
-	drawTempPlot = false;
+	
+	// Draw it
+	if (tempChart == undefined) {
+		tempChart = $.plot("#chart_temp", [preparedBedTemps, preparedHeadTemps[0], preparedHeadTemps[1], preparedHeadTemps[2], preparedHeadTemps[3]], tempChartOptions);
+	} else {
+		tempChart.setData([preparedBedTemps, preparedHeadTemps[0], preparedHeadTemps[1], preparedHeadTemps[2], preparedHeadTemps[3]]);
+		tempChart.setupGrid();
+		tempChart.draw();
+	}
+	
+	drawTempChart = false;
 }
 
 function resizeCharts() {
@@ -505,15 +556,16 @@ function resizeCharts() {
 		$("#chart_temp").css("height", max);
 	}
 	
-	if (drawTempPlot) {
-		drawTemperaturePlot();
+	if (drawTempChart) {
+		drawTemperatureChart();
 	}
 }
 
 /* Modals */
 
-function showMessage(title, message, size) {
-	$("#modal_message h4").html(title);
+function showMessage(icon, title, message, size) {
+	$("#modal_message h4").html((icon == "") ? "" :  '<span class="glyphicon glyphicon-' + icon + '"></span> ');
+	$("#modal_message h4").append(title);
 	$("#modal_message p").html(message);
 	$("#modal_message .modal-dialog").removeClass("modal-sm modal-lg");
 	if (size != "md") {
@@ -546,9 +598,14 @@ $("#form_password").submit(function(e) {
 
 /* GUI Helpers */
 
-function clearGCodeList() {
-	$(".ul-gcodes").html("");
-	$(".btn-gcodes").addClass("disabled");
+function addToBedTemperatures(label, temperature) {
+	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">"' + label + '</a></li>');
+	$(".btn-bed-temp").removeClass("disabled");
+	
+	$(".bed-temp").click(function(e) {
+		sendGCode("M140 S" + $(this).data("temp"));
+		e.preventDefault();
+	});
 }
 
 function addToGCodeList(label, gcode) {
@@ -559,16 +616,36 @@ function addToGCodeList(label, gcode) {
 	
 	$(".ul-gcodes").append(item);
 	$(".btn-gcodes").removeClass("disabled");
+	
+	$(".gcode").click(function(e) {
+		sendGCode($(this).data("gcode"));
+		e.preventDefault();
+	});
 }
 
-function clearHeadTemperatures() {
-	$(".ul-heat-temp").html("");
-	$(".btn-head-temp").addClass("disabled");
+function addToControlMacros(label, filename) {
+	var macroButton =	'<div class="btn-group">';
+	macroButton +=		'<button class="btn btn-default btn-macro" data-macro="' + filename + '">' + label + '</button>';
+	macroButton +=		'</div>';
+	
+	$("#panel_macro_buttons h4").addClass("hidden");
+	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
+	
+	
+	$(".btn-macro").click(function() {
+		sendGCode("M98 P" + $(this).data("macro"));
+	});
 }
 
 function addToHeadTemperatures(label, gcode) {
-	$(".ul-head-temp").append("<li><a href=\"#\">" + label + "</a></li>");
+	$(".ul-head-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">"' + label + '</a></li>');
 	$(".btn-head-temp").removeClass("disabled");
+	
+	$(".head-temp").click(function(e) {
+		// TODO: get tool from tool mapping and check if it's meant to set the active or standby temperature
+		//sendGCode("G10 P" + tool + " " + activeOrStandby + " " + $(this).data("temp"));
+		e.preventDefault();
+	});
 }
 
 function clearBedTemperatures() {
@@ -576,9 +653,89 @@ function clearBedTemperatures() {
 	$(".btn-bed-temp").addClass("disabled");
 }
 
-function addToBedTemperatures(label, gcode) {
-	$(".ul-bed-temp").append("<li><a href=\"#\">" + label + "</a></li>");
-	$(".btn-bed-temp").removeClass("disabled");
+function clearControlMacros() {
+	$("#panel_macro_buttons .btn-group-vertical").html("");
+	$("#panel_macro_buttons h4").removeClass("hidden");
+}
+
+function clearGCodeList() {
+	$(".ul-gcodes").html("");
+	$(".btn-gcodes").addClass("disabled");
+}
+
+function clearHeadTemperatures() {
+	$(".ul-heat-temp").html("");
+	$(".btn-head-temp").addClass("disabled");
+}
+
+function recordHeaterTemperatures(values) {
+	// Add bed temperature
+	if (heatedBed) {
+		recordedBedTemperatures.push(values[0]);
+		values.shift();
+	} else {
+		recordedBedTemperatures = [];
+	}
+	
+	if (recordedBedTemperatures.length > maxTemperatureSamples) {
+		recordedBedTemperatures.shift();
+	}
+	
+	// Add heater temperatures
+	for(var i=0; i<values.length; i++) {
+		recordedHeadTemperatures[i].push(values[i]);
+		if (recordedHeadTemperatures[i].length > maxTemperatureSamples) {
+			recordedHeadTemperatures[i].shift();
+		}
+	}
+}
+
+function setAxesHomed(axes) {
+	// If we have only one possibility to home the axes, we must have a delta configuration
+	setDeltaMode(axes.length == 1);
+	
+	if (isDelta) {
+		// Only set home alert visibility, axis buttons are hidden
+		if (axes[0]) {
+			$("#home_warning").addClass("hidden");
+		} else {
+			$("#unhomed_warning").html("The machine is not homed.");
+			$("#home_warning").removeClass("hidden");
+		}
+	} else {
+		// Set button colors
+		var unhomedAxes = "";
+		if (axes[0]) {
+			$(".btn-home-x").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes = ", X";
+			$(".btn-home-x").removeClass("btn-primary").addClass("btn-warning");
+		}
+		if (axes[1]) {
+			$(".btn-home-y").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes += ", Y";
+			$(".btn-home-y").removeClass("btn-primary").addClass("btn-warning");
+		}
+		if (axes[2]) {
+			$(".btn-home-z").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes += ", Z";
+			$(".btn-home-z").removeClass("btn-primary").addClass("btn-warning");
+		}
+		
+		// Set home alert visibility
+		if (unhomedAxes == "") {
+			$("#home_warning").addClass("hidden");
+		} else {
+			if (unhomedAxes.length > 3) {
+				$("#unhomed_warning").html("The following axes are not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
+			} else {
+				$("#unhomed_warning").html("The following axis is not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
+			}
+			$("#home_warning").removeClass("hidden");
+		}
+	}
 }
 
 function setCurrentTemperature(heater, temperature) {
@@ -606,7 +763,18 @@ function setDeltaMode(deltaOn) {
 		$("td.home-buttons").css("padding-right", "");
 		$("#btn_homeall").resize();
 	}
-	isDeltaPrinter = deltaOn;
+	isDelta = deltaOn;
+}
+
+function setProbeValue(value) {
+	$("#td_probe").html((value < 0) ? "n/a" : value);
+	if (value > probeTriggerValue) {
+		$("#td_probe").css("background-color", probeTriggerColor);
+	} else if (value > probeSlowDownValue) {
+		$("#td_probe").css("background-color", probeSlowDownColor);
+	} else {
+		$("#td_probe").css("background-color", "");
+	}
 }
 
 function setTemperatureInput(head, value, active) {
@@ -631,7 +799,7 @@ function showPage(name) {
 
 /* DEMO */
 
-$('#knob_heaters').knob({"change" : function (value) {
+/*$('#knob_heaters').knob({"change" : function (value) {
 	value = Math.round(value);
 	if (value > 0) {
 		numHeads = value - 1;
@@ -647,4 +815,4 @@ $('#knob_extr').knob({"change" : function(value) {
 	value = Math.round(value);
 	numExtruderDrives = value;
 	updateGui();
-}});
+}});*/

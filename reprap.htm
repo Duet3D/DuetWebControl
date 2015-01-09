@@ -65,7 +65,7 @@
 						<table class="table navbar-table">
 							<tr>
 								<td>
-									<button type="button" class="btn btn-connect btn-info"><span>Connect</span></button>
+									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
 								</td>
 								<td>
 									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled">Emergency STOP</button>
@@ -89,13 +89,14 @@
 							<tr>
 								<td colspan="2">
 									<ul class="nav nav-pills">
-										<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control">Control</a></li>
-										<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print">Print Job</a></li>
-										<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal">Terminal</a></li>
-										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files">Files</a></li>
-										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools">Spools</a></li>
-										<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance">Maintenance</a></li>
-										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings">Settings</a></li>
+										<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Control</a></li>
+										<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Job</a></li>
+										<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-list-alt"></span> Terminal</a></li>
+										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files</a></li>
+										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros</a></li>
+										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
+										<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
+										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
 									</ul>
 								</td>
 							</tr>
@@ -112,7 +113,7 @@
 				<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_heaters">
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
-							<span class="title">Heater Temperatures</span>
+							<span>Heater Temperatures</span>
 							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
 						</div>
 						
@@ -249,7 +250,7 @@
 				<div class="hidden-xs hidden-sm col-md-3 col-lg-3" id="div_temp_chart">
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
-							<span class="title">Temperature Chart</span>
+							<span>Temperature Chart</span>
 						</div>
 						
 						<div class="panel-body panel-chart">
@@ -264,14 +265,14 @@
 				<div class="col-xs-12 col-sm-7 col-md-4 col-lg-5" id="div_status">
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
-							<span class="title">Machine Status</span>
+							<span>Machine Status</span>
 							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
 						</div>
 						
 						<div class="panel-collapse" id="div_status_table">
 							<div class="row" id="row_status_1">
 								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+									<table class="table table-bordered table-condensed table-centered-cells table-status">
 										<tr>
 											<th rowspan="2" class="th-status">Head Position</th>
 											<th>X</th>
@@ -289,7 +290,7 @@
 							
 							<div class="row" id="row_status_2">
 								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+									<table class="table table-bordered table-condensed table-centered-cells table-status">
 										<tr>
 											<th rowspan="2" class="th-status">Extruder Drives</th>
 											<th class="hidden"><!-- only for HTML validation --></th>
@@ -313,7 +314,7 @@
 							
 							<div class="row" id="row_status_3">
 								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-compact">
+									<table class="table table-bordered table-condensed table-centered-cells table-status">
 										<tr>
 											<th rowspan="2" class="th-status">Sensors</th>
 											<th>Z-Probe</th>
@@ -338,12 +339,13 @@
 						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
-						<li class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-flash"></span> G-Code Terminal</a></li>
+						<li class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-list-alt"></span> G-Code Terminal</a></li>
 						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files</a></li>
+						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros</span></a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
-						<li class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
+						<li class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 						<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
 					</ul>
 				</div>
@@ -352,24 +354,24 @@
 					<div id="page_control" class="page active">
 						<div class="row">
 							<div class="col-lg-9">
-								<div class="panel panel-default">
+								<div class="panel panel-default" id="panel_head_movement">
 									<div class="panel-heading text-center">
 										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
-										<span class="title">Head Movement</span>
+										<span>Head Movement</span>
 									</div>
 									
 									<div class="panel-body">
 										<div class="hidden-lg btn-group btn-group-justified" id="mobile_home_buttons">
 											<div class="btn-group" role="group"><button data-home="all" class="btn btn-primary disabled">Home All</button></div>
-											<div class="btn-group home-buttons" role="group"><button data-home="X" class="btn btn-primary disabled">Home X</button></div>
-											<div class="btn-group home-buttons" role="group"><button data-home="Y" class="btn btn-primary disabled">Home Y</button></div>
-											<div class="btn-group home-buttons" role="group"><button data-home="Z" class="btn btn-primary disabled">Home Z</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="X" class="btn btn-primary btn-home-x disabled">Home X</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="Y" class="btn btn-primary btn-home-y disabled">Home Y</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="Z" class="btn btn-primary btn-home-z disabled">Home Z</button></div>
 										</div>
 										<table id="table_move_head">
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a href="#" role="button" class="btn btn-primary disabled" data-home="X" id="btn_homex">Home X</a>
+														<a href="#" role="button" class="btn btn-primary btn-home-x disabled" data-home="X">Home X</a>
 													</div>
 												</td>
 												<td>
@@ -392,7 +394,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary disabled" data-home="Y" id="btn_homey">Home Y</a>
+														<a role="button" class="btn btn-primary btn-home-y disabled" data-home="Y">Home Y</a>
 													</div>
 												</td>
 												<td>
@@ -415,7 +417,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary disabled" data-home="Z" id="btn_homez">Home Z</a>
+														<a role="button" class="btn btn-primary btn-home-z disabled" data-home="Z">Home Z</a>
 													</div>
 												</td>
 												<td>
@@ -438,48 +440,107 @@
 										</table>
 									</div>
 								</div>
-							</div>
-							
-							<div class="col-lg-3">
-								<div class="panel panel-default">
+								
+								<div class="alert alert-warning hidden" id="home_warning">
+									<span class="glyphicon glyphicon-warning-sign"></span>
+									<span id="unhomed_warning">The following axes are not homed: <strong id="unhomed_axes">X, Y, Z</strong></span>
+								</div>
+								
+								<div class="panel panel-default" id="panel_extrude">
 									<div class="panel-heading">
-										<span class="title">User-Defined Macros</span>
+										<span>Extruder Control</span>
 									</div>
 									
 									<div class="panel-body">
-										<h1>Some Codes</h1>
+										<div class="col-sm-12 col-md-4 no-horizontal-padding">
+											<label class="label-not-bold">Feedrate in mm/sec:</label>
+											<div class="btn-group btn-group-justified" data-toggle="buttons">
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feedrate" value="60" autocomplete="off"> 60
+												</label>
+												<label class="btn btn-primary disabled active">
+													<input type="radio" name="feedrate" value="40" autocomplete="off" checked> 40
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feedrate" value="20" autocomplete="off"> 20
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feedrate" value="10" autocomplete="off"> 10
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feedrate" value="5" autocomplete="off"> 5
+												</label>
+											</div>
+										</div>
+										
+										<div class="col-sm-12 col-md-6 no-horizontal-padding-sm">
+											<label class="label-not-bold">Feed amount in mm:</label>
+											<div class="btn-group btn-group-justified" data-toggle="buttons">
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feed" value="100" autocomplete="off"> 100
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feed" value="50" autocomplete="off"> 40
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feed" value="20" autocomplete="off"> 30
+												</label>
+												<label class="btn btn-primary disabled active">
+													<input type="radio" name="feed" value="10" autocomplete="off" checked> 20
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feed" value="5" autocomplete="off"> 10
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feed" value="1" autocomplete="off"> 5
+												</label>
+											</div>
+										</div>
+										
+										<div class="col-sm-12 col-md-2 no-horizontal-padding">
+											<div class="btn-group-vertical btn-group-vertical-justified">
+												<div class="btn-group">
+													<button class="btn btn-sm btn-default disabled" id="btn_retract"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
+												</div>
+												<div class="btn-group">
+													<button class="btn btn-sm btn-primary disabled" id="btn_extrude"><span class="glyphicon glyphicon-arrow-down"></span> Extrude</button>
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
-							</div>
-							
-							<div class="col-lg-7">
+								
+															<!--<div class="col-lg-5">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Extruder Control</span>
-									</div>
-									
-									<div class="panel-body">
-										<h3>Extruder Control</h3>
-									</div>
-								</div>
-							</div>
-							
-							<div class="col-lg-5">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<span class="title">Miscellaneous (feedrate for head movement, speed+extrusion overrides, ATX on/off)</span>
+										<span>Miscellaneous (feedrate for head movement, speed+extrusion overrides, ATX on/off)</span>
 									</div>
 									
 									<div class="panel-body">
 										<div class="row">
 											<div class="col-md-6">
-												<h3>Number of heaters (demo only)</h3>
-												<input type="text" class="input-small knob" id="knob_heaters" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF"  />
+												<h4>Number of heaters (demo only)</h4>
+												<input type="text" class="input-small knob" id="knob_heaters" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF" />
 											</div>
 											<div class="col-md-6">
-												<h3>Number of extruder drives (demo only)</h3>
-												<input type="text" class="input-small knob" id="knob_extr" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF"  />
+												<h4>Number of extruder drives (demo only)</h4>
+												<input type="text" class="input-small knob" id="knob_extr" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF" />
 											</div>
+										</div>
+									</div>
+								</div>
+								</div>-->
+							</div>
+							
+							<div class="col-lg-3">
+								<div class="panel panel-default" id="panel_macro_buttons">
+									<div class="panel-heading">
+										<span>User-Defined Macros</span>
+									</div>
+									
+									<div class="panel-body text-center">
+										<h4 class="text-muted">Go to the Macros page to define your own actions</h4>
+										<div class="btn-group-vertical btn-group-vertical-justified">
 										</div>
 									</div>
 								</div>
@@ -497,11 +558,14 @@
 					<div id="page_files" class="page">
 						<h1>GCode Files</h1>
 					</div> 
-					<div id="page_maintenance" class="page">
-						<h1>Maintenance</h1>
-					</div>
+					<div id="page_macros" class="page">
+						<h1>Macro Files</h1>
+					</div> 
 					<div id="page_spools" class="page">
 						<h1>Spools</h1>
+					</div>
+					<div id="page_maintenance" class="page">
+						<h1>Maintenance</h1>
 					</div>
 					<div id="page_settings" class="page">
 						<h1>Settings</h1>
@@ -545,7 +609,7 @@
 						<p></p>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Close</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> OK</button>
 					</div>
 				</div>
 			</div>
