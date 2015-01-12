@@ -34,16 +34,19 @@ var tempChartPadding = 15;
 
 var isConnected = false, isDelta, isPrinting;
 var extendedStatusCounter;
-
-var lastSeq, lastSendGCode;
+var lastSeq, lastSendGCode, lastFanValue;
 
 var probeSlowDownValue, probeTriggerValue;
 
-var heatedBed, numHeads, numExtruderDrives;
-var toolMapping;
-
+var heatedBed, numHeads, numExtruderDrives, toolMapping;
 var recordedBedTemperatures, recordedHeadTemperatures;
-var drawTempChart = false;
+
+var currentPage = "control", drawTempChart = false, waitingForPrintStart;
+
+var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
+var knownMacroFiles, macroUpdateIndex;
+
+var fanSliderActive;
 
 function resetGuiData() {
 	isDelta = isPrinting = false;
@@ -59,6 +62,13 @@ function resetGuiData() {
 	recordedHeadTemperatures = [[], [], [], []];
 	
 	toolMapping = undefined;
+	lastFanValue = 35;
+	
+	knownGCodeFiles = knownMacroFiles = [];
+	gcodeUpdateIndex = macroUpdateIndex = -1;
+	currentGCodeDirectory = "/gcodes";
+	
+	waitingForPrintStart = fanSliderActive = false;
 }
 
 /* Connect / Disconnect */
@@ -111,11 +121,17 @@ function connect(password, firstConnect) {
 }
 
 function postConnect() {
+	log("success", "<strong>Connection established!</strong>");
+	
 	isConnected = true;
-	extendedStatusCounter = 0;
+	extendedStatusCounter = extendedStatusInterval; // ask for extended status on first poll
 	
 	updateStatus();
-	//updateFileInfo();
+	if (currentPage == "files") {
+		updateGCodeFiles();
+	} else if (currentPage == "macros") {
+		updateMacroFiles();
+	}
 	
 	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text("Disconnect");
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
@@ -124,6 +140,9 @@ function postConnect() {
 }
 
 function disconnect() {
+	if (isConnected) {
+		log("warning", "<strong>Disconnected.</strong>");
+	}
 	isConnected = false;
 	$.ajax("rr_disconnect", { async: true, dataType: "json" });
 	
@@ -137,27 +156,20 @@ function disconnect() {
 	disableControls();
 }
 
-/* Automatic status update */
+/* AJAX */
 
 function updateStatus() {
 	var ajaxRequest = "rr_status";
-	if (extendedStatusCounter == 0) {
+	if (extendedStatusCounter >= extendedStatusInterval) {
+		extendedStatusCounter = 0;
 		ajaxRequest += "?type=2";
-	} else {
-		extendedStatusCounter++;
-		if (extendedStatusCounter > extendedStatusInterval) {
-			extendedStatusCounter = 0;
-		}
 	}
+	extendedStatusCounter++;
 		
 	$.ajax(ajaxRequest, {
 		async: true,
 		dataType: "json",
-		error: function() {
-			if (isConnected) {
-				ajaxError();
-			}
-		},
+		error: ajaxError,
 		success: function(status) {
 			// Don't process this one if we're no longer connected
 			if (!isConnected) {
@@ -189,10 +201,14 @@ function updateStatus() {
 				case 'P':	// Printing
 					setStatusLabel("Printing", "success");
 					isPrinting = true;
+					if (waitingForPrintStart) {
+						showPage("print");
+						waitingForPrintStart = false;
+					}
 					break;
 					
 				case 'B':	// Busy
-					setStatusLabel("Busy", "success");
+					setStatusLabel("Busy", "warning");
 					break;
 					
 				case 'I':	// Idle
@@ -235,11 +251,40 @@ function updateStatus() {
 				}
 			}
 			
-			// TODO: process params here
-			// TODO: check seq here (see lastSeq)
+			// ATX Power
+			setATXPower(status.params.atxPower);
+			
+			// Fan Control
+			if (!fanSliderActive && lastFanValue != status.params.fanPercent) {
+				lastFanValue = status.params.fanPercent;
+				$(".slider-fan").slider("setValue", lastFanValue);
+			}
+			// TODO: same for speed+extrusion factors
+			
+			// Fetch the latest G-Code response from the server
+			if (status.seq != lastSeq) {
+				$.ajax("rr_reply", {
+					async: true,
+					dataType: "html",
+					error: ajaxError,
+					success: function(response) {
+						response = response.trim();
+						if (response != "" || lastSendGCode != "") {
+							var style = (response.match("^Error")) ? "warning" : (response == "" ? "success" : "info");
+							var content = (lastSendGCode != "") ? "<strong>" + lastSendGCode + "</strong><br/>" : "";
+							content += response.replace(/\n/g, "<br/>")
+							log(style, content);
+							
+							lastSendGCode = "";
+						}
+					}
+				});
+				
+				lastSeq = status.seq;
+			}
 			
 			// Sensors
-			setProbeValue(status.sensors.probe);
+			setProbeValue(status.sensors.probe, status.sensors.probeSecondary);
 			$("#td_fanrpm").html(status.sensors.fanRPM);
 			
 			// Heated bed
@@ -266,13 +311,15 @@ function updateStatus() {
 			recordHeaterTemperatures(status.temps.bed.current, status.temps.heads.current);
 			
 			/*** Extended status response ***/
-			
-			if (status.hasOwnProperty("tools")) {
-				toolMapping = status.tools;
+			if (status.hasOwnProperty("name")) {
+				$(".navbar-brand").html(status.name);
 			}
 			if (status.hasOwnProperty("probe")) {
 				probeTriggerValue = status.probe.threshold;
 				probeSlowDownValue = probeTriggerValue * 0.9;	// see Platform::Stopped in dc42/zpl firmware forks
+			}
+			if (status.hasOwnProperty("tools")) {
+				toolMapping = status.tools;
 			}
 			
 			/*** Print status response ***/
@@ -289,12 +336,134 @@ function updateStatus() {
 			if (status.status != 'H') {
 				setTimeout(updateStatus, updateFrequency);
 			} else {
+				log("danger", "<strong>Emergency Stop!</strong>");
 				setTimeout(function() {
 					connect(sessionPassword, false);
 				}, haltedReconnectDelay);
 			}
 		}
 	});
+}
+
+function updateGCodeFiles() {
+	if (!isConnected) {
+		gcodeUpdateIndex = -1;
+		$(".span-refresh-files").addClass("hidden");
+		clearGCodeDirectory();
+		clearGCodeFiles();
+		return;
+	}
+	
+	if (gcodeUpdateIndex == -1) {
+		gcodeUpdateIndex = 0;
+		gcodeLastDirectory = undefined;
+		clearGCodeFiles();
+		
+		$.ajax("rr_files?dir=" + currentGCodeDirectory, {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			success: function(response) {
+				if (isConnected) {
+					knownGCodeFiles = response.files.sort();
+					for(var i=0; i<knownGCodeFiles.length; i++) {
+						addGCodeFile(knownGCodeFiles[i]);
+					}
+					
+					if (knownGCodeFiles.length == 0) {
+						$(".span-refresh-files").removeClass("hidden");
+					} else {
+						updateGCodeFiles();
+					}
+				}
+			}
+		});
+	} else {
+		var row = $("#table_gcode_files tr[data-item='" + knownGCodeFiles[gcodeUpdateIndex] + "']");
+		$.ajax("rr_fileinfo?name=" + currentGCodeDirectory + "/" + encodeURIComponent(knownGCodeFiles[gcodeUpdateIndex]), {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			row: row,
+			success: function(response) {
+				if (!isConnected || this.row == undefined) {
+					return;
+				}
+				gcodeUpdateIndex++;
+				
+				if (response.err == 0) {	// File
+					setGCodeFileItem(this.row, response.size, response.height, response.layerHeight, response.filament, response.generatedBy);
+				} else {					// Directory
+					setGCodeDirectoryItem(this.row);
+				}
+				
+				if (gcodeUpdateIndex == knownGCodeFiles.length) {
+					$(".span-refresh-files").removeClass("hidden");
+				} else if (currentPage == "files") {
+					updateGCodeFiles();
+				}
+			}
+		});
+	}
+}
+function updateMacroFiles() {
+	if (!isConnected) {
+		macroUpdateIndex = -1;
+		$(".span-refresh-macros").addClass("hidden");
+		clearMacroFiles();
+		return;
+	}
+	
+	if (macroUpdateIndex == -1) {
+		macroUpdateIndex = 0;
+		clearMacroFiles();
+		
+		$.ajax("rr_files?dir=/macros", {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			success: function(response) {
+				if (isConnected) {
+					knownMacroFiles = response.files.sort();
+					for(var i=0; i<knownMacroFiles.length; i++) {
+						addMacroFile(knownMacroFiles[i]);
+					}
+					
+					if (knownMacroFiles.length == 0) {
+						$(".span-refresh-macros").removeClass("hidden");
+					} else {
+						updateMacroFiles();
+					}
+				}
+			}
+		});
+	} else {
+		var row = $("#table_macro_files tr[data-macro='" + knownMacroFiles[macroUpdateIndex] + "']");
+		$.ajax("rr_fileinfo?name=/macros/" + encodeURIComponent(knownMacroFiles[macroUpdateIndex]), {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			row: row,
+			success: function(response) {
+				if (!isConnected || this.row == undefined) {
+					return;
+				}
+				macroUpdateIndex++;
+				
+				if (response.err == 0) {	// File
+					setMacroFileItem(this.row, response.size);
+				} else {
+					row.remove();			// Not a file, purge it
+				}
+				
+				if (macroUpdateIndex == knownMacroFiles.length) {
+					$(".span-refresh-macros").removeClass("hidden");
+				} else if (currentPage == "macros") {
+					updateMacroFiles();
+				}
+			}
+		});
+	}
 }
 
 function sendGCode(gcode) {
@@ -305,13 +474,15 @@ function sendGCode(gcode) {
 	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		async: true,
 		dataType: "json",
-		error: function() { ajaxError(); }
+		error: ajaxError
 	});
 }
 
 function ajaxError() {
-	showMessage("warning-sign", "Communication Error", "An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
-	disconnect();
+	if (isConnected) {
+		showMessage("warning-sign", "Communication Error", "An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
+		disconnect();
+	}
 }
 
 /* Cookies */
@@ -329,20 +500,36 @@ function saveValues() {
 $(document).ready(function() {
 	resetGuiData();
 	updateGui();
+	
+	log("info", "<strong>Page Load complete!</strong>");
 });
 
 function enableControls() {
+	$("nav input, #div_heaters input, #main_content input").prop("disabled", false);			// Generic inputs
+	
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
-	$(".bed-temp, .head-temp").removeClass("disabled");											// Temperature auto-complete
+	$(".bed-temp, .gcode, .head-temp").removeClass("disabled");									// List items
+	
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
+	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
+	$(".slider-fan").slider("enable");															// Fan Control
+	
+	$(".row-actions").removeClass("hidden");													// G-Code/Macro Files
 }
 
 function disableControls() {
+	$("nav input, #div_heaters input, #main_content input").prop("disabled", true);				// Generic inputs
+	
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
-	$(".bed-temp, .head-temp").addClass("disabled");											// Temperature auto-complete
+	$(".bed-temp, .gcode, .head-temp").addClass("disabled");									// List items
+	
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
+	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
+	$(".slider-fan").slider("disable");															// Fan Control
+	
+	$(".row-actions").addClass("hidden");														// G-Code/Macro Files
 }
 
 function updateGui() {
@@ -409,12 +596,13 @@ function updateGui() {
 function resetGui() {
 	// Auto-Complete items
 	
-	clearGCodeList();
+	clearDefaultGCodes();
 	clearHeadTemperatures();
 	clearBedTemperatures();
 	
 	// Navbar
 	
+	$(".navbar-brand").html("Duet Web Control");
 	setStatusLabel("Disconnected", "default");
 	
 	// Heater Temperatures
@@ -434,12 +622,146 @@ function resetGui() {
 		$("#td_extr_" + i).text("n/a");
 	}
 	$("#td_extr_total").text("n/a");
-	setProbeValue(-1);
+	setProbeValue(-1, undefined);
 	$("#td_fanrpm").text("n/a");
 	
 	// Control page
 	setAxesHomed([1,1,1]);
+	setATXPower(false);
+	$('.slider-fan').slider("setValue", lastFanValue);
+	
+	// G-Code Files
+	updateGCodeFiles();
+	
+	// Macro Files
+	updateMacroFiles();
 }
+
+/* Dynamic GUI Events */
+
+$("body").on("click", ".bed-temp", function(e) {
+	sendGCode("M140 S" + $(this).data("temp"));
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-macro", function(e) {
+	sendGCode("M98 P" + $(this).data("macro"));
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-print-file, .gcode-file", function(e) {
+	var file = $(this).parents("tr").data("file");
+	showConfirmationDialog("Start Print", "Do you want to print <strong>" + file + "</strong>?", function() {
+		sendGCode("M32 " + file);
+		waitingForPrintStart = true;
+	});
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-delete-file", function(e) {
+	var row = $(this).parents("tr");
+	var file = row.data("file");
+	showConfirmationDialog("Delete File", "Are you sure you want to delete <strong>" + file + "</strong>?", function() {
+		$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + file), {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			row: row,
+			file: file,
+			success: function(response) {
+				if (response.err == 0) {
+					this.row.remove();
+					if ($("#table_gcode_files tbody").children().length == 0) {
+						gcodeUpdateIndex = -1;
+						updateGCodeFiles();
+					}
+				} else {
+					showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete file <strong>" + this.file + "</strong>!", "md");
+				}
+			}
+		});
+	});
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-delete-directory", function(e) {
+	$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + $(this).parents("tr").data("directory")), {
+		async: true,
+		dataType: "json",
+		error: ajaxError,
+		row: $(this).parents("tr"),
+		directory: $(this).parents("tr").data("directory"),
+		success: function(response) {
+			if (response.err == 0) {
+				this.row.remove();
+				if ($("#table_gcode_files tbody").children().length == 0) {
+					gcodeUpdateIndex = -1;
+					updateGCodeFiles();
+				}
+			} else {
+				showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete directory <strong>" + this.directory + "</strong>!<br/><br/>Perhaps it isn't empty?", "md");
+			}
+		}
+	});
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-delete-macro", function(e) {
+	$.ajax("rr_delete?name=/macros/" + $(this).parents("tr").data("macro"), {
+		async: true,
+		dataType: "json",
+		error: ajaxError,
+		macro: $(this).parents("tr").data("macro"),
+		row: $(this).parents("tr"),
+		success: function(response) {
+			if (response.err == 0) {
+				this.row.remove();
+				if ($("#table_macro_files tbody").children().length == 0) {
+					macroUpdateIndex = -1;
+					updateMacroFiles();
+				}
+			} else {
+				showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete macro <strong>" + this.macro + "</strong>!", "md");
+			}
+		}
+	});
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-run-macro", function(e) {
+	sendGCode("M98 P/macros/" + $(this).parents("tr").data("macro"));
+	e.preventDefault();
+});
+
+$("body").on("click", ".gcode", function(e) {
+	if (isConnected) {
+		sendGCode($(this).data("gcode"));
+	}
+	e.preventDefault();
+});
+
+$("body").on("click", ".gcode-directory", function(e) {
+	setGCodeDirectory(currentGCodeDirectory + "/" + $(this).parents("tr").data("directory"));
+	gcodeUpdateIndex = -1;
+	updateGCodeFiles();
+	e.preventDefault();
+});
+
+$("body").on("click", ".head-temp", function(e) {
+	var inputElement = $(this).parents("div.input-group").find("input");
+	var activeOrStandby = (inputElement.attr("id").match("active$")) ? "S" : "R";
+	var heater = inputElement.attr("id").match("_h(.)_")[1];
+	
+	sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + " " + $(this).data("temp"));
+	e.preventDefault();
+});
+
+$("body").on("click", "#ol_gcode_directory a", function(e) {
+	setGCodeDirectory($(this).data("directory"));
+	gcodeUpdateIndex = -1;
+	updateGCodeFiles();
+	e.preventDefault();
+});
 
 /* Static GUI Events */
 
@@ -456,6 +778,12 @@ $(".btn-emergency-stop").click(function() {
 	sendGCode("M112\nM999");
 });
 
+$("#btn_clear_log").click(function(e) {
+	$("#console_log").html("");
+	log("info", "<strong>Message Log cleared!</strong>");
+	e.preventDefault();
+});
+
 $("#btn_extrude").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]").val();
@@ -469,7 +797,10 @@ $("#btn_retract").click(function(e) {
 
 $(".btn-home-x").resize(function() {
 	if (!$(this).hasClass("hidden")) {
-		$("#btn_homeall").css("width", $(this).parent().width());
+		var width = $(this).parent().width();
+		if (width > 0) {
+			$("#btn_homeall").css("width", width);
+		}
 	}
 }).resize();
 
@@ -498,9 +829,28 @@ $("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(functio
 	e.preventDefault();
 });
 
+$("#btn_new_directory").click(function() {
+	showTextInput("New directory", "Please enter a name:", function(value) {
+		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			success: function(response) {
+				if (response.err == 0) {
+					gcodeUpdateIndex = -1;
+					updateGCodeFiles();
+				} else {
+					showMessage("warning-sign", "Error", "Could not create directory!", "sm");
+				}
+			}
+		});
+	});
+});
+
 $(".gcode-input").submit(function(e) {
 	if (isConnected) {
 		sendGCode($(this).find("input").val());
+		$(this).find("input").select();
 	}
 	e.preventDefault();
 });
@@ -535,19 +885,34 @@ $(".div-gcodes").bind("shown.bs.dropdown", function() {
 	}
 });
 
+$("input[type='number']").focus(function() {
+	var input = $(this);
+	setTimeout(function() {
+		input.select();
+	}, 10);
+});
+
 $("#input_temp_bed").keydown(function(e) {
-	if (isConnected && e.which == 13) {
+	var enterKeyPressed = (e.which == 13);
+	enterKeyPressed |= (e.which == 9 && window.matchMedia('(max-width: 991px)').matches); // need this for Android
+	if (isConnected && enterKeyPressed) {
 		sendGCode("M140 S" + $(this).val());
+		$(this).select();
+		
 		e.preventDefault();
 	}
 });
 
-$("input[id*='input_temp_h']").keydown(function(e) {
-	if (isConnected && e.which == 13) {
+$("input[id^='input_temp_h']").keydown(function(e) {
+	var enterKeyPressed = (e.which == 13);
+	enterKeyPressed |= (e.which == 9 && window.matchMedia('(max-width: 991px)').matches); // need this for Android
+	if (isConnected && enterKeyPressed) {
 		var activeOrStandby = ($(this).attr("id").match("active$")) ? "S" : "R";
 		var heater = $(this).attr("id").match("_h(.)_")[1];
 		
 		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + $(this).val());
+		$(this).select();
+		
 		e.preventDefault();
 	}
 });
@@ -555,14 +920,45 @@ $("input[id*='input_temp_h']").keydown(function(e) {
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 
 $(".navlink").click(function(e) {
-	var $target = $(this).data("target");
-	showPage($target);
+	var target = $(this).data("target");
+	showPage(target);
 	e.preventDefault();
 });
 
-$("#panel_extrude label.btn").click(function() {
+$("#panel_control_misc label.btn").click(function() {
+	if ($(this).find("input").val() == 1) {		// ATX on
+		sendGCode("M80");
+	} else {									// ATX off
+		showConfirmationDialog("ATX Power", "Do you really want to turn off ATX power?<br/><br/>This will turn off all drives, heaters and fans.", function() {
+			sendGCode("M81");
+		});
+	}
+});
+
+$("#panel_control_misc label.btn").click(function() {
 	$(this).parent().find("label.btn").removeClass("btn-primary").addClass("btn-default");
 	$(this).removeClass("btn-default").addClass("btn-primary");
+});
+
+$('.slider-fan').slider({
+	enabled: false,
+	id: "fanControl",
+	min: 0,
+	max: 100,
+	step: 1,
+	value: 35,
+	tooltip: "always",
+	
+	formatter: function(value) {
+		return value + " %";
+	}
+}).on("slideStart", function() {
+	fanSliderActive = true;
+}).on("slideStop", function(slideEvt) {
+	if (isConnected) {
+		sendGCode("M106 S" + (slideEvt.value / 100.0));
+	}
+	fanSliderActive = false;
 });
 
 $(".span-collapse").click(function() {
@@ -576,6 +972,18 @@ $(".span-collapse").click(function() {
 		$this.removeClass("panel-collapsed");
 		$this.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
 	}
+});
+
+$(".span-refresh-files").click(function() {
+	gcodeUpdateIndex = -1;
+	updateGCodeFiles();
+	$(".span-refresh-files").addClass("hidden");
+});
+
+$(".span-refresh-macros").click(function() {
+	macroUpdateIndex = -1;
+	updateMacroFiles();
+	$(".span-refresh-macros").addClass("hidden");
 });
 
 $("#row_info").resize(function() {
@@ -635,6 +1043,28 @@ function resizeCharts() {
 
 /* Modals */
 
+function showConfirmationDialog(title, message, action) {
+	$("#modal_confirmation h4").html('<span class="glyphicon glyphicon-question-sign"></span> ' + title);
+	$("#modal_confirmation p").html(message);
+	$("#modal_confirmation button:first-child").off().one("click", action);
+	$("#modal_confirmation").modal("show");
+}
+
+function showTextInput(title, message, action) {
+	$("#modal_textinput h4").html(title);
+	$("#modal_textinput p").html(message);
+	$("#modal_textinput input").val("");
+	$("#modal_textinput form").off().submit(function(e) {
+		$("#modal_textinput").modal("hide");
+		var value = $("#modal_textinput input").val();
+		if (value.trim() != "") {
+			action(value);
+		}
+		e.preventDefault();
+	});
+	$("#modal_textinput").modal("show");
+}
+
 function showMessage(icon, title, message, size) {
 	$("#modal_message h4").html((icon == "") ? "" :  '<span class="glyphicon glyphicon-' + icon + '"></span> ');
 	$("#modal_message h4").append(title);
@@ -654,8 +1084,8 @@ function showPasswordPrompt() {
 	});
 }
 
-$("#modal_pass_input").on('shown.bs.modal', function() {
-	$('#input_password').focus()
+$("#modal_pass_input, #modal_textinput").on('shown.bs.modal', function() {
+	$(this).find("input").focus()
 });
 
 $("#modal_message").on('shown.bs.modal', function() {
@@ -670,17 +1100,21 @@ $("#form_password").submit(function(e) {
 
 /* GUI Helpers */
 
-function addToBedTemperatures(label, temperature) {
+function addBedTemperature(label, temperature) {
 	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">' + label + '</a></li>');
 	$(".btn-bed-temp").removeClass("disabled");
-	
-	$(".bed-temp").click(function(e) {
-		sendGCode("M140 S" + $(this).data("temp"));
-		e.preventDefault();
-	});
 }
 
-function addToGCodeList(label, gcode) {
+function addControlMacro(label, filename) {
+	var macroButton =	'<div class="btn-group">';
+	macroButton +=		'<button class="btn btn-default btn-macro" data-macro="' + filename + '">' + label + '</button>';
+	macroButton +=		'</div>';
+	
+	$("#panel_macro_buttons h4").addClass("hidden");
+	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
+}
+
+function addDefaultGCode(label, gcode) {
 	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
  	item +=		'<span>' + label + '</span>';
 	item +=		'<span class="label label-primary">' + gcode + '</span>';
@@ -688,38 +1122,36 @@ function addToGCodeList(label, gcode) {
 	
 	$(".ul-gcodes").append(item);
 	$(".btn-gcodes").removeClass("disabled");
-	
-	$(".gcode").click(function(e) {
-		sendGCode($(this).data("gcode"));
-		e.preventDefault();
-	});
 }
 
-function addToControlMacros(label, filename) {
-	var macroButton =	'<div class="btn-group">';
-	macroButton +=		'<button class="btn btn-default btn-macro" data-macro="' + filename + '">' + label + '</button>';
-	macroButton +=		'</div>';
+function addGCodeFile(filename) {
+	$("#page_files h1").addClass("hidden");
+
+	var row =	'<tr data-item="' + filename + '"><td class="col-actions"></td>';
+	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
+	row +=		'<td class="hidden-xs">loading</td>';
+	row +=		'<td>loading</td>';
+	row +=		'<td>loading</td>';
+	row +=		'<td>loading</td>';
+	row +=		'<td class="hidden-xs hidden-sm">loading</td></tr>';
 	
-	$("#panel_macro_buttons h4").addClass("hidden");
-	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
-	
-	$(".btn-macro").click(function() {
-		sendGCode("M98 P" + $(this).data("macro"));
-	});
+	$("#table_gcode_files").append(row).removeClass("hidden");
 }
 
-function addToHeadTemperatures(label, temperature) {
+function addMacroFile(filename) {
+	$("#page_macros h1").addClass("hidden");
+
+	var row =	'<tr data-macro="' + filename + '"><td class="col-actions"></td>';
+	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
+	row +=		'<td>loading</td>';
+	row +=		'<td>loading</td></tr>';	// TODO: obtain this one from stored values
+	
+	$("#table_macro_files").append(row).removeClass("hidden");
+}
+
+function addHeadTemperature(label, temperature) {
 	$(".ul-head-temp").append('<li><a href="#" class="head-temp" data-temp="' + temperature + '">' + label + '</a></li>');
 	$(".btn-head-temp").removeClass("disabled");
-	
-	$(".head-temp").click(function(e) {
-		var inputElement = $(this).parent().parent().parent().parent().children("input");
-		var activeOrStandby = (inputElement.attr("id").match("active$")) ? "S" : "R";
-		var heater = inputElement.attr("id").match("_h(.)_")[1];
-		
-		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + " " + $(this).data("temp"));
-		e.preventDefault();
-	});
 }
 
 function clearBedTemperatures() {
@@ -732,7 +1164,23 @@ function clearControlMacros() {
 	$("#panel_macro_buttons h4").removeClass("hidden");
 }
 
-function clearGCodeList() {
+function clearGCodeDirectory() {
+	$("#ol_gcode_directory").children(":not(:last-child)").remove();
+	$("#ol_gcode_directory").prepend('<li class="active">G-Codes Directory</li>');
+}
+
+function clearGCodeFiles() {
+	$("#table_gcode_files > tbody").remove();
+	$("#table_gcode_files").addClass("hidden");
+	$("#page_files h1").removeClass("hidden");
+	if (isConnected) {
+		$("#page_files h1").text("No Files or Directories found");
+	} else {
+		$("#page_files h1").text("Connnect to your Duet to display G-Code files");
+	}
+}
+
+function clearDefaultGCodes() {
 	$(".ul-gcodes").html("");
 	$(".btn-gcodes").addClass("disabled");
 }
@@ -740,6 +1188,24 @@ function clearGCodeList() {
 function clearHeadTemperatures() {
 	$(".ul-heat-temp").html("");
 	$(".btn-head-temp").addClass("disabled");
+}
+
+function clearMacroFiles() {
+	$("#table_macro_files > tbody").remove();
+	$("#table_macro_files").addClass("hidden");
+	$("#page_macros h1").removeClass("hidden");
+	if (isConnected) {
+		$("#page_macros h1").text("No Macro Files found");
+	} else {
+		$("#page_macros h1").text("Connnect to your Duet to display Macro files");
+	}
+}
+
+function log(style, message) {
+	var entry =		'<div class="row alert-' + style + '">';
+	entry +=		'<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
+	entry +=		'<div class="col-xs-10 col-sm-10 col-md-10 col-lg-11">' + message + '</div></div>';
+	$("#console_log").prepend(entry);
 }
 
 function recordHeaterTemperatures(bedTemp, headTemps) {
@@ -816,6 +1282,11 @@ function setAxesHomed(axes) {
 	}
 }
 
+function setATXPower(value) {
+	$("input[name='atxPower']").prop("checked", false).parent().removeClass("active");
+	$("input[name='atxPower'][value='" + (value ? "1" : "0") + "']").prop("checked", true).parent().addClass("active");
+}
+
 function setCurrentTemperature(heater, temperature) {
 	var field = (heater == "bed") ? "#tr_bed td" : "#tr_head_" + heater + " td";
 	if (temperature == undefined) {
@@ -825,10 +1296,6 @@ function setCurrentTemperature(heater, temperature) {
 	} else {
 		$(field).first().html(temperature.toFixed(1) + " °C");
 	}
-}
-
-function setStatusLabel(text, style) {
-	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
 }
 
 function setDeltaMode(deltaOn) {
@@ -844,8 +1311,129 @@ function setDeltaMode(deltaOn) {
 	isDelta = deltaOn;
 }
 
-function setProbeValue(value) {
-	$("#td_probe").html((value < 0) ? "n/a" : value);
+function setGCodeFileItem(row, size, height, layerHeight, filamentUsage, generatedBy) {
+	row.data("file", row.data("item"));
+	row.removeData("item");
+	
+	var buttons =	'<button class="btn btn-success btn-print-file btn-sm"><span class="glyphicon glyphicon-print"></span></button>';
+	buttons +=		'<button class="btn btn-danger btn-delete-file btn-sm"><span class="glyphicon glyphicon-trash"></span></button>';
+	row.children().eq(0).html(buttons);
+	
+	var linkCell = row.children().eq(1);
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
+	linkCell.html('<a href="#" class="gcode-file">' + linkCell.html() + '</a>');
+	
+	// TODO: Implement KiB as option here
+	if (size > 1000000) { // MB
+		row.children().eq(2).html((size / 1000000).toFixed(1) + " MB");
+	} else if (size > 1000) { // KB
+		row.children().eq(2).html((size / 1000).toFixed(1) + " KB");
+	} else { // Bytes
+		row.children().eq(2).html(size + " B");
+	}
+	
+	if (height > 0) {
+		row.children().eq(3).html(height + " mm");
+	} else {
+		row.children().eq(3).html("n/a");
+	}
+	
+	if (layerHeight > 0) {
+		row.children().eq(4).html(layerHeight + " mm");
+	} else {
+		row.children().eq(4).html("n/a");
+	}
+	
+	if (filamentUsage.length > 0) {
+		row.children().eq(5).html(filamentUsage.reduce(function(a, b) { return a + b; }).toFixed(1) + " mm");
+	} else {
+		row.children().eq(5).html("n/a");
+	}
+	
+	if (generatedBy != "") {
+		row.children().eq(6).html(generatedBy);
+	} else {
+		row.children().eq(6).html("n/a");
+	}
+}
+
+function setGCodeDirectoryItem(row) {
+	row.data("directory", row.data("item"));
+	row.removeData("item");
+	
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	
+	var linkCell = row.children().eq(1);
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
+	linkCell.html('<a href="#" class="gcode-directory">' + linkCell.html() + '</a>').attr("colspan", 6);
+	
+	for(var i=6; i>=2; i--) {
+		row.children().eq(i).remove();
+	}
+	
+	if (gcodeLastDirectory == undefined) {
+		var firstRow = $("#table_gcode_files tbody > tr:first-child");
+		if (firstRow != row) {
+			row.insertBefore(firstRow);
+		}
+	} else {
+		row.insertAfter(gcodeLastDirectory);
+	}
+	gcodeLastDirectory = row;
+}
+
+function setGCodeDirectory(directory) {
+	currentGCodeDirectory = directory;
+	
+	$("#ol_gcode_directory").children(":not(:last-child)").remove();
+	if (directory == "/gcodes") {
+		$("#ol_gcode_directory").prepend('<li class="active">G-Codes Directory</li>');
+		$("#ol_gcode_directory li:last-child").html("Go Up");
+	} else {
+		var listContent = '<li><a href="#" data-directory="/gcodes">G-Codes Directory</a></li>';
+		var directoryItems = directory.split("/"), directoryPath = "/gcodes";
+		for(var i=2; i<directoryItems.length -1; i++) {
+			directoryPath += "/" + directoryItems[i];
+			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
+		}
+		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
+		$("#ol_gcode_directory").prepend(listContent);
+		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '">Go Up</a>');
+	}
+}
+
+function setMacroFileItem(row, size) {
+	row.data("file", row.data("item"));
+	row.removeData("item");
+	
+	var buttons =	'<button class="btn btn-success btn-run-macro btn-sm"><span class="glyphicon glyphicon-play"></span></button>';
+	buttons +=		'<button class="btn btn-danger btn-delete-macro btn-sm"><span class="glyphicon glyphicon-trash"></span></button>';
+	row.children().eq(0).html(buttons);
+	
+	var linkCell = row.children().eq(1);
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file"); // TODO: bookmark icon if label set
+	
+	// TODO: Implement KiB as option here
+	if (size > 1000000) { // MB
+		row.children().eq(2).html((size / 1000000).toFixed(1) + " MB");
+	} else if (size > 1000) { // KB
+		row.children().eq(2).html((size / 1000).toFixed(1) + " KB");
+	} else { // Bytes
+		row.children().eq(2).html(size + " B");
+	}
+	
+	// TODO: implement label
+}
+
+function setProbeValue(value, secondaryValue) {
+	if (value < 0) {
+		$("#td_probe").html("n/a");
+	} else if (secondaryValue == undefined) {
+		$("#td_probe").html(value);
+	} else {
+		$("#td_probe").html(value + " (" + secondaryValue.reduce(function(a, b) { return a + b; }) + ")");
+	}
+	
 	if (probeTriggerValue != undefined && value > probeTriggerValue && !isPrinting) {
 		$("#td_probe").css("background-color", probeTriggerColor);
 	} else if (probeSlowDownValue != undefined && value > probeSlowDownValue && !isPrinting) {
@@ -853,6 +1441,10 @@ function setProbeValue(value) {
 	} else {
 		$("#td_probe").css("background-color", "");
 	}
+}
+
+function setStatusLabel(text, style) {
+	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
 }
 
 function setTemperatureInput(head, value, active) {
@@ -873,6 +1465,34 @@ function setTemperatureInput(head, value, active) {
 function showPage(name) {
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
+	
+	if (name != currentPage && isConnected) {
+		if (name == "print") {
+			// TODO
+			waitingForPrintStart = false;
+		}
+		
+		if (name == "files") {
+			if (gcodeUpdateIndex == knownGCodeFiles.length) {
+				$(".span-refresh-files").removeClass("hidden");
+			} else {
+				updateGCodeFiles();
+			}
+		} else {
+			$(".span-refresh-files").addClass("hidden");
+		}
+		
+		if (name == "macros") {
+			if (macroUpdateIndex == knownMacroFiles.length) {
+				$(".span-refresh-macros").removeClass("hidden");
+			} else {
+				updateMacroFiles();
+			}
+		} else {
+			$(".span-refresh-macros").addClass("hidden");
+		}
+	}
+	currentPage = name;
 }
 
 /* Data helpers */
@@ -891,23 +1511,3 @@ function getToolByHeater(heater) {
 	}
 	return 0;
 }
-
-/* DEMO */
-
-/*$('#knob_heaters').knob({"change" : function (value) {
-	value = Math.round(value);
-	if (value > 0) {
-		numHeads = value - 1;
-		heatedBed = 1;
-	} else {
-		numHeads = 0;
-		heatedBed = 0;
-	}
-	updateGui();
-}});
-
-$('#knob_extr').knob({"change" : function(value) {
-	value = Math.round(value);
-	numExtruderDrives = value;
-	updateGui();
-}});*/

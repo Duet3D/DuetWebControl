@@ -12,6 +12,19 @@ body {
 	min-width: 465px;
 }
 
+div > label {
+	font-weight: inherit;
+}
+
+input[type='number'] {
+    -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
 @media (min-width: 768px) {
 	#mobile-navbar {
 		display: none !important;
@@ -21,6 +34,49 @@ body {
 .padding-small {
 	padding-left: 8px !important;
 	padding-right: 8px !important;
+}
+
+.slider .slider-handle {
+	background-image: linear-gradient(to bottom, #337ab7 0, #2e6da4 100%);
+}
+
+.slider .tooltip-arrow {
+	border-top-color: #d9edf7 !important;
+}
+
+.slider .tooltip-inner {
+	background-color: #d9edf7;
+	color: #31708f;
+}
+
+.table-description {
+	width: 100%;
+}
+
+.table-description .slider.slider-horizontal {
+	margin-left:12px;
+	margin-right: 12px;
+	margin-top: 32px;
+	margin-bottom: 6px;
+	width: calc(100% - 20px) !important;
+}
+
+.table-description td {
+	width: 100%;
+}
+.table-description tr:not(:last-child) > td {
+	padding-bottom: 9px;
+}
+
+.table-description tr > td:first-child {
+	padding-right: 12px;
+	text-align: right;
+	width: auto;
+	white-space: nowrap;
+}
+
+.table-description tr:first-child td {
+	padding-top: 0px;
 }
 
 /* Navigation bar */
@@ -241,6 +297,11 @@ body {
 	background-color: #428bca;
 }
 
+.span-refresh-files.pull-right,
+.span-refresh-macros.pull-right {
+	padding-top: 3px;
+}
+
 /* Main Content */
 
 @media (min-width: 768px) {
@@ -294,19 +355,34 @@ body {
 	width: 100%;
 }
 
+.col-right:last-child {
+	padding-left: 0px;
+}
+@media (min-width: 992px) {
+	.col-right {
+		padding-left: 0px;
+	}
+}
+
 #home_warning {
 	margin-top: -14px;
 	padding-top: 6px;
 	padding-bottom: 6px;
 }
 
-.label-not-bold {
-	font-weight: inherit;
+#panel_control_misc .btn-group label {
+	padding-left: 0px;
+	padding-right: 0px;
 }
 
-#panel_extrude label.btn {
+#panel_extrude button {
 	padding-left: 6px !important;
 	padding-right: 6px !important;
+}
+
+#panel_extrude .btn-group label.btn {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
 }
 
 #mobile_home_buttons {
@@ -335,26 +411,6 @@ body {
 	width: auto;
 }
 
-/*@media (min-width: 1600px) {
-	#table_move_head a {
-		padding: 10px 16px;
-		font-size: 17px;
-		line-height: 1.33;
-	}
-	
-	#mobile_home_buttons {
-		padding-bottom: 12px;
-	}
-	
-	#table_move_head .btn-group {
-		padding-bottom: 12px;
-	}
-	
-	#table_move_head td {
-		padding-right: 18px;
-	}
-}*/
-
 #table_move_head tr > td:last-child {
 	padding-right: 0px;
 }
@@ -364,8 +420,117 @@ body {
 	padding-bottom: 0px;
 }
 
-/* Misc */
+/* G-Code Console */
+
+#console_log {
+	padding-top: 0px;
+}
+
+#console_log div.row {
+	padding-top: 3px;
+	padding-bottom: 3px;
+}
+
+@media (max-width: 767px) {
+	div.well {
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+}
+
+#page_console form > div {
+	padding-left: 0px;
+	padding-right: 9px;
+}
+
+#page_console form > div:first-child {
+	padding-left: 15px;
+}
+
+#page_console form > div:last-child {
+	padding-left: 0px;
+	padding-right: 15px;
+}
+
+#page_console button[type='submit'] {
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+#page_console div.row:last-child {
+	padding-top: 6px;
+}
+
+/* G-Code Files */
+
+.btn-delete-directory {
+	margin-right: 4px !important;
+}
+
+#btn_new_directory span {
+	padding-right: 6px;
+}
+
+#page_files h1 {
+	margin-bottom: 20px;
+}
+
+#page_files ol {
+	margin-bottom: 9px;
+}
+
+#page_files ol .pull-right:before {
+	content: "";
+}
+
+.row_actions {
+	padding-bottom: 15px;
+}
+
+.table-files button > span {
+	padding-top: 6px;
+	padding-bottom: 6px;
+}
+
+.table-files td > span,
+.table-files a > span {
+	padding-right: 6px;
+}
+
+.table-files tbody > tr {
+	height: 49px;
+}
+
+.table-files tr > td {
+	padding-top: 4px !important;
+	padding-bottom: 4px !important;
+	vertical-align: middle !important;
+}
+
+.table-files tr button:first-child {
+	margin-right: 6px;
+}
+	
+.table-files th:first-child {
+	width: 96px;
+}
+
+@media (max-width: 991px) {
+	.table-files tr button:first-child {
+		margin-right: 10px;
+	}
+	
+	.table-files th:first-child {
+		width: 100px;
+	}
+}
+
+/* Modals */
 
 #modal_message .modal-footer {
 	text-align: center !important;
+}
+
+#modal_textinput div.input-group {
+	width: 100%;
 }

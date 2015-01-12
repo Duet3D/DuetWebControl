@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
 		<meta name="author" content="Christian Hammacher">
 		<link rel="icon" href="favicon.ico">
@@ -13,6 +13,7 @@
 		<!-- CSS -->
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
+		<link href="css/bootstrap-slider.min.css" rel="stylesheet">
 		<link href="css/defaults.css" rel="stylesheet">
 	</head>
 	
@@ -37,9 +38,9 @@
 				<div class="collapse navbar-collapse">
 					<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
 					
-					<form class="navbar-form padding-small navbar-left hidden-sm gcode-input" role="search">
+					<form class="navbar-form padding-small navbar-left hidden-sm gcode-input">
 						<div class="input-group">
-							<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode">
+							<input type="text" class="form-control" placeholder="Send G-Code..." disabled>
 							<div class="input-group-btn div-gcodes">
 								<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 								<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
@@ -49,7 +50,7 @@
 						<button type="submit" class="btn btn-default disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
 					</form>
 					
-					<button type="button" class="btn btn-default navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" id="btn_upload_and_print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="upload-print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
 					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
@@ -74,7 +75,7 @@
 							<tr>
 								<td class="text-nowrap">
 									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Send G-Code..." id="txt_instant_gcode_mobile">
+										<input type="text" class="form-control" placeholder="Send G-Code...">
 										<div class="input-group-btn div-gcodes">
 											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
@@ -91,9 +92,9 @@
 									<ul class="nav nav-pills">
 										<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Control</a></li>
 										<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Job</a></li>
-										<li role="presentation" class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-list-alt"></span> Terminal</a></li>
-										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files</a></li>
-										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros</a></li>
+										<li role="presentation" class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-list-alt"></span> Console</a></li>
+										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
+										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
 										<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
@@ -131,7 +132,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h1_active">
+											<input type="number" class="form-control" value="0" id="input_temp_h1_active" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -141,7 +142,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h1_standby">
+											<input type="number" class="form-control" value="0" id="input_temp_h1_standby" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -156,7 +157,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h2_active">
+											<input type="number" class="form-control" value="0" id="input_temp_h2_active" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -166,7 +167,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h2_standby">
+											<input type="number" class="form-control" value="0" id="input_temp_h2_standby" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -181,7 +182,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h3_active">
+											<input type="number" class="form-control" value="0" id="input_temp_h3_active" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -191,7 +192,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h3_standby">
+											<input type="number" class="form-control" value="0" id="input_temp_h3_standby" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -206,7 +207,7 @@
 									<td>n/a</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h4_active">
+											<input type="number" class="form-control" value="0" id="input_temp_h4_active" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -216,7 +217,7 @@
 									</td>
 									<td class="input-td">
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_h4_standby">
+											<input type="number" class="form-control" value="0" id="input_temp_h4_standby" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
@@ -231,7 +232,7 @@
 									<td>n/a</td>
 									<td>
 										<div class="input-group input-group-sm">
-											<input type="text" class="form-control" value="0" id="input_temp_bed">
+											<input type="number" class="form-control" value="0" id="input_temp_bed" disabled>
 											<div class="input-group-btn div-head-temp">
 												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
@@ -339,9 +340,9 @@
 						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
-						<li class="navitem navitem-terminal"><a class="navlink" href="#" data-target="terminal"><span class="glyphicon glyphicon-list-alt"></span> G-Code Terminal</a></li>
-						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files</a></li>
-						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros</a></li>
+						<li class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-list-alt"></span> G-Code Console</a></li>
+						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files pull-right hidden"></span></a></li>
+						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros pull-right hidden"></span></a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
@@ -353,7 +354,7 @@
 				<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10" id="main_content">
 					<div id="page_control" class="page active">
 						<div class="row">
-							<div class="col-lg-9">
+							<div class="col-xs-12 col-sm-12 col-md-8 col-lg-9">
 								<div class="panel panel-default" id="panel_head_movement">
 									<div class="panel-heading text-center">
 										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
@@ -434,7 +435,7 @@
 														<a role="button" data-z="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+1</a>
 														<a role="button" data-z="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+10</a>
 														<a role="button" data-z="+100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+100</a>
-													</div>											
+													</div>
 												</td>
 											</tr>
 										</table>
@@ -453,7 +454,7 @@
 									
 									<div class="panel-body">
 										<div class="col-sm-12 col-md-4 no-horizontal-padding">
-											<label class="label-not-bold">Feedrate in mm/sec:</label>
+											<label>Feedrate in mm/sec:</label>
 											<div class="btn-group btn-group-justified" data-toggle="buttons">
 												<label class="btn btn-default disabled">
 													<input type="radio" name="feedrate" value="60"> 60
@@ -474,7 +475,7 @@
 										</div>
 										
 										<div class="col-sm-12 col-md-6 no-horizontal-padding-sm">
-											<label class="label-not-bold">Feed amount in mm:</label>
+											<label>Feed amount in mm:</label>
 											<div class="btn-group btn-group-justified" data-toggle="buttons">
 												<label class="btn btn-default disabled">
 													<input type="radio" name="feed" value="100"> 100
@@ -509,30 +510,9 @@
 										</div>
 									</div>
 								</div>
-								
-															<!--<div class="col-lg-5">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<span>Miscellaneous (feedrate for head movement, speed+extrusion overrides, ATX on/off)</span>
-									</div>
-									
-									<div class="panel-body">
-										<div class="row">
-											<div class="col-md-6">
-												<h4>Number of heaters (demo only)</h4>
-												<input type="text" class="input-small knob" id="knob_heaters" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF" />
-											</div>
-											<div class="col-md-6">
-												<h4>Number of extruder drives (demo only)</h4>
-												<input type="text" class="input-small knob" id="knob_extr" value="5" data-min="0" data-max="5" data-width="80" data-height="80" data-thickness=".3" data-fgColor="#2091CF" />
-											</div>
-										</div>
-									</div>
-								</div>
-								</div>-->
 							</div>
-							
-							<div class="col-lg-3">
+								
+							<div class="col-xs-6 col-sm-6 col-md-4 col-lg-3 col-right">
 								<div class="panel panel-default" id="panel_macro_buttons">
 									<div class="panel-heading">
 										<span>User-Defined Macros</span>
@@ -545,6 +525,41 @@
 									</div>
 								</div>
 							</div>
+							
+							<div class="col-xs-6 col-sm-6 col-md-4 col-lg-3 col-right">
+								<div class="panel panel-default" id="panel_control_misc">
+									<div class="panel-heading">
+										<span>Miscellaneous</span>
+									</div>
+									<div class="panel-body">
+										<table class="table-description">
+											<tr>
+												<td>ATX Power:</th>
+												<td>
+													<div class="btn-group btn-group-justified" data-toggle="buttons">
+														<div class="btn-group">
+															<label class="btn btn-success disabled">
+																<input type="radio" name="atxPower" value="1">On
+															</label>
+														</div>
+														<div class="btn-group">
+															<label class="btn btn-danger active disabled">
+																<input type="radio" name="atxPower" value="0" checked>Off
+															</label>
+														</div>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td>Fan Control:</th>
+												<td>
+													<input class="slider-fan" type="text"/>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 					
@@ -552,15 +567,103 @@
 						<h1>Print Status</h1>
 					</div>
 					
-					<div id="page_terminal" class="page">
-						<h1>Terminal</h1>
+					<div id="page_console" class="page">
+						<div class="row">
+							<form class="gcode-input">
+								<div class="col-xs-7 col-sm-7 col-md-8 col-lg-9">
+									<div class="input-group">
+										<input type="text" class="form-control" placeholder="Send G-Code..." disabled>
+										<div class="input-group-btn div-gcodes">
+											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
+											</ul>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1">
+									<div class="btn-group btn-group-justified">
+										<div class="btn-group">
+											<button type="submit" class="btn btn-primary disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+										</div>
+									</div>
+								</div>
+								<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
+									<div class="btn-group btn-group-justified">
+										<div class="btn-group">
+											<button class="btn btn-default" id="btn_clear_log"><span class="glyphicon glyphicon-trash"></span> Clear Log</button>
+										</div>
+									</div>
+								</div>
+							</form>
+						</div>
+						
+						<div class="row">
+							<div class="col-lg-12">
+								<div class="well well-sm fill-bottom" id="console_log">
+								</div>
+							</div>
+						</div>
 					</div>
+					
 					<div id="page_files" class="page">
-						<h1>GCode Files</h1>
-					</div> 
+						<div class="row">
+							<div class="col-md-12">
+								<ol class="breadcrumb" id="ol_gcode_directory">
+									<li class="active">G-Codes Directory</li>
+									<li class="pull-right">Go Up</li>
+								</ol>
+								
+								<h1 class="text-center text-muted">Connnect to your Duet to display G-Code Files</h1>
+								
+								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
+									<thead>
+										<tr>
+											<th></th>
+											<th>File Name</th>
+											<th class="hidden-xs">Size</th>
+											<th>Object Height</th>
+											<th>Layer Height</th>
+											<th>Filament Usage</th>
+											<th class="hidden-xs hidden-sm">Generated by</th>
+										</tr>
+									</thead>
+								</table>
+								
+								<div class="row hidden-xs hidden row-actions">
+									<div class="col-md-12 text-center">
+										<button class="btn btn-lg btn-info" id="btn_new_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
+										<button class="btn btn-lg btn-primary btn-upload" data-type="upload-gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					
 					<div id="page_macros" class="page">
-						<h1>Macro Files</h1>
+						<div class="row">
+							<div class="col-xs-12 col-sm-10 col-sm-push-1 col-md-8 col-md-push-2 col-lg-6 col-lg-push-3">
+								<h1 class="text-center text-muted">Connnect to your Duet to display Macro Files</h1>
+								
+								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
+									<thead>
+										<tr>
+											<th></th>
+											<th>File Name</th>
+											<th>Size</th>
+											<th>Label</th>
+										</tr>
+									</thead>
+								</table>
+								
+								<div class="row hidden-xs hidden row-actions">
+									<div class="col-md-12 text-center">
+										<button class="btn btn-lg btn-primary btn-upload" data-type="upload-macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File</button>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div> 
+					
 					<div id="page_spools" class="page">
 						<h1>Spools</h1>
 					</div>
@@ -598,6 +701,47 @@
 			</div>
 		</div>
 		
+		<div class="modal fade" id="modal_confirmation">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title"></h4>
+					</div>
+					<div class="modal-body">
+						<p></p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-success" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Yes</button>
+						<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> No</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="modal fade" id="modal_textinput">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<form>
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title"></h4>
+						</div>
+						<div class="modal-body">
+							<p></p>
+							<div class="input-group">
+								<input type="text" class="form-control">
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> OK</button>
+							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		
 		<div class="modal fade" id="modal_message">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
@@ -621,8 +765,8 @@
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
-		<script src="js/jquery.knob.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
+		<script src="js/bootstrap-slider.min.js"></script>
 		<script src="js/interface.js"></script>
 	</body>
 </html>
