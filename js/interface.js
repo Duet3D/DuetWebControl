@@ -32,9 +32,9 @@ var tempChartPadding = 15;
 
 /* Variables */
 
-var isConnected = false, isDelta, isPrinting;
+var isConnected = false, isDelta, isPrinting, isPaused;
 var extendedStatusCounter;
-var lastSeq, lastSendGCode, lastFanValue;
+var lastStatusResponse, lastSendGCode;
 
 var probeSlowDownValue, probeTriggerValue;
 
@@ -46,11 +46,14 @@ var currentPage = "control", drawTempChart = false, waitingForPrintStart;
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
 var knownMacroFiles, macroUpdateIndex;
 
-var fanSliderActive;
+var fanSliderActive, speedSliderActive, extrSliderActive;
 
 function resetGuiData() {
-	isDelta = isPrinting = false;
-	lastSeq = 0;
+	setPauseStatus(false);
+	setPrintStatus(false);
+	setDeltaMode(false);
+	
+	lastStatusResponse = undefined;
 	lastSendGCode = "";
 	probeSlowDownValue = probeTriggerValue = undefined;
 	
@@ -62,13 +65,12 @@ function resetGuiData() {
 	recordedHeadTemperatures = [[], [], [], []];
 	
 	toolMapping = undefined;
-	lastFanValue = 35;
 	
 	knownGCodeFiles = knownMacroFiles = [];
 	gcodeUpdateIndex = macroUpdateIndex = -1;
 	currentGCodeDirectory = "/gcodes";
 	
-	waitingForPrintStart = fanSliderActive = false;
+	waitingForPrintStart = fanSliderActive = speedSliderActive = extrSliderActive = false;
 }
 
 /* Connect / Disconnect */
@@ -141,7 +143,7 @@ function postConnect() {
 
 function disconnect() {
 	if (isConnected) {
-		log("warning", "<strong>Disconnected.</strong>");
+		log("danger", "<strong>Disconnected.</strong>");
 	}
 	isConnected = false;
 	$.ajax("rr_disconnect", { async: true, dataType: "json" });
@@ -163,9 +165,11 @@ function updateStatus() {
 	if (extendedStatusCounter >= extendedStatusInterval) {
 		extendedStatusCounter = 0;
 		ajaxRequest += "?type=2";
+	} else {
+		ajaxRequest += "?type=1";
 	}
 	extendedStatusCounter++;
-		
+	
 	$.ajax(ajaxRequest, {
 		async: true,
 		dataType: "json",
@@ -177,10 +181,35 @@ function updateStatus() {
 			}
 			var needGuiUpdate = false;
 			
+			/*** Extended status response ***/
+			
+			// TODO: Cold Extrusion parameters
+			
+			// Delta Configuration
+			if (status.hasOwnProperty("isDelta")) {
+				setDeltaMode(status.isDelta);
+			}
+			
+			// Machine Name
+			if (status.hasOwnProperty("name")) {
+				$(".navbar-brand").html(status.name);
+			}
+			
+			// Probe Parameters (maybe hide probe info for type 0 someday?)
+			if (status.hasOwnProperty("probe")) {
+				probeTriggerValue = status.probe.threshold;
+				probeSlowDownValue = probeTriggerValue * 0.9;	// see Platform::Stopped in dc42/zpl firmware forks
+			}
+			
+			// Tool Mapping
+			if (status.hasOwnProperty("tools")) {
+				toolMapping = status.tools;
+			}
+			
 			/*** Ordinary status response ***/
 			
 			// Status
-			isPrinting = false;
+			var printing = false, paused = false;
 			switch (status.status) {
 				case 'H':	// Halted
 					setStatusLabel("Halted", "danger");
@@ -188,23 +217,24 @@ function updateStatus() {
 					
 				case 'D':	// Pausing / Decelerating
 					setStatusLabel("Pausing", "warning");
+					printing = true;
+					paused = true;
 					break;
 				
 				case 'S':	// Paused / Stopped
 					setStatusLabel("Paused", "info");
+					printing = true;
+					paused = true;
 					break;
 					
 				case 'R':	// Resuming
 					setStatusLabel("Resuming", "warning");
+					printing = true;
 					break;
 					
 				case 'P':	// Printing
 					setStatusLabel("Printing", "success");
-					isPrinting = true;
-					if (waitingForPrintStart) {
-						showPage("print");
-						waitingForPrintStart = false;
-					}
+					printing = true;
 					break;
 					
 				case 'B':	// Busy
@@ -215,6 +245,8 @@ function updateStatus() {
 					setStatusLabel("Idle", "default");
 					break;
 			}
+			setPrintStatus(printing);
+			setPauseStatus(paused);
 			
 			// Set homed axes
 			setAxesHomed(status.coords.axesHomed);
@@ -228,7 +260,6 @@ function updateStatus() {
 				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
 			}
 			$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
-			// TODO: process extrRaw here
 			
 			// XYZ coordinates
 			if (isDelta && !status.coords.axesHomed[0]) {
@@ -243,8 +274,8 @@ function updateStatus() {
 			
 			// Output
 			if (status.hasOwnProperty("output")) {
-				if (status.output.hasOwnProperty("beepDuration")) {
-					// TODO: implement beep here
+				if (status.output.hasOwnProperty("beepDuration") && status.output.hasOwnProperty("beepFrequency")) {
+					beep(status.output.beepFrequency, status.output.beepDuration);
 				}
 				if (status.output.hasOwnProperty("message")) {
 					showMessage("envelope", "Message from Duet firmware", status.output.message, "md");
@@ -255,14 +286,30 @@ function updateStatus() {
 			setATXPower(status.params.atxPower);
 			
 			// Fan Control
-			if (!fanSliderActive && lastFanValue != status.params.fanPercent) {
-				lastFanValue = status.params.fanPercent;
-				$(".slider-fan").slider("setValue", lastFanValue);
+			if (!fanSliderActive && (lastStatusResponse == undefined || $("#slider_fan_print").slider("getValue") != status.params.fanPercent)) {
+				if ($("#override_fan").is(":checked")) {
+					sendGCode("M106 S" + ($("#slider_fan_print").slider("getValue") / 100.0));
+				} else {
+					$("#slider_fan_control").slider("setValue", status.params.fanPercent);
+					$("#slider_fan_print").slider("setValue", status.params.fanPercent);
+				}
 			}
-			// TODO: same for speed+extrusion factors
+			
+			// Speed Factor
+			if (!speedSliderActive && (lastStatusResponse == undefined || $("#slider_speed").slider("getValue") != status.params.speedFactor)) {
+				$("#slider_speed").slider("setValue", status.params.speedFactor);
+			}
+			if (!extrSliderActive) {
+				for(var i=0; i<status.params.extrFactors.length; i++) {
+					var extrSlider = $("#slider_extr_" + (i + 1));
+					if (lastStatusResponse == undefined || extrSlider.slider("getValue") != status.params.extrFactors) {
+						extrSlider.slider("setValue", status.params.extrFactors[i]);
+					}
+				}
+			}
 			
 			// Fetch the latest G-Code response from the server
-			if (status.seq != lastSeq) {
+			if (lastStatusResponse == undefined || lastStatusResponse.seq != status.seq) {
 				$.ajax("rr_reply", {
 					async: true,
 					dataType: "html",
@@ -270,28 +317,31 @@ function updateStatus() {
 					success: function(response) {
 						response = response.trim();
 						if (response != "" || lastSendGCode != "") {
-							var style = (response.match("^Error")) ? "warning" : (response == "" ? "success" : "info");
+							var style = (response == "") ? "success" : "info";
 							var content = (lastSendGCode != "") ? "<strong>" + lastSendGCode + "</strong><br/>" : "";
-							content += response.replace(/\n/g, "<br/>")
+							if (response.match("^Error: ") != null) {
+								style = "warning";
+								content = "<strong>Error:</strong>" + response.substring(6);
+							} else {
+								content += response.replace(/\n/g, "<br/>")
+							}
 							log(style, content);
 							
 							lastSendGCode = "";
 						}
 					}
 				});
-				
-				lastSeq = status.seq;
 			}
 			
 			// Sensors
-			setProbeValue(status.sensors.probe, status.sensors.probeSecondary);
+			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
 			$("#td_fanrpm").html(status.sensors.fanRPM);
 			
 			// Heated bed
 			if (status.temps.hasOwnProperty("bed")) {
 				setCurrentTemperature("bed", status.temps.bed.current);
 				setTemperatureInput("bed", status.temps.bed.active, 1);
-				// TODO: process heater state
+				setHeaterState("bed", status.temps.bed.state);
 			} else if (heatedBed) {
 				heatedBed = 0;
 				needGuiUpdate = true;
@@ -306,25 +356,14 @@ function updateStatus() {
 				setCurrentTemperature(i + 1, status.temps.heads.current[i]);
 				setTemperatureInput(i + 1, status.temps.heads.active[i], 1);
 				setTemperatureInput(i + 1, status.temps.heads.standby[i], 0);
-				// TODO: process heater state
+				setHeaterState(i + 1, status.temps.heads.state[i]);
 			}
 			recordHeaterTemperatures(status.temps.bed.current, status.temps.heads.current);
 			
-			/*** Extended status response ***/
-			if (status.hasOwnProperty("name")) {
-				$(".navbar-brand").html(status.name);
-			}
-			if (status.hasOwnProperty("probe")) {
-				probeTriggerValue = status.probe.threshold;
-				probeSlowDownValue = probeTriggerValue * 0.9;	// see Platform::Stopped in dc42/zpl firmware forks
-			}
-			if (status.hasOwnProperty("tools")) {
-				toolMapping = status.tools;
-			}
-			
 			/*** Print status response ***/
 			
-			// TODO
+			// TODO: currentLayer, extrRaw, fractionPrinted, firstLayerDuration, firstLayerHeight, printDuration, warmUpTime
+			// TODO: timesLeft: file, filament, layer
 			
 			// Update the GUI when we have processed the whole status response
 			if (needGuiUpdate) {
@@ -341,6 +380,9 @@ function updateStatus() {
 					connect(sessionPassword, false);
 				}, haltedReconnectDelay);
 			}
+			
+			// Save the last status response
+			lastStatusResponse = status;
 		}
 	});
 }
@@ -397,7 +439,7 @@ function updateGCodeFiles() {
 					setGCodeDirectoryItem(this.row);
 				}
 				
-				if (gcodeUpdateIndex == knownGCodeFiles.length) {
+				if (gcodeUpdateIndex >= knownGCodeFiles.length) {
 					$(".span-refresh-files").removeClass("hidden");
 				} else if (currentPage == "files") {
 					updateGCodeFiles();
@@ -415,7 +457,7 @@ function updateMacroFiles() {
 	}
 	
 	if (macroUpdateIndex == -1) {
-		macroUpdateIndex = 0;
+		macroUpdateIndex = invalidMacros = 0;
 		clearMacroFiles();
 		
 		$.ajax("rr_files?dir=/macros", {
@@ -454,10 +496,14 @@ function updateMacroFiles() {
 					setMacroFileItem(this.row, response.size);
 				} else {
 					row.remove();			// Not a file, purge it
+					invalidMacros++;
 				}
 				
-				if (macroUpdateIndex == knownMacroFiles.length) {
+				if (macroUpdateIndex >= knownMacroFiles.length) {
 					$(".span-refresh-macros").removeClass("hidden");
+					if (macroUpdateIndex - invalidMacros == 0) {
+						clearMacroFiles();
+					}
 				} else if (currentPage == "macros") {
 					updateMacroFiles();
 				}
@@ -513,7 +559,14 @@ function enableControls() {
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
-	$(".slider-fan").slider("enable");															// Fan Control
+	$("#slider_fan_control").slider("enable");													// Fan Control
+	
+	$("#page_print .checkbox").removeClass("disabled");											// Print Control
+	$("#slider_fan_print").slider("enable");													// Fan Control
+	$("#slider_speed").slider("enable");														// Speed Factor
+	for(var extr=1; extr<=5; extr++) {
+		$("#slider_extr_" + extr).slider("enable");												// Extrusion Factors
+	}
 	
 	$(".row-actions").removeClass("hidden");													// G-Code/Macro Files
 }
@@ -527,7 +580,14 @@ function disableControls() {
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
-	$(".slider-fan").slider("disable");															// Fan Control
+	$("#slider_fan_control").slider("disable");													// Fan Control
+	
+	$("#btn_pause, #page_print .checkbox").addClass("disabled");								// Print Control
+	$("#slider_fan_print").slider("disable");													// Fan Control
+	$("#slider_speed").slider("disable");														// Speed Factor
+	for(var extr=1; extr<=5; extr++) {
+		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors
+	}
 	
 	$(".row-actions").addClass("hidden");														// G-Code/Macro Files
 }
@@ -552,9 +612,10 @@ function updateGui() {
 	
 	for(var i=1; i<=5; i++) {
 		if (i <= numExtruderDrives) {
-			$(".col-extr-" + i).removeClass("hidden");
+			$(".extr-" + i).removeClass("hidden");
+			$("#slider_extr_" + i).slider("relayout");
 		} else {
-			$(".col-extr-" + i).addClass("hidden");
+			$(".extr-" + i).addClass("hidden");
 		}
 	}
 	if (numExtruderDrives > 0) {
@@ -569,8 +630,8 @@ function updateGui() {
 		$(".div-head-temp").removeClass("hidden-sm");
 		$("#col_extr_totals, #td_extr_total").addClass("hidden");
 		for(var i=1; i<=3; i++) {
-			$("th.col-extr-" + i).html("Drive " + i);
-			$(".col-extr-" + i).removeClass("hidden-md");
+			$("th.extr-" + i).html("Drive " + i);
+			$("#row_status_2 .extr-" + i).removeClass("hidden-md");
 		}
 		$("#div_heaters").removeClass("col-sm-5").addClass("col-sm-6");
 		$("#div_temp_chart").removeClass("col-lg-3").addClass("col-lg-5");
@@ -579,8 +640,8 @@ function updateGui() {
 		$(".div-head-temp").addClass("hidden-sm");
 		$("#col_extr_totals, #td_extr_total").removeClass("hidden");
 		for(var i=1; i<=3; i++) {
-			$("th.col-extr-" + i).html("D" + i);
-			$(".col-extr-" + i).addClass("hidden-md");
+			$("th.extr-" + i).html("D" + i);
+			$("#row_status_2 .extr-" + i).addClass("hidden-md");
 		}
 		$("#div_heaters").removeClass("col-sm-6").addClass("col-sm-5");
 		$("#div_temp_chart").removeClass("col-lg-5").addClass("col-lg-3");
@@ -595,18 +656,17 @@ function updateGui() {
 
 function resetGui() {
 	// Auto-Complete items
-	
 	clearDefaultGCodes();
 	clearHeadTemperatures();
 	clearBedTemperatures();
 	
 	// Navbar
-	
 	$(".navbar-brand").html("Duet Web Control");
 	setStatusLabel("Disconnected", "default");
 	
 	// Heater Temperatures
-	
+	$("#table_heaters tr > th:first-child > a").css("text-decoration", "");
+	$("#table_heaters tr > th:first-child > span").text("");
 	setCurrentTemperature("bed",  undefined);
 	setTemperatureInput("bed", 0, 1);
 	for(var i=1; i<=4; i++) {
@@ -616,7 +676,6 @@ function resetGui() {
 	}
 	
 	// Status fields
-	
 	$("#td_x, #td_y, #td_z").text("n/a");
 	for(var i=1; i<=numExtruderDrives; i++) {
 		$("#td_extr_" + i).text("n/a");
@@ -628,7 +687,18 @@ function resetGui() {
 	// Control page
 	setAxesHomed([1,1,1]);
 	setATXPower(false);
-	$('.slider-fan').slider("setValue", lastFanValue);
+	$('#slider_fan_control').slider("setValue", 35);
+	
+	// Print Status
+	$("#override_fan, #auto_sleep").prop("checked", false);
+	$('#slider_fan_print').slider("setValue", 35);
+	$("#page_print dd, #table_estimations td").html("n/a");
+	$('#slider_speed').slider("setValue", 100);
+	for(var extr=1; extr<=5; extr++) {
+		$("#slider_extr_" + extr).slider("setValue", 100);
+	}
+	
+	// G-Code Console is not cleared automatically
 	
 	// G-Code Files
 	updateGCodeFiles();
@@ -749,8 +819,8 @@ $("body").on("click", ".gcode-directory", function(e) {
 
 $("body").on("click", ".head-temp", function(e) {
 	var inputElement = $(this).parents("div.input-group").find("input");
-	var activeOrStandby = (inputElement.attr("id").match("active$")) ? "S" : "R";
-	var heater = inputElement.attr("id").match("_h(.)_")[1];
+	var activeOrStandby = (inputElement.prop("id").match("active$")) ? "S" : "R";
+	var heater = inputElement.prop("id").match("_h(.)_")[1];
 	
 	sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + " " + $(this).data("temp"));
 	e.preventDefault();
@@ -764,6 +834,10 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 });
 
 /* Static GUI Events */
+
+$("#btn_cancel").click(function() {
+	sendGCode("M0");	// Stop / Cancel Print
+});
 
 $(".btn-connect").click(function() {
 	if (!isConnected) {
@@ -847,6 +921,14 @@ $("#btn_new_directory").click(function() {
 	});
 });
 
+$("#btn_pause").click(function() {
+	if (isPrinting) {
+		sendGCode("M25");	// Pause
+	} else if (isPaused) {
+		sendGCode("M24");	// Resume
+	}
+});
+
 $(".gcode-input").submit(function(e) {
 	if (isConnected) {
 		sendGCode($(this).find("input").val());
@@ -907,8 +989,8 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 	var enterKeyPressed = (e.which == 13);
 	enterKeyPressed |= (e.which == 9 && window.matchMedia('(max-width: 991px)').matches); // need this for Android
 	if (isConnected && enterKeyPressed) {
-		var activeOrStandby = ($(this).attr("id").match("active$")) ? "S" : "R";
-		var heater = $(this).attr("id").match("_h(.)_")[1];
+		var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
+		var heater = $(this).prop("id").match("_h(.)_")[1];
 		
 		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + $(this).val());
 		$(this).select();
@@ -940,27 +1022,6 @@ $("#panel_control_misc label.btn").click(function() {
 	$(this).removeClass("btn-default").addClass("btn-primary");
 });
 
-$('.slider-fan').slider({
-	enabled: false,
-	id: "fanControl",
-	min: 0,
-	max: 100,
-	step: 1,
-	value: 35,
-	tooltip: "always",
-	
-	formatter: function(value) {
-		return value + " %";
-	}
-}).on("slideStart", function() {
-	fanSliderActive = true;
-}).on("slideStop", function(slideEvt) {
-	if (isConnected) {
-		sendGCode("M106 S" + (slideEvt.value / 100.0));
-	}
-	fanSliderActive = false;
-});
-
 $(".span-collapse").click(function() {
 	var $this = $(this);
 	if(!$this.hasClass("panel-collapsed")) {
@@ -988,6 +1049,27 @@ $(".span-refresh-macros").click(function() {
 
 $("#row_info").resize(function() {
 	resizeCharts();
+});
+
+$("#table_heaters tr > th:first-child > a").click(function(e) {
+	if (isConnected) {
+		var heater = $(this).parents("tr").index();
+		var heaterState = lastStatusResponse.temps.heads.state[heater - 1];
+		if (heaterState == 3) {
+			showMessage("exclamation-sign", "Heater Fault", "<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections.", "md");
+		} else {
+			var toolId = getToolByHeater(heater);
+			if (toolId != 0) {
+				if (heaterState == 2) {
+					sendGCode("T0");
+				} else {
+					sendGCode("T" + toolId);
+				}
+			}
+		}
+	}
+	$(this).blur();
+	e.preventDefault();
 });
 
 /* Temperature charts */
@@ -1040,6 +1122,97 @@ function resizeCharts() {
 		drawTemperatureChart();
 	}
 }
+
+
+/* Sliders */
+
+$('#slider_fan_control').slider({
+	enabled: false,
+	id: "fan_control",
+	min: 0,
+	max: 100,
+	step: 1,
+	value: 35,
+	tooltip: "always",
+	
+	formatter: function(value) {
+		return value + " %";
+	}
+}).on("slideStart", function() {
+	fanSliderActive = true;
+}).on("slideStop", function(slideEvt) {
+	if (isConnected && !isNaN(slideEvt.value)) {
+		sendGCode("M106 S" + (slideEvt.value / 100.0));
+		$("#slider_fan_print").slider("setValue", slideEvt.value);
+	}
+	fanSliderActive = false;
+});
+
+$('#slider_fan_print').slider({
+	enabled: false,
+	id: "fan_print",
+	min: 0,
+	max: 100,
+	step: 1,
+	value: 35,
+	tooltip: "always",
+	
+	formatter: function(value) {
+		return value + " %";
+	}
+}).on("slideStart", function() {
+	fanSliderActive = true;
+}).on("slideStop", function(slideEvt) {
+	if (isConnected && !isNaN(slideEvt.value)) {
+		sendGCode("M106 S" + (slideEvt.value / 100.0));
+		$("#slider_fan_control").slider("setValue", slideEvt.value);
+	}
+	fanSliderActive = false;
+});
+
+for(var extr=1; extr<=5; extr++) {
+	$('#slider_extr_' + extr).slider({
+		enabled: false,
+		id: "extr-" + extr,
+		min: 50,
+		max: 150,
+		step: 1,
+		value: 100,
+		tooltip: "always",
+		
+		formatter: function(value) {
+			return value + " %";
+		}
+	}).on("slideStart", function() {
+		extrSliderActive = true;
+	}).on("slideStop", function(slideEvt) {
+		if (isConnected && !isNaN(slideEvt.value)) {
+			sendGCode("M221 D" + $(this).data("drive") + " S" + slideEvt.value);
+		}
+		extrSliderActive = false;
+	});
+}
+
+$('#slider_speed').slider({
+	enabled: false,
+	id: "speed",
+	min: 50,
+	max: 250,
+	step: 1,
+	value: 100,
+	tooltip: "always",
+	
+	formatter: function(value) {
+		return value + " %";
+	}
+}).on("slideStart", function() {
+	speedSliderActive = true;
+}).on("slideStop", function(slideEvt) {
+	if (isConnected && !isNaN(slideEvt.value)) {
+		sendGCode("M220 S" + slideEvt.value);
+	}
+	speedSliderActive = false;
+});
 
 /* Modals */
 
@@ -1143,10 +1316,23 @@ function addMacroFile(filename) {
 
 	var row =	'<tr data-macro="' + filename + '"><td class="col-actions"></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
-	row +=		'<td>loading</td>';
-	row +=		'<td>loading</td></tr>';	// TODO: obtain this one from stored values
+	row +=		'<td>loading</td></tr>';
 	
 	$("#table_macro_files").append(row).removeClass("hidden");
+}
+
+function beep(frequency, duration) {
+	var context = new webkitAudioContext();
+	oscillator = context.createOscillator();
+	
+	oscillator.type = 0; // sine wave
+	oscillator.frequency.value = frequency;
+	oscillator.connect(context.destination);
+	oscillator.noteOn && oscillator.noteOn(0);
+	
+	setTimeout(function() {
+		oscillator.disconnect();
+	}, duration);
 }
 
 function addHeadTemperature(label, temperature) {
@@ -1201,6 +1387,18 @@ function clearMacroFiles() {
 	}
 }
 
+function formatSize(bytes) {
+	// TODO: Implement KiB as option here
+	
+	if (bytes > 1000000) { // MB
+		return (bytes / 1000000).toFixed(1) + " MB";
+	}
+	if (bytes > 1000) { // KB
+		return (bytes / 1000).toFixed(1) + " KB";
+	}
+	return bytes + " B";
+}
+
 function log(style, message) {
 	var entry =		'<div class="row alert-' + style + '">';
 	entry +=		'<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
@@ -1235,50 +1433,37 @@ function recordHeaterTemperatures(bedTemp, headTemps) {
 }
 
 function setAxesHomed(axes) {
-	// If we have only one possibility to home the axes, we must have a delta configuration
-	setDeltaMode(axes.length == 1);
-	
-	if (isDelta) {
-		// Only set home alert visibility, axis buttons are hidden
-		if (axes[0]) {
-			$("#home_warning").addClass("hidden");
-		} else {
-			$("#unhomed_warning").html("The machine is not homed.");
-			$("#home_warning").removeClass("hidden");
-		}
+	// Set button colors
+	var unhomedAxes = "";
+	if (axes[0]) {
+		$(".btn-home-x").removeClass("btn-warning").addClass("btn-primary");
 	} else {
-		// Set button colors
-		var unhomedAxes = "";
-		if (axes[0]) {
-			$(".btn-home-x").removeClass("btn-warning").addClass("btn-primary");
+		unhomedAxes = (isDelta) ? ", A" : ", X";
+		$(".btn-home-x").removeClass("btn-primary").addClass("btn-warning");
+	}
+	if (axes[1]) {
+		$(".btn-home-y").removeClass("btn-warning").addClass("btn-primary");
+	} else {
+		unhomedAxes += (isDelta) ? ", B" : ", Y";
+		$(".btn-home-y").removeClass("btn-primary").addClass("btn-warning");
+	}
+	if (axes[2]) {
+		$(".btn-home-z").removeClass("btn-warning").addClass("btn-primary");
+	} else {
+		unhomedAxes += (isDelta) ? ", C" : ", Z";
+		$(".btn-home-z").removeClass("btn-primary").addClass("btn-warning");
+	}
+	
+	// Set home alert visibility
+	if (unhomedAxes == "") {
+		$("#home_warning").addClass("hidden");
+	} else {
+		if (unhomedAxes.length > 3) {
+			$("#unhomed_warning").html("The following axes are not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
 		} else {
-			unhomedAxes = ", X";
-			$(".btn-home-x").removeClass("btn-primary").addClass("btn-warning");
+			$("#unhomed_warning").html("The following axis is not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
 		}
-		if (axes[1]) {
-			$(".btn-home-y").removeClass("btn-warning").addClass("btn-primary");
-		} else {
-			unhomedAxes += ", Y";
-			$(".btn-home-y").removeClass("btn-primary").addClass("btn-warning");
-		}
-		if (axes[2]) {
-			$(".btn-home-z").removeClass("btn-warning").addClass("btn-primary");
-		} else {
-			unhomedAxes += ", Z";
-			$(".btn-home-z").removeClass("btn-primary").addClass("btn-warning");
-		}
-		
-		// Set home alert visibility
-		if (unhomedAxes == "") {
-			$("#home_warning").addClass("hidden");
-		} else {
-			if (unhomedAxes.length > 3) {
-				$("#unhomed_warning").html("The following axes are not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
-			} else {
-				$("#unhomed_warning").html("The following axis is not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
-			}
-			$("#home_warning").removeClass("hidden");
-		}
+		$("#home_warning").removeClass("hidden");
 	}
 }
 
@@ -1323,14 +1508,7 @@ function setGCodeFileItem(row, size, height, layerHeight, filamentUsage, generat
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	linkCell.html('<a href="#" class="gcode-file">' + linkCell.html() + '</a>');
 	
-	// TODO: Implement KiB as option here
-	if (size > 1000000) { // MB
-		row.children().eq(2).html((size / 1000000).toFixed(1) + " MB");
-	} else if (size > 1000) { // KB
-		row.children().eq(2).html((size / 1000).toFixed(1) + " KB");
-	} else { // Bytes
-		row.children().eq(2).html(size + " B");
-	}
+	row.children().eq(2).html(formatSize(size));
 	
 	if (height > 0) {
 		row.children().eq(3).html(height + " mm");
@@ -1365,7 +1543,7 @@ function setGCodeDirectoryItem(row) {
 	
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
-	linkCell.html('<a href="#" class="gcode-directory">' + linkCell.html() + '</a>').attr("colspan", 6);
+	linkCell.html('<a href="#" class="gcode-directory">' + linkCell.html() + '</a>').prop("colspan", 6);
 	
 	for(var i=6; i>=2; i--) {
 		row.children().eq(i).remove();
@@ -1402,6 +1580,41 @@ function setGCodeDirectory(directory) {
 	}
 }
 
+function setHeaterState(heater, status) {
+	var statusText = "n/a", underline = "";
+	switch (status) {
+		case 0:
+			statusText = "off";
+			break;
+			
+		case 1:
+			statusText = "standby";
+			break;
+			
+		case 2:
+			statusText = "active";
+			underline = "underline";
+			break;
+			
+		case 3:
+			statusText = "fault";
+			break;
+	}
+	
+	if (heater != "bed") {
+		// TODO: make this optional vvv
+		var tool = getToolByHeater(heater);
+		if (tool != 0) {
+			statusText += " (T" + tool + ")";
+		}
+		$("#table_heaters tr > th:first-child").eq(heater).children("a").css("text-decoration", underline);
+		$("#table_heaters tr > th:first-child").eq(heater).children("span").text(statusText);
+	} else {
+		$("#table_heaters tr:last-child > th:first-child > span").text(statusText);
+	}
+	
+}
+
 function setMacroFileItem(row, size) {
 	row.data("file", row.data("item"));
 	row.removeData("item");
@@ -1413,16 +1626,44 @@ function setMacroFileItem(row, size) {
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file"); // TODO: bookmark icon if label set
 	
-	// TODO: Implement KiB as option here
-	if (size > 1000000) { // MB
-		row.children().eq(2).html((size / 1000000).toFixed(1) + " MB");
-	} else if (size > 1000) { // KB
-		row.children().eq(2).html((size / 1000).toFixed(1) + " KB");
-	} else { // Bytes
-		row.children().eq(2).html(size + " B");
+	row.children().eq(2).html(formatSize(size));
+}
+
+function setPauseStatus(paused) {
+	if (paused == isPaused) {
+		return;
 	}
 	
-	// TODO: implement label
+	if (paused) {
+		$("#btn_cancel").parents("div.btn-group").removeClass("hidden");
+		$("#btn_pause").removeClass("btn-warning").addClass("btn-success").text("Resume");
+	} else {
+		$("#btn_cancel").parents("div.btn-group").addClass("hidden");
+		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").text("Pause Print");
+	}
+	isPaused = paused;
+}
+
+function setPrintStatus(printing) {
+	if (printing == isPrinting) {
+		return;
+	}
+	
+	if (printing) {
+		$("#btn_pause").removeClass("disabled");
+	} else {
+		$("#btn_pause").addClass("disabled");
+		
+		if (isConnected && $("#auto_sleep").is(":checked")) {
+			sendGCode("M1");
+			$("#auto_sleep").prop("checked", false);
+		}
+	}
+	
+	if (waitingForPrintStart) {
+		showPage("print");
+		waitingForPrintStart = false;
+	}
 }
 
 function setProbeValue(value, secondaryValue) {
@@ -1466,9 +1707,17 @@ function showPage(name) {
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
 	
-	if (name != currentPage && isConnected) {
+	if (name != currentPage) {
+		if (name == "control") {
+			$("#slider_fan_control").slider("relayout")
+		}
+		
 		if (name == "print") {
-			// TODO
+			$("#slider_speed").slider("relayout");
+			$("#slider_fan_print").slider("relayout");
+			for(var extr=1; extr<=5; extr++) {
+				$("#slider_extr_" + extr).slider("relayout");
+			}
 			waitingForPrintStart = false;
 		}
 		
