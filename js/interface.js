@@ -30,18 +30,45 @@ var tempChartOptions = 	{
 						};
 var tempChartPadding = 15;
 
+var printChart;
+var printChartOptions =	{
+							grid: {
+								borderWidth: 0
+							},
+							pan: {
+								interactive: true
+							},
+							xaxis: {
+								min: 0,
+								tickDecimals: 0,
+							},
+							yaxis: {
+								min: 0,
+								max: 60,
+								ticks: 5,
+								tickDecimals: 0,
+								tickFormatter: function(val) { if (!val) { return ""; } else { return val + "s"; } }
+							},
+							zoom: {
+								interactive: true
+							}
+						};
+var maxLayerTime, lastLayerPrintDuration;
+
 /* Variables */
 
-var isConnected = false, isDelta, isPrinting, isPaused;
+var isConnected = false, justConnected, isDelta, isPrinting, isPaused;
 var extendedStatusCounter;
+var haveFileInfo, fileInfo;
+
 var lastStatusResponse, lastSendGCode;
 
 var probeSlowDownValue, probeTriggerValue;
-
 var heatedBed, numHeads, numExtruderDrives, toolMapping;
-var recordedBedTemperatures, recordedHeadTemperatures;
 
-var currentPage = "control", drawTempChart = false, waitingForPrintStart;
+var recordedBedTemperatures, recordedHeadTemperatures, layerData;
+
+var currentPage = "control", refreshTempChart = false, refreshPrintChart = false, waitingForPrintStart;
 
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
 var knownMacroFiles, macroUpdateIndex;
@@ -53,16 +80,20 @@ function resetGuiData() {
 	setPrintStatus(false);
 	setDeltaMode(false);
 	
-	lastStatusResponse = undefined;
+	justConnected = haveFileInfo = false;
+	fileInfo = lastStatusResponse = undefined;
 	lastSendGCode = "";
-	probeSlowDownValue = probeTriggerValue = undefined;
 	
+	probeSlowDownValue = probeTriggerValue = undefined;
 	heatedBed = 1;
 	numHeads = 4;			// 4 Heads max
 	numExtruderDrives = 5;	// 5 Extruder Drives max
 	
-	recordedBedTemperatures = [];
+	recordedBedTemperatures = layerData = [];
 	recordedHeadTemperatures = [[], [], [], []];
+	
+	layerData = [];
+	maxLayerTime = lastLayerPrintDuration = 0;
 	
 	toolMapping = undefined;
 	
@@ -125,13 +156,13 @@ function connect(password, firstConnect) {
 function postConnect() {
 	log("success", "<strong>Connection established!</strong>");
 	
-	isConnected = true;
+	isConnected = justConnected = true;
 	extendedStatusCounter = extendedStatusInterval; // ask for extended status on first poll
 	
 	updateStatus();
 	if (currentPage == "files") {
 		updateGCodeFiles();
-	} else if (currentPage == "macros") {
+	} else if (currentPage == "control" || currentPage == "macros") {
 		updateMacroFiles();
 	}
 	
@@ -165,6 +196,8 @@ function updateStatus() {
 	if (extendedStatusCounter >= extendedStatusInterval) {
 		extendedStatusCounter = 0;
 		ajaxRequest += "?type=2";
+	} else if (isPrinting) {
+		ajaxRequest += "?type=3";
 	} else {
 		ajaxRequest += "?type=1";
 	}
@@ -206,7 +239,7 @@ function updateStatus() {
 				toolMapping = status.tools;
 			}
 			
-			/*** Ordinary status response ***/
+			/*** Default status response ***/
 			
 			// Status
 			var printing = false, paused = false;
@@ -230,6 +263,7 @@ function updateStatus() {
 				case 'R':	// Resuming
 					setStatusLabel("Resuming", "warning");
 					printing = true;
+					paused = true;
 					break;
 					
 				case 'P':	// Printing
@@ -247,6 +281,7 @@ function updateStatus() {
 			}
 			setPrintStatus(printing);
 			setPauseStatus(paused);
+			justConnected = false;
 			
 			// Set homed axes
 			setAxesHomed(status.coords.axesHomed);
@@ -269,8 +304,6 @@ function updateStatus() {
 				$("#td_y").html(status.coords.xyz[1].toFixed(2));
 				$("#td_z").html(status.coords.xyz[2].toFixed(2));
 			}
-			
-			// TODO: process currentTool here
 			
 			// Output
 			if (status.hasOwnProperty("output")) {
@@ -362,8 +395,155 @@ function updateStatus() {
 			
 			/*** Print status response ***/
 			
-			// TODO: currentLayer, extrRaw, fractionPrinted, firstLayerDuration, firstLayerHeight, printDuration, warmUpTime
-			// TODO: timesLeft: file, filament, layer
+			if (isPrinting && !isPaused && status.hasOwnProperty("fractionPrinted")) {
+				if (haveFileInfo) {
+					var progress = 100, progressText = [];
+					
+					// Get the current layer progress text
+					if (fileInfo.height > 0 && fileInfo.layerHeight > 0) {
+						var numLayers;
+						if (status.firstLayerHeight > 0) {
+							numLayers = ((fileInfo.height - status.firstLayerHeight) / fileInfo.layerHeight) + 1;
+						} else {
+							numLayers = (fileInfo.height / fileInfo.layerHeight);
+						}
+						numLayers = numLayers.toFixed();
+						progressText.push("Layer: " + status.currentLayer + " of " + numLayers);
+					}
+					
+					// Try to calculate the progress by checking the filament usage
+					if (fileInfo.filament.length > 0) {
+						var totalFileFilament = (fileInfo.filament.reduce(function(a, b) { return a + b; })).toFixed(1);
+						var totalRawFilament = (status.extrRaw.reduce(function(a, b) { return a + b; })).toFixed(1);
+						progress = ((totalRawFilament / totalFileFilament) * 100.0).toFixed(1);
+						
+						progressText.push("Filament Usage: " + totalRawFilament + "mm of " + totalFileFilament + "mm");
+						if (true) { // TODO: make this optional
+							progressText[progressText.length - 1] += " (" + (totalFileFilament - totalRawFilament).toFixed(1) + "mm remaining)";
+						}
+					} 
+					// Otherwise by comparing the current Z position to the total height
+					else if (fileInfo.height > 0) {
+						progress = ((status.coords.xyz[2] / fileInfo.height) * 100.0).toFixed(1);
+						if (progress > 100) {
+							progress = 100;
+						}
+					}
+					// Use the file-based progress as a fallback option
+					else {
+						progress = status.fractionPrinted;
+						if (progress < 0) {
+							progress = 100;
+						}
+					}
+					
+					// Ensure we stay within reasonable boundaries
+					if (progress < 0) {
+						progress = 0;
+					} else if (progress > 100) {
+						progress = 100;
+					}
+					
+					// Update info texts
+					if (progressText.length > 0) {
+						setProgress(progress, "Printing " + fileInfo.fileName + ", " + progress + "% Complete", progressText.reduce(function(a, b) { return a + ", " + b; }));
+					} else {
+						setProgress(progress, "Printing " + fileInfo.fileName + ", " + progress + "% Complete", "");
+					}
+				} else {
+					if (status.fractionPrinted > 0) {
+						setProgress(status.fractionPrinted, status.fractionPrinted + "% Complete", "");
+					} else {
+						setProgress(100, "100% Complete", "");
+					}
+				}
+				
+				// Print Chart
+				if (status.currentLayer > 1) {
+					var realPrintTime = (status.printDuration - status.warmUpDuration - status.firstLayerDuration);
+					if (layerData.length == 0) {
+						addLayerData(status.firstLayerDuration);
+						if (status.currentLayer > 2) {						// add avg values on reconnect
+							realPrintTime -= status.currentLayerTime;
+							for(var layer=2; layer<status.currentLayer; layer++) {
+								addLayerData(realPrintTime / status.currentLayer);
+							}
+						}
+						
+						if (status.currentLayer == 2) {
+							lastLayerPrintDuration = 0;
+						} else {
+							lastLayerPrintDuration = realPrintTime;
+						}
+					} else if (status.currentLayer > layerData.length) {	// there are two entries for the first layer
+						addLayerData(realPrintTime - lastLayerPrintDuration);
+						lastLayerPrintDuration = realPrintTime;
+					}
+				} else if (layerData.length > 0) {
+					layerData = [];
+					maxLayerTime = lastLayerPrintDuration = 0;
+					drawPrintChart();
+				}
+				
+				// Print Estimations
+				if (haveFileInfo && fileInfo.filament.length > 0) {
+					setTimeLeft("filament", status.timesLeft.filament);
+				} else {
+					setTimeLeft("filament", undefined);
+				}
+				setTimeLeft("file", status.timesLeft.file);
+				if (haveFileInfo && fileInfo.height > 0) {
+					setTimeLeft("layer", status.timesLeft.layer);
+				} else {
+					setTimeLeft("layer", undefined);
+				}
+				
+				// First Layer Duration
+				if (status.firstLayerDuration > 0) {
+					$("#td_fl_time").html(convertSeconds(status.firstLayerDuration));
+				} else if (status.warmUpDuration > 0) {
+					$("#td_fl_time").html(convertSeconds(status.printDuration - status.warmUpDuration));
+				} else {
+					$("#td_fl_time").html("n/a");
+				}
+				
+				// First Layer Height
+				if (status.firstLayerHeight > 0) {
+					$("#td_fl_height").html(status.firstLayerHeight + " mm");
+				} else {
+					$("#td_fl_height").html("n/a");
+				}
+				
+				// Current Layer Time
+				if (status.currentLayer > 1) {
+					if (status.currentLayerTime > 0) {
+						$("#td_curr_layer").html(convertSeconds(status.currentLayerTime));
+					} else {
+						$("#td_curr_layer").html("n/a");
+					}
+					$(".col-layertime").removeClass("hidden");
+				}
+				
+				// Print Duration
+				if (status.printDuration > 0) {
+					$("#td_print_duration").html(convertSeconds(status.printDuration));
+				} else {
+					$("#td_print_duration").html("n/a");
+				}
+				
+				// Warm-Up Time
+				if (status.warmUpDuration > 0 || status.firstLayerHeight > 0) {
+					if (status.warmUpDuration == 0) {
+						$("#td_warmup_time").html("none");
+					} else {
+						$("#td_warmup_time").html(convertSeconds(status.warmUpDuration));
+					}
+				} else if (status.printDuration > 0) {
+					$("#td_warmup_time").html(convertSeconds(status.printDuration));
+				} else {
+					$("#td_warmup_time").html("n/a");
+				}
+			}
 			
 			// Update the GUI when we have processed the whole status response
 			if (needGuiUpdate) {
@@ -420,7 +600,7 @@ function updateGCodeFiles() {
 				}
 			}
 		});
-	} else {
+	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
 		var row = $("#table_gcode_files tr[data-item='" + knownGCodeFiles[gcodeUpdateIndex] + "']");
 		$.ajax("rr_fileinfo?name=" + currentGCodeDirectory + "/" + encodeURIComponent(knownGCodeFiles[gcodeUpdateIndex]), {
 			async: true,
@@ -472,14 +652,16 @@ function updateMacroFiles() {
 					}
 					
 					if (knownMacroFiles.length == 0) {
-						$(".span-refresh-macros").removeClass("hidden");
+						if (currentPage == "macros") {
+							$(".span-refresh-macros").removeClass("hidden");
+						}
 					} else {
 						updateMacroFiles();
 					}
 				}
 			}
 		});
-	} else {
+	} else if (macroUpdateIndex < knownMacroFiles.length) {
 		var row = $("#table_macro_files tr[data-macro='" + knownMacroFiles[macroUpdateIndex] + "']");
 		$.ajax("rr_fileinfo?name=/macros/" + encodeURIComponent(knownMacroFiles[macroUpdateIndex]), {
 			async: true,
@@ -500,11 +682,12 @@ function updateMacroFiles() {
 				}
 				
 				if (macroUpdateIndex >= knownMacroFiles.length) {
-					$(".span-refresh-macros").removeClass("hidden");
-					if (macroUpdateIndex - invalidMacros == 0) {
+					if (currentPage == "macros") {
+						$(".span-refresh-macros").removeClass("hidden");
+					} else if (macroUpdateIndex - invalidMacros == 0) {
 						clearMacroFiles();
 					}
-				} else if (currentPage == "macros") {
+				} else if (currentPage == "control" || currentPage == "macros") {
 					updateMacroFiles();
 				}
 			}
@@ -652,20 +835,23 @@ function updateGui() {
 	
 	resizeCharts();
 	drawTemperatureChart();
+	drawPrintChart();
 }
 
 function resetGui() {
 	// Auto-Complete items
-	clearDefaultGCodes();
 	clearHeadTemperatures();
 	clearBedTemperatures();
+	
+	// Charts
+	drawTemperatureChart();
+	drawPrintChart();
 	
 	// Navbar
 	$(".navbar-brand").html("Duet Web Control");
 	setStatusLabel("Disconnected", "default");
 	
 	// Heater Temperatures
-	$("#table_heaters tr > th:first-child > a").css("text-decoration", "");
 	$("#table_heaters tr > th:first-child > span").text("");
 	setCurrentTemperature("bed",  undefined);
 	setTemperatureInput("bed", 0, 1);
@@ -690,9 +876,11 @@ function resetGui() {
 	$('#slider_fan_control').slider("setValue", 35);
 	
 	// Print Status
+	$(".row-progress, .col-layertime").addClass("hidden");
+	setProgress(100, "", "");
 	$("#override_fan, #auto_sleep").prop("checked", false);
 	$('#slider_fan_print').slider("setValue", 35);
-	$("#page_print dd, #table_estimations td").html("n/a");
+	$("#page_print dd, #panel_print_info table td, #table_estimations td").html("n/a");
 	$('#slider_speed').slider("setValue", 100);
 	for(var extr=1; extr<=5; extr++) {
 		$("#slider_extr_" + extr).slider("setValue", 100);
@@ -722,8 +910,12 @@ $("body").on("click", ".btn-macro", function(e) {
 $("body").on("click", ".btn-print-file, .gcode-file", function(e) {
 	var file = $(this).parents("tr").data("file");
 	showConfirmationDialog("Start Print", "Do you want to print <strong>" + file + "</strong>?", function() {
-		sendGCode("M32 " + file);
 		waitingForPrintStart = true;
+		if (currentGCodeDirectory == "/gcodes") {
+			sendGCode("M32 " + file);
+		} else {
+			sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + file);
+		}
 	});
 	e.preventDefault();
 });
@@ -821,8 +1013,11 @@ $("body").on("click", ".head-temp", function(e) {
 	var inputElement = $(this).parents("div.input-group").find("input");
 	var activeOrStandby = (inputElement.prop("id").match("active$")) ? "S" : "R";
 	var heater = inputElement.prop("id").match("_h(.)_")[1];
+	var temperature = $(this).data("temp");
 	
-	sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + " " + $(this).data("temp"));
+	getToolsByHeater(heater).forEach(function(tool) {
+		sendGCode("G10 P" + tool + " " + activeOrStandby + temperature);
+	});
 	e.preventDefault();
 });
 
@@ -837,6 +1032,7 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 
 $("#btn_cancel").click(function() {
 	sendGCode("M0");	// Stop / Cancel Print
+	$(this).addClass("disabled");
 });
 
 $(".btn-connect").click(function() {
@@ -867,6 +1063,21 @@ $("#btn_retract").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]").val();
 	sendGCode("G1 E-" + amount + " F" + feedrate);
+});
+
+$(".btn-hide-info").click(function() {
+	if ($(this).hasClass("active")) {
+		$("#row_info").addClass("hidden-xs hidden-sm");
+		setTimeout(function() {
+			$(".btn-hide-info").removeClass("active");
+		}, 100);
+	} else {
+		$("#row_info").removeClass("hidden-xs hidden-sm");
+		setTimeout(function() {
+			$(".btn-hide-info").addClass("active");
+		}, 100);
+	}
+	$(this).blur();
 });
 
 $(".btn-home-x").resize(function() {
@@ -922,11 +1133,12 @@ $("#btn_new_directory").click(function() {
 });
 
 $("#btn_pause").click(function() {
-	if (isPrinting) {
-		sendGCode("M25");	// Pause
-	} else if (isPaused) {
+	if (isPaused) {
 		sendGCode("M24");	// Resume
+	} else if (isPrinting) {
+		sendGCode("M25");	// Pause
 	}
+	$(this).addClass("disabled");
 });
 
 $(".gcode-input").submit(function(e) {
@@ -991,8 +1203,11 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 	if (isConnected && enterKeyPressed) {
 		var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
 		var heater = $(this).prop("id").match("_h(.)_")[1];
+		var temperature = $(this).val();
 		
-		sendGCode("G10 P" + getToolByHeater(heater) + " " + activeOrStandby + $(this).val());
+		getToolsByHeater(heater).forEach(function(toolNumber) {
+			sendGCode("G10 P" + toolNumber + " " + activeOrStandby + temperature);
+		});
 		$(this).select();
 		
 		e.preventDefault();
@@ -1017,22 +1232,9 @@ $("#panel_control_misc label.btn").click(function() {
 	}
 });
 
-$("#panel_control_misc label.btn").click(function() {
+$("#panel_extrude label.btn").click(function() {
 	$(this).parent().find("label.btn").removeClass("btn-primary").addClass("btn-default");
 	$(this).removeClass("btn-default").addClass("btn-primary");
-});
-
-$(".span-collapse").click(function() {
-	var $this = $(this);
-	if(!$this.hasClass("panel-collapsed")) {
-		$this.parents(".panel").find(".panel-collapse").slideUp();
-		$this.addClass("panel-collapsed");
-		$this.removeClass("glyphicon-chevron-down").addClass("glyphicon-chevron-up");
-	} else {
-		$this.parents(".panel").find(".panel-collapse").slideDown();
-		$this.removeClass("panel-collapsed");
-		$this.removeClass("glyphicon-chevron-up").addClass("glyphicon-chevron-down");
-	}
 });
 
 $(".span-refresh-files").click(function() {
@@ -1047,7 +1249,7 @@ $(".span-refresh-macros").click(function() {
 	$(".span-refresh-macros").addClass("hidden");
 });
 
-$("#row_info").resize(function() {
+$(".panel-chart").resize(function() {
 	resizeCharts();
 });
 
@@ -1058,13 +1260,19 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 		if (heaterState == 3) {
 			showMessage("exclamation-sign", "Heater Fault", "<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections.", "md");
 		} else {
-			var toolId = getToolByHeater(heater);
-			if (toolId != 0) {
-				if (heaterState == 2) {
-					sendGCode("T0");
-				} else {
-					sendGCode("T" + toolId);
+			var tools = getToolsByHeater(heater), hasToolSelected = false;
+			tools.forEach(function(tool) {
+				if (tool == lastStatusResponse.currentTool) {
+					hasToolSelected = true;
 				}
+			});
+			
+			if (hasToolSelected) {
+				sendGCode("T0");
+			} else if (tools.length == 1) {
+				sendGCode("T" + tools[0]);
+			} else if (tools.length > 0) {
+				// TODO: open drop-down menu
 			}
 		}
 	}
@@ -1074,11 +1282,26 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 
 /* Temperature charts */
 
+function addLayerData(lastLayerTime) {
+	if (layerData.length == 0) {
+		layerData.push([0, lastLayerTime]);
+		layerData.push([1, lastLayerTime]);
+	} else {
+		layerData.push([layerData.length, lastLayerTime]);
+	}
+	
+	if (lastLayerTime > maxLayerTime) {
+		maxLayerTime = lastLayerTime;
+	}
+	
+	drawPrintChart();
+}
+
 function drawTemperatureChart()
 {
 	// Only draw the chart if it's possible
 	if ($("#chart_temp").width() === 0) {
-		drawTempChart = true;
+		refreshTempChart = true;
 		return;
 	}
 	
@@ -1104,12 +1327,73 @@ function drawTemperatureChart()
 		tempChart.draw();
 	}
 	
-	drawTempChart = false;
+	refreshTempChart = false;
 }
+
+function drawPrintChart() {
+	// Only draw the chart if it's possible
+	if ($("#chart_print").width() === 0) {
+		refreshPrintChart = true;
+		return;
+	}
+	
+	// Find absolute maximum values for the X axis
+	var maxX = 100, maxPanX = 100;
+	if (layerData.length < 21) {
+		maxX = maxPanX = 20;
+	} else if (layerData.length < 100) {
+		maxX = maxPanX = layerData.length - 1;
+	} else {
+		maxPanX = layerData.length - 1;
+	}
+	printChartOptions.xaxis.max = maxX;
+	printChartOptions.xaxis.panRange = [0, maxPanX];
+	printChartOptions.xaxis.zoomRange = [50, maxPanX];
+	printChartOptions.yaxis.panRange = [0, (maxLayerTime < 60) ? 60 : maxLayerTime];
+	printChartOptions.yaxis.zoomRange = [60, (maxLayerTime < 60) ? 60 : maxLayerTime];
+	
+	// Find max visible value for Y axis
+	var maxVisibleValue = 30;
+	if (layerData.length > 3) {
+		for(var i=(layerData.length > 102) ? layerData.length - 100 : 2; i<layerData.length; i++) {
+			if (maxVisibleValue < layerData[i][1]) {
+				maxVisibleValue = layerData[i][1];
+			}
+		}
+	} else if (layerData.length > 0) {
+		maxVisibleValue = layerData[0][1];
+	} else {
+		maxVisibleValue = 60;
+	}
+	printChartOptions.yaxis.max = (layerData.length > 3 && layerData.length < 101) ? maxVisibleValue * 1.1 : maxVisibleValue;
+	
+	// Update chart and pan to the right
+	printChart = $.plot("#chart_print", [layerData], printChartOptions);
+	printChart.pan({ left: 99999 });
+	refreshPrintChart = false;
+}
+
+/*function makeDummyData() {
+	layerData = [];
+	maxLayerTime = lastLayerPrintDuration = 0;
+	
+	addLayerData(450);
+	setTimeout(function() { addDummyPoint(); }, 1000);
+}
+
+function addDummyPoint() {
+	addLayerData((Math.random() * 84) + 5);
+	if (layerData.length <= 300) {
+		setTimeout(addDummyPoint, 100);
+	}
+}*/
 
 function resizeCharts() {
 	var headsHeight = $("#table_heaters").height();
-	var statusHeight = $("#div_status_table").height() - 2; /* 2px border */
+	var statusHeight = 0;
+	$("#div_status table").each(function() {
+		statusHeight += $(this).outerHeight();
+	});
 	
 	var max = (headsHeight > statusHeight) ? headsHeight : statusHeight;
 	max -= tempChartPadding;
@@ -1118,11 +1402,13 @@ function resizeCharts() {
 		$("#chart_temp").css("height", max);
 	}
 	
-	if (drawTempChart) {
+	if (refreshTempChart) {
 		drawTemperatureChart();
 	}
+	if (refreshPrintChart) {
+		drawPrintChart();
+	}
 }
-
 
 /* Sliders */
 
@@ -1221,6 +1507,7 @@ function showConfirmationDialog(title, message, action) {
 	$("#modal_confirmation p").html(message);
 	$("#modal_confirmation button:first-child").off().one("click", action);
 	$("#modal_confirmation").modal("show");
+	$("#modal_confirmation .btn-success").focus();
 }
 
 function showTextInput(title, message, action) {
@@ -1278,15 +1565,6 @@ function addBedTemperature(label, temperature) {
 	$(".btn-bed-temp").removeClass("disabled");
 }
 
-function addControlMacro(label, filename) {
-	var macroButton =	'<div class="btn-group">';
-	macroButton +=		'<button class="btn btn-default btn-macro" data-macro="' + filename + '">' + label + '</button>';
-	macroButton +=		'</div>';
-	
-	$("#panel_macro_buttons h4").addClass("hidden");
-	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
-}
-
 function addDefaultGCode(label, gcode) {
 	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
  	item +=		'<span>' + label + '</span>';
@@ -1312,12 +1590,21 @@ function addGCodeFile(filename) {
 }
 
 function addMacroFile(filename) {
-	$("#page_macros h1").addClass("hidden");
+	// Control Page
+	var label = filename.match(/(.*)\.\w+/)[1]
+	var macroButton =	'<div class="btn-group">';
+	macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' + label + '</button>';
+	macroButton +=		'</div>';
+	
+	$("#panel_macro_buttons h4").addClass("hidden");
+	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
 
+	// Macro Page
 	var row =	'<tr data-macro="' + filename + '"><td class="col-actions"></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
 	row +=		'<td>loading</td></tr>';
 	
+	$("#page_macros h1").addClass("hidden");
 	$("#table_macro_files").append(row).removeClass("hidden");
 }
 
@@ -1343,11 +1630,6 @@ function addHeadTemperature(label, temperature) {
 function clearBedTemperatures() {
 	$(".ul-bed-temp").html("");
 	$(".btn-bed-temp").addClass("disabled");
-}
-
-function clearControlMacros() {
-	$("#panel_macro_buttons .btn-group-vertical").html("");
-	$("#panel_macro_buttons h4").removeClass("hidden");
 }
 
 function clearGCodeDirectory() {
@@ -1377,6 +1659,9 @@ function clearHeadTemperatures() {
 }
 
 function clearMacroFiles() {
+	$("#panel_macro_buttons .btn-group-vertical").html("");
+	$("#panel_macro_buttons h4").removeClass("hidden");
+	
 	$("#table_macro_files > tbody").remove();
 	$("#table_macro_files").addClass("hidden");
 	$("#page_macros h1").removeClass("hidden");
@@ -1581,7 +1866,7 @@ function setGCodeDirectory(directory) {
 }
 
 function setHeaterState(heater, status) {
-	var statusText = "n/a", underline = "";
+	var statusText = "n/a";
 	switch (status) {
 		case 0:
 			statusText = "off";
@@ -1593,7 +1878,6 @@ function setHeaterState(heater, status) {
 			
 		case 2:
 			statusText = "active";
-			underline = "underline";
 			break;
 			
 		case 3:
@@ -1602,17 +1886,21 @@ function setHeaterState(heater, status) {
 	}
 	
 	if (heater != "bed") {
-		// TODO: make this optional vvv
-		var tool = getToolByHeater(heater);
-		if (tool != 0) {
-			statusText += " (T" + tool + ")";
+		var tools = getToolsByHeater(heater);
+		if (tools.length != 0) {
+			statusText += " (T" + tools.reduce(function(a, b) { return a + ", T" + b; }) + ")";
+			if (tools.length > 1) {
+				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").removeClass("hidden");
+			} else {
+				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
+			}
+		} else {
+			$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
 		}
-		$("#table_heaters tr > th:first-child").eq(heater).children("a").css("text-decoration", underline);
 		$("#table_heaters tr > th:first-child").eq(heater).children("span").text(statusText);
 	} else {
 		$("#table_heaters tr:last-child > th:first-child > span").text(statusText);
 	}
-	
 }
 
 function setMacroFileItem(row, size) {
@@ -1624,7 +1912,7 @@ function setMacroFileItem(row, size) {
 	row.children().eq(0).html(buttons);
 	
 	var linkCell = row.children().eq(1);
-	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file"); // TODO: bookmark icon if label set
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	
 	row.children().eq(2).html(formatSize(size));
 }
@@ -1635,11 +1923,14 @@ function setPauseStatus(paused) {
 	}
 	
 	if (paused) {
-		$("#btn_cancel").parents("div.btn-group").removeClass("hidden");
-		$("#btn_pause").removeClass("btn-warning").addClass("btn-success").text("Resume");
+		$("#btn_cancel").removeClass("disabled").parents("div.btn-group").removeClass("hidden");
+		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").text("Resume");
 	} else {
 		$("#btn_cancel").parents("div.btn-group").addClass("hidden");
 		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").text("Pause Print");
+		if (isPrinting) {
+			$("#btn_pause").removeClass("disabled");
+		}
 	}
 	isPaused = paused;
 }
@@ -1650,17 +1941,60 @@ function setPrintStatus(printing) {
 	}
 	
 	if (printing) {
+		if (justConnected) {
+			showPage("print");
+		}
+		
 		$("#btn_pause").removeClass("disabled");
+		$(".row-progress").removeClass("hidden");
+		
+		$.ajax("rr_fileinfo", {
+			async: true,
+			dataType: "json",
+			error: ajaxError,
+			success: function(response) {
+				if (response.err == 0) {
+					haveFileInfo = true;
+					fileInfo = response;
+					
+					$("span_progress_left").html("Printing " + response.fileName);
+					
+					$("#dd_size").html(formatSize(response.size));
+					$("#dd_height").html((response.height > 0) ? (response.height + " mm") : "n/a");
+					$("#dd_layer_height").html((response.layerHeight > 0) ? (response.layerHeight + " mm") : "n/a");
+					
+					if (response.filament.length == 0) {
+						$("#dd_filament").html("n/a");
+					} else {
+						var filament = response.filament.reduce(function(a, b) { return a + " mm, " + b; }) + " mm";
+						$("#dd_filament").html(filament);
+					}
+					
+					$("#dd_generatedby").html((response.generatedBy == "") ? "n/a" : response.generatedBy);
+				}
+			}
+		});
 	} else {
 		$("#btn_pause").addClass("disabled");
+		$(".row-progress").addClass("hidden");
 		
-		if (isConnected && $("#auto_sleep").is(":checked")) {
-			sendGCode("M1");
-			$("#auto_sleep").prop("checked", false);
+		haveFileInfo = false;
+		fileInfo = undefined;
+		
+		if (isConnected) {
+			if ($("#auto_sleep").is(":checked")) {
+				sendGCode("M1");
+				$("#auto_sleep").prop("checked", false);
+			}
+			
+			$("#tl_filament, #tl_layer, #tl_file").html("00s");
+			$("#et_filament, #et_layer, #et_file").html((new Date()).toLocaleTimeString());
 		}
 	}
 	
-	if (waitingForPrintStart) {
+	isPrinting = printing;
+	
+	if (waitingForPrintStart && printing) {
 		showPage("print");
 		waitingForPrintStart = false;
 	}
@@ -1684,6 +2018,12 @@ function setProbeValue(value, secondaryValue) {
 	}
 }
 
+function setProgress(progress, labelLeft, labelRight) {
+	$("#span_progress_left").text(labelLeft);
+	$("#span_progress_right").text(labelRight);
+	$("#progress").css("width", progress + "%");
+}
+
 function setStatusLabel(text, style) {
 	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
 }
@@ -1703,6 +2043,74 @@ function setTemperatureInput(head, value, active) {
 	}
 }
 
+function convertSeconds(value) {
+	value = Math.round(value);
+	if (value < 0) {
+		value = 0;
+	}
+	
+	var timeLeft = [], temp;
+	if (value >= 3600) {
+		temp = Math.floor(value / 3600);
+		if (temp > 0) {
+			timeLeft.push(temp + "h");
+			value = value % 3600;
+		}
+	}
+	if (value >= 60) {
+		temp = Math.floor(value / 60);
+		if (temp > 0) {
+			timeLeft.push((temp > 9 ? temp : "0" + temp) + "m");
+			value = value % 60;
+		}
+	}
+	value = value.toFixed(0);
+	timeLeft.push((value > 9 ? value : "0" + value) + "s");
+	
+	return timeLeft.reduce(function(a, b) { return a + " " + b; });
+}
+
+/*function convertSecondsShort(value) {
+	if (value == 0) {
+		return "";
+	}
+	
+	var timeLeft = [], temp;
+	if (value >= 3600) {
+		temp = Math.floor(value / 3600);
+		if (temp > 0) {
+			timeLeft.push(temp + "h");
+			value = value % 3600;
+		}
+	}
+	if (value >= 60) {
+		temp = Math.floor(value / 60);
+		if (temp > 0) {
+			timeLeft.push(temp + "m");
+			value = value % 60;
+		}
+	}
+	if (value > 0) {
+		timeLeft.push(value.toFixed(0) + "s");
+	}
+	
+	return timeLeft.reduce(function(a, b) { return a + " " + b; });
+}*/
+
+function setTimeLeft(field, value) {
+	if (value == undefined || value == 0.0) {
+		$("#et_" + field + ", #tl_" + field).html("n/a");
+	} else {
+		// Estimate end time
+		var now = new Date();
+		var estEndTime = new Date(now.getTime() + value * 1000); // Date uses ms
+		$("#et_" + field).html(estEndTime.toLocaleTimeString());
+		
+		// Estimate time left
+		$("#tl_" + field).html(convertSeconds(value));
+	}
+}
+
 function showPage(name) {
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
@@ -1718,7 +2126,14 @@ function showPage(name) {
 			for(var extr=1; extr<=5; extr++) {
 				$("#slider_extr_" + extr).slider("relayout");
 			}
+			if (refreshPrintChart) {
+				drawPrintChart();
+			}
 			waitingForPrintStart = false;
+		}
+		
+		if (name == "console" && window.matchMedia('(min-width: 992px)').matches) {
+			$("#page_console input").focus();
 		}
 		
 		if (name == "files") {
@@ -1746,17 +2161,18 @@ function showPage(name) {
 
 /* Data helpers */
 
-function getToolByHeater(heater) {
+function getToolsByHeater(heater) {
 	if (toolMapping == undefined) {
-		return 0;
+		return [];
 	}
 	
+	var result = [];
 	for(var i=0; i<toolMapping.length; i++) {
 		for(var k=0; k<toolMapping[i].heaters.length; k++) {
 			if (toolMapping[i].heaters[k] == heater) {
-				return i + 1;
+				result.push(i + 1);
 			}
 		}
 	}
-	return 0;
+	return result;
 }

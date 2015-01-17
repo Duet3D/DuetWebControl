@@ -29,7 +29,13 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
+					<div class="btn-group navbar-checkbox visible-xs" data-toggle="buttons">
+						<button class="btn btn-default btn-hide-info active">
+							<span class="glyphicon glyphicon-dashboard"></span>
+						</button>
+					</div>
 					<span class="label label-default label-status pull-right navbar-label visible-xs">Disconnected</span>
+					
 					
 					<a class="navbar-brand visible-xs">Duet Web Control</a>
 				</div>
@@ -37,6 +43,11 @@
 				<!-- Regular navbar entries -->
 				<div class="collapse navbar-collapse">
 					<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
+					<div class="btn-group navbar-checkbox navbar-left hidden-md hidden-lg" data-toggle="buttons">
+						<button class="btn btn-default btn-hide-info active">
+							<span class="glyphicon glyphicon-dashboard"></span>
+						</button>
+					</div>
 					
 					<form class="navbar-form padding-small navbar-left hidden-sm gcode-input">
 						<div class="input-group">
@@ -115,150 +126,147 @@
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
 							<span>Heater Temperatures</span>
-							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
 						</div>
 						
-						<div class="panel-collapse">
-							<table class="table table-bordered table-condensed table-centered-cells" id="table_heaters">
-								<tr>
-									<th></th>
-									<th>Current</th>
-									<th>Active</th>
-									<th>Standby</th>
-								</tr>
-								
-								<tr id="tr_head_1">
-									<th>
-										<a href="#">Head 1</a>
-										<span class="text-muted"></span>
-									</th>
-									<td>n/a</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h1_active" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+						<table class="table table-bordered table-condensed table-centered-cells" id="table_heaters">
+							<tr>
+								<th></th>
+								<th>Current</th>
+								<th>Active</th>
+								<th>Standby</th>
+							</tr>
+							
+							<tr id="tr_head_1">
+								<th>
+									<a href="#">Head 1<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h1_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h1_standby" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h1_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-								</tr>
-								
-								<tr id="tr_head_2">
-									<th>
-										<a href="#">Head 2</a>
-										<span class="text-muted"></span>
-									</th>
-									<td>n/a</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h2_active" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+							</tr>
+							
+							<tr id="tr_head_2">
+								<th>
+									<a href="#">Head 2<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h2_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h2_standby" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h2_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-								</tr>
-								
-								<tr id="tr_head_3">
-									<th>
-										<a href="#">Head 3</a>
-										<span class="text-muted"></span>
-									</th>
-									<td>n/a</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h3_active" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+							</tr>
+							
+							<tr id="tr_head_3">
+								<th>
+									<a href="#">Head 3<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h3_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h3_standby" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h3_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-								</tr>
-								
-								<tr id="tr_head_4">
-									<th>
-										<a href="#">Head 4</a>
-										<span class="text-muted"></span>
-									</th>
-									<td>n/a</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h4_active" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+							</tr>
+							
+							<tr id="tr_head_4">
+								<th>
+									<a href="#">Head 4<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h4_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-									<td class="input-td">
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_h4_standby" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h4_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-								</tr>
-								
-								<tr id="tr_bed">
-									<th>
-										Bed
-										<span class="text-muted"></span>
-									</th>
-									<td>n/a</td>
-									<td>
-										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_bed" disabled>
-											<div class="input-group-btn div-head-temp">
-												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
-												</ul>
-											</div>
+									</div>
+								</td>
+							</tr>
+							
+							<tr id="tr_bed">
+								<th>
+									Bed
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td>
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_bed" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
+											</ul>
 										</div>
-									</td>
-									<td></td>
-								</tr>
-							</table>
-						</div>
+									</div>
+								</td>
+								<td></td>
+							</tr>
+						</table>
 					</div>
 				</div>
 				
@@ -282,73 +290,59 @@
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
 							<span>Machine Status</span>
-							<span class="hidden-md hidden-lg pull-right glyphicon glyphicon-chevron-down span-collapse"></span>
 						</div>
 						
-						<div class="panel-collapse" id="div_status_table">
-							<div class="row" id="row_status_1">
-								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-status">
-										<tr>
-											<th rowspan="2" class="th-status">Head Position</th>
-											<th>X</th>
-											<th>Y</th>
-											<th>Z</th>
-										</tr>
-										<tr>
-											<td id="td_x">n/a</td>
-											<td id="td_y">n/a</td>
-											<td id="td_z">n/a</td>
-										</tr>
-									</table>
-								</div>
-							</div>
-							
-							<div class="row" id="row_status_2">
-								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-status">
-										<tr>
-											<th rowspan="2" class="th-status">Extruder Drives</th>
-											<th class="hidden"><!-- only for HTML validation --></th>
-											<th class="hidden-md extr-1">D1</th>
-											<th class="hidden-md extr-2">D2</th>
-											<th class="hidden-md extr-3">D3</th>
-											<th class="hidden-md extr-4">D4</th>
-											<th class="hidden-md extr-5">D5</th>
-										</tr>
-										<tr>
-											<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
-											<td id="td_extr_1" class="hidden-md extr-1">n/a</td>
-											<td id="td_extr_2" class="hidden-md extr-2">n/a</td>
-											<td id="td_extr_3" class="hidden-md extr-3">n/a</td>
-											<td id="td_extr_4" class="hidden-md extr-4">n/a</td>
-											<td id="td_extr_5" class="hidden-md extr-5">n/a</td>
-										</tr>
-									</table>
-								</div>
-							</div>
-							
-							<div class="row" id="row_status_3">
-								<div class="col-md-12">
-									<table class="table table-bordered table-condensed table-centered-cells table-status">
-										<tr>
-											<th rowspan="2" class="th-status">Sensors</th>
-											<th>Z-Probe</th>
-											<th>Fan RPM</th>
-										</tr>
-										<tr>
-											<td id="td_probe">n/a</td>
-											<td id="td_fanrpm">n/a</td>
-										</tr>
-									</table>
-								</div>
-							</div>
-						</div>
+						<table class="table table-bordered table-condensed table-centered-cells table-status">
+							<tr>
+								<th rowspan="2" class="th-status">Head Position</th>
+								<th>X</th>
+								<th>Y</th>
+								<th>Z</th>
+							</tr>
+							<tr>
+								<td id="td_x">n/a</td>
+								<td id="td_y">n/a</td>
+								<td id="td_z">n/a</td>
+							</tr>
+						</table>
+						
+						<table class="table table-bordered table-condensed table-centered-cells table-status">
+							<tr>
+								<th rowspan="2" class="th-status">Extruder Drives</th>
+								<th class="hidden"><!-- only for HTML validation --></th>
+								<th class="hidden-md extr-1">D1</th>
+								<th class="hidden-md extr-2">D2</th>
+								<th class="hidden-md extr-3">D3</th>
+								<th class="hidden-md extr-4">D4</th>
+								<th class="hidden-md extr-5">D5</th>
+							</tr>
+							<tr>
+								<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
+								<td id="td_extr_1" class="hidden-md extr-1">n/a</td>
+								<td id="td_extr_2" class="hidden-md extr-2">n/a</td>
+								<td id="td_extr_3" class="hidden-md extr-3">n/a</td>
+								<td id="td_extr_4" class="hidden-md extr-4">n/a</td>
+								<td id="td_extr_5" class="hidden-md extr-5">n/a</td>
+							</tr>
+						</table>
+						
+						<table class="table table-bordered table-condensed table-centered-cells table-status">
+							<tr>
+								<th rowspan="2" class="th-status">Sensors</th>
+								<th>Z-Probe</th>
+								<th>Fan RPM</th>
+							</tr>
+							<tr>
+								<td id="td_probe">n/a</td>
+								<td id="td_fanrpm">n/a</td>
+							</tr>
+						</table>
 					</div>
 				</div>
 			</div>
 			
 			<div class="row fill-bottom">
+				<!-- Sidebar -->
 				<div class="col-sm-3 col-md-2 col-lg-2 fill-bottom" id="sidebar">
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
@@ -366,7 +360,9 @@
 					</ul>
 				</div>
 				
+				<!-- Main Content -->
 				<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10" id="main_content">
+					<!-- Control Page -->
 					<div id="page_control" class="page active">
 						<div class="row">
 							<div class="col-xs-12 col-sm-12 col-md-8 col-lg-9">
@@ -374,6 +370,7 @@
 									<div class="panel-heading">
 										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
 										<span>Head Movement</span>
+										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled">Auto Bed Compensation</button>
 									</div>
 									
 									<div class="panel-body">
@@ -468,7 +465,7 @@
 									</div>
 									
 									<div class="panel-body">
-										<div class="col-sm-12 col-md-5 no-horizontal-padding">
+										<div class="col-xs-5 no-horizontal-padding">
 											<label>Feed amount in mm:</label>
 											<div class="btn-group btn-group-justified" data-toggle="buttons">
 												<label class="btn btn-default disabled">
@@ -492,7 +489,7 @@
 											</div>
 										</div>
 										
-										<div class="col-sm-12 col-md-5 no-horizontal-padding-sm">
+										<div class="col-xs-5">
 											<label>Feedrate in mm/sec:</label>
 											<div class="btn-group btn-group-justified" data-toggle="buttons">
 												<label class="btn btn-default disabled">
@@ -513,7 +510,7 @@
 											</div>
 										</div>
 										
-										<div class="col-sm-12 col-md-2 no-horizontal-padding">
+										<div class="col-xs-2 no-horizontal-padding">
 											<div class="btn-group-vertical btn-group-vertical-justified">
 												<div class="btn-group">
 													<button class="btn btn-sm btn-default disabled" id="btn_retract"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
@@ -578,13 +575,20 @@
 						</div>
 					</div>
 					
+					<!-- Print Status -->
 					<div id="page_print" class="page">
-						<div class="row">
+						<div class="row row-progress hidden">
+							<div class="col-xs-12 col-sm-12 col-md-6 col-lg-5">
+								<span id="span_progress_left"></span>
+							</div>
+							<div class="col-xs-12 col-sm-12 col-md-6 col-lg-7">
+								<span id="span_progress_right"></span>
+							</div>
+						</div>
+						<div class="row row-progress hidden">
 							<div class="col-md-12">
 								<div class="progress">
-									<div class="progress-bar progress-bar-striped" role="progressbar">
-										100%
-									</div>
+									<div class="progress-bar progress-bar-striped" id="progress" role="progressbar"></div>
 								</div>
 							</div>
 						</div>
@@ -593,7 +597,7 @@
 							<div class="col-xs-12 col-sm-12 col-md-6 col-md-push-3 col-lg-7 col-lg-push-2">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Print Progress</span>
+										<span class="title">Layer Statistics</span>
 									</div>
 									<div class="panel-body panel-chart">
 										<div id="chart_print">
@@ -602,29 +606,52 @@
 									</div>
 								</div>
 								
-								<div class="panel panel-default">
+								<div class="panel panel-default" id="panel_print_info">
 									<div class="panel-heading">
-										<span class="title">Print Estimations</span>
+										<span class="title">Collected Data</span>
 									</div>
 									
-									<table class="table table-bordered" id="table_estimations">
+									<table class="table table-bordered table-condensed">
+										<tr>
+											<th class="col-layertime hidden">Current Layer Time</th>
+											<th>Print Duration</th>
+											<th>Warm-Up Time</th>
+											<th>First Layer Time</th>
+											<th>First Layer Height</th>
+										</tr>
+										<tr>
+											<td class="col-layertime hidden" id="td_curr_layer">n/a</td>
+											<td id="td_print_duration">n/a</td>
+											<td id="td_warmup_time">n/a</td>
+											<td id="td_fl_time">n/a</td>
+											<td id="td_fl_height">n/a</td>
+										</tr>
+									</table>
+								</div>
+								
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span class="title">Estimations</span>
+									</div>
+									
+									<table class="table table-bordered table-condensed" id="table_estimations">
 										<tr>
 											<th>Based on</th>
 											<th>Filament Usage</th>
-											<th>Layer Time</th>
 											<th>File Progress</th>
+											<th>Layer Time</th>
 										</tr>
 										<tr>
 											<th>Time Left</th>
-											<td>n/a</td>
-											<td>n/a</td>
-											<td>n/a</td>
+											<td id="tl_filament">n/a</td>
+											<td id="tl_file">n/a</td>
+											<td id="tl_layer">n/a</td>
 										</tr>
 										<tr>
 											<th>Est. End Time</th>
-											<td>n/a</td>
-											<td>n/a</td>
-											<td>n/a</td>
+											<td id="et_filament">n/a</td>
+											<td id="et_file">n/a</td>
+											<td id="et_layer">n/a</td>
 										</tr>
 									</table>
 								</div>
@@ -667,16 +694,16 @@
 									</div>
 									<div class="panel-body">
 										<dl>
-											<dt>Filename:</dt>
-											<dd>n/a</dd>
 											<dt>Size:</dt>
-											<dd>n/a</dd>
-											<dt>Height:</dt>
-											<dd>n/a</dd>
+											<dd id="dd_size">n/a</dd>
+											<dt>Object Height:</dt>
+											<dd id="dd_height">n/a</dd>
 											<dt>Layer Height:</dt>
-											<dd>n/a</dd>
+											<dd id="dd_layer_height">n/a</dd>
 											<dt>Filament Usage:</dt>
-											<dd>n/a</dd>
+											<dd id="dd_filament">n/a</dd>
+											<dt>Generated by:</dt>
+											<dd id="dd_generatedby">n/a</dd>
 										</dl>
 									</div>
 								</div>
@@ -737,6 +764,7 @@
 						</div>
 					</div>
 					
+					<!-- G-Code Console -->
 					<div id="page_console" class="page">
 						<div class="row">
 							<form class="gcode-input">
@@ -775,6 +803,7 @@
 						</div>
 					</div>
 					
+					<!-- G-Code Files -->
 					<div id="page_files" class="page">
 						<div class="row">
 							<div class="col-md-12">
@@ -802,13 +831,14 @@
 								<div class="row hidden-xs hidden row-actions">
 									<div class="col-md-12 text-center">
 										<button class="btn btn-lg btn-info" id="btn_new_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
-										<button class="btn btn-lg btn-primary btn-upload" data-type="upload-gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File</button>
+										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="upload-gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File</button>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
 					
+					<!-- Macro Files -->
 					<div id="page_macros" class="page">
 						<div class="row">
 							<div class="col-md-12">
@@ -827,21 +857,26 @@
 								
 								<div class="row hidden-xs hidden row-actions">
 									<div class="col-md-12 text-center">
-										<button class="btn btn-lg btn-primary btn-upload" data-type="upload-macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File</button>
+										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="upload-macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File</button>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div> 
 					
+					<!-- Spools -->
 					<div id="page_spools" class="page">
-						<h1>Spools</h1>
+						<h1>not implemented yet</h1>
 					</div>
+					
+					<!-- Maintenance -->
 					<div id="page_maintenance" class="page">
-						<h1>Maintenance</h1>
+						<h1>not implemented yet</h1>
 					</div>
+					
+					<!-- Settings -->
 					<div id="page_settings" class="page">
-						<h1>Settings</h1>
+						<h1>not implemented yet</h1>
 					</div>
 				</div>
 			</div>
@@ -935,6 +970,7 @@
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
+		<script src="js/jquery.flot.navigate.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
 		<script src="js/interface.js"></script>
