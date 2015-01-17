@@ -1,0 +1,24 @@
+TODO for Settings:
+- UI Update Interval
+- Half Z movements
+- Move buttons feedrate
+- Display sizes in KiB instead of KB
+- Show success for each G-Code in the console
+- Confirmation for Emergency STOP
+- Show G-Code responses in modal dialogs
+- Show fan sliders (will be hidden by default)
+
+- Default G-Codes
+- Default Head Temperatures
+- Default Bed Temperatures
+
+- Status Panel customization:
+	- Hide/Show Head Position
+	- Hide/Show Extruder Drives
+	- Hide/Show Sensors
+		- Enable/Disable Probe Highlighting
+
+- Upload for sys+www
+
+- Display config file and diagnostics
+- Display axis mins+maxes, accelerations, min+max feedrates
