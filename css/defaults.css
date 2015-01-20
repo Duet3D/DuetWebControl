@@ -313,14 +313,15 @@ div.panel table.table-status:not(:last-child)
 	font-size: 16px;
 	padding-right: 20px;
 	padding-left: 20px;
+	white-space: nowrap;
 }
 
-@media (min-width: 768px) and (max-width: 969px) {
+@media (max-width: 1199px) {
 	.nav-sidebar {
 		margin-bottom: 10px;
 	}
 	.nav-sidebar > li > a {
-		font-size: 16px;
+		font-size: 15px;
 	}
 	
 	#sidebar {

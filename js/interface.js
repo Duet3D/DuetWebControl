@@ -61,7 +61,7 @@ var isConnected = false, justConnected, isDelta, isPrinting, isPaused;
 var extendedStatusCounter;
 var haveFileInfo, fileInfo;
 
-var lastStatusResponse, lastSendGCode;
+var ajaxRequests = [], lastStatusResponse, lastSendGCode;
 
 var probeSlowDownValue, probeTriggerValue;
 var heatedBed, numHeads, numExtruderDrives, toolMapping;
@@ -177,10 +177,15 @@ function disconnect() {
 		log("danger", "<strong>Disconnected.</strong>");
 	}
 	isConnected = false;
-	$.ajax("rr_disconnect", { async: true, dataType: "json" });
 	
 	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
+	
+	$.ajax("rr_disconnect", { async: true, dataType: "json", global: false });
+	ajaxRequests.forEach(function(request) {
+		request.abort();
+	});
+	ajaxRequests = [];
 	
 	resetGuiData();
 	resetGui();
@@ -206,7 +211,6 @@ function updateStatus() {
 	$.ajax(ajaxRequest, {
 		async: true,
 		dataType: "json",
-		error: ajaxError,
 		success: function(status) {
 			// Don't process this one if we're no longer connected
 			if (!isConnected) {
@@ -346,7 +350,6 @@ function updateStatus() {
 				$.ajax("rr_reply", {
 					async: true,
 					dataType: "html",
-					error: ajaxError,
 					success: function(response) {
 						response = response.trim();
 						if (response != "" || lastSendGCode != "") {
@@ -421,7 +424,7 @@ function updateStatus() {
 						if (true) { // TODO: make this optional
 							progressText[progressText.length - 1] += " (" + (totalFileFilament - totalRawFilament).toFixed(1) + "mm remaining)";
 						}
-					} 
+					}
 					// Otherwise by comparing the current Z position to the total height
 					else if (fileInfo.height > 0) {
 						progress = ((status.coords.xyz[2] / fileInfo.height) * 100.0).toFixed(1);
@@ -538,7 +541,7 @@ function updateStatus() {
 					} else {
 						$("#td_warmup_time").html(convertSeconds(status.warmUpDuration));
 					}
-				} else if (status.printDuration > 0) {
+				} else if (status.printDuration > 0 && haveFileInfo && fileInfo.filament.length) {
 					$("#td_warmup_time").html(convertSeconds(status.printDuration));
 				} else {
 					$("#td_warmup_time").html("n/a");
@@ -584,7 +587,6 @@ function updateGCodeFiles() {
 		$.ajax("rr_files?dir=" + currentGCodeDirectory, {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			success: function(response) {
 				if (isConnected) {
 					knownGCodeFiles = response.files.sort();
@@ -605,7 +607,6 @@ function updateGCodeFiles() {
 		$.ajax("rr_fileinfo?name=" + currentGCodeDirectory + "/" + encodeURIComponent(knownGCodeFiles[gcodeUpdateIndex]), {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			row: row,
 			success: function(response) {
 				if (!isConnected || this.row == undefined) {
@@ -643,7 +644,6 @@ function updateMacroFiles() {
 		$.ajax("rr_files?dir=/macros", {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			success: function(response) {
 				if (isConnected) {
 					knownMacroFiles = response.files.sort();
@@ -666,7 +666,6 @@ function updateMacroFiles() {
 		$.ajax("rr_fileinfo?name=/macros/" + encodeURIComponent(knownMacroFiles[macroUpdateIndex]), {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			row: row,
 			success: function(response) {
 				if (!isConnected || this.row == undefined) {
@@ -702,17 +701,32 @@ function sendGCode(gcode) {
 	// We only need to worry about an AJAX error event.
 	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		async: true,
-		dataType: "json",
-		error: ajaxError
+		dataType: "json"
 	});
 }
 
-function ajaxError() {
+/* AJAX Events */
+
+$(document).ajaxSend(function(event, jqxhr, settings) {
+	settings.timeout = 4000;	// TODO: add this to settings
+	ajaxRequests.push(jqxhr);
+});
+
+$(document).ajaxComplete(function(event, jqxhr, settings) {
+	ajaxRequests = $.grep(ajaxRequests, function(item) { item != jqxhr; });
+});
+
+$(document).ajaxError(function(event, jqxhr, settings, thrownError) {
 	if (isConnected) {
-		showMessage("warning-sign", "Communication Error", "An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.", "md");
+		var msg = "An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.";
+		if (thrownError != "") {
+			msg += "<br/></br>Error reason: " + thrownError;
+		}
+		showMessage("warning-sign", "Communication Error", msg, "md");
+		
 		disconnect();
 	}
-}
+});
 
 /* Cookies */
 
@@ -927,7 +941,6 @@ $("body").on("click", ".btn-delete-file", function(e) {
 		$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + file), {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			row: row,
 			file: file,
 			success: function(response) {
@@ -950,7 +963,6 @@ $("body").on("click", ".btn-delete-directory", function(e) {
 	$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + $(this).parents("tr").data("directory")), {
 		async: true,
 		dataType: "json",
-		error: ajaxError,
 		row: $(this).parents("tr"),
 		directory: $(this).parents("tr").data("directory"),
 		success: function(response) {
@@ -972,7 +984,6 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 	$.ajax("rr_delete?name=/macros/" + $(this).parents("tr").data("macro"), {
 		async: true,
 		dataType: "json",
-		error: ajaxError,
 		macro: $(this).parents("tr").data("macro"),
 		row: $(this).parents("tr"),
 		success: function(response) {
@@ -1119,7 +1130,6 @@ $("#btn_new_directory").click(function() {
 		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			success: function(response) {
 				if (response.err == 0) {
 					gcodeUpdateIndex = -1;
@@ -1951,7 +1961,6 @@ function setPrintStatus(printing) {
 		$.ajax("rr_fileinfo", {
 			async: true,
 			dataType: "json",
-			error: ajaxError,
 			success: function(response) {
 				if (response.err == 0) {
 					haveFileInfo = true;
@@ -1976,7 +1985,10 @@ function setPrintStatus(printing) {
 		});
 	} else {
 		$("#btn_pause").addClass("disabled");
-		$(".row-progress").addClass("hidden");
+		
+		if (!isConnected || !haveFileInfo) {
+			$(".row-progress").addClass("hidden");
+		}
 		
 		haveFileInfo = false;
 		fileInfo = undefined;
@@ -1987,8 +1999,16 @@ function setPrintStatus(printing) {
 				$("#auto_sleep").prop("checked", false);
 			}
 			
-			$("#tl_filament, #tl_layer, #tl_file").html("00s");
-			$("#et_filament, #et_layer, #et_file").html((new Date()).toLocaleTimeString());
+			["filament", "layer", "file"].forEach(function(id) {
+				if ($("#tl_" + id).html() != "n/a") {
+					$("#tl_" + id).html("00s");
+					$("#et_" + id).html((new Date()).toLocaleTimeString());
+				}
+			});
+			
+			if (haveFileInfo) {
+				setProgress(100, "Printed " + fileInfo.fileName + ", 100% Complete", "");
+			}
 		}
 	}
 	
@@ -2098,7 +2118,7 @@ function convertSeconds(value) {
 }*/
 
 function setTimeLeft(field, value) {
-	if (value == undefined || value == 0.0) {
+	if (value == undefined) {
 		$("#et_" + field + ", #tl_" + field).html("n/a");
 	} else {
 		// Estimate end time
