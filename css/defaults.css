@@ -650,3 +650,9 @@ div.panel table.table-status:not(:last-child)
 #modal_textinput div.input-group {
 	width: 100%;
 }
+
+/* Popovers */
+
+.popover-content {
+	padding: 6px;
+}
