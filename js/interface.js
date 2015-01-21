@@ -377,7 +377,7 @@ function updateStatus() {
 			if (status.temps.hasOwnProperty("bed")) {
 				setCurrentTemperature("bed", status.temps.bed.current);
 				setTemperatureInput("bed", status.temps.bed.active, 1);
-				setHeaterState("bed", status.temps.bed.state);
+				setHeaterState("bed", status.temps.bed.state, status.currentTool);
 			} else if (heatedBed) {
 				heatedBed = 0;
 				needGuiUpdate = true;
@@ -392,7 +392,7 @@ function updateStatus() {
 				setCurrentTemperature(i + 1, status.temps.heads.current[i]);
 				setTemperatureInput(i + 1, status.temps.heads.active[i], 1);
 				setTemperatureInput(i + 1, status.temps.heads.standby[i], 0);
-				setHeaterState(i + 1, status.temps.heads.state[i]);
+				setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
 			}
 			recordHeaterTemperatures(status.temps.bed.current, status.temps.heads.current);
 			
@@ -1039,6 +1039,15 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 	e.preventDefault();
 });
 
+$("body").on("click", ".tool", function(e) {
+	sendGCode("T" + $(this).data("tool"));
+	e.preventDefault();
+});
+
+$("body").on("hidden.bs.popover", function() {
+	$(this).popover("destroy");
+});
+
 /* Static GUI Events */
 
 $("#btn_cancel").click(function() {
@@ -1279,15 +1288,37 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 			
 			if (hasToolSelected) {
 				sendGCode("T0");
+				$(this).blur();
 			} else if (tools.length == 1) {
 				sendGCode("T" + tools[0]);
+				$(this).blur();
 			} else if (tools.length > 0) {
-				// TODO: open drop-down menu
+				if ($(this).parent().children("div.popover").length > 0) {
+					$(this).blur();
+				} else {
+					var content = '<div class="btn-group-vertical btn-group-vertical-justified">';
+					tools.forEach(function(toolNumber) {
+						content += '<div class="btn-group"><a href="#" class="btn btn-default btn-sm tool" data-tool="' + toolNumber + '">T' + toolNumber + '</a></div>';
+					});
+					content += '</div>';
+					
+					$(this).popover({ 
+						content: content,
+						html: true,
+						title: "Select Tool",
+						trigger: "manual",
+						placement: "bottom",
+					});
+					$(this).popover("show");
+				}
 			}
 		}
 	}
-	$(this).blur();
 	e.preventDefault();
+});
+
+$("#table_heaters tr > th:first-child > a").blur(function() {
+	$(this).popover("hide");
 });
 
 /* Temperature charts */
@@ -1875,7 +1906,7 @@ function setGCodeDirectory(directory) {
 	}
 }
 
-function setHeaterState(heater, status) {
+function setHeaterState(heater, status, currentTool) {
 	var statusText = "n/a";
 	switch (status) {
 		case 0:
@@ -1900,6 +1931,7 @@ function setHeaterState(heater, status) {
 		if (tools.length != 0) {
 			statusText += " (T" + tools.reduce(function(a, b) { return a + ", T" + b; }) + ")";
 			if (tools.length > 1) {
+				statusText = statusText.replace("T" + currentTool, "<u>T" + currentTool + "</u>");
 				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").removeClass("hidden");
 			} else {
 				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
@@ -1907,7 +1939,7 @@ function setHeaterState(heater, status) {
 		} else {
 			$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
 		}
-		$("#table_heaters tr > th:first-child").eq(heater).children("span").text(statusText);
+		$("#table_heaters tr > th:first-child").eq(heater).children("span").html(statusText);
 	} else {
 		$("#table_heaters tr:last-child > th:first-child > span").text(statusText);
 	}
@@ -1957,6 +1989,8 @@ function setPrintStatus(printing) {
 		
 		$("#btn_pause").removeClass("disabled");
 		$(".row-progress").removeClass("hidden");
+		$(".col-layertime").addClass("hidden");
+		$("th.col-layertime").text("Current Layer Time");
 		
 		$.ajax("rr_fileinfo", {
 			async: true,
@@ -1990,13 +2024,16 @@ function setPrintStatus(printing) {
 			$(".row-progress").addClass("hidden");
 		}
 		
-		haveFileInfo = false;
-		fileInfo = undefined;
-		
 		if (isConnected) {
 			if ($("#auto_sleep").is(":checked")) {
 				sendGCode("M1");
 				$("#auto_sleep").prop("checked", false);
+			}
+			
+			if (haveFileInfo) {
+				setProgress(100, "Printed " + fileInfo.fileName + ", 100% Complete", undefined);
+			} else {
+				setProgress(100, "Print Complete!", undefined);
 			}
 			
 			["filament", "layer", "file"].forEach(function(id) {
@@ -2006,10 +2043,11 @@ function setPrintStatus(printing) {
 				}
 			});
 			
-			if (haveFileInfo) {
-				setProgress(100, "Printed " + fileInfo.fileName + ", 100% Complete", "");
-			}
+			$("th.col-layertime").text("Last Layer Time");
 		}
+		
+		haveFileInfo = false;
+		fileInfo = undefined;
 	}
 	
 	isPrinting = printing;
@@ -2039,8 +2077,12 @@ function setProbeValue(value, secondaryValue) {
 }
 
 function setProgress(progress, labelLeft, labelRight) {
-	$("#span_progress_left").text(labelLeft);
-	$("#span_progress_right").text(labelRight);
+	if (labelLeft != undefined) {
+		$("#span_progress_left").text(labelLeft);
+	}
+	if (labelRight != undefined) {
+		$("#span_progress_right").text(labelRight);
+	}
 	$("#progress").css("width", progress + "%");
 }
 
@@ -2089,33 +2131,6 @@ function convertSeconds(value) {
 	
 	return timeLeft.reduce(function(a, b) { return a + " " + b; });
 }
-
-/*function convertSecondsShort(value) {
-	if (value == 0) {
-		return "";
-	}
-	
-	var timeLeft = [], temp;
-	if (value >= 3600) {
-		temp = Math.floor(value / 3600);
-		if (temp > 0) {
-			timeLeft.push(temp + "h");
-			value = value % 3600;
-		}
-	}
-	if (value >= 60) {
-		temp = Math.floor(value / 60);
-		if (temp > 0) {
-			timeLeft.push(temp + "m");
-			value = value % 60;
-		}
-	}
-	if (value > 0) {
-		timeLeft.push(value.toFixed(0) + "s");
-	}
-	
-	return timeLeft.reduce(function(a, b) { return a + " " + b; });
-}*/
 
 function setTimeLeft(field, value) {
 	if (value == undefined) {
