@@ -1,3 +1,11 @@
+<!--	Duet Web Control v1.00
+	
+		written by Christian Hammacher
+	
+		licensed under the terms of the GPL v2
+		see http://www.gnu.org/licenses/gpl-2.0.html
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -35,7 +43,6 @@
 						</button>
 					</div>
 					<span class="label label-default label-status pull-right navbar-label visible-xs">Disconnected</span>
-					
 					
 					<a class="navbar-brand visible-xs">Duet Web Control</a>
 				</div>
@@ -118,8 +125,9 @@
 			</div>
 		</nav>
 		
-		<!-- Page Content -->
+		<!-- Main Content -->
 		<div class="container-fluid">
+			<!-- Info Panels -->
 			<div class="row" id="row_info">
 				<!-- Heater Temperatures -->
 				<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_heaters">
@@ -341,6 +349,7 @@
 				</div>
 			</div>
 			
+			<!-- Content -->
 			<div class="row fill-bottom">
 				<!-- Sidebar -->
 				<div class="col-sm-3 col-md-2 col-lg-2 fill-bottom" id="sidebar">
@@ -360,7 +369,7 @@
 					</ul>
 				</div>
 				
-				<!-- Main Content -->
+				<!-- Page Contents -->
 				<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10" id="main_content">
 					<!-- Control Page -->
 					<div id="page_control" class="page active">
@@ -397,10 +406,10 @@
 												</td>
 												<td>
 													<div class="btn-group btn-group-justified" role="group">
-														<a href="#" role="button" data-x="+0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+0.1</a>
-														<a href="#" role="button" data-x="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+1</a>
-														<a href="#" role="button" data-x="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+10</a>
-														<a href="#" role="button" data-x="+100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> X+100</a>
+														<a href="#" role="button" data-x="0.1" class="btn btn-default visible-lg disabled">X+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-x="1" class="btn btn-default visible-lg disabled">X+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-x="10" class="btn btn-default visible-lg disabled">X+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-x="100" class="btn btn-default visible-lg disabled">X+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 													</div>
 												</td>
 											</tr>
@@ -420,10 +429,10 @@
 												</td>
 												<td>
 													<div class="btn-group btn-group-justified" role="group">
-														<a role="button" data-y="+0.1" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+0.1</a>
-														<a role="button" data-y="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+1</a>
-														<a role="button" data-y="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+10</a>
-														<a role="button" data-y="+100" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Y+100</a>
+														<a href="#" role="button" data-y="0.1" class="btn btn-default visible-lg disabled">Y+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-y="1" class="btn btn-default visible-lg disabled">Y+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-y="10" class="btn btn-default visible-lg disabled">Y+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-y="100" class="btn btn-default visible-lg disabled">Y+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 													</div>
 												</td>
 											</tr>
@@ -433,7 +442,7 @@
 														<a role="button" class="btn btn-primary btn-home-z disabled" data-home="Z">Home Z</a>
 													</div>
 												</td>
-												<td>
+												<td id="td_decrease_z">
 													<div class="btn-group btn-group-justified" role="group">
 														<a role="button" data-z="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-100</a>
 														<a role="button" data-z="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-10</a>
@@ -441,12 +450,12 @@
 														<a role="button" data-z="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-0.1</a>
 													</div>
 												</td>
-												<td>
+												<td id="td_increase_z">
 													<div class="btn-group btn-group-justified" role="group">
-														<a role="button" data-z="+0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+0.1</a>
-														<a role="button" data-z="+1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+1</a>
-														<a role="button" data-z="+10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+10</a>
-														<a role="button" data-z="+100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-right"></span> Z+100</a>
+														<a href="#" role="button" data-z="0.1" class="btn btn-default visible-lg disabled">Z+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-z="1" class="btn btn-default visible-lg disabled">Z+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-z="10" class="btn btn-default visible-lg disabled">Z+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-z="100" class="btn btn-default visible-lg disabled">Z+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 													</div>
 												</td>
 											</tr>
@@ -545,7 +554,7 @@
 									</div>
 									<div class="panel-body">
 										<table class="table-description">
-											<tr>
+											<tr class="atx-control">
 												<td>ATX Power:</td>
 												<td>
 													<div class="btn-group btn-group-justified" data-toggle="buttons">
@@ -562,7 +571,7 @@
 													</div>
 												</td>
 											</tr>
-											<tr>
+											<tr class="fan-control">
 												<td>Fan Control:</td>
 												<td>
 													<input id="slider_fan_control" type="text"/>
@@ -672,13 +681,15 @@
 											</div>
 										</div>
 										
-										<div class="checkbox disabled">
+										<div class="checkbox fan-control disabled">
 											<label>
 												<input type="checkbox" id="override_fan" disabled/> Override Fan Value
 											</label>
 										</div>
 										
-										<input id="slider_fan_print" type="text" disabled/>
+										<div class="fan-control">
+											<input id="slider_fan_print" type="text" disabled/>
+										</div>
 										
 										<div class="checkbox disabled">
 											<label title="Run M1 when the print has finished">
@@ -866,17 +877,148 @@
 					
 					<!-- Spools -->
 					<div id="page_spools" class="page">
-						<h1>not implemented yet</h1>
+						<div class="row">
+							<div class="col-md-12">
+								<h1 class="text-center text-muted">TODO: charts for each spool, per-spool values like filament total, filament printed and filament left</h1>
+							</div>
+						</div>
 					</div>
 					
 					<!-- Maintenance -->
 					<div id="page_maintenance" class="page">
-						<h1>not implemented yet</h1>
+						<div class="row">
+							<div class="col-md-12">
+								<h1 class="text-center text-muted">TODO: maintenance reminder and bed levelling assistant</h1>
+							</div>
+						</div>
 					</div>
 					
 					<!-- Settings -->
 					<div id="page_settings" class="page">
-						<h1>not implemented yet</h1>
+						<form id="frm_settings">
+							<div class="row">
+								<div class="col-md-4">
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>Software Information</span>
+										</div>
+										<div class="panel-body">
+											<table id="software_info">
+												<tr>
+													<th>Firmware Name:</th>
+													<td id="firmware_name">n/a</td>
+												</tr>
+												<tr>
+													<th>Firmware Version:</th>
+													<td id="firmware_version">n/a</td>
+												</tr>
+												<tr>
+													<th>Web Interface Version:</th>
+													<td id="web_version">HTML: 1.00</td>
+												</tr>
+											</table>
+											<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+										</div>
+									</div>
+								</div>
+							
+								<div class="col-md-4">
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>Appearance and Behavior</span>
+										</div>
+										
+										<div class="panel-body">
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="half_z" /> Half Z Movements
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="log_success" checked /> Log any successful G-Code
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="binary_prefix" /> Display File Sizes with Binary Prefix
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="fan_sliders" checked /> Show Fan Sliders
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="show_atx" checked /> Show ATX Power control
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
+												</label>
+											</div>
+											<label>
+												Default Move Button Feedrate
+												<div class="input-group">
+													<input type="numeric" id="move_feedrate" class="form-control" value="6000">
+													<span class="input-group-addon">mm/min</span>
+												</div>
+											</label>
+										</div>
+									</div>
+								</div>
+								
+								<div class="col-md-4">
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>UI Timing</span>
+										</div>
+										
+										<div class="panel-body">
+											<label>
+												Status Update Interval:
+												<div class="input-group">
+													<input type="numeric" id="update_interval" class="form-control">
+													<span class="input-group-addon">ms</span>
+												</div>
+											</label>
+											
+											<label>
+												Extended Status Update after every:
+												<div class="input-group">
+													<input type="numeric" id="extended_status_interval" class="form-control">
+													<span class="input-group-addon">th response</span>
+												</div>
+											</label>
+											
+											<label>
+												Reconnect Delay on Halt:
+												<div class="input-group">
+													<input type="numeric" id="reconnect_delay" class="form-control">
+													<span class="input-group-addon">ms</span>
+												</div>
+											</label>
+											
+											<label>
+												AJAX Timeout:
+												<div class="input-group">
+													<input type="numeric" id="ajax_timeout" class="form-control">
+													<span class="input-group-addon">ms</span>
+												</div>
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="row hidden-xs row-actions">
+								<div class="col-md-12 text-center">
+									<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
+									<button class="btn btn-warning" id="btn_reset_settings"><span class="glyphicon glyphicon-fire"></span> Load Factory Defaults</button>
+								</div>
+							</div>
+						</form>
 					</div>
 				</div>
 			</div>
@@ -971,6 +1113,7 @@
 		<script src="js/jquery.flot.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
 		<script src="js/jquery.flot.navigate.js"></script>
+		<script src="js/jquery.cookie.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
 		<script src="js/interface.js"></script>
