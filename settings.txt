@@ -1,13 +1,4 @@
 TODO for Settings:
-- UI Update Interval
-- Half Z movements
-- Move buttons feedrate
-- Display sizes in KiB instead of KB
-- Show success for each G-Code in the console
-- Confirmation for Emergency STOP
-- Show G-Code responses in modal dialogs
-- Show fan sliders (will be hidden by default)
-
 - Default G-Codes
 - Default Head Temperatures
 - Default Bed Temperatures
@@ -17,6 +8,9 @@ TODO for Settings:
 	- Hide/Show Extruder Drives
 	- Hide/Show Sensors
 		- Enable/Disable Probe Highlighting
+		
+- Print Status customization:
+	- Hide filament left
 
 - Upload for sys+www
 

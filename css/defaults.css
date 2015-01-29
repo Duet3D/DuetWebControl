@@ -12,17 +12,28 @@ body {
 	min-width: 465px;
 }
 
+dl {
+	margin-bottom: 0px;
+}
+
+dd {
+	padding-bottom: 6px;
+}
+dd:last-child {
+	padding-bottom: 0px;
+}
+
 div > label {
 	font-weight: inherit;
 }
 
+// Hide spin controls for numeric inputs
 input[type='number'] {
-    -moz-appearance:textfield;
+	-moz-appearance:textfield;
 }
-
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+	-webkit-appearance: none;
 }
 
 @media (min-width: 768px) {
@@ -487,17 +498,6 @@ div.panel table.table-status:not(:last-child)
 	}
 }
 
-#page_print dl {
-	margin-bottom: 0px;
-}
-
-#page_print dd {
-	padding-bottom: 6px;
-}
-#page_print dd:last-child {
-	padding-bottom: 0px;
-}
-
 #page_print .progress {
 	margin-bottom: 9px;
 }
@@ -639,6 +639,19 @@ div.panel table.table-status:not(:last-child)
 	.table-files th:first-child {
 		width: 100px;
 	}
+}
+
+/* Settings Page */
+
+#software_info {
+	margin-bottom: 7px;
+}
+#software_info tr * {
+	padding-bottom: 8px;
+}
+
+#software_info tr > td {
+	padding-left: 15px;
 }
 
 /* Modals */
