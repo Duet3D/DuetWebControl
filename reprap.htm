@@ -1,12 +1,11 @@
-<!--	Duet Web Control v1.00
+<!DOCTYPE html>
+<!--	Duet Web Control v1.01
 	
 		written by Christian Hammacher
 	
 		licensed under the terms of the GPL v2
 		see http://www.gnu.org/licenses/gpl-2.0.html
 -->
-
-<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
@@ -897,7 +896,7 @@
 					<div id="page_settings" class="page">
 						<form id="frm_settings">
 							<div class="row">
-								<div class="col-md-4">
+								<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-left">
 									<div class="panel panel-default">
 										<div class="panel-heading">
 											<span>Software Information</span>
@@ -914,7 +913,7 @@
 												</tr>
 												<tr>
 													<th>Web Interface Version:</th>
-													<td id="web_version">HTML: 1.00</td>
+													<td id="web_version">HTML: 1.01</td>
 												</tr>
 											</table>
 											<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -922,7 +921,7 @@
 									</div>
 								</div>
 							
-								<div class="col-md-4">
+								<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
 									<div class="panel panel-default">
 										<div class="panel-heading">
 											<span>Appearance and Behavior</span>
@@ -959,60 +958,52 @@
 													<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
 												</label>
 											</div>
-											<label>
+											<label id="label_feedrate" for="move_feedrate">
 												Default Move Button Feedrate
-												<div class="input-group">
-													<input type="numeric" id="move_feedrate" class="form-control" value="6000">
-													<span class="input-group-addon">mm/min</span>
-												</div>
 											</label>
+											<div class="input-group">
+												<input type="number" id="move_feedrate" class="form-control">
+												<span class="input-group-addon">mm/min</span>
+											</div>
 										</div>
 									</div>
 								</div>
 								
-								<div class="col-md-4">
-									<div class="panel panel-default">
+								<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-right">
+									<div class="panel panel-default" id="panel_ui_timing">
 										<div class="panel-heading">
 											<span>UI Timing</span>
 										</div>
 										
 										<div class="panel-body">
-											<label>
-												Status Update Interval:
-												<div class="input-group">
-													<input type="numeric" id="update_interval" class="form-control">
-													<span class="input-group-addon">ms</span>
-												</div>
-											</label>
+											<label for="update_interval">Status Update Interval:</label>
+											<div class="input-group">
+												<input type="number" id="update_interval" class="form-control">
+												<span class="input-group-addon">ms</span>
+											</div>
 											
-											<label>
-												Extended Status Update after every:
-												<div class="input-group">
-													<input type="numeric" id="extended_status_interval" class="form-control">
-													<span class="input-group-addon">th response</span>
-												</div>
-											</label>
+											<label for="extended_status_interval">Extended Status Update after every:</label>
+											<div class="input-group">
+												<input type="number" id="extended_status_interval" class="form-control">
+												<span class="input-group-addon">th response</span>
+											</div>
 											
-											<label>
-												Reconnect Delay on Halt:
-												<div class="input-group">
-													<input type="numeric" id="reconnect_delay" class="form-control">
-													<span class="input-group-addon">ms</span>
-												</div>
-											</label>
+											<label for="reconnect_delay">Reconnect Delay on Halt:</label>
+											<div class="input-group">
+												<input type="number" id="reconnect_delay" class="form-control">
+												<span class="input-group-addon">ms</span>
+											</div>
 											
-											<label>
-												AJAX Timeout:
-												<div class="input-group">
-													<input type="numeric" id="ajax_timeout" class="form-control">
-													<span class="input-group-addon">ms</span>
-												</div>
-											</label>
+											<label for="ajax_timeout">AJAX Timeout:</label>
+											<div class="input-group">
+												<input type="number" id="ajax_timeout" class="form-control">
+												<span class="input-group-addon">ms</span>
+											</div>
 										</div>
 									</div>
 								</div>
 							</div>
-							<div class="row hidden-xs row-actions">
+							<div class="row row-actions">
 								<div class="col-md-12 text-center">
 									<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
 									<button class="btn btn-warning" id="btn_reset_settings"><span class="glyphicon glyphicon-fire"></span> Load Factory Defaults</button>
