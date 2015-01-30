@@ -643,6 +643,10 @@ div.panel table.table-status:not(:last-child)
 
 /* Settings Page */
 
+#label_feedrate {
+	margin-top: 0px !important;
+}
+
 #software_info {
 	margin-bottom: 7px;
 }
@@ -652,6 +656,29 @@ div.panel table.table-status:not(:last-child)
 
 #software_info tr > td {
 	padding-left: 15px;
+}
+
+@media (min-width: 768px) {
+	#page_settings .col-left {
+		padding-right: 0px;
+	}
+}
+
+@media (min-width: 992px) {
+	#page_settings .col-right {
+		padding-left: 0px;
+	}
+}
+
+#page_settings div.panel-body > div.checkbox:first-child {
+	margin-top: 0px;
+}
+
+#page_settings div.panel-body > label {
+	margin-bottom: 3px;
+}
+#page_settings div.panel-body > label:not(:first-child) {
+	margin-top: 6px;
 }
 
 /* Modals */

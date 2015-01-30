@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.00
+/* Interface logic for the Duet Web Control v1.01
  * 
  * written by Christian Hammacher
  * 
@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.0;
+var jsVersion = 1.01;
 var sessionPassword = "reprap";
 
 /* Constants */
