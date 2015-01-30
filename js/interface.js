@@ -775,7 +775,7 @@ function loadSettings() {
 function saveSettings() {
 	// Appearance and Behavior
 	settings.halfZMovements = $("#half_z").is(":checked");
-	settings.logSucapplySettingscess = $("#log_success").is(":checked");
+	settings.logSuccess = $("#log_success").is(":checked");
 	settings.useKiB = $("#use_kib").is(":checked");
 	settings.showFanControl = $("#fan_sliders").is(":checked");
 	settings.showATXControl = $("#show_atx").is(":checked");
@@ -799,7 +799,7 @@ function applySettings() {
 	var decreaseChildren = $("#td_decrease_z a");
 	var decreaseVal = (settings.halfZMovements) ? 50 : 100;
 	decreaseChildren.each(function(index) {
-		decreaseChildren.eq(index).data("z", decreaseVal).contents().last().replaceWith(" Z-" + decreaseVal);
+		decreaseChildren.eq(index).data("z", decreaseVal * (-1)).contents().last().replaceWith(" Z-" + decreaseVal);
 		decreaseVal /= 10;
 	});
 	var increaseChildren = $("#td_increase_z a");
