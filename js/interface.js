@@ -1200,12 +1200,12 @@ $("#btn_clear_log").click(function(e) {
 // TODO: deal with mixing drives
 $("#btn_extrude").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
-	var amount = $("#panel_extrude input[name=feed]").val();
+	var amount = $("#panel_extrude input[name=feed]:checked").val();
 	sendGCode("M120\nM83\nG1 E" + amount + " F" + feedrate + "\nM121");
 });
 $("#btn_retract").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
-	var amount = $("#panel_extrude input[name=feed]").val();
+	var amount = $("#panel_extrude input[name=feed]:checked").val();
 	sendGCode("M120\nM83\nG1 E-" + amount + " F" + feedrate + "\nM121");
 });
 
