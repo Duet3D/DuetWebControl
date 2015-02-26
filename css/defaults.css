@@ -208,6 +208,16 @@ input::-webkit-inner-spin-button {
 	}
 }
 
+.ul-bed-temp a,
+.ul-head-temp a {
+	text-align: right;
+}
+
+.ul-bed-temp,
+.ul-head-temp {
+	min-width: initial;
+}
+
 /* Heater and Status elements */
 
 #chart_temp {
@@ -245,6 +255,14 @@ input::-webkit-inner-spin-button {
 .table-centered-cells th, .table-centered-cells td {
 	text-align: center;
 	vertical-align: middle !important;
+}
+
+#table_heaters input[type="number"] {
+	min: 0,
+	max: 300
+}
+#input_temp_bed {
+	max: 160
 }
 
 #table_heaters tr:first-child > th {
@@ -689,6 +707,17 @@ div.panel table.table-status:not(:last-child)
 
 #modal_textinput div.input-group {
 	width: 100%;
+}
+
+#table_upload_files {
+	width: 100%;
+}
+#table_upload_files .progress {
+	margin-top: 8px;
+	margin-bottom: 8px;
+}
+#table_upload_files td {
+	vertical-align: middle;
 }
 
 /* Popovers */

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.01
+<!--	Duet Web Control v1.02
 	
 		written by Christian Hammacher
 	
@@ -67,7 +67,7 @@
 						<button type="submit" class="btn btn-default disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
 					</form>
 					
-					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="upload-print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
 					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
@@ -378,7 +378,7 @@
 									<div class="panel-heading">
 										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
 										<span>Head Movement</span>
-										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled">Auto Bed Compensation</button>
+										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled" id="btn_bed_compensation">Auto Bed Compensation</button>
 									</div>
 									
 									<div class="panel-body">
@@ -521,10 +521,10 @@
 										<div class="col-xs-2 no-horizontal-padding">
 											<div class="btn-group-vertical btn-group-vertical-justified">
 												<div class="btn-group">
-													<button class="btn btn-sm btn-default disabled" id="btn_retract"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
+													<button class="btn btn-sm btn-default btn-retract disabled" id="btn_retract"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
 												</div>
 												<div class="btn-group">
-													<button class="btn btn-sm btn-primary disabled" id="btn_extrude"><span class="glyphicon glyphicon-arrow-down"></span> Extrude</button>
+													<button class="btn btn-sm btn-primary btn-extrude disabled" id="btn_extrude"><span class="glyphicon glyphicon-arrow-down"></span> Extrude</button>
 												</div>
 											</div>
 										</div>
@@ -841,7 +841,7 @@
 								<div class="row hidden-xs hidden row-actions">
 									<div class="col-md-12 text-center">
 										<button class="btn btn-lg btn-info" id="btn_new_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
-										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="upload-gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File</button>
+										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
 									</div>
 								</div>
 							</div>
@@ -867,7 +867,7 @@
 								
 								<div class="row hidden-xs hidden row-actions">
 									<div class="col-md-12 text-center">
-										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="upload-macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File</button>
+										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File(s)</button>
 									</div>
 								</div>
 							</div>
@@ -877,7 +877,35 @@
 					<!-- Spools -->
 					<div id="page_spools" class="page">
 						<div class="row">
-							<div class="col-md-12">
+							<div class="col-xs-12 col-sm-7 col-md-6 col-lg-5">
+								<div class="panel panel-default">
+									<div class="panel-heading">
+										<span>Exchange Filament</span>
+									</div>
+									<div class="panel-body">
+										<div class="row">
+											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+												<label for="input_bowden_length">Bowden Tube Length:</label>
+												<div class="input-group">
+													<input type="number" class="form-control" id="input_bowden_length" value="300">
+													<span class="input-group-addon">mm</span>
+												</div>
+											</div>
+											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+												<div class="btn-group-vertical btn-group-vertical-justified">
+													<div class="btn-group">
+														<button class="btn btn-danger btn-retract disabled" id="btn_unload_filament"><span class="glyphicon glyphicon-arrow-up"></span> Unload Filament</button>
+													</div>
+													<div class="btn-group">
+														<button class="btn btn-success btn-extrude disabled" id="btn_load_filament"><span class="glyphicon glyphicon-arrow-down"></span> Load Filament</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 hidden">
 								<h1 class="text-center text-muted">TODO: charts for each spool, per-spool values like filament total, filament printed and filament left</h1>
 							</div>
 						</div>
@@ -913,10 +941,23 @@
 												</tr>
 												<tr>
 													<th>Web Interface Version:</th>
-													<td id="web_version">HTML: 1.01</td>
+													<td id="web_version">HTML: 1.02</td>
 												</tr>
 											</table>
 											<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+										</div>
+									</div>
+									
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>File Upload for /sys and /www Directories</span>
+										</div>
+										<div class="panel-body">
+											<div class="btn-group-justified">
+												<div class="btn-group">
+													<button class="btn btn-lg btn-info btn-upload disabled" data-type="generic"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
+												</div>
+											</div>
 										</div>
 									</div>
 								</div>
@@ -940,7 +981,12 @@
 											</div>
 											<div class="checkbox">
 												<label>
-													<input type="checkbox" id="binary_prefix" /> Display File Sizes with Binary Prefix
+													<input type="checkbox" id="uppercase_gcode" checked /> Convert G-Codes to upper-case before sending them
+												</label>
+											</div>
+											<div class="checkbox">
+												<label>
+													<input type="checkbox" id="use_kib" /> Display File Sizes with Binary Prefix
 												</label>
 											</div>
 											<div class="checkbox">
@@ -1096,14 +1142,46 @@
 			</div>
 		</div>
 		
+		<input type="file" id="input_file_upload" class="hidden" multiple>
+		<div class="modal fade" id="modal_upload" data-backdrop="static">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close hidden" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title"><!-- See JS --></h4>
+					</div>
+					<div class="modal-body">
+						<p>Please wait while the following files are being uploaded:</p>
+						<table id="table_upload_files">
+							<thead>
+								<tr>
+									<th>Filename</th>
+									<th>Size</th>
+									<th>Progress</th>
+								</tr>
+							</thead>
+							<tbody>
+								<!-- See JS -->
+							</tbody>
+						</table>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger" id="btn_cancel_upload"><span class="glyphicon glyphicon-remove"></span> Cancel Upload(s)</button>
+						<button type="button" class="btn btn-success hidden" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 		<!-- Bootstrap core JavaScript
 		================================================== -->
 		<!-- Placed at the end of the document so the pages load faster -->
 		<script src="js/jquery-2.1.3.min.js"></script>
+		<script src="js/jquery.cookie.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
+		<script src="js/jquery.filedrop.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
-		<script src="js/jquery.flot.navigate.js"></script>
-		<script src="js/jquery.cookie.js"></script>
+		<script src="js/jquery.flot.navigate.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
 		<script src="js/interface.js"></script>
