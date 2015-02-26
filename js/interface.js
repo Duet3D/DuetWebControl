@@ -91,8 +91,7 @@ var defaultSettings = JSON.parse(JSON.stringify(settings));		// need to do this 
 /* Variables */
 
 var isConnected = false, justConnected, isPrinting, isPaused, isUploading;
-var ajaxRequests = [], extendedStatusCounter, lastStatusResponse;
-var lastSendGCode, lastGCodeFromInput, queuedGCodes;
+var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, lastSendGCode, lastGCodeFromInput;
 
 var haveFileInfo, fileInfo;
 var maxLayerTime, lastLayerPrintDuration;
@@ -120,7 +119,6 @@ function resetGuiData() {
 	
 	lastSendGCode = "";
 	lastGCodeFromInput = false;
-	queuedGCodes = [];
 	
 	probeSlowDownValue = probeTriggerValue = undefined;
 	heatedBed = 1;
@@ -378,7 +376,7 @@ function updateStatus() {
 			// Fan Control
 			if (!fanSliderActive && (lastStatusResponse == undefined || $("#slider_fan_print").slider("getValue") != status.params.fanPercent)) {
 				if ($("#override_fan").is(":checked") && settings.showFanControl) {
-					queueGCode("M106 S" + ($("#slider_fan_print").slider("getValue") / 100.0));
+					sendGCode("M106 S" + ($("#slider_fan_print").slider("getValue") / 100.0));
 				} else {
 					$("#slider_fan_control").slider("setValue", status.params.fanPercent);
 					$("#slider_fan_print").slider("setValue", status.params.fanPercent);
@@ -438,15 +436,6 @@ function updateStatus() {
 								$("#firmware_name").text(matches[1]);
 								$("#firmware_version").text(matches[2] + " (" + matches[3] + ")");
 							}
-						}
-						
-						// Make sure we send regular G-Codes in the right order
-						if (queuedGCodes.length == 0) {
-							lastSendGCode = "";
-							lastGCodeFromInput = false;
-						} else {
-							var nextEntry = queuedGCodes.shift();
-							sendGCode(nextEntry.gcode, nextEntry.fromInput);
 						}
 					}
 				});
@@ -787,15 +776,6 @@ function sendGCode(gcode, fromInput) {
 	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
 	});
-}
-
-// See if we need to queue it, so the responses are handled properly
-function queueGCode(gcode, fromInput) {
-	if (lastSendGCode == "") {
-		sendGCode(gcode, fromInput);
-	} else {
-		queuedGCodes.push({ gcode: gcode, fromInput: fromInput });
-	}
 }
 
 /* AJAX Events */
@@ -1189,12 +1169,12 @@ function resetGui() {
 /* Dynamic GUI Events */
 
 $("body").on("click", ".bed-temp", function(e) {
-	queueGCode("M140 S" + $(this).data("temp"));
+	sendGCode("M140 S" + $(this).data("temp"));
 	e.preventDefault();
 });
 
 $("body").on("click", ".btn-macro", function(e) {
-	queueGCode("M98 P" + $(this).data("macro"));
+	sendGCode("M98 P" + $(this).data("macro"));
 	e.preventDefault();
 });
 
@@ -1203,9 +1183,9 @@ $("body").on("click", ".btn-print-file, .gcode-file", function(e) {
 	showConfirmationDialog("Start Print", "Do you want to print <strong>" + file + "</strong>?", function() {
 		waitingForPrintStart = true;
 		if (currentGCodeDirectory == "/gcodes") {
-			queueGCode("M32 " + file);
+			sendGCode("M32 " + file);
 		} else {
-			queueGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + file);
+			sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + file);
 		}
 	});
 	e.preventDefault();
@@ -1280,14 +1260,14 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 });
 
 $("body").on("click", ".btn-run-macro", function(e) {
-	queueGCode("M98 P/macros/" + $(this).parents("tr").data("macro"));
+	sendGCode("M98 P/macros/" + $(this).parents("tr").data("macro"));
 	e.preventDefault();
 });
 
 $("body").on("click", ".gcode", function(e) {
 	if (isConnected) {
 		// If this G-Code isn't performed by a button, treat it as a manual input
-		queueGCode($(this).data("gcode"), !($(this).is(".btn")));
+		sendGCode($(this).data("gcode"), !($(this).is(".btn")));
 	}
 	e.preventDefault();
 });
@@ -1306,7 +1286,7 @@ $("body").on("click", ".head-temp", function(e) {
 	var temperature = $(this).data("temp");
 	
 	getToolsByHeater(heater).forEach(function(tool) {
-		queueGCode("G10 P" + tool + " " + activeOrStandby + temperature);
+		sendGCode("G10 P" + tool + " " + activeOrStandby + temperature);
 	});
 	e.preventDefault();
 });
@@ -1319,7 +1299,7 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 });
 
 $("body").on("click", ".tool", function(e) {
-	queueGCode("T" + $(this).data("tool"));
+	sendGCode("T" + $(this).data("tool"));
 	e.preventDefault();
 });
 
@@ -1330,7 +1310,7 @@ $("body").on("hidden.bs.popover", function() {
 /* Static GUI Events */
 
 $("#btn_cancel").click(function() {
-	queueGCode("M0");	// Stop / Cancel Print
+	sendGCode("M0");	// Stop / Cancel Print
 	$(this).addClass("disabled");
 });
 
@@ -1367,12 +1347,12 @@ $("#btn_clear_log").click(function(e) {
 $("#btn_extrude").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]:checked").val();
-	queueGCode("M120\nM83\nG1 E" + amount + " F" + feedrate + "\nM121");
+	sendGCode("M120\nM83\nG1 E" + amount + " F" + feedrate + "\nM121");
 });
 $("#btn_retract").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]:checked").val();
-	queueGCode("M120\nM83\nG1 E-" + amount + " F" + feedrate + "\nM121");
+	sendGCode("M120\nM83\nG1 E-" + amount + " F" + feedrate + "\nM121");
 });
 
 $(".btn-hide-info").click(function() {
@@ -1403,9 +1383,9 @@ $("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(functio
 	$this = $(this);
 	if ($this.data("home") != undefined) {
 		if ($this.data("home") == "all") {
-			queueGCode("G28");
+			sendGCode("G28");
 		} else {
-			queueGCode("G28 " + $this.data("home"));
+			sendGCode("G28 " + $this.data("home"));
 		}
 	} else {
 		var moveString = "M120\nG91\nG1";
@@ -1419,25 +1399,25 @@ $("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(functio
 			moveString += " Z" + $this.data("z");
 		}
 		moveString += " F" + settings.moveFeedrate + "\nM121";
-		queueGCode(moveString);
+		sendGCode(moveString);
 	}
 	e.preventDefault();
 });
 
 $("#btn_load_filament").click(function() {
 	// Load first 85% of filament at high speed
-	queueGCode("G1 E" + (settings.bowdenLength * 0.85) + " F6000");
+	sendGCode("G1 E" + (settings.bowdenLength * 0.85) + " F6000");
 	
 	// Then feed last 15% at lower speed
-	queueGCode("G1 E" + (settings.bowdenLength * 0.15) + " F450");
+	sendGCode("G1 E" + (settings.bowdenLength * 0.15) + " F450");
 });
 
 $("#btn_unload_filament").click(function() {
 	// Start slowly for the first 15% at low speed
-	queueGCode("G1 E-" + (settings.bowdenLength * 0.15) + " F450");
+	sendGCode("G1 E-" + (settings.bowdenLength * 0.15) + " F450");
 	
 	// Eject last 85% of filament at higher speed
-	queueGCode("G1 E-" + (settings.bowdenLength * 0.85) + " F6000");
+	sendGCode("G1 E-" + (settings.bowdenLength * 0.85) + " F6000");
 });
 
 $("#btn_new_directory").click(function() {
@@ -1458,9 +1438,9 @@ $("#btn_new_directory").click(function() {
 
 $("#btn_pause").click(function() {
 	if (isPaused) {
-		queueGCode("M24");	// Resume
+		sendGCode("M24");	// Resume
 	} else if (isPrinting) {
-		queueGCode("M25");	// Pause
+		sendGCode("M25");	// Pause
 	}
 	$(this).addClass("disabled");
 });
@@ -1501,7 +1481,7 @@ $(".gcode-input").submit(function(e) {
 		if (settings.uppercaseGCode) {
 			gcode = gcode.toUpperCase();
 		}
-		queueGCode(gcode, true);
+		sendGCode(gcode, true);
 		$(this).find("input").select();
 	}
 	e.preventDefault();
@@ -1589,7 +1569,7 @@ $("#input_temp_bed").keydown(function(e) {
 	var enterKeyPressed = (e.which == 13);
 	enterKeyPressed |= (e.which == 9 && window.matchMedia('(max-width: 991px)').matches); // need this for Android
 	if (isConnected && enterKeyPressed) {
-		queueGCode("M140 S" + $(this).val());
+		sendGCode("M140 S" + $(this).val());
 		$(this).select();
 		
 		e.preventDefault();
@@ -1605,7 +1585,7 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 		var temperature = $(this).val();
 		
 		getToolsByHeater(heater).forEach(function(toolNumber) {
-			queueGCode("G10 P" + toolNumber + " " + activeOrStandby + temperature);
+			sendGCode("G10 P" + toolNumber + " " + activeOrStandby + temperature);
 		});
 		$(this).select();
 		
@@ -1623,10 +1603,10 @@ $(".navlink").click(function(e) {
 
 $("#panel_control_misc label.btn").click(function() {
 	if ($(this).find("input").val() == 1) {		// ATX on
-		queueGCode("M80");
+		sendGCode("M80");
 	} else {									// ATX off
 		showConfirmationDialog("ATX Power", "Do you really want to turn off ATX power?<br/><br/>This will turn off all drives, heaters and fans.", function() {
-			queueGCode("M81");
+			sendGCode("M81");
 		});
 	}
 });
@@ -1667,10 +1647,10 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 			});
 			
 			if (hasToolSelected) {
-				queueGCode("T0");
+				sendGCode("T0");
 				$(this).blur();
 			} else if (tools.length == 1) {
-				queueGCode("T" + tools[0]);
+				sendGCode("T" + tools[0]);
 				$(this).blur();
 			} else if (tools.length > 0) {
 				if ($(this).parent().children("div.popover").length > 0) {
@@ -1849,7 +1829,7 @@ $('#slider_fan_control').slider({
 	fanSliderActive = true;
 }).on("slideStop", function(slideEvt) {
 	if (isConnected && !isNaN(slideEvt.value)) {
-		queueGCode("M106 S" + (slideEvt.value / 100.0));
+		sendGCode("M106 S" + (slideEvt.value / 100.0));
 		$("#slider_fan_print").slider("setValue", slideEvt.value);
 	}
 	fanSliderActive = false;
@@ -1871,7 +1851,7 @@ $('#slider_fan_print').slider({
 	fanSliderActive = true;
 }).on("slideStop", function(slideEvt) {
 	if (isConnected && !isNaN(slideEvt.value)) {
-		queueGCode("M106 S" + (slideEvt.value / 100.0));
+		sendGCode("M106 S" + (slideEvt.value / 100.0));
 		$("#slider_fan_control").slider("setValue", slideEvt.value);
 	}
 	fanSliderActive = false;
@@ -1894,7 +1874,7 @@ for(var extr=1; extr<=5; extr++) {
 		extrSliderActive = true;
 	}).on("slideStop", function(slideEvt) {
 		if (isConnected && !isNaN(slideEvt.value)) {
-			queueGCode("M221 D" + $(this).data("drive") + " S" + slideEvt.value);
+			sendGCode("M221 D" + $(this).data("drive") + " S" + slideEvt.value);
 		}
 		extrSliderActive = false;
 	});
@@ -1916,7 +1896,7 @@ $('#slider_speed').slider({
 	speedSliderActive = true;
 }).on("slideStop", function(slideEvt) {
 	if (isConnected && !isNaN(slideEvt.value)) {
-		queueGCode("M220 S" + slideEvt.value);
+		sendGCode("M220 S" + slideEvt.value);
 	}
 	speedSliderActive = false;
 });
@@ -2449,7 +2429,7 @@ function setPrintStatus(printing) {
 		
 		if (isConnected) {
 			if ($("#auto_sleep").is(":checked")) {
-				queueGCode("M1");
+				sendGCode("M1");
 				$("#auto_sleep").prop("checked", false);
 			}
 			
@@ -2927,9 +2907,9 @@ function finishUpload(success) {
 		if (uploadType == "print") {
 			waitingForPrintStart = true;
 			if (currentGCodeDirectory == "/gcodes") {
-				queueGCode("M32 " + uploadFiles[0]);
+				sendGCode("M32 " + uploadFiles[0]);
 			} else {
-				queueGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFiles[0]);
+				sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFiles[0]);
 			}
 		}
 	}
