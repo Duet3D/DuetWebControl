@@ -1236,16 +1236,14 @@ $("body").on("click", ".btn-delete-directory", function(e) {
 });
 
 $("body").on("click", ".btn-delete-macro", function(e) {
-	var row = $(this).parents("tr");
-	var macroFile = row.data("macro");
+	var macroFile = $(this).parents("tr").data("macro");
 	showConfirmationDialog("Delete File", "Are you sure you want to delete <strong>" + macroFile + "</strong>?", function() {
 		$.ajax("rr_delete?name=/macros/" + macroFile, {
 			dataType: "json",
 			macro: macroFile,
-			row: row,
 			success: function(response) {
 				if (response.err == 0) {
-					this.row.remove();
+					$("#table_macro_files tr[data-macro='" + macroFile + "'], #panel_macro_buttons button[data-macro='/macros/" + macroFile + "']").remove();
 					if ($("#table_macro_files tbody").children().length == 0) {
 						macroUpdateIndex = -1;
 						updateMacroFiles();
