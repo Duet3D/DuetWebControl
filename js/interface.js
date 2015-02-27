@@ -2002,7 +2002,12 @@ function addGCodeFile(filename) {
 
 function addMacroFile(filename) {
 	// Control Page
-	var label = filename.match(/(.*)\.\w+/)[1]
+	var label, match = filename.match(/(.*)\.\w+/);
+	if (match == null) {
+		label = filename;
+	} else {
+		label = match[1];
+	}
 	var macroButton =	'<div class="btn-group">';
 	macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' + label + '</button>';
 	macroButton +=		'</div>';
