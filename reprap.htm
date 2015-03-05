@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.02
+<!--	Duet Web Control v1.03
 	
 		written by Christian Hammacher
 	
@@ -67,7 +67,7 @@
 						<button type="submit" class="btn btn-default disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
 					</form>
 					
-					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="print"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
 					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
@@ -109,12 +109,14 @@
 									<ul class="nav nav-pills">
 										<li role="presentation" class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Control</a></li>
 										<li role="presentation" class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Job</a></li>
-										<li role="presentation" class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-list-alt"></span> Console</a></li>
+										<li role="presentation" class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> Console</a></li>
 										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-										<li role="presentation" class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
+										<li role="presentation" class="navitem navitem-tools hidden"><a class="navlink" href="#" data-target="tools"><span class="glyphicon glyphicon-pencil"></span> Tools</a></li>
+										<li role="presentation" class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
+										<li role="presentation" class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
 									</ul>
 								</td>
 							</tr>
@@ -349,22 +351,26 @@
 			</div>
 			
 			<!-- Content -->
-			<div class="row fill-bottom">
+			<div class="row">
 				<!-- Sidebar -->
-				<div class="col-sm-3 col-md-2 col-lg-2 fill-bottom" id="sidebar">
+				<div class="col-sm-3 col-md-2 col-lg-2" id="sidebar">
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
 						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
-						<li class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-list-alt"></span> G-Code Console</a></li>
-						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files pull-right hidden"></span></a></li>
-						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros pull-right hidden"></span></a></li>
+						<li class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> G-Code Console</a></li>
+						<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
+						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-						<li class="navitem navitem-maintenance"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
+						<li class="navitem navitem-tools hidden"><a class="navlink" href="#" data-target="tools"><span class="glyphicon glyphicon-pencil"></span> Tools</a></li>
+						<li class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
+					</ul>
+					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
+						<li class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
 					</ul>
 				</div>
 				
@@ -540,8 +546,7 @@
 									
 									<div class="panel-body text-center">
 										<h4 class="text-muted">Go to the Macros page to define your own actions</h4>
-										<div class="btn-group-vertical btn-group-vertical-justified">
-										</div>
+										<div class="btn-group-vertical btn-group-vertical-justified"></div>
 									</div>
 								</div>
 							</div>
@@ -806,8 +811,8 @@
 						</div>
 						
 						<div class="row">
-							<div class="col-lg-12">
-								<div class="well well-sm fill-bottom" id="console_log">
+							<div class="col-md-12">
+								<div class="container-fluid" id="console_log">
 								</div>
 							</div>
 						</div>
@@ -817,11 +822,23 @@
 					<div id="page_files" class="page">
 						<div class="row">
 							<div class="col-md-12">
-								<ol class="breadcrumb" id="ol_gcode_directory">
-									<li class="active">G-Codes Directory</li>
-									<li class="pull-right">Go Up</li>
-								</ol>
-								
+								<table class="table-file-navigation">
+									<tr>
+										<td>
+											<ol class="breadcrumb breadcrumb-directory" id="ol_gcode_directory">
+												<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>
+												<li class="pull-right"><span class="glyphicon glyphicon-level-up"></span> Go Up</li>
+											</ol>
+										</td>
+										<td class="hidden-xs hidden-sm hidden online-control">
+											<button class="btn btn-primary btn-upload disabled" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
+										</td>
+										<td class="hidden-xs hidden online-control">
+											<button class="btn btn-info" id="btn_new_gcode_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
+										</td>
+									</tr>
+								</table>
+
 								<h1 class="text-center text-muted">Connnect to your Duet to display G-Code Files</h1>
 								
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
@@ -837,13 +854,6 @@
 										</tr>
 									</thead>
 								</table>
-								
-								<div class="row hidden-xs hidden row-actions">
-									<div class="col-md-12 text-center">
-										<button class="btn btn-lg btn-info" id="btn_new_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
-										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="gcode"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
-									</div>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -852,8 +862,26 @@
 					<div id="page_macros" class="page">
 						<div class="row">
 							<div class="col-md-12">
+								<table class="table-file-navigation">
+									<tr>
+										<td>
+											<ol class="breadcrumb breadcrumb-directory" id="ol_macro_directory">
+												<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</li>
+												<li class="pull-right"><span class="glyphicon glyphicon-level-up"></span> Go Up</li>
+											</ol>
+										</td>
+										<td class="hidden-xs hidden-sm hidden online-control">
+											<button class="btn btn-primary btn-upload disabled" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
+										</td>
+										<td class="hidden-xs hidden online-control">
+											<button class="btn btn-info" id="btn_new_macro_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
+										</td>
+									</tr>
+								</table>
+								
 								<h1 class="text-center text-muted">Connnect to your Duet to display Macro Files</h1>
 							</div>
+							
 							<div class="col-xs-12 col-sm-10 col-sm-push-1 col-md-8 col-md-push-2 col-lg-6 col-lg-push-3">
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
 									<thead>
@@ -864,12 +892,6 @@
 										</tr>
 									</thead>
 								</table>
-								
-								<div class="row hidden-xs hidden row-actions">
-									<div class="col-md-12 text-center">
-										<button class="btn btn-lg btn-primary btn-upload disabled" data-type="macro"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code Macro File(s)</button>
-									</div>
-								</div>
 							</div>
 						</div>
 					</div> 
@@ -887,7 +909,7 @@
 											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
 												<label for="input_bowden_length">Bowden Tube Length:</label>
 												<div class="input-group">
-													<input type="number" class="form-control" id="input_bowden_length" value="300">
+													<input type="number" class="form-control" id="input_bowden_length" value="300" disabled>
 													<span class="input-group-addon">mm</span>
 												</div>
 											</div>
@@ -911,11 +933,20 @@
 						</div>
 					</div>
 					
+					<!-- Tools -->
+					<div id="page_tools" class="page">
+						<div class="row">
+							<div class="col-md-12">
+								<!-- TODO -->
+							</div>
+						</div>
+					</div>
+					
 					<!-- Maintenance -->
 					<div id="page_maintenance" class="page">
 						<div class="row">
 							<div class="col-md-12">
-								<h1 class="text-center text-muted">TODO: maintenance reminder and bed levelling assistant</h1>
+								<!-- TODO: maintenance reminder and bed levelling assistant -->
 							</div>
 						</div>
 					</div>
@@ -923,138 +954,163 @@
 					<!-- Settings -->
 					<div id="page_settings" class="page">
 						<form id="frm_settings">
+							<!-- Page Selector -->
 							<div class="row">
-								<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-left">
-									<div class="panel panel-default">
-										<div class="panel-heading">
-											<span>Software Information</span>
+								<div class="col-md-12">
+									<ul class="nav nav-tabs">
+										<li class="active"><a href="#">General</a></li>
+										<li class="hidden"><a href="#">List Items</a></li>
+										<li class="hidden"><a href="#">Firmware Settings</a></li>
+										<li class="hidden"><a href="#">Diagnostics</a></li>
+									</ul>
+								</div>
+							</div>
+							
+							<div class="tab-container">
+								<!-- General Settings -->
+								<div class="row">
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-left">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Software Information</span>
+											</div>
+											<div class="panel-body">
+												<table id="software_info">
+													<tr>
+														<th>Firmware Name:</th>
+														<td id="firmware_name">n/a</td>
+													</tr>
+													<tr>
+														<th>Firmware Version:</th>
+														<td id="firmware_version">n/a</td>
+													</tr>
+													<tr>
+														<th>Web Interface Version:</th>
+														<td id="web_version">HTML: 1.03</td>
+													</tr>
+												</table>
+												<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+											</div>
 										</div>
-										<div class="panel-body">
-											<table id="software_info">
-												<tr>
-													<th>Firmware Name:</th>
-													<td id="firmware_name">n/a</td>
-												</tr>
-												<tr>
-													<th>Firmware Version:</th>
-													<td id="firmware_version">n/a</td>
-												</tr>
-												<tr>
-													<th>Web Interface Version:</th>
-													<td id="web_version">HTML: 1.02</td>
-												</tr>
-											</table>
-											<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+										
+										<div class="panel panel-default hidden-xs hidden-sm">
+											<div class="panel-heading">
+												<span>File Upload for /sys and /www Directories</span>
+											</div>
+											<div class="panel-body">
+												<div class="btn-group-justified">
+													<div class="btn-group">
+														<button class="btn btn-lg btn-info btn-upload disabled" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Appearance and Behavior</span>
+											</div>
+											
+											<div class="panel-body">
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="half_z" /> Half Z Movements
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="log_success" checked /> Log any successful G-Code
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="uppercase_gcode" checked /> Always Convert G-Codes to Upper-Case
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="use_kib" /> Display File Sizes with Binary Prefix
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="fan_sliders" checked /> Show Fan Sliders
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="show_atx" checked /> Show ATX Power control
+													</label>
+												</div>
+												<div class="checkbox">
+													<label>
+														<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
+													</label>
+												</div>
+												
+												<label id="label_feedrate" for="move_feedrate">Default Move Button Feedrate:</label>
+												<div class="input-group">
+													<input type="number" id="move_feedrate" class="form-control">
+													<span class="input-group-addon">mm/min</span>
+												</div>
+											</div>
 										</div>
 									</div>
 									
-									<div class="panel panel-default">
-										<div class="panel-heading">
-											<span>File Upload for /sys and /www Directories</span>
-										</div>
-										<div class="panel-body">
-											<div class="btn-group-justified">
-												<div class="btn-group">
-													<button class="btn btn-lg btn-info btn-upload disabled" data-type="generic"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
+									<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-right">
+										<div class="panel panel-default" id="panel_ui_timing">
+											<div class="panel-heading">
+												<span>UI Timing</span>
+											</div>
+											
+											<div class="panel-body">
+												<label for="update_interval">Status Update Interval:</label>
+												<div class="input-group">
+													<input type="number" id="update_interval" class="form-control">
+													<span class="input-group-addon">ms</span>
+												</div>
+												
+												<label for="extended_status_interval">Extended Status Update after every:</label>
+												<div class="input-group">
+													<input type="number" id="extended_status_interval" class="form-control">
+													<span class="input-group-addon">th response</span>
+												</div>
+												
+												<label for="reconnect_delay">Reconnect Delay on Halt:</label>
+												<div class="input-group">
+													<input type="number" id="reconnect_delay" class="form-control">
+													<span class="input-group-addon">ms</span>
+												</div>
+												
+												<label for="ajax_timeout">AJAX Timeout:</label>
+												<div class="input-group">
+													<input type="number" id="ajax_timeout" class="form-control">
+													<span class="input-group-addon">ms</span>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							
-								<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
-									<div class="panel panel-default">
-										<div class="panel-heading">
-											<span>Appearance and Behavior</span>
-										</div>
-										
-										<div class="panel-body">
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="half_z" /> Half Z Movements
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="log_success" checked /> Log any successful G-Code
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="uppercase_gcode" checked /> Convert G-Codes to upper-case before sending them
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="use_kib" /> Display File Sizes with Binary Prefix
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="fan_sliders" checked /> Show Fan Sliders
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="show_atx" checked /> Show ATX Power control
-												</label>
-											</div>
-											<div class="checkbox">
-												<label>
-													<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
-												</label>
-											</div>
-											
-											<label id="label_feedrate" for="move_feedrate">Default Move Button Feedrate:</label>
-											<div class="input-group">
-												<input type="number" id="move_feedrate" class="form-control">
-												<span class="input-group-addon">mm/min</span>
-											</div>
-										</div>
-									</div>
-								</div>
-								
-								<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-right">
-									<div class="panel panel-default" id="panel_ui_timing">
-										<div class="panel-heading">
-											<span>UI Timing</span>
-										</div>
-										
-										<div class="panel-body">
-											<label for="update_interval">Status Update Interval:</label>
-											<div class="input-group">
-												<input type="number" id="update_interval" class="form-control">
-												<span class="input-group-addon">ms</span>
-											</div>
-											
-											<label for="extended_status_interval">Extended Status Update after every:</label>
-											<div class="input-group">
-												<input type="number" id="extended_status_interval" class="form-control">
-												<span class="input-group-addon">th response</span>
-											</div>
-											
-											<label for="reconnect_delay">Reconnect Delay on Halt:</label>
-											<div class="input-group">
-												<input type="number" id="reconnect_delay" class="form-control">
-												<span class="input-group-addon">ms</span>
-											</div>
-											
-											<label for="ajax_timeout">AJAX Timeout:</label>
-											<div class="input-group">
-												<input type="number" id="ajax_timeout" class="form-control">
-												<span class="input-group-addon">ms</span>
-											</div>
-										</div>
-									</div>
-								</div>
 							</div>
-							<div class="row row-actions">
+							
+							<div class="row online-control">
 								<div class="col-md-12 text-center">
-									<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
-									<button class="btn btn-warning" id="btn_reset_settings"><span class="glyphicon glyphicon-fire"></span> Load Factory Defaults</button>
+									<button type="submit" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
+									<button class="btn btn-lg btn-warning" id="btn_reset_settings"><span class="glyphicon glyphicon-erase"></span> Load Factory Defaults</button>
 								</div>
 							</div>
 						</form>
+					</div>
+				
+					<!-- Help -->
+					<div id="page_help" class="page">
+						<div class="row">
+							<div class="col-md-12">
+								<!-- TODO -->
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1179,7 +1235,6 @@
 		<script src="js/jquery-2.1.3.min.js"></script>
 		<script src="js/jquery.cookie.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
-		<script src="js/jquery.filedrop.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
 		<script src="js/jquery.flot.navigate.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>

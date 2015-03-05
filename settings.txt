@@ -12,7 +12,5 @@ TODO for Settings:
 - Print Status customization:
 	- Hide filament left
 
-- Upload for sys+www
-
 - Display config file and diagnostics
 - Display axis mins+maxes, accelerations, min+max feedrates
