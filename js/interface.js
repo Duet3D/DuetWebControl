@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.02
+/* Interface logic for the Duet Web Control v1.03
  * 
  * written by Christian Hammacher
  * 
@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.02;
+var jsVersion = 1.03;
 var sessionPassword = "reprap";
 
 /* Constants */
@@ -105,7 +105,7 @@ var recordedBedTemperatures, recordedHeadTemperatures, layerData;
 var currentPage = "control", refreshTempChart = false, refreshPrintChart = false, waitingForPrintStart;
 
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
-var knownMacroFiles, macroUpdateIndex;
+var currentMacroDirectory, nownMacroFiles, macroUpdateIndex, macroLastDirectory;
 
 var fanSliderActive, speedSliderActive, extrSliderActive;
 
@@ -139,6 +139,7 @@ function resetGuiData() {
 	knownGCodeFiles = knownMacroFiles = [];
 	gcodeUpdateIndex = macroUpdateIndex = -1;
 	currentGCodeDirectory = "/gcodes";
+	currentMacroDirectory = "/macros";
 	
 	waitingForPrintStart = fanSliderActive = speedSliderActive = extrSliderActive = false;
 }
@@ -668,7 +669,9 @@ function updateGCodeFiles() {
 					}
 					
 					if (knownGCodeFiles.length == 0) {
-						$(".span-refresh-files").removeClass("hidden");
+						if (currentPage == "files") {
+							$(".span-refresh-files").removeClass("hidden");
+						}
 					} else {
 						updateGCodeFiles();
 					}
@@ -677,7 +680,7 @@ function updateGCodeFiles() {
 		});
 	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
 		var row = $("#table_gcode_files tr[data-item='" + knownGCodeFiles[gcodeUpdateIndex] + "']");
-		$.ajax("rr_fileinfo?name=" + encodeURIComponent(currentGCodeDirectory) + "/" + encodeURIComponent(knownGCodeFiles[gcodeUpdateIndex]), {
+		$.ajax("rr_fileinfo?name=" + encodeURIComponent(currentGCodeDirectory + "/" + knownGCodeFiles[gcodeUpdateIndex]), {
 			dataType: "json",
 			row: row,
 			success: function(response) {
@@ -692,10 +695,12 @@ function updateGCodeFiles() {
 					setGCodeDirectoryItem(this.row);
 				}
 				
-				if (gcodeUpdateIndex >= knownGCodeFiles.length) {
-					$(".span-refresh-files").removeClass("hidden");
-				} else if (currentPage == "files") {
-					updateGCodeFiles();
+				if (currentPage == "files") {
+					if (gcodeUpdateIndex >= knownGCodeFiles.length) {
+						$(".span-refresh-files").removeClass("hidden");
+					} else {
+						updateGCodeFiles();
+					}
 				}
 			}
 		});
@@ -705,15 +710,17 @@ function updateMacroFiles() {
 	if (!isConnected) {
 		macroUpdateIndex = -1;
 		$(".span-refresh-macros").addClass("hidden");
+		clearMacroDirectory();
 		clearMacroFiles();
 		return;
 	}
 	
 	if (macroUpdateIndex == -1) {
-		macroUpdateIndex = invalidMacros = 0;
+		macroUpdateIndex = 0;
+		macroLastDirectory = undefined;
 		clearMacroFiles();
 		
-		$.ajax("rr_files?dir=/macros", {
+		$.ajax("rr_files?dir=" + encodeURIComponent(currentMacroDirectory), {
 			dataType: "json",
 			success: function(response) {
 				if (isConnected) {
@@ -736,7 +743,7 @@ function updateMacroFiles() {
 		});
 	} else if (macroUpdateIndex < knownMacroFiles.length) {
 		var row = $("#table_macro_files tr[data-macro='" + knownMacroFiles[macroUpdateIndex] + "']");
-		$.ajax("rr_fileinfo?name=/macros/" + encodeURIComponent(knownMacroFiles[macroUpdateIndex]), {
+		$.ajax("rr_fileinfo?name=" + encodeURIComponent(currentMacroDirectory + "/" + knownMacroFiles[macroUpdateIndex]), {
 			dataType: "json",
 			row: row,
 			success: function(response) {
@@ -747,16 +754,13 @@ function updateMacroFiles() {
 				
 				if (response.err == 0) {	// File
 					setMacroFileItem(this.row, response.size);
-				} else {
-					row.remove();			// Not a file, purge it
-					invalidMacros++;
+				} else {					// Directory
+					setMacroDirectoryItem(this.row);
 				}
 				
 				if (macroUpdateIndex >= knownMacroFiles.length) {
 					if (currentPage == "macros") {
 						$(".span-refresh-macros").removeClass("hidden");
-					} else if (macroUpdateIndex - invalidMacros == 0) {
-						clearMacroFiles();
 					}
 				} else if (currentPage == "control" || currentPage == "macros") {
 					updateMacroFiles();
@@ -790,6 +794,11 @@ $(document).ajaxComplete(function(event, jqxhr, settings) {
 });
 
 $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+	if (thrownError == "abort") {
+		// Ignore this error if this request was cancelled intentionally
+		return;
+	}
+	
 	if (isConnected) {
 		var msg = "An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.";
 		if (thrownError != "") {
@@ -989,10 +998,12 @@ function applySettings() {
 /* GUI */
 
 $(document).ready(function() {
+	// Firefox work-arounds (to disable controls and to hide spinner buttons [doesn't work in CSS as of 2015-03-05])
+	$('input[type="number"]').css("-moz-appearance", "textfield");
+	disableControls();
+	
 	resetGuiData();
 	updateGui();
-	
-	setFileDropTargets();
 	
 	loadSettings();
 	$("#web_version").append(", JS: " + jsVersion.toFixed(2));
@@ -1019,7 +1030,7 @@ function enableControls() {
 		$("#slider_extr_" + extr).slider("enable");												// Extrusion Factors
 	}
 	
-	$(".row-actions").removeClass("hidden");													// G-Code/Macro Files
+	$(".online-control").removeClass("hidden");													// G-Code/Macro Files
 }
 
 function disableControls() {
@@ -1041,7 +1052,7 @@ function disableControls() {
 		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors
 	}
 	
-	$(".row-actions").addClass("hidden");														// G-Code/Macro Files
+	$(".online-control").addClass("hidden");														// G-Code/Macro Files
 }
 
 function updateGui() {
@@ -1174,7 +1185,15 @@ $("body").on("click", ".bed-temp", function(e) {
 });
 
 $("body").on("click", ".btn-macro", function(e) {
-	sendGCode("M98 P" + $(this).data("macro"));
+	var directory = $(this).data("directory");
+	if (directory != undefined) {
+		var dropdown = $(this).parent().children("ul");
+		dropdown.css("width", $(this).outerWidth());
+		loadMacroDropdown(directory, dropdown);
+		dropdown.dropdown();
+	} else {
+		sendGCode("M98 P" + $(this).data("macro"));
+	}
 	e.preventDefault();
 });
 
@@ -1215,11 +1234,13 @@ $("body").on("click", ".btn-delete-file", function(e) {
 	e.preventDefault();
 });
 
-$("body").on("click", ".btn-delete-directory", function(e) {
-	$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + $(this).parents("tr").data("directory")), {
+$("body").on("click", ".btn-delete-gcode-directory", function(e) {
+	var row = $(this).parents("tr");
+	var directory = row.data("directory");
+	$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + directory), {
 		dataType: "json",
-		row: $(this).parents("tr"),
-		directory: $(this).parents("tr").data("directory"),
+		row: row,
+		directory: directory,
 		success: function(response) {
 			if (response.err == 0) {
 				this.row.remove();
@@ -1235,15 +1256,37 @@ $("body").on("click", ".btn-delete-directory", function(e) {
 	e.preventDefault();
 });
 
+$("body").on("click", ".btn-delete-macro-directory", function(e) {
+	var row = $(this).parents("tr");
+	var directory = row.data("directory");
+	$.ajax("rr_delete?name=" + encodeURIComponent(currentMacroDirectory + "/" + directory), {
+		dataType: "json",
+		row: row,
+		directory: directory,
+		success: function(response) {
+			if (response.err == 0) {
+				this.row.remove();
+				if ($("#table_macro_files tbody").children().length == 0) {
+					macroUpdateIndex = -1;
+					updateMacroFiles();
+				}
+			} else {
+				showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete directory <strong>" + this.directory + "</strong>!<br/><br/>Perhaps it isn't empty?", "md");
+			}
+		}
+	});
+	e.preventDefault();
+});
+
 $("body").on("click", ".btn-delete-macro", function(e) {
-	var macroFile = $(this).parents("tr").data("macro");
+	var macroFile = $(this).parents("tr").data("file");
 	showConfirmationDialog("Delete File", "Are you sure you want to delete <strong>" + macroFile + "</strong>?", function() {
-		$.ajax("rr_delete?name=/macros/" + macroFile, {
+		$.ajax("rr_delete?name=" + encodeURIComponent(currentMacroDirectory + "/" + macroFile), {
 			dataType: "json",
 			macro: macroFile,
 			success: function(response) {
 				if (response.err == 0) {
-					$("#table_macro_files tr[data-macro='" + macroFile + "'], #panel_macro_buttons button[data-macro='/macros/" + macroFile + "']").remove();
+					$("#table_macro_files tr[data-macro='" + macroFile + "'], #panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + macroFile + "']").remove();
 					if ($("#table_macro_files tbody").children().length == 0) {
 						macroUpdateIndex = -1;
 						updateMacroFiles();
@@ -1258,7 +1301,7 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 });
 
 $("body").on("click", ".btn-run-macro", function(e) {
-	sendGCode("M98 P/macros/" + $(this).parents("tr").data("macro"));
+	sendGCode("M98 P" + currentMacroDirectory + "/" + $(this).parents("tr").data("file"));
 	e.preventDefault();
 });
 
@@ -1289,10 +1332,24 @@ $("body").on("click", ".head-temp", function(e) {
 	e.preventDefault();
 });
 
+$("body").on("click", ".macro-directory", function(e) {
+	setMacroDirectory(currentMacroDirectory + "/" + $(this).parents("tr").data("directory"));
+	macroUpdateIndex = -1;
+	updateMacroFiles();
+	e.preventDefault();
+});
+
 $("body").on("click", "#ol_gcode_directory a", function(e) {
 	setGCodeDirectory($(this).data("directory"));
 	gcodeUpdateIndex = -1;
 	updateGCodeFiles();
+	e.preventDefault();
+});
+
+$("body").on("click", "#ol_macro_directory a", function(e) {
+	setMacroDirectory($(this).data("directory"));
+	macroUpdateIndex = -1;
+	updateMacroFiles();
 	e.preventDefault();
 });
 
@@ -1418,7 +1475,7 @@ $("#btn_unload_filament").click(function() {
 	sendGCode("G1 E-" + (settings.bowdenLength * 0.85) + " F6000");
 });
 
-$("#btn_new_directory").click(function() {
+$("#btn_new_gcode_directory").click(function() {
 	showTextInput("New directory", "Please enter a name:", function(value) {
 		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
 			dataType: "json",
@@ -1426,6 +1483,22 @@ $("#btn_new_directory").click(function() {
 				if (response.err == 0) {
 					gcodeUpdateIndex = -1;
 					updateGCodeFiles();
+				} else {
+					showMessage("warning-sign", "Error", "Could not create directory!", "sm");
+				}
+			}
+		});
+	});
+});
+
+$("#btn_new_macro_directory").click(function() {
+	showTextInput("New directory", "Please enter a name:", function(value) {
+		$.ajax("rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
+			dataType: "json",
+			success: function(response) {
+				if (response.err == 0) {
+					macroUpdateIndex = -1;
+					updateMacroFiles();
 				} else {
 					showMessage("warning-sign", "Error", "Could not create directory!", "sm");
 				}
@@ -1457,22 +1530,37 @@ $("#btn_reset_settings").click(function(e) {
 	e.preventDefault();
 });
 
-function setFileDropTargets() {
-	["upload-print", "upload-gcode", "upload-macro"].forEach(function(type) {
-		$(".btn-upload[data-type='" + type + "']").fileDragAndDrop({
-			onFileRead: function(files) {
-				var fileContents = [];
-				files.forEach(function(item) {
-					fileContents.push(item.data);
-				});
-				startUpload(type, files, fileContents);
-			},
-			overClass: "btn-success",
-			addClassTo: ".btn-upload[data-type='" + type + "']",
-			removeDataUriScheme: true
-		});
+["print", "gcode", "macro", "generic"].forEach(function(type) {
+	var child = $(".btn-upload[data-type='" + type + "']");
+	
+	// Drag Enter
+	child.on("dragover", function(e) {
+		$(this).removeClass($(this).data("style")).addClass("btn-success");
+		e.preventDefault();  
+		e.stopPropagation();
 	});
-}
+
+	// Drag Leave
+	child.on("dragleave", function(e) {
+		$(this).removeClass("btn-success").addClass($(this).data("style"));
+		e.preventDefault();  
+		e.stopPropagation();
+	});
+	
+	// Drop
+	child.on("drop", function(e) {
+		$(this).removeClass("btn-success").addClass($(this).data("style"));
+		e.preventDefault();
+		e.stopPropagation();
+		
+		var files = e.originalEvent.dataTransfer.files;
+		if (files != null && files.length > 0) {
+			// Start new file upload
+			startUpload($(this).data("type"), files);
+		}
+	});
+});
+	
 $(".gcode-input").submit(function(e) {
 	if (isConnected) {
 		var gcode = $(this).find("input").val();
@@ -1534,34 +1622,13 @@ $("#input_bowden_length").blur(function() {
 	$.cookie("settings", JSON.stringify(settings), { expires: 999999 });
 });
 
-var clickFiles, clickFileContents, clickFileType;
-
 $("#input_file_upload").change(function(e) {
 	if (this.files.length > 0) {
-		clickFiles = this.files;
-		clickFileContents = [];
-		clickFileType = $(this).data("type");
-		
-		readNextClickFile();
+		// For POST uploads, we need file blobs
+		startUpload($(this).data("type"), this.files);
+		$("#input_file_upload").val("");
 	}
 });
-
-function readNextClickFile() {
-	var reader = new FileReader();
-	reader.onload = clickFileReadCallback;
-	reader.readAsBinaryString(clickFiles[clickFileContents.length]);
-}
-
-function clickFileReadCallback(e) {
-	clickFileContents.push(e.target.result);
-	
-	if (clickFileContents.length == clickFiles.length) {
-		startUpload(clickFileType, clickFiles, clickFileContents);
-		$("#input_file_upload").val("");
-	} else {
-		readNextClickFile();
-	}
-}
 
 $("#input_temp_bed").keydown(function(e) {
 	var enterKeyPressed = (e.which == 13);
@@ -1591,11 +1658,29 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 	}
 });
 
+// Using JavaScript to adjust heights is rather ugly, but well supported by many browsers
+$(window).resize(function() {
+	// Undo height adjustments
+	$("#sidebar, #console_log").css("height", "");
+	
+	// Adjust sidebar height
+	var contentHeight = Math.max($("#main_content").height(), $("#sidebar").height());
+	var relWindowHeight = $(window).height() - $("#sidebar").offset().top;
+	var sidebarHeight = Math.max(contentHeight, relWindowHeight);
+	$("#sidebar").css("height", sidebarHeight + "px");
+	
+	// Adjust G-Code console height
+	if (currentPage == "console") {
+		var consoleHeight = sidebarHeight - ($("#console_log").offset().top - $("#sidebar").offset().top);
+		$("#console_log").css("height", Math.max(consoleHeight, $("#console_log").height()) + "px");
+	}
+});
+
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 
 $(".navlink").click(function(e) {
-	var target = $(this).data("target");
-	showPage(target);
+	$(this).blur();
+	showPage($(this).data("target"));
 	e.preventDefault();
 });
 
@@ -1771,21 +1856,6 @@ function drawPrintChart() {
 	printChart.pan({ left: 99999 });
 	refreshPrintChart = false;
 }
-
-/*function makeDummyData() {
-	layerData = [];
-	maxLayerTime = lastLayerPrintDuration = 0;
-	
-	addLayerData(450);
-	setTimeout(function() { addDummyPoint(); }, 1000);
-}
-
-function addDummyPoint() {
-	addLayerData((Math.random() * 84) + 5);
-	if (layerData.length <= 300) {
-		setTimeout(addDummyPoint, 100);
-	}
-}*/
 
 function resizeCharts() {
 	var headsHeight = $("#table_heaters").height();
@@ -2000,18 +2070,15 @@ function addGCodeFile(filename) {
 
 function addMacroFile(filename) {
 	// Control Page
-	var label, match = filename.match(/(.*)\.\w+/);
-	if (match == null) {
-		label = filename;
-	} else {
-		label = match[1];
+	if (currentMacroDirectory == "/macros") {
+		var label = stripMacroFilename(filename);
+		var macroButton =	'<div class="btn-group">';
+		macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' + label + '</button>';
+		macroButton +=		'</div>';
+		
+		$("#panel_macro_buttons h4").addClass("hidden");
+		$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
 	}
-	var macroButton =	'<div class="btn-group">';
-	macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' + label + '</button>';
-	macroButton +=		'</div>';
-	
-	$("#panel_macro_buttons h4").addClass("hidden");
-	$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
 
 	// Macro Page
 	var row =	'<tr data-macro="' + filename + '"><td class="col-actions"></td>';
@@ -2048,7 +2115,7 @@ function clearBedTemperatures() {
 
 function clearGCodeDirectory() {
 	$("#ol_gcode_directory").children(":not(:last-child)").remove();
-	$("#ol_gcode_directory").prepend('<li class="active">G-Codes Directory</li>');
+	$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>');
 }
 
 function clearGCodeFiles() {
@@ -2072,10 +2139,19 @@ function clearHeadTemperatures() {
 	$(".btn-head-temp").addClass("disabled");
 }
 
+function clearMacroDirectory() {
+	$("#ol_macro_directory").children(":not(:last-child)").remove();
+	$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</li>');
+}
+
 function clearMacroFiles() {
-	$("#panel_macro_buttons .btn-group-vertical").html("");
-	$("#panel_macro_buttons h4").removeClass("hidden");
+	// Control Page
+	if (currentMacroDirectory == "/macros") {
+		$("#panel_macro_buttons .btn-group-vertical").html("");
+		$("#panel_macro_buttons h4").removeClass("hidden");
+	}
 	
+	// Macros Page
 	$("#table_macro_files > tbody").remove();
 	$("#table_macro_files").addClass("hidden");
 	$("#page_macros h1").removeClass("hidden");
@@ -2084,6 +2160,33 @@ function clearMacroFiles() {
 	} else {
 		$("#page_macros h1").text("Connnect to your Duet to display Macro files");
 	}
+}
+
+function convertSeconds(value) {
+	value = Math.round(value);
+	if (value < 0) {
+		value = 0;
+	}
+	
+	var timeLeft = [], temp;
+	if (value >= 3600) {
+		temp = Math.floor(value / 3600);
+		if (temp > 0) {
+			timeLeft.push(temp + "h");
+			value = value % 3600;
+		}
+	}
+	if (value >= 60) {
+		temp = Math.floor(value / 60);
+		if (temp > 0) {
+			timeLeft.push((temp > 9 ? temp : "0" + temp) + "m");
+			value = value % 60;
+		}
+	}
+	value = value.toFixed(0);
+	timeLeft.push((value > 9 ? value : "0" + value) + "s");
+	
+	return timeLeft.reduce(function(a, b) { return a + " " + b; });
 }
 
 function formatSize(bytes) {
@@ -2109,6 +2212,53 @@ function formatSize(bytes) {
 		}
 	}
 	return bytes + " B";
+}
+
+function loadMacroDropdown(directory, dropdown) {
+	$.ajax("rr_files?dir=" + encodeURIComponent(directory), {
+		dataType: "json",
+		directory: directory,
+		dropdown: dropdown,
+		success: function(response) {
+			if (response.files.length == 0) {
+				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">No files found!</a></li>');
+			} else {
+				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + directory + '</a></li><li class="divider"></li>');
+				var files = response.files.sort(function (a, b) {
+					return a.toLowerCase().localeCompare(b.toLowerCase());
+				});
+				
+				files.forEach(function(filename) {
+					$.ajax("rr_fileinfo?name=" + encodeURIComponent(directory + "/" + filename), {
+						dataType: "json",
+						directory: directory,
+						dropdown: dropdown,
+						filename: filename,
+						success: function(fileinfo) {
+							var label = stripMacroFilename(filename);
+							if (fileinfo.err == 0) {
+								dropdown.append('<li><a href="#" class="macro-file-entry" data-macro="' + directory + '/' + filename + '">' + label + '</a></li>');
+							} else {
+								dropdown.append('<li><a href="#" class="macro-dir-entry" data-directory="' + directory + '/' + filename + '">' + label + ' <span class="caret"></span></a></li>');
+							}
+							
+							$(".macro-file-entry").off("click").click(function(e) {
+								sendGCode("M98 P" + $(this).data("macro"));
+								e.preventDefault();
+							});
+							
+							$(".macro-dir-entry").off("click").click(function(e) {
+								var dropdown = $(this).parents("ul");
+								loadMacroDropdown($(this).data("directory"), dropdown);
+								e.stopPropagation();
+								e.preventDefault();
+							});
+						}
+					});
+				});
+			}
+		}
+	});
 }
 
 function log(style, message) {
@@ -2272,7 +2422,7 @@ function setGCodeDirectoryItem(row) {
 	row.data("directory", row.data("item"));
 	row.removeData("item");
 	
-	row.children().eq(0).html('<button class="btn btn-danger btn-delete-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
 	
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
@@ -2298,10 +2448,10 @@ function setGCodeDirectory(directory) {
 	
 	$("#ol_gcode_directory").children(":not(:last-child)").remove();
 	if (directory == "/gcodes") {
-		$("#ol_gcode_directory").prepend('<li class="active">G-Codes Directory</li>');
-		$("#ol_gcode_directory li:last-child").html("Go Up");
+		$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>');
+		$("#ol_gcode_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> Go Up');
 	} else {
-		var listContent = '<li><a href="#" data-directory="/gcodes">G-Codes Directory</a></li>';
+		var listContent = '<li><a href="#" data-directory="/gcodes"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</a></li>';
 		var directoryItems = directory.split("/"), directoryPath = "/gcodes";
 		for(var i=2; i<directoryItems.length -1; i++) {
 			directoryPath += "/" + directoryItems[i];
@@ -2309,7 +2459,7 @@ function setGCodeDirectory(directory) {
 		}
 		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
 		$("#ol_gcode_directory").prepend(listContent);
-		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '">Go Up</a>');
+		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> Go Up</a>');
 	}
 }
 
@@ -2353,8 +2503,8 @@ function setHeaterState(heater, status, currentTool) {
 }
 
 function setMacroFileItem(row, size) {
-	row.data("file", row.data("item"));
-	row.removeData("item");
+	row.data("file", row.data("macro"));
+	row.removeData("macro");
 	
 	var buttons =	'<button class="btn btn-success btn-run-macro btn-sm"><span class="glyphicon glyphicon-play"></span></button>';
 	buttons +=		'<button class="btn btn-danger btn-delete-macro btn-sm"><span class="glyphicon glyphicon-trash"></span></button>';
@@ -2364,6 +2514,81 @@ function setMacroFileItem(row, size) {
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	
 	row.children().eq(2).html(formatSize(size));
+}
+
+function setMacroDirectoryItem(row) {
+	if (currentMacroDirectory == "/macros") {
+		var button = $("#panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + row.data("macro") + "']");
+		button.html(button.html() + ' <span class="caret"></span>');
+		button.data("directory", button.data("macro")).attr("data-toggle", "dropdown");
+		button.removeData("macro");
+		button.parent().append('<ul class="dropdown-menu"></ul>');
+	}
+	
+	row.data("directory", row.data("macro"));
+	row.removeData("macro");
+	
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-macro-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	
+	var linkCell = row.children().eq(1);
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
+	linkCell.html('<a href="#" class="macro-directory">' + linkCell.html() + '</a>').prop("colspan", 2);
+	
+	row.children().eq(2).remove();
+	
+	if (macroLastDirectory == undefined) {
+		var firstRow = $("#table_macro_files tbody > tr:first-child");
+		if (firstRow != row) {
+			row.insertBefore(firstRow);
+		}
+	} else {
+		row.insertAfter(macroLastDirectory);
+	}
+	macroLastDirectory = row;
+}
+
+function setMacroDirectory(directory) {
+	currentMacroDirectory = directory;
+	
+	$("#ol_macro_directory").children(":not(:last-child)").remove();
+	if (directory == "/macros") {
+		$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</li>');
+		$("#ol_macro_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> Go Up');
+	} else {
+		var listContent = '<li><a href="#" data-directory="/macros"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</a></li>';
+		var directoryItems = directory.split("/"), directoryPath = "/macros";
+		for(var i=2; i<directoryItems.length -1; i++) {
+			directoryPath += "/" + directoryItems[i];
+			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
+		}
+		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
+		$("#ol_macro_directory").prepend(listContent);
+		$("#ol_macro_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> Go Up</a>');
+	}
+}
+function setGCodeDirectoryItem(row) {
+	row.data("directory", row.data("item"));
+	row.removeData("item");
+	
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	
+	var linkCell = row.children().eq(1);
+	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
+	linkCell.html('<a href="#" class="gcode-directory">' + linkCell.html() + '</a>').prop("colspan", 6);
+	
+	for(var i=6; i>=2; i--) {
+		row.children().eq(i).remove();
+	}
+	
+	if (gcodeLastDirectory == undefined) {
+		var firstRow = $("#table_gcode_files tbody > tr:first-child");
+		if (firstRow != row) {
+			row.insertBefore(firstRow);
+		}
+	} else {
+		row.insertAfter(gcodeLastDirectory);
+	}
+	gcodeLastDirectory = row;
 }
 
 function setPauseStatus(paused) {
@@ -2512,33 +2737,6 @@ function setTemperatureInput(head, value, active) {
 	}
 }
 
-function convertSeconds(value) {
-	value = Math.round(value);
-	if (value < 0) {
-		value = 0;
-	}
-	
-	var timeLeft = [], temp;
-	if (value >= 3600) {
-		temp = Math.floor(value / 3600);
-		if (temp > 0) {
-			timeLeft.push(temp + "h");
-			value = value % 3600;
-		}
-	}
-	if (value >= 60) {
-		temp = Math.floor(value / 60);
-		if (temp > 0) {
-			timeLeft.push((temp > 9 ? temp : "0" + temp) + "m");
-			value = value % 60;
-		}
-	}
-	value = value.toFixed(0);
-	timeLeft.push((value > 9 ? value : "0" + value) + "s");
-	
-	return timeLeft.reduce(function(a, b) { return a + " " + b; });
-}
-
 function setTimeLeft(field, value) {
 	if (value == undefined || (value == 0 && isPrinting)) {
 		$("#et_" + field + ", #tl_" + field).html("n/a");
@@ -2575,6 +2773,8 @@ function showPage(name) {
 		}
 		
 		if (name == "console" && window.matchMedia('(min-width: 992px)').matches) {
+			currentPage = "console";
+			$(window).resize();
 			$("#page_console input").focus();
 		}
 		
@@ -2601,6 +2801,22 @@ function showPage(name) {
 	currentPage = name;
 }
 
+function stripMacroFilename(filename) {
+	var match = filename.match(/(.*)\.\w+/);
+	if (match == null) {
+		label = filename;
+	} else {
+		label = match[1];
+	}
+	
+	match = label.match(/\d+_(.*)/);
+	if (match != null) {
+		label = match[1];
+	}
+	
+	return label;
+}
+
 /* Data helpers */
 
 function getToolsByHeater(heater) {
@@ -2621,33 +2837,22 @@ function getToolsByHeater(heater) {
 
 /* File Uploads */
 
-var savedSettings;
-var uploadType, uploadFiles, uploadFileData, uploadRows;
-var uploadPosition, uploadBufferSpace, uploadTotalBytes, uploadedTotalBytes;
-var lastUploadProgress, uploadSpeed;
+var uploadType, uploadFiles, uploadRows;
+var uploadTotalBytes, uploadedTotalBytes;
+var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
 
-function startUpload(type, files, fileData) {
-	// Save Settings cookie (don't want to send it along with upload requests)
-	isUploading = true;
-	savedSettings = $.cookie("settings");
-	$.cookie("settings", "");
-	$("#page_settings .row-actions .btn").addClass("disabled")
-	
+function startUpload(type, files) {
 	// Initialize some values
+	isUploading = true;	
 	uploadType = type;
 	uploadTotalBytes = uploadedTotalBytes = 0;
-	uploadFiles = [];
+	uploadFiles = files;
 	$.each(files, function() {
-		uploadFiles.push(this.name);
-	});
-	uploadFileData = fileData;
-	$.each(fileData, function() {
-		uploadTotalBytes += this.length;
+		uploadTotalBytes += this.size;
 	});
 	uploadRows = [];
-	lastUploadProgress = uploadSpeed = 0;
 	
-	// Safety check for upload and print
+	// Safety check for Upload and Print
 	if (type == "print" && files.length > 1) {
 		showMessage("exclamation-sign", "Error", "You can only upload and print one file at once!", "md");
 		return;
@@ -2657,7 +2862,7 @@ function startUpload(type, files, fileData) {
 	$("#modal_upload").data("backdrop", "static")
 	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").addClass("hidden");
 	$("#btn_cancel_upload, #modal_upload p").removeClass("hidden");
-	$("#modal_upload h4").text("Uploading File(s), 0% complete");
+	$("#modal_upload h4").text("Uploading File(s), 0% Complete");
 	
 	// Add files to the table
 	$("#table_upload_files > tbody").html("");
@@ -2671,25 +2876,13 @@ function startUpload(type, files, fileData) {
 	
 	$("#modal_upload").modal("show");
 	
-	// We will measure the current upload speed every two seconds
-	setTimeout(measureUploadSpeed, 2000);
-	
 	// Start file upload
 	uploadNextFile();
 }
 
-function measureUploadSpeed() {
-	uploadSpeed = (uploadPosition - lastUploadProgress) / 2;
-	lastUploadProgress = uploadPosition;
-	
-	if (isUploading) {
-		setTimeout(measureUploadSpeed, 2000);
-	}
-}
-
 function uploadNextFile() {
 	// First determine the right path
-	var targetPath = "", filename = uploadFiles[0];
+	var targetPath = "", filename = uploadFiles[0].name;
 	switch (uploadType) {
 		case "gcode":	// Upload G-Code
 		case "print":	// Upload & Print G-Code
@@ -2697,7 +2890,7 @@ function uploadNextFile() {
 			break;
 			
 		case "macro":	// Upload Macro
-			targetPath = "/macros/" + filename;
+			targetPath = currentMacroDirectory + "/" + filename;
 			break;
 			
 		default:		// Generic Upload (on the Settings page)
@@ -2717,6 +2910,7 @@ function uploadNextFile() {
 				case "svg":
 				case "ttf":
 				case "woff":
+				case "woff2":
 					targetPath = "/www/fonts/" + filename;
 					break;
 					
@@ -2737,72 +2931,37 @@ function uploadNextFile() {
 	
 	// Update the GUI
 	uploadRows[0].find(".progress-bar > span").text("Starting");
+	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 	
-	// Begin another file upload
-	$.ajax("rr_upload_begin?name=" + encodeURIComponent(targetPath) + "&type=binary", {
+	// Prepare some upload values
+	uploadStartTime = new Date();
+	uploadPosition = 0;
+	uploadFileSize = uploadFiles[0].size;
+	uploadFileName = uploadFiles[0].name;
+	
+	// Begin another POST file upload
+	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(currentGCodeDirectory + "/" + uploadFileName), {
+		data: uploadFiles[0],
 		dataType: "json",
+		processData: false,
+		contentType: false,
+		type: "POST",
 		success: function(data) {
 			if (isUploading) {
-				if (data.err == 0) {
-					// See how big each upload chunk can be
-					uploadBufferSpace = data.ubuff;
-					
-					// Set entry to uploading
-					uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
-					
-					// Start upload loop
-					uploadPosition = 0;
-					uploadNextChunk();
-				} else {
-					// Set this one to failed
-					finishCurrentUpload(false, false);
-				}
+				finishCurrentUpload(data.err == 0);
 			}
-		}
-	});
-}
-
-// We need custom URI encoding, since binary and UTF-8 files don't mix up very well
-function getEncodedChunk() {
-	var chunkSize = 0, chunk = "", char;
-	var maxUploadBytes = Math.min(uploadBufferSpace, uploadFileData[0].length - uploadPosition);
-	for(var i=0; i<maxUploadBytes; i++) {
-		char = uploadFileData[0][uploadPosition];
-		if (/[^a-zA-Z0-9-_.~]/.test(char)) {
-			char = char.charCodeAt(0);
-			// must encode this one
-			if (char < 16) {
-				chunk += "%0" + char.toString(16).toUpperCase();
-			} else {
-				chunk += "%" + char.toString(16).toUpperCase();
-			}
-		} else {
-			chunk += char;
-		}
-		
-		uploadPosition++;
-		uploadedTotalBytes++;
-		
-		if (chunk.length >= uploadBufferSpace - 3) {
-			break;
-		}
-	}
-	
-	return chunk;
-}
-
-function uploadNextChunk() {
-	// Fill up the available upload buffer
-	var fileSize = uploadFileData[0].length;
-	var chunk = getEncodedChunk();
-	
-	// Perform actual upload loop
-	$.ajax("rr_upload_data?data=" + chunk, {
-		dataType: "json",
-		success: function(data) {
-			if (isUploading) {
-				if (data.err == 0) {
+		},
+		xhr: function() {
+			var xhr = new window.XMLHttpRequest();
+			xhr.upload.addEventListener("progress", function(event) {
+				if (isUploading && event.lengthComputable) {
+					// Calculate current upload speed (Date is based on milliseconds)
+					uploadSpeed = event.loaded / (((new Date()) - uploadStartTime) / 1000);
+					
 					// Update global progress
+					uploadedTotalBytes += (event.loaded - uploadPosition);
+					uploadPosition = event.loaded;
+					
 					var uploadTitle = "Uploading File(s), " + ((uploadedTotalBytes / uploadTotalBytes) * 100).toFixed(0) + "% Complete";
 					if (uploadSpeed > 0) {
 						uploadTitle += " (" + formatSize(uploadSpeed) + "/s)";
@@ -2810,46 +2969,22 @@ function uploadNextChunk() {
 					$("#modal_upload h4").text(uploadTitle);
 					
 					// Update progress bar
-					var progress = ((uploadPosition / fileSize) * 100).toFixed(0);
+					var progress = ((event.loaded / event.total) * 100).toFixed(0);
 					uploadRows[0].find(".progress-bar").css("width", progress + "%");
 					uploadRows[0].find(".progress-bar > span").text(progress + " %");
-					
-					// Either finish current file upload or upload another chunk
-					if (uploadPosition == uploadFileData[0].length) {
-						finishCurrentUpload(true, true);
-					} else {
-						uploadNextChunk();
-					}
-				} else {
-					// Didn't work :(
-					finishCurrentUpload(false, false);
 				}
-			}
+			}, false);
+			return xhr;
 		}
 	});
 }
 
-function finishCurrentUpload(success, closeFile) {
+function finishCurrentUpload(success) {
 	// Keep the progress updated
 	if (!success) {
-		uploadedTotalBytes += (uploadFileData[0].length - uploadPosition);
+		uploadedTotalBytes += (uploadFileSize - uploadPosition);
 	}
 	
-	// See if we need to request an upload end
-	if (closeFile) {
-		$.ajax("rr_upload_end?size=" + (success ? uploadFileData[0].length : 0), {
-			dataType: "json",
-			success: function(data) {
-				currentUploadHasFinished(data.err == 0);
-			}
-		});
-	} else {
-		// Otherwise finish it immediately
-		currentUploadHasFinished(success);
-	}
-}
-
-function currentUploadHasFinished(success) {
 	// Update glyphicon and progress bar
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
 	uploadRows[0].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
@@ -2873,58 +3008,56 @@ function currentUploadHasFinished(success) {
 }
 
 function cancelUpload() {
-	finishCurrentUpload(false, true);
+	isUploading = false;
+	finishCurrentUpload(false);
 	finishUpload(false);
 	$("#modal_upload h4").text("Upload Cancelled!");
+	uploadRequest.abort();
 }
 
 function finishUpload(success) {
+	// Reset upload variables
+	//isUploading = false;
+	uploadFiles = uploadRows = [];
+	
 	// Set some values in the modal dialog
 	$("#modal_upload h4").text("Upload Complete!");
 	$("#btn_cancel_upload, #modal_upload p").addClass("hidden");
 	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").removeClass("hidden");
 	
-	// Start polling again
-	isUploading = false;
-	updateStatus();
-	
-	// Save the settings again
-	$.cookie("settings", savedSettings, { expires: 999999 });
-	$("#page_settings .row-actions .btn").removeClass("disabled")
-	
 	if (success) {
-		// Make sure the G-Codes and Macro pages are updated
-		if (uploadType == "gcode" || uploadType == "print") {
-			gcodeUpdateIndex = -1;
-			if (currentPage == "files") {
-				updateGCodeFiles();
-			}
-		} else if (uploadType == "macro") {
-			macroUpdateIndex = -1;
-			if (currentPage == "control" || currentPage == "macros") {
-				updateMacroFiles();
-			}
-		}
-		
-		// Deal with different upload types
-		if (uploadType == "print") {
-			waitingForPrintStart = true;
-			if (currentGCodeDirectory == "/gcodes") {
-				sendGCode("M32 " + uploadFiles[0]);
-			} else {
-				sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFiles[0]);
-			}
-		}
+		// If everything went well, update the GUI immediately
+		uploadHasFinished();
+	} else {
+		// In case an upload has been aborted, give the firmware some time to recover
+		setTimeout(uploadHasFinished, 1000);
 	}
-	
-	// Purge some more more memory
-	uploadFiles = uploadFileData = [];
 }
 
-$(window).unload(function() {
-	// Ensure the settings are saved in case the settings are volatile
-	if (isUploading) {
-		$.cookie("settings", savedSettings, { expires: 999999 });
-		$("#page_settings .row-actions .btn").removeClass("disabled")
+function uploadHasFinished() {
+	// Make sure the G-Codes and Macro pages are updated
+	if (uploadType == "gcode" || uploadType == "print") {
+		gcodeUpdateIndex = -1;
+		if (currentPage == "files") {
+			updateGCodeFiles();
+		}
+	} else if (uploadType == "macro") {
+		macroUpdateIndex = -1;
+		if (currentPage == "control" || currentPage == "macros") {
+			updateMacroFiles();
+		}
 	}
-});
+	
+	// Deal with different upload types
+	if (uploadType == "print") {
+		waitingForPrintStart = true;
+		if (currentGCodeDirectory == "/gcodes") {
+			sendGCode("M32 " + uploadFileName);
+		} else {
+			sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFileName);
+		}
+	}
+	
+	// Start polling again
+	updateStatus();
+}
