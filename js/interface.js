@@ -1626,7 +1626,6 @@ $("#input_file_upload").change(function(e) {
 	if (this.files.length > 0) {
 		// For POST uploads, we need file blobs
 		startUpload($(this).data("type"), this.files);
-		$("#input_file_upload").val("");
 	}
 });
 
@@ -2837,7 +2836,7 @@ function getToolsByHeater(heater) {
 
 /* File Uploads */
 
-var uploadType, uploadFiles, uploadRows;
+var uploadType, uploadFiles, uploadRows, uploadedFileCount;
 var uploadTotalBytes, uploadedTotalBytes;
 var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
 
@@ -2845,7 +2844,7 @@ function startUpload(type, files) {
 	// Initialize some values
 	isUploading = true;	
 	uploadType = type;
-	uploadTotalBytes = uploadedTotalBytes = 0;
+	uploadTotalBytes = uploadedTotalBytes = uploadedFileCount = 0;
 	uploadFiles = files;
 	$.each(files, function() {
 		uploadTotalBytes += this.size;
@@ -2881,29 +2880,36 @@ function startUpload(type, files) {
 }
 
 function uploadNextFile() {
-	// First determine the right path
-	var targetPath = "", filename = uploadFiles[0].name;
+	// Prepare some upload values
+	var file = uploadFiles[uploadedFileCount];
+	uploadFileName = file.name;
+	uploadFileSize = file.size;
+	uploadStartTime = new Date();
+	uploadPosition = 0;
+	
+	// Determine the right path
+	var targetPath = "";
 	switch (uploadType) {
 		case "gcode":	// Upload G-Code
 		case "print":	// Upload & Print G-Code
-			targetPath = currentGCodeDirectory + "/" + filename;
+			targetPath = currentGCodeDirectory + "/" + uploadFileName;
 			break;
 			
 		case "macro":	// Upload Macro
-			targetPath = currentMacroDirectory + "/" + filename;
+			targetPath = currentMacroDirectory + "/" + uploadFileName;
 			break;
 			
 		default:		// Generic Upload (on the Settings page)
-			var fileExt = filename.split('.').pop().toLowerCase();
+			var fileExt = uploadFileName.split('.').pop().toLowerCase();
 			switch (fileExt) {
 				case "ico":
 				case "html":
 				case "htm":
-					targetPath = "/www/" + filename;
+					targetPath = "/www/" + uploadFileName;
 					break;
 					
 				case "css":
-					targetPath = "/www/css/" + filename;
+					targetPath = "/www/css/" + uploadFileName;
 					break;
 					
 				case "eot":
@@ -2911,21 +2917,21 @@ function uploadNextFile() {
 				case "ttf":
 				case "woff":
 				case "woff2":
-					targetPath = "/www/fonts/" + filename;
+					targetPath = "/www/fonts/" + uploadFileName;
 					break;
 					
 				case "jpeg":
 				case "jpg":
 				case "png":
-					targetPath = "/www/img/" + filename;
+					targetPath = "/www/img/" + uploadFileName;
 					break;
 					
 				case "js":
-					targetPath = "/www/js/" + filename;
+					targetPath = "/www/js/" + uploadFileName;
 					break;
 					
 				default:
-					targetPath = "/sys/" + filename;
+					targetPath = "/sys/" + uploadFileName;
 			}
 	}
 	
@@ -2933,15 +2939,9 @@ function uploadNextFile() {
 	uploadRows[0].find(".progress-bar > span").text("Starting");
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 	
-	// Prepare some upload values
-	uploadStartTime = new Date();
-	uploadPosition = 0;
-	uploadFileSize = uploadFiles[0].size;
-	uploadFileName = uploadFiles[0].name;
-	
 	// Begin another POST file upload
-	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(currentGCodeDirectory + "/" + uploadFileName), {
-		data: uploadFiles[0],
+	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(targetPath), {
+		data: file,
 		dataType: "json",
 		processData: false,
 		contentType: false,
@@ -2992,10 +2992,9 @@ function finishCurrentUpload(success) {
 	
 	// Go on with upload logic if we're still busy
 	if (isUploading) {
-		if (uploadFiles.length > 1) {
-			// Purge last-uploaded file data
-			uploadFiles.shift();
-			uploadFileData.shift();
+		uploadedFileCount++;
+		if (uploadFiles.length > uploadedFileCount) {
+			// Purge last-uploaded file row
 			uploadRows.shift();
 			
 			// Upload the next one
@@ -3017,8 +3016,9 @@ function cancelUpload() {
 
 function finishUpload(success) {
 	// Reset upload variables
-	//isUploading = false;
+	isUploading = false;
 	uploadFiles = uploadRows = [];
+	$("#input_file_upload").val("");
 	
 	// Set some values in the modal dialog
 	$("#modal_upload h4").text("Upload Complete!");
