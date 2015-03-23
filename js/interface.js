@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.03
+/* Interface logic for the Duet Web Control v1.04
  * 
  * written by Christian Hammacher
  * 
@@ -6,13 +6,11 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.03;
+var jsVersion = 1.04;
 var sessionPassword = "reprap";
+var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
 /* Constants */
-
-var maxUploadFiles = 16;
-var maxUploadFileSize = 50;	// MB
 
 var maxTemperatureSamples = 1000;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
@@ -74,19 +72,23 @@ var settings = {
 	confirmStop: false,				// ask for confirmation when pressing Emergency STOP
 	moveFeedrate: 6000,				// in mm/min
 	
-	defaultHeadTemps: [0, 155, 170, 195, 205, 235, 250],
+	defaultActiveTemps: [0, 170, 195, 205, 210, 235, 245, 250],
+	defaultStandbyTemps: [0, 95, 120, 155, 170],
 	defaultBedTemps: [0, 55, 65, 90, 110, 120],
 	defaultGCodes: [
 		["M0", "Stop"],
 		["M1", "Sleep"],
+		["M84", "Motors Off"],
 		["M119", "Get Endstop Status"],
 		["M122", "Diagnostics"],
 		["M561", "Disable bed compensation"]
 	],
 	
+	language: "en",
+	
 	bowdenLength: 300				// in mm
 };
-var defaultSettings = JSON.parse(JSON.stringify(settings));		// need to do this to get a valid copy
+var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
 
 /* Variables */
 
@@ -103,6 +105,7 @@ var coldExtrudeTemp, coldRetractTemp;
 var recordedBedTemperatures, recordedHeadTemperatures, layerData;
 
 var currentPage = "control", refreshTempChart = false, refreshPrintChart = false, waitingForPrintStart;
+var translationData;
 
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
 var currentMacroDirectory, nownMacroFiles, macroUpdateIndex, macroLastDirectory;
@@ -134,7 +137,7 @@ function resetGuiData() {
 	layerData = [];
 	maxLayerTime = lastLayerPrintDuration = 0;
 	
-	toolMapping = undefined;
+	setToolMapping(undefined);
 	
 	knownGCodeFiles = knownMacroFiles = [];
 	gcodeUpdateIndex = macroUpdateIndex = -1;
@@ -147,22 +150,22 @@ function resetGuiData() {
 /* Connect / Disconnect */
 
 function connect(password, firstConnect) {
-	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text("Connecting...");
+	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text(T("Connecting..."));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
 	$.ajax("rr_connect?password=" + password, {
 		dataType: "json",
 		error: function() {
- 			showMessage("exclamation-sign", "Error", "Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again.", "md");
+ 			showMessage("exclamation-sign", T("Error"), T("Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again."), "md");
 			$("#modal_message").one("hide.bs.modal", function() {
-				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 			});
 		},
 		success: function(data) {
 			if (data.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				showMessage("exclamation-sign", "Error", "Could not connect to Duet, because there are no more HTTP sessions available.", "md");
+				showMessage("exclamation-sign", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), "md");
 				$("#modal_message").one("hide.bs.modal", function() {
-					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 				});
 			}
@@ -181,9 +184,9 @@ function connect(password, firstConnect) {
 					sessionPassword = password;
 					postConnect();
 				} else {
-					showMessage("exclamation-sign", "Error", "Invalid password!", "sm");
+					showMessage("exclamation-sign", T("Error"), T("Invalid password!"), "sm");
 					$("#modal_message").one("hide.bs.modal", function() {
-						$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+						$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 						$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 					});
 				}
@@ -193,7 +196,7 @@ function connect(password, firstConnect) {
 }
 
 function postConnect() {
-	log("success", "<strong>Connection established!</strong>");
+	log("success", "<strong>" + T("Connection established!") + "</strong>");
 	
 	isConnected = justConnected = true;
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
@@ -208,19 +211,20 @@ function postConnect() {
 		updateMacroFiles();
 	}
 	
-	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text("Disconnect");
+	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text(T("Disconnect"));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
 	
 	enableControls();
+	validateAddTool();
 }
 
 function disconnect() {
 	if (isConnected) {
-		log("danger", "<strong>Disconnected.</strong>");
+		log("danger", "<strong>" + T("Disconnected.") + "</strong>");
 	}
 	isConnected = false;
 	
-	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text("Connect");
+	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
 	
 	$.ajax("rr_disconnect", { dataType: "json", global: false });
@@ -234,6 +238,8 @@ function disconnect() {
 	updateGui();
 	
 	disableControls();
+	validateAddTool();
+	setToolMapping(undefined);
 }
 
 /* AJAX */
@@ -292,7 +298,7 @@ function updateStatus() {
 			
 			// Tool Mapping
 			if (status.hasOwnProperty("tools")) {
-				toolMapping = status.tools;
+				setToolMapping(status.tools);
 			}
 			
 			/*** Default status response ***/
@@ -350,7 +356,11 @@ function updateStatus() {
 			for(var i=1; i<=numExtruderDrives; i++) {
 				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
 			}
-			$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
+			if (numExtruderDrives > 0) {
+				$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
+			} else {
+				$("#td_extr_total").html("n/a");
+			}
 			
 			// XYZ coordinates
 			if (geometry == "delta" && !status.coords.axesHomed[0]) {
@@ -361,13 +371,26 @@ function updateStatus() {
 				$("#td_z").html(status.coords.xyz[2].toFixed(2));
 			}
 			
+			// Current Tool
+			if (lastStatusResponse != undefined && lastStatusResponse.currentTool != status.currentTool) {
+				var btn = $("div.panel-body[data-tool='" + lastStatusResponse.currentTool + "'] > button.btn-select-tool");
+				btn.attr("title", T("Select this tool"));
+				btn.find("span:last-child").text(T("Select"));
+				btn.find("span.glyphicon").removeClass("glyphicon-remove").addClass("glyphicon-pencil");
+				
+				btn = $("div.panel-body[data-tool='" + status.currentTool + "'] > button.btn-select-tool");
+				btn.attr("title", T("Select this tool"));
+				btn.find("span.glyphicon").removeClass("glyphicon-remove").addClass("glyphicon-pencil");
+				btn.find("span:last-child").text(T("Deselect"));
+			}
+			
 			// Output
 			if (status.hasOwnProperty("output")) {
 				if (status.output.hasOwnProperty("beepDuration") && status.output.hasOwnProperty("beepFrequency")) {
 					beep(status.output.beepFrequency, status.output.beepDuration);
 				}
 				if (status.output.hasOwnProperty("message")) {
-					showMessage("envelope", "Message from Duet firmware", status.output.message, "md");
+					showMessage("envelope", T("Message from Duet firmware"), status.output.message, "md");
 				}
 			}
 			
@@ -423,7 +446,7 @@ function updateStatus() {
 							if (lastGCodeFromInput && lastSendGCode != "" && response != "" && currentPage != "console") {
 								var icon = (style == "warning" ? "exclamation-sign" : "info-sign");
 								if (response.match("^Error: ") != null) {
-									showMessage("warning-sign", lastSendGCode + " returned an error", response.substring(6).replace(/\n/g, "<br/>"), "md");
+									showMessage("warning-sign", T("{0} returned an error", lastSendGCode), response.substring(6).replace(/\n/g, "<br/>"), "md");
 								} else {
 									showMessage("info-sign", lastSendGCode, response.replace(/\n/g, "<br/>"), "md");
 								}
@@ -484,7 +507,7 @@ function updateStatus() {
 							numLayers = (fileInfo.height / fileInfo.layerHeight);
 						}
 						numLayers = numLayers.toFixed();
-						progressText.push("Layer: " + status.currentLayer + " of " + numLayers);
+						progressText.push(T("Layer: {0} of {1}", status.currentLayer, numLayers));
 					}
 					
 					// Try to calculate the progress by checking the filament usage
@@ -493,9 +516,9 @@ function updateStatus() {
 						var totalRawFilament = (status.extrRaw.reduce(function(a, b) { return a + b; })).toFixed(1);
 						progress = ((totalRawFilament / totalFileFilament) * 100.0).toFixed(1);
 						
-						progressText.push("Filament Usage: " + totalRawFilament + "mm of " + totalFileFilament + "mm");
+						progressText.push(T("Filament Usage: {0}mm of {1}mm", totalRawFilament, totalFileFilament));
 						if (true) { // TODO: make this optional
-							progressText[progressText.length - 1] += " (" + (totalFileFilament - totalRawFilament).toFixed(1) + "mm remaining)";
+							progressText[progressText.length - 1] += " " + T("({0}mm remaining)", (totalFileFilament - totalRawFilament).toFixed(1));
 						}
 					}
 					// Otherwise by comparing the current Z position to the total height
@@ -521,16 +544,13 @@ function updateStatus() {
 					}
 					
 					// Update info texts
-					if (progressText.length > 0) {
-						setProgress(progress, "Printing " + fileInfo.fileName + ", " + progress + "% Complete", progressText.reduce(function(a, b) { return a + ", " + b; }));
-					} else {
-						setProgress(progress, "Printing " + fileInfo.fileName + ", " + progress + "% Complete", "");
-					}
+					setProgress(progress, T("Printing {0}, {1}% Complete", fileInfo.fileName, progress), 
+								(progressText.length > 0) ? progressText.reduce(function(a, b) { return a + ", " + b; }) : "");
 				} else {
 					if (status.fractionPrinted > 0) {
-						setProgress(status.fractionPrinted, status.fractionPrinted + "% Complete", "");
+						setProgress(status.fractionPrinted, T("{0}% Complete", status.fractionPrinted), "");
 					} else {
-						setProgress(100, "100% Complete", "");
+						setProgress(100, T("{0}% Complete", 100), "");
 					}
 				}
 				
@@ -610,7 +630,7 @@ function updateStatus() {
 				// Warm-Up Time
 				if (status.warmUpDuration > 0 || status.firstLayerHeight > 0) {
 					if (status.warmUpDuration == 0) {
-						$("#td_warmup_time").html("none");
+						$("#td_warmup_time").html(T("none"));
 					} else {
 						$("#td_warmup_time").html(convertSeconds(status.warmUpDuration));
 					}
@@ -624,6 +644,9 @@ function updateStatus() {
 			// Update the GUI when we have processed the whole status response
 			if (needGuiUpdate) {
 				updateGui();
+				if (extendedStatusCounter > 1) {
+					extendedStatusCounter = settings.extendedStatusInterval;
+				}
 			}
 			drawTemperatureChart();
 			
@@ -631,7 +654,7 @@ function updateStatus() {
 			if (status.status != 'H') {
 				setTimeout(updateStatus, settings.updateInterval);
 			} else {
-				log("danger", "<strong>Emergency Stop!</strong>");
+				log("danger", "<strong>" + T("Emergency Stop!") + "</strong>");
 				setTimeout(function() {
 					connect(sessionPassword, false);
 				}, settings.haltedReconnectDelay);
@@ -800,11 +823,11 @@ $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
 	}
 	
 	if (isConnected) {
-		var msg = "An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.";
+		var msg = T("An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.");
 		if (thrownError != "") {
-			msg += "<br/></br>Error reason: " + thrownError;
+			msg += "<br/></br>" + T("Error reason: {0}", thrownError);
 		}
-		showMessage("warning-sign", "Communication Error", msg, "md");
+		showMessage("warning-sign", T("Communication Error"), msg, "md");
 		
 		disconnect();
 	}
@@ -874,8 +897,11 @@ function loadSettings() {
 		}
 		
 		// Default list items
-		if (loadedSettings.hasOwnProperty("defaultHeadTemps")) {
-			settings.defaultHeadTemps = loadedSettings.defaultHeadTemps;
+		if (loadedSettings.hasOwnProperty("defaultActiveTemps")) {
+			settings.defaultActiveTemps = loadedSettings.defaultActiveTemps;
+		}
+		if (loadedSettings.hasOwnProperty("defaultStandbyTemps")) {
+			settings.defaultStandbyTemps = loadedSettings.defaultStandbyTemps;
 		}
 		if (loadedSettings.hasOwnProperty("defaultBedTemps")) {
 			settings.defaultBedTemps = loadedSettings.defaultBedTemps;
@@ -887,6 +913,11 @@ function loadSettings() {
 		// Spools
 		if (loadedSettings.hasOwnProperty("bowdenLength")) {
 			settings.bowdenLength = loadedSettings.bowdenLength;
+		}
+		
+		// Other (fallback in case language.xml couldn't be loaded)
+		if (loadedSettings.hasOwnProperty("language")) {
+			settings.language = loadedSettings.language;
 		}
 		
 		// Apply new settings
@@ -904,12 +935,52 @@ function saveSettings() {
 	settings.showATXControl = $("#show_atx").is(":checked");
 	settings.confirmStop = $("#confirm_stop").is(":checked");
 	settings.moveFeedrate = checkBoundaries($("#move_feedrate").val(), defaultSettings.moveFeedrate, 0);
+	if (settings.language != $("#btn_language").data("language")) {
+		showMessage("info-sign", T("Language has changed"), T("You have changed the current language.<br/><br/>Please reload the web interface to apply this change."), "md");
+	}
+	settings.language = $("#btn_language").data("language");
 	
 	// UI Timing
 	settings.updateInterval = checkBoundaries($("#update_interval").val(), defaultSettings.updateInterval, 50);
 	settings.extendedStatusInterval = checkBoundaries($("#extended_status_interval").val(), defaultSettings.extendedStatusInterval, 1, 99999);
 	settings.haltedReconnectDelay = checkBoundaries($("#reconnect_delay").val(), defaultSettings.haltedReconnectDelay, 1000);
 	settings.maxRequestTime = checkBoundaries($("#ajax_timeout").val(), defaultSettings.maxRequestTime, 100);
+	
+	// Default G-Codes
+	settings.defaultGCodes = [];
+	$("#table_gcodes > tbody > tr").each(function() {
+		settings.defaultGCodes.push([$(this).find("label").text(), $(this).find("td:eq(1)").text()]);
+	});
+	settings.defaultGCodes = settings.defaultGCodes.sort(function(a, b) {
+		if (a[0][0] != b[0][0]) {
+			return a[0].charCodeAt(0) - b[0].charCodeAt(0);
+		}
+		var x = a[0].match(/(\d+)/g)[0];
+		var y = b[0].match(/(\d+)/g)[0];
+		if (x == undefined || y == undefined) {
+			return parseInt(a[0]) - parseInt(b[0]);
+		}
+		return x - y;
+	});
+	
+	// Default Heater Temperatures
+	settings.defaultActiveTemps = [];
+	$("#ul_active_temps > li").each(function() {
+		settings.defaultActiveTemps.push($(this).data("temperature"));
+	});
+	settings.defaultActiveTemps = settings.defaultActiveTemps.sort(function(a, b) { return a - b; });
+	settings.defaultStandbyTemps = [];
+	$("#ul_standby_temps > li").each(function() {
+		settings.defaultStandbyTemps.push($(this).data("temperature"));
+	});
+	settings.defaultStandbyTemps = settings.defaultStandbyTemps.sort(function(a, b) { return a - b; });
+	
+	// Default Bed Temperatures
+	settings.defaultBedTemps = [];
+	$("#ul_bed_temps > li").each(function() {
+		settings.defaultBedTemps.push($(this).data("temperature"));
+	});
+	settings.defaultBedTemps = settings.defaultBedTemps.sort(function(a, b) { return a - b; });
 	
 	// Save Settings
 	$.cookie("settings", JSON.stringify(settings), { expires: 999999 });
@@ -975,14 +1046,17 @@ function applySettings() {
 	
 	// Default head temperatures
 	clearHeadTemperatures();
-	settings.defaultHeadTemps.forEach(function(temp) {
-		addHeadTemperature(temp + " °C", temp);
+	settings.defaultActiveTemps.forEach(function(temp) {
+		addHeadTemperature(temp, "active");
+	});
+	settings.defaultStandbyTemps.forEach(function(temp) {
+		addHeadTemperature(temp, "standby");
 	});
 	
 	// Default bed temperatures
 	clearBedTemperatures();
 	settings.defaultBedTemps.forEach(function(temp) {
-		addBedTemperature(temp + " °C", temp);
+		addBedTemperature(temp);
 	});
 	
 	// Default G-Codes
@@ -998,25 +1072,61 @@ function applySettings() {
 /* GUI */
 
 $(document).ready(function() {
-	// Firefox work-arounds (to disable controls and to hide spinner buttons [doesn't work in CSS as of 2015-03-05])
-	$('input[type="number"]').css("-moz-appearance", "textfield");
 	disableControls();
 	
 	resetGuiData();
 	updateGui();
 	
-	loadSettings();
 	$("#web_version").append(", JS: " + jsVersion.toFixed(2));
+	
+	$.ajax("language.xml", {
+		type: "GET",
+		dataType: "xml",
+		global: false,
+		error: function() {
+			pageLoadComplete();
+		},
+		success: function(response) {
+			translationData = response;
+			
+			// We need to load the language here, because we don't want to translate dynamic entries
+			var loadedSettings = $.cookie("settings");
+			if (loadedSettings != undefined && loadedSettings.length > 0) {
+				loadedSettings = JSON.parse(loadedSettings);
+				if (loadedSettings.hasOwnProperty("language")) {
+					settings.language = loadedSettings.language;
+				}
+			}
+			
+			$("#dropdown_language ul > li:not(:first-child)").remove();
+			for(var i=0; i<translationData.children[0].children.length; i++) {
+				var id = translationData.children[0].children[i].tagName;
+				var name = translationData.children[0].children[i].attributes["name"].value;
+				$("#dropdown_language ul").append(	'<li><a data-language="' + id + '" href="#">' + name + '</a></li>');
+				if (settings.language == id) {
+					$("#btn_language > span:first-child").text(name);
+				}
+			}
+			
+			translatePage();
+			pageLoadComplete();
+		}
+	});
+});
+
+function pageLoadComplete() {
+	loadSettings();
 	applySettings();
 	
-	log("info", "<strong>Page Load complete!</strong>");
-});
+	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
+}
 
 function enableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", false);			// Generic inputs
+	$("#page_tools label").removeClass("disabled");												// and on Settings page
 	
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
-	$(".bed-temp, .gcode, .head-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
+	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
 	
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
@@ -1035,10 +1145,12 @@ function enableControls() {
 
 function disableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", true);				// Generic inputs
-	$("#page_settings input").prop("disabled", false);											// ... except for Settings
+	$("#page_general input, #page_listitems input").prop("disabled", false);					// ... except ...
+	$("#page_tools label").addClass("disabled");												// ... for Settings
 	
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
-	$(".bed-temp, .gcode, .head-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons
+	$("#extruder_drives").addClass("disabled");													// Info Panels
+	$(".bed-temp, .gcode, .heater-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons
 	
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
@@ -1085,6 +1197,35 @@ function updateGui() {
 		$("#row_status_2").removeClass("hidden");
 	} else {
 		$("#row_status_2").addClass("hidden");
+	}
+	
+	// Add Zero Extruder Drive buttons
+	
+	if (isConnected) {
+		$("#extruder_drives").removeClass("disabled");
+		$("#ul_extruder_dropdown").html('<li><a href="#" class="zero-extruder" data-target="all">' + T("Zero All Drives") + '</li><li class="divider"></li>');
+		for(var i=1; i<= numExtruderDrives; i++) {
+			$("#ul_extruder_dropdown").append('<li><a href="#" class="zero-extruder" data-target="' + i + '">' + T("Zero Extruder Drive {0}", i) + '</a></li>');
+		}
+		
+		$(".zero-extruder").off("click").click(function(e) {
+			if (lastStatusResponse != undefined) {
+				var gcode = "G92 E", target = $(this).data("target");
+				for(var i=1; i<=numExtruderDrives; i++) {
+					if (target != "all" && target != i) {
+						gcode += lastStatusResponse.coords.extr[i - 1];
+					} else {
+						gcode += "0";
+					}
+					
+					if (i < numExtruderDrives) {
+						gcode += ":";
+					}
+				}
+				sendGCode(gcode);
+			}
+			e.preventDefault();
+		});
 	}
 	
 	// Do some rearrangement for the panels if we have less than or exactly three extruder drives
@@ -1199,7 +1340,7 @@ $("body").on("click", ".btn-macro", function(e) {
 
 $("body").on("click", ".btn-print-file, .gcode-file", function(e) {
 	var file = $(this).parents("tr").data("file");
-	showConfirmationDialog("Start Print", "Do you want to print <strong>" + file + "</strong>?", function() {
+	showConfirmationDialog(T("Start Print"), T("Do you want to print <strong>{0}</strong>?", file), function() {
 		waitingForPrintStart = true;
 		if (currentGCodeDirectory == "/gcodes") {
 			sendGCode("M32 " + file);
@@ -1213,22 +1354,22 @@ $("body").on("click", ".btn-print-file, .gcode-file", function(e) {
 $("body").on("click", ".btn-delete-file", function(e) {
 	var row = $(this).parents("tr");
 	var file = row.data("file");
-	showConfirmationDialog("Delete File", "Are you sure you want to delete <strong>" + file + "</strong>?", function() {
+	showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
 		$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + file), {
 			dataType: "json",
-			row: row,
-			file: file,
-			success: function(response) {
-				if (response.err == 0) {
-					this.row.remove();
-					if ($("#table_gcode_files tbody").children().length == 0) {
-						gcodeUpdateIndex = -1;
-						updateGCodeFiles();
-					}
-				} else {
-					showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete file <strong>" + this.file + "</strong>!", "md");
-				}
-			}
+		 row: row,
+		 file: file,
+		 success: function(response) {
+			 if (response.err == 0) {
+				 this.row.remove();
+				 if ($("#table_gcode_files tbody").children().length == 0) {
+					 gcodeUpdateIndex = -1;
+					 updateGCodeFiles();
+				 }
+			 } else {
+				 showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete file <strong>{0}</strong>!", this.file), "md");
+			 }
+		 }
 		});
 	});
 	e.preventDefault();
@@ -1249,10 +1390,15 @@ $("body").on("click", ".btn-delete-gcode-directory", function(e) {
 					updateGCodeFiles();
 				}
 			} else {
-				showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete directory <strong>" + this.directory + "</strong>!<br/><br/>Perhaps it isn't empty?", "md");
+				showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete directory <strong>{0}</strong>!<br/><br/>Perhaps it isn't empty?", this.directory), "md");
 			}
 		}
 	});
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-delete-parent", function(e) {
+	$(this).parents("tr, li").remove();
 	e.preventDefault();
 });
 
@@ -1271,7 +1417,7 @@ $("body").on("click", ".btn-delete-macro-directory", function(e) {
 					updateMacroFiles();
 				}
 			} else {
-				showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete directory <strong>" + this.directory + "</strong>!<br/><br/>Perhaps it isn't empty?", "md");
+				showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete directory <strong>{0}</strong>!<br/><br/>Perhaps it isn't empty?", this.directory), "md");
 			}
 		}
 	});
@@ -1292,7 +1438,7 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 						updateMacroFiles();
 					}
 				} else {
-					showMessage("warning-sign", "Deletion failed", "<strong>Warning:</strong> Could not delete macro <strong>" + this.macro + "</strong>!", "md");
+					showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete macro <strong>{0}</strong>!", this.macro), "md");
 				}
 			}
 		});
@@ -1300,8 +1446,32 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 	e.preventDefault();
 });
 
+$("body").on("click", ".btn-remove-tool", function(e) {
+	var tool = $(this).parents("div.panel-body").data("tool");
+	showConfirmationDialog(T("Delete Tool"), T("Are you sure you wish to remove tool {0}?", tool), function() {
+		sendGCode("M563 P" + tool + " D-1 H-1");
+	});
+	e.preventDefault();
+});
+
 $("body").on("click", ".btn-run-macro", function(e) {
 	sendGCode("M98 P" + currentMacroDirectory + "/" + $(this).parents("tr").data("file"));
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-select-tool", function(e) {
+	var tool = $(this).parents("div.panel-body").data("tool");
+	if (lastStatusResponse != undefined && lastStatusResponse.currentTool == tool) {
+		sendGCode("T-1");
+	} else {
+		sendGCode("T" + tool);
+	}
+	e.preventDefault();
+});
+
+$("body").on("click", "#dropdown_language a", function(e) {
+	$("#btn_language > span:first-child").text($(this).text());
+	$("#btn_language").data("language", $(this).data("language"));
 	e.preventDefault();
 });
 
@@ -1320,15 +1490,28 @@ $("body").on("click", ".gcode-directory", function(e) {
 	e.preventDefault();
 });
 
-$("body").on("click", ".head-temp", function(e) {
+$("body").on("click", ".heater-temp", function(e) {
 	var inputElement = $(this).parents("div.input-group").find("input");
 	var activeOrStandby = (inputElement.prop("id").match("active$")) ? "S" : "R";
-	var heater = inputElement.prop("id").match("_h(.)_")[1];
 	var temperature = $(this).data("temp");
 	
-	getToolsByHeater(heater).forEach(function(tool) {
-		sendGCode("G10 P" + tool + " " + activeOrStandby + temperature);
-	});
+	if (inputElement.prop("id").indexOf("all") == -1) {
+		var heater = inputElement.prop("id").match("_h(.)_")[1];
+		getToolsByHeater(heater).forEach(function(tool) {
+			sendGCode("G10 P" + tool + " " + activeOrStandby + temperature);
+		});
+	} else {
+		if (toolMapping != undefined) {
+			for(var i=0; i<toolMapping.length; i++) {
+				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
+				if ($.inArray(0, toolMapping[i].heaters) == -1) {
+					// Make sure we don't set temperatures for the heated bed
+					sendGCode("G10 P" + number + " " + activeOrStandby + $(this).val());
+				}
+			}
+		}
+	}
+	
 	e.preventDefault();
 });
 
@@ -1364,6 +1547,80 @@ $("body").on("hidden.bs.popover", function() {
 
 /* Static GUI Events */
 
+$("#a_heaters_off").click(function(e) {
+	if (isConnected) {
+		// Turn off nozzle heaters
+		if (toolMapping != undefined) {
+			for(var i=0; i<toolMapping.length; i++) {
+				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
+				
+				var temps = [], tempString = "";
+				toolMapping[i].heaters.forEach(function() { temps.push("-273.15"); });
+				tempString = temps.reduce(function(a, b) { return a + ":" + b; });
+				
+				sendGCode("G10 P" + number + " R" + tempString + " S" + tempString);
+			}
+		}
+		
+		// Turn off bed
+		sendGCode("M140 S-273.15");
+	}
+	e.preventDefault();
+});
+
+$("#btn_add_gcode").click(function(e) {
+	var item =	'<tr><td><label class="label label-primary">' + $("#input_gcode").val().trim() + '</label></td><td>' + $("#input_gcode_description").val().trim() + '</td><td>';
+	item +=		'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
+	item += 	'<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
+	$("#table_gcodes").append(item);
+	
+	e.preventDefault();
+});
+
+$("#btn_add_head_temp").click(function(e) {
+	var temperature = checkBoundaries($("#input_add_head_temp").val(), 0, -273.15, 300);
+	var type = $('input[name="temp_selection"]:checked').val();
+	
+	var item =	'<li class="list-group-item col-xs-6 col-lg-3" data-temperature="' + temperature + '">' + temperature + ' °C';
+	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
+	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
+	$("#ul_" + type + "_temps").append(item);
+	
+	e.preventDefault();
+});
+
+$("#btn_add_bed_temp").click(function(e) {
+	var temperature = checkBoundaries($("#input_add_bed_temp").val(), 0, -273.15, 180);
+	
+	var item =	'<li class="list-group-item col-md-6" data-temperature="' + temperature + '">' + temperature + ' °C';
+	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
+	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
+	$("#ul_bed_temps").append(item);
+	
+	e.preventDefault();
+});
+
+$("#btn_add_tool").click(function(e) {
+	var gcode = "M563 P" + $("#input_tool_number").val();
+	
+	var drives = $("input[name='tool_drives']:checked");
+	if (drives != undefined) {
+		var driveList = [];
+		drives.each(function() { driveList.push($(this).val()); });
+		gcode += " D" + driveList.reduce(function(a, b) { return a + ":" + b; });
+	}
+	
+	var heaters = $("input[name='tool_heaters']:checked");
+	if (heaters != undefined) {
+		var heaterList = [];
+		heaters.each(function() { heaterList.push($(this).val()); });
+		gcode += " H" + heaterList.reduce(function(a, b) { return a + ":" + b; });
+	}
+	
+	sendGCode(gcode);
+	e.preventDefault();
+});
+
 $("#btn_cancel").click(function() {
 	sendGCode("M0");	// Stop / Cancel Print
 	$(this).addClass("disabled");
@@ -1384,7 +1641,7 @@ $(".btn-connect").click(function() {
 
 $(".btn-emergency-stop").click(function() {
 	if (settings.confirmStop) {
-		showConfirmationDialog("Emergency STOP", "This will turn off everything and perform a software reset.<br/><br/>Are you REALLY sure you want to do this?", function() {
+		showConfirmationDialog(T("Emergency STOP"), T("This will turn off everything and perform a software reset.<br/><br/>Are you REALLY sure you want to do this?"), function() {
 			sendGCode("M112\nM999");
 		});
 	} else {
@@ -1394,7 +1651,8 @@ $(".btn-emergency-stop").click(function() {
 
 $("#btn_clear_log").click(function(e) {
 	$("#console_log").html("");
-	log("info", "<strong>Message Log cleared!</strong>");
+	$(window).resize();
+	log("info", "<strong>" + T("Message Log cleared!") + "</strong>");
 	e.preventDefault();
 });
 
@@ -1476,7 +1734,7 @@ $("#btn_unload_filament").click(function() {
 });
 
 $("#btn_new_gcode_directory").click(function() {
-	showTextInput("New directory", "Please enter a name:", function(value) {
+	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
 		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
 			dataType: "json",
 			success: function(response) {
@@ -1484,7 +1742,7 @@ $("#btn_new_gcode_directory").click(function() {
 					gcodeUpdateIndex = -1;
 					updateGCodeFiles();
 				} else {
-					showMessage("warning-sign", "Error", "Could not create directory!", "sm");
+					showMessage("warning-sign", T("Error"), T("Could not create this directory!"), "sm");
 				}
 			}
 		});
@@ -1492,7 +1750,7 @@ $("#btn_new_gcode_directory").click(function() {
 });
 
 $("#btn_new_macro_directory").click(function() {
-	showTextInput("New directory", "Please enter a name:", function(value) {
+	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
 		$.ajax("rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
 			dataType: "json",
 			success: function(response) {
@@ -1500,7 +1758,7 @@ $("#btn_new_macro_directory").click(function() {
 					macroUpdateIndex = -1;
 					updateMacroFiles();
 				} else {
-					showMessage("warning-sign", "Error", "Could not create directory!", "sm");
+					showMessage("warning-sign", T("Error"), T("Could not create this directory!"), "sm");
 				}
 			}
 		});
@@ -1522,10 +1780,14 @@ $(".btn-upload").click(function(e) {
 });
 
 $("#btn_reset_settings").click(function(e) {
-	showConfirmationDialog("Reset Settings", "Are you sure you want to revert to Factory Settings?", function() {
-		settings = defaultSettings;
-		saveSettings();
+	showConfirmationDialog(T("Reset Settings"), T("Are you sure you want to revert to Factory Settings?"), function() {
+		if (defaultSettings.language != settings.language) {
+			showMessage("info-sign", T("Language has changed"), T("You have changed the current language.<br/><br/>Please reload the web interface to apply this change."), "md");
+		}
+		settings = jQuery.extend(true, {}, defaultSettings);
+		$("#btn_language").data("language", "en").children("span:first-child").text("English");
 		applySettings();
+		saveSettings();
 	});
 	e.preventDefault();
 });
@@ -1560,7 +1822,7 @@ $("#btn_reset_settings").click(function(e) {
 		}
 	});
 });
-	
+
 $(".gcode-input").submit(function(e) {
 	if (isConnected) {
 		var gcode = $(this).find("input").val();
@@ -1616,6 +1878,16 @@ $("input[type='number']").focus(function() {
 	}, 10);
 });
 
+$("input[name='temp_selection']:radio").change(function() {
+	if ($(this).val() == "active") {
+		$("#ul_active_temps").removeClass("hidden");
+		$("#ul_standby_temps").addClass("hidden");
+	} else {
+		$("#ul_standby_temps").removeClass("hidden");
+		$("#ul_active_temps").addClass("hidden");
+	}
+});
+
 $("#input_bowden_length").blur(function() {
 	// NOTE: This is a temporary solution
 	settings.bowdenLength = checkBoundaries($(this).val(), 300, 0);
@@ -1657,6 +1929,25 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 	}
 });
 
+$("#input_temp_all_active, #input_temp_all_standby").keydown(function(e) {
+	if (isConnected && e.which == 13) {
+		if (toolMapping != undefined) {
+			var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
+			var temperature = $(this).val();
+			
+			for(var i=0; i<toolMapping.length; i++) {
+				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
+				if ($.inArray(0, toolMapping[i].heaters) == -1) {
+					// Make sure we don't set temperatures for the heated bed
+					sendGCode("G10 P" + number + " " + activeOrStandby + $(this).val());
+				}
+			}
+		}
+		
+		e.preventDefault();
+	}
+});
+
 // Using JavaScript to adjust heights is rather ugly, but well supported by many browsers
 $(window).resize(function() {
 	// Undo height adjustments
@@ -1674,6 +1965,9 @@ $(window).resize(function() {
 		$("#console_log").css("height", Math.max(consoleHeight, $("#console_log").height()) + "px");
 	}
 });
+$("a[data-toggle='tab']").on("shown.bs.tab", function (e) {
+	$(window).resize();
+});
 
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 
@@ -1683,11 +1977,28 @@ $(".navlink").click(function(e) {
 	e.preventDefault();
 });
 
+$("#page_listitems input").on("input", function() {
+	// Validate form controls
+	$("#btn_add_gcode").toggleClass("disabled", $("#input_gcode").val().trim() == "" || $("#input_gcode_description").val().trim() == "");
+	$("#btn_add_head_temp").toggleClass("disabled", isNaN(parseFloat($("#input_add_head_temp").val())));
+	$("#btn_add_bed_temp").toggleClass("disabled", isNaN(parseFloat($("#input_add_bed_temp").val())));
+});
+
+$("#page_listitems input").keydown(function(e) {
+	if (e.which == 13) {
+		var button = $(this).parents("div:not(.input-group):eq(0)").find("button");
+		if (!button.hasClass("disabled")) {
+			button.click();
+		}
+		e.preventDefault();
+	}
+});
+
 $("#panel_control_misc label.btn").click(function() {
 	if ($(this).find("input").val() == 1) {		// ATX on
 		sendGCode("M80");
 	} else {									// ATX off
-		showConfirmationDialog("ATX Power", "Do you really want to turn off ATX power?<br/><br/>This will turn off all drives, heaters and fans.", function() {
+		showConfirmationDialog(T("ATX Power"), T("Do you really want to turn off ATX power?<br/><br/>This will turn off all drives, heaters and fans."), function() {
 			sendGCode("M81");
 		});
 	}
@@ -1714,12 +2025,12 @@ $(".panel-chart").resize(function() {
 	resizeCharts();
 });
 
-$("#table_heaters tr > th:first-child > a").click(function(e) {
+$("#table_heaters a").click(function(e) {
 	if (isConnected) {
 		var heater = $(this).parents("tr").index();
 		var heaterState = lastStatusResponse.temps.heads.state[heater - 1];
 		if (heaterState == 3) {
-			showMessage("exclamation-sign", "Heater Fault", "<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections.", "md");
+			showMessage("exclamation-sign", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."), "md");
 		} else {
 			var tools = getToolsByHeater(heater), hasToolSelected = false;
 			tools.forEach(function(tool) {
@@ -1729,7 +2040,7 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 			});
 			
 			if (hasToolSelected) {
-				sendGCode("T0");
+				sendGCode("T-1");
 				$(this).blur();
 			} else if (tools.length == 1) {
 				sendGCode("T" + tools[0]);
@@ -1747,7 +2058,7 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 					$(this).popover({ 
 						content: content,
 						html: true,
-						title: "Select Tool",
+						title: T("Select Tool"),
 						trigger: "manual",
 						placement: "bottom",
 					});
@@ -1759,8 +2070,51 @@ $("#table_heaters tr > th:first-child > a").click(function(e) {
 	e.preventDefault();
 });
 
+$("#table_define_tool input[type='checkbox']").change(function() {
+	var isChecked = $(this).is(":checked");
+	$(this).parents("label").toggleClass("btn-primary", isChecked).toggleClass("btn-default", !isChecked);
+	
+	validateAddTool();
+});
+
+$("#table_define_tool input[type='number']").on("input", function() {
+	validateAddTool();
+});
+
+function validateAddTool() {
+	var toolNumber = parseInt($("#input_tool_number").val());
+	var disableButton =	(!isConnected) ||
+						(isNaN(toolNumber) || toolNumber < 0 || toolNumber > 255) ||
+						(toolMapping != undefined && getTool(toolNumber) != undefined) ||
+						($("input[name='tool_heaters']:checked").length + $("input[name='tool_drives']:checked").length == 0);
+	$("#btn_add_tool").toggleClass("disabled", disableButton);
+}
+
+$("#table_define_tool input[type='number']").keydown(function(e) {
+	if (e.which == 13) {
+		if (!$("#btn_add_tool").hasClass("disabled")) {
+			$("#btn_add_tool").click();
+		}
+		e.preventDefault();
+	}
+});
+
 $("#table_heaters tr > th:first-child > a").blur(function() {
 	$(this).popover("hide");
+});
+
+$("#ul_control_dropdown").click(function(e) {
+	$(this).find(".dropdown").removeClass("open");
+	if ($(e.target).is("a")) {
+		$(this).parents(".dropdown").removeClass("open");
+	} else {
+		e.stopPropagation();
+	}
+});
+
+$("#ul_control_dropdown .btn-active-temp, #ul_control_dropdown .btn-standby-temp").click(function(e) {
+	$(this).parent().toggleClass("open");
+	e.stopPropagation();
 });
 
 /* Temperature charts */
@@ -2008,7 +2362,7 @@ function showPasswordPrompt() {
 	$('#input_password').val("");
 	$("#modal_pass_input").modal("show");
 	$("#modal_pass_input").one("hide.bs.modal", function() {
-		$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html("Connect");
+		$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").html(T("Connect"));
 	});
 }
 
@@ -2038,12 +2392,20 @@ $("#form_password").submit(function(e) {
 
 /* GUI Helpers */
 
-function addBedTemperature(label, temperature) {
-	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">' + label + '</a></li>');
+function addBedTemperature(temperature) {
+	// Drop-Down item
+	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">' + temperature + ' °C</a></li>');
 	$(".btn-bed-temp").removeClass("disabled");
+	
+	// Entry on Settings page
+	var item =	'<li class="list-group-item col-md-6" data-temperature="' + temperature + '">' + temperature + '  °C';
+	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
+	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
+	$("#ul_bed_temps").append(item);
 }
 
 function addDefaultGCode(label, gcode) {
+	// Drop-Down item
 	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
  	item +=		'<span>' + label + '</span>';
 	item +=		'<span class="label label-primary">' + gcode + '</span>';
@@ -2051,6 +2413,12 @@ function addDefaultGCode(label, gcode) {
 	
 	$(".ul-gcodes").append(item);
 	$(".btn-gcodes").removeClass("disabled");
+	
+	// Entry on Settings page
+	item =	'<tr><td><label class="label label-primary">' + gcode + '</label></td><td>' + label + '</td><td>';
+	item +=	'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
+	item += '<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
+	$("#table_gcodes").append(item);
 }
 
 function addGCodeFile(filename) {
@@ -2058,12 +2426,11 @@ function addGCodeFile(filename) {
 
 	var row =	'<tr data-item="' + filename + '"><td class="col-actions"></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
-	row +=		'<td class="hidden-xs">loading</td>';
+	row +=		'<td class="hidden-xs">' + T("loading") + '</td>';
 	row +=		'<td>loading</td>';
 	row +=		'<td>loading</td>';
 	row +=		'<td>loading</td>';
 	row +=		'<td class="hidden-xs hidden-sm">loading</td></tr>';
-	
 	$("#table_gcode_files").append(row).removeClass("hidden");
 }
 
@@ -2092,7 +2459,7 @@ function beep(frequency, duration) {
 	var context = new webkitAudioContext();
 	oscillator = context.createOscillator();
 	
-	oscillator.type = 0; // sine wave
+	oscillator.type = 0; // sine wave: TODO add more possibilities to the Settings page
 	oscillator.frequency.value = frequency;
 	oscillator.connect(context.destination);
 	oscillator.noteOn && oscillator.noteOn(0);
@@ -2102,19 +2469,26 @@ function beep(frequency, duration) {
 	}, duration);
 }
 
-function addHeadTemperature(label, temperature) {
-	$(".ul-head-temp").append('<li><a href="#" class="head-temp" data-temp="' + temperature + '">' + label + '</a></li>');
-	$(".btn-head-temp").removeClass("disabled");
+function addHeadTemperature(temperature, type) {
+	// Drop-Down item
+	$(".ul-" + type + "-temp").append('<li><a href="#" class="heater-temp" data-temp="' + temperature + '">' + temperature + ' °C</a></li>');
+	$(".btn-" + type + "-temp").removeClass("disabled");
+	
+	// Entry on Settings page
+	var item =	'<li class="list-group-item col-xs-6 col-lg-3" data-temperature="' + temperature + '">' + temperature + ' °C';
+	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
+	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
+	$("#ul_" + type + "_temps").append(item);
 }
 
 function clearBedTemperatures() {
-	$(".ul-bed-temp").html("");
+	$(".ul-bed-temp, #ul_bed_temps").html("");
 	$(".btn-bed-temp").addClass("disabled");
 }
 
 function clearGCodeDirectory() {
 	$("#ol_gcode_directory").children(":not(:last-child)").remove();
-	$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>');
+	$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</li>');
 }
 
 function clearGCodeFiles() {
@@ -2122,25 +2496,26 @@ function clearGCodeFiles() {
 	$("#table_gcode_files").addClass("hidden");
 	$("#page_files h1").removeClass("hidden");
 	if (isConnected) {
-		$("#page_files h1").text("No Files or Directories found");
+		$("#page_files h1").text(T("No Files or Directories found"));
 	} else {
-		$("#page_files h1").text("Connnect to your Duet to display G-Code files");
+		$("#page_files h1").text(T("Connnect to your Duet to display G-Code files"));
 	}
 }
 
 function clearDefaultGCodes() {
 	$(".ul-gcodes").html("");
+	$("#table_gcodes > tbody").remove();
 	$(".btn-gcodes").addClass("disabled");
 }
 
 function clearHeadTemperatures() {
-	$(".ul-head-temp").html("");
-	$(".btn-head-temp").addClass("disabled");
+	$(".ul-active-temp, .ul-standby-temp, #ul_active_temps, #ul_standby_temps").html("");
+	$(".btn-active-temp, .btn-standby-temp").addClass("disabled");
 }
 
 function clearMacroDirectory() {
 	$("#ol_macro_directory").children(":not(:last-child)").remove();
-	$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</li>');
+	$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</li>');
 }
 
 function clearMacroFiles() {
@@ -2155,9 +2530,9 @@ function clearMacroFiles() {
 	$("#table_macro_files").addClass("hidden");
 	$("#page_macros h1").removeClass("hidden");
 	if (isConnected) {
-		$("#page_macros h1").text("No Macro Files found");
+		$("#page_macros h1").text(T("No Macro Files found"));
 	} else {
-		$("#page_macros h1").text("Connnect to your Duet to display Macro files");
+		$("#page_macros h1").text(T("Connnect to your Duet to display Macro files"));
 	}
 }
 
@@ -2189,7 +2564,7 @@ function convertSeconds(value) {
 }
 
 function formatSize(bytes) {
-	if (settings.binaryPrefix) {
+	if (settings.useKiB) {
 		if (bytes > 1073741824) { // GiB
 			return (bytes / 1073741824).toFixed(1) + " GiB";
 		}
@@ -2220,7 +2595,7 @@ function loadMacroDropdown(directory, dropdown) {
 		dropdown: dropdown,
 		success: function(response) {
 			if (response.files.length == 0) {
-				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">No files found!</a></li>');
+				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + T("No files found!") + '</a></li>');
 			} else {
 				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + directory + '</a></li><li class="divider"></li>');
 				var files = response.files.sort(function (a, b) {
@@ -2265,6 +2640,10 @@ function log(style, message) {
 	entry +=		'<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
 	entry +=		'<div class="col-xs-10 col-sm-10 col-md-10 col-lg-11">' + message + '</div></div>';
 	$("#console_log").prepend(entry);
+	
+	if (currentPage == "console") {
+		$(window).resize();
+	}
 }
 
 function recordHeaterTemperatures(bedTemp, headTemps) {
@@ -2320,9 +2699,9 @@ function setAxesHomed(axes) {
 		$("#home_warning").addClass("hidden");
 	} else {
 		if (unhomedAxes.length > 3) {
-			$("#unhomed_warning").html("The following axes are not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
+			$("#unhomed_warning").html(T("The following axes are not homed: <strong>{0}</strong>", unhomedAxes.substring(2)));
 		} else {
-			$("#unhomed_warning").html("The following axis is not homed: <strong>" + unhomedAxes.substring(2) + "</strong>");
+			$("#unhomed_warning").html(T("The following axis is not homed: <strong>{0}</strong>", unhomedAxes.substring(2)));
 		}
 		$("#home_warning").removeClass("hidden");
 	}
@@ -2343,21 +2722,25 @@ function setCurrentTemperature(heater, temperature) {
 		$(field).first().html(temperature.toFixed(1) + " °C");
 	}
 	
-	if (heater != "bed" && lastStatusResponse != undefined && lastStatusResponse.currentTool > 0) {
-		var isActiveHead = false;
-		getToolsByHeater(heater).forEach(function(tool) { if (tool == lastStatusResponse.currentTool) { isActiveHead = true; } });
-		if (isActiveHead) {
-			if (temperature >= coldRetractTemp) {
-				$(".btn-retract").removeClass("disabled");
-			} else {
-				$(".btn-retract").addClass("disabled");
+	if (heater != "bed" && lastStatusResponse != undefined) {
+		if (lastStatusResponse.currentTool > 0) {
+			var isActiveHead = false;
+			getToolsByHeater(heater).forEach(function(tool) { if (tool == lastStatusResponse.currentTool) { isActiveHead = true; } });
+			if (isActiveHead) {
+				if (temperature >= coldRetractTemp) {
+					$(".btn-retract").removeClass("disabled");
+				} else {
+					$(".btn-retract").addClass("disabled");
+				}
+				
+				if (temperature >= coldExtrudeTemp) {
+					$(".btn-extrude").removeClass("disabled");
+				} else {
+					$(".btn-extrude").addClass("disabled");
+				}
 			}
-			
-			if (temperature >= coldExtrudeTemp) {
-				$(".btn-extrude").removeClass("disabled");
-			} else {
-				$(".btn-extrude").addClass("disabled");
-			}
+		} else {
+			$(".btn-retract, .btn-extrude").addClass("disabled");
 		}
 	}
 }
@@ -2365,12 +2748,12 @@ function setCurrentTemperature(heater, temperature) {
 function setGeometry(g) {
 	// The following may be extended in future versions
 	if (g == "delta") {
-		$("#btn_bed_compensation").text("Auto Calibration");
+		$("#btn_bed_compensation > span").text(T("Auto Calibration"));
 		$(".home-buttons div, div.home-buttons").addClass("hidden");
 		$("td.home-buttons").css("padding-right", "0px");
 		$("#btn_homeall").css("width", "");
 	} else {
-		$("#btn_bed_compensation").text("Auto Bed Compensation");
+		$("#btn_bed_compensation > span").text(T("Auto Bed Compensation"));
 		$(".home-buttons div, div.home-buttons").removeClass("hidden");
 		$("td.home-buttons").css("padding-right", "");
 		$("#btn_homeall").resize();
@@ -2382,8 +2765,8 @@ function setGCodeFileItem(row, size, height, layerHeight, filamentUsage, generat
 	row.data("file", row.data("item"));
 	row.removeData("item");
 	
-	var buttons =	'<button class="btn btn-success btn-print-file btn-sm"><span class="glyphicon glyphicon-print"></span></button>';
-	buttons +=		'<button class="btn btn-danger btn-delete-file btn-sm"><span class="glyphicon glyphicon-trash"></span></button>';
+	var buttons =	'<button class="btn btn-success btn-print-file btn-sm" title="' + T("Print this file (M32)") + '"><span class="glyphicon glyphicon-print"></span></button>';
+	buttons +=		'<button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button>';
 	row.children().eq(0).html(buttons);
 	
 	var linkCell = row.children().eq(1);
@@ -2421,7 +2804,7 @@ function setGCodeDirectoryItem(row) {
 	row.data("directory", row.data("item"));
 	row.removeData("item");
 	
-	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button>');
 	
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
@@ -2447,10 +2830,10 @@ function setGCodeDirectory(directory) {
 	
 	$("#ol_gcode_directory").children(":not(:last-child)").remove();
 	if (directory == "/gcodes") {
-		$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>');
-		$("#ol_gcode_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> Go Up');
+		$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</li>');
+		$("#ol_gcode_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up"));
 	} else {
-		var listContent = '<li><a href="#" data-directory="/gcodes"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</a></li>';
+		var listContent = '<li><a href="#" data-directory="/gcodes"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</a></li>';
 		var directoryItems = directory.split("/"), directoryPath = "/gcodes";
 		for(var i=2; i<directoryItems.length -1; i++) {
 			directoryPath += "/" + directoryItems[i];
@@ -2458,7 +2841,7 @@ function setGCodeDirectory(directory) {
 		}
 		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
 		$("#ol_gcode_directory").prepend(listContent);
-		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> Go Up</a>');
+		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up") + '</a>');
 	}
 }
 
@@ -2466,19 +2849,19 @@ function setHeaterState(heater, status, currentTool) {
 	var statusText = "n/a";
 	switch (status) {
 		case 0:
-			statusText = "off";
+			statusText = T("off");
 			break;
 			
 		case 1:
-			statusText = "standby";
+			statusText = T("standby");
 			break;
 			
 		case 2:
-			statusText = "active";
+			statusText = T("active");
 			break;
 			
 		case 3:
-			statusText = "fault";
+			statusText = T("fault");
 			break;
 	}
 	
@@ -2486,8 +2869,8 @@ function setHeaterState(heater, status, currentTool) {
 		var tools = getToolsByHeater(heater);
 		if (tools.length != 0) {
 			statusText += " (T" + tools.reduce(function(a, b) { return a + ", T" + b; }) + ")";
+			statusText = statusText.replace("T" + currentTool, "<u>T" + currentTool + "</u>");
 			if (tools.length > 1) {
-				statusText = statusText.replace("T" + currentTool, "<u>T" + currentTool + "</u>");
 				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").removeClass("hidden");
 			} else {
 				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
@@ -2505,8 +2888,8 @@ function setMacroFileItem(row, size) {
 	row.data("file", row.data("macro"));
 	row.removeData("macro");
 	
-	var buttons =	'<button class="btn btn-success btn-run-macro btn-sm"><span class="glyphicon glyphicon-play"></span></button>';
-	buttons +=		'<button class="btn btn-danger btn-delete-macro btn-sm"><span class="glyphicon glyphicon-trash"></span></button>';
+	var buttons =	'<button class="btn btn-success btn-run-macro btn-sm" title="' + T("Run this macro file (M98)") + '"><span class="glyphicon glyphicon-play"></span></button>';
+	buttons +=		'<button class="btn btn-danger btn-delete-macro btn-sm" title="' + T("Delete this macro") + '"><span class="glyphicon glyphicon-trash"></span></button>';
 	row.children().eq(0).html(buttons);
 	
 	var linkCell = row.children().eq(1);
@@ -2527,7 +2910,7 @@ function setMacroDirectoryItem(row) {
 	row.data("directory", row.data("macro"));
 	row.removeData("macro");
 	
-	row.children().eq(0).html('<button class="btn btn-danger btn-delete-macro-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-macro-directory btn-sm pull-right" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button>');
 	
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
@@ -2551,10 +2934,10 @@ function setMacroDirectory(directory) {
 	
 	$("#ol_macro_directory").children(":not(:last-child)").remove();
 	if (directory == "/macros") {
-		$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</li>');
-		$("#ol_macro_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> Go Up');
+		$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</li>');
+		$("#ol_macro_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up"));
 	} else {
-		var listContent = '<li><a href="#" data-directory="/macros"><span class="glyphicon glyphicon-folder-open"></span> Macros Directory</a></li>';
+		var listContent = '<li><a href="#" data-directory="/macros"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</a></li>';
 		var directoryItems = directory.split("/"), directoryPath = "/macros";
 		for(var i=2; i<directoryItems.length -1; i++) {
 			directoryPath += "/" + directoryItems[i];
@@ -2562,14 +2945,14 @@ function setMacroDirectory(directory) {
 		}
 		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
 		$("#ol_macro_directory").prepend(listContent);
-		$("#ol_macro_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> Go Up</a>');
+		$("#ol_macro_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up") + '</a>');
 	}
 }
 function setGCodeDirectoryItem(row) {
 	row.data("directory", row.data("item"));
 	row.removeData("item");
 	
-	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right"><span class="glyphicon glyphicon-trash"></span></button>');
+	row.children().eq(0).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm pull-right" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button>');
 	
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
@@ -2597,10 +2980,10 @@ function setPauseStatus(paused) {
 	
 	if (paused) {
 		$("#btn_cancel").removeClass("disabled").parents("div.btn-group").removeClass("hidden");
-		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").text("Resume");
+		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").text(T("Resume")).attr("title", T("Resume paused print (M24)"));
 	} else {
 		$("#btn_cancel").parents("div.btn-group").addClass("hidden");
-		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").text("Pause Print");
+		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").text(T("Pause Print")).attr("title", T("Pause current print (M25)"));
 		if (isPrinting) {
 			$("#btn_pause").removeClass("disabled");
 		}
@@ -2621,7 +3004,7 @@ function setPrintStatus(printing) {
 		$("#btn_pause").removeClass("disabled");
 		$(".row-progress").removeClass("hidden");
 		$(".col-layertime").addClass("hidden");
-		$("th.col-layertime").text("Current Layer Time");
+		$("th.col-layertime").text(T("Current Layer Time"));
 		
 		$.ajax("rr_fileinfo", {
 			dataType: "json",
@@ -2630,7 +3013,7 @@ function setPrintStatus(printing) {
 					haveFileInfo = true;
 					fileInfo = response;
 					
-					$("span_progress_left").html("Printing " + response.fileName);
+					$("span_progress_left").html(T("Printing {0}", response.fileName));
 					
 					$("#dd_size").html(formatSize(response.size));
 					$("#dd_height").html((response.height > 0) ? (response.height + " mm") : "n/a");
@@ -2661,9 +3044,9 @@ function setPrintStatus(printing) {
 			}
 			
 			if (haveFileInfo) {
-				setProgress(100, "Printed " + fileInfo.fileName + ", 100% Complete", undefined);
+				setProgress(100, T("Printed {0}, 100% Complete", fileInfo.fileName), undefined);
 			} else {
-				setProgress(100, "Print Complete!", undefined);
+				setProgress(100, T("Print Complete!"), undefined);
 			}
 			
 			["filament", "layer", "file"].forEach(function(id) {
@@ -2673,7 +3056,7 @@ function setPrintStatus(printing) {
 				}
 			});
 			
-			$("th.col-layertime").text("Last Layer Time");
+			$("th.col-layertime").text(T("Last Layer Time"));
 		}
 		
 		haveFileInfo = false;
@@ -2718,21 +3101,22 @@ function setProgress(progress, labelLeft, labelRight) {
 }
 
 function setStatusLabel(text, style) {
+	text = T(text);
 	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
 }
 
 function setTemperatureInput(head, value, active) {
-	var tempInput;
+	var tempInputId;
 	
 	if (head == "bed") {
-		tempInput = "#input_temp_bed";
+		tempInputId = "#input_temp_bed";
 	} else {
-		tempInput = "#input_temp_h" + head + "_";
-		tempInput += (active) ? "active": "standby";
+		tempInputId = "#input_temp_h" + head + "_";
+		tempInputId += (active) ? "active": "standby";
 	}
 	
-	if (!$(tempInput).is(":focus")) {
-		$(tempInput).val((value < 0) ? 0 : value);
+	if (!$(tempInputId).is(":focus")) {
+		$(tempInputId).val((value < 0) ? 0 : value);
 	}
 }
 
@@ -2771,10 +3155,12 @@ function showPage(name) {
 			waitingForPrintStart = false;
 		}
 		
-		if (name == "console" && window.matchMedia('(min-width: 992px)').matches) {
+		if (name == "console") {
 			currentPage = "console";
 			$(window).resize();
-			$("#page_console input").focus();
+			if (window.matchMedia('(min-width: 992px)').matches) {
+				$("#page_console input").focus();
+			}
 		}
 		
 		if (name == "files") {
@@ -2818,6 +3204,74 @@ function stripMacroFilename(filename) {
 
 /* Data helpers */
 
+function setToolMapping(mapping) {
+	if (toolMapping != mapping) {
+		toolMapping = mapping;
+
+		// Clean up current tools
+		$("#page_tools").children(":not(:first-child)").remove();
+		
+		// Create new panels for each tool
+		if (toolMapping != undefined) {
+			for(var i=0; i<toolMapping.length; i++) {
+				var number = toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : (i + 1);
+				
+				var heaters;
+				if (toolMapping[i].heaters.length == 0) {
+					heaters = T("none");
+				} else {
+					heaters = toolMapping[i].heaters.reduce(function(a, b) { return a + ", " + b; });
+				}
+				
+				var drives;
+				if (toolMapping[i].drives.length == 0) {
+					drives = T("none");
+				} else {
+					drives = toolMapping[i].drives.reduce(function(a, b) { return a + ", " + b; });
+				}
+				
+				var div =	'<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3"><div class="panel panel-default">';
+				div +=		'<div class="panel-heading"><span>' + T("Tool {0}", number) + '</span></div>';
+				div +=		'<div data-tool="' + number + '" class="panel-body">';
+				div +=		'<dl><dt>' + T("Heaters:") + '</dt><dd>' + heaters + '</dd>';
+				div +=		'<dt>' + T("Drives:") + '</dt><dd>' + drives + '</dd>';
+				div +=		'</dl><div class="row"><div class="col-md-12 text-center">';
+				if (lastStatusResponse != undefined && lastStatusResponse.currentTool == number) {
+					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Deselect this tool") + '">';
+					div +=		'<span class="glyphicon glyphicon-remove"></span> <span>' + T("Deselect") + '</span></button>';
+				} else {
+					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Select this tool") + '">';
+					div +=		'<span class="glyphicon glyphicon-pencil"></span> <span>' + T("Select") + '</span></button>';
+				}
+				div +=		' <button class="btn btn-danger btn-remove-tool" title="' + T("Remove this tool") + '">';
+				div +=		'<span class="glyphicon glyphicon-trash"></span> ' + T("Remove") + '</button>';
+				div +=		'</div></div></div></div></div>';
+				$("#page_tools").append(div);
+			}
+		}
+		
+		// Keep the GUI updated
+		validateAddTool();
+	}
+}
+
+function getTool(number) {
+	if (toolMapping == undefined) {
+		return undefined;
+	}
+	
+	for(var i=0; i<toolMapping.length; i++) {
+		if (toolMapping[i].hasOwnProperty("number")) {
+			if (toolMapping[i].number == number) {
+				return toolMapping[i];
+			}
+		} else if (i + 1 == number) {
+			return toolMapping[i];
+		}
+	}
+	return undefined;
+}
+
 function getToolsByHeater(heater) {
 	if (toolMapping == undefined) {
 		return [];
@@ -2827,11 +3281,105 @@ function getToolsByHeater(heater) {
 	for(var i=0; i<toolMapping.length; i++) {
 		for(var k=0; k<toolMapping[i].heaters.length; k++) {
 			if (toolMapping[i].heaters[k] == heater) {
-				result.push(i + 1);
+				if (toolMapping[i].hasOwnProperty("number")) {
+					result.push(toolMapping[i].number);
+				} else {
+					result.push(i + 1);
+				}
 			}
 		}
 	}
 	return result;
+}
+
+function T(text) {
+	var entry = text;
+	if (translationData != undefined) {
+		// Generate a regex to check with
+		text = text.replace(/{(\d+)}/g, "{\\d+}").replace("(", "\\(").replace(")", "\\)");
+		text = text.replace("?", "[?]").replace(".", "[.]");
+		var regex = new RegExp("^" + text + "$");
+		
+		// Get the translation node and see if we can find an entry
+		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
+		if (root != null) {
+			for(var i=0; i<root.children.length; i++) {
+				if (regex.test(root.children[i].attributes["t"].value)) {
+					entry = root.children[i].textContent;
+					break;
+				}
+			}
+		
+			// Log translation text if we couldn't find a suitable text
+			if (translationWarning && entry == text) {
+				console.log("WARNING: Could not translate '" + entry + "'");
+			}
+		}
+	}
+	
+	// Format it with the given arguments
+	var args = arguments;
+	return entry.replace(/{(\d+)}/g, function(match, number) {
+		number = parseInt(number) + 1;
+		return typeof args[number] != 'undefined' ? args[number] : match;
+	});
+}
+
+// May be called only once on page load to translate the page
+function translatePage() {
+	if (translationData != undefined) {
+		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
+		if (root != null) {
+			translateEntries(root, $("span, th, td, strong, dt, button"), "textContent");
+			translateEntries(root, $("h1, h4, label, a"), "textContent");
+			
+			translateEntries(root, $("input[type='text']"), "placeholder");
+			translateEntries(root, $("a, button, label, #chart_temp, input"), "title");
+			
+			$("#btn_language").data("language", settings.language).children("span:first-child").text(root.attributes["name"].value);
+			
+			$("html").attr("lang", settings.language);
+		}
+	}
+}
+
+function translateEntries(root, entries, key) {
+	var doNodeCheck = (key == "textContent");
+	$.each(entries, function() {
+		// If this node has no children, we can safely use it
+		if (!doNodeCheck || this.childNodes.length < 2) {
+			translateEntry(root, this, key);
+		// Otherwise we need to check for non-empty text nodes
+		} else {
+			for(var i=0; i<this.childNodes.length; i++) {
+				var val = this.childNodes[i][key];
+				if (this.childNodes[i].nodeType == 3 && val != undefined && this.childNodes[i].childNodes.length == 0 && val.trim().length > 0) {
+					translateEntry(root, this.childNodes[i], key);
+				}
+			}
+		}
+	});
+}
+
+function translateEntry(root, item, key) {
+	if (item != undefined) {
+		var originalText = item[key];
+		if (originalText != undefined && originalText.trim() != "") {
+			var text = originalText.trim();
+			for(var i=0; i<root.children.length; i++) {
+				var entry = root.children[i].attributes["t"].value;
+				if (entry.indexOf("{") == -1 && entry == text) {
+					item[key] = item[key].replace(text, root.children[i].textContent);
+					return;
+				}
+			}
+			
+			// Log translation text if we couldn't find a suitable text
+			if (translationWarning) {
+				console.log("WARNING: Could not translate static '" + text + "'");
+			}
+		}
+	}
 }
 
 /* File Uploads */
@@ -2853,7 +3401,7 @@ function startUpload(type, files) {
 	
 	// Safety check for Upload and Print
 	if (type == "print" && files.length > 1) {
-		showMessage("exclamation-sign", "Error", "You can only upload and print one file at once!", "md");
+		showMessage("exclamation-sign", T("Error"), T("You can only upload and print one file at once!"), "md");
 		return;
 	}
 	
@@ -2861,15 +3409,15 @@ function startUpload(type, files) {
 	$("#modal_upload").data("backdrop", "static")
 	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").addClass("hidden");
 	$("#btn_cancel_upload, #modal_upload p").removeClass("hidden");
-	$("#modal_upload h4").text("Uploading File(s), 0% Complete");
+	$("#modal_upload h4").text(T("Uploading File(s), {0}% Complete", 0));
 	
 	// Add files to the table
-	$("#table_upload_files > tbody").html("");
+	$("#table_upload_files > tbody").remove();
 	$.each(files, function() {
 		var row = 	'<tr><td><span class="glyphicon glyphicon-asterisk"></span> ' + this.name + '</td>';
 		row += 		'<td>' + formatSize(this.size) + '</td>';
 		row +=		'<td><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar"><span></span></div></div></td></tr>';
-		$("#table_upload_files > tbody").append(row);
+		$("#table_upload_files").append(row);
 		uploadRows.push($("#table_upload_files > tbody > tr:last-child"));
 	});
 	
@@ -2936,7 +3484,7 @@ function uploadNextFile() {
 	}
 	
 	// Update the GUI
-	uploadRows[0].find(".progress-bar > span").text("Starting");
+	uploadRows[0].find(".progress-bar > span").text(T("Starting"));
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 	
 	// Begin another POST file upload
@@ -2962,7 +3510,7 @@ function uploadNextFile() {
 					uploadedTotalBytes += (event.loaded - uploadPosition);
 					uploadPosition = event.loaded;
 					
-					var uploadTitle = "Uploading File(s), " + ((uploadedTotalBytes / uploadTotalBytes) * 100).toFixed(0) + "% Complete";
+					var uploadTitle = T("Uploading File(s), {0}% Complete", ((uploadedTotalBytes / uploadTotalBytes) * 100).toFixed(0));
 					if (uploadSpeed > 0) {
 						uploadTitle += " (" + formatSize(uploadSpeed) + "/s)";
 					}
@@ -2988,7 +3536,7 @@ function finishCurrentUpload(success) {
 	// Update glyphicon and progress bar
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
 	uploadRows[0].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
-	uploadRows[0].find(".progress-bar > span").text(success ? "100 %" : "ERROR");
+	uploadRows[0].find(".progress-bar > span").text(success ? "100 %" : T("ERROR"));
 	
 	// Go on with upload logic if we're still busy
 	if (isUploading) {
@@ -3010,7 +3558,7 @@ function cancelUpload() {
 	isUploading = false;
 	finishCurrentUpload(false);
 	finishUpload(false);
-	$("#modal_upload h4").text("Upload Cancelled!");
+	$("#modal_upload h4").text(T("Upload Cancelled!"));
 	uploadRequest.abort();
 }
 
@@ -3021,7 +3569,7 @@ function finishUpload(success) {
 	$("#input_file_upload").val("");
 	
 	// Set some values in the modal dialog
-	$("#modal_upload h4").text("Upload Complete!");
+	$("#modal_upload h4").text(T("Upload Complete!"));
 	$("#btn_cancel_upload, #modal_upload p").addClass("hidden");
 	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").removeClass("hidden");
 	

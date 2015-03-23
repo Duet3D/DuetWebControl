@@ -23,14 +23,18 @@ dd:last-child {
 	padding-bottom: 0px;
 }
 
-div > label {
-	font-weight: inherit;
-}
-
-// Hide spin controls for numeric inputs
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
 	-webkit-appearance: none;
+	-moz-appearance: none;
+	margin: 0;
+}
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+label {
+	font-weight: inherit;
 }
 
 @media (min-width: 768px) {
@@ -119,6 +123,10 @@ input::-webkit-inner-spin-button {
 	width: 90%;
 }
 
+#extruder_drives {
+	color: #333;
+}
+
 .gcode {
 	display: inline;
 	padding-left: 12px !important;
@@ -141,8 +149,8 @@ input::-webkit-inner-spin-button {
 *  If anyone has a better solution for this, please implement it.
 */
 .gcode-float span.label {
-	display: block;
-	float: right;
+	position: absolute;
+	right: 9px;
 	margin-top: 3px;
 }
 
@@ -210,12 +218,14 @@ input::-webkit-inner-spin-button {
 }
 
 .ul-bed-temp a,
-.ul-head-temp a {
+.ul-active-temp a,
+.ul-standby-temp a {
 	text-align: right;
 }
 
 .ul-bed-temp,
-.ul-head-temp {
+.ul-active-temp,
+.ul-standby-temp {
 	min-width: initial;
 }
 
@@ -276,7 +286,7 @@ input::-webkit-inner-spin-button {
 #table_heaters tr > th > * {
 	display: block;
 }
-#table_heaters tr > th > span {
+#table_heaters tr > th > span:last-child {
 	font-size: 11px;
 }
 
@@ -323,7 +333,7 @@ div.panel table.table-status:not(:last-child)
 		background-color: #f5f5f5;
 		border-right: 1px solid #bfbfbf;
 		border-top: 1px solid #bfbfbf;
-		overflow-x: hidden;
+		overflow: hidden;
 	}
 }
 
@@ -699,8 +709,36 @@ div.panel table.table-status:not(:last-child)
 
 /* Settings Page */
 
+#page_tools button,
+#btn_add_gcode {
+	margin-top: 9px;
+}
+
+#check_heaters > label:first-child {
+	padding: 6px;
+}
+
+#dropdown_language {
+	margin-top: 9px;
+	display: inline-block;
+}
+
+label[for="dropdown_language"] {
+	margin-right: 6px;
+}
+
 #label_feedrate {
 	margin-top: 0px !important;
+}
+
+#panel_head_temps > div > label:first-child {
+	display: block;
+}
+#panel_head_temps > div > div.radio {
+	display: inline-block;
+	margin: 0px;
+	margin-bottom: 9px;
+	width: 49%;
 }
 
 #software_info {
@@ -741,7 +779,7 @@ div.panel table.table-status:not(:last-child)
 	margin-top: 6px;
 }
 
-.tab-container {
+.tab-content {
 	border: 1px solid #ddd;
 	border-bottom-width: 1px;
 	border-left-width: 1px;
@@ -750,6 +788,82 @@ div.panel table.table-status:not(:last-child)
 	padding: 15px;
 	padding-bottom: 0px;
 	margin-bottom: 15px;
+}
+
+.table-add-temp td:first-child {
+	padding-right: 9px;
+	width: 100%;
+}
+
+.table-add-temp .input-group {
+	width: 100%;
+}
+
+.table-add-temp td:last-child {
+	width: auto;
+	vertical-align: bottom;
+}
+
+#table_add_gcode {
+	width: 100%;
+}
+#table_gcodes {
+	margin-bottom: 0px;
+}
+
+#table_gcodes .label {
+	font-size: 95%;
+}
+
+#table_add_gcode td:first-child,
+#table_gcodes > thead > tr > th:first-child {
+	width: 35%;
+}
+#table_add_gcode td:first-child {
+	padding-right: 9px;
+}
+#table_add_gcode td:nth-child(2),
+#table_gcodes > thead > tr > th:nth-child(2) {
+	width: 65%;
+}
+#table_gcodes > thead > tr > th:nth-child(3) {
+	width: auto;
+}
+#table_gcodes > tbody > tr > td {
+	vertical-align: middle;
+}
+#table_gcodes > tbody > tr > td:last-child {
+	padding: 6px;
+}
+
+#table_define_tool td:first-child {
+	padding-right: 9px;
+}
+
+##table_define_tool > tbody > tr:first-child > td {
+	padding-top: 0px;
+}
+#table_define_tool > tbody > tr:nth-child(2) > td {
+	padding-top: 9px;
+}
+
+.temp-list > li {
+	line-height: 30px;
+	vertical-align: middle;
+	padding: 6px;
+}
+
+#ul_control_dropdown {
+	padding: 5px;
+}
+
+#ul_control_dropdown > li > a {
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+#ul_control_dropdown > li:not(:first-child) {
+	padding-top: 5px;
 }
 
 /* Modals */

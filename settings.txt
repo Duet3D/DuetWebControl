@@ -1,8 +1,4 @@
 TODO for Settings:
-- Default G-Codes
-- Default Head Temperatures
-- Default Bed Temperatures
-
 - Status Panel customization:
 	- Hide/Show Head Position
 	- Hide/Show Extruder Drives
