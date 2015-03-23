@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.03
+<!--	Duet Web Control v1.04
 	
 		written by Christian Hammacher
 	
@@ -64,12 +64,12 @@
 								</ul>
 							</div>
 						</div>
-						<button type="submit" class="btn btn-default disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+						<button type="submit" class="btn btn-default disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
 					</form>
 					
-					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" title="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 					
-					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled">Emergency STOP</button>
+					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 					
 					<ul class="nav nav-justified hidden-xs">
@@ -83,10 +83,10 @@
 						<table class="table navbar-table">
 							<tr>
 								<td>
-									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
+									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> Connect</button>
 								</td>
 								<td>
-									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled">Emergency STOP</button>
+									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
 								</td>
 							</tr>
 							<tr>
@@ -113,7 +113,6 @@
 										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-										<li role="presentation" class="navitem navitem-tools hidden"><a class="navlink" href="#" data-target="tools"><span class="glyphicon glyphicon-pencil"></span> Tools</a></li>
 										<li role="presentation" class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
 										<li role="presentation" class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
@@ -135,6 +134,34 @@
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
 							<span>Heater Temperatures</span>
+							<div class="dropdown pull-right" id="control_all">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-target="control_all">Control All <span class="caret"></span></a>
+								<ul class="dropdown-menu" id="ul_control_dropdown">
+									<li>
+										<a href="#" id="a_heaters_off"><span class="glyphicon glyphicon-off"></span> Turn everything off</a>
+									</li>
+									<li>
+										<label for="input_temp_all_active">Active:</label>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" id="input_temp_all_active" disabled="">
+											<div class="input-group-btn div-head-temp dropdown">
+												<button type="button" class="btn btn-default dropdown-toggle btn-active-temp" data-toggle="dropdown"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu"></ul>
+											</div>
+										</div>
+									</li>
+									<li>
+										<label for="input_temp_all_standby">Standby:</label>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" id="input_temp_all_standby" disabled="">
+											<div class="input-group-btn div-head-temp dropdown">
+												<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp" data-toggle="dropdown"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu"></ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
 						</div>
 						
 						<table class="table table-bordered table-condensed table-centered-cells" id="table_heaters">
@@ -147,7 +174,7 @@
 							
 							<tr id="tr_head_1">
 								<th>
-									<a href="#">Head 1<span class="caret hidden"></span></a>
+									<a href="#">Heater 1<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
 								</th>
 								<td>n/a</td>
@@ -155,8 +182,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h1_active" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -165,8 +192,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h1_standby" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -175,7 +202,7 @@
 							
 							<tr id="tr_head_2">
 								<th>
-									<a href="#">Head 2<span class="caret hidden"></span></a>
+									<a href="#">Heater 2<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
 								</th>
 								<td>n/a</td>
@@ -183,8 +210,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h2_active" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -193,8 +220,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h2_standby" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -203,7 +230,7 @@
 							
 							<tr id="tr_head_3">
 								<th>
-									<a href="#">Head 3<span class="caret hidden"></span></a>
+									<a href="#">Heater 3<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
 								</th>
 								<td>n/a</td>
@@ -211,8 +238,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h3_active" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -221,8 +248,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h3_standby" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -231,7 +258,7 @@
 							
 							<tr id="tr_head_4">
 								<th>
-									<a href="#">Head 4<span class="caret hidden"></span></a>
+									<a href="#">Heater 4<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
 								</th>
 								<td>n/a</td>
@@ -239,8 +266,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h4_active" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -249,8 +276,8 @@
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_h4_standby" disabled>
 										<div class="input-group-btn div-head-temp">
-											<button type="button" class="btn btn-default dropdown-toggle btn-head-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-head-temp" role="menu">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
 											</ul>
 										</div>
 									</div>
@@ -287,7 +314,7 @@
 						</div>
 						
 						<div class="panel-body panel-chart">
-							<div id="chart_temp">
+							<div id="chart_temp" title="Time vs. Temperature">
 								<!-- See JS -->
 							</div>
 						</div>
@@ -317,7 +344,12 @@
 						
 						<table class="table table-bordered table-condensed table-centered-cells table-status">
 							<tr>
-								<th rowspan="2" class="th-status">Extruder Drives</th>
+								<th rowspan="2" class="th-status">
+									<div class="dropdown" id="extr_dropdown">
+										<a href="#" id="extruder_drives" class="dropdown-toggle disabled" data-toggle="dropdown" data-target="#extr_dropdown">Extruder Drives <span class="caret"></span></a>
+										<ul class="dropdown-menu" id="ul_extruder_dropdown"></ul>
+									</div>
+								</th>
 								<th class="hidden"><!-- only for HTML validation --></th>
 								<th class="hidden-md extr-1">D1</th>
 								<th class="hidden-md extr-2">D2</th>
@@ -342,8 +374,8 @@
 								<th>Fan RPM</th>
 							</tr>
 							<tr>
-								<td id="td_probe">n/a</td>
-								<td id="td_fanrpm">n/a</td>
+								<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
+								<td id="td_fanrpm" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
 							</tr>
 						</table>
 					</div>
@@ -365,7 +397,6 @@
 					</ul>
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-						<li class="navitem navitem-tools hidden"><a class="navlink" href="#" data-target="tools"><span class="glyphicon glyphicon-pencil"></span> Tools</a></li>
 						<li class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
@@ -382,9 +413,9 @@
 							<div class="col-xs-12 col-sm-12 col-md-8 col-lg-9">
 								<div class="panel panel-default" id="panel_head_movement">
 									<div class="panel-heading">
-										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall">Home All</button>
+										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall" title="Home all axes (G28)">Home All</button>
 										<span>Head Movement</span>
-										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled" id="btn_bed_compensation">Auto Bed Compensation</button>
+										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled" id="btn_bed_compensation" title="Perform automatic bed compensation / calibration (G32)">Auto Bed Compensation</button>
 									</div>
 									
 									<div class="panel-body">
@@ -398,7 +429,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a href="#" role="button" class="btn btn-primary btn-home-x disabled" data-home="X">Home X</a>
+														<a href="#" role="button" class="btn btn-primary btn-home-x disabled" title="Home X axis (G28 X)" data-home="X">Home X</a>
 													</div>
 												</td>
 												<td>
@@ -421,7 +452,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary btn-home-y disabled" data-home="Y">Home Y</a>
+														<a role="button" class="btn btn-primary btn-home-y disabled" title="Home Y axis (G28 Y)" data-home="Y">Home Y</a>
 													</div>
 												</td>
 												<td>
@@ -444,7 +475,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary btn-home-z disabled" data-home="Z">Home Z</a>
+														<a role="button" class="btn btn-primary btn-home-z disabled" title="Home Z axis (G28 Z)" data-home="Z">Home Z</a>
 													</div>
 												</td>
 												<td id="td_decrease_z">
@@ -527,10 +558,10 @@
 										<div class="col-xs-2 no-horizontal-padding">
 											<div class="btn-group-vertical btn-group-vertical-justified">
 												<div class="btn-group">
-													<button class="btn btn-sm btn-default btn-retract disabled" id="btn_retract"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
+													<button class="btn btn-sm btn-default btn-retract disabled" id="btn_retract" title="Retract a specific amount of filament at a given feedrate (G1 E-xxx Fyyy)"><span class="glyphicon glyphicon-arrow-up"></span> Retract</button>
 												</div>
 												<div class="btn-group">
-													<button class="btn btn-sm btn-primary btn-extrude disabled" id="btn_extrude"><span class="glyphicon glyphicon-arrow-down"></span> Extrude</button>
+													<button class="btn btn-sm btn-primary btn-extrude disabled" id="btn_extrude" title="Extrude a specific amount of filament at a given feedrate (G1 Exxx Fyyy)"><span class="glyphicon glyphicon-arrow-down"></span> Extrude</button>
 												</div>
 											</div>
 										</div>
@@ -563,12 +594,12 @@
 												<td>
 													<div class="btn-group btn-group-justified" data-toggle="buttons">
 														<div class="btn-group">
-															<label class="btn btn-success disabled">
+															<label class="btn btn-success disabled" title="Turn on ATX power (M80)">
 																<input type="radio" name="atxPower" value="1">On
 															</label>
 														</div>
 														<div class="btn-group">
-															<label class="btn btn-danger active disabled">
+															<label class="btn btn-danger active disabled" title="Turn off ATX power (M81)">
 																<input type="radio" name="atxPower" value="0" checked>Off
 															</label>
 														</div>
@@ -578,7 +609,7 @@
 											<tr class="fan-control">
 												<td>Fan Control:</td>
 												<td>
-													<input id="slider_fan_control" type="text"/>
+													<input id="slider_fan_control" type="text" title="Set current fan value (via M106)"/>
 												</td>
 											</tr>
 										</table>
@@ -678,21 +709,21 @@
 									<div class="panel-body">
 										<div class="btn-group-justified">
 											<div class="btn-group">
-												<button class="btn btn-warning disabled" id="btn_pause">Pause Print</button>
+												<button class="btn btn-warning disabled" id="btn_pause" title="Pause current print (M25)">Pause Print</button>
 											</div>
 											<div class="btn-group hidden">
-												<button class="btn btn-danger" id="btn_cancel">Cancel</button>
+												<button class="btn btn-danger" id="btn_cancel" title="Cancel paused print (M0)">Cancel</button>
 											</div>
 										</div>
 										
 										<div class="checkbox fan-control disabled">
-											<label>
+											<label title="Enforce a predefined fan value">
 												<input type="checkbox" id="override_fan" disabled/> Override Fan Value
 											</label>
 										</div>
 										
 										<div class="fan-control">
-											<input id="slider_fan_print" type="text" disabled/>
+											<input id="slider_fan_print" type="text" title="Set current fan value (via M106)" disabled/>
 										</div>
 										
 										<div class="checkbox disabled">
@@ -730,7 +761,7 @@
 										<span class="title">Speed Factor</span>
 									</div>
 									<div class="panel-body">
-										<input id="slider_speed" type="text"/>
+										<input id="slider_speed" type="text" title="Set speed factor (via M220)"/>
 									</div>
 								</div>
 							</div>
@@ -745,31 +776,31 @@
 											<tr class="extr-1">
 												<td>Extruder 1:</td>
 												<td>
-													<input id="slider_extr_1" type="text" data-drive="0"/>
+													<input id="slider_extr_1" type="text" title="Set extrude factor override (via M221)" data-drive="0"/>
 												</td>
 											</tr>
 											<tr class="extr-2">
 												<td>Extruder 2:</td>
 												<td>
-													<input id="slider_extr_2" type="text" data-drive="1"/>
+													<input id="slider_extr_2" type="text" title="Set extrude factor override (via M221)" data-drive="1"/>
 												</td>
 											</tr>
 											<tr class="extr-3">
 												<td>Extruder 3:</td>
 												<td>
-													<input id="slider_extr_3" type="text" data-drive="2"/>
+													<input id="slider_extr_3" type="text" title="Set extrude factor override (via M221)" data-drive="2"/>
 												</td>
 											</tr>
 											<tr class="extr-4">
 												<td>Extruder 4:</td>
 												<td>
-													<input id="slider_extr_4" type="text" data-drive="3"/>
+													<input id="slider_extr_4" type="text" title="Set extrude factor override (via M221)" data-drive="3"/>
 												</td>
 											</tr>
 											<tr class="extr-5">
 												<td>Extruder 5:</td>
 												<td>
-													<input id="slider_extr_5" type="text" data-drive="4"/>
+													<input id="slider_extr_5" type="text" title="Set extrude factor override (via M221)" data-drive="4"/>
 												</td>
 											</tr>
 										</table>
@@ -796,14 +827,14 @@
 								<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1">
 									<div class="btn-group btn-group-justified">
 										<div class="btn-group">
-											<button type="submit" class="btn btn-primary disabled"><span class="glyphicon glyphicon-send"></span> Send</button>
+											<button type="submit" class="btn btn-primary disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
 										</div>
 									</div>
 								</div>
 								<div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
 									<div class="btn-group btn-group-justified">
 										<div class="btn-group">
-											<button class="btn btn-default" id="btn_clear_log"><span class="glyphicon glyphicon-trash"></span> Clear Log</button>
+											<button class="btn btn-default" id="btn_clear_log" title="Clear G-Code Console"><span class="glyphicon glyphicon-trash"></span> Clear Log</button>
 										</div>
 									</div>
 								</div>
@@ -831,15 +862,15 @@
 											</ol>
 										</td>
 										<td class="hidden-xs hidden-sm hidden online-control">
-											<button class="btn btn-primary btn-upload disabled" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
+											<button class="btn btn-primary btn-upload disabled" title="Upload one or more G-Code files (drag&amp;drop is supported as well)" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
 										</td>
 										<td class="hidden-xs hidden online-control">
-											<button class="btn btn-info" id="btn_new_gcode_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
+											<button class="btn btn-info" id="btn_new_gcode_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
 										</td>
 									</tr>
 								</table>
 
-								<h1 class="text-center text-muted">Connnect to your Duet to display G-Code Files</h1>
+								<h1 class="text-center text-muted">Connnect to your Duet to display G-Code files</h1>
 								
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
 									<thead>
@@ -871,15 +902,15 @@
 											</ol>
 										</td>
 										<td class="hidden-xs hidden-sm hidden online-control">
-											<button class="btn btn-primary btn-upload disabled" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
+											<button class="btn btn-primary btn-upload disabled" title="Upload one or more macro files (drag&amp;drop is supported as well)" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
 										</td>
 										<td class="hidden-xs hidden online-control">
-											<button class="btn btn-info" id="btn_new_macro_directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
+											<button class="btn btn-info" id="btn_new_macro_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
 										</td>
 									</tr>
 								</table>
 								
-								<h1 class="text-center text-muted">Connnect to your Duet to display Macro Files</h1>
+								<h1 class="text-center text-muted">Connnect to your Duet to display Macro files</h1>
 							</div>
 							
 							<div class="col-xs-12 col-sm-10 col-sm-push-1 col-md-8 col-md-push-2 col-lg-6 col-lg-push-3">
@@ -916,10 +947,10 @@
 											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
 												<div class="btn-group-vertical btn-group-vertical-justified">
 													<div class="btn-group">
-														<button class="btn btn-danger btn-retract disabled" id="btn_unload_filament"><span class="glyphicon glyphicon-arrow-up"></span> Unload Filament</button>
+														<button class="btn btn-danger btn-retract disabled" id="btn_unload_filament" title="Unload current filament spool"><span class="glyphicon glyphicon-arrow-up"></span> Unload Filament</button>
 													</div>
 													<div class="btn-group">
-														<button class="btn btn-success btn-extrude disabled" id="btn_load_filament"><span class="glyphicon glyphicon-arrow-down"></span> Load Filament</button>
+														<button class="btn btn-success btn-extrude disabled" id="btn_load_filament" title="Load new filament spool"><span class="glyphicon glyphicon-arrow-down"></span> Load Filament</button>
 													</div>
 												</div>
 											</div>
@@ -929,15 +960,6 @@
 							</div>
 							<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 hidden">
 								<h1 class="text-center text-muted">TODO: charts for each spool, per-spool values like filament total, filament printed and filament left</h1>
-							</div>
-						</div>
-					</div>
-					
-					<!-- Tools -->
-					<div id="page_tools" class="page">
-						<div class="row">
-							<div class="col-md-12">
-								<!-- TODO -->
 							</div>
 						</div>
 					</div>
@@ -955,20 +977,16 @@
 					<div id="page_settings" class="page">
 						<form id="frm_settings">
 							<!-- Page Selector -->
-							<div class="row">
-								<div class="col-md-12">
-									<ul class="nav nav-tabs">
-										<li class="active"><a href="#">General</a></li>
-										<li class="hidden"><a href="#">List Items</a></li>
-										<li class="hidden"><a href="#">Firmware Settings</a></li>
-										<li class="hidden"><a href="#">Diagnostics</a></li>
-									</ul>
-								</div>
-							</div>
-							
-							<div class="tab-container">
+							<ul class="nav nav-tabs">
+								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
+								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
+								<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
+								<!--<li><a href="#page_advanced" data-toggle="tab">Advanced</a></li>-->
+							</ul>
+					
+							<div class="tab-content">
 								<!-- General Settings -->
-								<div class="row">
+								<div class="tab-pane row active" id="page_general">
 									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-left">
 										<div class="panel panel-default">
 											<div class="panel-heading">
@@ -986,7 +1004,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.03</td>
+														<td id="web_version">HTML: 1.04</td>
 													</tr>
 												</table>
 												<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1000,7 +1018,7 @@
 											<div class="panel-body">
 												<div class="btn-group-justified">
 													<div class="btn-group">
-														<button class="btn btn-lg btn-info btn-upload disabled" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
+														<button class="btn btn-lg btn-info btn-upload disabled" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
 													</div>
 												</div>
 											</div>
@@ -1015,45 +1033,56 @@
 											
 											<div class="panel-body">
 												<div class="checkbox">
-													<label>
+													<label title="Use half Z movements for more accurate Z positioning">
 														<input type="checkbox" id="half_z" /> Half Z Movements
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Log any successful G-Code in the G-Code Console">
 														<input type="checkbox" id="log_success" checked /> Log any successful G-Code
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Convert every G-Code to Upper-Case before sending them">
 														<input type="checkbox" id="uppercase_gcode" checked /> Always Convert G-Codes to Upper-Case
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Display file sizes with a base of 1024 instead of 1000">
 														<input type="checkbox" id="use_kib" /> Display File Sizes with Binary Prefix
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Show fan sliders to utilize M106 effectively">
 														<input type="checkbox" id="fan_sliders" checked /> Show Fan Sliders
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Show a small panel on the Control page to toggle ATX power">
 														<input type="checkbox" id="show_atx" checked /> Show ATX Power control
 													</label>
 												</div>
 												<div class="checkbox">
-													<label>
+													<label title="Confirm emergency stop by displaying a message box">
 														<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
 													</label>
 												</div>
 												
 												<label id="label_feedrate" for="move_feedrate">Default Move Button Feedrate:</label>
 												<div class="input-group">
-													<input type="number" id="move_feedrate" class="form-control">
+													<input type="number" id="move_feedrate" class="form-control" title="Default Feedrate for Head Movement controls" value="6000">
 													<span class="input-group-addon">mm/min</span>
+												</div>
+												
+												<label for="dropdown_language">Language:</label>
+												<div class="dropdown" id="dropdown_language">
+													<button class="btn btn-default dropdown-toggle" type="button" id="btn_language" data-language="en" data-toggle="dropdown">
+														<span>English</span>
+														<span class="caret"></span>
+													</button>
+													<ul class="dropdown-menu">
+														<li><a data-language="en" href="#">English</a></li>
+													</ul>
 												</div>
 											</div>
 										</div>
@@ -1068,37 +1097,234 @@
 											<div class="panel-body">
 												<label for="update_interval">Status Update Interval:</label>
 												<div class="input-group">
-													<input type="number" id="update_interval" class="form-control">
+													<input type="number" id="update_interval" class="form-control" title="Interval at which status updates are requested">
 													<span class="input-group-addon">ms</span>
 												</div>
 												
 												<label for="extended_status_interval">Extended Status Update after every:</label>
 												<div class="input-group">
-													<input type="number" id="extended_status_interval" class="form-control">
+													<input type="number" id="extended_status_interval" class="form-control" title="Extended status updates are requested after each n-th status response">
 													<span class="input-group-addon">th response</span>
 												</div>
 												
 												<label for="reconnect_delay">Reconnect Delay on Halt:</label>
 												<div class="input-group">
-													<input type="number" id="reconnect_delay" class="form-control">
+													<input type="number" id="reconnect_delay" class="form-control" title="Time to wait for a reconnect after an emergency stop was reported">
 													<span class="input-group-addon">ms</span>
 												</div>
 												
 												<label for="ajax_timeout">AJAX Timeout:</label>
 												<div class="input-group">
-													<input type="number" id="ajax_timeout" class="form-control">
+													<input type="number" id="ajax_timeout" class="form-control" title="Maximum time to wait for an AJAX request">
 													<span class="input-group-addon">ms</span>
 												</div>
 											</div>
 										</div>
 									</div>
 								</div>
+								
+								<!-- List Items -->
+								<div class="tab-pane row" id="page_listitems">
+									<div class="col-md-4 col-lg-4 col-left">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Default G-Codes</span>
+											</div>
+											<table class="table table-striped" id="table_gcodes">
+												<thead>
+													<tr>
+														<th>G-Code</th>
+														<th>Description</th>
+														<th></th>
+													</tr>
+												</thead>
+											</table>
+										</div>
+										
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Add new G-Code</span>
+											</div>
+											<div class="panel-body">
+												<table id="table_add_gcode">
+													<tr>
+														<td>
+															<label for="input_gcode">G-Code:</label>
+															<input type="text" class="form-control" id="input_gcode">
+														</td>
+														<td>
+															<label for="input_gcode_description">Description:</label>
+															<input type="text" class="form-control" id="input_gcode_description">
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="text-center">
+															<button class="btn btn-success disabled" id="btn_add_gcode" title="Add new G-Code item"><span class="glyphicon glyphicon-plus"></span> Add G-Code</button>
+														</td>
+													</tr>
+												</table>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4 col-lg-5">
+										<div class="panel panel-default" id="panel_head_temps">
+											<div class="panel-heading">
+												<span>Default Heater Temperatures</span>
+											</div>
+											<div class="panel-body">
+												<label>Which temperatures do you want to manage?</label>
+												<div class="radio">
+													<label>
+														<input type="radio" name="temp_selection" value="active" checked>Active Temperatures
+													</label>
+												</div>
+												<div class="radio">
+													<label>
+														<input type="radio" name="temp_selection" value="standby">Standby Temperatures
+													</label>
+												</div>
+												
+												<ul class="list-group temp-list" id="ul_active_temps"></ul>
+												
+												<ul class="list-group temp-list hidden" id="ul_standby_temps"></ul>
+											</div>
+										</div>
+										
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Add new Temperature</span>
+											</div>
+											<div class="panel-body">
+												<table class="table-add-temp">
+													<tr>
+														<td>
+															<label for="input_add_head_temp">Temperature:</label>
+															<div class="input-group">
+																<input type="number" class="form-control" id="input_add_head_temp">
+																<span class="input-group-addon">°C</span>
+															</div>
+														</td>
+														<td>
+															<button class="btn btn-success disabled" id="btn_add_head_temp" title="Add new temperature item"><span class="glyphicon glyphicon-plus"></span> Add Temp</button>
+														</td>
+													</tr>
+												</table>
+											</div>
+										</div>
+									</div>
+									<div class="col-md-4 col-lg-3 col-right">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Default Bed Temperatures</span>
+											</div>
+											<div class="panel-body">
+												<ul class="list-group temp-list" id="ul_bed_temps"></ul>
+											</div>
+										</div>
+										
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Add new Temperature</span>
+											</div>
+											<div class="panel-body">
+												<table class="table-add-temp">
+													<tr>
+														<td>
+															<label for="input_add_bed_temp">Temperature:</label>
+															<div class="input-group">
+																<input type="number" class="form-control" id="input_add_bed_temp">
+																<span class="input-group-addon">°C</span>
+															</div>
+														</td>
+														<td>
+															<button class="btn btn-success disabled" id="btn_add_bed_temp"><span class="glyphicon glyphicon-plus" title="Add new temperature item"></span> Add Temp</button>
+														</td>
+													</tr>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+								
+								<!-- Tools -->
+								<div class="tab-pane row" id="page_tools">
+									<div class="col-sm-12 col-md-7 col-lg-6">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Define new Tool</span>
+											</div>
+											<div class="panel-body">
+												<table id="table_define_tool">
+													<tr>
+														<td rowspan="2">
+															<label for="input_tool_number">Tool Number:</label>
+															<input type="number" min="0" max="255" value="127" class="form-control" id="input_tool_number" disabled>
+														</td>
+														<td>
+															<label for="check_heaters">Associated Heater(s):</label>
+															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_heaters">
+																<label class="btn btn-default disabled" title="Bed">
+																	<input type="checkbox" name="tool_heaters" value="0" disabled> Bed (0)
+																</label>
+																<label class="btn btn-primary active disabled" title="Heater 1">
+																	<input type="checkbox" name="tool_heaters" value="1" checked disabled> 1
+																</label>
+																<label class="btn btn-default disabled" title="Heater 2">
+																	<input type="checkbox" name="tool_heaters" value="2" disabled> 2
+																</label>
+																<label class="btn btn-default disabled" title="Heater 3">
+																	<input type="checkbox" name="tool_heaters" value="3" disabled> 3
+																</label>
+																<label class="btn btn-default disabled" title="Heater 4">
+																	<input type="checkbox" name="tool_heaters" value="4" disabled> 4
+																</label>
+															</div>
+														</td>
+													</tr>
+													<tr>
+														<td class="hidden"></td>
+														<td>
+															<label for="check_drives">Associated Drive(s):</label>
+															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_drives">
+																<label class="btn btn-primary active disabled" title="Extruder 1">
+																	<input type="checkbox" name="tool_drives" value="0" checked disabled> 0
+																</label>
+																<label class="btn btn-default disabled" title="Extruder 2">
+																	<input type="checkbox" name="tool_drives" value="1" disabled> 1
+																</label>
+																<label class="btn btn-default disabled" title="Extruder 3">
+																	<input type="checkbox" name="tool_drives" value="2" disabled> 2
+																</label>
+																<label class="btn btn-default disabled" title="Extruder 4">
+																	<input type="checkbox" name="tool_drives" value="3" disabled> 3
+																</label>
+																<label class="btn btn-default disabled" title="Extruder 5">
+																	<input type="checkbox" name="tool_drives" value="4" disabled> 4
+																</label>
+															</div>
+														</td>
+													</tr>
+													<tr>
+														<td colspan="2" class="text-center">
+															<button class="btn btn-success disabled" id="btn_add_tool" title="Define a new tool"><span class="glyphicon glyphicon-plus"></span> Add Tool</button>
+														</td>
+													</tr>
+												</table>
+											</div>
+										</div>
+									</div>
+								</div>
+								
+								<!-- Advanced -->
+								<div class="tab-pane row" id="page_advanced">
+									<!-- TODO -->
+								</div>
 							</div>
 							
-							<div class="row online-control">
+							<div class="row">
 								<div class="col-md-12 text-center">
-									<button type="submit" class="btn btn-lg btn-primary"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
-									<button class="btn btn-lg btn-warning" id="btn_reset_settings"><span class="glyphicon glyphicon-erase"></span> Load Factory Defaults</button>
+									<button type="submit" class="btn btn-lg btn-primary" title="Apply new settings from this page"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
+									<button class="btn btn-lg btn-warning" id="btn_reset_settings" title="Overwrite all saved settings with default values"><span class="glyphicon glyphicon-erase"></span> Load Factory Defaults</button>
 								</div>
 							</div>
 						</form>
@@ -1216,9 +1442,6 @@
 									<th>Progress</th>
 								</tr>
 							</thead>
-							<tbody>
-								<!-- See JS -->
-							</tbody>
 						</table>
 					</div>
 					<div class="modal-footer">
