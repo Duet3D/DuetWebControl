@@ -2723,7 +2723,7 @@ function setCurrentTemperature(heater, temperature) {
 	}
 	
 	if (heater != "bed" && lastStatusResponse != undefined) {
-		if (lastStatusResponse.currentTool > 0) {
+		if (lastStatusResponse.currentTool != -1) {
 			var isActiveHead = false;
 			getToolsByHeater(heater).forEach(function(tool) { if (tool == lastStatusResponse.currentTool) { isActiveHead = true; } });
 			if (isActiveHead) {
