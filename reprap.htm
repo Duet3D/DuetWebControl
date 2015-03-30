@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.04
+<!--	Duet Web Control v1.05
 	
 		written by Christian Hammacher
 	
@@ -385,7 +385,7 @@
 			<!-- Content -->
 			<div class="row">
 				<!-- Sidebar -->
-				<div class="col-sm-3 col-md-2 col-lg-2" id="sidebar">
+				<div class="col-sm-3 col-md-2 col-lg-2 sidebar">
 					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
 						<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
@@ -979,6 +979,7 @@
 							<!-- Page Selector -->
 							<ul class="nav nav-tabs">
 								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
+								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
 								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
 								<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
 								<!--<li><a href="#page_advanced" data-toggle="tab">Advanced</a></li>-->
@@ -1004,7 +1005,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.04</td>
+														<td id="web_version">HTML: 1.05</td>
 													</tr>
 												</table>
 												<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1074,7 +1075,7 @@
 													<span class="input-group-addon">mm/min</span>
 												</div>
 												
-												<label for="dropdown_language">Language:</label>
+												<label>Language:</label>
 												<div class="dropdown" id="dropdown_language">
 													<button class="btn btn-default dropdown-toggle" type="button" id="btn_language" data-language="en" data-toggle="dropdown">
 														<span>English</span>
@@ -1246,6 +1247,11 @@
 									</div>
 								</div>
 								
+								<!-- Configuration File -->
+								<div class="tab-pane row" id="page_config">
+									<div class="col-md-12" id="div_config"><!-- See JS --></div>
+								</div>
+								
 								<!-- Tools -->
 								<div class="tab-pane row" id="page_tools">
 									<div class="col-sm-12 col-md-7 col-lg-6">
@@ -1261,7 +1267,7 @@
 															<input type="number" min="0" max="255" value="127" class="form-control" id="input_tool_number" disabled>
 														</td>
 														<td>
-															<label for="check_heaters">Associated Heater(s):</label>
+															<label>Associated Heater(s):</label>
 															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_heaters">
 																<label class="btn btn-default disabled" title="Bed">
 																	<input type="checkbox" name="tool_heaters" value="0" disabled> Bed (0)
@@ -1282,9 +1288,8 @@
 														</td>
 													</tr>
 													<tr>
-														<td class="hidden"></td>
 														<td>
-															<label for="check_drives">Associated Drive(s):</label>
+															<label>Associated Drive(s):</label>
 															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_drives">
 																<label class="btn btn-primary active disabled" title="Extruder 1">
 																	<input type="checkbox" name="tool_drives" value="0" checked disabled> 0
@@ -1339,6 +1344,11 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			
+			<!-- Sidebar Continuation -->
+			<div class="row">
+				<div class="col-sm-3 col-md-2 col-lg-2 sidebar sidebar-continuation"></div>
 			</div>
 		</div>
 		

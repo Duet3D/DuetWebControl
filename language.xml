@@ -204,6 +204,7 @@
 		<string t="Spools">Spulen</string>
 		<string t="Maintenance">Wartung</string>
 		<string t="Settings">Einstellungen</string>
+		<string t="Configuration File">Konfigurationsdatei</string>
 		<string t="List Items">Listeneinträge</string>
 		
 		<!-- Tooltips / Titles -->
