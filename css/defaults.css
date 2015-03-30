@@ -154,10 +154,6 @@ label {
 	margin-top: 3px;
 }
 
-.navbar-default {
-	margin-bottom: 12px;
-}
-
 .navbar-brand {
 	float: none;
 	font-size: 20px;
@@ -165,6 +161,10 @@ label {
 	padding-left: 15px !important;
 	padding-top: 15px !important;
 	padding-right: 0px !important;
+}
+
+.navbar-default {
+	margin-bottom: 0px;
 }
 
 @media (max-width: 767px) {
@@ -257,6 +257,7 @@ label {
 
 #row_info {
 	background-color: #FFFFFF;
+	padding-top: 12px;
 }
 
 .span-collapse {
@@ -321,20 +322,28 @@ div.panel table.table-status:not(:last-child)
 
 /* Sidebar navigation */
 
-#sidebar {
-	display: none;
+.sidebar {
+	padding-left: 20px;
+	padding-right: 20px;
+	padding-top: 0px;
+	background-color: #f5f5f5;
+	border-right: 1px solid #bfbfbf;
+	border-top: 1px solid #bfbfbf;
 }
-@media (min-width: 768px) {
-	#sidebar {
-		display: block;
-		padding-left: 20px;
-		padding-right: 20px;
-		padding-top: 0px;
-		background-color: #f5f5f5;
-		border-right: 1px solid #bfbfbf;
-		border-top: 1px solid #bfbfbf;
-		overflow: hidden;
+@media (max-width: 767px) {
+	.sidebar,
+	.sidebar-continuaton {
+		display: none;
 	}
+}
+
+.sidebar-continuation {
+	border-top: 0px;
+	height: 100vh;
+	position: fixed;
+	top: 0px;
+	bottom: 0px;
+	z-index: -9999;
 }
 
 .nav-sidebar {

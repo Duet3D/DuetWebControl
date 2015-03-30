@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.04
+/* Interface logic for the Duet Web Control v1.05
  * 
  * written by Christian Hammacher
  * 
@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.04;
+var jsVersion = 1.05;
 var sessionPassword = "reprap";
 var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
@@ -93,7 +93,8 @@ var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to 
 /* Variables */
 
 var isConnected = false, justConnected, isPrinting, isPaused, isUploading;
-var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, lastSendGCode, lastGCodeFromInput;
+var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, configResponse;
+var lastSendGCode, lastGCodeFromInput;
 
 var haveFileInfo, fileInfo;
 var maxLayerTime, lastLayerPrintDuration;
@@ -118,7 +119,7 @@ function resetGuiData() {
 	setGeometry("cartesian");
 	
 	justConnected = haveFileInfo = isUploading = false;
-	fileInfo = lastStatusResponse = undefined;
+	fileInfo = lastStatusResponse = configResponse = undefined;
 	
 	lastSendGCode = "";
 	lastGCodeFromInput = false;
@@ -201,14 +202,13 @@ function postConnect() {
 	isConnected = justConnected = true;
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
 	
-	// Ask for firmware version (TODO: collect this one from rr_config instead sometime in the future)
-	sendGCode("M115");
-	
 	updateStatus();
 	if (currentPage == "files") {
 		updateGCodeFiles();
 	} else if (currentPage == "control" || currentPage == "macros") {
 		updateMacroFiles();
+	} else if (currentPage == "settings") {
+		getConfigResponse();
 	}
 	
 	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text(T("Disconnect"));
@@ -436,10 +436,9 @@ function updateStatus() {
 							var content = (lastSendGCode != "") ? "<strong>" + lastSendGCode + "</strong><br/>" : "";
 							if (response.match("^Error: ") != null) {
 								style = "warning";
-								content = "<strong>Error:</strong>" + response.substring(6).replace(/\n/g, "<br/>");
-							} else {
-								content += response.replace(/\n/g, "<br/>")
+								response = response.replace(/Error:/g, "<strong>Error:</strong>");
 							}
+							content += response.replace(/\n/g, "<br/>")
 							log(style, content);
 								
 							// If it the console isn't visible and if it was caused by an ordinary input, show message dialog
@@ -453,14 +452,9 @@ function updateStatus() {
 							}
 						}
 						
-						// See if we can obtain some firmware information
-						if (lastSendGCode == "M115") {
-							var matches = response.match('FIRMWARE_NAME\:(.*) FIRMWARE_VERSION\:(.*) ELECTRONICS.*DATE\:(.*)');
-							if (matches != null) {
-								$("#firmware_name").text(matches[1]);
-								$("#firmware_version").text(matches[2] + " (" + matches[3] + ")");
-							}
-						}
+						// Reset info about last sent G-Code
+						lastSendGCode = "";
+						lastGCodeFromInput = false;
 					}
 				});
 			}
@@ -644,9 +638,6 @@ function updateStatus() {
 			// Update the GUI when we have processed the whole status response
 			if (needGuiUpdate) {
 				updateGui();
-				if (extendedStatusCounter > 1) {
-					extendedStatusCounter = settings.extendedStatusInterval;
-				}
 			}
 			drawTemperatureChart();
 			
@@ -662,6 +653,18 @@ function updateStatus() {
 			
 			// Save the last status response
 			lastStatusResponse = status;
+		}
+	});
+}
+
+function getConfigResponse() {
+	$.ajax("rr_config", {
+		dataType: "json",
+		success: function(response) {
+			configResponse = response;
+			$("#firmware_name").text(response.firmwareName);
+			$("#firmware_version").text(response.firmwareVersion + " (" + response.firmwareDate + ")");
+			$("#div_config").html(response.configFile.replace(/\n/g, "<br/>"));
 		}
 	});
 }
@@ -1312,7 +1315,8 @@ function resetGui() {
 	updateMacroFiles();
 	
 	// Settings
-	$("#firmware_name #firmware_version").html("n/a");
+	$("#firmware_name, #firmware_version").html("n/a");
+	$("#div_config").html("");
 	
 	// Modal dialogs
 	$("#modal_upload").modal("hide");
@@ -1450,6 +1454,7 @@ $("body").on("click", ".btn-remove-tool", function(e) {
 	var tool = $(this).parents("div.panel-body").data("tool");
 	showConfirmationDialog(T("Delete Tool"), T("Are you sure you wish to remove tool {0}?", tool), function() {
 		sendGCode("M563 P" + tool + " D-1 H-1");
+		extendedStatusCounter = settings.extendedStatusInterval;
 	});
 	e.preventDefault();
 });
@@ -1618,6 +1623,8 @@ $("#btn_add_tool").click(function(e) {
 	}
 	
 	sendGCode(gcode);
+	extendedStatusCounter = settings.extendedStatusInterval;
+	
 	e.preventDefault();
 });
 
@@ -1651,7 +1658,6 @@ $(".btn-emergency-stop").click(function() {
 
 $("#btn_clear_log").click(function(e) {
 	$("#console_log").html("");
-	$(window).resize();
 	log("info", "<strong>" + T("Message Log cleared!") + "</strong>");
 	e.preventDefault();
 });
@@ -1948,27 +1954,6 @@ $("#input_temp_all_active, #input_temp_all_standby").keydown(function(e) {
 	}
 });
 
-// Using JavaScript to adjust heights is rather ugly, but well supported by many browsers
-$(window).resize(function() {
-	// Undo height adjustments
-	$("#sidebar, #console_log").css("height", "");
-	
-	// Adjust sidebar height
-	var contentHeight = Math.max($("#main_content").height(), $("#sidebar").height());
-	var relWindowHeight = $(window).height() - $("#sidebar").offset().top;
-	var sidebarHeight = Math.max(contentHeight, relWindowHeight);
-	$("#sidebar").css("height", sidebarHeight + "px");
-	
-	// Adjust G-Code console height
-	if (currentPage == "console") {
-		var consoleHeight = sidebarHeight - ($("#console_log").offset().top - $("#sidebar").offset().top);
-		$("#console_log").css("height", Math.max(consoleHeight, $("#console_log").height()) + "px");
-	}
-});
-$("a[data-toggle='tab']").on("shown.bs.tab", function (e) {
-	$(window).resize();
-});
-
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 
 $(".navlink").click(function(e) {
@@ -2046,7 +2031,9 @@ $("#table_heaters a").click(function(e) {
 				sendGCode("T" + tools[0]);
 				$(this).blur();
 			} else if (tools.length > 0) {
-				if ($(this).parent().children("div.popover").length > 0) {
+				var popover = $(this).parent().children("div.popover");
+				if (popover.length) {
+					$(this).popover("hide");
 					$(this).blur();
 				} else {
 					var content = '<div class="btn-group-vertical btn-group-vertical-justified">';
@@ -2061,8 +2048,7 @@ $("#table_heaters a").click(function(e) {
 						title: T("Select Tool"),
 						trigger: "manual",
 						placement: "bottom",
-					});
-					$(this).popover("show");
+					}).popover("show");
 				}
 			}
 		}
@@ -2640,10 +2626,6 @@ function log(style, message) {
 	entry +=		'<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
 	entry +=		'<div class="col-xs-10 col-sm-10 col-md-10 col-lg-11">' + message + '</div></div>';
 	$("#console_log").prepend(entry);
-	
-	if (currentPage == "console") {
-		$(window).resize();
-	}
 }
 
 function recordHeaterTemperatures(bedTemp, headTemps) {
@@ -3157,7 +3139,6 @@ function showPage(name) {
 		
 		if (name == "console") {
 			currentPage = "console";
-			$(window).resize();
 			if (window.matchMedia('(min-width: 992px)').matches) {
 				$("#page_console input").focus();
 			}
@@ -3181,6 +3162,10 @@ function showPage(name) {
 			}
 		} else {
 			$(".span-refresh-macros").addClass("hidden");
+		}
+		
+		if (name == "settings" && isConnected) {
+			getConfigResponse();
 		}
 	}
 	currentPage = name;
