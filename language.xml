@@ -56,7 +56,7 @@
 		<string t="Turn everything off">Alles abschalten</string>
 		<string t="Home All">Alle Homen</string>
 		<string t="Auto Bed Compensation">Automatische Bettkompensation</string>
-		<string t="Auto Calibration">Automatische Kalibrierung</string>
+		<string t="Auto Delta Calibration">Automatische Delta-Kalibrierung</string>
 		<string t="Extrude">Extrudieren</string>
 		<string t="Retract">Zurückziehen</string>
 		<string t="Clear Log">Konsole Leeren</string>
@@ -71,6 +71,7 @@
 		<string t="Load Filament">Filament laden</string>
 		<string t="General">Allgemein</string>
 		<string t="Upload File(s)">Datei(en) hochladen</string>
+		<string t="Connect automatically">Automatisch verbinden</string>
 		<string t="Half Z Movements">Halbe Z-Bewegungen</string>
 		<string t="Log any successful G-Code">Jeden erfolgreichen G-Code protokollieren</string>
 		<string t="Always Convert G-Codes to Upper-Case">G-Codes immer in Großbuchstaben umwandeln</string>
@@ -99,8 +100,9 @@
 		<string t="Bowden Tube Length:">Länge des Bowden-Zugs:</string>
 		<string t="G-Codes Directory">G-Codes Verzeichnis</string>
 		<string t="Macros Directory">Makro Verzeichnis</string>
-		<string t="Connnect to your Duet to display G-Code files">Stellen Sie eine Verbindung zu Ihrem Duet her um G-Code Dateien anzuzeigen</string>
-		<string t="Connnect to your Duet to display Macro files">Stellen Sie eine Verbindung zu Ihrem Duet her um Makrodateien anzuzeigen</string>
+		<string t="Connect to your Duet to display G-Code files">Stellen Sie eine Verbindung zu Ihrem Duet her um G-Code Dateien anzuzeigen</string>
+		<string t="Connect to your Duet to display Macro files">Stellen Sie eine Verbindung zu Ihrem Duet her um Makrodateien anzuzeigen</string>
+		<string t="Connect to your Duet to display the configuration file">Stellen Sie eine Verbindung zu Ihrem Duet her um die Konfigurationsdatei anzuzeigen</string>
 		<string t="Unload current filament spool">Aktuelle Filamentspule entladen</string>
 		<string t="Load new filament spool">Neue Filamentspule laden</string>
 		<string t="Default Move Button Feedrate:">Standardmäßige Bewegungsgeschwindigkeit:</string>
@@ -145,7 +147,7 @@
 		<string t="UI Timing">Timing der Benutzeroberfläche</string>
 		<string t="Default G-Codes">Standardmäßige G-Codes</string>
 		<string t="Default Heater Temperatures">Standardmäßige Heizertemperaturen</string>
-		<string t="Default Bed Temperatures">Standardmäßige Betttemperaturen</string>
+		<string t="Default Bed and Chamber Temperatures">Standardmäßige Bett- und Kammertemperaturen</string>
 		<string t="Add new G-Code">Neuen G-Code hinzufügen</string>
 		<string t="Add new Temperature">Neue Temperatur hinzufügen</string>
 		<string t="Define new Tool">Neues Tool definieren</string>
@@ -160,10 +162,22 @@
 		<string t="Heater 2">Heizer 2</string>
 		<string t="Heater 3">Heizer 3</string>
 		<string t="Heater 4">Heizer 4</string>
+		<string t="Heater 5">Heizer 5</string>
 		<string t="Bed">Bett</string>
+		<string t="Chamber">Kammer</string>
 		<string t="Head Position">Kopf-
 			Position</string>
 		<string t="Extruder Drives">Extruder</string>
+		<string t="Drive 1">Motor 1</string>
+		<string t="Drive 2">Motor 2</string>
+		<string t="Drive 3">Motor 3</string>
+		<string t="Drive 4">Motor 4</string>
+		<string t="Drive 5">Motor 5</string>
+		<string t="D1">M1</string>
+		<string t="D2">M2</string>
+		<string t="D3">M3</string>
+		<string t="D4">M4</string>
+		<string t="D5">M5</string>
 		<string t="Sensors">Sensoren</string>
 		<string t="Fan RPM">Lüfter-RPM</string>
 		<string t="ATX Power:">ATX-Versorgung:</string>
@@ -232,6 +246,7 @@
 		<string t="Upload one or more macro files (drag&amp;drop is supported as well)">Eine oder mehr Makros hochladen (Drag&amp;Drop wird ebenfalls unterstützt)</string>
 		<string t="Run this macro file (M98)">Dieses Makro starten (M98)</string>
 		<string t="Delete this macro">Dieses Makro löschen</string>
+		<string t="Connect automatically to the Duet once the web interface is ready">Automatisch zum Duet verbinden sobald die Weboberfläche geladen ist</string>
 		<string t="Use half Z movements for more accurate Z positioning">Halbe Z-Bewegungen für genauere Z-Positionierung verwenden</string>
 		<string t="Log any successful G-Code in the G-Code Console">Jeden erfolgreichen G-Code in der G-Code Konsole protokollieren</string>
 		<string t="Convert every G-Code to Upper-Case before sending them">Vor dem Senden jeden G-Code in Großbuchstaben konvertieren</string>

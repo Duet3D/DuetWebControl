@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.05
+<!--	Duet Web Control v1.06
 	
 		written by Christian Hammacher
 	
@@ -43,7 +43,10 @@
 					</div>
 					<span class="label label-default label-status pull-right navbar-label visible-xs">Disconnected</span>
 					
-					<a class="navbar-brand visible-xs">Duet Web Control</a>
+					<a class="navbar-brand visible-xs">
+						<!-- <img class="brand-sm" src="img/rrp_small.png"> -->
+						<span class="machine-name">Duet Web Control</span>
+					</a>
 				</div>
 					
 				<!-- Regular navbar entries -->
@@ -73,7 +76,16 @@
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 					
 					<ul class="nav nav-justified hidden-xs">
-						<li><a href="#" class="navbar-brand">Duet Web Control</a></li>
+						<li>
+							<a href="#" class="navbar-brand">
+							<!--
+								<img class="brand-sm" src="img/rrp_small.png">
+								<img class="brand-lg" src="img/rrp_large.png">
+								<span class="brand-lg">-</span>
+							-->
+								<span class="machine-name">Duet Web Control</span>
+							</a>
+						</li>
 					</ul>
 				</div>
 				
@@ -228,7 +240,7 @@
 								</td>
 							</tr>
 							
-							<tr id="tr_head_3">
+							<tr id="tr_head_3" class="hidden">
 								<th>
 									<a href="#">Heater 3<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
@@ -256,7 +268,7 @@
 								</td>
 							</tr>
 							
-							<tr id="tr_head_4">
+							<tr id="tr_head_4" class="hidden">
 								<th>
 									<a href="#">Heater 4<span class="caret hidden"></span></a>
 									<span class="text-muted"></span>
@@ -284,15 +296,62 @@
 								</td>
 							</tr>
 							
+							<tr id="tr_head_5" class="hidden">
+								<th>
+									<a href="#">Heater 5<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h5_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h5_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+							</tr>
+							
 							<tr id="tr_bed">
 								<th>
-									Bed
+									<a href="#">Bed</a>
 									<span class="text-muted"></span>
 								</th>
 								<td>n/a</td>
 								<td>
 									<div class="input-group input-group-sm">
 										<input type="number" class="form-control" value="0" id="input_temp_bed" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+								<td></td>
+							</tr>
+							
+							<tr id="tr_chamber" class="hidden">
+								<th>
+									Chamber
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td>
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_chamber" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
@@ -353,17 +412,17 @@
 								<th class="hidden"><!-- only for HTML validation --></th>
 								<th class="hidden-md extr-1">D1</th>
 								<th class="hidden-md extr-2">D2</th>
-								<th class="hidden-md extr-3">D3</th>
-								<th class="hidden-md extr-4">D4</th>
-								<th class="hidden-md extr-5">D5</th>
+								<th class="hidden-md hidden extr-3">D3</th>
+								<th class="hidden-md hidden extr-4">D4</th>
+								<th class="hidden-md hidden extr-5">D5</th>
 							</tr>
 							<tr>
 								<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
 								<td id="td_extr_1" class="hidden-md extr-1">n/a</td>
 								<td id="td_extr_2" class="hidden-md extr-2">n/a</td>
-								<td id="td_extr_3" class="hidden-md extr-3">n/a</td>
-								<td id="td_extr_4" class="hidden-md extr-4">n/a</td>
-								<td id="td_extr_5" class="hidden-md extr-5">n/a</td>
+								<td id="td_extr_3" class="hidden-md hidden extr-3">n/a</td>
+								<td id="td_extr_4" class="hidden-md hidden extr-4">n/a</td>
+								<td id="td_extr_5" class="hidden-md hidden extr-5">n/a</td>
 							</tr>
 						</table>
 						
@@ -371,11 +430,11 @@
 							<tr>
 								<th rowspan="2" class="th-status">Sensors</th>
 								<th>Z-Probe</th>
-								<th>Fan RPM</th>
+								<th class="fan-control">Fan RPM</th>
 							</tr>
 							<tr>
 								<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
-								<td id="td_fanrpm" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
+								<td id="td_fanrpm" class="fan-control" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
 							</tr>
 						</table>
 					</div>
@@ -870,7 +929,7 @@
 									</tr>
 								</table>
 
-								<h1 class="text-center text-muted">Connnect to your Duet to display G-Code files</h1>
+								<h1 class="text-center text-muted">Connect to your Duet to display G-Code files</h1>
 								
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
 									<thead>
@@ -910,7 +969,7 @@
 									</tr>
 								</table>
 								
-								<h1 class="text-center text-muted">Connnect to your Duet to display Macro files</h1>
+								<h1 class="text-center text-muted">Connect to your Duet to display Macro files</h1>
 							</div>
 							
 							<div class="col-xs-12 col-sm-10 col-sm-push-1 col-md-8 col-md-push-2 col-lg-6 col-lg-push-3">
@@ -1005,7 +1064,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.05</td>
+														<td id="web_version">HTML: 1.06</td>
 													</tr>
 												</table>
 												<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1033,6 +1092,11 @@
 											</div>
 											
 											<div class="panel-body">
+												<div class="checkbox">
+													<label title="Connect automatically to the Duet once the web interface is ready">
+														<input type="checkbox" id="auto_connect" /> Connect automatically
+													</label>
+												</div>
 												<div class="checkbox">
 													<label title="Use half Z movements for more accurate Z positioning">
 														<input type="checkbox" id="half_z" /> Half Z Movements
@@ -1216,7 +1280,7 @@
 									<div class="col-md-4 col-lg-3 col-right">
 										<div class="panel panel-default">
 											<div class="panel-heading">
-												<span>Default Bed Temperatures</span>
+												<span>Default Bed and Chamber Temperatures</span>
 											</div>
 											<div class="panel-body">
 												<ul class="list-group temp-list" id="ul_bed_temps"></ul>
@@ -1249,7 +1313,9 @@
 								
 								<!-- Configuration File -->
 								<div class="tab-pane row" id="page_config">
-									<div class="col-md-12" id="div_config"><!-- See JS --></div>
+									<div class="col-md-12" id="div_config">
+										<h1 class="text-center text-muted">Connect to your Duet to display the configuration file</h1>
+									</div>
 								</div>
 								
 								<!-- Tools -->
@@ -1283,6 +1349,9 @@
 																</label>
 																<label class="btn btn-default disabled" title="Heater 4">
 																	<input type="checkbox" name="tool_heaters" value="4" disabled> 4
+																</label>
+																<label class="btn btn-default disabled" title="Heater 5">
+																	<input type="checkbox" name="tool_heaters" value="5" disabled> 5
 																</label>
 															</div>
 														</td>
