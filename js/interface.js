@@ -1545,7 +1545,7 @@ $("body").on("click", ".heater-temp", function(e) {
 	if (inputElement.prop("id").indexOf("all") == -1) {
 		var heater = inputElement.prop("id").match("_h(.)_")[1];
 		getToolsByHeater(heater).forEach(function(tool) {
-			sendGCode("G10 P" + configtool + " " + activeOrStandby + temperature);
+			sendGCode("G10 P" + tool + " " + activeOrStandby + temperature);
 		});
 	} else {
 		if (toolMapping != undefined) {
