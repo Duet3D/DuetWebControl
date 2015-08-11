@@ -140,7 +140,6 @@ function resetGuiData() {
 	layerData = [];
 	recordedHeadTemperatures = [[], [], [], [], []];
 	
-	layerData = [];
 	maxLayerTime = lastLayerPrintDuration = 0;
 	
 	setToolMapping(undefined);
@@ -293,6 +292,7 @@ function updateStatus() {
 			// Machine Name
 			if (status.hasOwnProperty("name")) {
 				$(".machine-name").html(status.name);
+				$("head > title").text(status.name);
 			}
 			
 			// Probe Parameters (maybe hide probe info for type 0 someday?)
@@ -1305,6 +1305,7 @@ function resetGui() {
 	
 	// Navbar
 	$(".machine-name").html("Duet Web Control");
+	$("head > title").text("Duet Web Control")
 	setStatusLabel("Disconnected", "default");
 	
 	// Heater Temperatures
@@ -2822,12 +2823,12 @@ function setCurrentTemperature(heater, temperature) {
 function setGeometry(g) {
 	// The following may be extended in future versions
 	if (g == "delta") {
-		$("#btn_bed_compensation > span").text(T("Auto Delta Calibration"));
+		$("#btn_bed_compensation").text(T("Auto Delta Calibration"));
 		$(".home-buttons div, div.home-buttons").addClass("hidden");
 		$("td.home-buttons").css("padding-right", "0px");
 		$("#btn_homeall").css("width", "");
 	} else {
-		$("#btn_bed_compensation > span").text(T("Auto Bed Compensation"));
+		$("#btn_bed_compensation").text(T("Auto Bed Compensation"));
 		$(".home-buttons div, div.home-buttons").removeClass("hidden");
 		$("td.home-buttons").css("padding-right", "");
 		$("#btn_homeall").resize();
@@ -3534,6 +3535,7 @@ function uploadNextFile() {
 				case "ico":
 				case "html":
 				case "htm":
+				case "xml":
 					targetPath = "/www/" + uploadFileName;
 					break;
 					
