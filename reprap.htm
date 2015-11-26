@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.06
+<!--	Duet Web Control v1.07
 	
 		written by Christian Hammacher
 	
@@ -10,7 +10,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="viewport" content="width=device-width">
 		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
 		<meta name="author" content="Christian Hammacher">
 		<link rel="icon" href="favicon.ico">
@@ -26,7 +26,7 @@
 	
 	<body>
 		<!-- Navigation Bar -->
-		<nav class="navbar navbar-default" role="navigation">
+		<nav class="navbar navbar-default">
 			<div class="container-fluid">
 				<!-- Grouping for better mobile display -->
 				<div class="navbar-header collapsed">
@@ -46,6 +46,7 @@
 					<a class="navbar-brand visible-xs">
 						<!-- <img class="brand-sm" src="img/rrp_small.png"> -->
 						<span class="machine-name">Duet Web Control</span>
+						<abbr title="Some axes are not homed" class="hidden home-warning"><span class="glyphicon glyphicon-alert"></span></abbr>
 					</a>
 				</div>
 					
@@ -84,6 +85,7 @@
 								<span class="brand-lg">-</span>
 							-->
 								<span class="machine-name">Duet Web Control</span>
+								<abbr title="Some axes are not homed" class="hidden home-warning small"><span class="glyphicon glyphicon-alert"></span></abbr>
 							</a>
 						</li>
 					</ul>
@@ -95,7 +97,7 @@
 						<table class="table navbar-table">
 							<tr>
 								<td>
-									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> Connect</button>
+									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
 								</td>
 								<td>
 									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
@@ -324,6 +326,34 @@
 								</td>
 							</tr>
 							
+							<tr id="tr_head_6" class="hidden">
+								<th>
+									<a href="#">Heater 6<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h6_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h6_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+							</tr>
+							
 							<tr id="tr_bed">
 								<th>
 									<a href="#">Bed</a>
@@ -415,6 +445,7 @@
 								<th class="hidden-md hidden extr-3">D3</th>
 								<th class="hidden-md hidden extr-4">D4</th>
 								<th class="hidden-md hidden extr-5">D5</th>
+								<th class="hidden-md hidden extr-6">D6</th>
 							</tr>
 							<tr>
 								<td id="td_extr_total" class="hidden-xs hidden-sm hidden-lg">n/a</td>
@@ -423,6 +454,7 @@
 								<td id="td_extr_3" class="hidden-md hidden extr-3">n/a</td>
 								<td id="td_extr_4" class="hidden-md hidden extr-4">n/a</td>
 								<td id="td_extr_5" class="hidden-md hidden extr-5">n/a</td>
+								<td id="td_extr_6" class="hidden-md hidden extr-6">n/a</td>
 							</tr>
 						</table>
 						
@@ -558,7 +590,7 @@
 									</div>
 								</div>
 								
-								<div class="alert alert-warning hidden" id="home_warning">
+								<div class="alert alert-warning hidden home-warning">
 									<span class="glyphicon glyphicon-warning-sign"></span>
 									<span id="unhomed_warning">The following axes are not homed: <strong id="unhomed_axes">X, Y, Z</strong></span>
 								</div>
@@ -716,18 +748,16 @@
 									
 									<table class="table table-bordered table-condensed">
 										<tr>
-											<th class="col-layertime hidden">Current Layer Time</th>
-											<th>Print Duration</th>
 											<th>Warm-Up Time</th>
 											<th>First Layer Time</th>
-											<th>First Layer Height</th>
+											<th class="col-layertime">Current Layer Time</th>
+											<th>Print Duration</th>
 										</tr>
 										<tr>
-											<td class="col-layertime hidden" id="td_curr_layer">n/a</td>
-											<td id="td_print_duration">n/a</td>
 											<td id="td_warmup_time">n/a</td>
 											<td id="td_fl_time">n/a</td>
-											<td id="td_fl_height">n/a</td>
+											<td class="col-layertime" id="td_curr_layer">n/a</td>
+											<td id="td_print_duration">n/a</td>
 										</tr>
 									</table>
 								</div>
@@ -862,6 +892,12 @@
 													<input id="slider_extr_5" type="text" title="Set extrude factor override (via M221)" data-drive="4"/>
 												</td>
 											</tr>
+											<tr class="extr-6">
+												<td>Extruder 5:</td>
+												<td>
+													<input id="slider_extr_6" type="text" title="Set extrude factor override (via M221)" data-drive="5"/>
+												</td>
+											</tr>
 										</table>
 									</div>
 								</div>
@@ -934,7 +970,8 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
 									<thead>
 										<tr>
-											<th></th>
+											<th colspan="2"></th>
+											<th class="hidden"><!-- only for HTML validation --></th>
 											<th>File Name</th>
 											<th class="hidden-xs">Size</th>
 											<th>Object Height</th>
@@ -943,6 +980,7 @@
 											<th class="hidden-xs hidden-sm">Generated by</th>
 										</tr>
 									</thead>
+									<!-- ignore other validation error; this is filled up during runtime -->
 								</table>
 							</div>
 						</div>
@@ -976,11 +1014,13 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
 									<thead>
 										<tr>
-											<th></th>
+											<th colspan="2"></th>
+											<th class="hidden"><!-- only for HTML validation --></th>
 											<th>File Name</th>
 											<th>Size</th>
 										</tr>
 									</thead>
+									<!-- ignore other validation error; this is filled up during runtime -->
 								</table>
 							</div>
 						</div>
@@ -1023,31 +1063,36 @@
 						</div>
 					</div>
 					
-					<!-- Maintenance -->
-					<div id="page_maintenance" class="page">
-						<div class="row">
-							<div class="col-md-12">
-								<!-- TODO: maintenance reminder and bed levelling assistant -->
-							</div>
-						</div>
-					</div>
-					
 					<!-- Settings -->
 					<div id="page_settings" class="page">
 						<form id="frm_settings">
-							<!-- Page Selector -->
-							<ul class="nav nav-tabs">
+							<!-- Page Selector (Desktop) -->
+							<ul class="nav nav-tabs hidden-xs hidden-sm">
 								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
-								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
 								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
+								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
+								<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 								<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
-								<!--<li><a href="#page_advanced" data-toggle="tab">Advanced</a></li>-->
+							</ul>
+							
+							<!-- Page Selector (Mobile) -->
+							<ul class="nav nav-tabs visible-xs visible-sm">
+								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
+								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
+								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
+								<li>
+									<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
+									<ul class="dropdown-menu" id="collapsed">
+										<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
+										<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
+									</ul>
+								</li>
 							</ul>
 					
 							<div class="tab-content">
 								<!-- General Settings -->
 								<div class="tab-pane row active" id="page_general">
-									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-left">
+									<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-left">
 										<div class="panel panel-default">
 											<div class="panel-heading">
 												<span>Software Information</span>
@@ -1064,10 +1109,12 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.06</td>
+														<td id="web_version">HTML: 1.07</td>
 													</tr>
 												</table>
-												<span id="copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
+												<br/>
+												<span id="theme_notice" class="hidden">Dark theme kindly provided by Fotomas</span>
 											</div>
 										</div>
 										
@@ -1084,7 +1131,7 @@
 											</div>
 										</div>
 									</div>
-								
+									
 									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
 										<div class="panel panel-default">
 											<div class="panel-heading">
@@ -1132,6 +1179,11 @@
 														<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
 													</label>
 												</div>
+												<div class="checkbox">
+													<label title="Use dark theme by Fotomas">
+														<input type="checkbox" id="dark_theme" /> Use dark theme
+													</label>
+												</div>
 												
 												<label id="label_feedrate" for="move_feedrate">Default Move Button Feedrate:</label>
 												<div class="input-group">
@@ -1139,7 +1191,7 @@
 													<span class="input-group-addon">mm/min</span>
 												</div>
 												
-												<label>Language:</label>
+												<label id="label_language">Language:</label>
 												<div class="dropdown" id="dropdown_language">
 													<button class="btn btn-default dropdown-toggle" type="button" id="btn_language" data-language="en" data-toggle="dropdown">
 														<span>English</span>
@@ -1153,7 +1205,7 @@
 										</div>
 									</div>
 									
-									<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-right">
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-right">
 										<div class="panel panel-default" id="panel_ui_timing">
 											<div class="panel-heading">
 												<span>UI Timing</span>
@@ -1318,6 +1370,155 @@
 									</div>
 								</div>
 								
+								<!-- Machine Properties -->
+								<div class="tab-pane row" id="page_machine">
+									<div class="col-xs-12 col-sm-12 col-md-9 col-lg-10">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Drive Configuration</span>
+											</div>
+											<table class="table table-striped">
+												<tr>
+													<th>Drive</th>
+													<th>Endstop hit</th>
+													<th>Minimum</th>
+													<th>Maximum</th>
+													<th>InstantDv</th>
+													<th>Max Speed</th>
+													<th class="hidden-xs">Acceleration</th>
+													<th class="hidden-xs hidden-sm">Motor Current</th>
+												</tr>
+												<tr id="tr_drive_0">
+													<td>0</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_1">
+													<td>1</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_2">
+													<td>2</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_3">
+													<td>3</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_4">
+													<td>4</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_5">
+													<td>5</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_6">
+													<td>6</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_7">
+													<td>7</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+												<tr id="tr_drive_8">
+													<td>8</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
+											</table>
+										</div>
+									</div>
+									<div class="col-xs-6 col-sm-6 col-md-3 col-lg-2 col-right">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Z-Probe</span>
+											</div>
+											<div class="panel-body">
+												<dl>
+													<dt>Type:</dt>
+													<dd id="dd_probe_type">n/a</dd>
+													<dt>Trigger Height:</dt>
+													<dd id="dd_probe_height">n/a</dd>
+													<dt>Trigger Value:</dt>
+													<dd id="dd_probe_value">n/a</dd>
+												</dl>
+											</div>
+										</div>
+									</div>
+									<div class="col-xs-6 col-sm-6 col-md-3 col-lg-2 col-right">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Other</span>
+											</div>
+											<div class="panel-body">
+												<dl>
+													<dt>Geometry:</dt>
+													<dd id="dd_geometry">n/a</dd>
+													<dt>Motor Idle Current Factor:</dt>
+													<dd id="dd_idle_current">n/a</dd>
+													<dt>Motor Idle Timeout:</dt>
+													<dd id="dd_idle_timeout">n/a</dd>
+												</dl>
+												
+												<button id="btn_fw_diagnostics" type="button" class="btn btn-info"><span class="glyphicon glyphicon-dashboard"></span> Firmware Diagnostics</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								
 								<!-- Tools -->
 								<div class="tab-pane row" id="page_tools">
 									<div class="col-sm-12 col-md-7 col-lg-6">
@@ -1335,9 +1536,6 @@
 														<td>
 															<label>Associated Heater(s):</label>
 															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_heaters">
-																<label class="btn btn-default disabled" title="Bed">
-																	<input type="checkbox" name="tool_heaters" value="0" disabled> Bed (0)
-																</label>
 																<label class="btn btn-primary active disabled" title="Heater 1">
 																	<input type="checkbox" name="tool_heaters" value="1" checked disabled> 1
 																</label>
@@ -1352,6 +1550,9 @@
 																</label>
 																<label class="btn btn-default disabled" title="Heater 5">
 																	<input type="checkbox" name="tool_heaters" value="5" disabled> 5
+																</label>
+																<label class="btn btn-default disabled" title="Heater 6">
+																	<input type="checkbox" name="tool_heaters" value="6" disabled> 6
 																</label>
 															</div>
 														</td>
@@ -1375,6 +1576,9 @@
 																<label class="btn btn-default disabled" title="Extruder 5">
 																	<input type="checkbox" name="tool_drives" value="4" disabled> 4
 																</label>
+																<label class="btn btn-default disabled" title="Extruder 6">
+																	<input type="checkbox" name="tool_drives" value="5" disabled> 5
+																</label>
 															</div>
 														</td>
 													</tr>
@@ -1388,29 +1592,15 @@
 										</div>
 									</div>
 								</div>
-								
-								<!-- Advanced -->
-								<div class="tab-pane row" id="page_advanced">
-									<!-- TODO -->
-								</div>
 							</div>
 							
-							<div class="row">
+							<div class="row" id="row_save_settings">
 								<div class="col-md-12 text-center">
 									<button type="submit" class="btn btn-lg btn-primary" title="Apply new settings from this page"><span class="glyphicon glyphicon-ok"></span> Apply Settings</button>
 									<button class="btn btn-lg btn-warning" id="btn_reset_settings" title="Overwrite all saved settings with default values"><span class="glyphicon glyphicon-erase"></span> Load Factory Defaults</button>
 								</div>
 							</div>
 						</form>
-					</div>
-				
-					<!-- Help -->
-					<div id="page_help" class="page">
-						<div class="row">
-							<div class="col-md-12">
-								<!-- TODO -->
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
