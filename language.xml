@@ -767,7 +767,7 @@
 		<string t="Feed amount in mm:">Matning i mm:</string>
 		<string t="Feedrate in mm/sec:">Matningshastighet i mm/s:</string>
 		<string t="Go to the Macros page to define your own actions">Gå till makrosidan för att definera egna makron</string>
-		<string t="Override Fan Value">Tvinga fläktläge</string>
+		<string t="Override Fan Value">Tvinga fläkthastighet</string>
 		<string t="Bowden Tube Length:">Längd på Bowden-rör:</string>
 		<string t="G-Codes Directory">Mapp för G-koder</string>
 		<string t="Macros Directory">Mapp för makron</string>
@@ -851,7 +851,7 @@
 		<string t="Sensors">Sensorer</string>
 		<string t="Fan RPM">Fläktvarvtal</string>
 		<string t="ATX Power:">ATX-kraft:</string>
-		<string t="Fan Control:">Fläktkontroll:</string>
+		<string t="Fan Control:">Fläkthastighet:</string>
 		<string t="File Name">Filnamn</string>
 		<string t="Object Height">Objektshöjd</string>
 		<string t="Layer Height">Lagertjocklek</string>
@@ -980,7 +980,7 @@
 		<string t="You can only upload and print one file at once!">Du kan bara ladda upp och skriva ut en fil i taget!</string>
 		<string t="Filename">Filnamn</string>
 		<string t="Size">Storlek</string>
-		<string t="Progress">Framsteg</string>
+		<string t="Progress">Förlopp</string>
 		<string t="Uploading File(s), {0}% Complete">Laddar upp fil(er), {0}% klart</string>
 		<string t="Starting">Startar</string>
 		<string t="ERROR">FEL</string>
