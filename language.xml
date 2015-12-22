@@ -989,6 +989,38 @@
 		<string t="Cancel Upload(s)">Avbryt uppladdning(ar)</string>
 		<string t="Close">Stäng</string>
 		<string t="Are you sure you wish to remove tool {0}?">Är du säker på att du vill ta bort verktyg {0}?</string>
+
+		<!-- New in v1.07 -->
+		<string t="Reboot Duet?">Starta om Duet?</string>
+		<string t="You have just uploaded a config file. Would you like to reboot your Duet now?">Du har precis laddat upp en konfigurationsfil. Vill du starta om din Duet nu?</string>
+		<string t="Warning">Varning</string>
+		<string t="Some axes are not homed">Några axlar är inte i startläge</string>
+		<string t="Machine Properties">Maskininställningar</string>
+		<string t="Drive Configuration">Motorkonfiguration</string>
+		<string t="Drive">Motor</string>
+		<string t="Endstop hit">Ändläge träffat</string>
+		<string t="Max Speed">Maxhastighet</string>
+		<string t="Acceleration">Acceleration</string>
+		<string t="Motor Current">Motorström</string>
+		<string t="Type:">Typ:</string>
+		<string t="Switch (0)">Brytare (0)</string>
+		<string t="Unmodulated (1)">Omodulerad (1)</string>
+		<string t="Modulated (2)">Modulerad (2)</string>
+		<string t="Alternative (3)">Alternativ (3)</string>
+		<string t="Two Switches (4)">Två brytare (4)</string>
+		<string t="Unknown ({0})">Okänt ({0})</string>
+		<string t="Trigger Height:">Utslagshöjd:</string>
+		<string t="Trigger Value:">Utslagsvärde:</string>
+		<string t="Other">Annat</string>
+		<string t="Geometry:">Geometri:</string>
+		<string t="Cartesian">Kertesisk</string>
+		<string t="Motor Idle Current Factor:">Inaktiv strömfaktor för motorer:</string>
+		<string t="Motor Idle Timeout:">Timeout för inaktivt motorläge:</string>
+		<string t="never">aldrig</string>
+		<string t="Firmware Diagnostics">Mjukvarudiagnostik</string>
+		<string t="Use dark theme">Använd mörkt tema</string>
+		<string t="Use dark theme by Fotomas">Använd mörkt tema av Fotomas</string>
+		<string t="Dark theme kindly provided by Fotomas">Mörkt tema vänligt tillhandahållen av Fotomas</string>
 	</sv>
 	<ch name="中文">
 		<!-- JavaScript Strings -->
