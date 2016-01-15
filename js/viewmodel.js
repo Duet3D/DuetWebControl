@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.06
+/* Interface logic for the Duet Web Control v1.08
  * 
  * written by Christian Hammacher
  * 
@@ -6,1305 +6,78 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.07;
-var sessionPassword = "reprap";
-var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
-
-/* Constants */
-
 var maxTemperatureSamples = 1000;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var tempChart;
 var tempChartOptions = 	{
-							colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#00FFFF", "#000000"],
-							grid: {
-								borderWidth: 0
-							},
-							xaxis: {
-								show: false
-							},
-							yaxis: {
-								min: 0,
-								max: 280
-							}
-						};
+	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#00FFFF", "#000000"],
+	grid: {
+		borderWidth: 0
+	},
+	xaxis: {
+		show: false
+	},
+	yaxis: {
+		min: 0,
+		max: 280
+	}
+};
 var tempChartPadding = 15;
 
 var printChart;
 var printChartOptions =	{
-							colors: ["#EDC240"],
-							grid: {
-								borderWidth: 0
-							},
-							pan: {
-								interactive: true
-							},
-							xaxis: {
-								min: 0,
-								tickDecimals: 0,
-							},
-							yaxis: {
-								min: 0,
-								max: 60,
-								ticks: 5,
-								tickDecimals: 0,
-								tickFormatter: function(val) { if (!val) { return ""; } else { return val + "s"; } }
-							},
-							zoom: {
-								interactive: true
-							}
-						};
-						
-/* Settings */
-
-var settings = {
-	autoConnect: true,				// automatically connect once the page has loaded
-	
-	updateInterval: 250,			// in ms
-	haltedReconnectDelay: 5000,		// in ms
-	extendedStatusInterval: 10,		// nth status request will include extended values
-	maxRequestTime: 8000,			// time to wait for a status response in ms
-	
-	halfZMovements: false,			// use half Z movements
-	logSuccess: false,				// log all sucessful G-Codes in the console
-	uppercaseGCode: true,			// convert G-Codes to upper-case before sending them
-	useKiB: true,					// display file sizes in KiB instead of KB
-	showFanControl: false,			// show fan controls
-	showATXControl: false,			// show ATX control
-	confirmStop: false,				// ask for confirmation when pressing Emergency STOP
-	useDarkTheme: false,			// load dark theme by Fotomas
-	moveFeedrate: 6000,				// in mm/min
-	
-	defaultActiveTemps: [0, 170, 195, 205, 210, 235, 245, 250],
-	defaultStandbyTemps: [0, 95, 120, 155, 170],
-	defaultBedTemps: [0, 55, 65, 90, 110, 120],
-	defaultGCodes: [
-		["M0", "Stop"],
-		["M1", "Sleep"],
-		["M84", "Motors Off"],
-		["M561", "Disable bed compensation"]
-	],
-	
-	language: "en",
-	
-	bowdenLength: 500				// in mm
-};
-var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
-
-/* Variables */
-
-var isConnected = false, justConnected, isPrinting, isPaused, isUploading, isWaitingForFileInfo;
-var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, configResponse;
-var lastSendGCode, lastGCodeFromInput;
-
-var haveFileInfo, fileInfo;
-var maxLayerTime, lastLayerPrintDuration;
-
-var geometry, probeSlowDownValue, probeTriggerValue;
-var heatedBed, chamber, numHeads, numExtruderDrives, toolMapping;
-var coldExtrudeTemp, coldRetractTemp;
-
-var recordedBedTemperatures, recordedChamberTemperatures, recordedHeadTemperatures, layerData;
-var currentLayerTimeBlocked, keepProgress;
-
-var currentPage = "control", refreshTempChart = false, refreshPrintChart = false, waitingForPrintStart;
-var translationData, darkThemeInclude;
-
-var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
-var currentMacroDirectory, nownMacroFiles, macroUpdateIndex, macroLastDirectory;
-
-var fanSliderActive, speedSliderActive, extrSliderActive;
-
-function resetGuiData() {
-	setPauseStatus(false);
-	setPrintStatus(false);
-	setGeometry("cartesian");
-	
-	justConnected = haveFileInfo = isUploading = isWaitingForFileInfo = false;
-	fileInfo = lastStatusResponse = configResponse = undefined;
-	
-	lastSendGCode = "";
-	lastGCodeFromInput = false;
-	
-	probeSlowDownValue = probeTriggerValue = undefined;
-	heatedBed = 1;
-	chamber = 0;
-	numHeads = 2;			// 6 Heaters max, only 2 are visible on load
-	numExtruderDrives = 2;	// 6 Extruder Drives max, only 2 are visible on load
-	
-	coldExtrudeTemp = 160;
-	coldRetractTemp = 90;
-	
-	recordedBedTemperatures = [];
-	recordedChamberTemperatures = [];
-	layerData = [];
-	recordedHeadTemperatures = [[], [], [], [], [], []];
-	currentLayerTimeBlocked = false;
-	
-	maxLayerTime = lastLayerPrintDuration = 0;
-	
-	setToolMapping(undefined);
-	
-	knownGCodeFiles = knownMacroFiles = [];
-	gcodeUpdateIndex = macroUpdateIndex = -1;
-	currentGCodeDirectory = "/gcodes";
-	currentMacroDirectory = "/macros";
-	
-	waitingForPrintStart = fanSliderActive = speedSliderActive = extrSliderActive = false;
-}
-
-/* Connect / Disconnect */
-
-function connect(password, firstConnect) {
-	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text(T("Connecting..."));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
-	$.ajax("rr_connect?password=" + password, {
-		dataType: "json",
-		error: function() {
- 			showMessage("exclamation-sign", T("Error"), T("Could not establish connection to the Duet firmware!<br/><br/>Please check your settings and try again."), "md");
-			$("#modal_message").one("hide.bs.modal", function() {
-				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-			});
+	colors: ["#EDC240"],
+	grid: {
+		borderWidth: 0,
+		hoverable: true,
+		clickable: true
+	},
+	pan: {
+		interactive: true
+	},
+	series: {
+		lines: {
+			show: true
 		},
-		success: function(data) {
-			if (data.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				showMessage("exclamation-sign", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), "md");
-				$("#modal_message").one("hide.bs.modal", function() {
-					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-				});
-			}
-			else if (firstConnect)
-			{
-				if (data.err == 0) {	// No password authentication required
-					sessionPassword = password;
-					postConnect();
-				}
-				else {					// We can connect, but we need a password first
-					showPasswordPrompt();
-				}
-			}
-			else {
-				if (data.err == 0) {	// Connect successful
-					sessionPassword = password;
-					postConnect();
-				} else {
-					showMessage("exclamation-sign", T("Error"), T("Invalid password!"), "sm");
-					$("#modal_message").one("hide.bs.modal", function() {
-						$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-						$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-					});
-				}
-			}
+		points: {
+			show: true
 		}
-	});
-}
+	},
+	xaxis: {
+		min: 1,
+		tickDecimals: 0,
+	},
+	yaxis: {
+		min: 0,
+		max: 30,
+		ticks: 5,
+		tickDecimals: 0,
+		tickFormatter: function(val) { if (!val) { return ""; } else { return val + "s"; } }
+	},
+	zoom: {
+		interactive: true
+	}
+};
 
-function postConnect() {
-	log("success", "<strong>" + T("Connection established!") + "</strong>");
-	
-	isConnected = justConnected = true;
-	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
-	
-	updateStatus();
-	if (currentPage == "files") {
-		updateGCodeFiles();
-	} else if (currentPage == "control" || currentPage == "macros") {
-		updateMacroFiles();
-	} else if (currentPage == "settings") {
-		getConfigResponse();
-	}
-	
-	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text(T("Disconnect"));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
-	
-	enableControls();
-	validateAddTool();
-}
+var webcamUpdating = false;
 
-function disconnect() {
-	if (isConnected) {
-		log("danger", "<strong>" + T("Disconnected.") + "</strong>");
-	}
-	isConnected = false;
-	
-	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
-	
-	$.ajax("rr_disconnect", { dataType: "json", global: false });
-	ajaxRequests.forEach(function(request) {
-		request.abort();
-	});
-	ajaxRequests = [];
-	
-	resetGuiData();
-	resetGui();
-	updateGui();
-	
-	disableControls();
-	validateAddTool();
-	setToolMapping(undefined);
-}
-
-/* AJAX */
-
-function updateStatus() {
-	if (isUploading || isWaitingForFileInfo) {
-		// Don't poll for status updates while uploading data or while waiting for rr_fileinfo
-		return;
-	}
-	
-	var ajaxRequest = "rr_status";
-	if (extendedStatusCounter >= settings.extendedStatusInterval || (currentPage == "settings" && (!isPrinting || extendedStatusCounter != 0))) {
-		extendedStatusCounter = 0;
-		ajaxRequest += "?type=2";
-	} else if (isPrinting) {
-		ajaxRequest += "?type=3";
-	} else {
-		ajaxRequest += "?type=1";
-	}
-	extendedStatusCounter++;
-	
-	$.ajax(ajaxRequest, {
-		dataType: "json",
-		success: function(status) {
-			// Don't process this one if we're no longer connected
-			if (!isConnected) {
-				return;
-			}
-			var needGuiUpdate = false;
-			
-			/*** Extended status response ***/
-			
-			// Cold Extrusion + Retraction Temperatures
-			if (status.hasOwnProperty("coldExtrudeTemp")) {
-				coldExtrudeTemp = status.coldExtrudeTemp;
-			}
-			if (status.hasOwnProperty("coldRetractTemp")) {
-				coldRetractTemp = status.coldRetractTemp;
-			}
-			
-			// Endstops
-			if (status.hasOwnProperty("endstops")) {
-				var endstops = status.endstops;
-				for(i=0; i<9; i++) {
-					var displayText;
-					if (endstops & (1 << i)) {
-						displayText = T("Yes");
-					} else {
-						displayText = T("No");
-					}
-					
-					$("#tr_drive_" + i + " > td:nth-child(2)").text(displayText);
-				}
-			}
-			
-			// Printer Geometry
-			if (status.hasOwnProperty("geometry")) {
-				setGeometry(status.geometry);
-			}
-			
-			// Machine Name
-			if (status.hasOwnProperty("name")) {
-				setTitle(status.name);
-			}
-			
-			// Probe Parameters (maybe hide probe info for type 0 someday?)
-			if (status.hasOwnProperty("probe")) {
-				probeTriggerValue = status.probe.threshold;
-				probeSlowDownValue = probeTriggerValue * 0.9;	// see Platform::Stopped in dc42/ch firmware forks
-				
-				var probeType;
-				switch (status.probe.type) {
-					case 0:
-						probeType = T("Switch (0)");
-						break;
-					case 1:
-						probeType = T("Unmodulated (1)");
-						break;
-					case 2:
-						probeType = T("Modulated (2)");
-						break;
-					case 3:
-						probeType = T("Alternative (3)");
-						break;
-					case 4:
-						probeType = T("Two Switches (4)");
-						break;
-					default:
-						probeType = T("Unknown ({0})", status.probe.type);
-						break;
-				}
-				$("#dd_probe_type").text(probeType);
-				$("#dd_probe_height").text(status.probe.height + " mm");
-				$("#dd_probe_value").text(probeTriggerValue);
-			}
-			
-			// Tool Mapping
-			if (status.hasOwnProperty("tools")) {
-				setToolMapping(status.tools);
-			}
-			
-			/*** Default status response ***/
-			
-			// Status
-			var printing = false, paused = false;
-			switch (status.status) {
-				case 'H':	// Halted
-					setStatusLabel("Halted", "danger");
-					break;
-					
-				case 'D':	// Pausing / Decelerating
-					setStatusLabel("Pausing", "warning");
-					printing = true;
-					paused = true;
-					break;
-				
-				case 'S':	// Paused / Stopped
-					setStatusLabel("Paused", "info");
-					printing = true;
-					paused = true;
-					break;
-					
-				case 'R':	// Resuming
-					setStatusLabel("Resuming", "warning");
-					printing = true;
-					paused = true;
-					break;
-					
-				case 'P':	// Printing
-					setStatusLabel("Printing", "success");
-					printing = true;
-					break;
-					
-				case 'B':	// Busy
-					setStatusLabel("Busy", "warning");
-					break;
-					
-				case 'I':	// Idle
-					setStatusLabel("Idle", "default");
-					break;
-			}
-			setPrintStatus(printing);
-			setPauseStatus(paused);
-			justConnected = false;
-			
-			// Set homed axes
-			setAxesHomed(status.coords.axesHomed);
-			
-			// Update extruder drives
-			if (status.coords.extr.length != numExtruderDrives) {
-				numExtruderDrives = status.coords.extr.length;
-				needGuiUpdate = true;
-			}
-			for(var i=1; i<=numExtruderDrives; i++) {
-				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
-			}
-			if (numExtruderDrives > 0) {
-				$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
-			} else {
-				$("#td_extr_total").html("n/a");
-			}
-			
-			// XYZ coordinates
-			if (geometry == "delta" && !status.coords.axesHomed[0]) {
-				$("#td_x, #td_y, #td_z").html("n/a");
-			} else {
-				$("#td_x").html(status.coords.xyz[0].toFixed(2));
-				$("#td_y").html(status.coords.xyz[1].toFixed(2));
-				$("#td_z").html(status.coords.xyz[2].toFixed(2));
-			}
-			
-			// Current Tool
-			if (lastStatusResponse != undefined && lastStatusResponse.currentTool != status.currentTool) {
-				var btn = $("div.panel-body[data-tool='" + lastStatusResponse.currentTool + "'] > button.btn-select-tool");
-				btn.attr("title", T("Select this tool"));
-				btn.find("span:last-child").text(T("Select"));
-				btn.find("span.glyphicon").removeClass("glyphicon-remove").addClass("glyphicon-pencil");
-				
-				btn = $("div.panel-body[data-tool='" + status.currentTool + "'] > button.btn-select-tool");
-				btn.attr("title", T("Select this tool"));
-				btn.find("span.glyphicon").removeClass("glyphicon-remove").addClass("glyphicon-pencil");
-				btn.find("span:last-child").text(T("Deselect"));
-			}
-			
-			// Output
-			if (status.hasOwnProperty("output")) {
-				if (status.output.hasOwnProperty("beepDuration") && status.output.hasOwnProperty("beepFrequency")) {
-					beep(status.output.beepFrequency, status.output.beepDuration);
-				}
-				if (status.output.hasOwnProperty("message")) {
-					showMessage("envelope", T("Message from Duet firmware"), status.output.message, "md");
-				}
-			}
-			
-			// ATX Power
-			setATXPower(status.params.atxPower);
-			
-			// Fan Control
-			var newFanValue = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent[0] : status.params.fanPercent;
-			if (!fanSliderActive && (lastStatusResponse == undefined || $("#slider_fan_print").slider("getValue") != newFanValue)) {
-				if ($("#override_fan").is(":checked") && settings.showFanControl) {
-					sendGCode("M106 S" + ($("#slider_fan_print").slider("getValue") / 100.0));
-				} else {
-					$("#slider_fan_control").slider("setValue", newFanValue);
-					$("#slider_fan_print").slider("setValue", newFanValue);
-				}
-			}
-			
-			// Speed Factor
-			if (!speedSliderActive && (lastStatusResponse == undefined || $("#slider_speed").slider("getValue") != status.params.speedFactor)) {
-				$("#slider_speed").slider("setValue", status.params.speedFactor);
-			}
-			if (!extrSliderActive) {
-				for(var i=0; i<status.params.extrFactors.length; i++) {
-					var extrSlider = $("#slider_extr_" + (i + 1));
-					if (lastStatusResponse == undefined || extrSlider.slider("getValue") != status.params.extrFactors) {
-						extrSlider.slider("setValue", status.params.extrFactors[i]);
-					}
-				}
-			}
-			
-			// Fetch the latest G-Code response from the server
-			if (lastStatusResponse == undefined || lastStatusResponse.seq != status.seq) {
-				$.ajax("rr_reply", {
-					dataType: "html",
-					success: function(response) {
-						response = response.trim();
-						
-						// Log message (if necessary)
-						var logThis = (response != "");
-						logThis |= (lastSendGCode != "" && (lastGCodeFromInput || settings.logSuccess));
-						if (logThis) {
-							// Log this message in the console
-							var style = (response == "") ? "success" : "info";
-							var content = (lastSendGCode != "") ? "<strong>" + lastSendGCode.replace(/\n/g, "<br/>") + "</strong><br/>" : "";
-							if (response.match("^Error: ") != null) {
-								style = "warning";
-								response = response.replace(/Error:/g, "<strong>Error:</strong>");
-							}
-							content += response.replace(/\n/g, "<br/>")
-							log(style, content);
-								
-							// If it the console isn't visible and if it was caused by an ordinary input, show message dialog
-							if (lastGCodeFromInput && lastSendGCode != "" && response != "" && currentPage != "console") {
-								var icon = (style == "warning" ? "exclamation-sign" : "info-sign");
-								if (response.match("^Error: ") != null) {
-									showMessage("warning-sign", T("{0} returned an error", lastSendGCode), response.substring(6).replace(/\n/g, "<br/>"), "md");
-								} else {
-									showMessage("info-sign", lastSendGCode, response.replace(/\n/g, "<br/>"), "md");
-								}
-							}
-						}
-						
-						// Reset info about last sent G-Code
-						lastSendGCode = "";
-						lastGCodeFromInput = false;
-					}
-				});
-			}
-			
-			// Sensors
-			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
-			$("#td_fanrpm").html(status.sensors.fanRPM);
-			
-			// Heated bed
-			var bedTemp = undefined;
-			if (status.temps.hasOwnProperty("bed")) {
-				if (!heatedBed) {
-					heatedBed = 1;
-					needGuiUpdate = true;
-				}
-				
-				bedTemp = status.temps.bed.current;
-				setCurrentTemperature("bed", status.temps.bed.current);
-				setTemperatureInput("bed", status.temps.bed.active, 1);
-				setHeaterState("bed", status.temps.bed.state, status.currentTool);
-			} else if (heatedBed) {
-				heatedBed = 0;
-				needGuiUpdate = true;
-			}
-			
-			// Chamber
-			var chamberTemp = undefined;
-			if (status.temps.hasOwnProperty("chamber")) {
-				if (!chamber)
-				{
-					chamber = 1;
-					needGuiUpdate = true;
-				}
-				
-				chamberTemp = status.temps.chamber.current;
-				setCurrentTemperature("chamber", chamberTemp);
-				setTemperatureInput("chamber", status.temps.chamber.active, 1);
-				setHeaterState("chamber", status.temps.chamber.state, status.currentTool);
-			} else if (chamber) {
-				chamber = 0;
-				needGuiUpdate = true;
-			}
-			
-			// Heads
-			if (status.temps.heads.current.length != numHeads) {
-				numHeads = status.temps.heads.current.length;
-				needGuiUpdate = true;
-			}
-			for(var i=0; i<status.temps.heads.current.length; i++) {
-				setCurrentTemperature(i + 1, status.temps.heads.current[i]);
-				setTemperatureInput(i + 1, status.temps.heads.active[i], 1);
-				setTemperatureInput(i + 1, status.temps.heads.standby[i], 0);
-				setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
-			}
-			recordHeaterTemperatures(bedTemp, chamberTemp, status.temps.heads.current);
-			
-			/*** Print status response ***/
-			
-			if (status.hasOwnProperty("fractionPrinted")) {
-				if (!keepProgress) {
-					if (haveFileInfo) {
-						var progress = 100, progressText = [];
-						
-						// Get the current layer progress text
-						if (fileInfo.height > 0 && fileInfo.layerHeight > 0) {
-							var numLayers;
-							if (status.firstLayerHeight > 0) {
-								numLayers = ((fileInfo.height - status.firstLayerHeight) / fileInfo.layerHeight) + 1;
-							} else {
-								numLayers = (fileInfo.height / fileInfo.layerHeight);
-							}
-							numLayers = numLayers.toFixed();
-							progressText.push(T("Layer: {0} of {1}", status.currentLayer, numLayers));
-						}
-						
-						// Try to calculate the progress by checking the filament usage
-						if (fileInfo.filament.length > 0) {
-							var totalFileFilament = (fileInfo.filament.reduce(function(a, b) { return a + b; })).toFixed(1);
-							var totalRawFilament = (status.extrRaw.reduce(function(a, b) { return a + b; })).toFixed(1);
-							progress = ((totalRawFilament / totalFileFilament) * 100.0).toFixed(1);
-							progressText.push(T("Filament Usage: {0}mm of {1}mm", totalRawFilament, totalFileFilament));
-							
-							if (remainingFilament <= 0.0) {
-								remainingFilament = 0;
-								keepProgress = true;
-							}
-							var remainingFilament = (totalFileFilament - totalRawFilament);
-							progressText[progressText.length - 1] += " " + T("({0}mm remaining)", remainingFilament.toFixed(1));
-							
-						}
-						// Otherwise by comparing the current Z position to the total height
-						else if (fileInfo.height > 0) {
-							progress = ((status.coords.xyz[2] / fileInfo.height) * 100.0).toFixed(1);
-							if (progress > 100) {
-								progress = 100;
-							}
-						}
-						// Use the file-based progress as a fallback option
-						else {
-							progress = status.fractionPrinted;
-							if (progress < 0) {
-								progress = 100;
-							}
-						}
-						
-						// Ensure we stay within reasonable boundaries
-						if (progress < 0) {
-							progress = 0;
-						} else if (progress > 100) {
-							progress = 100;
-						}
-						
-						// Update info texts
-						setProgress(progress, T("Printing {0}, {1}% Complete", fileInfo.fileName, progress), 
-									(progressText.length > 0) ? progressText.reduce(function(a, b) { return a + ", " + b; }) : "");
-					} else {
-						if (status.fractionPrinted > 0) {
-							setProgress(status.fractionPrinted, T("{0}% Complete", status.fractionPrinted), "");
-						}
-					}
-				}
-				
-				// Print Chart
-				if (status.currentLayer > 1) {
-					var realPrintTime = (status.printDuration - status.warmUpDuration - status.firstLayerDuration);
-					if (layerData.length == 0) {
-						addLayerData(status.firstLayerDuration);
-						if (status.currentLayer > 2) {						// add avg values on reconnect
-							realPrintTime -= status.currentLayerTime;
-							for(var layer=2; layer<status.currentLayer; layer++) {
-								addLayerData(realPrintTime / (status.currentLayer - 1));
-							}
-						}
-						
-						if (status.currentLayer == 2) {
-							lastLayerPrintDuration = 0;
-						} else {
-							lastLayerPrintDuration = realPrintTime;
-						}
-					} else if (status.currentLayer > layerData.length) {	// there are two entries for the first layer
-						addLayerData(realPrintTime - lastLayerPrintDuration);
-						lastLayerPrintDuration = realPrintTime;
-						
-						$("#td_curr_layer").addClass("layer-done-animation");
-						currentLayerTimeBlocked = true;
-						setTimeout(function() {
-							$("#td_curr_layer").removeClass("layer-done-animation");
-							currentLayerTimeBlocked = false;
-						}, 2000);
-					}
-				} else if (layerData.length > 0) {
-					layerData = [];
-					maxLayerTime = lastLayerPrintDuration = 0;
-					drawPrintChart();
-				}
-				
-				// Print Estimations
-				if (haveFileInfo && fileInfo.filament.length > 0) {
-					setTimeLeft("filament", status.timesLeft.filament);
-				} else {
-					setTimeLeft("filament", undefined);
-				}
-				setTimeLeft("file", status.timesLeft.file);
-				if (haveFileInfo && fileInfo.height > 0) {
-					setTimeLeft("layer", status.timesLeft.layer);
-				} else {
-					setTimeLeft("layer", undefined);
-				}
-				
-				// First Layer Duration
-				if (status.firstLayerDuration > 0) {
-					$("#td_fl_time").html(convertSeconds(status.firstLayerDuration));
-				} else {
-					$("#td_fl_time").html("n/a");
-				}
-				
-				// First Layer Height (maybe we need to update the layer height info)
-				if (status.firstLayerHeight > 0 && $("#dd_layer_height").html().indexOf("/") == -1)
-				{
-					$("#dd_layer_height").html(status.firstLayerHeight + " mm / " + $("#dd_layer_height").html());
-				}
-				
-				// Current Layer Time
-				if (!currentLayerTimeBlocked) {
-					if (status.currentLayerTime > 0) {
-						$("#td_curr_layer").html(convertSeconds(status.currentLayerTime));
-					} else {
-						$("#td_curr_layer").html("n/a");
-					}
-				}
-				
-				// Print Duration
-				if (status.printDuration > 0) {
-					$("#td_print_duration").html(convertSeconds(status.printDuration));
-				} else {
-					$("#td_print_duration").html("n/a");
-				}
-				
-				// Warm-Up Time
-				if (status.warmUpDuration > 0 || status.firstLayerHeight > 0) {
-					if (status.warmUpDuration == 0) {
-						$("#td_warmup_time").html(T("none"));
-					} else {
-						$("#td_warmup_time").html(convertSeconds(status.warmUpDuration));
-					}
-				} else if (status.printDuration > 0 && haveFileInfo && fileInfo.filament.length) {
-					$("#td_warmup_time").html(convertSeconds(status.printDuration));
-				} else {
-					$("#td_warmup_time").html("n/a");
-				}
-			}
-			
-			// Update the GUI when we have processed the whole status response
-			if (needGuiUpdate) {
-				updateGui();
-			}
-			drawTemperatureChart();
-			
-			// Set timer for next status update
-			if (status.status != 'H') {
-				setTimeout(updateStatus, settings.updateInterval);
-			} else {
-				log("danger", "<strong>" + T("Emergency Stop!") + "</strong>");
-				setTimeout(function() {
-					connect(sessionPassword, false);
-				}, settings.haltedReconnectDelay);
-			}
-			
-			// Save the last status response
-			lastStatusResponse = status;
-		}
-	});
-}
-
-function getConfigResponse() {
-	$.ajax("rr_config", {
-		dataType: "json",
-		success: function(response) {
-			configResponse = response;
-			$("#firmware_name").text(response.firmwareName);
-			$("#firmware_version").text(response.firmwareVersion + " (" + response.firmwareDate + ")");
-			
-			$("#div_config").html(response.configFile.replace(/\n/g, "<br/>"));
-			
-			for(var drive=0; drive<response.accelerations.length; drive++) {
-				if (drive < response.axisMins.length) {
-					$("#tr_drive_" + drive + " > td:nth-child(3)").text(response.axisMins[drive] + " mm");
-				}
-				if (drive < response.axisMaxes.length) {
-					$("#tr_drive_" + drive + " > td:nth-child(4)").text(response.axisMaxes[drive] + " mm");
-				}
-				$("#tr_drive_" + drive + " > td:nth-child(5)").text(response.minFeedrates[drive] + " mm/s");
-				$("#tr_drive_" + drive + " > td:nth-child(6)").text(response.maxFeedrates[drive] + " mm/s");
-				$("#tr_drive_" + drive + " > td:nth-child(7)").text(response.accelerations[drive] + " mm/s²");
-				if (response.hasOwnProperty("currents")) {
-					$("#tr_drive_" + drive + " > td:nth-child(8)").text(response.currents[drive] + " mA");
-				}
-			}
-			if (response.hasOwnProperty("idleCurrentFactor")) {
-				$("#dd_idle_current").text(response.idleCurrentFactor.toFixed(0) + "%");
-			}
-			if (response.hasOwnProperty("idleTimeout")) {
-				var idleTimeoutText = (response.idleTimeout == 0) ? T("never") : convertSeconds(response.idleTimeout);
-				$("#dd_idle_timeout").text(idleTimeoutText);
-			}
-		}
-	});
-}
-
-function updateGCodeFiles() {
-	if (!isConnected) {
-		gcodeUpdateIndex = -1;
-		$(".span-refresh-files").addClass("hidden");
-		$("#table_gcode_files").css("cursor", "");
-		clearGCodeDirectory();
-		clearGCodeFiles();
-		return;
-	}
-	
-	if (gcodeUpdateIndex == -1) {
-		isWaitingForFileInfo = true;
-		gcodeUpdateIndex = 0;
-		gcodeLastDirectory = undefined;
-		clearGCodeFiles();
-		
-		$.ajax("rr_files?dir=" + encodeURIComponent(currentGCodeDirectory) + "&flagDirs=1", {
-			dataType: "json",
-			success: function(response) {
-				if (isConnected) {
-					knownGCodeFiles = response.files.sort(function (a, b) {
-						return a.toLowerCase().localeCompare(b.toLowerCase());
-					});
-					
-					var i = 0;
-					while (i < knownGCodeFiles.length) {
-						if (knownGCodeFiles[i][0] == '*')
-						{
-							var dirName = knownGCodeFiles[i].substring(1);
-							setGCodeDirectoryItem(addGCodeFile(dirName));
-							knownGCodeFiles.splice(i, 1);
-						}
-						else
-						{
-							addGCodeFile(knownGCodeFiles[i]);
-							i++;
-						}
-					}
-					
-					if (knownGCodeFiles.length == 0) {
-						if (currentPage == "files") {
-							$(".span-refresh-files").removeClass("hidden");
-						}
-						
-						isWaitingForFileInfo = false;
-						updateStatus();
-					} else {
-						$("#table_gcode_files").css("cursor", "wait");
-						updateGCodeFiles();
-					}
-				}
-			}
-		});
-	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
-		var row = $("#table_gcode_files tr[data-item='" + knownGCodeFiles[gcodeUpdateIndex] + "']");
-		$.ajax("rr_fileinfo?name=" + encodeURIComponent(currentGCodeDirectory + "/" + knownGCodeFiles[gcodeUpdateIndex]), {
-			dataType: "json",
-			row: row,
-			dir: currentGCodeDirectory,
-			success: function(response) {
-				if (!isConnected || this.dir != currentGCodeDirectory) {
-					return;
-				}
-				gcodeUpdateIndex++;
-				
-				if (response.err == 0) {	// File
-					setGCodeFileItem(this.row, response.size, response.height, response.firstLayerHeight, response.layerHeight, response.filament, response.generatedBy);
-				} else {					// Directory
-					setGCodeDirectoryItem(this.row);
-				}
-				
-				if (currentPage == "files") {
-					if (gcodeUpdateIndex >= knownGCodeFiles.length) {
-						$(".span-refresh-files").removeClass("hidden");
-						$("#table_gcode_files").css("cursor", "");
-						
-						isWaitingForFileInfo = false;
-						updateStatus();
-					} else {
-						updateGCodeFiles();
-					}
-				} else {
-					isWaitingForFileInfo = false;
-					updateStatus();
-				}
-			}
-		});
-	}
-}
-function updateMacroFiles() {
-	if (!isConnected) {
-		macroUpdateIndex = -1;
-		$(".span-refresh-macros").addClass("hidden");
-		$("#table_macro_files").css("cursor", "");
-		clearMacroDirectory();
-		clearMacroFiles();
-		return;
-	}
-	
-	if (macroUpdateIndex == -1) {
-		macroUpdateIndex = 0;
-		macroLastDirectory = undefined;
-		isWaitingForFileInfo = true;
-		clearMacroFiles();
-		
-		$.ajax("rr_files?dir=" + encodeURIComponent(currentMacroDirectory) + "&flagDirs=1", {
-			dataType: "json",
-			success: function(response) {
-				if (isConnected) {
-					knownMacroFiles = response.files.sort(function (a, b) {
-						return a.toLowerCase().localeCompare(b.toLowerCase());
-					});
-					
-					var i = 0;
-					while (i < knownMacroFiles.length) {
-						if (knownMacroFiles[i][0] == '*')
-						{
-							var dirName = knownMacroFiles[i].substring(1);
-							setMacroDirectoryItem(addMacroFile(dirName));
-							knownMacroFiles.splice(i, 1);
-						}
-						else
-						{
-							addMacroFile(knownMacroFiles[i]);
-							i++;
-						}
-					}
-					
-					if (knownMacroFiles.length == 0) {
-						if (currentPage == "macros") {
-							$(".span-refresh-macros").removeClass("hidden");
-						}
-						
-						isWaitingForFileInfo = false;
-						updateStatus();
-					} else {
-						$("#table_macro_files").css("cursor", "wait");
-						updateMacroFiles();
-					}
-				}
-			}
-		});
-	} else if (macroUpdateIndex < knownMacroFiles.length) {
-		var row = $("#table_macro_files tr[data-macro='" + knownMacroFiles[macroUpdateIndex] + "']");
-		$.ajax("rr_fileinfo?name=" + encodeURIComponent(currentMacroDirectory + "/" + knownMacroFiles[macroUpdateIndex]), {
-			dataType: "json",
-			row: row,
-			dir: currentMacroDirectory,
-			success: function(response) {
-				if (!isConnected || this.dir != currentMacroDirectory) {
-					return;
-				}
-				macroUpdateIndex++;
-				
-				if (response.err == 0) {	// File
-					setMacroFileItem(this.row, response.size);
-				} else {					// Directory
-					setMacroDirectoryItem(this.row);
-				}
-				
-				if (macroUpdateIndex >= knownMacroFiles.length) {
-					if (currentPage == "macros") {
-						$(".span-refresh-macros").removeClass("hidden");
-					}
-					$("#table_macro_files").css("cursor", "");
-					
-					isWaitingForFileInfo = false;
-					updateStatus();
-				} else if (currentPage == "control" || currentPage == "macros") {
-					updateMacroFiles();
-				} else {
-					isWaitingForFileInfo = false;
-					updateStatus();
-				}
-			}
-		});
-	}
-}
-
-// Send G-Code directly to the firmware
-function sendGCode(gcode, fromInput) {
-	lastSendGCode = gcode;
-	lastGCodeFromInput = (fromInput != undefined && fromInput);
-	
-	// Although rr_gcode gives us a JSON response, it doesn't provide any results.
-	// We only need to worry about an AJAX error event.
-	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
-		dataType: "json"
-	});
-}
-
-/* AJAX Events */
-
-$(document).ajaxSend(function(event, jqxhr, settings) {
-	settings.timeout = settings.maxRequestTime;
-	ajaxRequests.push(jqxhr);
-});
-
-$(document).ajaxComplete(function(event, jqxhr, settings) {
-	ajaxRequests = $.grep(ajaxRequests, function(item) { item != jqxhr; });
-});
-
-$(document).ajaxError(function(event, jqxhr, settings, thrownError) {
-	if (thrownError == "abort") {
-		// Ignore this error if this request was cancelled intentionally
-		return;
-	}
-	
-	if (isConnected) {
-		var msg = T("An AJAX error was reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.");
-		if (thrownError != "") {
-			msg += "<br/></br>" + T("Error reason: {0}", thrownError);
-		}
-		showMessage("warning-sign", T("Communication Error"), msg, "md");
-		
-		disconnect();
-
-		// Try to log the faulty response to console
-		if (jqxhr.responseText != undefined) {
-			console.log("Error! The following JSON response could not be parsed:");
-			console.log(jqxhr.responseText);
-		}
-	}
-});
-
-/* Settings */
-
-function checkBoundaries(value, defaultValue, minValue, maxValue) {
-	if (isNaN(value)) {
-		return defaultValue;
-	}
-	if (value < minValue) {
-		return minValue;
-	}
-	if (value > maxValue) {
-		return maxValue;
-	}
-	
-	return value;
-}
-
-function loadSettings() {
-    $.cookie.JSON = true;
-    
-	var loadedSettings = $.cookie("settings");
-	if (loadedSettings != undefined && loadedSettings.length > 0) {
-		loadedSettings = JSON.parse(loadedSettings);
-		
-		// UI Timing
-		if (loadedSettings.hasOwnProperty("updateInterval")) {
-			settings.updateInterval = loadedSettings.updateInterval;
-		}
-		if (loadedSettings.hasOwnProperty("haltedReconnectDelay")) {
-			settings.haltedReconnectDelay = loadedSettings.haltedReconnectDelay;
-		}
-		if (loadedSettings.hasOwnProperty("extendedStatusInterval")) {
-			settings.extendedStatusInterval = loadedSettings.extendedStatusInterval;
-		}
-		if (loadedSettings.hasOwnProperty("maxRequestTime")) {
-			settings.maxRequestTime = loadedSettings.maxRequestTime;
-		}
-		
-		// Behavior
-		if (loadedSettings.hasOwnProperty("autoConnect")) {
-			settings.autoConnect = loadedSettings.autoConnect;
-		}
-		if (loadedSettings.hasOwnProperty("halfZMovements")) {
-			settings.halfZMovements = loadedSettings.halfZMovements;
-		}
-		if (loadedSettings.hasOwnProperty("logSuccess")) {
-			settings.logSuccess = loadedSettings.logSuccess;
-		}
-		if (loadedSettings.hasOwnProperty("uppercaseGCode")) {
-			settings.uppercaseGCode = loadedSettings.uppercaseGCode;
-		}
-		if (loadedSettings.hasOwnProperty("useKiB")) {
-			settings.useKiB = loadedSettings.useKiB;
-		}
-		if (loadedSettings.hasOwnProperty("showFanControl")) {
-			settings.showFanControl = loadedSettings.showFanControl;
-		}
-		if (loadedSettings.hasOwnProperty("showATXControl")) {
-			settings.showATXControl = loadedSettings.showATXControl;
-		}
-		if (loadedSettings.hasOwnProperty("confirmStop")) {
-			settings.confirmStop = loadedSettings.confirmStop;
-		}
-		if (loadedSettings.hasOwnProperty("useDarkTheme")) {
-			settings.useDarkTheme = loadedSettings.useDarkTheme;
-		}
-		if (loadedSettings.hasOwnProperty("moveFeedrate")) {
-			settings.moveFeedrate = loadedSettings.moveFeedrate;
-		}
-		
-		// Default list items
-		if (loadedSettings.hasOwnProperty("defaultActiveTemps")) {
-			settings.defaultActiveTemps = loadedSettings.defaultActiveTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultStandbyTemps")) {
-			settings.defaultStandbyTemps = loadedSettings.defaultStandbyTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultBedTemps")) {
-			settings.defaultBedTemps = loadedSettings.defaultBedTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultGCodes")) {
-			settings.defaultGCodes = loadedSettings.defaultGCodes;
-		}
-		
-		// Spools
-		if (loadedSettings.hasOwnProperty("bowdenLength")) {
-			settings.bowdenLength = loadedSettings.bowdenLength;
-		}
-		
-		// Other (fallback in case language.xml couldn't be loaded)
-		if (loadedSettings.hasOwnProperty("language")) {
-			settings.language = loadedSettings.language;
-		}
-		
-		// Apply new settings
-		applySettings();
-	}
-}
-
-function saveSettings() {
-	// Appearance and Behavior
-	settings.autoConnect = $("#auto_connect").is(":checked");
-	settings.halfZMovements = $("#half_z").is(":checked");
-	settings.logSuccess = $("#log_success").is(":checked");
-	settings.uppercaseGCode = $("#uppercase_gcode").is(":checked");
-	settings.useKiB = $("#use_kib").is(":checked");
-	settings.showFanControl = $("#fan_sliders").is(":checked");
-	settings.showATXControl = $("#show_atx").is(":checked");
-	settings.confirmStop = $("#confirm_stop").is(":checked");
-	settings.useDarkTheme = $("#dark_theme").is(":checked");
-	settings.moveFeedrate = checkBoundaries($("#move_feedrate").val(), defaultSettings.moveFeedrate, 0);
-	if (settings.language != $("#btn_language").data("language")) {
-		showMessage("info-sign", T("Language has changed"), T("You have changed the current language.<br/><br/>Please reload the web interface to apply this change."), "md");
-	}
-	settings.language = $("#btn_language").data("language");
-	
-	// UI Timing
-	settings.updateInterval = checkBoundaries($("#update_interval").val(), defaultSettings.updateInterval, 50);
-	settings.extendedStatusInterval = checkBoundaries($("#extended_status_interval").val(), defaultSettings.extendedStatusInterval, 1, 99999);
-	settings.haltedReconnectDelay = checkBoundaries($("#reconnect_delay").val(), defaultSettings.haltedReconnectDelay, 1000);
-	settings.maxRequestTime = checkBoundaries($("#ajax_timeout").val(), defaultSettings.maxRequestTime, 100);
-	
-	// Default G-Codes
-	settings.defaultGCodes = [];
-	$("#table_gcodes > tbody > tr").each(function() {
-		settings.defaultGCodes.push([$(this).find("label").text(), $(this).find("td:eq(1)").text()]);
-	});
-	settings.defaultGCodes = settings.defaultGCodes.sort(function(a, b) {
-		if (a[0][0] != b[0][0]) {
-			return a[0].charCodeAt(0) - b[0].charCodeAt(0);
-		}
-		var x = a[0].match(/(\d+)/g)[0];
-		var y = b[0].match(/(\d+)/g)[0];
-		if (x == undefined || y == undefined) {
-			return parseInt(a[0]) - parseInt(b[0]);
-		}
-		return x - y;
-	});
-	
-	// Default Heater Temperatures
-	settings.defaultActiveTemps = [];
-	$("#ul_active_temps > li").each(function() {
-		settings.defaultActiveTemps.push($(this).data("temperature"));
-	});
-	settings.defaultActiveTemps = settings.defaultActiveTemps.sort(function(a, b) { return a - b; });
-	settings.defaultStandbyTemps = [];
-	$("#ul_standby_temps > li").each(function() {
-		settings.defaultStandbyTemps.push($(this).data("temperature"));
-	});
-	settings.defaultStandbyTemps = settings.defaultStandbyTemps.sort(function(a, b) { return a - b; });
-	
-	// Default Bed Temperatures
-	settings.defaultBedTemps = [];
-	$("#ul_bed_temps > li").each(function() {
-		settings.defaultBedTemps.push($(this).data("temperature"));
-	});
-	settings.defaultBedTemps = settings.defaultBedTemps.sort(function(a, b) { return a - b; });
-	
-	// Save Settings
-	$.cookie("settings", JSON.stringify(settings), { expires: 999999 });
-}
-
-function applySettings() {
-	/* Behavior */
-	
-	// Half Z Movements
-	var decreaseChildren = $("#td_decrease_z a");
-	var decreaseVal = (settings.halfZMovements) ? 50 : 100;
-	decreaseChildren.each(function(index) {
-		decreaseChildren.eq(index).data("z", decreaseVal * (-1)).contents().last().replaceWith(" Z-" + decreaseVal);
-		decreaseVal /= 10;
-	});
-	var increaseChildren = $("#td_increase_z a");
-	var increaseVal = (settings.halfZMovements) ? 0.05 : 0.1;
-	increaseChildren.each(function(index) {
-		increaseChildren.eq(index).data("z", increaseVal).contents().first().replaceWith("Z+" + increaseVal + " ");
-		increaseVal *= 10;
-	});
-	
-	// Show/Hide Fan Control
-	if (settings.showFanControl) {
-		$(".fan-control").removeClass("hidden");
-	} else {
-		$(".fan-control").addClass("hidden");
-	}
-	
-	// Show/Hide ATX Power
-	if (settings.showATXControl) {
-		$(".atx-control").removeClass("hidden");
-	} else {
-		$(".atx-control").addClass("hidden");
-	}
-	
-	// Possibly hide entire misc control panel
-	if (!settings.showFanControl && !settings.showATXControl) {
-		$("#panel_control_misc").addClass("hidden");
-	} else {
-		$("#panel_control_misc").removeClass("hidden");
-	}
-	
-	// Apply or revoke theme
-	if (settings.useDarkTheme) {
-		if (darkThemeInclude == undefined) {
-			darkThemeInclude = $('<link onload="applyThemeColors();" rel="stylesheet" href="css/slate.css" type="text/css" />');
-			darkThemeInclude.appendTo('head');
-			$("#theme_notice").removeClass("hidden");
-		}
-	} else {
-		if (darkThemeInclude != undefined) {
-			darkThemeInclude.remove();
-			darkThemeInclude = undefined;
-			applyThemeColors();
-			$("#theme_notice").addClass("hidden");
-		}
-	}
-	
-	/* Set values on the Settings page */
-	
-	// Appearance and Behavior
-	$("#auto_connect").prop("checked", settings.autoConnect);
-	$("#half_z").prop("checked", settings.halfZMovements);
-	$("#log_success").prop("checked", settings.logSuccess);
-	$("#uppercase_gcode").prop("checked", settings.uppercaseGCode);
-	$("#use_kib").prop("checked", settings.useKiB);
-	$("#fan_sliders").prop("checked", settings.showFanControl);
-	$("#show_atx").prop("checked", settings.showATXControl);
-	$("#confirm_stop").prop("checked", settings.confirmStop);
-	$("#dark_theme").prop("checked", settings.useDarkTheme);
-	$("#move_feedrate").val(settings.moveFeedrate);
-	
-	// UI Timing
-	$("#update_interval").val(settings.updateInterval);
-	$("#extended_status_interval").val(settings.extendedStatusInterval);
-	$("#reconnect_delay").val(settings.haltedReconnectDelay);
-	$("#ajax_timeout").val(settings.maxRequestTime);
-	
-	/* Default list items */
-	
-	// Default head temperatures
-	clearHeadTemperatures();
-	settings.defaultActiveTemps.forEach(function(temp) {
-		addHeadTemperature(temp, "active");
-	});
-	settings.defaultStandbyTemps.forEach(function(temp) {
-		addHeadTemperature(temp, "standby");
-	});
-	
-	// Default bed temperatures
-	clearBedTemperatures();
-	settings.defaultBedTemps.forEach(function(temp) {
-		addBedTemperature(temp);
-	});
-	
-	// Default G-Codes
-	clearDefaultGCodes();
-	settings.defaultGCodes.forEach(function(entry) {
-		addDefaultGCode(entry[1], entry[0]);
-	});
-	
-	/* Spools */
-	$("#input_bowden_length").val(settings.bowdenLength);
-}
-
-function applyThemeColors() {
-	// Update temp chart colors and repaint it
-	tempChartOptions.colors[0] = $("#tr_bed a").css("color");
-	tempChartOptions.colors[1] = $("#tr_head_1 a").css("color");
-	tempChartOptions.colors[2] = $("#tr_head_2 a").css("color");
-	tempChartOptions.colors[3] = $("#tr_head_3 a").css("color");
-	tempChartOptions.colors[4] = $("#tr_head_4 a").css("color");
-	tempChartOptions.colors[5] = $("#tr_head_5 a").css("color");
-	tempChartOptions.colors[6] = $("#tr_chamber th").css("color");
-	if (tempChart != undefined) {
-		tempChart.destroy();
-		tempChart = undefined;
-		drawTemperatureChart();
-	}
-	
-	// Update layer times chart
-	printChartOptions.colors[0] = getColorFromCSS("chart-print-line");
-	if (printChart != undefined) {
-		printChart.destroy();
-		printChart = undefined;
-		drawPrintChart();
-	}
-	
-	// Update Z-probe colors
-	probeSlowDownColor = getColorFromCSS("probe-slow-down");
-	probeTriggerColor = getColorFromCSS("probe-trigger");
-}
-
-function getColorFromCSS(classname)
-{
-	var ghostSpan = $('<span class="hidden ' + classname + '"></span>');
-	ghostSpan.appendTo("body");
-	var color = ghostSpan.css("color");
-	ghostSpan.remove();
-	return color;
-}
-
-/* GUI */
 
 $(document).ready(function() {
 	disableControls();
-	
+
 	resetGuiData();
 	updateGui();
-	
+
 	$("#web_version").append(", JS: " + jsVersion.toFixed(2));
-	
+	$("#text_config").autosize();
+
+	loadSettings(false);
+});
+
+function settingsLoaded() {
+	applySettings();
+
 	$.ajax("language.xml", {
 		type: "GET",
 		dataType: "xml",
@@ -1314,16 +87,7 @@ $(document).ready(function() {
 		},
 		success: function(response) {
 			translationData = response;
-			
-			// We need to load the language here, because we don't want to translate dynamic entries
-			var loadedSettings = $.cookie("settings");
-			if (loadedSettings != undefined && loadedSettings.length > 0) {
-				loadedSettings = JSON.parse(loadedSettings);
-				if (loadedSettings.hasOwnProperty("language")) {
-					settings.language = loadedSettings.language;
-				}
-			}
-			
+
 			if (translationData.children == undefined)
 			{
 				// Internet Explorer and Edge cannot deal with XML files in the way we want.
@@ -1340,21 +104,19 @@ $(document).ready(function() {
 						$("#btn_language > span:first-child").text(name);
 					}
 				}
-				
+
 				translatePage();
 			}
-			
+
 			pageLoadComplete();
 		}
 	});
-});
+
+}
 
 function pageLoadComplete() {
-	loadSettings();
-	applySettings();
-	
 	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
-	
+
 	if (settings.autoConnect) {
 		// Users might want to connect automatically once the page has loaded
 		connect(sessionPassword, true);
@@ -1364,22 +126,22 @@ function pageLoadComplete() {
 function enableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", false);			// Generic inputs
 	$("#page_tools label").removeClass("disabled");												// and on Settings page
-	
+
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
-	
+
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("enable");													// Fan Control
-	
+
 	$("#page_print .checkbox").removeClass("disabled");											// Print Control
 	$("#slider_fan_print").slider("enable");													// Fan Control
 	$("#slider_speed").slider("enable");														// Speed Factor
 	for(var extr=1; extr<=6; extr++) {
 		$("#slider_extr_" + extr).slider("enable");												// Extrusion Factors
 	}
-	
+
 	$(".online-control").removeClass("hidden");													// G-Code/Macro Files
 }
 
@@ -1387,29 +149,29 @@ function disableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", true);				// Generic inputs
 	$("#page_general input, #page_listitems input").prop("disabled", false);					// ... except ...
 	$("#page_tools label").addClass("disabled");												// ... for Settings
-	
+
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
 	$("#extruder_drives").addClass("disabled");													// Info Panels
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons
-	
+
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("disable");													// Fan Control
-	
+
 	$("#btn_pause, #page_print .checkbox").addClass("disabled");								// Print Control
 	$("#slider_fan_print").slider("disable");													// Fan Control
 	$("#slider_speed").slider("disable");														// Speed Factor
 	for(var extr=1; extr<=6; extr++) {
 		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors
 	}
-	
+
 	$(".online-control").addClass("hidden");														// G-Code/Macro Files
 }
 
 function updateGui() {
 	// Visibility for Heater Temperatures
-	
+
 	if (heatedBed) {			// Heated Bed
 		$("#tr_bed").removeClass("hidden");
 	} else {
@@ -1427,9 +189,9 @@ function updateGui() {
 			$("#tr_head_" + i).addClass("hidden");
 		}
 	}
-	
+
 	// Visibility for Extruder Drive columns
-	
+
 	for(var i=1; i<=6; i++) {
 		if (i <= numExtruderDrives) {
 			$(".extr-" + i).removeClass("hidden").css("border-right", "");
@@ -1444,16 +206,16 @@ function updateGui() {
 	} else {
 		$("#row_status_2").addClass("hidden");
 	}
-	
+
 	// Add Zero Extruder Drive buttons
-	
+
 	if (isConnected) {
 		$("#extruder_drives").removeClass("disabled");
 		$("#ul_extruder_dropdown").html('<li><a href="#" class="zero-extruder" data-target="all">' + T("Zero All Drives") + '</li><li class="divider"></li>');
 		for(var i=1; i<= numExtruderDrives; i++) {
 			$("#ul_extruder_dropdown").append('<li><a href="#" class="zero-extruder" data-target="' + i + '">' + T("Zero Extruder Drive {0}", i) + '</a></li>');
 		}
-		
+
 		$(".zero-extruder").off("click").click(function(e) {
 			if (lastStatusResponse != undefined) {
 				var gcode = "G92 E", target = $(this).data("target");
@@ -1463,7 +225,7 @@ function updateGui() {
 					} else {
 						gcode += "0";
 					}
-					
+
 					if (i < numExtruderDrives) {
 						gcode += ":";
 					}
@@ -1473,9 +235,9 @@ function updateGui() {
 			e.preventDefault();
 		});
 	}
-	
+
 	// Do some rearrangement for the panels if we have less than or exactly three extruder drives
-	
+
 	if (numExtruderDrives <= 3) {
 		$(".div-head-temp").removeClass("hidden-sm");
 		$("#col_extr_totals, #td_extr_total").addClass("hidden");
@@ -1497,9 +259,9 @@ function updateGui() {
 		$("#div_temp_chart").removeClass("col-lg-5").addClass("col-lg-3");
 		$("#div_status").removeClass("col-sm-6 col-lg-3").addClass("col-sm-7 col-lg-5");
 	}
-	
+
 	// Charts
-	
+
 	resizeCharts();
 	drawTemperatureChart();
 	drawPrintChart();
@@ -1509,11 +271,11 @@ function resetGui() {
 	// Charts
 	drawTemperatureChart();
 	drawPrintChart();
-	
+
 	// Navbar
 	setTitle("Duet Web Control");
 	setStatusLabel("Disconnected", "default");
-	
+
 	// Heater Temperatures
 	$("#table_heaters tr > th:first-child > span").text("");
 	setCurrentTemperature("bed",  undefined);
@@ -1525,7 +287,7 @@ function resetGui() {
 		setTemperatureInput(i, 0, 1);
 		setTemperatureInput(i, 0, 0);
 	}
-	
+
 	// Status fields
 	$("#td_x, #td_y, #td_z").text("n/a");
 	for(var i=1; i<=numExtruderDrives; i++) {
@@ -1534,12 +296,12 @@ function resetGui() {
 	$("#td_extr_total").text("n/a");
 	setProbeValue(-1, undefined);
 	$("#td_fanrpm").text("n/a");
-	
+
 	// Control page
 	setAxesHomed([1,1,1]);
 	setATXPower(false);
 	$('#slider_fan_control').slider("setValue", 35);
-	
+
 	// Print Status
 	$(".row-progress").addClass("hidden");
 	setProgress(100, "", "");
@@ -1550,22 +312,47 @@ function resetGui() {
 	for(var extr=1; extr<=6; extr++) {
 		$("#slider_extr_" + extr).slider("setValue", 100);
 	}
-	
+
 	// G-Code Console is not cleared automatically
-	
+
 	// G-Code Files
 	updateGCodeFiles();
-	
+
 	// Macro Files
 	updateMacroFiles();
-	
+
 	// Settings
 	$("#firmware_name, #firmware_version").html("n/a");
 	$("#page_machine td:not(:first-child), #page_machine dd").html("n/a");
-	$("#div_config").html('<h1 class="text-center text-muted">' + T("Connect to your Duet to display the configuration file") + '</h1>');
-	
+	$("#div_config > h1").removeClass("hidden");
+	$("#text_config").addClass("hidden");
+
 	// Modal dialogs
 	$("#modal_upload").modal("hide");
+}
+
+function updateWebcam(externalTrigger) {
+	if (externalTrigger && webcamUpdating) {
+		// When the settings are applied, make sure this only runs once
+		return;
+	}
+
+	if (settings.webcamURL == "") {
+		webcamUpdating = false;
+	} else {
+		var newURL = settings.webcamURL;
+		if (newURL.indexOf("?") != -1) {
+			newURL = newURL + "?dummy=" + Math.random();
+		} else {
+			newURL = newURL + "&dummy=" + Math.random();
+		}
+		$("#img_webcam").attr("src", newURL);
+
+		webcamUpdating = true;
+		setTimeout(function() {
+			updateWebcam(false);
+		}, settings.webcamInterval);
+	}
 }
 
 /* Dynamic GUI Events */
@@ -1611,19 +398,19 @@ $("body").on("click", ".btn-delete-file", function(e) {
 	showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
 		$.ajax("rr_delete?name=" + encodeURIComponent(currentGCodeDirectory + "/" + file), {
 			dataType: "json",
-		 row: row,
-		 file: file,
-		 success: function(response) {
-			 if (response.err == 0) {
-				 this.row.remove();
-				 if ($("#table_gcode_files tbody").children().length == 0) {
-					 gcodeUpdateIndex = -1;
-					 updateGCodeFiles();
-				 }
-			 } else {
-				 showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete file <strong>{0}</strong>!", this.file), "md");
-			 }
-		 }
+			row: row,
+			file: file,
+			success: function(response) {
+				if (response.err == 0) {
+					this.row.remove();
+					if ($("#table_gcode_files tbody").children().length == 0) {
+						gcodeUpdateIndex = -1;
+						updateGCodeFiles();
+					}
+				} else {
+					showMessage("warning-sign", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete file <strong>{0}</strong>!", this.file), "md");
+				}
+			}
 		});
 	});
 	e.preventDefault();
@@ -1666,7 +453,7 @@ $("body").on("click", ".btn-delete-macro-directory", function(e) {
 		success: function(response) {
 			if (response.err == 0) {
 				if (currentMacroDirectory == "/macros") {
-					var button = $("#panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + row.data("macro") + "']");
+					var button = $("#panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + this.directory + "']");
 					button.remove();
 				}
 				this.row.remove();
@@ -1690,7 +477,7 @@ $("body").on("click", ".btn-delete-macro", function(e) {
 			macro: macroFile,
 			success: function(response) {
 				if (response.err == 0) {
-					$("#table_macro_files tr[data-macro='" + macroFile + "'], #panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + macroFile + "']").remove();
+					$("#table_macro_files tr[data-item='" + macroFile + "'], #panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + macroFile + "']").remove();
 					if ($("#table_macro_files tbody").children().length == 0) {
 						macroUpdateIndex = -1;
 						updateMacroFiles();
@@ -1761,7 +548,7 @@ $("body").on("click", ".heater-temp", function(e) {
 	var inputElement = $(this).parents("div.input-group").find("input");
 	var activeOrStandby = (inputElement.prop("id").match("active$")) ? "S" : "R";
 	var temperature = $(this).data("temp");
-	
+
 	if (inputElement.prop("id").indexOf("all") == -1) {
 		var heater = inputElement.prop("id").match("_h(.)_")[1];
 		getToolsByHeater(heater).forEach(function(tool) {
@@ -1778,7 +565,7 @@ $("body").on("click", ".heater-temp", function(e) {
 			}
 		}
 	}
-	
+
 	e.preventDefault();
 });
 
@@ -1803,6 +590,111 @@ $("body").on("click", "#ol_macro_directory a", function(e) {
 	e.preventDefault();
 });
 
+var draggingObject;
+
+function fileDragStart(e) {
+	draggingObject = $(this);
+	// The following doesn't work, although it's recommended. I wonder who invented this crappy API...
+	//e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function fileDragEnd(e) {
+	draggingObject = undefined;
+}
+
+$("#table_gcode_files, #table_macro_files").on("dragover", "tr", function(e) {
+	if (draggingObject != undefined && $(e.target).closest("tr").data("directory") != undefined) {
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
+$("#table_gcode_files, #table_macro_files").on("drop", "tr", function(e) {
+	if (draggingObject == undefined) {
+		return;
+	}
+	draggingObject = draggingObject.closest("tr");
+
+	var targetDir = $(e.target).closest("tr").data("directory");
+	if (targetDir != undefined) {
+		var sourcePath = draggingObject.data("item");
+		var targetPath;
+		if (currentPage == "files") {
+			targetPath = currentGCodeDirectory + "/" + targetDir + "/" + sourcePath;
+			sourcePath = currentGCodeDirectory + "/" + sourcePath;
+		} else {
+			targetPath = currentMacroDirectory + "/" + targetDir + "/" + sourcePath;
+			sourcePath = currentMacroDirectory + "/" + sourcePath;
+		}
+
+		$.ajax("rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
+			dataType: "json",
+			row: draggingObject,
+			success: function(response) {
+				if (response.err == 0) {
+					// We can never run out of files/dirs if we move FSOs to sub-directories...
+					this.row.remove();
+				}
+			}
+		});
+
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
+$("#ol_gcode_directory, #ol_macro_directory").on("dragover", "a", function(e) {
+	if (draggingObject != undefined) {
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
+$("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
+	if (draggingObject == undefined) {
+		return;
+	}
+	draggingObject = draggingObject.closest("tr");
+
+	var targetDir = $(e.target).data("directory");
+	if (targetDir != undefined) {
+		var sourcePath = draggingObject.data("item");
+		var targetPath, fileTable;
+		if (currentPage == "files") {
+			targetPath = targetDir + "/" + sourcePath;
+			sourcePath = currentGCodeDirectory + "/" + sourcePath;
+			fileTable = $("#table_gcode_files > tbody");
+		} else {
+			targetPath = targetDir + "/" + sourcePath;
+			sourcePath = currentMacroDirectory + "/" + sourcePath;
+			fileTable = $("#table_macro_files > tbody");
+		}
+
+		$.ajax("rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
+			dataType: "json",
+			row: draggingObject,
+			table: fileTable,
+			success: function(response) {
+				if (response.err == 0) {
+					this.row.remove();
+					if (this.table.children().length == 0) {
+						if (currentPage == "files") {
+							gcodeUpdateIndex = -1;
+							updateGCodeFiles();
+						} else {
+							macroUpdateIndex = -1;
+							updateMacroFiles();
+						}
+					}
+				}
+			}
+		});
+
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
 $("body").on("click", ".tool", function(e) {
 	changeTool($(this).data("tool"));
 	e.preventDefault();
@@ -1820,20 +712,20 @@ $("#a_heaters_off").click(function(e) {
 		if (toolMapping != undefined) {
 			for(var i=0; i<toolMapping.length; i++) {
 				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
-				
+
 				var temps = [], tempString = "";
 				toolMapping[i].heaters.forEach(function() { temps.push("-273.15"); });
 				tempString = temps.reduce(function(a, b) { return a + ":" + b; });
-				
+
 				sendGCode("G10 P" + number + " R" + tempString + " S" + tempString);
 			}
 		}
-		
+
 		// Turn off bed
 		if (heatedBed) {
 			sendGCode("M140 S-273.15");
 		}
-		
+
 		// Turn off chamber
 		if (chamber) {
 			sendGCode("M141 S-273.15");
@@ -1842,58 +734,70 @@ $("#a_heaters_off").click(function(e) {
 	e.preventDefault();
 });
 
+$("#a_webcam").click(function(e) {
+	if ($("#img_webcam").hasClass("hidden")) {
+		$("#span_webcam").removeClass("glyphicon-menu-up").addClass("glyphicon-menu-down");
+		$("#img_webcam").removeClass("hidden");
+	} else {
+		$("#span_webcam").removeClass("glyphicon-menu-down").addClass("glyphicon-menu-up");
+		$("#img_webcam").addClass("hidden");
+	}
+	$(this).blur();
+	e.preventDefault();
+});
+
 $("#btn_add_gcode").click(function(e) {
 	var item =	'<tr><td><label class="label label-primary">' + $("#input_gcode").val().trim() + '</label></td><td>' + $("#input_gcode_description").val().trim() + '</td><td>';
 	item +=		'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
 	item += 	'<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
 	$("#table_gcodes").append(item);
-	
+
 	e.preventDefault();
 });
 
 $("#btn_add_head_temp").click(function(e) {
 	var temperature = checkBoundaries($("#input_add_head_temp").val(), 0, -273.15, 300);
 	var type = $('input[name="temp_selection"]:checked').val();
-	
+
 	var item =	'<li class="list-group-item col-xs-6 col-lg-3" data-temperature="' + temperature + '">' + temperature + ' °C';
 	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
 	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
 	$("#ul_" + type + "_temps").append(item);
-	
+
 	e.preventDefault();
 });
 
 $("#btn_add_bed_temp").click(function(e) {
 	var temperature = checkBoundaries($("#input_add_bed_temp").val(), 0, -273.15, 180);
-	
+
 	var item =	'<li class="list-group-item col-md-6" data-temperature="' + temperature + '">' + temperature + ' °C';
 	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
 	item +=		'<span class="glyphicon glyphicon-trash"></span></button></li>';
 	$("#ul_bed_temps").append(item);
-	
+
 	e.preventDefault();
 });
 
 $("#btn_add_tool").click(function(e) {
 	var gcode = "M563 P" + $("#input_tool_number").val();
-	
+
 	var drives = $("input[name='tool_drives']:checked");
 	if (drives != undefined) {
 		var driveList = [];
 		drives.each(function() { driveList.push($(this).val()); });
 		gcode += " D" + driveList.reduce(function(a, b) { return a + ":" + b; });
 	}
-	
+
 	var heaters = $("input[name='tool_heaters']:checked");
 	if (heaters != undefined) {
 		var heaterList = [];
 		heaters.each(function() { heaterList.push($(this).val()); });
 		gcode += " H" + heaterList.reduce(function(a, b) { return a + ":" + b; });
 	}
-	
+
 	sendGCode(gcode);
 	extendedStatusCounter = settings.extendedStatusInterval;
-	
+
 	e.preventDefault();
 });
 
@@ -2001,22 +905,6 @@ $("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(functio
 	e.preventDefault();
 });
 
-$("#btn_load_filament").click(function() {
-	// Load first l -15 mm of filament at high speed
-	// Then feed last 15 mm at lower speed
-	var gcode = "M120\nM83\nG1 E" + (settings.bowdenLength - 15) + " F7500\n" +
-		"G1 E15 F450\nM121";
-	sendGCode(gcode);
-});
-
-$("#btn_unload_filament").click(function() {
-	// Start slowly with the first 10 mm at low speed
-	// Eject last l - 10 mm of filament at higher speed
-	var gcode = "M120\nM83\nG1 E-10 F450\n" +
-		"G1 E-" + (settings.bowdenLength - 10) + " F7500\nM121";
-	sendGCode(gcode);
-});
-
 $("#btn_new_gcode_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
 		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
@@ -2078,7 +966,7 @@ $("#btn_reset_settings").click(function(e) {
 
 ["print", "gcode", "macro", "generic"].forEach(function(type) {
 	var child = $(".btn-upload[data-type='" + type + "']");
-	
+
 	// Drag Enter
 	child.on("dragover", function(e) {
 		$(this).removeClass($(this).data("style")).addClass("btn-success");
@@ -2092,13 +980,13 @@ $("#btn_reset_settings").click(function(e) {
 		e.preventDefault();  
 		e.stopPropagation();
 	});
-	
+
 	// Drop
 	child.on("drop", function(e) {
 		$(this).removeClass("btn-success").addClass($(this).data("style"));
 		e.preventDefault();
 		e.stopPropagation();
-		
+
 		var files = e.originalEvent.dataTransfer.files;
 		if (files != null && files.length > 0) {
 			// Start new file upload
@@ -2129,19 +1017,19 @@ $(".div-gcodes").bind("shown.bs.dropdown", function() {
 		$(this).find("span").each(function() {
 			rowWidth += $(this).width();
 		});
-		
+
 		if (rowWidth > maxWidth) {
 			maxWidth = rowWidth;
 		}
 	});
-	
+
 	if (maxWidth > 0) {
 		$(this).find("ul > li > a").each(function() {
 			var rowWidth = 0;
 			$(this).find("span").each(function() {
 				rowWidth += $(this).width();
 			});
-			
+
 			if (rowWidth < maxWidth) {
 				$(this).addClass("gcode-float");
 			}
@@ -2180,12 +1068,6 @@ $("input[name='temp_selection']:radio").change(function() {
 	}
 });
 
-$("#input_bowden_length").blur(function() {
-	// NOTE: This is a temporary solution
-	settings.bowdenLength = checkBoundaries($(this).val(), 300, 0);
-	$.cookie("settings", JSON.stringify(settings), { expires: 999999 });
-});
-
 $("#input_file_upload").change(function(e) {
 	if (this.files.length > 0) {
 		// For POST uploads, we need file blobs
@@ -2199,7 +1081,7 @@ $("#input_temp_bed").keydown(function(e) {
 	if (isConnected && enterKeyPressed) {
 		sendGCode("M140 S" + $(this).val());
 		$(this).select();
-		
+
 		e.preventDefault();
 	}
 });
@@ -2210,7 +1092,7 @@ $("#input_temp_chamber").keydown(function(e) {
 	if (isConnected && enterKeyPressed) {
 		sendGCode("M141 S" + $(this).val());
 		$(this).select();
-		
+
 		e.preventDefault();
 	}
 });
@@ -2222,12 +1104,12 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 		var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
 		var heater = $(this).prop("id").match("_h(.)_")[1];
 		var temperature = $(this).val();
-		
+
 		getToolsByHeater(heater).forEach(function(toolNumber) {
 			sendGCode("G10 P" + toolNumber + " " + activeOrStandby + temperature);
 		});
 		$(this).select();
-		
+
 		e.preventDefault();
 	}
 });
@@ -2237,7 +1119,7 @@ $("#input_temp_all_active, #input_temp_all_standby").keydown(function(e) {
 		if (toolMapping != undefined) {
 			var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
 			var temperature = $(this).val();
-			
+
 			for(var i=0; i<toolMapping.length; i++) {
 				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
 				if ($.inArray(0, toolMapping[i].heaters) == -1) {
@@ -2246,7 +1128,7 @@ $("#input_temp_all_active, #input_temp_all_standby").keydown(function(e) {
 				}
 			}
 		}
-		
+
 		e.preventDefault();
 	}
 });
@@ -2307,15 +1189,38 @@ $(".span-refresh-macros").click(function() {
 	$(".span-refresh-macros").addClass("hidden");
 });
 
+$(document).delegate('#text_config', 'keydown', function(e) {
+	var keyCode = e.keyCode || e.which;
+
+	if (keyCode == 9) {
+		e.preventDefault();
+		var start = $(this).get(0).selectionStart;
+		var end = $(this).get(0).selectionEnd;
+
+		// set textarea value to: text before caret + tab + text after caret
+		$(this).val($(this).val().substring(0, start)
+				+ "\t"
+				+ $(this).val().substring(end));
+
+		// put caret at right position again
+		$(this).get(0).selectionStart = $(this).get(0).selectionEnd = start + 1;
+	}
+});
+
 $(".panel-chart").resize(function() {
 	resizeCharts();
 });
 
 $('a[href="#page_general"], a[href="#page_listitems"]').on('shown.bs.tab', function () {
-	$("#row_save_settings").removeClass("hidden");
+	$("#row_save_settings, #btn_reset_settings").removeClass("hidden");
 });
 
-$('a[href="#page_config"], a[href="#page_machine"], a[href="#page_tools"]').on('shown.bs.tab', function () {
+$('a[href="#page_config"]').on('shown.bs.tab', function() {
+	$("#row_save_settings, #btn_reset_settings").addClass("hidden");
+	getConfigFile();
+});
+
+$('a[href="#page_machine"], a[href="#page_tools"]').on('shown.bs.tab', function () {
 	$("#row_save_settings").addClass("hidden");
 });
 
@@ -2344,7 +1249,7 @@ $("#table_heaters a").click(function(e) {
 						hasToolSelected = true;
 					}
 				});
-				
+
 				if (hasToolSelected) {
 					changeTool(-1);
 					$(this).blur();
@@ -2362,7 +1267,7 @@ $("#table_heaters a").click(function(e) {
 							content += '<div class="btn-group"><a href="#" class="btn btn-default btn-sm tool" data-tool="' + toolNumber + '">T' + toolNumber + '</a></div>';
 						});
 						content += '</div>';
-						
+
 						$(this).popover({ 
 							content: content,
 							html: true,
@@ -2381,7 +1286,7 @@ $("#table_heaters a").click(function(e) {
 $("#table_define_tool input[type='checkbox']").change(function() {
 	var isChecked = $(this).is(":checked");
 	$(this).parents("label").toggleClass("btn-primary", isChecked).toggleClass("btn-default", !isChecked);
-	
+
 	validateAddTool();
 });
 
@@ -2392,9 +1297,9 @@ $("#table_define_tool input[type='number']").on("input", function() {
 function validateAddTool() {
 	var toolNumber = parseInt($("#input_tool_number").val());
 	var disableButton =	(!isConnected) ||
-						(isNaN(toolNumber) || toolNumber < 0 || toolNumber > 255) ||
-						(toolMapping != undefined && getTool(toolNumber) != undefined) ||
-						($("input[name='tool_heaters']:checked").length + $("input[name='tool_drives']:checked").length == 0);
+		(isNaN(toolNumber) || toolNumber < 0 || toolNumber > 255) ||
+		(toolMapping != undefined && getTool(toolNumber) != undefined) ||
+		($("input[name='tool_heaters']:checked").length + $("input[name='tool_drives']:checked").length == 0);
 	$("#btn_add_tool").toggleClass("disabled", disableButton);
 }
 
@@ -2427,19 +1332,20 @@ $("#ul_control_dropdown .btn-active-temp, #ul_control_dropdown .btn-standby-temp
 
 /* Temperature charts */
 
-function addLayerData(lastLayerTime) {
-	if (layerData.length == 0) {
-		layerData.push([0, lastLayerTime]);
-		layerData.push([1, lastLayerTime]);
-	} else {
-		layerData.push([layerData.length, lastLayerTime]);
-	}
-	
+function addLayerData(lastLayerTime, updateGui) {
+	layerData.push([layerData.length + 1, lastLayerTime]);
 	if (lastLayerTime > maxLayerTime) {
 		maxLayerTime = lastLayerTime;
 	}
-	
-	drawPrintChart();
+
+	if (updateGui) {
+		$("#td_last_layertime").html(convertSeconds(lastLayerTime)).addClass("layer-done-animation");
+		setTimeout(function() {
+			$("#td_last_layertime").removeClass("layer-done-animation");
+		}, 2000);
+
+		drawPrintChart();
+	}
 }
 
 function drawTemperatureChart()
@@ -2449,7 +1355,7 @@ function drawTemperatureChart()
 		refreshTempChart = true;
 		return;
 	}
-	
+
 	// Prepare the data
 	var preparedBedTemps = [];
 	for(var i=0; i<recordedBedTemperatures.length; i++) {
@@ -2466,7 +1372,7 @@ function drawTemperatureChart()
 			preparedHeadTemps[head].push([k, heaterSamples[k]]);
 		}
 	}
-	
+
 	// Draw it
 	if (tempChart == undefined) {
 		tempChart = $.plot("#chart_temp", [preparedBedTemps, preparedHeadTemps[0], preparedHeadTemps[1], preparedHeadTemps[2], preparedHeadTemps[3], preparedHeadTemps[4], preparedHeadTemps[5], preparedChamberTemps], tempChartOptions);
@@ -2475,7 +1381,7 @@ function drawTemperatureChart()
 		tempChart.setupGrid();
 		tempChart.draw();
 	}
-	
+
 	refreshTempChart = false;
 }
 
@@ -2485,41 +1391,55 @@ function drawPrintChart() {
 		refreshPrintChart = true;
 		return;
 	}
-	
+
 	// Find absolute maximum values for the X axis
-	var maxX = 100, maxPanX = 100;
+	var maxX = 25, maxPanX = 25;
 	if (layerData.length < 21) {
 		maxX = maxPanX = 20;
-	} else if (layerData.length < 100) {
-		maxX = maxPanX = layerData.length - 1;
+	} else if (layerData.length < 25) {
+		maxX = maxPanX = layerData.length;
 	} else {
-		maxPanX = layerData.length - 1;
+		maxPanX = layerData.length;
 	}
 	printChartOptions.xaxis.max = maxX;
-	printChartOptions.xaxis.panRange = [0, maxPanX];
-	printChartOptions.xaxis.zoomRange = [50, maxPanX];
-	printChartOptions.yaxis.panRange = [0, (maxLayerTime < 60) ? 60 : maxLayerTime];
-	printChartOptions.yaxis.zoomRange = [60, (maxLayerTime < 60) ? 60 : maxLayerTime];
-	
+	printChartOptions.xaxis.panRange = [1, maxPanX];
+	printChartOptions.xaxis.zoomRange = [25, maxPanX];
+
 	// Find max visible value for Y axis
-	var maxVisibleValue = 30;
-	if (layerData.length > 3) {
-		for(var i=(layerData.length > 102) ? layerData.length - 100 : 2; i<layerData.length; i++) {
-			if (maxVisibleValue < layerData[i][1]) {
-				maxVisibleValue = layerData[i][1];
+	var maxY = 30;
+	if (layerData.length > 2) {
+		for(var i=(layerData.length > 26) ? layerData.length - 25 : 1; i < layerData.length; i++) {
+			if (maxY < layerData[i][1] * 1.1) {
+				maxY = layerData[i][1] * 1.1;
 			}
 		}
 	} else if (layerData.length > 0) {
-		maxVisibleValue = layerData[0][1];
-	} else {
-		maxVisibleValue = 60;
+		maxY = layerData[0][1] * 1.1;
 	}
-	printChartOptions.yaxis.max = (layerData.length > 3 && layerData.length < 101) ? maxVisibleValue * 1.1 : maxVisibleValue;
-	
+	printChartOptions.yaxis.max = maxY;
+	printChartOptions.yaxis.panRange = [0, (maxLayerTime < maxY) ? maxY : maxLayerTime];
+	printChartOptions.yaxis.zoomRange = [30, (maxLayerTime < maxY) ? maxY : maxLayerTime];
+
 	// Update chart and pan to the right
 	printChart = $.plot("#chart_print", [layerData], printChartOptions);
 	printChart.pan({ left: 99999 });
 	refreshPrintChart = false;
+
+	// Add hover events to chart
+	$("#chart_print").unbind("plothover").bind("plothover", function (event, pos, item) {
+		if (item) {
+			var layer = item.datapoint[0];
+			if (layer == 0) {
+				layer = 1;
+			}
+
+			$("#layer_tooltip").html(T("Layer {0}: {1}", layer, convertSeconds(item.datapoint[1])))
+				.css({top: item.pageY + 5, left: item.pageX + 5})
+				.fadeIn(200);
+		} else {
+			$("#layer_tooltip").hide();
+		}
+	});
 }
 
 function resizeCharts() {
@@ -2528,14 +1448,14 @@ function resizeCharts() {
 	$("#div_status table").each(function() {
 		statusHeight += $(this).outerHeight();
 	});
-	
+
 	var max = (headsHeight > statusHeight) ? headsHeight : statusHeight;
 	max -= tempChartPadding;
-	
+
 	if (max > 0) {
 		$("#chart_temp").css("height", max);
 	}
-	
+
 	if (refreshTempChart) {
 		drawTemperatureChart();
 	}
@@ -2554,7 +1474,7 @@ $('#slider_fan_control').slider({
 	step: 1,
 	value: 35,
 	tooltip: "always",
-	
+
 	formatter: function(value) {
 		return value + " %";
 	}
@@ -2576,7 +1496,7 @@ $('#slider_fan_print').slider({
 	step: 1,
 	value: 35,
 	tooltip: "always",
-	
+
 	formatter: function(value) {
 		return value + " %";
 	}
@@ -2599,7 +1519,7 @@ for(var extr=1; extr<=6; extr++) {
 		step: 1,
 		value: 100,
 		tooltip: "always",
-		
+
 		formatter: function(value) {
 			return value + " %";
 		}
@@ -2621,7 +1541,7 @@ $('#slider_speed').slider({
 	step: 1,
 	value: 100,
 	tooltip: "always",
-	
+
 	formatter: function(value) {
 		return value + " %";
 	}
@@ -2710,7 +1630,7 @@ function addBedTemperature(temperature) {
 	// Drop-Down item
 	$(".ul-bed-temp").append('<li><a href="#" class="bed-temp" data-temp="' + temperature + '">' + temperature + ' °C</a></li>');
 	$(".btn-bed-temp").removeClass("disabled");
-	
+
 	// Entry on Settings page
 	var item =	'<li class="list-group-item col-md-6" data-temperature="' + temperature + '">' + temperature + '  °C';
 	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
@@ -2721,13 +1641,13 @@ function addBedTemperature(temperature) {
 function addDefaultGCode(label, gcode) {
 	// Drop-Down item
 	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
- 	item +=		'<span>' + label + '</span>';
+	item +=		'<span>' + label + '</span>';
 	item +=		'<span class="label label-primary">' + gcode + '</span>';
 	item +=		'</a></li>';
-	
+
 	$(".ul-gcodes").append(item);
 	$(".btn-gcodes").removeClass("disabled");
-	
+
 	// Entry on Settings page
 	item =	'<tr><td><label class="label label-primary">' + gcode + '</label></td><td>' + label + '</td><td>';
 	item +=	'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
@@ -2745,7 +1665,7 @@ function addGCodeFile(filename) {
 	row +=		'<td>loading</td>';
 	row +=		'<td>loading</td>';
 	row +=		'<td class="hidden-xs hidden-sm">' + T("loading") + '</td></tr>';
-	
+
 	$("#table_gcode_files").removeClass("hidden");
 	return $(row).appendTo("#table_gcode_files");
 }
@@ -2757,16 +1677,16 @@ function addMacroFile(filename) {
 		var macroButton =	'<div class="btn-group">';
 		macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' + label + '</button>';
 		macroButton +=		'</div>';
-		
+
 		$("#panel_macro_buttons h4").addClass("hidden");
 		$("#panel_macro_buttons .btn-group-vertical").append(macroButton);
 	}
 
 	// Macro Page
-	var row =	'<tr data-macro="' + filename + '"><td></td><td></td>';
+	var row =	'<tr data-item="' + filename + '"><td></td><td></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span>' + filename + '</td>';
 	row +=		'<td>' + T("loading") + '</td></tr>';
-	
+
 	$("#page_macros h1").addClass("hidden");
 	$("#table_macro_files").removeClass("hidden");
 	return $(row).appendTo("#table_macro_files");
@@ -2775,12 +1695,12 @@ function addMacroFile(filename) {
 function beep(frequency, duration) {
 	var context = new webkitAudioContext();
 	oscillator = context.createOscillator();
-	
+
 	oscillator.type = 0; // sine wave: TODO add more possibilities to the Settings page
 	oscillator.frequency.value = frequency;
 	oscillator.connect(context.destination);
 	oscillator.noteOn && oscillator.noteOn(0);
-	
+
 	setTimeout(function() {
 		oscillator.disconnect();
 	}, duration);
@@ -2790,7 +1710,7 @@ function addHeadTemperature(temperature, type) {
 	// Drop-Down item
 	$(".ul-" + type + "-temp").append('<li><a href="#" class="heater-temp" data-temp="' + temperature + '">' + temperature + ' °C</a></li>');
 	$(".btn-" + type + "-temp").removeClass("disabled");
-	
+
 	// Entry on Settings page
 	var item =	'<li class="list-group-item col-xs-6 col-lg-3" data-temperature="' + temperature + '">' + temperature + ' °C';
 	item +=		'<button class="btn btn-danger btn-sm btn-delete-parent pull-right" title="' + T("Delete this temperature item") + '">';
@@ -2806,8 +1726,8 @@ function changeTool(tool)
 			// the appropriate heater, change the tool and then turn it back on.
 			var firstToolHeater = getTool(tool).heaters;
 			var gcode = "G10 P" + tool + " S-273\n" +
-						"T" + tool + "\n" +
-						"G10 P" + tool + " S" + $("#input_temp_h" + firstToolHeater + "_active").val();
+				"T" + tool + "\n" +
+				"G10 P" + tool + " S" + $("#input_temp_h" + firstToolHeater + "_active").val();
 			sendGCode(gcode);
 		} else {
 			sendGCode("T" + tool);
@@ -2860,7 +1780,7 @@ function clearMacroFiles() {
 		$("#panel_macro_buttons .btn-group-vertical").html("");
 		$("#panel_macro_buttons h4").removeClass("hidden");
 	}
-	
+
 	// Macros Page
 	$("#table_macro_files > tbody").remove();
 	$("#table_macro_files").addClass("hidden");
@@ -2877,7 +1797,7 @@ function convertSeconds(value) {
 	if (value < 0) {
 		value = 0;
 	}
-	
+
 	var timeLeft = [], temp;
 	if (value >= 3600) {
 		temp = Math.floor(value / 3600);
@@ -2895,7 +1815,7 @@ function convertSeconds(value) {
 	}
 	value = value.toFixed(0);
 	timeLeft.push((value > 9 ? value : "0" + value) + "s");
-	
+
 	return timeLeft.reduce(function(a, b) { return a + " " + b; });
 }
 
@@ -2937,7 +1857,7 @@ function loadMacroDropdown(directory, dropdown) {
 				var files = response.files.sort(function (a, b) {
 					return a.toLowerCase().localeCompare(b.toLowerCase());
 				});
-				
+
 				files.forEach(function(filename) {
 					$.ajax("rr_fileinfo?name=" + encodeURIComponent(directory + "/" + filename), {
 						dataType: "json",
@@ -2951,12 +1871,12 @@ function loadMacroDropdown(directory, dropdown) {
 							} else {
 								dropdown.append('<li><a href="#" class="macro-dir-entry" data-directory="' + directory + '/' + filename + '">' + label + ' <span class="caret"></span></a></li>');
 							}
-							
+
 							$(".macro-file-entry").off("click").click(function(e) {
 								sendGCode("M98 P" + $(this).data("macro"));
 								e.preventDefault();
 							});
-							
+
 							$(".macro-dir-entry").off("click").click(function(e) {
 								var dropdown = $(this).parents("ul");
 								loadMacroDropdown($(this).data("directory"), dropdown);
@@ -2988,7 +1908,7 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 	if (recordedBedTemperatures.length > maxTemperatureSamples) {
 		recordedBedTemperatures.shift();
 	}
-	
+
 	// Add chamber temperature
 	if (chamber) {
 		recordedChamberTemperatures.push(chamberTemp);
@@ -2998,7 +1918,7 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 	if (recordedChamberTemperatures.length > maxTemperatureSamples) {
 		recordedChamberTemperatures.shift();
 	}
-	
+
 	// Add heater temperatures
 	for(var i=0; i<headTemps.length; i++) {
 		recordedHeadTemperatures[i].push(headTemps[i]);
@@ -3006,7 +1926,7 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 			recordedHeadTemperatures[i].shift();
 		}
 	}
-	
+
 	// Remove invalid data (in case the number of heads has changed)
 	for(var i=headTemps.length; i<6; i++) {
 		recordedHeadTemperatures[i] = [];
@@ -3034,7 +1954,7 @@ function setAxesHomed(axes) {
 		unhomedAxes += (geometry == "delta") ? ", C" : ", Z";
 		$(".btn-home-z").removeClass("btn-primary").addClass("btn-warning");
 	}
-	
+
 	// Set home alert visibility
 	if (unhomedAxes == "") {
 		$(".home-warning").addClass("hidden");
@@ -3060,7 +1980,7 @@ function setCurrentTemperature(heater, temperature) {
 	} else if (heater == "chamber") {
 		field = "#tr_chamber td";
 	}
-	
+
 	if (temperature == undefined) {
 		$(field).first().html("n/a");
 	} else if (temperature < -200) {
@@ -3068,7 +1988,7 @@ function setCurrentTemperature(heater, temperature) {
 	} else {
 		$(field).first().html(temperature.toFixed(1) + " °C");
 	}
-	
+
 	if (heater != "bed" && heater != "chamber" && lastStatusResponse != undefined) {
 		if (lastStatusResponse.currentTool != -1) {
 			var isActiveHead = false;
@@ -3079,7 +1999,7 @@ function setCurrentTemperature(heater, temperature) {
 				} else {
 					$(".btn-retract").addClass("disabled");
 				}
-				
+
 				if (temperature >= coldExtrudeTemp) {
 					$(".btn-extrude").removeClass("disabled");
 				} else {
@@ -3111,23 +2031,23 @@ function setGeometry(g) {
 
 function setGCodeFileItem(row, size, height, firstLayerHeight, layerHeight, filamentUsage, generatedBy) {
 	row.data("file", row.data("item"));
-	row.removeData("item");
-	
 	row.children().eq(0).html('<button class="btn btn-success btn-print-file btn-sm" title="' + T("Print this file (M32)") + '"><span class="glyphicon glyphicon-print"></span></button>').attr("colspan", "");
 	row.children().eq(1).html('<button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button>');
-	
+
 	var linkCell = row.children().eq(2);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	linkCell.html('<a href="#" class="gcode-file">' + linkCell.html() + '</a>');
-	
+	linkCell.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	linkCell.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+
 	row.children().eq(3).html(formatSize(size));
-	
+
 	if (height > 0) {
 		row.children().eq(4).html(height + " mm");
 	} else {
 		row.children().eq(4).html("n/a");
 	}
-	
+
 	if (layerHeight > 0) {
 		if (firstLayerHeight == undefined) {
 			row.children().eq(5).html(layerHeight + " mm");
@@ -3137,7 +2057,7 @@ function setGCodeFileItem(row, size, height, firstLayerHeight, layerHeight, fila
 	} else {
 		row.children().eq(5).html("n/a");
 	}
-	
+
 	if (filamentUsage.length > 0) {
 		var totalUsage = filamentUsage.reduce(function(a, b) { return a + b; }).toFixed(1) + " mm";
 		if (filamentUsage.length == 1) {
@@ -3150,7 +2070,7 @@ function setGCodeFileItem(row, size, height, firstLayerHeight, layerHeight, fila
 	} else {
 		row.children().eq(6).html("n/a");
 	}
-	
+
 	if (generatedBy != "") {
 		row.children().eq(7).html(generatedBy);
 	} else {
@@ -3160,18 +2080,18 @@ function setGCodeFileItem(row, size, height, firstLayerHeight, layerHeight, fila
 
 function setGCodeDirectoryItem(row) {
 	row.data("directory", row.data("item"));
-	row.removeData("item");
-	
 	row.children().eq(1).html('<button class="btn btn-danger btn-delete-gcode-directory btn-sm" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button>');
-	
+
 	var linkCell = row.children().eq(2);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
 	linkCell.html('<a href="#" class="gcode-directory">' + linkCell.html() + '</a>').prop("colspan", 6);
-	
+	linkCell.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	linkCell.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+
 	for(var i=8; i>=3; i--) {
 		row.children().eq(i).remove();
 	}
-	
+
 	if (gcodeLastDirectory == undefined) {
 		var firstRow = $("#table_gcode_files tbody > tr:first-child");
 		if (firstRow != row) {
@@ -3185,7 +2105,7 @@ function setGCodeDirectoryItem(row) {
 
 function setGCodeDirectory(directory) {
 	currentGCodeDirectory = directory;
-	
+
 	$("#ol_gcode_directory").children(":not(:last-child)").remove();
 	if (directory == "/gcodes") {
 		$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</li>');
@@ -3209,20 +2129,20 @@ function setHeaterState(heater, status, currentTool) {
 		case 0:
 			statusText = T("off");
 			break;
-			
+
 		case 1:
 			statusText = T("standby");
 			break;
-			
+
 		case 2:
 			statusText = T("active");
 			break;
-			
+
 		case 3:
 			statusText = T("fault");
 			break;
 	}
-	
+
 	if (heater == "bed") {
 		$("#tr_bed > th:first-child > span").text(statusText);
 	} else if (heater == "chamber") {
@@ -3245,39 +2165,39 @@ function setHeaterState(heater, status, currentTool) {
 }
 
 function setMacroFileItem(row, size) {
-	row.data("file", row.data("macro"));
-	row.removeData("macro");
-
+	row.data("file", row.data("item"));
 	row.children().eq(0).html('<button class="btn btn-success btn-run-macro btn-sm" title="' + T("Run this macro file (M98)") + '"><span class="glyphicon glyphicon-play"></span></button>');
 	row.children().eq(1).html('<button class="btn btn-danger btn-delete-macro btn-sm" title="' + T("Delete this macro") + '"><span class="glyphicon glyphicon-trash"></span></button>');
-	
+
 	var linkCell = row.children().eq(2);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	linkCell.html('<a href="#" class="btn-run-macro">' + linkCell.html() + '</a>');
-	
+	linkCell.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	linkCell.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+
 	row.children().eq(3).html(formatSize(size));
 }
 
 function setMacroDirectoryItem(row) {
 	if (currentMacroDirectory == "/macros") {
-		var button = $("#panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + row.data("macro") + "']");
+		var button = $("#panel_macro_buttons button[data-macro='" + currentMacroDirectory + "/" + row.data("item") + "']");
 		button.html(button.html() + ' <span class="caret"></span>');
 		button.data("directory", button.data("macro")).attr("data-toggle", "dropdown");
 		button.removeData("macro");
 		button.parent().append('<ul class="dropdown-menu"></ul>');
 	}
-	
-	row.data("directory", row.data("macro"));
-	row.removeData("macro");
-	
+
+	row.data("directory", row.data("item"));
 	row.children().eq(1).html('<button class="btn btn-danger btn-delete-macro-directory btn-sm" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button>');
-	
+
 	var linkCell = row.children().eq(2);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-folder-open");
 	linkCell.html('<a href="#" class="macro-directory">' + linkCell.html() + '</a>').prop("colspan", 2);
-	
+	linkCell.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	linkCell.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+
 	row.children().eq(3).remove();
-	
+
 	if (macroLastDirectory == undefined) {
 		var firstRow = $("#table_macro_files tbody > tr:first-child");
 		if (firstRow != row) {
@@ -3291,7 +2211,7 @@ function setMacroDirectoryItem(row) {
 
 function setMacroDirectory(directory) {
 	currentMacroDirectory = directory;
-	
+
 	$("#ol_macro_directory").children(":not(:last-child)").remove();
 	if (directory == "/macros") {
 		$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</li>');
@@ -3313,7 +2233,7 @@ function setPauseStatus(paused) {
 	if (paused == isPaused) {
 		return;
 	}
-	
+
 	if (paused) {
 		$("#btn_cancel").removeClass("disabled").parents("div.btn-group").removeClass("hidden");
 		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").text(T("Resume")).attr("title", T("Resume paused print (M24)"));
@@ -3331,55 +2251,64 @@ function setPrintStatus(printing) {
 	if (printing == isPrinting) {
 		return;
 	}
-	
+
 	if (printing) {
 		if (justConnected) {
 			showPage("print");
 		}
-		
+
+		layerData = [];
+		currentLayerTime = maxLayerTime = lastLayerPrintDuration = 0;
+		drawPrintChart();
+		printHasFinished = false;
+
+		$(".btn-upload").addClass("disabled");
+		$("#page_general .btn-upload").removeClass("disabled");
+
 		$("#btn_pause").removeClass("disabled");
 		$(".row-progress").removeClass("hidden");
-		$("th.col-layertime").text(T("Current Layer Time"));
-		
+		$("#td_last_layertime").html("n/a");
+
 		requestFileInfo();
 	} else {
-		keepProgress = false;
 		$("#btn_pause").addClass("disabled");
-		
-		if (!isConnected || !haveFileInfo) {
+		$(".btn-upload").removeClass("disabled");
+
+		if (!isConnected || fileInfo == undefined) {
 			$(".row-progress").addClass("hidden");
 		}
-		
+
 		if (isConnected) {
 			if ($("#auto_sleep").is(":checked")) {
 				sendGCode("M1");
 				$("#auto_sleep").prop("checked", false);
 			}
-			
-			if (haveFileInfo) {
+
+			if (!printHasFinished && currentLayerTime > 0) {
+				addLayerData(currentLayerTime, true);
+				$("#td_layertime").html("n/a");
+			}
+			printHasFinished = true;
+
+			if (fileInfo != undefined) {
 				setProgress(100, T("Printed {0}, 100% Complete", fileInfo.fileName), undefined);
 			} else {
 				setProgress(100, T("Print Complete!"), undefined);
 			}
-			
+
 			["filament", "layer", "file"].forEach(function(id) {
 				if ($("#tl_" + id).html() != "n/a") {
 					$("#tl_" + id).html("00s");
 					$("#et_" + id).html((new Date()).toLocaleTimeString());
 				}
 			});
-			
-			if (haveFileInfo) {
-				$("th.col-layertime").text(T("Last Layer Time"));
-			}
 		}
-		
-		haveFileInfo = false;
+
 		fileInfo = undefined;
 	}
-	
+
 	isPrinting = printing;
-	
+
 	if (waitingForPrintStart && printing) {
 		$("#modal_upload").modal("hide");
 		showPage("print");
@@ -3395,7 +2324,7 @@ function setProbeValue(value, secondaryValue) {
 	} else {
 		$("#td_probe").html(value + " (" + secondaryValue.reduce(function(a, b) { return a + b; }) + ")");
 	}
-	
+
 	if (probeTriggerValue != undefined && value > probeTriggerValue && !isPrinting) {
 		$("#td_probe").css("background-color", probeTriggerColor);
 	} else if (probeSlowDownValue != undefined && value > probeSlowDownValue && !isPrinting) {
@@ -3422,7 +2351,7 @@ function setStatusLabel(text, style) {
 
 function setTemperatureInput(head, value, active) {
 	var tempInputId;
-	
+
 	if (head == "bed") {
 		tempInputId = "#input_temp_bed";
 	} else if (head == "chamber") {
@@ -3431,7 +2360,7 @@ function setTemperatureInput(head, value, active) {
 		tempInputId = "#input_temp_h" + head + "_";
 		tempInputId += (active) ? "active": "standby";
 	}
-	
+
 	if (!$(tempInputId).is(":focus")) {
 		$(tempInputId).val((value < 0) ? 0 : value);
 	}
@@ -3445,7 +2374,7 @@ function setTimeLeft(field, value) {
 		var now = new Date();
 		var estEndTime = new Date(now.getTime() + value * 1000); // Date uses ms
 		$("#et_" + field).html(estEndTime.toLocaleTimeString());
-		
+
 		// Estimate time left
 		$("#tl_" + field).html(convertSeconds(value));
 	}
@@ -3459,12 +2388,15 @@ function setTitle(title) {
 function showPage(name) {
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
-	
+
 	if (name != currentPage) {
 		if (name == "control") {
-			$("#slider_fan_control").slider("relayout")
+			$("#slider_fan_control").slider("relayout");
+			if (macroUpdateIndex != knownMacroFiles.length) {
+				updateMacroFiles();
+			}
 		}
-		
+
 		if (name == "print") {
 			$("#slider_speed").slider("relayout");
 			$("#slider_fan_print").slider("relayout");
@@ -3476,14 +2408,14 @@ function showPage(name) {
 			}
 			waitingForPrintStart = false;
 		}
-		
+
 		if (name == "console") {
 			currentPage = "console";
 			if (window.matchMedia('(min-width: 992px)').matches) {
 				$("#page_console input").focus();
 			}
 		}
-		
+
 		if (name == "files") {
 			if (gcodeUpdateIndex == knownGCodeFiles.length) {
 				$(".span-refresh-files").removeClass("hidden");
@@ -3493,7 +2425,7 @@ function showPage(name) {
 		} else {
 			$(".span-refresh-files").addClass("hidden");
 		}
-		
+
 		if (name == "macros") {
 			if (macroUpdateIndex == knownMacroFiles.length) {
 				$(".span-refresh-macros").removeClass("hidden");
@@ -3503,12 +2435,12 @@ function showPage(name) {
 		} else {
 			$(".span-refresh-macros").addClass("hidden");
 		}
-		
+
 		if (name == "settings" && isConnected) {
 			getConfigResponse();
 		}
 	}
-	
+
 	// Scroll to top of the main content on small devices
 	if (window.matchMedia('(max-width: 991px)').matches) {
 		var offset = (name != "control") ? -9 : 0;
@@ -3526,471 +2458,58 @@ function stripMacroFilename(filename) {
 	} else {
 		label = match[1];
 	}
-	
+
 	match = label.match(/\d+_(.*)/);
 	if (match != null) {
 		label = match[1];
 	}
-	
+
 	return label;
 }
 
-/* Data helpers */
+/* Other */
 
-function requestFileInfo() {
-	$.ajax("rr_fileinfo", {
-		dataType: "json",
-		success: function(response) {
-			if (isConnected && response.err == 2) {
-				// The firmware is still busy parsing the file, so try again until it's ready
-				setTimeout(function() {
-					if (isConnected) {
-						requestFileInfo();
-					}
-				}, 250);
-			} else if (response.err == 0) {
-				// File info is valid, use it
-				haveFileInfo = true;
-				fileInfo = response;
-				
-				$("#span_progress_left").html(T("Printing {0}", response.fileName));
-				
-				$("#dd_size").html(formatSize(response.size));
-				$("#dd_height").html((response.height > 0) ? (response.height + " mm") : "n/a");
-				var layerHeight = (response.layerHeight > 0) ? (response.layerHeight + " mm") : "n/a";
-				if (response.firstLayerHeight > 0) {
-					$("#dd_layer_height").html(response.firstLayerHeight + " mm / " + layerHeight);
-				} else {
-					$("#dd_layer_height").html(layerHeight);
-				}
-				
-				if (response.filament.length == 0) {
-					$("#dd_filament").html("n/a");
-				} else {
-					var filament = response.filament.reduce(function(a, b) { return a + " mm, " + b; }) + " mm";
-					$("#dd_filament").html(filament);
-				}
-				
-				$("#dd_generatedby").html((response.generatedBy == "") ? "n/a" : response.generatedBy);
-				
-				$("#td_print_duration").html(convertSeconds(response.printDuration));
-			}
-		}
-	});
-}
-
-function setToolMapping(mapping) {
-	if (toolMapping != mapping) {
-		toolMapping = mapping;
-
-		// Clean up current tools
-		$("#page_tools").children(":not(:first-child)").remove();
-		
-		// Create new panels for each tool
-		if (toolMapping != undefined) {
-			for(var i=0; i<toolMapping.length; i++) {
-				var number = toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : (i + 1);
-				
-				var heaters;
-				if (toolMapping[i].heaters.length == 0) {
-					heaters = T("none");
-				} else {
-					heaters = toolMapping[i].heaters.reduce(function(a, b) { return a + ", " + b; });
-				}
-				
-				var drives;
-				if (toolMapping[i].drives.length == 0) {
-					drives = T("none");
-				} else {
-					drives = toolMapping[i].drives.reduce(function(a, b) { return a + ", " + b; });
-				}
-				
-				var div =	'<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3"><div class="panel panel-default">';
-				div +=		'<div class="panel-heading"><span>' + T("Tool {0}", number) + '</span></div>';
-				div +=		'<div data-tool="' + number + '" class="panel-body">';
-				div +=		'<dl><dt>' + T("Heaters:") + '</dt><dd>' + heaters + '</dd>';
-				div +=		'<dt>' + T("Drives:") + '</dt><dd>' + drives + '</dd>';
-				div +=		'</dl><div class="row"><div class="col-md-12 text-center">';
-				if (lastStatusResponse != undefined && lastStatusResponse.currentTool == number) {
-					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Deselect this tool") + '">';
-					div +=		'<span class="glyphicon glyphicon-remove"></span> <span>' + T("Deselect") + '</span></button>';
-				} else {
-					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Select this tool") + '">';
-					div +=		'<span class="glyphicon glyphicon-pencil"></span> <span>' + T("Select") + '</span></button>';
-				}
-				div +=		' <button class="btn btn-danger btn-remove-tool" title="' + T("Remove this tool") + '">';
-				div +=		'<span class="glyphicon glyphicon-trash"></span> ' + T("Remove") + '</button>';
-				div +=		'</div></div></div></div></div>';
-				$("#page_tools").append(div);
-			}
-		}
-		
-		// Keep the GUI updated
-		validateAddTool();
+function applyThemeColors(themeActive) {
+	// Update temp chart colors and repaint it
+	tempChartOptions.colors[0] = $("#tr_bed a").css("color");
+	tempChartOptions.colors[1] = $("#tr_head_1 a").css("color");
+	tempChartOptions.colors[2] = $("#tr_head_2 a").css("color");
+	tempChartOptions.colors[3] = $("#tr_head_3 a").css("color");
+	tempChartOptions.colors[4] = $("#tr_head_4 a").css("color");
+	tempChartOptions.colors[5] = $("#tr_head_5 a").css("color");
+	tempChartOptions.colors[6] = $("#tr_chamber th").css("color");
+	if (tempChart != undefined) {
+		tempChart.destroy();
+		tempChart = undefined;
+		drawTemperatureChart();
 	}
-}
 
-function getTool(number) {
-	if (toolMapping == undefined) {
-		return undefined;
+	// Update layer times chart
+	printChartOptions.colors[0] = getColorFromCSS("chart-print-line");
+	if (printChart != undefined) {
+		printChart.destroy();
+		printChart = undefined;
+		drawPrintChart();
 	}
-	
-	for(var i=0; i<toolMapping.length; i++) {
-		if (toolMapping[i].hasOwnProperty("number")) {
-			if (toolMapping[i].number == number) {
-				return toolMapping[i];
-			}
-		} else if (i + 1 == number) {
-			return toolMapping[i];
-		}
-	}
-	return undefined;
-}
 
-function getToolsByHeater(heater) {
-	if (toolMapping == undefined) {
-		return [];
-	}
-	
-	var result = [];
-	for(var i=0; i<toolMapping.length; i++) {
-		for(var k=0; k<toolMapping[i].heaters.length; k++) {
-			if (toolMapping[i].heaters[k] == heater) {
-				if (toolMapping[i].hasOwnProperty("number")) {
-					result.push(toolMapping[i].number);
-				} else {
-					result.push(i + 1);
-				}
-			}
-		}
-	}
-	return result;
-}
-
-function T(text) {
-	var entry = text;
-	if (translationData != undefined) {
-		// Generate a regex to check with
-		text = text.replace(/{(\d+)}/g, "{\\d+}").replace("(", "\\(").replace(")", "\\)");
-		text = text.replace("?", "[?]").replace(".", "[.]");
-		var regex = new RegExp("^" + text + "$");
-		
-		// Get the translation node and see if we can find an entry
-		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
-		if (root != null) {
-			for(var i=0; i<root.children.length; i++) {
-				if (regex.test(root.children[i].attributes["t"].value)) {
-					entry = root.children[i].textContent;
-					break;
-				}
-			}
-		
-			// Log translation text if we couldn't find a suitable text
-			if (translationWarning && entry == text) {
-				console.log("WARNING: Could not translate '" + entry + "'");
-			}
-		}
-	}
-	
-	// Format it with the given arguments
-	var args = arguments;
-	return entry.replace(/{(\d+)}/g, function(match, number) {
-		number = parseInt(number) + 1;
-		return typeof args[number] != 'undefined' ? args[number] : match;
-	});
-}
-
-// May be called only once on page load to translate the page
-function translatePage() {
-	if (translationData != undefined) {
-		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
-		if (root != null) {
-			translateEntries(root, $("span, th, td, strong, dt, button"), "textContent");
-			translateEntries(root, $("h1, h4, label, a"), "textContent");
-			
-			translateEntries(root, $("input[type='text']"), "placeholder");
-			translateEntries(root, $("a, abbr, button, label, #chart_temp, input"), "title");
-			
-			$("#btn_language").data("language", settings.language).children("span:first-child").text(root.attributes["name"].value);
-			
-			$("html").attr("lang", settings.language);
-		}
-	}
-}
-
-function translateEntries(root, entries, key) {
-	var doNodeCheck = (key == "textContent");
-	$.each(entries, function() {
-		// If this node has no children, we can safely use it
-		if (!doNodeCheck || this.childNodes.length < 2) {
-			translateEntry(root, this, key);
-		// Otherwise we need to check for non-empty text nodes
-		} else {
-			for(var i=0; i<this.childNodes.length; i++) {
-				var val = this.childNodes[i][key];
-				if (this.childNodes[i].nodeType == 3 && val != undefined && this.childNodes[i].childNodes.length == 0 && val.trim().length > 0) {
-					translateEntry(root, this.childNodes[i], key);
-				}
-			}
-		}
-	});
-}
-
-function translateEntry(root, item, key) {
-	if (item != undefined) {
-		var originalText = item[key];
-		if (originalText != undefined && originalText.trim() != "") {
-			var text = originalText.trim();
-			for(var i=0; i<root.children.length; i++) {
-				var entry = root.children[i].attributes["t"].value;
-				if (entry.indexOf("{") == -1 && entry == text) {
-					item[key] = item[key].replace(text, root.children[i].textContent);
-					return;
-				}
-			}
-			
-			// Log translation text if we couldn't find a suitable text
-			if (translationWarning) {
-				console.log("WARNING: Could not translate static '" + text + "'");
-			}
-		}
-	}
-}
-
-/* File Uploads */
-
-var uploadType, uploadFiles, uploadRows, uploadedFileCount;
-var uploadTotalBytes, uploadedTotalBytes;
-var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
-var uploadIncludedConfig;
-
-function startUpload(type, files) {
-	// Initialize some values
-	isUploading = true;	
-	uploadType = type;
-	uploadTotalBytes = uploadedTotalBytes = uploadedFileCount = 0;
-	uploadFiles = files;
-	$.each(files, function() {
-		uploadTotalBytes += this.size;
-	});
-	uploadRows = [];
-	uploadIncludedConfig = false;
-	
-	// Safety check for Upload and Print
-	if (type == "print" && files.length > 1) {
-		showMessage("exclamation-sign", T("Error"), T("You can only upload and print one file at once!"), "md");
-		return;
-	}
-	
-	// Reset modal dialog
-	$("#modal_upload").data("backdrop", "static")
-	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").addClass("hidden");
-	$("#btn_cancel_upload, #modal_upload p").removeClass("hidden");
-	$("#modal_upload h4").text(T("Uploading File(s), {0}% Complete", 0));
-	
-	// Add files to the table
-	$("#table_upload_files > tbody").remove();
-	$.each(files, function() {
-		uploadIncludedConfig |= (this.name == "config.g") && (type == "generic");
-		var row = 	'<tr><td><span class="glyphicon glyphicon-asterisk"></span> ' + this.name + '</td>';
-		row += 		'<td>' + formatSize(this.size) + '</td>';
-		row +=		'<td><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar"><span></span></div></div></td></tr>';
-		$("#table_upload_files").append(row);
-		uploadRows.push($("#table_upload_files > tbody > tr:last-child"));
-	});
-	$("#modal_upload").modal("show");
-	
-	// Start file upload
-	uploadNextFile();
-}
-
-function uploadNextFile() {
-	// Prepare some upload values
-	var file = uploadFiles[uploadedFileCount];
-	uploadFileName = file.name;
-	uploadFileSize = file.size;
-	uploadStartTime = new Date();
-	uploadPosition = 0;
-	
-	// Determine the right path
-	var targetPath = "";
-	switch (uploadType) {
-		case "gcode":	// Upload G-Code
-		case "print":	// Upload & Print G-Code
-			targetPath = currentGCodeDirectory + "/" + uploadFileName;
-			break;
-			
-		case "macro":	// Upload Macro
-			targetPath = currentMacroDirectory + "/" + uploadFileName;
-			break;
-			
-		default:		// Generic Upload (on the Settings page)
-			var fileExt = uploadFileName.split('.').pop().toLowerCase();
-			switch (fileExt) {
-				case "ico":
-				case "html":
-				case "htm":
-				case "xml":
-					targetPath = "/www/" + uploadFileName;
-					break;
-					
-				case "css":
-					targetPath = "/www/css/" + uploadFileName;
-					break;
-					
-				case "eot":
-				case "svg":
-				case "ttf":
-				case "woff":
-				case "woff2":
-					targetPath = "/www/fonts/" + uploadFileName;
-					break;
-					
-				case "jpeg":
-				case "jpg":
-				case "png":
-					targetPath = "/www/img/" + uploadFileName;
-					break;
-					
-				case "js":
-					targetPath = "/www/js/" + uploadFileName;
-					break;
-					
-				default:
-					targetPath = "/sys/" + uploadFileName;
-			}
-	}
-	
-	// Update the GUI
-	uploadRows[0].find(".progress-bar > span").text(T("Starting"));
-	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
-	
-	// Begin another POST file upload
-	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(targetPath), {
-		data: file,
-		dataType: "json",
-		processData: false,
-		contentType: false,
-		type: "POST",
-		success: function(data) {
-			if (isUploading) {
-				finishCurrentUpload(data.err == 0);
-			}
-		},
-		xhr: function() {
-			var xhr = new window.XMLHttpRequest();
-			xhr.upload.addEventListener("progress", function(event) {
-				if (isUploading && event.lengthComputable) {
-					// Calculate current upload speed (Date is based on milliseconds)
-					uploadSpeed = event.loaded / (((new Date()) - uploadStartTime) / 1000);
-					
-					// Update global progress
-					uploadedTotalBytes += (event.loaded - uploadPosition);
-					uploadPosition = event.loaded;
-					
-					var uploadTitle = T("Uploading File(s), {0}% Complete", ((uploadedTotalBytes / uploadTotalBytes) * 100).toFixed(0));
-					if (uploadSpeed > 0) {
-						uploadTitle += " (" + formatSize(uploadSpeed) + "/s)";
-					}
-					$("#modal_upload h4").text(uploadTitle);
-					
-					// Update progress bar
-					var progress = ((event.loaded / event.total) * 100).toFixed(0);
-					uploadRows[0].find(".progress-bar").css("width", progress + "%");
-					uploadRows[0].find(".progress-bar > span").text(progress + " %");
-				}
-			}, false);
-			return xhr;
-		}
-	});
-}
-
-function finishCurrentUpload(success) {
-	// Keep the progress updated
-	if (!success) {
-		uploadedTotalBytes += (uploadFileSize - uploadPosition);
-	}
-	
-	// Update glyphicon and progress bar
-	uploadRows[0].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
-	uploadRows[0].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
-	uploadRows[0].find(".progress-bar > span").text(success ? "100 %" : T("ERROR"));
-	
-	// Go on with upload logic if we're still busy
-	if (isUploading) {
-		uploadedFileCount++;
-		if (uploadFiles.length > uploadedFileCount) {
-			// Purge last-uploaded file row
-			uploadRows.shift();
-			
-			// Upload the next one
-			uploadNextFile();
-		} else {
-			// We're done
-			finishUpload(true);
-		}
-	}
-}
-
-function cancelUpload() {
-	isUploading = false;
-	finishCurrentUpload(false);
-	finishUpload(false);
-	$("#modal_upload h4").text(T("Upload Cancelled!"));
-	uploadRequest.abort();
-}
-
-function finishUpload(success) {
-	// Reset upload variables
-	isUploading = false;
-	uploadFiles = uploadRows = [];
-	$("#input_file_upload").val("");
-	
-	// Set some values in the modal dialog
-	$("#modal_upload h4").text(T("Upload Complete!"));
-	$("#btn_cancel_upload, #modal_upload p").addClass("hidden");
-	$("#modal_upload .close, #modal_upload button[data-dismiss='modal']").removeClass("hidden");
-	
-	if (success) {
-		// If everything went well, update the GUI immediately
-		uploadHasFinished();
+	if (themeActive) {
+		$("#layer_tooltip").css("background-color", $("#panel_print_info").css("background-color"));
 	} else {
-		// In case an upload has been aborted, give the firmware some time to recover
-		setTimeout(uploadHasFinished, 1000);
-	}
-}
-
-function uploadHasFinished() {
-	// Make sure the G-Codes and Macro pages are updated
-	if (uploadType == "gcode" || uploadType == "print") {
-		gcodeUpdateIndex = -1;
-		if (currentPage == "files") {
-			updateGCodeFiles();
-		}
-	} else if (uploadType == "macro") {
-		macroUpdateIndex = -1;
-		if (currentPage == "control" || currentPage == "macros") {
-			updateMacroFiles();
-		}
-	}
-	
-	// Deal with different upload types
-	if (uploadType == "print") {
-		waitingForPrintStart = true;
-		if (currentGCodeDirectory == "/gcodes") {
-			sendGCode("M32 " + uploadFileName);
-		} else {
-			sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFileName);
-		}
+		$("#layer_tooltip").css("background-color", "");
 	}
 
-	// Ask for software reset if it's safe to do
-	if (uploadIncludedConfig && lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
-		showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to perform a software reset now?"), function() {
-			sendGCode("M999");
-		});
-	}
-	
-	// Start polling again
-	updateStatus();
+	// Update Z-probe colors
+	probeSlowDownColor = getColorFromCSS("probe-slow-down");
+	probeTriggerColor = getColorFromCSS("probe-trigger");
 }
+
+function getColorFromCSS(classname)
+{
+	var ghostSpan = $('<span class="hidden ' + classname + '"></span>');
+	ghostSpan.appendTo("body");
+	var color = ghostSpan.css("color");
+	ghostSpan.remove();
+	return color;
+}
+
+// vim: ts=4:sw=4

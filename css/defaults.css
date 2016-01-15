@@ -578,6 +578,10 @@ div.panel table.table-status:not(:last-child)
 
 /* Print Status */
 
+#img_webcam {
+	width: 100%;
+}
+
 #page_print .btn-group {
 	padding-bottom: 6px;
 }
@@ -613,6 +617,15 @@ div.panel table.table-status:not(:last-child)
 	-o-transition: background-color 500ms linear;
 	-ms-transition: background-color 500ms linear;
 	transition: background-color 500ms linear;
+}
+
+#layer_tooltip {
+	position: absolute;
+	display: none;
+	border: 1px solid #fdd;
+	padding: 2px;
+	background-color: #fee;
+	opacity: 0.80;
 }
 
 #panel_print_control .btn {
@@ -806,6 +819,8 @@ div.panel table.table-status:not(:last-child)
 }
 
 #btn_fw_diagnostics {
+	padding-left: 4px;
+	padding-right: 4px;
 	width: 100%;
 }
 
@@ -958,6 +973,14 @@ label[for="dropdown_language"] {
 	line-height: 30px;
 	vertical-align: middle;
 	padding: 6px;
+}
+
+#text_config {
+	background-color: inherit;
+	border: 0px;
+	min-height: 200px;
+	resize: none;
+	width: 100%;
 }
 
 #ul_control_dropdown {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.07
+<!--	Duet Web Control v1.08
 	
 		written by Christian Hammacher
 	
@@ -13,10 +13,11 @@
 		<meta name="viewport" content="width=device-width">
 		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
 		<meta name="author" content="Christian Hammacher">
-		<link rel="icon" href="favicon.ico">
 		
 		<title id="title">Duet Web Control</title>
 		
+		<!-- Favicon -->
+		<link rel="shortcut icon" href="favicon.ico">
 		<!-- CSS -->
 		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
@@ -126,8 +127,6 @@
 										<li role="presentation" class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> Console</a></li>
 										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
-										<li role="presentation" class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-										<li role="presentation" class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
 										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
 										<li role="presentation" class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
 									</ul>
@@ -487,10 +486,6 @@
 						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
-						<li class="navitem navitem-spools"><a class="navlink" href="#" data-target="spools"><span class="glyphicon glyphicon-record"></span> Spools</a></li>
-						<li class="navitem navitem-maintenance hidden"><a class="navlink" href="#" data-target="maintenance"><span class="glyphicon glyphicon-wrench"></span> Maintenance</a></li>
-					</ul>
-					<ul class="nav nav-sidebar">
 						<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
 						<li class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
 					</ul>
@@ -730,9 +725,19 @@
 						
 						<div class="row">
 							<div class="col-xs-12 col-sm-12 col-md-6 col-md-push-3 col-lg-7 col-lg-push-2">
+								<div id="panel_webcam" class="panel panel-default hidden">
+									<div class="panel-heading">
+										<a id="a_webcam" href="#">Webcam Surveillance</a>
+										<span id="span_webcam" class="glyphicon glyphicon-menu-down"></span>
+									</div>
+									<div class="panel-body">
+										<img src="about:blank" id="img_webcam" alt="(image not available)">
+									</div>
+								</div>
+
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Layer Statistics</span>
+										<span>Layer Statistics</span>
 									</div>
 									<div class="panel-body panel-chart">
 										<div id="chart_print">
@@ -741,22 +746,22 @@
 									</div>
 								</div>
 								
-								<div class="panel panel-default" id="panel_print_info">
+								<div id="panel_print_info" class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Collected Data</span>
+										<span>Collected Data</span>
 									</div>
 									
 									<table class="table table-bordered table-condensed">
 										<tr>
 											<th>Warm-Up Time</th>
-											<th>First Layer Time</th>
-											<th class="col-layertime">Current Layer Time</th>
+											<th>Current Layer Time</th>
+											<th>Last Layer Time</th>
 											<th>Print Duration</th>
 										</tr>
 										<tr>
 											<td id="td_warmup_time">n/a</td>
-											<td id="td_fl_time">n/a</td>
-											<td class="col-layertime" id="td_curr_layer">n/a</td>
+											<td id="td_layertime">n/a</td>
+											<td id="td_last_layertime">n/a</td>
 											<td id="td_print_duration">n/a</td>
 										</tr>
 									</table>
@@ -764,7 +769,7 @@
 								
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Estimations</span>
+										<span>Estimations</span>
 									</div>
 									
 									<table class="table table-bordered table-condensed" id="table_estimations">
@@ -793,7 +798,7 @@
 							<div class="col-xs-6 col-sm-6 col-md-3 col-md-pull-6 col-lg-2 col-lg-pull-7 col-left">
 								<div class="panel panel-default" id="panel_print_control">
 									<div class="panel-heading">
-										<span class="title">Print Control</span>
+										<span>Print Control</span>
 									</div>
 									<div class="panel-body">
 										<div class="btn-group-justified">
@@ -825,7 +830,7 @@
 							
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">File Information</span>
+										<span>File Information</span>
 									</div>
 									<div class="panel-body">
 										<dl>
@@ -847,7 +852,7 @@
 							<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-right">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Speed Factor</span>
+										<span>Speed Factor</span>
 									</div>
 									<div class="panel-body">
 										<input id="slider_speed" type="text" title="Set speed factor (via M220)"/>
@@ -858,7 +863,7 @@
 							<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3 col-right">
 								<div class="panel panel-default">
 									<div class="panel-heading">
-										<span class="title">Extrusion Factors</span>
+										<span>Extrusion Factors</span>
 									</div>
 									<div class="panel-body">
 										<table class="table-description">
@@ -1026,43 +1031,6 @@
 						</div>
 					</div> 
 					
-					<!-- Spools -->
-					<div id="page_spools" class="page">
-						<div class="row">
-							<div class="col-xs-12 col-sm-7 col-md-6 col-lg-5">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<span>Exchange Filament</span>
-									</div>
-									<div class="panel-body">
-										<div class="row">
-											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-												<label for="input_bowden_length">Bowden Tube Length:</label>
-												<div class="input-group">
-													<input type="number" class="form-control" id="input_bowden_length" value="300" disabled>
-													<span class="input-group-addon">mm</span>
-												</div>
-											</div>
-											<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-												<div class="btn-group-vertical btn-group-vertical-justified">
-													<div class="btn-group">
-														<button class="btn btn-danger btn-retract disabled" id="btn_unload_filament" title="Unload current filament spool"><span class="glyphicon glyphicon-arrow-up"></span> Unload Filament</button>
-													</div>
-													<div class="btn-group">
-														<button class="btn btn-success btn-extrude disabled" id="btn_load_filament" title="Load new filament spool"><span class="glyphicon glyphicon-arrow-down"></span> Load Filament</button>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 hidden">
-								<h1 class="text-center text-muted">TODO: charts for each spool, per-spool values like filament total, filament printed and filament left</h1>
-							</div>
-						</div>
-					</div>
-					
 					<!-- Settings -->
 					<div id="page_settings" class="page">
 						<form id="frm_settings">
@@ -1109,7 +1077,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.07</td>
+														<td id="web_version">HTML: 1.08</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1117,7 +1085,7 @@
 												<span id="theme_notice" class="hidden">Dark theme kindly provided by Fotomas</span>
 											</div>
 										</div>
-										
+
 										<div class="panel panel-default hidden-xs hidden-sm">
 											<div class="panel-heading">
 												<span>File Upload for /sys and /www Directories</span>
@@ -1128,6 +1096,16 @@
 														<button class="btn btn-lg btn-info btn-upload disabled" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
 													</div>
 												</div>
+											</div>
+										</div>
+
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Webcam Integration</span>
+											</div>
+											<div class="panel-body">
+												<label for="webcam_url">Optional URL to an external Webcam:</label>
+												<input id="webcam_url" class="form-control" type="text" title="URL must point to an image file">
 											</div>
 										</div>
 									</div>
@@ -1233,6 +1211,12 @@
 												<label for="ajax_timeout">AJAX Timeout:</label>
 												<div class="input-group">
 													<input type="number" id="ajax_timeout" class="form-control" title="Maximum time to wait for an AJAX request">
+													<span class="input-group-addon">ms</span>
+												</div>
+
+												<label for="webcam_interval">Webcam Update Interval:</label>
+												<div class="input-group">
+													<input type="number" id="webcam_interval" class="form-control" title="Interval at which the webcam image on the Print Status page will be updated">
 													<span class="input-group-addon">ms</span>
 												</div>
 											</div>
@@ -1367,6 +1351,7 @@
 								<div class="tab-pane row" id="page_config">
 									<div class="col-md-12" id="div_config">
 										<h1 class="text-center text-muted">Connect to your Duet to display the configuration file</h1>
+										<textarea readonly id="text_config" class="hidden"></textarea>
 									</div>
 								</div>
 								
@@ -1720,17 +1705,22 @@
 				</div>
 			</div>
 		</div>
-		
+
+		<div id="layer_tooltip"></div>
 		<!-- Bootstrap core JavaScript
 		================================================== -->
 		<!-- Placed at the end of the document so the pages load faster -->
 		<script src="js/jquery-2.1.3.min.js"></script>
-		<script src="js/jquery.cookie.min.js"></script>
+		<script src="js/jquery.autosize.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
 		<script src="js/jquery.flot.navigate.min.js"></script>
 		<script src="js/bootstrap.min.js"></script>
 		<script src="js/bootstrap-slider.min.js"></script>
-		<script src="js/interface.js"></script>
+		<script src="js/jszip.min.js"></script>
+		<script src="js/model.js"></script>
+		<script src="js/viewmodel.js"></script>
 	</body>
 </html>
+<!-- vim: ts=4 sw=4
+-->
