@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.08
+/* Interface logic for the Duet Web Control v1.09
  * 
  * written by Christian Hammacher
  * 
@@ -69,8 +69,8 @@ $(document).ready(function() {
 	resetGuiData();
 	updateGui();
 
-	$("#web_version").append(", JS: " + jsVersion.toFixed(2));
-	$("#text_config").autosize();
+	$("#web_version").append(", JS: " + jsVersion);
+	$("#text_config").textareaAutoSize();
 
 	loadSettings(false);
 });
@@ -341,10 +341,10 @@ function updateWebcam(externalTrigger) {
 		webcamUpdating = false;
 	} else {
 		var newURL = settings.webcamURL;
-		if (newURL.indexOf("?") != -1) {
-			newURL = newURL + "?dummy=" + Math.random();
+		if (newURL.indexOf("?") == -1) {
+			newURL += "?dummy=" + Math.random();
 		} else {
-			newURL = newURL + "&dummy=" + Math.random();
+			newURL += "&dummy=" + Math.random();
 		}
 		$("#img_webcam").attr("src", newURL);
 

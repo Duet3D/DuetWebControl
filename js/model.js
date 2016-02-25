@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control v1.08
+/* Interface logic for the Duet Web Control v1.09
  * 
  * written by Christian Hammacher
  * 
@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = 1.08;
+var jsVersion = "1.09";
 var sessionPassword = "reprap";
 var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
@@ -619,11 +619,7 @@ function updateStatus() {
 						$("#td_warmup_time").html(convertSeconds(status.warmUpDuration));
 					}
 				} else if (!printHasFinished) {
-					if (status.printDuration > 0) {
-						$("#td_warmup_time").html(convertSeconds(status.printDuration));
-					} else {
-						$("#td_warmup_time").html("n/a");
-					}
+					$("#td_warmup_time").html("n/a");
 				}
 
 				// Current Layer Time
@@ -711,7 +707,7 @@ function getConfigFile() {
 		success: function(response) {
 			if (response != "") {
 				configFile = response;
-				$("#text_config").val(response).prop("readonly", false);
+				$("#text_config").val(response).prop("readonly", false).trigger("input");
 				$("#row_save_settings").removeClass("hidden");
 			}
 		}
@@ -729,7 +725,7 @@ function getConfigResponse() {
 			if (configFile == undefined) {
 				if (response.hasOwnProperty("configFile")) {
 					$("#div_config > h1").addClass("hidden");
-					$("#text_config").removeClass("hidden").prop("readonly", true).val(response.configFile);
+					$("#text_config").removeClass("hidden").prop("readonly", true).val(response.configFile).trigger("input");
 				} else {
 					$("#div_config > h1").text(T("loading"));
 				}
@@ -1320,7 +1316,7 @@ function startUpload(type, files) {
 
 						var zipFiles = [];
 						$.each(zip.files, function(index, zipEntry) {
-							if (!zipEntry.dir && zipEntry.name.match("\/\\.git") == null) {
+							if (!zipEntry.dir && zipEntry.name.match("\/\\.git") == null && zipEntry.name.match("README") == null) {
 								var zipName = zipEntry.name.split("/");
 								zipName = zipName[zipName.length - 1];
 
