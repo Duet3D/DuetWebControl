@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.08
+<!--	Duet Web Control v1.09
 	
 		written by Christian Hammacher
 	
@@ -1077,12 +1077,22 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.08</td>
+														<td id="web_version">HTML: 1.09</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
 												<br/>
 												<span id="theme_notice" class="hidden">Dark theme kindly provided by Fotomas</span>
+											</div>
+										</div>
+
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Webcam Integration</span>
+											</div>
+											<div class="panel-body">
+												<label for="webcam_url">Optional URL to an external Webcam:</label>
+												<input id="webcam_url" class="form-control" type="text" title="URL must point to an image file">
 											</div>
 										</div>
 
@@ -1096,16 +1106,6 @@
 														<button class="btn btn-lg btn-info btn-upload disabled" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
 													</div>
 												</div>
-											</div>
-										</div>
-
-										<div class="panel panel-default">
-											<div class="panel-heading">
-												<span>Webcam Integration</span>
-											</div>
-											<div class="panel-body">
-												<label for="webcam_url">Optional URL to an external Webcam:</label>
-												<input id="webcam_url" class="form-control" type="text" title="URL must point to an image file">
 											</div>
 										</div>
 									</div>
@@ -1711,7 +1711,7 @@
 		================================================== -->
 		<!-- Placed at the end of the document so the pages load faster -->
 		<script src="js/jquery-2.1.3.min.js"></script>
-		<script src="js/jquery.autosize.min.js"></script>
+		<script src="js/jquery.textarea_autosize.min.js"></script>
 		<script src="js/jquery.flot.min.js"></script>
 		<script src="js/jquery.flot.resize.min.js"></script>
 		<script src="js/jquery.flot.navigate.min.js"></script>
