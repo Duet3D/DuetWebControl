@@ -111,7 +111,7 @@
 		<string t="Status Update Interval:">Aktualisierungsrate für Statusupdates:</string>
 		<string t="Extended Status Update after every:">Erweiterte Statusupdates nach jeder:</string>
 		<string t="th response">ten Antwort</string>
-		<string t="Reconnect Delay on Halt:">Wiederverbindungsverzögerung nach NOT-AUS</string>
+		<string t="Reconnect Delay on Halt:">Wiederverbindungsverzögerung nach NOT-AUS:</string>
 		<string t="AJAX Timeout:">AJAX-Timeout:</string>
 		<string t="Send G-Code...">G-Code senden...</string>
 		<string t="Web Interface by Christian Hammacher">Web Interface von Christian Hammacher</string>
@@ -281,11 +281,11 @@
 		
 		<!-- Modal Dialogs -->
 		<string t="Error">Fehler</string>
-		<string t="Could not establish connection to the Duet firmware!&lt;br/&gt;&lt;br/&gt;Please check your settings and try again.">Konnte keine Verbindung zum Duet herstellen!&lt;br/&gt;&lt;br/&gt;Bitte prüfen Sie ihre Einstellungen und versuchen Sie es erneut.</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Konnte keine Verbindung zum Duet herstellen! Bitte prüfen Sie ihre Einstellungen und versuchen Sie es erneut.</string>
 		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">Konnte keine Verbindung zum Duet herstellen, da keine weiteren HTTP-Sitzungen verfügbar sind.</string>
 		<string t="Message from Duet firmware">Nachricht von der Duet Firmware</string>
-		<string t="{0} returned an error">{0} lieferte einen Fehler zurück</string>
-		<string t="An AJAX error was reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Es wurde ein AJAX-Fehler berichtet, deshalb wurde die aktuelle Sitzung beendet.&lt;br/&gt;&lt;br/&gt;Bitte prüfen Sie, ob Ihr Drucker noch an ist und versuchen Sie erneut zu verbinden.</string>
+		<string t="{0} has returned an error:">{0} hat einen Fehler zurückgeliefert:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Es wurde ein AJAX-Fehler berichtet, deshalb wurde die aktuelle Sitzung beendet.&lt;br/&gt;&lt;br/&gt;Bitte prüfen Sie, ob Ihr Drucker noch an ist und versuchen Sie erneut zu verbinden.</string>
 		<string t="Password required">Passwort benötigt</string>
 		<string t="Please enter your password:">Bitte geben Sie Ihr Passwort ein:</string>
 		<string t="OK">Ok</string>
@@ -353,6 +353,41 @@
 		<string t="Use dark theme">Dunkles Erscheinungsbild</string>
 		<string t="Use dark theme by Fotomas">Benutze dunkles Erscheinungsbild von Fotomas</string>
 		<string t="Dark theme kindly provided by Fotomas">Dunkles Erscheinungsbild freundlicherweise von Fotomas bereitgestellt</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer {0}: {1}">Layer {0}: {1}</string>
+		<string t="Could not read contents of file {0}!">Konnte den Inhalt der Datei {0} nicht lesen!</string>
+		<string t="Webcam Surveillance">Webcam-Überwachung</string>
+		<string t="(image not available)">(Bild nicht verfügbar)</string>
+		<string t="Webcam Integration">Webcam-Integration</string>
+		<string t="Optional URL to an external Webcam:">Optionale URL zu einer externen Webcam:</string>
+		<string t="URL must point to an image file"></string>
+		<string t="Webcam Update Interval:">Webcam Updateintervall:</string>
+		<string t="Interval at which the webcam image on the Print Status page will be updated">Intervall nach dem das Webcam-Bild auf der Druckstatus-Seite aktualisiert wird</string>
+
+		<!-- New in v1.10 -->
+		<string t="Updating">Aktualisiere</string>
+		<string t="Updating Firmware...">Aktualisiere Firmware...</string>
+		<string t="Perform Firmware Update?">Firmwareaktualisierung durchführen?</string>
+		<string t="You have just uploaded a firmware file. Would you like to update your Duet now?">Sie haben gerade eine Firmwaredatei hochgeladen. Möchten Sie jetzt ihr Duet aktualisieren?</string>
+		<string t="Could not rename firmware file!">Konnte Firmwaredatei nicht umbenennen!</string>
+		<string t="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">Umdrehungsanzahl pro Minute eines 4-pin PWM-Lüfters im Sensorenbereich anzeigen</string>
+		<string t="Show Fan RPM in Sensors">Lüfterumdrehungen pro Minute anzeigen</string>
+		<string t="Reconnect Delay on Firmware Update:">Wiederverbindungsverzögerung bei Firmwareaktualisierung:</string>
+		<string t="Time to wait for a reconnect when a new firmware is about to be flashed">Abzuwartende Zeit wenn eine neue Firmware geflasht wird</string>
+		<string t="Reload Page?">Seite neu laden?</string>
+		<string t="You have just updated Duet Web Control. Would you like to reload the page now?">Sie haben gerade Duet Web Control aktualisiert. Möchten Sie die Seite jetzt neu laden?</string>
+
+		<!-- New in v1.11 -->
+		<string t="Default Notification Timeout:">Timeout für Standardbenachrichtigungen:</string>
+		<string t="Time after which default notifications are automatically closed">Zeit nach welcher Standardbenachrichtigungen automatisch ausgeblendet werden</string>
+		<string t="Please wait while the firmware is being updated...">Bitte warten Sie während die Firmware aktualisiert wird...</string>
+		<string t="CPU Temp.">CPU-Temp.</string>
+		<string t="Current CPU temperature">Aktuelle CPU-Temperatur</string>
+		<string t="G-Code Handling">G-Code-Behandlung</string>
+		<string t="(not set)">(nicht gesetzt)</string>
+		<string t="Current Z-Probe reading on a scale between 0 and 1024">Aktueller Z-Probe-Wert auf einer Skala zwischen 0 und 1024</string>
+		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Aktuelle Lüfterumdrehungen pro Minute (benötigt einen 4-pin PWM-Lüfter und richtige Verkabelung)</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -462,7 +497,7 @@
 		<string t="Status Update Interval:">Intervalo de actualización del estado:</string>
 		<string t="Extended Status Update after every:">Actualización completa de estado cada:</string>
 		<string t="th response">ésima respuesta</string>
-		<string t="Reconnect Delay on Halt:">Retraso de reconexión tras Parada</string>
+		<string t="Reconnect Delay on Halt:">Retraso de reconexión tras Parada:</string>
 		<string t="AJAX Timeout:">Error AJAX:</string>
 		<string t="Send G-Code...">Enviar G-Code...</string>
 		<string t="Web Interface by Christian Hammacher">Interfaz Web de Christian Hammacher</string>
@@ -631,11 +666,11 @@
 		
 		<!-- Modal Dialogs -->
 		<string t="Error">Error</string>
-		<string t="Could not establish connection to the Duet firmware!&lt;br/&gt;&lt;br/&gt;Please check your settings and try again.">No se puede establecer conexión con la Duet!&lt;br/&gt;&lt;br/&gt;Por favor, revisa tus ajustes y prueba de nuevo.</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">No se puede establecer conexión con la Duet! Por favor, revisa tus ajustes y prueba de nuevo.</string>
 		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">No se puede conectar con la Duet porque no hay más sesiones HTTP disponibles.</string>
 		<string t="Message from Duet firmware">Mensaje del Firmware Duet</string>
-		<string t="{0} returned an error">{0} ha devuelto un error</string>
-		<string t="An AJAX error was reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Se ha recivido un error AJAX, de modo que la sesión se ha terminado.&lt;br/&gt;&lt;br/&gt;Por favor, revisa si tu impresora sigue activa e intentalo de nuevo</string>
+		<string t="{0} has returned an error:">{0} ha devuelto un error:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Se ha recivido un error AJAX, de modo que la sesión se ha terminado.&lt;br/&gt;&lt;br/&gt;Por favor, revisa si tu impresora sigue activa e intentalo de nuevo</string>
 		<string t="Password required">Contraseña solicitada</string>
 		<string t="Please enter your password:">Por favor, introduce tu contraseña:</string>
 		<string t="OK">Correcto</string>
@@ -671,6 +706,9 @@
 		<string t="Cancel Upload(s)">Cancelar Carga(s)</string>
 		<string t="Close">Cerrar</string>
 		<string t="Are you sure you wish to remove tool {0}?">Estás seguro de querer eliminiar la herramienta {0}?</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer: {0} of {1}">Capa {0}: {1}</string>
 	</es>
 	<fr name="Français">
 	   	<!-- JavaScript Strings -->
@@ -784,7 +822,7 @@
 		<string t="Status Update Interval:">Intervalle de mise à jour d'état:</string>
 		<string t="Extended Status Update after every:">Mise à jour complète de l'état après chaque:</string>
 		<string t="th response">ème réponse</string>
-		<string t="Reconnect Delay on Halt:">Délai de reconnection après interruption</string>
+		<string t="Reconnect Delay on Halt:">Délai de reconnection après interruption:</string>
 		<string t="AJAX Timeout:">AJAX-Timeout:</string>
 		<string t="Send G-Code...">Envoie G-Code...</string>
 		<string t="Web Interface by Christian Hammacher">Web Interface par Christian Hammacher</string>
@@ -953,11 +991,11 @@
 				
 		<!-- Modal Dialogs -->
 		<string t="Erreur">Erreur</string>
-		<string t="Could not establish connection to the Duet firmware!&lt;br/&gt;&lt;br/&gt;Please check your settings and try again.">Ne peut pas établir de connexion avec le micrologiciel de la carte Duet!&lt;br/&gt;&lt;br/&gt; vérifiez la configuration et réessayer.</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Ne peut pas établir de connexion avec le micrologiciel de la carte Duet! Vérifiez la configuration et réessayer.</string>
 		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">Ne peut pas se connecter à la Duet, car il n'y a plus de session HTTP disponible.</string>
 		<string t="Message from Duet firmware">Message du micrologiciel de la Duet</string>
-		<string t="{0} returned an error">{0} renvoie une erreur</string>
-		<string t="An AJAX error was reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Une Erreur AJAX a été retournée, la session courante est arrêtée. Vérifiez si votre imprimante est toujours en marche et réessayez de vous connecter.</string>
+		<string t="{0} has returned an error:">{0} renvoie une erreur:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Une Erreur AJAX a été retournée, la session courante est arrêtée. Vérifiez si votre imprimante est toujours en marche et réessayez de vous connecter.</string>
 		<string t="Password required">Mot de passe requis</string>
 		<string t="Please enter your password:">Saisir mot de passe:</string>
 		<string t="OK">Ok</string>
@@ -1025,7 +1063,395 @@
 		<string t="Use dark theme">Utiliser un thème sombre</string>
 		<string t="Use dark theme by Fotomas">Utiliser le thème sombre de Fotomas</string>
 		<string t="Dark theme kindly provided by Fotomas">Thème sombre fourni gracieusement par Fotomas</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer {0}: {1}">Couche {0}: {1}</string>
+		<string t="Could not read contents of file {0}!">Ne peut pas lire le contenu du fichier {0}!</string>
+		<string t="Webcam Surveillance">Surveillance par Webcam</string>
+		<string t="(image not available)">(image non disponible)</string>
+		<string t="Webcam Integration">Intégration Webcam</string>
+		<string t="Optional URL to an external Webcam:">URL vers une Webcam externe (option):</string>
+		<string t="URL must point to an image file">l'URL doit pointer vers une image</string>
+		<string t="Webcam Update Interval:">Intervalle mise à jour Webcam:</string>
+		<string t="Interval at which the webcam image on the Print Status page will be updated">Intervalle de mise à jour de l'image Webcam sur la page d'impression</string>
+
+		<!-- New in v1.10 -->
+		<string t="Updating">Mise à jour</string>
+		<string t="Updating Firmware...">Mise à jour Firmware...</string>
+		<string t="Perform Firmware Update?">Mettre à jour le Firmware?</string>
+		<string t="You have just uploaded a firmware file. Would you like to update your Duet now?">Vous venez de télécharger un fichier de Firmware; mettre à jour la Duet maintenant?</string>
+		<string t="Could not rename firmware file!">Ne peut pas renommer le fichier de Firmware!</string>
+		<string t="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">Affiche la vitesse d'une ventilateur 4 broches dans la zone des capteurs</string>
+		<string t="Show Fan RPM in Sensors">Vitesse ventilateur dans capteurs</string>
+		<string t="Reconnect Delay on Firmware Update:">Délai de reconnection lors de la mise à jour de Firmware:</string>
+		<string t="Time to wait for a reconnect when a new firmware is about to be flashed">Délai d'attente de reconnection quand un Firmware va être flashé</string>
+		<string t="Reload Page?">Recharger la page?</string>
+		<string t="You have just updated Duet Web Control. Would you like to reload the page now?">Vous venez de mettre à jour Duet Web Control; voulez vous recharger la page?</string>
+
+		<!-- New in v1.11 -->
+		<string t="Default Notification Timeout:">Délai d'abandon de notification de défaut:</string>
+		<string t="Time after which default notifications are automatically closed">Délai de fermeture de notification de défaut</string>
+		<string t="Please wait while the firmware is being updated...">Merci d'attendre la fin de la mise à jour...</string>
+		<string t="CPU Temp.">CPU Temp.</string>
+		<string t="Current CPU temperature">Température processeur</string>
+		<string t="G-Code Handling">Gestion G-Code</string>
+		<string t="(not set)">(non défini)</string>
+		<string t="Current Z-Probe reading on a scale between 0 and 1024">Lecture capteur Z (échelle 1-1024)</string>
+		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Vitesse de rotation ventilateur (nécessite un ventilateur 4 broches correctement cablé)</string>
 	</fr>
+	<sv name="Svenska">
+		<!-- JavaScript Strings -->
+		<string t="Connect">Anslut</string>
+		<string t="Connecting...">Ansluter...</string>
+		<string t="Disconnect">Koppla från</string>
+		<string t="Invalid password!">Ogiltigt lösenord!</string>
+		<string t="Connection established!">Anslutning etablerad!</string>
+		<string t="Page Load complete!">Sida färdigladdad!</string>
+		<string t="Disconnected.">Frånkopplad.</string>
+		<string t="Layer: {0} of {1}">Lager: {0} av {1}</string>
+		<string t="Filament Usage: {0}mm of {1}mm">Filamentanvändning: {0}mm av {1}mm</string>
+		<string t="({0}mm remaining)">({0}mm återstår)</string>
+		<string t="Printing {0}, {1}% Complete">Skriver ut {0}, {1}% klart</string>
+		<string t="{0}% Complete">{0}% klart</string>
+		<string t="Printing {0}">Skriver ut {0}</string>
+		<string t="Printed {0}, 100% Complete">Skrev ut {0}, 100% klart</string>
+		<string t="Print Complete!">Utskrift färdig!</string>
+		<string t="none">ingen</string>
+		<string t="Emergency Stop!">Nödstopp!</string>
+		<string t="Error reason: {0}">Felanledning: {0}</string>
+		<string t="Communication Error">Kommunikationsfel</string>
+		<string t="Zero All Drives">Nollställ alla motorer</string>
+		<string t="Zero Extruder Drive {0}">Nollställ extruderingsmotor {0}</string>
+		<string t="Message Log cleared!">Meddelandelogg rensad!</string>
+		<string t="ATX Power">ATX-kraft</string>
+		<string t="Heater Fault">Värmarfel</string>
+		<string t="loading">laddar</string>
+		<string t="No Files or Directories found">Inga filer eller mappar funna</string>
+		<string t="No Macro Files found">Inga makrofiler funna</string>
+		<string t="No files found!">Inga filer funna!</string>
+		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Följande axlar är inte i startläge &lt;strong&gt;{0}&lt;/strong&gt;</string>
+		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Fäljande axel är inte i startläge &lt;strong&gt;{0}&lt;/strong&gt;</string>
+		
+		<!-- Status Texts -->
+		<string t="Disconnected">Frånkopplad</string>
+		<string t="Halted">Stoppad</string>
+		<string t="Pausing">Pausar</string>
+		<string t="Paused">Pausad</string>
+		<string t="Resuming">Fortsätter</string>
+		<string t="Printing">Skriver ut</string>
+		<string t="Busy">Upptagen</string>
+		<string t="Idle">Inaktiv</string>
+		<string t="off">av</string>
+		<string t="standby">redo</string>
+		<string t="active">aktiv</string>
+		<string t="fault">fel</string>
+		
+		<!-- Buttons, Checkboxes and Radios -->
+		<string t="Send">Skicka</string>
+		<string t="Upload &amp; Print">Ladda upp &amp; skriv ut</string>
+		<string t="Emergency STOP">NÖDSTOPP</string>
+		<string t="Toggle navigation">Byt navigation</string>
+		<string t="Control All">Kontrollera alla</string>
+		<string t="Turn everything off">Stäng av allt</string>
+		<string t="Home All">Alla till startläge</string>
+		<string t="Auto Bed Compensation">Automatisk skrivytekompensering</string>
+		<string t="Auto Delta Calibration">Automatisk deltakalibrering</string>
+		<string t="Extrude">Extrudera</string>
+		<string t="Retract">Dra tillbaka</string>
+		<string t="Clear Log">Rensa loggen</string>
+		<string t="Pause Print">Pausa utskrift</string>
+		<string t="Resume">Fortsätt</string>
+		<string t="Enable Auto-Sleep">Slå på automatiskt viloläge</string>
+		<string t="Upload G-Code File(s)">Ladda upp G-kodsfil(er)</string>
+		<string t="Make new Directory">Skapa ny mapp</string>
+		<string t="Upload Macro File(s)">Ladda upp makrofil(er)</string>
+		<string t="Go Up">Gå upp</string>
+		<string t="Unload Filament">Ladda ur filament</string>
+		<string t="Load Filament">Ladda in filament</string>
+		<string t="General">Allänt</string>
+		<string t="Upload File(s)">Ladda upp fil(er)</string>
+		<string t="Connect automatically">Anslut automatiskt</string>
+		<string t="Half Z Movements">Halva Z-förflyttningar</string>
+		<string t="Log any successful G-Code">Logga alla lyckade G-koder</string>
+		<string t="Always Convert G-Codes to Upper-Case">Konvertera alla G-koder till versaler</string>
+		<string t="Display File Sizes with Binary Prefix">Visa filstorlekar med binärt prefix</string>
+		<string t="Show Fan Sliders">Visa fläktreglage</string>
+		<string t="Show ATX Power control">Visa ATX-reglage</string>
+		<string t="Confirm Emergency STOP">Bekräfta NÖDSTOPP</string>
+		<string t="Apply Settings">Verkställ inställningar</string>
+		<string t="Load Factory Defaults">Ladda fabriksinställningar</string>
+		<string t="On">På</string>
+		<string t="Off">Av</string>
+		<string t="Active Temperatures">Temperaturer i aktivt läge</string>
+		<string t="Standby Temperatures">Temperaturer i redo-läge</string>
+		<string t="Add G-Code">Lägg till G-kod</string>
+		<string t="Add Temp">Lägg till temperatur</string>
+		<string t="Add Tool">Lägg till verktyg</string>
+		<string t="Select Tool">Välj verktyg</string>
+		
+		<!-- Labels and Placeholders -->
+		<string t="Active:">Aktiv:</string>
+		<string t="Feed amount in mm:">Matning i mm:</string>
+		<string t="Feedrate in mm/sec:">Matningshastighet i mm/s:</string>
+		<string t="Go to the Macros page to define your own actions">Gå till makrosidan för att definera egna makron</string>
+		<string t="Override Fan Value">Tvinga fläkthastighet</string>
+		<string t="Bowden Tube Length:">Längd på Bowden-rör:</string>
+		<string t="G-Codes Directory">Mapp för G-koder</string>
+		<string t="Macros Directory">Mapp för makron</string>
+		<string t="Connect to your Duet to display G-Code files">Anslut till din Duet för att visa G-kodsfiler</string>
+		<string t="Connect to your Duet to display Macro files">Anslut till din Duet för att visa makrofiler</string>
+		<string t="Connect to your Duet to display the configuration file">Anslut till din Duet för att visa konfigurationsfilen</string>
+		<string t="Unload current filament spool">Ladda ur nuvarande filamentrulle</string>
+		<string t="Load new filament spool">Ladda ny filamentrulle</string>
+		<string t="Default Move Button Feedrate:">Standardinställning för matningshastighet med förflyttningsknapparna:</string>
+		<string t="Status Update Interval:">Uppdateringsintervall för status:</string>
+		<string t="Extended Status Update after every:">Utökad status efter:</string>
+		<string t="th response">svar</string>
+		<string t="Reconnect Delay on Halt:">Anslutningsfördröjning efter stopp:</string>
+		<string t="AJAX Timeout:">AJAX-timeout:</string>
+		<string t="Send G-Code...">Skicka G-kod...</string>
+		<string t="Web Interface by Christian Hammacher">Webgränssnitt av Christian Hammacher</string>
+		<string t="Licensed under the terms of the">Licensierad under villkoren av</string>
+		<string t="Language:">Språk:</string>
+		<string t="Which temperatures do you want to manage?">Vilka temperaturer vill du ändra?</string>
+		<string t="Description:">Beskrivning:</string>
+		<string t="Temperature:">Temperatur:</string>
+		<string t="Tool Number:">Verktyg nummer:</string>
+		<string t="Associated Heater(s):">Associerade värmare:</string>
+		<string t="Associated Drive(s):">Associerade motorer:</string>
+		<string t="Heaters:">Värmare:</string>
+		<string t="Drives:">Motorer:</string>
+		<string t="none">ingen</string>
+		
+		<!-- Panel Headings -->
+		<string t="Heater Temperatures">Värmartemperaturer</string>
+		<string t="Temperature Chart">Temperaturgraf</string>
+		<string t="Machine Status">Maskinstatus</string>
+		<string t="User-Defined Macros">Användardefinerade makron</string>
+		<string t="Miscellaneous">Övrigt</string>
+		<string t="Head Movement">Skrivarhuvudsförflyttning</string>
+		<string t="Extruder Control">Extruderkontroll</string>
+		<string t="Print Control">Utskriftskontroll</string>
+		<string t="Layer Statistics">Lagerstatistik</string>
+		<string t="Speed Factor">Hastighetsfaktor</string>
+		<string t="Extrusion Factors">Extruderingsfaktor</string>
+		<string t="File Information">Filinformation</string>
+		<string t="Collected Data">Insamlad data</string>
+		<string t="Estimations">Uppskattningar</string>
+		<string t="Exchange Filament">Byt filament</string>
+		<string t="Software Information">Mjukvaruninformation</string>
+		<string t="File Upload for /sys and /www Directories">Ladda upp fil till /sys och /www</string>
+		<string t="Appearance and Behavior">Utseende och beteende</string>
+		<string t="UI Timing">Tider för användargränssnittet</string>
+		<string t="Default G-Codes">Standard-G-koder</string>
+		<string t="Default Heater Temperatures">Standardtemperatur för värmare</string>
+		<string t="Default Bed and Chamber Temperatures">Standardtemperatur för skrivyta och kammare</string>
+		<string t="Add new G-Code">Lägg till ny G-kod</string>
+		<string t="Add new Temperature">Lägg till ny temperatur</string>
+		<string t="Define new Tool">Definera nytt verktyg</string>
+		<string t="Select">Välj</string>
+		<string t="Deselect">Avvälj</string>
+		<string t="Remove">Ta bort</string>
+		
+		<!-- Table Headers -->
+		<string t="Current">Nuvarande</string>
+		<string t="Active">Aktiv</string>
+		<string t="Heater 1">Värmare 1</string>
+		<string t="Heater 2">Värmare 2</string>
+		<string t="Heater 3">Värmare 3</string>
+		<string t="Heater 4">Värmare 4</string>
+		<string t="Heater 5">Värmare 5</string>
+		<string t="Bed">Skrivyta</string>
+		<string t="Chamber">Kammare</string>
+		<string t="Head Position">Skrivar- huvudets position</string>
+		<string t="Extruder Drives">Extruder- motor</string>
+		<string t="Drive 1">Motor 1</string>
+		<string t="Drive 2">Motor 2</string>
+		<string t="Drive 3">Motor 3</string>
+		<string t="Drive 4">Motor 4</string>
+		<string t="Drive 5">Motor 5</string>
+		<string t="D1">M1</string>
+		<string t="D2">M2</string>
+		<string t="D3">M3</string>
+		<string t="D4">M4</string>
+		<string t="D5">M5</string>
+		<string t="Sensors">Sensorer</string>
+		<string t="Fan RPM">Fläktvarvtal</string>
+		<string t="ATX Power:">ATX-kraft:</string>
+		<string t="Fan Control:">Fläkthastighet:</string>
+		<string t="File Name">Filnamn</string>
+		<string t="Object Height">Objektshöjd</string>
+		<string t="Layer Height">Lagertjocklek</string>
+		<string t="Generated by">Genererad av</string>
+		<string t="Size:">Storlek:</string>
+		<string t="Object Height:">Objektshöjd:</string>
+		<string t="Layer Height:">Lagertjocklek:</string>
+		<string t="Filament Usage:">Filamentanvändning:</string>
+		<string t="Generated by:">Genererad av:</string>
+		<string t="Current Layer Time">Tid för nuvarande lager</string>
+		<string t="Last Layer Time">Tid för föregående lager</string>
+		<string t="Print Duration">Utskriftstid</string>
+		<string t="Warm-Up Time">Uppvärmingstid</string>
+		<string t="First Layer Time">Tid för första lagret</string>
+		<string t="First Layer Height">Tjocklek för första lagret</string>
+		<string t="Based on">Baserat på</string>
+		<string t="Filament Usage">Filamentåtgång</string>
+		<string t="File Progress">Filläsning</string>
+		<string t="Layer Time">Tid per lager</string>
+		<string t="Time Left">Tid kvar</string>
+		<string t="Est. End Time">Uppsk. vara klar</string>
+		<string t="Description">Beskrivning</string>
+		
+		<!-- Navigation Menu -->
+		<string t="Control">Kontroll</string>
+		<string t="Machine Control">Maskinkontroll</string>
+		<string t="Print Job">Utskriftsjobb</string>
+		<string t="Print Status">Utskriftsstatus</string>
+		<string t="Console">Konsoll</string>
+		<string t="G-Code Console">G-kodskonsoll</string>
+		<string t="Files">Filer</string>
+		<string t="G-Code Files">G-kodsfiler</string>
+		<string t="Macros">Makron</string>
+		<string t="Spools">Rullar</string>
+		<string t="Maintenance">Underhåll</string>
+		<string t="Settings">Inställningar</string>
+		<string t="Configuration File">Konfigurationsfil</string>
+		<string t="List Items">Snabbval</string>
+		
+		<!-- Tooltips / Titles -->
+		<string t="Send G-Code from input">Skicka G-kod från inmatning</string>
+		<string t="Time vs. Temperature">Temperatur över tid</string>
+		<string t="Home all axes (G28)">Alla axlar till startläge (G28)</string>
+		<string t="Home X axis (G28 X)">X till startläge(G28 X)</string>
+		<string t="Home Y axis (G28 Y)">Y till startläge(G28 Y)</string>
+		<string t="Home Z axis (G28 Z)">Z till startläge(G28 Z)</string>
+		<string t="Retract a specific amount of filament at a given feedrate (G1 E-xxx Fyyy)">Dra tillbaka en specifik mängd filament med en given matningshastighet (G1 E-xxx Fyyy)</string>
+		<string t="Extrude a specific amount of filament at a given feedrate (G1 Exxx Fyyy)">Extrudera en specifik mängd filament med en given matningshastighet (G1 Exxx Fyyy)</string>
+		<string t="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)">Ladda upp &amp; skriv ut en eller flera G-kodsfiler (drag&amp;släpp fungerar också)</string>
+		<string t="Enforces an immediate software reset (M112+M999)">Tvingar omedelbar omstart (M112+M999)</string>
+		<string t="Perform automatic bed compensation / calibration (G32)">Utför automatisk skrivytekompensering / deltakalibrering (G32)</string>
+		<string t="Clear G-Code Console">Rensa G-kodskonsollen</string>
+		<string t="Pause current print (M25)">Pausa nuvarande utskrift (M25)</string>
+		<string t="Resume paused print (M24)">Fortsätt pausad utskrift (M24)</string>
+		<string t="Enforce a predefined fan value">Tvinga en förbestämd fläkthastighet</string>
+		<string t="Run M1 when the print has finished">Kör M1 när utskriften är klar</string>
+		<string t="Upload one or more G-Code files (drag&amp;drop is supported as well)">Ladda upp en eller flera G-kodsfiler (drag&amp;släpp fungerar också)</string>
+		<string t="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)">Ladda upp en eller flera filer till mappen /sys eller /www (drag&amp;släpp fungerar också)</string>
+		<string t="Print this file (M32)">Skriv ut denna fil (M32)</string>
+		<string t="Delete this file">Ta bort denna fil</string>
+		<string t="Delete this directory">Ta bort denna mapp</string>
+		<string t="Upload one or more macro files (drag&amp;drop is supported as well)">Ladda upp en eller flera makrofiler (drag&amp;släpp fungerar också)</string>
+		<string t="Run this macro file (M98)">Kör denna makrofil (M98)</string>
+		<string t="Delete this macro">Ta bort detta makro</string>
+		<string t="Connect automatically to the Duet once the web interface is ready">Anslut till Duet-kortet automatiskt när webgränssnittet är redo</string>
+		<string t="Use half Z movements for more accurate Z positioning">Använd halva Z-förflyttningar för bättre Z-precision</string>
+		<string t="Log any successful G-Code in the G-Code Console">Logga all lyckad G-kod i G-kodskonsollen</string>
+		<string t="Convert every G-Code to Upper-Case before sending them">Konvertera all G-kod till versaler innan de skickas</string>
+		<string t="Display file sizes with a base of 1024 instead of 1000">Visar filstorlekar med basen 1024 istället för 1000</string>
+		<string t="Show fan sliders to utilize M106 effectively">Visa fläktreglage för effektivare användning av M106</string>
+		<string t="Show a small panel on the Control page to toggle ATX power">Visa en liten panel för att styra ATX-kraft på Kontroll-sidan</string>
+		<string t="Confirm emergency stop by displaying a message box">Bekräfta nödstopp genom att visa en meddelanderuta</string>
+		<string t="Default Feedrate for Head Movement controls">Standardmatningshastighet för skrivhuvudsförflyttningar via knapparna</string>
+		<string t="Interval at which status updates are requested">Intervall mellan förfågningar om status</string>
+		<string t="Extended status updates are requested after each n-th status response">Utökad status förfrågas efter detta antal vanliga statusförfrågningar</string>
+		<string t="Time to wait for a reconnect after an emergency stop was reported">Tid att vänta innan återanslutning efter ett nödstopp</string>
+		<string t="Maximum time to wait for an AJAX request">Längsta tid att vänta på en AJAX-förfrågan</string>
+		<string t="Apply new settings from this page">Börjar använda inställningar från denna sida</string>
+		<string t="Overwrite all saved settings with default values">Skriver över alla sparade inställningar med fabriksinställningarna</string>
+		<string t="Turn on ATX power (M80)">Slå på ATX-kraft (M80)</string>
+		<string t="Turn off ATX power (M81)">Slå av ATX-kraft (M81)</string>
+		<string t="Set current fan value (via M106)">Ställ in hastighet för nuvarande fläkt (via M106)</string>
+		<string t="Cancel paused print (M0)">Avbryt pausad utskrift (M0)</string>
+		<string t="Set speed factor (via M220)">Ställ in hastighetsfaktor (via M220)</string>
+		<string t="Set extrude factor override (via M221)">Ställ in tvingad extruderingsfaktor (via M221)</string>
+		<string t="Add new G-Code item">Lägg till ny G-kod</string>
+		<string t="Create a new directory">Skapa ny mapp</string>
+		<string t="Add new temperature item">Lägg till ny temperatur i listan</string>
+		<string t="Define a new tool">Definera ett nytt verktyg</string>
+		<string t="Select this tool">Välj detta verktyg</string>
+		<string t="Deselect this tool">Välj bort detta verktyg</string>
+		<string t="Remove this tool">Ta bort detta verktyg</string>
+		<string t="Delete this temperature item">Ta bort denna temperatur från listan</string>
+		<string t="Delete this G-Code item">Ta bort denna G-kod från listan</string>
+		
+		<!-- Modal Dialogs -->
+		<string t="Error">Fel</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Kan inte ansluta till Duet-mjukvaran! Vänligen kontrollera inställningarna och försök igen.</string>
+		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">Kan inte ansluta till Duet, det finns inga fler tillgängliga HTTP-sessioner.</string>
+		<string t="Message from Duet firmware">Meddelande från Duet-mjukvara</string>
+		<string t="{0} has returned an error:">{0} har rapporterat ett fel:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Ett AJAX-fel rapporterades så den nuvarande sessionen har avslutats.&lt;br/&gt;&lt;br/&gt;Vänligen kontrollera att skrivaren fortfarande är på och försök ansluta igen.</string>
+		<string t="Password required">Lösenord krävs</string>
+		<string t="Please enter your password:">Skriv in ditt lösenord:</string>
+		<string t="OK">OK</string>
+		<string t="Cancel">Avbryt</string>
+		<string t="Verify">Verifiera</string>
+		<string t="Yes">Ja</string>
+		<string t="No">Nej</string>
+		<string t="Start Print">Starta utskrift</string>
+		<string t="Do you want to print &lt;strong&gt;{0}&lt;/strong&gt;?">Vill du skriva ut &lt;strong&gt;{0}&lt;/strong&gt;?</string>
+		<string t="Delete File">Ta bort fil</string>
+		<string t="Are you sure you want to delete &lt;strong&gt;{0}&lt;/strong&gt;?">Är du säker på att du vill ta bort &lt;strong&gt;{0}&lt;/strong&gt;?</string>
+		<string t="Deletion failed">Borttagning misslyckades</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete file &lt;strong&gt;{0}&lt;/strong&gt;!">&lt;strong&gt;Varning:&lt;/strong&gt; Kunde inte ta bort filen &lt;strong&gt;{0}&lt;/strong&gt;!</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete directory &lt;strong&gt;{0}&lt;/strong&gt;!&lt;br/&gt;&lt;br/&gt;Perhaps it isn't empty?">&lt;strong&gt;Varning:&lt;/strong&gt; Kunde inte ta bort mappen &lt;strong&gt;{0}&lt;/strong&gt;!&lt;br/&gt;&lt;br/&gt;Mappen kanske inte är tom?</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete macro &lt;strong&gt;{0}&lt;/strong&gt;!">&lt;strong&gt;Varning:&lt;/strong&gt; Kunde inte ta bort makrot &lt;strong&gt;{0}&lt;/strong&gt;!</string>
+		<string t="This will turn off everything and perform a software reset.&lt;br/&gt;&lt;br/&gt;Are you REALLY sure you want to do this?">Detta stänger av allt och utför en omstart.&lt;br/&gt;&lt;br/&gt;Är du VERKLIGEN säker på att du vill göra detta?</string>
+		<string t="New directory">Ny mapp</string>
+		<string t="Please enter a name:">Ange ett namn:</string>
+		<string t="Could not create this directory!">Kunde inte skapa mappen!</string>
+		<string t="Reset Settings">Återställ inställningar</string>
+		<string t="Are you sure you want to revert to Factory Settings?">Är du säker på att du vill återställa till fabriksinställningarna?</string>
+		<string t="&lt;strong&gt;Error:&lt;/strong&gt; A heater fault has occured on this particular heater.&lt;br/&gt;&lt;br/&gt;Please turn off your machine and check your wiring for loose connections.">&lt;strong&gt;Fel:&lt;/strong&gt; Ett värmarfel har uppstått på denna värmare.&lt;br/&gt;&lt;br/&gt;Vänligen stäng av skrivaren och kontrollera sladdarna efter lösa anslutningar.</string>
+		<string t="Do you really want to turn off ATX power?&lt;br/&gt;&lt;br/&gt;This will turn off all drives, heaters and fans.">Är du säker på att du vill stänga av ATX-kraften?&lt;br/&gt;&lt;br/&gt;Detta kommer att stänga av alla motorer, värmare och fläktar.</string>
+		<string t="You can only upload and print one file at once!">Du kan bara ladda upp och skriva ut en fil i taget!</string>
+		<string t="Filename">Filnamn</string>
+		<string t="Size">Storlek</string>
+		<string t="Progress">Förlopp</string>
+		<string t="Uploading File(s), {0}% Complete">Laddar upp fil(er), {0}% klart</string>
+		<string t="Starting">Startar</string>
+		<string t="ERROR">FEL</string>
+		<string t="Upload Cancelled!">Uppladdning avbruten!</string>
+		<string t="Upload Complete!">Uppladdning klar!</string>
+		<string t="Cancel Upload(s)">Avbryt uppladdning(ar)</string>
+		<string t="Close">Stäng</string>
+		<string t="Are you sure you wish to remove tool {0}?">Är du säker på att du vill ta bort verktyg {0}?</string>
+
+		<!-- New in v1.07 -->
+		<string t="Reboot Duet?">Starta om Duet?</string>
+		<string t="You have just uploaded a config file. Would you like to reboot your Duet now?">Du har precis laddat upp en konfigurationsfil. Vill du starta om din Duet nu?</string>
+		<string t="Warning">Varning</string>
+		<string t="Some axes are not homed">Några axlar är inte i startläge</string>
+		<string t="Machine Properties">Maskininställningar</string>
+		<string t="Drive Configuration">Motorkonfiguration</string>
+		<string t="Drive">Motor</string>
+		<string t="Endstop hit">Ändläge träffat</string>
+		<string t="Max Speed">Maxhastighet</string>
+		<string t="Acceleration">Acceleration</string>
+		<string t="Motor Current">Motorström</string>
+		<string t="Type:">Typ:</string>
+		<string t="Switch (0)">Brytare (0)</string>
+		<string t="Unmodulated (1)">Omodulerad (1)</string>
+		<string t="Modulated (2)">Modulerad (2)</string>
+		<string t="Alternative (3)">Alternativ (3)</string>
+		<string t="Two Switches (4)">Två brytare (4)</string>
+		<string t="Unknown ({0})">Okänt ({0})</string>
+		<string t="Trigger Height:">Utslagshöjd:</string>
+		<string t="Trigger Value:">Utslagsvärde:</string>
+		<string t="Other">Annat</string>
+		<string t="Geometry:">Geometri:</string>
+		<string t="Cartesian">Kertesisk</string>
+		<string t="Motor Idle Current Factor:">Inaktiv strömfaktor för motorer:</string>
+		<string t="Motor Idle Timeout:">Timeout för inaktivt motorläge:</string>
+		<string t="never">aldrig</string>
+		<string t="Firmware Diagnostics">Mjukvarudiagnostik</string>
+		<string t="Use dark theme">Använd mörkt tema</string>
+		<string t="Use dark theme by Fotomas">Använd mörkt tema av Fotomas</string>
+		<string t="Dark theme kindly provided by Fotomas">Mörkt tema vänligt tillhandahållen av Fotomas</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer {0}: {1}">Lager {0}: {1}</string>
+	</sv>
 	<ch name="中文">
 		<!-- JavaScript Strings -->
 		<string t="Connect">连接</string>
@@ -1134,7 +1560,7 @@
 		<string t="Status Update Interval:">状态更新间隔:</string>
 		<string t="Extended Status Update after every:">每次后延续更新状态:</string>
 		<string t="th response">响应 </string>
-		<string t="Reconnect Delay on Halt:">中间停止后再连接</string>
+		<string t="Reconnect Delay on Halt:">中间停止后再连接:</string>
 		<string t="AJAX Timeout:">AJAX 超时:</string>
 		<string t="Send G-Code...">发送G-Code ...</string>
 		<string t="Web Interface by Christian Hammacher">Christian Hammacher网络控制界面版本，西安锐普3D打印机公司（RepRapPro China）翻译 </string>
@@ -1304,11 +1730,11 @@
 		
 		<!-- Modal Dialogs -->
 		<string t="Error">出错</string>
-		<string t="Could not establish connection to the Duet firmware!&lt;br/&gt;&lt;br/&gt;Please check your settings and try again.">无法建立与Duet主板的连接!&lt;br/&gt;&lt;br/&gt;;请检查您的设置，然后再试一次.</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">无法建立与Duet主板的连接! ;请检查您的设置，然后再试一次.</string>
 		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">因为有没有其他可用的HTTP，无法连接到Duet主板上.</string>
 		<string t="Message from Duet firmware">来自于Duet主板上的固件</string>
-		<string t="{0} returned an error">{0} 返回错误</string>
-		<string t="An AJAX error was reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">报告AJAX错误，所以终止当前会话.&lt;br/&gt;&lt;br/&gt;如果你的打印机还开着，请重新检查并尝试重新连接.</string>
+		<string t="{0} has returned an error:">{0} 返回错误:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">报告AJAX错误，所以终止当前会话.&lt;br/&gt;&lt;br/&gt;如果你的打印机还开着，请重新检查并尝试重新连接.</string>
 		<string t="Password required">需要密码</string>
 		<string t="Please enter your password:">请输入你的密码:</string>
 		<string t="OK">可以</string>
@@ -1344,5 +1770,8 @@
 		<string t="Cancel Upload(s)">取消上传</string>
 		<string t="Close">关闭</string>
 		<string t="Are you sure you wish to remove tool {0}?">你确信希望移除工具吗 {0} entfernen möchten?</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer {0}: {1}">层 {0}: {1}</string>
 	</ch>
 </languages>
