@@ -1066,6 +1066,38 @@
 
 		<!-- New in v1.08 -->
 		<string t="Layer {0}: {1}">Couche {0}: {1}</string>
+		<string t="Could not read contents of file {0}!">Ne peut pas lire le contenu du fichier {0}!</string>
+		<string t="Webcam Surveillance">Surveillance par Webcam</string>
+		<string t="(image not available)">(image non disponible)</string>
+		<string t="Webcam Integration">Intégration Webcam</string>
+		<string t="Optional URL to an external Webcam:">URL vers une Webcam externe (option):</string>
+		<string t="URL must point to an image file">l'URL doit pointer vers une image</string>
+		<string t="Webcam Update Interval:">Intervalle mise à jour Webcam:</string>
+		<string t="Interval at which the webcam image on the Print Status page will be updated">Intervalle de mise à jour de l'image Webcam sur la page d'impression</string>
+
+		<!-- New in v1.10 -->
+		<string t="Updating">Mise à jour</string>
+		<string t="Updating Firmware...">Mise à jour Firmware...</string>
+		<string t="Perform Firmware Update?">Mettre à jour le Firmware?</string>
+		<string t="You have just uploaded a firmware file. Would you like to update your Duet now?">Vous venez de télécharger un fichier de Firmware; mettre à jour la Duet maintenant?</string>
+		<string t="Could not rename firmware file!">Ne peut pas renommer le fichier de Firmware!</string>
+		<string t="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">Affiche la vitesse d'une ventilateur 4 broches dans la zone des capteurs</string>
+		<string t="Show Fan RPM in Sensors">Vitesse ventilateur dans capteurs</string>
+		<string t="Reconnect Delay on Firmware Update:">Délai de reconnection lors de la mise à jour de Firmware:</string>
+		<string t="Time to wait for a reconnect when a new firmware is about to be flashed">Délai d'attente de reconnection quand un Firmware va être flashé</string>
+		<string t="Reload Page?">Recharger la page?</string>
+		<string t="You have just updated Duet Web Control. Would you like to reload the page now?">Vous venez de mettre à jour Duet Web Control; voulez vous recharger la page?</string>
+
+		<!-- New in v1.11 -->
+		<string t="Default Notification Timeout:">Délai d'abandon de notification de défaut:</string>
+		<string t="Time after which default notifications are automatically closed">Délai de fermeture de notification de défaut</string>
+		<string t="Please wait while the firmware is being updated...">Merci d'attendre la fin de la mise à jour...</string>
+		<string t="CPU Temp.">CPU Temp.</string>
+		<string t="Current CPU temperature">Température processeur</string>
+		<string t="G-Code Handling">Gestion G-Code</string>
+		<string t="(not set)">(non défini)</string>
+		<string t="Current Z-Probe reading on a scale between 0 and 1024">Lecture capteur Z (échelle 1-1024)</string>
+		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Vitesse de rotation ventilateur (nécessite un ventilateur 4 broches correctement cablé)</string>
 	</fr>
 	<sv name="Svenska">
 		<!-- JavaScript Strings -->
