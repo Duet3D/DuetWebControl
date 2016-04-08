@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<languages>
+	<de name="Deutsch">
+		<string t="Documentation">Dokumentation</string>
+		<string t="Commissioning and Maintenance">Kommissionierung und Wartung</string>
+		<string t="Troubleshooting">Problemlösung</string>
+		<string t="Forums">Foren</string>
+ 		<string t="Multi-Material Instructions">Multi-Material Anleitungen</string>
+		<string t="Direct Support">Direkter Support</string> 
+		<string t="Help">Hilfe</string>
+		<string t="RepRapPro IRC Channel">RepRapPro IRC Kanal</string>
+		<string t="Quick Links">Weiterführende Links</string>
+	</de>	
+	<fr name="Français">
+		<string t="Documentation">Documentation</string>
+		<string t="Commissioning and Maintenance">Tests et entretien</string>
+		<string t="Troubleshooting">Déboguage</string>
+		<string t="Forums">Forums</string>
+		<string t="Multi-Material Instructions">Instructions pour matériaux multiples</string>
+		<string t="Direct Support">Support direct</string>
+		<string t="Help">Aide</string>
+		<string t="RepRapPro IRC Channel">RepRapPro IRC Canal</string>
+		<string t="Quick Links">Liens rapides</string>
+	</fr>	
+</languages>
