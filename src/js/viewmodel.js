@@ -95,7 +95,7 @@ $(document).ready(function() {
 
 	$.notifyDefaults(notificationOptions);
 
-	loadSettings(false);
+	loadSettings();
 });
 
 function settingsLoaded() {
@@ -134,7 +134,6 @@ function settingsLoaded() {
 			pageLoadComplete();
 		}
 	});
-
 }
 
 function pageLoadComplete() {
@@ -995,8 +994,8 @@ $("#btn_reset_settings").click(function(e) {
 		}
 		settings = jQuery.extend(true, {}, defaultSettings);
 		$("#btn_language").data("language", "en").children("span:first-child").text("English");
-		saveSettings();
 		applySettings();
+		saveSettings();
 	});
 	e.preventDefault();
 });
