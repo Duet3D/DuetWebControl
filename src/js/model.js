@@ -1633,7 +1633,7 @@ function uploadHasFinished(success) {
 }
 
 function startFirmwareUpdate() {
-	if (uploadFirmwareFile.toUpperCase() != firmwareFileName.toUpperCase + ".BIN")
+	if (uploadFirmwareFile.toUpperCase() != firmwareFileName.toUpperCase() + ".BIN")
 	{
 		// The firmware filename is hardcoded in the IAP binary, so try to rename the uploaded file first
 		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadFirmwareFile) + "&new=" + encodeURIComponent("/sys/" + firmwareFileName + ".bin"), {
