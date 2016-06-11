@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = "1.11";
+var jsVersion = "1.11a-dc42";
 var sessionPassword = "reprap";
 var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
@@ -49,6 +49,10 @@ var settings = {
 	webcamInterval: 5000			// in ms
 };
 var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
+
+// TODO make the following selection for firmware filename automatic depending on which board is detected
+//var firmwareFileName = "RepRapFirmware";						// name of firmware file without the .bin extension for Duet
+var firmwareFileName = "DuetWiFiFirmware";						// name of firmware file without the .bin extension for Duet WiFi
 
 /* Variables */
 
@@ -1011,119 +1015,103 @@ function checkBoundaries(value, defaultValue, minValue, maxValue) {
 	return value;
 }
 
-function loadSettings(usingCookie) {
-	var loadedSettings;
+function loadSettings() {
+	document.cookie = "settings=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 
-	// Older versions of DWC used cookies to store the settings. This is disadvantageous for multiple reasons.
-	// That's why we try to migrate these settings to localStorage, which allows a smaller HTTP request footprint. 
-	if (!usingCookie) {
-		if (localStorage.getItem("settings") == null) {
-			var cookieScript = document.createElement("script");
-			cookieScript.type = "text/javascript";
-			cookieScript.src = "js/jquery.cookie.min.js";
-			cookieScript.onload = function() { loadSettings(true) };
-			document.body.appendChild(cookieScript);
-			return;
-		} else {
-			loadedSettings = localStorage.getItem("settings");
-		}
+	if (localStorage.getItem("settings") == null) {
+		settingsLoaded();
+		saveSettings();
 	} else {
-		loadedSettings = $.cookie("settings");
-		$.removeCookie("settings");
+		var loadedSettings = localStorage.getItem("settings");
+
+		// Try to parse the loaded settings (if any)
+		if (loadedSettings != undefined && loadedSettings.length > 0) {
+			loadedSettings = JSON.parse(loadedSettings);
+
+			// Webcam URL
+			if (loadedSettings.hasOwnProperty("webcamURL")) {
+				settings.webcamURL = loadedSettings.webcamURL;
+			}
+
+			// UI Timing
+			if (loadedSettings.hasOwnProperty("updateInterval")) {
+				settings.updateInterval = loadedSettings.updateInterval;
+			}
+			if (loadedSettings.hasOwnProperty("haltedReconnectDelay")) {
+				settings.haltedReconnectDelay = loadedSettings.haltedReconnectDelay;
+			}
+			if (loadedSettings.hasOwnProperty("updatedReconnectDelay")) {
+				settings.updateReconnectDelay = loadedSettings.updateReconnectDelay;
+			}
+			if (loadedSettings.hasOwnProperty("extendedStatusInterval")) {
+				settings.extendedStatusInterval = loadedSettings.extendedStatusInterval;
+			}
+			if (loadedSettings.hasOwnProperty("maxRequestTime")) {
+				settings.maxRequestTime = loadedSettings.maxRequestTime;
+			}
+			if (loadedSettings.hasOwnProperty("webcamInterval")) {
+				settings.webcamInterval = loadedSettings.webcamInterval;
+			}
+			if (loadedSettings.hasOwnProperty("notificationTimeout")) {
+				settings.notificationTimeout = loadedSettings.notificationTimeout;
+			}
+
+			// Behavior
+			if (loadedSettings.hasOwnProperty("autoConnect")) {
+				settings.autoConnect = loadedSettings.autoConnect;
+			}
+			if (loadedSettings.hasOwnProperty("halfZMovements")) {
+				settings.halfZMovements = loadedSettings.halfZMovements;
+			}
+			if (loadedSettings.hasOwnProperty("logSuccess")) {
+				settings.logSuccess = loadedSettings.logSuccess;
+			}
+			if (loadedSettings.hasOwnProperty("uppercaseGCode")) {
+				settings.uppercaseGCode = loadedSettings.uppercaseGCode;
+			}
+			if (loadedSettings.hasOwnProperty("useKiB")) {
+				settings.useKiB = loadedSettings.useKiB;
+			}
+			if (loadedSettings.hasOwnProperty("showFanControl")) {
+				settings.showFanControl = loadedSettings.showFanControl;
+			}
+			if (loadedSettings.hasOwnProperty("showFanRPM")) {
+				settings.showFanRPM = loadedSettings.showFanRPM;
+			}
+			if (loadedSettings.hasOwnProperty("showATXControl")) {
+				settings.showATXControl = loadedSettings.showATXControl;
+			}
+			if (loadedSettings.hasOwnProperty("confirmStop")) {
+				settings.confirmStop = loadedSettings.confirmStop;
+			}
+			if (loadedSettings.hasOwnProperty("useDarkTheme")) {
+				settings.useDarkTheme = loadedSettings.useDarkTheme;
+			}
+			if (loadedSettings.hasOwnProperty("moveFeedrate")) {
+				settings.moveFeedrate = loadedSettings.moveFeedrate;
+			}
+
+			// Default list items
+			if (loadedSettings.hasOwnProperty("defaultActiveTemps")) {
+				settings.defaultActiveTemps = loadedSettings.defaultActiveTemps;
+			}
+			if (loadedSettings.hasOwnProperty("defaultStandbyTemps")) {
+				settings.defaultStandbyTemps = loadedSettings.defaultStandbyTemps;
+			}
+			if (loadedSettings.hasOwnProperty("defaultBedTemps")) {
+				settings.defaultBedTemps = loadedSettings.defaultBedTemps;
+			}
+			if (loadedSettings.hasOwnProperty("defaultGCodes")) {
+				settings.defaultGCodes = loadedSettings.defaultGCodes;
+			}
+
+			// Other (fallback in case language.xml couldn't be loaded)
+			if (loadedSettings.hasOwnProperty("language")) {
+				settings.language = loadedSettings.language;
+			}
+		}
+		settingsLoaded();
 	}
-
-	// Try to parse the loaded settings (if any)
-	if (loadedSettings != undefined && loadedSettings.length > 0) {
-		loadedSettings = JSON.parse(loadedSettings);
-
-		// Webcam URL
-		if (loadedSettings.hasOwnProperty("webcamURL")) {
-			settings.webcamURL = loadedSettings.webcamURL;
-		}
-
-		// UI Timing
-		if (loadedSettings.hasOwnProperty("updateInterval")) {
-			settings.updateInterval = loadedSettings.updateInterval;
-		}
-		if (loadedSettings.hasOwnProperty("haltedReconnectDelay")) {
-			settings.haltedReconnectDelay = loadedSettings.haltedReconnectDelay;
-		}
-		if (loadedSettings.hasOwnProperty("updatedReconnectDelay")) {
-			settings.updateReconnectDelay = loadedSettings.updateReconnectDelay;
-		}
-		if (loadedSettings.hasOwnProperty("extendedStatusInterval")) {
-			settings.extendedStatusInterval = loadedSettings.extendedStatusInterval;
-		}
-		if (loadedSettings.hasOwnProperty("maxRequestTime")) {
-			settings.maxRequestTime = loadedSettings.maxRequestTime;
-		}
-		if (loadedSettings.hasOwnProperty("webcamInterval")) {
-			settings.webcamInterval = loadedSettings.webcamInterval;
-		}
-		if (loadedSettings.hasOwnProperty("notificationTimeout")) {
-			settings.notificationTimeout = loadedSettings.notificationTimeout;
-		}
-
-		// Behavior
-		if (loadedSettings.hasOwnProperty("autoConnect")) {
-			settings.autoConnect = loadedSettings.autoConnect;
-		}
-		if (loadedSettings.hasOwnProperty("halfZMovements")) {
-			settings.halfZMovements = loadedSettings.halfZMovements;
-		}
-		if (loadedSettings.hasOwnProperty("logSuccess")) {
-			settings.logSuccess = loadedSettings.logSuccess;
-		}
-		if (loadedSettings.hasOwnProperty("uppercaseGCode")) {
-			settings.uppercaseGCode = loadedSettings.uppercaseGCode;
-		}
-		if (loadedSettings.hasOwnProperty("useKiB")) {
-			settings.useKiB = loadedSettings.useKiB;
-		}
-		if (loadedSettings.hasOwnProperty("showFanControl")) {
-			settings.showFanControl = loadedSettings.showFanControl;
-		}
-		if (loadedSettings.hasOwnProperty("showFanRPM")) {
-			settings.showFanRPM = loadedSettings.showFanRPM;
-		}
-		if (loadedSettings.hasOwnProperty("showATXControl")) {
-			settings.showATXControl = loadedSettings.showATXControl;
-		}
-		if (loadedSettings.hasOwnProperty("confirmStop")) {
-			settings.confirmStop = loadedSettings.confirmStop;
-		}
-		if (loadedSettings.hasOwnProperty("useDarkTheme")) {
-			settings.useDarkTheme = loadedSettings.useDarkTheme;
-		}
-		if (loadedSettings.hasOwnProperty("moveFeedrate")) {
-			settings.moveFeedrate = loadedSettings.moveFeedrate;
-		}
-
-		// Default list items
-		if (loadedSettings.hasOwnProperty("defaultActiveTemps")) {
-			settings.defaultActiveTemps = loadedSettings.defaultActiveTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultStandbyTemps")) {
-			settings.defaultStandbyTemps = loadedSettings.defaultStandbyTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultBedTemps")) {
-			settings.defaultBedTemps = loadedSettings.defaultBedTemps;
-		}
-		if (loadedSettings.hasOwnProperty("defaultGCodes")) {
-			settings.defaultGCodes = loadedSettings.defaultGCodes;
-		}
-
-		// Other (fallback in case language.xml couldn't be loaded)
-		if (loadedSettings.hasOwnProperty("language")) {
-			settings.language = loadedSettings.language;
-		}
-	}
-
-	// Final migration, so we don't use the cookie JS next time
-	if (usingCookie) {
-		localStorage.setItem("settings", JSON.stringify(settings));
-	}
-	settingsLoaded();
 }
 
 function saveSettings() {
@@ -1413,7 +1401,7 @@ function startUpload(type, files, fromCallback) {
 	$.each(files, function() {
 		if (type == "generic") {
 			uploadIncludedConfig |= (this.name == "config.g");
-			if (this.name.toUpperCase().match("^REPRAPFIRMWARE.*\.BIN") != null) {
+			if (this.name.toUpperCase().match("^" + firmwareFileName.toUpperCase() + ".*\.BIN") != null) {
 				uploadFirmwareFile = this.name;
 			}
 		}
@@ -1645,18 +1633,18 @@ function uploadHasFinished(success) {
 }
 
 function startFirmwareUpdate() {
-	if (uploadFirmwareFile.toUpperCase() != "REPRAPFIRMWARE.BIN")
+	if (uploadFirmwareFile.toUpperCase() != firmwareFileName.toUpperCase + ".BIN")
 	{
 		// The firmware filename is hardcoded in the IAP binary, so try to rename the uploaded file first
-		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadFirmwareFile) + "&new=" + encodeURIComponent("/sys/RepRapFirmware.bin"), {
+		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadFirmwareFile) + "&new=" + encodeURIComponent("/sys/" + firmwareFileName + ".bin"), {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
 					// Rename succeeded and flashing can be performed now
 					sendGCode("M997");
 				} else {
-					// Looks like /sys/RepRapFirmware.bin already exists, attempt to delete it and try again
-					$.ajax("rr_delete?name=" + encodeURIComponent("/sys/RepRapFirmware.bin"), {
+					// Looks like /sys/<firmwareFileName>.bin already exists, attempt to delete it and try again
+					$.ajax("rr_delete?name=" + encodeURIComponent("/sys/" + firmwareFileName + ".bin"), {
 						dataType: "json",
 						success: function(response) {
 							if (response.err == 0) {
