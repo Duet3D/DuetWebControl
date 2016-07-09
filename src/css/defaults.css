@@ -980,6 +980,7 @@ label[for="dropdown_language"] {
 }
 
 #text_config {
+	font-family: monospace;
 	background-color: inherit;
 	border: 0px;
 	margin-bottom: 15px;

@@ -24,7 +24,7 @@ copy /b src\css\animate.css+src\css\bootstrap.min.css+src\css\bootstrap-slider.m
 copy src\css\slate.css build\css\
 rem Copy and concatenate the .js files, in the correct order (don't need jquery.cookie.min any more)
 mkdir build\js
-copy /b src\js\jquery-2.2.1.min.js+src\js\jquery.textarea_autosize.min.js+src\js\jquery.flot.min.js+src\js\jquery.resize.min.js+src\js\jquery.flot.navigate.min.js+src\js\bootstrap.min.js+src\js\bootstrap-notify.min.js+src\js\bootstrap-slider.min.js+src\js\jzip.min.js+src\js\model.js+src\js\viewmodel.js build\js\all.js
+copy /b src\js\jquery-2.2.1.min.js+src\js\jquery.textarea_autosize.min.js+src\js\jquery.flot.min.js+src\js\jquery.flot.resize.min.js+src\js\jquery.flot.navigate.min.js+src\js\bootstrap.min.js+src\js\bootstrap-notify.min.js+src\js\bootstrap-slider.min.js+src\js\jszip.min.js+src\js\model.js+src\js\viewmodel.js build\js\all.js
 echo Zip up all the large files into gzip format
 call :zip css\all.css
 call :zip js\all.js

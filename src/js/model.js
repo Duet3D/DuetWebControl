@@ -6,7 +6,7 @@
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-var jsVersion = "1.11a-dc42";
+var jsVersion = "1.11b-dc42";
 var sessionPassword = "reprap";
 var translationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
@@ -16,7 +16,7 @@ var settings = {
 	autoConnect: true,				// automatically connect once the page has loaded
 
 	updateInterval: 250,			// in ms
-	haltedReconnectDelay: 5000,		// in ms
+	haltedReconnectDelay: 10000,	// in ms (increased from 5000 for Duet WiFi)
 	updateReconnectDelay: 20000,	// in ms
 	extendedStatusInterval: 10,		// nth status request will include extended values
 	maxRequestTime: 8000,			// maximum time to wait for a status response in ms
@@ -76,6 +76,9 @@ var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory
 var currentMacroDirectory, nownMacroFiles, macroUpdateIndex, macroLastDirectory;
 
 var fanSliderActive, speedSliderActive, extrSliderActive;
+
+var retryCount;
+var maxRetries = 1;		// allow 1 retry after a timed-out status request (total 2 attempts)
 
 function resetGuiData() {
 	setPauseStatus(false);
@@ -215,6 +218,7 @@ function disconnect() {
 function startUpdates() {
 	stopUpdating = false;
 	if (!updateTaskLive) {
+		retryCount = 0;
 		updateStatus();
 	}
 }
@@ -223,7 +227,7 @@ function stopUpdates() {
 	stopUpdating = updateTaskLive;
 }
 
-function updateStatus() {
+function updateStatus(attemptNumber) {
 	if (stopUpdating) {
 		updateTaskLive = false;
 		return;
@@ -243,6 +247,7 @@ function updateStatus() {
 
 	$.ajax(ajaxRequest, {
 		dataType: "json",
+		isStatusRequest: true,
 		success: function(status) {
 			// Don't process this one if we're no longer connected
 			if (!isConnected) {
@@ -322,9 +327,9 @@ function updateStatus() {
 			}
 
 			// CPU temperature
-			if (status.hasOwnProperty("cputemp")) {
+			if (status.hasOwnProperty("cputemp") && status.cputemp.hasOwnProperty("cur")) {
 				$(".cpu-temp").removeClass("hidden");
-				$("#td_cputemp").html(status.cputemp.toFixed(1) + " °C");
+				$("#td_cputemp").html(status.cputemp.cur.toFixed(1) + " °C");
 			}
 
 			/*** Default status response ***/
@@ -718,6 +723,7 @@ function updateStatus() {
 					connect(sessionPassword, false);
 				}, settings.haltedReconnectDelay);
 			} else {
+				retryCount = 0;
 				setTimeout(updateStatus, settings.updateInterval);
 			}
 
@@ -983,9 +989,15 @@ $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
 	}
 
 	if (isConnected) {
+		if (thrownError == "timeout" && settings.hasOwnProperty('isStatusRequest') && retryCount < maxRetries) {
+			++retryCount;
+			setTimeout(updateStatus, 1);
+			return;
+		}
+		
 		var msg = T("An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.");
 		if (thrownError != "") {
-			msg += "<br/><br/>" + T("Error reason: {0}", thrownError);
+			msg += "<br/><br/>" + T("Error reason: {0}, retries {1}", thrownError, retryCount);
 		}
 		showMessage("danger", T("Communication Error"), msg, 0);
 
@@ -1616,17 +1628,20 @@ function uploadHasFinished(success) {
 
 		// Ask for software reset if it's safe to do
 		else if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
-			if (uploadIncludedConfig) {
-				$("#modal_upload").modal("hide");
-				showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to perform a software reset now?"), function() {
-					sendGCode("M999");
-				});
-			}
-
+			// Test for firmware update before we test for a new config file, because a firmware update includes a reset
 			if (uploadFirmwareFile != undefined)
 			{
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Firmware Update?"), T("You have just uploaded a firmware file. Would you like to update your Duet now?"), startFirmwareUpdate);
+			}
+
+			//TODO if we just started a firmware update then we shouldn't invite the user to do a software reset
+			if (uploadIncludedConfig) {
+				$("#modal_upload").modal("hide");
+				showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to perform a software reset now?"), function() {
+					sendGCode("M999");
+					//TODO add code here to assume we are disconnected, and try to reconnect after a little while
+				});
 			}
 		}
 	}
@@ -1663,9 +1678,8 @@ function startFirmwareUpdate() {
 	else
 	{
 		// Filename is okay, start flashing immediately
-		sendGCode("M997");
+		sendGCode("M997 S0");
 	}
-
 }
 
 /* Data helpers */
