@@ -1,0 +1,585 @@
+/* CSS for Aquilegia - Pierre Rouzeau GPL v2 or any later version CC BY-SA */
+/* CSS variables don't work on Edge, IE nor android browser, which will default to black and white
+ they shall be adapted for Chrome - not yet done
+ see https://wpdev.uservoice.com/forums/257854-microsoft-edge-developer/suggestions/6261292-css-variables */
+/*  black and white default style * /
+:root {  
+	--aql-button-hover: #dadbdb;
+	--aql-title-hover: #efefef
+	--aql-page-color: black;
+	--aql-page-bgcolor: white;
+	--aql-hd-color:  var(--aql-page-color);
+	--aql-hd-bgcolor: #F8F8F8;
+	--aql-hd-brcolor: #b0b0b0;
+	--aql-toc-color: black;
+	--aql-toc-bgcolor: #FCFCFC;
+	--aql-h1-color: black;
+	--aql-h1-bgcolor: #F8F8F8;
+	--aql-h1-shcolor: #F8F8F8;
+	--aql-h2-color: var(--aql-h1-color);	
+	--aql-h2-bgcolor:var (--aql-h1-bgcolor);
+	--aql-h2-shcolor:var (--aql-h1-shcolor);
+	--aql-h34-color: var(--aql-page-color);
+	--aql-h34-bgcolor: var(--aql-page-bgcolor);
+} /* */
+/*  pastel blue * / 
+:root { 
+	--aql-button-hover: #cdd6f0;
+	--aql-title-hover: #dcf0ff;
+	--aql-page-color:  #001B59;
+	--aql-page-bgcolor: #f5faff;
+	--aql-hd-color:  var(--aql-page-color);
+	--aql-hd-bgcolor: #d6e7ff; 	
+	--aql-hd-brcolor: #87c1ff;
+	--aql-toc-color: #0030A1;
+	--aql-toc-bgcolor: #e6f6ff;
+	--aql-h1-color:  var(--aql-page-color);
+	--aql-h1-bgcolor: #d6e7ff; 
+	--aql-h1-shcolor: #87c1ff; 
+	--aql-h2-color: var(--aql-h1-color);	
+	--aql-h2-bgcolor: var(--aql-h1-bgcolor);
+	--aql-h2-shcolor: var(--aql-h1-shcolor);	
+	--aql-h34-color: var(--aql-page-color);
+	--aql-h34-bgcolor:  var(--aql-page-bgcolor);
+} /* */
+
+ /* pastel green*/
+:root {
+	--aql-button-hover: #cdf0d6;
+	--aql-title-hover: #d0ffd8;
+	--aql-page-color:  #003000;
+	--aql-page-bgcolor: #fcfffc;
+	--aql-hd-color:  var(--aql-page-color);
+	--aql-hd-bgcolor:  #eaffea; 
+	--aql-hd-brcolor: #c4e6cc;
+	--aql-toc-color: #003000;
+	--aql-toc-bgcolor: #f6fff6;
+	--aql-h1-color: var(--aql-page-color);
+	--aql-h1-bgcolor: #eaffea; 
+	--aql-h1-shcolor: #c4e6cc;
+	--aql-h2-color: var(--aql-h1-color);
+	--aql-h2-bgcolor: var(--aql-h1-bgcolor);
+	--aql-h2-shcolor: var(--aql-h1-shcolor);	
+	--aql-h34-color: var(--aql-page-color);
+	--aql-h34-bgcolor: var(--aql-page-bgcolor);
+} /* */
+body { /* same as bootstrap default, in principle already in normalize.css */
+    margin:0; /* This is VERY important for scrolling, as body have a default margin.*/
+	-ms-text-size-adjust: 100%; 
+	-webkit-text-size-adjust: 100%;
+} 
+/*-- Alert box -------------*/
+#aql_alert {
+	display:none; 
+	position: fixed; 
+	border-radius: 4px;
+	border: 1px solid #202020;
+	background-color: #f5e0e0;
+	top:200px;
+	left:120px;
+	min-height:100px;
+	min-width:400px;
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 18px;
+	cursor:pointer;
+	z-index:101; /* above other stuff */
+}
+/*#aql_alert.warning { } */
+#aql_alert.info {	background-color: #C9E9FF;}
+
+#halert {
+	padding: 3px; 
+	font-size: 20px;
+	width:inherit;
+	border-bottom: 2px solid #202020;
+}
+
+#halertext {
+	padding: 5px; 
+}
+
+#aql_img { /* image window */
+	position:fixed;
+	display:none;
+	margin:0;
+	padding:0;
+	border: 1px solid #202020;
+	z-index:90;
+	background-color: #EFEFEF;
+	cursor:pointer;
+	height:100%;
+	width:100%;
+}
+#aql_img0 { /* image itself */
+	display:block;
+	margin:0;
+	padding:8px;
+}
+#aql_img_b { /* bottom message */
+	margin:0;
+	padding: 0px 8px 3px 12px;
+	cursor:help;
+}
+/* ------ general  -----------------------*/
+#aql_cont {
+	background-color: var(--aql-page-bgcolor);
+/*	position:absolute;  /* removing absolute and position:fixed in aql_body made full window scrolling*/
+	height:100%; /* less than 100% to avoid main vertical scrollbar*/
+	width: 100%;
+}
+
+#aql_page {
+	position:absolute;
+	height:100%; 
+	width:100%;
+	color: var(--aql-page-color);
+	background-color: var(--aql-page-bgcolor);
+	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-size: 16px;
+	line-height: 1.27;
+/*	overflow:hidden; */
+}
+
+#aql_page a:link,
+#aql_page a:visited,
+#aql_page a:active { 
+	color: #0066ca;  
+	text-decoration: none; 
+}
+#aql_page a:link:hover { 
+background-color:#ffffaa; /*#aaffff;*/
+color:#505000;
+text-decoration:underline;
+/*	color: #3366FF; */
+}
+#aql_header {
+	color: var(--aql-hd-color);
+	background-color: : #F8F8F8;
+	background-color: var(--aql-hd-bgcolor);
+	padding: 2px;
+	margin:0;
+	box-shadow: 1px 1px 2px #b0b0b0; 	
+	box-shadow: 1px 1px 2px var(--aql-hd-brcolor); 	 
+	min-width: 100%;
+	top:0;
+}
+
+#aql_menu {
+	position:absolute; 
+	width: 160px;
+	height:100%; /* scroll-y menu if overflow*/
+	overflow-x:hidden;
+	overflow-y:auto;
+	border-right:2px solid;
+	border-right-color:rgba(0, 0, 0, 0.22);
+	padding: 2px;
+	margin:0;
+	background-color: #fcfcfc;
+	background-color: var(--aql-toc-bgcolor);
+}
+#aql_body { /*-- Overflow:auto AND height is what show local scroll bar 
+			removing height makes general scrolling */
+	margin-left: 165px;		
+	height:100%; 
+	width:calc(99% - 170px); 
+	overflow:auto;
+	display:block; 
+}
+
+/* ------ top bar -----------------------*/
+#aql_page button {
+	overflow: visible;
+	border-radius: 4px;
+	padding	: 0;
+	background-image: linear-gradient(to bottom, #f5f6f6, #e0dfdf);
+	border	: 1px solid #d0d0d0;
+	position: relative;
+	width: 36px; 
+	height: 30px;
+	vertical-align: top; 
+	cursor: pointer;
+	font-size: 16px;
+}
+
+#aql_page button:hover {
+	/*background-image: linear-gradient(to bottom, #e5e6e6, #d0cfcf); */
+	background-image:none;
+	background-color:#dadbdb;
+	background-color:var(--aql-button-hover);
+}
+
+button:focus {outline:0;} /* remove chrome annoyance */
+
+/* Chrome and edge don't handle svg background images, so used transparent png */
+/* sprite order: back, search, print, zoom in, close, [(later) warning, info, ] expand, collapse */
+/* sprite made on http://instantsprite.com/, 48px images, 10pixels spacing 10 icons: 10*48+9*10: 570px
+buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
+.aqi			{ background:url(hsprite.png);} 
+.aqi.qback		{ background-position:-1% 0px;} /* sprite 0 */
+.aqi.qsearch 	{ background-position: 10.4% 1px;} /* sprite 1 */
+.aqi.qprint		{ background-position: 21.2% 1px;} /* sprite 2 */
+.aqi.qzoom-in 	{ background-position: 33.1% 1px;} /* sprite 3 */
+.aqi.qzoom-out	{ background-position: 44.2% 1px;} /* sprite 4 */
+.aqi.qclose		{ background-position: 55.2% 1px;} /* sprite 5 */
+.aqi.qwarning	{ background-position: 65.8% 1px;} /* sprite 6 */
+.aqi.qinfo		{ background-position: 76.9% 1px;} /* sprite 7 */
+.aqi.qexpand 	{ background-position: 87.9% 1px; opacity:0.5;} /* sprite 8 */
+.aqi.qcollapse	{ background-position: 99.1% 1px; opacity:0.5;} /* sprite 9 */
+/* position in % 100%/(nbicon-1)*(icon position)+base, ex: icon 5 = 100/9*5-1.5%  */
+
+#aql_page .hicon,
+#aql_alert .hicon { /* on a button, shall be above it 28px images*/
+	background-size: 332px 28px; 
+	background-repeat: no-repeat;   
+	width: 30px;
+	height: 30px; 
+	z-index: 10; /* above buttons */
+	position: absolute; /* need the parent container being EXPLICITELY relative */
+	top:-1px; /* imperative */
+	left:0px; 
+}
+
+#aql_page .licon,
+#aql_alert .licon { /* inline in titles. 20 px images 20/48*570 */
+	background-size: 234px 20px;
+	background-repeat: no-repeat;    
+	padding: 0 10px; /* set width of the span as width don't work*/
+}
+
+#btn_hlp_toc {
+	width:132px !important; /*surpass button def (36px) */
+	margin-left:6px; 
+	margin-right:0px;
+}
+
+#hform { 
+	min-width:100%;
+	vertical-align: top; 
+}
+
+#hsearch { /* search field */
+	display:inline;
+	overflow: visible;
+	font-size: 16px;  /* force Bootsrap value */
+	border-radius: 4px;
+	margin: 0;
+	padding: 4px 4px;
+	width:110px;
+	border: 1px solid #d0d0d0;
+}
+#aql_page ::-webkit-input-placeholder { color: #BFBFBF; }
+#aql_page ::-moz-placeholder { color: #BFBFBF;	opacity:  1; }
+#aql_page :-ms-input-placeholder { color:#BFBFBF; }
+
+#btn_hlp_print { /* to separate button from search button */
+	margin-left:6px; 
+	margin-right:6px;
+	padding-right:6px;
+	padding-left: 6px;
+}
+
+#btn_aql_zo,
+#btn_aql_zi
+{ /*--zoom button only for mobile - and for Chrome ---*/
+	display:none; 
+}
+
+#aql_page .aqltab {
+	display:inline-block; 
+	vertical-align: bottom;
+	/*margin: 16px 0 0 0;
+	padding:0; */
+	margin: 0;
+	padding:16px 0 0 0;
+}
+
+#aql_page .aqltab button {
+	border-bottom: none;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+	bottom: -2px;
+	overflow: hidden;
+	width: 100px;
+	height: 28px;
+}
+
+#aql_page .aqltab button.aqlsel {
+	background-image: none;
+	background-color: white;
+	background-color: var(--aql-page-bgcolor);
+	bottom:-4px;
+}
+#aql_page button.aqlsel:hover {
+	background-image: none;
+}
+
+/*--- Main structures of the page ------*/
+.hlpbody { /* whole body without navigation header */
+/* nothing yet */
+}
+
+.hlpsec, .hlpintro {  /*hlpsec is section which depends from a title - they are nested */
+	margin-left: 12px;
+}
+
+.hlpintro { 
+	padding: 0px 6px 6px 0;
+}
+
+.hlptoc { 
+	color: black;
+	color: var(--aql-toc-color);
+	background-color: #fcfcfc;
+	background-color: var(--aql-toc-bgcolor);
+	border: 1px;
+	border-style: solid;
+	padding: 6px 20px 6px 4px;
+	margin: 20px 20px 6px 6px;
+/*	float:left; */
+	float:right; 
+	display: inline-block;
+}
+
+.hlpsign { /* for signature - in principle in the footer*/
+	float:right;
+	font-size: 8px;
+}
+
+/*-- Table of content links 2-4 --------*/
+.rtoc2 { padding-left: 15px;}
+.rtoc3 { padding-left: 30px;}
+.rtoc4 { padding-left: 45px;}
+
+/*--- Inside the help window -----------------*/ 
+.hlptt {
+	cursor:pointer;
+}
+
+.hlptt:hover {
+	background:#efefef !important; /* !important required by Firefox only */
+	background:var(--aql-title-hover) !important;
+} 
+
+#aql_page hr {  /* use transparency to shade */
+	clear:both;
+	display:block;
+	border: 0; 
+	height: 0; 
+	border-top: 1px solid rgba(0, 0, 0, 0.22);
+}
+
+#aql_page h1, h2 {  /* h1 for the main title */
+	font-size: 24px; 
+	line-height: 1.2; 
+	padding: 4px 12px 2px 12px;
+}
+#aql_page h1 { 
+	margin: 10px 8px 16px 0;
+	box-shadow: 1px 1px 2px #F8F8F8;
+	box-shadow: 1px 1px 2px var(--aql-h1-shcolor); 	
+	color: var(--aql-h1-color); /* default black*/
+	background-color: #F8F8F8;
+	background-color: var(--aql-h1-bgcolor);
+	display:block; 
+}
+#aql_page h2 { 
+	margin: 16px 8px 12px 0; 
+	box-shadow: 1px 1px 2px #F8F8F8;	
+	box-shadow: 1px 1px 2px var(--aql-h2-shcolor); 	 
+	font-size: 22px;
+	color: var(--aql-h2-color);
+	background-color: #F8F8F8;
+	background-color: var(--aql-h2-bgcolor);
+}
+#aql_page h3, h4 { 
+	color: var(--aql-h34-color);
+	background-color: var(--aql-h34-bgcolor);
+}
+
+#aql_page h3 { 
+	font-size: 20px; 
+	line-height: 1.3; 
+	margin: 10px 8px 8px 12px;
+}
+
+#aql_page h4 { 
+	font-size: 17px;
+	margin: 9px 8px 7px 12px; 
+	position:relative; /* why this one only ?? */
+}
+
+/* Menus  - prospective ------------------------------*/
+#aql_page .hlpmenu h2, 
+#aql_page .hlpmenu h3, 
+#aql_page .hlpmenu h4 {  /*class menu  to set  stuff in a side menu, minimizing element space*/ 
+	margin: 3px 0; 
+	padding:0;
+	background-color: #F8F8F8;
+	background-color: var(--aql-hd-bgcolor);
+	font-size: 17px;
+}
+
+.hlpmenu h2.hlptt,
+.hlpmenu h3.hlptt {
+	margin:0;
+	border-style: solid;
+    border-width: 2px;
+	border-color:#F8F8F8;
+	border-color:var(--aql-h2-shcolor);
+	border-style:outset;
+	border-radius: 4px;
+}
+
+#aql_page .hlpmenu ul {
+	list-style-position: outside; /*bullets within the margin */
+	list-style-type: none;
+	list-style-image: none;
+	margin: 0 0 0 -5px;
+    padding: 0;
+}
+
+#aql_page .hlpmenu .licon { /* inline in titles. 17 px images  17/48*570 */
+	background-size: 198px 17px; /* same width as main for sprites */
+	padding: 0 8px; /* set width of the span as width don't work*/
+}
+
+/* -------------------------------------------------*/
+#aql_page ul { /* whole list */
+	list-style-position: inside; /*bullets within the margin */
+	list-style-type: circle;
+	list-style-image: url('bullet1.png'); /* image shall be in same directory as css. neither 'h/bullet1.gif' nor '/h/bullet1.gif' works on Firefox (but ok on Chrome and edge...) maybe test ../h/bullet1.gif */
+	marker-offset: 15px; 
+	margin: 0;
+    padding: 0 0 0 5px;
+} 
+
+#aql_page li { 
+	margin: 3px 0; 
+	/*padding: 0 13px 0 0; */
+}
+
+#aql_page pre  {  /* or use <pre><code> ?*/
+	white-space: pre-wrap;
+	font-family: "DejaVu Sans Mono",Consolas,Monaco,"Lucida Console","Liberation Mono", monospace !important; 
+	margin: 10px 10px 14px 8px;
+	padding: 4px 8px;
+	font-size: 14px;
+	background-color: #F8F8F8; 
+	border: 1px solid #D0D0D0;
+	border-radius: 4px;
+}
+#aql_page pre.inline  { 
+	display:inline;
+	margin: 0;
+	padding: 2px 3px;
+}	
+
+div.spacer1 {
+    font-size: 0; 
+    height: 7px;
+    line-height: 0;
+}
+
+div.spacer2 {
+    font-size: 0; 
+    height: 14px;
+    line-height: 0;
+}
+
+.hlpindent {
+	margin-left: 18px;
+}
+
+.hlpimg,
+.hlpimgR { 
+	float:right;
+	display:block;
+	border:none;
+	padding:6px;
+	margin: 0;
+}
+
+.hlpimgL { 
+	float:left;
+	display:block;
+	border:none;
+	padding:6px;
+	margin-left: 24px;
+}
+
+.hlpimgC {  /*-- centered images --*/
+	float:none;
+	text-align:center;
+	display:block;
+	border:none;
+	padding:6px;
+	margin: 0 auto;
+}
+
+/*--- table -----------------------------------------------*/
+#aql_page table.left  {	float:left;}  /* NO SPACE between table and class name */
+#aql_page table.right { float:right;}
+#aql_page table.center { /* table is centered by its <div> container, and not floating */
+	margin-left:auto;  /* auto on left/right margin required for proper centering */
+	margin-right:auto;
+} 
+#aql_page table caption { 
+	text-align:center;
+}
+#aql_page table {
+	border:1px solid #b0b0b0;
+	border-radius:2px;
+	border-collapse: collapse; 
+	color:#a0a0a0; 
+	box-shadow: 0 1px 2px; /* box-shadow will use color by default*/
+	color:black;  /* to get the final color */
+	margin: 8px;
+}
+#aql_page th {
+	font-size: 1.12em;
+	border: 1px solid #b0b0b0; 	
+	background: #eaeaea; 
+}
+#aql_page th, 
+#aql_page td { 
+	padding: 3px 3px; 
+}
+#aql_page tr {
+	background: #f9f9f9;
+}
+#aql_page table.altstrip tr.tbalt {   /* NO SPACE between tr and class */
+ 	background: #efefef; /* alternate row background color */
+}
+#aql_page td {
+	border: 1px solid #d0d0d0; 
+}
+
+/*-- printing in an independant html element by transferring DOM node in it --*/
+.brk { /* page break while printing a list */
+	/*You may add here a title between each page */
+	page-break-after:always;
+}
+
+@media screen {
+	#printSection {
+		display: none;
+	}
+}
+
+@media print {
+	body * {
+		visibility:hidden;
+	}
+	#printSection, #printSection * {
+		visibility:visible !important;
+	}
+	#printSection {
+		position:absolute;
+		left:0;
+		top:0;
+	}
+	#printSection h1 { font-size: 24px;}
+	#printSection h2 { font-size: 22px;}
+	#printSection h3 { font-size: 20px;}
+	#printSection h4 { font-size: 17px;}
+}
