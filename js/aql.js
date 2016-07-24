@@ -98,12 +98,13 @@ function hlp_open() { //at first call to showHlp, after file load. Will never tr
 function hlp_is_open() { //detect help windows is open 
 	return ($0("aql_cont").style.display != 'none');
 }
-function hlp_close() { //occurs when back button didn't get proper hash (no aqlC.prefix)
+function hlp_close(nohashchange) { //occurs when back button didn't get proper hash (no aqlC.prefix)
 	for (var i=0, l=$(".mainapp").length; i<l; i++) 
 		$(".mainapp").eq(i).css('display',aqlO.mainApp[i]);
 	$0("aql_cont").style.display = 'none';	
-	document.body.style.overflow = aqlO.overflow;	
-	history.pushState("", "", aqlO.linkbase);
+	document.body.style.overflow = aqlO.overflow;
+	if (!nohashchange) // Shall not modify an address if we are in an application
+		history.pushState("", "", aqlO.linkbase);
 }
 
 function z(val) {return (val||'');} // Make empty strings of undefined
@@ -173,13 +174,13 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		}	
 		else 
 			if (aqlO.inApp) {
-				if (hlp_is_open())	hlp_close();
+				if (hlp_is_open()) hlp_close(true);
 			}	
 			else 
 				showHlp(); //reopen on default
 	});
 	var url = window.location.href; 
-	aqlO.linkbase = url.split('#', 1)[0];
+	aqlO.linkbase = url.split('#', 1)[0]; //mmm: the base  main contain more than a page link?
 	if (url.match('#'+aqlC.prefix))  //deep linking: beware, this intercept all hash code for whole APPLICATION page 
 		if (url.split('#'+aqlC.prefix)[1]) { //note that the prefix name is unrelated to page file location
 			showHlp(decodeURIComponent(url.split('#'+aqlC.prefix)[1]));
