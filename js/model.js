@@ -53,7 +53,7 @@ var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to 
 /* Variables */
 
 var isConnected = false, justConnected, isUploading, updateTaskLive, stopUpdating;
-var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, configResponse, configFile;
+var ajaxRequests = [], extendedStatusCounter, lastStatusResponse, configResponse, configFile, boardResponse; // !!! Boardresponse for help system
 var lastSentGCode;
 
 var fileInfo, currentLayerTime, maxLayerTime, lastLayerPrintDuration;
@@ -180,6 +180,8 @@ function postConnect() {
 
 	enableControls();
 	validateAddTool();
+	if (!boardResponse)
+		getConfigResponse(); // !!! needed by help system, to have the board name
 }
 
 function disconnect() {
@@ -749,7 +751,8 @@ function getConfigResponse() {
 			configResponse = response;
 			$("#firmware_name").text(response.firmwareName);
 			$("#firmware_version").text(response.firmwareVersion + " (" + response.firmwareDate + ")");
-
+			boardResponse = response.firmwareElectronics; // for the Help system !!!
+			
 			if (response.hasOwnProperty("configFile")) {
 				$("#div_config > h1").addClass("hidden");
 				$("#text_config").removeClass("hidden").prop("readonly", true).val(response.configFile).trigger("input");
