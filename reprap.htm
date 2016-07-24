@@ -24,11 +24,13 @@
 		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
 		<link href="css/bootstrap-slider.min.css" rel="stylesheet">
 		<link href="css/defaults.css" rel="stylesheet">
+		<link href="css/aql.css" rel="stylesheet"> <!-- !!! help system -->
+		<link href="css/perso.css" rel="stylesheet"> <!-- to personalize DWC -->
 	</head>
 
 	<body>
 		<!-- Navigation Bar -->
-		<nav class="navbar navbar-default">
+		<nav class="navbar navbar-default mainapp"> <!-- !!! class mainapp for closing by Aquilegia -->
 			<div class="container-fluid">
 				<!-- Grouping for better mobile display -->
 				<div class="navbar-header collapsed">
@@ -74,6 +76,9 @@
 
 					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" title="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 
+					<!-- Button for help system -->
+					<button type="button" class="btn btn-default btn-help navbar-btn navbar-left aqlstart" style="margin-left:12px;" title="Call Help page" data-hpage="hlplast">Help</button> 
+					
 					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 
@@ -94,6 +99,9 @@
 							<tr>
 								<td>
 									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
+								</td>
+								<td> <!-- Button for help system -->
+									<button type="button" class="btn btn-default btn-help aqlstart" style="margin-left:12px;" title="Call Help page" data-hpage="hlplast">Help</button> 
 								</td>
 								<td>
 									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
@@ -134,7 +142,7 @@
 		</nav>
 
 		<!-- Main Content -->
-		<div class="container-fluid">
+		<div class="container-fluid mainapp"><!-- !!! class mainapp for closing by Aquilegia -->
 			<!-- Info Panels -->
 			<div class="row" id="row_info">
 				<!-- Heater Temperatures -->
@@ -1714,6 +1722,41 @@
 		</div>
 
 		<div id="layer_tooltip"></div>
+		
+		<!-- Help window Modal -->
+		<div id="aql_cont" style="display:none;">
+			<div id="aql_page">
+				<div id="aql_header">
+					<form id="hform" method="get" autocomplete="on" >
+						<div style ="float:right;">
+							<button type="button" id="btn_aql_zo"><span class="hicon aqi qzoom-out" title="Zoom out"></span></button>  
+							<button type="button" id="btn_aql_zi"><span class="hicon aqi qzoom-in" title="Zoom in"></span></button>  
+							<button type="button" id="btn_aql_close" title="Close"><span class="hicon aqi qclose" aria-label="Close"></span></button>
+						</div>
+						<button type="button" id="btn_hlp_back" title="Previous page"><span class="hicon aqi qback"></span></button>
+						<button type="button" id="btn_hlp_print" title="Print current page">
+							<span class="hicon aqi qprint"></span></button>
+						<button type="button" id="btn_hlp_toc" title="Table of content">Table of content</button>
+						<div style="display:inline-block;">
+							<input  type="text" placeholder="Search" id="hsearch" role="search">
+							<button type="submit" title="Search"><span class="hicon aqi qsearch"></span></span></button>
+						</div>
+						<label id="tthlplbl">RepRap Firmware Help</label>
+					</form>
+				</div>
+				<div id ="aql_menu" class="hlpmenu" role="navigation">
+					Menu text 1234 1234 1234<br>default
+				</div>
+				<div id="aql_body" role="main">
+					<p>Default help text in the modal.</p>
+				</div>
+			</div>
+		</div><!-- End Help modal window -->
+		<div id="aql_alert">
+			<div id="halert"><span class="hicon aqi qwarning"></span>&nbsp; &nbsp; &nbsp; Aquilegia (help module) alert</div>
+			<div id="halertext">Alert !</div>
+		</div>
+		
 		<!-- Bootstrap core JavaScript
 	  ================================================== -->
 	  <!-- Placed at the end of the document so the pages load faster -->
@@ -1728,6 +1771,7 @@
 	  <script src="js/jszip.min.js"></script>
 	  <script src="js/model.js"></script>
 	  <script src="js/viewmodel.js"></script>
+	  <script src="js/aql.js"></script>
 	</body>
 </html>
 <!-- vim: ts=4 sw=4
