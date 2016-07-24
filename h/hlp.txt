@@ -42,8 +42,6 @@ RepRap Firmware and Duet documentation
 ===____________________ 
 &nbsp; %About us%About
 
-%élève Ducobu%%
-
 ■menu
 Menu
 (:nodef:)(:notitle:)(:notoc:)
@@ -86,7 +84,7 @@ Menu
 
 ■hlpdef
 Default page add directives or text at start of any page.
-(:numtitle:)(:hlpdiag:)(:hlpfoot:)(:hlphead:)
+(:numtitle:)(:hlpdiag:)(:hlpfoot:)
 
 ■hlpfoot
 Foot page add text at the bottom of the page, outside the title section, inside the page css class.
@@ -108,7 +106,6 @@ Links open in new window, so you can test one after the other while closing test
 ==About page
 All pages published on this site are under licence CC BY-SA except where mentioned (GFDL 1.2).
 Pages mostly authored by T3P3 (mentioned), DC42 (mentioned) and PRZ (not mentioned). Pages are mainly direct extracts from the "RepRap wiki http://reprap.org/wiki" where you can find the history and author where forgotten here. 
-*%RRF, DWC and Duet documentation evolution%documentation
 *Help is delivered by "Aquilegia module http://aquilegia.blue" <small>developed by Pierre ROUZEAU, aka PRZ, license GPLv2 or any later version</small>
 
 *%Writer diagnostics%hlpdiag 
@@ -148,6 +145,8 @@ The RepRap Firmware philosophy is that every operation is done with G-code, nota
 The set of %RepRap Firmware G-Codes%G-codes is more extended  than other firmwares.
 
 The %configuration file%Updating_config  is read on SD card at start-up.  
+
+There is now a "web configurator https://configurator.reprapfirmware.org" which create a %config.g%updating_config file from interactive interface.
 
 All %G-code%G-codes or macros could be send to the board while operating the printer, allowing instant feed-back for any configuration modification. As interactive modifications are lost at next board start-up, the successfully tested G-Codes shall be manually introduced in the configuration file, which can be edited directly in the web interface. 
 544%RRF_Functional.png
@@ -1211,6 +1210,7 @@ It shall be noted that a malformed file may hang your board, and this apply to a
 The first configuration, which shall define name, password and net configuration, will probably be done while writing the file on the SD card, as it is not wise to start a machine with an unverified file, except if you can independently supply logic and power on your board.
 
 Any text editor could be used for modification.
+There is now a "web configurator https://configurator.reprapfirmware.org" which create a config.g file from interactive interface.
 
 After uploading the file in the SD card, inserting it in the board (while power is shutdown), restarting and connecting to the board, you have other solutions to modify the config.g file without removing the SD card.
 
@@ -3273,11 +3273,11 @@ You can test the three tower motors individually by putting the printer in relat
 Commissioning
 This page shall be developed, but yet you may have a look at the below pages
 
-===Software update
+==Software update
 %Duet firmware Update%Duet_Firmware_Update
 %Updating RepRap Firmware config.g file%Updating_config
 
-=== Configuration & commissioning 
+== Configuration & commissioning 
 *%Configuring for a Cartesian printer%Cartesian_config
 *%Configuring for a CoreXY printer%CoreXY_config
 *%Configuring and calibrating a delta printer%Delta_config
@@ -3300,6 +3300,3 @@ Duet hardware trail
 *%Duet wiring%%
 *%Duet firmware update%%
 
-■Élève ducobu
-Élève
-page élève
