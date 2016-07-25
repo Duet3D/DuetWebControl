@@ -26,7 +26,7 @@ var aqlC = {}; // object for constant parameters
 /** @private */
 var aqlO = {}; // object for variable parameters
 /** @private */
-var aqlImg = {}; // object for image parameters
+var aqlI = {}; // object for image parameters
 /** @private */
 var tabHlp={}; // storage of pages, groups, titles, search authorisation and title section toggle
 aqlC.version = "Beta1";
@@ -303,8 +303,8 @@ function aqlLoadExt (hlpLoading, runFunc, lnk, openWin) { // load external page
 //==== Other functions =====================================================================================
 function aqlimg (imgname) {
 	$0("aql_img_b").aqlimgfile = imgname; //this is a global... 
-	if (Object.getOwnPropertyNames(aqlImg).length == 0)
-		aqlLoadExt ("imglist", aqllabelimg); // will run load function after page loading
+	if (Object.getOwnPropertyNames(aqlI).length == 0)
+		aqlLoadExt ("imglist", aqlmetaimg); // will run load function after page loading
 	else // if image documentation exists, load directly
 		aqldispimg();
 }
@@ -312,11 +312,11 @@ function aqlimg (imgname) {
 function aqldispimg() {
 	var imgn = $0("aql_img_b").aqlimgfile ;
 	var legend = imgn.replace(/_/g,' '); // default value
-	if (z(zo(aqlImg)[imgn]))
-		if (z(aqlImg[imgn].desc)) // if there is a short description
-			legend = aqlImg[imgn].desc;
+	if (z(zo(aqlI)[imgn]))
+		if (z(aqlI[imgn].desc)) // if there is a short description
+			legend = aqlI[imgn].desc;
 		else 
-			legend = (z(aqlImg[imgn].longdesc)) ? aqlImg[imgn].longdesc : legend;
+			legend = (z(aqlI[imgn].longdesc)) ? aqlI[imgn].longdesc : legend;
 	$0("aql_img_b").innerHTML = legend;
 	$0("aql_img0").onload = function() { 
 		var legendht=24; //var legendht = $0("aql_img_b").offsetHeight;
@@ -325,27 +325,27 @@ function aqldispimg() {
 		var ratio = Math.max (this.naturalWidth/w,this.naturalHeight/h);
 		this.width = this.naturalWidth/ratio;
 		this.height = this.naturalHeight/ratio;
-		this.style.paddingTop = Math.floor((h-this.height+1)/2+8)+"px";
-		this.style.paddingLeft = Math.floor((w-this.width+1)/2+8)+"px";
+		this.style.marginTop = Math.floor((h-this.height+1)/2+8)+"px";
+		this.style.marginLeft = Math.floor((w-this.width+1)/2+8)+"px";
 		$0("aql_img").style.display = "block";	
 	}
 	$0("aql_img0").src= aqlO.url+aqlO.imagesDir+imgn; // start image loading
 }
 
-function aqllabelimg() { // fill in the image objects
+function aqlmetaimg() { // fill in the image objects
 	var val, ext, idx="", t, arr, page = z(zo(tabHlp['imglist']).p);
 	arr = page.replace(/[\r*#]/g,'').replace(/[\n]/g,',').split(','); // eliminate CR, bullet/numbered list prefix - newline is separator
 	for (var i=0; i<arr.length; i++) {
 		if (val=arr[i].trim()) { //??
 			ext = val.substr(-4).toLowerCase();
 			if (ext==".png"||ext==".svg"||ext==".jpg") 
-				aqlImg[idx=val] = {}; // new image object
+				aqlI[idx=val] = {}; // new image object
 			else if (idx) { // what set before first image is only comments
 				if (val.indexOf (":")==-1)
-					aqlImg[idx].longdesc = aqlImg[idx].longdesc ? aqlImg[idx].longdesc + val +" ": val+" ";
+					aqlI[idx].longdesc = aqlI[idx].longdesc ? aqlI[idx].longdesc + val +" ": val+" ";
 				else {	
 					t = val.indexOf(":");
-					aqlImg[idx][val.substr(0, t)] = val.substr(t+1);
+					aqlI[idx][val.substr(0, t)] = val.substr(t+1);
 				}	
 			}
 		}
@@ -359,8 +359,8 @@ function aqlimgdesc (event) {
 		var res =  z(obj[param]) ? obj[param] : z(def[param]) ? def[param] :"";
 		return (res) ? text+res :"";
 	}
-	var obj = aqlImg[$0("aql_img_b").aqlimgfile];
-	var def = zo(aqlImg["default.png"]);
+	var obj = aqlI[$0("aql_img_b").aqlimgfile];
+	var def = zo(aqlI["default.png"]);
 	var copy = z(obj.copyright) ? " Copyright: "+obj.copyright : z(obj.auth) ? " Copyright: "+obj.auth : "";
 	var txt = sel ("longdesc", "Description: ")+sel ("auth", "<br>Author: ") +copy;
 	txt += sel ("license", "<br>Licence(s): ")+ sel ("instructions", "<br>Instructions: ");

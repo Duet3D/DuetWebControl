@@ -2,19 +2,20 @@
 /* CSS variables don't work on Edge, IE nor android browser, which will default to black and white
  they shall be adapted for Chrome - not yet done
  see https://wpdev.uservoice.com/forums/257854-microsoft-edge-developer/suggestions/6261292-css-variables */
-/*  black and white default style * /
+/*  black and white default style */
 :root {  
 	--aql-button-hover: #dadbdb;
-	--aql-title-hover: #efefef
+	--aql-title-hover: #ffffff;
 	--aql-page-color: black;
-	--aql-page-bgcolor: white;
+	--aql-page-bgcolor: #ececec;
 	--aql-hd-color:  var(--aql-page-color);
-	--aql-hd-bgcolor: #F8F8F8;
+	--aql-hd-bgcolor: #eaeaea;
 	--aql-hd-brcolor: #b0b0b0;
 	--aql-toc-color: black;
-	--aql-toc-bgcolor: #FCFCFC;
+	--aql-toc-bgcolor: #e3e3e3;
+	--aql-menu-bgcolor: #e0e0e0;
 	--aql-h1-color: black;
-	--aql-h1-bgcolor: #F8F8F8;
+	--aql-h1-bgcolor: #FFFFFF;
 	--aql-h1-shcolor: #F8F8F8;
 	--aql-h2-color: var(--aql-h1-color);	
 	--aql-h2-bgcolor:var (--aql-h1-bgcolor);
@@ -33,6 +34,7 @@
 	--aql-hd-brcolor: #87c1ff;
 	--aql-toc-color: #0030A1;
 	--aql-toc-bgcolor: #e6f6ff;
+	--aql-menu-bgcolor: #e6f6ff;
 	--aql-h1-color:  var(--aql-page-color);
 	--aql-h1-bgcolor: #d6e7ff; 
 	--aql-h1-shcolor: #87c1ff; 
@@ -43,7 +45,7 @@
 	--aql-h34-bgcolor:  var(--aql-page-bgcolor);
 } /* */
 
- /* pastel green*/
+ /* pastel green* /
 :root {
 	--aql-button-hover: #cdf0d6;
 	--aql-title-hover: #d0ffd8;
@@ -54,6 +56,7 @@
 	--aql-hd-brcolor: #c4e6cc;
 	--aql-toc-color: #003000;
 	--aql-toc-bgcolor: #f6fff6;
+	--aql-menu-bgcolor: #f6fff6;
 	--aql-h1-color: var(--aql-page-color);
 	--aql-h1-bgcolor: #eaffea; 
 	--aql-h1-shcolor: #c4e6cc;
@@ -112,8 +115,8 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 }
 #aql_img0 { /* image itself */
 	display:block;
-	margin:0;
-	padding:8px;
+	margin:8px;
+	padding:0;
 }
 #aql_img_b { /* bottom message */
 	margin:0;
@@ -122,6 +125,7 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 }
 /* ------ general  -----------------------*/
 #aql_cont {
+	background-color:#ececec;
 	background-color: var(--aql-page-bgcolor);
 /*	position:absolute;  /* removing absolute and position:fixed in aql_body made full window scrolling*/
 	height:100%; /* less than 100% to avoid main vertical scrollbar*/
@@ -133,6 +137,7 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 	height:100%; 
 	width:100%;
 	color: var(--aql-page-color);
+	background-color:#ececec;
 	background-color: var(--aql-page-bgcolor);
 	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 16px;
@@ -147,10 +152,9 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 	text-decoration: none; 
 }
 #aql_page a:link:hover { 
-background-color:#ffffaa; /*#aaffff;*/
-color:#505000;
-text-decoration:underline;
-/*	color: #3366FF; */
+	background-color:#ffffaa;
+	color:#505000;
+	text-decoration:underline;
 }
 #aql_header {
 	color: var(--aql-hd-color);
@@ -174,8 +178,8 @@ text-decoration:underline;
 	border-right-color:rgba(0, 0, 0, 0.22);
 	padding: 2px;
 	margin:0;
-	background-color: #fcfcfc;
-	background-color: var(--aql-toc-bgcolor);
+	background-color:#fcfcfc;
+	background-color: var(--aql-menu-bgcolor);
 }
 #aql_body { /*-- Overflow:auto AND height is what show local scroll bar 
 			removing height makes general scrolling */
@@ -211,7 +215,7 @@ text-decoration:underline;
 button:focus {outline:0;} /* remove chrome annoyance */
 
 /* Chrome and edge don't handle svg background images, so used transparent png */
-/* sprite order: back, search, print, zoom in, close, [(later) warning, info, ] expand, collapse */
+/* sprite order: back, search, print, zoom in, close, warning, info, expand, collapse */
 /* sprite made on http://instantsprite.com/, 48px images, 10pixels spacing 10 icons: 10*48+9*10: 570px
 buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 .aqi			{ background:url(hsprite.png);} 
@@ -280,15 +284,13 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 
 #btn_aql_zo,
 #btn_aql_zi
-{ /*--zoom button only for mobile - and for Chrome ---*/
+{ /* zoom button only for mobile */
 	display:none; 
 }
 
 #aql_page .aqltab {
 	display:inline-block; 
 	vertical-align: bottom;
-	/*margin: 16px 0 0 0;
-	padding:0; */
 	margin: 0;
 	padding:16px 0 0 0;
 }
@@ -306,6 +308,7 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 #aql_page .aqltab button.aqlsel {
 	background-image: none;
 	background-color: white;
+	background-color:#ececec;
 	background-color: var(--aql-page-bgcolor);
 	bottom:-4px;
 }
@@ -356,7 +359,7 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 }
 
 .hlptt:hover {
-	background:#efefef !important; /* !important required by Firefox only */
+	background:#ffffff !important; /* !important required by Firefox only */
 	background:var(--aql-title-hover) !important;
 } 
 
@@ -378,7 +381,7 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 	box-shadow: 1px 1px 2px #F8F8F8;
 	box-shadow: 1px 1px 2px var(--aql-h1-shcolor); 	
 	color: var(--aql-h1-color); /* default black*/
-	background-color: #F8F8F8;
+	background-color: #FFFFFF;
 	background-color: var(--aql-h1-bgcolor);
 	display:block; 
 }
@@ -388,11 +391,12 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 	box-shadow: 1px 1px 2px var(--aql-h2-shcolor); 	 
 	font-size: 22px;
 	color: var(--aql-h2-color);
-	background-color: #F8F8F8;
+	background-color: #FFFFFF;
 	background-color: var(--aql-h2-bgcolor);
 }
 #aql_page h3, h4 { 
 	color: var(--aql-h34-color);
+	background-color:#ececec;
 	background-color: var(--aql-h34-bgcolor);
 }
 

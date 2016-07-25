@@ -1752,11 +1752,14 @@
 				</div>
 			</div>
 		</div><!-- End Help modal window -->
-		<div id="aql_alert">
-			<div id="halert"><span class="hicon aqi qwarning"></span>&nbsp; &nbsp; &nbsp; Aquilegia (help module) alert</div>
+		<div id="aql_img" onclick="this.style.display = 'none'">
+			<img id="aql_img0" src="" alt="" />
+			<div id="aql_img_b" onclick="aqlimgdesc(event, this);"></div>
+		</div>
+		<div id="aql_alert" class="qwarning" onclick="this.style.display = 'none'">
+			<div id="halert"></div>
 			<div id="halertext">Alert !</div>
 		</div>
-		
 		<!-- Bootstrap core JavaScript
 	  ================================================== -->
 	  <!-- Placed at the end of the document so the pages load faster -->
