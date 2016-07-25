@@ -2161,7 +2161,6 @@ Here is a picture of a 4 colour print from the Duet and Duex4 expansion board co
 (:clear:)
 <small>Page, drawings and photos author: T3P3</small>	
 (:trail Duet hardware:)
-(:trail Duet hardware:)																
 		
 ■Fans
 Fans
