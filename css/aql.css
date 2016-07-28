@@ -7,7 +7,7 @@
 	--aql-button-hover: #dadbdb;
 	--aql-title-hover: #ffffff;
 	--aql-page-color: black;
-	--aql-page-bgcolor: #ececec;
+	--aql-page-bgcolor: #eeeeee;
 	--aql-hd-color:  var(--aql-page-color);
 	--aql-hd-bgcolor: #eaeaea;
 	--aql-hd-brcolor: #b0b0b0;
@@ -191,18 +191,22 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 }
 
 /* ------ top bar -----------------------*/
-#aql_page button {
+#aql_page button,
+#aql_page select {
 	overflow: visible;
 	border-radius: 4px;
 	padding	: 0;
-	background-image: linear-gradient(to bottom, #f5f6f6, #e0dfdf);
 	border	: 1px solid #d0d0d0;
 	position: relative;
-	width: 36px; 
 	height: 30px;
 	vertical-align: top; 
 	cursor: pointer;
 	font-size: 16px;
+}
+
+#aql_page button {
+	background-image: linear-gradient(to bottom, #f5f6f6, #e0dfdf);
+	width: 36px; 
 }
 
 #aql_page button:hover {
@@ -468,7 +472,7 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 	margin: 10px 10px 14px 8px;
 	padding: 4px 8px;
 	font-size: 14px;
-	background-color: #F8F8F8; 
+	background-color: #FFFFFF; 
 	border: 1px solid #D0D0D0;
 	border-radius: 4px;
 }

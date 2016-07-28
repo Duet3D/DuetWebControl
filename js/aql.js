@@ -39,7 +39,6 @@ aqlC.prefix   	= "hlp/"; // Used for hash writing and deep linking - discriminat
 aqlC.dir      	= "h/"; // directory where the help file is located
 aqlC.imgLocalDir= "f/"; // sub-directory of h/ for images when the resources are local - may be identical to thumbnail images to limit file size
 aqlC.dispDir 	= "d/"; // sub-directory of h/ for **displayed** images (they shall have same name as full images)
-aqlC.anchorOffset = $0("aql_body").getBoundingClientRect().top; // offset when scrolling to anchor (in desktop mode) - position from top
 //-------------------------------------------
 aqlO.imagesDir	= "f/"; // sub-directory of h/ for linked images  ('full' images) use imgLocalDir if resources are local
 //aqlO.domain  = "http://otocoup.com/DWC/"; // define domain for remote help loading. Need CORS activated on directory
@@ -59,10 +58,12 @@ aqlO.listAll	= false; // flag when we run a search all pages to not build toc, p
 aqlO.dispMenu	= false; 
 aqlO.zoom		= 1.35; // initial zoom on touchscreen device
 aqlO.perf		= typeof performance.now === 'function'; // also used to detect android browser
+aqlO.selKey 	= []; //e.g. aqlO.selKey = "Duet_0.85"; Chars allowed:[\w-.] select paragraphs identifier to display or not
+aqlO.anchorOffset = 35; // offset when scrolling to anchor (in desktop mode) - position from top - will be recalculated
 //aqlO.isFirefox	= navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 //-------------------------------------------
 var htextnohlp = T("There is no available help page for this element")+"<br>";
-var hlpSelId = ""; //e.g. "Duet_0.85"; Chars allowed:[\w-.] select paragraphs identifier to display 
+var hlpSelId = []; 
 //pages with same identity and hide others. If this is empty, all paragraph are shown
 var is_touch_device = 'ontouchstart' in document.documentElement; // may be not reliable, but simple
 //is_touch_device = true; // test
@@ -94,6 +95,9 @@ function hlp_open() { //at first call to showHlp, after file load. Will never tr
 	document.body.style.overflow = (is_touch_device) ? "auto" :"hidden";	
 	if (!is_touch_device) 
 		$0("hsearch").focus();	
+	aqlO.anchorOffset = $0("aql_body").getBoundingClientRect().top; // need window open to know
+	if (boardResponse) // from DWC - shall only be set while opening help system, as answer is not immediate at board start
+		aqlO.selKey[0]= boardResponse.replace (/\s+/g,'_').toLowerCase(); 
 }
 function hlp_is_open() { //detect help windows is open 
 	return ($0("aql_cont").style.display != 'none');
@@ -106,9 +110,6 @@ function hlp_close(nohashchange) { //occurs when back button didn't get proper h
 	if (!nohashchange) // Shall not modify an address if we are in an application
 		history.pushState("", "", aqlO.linkbase);
 }
-
-function z(val) {return (val||'');} // Make empty strings of undefined
-function zo(obj) {return (obj==undefined)? new Object():obj;} // Make empty object of undefined
 
 document.addEventListener("DOMContentLoaded", function(e) {
 	if ($(".aqltab>button").length) 
@@ -127,12 +128,13 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		$0('aql_menu').style.display =	  (nomenu) ? 'none' : "inline";
 		$0('aql_body').style.marginLeft = (nomenu) ?    0   : "165px";
 		$0('aql_body').style.width =	  (nomenu) ? '99.5%': 'calc(100% - 172px)';
+		aqlO.anchorOffset = $0("aql_body").getBoundingClientRect().top;
 	}
 	document.onclick = function(e){ // to avoid header folding when going to an anchor
 		var target = e.target;
 		if (target.tagName === 'A') {
 			var href = target.getAttribute('href');
-			if (href[0] == "#") {
+			if (href.indexOf("#"+aqlC.prefix)>=0) {
 				e.preventDefault(); // stop jumping to anchor
 				history.pushState("", "", aqlO.linkbase+href); // to have the anchor in history and url field for back
 				aqlScrollAnchor (href);
@@ -263,7 +265,8 @@ var lines, hlpLoading, lnk=arguments[0], itab=0;
 				return;
 			}	
 		}	
-		if ((hlpLoading!=aqlO.lastP)||openWin||hlpLoading=='aqlsearch') //stop reloading of page (if calling a local anchor, notably)
+		if ((hlpLoading!=aqlO.lastP)||openWin||hlpLoading=='aqlsearch' //stop reloading of page (if calling a local anchor, notably)
+			||lnk=="hlplast") // if hlplast we may be recycling after select change
 			hlpSetContent (hlpLoading, mt[2], stateChange);  // change content as needed
 		if (openWin) // Help window first opening
 			hlp_open();
@@ -362,7 +365,7 @@ function aqlimgdesc (event) {
 	var obj = aqlI[$0("aql_img_b").aqlimgfile];
 	var def = zo(aqlI["default.png"]);
 	var copy = z(obj.copyright) ? " Copyright: "+obj.copyright : z(obj.auth) ? " Copyright: "+obj.auth : "";
-	var txt = sel ("longdesc", "Description: ")+sel ("auth", "<br>Author: ") +copy;
+	var txt = sel ("longdesc", "Description: ")+sel ("auth", "<br>Author: ") +copy + sel ("date", " Date: ");
 	txt += sel ("license", "<br>Licence(s): ")+ sel ("instructions", "<br>Instructions: ");
 	hlpalert (txt, "I"); 
 }	
@@ -372,7 +375,7 @@ function aqlScrollAnchor (href) { // scroll to anchor
 		location.hash=href;
 	else { // scroll page body
 		var anch = $0(href.substr(1)); // remove first '#'
-		$0("aql_body").scrollTop = anch.offsetTop - aqlC.anchorOffset; // calculate offset ??
+		$0("aql_body").scrollTop = anch.offsetTop - aqlO.anchorOffset; 
 	}	
 }
 
@@ -545,18 +548,21 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		return '▲'; //U+25B2
 	});
 	data=data.replace(/\/\*.*?\*\//g, ''); // /*Comments*/  non greedy
-	data=data.replace(/%([A-F0-9]\d)/g,'·$1'); //replace % by char 250 for Hex encoding- protection of URI encoding as % is used in markup
+//	data=data.replace(/%([A-F0-9]{2})/g,'·$1'); //replace % by char 250 for Hex encoding- protection of URI encoding as % is used in markup
 	// left for unrecognised web links .. any use ??
 	data=data.replace(/_\n/g,''); // continue without taking into account line feed - NO added space (for tables)
-	var exch2 = /^[\w-.]*\/=([\s\S]*?)=\//gm;  //catch everything in selected paragraphs (includes \n)
-	if (boardResponse) // from DWC poll ??
-		hlpSelId = boardResponse.replace (/\s+/g,'_'); 
-	if (hlpSelId) {// there is an id - 
-	    var exch = new RegExp('^'+hlpSelId+'\\/=([\s\S]*?)=\\/','gm');
-		data=data.replace(exch, '$1').replace(exch2,''); //validate paragraph with id, then remove others
-	}	
-	else 
-		data=data.replace(exch2, '$1'); // display all para content	if no selector	
+	for (i=0; i< 4; i++) //four keys maxi - get them from select box
+		if (document.hform.elements["aqlkey"+i])
+			aqlO.selKey[i] = document.hform.elements["aqlkey"+i].value.trim().toLowerCase();	
+	var regsel = /^([\w-.,]*)([+-])\/=\n*([\s\S]*?)\n*=\/\n*/gm;  //catch everything in selected paragraphs (includes \n)	
+	data=data.replace(regsel, function(m, p1,p2,p3) {
+		p3+="\n"; // at least one newline is required between blocks - others eated to avoid accumulation on succeeding select blocks
+		var fkey = p1.toLowerCase().split(',');
+		var res= (aqlO.selKey.length)? ((p2=="+")?"":p3) : p3; // maintain all if no key
+		for (i=0; i< fkey.length; i++) 
+			res = (aqlO.selKey.indexOf(fkey[i].toLowerCase().trim())>=0)? ((p2=="+")?p3:"") : res;
+		return res;
+	});
 	//-- Title tokenisation -------------------------------------------------------------
 	data = data.replace (/^={2,4}[>|<]?[\t ]*([^\n]+)/gm, function (mt) {
 		titles.push(mt); 
@@ -636,8 +642,8 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	
 	//-- internal links --------------------------------------------------------------
 	var re0 = /([\s>])\"#[\t ]*?(([^\s<>,;"]+[\t ]*)*)"/g; // notes
-	var re1 = /([\s>])%(([^%\s<>,;]+[\t ]*){1,12})%(([\w-\u00C0-\u017F]*![\w-.\u00C0-\u017F]*[\w-\u00C0-\u017F]+)|([\w-\u00C0-\u017F]+))/g;
-	var re2 = /([^%\s<>,;]+)%(([\w-\u00C0-\u017F]*![\w-.\u00C0-\u017F]*[\w-\u00C0-\u017F]+)|([\w-\u00C0-\u017F]+))/g; 
+	var re1 = /([\s>])%(([^%\s<>;]+[\t ]*){1,12})%(([\w-\u00C0-\u017F]*![\w-.\u00C0-\u017F]*[\w-\u00C0-\u017F]+)|([\w-\u00C0-\u017F]+))/g;
+	var re2 = /([^%\s<>;]+)%(([\w-\u00C0-\u017F]*![\w-.\u00C0-\u017F]*[\w-\u00C0-\u017F]+)|([\w-\u00C0-\u017F]+))/g; 
 	data=data.replace(re0, function (mt,p1,p2) { 
 		notes.push(p2); //store notes for future display
 		return p1 + hlpAnchor(hpage, 'bnotes'+(++notesidx))+
@@ -645,7 +651,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	}); 
 	data=data.replace(re1,'$1<a href="javascript:window.showHlp(\'$4\');">$2'+aqlC.slink+'</a>'); 
 	data=data.replace(re2,'<a href="javascript:window.showHlp(\'$2\');">$1'+aqlC.slink+'</a>'); 
-	var re3 = /( |>|\n)%(([^%\s<>,;]+[\\t ]*){1,8})%%/g;
+	var re3 = /( |>|\n)%(([^%\s<>;]+[\\t ]*){1,8})%%/g;
 	data=data.replace(re3, function (mt, p1, p2) {
 		return p1+ hlpCall(hlpNamePage(p2), p2+aqlC.slink);
 	}); 
@@ -683,7 +689,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	untoken(tables,'♠');
 	untoken(weblinks,'♥');
 	untoken(weblinkis,'▼');  	
-	data = data.replace(/·/g,'%'); // replace char 250 by % (for URI encoding)	after untoken of weblinks 
+	//data = data.replace(/·/g,'%'); // replace char 250 by % (for URI encoding)	after untoken of weblinks 
 	data = data.replace (/(\(:[\w]*([\t ]([\w-]*))?:\)[\t ]*(<br>)?)/g,''); //remove all remaining directives - when doubled
 	if (!aqlO.listAll)
 		untoken(codeblocks,'▲'); //U+25B2  - Last to not modify directives
@@ -1048,6 +1054,9 @@ function hlpChklnk(htext, id) { // stack pages not found in the hash table ( not
 } 
 
 //== Utilities ===================================================================
+function z(val) {return (val||'');} // Make empty strings of undefined
+function zo(obj) {return (obj==undefined)? new Object():obj;} // Make empty object of undefined
+
 function $0(id) { // Search DOM by Id
 	var r = document.getElementById(id); 
 	if (!r) {
