@@ -20,6 +20,7 @@
 "Link '{0}' length {1} exceed {2} in page {3} "
 "Page : {0}<br>{1} not found"
 "Search: "
+"Searching '{0}', please wait..."
 */
 /** @private */
 var aqlC = {}; // object for constant parameters
@@ -448,8 +449,11 @@ function aqlSendSearch(stext) { // Run the search from text field data
 		tabHlp['aqlsearch']={};
 	tabHlp['aqlsearch'].search=false; // don't search search page		
 	if (stext) {
+		$0('aql_body').innerHTML = "<br><strong>&nbsp; "+T("Searching '{0}', please wait...",stext)+"</strong>"; // user feedback
 		tabHlp['aqlsearch'].title = accentsNorm(stext.toLowerCase()); // accented letters normalised and everything in lowercase
-     	hlpLoadAll("aqlShowSearch"); //load all pages before searching
+		setTimeout(function() { // to display immediately message while loading all stuff - time=0 don't work
+			hlpLoadAll("aqlShowSearch"); //load all pages before searching
+		}, 50);
 	}
 }
 
