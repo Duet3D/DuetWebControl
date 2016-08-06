@@ -1,0 +1,2089 @@
+gcode_cvt
+G-codes used in RepRap Firmware
+(:nonum:)
+It it important to note that this is direct extract from RepRap Wiki and some details apply only for other firmware than RepRap Firmware
+
+==N: Line number
+Example: N123
+
+If present, the line number should be the first field in a line. For G-code stored in files on SD cards the line number is usually omitted.
+
+If checking is supported, the RepRap firmware expects line numbers to increase by 1 each line, and if that doesn't happen it is flagged as an error.  But you can reset the count using M110 (see below).
+
+Although supported, usage of N in Machinekit is discouraged as it serves no purpose.
+
+
+==*: Checksum
+Example: *71
+
+If present, the checksum should be the last field in a line, but before a comment. For G-code stored in files on SD cards the checksum is usually omitted.
+
+If checking is supported, the RepRap firmware checks the checksum against a locally-computed value and, if they differ, requests a repeat transmission of the line of the given number.
+
+
+==Checking
+Example: N123 [...G Code in here...] *71
+
+The RepRap firmware checks the line number and the checksum.
+You can leave both of these out - RepRap will still work, but it won't do checking.  You have to have both or neither though.
+If only one appears, it produces an error.
+
+The checksum "cs" for a GCode string "cmd" (including its line number) is computed by exor-ing the bytes in the string up to and not including the * character as follows:
+
+<<
+int cs = 0;
+for(i = 0; cmd[i] != '*' && cmd[i] != NULL; i++)
+   cs = cs ^ cmd[i];
+cs &= 0xff;  // Defensive programming...
+>>
+
+and the value is appended as a decimal integer to the command after the * character.
+
+
+==Buffering
+If buffering is supported, the RepRap firmware stores some commands in a ring buffer internally for execution.  This means that there is no (appreciable) delay while a command is acknowledged and the next transmitted.  In turn, this means that sequences of line segments can be plotted without a dwell between one and the next.  As soon as one of these buffered commands is received it is acknowledged and stored locally.  If the local buffer is full, then the acknowledgment is delayed until space for storage in the buffer is available.  This is how flow control is achieved.
+
+Typically, the following moving commands are buffered: G0-G3 and G28-G32.  The  "Teacup Firmware http://reprap.org/wiki/Teacup_Firmware"  buffers also some setting commands: G20, G21, G90 and G91.  All other G, M or T commands are not buffered.
+
+  %RepRapFirmware%RepRap_Firmware _also_implements_an_internal_queue_to_ensure_that_certain_codes_(like_%M106%gcode_cvt!M106.3a_Fan_On ) are executed in the right order and not when the last move has been added to the look-ahead queue. This feature is not available in RepRapFirmware-dc42.
+
+When an unbuffered command is received it is stored, but it is not acknowledged to the host until the buffer is exhausted and then the command has been executed.  Thus the host will pause at one of these commands until it has been done.  Short pauses between these commands and any that might follow them do not affect the performance of the machine.
+
+
+==G0 & G1: Move
+* G0 : Rapid linear Move
+* G1 : Linear Move
+
+** Usage**
+: G0 Xnnn Ynnn Znnn Ennn Fnnn Snnn
+: G1 Xnnn Ynnn Znnn Ennn Fnnn Snnn
+** Parameters**
+: ''Not all parameters need to be used, but at least **one** has to be used''
+: **Xnnn** The position to move to on the X axis
+: **Ynnn** The position to move to on the Y axis
+: **Znnn** The position to move to on the Z axis
+: **Ennn** The amount to extrude between the starting point and ending point
+: **Fnnn** The feedrate per minute of the move between the starting point and ending point (if supplied)
+: **Snnn** Flag to check if an endstop was hit ''(**S1** to check, **S0** to ignore, **S2** see note, default is **S0**)''<sup>1</sup>
+** Examples**
+: G0 X12 ''(move to 12mm on the X axis)''
+: G0 F1500 ''(Set the feedrate to 1500mm/minute)''
+: G1 X90.6 Y13.8 E22.4 ''(Move to 90.6mm on the X axis and 13.8mm on the Y axis while extruding 22.4mm of material)''
+
+The RepRap firmware spec treats G0 and G1 as the same command, since it's just as efficient as not doing so.<sup>2</sup>
+
+Most RepRap firmwares do subtle things with feedrates.
+
+<<
+1. G1 F1500
+2. G1 X50 Y25.3 E22.4
+>>
+
+In the above example, we set the feedrate to 1500mm/minute on line 1, then move to 50mm on the X axis and 25.3mm on the Y axis while extruding 22.4mm of filament between the two points.
+
+<<
+1. G1 F1500
+2. G1 X50 Y25.3 E22.4 F3000
+>>
+
+However, in the above example, we set a feedrate of 1500 mm/minute on line 1, then do the move described above accelerating to a feedrate of 3000 mm/minute as it does so.  The extrusion will accelerate along with the X and Y movement, so everything stays synchronized.
+
+The RepRap spec treats the feedrate as simply another variable (like X, Y, Z, and E) to be linearly interpolated. This gives complete control over the acceleration and deceleration of the printer head in such a way that ensures that everything moves smoothly together, and the right volume of material is extruded at all points.<sup>3</sup>
+
+To reverse the extruder by a given amount (for example to reduce its internal pressure while it does an in-air movement so that it doesn't dribble) simply use G0 or G1 to send an E value that is less than the currently extruded length.
+
+** Notes**
+<sup>1</sup>Some firmwares allow for the RepRap to enable or disable the "sensing" of endstops during a move. Please check with whatever firmware you are using to see if they support the S parameter in this way, as damage may occur if you assume incorrectly. In RepRapFirmware, using the S1 or S2 parameter on a delta printer causes the XYZ parameters to refer to the individual tower motor positions instead of the head position, and to enable endstop detection as well if the parameter is S1.
+
+<sup>2</sup>In the RS274NGC Spec, G0 is ''Rapid Move'', which was used to move between the current point in space and the new point as quickly and efficiently as possible, and G1 is ''Controlled Move'', which was used to move between the current point in space and the new point as precise as possible.
+
+<sup>3</sup>Some firmwares may not support setting the feedrate inline with a move.
+
+<sup>4</sup>RepRapFirmware provides an additional 'R1' parameter to tell the machine to go back to the coordinates a print was previously paused at. If this parameter is used and the code contains axis letters, an offset will be added to the pause coordinates (e.g. G1 R1 Z5).
+
+Some older machines, CNC or otherwise, used to move faster if they did not move in a straight line. This is also true for some non-Cartesian printers, like delta or polar printers, which move easier and faster in a curve.
+
+
+==G4: Dwell
+** Parameters**
+: **Pnnn** Time to wait, in milliseconds
+: **Snnn** Time to wait, in seconds (Only on Marlin and Smoothie)
+** Example**
+: G4 P200
+
+In this case sit still doing nothing for 200 milliseconds.  During delays the state of the machine (for example the temperatures of its extruders) will still be preserved and controlled.
+
+On Marlin and Smoothie, the "S" parameter will wait for seconds, while the "P" parameter will wait for milliseconds. "G4 S2" and "G4 P2000" are equivalent.
+
+
+==G10: Tool Offset
+** Usage**
+: G10 Pnnn Xnnn Ynnn Znnn Rnnn Snnn<sup>1</sup>
+** Parameters**
+: **Pnnn** Tool number
+: **Xnnn** X offset
+: **Ynnn** Y offset
+: **Znnn** Z offset<sup>2</sup>
+: **Rnnn** Standby temperature(s)
+: **Snnn** Active temperature(s)
+** Examples:**
+: G10 P2 X17.8 Y-19.3 Z0.0 ''(sets the offset for tool (or in older implementations extrude head) 2 to the X, Y, and Z values specified)
+: G10 P1 R140 S205 ''(set standby and active temperatures<sup>3</sup> for tool 1)''
+
+Remember that any parameter that you don't specify will automatically be set to the last value for that parameter.  That usually means that you want explicitly to set Z0.0.  RepRapFirmware will report the tool parameters if only the tool number is specified.
+
+The R value is the standby temperature in <sup>o</sup>C that will be used for the tool, and the S value is its operating temperature.  If you don't want the tool to be at a different temperature when not in use, set both values the same.  See the  %T code (select tool)%gcode_cvt!T.3a_Select_Tool  below.  In tools with multiple heaters the temperatures for them all are specified thus:  R100.0:90.0:20.0 S185.0:200.0:150.0 .
+
+** Notes**
+
+<sup>1</sup>Marlin uses  %G10%gcode_cvt!G10.3a_Retract / %G11%gcode_cvt!G11.3a_Unretract  for executing a retraction/unretraction move. The RepRapPro version of Marlin supports G10 for tool offset. Smoothie uses G10 for retract and G10 Ln for setting workspace coordinates.
+
+<sup>2</sup>It's usually a bad idea to put a non-zero Z value in as well unless the tools are loaded and unloaded by some sort of tool changer.  When all the tools are in the machine at once they should all be set to the same Z height.
+
+<sup>3</sup>If the absolute zero temperature (-273.15) is passed as active and standby temperatures, RepRapFirmware will only switch off the tool heater(s) without changing their preset active or standby temperatures. RepRapFirmware-dc42 does not support this setting.
+
+<sup>4</sup>The "NIST G-code standard http://www.nist.gov/customcf/get_pdf.cfm?pub_id=823374" mentions an additional L parameter, which is ignored (except in smoothie). This command is  "subject to discussion http://reprap.org/wiki/Talk:G-code#M104_.26_M109_Deprecation,_G10_Introduction" .
+
+
+==G10: Retract
+RepRap Firmware: partial; dc42,ch
+
+
+** Parameters**
+: **Snnn** retract length (S1 = long retract, S0 = short retract = default) (Repetier only)
+** Example**
+: G10
+
+Retracts filament according to settings of M207 (Marlin, RepRapFirmware) or according to the S value (Repetier).
+
+RepRapFirmware recognizes G10 as a command to set tool offsets and/or temperatures if the P parameter is present, and as a retraction command if it is absent.
+
+
+==G11: Unretract
+RepRap Firmware: partial; dc42,ch
+
+
+** Parameters**
+: **Snnn** retract length (S1 = long retract, S0 = short retract = default) (Repetier only)
+** Example**
+: G11
+
+Unretracts/recovers filament according to settings of M208 (Marlin, RepRapFirmware) or according to the S value (Repetier).
+
+
+==G20: Set Units to Inches
+** Example**
+: G20
+
+Units from now on are in inches.
+
+
+==G21: Set Units to Millimeters
+** Example**
+: G21
+
+Units from now on are in millimeters.  (This is the RepRap default.)
+
+
+==G28: Move to Origin (Home)
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **X** Flag to go back to the X axis origin
+: **Y** Flag to go back to the Y axis origin
+: **Z** Flag to go back to the Z axis origin
+** Examples**
+: G28 ''(Go to origin on all axes)''
+: G28 X Z ''(Go to origin only on the X and Z axis)''
+
+When the RepRap firmware receives this command, it moves all (or the supplied) axis's back to the zero endstops as quickly as it can, then backs off by a millimeter and slowly moves back to the zero endstop activation points to increase position accuracy. This process is also known as "''Homing''".
+
+If you add coordinates, these coordinates are ignored. For example, <code>G28&nbsp;Z0.00</code> results in the same behaviour as <code>G28&nbsp;Z</code>.
+
+RepRapFirmware runs macro files to home either all axes or an individual one. If all axes are homed, the file **homeall.g** will be processed, and **homex.g**, **homey.g**, or **homez.g** if individual axes are homed. On a Delta printer, any G28 command will home all three towers by processing the **homedelta.g** file, regardless of any XYZ letters.
+
+
+==G30: Single Z-Probe
+** Usage**
+: G30 Pnnn Xnnn Ynnn Znnn Hnnn Snnn
+** Parameters**
+: **Pnnn** Probe point number
+: **Xnnn** X coordinate
+: **Ynnn** Y coordinate
+: **Znnn** Z coordinate
+: **Hnnn** Height correction<sup>1</sup>
+: **Snnn** Set parameter
+** Examples**
+: G30
+** Examples (RepRapFirmware)**
+: G30                          ; Probe the bed at the current XY position. When the probe is triggered, set the Z coordinate to the probe trigger height.
+: G30 S-1                      ; Probe the bed at the current XY position. When the probe is triggered, do not adjust the Z coordinate.
+: G30 P0 X20 Y50 Z-99999       ; Probe the bed at X20 Y50 and save the XY coordinates and the height error as point 0
+: G30 P3 X180 Y180 Z-99999 S4  ; Probe the bed at X180 Y180, save the XY coordinates and the height error as point 3 and calculate 4-point compensation or calibration
+: G30 P3 X180 Y180 Z-99999 S-1 ; As previous example but just report the height errors
+
+In its simplest form probes bed at current XY location.
+
+RepRapFirmware supports additional behaviour: if a Pn field is specified the probed X, Y, and Z values are saved as point n on the bed for calculating the offset plane or for performing delta printer calibration.  If X, or Y, or Z values are specified (e.g. G30 P1 X20 Y50 Z0.3) then those values are used instead of the machine's current coordinates.  A silly Z value (less than -9999.0) causes the machine to probe at the current point to get Z, rather than using the given value.  If an S field is specified (e.g. G30 P1 Z0.3 S) the bed plane is computed for compensation and stored.  The combination of these options allows for the machine to be moved to points using G1 commands, and then probe the bed, or for the user to position the nozzle interactively and use those coordinates.  The user can also record those values and place them in a setup GCode file for automatic execution.
+
+RepRapFirmware uses the value of the S parameter to specify what computation to perform. If the value is -1 then the Z offsets of all the points probed are printed, but no calibration is done. If the value is zero or not present, then this specified that the number of factors to be calibrated is the same as the number of points probed. Otherwise, the value indicates the number of factors to be calibrated, which must be no greater than the number of points probed. Currently (as of version 1.09), the number of factors may be 3, 4 or 5 when doing auto bed compensation on a Cartesian or CoreXY printer, and 3, 4, 6 or 7 when doing auto calibration of a Delta printer.
+
+** Notes**
+
+<sup>1</sup>Recent RepRapFirmware versions support an optional H parameter, which is a height correction to be added to the trigger height set by the G31 Z parameter. It allows for the Z probe having a trigger height that varies with XY position.
+
+
+==G31: Set or Report Current Probe status
+** Usage**
+: G31 Pnnn Xnnn Ynnn Znnn Cnnn Snnn
+** Parameters**
+: **Pnnn** Trigger value
+: **Xnnn** Probe X offset<sup>1</sup>
+: **Ynnn** Probe Y offset<sup>1</sup>
+: **Znnn** Trigger Z height
+: **Cnnn** Temperature coefficient<sup>2</sup>
+: **Snnn** Calibration temperature<sup>2</sup>
+** Examples**
+: G31 P500 Z2.6
+: G31 X16.0 Y1.5
+
+When used on its own this reports whether the Z probe is triggered, or gives the Z probe value in some units if the probe generates height values.  If combined with a Z and P field (example: G31 P312 Z0.7) this will set the Z height to 0.7mm when the Z-probe value reaches 312 when a G28 Z0 (zero Z axis) command is sent.  The machine will then move a further -0.7mm in Z to place itself at Z = 0.  This allows non-contact measuring probes to approach but not touch the bed, and for the gap left to be allowed for.  If the probe is a touch probe and generates a simple 0/1 off/on signal, then G31 Z0.7 will tell the RepRap machine that it is at a height of 0.7mm when the probe is triggered.
+
+In RepRapFirmware, separate G31 parameters may be defined for different probe types (i.e. 0+4 for switches, 1+2 for IR probes and 3 for alternative sensors). To specify which probe you are setting parameters for, send a  %M558%gcode_cvt!M558.3a_Set_Z_probe_type  command to select the probe type before sending the G31 command.
+
+In Repetier, G31 supports no parameters and simply prints the high/low status of the Z probe.
+
+** Notes**
+
+<sup>1</sup>X and Y offsets of the Z probe relative to the print head (i.e. the position when the empty tool is selected) can be specified in RepRapFirmware. This allows you to calculate your  %M557%gcode_cvt!M557.3a_Set_Z_probe_point  probe coordinates based on the geometry of the bed, without having to correct them for Z probe X and Y offset. It also provides more accurate bed compensation.
+
+<sup>2</sup>In RepRapFirmware, additional parameters 'S' (bed temperature in <sup>o</sup>C at which the specified Z parameter is correct, default is current bed temperature) and 'C' (temperature coefficient of Z parameter in mm/<sup>o</sup>C, default zero) can be set for the alternative (ultrasonic) sensor. This is useful for probes that are affected by temperature.
+
+
+==G32: Probe Z and calculate Z plane
+** Usage**
+: G32
+: G32 Snnn
+** Parameters**
+: **Snnn** Store transformation matrix after probing<sup>1</sup>
+** Examples**
+: G32
+: G32 S2
+
+Probes the bed at 3 or more pre-defined points (see  %M557%gcode_cvt!M557.3a_Set_Z_probe_point ) and updates transformation matrix for bed leveling compensation.
+
+RepRapFirmware executes macro file **bed.g** if present instead of using the  %M557%gcode_cvt!M557.3a_Set_Z_probe_point  coordinates.
+
+** Notes**
+
+<sup>1</sup>Currently only Repetier firmware v0.92.8 and higher have working support for an optional Snnn parameter.  The numeric value sets the behavior that occurs immediately after point probe and transformation matrix calculation:
+: **S0** Default value. Transformation matrix is updated in RAM but is not stored to EEPROM. Z bed height not calculated.
+: **S1** Transformation matrix is updated in RAM but is not stored to EEPROM. Printer immediately moves to Z maximum position (Z max endstop required!), and calculates new Z maximum height. You must first issue G28 to home to Z maximum position before issuing G32 Snnn for this to work correctly, or the printer height will be invalid.
+: **S2** Same as S1, except transformation matrix and Z max heights are also stored to EEPROM.
+: **S3** Transformation matrix is stored to EEPROM. Z bed height not calculated.
+
+
+==G90: Set to Absolute Positioning
+Example: G90
+
+All coordinates from now on are absolute relative to the origin of the machine.  (This is the RepRap default.)
+
+
+==G91: Set to Relative Positioning
+Example: G91
+
+All coordinates from now on are relative to the last position.  Note: RepRapFirmware latest revision firmware uses M83 to set the extruder to relative mode: extrusion is NOT set to relative by ReprapFirmware on G91: only X,Y and Z are set to relative.  By contrast, Marlin (for example) DOES also set extrusion to relative on a G91 command, as well as setting X, Y and Z.
+
+
+==G92: Set Position
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Xnnn** new X axis position
+: **Ynnn** new Y axis position
+: **Znnn** new Z axis position
+: **Ennn** new extruder position
+** Example**
+: G92 X10 E90
+
+Allows programming of absolute zero point, by reseting the current position to the values specified.  This would set the machine's X coordinate to 10, and the extrude coordinate to 90. No physical motion will occur.
+
+A G92 without coordinates will reset all axes to zero.
+
+
+==M0: Stop or Unconditional stop
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Pnnn** Time to wait, in milliseconds<sup>1</sup>
+: **Snnn** Time to wait, in seconds<sup>2</sup>
+** Example**
+: M0
+
+The RepRap machine finishes any moves left in its buffer, then shuts down.  All motors and heaters are turned off.  It can be started again by pressing the reset button on the master microcontroller, although this step is not mandatory on RepRapFirmware.  See also M1, M112.
+
+The Marlin Firmware does wait for user to press a button on the LCD, or a specific time. "M0 P2000" waits 2000 milliseconds, "M0 S2" waits 2 seconds.
+
+RepRapFirmware executes macro file **stop.g** before everything is turned off. Apart from that, RepRapFirmware (v1.09n-ch) accepts an extra 'H' parameter, whose value must be non-zero, to keep all heaters active. This is what Duet Web Control v1.07 sends to cancel a paused print.
+
+** Notes**
+
+<sup>1</sup>Not available in RepRapFirmware, but as a work-around G4 can be run before M0.
+
+<sup>2</sup>Only available on Marlin.
+
+
+==M1: Sleep or Conditional stop
+** Example**
+: M1
+
+The RepRap machine finishes any moves left in its buffer, then shuts down.  All motors and heaters are turned off.  It can still be sent G and M codes, the first of which will wake it up again.  See also M0, M112.
+
+The Marlin Firmware does the same as M0.
+
+If Marlin is emulated in RepRapFirmware, this does the same as  %M25%gcode_cvt!M25.3a_Pause_SD_print  if the code was read from a serial or Telnet connection, else the macro file **sleep.g** is run before all heaters and drives are turned off.
+
+
+==M3: Spindle On, Clockwise  (CNC specific)
+** Parameters**
+: **Snnn** Spindle RPM
+** Example**
+: M3 S4000
+
+The spindle is turned on with a speed of 4000 RPM.
+
+Teacup firmware turn extruder on (same as M101).
+
+RepRapFirmware interprets this code only if a Roland mill has been configured.
+
+In Repetier-Firmware in laser mode you need S0..255 to set laser intensity. Normally you use S255 to turn it on full power for moves. Laser will only fire during G1/2/3 moves and in laser mode (M452).
+
+
+==M18: Disable all stepper motors
+** Parameters:**
+: ''This command can be used without any additional parameters.<sup>1</sup>''
+: **X** X axis
+: **Y** Y axis
+: **Z** Z axis
+: **E** Extruder drive(s)<sup>2</sup>
+** Examples**
+: M18
+: M18 X E0
+
+Disables stepper motors and allows axes to move 'freely.'
+
+** Notes**
+
+<sup>1</sup>Some firmware implementations do not support parameters to be passed, but at least Marlin and RepRapFirmware do.
+
+<sup>2</sup>RepRapFirmware allows stepper motors to be disabled selectively. For example, M18 X E0:2 will disable the X, extruder 0 and extruder 2 motors.
+
+
+==M20: List SD card
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Snnn** Output style<sup>1</sup>
+: **Pnnn** Directory to list<sup>2</sup>
+** Examples**
+: M20
+: M20 P/gcodes/subdir S2
+
+This code lists all files in the root folder or G-code directory of the SD card to the serial port. One name per line, like:
+
+ ok
+ SQUARE.G
+ SQCOM.G
+ ZCARRI~2.GCO
+ CARRIA~1.GCO
+
+On Marlin, a file list response is usually encapsulated. Standard configurations of RepRapFirmware mimic this style in emulation mode:
+
+ Begin file list:
+ SQUARE.G
+ ZCARRI~2.GCO
+ End file list
+ ok
+
+If RepRapFirmware emulates no firmware compatibility, a typical response looks like:
+
+ GCode files:
+ "Traffic cone.g","frog.gcode","calibration piece.g"
+
+Note that some firmwares list file names in upper case, but - when sent to the M23 command (below) they must be in lower case. Teacup and RepRapFirmware have no such trouble and accept both. Besides, RepRapFirmware always returns long filenames in the case in which they are stored.
+
+** Notes**
+
+<sup>1</sup>This parameter is only supported by RepRapFirmware and defaults to the /gcodes directory, which would be whatever directory printable gcode files are normally stored in on other firmware.
+
+<sup>2</sup>If the S2 parameter is used on RepRapFirmware, then the file list is returned in JSON format as a single array called "files" with each name that corresponds to a subdirectory preceded by an asterisk, and the directory is returned in variable "dir".
+
+
+==M23: Select SD file
+** Example**
+: M23 filename.gco
+
+The file specified as filename.gco (8.3 naming convention is supported) is selected ready for printing. RepRapFirmware supports long filenames as well as 8.3 format.
+
+
+==M24: Start/resume SD print
+** Example**
+: M24
+
+The machine prints from the file selected with the M23 command. If the print was previously paused with M25, printing is resumed from that point. To restart a file from the beginning, use M23 to reset it, then M24.
+
+When this command is used to resume a print that was paused, RepRapFirmware runs macro file **resume.g** prior to resuming the print.
+
+
+==M25: Pause SD print
+** Example**
+: M25
+
+The machine pauses printing at the current position within the file. To resume printing, use  %M24%gcode_cvt!M24.3a_Start.2e2Fresume_SD_print . Do not use this code to pause the print in a G-code file, use  %M226%gcode_cvt!M226.3a_Gcode_Initiated_Pause  instead.
+
+Prior to pausing, RepRapFirmware runs macro file **pause.g**. This allows the head to be moved away from the print, filament to be retracted, etc.
+
+
+==M26: Set SD position
+** Parameters**
+: **Snnn** File position in bytes
+** Example**
+: M26
+
+Set SD position in bytes (M26 S12345).
+
+
+==M27: Report SD print status
+** Example**
+: M27
+
+Report SD print status.
+
+Marlin and recent forks of RepRapFirmware report the number of bytes processed in this format, which can be processed by Pronterface:
+
+ SD printing byte 2134/235422
+
+If no file is being printed, only this message is reported:
+
+ Not SD printing.
+
+
+==M28: Begin write to SD card
+** Example**
+: M28 filename.gco
+
+File specified by filename.gco is created (or overwritten if it exists) on the SD card and all subsequent commands sent to the machine are written to that file.
+
+
+==M29: Stop writing to SD card
+** Example**
+: M29 filename.gco
+
+File opened by M28 command is closed, and all subsequent commands sent to the machine are executed as normal.
+
+
+==M30: Delete a file on the SD card
+Example: M30 filename.gco <br/>
+filename.gco is deleted.
+
+
+==M32: Select file and start SD print
+** Example**
+: M32 filename.gco
+
+It can be used when printing from SD card and does the same as M23 and M24. 
+
+tba   available in marlin(14/6/2014)
+
+
+==M36: Return file information
+** Example**
+: M36 filename.gco
+
+Returns information for the specified SD card file in JSON format. A sample response is:
+
+{"err":0,"size":457574,"height":4.00,"layerHeight":0.25,"filament":[6556.3],"generatedBy":"Slic3r 1.1.7 on 2014-11-09 at 17:11:32"}
+
+The "err" field is zero if successful, nonzero if the file was not found or an error occurred while processing it. The "size" field should always be present if the operation was successful. The presence or absence of other fields depends on whether the corresponding values could be found by reading the file. The "filament" field is an array of the filament lengths required from each spool. The size is in bytes, all other values are in mm. The fields may appear in any order, and additional fields may be present.
+
+If the file name parameter is not supplied and a file on the SD card is currently being printed, then information for that file is returned including additional field "fileName". This feature is used by the web interface and by PanelDue, so that if a connection is made when a file is already being printed, the name and other information about that file can be shown.
+
+
+==M37: Simulation mode
+RepRap Firmware: partial; dc42
+
+
+
+Used to switch between printing mode and simulation mode. Simulation mode allows the electronics to compute an accurate printing time, taking into account the maximum speeds, accelerations etc. that are configured.
+
+M37 S1 enters simulation mode. All G and M codes will not be acted on, but the time they take to execute will be calculated.
+
+M37 S0 leaves simulation mode.
+
+M37 with no S parameter prints the time taken by the simulation, from the time it was first entered using M37 S1, up to the current point (if simulation mode is still active) or the point that the simulation was ended (if simulation mode is no longer active).
+
+
+==M38 Compute SHA1 hash of target file
+RepRap Firmware: partial; ch fork
+
+
+Used to compute a hash of a file on the SD card. Examples:
+
+M37 gcodes/myfile.g
+
+Cannot find file
+
+M37 www/reprap.htm
+
+91199139dbfadac15a18cfb962dfd4853db83999
+
+Returns a hexadecimal string which is the SHA1 of the file. If the file cannot be found, then the string "Cannot find file" is returned instead.
+
+
+==M42: Switch I/O pin
+** Parameters**
+: **Pnnn** Pin number
+: **Snnn** Pin value
+** Example**
+: M42 P7 S255
+
+M42 switches a general purpose I/O pin.  Use M42 Px Sy to set pin x to value y, when omitting Px the LEDPIN will be used.
+
+In Teacup, general purpose devices are handled like a heater, see  "M104 http://reprap.org/wiki/#M104:_Set_Extruder_Temperature" .
+
+In RepRapFirmware, only 1 and 0 are supported for the S field.  On Duet hardware, the supported pin numbers and their names on the expansion connector are:
+
+16 TXD1,
+17 RXD1,
+18 TXD0,
+19 RXD0,
+20 TWD1,
+21 TWCK1,
+23 RTS1,
+36 PC4_PWML1,
+52 AD14,
+66 AD13,
+67 PB16.
+
+On RADDS hardware running RepRapFirmware-dc42, the supported Arduino Due pin numbers and their names are:
+
+5 TIOA6,
+6 PWML7,
+39 PWMH2,
+58 AD3,
+59 AD2,
+66 DAC0,
+67 DAC1,
+68 CANRX0,
+69 CANTX0,
+70 SDA1,
+71 SCL1,
+72 RX LED,
+73 TX LED.
+
+See also M583.
+
+
+==M80: ATX Power On
+** Example**
+: M80
+
+Turns on the ATX power supply from standby mode to fully operational mode. No-op on electronics without standby mode.
+
+**Note**: some firmwares, like  "Teacup http://reprap.org/wiki/Teacup_Firmware" , handle power on/off automatically, so this is redundant there.  Also, see "RAMPS wiring for ATX on/off http://forums.reprap.org/read.php?219,132664"
+
+
+==M81: ATX Power Off
+** Example**
+: M81
+
+Turns off the ATX power supply. Counterpart to M80.
+
+For redeem, adding 'P' will quit the daemon (redeem). 
+Adding parameter 'R' will restart the daemon.
+
+
+==M82: Set extruder to absolute mode
+** Example**
+: M82
+
+Makes the extruder interpret extrusion as absolute positions.
+
+This is the default in repetier.
+
+
+==M83: Set extruder to relative mode
+** Example**
+: M83
+
+Makes the extruder interpret extrusion values as relative positions.
+
+
+==M84: Stop idle hold
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Innn** Reset flags<sup>1</sup>
+** Example**
+: M84
+
+Stop the idle hold on all axis and extruder. In some cases the idle hold causes annoying noises, which can be stopped by disabling the hold. Be aware that by disabling idle hold during printing, you will get quality issues. This is recommended only in between or after printjobs.
+
+On Marlin, Repetier and RepRapFirmware, M84 can also be used to configure or disable the idle timeout. For example, "M84 S10" will idle the stepper motors after 10 seconds of inactivity. "M84 S0" will disable idle timeout; steppers will remain powered up regardless of activity.
+
+** Notes**
+
+<sup>1</sup>RepRapFirmware-dc42 and other firmware may not support this parameter.
+
+
+==M92: Set axis_steps_per_unit
+** Parameters**
+: **Xnnn** Steps per unit for the X drive
+: **Ynnn** Steps per unit for the Y drive
+: **Znnn** Steps per unit for the Z drive
+: **Ennn** Steps per unit for the extruder drive(s)
+** Examples**
+: M92 X87.489 Y87.489 Z87.489
+: M92 E420:420
+
+Allows programming of steps per unit (usually mm) for motor drives. These values are reset to firmware defaults on power on, unless saved to EEPROM if available (M500 in Marlin) or in the configuration file (config.g in RepRapFirmware). Very useful for calibration.
+
+
+==M98: Call Macro/Subprogram
+** Parameters**
+: **Pnnn** Macro filename
+** Example**
+: M98 Pmymacro.g
+
+Runs the macro in the file mymacro.g.  In conventional G Codes for CNC machines the P parameter normally refers to a line number in the program itself (P2000 would run the Macro starting at line O2000, say).  For RepRap, which almost always has some sort of mass storage device inbuilt, it simply refers to the name of a GCode file that is executed by the G98 call.  That GCode file does not need to end with an M99 (return) as the end-of-file automatically causes a return.  Macro calls cannot usually be nested or be recursive; i.e. you can't call a macro from a macro, although RepRapFirmware explicitly supports this.
+
+RepRapFirmware also allows the filename to include a path to a subdirectory. For relative paths, the default folder is /sys, but some implementations may check the /macros directory too. Absolute file paths are supported on RepRapFirmware as well.
+
+
+==M99: Return from Macro/Subprogram
+** Example**
+: M99
+
+Returns from an M98 call.
+
+RepRapFirmware closes the currently active macro file. If a nested macro is being run, RepRapFirmware goes up one stack level.
+
+
+==M104: Set Extruder Temperature
+** Parameters**
+: **Snnn** Target temperature
+** Example**
+: M104 S190
+
+Set the temperature of the current extruder to 190<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the extruder). Duet-dc42 and other firmware also supports the optional T parameter (as generated by slic3r) to specify which tool the command applies to. See also M109.
+
+This is deprecated because temperatures should be set using the G10 and T commands (q.v.).
+
+Deprecation is  "subject to discussion http://reprap.org/wiki/Talk:G-code#M104_.26_M109_Deprecation,_G10_Introduction" . -- "Traumflug http://reprap.org/wiki/User:Traumflug"  11:33, 19 July 2012 (UTC)
+
+
+==M105: Get Extruder Temperature
+** Parameters:**
+: ''This command can be used without any additional parameters.''
+: **Rnnn** Response sequence number<sup>1</sup>
+: **Snnn** Response type<sup>1</sup>
+** Examples**
+: M105
+: M105 S2
+
+Request the temperature of the current extruder and the build base in degrees Celsius.  The temperatures are returned to the host computer.  For example, the line sent to the host in response to this command looks like:
+ ok T:201 B:117
+
+Expansion/generalization of M105 to be considered using S1 parameter as noted in  "Pronterface I/O Monitor http://reprap.org/wiki/Pronterface_I/O_Monitor" 
+
+In Repetier you can add X0 to get raw values as well:
+<pre>
+M105 X0
+
+
+==M106: Fan On
+** Parameters**
+: **Pnnn** Fan number (optional, defaults to 0)<sup>2</sup>
+: **Snnn** Fan speed (0 to 255)
+: **Innn** Invert signal<sup>1</sup>
+: **Fnnn** Set fan PWM frequency, in Hz<sup>1</sup>
+: **Hnn:nn:nn...** Select heaters monitored when in thermostatic mode<sup>1</sup>
+: **Rnnn** Restore fan speed to the value it has when the print was paused<sup>1</sup>
+: **Tnnn** Set thermostatic mode trigger temperature<sup>1</sup>
+** Examples**
+: M106 S127
+: M106 P1 I1 S87<sup>1</sup>
+: M106 P1 T45 H1:2<sup>1</sup>
+
+The first example turns on the default cooling fan at half speed. The second one inverts the cooling fan signal of the second fan and sets its value to 1/3 of its maximum. The third one sets the second fan to a thermostatic fan for heaters 1 and 2 (e.g. the extruder heaters in a dual-nozzle machine) such that the fan will be on when either hot end is at or above 45C.
+
+Mandatory parameter 'S' declares the PWM value (0-255). M106 S0 turns the fan off. In some implementations like RepRapFirmware the PWM value may alternatively be specified as a real fraction: M106 S0.7.
+
+** Notes**
+
+<sup>1</sup>These parameters are only available in RepRapFirmware.
+
+<sup>2</sup>Marlin only supports fan 0, all values above 0 will be interpreted as 0
+
+
+==M107: Fan Off
+Deprecated in Teacup firmware and in RepRapFirmware. Use M106 S0 instead.
+
+
+==M109: Set Extruder Temperature and Wait
+** Parameters**
+: **Snnn** minimum target temperature, waits until heating
+: **Rnnn** maximum target temperature, waits until cooling (Sprinter)
+: **Rnnn** accurate target temperature, waits until heating and cooling (Marlin)
+** Example**
+: M109 S215
+
+
+==M110: Set Current Line Number
+** Parameters**
+: **Nnnn** Line number
+** Example**
+: M110 N123
+
+This example sets the current line number to 123.  Thus the expected next line after this command will be 124.
+<br style="clear: both" />
+
+
+==M111: Set Debug Level
+** Parameters**
+: **Pnnn** Debug module<sup>1</sup>
+: **Snnn** Debug on/off
+** Examples**
+: M111 S6
+: M111 P1 S1
+
+Enable or disable debugging features in the firmware. The implementation may look different per firmware.
+
+** Notes**
+
+<sup>1</sup>This parameter is only available in RepRapFirmware.
+
+
+==M112: Emergency Stop
+** Example**
+: M112
+
+Any moves in progress are immediately terminated, then RepRap shuts down.  All motors and heaters are turned off.  It can be started again by pressing the reset button on the master microcontroller.  See also M0 and M1.
+
+
+==M114: Get Current Position
+** Example**
+: M114
+
+This causes the RepRap machine to report its current X, Y, Z and E coordinates to the host.
+
+For example, the machine returns a string such as:
+
+<tt>ok C: X:0.00 Y:0.00 Z:0.00 E:0.00</tt>
+
+In Marlin first 3 numbers is the position for the planner. The other positions are the positions from the stepper function. This helps for debugging a previous stepper function bug. 
+
+<tt>X:0.00 Y:0.00 RZ:0.00 LZ:0.00 Count X:0.00 Y:0.00 RZ:41.02 LZ:41.02</tt>
+
+
+==M115: Get Firmware Version and Capabilities
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Pnnn** Electronics type<sup>1</sup>
+** Examples**
+: M115
+: M115 P2
+
+Request the Firmware Version and Capabilities of the current microcontroller 
+The details are returned to the host computer as key:value pairs separated by spaces and terminated with a linefeed.
+
+sample data from firmware:
+ ok PROTOCOL_VERSION:0.1 FIRMWARE_NAME:FiveD FIRMWARE_URL:http%3A&sol;&sol;reprap.org MACHINE_TYPE:Mendel EXTRUDER_COUNT:1
+
+This M115 code is inconsistently implemented, and should not be relied upon to exist, or output correctly in all cases. An initial implementation was committed to svn for the FiveD Reprap firmware on 11 Oct 2010.  Work to more formally define protocol versions is currently (October 2010) being discussed.  See  "M115_Keywords http://reprap.org/wiki/M115_Keywords"  for one draft set of keywords and their meanings.  See the M408 command for a more comprehensive report on machine capabilities supported by RepRapFirmware.
+
+** Notes**
+
+<sup>1</sup>This parameter is supported only in RepRapFirmware and can be used tell the firmware about the hardware on which it is running. If the P parameter is present then the integer argument specifies the hardware being used. The following are currently supported:
+
+ M115 P0   Automatic board type selection if supported, or default if not
+ M115 P1   Duet 0.6
+ M115 P2   Duet 0.7
+ M115 P3   Duet 0.85
+
+
+==M116: Wait
+** Parameters**
+: ''This command can be used without any additional parameters.<sup>1</sup>''
+: **Pnnn** Tool number
+: **Hnnn** Heater number
+: **Cnnn** Chamber number
+** Examples**
+: M116
+: M116 P1
+
+Wait for ''all'' temperatures and other slowly-changing variables to arrive at their set values if no parameters are specified.  See also M109.
+
+** Notes**
+
+<sup>1</sup>Most implementations don't support any parameters, but RepRapFirmware version 1.04 and later supports an optional 'P' parameter that is used to specify a tool number. If this parameter is present, then the system only waits for temperatures associated with that tool to arrive at their set values. This is useful during tool changes, to wait for the new tool to heat up without necessarily waiting for the old one to cool down fully.
+
+Recent versions of RepRapFirmware also allow a list of the heaters to be specified using the 'H' parameter, and if the 'C' parameter is present, this will indicate that the chamber heater should be waited for.
+
+
+==M117: Display Message
+** Example**
+: M117 Hello World
+
+This causes the given message to be shown in the status line on an attached LCD.  The above command will display Hello World. If RepRapFirmware is used and no LCD is attached, this message will be reported on the web interface.
+
+
+==M119: Get Endstop Status
+** Example**
+: M119
+
+Returns the current state of the configured X, Y, Z endstops. Takes into account any 'inverted endstop' settings, so one can confirm that the machine is interpreting the endstops correctly.
+
+In redeem, M119 can also be used to invert end stops. 
+** Example**
+: M119 X1 1
+This will invert end stop X1 (Inverted means switch is connected in Normally Open state (NO))
+
+
+==M120: Push
+** Example**
+: M120
+
+Push the state of the RepRap machine onto a stack.  Exactly what variables get pushed depends on the implementation (as does the depth of the stack - a typical depth might be 5).  A sensible minimum, however, might be 
+
+# Current feedrate, and
+# Whether moves (and separately extrusion) are relative or absolute
+
+RepRapFirmware calls this automatically when a macro file is run. In addition to the variables above, it pushes the following values on the stack:
+
+# Current feedrate
+# Extruder positions
+
+
+==M121: Pop
+** Example**
+: M121
+
+Recover the last state pushed onto the stack.
+
+
+==M122: Diagnose
+** Example**
+: M122
+
+Sending an M122 causes the RepRap to transmit diagnostic information, for eaxmple via a USB serial link.
+
+If RepRapFirmware is used and debugging is enabled for the Network module, this will also print LWIP stats to the host via USB.
+
+
+==M135: Set PID sample interval
+** Parameters**
+: **Snnn** Heat sample time in seconds
+** Example**
+: M135 S300
+
+Set the PID to measure temperatures and calculate the power to send to the heaters every 300ms.
+
+
+==M140: Set Bed Temperature (Fast)
+** Parameters**
+: **Snnn** Target temperature
+: **Hnnn** Heater number<sup>1</sup>
+** Example**
+: M140 S55
+
+Set the temperature of the build bed to 55<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the bed).  There is an optional R field that sets the bed standby temperature: M140 S65 R40.
+
+RepRapFirmware allows the bed heater to be switched off if the absolute negative temperature (-273.15) is passed as target temperature. In this case the current bed temperature is not affected<sup>1</sup>:
+
+ M140 S-273.15
+
+Recent versions of RepRapFirmware also provide an optional 'H' parameter to set the hot bed heater number. If no heated bed is present, a negative value may be specified to disable it.
+
+
+==M141: Set Chamber Temperature (Fast)
+** Parameters**
+: **Snnn** Target temperature
+: **Hnnn** Heater number<sup>1</sup>
+** Examples**
+: M141 S30
+: M141 H0
+
+Set the temperature of the chamber to 30<sup>o</sup>C and return control to the host immediately (''i.e.'' before that temperature has been reached by the chamber).
+
+** Notes**
+
+<sup>1</sup>This parameter is only available in RepRapFirmware.
+
+
+==M143: Maximum hot-end temperature
+Example: M143 S275
+
+Set the maximum temperature of the hot-end to 275°C. 
+
+Default value is 300°C prior to RepRapFirmware version 1.13 and 262°C from 1.13 onwards.
+
+When temperature of the hot-end exceeds this value, take countermeasures, for instance an emergency stop. This is to prevent hot-end damage.
+
+
+==M144: Stand By Your Bed
+** Example**
+: M144
+
+Switch the bed to its standby temperature.  M140 turns it back to its active temperature; no need for any arguments for that use of M140.
+
+
+==M190: Wait for bed temperature to reach target temp
+** Parameters**
+: **Snnn** minimum target temperature, waits until heating
+: **Rnnn** accurate target temperature, waits until heating and cooling (Marlin)
+** Example**
+: M190 S60
+
+This will wait until the bed temperature reaches 60 degrees, printing out the temperature of the hot end and the bed every second.
+<br style="clear: both" />
+
+
+==M201: Set max printing acceleration
+** Parameters**
+: **Xnnn** Acceleration for X axis
+: **Ynnn** Acceleration for Y axis
+: **Znnn** Acceleration for Z axis
+: **Ennn** Acceleration for extruder drives
+** Example**
+: M201 X1000 Y1000 Z100 E2000
+
+Sets the acceleration that axes can do in units/second^2 for print moves.  For consistency with the rest of G Code movement this should be in units/(minute^2), but that gives really silly numbers and one can get lost in all the zeros.  So for this we use seconds.
+
+RepRapFirmware expects these values to be in mm/s².
+
+
+==M203: Set maximum feedrate
+** Parameters**
+: **Xnnn** Maximum feedrate for X axis
+: **Ynnn** Maximum feedrate for Y axis
+: **Znnn** Maximum feedrate for Z axis
+: **Ennn** Maximum feedrate for extruder drives
+** Example**
+: M203 X6000 Y6000 Z300 E10000
+
+Sets the maximum feedrates that your machine can do in mm/min (Marlin uses mm/sec).
+
+
+==M206: Offset axes
+** Parameters**
+: **Xnnn** X axis offset
+: **Ynnn** Y axis offset
+: **Znnn** Z axis offset
+** Example**
+: M206 X10.0 Y10.0 Z-0.4
+
+The values specified are added to the endstop position when the axes are referenced. The same can be achieved with a G92 right after homing (G28, G161). 
+
+With Marlin firmware, this value can be saved to EEPROM using the M500 command.
+
+A similar command is G10, aligning these two is  "subject to discussion http://reprap.org/wiki/Talk:G-code#M104_.26_M109_Deprecation,_G10_Introduction" .
+
+With Marlin 1.0.0 RC2 a negative value for z lifts(!) your printhead.
+
+
+==M207: Set retract length
+RepRap Firmware: partial; dc42,ch
+
+
+
+** Parameters**
+: **Snnn** positive length to retract, in mm
+: **Rnnn** positive additional length to un-retract, in mm (RepRapFirmware only)
+: **Fnnn** feedrate, in mm/min
+: **Znnn** additional zlift/hop
+** Example**
+: M207 S4.0 F2400 Z0.075
+
+Sets the retract length used by the G10 and G11 commands, stays in mm regardless of M200 setting
+
+
+==M208: Set axis max travel
+** Parameters**
+: **Snnn** Whether to set the axis minimum<sup>1</sup>
+: **Xnnn** X axis limit
+: **Ynnn** Y axis limit
+: **Znnn** Z axis limit
+** Example**
+: M208 X250 Y210 Z180
+
+The values specified set the software limits for axis travel in the positive direction.
+
+RepRapPro's version of Marlin uses M208 this way. Send M503 to see the current values. On Marlin, the value can be saved to EEPROM using the M500 command.
+
+** Notes**
+
+<sup>1</sup>With RepRapFirmware on a Cartesian printer, you can also use this command to specify software limits for axis travel in the negative direction, by adding parameter S1. The axis limits you set are also the positions assumed when an endstop is triggered.
+
+<<
+M208 X200 Y200 Z90; set axis maxima
+M208 X-5 Y0 Z0 S1 ; set axis minimum
+>>
+
+
+==M208: Set unretract length
+RepRap Firmware: partial; see m207
+
+
+
+** Parameters**
+: **Snnn** positive length surplus to the M207 Snnn, in mm
+: **Fnnn** feedrate, in mm/sec
+
+Sets recover=unretract length.
+
+
+==M210: Set homing feedrates
+RepRap Firmware: yes; dc42
+
+
+
+Example: M210 X1000 Y1500
+
+Set the feedrates used for homing to the values specified in mm per minute.
+
+
+==M220: Set speed factor override percentage
+** Parameters**
+: **Snnn** Speed factor override percentage (0..100 or higher)
+** Example**
+: M220 S80
+
+Sets the speed factor override percentage.
+
+
+==M221: Set extrude factor override percentage
+** Parameters**
+: **Snnn** Extrude factor override percentage (0..100 or higher)
+** Example**
+: M221 S70
+
+Sets extrude factor override percentage.
+
+
+==M226: Gcode Initiated Pause
+** Example**
+: M226
+
+Initiates a pause in the same way as if the pause button is pressed. That is, program execution is stopped and the printer waits for user interaction. This matches the behaviour of M1 in the "NIST RS274NGC G-code standard http://www.nist.gov/manuscript-publication-search.cfm?pub_id=823374" and M0 in Marlin firmware.
+
+
+==M300: Play beep sound
+** Parameters**
+: **Snnn** frequency in Hz
+: **Pnnn** duration in milliseconds
+** Example**
+: M300 S300 P1000
+
+Play beep sound, use to notify important events like the end of printing. "See working example on http://www.3dprinting-r2c2.com/?q=content/seasons-greetings"  "R2C2 electronics http://reprap.org/wiki/R2C2_RepRap_Electronics" .
+
+If an LCD device is attached to RepRapFirmware, a sound is played via the add-on touch screen control panel. Else the web interface will play a beep sound.
+
+
+==M301: Set PID parameters
+** Parameters**
+: **Hnnn** heater number (Smoothie uses 'S')
+: **Pnnn** proportional (Kp)
+: **Innn** integral (Ki)
+: **Dnnn** derivative (Kd)
+** Examples**
+: M301 H1 P1 I2 D3 ; Marlin
+: M301 H1 P1 I2 D3 T0.2 B20 W127 S0.8 ; RepRapFirmware (v1.09 onwards), Duet-dc42
+: M301 S0 P30 I10 D10 ; Smoothie
+
+Sets Proportional (P), Integral (I) and Derivative (D) values for hot end. See also  "PID Tuning http://reprap.org/wiki/PID_Tuning" .
+
+
+==M302: Allow cold extrudes
+** Parameters**
+: **Snnn** Cold extrude minimum temperature
+: **Pnnn** Cold extrude allow state (RepRapFirmware)
+** Examples (RepRapFirmwre)**
+: M302  ; Report current state
+: M302 P1  ; Allow cold extrusion
+** Examples (Others)**
+: M302 S0  ; Allow extrusion at any temperature
+: M302 S170  ; Allow extrusion above 170
+
+This tells the printer to allow movement of the extruder motor above a certain temperature, or if disabled, to allow extruder movement when the hotend is below a safe printing temperature.
+
+** Notes**
+
+<sup>1</sup>RepRapFirmware uses the **P[0|1]** parameter instead of **S[temperature]**, and for M302 with no parameters it will report the current cold extrusion state.
+
+
+==M303: Run PID tuning
+RepRap Firmware: partial; in development
+
+
+
+ "PID Tuning http://reprap.org/wiki/PID_Tuning"  refers to a control algorithm used in some repraps to tune heating behavior for hot ends and heated beds. This command generates Proportional (Kp), Integral (Ki), and Derivative (Kd) values for the hotend or bed (E-1). Send the appropriate code and wait for the output to update the firmware.
+
+Hot end usage:
+ M303 S<temperature> C<cycles>
+Bed usage (repetier, not sure whether cycles work here):
+ M303 P1 S<temperature>
+Bed usage (others):
+ M303 E-1 C<cycles> S<temperature>
+Example:
+ M303 C8 S175
+Smoothie's syntax, where E0 is the first temperature control module (usually the hot end) and E1 is the second temperature control module (usually the bed):
+ M303 E0 S190
+In RepRapFirmware, where H is the heater number and X is the maximum PWM for this heater (default 1.0):
+ M303 H1 X0.7 S200
+
+** Notes**
+
+In Marlin Firmware you can add the **U1** parameter to apply the PID results to current settings upon completion.
+
+
+==M304: Set PID parameters - Bed
+** Parameters**
+: **Pnnn** proportional (Kp)
+: **Innn** integral (Ki)
+: **Dnnn** derivative (Kd)
+** Examples**
+: M304 P1 I2 D3 ; set kP=3, kI=2, kD=3
+: M304 P1 I2 D3 T0.7 B20 W127 ; RepRapFirmware
+: M304          ; Report parameters
+
+Sets Proportional, Integral and Derivative values for bed.  RepRapFirmware interprets a negative P term as indicating that bang-bag control should be used instead of PID.  In RepRapFirmware, this command is identical to M301 except that the H parameter (heater number) defaults to zero.
+
+See also  "PID Tuning http://reprap.org/wiki/PID_Tuning" .
+
+
+==M305: Set thermistor and ADC parameters
+** Parameters**
+: **Pnnn** Heater number
+: **Tnnn** Thermistor resistance at 25<sup>o</sup>C
+: **Bnnn** Beta value
+: **Rnnn** Series resistor value
+: **Lnnn** ADC low offset
+: **Hnnn** ADC high offset
+: **Xnnn** Heater ADC channel
+** Example**
+: M305 P1 T100000 R1000 B4200
+
+Sets the parameters for temperature measurement. Supported by RepRapFirmware from 0.78c, and Duet-dc42 firmware.
+
+The example above tells the firmware that for heater 1 (P parameter: 0 = heated bed, 1 = first extruder) the thermistor 25C resistance (T parameter) is 100Kohms, the thermistor series resistance (R parameter) is 1Kohms, the thermistor beta (B parameter) is 4200. All parameters other than P are optional. If only the P parameter is given, the existing values are displayed.
+
+RepRapFirmware also supports an ADC correction functionality and a thermistor selection facility. Example:
+
+ M305 P1 T100000 R1000 B4200 H14 L-11 X2
+
+New versions of RepRapFirmware also allow an external SPI thermocouple (such as the MAX31855) to be configured. The first MAX31855 ADC channel is currently set to 100, the second one to 101 etc. 
+
+Here the ADC high end correction (H parameter) is 14, the ADC low end correction (L parameter) is -11, and thermistor input #2 is used to measure the temperature of heater #1.
+
+
+==M350: Set microstepping mode
+Sets microstepping mode.
+
+Warning: Steps per unit remains unchanged; except that in RepRapFirmware the steps/mm will be adjusted automatically.
+
+** Usage**
+: M350 Snn Xnn Ynn Znn Enn Bnn
+** Parameters**
+: ''Not all parameters need to be used, but at least **one** should be used. As with other commands, RepRapFirmware reports the current settings if no parameters are used''.
+: **Snn** Set stepping mode for all drivers (not supported by RepRapFirmware)
+: **Xnn** Set stepping mode for the X axis
+: **Ynn** Set stepping mode for the Y axis
+: **Znn** Set stepping mode for the Z axis
+: **Enn** Set stepping mode for Extruder 0 (for RepRapFirmware use Enn:nn:nn etc. for multiple extruders)
+: **Bnn** Set stepping mode for Extruder 1 (not supported by RepRapFirmware, see above)
+: **Inn** Enable (nn=1) or disable (nn=0) microstep interpolation mode for the specified drivers, if they support it (RepRapFirmware only)
+** Modes (nn)**
+: 1 = full step
+: 2 = half step
+: 4 = quarter step
+: 8 = 1/8 step
+: 16 = 1/16 step
+: 64 = 1/64 step
+: 128 = 1/128 step
+: 256 = 1/256 step
+** Examples**
+: M350 S16 ''(reset all drivers to the default 1/16 micro-stepping - not supported by RepRapFirmware)''
+: M350 Z1 ''(set the Z-axis' driver to use full steps)''
+: M350 E4 B4 ''(set both extruders to use quarter steps - Marlin/Repetier)''
+: M350 E4:4:4 ''(set extruders 0-2 to use quarter steps - RepRapFirmware)''
+
+
+==M400: Wait for current moves to finish
+** Example**
+: M400
+
+Finishes all current moves and and thus clears the buffer. That's identical to <code>G4 P0</code>.
+
+
+==M404: Filament width and nozzle diameter
+** Parameters**
+: **Nnnn** Filament width (in mm)
+: **Dnnn** Nozzle diameter (in mm)<sup>1</sup>
+** Examples**
+: M404 N1.75
+: M404 N3.0 D1.0
+
+Enter the nominal filament width (3mm, 1.75mm) or will display nominal filament width without parameters.
+
+** Notes**
+
+<sup>1</sup>While Marlin only accepts the 'N' parameter, RepRapFirmware further allows to specify the nozzle diameter (in mm) via the 'D 'parameter. This value is used to properly detect the first layer height when files are parsed or a new print is being started.
+
+
+==M407: Display filament diameter
+** Example**
+: M407
+
+Displays measured filament diameter. In RepRapFirmware, M407 does the same as M404.
+
+
+==M408: Report JSON-style response
+** Parameters**
+: **Snnn** Response type
+: **Rnnn** Response sequence number
+** Example**
+: M408 S0
+
+Report a JSON-style response by specifying the desired type using the 'S' parameter.
+
+The following response types are supported:
+
+* Type 0 is a short-form response, similar to the response used by older versions of the web interface.
+* Type 1 is like type 0 except that static values are also included.
+* Type 2 is similar to the response provided by the web server for Duet Web Control.
+* Type 3 is an extended version of type 2 which includes some additional parameters that aren't expected to change very frequently.
+* Type 4 is an extended version of type 2 which may be used to poll for current printer statistics.
+* Type 5 reports the current machine configuration.
+
+Here is an example of a typical type 0 response:
+
+ {"status":"I","heaters":[25.0,29.0,28.3],"active":[-273.1,0.0,0.0],"standby":[-273.1,0.0,0.0],"hstat":[0,2,1],"pos":[-11.00,0.00,0.00],"extr":[0.0,0.0],
+  "sfactor":100.00, "efactor":[100.00,100.00],"tool":1,"probe":"535","fanPercent":[75.0,0.0],"fanRPM":0,"homed":[0,0,0],"fraction_printed":0.572}
+
+The response is set as a single line with a newline character at the end. The meaning of the fields is:
+
+ status:  I=idle, P=printing from SD card, S=stopped (i.e. needs a reset), C=running config file, A=paused, D=pausing, R=resuming, B=busy (running a macro)
+ heaters: current heater temperatures, numbered as per the machine (typically, heater 0 is the bed)
+ active:  active temperatures of the heaters
+ standby: standby temperatures of the heaters
+ hstat:   status of the heaters, 0=off, 1=standby, 2=active, 3=fault
+ pos:     the X, Y and Z positions of the current tool (if a tool is selected), or the print head reference point if no tool is selected
+ extr:    the positions of the extruders
+ sfactor: the current speed factor (see M220 command)
+ efactor: the current extrusion factors (see M221 command)
+ tool:    the selected tool number. A negative number typically means no tool selected.
+ probe:   the Z-probe reading
+ fanPercent: the speeds of the controllable fans, in percent of maximum
+ fanRPM:  the cooling fan RPM
+ homed:   the homed status of the X, Y and Z axes (or towers on a delta). 0=axis has not been homed so position is not reliable, 1=axis has been homed so position is reliable.
+ fraction_printed: the fraction of the file currently being printed that has been read and at least partially processed.
+ message: the message to be displayed on the screen (only present if there is a message to display)
+ timesLeft: an array of the estimated remaining print times (in seconds) calculated by different methods. These are currently based on the proportion of the file read,
+            the proportion of the total filament consumed, and the proportion of the total layers already printed. Only present if a print from SD card is in progress.
+ seq:     the sequence number of the most recent non-trivial G-code response or error message. Only present if the R parameter was provided and the current sequence number is greater than that.
+ resp:    the most recent non-trivial G-code response or error message. Only present if the R parameter was provided and the current sequence number is greater.
+
+The type 1 response comprises these fields plus some additional ones that do not generally change and therefore do not need to be fetched as often. The extra fields include:
+
+ myName:  the name of the printer
+ geometry: one of "cartesian", "delta", "corexy, "corexz" etc.
+
+The fields may be in any order in the response. Other implementations may omit fields and/or add additional fields.
+
+For a more detailed comparison of type 2 - 5, see  %Proposed_RepRap_Duet_Status_Responses%Status_responses .
+
+PanelDue currently uses only M408 S0 and M408 S1.
+
+
+==M500: Store parameters in EEPROM
+** Example**
+: M500
+
+Save current parameters to EEPROM.
+ 
+In  "Redeem http://reprap.org/wiki/Redeem"  any parameters set through G/M-codes which is different than what is read from the config files, are stored back to the local config. For instance setting stepper current and microstepping through M906 and M907 followed by M500 will update /etc/redeem/local.cfg.
+
+
+==M501: Read parameters from EEPROM
+** Parameters**
+: **Snnn** Enable auto-save (only RepRapFirmware)
+** Example**
+: M501
+
+Set the active parameters to those stored in the EEPROM. This is useful to revert parameters after experimenting with them.
+
+RepRapFirmware allows "S1" to be passed, which forces parameters to be automatically saved to EEPROM when they are changed.
+
+
+==M502: Revert to the default "factory settings."
+** Example**
+: M502
+
+This command resets all tunable parameters to their default values, as set in the firmware. This doesn't reset any parameters stored in the EEPROM, so it must be followed with M500 if you want to do that.
+
+
+==M503: Print settings
+** Example**
+: M503
+
+This command asks the firmware to reply with the current print settings stored in EEPROM. The reply output includes the G-Code commands to produce each setting. For example, the Steps Per Unit values are displayed as an M92 command.
+
+RepRapFirmware outputs the content of the configuration file, but note that it may be truncated if it is too long.
+
+
+==M540: Set MAC address
+** Parameters**
+: **Pnnn** The MAC address
+** Examples**
+: M540 P0xBE:0xEF:0xDE:0xAD:0xFE:0xED
+: M540 PDE:AD:BE:EF:CA:FE
+
+Sets the "MAC address http://en.wikipedia.org/wiki/MAC_address" of the RepRap.  This should be done before any other network commands.  The MAC address is six one-byte hexadecimal numbers separated by colons.  The 0x prefix is optional in later firmware revisions.
+
+All devices running on the same network shall all have different MAC addresses. For your printers, changing the last digit is sufficient.
+
+
+==M550: Set Name
+** Parameters**
+: **Pnnn** Machine name
+** Example**
+: M550 PGodzilla
+
+Sets the name of the RepRap to (in this case) Godzilla.  The name can be any string of printable characters except ';', which still means start comment.
+
+
+==M551: Set Password
+** Parameters**
+: **Pnnn** Password
+** Example**
+: M551 Pmy-very-secret-word
+
+On machines that need a password to activate them, set that password.  The code 'P' is not part of the password.  Note that as this is sent in clear it does not (nor is it intended to) offer a very high level of security. But on machines that are (say) on a network, it prevents idle messing about by the unauthorised.  The password can contain any printable characters except ';', which still means start comment.
+
+Note for RepRapFirmware: If the specified password differs from the default one (i.e. reprap), the user will be asked to enter it when a connection is established via HTTP or Telnet. For FTP, the password must always be passed explicitly.
+
+
+==M552: Set IP address
+** Parameters**
+: **Pnnn** IP address
+: **Snnn** Enable networking (optional)
+: **Rnnn** HTTP port (default 80)
+** Example**
+: M552 P192.168.1.14
+
+Sets the IP address of the RepRap machine to (in this case) 192.168.1.14.  A restart may be required before the new IP address is used.  If no 'P' field is specified, this echoes the existing IP address configured.  If S0 is added thus: M552 S0 P192.168.1.14 networking is disabled.  If you set the address M552 P0.0.0.0 the RepRap machine will try to obtain its IP address from the network's DHCP server, whereupon it will appear on the network with an address something like **<<http://godzilla.home>>**, where **godzilla** is the name set by the M550 command (see above).  The precise URL incorporating that name will depend on the conventions of your network.
+
+Recent RepRapFirmware versions allow the IP configuration to be changed without a restart.
+
+
+==M553: Set Netmask
+** Parameters**
+: **Pnnn** Net mask
+** Example**
+: M553 P255.255.255.0
+
+Sets the network mask of the RepRap machine to (in this case) 255.255.255.0.  A restart may be required before the new network mask is used.  If no 'P' field is specified, this echoes the existing network mask configured.
+
+Recent RepRapFirmware versions allow the IP configuration to be changed without a restart.
+
+
+==M554: Set Gateway
+** Parameters**
+: **Pnnn** Gateway
+** Example**
+: M554 P192.168.1.1
+
+Sets the Gateway IP address of the RepRap machine to (in this case) 192.168.1.1.  A restart may be required before the new gateway IP address is used.  If no 'P' field is specified, this echoes the existing Gateway IP address configured.
+
+Recent RepRapFirmware versions allow the IP configuration to be changed without a restart.
+
+
+==M555: Set compatibility
+** Parameters**
+: **Pnnn** Emulation type
+** Example**
+: M555 P1
+
+For firmware that can do it, the firmware is set to a mode where its input and (especially) output behaves exactly like other established firmware.  The value of the 'P' argument is:
+
+/:
+P value        :: Firmware ::
+0 :: Native (i.e. whatever the firmware actually is)::
+ 1 ::  %RepRap_Firmware%RepRap_Firmware ::
+ 2 ::  "Marlin http://reprap.org/wiki/Marlin" ::
+ 3 ::  "Teacup http://reprap.org/wiki/Teacup" ::
+ 4 ::  "Sprinter http://reprap.org/wiki/Sprinter" ::
+ 5 ::  "Repetier http://reprap.org/wiki/Repetier" ::
+:/
+
+
+==M556: Axis compensation
+** Parameters**
+: **Snnn** Height of the measured distances
+: **Xnnn** Deviation in X direction
+: **Ynnn** Deviation in Y direction
+: **Znnn** Deviation in Z direction
+** Example**
+: M556 S100 X0.7 Y-0.2 Z0.6
+
+ 320%CalibrationAngle.png 
+
+Though with care and adjustment a RepRap can be set up with its axes at right-angles to each other within the accuracy of the machine, who wants to bother with care and adjustment when the problem
+can be solved by software?  This tells software the tangents of the angles between the axes of the machine obtained by printing then measuring a test part.  The S parameter (100 here) is the length of a triangle along each axis in mm.  The X, Y and Z figures are the number of millimeters of the short side of the triangle that represents how out of true a pair of axes is.  The X figure is the error between X and Y, the Y figure is the error between Y and Z, and the Z figure is the error between X and Z. Positive values indicate that the angle between the axis pair is obtuse, negative acute.
+
+
+==M557: Set Z probe point
+** Parameters**
+: **Pnnn** Probe point number
+: **Xnnn** X coordinate
+: **Ynnn** Y coordinate
+** Example**
+: M557 P1 X30 Y40.5
+
+Set the points at which the bed will be probed to compensate for its plane being slightly out of horizontal.  The P value is the index of the point (indices start at 0) and the X and Y values are the position to move extruder 0 to to probe the bed.  An implementation should allow a minimum of three points (P0, P1 and P2).  This just records the point coordinates; it does not actually do the probing.  See  %G32%gcode_cvt!G32.3a_Probe_Z_and_calculate_Z_plane .
+
+
+==M558: Set Z probe type
+** Parameters**
+: **Pnnn** Z probe type
+: **Xnnn** Use probe for X axis
+: **Ynnn** Use probe for Y axis
+: **Znnn** Use probe for Z axis
+: **Hnnn** Dive height<sup>1</sup>
+: **Fnnn** Feed rate (i.e. probing speed)<sup>1</sup>
+: **Tnnn** Travel speed to probe points<sup>1</sup>
+: **Snnn** Extra parameter for experimentation (1)
+: **Rnnn** Extra parameter for experimentation (2)<sup>2</sup>
+** Example**
+: M558 P0 X1 Y0 Z1
+
+A Z probe may be a switch, an IR proximity sensor, or some other device.  This selects which to use.  P0 indicates that no Z probe is present.  P1 gives an unmodulated IR probe, or any other probe type that emulates an unmodulated IR probe (probe output is an analog signal that rises with decreasing nozzle height above the bed).  If there is a control signal to the probe, it is driven high when the probe type is P1.  P2 specifies a modulated IR probe, where the modulation is commanded directly by the main board firmware using the control signal to the probe.  P3 selects an alternative Z probe by driving the control signal to the probe low.  P4 selects a switch for bed probing (on the Duet, this must be connected to the E0 endstop pins). P5 (from DC42 1.14) selects a switch (normally closed) for bed probing between In and Gnd pins of the Z-probe connector (Duet 0.8.5 and Duet WiFi).
+
+The X, Y and Z parameters specify whether each axis uses the Z probe for homing or not.  If the parameter is nonzero, the Z probe is used for homing that axis.  if the parameter is zero, the endstop switch for that axis is used for homing instead.  See also G31 and G32.
+
+Recent versions of RepRapFirmware support an additional parameter H. This specifies the dive height (default 3mm) from which probing is done in response to a G30 command when the P parameter is present, or a G32 command.
+
+** Notes**
+
+<sup>1</sup>These parameters are only supported by recent RepRapFirmware versions and should be specified in mm/min.
+
+<sup>2</sup>This parameter used to specify the Z probe channel in RepRapFirmware, but it has been superceded by the functionality of "M115 Px". With older firmware versions and a Duet 0.7/0.85, this parameter should be 1.
+
+
+==M559: Upload configuration file
+** Example**
+: M559
+
+If the RepRap supports it, this uploads a file that is run on re-boot to configure the machine.  This file usually is a special G Code file.  After sending M559, the file should be sent, ending with an M29 (q.v.).
+
+
+==M560: Upload web page file
+** Example**
+: M560
+
+For RepRaps that have web support and that can be driven by a web browser, this uploads the file that is the control page for the RepRap.  After sending M560 the file (usually an HTML file) should be sent, terminated by the string <pre>&lt;!-- **EoF** --></pre>.  Clearly that string cannot exist in the body of the file, but can be put on the end to facilitate this process.  This should not be too serious a restriction...
+
+
+==M561: Set Identity Transform
+** Example**
+: M561
+
+This cancels any bed-plane fitting as the result of probing (or anything else) and returns the machine to moving in the user's coordinate system.
+
+
+==M562: Reset temperature fault
+** Parameters**
+: **Pnnn** Heater number
+** Example**
+: M562 P2
+
+Reset a temperature fault on heater/sensor 2.  If the RepRap has switched off and locked a heater because it has detected a fault, this will reset the fault condition and allow you to use the heater again.  Obviously to be used with caution.  If the fault persists it will lock out again after you have issued this command.  P0 is the bed; P1 the first extruder, and so on.
+
+
+==M563: Define or remove a tool
+** Parameters**
+: **Pnnn** Tool number
+: **Dnnn** Extruder drive(s)
+: **Hnnn** Heater(s)
+** Example**
+: M563 P0 D0:2:3 H1:3
+
+Tools are usually (though not necessarily) extruders.  The 'P' field specifies the tool number.  Tool numbers can have any positive integer value and 0.  The 'D' field specifies the drive(s) used by the tool - in this case drives 0, 2 and 3.  Drive 0 is the first drive in the machine after the movement drives (usually X, Y and Z).  If there is no 'D' field the tool has no drives.  The 'H' field specifies the tool's heaters - in this case heaters 1 and 3.  Heater 0 is usually the hot bed (if any) so the first extruder heater is usually 1.  If there is no H field the tool has no heaters.
+
+Tools are driven using multiple values in the 'E' field of G1 commands, each controlling the corresponding drive in the 'D' field above, as follows:
+
+<<
+G1 X90.6 Y13.8 E2.24:2.24:15.89
+G1 X70.6 E0:0:42.4
+>>
+
+The first line moves straight to the point (90.6, 13.8) extruding a total of 2.24mm of filament from both drives 0 and 2 and 15.98mm of filament from drive 3.  
+
+The second line moves back 20mm in X extruding 42.4mm of filament from drive 3.
+
+Alternatively, if the slicer does not support generating G1 commands with multiple values for the extrusion amount, the M567 command can be used to define a tool mix ratio.
+
+Normally an M563 command is immediately followed by a G10 command to set the tool's offsets and temperatures.
+
+It is permissible for different tools to share some (or all) of their drives and heaters.  So, for example, you can define two tools with identical hardware, but that just operate at different temperatures.
+
+If you use the M563 command with a P value for a tool that has already been defined, that tool is redefined using the new values you provide.
+
+RepRapFirmware supports an additional form of the M563 command. The command:
+
+<<
+M563 S1
+>>
+
+means add 1 (the value of the S parameter) to all tool numbers found in the remainder of the current input stream (e.g. the current file if the command is read from a file on the SD card), or until a new M563 command of this form is executed. The purpose of this is to provide compatibility between systems in which tool numbers start at 1, and programs such as slic3r that assume tools are numbered from zero.
+
+Recent versions of RepRapFirmware allow the deletion of existing tools if M563 is called in this way:
+
+<<
+M563 P1 D-1 H-1
+>>
+
+
+==M564: Limit axes
+** Parameters**
+: **Snnn** Limit movement within axis boundaries
+** Example**
+: M564 S0
+
+Allow moves outside the print volume, or not.  If the S parameter is 0, then you can send G codes to drive the RepRap outside its normal working volume, and it will attempt to do so.  User beware...  If you set the S parameter to 1 then the RepRap will not think outside the box.  The default behaviour is S = 1.
+
+
+==M566: Set allowable instantaneous speed change
+** Parameters**
+: **Xnnn** Maximum instantaneous speed change of the X axis
+: **Ynnn** Maximum instantaneous speed change of the Y axis
+: **Znnn** Maximum instantaneous speed change of the Z axis
+: **Ennn** Maximum instantaneous speed change of the extruder drives
+** Example**
+: M566 X20 Y20 Z2 E10
+
+Work around an algorithm limitation of some firmwares, which can't calculate step timings for a standing start. Teacup Firmware and Smoothieware don't have this limitation, so M566 is obsolete there.
+
+M566 sets the speeds in mm/minute that axes can do from a standing start.  If an accelerating algorithm starts a move with a zero velocity on other firmwares and then accelerates from that, it can give problems when the zero initial velocity is used to calculate a timestep between stepper pulses at the beginning: the timestep ends up being infinite...  So these systems have initial small velocities to start at.  This sets them.
+
+Recent versions of RepRapFirmware don't have the limitation, but instead they use this parameter to determine the maximum allowable speed change of each motor when cornering.
+
+
+==M567: Set tool mix ratios
+** Parameters**
+: **Pnnn** Tool number
+: **Ennn** Mix ratios
+** Example**
+: M567 P2 E0.1:0.2:0.1:0.6
+
+This example sets the mix ratio for tool 2 (the P value).  When mixing is then turned on (see M568), only single E values need to be sent on a G1 command (any extra E values will be ignored, but are not illegal):
+
+G1 X20 E1.3
+
+This will move to X=20 extruding a total length of filament of 1.3mm.  The first drive of tool 2 will extrude 0.1*1.3mm, the second 0.2*1.3mm and so on.  The ratios don't have to add up to 1.0 - the calculation done is as just described.  But it is best if they do.
+
+See also M568.
+
+
+==M568: Turn off/on tool mix ratios
+** Parameters**
+: **Pnnn** Tool number
+: **Snnn** Whether mix ratios should be activated
+** Example**
+: M568 P2 S0
+
+Turn on/off automatic mix ratios for tool 2.  If the S parameter is 0 mixing is turned off; if it is non-zero it is turned on.
+
+After turning off command G1 instructions must send as many E values as the tool has drives:
+
+ G1 X20 E0.2:0.4:0.166:0.3
+
+The off state is the default.
+
+
+==M569: Set axis direction and enable values
+** Parameters**
+: **Pnnn** Drive number
+: **Snnn** Direction of movement of the drive (0 = backwards, 1 = forwards)
+: **Rnnn** Drive enable polarity (default 0)<sup>1</sup>
+: **Xnnn** Map drive to X axis<sup>2</sup>
+: **Ynnn** Map drive to Y axis<sup>2</sup>
+: **Znnn** Map drive to Z axis<sup>2</sup>
+: **Ennn** Map drive to extruder drive<sup>2</sup>
+: **Tnnn** Minimum driver step pulse width and interval in microseconds<sup>3</sup>
+** Example**
+: M569 P0 S1
+
+Set the control value for the drive specified by P that sends it forwards to the given value in the S field.  After sending the example, sending a 1 to X (drive 0) will make it go forwards, sending a 0 will make it go backwards.  Obviously to be used with extreme caution...
+
+** Notes**
+
+<sup>1</sup>The 'R' parameter is not supported by all firmware, but in the dcnewman fork of RepRapFirmware and versions 1.09i and later of the dc42 fork, this sets the enable value -- logic level -- for the drive specified by P to the given value in the R field.  Allowed 'R' values are 0 or 1.  With the following example, drive 2 is enabled by sending an enable value of 0.  Sending an enable value of 1 will disable the drive.
+
+ M569 P2 R0
+
+You can use any combination of S XYZE and R parameters in a single M569 command. Values not provided are left unchanged.
+
+<sup>2</sup>Some versions of RepRapFirmware up to and including version 1.13 allow drives to be remapped using this command. For example:
+
+ M569 P0 X0
+
+Assigns driver 0 to control the X0 motor. In place of X0 you can use Y0 Z0 E0 E1 E2 etc. to assign the driver to the corresponding motor. Only one driver can be allocated to each axis or extruder. From version 1.14 onward, use the M584 command to map drives to drivers instead.
+
+<sup>3</sup>RepRapFirmware 1.14 and later support the T parameter, to allow the step pulse width and interval to be lengthened for those drivers that need it. If no T parameter is given, then the step pulse width and interval are guaranteed to be suitable for the on-board drivers. Currently, RepRapFirmware only remembers the highest T parameter seen in any M569 command, and applies that value to all drivers for which any nonzero T parameter was specified.
+
+
+==M570: Set heater timeout
+** Parameters**
+: **Snnn** Heater timeout (in seconds)
+** Example**
+: M570 S120
+
+After a heater has been switched on, wait 120 seconds for it to get close to the set temperature.  If it takes longer than this, flag a heater fault.
+
+
+==M571: Set output on extrude
+** Parameters**
+: **Snnn** Output value
+** Example**
+: M571 S0.5
+
+This turns the controlled fan 0 output on whenever extrusion is being done, and turns it off when the extrusion is finished.  The output could control a fan or a stirrer or anything else that needs to work just when extrusion is happening.  The S parameter sets the value of the PWM to the output. 0.0 is off; 1.0 is fully on. It also can be used to control a laser beam.
+
+
+==M572: Set or report extruder pressure advance
+RepRap Firmware: partial; dc42, ch, dn
+
+
+
+** Parameters**
+: **Dnnn** Extruder number
+: **Snnn** Pressure advance amount (in seconds)
+** Example**
+: M572 D0 S0.1
+
+This sets the pressure advance coefficient (S parameter) for the specified extruder (D parameter). Supported by RepRapFirmware-dc42, -ch and -dn.
+
+Pressure advance causes the extruder drive position to be advanced or retarded during printing moves by an additional amount proportional to the rate of extrusion. At the end of a move when the extrusion rate is decreasing, this may result in the extruder drive moving backwards (i.e. retracting). Therefore, if you enable this feature, you may need to reduce the amount of retraction you use in your slicing program to avoid over-retraction.
+
+With Bowden extruders, an S value between 0.1 and 0.2 usually gives the best print quality.
+
+Older versions of RepRapFirmware used the P parameter to specify the drive number, instead of using D to specify the extruder number.
+
+
+==M573: Report heater PWM
+** Parameters**
+: **Pnnn** Heater number
+** Example**
+: M573 P1
+
+This gives a running average (usually taken over about five seconds) of the PWM to the heater specified by the P field.  If you know the voltage of the supply and the resistance of the heater this allows you to work out the power going to the heater. Scale: 0 to 1.
+
+
+==M574: Set endstop configuration
+** Parameters**
+: **Xnnn** Switch type for X axis
+: **Ynnn** Switch type for Y axis
+: **Znnn** Switch type for Z axis
+: **E**    Select extruder endstops to define active high or low 
+: **Snnn** Logic level
+** Example**
+: M574 X1 Y2 Z0 S1
+
+This defines the type of endstop switch or opto sensor that the printer has for each axis: 0 = none, 1 = low end, 2 = high end. The optional S parameter defines whether the endstop input is active high (S1, the default) or low (S0). Intended for use with boards that provide a single endstop input for each axis that may be used for either a high or a low end endstop, such as the Duet. Supported by RepRapFirmware. On delta printers, the XYZ parameters refer to the towers and the endstops should normally all be high end.
+For the extruders endstops, S0 is for active low and S1 for active high. M574 E S1 select active high (used when endstop is a Z-probe, needed from v.1.14) - for all extruder endstops
+
+
+==M575: Set serial comms parameters
+** Parameters**
+: **Pnnn** Serial channel number
+: **Bnnn** Baud rate
+: **Snnn** Whether checksums should be used
+** Example**
+: M575 P1 B57600 S1
+
+This sets the communications parameters of the serial comms channel specified by the P parameter. P0 specifies the main serial interface (typically a USB port, or serial-over-USB), while P1 specifies an auxiliary serial port (for example, the port used to connect a PanelDue). The B parameter is the required baud rate (this parameter is typically ignored if the port is a true USB port). The S parameter is a bitmap of features. The lowest bit, if set, specifies that only commands that include a valid checksum should be accepted from this comms channel.
+
+
+==M577: Wait until endstop is triggered
+** Parameters**
+: **Snnn** Desired endstop level
+: **Xnnn** Select X axis endstop
+: **Ynnn** Select Y axis endstop
+: **Znnn** Select Z axis endstop
+: **Ennn** Select extruder drive endstop
+** Example**
+: M577 E0 S1
+
+Wait for an endstop switch to be pressed. The example above will wait until the first extruder endstop is triggered.
+
+The following trigger types may be used using the 'S' parameter:
+
+0: Endstop not hit
+1: Low endstop hit
+2: High endstop hit
+3: Near endstop (only Z probe)
+
+
+==M578: Fire inkjet bits
+** Parameters**
+: **Pnnn** Inkjet head number
+: **Snnn** Bit pattern
+** Example**
+: M578 P3 S5
+
+This fires inkjet head 3 (the P field) using the bit pattern specified by the S field.  The example shown would fire bits 101.  If the P parameter is ommitted inkjet 0 is assumed.
+
+This is a version of the M700 command used by the  "Inkshield http://reprap.org/wiki/Inkshield" , but unfortunately M700 is already taken so cannot be used for that in the standard.
+
+
+==M579: Scale Cartesian axes
+** Parameters**
+: **Xnnn** Scale factor for X axis
+: **Ynnn** Scale factor for Y axis
+: **Znnn** Scale factor for Z axis
+** Example**
+: M579 X1.0127 Y0.998
+
+On a Cartesian RepRap you can get prints exactly the right size by tweaking the axis steps/mm using the M92 G Code above. But this does not work so easily for Delta and other RepRaps for which there is cross-talk between the axes. This command allows you to adjust the X, Y, and Z axis scales directly. So, if you print a part for which the Y length should be 100mm and measure it and find that it is 100.3mm long then you set Y0.997 (= 100/100.3).
+
+
+==M580: Select Roland
+** Parameters**
+: **Rnnn** Whether Roland mode should be activated
+: **Pnnn** Initial text to send to the Roland controller
+** Example**
+: M580 R1 PVS4;!VZ2;!MC1;
+
+This is not really anything to do with RepRap, but it is convenient.  The "little Roland mills http://www.rolanddg.com/product/3d/3d/mdx-20_15/mdx-20_15.html" are very widely available in hackerspaces and maker groups, but annoyingly they don't speak G Codes.  As all RepRap firmware includes a G-Code interpreter, it is often easy to add functions to convert G Codes to "Roland RML language http://altlab.org/d/content/m/pangelo/ideas/rml_command_guide_en_v100.pdf".  M580 selects a Roland device for output if the R field is 1, and returns to native mode if the R field is 0.  The optional P string is sent to the Roland if R is 1.  It is permissible to call this repeatedly with R set to 1 and different strings in the P field to communicate directly with a Roland.
+
+
+==M581: Configure external trigger
+RepRap Firmware: partial; dc42
+
+
+
+** Parameters**
+: **Tnn** Logical trigger number to associate the endstop input(s) with, from zero up to a firmware-specific maximum (e.g. 9 for RepRapFirmware)
+: **X, Y, Z, E** Selects endstop input(s) to monitor
+: **P** Reserved, may be used in future to allow general I/O pins to cause triggers
+: **S** Whether trigger occurs on a rising edge of that input (S1, default), falling edge (S0), or ignores that input (S-1). By default, all triggers ignore all inputs.
+: **C** Condition: whether to trigger at any time (C0, default) or only when printing a file from SD card (C1)
+** Example**
+: M581 E1:2 S1 T2 C1   ; invoke trigger 2 when a rising edge is detected on the E1 or E2 endstop input and a file is being printed from SD card
+
+When M581 is executed, if the T parameter is present but the other parameters are omitted, the trigger inputs and edge polarities for that trigger number are reported. Otherwise, the specified inputs and their polarities are added to the conditions that cause that trigger. Using S-1 with no X Y Z or E parameters sets the trigger back to ignoring all inputs.
+
+In RepRapFirmware, trigger number 0 causes an emergency stop as if M112 had been received. Trigger number 1 causes the print to be paused as if M25 had been received. Any trigger number # greater then 1 causes the macro file sys/trigger#.g to be executed. Polling for further trigger conditions is suspended until the trigger macro file has been completed. RepRapFirmware does not wait for all queued moves to be completed before executing the macro, so you may wish to use the M400 command at the start of your macro file. If several triggers are pending, the one with the lowest trigger number takes priority.
+
+
+==M582: Check external trigger
+RepRap Firmware: partial; dc42
+
+
+
+** Parameters**
+: T Trigger number to poll
+** Example**
+: M582 T2 ; check levels of inputs that give rise to trigger #2
+
+Triggers set up by the M581 command are normally activated only when the specified inputs change state. This command provides a way of causing the trigger to be executed if the input is at a certain level. For each of the inputs associated with the trigger, the trigger condition will be checked as if the input had just changed from the opposite state to the current state.
+
+For example, if you use M581 to support an out-of-filament sensor, then M582 allows you to check for out-of-filament just before starting a print.
+
+
+==M584: Set drive mapping
+RepRap Firmware: partial; version 1.14 and later
+
+
+
+** Parameters**
+: Xnnn Driver number(s) for X motor(s)
+: Ynnn Driver number(s) for Y motor(s)
+: Znnn Driver number(s) for Y motor(s)
+: Ennn Driver number(s) for E motor(s)
+: Snnn Special functions (to be defined, e.g. multiple independent X carriages, or Z motors driven independently for bed levelling)
+** Example**
+: M584 X0 Y1 Z2:3 E4:5:6 ; Driver 0 controls the X motor, 1 controls the Y motor, 2 and 3 control the Z motors, 4 and 5 control the E motors
+
+
+==M600: Filament change pause
+RepRap Firmware: partial; use macro files instead
+
+
+
+Example: M600
+
+Pause for filament change X[pos] Y[pos] Z[relative lift] E[initial retract] L[later retract distance for removal].
+
+
+==M665: Set delta configuration
+** Parameters**
+: **Lnnn** Diagonal rod length
+: **Rnnn** Delta radius
+: **Snnn** Segments per second<sup>1</sup>
+: **Bnnn** Safe printing radius<sup>2</sup>
+: **Hnnn** Nozzle height above the bed when homed after allowing for endstop corrections<sup>2</sup>
+: **Xnnn** X tower position correction<sup>3</sup>
+: **Ynnn** Y tower position correction<sup>3</sup>
+: **Znnn** Z tower position correction<sup>3</sup>
+** Examples**
+: M665 L250 R160 S200 (Marlin)
+: M665 L250 R160 B80 H240 X0 Y0 Z0 (RepRapFirmware)
+
+Set the delta calibration variables.
+
+: I don't think it's a good idea to have two different implementations for the same G-code, and I also question the practical value of specifying the print bed radius when defining a delta configuration, since many delta printers use a square or rectangular print bed. So perhaps we should stick to the Marlin-defined command as the definition for this command, and use a different command or set of commands to define print bed shape and size. -- "AndrewBCN http://reprap.org/wiki/User:AndrewBCN"  ( "talk http://reprap.org/wiki/User_talk:AndrewBCN" ) 23:10, 31 January 2015 (PST)
+
+: The implementations are not different, they have the same L and R parameters, but each has additional parameters that are not relevant to the other implementation. I'm not against defining a new Gcode to define bed size and shape; however, you can already define the limits of a rectangular print area using M208. Even when a delta printer has a square bed, the printable area is not square. It is usually taken to be circular, although it is in reality more complicated. My purpose in adding the B parameter was to make it easy to define a radius outside which movement will not normally be attempted. I have changed "bed radius" to "safe printing radius" in the text to help clarify this. -- "dc42 http://reprap.org/wiki/User:dc42" 
+
+** Notes**
+
+<sup>1</sup>Only supported on Marlin.
+
+<sup>2</sup>Only supported in RepRapFirmware.
+
+<sup>3</sup>X, Y and Z tower angular offsets from the ideal (i.e. equilateral triangle) positions, in degrees, measured anti-clockwise looking down on the printer.
+
+
+==M666: Set delta endstop adjustment
+** Parameters**
+: **Xnnn** X axis endstop adjustment
+: **Ynnn** Y axis endstop adjustment
+: **Znnn** Z axis endstop adjustment
+** Example**
+: M666 X-0.1 Y+0.2 Z0
+
+Sets delta endstops adjustments.
+
+In RepRapFirmware and Repetier, positive endstop adjustments move the head closer to the bed when it is near the corresponding tower. In Marlin and Smoothieware, negative endstop corrections move the head closer to the bed when it is near the corresponding tower.
+
+In Marlin, only negative endstop corrections are allowed.
+
+In Repetier the endstop corrections are expressed in motor steps. In other firmwares they are expressed in mm.
+
+
+==M667: Select CoreXY mode
+** Parameters**
+: **Snnn** CoreXY mode
+: **Xnnn** X axis scale factor
+: **Ynnn** Y axis scale factor
+: **Znnn** Z axis scale factor
+** Example**
+: M667 S1
+
+M667 S0 selects Cartesian mode (unless the printer is configured as a delta using the M665 command). Forward motion of the X motor moves the head in the +X direction. Similarly for the Y motor and Y axis, and the Z motor and Z axis. This is the default state of the firmware on power up.
+
+M667 S1 selects CoreXY mode. Forward movement of the X motor moves the head in the +X and +Y directions. Forward movement of the Y motor moves the head in the -X and +Y directions.
+
+M667 S2 selects CoreXZ mode. Forward movement of the X motor moves the head in the +X and +Z directions. Forward movement of the Z motor moves the head in the -X and +Z directions.
+
+M667 S3 selects CoreYZ mode. Forward movement of the Y motor moves the head in the +Y and +Z directions. Forward movement of the Z motor moves the head in the -Y and +Z directions.
+
+Additional parameters X, Y and Z may be given to specify factors to scale the motor movements by for the corresponding axes. For example, to specify a CoreXZ machine in which the Z axis moves 1/3 of the distance of the X axis for the same motor movement, use M667 S2 Z3. The default scaling factor after power up is 1.0 for all axes.
+
+To change the motor directions, see the M569 command.
+
+
+==M668: Set Z-offset compensations polynomial
+RepRap Firmware: partial; dc42-cmm
+
+
+
+Polynomial compensation is an experimental method to compensate for geometric distortion of a delta machine Z-plane.  After the bed is compensated with the set of G30 points, there remains error.  This method fits a 6th degree polynomial with independent origins for each order to the residual error data (using a simulated annealing technique on the host).  The polynomial is communicated and controlled through M668.  Because the polynomial takes many floating point operations to compute each point, the firmware builds a grid of values, and used bi-linear interpolation to adjust the actual Z-axis offset error estimate.
+
+For the polynomial used, 40 parameters are specified.  The I parameter allows the coefficients to be loaded a few at a time, which limits the size of the G-code string.  The index starts with 1, not with 0.
+
+M668 Ix S[list of values]  sets the polynomial parameters starting at index x, if index present and != 0.
+
+M668 R  recomputes the grid based on the current parameters.
+
+M668 P[0|1] turns off or on the polynomial compensation.
+
+Typical use would be:
+
+M668 I1 S4.882E-17:0.0
+M668 I3 ...
+...
+M668 R P1
+
+Which sets the list, computes the interpolation grid, and then enables compensation.
+
+
+==M851: Set Z-Probe Offset
+RepRap Firmware: partial; use g31
+
+
+
+Sets the Z-Probe Offset saved in the EEPROM and this setting also works like M206 as well and this has priority over the z probe offset you set in marlin configuration.h setting
+
+Example: M851 Z-4
+
+The example above will set the z-probe offset EEPROM setting to -4mm below the nozzle and enables the nozzle travel 4mm lower than the probe triggered position. It is however, a good idea to keep the setting inside your configuration.h as well for your own future reference.
+
+This command appears on pronterface after marlin dev 1.1.0, it is unknown that this command can be used on marlin 1.0.0
+
+
+==M906: Set motor currents
+** Parameters**
+: **Xnnn** X drive motor current
+: **Ynnn** Y drive motor current
+: **Znnn** Z drive motor current
+: **Ennn** E drive(s) motor current(s)
+: **Innn** Motor current idle factor (0..100)<sup>1</sup>
+: **H1**   Set/Get Motor currents used for the downward Z-probe homing movement <sup>2</sup>
+** Example**
+: M906 X300 Y500 Z200 E350:350
+
+Sets the currents to send to the stepper motors for each axis.  The values are in milliamps.
+
+** Notes**
+
+<sup>1</sup>RepRapFirmware supports an additional I parameter. This is the percentage of normal that the motor currents should be reduced to when the printer becomes idle but the motors have not been switched off. The default value is 30%.
+
+<sup>2</sup>RepRapFirmware, DC42 version, cmm sub-version supports "H1", which sets the XYZ motor currents used during Z-probing temporarily to different (typically lower) value.  If "H1" is specified, the homing current is set, otherwise it operates normally.  The homing current should be specified after the main current is set.  The actual motor current is not changed until the next Z-probe operation.  Lower motor currents reduce vibration during Z-probe motions.
+
+
+==M907: Set digital trimpot motor
+RepRap Firmware: partial; use m906
+
+
+
+Set digital trimpot motor current using axis codes (X, Y, Z, E, B, S). In "Repetier http://reprap.org/wiki/Repetier", it sets the current in Percent. In "Redeem https://bitbucket.org/intelligentagent/redeem/src/6153607ded91c100fb4e41e936e6d045e19eda29/redeem/gcodes/M907.py?at=slave_stepper", it sets the current in A (where M906 does in mA).
+
+
+==M909: Set microstepping
+RepRap Firmware: partial; use m350
+
+
+
+Example: M909 X3 Y5 Z2 E3
+
+Set the microstepping value for each of the steppers. 
+In  "Redeem http://reprap.org/wiki/Redeem"  this is implemented as 2^value, so  
+
+M909 X2 sets microstepping on X-axis to 2^2 = 4, <BR>
+M909 Y3 sets microstepping on Y-axis to 2^3 = 8 etc.
+
+
+==M911: Set power monitor threshold voltages
+** Parameters**
+: **Pnnn** Power monitor channel, default 0
+: **Snnn** Undervoltage threshold
+: **Tnnn** Overvoltage threshold
+** Example**
+: M911 P0 S20 T27.5
+
+Sets the minimum supply voltage for which correct operation of the printer mechanics is guaranteed and stepper motor positions are guaranteed to be held for all enabled drivers, and/or the maximum safe voltage above which sensitive parts of the machine should be shut down. M911 with no parameters or with just the P parameter reports the current thresholds.
+
+
+==M912: Set electronics temperature monitor adjustment
+** Parameters**
+: **Pnnn** Temperature monitor channel, default 0
+: **Snnn** Value to be added to the temperature reading in degC
+** Example**
+: M912 P0 S10.5
+
+Many microcontrollers used to control 3D printers have built-in temperature monitors, but they normally need to be calibrated for temperature reading offset. The S parameter specifies the value that should be added to the raw temperature reading to provide a more accurate result.
+
+
+==M913: Set motor percentage of normal current
+** Parameters**
+: **X, Y, Z, E** Percentage of normal current to use for the specified axis or extruder motor(s)
+** Example**
+: M913 X50 Y50 Z50 ; set X Y Z motors to 50% of their normal current
+: M913 E30:30 ; set extruders 0 and 1 to 30% of their normal current
+
+This allows motor currents to be set to a specified percentage of their normal values as set by M906. It can be used (for example) to reduce motor current during course homing, to make homing quieter or to reduce the risk of damage to endstops, and to reduce current while loading filament to guard against the possibility of feeding too much filament. Use M913 again with the appropriate parameters set to 100 to restore the normal currents.
+
+
+==M997: Perform in-application firmware update
+** Parameters**
+: **Snnn** Firmware module number(s), default 0
+**Example:**
+:M997 S0:1 - update firmware modules 0 and 1
+
+This command triggers a firmware update if the necessary files are present on the SD card. In RepRapFirmware on the Duet series, module numbers are as follows:
+
+0 - main firmware, filename sys/RepRapFirmware.bin (Duet) or sys/DuetWiFiFirmware (Duet WiFi). File sys/iap.bin (Duet) or sys/iap4e.bin (Duet WiFi) must also be present.
+
+1 - web server firmware, filename sys/DuetWiFiServer.bin
+
+2 - web server file system, filename sys/DuetWebControl.bin
+
+3 - put the WiFi module into bootloader mode, so that firmware can be uploaded directly via its serial port
+
+
+==M998: Request resend of line
+** Parameters**
+: **Pnnn** Line number
+** Example**
+: M998 P34
+
+Request a resend of line 34.  In some implementations the input-handling code overwrites the incoming G Code with this when it detects, for example, a checksum error.  Then it leaves it up to the GCode interpreter to request the resend.
+
+
+==M999: Restart after being stopped by error
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: **Pnnn** Reset flags<sup>1</sup>
+** Example**
+: M999
+
+Restarts the firmware using a software reset.
+
+** Notes**
+
+<sup>1</sup>The dc42 fork of RepRapFirmware not only resets the board but also puts the board into firmware upload mode if parameter PERASE is present.
+
+
+==T: Select Tool
+** Parameters**
+: ''This command can be used without any additional parameters.''
+: Tool number
+** Example**
+: T1
+
+Select tool (or in older implementations extruder) number 1 to build with.  
+
+The sequence followed is:
+
+# Set the current tool to its standby temperatures specified by G10 (see above),
+# Set the new tool to its operating temperatures specified by G10 and wait for **all** temperatures to stabilise,
+# Apply any X, Y, Z offset for the new tool specified by G10,
+# Use the new tool.
+
+Selecting a non-existent tool (100, say) just does Step 1 above<sup>1</sup>.  That is to say it leaves all tools in their standby state.  You can, of course, use the G10 command beforehand to set that standby temperature to anything you like.
+
+Note that you may wish to move to a parking position ''before'' executing a T command  in order to allow the new extruder to reach temperature while not in contact with the print.  It is acceptable for the firmware to apply a small offset [by convention (-1mm x tool-number) in Y] to the current position when the above sequence is entered to allow temperature changes to take effect just away from the parking position.  Any such offset must, of course, be undone when the procedure finishes.
+
+If the Z value changes in the offsets and the tool moves up, then the Z move is made before the X and Y moves.  If Z moves down, X and Y are done first.
+
+Some implementations (e.g. RepRapFirmware) allow you to specify tool-change G Code macros<sup>2</sup>.  There are normally three specified (any of which can contain no commands if desired) that execute in this order:
+
+# Actions to do with the old tool before it is released - macro name: **tfreeN.g** where N is the tool number;
+# (Old tool is released);
+# Actions to do with the new tool before it is selected - macro name: **tpreN.g** where N is the tool number;
+# (New tool is selected); and
+# Actions to do with the new tool after it is selected - macro name: **tpostN.g** where N is the tool number.
+
+With such implementations there is no wait for temperature stabilisation.  That can be achieved by an M116 in any of the macros, of course.
+
+After a reset tools will not start heating until they are selected.  You can either put them all at their standby temperature by selecting them in turn, or leave them off so they only come on if/when you first use them.  The M0, M1 and M112 commands turn them all off.  You can, of course, turn them all off with the M1 command, then turn some back on again.  Don't forget also to turn on the heated bed (if any) if you use that trick.
+
+Tool numbering may start at 0 or 1, depending on the implementation.  Some implementations (those that use the M563 command to define tools) allow the user to specify tool numbers, so with them you can have tools 17, 99 and 203 if you want.  Negative numbers are not allowed.
+
+** Notes**
+<sup>1</sup> For RepRapFirmware, selecting a non-existent tool also removes any X/Y/Z offset applied for the old tool.
+
+<sup>2</sup> Under special circumstances, the execution of those macro files may not be desired. RepRapFirmware 109p-ch allows the 'S0' parameter to be passed to prevent the execution of tool change macro files.
+
+
+
+<small>Licence GFDL 1.2 - source "RepRap Wiki G-code page http://reprap.org/wiki/G-code"</small>

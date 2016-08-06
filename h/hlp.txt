@@ -1,6 +1,6 @@
-276 July 2016 (c) Pierre ROUZEAU  CC BY-SA - some pages by others - credited
+01 August 2016 (c) Pierre ROUZEAU  CC BY-SA - some pages by others - credited
 Aquilegia help file.
-You can write any comments before the first page. Test author
+You can write any comments before the first page.
 
 ■home
 RepRap Firmware and Duet documentation
@@ -24,6 +24,7 @@ allb,Duet_WiFi_1.0+/=
 * %Connecting a bed heater%connecting_a_bed_heater 
 * %Connecting chamber heater%connecting_chamber_heater 
 * %Power wiring%power_wiring 
+* %What could kill your Duet?%what_kill_duet 
 * %Fans%Fans
 * %Duet pinout%Duet_pinout
 ===< Differences with other Hardware/Firmware
@@ -44,7 +45,7 @@ allb,Duet_WiFi_1.0+/=
 * %Delta printer configuration%Delta_config
 * %RepRap Firmware commissioning%Commissioning
 * %Duet Web Control%Duet_Web_Control
-* FAQ%FAQ
+* %FAQ%FAQ
 ===< Development	
 * %Duet design%Duet_design
 * %RepRap Firmware design%RepRap_Firmware_design
@@ -74,6 +75,7 @@ allb,Duet_WiFi_1.0+/=
 * %Bed heater%connecting_a_bed_heater 
 * %Chamber heater%connecting_chamber_heater 
 * %Power wiring%power_wiring 
+* %What kill Duet%what_kill_duet 
 * %Fans%Fans
 * %Duet pinout%Duet_pinout
 ===< Differences
@@ -94,7 +96,7 @@ allb,Duet_WiFi_1.0+/=
 * %Delta printer%Delta_config
 * %Commissioning%Commissioning
 * %Web Control%Duet_Web_Control
-* FAQ%FAQ
+* %FAQ%FAQ
 ===< Development	
 *%Duet design%Duet_design
 *%Firmware design%RepRap_Firmware_design
@@ -104,7 +106,7 @@ allb,Duet_WiFi_1.0+/=
 
 ■hlpdef
 Default page add directives or text at start of any page.
-(:numtitle:)(:hlpdiag:)(:hlpfoot:)
+(:numtitle:)(:hlpfoot:)
 
 ■hlpfoot
 Foot page add text at the bottom of the page, outside the title section, inside the page css class.
@@ -126,6 +128,39 @@ Pages mostly authored by T3P3 (mentioned), DC42 (mentioned) and PRZ (not mention
 *Help is delivered by "Aquilegia module http://aquilegia.blue" <small>developed by Pierre ROUZEAU, aka PRZ, license GPLv2 or any later version</small>
 
 *%Writer diagnostics%hlpdiag 
+
+■what_kill_duet
+What could kill your Duet ?
+(:notoc:)
+'Integral' board have some advantages in manufacturing cost and offer the best driver cooling, but a failure of one component may drive to a total loss of the board. Some failures could be repaired by equipped and handy people, but that may not be possible for a lot of users.
+
+So, you shall be very cautious while testing and installing the board.
+You shall always remember that if your board is connected to an USB cable, it is powered, so unpower the board also need to **unplug USB cable**.
+
+==What can cause the loss of a board
+*Swapping wires on the input power. There is no reverse polarity diode protection on the Duet, so it will be killed instantly. You shall be very cautious and note that the polarity of the different versions of the Duet are not the same. Look the serigraphy and the documentation. Use bicolour cables. 
+*Unplugging a stepper while the board is powered. That also mean that if there is a wire which broke while in service, you can loose one driver or the full board. All Duets are now using Molex lockable plugs, so even if 'Dupont' connectors can be used, you shall always prefer the mating %Molex connector%duet_wiring!connectors on your cable. Remember board are thermally cycling at each start and an unlocked connector can slowly disengage and disconnect after months of service. 
+*Shorting a power output (that includes the fan output). Too high current in a power driving MosFet may destroy it and possibly create a contact between the power supply and the command pin of the MosFet, so you will send your supply voltage to the processor, which will have no possibility to survive. Some have experienced that this "create a hole https://www.duet3d.com/forum/thread.php?id=88" in the processor. Being low power, the fan wiring is low size and often not mechanically protected, so the risk of short on a fan may be higher than on other power output. There is no wire of lesser importance than another. 
+*Shorting anything on the board with a foreign object. "One user https://groups.google.com/forum/#!topic/deltabot/4snHKnXLuwo" had a nut falling on his board, shorting and destroying a driver. The whole board was inoperative, hopefully unsoldering the faulty driver revived the board. It is very frequent that control boards are left unboxed on printers. That may be ok for a board which cost 20 Euros, it is not for a board of 150Euros. Board shall be mechanically protected. The casing shall be in fireproof material, so prefer metallic casing to printed casing. Board placed under the printer, as often done on delta, are particularly exposed. 
+*Sending more than 3.3V on an input pin. Duet processor are 3.3V only and an input of 5V may kill them. When using capacitive or inductive sensors, you need at least 6V to supply the sensor. The output level will be the same as the supply, so the signal voltage shall be reduced to connect it to the board. It is easy to make a voltage divider to reduce the signal voltage. However, if the low branch of the voltage divider get disconnected, the signal voltage will instantly became equal to the sensor supply and your processor will die. An instant false contact in the plug will suffice to loose your board. Using such solution need a mean to secure the input voltage. You can use an optoinsulator, like in "this example http://electronics.stackexchange.com/questions/43498/how-can-i-use-a-12-v-input-on-a-digital-arduino-pin", but you don’t need the resistor connected on vcc, as there is one in the board in serie with a LED. 
+*Sending more than 3.3V on thermistor input. A frequent problem is the contact between a thermistor wire and the heater cartridge wire. Cables arriving on the hot-end heat block are quite exposed to movement and temperature. Wire break or wire contact with the heat block are common. If the thermistor input is connected to the power input because both are touching the heat block, that will blow your board. Try to evaluate what will occur if there are broken wire in this area. You shall secure the wires as such they cannot move sufficiently to contact the heat block in case of breakage.
+
+== What is bad for the board, but it may survive:
+*Shorting the 3.3V supply to ground. This is a quite common incident with people who don’t look the documentation and wire their endstops like on the Ramps or other printer boards, which short the central pin (3.3V) to the ground. This cause board reset when operating endstops and unpredictable behaviour. You are still at risk to loose the 3.3V regulator, but that may be repaired.
+
+==How to avoid troubles
+*Use lockable plugs
+*Secure all wires, including static wires
+*Secure the board
+*Shield mechanically the board
+*Don’t solder wires, use crimped junctions
+*Don’t tin wire end
+*Check all crimped connections
+*Check that all screwed terminal are well tightened (don’t over-tighten) before powering the board (USB…)
+*Avoid voltage divider for inputs
+*Protect the wires arriving the hotend heat block
+
+Never tin stranded wires which are connected to a board. Tinned wire end will change size with temperature cycling and miscontact is probable after some time. In addition, tinning the end make the wire locally stiff and create a weak point between the tinned and non tinned part. It is frequent that the wire movement will broke the wire at this place. Use crimped terminals.
 
 ■Prerequisites
 Prerequisites
@@ -275,7 +310,7 @@ The only LCD display currently supported is the PanelDue colour touch screen. Ho
 ■RRF_differences
 Firmware differences from Marlin, Repetier etc.
 The Duet and Duet WiFi run RepRapFirmware. This differs from Marlin in a number of ways:
-* You do not need to build the firmware yourself unless you are a firmware developer. The firmware is supplied as a ready-built binary file. All important configuration parameters are defined within the /sys/config.g file on the SD card, which you can edit either in the web interface, or by moving the SD card to a PC and using an ordinary text editor such as Notepad++. You can also change these parameters on the fly by sending the appropriate G-codes. The homing behaviour is defined in homing files also on the SD card. Bed probing behaviour is defined in the bed.g file on the SD card. For more details, see %Configuring RepRapFirmware for a Cartesian_printer%%Cartesian_config.
+* You do not need to build the firmware yourself unless you are a firmware developer. The firmware is supplied as a ready-built binary file. All important configuration parameters are defined within the /sys/config.g file on the SD card, which you can edit either in the web interface, or by moving the SD card to a PC and using an ordinary text editor such as Notepad++. You can also change these parameters on the fly by sending the appropriate G-codes. The homing behaviour is defined in homing files also on the SD card. Bed probing behaviour is defined in the bed.g file on the SD card. For more details, see %Configuring RepRapFirmware for a Cartesian_printer%Cartesian_config.
 * Bed probing is done using G32, not G29.
 * RepRapFirmware doesn’t yet have PID auto tune, however you can correct temperature undershoot/overshoot by increasing/decreasing the S parameter in the M305 commands in config.g (default is 1.0).
 
@@ -333,6 +368,9 @@ RepRap Firmware
 allb,Duet_0.6,Duet_0.85+/=
 On Duet 0.6 and 0.8.5, the processor used is  "Atmel SAM3X8E http://www.atmel.com/devices/SAM3X8E.aspx" , as found on the "Arduino Due https://www.arduino.cc/en/Main/ArduinoBoardDue." 
 =/
+allb,Duet_WiFi_1.0+/=
+On Duet WiFi, the processor is an "Atmel SAM4E8E http://www.atmel.com/devices/ATSAM4E8E.aspx".
+=/
 This firmware is pre-compiled and flashed on the printer board. It is configured only with human editable files located on an SD-card plugged in printer board.  As such, there is no need to compile the software nor to install any development tool. 
 
 Duet_WiFi_1.0-/=
@@ -358,7 +396,7 @@ allb,Duet_0.6,Duet_0.85+/=
 allb,Duet_WiFi_1.0+/=
 544%RRF_connect_DWiFi.png
 =/
-Motor current could be adjusted with "a G-Code http://reprap.org/wiki/G-code#M906:_Set_motor_currents".
+Motor current could be adjusted with %a G-Code%gcode_cvt!M906.3a_Set_motor_currents.
 
 This interactive configuration makes the printer commissioning and tuning easier than with other firmware. 
 
@@ -370,10 +408,10 @@ The software is evolving constantly. See %RepRap Firmware FAQ%FAQ
 == Printer geometries and adjustment 
 Miscellaneous geometries are handled
 * Cartesian
-* Delta (trajectories are calculated without segmentation) with "X,Y,Z scaling correction http://reprap.org/wiki/G-code#M579:_Scale_Cartesian_axes"  
-* "CoreXY,  CoreXZ, CoreYZ http://reprap.org/wiki/G-code#M667:_Select_CoreXY_mode"
+* Delta (trajectories are calculated without segmentation) with %X,Y,Z scaling correction%gcode_cvt!M579.3a_Scale_Cartesian_axes  
+* %CoreXY,  CoreXZ, CoreYZ%gcode_cvt!M667.3a_Select_CoreXY_mode
 You can instruct the firmware to take into account machine building imprecisions
-* "X/Y/Z angular correction http://reprap.org/wiki/G-code#M556:_Axis_compensation" 
+* %X/Y/Z angular correction%gcode_cvt!M556.3a_Axis_compensation 
 
 == Automatic calibration 
 Automatic calibration can be done with a Z-sensor.  For delta printers, there is an algorithm evaluating some geometry parameters. This is sufficiently fast to be run at each print during the heating phase, and so printer thermal expansion is taken into account. 
@@ -467,7 +505,7 @@ Duet_WiFi_1.0-/=
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems"
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 =/
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout and remapped with "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305"
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305
 *Useful %RepRap Firmware macros%Macros
 *%RepRap Firmware heating%Heating for configuration and tuning of heating loops
 *%Connecting thermistors%Connecting_thermistors
@@ -655,7 +693,7 @@ This page list G-codes interpreted by RepRap Firmware. This list cover "DC42 htt
 Some G-Codes are common between RepRap Firmware and other firmwares, but with extended syntax or specific interpretation. They are listed in a specific paragraph.
 
 == With RepRap firmware, everything is G-code 
-The RepRap Firmware philosophy is that every operation is done with G-code, notably all configuration, which is mainly stored in config.g%Updating_config file, called at board start-up. A set of standard or specifically crafted %G-codes macros%Macros is written for all commons printer operation. 
+The RepRap Firmware philosophy is that every operation is done with G-code, notably all configuration, which is mainly stored in %config.g%Updating_config file, called at board start-up. A set of standard or specifically crafted %G-codes macros%Macros is written for all commons printer operation. 
 
 All G-codes or macros could be send to the board while operating the printer, allowing instant feed-back for any configuration modification. As interactive modifications are lost at next board start-up, the successfully tested G-Codes shall be manually introduced in the configuration file. 
 
@@ -691,198 +729,199 @@ Most configuration G-codes have default values, and if the default are acceptabl
 
 However, sometimes the default values got modified in firmware update, so it is wise to explicitly define all your parameters, to avoid troubles while updating and also to document them. 
 Some default values (DC42 fork rev 1.11): 
-*PID parameters ("M301 http://reprap.org/wiki/G-code#M301:_Set_PID_parameters") for hotend heater : P10 I0.1 D100 T0.4 W180 B30
-*Bed control default is bang-bang (P-1)("M304 http://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed"), other parameters: I5 D500 T2.7 W255 B5 -for PID control, you may start with P85
+*PID parameters (%M301%gcode_cvt!M301.3a_Set_PID_parameters) for hotend heater : P10 I0.1 D100 T0.4 W180 B30
+*Bed control default is bang-bang (P-1)(%M304%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed), other parameters: I5 D500 T2.7 W255 B5 -for PID control, you may start with P85
 *PWM frequency 10Hz for Bed and Chamber heaters (SSR compatible) and ?? Hz for Hotend heaters - not adjustable
-*Thermistors - all- ("M305 http://reprap.org/wiki/G-code#M305:_Set_thermistor_and_ADC_parameters"):  T100000 B4138 R1000 L0 H0 X3
-*Steps/mm ("M92 http://reprap.org/wiki/G-code#M92:_Set_axis_steps_per_unit"):  X200 Y200 Z200 E304.5:304.5:420:420:420:420
-*Maximum feedrates mm/min ("M203 http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate"): X25000 Y25000 Z25000 E8000:8000:1200:1200:1200:1200
-*Accelerations mm/s^2 ("M201 http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration"): X500 Y500 Z20  E250:250:250:250:250:250 - for comparison gravity acceleration is 9810 mm/s^2
-*Maximum jerk rates mm/min ("M566 http://reprap.org/wiki/G-code#M566:_Set_allowable_instantaneous_speed_change"): X1200 Y1200 Z800  E500:500:120:120:120:120
-*Time allowed to get to temperature on hotend heaters ("M570 http://reprap.org/wiki/G-code#M570:_Set_heater_timeout"): 150 seconds.
-*Filament ("M404 http://reprap.org/wiki/G-code#M404:_Filament_width_and_nozzle_diameter") width: 1.75mm, nozzle diameter: 0.50mm
-*Controllable fans ("M106 http://reprap.org/wiki/G-code#M106:_Fan_On"): Fan0, NOT inverted, 500Hz. Fan1, NOT inverted, 500Hz, thermostatic mode, 45°C.
-*Maximum hot-end temperature ("M143 http://reprap.org/wiki/G-code#M143:_Maximum_hot-end_temperature"): 260°C since DC42 v1.12, formerly 300°C. <span style="color:#ff0000">- MODIFIED -</span>
+*Thermistors - all- (%M305%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters):  T100000 B4138 R1000 L0 H0 X3
+*Steps/mm (%M92%gcode_cvt!M92.3a_Set_axis_steps_per_unit):  X200 Y200 Z200 E304.5:304.5:420:420:420:420
+*Maximum feedrates mm/min (%M203%gcode_cvt!M203.3a_Set_maximum_feedrate): X25000 Y25000 Z25000 E8000:8000:1200:1200:1200:1200
+*Accelerations mm/s^2 (%M201%gcode_cvt!M201.3a_Set_max_printing_acceleration): X500 Y500 Z20  E250:250:250:250:250:250 - for comparison gravity acceleration is 9810 mm/s^2
+*Maximum jerk rates mm/min (%M566%gcode_cvt!M566.3a_Set_allowable_instantaneous_speed_change): X1200 Y1200 Z800  E500:500:120:120:120:120
+*Time allowed to get to temperature on hotend heaters (%M570%gcode_cvt!M570.3a_Set_heater_timeout): 150 seconds.
+*Filament (%M404%gcode_cvt!M404.3a_Filament_width_and_nozzle_diameter) width: 1.75mm, nozzle diameter: 0.50mm
+*Controllable fans (%M106%gcode_cvt!M106.3a_Fan_On): Fan0, NOT inverted, 500Hz. Fan1, NOT inverted, 500Hz, thermostatic mode, 45°C.
+*Maximum hot-end temperature (%M143%gcode_cvt!M143.3a_Maximum_hot-end_temperature): 260°C since DC42 v1.12, formerly 300°C. <span style="color:#ff0000">- MODIFIED -</span>
 
 ==Codes specific to RepRap Firmware 
 ===Macros and physical interfacing
-*"M98: Call Macro/Subprogram http://reprap.org/wiki/G-code#M98:_Call_Macro/Subprogram"
-*"M99: Return from Macro/Subprogram http://reprap.org/wiki/G-code#M99:_Return_from_Macro/Subprogram" 
-*"M42: Switch I/O pin http://reprap.org/wiki/G-code#M42:_Switch_I.2FO_pin" Change status of a pin. Hardware dependant - also used by other firmware.
-*"M571: Set output on extrude http://reprap.org/wiki/G-code#M571:_Set_output_on_extrude" - Activate a pin while extruding
-*"M577: Wait until endstop is triggered http://reprap.org/wiki/G-code#M577:_Wait_until_endstop_is_triggered" 
-*"M581: Configure external trigger http://reprap.org/wiki/G-code#M581:_Configure_external_trigger"  Run macro, pause or stop from a pin state change. See %expansion connector pinout%Duet_pinout  <span style="color:#ff0000">- New (1.13) -</span> 
-*"M582: Check external trigger http://reprap.org/wiki/G-code#M582:_Check_external_trigger"  Check pin status associated with a trigger <span style="color:#ff0000">- New (1.13) -</span>
+*%M98: Call Macro/Subprogram%gcode_cvt!M98.3a_Call_Macro/Subprogram
+*%M99: Return from Macro/Subprogram%gcode_cvt!M99.3a_Return_from_Macro/Subprogram 
+*%M42: Switch I/O pin%gcode_cvt!M42.3a_Switch_I.2FO_pin Change status of a pin. Hardware dependant - also used by other firmware.
+*%M571: Set output on extrude%gcode_cvt!M571.3a_Set_output_on_extrude - Activate a pin while extruding
+*%M577: Wait until endstop is triggered%gcode_cvt!M577.3a_Wait_until_endstop_is_triggered 
+*%M581: Configure external trigger%gcode_cvt!M581.3a_Configure_external_trigger  Run macro, pause or stop from a pin state change. See %expansion connector pinout%Duet_pinout  <span style="color:#ff0000">- New (1.13) -</span> 
+*%M582: Check external trigger%gcode_cvt!M582.3a_Check_external_trigger  Check pin status associated with a trigger <span style="color:#ff0000">- New (1.13) -</span>
 
 ===%Heaters%Heating 
-*"M135: Set PID sample interval http://reprap.org/wiki/G-code#M135:_Set_PID_sample_interval" 
-*"M143: Maximum hot-end temperature http://reprap.org/wiki/G-code#M143:_Maximum_hot-end_temperature"  - <span style="color:#ff0000">NEW</span> - 
-*"M144: Stand By Your Bed http://reprap.org/wiki/G-code#M144:_Stand_By_Your_Bed" 
-*"M570: Set heater timeout http://reprap.org/wiki/G-code#M570:_Set_heater_timeout"  - common to all tools
-*"M562: Reset temperature fault http://reprap.org/wiki/G-code#M562:_Reset_temperature_fault" 
-*"M563: Define or remove a tool http://reprap.org/wiki/G-code#M563:_Define_or_remove_a_tool" 
+*%M135: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
+*%M143: Maximum hot-end temperature%gcode_cvt!M143.3a_Maximum_hot-end_temperature  - <span style="color:#ff0000">NEW</span> - 
+*%M144: Stand By Your Bed%gcode_cvt!M144.3a_Stand_By_Your_Bed 
+*%M570: Set heater timeout%gcode_cvt!M570.3a_Set_heater_timeout  - common to all tools
+*%M562: Reset temperature fault%gcode_cvt!M562.3a_Reset_temperature_fault 
+*%M563: Define or remove a tool%gcode_cvt!M563.3a_Define_or_remove_a_tool 
 
 ===Ethernet communication
-*"M540: Set MAC address http://reprap.org/wiki/G-code#M540:_Set_MAC_address" - all printers on same network shall have different MAC addresses
-*"M550: Set Name http://reprap.org/wiki/G-code#M550:_Set_Name" - Name for web page call and for FTP  
-*"M551: Set Password http://reprap.org/wiki/G-code#M551:_Set_Password" - For FTP and Web Control/firmware exchange
-*"M552: Set IP address http://reprap.org/wiki/G-code#M552:_Set_IP_address" - Optional 
-*"M553: Set Netmask http://reprap.org/wiki/G-code#M553:_Set_Netmask" - if IP address defined
-*"M554: Set Gateway http://reprap.org/wiki/G-code#M554:_Set_Gateway" - if IP address defined
+*%M540: Set MAC address%gcode_cvt!M540.3a_Set_MAC_address - all printers on same network shall have different MAC addresses
+*%M550: Set Name%gcode_cvt!M550.3a_Set_Name - Name for web page call and for FTP  
+*%M551: Set Password%gcode_cvt!M551.3a_Set_Password - For FTP and Web Control/firmware exchange
+*%M552: Set IP address%gcode_cvt!M552.3a_Set_IP_address - Optional 
+*%M553: Set Netmask%gcode_cvt!M553.3a_Set_Netmask - if IP address defined
+*%M554: Set Gateway%gcode_cvt!M554.3a_Set_Gateway - if IP address defined
 
 ===Miscellaneous Configuration
-*"M555: Set compatibility http://reprap.org/wiki/G-code#M555:_Set_compatibility" - G-code style compatibility
-*"M558: Set Z probe type http://reprap.org/wiki/G-code#M558:_Set_Z_probe_type" 
-*"M566: Set allowable instantaneous speed change http://reprap.org/wiki/G-code#M566:_Set_allowable_instantaneous_speed_change"  - 'jerk' values: speed change while cornering
-*"M569: Set axis direction and enable values http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values"  - Change stepper directions without replug
-*"M584: Set drive mapping http://reprap.org/wiki/G-code#M584:_Set_drive_mapping" <span style="color:#ff0000">NEW (1.14)</span> Was handled by M569 before. 
-*"M906: Set motor currents http://reprap.org/wiki/G-code#M906:_Set_motor_currents" - digital potentiometers for steppers
-*"M574: Set endstop configuration http://reprap.org/wiki/G-code#M574:_Set_endstop_configuration" 
-*"M572: Set or report extruder elasticity compensation http://reprap.org/wiki/G-code#M572:_Set_or_report_extruder_elasticity_compensation" 
-*"M575: Set serial comms parameters http://reprap.org/wiki/G-code#M575:_Set_serial_comms_parameters" - Presently used by PanelDue for communication with the Duet
-*"M911: Set power monitor threshold voltages http://reprap.org/wiki/G-code#M911:_Set_power_monitor_threshold_voltages" <span style="color:#ff0000">NEW (1.14)</span> Supply voltage required for proper board operation.
-*"M912: Set electronics temperature monitor adjustment http://reprap.org/wiki/G-code#M912:_Set_electronics_temperature_monitor_adjustment" <span style="color:#ff0000">NEW (1.14)</span> Offset added to reported processor temperature to have accurate value.
-*"M913: Set motor percentage of normal current http://reprap.org/wiki/G-code#M913:_Set_motor_percentage_of_normal_current" <span style="color:#ff0000">NEW (1.14)</span> Temporary stepper current modification in % (for stalling against mechanical stops)
+*%M555: Set compatibility%gcode_cvt!M555.3a_Set_compatibility - G-code style compatibility
+*%M558: Set Z probe type%gcode_cvt!M558.3a_Set_Z_probe_type 
+*%M566: Set allowable instantaneous speed change%gcode_cvt!M566.3a_Set_allowable_instantaneous_speed_change  - 'jerk' values: speed change while cornering
+*%M569: Set axis direction and enable values%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values  - Change stepper directions without replug. Modify pulse timing.
+*%M584: Set drive mapping%gcode_cvt!M584.3a_Set_drive_mapping <span style="color:#ff0000">NEW (1.14)</span> Was handled by M569 before. 
+*%M906: Set motor currents%gcode_cvt!M906.3a_Set_motor_currents - digital potentiometers for steppers
+*%M574: Set endstop configuration%gcode_cvt!M574.3a_Set_endstop_configuration 
+*%M572: Set or report extruder elasticity compensation%gcode_cvt!M572.3a_Set_or_report_extruder_elasticity_compensation 
+*%M575: Set serial comms parameters%gcode_cvt!M575.3a_Set_serial_comms_parameters - Presently used by PanelDue for communication with the Duet
+*%M911: Set power monitor threshold voltages%gcode_cvt!M911.3a_Set_power_monitor_threshold_voltages <span style="color:#ff0000">NEW (1.14)</span> Supply voltage required for proper board operation.
+*%M912: Set electronics temperature monitor adjustment%gcode_cvt!M912.3a_Set_electronics_temperature_monitor_adjustment <span style="color:#ff0000">NEW (1.14)</span> Offset added to reported processor temperature to have accurate value.
+*%M913: Set motor percentage of normal current%gcode_cvt!M913.3a_Set_motor_percentage_of_normal_current <span style="color:#ff0000">NEW (1.14)</span> Temporary stepper current modification in % (for stalling against mechanical stops)
 
 === Web control %(DWC)%Duet_Web_Control  
-*"M560: Upload web page file http://reprap.org/wiki/G-code#M560:_Upload_web_page_file" 
-*"M998: Request resend of line http://reprap.org/wiki/G-code#M998:_Request_resend_of_line" 
+*%M560: Upload web page file%gcode_cvt!M560.3a_Upload_web_page_file 
+*%M998: Request resend of line%gcode_cvt!M998.3a_Request_resend_of_line 
 
 ===Firmware configuration
-*"M559: Upload configuration file http://reprap.org/wiki/G-code#M559:_Upload_configuration_file" 
-*"M997: Perform in-application firmware update http://reprap.org/wiki/G-code#M997:_Perform_in-application_firmware_update"  - <span style="color:#ff0000">NEW</span> - firmware update without USB connection
+*%M559: Upload configuration file%gcode_cvt!M559.3a_Upload_configuration_file 
+*%M997: Perform in-application firmware update%gcode_cvt!M997.3a_Perform_in-application_firmware_update  - <span style="color:#ff0000">NEW</span> - firmware update without USB connection
 
 ===Reporting - also used by DWC
-*"M36: Return file information http://reprap.org/wiki/G-code#M36:_Return_file_information" Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON" format
-*"M122: Diagnose http://reprap.org/wiki/G-code#M122:_Diagnose" 
-*"M573: Report heater PWM http://reprap.org/wiki/G-code#M573:_Report_heater_PWM" 
-*"M408: Report JSON-style response http://reprap.org/wiki/G-code#M408:_Report_JSON-style_response"  - Return printer status data
-*"M503: Print settings http://reprap.org/wiki/G-code#M503:_Print_settings"  - Display config.g content
+*%M36: Return file information%gcode_cvt!M36.3a_Return_file_information Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON" format
+*%M122: Diagnose%gcode_cvt!M122.3a_Diagnose 
+*%M573: Report heater PWM%gcode_cvt!M573.3a_Report_heater_PWM 
+*%M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response  - Return printer status data
+*%M503: Print settings%gcode_cvt!M503.3a_Print_settings  - Display config.g content
 
 ===Geometry
-*"M208: Set axis max travel http://reprap.org/wiki/G-code#M208:_Set_axis_max_travel" 
-*"M556: Axis compensation http://reprap.org/wiki/G-code#M556:_Axis_compensation"   - X/Y angular correction
-*"M564: Limit axes http://reprap.org/wiki/G-code#M564:_Limit_axes" 
-*"M579: Scale Cartesian axes http://reprap.org/wiki/G-code#M579:_Scale_Cartesian_axes"   -  X/Y/Z scale compensation for deltas
-*"M667: Select CoreXY mode http://reprap.org/wiki/G-code#M667:_Select_CoreXY_mode" 
-*"M668: Set Z-offset compensations polynomial http://reprap.org/wiki/G-code#M668:_Set_Z-offset_compensations_polynomial"  - in development ?
+*%M208: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel 
+*%M556: Axis compensation%gcode_cvt!M556.3a_Axis_compensation   - X/Y angular correction
+*%M564: Limit axes%gcode_cvt!M564.3a_Limit_axes 
+*%M579: Scale Cartesian axes%gcode_cvt!M579.3a_Scale_Cartesian_axes   -  X/Y/Z scale compensation for deltas
+*%M667: Select CoreXY mode%gcode_cvt!M667.3a_Select_CoreXY_mode 
+*%M668: Set Z-offset compensations polynomial%gcode_cvt!M668.3a_Set_Z-offset_compensations_polynomial  - in development ?
 
 ===Miscellaneous commands
-*"M37: Simulation mode http://reprap.org/wiki/G-code#M37:_Simulation_mode"   - Run a print simulation for time estimation : slow
+*%M37: Simulation mode%gcode_cvt!M37.3a_Simulation_mode   - Run a print simulation for time estimation : slow
 
 ===Specialised machines
-*"M567: Set tool mix ratios http://reprap.org/wiki/G-code#M567:_Set_tool_mix_ratios" 
-*"M568: Turn off/on tool mix ratios http://reprap.org/wiki/G-code#M568:_Turn_off/on_tool_mix_ratios" 
-*"M578: Fire inkjet bits http://reprap.org/wiki/G-code#M578:_Fire_inkjet_bits" 
-*"M580: Select Roland http://reprap.org/wiki/G-code#M580:_Select_Roland" 
+*%M567: Set tool mix ratios%gcode_cvt!M567.3a_Set_tool_mix_ratios 
+*%M568: Turn off/on tool mix ratios%gcode_cvt!M568.3a_Turn_off/on_tool_mix_ratios 
+*%M578: Fire inkjet bits%gcode_cvt!M578.3a_Fire_inkjet_bits 
+*%M580: Select Roland%gcode_cvt!M580.3a_Select_Roland 
 
 == G-codes with specific or extended syntax 
 ===Movement  and geometry 
-*"G0 and G1: Move http://reprap.org/wiki/G-code#G0" &_G1:_Move  - Flags are used to bypass endstops or move carriage on delta 
-*"G10: Tool Offset http://reprap.org/wiki/G-code#G10:_Tool_Offset"  Define standby and operating tool temperature / Retract if no parameter, see M207 (<span style="color:#ff0000">NEW</span>)
-*"M207: Set retract length http://reprap.org/wiki/G-code#M207:_Set_retract_length"  RRF add unretract length parameter - <span style="color:#ff0000">NEW</span> - 
-*"M208: Set axis max travel http://reprap.org/wiki/G-code#M208:_Set_axis_max_travel"  Used for unretract length in other firmware
-*"M665: Set delta configuration http://reprap.org/wiki/G-code#M665:_Set_delta_config" Add height, maximum usable radius and column angular position
+*%G0 and G1: Move%gcode_cvt!G0 &_G1:_Move  - Flags are used to bypass endstops or move carriage on delta 
+*%G10: Tool Offset%gcode_cvt!G10.3a_Tool_Offset  Define standby and operating tool temperature / Retract if no parameter, see M207 (<span style="color:#ff0000">NEW</span>)
+*%M207: Set retract length%gcode_cvt!M207.3a_Set_retract_length  RRF add unretract length parameter - <span style="color:#ff0000">NEW</span> - 
+*%M208: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel  Used for unretract length in other firmware
+*%M665: Set delta configuration%gcode_cvt!M665.3a_Set_delta_config Add height, maximum usable radius and column angular position
 ===%Heating%Heating
-*"M105: Get Extruder Temperature http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature"  
-*"M135: Set PID sample interval http://reprap.org/wiki/G-code#M135:_Set_PID_sample_interval" 
-*"M141: Set Chamber Temperature (Fast) http://reprap.org/wiki/G-code#M141:_Set_Chamber_Temperature" (Fast)  - in RRF also define the chamber heater
-*"M301: Set PID parameters http://reprap.org/wiki/G-code#M301:_Set_PID_parameters"  RRF add PID band, PWM scaling and other parameters
-*"M305: Set thermistor and ADC parameters http://reprap.org/wiki/G-code#M305:_Set_thermistor_and_ADC_parameters"  add external thermocouple (using "SPI https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus)"
+*%M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature  
+*%M135: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
+*%M141: Set Chamber Temperature (Fast)%gcode_cvt!M141.3a_Set_Chamber_Temperature (Fast)  - in RRF also define the chamber heater
+*%M301: Set PID parameters%gcode_cvt!M301.3a_Set_PID_parameters  RRF add PID band, PWM scaling and other parameters
+*%M305: Set thermistor and ADC parameters%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters add external thermocouple (using "SPI https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus")
 
 ===Miscellaneous
-*"M106: Fan On http://reprap.org/wiki/G-code#M106:_Fan_On"  - RRF add configuration. Fan1 configured in thermostatic mode by default. Deactivate with "M106 P1 H-1".
-*"M302: Allow cold extrudes http://reprap.org/wiki/G-code#M302:_Allow_cold_extrudes"  add cancelling of the command
-*"M561: Set Identity Transform http://reprap.org/wiki/G-code#M561:_Set_Identity_Transform"  - reset the transformation from calibration
+*%M106: Fan On%gcode_cvt!M106.3a_Fan_On  - RRF add configuration. Fan1 configured in thermostatic mode by default. Deactivate with "M106 P1 H-1".
+*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes  add cancelling of the command
+*%M561: Set Identity Transform%gcode_cvt!M561.3a_Set_Identity_Transform  - reset the transformation from calibration
 
 == Non specific G-codes 
 === Movement 
-*"G11: Unretract http://reprap.org/wiki/G-code#G11:_Unretract"  Used while Firmware retraction is configured in your slicer, along G10
-*"G28: Move to Origin (Home) http://reprap.org/wiki/G-code#G28:_Move_to_Origin_.28Home.29"  run macro %home.g or homedelta.g%macros!homing.3a_homeall.2eg_and_homedelta.2eg
-*"G90: Set to Absolute Positioning http://reprap.org/wiki/G-code#G90:_Set_to_Absolute_Positioning" 
-*"G91: Set to Relative Positioning http://reprap.org/wiki/G-code#G91:_Set_to_Relative_Positioning" 
-*"G92: Set Position http://reprap.org/wiki/G-code#G92:_Set_Position"  Define actual position to be defined coordinates (zero if no parameters)
-*"M82: Set extruder to absolute mode http://reprap.org/wiki/G-code#M82:_Set_extruder_to_absolute_mode" 
-*"M83: Set extruder to relative mode http://reprap.org/wiki/G-code#M83:_Set_extruder_to_relative_mode"  To be preferred for reliability
-*"M114: Get Current Position http://reprap.org/wiki/G-code#M114:_Get_Current_Position" 
+*%G11: Unretract%gcode_cvt!G11.3a_Unretract  Used while Firmware retraction is configured in your slicer, along G10
+*%G28: Move to Origin (Home)%gcode_cvt!G28.3a_Move_to_Origin_.28Home.29  run macro %home.g or homedelta.g%macros!homing.3a_homeall.2eg_and_homedelta.2eg
+*%G90: Set to Absolute Positioning%gcode_cvt!G90.3a_Set_to_Absolute_Positioning 
+*%G91: Set to Relative Positioning%gcode_cvt!G91.3a_Set_to_Relative_Positioning 
+*%G92: Set Position%gcode_cvt!G92.3a_Set_Position  Define actual position to be defined coordinates (zero if no parameters)
+*%M82: Set extruder to absolute mode%gcode_cvt!M82.3a_Set_extruder_to_absolute_mode 
+*%M83: Set extruder to relative mode%gcode_cvt!M83.3a_Set_extruder_to_relative_mode  To be preferred for reliability
+*%M114: Get Current Position%gcode_cvt!M114.3a_Get_Current_Position 
 
 === Operation 
-*"G4: Dwell http://reprap.org/wiki/G-code#G4:_Dwell"  G4 Pnn wait for nn miliseconds
-*"M0: Stop or Unconditional stop http://reprap.org/wiki/G-code#M0:_Stop_or_Unconditional_stop" 
-*"M3: Spindle On, Clockwise (CNC_specific) http://reprap.org/wiki/G-code#M3:" Spindle On, Clockwise (CNC_specific) 
-*"M18: Disable all stepper motors http://reprap.org/wiki/G-code#M18:_Disable_all_stepper_motors" 
-*"M84: Stop idle hold http://reprap.org/wiki/G-code#M84:_Stop_idle_hold" 
-*"M80: ATX Power On http://reprap.org/wiki/G-code#M80:_ATX_Power_On" 
-*"M81: ATX Power Off http://reprap.org/wiki/G-code#M81:_ATX_Power_Off" 
-*"M107: Fan Off http://reprap.org/wiki/G-code#M107:_Fan_Off" 
-*"M112: Emergency Stop http://reprap.org/wiki/G-code#M112:_Emergency_Stop" 
-*"M116: Wait http://reprap.org/wiki/G-code#M116:_Wait" 
-*"M400: Wait for current moves to finish http://reprap.org/wiki/G-code#M400:_Wait_for_current_moves_to_finish" 
-*"M220: Set speed factor override percentage http://reprap.org/wiki/G-code#M220:_Set_speed_factor_override_percentage" 
-*"M221: Set extrude factor override percentage http://reprap.org/wiki/G-code#M221:_Set_extrude_factor_override_percentage" 
-*"M999: Restart after being stopped by error http://reprap.org/wiki/G-code#M999:_Restart_after_being_stopped_by_error" 
+*%G4: Dwell%gcode_cvt!G4.3a_Dwell  G4 Pnn wait for nn miliseconds
+*%M0: Stop or Unconditional stop%gcode_cvt!M0.3a_Stop_or_Unconditional_stop 
+*%M3: Spindle On, Clockwise (CNC_specific)%gcode_cvt!M3.3a Spindle On, Clockwise (CNC_specific) 
+*%M18: Disable all stepper motors%gcode_cvt!M18.3a_Disable_all_stepper_motors 
+*%M84: Stop idle hold%gcode_cvt!M84.3a_Stop_idle_hold 
+*%M80: ATX Power On%gcode_cvt!M80.3a_ATX_Power_On 
+*%M81: ATX Power Off%gcode_cvt!M81.3a_ATX_Power_Off 
+*%M107: Fan Off%gcode_cvt!M107.3a_Fan_Off 
+*%M112: Emergency Stop%gcode_cvt!M112.3a_Emergency_Stop 
+*%M116: Wait%gcode_cvt!M116.3a_Wait 
+*%M400: Wait for current moves to finish%gcode_cvt!M400.3a_Wait_for_current_moves_to_finish 
+*%M220: Set speed factor override percentage%gcode_cvt!M220.3a_Set_speed_factor_override_percentage 
+*%M221: Set extrude factor override percentage%gcode_cvt!M221.3a_Set_extrude_factor_override_percentage 
+*%M999: Restart after being stopped by error%gcode_cvt!M999.3a_Restart_after_being_stopped_by_error 
 
 === Probing 
-*"G30: Single Z-Probe http://reprap.org/wiki/G-code#G30:_Single_Z-Probe" 
-*"G31: Set or Report Current Probe status http://reprap.org/wiki/G-code#G31:_Set_or_Report_Current_Probe_status"  Also allow probe offset definition
-*"G32: Probe Z and calculate Z plane http://reprap.org/wiki/G-code#G32:_Probe_Z_and_calculate_Z_plane" 
-*"M557: Set Z probe point http://reprap.org/wiki/G-code#M557:_Set_Z_probe_point" 
-*"M561: Set Identity Transform http://reprap.org/wiki/G-code#M561:_Set_Identity_Transform" 
+*%G30: Single Z-Probe%gcode_cvt!G30.3a_Single_Z-Probe 
+*%G31: Set or Report Current Probe status%gcode_cvt!G31.3a_Set_or_Report_Current_Probe_status  Also allow probe offset definition
+*%G32: Probe Z and calculate Z plane%gcode_cvt!G32.3a_Probe_Z_and_calculate_Z_plane 
+*%M557: Set Z probe point%gcode_cvt!M557.3a_Set_Z_probe_point 
+*%M561: Set Identity Transform%gcode_cvt!M561.3a_Set_Identity_Transform 
 
 === Printing 
-*"M20: List SD card http://reprap.org/wiki/G-code#M20:_List_SD_card"
-*"M23: Select SD file http://reprap.org/wiki/G-code#M23:_Select_SD_file"
-*"M24: Start/resume SD print http://reprap.org/wiki/G-code#M24:_Start.2Fresume_SD_print"
-*"M25: Pause SD print http://reprap.org/wiki/G-code#M25:_Pause_SD_print"
-*"M26: Set SD position http://reprap.org/wiki/G-code#M26:_Set_SD_position"
-*"M27: Report SD print status http://reprap.org/wiki/G-code#M27:_Report_SD_print_status"
-*"M28: Begin write to SD card http://reprap.org/wiki/G-code#M28:_Begin_write_to_SD_card"
-*"M29: Stop writing to SD card http://reprap.org/wiki/G-code#M29:_Stop_writing_to_SD_card"
-*"M30: Delete a file on the SD card http://reprap.org/wiki/G-code#M30:_Delete_a_file_on_the_SD_card"
-*"M32: Select file and start SD print http://reprap.org/wiki/G-code#M32:_Select_file_and_start_SD_print"
-*"M226: Gcode Initiated Pause http://reprap.org/wiki/G-code#M226:_Gcode_Initiated_Pause"
-*"M302: Allow cold extrudes http://reprap.org/wiki/G-code#M302:_Allow_cold_extrudes"
+*%M20: List SD card%gcode_cvt!M20.3a_List_SD_card
+*%M23: Select SD file%gcode_cvt!M23.3a_Select_SD_file
+*%M24: Start/resume SD print%gcode_cvt!M24.3a_Start.2Fresume_SD_print
+*%M25: Pause SD print%gcode_cvt!M25.3a_Pause_SD_print
+*%M26: Set SD position%gcode_cvt!M26.3a_Set_SD_position
+*%M27: Report SD print status%gcode_cvt!M27.3a_Report_SD_print_status
+*%M28: Begin write to SD card%gcode_cvt!M28.3a_Begin_write_to_SD_card
+*%M29: Stop writing to SD card%gcode_cvt!M29.3a_Stop_writing_to_SD_card
+*%M30: Delete a file on the SD card%gcode_cvt!M30.3a_Delete_a_file_on_the_SD_card
+*%M32: Select file and start SD print%gcode_cvt!M32.3a_Select_file_and_start_SD_print
+*%M226: Gcode Initiated Pause%gcode_cvt!M226.3a_Gcode_Initiated_Pause
+*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes
 
 === Physical interface 
-*"M42: Switch I/O pin http://reprap.org/wiki/G-code#M42: Switch I/O pin"
-*"M119: Get Endstop Status http://reprap.org/wiki/G-code#M119:_Get_Endstop_Status"
-*"M300: Play beep sound http://reprap.org/wiki/G-code#M300:_Play_beep_sound" On PanelDue or DWC
-*"M117: Display Message http://reprap.org/wiki/G-code#M117:_Display_Message"
+*%M42: Switch I/O pin%gcode_cvt!M42.3a Switch I/O pin
+*%M119: Get Endstop Status%gcode_cvt!M119.3a_Get_Endstop_Status
+*%M300: Play beep sound%gcode_cvt!M300.3a_Play_beep_sound On PanelDue or DWC
+*%M117: Display Message%gcode_cvt!M117.3a_Display_Message
 
 === Heating 
-*"M104: Set Extruder Temperature http://reprap.org/wiki/G-code#M104:_Set_Extruder_Temperature"
-*"M105: Get Extruder Temperature http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature"
-*"M109: Set Extruder Temperature and Wait http://reprap.org/wiki/G-code#M109:_Set_Extruder_Temperature_and_Wait"
-*"M140: Set Bed Temperature (Fast) http://reprap.org/wiki/G-code#M140:_Set_Bed_Temperature_(Fast)"
-*"M141: Set_Chamber Temperature (Fast) http://reprap.org/wiki/G-code#M141:_Set_Chamber_Temperature_(Fast)"
-*"M190: Wait for bed temperature to reach target temp http://reprap.org/wiki/G-code#M190:_Wait_for_bed_temperature_to_reach_target_temp"
+*%M104: Set Extruder Temperature%gcode_cvt!M104.3a_Set_Extruder_Temperature
+*%M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature
+*%M109: Set Extruder Temperature and Wait%gcode_cvt!M109.3a_Set_Extruder_Temperature_and_Wait
+*%M140: Set Bed Temperature (Fast)%gcode_cvt!M140.3a_Set_Bed_Temperature_(Fast)
+*%M141: Set_Chamber Temperature (Fast)%gcode_cvt!M141.3a_Set_Chamber_Temperature_(Fast)
+*%M190: Wait for bed temperature to reach target temp%gcode_cvt!M190.3a_Wait_for_bed_temperature_to_reach_target_temp
 
 === Useful G-codes 
-*"M206 http://reprap.org/wiki/G-code#M206:"  Set home offset. Could be used to adjust head above bed during printing. M206 Z0.1 move  up by 0.1mm
+*%M206%gcode_cvt!M206.3a  Set home offset. Could be used to adjust head above bed during printing. M206 Z0.1 move  up by 0.1mm
 
 === Configuration 
-*"G21: Set Units to Millimeters http://reprap.org/wiki/G-code#G21:_Set_Units_to_Millimeters" 
-*"M201: Set max printing_acceleration http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration" 
-*"M203: Set maximum feedrate http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate" 
-*"M206: Set home offset http://reprap.org/wiki/G-code#M206_Marlin.2C_Sprinter.2C_Smoothie.2C_RepRapFirmware_-_Set_home_offset" 
-*"M304: Set PID parameters - Bed http://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed" PID parameters for Bed - equivalent to M301 H0
-*"M350: Set microstepping mode http://reprap.org/wiki/G-code#M350:_Set_microstepping_mode" 
-*"M404: Filament width and nozzle diameter http://reprap.org/wiki/G-code#M404:_Filament_width_and_nozzle_diameter" 
-*"M502: Revert to the default "factory_settings." http://reprap.org/wiki/G-code#M502:" Revert to the default "factory_settings." 
-*"M666: Set delta endstop adjustment http://reprap.org/wiki/G-code#M666:_Set_delta_endstop_adjustment" 
+*%G21: Set Units to Millimeters%gcode_cvt!G21.3a_Set_Units_to_Millimeters 
+*%M201: Set max printing_acceleration%gcode_cvt!M201.3a_Set_max_printing_acceleration 
+*%M203: Set maximum feedrate%gcode_cvt!M203.3a_Set_maximum_feedrate 
+*%M206: Set home offset%gcode_cvt!M206_Marlin.2C_Sprinter.2C_Smoothie.2C_RepRapFirmware_-_Set_home_offset 
+*%M303: Run PID tuning%gcode_cvt!M303.3a_Run_PID_tuning <span style="color:#ff0000">- In development -</span>
+*%M304: Set PID parameters - Bed%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed PID parameters for Bed - equivalent to M301 H0
+*%M350: Set microstepping mode%gcode_cvt!M350.3a_Set_microstepping_mode 
+*%M404: Filament width and nozzle diameter%gcode_cvt!M404.3a_Filament_width_and_nozzle_diameter 
+*%M502: Revert to the default "factory_settings."%gcode_cvt!M502.3a_Revert_to_the_default_.22factory_settings.2e.22 
+*%M666: Set delta endstop adjustment%gcode_cvt!M666.3a_Set_delta_endstop_adjustment 
 
 === Report 
-*"M503: Print settings http://reprap.org/wiki/G-code#M503:_Print_settings" 
-*"M115: Get Firmware Version and Capabilities http://reprap.org/wiki/G-code#M115:_Get_Firmware_Version_and_Capabilities" 
-*"M407: Display filament diameter http://reprap.org/wiki/G-code#M407:_Display_filament_diameter" 
+*%M503: Print settings%gcode_cvt!M503.3a_Print_settings 
+*%M115: Get Firmware Version and Capabilities%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities 
+*%M407: Display filament diameter%gcode_cvt!M407.3a_Display_filament_diameter 
 
 === Miscellaneous 
-*"M110:_Set_Current_Line_Number http://reprap.org/wiki/G-code#M110:_Set_Current_Line_Number"
-*"M111:_Set_Debug_Level http://reprap.org/wiki/G-code#M111:_Set_Debug_Level"
-*"M120:_Push http://reprap.org/wiki/G-code#M120:_Push"
-*"M121:_Pop http://reprap.org/wiki/G-code#M121:_Pop"
-*"M500:_Store_parameters_in_EEPROM http://reprap.org/wiki/G-code#M500:_Store_parameters_in_EEPROM"
-*"M501:_Read_parameters_from_EEPROM http://reprap.org/wiki/G-code#M501:_Read_parameters_from_EEPROM"
+*%M110:_Set_Current_Line_Number%gcode_cvt!M110.3a_Set_Current_Line_Number
+*%M111:_Set_Debug_Level%gcode_cvt!M111.3a_Set_Debug_Level
+*%M120:_Push%gcode_cvt!M120.3a_Push
+*%M121:_Pop%gcode_cvt!M121.3a_Pop
+*%M500:_Store_parameters_in_EEPROM%gcode_cvt!M500.3a_Store_parameters_in_EEPROM
+*%M501:_Read_parameters_from_EEPROM%gcode_cvt!M501.3a_Read_parameters_from_EEPROM
 
 
 ■Macros
@@ -961,12 +1000,14 @@ homex.g, homey.g and homez.g
 === Homing without end switches 
 With digital potentiometer allowing stepper current adjustment by software, it is possible to stall the motors on movement mechanical stops, so removing need for end stops switches and improving reliability. Experience show that a too low current drive to difficulties for the stepper to ‘re-hook’ to steps and large rebounds.  Increasing current  to a minimal value reduce the rebound. You shall experiment for own steppers, with minimum current values  around 30% of nominal current. Also, the mechanical stop shall not be too springy e.g. felt strips may be better than rubber. The precision is not very good (0.2~0.5mm) but that shall be corrected by the calibration run. 
 For any reason, the S2 parameters don’t effectively prevent stop detection, so the below routine only works on machine NOT equipped with switches. 
+M913 is only available from DC42 V1.14
 <<
 ;macro /sys/homedelta.g  Homing file without stop switches (board with digipots)
     	    	    	; - WONT'T WORK if you do have switches
 G91			; use relative positioning
-M906 X540 Y540 Z540    	; low current for homing against mechanical stop 
-    	    	    	;- shall be above 30% of nominal current
+M913 X50 Y50 Z50    	; Reduce current at a % of value defined in M906 (here 50%)
+			; Resulting current shall be above 30% of stepper RATED current
+			; Too low current makes the carriage jumping.
 G1 S2 X520 Y520 Z520 F4000 ; move all carriages up 520mm S2 no stop detection 
     	    	    	;- beware max carriage travel > max height
 G92 X0 Y0 Z380		; defines the position when homed  - required while there is no endstops 
@@ -974,7 +1015,7 @@ G92 X0 Y0 Z380		; defines the position when homed  - required while there is no 
 G1 Z-10 F100		; down a few mm so that we can centre the head
 G90			; back to absolute positioning
 G1 X0 Y0 F2000		; centre the head and set a reasonable feed rate
-M906 X1200 Y1200 Z1200  ; return to normal current - Warning!, this supersedes values in config.g
+M913 X100 Y100 Z100	; return to normal current
 G1 Z20 F12000		; set head 20mm  above bed
 >>
 === bed.g 
@@ -1042,12 +1083,12 @@ Macros are called on tool change or selection:
 Note than on the Chrishamm fork, if these macros are not present, there will be an error message. There is no error message on DC42 fork.
 
 === Pause and resume a print: pause.g and resume.g 
-*pause.g is called before pausing a print, pause ordered by "M25 http://reprap.org/wiki/G-code#M25:_Pause_SD_print"  (pause from control panel, not from G-code file)
-*resume.g is called before resuming a print, resume ordered by "M24 http://reprap.org/wiki/G-code#M24:_Start.2Fresume_SD_print" 
+*pause.g is called before pausing a print, pause ordered by %M25%gcode_cvt!M25.3a_Pause_SD_print  (pause from control panel, not from G-code file)
+*resume.g is called before resuming a print, resume ordered by %M24%gcode_cvt!M24.3a_Start.2Fresume_SD_print 
 *cancel.g is called if the print is cancelled
 
 === Stop a print: stop.g 
-*stop.g is called while "M0 http://reprap.org/wiki/G-code#M0:_Stop_or_Unconditional_stop"   is called, when a paused print is cancelled. Without this macro all heating loops are shutdown.
+*stop.g is called while %M0%gcode_cvt!M0.3a_Stop_or_Unconditional_stop   is called, when a paused print is cancelled. Without this macro all heating loops are shutdown.
 
 === Set of macros for filament detection 
 Using M581/M582 (from DC42 V1.13), you can implement simple filament detection.
@@ -1240,7 +1281,7 @@ A better control on a delta may be to move each carriage independently, hence ch
 
 ====Examples and converter
 100 step/mm -> example 16 teeth GT2-2, micro-step 1/16, 1.8° stepper
-Z travel up total 8mm. Works ok for 200 step/mm (same with 0.9° steppers). You could use it 'as is' by modifying temporarily the step/mm of your machine with "M92: Set axis steps per unit http://reprap.org/wiki/G-code#M92:_Set_axis_steps_per_unit" , then resetting original value.
+Z travel up total 8mm. Works ok for 200 step/mm (same with 0.9° steppers). You could use it 'as is' by modifying temporarily the step/mm of your machine with %M92: Set axis steps per unit%gcode_cvt!M92.3a_Set_axis_steps_per_unit , then resetting original value.
 
 8 first notes of French children song 'Quand on fait des crêpes chez nous'
 <<
@@ -1371,7 +1412,7 @@ RepRap Firmware FAQ
 :Yes, using a relay (SSR)
 
 == If I have a problem with a driver, can I install an external driver? Yes
-:"Yes http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values" , if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
+:%Yes%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values , if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
 
 == Duet board pins list with functions? Yes
 %Here%Duet_pinout
@@ -1413,7 +1454,7 @@ RepRap Firmware FAQ
 :Yes For the Duet 0.6 and 0.8.5 there is 4 extruders board expansion from original designer (T3P3), simple 4 extruders extension from independent supplier and some stock of 2 extruders shields from RepRapPro. 
 
 ==Is there software movement limit? Yes
-:"Yes http://reprap.org/wiki/G-code#M208:_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a "cylinder http://reprap.org/wiki/G-code#M665:_Set_delta_configuration"  for a delta printer and a cube for others.
+:%Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a "cylinder http://reprap.org/wiki/G-code#M665:_Set_delta_configuration  for a delta printer and a cube for others.
 
 ==Is it possible to install two separated end-stops on each axis? No
 :No, and it is not needed, the printer knowing its own dimensions. Though dry switches can be installed in series.
@@ -1469,7 +1510,7 @@ There are a few links which may help to configure your board
 * Preconfigured config.g files for various printers: "https://github.com/reprappro/RepRapFirmware/tree/test/SD-image" and "https://github.com/dc42/RepRapFirmware/tree/dev/SD-image"
 * RepRapPro guide for commissioning Duet-based printers, including updating firmware: "https://reprappro.com/documentation/commissioning-introduction/commissioning-duet/." You may also find their wiring diagrams for the Ormerod, Huxley and Mendel useful.
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems/"
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values" . See "forum thread http://forums.reprap.org/read.php?178,552124,552305"
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "forum thread http://forums.reprap.org/read.php?178,552124,552305
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 
 == How do I know that my config.g have been properly executed 
@@ -1562,7 +1603,7 @@ The changes in this release are:
 Chrishamm and I agreed yesterday that it was time to move the version number of RRF on from 1.09. Accordingly, I am pleased to announce release 1.10 of my fork of RepRapFirmware.
 
 The changes since my last official release (1.09x-dc42) are:
-* Added support for firmware retraction (G10 with no parameters, G11, and M207). This is mainly to better support mixing extruders. To use it, configure "Firmware retraction" in slic3r, then set up your retraction parameters in config.g or in your slicer start gcode using the M207 command, see %reprap.org%"http://"http://reprap.org/wiki/G-code#M207:_Set_retract_length"." When using a mixing extruder, all extruders associated with the current tool will be retracted by the amount configured, regardless of the current mix ratio. Retraction speed and length are not affected by the M220 or M221 commands.
+* Added support for firmware retraction (G10 with no parameters, G11, and M207). This is mainly to better support mixing extruders. To use it, configure %Firmware retraction" in slic3r, then set up your retraction parameters in config.g or in your slicer start gcode using the M207 command, see %reprap.org%"http://"%gcode_cvt!M207.3a_Set_retract_length". When using a mixing extruder, all extruders associated with the current tool will be retracted by the amount configured, regardless of the current mix ratio. Retraction speed and length are not affected by the M220 or M221 commands.
 * Merged in Chrishamm's 1.09z networking, webserver, print monitor and iap.bin changes (thanks Chrishamm)
 * Fixed a bug that sometimes caused auto-IP address allocation via DHCP to fail at startup (thanks Chrishamm)
 
@@ -1609,7 +1650,7 @@ I have documented the thermocouple support for Duet electronics at %Using thermo
 === DC42 1.09o
 "http://forums.reprap.org/read.php?146,601427"
 The major changes in this release are:
-* Implemented F, H and R parameters to M106 command (see "M106 http://reprap.org/wiki/G-code#M106:_Fan_On" ). **The second fan output on a Duet 0.8.5 now defaults to being a thermostatic fan at power up.**
+* Implemented F, H and R parameters to M106 command (see %M106%gcode_cvt!M106.3a_Fan_On ). **The second fan output on a Duet 0.8.5 now defaults to being a thermostatic fan at power up.**
 * Improved speed of file upload to SD card, by about 30% in my tests
 * G32 is now allowed if the printer has not been homed, if there is a bed.g file - so if your bed.g file starts with G28 then you don't need to home the printer before running G32
 * G30 commands are no longer allowed on a delta printer that has not been homed
@@ -1671,7 +1712,7 @@ The changes since 1.09j-dc42 are:
 *Added F (probing speed) and T (travel speed) parameters to M558 command
 *Removed M210 command because home feed rates are defined in the homing files and the M210 Z parameter no longer defines the Z probing speed
 *Increased UART interrupt priority to avoid dropping characters sent by PanelDue
-*Implemented M42 command, see "M42 http://reprap.org/wiki/G-code#M42:_Switch_I/O_pin" for supported pins
+*Implemented M42 command, see %M42%gcode_cvt!M42.3a_Switch_I/O_pin for supported pins
 
 Bug fixes
 *Bug fix: M558 P3 did not leave the Z probe control pin high
@@ -1698,7 +1739,7 @@ Improvements in this release:
 *Moved Fan0 RPM sense pin to expansion connector pin PA14 to avoid conflict with Duet 0.8.5 FAN1 pin
 *M408 poll command (used by latest PanelDue firmware) can now be handled concurrently with other commands
 
-See "M115 http://reprap.org/wiki/G-code#M115:_Get_Firmware_Version_and_Capabilities_" and "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values_" for details of the new M115 and M569 parameters supported.
+See %M115%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities_" and "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values_ for details of the new M115 and M569 parameters supported.
 
 ===DC42 1.09g
 "http://forums.reprap.org/read.php?409,548713" 
@@ -1818,8 +1859,8 @@ All self-build printers and a lot of commercial printer suffers from heterogenei
 This does have many sources. 
 
 Calibration is needed for the heating loops and its code shall be written in config.g:
-*G-code for thermistor and ADC calibration is "M305 http://reprap.org/wiki/G-code#M305:_Set_thermistor_and_ADC_parameters" (was M304 on old firmware version)
-*G-code for PID loop is "M301 http://reprap.org/wiki/G-code#M301:_Set_PID_parameters"  (alternatively "M304 http://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed" could be used for BED PID)
+*G-code for thermistor and ADC calibration is %M305%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters (was M304 on old firmware version)
+*G-code for PID loop is %M301%gcode_cvt!M301.3a_Set_PID_parameters"  (alternatively "M304 http://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed could be used for BED PID)
 Note that if there is no code in the config file, defaults values are used. 
 
 As for most %RepRap Firmware%RepRap_Firmware documentation on this wiki, some details of this page apply only to recent Firmware version of DC42 or Chrishamm forks (1.10 or later).
@@ -1878,7 +1919,7 @@ Sometimes, at room temperature, the temperature indicated by the software is -27
 
 ===ADC calibration
 320%Duet_ADC_calibration.jpg
-Parameters for thermistor and ADC are handled by "M305 http://reprap.org/wiki/G-code#M305:_Set_thermistor_and_ADC_parameters" code.
+Parameters for thermistor and ADC are handled by %M305%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters code.
 DC42 fork of RepRap Firmware added parameters for ADC calibration since v 0.57u (march 2014)
 For ADC calibration, you will need two resistors, one of 220 Ohm (1%) and one of 100kOhm (1%). It is practical to connect these resistors to Dupont connectors, which may help to avoid false contact while measuring. 
 *Connect the 100K resistor at the thermistor pins and adjust the H parameter to get a reading as close to 25°C as possible (you probably won't manage exactly 25°C because the ADC quantum is about 0.6°C at this temperature). 
@@ -1948,33 +1989,33 @@ Another example with a top surface which create insulation on the top of the bed
 ==Maximum temperature
 There is a maximum temperature for hot-ends which will stop the heating loop and trigger a default if it is reached, even for a very short time. 
 
-This maximum temperature is defined by code "M143 http://reprap.org/wiki/G-code#M143:_Maximum_hot-end_temperature" and its default is now 260°C (from V1.12) while its used to be 300°C.
+This maximum temperature is defined by code %M143%gcode_cvt!M143.3a_Maximum_hot-end_temperature and its default is now 260°C (from V1.12) while its used to be 300°C.
 
 ==Heating timeout
 There is a safety which stop the heating and trigger a default if the temperature setpoint is not reached within a given time.
 
-This timeout is defined by "M570 http://reprap.org/wiki/G-code#M570:_Set_heater_timeout" and the default value is 150 sec. This timeout is not activated for bed and chamber heating (from v 1.12).
+This timeout is defined by %M570%gcode_cvt!M570.3a_Set_heater_timeout and the default value is 150 sec. This timeout is not activated for bed and chamber heating (from v 1.12).
 
 If you get this default, you may question the power of your heating cartridge, but this is also often related to poor PID adjustment.  Insulation of the heating block will help.
 
 ==Evaluating instant heater power
-There is a code "M573: Report heater PWM http://reprap.org/wiki/G-code#M573:_Report_heater_PWM" which gives you the PWM ratio currently in use for heating, on a scale from 0 to 1.
+There is a code %M573: Report heater PWM%gcode_cvt!M573.3a_Report_heater_PWM which gives you the PWM ratio currently in use for heating, on a scale from 0 to 1.
 
 The PWM ratio varies permanently with the loop control, so you may run this code three or four times and calculate mean value to get accurate result.
 
 This helps you evaluate your heater power (which is proportional to the PWM ratio) at the operating temperature and may help evaluate if difficulties to reach a temperature are related to poor PID adjustment or insufficient power. This is also used to adjust M301 T parameter.
 
 == Controlling temperature 
-*"G10 http://reprap.org/wiki/G-code#G10:_Tool_Offset" defines heaters operating and standby temperature 
+*%G10%gcode_cvt!G10.3a_Tool_Offset defines heaters operating and standby temperature 
 *Selecting a tool will start heating and continue.
 *Tool shall be selected before using M104 or M109
-*"M104: Set Extruder Temperature and continue http://reprap.org/wiki/G-code#M104:_Set_Extruder_Temperature"
-*"M109: Set Extruder Temperature and wait for it http://reprap.org/wiki/G-code#M109:_Set_Extruder_Temperature_and_Wait"
-*"M140: Set Bed Temperature and continue http://reprap.org/wiki/G-code#M140:_Set_Bed_Temperature_(Fast)"
-*"M190: Set Bed Temperature and wait for it http://reprap.org/wiki/G-code#M190:_Wait_for_bed_temperature_to_reach_target_temp"
-*"M141: Set Chamber Temperature and continue http://reprap.org/wiki/G-code#M141:_Set_Chamber_Temperature_(Fast)"
-*"M144: Stand By Your Bed http://reprap.org/wiki/G-code#M144:_Stand_By_Your_Bed"
-*"M562: Reset temperature fault http://reprap.org/wiki/G-code#M562:_Reset_temperature_fault"
+*%M104: Set Extruder Temperature and continue%gcode_cvt!M104.3a_Set_Extruder_Temperature
+*%M109: Set Extruder Temperature and wait for it%gcode_cvt!M109.3a_Set_Extruder_Temperature_and_Wait
+*%M140: Set Bed Temperature and continue%gcode_cvt!M140.3a_Set_Bed_Temperature_(Fast)
+*%M190: Set Bed Temperature and wait for it%gcode_cvt!M190.3a_Wait_for_bed_temperature_to_reach_target_temp
+*%M141: Set Chamber Temperature and continue%gcode_cvt!M141.3a_Set_Chamber_Temperature_(Fast)
+*%M144: Stand By Your Bed%gcode_cvt!M144.3a_Stand_By_Your_Bed
+*%M562: Reset temperature fault%gcode_cvt!M562.3a_Reset_temperature_fault
 
 ==Other sensor type
 ===Why using other sensor
@@ -2225,7 +2266,7 @@ All printing is done after uploading a G-code file on the board SD card, which b
 ==Principle of operation
 448%RRF_connection2.png 
 This web server, operated by program files located on the SD card in the www directory, is somewhat independent from the firmware stored on the board flash memory. First, the web server shall connect to the firmware, which is automatic while opening the web server, and could be forced with the button "Connect" if communication is lost (which occurs regularly).
-The server send commands to the board firmware and get information from answers to a small set of commands ("M408 http://reprap.org/wiki/G-code#M408:_Report_JSON-style_response" , "M105 http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature" , "M20 http://reprap.org/wiki/G-code#M20:_List_SD_card" ,"M36 http://reprap.org/wiki/G-code#M36:_Return_file_information") according to a %specific protocol%Status_responses .
+The server send commands to the board firmware and get information from answers to a small set of commands (%M408%gcode_cvt!M408.3a_Report_JSON-style_response" , "M105 http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature" , "M20 http://reprap.org/wiki/G-code#M20:_List_SD_card" ,"M36 http://reprap.org/wiki/G-code#M36:_Return_file_information) according to a %specific protocol%Status_responses .
 The browser window layout adjustment is mainly automatic, based upon the printer configuration as reported by firmware. The web interface layout is adapted to the device form factor and is different on a smartphone than on a desktop PC.
 
 It is now possible to display in the web interface a still image transmitted by an IP camera.
@@ -2265,9 +2306,9 @@ Survey component and parameters status.
 There are many evolutions in DWC, and it does work properly only with recent versions of "own Chrishamm fork https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" or "DC42 fork https://github.com/dc42/RepRapFirmware/tree/dev/Release". It is highly recommended to %upgrade firmware%Duet_Firmware_Update and DWC jointly to the last versions, as they carry many improvement. If you want to test with an old firmware version, you shall use the DWC version associated with this old firmware (probably 1.06 or 1.07). 
 
 ==First start 
-If "Netbios http://www.techrepublic.com/article/how-netbios-name-resolution-really-works/" or "mDNS https://en.wikipedia.org/wiki/Multicast_DNS" names are recognized on your network  (most network do, but not mobile devices), you can simply connect to the web server using the printer name as defined in the 'config.g' file.  e.g.  http://lily. Name is not case sensitive. Note that in the config.g file the first letter ‘P’ indicates a parameter and is not part of the name. See "M550: Set name http://reprap.org/wiki/G-code#M550:_Set_Name"
+If %Netbios http://www.techrepublic.com/article/how-netbios-name-resolution-really-works/" or "mDNS https://en.wikipedia.org/wiki/Multicast_DNS" names are recognized on your network  (most network do, but not mobile devices), you can simply connect to the web server using the printer name as defined in the 'config.g' file.  e.g.  http://lily. Name is not case sensitive. Note that in the config.g file the first letter ‘P’ indicates a parameter and is not part of the name. See "M550: Set name%gcode_cvt!M550.3a_Set_Name
 
-Alternatively, you can connect to your printer with its IP address, e.g. "http://192.168.1.14" . In that case, it is more practical to define a static IP address (and IP mask) in config.g file instead of relying on address attributed by "DHCP https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol" server. See "M552: Set IP address http://reprap.org/wiki/G-code#M552:_Set_IP_address", "M553: Set NetMask http://reprap.org/wiki/G-code#M553:_Set_Netmask" and "M554: set Gateway http://reprap.org/wiki/G-code#M554:_Set_Gateway".
+Alternatively, you can connect to your printer with its IP address, e.g. %http://192.168.1.14" . In that case, it is more practical to define a static IP address (and IP mask) in config.g file instead of relying on address attributed by "DHCP https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol" server. See "M552: Set IP address%gcode_cvt!M552.3a_Set_IP_address", "M553: Set NetMask http://reprap.org/wiki/G-code#M553:_Set_Netmask" and "M554: set Gateway http://reprap.org/wiki/G-code#M554:_Set_Gateway.
 
 On mobile devices, the printer name may not be recognised, in this case you shall define a static IP address and load the interface with this address.
 
@@ -2276,7 +2317,7 @@ Note that you could open multiple sessions of the web server and could operate f
 
 Loosing a connection to the printer does not have any effect on the print, but you cannot pause a print without having a connection (which could be with another device than the one which started the print). 
 
-Many printers can coexist in the same network, provided you define a specific "MAC address https://en.wikipedia.org/wiki/MAC_address" for each printer (change the last digit for each printer). See "M540: Set MAC Address http://reprap.org/wiki/G-code#M540:_Set_MAC_address_." They can be operated from a unique browser session.
+Many printers can coexist in the same network, provided you define a specific %MAC address https://en.wikipedia.org/wiki/MAC_address" for each printer (change the last digit for each printer). See "M540: Set MAC Address%gcode_cvt!M540.3a_Set_MAC_address_. They can be operated from a unique browser session.
 (:clear:)
 
 ==Languages
@@ -2287,7 +2328,7 @@ In the "settings" tab, you could modify parameters.
 Configuration parameters are stored in the "local storage https://en.wikipedia.org/wiki/Web_storage" of your browser and the cookies shall be activated. If you clean up regularly your browser cookies/cache for safety, this will cancel the configuration. To set permanent modifications independent from your browser, you shall modify the variable "settings" in file "/www/js/model.js". This file replace the former "interface.js" file which was splitted in "model.js" (configuration) and "viewmodel.js" (execution) from DWC version 1.08.
 Updating this file on SD card is done like %updating the config.g file%Updating_config
 
-Note that the web server use a password defined in the file "/www/js/model.js", which shall be the same as the one defined in the config.g (default password: RepRap).  A modified password is needed if your network is connected to wifi. See "M551: set password http://reprap.org/wiki/G-code#M551:_Set_Password"
+Note that the web server use a password defined in the file %/www/js/model.js", which shall be the same as the one defined in the config.g (default password: RepRap).  A modified password is needed if your network is connected to wifi. See "M551: set password%gcode_cvt!M551.3a_Set_Password
 
 ==Using an IP camera
 448%RRF_IPcam_view.jpg
@@ -2345,13 +2386,13 @@ The web interface is written using the "Framework https://en.wikipedia.org/wiki/
 
 To allow web interface getting data from the firmware, specific G-Code were created and a %data exchange protocol%Status_responses was defined using "JSON https://en.wikipedia.org/wiki/JSON" format.
 
-The main G-codes for reporting data to web interface are "M408: Report JSON-style response http://reprap.org/wiki/G-code#M408:_Report_JSON-style_response," "M36: Return file information http://reprap.org/wiki/G-code#M36:_Return_file_information," "M20: List SD card http://reprap.org/wiki/G-code#M20:_List_SD_card" and "M105: Get Extruder Temperature http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature."
+The main G-codes for reporting data to web interface are %M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response," "M36: Return file information http://reprap.org/wiki/G-code#M36:_Return_file_information," "M20: List SD card http://reprap.org/wiki/G-code#M20:_List_SD_card" and "M105: Get Extruder Temperature http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature.
 
-Web page (reprap.htm) is uploaded with "M560: Upload web page file http://reprap.org/wiki/G-code#M560:_Upload_web_page_file."
+Web page (reprap.htm) is uploaded with %M560: Upload web page file%gcode_cvt!M560.3a_Upload_web_page_file.
 
 ==Author
 Christian Hammacher (Chrishamm) write and maintain the present "web server on GitHub https://github.com/chrishamm/DuetWebControl." It also maintain "own fork https://github.com/chrishamm/RepRapFirmware" of the RepRap firmware, as the web server improvement may need new firmware functions or modifications. Chrishamm fork is itself a fork of "DC42 firmware fork https://github.com/dc42/RepRapFirmware/tree/dev/Release" and they have frequent exchanges and are very similar.
-Chrishamm also added useful functions on the RepRap firmware, notably recently the capability to do firmware update from the web interface (see "M997:Perform in-application firmware update http://reprap.org/wiki/G-code#M997:_Perform_in-application_firmware_update)."
+Chrishamm also added useful functions on the RepRap firmware, notably recently the capability to do firmware update from the web interface (see %M997:Perform in-application firmware update%gcode_cvt!M997.3a_Perform_in-application_firmware_update).
 
 ==References
 *Replicape for BBB board using Redeem as firmware have a web server based on Octoprint 
@@ -2438,7 +2479,7 @@ Processor voltage is 3.3V and inputs are not protected, so using sensor with hig
 Designer/manufacturer haven't supplied specifications, so data came from component datasheets and user experience and is for information only.
 *Ultimate voltage is 35V, maximum acceptable by stepper drivers and capacitors, so the usable voltage shall be lower. Boards were tested at 24V and may be safe for a stable supply up to 30V.
 *Stepper driver A4982 are designed for a maximum current of 2A, with a really usable current depending from the board cooling. Board was tested with 0.8A without cooling and 1.5A on all drivers with good cooling. Drivers have a thermal safety. 
-*Stepper driver current is adjusted by program, using a "specific G-code http://reprap.org/wiki/G-code#M906:_Set_motor_currents" .
+*Stepper driver current is adjusted by program, using a %specific G-code%gcode_cvt!M906.3a_Set_motor_currents .
 *Microstepping is locked to 1/16. Board throughput is always sufficient to handle it, including on 0.9° steppers.
 *On board 5v is supplied by a buck converter with ultimate current of 2A, however the 3.3V is taken from this 5V supply, so the available 5V current (for fans or small wifi router) shall take into account the 3.3V consumption of the board and other 3.3V accessories (sensors and control panel).
 *Micro-SD card type SDHC, to be formatted in FAT32, cluster size 32 kB.
@@ -3017,7 +3058,7 @@ Sometimes we may do synchronised releases of firmware, where more than one firmw
 allb,Duet_0.85,Duet0.6+/=
 
 == In application update 
-From versions 1.09v of "Chrishamm fork https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" and 1.09x of "DC42 fork https://github.com/dc42/RepRapFirmware/tree/dev/Release," it is now possible to make the update without connecting via USB, with the "M997 http://reprap.org/wiki/G-code#M997:_Perform_in-application_firmware_update"  command or directly with an upload via web interface.
+From versions 1.09v of "Chrishamm fork https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" and 1.09x of "DC42 fork https://github.com/dc42/RepRapFirmware/tree/dev/Release," it is now possible to make the update without connecting via USB, with the "M997%gcode_cvt!M997.3a_Perform_in-application_firmware_update  command or directly with an upload via web interface.
 
 If you upload a firmware file via web interface "settings" "General", button "load file(s)", at the end of uploading, the interface will tell you that you have uploaded a firmware file and ask if you want to update immediately. Clicking "yes" will starts the update and one minute later, it is done. You may need to reload the interface in your browser after the update to get proper connection to the board.
 
@@ -3288,9 +3329,9 @@ Because some parameters are either unlikely to change or usually not required fo
 PID, networking and other configuration parameters might be added to a future version.
 
 ==See also
-*"M36: Return file information http://reprap.org/wiki/G-code#M36:_Return_file_information" Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON" format.
-*"M408: Report JSON-style response http://reprap.org/wiki/G-code#M408:_Report_JSON-style_response"  - Return printer status data
-*"M122: Diagnose http://reprap.org/wiki/G-code#M122:_Diagnose" 
+*%M36: Return file information%gcode_cvt!M36.3a_Return_file_information" Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON format.
+*%M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response  - Return printer status data
+*%M122: Diagnose%gcode_cvt!M122.3a_Diagnose 
 
 <small>Author: Chrishamm</small>
 
@@ -3998,7 +4039,7 @@ This page shall be developed, but yet you may have a look at the below pages
 * Preconfigured config.g files for various printers: "https://github.com/reprappro/RepRapFirmware/tree/test/SD-image" and "https://github.com/dc42/RepRapFirmware/tree/dev/SD-image"
 * RepRapPro guide for commissioning Duet-based printers, including updating firmware: "https://reprappro.com/documentation/commissioning-introduction/commissioning-duet/." You may also find their wiring diagrams for the Ormerod, Huxley and Mendel useful.
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems/"
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305"
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 *Useful %RepRap Firmware macros%Macros
 *%RepRap Firmware heating%Heating for configuration and tuning of heating loops
@@ -4013,6 +4054,12 @@ Duet hardware trail
 *%Duet pinout%duet_pinout
 *%Duet wiring%%
 *%Duet firmware update%%
+
+
+
+
+
+
 
 
 
