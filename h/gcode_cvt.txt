@@ -45,7 +45,7 @@ If buffering is supported, the RepRap firmware stores some commands in a ring bu
 
 Typically, the following moving commands are buffered: G0-G3 and G28-G32.  The  "Teacup Firmware http://reprap.org/wiki/Teacup_Firmware"  buffers also some setting commands: G20, G21, G90 and G91.  All other G, M or T commands are not buffered.
 
-  %RepRapFirmware%RepRap_Firmware _also_implements_an_internal_queue_to_ensure_that_certain_codes_(like_%M106%gcode_cvt!M106.3a_Fan_On ) are executed in the right order and not when the last move has been added to the look-ahead queue. This feature is not available in RepRapFirmware-dc42.
+ %RepRapFirmware%RepRap_Firmware  also implements an internal queue to ensure that certain codes (like  %M106%gcode_cvt!M106.3a_Fan_On ) are executed in the right order and not when the last move has been added to the look-ahead queue. This feature is not available in RepRapFirmware-dc42.
 
 When an unbuffered command is received it is stored, but it is not acknowledged to the host until the buffer is exhausted and then the command has been executed.  Thus the host will pause at one of these commands until it has been done.  Short pauses between these commands and any that might follow them do not affect the performance of the machine.
 

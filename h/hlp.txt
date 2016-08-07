@@ -352,7 +352,7 @@ This is how the Duet WiFi firmware differs from the Duet 0.8.5 and 0.6.
 *   You can use M552 S0 and M552 S1 to stop and start the WiFi connection at any time, not just in config.g. A M552 S1 command in config.g will only take effect after the rest of config.g has been fully processed.
 *   At present, setting the IP address using M552 has no effect. The IP address will be allocated by your WiFi router using DHCP. Likewise, the M553 and M554 commands to set the netmask and gateway have no effect.
 *   The M540 command (set MAC address) has no effect.
-*   The M350 command to change microstepping is supported. See http://reprap.org/wiki/G-code#M350:_Set_microstepping_mode for details. For example, M350 X128 I0 will set the X drive to 128x microstepping without interpolation. The steps/mm will be adjusted automatically when you change microstepping. We suggest that in your config.g file you set microstepping before you set the steps/mm. Microstepping defaults to 16x with interpolation.
+*   The M350 command to change microstepping is supported. See %M350%gcode_cvt!M350.3a_Set_microstepping_mode for details. For example, M350 X128 I0 will set the X drive to 128x microstepping without interpolation. The steps/mm will be adjusted automatically when you change microstepping. We suggest that in your config.g file you set microstepping before you set the steps/mm. Microstepping defaults to 16x with interpolation.
 *   The thermistor series resistance defaults to 4700 instead of 1000 (R parameter in M305 command).
 *    The bed thermistor resistance defaults to 100000 instead of 10000 (T parameter in M305 command). If you are using the DuetWiFi to control an Ormerod printer, you will need to use T10000 in the M305 P0 command.
 *    The hot end thermistor B value defaults to 4388 (M305 command). This is the correct value for the Semitec 104GT-2 thermistor used in the popular E3D hot ends, to give accurate readings around 220C. For the Honeywell 135-104QAD-J01 thermistor used in RepRapPro hot ends, use 4138.
@@ -505,7 +505,7 @@ Duet_WiFi_1.0-/=
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems"
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 =/
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305"
 *Useful %RepRap Firmware macros%Macros
 *%RepRap Firmware heating%Heating for configuration and tuning of heating loops
 *%Connecting thermistors%Connecting_thermistors
@@ -532,11 +532,11 @@ Duet_WiFi_1.0-/=
 **RepRap Firmware** is intended to be a fully object-oriented highly modular C++ control program for
 RepRap self-replicating 3D printers.
 
-It owes a lot to "Marlin http://reprap.org/wiki/Marlin" and to the original RepRap "FiveD Firmware http://reprap.org/wiki/FiveD_Firmware."  
+It owes a lot to "Marlin http://reprap.org/wiki/Marlin" and to the original RepRap "FiveD Firmware http://reprap.org/wiki/FiveD_Firmware".  
 
-It was written by Adrian at "RepRapPro Ltd http://reprappro.com."
+It was written by Adrian at "RepRapPro Ltd http://reprappro.com".
 
-It is "on Github here https://github.com/reprappro/RepRapFirmware."
+It is "on Github here https://github.com/reprappro/RepRapFirmware".
 
 A complete uploadable executable version for the %Duet%Duet is in the directory Release/RepRapFirmware.bin in that
 repository.  For details of how to flash it to a Duet %see here%Duet_Firmware_Update .
@@ -687,7 +687,7 @@ You should now be able to compile the code and upload the result to the Duet.
 
 ■G-codes
 ==G-codes for RepRap Firmware
-The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use "more G-codes http://reprap.org/wiki/G-code" than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
+The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use %more G-codes%gcode_cvt than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
 
 This page list G-codes interpreted by RepRap Firmware. This list cover "DC42 https://github.com/dc42/RepRapFirmware/tree/dev/Release" and "Chrishamm https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" forks, which are more complete than the original version.
 Some G-Codes are common between RepRap Firmware and other firmwares, but with extended syntax or specific interpretation. They are listed in a specific paragraph.
@@ -820,7 +820,7 @@ Some default values (DC42 fork rev 1.11):
 *%G10: Tool Offset%gcode_cvt!G10.3a_Tool_Offset  Define standby and operating tool temperature / Retract if no parameter, see M207 (<span style="color:#ff0000">NEW</span>)
 *%M207: Set retract length%gcode_cvt!M207.3a_Set_retract_length  RRF add unretract length parameter - <span style="color:#ff0000">NEW</span> - 
 *%M208: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel  Used for unretract length in other firmware
-*%M665: Set delta configuration%gcode_cvt!M665.3a_Set_delta_config Add height, maximum usable radius and column angular position
+*%M665: Set delta configuration%gcode_cvt!M665.3a_Set_delta_configuration Add height, maximum usable radius and column angular position
 ===%Heating%Heating
 *%M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature  
 *%M135: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
@@ -1165,7 +1165,7 @@ So, you shall take care to restore them manually (notably motor current, acceler
 === Debugging 
 Calling an invalid G-code may sometimes hang the firmware and lock your system. If the error is in the start-up process, the only solution is to remove the SD card and edit files to correct the bug. An error can be in a macro automatically called by the system.
 
-Care shall be taken to not create a "recursive loop http://forums.reprap.org/read.php?416,666726," e.g. a homing macro calling another home. This creates a "Stack overflow!" error.  
+Care shall be taken to not create a "recursive loop http://forums.reprap.org/read.php?416,666726" , e.g. a homing macro calling another home. This creates a "Stack overflow!" error.  
 
 == Useful user macros 
 === Load filament 
@@ -1454,7 +1454,7 @@ RepRap Firmware FAQ
 :Yes For the Duet 0.6 and 0.8.5 there is 4 extruders board expansion from original designer (T3P3), simple 4 extruders extension from independent supplier and some stock of 2 extruders shields from RepRapPro. 
 
 ==Is there software movement limit? Yes
-:%Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a "cylinder http://reprap.org/wiki/G-code#M665:_Set_delta_configuration  for a delta printer and a cube for others.
+:%Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a %cylinder%gcode_cvt!M665.3a_Set_delta_configuration for a delta printer and a cube for others.
 
 ==Is it possible to install two separated end-stops on each axis? No
 :No, and it is not needed, the printer knowing its own dimensions. Though dry switches can be installed in series.
@@ -1510,7 +1510,7 @@ There are a few links which may help to configure your board
 * Preconfigured config.g files for various printers: "https://github.com/reprappro/RepRapFirmware/tree/test/SD-image" and "https://github.com/dc42/RepRapFirmware/tree/dev/SD-image"
 * RepRapPro guide for commissioning Duet-based printers, including updating firmware: "https://reprappro.com/documentation/commissioning-introduction/commissioning-duet/." You may also find their wiring diagrams for the Ormerod, Huxley and Mendel useful.
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems/"
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "forum thread http://forums.reprap.org/read.php?178,552124,552305
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "forum thread http://forums.reprap.org/read.php?178,552124,552305"
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 
 == How do I know that my config.g have been properly executed 
@@ -1603,7 +1603,7 @@ The changes in this release are:
 Chrishamm and I agreed yesterday that it was time to move the version number of RRF on from 1.09. Accordingly, I am pleased to announce release 1.10 of my fork of RepRapFirmware.
 
 The changes since my last official release (1.09x-dc42) are:
-* Added support for firmware retraction (G10 with no parameters, G11, and M207). This is mainly to better support mixing extruders. To use it, configure %Firmware retraction" in slic3r, then set up your retraction parameters in config.g or in your slicer start gcode using the M207 command, see %reprap.org%"http://"%gcode_cvt!M207.3a_Set_retract_length". When using a mixing extruder, all extruders associated with the current tool will be retracted by the amount configured, regardless of the current mix ratio. Retraction speed and length are not affected by the M220 or M221 commands.
+* Added support for firmware retraction (G10 with no parameters, G11, and M207). This is mainly to better support mixing extruders. To use it, configure "Firmware retraction" in slic3r, then set up your retraction parameters in config.g or in your slicer start gcode using the M207 command, see %M207%gcode_cvt!M207.3a_Set_retract_length. When using a mixing extruder, all extruders associated with the current tool will be retracted by the amount configured, regardless of the current mix ratio. Retraction speed and length are not affected by the M220 or M221 commands.
 * Merged in Chrishamm's 1.09z networking, webserver, print monitor and iap.bin changes (thanks Chrishamm)
 * Fixed a bug that sometimes caused auto-IP address allocation via DHCP to fail at startup (thanks Chrishamm)
 
@@ -1739,7 +1739,7 @@ Improvements in this release:
 *Moved Fan0 RPM sense pin to expansion connector pin PA14 to avoid conflict with Duet 0.8.5 FAN1 pin
 *M408 poll command (used by latest PanelDue firmware) can now be handled concurrently with other commands
 
-See %M115%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities_" and "M569 http://reprap.org/wiki/G-code#M569:_Set_axis_direction_and_enable_values_ for details of the new M115 and M569 parameters supported.
+See %M115%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities and %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values for details of the new M115 and M569 parameters supported.
 
 ===DC42 1.09g
 "http://forums.reprap.org/read.php?409,548713" 
@@ -1860,7 +1860,7 @@ This does have many sources.
 
 Calibration is needed for the heating loops and its code shall be written in config.g:
 *G-code for thermistor and ADC calibration is %M305%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters (was M304 on old firmware version)
-*G-code for PID loop is %M301%gcode_cvt!M301.3a_Set_PID_parameters"  (alternatively "M304 http://reprap.org/wiki/G-code#M304:_Set_PID_parameters_-_Bed could be used for BED PID)
+*G-code for PID loop is %M301%gcode_cvt!M301.3a_Set_PID_parameters  (alternatively %M304%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed could be used for BED PID)
 Note that if there is no code in the config file, defaults values are used. 
 
 As for most %RepRap Firmware%RepRap_Firmware documentation on this wiki, some details of this page apply only to recent Firmware version of DC42 or Chrishamm forks (1.10 or later).
@@ -1980,7 +1980,7 @@ Another example with a top surface which create insulation on the top of the bed
 <<M301 H0 P85 I0.25 D750 T1.3 W200 B5; 'M301 H0' is equivalent to M304>>
 
 === Using Ziegler-Nichols method
-"RepRap forum "http://forums.reprap.org/read.php?416,666677,666756""
+"RepRap forum http://forums.reprap.org/read.php?416,666677,666756"
 * Set S to 1.0, P to 20, B to 30, and I, D and T to zero.
 * Command the hot end to a high temperature, say 250°C. As soon as it reaches 160°C, command it to 0°C. Watch the temperature to see how much it overshoots. Set the B value to about 5 to 10 higher than the amount of overshoot.
 * Command the temperature to 250°C and wait. It won't ever reach 250°C because of the zero I and T terms. When the temperature has stopped increasing, read it off, also use M573 P to get the average PWM.<br />Set the T value as follows:<br />. T = average_pwm*256/(temperature_reached - room_temperature)
@@ -2266,7 +2266,7 @@ All printing is done after uploading a G-code file on the board SD card, which b
 ==Principle of operation
 448%RRF_connection2.png 
 This web server, operated by program files located on the SD card in the www directory, is somewhat independent from the firmware stored on the board flash memory. First, the web server shall connect to the firmware, which is automatic while opening the web server, and could be forced with the button "Connect" if communication is lost (which occurs regularly).
-The server send commands to the board firmware and get information from answers to a small set of commands (%M408%gcode_cvt!M408.3a_Report_JSON-style_response" , "M105 http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature" , "M20 http://reprap.org/wiki/G-code#M20:_List_SD_card" ,"M36 http://reprap.org/wiki/G-code#M36:_Return_file_information) according to a %specific protocol%Status_responses .
+The server send commands to the board firmware and get information from answers to a small set of commands (%M408%gcode_cvt!M408.3a_Report_JSON-style_response , %M105%gcode_cvt!M105.3a_Get_Extruder_Temperature , %M20%gcode_cvt!M20.3a_List_SD_card ,%M36%gcode_cvt!M36.3a_Return_file_information) according to a %specific protocol%Status_responses .
 The browser window layout adjustment is mainly automatic, based upon the printer configuration as reported by firmware. The web interface layout is adapted to the device form factor and is different on a smartphone than on a desktop PC.
 
 It is now possible to display in the web interface a still image transmitted by an IP camera.
@@ -2308,7 +2308,7 @@ There are many evolutions in DWC, and it does work properly only with recent ver
 ==First start 
 If %Netbios http://www.techrepublic.com/article/how-netbios-name-resolution-really-works/" or "mDNS https://en.wikipedia.org/wiki/Multicast_DNS" names are recognized on your network  (most network do, but not mobile devices), you can simply connect to the web server using the printer name as defined in the 'config.g' file.  e.g.  http://lily. Name is not case sensitive. Note that in the config.g file the first letter ‘P’ indicates a parameter and is not part of the name. See "M550: Set name%gcode_cvt!M550.3a_Set_Name
 
-Alternatively, you can connect to your printer with its IP address, e.g. %http://192.168.1.14" . In that case, it is more practical to define a static IP address (and IP mask) in config.g file instead of relying on address attributed by "DHCP https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol" server. See "M552: Set IP address%gcode_cvt!M552.3a_Set_IP_address", "M553: Set NetMask http://reprap.org/wiki/G-code#M553:_Set_Netmask" and "M554: set Gateway http://reprap.org/wiki/G-code#M554:_Set_Gateway.
+Alternatively, you can connect to your printer with its IP address, e.g. %http://192.168.1.14" . In that case, it is more practical to define a static IP address (and IP mask) in config.g file instead of relying on address attributed by "DHCP https://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol" server. See "M552: Set IP address%gcode_cvt!M552.3a_Set_IP_address", "M553: Set NetMask %gcode_cvt!M553.3a_Set_Netmask and %M554: set Gateway%gcode_cvt!M554.3a_Set_Gateway .
 
 On mobile devices, the printer name may not be recognised, in this case you shall define a static IP address and load the interface with this address.
 
@@ -2386,7 +2386,7 @@ The web interface is written using the "Framework https://en.wikipedia.org/wiki/
 
 To allow web interface getting data from the firmware, specific G-Code were created and a %data exchange protocol%Status_responses was defined using "JSON https://en.wikipedia.org/wiki/JSON" format.
 
-The main G-codes for reporting data to web interface are %M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response," "M36: Return file information http://reprap.org/wiki/G-code#M36:_Return_file_information," "M20: List SD card http://reprap.org/wiki/G-code#M20:_List_SD_card" and "M105: Get Extruder Temperature http://reprap.org/wiki/G-code#M105:_Get_Extruder_Temperature.
+The main G-codes for reporting data to web interface are %M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response, %M36: Return file information%gcode_cvt!M36.3a_Return_file_information, %M20: List SD card%gcode_cvt!M20.3a_List_SD_card and %M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature.
 
 Web page (reprap.htm) is uploaded with %M560: Upload web page file%gcode_cvt!M560.3a_Upload_web_page_file.
 
@@ -2449,10 +2449,10 @@ The Duet is a 3D Printer controller board that is compatible with the Arduino Du
 
 The Duet runs the 32 bit, ARM core "Atmel SAM3X8E http://www.atmel.com/devices/SAM3X8E.aspx" microprocessor, as found on the "Arduino Due https://www.arduino.cc/en/Main/ArduinoBoardDue." This is a step change from preceding controllers using 8 bit microprocessors and leaves loads of overhead to do cool things (like running a web-server or running delta bots much faster). The Duet comes with Ethernet built in allowing it to run as a network printer controller, along with USB and an SD card (fully SD 2.0 compliant). The Duet 0.8.5 version update supports an additional extruder, so it can be used with both dual and single extruder printers (5 axes control). In addition it takes the "Duex4 http://www.think3dprint3d.com/Duex4-Duet-Expansion-Board" expansion board which adds a further 4 stepper channels - for a total of 9 axes controls (3 axis + 5 extruders for example). A more in-depth description of the original design can be found in "this blog post http://blog.think3dprint3d.com/2013/12/Duet-Arduino-Due-compatible-3DPrinter-controller.html." The v0.8.5 update is described "here http://blog.think3dprint3d.com/2015/08/new-duet-electronics-version-085.html." Another expansion "shield" for two drives was distributed by RepRapPro (only for Duet 0.6).
 
-In addition to 3D printer, this board can be used to control a laser cutter "Laser cutter on RepRap forum http://forums.reprap.org/read.php?133,521301" " Laser cutter on RepRap forum http://forums.reprap.org/read.php?340,516150"  "Laser cutter blog post https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog/"
+In addition to 3D printer, this board can be used to control a laser cutter "Laser cutter on RepRap forum http://forums.reprap.org/read.php?133,521301"  "Laser cutter on RepRap forum http://forums.reprap.org/read.php?340,516150"  "Laser cutter blog post https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog"
 
-The "PanelDue https://miscsolutions.wordpress.com/paneldue/" is a compatible colour graphics touch screen control panel. 
-The Duet can also be controlled over Wi-Fi as described "here http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html."
+The "PanelDue https://miscsolutions.wordpress.com/paneldue" is a compatible colour graphics touch screen control panel. 
+The Duet can also be controlled over Wi-Fi as described "here http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html".
 
 "description http://blog.think3dprint3d.com/2013/12/Duet-Arduino-Due-compatible-3DPrinter-controller.html"
 
@@ -2656,7 +2656,7 @@ The signal can be inverted, which may be used to control a 4 wires fan.
 
 === Supply voltage
 The voltage available on the connectors is VIN (Board main supply voltage).
-However, as the control is done by ‘sinking’ current to ground, any voltage can be used for the controlled equipment. However, there is a control LED which is supplied by Vin, which light while current is sinked to ground. This means that if your voltage supply is lower than VIN, the VIN voltage may be returned to your supply line through the LED output. (see "thread http://forums.reprap.org/read.php?13,571822)" So, for safety, it is wise to install a diode to protect your power supply. See the schematic for Duet 0.8.54 and Duet 0.6.
+However, as the control is done by ‘sinking’ current to ground, any voltage can be used for the controlled equipment. However, there is a control LED which is supplied by Vin, which light while current is sinked to ground. This means that if your voltage supply is lower than VIN, the VIN voltage may be returned to your supply line through the LED output. (see "thread http://forums.reprap.org/read.php?13,571822") So, for safety, it is wise to install a diode to protect your power supply. See the schematic for Duet 0.8.54 and Duet 0.6.
 However, the forward voltage of this safety diode reduce the voltage available for the fan, hence its power, so a low forward voltage diode shall be used, by example a SB340. If you have no low forward voltage diode (Shottky) available, you may check that an ordinary high current diode may have a low forward voltage for the low current used for a fan. By example a BYW29 gives 0.35V forward voltage.
 
 === Specifications:
@@ -3058,7 +3058,7 @@ Sometimes we may do synchronised releases of firmware, where more than one firmw
 allb,Duet_0.85,Duet0.6+/=
 
 == In application update 
-From versions 1.09v of "Chrishamm fork https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" and 1.09x of "DC42 fork https://github.com/dc42/RepRapFirmware/tree/dev/Release," it is now possible to make the update without connecting via USB, with the "M997%gcode_cvt!M997.3a_Perform_in-application_firmware_update  command or directly with an upload via web interface.
+From versions 1.09v of "Chrishamm fork https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" and 1.09x of "DC42 fork https://github.com/dc42/RepRapFirmware/tree/dev/Release," it is now possible to make the update without connecting via USB, with the %M997%gcode_cvt!M997.3a_Perform_in-application_firmware_update  command or directly with an upload via web interface.
 
 If you upload a firmware file via web interface "settings" "General", button "load file(s)", at the end of uploading, the interface will tell you that you have uploaded a firmware file and ask if you want to update immediately. Clicking "yes" will starts the update and one minute later, it is done. You may need to reload the interface in your browser after the update to get proper connection to the board.
 
@@ -3133,7 +3133,7 @@ Firmware update may also need an update of the %Web Control%Duet_Web_Control  im
 /www/js/model.js and /www/js/viewmodel.js may need to be preserved if they have been modified, or the new files shall be updated with same modifications as existing ones.
 
 == Use FTP to transfer new files on the SD card 
-The simplest way to transfer files between your computer and the Duet is to use an FTP file transfer program (e.g. file management program 'Total Commander' which incorporate a FTP module). This needs a network connection to the Duet.
+The simplest way to transfer files between your computer and wired Duets is to use an FTP file transfer program (e.g. file management program 'Total Commander' which incorporate a FTP module). This needs a network connection to the Duet.
 
 To connect in FTP to the board, use any login you want (e.g. 'admin')  and the password as it is recorded in your config file (e.g. 'M551 Pmypassword')  The first 'P' define following letters as a parameter and is not part of the password. Default password is 'reprap'. Password is case sensitive. 
 
@@ -3421,7 +3421,7 @@ Selling quantity was not disclosed, but as the Duet 0.6 was the standard board f
 Cartesian printer configuration
 %RepRap Firmware%RepRap_Firmware is configured at run-time by means of files in the /sys folder of the SD card. This means that you must have an SD card in the on-board socket to use RepRapFirmware. You do not have to recompile RepRapFirmware to configure it, so if you wish to update the firmware on your Duet or other compatible electronics board, you can download a ready-built binary.
 
-A few of the commands listed here are specific to the dc42 fork of RepRapFirmware and are not supported by the official RepRapPro version, although they may be supported in other forks e.g. the forks of Christian Hammacher, Dan Newman, and Think3DPrint3D. To see what the commands do and which firmware fork(s) implement them, see http://reprap.org/wiki/G-code.
+A few of the commands listed here are specific to the dc42 fork of RepRapFirmware and are not supported by the official RepRapPro version, although they may be supported in other forks e.g. the forks of Christian Hammacher, Dan Newman, and Think3DPrint3D. To see what the commands do and which firmware fork(s) implement them, see %G-code%gcode_cvt.
 
 This page describes how to set up the configuration files for Cartesian printers, and forms the basis for setting up all printer types. However, the same firmware binary also supports Delta, CoreXY and CoreXZ printers. For the changes you need to make for other types of printer, see %Configuring RepRapFirmware for a Delta printer%Delta_Config and %Configuring RepRapFirmware for a CoreXY printer%CoreXY_config.
 
@@ -4039,7 +4039,7 @@ This page shall be developed, but yet you may have a look at the below pages
 * Preconfigured config.g files for various printers: "https://github.com/reprappro/RepRapFirmware/tree/test/SD-image" and "https://github.com/dc42/RepRapFirmware/tree/dev/SD-image"
 * RepRapPro guide for commissioning Duet-based printers, including updating firmware: "https://reprappro.com/documentation/commissioning-introduction/commissioning-duet/." You may also find their wiring diagrams for the Ormerod, Huxley and Mendel useful.
 * Duet troubleshooting guide: "https://reprappro.com/documentation/troubleshooting-introduction/electronics-problems/"
-*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305
+*DC42 fork allow external driver to be connected on the %expansion connector%Duet_pinout  and remapped with %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values" . See "http://forums.reprap.org/read.php?178,552124,552305"
 *"Using Duet with wifi router on blog.think3dprint3d.com http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"
 *Useful %RepRap Firmware macros%Macros
 *%RepRap Firmware heating%Heating for configuration and tuning of heating loops
@@ -4054,6 +4054,8 @@ Duet hardware trail
 *%Duet pinout%duet_pinout
 *%Duet wiring%%
 *%Duet firmware update%%
+
+
 
 
 

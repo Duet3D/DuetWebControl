@@ -596,7 +596,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	data=data.replace(rgximglnk,'<a href="'+aqlO.url+aqlO.imagesDir+'$2$4'+imgtg+'$1</a>'); // link to local image (= 'Media:' markup on wikimedia)
 	//-- Web links ------------------------------------------------------------------------------------------
 	//var rlk1= /%([^%\n]*)%"(http(s?)\:[^"]*)"/g; //this Regex capture not valid web addresses - may check validity at later phase? 
-	var rlk2= /"(#?)(.*?)[\t ]*(http(s?)\:\/\/)(([\da-z\.-]+)\.([a-z\.]{2,6})[^"]*)"/g;  //could we get optional http if run before image link ?  
+	var rlk2= /"(#?)([^"\n]*?)[\t ]*(http(s?)\:\/\/)(([\da-z\.-]+)\.([a-z\.]{2,6})[^"\n]*)"/g;  //could we get optional http if run before image link ?  
 	var rlk3= /(http(s?)\:\/\/)(([\w\.-]+)\.([\w\.\?\=]{2,6})[\S]*)/g;  // Isolated link without " "
 	data=data.replace(rlk2,function (mt,p1,p2,p3,p4,p5) { // tokenize and replace links -> help for search
 		weblnk = 'http'+z(p4)+'://'+z(p5);
@@ -648,7 +648,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	
 	//-- internal links --------------------------------------------------------------
 	var re0 = /([\s>])\"#[\t ]*?(([^\s<>,;"]+[\t ]*)*)"/g; // notes
-	var re1 = /%([\w\u00C0-\u017F].*?)%(([\w-\u00C0-\u017F]*![\w-_:/.\u00C0-\u017F]*[\w-_:/\u00C0-\u017F]+)|([\w-_:/\u00C0-\u017F]+))/g;
+	var re1 = /%([\w\u00C0-\u017F][^%\n]*?)%(([\w-\u00C0-\u017F]*![\w-_:\/.\u00C0-\u017F]*[\w-_:\/\u00C0-\u017F]+)|([\w-_:\/\u00C0-\u017F]+))/g;
 	var re3 = /%([\w\u00C0-\u017F].*?)%%/g;
 	data=data.replace(re0, function (mt,p1,p2) { 
 		notes.push(p2); //store notes for future display
