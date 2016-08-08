@@ -82,7 +82,7 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 	left:120px;
 	min-height:100px;
 	min-width:400px;
-	font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-family:"Helvetica Neue", Helvetica, Arial, sans-serif;
 	font-size: 18px;
 	cursor:pointer;
 	z-index:101; /* above other stuff */
@@ -193,20 +193,36 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 /* ------ top bar -----------------------*/
 #aql_page button,
 #aql_page select {
-	overflow: visible;
-	border-radius: 4px;
-	padding	: 0;
-	border	: 1px solid #d0d0d0;
-	position: relative;
-	height: 30px;
-	vertical-align: top; 
-	cursor: pointer;
-	font-size: 16px;
+	overflow:visible;
+	border-radius:4px;
+	padding	:0;
+	border	:1px solid #d0d0d0;
+	position:relative;
+	height:30px;
+	vertical-align:top; 
+	cursor:pointer;
+	font-size:16px;
 }
 
 #aql_page button {
-	background-image: linear-gradient(to bottom, #f5f6f6, #e0dfdf);
-	width: 36px; 
+	background-image:linear-gradient(to bottom, #f5f6f6, #e0dfdf);
+	width:36px; 
+}
+
+#aql_bk  { /* list of backlinks - make a class as in editor ? (pgx)*/
+	position:fixed;
+	display:none;
+	left:60px;
+	top:30px;
+	font:15px Arial, Helvetica, sans-serif;
+	background-color:#F0F0F0;
+	border:1px solid;
+	border-radius:4px;
+	padding:6px;
+	z-index:99;
+	max-height:calc(100% - 60px); /*no space between calc and parenthesis */
+	max-width:240px; 
+	overflow-y:auto;
 }
 
 #aql_page button:hover {
@@ -220,24 +236,25 @@ button:focus {outline:0;} /* remove chrome annoyance */
 
 /* Chrome and edge don't handle svg background images, so used transparent png */
 /* sprite order: back, search, print, zoom in, close, warning, info, expand, collapse */
-/* sprite made on http://instantsprite.com/, 48px images, 10pixels spacing 10 icons: 10*48+9*10: 570px
-buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
+/* sprite made on http://instantsprite.com/, 48px images, 10pixels spacing 10 icons: 11*48+10*10: 628px
+buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
+/* to move an icon to left, INCREASE percentage*/
 .aqi			{ background:url(hsprite.png);} 
-.aqi.qback		{ background-position:-1% 0px;} /* sprite 0 */
-.aqi.qsearch 	{ background-position: 10.4% 1px;} /* sprite 1 */
-.aqi.qprint		{ background-position: 21.2% 1px;} /* sprite 2 */
-.aqi.qzoom-in 	{ background-position: 33.1% 1px;} /* sprite 3 */
-.aqi.qzoom-out	{ background-position: 44.2% 1px;} /* sprite 4 */
-.aqi.qclose		{ background-position: 55.2% 1px;} /* sprite 5 */
-.aqi.qwarning	{ background-position: 65.8% 1px;} /* sprite 6 */
-.aqi.qinfo		{ background-position: 76.9% 1px;} /* sprite 7 */
-.aqi.qexpand 	{ background-position: 87.9% 1px; opacity:0.5;} /* sprite 8 */
-.aqi.qcollapse	{ background-position: 99.1% 1px; opacity:0.5;} /* sprite 9 */
-/* position in % 100%/(nbicon-1)*(icon position)+base, ex: icon 5 = 100/9*5-1.5%  */
+.aqi.qback		{ background-position:-0.8% 0px;} /* sprite 0 */
+.aqi.qsearch 	{ background-position: 9.5% 1px;} /* sprite 1 */
+.aqi.qprint		{ background-position: 19.1% 1px;} /* sprite 2 */
+.aqi.qzoom-in 	{ background-position: 29.45% 1px;} /* sprite 3 */
+.aqi.qzoom-out	{ background-position: 39.4% 1px;} /* sprite 4 */
+.aqi.qclose		{ background-position: 49.4% 1px;} /* sprite 5 */
+.aqi.qwarning	{ background-position: 59.2% 1px;} /* sprite 6 */
+.aqi.qinfo		{ background-position: 69.2% 1px;} /* sprite 7 */
+.aqi.qexpand 	{ background-position: 79.2% 1px; opacity:0.5;} /* sprite 8 */
+.aqi.qcollapse	{ background-position: 89.1% 1px; opacity:0.5;} /* sprite 9 */
+.aqi.qlink		{ background-position: 99.4% 1px;} /* sprite 10 */
 
 #aql_page .hicon,
 #aql_alert .hicon { /* on a button, shall be above it 28px images*/
-	background-size: 332px 28px; 
+	background-size: 366px 28px; 
 	background-repeat: no-repeat;   
 	width: 30px;
 	height: 30px; 
@@ -248,42 +265,42 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 }
 
 #aql_page .licon,
-#aql_alert .licon { /* inline in titles. 20 px images 20/48*570 */
-	background-size: 234px 20px;
-	background-repeat: no-repeat;    
-	padding: 0 10px; /* set width of the span as width don't work*/
+#aql_alert .licon { /* inline in titles. 20 px images 20/48*628 */
+	background-size:262px 20px;
+	background-repeat:no-repeat;    
+	padding:0 10px; /* set width of the span as width don't work*/
 }
 
 #btn_hlp_toc {
 	width:132px !important; /*surpass button def (36px) */
-	margin-left:6px; 
+	margin-left:3px; 
 	margin-right:0px;
 }
 
 #hform { 
 	min-width:100%;
-	vertical-align: top; 
+	vertical-align:top; 
 }
 
 #hsearch { /* search field */
 	display:inline;
-	overflow: visible;
-	font-size: 16px;  /* force Bootsrap value */
-	border-radius: 4px;
-	margin: 0;
-	padding: 4px 4px;
+	overflow:visible;
+	font-size:16px;  /* force Bootsrap value */
+	border-radius:4px;
+	margin:0;
+	padding:4px 4px;
 	width:110px;
-	border: 1px solid #d0d0d0;
+	border:1px solid #d0d0d0;
 }
-#aql_page ::-webkit-input-placeholder { color: #BFBFBF; }
-#aql_page ::-moz-placeholder { color: #BFBFBF;	opacity:  1; }
+#aql_page ::-webkit-input-placeholder { color:#BFBFBF; }
+#aql_page ::-moz-placeholder { color:#BFBFBF;	opacity:  1; }
 #aql_page :-ms-input-placeholder { color:#BFBFBF; }
 
 #btn_hlp_print { /* to separate button from search button */
-	margin-left:6px; 
-	margin-right:6px;
+	margin-left:3px; 
+	margin-right:3px;
 	padding-right:6px;
-	padding-left: 6px;
+	padding-left:6px;
 }
 
 #btn_aql_zo,
@@ -294,30 +311,30 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 
 #aql_page .aqltab {
 	display:inline-block; 
-	vertical-align: bottom;
-	margin: 0;
+	vertical-align:bottom;
+	margin:0;
 	padding:16px 0 0 0;
 }
 
 #aql_page .aqltab button {
-	border-bottom: none;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
-	bottom: -2px;
-	overflow: hidden;
-	width: 100px;
-	height: 28px;
+	border-bottom:none;
+	border-bottom-left-radius:0;
+	border-bottom-right-radius:0;
+	bottom:-2px;
+	overflow:hidden;
+	width:100px;
+	height:28px;
 }
 
 #aql_page .aqltab button.aqlsel {
-	background-image: none;
-	background-color: white;
+	background-image:none;
+	background-color:white;
 	background-color:#ececec;
-	background-color: var(--aql-page-bgcolor);
+	background-color:var(--aql-page-bgcolor);
 	bottom:-4px;
 }
 #aql_page button.aqlsel:hover {
-	background-image: none;
+	background-image:none;
 }
 
 /*--- Main structures of the page ------*/
@@ -326,36 +343,36 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 }
 
 .hlpsec, .hlpintro {  /*hlpsec is section which depends from a title - they are nested */
-	margin-left: 12px;
+	margin-left:12px;
 }
 
 .hlpintro { 
-	padding: 0px 6px 6px 0;
+	padding:0px 6px 6px 0;
 }
 
 .hlptoc { 
-	color: black;
-	color: var(--aql-toc-color);
-	background-color: #fcfcfc;
-	background-color: var(--aql-toc-bgcolor);
-	border: 1px;
-	border-style: solid;
-	padding: 6px 20px 6px 4px;
-	margin: 20px 20px 6px 6px;
+	color:black;
+	color:var(--aql-toc-color);
+	background-color:#fcfcfc;
+	background-color:var(--aql-toc-bgcolor);
+	border:1px;
+	border-style:solid;
+	padding:6px 20px 6px 4px;
+	margin:20px 20px 6px 6px;
 /*	float:left; */
 	float:right; 
-	display: inline-block;
+	display:inline-block;
 }
 
 .hlpsign { /* for signature - in principle in the footer*/
 	float:right;
-	font-size: 8px;
+	font-size:8px;
 }
 
 /*-- Table of content links 2-4 --------*/
-.rtoc2 { padding-left: 15px;}
-.rtoc3 { padding-left: 30px;}
-.rtoc4 { padding-left: 45px;}
+.rtoc2 { padding-left:15px;}
+.rtoc3 { padding-left:30px;}
+.rtoc4 { padding-left:45px;}
 
 /*--- Inside the help window -----------------*/ 
 .hlptt {
@@ -370,49 +387,49 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 #aql_page hr {  /* use transparency to shade */
 	clear:both;
 	display:block;
-	border: 0; 
-	height: 0; 
-	border-top: 1px solid rgba(0, 0, 0, 0.22);
+	border:0; 
+	height:0; 
+	border-top:1px solid rgba(0, 0, 0, 0.22);
 }
 
 #aql_page h1, h2 {  /* h1 for the main title */
-	font-size: 24px; 
-	line-height: 1.2; 
-	padding: 4px 12px 2px 10px;
+	font-size:24px; 
+	line-height:1.2; 
+	padding:4px 12px 2px 10px;
 }
 #aql_page h1 { 
-	margin: 10px 8px 16px 0;
-	box-shadow: 1px 1px 2px #F8F8F8;
-	box-shadow: 1px 1px 2px var(--aql-h1-shcolor); 	
-	color: var(--aql-h1-color); /* default black*/
-	background-color: #FFFFFF;
-	background-color: var(--aql-h1-bgcolor);
+	margin:10px 8px 16px 0;
+	box-shadow:1px 1px 2px #F8F8F8;
+	box-shadow:1px 1px 2px var(--aql-h1-shcolor); 	
+	color:var(--aql-h1-color); /* default black*/
+	background-color:#FFFFFF;
+	background-color:var(--aql-h1-bgcolor);
 	display:block; 
 }
 #aql_page h2 { 
-	margin: 16px 8px 12px 0; 
-	box-shadow: 1px 1px 2px #F8F8F8;	
-	box-shadow: 1px 1px 2px var(--aql-h2-shcolor); 	 
-	font-size: 22px;
-	color: var(--aql-h2-color);
-	background-color: #FFFFFF;
-	background-color: var(--aql-h2-bgcolor);
+	margin:16px 8px 12px 0; 
+	box-shadow:1px 1px 2px #F8F8F8;	
+	box-shadow:1px 1px 2px var(--aql-h2-shcolor); 	 
+	font-size:22px;
+	color:var(--aql-h2-color);
+	background-color:#FFFFFF;
+	background-color:var(--aql-h2-bgcolor);
 }
 #aql_page h3, h4 { 
-	color: var(--aql-h34-color);
+	color:var(--aql-h34-color);
 	background-color:#ececec;
-	background-color: var(--aql-h34-bgcolor);
+	background-color:var(--aql-h34-bgcolor);
 }
 
 #aql_page h3 { 
-	font-size: 20px; 
-	line-height: 1.3; 
-	margin: 10px 8px 8px 12px;
+	font-size:20px; 
+	line-height:1.3; 
+	margin:10px 8px 8px 12px;
 }
 
 #aql_page h4 { 
-	font-size: 17px;
-	margin: 9px 8px 7px 12px; 
+	font-size:17px;
+	margin:9px 8px 7px 12px; 
 	position:relative; /* why this one only ?? */
 }
 
@@ -420,82 +437,82 @@ buttons with 28px sprites -> 28/48*570=332px, space 33px (=28/48*58)*/
 #aql_page .hlpmenu h2, 
 #aql_page .hlpmenu h3, 
 #aql_page .hlpmenu h4 {  /*class menu  to set  stuff in a side menu, minimizing element space*/ 
-	margin: 3px 0; 
+	margin:3px 0; 
 	padding:0;
-	background-color: #F8F8F8;
-	background-color: var(--aql-hd-bgcolor);
-	font-size: 17px;
+	background-color:#F8F8F8;
+	background-color:var(--aql-hd-bgcolor);
+	font-size:17px;
 }
 
 .hlpmenu h2.hlptt,
 .hlpmenu h3.hlptt {
 	margin:0;
-	border-style: solid;
-    border-width: 2px;
+	border-style:solid;
+    border-width:2px;
 	border-color:#F8F8F8;
 	border-color:var(--aql-h2-shcolor);
 	border-style:outset;
-	border-radius: 4px;
+	border-radius:4px;
 }
 
 #aql_page .hlpmenu ul {
-	list-style-position: outside; /*bullets within the margin */
-	list-style-type: none;
-	list-style-image: none;
-	margin: 0 0 0 -5px;
-    padding: 0;
+	list-style-position:outside; /*bullets within the margin */
+	list-style-type:none;
+	list-style-image:none;
+	margin:0 0 0 -5px;
+    padding:0;
 }
 
 #aql_page .hlpmenu .licon { /* inline in titles. 17 px images  17/48*570 */
-	background-size: 198px 17px; /* same width as main for sprites */
-	padding: 0 8px; /* set width of the span as width don't work*/
+	background-size:198px 17px; /* same width as main for sprites */
+	padding:0 8px; /* set width of the span as width don't work*/
 }
 
 /* -------------------------------------------------*/
 #aql_page ul { /* whole list */
-	list-style-position: inside; /*bullets within the margin */
-	list-style-type: circle;
-	list-style-image: url('bullet1.png'); /* image shall be in same directory as css. neither 'h/bullet1.gif' nor '/h/bullet1.gif' works on Firefox (but ok on Chrome and edge...) maybe test ../h/bullet1.gif */
-	marker-offset: 15px; 
-	margin: 0;
-    padding: 0 0 0 5px;
+	list-style-position:inside; /*bullets within the margin */
+	list-style-type:circle;
+	list-style-image:url('bullet1.png'); /* image shall be in same directory as css. neither 'h/bullet1.gif' nor '/h/bullet1.gif' works on Firefox (but ok on Chrome and edge...) maybe test ../h/bullet1.gif */
+	marker-offset:15px; 
+	margin:0;
+    padding:0 0 0 5px;
 } 
 
 #aql_page li { 
-	margin: 3px 0; 
+	margin:3px 0; 
 	/*padding: 0 13px 0 0; */
 }
 
 #aql_page pre  {  /* or use <pre><code> ?*/
-	white-space: pre-wrap;
-	font-family: "DejaVu Sans Mono",Consolas,Monaco,"Lucida Console","Liberation Mono", monospace !important; 
-	margin: 10px 10px 14px 8px;
-	padding: 4px 8px;
-	font-size: 14px;
-	background-color: #FFFFFF; 
-	border: 1px solid #D0D0D0;
-	border-radius: 4px;
+	white-space:pre-wrap;
+	font-family:"DejaVu Sans Mono",Consolas,Monaco,"Lucida Console","Liberation Mono", monospace !important; 
+	margin:10px 10px 14px 8px;
+	padding:4px 8px;
+	font-size:14px;
+	background-color:#FFFFFF; 
+	border:1px solid #D0D0D0;
+	border-radius:4px;
 }
 #aql_page pre.inline  { 
 	display:inline;
-	margin: 0;
-	padding: 2px 3px;
+	margin:0;
+	padding:2px 3px;
 }	
 
 div.spacer1 {
-    font-size: 0; 
-    height: 7px;
-    line-height: 0;
+    font-size:0; 
+    height:7px;
+    line-height:0;
 }
 
 div.spacer2 {
-    font-size: 0; 
-    height: 14px;
-    line-height: 0;
+    font-size:0; 
+    height:14px;
+    line-height:0;
 }
 
 .hlpindent {
-	margin-left: 18px;
+	margin-left:18px;
 }
 
 .hlpimg,
@@ -504,7 +521,7 @@ div.spacer2 {
 	display:block;
 	border:none;
 	padding:6px;
-	margin: 0;
+	margin:0;
 }
 
 .hlpimgL { 
@@ -512,7 +529,7 @@ div.spacer2 {
 	display:block;
 	border:none;
 	padding:6px;
-	margin-left: 24px;
+	margin-left:24px;
 }
 
 .hlpimgC {  /*-- centered images --*/
@@ -521,7 +538,7 @@ div.spacer2 {
 	display:block;
 	border:none;
 	padding:6px;
-	margin: 0 auto;
+	margin:0 auto;
 }
 
 /*--- table -----------------------------------------------*/
@@ -537,29 +554,29 @@ div.spacer2 {
 #aql_page table {
 	border:1px solid #b0b0b0;
 	border-radius:2px;
-	border-collapse: collapse; 
+	border-collapse:collapse; 
 	color:#a0a0a0; 
-	box-shadow: 0 1px 2px; /* box-shadow will use color by default*/
+	box-shadow:0 1px 2px; /* box-shadow will use color by default*/
 	color:black;  /* to get the final color */
-	margin: 8px;
+	margin:8px;
 }
 #aql_page th {
-	font-size: 1.12em;
-	border: 1px solid #b0b0b0; 	
-	background: #eaeaea; 
+	font-size:1.12em;
+	border:1px solid #b0b0b0; 	
+	background:#eaeaea; 
 }
 #aql_page th, 
 #aql_page td { 
-	padding: 3px 3px; 
+	padding:3px 3px; 
 }
 #aql_page tr {
-	background: #f9f9f9;
+	background:#f9f9f9;
 }
 #aql_page table.altstrip tr.tbalt {   /* NO SPACE between tr and class */
- 	background: #efefef; /* alternate row background color */
+ 	background:#efefef; /* alternate row background color */
 }
 #aql_page td {
-	border: 1px solid #d0d0d0; 
+	border:1px solid #d0d0d0; 
 }
 
 /*-- printing in an independant html element by transferring DOM node in it --*/
@@ -570,7 +587,7 @@ div.spacer2 {
 
 @media screen {
 	#printSection {
-		display: none;
+		display:none;
 	}
 }
 
@@ -586,8 +603,8 @@ div.spacer2 {
 		left:0;
 		top:0;
 	}
-	#printSection h1 { font-size: 24px;}
-	#printSection h2 { font-size: 22px;}
-	#printSection h3 { font-size: 20px;}
-	#printSection h4 { font-size: 17px;}
+	#printSection h1 {font-size:24px;}
+	#printSection h2 {font-size:22px;}
+	#printSection h3 {font-size:20px;}
+	#printSection h4 {font-size:17px;}
 }

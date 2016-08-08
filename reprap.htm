@@ -1727,7 +1727,7 @@
 		<div id="aql_cont" style="display:none;">
 			<div id="aql_page">
 				<div id="aql_header">
-					<form id="hform" method="get" autocomplete="on" >
+					<form id="hform" name="hform" method="get" autocomplete="on" >
 						<div style ="float:right;">
 							<button type="button" id="btn_aql_zo"><span class="hicon aqi qzoom-out" title="Zoom out"></span></button>  
 							<button type="button" id="btn_aql_zi"><span class="hicon aqi qzoom-in" title="Zoom in"></span></button>  
@@ -1736,6 +1736,8 @@
 						<button type="button" id="btn_hlp_back" title="Previous page"><span class="hicon aqi qback"></span></button>
 						<button type="button" id="btn_hlp_print" title="Print current page">
 							<span class="hicon aqi qprint"></span></button>
+						<button type="button" id="btn_aql_bk" title="What links here?">
+							<span class="hicon aqi qlink"></span></button>			
 						<button type="button" id="btn_hlp_toc" title="Table of content">Table of content</button>
 						<div style="display:inline-block;">
 							<input  type="text" placeholder="Search" id="hsearch" role="search">
@@ -1760,6 +1762,7 @@
 			<div id="halert"></div>
 			<div id="halertext">Alert !</div>
 		</div>
+		<div id="aql_bk"></div> <!-- backlink list -->
 		<!-- Bootstrap core JavaScript
 	  ================================================== -->
 	  <!-- Placed at the end of the document so the pages load faster -->

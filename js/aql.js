@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 				aqlScrollAnchor (href);
 			} 
 		}	
+		$0("aql_bk").style.display = 'none';
 	};  
 	$(".aqltab>button").click(function(){ //click on a tab
 		var idx = $(this).index();
@@ -156,15 +157,21 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		aqlO.zoom = aqlO.zoom*0.87;
 		document.head.querySelector("[name=viewport]").content = aqlzoom();
     };	
+	$0("btn_aql_bk").onclick = function(){ // Call backlinks window - also do that with hover ? 
+		if (getComputedStyle($0("aql_bk")).display=="none") //style not initialised by JS->call function 
+			hlpLoadAll("hlpListBack");
+		else
+			$0("aql_bk").style.display="none";
+    };
 	$(".aqlstart").click(function(e){ //APPLICATION  call widget  set class '.hlpstart' in widget
 		var hpage =  $(e.target).data('hpage'); 
 		showHlp(hpage, true);
     }); 
-	$0("btn_hlp_back").onclick = function(){ history.back(); }; 
-	$0("btn_hlp_toc").onclick = function(){	showHlp(); }; //only for non-tabbed page 
-	$0("btn_hlp_print").onclick = function(){ hlpPrint(); }; 
+	$0("btn_hlp_back").onclick = function(){history.back();}; 
+	$0("btn_hlp_toc").onclick = function(){showHlp();}; //only for non-tabbed page 
+	$0("btn_hlp_print").onclick = function(){hlpPrint();}; 
 	if ($0("btn_aql_close", true)) // only for in-application
-		$0("btn_aql_close").onclick = function(){ hlp_close(); }; 
+		$0("btn_aql_close").onclick = function(){hlp_close();}; 
 	$0("hform").onsubmit = function(e){ 
 		e.preventDefault(); //prevent submission of search, treated within Javascript 
 		var stext = $0("hsearch").value; // search key
@@ -792,7 +799,7 @@ var i, j, toc="", tsp;
 function aqlTable (tabmark) {
 var i, j, tab="", tabtot=[], row=[], ncol=0, ncol1, val, mt, calign, tdh, alt, cl;	
 	function chktxt(txt) {
-		calign = "";
+		calign = '';
 		tdh = 'td';
 		if (txt) {
 			var mt = txt.match(/^(=)?(\*)?([\t ]*)(.*?)([\t ]*)$/); 
@@ -802,7 +809,7 @@ var i, j, tab="", tabtot=[], row=[], ncol=0, ncol1, val, mt, calign, tdh, alt, c
 				if (z(mt[2])=='*')
 					txt = '<strong>'+txt.trim()+'</strong>'; 
 				if (z(mt[3])&&!z(mt[5]))
-					calign = ' style="text-align:right"';	
+					calign =' style="text-align:right"';	
 				else if (!z(mt[3])&&z(mt[5]))
 					calign =' style="text-align:left"';	
 				else
@@ -897,7 +904,7 @@ function hlpSetContent (hpage, x, stateCh) {
 			if (aqlO.lastP=='aqlsearch') { // if linked from search page, highlight search on called page 
 				var pos=0, j=-1, tabSearch=[];
 				//htext = htext.replace (/<a (href|id)=.*?>/g, function (mt) { // tokenize links/anchors
-				htext = htext.replace (/<(a h|a na|div|img|\/|table|h|tr|th|td).*?>/g, function (mt) { // tokenize some html markup
+				htext = htext.replace (/<(a h|a id=|a na|div|img|\/|table|h|tr|th|td).*?>/g, function (mt) { // tokenize some html markup
 					xlnk.push(mt);
 					return '♣';
 				});
@@ -974,7 +981,7 @@ function searchHlp() { // Search a text in all help file
 }
 
 function hlpPrint() { // print the body of the help windows - reinterpret with options
-	var $printSection = $0("printSection"); // defined in CSS 
+	var $printSection = $0("printSection",true); // defined in CSS 
 	if (!$printSection) {
 		$printSection = document.createElement("div");
 		$printSection.id = "printSection";
@@ -994,6 +1001,7 @@ window.hlpLoadAll= function() { // used for search and diagnostics - build an in
 	else {
 		hlpLoadAll.refP = []; // store pages referenced as not in tabHlp (and not already searched)
 		hlpLoadAll.Eidx = 0; // index of not in tabHlp pages
+		hlpLoadAll.curPage = aqlO.lastP; // load all page modify last page (set by content loader)
 		hlpChklnk(hlpAllIntPages(), ""); 
 		hlpLoadExt(runFunc); // load all pages in reference list, add new references as needed
 	}
@@ -1018,6 +1026,7 @@ function hlpLoadExt(runFunc)  {
 	var lnk;
 	if (hlpLoadAll.Eidx==hlpLoadAll.refP.length) {
 		aqlO.loadAll=true; // all pages are loaded in memory
+		aqlO.lastP = hlpLoadAll.curPage;
 		window[runFunc]();	
 	}	
 	else { 	// load file one after the other, less trouble than multiple runs
@@ -1062,11 +1071,47 @@ function hlpChklnk(htext, id) { // stack pages not found in the hash table ( not
 	}
 } 
 
+function hlpListBack() { // list backlinks
+var id, tabTrans = {};	
+	aqlO.listAll = true; // unactivate toc and pre block
+	for (id in tabHlp) // create hash table of converted markup
+		tabTrans[id] = (tabHlp[id]) ? aqlTrans(z(tabHlp[id].p), id):"";
+	$0("aql_bk").innerHTML = "What links here:<br>"+backlinks(tabTrans,aqlO.lastP,"<br>");
+	aqlO.listAll = false; // reactivate toc and pre block	
+	setTimeout(function() { // when interpretation too fast, we are still in click event, which close the just open window
+		$0("aql_bk").style.display = 'block';
+	}, 100);	
+}
+
+function backlinks(tabH, link) {
+var backlnk, i, id, pagetx, nblink, text;
+var	bsep = (arguments[2])? arguments[2]:", "; // backlinks separator
+    text = (arguments[2])?'':'<strong>'+z(zo(tabHlp[link]).ext)+link+' :</strong>';	
+	for (id in tabHlp) {
+		pagetx = tabH[id];
+		if (pagetx) {
+			nblink=0;
+			var ilinks = pagetx.match (/wHlp\('[^'#]*(?='\))/g); //all internal links 
+			for (i=0; i<z(ilinks).length; i++) {
+				backlnk = hlpNamePage(ilinks[i].substr(6)).split("!",1)[0]; // eliminate leading chars and anchors
+				if (backlnk==link) {
+					if (!nblink) 
+						text+=hlpCall(id,id)+'(';
+					nblink++;  // count number of links in same page
+				}	
+			} 
+			if (nblink)	
+				text+=nblink+')'+bsep;
+		}	
+	}	
+	return (text + ((arguments[2])?'':'<br>'));
+}
+
 //== Utilities ===================================================================
 function z(val) {return (val||'');} // Make empty strings of undefined
 function zo(obj) {return (obj==undefined)? new Object():obj;} // Make empty object of undefined
 
-function $0(id) { // Search DOM by Id
+function $0 (id) { // Search DOM by Id
 	var r = document.getElementById(id); 
 	if (!r) {
 		if (!arguments[1]) alert ("element "+id+ " not found"); // can stop the error if 2nd param =true;
@@ -1075,7 +1120,7 @@ function $0(id) { // Search DOM by Id
 	else 
 		return  r;
 } //return a DOM element
-function $T(id) {  // return a node list, second parameter is the root element, default document
+function $T (id) { // return a node list, second parameter is the root element, by default document
 	var el = arguments[1]? arguments[1] :document;
 	return el.getElementsByTagName(id);
 }
@@ -1130,29 +1175,6 @@ var i, id, tabTrans = {};
 	$0("aql_body").innerHTML = text+'</div><br><br><br><br><br><br>'; 
 	aqlO.listAll = false; // re-allow normal interpretation
 }	
-
-function backlinks(tabH, link) {
-var backlnk, i, id, pagetx, nblink, text;
-    text = '<strong>'+z(zo(tabHlp[link]).ext)+link+' :</strong>';	
-	for (id in tabHlp) {
-		pagetx = tabH[id];
-		if (pagetx) {
-			nblink=0;
-			var ilinks = pagetx.match (/wHlp\('[^'#]*(?='\))/g); //all internal links 
-			for (i=0; i<z(ilinks).length; i++) {
-				backlnk = hlpNamePage(ilinks[i].substr(6)).split("!",1)[0]; // eliminate leading chars and anchors
-				if (backlnk==link) {
-					if (!nblink) 
-						text+=id+'(';
-					nblink++;  // count number of links in same page
-				}	
-			} 
-			if (nblink)	
-				text+=nblink+'), ';
-		}	
-	}	
-	return (text +'<br>');
-}
 
 function hlpAllWeblnk() { // list all links for all pages - DO NOT search identical links
 var count=0, text="", page, id, m, re=/(<a href="htt.*?<\/a>)/g;	
