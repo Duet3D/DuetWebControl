@@ -4,7 +4,7 @@ You can write any comments before the first page.
 
 ■home
 RepRap Firmware and Duet documentation
-/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
+(:date 11 Aug 2016 02:05:)/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi Quick start guide
 *%Prerequisites%%
@@ -26,6 +26,7 @@ allb,Duet_WiFi_1.0+/=
 * %Power wiring%power_wiring 
 * %What could kill your Duet?%what_kill_duet 
 * %Fans%Fans
+* %choosing stepper motors%choosing stepper
 * %Duet pinout%Duet_pinout
 ===< Differences with other Hardware/Firmware
 * %Wiring and hardware differences from RAMPS etc.%Duet_differences
@@ -55,7 +56,7 @@ allb,Duet_WiFi_1.0+/=
 
 ■menu
 Menu
-(:nodef:)(:notitle:)(:notoc:)
+(:date 11 Aug 2016 02:05:)(:nodef:)(:notitle:)(:notoc:)(:nodate:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi start
 *%Prerequisites%%
@@ -77,6 +78,7 @@ allb,Duet_WiFi_1.0+/=
 * %Power wiring%power_wiring 
 * %What kill Duet%what_kill_duet 
 * %Fans%Fans
+* %choosing stepper%choosing stepper
 * %Duet pinout%Duet_pinout
 ===< Differences
 * %Wiring and hardware%Duet_differences
@@ -106,24 +108,24 @@ allb,Duet_WiFi_1.0+/=
 
 ■hlpdef
 Default page add directives or text at start of any page.
-(:numtitle:)(:hlpfoot:)
+(:date 11 Aug 2016 02:05:)(:numtitle:)(:hlpfoot:)
 
 ■hlpfoot
 Foot page add text at the bottom of the page, outside the title section, inside the page css class.
- <div class="hlpsign" role="contentinfo">delivered by <a href="http://aquilegia.blue" target=\"_blank\">Aquilegia</a> &nbsp; <div>
+(:date 11 Aug 2016 02:05:) <div class="hlpsign" role="contentinfo">delivered by <a href="http://aquilegia.blue" target=\"_blank\">Aquilegia</a> &emsp; <div>
 
 ■hlpdiag
 Writer tool box
-<a href="javascript:hlpLoadAll('hlpListAll');">List all pages (after loading external pages)</a> This is not instant, please wait !
+(:date 11 Aug 2016 02:05:)<a href="javascript:hlpLoadAll(hlpListAll);">List all pages (after loading external pages)</a> This is not instant, please wait !
 
-<a href="javascript:hlpLoadAll('hlpAllWeblnk');">List all web links (after loading external pages)</a>  
+<a href="javascript:hlpLoadAll(hlpAllWeblnk);">List all web links (after loading external pages)</a>  
 Links open in new window, so you can test one after the other while closing test window with [Ctrl]W. This is not instant, please wait !
 
-<a href="javascript:hlpLoadAll('hlpAllImglnk');">Check linked images (after loading external pages)</a>This is not instant, please wait !
+<a href="javascript:hlpLoadAll(hlpAllImglnk);">Check linked images (after loading external pages)</a>This is not instant, please wait !
 
 ■About
 About page
-All pages published on this site are under licence CC BY-SA except where mentioned (GFDL 1.2).
+(:date 11 Aug 2016 02:05:)All pages published on this site are under licence CC BY-SA except where mentioned (GFDL 1.2).
 Pages mostly authored by T3P3 (mentioned), DC42 (mentioned) and PRZ (not mentioned). Pages are mainly direct extracts from the "RepRap wiki http://reprap.org/wiki" where you can find the history and author where forgotten here. 
 *Help is delivered by "Aquilegia module http://aquilegia.blue" <small>developed by Pierre ROUZEAU, aka PRZ, license GPLv2 or any later version</small>
 
@@ -131,7 +133,7 @@ Pages mostly authored by T3P3 (mentioned), DC42 (mentioned) and PRZ (not mention
 
 ■what_kill_duet
 What could kill your Duet ?
-(:notoc:)
+(:date 11 Aug 2016 02:05:)(:notoc:)
 'Integral' board have some advantages in manufacturing cost and offer the best driver cooling, but a failure of one component may drive to a total loss of the board. Some failures could be repaired by equipped and handy people, but that may not be possible for a lot of users.
 
 So, you shall be very cautious while testing and installing the board.
@@ -164,7 +166,7 @@ Never tin stranded wires which are connected to a board. Tinned wire end will ch
 
 ■Prerequisites
 Prerequisites
-allb,Duet_0.85,Duet_0.6+/=
+(:date 11 Aug 2016 02:05:)allb,Duet_0.85,Duet_0.6+/=
 == Duet 0.8.5 and 0.6 Prerequisite
 * A computer with an USB port
 * To use the %Duet Web Control%duet_web_control, your computer shall be connected to an Ethernet network.
@@ -190,7 +192,7 @@ There are a limited number of hardware limitations and firmware issues which we 
 ===Hardware limitations
 * The DueX5 heater and stepper driver expansion board for Duet WiFi is not yet available, and the DueX4 expansion board is not compatible with the Duet WiFi expansion connector. Therefore you are limited to 3 axis and 2 extruder drives at present.
 * The maximum recommended power input voltage is 25V. This is a permanent limitation, because the TMC2660 drivers are rated at 30V when supplying power to motors.
-* On some systems, if you reset the Duet WiFi by pressing the Reset button when the motors are energised, then the stepper motors may move while the Reset button is held down. This will be fixed in the production hardware.
+* On some pre-production boards in some wiring configurations, if you reset the Duet WiFi by pressing the Reset button when the motors are energised, then the stepper motors may move while the Reset button is held down. This is fixed in the production hardware.
 
 ===Duet WiFi known firmware issues
 Version 1.14 firmware has the following known issues:
@@ -198,11 +200,11 @@ Version 1.14 firmware has the following known issues:
 * The web server can only satisfy one request at a time. You can have the web interface open on several devices at once, however if you upload a large file over the web interface from one of them, the others will report timeout errors and disconnect.
 * You cannot yet change microstepping on the fly during a print. You must re-home the printer after changing microstepping.
 * If you do a software reset from the web interface (for example by accepting the invitation to reset the Duet after editing the config.g file and clicking Apply Settings, or by pressing the Emergency Stop button, or by sending M999), the web interface may report an AJAX error and disconnect. If this happens, just press the Connect button to reconnect.
-* If your WiFi connection is unreliable then %Duet Web Control%duet_web_control may report an AJAX timeout error and disconnect.
+* If your WiFi connection is unreliable then %Duet Web Control%duet_web_control may report an AJAX timeout error and disconnect. You can press the Connect button to reconnect, without affecting any print in progress.
 * The diagnostic LED is not currently used. In future it will be used to indicate progress of firmware updates, and for other purposes.
 * The PanelOne 20x4 text display is not yet supported in firmware, however PanelDue is fully supported.
 * Some other planned firmware features (e.g. print suspend/resume on power fail/restore) are not yet implemented.
-* The SSID and password of the WiFi access point that the DuetWiFi connects to must use only ASCII characters (so no accented characters)
+* The SSID and password of the WiFi access point that the DuetWiFi connects to must use only ASCII characters (so no accented characters).
 
 Version 1.13 firmware (as installed on most pre-production DuetWiFi boards when they were shipped) had the following additional issues:
 
@@ -219,7 +221,7 @@ See the section on Hardware and Wiring for wiring details.
 
 ■Getting connected
 Getting connected on Duet WiFi
-The board is supplied pre-programmed. To get started:
+(:date 11 Aug 2016 02:05:)The board is supplied pre-programmed. To get started:
 
 # Omit this step if your host computer runs an operating system other than Windows, or you have already installed this device driver for use with a Duet 0.6 or 0.8.5 running recent firmware. Go to RepRapFirmware on github and download duet.inf and duetinf.cat in Raw mode (i.e. click on the link to the file and then press the Raw button) to a folder on your computer. Under Windows 10 you can install it by opening the folder in File Manager and double-clicking on duet.inf. Under earlier versions of Windows, open Device Manager, find the "Unknown device" that appears when you connect the Duet, right-click on it, select Update Driver, select Have Disk, and browse to the duet.inf file.
 #  If you will be using a PanelDue with the Duet WiFi, we recommend that you upgrade it to version 1.14 firmware. See the PanelDue instructions for how.
@@ -252,7 +254,7 @@ The board is supplied pre-programmed. To get started:
 
 ■Troubleshooting 
 Troubleshooting Duet WiFi
-Problem: you can’t connect to the Duet via USB/Pronterface:
+(:date 11 Aug 2016 02:05:)Problem: you can’t connect to the Duet via USB/Pronterface:
 * First see if the DuetWiFi will start up if you don’t have networking enabled in config.g. With power off, remove the SD card, put it in a PC, and use a text editor to remove or comment out the M552 S1 command in config.g. Save the file, and also copy a known working DuetWiFiServer.bin file into the/sys directory. Eject or safely remove the SD card, put it back in the Duet WiFi, start it up. Check in Windows Device Manager or equivalent if the COM port for the DuetWiFi is present, and if so, try to connect Pronterface.
 * If that doesn’t resolve the issue and you think you may have installed dud main firmware, use SAM-BA to install known good main firmware (see earlier).
 * If starting up with network disabled allowed you to connect with USB/Pronterface, then install new WiFi server firmware.
@@ -264,7 +266,7 @@ Problem: you can connect to the Duet via USB/Pronterface, but not via WiFi:
 
 ■Duet_differences
 Wiring and hardware differences from RAMPS etc.
-If you are upgrading your 3D printer electronics from RAMPS or similar to Duet, these are the main hardware differences you need to take account of.
+(:date 11 Aug 2016 02:05:)If you are upgrading your 3D printer electronics from RAMPS or similar to Duet, these are the main hardware differences you need to take account of.
 ==Power
 The Duet has a single 12V/24V power input for both the bed heater and everything else, whereas RAMPS has two power inputs. If your RAMPS system had a single PSU, you can feed both PSU cables into the single VIN terminal block on the Duet if they will fit, or else run a single heavy-duty cable from the PSU to the Duet. IMPORTANT! Be sure to connect the power leads to the terminals the right way round. The + and - terminals are marked on the underside of the board. The - terminal is on the side nearest the bed heater terminal block, and the + terminal is the one nearest the stepper motor connectors.
 
@@ -309,14 +311,14 @@ The only LCD display currently supported is the PanelDue colour touch screen. Ho
 
 ■RRF_differences
 Firmware differences from Marlin, Repetier etc.
-The Duet and Duet WiFi run RepRapFirmware. This differs from Marlin in a number of ways:
+(:date 11 Aug 2016 02:05:)The Duet and Duet WiFi run RepRapFirmware. This differs from Marlin in a number of ways:
 * You do not need to build the firmware yourself unless you are a firmware developer. The firmware is supplied as a ready-built binary file. All important configuration parameters are defined within the /sys/config.g file on the SD card, which you can edit either in the web interface, or by moving the SD card to a PC and using an ordinary text editor such as Notepad++. You can also change these parameters on the fly by sending the appropriate G-codes. The homing behaviour is defined in homing files also on the SD card. Bed probing behaviour is defined in the bed.g file on the SD card. For more details, see %Configuring RepRapFirmware for a Cartesian_printer%Cartesian_config.
 * Bed probing is done using G32, not G29.
 * RepRapFirmware doesn’t yet have PID auto tune, however you can correct temperature undershoot/overshoot by increasing/decreasing the S parameter in the M305 commands in config.g (default is 1.0).
 
 ■Slicing recommendations
 Slicing recommendations
-For best accuracy we recommend slicing with relative extruder coordinates. This avoids the accumulation of rounding errors that firmwares suffer from when using absolute extruder coordinates.
+(:date 11 Aug 2016 02:05:)For best accuracy we recommend slicing with relative extruder coordinates. This avoids the accumulation of rounding errors that firmwares suffer from when using absolute extruder coordinates.
 
 RepRapFirmware supports multiple tools (i.e. print heads). You must always define which tool you want to use at the start of a print. If you are slicing for a single-tool machine, include T0 followed by M116 in your slicer start gcode.
 
@@ -324,7 +326,7 @@ RepRapFirmware supports firmware filament retract.
  
 ■Duet_WiFi_differences
 Duet WiFi: What are the differences?
-
+(:date 11 Aug 2016 02:05:)
 * 120MHz ARM Cortex M4 processor (ATSAM4E8E) with 128Kb RAM and floating point unit, instead of 84MHz M3 (ATSAM3X8E) with 96Kb RAM as on the Duet.
 * WiFi connection instead of wired Ethernet, supporting typically 800kbytes/sec file upload speed with a good wireless network connection.
 * TMC2660 stepper drivers instead of A4982. These drivers support up to 256x microstepping, with optional 16x interpolation when using 16x microstepping.
@@ -345,7 +347,7 @@ Duet WiFi: What are the differences?
 
 ■Duet_WiFi_Firm_diff
 Changes to config gcodes and firmware behaviour
-
+(:date 11 Aug 2016 02:05:)
 This is how the Duet WiFi firmware differs from the Duet 0.8.5 and 0.6.
 
 *   Networking is disabled at startup by default. Use M552 S1 in config.g to enable it at startup.
@@ -364,7 +366,7 @@ This is how the Duet WiFi firmware differs from the Duet 0.8.5 and 0.6.
 
 ■RepRap_Firmware
 RepRap Firmware
-3D printer RepRap Firmware run on 32 bits, ARM-based microprocessor.
+(:date 11 Aug 2016 02:05:)3D printer RepRap Firmware run on 32 bits, ARM-based microprocessor.
 allb,Duet_0.6,Duet_0.85+/=
 On Duet 0.6 and 0.8.5, the processor used is  "Atmel SAM3X8E http://www.atmel.com/devices/SAM3X8E.aspx" , as found on the "Arduino Due https://www.arduino.cc/en/Main/ArduinoBoardDue." 
 =/
@@ -448,9 +450,19 @@ allb,Duet_0.6,Duet_0.85+/=
 The wired Duets use the following folder structure:
 150L%DuetSDfolders.png
 =/
-*Folder /gcodes is used to hold gcode files for printing.
-*Folder /macros is used to hold used-defined macro files. The names of these files appear as menu entries in DuetWebControl and on PanelDue. See a typical set of %RepRap Firmware macros%Macros .
-*Folder /sys is used to hold system macro files used for homing, bed probing etc. and to hold firmware update files ready for installation. It also holds the file that is needed to install new main firmware : iap4e.bin for Duet WiFi, iap.bin for Wired Duets. 
+Folder **/gcodes** is used to hold gcode files for printing. You can use subfolders of /gcodes to organize these files.
+
+Folder **/macros** is used to hold used-defined macro files. The names of these files appear as menu entries in DuetWebControl and on PanelDue.  You can use subfolders of /macros to organize these files. See a typical set of %RepRap Firmware macros%Macros.
+Folder **/sys** is used to hold system files and to hold firmware update files ready for installation. It should contain at least the following files:
+* **config.g** holds the firmware configuration script, which is executed at startup.
+* **homex.g**, **homey.g**, **homez.g** and **homeall.g** are the homing scripts for a Cartesian or CoreXY printer. For a delta printer there is **homedelta.g** instead.
+***bed.g** holds the script for probing the bed and calculating bed compensation on a Cartesian or CoreXY printer, or doing delta calibration on a delta printer.
+* **pause.g** is run when you pause a print.
+* **resume.g** is run when you resume a print.
+* **cancel.g** is optional, but if present is run when you cancel a paused print.
+* **stop.g** is optional, but if present is run when a print finishes normally with an M0 command at the end of the print job.
+* **iap4e.bin** for DuetWiFi, **iap.bin** for Wired Duets is a helper file used to install new main firmware.
+*If your Z probe needs to be deployed and retracted, it is customary to use script files **deploy.g** and **retract.g** to do these. You must call these explicitly from within bed.g using the M98 command.
 *On Wired Duets, the /www folder and its subfolders hold the files served by the web server. On the Duet WiFi these files are held on the WiFi module instead. These files are served directly by the board to the browser and all interface processing is done by the browser (the web interface is programmed in Javascript).
 
 (:clear:)
@@ -513,14 +525,28 @@ Duet_WiFi_1.0-/=
 *%Connecting PT100 temperature sensors%Connecting_PT100
 *%RepRap Firmware release notes%Release_notes
 
-=== Firmware binaries 
-* dc42's fork firmware binaries (including Duet WiFi): "https://github.com/dc42/RepRapFirmware/tree/dev/Release"
-Duet_WiFi_1.0-/=
-* Chrishamm's fork firmware binaries: "https://github.com/chrishamm/RepRapFirmware/tree/dev/Release"
-* Chrishamm's DuetWebControl web interface (works with dc42 fork and chrishamm fork of RepRapFirmware): "https://github.com/chrishamm/DuetWebControl"
+== Firmware binaries 
+allb,Duet_WiFi_1.0+/=
+=== Duet WiFi
+*The official (dc42) binaries of the main firmware (DuetWiFiFirmware.bin are available at https://github.com/dc42/RepRapFirmware/tree/dev/Release. Chrishamm intends to produce a Duet WiFi build of his fork of RepRapFirmware, his releases are at https://github.com/chrishamm/RepRapFirmware/tree/dev/Release.
+*The WiFi module firmware (DuetWiFiServer.bin) is available here [link TBA].
+*The packaged web interface file (DuetWebControl.bin) is available here https://github.com/dc42/DuetWebControl/tree/master/Release.
+*The firmware update helper file (iap4e.bin) is available at https://github.com/dc42/DuetIAP/tree/master/Release and https://github.com/chrishamm/DuetIAP/tree/master/Release.
+*If you want to connect to your Duet WiFi via USB then you may need the two Windows device driver files here https://github.com/dc42/RepRapFirmware/tree/dev/Driver.
+*If you need to re-install the main firmware via USB, you will need Atmel's SAM-BA version 2,16 from http://www.atmel.com/tools/atmelsam-bain-systemprogrammer.aspx.
+*If you want to connect to your Duet WiFi via USB then you may need the two Windows device driver files here https://github.com/dc42/RepRapFirmware/tree/dev/Driver.
+=/
+
+allb,Duet_0.85,Duet0.6+/=
+=== Duet 0.8.5 or 0.6
+*The best supported versions of the main firmware file for the Duet 0.8.5 and 0.6 (RepRapFirmware.bin) are dc42's fork from https://github.com/dc42/RepRapFirmware/tree/dev/Release and chrishamm's fork from https://github.com/chrishamm/RepRapFirmware/tree/dev/Release. The version in the RepRapPro master repository is very old and no longer maintained.
+*The web interface (Duet Web Control) is maintained by chrishamm. The files are available at https://github.com/chrishamm/DuetWebControl.
+*The firmware update helper file (iap.bin) is available at https://github.com/chrishamm/DuetIAP/tree/master/Release and https://github.com/dc42/DuetIAP/tree/master/Release.
+*If you need to re-install the main firmware via USB you will need the Arduino version of bossac. This is packaged in the SAM processor add-on pack for Arduino. You can also download the Windows executable version of bossac from https://github.com/dc42/RepRapFirmware/tree/dev/Tools/Windows.
 * Dan Newman " port on RADDS board https://github.com/dcnewman/RepRapFirmware/tree/dev/Release"
 * Original RepRapPro firmware binaries (no longer maintained, and not for deltas or CoreXY machines): "https://github.com/reprappro/RepRapFirmware/tree/master/Release"
 =/
+
 *%Release notes for DC42 firmware fork and Duet Web Control%Release_notes 
 
 ==Further reading
@@ -529,7 +555,7 @@ Duet_WiFi_1.0-/=
 
 ■RepRap_Firmware_design
 ==RepRap Firmware design
-**RepRap Firmware** is intended to be a fully object-oriented highly modular C++ control program for
+(:date 11 Aug 2016 02:05:)**RepRap Firmware** is intended to be a fully object-oriented highly modular C++ control program for
 RepRap self-replicating 3D printers.
 
 It owes a lot to "Marlin http://reprap.org/wiki/Marlin" and to the original RepRap "FiveD Firmware http://reprap.org/wiki/FiveD_Firmware".  
@@ -687,7 +713,7 @@ You should now be able to compile the code and upload the result to the Duet.
 
 ■G-codes
 ==G-codes for RepRap Firmware
-The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use %more G-codes%gcode_cvt than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
+(:date 11 Aug 2016 02:05:)The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use %more G-codes%gcode_cvt than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
 
 This page list G-codes interpreted by RepRap Firmware. This list cover "DC42 https://github.com/dc42/RepRapFirmware/tree/dev/Release" and "Chrishamm https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" forks, which are more complete than the original version.
 Some G-Codes are common between RepRap Firmware and other firmwares, but with extended syntax or specific interpretation. They are listed in a specific paragraph.
@@ -729,6 +755,7 @@ Most configuration G-codes have default values, and if the default are acceptabl
 
 However, sometimes the default values got modified in firmware update, so it is wise to explicitly define all your parameters, to avoid troubles while updating and also to document them. 
 Some default values (DC42 fork rev 1.11): 
+*Steppers idling current percentage (current reduced after inactivity delay): 30% set by %M906 Inn%gcode_cvt!M906.3a_Set_motor_currents. One setpoint for all steppers.
 *PID parameters (%M301%gcode_cvt!M301.3a_Set_PID_parameters) for hotend heater : P10 I0.1 D100 T0.4 W180 B30
 *Bed control default is bang-bang (P-1)(%M304%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed), other parameters: I5 D500 T2.7 W255 B5 -for PID control, you may start with P85
 *PWM frequency 10Hz for Bed and Chamber heaters (SSR compatible) and ?? Hz for Hotend heaters - not adjustable
@@ -746,7 +773,7 @@ Some default values (DC42 fork rev 1.11):
 ===Macros and physical interfacing
 *%M98: Call Macro/Subprogram%gcode_cvt!M98.3a_Call_Macro/Subprogram
 *%M99: Return from Macro/Subprogram%gcode_cvt!M99.3a_Return_from_Macro/Subprogram 
-*%M42: Switch I/O pin%gcode_cvt!M42.3a_Switch_I.2FO_pin Change status of a pin. Hardware dependant - also used by other firmware.
+*%M42: Switch I/O pin%gcode_cvt!m42.3a_switch_i.2fo_pin Change status of a pin. Hardware dependant - also used by other firmware.
 *%M571: Set output on extrude%gcode_cvt!M571.3a_Set_output_on_extrude - Activate a pin while extruding
 *%M577: Wait until endstop is triggered%gcode_cvt!M577.3a_Wait_until_endstop_is_triggered 
 *%M581: Configure external trigger%gcode_cvt!M581.3a_Configure_external_trigger  Run macro, pause or stop from a pin state change. See %expansion connector pinout%Duet_pinout  <span style="color:#ff0000">- New (1.13) -</span> 
@@ -809,10 +836,10 @@ Some default values (DC42 fork rev 1.11):
 *%M37: Simulation mode%gcode_cvt!M37.3a_Simulation_mode   - Run a print simulation for time estimation : slow
 
 ===Specialised machines
-*%M567: Set tool mix ratios%gcode_cvt!M567.3a_Set_tool_mix_ratios 
-*%M568: Turn off/on tool mix ratios%gcode_cvt!M568.3a_Turn_off/on_tool_mix_ratios 
-*%M578: Fire inkjet bits%gcode_cvt!M578.3a_Fire_inkjet_bits 
-*%M580: Select Roland%gcode_cvt!M580.3a_Select_Roland 
+*%M567: Set tool mix ratios%gcode_cvt!m567.3a_Set_tool_mix_ratios 
+*%M568: Turn off/on tool mix ratios%gcode_cvt!m568.3a_turn_off.2fon_tool_mix_ratios 
+*%M578: Fire inkjet bits%gcode_cvt!m578.3a_Fire_inkjet_bits 
+*%M580: Select Roland%gcode_cvt!m580.3a_Select_Roland 
 
 == G-codes with specific or extended syntax 
 ===Movement  and geometry 
@@ -926,7 +953,7 @@ Some default values (DC42 fork rev 1.11):
 
 ■Macros
 == Macros for RepRap Firmware
-Most %RepRap Firmware%RepRap_Firmware board operations are handled by macros files stored on the SD card.
+(:date 11 Aug 2016 02:05:)Most %RepRap Firmware%RepRap_Firmware board operations are handled by macros files stored on the SD card.
 *A macro is a text file containing a sequence of %G-code%G-codes.
 *Firmware use macros with predefined names located in /sys directory.
 *Files located in /macros directory are presented to user in DWC panel, whatever their extension. 
@@ -1368,7 +1395,7 @@ G1 Z0.25	; lower the hotend 0.25mm  above bed
 
 ■FAQ
 RepRap Firmware FAQ
-(:clear:)
+(:date 11 Aug 2016 02:05:)(:clear:)
 ==Can I modify speed and extrusion coefficients and temperatures during a print? Yes
 :%Yes%DWC_Print_Status.png
 
@@ -1470,7 +1497,7 @@ RepRap Firmware FAQ
 
 ■Updating_config
 ==The 'config.g' file and its update
-To configure a board using %RepRap Firmware%RepRap_Firmware, notably the %Duet%Duet for a given machine, you have only to edit a file named 'config.g', located on the SD card in the /sys directory.
+(:date 11 Aug 2016 02:05:)To configure a board using %RepRap Firmware%RepRap_Firmware, notably the %Duet%Duet for a given machine, you have only to edit a file named 'config.g', located on the SD card in the /sys directory.
 This file is read and executed at startup, but the configuration can be modified later, either by executing a macro or entering commands in the web interface. These configuration modifications will be lost at next startup.
 
 All configuration parameters are entered via 'G' and 'M' parameters, so the %reprap firmware G-Code set%G-codes is relatively extended. A config.g file could be reexecuted via the 'M999' command or an emergency stop.
@@ -1522,10 +1549,24 @@ See %Macro make sound to confirm proper operation%Macros!Make_sound_to_confirm_p
 
 ■Release_notes
 Release notes of DC42 Fork and DWC
+(:date 11 Aug 2016 02:05:)==RepRap Firmware DC42 fork release notes
 === DC42 1.14
-==RepRap Firmware DC42 fork release notes
-I have just released new firmware at "https://github.com/dc42/RepRapFirmware/blob/dev/Release/DuetWiFiFirmware-1.14.bin?raw=true" (follow the link and press Raw to download it). The changes in this release since 1.13b are:
+allb,Duet_0.85,Duet_0.6+/=
+I have just released new firmware for wired Duets on "Github https://github.com/dc42/RepRapFirmware/blob/dev/Release/RepRapFirmware-1.14.bin?raw=true". The changes in this release are:
+* When multiple motors are due to step, generate all the step pulses simultaneously
+* Added support for multiple drivers for a single axis (M584)
+* Added support for extended step pulse width when using external drivers (T parameter on M569 command)
+* Removed XYZE parameters from M569 (use M584 instead)
+* Added M913 command (set motor % of normal current), allowing the motor current to be temporarily reduced e.g. for homing and loading filament
+* Added Z probe type 5, which is a normally-closed switch or active-high 3.3V digital signal connected to the IN pin of the Z probe connector on the Duet 0.8.5 and Duet WiFi
 
+Please note the following:
+1. If you are using M569 commands to remap axes and extruders to different drives, that will no longer work. Use the new M584 command instead.
+2. If you use the M584 command, it should come before any M350 and M906 commands in your config.g file.
+=/
+
+allb,Duet_WiFi_1.0+/=
+Ne wrelease for For Duet WiFi : "GitHub https://github.com/dc42/RepRapFirmware/blob/dev/Release/DuetWiFiFirmware-1.14.bin?raw=true" The changes in this release are:
 * Fix for uncommanded stepper motor movement on some systems following a software reset
 * When multiple motors are due to step, generate simultaneous step pulses for all of them
 * Added support for multiple drivers for a single axis (M584)
@@ -1535,8 +1576,8 @@ I have just released new firmware at "https://github.com/dc42/RepRapFirmware/blo
 * Added Z probe type 5, which is a normally-closed switch or active-high 3.3V digital signal connected to the IN pin of the Z probe connector
 * Duet WiFi default Z probe threshold is now 500 (the recommende dvalue for most types of Z probe)
 * Duet WiFi defaults to using a low end homing switch on the X axis (Ormerod and Huxley, users take note!)
-
 The other firmware files (DuetWiFiServer.bin and DuetWebControl.bin) are unchanged.
+=/
 
 === DC42 1.13
 "http://forums.reprap.org/read.php?416,674919,675054"
@@ -1854,7 +1895,7 @@ In my latest firmware version I have improved the output memory management and m
 
 ■Heating
 Heating
-On all printer firmwares, you find heating loops, mostly controlled with "PID algorithm https://en.wikipedia.org/wiki/PID_controller."
+(:date 11 Aug 2016 02:05:)On all printer firmwares, you find heating loops, mostly controlled with "PID algorithm https://en.wikipedia.org/wiki/PID_controller."
 All self-build printers and a lot of commercial printer suffers from heterogeneity in temperature displayed values.
 This does have many sources. 
 
@@ -2044,7 +2085,7 @@ See %Connecting PT100 temperature sensors%connecting_pt100
 
 ■Connecting_PT100
 Connecting PT100 temperature sensors
-
+(:date 11 Aug 2016 02:05:)
 This page describes the support for PT100 and other RTD temperature sensors in RepRapFirmware for Duet and Duet WiFi electronics.  For thermocouple temperature sensors, see %Using thermocouples%Connecting_thermocouples instead.
 ==Hardware
 To connect a PT100 sensor to a Duet, you need a RTD interface board based on the MAX31865 chip. The interface board you need depends on which Duet you have.
@@ -2097,19 +2138,14 @@ If the reading at room temperature is higher than it should be, then you probabl
 
 ■Connecting a bed heater
 Connecting a bed heater
-==Low voltage bed heater driven directly from the Duet
-
+(:date 11 Aug 2016 02:05:)==Low voltage bed heater driven directly from the Duet
 Duet and Duet WiFi provide a terminal block for connecting a bed heater. The voltage supplied to the bed heater is the voltage you apply to the VIN terminals from your power supply. The maximum current you can safely draw depends on the Duet version.
 
 allb,Duet_WiFi_1.0+/=
 ==Duet WiFi
 The Duet WiFi is safe at up to 15A bed heater current. The trace between Vin+ and bed Heater + is duplicated on both sides of the PCB.
-Bed heater driven using a Solid State Relay
-
-You can use a solid state relay (SSR) to switch the bed heater by connecting its control terminals to the Duet bed heater terminals. Make sure that you get the wires to the + and - control terminals of the SSR the right way round. On the Duet 0.6, the + bed heater terminal is closest to the VIN terminal block. On the Duet 0.8.5 and Duet WiFi, the - bed heater terminal is the one nearest the VIN terminal block.
-
-When using PID to control the bed heater, RepRapFirmware uses a low PWM frequency (10Hz) so as to be compatible with all standard types of SSR.
 =/
+
 allb,Duet_0.85+/=
 ==Duet 0.8.5
 The safe bed heater current has not been measured, but should be somewhat above 10A because the PCB trace between Vin+ and Bed Heater + is wider than on the Duet 0.6. As with the Duet 0.6, you can connect a wire between the Power In +(VIN) and Bed Heater +(VIN) terminals on the back of the board to increase the current capacity. The bed heater terminal block is larger than on the Duet 0.6.
@@ -2117,21 +2153,37 @@ The safe bed heater current has not been measured, but should be somewhat above 
 =/
 allb,Duet_0.6+/=
 ==Duet 0.6
-The board is comfortable with 10A bed heater current, but not much more. The weak link is the PCB trace on the top side of the board that connects Power In V+ to Bed Heater V+. If you want to use a bed heater that draws more than 10A, solder a thick wire between those terminals on the back of the board.
+The board is comfortable with 10A bed heater current, but not much more. The weak link is the PCB trace on the top side of the board that connects the Power In V+ and Bed Heater V+ terminals. If you want to use a bed heater that draws more than 10A, solder a thick wire between those terminals on the back of the board.
 =/
 
+==Bed heater driven using a Solid State Relay
+You can use a solid state relay (SSR) to switch the bed heater by connecting its control terminals to the Duet bed heater terminals. Make sure that you get the wires to the + and - control terminals of the SSR the right way round. On the Duet 0.6, the + bed heater terminal is closest to the VIN terminal block. On the Duet 0.8.5 and Duet WiFi, the - bed heater terminal is the one nearest the VIN terminal block.
+
+When using PID to control the bed heater, RepRapFirmware uses a low PWM frequency (10Hz) so as to be compatible with all standard types of SSR.
+
+**Caution**: when using a high-powered bed heater, in the event that temperature control fails and the bed heater is turned on at full power for an extended period of time, you should **either** make sure that the bed heater and bed will not exceed a safe temperature, or else install a thermal cutout to disconnect the bed heater or its power supply before excessive temperatures are reached.
+
 ==Mains voltage AC bed heater
-Use a zero-crossing DC/AC SSR such as Fotek SSR-25DA + safety cover, or Crydom D2425 + safety cover KS101. If your bed heater draws more than about 5A then the SSR may need a heatsink.
+Use a zero-crossing DC-AC SSR such as Crydom D2425 or Fotek SSR-25DA + safety cover, or Crydom D2425 + safety cover KS101. If your bed heater draws more than about 5A then the SSR may need a heatsink.
 720C%Duet_0.8.5_wiring2.png
 
+Take appropriate safety precautions when using a mains voltage bed heater. In particular:
+*Connect metal parts of the printer to mains ground. This includes the printer frame, the bed plate if it is conductive (e.g. aluminium), and any other metal parts that the bed heater or SSR wiring might come into contact with if wires break.
+*Ensure that it is not possible for the user to touch the SSR terminals or any other exposed mains wiring, or for yo to touch the mains wiring when you are working on the printer with power applied. If your SSR is not supplied with a clear plastic safety cover, buy one (for the Crydom SSR listed above, the part number is KS101).
+* If the bed is moving, use highly-flexible wire or cable to connect the moving bed heater to the stationary wiring, and use  strain relief at both ends of that cable to reduce the risk of the cable fracturing with repeated movement.
+* Provide a fuse for the bed heater circuit or the whole printer appropriate to the current draw and the current rating of the mains lead. One option is to use a panel mount IEC mains inlet connector with a switch, neon indicator and fuse built in.
+* It is highly recommended that you power the printer via a Ground Fault Current Interruptor (GFCI) - more commonly called a RCD (Residual Current Device) in the UK - to protect against electric shock in the event of a fault.
+
+If in doubt, consult a qualified electrician.
+
 ==Low voltage (12V or 24V) DC bed heater
-Use a low voltage drop DC/DC SSR such as the Auber Instruments MGR-1DD80D100 or Crydom DC100D40. The SSR may need a heatsink, depending on the current. 
+Use a low voltage drop DC/DC SSR such as the Auber Instruments MGR-1DD80D100 or Crydom DC100D40. The SSR may need a heatsink, depending on the current. Do not be tempted to cheap DC-DC SSRs such as the SSR-40DD, which is basically useless for this application because of its high voltage drop.
 
 <small>Author: DC42 </small>
 
 ■Connecting chamber heater
 Connecting and configuring a chamber heater
-RepRapFirmware supports a chamber heater, but by default no chamber heater is configured. To use a chamber heater, you will need a spare heater channel, and either the thermistor channel associated with that heater or another temperature sensing channel.
+(:date 11 Aug 2016 02:05:)RepRapFirmware supports a chamber heater, but by default no chamber heater is configured. To use a chamber heater, you will need a spare heater channel, and either the thermistor channel associated with that heater or another temperature sensing channel.
 ==Connecting the chamber heater
 720C%Duet_0.8.5_wiring2.png
 Chamber heaters are typically AC mains powered, so you will need a Solid State Relay (SSR) to drive one. Use a zero-crossing DC/AC SSR such as Fotek SSR-25DA + safety cover, or Crydom D2425 + safety cover KS101. If your chamber heater draws more than about 5A then the SSR may need a heatsink.
@@ -2166,7 +2218,7 @@ In your end gcode, either use the command M0 (which normally switches all heater
 
 ■Connecting extruder heaters
 Connecting extruder heaters
-(:notoc:)
+(:date 11 Aug 2016 02:05:)(:notoc:)
 The extruder heater connectors vary with the Duet version.
 allb,Duet_0.6+/=
 ==Duet 0.6
@@ -2189,7 +2241,7 @@ A 2-pin 3.5mm terminal block is provided for connecting each of the two supporte
 
 ■Connecting a Z probe
 Connecting a Z probe
-The Duet 0.8.5 and Duet WiFi provide a dedicated 4-pin connector for connecting a Z probe.
+(:date 11 Aug 2016 02:05:)The Duet 0.8.5 and Duet WiFi provide a dedicated 4-pin connector for connecting a Z probe.
 The Duet 0.6 does not have the Z-probe connector, but you can use some pins on the expansion connector for the same purpose.
 
 These are the pins provided on the 4-pin connector, and the corresponding pins on the Duet 0.6 expansion connector:
@@ -2206,15 +2258,15 @@ Firmware selection of the type of Z probe you are using is done using the P para
 
 ==Z probe modes selectable in firmware
 ===Mode 1
-This is a probe with an analog output connected to the Z probe connector. The probe output rises as it gets closer to the bed. The control signal is driven LOW. Compatible sorts of probe include:
+This is a probe with an analog output connected to the Z probe connector. The probe output rises as it gets closer to the bed. The control signal is driven HIGH.
 ===Mode 2
 This is a probe with an analog output that requires a modulation signal. The probe output rises as it gets closer to the bed. The control signal is driven by a square wave with a frequency of 500Hz. The firmware extracts that part of the analog signal received on the IN pin that is in phase with the modulation.
 ===Mode 3
-As mode 1 except that the control signal is driven HIGH.
+As mode 1 except that the control signal is driven LOW.
 ===Mode 4
-The trigger signal is read from the E0 endstop circuit. You can choose whether the signal is high or low when triggered, by using M574 E0 S1 to select active high, or M475 E0 S0 to select active low. The device connected to the E0 STP pin must be able to sink 1.5mA for the Duet WiFi, or 2.1mA for the Duet 0.6 or 0.8.5.
+The trigger signal is read from the E0 endstop circuit. You can choose whether the signal is high or low when triggered, by using M574 E0 S1 to select active high, or M574 E0 S0 to select active low. The device connected to the E0 STP pin must be able to sink 1.5mA for the Duet WiFi, or 2.1mA for the Duet 0.6 or 0.8.5.
 ===Mode 5
-A switch or digital output device connected between the IN and GND terminals of the Z probe connector. Similar to mode 4 except that the ZS probe connector is used, the input must be active high when triggered, and the only pullup resistor is the 100K nominal pullup in the microcontroller so the sink current requirement is tiny.
+A switch or digital output device connected between the IN and GND terminals of the Z probe connector. Similar to mode 4 except that the Z-probe connector is used, the input must be active high when triggered, and the only pullup resistor is the 100K nominal pullup in the microcontroller so the sink current requirement is tiny.
 
 ==Connecting different types of Z probe
 ===Mini differential IR sensor by dc42
@@ -2236,16 +2288,20 @@ Connect its output wire to the cathode of a diode, and the anode of the diode to
 
 The diode should preferably be a small-signal Schottky diode such as BAT43 or BAT85, but a small signal silicon diode such as 1N4148 works for some people.
 
+Select mode 4 in the M558 command.
+
 ===PNP output normally-open inductive or capacitive sensor
 Connect the sensor output wire to one end of a resistor (call this R1), and connect one end of another resistor (call this R2) to GND on the Z-probe connector. Connect the free ends of R1 and R2 together and to the IN pin of the Z-probe connector. Also connect the sensor ground wire to Duet ground, and the sensor's + power wire to a suitable voltage (typically to Vin because these sensors usually need between 6 and 30V).
 
 The values of R1 and R2 should be chosen so that about +3V appears at their junction when triggered. If R2 is 10K, then suitable values of R1 are 30K if the sensor is powered from +12V, and 68K if it is powered from +24V. 
+	
+Select mode 5 in the M558 command.
 
-<small>Author: DC42 </small>
+<small>9 aug 16 - Author: DC42 </small>
 
 ■Power wiring
 Power wiring
-(:notoc:)
+(:date 11 Aug 2016 02:05:)(:notoc:)
 320R%DuetWiFiPower.jpg 
 Connect the terminal block labelled POWER IN to your power supply. Make sure the wires you use are of adequate gauge to carry the current to supply the bed heater, extruder heater, stepper motors and electronics.
 
@@ -2259,7 +2315,7 @@ See "RepRap Wiki:Crimping http://reprap.org/wiki/Crimping".
 
 ■Duet_Web_Control
 ==Duet Web Control
-While the %Duet%Duet board could be handled with a command program on your PC communicating by USB with the board as traditional in 3D printing, a web server (Duet Web Control – DWC) exists on the Duet. It is the primary choice of communicating for most users and it is a major asset of the %RepRap Firmware%RepRap_Firmware. A capable server integrated in the main printer board is rare %[ref]%Duet_Web_Control!References Connecting via Ethernet allows communication with the web server to drive the printer. With Duet 0.6 or 0.8.5 "using duet with wifi router http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"  will allow connection with any Wi-Fi enabled device having a browser. Duet WiFi have integrated WiFi connection (and no Ethernet).
+(:date 11 Aug 2016 02:05:)While the %Duet%Duet board could be handled with a command program on your PC communicating by USB with the board as traditional in 3D printing, a web server (Duet Web Control – DWC) exists on the Duet. It is the primary choice of communicating for most users and it is a major asset of the %RepRap Firmware%RepRap_Firmware. A capable server integrated in the main printer board is rare %[ref]%Duet_Web_Control!References Connecting via Ethernet allows communication with the web server to drive the printer. With Duet 0.6 or 0.8.5 "using duet with wifi router http://blog.think3dprint3d.com/2014/04/using-duet-with-wifi-router.html"  will allow connection with any Wi-Fi enabled device having a browser. Duet WiFi have integrated WiFi connection (and no Ethernet).
 448%RRF_connection1.png 
 All printing is done after uploading a G-code file on the board SD card, which benefits from the fast Ethernet communication of the Duet (up to 700~900 kb/sec with a good SD card).
 
@@ -2402,7 +2458,7 @@ Chrishamm also added useful functions on the RepRap firmware, notably recently t
 
 ■Duet
 Duet
-allb,Duet_WiFi_1.0+/=
+(:date 11 Aug 2016 02:05:)allb,Duet_WiFi_1.0+/=
 ==Duet WiFi
 Duet WiFi is a developed 3D printer board, using a 32bit Arm core processor, succeeding to other Duet boards produced since 2014.
 It was developed in Conjunction by T3P3 and David Crocker.
@@ -2475,7 +2531,8 @@ Biggest thermal dissipation came from the bottom of the board, which shall be ta
 
 Processor voltage is 3.3V and inputs are not protected, so using sensor with higher voltage need reliable protection. Optocoupler or diode protection may be more reliable than voltage dividers.
 
-=== Specifications
+allb,Duet_0.85,Duet_0.6+/= 
+=== Specifications for Wired Duets
 Designer/manufacturer haven't supplied specifications, so data came from component datasheets and user experience and is for information only.
 *Ultimate voltage is 35V, maximum acceptable by stepper drivers and capacitors, so the usable voltage shall be lower. Boards were tested at 24V and may be safe for a stable supply up to 30V.
 *Stepper driver A4982 are designed for a maximum current of 2A, with a really usable current depending from the board cooling. Board was tested with 0.8A without cooling and 1.5A on all drivers with good cooling. Drivers have a thermal safety. 
@@ -2485,14 +2542,38 @@ Designer/manufacturer haven't supplied specifications, so data came from compone
 *Micro-SD card type SDHC, to be formatted in FAT32, cluster size 32 kB.
 *Ethernet sustained transfer speed came from 100 kB/sec to 900 kB/sec depending SD card quality and file size. You may experience faster speed with larger files. RepRap forum thread about "Ethernet speed transfer http://forums.reprap.org/read.php?416,664836"
 *Direct connection of mechanical switches to endstop inputs is reliable with shielded or twisted cables.
-
+=/
 === Dimensions 
+All Duet variants have four 4mm clearance holes at the corners of the board. You can use M4 screws to attach the board to a panel or an enclosure. The mounting centres are 115mm x 92mm:
+allb,Duet_0.85,Duet_0.6+/=
+====Wired Duets
 Size 123 x 100mm, hole spacing 115 x 92mm  508%D0.85_board_dims.png
 Ethernet plug, micro-SD slot and mini USB plug are on one small side. For 0.8.5 version, the reset and erase buttons are also on same side (they were on board face on 0.6 version).
 There is no plug for power supply, but a terminal block on the side opposed to plugs. 5V could be from internal converter or external supply, with pins aside the power supply terminal block.
 
 The export from KiCAD shows the board (V 0.8.5) and hole dimensions:
 (:clear:)
+=/
+allb,Duet_0.85,Duet_0.6+/=
+====Duet WiFi
+640C%DuetWifiDims.png
+
+The board shown is the production version which has 3 additional 2.54mm holes at: [53.1,9.1],[56.7,28.7],[81.5,22.9]
+=/
+====Mounting recommendations
+On Duet 0.6 and 0.8.5 boards, and pre-production Duet WiFi boards, the holes are plated-through and connected to the ground plane. On Duet WiFi production boards, the holes are isolated and not plated through.
+
+Please note:
+*If you mount the board on a metal surface, use standoffs to ensure that the back of the board cannot short against the plate. A minimum standoff length of 5mm is advised, however larger is preferred for better cooling.
+* **Do not use metal washers under the mounting screws**, or screws with large heads (e.g. button head). Nylon washers are recommended. With a metal washer there is a risk of creating a short between the E1 LED and ground.
+
+===Cooling
+The PCB is designed to transfer heat from the stepper drivers and power mosfets to the underside of the board. Therefore your mounting method should encourage good airflow underneath the board. 
+
+If you mount the board vertically, make sure that cool air can enter at the bottom of the board, flow upwards behind the board, and escape at the top. Convection cooling will usually be sufficient, but if you are using high stepper motor currents then you may wish to add a fan below the board to encourage the upward flow of air. Make the spacing between the back of the board and the panel or enclosure large enough to allow a good flow of air.
+
+If you mount the board horizontally then a cooling fan is recommended, especially if there are other heat-generating components in the vicinity such as power supplies, SSRs or stepper motors. Position the fan to blow air underneath the board (optionally along the top as well), especially along the row of stepper driver chips and between the power input and bed heater terminal blocks.
+
 === Drive numbers 
 Drive number for G-Code commands (M569 and others)
 0:X; 1:Y; 2:Z; 3:E0; 4:E1; 5:E2; 6:E3; 7:E4; 8:E5
@@ -2571,7 +2652,6 @@ The following are not intended to put you off using a Duet, indeed some other el
 * "RepRap Ltd https://reprapltd.com" Duet shield (2 drives - for Duet 0.6 only)
 * "kurzschluss http://www.kurzschluss-blog.de/p/duet-extension-board-build-manual.html" Small extension board for Pololu drivers
 
-
 == Gallery 
 440%Kraken_scene.jpg
 Here is a picture of a 4 colour print from the Duet and Duex4 expansion board combo...
@@ -2614,7 +2694,7 @@ Here is a picture of a 4 colour print from the Duet and Duex4 expansion board co
 		
 ■Fans
 Fans
-== Controlled fans
+(:date 11 Aug 2016 02:05:)== Controlled fans
 === Controlled output
 M106 G-code control the controllable fan outputs (Fan0 on Duet 0.6,  Fan0 and Fan1 on Duet 0.8.5 and RADDS). These output shall not be confused with the fixed voltage fans output. As for other controllable equipment, a MOSFET connect the ‘-’ pin to the ground.
 
@@ -2670,7 +2750,7 @@ DC/DC adjustable converters with voltage display are available for less than 3 E
 
 ■Duet_pinout
 Duet pinout with functions
-This page documents the 50 pin expansion header found on the %Duet%Duet board and used to interface with a "Duex4 expansion board http://www.think3dprint3d.com/Duex4-Duet-Expansion-Board."  There are multiple versions on the Duex4 board, V0.1, 
+(:date 11 Aug 2016 02:05:)This page documents the 50 pin expansion header found on the %Duet%Duet board and used to interface with a "Duex4 expansion board http://www.think3dprint3d.com/Duex4-Duet-Expansion-Board."  There are multiple versions on the Duex4 board, V0.1, 
 V0.2 and V0.2a, along with multiple versions of Duet electronics
 
 The table columns are
@@ -2772,7 +2852,7 @@ Note that the Duex4 board makes the following associations when paired with the 
 
 ■End_stops
 Connecting endstop switches
-
+(:date 11 Aug 2016 02:05:)
 The Duet provides one endstop switch input for each axis, and one for each extruder. Each has an associated red LED that is illuminated when the input level is LOW.
 
 Each axis endstop input can be configured for a Max (high end of axis) or Min (low end of axis) endstop, and with an active high or active low signal level. Configuration of endstop switches is done in config.g using the M574 command.
@@ -2817,7 +2897,7 @@ Signal shall **never** exceed 3.3V. Safety shall be provided in case of ground w
 
 ■Duet_wiring
 Duet wiring
-allb,Duet_WiFi_1.0+/= 
+(:date 11 Aug 2016 02:05:)allb,Duet_WiFi_1.0+/= 
 ==Duet WiFi
 ===Main Wiring
 720C%DWiFi_connection.png
@@ -2901,13 +2981,15 @@ MosFET may fail and stay permanently conductive, in this case the connected elem
 
 ■Connecting thermistors
 Connecting thermistors
+(:date 11 Aug 2016 02:05:)==Connecting
 Connect the bed temperature thermistor to the BED_TEMP connector. Connect your first extruder thermistor to the E0_TEMP connector. If you have a second hot end, connect its thermistor to E1_TEMP.
 
 The thermistor types are configured using the M305 commands in config.g. The heaters and thermistor channels are numbered 0 for the bed thermistor connector, then 1, 2, 3... for the extruder thermistors.
 
 To set the bed thermistor parameters, use a command like this:
-<<M305 P0 R4700 T100000 B3950   ; set bed thermistor parameters>>
-<br>
+
+ M305 P0 R4700 T100000 B3950   ; set bed thermistor parameters
+
 The P parameter identifies the heater/thermistor channel that the command applies to. T100000 means that the resistance at 25C is 100Kohms.
 
 Parameter B3950 in the above example means that the thermistor B value over the temperature range of interest is 3950.
@@ -2915,11 +2997,12 @@ Parameter B3950 in the above example means that the thermistor B value over the 
 The R parameter is the value of the series resistor on the controller electronics, which is always 4700 ohms on Duet WiFi and Duet 0.8.5 controllers - but see the note further down this page. It defaults to 4700 in the Duet WiFi firmware, and 1000 in RepRapFirmware for the Duet 0.8.5 and 0.6.
 
 For the E0 thermistor, the command is similar except that P0 is replace by P1, for example:
-<<M305 P1 R4700 T100000 B4388   ; set E0 thermistor parameters>>
-<br>
+
+ M305 P1 R4700 T100000 B4388   ; set E0 thermistor parameters
+
 For the E1 thermistor, replace P1 by P2.
 
-Manufacturers of thermistors typically quote the B value over quite a small temperature range. This is fine for the bed thermistor, but the effective B value over the temperature range of the extruder may be somewhat different. Here are some suitable T and B values for popular thermistors:
+Manufacturers of thermistors typically quote the B value  over quite a small temperature range. This is fine for the bed thermistor, but the effective B value over the temperature range of the extruder may be somewhat different. Here are some suitable T and B values for popular thermistors:
 /:
 =Thermistor type ::=Used by ::=T parameter (resistance @ 25C) ::=B parameter ::
 =Semitec GT-104 ::E3D hot ends ::100000 ::4388 ::
@@ -2927,14 +3010,24 @@ Manufacturers of thermistors typically quote the B value over quite a small temp
 =Honeywell 135-104QAD-J01 ::RepRapPro Ormerod/Huxley/Mendel hot end ::100000 ::4138 ::
 =Typical Chinese bed heater thermistor ::Various bed heaters ::100000 ::3950 ::
 :/
-Note for users of Duet 0.6 boards and DueX4 boards
 
-Early Duet 0.6 boards, and most or all Duet 0.6 boards sold by Replikeo, use 1K series resistors instead of 4.7K., Likewise, DueX4 0.2 boards and earlier DueX4 0.2a boards use 1K resistors. For these boards, use R1000 in the corresponding M305 commands instead of R4700. 
+==Configuring the firmware
+Thermistor configuration is defined using the M305 commands in config.g. See %Configuring RepRapFirmware for a Cartesian printer%Cartesian_config!Heater_and_thermistor_section  for more details.
+
+===Note for users of Duet 0.6 boards and DueX4 boards
+Early Duet 0.6 boards, and most or all Duet 0.6 boards sold by Replikeo, use 1K series resistors instead of 4.7K., Likewise, DueX4 0.2 boards and earlier DueX4 0.2a boards use 1K resistors. For these boards, use R1000 in the corresponding M305 commands instead of R4700.
+
+===Correcting the temperature calibration of Duet 0.6 and 0.85. boards
+The ADC on the Duet 0.6 and 0.8.5 is  not calibrated automatically, so you may need to calibrate it in order to get accurate readings, especially at low temperatures.Here's how:
+
+*With the machine cold, see what temperatures the are displayed for the bed and hot end(s), and compare that with room temperature.
+*Add H parameters in the M305 commands to get readings close to room temperature. If the readings are too low, use a positive H parameter to bring the readings up to the correct value. If the readings are too high, use a negative H parameter. All heater numbers should need the same value of H parameter - any residual differences you see are probably caused by thermistor tolerances. You should never need to use an H parameter below -100 or above 100, and it is rare to need a value outside the range -30 to 30.
+* **Very important!** Check that if you disconnect the thermistors, the temperature in the web interface reads as **error**. If instead it reads a very low temperature, reduce the H parameters until it does report **error**, then reduce them a bit more.
 
 <small>Author: DC42 </small>
 ■Connecting thermocouples
 Connecting thermocouples
-This page describes the support for thermocouple temperature sensors in RepRapFirmware on Duet and Duet WiFi electronics.
+(:date 11 Aug 2016 02:05:)This page describes the support for thermocouple temperature sensors in RepRapFirmware on Duet and Duet WiFi electronics.
 
 ==Hardware
 K-type thermocouples are normally chosen . The thermocouple must be electrically isolated from the hot end heater block. If the thermocouple has a bare junction, you will need to insulate it, for example with high-temperature sleeving. You can buy cartridge-style insulated thermocouples from E3D and elsewhere.
@@ -2982,7 +3075,7 @@ If you get wildly inaccurate or fluctuating readings, check that the thermocoupl
 
 ■Duet_Firmware_Update
 Duet Firmware update
-You shall first get the %firmware%RepRap_Firmware version file needed for the firmware update. There are multiple forks, so have a look %here%RepRap_Firmware!Firmware_binaries . click "view raw" to get the original file and save it on your hard-drive. You shall also check that you still have the file of the actual firmware version in case you need to revert to it. You may also have a look at %release notes%Release_notes .
+(:date 11 Aug 2016 02:05:)You shall first get the %firmware%RepRap_Firmware version file needed for the firmware update. There are multiple forks, so have a look %here%RepRap_Firmware!Firmware_binaries. click "view raw" to get the original file and save it on your hard-drive. You shall also check that you still have the file of the actual firmware version in case you need to revert to it. You may also have a look at %release notes%Release_notes .
 
 Only DC42 (and Chrishamm) forks manage Delta and CoreXY printers. These two forks are the only being still in development and there are exchanges between them. DuetWifi is handled by DC42.
 
@@ -3157,7 +3250,7 @@ The password is also defined in the web interface file 'www\js\interface.js' or 
 
 ■Status_responses
 RepRap Firmware Status responses
-Because the old-style Duet status response has become somewhat clumsy, I (Chrishamm) decided to introduce a new status response in %RepRap Firmware%RepRap_Firmware. Its main goal is to achieve better readability and enhanced flexibility for different machine setups. They may be utilised either from the HTTP server (see rr_status and type request in my firmware fork) or from an attached device using the "M105 S" code.
+(:date 11 Aug 2016 02:05:)Because the old-style Duet status response has become somewhat clumsy, I (Chrishamm) decided to introduce a new status response in %RepRap Firmware%RepRap_Firmware. Its main goal is to achieve better readability and enhanced flexibility for different machine setups. They may be utilised either from the HTTP server (see rr_status and type request in my firmware fork) or from an attached device using the "M105 S" code.
 
 In general, there shall be three different response types depending on the values required:
 
@@ -3337,7 +3430,7 @@ PID, networking and other configuration parameters might be added to a future ve
 
 ■Duet_design
 Duet design
-%Duet%Duet integral printer board based on 32 bit Arm processor was designed by "T3P3 http://reprap.org/wiki/User:T3P3"  company with help of others. New Duet WiFi was designed by T3P3 and DC42. 
+(:date 11 Aug 2016 02:05:)%Duet%Duet integral printer board based on 32 bit Arm processor was designed by "T3P3 http://reprap.org/wiki/User:T3P3"  company with help of others. New Duet WiFi was designed by T3P3 and DC42. 
 
 The wired Duet boards (0.6: 4 drives and 0.8.5: 5 drives) are based upon the "Arduino Due https://www.arduino.cc/en/Main/ArduinoBoardDue" board design with added equipment to handle 3D printing. 
 
@@ -3419,7 +3512,7 @@ Selling quantity was not disclosed, but as the Duet 0.6 was the standard board f
 
 ■Cartesian_config
 Cartesian printer configuration
-%RepRap Firmware%RepRap_Firmware is configured at run-time by means of files in the /sys folder of the SD card. This means that you must have an SD card in the on-board socket to use RepRapFirmware. You do not have to recompile RepRapFirmware to configure it, so if you wish to update the firmware on your Duet or other compatible electronics board, you can download a ready-built binary.
+(:date 11 Aug 2016 02:05:)%RepRap Firmware%RepRap_Firmware is configured at run-time by means of files in the /sys folder of the SD card. This means that you must have an SD card in the on-board socket to use RepRapFirmware. You do not have to recompile RepRapFirmware to configure it, so if you wish to update the firmware on your Duet or other compatible electronics board, you can download a ready-built binary.
 
 A few of the commands listed here are specific to the dc42 fork of RepRapFirmware and are not supported by the official RepRapPro version, although they may be supported in other forks e.g. the forks of Christian Hammacher, Dan Newman, and Think3DPrint3D. To see what the commands do and which firmware fork(s) implement them, see %G-code%gcode_cvt.
 
@@ -3436,7 +3529,7 @@ The order of commands in the config.g file is generally immaterial, with the fol
 *The M92 commands to set steps/mm must come after any M350 command to set microstepping. This is because when you change microstepping, the steps/mm are automatically adjusted to take account of the change in microstepping.
 *The  M906 command(s) to set motor current must come after any M584 or M569 commands that remap drivers. Otherwise you will end up with motor current set for the wrong axes or extruders, unless all the motor currents are set to the same value.
 
-Summary: '''M558 before G31''', and '''M584 before M350 and M906'''.
+Summary: **M558 before G31**, and **M584 before M350 and M906'''.
 
 The config.g file is typically organised into sections along the following lines.
 
@@ -3522,7 +3615,7 @@ The P parameter of the M558 command specifies the type of Z probe, as follows:
 *P3 - as P1 but pin D52 is driven low instead of high. Allows a compatible Z probe to be switched to a different mode.
 *P4 - microswitch (normally-closed by default) connected to the E0 endstop connector, or anything that emulates one. For a normally-open microswitch or NPN-output inductive sensor, use M574 E0 S0 to invert the sense of all the extruder endstop inputs.
 
-The XYZ parameters in the M558 command define which axes the Z probe is used to home (0 = Z probe not used to home this axis, 1 = Z probe used). '''By default, RepRapFirmware for the Duet (but not the Duet WiFi) uses the Z probe to home the X and Z axes'''.
+The XYZ parameters in the M558 command define which axes the Z probe is used to home (0 = Z probe not used to home this axis, 1 = Z probe used). **By default, RepRapFirmware for the Duet (but not the Duet WiFi) uses the Z probe to home the X and Z axes**.
 
 The H parameter defines the Z probe dive height, which is the height above the trigger height from which probing starts. The default is 3mm or 5mm depending on firmware version. You may wish to increase it during initial calibration.
 
@@ -3546,7 +3639,8 @@ M305 P2 T100000 B4388 R4700 H0 L0	; Put your own H and/or L values here to set t
 M301 H1 P10 I0.10 D100 T0.50 S1.0	; PID settings for extruder 0
 M301 H2 P10 I0.10 D100 T0.50 S1.0	; PID settings for extruder 1
 M570 S120				; Increase to allow extra heating time if needed
-;M141 H3                                ; Uncomment this to set chamber heater/thermistor channel
+;M141 H3                                ; Un-comment this to set chamber heater/thermistor channel
+;M143 S275                              ; Un-comment this to set maximum extruder temperature, default is 262°C
 >>
 
 The M305 commands define the thermistor resistance at 25C (T parameter), thermistor B value (B parameter), thermistor series resistance (R value), and ADC high and low end corrections (H and L parameters).
@@ -3648,7 +3742,7 @@ G90                ; back to absolute mode
 
 You must also tell the firmware which end the homing switch is at, using the M574 command in config.g.
 
-The homey.g is similar to homex.g except that all instances of X are replaced by Y.
+The homey.g file is similar to homex.g except that all instances of X are replaced by Y.
 
 Z homing is normally done using the Z probe. Here is a typical homez.g file:
 
@@ -3662,7 +3756,7 @@ G30                ; lower head, stop when probe triggered and set Z to trigger 
 
 Adjust the X and Y coordinates in the second G1 command according to where you want to probe when Z homing. You need to have set up the Z probe type, trigger height and threshold as described earlier.
 
-If you home Z using a microswitch instead, then you can use a pattern similar to homex,g and homey.g. However, if you use a low-end homing switch that triggers a little before Z=0, then you can't use M208 to define the homing position, because it would prevent you moving below the trigger height. You can use a G92 command after homing instead. Here is an example, for the case where you have a low-end homing switch that triggers at Z=0.3mm:
+If you home Z using a micro-switch instead, then you can use a pattern similar to homex,g and homey.g. However, if you use a low-end homing switch that triggers a little before Z=0, then you can't use M208 to define the homing position, because it would prevent you moving below the trigger height. You can use a G92 command after homing instead. Here is an example, for the case where you have a low-end homing switch that triggers at Z=0.3mm:
 
 <<
 G91                ; relative mode
@@ -3692,7 +3786,7 @@ G30                ; lower head, stop when probe triggered and set Z to trigger 
 
 RepRapFirmware currently supports 3, 4 and 5 point auto and manual bed compensation. To use auto bed compensation, you must have a Z probe.
 
-The bed compensation is set up in the bed.g file. Here is a typical bed.g file for a printer with a 200 x 200mm bed:
+The bed compensation is set up in the bed.g file. Here is a typical 5-points 'bed.g' file for a printer with a 200 x 200mm bed:
 
 <<
 M561                         ; clear any existing bed transform
@@ -3720,7 +3814,7 @@ Only one tool is active at a time. To switch between tools, use the T command. T
 
 When the firmware receives a T command and the requested tool number is not already active, it goes through the following sequence:
 
-# If another tool is active, run file sys/tfree#.h where # is the number of the active tool (e.g. tfree0.g).
+# If another tool is active, run file sys/tfree#.g where # is the number of the active tool (e.g. tfree0.g).
 # If another tool is active, set its heaters to their standby temperatures.
 # Run file sys/tpre#.g where # is the number of the new tool being activated.
 # Set the heaters associated to the new tool to their active temperatures.
@@ -3754,7 +3848,7 @@ G1 E4 F2500       ; undo retraction
 
 You may not need to include the commands to retract and un-retract the filament if your slicer does that for you. As when any macro file is run, the absolute/relative axis and extruder movement states are restored to their original values when the macro file completes.
 
-The tfree1, tpre1 and tpost2 commands would be similar, except that tpre1.g would use command M116 P1. The purpose of the P parameter on the M116 command is to allow you to wait for the new tool to heat up to active temperature without also waiting for the previously-selected tool to cool down to standby temperature.
+The tfree1.g, tpre1.g and tpost1.g files would be similar, except that tpre1.g would use command M116 P1. The purpose of the P parameter on the M116 command is to allow you to wait for the new tool to heat up to active temperature without also waiting for the previously-selected tool to cool down to standby temperature.
 
 == Pause, resume and cancel files
 
@@ -3793,7 +3887,7 @@ Note that the following parameters are always saved before running a macro, and 
 
 ■CoreXY_config
 CoreXY printer configuration
-Configuration of %RepRap Firmware%RepRap_Firmware  for a CoreXY printer is very similar to configuration for a Cartesian printer, which is described at %Configuring RepRapFirmware for a Cartesian printer%Cartesian_Config. Only the differences will be described here.
+(:date 11 Aug 2016 02:05:)Configuration of %RepRap Firmware%RepRap_Firmware  for a CoreXY printer is very similar to configuration for a Cartesian printer, which is described at %Configuring RepRapFirmware for a Cartesian printer%Cartesian_Config. Only the differences will be described here.
 
 == Main configuration file
 
@@ -3846,7 +3940,7 @@ G90         ; back to absolute mode
 
 ■Delta_config
 Configuration of a delta printer
-For a general guide to configuring %RepRap Firmware%reprap_firmware, see %Configuring RepRapFirmware for a Cartesian printer%Cartesian_Config. Only the differences for delta printers are described here.
+(:date 11 Aug 2016 02:05:)For a general guide to configuring %RepRap Firmware%reprap_firmware, see %Configuring RepRapFirmware for a Cartesian printer%Cartesian_Config. Only the differences for delta printers are described here.
 
 == Movement section of config.g file
 To tell RepRapFirmware that your printer is a delta and to define its parameters, put command M665 L### R### H### B### X### Y### Z### in your sys/config.g file on the SD card, where ### represents a number. The L parameter is the diagonal rod length. The R parameter is your estimate of the delta radius. The H parameter is the height of the nozzle above the bed when the carriages are activating the endstop switches. The B parameter is the printable radius of the bed. X Y Z are the angular offsets of the X, Y and Z towers, and may be omitted or set to zero. All these values may include decimal portions.
@@ -4025,7 +4119,7 @@ You can test the three tower motors individually by putting the printer in relat
 
 ■Commissioning
 Commissioning
-This page shall be developed, but yet you may have a look at the below pages
+(:date 11 Aug 2016 02:05:)This page shall be developed, but yet you may have a look at the below pages
 
 ==Software update
 %Duet firmware Update%Duet_Firmware_Update
@@ -4050,25 +4144,37 @@ This page shall be developed, but yet you may have a look at the below pages
 
 ■duet_hardware
 Duet hardware trail
-*%Duet%%
+(:date 11 Aug 2016 02:05:)*%Duet%%
 *%Duet pinout%duet_pinout
 *%Duet wiring%%
 *%Duet firmware update%%
 
 
+■choosing stepper
+choosing stepper motors
+(:date 11 Aug 2016 02:05:)== Considerations when choosing stepper motors
 
+=== Rated current
 
+=== Holding torque
 
+=== Size
 
+=== Step angle
 
+=== Inductance
 
+=== Rated voltage
 
+== General recommendations
 
-
-
-
-
-
+*Unless you will be using external stepper motor drivers, choose motors with rated current of at least 1.2A, and at most 2.0A for the Duet 0.6 and Duet 0.8.5 or 2.8A for the Duet WiFi
+*Plan to run each stepper motor at between 50% and 85% of its rated current
+*Nema 17 is the most popular size used in 3D printers
+*Nema 14 is an alternative in a highly-geared extruder
+*Use Nema 23 motors only if you cannot get sufficient torque from long Nema 17 motors
+*If you choose 0.9deg/step motors instead of the more common 1.8deg/step, use 24V power in order to better maintain torque at high speeds
+*If using a highly-geared extruder (for example, an extruder that uses a flexible drive cable to transmit the torque from the motor to the drive gear), use a low-inductance 1.8deg/step motor to drive it
 
 
 

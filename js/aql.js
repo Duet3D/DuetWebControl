@@ -42,7 +42,7 @@ aqlC.imgLocalDir= "f/"; // sub-directory of h/ for images when the resources are
 aqlC.dispDir 	= "d/"; // sub-directory of h/ for **displayed** images (they shall have same name as full images)
 //-------------------------------------------
 aqlO.imagesDir	= "f/"; // sub-directory of h/ for linked images  ('full' images) use imgLocalDir if resources are local
-//aqlO.domain  = "http://otocoup.com/DWC/"; // define domain for remote help loading. Need CORS activated on directory
+//aqlO.domain  = "http://otocoup.com/aql/"; // define domain for remote help loading. Need CORS activated on directory
 aqlO.domain		= ""; // name of cross-origin domain from files are got - fall to "" if file cannot be get from domain.
 aqlO.url		= ""; //page url base set by the first showHlp, which loads file and check availability
 aqlO.linkbase	= ""; //page Url WITHOUT hash code
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 	}
 	document.onclick = function(e){ // to avoid header folding when going to an anchor
 		var target = e.target;
-		if (target.tagName === 'A') {
+		if ((target.tagName === 'A') && aqleft_button(e)) {
 			var href = target.getAttribute('href');
 			if (href.indexOf("#"+aqlC.prefix)>=0) {
 				e.preventDefault(); // stop jumping to anchor
@@ -159,16 +159,17 @@ document.addEventListener("DOMContentLoaded", function(e) {
     };	
 	$0("btn_aql_bk").onclick = function(){ // Call backlinks window - also do that with hover ? 
 		if (getComputedStyle($0("aql_bk")).display=="none") //style not initialised by JS->call function 
-			hlpLoadAll("hlpListBack");
+			hlpLoadAll(hlpListBack);
 		else
 			$0("aql_bk").style.display="none";
     };
 	$(".aqlstart").click(function(e){ //APPLICATION  call widget  set class '.hlpstart' in widget
-		var hpage =  $(e.target).data('hpage'); 
+		var hpage = $(e.target).data('hpage'); 
 		showHlp(hpage, true);
     }); 
 	$0("btn_hlp_back").onclick = function(){history.back();}; 
-	$0("btn_hlp_toc").onclick = function(){showHlp();}; //only for non-tabbed page 
+	if ($0("btn_hlp_toc", true)) //only for non-tabbed page 
+		$0("btn_hlp_toc").onclick = function(){showHlp();};
 	$0("btn_hlp_print").onclick = function(){hlpPrint();}; 
 	if ($0("btn_aql_close", true)) // only for in-application
 		$0("btn_aql_close").onclick = function(){hlp_close();}; 
@@ -383,10 +384,8 @@ function aqlimgdesc (event) {
 function aqlScrollAnchor (href) { // scroll to anchor
 	if (is_touch_device) // use normal move
 		location.hash=href;
-	else { // scroll page body
-		var anch = $0(href.substr(1)); // remove first '#'
-		$0("aql_body").scrollTop = anch.offsetTop - aqlO.anchorOffset; 
-	}	
+	else  // scroll page body
+		$0("aql_body").scrollTop = $0(href.substr(1)).offsetTop-aqlO.anchorOffset; // remove first '#'
 }
 
 function hlpNamePage (name) { // transform string in page name - normalise or escape accented chars ?
@@ -411,8 +410,7 @@ function hlpStore(page, index) { //Store in hash table.  index exists only for i
 				hlpalert ("Page name:"+index2+" not the same as file name:"+index+" Check first file line");
 			index2=index; // to avoid looping indefinitely
 		}	
-		if (tabHlp[index2]==undefined) // create object as needed
-			tabHlp[index2]={};
+		tabHlp[index2] = tabHlp[index2] || {}; // create object as needed
 		if (names[1]) { // there are groups
 			names.shift(); // remove index name.
 			tabHlp[index2].groups = names;
@@ -455,14 +453,13 @@ function aqltoggleclass (el, class1, class2) {
 }
 
 function aqlSendSearch(stext) { // Run the search from text field data
-	if (tabHlp['aqlsearch']==undefined) // create object as needed
-		tabHlp['aqlsearch']={};
+	tabHlp['aqlsearch'] = tabHlp['aqlsearch'] || {}; // create object as needed
 	tabHlp['aqlsearch'].search=false; // don't search search page		
 	if (stext) {
 		$0("aql_body").innerHTML = "<br><strong>&nbsp; "+T("Searching '{0}', please wait...",stext)+"</strong>"; // user feedback
 		tabHlp['aqlsearch'].title = accentsNorm(stext.toLowerCase()); // accented letters normalised and everything in lowercase
 		setTimeout(function() { // to display immediately message while loading all stuff - time=0 don't work
-			hlpLoadAll("aqlShowSearch"); //load all pages before searching
+			hlpLoadAll(aqlShowSearch); //load all pages before searching
 		}, 50);
 	}
 }
@@ -491,8 +488,9 @@ function hlpCall (page, text) {
 
 function aqlTrans (data, hpage) {//simple wiki markup w/ pdf, images references & web links
 // \s capture the \n, so [\t ] is used to catch spaces only
-var intro, ptitle, numtitle, myclass, hlpfoot, hlphead, allweb, hlpdiag, trail; //blocs and directives
-var notoc, notitle, nofoot, nohead; // parameters of directives
+var intro, ptitle, numtitle, myclass, hlpfoot, hlphead, allweb, hlpdiag;  //blocs and directives
+var trail, imgpar, imgborder, pgdate; //blocs and directives
+var notoc, notitle, nofoot, nohead, nodate; // parameters of directives
 var refidx=0, notesidx=0, weblnk, weblnk1, weblnk2; //notes and web link lists
 var codeblocks=[],tmp=[],titles=[],weblinks=[],weblinkis=[],tables=[],refs=[],notes=[]; //data storage while tokenising
 var i, j, cleardiv="<div style='clear:both;'></div>" , now = hlptimenow(); 
@@ -501,13 +499,16 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 //-- Functions -------------------------------------------------------------------------------------
 	function direct (dir) { //search directive once:  return parameters as a unique string. return empty string if not found
 		var a="", par1=""; 
-		var redir = RegExp("\\(:"+dir+"(([ ]+[\\w]*)*):\\)[ ]*(<br>)*[ ]*"); //clean \n and spaces, don't remove \n as separator for titles
+		var redir = RegExp("\\(:"+dir+"(([\\t ]+[\\w-:,;]*)*?):\\)[ ]*(<br>)*[ ]*"); //clean \n and spaces, don't remove \n as separator for titles
 		data = data.replace (redir, function(mt, p1) {
 			a = mt; // run only once, no 'g'
 			par1 = z(p1);
 			return ""; // delete directive
 		});
 		return (a)?((par1)?par1:dir):""; // return directive name if directive exists but have no parameter
+	}
+	function remdirect(data) { // remove directives - make an option to not remove (:clear:) for included pages ??
+		return data.replace (/\(:[\w]+([\t ]+[\w-.,;:]*)*?:\)[\t ]*(<br>)?/g,'');
 	}
 	function untoken (arr, token) {
 		for (var i=0; i<z(arr).length; i++)
@@ -531,13 +532,17 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 //-------------------------------------------------------------------------------------------------	
 	if (tabHlp[hpage]==undefined) 
 		hlpalert(T("Internal error program, page undefined in aqlTrans function"));
+	pgdate	 = direct('date').trim(); // date of main page captured, not of included pages	
 	if (!direct ('nodef')) // don't load default page - default may contains directives
 		data=z(zo(tabHlp['hlpdef']).p)+"\n"+"♂"+data; //add default page at start - this is different from a header, as it goes in 'intro' block ???
+	imgpar	 = direct('image');	
+	imgborder= imgpar.indexOf("border")>=0;
 	myclass  = direct('class');  // all directives after loading default pages
 	hlpfoot  = direct('hlpfoot'); 
 	hlphead  = direct('hlphead'); 
 	allweb   = direct('allweb');	
 	hlpdiag  = direct('hlpdiag');
+	nodate 	 = direct('nodate'); 
 	nofoot 	 = direct('nofoot'); // to stop adding footer, precedence on hlpfoot
 	nohead 	 = direct('nohead'); // to stop adding header, precedence on hlphead
 	notitle	 = direct('notitle'); 
@@ -562,8 +567,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		return '▲'; //U+25B2
 	});
 	data=data.replace(/\/\*.*?\*\//g, ''); // /*Comments*/  non greedy
-//	data=data.replace(/%([A-F0-9]{2})/g,'·$1'); //replace % by char 250 for Hex encoding- protection of URI encoding as % is used in markup
-	// left for unrecognised web links .. any use ??
+//	data=data.replace(/%([A-F0-9]{2})/g,'·$1'); //replace % by char 250 for Hex encoding- protection of URI encoding as % is used in markup -- left for unrecognised web links .. any use ??
 	data=data.replace(/_\n/g,''); // continue without taking into account line feed - NO added space (for tables)
 	for (i=0; i< 4; i++) //four keys maxi - get them from select box
 		if (document.hform.elements["aqlkey"+i])
@@ -583,28 +587,31 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		return '♦';  //U+2666
 	}); 
 	//-- External links and image markup --- no link within titles  ---------------
-	var repdf = /(\d+)([LRC]{0,1})%pdf%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //capture image->pdf
-	data=data.replace(repdf, function(m, p1,p2,p3,p4,p5) {
-		return '<a href="'+aqlO.url+aqlC.docDir+z(p3)+z(p2)+imgtg+ 
-		'<img class="hlpimg'+z(p2)+'" src="'+aqlO.url+aqlC.dispDir+z(p3)+z(p5)+imgwd(p1)+
-		'</a>';
+	rgximg = /"([^"\n]*?)(\d+)([LRCIlrci]?)%(%|pdf%)?(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)\s?"/g; //capture image WITH legend
+	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5,p6,p7) { // simple '%'  ->bigger image
+		p3 = p3.toUpperCase();
+		var iclass = (!imgborder || p3=="I") ? "": ((p3=="C") ? "aqlimgCb " : "aqlimgb "); 
+		var res = '<div class="'+iclass+'hlpimg'+z(p3)+'"><img src="'+aqlO.url+aqlC.dispDir+z(p5)+z(p7)+
+			imgwd(p2)+"<p class='aqllegend'>"+z(p1)+"</p></div>";
+		res = (p4=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+z(p5)+z(p4).slice(0,-1)+imgtg+res+"</a>" : res;
+		res = (p4=="%")? res : '<a href="javascript:aqlimg(\''+z(p5)+z(p7)+'\');">'+res+"</a>";
+		return res;
 	});
-	rgximg  = /(\d+)([LRC]{0,1})%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //capture image ->bigger image
-	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5) { 
-		return '<a href="javascript:aqlimg(\''+z(p3)+z(p5)+'\');">'+
-		'<img class="hlpimg'+z(p2)+'" src="'+aqlO.url+aqlC.dispDir+z(p3)+z(p5)+imgwd(p1)+
-		"</a>";
+	rgximg = /(\d+)([LRCIlrci]?)%(%|pdf%)?(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //capture image
+	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5,p6) { // simple '%'  ->bigger image
+		p2 = p2.toUpperCase();
+		var iclass = (!imgborder || p2=="I") ? "": ((p2=="C") ? "aqlimgCb " : "aqlimgb "); 
+		var res = '<img class="'+iclass+'hlpimg'+z(p2)+'" src="'+aqlO.url+aqlC.dispDir+z(p4)+z(p6)+imgwd(p1);
+		res = (p3=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+z(p4)+z(p3).slice(0,-1)+imgtg+res+"</a>" : res;
+		res = (p3=="%")? res : '<a href="javascript:aqlimg(\''+z(p4)+z(p6)+'\');">'+res+"</a>";
+		return res;
 	});
-	rgximg = /(\d+)([LRC]{0,1})%%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //capture image without link	
-	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5) {
-		return '<img class="hlpimg'+z(p2)+'" src="'+aqlO.url+aqlC.dispDir+z(p3)+z(p5)+imgwd(p1);
-	});
-	rgximglnk = /%([^%\n]*)%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //word -> image	
-	data=data.replace(rgximglnk,'<a href="'+aqlO.url+aqlO.imagesDir+'$2$4'+imgtg+'$1</a>'); // link to local image (= 'Media:' markup on wikimedia)
+	rgximglnk = /%([^%\n]*?)%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //word -> image	AFTER  images
+	data=data.replace(rgximglnk,'<a href="javascript:aqlimg(\'$2$4\');">$1</a>'); //word link to image (= 'Media:' markup on wikimedia)
 	//-- Web links ------------------------------------------------------------------------------------------
 	//var rlk1= /%([^%\n]*)%"(http(s?)\:[^"]*)"/g; //this Regex capture not valid web addresses - may check validity at later phase? 
 	var rlk2= /"(#?)([^"\n]*?)[\t ]*(http(s?)\:\/\/)(([\da-z\.-]+)\.([a-z\.]{2,6})[^"\n]*)"/g;  //could we get optional http if run before image link ?  
-	var rlk3= /(http(s?)\:\/\/)(([\w\.-]+)\.([\w\.\?\=]{2,6})[\S]*)/g;  // Isolated link without " "
+	var rlk3= /(http(s?)\:\/\/)(([\w\.-]+)\.([\w\.\?\=]{2,6})[\S]*)/g; // Isolated link without " " - capture end dots
 	data=data.replace(rlk2,function (mt,p1,p2,p3,p4,p5) { // tokenize and replace links -> help for search
 		weblnk = 'http'+z(p4)+'://'+z(p5);
 		p2 = (p2)?p2.trim()+aqlC.sweb :""; // format link text
@@ -627,11 +634,6 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		weblinkis.push (weblnk);
 		return '▼'; //U+25BC  
 	});
-	//-- tables ----------------------------------------------------------------------------------------------
-	data = data.replace (/^\/:([\s\S]*?)^:\//gm, function (mt, p1) { // before character formatting ?? 
-		tables.push(aqlTable(p1)); 
-		return '♠'; //U+2660
-	});
 	//-- simple markups -------------------------------------------------------------
 	data=data.replace(/^----/gm,'<hr>'); // shall precede -- something-- markup, if defined anyday
 	data=data.replace(/<q>([\s\S]*?)<\/q>/g, function(mt, p1) { //  quote and blockquote
@@ -641,7 +643,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	data=data.replace(/__(([^_]|_[^_])*)__/g, '<u>$1</u>');//  __underline__
 	data=data.replace(/\b([a-y]+)\^\^(([^\^]|\^[^\^])*)\^\^/g, '<span style="background:$1">$2</span>'); // color^^highlight^^
 	data=data.replace(/\^\^(([^\^]|\^[^\^])*)\^\^/g, '<mark>$1</mark>'); // yellow ^^highlighting^^
-	data=data.replace(/^:(.*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para
+	data=data.replace(/^:[^\/](.*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para - beware table markup
 	data=data.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **strong** characters BEFORE bullet list
 	data=data.replace(/^\*[\t ]*(.*)\n/gm,'<ul><li>$1<\/li><\/ul>'); // bullet list
 	data=data.replace(/<\/li><\/ul><ul><li>/g,'</li><li>'); 
@@ -662,9 +664,16 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		return p1 + hlpAnchor(hpage, 'bnotes'+(++notesidx))+
 			hlpGoAnchor(hpage, 'notes'+notesidx, '[n'+notesidx+']');
 	}); 
-	data=data.replace(re1,'<a href="javascript:window.showHlp(\'$2\');">$1'+aqlC.slink+'</a>'); 
+	data=data.replace(re1,  function (mt, p1, p2) {
+		return hlpCall(hlpNamePage(p2), p1+aqlC.slink);
+	}); 
 	data=data.replace(re3, function (mt, p1) {
 		return hlpCall(hlpNamePage(p1), p1+aqlC.slink);
+	});
+	//-- tables ----------------------------------------------------------------------------------------------
+	data = data.replace (/^\/:([\s\S]*?)^:\//gm, function (mt, p1) { 
+		tables.push(aqlTable(p1)); 
+		return '♠'; //U+2660
 	});
 	//--------------------------------------------------------------------------------	
 	data=data.replace(/^([\t \n]|<br>)*/,""); // remove leading spaces and newline (due notably to directives)
@@ -689,27 +698,28 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	untoken(titles,'♦');
 	if (refs.length && !data.match(/\(:reflist:\)/g))
 		data += '<br><strong>Internet links</strong>(:reflist:)'; // if no refs and links, add at page end
-	data = addlistref (refs, /\(:reflist:\)/,'xref');	// directive for referenced links
+	data = addlistref (refs, /\(:reflist:\)/,'xref'); // directive for referenced links
 	data = addlistref (notes, /\(:notes:\)/,'notes'); // Directive for notes	
 	data = aqlTrail (data, hpage);
 	if (hlpdiag)
 		data = data +'<br><small>'+aqlO.loadTime+'  Page interpretation: '+Math.round(hlptimenow()-now)+
-			'ms  <a href="javascript:window.showHlp(\'hlptest\');">__</a>  Board: '+hlpSelId+'</small>'; 
+			'ms  '+hlpCall ("hlptest", "__")+'  Board: '+hlpSelId+'</small>'; 
 	data = data.replace ('<br>♠','♠');
 	untoken(tables,'♠');
 	untoken(weblinks,'♥');
 	untoken(weblinkis,'▼');  	
 	//data = data.replace(/·/g,'%'); // replace char 250 by % (for URI encoding)	after untoken of weblinks 
-	data = data.replace (/(\(:[\w]*([\t ]([\w-]*))?:\)[\t ]*(<br>)?)/g,''); //remove all remaining directives - when doubled
+	data = remdirect (data);
+	 //remove all remaining directives - when doubled
 	if (!aqlO.listAll)
 		untoken(codeblocks,'▲'); //U+25B2  - Last to not modify directives
-	data = data.replace (/<code>\s*(<br>)*/g, '<code>'); // remove leading newlines inside a pre-block
-	data = data.replace (/<hr>\s*(<br>)*/g, '<hr>'); // remove leading newlines after a line
-	data = data.replace (/(<br>)*<\/code><\/pre>\s*<br>/g, '</code></pre>'); // eliminate one newline before and after </pre>
-	if (!nofoot)
-		data += z(zo(tabHlp[hlpfoot]).p); //no wiki markup interpretation of the footer nor header
-	if (!nohead)
-		data = z(zo(tabHlp[hlphead]).p)+data;
+	data = data.replace (/<code>\s*(<br>)*/g, '<code>') // remove leading newlines inside a pre-block
+			.replace (/<hr>\s*(<br>)*/g, '<hr>') // remove leading newlines after a line
+			.replace (/(<br>)*<\/code><\/pre>\s*<br>/g, '</code></pre>'); // eliminate 1 newline before & after </pre>
+	data += "<br>"; // <br>needed as directive removal eat them
+	if (!nodate) data += "&nbsp;<small>Date:"+pgdate+"</small>";
+	if (!nofoot) data += remdirect(z(zo(tabHlp[hlpfoot]).p)); //no wiki markup interpretation of the footer nor header
+	if (!nohead) data = remdirect(z(zo(tabHlp[hlphead]).p))+data;
 	if (myclass) // add global personnal class - around footer and header also ??
 		data = '<div class="'+ myclass.trim()+'">'+ data +'</div>'; 
 	data += '<br><br><br><br><br><br>'; // bug with taskbar height, so add empty lines	
@@ -772,8 +782,8 @@ var i, j, toc="", tsp;
 			if (titlenolnk) title = titlenolnk;  // replace text with link
 			if (numtitle)
 				switch(level) {
-					case 2:	titlenum = l1.toString()+'. ';  							l3=1;	l2=1;	l1++; break;
-					case 3: titlenum = (l1-1).toString()+'.'+l2.toString()+'. '; 	 			l3=1;	l2++; break;
+					case 2:	titlenum = l1.toString()+'. ';  						l3=1;	l2=1;	l1++; break;
+					case 3: titlenum = (l1-1).toString()+'.'+l2.toString()+'. '; 			l3=1;	l2++; break;
 					case 4: titlenum = (l1-1).toString()+'.'+(l2-1).toString()+'.'+l3.toString()+'. ';	l3++;
 				} 
 			toc += '<a href="#'+hlpDefAnchor(hpage, title)+'" class="rtoc'+level+'">'+titlenum+title+'</a><br>'; // go to anchor
@@ -822,10 +832,10 @@ var i, j, tab="", tabtot=[], row=[], ncol=0, ncol1, val, mt, calign, tdh, alt, c
 	if (tabmark) {
 		var tabarr = tabmark.split('\n');
 		var nrow = tabarr.length-2; //last line always empty, first line caption
-		tab = tabarr[0].replace (/^(([LRC])(\w*?))?((^|[\t ]).*)$/, function (mt, p1,p2,p3,p4){
+		tab = tabarr[0].replace (/^(([LRCI])(\w*?))?((^|[\t ]).*)$/, function (mt, p1,p2,p3,p4){
 				p4 = z(p4).trim();
 				p4 = (p4)?'<caption>'+p4+'</caption>':"";	
-				var cl = z(p2)?((p2=='L')?'left':((p2=='C') ? 'center' : 'right')):'center';
+				var cl = z(p2)?((p2=='L')?'left':((p2=='C') ?'center':(p2=='R')?'right':'inline')):'center';
 				cl += z(p3)? " "+p3:""; // add personalized class
 				return '<table class="'+cl+'">'+ p4;
 		});
@@ -997,7 +1007,7 @@ function hlpPrint() { // print the body of the help windows - reinterpret with o
 window.hlpLoadAll= function() { // used for search and diagnostics - build an index
 	var runFunc = arguments[0]; // function started when loading complete
 	if (aqlO.loadAll) 
-		window[runFunc]();	
+		runFunc();
 	else {
 		hlpLoadAll.refP = []; // store pages referenced as not in tabHlp (and not already searched)
 		hlpLoadAll.Eidx = 0; // index of not in tabHlp pages
@@ -1027,7 +1037,7 @@ function hlpLoadExt(runFunc)  {
 	if (hlpLoadAll.Eidx==hlpLoadAll.refP.length) {
 		aqlO.loadAll=true; // all pages are loaded in memory
 		aqlO.lastP = hlpLoadAll.curPage;
-		window[runFunc]();	
+		runFunc();
 	}	
 	else { 	// load file one after the other, less trouble than multiple runs
 		lnk = hlpLoadAll.refP [hlpLoadAll.Eidx];
@@ -1065,9 +1075,8 @@ function hlpChklnk(htext, id) { // stack pages not found in the hash table ( not
 		if (lnk.length > aqlC.linkMaxLength) {
 			if (id) hlpalert (T('Link "{0}" length exceed {1} in page {2}', lnk, aqlC.linkMaxLength, id)); // add some context !!
 		}	
-		else if (!tabHlp[lnk]) //not loaded page added on Ref stack
-			if ((aqlO.nFound.indexOf(lnk)<0) && (aqlO.nValid.indexOf(lnk)<0))
-				arrayAdd (hlpLoadAll.refP, lnk); // stack link as referenced (if not already referenced)
+		else if (!tabHlp[lnk] && (aqlO.nFound.indexOf(lnk)<0) && (aqlO.nValid.indexOf(lnk)<0))
+			arrayAdd (hlpLoadAll.refP, lnk); // stack link as referenced (if not already referenced)
 	}
 } 
 
@@ -1084,9 +1093,9 @@ var id, tabTrans = {};
 }
 
 function backlinks(tabH, link) {
-var backlnk, i, id, pagetx, nblink, text;
+var backlnk, i, id, pagetx, nblink;
 var	bsep = (arguments[2])? arguments[2]:", "; // backlinks separator
-    text = (arguments[2])?'':'<strong>'+z(zo(tabHlp[link]).ext)+link+' :</strong>';	
+var text = (arguments[2])?'':'<strong>'+z(zo(tabHlp[link]).ext)+link+' :</strong>';	
 	for (id in tabHlp) {
 		pagetx = tabH[id];
 		if (pagetx) {
@@ -1104,7 +1113,7 @@ var	bsep = (arguments[2])? arguments[2]:", "; // backlinks separator
 				text+=nblink+')'+bsep;
 		}	
 	}	
-	return (text + ((arguments[2])?'':'<br>'));
+	return text;
 }
 
 //== Utilities ===================================================================
@@ -1156,7 +1165,10 @@ function insertStr (source, index, string) {// insertion of a string within anot
 function arrayAdd (arr, val) {  // add only if not existing
 	if (arr.indexOf(val)==-1) arr.push(val);
 }
-	
+function aqleft_button(e) { // return true if left button clicked
+    e = e || window.event;
+    return e.which == null ? e.button < 2 : e.which < 2;
+}
 //== Writer tools == from this line to the end, can be removed on final user program ===================
 function hlpListAll() { // list all pages on current window - called by hlpLoadAll
 var i, id, tabTrans = {};	
@@ -1165,13 +1177,13 @@ var i, id, tabTrans = {};
 	for (id in tabHlp) // create hash table of converted markup
 		tabTrans[id] = (tabHlp[id]) ? aqlTrans(z(tabHlp[id].p), id):"";
 	for (id in tabHlp) // tabHlp is a hash table, so 'in' works
-		text += backlinks(tabTrans,id); //id +'<br>';
+		text += backlinks(tabTrans,id)+"<br>"; //id +'<br>';
 	text+='<hr><strong>Not found pages:</strong><br>'
 	for (i=0; i<aqlO.nFound.length; i++) //for..of may work, but compatibility is delicate
-		text += backlinks(tabTrans, aqlO.nFound[i]);
+		text += backlinks(tabTrans, aqlO.nFound[i])+"<br>";
 	text+='<hr><strong>Not valid pages:</strong><br>'	
     for (i=0; i<aqlO.nValid.length; i++) 
-		text += backlinks(tabTrans, aqlO.nValid[i]);
+		text += backlinks(tabTrans, aqlO.nValid[i])+"<br>";
 	$0("aql_body").innerHTML = text+'</div><br><br><br><br><br><br>'; 
 	aqlO.listAll = false; // re-allow normal interpretation
 }	

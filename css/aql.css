@@ -240,7 +240,7 @@ button:focus {outline:0;} /* remove chrome annoyance */
 buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 /* to move an icon to left, INCREASE percentage*/
 .aqi			{ background:url(hsprite.png);} 
-.aqi.qback		{ background-position:-0.8% 0px;} /* sprite 0 */
+.aqi.qback		{ background-position:-1% 0px;} /* sprite 0 */
 .aqi.qsearch 	{ background-position: 9.5% 1px;} /* sprite 1 */
 .aqi.qprint		{ background-position: 19.1% 1px;} /* sprite 2 */
 .aqi.qzoom-in 	{ background-position: 29.45% 1px;} /* sprite 3 */
@@ -272,9 +272,11 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 }
 
 #btn_hlp_toc {
-	width:132px !important; /*surpass button def (36px) */
+	width:auto !important; /*surpass button def (36px) */
+	min-width:100px !important;
 	margin-left:3px; 
 	margin-right:0px;
+	padding:0 8px !important;
 }
 
 #hform { 
@@ -297,8 +299,8 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 #aql_page :-ms-input-placeholder { color:#BFBFBF; }
 
 #btn_hlp_print { /* to separate button from search button */
-	margin-left:3px; 
-	margin-right:3px;
+	margin-left:2px; 
+	margin-right:2px;
 	padding-right:6px;
 	padding-left:6px;
 }
@@ -322,7 +324,9 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 	border-bottom-right-radius:0;
 	bottom:-2px;
 	overflow:hidden;
-	width:100px;
+	width:auto;
+	padding:6px;
+	min-width:90px;
 	height:28px;
 }
 
@@ -367,6 +371,7 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 .hlpsign { /* for signature - in principle in the footer*/
 	float:right;
 	font-size:8px;
+	vertical-align: text-bottom;
 }
 
 /*-- Table of content links 2-4 --------*/
@@ -516,31 +521,49 @@ div.spacer2 {
 }
 
 .hlpimg,
+.hlpimgR,
+.hlpimgL,
+.hlpimgC {
+/* set here whatever you want for images format (border, etc) */
+}
+
+.aqlimgb,  /*classes adding border to images */
+.aqlimgCb {
+	border:solid 1px;
+	padding:4px !important; 
+}
+.aqlimgb { /* do not set margin on centered image, x-y shall be auto */
+	margin:4px !important; 
+}
+
+.hlpimg, /*hlpimg is the default image css (position not indicated)*/
 .hlpimgR { 
 	float:right;
 	display:block;
-	border:none;
 	padding:6px;
-	margin:0;
 }
-
 .hlpimgL { 
 	float:left;
 	display:block;
-	border:none;
 	padding:6px;
-	margin-left:24px;
 }
-
+.hlpimgI {  /*-- inline images no margin, no padding --*/
+	float:none;
+	padding:0;
+	vertical-align: bottom; /* inline images aligned on line bottom for initial (dropcap), etc. */
+}
 .hlpimgC {  /*-- centered images --*/
 	float:none;
 	text-align:center;
 	display:block;
-	border:none;
 	padding:6px;
 	margin:0 auto;
 }
-
+.aqllegend {
+	display:table;
+	margin:0 4px;
+	margin-top:-4px;
+}
 /*--- table -----------------------------------------------*/
 #aql_page table.left  {	float:left;}  /* NO SPACE between table and class name */
 #aql_page table.right { float:right;}
