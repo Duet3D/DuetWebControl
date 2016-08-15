@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
 		var target = e.target;
 		if ((target.tagName === 'A') && aqleft_button(e)) {
 			var href = target.getAttribute('href');
-			if (href.indexOf("#"+aqlC.prefix)>=0) {
+			if (href && href.indexOf("#"+aqlC.prefix)>=0) {
 				e.preventDefault(); // stop jumping to anchor
 				history.pushState("", "", aqlO.linkbase+href); // to have the anchor in history and url field for back
 				aqlScrollAnchor (href);

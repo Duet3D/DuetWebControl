@@ -4,7 +4,7 @@ You can write any comments before the first page.
 
 ■home
 RepRap Firmware and Duet documentation
-(:date 11 Aug 2016 02:05:)/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
+(:date 15 Aug 2016 03:09:)/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi Quick start guide
 *%Prerequisites%%
@@ -26,7 +26,7 @@ allb,Duet_WiFi_1.0+/=
 * %Power wiring%power_wiring 
 * %What could kill your Duet?%what_kill_duet 
 * %Fans%Fans
-* %choosing stepper motors%choosing stepper
+* %choosing stepper motors%choosing_stepper
 * %Duet pinout%Duet_pinout
 ===< Differences with other Hardware/Firmware
 * %Wiring and hardware differences from RAMPS etc.%Duet_differences
@@ -56,7 +56,7 @@ allb,Duet_WiFi_1.0+/=
 
 ■menu
 Menu
-(:date 11 Aug 2016 02:05:)(:nodef:)(:notitle:)(:notoc:)(:nodate:)
+(:date 15 Aug 2016 03:09:)(:nodef:)(:notitle:)(:notoc:)(:nodate:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi start
 *%Prerequisites%%
@@ -78,7 +78,7 @@ allb,Duet_WiFi_1.0+/=
 * %Power wiring%power_wiring 
 * %What kill Duet%what_kill_duet 
 * %Fans%Fans
-* %choosing stepper%choosing stepper
+* %choosing stepper%choosing_stepper
 * %Duet pinout%Duet_pinout
 ===< Differences
 * %Wiring and hardware%Duet_differences
@@ -4151,30 +4151,70 @@ Duet hardware trail
 
 
 ■choosing stepper
-choosing stepper motors
-(:date 11 Aug 2016 02:05:)== Considerations when choosing stepper motors
+Choosing stepper motors
+(:date 15 Aug 2016 03:09:)== Considerations when choosing stepper motors
+=== Number of wires (unipolar/bipolar)
+The Duet and Duet WiFi use bipolar stepper motor drivers. This means you can use stepper motors suitable for bipolar drive, which have 4, 6 or 8 wires. You cannot use motors with 5 wires, because those are intended to be driven in unipolar mode only.
 
 === Rated current
+This is the maximum current you may pass through both windings at the same time. The maximum current through one winding (which is what really matters when using microstepping) is rarely quoted and will be a little higher. However, even with one winding driven at the quoted rated current, the motor will get very hot. So the usual practice is to set the motor current to no more than about 85% of the rated current. Therefore, to get maximum torque out of your motors without overheating them, you should choose motors with a current rating no more than 20% higher than the recommended maximum stepper driver current. This gives:
+
+*Duet 0.6 and Duet 0.8.5 (recommended maximum motor current 1.5A) => Stepper motor rated current <= 1.8A (or 2A at a push)
+*Duet WiFi (recommended maximum motor current 2.0A using current firmware) => Stepper motor rated current <= 2.4A
+
+
+The maximum recommended stepper motor current for the Duet WiFi is likely to be increased in a future firmware revision.
 
 === Holding torque
+This is the maximum torque that the motor can provide with both windings energised at full current before it starts jumping steps. The holding torque with one winding energised at the rated current is about 0.707 times that. The torque is proportional to current (except at low currents), so for example if you run the motor the drivers set to 85% of its rated current, then the maximum torque will be 85% * 0.707 = 60% of the specified holding torque.
+
+Torque is produced when the rotor angle is different from the ideal angle that corresponds to the current in its windings. When a stepper motors is accelerating, it has to produce torque to overcome its own rotor inertia and the mass of the load it is driving. In order to produce this torque, the rotor angle must lag the ideal angle. In turn, the load will lag the position as commanded by the firmware.
+
+You will sometimes see it written that microstepping reduces torque. What this really means is that when the lag angle is assumed to be equal to the angle corresponding to one microstep (because you want the position to be accurate to within one microstep), higher microstepping implies a smaller lag angle, hence lower torque.
 
 === Size
+There are two relevant sizes: the Nema size number and the length. The Nema size number defines the square dimension of the body and the mounting hole positions. The most popular size for 3D printers is Nema 17, which has a body no more than 42.3mm square and fixing holes in a square of side 31mm.
+
+Nema 17 motors come in various lengths, ranging from 20mm long "pancake" motors to 60mm long motors. As a general rule, the longer a motor is, the greater its holding torque at rated current. Longer stepper motors also have greater rotor inertia.
 
 === Step angle
+There are two common step angles: 0.9 and 1.8 degrees per full step, corresponding to 400 and 200 steps/revolution. Most 3D printer use 1.8 deg/step motors.
+
+Aside from the obvious difference in step angle:
+
+*0.9deg motors have slightly lower holding torque than similar 1.8deg motors from the same manufacturer
+*However, to produce a given torque, the lag angle needed by a 0.9deg motor is slightly more than half the lag angle of a similar 1.8deg motor. Or to put it another way, at small lag angles a 0.9deg motor has nearly twice as much torque as a 1.8deg motor for the same lag angle.
+*At a given rotation speed, a 0.9deg motor produces twice as much back emf as a 1.8deg motor. So you generally need to use 24V power to achieve high speeds with 0.9deg motors.
 
 === Inductance
+The inductance of the motor affects how fast the stepper motor driver can drive the motor before the torque drops off. If we temporarily ignore the back emf due to rotation, and the rated motor voltage is much less than the driver supply voltage, then the maximum revs/second before torque drops off is:
 
-=== Rated voltage
+ revs_per_second = (2 * supply_voltage)/(steps_per_rev * pi * inductance * current)
+
+If the motor is driving a GT2 belt via a pulley, this gives the maximum speed in mm/sec as:
+
+ speed = (4 * pulley_teeth * supply_voltage)/(steps_per_rev * pi * inductance * current)
+
+Example: a 1.8deg/step (i.e. 200 steps/rev) motor with 4mH inductance run at 1.5A using a 12V supply, and driving a GT2 belt with 20 tooth pulley would start losing torque at about 250mm/sec. This is the belt speed, which on a CoreXY or delta printer is not the same as the head speed.
+
+In practice the torque will drop off sooner than this because of the back emf caused by motion, and because the above doesn't allow for the winding resistance. Low inductance motors also have low back emf due to rotation.
+
+What this means is that if we want to achieve high speeds, we need low inductance motors.
+
+=== Resistance and rated voltage
+These are simply the resistance per phase, and the voltage drop across each phase when the motor is stationary and the phase is passing its rated current (which is the produce of the resistance and the rated current). These are unimportant, except that the rated voltage should be well below the power supply voltage to the stepper drivers.
 
 == General recommendations
+*Unless you will be using external stepper motor drivers, choose motors with rated current of at least 1.2A, and at most 1.8A (or 2.0A at a push) for the Duet 0.6 and Duet 0.8.5, or 2.5A for the Duet WiFi.
+*Plan to run each stepper motor at between 50% and 85% of its rated current.
+*Nema 17 is the most popular size used in 3D printers.
+*Nema 14 is an alternative in a highly-geared extruder.
+*Use Nema 23 motors only if you cannot get sufficient torque from long Nema 17 motors.
+*Avoid motors with rated voltage (or product of rated current and phase resistance) > 4V or inductance > 4mH.
+*Choose 0.9deg/step motors only if you want high positioning accuracy (e.g. for the tower motors of delta printers). Otherwise choose 1.8deg/step motors. If you choose 0.9deg/step motors, use 24V power.
+*If using a highly-geared extruder (for example, an extruder that uses a flexible drive cable to transmit the torque from the motor to a worm reduction gear), use a short low-inductance 1.8deg/step motor to drive it.
 
-*Unless you will be using external stepper motor drivers, choose motors with rated current of at least 1.2A, and at most 2.0A for the Duet 0.6 and Duet 0.8.5 or 2.8A for the Duet WiFi
-*Plan to run each stepper motor at between 50% and 85% of its rated current
-*Nema 17 is the most popular size used in 3D printers
-*Nema 14 is an alternative in a highly-geared extruder
-*Use Nema 23 motors only if you cannot get sufficient torque from long Nema 17 motors
-*If you choose 0.9deg/step motors instead of the more common 1.8deg/step, use 24V power in order to better maintain torque at high speeds
-*If using a highly-geared extruder (for example, an extruder that uses a flexible drive cable to transmit the torque from the motor to the drive gear), use a low-inductance 1.8deg/step motor to drive it
+
 
 
 
