@@ -1,7 +1,7 @@
 gcode_cvt
-G-codes used in RepRap Firmware
-(:date 10 Aug 2016 23:36:)(:nonum:)
-This G-codes ordered list is a  direct extract from "RepRap Wiki G-code page http://reprap.org/wiki/G-code" and some details may apply only for other firmware than %RepRap Firmware%%.
+G-codes by order
+(:date 17 Aug 2016 19:29:) (:nonum:)
+This G-codes ordered list is a direct extract from "RepRap Wiki G-code page http://reprap.org/wiki/G-code" and some details may apply only for other firmware than %RepRap Firmware%%.
 See also %G-codes sorted by themes%G-codes.
 ==N: Line number
 Example: N123
@@ -1159,7 +1159,7 @@ This tells the printer to allow movement of the extruder motor above a certain t
 
 
 ==M303: Run PID tuning
-**RepRap Firmware:** partial; in development
+**RepRap Firmware:** yes; 1.15 and later
 
  "PID Tuning http://reprap.org/wiki/PID_Tuning"  refers to a control algorithm used in some repraps to tune heating behavior for hot ends and heated beds. This command generates Proportional (Kp), Integral (Ki), and Derivative (Kd) values for the hotend or bed (E-1). Send the appropriate code and wait for the output to update the firmware.
 
@@ -1173,8 +1173,8 @@ Example:
  M303 C8 S175
 Smoothie's syntax, where E0 is the first temperature control module (usually the hot end) and E1 is the second temperature control module (usually the bed):
  M303 E0 S190
-In RepRapFirmware, where H is the heater number and X is the maximum PWM for this heater (default 1.0):
- M303 H1 X0.7 S200
+In RepRapFirmware, this command computes the process model parameters (see M307), which are in turn used to calculate the PID constants. H is the heater number, P is the PWM to use (default 0.5), and S is the maximum allowable temperature (default 200). Tuning is performed asynchronously. Run M303 with no parameters to see the current tuning state or the last tuning result. Example:
+ M303 H1 P0.5 S225 ; tune heater 1 using 50% PWM, quit if temperature exceeds 225C
 
 ** Notes**
 
@@ -1219,6 +1219,21 @@ RepRapFirmware also supports an ADC correction functionality and a thermistor se
 New versions of RepRapFirmware also allow an external SPI thermocouple (such as the MAX31855) to be configured. The first MAX31855 ADC channel is currently set to 100, the second one to 101 etc. 
 
 Here the ADC high end correction (H parameter) is 14, the ADC low end correction (L parameter) is -11, and thermistor input #2 is used to measure the temperature of heater #1.
+
+
+==M307: Set or report heating process parameters
+**RepRap Firmware:** yes; 1.15 and later
+
+** Parameters**
+:  **Hnnn** Heater number (0 is usually the bed heater)
+:  **Annn** Gain, expressed as ultimate temperature rise obtained in degC divided by the PWM fraction. For example, if G=180 then at 50% PWM the ultimate temperature rise would be 90C.
+:  **Cnnn** Dominant time constant of the heating process in seconds
+:  **Dnnn** Dead time in seconds
+** Examples**
+: M307 H0 ; report the process parameters for heater 0
+: M307 H1 G346.2 C140 D5.3 ; set process parameters for heater 1
+
+Each heater and its corresponding load may be approximated as a first order process with dead time, which is characterised by the gain, time constant and dead time parameters. The model can used to calculate optimum PID constants separately for the heating or cooling phase and the steady state phase, and to calculate feedforward terms to better respond to changes in the load.
 
 
 ==M350: Set microstepping mode
@@ -2108,3 +2123,4 @@ Tool numbering may start at 0 or 1, depending on the implementation.  Some imple
 
 
 <small>Licence GFDL 1.2 - source "RepRap Wiki G-code page http://reprap.org/wiki/G-code"</small>
+

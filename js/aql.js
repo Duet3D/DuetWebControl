@@ -590,6 +590,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	rgximg = /"([^"\n]*?)(\d+)([LRCIlrci]?)%(%|pdf%)?(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)\s?"/g; //capture image WITH legend
 	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5,p6,p7) { // simple '%'  ->bigger image
 		p3 = p3.toUpperCase();
+		p5 = z(p5).toLowerCase();		
 		var iclass = (!imgborder || p3=="I") ? "": ((p3=="C") ? "aqlimgCb " : "aqlimgb "); 
 		var res = '<div class="'+iclass+'hlpimg'+z(p3)+'"><img src="'+aqlO.url+aqlC.dispDir+z(p5)+z(p7)+
 			imgwd(p2)+"<p class='aqllegend'>"+z(p1)+"</p></div>";
@@ -600,10 +601,11 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	rgximg = /(\d+)([LRCIlrci]?)%(%|pdf%)?(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //capture image
 	data=data.replace(rgximg, function(m, p1,p2,p3,p4,p5,p6) { // simple '%'  ->bigger image
 		p2 = p2.toUpperCase();
+		p4 = z(p4).toLowerCase();
 		var iclass = (!imgborder || p2=="I") ? "": ((p2=="C") ? "aqlimgCb " : "aqlimgb "); 
 		var res = '<img class="'+iclass+'hlpimg'+z(p2)+'" src="'+aqlO.url+aqlC.dispDir+z(p4)+z(p6)+imgwd(p1);
-		res = (p3=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+z(p4)+z(p3).slice(0,-1)+imgtg+res+"</a>" : res;
-		res = (p3=="%")? res : '<a href="javascript:aqlimg(\''+z(p4)+z(p6)+'\');">'+res+"</a>";
+		res = (p3=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+p4+z(p3).slice(0,-1)+imgtg+res+"</a>" : res;
+		res = (p3=="%")? res : '<a href="javascript:aqlimg(\''+p4+z(p6)+'\');">'+res+"</a>";
 		return res;
 	});
 	rgximglnk = /%([^%\n]*?)%(([\w-\.]*\/){0,4}[\w-\.]+\.)(png|jpg|svg)/g; //word -> image	AFTER  images
@@ -643,7 +645,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	data=data.replace(/__(([^_]|_[^_])*)__/g, '<u>$1</u>');//  __underline__
 	data=data.replace(/\b([a-y]+)\^\^(([^\^]|\^[^\^])*)\^\^/g, '<span style="background:$1">$2</span>'); // color^^highlight^^
 	data=data.replace(/\^\^(([^\^]|\^[^\^])*)\^\^/g, '<mark>$1</mark>'); // yellow ^^highlighting^^
-	data=data.replace(/^:[^\/](.*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para - beware table markup
+	data=data.replace(/^:([^\/].*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para - beware table markup
 	data=data.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **strong** characters BEFORE bullet list
 	data=data.replace(/^\*[\t ]*(.*)\n/gm,'<ul><li>$1<\/li><\/ul>'); // bullet list
 	data=data.replace(/<\/li><\/ul><ul><li>/g,'</li><li>'); 
