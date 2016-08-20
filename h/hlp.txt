@@ -4,7 +4,7 @@ You can write any comments before the first page.
 
 ■home
 RepRap Firmware and Duet documentation
-(:date 15 Aug 2016 03:09:)/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
+(:date 17 Aug 2016 19:28:)/*Avoid 'table of content' as title, as will be used elsewhere as general title*/(:notoc:)(:nonum:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi Quick start guide
 *%Prerequisites%%
@@ -36,7 +36,8 @@ allb,Duet_WiFi_1.0+/=
 * %RepRap Firmware%RepRap_Firmware
 * %Duet Firmware Update%Duet_Firmware_Update
 * %Duet WiFi G-codes and firmware differences%duet_wifi_firm_diff 
-* %RepRap Firmware G-Codes%G-codes
+* %G-Codes by themes%G-codes
+* %G-Codes by order%gcode_cvt
 * %RepRap Firmware macros%Macros
 * %Updating RepRap Firmware config.g file%Updating_config
 * %RepRap Firmware release notes%Release_notes
@@ -56,7 +57,7 @@ allb,Duet_WiFi_1.0+/=
 
 ■menu
 Menu
-(:date 15 Aug 2016 03:09:)(:nodef:)(:notitle:)(:notoc:)(:nodate:)
+(:date 17 Aug 2016 19:28:)(:nodef:)(:notitle:)(:notoc:)(:nodate:)
 allb,Duet_WiFi_1.0+/=
 ===< Duet WiFi start
 *%Prerequisites%%
@@ -88,7 +89,8 @@ allb,Duet_WiFi_1.0+/=
 * %RepRap Firmware%RepRap_Firmware
 * %Duet Update%Duet_Firmware_Update
 * %Duet WiFi:New?%duet_wifi_firm_diff 
-* %G-Codes%G-codes
+* %G-Codes by themes%G-codes
+* %G-Codes by order%gcode_cvt
 * %Macros%Macros
 * %Updating config.g%Updating_config
 * %Release notes%Release_notes
@@ -712,11 +714,12 @@ to your project.  Under no circumstances be tempted to add standard Arduino libr
 You should now be able to compile the code and upload the result to the Duet.
 
 ■G-codes
-==G-codes for RepRap Firmware
-(:date 11 Aug 2016 02:05:)The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use %more G-codes%gcode_cvt than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
+==G-codes by themes
+(:date 18 Aug 2016 02:58:)The %RepRap Firmware%RepRap_Firmware (abbreviated RRF) does use %more G-codes%gcode_cvt than other firmwares notably because all configuration is done with G-Codes. Another reason is that it does have extended functionalities.
 
 This page list G-codes interpreted by RepRap Firmware. This list cover "DC42 https://github.com/dc42/RepRapFirmware/tree/dev/Release" and "Chrishamm https://github.com/chrishamm/RepRapFirmware/tree/dev/Release" forks, which are more complete than the original version.
-Some G-Codes are common between RepRap Firmware and other firmwares, but with extended syntax or specific interpretation. They are listed in a specific paragraph.
+Some G-Codes are common between RepRap Firmware and other firmwares, but with extended syntax or specific interpretation. This is indicated by a symbol '+'.
+G-codes specifics to RRF are indicated with a '¤'.
 
 == With RepRap firmware, everything is G-code 
 The RepRap Firmware philosophy is that every operation is done with G-code, notably all configuration, which is mainly stored in %config.g%Updating_config file, called at board start-up. A set of standard or specifically crafted %G-codes macros%Macros is written for all commons printer operation. 
@@ -769,99 +772,99 @@ Some default values (DC42 fork rev 1.11):
 *Controllable fans (%M106%gcode_cvt!M106.3a_Fan_On): Fan0, NOT inverted, 500Hz. Fan1, NOT inverted, 500Hz, thermostatic mode, 45°C.
 *Maximum hot-end temperature (%M143%gcode_cvt!M143.3a_Maximum_hot-end_temperature): 260°C since DC42 v1.12, formerly 300°C. <span style="color:#ff0000">- MODIFIED -</span>
 
-==Codes specific to RepRap Firmware 
-===Macros and physical interfacing
-*%M98: Call Macro/Subprogram%gcode_cvt!M98.3a_Call_Macro/Subprogram
-*%M99: Return from Macro/Subprogram%gcode_cvt!M99.3a_Return_from_Macro/Subprogram 
-*%M42: Switch I/O pin%gcode_cvt!m42.3a_switch_i.2fo_pin Change status of a pin. Hardware dependant - also used by other firmware.
-*%M571: Set output on extrude%gcode_cvt!M571.3a_Set_output_on_extrude - Activate a pin while extruding
-*%M577: Wait until endstop is triggered%gcode_cvt!M577.3a_Wait_until_endstop_is_triggered 
-*%M581: Configure external trigger%gcode_cvt!M581.3a_Configure_external_trigger  Run macro, pause or stop from a pin state change. See %expansion connector pinout%Duet_pinout  <span style="color:#ff0000">- New (1.13) -</span> 
-*%M582: Check external trigger%gcode_cvt!M582.3a_Check_external_trigger  Check pin status associated with a trigger <span style="color:#ff0000">- New (1.13) -</span>
+¤ : Indicate this code is specific to RepRap Firmware
++ : Indicate this code  have an extended or specific syntax in RepRap Firmware
 
-===%Heaters%Heating 
-*%M135: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
-*%M143: Maximum hot-end temperature%gcode_cvt!M143.3a_Maximum_hot-end_temperature  - <span style="color:#ff0000">NEW</span> - 
-*%M144: Stand By Your Bed%gcode_cvt!M144.3a_Stand_By_Your_Bed 
-*%M570: Set heater timeout%gcode_cvt!M570.3a_Set_heater_timeout  - common to all tools
-*%M562: Reset temperature fault%gcode_cvt!M562.3a_Reset_temperature_fault 
-*%M563: Define or remove a tool%gcode_cvt!M563.3a_Define_or_remove_a_tool 
+== Configuration G-codes
+=== Heating configuration
+-- see %Heating%heating 
+*%M301+: Set PID parameters%gcode_cvt!M301.3a_Set_PID_parameters  RRF add PID band, PWM scaling and other parameters
+*%M305+: Set thermistor and ADC parameters%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters add external thermocouple (using "SPI https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus")
+*%M135¤: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
+*%M143¤: Maximum hot-end temperature%gcode_cvt!M143.3a_Maximum_hot-end_temperature  - <span style="color:#ff0000">NEW</span> - 
+*%M303: Run PID tuning%gcode_cvt!M303.3a_Run_PID_tuning  (<span style="color:#ff0000">NEW 1.15</span>)
+*%M304: Set PID parameters - Bed%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed PID parameters for Bed - equivalent to M301 H0
+*%M307¤: Set or report heating process parameters%gcode_cvt!m307.3a_set_or_report_heating_process_parameters  (<span style="color:#ff0000">NEW 1.15</span>)
+*%M570¤: Set heater timeout%gcode_cvt!M570.3a_Set_heater_timeout - common to all tools
+*%M562¤: Reset temperature fault%gcode_cvt!M562.3a_Reset_temperature_fault 
+*%M563¤: Define or remove a tool%gcode_cvt!M563.3a_Define_or_remove_a_tool 
 
 ===Ethernet communication
-*%M540: Set MAC address%gcode_cvt!M540.3a_Set_MAC_address - all printers on same network shall have different MAC addresses
-*%M550: Set Name%gcode_cvt!M550.3a_Set_Name - Name for web page call and for FTP  
-*%M551: Set Password%gcode_cvt!M551.3a_Set_Password - For FTP and Web Control/firmware exchange
-*%M552: Set IP address%gcode_cvt!M552.3a_Set_IP_address - Optional 
-*%M553: Set Netmask%gcode_cvt!M553.3a_Set_Netmask - if IP address defined
-*%M554: Set Gateway%gcode_cvt!M554.3a_Set_Gateway - if IP address defined
+*%M540¤: Set MAC address%gcode_cvt!M540.3a_Set_MAC_address - all printers on same network shall have different MAC addresses
+*%M550¤: Set Name%gcode_cvt!M550.3a_Set_Name - Name for web page call and for FTP  
+*%M551¤: Set Password%gcode_cvt!M551.3a_Set_Password - For FTP and Web Control/firmware exchange
+*%M552¤: Set IP address%gcode_cvt!M552.3a_Set_IP_address - Optional 
+*%M553¤: Set Netmask%gcode_cvt!M553.3a_Set_Netmask - if IP address defined
+*%M554¤: Set Gateway%gcode_cvt!M554.3a_Set_Gateway - if IP address defined
 
 ===Miscellaneous Configuration
-*%M555: Set compatibility%gcode_cvt!M555.3a_Set_compatibility - G-code style compatibility
-*%M558: Set Z probe type%gcode_cvt!M558.3a_Set_Z_probe_type 
-*%M566: Set allowable instantaneous speed change%gcode_cvt!M566.3a_Set_allowable_instantaneous_speed_change  - 'jerk' values: speed change while cornering
-*%M569: Set axis direction and enable values%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values  - Change stepper directions without replug. Modify pulse timing.
-*%M584: Set drive mapping%gcode_cvt!M584.3a_Set_drive_mapping <span style="color:#ff0000">NEW (1.14)</span> Was handled by M569 before. 
-*%M906: Set motor currents%gcode_cvt!M906.3a_Set_motor_currents - digital potentiometers for steppers
-*%M574: Set endstop configuration%gcode_cvt!M574.3a_Set_endstop_configuration 
-*%M572: Set or report extruder elasticity compensation%gcode_cvt!M572.3a_Set_or_report_extruder_elasticity_compensation 
-*%M575: Set serial comms parameters%gcode_cvt!M575.3a_Set_serial_comms_parameters - Presently used by PanelDue for communication with the Duet
-*%M911: Set power monitor threshold voltages%gcode_cvt!M911.3a_Set_power_monitor_threshold_voltages <span style="color:#ff0000">NEW (1.14)</span> Supply voltage required for proper board operation.
-*%M912: Set electronics temperature monitor adjustment%gcode_cvt!M912.3a_Set_electronics_temperature_monitor_adjustment <span style="color:#ff0000">NEW (1.14)</span> Offset added to reported processor temperature to have accurate value.
-*%M913: Set motor percentage of normal current%gcode_cvt!M913.3a_Set_motor_percentage_of_normal_current <span style="color:#ff0000">NEW (1.14)</span> Temporary stepper current modification in % (for stalling against mechanical stops)
-
-=== Web control %(DWC)%Duet_Web_Control  
-*%M560: Upload web page file%gcode_cvt!M560.3a_Upload_web_page_file 
-*%M998: Request resend of line%gcode_cvt!M998.3a_Request_resend_of_line 
-
-===Firmware configuration
-*%M559: Upload configuration file%gcode_cvt!M559.3a_Upload_configuration_file 
-*%M997: Perform in-application firmware update%gcode_cvt!M997.3a_Perform_in-application_firmware_update  - <span style="color:#ff0000">NEW</span> - firmware update without USB connection
-
-===Reporting - also used by DWC
-*%M36: Return file information%gcode_cvt!M36.3a_Return_file_information Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON" format
-*%M122: Diagnose%gcode_cvt!M122.3a_Diagnose 
-*%M573: Report heater PWM%gcode_cvt!M573.3a_Report_heater_PWM 
-*%M408: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response  - Return printer status data
-*%M503: Print settings%gcode_cvt!M503.3a_Print_settings  - Display config.g content
+*%M555¤: Set compatibility%gcode_cvt!M555.3a_Set_compatibility - G-code style compatibility
+*%M558¤: Set Z probe type%gcode_cvt!M558.3a_Set_Z_probe_type 
+*%M566¤: Set allowable instantaneous speed change%gcode_cvt!M566.3a_Set_allowable_instantaneous_speed_change  - 'jerk' values: speed change while cornering
+*%M569¤: Set axis direction and enable values%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values  - Change stepper directions without replug. Modify pulse timing.
+*%M584¤: Set drive mapping%gcode_cvt!M584.3a_Set_drive_mapping <span style="color:#ff0000">NEW (1.14)</span> Was handled by M569 before. 
+*%M906¤: Set motor currents%gcode_cvt!M906.3a_Set_motor_currents - digital potentiometers for steppers
+*%M574¤: Set endstop configuration%gcode_cvt!M574.3a_Set_endstop_configuration 
+*%M572¤: Set or report extruder elasticity compensation%gcode_cvt!M572.3a_Set_or_report_extruder_elasticity_compensation 
+*%M575¤: Set serial comms parameters%gcode_cvt!M575.3a_Set_serial_comms_parameters - Presently used by PanelDue for communication with the Duet
+*%M911¤: Set power monitor threshold voltages%gcode_cvt!M911.3a_Set_power_monitor_threshold_voltages <span style="color:#ff0000">NEW (1.14)</span> Supply voltage required for proper board operation.
+*%M912¤: Set electronics temperature monitor adjustment%gcode_cvt!M912.3a_Set_electronics_temperature_monitor_adjustment <span style="color:#ff0000">NEW (1.14)</span> Offset added to reported processor temperature to have accurate value.
+*%M913¤: Set motor percentage of normal current%gcode_cvt!M913.3a_Set_motor_percentage_of_normal_current <span style="color:#ff0000">NEW (1.14)</span> Temporary stepper current modification in % (for stalling against mechanical stops)
 
 ===Geometry
-*%M208: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel 
-*%M556: Axis compensation%gcode_cvt!M556.3a_Axis_compensation   - X/Y angular correction
-*%M564: Limit axes%gcode_cvt!M564.3a_Limit_axes 
-*%M579: Scale Cartesian axes%gcode_cvt!M579.3a_Scale_Cartesian_axes   -  X/Y/Z scale compensation for deltas
-*%M667: Select CoreXY mode%gcode_cvt!M667.3a_Select_CoreXY_mode 
-*%M668: Set Z-offset compensations polynomial%gcode_cvt!M668.3a_Set_Z-offset_compensations_polynomial  - in development ?
+*%M208¤: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel 
+*%M556¤: Axis compensation%gcode_cvt!M556.3a_Axis_compensation   - X/Y angular correction
+*%M564¤: Limit axes%gcode_cvt!M564.3a_Limit_axes 
+*%M579¤: Scale Cartesian axes%gcode_cvt!M579.3a_Scale_Cartesian_axes   -  X/Y/Z scale compensation for deltas
+*%M665+: Set delta configuration%gcode_cvt!M665.3a_Set_delta_configuration Add height, maximum usable radius and column angular position
+*%M666: Set delta endstop adjustment%gcode_cvt!M666.3a_Set_delta_endstop_adjustment 
+*%M667¤: Select CoreXY mode%gcode_cvt!M667.3a_Select_CoreXY_mode 
+*%M668¤: Set Z-offset compensations polynomial%gcode_cvt!M668.3a_Set_Z-offset_compensations_polynomial  - in development ?
+*%M580¤: Select Roland%gcode_cvt!m580.3a_Select_Roland (CNC machine)
 
-===Miscellaneous commands
-*%M37: Simulation mode%gcode_cvt!M37.3a_Simulation_mode   - Run a print simulation for time estimation : slow
+=== Configuration 
+*%G21: Set Units to Millimeters%gcode_cvt!G21.3a_Set_Units_to_Millimeters 
+*%M201: Set max printing_acceleration%gcode_cvt!M201.3a_Set_max_printing_acceleration 
+*%M203: Set maximum feedrate%gcode_cvt!M203.3a_Set_maximum_feedrate 
+*%M206: Set home offset%gcode_cvt!M206_Marlin.2C_Sprinter.2C_Smoothie.2C_RepRapFirmware_-_Set_home_offset 
+Could be used to adjust head above bed during printing. M206 Z0.1 move  up by 0.1mm
+*%M350: Set microstepping mode%gcode_cvt!M350.3a_Set_microstepping_mode 
+*%M404: Filament width and nozzle diameter%gcode_cvt!M404.3a_Filament_width_and_nozzle_diameter 
+*%M502: Revert to the default "factory_settings."%gcode_cvt!M502.3a_Revert_to_the_default_.22factory_settings.2e.22 
+*%M106+: Fan On%gcode_cvt!M106.3a_Fan_On  - RRF add configuration. Fan1 configured in thermostatic mode by default. Deactivate with "M106 P1 H-1".
 
-===Specialised machines
-*%M567: Set tool mix ratios%gcode_cvt!m567.3a_Set_tool_mix_ratios 
-*%M568: Turn off/on tool mix ratios%gcode_cvt!m568.3a_turn_off.2fon_tool_mix_ratios 
-*%M578: Fire inkjet bits%gcode_cvt!m578.3a_Fire_inkjet_bits 
-*%M580: Select Roland%gcode_cvt!m580.3a_Select_Roland 
+===Firmware configuration
+*%M559¤: Upload configuration file%gcode_cvt!M559.3a_Upload_configuration_file 
+*%M997¤: Perform in-application firmware update%gcode_cvt!M997.3a_Perform_in-application_firmware_update  - <span style="color:#ff0000">NEW</span> - firmware update without USB connection
 
-== G-codes with specific or extended syntax 
+== Operation G-code
+=== Printing 
+*%M20: List SD card%gcode_cvt!M20.3a_List_SD_card
+*%M23: Select SD file%gcode_cvt!M23.3a_Select_SD_file
+*%M24: Start/resume SD print%gcode_cvt!M24.3a_Start.2Fresume_SD_print
+*%M25: Pause SD print%gcode_cvt!M25.3a_Pause_SD_print
+*%M26: Set SD position%gcode_cvt!M26.3a_Set_SD_position
+*%M27: Report SD print status%gcode_cvt!M27.3a_Report_SD_print_status
+*%M28: Begin write to SD card%gcode_cvt!M28.3a_Begin_write_to_SD_card
+*%M29: Stop writing to SD card%gcode_cvt!M29.3a_Stop_writing_to_SD_card
+*%M30: Delete a file on the SD card%gcode_cvt!M30.3a_Delete_a_file_on_the_SD_card
+*%M32: Select file and start SD print%gcode_cvt!M32.3a_Select_file_and_start_SD_print
+*%M226: Gcode Initiated Pause%gcode_cvt!M226.3a_Gcode_Initiated_Pause
+*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes
+
+=== Heating operation
+*%M104: Set Extruder Temperature%gcode_cvt!M104.3a_Set_Extruder_Temperature
+*%M109: Set Extruder Temperature and Wait%gcode_cvt!M109.3a_Set_Extruder_Temperature_and_Wait
+*%M140: Set Bed Temperature (Fast)%gcode_cvt!M140.3a_Set_Bed_Temperature_(Fast)
+*%M190: Wait for bed temperature to reach target temp%gcode_cvt!M190.3a_Wait_for_bed_temperature_to_reach_target_temp
+*%M105+: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature  
+*%M135+: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
+*%M141+: Set Chamber Temperature (Fast)%gcode_cvt!M141.3a_Set_Chamber_Temperature (Fast)  - in RRF also define the chamber heater
+*%M144¤: Stand By Your Bed%gcode_cvt!M144.3a_Stand_By_Your_Bed 
+
 ===Movement  and geometry 
-*%G0 and G1: Move%gcode_cvt!G0 &_G1:_Move  - Flags are used to bypass endstops or move carriage on delta 
-*%G10: Tool Offset%gcode_cvt!G10.3a_Tool_Offset  Define standby and operating tool temperature / Retract if no parameter, see M207 (<span style="color:#ff0000">NEW</span>)
-*%M207: Set retract length%gcode_cvt!M207.3a_Set_retract_length  RRF add unretract length parameter - <span style="color:#ff0000">NEW</span> - 
-*%M208: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel  Used for unretract length in other firmware
-*%M665: Set delta configuration%gcode_cvt!M665.3a_Set_delta_configuration Add height, maximum usable radius and column angular position
-===%Heating%Heating
-*%M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature  
-*%M135: Set PID sample interval%gcode_cvt!M135.3a_Set_PID_sample_interval 
-*%M141: Set Chamber Temperature (Fast)%gcode_cvt!M141.3a_Set_Chamber_Temperature (Fast)  - in RRF also define the chamber heater
-*%M301: Set PID parameters%gcode_cvt!M301.3a_Set_PID_parameters  RRF add PID band, PWM scaling and other parameters
-*%M305: Set thermistor and ADC parameters%gcode_cvt!M305.3a_Set_thermistor_and_ADC_parameters add external thermocouple (using "SPI https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus")
-
-===Miscellaneous
-*%M106: Fan On%gcode_cvt!M106.3a_Fan_On  - RRF add configuration. Fan1 configured in thermostatic mode by default. Deactivate with "M106 P1 H-1".
-*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes  add cancelling of the command
-*%M561: Set Identity Transform%gcode_cvt!M561.3a_Set_Identity_Transform  - reset the transformation from calibration
-
-== Non specific G-codes 
-=== Movement 
+*%G0 and G1+: Move%gcode_cvt!G0 &_G1:_Move  - Flags are used to bypass endstops or move carriage on delta 
+*%G10+: Tool Offset%gcode_cvt!G10.3a_Tool_Offset  Define standby and operating tool temperature / Retract if no parameter, see M207 (<span style="color:#ff0000">NEW</span>)
 *%G11: Unretract%gcode_cvt!G11.3a_Unretract  Used while Firmware retraction is configured in your slicer, along G10
 *%G28: Move to Origin (Home)%gcode_cvt!G28.3a_Move_to_Origin_.28Home.29  run macro %home.g or homedelta.g%macros!homing.3a_homeall.2eg_and_homedelta.2eg
 *%G90: Set to Absolute Positioning%gcode_cvt!G90.3a_Set_to_Absolute_Positioning 
@@ -870,6 +873,8 @@ Some default values (DC42 fork rev 1.11):
 *%M82: Set extruder to absolute mode%gcode_cvt!M82.3a_Set_extruder_to_absolute_mode 
 *%M83: Set extruder to relative mode%gcode_cvt!M83.3a_Set_extruder_to_relative_mode  To be preferred for reliability
 *%M114: Get Current Position%gcode_cvt!M114.3a_Get_Current_Position 
+*%M207+: Set retract length%gcode_cvt!M207.3a_Set_retract_length  RRF add unretract length parameter - <span style="color:#ff0000">NEW</span> - 
+*%M208+: Set axis max travel%gcode_cvt!M208.3a_Set_axis_max_travel  Used for unretract length in other firmware
 
 === Operation 
 *%G4: Dwell%gcode_cvt!G4.3a_Dwell  G4 Pnn wait for nn miliseconds
@@ -894,62 +899,48 @@ Some default values (DC42 fork rev 1.11):
 *%M557: Set Z probe point%gcode_cvt!M557.3a_Set_Z_probe_point 
 *%M561: Set Identity Transform%gcode_cvt!M561.3a_Set_Identity_Transform 
 
-=== Printing 
-*%M20: List SD card%gcode_cvt!M20.3a_List_SD_card
-*%M23: Select SD file%gcode_cvt!M23.3a_Select_SD_file
-*%M24: Start/resume SD print%gcode_cvt!M24.3a_Start.2Fresume_SD_print
-*%M25: Pause SD print%gcode_cvt!M25.3a_Pause_SD_print
-*%M26: Set SD position%gcode_cvt!M26.3a_Set_SD_position
-*%M27: Report SD print status%gcode_cvt!M27.3a_Report_SD_print_status
-*%M28: Begin write to SD card%gcode_cvt!M28.3a_Begin_write_to_SD_card
-*%M29: Stop writing to SD card%gcode_cvt!M29.3a_Stop_writing_to_SD_card
-*%M30: Delete a file on the SD card%gcode_cvt!M30.3a_Delete_a_file_on_the_SD_card
-*%M32: Select file and start SD print%gcode_cvt!M32.3a_Select_file_and_start_SD_print
-*%M226: Gcode Initiated Pause%gcode_cvt!M226.3a_Gcode_Initiated_Pause
-*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes
-
-=== Physical interface 
-*%M42: Switch I/O pin%gcode_cvt!M42.3a Switch I/O pin
+===Macros and physical interfacing
 *%M119: Get Endstop Status%gcode_cvt!M119.3a_Get_Endstop_Status
 *%M300: Play beep sound%gcode_cvt!M300.3a_Play_beep_sound On PanelDue or DWC
 *%M117: Display Message%gcode_cvt!M117.3a_Display_Message
+*%M98¤: Call Macro/Subprogram%gcode_cvt!M98.3a_Call_Macro/Subprogram
+*%M99¤: Return from Macro/Subprogram%gcode_cvt!M99.3a_Return_from_Macro/Subprogram 
+*%M42+: Switch I/O pin%gcode_cvt!m42.3a_switch_i.2fo_pin Change status of a pin. Hardware dependant - also used by other firmware.
+*%M571¤: Set output on extrude%gcode_cvt!M571.3a_Set_output_on_extrude - Activate a pin while extruding
+*%M577¤: Wait until endstop is triggered%gcode_cvt!M577.3a_Wait_until_endstop_is_triggered 
+*%M581¤: Configure external trigger%gcode_cvt!M581.3a_Configure_external_trigger  Run macro, pause or stop from a pin state change. See %expansion connector pinout%Duet_pinout  <span style="color:#ff0000">- New (1.13) -</span> 
+*%M582¤: Check external trigger%gcode_cvt!M582.3a_Check_external_trigger  Check pin status associated with a trigger <span style="color:#ff0000">- New (1.13) -</span>
 
-=== Heating 
-*%M104: Set Extruder Temperature%gcode_cvt!M104.3a_Set_Extruder_Temperature
-*%M105: Get Extruder Temperature%gcode_cvt!M105.3a_Get_Extruder_Temperature
-*%M109: Set Extruder Temperature and Wait%gcode_cvt!M109.3a_Set_Extruder_Temperature_and_Wait
-*%M140: Set Bed Temperature (Fast)%gcode_cvt!M140.3a_Set_Bed_Temperature_(Fast)
-*%M141: Set_Chamber Temperature (Fast)%gcode_cvt!M141.3a_Set_Chamber_Temperature_(Fast)
-*%M190: Wait for bed temperature to reach target temp%gcode_cvt!M190.3a_Wait_for_bed_temperature_to_reach_target_temp
-
-=== Useful G-codes 
-*%M206%gcode_cvt!M206.3a  Set home offset. Could be used to adjust head above bed during printing. M206 Z0.1 move  up by 0.1mm
-
-=== Configuration 
-*%G21: Set Units to Millimeters%gcode_cvt!G21.3a_Set_Units_to_Millimeters 
-*%M201: Set max printing_acceleration%gcode_cvt!M201.3a_Set_max_printing_acceleration 
-*%M203: Set maximum feedrate%gcode_cvt!M203.3a_Set_maximum_feedrate 
-*%M206: Set home offset%gcode_cvt!M206_Marlin.2C_Sprinter.2C_Smoothie.2C_RepRapFirmware_-_Set_home_offset 
-*%M303: Run PID tuning%gcode_cvt!M303.3a_Run_PID_tuning <span style="color:#ff0000">- In development -</span>
-*%M304: Set PID parameters - Bed%gcode_cvt!M304.3a_Set_PID_parameters_-_Bed PID parameters for Bed - equivalent to M301 H0
-*%M350: Set microstepping mode%gcode_cvt!M350.3a_Set_microstepping_mode 
-*%M404: Filament width and nozzle diameter%gcode_cvt!M404.3a_Filament_width_and_nozzle_diameter 
-*%M502: Revert to the default "factory_settings."%gcode_cvt!M502.3a_Revert_to_the_default_.22factory_settings.2e.22 
-*%M666: Set delta endstop adjustment%gcode_cvt!M666.3a_Set_delta_endstop_adjustment 
-
-=== Report 
-*%M503: Print settings%gcode_cvt!M503.3a_Print_settings 
+===Reporting - some also used by DWC
 *%M115: Get Firmware Version and Capabilities%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities 
-*%M407: Display filament diameter%gcode_cvt!M407.3a_Display_filament_diameter 
+*%M407: Display filament diameter%gcode_cvt!M407.3a_Display_filament_diameter
+*%M36¤: Return file information%gcode_cvt!M36.3a_Return_file_information Return information about a file on the SD card - "JSON https://en.wikipedia.org/wiki/JSON" format
+*%M122: Diagnose%gcode_cvt!M122.3a_Diagnose 
+*%M573¤: Report heater PWM%gcode_cvt!M573.3a_Report_heater_PWM 
+*%M408¤: Report JSON-style response%gcode_cvt!M408.3a_Report_JSON-style_response  - Return printer status data
+*%M503¤: Print settings%gcode_cvt!M503.3a_Print_settings  - Display config.g content
 
-=== Miscellaneous 
+===Miscellaneous commands
+*%M106+: Fan On%gcode_cvt!M106.3a_Fan_On  - RRF add configuration. Fan1 configured in thermostatic mode by default. Deactivate with "M106 P1 H-1".
 *%M110:_Set_Current_Line_Number%gcode_cvt!M110.3a_Set_Current_Line_Number
 *%M111:_Set_Debug_Level%gcode_cvt!M111.3a_Set_Debug_Level
 *%M120:_Push%gcode_cvt!M120.3a_Push
 *%M121:_Pop%gcode_cvt!M121.3a_Pop
 *%M500:_Store_parameters_in_EEPROM%gcode_cvt!M500.3a_Store_parameters_in_EEPROM
 *%M501:_Read_parameters_from_EEPROM%gcode_cvt!M501.3a_Read_parameters_from_EEPROM
+*%M37¤: Simulation mode%gcode_cvt!M37.3a_Simulation_mode   - Run a print simulation for time estimation : slow
+*%M302: Allow cold extrudes%gcode_cvt!M302.3a_Allow_cold_extrudes  add cancelling of the command
+*%M561: Set Identity Transform%gcode_cvt!M561.3a_Set_Identity_Transform  - reset the transformation from calibration
 
+=== Web control (DWC)
+-- see %DWC%Duet_Web_Control  
+*%M560¤: Upload web page file%gcode_cvt!M560.3a_Upload_web_page_file 
+*%M998¤: Request resend of line%gcode_cvt!M998.3a_Request_resend_of_line 
+
+===Specialised machines
+*%M567¤: Set tool mix ratios%gcode_cvt!m567.3a_Set_tool_mix_ratios 
+*%M568¤: Turn off/on tool mix ratios%gcode_cvt!m568.3a_turn_off.2fon_tool_mix_ratios 
+*%M578¤: Fire inkjet bits%gcode_cvt!m578.3a_Fire_inkjet_bits 
 
 ■Macros
 == Macros for RepRap Firmware
@@ -1395,75 +1386,75 @@ G1 Z0.25	; lower the hotend 0.25mm  above bed
 
 ■FAQ
 RepRap Firmware FAQ
-(:date 11 Aug 2016 02:05:)(:clear:)
+(:date 18 Aug 2016 17:28:)(:clear:)
 ==Can I modify speed and extrusion coefficients and temperatures during a print? Yes
-:%Yes%DWC_Print_Status.png
+: %Yes%DWC_Print_Status.png
 
 ==Can I reconfigure my printer ‘on the fly’? Yes
-:Yes, there is an %interactive console%DWC_G-code_Console.png, you may even modify parameters during a print, at your own risks
+: Yes, there is an %interactive console%DWC_G-code_Console.png, you may even modify parameters during a print, at your own risks
 
 ==Can I print from SD card? Yes
-:Yes, and this is what is done by most users, as Ethernet file transfer is very fast. Lost connection from the PC don’t stop the print, but you lost control if you don’t have a local panel or another controller (which may be a smartphone if you have WiFi on your network).
+: Yes, and this is what is done by most users, as Ethernet file transfer is very fast. Lost connection from the PC don’t stop the print, but you lost control if you don’t have a local panel or another controller (which may be a smartphone if you have WiFi on your network).
 
 == Can I run RRF with an USB front-end like Pronterface or Repetier-host? Yes
-:Yes, but you shall configure your front-end program for USB hardwired handshaking
+: Yes, but you shall configure your front-end program for USB hardwired handshaking
 
 ==Can I create my own macros? Yes
-:%Yes%Macros!Using_macros 
+: %Yes%Macros!Using_macros 
 
 ==Can I control the printer through WiFi devices? Yes
-:%Yes%RepRap_Firmware!Connectivity , with any web browser if you have a WiFi connection on your Network or set-up a low cost WiFi bridge on the printer
+: %Yes%RepRap_Firmware!Connectivity , with any web browser if you have a WiFi connection on your Network or set-up a low cost WiFi bridge on the printer
 
 == Do I need to recompile firmware for configuration? No
-:No, new issues of firmware are always delivered pre-compiled. Configuration by text files.
+: No, new issues of firmware are always delivered pre-compiled. Configuration by text files.
 
 ==Can I use standard printer LCD panel? No
-:No, only PanelDue work with RRF firmware
+: No, only PanelDue work with RRF firmware
 
 == Is there an automatic calibration for Cartesian printer? Yes
-:%Yes%Macros!bed.g , but it is different from the delta calibration and is limited to five probe points
+: %Yes%Macros!bed.g , but it is different from the delta calibration and is limited to five probe points
 
 == Does %web interface%Duet_Web_Control work on Duet if the board is only powered by USB? Yes
-:Yes, but if you have accessories connected on the 5V like the PanelDue, the 5V consumption shall not exceed your USB port capability. This power supply method is recommended during commissioning as first power on. The Ethernet cable shall be installed and network configured. 
+: Yes, but if you have accessories connected on the 5V like the PanelDue, the 5V consumption shall not exceed your USB port capability. This power supply method is recommended during commissioning as first power on. The Ethernet cable shall be installed and network configured. 
 
 ==Can I use external 5V power supply instead of the on-board supply? Yes
-:Yes, there are selectors on board
+: Yes, there are selectors on board
 
 ==Can I install a filament presence sensor? Yes
-:%Yes%Macros!Set_of_macros_for_filament_detection , based on simple switch (no filament movement detection yet)
+: %Yes%Macros!Set_of_macros_for_filament_detection , based on simple switch (no filament movement detection yet)
 
 ==Do I need an USB connection for firmware update? No
-:%No%Duet_Firmware_Update!In_application_update , except for the first firmware update (first step of commissioning), as boards are delivered with old firmware
+: %No%Duet_Firmware_Update!In_application_update , except for the first firmware update (first step of commissioning), as boards are delivered with old firmware
 
 ==Can I run a Chamber heater from the Extruder heater output? Yes
-:Yes, using a relay (SSR)
+: Yes, using a relay (SSR)
 
 == If I have a problem with a driver, can I install an external driver? Yes
-:%Yes%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values , if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
+: %Yes%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values , if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
 
 == Duet board pins list with functions? Yes
-%Here%Duet_pinout
+: %Here%Duet_pinout
 
 == Can I use fans with other voltage than main board voltage? Yes
-:Yes, See the schematic here:  %Duet Wiring 5V controlled fan%Duet_wiring!5V_controlled_fan
+: Yes, See the schematic here:  %Duet Wiring 5V controlled fan%Duet_wiring!5V_controlled_fan
 
 ==Can I run a mixing hotend like the diamond? Yes
-:Yes, see this "forum thread http://forums.reprap.org/read.php?416,641508" and "result http://forums.reprap.org/file.php?416,file=75442,filename=7_colour_thingy.JPG"
+: Yes, see this "forum thread http://forums.reprap.org/read.php?416,641508" and "result http://forums.reprap.org/file.php?416,file=75442,filename=7_colour_thingy.JPG"
 
 ==Can I run a laser cutter with RRF? Yes
-:Yes, see these threads "Reprap forum thread  http://forums.reprap.org/read.php?133,521301" "Reprap forum thread  http://forums.reprap.org/read.php?340,516150" "Post on RepRapPro site  https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog/"
+: Yes, see these threads "Reprap forum thread  http://forums.reprap.org/read.php?133,521301" "Reprap forum thread  http://forums.reprap.org/read.php?340,516150" "Post on RepRapPro site  https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog/"
 
 == Can I use an RC servos for automation ? No
-:No
+: No
 
 == Can I use absolute extruder coordinate? Yes, but
-:Yes, but this is not recommended
+: Yes, but this is not recommended
 
 == Can I use inductive or capacitive calibration sensor? Yes, but
 : Yes, but you shall add some components to protect your inputs from over-voltage. Never exceed 3.3V on input pins, at risk of board destruction.
 
 ==Are the input pins capable to handle 5 Volt? NO
-:<span style="color:#ff0000">NO</span>.  5V on input pins may kill the board. Caution shall be used.
+: <span style="color:#ff0000">NO</span>.  5V on input pins may kill the board. Caution shall be used.
 
 ==Is there auto-calibration for heat loop PID? Not yet
 : Not yet, but it is planned
@@ -1472,32 +1463,42 @@ RepRap Firmware FAQ
 : It depends mostly of the current of your steppers. Natural cooling is sufficient for steppers at 1A, but board shall be installed to allow easy air flow (best is vertical position)
 
 ==Can I have a printer without end-stops sensors? Yes
-:%Yes%Macros!Homing_without_end_switches, as digital potentiometers allow current reduction via G-code and you can stall steppers on mechanical stops. However, this is not very precise and for Z axis this need to be coupled with automatic calibration.
+: %Yes%Macros!Homing_without_end_switches, as digital potentiometers allow current reduction via G-code and you can stall steppers on mechanical stops. However, this is not very precise and for Z axis this need to be coupled with automatic calibration.
 
 ==What kind of end-stops do I need?
-:Dry switches or powered sensors, provided they work in 3.3V. Pin order is different from Ramps, with center pin in 3.3V
+: Dry switches or powered sensors, provided they work in 3.3V. Pin order is different from Ramps, with center pin in 3.3V
 
 ==Can I add more extruders? Yes
-:Yes For the Duet 0.6 and 0.8.5 there is 4 extruders board expansion from original designer (T3P3), simple 4 extruders extension from independent supplier and some stock of 2 extruders shields from RepRapPro. 
+: Yes For the Duet 0.6 and 0.8.5 there is 4 extruders board expansion from original designer (T3P3), simple 4 extruders extension from independent supplier and some stock of 2 extruders shields from RepRapPro. 
 
 ==Is there software movement limit? Yes
-:%Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a %cylinder%gcode_cvt!M665.3a_Set_delta_configuration for a delta printer and a cube for others.
-
+: %Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a %cylinder%gcode_cvt!M665.3a_Set_delta_configuration for a delta printer and a cube for others.
 ==Is it possible to install two separated end-stops on each axis? No
-:No, and it is not needed, the printer knowing its own dimensions. Though dry switches can be installed in series.
+: No, and it is not needed, the printer knowing its own dimensions. Though dry switches can be installed in series.
 
 ==Can RRF run a SCARA printer? No
-:No
+: No
 
 ==Can RRF run a rotary delta (Clavel type) like the Firepick? No
 :No
 
 == Can I set two 12V fans in serie on a 24V power supply? Yes, but
-:Yes, if they are identical but this is not recommended as if one fan stall for any reason, the other will experience overvoltage.
+: Yes, if they are identical but this is not recommended as if one fan stall for any reason, the other will experience overvoltage.
+
+■Uploading_system_files
+Uploading system files with DWC
+(:date 18 Aug 2016 17:28:)(:notoc:)
+320%File_up_Btn.png 
+To update your system, it is possible to upload system files via  %Duet Web Control%duet_web_control.
+There is a button in [Settings][General] tab. Note that on standard DWC layout, this button is only shown on large screen, so de-zoom if you cannot see it.
+As for all upload buttons, you can either use the file upload interface or make a drag and drop on the button itself. The drag and drop accept multiple files in one drop.
+The system check the file extension to send uploaded files in appropriate directories.
+Directories are /sys by default, notably config.g file and system macro, /www/js for javascript files, /www for reprap.htm, etc.
+You cannot use this button to upload USER macros, as the system cannot distinguish system and user macros, you shall use the macros page for that.
 
 ■Updating_config
-==The 'config.g' file and its update
-(:date 11 Aug 2016 02:05:)To configure a board using %RepRap Firmware%RepRap_Firmware, notably the %Duet%Duet for a given machine, you have only to edit a file named 'config.g', located on the SD card in the /sys directory.
+The 'config.g' file and its update
+(:date 18 Aug 2016 17:28:)To configure a board using %RepRap Firmware%RepRap_Firmware, notably the %Duet%Duet for a given machine, you have only to edit a file named 'config.g', located on the SD card in the /sys directory.
 This file is read and executed at startup, but the configuration can be modified later, either by executing a macro or entering commands in the web interface. These configuration modifications will be lost at next startup.
 
 All configuration parameters are entered via 'G' and 'M' parameters, so the %reprap firmware G-Code set%G-codes is relatively extended. A config.g file could be reexecuted via the 'M999' command or an emergency stop.
@@ -1517,13 +1518,14 @@ As the config.g content is stored in the limited Duet memory at startup, you sha
 For the updating of the config.g file, you have three solutions if your board connect properly:
 *Using the incorporated editor in the web interface, but that doesn't work with all browsers, notably not with Microsoft browsers.
 That editor is accessed in the "settings" tab, sub-panel "configuration file".
-*Editing file on your PC/device and uploading with the web interface. In the tab "Settings", there is a button "Upload File(s)", which allow to upload printer system files from your pc. The 'config.g' file will automatically be uploaded in the /sys directory as other system files, while web interface files (model.js and viewmodel.js, formerly interface.js) will be uploaded in /www/js directory. It allow having an up-to date copy on your PC of the printer system files.
+*Editing file on your PC/device and %uploading with the web interface%uploading_system_files.
 Duet_WiFi_1.0-/=
 *For wired duets, editing the config.g file on your PC and uploading it via FTP. Same advantage as web uploading for tracking the printer updates, with a bit more flexibility.
 
 To log in FTP, you shall use the machine name as defined in the config.g file, for the user name any name e.g. 'whatever'  and the password as defined in the config.g file (the leading 'P' indicates parameter and is not part of the name nor password). Beware to upload in the /sys directory. You could be simultaneously be logged in FTP and in http (web interface). If you have difficulties to connect directly in FTP, connect first with the web interface, this helps FTP connection. 
 
 To upload/download to the SD card via FTP, you need a FTP client program (NOT a FTP server) and there is a wide choice for all systems. On Windows, you could use the FTP function of the file viewer 'Total Commander', FileZilla or WinSCP. On Linux, there is a default ftp client named 'ftp'. On a MAC you can use CyberDuck or FileZilla.
+FTP file transfer work well but seems rising troubles on the board, so it is recommended to reset the board (M999) after the file transfer.
 =/
 
 If using a new SD card, it is highly recommended to format it (FAT32, cluster size 32 kB) before loading an image. card up to 32Go have been tested.
@@ -2458,7 +2460,7 @@ Chrishamm also added useful functions on the RepRap firmware, notably recently t
 
 ■Duet
 Duet
-(:date 11 Aug 2016 02:05:)allb,Duet_WiFi_1.0+/=
+(:date 16 Aug 2016 03:51:)allb,Duet_WiFi_1.0+/=
 ==Duet WiFi
 Duet WiFi is a developed 3D printer board, using a 32bit Arm core processor, succeeding to other Duet boards produced since 2014.
 It was developed in Conjunction by T3P3 and David Crocker.
@@ -2534,7 +2536,7 @@ Processor voltage is 3.3V and inputs are not protected, so using sensor with hig
 allb,Duet_0.85,Duet_0.6+/= 
 === Specifications for Wired Duets
 Designer/manufacturer haven't supplied specifications, so data came from component datasheets and user experience and is for information only.
-*Ultimate voltage is 35V, maximum acceptable by stepper drivers and capacitors, so the usable voltage shall be lower. Boards were tested at 24V and may be safe for a stable supply up to 30V.
+*Maximum acceptable voltage for stepper drivers and capacitors is 35V, the PMV40UN2 fets used on the fans are rated to 30V, so the max VIN in 30V. Boards were tested at 24V and may be safe for a stable supply up to 30V.
 *Stepper driver A4982 are designed for a maximum current of 2A, with a really usable current depending from the board cooling. Board was tested with 0.8A without cooling and 1.5A on all drivers with good cooling. Drivers have a thermal safety. 
 *Stepper driver current is adjusted by program, using a %specific G-code%gcode_cvt!M906.3a_Set_motor_currents .
 *Microstepping is locked to 1/16. Board throughput is always sufficient to handle it, including on 0.9° steppers.
@@ -3075,7 +3077,7 @@ If you get wildly inaccurate or fluctuating readings, check that the thermocoupl
 
 ■Duet_Firmware_Update
 Duet Firmware update
-(:date 11 Aug 2016 02:05:)You shall first get the %firmware%RepRap_Firmware version file needed for the firmware update. There are multiple forks, so have a look %here%RepRap_Firmware!Firmware_binaries. click "view raw" to get the original file and save it on your hard-drive. You shall also check that you still have the file of the actual firmware version in case you need to revert to it. You may also have a look at %release notes%Release_notes .
+(:date 18 Aug 2016 17:28:)You shall first get the %firmware%RepRap_Firmware version file needed for the firmware update. There are multiple forks, so have a look %here%RepRap_Firmware!Firmware_binaries. click "view raw" to get the original file and save it on your hard-drive. You shall also check that you still have the file of the actual firmware version in case you need to revert to it. You may also have a look at %release notes%Release_notes .
 
 Only DC42 (and Chrishamm) forks manage Delta and CoreXY printers. These two forks are the only being still in development and there are exchanges between them. DuetWifi is handled by DC42.
 
@@ -3192,7 +3194,7 @@ Erasing the firmware place the board in a special communication mode and it beca
 
 === Updating 
 ==== On Windows 
-- Check proper communication with PC =
+- Check proper communication with PC
 Check first that the board is in communication with the computer and is ready for update by checking in the Windows "Device Manager http://www.computerhope.com/issues/ch000833.htm"  paragraph [Ports (COM and LPT)] that the board is shown as a COM port (e.g. COM5) under the name 'Bossa'. If it is shown as an Arduino Due, the erase had not worked and shall be redone.
 *W7:[Windows][type in search box: Device manager]
 *W10:[Windows + X][Device manager]
@@ -3225,12 +3227,16 @@ In particular, in addition to config.g, you shall preserve the macros in /sys di
 Firmware update may also need an update of the %Web Control%Duet_Web_Control  image to work properly, which could be found on "Chrishamm github https://github.com/chrishamm/DuetWebControl"
 /www/js/model.js and /www/js/viewmodel.js may need to be preserved if they have been modified, or the new files shall be updated with same modifications as existing ones.
 
-== Use FTP to transfer new files on the SD card 
+You can  %Upload system files through DWC%uploading_system_files. 
+
+== Use FTP to transfer new files on the SD card (only on wired Duets)
 The simplest way to transfer files between your computer and wired Duets is to use an FTP file transfer program (e.g. file management program 'Total Commander' which incorporate a FTP module). This needs a network connection to the Duet.
 
 To connect in FTP to the board, use any login you want (e.g. 'admin')  and the password as it is recorded in your config file (e.g. 'M551 Pmypassword')  The first 'P' define following letters as a parameter and is not part of the password. Default password is 'reprap'. Password is case sensitive. 
 
 The password is also defined in the web interface file 'www\js\interface.js' or 'www\js\model.js' in recent %Duet Web Control%Duet_Web_Control versions. This file shall be modified accordingly for a new password.
+
+After transferring files via FTP, it is recommended to reset the board, as the transfer may cause firmware dysfunctionality.
 =/
 
 == See also 
@@ -4213,6 +4219,12 @@ These are simply the resistance per phase, and the voltage drop across each phas
 *Avoid motors with rated voltage (or product of rated current and phase resistance) > 4V or inductance > 4mH.
 *Choose 0.9deg/step motors only if you want high positioning accuracy (e.g. for the tower motors of delta printers). Otherwise choose 1.8deg/step motors. If you choose 0.9deg/step motors, use 24V power.
 *If using a highly-geared extruder (for example, an extruder that uses a flexible drive cable to transmit the torque from the motor to a worm reduction gear), use a short low-inductance 1.8deg/step motor to drive it.
+
+
+
+
+
+
 
 
 

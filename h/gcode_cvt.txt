@@ -1,6 +1,6 @@
 gcode_cvt
 G-codes by order
-(:date 17 Aug 2016 19:29:) (:nonum:)
+(:nonum:)
 This G-codes ordered list is a direct extract from "RepRap Wiki G-code page http://reprap.org/wiki/G-code" and some details may apply only for other firmware than %RepRap Firmware%%.
 See also %G-codes sorted by themes%G-codes.
 ==N: Line number
@@ -1173,8 +1173,8 @@ Example:
  M303 C8 S175
 Smoothie's syntax, where E0 is the first temperature control module (usually the hot end) and E1 is the second temperature control module (usually the bed):
  M303 E0 S190
-In RepRapFirmware, this command computes the process model parameters (see M307), which are in turn used to calculate the PID constants. H is the heater number, P is the PWM to use (default 0.5), and S is the maximum allowable temperature (default 200). Tuning is performed asynchronously. Run M303 with no parameters to see the current tuning state or the last tuning result. Example:
- M303 H1 P0.5 S225 ; tune heater 1 using 50% PWM, quit if temperature exceeds 225C
+In RepRapFirmware, this command computes the process model parameters (see M307), which are in turn used to calculate the PID constants. H is the heater number, P is the PWM to use (default 0.5), and S is the maximum allowable temperature (default 225). Tuning is performed asynchronously. Run M303 with no parameters to see the current tuning state or the last tuning result. Example:
+ M303 H1 P0.4 S240 ; tune heater 1 using 40% PWM, quit if temperature exceeds 240C
 
 ** Notes**
 
@@ -1225,15 +1225,18 @@ Here the ADC high end correction (H parameter) is 14, the ADC low end correction
 **RepRap Firmware:** yes; 1.15 and later
 
 ** Parameters**
-:  **Hnnn** Heater number (0 is usually the bed heater)
-:  **Annn** Gain, expressed as ultimate temperature rise obtained in degC divided by the PWM fraction. For example, if G=180 then at 50% PWM the ultimate temperature rise would be 90C.
-:  **Cnnn** Dominant time constant of the heating process in seconds
+:  **Hn** Heater number (0 is usually the bed heater)
+:  **Annn** gAin, expressed as ultimate temperature rise obtained in degC divided by the PWM fraction. For example, if G=180 then at 50% PWM the ultimate temperature rise would be 90C.
+:  **Cnnn** dominant time Constant of the heating process in seconds
 :  **Dnnn** Dead time in seconds
+** Two additional parameters help control the heating process:**
+:  **Bn**   selects Bang-bang control instead of PID if non-zero. Default at power-up is 0 for extruder heaters, 1 for the bed heater.
+:  **Snnn** maximum PWM to be used used with this heater on a scale of 0 to 1. Default 1.0.
 ** Examples**
 : M307 H0 ; report the process parameters for heater 0
-: M307 H1 G346.2 C140 D5.3 ; set process parameters for heater 1
+: M307 H1 A346.2 C140 D5.3 B0 S0.8 ; set process parameters for heater 1, use PID, and limit heater 1 PWM to 80%
 
-Each heater and its corresponding load may be approximated as a first order process with dead time, which is characterised by the gain, time constant and dead time parameters. The model can used to calculate optimum PID constants separately for the heating or cooling phase and the steady state phase, and to calculate feedforward terms to better respond to changes in the load.
+Each heater and its corresponding load may be approximated as a first order process with dead time, which is characterised by the gain, time constant and dead time parameters. The model can used to calculate optimum PID constants (perhaps using different values for the heating or cooling phase and the steady state phase), and to calculate feed-forward terms to better respond to changes in the load.
 
 
 ==M350: Set microstepping mode
@@ -2123,4 +2126,3 @@ Tool numbering may start at 0 or 1, depending on the implementation.  Some imple
 
 
 <small>Licence GFDL 1.2 - source "RepRap Wiki G-code page http://reprap.org/wiki/G-code"</small>
-

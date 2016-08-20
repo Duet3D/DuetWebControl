@@ -3,7 +3,7 @@ Image list
 (:nosearch:)(:notoc:)
 
 default.png
-auth:Unknown, license:CC BY-SA 3.0; GFDL1.2, instructions: see http://rouzeau.net
+auth:Unknown, license:CC BY-SA 3.0; GFDL1.2, instructions: see 
 
 bossac_transfer_success.png
 auth:PRZ, license:CC BY-SA 3.0; GFDL1.2

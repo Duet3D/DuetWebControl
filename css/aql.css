@@ -77,7 +77,6 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 	position: fixed; 
 	border-radius: 4px;
 	border: 1px solid #202020;
-	background-color: #f5e0e0;
 	top:200px;
 	left:120px;
 	min-height:100px;
@@ -87,8 +86,9 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 	cursor:pointer;
 	z-index:101; /* above other stuff */
 }
-/*#aql_alert.warning { } */
-#aql_alert.info {	background-color: #C9E9FF;}
+
+.aqlwarning	{ background-color: #f5e0e0; }
+.aqlinfo	{ background-color: #C9E9FF; }
 
 #halert {
 	padding: 3px; 
