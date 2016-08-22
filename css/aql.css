@@ -184,8 +184,8 @@ body { /* same as bootstrap default, in principle already in normalize.css */
 #aql_body { /*-- Overflow:auto AND height is what show local scroll bar 
 			removing height makes general scrolling */
 	margin-left: 165px;		
-	height:100%; 
-	width:calc(99% - 170px); 
+	height:calc(100% - 34px); /* remove header height */
+	width:calc(99% - 170px); /* remove menu width */
 	overflow:auto;
 	display:block; 
 }
@@ -387,6 +387,8 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 .hlptt:hover {
 	background:#ffffff !important; /* !important required by Firefox only */
 	background:var(--aql-title-hover) !important;
+	/*font-style:italic; */
+	font-weight:normal;
 } 
 
 #aql_page hr {  /* use transparency to shade */
@@ -459,6 +461,34 @@ buttons with 28px sprites -> 28/48*628=366px, space 33px (=28/48*58)*/
 	border-style:outset;
 	border-radius:4px;
 }
+
+/*
+#aql_page h2.ttclr1,
+#aql_page h3.ttclr1 {
+	background-color:gold;
+}
+#aql_page h2.ttclr2,
+#aql_page h3.ttclr2 {
+	background-color:greenyellow;
+}
+#aql_page h2.ttclr3,
+#aql_page h3.ttclr3 {
+	background-color:aqua;
+}
+#aql_page h2.ttclr4,
+#aql_page h3.ttclr4 {
+	background-color:mistyrose; 
+}
+#aql_page h2.ttclr5,
+#aql_page h3.ttclr5 {
+	background-color:#A1E5FF; 
+}*/
+
+#aql_page h3.ttclr1 { background-color:antiquewhite;}
+#aql_page h3.ttclr2 { background-color:honeydew;}
+#aql_page h3.ttclr3 { background-color:beige;}
+#aql_page h3.ttclr4 { background-color:lavenderblush; }
+#aql_page h3.ttclr5 { background-color:whitesmoke; }
 
 #aql_page .hlpmenu ul {
 	list-style-position:outside; /*bullets within the margin */

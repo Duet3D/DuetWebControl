@@ -1,6 +1,6 @@
 gcode_cvt
 G-codes by order
-(:nonum:)
+(:date 22 Aug 2016 14:52:)(:nonum:)
 This G-codes ordered list is a direct extract from "RepRap Wiki G-code page http://reprap.org/wiki/G-code" and some details may apply only for other firmware than %RepRap Firmware%%.
 See also %G-codes sorted by themes%G-codes.
 ==N: Line number
@@ -408,7 +408,10 @@ Note that some firmwares list file names in upper case, but - when sent to the M
 
 ** Notes**
 
-<sup>1</sup>If the S2 parameter is used on RepRapFirmware, then the file list is returned in JSON format as a single array called "files" with each name that corresponds to a subdirectory preceded by an asterisk, and the directory is returned in variable "dir".
+<sup>1</sup>If the S2 parameter is used on RepRapFirmware, then the file list is returned in JSON format as a single array called "files" with each name that corresponds to a subdirectory preceded by an asterisk, and the directory is returned in variable "dir". Example:
+
+ M20 S2 P/gcodes
+ {"dir":"\/gcodes","files":["4-piece-1-2-3-4.gcode","Hinged_Box.gcode","Hollow_Dodecahedron_190.gcode","*Calibration pieces"]}
 
 <sup>2</sup>This parameter is only supported by RepRapFirmware and defaults to the 0:/gcodes directory, which is the directory that printable gcode files are normally stored in.
 

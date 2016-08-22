@@ -40,7 +40,7 @@ aqlC.prefix   	= "hlp/"; // Used for hash writing and deep linking - discriminat
 aqlC.dir      	= "h/"; // directory where the help file is located
 aqlC.imgLocalDir= "f/"; // sub-directory of h/ for images when the resources are local - may be identical to thumbnail images to limit file size
 aqlC.dispDir 	= "d/"; // sub-directory of h/ for **displayed** images (they shall have same name as full images)
-aqlC.EndText	= '<br><br><br><br><br>'; // bug with taskbar height, so add empty lines	at end of body text
+aqlC.EndText	= '<br><br>'; // add empty lines at end of body text
 
 //-------------------------------------------
 aqlO.imagesDir	= "f/"; // sub-directory of h/ for linked images  ('full' images) use imgLocalDir if resources are local
@@ -124,11 +124,9 @@ document.addEventListener("DOMContentLoaded", function(e) {
 	if ($(".mainapp").length) 
 		aqlO.inApp	= true; 
 	if (is_touch_device) {
-		$0("btn_aql_zi").style.display = 'inline'; 
-		$0("btn_aql_zo").style.display = 'inline'; 
+		$0("btn_aql_zi btn_aql_zo").style.display = 'inline'; 
 		$0("aql_body").style.overflow = "hidden";
-		$0("aql_body").style.height = "auto";
-		$0("aql_menu").style.height = "auto";
+		$0("aql_body aql_menu").style.height = "auto";
 	}
 	window.onresize = function() { // also run by the openWin
 		var nomenu = (window.innerWidth<780)||!aqlO.dispMenu;
@@ -192,12 +190,13 @@ document.addEventListener("DOMContentLoaded", function(e) {
 			if (aqlO.inApp && !hlp_is_open()) hlp_open(); // we are in the app
 			showHlp(decodeURIComponent(u), false, true); // 2nd param stop restacking address
 		}	
-		else 
+		else {
 			if (aqlO.inApp) {
 				if (hlp_is_open()) hlp_close(true);
 			}	
 			else 
 				showHlp(); //reopen on default
+		}	
 	});
 	var url = window.location.href; 
 	aqlO.linkbase = url.split('#', 1)[0]; //mmm: the base  main contain more than a page link?
@@ -215,7 +214,7 @@ function hlpCreEvents() { // shall be run after the html component creation (aft
 		for (var id in tabHlp[aqlO.lastP].clp)
 			if (tabHlp[aqlO.lastP].clp[id]) {
 				$('#'+id).parent().find(".hlpsec").filter(":first").toggle();
-				$("span", '#'+id).toggleClass("h-expand h-collapse");
+				$("span", '#'+id).toggleClass("qexpand qcollapse");
 			}	
 	$(".hlptt").unbind('click'); // troubles without that		
 	$(".hlptt").click(function(e){ //id incorporate page name to differentiate menu from page 
@@ -504,8 +503,8 @@ var notoc, notitle, nofoot, nohead, nodate; // parameters of directives
 var refidx=0, notesidx=0, weblnk, weblnk1, weblnk2; //notes and web link lists
 var codeblocks=[],tmp=[],titles=[],weblinks=[],weblinkis=[],tables=[],refs=[],notes=[]; //data storage while tokenising
 var i, j, cleardiv="<div style='clear:both;'></div>" , now = hlptimenow(); 
-var imgdisp, rgximg, rgximglnk, imgtg ='" target="_blank">', imgsrc; // image links
-imgtg = '">'; //Target:  on Duet, opening another window makes like if it was external link - make it an option ?? 
+var imgdisp, rgximg, rgximglnk, ptarget ='" target="_blank">', imgsrc; // image links
+//ptarget = '">'; //Target:  on Duet, opening another window makes like if it was external link - make it an option ?? 
 //-- Functions -------------------------------------------------------------------------------------
 	function direct (dir) { //search directive once:  return parameters as a unique string. return empty string if not found
 		var a="", par1=""; 
@@ -517,7 +516,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		});
 		return (a)?((par1)?par1:dir):""; // return directive name if directive exists but have no parameter
 	}
-	function remdirect(data) { // remove directives - make an option to not remove (:clear:) for included pages ??
+	function delDirect(data) { // remove directives - make an option to not remove (:clear:) for included pages ??
 		return data.replace (/\(:[\w]+([\t ]+[\w-.,;:]*)*?:\)[\t ]*(<br>)?/g,'');
 	}
 	function untoken (arr, token) {
@@ -537,7 +536,8 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		}); 
 	}
 	function imgwd (width) { // calculate maximum allowed image width - and close html string
-		return '" style="width:'+ Math.min(window.innerWidth*0.92, z(width)) +'px;"/>';
+		var elwidth = $0("aql_body").getBoundingClientRect().width;
+		return '" style="width:'+ Math.min(elwidth*0.92, z(width)) +'px;"/>';
 	}
 //-------------------------------------------------------------------------------------------------	
 	if (tabHlp[hpage]==undefined) 
@@ -604,7 +604,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		var iclass = (!imgborder || p3=="I") ? "": ((p3=="C") ? "aqlimgCb " : "aqlimgb "); 
 		var res = '<div class="'+iclass+'hlpimg'+z(p3)+'"><img src="'+aqlO.url+aqlC.dispDir+z(p5)+z(p7)+
 			imgwd(p2)+"<p class='aqllegend'>"+z(p1)+"</p></div>";
-		res = (p4=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+z(p5)+z(p4).slice(0,-1)+imgtg+res+"</a>" : res;
+		res = (p4=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+z(p5)+z(p4).slice(0,-1)+ptarget+res+"</a>" : res;
 		res = (p4=="%")? res : '<a href="javascript:aqlimg(\''+z(p5)+z(p7)+'\');">'+res+"</a>";
 		return res;
 	});
@@ -618,7 +618,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		else 
 			imgsrc = aqlO.url+aqlC.dispDir+z(p4)+z(p6);
 		var res = '<img class="'+iclass+'hlpimg'+z(p2)+'" data-name="'+z(p4)+z(p6)+'" src="'+imgsrc+imgwd(p1);	
-		res = (p3=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+p4+z(p3).slice(0,-1)+imgtg+res+"</a>" : res;
+		res = (p3=="pdf%") ? '<a href="'+aqlO.url+aqlC.docDir+p4+z(p3).slice(0,-1)+ptarget+res+"</a>" : res;
 		res = (p3=="%")? res : '<a href="javascript:aqlimg(\''+p4+z(p6)+'\');">'+res+"</a>";
 		return res;
 	});
@@ -659,7 +659,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	data=data.replace(/__(([^_]|_[^_])*)__/g, '<u>$1</u>');//  __underline__
 	data=data.replace(/\b([a-y]+)\^\^(([^\^]|\^[^\^])*)\^\^/g, '<span style="background:$1">$2</span>'); // color^^highlight^^
 	data=data.replace(/\^\^(([^\^]|\^[^\^])*)\^\^/g, '<mark>$1</mark>'); // yellow ^^highlighting^^
-	data=data.replace(/^:([^\/].*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para - beware table markup
+	data=data.replace(/^:([^\/:].*)\n/gm,'<div class="hlpindent">$1</div>'); //: indented para - beware table markup
 	data=data.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // **strong** characters BEFORE bullet list
 	data=data.replace(/^\*[\t ]*(.*)\n/gm,'<ul><li>$1<\/li><\/ul>'); // bullet list
 	data=data.replace(/<\/li><\/ul><ul><li>/g,'</li><li>'); 
@@ -691,7 +691,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 		tables.push(aqlTable(p1)); 
 		return '♠'; //U+2660
 	});
-	//--------------------------------------------------------------------------------	
+	//----------------------------------------------------------------------------------	
 	data=data.replace(/^([\t \n]|<br>)*/,""); // remove leading spaces and newline (due notably to directives)
 	data=data.replace(/\n/g,'<br>'); // all line feed taken into account 
 	data=data.replace(/(<br>)*♂(<br>)*/,""); // remove newlines between default page and page- was needed for markup interpreter
@@ -725,7 +725,7 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 	untoken(weblinks,'♥');
 	untoken(weblinkis,'▼');  	
 	//data = data.replace(/·/g,'%'); // replace char 250 by % (for URI encoding)	after untoken of weblinks 
-	data = remdirect (data);
+	data = delDirect (data);
 	 //remove all remaining directives - when doubled
 	if (!aqlO.listAll)
 		untoken(codeblocks,'▲'); //U+25B2  - Last to not modify directives
@@ -734,8 +734,8 @@ imgtg = '">'; //Target:  on Duet, opening another window makes like if it was ex
 			.replace (/(<br>)*<\/code><\/pre>\s*<br>/g, '</code></pre>'); // eliminate 1 newline before & after </pre>
 	data += "<br>"; // <br>needed as directive removal eat them
 	if (!nodate) data += "&nbsp;<small>Date:"+pgdate+"</small>";
-	if (!nofoot) data += remdirect(z(zo(tabHlp[hlpfoot]).p)); //no wiki markup interpretation of the footer nor header
-	if (!nohead) data = remdirect(z(zo(tabHlp[hlphead]).p))+data;
+	if (!nofoot) data += delDirect(z(zo(tabHlp[hlpfoot]).p)); //no wiki markup interpretation of the footer nor header
+	if (!nohead) data = delDirect(z(zo(tabHlp[hlphead]).p))+data;
 	if (myclass) // add global personnal class - around footer and header also ??
 		data = '<div class="'+ myclass.trim()+'">'+ data +'</div>'; 
 	data += aqlC.EndText;
@@ -782,18 +782,20 @@ function aqlTrail (data, curpage) { // why there is two <br> after a trail ??
 }
 
 function aqlTocSection (data, titles, hpage, notoc, numtitle) { // build toc and titles, with sections delimitations
-var titlenum="", title, titlenolnk, level,  l1=1, l2=1, l3=1; 
-var ttl=[0,0,0], collapsible, clpdisp, icon, lead, clpclass; // collapsible sections
+var titlenum="", title, tabttl, titlenolnk, level,  l1=1, l2=1, l3=1; 
+var ttl=[0,0,0], collapsible, clpdisp, icon, lead, clpclass, ttclass; // collapsible sections
 var i, j, toc="", tsp;
 	if (titles.length) { // shall run to have anchors even if no toc
 		var icondown = '<span class="licon aqi qexpand"></span>&nbsp;';
 		var iconup   = '<span class="licon aqi qcollapse"></span>&nbsp;';
 		for (j=0; j<titles.length ; j++){
-			level = Math.min (titles[j].match(/=/g).length,4); //Count '=' for css class definition 
+			level = titles[j].match(/^={2,4}/)[0].length; //Count '=' for css class definition 
 			collapsible = titles[j].match (/^[=]{2,4}([>|<])/);
-			clpdisp = collapsible ? ((collapsible[1]=='<')? ' style="display:none" ':'') :'';
-			icon    = collapsible ? ((collapsible[1]=='<')? icondown : iconup) :'';
-			title = titles[j].replace (/^[=]{2,4}[>|<]?[\t ]*([^=]+?)[\t ]*$/,'$1');
+			clpdisp	= collapsible ? ((collapsible[1]=='<')? ' style="display:none" ':'') :'';
+			icon	= collapsible ? ((collapsible[1]=='<')? icondown : iconup) :'';
+			tabttl	= titles[j].match (/^[=]{2,4}[>|<]?[\t ]*(([^=].*?)=)?[\t ]*(.*?)[\t ]*$/);
+			title	= tabttl[3];
+			ttclass = tabttl[2] ? " " + tabttl[2] : "";  
 			titlenolnk = title.replace (/(.*)%(.*)%.[^\s]*(.*)/,'$1$2$3'); // get text of a link (and text around) ??
 			if (titlenolnk) title = titlenolnk;  // replace text with link
 			if (numtitle)
@@ -809,7 +811,7 @@ var i, j, toc="", tsp;
 					ttl[i]=0; 
 					lead+='</div></div>';
 				}
-			clpclass = (collapsible) ? ' class="hlptt"': ''; // indicate title can collapse section
+			clpclass = collapsible ? ' class="hlptt'+ttclass+'"': (ttclass ? ' class="'+ttclass+'"' : ''); //hlptt  indicate title can collapse section
 			ttl [level-2]= 1; //always have a container over section content - formatting and code simplicity
 			titles[j] = lead+'<div>'+hlpAnchor(hpage,title)+'<h'+level+clpclass+' id="'+hpage+j+'">'+ // id used by toggling 
 				titlenum+icon+title+'</h'+level+'><div class="hlpsec"'+clpdisp+'>'; //shall be != for menu & main page	
