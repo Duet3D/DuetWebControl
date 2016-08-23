@@ -1,0 +1,213 @@
+imglist
+Image list
+(:nosearch:)(:notoc:)
+
+default.png
+auth:Unknown, license:CC BY-SA 3.0; GFDL1.2, instructions: see 
+
+bossac_transfer_success.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+bossac_transfer2.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+bossac_transfer.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+bossa_com_port.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_wiring_filament.png
+Duet 0.8.5 wiring for filament detection, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_wiring.png
+Duet 0.8.5 wiring, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_wiring2.png
+Duet 0.8.5 wiring for SSR, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_wiring3.png
+Duet 0.8.5 wiring for fans, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.6_wiring.png
+Duet 0.8.5 wiring, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.6_wiring3.png
+Duet 0.6 wiring for fans, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+due-pinout-web.png
+Due pinout with name and pin functions, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_buttons.jpg
+Duet 0.8.5 buttons, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.6_buttons.jpg
+Duet 0.6 buttons, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+rrf_functional.png
+Duet 0.6 and 0.8.5 functional schematic, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+rrf_connect_dwifi.png
+Duet WiFi functional schematic, auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+steppers_in_series.jpg
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_board_endstop_schematic.jpg
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_adc_calibration.jpg
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_thermistor.jpg
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+rrf_connection1.png
+RepRap Firmware with Duet and mixed WiFi/wired connection, auth:PRZ
+license:CC BY-SA 3.0; GFDL1.2
+
+rrf_connection2.png
+RepRap Firmware with Duet 0.6/0.8.5 and WiFi connection, auth:PRZ
+license:CC BY-SA 3.0; GFDL1.2
+
+rrf_connection3.jpg
+RepRap Firmware with Duet and wired connection, auth:PRZ
+license:CC BY-SA 3.0; GFDL1.2
+
+duet_buzzer.jpg
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_print_status.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_settings.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_g-code_console.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_g-code_files.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_com_as_arduino.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+duet_settings.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_machinecontrol.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwc_head_color_ex.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+think3dprint3d_duet_and_expansion_board_5_extruders.jpg
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+kraken_scene.jpg
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_expansion_header_pins_back_view.jpg
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+think3dprint3d_duet_arduino_due_compatible_3dprinter_controller.jpg
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+duet_duex4_wiring.png
+Duet 0.6 to Duex4 wiring, auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_duex4_wiring_0.2.png
+Duet 0.8.5 to Duex4 0.2 wiring, auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+duet0.85_board_dims.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+duet_0.8.5_opensource_32bit_electronics_for_3dprinters.jpg
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+rrf_ipcam_settings.jpg
+auth:Ormerod187, license:CC BY-SA 3.0; GFDL1.2
+
+rrf_ipcam_view.jpg
+auth:Ormerod187, license:CC BY-SA 3.0; GFDL1.2
+
+15_reboot.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+1_comm.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+2_pronterface.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+3_online.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+4_503.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+5_552.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+6_wifisuccess.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+7_552.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+8_dwc.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+9_settings.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+dwifi-pt100-board.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+dwifi_tc_board.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+dwifi_wiring_connect.png
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+duetsdfolders.png
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+duetwifipower.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+duetwifisdfolders.png
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+max31855-board.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+sd_card_files.png
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+d0.6_back_silk.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+d0.85_back_silk.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+d0.85_board_dims.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+d0.85_wir_filament.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
+
+dwifi_connection.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+execute.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+samba.jpg
+auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+
+duetwifidims.png
+auth:T3P3, license:CC BY-SA 3.0; GFDL1.2
+
+file_up_btn.png
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
