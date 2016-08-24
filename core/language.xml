@@ -32,7 +32,7 @@
 		<string t="No files found!">Keine Dateien gefunden!</string>
 		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Die folgenden Achsen sind nicht referenziert: &lt;strong&gt;{0}&lt;/strong&gt;</string>
 		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Die folgende Achse ist nicht referenziert: &lt;strong&gt;{0}&lt;/strong&gt;</string>
-		
+
 		<!-- Status Texts -->
 		<string t="Disconnected">Getrennt</string>
 		<string t="Halted">Angehalten</string>
@@ -46,7 +46,7 @@
 		<string t="standby">standby</string>
 		<string t="active">aktiv</string>
 		<string t="fault">fehler</string>
-		
+
 		<!-- Buttons, Checkboxes and Radios -->
 		<string t="Send">Senden</string>
 		<string t="Upload &amp; Print">Hochladen &amp; Drucken</string>
@@ -92,7 +92,7 @@
 		<string t="Add Temp">Hinzufügen</string>
 		<string t="Add Tool">Tool hinzufügen</string>
 		<string t="Select Tool">Tool auswählen</string>
-		
+
 		<!-- Labels and Placeholders -->
 		<string t="Active:">Aktiv:</string>
 		<string t="Feed amount in mm:">Vorschubmenge in mm:</string>
@@ -100,8 +100,8 @@
 		<string t="Go to the Macros page to define your own actions">Gehen Sie auf die Makro-Seite um eigene Aktionen zu definieren</string>
 		<string t="Override Fan Value">Lüfterwert erzwingen</string>
 		<string t="Bowden Tube Length:">Länge des Bowden-Zugs:</string>
-		<string t="G-Codes Directory">G-Codes Verzeichnis</string>
-		<string t="Macros Directory">Makro Verzeichnis</string>
+		<string t="G-Codes Directory">G-Code-Verzeichnis</string>
+		<string t="Macros Directory">Makroverzeichnis</string>
 		<string t="Connect to your Duet to display G-Code files">Stellen Sie eine Verbindung zu Ihrem Duet her um G-Code Dateien anzuzeigen</string>
 		<string t="Connect to your Duet to display Macro files">Stellen Sie eine Verbindung zu Ihrem Duet her um Makrodateien anzuzeigen</string>
 		<string t="Connect to your Duet to display the configuration file">Stellen Sie eine Verbindung zu Ihrem Duet her um die Konfigurationsdatei anzuzeigen</string>
@@ -126,7 +126,7 @@
 		<string t="Heaters:">Heizer:</string>
 		<string t="Drives:">Motoren:</string>
 		<string t="none">keine</string>
-		
+
 		<!-- Panel Headings -->
 		<string t="Heater Temperatures">Temperaturübersicht</string>
 		<string t="Temperature Chart">Temperaturverlauf</string>
@@ -156,7 +156,7 @@
 		<string t="Select">Auswählen</string>
 		<string t="Deselect">Abwählen</string>
 		<string t="Remove">Entfernen</string>
-		
+
 		<!-- Table Headers -->
 		<string t="Current">Aktuell</string>
 		<string t="Active">Aktiv</string>
@@ -206,7 +206,7 @@
 		<string t="Time Left">Zeit übrig</string>
 		<string t="Est. End Time">Geschätzte Endzeit</string>
 		<string t="Description">Beschreibung</string>
-		
+
 		<!-- Navigation Menu -->
 		<string t="Control">Steuerung</string>
 		<string t="Machine Control">Maschinensteuerung</string>
@@ -222,7 +222,7 @@
 		<string t="Settings">Einstellungen</string>
 		<string t="Configuration File">Konfigurationsdatei</string>
 		<string t="List Items">Listeneinträge</string>
-		
+
 		<!-- Tooltips / Titles -->
 		<string t="Send G-Code from input">Eingegebenen G-Code senden</string>
 		<string t="Time vs. Temperature">Zeit vs. Temperatur</string>
@@ -278,14 +278,14 @@
 		<string t="Remove this tool">Dieses Tool entfernen</string>
 		<string t="Delete this temperature item">Diesen Temperatureintrag entfernen</string>
 		<string t="Delete this G-Code item">Diesen G-Code-Eintrag entfernen</string>
-		
+
 		<!-- Modal Dialogs -->
 		<string t="Error">Fehler</string>
 		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Konnte keine Verbindung zum Duet herstellen! Bitte prüfen Sie ihre Einstellungen und versuchen Sie es erneut.</string>
 		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">Konnte keine Verbindung zum Duet herstellen, da keine weiteren HTTP-Sitzungen verfügbar sind.</string>
 		<string t="Message from Duet firmware">Nachricht von der Duet Firmware</string>
 		<string t="{0} has returned an error:">{0} hat einen Fehler zurückgeliefert:</string>
-		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Es wurde ein AJAX-Fehler berichtet, deshalb wurde die aktuelle Sitzung beendet.&lt;br/&gt;&lt;br/&gt;Bitte prüfen Sie, ob Ihr Drucker noch an ist und versuchen Sie erneut zu verbinden.</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">Es ist ein AJAX-Fehler gemeldet worden, deshalb wurde die aktuelle Sitzung beendet.&lt;br/&gt;&lt;br/&gt;Bitte prüfen Sie, ob Ihr Drucker noch an ist und versuchen Sie erneut zu verbinden.</string>
 		<string t="Password required">Passwort benötigt</string>
 		<string t="Please enter your password:">Bitte geben Sie Ihr Passwort ein:</string>
 		<string t="OK">Ok</string>
@@ -388,6 +388,54 @@
 		<string t="(not set)">(nicht gesetzt)</string>
 		<string t="Current Z-Probe reading on a scale between 0 and 1024">Aktueller Z-Probe-Wert auf einer Skala zwischen 0 und 1024</string>
 		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Aktuelle Lüfterumdrehungen pro Minute (benötigt einen 4-pin PWM-Lüfter und richtige Verkabelung)</string>
+
+		<!-- New in v1.12 -->
+		<string t="The following axes are not homed:">Die folgenden Achsen sind nicht referenziert:</string>
+		<string t="Communication">Kommunikation</string>
+		<string t="Fans">Lüfter</string>
+		<string t="User Interface">Benutzeroberfläche</string>
+		<string t="System Editor">Systemeditor</string>
+		<string t="Maximum number of AJAX retries:">Maximale Anzahl an AJAX-Versuchen:</string>
+		<string t="Reconnect Delay on Duet WiFi Server Update:">Wiederverbindungsverzögerung bei Duet WiFi Server-Aktualisierung:</string>
+		<string t="Reconnect Delay on Duet Web Control Update:">Wiederverbindungsverzögerung bei Duet Web Control-Aktualisierung:</string>
+		<string t="Automatically close user-generated firmware messages">Benutzerdefinierte Firmwaremeldungen automatisch schließen</string>
+		<string t="Refresh">Aktualisieren</string>
+		<string t="Edit this file">Diese Datei bearbeiten</string>
+		<string t="Download this file">Diese Datei herunterladen</string>
+		<string t="Connect to your Duet to display System files">Stellen Sie eine Verbindung zu Ihrem Duet her um Systemdateien anzuzeigen</string>
+		<string t="Edit this macro">Dieses Makro bearbeiten</string>
+		<string t="Make new Macro">Makro erstellen</string>
+		<string t="Create a new macro file">Neue Makrodatei anlegen</string>
+		<string t="New macro">Neues Makro</string>
+		<string t="Please enter a filename:">Bitte geben Sie einen Dateinamen ein:</string>
+		<string t="Editing {0}">Bearbeite {0}</string>
+		<string t="Save Changes">Änderungen speichern</string>
+		<string t="Reconnect Preferences">Wiederverbindungseinstellungen</string>
+		<string t="Maximum number of AJAX retries before the connection is terminated">Maximale Anzahl an AJAX-Versuchen bevor die Verbindung gekappt wird</string>
+		<string t="Time to wait for a reconnect when a new Duet WiFi Server firmware is about to be flashed (Duet WiFi only)">Abzuwartende Zeit wenn eine neue Duet WiFi Server Firmware geflasht wird (nur Duet WiFi)</string>
+		<string t="Time to wait for a reconnect when a new Duet Web Control binary is about to be flashed (Duet WiFi only)">Abzuwartende Zeit wenn eine neue Duet Web Control Datei geflasht wird (nur Duet WiFi)</string>
+		<string t="Clear Cached File Information">Zwischgespeicherte Dateiinfos leeren</string>
+		<string t="Clear cached G-Code File Information">Zwischenspeicher der G-Code-Dateiliste leeren</string>
+		<string t="Activate this to display M117 messages until they are manually closed">Aktivieren Sie dies um M117 Nachrichten anzuzeigen bis sie manuell geschlossen werden</string>
+		<string t="Heater 6">Heizer 6</string>
+		<string t="Heater 7">Heizer 7</string>
+		<string t="Here you can upload firmware, Duet WiFi and Duet Web Control files as well">Hier können Sie auch Firmware-, Duet WiFi- und Duet Web Control-Dateien hochladen</string>
+		<string t="You cannot upload web interface files as a ZIP file on a Duet WiFi!">Sie können keine Webinterface-Dateien als ZIP auf einem Duet WiFi hochladen!</string>
+		<string t="Perform WiFi Server Update?">WiFi Server Update durchführen?</string>
+		<string t="You have just uploaded a Duet WiFi server firmware file. Would you like to install it now?">Sie haben gerade eine Duet WiFi Server Firmwaredatei hochgeladen. Möchten Sie diese jetzt installieren?</string>
+		<string t="Perform Duet Web Control Update?">Duet Web Control Update durchführen?</string>
+		<string t="You have just uploaded a Duet Web Control package. Would you like to install it now?">Sie haben gerade ein Duet Web Control-Paket hochgeladen. Möchten Sie es jetzt installieren?</string>
+		<string t="Could not rename WiFi Server update file!">Konnte WiFi Server Updatedatei nicht umbenennen!</string>
+		<string t="Could not rename Duet Web Control update file!">Konnte Duet Web Control Updatedatei nicht umbenennen!</string>
+		<string t="timeout">Zeitüberschreitung</string>
+		<string t="Settings applied!">Einstellungen übernommen!</string>
+		<string t="Updating WiFi Server...">Aktualisiere WiFi Server...</string>
+		<string t="Please wait while the Duet WiFi Server firmware is being updated...">Bitte warten Sie während die Duet WiFi Server Firmware aktualisiert wird...</string>
+		<string t="Updating Web Interface...">Aktualisiere Webinterface...</string>
+		<string t="Please wait while Duet Web Control is being updated...">Bitte warten Sie während Duet Web Control aktualisiert wird...</string>
+		<string t="Error! Unknown update parameter!">Fehler! Unbekannter Update-Parameter!</string>
+		<string t="System Directory">Systemverzeichnis</string>
+		<string t="tuning">kalibriere</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -421,7 +469,7 @@
 		<string t="No files found!">No se han encontrado ficheros!</string>
 		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Los ejes &lt;strong&gt;{0}&lt;/strong&gt; no estan ajustados</string>
 		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">El eje &lt;strong&gt;{0}&lt;/strong&gt; no esta ajustado</string>
-		
+
 		<!-- Status Texts -->
 		<string t="Disconnected">Desconectado</string>
 		<string t="Halted">Parado</string>
@@ -435,7 +483,7 @@
 		<string t="standby">En espera</string>
 		<string t="active">Activo</string>
 		<string t="fault">Fallo</string>
-		
+
 		<!-- Buttons, Checkboxes and Radios -->
 		<string t="Send">Enviar</string>
 		<string t="Upload &amp; Print">Cargar e Imprimir</string>
@@ -478,7 +526,7 @@
 		<string t="Add Temp">Añadir Temperatura</string>
 		<string t="Add Tool">Añadir herramienta</string>
 		<string t="Select Tool">Seleccionar Herramienta</string>
-		
+
 		<!-- Labels and Placeholders -->
 		<string t="Active:">Activo:</string>
 		<string t="Feed amount in mm:">Cantidad en mm:</string>
@@ -512,7 +560,7 @@
 		<string t="Heaters:">Calentadores:</string>
 		<string t="Drives:">Motores:</string>
 		<string t="none">Ninguno</string>
-		
+
 		<!-- Panel Headings -->
 		<string t="Heater Temperatures">Tempraturas de Calentadores</string>
 		<string t="Temperature Chart">Gráfico de Temperaturas</string>
@@ -542,7 +590,7 @@
 		<string t="Select">Seleccionar</string>
 		<string t="Deselect">Deseleccionar</string>
 		<string t="Remove">Eliminar</string>
-		
+
 		<!-- Table Headers -->
 		<string t="Current">Actual</string>
 		<string t="Active">Activo</string>
@@ -591,7 +639,7 @@
 		<string t="Time Left">Tiempo restante</string>
 		<string t="Est. End Time">Tiempo restante estimado</string>
 		<string t="Description">Descripción</string>
-		
+
 		<!-- Navigation Menu -->
 		<string t="Control">Control</string>
 		<string t="Machine Control">Control de Máquina</string>
@@ -607,7 +655,7 @@
 		<string t="Settings">Ajustes</string>
 		<string t="Configuration File">Fichero de Configuración</string>
 		<string t="List Items">Mostrar Elementos</string>
-		
+
 		<!-- Tooltips / Titles -->
 		<string t="Send G-Code from input">Enviar G-Code desde entrada</string>
 		<string t="Time vs. Temperature">Tiempo vs. Temperatura</string>
@@ -663,7 +711,7 @@
 		<string t="Remove this tool">Eliminar esta herramienta</string>
 		<string t="Delete this temperature item">Eliminar este valor de temperatura</string>
 		<string t="Delete this G-Code item">Eliminar este G-Code</string>
-		
+
 		<!-- Modal Dialogs -->
 		<string t="Error">Error</string>
 		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">No se puede establecer conexión con la Duet! Por favor, revisa tus ajustes y prueba de nuevo.</string>
@@ -711,7 +759,7 @@
 		<string t="Layer: {0} of {1}">Capa {0}: {1}</string>
 	</es>
 	<fr name="Français">
-	   	<!-- JavaScript Strings -->
+		<!-- JavaScript Strings -->
 		<string t="Connect">Connecter</string>
 		<string t="Connecting...">Connecte...</string>
 		<string t="Disconnect">Déconnecte</string>
@@ -742,7 +790,7 @@
 		<string t="No files found!">Fichiers non trouvés!</string>
 		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Les axes suivant ne sont pas à l'origine:&lt;strong&gt;{0}&lt;/strong&gt;</string>
 		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">L'axe suivant n'est pas à l'origine:&lt;strong&gt;{0}&lt;/strong&gt;</string>
-		
+
 		<!-- Status Texts -->
 		<string t="Disconnected">Déconnecté</string>
 		<string t="Halted">Arrêté</string>
@@ -756,7 +804,7 @@
 		<string t="standby">standby</string>
 		<string t="active">actif</string>
 		<string t="fault">défaut</string>
-		
+
 		<!-- Buttons, Checkboxes and Radios -->
 		<string t="Send">Envoi</string>
 		<string t="Upload &amp; Print">Charge et imprime</string>
@@ -803,7 +851,7 @@
 		<string t="Bed (0)">Plateau (0)</string>
 		<string t="Add Tool">Ajouter outil</string>
 		<string t="Select Tool">Sélectionner outil</string>
-		
+
 		<!-- Labels and Placeholders -->
 		<string t="Active:">Actif:</string>
 		<string t="Feed amount in mm:">Extrusion en mm:</string>
@@ -837,7 +885,7 @@
 		<string t="Heaters:">Réchauffeurs:</string>
 		<string t="Drives:">Moteurs:</string>
 		<string t="none">sans</string> 
-				
+
 		<!-- Panel Headings -->
 		<string t="Heater Temperatures">Température réchauffeur</string>
 		<string t="Temperature Chart">Graphe de température</string>
@@ -867,7 +915,7 @@
 		<string t="Select">Sélectionner</string>
 		<string t="Deselect">Déselectionner</string>
 		<string t="Remove">Supprimer</string>
-		
+
 		<!-- Table Headers -->
 		<string t="Current">En cours</string>
 		<string t="Active">Actif</string>
@@ -916,7 +964,7 @@
 		<string t="Time Left">Temps restant</string>
 		<string t="Est. End Time">Heure fin estimée</string>
 		<string t="Description">Description</string>
-		
+
 		<!-- Navigation Menu -->
 		<string t="Control">Contrôle</string>
 		<string t="Machine Control">Contrôle machine</string>
@@ -932,7 +980,7 @@
 		<string t="Settings">Configuration</string>
 		<string t="Configuration File">Fichier configuration</string>
 		<string t="List Items">Liste éléments</string>
-		
+
 		<!-- Tooltips / Titles -->
 		<string t="Send G-Code from input">Envoyer G-Code depuis l'entrée</string>
 		<string t="Time vs. Temperature">Temps vs Température</string>
@@ -988,7 +1036,7 @@
 		<string t="Remove this tool">Supprimer cet outil</string>
 		<string t="Delete this temperature item">Effacer cet élément température</string>
 		<string t="Delete this G-Code item">Effacer cet élément G-Code</string>
-				
+
 		<!-- Modal Dialogs -->
 		<string t="Erreur">Erreur</string>
 		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Ne peut pas établir de connexion avec le micrologiciel de la carte Duet! Vérifiez la configuration et réessayer.</string>
@@ -1031,7 +1079,7 @@
 		<string t="Cancel Upload(s)">Arrêter le chargement</string>
 		<string t="Close">Fermer</string>
 		<string t="Are you sure you wish to remove tool {0}?">Confirmer la suppression de l'outil {0} ?</string>
-		
+
 		<!-- New in v1.07 -->
 		<string t="Reboot Duet?">Redémarrer la Duet?</string>
 		<string t="You have just uploaded a config file. Would you like to reboot your Duet now?">Vous venez de charger un fichier de configuration. Redémarrer la Duet maintenant?</string>
@@ -1131,7 +1179,7 @@
 		<string t="No files found!">Inga filer funna!</string>
 		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Följande axlar är inte i startläge &lt;strong&gt;{0}&lt;/strong&gt;</string>
 		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Fäljande axel är inte i startläge &lt;strong&gt;{0}&lt;/strong&gt;</string>
-		
+
 		<!-- Status Texts -->
 		<string t="Disconnected">Frånkopplad</string>
 		<string t="Halted">Stoppad</string>
@@ -1145,7 +1193,7 @@
 		<string t="standby">redo</string>
 		<string t="active">aktiv</string>
 		<string t="fault">fel</string>
-		
+
 		<!-- Buttons, Checkboxes and Radios -->
 		<string t="Send">Skicka</string>
 		<string t="Upload &amp; Print">Ladda upp &amp; skriv ut</string>
@@ -1188,7 +1236,7 @@
 		<string t="Add Temp">Lägg till temperatur</string>
 		<string t="Add Tool">Lägg till verktyg</string>
 		<string t="Select Tool">Välj verktyg</string>
-		
+
 		<!-- Labels and Placeholders -->
 		<string t="Active:">Aktiv:</string>
 		<string t="Feed amount in mm:">Matning i mm:</string>
@@ -1222,7 +1270,7 @@
 		<string t="Heaters:">Värmare:</string>
 		<string t="Drives:">Motorer:</string>
 		<string t="none">ingen</string>
-		
+
 		<!-- Panel Headings -->
 		<string t="Heater Temperatures">Värmartemperaturer</string>
 		<string t="Temperature Chart">Temperaturgraf</string>
@@ -1252,7 +1300,7 @@
 		<string t="Select">Välj</string>
 		<string t="Deselect">Avvälj</string>
 		<string t="Remove">Ta bort</string>
-		
+
 		<!-- Table Headers -->
 		<string t="Current">Nuvarande</string>
 		<string t="Active">Aktiv</string>
@@ -1301,7 +1349,7 @@
 		<string t="Time Left">Tid kvar</string>
 		<string t="Est. End Time">Uppsk. vara klar</string>
 		<string t="Description">Beskrivning</string>
-		
+
 		<!-- Navigation Menu -->
 		<string t="Control">Kontroll</string>
 		<string t="Machine Control">Maskinkontroll</string>
@@ -1317,7 +1365,7 @@
 		<string t="Settings">Inställningar</string>
 		<string t="Configuration File">Konfigurationsfil</string>
 		<string t="List Items">Snabbval</string>
-		
+
 		<!-- Tooltips / Titles -->
 		<string t="Send G-Code from input">Skicka G-kod från inmatning</string>
 		<string t="Time vs. Temperature">Temperatur över tid</string>
@@ -1373,7 +1421,7 @@
 		<string t="Remove this tool">Ta bort detta verktyg</string>
 		<string t="Delete this temperature item">Ta bort denna temperatur från listan</string>
 		<string t="Delete this G-Code item">Ta bort denna G-kod från listan</string>
-		
+
 		<!-- Modal Dialogs -->
 		<string t="Error">Fel</string>
 		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Kan inte ansluta till Duet-mjukvaran! Vänligen kontrollera inställningarna och försök igen.</string>
@@ -1452,6 +1500,454 @@
 		<!-- New in v1.08 -->
 		<string t="Layer {0}: {1}">Lager {0}: {1}</string>
 	</sv>
+	<hu name="Magyar">
+		<!-- JavaScript Strings -->
+		<string t="Connect">Kapcsolódás</string>
+		<string t="Connecting...">Kapcsolódás...</string>
+		<string t="Disconnect">Kapcsolat bontása</string>
+		<string t="Invalid password!">Hibás jelszó!</string>
+		<string t="Connection established!">Kapcsolódva!</string>
+		<string t="Page Load complete!">Az oldal betöltése kész!</string>
+		<string t="Disconnected.">Kapcsolat bontva.</string>
+		<string t="Layer: {0} of {1}">{0} Réteg / összesen {1}</string>
+		<string t="Filament Usage: {0}mm of {1}mm">Filament: {0}mm / {1}mm-ből</string>
+		<string t="({0}mm remaining)">({0}mm van hátra)</string>
+		<string t="Printing {0}, {1}% Complete">Nyomtatás {0}, {1}% Kész</string>
+		<string t="{0}% Complete">{0}% Kész</string>
+		<string t="Printing {0}">Nyomtatás {0}</string>
+		<string t="Printed {0}, 100% Complete">Nyomtatás {0}, 100% Kész</string>
+		<string t="Print Complete!">A nyomtatás kész!</string>
+		<string t="none">egyik sem</string>
+		<string t="Emergency Stop!">Vészleállás</string>
+		<string t="Error reason: {0}">A hiba oka: {0}</string>
+		<string t="Communication Error">Kommunikációs hiba</string>
+		<string t="Zero All Drives">Motorok nullázása</string>
+		<string t="Zero Extruder Drive {0}">{0} extrúder nullázása</string>
+		<string t="Message Log cleared!">Üzenet napló törölve!</string>
+		<string t="ATX Power">ATX áramforrás</string>
+		<string t="Heater Fault">Hűtőelem hiba</string>
+		<string t="loading">betöltés</string>
+		<string t="No Files or Directories found">File vagy mappa nem található</string>
+		<string t="No Macro Files found">Makró nem található</string>
+		<string t="No files found!">File nem található!</string>
+		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Az alábbi tengelyek nullpontja nincs felvéve: &lt;strong&gt;{0}&lt;/strong&gt;</string>
+		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">Az alábbi tengely nullpontja nincs felvéve: &lt;strong&gt;{0}&lt;/strong&gt;</string>
+
+		<!-- Status Texts -->
+		<string t="Disconnected">Kapcsolat bontva</string>
+		<string t="Halted">Leállítva</string>
+		<string t="Pausing">Szüneteltés</string>
+		<string t="Paused">Szünet</string>
+		<string t="Resuming">Folytatás</string>
+		<string t="Printing">Nyomtatás</string>
+		<string t="Busy">Elfoglalt</string>
+		<string t="Idle">Tétlen</string>
+		<string t="off">ki</string>
+		<string t="standby">készenlét</string>
+		<string t="active">aktív</string>
+		<string t="fault">hiba</string>
+
+		<!-- Buttons, Checkboxes and Radios -->
+		<string t="Send">Küldés</string>
+		<string t="Upload &amp; Print">Feltöltés és nyomtatás</string>
+		<string t="Emergency STOP">VÉSZLEÁLLÍTÁS</string>
+		<string t="Toggle navigation">Navigáció váltása</string>
+		<string t="Control All">Mindegyik vezérlése</string>
+		<string t="Turn everything off">Minden kikapcsolása</string>
+		<string t="Home All">Nullpontok felvétele</string>
+		<string t="Home X">X teng. nullpont felvétele</string>
+		<string t="Home Y">Y teng. nullpont felvétele</string>
+		<string t="Home Z">Z teng. nullpont felvétele</string>
+		<string t="Auto Bed Compensation">Automatikus nyomtatófelület kompenzálás</string>
+		<string t="Auto Delta Calibration">Automatikus Delta kalibrálás</string>
+		<string t="Extrude">Extrudálás</string>
+		<string t="Retract">Visszahúzás</string>
+		<string t="Clear Log">Naplózás törlése</string>
+		<string t="Pause Print">Nyomt. szünet</string>
+		<string t="Resume">Folytatás</string>
+		<string t="Enable Auto-Sleep">Auto-alvó mód aktiválása</string>
+		<string t="Upload G-Code File(s)">G-kód file(ok) feltöltése</string>
+		<string t="Make new Directory">Új mappa létrehozása</string>
+		<string t="Upload Macro File(s)">Makró file(ok) feltöltése</string>
+		<string t="Go Up">Menj fel</string>
+		<string t="Unload Filament">Filament kifűzése</string>
+		<string t="Load Filament">Filament befűzése</string>
+		<string t="General">Általános</string>
+		<string t="Upload File(s)">File(ok) feltöltése</string>
+		<string t="Connect automatically">Automatikus csatlakozás</string>
+		<string t="Half Z Movements">Z-tengely mozgások felezése</string>
+		<string t="Log any successful G-Code">Sikeres G-kódok megjelenítése értesítésben</string>
+		<string t="Always Convert G-Codes to Upper-Case">Mindíg konvertálja a G-kódot nagybetűssé</string>
+		<string t="Display File Sizes with Binary Prefix">File méretek megjelenítése bináris előtaggal</string>
+		<string t="Show Fan Sliders">Ventillátor csúszkák megjelenítése</string>
+		<string t="Show ATX Power control">ATX-Tápegység vezérlés megjelenítése</string>
+		<string t="Confirm Emergency STOP">Vészmegállás megerősítése</string>
+		<string t="Apply Settings">Beállítások alkalmazása</string>
+		<string t="Load Factory Defaults">Gyári adatok visszaállítása</string>
+		<string t="On">Be</string>
+		<string t="Off">Ki</string>
+		<string t="Active Temperatures">Aktív hőmérsékletek</string>
+		<string t="Standby Temperatures">Készenléti hőmérsékletek</string>
+		<string t="Add G-Code">G-kód hozzáadása</string>
+		<string t="Add Temp">Hőm. hozzáad</string>
+		<string t="Add Tool">Szerszám hozzáadása</string>
+		<string t="Select Tool">Szerszám kiválasztása</string>
+
+		<!-- Labels and Placeholders -->
+		<string t="Active:">Aktív:</string>
+		<string t="Feed amount in mm:">Előtolás mm-ben:</string>
+		<string t="Feedrate in mm/sec:">Előtolási sebesség mm/s-ban:</string>
+		<string t="Go to the Macros page to define your own actions">Egyéni művelet hozzáadása a Makró fülön</string>
+		<string t="Override Fan Value">Ventillátor felülírása</string>
+		<string t="Bowden Tube Length:">Bowden cső hossza</string>
+		<string t="G-Codes Directory">G-kód mappa</string>
+		<string t="Macros Directory">Makró mappa</string>
+		<string t="Connect to your Duet to display G-Code files">Kapcsolódás a Duet-hez a G-kód fileok megjelenítéséhez</string>
+		<string t="Connect to your Duet to display Macro files">Kapcsolódás a Duet-hez a Makro fileok megjelenítéséhez</string>
+		<string t="Connect to your Duet to display the configuration file">Kapcsolódás a Duet-hez a konfigurációs file megjelenítéséhez</string>
+		<string t="Unload current filament spool">A jelenlegi Filament kifűzése</string>
+		<string t="Load new filament spool">Új Filament befűzése</string>
+		<string t="Default Move Button Feedrate:">Alapértelmezett "Mozgás" gomb sebesség:</string>
+		<string t="Status Update Interval:">Állapot frissítés gyakorisága:</string>
+		<string t="Extended Status Update after every:">Státusz frisstése minden:</string>
+		<string t="th response">válasz után</string>
+		<string t="Reconnect Delay on Halt:">Újrakapcsolódás késleltetése megállásnál:</string>
+		<string t="AJAX Timeout:">AJAX-időtúllépés:</string>
+		<string t="Send G-Code...">G-kód küldése...</string>
+		<string t="Web Interface by Christian Hammacher">Christian Hammacher-féle Webes felület</string>
+		<string t="Licensed under the terms of the">Licensz feltételei</string>
+		<string t="Language:">Nyelv:</string>
+		<string t="Which temperatures do you want to manage?">Melyik hőmérsékletet szeretné beállítani?</string>
+		<string t="Description:">Leírás:</string>
+		<string t="Temperature:">Hőmérséklet:</string>
+		<string t="Tool Number:">Szerszám azonosító:</string>
+		<string t="Associated Heater(s):">Hozzárendelt fűtőelem(ek):</string>
+		<string t="Associated Drive(s):">Hozzárendelt motor(ok):</string>
+		<string t="Heaters:">Fűtőelemek:</string>
+		<string t="Drives:">Motorok:</string>
+		<string t="none">egyik sem</string>
+
+		<!-- Panel Headings -->
+		<string t="Heater Temperatures">Fűtőelem hőmérsékletek</string>
+		<string t="Temperature Chart">Hőmérséklet grafikon</string>
+		<string t="Machine Status">Berendezés állapota</string>
+		<string t="User-Defined Macros">Felhasználói Makrók</string>
+		<string t="Miscellaneous">Vegyes</string>
+		<string t="Head Movement">Fej mozgatás</string>
+		<string t="Extruder Control">Extruder vezérlés</string>
+		<string t="Print Control">Nyomtatás vezérlés</string>
+		<string t="Layer Statistics">Réteg statisztikák</string>
+		<string t="Speed Factor">Sebesség szorzó</string>
+		<string t="Extrusion Factors">Extrúder szorzó</string>
+		<string t="File Information">File adatok</string>
+		<string t="Collected Data">Gyűjtött adatok</string>
+		<string t="Estimations">Becslések</string>
+		<string t="Exchange Filament">Filament csere</string>
+		<string t="Software Information">Szoftver információk</string>
+		<string t="File Upload for /sys and /www Directories">File feltöltés a /sys és /www mappákba</string>
+		<string t="Appearance and Behavior">Kinézet és működés</string>
+		<string t="UI Timing">Felhasználói felület - időzítések</string>
+		<string t="Default G-Codes">Alapértelmezett G-kódok</string>
+		<string t="Default Heater Temperatures">Alapértelmezett fűtőelem hőmérsékletek</string>
+		<string t="Default Bed and Chamber Temperatures">Alapértelmezett nyomtatófelület és kamra hőmérsékletek</string>
+		<string t="Add new G-Code">Új G-kód hozzáadása</string>
+		<string t="Add new Temperature">Új hőmérséklet hozzáadása</string>
+		<string t="Define new Tool">Új szerszám definiálása</string>
+		<string t="Select">Kiválasztás</string>
+		<string t="Deselect">Kiválasztás törlése</string>
+		<string t="Remove">Eltávolítás</string>
+
+		<!-- Table Headers -->
+		<string t="Current">Aktuális</string>
+		<string t="Active">Aktív</string>
+		<string t="Heater 1">Fűtőelem 1</string>
+		<string t="Heater 2">Fűtőelem 2</string>
+		<string t="Heater 3">Fűtőelem 3</string>
+		<string t="Heater 4">Fűtőelem 4</string>
+		<string t="Heater 5">Fűtőelem 5</string>
+		<string t="Bed">Nyomt.felület</string>
+		<string t="Chamber">Kamra</string>
+		<string t="Head Position">Fej pozíció</string>
+		<string t="Extruder Drives">Extrúder</string>
+		<string t="Drive 1">Motor 1</string>
+		<string t="Drive 2">Motor 2</string>
+		<string t="Drive 3">Motor 3</string>
+		<string t="Drive 4">Motor 4</string>
+		<string t="Drive 5">Motor 5</string>
+		<string t="D1">M1</string>
+		<string t="D2">M2</string>
+		<string t="D3">M3</string>
+		<string t="D4">M4</string>
+		<string t="D5">M5</string>
+		<string t="Sensors">Szenzorok</string>
+		<string t="Fan RPM">Ventillátor fordulatszám</string>
+		<string t="ATX Power:">ATX tápegység:</string>
+		<string t="Fan Control:">Ventillátor vezérlés:</string>
+		<string t="File Name">File név</string>
+		<string t="Object Height">Alkatrész magassága</string>
+		<string t="Layer Height">Rétegvastagság</string>
+		<string t="Generated by">Létrehozta</string>
+		<string t="Size:">Méret:</string>
+		<string t="Object Height:">Alkatrész magassága:</string>
+		<string t="Layer Height:">Rétegvastagság:</string>
+		<string t="Filament Usage:">Filament felhasználás:</string>
+		<string t="Generated by:">Létrehozta:</string>
+		<string t="Current Layer Time">Aktuális réteg időtartama</string>
+		<string t="Last Layer Time">Előző réteg időtartama</string>
+		<string t="Print Duration">Nyomtatás időtartama</string>
+		<string t="Warm-Up Time">Felfűtés időtartama</string>
+		<string t="First Layer Time">Első réteg időtartama</string>
+		<string t="First Layer Height">Első réteg vastagsága</string>
+		<string t="Based on">Alapul véve</string>
+		<string t="Filament Usage">Filament felhasználás</string>
+		<string t="File Progress">File állapota</string>
+		<string t="Layer Time">Réteg időtartama</string>
+		<string t="Time Left">Hátralévő idő</string>
+		<string t="Est. End Time">Becsült befejezés</string>
+		<string t="Description">Leírás</string>
+
+		<!-- Navigation Menu -->
+		<string t="Control">Vezérlés</string>
+		<string t="Machine Control">Berendezés vezérlése</string>
+		<string t="Print Job">Nyomtatási feladat</string>
+		<string t="Print Status">Nyomtatás állapota</string>
+		<string t="Console">Parancssor</string>
+		<string t="G-Code Console">G-kód parancssor</string>
+		<string t="Files">Fileok</string>
+		<string t="G-Code Files">G-kód fileok</string>
+		<string t="Macros">Makrók</string>
+		<string t="Spools">Tekercsek</string>
+		<string t="Maintenance">Karbantartás</string>
+		<string t="Settings">Beállítások</string>
+		<string t="Configuration File">Konfigurációs file</string>
+		<string t="List Items">Legördülő elemek</string>
+
+		<!-- Tooltips / Titles -->
+		<string t="Send G-Code from input">A beírt G-kód elküldése</string>
+		<string t="Time vs. Temperature">Idő - Hőmérséklet</string>
+		<string t="Home all axes (G28)">Minden tengely nullpontjának felvétele (G28)</string>
+		<string t="Home X axis (G28 X)">X teng. nullpont felvétele (G28 X)</string>
+		<string t="Home Y axis (G28 Y)">Y teng. nullpont felvétele (G28 Y)</string>
+		<string t="Home Z axis (G28 Z)">Z teng. nullpont felvétele (G28 Z)</string>
+		<string t="Retract a specific amount of filament at a given feedrate (G1 E-xxx Fyyy)">Meghatározott mennyiségű filament extrudálása megadott sebességgel (G1 E-xxx Fyyy)</string>
+		<string t="Extrude a specific amount of filament at a given feedrate (G1 Exxx Fyyy)">Meghatározott mennyiségű filament visszahúzása megadott sebességgel (G1 E-xxx Fyyy)</string>
+		<string t="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)">Egy vagy több G-kód feltöltése és nyomtatása (drag&amp;drop támogatva)</string>
+		<string t="Enforces an immediate software reset (M112+M999)">Azonnali szoftver újraindítás kezdeményezése (M112+M999)</string>
+		<string t="Perform automatic bed compensation / calibration (G32)">Automatikus nyomtatófelület kompenzálás vagy Delta kalibrálás (G32)</string>
+		<string t="Clear G-Code Console">G-kód parancssor törlése</string>
+		<string t="Pause current print (M25)">Aktuális nyomtatás szüneteltetése (M25)</string>
+		<string t="Resume paused print (M24)">Szüneteltetett nyomtatás folytatása (M24)</string>
+		<string t="Enforce a predefined fan value">Előre definiált ventillátor érték felülírása</string>
+		<string t="Run M1 when the print has finished">M1 futtatása ha a nyomtatás befejeződött</string>
+		<string t="Upload one or more G-Code files (drag&amp;drop is supported as well)">Egy vagy több G-kód feltöltése (drag&amp;drop támogatva</string>
+		<string t="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)">Egy vagy több file feltöltése a /sys vagy /www mappába (drag&amp;drop támogatva)</string>
+		<string t="Print this file (M32)">A file nyomtatása (M32)</string>
+		<string t="Delete this file">A filen törlése</string>
+		<string t="Delete this directory">Ennek a mappának a törlése</string>
+		<string t="Upload one or more macro files (drag&amp;drop is supported as well)">Egy vagy több makró feltöltése (drag&amp;drop támogatva)</string>
+		<string t="Run this macro file (M98)">Ennek a makrónak a futtatása (M98)</string>
+		<string t="Delete this macro">Ennek a makrónak a törlése</string>
+		<string t="Connect automatically to the Duet once the web interface is ready">Automatikus csatlakozás a Duet-hez amint a web interfész rendelkezésre áll</string>
+		<string t="Use half Z movements for more accurate Z positioning">A Z-tengely mozgások értékének felezése pontosabb Z pozícionáláshoz</string>
+		<string t="Log any successful G-Code in the G-Code Console">A sikeres G-kódok naplózása a G-kód parancssorban</string>
+		<string t="Convert every G-Code to Upper-Case before sending them">A G-kódok konvertálása nagybetűssé elküldés előtt</string>
+		<string t="Display file sizes with a base of 1024 instead of 1000">A file méretek megjelenítése 1024-es skálán 1000 helyett</string>
+		<string t="Show fan sliders to utilize M106 effectively">Ventillátor csúszkák megjelenítése az M106 hatásos alkalmazásához</string>
+		<string t="Show a small panel on the Control page to toggle ATX power">Egy kis panel megjelenítése a Vezérlés fülön az ATX tápegység vezérléséhez</string>
+		<string t="Confirm emergency stop by displaying a message box">Vészleállás megerősítés kérése felugró ablakban</string>
+		<string t="Default Feedrate for Head Movement controls">Alapértelmezett mozgás sebesség a fej mozgató parancsokhoz</string>
+		<string t="Interval at which status updates are requested">Az állapot frissítések lekérdezésének időintervalluma</string>
+		<string t="Extended status updates are requested after each n-th status response">Kibővített állapot frissítések lekérdezése minden n-dik státusz üzenet után</string>
+		<string t="Time to wait for a reconnect after an emergency stop was reported">Vészleállás utáni újra csatlakozás előtti várakozási idő</string>
+		<string t="Maximum time to wait for an AJAX request">Maximális várakozási idő AJAX lekérdezés előtt</string>
+		<string t="Apply new settings from this page">Az új beállítások alkalmazása erről a lapról</string>
+		<string t="Overwrite all saved settings with default values">Minden elmentett beállítás gyári értékre való visszaállítása</string>
+		<string t="Turn on ATX power (M80)">ATX tápegység bekapcsolása (M80)</string>
+		<string t="Turn off ATX power (M81)">ATX tápegység kikapcsolása (M81)</string>
+		<string t="Set current fan value (via M106)">Az aktuális ventillátor sebesség beállítása (M106 szerint)</string>
+		<string t="Cancel paused print (M0)">Szüneteltetett nyomtatás megszakítása (M0)</string>
+		<string t="Set speed factor (via M220)">Sebesség szorzó beállítása (M220 szerint)</string>
+		<string t="Set extrude factor override (via M221)">Extrudálás szorzó beállítása (M221 szerint)</string>
+		<string t="Create a new directory">Új mappa létrehozása</string>
+		<string t="Add new G-Code item">Új G-kód elem hozzáadása</string>
+		<string t="Add new temperature item">Új hőmérséklet érték hozzáadása</string>
+		<string t="Define a new tool">Új szerszám definiálása</string>
+		<string t="Select this tool">Ennek a szerszámnak a kiválasztása</string>
+		<string t="Deselect this tool">A szerszám kiválasztásának törlése</string>
+		<string t="Remove this tool">Ennek a szerszámnak a törlése</string>
+		<string t="Delete this temperature item">Ennek a hőmérséklet elemnek a törlése</string>
+		<string t="Delete this G-Code item">Ennek a G-kód elemnek a törlése</string>
+
+		<!-- Modal Dialogs -->
+		<string t="Error">Hiba</string>
+		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">Nem sikerült kapcsolódni a Duet szoftverhez. Kérem ellenőrizze a rendszert és próbálja újra.</string>
+		<string t="Could not connect to Duet, because there are no more HTTP sessions available.">Nem sikerült kapcsolódni a Duet szoftverhez, mert a HTTP kapcsolat a továbbiakban nem elérhető.</string>
+		<string t="Message from Duet firmware">Üzenet a Duet szoftvertől</string>
+		<string t="{0} has returned an error:">{0} hibával válaszolt:</string>
+		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">A rendszer AJAX hibát észlelt, a jelenlegi kapcsolat bezárásra került. &lt;br/&gt;&lt;br/&gt;Ellenőrizze hogy a nyomtató még mindíg be van kapcsolva és csatlakozzon újra.</string>
+		<string t="Password required">Jelszó szükséges</string>
+		<string t="Please enter your password:">Kérem írja be a jalszót:</string>
+		<string t="OK">Ok</string>
+		<string t="Cancel">Mégse</string>
+		<string t="Verify">Ellenőrzés</string>
+		<string t="Yes">Igen</string>
+		<string t="No">Nem</string>
+		<string t="Start Print">Nyomtatás kezdése</string>
+		<string t="Do you want to print &lt;strong&gt;{0}&lt;/strong&gt;?">Szeretné kinyomtatni a &lt;strong&gt;{0}&lt;/strong&gt;?</string>
+		<string t="Delete File">File törlése</string>
+		<string t="Are you sure you want to delete &lt;strong&gt;{0}&lt;/strong&gt;?">Biztosan törölni szeretné: &lt;strong&gt;{0}&lt;/strong&gt;?</string>
+		<string t="Deletion failed">A törlés sikertelen.</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete file &lt;strong&gt;{0}&lt;/strong&gt;!">&lt;strong&gt;Vigyázat:&lt;/strong&gt; Nem törölhető a  &lt;strong&gt;{0}&lt;/strong&gt; file!</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete directory &lt;strong&gt;{0}&lt;/strong&gt;!&lt;br/&gt;&lt;br/&gt;Perhaps it isn't empty?">&lt;strong&gt;Vigyázat:&lt;/strong&gt; Nem törölhető a &lt;strong&gt;{0}&lt;/strong&gt; mappa!&lt;br/&gt;&lt;br/&gt;Lehet hogy nem üres?</string>
+		<string t="&lt;strong&gt;Warning:&lt;/strong&gt; Could not delete macro &lt;strong&gt;{0}&lt;/strong&gt;!">&lt;strong&gt;Vigyázat:&lt;/strong&gt; Nem törölhető a &lt;strong&gt;{0}&lt;/strong&gt; makró!</string>
+		<string t="This will turn off everything and perform a software reset.&lt;br/&gt;&lt;br/&gt;Are you REALLY sure you want to do this?">Minden egység kikapcsolása és szoftver újraindítás végrehajtása&lt;br/&gt;&lt;br/&gt;Biztos benne hogy Újra szeretné indítani a rendszert?</string>
+		<string t="New directory">Új mappa</string>
+		<string t="Please enter a name:">Kérem írjon be egy nevet:</string>
+		<string t="Could not create this directory!">Mappa létrehozása sikertelen!</string>
+		<string t="Reset Settings">Beállítások visszaállítása gyári értékre</string>
+		<string t="Are you sure you want to revert to Factory Settings?">Biztos benne hogy vissza szeretné állítani a gyári beállításokat?</string>
+		<string t="&lt;strong&gt;Error:&lt;/strong&gt; A heater fault has occured on this particular heater.&lt;br/&gt;&lt;br/&gt;Please turn off your machine and check your wiring for loose connections.">&lt;strong&gt;Hiba:&lt;/strong&gt; Fűtőelem hiba az aktuális fűtőelemnél.&lt;br/&gt;&lt;br/&gt;Kapcsolja ki a berendezést és ellenőrizze a kábel kapcsolatokat!</string>
+		<string t="Do you really want to turn off ATX power?&lt;br/&gt;&lt;br/&gt;This will turn off all drives, heaters and fans.">Biztos benne hogy ki akarja kapcsoltni az ATX áramforrást?&lt;br/&gt;&lt;br/&gt;Minden motor, fűtőelem és ventillátor kikapcsolásra kerül.</string>
+		<string t="You can only upload and print one file at once!">Egy időben egy file-t tölthet fel és nyomtathat!</string>
+		<string t="Filename">File név</string>
+		<string t="Size">Méret</string>
+		<string t="Progress">Állapot</string>
+		<string t="Uploading File(s), {0}% Complete">File(ok) feltöltése, {0}% kész</string>
+		<string t="Starting">Kezdés</string>
+		<string t="ERROR">HIBA</string>
+		<string t="Upload Cancelled!">Feltöltés megszakítva!</string>
+		<string t="Upload Complete!">Feltöltés sikeres!</string>
+		<string t="Cancel Upload(s)">Feltöltés(ek) megszakítása</string>
+		<string t="Close">Bezárás</string>
+		<string t="Are you sure you wish to remove tool {0}?">Biztos benne hogy törölni szeretné a {0} szerszámot?</string>
+
+		<!-- New in v1.07 -->
+		<string t="Reboot Duet?">Duet újraindítása?</string>
+		<string t="You have just uploaded a config file. Would you like to reboot your Duet now?">Config.g file feltöltve. Duet újraindítása?</string>
+		<string t="Warning">Vigyázat</string>
+		<string t="Some axes are not homed">Néhány tengely nullpontja nincs felvéve</string>
+		<string t="Machine Properties">Berendezés tulajdonságok</string>
+		<string t="Drive Configuration">Motorok beállítása</string>
+		<string t="Drive">Motor</string>
+		<string t="Endstop hit">Végállás elérve</string>
+		<string t="Max Speed">Max. sebesség</string>
+		<string t="Acceleration">Gyorsulás</string>
+		<string t="Motor Current">Motor áram</string>
+		<string t="Type:">Típus:</string>
+		<string t="Switch (0)">Kapcsoló (0)</string>
+		<string t="Unmodulated (1)">Nem modulált (1)</string>
+		<string t="Modulated (2)">Modulált (2)</string>
+		<string t="Alternative (3)">Alternatív (3)</string>
+		<string t="Two Switches (4)">Két kapcsoló (4)</string>
+		<string t="Unknown ({0})">Ismeretlen ({0})</string>
+		<string t="Trigger Height:">Jelzés magassága:</string>
+		<string t="Trigger Value:">Jelzés értéke:</string>
+		<string t="Other">Egyéb</string>
+		<string t="Geometry:">Geometria:</string>
+		<string t="Cartesian">Derékszögű</string>
+		<string t="Motor Idle Current Factor:">Motor áram szorzó</string>
+		<string t="Motor Idle Timeout:">Motor áram időtúllépése</string>
+		<string t="never">soha</string>
+		<string t="Firmware Diagnostics">Szoftver diagnosztika</string>
+		<string t="Use dark theme">Sötét téma használata</string>
+		<string t="Use dark theme by Fotomas">Fotomas féle sötét téma használata</string>
+		<string t="Dark theme kindly provided by Fotomas">Fotomas féle sötét téma használata</string>
+
+		<!-- New in v1.08 -->
+		<string t="Layer {0}: {1}">Réteg {0}: {1}</string>
+		<string t="Could not read contents of file {0}!">A {0} file tartalma nem olvasható!</string>
+		<string t="Webcam Surveillance">Webkamera megfigyelés</string>
+		<string t="(image not available)">(A kép nem elérhető)</string>
+		<string t="Webcam Integration">Webkamera - beillesztés</string>
+		<string t="Optional URL to an external Webcam:">Opcionális URL külső webkamerához</string>
+		<string t="URL must point to an image file">Az URL-nek valós kép file-ra kell hivatkoznia</string>
+		<string t="Webcam Update Interval:">Webkamera frissítés gyakorisága</string>
+		<string t="Interval at which the webcam image on the Print Status page will be updated">A webkamera frissítési gyakorisága, amivel a nyomtatási állapot lapon frissül</string>
+
+		<!-- New in v1.10 -->
+		<string t="Updating">Frissítés</string>
+		<string t="Updating Firmware...">Szoftver frissítése...</string>
+		<string t="Perform Firmware Update?">Frissítés végrehajtása?</string>
+		<string t="You have just uploaded a firmware file. Would you like to update your Duet now?">Szoftver frissítés feltöltve. Duet újraindítása?</string>
+		<string t="Could not rename firmware file!">A szoftver file nem átnevezhető!</string>
+		<string t="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">4-tűs PWM ventillátor fordulatszámának megjelenítése a szenzor adatoknál</string>
+		<string t="Show Fan RPM in Sensors">Ventillátor fordulatszám megjelenítése a szenzor adatoknál</string>
+		<string t="Reconnect Delay on Firmware Update:">Újrakapcsolódás késleltetése szoftver frissítés után</string>
+		<string t="Time to wait for a reconnect when a new firmware is about to be flashed">Várakozási idő szoftver felföltés előtti újracsatlakozásnál</string>
+		<string t="Reload Page?">Oldal újratöltése?</string>
+		<string t="You have just updated Duet Web Control. Would you like to reload the page now?">Duet Web Control frissítve. Az oldal újratöltése?</string>
+
+		<!-- New in v1.11 -->
+		<string t="Default Notification Timeout:">Alapértelmezett értesítés időkorlátja:</string>
+		<string t="Time after which default notifications are automatically closed">Az értesítések alapártelmezett megjelenítési időtartama</string>
+		<string t="Please wait while the firmware is being updated...">Kérem várjon...szoftver feltöltés folyamatban</string>
+		<string t="CPU Temp.">CPU hőm.</string>
+		<string t="Current CPU temperature">Aktuális CPU hőmérséklet</string>
+		<string t="G-Code Handling">G-kód kezelés</string>
+		<string t="(not set)">(nincs beállítva)</string>
+		<string t="Current Z-Probe reading on a scale between 0 and 1024">Aktuális Z-szenzor érték 0 - 1024 között</string>
+		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Aktuális ventillátor fordulatszám (4-tűs PWM csatlakozó szükséges és helyes bekötés)</string>
+
+		<!-- New in v1.12 -->
+		<string t="The following axes are not homed:">Az alábbi tengelyek nullpontja nincs felvéve:</string>
+		<string t="Communication">Kommunikáció</string>
+		<string t="Fans">Ventillátorok</string>
+		<string t="User Interface">Felhasználói felület</string>
+		<string t="System Editor">Rendszer-file szerkesztő</string>
+		<string t="Maximum number of AJAX retries:">Az AJAX próbálkozások maximális száma</string>
+		<string t="Reconnect Delay on Duet WiFi Server Update:">Újrakapcsolódás késleltetése Duet WiFi Szerver frissítés után</string>
+		<string t="Reconnect Delay on Duet Web Control Update:">Újrakapcsolódás késleltetése Duet Web Control frissítés után</string>
+		<string t="Automatically close user-generated firmware messages">A felhasználó által generált program üzenetek automatikus bezárása</string>
+		<string t="Refresh">Frissítés</string>
+		<string t="Edit this file">A file szerkesztése</string>
+		<string t="Download this file">A file letöltése</string>
+		<string t="Connect to your Duet to display System files">Kapcsolódás a Duethez a rendszer-fileok megjelenítéséhez</string>
+		<string t="Edit this macro">A makró szerkesztése</string>
+		<string t="Make new Macro">Új makró készítése</string>
+		<string t="Create a new macro file">Új makró file létrehozása</string>
+		<string t="New macro">Új makró</string>
+		<string t="Please enter a filename:">Kérem adjon meg egy file nevet:</string>
+		<string t="Editing {0}">Szerkesztés {0}</string>
+		<string t="Save Changes">Változások mentése</string>
+		<string t="Reconnect Preferences">Újrakapcsolódási beállítások</string>
+		<string t="Maximum number of AJAX retries before the connection is terminated">Az AJAX próbálkozások maximális száma a kapcsolat bezárása előtt</string>
+		<string t="Time to wait for a reconnect when a new Duet WiFi Server firmware is about to be flashed (Duet WiFi only)">Duet WiFi Szerver frissítés utáni újrakapcsolódás előtti várakozási idő (csak Duet Wifi esetén)</string>
+		<string t="Time to wait for a reconnect when a new Duet Web Control binary is about to be flashed (Duet WiFi only)">Duet Web Control frissítés utáni újrakapcsolódás előtti várakozási idő (csak Duet Wifi esetén)</string>
+		<string t="Clear Cached File Information">A gyorsítótárazott file információk törlése</string>
+		<string t="Clear cached G-Code File Information">A gyorsítótárazott G-kód file információk törlése</string>
+		<string t="Activate this to display M117 messages until they are manually closed">Az M117 üzenetek megjelenítése kézzel történő bezárásig</string>
+		<string t="Heater 6">Fűtőelem 6</string>
+		<string t="Heater 7">Fűtőelem 7</string>
+		<string t="Here you can upload firmware, Duet WiFi and Duet Web Control files as well">Itt feltölthetőek a firmware, Duet Wifi és Duet Web Control fileok</string>
+		<string t="You cannot upload web interface files as a ZIP file on a Duet WiFi!">Duet WiFi esetén nem lehetséges a Web interfész file-ok ZIP-ként való feltöltése</string>
+		<string t="Perform WiFi Server Update?">WiFi Szerver frissítése?</string>
+		<string t="You have just uploaded a Duet WiFi server firmware file. Would you like to install it now?">A most feltöltött Duet WiFi szerver firmware telepítése?</string>
+		<string t="Perform Duet Web Control Update?">Duet Web Control frissítése?</string>
+		<string t="You have just uploaded a Duet Web Control package. Would you like to install it now?">A most feltöltött Duet Web Control csomag telepítése?</string>
+		<string t="Could not rename WiFi Server update file!">A Wifi Szerver frissítés file nem nevezhető át!</string>
+		<string t="Could not rename Duet Web Control update file!">A Duet Web Control frissítés file nem nevezhető át!</string>
+		<string t="timeout">időtúllépés</string>
+		<string t="Settings applied!">Beállítások alkalmazva!</string>
+		<string t="Updating WiFi Server...">WiFi Szerver frissítése...</string>
+		<string t="Please wait while the Duet WiFi Server firmware is being updated...">Kérem várjon amíg a Duet WiFi Szerver frissítése befejeződik...</string>
+		<string t="Updating Web Interface...">Web Interfész aktualizálása...</string>
+		<string t="Please wait while Duet Web Control is being updated...">Kérem várjon amíg a Duet Web Control frissítése befejeződik...</string>
+		<string t="Error! Unknown update parameter!">Hiba! Ismeretlen frissítési paraméter!</string>
+		<string t="System Directory">Rendszer mappa</string>
+
+		<!-- Added by Nhadrian -->
+		<string t="G-Code">G-Kód</string>
+		<string t="Z-Probe">Z-szenzor</string>
+		<string t="Standby">Készenlét</string>
+		<string t="Firmware Name:">Szoftver neve:</string>
+		<string t="Firmware Version:">Szoftver verzió:</string>
+		<string t="Web Interface Version:">Web interfész verzió:</string>
+		<string t="G-Code">G-Kód</string>
+		<string t="G-Code:">G-Kód:</string>
+		<string t="Tools">Szerszámok</string>
+		<string t="Tool {0}">Szerszám {0}</string>
+		<string t="tuning">finomhangolás</string>
+	</hu>
 	<ch name="中文">
 		<!-- JavaScript Strings -->
 		<string t="Connect">连接</string>
@@ -1484,7 +1980,7 @@
 		<string t="No files found!">没找到文件!</string>
 		<string t="The following axes are not homed: &lt;strong&gt;{0}&lt;/strong&gt;">下面的轴位没有归位: &lt;strong&gt;{0}&lt;/strong&gt;</string>
 		<string t="The following axis is not homed: &lt;strong&gt;{0}&lt;/strong&gt;">下面的轴位没有归位: &lt;strong&gt;{0}&lt;/strong&gt;</string>
-		
+
 		<!-- Status Texts -->
 		<string t="Disconnected">断开</string>
 		<string t="Halted">中止</string>
@@ -1498,7 +1994,7 @@
 		<string t="standby">停留</string>
 		<string t="active">运行中</string>
 		<string t="fault">出错</string>
-		
+
 		<!-- Buttons, Checkboxes and Radios -->
 		<string t="Send">发送</string>
 		<string t="Upload &amp; Print">上载 &amp; 打印</string>
@@ -1541,7 +2037,7 @@
 		<string t="Add Temp">升温</string>
 		<string t="Add Tool">增加工具</string>
 		<string t="Select Tool">选择工具</string>
-		
+
 		<!-- Labels and Placeholders -->
 		<string t="Active:">进行中:</string>
 		<string t="Feed amount in mm:">进料量（毫米）:</string>
@@ -1575,7 +2071,7 @@
 		<string t="Heaters:">加热器:</string>
 		<string t="Drives:">驱动:</string>
 		<string t="none">没有</string>
-		
+
 		<!-- Panel Headings -->
 		<string t="Heater Temperatures">热板温度</string>
 		<string t="Temperature Chart">温度图表</string>
@@ -1605,7 +2101,7 @@
 		<string t="Select">选择</string>
 		<string t="Deselect">取消选择</string>
 		<string t="Remove">取消</string>
-		
+
 		<!-- Table Headers -->
 		<string t="Current">当前状态</string>
 		<string t="Active">进行中</string>
@@ -1655,7 +2151,7 @@
 		<string t="Time Left">剩余时间</string>
 		<string t="Est. End Time">完成时间估计</string>
 		<string t="Description">描述</string>
-		
+
 		<!-- Navigation Menu -->
 		<string t="Control">控制</string>
 		<string t="Machine Control">机器控制</string>
@@ -1671,7 +2167,7 @@
 		<string t="Settings">参数设置</string>
 		<string t="Configuration File">参数设置文件</string>
 		<string t="List Items">清单</string>
-		
+
 		<!-- Tooltips / Titles -->
 		<string t="Send G-Code from input">上传输入的G-Code</string>
 		<string t="Time vs. Temperature">时间 vs. 温度</string>
@@ -1727,7 +2223,7 @@
 		<string t="Remove this tool">移除该工具</string>
 		<string t="Delete this temperature item">删除该温度选项</string>
 		<string t="Delete this G-Code item">删除该G-Code选项</string>
-		
+
 		<!-- Modal Dialogs -->
 		<string t="Error">出错</string>
 		<string t="Could not establish a connection to the Duet firmware! Please check your settings and try again.">无法建立与Duet主板的连接! ;请检查您的设置，然后再试一次.</string>
