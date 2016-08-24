@@ -366,3 +366,9 @@ span.text-muted {
     font-size: 14px;
     font-family: Homenaje-Regular;
 }
+
+/* Settings ------------------------------------------------------*/
+textarea {
+	background-color: #e5e5e5;
+	color: #0fa4f4;
+}

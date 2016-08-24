@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.11
+<!--	Duet Web Control v1.12
 
 	written by Christian Hammacher
 
@@ -19,7 +19,11 @@
 		<!-- Favicon -->
 		<link rel="shortcut icon" href="favicon.ico">
 		<!-- CSS -->
-		<link href="css/all.css" rel="stylesheet">
+		<link href="css/animate.css" rel="stylesheet">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
+		<link href="css/bootstrap-slider.min.css" rel="stylesheet">
+		<link href="css/defaults.css" rel="stylesheet">
 	</head>
 
 	<body>
@@ -70,7 +74,7 @@
 
 					<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" title="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 
-					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
+					<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled" title="Enforces an immediate software reset (M112+M999)"><span class="glyphicon glyphicon-off"></span> Emergency STOP</button>
 					<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
 
 					<ul class="nav nav-justified hidden-xs">
@@ -92,7 +96,7 @@
 									<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
 								</td>
 								<td>
-									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled" title="Enforces an immediate software reset (M112+M999)">Emergency STOP</button>
+									<button type="button" class="btn btn-danger btn-emergency-stop pull-right disabled" title="Enforces an immediate software reset (M112+M999)"><span class="glyphicon glyphicon-off"></span> Emergency STOP</button>
 								</td>
 							</tr>
 							<tr>
@@ -394,7 +398,7 @@
 
 						<div class="panel-body panel-chart">
 							<div id="chart_temp" title="Time vs. Temperature">
-								<!-- See JS -->
+								<!-- see JS -->
 							</div>
 						</div>
 					</div>
@@ -423,13 +427,8 @@
 
 						<table class="table table-bordered table-condensed table-centered-cells table-status">
 							<tr>
-								<th rowspan="2" class="th-status">
-									<div class="dropdown" id="extr_dropdown">
-										<a href="#" id="extruder_drives" class="dropdown-toggle disabled" data-toggle="dropdown" data-target="#extr_dropdown">Extruder Drives <span class="caret"></span></a>
-										<ul class="dropdown-menu" id="ul_extruder_dropdown"></ul>
-									</div>
-								</th>
-								<th class="hidden"><!-- only for HTML validation --></th>
+								<th rowspan="2" class="th-status">Extruder Drives</th>
+								<th class="hidden"><!-- for HTML validation --></th>
 								<th class="hidden-md extr-1">D1</th>
 								<th class="hidden-md extr-2">D2</th>
 								<th class="hidden-md hidden extr-3">D3</th>
@@ -494,7 +493,7 @@
 									<div class="panel-heading">
 										<button data-home="all" class="pull-left btn btn-primary btn-xs visible-lg disabled" id="btn_homeall" title="Home all axes (G28)">Home All</button>
 										<span>Head Movement</span>
-										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode visible-lg disabled" id="btn_bed_compensation" title="Perform automatic bed compensation / calibration (G32)">Auto Bed Compensation</button>
+										<button data-gcode="G32" class="pull-right btn btn-primary btn-xs gcode disabled" id="btn_bed_compensation" title="Perform automatic bed compensation / calibration (G32)">Auto Bed Compensation</button>
 									</div>
 
 									<div class="panel-body">
@@ -734,7 +733,7 @@
 									</div>
 									<div class="panel-body panel-chart">
 										<div id="chart_print">
-											<!-- See JS-->
+											<!-- see JS-->
 										</div>
 									</div>
 								</div>
@@ -796,10 +795,10 @@
 									<div class="panel-body">
 										<div class="btn-group-justified">
 											<div class="btn-group">
-												<button class="btn btn-warning disabled" id="btn_pause" title="Pause current print (M25)">Pause Print</button>
+												<button class="btn btn-warning disabled" id="btn_pause" title="Pause current print (M25)"><span class="glyphicon glyphicon-pause"></span> <span>Pause Print</span></button>
 											</div>
 											<div class="btn-group hidden">
-												<button class="btn btn-danger" id="btn_cancel" title="Cancel paused print (M0)">Cancel</button>
+												<button class="btn btn-danger" id="btn_cancel" title="Cancel paused print (M0)"><span class="glyphicon glyphicon-stop"></span> Cancel</button>
 											</div>
 										</div>
 
@@ -968,8 +967,9 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
 									<thead>
 										<tr>
-											<th colspan="2"></th>
-											<th class="hidden"><!-- only for HTML validation --></th>
+											<th colspan="3"></th>
+											<th class="hidden"><!-- for HTML validation --></th>
+											<th class="hidden"><!-- for HTML validation --></th>
 											<th>File Name</th>
 											<th class="hidden-xs">Size</th>
 											<th>Object Height</th>
@@ -978,7 +978,9 @@
 											<th class="hidden-xs hidden-sm">Generated by</th>
 										</tr>
 									</thead>
-									<!-- ignore other validation error; this is filled up during runtime -->
+									<tbody>
+										<!-- see JS -->
+									</tbody>
 								</table>
 							</div>
 						</div>
@@ -1002,6 +1004,9 @@
 										<td class="hidden-xs hidden online-control">
 											<button class="btn btn-info" id="btn_new_macro_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
 										</td>
+										<td class="hidden-xs hidden online-control">
+											<button class="btn btn-info" id="btn_new_macro_file" title="Create a new macro file"><span class="glyphicon glyphicon-file"></span> Make new Macro</button>
+										</td>
 									</tr>
 								</table>
 
@@ -1012,13 +1017,16 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
 									<thead>
 										<tr>
-											<th colspan="2"></th>
-											<th class="hidden"><!-- only for HTML validation --></th>
+											<th colspan="3"></th>
+											<th class="hidden"><!-- for HTML validation --></th>
+											<th class="hidden"><!-- for HTML validation --></th>
 											<th>File Name</th>
 											<th>Size</th>
 										</tr>
 									</thead>
-									<!-- ignore other validation error; this is filled up during runtime -->
+									<tbody>
+										<!-- see JS -->
+									</tbody>
 								</table>
 							</div>
 						</div>
@@ -1030,8 +1038,9 @@
 							<!-- Page Selector (Desktop) -->
 							<ul class="nav nav-tabs hidden-xs hidden-sm">
 								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
+								<li><a href="#page_ui" data-toggle="tab">User Interface</a></li>
 								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
-								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
+								<li><a href="#page_sysedit" data-toggle="tab">System Editor</a></li>
 								<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 								<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
 							</ul>
@@ -1039,11 +1048,12 @@
 							<!-- Page Selector (Mobile) -->
 							<ul class="nav nav-tabs visible-xs visible-sm">
 								<li class="active"><a href="#page_general" data-toggle="tab">General</a></li>
+								<li><a href="#page_ui" data-toggle="tab">User Interface</a></li>
 								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
-								<li><a href="#page_config" data-toggle="tab">Configuration File</a></li>
 								<li>
 									<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
 									<ul class="dropdown-menu" id="collapsed">
+										<li><a href="#page_sysedit" data-toggle="tab">System Editor</a></li>
 										<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 										<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
 									</ul>
@@ -1068,31 +1078,18 @@
 														<th>Firmware Version:</th>
 														<td id="firmware_version">n/a</td>
 													</tr>
+													<tr class="wifi-setting">
+														<th>WiFi Server Version:</th>
+														<td id="dws_version">n/a</td>
+													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td id="web_version">HTML: 1.11b-dc42</td>
+														<td>1.12</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
 												<br/>
 												<span id="theme_notice" class="hidden">Dark theme kindly provided by Fotomas</span>
-											</div>
-										</div>
-
-										<div class="panel panel-default">
-											<div class="panel-heading">
-												<span>Webcam Integration</span>
-											</div>
-											<div class="panel-body">
-												<label for="webcam_url">Optional URL to an external Webcam:</label>
-												<input id="webcam_url" class="form-control" type="text" placeholder="(not set)" title="URL must point to an image file">
-
-												<label for="webcam_interval">Webcam Update Interval:</label>
-												<div class="input-group">
-													<input type="number" id="webcam_interval" class="form-control" title="Interval at which the webcam image on the Print Status page will be updated">
-													<span class="input-group-addon">ms</span>
-												</div>
-
 											</div>
 										</div>
 
@@ -1106,6 +1103,8 @@
 														<button class="btn btn-lg btn-info btn-upload disabled" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
 													</div>
 												</div>
+
+												<p id="p_uploadinfo" class="text-muted">Here you can upload firmware, Duet WiFi and Duet Web Control files as well</p>
 											</div>
 										</div>
 									</div>
@@ -1113,55 +1112,94 @@
 									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
 										<div class="panel panel-default">
 											<div class="panel-heading">
-												<span>Appearance and Behavior</span>
+												<span>Communication</span>
 											</div>
 
 											<div class="panel-body">
 												<div class="checkbox">
 													<label title="Connect automatically to the Duet once the web interface is ready">
-														<input type="checkbox" id="auto_connect" /> Connect automatically
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Use half Z movements for more accurate Z positioning">
-														<input type="checkbox" id="half_z" /> Half Z Movements
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Display file sizes with a base of 1024 instead of 1000">
-														<input type="checkbox" id="use_kib" /> Display File Sizes with Binary Prefix
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Show fan sliders to utilize M106 effectively">
-														<input type="checkbox" id="fan_sliders" checked /> Show Fan Sliders
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">
-														<input type="checkbox" id="fan_rpm_display" checked /> Show Fan RPM in Sensors
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Show a small panel on the Control page to toggle ATX power">
-														<input type="checkbox" id="show_atx" checked /> Show ATX Power control
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Confirm emergency stop by displaying a message box">
-														<input type="checkbox" id="confirm_stop" /> Confirm Emergency STOP
-													</label>
-												</div>
-												<div class="checkbox">
-													<label title="Use dark theme by Fotomas">
-														<input type="checkbox" id="dark_theme" /> Use dark theme
+														<input type="checkbox" data-setting="autoConnect" /> Connect automatically
 													</label>
 												</div>
 
-												<label id="label_feedrate" for="move_feedrate">Default Move Button Feedrate:</label>
+												<label for="input_update_interval">Status Update Interval:</label>
 												<div class="input-group">
-													<input type="number" id="move_feedrate" class="form-control" title="Default Feedrate for Head Movement controls" value="6000">
-													<span class="input-group-addon">mm/min</span>
+													<input type="number" id="input_update_interval" class="form-control" title="Interval at which status updates are requested" data-setting="updateInterval" data-min="50">
+													<span class="input-group-addon">ms</span>
+												</div>
+
+												<label for="input_extended_status_interval">Extended Status Update after every:</label>
+												<div class="input-group">
+													<input type="number" id="input_extended_status_interval" class="form-control" title="Extended status updates are requested after each n-th status response" data-setting="extendedStatusInterval" data-min="1">
+													<span class="input-group-addon">th response</span>
+												</div>
+
+												<label for="input_max_retries">Maximum number of AJAX retries:</label>
+												<input type="number" id="input_max_retries" class="form-control" title="Maximum number of AJAX retries before the connection is terminated" data-setting="maxRetries" data-min="0">
+											</div>
+										</div>
+									</div>
+
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-right">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Reconnect Preferences</span>
+											</div>
+
+											<div class="panel-body">
+												<label for="input_reconnect_halt_delay">Reconnect Delay on Halt:</label>
+												<div class="input-group">
+													<input type="number" id="input_reconnect_halt_delay" class="form-control" title="Time to wait for a reconnect after an emergency stop was reported" data-setting="haltedReconnectDelay" data-factor="1000">
+													<span class="input-group-addon">s</span>
+												</div>
+
+												<label for="input_reconnect_update_delay">Reconnect Delay on Firmware Update:</label>
+												<div class="input-group">
+													<input type="number" id="input_reconnect_update_delay" class="form-control" title="Time to wait for a reconnect when a new firmware is about to be flashed" data-setting="updateReconnectDelay" data-factor="1000">
+													<span class="input-group-addon">s</span>
+												</div>
+
+												<label for="input_reconnect_dws_delay" class="wifi-setting">Reconnect Delay on Duet WiFi Server Update:</label>
+												<div class="input-group wifi-setting">
+													<input type="number" id="input_reconnect_dws_delay" class="form-control" title="Time to wait for a reconnect when a new Duet WiFi Server firmware is about to be flashed (Duet WiFi only)" data-setting="dwsReconnectDelay" data-factor="1000">
+													<span class="input-group-addon">s</span>
+												</div>
+
+												<label for="input_reconnect_dwc_delay" class="wifi-setting">Reconnect Delay on Duet Web Control Update:</label>
+												<div class="input-group wifi-setting">
+													<input type="number" id="input_reconnect_dwc_delay" class="form-control" title="Time to wait for a reconnect when a new Duet Web Control binary is about to be flashed (Duet WiFi only)" data-setting="dwcReconnectDelay" data-factor="1000">
+													<span class="input-group-addon">s</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<!-- User Interface -->
+								<div class="tab-pane row" id="page_ui">
+									<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-left">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>General</span>
+											</div>
+
+											<div class="panel-body">
+												<div class="checkbox">
+													<label title="Confirm emergency stop by displaying a message box">
+														<input type="checkbox" data-setting="confirmStop" /> Confirm Emergency STOP
+													</label>
+												</div>
+
+												<div class="checkbox">
+													<label title="Display file sizes with a base of 1024 instead of 1000">
+														<input type="checkbox" data-setting="useKiB" /> Display File Sizes with Binary Prefix
+													</label>
+												</div>
+
+												<div class="checkbox">
+													<label title="Use dark theme by Fotomas">
+														<input type="checkbox" data-setting="useDarkTheme" /> Use dark theme
+													</label>
 												</div>
 
 												<label id="label_language">Language:</label>
@@ -1179,65 +1217,108 @@
 
 										<div class="panel panel-default">
 											<div class="panel-heading">
-												<span>G-Code Handling</span>
+												<span>Machine Control</span>
 											</div>
 
 											<div class="panel-body">
+												<label id="label_feedrate" for="input_move_feedrate">Default Move Button Feedrate:</label>
+												<div class="input-group">
+													<input type="number" id="input_move_feedrate" class="form-control" title="Default Feedrate for Head Movement controls" data-setting="moveFeedrate" data-min="60" data-factor="60">
+													<span class="input-group-addon">mm/s</span>
+												</div>
+
 												<div class="checkbox">
-													<label title="Log any successful G-Code in the G-Code Console">
-														<input type="checkbox" id="log_success" checked /> Log any successful G-Code
+													<label title="Use half Z movements for more accurate Z positioning">
+														<input type="checkbox" data-setting="halfZMovements" /> Half Z Movements
 													</label>
 												</div>
+
 												<div class="checkbox">
-													<label title="Convert every G-Code to Upper-Case before sending them">
-														<input type="checkbox" id="uppercase_gcode" checked /> Always Convert G-Codes to Upper-Case
+													<label title="Show a small panel on the Control page to toggle ATX power">
+														<input type="checkbox" data-setting="showATXControl" checked /> Show ATX Power control
 													</label>
 												</div>
 											</div>
 										</div>
 									</div>
 
-									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-right">
-										<div class="panel panel-default" id="panel_ui_timing">
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4">
+										<div class="panel panel-default">
 											<div class="panel-heading">
-												<span>UI Timing</span>
+												<span>Fans</span>
+											</div>
+										
+											<div class="panel-body">
+												<div class="checkbox">
+													<label title="Show fan sliders to utilize M106 effectively">
+														<input type="checkbox" data-setting="showFanControl" checked /> Show Fan Sliders
+													</label>
+												</div>
+
+												<div class="checkbox">
+													<label title="Display fan RPM of a 4-pin PWM cooling fan in the sensors area">
+														<input type="checkbox" data-setting="showFanRPM" checked /> Show Fan RPM in Sensors
+													</label>
+												</div>
+											</div>
+										</div>
+
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>G-Codes</span>
 											</div>
 
 											<div class="panel-body">
-												<label for="update_interval">Status Update Interval:</label>
-												<div class="input-group">
-													<input type="number" id="update_interval" class="form-control" title="Interval at which status updates are requested">
-													<span class="input-group-addon">ms</span>
+												<div class="checkbox">
+													<label title="Log any successful G-Code in the G-Code Console">
+														<input type="checkbox" data-setting="logSuccess" checked /> Log any successful G-Code
+													</label>
 												</div>
 
-												<label for="extended_status_interval">Extended Status Update after every:</label>
-												<div class="input-group">
-													<input type="number" id="extended_status_interval" class="form-control" title="Extended status updates are requested after each n-th status response">
-													<span class="input-group-addon">th response</span>
+												<div class="checkbox">
+													<label title="Convert every G-Code to Upper-Case before sending them">
+														<input type="checkbox" data-setting="uppercaseGCode" checked /> Always Convert G-Codes to Upper-Case
+													</label>
 												</div>
 
-												<label for="ajax_timeout">AJAX Timeout:</label>
+												<button id="btn_clear_cache" class="btn btn-danger" title="Clear cached G-Code File Information"><span class="glyphicon glyphicon-trash"></span> Clear Cached File Information</button>
+											</div>
+										</div>
+									</div>
+
+									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-right">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Notifications</span>
+											</div>
+
+											<div class="panel-body">
+												<label for="input_notification_timeout">Default Notification Timeout:</label>
 												<div class="input-group">
-													<input type="number" id="ajax_timeout" class="form-control" title="Maximum time to wait for an AJAX request">
-													<span class="input-group-addon">ms</span>
+													<input type="number" id="input_notification_timeout" class="form-control" title="Time after which default notifications are automatically closed" data-setting="notificationTimeout" data-factor="1000">
+													<span class="input-group-addon">s</span>
 												</div>
 
-												<label for="notification_timeout">Default Notification Timeout:</label>
-												<div class="input-group">
-													<input type="number" id="notification_timeout" class="form-control" title="Time after which default notifications are automatically closed">
-													<span class="input-group-addon">ms</span>
+												<div class="checkbox">
+													<label title="Activate this to display M117 messages until they are manually closed">
+														<input type="checkbox" id="fw_messages_persistent" data-setting="autoCloseUserMessages" checked /> Automatically close user-generated firmware messages
+													</label>
 												</div>
+											</div>
+										</div>
 
-												<label for="reconnect_halt_delay">Reconnect Delay on Halt:</label>
-												<div class="input-group">
-													<input type="number" id="reconnect_halt_delay" class="form-control" title="Time to wait for a reconnect after an emergency stop was reported">
-													<span class="input-group-addon">ms</span>
-												</div>
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Webcam Integration</span>
+											</div>
+											<div class="panel-body">
+												<label for="input_webcam_url">Optional URL to an external Webcam:</label>
+												<input id="input_webcam_url" class="form-control" type="text" placeholder="(not set)" title="URL must point to an image file" data-setting="webcamURL">
 
-												<label for="reconnect_update_delay">Reconnect Delay on Firmware Update:</label>
+												<label for="input_webcam_interval">Webcam Update Interval:</label>
 												<div class="input-group">
-													<input type="number" id="reconnect_update_delay" class="form-control" title="Time to wait for a reconnect when a new firmware is about to be flashed">
-													<span class="input-group-addon">ms</span>
+													<input type="number" id="input_webcam_interval" class="form-control" title="Interval at which the webcam image on the Print Status page will be updated" data-setting="webcamInterval" data-min="0.1" data-factor="1000">
+													<span class="input-group-addon">s</span>
 												</div>
 											</div>
 										</div>
@@ -1259,6 +1340,9 @@
 														<th></th>
 													</tr>
 												</thead>
+												<tbody>
+													<!-- see JS -->
+												</tbody>
 											</table>
 										</div>
 
@@ -1367,12 +1451,29 @@
 									</div>
 								</div>
 
-								<!-- Configuration File -->
-								<div class="tab-pane row" id="page_config">
-									<div class="col-md-12" id="div_config">
-										<h1 class="text-center text-muted">Connect to your Duet to display the configuration file</h1>
-										<textarea readonly id="text_config" class="hidden"></textarea>
-									</div>
+								<!-- System Editor -->
+								<div class="tab-pane" id="page_sysedit">
+									<ol class="breadcrumb" id="ol_sys_directory">
+										<li class="active"><span class="glyphicon glyphicon-folder-open"></span> System Directory</li>
+										<li class="pull-right hidden online-control"><a href="#" id="a_refresh_sys"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
+									</ol>
+
+									<table class="table table-bordered table-files table-hover table-striped hidden" id="table_sys_files">
+										<thead>
+											<tr>
+												<th colspan="3"></th>
+												<th class="hidden"><!-- for HTML validation --></th>
+												<th class="hidden"><!-- for HTML validation --></th>
+												<th>File Name</th>
+												<th>Size</th>
+											</tr>
+										</thead>
+										<tbody>
+											<!-- see JS -->
+										</tbody>
+									</table>
+
+									<h1 class="text-center text-muted">Connect to your Duet to display System files</h1>
 								</div>
 
 								<!-- Machine Properties -->
@@ -1483,6 +1584,16 @@
 													<td class="hidden-xs">n/a</td>
 													<td class="hidden-xs hidden-sm">n/a</td>
 												</tr>
+												<tr id="tr_drive_9" class="wifi-setting">
+													<td>9</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td>n/a</td>
+													<td class="hidden-xs">n/a</td>
+													<td class="hidden-xs hidden-sm">n/a</td>
+												</tr>
 											</table>
 										</div>
 									</div>
@@ -1559,6 +1670,9 @@
 																<label class="btn btn-default disabled" title="Heater 6">
 																	<input type="checkbox" name="tool_heaters" value="6" disabled> 6
 																</label>
+																<label class="btn btn-default disabled wifi-setting" title="Heater 7">
+																	<input type="checkbox" name="tool_heaters" value="7" disabled> 7
+																</label>
 															</div>
 														</td>
 													</tr>
@@ -1583,6 +1697,9 @@
 																</label>
 																<label class="btn btn-default disabled" title="Extruder 6">
 																	<input type="checkbox" name="tool_drives" value="5" disabled> 5
+																</label>
+																<label class="btn btn-default disabled wifi-setting" title="Extruder 7">
+																	<input type="checkbox" name="tool_drives" value="6" disabled> 6
 																</label>
 															</div>
 														</td>
@@ -1645,7 +1762,7 @@
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title"><!-- See JS--></h4>
+						<h4 class="modal-title"><!-- see JS--></h4>
 					</div>
 					<div class="modal-body">
 						<p></p>
@@ -1664,7 +1781,7 @@
 					<form>
 						<div class="modal-header">
 							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-							<h4 class="modal-title"><!-- See JS--></h4>
+							<h4 class="modal-title"><!-- see JS--></h4>
 						</div>
 						<div class="modal-body">
 							<p></p>
@@ -1687,7 +1804,7 @@
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close hidden" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-						<h4 class="modal-title"><!-- See JS --></h4>
+						<h4 class="modal-title"><!-- see JS --></h4>
 					</div>
 					<div class="modal-body">
 						<p>Please wait while the following files are being uploaded:</p>
@@ -1699,6 +1816,9 @@
 									<th>Progress</th>
 								</tr>
 							</thead>
+							<tbody>
+								<!-- see JS -->
+							</tbody>
 						</table>
 					</div>
 					<div class="modal-footer">
@@ -1709,12 +1829,49 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modal_edit">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title"><!-- see JS --></h4>
+					</div>
+					<div class="modal-body">
+						<textarea id="text_edit"></textarea>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						<button type="button" class="btn btn-success" id="btn_save_file"><span class="glyphicon glyphicon-ok"></span> Save Changes</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="modal_backdrop" data-backdrop="static">
+		</div>
+
 		<div id="layer_tooltip"></div>
 		<!-- Bootstrap core JavaScript
-	  ================================================== -->
-	  <!-- Placed at the end of the document so the pages load faster -->
-	  <script src="js/all.js"></script>
+		================================================== -->
+		<!-- Placed at the end of the document so the pages load faster -->
+		<script src="js/3rd-party/jquery-3.1.0.min.js"></script>
+		<script src="js/3rd-party/jquery.flot.min.js"></script>
+		<script src="js/3rd-party/jquery.flot.resize.min.js"></script>
+		<script src="js/3rd-party/jquery.flot.navigate.min.js"></script>
+		<script src="js/3rd-party/bootstrap.min.js"></script>
+		<script src="js/3rd-party/bootstrap-notify.min.js"></script>
+		<script src="js/3rd-party/bootstrap-slider.min.js"></script>
+		<script src="js/3rd-party/jszip.min.js"></script>
+		<script src="js/charts.js"></script>
+		<script src="js/comm.js"></script>
+		<script src="js/files.js"></script>
+		<script src="js/i18n.js"></script>
+		<script src="js/interface.js"></script>
+		<script src="js/modals.js"></script>
+		<script src="js/notify.js"></script>
+		<script src="js/settings.js"></script>
+		<script src="js/sliders.js"></script>
+		<script src="js/upload.js"></script>
+		<script src="js/utils.js"></script>
 	</body>
 </html>
-<!-- vim: ts=4 sw=4
--->
