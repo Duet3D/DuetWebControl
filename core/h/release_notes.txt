@@ -1,0 +1,435 @@
+Release_notes
+Release notes of DC42 Fork and DWC
+(:date 25 Aug 2016 09:36:)==RepRap Firmware DC42 fork release notes
+/*changelog*/
+=== DC42 1.15
+allb,Duet_WiFi_1.0+/=
+
+I have put a new Duet WiFi firmware bundle at "GitHub https://github.com/dc42/RepRapFirmware/blob/dev/Release/Duet-WiFi/DuetWiFiFirmware-1.15.bin" If you want to try it, please proceed as follows:
+
+* Install the new DuetWiFiFirmware (1.15) and check it is working. Note: if you are defining PID parameters in config.g then you will need to double the I parameter and halve the D parameter (or you can use the new auto tune function instead).
+
+* If you are happy with that, install the new "DuetWebServer.bin (1.02) https://github.com/dc42/RepRapFirmware/blob/dev/Release/Duet-WiFi/DuetWiFiServer-1.02.bin". This version requires DuetWiFiFirmware v1.15, otherwise you won't get the connect message.
+
+* You may also install the new "DuetWebControl-1.12.bin https://github.com/dc42/RepRapFirmware/blob/dev/Release/Duet-WiFi/DuetWebControl-1.12.bin". A big thank-you to Chrishamm for this, the improvements in it are all his work.
+
+
+Here's the change list since 1.15 beta 3:
+
+====DuetWiFiFirmware version 1.15
+
+*Implemented experimental PID automatic heating model calibration and PID tuning. See %Tuning the heater temperature control%tuning_heater for details and instructions.
+*Implemented much better heater safety monitoring, based on a model (first-order-plus-time-delay) of each heater/sensor system, using default models if none have been configured
+*Implemented TMC2660 driver enable signal to support production Duet WiFi boards
+*Implemented M38 (thanks Chrishamm)
+*Added support for the external SD card connector on the Duet WiFi and implemented M21/M22 to support this
+*Added support for new Duet Web Control functions, in particular the sys file editor (thanks Chrishamm)
+*Increased the PWM resolution
+*On starting WiFi, display additional info from the wifi module if available, in particular the received signal strength indication
+*Included the status of the SD card-detect signal in the M122 response
+*Made the WiFi firmware version available to DuetWebControl
+*Bug fix: PID parameters entered using M301 had the I parameter doubled and the D parameter halved, and vice versa for PID parameters reported by M301
+*Bug fix: the object height was sometimes incorrectly extracted from gcode files
+*Bug fix: slicer comments that included certain characters (e.g. '\') would give ajax errors when the file information was returned
+*Restructured the source code tree
+*Refactored the TMC2660 driver code, in preparation for future work on standstill current reduction and dynamic microstepping
+
+====DuetWiFiServer version 1.02
+Report the received signal strength indication in the status message
+Allow any file type to be served compressed, not just .js and .css files
+
+=/
+allb,Duet_0.85,Duet_0.6+/=
+
+====Wired Duet Firmware
+I have made RepRapFirmware 1.15 available at "Github https://github.com/dc42/RepRapFirmware/blob/dev/Release/Duet-0.6-0.8.5/RepRapFirmware-1.15.bin". The changes since version 1.14 are:
+
+* Implemented experimental PID automatic heating model calibration and PID tuning. See [duet3d.com] for details and instructions.
+* Implemented much better heater safety monitoring, based on a model (first-order-plus-time-delay) of each heater/sensor system, using default models if none have been configured
+* Implemented M38 (thanks Chrishamm).
+* Added support for an SD card socket on the SPI bus, and implemented M21/M22 to support this. This was done primarily for the Duet WiFi and has not yet been tested on the Duets 0.6 and 0.8.5.
+* Added support for new Duet Web Control functions, in particular the sys file editor (thanks chrishamm)
+* Increased the PWM resolution
+* Included the status of the SD card-detect signal in the M122 response
+* Further improvements to speed of step pulse generation
+* Improved motion smoothness when printing circles and complex shapes at high speed
+* Bug fix: PID parameters entered using M301 had the I parameter doubled and the D parameter halved, and vice versa for PID parameters reported by M301
+* Bug fix: the object height was sometimes incorrectly extracted from gcode files
+* Bug fix: slicer comments that included certain characters (e.g. '\') would give ajax errors when the file information was returned
+* Restructured the source code tree
+* Further changes specific to the Duet WiFi firmware build, see  %tuning heater%tuning_heater for details.
+
+Important: if you are using M301 commands to set PID parameters in config.g, you will need to double the I term and halve the D term to take account of the bug fix.
+=/
+
+If you try out the experimental model-based PID tuning, please let me know how well it works for you. It requires stable temperature readings at the start, which may be a problem for some users of older Duet 0.6 boards having 1K thermistor series resistors.
+
+Chrishamm has released Duet Web Control version 1.12RC1 and I have put a zip of that in the same location. You can install it by uploading it on the Settings page of Duet Web Control. I'll leave it to Chris to tell you about the improvements in this version.
+
+
+=== DC42 1.14
+allb,Duet_0.85,Duet_0.6+/=
+I have just released new firmware for Duets 0.6 and 0.8.5 on "Github https://github.com/dc42/RepRapFirmware/blob/dev/Release/RepRapFirmware-1.14.bin?raw=true". The changes in this release are:
+* When multiple motors are due to step, generate all the step pulses simultaneously
+* Added support for multiple drivers for a single axis (M584)
+* Added support for extended step pulse width when using external drivers (T parameter on M569 command)
+* Removed XYZE parameters from M569 (use M584 instead)
+* Added M913 command (set motor % of normal current), allowing the motor current to be temporarily reduced e.g. for homing and loading filament
+* Added Z probe type 5, which is a normally-closed switch or active-high 3.3V digital signal connected to the IN pin of the Z probe connector on the Duet 0.8.5 and Duet WiFi
+
+Please note the following:
+1. If you are using M569 commands to remap axes and extruders to different drives, that will no longer work. Use the new M584 command instead.
+2. If you use the M584 command, it should come before any M350 and M906 commands in your config.g file.
+=/
+
+allb,Duet_WiFi_1.0+/=
+New release for For Duet WiFi : "GitHub https://github.com/dc42/RepRapFirmware/blob/dev/Release/DuetWiFiFirmware-1.14.bin?raw=true" The changes in this release are:
+* Fix for uncommanded stepper motor movement on some systems following a software reset
+* When multiple motors are due to step, generate simultaneous step pulses for all of them
+* Added support for multiple drivers for a single axis (M584)
+* Added support for extended step pulse width when using external drivers (T parameter on M569 command)
+* Removed XYZE params from M569 (use M584 instead)
+* Added M913 command (set motor % of normal current) to allow motor current to be temporarily reduced
+* Added Z probe type 5, which is a normally-closed switch or active-high 3.3V digital signal connected to the IN pin of the Z probe connector
+* Duet WiFi default Z probe threshold is now 500 (the recommende dvalue for most types of Z probe)
+* Duet WiFi defaults to using a low end homing switch on the X axis (Ormerod and Huxley, users take note!)
+The other firmware files (DuetWiFiServer.bin and DuetWebControl.bin) are unchanged.
+=/
+
+=== DC42 1.13
+"http://forums.reprap.org/read.php?416,674919,675054"
+It looks like there may be a bug with the thermostatic fan control feature in this release. If you rely on thermostatic hot end fan control, please do not upgrade to 1.13 until this is resolved.
+
+I have released version 1.13 of RRF here "Github https://github.com/dc42/RepRapFirmware/tree/dev/Release" (as usual, follow the link to the version you want, then press Raw to download it). The changes since 1.12 are:
+
+* First firmware release for the new Duet WiFi (as already installed on the pre-production boards)
+* Added support for M581 and M582 commands, including 'only if printing a file' condition in M581 command
+* Fixed M117 for PanelDue (needs PanelDue firmware version 1.14)
+* Firmware update messages are now sent to USB and PanelDue (needs PanelDue version 1.14 firmware to display them)
+* M122 responses are now sent only to the comms channel that requested them
+* Added gcode queue underrun counter, displayed in M122 Move diagnostic info
+* SD card interface speed is included in M122 Platform diagnostic info
+* Added support in M997 command to update additional firmware modules on Duet WiFi
+* Corrected a possible problem with multiple incompatible gcodes being executed concurrently
+* Support H parameter on M0 and M1 commands
+* Treat M25 within the file being printed the same as M226
+* Added additional M37 simulation modes to help identify bottlenecks
+* Process M0 and M1 when in simulation mode
+* When executing M0/M1 commands and no print is paused, execute stop.g/sleep.g if they exist
+* Reduced interrupt latency, by not disabling all interrupts when starting a new move, to avoid losing characters sent by PanelDue
+* Temporary fix for RTD temperature spikes causing failed prints
+* Don't print extruder positions in M114 because they are always zero
+* Allow setting of fan PWM from 50% upwards when a fan is in thermostatic mode
+* Reduced default extruder heater PWM frequency to 500Hz
+* Axes are flagged as not homed after using M350 to set microstepping
+* Moved some utility maths functions to CoreNG
+
+The compatible version of DuetWebControl is still 1.11 for the Duet, and 1.11a-dc42 for the Duet WiFi. I recommend that Duet users update /sys/iap.bin from here "github.com https://github.com/dc42/DuetIAP/tree/master/Release" after upgrading the firmware. There is no need to make any other changes to the SD card contents if you are already running firmware 1.10 or later and DWC 1.11.
+
+=== DC42 1.12
+"http://forums.reprap.org/read.php?416,661388"
+Features :
+* PT100 and other RTD sensors are now supported. See %Using PT100 temperature sensors%connecting_pt100 for more details.
+* When a print is paused and then cancelled, the firmware now attempts to run file sys/cancel.g. It only turns the heaters off if that file is not found.
+* The file upload speed over the web interface has been increased. Those who were getting slow file upload speeds are likely to see the most benefit.
+* If a chamber heater is configured, it is now exempted from the heater timeout, just like the bed heater
+* Two changes have been made to improve print quality when printing at high speeds. First, enabling extruder pressure advance is less likely to result in sequences of short moves having sawtooth velocity profiles. Second, a "Maximum average printing acceleration" can now be configured (M201 P parameter). Using this to restrict average acceleration will flatten out any remaining sawtooth velocity profiles.
+* The firmware now reports itself to the USB subsystem as "Duet 3D printer control electronics",instead of as an Arduino Due. **A Windows driver file is provided.**
+* **The default maximum hot end temperature is reduced to 260°C**.
+
+Bug fixes:
+* The USB interface exposed by firmware version 1.11 was not recognised by some versions of Windows on some computers, resulting in a driver installation error
+* **Simulation mode (M37) did not work**
+* Setting the motor current on the non-existent 9th driver on a Duet 0.6 might have undesirable side-effects
+
+Please note the following when upgrading to version 1.12:
+# If you are using Windows, please install the driver at "https://github.com/dc42/RepRapFirmware/tree/dev/Driver"  This driver does not install any new binaries, it simply tells Windows to use its usbser.sys driver to communicate with a Duet. If you are using Windows 10 then you don't need to install the driver if you don't want to, but then the Duet will show up as "USB Serial Device".
+# If you are using Linux or Mac OS, be prepared to revert to earlier firmware (e.g. 1.10+4-dc42) in case your operating system does not recognise the Duet, and please let me know whether or not it did.
+#If you print with hot end temperatures above 260°C then you will need to add a M143 command in config.g, for example M143 S280 will increase the temperature limit to 280°C.
+
+In other respects, you can continue to use existing config.g and homing files. The recommended web interface is DWC 1.11.
+
+=== DC42 1.11
+"http://forums.reprap.org/read.php?416,650812" 
+The changes in this release are:
+*Switched to a new core based on ASF 3.31. This core features an interrupt and DMA-driven USB interface, hardware-scheduled ADC conversions, and supports not only the SAM3X processor used on the Duet but also the SAM4E processor on the next-generation Duet (which for now I am referring to as the DuetNG).
+*Implemented Chrishamm's network and webserver module improvements including Telnet streaming, and some other improvements from his fork (thanks, Chris!)
+*Added a build configuration for the DuetNG. The DuetNG-specific code is not published yet. 
+
+=== DC42 1.10
+"http://forums.reprap.org/read.php?340,643765"
+Chrishamm and I agreed yesterday that it was time to move the version number of RRF on from 1.09. Accordingly, I am pleased to announce release 1.10 of my fork of RepRapFirmware.
+
+The changes since my last official release (1.09x-dc42) are:
+* Added support for firmware retraction (G10 with no parameters, G11, and M207). This is mainly to better support mixing extruders. To use it, configure "Firmware retraction" in slic3r, then set up your retraction parameters in config.g or in your slicer start gcode using the M207 command, see %M207%gcode_cvt!M207.3a_Set_retract_length. When using a mixing extruder, all extruders associated with the current tool will be retracted by the amount configured, regardless of the current mix ratio. Retraction speed and length are not affected by the M220 or M221 commands.
+* Merged in Chrishamm's 1.09z networking, webserver, print monitor and iap.bin changes (thanks Chrishamm)
+* Fixed a bug that sometimes caused auto-IP address allocation via DHCP to fail at startup (thanks Chrishamm)
+
+The recommended web interface is DuetWebControl 1.11, available in the SD-Image folder of my repo or direct from Chrishamm's repo at "Github https://github.com/chrishamm/DuetWebControl" (download the zip and upload it on the Settings page of the web interface).
+
+If you are already using a recent version of my or Chrishamm's 1.09 series firmware, there is no need to change your config.g or homing files.
+
+=== DC42 1.09x
+"http://forums.reprap.org/read.php?416,638316" 
+The main changes in this release are:
+* New build system to make it easier for developers to set up the build system and to support a different hardware abstraction layer for the next-generation Duet board. The Arduino plugin for Eclipse is no longer required and the Eclipse project is much more portable. A separate hardware support project (CoreDuet) replaces the Arduino core.
+* Over-the-web firmware updates are supported. A very big thank-you to Chrishamm for implementing this.
+* Network changes to improve connection stability. Thanks again to Chrishamm.
+* Web interface in SD card image updated to DWC 1.10 (thanks Chrishamm)
+* Print monitor improvements and bug fixes, mostly by Chrishamm
+* Support for an optional external stepper driver support module, primarily for the next-generation Duet.
+* **Implemented M143 (set temperature limit)**
+* Implemented M350 (set microstepping - when supported by the external driver module, because the Duet does not support variable microstepping using the on-board drivers)
+* Reduced the number of places where the code assumes there are exactly 3 axes, to make it easier for developers to add additional axes
+
+Bug fixes:
+* When there is a heater fault, display the correct error message
+* Extrusion was often prevented if extruders and heaters were shared between multiple tools (e.g. tool 127) unless cold extrusion prevention was disabled
+* Following a temperature measurement fault, extrusion could be prevented without a warning message being displayed
+* When a corrupted input line with a failed checksum was received, a spurious error message was sometimes generated 
+
+=== DC42 1.09r
+"http://forums.reprap.org/read.php?146,610783" 
+Changes in this release compared to 1.09o are:
+* Up to 4 thermocouple temperature sensors are now supported using readily-available MAX31855 boards (thanks dnewman).
+* New output buffering system to handle larger responses (thanks chrishamm). This includes fixes to the buffer starvation problem that caused me to withdraw 1.09o and reinstatement of the USB timeout code to handle loss of USB connection smoothly during a print.
+* Compatibility with DuetWebControl 1.08 (thanks chrishamm)
+* Support for M577 (thanks chrishamm)
+* Added inkjet support (thanks RRP/chrishamm) but it is disabled by default
+
+Bug fixes:
+* Corrected a problem whereby if the Z probe type was set to 4 on a Duet 0.8.5, thermistor temperature readings were too high
+* Added no-cache pragmas to web responses to better support Edge browser (thanks Wrangellboy)
+
+This release will work with DuetWebControl versions 1.07 and 1.08, but not 1.06.
+
+I have documented the thermocouple support for Duet electronics at %Using thermocouples%Connecting_thermocouples.
+
+=== DC42 1.09o
+"http://forums.reprap.org/read.php?146,601427"
+The major changes in this release are:
+* Implemented F, H and R parameters to M106 command (see %M106%gcode_cvt!M106.3a_Fan_On ). **The second fan output on a Duet 0.8.5 now defaults to being a thermostatic fan at power up.**
+* Improved speed of file upload to SD card, by about 30% in my tests
+* G32 is now allowed if the printer has not been homed, if there is a bed.g file - so if your bed.g file starts with G28 then you don't need to home the printer before running G32
+* G30 commands are no longer allowed on a delta printer that has not been homed
+* M572 parameter P (drive number) replaced by parameter D (extruder number)
+* File info requests are now processed in stages to reduce impact on printing (thanks chrishamm)
+* Use latest network stack and webserver modules from chrishamm (thanks chrishamm)
+* Added Roland mill support (thanks RRP/chrishamm)
+* Added S parameter (idle timeout) to M18 and M84 commands (thanks chrishamm)
+* Moved I/O pin assignments to separate Pins.h file to more easily support alternative hardware (thanks dnewman)
+Bug fixes
+* Bug fix: filament usage and % print complete figures were incorrect when absolute extruder coordinates were used
+* Bug fix: file-based print estimate was occasionally returned as 'inf' on some systems, which caused the web interface to disconnect
+* Bug fix: M666 command now flags all towers as not homed
+* Bug fix: extruder pressure compensation (M572 command) occasionally caused spurious extruder reversals on some prints
+
+Note for Duet 0.8.5 owners:
+
+- If you wish to take advantage of the new feature to use the second fan output to drive the hot end fan with thermostatic control based on the hot end temperature, be aware that the fan defaults to OFF at power up. It will turn ON as during firmware initialisation. However, it will not turn on if you put the Duet in firmware upload mode. Therefore, avoid pressing the Erase button on the Duet or sending M999 PERASE when the hot end is hot. Alternatively, remove resistor R99 from the Duet, then the second fan output will default to On at power up.
+
+- If you wish to use the second fan output as a controllable cooling fan, put M106 P2 H-1 in config.g to disable thermostatic mode.
+
+=== DC42 1.09m
+"http://forums.reprap.org/read.php?146,593668" 
+I am pleased to announce a new release of my fork of RepRapFirmware. 
+
+Apart from some code tidying up, the changes in this release are as follows (unfortunately I have not yet had time to integrate some changes from Dcnewman's fork and Chrishamm's fork):
+
+New features
+*The PWM frequency for the heated bed and for any heater used as a chamber heater **is now 10Hz** for better compatibility with DC-AC SSRs.
+*The PWM frequency for fans is now configurable using the F parameter on the M106 command. The default is 500Hz, which gives reasonable control of fans not designed for PWM. Increase it to 25000Hz when using 4-wire PWM fans.
+***When a Duet 0.8.5 board is configured or detected, the fan control is now automatically inverted.** If you previously used M106 P0 I1 in config.g to invert it, you will need to remove that.
+*M579 (scale Cartesian axes) is now implemented (thanks Chrishamm).
+*M27, M114, M119 and M573 commands can now be executed concurrently with other commands.
+*When DDA debugging is enabled, the debug output now includes all active extruders instead of just the first two.
+*M408 S0 now includes the fan speeds (for PanelDue).
+*M119 now reports the Z probe as well as the endstop switch states.
+*A tool can now be defined even if a tool with the same tool number exists already. The existing tool will be shut down and deleted.
+*The bed heater can now be disabled using M140 S-1 (thanks Chrishamm).
+*The chamber heater (if present) and the endstop switch states are now reported to the web interface (thanks Chrishamm).
+*Increased default Z prove dive height to 5mm.
+*Increased default PID Ki to 0.2
+
+Bug fixes
+*On a CoreXY machine, XY speeds were too low by a factor of sqrt(2).
+*On a delta machine, after running auto calibration the Z=0 height could be slightly inaccurate, depending on the difference between the X and Z endstop corrections
+*When using a non-intelligent modulated Z probe on a Duet 0.8.5, the modulation pin number was incorrect.
+*The M27 (Report SD card print status) response was inverted compared to what it should be. When in Marlin emulation mode it now includes the "byte n/m" field that some versions of Pronterface expect.
+*Cold extrusion prevention did not work - an error message was generated, but the extruder was driven anyway.
+*M999 PERASE is now more reliable (thanks Chrishamm), but still not completely reliable.
+*M23, M30 and M32 commands did not work when the filename parameter passed included an absolute path.
+*A memory leak occurred when a tool was deleted.
+*All moves are now completed before switching to CoreXY mode.
+*Polling requests from PanelDue were not replied to while a macro was being executed.
+*M667 with no parameters returned an incorrect string. 
+
+=== DC42 1.09k
+"http://forums.reprap.org/read.php?146,560675" 
+The changes since 1.09j-dc42 are:
+*Added F (probing speed) and T (travel speed) parameters to M558 command
+*Removed M210 command because home feed rates are defined in the homing files and the M210 Z parameter no longer defines the Z probing speed
+*Increased UART interrupt priority to avoid dropping characters sent by PanelDue
+*Implemented M42 command, see %M42%gcode_cvt!M42.3a_Switch_I/O_pin for supported pins
+
+Bug fixes
+*Bug fix: M558 P3 did not leave the Z probe control pin high
+*Bug fix: in version 1.09j only, moves surrounding a G92 E0 command were sometimes executed incorrectly (this affected printing of gcode files that use absolute extruder coordinates)
+*Bug fix: G4 dwell commands were sometimes executed before the previous move was complete
+*Fixed driver bugs to allow multiple sector reads/writes from/to the SD card
+*Increased SD card upload speed
+*Updated to latest Atmel HSMCI driver
+*Moved FileStore, MassStorage and Line classes into separate source files
+
+The compatible web interface is still DuetWebControl 1.06.
+
+=== DC42 1.09i
+"http://forums.reprap.org/read.php?146,553130" 
+Improvements in this release:
+*Added support for second extruder and cooling fan on Duet 0.8.5 (thanks T3P3)
+*Added auto detection between 0.6 and 0.85 Duet revisions
+*Added optional P parameter to M115 command to select board type between Duet 0.6, 0.7 and 0.85
+*Changed M115 output to report the board type that was configured or auto-detected
+*Improved the step ISR and step pulse generation efficiency to allow higher movement speeds, especially when using 0.9deg/step motors on delta printers
+*Added XYZE parameters to M569 command to allow stepper driver remapping (e.g. to use external stepper drivers connected to the expansion connector)
+*Added R parameter to M569 command to allow enable signal to be reversed when using external drivers (thanks dnewman)
+*Removed R parameter from M558 command, This is no longer needed, because board type Duet 0.7 can now be set via M115 instead.
+*Moved Fan0 RPM sense pin to expansion connector pin PA14 to avoid conflict with Duet 0.8.5 FAN1 pin
+*M408 poll command (used by latest PanelDue firmware) can now be handled concurrently with other commands
+
+See %M115%gcode_cvt!M115.3a_Get_Firmware_Version_and_Capabilities and %M569%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values for details of the new M115 and M569 parameters supported.
+
+===DC42 1.09g
+"http://forums.reprap.org/read.php?409,548713" 
+*Fixed print quality problems that mostly affected delta printers e.g. on spiral vase cylinder
+*When reconnecting a browser, cancel any file upload from the same IP address
+*M111 now prints the number of each module with debugging enabled or disabled
+*In special moves on delta printers, the F parameter is now interpreted as the speed of the tower that moves the most
+*M114 now reports stepper positions as well as head position Default to output in Marlin mode
+*M104 command defaults to the only tool if there is only one tool and it is not selected
+*Trying different code for M999PERASE command to see if we can get it to unlock flash and reset more reliably
+*When step errors are logged, report them immediately if Move debugging is enabled. Also reports the total number of step errors in M122.
+*Changed interrupt priority to make tick interrupt higher priority than step interrupt, because we rely on the tick interrupt to check for over temperature conditions and kick the watchdog
+
+=== DC42 1.09e
+"http://forums.reprap.org/read.php?340,544298" 
+* Added H (height correction) parameter to G30 command, to allow for the Z probe trigger height varying with XY position
+* G30 S-1 now reports trigger height without changing the Z origin
+* Changed interrupt priorities to make step pulse timing interrupt higher priority than Ethernet (thanks Chrishamm)
+
+=== DC42 1.09d
+"http://forums.reprap.org/read.php?146,540140" 
+I have released a new version of my fork of RepRapFirmware. 
+For users of delta printers, the main improvement is that you can now include the X and Y tower position corrections in the M665 command in config.g.
+
+=== DC42 1.09c
+"http://forums.reprap.org/read.php?340,526505" 
+Changes since 1.09b are:
+*Fixed two potential divide by zero errors in PrintMonitor
+*No longer reports an error if a tpre, tpost or tfree macro file is not found
+*Changed the way bed height errors are reporting after bed probing without calibration (i.e. with parameter S-1 on the final G30 command)
+*Final Z probing speed is now always 1/3 of the initial probing speed as set by M210 instead of the Z jerk speed
+*Bug fix: after Z probing, the Z height was set incorrectly by 1 motor microstep, which affected delta calibration
+*Updated homedelta.g file to use slower final homing and faster positioning after homing
+
+The recommended web interface is still DuetWebControl 1.06.
+
+=== DC42 1.09a
+"http://forums.reprap.org/read.php?178,510151" <small>17 May 2015</small>
+*Merged in Chrishamm latest changes to Network and Print Monitor modules. DHCP and Netbios names are now supported (thanks RRP/Chrishamm)
+*Added command M999 S4321 to unlock flash memory, reset and boot to BOSSA port (so you don't need access to the Erase button on the Duet)
+*Z dive height is now relative to Z probe trigger height and the default is reduced to 3mm. As before, you can use the M558 H parameter to adjust it.
+*Added experimental support (not yet complete) for an acoustic Z probe for delta printers (Z probe type 5)
+
+Bug fixes:
+*Bug fix: when using a simple modulated IR probe, very high readings were occasionally read
+*Bug fix: on Cartesian printers, the firmware once again prevents Z homing before X and Y are homed, if the Z probe is used for Z homing
+*Various code tidying
+
+If you upgrade to this release from my 1.04 series firmware on a delta printer, please note the following:
+# If you are using the H parameter in the M5568 command to increase the Z dive height, you may wish to remove it, or reduce the value - because the Z probe trigger height is now added to the dive height automatically.
+# The meaning of the S parameter in the G30 command changed at version 1.04d, so if you upgrade from a version prior to 1.04d, be sure to pick up the new version of the bed.g file and adjust the probe coordinates for your machine.
+
+== Duet Web Control - <small>by Chrishamm</small>
+=== Duet Web Control v1.12
+*Merge of dc42's latest DWC changes (thanks again!)
+*Refactored the entire JavaScript logic
+*Modified and extended build script to generate SPIFFS and ZIP packages (not published yet)
+*Redesigned settings page, introduced new values for Duet WiFi and improved data binding
+*Changed several settings from milliseconds to seconds
+*Allow creation of custom macro files
+*Implemented /sys file editor
+*Allow download of /gcodes and /sys files
+*Improved AJAX handling, added support for two new HTTP requests and parsing of new rr_connect values
+*Auto bed compensation button now visible on small devices and added quick connect button to error notification for small devices
+*Firmware temperature limit is applied to temperature chart
+*M117 messages can be automatically discarded
+*Implemented file info caching to speed up G-code file list (although rr_fileinfo is already way faster thanks to dc42's improvements)
+*Improved firmware update dialogs
+*Added Hungarian translations (thanks nhadrian) and extended German ones for new version
+*Minor bug fixes
+
+=== Duet Web Control v1.11 
+Features:
+* Implemented new notification system
+* G-code responses are always shown via notifications (if the Console page is not active)
+* Progress bar is shown in notification while new firmware is being flashed
+* Restructured settings page
+* Added preparations for new CPU temperature sensor field
+* Updated Bootstrap, Bootstrap-Slider and JQuery to latest versions
+* .map files will be uploaded to /www/css in the future
+Bug fixes :
+* Bug fix: Upload button(s) could open file dialog even if not connected
+* Bug fix: Beep wasn't working any more with latest browser versions
+* Bug fix: Headings were too small when using the dark theme
+* Bug fix: Config file was occasionally not updated
+* Bug fix: Disconnect and reconnect didn't work as it should
+* Bug fix: AJAX timeouts were not applied properly
+* Bug fix: Directories could be dropped on themselves which unlinked them
+* Bug fix: Upload confirmations were shown after failed uploads
+
+===  Duet Web Control  v1.10 
+* **Added support for autonomous firmware updates**
+* Fan RPM field can be hidden on the Settings page
+* DWC asks for page reload after web interface update
+* ZIP file uploads are now only allowed on Macros and Settings pages
+* Minor other changes
+
+=== Duet Web Control v1.09 
+* Replaced textarea autoresize library to fix issues with the dark theme
+* Warm-up time on the print status page always uses firmware value
+* Moved web cam integration panel on the settings page to the centre
+* Added margin below config file textarea
+* Bug fix: Web cam integration generated a faulty URL 
+
+=== Duet Web Control v1.08
+"http://forums.reprap.org/read.php?146,610309" <small>16 Jan 2016</small>
+I think this new web interface version leaves nothing to be desired, but if you're wondering what has changed this time, here the full changelog:
+
+* Cookies are no longer used and settings are now stored in localStorage
+* Added French and Swedish translations (thanks PRouzeau and Djhg2000)
+Rewrote many parts of the print status page and made the following changes:
+* Improved print end detection
+* Layer times are now added as hoverable dots
+* Last layer time is displayed in Collected Data
+* Optional webcam surveillance image can be displayed
+*Implemented drag and drop on the G-Code and Macro file pages
+*ZIP files can be uploaded (their content is unzipped via JS and each file is uploaded individually)
+*Configuration file can be edited (requires new rr_configfile response)
+***Split up JS code into model and viewmodel files**
+*Removed Spools page (load+unload functionality can be restored via macros)
+Bug fixes
+*Bug fix: Removed bad JS call from the macro update function
+*Bug fix: Sometimes the update loop was running twice
+
+The great advantage of this web interface version is that it no longer stores its settings in a cookie, which means that it sends less data in every HTTP request. I hope this will purge some connectivity problems and increase networking performance a bit. When you load it for the first time, all of your cookie settings will be migrated to HTML5's localStorage automatically. If you are missing translations, just send me a pull request at GitHub.
+
+Note that multiple files can be already uploaded at once on the Settings page.
+
+In my latest firmware version I have improved the output memory management and merged dc42's recent changes from his 1.09p-alpha2 release. My fork is almost identical to dc42's (in fact all G-codes should be compatible), but there are differences in the G-code processor and I maintain an individual Arduino device tree for the RepRap Duet, which works with the latest Arduino version and doesn't require any extra patching.
+
+<small>Authors: DC42 for firmware, Chrishamm for DWC</small>
+
+
+
+

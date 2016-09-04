@@ -55,6 +55,21 @@ function startUpload(type, files, fromCallback) {
 	uploadType = type;
 	uploadTotalBytes = uploadedTotalBytes = uploadedFileCount = 0;
 	uploadFiles = files;
+	function init_dir(dir) { // !!! for help system 
+		$.ajax("rr_mkdir?dir="+dir, {
+			dataType: "json"
+			/*, // no error handling because recreating existing directory trigger error
+			success: function(response) {
+				if (response.err != 0) 
+					showMessage("warning", T("Error"), T("Could not create this directory!"));
+			} */
+		});
+	}
+	init_dir("/www/aql"); // !!! not needed on Duet WiFi
+	init_dir("/www/h");
+	init_dir("/www/h/d");
+	init_dir("/www/h/f");
+	init_dir("/www/h/pdf");
 	$.each(files, function() {
 		uploadTotalBytes += this.size;
 	});
@@ -219,9 +234,8 @@ function uploadNextFile() {
 				if (boardType.startsWith("duetwifi")) {
 					fileUploadSkipped();
 					return;
-				} 
-				else 
-					targetPath = "/www/aql/" + uploadFileName;
+				} else
+				targetPath = "/www/aql/" + uploadFileName;	
 			}	
 			else switch (fileExt) {
 				case "ico":
@@ -258,16 +272,16 @@ function uploadNextFile() {
 				case "jpgf": //= !!!  Hlp system 
 				case "pngf":
 					targetPath = "/www/h/f/" + uploadFileName.slice(0, -1);
-					break;	
-					
+					break;		
+
 				case "js":
 					targetPath = "/www/js/" + uploadFileName;
 					break;
-					
+				
 				case "txt": //= !!!  Hlp system 
 					targetPath = "/www/h/" + uploadFileName;
 					break;	
-					
+				
 				default:
 					targetPath = "/sys/" + uploadFileName;
 			}

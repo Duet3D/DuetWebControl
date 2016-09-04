@@ -919,15 +919,15 @@
 		<!-- Table Headers -->
 		<string t="Current">En cours</string>
 		<string t="Active">Actif</string>
-		<string t="Heater 1">Réchauffeur 1</string>
-		<string t="Heater 2">Réchauffeur 2</string>
-		<string t="Heater 3">Réchauffeur 3</string>
-		<string t="Heater 4">Réchauffeur 4</string>
-		<string t="Heater 5">Réchauffeur 5</string>
+		<string t="Heater 1">Réch. 1</string>
+		<string t="Heater 2">Réch. 2</string>
+		<string t="Heater 3">Réch. 3</string>
+		<string t="Heater 4">Réch. 4</string>
+		<string t="Heater 5">Réch. 5</string>
 		<string t="Bed">Plateau</string>
 		<string t="Chamber">Chambre</string>
 		<string t="Head Position">Position tête</string>
-		<string t="Extruder Drives">Extrudeur</string>
+		<string t="Extruder Drives">Moteurs extrudeurs</string>
 		<string t="Drive 1">Moteur 1</string>
 		<string t="Drive 2">Moteur 2</string>
 		<string t="Drive 3">Moteur 3</string>
@@ -939,9 +939,9 @@
 		<string t="D4">M4</string>
 		<string t="D5">M5</string>
 		<string t="Sensors">Capteurs</string>
-		<string t="Fan RPM">Ventilateur RPM</string>
-		<string t="ATX Power:">Alimentation ATX:</string>
-		<string t="Fan Control:">Contrôle ventilateur:</string>
+		<string t="Fan RPM">Vent. RPM</string>
+		<string t="ATX Power:">Alim ATX:</string>
+		<string t="Fan Control:">Contrôle vent.:</string>
 		<string t="File Name">Nom fichier</string>
 		<string t="Object Height">Hauteur objet</string>
 		<string t="Layer Height">Hauteur couche</string>
@@ -954,7 +954,7 @@
 		<string t="Current Layer Time">Temps couche en cours</string>
 		<string t="Last Layer Time">Dernier temps de couche</string>
 		<string t="Print Duration">Durée impression</string>
-		<string t="Warm-Up Time">Temps mise en chauffe</string>
+		<string t="Warm-Up Time">Temps chauffage</string>
 		<string t="First Layer Time">Temps 1ère couche</string>
 		<string t="First Layer Height">Hauteur 1ère couche</string>
 		<string t="Based on">Basé sur</string>
@@ -994,8 +994,8 @@
 		<string t="Enforces an immediate software reset (M112+M999)">Impose une réinitialisation immédiate (M112+M999)</string>
 		<string t="Perform automatic bed compensation / calibration (G32)">Effectue une correction de niveau de plateau (G32)</string>
 		<string t="Clear G-Code Console">Nettoyer écran console G-Code</string>
-		<string t="Pause current print (M25)">Mettre en pause impression en cours (M25)</string>
-		<string t="Resume paused print (M24)">Reprendre impression en cours (M24)</string>
+		<string t="Pause current print (M25)">Mettre en pause impression (M25)</string>
+		<string t="Resume paused print (M24)">Reprendre l'impression (M24)</string>
 		<string t="Enforce a predefined fan value">Impose valeur prédéfinie de ventilation</string>
 		<string t="Run M1 when the print has finished">Envoie M1 après une impression</string>
 		<string t="Upload one or more G-Code files (drag&amp;drop is supported as well)">Charge un ou plusieurs fichiers G-code (glisser-déplacer est possible)</string>
@@ -1146,6 +1146,73 @@
 		<string t="(not set)">(non défini)</string>
 		<string t="Current Z-Probe reading on a scale between 0 and 1024">Lecture capteur Z (échelle 1-1024)</string>
 		<string t="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">Vitesse de rotation ventilateur (nécessite un ventilateur 4 broches correctement cablé)</string>
+		
+		<!-- New in v1.12 -->
+		<string t="The following axes are not homed:">Les axes ne sont pas à l'origine:</string>
+		<string t="Communication">Communication</string>
+		<string t="Fans">Vent.</string>
+		<string t="User Interface">Interface utilisateur</string>
+		<string t="System Editor">Éditeur système</string>
+		<string t="Maximum number of AJAX retries:">Nombre max d'essais Ajax:</string>
+		<string t="Reconnect Delay on Duet WiFi Server Update:">Délai de reconnection de mise à jour serveur Duet WiFi:</string>
+		<string t="Reconnect Delay on Duet Web Control Update:">Délai de reconnection de mise à jour DWC:</string>
+		<string t="Automatically close user-generated firmware messages">Ferme automatiquement les messages utilisateur</string>
+		<string t="Refresh">Ré-affiche</string>
+		<string t="Edit this file">Édite ce fichier</string>
+		<string t="Download this file">Télecharge ce fichier</string>
+		<string t="Connect to your Duet to display System files">Connection à la Duet pour affichage des fichiers système</string>
+		<string t="Edit this macro">Éditer cette macro</string>
+		<string t="Make new Macro">Crée une nouvelle macro</string>
+		<string t="Create a new macro file">Crée un nouveau fichier de macro</string>
+		<string t="New macro">Nouvelle macro</string>
+		<string t="Please enter a filename:">Saisir nom de fichier:</string>
+		<string t="Editing {0}">Editer {0}</string>
+		<string t="Save Changes">Sauver les modifications</string>
+		<string t="Reconnect Preferences">Préférences de reconnection</string>
+		<string t="Maximum number of AJAX retries before the connection is terminated">Nombre max d'essais Ajax avant l'abandon de la connection</string>
+		<string t="Time to wait for a reconnect when a new Duet WiFi Server firmware is about to be flashed (Duet WiFi only)">Temps d'attente pour une reconnection quand un nouveau firmware serveur (Duet WiFi) va être flashé</string>
+		<string t="Time to wait for a reconnect when a new Duet Web Control binary is about to be flashed (Duet WiFi only)">Temps d'attente pour une reconnection quand un nouveau firmware DWC (Duet WiFi) va être flashé</string>
+		<string t="Clear Cached File Information">Nettoyage du cache d'information fichiers</string>
+		<string t="Clear cached G-Code File Information">Nettoyage du cache d'information fichiers G-code</string>
+		<string t="Activate this to display M117 messages until they are manually closed">Activer pour afficher les messages M117 jusqu'à fermeture manuelle</string>
+		<string t="Heater 6">Réch. 6</string>
+		<string t="Heater 7">Réch. 7</string>
+		<string t="Here you can upload firmware, Duet WiFi and Duet Web Control files as well">Ici vous pouvez téléverser les fichiers firmware, Duet Wifi et DWC (Duet Web Control)</string>
+		<string t="You cannot upload web interface files as a ZIP file on a Duet WiFi!">Vous ne pouvez pas téléverser les fichiers d'interface web sous forme de fichier zip sur une Duet WiFi!</string>
+		<string t="Perform WiFi Server Update?">Exécute une mise à jour du serveur WiFi ?</string>
+		<string t="You have just uploaded a Duet WiFi server firmware file. Would you like to install it now?">Vous venez de téléverser un firmware serveur WiFi. Voulez vous l'installer maintenant?</string>
+		<string t="Perform Duet Web Control Update?">Exécuter une mise à jour de DWC?</string>
+		<string t="You have just uploaded a Duet Web Control package. Would you like to install it now?">Vous venez de téléverser un firmware DWC. Voulez vous l'installer maintenant ?</string>
+		<string t="Could not rename WiFi Server update file!">Ne peut pas renommer le fichier de mise à jour du serveur WiFi!</string>
+		<string t="Could not rename Duet Web Control update file!">Ne peut pas renommer le fichier de mise à jour de DWC!</string>
+		<string t="timeout">Délai dépassé</string>
+		<string t="Settings applied!">Configuration appliquée!</string>
+		<string t="Updating WiFi Server...">Mise à jour serveur WiFi...</string>
+		<string t="Please wait while the Duet WiFi Server firmware is being updated...">Merci de patienter pendant la mise à jour du serveur WiFi...</string>
+		<string t="Updating Web Interface...">Mise à jour interface Web...</string>
+		<string t="Please wait while Duet Web Control is being updated...">Merci de patienter pendant la mise à jour de DWC...</string>
+		<string t="Error! Unknown update parameter!">Erreur! Paramètre de mise à jour inconnu!</string>
+		<string t="System Directory">Répertoire système</string>
+		<string t="tuning">ajustement</string>
+		
+		<!-- Aquilegia strings -->
+		<string t="There is no available help page for this element">Il n'y a pas de page d'aide pour cet élément</string>
+		<string t="'hlp.txt' file loaded, but page :{0} was not found, check also html charset (shall be utf-8)">'hlp.txt' fichier chargé, mais la page :{0} n'a pas été trouvée, vérifier le charset html (doit être utf-8)</string>
+		<string t="Invalid or no page name">Nom de page inexistant ou invalide</string>
+		<string t="Help page '{0}' cannot be loaded">La page d'aide '{0}' n'a pas pu être chargée</string>
+		<string t="Internal Aquilegia error, page undefined in aqlTrans function">Erreur interne programme (Aquilegia), page non définie dans aqlTrans</string>
+		<string t="Page {0} not found in trail page {1}">Page {0} non trouvée dans la page de cheminement {1}</string>
+		<string t="Trail page {0} did not exist - check character case">La page de cheminement {0} n'existe pas - vérifiez la casse</string>
+		<string t="&lt;b&gt;{0}&lt;/b&gt; found in following pages:">&lt;b&gt;{0}&lt;/b&gt; trouvé dans les pages suivantes:</string>
+		<string t="&lt;b&gt;{0}&lt;/b&gt; was not found">&lt;b&gt;{0}&lt;/b&gt; n'a pas été trouvé</string>
+		<string t='Link "{0}" length exceed {1} in page {2}'>La longueur du lien "{0}" dépasse {1} dans la page {2}</string>
+		<string t="&lt;strong&gt;There is {0} external links&lt;/strong&gt;&lt;br&gt; {1}">&lt;strong&gt;Il y a {0} liens externes&lt;/strong&gt;&lt;br&gt; {1}</string>
+		<string t="Link '{0}' length {1} exceed {2} in page {3} ">Le lien '{0}' longueur {1} dépasse {2} dans la page {3} </string>
+		<string t="Page : {0}&lt;br&gt;{1} not found">Page : {0}&lt;br&gt;{1} non trouvée</string>
+		<string t="Search: ">Recherche: </string>
+		<string t="Searching '{0}', please wait...">Recherche '{0}', merci de patienter...</string>
+		<string t="Images not found:">Images non trouvées:</string>
+		
 	</fr>
 	<sv name="Svenska">
 		<!-- JavaScript Strings -->
