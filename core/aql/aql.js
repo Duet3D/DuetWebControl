@@ -341,7 +341,7 @@ function aqlLoadExt (hlpLoading, runFunc, lnk, openWin) { // load external page
 //==== Other functions =====================================================================================
 function aqlimg (imgname) {
 	$0("aql_img_b").aqlimgfile = imgname; //this is a global... 
-	if (Object.getOwnPropertyNames(aqlI).length == 0)
+	if (Object.getOwnPropertyNames(aqlI).length == 0) // The image metadata is not yet loaded
 		aqlLoadExt ("imglist", aqlmetaimg); // will run meta function after page loading
 	else // if image documentation exists, load directly
 		aqldispimg();

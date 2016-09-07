@@ -216,7 +216,7 @@ duet_wiring_servo.png
 auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
 
 duetfirmwareversions.png
-auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2
+auth:PRZ, license:CC BY-SA 3.0; GFDL1.2
 
 dwifi_connectv1.0.png
 auth:David Crocker, license:CC BY-SA 3.0; GFDL1.2

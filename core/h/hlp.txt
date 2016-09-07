@@ -134,7 +134,23 @@ Default page add directives or text at start of any page.
 
 ■hlpfoot
 Foot page
-(:date 21 Aug 2016 20:54:) <div class="hlpsign" role="contentinfo">delivered by <a href="http://aquilegia.blue" target=\"_blank\">Aquilegia</a> &emsp; <div>
+(:date 5 Sep 2016 17:50:)<br><small>&copy;2016 Pierre ROUZEAU, except where credited. Licence CC BY-SA 3.0</small>  <a href="javascript:window.showHlp('privacy');">Privacy</a> <div class="hlpsign" role="contentinfo">delivered by <a href="http://aquilegia.blue" target=\"_blank\">Aquilegia</a> &emsp; <div>
+
+■privacy
+Privacy policy
+(:date 5 Sep 2016 16:46:)No information is collected by Aquilegia. If you are using the help on your printer and the remote resources are activated, the only information we can get from using Aquilegia will be the usual statistics kept by the web server provider tools:
+Your IP and the files you uploaded (text and images), your browser and OS characteristics (if they are not kept secret).
+If remote domain for resources is not activated, there is zero communication with Internet.
+
+In addition, the whole presentation is technically an unique web page, as the content is dynamically changed based on what is in the global file  -- see the site to understand the storage philosophy--. So, I cannot know what page you did visit (except the syntax page and release note page, which are independent files, so I can detect the loading).
+
+If you are using Aquilegia on web, we also have the web address used to enter the site (with the page if defined).
+The site otocoup.com have no commercial activity and I do not search to identify or track you. The served content is entirely operated by myself (Pierre ROUZEAU) and there is no publicity nor anything added by the provider (OVH). Server is operated in France. 
+This presentation runs entirely in your browser and did not return any information to the server. There is no cookie. 
+
+As all my Internet operations, this is un-commissioned work that I develop as a hobby. 
+In 15 years of Internet activity, I never displayed any publicity and so, never get any money, just expensed some... and thousands hours.
+  Pierre Rouzeau  http://rouzeau.net
 
 ■hlpdiag
 Writer tool box
@@ -1424,17 +1440,17 @@ G1 Z0.25	; lower the hotend 0.25mm  above bed
 <small>Author: PRZ</small>
 ■FAQ
 RepRap Firmware FAQ
-(:date 1 Sep 2016 22:15:)(:clear:)
+(:date 6 Sep 2016 12:34:)(:clear:)
 ==Can I modify speed and extrusion coefficients and temperatures during a print? Yes
 : %Yes%DWC_Print_Status.png
 
 ==Can I reconfigure my printer ‘on the fly’? Yes
-: Yes, there is an %interactive console%DWC_G-code_Console.png, you may even modify parameters during a print, at your own risks
+: Yes, there is an %interactive console%DWC_G-code_Console.png, you may even modify parameters during a print, at your own risks.
 
 ==Can I print from SD card? Yes
 : Yes, and this is what is done by most users, as Ethernet file transfer is very fast. Lost connection from the PC don’t stop the print, but you lost control if you don’t have a local panel or another controller (which may be a smartphone if you have WiFi on your network).
 
-== Can I run RRF with an USB front-end like Pronterface or Repetier-host? Yes
+==Can I run RRF with an USB front-end like Pronterface or Repetier-host? Yes
 : Yes, but you shall configure your front-end program for USB hardwired handshaking
 
 ==Can I create my own macros? Yes
@@ -1443,85 +1459,88 @@ RepRap Firmware FAQ
 ==Can I control the printer through WiFi devices? Yes
 : %Yes%RepRap_Firmware!Connectivity , with any web browser if you have a WiFi connection on your Network or set-up a low cost WiFi bridge on the printer
 
-== Do I need to recompile firmware for configuration? No
-: No, new issues of firmware are always delivered pre-compiled. Configuration by text files.
+==Do I need to recompile firmware for configuration? No
+: No, new issues of firmware are always delivered pre-compiled. Configuration done by editing text files.
 
 ==Can I use standard printer LCD panel? No
 : No, only PanelDue work with RRF firmware
 
-== Is there an automatic calibration for Cartesian printer? Yes
+==Is there an automatic calibration for Cartesian printer? Yes
 : %Yes%Macros!bed.g , but it is different from the delta calibration and is limited to five probe points
 
-== Does %web interface%Duet_Web_Control work on Duet if the board is only powered by USB? Yes
+==Does %web interface%Duet_Web_Control work on Duet if the board is only powered by USB? Yes
 : Yes, but if you have accessories connected on the 5V like the PanelDue, the 5V consumption shall not exceed your USB port capability. This power supply method is recommended during commissioning as first power on. The Ethernet cable shall be installed and network configured. 
 
 ==Can I use external 5V power supply instead of the on-board supply? Yes
-: Yes, there are selectors on board
+: Yes, there are %selectors%duet_wiring on board.
 
 ==Can I install a filament presence sensor? Yes
 : %Yes%Macros!Set_of_macros_for_filament_detection , based on simple switch (no filament movement detection yet)
 
 ==Do I need an USB connection for firmware update? No
-: %No%Duet_Firmware_Update!In_application_update , except for the first firmware update (first step of commissioning), as boards are delivered with old firmware
+: %No%Duet_Firmware_Update!In_application_update , except for the first firmware update (first step of commissioning), as boards are delivered with old firmware.
 
 ==Can I run a Chamber heater from the Extruder heater output? Yes
-: Yes, using a relay (SSR)
+: Yes, using a relay (SSR), see %Connecting and configuring a chamber heater%connecting_chamber_heater 
 
-== If I have a problem with a driver, can I install an external driver? Yes
-: %Yes%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values , if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
+==If I have a problem with a driver, can I install an external driver? Yes
+: %Yes%gcode_cvt!M569.3a_Set_axis_direction_and_enable_values, if you have no expansion board, as drivers can be remapped on the expansion connector. Note: Buy good stepper cables to avoid risks of disconnection while powered, which is the main way to burn a driver.
 
-== Duet board pins list with functions? Yes
+==Duet board pins list with functions? Yes
 : %Here%Duet_pinout
 
-== Can I use fans with other voltage than main board voltage? Yes
-: Yes, See the schematic here:  %Duet Wiring 5V controlled fan%Duet_wiring!5V_controlled_fan
+==Can I use fans with other voltage than main board voltage? Yes
+: Yes, See the schematic here:  %Duet Wiring 5V controlled fan%Duet_wiring!5V_controlled_fan On Duet WiFI, there is a voltage selector for fans.
 
 ==Can I run a mixing hotend like the diamond? Yes
 : Yes, see this "forum thread http://forums.reprap.org/read.php?416,641508" and "result http://forums.reprap.org/file.php?416,file=75442,filename=7_colour_thingy.JPG"
 
-==Can I run a laser cutter with RRF? Yes
-: Yes, see these threads "Reprap forum thread  http://forums.reprap.org/read.php?133,521301" "Reprap forum thread  http://forums.reprap.org/read.php?340,516150" "Post on RepRapPro site  https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog/"
-
-== Can I use an RC servos for automation ? Yes
+==Can I use an RC servos for automation ? Yes
 : Yes, see  %Connecting a R/C servo%connecting_servo 
 
-== Can I use absolute extruder coordinate? Yes, but
+==Can I use absolute extruder coordinate? Yes, but
 : Yes, but this is not recommended
 
-== Can I use inductive or capacitive calibration sensor? Yes, but
-: Yes, but you shall add some components to protect your inputs from over-voltage. Never exceed 3.3V on input pins, at risk of board destruction.
+==Can I use inductive or capacitive calibration sensor? Yes, but
+: Yes, but you shall add some components to protect your inputs from over-voltage. Never exceed 3.3V on input pins, at risk of board destruction. See  %Connecting a Z probe%connecting_a_z_probe. 
 
 ==Are the input pins capable to handle 5 Volt? NO
-: <span style="color:#ff0000">NO</span>.  5V on input pins may kill the board. Caution shall be used.
+: **<span style="color:#ff0000">NO</span>**. 5V on input pins may kill the board. Caution shall be used.
 
-==Is there auto-calibration for heat loop PID? Not yet
-: Not yet, but it is planned
+==Is there auto-calibration for heat loop PID? Yes
+: Yes, since version 1.15, see %Tuning the heater temperature control%tuning_heater 
 
-== Shall I have forced cooling on the board? It depends
-: It depends mostly of the current of your steppers. Natural cooling is sufficient for steppers at 1A, but board shall be installed to allow easy air flow (best is vertical position)
+==Shall I have forced cooling on the board? It depends
+: It depends mostly of the current of your steppers. Natural cooling is sufficient for steppers at 1A, but board shall be installed to allow easy air flow (best is vertical position). Overheating driver can cause step losses and layer shift.
+
+==Can I activate pins on the Expansion connector? Yes
+: Yes, see %M42%gcode_cvt!m42.3a_switch_i.2fo_pin and %Duet pinout with functions%duet_pinout. 
 
 ==Can I have a printer without end-stops sensors? Yes
 : %Yes%Macros!Homing_without_end_switches, as digital potentiometers allow current reduction via G-code and you can stall steppers on mechanical stops. However, this is not very precise and for Z axis this need to be coupled with automatic calibration.
 
 ==What kind of end-stops do I need?
-: Dry switches or powered sensors, provided they work in 3.3V. Pin order is different from Ramps, with center pin in 3.3V
+: Dry switches or powered sensors, provided they work in 3.3V. Pin order is different from Ramps, with center pin in 3.3V. See %Connecting endstop switches%end_stops.
 
 ==Can I add more extruders? Yes
 : Yes For the Duet 0.6 and 0.8.5 there is 4 extruders board expansion from original designer (T3P3), simple 4 extruders extension from independent supplier and some stock of 2 extruders shields from RepRapPro. 
 
+==Can I set two 12V fans in serie on a 24V power supply? Yes, but
+: Yes, if they are identical but this is not recommended as if one fan stall for any reason, the other will experience overvoltage.
+
 ==Is there software movement limit? Yes
-: %Yes%gcode_cvt!M208.3a_Set_axis_max_travel" . You can define maximum travel where head will not be allowed to go. This volume will be a %cylinder%gcode_cvt!M665.3a_Set_delta_configuration for a delta printer and a cube for others.
+: %Yes%gcode_cvt!M208.3a_Set_axis_max_travel". You can define maximum travel where head will not be allowed to go. This volume will be a %cylinder%gcode_cvt!M665.3a_Set_delta_configuration for a delta printer and a cube for others.
 ==Is it possible to install two separated end-stops on each axis? No
 : No, and it is not needed, the printer knowing its own dimensions. Though dry switches can be installed in series.
+
+==Can I run a laser cutter with RRF? Yes
+: Yes, see these threads "Reprap forum thread  http://forums.reprap.org/read.php?133,521301" "Reprap forum thread  http://forums.reprap.org/read.php?340,516150" "Post on RepRapPro site  https://reprappro.com/2015/06/16/reprap-duet-electronics-running-a-laser-cutter-guest-blog/"
 
 ==Can RRF run a SCARA printer? No
 : No
 
 ==Can RRF run a rotary delta (Clavel type) like the Firepick? No
-:No
-
-== Can I set two 12V fans in serie on a 24V power supply? Yes, but
-: Yes, if they are identical but this is not recommended as if one fan stall for any reason, the other will experience overvoltage.
+: No
 
 <small>Author: PRZ</small>
 ■Uploading_system_files
@@ -2461,17 +2480,19 @@ DC/DC adjustable converters with voltage display are available for less than 3 E
 <small>Author: PRZ</small>
 ■Duet_pinout
 Duet pinout with functions
-(:date 22 Aug 2016 18:09:)This page documents the 50 pin expansion header found on the %Duet%Duet board and used to interface with a "Duex4 expansion board http://www.think3dprint3d.com/Duex4-Duet-Expansion-Board."  There are multiple versions on the Duex4 board, V0.1, 
+(:date 6 Sep 2016 13:02:)This page documents the 50 pin expansion header found on the %Duet%Duet board and used to interface with a "Duex4 expansion board http://www.think3dprint3d.com/Duex4-Duet-Expansion-Board."  There are multiple versions on the Duex4 board, V0.1, 
 V0.2 and V0.2a, along with multiple versions of Duet electronics
 
 The table columns are
 
 * Pin -- the expansion header pin number,
 * Duet Label -- the label for the pin shown on the underside of the Duet board for connecting to the Duex4.
-* Due Pin -- the Arduino Due pin name; in some cases the pin does not have an Arduino Due name and an extended "X" name is shown instead for use with the SamNonDue library, and
+* Due Pin -- the Arduino Due pin name; in some cases the pin does not have an Arduino Due name and an extended "X" name is shown instead for use with the SamNonDue library. See "Due schematic http://www.robgray.com/temp/Due-pinout-A4.png".
 * RepRapFirmware Usage -- the usage put to the pin by the dc42 branch of the RepRap Firmware
 
 The dir[], enable[], and step[] values in the usage descriptions refer to the stepper driver direction, enable, and step pin assignment arrays.  Similarly, the heat[] and therm[] values correspond to the heater power and thermistor sensor pin assignment and ADC channel arrays.
+
+The reference used by G-Code %M42%gcode_cvt!m42.3a_switch_i.2fo_pin is the Due pin number Dnn, e.g. <<M42 P19 S1 >> set the pin 14 (RXD0) on the expansion connector to high. The pins which can be set by M42 are set in bold in the table.
 
 allb,Duet_WiFi+/=
 == Duet WiFi
@@ -2490,9 +2511,9 @@ Note that heat[6] position (pin X17) in the default version of RepRap firmware i
  4::RST :: :: :: :: 3::+3.3V ::
  6::TWCK0 ::D71 ::Digipot :: :: 5::TWD0 ::D70 ::Digipot ::
  8::UTXD ::D1 ::Serial1 TX / PanelDue :: :: 7::URXD ::D0 ::Serial1 RX / PanelDue ::
- 10::PA14 ::D23 ::FAN RPM :: :: 9::PD9 ::D30/X9 ::endstop[8] / E5_STOP ::
- 12::RXD1 ::D17 ::MAX31855-3 CS (No Roland support) :: :: 11::TXD1 ::D16 ::MAX31855-2 CS (No Roland support) ::
- 14::RXD0 ::D19 :: :: :: 13::TXD0 ::D18 ::
+ **10**::*PA14 ::*D23 ::*FAN RPM :: :: 9::PD9 ::D30/X9 ::endstop[8] / E5_STOP ::
+ **12**::*RXD1 ::*D17 ::*MAX31855-3 CS (No Roland support) :: ::* 11::*TXD1 ::*D16 ::*MAX31855-2 CS (No Roland support) ::
+ **14**::*RXD0 ::*D19 :: :: ::* 13::*TXD0 ::*D18 ::
  16::PC30 ::D72/X11 ::dir[8] / E5_DIR :: :: 15::PC29 ::X10 ::step[8] / E5_STEP ::
  18::PC4  ::X17 ::FAN1 / E5_PWM :: :: 17::PC28 ::X13 ::enable[8] / E5_EN ::
  20::PB14 ::D53 ::dir[5] / E2_DIR :: :: 19::PC7 ::D39 ::step[5] / E2_STEP ::
@@ -2501,12 +2522,12 @@ Note that heat[6] position (pin X17) in the default version of RepRap firmware i
  26::NPCS1 ::D87 ::MAX31855-1 CS :: :: 25::PB24 ::X16 ::
  28::SPCK0 :: ::SPI channel 0 (e.g. MAX31855 SCK) ::  :: 27::NPCS0 ::D77 ::MAX31855-0 CS ::
  30::MISO0 :: ::SPI channel 0 (e.g. MAX31855 SO) ::  :: 29::MOSI0 :: ::SPI channel 0 ::
- 32::PB16 ::D67 :: :: :: 31::PB23 ::X15 ::
+ **32**::*PB16 ::*D67 :: :: :: 31::PB23 ::X15 ::
  34::AD0 ::D61/A7 ::therm[3] / E2_THERM :: :: 33::AD13 ::D65/A11 ::therm[6] / E5_THERM ::
- 36::TWCK1 ::D21 :: :: :: 35::TWD1 ::D20 ::
+ **36**::*TWCK1 ::*D21 :: :: ::* 35::*TWD1 ::*D20 ::
  38::AD11 ::D63/A9 ::therm[5] / E4_THERM :: :: 37::AD10 ::D62/A8 ::therm[4] / E3_THERM ::
  40::PB22 ::X14 :: :: :: 39::VSSA ::
- 42::PC11 ::X4 ::step[6] / E3_STEP :: :: 41::AD14 ::D52 ::Z_PROBE_MOD_PIN ::
+ 42::PC11 ::X4 ::step[6] / E3_STEP :: ::* 41::*AD14 ::*D52 ::*Z_PROBE_MOD_PIN ::
  44::PC13 ::D50 ::enable[6] / E3_EN :: :: 43::PC12 ::D51 ::dir[6] / E3_DIR ::
  46::PC15 ::D48 ::dir[7] / E4_DIR :: :: 45::PC14 ::D49 ::step[7] / E4_STEP ::
  48::PC17 ::D46 ::endstop[5] / E2_STOP :: :: 47::PC16 ::D47 ::enable[7] / E4_EN ::
@@ -2530,23 +2551,23 @@ allb,Duet_0.6+/=
  4::RST :: :: :: ::  3::+3.3V ::
  6::TWCK0 ::D71 ::Digipot :: ::  5::TWD0 ::D70 ::Digipot ::
  8::UTXD ::D1 ::Serial1 TX / PanelDue :: :: 7::URXD ::D0 ::Serial1 RX / PanelDue ::
- 10::PA14 ::D23 ::FAN RPM :: :: 9::PA15 ::D24 ::endstop[4] / E1_STOP ::
- 12::RXD1 ::D17 ::MAX31855-3 CS (No Roland support) :: :: 11::TXD1 ::D16 ::MAX31855-2 CS (No Roland support) ::
- 14::RXD0 ::D19 :: :: :: 13::TXD0 ::D18 ::
+ **10**::*PA14 ::*D23 ::*FAN RPM :: :: 9::PA15 ::D24 ::endstop[4] / E1_STOP ::
+ **12**::*RXD1 ::*D17 ::*MAX31855-3 CS (No Roland support) :: ::* 11::*TXD1 ::*D16 ::*MAX31855-2 CS (No Roland support) ::
+ **14**::*RXD0 ::*D19 :: :: ::* 13::*TXD0 ::*D18 ::
  16::PC3 ::D35 ::dir[4] / E1_DIR :: :: 15::PC9 ::D41 ::step[4] / E1_STEP ::
  18::PC6 ::X7 ::heat[2] / E1_PWM :: :: 17::PC5 ::D37 ::enable[4] / E1_EN ::
  20::PB14 ::D53 ::dir[5] / E2_DIR :: :: 19::PC7 ::D39 ::step[5] / E2_STEP ::
  22::PC22 ::D8 ::heat[4] / E3_PWM :: :: 21::PC23 ::D7 ::heat[3] / E2_PWM ::
  24::PC20 ::X8 ::enable[5] / E2_EN :: ::  23::PC21 ::D9 ::heat[5] / E4_PWM ::
- 26::NPCS1 ::D87 ::MAX31855-1 CS :: ::  25::PC4 ::D36 ::
+ 26::NPCS1 ::D87 ::MAX31855-1 CS :: ::*  25::*PC4 ::*D36 ::
  28::SPCK0 :: ::SPI channel 0 (e.g. MAX31855 SCK) :: ::  27::NPCS0 ::D77 ::MAX31855-0 CS ::
  30::MISO0 :: ::SPI channel 0 (e.g. MAX31855 SO) :: ::  29::MOSI0 :: ::SPI channel 0 :: 
- 32::PB16 ::D67 :: :: ::  31::PB15 ::D66 ::
+ **32**::*PB16 ::*D67 :: :: ::*  31::*PB15 ::*D66 ::
  34::AD0 ::D61/A7 ::therm[3] / E2_THERM :: ::  33::AD7 ::A0 ::therm[2] / E1_THERM ::
- 36::TWCK1 ::D21 :: :: :: 35::TWD1 ::D20 :: 
+ **36**::*TWCK1 ::*D21 :: :: ::* 35::*TWD1 ::*D20 :: 
  38::AD11 ::D63/A9 ::therm[5] / E4_THERM :: ::  37::AD10 ::D62/A8 ::therm[4] / E3_THERM ::
  40::AD13 ::A11/D65 :: :: ::  39::AD12 ::A10/D64 :: 
- 42::PC11 ::X4 ::step[6] / E3_STEP :: ::  41::AD14 ::D52 ::Z_PROBE_MOD_PIN ::
+ 42::PC11 ::X4 ::step[6] / E3_STEP :: ::*  41::*AD14 ::*D52 ::Z_PROBE_MOD_PIN ::
  44::PC13 ::D50 ::enable[6] / E3_EN :: ::  43::PC12 ::D51 ::dir[6] / E3_DIR ::
  46::PC15 ::D48 ::dir[7] / E4_DIR :: ::  45::PC14 ::D49 ::step[7] / E4_STEP ::
  48::PC17 ::D46 ::endstop[5] / E2_STOP :: ::  47::PC16 ::D47 ::enable[7] / E4_EN ::
@@ -2554,7 +2575,7 @@ allb,Duet_0.6+/=
 :/
 
 Note that the Duex4 board makes the following associations when paired with the Duet 0.6
-* E1 -- dir,enable,step[4] heat[4] therm[4]
+* E1 -- dir,enable,step[4] heat[2] therm[2]
 * E2 -- dir,enable,step[5] heat[3] therm[3]
 * E3 -- dir,enable,step[6] heat[4] therm[4]
 * E4 -- dir,enable,step[7] heat[5] therm[5]
@@ -4122,6 +4143,12 @@ M106 P1 S0.055 ; 60° BL Touch test mode
 
 "Demonstration film (11 Mb) http://otocoup.com/aql/h/duet_servo_control.mp4" of a mechanical servo test. 
 Test platform: Duet WiFi prototype, Firmware V1.15, Fan voltage : 5V, no diode, 2 resistors equivalent to one of 470 Ohm. 
+
+
+
+
+
+
 
 
 
