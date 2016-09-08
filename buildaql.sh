@@ -6,14 +6,20 @@
 # - yui-compressor from https://yui.github.io/yuicompressor
 # Make sure both tools are accessible via your PATH environment variable!
 
+# Version with Aquilegia integrated - tested OK
+# The css minification don't work on most files, so not all css are minified
+# The build was done on Windows 10 bash shell, which is based upon Ubuntu 14.04.4 LTS
+# yui-compressor version of ubuntu is quite old (2.4.7.1), this may be the problem
+# An attemp to minify with sass failed. 
+# To be loaded via apt-get on Windows bash: yui-compressor, zip (sudo apt-get install progname)
+# mkspiffs executable will go in /usr/bin
 
 # Get the current version
 VERSION=$(grep -oP "Duet Web Control v\K(.*)" ./core/reprap.htm)
 
-
 # Core directory must contain reprap.htm
 if [ -f !"./core/reprap.htm" ] ; then
-	echo "core directory doesn't contain rerap.htm"
+	echo "core directory doesn't contain reprap.htm"
 	exit
 fi
 
@@ -52,18 +58,32 @@ gzip -c ./core/language.xml > ./build/language.xml.gz
 # Minify CSS files
 echo "Minifying CSS files and changing font paths"
 mkdir ./build/css
-yui-compressor -o ./build/css/slate.css ./core/css/slate.css
-CSS_FILES=$(grep -e "\.css" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//')
-for FILE in $CSS_FILES; do
-	echo "- Minifying $FILE..."
-	yui-compressor $FILE >> ./build/css/dwc.css
-done
-
+echo "- Minifying slate"
+yui-compressor --nomunge -o ./build/css/slate.css ./core/css/slate.css
+echo "- Minifying animate"
+#yui-compressor --nomunge --disable-optimizations ./core/css/animate.css >> ./build/css/dwc.css 
+cat ./core/css/animate.css >> ./build/css/dwc.css
+#sass --watch ./core/css/animate.css:./build/css/test.css --style compressed --scss 
+sed -i -e '$a\' ./build/css/dwc.css
+#Yui compressor fails on many files, so they are just appended
+echo "- Adding compressed files"
+cat ./core/css/bootstrap.min.css >> ./build/css/dwc.css
+sed -i -e '$a\' ./build/css/dwc.css #add newline at end of line 
+cat ./core/css/bootstrap-theme.min.css >> ./build/css/dwc.css
+sed -i -e '$a\' ./build/css/dwc.css
+cat ./core/css/bootstrap-slider.min.css >> ./build/css/dwc.css
+sed -i -e '$a\' ./build/css/dwc.css
+echo "- Minifying defaults"
+#yui-compressor -v --nomunge --disable-optimizations ./core/css/defaults.css >> ./build/css/dwc.css
+cat ./core/css/defaults.css >> ./build/css/dwc.css
 # Aquilegia 
-mkdir ./build/aql
-yui-compressor -o ./core/aql/aql.css ./build/aql/aql.css
-cp ./core/aql/aqlsprite.png ./build/aql/aqlsprite.png
-cp ./core/aql/aqlbullet.png ./build/aql/aqlbullet.png
+echo "- Minifying aql & aqlperso"
+#yui-compressor -v --nomunge --disable-optimizations ./core/aql/aql.css >> ./build/css/dwc.css
+cat ./core/aql/aql.css >> ./build/css/dwc.css
+#yui-compressor ./core/aql/aqlperso.css >> ./build/css/dwc.css
+echo "Add sprite and bullet"
+cp ./core/aql/aqlsprite.png ./build/css/aqlsprite.png
+cp ./core/aql/aqlbullet.png ./build/css/aqlbullet.png
 
 sed -i "s/-halflings-regular\./\./g" ./build/css/dwc.css
 
@@ -71,12 +91,6 @@ sed -i "s/-halflings-regular\./\./g" ./build/css/dwc.css
 echo "Compressing CSS files"
 gzip -c ./build/css/dwc.css > ./build/css/dwc.css.gz
 rm ./build/css/dwc.css
-gzip -c ./build/css/slate.css > ./build/css/slate.css.gz
-rm ./build/css/slate.css
-
-# Aquilegia 
-gzip -c ./build/aql/aql.css > ./build/aql/aql.css.gz
-rm ./build/aql/aql.css
 
 # Minify JS files
 echo "Minifying JS files"
@@ -110,6 +124,8 @@ gzip -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.g
 echo "Creating SPIFFS image for Duet WiFi"
 mkspiffs -c ./build -b 8192 -p 256 -s 3125248 ./DuetWebControl-$VERSION.bin
 
+# exit #!!!!!!! temporary !!!!!!
+
 # Now build DWC for first-gen Duets
 echo "=> Building Duet Web Control for first-gen Duets"
 rm -r ./build/*
@@ -125,13 +141,11 @@ rm ./build/aql/upload.js
 rm ./build/aql/flat.js
 rm ./build/a.htm
 
-cd ./build/h/d
-rename .jpg .jpgd *.jpg
-rename .png .pngd *.png
+rename.ul .jpg .jpgd ./build/h/d/*.jpg
+rename.ul .png .pngd ./build/h/d/*.png
 
-cd ./build/h/f
-rename .jpg .jpgf *.jpg
-rename .png .pngf *.png
+rename.ul .jpg .jpgf ./build/h/f/*.jpg
+rename.ul .png .pngf ./build/h/f/*.png
 
 echo "Fixing JavaScript file paths"
 sed -i "s/js\/3rd-party/js/" ./build/reprap.htm
@@ -144,5 +158,5 @@ zip -r -o ../DuetWebControl-$VERSION.zip ./*
 cd ..
 
 # clean up again
-rm -r ./build
+rm -r -f ./build
 echo "Done"
