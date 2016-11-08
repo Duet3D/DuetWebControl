@@ -67,13 +67,12 @@ rm ./build/css/dwc.css
 gzip -c ./build/css/slate.css > ./build/css/slate.css.gz
 rm ./build/css/slate.css
 
-# Minify JS files
-echo "Minifying JS files"
+# Concatenate JS files. They could be minified as well, but that would make debugging rather tricky
+echo "Concatenating JS files"
 mkdir ./build/js
 JS_FILES=$(grep -e "\.js" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//' | tr '\n' ' ')
 for FILE in $JS_FILES; do
-	echo "- Minifying $FILE..."
-	yui-compressor $FILE >> ./build/js/dwc.js
+	cat $FILE >> ./build/js/dwc.js
 done
 
 # Compress minified JS file

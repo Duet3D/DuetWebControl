@@ -1,6 +1,6 @@
 /* Slider implementation for the Duet Web Control
  * 
- * written by Christian Hammacher
+ * written by Christian Hammacher (c) 2016
  * 
  * licensed under the terms of the GPL v2
  * see http://www.gnu.org/licenses/gpl-2.0.html

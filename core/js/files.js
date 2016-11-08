@@ -7,6 +7,9 @@
  */
 
 
+var numVolumes, mountedVolumes, mountRequested;
+
+var currentGCodeVolume, changingGCodeVolume;
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
 var cachedFileInfo;
 
@@ -70,8 +73,103 @@ function clearFileCacheDirectory(directory) {
 	}
 }
 
-
 /* G-Code Files */
+
+
+// Volume support
+
+function setVolumes(count) {
+	if (count == numVolumes) {
+		// Don't do anything unless the number has changed
+		return;
+	}
+
+	$("#td_volume").toggleClass("hidden", count <= 1);
+	$("#ul_volumes").children().remove();
+	for(var i = 0; i < count; i++) {
+		var isMounted = (mountedVolumes & (1 << i)) != 0;
+
+		var item = 	'<li><a href="#" data-volume="' + i + '">';
+		if (isMounted) {
+			item +=	'<span class="glyphicon glyphicon-ok text-success"></span> ';
+		} else {
+			item +=	'<span class="glyphicon glyphicon-remove text-danger"></span> ';
+		}
+		item +=		'<span class="content">' + T("SD Card {0} ({1})", i, isMounted ? T("mounted") : T("not mounted")) + '</span>';
+		item +=		'</a></li>';
+		$("#ul_volumes").append(item);
+	}
+
+	numVolumes = count;
+}
+
+function setMountedVolumes(bitmap) {
+	if (bitmap == mountedVolumes) {
+		// Don't do anything unless the bitmap has changed
+		return;
+	}
+
+	for(var i = 0; i < numVolumes; i++) {
+		// Update UI
+		var item = $("[data-volume=" + i + "]");
+		if ((bitmap & (1 << i)) != 0) {
+			item.find("span.glyphicon").removeClass("glyphicon-remove text-danger").addClass("glyphicon-ok text-success");
+			item.find("span.content").text(T("SD Card {0} ({1})", i, T("mounted")));
+		} else {
+			item.find("span.glyphicon").removeClass("glyphicon-ok text-success").addClass("glyphicon-remove text-danger");
+			item.find("span.content").text(T("SD Card {0} ({1})", i, T("not mounted")));
+		}
+
+		// Check if the requested volume has been mounted
+		if (mountRequested && (bitmap & (1 << i)) != (mountedVolumes & (1 << i))) {
+			mountRequested = false;
+			changeGCodeVolume(i);
+		}
+	}
+	mountedVolumes = bitmap;
+
+	// Is the current volume still mounted?
+	if ((bitmap & (1 << currentGCodeVolume)) == 0) {
+		// No - find the first one that is mounted
+		for(var i = 0; i < numVolumes; i++) {
+			if ((bitmap & (1 << i)) != 0) {
+				changeGCodeVolume(i);
+				return;
+			}
+		}
+
+		// No volume is mounted at all - not good
+		clearGCodeFiles();
+	}
+}
+
+function changeGCodeVolume(volume) {
+	currentGCodeVolume = volume;
+	$("#btn_volume").removeClass("disabled");
+	$("#btn_volume > span.content").text(T("SD Card {0}", volume));
+
+	setGCodeDirectory((volume == 0) ? "0:/gcodes" : volume + ":");
+	gcodeUpdateIndex = -1;
+	updateGCodeFiles();
+}
+
+$("#ul_volumes").on("click", "a", function(e) {
+	var volume = $(this).data("volume");
+	if ((mountedVolumes & (1 << volume)) == 0) {
+		// Volume is not mounted, try to mount it
+		$("#btn_volume").addClass("disabled").children("span.content").text(T("Mounting..."));
+		sendGCode("M21 P" + volume);
+		mountRequested = true;
+	} else {
+		// Volume is mounted, change it
+		changeGCodeVolume(volume);
+	}
+
+	e.preventDefault();
+});
+
+
+// File list implementation
 
 $(".span-refresh-files").click(function() {
 	clearFileCacheDirectory(currentGCodeDirectory);
@@ -89,7 +187,7 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 
 $("#btn_new_gcode_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
-		$.ajax("rr_mkdir?dir=" + currentGCodeDirectory + "/" + value, {
+		$.ajax("rr_mkdir?dir=" + encodeURIComponent(currentGCodeDirectory + "/" + value), {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
@@ -105,34 +203,39 @@ $("#btn_new_gcode_directory").click(function() {
 
 function setGCodeDirectory(directory) {
 	currentGCodeDirectory = directory;
-
-	$("#ol_gcode_directory").children(":not(:last-child)").remove();
-	if (directory == "/gcodes") {
-		$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</li>');
-		$("#ol_gcode_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up"));
+	var basePath = (currentGCodeVolume == 0) ? "0:/gcodes" : currentGCodeVolume + ":";
+	var baseCaption = (currentGCodeVolume == 0) ? T("G-Codes Directory") : T("Root Directory");
+	
+	$("#ol_gcode_directory > li.content:not(:first-child)").remove();
+	if (directory == basePath) {
+		$("#ol_gcode_directory > li.content").replaceWith('<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> ' + baseCaption + '</li>');
+		$("#ol_gcode_directory > li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up"));
 	} else {
-		var listContent = '<li><a href="#" data-directory="/gcodes"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</a></li>';
-		var directoryItems = directory.split("/"), directoryPath = "/gcodes";
-		for(var i = 2; i < directoryItems.length - 1; i++) {
+		var listContent = '<li class="content"><a href="#" data-directory="' + basePath + '"><span class="glyphicon glyphicon-folder-open"></span> ' + baseCaption + '</a></li>';
+		var directoryItems = directory.split("/"), directoryPath = basePath;
+		for(var i = (currentGCodeVolume == 0) ? 2 : 1; i < directoryItems.length - 1; i++) {
 			directoryPath += "/" + directoryItems[i];
-			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
+			listContent += '<li class="active content"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
 		}
-		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
-		$("#ol_gcode_directory").prepend(listContent);
-		$("#ol_gcode_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up") + '</a>');
+		listContent += '<li class="active content">' + directoryItems[directoryItems.length -1] + '</li>';
+		$("#ol_gcode_directory > li.content").replaceWith(listContent);
+		$("#ol_gcode_directory > li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up") + '</a>');
 	}
 }
 
 function clearGCodeDirectory() {
-	$("#ol_gcode_directory").children(":not(:last-child)").remove();
-	$("#ol_gcode_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("G-Codes Directory") + '</li>');
+	var baseCaption = (currentGCodeVolume == 0) ? T("G-Codes Directory") : T("Root Directory");
+	$("#ol_gcode_directory > li.content:not(:first-child)").remove();
+	$("#ol_gcode_directory > li.content").replaceWith('<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> ' + baseCaption + '</li>');
 }
 
-function addGCodeFile(filename, size) {
+function addGCodeFile(filename, size, lastModified) {
 	$("#page_files h1").addClass("hidden");
 	$("#table_gcode_files").removeClass("hidden");
 
-	var row =	'<tr data-file="' + filename + '">';
+	var title = (lastModified == undefined) ? "" : (' title="' + T("Last modified on {0}", lastModified.toLocaleString()) + '"');
+
+	var row =	'<tr data-file="' + filename + '"' + title + '>';
 	row +=		'<td></td><td></td><td></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
 	row +=		'<td class="hidden-xs">' + formatSize(size) + '</td>';
@@ -218,11 +321,16 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 
 function clearGCodeFiles() {
 	gcodeLastDirectory = undefined;
+	
 	$("#table_gcode_files > tbody").children().remove();
 	$("#table_gcode_files").addClass("hidden");
 	$("#page_files h1").removeClass("hidden");
 	if (isConnected) {
-		$("#page_files h1").text(T("loading"));
+		if ((mountedVolumes & (1 << currentGCodeVolume)) == 0) {
+			$("#page_files h1").text(T("The current volume is not mounted"));
+		} else {
+			$("#page_files h1").text(T("loading"));
+		}
 	} else {
 		$("#page_files h1").text(T("Connect to your Duet to display G-Code files"));
 	}
@@ -231,8 +339,8 @@ function clearGCodeFiles() {
 function updateGCodeFiles() {
 	if (!isConnected) {
 		gcodeUpdateIndex = -1;
-		$(".span-refresh-files").addClass("hidden");
-		$("#table_gcode_files").css("cursor", "");
+		gcodeUpdateFinished();
+
 		clearGCodeDirectory();
 		clearGCodeFiles();
 		return;
@@ -248,36 +356,46 @@ function updateGCodeFiles() {
 			dataType: "json",
 			success: function(response) {
 				if (isConnected) {
-					knownGCodeFiles = response.files.sort(function (a, b) {
-						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-					});
+					if (response.hasOwnProperty("err")) {
+						// don't proceed if the firmware has reported an error
+						$("#page_files h1").text(T("Failed to retrieve files of this directory"));
 
-					for(var i = 0; i < knownGCodeFiles.length; i++) {
-						if (knownGCodeFiles[i].type == 'd') {
-							addGCodeDirectory(knownGCodeFiles[i].name);
-						} else {
-							addGCodeFile(knownGCodeFiles[i].name, knownGCodeFiles[i].size);
-						}
-					}
-
-					if (knownGCodeFiles.length == 0) {
-						$("#page_files h1").text(T("No Files or Directories found"));
-						if (currentPage == "files") {
-							$(".span-refresh-files").removeClass("hidden");
-						}
+						gcodeUpdateIndex = -1;
+						gcodeUpdateFinished();
 					} else {
-						$("#table_gcode_files").css("cursor", "wait");
-						updateGCodeFiles();
-					}
+						// otherwise add each file and directory
+						knownGCodeFiles = response.files.sort(function (a, b) {
+							return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+						});
 
-					startUpdates();
+						for(var i = 0; i < knownGCodeFiles.length; i++) {
+							if (knownGCodeFiles[i].type == 'd') {
+								addGCodeDirectory(knownGCodeFiles[i].name);
+							} else {
+								var lastModified = knownGCodeFiles[i].hasOwnProperty("date") ? strToTime(knownGCodeFiles[i].date) : undefined;
+								addGCodeFile(knownGCodeFiles[i].name, knownGCodeFiles[i].size, lastModified);
+							}
+						}
+
+						if (knownGCodeFiles.length == 0) {
+							$("#page_files h1").text(T("No Files or Directories found"));
+							gcodeUpdateFinished();
+						} else {
+							$("#table_gcode_files").css("cursor", "wait");
+							updateGCodeFiles();
+						}
+					}
 				}
 			}
 		});
 	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
 		if (knownGCodeFiles[gcodeUpdateIndex].type == 'd') {
 			gcodeUpdateIndex++;
-			updateGCodeFiles();
+			if (gcodeUpdateIndex >= knownGCodeFiles.length) {
+				gcodeUpdateFinished();
+			} else {
+				updateGCodeFiles();
+			}
 		} else {
 			getFileInfo(currentGCodeDirectory, knownGCodeFiles[gcodeUpdateIndex].name, function(dir, filename, fileinfo) {
 				if (!isConnected || dir != currentGCodeDirectory) {
@@ -293,20 +411,28 @@ function updateGCodeFiles() {
 				}
 
 				if (currentPage == "files") {
+					saveFileCache();
 					if (gcodeUpdateIndex >= knownGCodeFiles.length) {
-						$(".span-refresh-files").removeClass("hidden");
-						$("#table_gcode_files").css("cursor", "");
-
-						saveFileCache();
-						startUpdates();
+						gcodeUpdateFinished();
 					} else {
 						updateGCodeFiles();
 					}
 				} else {
+					// Although wired Duets can handle fileinfo requests in parallel, DuetWiFiServer cannot do that yet
 					startUpdates();
 				}
 			});
 		}
+	}
+}
+
+function gcodeUpdateFinished() {
+	$("#table_gcode_files").css("cursor", "");
+	if (isConnected) {
+		$(".span-refresh-files").toggleClass("hidden", currentPage != "files");
+		startUpdates();
+	} else {
+		$(".span-refresh-files").addClass("hidden");
 	}
 }
 
@@ -321,7 +447,6 @@ $("body").on("click", ".a-gcode-directory", function(e) {
 /* Macros */
 
 $(".span-refresh-macros").click(function() {
-	macroUpdateIndex = -1;
 	updateMacroFiles();
 	$(".span-refresh-macros").addClass("hidden");
 });
@@ -341,12 +466,12 @@ function setMacroDirectory(directory) {
 	currentMacroDirectory = directory;
 
 	$("#ol_macro_directory").children(":not(:last-child)").remove();
-	if (directory == "/macros") {
+	if (directory == "0:/macros") {
 		$("#ol_macro_directory").prepend('<li class="active"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</li>');
 		$("#ol_macro_directory li:last-child").html('<span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up"));
 	} else {
-		var listContent = '<li><a href="#" data-directory="/macros"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</a></li>';
-		var directoryItems = directory.split("/"), directoryPath = "/macros";
+		var listContent = '<li><a href="#" data-directory="0:/macros"><span class="glyphicon glyphicon-folder-open"></span> ' + T("Macros Directory") + '</a></li>';
+		var directoryItems = directory.split("/"), directoryPath = "0:/macros";
 		for(var i = 2; i < directoryItems.length - 1; i++) {
 			directoryPath += "/" + directoryItems[i];
 			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
@@ -363,7 +488,6 @@ $("#btn_new_macro_directory").click(function() {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
-					macroUpdateIndex = -1;
 					updateMacroFiles();
 				} else {
 					showMessage("warning", T("Error"), T("Could not create this directory!"));
@@ -397,11 +521,11 @@ function stripMacroFilename(filename) {
 	return label;
 }
 
-function addMacroFile(filename, size) {
+function addMacroFile(filename, size, lastModified) {
 	// Control Page
-	if (currentMacroDirectory == "/macros") {
+	if (currentMacroDirectory == "0:/macros") {
 		var macroButton =	'<div class="btn-group">';
-		macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="/macros/' + filename + '">' +  stripMacroFilename(filename) + '</button>';
+		macroButton +=		'<button class="btn btn-default btn-macro btn-sm" data-macro="0:/macros/' + filename + '">' +  stripMacroFilename(filename) + '</button>';
 		macroButton +=		'</div>';
 
 		$("#panel_macro_buttons h4").addClass("hidden");
@@ -418,6 +542,7 @@ function addMacroFile(filename, size) {
 	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this macro") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
 	row +=		'<td><a href="#" class="a-macro-file"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
 
 	var rowElem = $(row);
@@ -428,11 +553,11 @@ function addMacroFile(filename, size) {
 
 function addMacroDirectory(name) {
 	// Control Page
-	if (currentMacroDirectory == "/macros") {
+	if (currentMacroDirectory == "0:/macros") {
 		$("#panel_macro_buttons h4").addClass("hidden");
 
 		var button =	'<div class="btn-group">';
-		button +=		'<button class="btn btn-default btn-macro btn-sm" data-directory="/macros/' + name + '" data-toggle="dropdown">' + name + ' <span class="caret"></span></button>';
+		button +=		'<button class="btn btn-default btn-macro btn-sm" data-directory="0:/macros/' + name + '" data-toggle="dropdown">' + name + ' <span class="caret"></span></button>';
 		button +=		'<ul class="dropdown-menu"></ul>';
 		button +=		'</div>';
 
@@ -458,7 +583,8 @@ function addMacroDirectory(name) {
 	row +=		'<td colspan="3"><button class="btn btn-danger btn-delete-directory btn-sm" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
 	row +=		'<td class="hidden"></td>';
 	row +=		'<td class="hidden"></td>';
-	row +=		'<td colspan="2"><a href="#" class="a-macro-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
+	row +=		'<td colspan="3"><a href="#" class="a-macro-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
+	row +=		'<td class="hidden"></td>';
 	row +=		'<td class="hidden"></td>';
 	row +=		'</tr>';
 
@@ -501,7 +627,8 @@ function updateMacroFiles() {
 					if (files[i].type == 'd') {
 						addMacroDirectory(files[i].name);
 					} else {
-						addMacroFile(files[i].name, files[i].size);
+						var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+						addMacroFile(files[i].name, files[i].size, lastModified);
 					}
 				}
 
@@ -528,7 +655,7 @@ $("body").on("click", ".a-macro-directory", function(e) {
 
 function clearMacroFiles() {
 	// Control Page
-	if (currentMacroDirectory == "/macros") {
+	if (currentMacroDirectory == "0:/macros") {
 		macroLastDirectoryItem = undefined;
 
 		$("#panel_macro_buttons .btn-group-vertical").children().remove();
@@ -603,12 +730,17 @@ function loadMacroDropdown(directory, dropdown) {
 /* Common functions */
 
 function resetFiles() {
+	setVolumes(1);
+	setMountedVolumes(1);
+	mountRequested = false;
+
 	knownGCodeFiles = [];
 	gcodeUpdateIndex = -1;
-	currentGCodeDirectory = "/gcodes";
+	currentGCodeVolume = 0;
+	currentGCodeDirectory = "0:/gcodes";
 	//updateGCodeFiles();
 
-	currentMacroDirectory = "/macros";
+	currentMacroDirectory = "0:/macros";
 	//updateMacroFiles();
 }
 
@@ -745,7 +877,7 @@ $("#a_refresh_sys").click(function(e) {
 	e.preventDefault();
 });
 
-function addSysFile(filename, size) {
+function addSysFile(filename, size, lastModified) {
 	$("#page_sysedit h1").addClass("hidden");
 	$("#table_sys_files").removeClass("hidden");
 
@@ -758,6 +890,7 @@ function addSysFile(filename, size) {
 	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
 	row +=		'<td><span class="glyphicon glyphicon-file"></span> ' + filename + '</td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
 	$("#table_sys_files > tbody").append(row);
 }
@@ -780,7 +913,7 @@ function updateSysFiles() {
 	stopUpdates();
 
 	// Request filelist for /sys
-	$.ajax("rr_filelist?dir=/sys", {
+	$.ajax("rr_filelist?dir=0:/sys", {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
@@ -790,7 +923,8 @@ function updateSysFiles() {
 
 				for(var i = 0; i < files.length; i++) {
 					if (files[i].type != 'd') {
-						addSysFile(files[i].name, files[i].size);
+						var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+						addSysFile(files[i].name, files[i].size, lastModified);
 					}
 				}
 
@@ -818,17 +952,43 @@ function getFilePath() {
 		return currentMacroDirectory;
 	}
 
-	return "/sys";
+	return "0:/sys";
 }
 
 $("body").on("click", ".btn-download-file", function(e) {
-	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
 	var filename = $(this).parents("tr").data("file");
-	var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(getFilePath() + "/" + filename) + '" download="' + filename + '"></a>');
-	elem.appendTo("body");
-	elem[0].click();
-	elem.remove();
+	if (boardType.startsWith("duetwifi"))
+	{
+		// DuetWiFiServer isn't multi-threaded yet. To interrupt
+		// all the communication until the file has been downloaded,
+		// navigate to the rr_download request for now.
+		disconnect(false);
+		location.href = "http://" + location.hostname + "/rr_download?name=" + encodeURIComponent(getFilePath() + "/" + filename);
+	} else {
+		// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
+		var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(getFilePath() + "/" + filename) + '" download="' + filename + '"></a>');
+		elem.appendTo("body");
+		elem[0].click();
+		elem.remove();
+	}
 });
+
+function editFile(file) {
+	$.ajax("rr_download?name=" + encodeURIComponent(file), {
+		dataType: "text",
+		success: function(response) {
+			showEditDialog(file, response, function(value) {
+				uploadTextFile(file, value, function() {
+					if (currentPage == "macros") {
+						updateMacroFiles();
+					} else if (currentPage == "settings") {
+						updateSysFiles();
+					}
+				});
+			});
+		}
+	});
+}
 
 $("body").on("click", ".btn-edit-file", function(e) {
 	if (!$(this).is(".disabled")) {
@@ -909,10 +1069,12 @@ $("body").on("click", ".btn-print-file, .a-gcode-file", function(e) {
 	var file = $(this).parents("tr").data("file");
 	showConfirmationDialog(T("Start Print"), T("Do you want to print <strong>{0}</strong>?", file), function() {
 		waitingForPrintStart = true;
-		if (currentGCodeDirectory == "/gcodes") {
+		if (currentGCodeVolume != 0) {
+			sendGCode("M32 " + currentGCodeDirectory + "/" + file);
+		} else if (currentGCodeDirectory == "0:/gcodes") {
 			sendGCode("M32 " + file);
 		} else {
-			sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + file);
+			sendGCode("M32 " + currentGCodeDirectory.substring(10) + "/" + file);
 		}
 	});
 	e.preventDefault();

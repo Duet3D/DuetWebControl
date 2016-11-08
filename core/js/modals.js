@@ -14,6 +14,10 @@ $(".modal").on("hidden.bs.modal", function() {
 	$("body").css("padding-right", "");
 });
 
+function hideModals() {
+	$("#modal_upload, #modal_confirmation, #modal_textinput, #modal_password, #modal_edit").modal("hide");
+}
+
 
 /* Confirmation dialog */
 

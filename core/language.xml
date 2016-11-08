@@ -436,6 +436,18 @@
 		<string t="Error! Unknown update parameter!">Fehler! Unbekannter Update-Parameter!</string>
 		<string t="System Directory">Systemverzeichnis</string>
 		<string t="tuning">kalibriere</string>
+
+		<!-- New in DWC 1.13 -->
+		<string t="Failed to retrieve files of this directory">Inhalt dieses Verzeichnisses konnte nicht abgefragt werden</string>
+		<string t="Last modified on {0}">Zuletzt verändert am {0}</string>
+		<string t="Mounting...">Wird eingebunden...</string>
+		<string t="Root Directory">Stammverzeichnis</string>
+		<string t="SD Card {0}">SD-Karte {0}</string>
+		<string t="SD Card {0} ({1})">SD-Karte {0} ({1})</string>
+		<string t="The current volume is not mounted">Der aktuelle Datenträger ist nicht eingebunden</string>
+		<string t="mounted">eingebunden</string>
+		<string t="not mounted">nicht eingebunden</string>
+		<string t="unknown">unbekannt</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->

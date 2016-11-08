@@ -1,13 +1,14 @@
 /* Interface logic for the Duet Web Control
  * 
- * written by Christian Hammacher
+ * written by Christian Hammacher (c) 2016
  * 
  * licensed under the terms of the GPL v2
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
 
 
-var maxExtruders = 6, maxHeaters = 6, maxDrives = 9, maxFans = 3;
+var maxAxes = 6, maxExtruders = 6, maxDrives = 9, maxHeaters = 8, maxFans = 3;
+var axisNames = ["X", "Y", "Z", "U", "V", "W"];
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var webcamUpdating = false;
@@ -15,8 +16,9 @@ var webcamUpdating = false;
 var fileInfo, currentLayerTime, lastLayerPrintDuration;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
-var heatedBed, chamber, numHeads, numExtruderDrives, toolMapping;
-var coldExtrudeTemp, coldRetractTemp, tempLimit = 280;
+var numAxes, numExtruderDrives, numVolumes;
+var heatedBed, chamber, numHeads, toolMapping;
+var coldExtrudeTemp, coldRetractTemp, tempLimit;
 
 var isPrinting, isPaused, printHasFinished;
 
@@ -40,10 +42,12 @@ function resetGuiData() {
 	heatedBed = 1;
 	chamber = 0;
 	numHeads = 2;			// only 2 are visible on load
+	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
 
 	coldExtrudeTemp = 160;
 	coldRetractTemp = 90;
+	tempLimit = 280;
 
 	resetChartData();
 	lastLayerPrintDuration = 0;
@@ -74,7 +78,7 @@ function pageLoadComplete() {
 }
 
 function updateGui() {
-	// Visibility for Heater Temperatures
+	// Visibility of heater temperatures
 	if (heatedBed) {						// Heated Bed
 		$("#tr_bed").removeClass("hidden");
 	} else {
@@ -93,7 +97,31 @@ function updateGui() {
 		}
 	}
 
-	// Visibility for Extruder Drive columns
+	// Visibility of additional axis control buttons
+	$("#panel_extra_axes").toggleClass("hidden", numAxes <= 3);
+	for(var i = 4; i <= maxAxes; i++) {
+		var row = $("#table_move_axes > tbody > tr").eq(i - 4);
+		if (i > numAxes) {
+			row.addClass("hidden");
+		} else {
+			row.removeClass("hidden");
+			if (i == numAxes) {
+				row.find("div.btn-group").css("padding-bottom", "0px");
+			} else {
+				row.find("div.btn-group").removeAttr("style");
+			}
+		}
+
+		$("#mobile_extra_home_buttons > div.btn-group").eq(i - 4).toggleClass("hidden", i > numAxes);
+	}
+
+	// Visibility of additional axis positions
+	$("#th_z, #td_z").css("border-right", numAxes < 4 ? "1px" : "0px");
+	$("#th_u, #td_u").toggleClass("hidden", numAxes < 4).css("border-right", numAxes < 5 ? "1px" : "0px");
+	$("#th_v, #td_v").toggleClass("hidden", numAxes < 5).css("border-right", numAxes < 6 ? "1px" : "0px");
+	$("#th_w, #td_w").toggleClass("hidden", numAxes < 6).css("border-right", numAxes < 7 ? "1px" : "0px");
+
+	// Visibility of extruder drive columns
 	for(var i = 1; i <= maxExtruders; i++) {
 		if (i <= numExtruderDrives) {
 			$(".extr-" + i).removeClass("hidden").css("border-right", "");
@@ -104,30 +132,31 @@ function updateGui() {
 	}
 	if (numExtruderDrives > 0) {
 		$(".extr-" + numExtruderDrives).css("border-right", "0px");
-		$("#row_status_2").removeClass("hidden");
-	} else {
-		$("#row_status_2").addClass("hidden");
 	}
 
-	// Do some rearrangement for the panels if we have less than or exactly three extruder drives
-
+	// Rearrange extruder drive cells if neccessary. Only show totalusage on md desktop if more than three extruders are in use
 	if (numExtruderDrives <= 3) {
-		$(".div-head-temp").removeClass("hidden-sm");
-		$("#col_extr_totals, #td_extr_total").addClass("hidden");
+		$("#col_extr_totals, #td_extr_total").addClass("hidden-md");
 		for(var i = 1; i <= 3; i++) {
-			$("th.extr-" + i).html(T("Drive " + i));
-			$("#row_status_2 .extr-" + i).removeClass("hidden-md");
+			$("th.extr-" + i).removeClass("hidden-md").html(T("Drive " + i));
+			$("#td_extr_" + i).removeClass("hidden-md");
 		}
+	} else {
+		$("#col_extr_totals, #td_extr_total").removeClass("hidden-md");
+		for(var i = 1; i <= maxExtruders; i++) {
+			$("th.extr-" + i).addClass("hidden-md").html(T("D" + i));
+			$("#td_extr_" + i).addClass("hidden-md");
+		}
+	}
+
+	// Do some rearrangement if we have less than four extruders and less than five axes
+	if (numExtruderDrives <= 3 && numAxes <= 4) {
+		$(".div-head-temp").removeClass("hidden-sm");
 		$("#div_heaters").removeClass("col-sm-5").addClass("col-sm-6");
 		$("#div_temp_chart").removeClass("col-lg-3").addClass("col-lg-5");
 		$("#div_status").removeClass("col-sm-7 col-lg-5").addClass("col-sm-6 col-lg-3");
 	} else {
 		$(".div-head-temp").addClass("hidden-sm");
-		$("#col_extr_totals, #td_extr_total").removeClass("hidden");
-		for(var i = 1; i <= maxExtruders; i++) {
-			$("th.extr-" + i).html(T("D" + i));
-			$("#row_status_2 .extr-" + i).addClass("hidden-md");
-		}
 		$("#div_heaters").removeClass("col-sm-6").addClass("col-sm-5");
 		$("#div_temp_chart").removeClass("col-lg-5").addClass("col-lg-3");
 		$("#div_status").removeClass("col-sm-6 col-lg-3").addClass("col-sm-7 col-lg-5");
@@ -161,6 +190,9 @@ function resetGui() {
 	}
 
 	// Status fields
+	$("#th_x").text(T("X"));
+	$("#th_y").text(T("Y"));
+	$("#th_z").text(T("Z"));
 	$("#td_x, #td_y, #td_z").text(T("n/a"));
 	for(var i = 1; i <= numExtruderDrives; i++) {
 		$("#td_extr_" + i).text(T("n/a"));
@@ -195,13 +227,14 @@ function resetGui() {
 	updateMacroFiles();
 
 	// Settings
-	$("#firmware_name, #firmware_version, #dws_version").html(T("n/a"));
+	$("#tr_firmware_electronics").addClass("hidden");
+	$("#firmware_name, #firmware_electronics, #firmware_version, #dws_version").html(T("n/a"));
 	$("#page_machine td:not(:first-child), #page_machine dd").html(T("n/a"));
 
 	updateSysFiles();
 
 	// Modal dialogs
-	$("#modal_upload").modal("hide");
+	hideModals();
 
 	// Upload prompt
 	$("#input_file_upload").val("");
@@ -406,24 +439,32 @@ $(".btn-home-x").resize(function() {
 	}
 }).resize();
 
-$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").click(function(e) {
-	$this = $(this);
-	if ($this.data("home") != undefined) {
-		if ($this.data("home") == "all") {
+$("#mobile_home_buttons button, #btn_homeall, #mobile_extra_home_buttons, .table-move a").click(function(e) {
+	if ($(this).data("home") != undefined) {
+		if ($(this).data("home") == "all") {
 			sendGCode("G28");
 		} else {
-			sendGCode("G28 " + $this.data("home"));
+			sendGCode("G28 " + $(this).data("home"));
 		}
 	} else {
 		var moveString = "M120\nG91\nG1";
-		if ($this.data("x") != undefined) {
-			moveString += " X" + $this.data("x");
+		if ($(this).data("x") != undefined) {
+			moveString += " X" + $(this).data("x");
 		}
-		if ($this.data("y") != undefined) {
-			moveString += " Y" + $this.data("y");
+		if ($(this).data("y") != undefined) {
+			moveString += " Y" + $(this).data("y");
 		}
-		if ($this.data("z") != undefined) {
-			moveString += " Z" + $this.data("z");
+		if ($(this).data("z") != undefined) {
+			moveString += " Z" + $(this).data("z");
+		}
+		if ($(this).data("u") != undefined) {
+			moveString += " U" + $(this).data("u");
+		}
+		if ($(this).data("v") != undefined) {
+			moveString += " V" + $(this).data("v");
+		}
+		if ($(this).data("w") != undefined) {
+			moveString += " W" + $(this).data("w");
 		}
 		moveString += " F" + settings.moveFeedrate + "\nM121";
 		sendGCode(moveString);
@@ -756,7 +797,7 @@ function clearHeadTemperatures() {
 }
 
 function setAxesHomed(axes) {
-	// Set button colors
+	// Set button colors and prepare list of unhomed axes
 	var unhomedAxes = "";
 	if (axes[0]) {
 		$(".btn-home-x").removeClass("btn-warning").addClass("btn-primary");
@@ -775,6 +816,30 @@ function setAxesHomed(axes) {
 	} else {
 		unhomedAxes += (geometry == "delta") ? ", C" : ", Z";
 		$(".btn-home-z").removeClass("btn-primary").addClass("btn-warning");
+	}
+	if (axes.length > 3) {
+		if (axes[3]) {
+			$(".btn-home-u").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes += ", U";
+			$(".btn-home-u").removeClass("btn-primary").addClass("btn-warning");
+		}
+	}
+	if (axes.length > 4) {
+		if (axes[4]) {
+			$(".btn-home-v").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes += ", V";
+			$(".btn-home-v").removeClass("btn-primary").addClass("btn-warning");
+		}
+	}
+	if (axes.length > 5) {
+		if (axes[5]) {
+			$(".btn-home-w").removeClass("btn-warning").addClass("btn-primary");
+		} else {
+			unhomedAxes += ", W";
+			$(".btn-home-w").removeClass("btn-primary").addClass("btn-warning");
+		}
 	}
 
 	// Set home alert visibility
@@ -850,13 +915,13 @@ function setGeometry(g) {
 	// The following may be extended in future versions
 	if (g == "delta") {
 		$("#btn_bed_compensation").text(T("Auto Delta Calibration"));
-		$(".home-buttons div, div.home-buttons").addClass("hidden");
-		$("td.home-buttons").css("padding-right", "0px");
+		$("#panel_head_movement .home-buttons div, #panel_head_movement div.home-buttons").addClass("hidden");
+		$("#panel_head_movement td.home-buttons").css("padding-right", "0px");
 		$("#btn_homeall").css("min-width", "");
 	} else {
 		$("#btn_bed_compensation").text(T("Auto Bed Compensation"));
-		$(".home-buttons div, div.home-buttons").removeClass("hidden");
-		$("td.home-buttons").css("padding-right", "");
+		$("#panel_head_movement .home-buttons div, #panel_head_movement div.home-buttons").removeClass("hidden");
+		$("#panel_head_movement td.home-buttons").css("padding-right", "");
 		$("#btn_homeall").resize();
 	}
 	$("#dd_geometry").text(T(g.charAt(0).toUpperCase() + g.slice(1)));
@@ -1155,7 +1220,8 @@ function applyThemeColors(themeActive) {
 	tempChartOptions.colors[3] = $("#tr_head_3 a").css("color");
 	tempChartOptions.colors[4] = $("#tr_head_4 a").css("color");
 	tempChartOptions.colors[5] = $("#tr_head_5 a").css("color");
-	tempChartOptions.colors[6] = $("#tr_chamber th").css("color");
+	tempChartOptions.colors[6] = $("#tr_head_5 a").css("color");
+	tempChartOptions.colors[7] = $("#tr_chamber th").css("color");
 	if (tempChart != undefined) {
 		tempChart.destroy();
 		tempChart = undefined;

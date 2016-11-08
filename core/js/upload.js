@@ -19,8 +19,13 @@ var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .b
 
 
 function uploadTextFile(filename, content, callback) {
-	var file = new File([content], filename, { type: "application/octet-stream" });
-	var uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(filename), {
+	// Ideally we should use FileAPI here, but IE+Edge don't support it
+	//var file = new File([content], filename, { type: "application/octet-stream" });
+	var file = new Blob([content], { type: "application/octet-stream" });
+	file.name = filename;
+	file.lastModified = (new Date()).getTime();
+
+	var uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(filename) + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		data: file,
 		dataType: "json",
 		filename: filename.toLowerCase(),
@@ -31,11 +36,13 @@ function uploadTextFile(filename, content, callback) {
 		success: function(response) {
 			if (response.err == 0) {
 				showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", filename));
-				if (this.filename == "/sys/config.g") {
-					showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to perform a software reset now?"), function() {
-						// Perform software reset
-						sendGCode("M999");
-					});
+				if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
+					if (this.filename == "0:/sys/config.g") {
+						showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
+							// Perform software reset
+							sendGCode("M999");
+						});
+					}
 				}
 			} else {
 				showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
@@ -97,7 +104,12 @@ function startUpload(type, files, fromCallback) {
 									var zipName = zipEntry.name.split("/");
 									zipName = zipName[zipName.length - 1];
 
-									var unpackedFile = new File([zipEntry.asArrayBuffer()], zipName, { type: "application/octet-stream", lastModified: zipEntry.date });
+									// See above. FileAPI isn't supported by IE+Edge
+									//var unpackedFile = new File([zipEntry.asArrayBuffer()], zipName, { type: "application/octet-stream", lastModified: zipEntry.date });
+									var unpackedFile = new Blob([zipEntry.asArrayBuffer()], { type: "application/octet-stream" });
+									unpackedFile.name = zipName;
+									unpackedFile.lastModified = zipEntry.date;
+
 									zipFiles.push(unpackedFile);
 								}
 							});
@@ -257,7 +269,7 @@ function uploadNextFile() {
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 
 	// Begin another POST file upload
-	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(targetPath), {
+	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(targetPath) + "&time=" + encodeURIComponent(timeToStr(new Date(file.lastModified))), {
 		data: file,
 		dataType: "json",
 		processData: false,
@@ -401,11 +413,7 @@ function uploadHasFinished(success) {
 		// Check if a print is supposed to be started
 		if (uploadType == "print") {
 			waitingForPrintStart = true;
-			if (currentGCodeDirectory == "/gcodes") {
-				sendGCode("M32 " + uploadFileName);
-			} else {
-				sendGCode("M32 " + currentGCodeDirectory.substring(8) + "/" + uploadFileName);
-			}
+			sendGCode("M32 " + currentGCodeDirectory + "/" + uploadFileName);
 		}
 
 		// Ask for page reload if DWC has been updated
@@ -430,7 +438,7 @@ function uploadHasFinished(success) {
 				showConfirmationDialog(T("Perform Duet Web Control Update?"), T("You have just uploaded a Duet Web Control package. Would you like to install it now?"), startDWCUpdate);
 			} else if (uploadIncludedConfig) {
 				$("#modal_upload").modal("hide");
-				showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to perform a software reset now?"), function() {
+				showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
 					// Perform software reset
 					sendGCode("M999");
 				});

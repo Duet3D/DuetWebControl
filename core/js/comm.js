@@ -44,32 +44,35 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 
 	if (isConnected) {
 		// Resend this request if it timed out. This may be necessary for DuetWiFi
-		if (thrownError == "timeout") {
-			if (!this.hasOwnProperty('retryCount')) {
-				this.retryCount = 1;
+		// Also check for empty responses, although not every browser reports an
+		// error in this case. However if we get one, treat it as a timeout.
+		var response = jqxhr.responseText || jqxhr.responseJSON;
+		if (thrownError == "timeout" || (thrownError == "" && response == undefined)) {
+			if (!xhrsettings.hasOwnProperty('retryCount')) {
+				xhrsettings.retryCount = 1;
 			} else {
-				this.retryCount++;
+				xhrsettings.retryCount++;
 			}
 
-			if (this.retryCount <= settings.maxRetries) {
-				$.ajax(this);
+			if (xhrsettings.retryCount <= settings.maxRetries) {
+				$.ajax(xhrsettings);
 				return;
 			}
 		}
 
 		// Disconenct and report an error if we exceeded the maximum number of retries
 		var msg = T("An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.");
-		if (thrownError != "") {
-			msg += "<br/><br/>" + T("Error reason: {0}", T(thrownError));
+		if (thrownError != undefined && thrownError != "") {
+			msg += "<br/><br/>" + T("Error reason: {0}", T(thrownError.toString()));
 		}
 		showMessage("danger", T("Communication Error"), msg, 0);
 
 		disconnect(false);
 
 		// Try to log the faulty response to console
-		if (jqxhr.responseText != undefined) {
+		if (response != undefined) {
 			console.log("Error! The following JSON response could not be parsed:");
-			console.log(jqxhr.responseText);
+			console.log(response);
 		}
 	}
 });
@@ -94,7 +97,7 @@ function connect(password, regularConnect) {
 
 	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text(T("Connecting..."));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
-	$.ajax("rr_connect?password=" + password, {
+	$.ajax("rr_connect?password=" + password + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		dataType: "json",
 		error: function() {
 			showMessage("danger", T("Error"), T("Could not establish a connection to the Duet firmware! Please check your settings and try again.") + "<div class=\"visible-xs visible-sm\"><br/><center><button id=\"btn_quick_connect\" class=\"btn btn-info btn-connect\"><span class=\"glyphicon glyphicon-log-in\"></span> Connect</button></center>", 0);
@@ -180,10 +183,12 @@ function disconnect(sendDisconnect) {
 	if (sendDisconnect) {
 		$.ajax("rr_disconnect", { dataType: "json", global: false });
 	}
+
 	ajaxRequests.forEach(function(request) {
 		request.abort();
 	});
 	ajaxRequests = [];
+	updateTaskLive = false;
 
 	resetGuiData();
 	resetGui();
@@ -209,15 +214,16 @@ function stopUpdates() {
 	stopUpdating = updateTaskLive;
 }
 
-function updateStatus(attemptNumber) {
+function updateStatus() {
 	if (stopUpdating) {
 		updateTaskLive = false;
 		return;
 	}
 	updateTaskLive = true;
 
+	var machinePropsVisible = (currentPage == "settings") && $("#page_machine").hasClass("active");
 	var ajaxRequest = "rr_status";
-	if (extendedStatusCounter >= settings.extendedStatusInterval || (currentPage == "settings" && (!isPrinting || extendedStatusCounter != 0))) {
+	if (extendedStatusCounter >= settings.extendedStatusInterval || machinePropsVisible && (!isPrinting || extendedStatusCounter > 1)) {
 		extendedStatusCounter = 0;
 		ajaxRequest += "?type=2";
 	} else if (isPrinting) {
@@ -253,10 +259,9 @@ function updateStatus(attemptNumber) {
 
 			// Endstops
 			if (status.hasOwnProperty("endstops")) {
-				var endstops = status.endstops;
-				for(var i = 0; i < 9; i++) {
+				for(var i = 0; i <= maxDrives; i++) {
 					var displayText;
-					if (endstops & (1 << i)) {
+					if ((status.endstops & (1 << i)) != 0) {
 						displayText = T("Yes");
 					} else {
 						displayText = T("No");
@@ -269,6 +274,23 @@ function updateStatus(attemptNumber) {
 			// Printer Geometry
 			if (status.hasOwnProperty("geometry")) {
 				setGeometry(status.geometry);
+			}
+
+			// Number of axes
+			if (status.hasOwnProperty("axes") && numAxes != status.axes)
+			{
+				numAxes = status.axes;
+				needGuiUpdate = true;
+			}
+
+			// Number of volumes
+			if (status.hasOwnProperty("volumes")) {
+				setVolumes(status.volumes);
+			}
+
+			// Bitmap of mounted volumes
+			if (status.hasOwnProperty("mountedVolumes")) {
+				setMountedVolumes(status.mountedVolumes);
 			}
 
 			// Machine Name
@@ -313,9 +335,10 @@ function updateStatus(attemptNumber) {
 			}
 
 			// CPU temperature
-			if (status.hasOwnProperty("cputemp") && status.cputemp.hasOwnProperty("cur")) {
+			if (status.hasOwnProperty("mcutemp")) {
 				$(".cpu-temp").removeClass("hidden");
-				$("#td_cputemp").html(T("{0} °C", status.cputemp.cur.toFixed(1)));
+				$("#td_cputemp").html(T("{0} °C", status.mcutemp.cur.toFixed(1)));
+				$("#td_cputemp").prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.mcutemp.min.toFixed(1), status.mcutemp.max.toFixed(1)));
 			}
 
 			/*** Default status response ***/
@@ -387,9 +410,16 @@ function updateStatus(attemptNumber) {
 			if (geometry == "delta" && !status.coords.axesHomed[0]) {
 				$("#td_x, #td_y, #td_z").html(T("n/a"));
 			} else {
-				$("#td_x").html(status.coords.xyz[0].toFixed(2));
-				$("#td_y").html(status.coords.xyz[1].toFixed(2));
-				$("#td_z").html(status.coords.xyz[2].toFixed(2));
+				$("#td_x").text(status.coords.xyz[0].toFixed(1));
+				$("#td_y").text(status.coords.xyz[1].toFixed(1));
+				$("#td_z").text(status.coords.xyz[2].toFixed(2));
+			}
+
+			// UVW coordinates
+			if (numAxes > 3) {
+				$("#td_u").text(numAxes > 3 ? status.coords.xyz[3].toFixed(1) : "n/a");
+				$("#td_v").text(numAxes > 4 ? status.coords.xyz[4].toFixed(1) : "n/a");
+				$("#td_w").text(numAxes > 5 ? status.coords.xyz[5].toFixed(1) : "n/a");
 			}
 
 			// Current Tool
@@ -477,6 +507,12 @@ function updateStatus(attemptNumber) {
 								} else {
 									showMessage(style, "", response.replace(/Error:/g, "<strong>" + T("Error") + ":</strong>"));
 								}
+							}
+
+							// If an error is reported and we're trying to mount a volume, don't wait for it any longer
+							if (mountRequested && (response.indexOf("Cannot initialise") != -1 || response.indexOf("Can't mount") != -1)) {
+								mountRequested = false;
+								changeGCodeVolume(currentGCodeVolume);
 							}
 						}
 
@@ -787,6 +823,10 @@ function getConfigResponse() {
 			configResponse = response;
 
 			$("#firmware_name").text(response.firmwareName);
+			if (response.hasOwnProperty("firmwareElectronics")) {
+				$("#tr_firmware_electronics").removeClass("hidden");
+				$("#firmware_electronics").text(response.firmwareElectronics);
+			}
 
 			if (response.hasOwnProperty("dwsVersion")) {
 				$("#dws_version").text(response.dwsVersion);
@@ -827,16 +867,5 @@ function sendGCode(gcode, fromInput) {
 	// We only need to worry about an AJAX error event.
 	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
-	});
-}
-
-function editFile(file) {
-	$.ajax("rr_download?name=" + encodeURIComponent(file), {
-		dataType: "text",
-		success: function(response) {
-			showEditDialog(file, response, function(value) {
-				uploadTextFile(file, value);
-			});
-		}
 	});
 }
