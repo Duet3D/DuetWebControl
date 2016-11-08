@@ -31,13 +31,15 @@ Since RepRapFirmware can only process one HTTP request at a time (excluding rr_f
 
 Note the interrupt of live updates while multiple long requests are processed. DWC implements two particular functions (stopUpdates and startUpdates) which can - and should - be used to stop status requests while long-running HTTP requests are being executed. The update loop is stopped when file uploads are started, too, however it is not required to interrupt the update loop while short requests (e.g. rr_gcode) are sent.
 
+Some requests may send or expect date and time values. These values are represented by the format "YYYY-MM-DDTHH:MM:SS" similar to the ISO-8601 format.
+
 ## List of HTTP requests
 
 All HTTP requests, except for rr_upload, are simple GET requests that return JSON objects, which makes it easy to deal with them using JavaScript code. Here the list of all currently used requests:
 
-#### rr_connect?password=XXX
+#### rr_connect?password=XXX&time=YYY
 Create an initial connection between DWC and RRF.
-- On success, the firmware sends out a response like: {"err":0,"sessionTimeout":[time in ms],"boardType":"[board type]"} This way DWC can adjust the AJAX timeout value and set board-specific options.
+- On success, the firmware sends out a response like: {"err":0,"sessionTimeout":[time in ms],"boardType":"[board type]"} This way DWC can adjust the AJAX timeout value and set board-specific options. The "time" value should represent the client's date and time to set the on-board RTC if necessary.
 - If anything goes wrong, the firmware only responds with an {"err":[code]} object. If code is 1, then the specified password is wrong. If it is 2, then the firmware cannot allocate enough resources to accomodate another session.
 
 #### rr_disconnect
@@ -53,17 +55,23 @@ Request a status response from the firmware which usually includes all the machi
 #### rr_code?gcode=XXX
 Send a G-code to the firmware. Since RepRapFirmware is generally only controlled by G-codes, this provides an interface to transmit codes from the web interface. This request returns the amount of currently available buffer space for incoming G-codes, however DWC does not actively use this response yet.
 
-#### rr_upload?name=XXX
-Upload a file to path XXX using an HTTP POST request. This is the only supported POST request in RepRapFirmware, however be aware that the POST request is no standard HTTP request. To make this work in the firmware, the payload (ie. file) has to be send in one chunk right after the HTTP header without any encapsulation. This mechanism is used to speed up transfers. Once complete, the firmware responds with {"err":[code]}. If everything goes well, the error code will be 0 and 1 on failure.
+#### rr_upload?name=XXX&time=YYY
+Upload a file to path XXX with the last modified date and time using an HTTP POST request. This is the only supported POST request in RepRapFirmware, however be aware that the POST request is no standard HTTP request. To make this work in the firmware, the payload (ie. file) has to be send in one chunk right after the HTTP header without any encapsulation. This mechanism is used to speed up transfers. Once complete, the firmware responds with {"err":[code]}. If everything goes well, the error code will be 0 and 1 on failure.
 
 #### rr_download?name=XXX
 Download a specified file from the SD card.
 
 #### rr_delete?name=XXX
-Delete a file from the SD card. The firmware responds again with {"err":[code]} and the error code will be 0 on success.
+Delete a file from the SD card. The firmware responds again with `{"err":[code]}` and the error code will be 0 on success.
 
 #### rr_filelist?dir=XXX
-Request a file list from the directory XXX. Unlike rr_files, which was used in past web interface versions, this request returns a JSON object which encapsulates each file in the following format: {"type":[type],"name":"[name]","size":[size]} Type can be either 'd' if it is a directory or 'f' if it is a regular file. The size is reported in bytes.
+Request a file list from the directory XXX. Unlike rr_files, which was used in past web interface versions, this request returns a JSON object which encapsulates each file in the following format:
+
+`{"type":[type],"name":"[name]","size":[size],"lastModified":"[datetime]"}`
+
+Type can be either 'd' if it is a directory or 'f' if it is a regular file. The size is reported in bytes.
+
+If an error occurs, the firmware will respond with `{"err":[code]}`. If the code is 1, the directory doesn't exist. If it is 2, the requested volume is not mounted.
 
 #### rr_fileinfo?name=XXX
 Parse G-code file information from file XXX or return file information about the file being printed if the key is omitted. RepRapFirmware implements a dedicate function to retrieve information from a G-code file (see also M36) which may be used on the G-code file list and on the print status page.

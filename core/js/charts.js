@@ -9,7 +9,8 @@
 
 var tempChart;
 var tempChartOptions = 	{
-	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#00FFFF", "#000000"],
+	// This should hold maxHeater + 1 entries (+ 1 for the chamber heater)
+	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#00FFFF", "#ffff00", "#000000"],
 	grid: {
 		borderWidth: 0
 	},
@@ -23,7 +24,6 @@ var tempChartOptions = 	{
 };
 var tempChartPadding = 15;
 
-var tempCounter = 0;
 var maxTemperatureSamples = 1000;
 var maxLayerTime = 0;
 
@@ -76,9 +76,11 @@ var recordedBedTemperatures, recordedChamberTemperatures, recordedHeadTemperatur
 /* Temperature chart */
 
 function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
+	var timeNow = (new Date()).getTime();
+
 	// Add bed temperature
 	if (heatedBed) {
-		recordedBedTemperatures.push([tempCounter, bedTemp]);
+		recordedBedTemperatures.push([timeNow, bedTemp]);
 	} else {
 		recordedBedTemperatures = [];
 	}
@@ -88,7 +90,7 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 
 	// Add chamber temperature
 	if (chamber) {
-		recordedChamberTemperatures.push([tempCounter, chamberTemp]);
+		recordedChamberTemperatures.push([timeNow, chamberTemp]);
 	} else {
 		recordedChamberTemperatures = [];
 	}
@@ -98,7 +100,7 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 
 	// Add heater temperatures
 	for(var i = 0; i < headTemps.length; i++) {
-		recordedHeadTemperatures[i].push([tempCounter, headTemps[i]]);
+		recordedHeadTemperatures[i].push([timeNow, headTemps[i]]);
 		if (recordedHeadTemperatures[i].length > maxTemperatureSamples) {
 			recordedHeadTemperatures[i].shift();
 		}
@@ -108,7 +110,6 @@ function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
 	for(var i = headTemps.length; i < maxHeaters; i++) {
 		recordedHeadTemperatures[i] = [];
 	}
-	tempCounter++;
 }
 
 function drawTemperatureChart() {

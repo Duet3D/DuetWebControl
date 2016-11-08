@@ -61,20 +61,87 @@ function formatTime(value) {
 	return timeLeft.reduce(function(a, b) { return a + " " + b; });
 }
 
+function timeToStr(time) {
+	// Should return an ISO-like datetime string like "2016-10-24T15:39:09"
+	// Cannot use toISOString() here because it doesn't output the localtime
+	var result = "";
+	result += time.getFullYear() + "-";
+	result += (time.getMonth() + 1) + "-";
+	result += time.getDate() + "T";
+	result += time.getHours() + ":";
+	result += time.getMinutes() + ":";
+	result += time.getSeconds();
+	return result;
+}
 
-/* Tool mapping */
+function strToTime(str) {
+	// Date.parse() doesn't always return correct dates.
+	// Hence we must parse it using a regex here
+	var re = /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/;
+	var results;
+	if ((results = re.exec(str)) != null) {
+		var date = new Date();
+		date.setFullYear(results[1]);
+		date.setMonth(results[2] - 1);
+		date.setDate(results[3]);
+		date.setHours(results[4]);
+		date.setMinutes(results[5]);
+		date.setSeconds(results[6]);
+		return date;
+	}
+	return undefined;
+}
+
+
+/* Tool Mapping */
 
 function setToolMapping(mapping) {
 	// Don't compare raw objects here as this would always evaluate as false
 	if (JSON.stringify(toolMapping) != JSON.stringify(mapping)) {
 		toolMapping = mapping;
 
+		/** Machine Status **/
+
+		// TODO: The web interface has no idea which drive is assigned to which axis/extruder,
+		// so the following cannot be fully implemented yet.
+
+		/**
+		// Find out which drives may be assigned to XYZ
+		xyzAxisMapping = [[0], [1], [2]];
+		if (toolMapping != undefined) {
+			for(var i = 0; i < toolMapping.length; i++) {
+				var tool = toolMapping[i];
+				if (tool.hasOwnProperty("axisMap")) {
+					for(var k = 0; k < tool.axisMap.length; i++) {
+						for(var l = 0; l < tool.axisMap[k].length; l++) {
+							var mappedDrive = tool.axisMap[k][l];
+							if (xyzAxisMapping[k].indexOf(mappedDrive) == -1) {
+								xyzAxisMapping[k].push(mappedDrive);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Adjust the column headers of the XYZ position to match this mapping
+		if (axisMapping[0].length > 1) {
+			var content = "X (";
+
+
+			content += ")";
+		} else {
+			$("#th_x").text("X");
+		}*/
+
+		/** Settings page **/
+
 		// Clean up current tools
 		$("#page_tools").children(":not(:first-child)").remove();
 
 		// Create new panels for each tool
 		if (toolMapping != undefined) {
-			for(var i=0; i<toolMapping.length; i++) {
+			for(var i = 0; i < toolMapping.length; i++) {
 				var number = toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : (i + 1);
 
 				var heaters;
@@ -164,7 +231,7 @@ function enableControls() {
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
 
-	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").removeClass("disabled");	// Move buttons
+	$("#mobile_home_buttons button, #btn_homeall, .table-move a").removeClass("disabled");		// Move buttons
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("enable");													// Fan Control

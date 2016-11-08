@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.12
+<!--	Duet Web Control v1.13
 
 	written by Christian Hammacher
 
@@ -62,7 +62,7 @@
 
 					<form class="navbar-form padding-small navbar-left hidden-sm gcode-input">
 						<div class="input-group">
-							<input type="text" class="form-control" placeholder="Send G-Code..." disabled>
+							<input type="text" class="form-control" placeholder="Send G-Code..." autocomplete="off" disabled>
 							<div class="input-group-btn div-gcodes">
 								<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 								<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
@@ -102,7 +102,7 @@
 							<tr>
 								<td class="text-nowrap">
 									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Send G-Code...">
+										<input type="text" class="form-control" placeholder="Send G-Code..." autocomplete="off">
 										<div class="input-group-btn div-gcodes">
 											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
@@ -348,6 +348,34 @@
 								</td>
 							</tr>
 
+							<tr id="tr_head_7" class="hidden">
+								<th>
+									<a href="#">Heater 7<span class="caret hidden"></span></a>
+									<span class="text-muted"></span>
+								</th>
+								<td>n/a</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h7_active" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+								<td class="input-td">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control" value="0" id="input_temp_h7_standby" disabled>
+										<div class="input-group-btn div-head-temp">
+											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
+											</ul>
+										</div>
+									</div>
+								</td>
+							</tr>
+
 							<tr id="tr_bed">
 								<th>
 									<a href="#">Bed</a>
@@ -390,7 +418,7 @@
 				</div>
 
 				<!-- Temperature Chart -->
-				<div class="hidden-xs hidden-sm col-md-3 col-lg-3" id="div_temp_chart">
+				<div class="hidden-xs hidden-sm col-md-3 col-lg-5" id="div_temp_chart">
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
 							<span>Temperature Chart</span>
@@ -405,7 +433,7 @@
 				</div>
 
 				<!-- Machine Status -->
-				<div class="col-xs-12 col-sm-7 col-md-4 col-lg-5" id="div_status">
+				<div class="col-xs-12 col-sm-7 col-md-4 col-lg-3" id="div_status">
 					<div class="panel panel-info panel-status">
 						<div class="panel-heading">
 							<span>Machine Status</span>
@@ -414,14 +442,20 @@
 						<table class="table table-bordered table-condensed table-centered-cells table-status">
 							<tr>
 								<th rowspan="2" class="th-status">Head Position</th>
-								<th>X</th>
-								<th>Y</th>
-								<th>Z</th>
+								<th id="th_x">X</th>
+								<th id="th_y">Y</th>
+								<th id="th_z">Z</th>
+								<th class="hidden" id="th_u">U</th>
+								<th class="hidden" id="th_v">V</th>
+								<th class="hidden" id="th_w">W</th>
 							</tr>
 							<tr>
 								<td id="td_x">n/a</td>
 								<td id="td_y">n/a</td>
 								<td id="td_z">n/a</td>
+								<td class="hidden" id="td_u">n/a</td>
+								<td class="hidden" id="td_v">n/a</td>
+								<td class="hidden" id="td_w">n/a</td>
 							</tr>
 						</table>
 
@@ -503,7 +537,7 @@
 											<div class="btn-group home-buttons" role="group"><button data-home="Y" class="btn btn-primary btn-home-y disabled">Home Y</button></div>
 											<div class="btn-group home-buttons" role="group"><button data-home="Z" class="btn btn-primary btn-home-z disabled">Home Z</button></div>
 										</div>
-										<table id="table_move_head">
+										<table id="table_move_head" class="table-move">
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
@@ -570,6 +604,91 @@
 														<a href="#" role="button" data-z="1" class="btn btn-default disabled">Z+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														<a href="#" role="button" data-z="10" class="btn btn-default disabled">Z+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														<a href="#" role="button" data-z="100" class="btn btn-default visible-lg disabled">Z+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
+										</table>
+									</div>
+								</div>
+
+								<div class="panel panel-default hidden" id="panel_extra_axes">
+									<div class="panel-heading">
+										Additional Axes
+									</div>
+
+									<div class="panel-body">
+										<div class="hidden-lg btn-group btn-group-justified" id="mobile_extra_home_buttons">
+											<div class="btn-group home-buttons" role="group"><button data-home="U" class="btn btn-primary btn-home-u disabled">Home U</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="V" class="btn btn-primary btn-home-v disabled">Home V</button></div>
+											<div class="btn-group home-buttons" role="group"><button data-home="W" class="btn btn-primary btn-home-w disabled">Home W</button></div>
+										</div>
+										<table id="table_move_axes" class="table-move">
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a href="#" role="button" class="btn btn-primary btn-home-u disabled" title="Home U axis (G28 U)" data-home="U">Home U</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-u="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-100</a>
+														<a href="#" role="button" data-u="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-10</a>
+														<a href="#" role="button" data-u="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-1</a>
+														<a href="#" role="button" data-u="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-u="0.1" class="btn btn-default disabled">U+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-u="1" class="btn btn-default disabled">U+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-u="10" class="btn btn-default disabled">U+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-u="100" class="btn btn-default visible-lg disabled">U+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary btn-home-v disabled" title="Home V axis (G28 Y)" data-home="V">Home V</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-v="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-100</a>
+														<a role="button" data-v="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-10</a>
+														<a role="button" data-v="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-1</a>
+														<a role="button" data-v="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-v="0.1" class="btn btn-default disabled">V+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-v="1" class="btn btn-default disabled">V+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-v="10" class="btn btn-default disabled">V+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-v="100" class="btn btn-default visible-lg disabled">V+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary btn-home-w disabled" title="Home W axis (G28 W)" data-home="W">Home W</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-w="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-100</a>
+														<a role="button" data-w="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-10</a>
+														<a role="button" data-w="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-1</a>
+														<a role="button" data-w="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-w="0.1" class="btn btn-default disabled">W+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-w="1" class="btn btn-default disabled">W+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-w="10" class="btn btn-default disabled">W+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-w="100" class="btn btn-default visible-lg disabled">W+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 													</div>
 												</td>
 											</tr>
@@ -695,6 +814,7 @@
 								</div>
 							</div>
 						</div>
+
 					</div>
 
 					<!-- Print Status -->
@@ -908,7 +1028,7 @@
 							<form class="gcode-input">
 								<div class="col-xs-7 col-sm-7 col-md-8 col-lg-9">
 									<div class="input-group">
-										<input type="text" class="form-control" placeholder="Send G-Code..." disabled>
+										<input type="text" class="form-control" placeholder="Send G-Code..." autocomplete="off" disabled>
 										<div class="input-group-btn div-gcodes">
 											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
@@ -945,11 +1065,30 @@
 					<div id="page_files" class="page">
 						<div class="row">
 							<div class="col-md-12">
-								<table class="table-file-navigation">
+								<table id="table_gcode_files_directory" class="table-file-navigation">
 									<tr>
+										<td id="td_volume" class="hidden">
+											<div class="dropdown">
+												<button id="btn_volume" class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">
+													<span class="glyphicon glyphicon-hdd"></span> <span class="content">SD Card 0</span> <span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu" id="ul_volumes">
+													<li>
+														<a href="#" data-volume="0">
+															<span class="glyphicon glyphicon-ok text-success"></span> SD Card 0 (mounted)
+														</a>
+													</li>
+													<li>
+														<a href="#" data-volume="1">
+															<span class="glyphicon glyphicon-remove text-danger"></span> SD Card 1 (not mounted)
+														</a>
+													</li>
+												</ul>
+											</div>
+										</td>
 										<td>
 											<ol class="breadcrumb breadcrumb-directory" id="ol_gcode_directory">
-												<li class="active"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>
+												<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> G-Codes Directory</li>
 												<li class="pull-right"><span class="glyphicon glyphicon-level-up"></span> Go Up</li>
 											</ol>
 										</td>
@@ -1011,9 +1150,7 @@
 								</table>
 
 								<h1 class="text-center text-muted">Connect to your Duet to display Macro files</h1>
-							</div>
 
-							<div class="col-xs-12 col-sm-10 col-sm-push-1 col-md-8 col-md-push-2 col-lg-6 col-lg-push-3">
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
 									<thead>
 										<tr>
@@ -1022,6 +1159,7 @@
 											<th class="hidden"><!-- for HTML validation --></th>
 											<th>File Name</th>
 											<th>Size</th>
+											<th>Last modified</th>
 										</tr>
 									</thead>
 									<tbody>
@@ -1074,17 +1212,21 @@
 														<th>Firmware Name:</th>
 														<td id="firmware_name">n/a</td>
 													</tr>
+													<tr id="tr_firmware_electronics" class="hidden">
+														<th>Firmware Electronics:</th>
+														<td id="firmware_electronics">n/a</td>
+													</tr>
 													<tr>
 														<th>Firmware Version:</th>
 														<td id="firmware_version">n/a</td>
 													</tr>
-													<tr class="wifi-setting">
+													<tr class="wifi-setting hidden">
 														<th>WiFi Server Version:</th>
 														<td id="dws_version">n/a</td>
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.12</td>
+														<td>1.13</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1458,6 +1600,8 @@
 										<li class="pull-right hidden online-control"><a href="#" id="a_refresh_sys"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
 									</ol>
 
+									<h1 class="text-center text-muted">Connect to your Duet to display System files</h1>
+
 									<table class="table table-bordered table-files table-hover table-striped hidden" id="table_sys_files">
 										<thead>
 											<tr>
@@ -1466,14 +1610,13 @@
 												<th class="hidden"><!-- for HTML validation --></th>
 												<th>File Name</th>
 												<th>Size</th>
+												<th>Last modified</th>
 											</tr>
 										</thead>
 										<tbody>
 											<!-- see JS -->
 										</tbody>
 									</table>
-
-									<h1 class="text-center text-muted">Connect to your Duet to display System files</h1>
 								</div>
 
 								<!-- Machine Properties -->
