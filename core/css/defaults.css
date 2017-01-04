@@ -851,11 +851,11 @@ div.panel table.table-status:not(:last-child)
 
 #page_tools button,
 #btn_add_gcode,
-#btn_fw_diagnostics {
+.machine-button {
 	margin-top: 9px;
 }
 
-#btn_fw_diagnostics {
+.machine-button {
 	padding-left: 4px;
 	padding-right: 4px;
 	width: 100%;
@@ -1067,7 +1067,8 @@ label[for="dropdown_language"] {
 	width: calc(100vw - 60px);
 }
 
-#modal_edit > div > div {
+#modal_edit > div > div,
+#modal_bed > div > div {
 	height: calc(100vh - 60px);
 }
 
@@ -1076,6 +1077,46 @@ label[for="dropdown_language"] {
 	height: 100%;
 	width: 100%;
 	resize: none;
+}
+
+#modal_bed > div > div.modal-content {
+	min-height: 400px;
+}
+
+#div_visualization {
+	margin-bottom: 15px;
+	padding-right: 0px;
+}
+
+#div_visualization_placeholder,
+#div_legend {
+	margin-bottom: 15px;
+}
+
+#div_visualization_placeholder > div {
+	background-color: black;
+	color: white;
+}
+
+#div_visualization_placeholder h3 {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+#div_legend {
+	padding-left: 0px;
+}
+
+#canvas_legend {
+	width: 100%;
+}
+
+#row_stats div > p:last-child {
+	margin-bottom: 0px;
+}
+
+#btn_top_view {
+	margin-top: 9px;
 }
 
 /* Popovers */

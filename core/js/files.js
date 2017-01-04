@@ -506,14 +506,16 @@ $("#btn_new_macro_file").click(function() {
 });
 
 function stripMacroFilename(filename) {
-	var match = filename.match(/(.*)\.\w+/);
-	if (match == null) {
-		label = filename;
-	} else {
+	var label = filename;
+
+	// Remove G-code file ending from name
+	var match = filename.match(/(.*)\.(g|gc|gcode)$/i);
+	if (match != null) {
 		label = match[1];
 	}
 
-	match = label.match(/\d+_(.*)/);
+	// Users may want to index their macros, so remove starting numbers
+	match = label.match(/^\d+_(.*)/);
 	if (match != null) {
 		label = match[1];
 	}
@@ -870,6 +872,14 @@ $('a[href="#page_sysedit"]').on('shown.bs.tab', function() {
 	if (!sysLoaded) {
 		updateSysFiles();
 	}
+});
+
+$("#a_new_sys_file").click(function() {
+	showTextInput(T("New File"), T("Please enter a filename:"), function(file) {
+		showEditDialog("0:/sys/" + file, "", function(value) {
+			uploadTextFile("0:/sys/" + file, value, updateSysFiles);
+		});
+	});
 });
 
 $("#a_refresh_sys").click(function(e) {

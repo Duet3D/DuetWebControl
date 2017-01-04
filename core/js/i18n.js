@@ -52,12 +52,19 @@ function translatePage() {
 	if (translationData != undefined) {
 		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
 		if (root != null) {
+			// Translate HTML attributes
 			translateEntries(root, $("p, span, th, td, strong, dt, button"), "textContent");
 			translateEntries(root, $("h1, h4, label, a, #main_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
 			translateEntries(root, $("input[type='text']"), "placeholder");
 			translateEntries(root, $("a, abbr, button, label, #chart_temp, input, td"), "title");
 			translateEntries(root, $("img"), "alt");
 
+			// This doesn't work with data attributes though
+			$("button[data-content]").each(function() {
+				$(this).attr("data-content", T($(this).attr("data-content")));
+			});
+
+			// Set new language on Settings page
 			$("#btn_language").data("language", settings.language).children("span:first-child").text(root.attributes["name"].value);
 			$("html").attr("lang", settings.language);
 		}

@@ -39,11 +39,9 @@ sed -i "/<!-- CSS/a	<link href=\"css/dwc.css\" rel=\"stylesheet\">" ./build/repr
 sed -i "/<!-- Placed/a <script src=\"js/dwc.js\"></script>" ./build/reprap.htm
 
 # Compress HTML files
-#echo "Compressing HTML files"
-#gzip -c ./build/reprap.htm > ./build/reprap.htm.gz
-#gzip -c ./build/html404.htm > ./build/html404.htm.gz
-#rm ./build/reprap.htm
-#rm ./build/html404.htm
+echo "Compressing HTML file"
+gzip -c ./build/reprap.htm > ./build/reprap.htm.gz
+rm ./build/reprap.htm
 
 # Compress XML files
 echo "Compressing XML files"
@@ -94,27 +92,12 @@ gzip -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.g
 echo "Creating SPIFFS image for Duet WiFi"
 mkspiffs -c ./build -b 8192 -p 256 -s 3125248 ./DuetWebControl-$VERSION.bin
 
-
-# Now build DWC for first-gen Duets
-echo "=> Building Duet Web Control for first-gen Duets"
-rm -r ./build/*
-
-# Copy target files
-echo "Moving JavaScript files in place"
-cp -r ./core/* ./build/
-mv ./build/js/3rd-party/* ./build/js
-rmdir ./build/js/3rd-party
-
-echo "Fixing JavaScript file paths"
-sed -i "s/js\/3rd-party/js/" ./build/reprap.htm
-
-# create final ZIP file for first-gen Duets
-echo "Creating final DuetWebControl.zip"
-# TODO: Pack build directory instead of core once compression support has been added to RRF-Duet
+# Now build DWC for wired Duets
+echo "=> Building Duet Web Control for wired Duets"
 cd ./build
 zip -r -o ../DuetWebControl-$VERSION.zip ./*
 cd ..
 
-# clean up again
+# Clean up again
 rm -r ./build
 echo "Done"
