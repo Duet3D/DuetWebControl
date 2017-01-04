@@ -13,7 +13,7 @@ var uploadType, uploadFiles, uploadRows, uploadedFileCount;
 var uploadTotalBytes, uploadedTotalBytes;
 var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
 var uploadedDWC, uploadIncludedConfig, uploadFirmwareFile, uploadDWCFile, uploadDWSFile;
-var uploadFilesSkipped;
+var uploadHadError, uploadFilesSkipped;
 
 var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .bin extension
 
@@ -28,16 +28,20 @@ function uploadTextFile(filename, content, callback) {
 	var uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(filename) + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		data: file,
 		dataType: "json",
-		filename: filename.toLowerCase(),
+		filename: filename,
 		processData: false,
 		contentType: false,
 		timeout: 0,
 		type: "POST",
+		global: false,
+		error: function(jqXHR, textStatus, errorThrown) {
+			finishCurrentUpload(false);
+		},
 		success: function(response) {
 			if (response.err == 0) {
-				showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", filename));
+				showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", this.filename));
 				if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
-					if (this.filename == "0:/sys/config.g") {
+					if (this.filename.toLowerCase() == "0:/sys/config.g") {
 						showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
 							// Perform software reset
 							sendGCode("M999");
@@ -45,7 +49,7 @@ function uploadTextFile(filename, content, callback) {
 					}
 				}
 			} else {
-				showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
+				showMessage("danger", T("Error"), T("Could not update file {0}!", this.filename));
 			}
 
 			if (callback != undefined) {
@@ -71,7 +75,7 @@ function startUpload(type, files, fromCallback) {
 	}
 	uploadIncludedConfig = false;
 	uploadFirmwareFile = uploadDWCFile = uploadDWSFile = undefined;
-	uploadFilesSkipped = false;
+	uploadFilesSkipped = uploadHadError = false;
 
 	// Safety check for Upload and Print
 	if (type == "print" && files.length > 1) {
@@ -276,6 +280,10 @@ function uploadNextFile() {
 		contentType: false,
 		timeout: 0,
 		type: "POST",
+		global: false,
+		error: function(jqXHR, textStatus, errorThrown) {
+			finishCurrentUpload(false);
+		},
 		success: function(data) {
 			if (isUploading) {
 				finishCurrentUpload(data.err == 0);
@@ -294,7 +302,7 @@ function uploadNextFile() {
 
 					var uploadTitle = T("Uploading File(s), {0}% Complete", ((uploadedTotalBytes / uploadTotalBytes) * 100).toFixed(0));
 					if (uploadSpeed > 0) {
-						uploadTitle += " (" + formatSize(uploadSpeed) + "/s)";
+						uploadTitle += " (" + formatUploadSpeed(uploadSpeed) + ")";
 					}
 					$("#modal_upload h4").text(uploadTitle);
 
@@ -312,6 +320,7 @@ function uploadNextFile() {
 function finishCurrentUpload(success) {
 	// Keep the progress updated
 	if (!success) {
+		uploadHadError = true;
 		uploadedTotalBytes += (uploadFileSize - uploadPosition);
 	}
 
@@ -331,7 +340,7 @@ function finishCurrentUpload(success) {
 			uploadNextFile();
 		} else {
 			// We're done
-			finishUpload(true);
+			finishUpload(!uploadHadError);
 		}
 	}
 }

@@ -381,6 +381,10 @@ function updateStatus() {
 					setStatusLabel("Busy", "warning");
 					break;
 
+				case 'T':	// Changing tool
+					setStatusLabel("Changing Tool", "primary");
+					break;
+
 				case 'I':	// Idle
 					setStatusLabel("Idle", "default");
 					break;
@@ -478,7 +482,21 @@ function updateStatus() {
 					dataType: "html",
 					success: function(response) {
 						response = response.trim();
-						if ((response != "") || (lastSentGCode != "" && settings.logSuccess)) {
+
+						// Is this a response that should be logged?
+						if ((response != "") || (lastSentGCode != "" && (settings.logSuccess || currentPage == "console"))) {
+							// Is this a bed compensation report?
+							if (!isPrinting && response.startsWith("Bed equation fits points ")) {
+								var points = response.substr("Bed equation fits points ".length);
+								points = JSON.parse("[" + points.split("] [").join("],[") + "]");
+								showHeightmap(points);
+							}
+
+							// Has grid-based probing finished?
+							if (!isPrinting && response.indexOf(" points probed, mean error ") != -1) {
+								getHeightmap();
+							}
+
 							// What kind of reply are we dealing with?
 							var style = (response == "") ? "success" : "info", isError = false;
 							if (response.match("^Error: ") != null) {

@@ -1,4 +1,4 @@
-/* Interface logic for the Duet Web Control
+/* Interface logic for Duet Web Control
  * 
  * written by Christian Hammacher (c) 2016
  * 
@@ -66,6 +66,8 @@ $(document).ready(function() {
 
 	loadSettings();
 	loadFileCache();
+
+	$('[data-toggle="popover"]').popover();
 });
 
 function pageLoadComplete() {
@@ -297,27 +299,67 @@ $("body").on("click", ".heater-temp", function(e) {
 	var inputElement = $(this).parents("div.input-group").find("input");
 	var activeOrStandby = (inputElement.prop("id").match("active$")) ? "S" : "R";
 	var temperature = $(this).data("temp");
+	var gcode = "";
 
 	if (inputElement.prop("id").indexOf("all") == -1) {
-		var heater = inputElement.prop("id").match("_h(.)_")[1];
+		var heater = parseInt(inputElement.prop("id").match("_h(.)_")[1]);
+		var currentTool = (lastStatusResponse == undefined) ? -1 : lastStatusResponse.currentTool;
 
-		var gcode = "";
-		getToolsByHeater(heater).forEach(function(tool) {
-			gcode += "G10 P" + tool + " " + activeOrStandby + temperature + "\n";
-		});
-		sendGCode(gcode);
-	} else {
-		if (toolMapping != undefined) {
-			var gcode = "";
-			for(var i = 0; i < toolMapping.length; i++) {
-				var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
-				if ($.inArray(0, toolMapping[i].heaters) == -1) {
-					// Make sure we don't set temperatures for the heated bed
-					gcode += "G10 P" + number + " " + activeOrStandby + $(this).val() + "\n";
+		// 1. Is the active tool mapped to this heater?
+		if (currentTool >= 0 && $.inArray(heater, getTool(currentTool).heaters) != -1) {
+			// Yes - generate only one G10 code for it
+			var temps = [];
+			getTool(currentTool).heaters.forEach(function(h) {
+				if (h == heater) {
+					temps.push(temperature);
+				} else {
+					temps.push($("#input_temp_h" + h + "_" + ((activeOrStandby == "S") ? "active" : "standby")).val());
 				}
+			});
+
+			gcode = "G10 P" + currentTool + " " + activeOrStandby + temps.reduce(function(a, b) { return a + ":" + b; });
+		} else {
+			// 2. Is there a tool that is only mapped to this heater?
+			var toolFound = false;
+			getToolsByHeater(heater).forEach(function(tool) {
+				var toolHeaters = getTool(tool).heaters;
+				if (!toolFound && toolHeaters.length == 1) {
+					// Yes - generate only one G10 code for this tool
+					gcode = "G10 P" + tool + " " + activeOrStandby + temperature;
+					toolFound = true;
+				}
+			});
+
+			// 3. Is there at least one tool that is assigned to this heater at all?
+			if (!toolFound) {
+				var tools = getToolsByHeater(heater);
+				if (tools.length > 0) {
+					// Yes - use the first one to set the target temperature(s)
+					var temps = [];
+					getTool(tools[0]).heaters.forEach(function(h) {
+						if (h == heater) {
+							temps.push(temperature);
+						} else {
+							temps.push($("#input_temp_h" + h + "_" + ((activeOrStandby == "S") ? "active" : "standby")).val());
+						}
+					});
+
+					gcode = "G10 P" + tools[0] + " " + activeOrStandby + temps.reduce(function(a, b) { return a + ":" + b; });
+				}
+				// TODO: Report an error if no tool is assigned to this heater?
 			}
-			sendGCode(gcode);
 		}
+
+		sendGCode(gcode);
+	} else if (toolMapping != undefined) {
+		for(var i = 0; i < toolMapping.length; i++) {
+			var number = (toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : i + 1);
+			if ($.inArray(0, toolMapping[i].heaters) == -1) {
+				// Make sure we don't set temperatures for the heated bed
+				gcode += "G10 P" + number + " " + activeOrStandby + $(this).val() + "\n";
+			}
+		}
+		sendGCode(gcode);
 	}
 
 	e.preventDefault();
@@ -550,13 +592,56 @@ $("input[id^='input_temp_h']").keydown(function(e) {
 	enterKeyPressed |= (e.which == 9 && windowXsSm()); // need this for Android
 	if (isConnected && enterKeyPressed) {
 		var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
-		var heater = $(this).prop("id").match("_h(.)_")[1];
+		var heater = parseInt($(this).prop("id").match("_h(.)_")[1]);
 		var temperature = $(this).val();
-
+		var currentTool = (lastStatusResponse == undefined) ? -1 : lastStatusResponse.currentTool;
 		var gcode = "";
-		getToolsByHeater(heater).forEach(function(toolNumber) {
-			gcode += "G10 P" + toolNumber + " " + activeOrStandby + temperature + "\n";
-		});
+
+		// 1. Is the active tool mapped to this heater?
+		if (currentTool >= 0 && $.inArray(heater, getTool(currentTool).heaters) != -1) {
+			// Yes - generate only one G10 code for it
+			var temps = [];
+			getTool(currentTool).heaters.forEach(function(h) {
+				if (h == heater) {
+					temps.push(temperature);
+				} else {
+					temps.push($("#input_temp_h" + h + "_" + ((activeOrStandby == "S") ? "active" : "standby")).val());
+				}
+			});
+
+			gcode = "G10 P" + currentTool + " " + activeOrStandby + temps.reduce(function(a, b) { return a + ":" + b; });
+		} else {
+			// 2. Is there a tool that is only mapped to this heater?
+			var toolFound = false;
+			getToolsByHeater(heater).forEach(function(tool) {
+				var toolHeaters = getTool(tool).heaters;
+				if (!toolFound && toolHeaters.length == 1) {
+					// Yes - generate only one G10 code for this tool
+					gcode = "G10 P" + tool + " " + activeOrStandby + temperature;
+					toolFound = true;
+				}
+			});
+
+			// 3. Is there at least one tool that is assigned to this heater at all?
+			if (!toolFound) {
+				var tools = getToolsByHeater(heater);
+				if (tools.length > 0) {
+					// Yes - use the first one to set the target temperature(s)
+					var temps = [];
+					getTool(tools[0]).heaters.forEach(function(h) {
+						if (h == heater) {
+							temps.push(temperature);
+						} else {
+							temps.push($("#input_temp_h" + h + "_" + ((activeOrStandby == "S") ? "active" : "standby")).val());
+						}
+					});
+
+					gcode = "G10 P" + tools[0] + " " + activeOrStandby + temps.reduce(function(a, b) { return a + ":" + b; });
+				}
+				// TODO: Report an error if no tool is assigned to this heater?
+			}
+		}
+
 		sendGCode(gcode);
 
 		$(this).select();
@@ -764,16 +849,17 @@ function addHeadTemperature(temperature, type) {
 
 function changeTool(tool) {
 	if (tool >= 0) {
-		if (getTool(tool).heaters.length > 0) {
-			// Tool macros are likely to block the HTTP G-Code processor, so we first turn off
-			// the appropriate heater, change the tool and then turn it back on.
-			var firstToolHeater = getTool(tool).heaters;
-			var gcode = "G10 P" + tool + " S-273\n" +
-				"T" + tool + "\n" +
-				"G10 P" + tool + " S" + $("#input_temp_h" + firstToolHeater + "_active").val();
-			sendGCode(gcode);
-		} else {
+		// Check if any tool change macros can be skipped
+		var param = 7;
+		if (!settings.doTfree) { param &= ~1; }
+		if (!settings.doTpre) { param &= ~2; }
+		if (!settings.doTpost) { param &= ~4; }
+
+		// If all the macros shall be run, send only the T-code
+		if (param == 7) {
 			sendGCode("T" + tool);
+		} else {
+			sendGCode("T" + tool + " P" + param);
 		}
 	} else {
 		sendGCode("T-1");
@@ -861,15 +947,24 @@ function setATXPower(value) {
 }
 
 function setBoardType(type) {
-	boardType = type;
+	var isWiFi = false;
+	var show7Extruders = false, show7Heaters = false;
 
 	if (type.startsWith("duetwifi")) {
 		firmwareFileName = "DuetWiFiFirmware";
-		$(".wifi-setting").removeClass("hidden");
+		isWiFi = show7Extruders = show7Heaters = true;
+	} else if (type.startsWith("duetethernet")) {
+		firmwareFileName = "DuetEthernetFirmware";
+		show7Extruders = show7Heaters = true;
 	} else {
 		firmwareFileName = "RepRapFirmware";
-		$(".wifi-setting").addClass("hidden");
 	}
+
+	$(".extruder-7").toggleClass("hidden", !show7Extruders);
+	$(".heater-7").toggleClass("hidden", !show7Heaters);
+	$(".wifi-setting").toggleClass("hidden", !isWiFi);
+
+	boardType = type;
 }
 
 function setCurrentTemperature(heater, temperature) {

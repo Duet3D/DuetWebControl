@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.13
+<!--	Duet Web Control v1.14
 
 	written by Christian Hammacher
 
@@ -1226,7 +1226,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.13</td>
+														<td>1.14</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1426,6 +1426,40 @@
 												<button id="btn_clear_cache" class="btn btn-danger" title="Clear cached G-Code File Information"><span class="glyphicon glyphicon-trash"></span> Clear Cached File Information</button>
 											</div>
 										</div>
+										
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<span>Tool Changes</span>
+											</div>
+
+											<div class="panel-body">
+												<div class="row">
+													<div class="col-md-4">
+														<div class="checkbox">
+															<label title="Run tfree*.g macro when the current tool is changed via the web interface">
+																<input type="checkbox" data-setting="doTfree" checked /> Run free macro
+															</label>
+														</div>
+													</div>
+
+													<div class="col-md-4">
+														<div class="checkbox">
+															<label title="Run tpre*.g macro when the current tool is changed via the web interface">
+																<input type="checkbox" data-setting="doTpre" checked /> Run pre macro
+															</label>
+														</div>
+													</div>
+
+													<div class="col-md-4">
+														<div class="checkbox">
+															<label title="Run tpost*.g macro when the current tool is changed via the web interface">
+																<input type="checkbox" data-setting="doTpost" checked /> Run post macro
+															</label>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
 									</div>
 
 									<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 col-right">
@@ -1598,6 +1632,7 @@
 									<ol class="breadcrumb" id="ol_sys_directory">
 										<li class="active"><span class="glyphicon glyphicon-folder-open"></span> System Directory</li>
 										<li class="pull-right hidden online-control"><a href="#" id="a_refresh_sys"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
+										<li class="pull-right hidden online-control"><a href="#" id="a_new_sys_file"><span class="glyphicon glyphicon-file"></span> New File</a></li>
 									</ol>
 
 									<h1 class="text-center text-muted">Connect to your Duet to display System files</h1>
@@ -1727,7 +1762,7 @@
 													<td class="hidden-xs">n/a</td>
 													<td class="hidden-xs hidden-sm">n/a</td>
 												</tr>
-												<tr id="tr_drive_9" class="wifi-setting">
+												<tr id="tr_drive_9" class="extruder-7 hidden">
 													<td>9</td>
 													<td>n/a</td>
 													<td>n/a</td>
@@ -1772,7 +1807,8 @@
 													<dd id="dd_idle_timeout">n/a</dd>
 												</dl>
 
-												<button id="btn_fw_diagnostics" type="button" class="btn btn-info"><span class="glyphicon glyphicon-dashboard"></span> Firmware Diagnostics</button>
+												<button id="btn_fw_diagnostics" type="button" class="btn btn-info machine-button"><span class="glyphicon glyphicon-dashboard"></span> Firmware Diagnostics</button>
+												<button id="btn_download_heightmap" type="button" class="btn btn-info machine-button"><span class="glyphicon glyphicon-download"></span> Show Heightmap</button>
 											</div>
 										</div>
 									</div>
@@ -1813,7 +1849,7 @@
 																<label class="btn btn-default disabled" title="Heater 6">
 																	<input type="checkbox" name="tool_heaters" value="6" disabled> 6
 																</label>
-																<label class="btn btn-default disabled wifi-setting" title="Heater 7">
+																<label class="btn btn-default disabled heater-7" title="Heater 7">
 																	<input type="checkbox" name="tool_heaters" value="7" disabled> 7
 																</label>
 															</div>
@@ -1841,7 +1877,7 @@
 																<label class="btn btn-default disabled" title="Extruder 6">
 																	<input type="checkbox" name="tool_drives" value="5" disabled> 5
 																</label>
-																<label class="btn btn-default disabled wifi-setting" title="Extruder 7">
+																<label class="btn btn-default disabled extruder-7" title="Extruder 7">
 																	<input type="checkbox" name="tool_drives" value="6" disabled> 6
 																</label>
 															</div>
@@ -1989,6 +2025,56 @@
 				</div>
 			</div>
 		</div>
+		
+		<div class="modal fade" id="modal_bed">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Automatic Calibration Results</h4>
+					</div>
+					<div class="modal-body">
+						<div class="row">
+							<div id="div_visualization_placeholder" class="col-md-12 text-center">
+								<div>
+									<h3>loading...</h3>
+								</div>
+							</div>
+							<div id="div_visualization" class="col-xs-10 col-sm-10 col-md-11 hidden">
+								<!-- See JS -->
+							</div>
+							<div id="div_legend" class="col-xs-2 col-sm-2 col-md-1 hidden">
+								<canvas id="canvas_legend"></canvas>
+							</div>
+						</div>
+
+						<div id="row_stats" class="row">
+							<div class="hidden-xs hidden-sm col-md-3">
+								<p>Number of probe points: <span id="num_probe_points">n/a</span></p>
+								<p class="hidden delta">Probing radius: <span id="probing_radius">n/a</span></p>
+							</div>
+
+							<div class="col-xs-6 col-sm-6 col-md-4">
+								<p>Probe area: <span id="probe_area">n/a</span></p>
+								<p>Maximum deviations: <span id="max_deviations">n/a</span></p>
+							</div>
+
+							<div class="col-xs-6 col-sm-6 col-md-3">
+								<p>Mean error: <span id="mean_error">n/a</span></p>
+								<p>RMS error: <span id="rms_error">n/a</span></p>
+							</div>
+							<div class="hidden-xs hidden-sm col-md-2">
+								<button class="btn btn-primary pull-right" id="btn_top_view"><span class="glyphicon glyphicon-eye-open"></span> Top View</button>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-info pull-left" data-toggle="popover" data-placement="top" data-trigger="focus" data-content="Click and hold the left mouse button for orbit controls and press and hold the right mouse button to pan around. Use the mouse wheel to zoom in and out."><span class="glyphicon glyphicon-question-sign"></span> Help</button>
+						<button type="button" class="btn btn-success" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
 		<div class="modal fade" id="modal_backdrop" data-backdrop="static">
 		</div>
@@ -2005,6 +2091,8 @@
 		<script src="js/3rd-party/bootstrap-notify.min.js"></script>
 		<script src="js/3rd-party/bootstrap-slider.min.js"></script>
 		<script src="js/3rd-party/jszip.min.js"></script>
+		<script src="js/3rd-party/three.min.js"></script>
+		<script src="js/3rd-party/three.orbit.min.js"></script>
 		<script src="js/charts.js"></script>
 		<script src="js/comm.js"></script>
 		<script src="js/files.js"></script>
@@ -2016,5 +2104,6 @@
 		<script src="js/sliders.js"></script>
 		<script src="js/upload.js"></script>
 		<script src="js/utils.js"></script>
+		<script src="js/3d.js"></script>
 	</body>
 </html>

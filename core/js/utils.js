@@ -9,6 +9,31 @@
 
 /* Text formatting */
 
+function formatUploadSpeed(bytesPerSec) {
+	if (settings.useKiB) {
+		if (bytesPerSec > 1073741824) {		// GiB
+			return (bytesPerSec / 1073741824).toFixed(2) + " GiB/s";
+		}
+		if (bytesPerSec > 1048576) {		// MiB
+			return (bytesPerSec / 1048576).toFixed(2) + " MiB/s";
+		}
+		if (bytesPerSec > 1024) {			// KiB
+			return (bytesPerSec / 1024).toFixed(1) + " KiB/s";
+		}
+	} else {
+		if (bytesPerSec > 1000000000) {		// GB
+			return (bytesPerSec / 1000000000).toFixed(2) + " GB/s";
+		}
+		if (bytesPerSec > 1000000) {		// MB
+			return (bytesPerSec / 1000000).toFixed(2) + " MB/s";
+		}
+		if (bytesPerSec > 1000) {			// KB
+			return (bytesPerSec / 1000).toFixed(1) + " KB/s";
+		}
+	}
+	return bytesPerSec + " B/s";
+}
+
 function formatSize(bytes) {
 	if (settings.useKiB) {
 		if (bytes > 1073741824) {	// GiB
@@ -88,6 +113,51 @@ function strToTime(str) {
 		date.setMinutes(results[5]);
 		date.setSeconds(results[6]);
 		return date;
+	}
+	return undefined;
+}
+
+
+/* CSV Parsing */
+
+function parseCSV(str) {
+    var arr = [];
+    var quote = false;  // true means we're inside a quoted field
+
+    // iterate over each character, keep track of current row and column (of the returned array)
+    for (var row = col = c = 0; c < str.length; c++) {
+        var cc = str[c], nc = str[c+1];        // current character, next character
+		if (arr.length <= row) { arr.push([]); }
+		if (arr[row].length <= col) { arr[row].push([""]); }
+
+        // If the current character is a quotation mark, and we're inside a
+        // quoted field, and the next character is also a quotation mark,
+        // add a quotation mark to the current column and skip the next character
+        if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+
+        // If it's just one quotation mark, begin/end quoted field
+        if (cc == '"') { quote = !quote; continue; }
+
+        // If it's a comma and we're not in a quoted field, move on to the next column
+        if (cc == ',' && !quote) { ++col; continue; }
+
+        // If it's a newline and we're not in a quoted field, move on to the next
+        // row and move to column 0 of that new row
+        if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+
+        // Otherwise, append the current character to the current column
+        arr[row][col] += cc;
+    }
+    return arr;
+}
+
+function getCSVValue(csvArray, key) {
+	if (csvArray.length > 1) {
+		var index = csvArray[0].indexOf(key);
+		if (index == -1) {
+			return undefined;
+		}
+		return csvArray[1][index].trim();
 	}
 	return undefined;
 }
@@ -226,7 +296,7 @@ function getToolsByHeater(heater) {
 function enableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", false);			// Generic inputs
 	$("#page_tools label").removeClass("disabled");												// and on Settings page
-	$("#btn_fw_diagnostics").removeClass("disabled");
+	$(".machine-button").removeClass("disabled");
 
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
@@ -250,7 +320,7 @@ function disableControls() {
 	$("nav input, #div_heaters input, #main_content input").prop("disabled", true);				// Generic inputs
 	$("#page_general input, #page_ui input, #page_listitems input").prop("disabled", false);	// ... except ...
 	$("#page_tools label").addClass("disabled");												// ... for Settings
-	$("#btn_fw_diagnostics").addClass("disabled");
+	$(".machine-button").addClass("disabled");
 
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons

@@ -395,7 +395,7 @@
 		<string t="Fans">Lüfter</string>
 		<string t="User Interface">Benutzeroberfläche</string>
 		<string t="System Editor">Systemeditor</string>
-		<string t="Maximum number of AJAX retries:">Maximale Anzahl an AJAX-Versuchen:</string>
+		<string t="Maximum number of AJAX retries:">Maximale Anzahl an AJAX-Wiederholungen:</string>
 		<string t="Reconnect Delay on Duet WiFi Server Update:">Wiederverbindungsverzögerung bei Duet WiFi Server-Aktualisierung:</string>
 		<string t="Reconnect Delay on Duet Web Control Update:">Wiederverbindungsverzögerung bei Duet Web Control-Aktualisierung:</string>
 		<string t="Automatically close user-generated firmware messages">Benutzerdefinierte Firmwaremeldungen automatisch schließen</string>
@@ -448,6 +448,34 @@
 		<string t="mounted">eingebunden</string>
 		<string t="not mounted">nicht eingebunden</string>
 		<string t="unknown">unbekannt</string>
+
+		<!-- New in DWC 1.14 -->
+		<string t="Changing Tool">Wechsle Tool</string>
+		<string t="Tool Changes">Tool-Wechsel</string>
+		<string t="Run free macro">free-Makro ausführen</string>
+		<string t="Run pre macro">pre-Makro ausführen</string>
+		<string t="Run post macro">post-Makro ausführen</string>
+		<string t="Could not update file {0}!">Konnte Datei {0} nicht aktualisieren!</string>
+		<string t="File Updated">Datei aktualisiert</string>
+		<string t="New File">Neue Datei</string>
+		<string t="The file {0} has been successfully uploaded.">Die Datei {0} ist erfolgreich hochgeladen worden.</string>
+		<string t="Show Heightmap">Höhenkarte anzeigen</string>
+		<string t="Failed to download height map">Konnte Höhenkarte nicht herunterladen</string>
+		<string t="Failed to download and process /sys/heightmap.csv from the SD card. Have you run G29 yet?">Konnte die Datei /sys/heightmap.csv nicht herunterladen und verarbeiten. Haben Sie schon G29 laufen lassen?</string>
+		<string t="Automatic Calibration Results">Ergebnisse der automatischen Kalibrierung</string>
+		<string t="loading...">lade...</string>
+		<string t="Scale:">Skala:</string>
+		<string t="or more">o. mehr</string>
+		<string t="Axes:">Achsen:</string>
+		<string t="Number of probe points:">Anzahl der Messpunkte:</string>
+		<string t="Probe area:">Messfläche:</string>
+		<string t="Probing radius:">Messradius:</string>
+		<string t="Maximum deviations:">Maximale Abweichungen:</string>
+		<string t="Mean error:">Gemittelte Abweichung:</string>
+		<string t="RMS error:">Standardabweichung:</string>
+		<string t="Top View">Draufsicht</string>
+		<string t="Help">Hilfe</string>
+		<string t="Click and hold the left mouse button for orbit controls and press and hold the right mouse button to pan around. Use the mouse wheel to zoom in and out.">Klicken und halten Sie die linke Maustaste zum Drehen und klicken und halten Sie die rechte Maustaste zum Verschieben. Benutzen Sie das Mausrad zum Zoomen.</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->

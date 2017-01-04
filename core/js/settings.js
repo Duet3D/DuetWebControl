@@ -33,6 +33,10 @@ var settings = {
 	logSuccess: false,				// log all sucessful G-Codes in the console
 	uppercaseGCode: true,			// convert G-Codes to upper-case before sending them
 
+	doTfree: true,					// tool
+	doTpre: true,					// change
+	doTpost: true,					// options
+
 	notificationTimeout: 5000,		// in ms
 	autoCloseUserMessages: false,	// whether M117 messages are automatically closed
 
