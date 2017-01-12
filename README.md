@@ -13,6 +13,7 @@ At this time the following platforms are supported:
 * Duet 0.6
 * Duet 0.8.5
 * Duet WiFi
+* Duet Ethernet
 
 ## Communication to the firmware
 
