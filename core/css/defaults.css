@@ -1103,6 +1103,10 @@ label[for="dropdown_language"] {
 	vertical-align: middle;
 }
 
+#div_visualization > div.tooltip {
+	pointer-events: none;
+}
+
 #div_legend {
 	padding-left: 0px;
 }

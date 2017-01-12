@@ -972,8 +972,9 @@ $("body").on("click", ".btn-download-file", function(e) {
 		// DuetWiFiServer isn't multi-threaded yet. To interrupt
 		// all the communication until the file has been downloaded,
 		// navigate to the rr_download request for now.
+		var targetLocation = "http://" + location.hostname + "/rr_download?name=" + encodeURIComponent(getFilePath() + "/" + filename);
 		disconnect(false);
-		location.href = "http://" + location.hostname + "/rr_download?name=" + encodeURIComponent(getFilePath() + "/" + filename);
+		location.href = targetLocation;
 	} else {
 		// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
 		var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(getFilePath() + "/" + filename) + '" download="' + filename + '"></a>');

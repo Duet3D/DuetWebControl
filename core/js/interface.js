@@ -250,6 +250,9 @@ function updateWebcam(externalTrigger) {
 
 	if (settings.webcamURL == "") {
 		webcamUpdating = false;
+	} else if (settings.webcamInterval == 0) {
+		webcamUpdating = false;
+		$("#img_webcam").attr("src", settings.webcamURL);
 	} else {
 		var newURL = settings.webcamURL;
 		if (newURL.indexOf("?") == -1) {
@@ -848,21 +851,17 @@ function addHeadTemperature(temperature, type) {
 }
 
 function changeTool(tool) {
-	if (tool >= 0) {
-		// Check if any tool change macros can be skipped
-		var param = 7;
-		if (!settings.doTfree) { param &= ~1; }
-		if (!settings.doTpre) { param &= ~2; }
-		if (!settings.doTpost) { param &= ~4; }
+	// Check if any tool change macros can be skipped
+	var param = 7;
+	if (!settings.doTfree) { param &= ~1; }
+	if (!settings.doTpre) { param &= ~2; }
+	if (!settings.doTpost) { param &= ~4; }
 
-		// If all the macros shall be run, send only the T-code
-		if (param == 7) {
-			sendGCode("T" + tool);
-		} else {
-			sendGCode("T" + tool + " P" + param);
-		}
+	// If all the macros shall be run, send only the T-code
+	if (param == 7) {
+		sendGCode("T" + tool);
 	} else {
-		sendGCode("T-1");
+		sendGCode("T" + tool + " P" + param);
 	}
 }
 
@@ -1189,7 +1188,7 @@ function setProgress(progress, labelLeft, labelRight) {
 
 function setStatusLabel(text, style) {
 	text = T(text);
-	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success").addClass("label-" + style).text(text);
+	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success label-primary").addClass("label-" + style).text(text);
 }
 
 function setTemperatureInput(head, value, active) {

@@ -416,7 +416,7 @@
 		<string t="Time to wait for a reconnect when a new Duet Web Control binary is about to be flashed (Duet WiFi only)">Abzuwartende Zeit wenn eine neue Duet Web Control Datei geflasht wird (nur Duet WiFi)</string>
 		<string t="Clear Cached File Information">Zwischgespeicherte Dateiinfos leeren</string>
 		<string t="Clear cached G-Code File Information">Zwischenspeicher der G-Code-Dateiliste leeren</string>
-		<string t="Activate this to display M117 messages until they are manually closed">Aktivieren Sie dies um M117 Nachrichten anzuzeigen bis sie manuell geschlossen werden</string>
+		<string t="Activate this to display M117 messages only for a certain time span">Aktivieren Sie dies um M117-Nachrichten nur für eine gewisse Zeitspanne anzuzeigen</string>
 		<string t="Heater 6">Heizer 6</string>
 		<string t="Heater 7">Heizer 7</string>
 		<string t="Here you can upload firmware, Duet WiFi and Duet Web Control files as well">Hier können Sie auch Firmware-, Duet WiFi- und Duet Web Control-Dateien hochladen</string>
