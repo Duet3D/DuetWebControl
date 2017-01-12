@@ -382,6 +382,7 @@ function updateStatus() {
 					break;
 
 				case 'T':	// Changing tool
+					printing = isPrinting;
 					setStatusLabel("Changing Tool", "primary");
 					break;
 

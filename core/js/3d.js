@@ -7,10 +7,11 @@
  */
 
 var scaleZ = 0.5, maxVisualizationZ = 0.25, pointTolerance = 2.0;
+var indicatorRadius = 0.01, indicatorColor = 0xFFFFFF, indicatorOpacity = 0.4, indicatorOpacityHighlighted = 1.0;
 
 var scene, camera, renderer, raycaster;
-var meshGeometry, meshPlane;
-var probeXMin, probeXMax, probeYMin, probeYMax;
+var meshGeometry, meshPlane, meshIndicators, lastIntersection;
+var probePoints, probeXMin, probeXMax, probeYMin, probeYMax;
 
 
 function testHeightmap() {
@@ -45,7 +46,7 @@ function testHeightmap() {
 	}
 
 	// Generate 3D mesh
-	showHeightmap(heightmap, probeRadius, xMin, xMax, yMin, yMax);
+	showHeightmap(heightmap, probeRadius, xMin, yMin, spacing);
 }
 
 function testBedCompensation(numPoints) {
@@ -117,9 +118,9 @@ function getHeightmap() {
 			// Get the values that are interesting for us
 			var probeRadius = parseFloat(getCSVValue(csvArray, "radius"));
 			var xMin = parseFloat(getCSVValue(csvArray, "xmin"));
-			var xMax = parseFloat(getCSVValue(csvArray, "xmax"));
+			//var xMax = parseFloat(getCSVValue(csvArray, "xmax"));		// unreliable!
 			var yMin = parseFloat(getCSVValue(csvArray, "ymin"));
-			var yMax = parseFloat(getCSVValue(csvArray, "ymax"));
+			//var yMax = parseFloat(getCSVValue(csvArray, "ymax"));		// unreliable!
 			var spacing = parseFloat(getCSVValue(csvArray, "spacing"));
 
 			// Convert each point to a vector and add it to the vector list
@@ -139,7 +140,7 @@ function getHeightmap() {
 			// Generate and show 3D mesh
 			try {
 				// If we supply invalid values from the CSV file, this function will throw an error
-				showHeightmap(heightmap, probeRadius, xMin, xMax, yMin, yMax, spacing);
+				showHeightmap(heightmap, probeRadius, xMin, yMin, spacing);
 			} catch (e) {
 				this.error();
 			}
@@ -147,14 +148,15 @@ function getHeightmap() {
 	});
 }
 
-function showHeightmap(probePoints, probeRadius, xMin, xMax, yMin, yMax, spacing) {
+function showHeightmap(points, probeRadius, xMin, yMin, spacing) {
 	// Generate stats
+	var xMax, yMax;
 	var minDiff, maxDiff, numProbePoints = 0, meanError = 0, rmsError = 0;
-	for(var i = 0; i < probePoints.length; i++) {
-		var z = probePoints[i][2];
+	for(var i = 0; i < points.length; i++) {
+		var z = points[i][2];
 		if (!isNaN(z)) {
-			var x = probePoints[i][0];
-			var y = probePoints[i][1];
+			var x = points[i][0];
+			var y = points[i][1];
 			if (xMin == undefined || xMin > x) { xMin = x; }
 			if (xMax == undefined || xMax < x) { xMax = x; }
 			if (yMin == undefined || yMin > y) { yMin = y; }
@@ -171,7 +173,8 @@ function showHeightmap(probePoints, probeRadius, xMin, xMax, yMin, yMax, spacing
 	rmsError = Math.sqrt(rmsError / numProbePoints);
 
 	// Try to prepare a mesh geometry for the final visualization
-	meshGeometry = generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax);
+	probePoints = points;
+	meshGeometry = generateMeshGeometry(points, probeRadius, xMin, xMax, yMin, yMax);
 	if (meshGeometry == undefined) {
 		showMessage("warning", T("Cannot generate 3D visualization"), T("Failed to generate mesh for bed points!"));
 		return;
@@ -205,7 +208,22 @@ function showHeightmap(probePoints, probeRadius, xMin, xMax, yMin, yMax, spacing
 	$("#modal_bed").modal("show");
 }
 
-function getNearestZ(points, x, y) {
+function getNearestZOnRing(points, x, y) {
+	// Get point that is closest to X+Y
+	var point, delta = undefined;
+	for(var i = 0; i < points.length; i++) {
+		var deltaNew = Math.sqrt(Math.pow(x - points[i][0], 2) + Math.pow(y - points[i][1], 2));
+		if (delta == undefined || deltaNew < delta) {
+			point = points[i];
+			delta = deltaNew;
+		}
+	}
+
+	// Return its Z value
+	return (delta == undefined) ? NaN : point[2];
+}
+
+function getNearestZOnGrid(points, x, y, maxDelta) {
 	// Get the point that is closest to X+Y
 	var point, delta = undefined;
 	for(var i = 0; i < points.length; i++) {
@@ -216,7 +234,12 @@ function getNearestZ(points, x, y) {
 		}
 	}
 
-	// At the moment we're only interested in the nearest point
+	// Check if we exceed the maximum allowed delta
+	if (delta == undefined || (maxDelta != undefined && delta > maxDelta)) {
+		return NaN;
+	}
+
+	// Otherwise return the closest Z coordinate of this point
 	return point[2];
 }
 
@@ -295,7 +318,7 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 						if (x > -0.0001 && x < 0.0001) { x = 0; }
 						var y = ringGeometry.vertices[i].y * probeRadius * 2;
 						if (y > -0.0001 && y < 0.0001) { y = 0; }
-						ringGeometry.vertices[i].z = getNearestZ(radiiGroups[rGroupIndex].slice(1), x, y) * scaleZ;
+						ringGeometry.vertices[i].z = getNearestZOnRing(radiiGroups[rGroupIndex].slice(1), x, y) * scaleZ;
 					}
 				}
 			}
@@ -358,7 +381,7 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 	for(var i = planeGeometry.vertices.length - 1; i >= 0; i--) {
 		var x = (planeGeometry.vertices[i].x + 0.5) * (xMax - xMin) + xMin;
 		var y = (planeGeometry.vertices[i].y + 0.5) * (yMax - xMin) + yMin;
-		var z = getNearestZ(probePoints, x, y) * scaleZ;
+		var z = getNearestZOnGrid(probePoints, x, y) * scaleZ;
 
 		planeGeometry.vertices[i].z = z;
 	}
@@ -393,18 +416,75 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 	return planeGeometry;
 }
 
-function setFaceColors(geometry, max) {
+function getColorByZ(z) {
+	// TODO: allow more visualizations
+	var hue = 120 - Math.min(Math.abs(z / scaleZ), maxVisualizationZ) * (1 / maxVisualizationZ) * 120;
+	return new THREE.Color("hsl(" + hue + ",100%,45%)");
+}
+
+function setFaceColors(geometry) {
 	for(var i = 0; i < geometry.faces.length; i++) {
 		var face = geometry.faces[i];
-
-		var aZ = Math.min(Math.abs(geometry.vertices[face.a].z / scaleZ), maxVisualizationZ) * (1 / maxVisualizationZ);
-		var bZ = Math.min(Math.abs(geometry.vertices[face.b].z / scaleZ), maxVisualizationZ) * (1 / maxVisualizationZ);
-		var cZ = Math.min(Math.abs(geometry.vertices[face.c].z / scaleZ), maxVisualizationZ) * (1 / maxVisualizationZ);
-
-		face.vertexColors.push(new THREE.Color("hsl(" + (1 - aZ) * 120 + ",100%,50%)"));
-		face.vertexColors.push(new THREE.Color("hsl(" + (1 - bZ) * 120 + ",100%,50%)"));
-		face.vertexColors.push(new THREE.Color("hsl(" + (1 - cZ) * 120 + ",100%,50%)"));
+		face.vertexColors.push(getColorByZ(geometry.vertices[face.a].z));
+		face.vertexColors.push(getColorByZ(geometry.vertices[face.b].z));
+		face.vertexColors.push(getColorByZ(geometry.vertices[face.c].z));
 	}
+}
+
+function translateGridPoint(meshGeometry, vector) {
+	var x, y, z = vector.z / scaleZ;
+	if (meshGeometry.type == "PlaneGeometry") {
+		x = (vector.x / meshGeometry.parameters.width + 0.5) * (probeXMax - probeXMin) + probeXMin;
+		y = (vector.y / meshGeometry.parameters.height + 0.5) * (probeYMax - probeYMin) + probeYMin;
+	} else if (meshGeometry.type == "Geometry") {
+		x = (vector.x + 0.5) * (probeXMax - probeXMin) + probeXMin;
+		y = (vector.y + 0.5) * (probeYMax - probeYMin) + probeYMin;
+	} else {
+		x = vector.x * (probeXMax - probeXMin) / 2;
+		y = vector.y * (probeYMax - probeYMin) / 2;
+	}
+
+	return new THREE.Vector3(x, y, z);
+}
+
+function generateIndicators(meshGeometry) {
+	var indicators = [], centerPointGenerated = false;
+
+	for(var i = 0; i < meshGeometry.vertices.length; i++) {
+		// Convert world coordinate to "real" probe coordinates
+		var x = meshGeometry.vertices[i].x;
+		var y = meshGeometry.vertices[i].y;
+		var z = meshGeometry.vertices[i].z;
+		var trueProbePoint = translateGridPoint(meshGeometry, new THREE.Vector3(x, y, z));
+
+		// Skip center point if it already exists
+		if (Math.sqrt(trueProbePoint.x*trueProbePoint.x + trueProbePoint.y*trueProbePoint.y) < pointTolerance) {
+			if (centerPointGenerated) {
+				continue;
+			}
+			centerPointGenerated = true;
+		}
+
+		// FIXME: Implement this for delta geometries as well
+		if (meshGeometry.type != "RingGeometry") {
+			// Get the true Z probe point coordinate or NaN if there is no close point
+			trueProbePoint.z = getNearestZOnGrid(probePoints, trueProbePoint.x, trueProbePoint.y, pointTolerance);
+		}
+
+		// If we have a close point, create a new indicator
+		if (!isNaN(trueProbePoint.z)) {
+			var sphereGeometry = new THREE.SphereGeometry(indicatorRadius);
+			sphereGeometry.applyMatrix(new THREE.Matrix4().makeTranslation(x, y, z));
+
+			var material = new THREE.MeshBasicMaterial({ color: indicatorColor, opacity: indicatorOpacity, transparent: true });
+			var sphere = new THREE.Mesh(sphereGeometry, material);
+			sphere.coords = trueProbePoint;
+
+			indicators.push(sphere);
+		}
+	}
+
+	return indicators;
 }
 
 $("#modal_bed").on("shown.bs.modal", function () {
@@ -434,21 +514,33 @@ $("#modal_bed").on("shown.bs.modal", function () {
 	$("#div_visualization_placeholder").addClass("hidden");
 	$("#div_visualization, #div_legend").removeClass("hidden");
 	$("#div_visualization").html(renderer.domElement);
-	$("#div_visualization > canvas").mousemove(canvasMouseMove);
+	$("#div_visualization > canvas").mousemove(canvasMouseMove).tooltip({ title: function() { return canvasTitle.split('\n').join("<br/>"); }, html: true, trigger: "manual" }).click(canvasClick);
 	$("#modal_bed div.modal-content").resize();
 
 	// Apply colors to geometry
-	var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors, side: THREE.DoubleSide });
 	setFaceColors(meshGeometry);
 
 	// Make 3D mesh
+	var material = new THREE.MeshBasicMaterial({ vertexColors: THREE.VertexColors, side: THREE.DoubleSide });
 	meshPlane = new THREE.Mesh(meshGeometry, material);
 	scene.add(meshPlane);
 
+	// Make indicators
+	meshIndicators = generateIndicators(meshGeometry);
+	meshIndicators.forEach(function(indicator) {
+		scene.add(indicator);
+	});
+
 	// Make axis arrows
-	var xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(-0.51, -0.51, 0), 0.5, 0xFF0000);
-	var yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-0.51, -0.51, 0), 0.5, 0x00FF00);
-	var zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(-0.51, -0.51, 0), 0.5, 0x0000FF);
+	var xMin = -0.6, yMin = -0.6;
+	if (meshGeometry.hasOwnProperty("parameters") && meshGeometry.parameters.hasOwnProperty("width")) {
+		xMin = meshGeometry.parameters.width * -0.5 - 0.1;
+		yMin = meshGeometry.parameters.height * -0.5 - 0.1;
+	}
+
+	var xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(xMin, yMin, 0), 0.5, 0xFF0000);
+	var yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(xMin, yMin, 0), 0.5, 0x00FF00);
+	var zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(xMin, yMin, 0), 0.5, 0x0000FF);
 	scene.add(xAxis);
 	scene.add(yAxis);
 	scene.add(zAxis);
@@ -485,33 +577,75 @@ function canvasMouseMove(e) {
 		return;
 	}
 
-	// We need normalized X+Y coordinates between -1.0 and 1.0
+	// Try to get the Z value below the cursor
+	// For that we need normalized X+Y coordinates between -1.0 and 1.0
 	var mouse = new THREE.Vector2();
 	var offset = $(this).offset();
 	mouse.x = (e.pageX - offset.left) / $(this).width() * 2 - 1;
 	mouse.y = -(e.pageY - offset.top) / $(this).height() * 2 + 1;
 
-	// Try to get the Z coordinate from the plane
+	// Is the cursor on a point indicator?
 	raycaster.setFromCamera(mouse, camera);
-	var intersection = raycaster.intersectObject(meshPlane);
+	var intersection = raycaster.intersectObjects(meshIndicators);
+	if (lastIntersection != undefined &&
+		(intersection.length == 0 || intersection[0] != lastIntersection)) {
+		lastIntersection.object.material.opacity = indicatorOpacity;
+		lastIntersection = undefined;
+	}
 
-	// Update title
-	if (intersection.length == 0) {
-		$(this).removeAttr("title");
-	} else {
-		var x, y, z = intersection[0].point.z / scaleZ;
-		if (meshGeometry.type == "PlaneGeometry") {
-			x = (intersection[0].point.x / meshGeometry.parameters.width + 0.5) * (probeXMax - probeXMin) + probeXMin;
-			y = (intersection[0].point.y / meshGeometry.parameters.height + 0.5) * (probeYMax - probeYMin) + probeYMin;
-		} else if (meshGeometry.type == "Geometry") {
-			x = (intersection[0].point.x + 0.5) * (probeXMax - probeXMin) + probeXMin;
-			y = (intersection[0].point.y + 0.5) * (probeYMax - probeYMin) + probeYMin;
-		} else {
-			x = intersection[0].point.x * (probeXMax - probeXMin) / 2;
-			y = intersection[0].point.y * (probeYMax - probeYMin) / 2;
+	var intersectionPoint = undefined;
+	if (intersection.length > 0) {
+		if (intersection[0] != lastIntersection) {
+			lastIntersection = intersection[0];
+			lastIntersection.object.material.opacity = indicatorOpacityHighlighted;
 		}
+		intersectionPoint = intersection[0].object.coords;
+	}
 
-		$(this).attr("title", T("X: {0} mm Y: {1} mm Z: {2} mm", x.toFixed(1), y.toFixed(1), z.toFixed(3)));
+	// Show the tooltip on md/lg devices and store it for xs/sm devices
+	if (intersectionPoint == undefined) {
+		updateCanvasTitle(undefined);
+	} else {
+		updateCanvasTitle(T("X: {0} mm\nY: {1} mm\nZ: {2} mm",
+			intersectionPoint.x.toFixed(1), intersectionPoint.y.toFixed(1), intersectionPoint.z.toFixed(3)),
+			e.pageX - offset.left, e.pageY - offset.top);
+	}
+}
+
+var canvasTooltip, canvasTitle;
+function updateCanvasTitle(title, x, y) {
+	var canvas = $("#div_visualization > canvas");
+	if (title == undefined) {
+		// Remove title
+		canvasTitle = undefined;
+
+		// Hide tooltip if it exists
+		if (canvasTooltip != undefined) {
+			canvas.tooltip("hide");
+			canvasTooltip = undefined;
+		}
+	} else {
+		// Set title
+		canvasTitle = title;
+
+		// Show info on md/lg screens
+		if (!windowIsXsSm()) {
+			// Show tooltip
+			if (canvasTooltip == undefined) {
+				canvas.tooltip("show");
+				canvasTooltip = $("#div_visualization > div.tooltip");
+			}
+
+			// Reposition tooltip
+			canvasTooltip.css("left", x + 15 - canvasTooltip.outerWidth() / 2).css("top", y - canvasTooltip.outerHeight());
+		}
+	}
+}
+
+function canvasClick(e) {
+	if (windowIsXsSm() && canvasTitle != undefined) {
+		// Show message on xs/sm devices because the tooltip isn't really working there
+		alert(canvasTitle);
 	}
 }
 
@@ -570,9 +704,9 @@ $("#modal_bed > div > div.modal-content").resize(function() {
 	var showAxes = canvasHeight > 180;
 	var scaleHeight = showAxes ? (canvasHeight - 139) : (canvasHeight - 96);
 	var gradient = context.createLinearGradient(0, 50, 0, 50 + scaleHeight);
-	gradient.addColorStop(0.0, "hsl(120,100%,50%)");
-	gradient.addColorStop(0.5, "hsl(60,100%,50%)");
-	gradient.addColorStop(1.0, "hsl(0,100%,50%)");
+	gradient.addColorStop(0.0, "hsl(120,100%,45%)");
+	gradient.addColorStop(0.5, "hsl(60,100%,45%)");
+	gradient.addColorStop(1.0, "hsl(0,100%,45%)");
 	context.fillStyle = gradient;
 	context.fillRect(legendWidth / 2 - 12, 50, 24, scaleHeight);
 

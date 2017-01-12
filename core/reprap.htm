@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.14
+<!--	Duet Web Control v1.14a
 
 	written by Christian Hammacher
 
@@ -1190,7 +1190,7 @@
 								<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
 								<li>
 									<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
-									<ul class="dropdown-menu" id="collapsed">
+									<ul class="dropdown-menu dropdown-menu-right" id="collapsed">
 										<li><a href="#page_sysedit" data-toggle="tab">System Editor</a></li>
 										<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 										<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
@@ -1226,7 +1226,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.14</td>
+														<td>1.14a</td>
 													</tr>
 												</table>
 												<span>Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="http://www.gnu.org/licenses/gpl-2.0.html" target="blank">GPL v2</a></span>
@@ -1476,8 +1476,8 @@
 												</div>
 
 												<div class="checkbox">
-													<label title="Activate this to display M117 messages until they are manually closed">
-														<input type="checkbox" id="fw_messages_persistent" data-setting="autoCloseUserMessages" checked /> Automatically close user-generated firmware messages
+													<label title="Activate this to display M117 messages only for a certain time span">
+														<input type="checkbox" data-setting="autoCloseUserMessages" checked /> Automatically close user-generated firmware messages
 													</label>
 												</div>
 											</div>
@@ -1493,7 +1493,7 @@
 
 												<label for="input_webcam_interval">Webcam Update Interval:</label>
 												<div class="input-group">
-													<input type="number" id="input_webcam_interval" class="form-control" title="Interval at which the webcam image on the Print Status page will be updated" data-setting="webcamInterval" data-min="0.1" data-factor="1000">
+													<input type="number" id="input_webcam_interval" class="form-control" title="Interval at which the webcam image on the Print Status page will be updated" data-setting="webcamInterval" data-min="0" data-factor="1000">
 													<span class="input-group-addon">s</span>
 												</div>
 											</div>
