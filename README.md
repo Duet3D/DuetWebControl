@@ -84,7 +84,7 @@ Move a file on the SD card from XXX to YYY. Returns {"err":[code]} after complet
 Create a new directory. Returns {"err":[code]} with code being 0 if the directory could be created.
 
 #### rr_config
-Get the configuration response. Some printer information do not need to be requested for regular usag but to obtain machine properties and firmware versions this request can be used.
+Get the configuration response. Some printer information do not need to be requested for regular usage but to obtain machine properties and firmware versions this request can be used.
 
 ## Building Duet Web Control
 
