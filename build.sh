@@ -6,16 +6,14 @@
 # - yui-compressor from https://yui.github.io/yuicompressor
 # Make sure both tools are accessible via your PATH environment variable!
 
-
-# Get the current version
-VERSION=$(grep -oP "Duet Web Control v\K(.*)" ./core/reprap.htm)
-
-
 # Core directory must contain reprap.htm
 if [ -f !"./core/reprap.htm" ] ; then
 	echo "core directory doesn't contain rerap.htm"
 	exit
 fi
+
+# Get the current version
+VERSION=$(grep -oP "Duet Web Control v\K(.*)" ./core/reprap.htm)
 
 # Create an empty build directory
 if [ -d "./build" ] ; then
