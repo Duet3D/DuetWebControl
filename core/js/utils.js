@@ -375,3 +375,11 @@ function beep(frequency, duration) {
 		oscillator.disconnect();
 	}, duration);
 }
+
+function faviconProgress(value) {
+    if (value == 'reset') {
+        Piecon.reset();
+    } else {
+        Piecon.setProgress(value);
+    }
+}

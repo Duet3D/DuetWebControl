@@ -1184,6 +1184,8 @@ function setProgress(progress, labelLeft, labelRight) {
 		$("#span_progress_right").text(labelRight);
 	}
 	$("#progress").css("width", progress + "%");
+ 
+  faviconProgress(progress);
 }
 
 function setStatusLabel(text, style) {

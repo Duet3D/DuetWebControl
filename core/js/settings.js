@@ -488,3 +488,12 @@ $('a[href="#page_general"], a[href="#page_ui"], a[href="#page_listitems"]').on('
 $('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"]').on('shown.bs.tab', function () {
 	$("#row_save_settings").addClass("hidden");
 });
+
+//Piecon settings
+
+Piecon.setOptions({
+  color: '#0000ff', // Pie chart color
+  background: '#bbb', // Empty pie chart color
+  shadow: '#fff', // Outer ring color
+  fallback: 'force' // Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+});
