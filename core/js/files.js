@@ -36,7 +36,7 @@ function getFileInfo(directory, filename, callback) {
 	var path = directory + "/" + filename;
 	var fileInfo = cachedFileInfo[path];
 	if (fileInfo == undefined) {
-		$.ajax("rr_fileinfo?name=" + encodeURIComponent(directory + "/" + filename), {
+		$.ajax(ajaxPrefix + "rr_fileinfo?name=" + encodeURIComponent(directory + "/" + filename), {
 			dataType: "json",
 			dir: directory,
 			file: filename,
@@ -67,7 +67,7 @@ function clearFileCache(filename) {
 function clearFileCacheDirectory(directory) {
 	for(var path in cachedFileInfo) {
 		// Delete cached file info from paths starting with the directory, but skip sub-directories
-		if (path.startsWith(directory + "/") && path.substring(directory.length + 1).indexOf("/") == -1) {
+		if (path.indexOf(directory + "/") == 0 && path.substring(directory.length + 1).indexOf("/") == -1) {
 			cachedFileInfo[path] = undefined;
 		}
 	}
@@ -108,6 +108,16 @@ function setMountedVolumes(bitmap) {
 		// Don't do anything unless the bitmap has changed
 		return;
 	}
+	var oldBitmap = mountedVolumes;
+	mountedVolumes = bitmap;
+
+	if ((bitmap & (1 << 0)) != (oldBitmap & (1 << 0))) {
+		// Update macros
+		updateMacroFiles();
+
+		// Update system files
+		updateSysFiles();
+	}
 
 	for(var i = 0; i < numVolumes; i++) {
 		// Update UI
@@ -126,9 +136,8 @@ function setMountedVolumes(bitmap) {
 			changeGCodeVolume(i);
 		}
 	}
-	mountedVolumes = bitmap;
 
-	// Is the current volume still mounted?
+	// Is the current G-code volume still mounted?
 	if ((bitmap & (1 << currentGCodeVolume)) == 0) {
 		// No - find the first one that is mounted
 		for(var i = 0; i < numVolumes; i++) {
@@ -138,8 +147,17 @@ function setMountedVolumes(bitmap) {
 			}
 		}
 
-		// No volume is mounted at all - not good
+		// No volume is mounted at all
 		clearGCodeFiles();
+	} else {
+		// Has the current G-code volume been mounted again?
+		if ((oldBitmap & (1 << currentGCodeVolume)) == 0) {
+			// Yes - try to reload the files
+			gcodeUpdateIndex = -1;
+			if (currentPage == "files") {
+				updateGCodeFiles();
+			}
+		}
 	}
 }
 
@@ -187,7 +205,7 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 
 $("#btn_new_gcode_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
-		$.ajax("rr_mkdir?dir=" + encodeURIComponent(currentGCodeDirectory + "/" + value), {
+		$.ajax(ajaxPrefix + "rr_mkdir?dir=" + encodeURIComponent(currentGCodeDirectory + "/" + value), {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
@@ -347,12 +365,20 @@ function updateGCodeFiles() {
 	}
 
 	if (gcodeUpdateIndex == -1) {
+		// Is the current volume mounted?
+		if ((mountedVolumes & (1 << currentGCodeVolume)) == 0) {
+			// No - stop here
+			clearGCodeFiles();
+			return;
+		}
+
+		// Yes - fetch the filelist for the current directory and proceed
 		stopUpdates();
 		gcodeUpdateIndex = 0;
 		gcodeLastDirectory = undefined;
 		clearGCodeFiles();
 
-		$.ajax("rr_filelist?dir=" + encodeURIComponent(currentGCodeDirectory), {
+		$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(currentGCodeDirectory), {
 			dataType: "json",
 			success: function(response) {
 				if (isConnected) {
@@ -403,7 +429,7 @@ function updateGCodeFiles() {
 				}
 				gcodeUpdateIndex++;
 
-				var row = $("#table_gcode_files > tbody > tr[data-file='" + filename + "']");
+				var row = $('#table_gcode_files > tbody > tr[data-file="' + filename + '"]');
 				if (fileinfo.err == 0) {
 					setGCodeFileItem(row, fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
 				} else {
@@ -484,7 +510,7 @@ function setMacroDirectory(directory) {
 
 $("#btn_new_macro_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
-		$.ajax("rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
+		$.ajax(ajaxPrefix + "rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
@@ -559,7 +585,7 @@ function addMacroDirectory(name) {
 		$("#panel_macro_buttons h4").addClass("hidden");
 
 		var button =	'<div class="btn-group">';
-		button +=		'<button class="btn btn-default btn-macro btn-sm" data-directory="0:/macros/' + name + '" data-toggle="dropdown">' + name + ' <span class="caret"></span></button>';
+		button +=		'<button class="btn btn-info btn-macro btn-sm" data-directory="0:/macros/' + name + '" data-toggle="dropdown">' + name + ' <span class="caret"></span></button>';
 		button +=		'<ul class="dropdown-menu"></ul>';
 		button +=		'</div>';
 
@@ -614,34 +640,49 @@ function updateMacroFiles() {
 		return;
 	}
 
-	// Don't request updates while loading the filelist
+	// Is the macro volume mounted?
+	if ((mountedVolumes & (1 << 0)) == 0) {
+		// No - stop here
+		clearMacroFiles();
+		return;
+	}
+
+	// Yes - fetch the filelist for the current directory and proceed
 	stopUpdates();
 
-	$.ajax("rr_filelist?dir=" + encodeURIComponent(currentMacroDirectory), {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(currentMacroDirectory), {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
-				var files = response.files.sort(function (a, b) {
-					return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-				});
-
-				for(var i = 0; i < files.length; i++) {
-					if (files[i].type == 'd') {
-						addMacroDirectory(files[i].name);
-					} else {
-						var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
-						addMacroFile(files[i].name, files[i].size, lastModified);
+				if (response.hasOwnProperty("err")) {
+					// don't proceed if the firmware has reported an error
+					$("#page_macros h1").text(T("Failed to retrieve files of this directory"));
+					if (currentMacroDirectory == "0:/macros") {
+						$("#panel_macro_buttons h4").text(T("Failed to retrieve files of this directory"));
 					}
-				}
+				} else {
+					var files = response.files.sort(function (a, b) {
+						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+					});
 
-				if (files.length == 0) {
-					$("#page_macros h1").text(T("No Macro Files found"));
-				}
+					for(var i = 0; i < files.length; i++) {
+						if (files[i].type == 'd') {
+							addMacroDirectory(files[i].name);
+						} else {
+							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+							addMacroFile(files[i].name, files[i].size, lastModified);
+						}
+					}
 
-				if (currentPage == "macros") {
-					$(".span-refresh-macros").removeClass("hidden");
+					if (files.length == 0) {
+						$("#page_macros h1").text(T("No Macro Files found"));
+					}
+
+					if (currentPage == "macros") {
+						$(".span-refresh-macros").removeClass("hidden");
+					}
+					macrosLoaded = true;
 				}
-				macrosLoaded = true;
 
 				startUpdates();
 			}
@@ -661,6 +702,11 @@ function clearMacroFiles() {
 		macroLastDirectoryItem = undefined;
 
 		$("#panel_macro_buttons .btn-group-vertical").children().remove();
+		if (isConnected && (mountedVolumes & (1 << 0)) == 0) {
+			$("#panel_macro_buttons h4").text(T("The first volume is not mounted"));
+		} else {
+			$("#panel_macro_buttons h4").text(T("Go to the Macros page to define your own actions"));
+		}
 		$("#panel_macro_buttons h4").removeClass("hidden");
 	}
 
@@ -672,7 +718,11 @@ function clearMacroFiles() {
 	$("#table_macro_files").addClass("hidden");
 	$("#page_macros h1").removeClass("hidden");
 	if (isConnected) {
-		$("#page_macros h1").text(T("loading"));
+		if ((mountedVolumes & (1 << 0)) == 0) {
+			$("#page_macros h1").text(T("The first volume is not mounted"));
+		} else {
+			$("#page_macros h1").text(T("loading"));
+		}
 	} else {
 		$("#page_macros h1").text(T("Connect to your Duet to display Macro files"));
 	}
@@ -692,12 +742,14 @@ $("body").on("click", ".btn-macro", function(e) {
 });
 
 function loadMacroDropdown(directory, dropdown) {
-	$.ajax("rr_filelist?dir=" + encodeURIComponent(directory), {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(directory), {
 		dataType: "json",
 		directory: directory,
 		dropdown: dropdown,
 		success: function(response) {
-			if (response.files.length == 0) {
+			if (response.hasOwnProperty("err")) {
+				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + T("Failed to retrieve files of this directory") + '</a></li>');
+			} else if (response.files.length == 0) {
 				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + T("No files found!") + '</a></li>');
 			} else {
 				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + directory + '</a></li><li class="divider"></li>');
@@ -707,7 +759,7 @@ function loadMacroDropdown(directory, dropdown) {
 
 				files.forEach(function(file) {
 					if (file.type == 'd') {
-						var item = $('<li><a href="#" data-directory="' + directory + '/' + file.name + '">' + file.name + ' <span class="caret"></span></a></li>');
+						var item = $('<li class="bg-info"><a href="#" data-directory="' + directory + '/' + file.name + '">' + file.name + ' <span class="caret"></span></a></li>');
 						item.find("a").click(function(e) {
 							loadMacroDropdown($(this).data("directory"), $(this).parents("ul"));
 							e.stopPropagation();
@@ -744,17 +796,25 @@ function resetFiles() {
 
 	currentMacroDirectory = "0:/macros";
 	//updateMacroFiles();
+
+	//updateSysFiles();
 }
 
 var draggingObject;
 
 function fileDragStart(e) {
+	$(".no-drag-target").addClass("hidden");
+	$(".drag-target").removeClass("hidden");
+
 	draggingObject = $(this).closest("tr");
 	// The following doesn't work, although it's recommended. I wonder who invented this crappy API...
 	//e.dataTransfer.setData('text/html', this.innerHTML);
 }
 
 function fileDragEnd(e) {
+	$(".no-drag-target").removeClass("hidden");
+	$(".drag-target").addClass("hidden");
+
 	draggingObject = undefined;
 }
 
@@ -792,7 +852,7 @@ $(".table-files").on("drop", "tr", function(e) {
 			sourcePath = currentMacroDirectory + "/" + sourcePath;
 		}
 
-		$.ajax("rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
+		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
 			dataType: "json",
 			row: draggingObject,
 			success: function(response) {
@@ -800,6 +860,7 @@ $(".table-files").on("drop", "tr", function(e) {
 					// We can never run out of files/dirs if we move FSOs to sub-directories...
 					this.row.remove();
 				}
+				// else an error is reported via rr_reply
 			}
 		});
 
@@ -842,7 +903,7 @@ $("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
 			fileTable = $("#table_macro_files > tbody");
 		}
 
-		$.ajax("rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
+		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
 			dataType: "json",
 			row: draggingObject,
 			table: fileTable,
@@ -858,6 +919,7 @@ $("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
 						}
 					}
 				}
+				// else an error is reported via rr_reply
 			}
 		});
 
@@ -865,6 +927,69 @@ $("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
 		e.preventDefault();
 	}
 });
+
+$(".btn-rename, #a_rename_file").on("dragover", function(e) {
+	if (draggingObject != undefined) {
+		if ($(this).is("button")) {
+			$(this).removeClass("btn-warning").addClass("btn-success");
+		}
+
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
+$(".btn-rename, #a_rename_file").on("drop", function(e) {
+	if (draggingObject != undefined) {
+		if ($(this).is("button")) {
+			$(this).removeClass("btn-success").addClass("btn-warning");
+		}
+
+		var oldFileName = draggingObject.data("file");
+		if (oldFileName == undefined) {
+			oldFileName = draggingObject.data("directory");
+		}
+
+		showTextInput(T("Rename File or Directory"), T("Please enter a new name:"), function(newFileName) {
+			// Get current path
+			var filePath;
+			if (currentPage == "files") {
+				filePath = currentGCodeDirectory;
+				clearFileCache(filePath + "/" + oldFileName);
+			} else if (currentPage == "macros") {
+				filePath = currentMacroDirectory;
+			} else {
+				filePath = "0:/sys";
+			}
+
+			// Try to move that file
+			$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(filePath + "/" + oldFileName) + "&new=" + encodeURIComponent(filePath + "/" + newFileName), {
+				dataType: "json",
+				success: function(response) {
+					if (response.err == 0) {
+						if (currentPage == "files") {
+							gcodeUpdateIndex = -1;
+							updateGCodeFiles();
+						} else if (currentPage == "macros") {
+							updateMacroFiles();
+						} else {
+							updateSysFiles();
+						}
+					}
+					// else an error is reported via rr_reply
+				}
+			});
+		}, oldFileName);
+
+		e.preventDefault();
+		e.stopPropagation();
+	}
+});
+
+$(".btn-rename").on("dragleave", function(e) {
+	$(this).removeClass("btn-success").addClass("btn-warning");
+});
+
 
 /* System Editor */
 
@@ -898,58 +1023,81 @@ function addSysFile(filename, size, lastModified) {
 	row +=		'<td><button class="btn btn-success btn-edit-file ' + (isDisabled ? "disabled" : "") + ' btn-sm" title="' + T("Edit this file") + '"><span class="glyphicon glyphicon-pencil"></span></button></td>';
 	row +=		'<td><button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button></td>';
 	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
-	row +=		'<td><span class="glyphicon glyphicon-file"></span> ' + filename + '</td>';
+	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
-	$("#table_sys_files > tbody").append(row);
+
+	var rowElem = $(row);
+	rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+
+	$("#table_sys_files > tbody").append(rowElem);
 }
 
 function updateSysFiles() {
-	// Clear files
+	// Clear the file list
 	sysLoaded = false;
 	$("#table_sys_files > tbody").children().remove();
 	$("#table_sys_files").addClass("hidden");
 	$("#page_sysedit h1").removeClass("hidden");
 	if (isConnected) {
-		$("#page_sysedit h1").text(T("loading"));
 		$("#a_refresh_sys").addClass("hidden");
+
+		// Is the macro volume mounted?
+		if ((mountedVolumes & (1 << 0)) == 0) {
+			$("#page_sysedit h1").text(T("The current volume is not mounted"));
+			return;
+		}
+
+		$("#page_sysedit h1").text(T("loading"));
 	} else {
 		$("#page_sysedit h1").text(T("Connect to your Duet to display System files"));
 		return;
 	}
 
-	// Don't request updates while loading the filelist
+	// Don't request updates while loading the file list
 	stopUpdates();
 
 	// Request filelist for /sys
-	$.ajax("rr_filelist?dir=0:/sys", {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/sys", {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
-				var files = response.files.sort(function (a, b) {
-					return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-				});
+				if (response.hasOwnProperty("err")) {
+					// don't proceed if the firmware has reported an error
+					$("#page_sysedit h1").text(T("Failed to retrieve files of this directory"));
+				} else {
+					var files = response.files.sort(function (a, b) {
+						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+					});
 
-				for(var i = 0; i < files.length; i++) {
-					if (files[i].type != 'd') {
-						var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
-						addSysFile(files[i].name, files[i].size, lastModified);
+					for(var i = 0; i < files.length; i++) {
+						if (files[i].type != 'd') {
+							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+							addSysFile(files[i].name, files[i].size, lastModified);
+						}
 					}
-				}
 
-				if (files.length == 0) {
-					$("#page_sysedit h1").text(T("No System Files found"));
-				}
+					if (files.length == 0) {
+						$("#page_sysedit h1").text(T("No System Files found"));
+					}
 
-				$("#a_refresh_sys").removeClass("hidden");
-				sysLoaded = true;
+					$("#a_refresh_sys").removeClass("hidden");
+					sysLoaded = true;
+				}
 
 				startUpdates();
 			}
 		}
 	});
 }
+
+$("#table_sys_files").on("click", "a", function(e) {
+	// This is only for drag&drop
+	e.preventDefault();
+});
+
 
 /* List item events */
 
@@ -967,7 +1115,7 @@ function getFilePath() {
 
 $("body").on("click", ".btn-download-file", function(e) {
 	var filename = $(this).parents("tr").data("file");
-	if (boardType.startsWith("duetwifi"))
+	if (boardType.indexOf("duetwifi") == 0)
 	{
 		// DuetWiFiServer isn't multi-threaded yet. To interrupt
 		// all the communication until the file has been downloaded,
@@ -985,12 +1133,14 @@ $("body").on("click", ".btn-download-file", function(e) {
 });
 
 function editFile(file) {
-	$.ajax("rr_download?name=" + encodeURIComponent(file), {
+	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent(file), {
 		dataType: "text",
 		success: function(response) {
 			showEditDialog(file, response, function(value) {
 				uploadTextFile(file, value, function() {
-					if (currentPage == "macros") {
+					if (currentPage == "files") {
+						updateGCodeFiles();
+					} else if (currentPage == "macros") {
 						updateMacroFiles();
 					} else if (currentPage == "settings") {
 						updateSysFiles();
@@ -1012,7 +1162,7 @@ $("body").on("click", ".btn-delete-file", function(e) {
 	var row = $(this).parents("tr");
 	var file = row.data("file");
 	showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
-		$.ajax("rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + file), {
+		$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + file), {
 			dataType: "json",
 			row: row,
 			file: file,
@@ -1046,7 +1196,7 @@ $("body").on("click", ".btn-delete-file", function(e) {
 $("body").on("click", ".btn-delete-directory", function(e) {
 	var row = $(this).parents("tr");
 	var directory = row.data("directory");
-	$.ajax("rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + directory), {
+	$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + directory), {
 		dataType: "json",
 		row: row,
 		directory: directory,

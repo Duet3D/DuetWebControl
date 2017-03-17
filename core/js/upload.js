@@ -25,7 +25,7 @@ function uploadTextFile(filename, content, callback) {
 	file.name = filename;
 	file.lastModified = (new Date()).getTime();
 
-	var uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(filename) + "&time=" + encodeURIComponent(timeToStr(new Date())), {
+	var uploadRequest = $.ajax(ajaxPrefix + "rr_upload?name=" + encodeURIComponent(filename) + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		data: file,
 		dataType: "json",
 		filename: filename,
@@ -84,7 +84,7 @@ function startUpload(type, files, fromCallback) {
 	}
 
 	// Don't allow DuetWebControl*.zip to be uploaded on DuetWiFi
-	if (boardType.startsWith("duetwifi") && type == "generic" && files.length == 1 && files[0].name.toLowerCase().match("^duetwebcontrol.*\\.zip") != null) {
+	if (boardType.indexOf("duetwifi") == 0 && type == "generic" && files.length == 1 && files[0].name.toLowerCase().match("^duetwebcontrol.*\\.zip") != null) {
 		showMessage("warning", T("Error"), T("You cannot upload web interface files as a ZIP file on a Duet WiFi!"));
 		return;
 	}
@@ -157,7 +157,7 @@ function startUpload(type, files, fromCallback) {
 			}
 
 			// DuetWiFi-specific files can be used only on a Duet WiFi
-			if (boardType.startsWith("duetwifi")) {
+			if (boardType.indexOf("duetwifi") == 0) {
 				if (this.name.toUpperCase().match("^DUETWIFISERVER.*\.BIN") != null) {
 					uploadDWSFile = this.name;
 				} else if (this.name.toUpperCase().match("^DUETWEBCONTROL.*\.BIN") != null) {
@@ -193,7 +193,7 @@ function uploadNextFile() {
 		var skipFile = false;
 		var lcName = uploadFileName.toLowerCase();
 
-		if (!boardType.startsWith("duetwifi")) {
+		if (!boardType.indexOf("duetwifi") == 0) {
 			// Skip DuetWebControl*.bin on first-gen Duets
 			if (lcName.match("^duetwebcontrol.*\\.bin") != null) {
 				skipFile = true;
@@ -273,7 +273,7 @@ function uploadNextFile() {
 	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 
 	// Begin another POST file upload
-	uploadRequest = $.ajax("rr_upload?name=" + encodeURIComponent(targetPath) + "&time=" + encodeURIComponent(timeToStr(new Date(file.lastModified))), {
+	uploadRequest = $.ajax(ajaxPrefix + "rr_upload?name=" + encodeURIComponent(targetPath) + "&time=" + encodeURIComponent(timeToStr(new Date(file.lastModified))), {
 		data: file,
 		dataType: "json",
 		processData: false,
@@ -436,15 +436,18 @@ function uploadHasFinished(success) {
 		// Ask for software reset if it's safe to do
 		else if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
 			// Test for firmware update before we test for a new config file, because a firmware update includes a reset
-			if (uploadFirmwareFile != undefined) {
+			if (uploadFirmwareFile != undefined && uploadDWSFile == undefined && uploadDWCFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Firmware Update?"), T("You have just uploaded a firmware file. Would you like to update your Duet now?"), startFirmwareUpdate);
-			} else if (uploadDWSFile != undefined) {
+			} else if (uploadDWSFile != undefined && uploadFirmwareFile == undefined && uploadDWCFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform WiFi Server Update?"), T("You have just uploaded a Duet WiFi server firmware file. Would you like to install it now?"), startDWSUpdate);
-			} else if (uploadDWCFile != undefined) {
+			} else if (uploadDWCFile != undefined && uploadFirmwareFile == undefined && uploadDWSFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Duet Web Control Update?"), T("You have just uploaded a Duet Web Control package. Would you like to install it now?"), startDWCUpdate);
+			} else if (uploadFirmwareFile != undefined || uploadDWSFile != undefined || uploadDWCFile != undefined) {
+				$("#modal_upload").modal("hide");
+				showConfirmationDialog(T("Perform Firmware Update?"), T("You have just uploaded multiple firmware files. Would you like to install them now?"), startFirmwareUpdates);
 			} else if (uploadIncludedConfig) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
@@ -456,100 +459,104 @@ function uploadHasFinished(success) {
 	}
 }
 
+function startFirmwareUpdates() {
+	var sParams = [], fwFile, dwsFile, dwcFile;
+	if (uploadFirmwareFile != undefined) {
+		fwFile = "0:/sys/" + uploadFirmwareFile;
+		sParams.push("0");
+	}
+	if (uploadDWSFile != undefined) {
+		dwsFile = "0:/sys/" + uploadDWSFile;
+		sParams.push("1");
+	}
+	if (uploadDWCFile != undefined) {
+		dwcFile = "0:/sys/" + uploadDWCFile;
+		sParams.push("2");
+	}
+
+	// Stop status updates so the user doesn't see any potential error messages
+	stopUpdates();
+
+	// Move the file(s) into place
+	moveFile(fwFile, "0:/sys/" + firmwareFileName + ".bin", function() {
+		moveFile(dwsFile, "0:/sys/DuetWiFiServer.bin", function() {
+			moveFile(dwcFile, "0:/sys/DuetWebControl.bin", function() {
+				// Initiate firmware updates
+				var sParam = sParams.join(":");
+				sendGCode("M997 S" + sParam);
+
+				// Resume the status update loop
+				startUpdates();
+			}, startUpdates);
+		}, startUpdates);
+	}, startUpdates);
+}
+
 function startFirmwareUpdate() {
-	if (uploadFirmwareFile.toUpperCase() != firmwareFileName.toUpperCase() + ".BIN") {
-		// The firmware filename is hardcoded in the IAP binary, so try to rename the uploaded file first
-		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadFirmwareFile) + "&new=" + encodeURIComponent("/sys/" + firmwareFileName + ".bin"), {
-			dataType: "json",
-			success: function(response) {
-				if (response.err == 0) {
-					// Rename succeeded and flashing can be performed now
-					sendGCode("M997 S0");
-				} else {
-					// Looks like /sys/<firmwareFileName>.bin already exists, attempt to delete it and try again
-					$.ajax("rr_delete?name=" + encodeURIComponent("/sys/" + firmwareFileName + ".bin"), {
-						dataType: "json",
-						success: function(response) {
-							if (response.err == 0) {
-								// File delete succeeded, attempt to start the firmware update once again
-								startFirmwareUpdate();
-							} else {
-								// Something went wrong
-								showMessage("danger", T("Error"), T("Could not rename firmware file!"));
-							}
-						}
-					});
-				}
-			}
-		});
-	}
-	else {
-		// Filename is okay, start flashing immediately
+	// Stop status updates so the user doesn't see any potential error messages
+	stopUpdates();
+
+	// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
+	moveFile("0:/sys/" + uploadFirmwareFile, "0:/sys/" + firmwareFileName + ".bin", function() {
+		// Rename succeeded and flashing can be performed now
 		sendGCode("M997 S0");
-	}
+		startUpdates();
+	}, startUpdates);
 }
 
 function startDWSUpdate() {
-	if (uploadDWSFile.toUpperCase() != "DUETWIFISERVER.BIN") {
-		// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
-		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadDWSFile) + "&new=" + encodeURIComponent("/sys/DuetWiFiServer.bin"), {
-			dataType: "json",
-			success: function(response) {
-				if (response.err == 0) {
-					// Rename succeeded and flashing can be performed now
-					sendGCode("M997 S1");
-				} else {
-					// Looks like /sys/<firmwareFileName>.bin already exists, attempt to delete it and try again
-					$.ajax("rr_delete?name=" + encodeURIComponent("/sys/DuetWiFiServer.bin"), {
-						dataType: "json",
-						success: function(response) {
-							if (response.err == 0) {
-								// File delete succeeded, attempt to start the firmware update once again
-								startDWSUpdate();
-							} else {
-								// Something went wrong
-								showMessage("danger", T("Error"), T("Could not rename WiFi Server update file!"));
-							}
-						}
-					});
-				}
-			}
-		});
-	} else {
-		// Filename is okay, start flashing immediately
+	// Stop status updates so the user doesn't see any potential error messages
+	stopUpdates();
+
+	// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
+	moveFile("0:/sys/" + uploadDWSFile, "0:/sys/DuetWiFiServer.bin", function() {
+		// Rename succeeded and flashing can be performed now
 		sendGCode("M997 S1");
-	}
+		startUpdates();
+	}, startUpdates);
 }
 
 function startDWCUpdate() {
-	if (uploadDWCFile.toUpperCase() != "DUETWEBCONTROL.BIN") {
-		// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
-		$.ajax("rr_move?old=" + encodeURIComponent("/sys/" + uploadDWCFile) + "&new=" + encodeURIComponent("/sys/DuetWebControl.bin"), {
+	// Stop status updates so the user doesn't see any potential error messages
+	stopUpdates();
+
+	// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
+	moveFile("0:/sys/" + uploadDWCFile, "0:/sys/DuetWebControl.bin", function() {
+		// Rename succeeded and flashing can be performed now
+		sendGCode("M997 S2");
+		startUpdates();
+	}, startUpdates);
+}
+
+function moveFile(oldFile, newFile, onSuccess, onError) {
+	if (oldFile == undefined || oldFile.toUpperCase() == newFile.toUpperCase()) {
+		// No need to rename the file or directory
+		onSuccess();
+	} else {
+		// File names are different, so attempt to move the old path to the new one
+		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(oldFile) + "&new=" + encodeURIComponent(newFile), {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
-					// Rename succeeded and flashing can be performed now
-					sendGCode("M997 S2");
+					// If that succeeds, return to the callback
+					onSuccess();
 				} else {
-					// Looks like /sys/<firmwareFileName>.bin already exists, attempt to delete it and try again
-					$.ajax("rr_delete?name=" + encodeURIComponent("/sys/DuetWebControl.bin"), {
+					// Could not rename the file, so delete it first. Once done, call this method again
+					$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(newFile), {
 						dataType: "json",
 						success: function(response) {
 							if (response.err == 0) {
-								// File delete succeeded, attempt to start the firmware update once again
-								startDWCUpdate();
-							} else {
-								// Something went wrong
-								showMessage("danger", T("Error"), T("Could not rename Duet Web Control update file!"));
+								// File delete succeeded, attempt to rename the file once again
+								moveFile(oldFile, newFile, onSuccess, onError);
+							} else if (onError != undefined) {
+								// Didn't work? Should never happen
+								onError();
 							}
 						}
 					});
 				}
 			}
 		});
-	} else {
-		// Filename is okay, start flashing immediately
-		sendGCode("M997 S2");
 	}
 }
 
@@ -591,7 +598,7 @@ $(".btn-upload").click(function(e) {
 		e.stopPropagation();
 
 		var files = e.originalEvent.dataTransfer.files;
-		if (!$(this).is(".disabled") && files != null && files.length > 0) {
+		if (!$(this).hasClass("disabled") && files != null && files.length > 0) {
 			// Start new file upload
 			startUpload($(this).data("type"), files, false);
 		}

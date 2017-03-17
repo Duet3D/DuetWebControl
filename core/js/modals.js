@@ -15,7 +15,7 @@ $(".modal").on("hidden.bs.modal", function() {
 });
 
 function hideModals() {
-	$("#modal_upload, #modal_confirmation, #modal_textinput, #modal_password, #modal_edit").modal("hide");
+	$("#modal_upload, #modal_confirmation, #modal_textinput, #modal_host_input, #modal_pass_input, #modal_edit, #modal_backdrop").modal("hide");
 }
 
 
@@ -32,20 +32,52 @@ function showConfirmationDialog(title, message, callback) {
 
 /* Text input dialog */
 
-function showTextInput(title, message, action) {
+function showTextInput(title, message, callback, text) {
 	$("#modal_textinput h4").html(title);
 	$("#modal_textinput p").html(message);
-	$("#modal_textinput input").val("");
+	$("#modal_textinput input").val((text == undefined) ? "" : text);
 	$("#modal_textinput form").off().submit(function(e) {
 		$("#modal_textinput").modal("hide");
 		var value = $("#modal_textinput input").val();
 		if (value.trim() != "") {
-			action(value);
+			callback(value);
 		}
 		e.preventDefault();
 	});
 	$("#modal_textinput").modal("show");
 }
+
+$("#modal_textinput").on("shown.bs.modal", function() {
+	$("#modal_textinput input").focus();
+});
+
+
+/* Host prompt */
+
+function showHostPrompt() {
+	if (settings.hasOwnProperty("lastHost")) {
+		$('#input_host').val(settings.lastHost);
+	}
+	$("#modal_host_input").modal("show");
+}
+
+$("#modal_host_input").on("shown.bs.modal", function() {
+	$("#input_host").focus();
+});
+
+$("#form_host").submit(function(e) {
+	$("#modal_host_input").off("hide.bs.modal").modal("hide");
+	ajaxPrefix = settings.lastHost = $("#input_host").val();		// let the user decide if this shall be saved
+
+	ajaxPrefix += "/";
+	if (ajaxPrefix.indexOf("://") == -1) {
+		// Prepend http prefix if no URI scheme is given
+		ajaxPrefix = "http://" + ajaxPrefix;
+	}
+
+	connect(sessionPassword, true);
+	e.preventDefault();
+});
 
 
 /* Password prompt */
@@ -66,8 +98,8 @@ $("#form_password").submit(function(e) {
 	e.preventDefault();
 });
 
-$("#modal_pass_input, #modal_textinput").on('shown.bs.modal', function() {
-	$(this).find("input").focus()
+$("#modal_pass_input").on("shown.bs.modal", function() {
+	$("#input_password").focus();
 });
 
 
@@ -111,3 +143,4 @@ $(document).delegate("#modal_edit textarea", "keydown", function(e) {
 		$(this).get(0).selectionStart = $(this).get(0).selectionEnd = start + 1;
 	}
 });
+

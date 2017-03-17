@@ -56,13 +56,16 @@ function translatePage() {
 			translateEntries(root, $("p, span, th, td, strong, dt, button"), "textContent");
 			translateEntries(root, $("h1, h4, label, a, #main_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
 			translateEntries(root, $("input[type='text']"), "placeholder");
-			translateEntries(root, $("a, abbr, button, label, #chart_temp, input, td"), "title");
+			translateEntries(root, $("a, abbr, button, label, li, #chart_temp, input, td"), "title");
 			translateEntries(root, $("img"), "alt");
 
 			// This doesn't work with data attributes though
 			$("button[data-content]").each(function() {
 				$(this).attr("data-content", T($(this).attr("data-content")));
 			});
+
+			// Update SD Card button caption
+			$("#btn_volume > span.content").text(T("SD Card {0}", currentGCodeVolume));
 
 			// Set new language on Settings page
 			$("#btn_language").data("language", settings.language).children("span:first-child").text(root.attributes["name"].value);
