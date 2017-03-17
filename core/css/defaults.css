@@ -8,11 +8,6 @@
 
 /* Generic classes */
 
-.btn-delete-directory {
-	float: right;
-	margin-right: 8px;
-}
-
 body {
 	min-width: 465px;
 }
@@ -109,21 +104,18 @@ label {
 	width: 100%;
 }
 
-.table-description td {
+.table-description > tbody > tr > td {
 	width: 100%;
 }
-.table-description tr:not(:last-child) > td {
-	padding-bottom: 9px;
-}
 
-.table-description tr > td:first-child {
+.table-description > tbody > tr > td:first-child {
 	padding-right: 12px;
 	text-align: right;
 	width: auto;
 	white-space: nowrap;
 }
 
-.table-description tr:first-child td {
+.table-description > tbody > tr:first-child td {
 	padding-top: 0px;
 }
 
@@ -328,6 +320,18 @@ label {
 	max: 160;
 }
 
+.table-fan-control {
+	width: 100%;
+}
+
+.table-fan-control tr > td:nth-child(2) {
+	padding-right: 15px;
+}
+
+.table-fan-control tr:first-child > td:last-child {
+	width: 100%;
+}
+
 #table_heaters tr:first-child > th {
 	width: 25%;
 }
@@ -497,6 +501,10 @@ div.panel table.table-status:not(:last-child)
 
 /* Control Page */
 
+.atx-control div.btn-group {
+	margin-bottom: 9px;
+}
+
 #btn_homeall {
 	min-width: 82px;
 }
@@ -543,6 +551,16 @@ div.panel table.table-status:not(:last-child)
 #panel_extrude .btn-group label.btn {
 	padding-left: 0px !important;
 	padding-right: 0px !important;
+}
+
+#panel_extrude div.panel-body > div:first-child {
+	padding-left: 0px;
+}
+
+@media (max-width: 1199px) {
+	#panel_extrude div.panel-body > div:first-child {
+		padding-bottom: 9px;
+	}
 }
 
 @media (min-width: 1200px) {
@@ -603,13 +621,9 @@ div.panel table.table-status:not(:last-child)
 	width: 100%;
 }
 
-#page_print .btn-group {
-	padding-bottom: 6px;
-}
-
 #page_print .checkbox {
 	margin-top: 0px;
-	margin-bottom: 6px;
+	margin-bottom: 0px;
 }
 
 #page_print .col-left {
@@ -621,6 +635,10 @@ div.panel table.table-status:not(:last-child)
 	}
 }
 
+#page_print .slider-container {
+	padding-right: 12px;
+}
+
 #page_print .progress {
 	margin-bottom: 9px;
 }
@@ -628,6 +646,12 @@ div.panel table.table-status:not(:last-child)
 #progress {
 	width: 100%;
 	font-weight: bold;
+}
+
+#label_babystepping {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0px;
 }
 
 .layer-done-animation {
@@ -648,15 +672,26 @@ div.panel table.table-status:not(:last-child)
 	opacity: 0.80;
 }
 
+#panel_print_control > div > div.btn-group-justified {
+	padding-bottom: 6px;
+}
+
+#panel_print_control > div > div.btn-group-justified:last-child {
+	padding-bottom: 0px;
+}
+
 #panel_print_control .btn {
 	padding-left: 0px;
 	padding-right: 0px;
 }
 
-#panel_print_control div.btn-group:last-child {
-	padding-left: 6px;
+#btn_baby_up,
+#btn_baby_down {
+    word-wrap: break-word;
+    white-space: normal;
 }
 
+#div_cancel,
 #panel_print_info .row > div:not(:first-child) {
 	padding-left: 6px;
 }
@@ -672,7 +707,7 @@ div.panel table.table-status:not(:last-child)
 #chart_print {
 	min-height: 50px;
 	min-width: 50px;
-	height: 190px;
+	height: 225px;
 }
 
 .chart-print-line {
@@ -734,6 +769,11 @@ div.panel table.table-status:not(:last-child)
 }
 
 /* G-Code Files */
+
+.btn-delete-directory {
+	float: right;
+	margin-right: 8px;
+}
 
 #btn_new_gcode_directory span {
 	padding-right: 6px;
@@ -869,6 +909,15 @@ div.panel table.table-status:not(:last-child)
 	padding: 6px;
 }
 
+#div_fan_settings div.checkbox {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+#div_fan_settings > div {
+	padding-right: 0px;
+}
+
 #dropdown_language {
 	display: inline-block;
 }
@@ -882,10 +931,6 @@ label[for="dropdown_language"] {
 	padding-top: 10px;
 }
 
-#label_feedrate {
-	margin-top: 0px !important;
-}
-
 #panel_head_temps > div > label:first-child {
 	display: block;
 }
@@ -894,6 +939,10 @@ label[for="dropdown_language"] {
 	margin: 0px;
 	margin-bottom: 9px;
 	width: 49%;
+}
+
+#panel_tool_changes div.checkbox {
+	margin-top: 0px;
 }
 
 #software_info {
@@ -1048,6 +1097,10 @@ label[for="dropdown_language"] {
 }
 
 /* Modals */
+
+#modal_bed div.modal-footer > .pull-left {
+	margin-right: 9px;
+}
 
 #modal_textinput div.input-group {
 	width: 100%;

@@ -31,10 +31,10 @@ var notificationOptions = {
 // Apply custom options for JS plugin
 $.notifyDefaults(notificationOptions);
 
-function showUpdateMessage(sParam) {
+function showUpdateMessage(type, customTimeout) {
 	// Determine the message and timespan for the notification
 	var title, message, timeout;
-	switch (sParam) {
+	switch (type) {
 		case 0: // Firmware
 			title = T("Updating Firmware...");
 			message = T("Please wait while the firmware is being updated...");
@@ -51,6 +51,12 @@ function showUpdateMessage(sParam) {
 			title = T("Updating Web Interface...");
 			message = T("Please wait while Duet Web Control is being updated...");
 			timeout = settings.dwcReconnectDelay;
+			break;
+
+		case 3: // Multiple Updates
+			title = T("Updating Firmware...");
+			message = T("Please wait while multiple firmware updates are being installed...");
+			timeout = customTimeout;
 			break;
 
 		default: // Unknown
@@ -79,6 +85,29 @@ function showUpdateMessage(sParam) {
 	var notification = $.notify(notifySettings, options);
 	$(notification.$ele).css("z-index", 9999);
 	return notification;
+}
+
+function showHaltMessage() {
+	// Display backdrop and hide it when ready
+	$("#modal_backdrop").modal("show");
+	setTimeout(function() {
+		$("#modal_backdrop").modal("hide");
+	}, settings.haltedReconnectDelay);
+
+	// Display notification
+	var notifySettings = { icon: "glyphicon glyphicon-flash",
+		title: "<strong>" + T("Emergency STOP") + "</strong><br/><br/>",
+		message: T("Please wait while the firmware is restarting..."),
+		progress: settings.haltedReconnectDelay / 100,
+	};
+	var options = { type: "warning",
+		allow_dismiss: false,
+		delay: settings.haltedReconnectDelay,
+		timeout: 1000,
+		showProgressbar: true
+	};
+	var notification = $.notify(notifySettings, options);
+	$(notification.$ele).css("z-index", 9999);
 }
 
 function showMessage(type, title, message, timeout, allowDismiss) {

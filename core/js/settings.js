@@ -9,6 +9,7 @@
 
 var settings = {
 	autoConnect: true,				// automatically connect once the page has loaded
+	lastHost: "",					// only used on localhost
 	updateInterval: 250,			// in ms
 	extendedStatusInterval: 10,		// nth status request will include extended values
 	maxRetries: 1,					// number of AJAX retries before the connection is terminated
@@ -21,13 +22,17 @@ var settings = {
 	confirmStop: false,				// ask for confirmation when pressing Emergency STOP
 	useKiB: true,					// display file sizes in KiB instead of KB
 	useDarkTheme: false,			// load dark theme by Fotomas
+	scrollContent: true,			// make the main content scrollable on md+ resolutions
 	language: "en",
 
 	moveFeedrate: 6000,				// in mm/min
 	halfZMovements: false,			// use half Z movements
+	babysteppingZ: 0.05,			// in mm
 	showATXControl: false,			// show ATX control
 
-	showFanControl: false,			// show fan controls
+	showFan1: true,					// show fan controls for fan 1
+	showFan2: false,				// show fan controls for fan 2
+	showFan3: false,				// show fan controls for fan 3
 	showFanRPM: false,				// show fan RPM in sensors
 
 	logSuccess: false,				// log all sucessful G-Codes in the console
@@ -42,6 +47,7 @@ var settings = {
 
 	webcamURL: "",
 	webcamInterval: 5000,			// in ms
+	webcamFix: false,				// do not append extra HTTP qualifier when reloading images
 
 	defaultActiveTemps: [0, 180, 190, 200, 210, 220, 235],
 	defaultStandbyTemps: [0, 95, 120, 140, 155, 170],
@@ -144,17 +150,23 @@ function applySettings() {
 		increaseVal *= 10;
 	});
 
-	// Show/Hide Fan Control
-	$(".fan-control").toggleClass("hidden", !settings.showFanControl);
+	// Babystepping
+	$("#btn_baby_down > span.content").text(T("{0} mm", (-settings.babysteppingZ)));
+	$("#btn_baby_up > span.content").text(T("{0} mm ", "+" + settings.babysteppingZ));
+	$(".babystepping").toggleClass("hidden", settings.babysteppingZ <= 0);
+
+	// Show/Hide Fan Controls
+	setFanVisibility(0, settings.showFan1);
+	setFanVisibility(1, settings.showFan2);
+	setFanVisibility(2, settings.showFan3);
+	numFans = undefined;						// let the next status response callback hide fans that are not available
 
 	// Show/Hide Fan RPM
 	$(".fan-rpm").toggleClass("hidden", !settings.showFanRPM);
+	$("#th_probe, #td_probe").css("border-right", settings.showFanRPM ? "" : "0px");
 
 	// Show/Hide ATX Power
 	$(".atx-control").toggleClass("hidden", !settings.showATXControl);
-
-	// Possibly hide entire misc control panel
-	$("#panel_control_misc").toggleClass("hidden", !settings.showFanControl && !settings.showATXControl);
 
 	// Apply or revoke theme
 	if (settings.useDarkTheme) {
@@ -171,6 +183,9 @@ function applySettings() {
 			$("#theme_notice").addClass("hidden");
 		}
 	}
+
+	// Make main content scrollable on md+ screens or restore default behavior
+	$("#main_content").css("overflow-y", (settings.scrollContent) ? "auto" : "").resize();
 
 	/* Set values on the Settings page */
 
@@ -441,14 +456,14 @@ $("#btn_add_tool").click(function(e) {
 	var gcode = "M563 P" + $("#input_tool_number").val();
 
 	var drives = $("input[name='tool_drives']:checked");
-	if (drives != undefined) {
+	if (drives.length > 0) {
 		var driveList = [];
 		drives.each(function() { driveList.push($(this).val()); });
 		gcode += " D" + driveList.reduce(function(a, b) { return a + ":" + b; });
 	}
 
 	var heaters = $("input[name='tool_heaters']:checked");
-	if (heaters != undefined) {
+	if (heaters.length > 0) {
 		var heaterList = [];
 		heaters.each(function() { heaterList.push($(this).val()); });
 		gcode += " H" + heaterList.reduce(function(a, b) { return a + ":" + b; });

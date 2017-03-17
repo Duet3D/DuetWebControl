@@ -290,6 +290,39 @@ function getToolsByHeater(heater) {
 	return result;
 }
 
+function setCurrentTool(toolNumber) {
+	if (toolMapping == undefined) {
+		return;
+	}
+	var hideExtruderInputs = true;
+
+	// Hide extruder drives that cannot be used
+	if (toolNumber >= 0) {
+		var drives = getTool(toolNumber).drives;
+		for(var i = 0; i < numExtruderDrives; i++) {
+			var toolHasDrive = (drives.indexOf(i) != -1);
+			$("#div_extruders > div > .extr-" + (i + 1)).toggleClass("hidden", !toolHasDrive);
+		}
+
+		hideExtruderInputs = (drives.length < 2);
+	}
+
+	// Hide whole selection if there is no point showing it
+	$("#div_extruders").toggleClass("hidden", hideExtruderInputs);
+	if (hideExtruderInputs) {
+		$("#div_feedrate, #div_feed").removeClass("col-lg-4").addClass("col-lg-5");
+		$("#div_extrude").removeClass("col-lg-1").addClass("col-lg-2");
+	} else {
+		$("#div_feedrate, #div_feed").addClass("col-lg-4").removeClass("col-lg-5");
+		$("#div_extrude").addClass("col-lg-1").removeClass("col-lg-2");
+
+		// Select first available extruder
+		if ($('input[name="extruder"]:checked').parent().hasClass("hidden")) {
+			$("#div_extruders > div > label:not(.hidden):first-child").click();
+		}
+	}
+}
+
 
 /* Control state management */
 
@@ -302,12 +335,14 @@ function enableControls() {
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
 
 	$("#mobile_home_buttons button, #btn_homeall, .table-move a").removeClass("disabled");		// Move buttons
+	$("#btn_bed_dropdown").removeClass("disabled");												// Automatic Bed Compensation
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("enable");													// Fan Control
 
-	$("#page_print .checkbox").removeClass("disabled");											// Print Control
-	$("#slider_fan_print").slider("enable");													// Fan Control
+	$("#page_print .checkbox, #btn_baby_down, #btn_baby_up").removeClass("disabled");			// Print Control
+	$("#slider_fan_print").slider("enable");													// Fan ...
+	$(".table-fan-control button").removeClass("disabled");										// ... Control
 	$("#slider_speed").slider("enable");														// Speed Factor
 	for(var extr = 1; extr <= maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("enable");												// Extrusion Factors
@@ -326,12 +361,14 @@ function disableControls() {
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons
 
 	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
+	$("#btn_bed_dropdown").addClass("disabled");												// Automatic Bed Compensation
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("disable");													// Fan Control
 
-	$("#btn_pause, #page_print .checkbox").addClass("disabled");								// Print Control
-	$("#slider_fan_print").slider("disable");													// Fan Control
+	$("#btn_pause, #page_print .checkbox, #btn_baby_down, #btn_baby_up").addClass("disabled");	// Print Control
+	$("#slider_fan_print").slider("disable");													// Fan ...
+	$(".table-fan-control button").addClass("disabled");											// ... Control
 	$("#slider_speed").slider("disable");														// Speed Factor
 	for(var extr = 1; extr <= maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors
