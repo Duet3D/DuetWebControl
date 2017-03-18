@@ -394,7 +394,7 @@ $("body").on("hidden.bs.popover", function() {
 	$(this).popover("destroy");
 });
 
-$("#img_webcam").click(function(){$(this).attr("src",$(this).attr("src"))});
+$("#img_webcam").click(function(){updateWebcam(true)});
 
 /* Static GUI Events */
 
