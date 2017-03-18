@@ -1,4 +1,4 @@
-/* Interface logic for Duet Web Control
+/* Main interface logic for Duet Web Control
  * 
  * written by Christian Hammacher (c) 2016
  * 
@@ -16,7 +16,7 @@ var webcamUpdating = false;
 var fileInfo, currentLayerTime, lastLayerPrintDuration;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
-var numAxes, numExtruderDrives, numVolumes;
+var numAxes, numExtruderDrives, numVolumes, numFans;
 var heatedBed, chamber, numHeads, toolMapping;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
 
@@ -33,6 +33,7 @@ function resetGuiData() {
 	setGeometry("cartesian");
 
 	justConnected = isUploading = updateTaskLive = false;
+	resetConfirmationShown = false;
 	stopUpdating = true;
 	fileInfo = lastStatusResponse = configResponse = configFile = undefined;
 
@@ -44,6 +45,7 @@ function resetGuiData() {
 	numHeads = 2;			// only 2 are visible on load
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
+	numFans = undefined;
 
 	coldExtrudeTemp = 160;
 	coldRetractTemp = 90;
@@ -60,17 +62,20 @@ function resetGuiData() {
 }
 
 $(document).ready(function() {
+	$('[data-min]').each(function() { $(this).attr("min", $(this).data("min")).attr("step", "any"); });
+	$('[data-max]').each(function() { $(this).attr("max", $(this).data("max")).attr("step", "any"); });
+	$('[data-toggle="popover"]').popover();
+
 	disableControls();
 	resetGuiData();
 	updateGui();
 
 	loadSettings();
 	loadFileCache();
-
-	$('[data-toggle="popover"]').popover();
 });
 
 function pageLoadComplete() {
+	$("#span_copyright").html($("#span_copyright").html().replace("Christian Hammacher", '<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">Christian Hammacher</a>'));
 	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
 
 	if (settings.autoConnect) {
@@ -126,14 +131,13 @@ function updateGui() {
 	// Visibility of extruder drive columns
 	for(var i = 1; i <= maxExtruders; i++) {
 		if (i <= numExtruderDrives) {
-			$(".extr-" + i).removeClass("hidden").css("border-right", "");
+			$(".extr-" + i).removeClass("hidden");
 			$("#slider_extr_" + i).slider("relayout");
 		} else {
-			$(".extr-" + i).addClass("hidden").css("border-right", "");
+			$(".extr-" + i).addClass("hidden");
 		}
-	}
-	if (numExtruderDrives > 0) {
-		$(".extr-" + numExtruderDrives).css("border-right", "0px");
+
+		$("th.extr-" + i + ", td.extr-" + i).css("border-right", (i < numExtruderDrives) ? "" : "0px");
 	}
 
 	// Rearrange extruder drive cells if neccessary. Only show totalusage on md desktop if more than three extruders are in use
@@ -205,6 +209,7 @@ function resetGui() {
 	$(".cpu-temp").addClass("hidden");
 
 	// Control page
+	clearBedPoints();
 	setAxesHomed([1, 1, 1]);
 	setATXPower(false);
 	$('#slider_fan_control').slider("setValue", 35);
@@ -212,9 +217,17 @@ function resetGui() {
 	// Print Status
 	$(".row-progress").addClass("hidden");
 	setProgress(100, "", "");
+	$("#div_print_another").addClass("hidden");
 	$("#override_fan, #auto_sleep").prop("checked", false);
+	$("#span_babystepping, #page_print dd, #panel_print_info table td, #table_estimations td").html(T("n/a"));
+
+	// Fan Sliders
+	setFanVisibility(0, settings.showFan1);
+	setFanVisibility(1, settings.showFan2);
+	setFanVisibility(2, settings.showFan3);
+	numFans = undefined;						// let the next status response callback hide fans that are not available
 	$('#slider_fan_print').slider("setValue", 35);
-	$("#page_print dd, #panel_print_info table td, #table_estimations td").html(T("n/a"));
+	
 	$('#slider_speed').slider("setValue", 100);
 	for(var extr = 1; extr <= maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("setValue", 100);
@@ -255,10 +268,14 @@ function updateWebcam(externalTrigger) {
 		$("#img_webcam").attr("src", settings.webcamURL);
 	} else {
 		var newURL = settings.webcamURL;
-		if (newURL.indexOf("?") == -1) {
-			newURL += "?dummy=" + Math.random();
+		if (settings.webcamFix) {
+			newURL += "_" + Math.random();
 		} else {
-			newURL += "&dummy=" + Math.random();
+			if (newURL.indexOf("?") == -1) {
+				newURL += "?dummy=" + Math.random();
+			} else {
+				newURL += "&dummy=" + Math.random();
+			}
 		}
 		$("#img_webcam").attr("src", newURL);
 
@@ -425,6 +442,18 @@ $("#a_webcam").click(function(e) {
 	e.preventDefault();
 });
 
+$("#btn_baby_down").click(function() {
+	if (isConnected) {
+		sendGCode("M290 S" + (-settings.babysteppingZ));
+	}
+});
+
+$("#btn_baby_up").click(function() {
+	if (isConnected) {
+		sendGCode("M290 S" + (settings.babysteppingZ));
+	}
+});
+
 $("#btn_cancel").click(function() {
 	sendGCode("M0 H1");	// Stop / Cancel Print, but leave all the heaters on
 	$(this).addClass("disabled");
@@ -446,17 +475,50 @@ $("#btn_clear_log").click(function(e) {
 	e.preventDefault();
 });
 
-// TODO: deal with mixing drives
 $("#btn_extrude").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]:checked").val();
+
+	if (lastStatusResponse != undefined && !$("#div_extrude").hasClass("hidden")) {
+		var drive = $('input[name="extruder"]:checked').val();
+		if (drive != "all") {
+			var amounts = [];
+			var toolDrives = getTool(lastStatusResponse.currentTool).drives;
+			for(var i = 0; i < toolDrives.length; i++) {
+				if (drive == toolDrives[i]) {
+					amounts.push(amount);
+				} else {
+					amounts.push("0");
+				}
+			}
+			amount = amounts.join(":");
+		}
+	}
+
 	sendGCode("M120\nM83\nG1 E" + amount + " F" + feedrate + "\nM121");
 });
 
 $("#btn_retract").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
-	var amount = $("#panel_extrude input[name=feed]:checked").val();
-	sendGCode("M120\nM83\nG1 E-" + amount + " F" + feedrate + "\nM121");
+	var amount = -$("#panel_extrude input[name=feed]:checked").val();
+
+	if (lastStatusResponse != undefined && !$("#div_extrude").hasClass("hidden")) {
+		var drive = $('input[name="extruder"]:checked').val();
+		if (drive != "all") {
+			var amounts = [];
+			var toolDrives = getTool(lastStatusResponse.currentTool).drives;
+			for(var i = 0; i < toolDrives.length; i++) {
+				if (drive == toolDrives[i]) {
+					amounts.push(amount);
+				} else {
+					amounts.push("0");
+				}
+			}
+			amount = amounts.join(":");
+		}
+	}
+
+	sendGCode("M120\nM83\nG1 E" + amount + " F" + feedrate + "\nM121");
 });
 
 $(".btn-hide-info").click(function() {
@@ -525,6 +587,13 @@ $("#btn_pause").click(function() {
 		sendGCode("M25");	// Pause
 	}
 	$(this).addClass("disabled");
+});
+
+$("#btn_print_another").click(function() {
+	if (isConnected) {
+		sendGCode("M32 " + $(this).data("file"));
+		$("#div_print_another").addClass("hidden");
+	}
 });
 
 $(".gcode-input").submit(function(e) {
@@ -674,6 +743,16 @@ $("#input_temp_all_active, #input_temp_all_standby").keydown(function(e) {
 	}
 });
 
+$("#main_content").resize(function() {
+	if (!settings.scrollContent || windowIsXsSm()) {
+		$(this).css("height", "").css("min-height", "");
+	} else {
+		var height = "calc(100vh - " + $(this).offset().top + "px)";
+		var minHeight = $(".sidebar:not(.sidebar-continuation)").height() + "px";
+		$(this).css("height", height).css("min-height", minHeight);
+	}
+});
+
 $(".navbar-brand").click(function(e) { e.preventDefault(); });
 $(".navbar-brand.visible-xs > abbr").click(function(e) {
 	showMessage("warning", T("Warning"), T("Some axes are not homed"));
@@ -806,6 +885,27 @@ $("#ul_control_dropdown .btn-active-temp, #ul_control_dropdown .btn-standby-temp
 	$(this).parent().toggleClass("open");
 	e.stopPropagation();
 });
+
+window.onerror = function (msg, url, lineNo, columnNo, error) {
+	var errorMessage;
+	if (msg.toLowerCase().indexOf("script error") == -1){
+		errorMessage = [
+			'Message: ' + msg,
+			'URL: ' + url,
+			'Line: ' + lineNo + ":" + columnNo,
+			'Error object: ' + JSON.stringify(error)
+		].join("<br/>");
+	} else {
+		errorMessage = 'Script Error: See Browser Console for Detail';
+	}
+
+	if (isConnected) {
+		disconnect();
+		showMessage("danger", T("JavaScript Error"), T("A JavaScript error has occurred so the web interface has closed the connection to your board. It is recommended to reload the web interface now. If this happens again, please contact the author and share this error message:") + "<br/><br/>" + errorMessage, 0);
+	}
+
+	return false;
+};
 
 
 /* GUI Helpers */
@@ -950,10 +1050,10 @@ function setBoardType(type) {
 	var isWiFi = false;
 	var show7Extruders = false, show7Heaters = false;
 
-	if (type.startsWith("duetwifi")) {
+	if (type.indexOf("duetwifi") == 0) {
 		firmwareFileName = "DuetWiFiFirmware";
 		isWiFi = show7Extruders = show7Heaters = true;
-	} else if (type.startsWith("duetethernet")) {
+	} else if (type.indexOf("duetethernet") == 0) {
 		firmwareFileName = "DuetEthernetFirmware";
 		show7Extruders = show7Heaters = true;
 	} else {
@@ -1073,13 +1173,13 @@ function setPauseStatus(paused) {
 		return;
 	}
 
+	$("#div_cancel").toggleClass("hidden", !paused);
 	if (paused) {
-		$("#btn_cancel").removeClass("disabled").parents("div.btn-group").removeClass("hidden");
+		$("#btn_cancel").removeClass("disabled");
 		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").attr("title", T("Resume paused print (M24)"));
 		$("#btn_pause > span.glyphicon").removeClass("glyphicon-pause").addClass("glyphicon-play");
 		$("#btn_pause > span:last-child").text(T("Resume"));
 	} else {
-		$("#btn_cancel").parents("div.btn-group").addClass("hidden");
 		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").attr("title", T("Pause current print (M25)"));
 		$("#btn_pause > span.glyphicon").removeClass("glyphicon-play").addClass("glyphicon-pause");
 		$("#btn_pause > span:last-child").text(T("Pause Print"));
@@ -1134,6 +1234,9 @@ function setPrintStatus(printing) {
 			printHasFinished = true;
 
 			if (fileInfo != undefined) {
+				$("#div_print_another").removeClass("hidden");
+				$("#btn_print_another").data("file", fileInfo.fileName);
+
 				setProgress(100, T("Printed {0}, 100% Complete", fileInfo.fileName), undefined);
 			} else {
 				setProgress(100, T("Print Complete!"), undefined);
@@ -1295,10 +1398,9 @@ function showPage(name) {
 	}
 
 	// Scroll to top of the main content on small devices
-	if (windowIsXsSm()) {
-		var offset = (name != "control") ? -9 : 0;
+	if (windowIsXsSm() && $(".btn-hide-info").hasClass("active")) {
 		$('html, body').animate({
-			scrollTop: ($('#main_content').offset().top + offset)
+			scrollTop: ($('#main_content').offset().top)
 		}, 500);
 	}
 	currentPage = name;

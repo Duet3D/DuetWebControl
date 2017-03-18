@@ -7,12 +7,16 @@
  */
 
 
+var ajaxPrefix = "";					// Host to use for AJAX requests + "?" char or empty if running on a webserver
 var sessionPassword = "reprap";			// Password used when establishing a new connection
 var sessionTimeout = 8000;				// Time in ms before RepRapFirmware kills our session
 var boardType;							// Which electronics board is this?
 
 var isConnected = false;				// Are we connected?
 var justConnected = false;				// Have we just connected?
+
+var reconnectingAfterHalt = false;		// Have we just reconnected after a firmware halt?
+var resetConfirmationShown = false;		// Have we shown a prompt to send a reset code yet?
 
 var updateTaskLive = false;				// Are status responses being polled?
 var stopUpdating = false;				// This will be true if status updates should be no longer polled
@@ -90,14 +94,20 @@ $("body").on("click", ".btn-connect", function() {
 });
 
 function connect(password, regularConnect) {
-	// Close all notifications before we connect...
 	if (regularConnect) {
+		// Close all notifications before we connect...
 		$.notifyClose();
+
+		// If we are running on localhost, ask for a destination
+		if (document.location.host == "" && ajaxPrefix == "") {
+			showHostPrompt();
+			return;
+		}
 	}
 
 	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text(T("Connecting..."));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
-	$.ajax("rr_connect?password=" + password + "&time=" + encodeURIComponent(timeToStr(new Date())), {
+	$.ajax(ajaxPrefix + "rr_connect?password=" + password + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		dataType: "json",
 		error: function() {
 			showMessage("danger", T("Error"), T("Could not establish a connection to the Duet firmware! Please check your settings and try again.") + "<div class=\"visible-xs visible-sm\"><br/><center><button id=\"btn_quick_connect\" class=\"btn btn-info btn-connect\"><span class=\"glyphicon glyphicon-log-in\"></span> Connect</button></center>", 0);
@@ -107,26 +117,25 @@ function connect(password, regularConnect) {
 
 			disconnect(false);
 		},
-		success: function(data) {
-			if (data.err == 2) {		// Looks like the firmware ran out of HTTP sessions
+		success: function(response) {
+			if (response.err == 2) {		// Looks like the firmware ran out of HTTP sessions
 				showMessage("danger", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), 0);
 				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 			}
 			else if (regularConnect)
 			{
-				if (data.err == 0) {	// No password authentication required
+				if (response.err == 0) {	// No password authentication required
 					sessionPassword = password;
-					postConnect(data);
-				}
-				else {					// We can connect, but we need a password first
+					postConnect(response);
+				} else {					// We can connect, but we need a password first
 					showPasswordPrompt();
 				}
 			}
 			else {
-				if (data.err == 0) {	// Connect successful
+				if (response.err == 0) {	// Connect successful
 					sessionPassword = password;
-					postConnect(data);
+					postConnect(response);
 				} else {
 					showMessage("danger", T("Error"), T("Invalid password!"), 0);
 					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
@@ -152,16 +161,8 @@ function postConnect(response) {
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
 
 	startUpdates();
-	if (currentPage == "files") {
-		updateGCodeFiles();
-	} else if (currentPage == "control" || currentPage == "macros") {
-		updateMacroFiles();
-	} else if (currentPage == "settings") {
+	if (currentPage == "settings") {
 		getConfigResponse();
-
-		if ($("#page_sysedit").is(".active")) {
-			updateSysFiles();
-		}
 	}
 
 	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text(T("Disconnect"));
@@ -176,12 +177,13 @@ function disconnect(sendDisconnect) {
 		log("danger", "<strong>" + T("Disconnected.") + "</strong>");
 	}
 	isConnected = false;
+	ajaxPrefix = "";
 
 	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
 
 	if (sendDisconnect) {
-		$.ajax("rr_disconnect", { dataType: "json", global: false });
+		$.ajax(ajaxPrefix + "rr_disconnect", { dataType: "json", global: false });
 	}
 
 	ajaxRequests.forEach(function(request) {
@@ -233,7 +235,7 @@ function updateStatus() {
 	}
 	extendedStatusCounter++;
 
-	$.ajax(ajaxRequest, {
+	$.ajax(ajaxPrefix + ajaxRequest, {
 		dataType: "json",
 		success: function(status) {
 			// Don't process this one if we're no longer connected
@@ -392,7 +394,19 @@ function updateStatus() {
 			}
 			setPrintStatus(printing);
 			setPauseStatus(paused);
-			justConnected = false;
+
+			// Update file lists of the visible page after the first status response
+			if (justConnected) {
+				if (currentPage == "files") {
+					updateGCodeFiles();
+				} else if (currentPage == "control" || currentPage == "macros") {
+					updateMacroFiles();
+				} else if (currentPage == "settings" && $("#page_sysedit").is(".active")) {
+					updateSysFiles();
+				}
+
+				justConnected = false;
+			}
 
 			// Set homed axes
 			setAxesHomed(status.coords.axesHomed);
@@ -402,7 +416,7 @@ function updateStatus() {
 				numExtruderDrives = status.coords.extr.length;
 				needGuiUpdate = true;
 			}
-			for(var i=1; i<=numExtruderDrives; i++) {
+			for(var i = 1; i <= numExtruderDrives; i++) {
 				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
 			}
 			if (numExtruderDrives > 0) {
@@ -428,6 +442,11 @@ function updateStatus() {
 			}
 
 			// Current Tool
+			if (lastStatusResponse == undefined || lastStatusResponse.currentTool != status.currentTool) {
+				setCurrentTool(status.currentTool);
+			}
+
+			// Manage Tool selection on Settings -> Tools page
 			if (lastStatusResponse != undefined && lastStatusResponse.currentTool != status.currentTool) {
 				var btn = $("div.panel-body[data-tool='" + lastStatusResponse.currentTool + "'] > button.btn-select-tool");
 				btn.attr("title", T("Select this tool"));
@@ -454,13 +473,30 @@ function updateStatus() {
 			setATXPower(status.params.atxPower);
 
 			// Fan Control
-			var newFanValue = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent[0] : status.params.fanPercent;
-			if (!fanSliderActive && (lastStatusResponse == undefined || $("#slider_fan_print").slider("getValue") != newFanValue)) {
-				if ($("#override_fan").is(":checked") && settings.showFanControl) {
-					sendGCode("M106 S" + ($("#slider_fan_print").slider("getValue") / 100.0));
-				} else {
-					$("#slider_fan_control").slider("setValue", newFanValue);
-					$("#slider_fan_print").slider("setValue", newFanValue);
+			if (!fanSliderActive) {
+				var selectedFan = getFanSelection();
+				var fanValues = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent : [status.params.fanPercent];
+				for(var i = 0; i < Math.min(maxFans, fanValues.length); i++) {
+					// Check if the prior fan value must be enforced
+					var fanValue = fanValues[i] / 100.0;
+					if (overriddenFanValues[i] != undefined && overriddenFanValues[i] != fanValue) {
+						fanValue = overriddenFanValues[i];
+						sendGCode("M106 P" + i + " S" + fanValue);
+					}
+
+					// Update slider values
+					if (i == selectedFan) {
+						$(".fan-slider").children("input").slider("setValue", fanValue * 100.0);
+					}
+				}
+
+				if (numFans != fanValues.length) {
+					numFans = fanValues.length;
+
+					var fanVisible = [settings.showFan1, settings.showFan2, settings.showFan3];
+					for(var i = 0; i < maxFans; i++) {
+						setFanVisibility(i, fanVisible[i] && i < numFans);
+					}
 				}
 			}
 
@@ -469,7 +505,7 @@ function updateStatus() {
 				$("#slider_speed").slider("setValue", status.params.speedFactor);
 			}
 			if (!extrSliderActive) {
-				for(var i=0; i<status.params.extrFactors.length; i++) {
+				for(var i = 0; i < status.params.extrFactors.length; i++) {
 					var extrSlider = $("#slider_extr_" + (i + 1));
 					if (lastStatusResponse == undefined || extrSlider.slider("getValue") != status.params.extrFactors) {
 						extrSlider.slider("setValue", status.params.extrFactors[i]);
@@ -477,27 +513,49 @@ function updateStatus() {
 				}
 			}
 
-			// Fetch the latest G-Code response from the server
-			if (lastStatusResponse == undefined || lastStatusResponse.seq != status.seq) {
-				$.ajax("rr_reply", {
+			// Babystepping
+			if (status.params.hasOwnProperty("babystep")) {
+				$(".babystepping button").toggleClass("disabled", settings.babysteppingZ <= 0);
+				$("#span_babystepping").text(T("{0} mm", status.params.babystep));
+			} else {
+				// Don't enable babystepping controls if the firmware doesn't support it
+				$(".babystepping button").addClass("disabled");
+			}
+
+			// Fetch the last G-Code response from the server if there is anything new and we're not flashing new firmware
+			if (lastStatusResponse == undefined || (status.status != 'F' && lastStatusResponse.seq != status.seq)) {
+				$.ajax(ajaxPrefix + "rr_reply", {
 					dataType: "html",
 					success: function(response) {
 						response = response.trim();
 
-						// Is this a response that should be logged?
-						if ((response != "") || (lastSentGCode != "" && (settings.logSuccess || currentPage == "console"))) {
+						// Deal with firmware responses that can be parsed
+						if (!isPrinting && response != "") {
 							// Is this a bed compensation report?
-							if (!isPrinting && response.startsWith("Bed equation fits points ")) {
+							if (response.indexOf("Bed equation fits points ") == 0) {
 								var points = response.substr("Bed equation fits points ".length);
 								points = JSON.parse("[" + points.split("] [").join("],[") + "]");
-								showHeightmap(points);
+								showBedCompensation(points);
 							}
 
 							// Has grid-based probing finished?
-							if (!isPrinting && response.indexOf(" points probed, mean error ") != -1) {
+							if (response.indexOf(" points probed, mean error ") != -1) {
 								getHeightmap();
 							}
 
+							// If an error is reported and we're trying to mount a volume, don't wait for it any longer
+							if (mountRequested && (response.indexOf("Cannot initialise") != -1 || response.indexOf("Can't mount") != -1)) {
+								mountRequested = false;
+								changeGCodeVolume(currentGCodeVolume);
+							}
+						}
+						if (lastSentGCode == "M561") {
+							// We should not isplay the probe points if they are no longer valid
+							clearBedPoints();
+						}
+
+						// Is this a response that should be logged?
+						if ((response != "") || (lastSentGCode != "" && (settings.logSuccess || currentPage == "console"))) {
 							// What kind of reply are we dealing with?
 							var style = (response == "") ? "success" : "info", isError = false;
 							if (response.match("^Error: ") != null) {
@@ -527,15 +585,9 @@ function updateStatus() {
 									showMessage(style, "", response.replace(/Error:/g, "<strong>" + T("Error") + ":</strong>"));
 								}
 							}
-
-							// If an error is reported and we're trying to mount a volume, don't wait for it any longer
-							if (mountRequested && (response.indexOf("Cannot initialise") != -1 || response.indexOf("Can't mount") != -1)) {
-								mountRequested = false;
-								changeGCodeVolume(currentGCodeVolume);
-							}
 						}
 
-						// Reset info about last sent G-Code again
+						// Reset info about the last sent G-Code again
 						lastSentGCode = "";
 					}
 				});
@@ -754,7 +806,7 @@ function updateStatus() {
 				isConnected = updateTaskLive = false;
 
 				// Ideally each update path should have its own status char, OTOH this should be sufficient for the moment
-				if (uploadDWCFile != undefined) {
+				if (uploadDWCFile != undefined && uploadDWSFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Duet Web Control...") + "</strong>");
 					showUpdateMessage(2);
 					setTimeout(function() {
@@ -764,26 +816,45 @@ function updateStatus() {
 							location.reload();
 						});
 					}, settings.dwcReconnectDelay);
-				} else if (uploadDWSFile != undefined) {
+				} else if (uploadDWSFile != undefined && uploadDWCFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Duet WiFi Server...") + "</strong>");
 					showUpdateMessage(1);
 					setTimeout(function() {
 						connect(sessionPassword, false);
 					}, settings.dwsReconnectDelay);
-				} else {
+				} else if (uploadFirmwareFile != undefined && uploadDWCFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					showUpdateMessage(0);
 					setTimeout(function() {
 						connect(sessionPassword, false);
 					}, settings.updateReconnectDelay);
+				} else {
+					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
+
+					var duration = 0;
+					if (uploadDWCFile != undefined) { duration += settings.dwcReconnectDelay; }
+					if (uploadDWSFile != undefined) { duration += settings.dwcReconnectDelay; }
+					if (uploadFirmwareFile != undefined) { duration += settings.updateReconnectDelay; }
+
+					showUpdateMessage(3, duration);
+					setTimeout(function() {
+						connect(sessionPassword, false);
+					}, duration);
 				}
 			} else if (status.status == 'H') {
-				isConnected = updateTaskLive = false;
-				log("danger", "<strong>" + T("Emergency Stop!") + "</strong>");
-				setTimeout(function() {
-					connect(sessionPassword, false);
-				}, settings.haltedReconnectDelay);
+				if (!reconnectingAfterHalt) {
+					reconnectAfterHalt();
+				} else {
+					if (!resetConfirmationShown) {
+						showConfirmationDialog(T("Perform firmware reset?"), T("The firmware still reports to be halted after an emergency stop. Would you like to reset your board now?"), function() {
+							sendGCode("M999");
+							reconnectAfterHalt();
+						});
+						resetConfirmationShown = true;
+					}
+				}
 			} else {
+				reconnectingAfterHalt = resetConfirmationShown = false;
 				retryCount = 0;
 				setTimeout(updateStatus, settings.updateInterval);
 			}
@@ -794,8 +865,17 @@ function updateStatus() {
 	});
 }
 
+function reconnectAfterHalt() {
+	isConnected = updateTaskLive = false;
+	showHaltMessage();
+	setTimeout(function() {
+		reconnectingAfterHalt = true;
+		connect(sessionPassword, false);
+	}, settings.haltedReconnectDelay);
+}
+
 function requestFileInfo() {
-	$.ajax("rr_fileinfo", {
+	$.ajax(ajaxPrefix + "rr_fileinfo", {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected && response.err == 2) {
@@ -836,7 +916,7 @@ function requestFileInfo() {
 }
 
 function getConfigResponse() {
-	$.ajax("rr_config", {
+	$.ajax(ajaxPrefix + "rr_config", {
 		dataType: "json",
 		success: function(response) {
 			configResponse = response;
@@ -884,7 +964,7 @@ function sendGCode(gcode, fromInput) {
 
 	// Although rr_gcode gives us a JSON response, it doesn't provide any results.
 	// We only need to worry about an AJAX error event.
-	$.ajax("rr_gcode?gcode=" + encodeURIComponent(gcode), {
+	$.ajax(ajaxPrefix + "rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
 	});
 }
