@@ -295,11 +295,6 @@ function updateStatus() {
 				setMountedVolumes(status.mountedVolumes);
 			}
 
-			// Machine Name
-			if (status.hasOwnProperty("name")) {
-				setTitle(status.name);
-			}
-
 			// Probe Parameters (maybe hide probe info for type 0 someday?)
 			if (status.hasOwnProperty("probe")) {
 				probeTriggerValue = status.probe.threshold;
@@ -392,6 +387,20 @@ function updateStatus() {
 					setStatusLabel("Idle", "default");
 					break;
 			}
+			
+      if (printing) {
+          if (justConnected) {
+              if (status.hasOwnProperty("name")) {
+                  setTitle(status.name);
+              }
+          }
+      } else {
+          if (status.hasOwnProperty("name")) {
+              setTitle(status.name);
+          }
+          faviconProgress('reset');
+      }
+			
 			setPrintStatus(printing);
 			setPauseStatus(paused);
 
