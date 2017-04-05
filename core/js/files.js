@@ -9,6 +9,8 @@
 
 var numVolumes, mountedVolumes, mountRequested;
 
+var scansLoaded;
+
 var currentGCodeVolume, changingGCodeVolume;
 var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory;
 var cachedFileInfo;
@@ -73,6 +75,130 @@ function clearFileCacheDirectory(directory) {
 	}
 }
 
+
+/* Scans */
+
+$('a[href="#page_scanner"]').on('shown.bs.tab', function() {
+	if (!scansLoaded) {
+		updateScanFiles();
+	}
+});
+
+$(".span-refresh-scans").click(function() {
+	updateScanFiles();
+	$(".span-refresh-scans").addClass("hidden");
+});
+
+$("#btn_start_scan").click(function() {
+	if (!$(this).hasClass("disabled")) {
+		showTextInput(T("Start new 3D scan"), T("Please enter a name for the new scan:"), function(name) {
+			// Let the firmware do the communication to the board
+			sendGCode("M752 P" + name);
+		}, undefined, function() {
+			showMessage("danger", T("Error"), T("The filename for a new scan must not be empty!"));
+		});
+	}
+});
+
+function addScanFile(filename, size, lastModified) {
+	$("#page_scanner h1").addClass("hidden");
+	$("#table_scan_files").removeClass("hidden");
+
+	var isDisabled = false;
+	isDisabled |= filename.toLowerCase().endsWith(".bin");
+
+	var row =	'<tr data-file="' + filename + '"><td></td>';
+	row +=		'<td><button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button></td>';
+	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
+	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
+	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
+	row +=		'</tr>';
+
+	var rowElem = $(row);
+	/*rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
+	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);*/
+
+	$("#table_scan_files > tbody").append(rowElem);
+}
+
+function updateScanFiles() {
+	// Don't load anything if the scanner mode is disabled
+	if ($(".scan-control").hasClass("hidden")) {
+		return;
+	}
+
+	// Clear the file list
+	scansLoaded = false;
+	$("#table_scan_files > tbody").children().remove();
+	$("#table_scan_files").addClass("hidden");
+	$("#page_scanner h1").removeClass("hidden");
+	if (isConnected) {
+		$(".span-refresh-scans").addClass("hidden");
+
+		// Is the macro volume mounted?
+		if ((mountedVolumes & (1 << 0)) == 0) {
+			$("#page_scanner h1").text(T("The current volume is not mounted"));
+			return;
+		}
+
+		$("#page_scanner h1").text(T("loading"));
+	} else {
+		$("#page_scanner h1").text(T("Connect to your Duet to display scanned files"));
+		return;
+	}
+
+	// Don't request updates while loading the file list
+	stopUpdates();
+
+	// Request filelist for /sys
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/scans", {
+		dataType: "json",
+		success: function(response) {
+			if (isConnected) {
+				if (response.hasOwnProperty("err")) {
+					// don't proceed if the firmware has reported an error
+					$("#page_scanner h1").text(T("Failed to retrieve files of this directory"));
+				} else {
+					var files = response.files.sort(function (a, b) {
+						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+					});
+
+					for(var i = 0; i < files.length; i++) {
+						if (files[i].type != 'd') {
+							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+							addScanFile(files[i].name, files[i].size, lastModified);
+						}
+					}
+
+					if (files.length == 0) {
+						$("#page_scanner h1").text(T("No scans found"));
+					}
+					scansLoaded = true;
+				}
+
+				startUpdates();
+				scanUpdateFinished();
+			}
+		}
+	});
+}
+
+function scanUpdateFinished() {
+	if (isConnected) {
+		$(".span-refresh-scans").toggleClass("hidden", currentPage != "scanner");
+		startUpdates();
+	} else {
+		$(".span-refresh-scans").addClass("hidden");
+	}
+}
+
+/*$("#table_scan_files").on("click", "a", function(e) {
+	// This is only for drag&drop
+	e.preventDefault();
+});*/
+
+
 /* G-Code Files */
 
 
@@ -112,6 +238,9 @@ function setMountedVolumes(bitmap) {
 	mountedVolumes = bitmap;
 
 	if ((bitmap & (1 << 0)) != (oldBitmap & (1 << 0))) {
+		// Update scanner
+		updateScanFiles();
+
 		// Update macros
 		updateMacroFiles();
 
@@ -788,6 +917,8 @@ function resetFiles() {
 	setMountedVolumes(1);
 	mountRequested = false;
 
+	//updateScanFiles();
+
 	knownGCodeFiles = [];
 	gcodeUpdateIndex = -1;
 	currentGCodeVolume = 0;
@@ -1020,7 +1151,11 @@ function addSysFile(filename, size, lastModified) {
 	isDisabled |= filename.toLowerCase().endsWith(".bin");
 
 	var row =	'<tr data-file="' + filename + '">';
-	row +=		'<td><button class="btn btn-success btn-edit-file ' + (isDisabled ? "disabled" : "") + ' btn-sm" title="' + T("Edit this file") + '"><span class="glyphicon glyphicon-pencil"></span></button></td>';
+	if (filename.endsWith(".csv")) {
+		row +=	'<td><button class="btn btn-success btn-view-heightmap btn-sm" title="' + T("View this heightmap") + '"><span class="glyphicon glyphicon-eye-open"></span></button></td>';
+	} else {
+		row +=	'<td><button class="btn btn-success btn-edit-file ' + (isDisabled ? "disabled" : "") + ' btn-sm" title="' + T("Edit this file") + '"><span class="glyphicon glyphicon-pencil"></span></button></td>';
+	}
 	row +=		'<td><button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button></td>';
 	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
 	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
@@ -1102,6 +1237,10 @@ $("#table_sys_files").on("click", "a", function(e) {
 /* List item events */
 
 function getFilePath() {
+	if (currentPage == "scanner") {
+		return "0:/scans";
+	}
+
 	if (currentPage == "files") {
 		return currentGCodeDirectory;
 	}
@@ -1170,7 +1309,9 @@ $("body").on("click", ".btn-delete-file", function(e) {
 				if (response.err == 0) {
 					this.row.remove();
 
-					if (currentPage == "files") {
+					if (currentPage == "scanner") {
+						updateScanFiles();
+					} else if (currentPage == "files") {
 						if ($("#table_gcode_files > tbody").children().length == 0) {
 							gcodeUpdateIndex = -1;
 							updateGCodeFiles();
@@ -1244,5 +1385,10 @@ $("body").on("click", ".btn-print-file, .a-gcode-file", function(e) {
 
 $("body").on("click", ".btn-run-macro, .a-macro-file", function(e) {
 	sendGCode("M98 P" + currentMacroDirectory + "/" + $(this).parents("tr").data("file"));
+	e.preventDefault();
+});
+
+$("body").on("click", ".btn-view-heightmap", function(e) {
+	getHeightmap(getFilePath() + "/" + $(this).parents("tr").data("file"));
 	e.preventDefault();
 });
