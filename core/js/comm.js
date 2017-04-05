@@ -557,33 +557,38 @@ function updateStatus() {
 						// Is this a response that should be logged?
 						if ((response != "") || (lastSentGCode != "" && (settings.logSuccess || currentPage == "console"))) {
 							// What kind of reply are we dealing with?
-							var style = (response == "") ? "success" : "info", isError = false;
-							if (response.match("^Error: ") != null) {
+							var style = "success", content = response;
+							if (response.match("^Warning: ") != null) {
 								style = "warning";
-								isError = true;
+								content = content.replace(/Warning:/g, "<strong>Warning:</strong>");
+							} else if (response.match("^Error: ") != null) {
+								style = "danger";
+								content = content.replace(/Error:/g, "<strong>Error:</strong>");
+							} else if (response != "") {
+								style = "info";
 							}
 
 							// Prepare line breaks for HTML
 							lastSentGCode = lastSentGCode.trim().replace(/\n/g, "<br/>");
-							response = response.replace(/\n/g, "<br/>");
+							content = content.replace(/\n/g, "<br/>");
 
 							// Log this message in the G-Code console
 							var prefix = (lastSentGCode != "") ? "<strong>" + lastSentGCode + "</strong><br/>" : "";
-							log(style, prefix + response.replace(/Error:/g, "<strong>" + T("Error") + ":</strong>"));
+							log(style, prefix + content);
 
 							// If the console isn't visible, show a notification too
 							if (currentPage != "console") {
-								if (lastSentGCode != "") {
-									if (isError) {
-										showMessage(style, T("{0} has returned an error:", lastSentGCode), response.substring(6).trim());
-									} else if (response != "") {
-										showMessage(style, lastSentGCode, response);
-									} else {
-										showMessage(style, "", "<strong>" + lastSentGCode + "</strong>");
-									}
+								if (response == "" && lastSentGCode != "") {
+									showMessage(style, "", "<strong>" + lastSentGCode + "</strong>");
 								} else {
-									showMessage(style, "", response.replace(/Error:/g, "<strong>" + T("Error") + ":</strong>"));
+									showMessage(style, lastSentGCode, content);
 								}
+							}
+
+							// Close the scanner modal dialog if an error occurred
+							if (style == "danger")
+							{
+								$("#modal_scanner").modal("hide");
 							}
 						}
 
@@ -644,6 +649,33 @@ function updateStatus() {
 				setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
 			}
 			recordHeaterTemperatures(bedTemp, chamberTemp, status.temps.heads.current);
+
+			// Scanner extension
+			if (status.hasOwnProperty("scanner")) {
+				// Toggle visibility of scanner controls
+				if (lastStatusResponse == undefined || !lastStatusResponse.hasOwnProperty("scanner")) {
+					$(".scan-control").removeClass("hidden");
+					$("#main_content").resize();
+				}
+
+				// Enable "Start Scan" button only if the scanner is ready
+				$("#btn_start_scan").toggleClass("disabled", status.scanner.status != "I");
+
+				// Update scan dialog
+				updateScannerDialog(status.scanner);
+
+				// Reload scans as soon as a 3D scan is finished
+				if (lastStatusResponse != undefined && status.scanner.status == "I" &&
+					(lastStatusResponse.scanner.status == "S" || lastStatusResponse.scanner.status == "U")) {
+					$("#modal_scanner .modal-title").text(T("Scan complete"));
+					$("#p_scan_info").text(T("Your 3D scan is now complete! You may download it from the file list next."));
+
+					updateScanFiles();
+				}
+			} else if (currentPage == "scanner") {
+				showPage("control");
+				$(".scan-control").addClass("hidden");
+			}
 
 			/*** Print status response ***/
 
@@ -822,7 +854,7 @@ function updateStatus() {
 					setTimeout(function() {
 						connect(sessionPassword, false);
 					}, settings.dwsReconnectDelay);
-				} else if (uploadFirmwareFile != undefined && uploadDWCFile == undefined && uploadFirmwareFile == undefined) {
+				} else if (uploadFirmwareFile != undefined && uploadDWCFile == undefined && uploadDWSFile == undefined) {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					showUpdateMessage(0);
 					setTimeout(function() {
@@ -839,6 +871,12 @@ function updateStatus() {
 					showUpdateMessage(3, duration);
 					setTimeout(function() {
 						connect(sessionPassword, false);
+
+						if (uploadDWCFile != undefined) {
+							showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+								location.reload();
+							});
+						}
 					}, duration);
 				}
 			} else if (status.status == 'H') {
@@ -922,6 +960,8 @@ function getConfigResponse() {
 			configResponse = response;
 
 			$("#firmware_name").text(response.firmwareName);
+			$("#panel_tool_changes").toggleClass("hidden", response.firmwareName.indexOf("ch fork") == -1);
+
 			if (response.hasOwnProperty("firmwareElectronics")) {
 				$("#tr_firmware_electronics").removeClass("hidden");
 				$("#firmware_electronics").text(response.firmwareElectronics);

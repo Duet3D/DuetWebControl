@@ -214,6 +214,13 @@ function resetGui() {
 	setATXPower(false);
 	$('#slider_fan_control').slider("setValue", 35);
 
+	// Hide Scanner page
+	$(".scan-control").addClass("hidden");
+	$("#main_content").resize();
+	if (currentPage == "scanner") {
+		showPage("control");
+	}
+
 	// Print Status
 	$(".row-progress").addClass("hidden");
 	setProgress(100, "", "");
@@ -242,14 +249,14 @@ function resetGui() {
 	updateMacroFiles();
 
 	// Settings
-	$("#tr_firmware_electronics").addClass("hidden");
+	$("#tr_firmware_electronics, #panel_tool_changes").addClass("hidden");
 	$("#firmware_name, #firmware_electronics, #firmware_version, #dws_version").html(T("n/a"));
 	$("#page_machine td:not(:first-child), #page_machine dd").html(T("n/a"));
 
 	updateSysFiles();
 
 	// Modal dialogs
-	hideModals();
+	$(".modal").modal("hide");
 
 	// Upload prompt
 	$("#input_file_upload").val("");
@@ -307,7 +314,7 @@ $("body").on("click", ".filament-usage", function(e) {
 	e.preventDefault();
 });
 
-$("body").on("click", ".gcode", function(e) {
+$("body").on("click", "[data-gcode]", function(e) {
 	if (isConnected) {
 		// If this G-Code isn't performed by a button, treat it as a manual input
 		sendGCode($(this).data("gcode"), !($(this).is(".btn")));
@@ -1208,6 +1215,7 @@ function setPrintStatus(printing) {
 		$("#page_general .btn-upload").removeClass("disabled");
 
 		$("#btn_pause").removeClass("disabled");
+		$("#div_print_another").addClass("hidden");
 		$(".row-progress").removeClass("hidden");
 		$("#td_last_layertime").html(T("n/a"));
 
@@ -1352,6 +1360,16 @@ function showPage(name) {
 				drawPrintChart();
 			}
 			waitingForPrintStart = false;
+		}
+
+		if (name == "scanner") {
+			if (scansLoaded) {
+				$(".span-refresh-scans").removeClass("hidden");
+			} else {
+				updateScanFiles();
+			}
+		} else {
+			$(".span-refresh-scans").addClass("hidden");
 		}
 
 		if (name == "console") {

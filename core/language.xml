@@ -183,7 +183,7 @@
 		<string t="Sensors">Sensoren</string>
 		<string t="Fan RPM">Lüfter-RPM</string>
 		<string t="ATX Power:">ATX-Versorgung:</string>
-		<string t="Fan Control:">Lüftersteuerung:</string>
+		<string t="Fan Control">Lüftersteuerung</string>
 		<string t="File Name">Dateiname</string>
 		<string t="Object Height">Objekthöhe</string>
 		<string t="Layer Height">Layerhöhe</string>
@@ -490,7 +490,6 @@
 		<string t="The first volume is not mounted">Das erste Laufwerk ist nicht eingebunden</string>
 		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">Sie haben gerade mehrere Firmwaredateien hochgeladen. Möchten Sie diese jetzt installieren?</string>
 		<string t="or less">o. weniger</string>
-		<string t="Note: This option is only available in chrishamm's fork">Hinweis: Diese Option ist nur im chrishamm-Fork verfügbar</string>
 		<string t="Always show info area and main menu">Infobereich und Hauptmenü immer anzeigen</string>
 		<string t="Fan 1">Lüfter 1</string>
 		<string t="Fan 2">Lüfter 2</string>
@@ -514,6 +513,25 @@
 		<string t="Last modified">Zuletzt verändert</string>
 		<string t="Firmware Name:">Firmwarename:</string>
 		<string t="Firmware Electronics:">Firmware Elektronik:</string>
+
+		<!-- New in DWC 1.15a -->
+		<string t="Please enter a name for the new scan:">Bitte geben Sie einen Namen für den neuen Scan ein:</string>
+		<string t="The filename for a new scan must not be empty!">Der Dateiname für den neuen Scan darf nicht leer sein!</string>
+		<string t="Connect to your Duet to display scanned files">Stellen Sie eine Verbindung zum Duet her um gescannte Dateien anzuzeigen</string>
+		<string t="View this heightmap">Diese Höhenkarte betrachten</string>
+		<string t="Please wait while a scan is being made. This may take a while...">Bitte warten Sie während ein Scan erzeugt wird. Dies kann eine Weile dauern...</string>
+		<string t="Scanning...">Scanne...</string>
+		<string t="Scan complete">Scan abgeschlossen</string>
+		<string t="Your 3D scan is now complete! You may download it from the file list next.">Ihr 3D-Scan ist jetzt abgeschlossen! Sie können diesen jetzt aus der Dateiliste herunterladen.</string>
+		<string t="No scans found">Keine Scans gefunden</string>
+		<string t="Start new 3D scan">Neuen 3D-Scan starten</string>
+		<string t="Start Scan">Scan starten</string>
+		<string t="Date Created">Erstellungsdatum</string>
+		<string t="Scans Directory">Scanverzeichnis</string>
+		<string t="Show Sliders for">Schieberegler anzeigen für</string>
+		<string t="Notifications">Benachrichtigungen</string>
+		<string t="Please wait while the following files are being uploaded:">Bitte warten Sie während die folgenden Dateien hochgeladen werden:</string>
+		<string t="Options">Optionen</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -694,7 +712,7 @@
 		<string t="Sensors">Sensores</string>
 		<string t="Fan RPM">RPM de Ventilador</string>
 		<string t="ATX Power:">Fuente ATX:</string>
-		<string t="Fan Control:">Control de Ventilador:</string>
+		<string t="Fan Control">Control de Ventilador</string>
 		<string t="File Name">Nombre de Fichero</string>
 		<string t="Object Height">Altura de Objeto</string>
 		<string t="Layer Height">Capa de Objeto</string>
@@ -1019,7 +1037,7 @@
 		<string t="Sensors">Capteurs</string>
 		<string t="Fan RPM">Ventilateur RPM</string>
 		<string t="ATX Power:">Alimentation ATX:</string>
-		<string t="Fan Control:">Contrôle ventilateur:</string>
+		<string t="Fan Control">Contrôle ventilateur</string>
 		<string t="File Name">Nom fichier</string>
 		<string t="Object Height">Hauteur objet</string>
 		<string t="Layer Height">Hauteur couche</string>
@@ -1404,7 +1422,7 @@
 		<string t="Sensors">Sensores</string>
 		<string t="Fan RPM">RPM do cooler</string>
 		<string t="ATX Power:">Fonte ATX:</string>
-		<string t="Fan Control:">Controle do cooler:</string>
+		<string t="Fan Control">Controle do cooler</string>
 		<string t="File Name">Nome do arquivo</string>
 		<string t="Object Height">Altura de objeto</string>
 		<string t="Layer Height">Altura da camada</string>
@@ -1896,7 +1914,7 @@
 		<string t="Sensors">Sensorer</string>
 		<string t="Fan RPM">Fläktvarvtal</string>
 		<string t="ATX Power:">ATX-kraft:</string>
-		<string t="Fan Control:">Fläkthastighet:</string>
+		<string t="Fan Control">Fläkthastighet</string>
 		<string t="File Name">Filnamn</string>
 		<string t="Object Height">Objektshöjd</string>
 		<string t="Layer Height">Lagertjocklek</string>
@@ -2252,7 +2270,7 @@
 		<string t="Sensors">Szenzorok</string>
 		<string t="Fan RPM">Ventillátor fordulatszám</string>
 		<string t="ATX Power:">ATX tápegység:</string>
-		<string t="Fan Control:">Ventillátor vezérlés:</string>
+		<string t="Fan Control">Ventillátor vezérlés</string>
 		<string t="File Name">File név</string>
 		<string t="Object Height">Alkatrész magassága</string>
 		<string t="Layer Height">Rétegvastagság</string>
@@ -2698,7 +2716,7 @@
 		<string t="Sensors">感应器</string>
 		<string t="Fan RPM">风扇-RPM</string>
 		<string t="ATX Power:">ATX-电源:</string>
-		<string t="Fan Control:">风扇控制:</string>
+		<string t="Fan Control">风扇控制</string>
 		<string t="File Name">文件名称</string>
 		<string t="Object Height">物件高度</string>
 		<string t="Layer Height">层高</string>
