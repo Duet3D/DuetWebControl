@@ -53,7 +53,7 @@ Request a status response from the firmware which usually includes all the machi
 - Type 2: Extended status request. This type of request is polled right after a connection has been established. This response provides information about the tool mapping and values that can change.
 - Type 3: Print status request. Unlike type 2, this type of request is always polled when a file print is in progress. It provides print time estimations and other print-related information which can be shown on the print status page.
 
-#### rr_code?gcode=XXX
+#### rr_gcode?gcode=XXX
 Send a G-code to the firmware. Since RepRapFirmware is generally only controlled by G-codes, this provides an interface to transmit codes from the web interface. This request returns the amount of currently available buffer space for incoming G-codes, however DWC does not actively use this response yet.
 
 #### rr_upload?name=XXX&time=YYY
