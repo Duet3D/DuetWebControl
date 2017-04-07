@@ -246,6 +246,7 @@ label {
 }
 
 @media (max-width: 767px) {
+	.span-refresh-scans,
 	.span-refresh-files,
 	.span-refresh-macros {
 		padding-left: 6px;
@@ -455,6 +456,7 @@ div.panel table.table-status:not(:last-child)
 	background-color: #428bca;
 }
 
+.nav-sidebar .span-refresh-scans,
 .nav-sidebar .span-refresh-files,
 .nav-sidebar .span-refresh-macros {
 	position: absolute;
@@ -724,6 +726,23 @@ div.panel table.table-status:not(:last-child)
 	table-layout: fixed;
 }
 
+/* Scanner */
+
+#table_scan_files_directory tr > td:first-child {
+	width: auto;
+	padding-right: 6px;
+}
+
+#table_scan_files_directory tr > td:nth-child(2) {
+	padding-left: 0px;
+	width: 100%;
+}
+
+#table_scan_files > tbody > tr > td:first-child {
+	display: none;
+}
+
+
 /* G-Code Console */
 
 #console_log {
@@ -943,6 +962,7 @@ label[for="dropdown_language"] {
 
 #panel_tool_changes div.checkbox {
 	margin-top: 0px;
+	margin-bottom: 0px;
 }
 
 #software_info {
@@ -1175,6 +1195,12 @@ label[for="dropdown_language"] {
 #btn_top_view {
 	margin-top: 9px;
 }
+
+#progress_scan,
+#progress_scan_upload {
+	min-width: 2em;
+}
+
 
 /* Popovers */
 

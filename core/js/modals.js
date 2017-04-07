@@ -14,10 +14,6 @@ $(".modal").on("hidden.bs.modal", function() {
 	$("body").css("padding-right", "");
 });
 
-function hideModals() {
-	$("#modal_upload, #modal_confirmation, #modal_textinput, #modal_host_input, #modal_pass_input, #modal_edit, #modal_backdrop").modal("hide");
-}
-
 
 /* Confirmation dialog */
 
@@ -32,7 +28,7 @@ function showConfirmationDialog(title, message, callback) {
 
 /* Text input dialog */
 
-function showTextInput(title, message, callback, text) {
+function showTextInput(title, message, callback, text, emptyCallback) {
 	$("#modal_textinput h4").html(title);
 	$("#modal_textinput p").html(message);
 	$("#modal_textinput input").val((text == undefined) ? "" : text);
@@ -41,6 +37,8 @@ function showTextInput(title, message, callback, text) {
 		var value = $("#modal_textinput input").val();
 		if (value.trim() != "") {
 			callback(value);
+		} else if (emptyCallback != undefined) {
+			emptyCallback();
 		}
 		e.preventDefault();
 	});
@@ -144,3 +142,51 @@ $(document).delegate("#modal_edit textarea", "keydown", function(e) {
 	}
 });
 
+/* Scan progress dialog */
+
+function updateScannerDialog(scanResponse) {
+	var scanProgress = 100, uploadProgress = 100;
+
+	if (scanResponse.status == "S" || scanResponse.status == "U") {
+		// Scanner is active
+		if (!$("#modal_scanner").hasClass("in")) {
+			$("#btn_cancel_scan").removeClass("hidden").removeClass("disabled");
+			$("#btn_close_scan").addClass("hidden");
+
+			$("#modal_scanner .modal-title").text(T("Scanning..."));
+			$("#p_scan_info").text(T("Please wait while a scan is being made. This may take a while..."));
+
+			$("#modal_scanner").modal("show");
+		}
+
+		// Update progress
+		if (scanResponse.status == "S") {
+			scanProgress = scanResponse.progress;
+			uploadProgress = 0;
+		} else if (scanResponse.status == "U") {
+			scanProgress = 100;
+			uploadProgress = scanResponse.progress;
+			$("#btn_cancel_scan").addClass("disabled");
+		}
+	} else if ($("#modal_scanner").hasClass("in")) {
+		// Scanner is inactive
+		$("#btn_cancel_scan").addClass("hidden");
+		$("#btn_close_scan").removeClass("hidden");
+	}
+
+	// Update progress bars
+	if ($("#modal_scanner").hasClass("in")) {
+		$("#progress_scan").css("width", scanProgress + "%");
+		$("#span_scan_upload_progress").text(T("{0} %", uploadProgress));
+
+		$("#progress_scan_upload").css("width", uploadProgress + "%");
+		$("#span_scan_progress").text(T("{0} %", scanProgress));
+	}
+}
+
+$("#btn_cancel_scan").click(function() {
+	if (!$(this).hasClass("disabled")) {
+		sendGCode("M753");
+		$("#modal_scanner").modal("hide");
+	}
+});

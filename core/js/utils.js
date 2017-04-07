@@ -340,6 +340,7 @@ function enableControls() {
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("enable");													// Fan Control
 
+	$("#page_scanner button").removeClass("disabled");											// Scanner
 	$("#page_print .checkbox, #btn_baby_down, #btn_baby_up").removeClass("disabled");			// Print Control
 	$("#slider_fan_print").slider("enable");													// Fan ...
 	$(".table-fan-control button").removeClass("disabled");										// ... Control
@@ -366,9 +367,10 @@ function disableControls() {
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
 	$("#slider_fan_control").slider("disable");													// Fan Control
 
+	$("#page_scanner button").addClass("disabled");												// Scanner
 	$("#btn_pause, #page_print .checkbox, #btn_baby_down, #btn_baby_up").addClass("disabled");	// Print Control
 	$("#slider_fan_print").slider("disable");													// Fan ...
-	$(".table-fan-control button").addClass("disabled");											// ... Control
+	$(".table-fan-control button").addClass("disabled");										// ... Control
 	$("#slider_speed").slider("disable");														// Speed Factor
 	for(var extr = 1; extr <= maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors

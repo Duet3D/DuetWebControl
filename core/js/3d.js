@@ -98,12 +98,16 @@ function testBedCompensation(numPoints) {
 	showBedCompensation(testPoints);
 }
 
-function getHeightmap() {
+function getHeightmap(file) {
 	if (!isConnected) {
 		return;
 	}
 
-	$.ajax(ajaxPrefix + "rr_download?name=0:/sys/heightmap.csv", {
+	if (file == undefined) {
+		file = "0:/sys/heightmap.csv";
+	}
+
+	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent(file), {
 		dataType: "html",
 		cache: false,
 		global: false,
@@ -389,22 +393,82 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 	}
 
 	// Generate plane geometry for grid
-	var width = (xMax - xMin < yMax - yMin) ? Math.abs((xMax - xMin) / (yMax - yMin)) : 1.0;
-	var height = (yMax - yMin < xMax - xMin) ? Math.abs((yMax - yMin) / (xMax - xMin)) : 1.0;
-	var planeGeometry = new THREE.PlaneGeometry(width, height, xPoints.length - 1, yPoints.length - 1);
+	var planeWidth = (xMax - xMin < yMax - yMin) ? Math.abs((xMax - xMin) / (yMax - yMin)) : 1.0;
+	var planeHeight = (yMax - yMin < xMax - xMin) ? Math.abs((yMax - yMin) / (xMax - xMin)) : 1.0;
+	var planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight, xPoints.length - 1, yPoints.length - 1);
 
+	var width = (xMax - xMin);
+	var height = (yMax - yMin);
 	for(var i = planeGeometry.vertices.length - 1; i >= 0; i--) {
-		var x = (planeGeometry.vertices[i].x + 0.5) * (xMax - xMin) + xMin;
-		var y = (planeGeometry.vertices[i].y + 0.5) * (yMax - xMin) + yMin;
+		var x = (planeGeometry.vertices[i].x + 0.5) * width + xMin;
+		var y = (planeGeometry.vertices[i].y + 0.5) * height + yMin;
 		var z = getNearestZOnGrid(probePoints, x, y) * scaleZ;
 
 		planeGeometry.vertices[i].z = z;
 	}
 
+	// Add extra faces to each top row to avoid zig-zag lines
+	var yCurrent = undefined;
+	for(var i = 1; i < planeGeometry.vertices.length / 2; i++) {
+		var vertex = planeGeometry.vertices[i];
+		var prevVertex = planeGeometry.vertices[i - 1];
+		if (!isNaN(prevVertex.z) && isNaN(vertex.z)) {
+			var yPoint = vertex.y;
+			if (yCurrent == undefined || yCurrent > yPoint) {
+				// We are at the last defined point in this row
+				yCurrent = yPoint;
+
+				// Find the next two points below and below+right to this one
+				var a = undefined, b;
+				for(var k = i + 1; k < planeGeometry.vertices.length - 1; k++) {
+					var nextVertex = planeGeometry.vertices[k];
+					if (nextVertex.x == prevVertex.x && nextVertex.y == planeGeometry.vertices[k + 1].y) {
+						a = k;
+						b = k + 1;
+						break;
+					}
+				}
+
+				// If that succeeds add a new face
+				if (a != undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
+					var face = new THREE.Face3(a, b, i - 1);
+					planeGeometry.faces.push(face);
+				}
+			}
+		}
+	}
+
+	// Add extra faces to each bottom row to avoid zig-zag lines
+	var prevVertex = undefined;
+	for(var i = Math.floor(planeGeometry.vertices.length / 2); i < planeGeometry.vertices.length; i++) {
+		var vertex = planeGeometry.vertices[i];
+
+		// Check if this is the first defined point in this row
+		if (prevVertex != undefined && prevVertex.y == vertex.y && isNaN(prevVertex.z) && !isNaN(vertex.z)) {
+			// Find the two points above and above+left to this one
+			var a = undefined, b;
+			for(var k = i - 1; k > 0; k--) {
+				var prevVertex = planeGeometry.vertices[k];
+				var prev2Vertex = planeGeometry.vertices[k - 1];
+				if (prevVertex.x == vertex.x && prevVertex.y == planeGeometry.vertices[k - 1].y) {
+					a = k - 1;
+					b = k;
+					break;
+				}
+			}
+
+			// If that succeeds add a new face
+			if (a != undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
+				var face = new THREE.Face3(a, b, i);
+				planeGeometry.faces.push(face);
+			}
+		}
+		prevVertex = vertex;
+	}
+
 	// Remove all the points and faces that have invalid values
 	for(var i = planeGeometry.vertices.length - 1; i >= 0; i--) {
-		var vertex = planeGeometry.vertices[i];
-		if (isNaN(vertex.z)) {
+		if (isNaN(planeGeometry.vertices[i].z)) {
 			// Remove and rearrange the associated face(s)
 			for(var k = planeGeometry.faces.length - 1; k >= 0; k--) {
 				var face = planeGeometry.faces[k];
