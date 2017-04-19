@@ -1,14 +1,15 @@
 /* Communication routines between RepRapFirmware and Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016
+ * written by Christian Hammacher (c) 2016-2017
  * 
- * licensed under the terms of the GPL v2
- * see http://www.gnu.org/licenses/gpl-2.0.html
+ * licensed under the terms of the GPL v3
+ * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 
 var ajaxPrefix = "";					// Host to use for AJAX requests + "?" char or empty if running on a webserver
-var sessionPassword = "reprap";			// Password used when establishing a new connection
+var defaultPassword = "reprap";			// Default password that is used when a new connection is established
+var sessionPassword = defaultPassword	// The actual password of the board
 var sessionTimeout = 8000;				// Time in ms before RepRapFirmware kills our session
 var boardType;							// Which electronics board is this?
 
@@ -28,6 +29,8 @@ var configFile;							// This is a cached copy of the machine's config.g file
 
 var ajaxRequests = [];					// List of all outstanding AJAX requests
 var lastSentGCode;						// The last sent G-code
+
+var vendor = undefined;					// For OEM functionality
 
 
 /* AJAX Events */
@@ -160,6 +163,7 @@ function postConnect(response) {
 	isConnected = justConnected = true;
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
 
+	getOemFeatures();
 	startUpdates();
 	if (currentPage == "settings") {
 		getConfigResponse();
@@ -658,23 +662,36 @@ function updateStatus() {
 					$("#main_content").resize();
 				}
 
-				// Enable "Start Scan" button only if the scanner is ready
-				$("#btn_start_scan").toggleClass("disabled", status.scanner.status != "I");
+				// Enable scan controls only if the scanner is ready
+				var enableScanControls = (status.scanner.status == "I");
+				if (vendor == "diabase") {
+					status.coords.axesHomed.forEach(function(isHomed) {
+						enableScanControls &= (isHomed > 0);
+					});
+				}
+				$("#btn_calibrate_scanner, #btn_start_scan, #btn_shutdown_scanner").toggleClass("disabled", !enableScanControls);
 
-				// Update scan dialog
-				updateScannerDialog(status.scanner);
+				// Update scan dialogs
+				updateScannerDialogs(status.scanner);
 
-				// Reload scans as soon as a 3D scan is finished
-				if (lastStatusResponse != undefined && status.scanner.status == "I" &&
-					(lastStatusResponse.scanner.status == "S" || lastStatusResponse.scanner.status == "U")) {
-					$("#modal_scanner .modal-title").text(T("Scan complete"));
-					$("#p_scan_info").text(T("Your 3D scan is now complete! You may download it from the file list next."));
-
+				// Reload scans as soon as a 3D scan has finished
+				var lastStatus = (lastStatusResponse == undefined || lastStatusResponse.hasOwnProperty("scanner"))
+									? "?" : lastStatusResponse.scanner.status;
+				if (status.scanner.status == "I" && (lastStatus == "S" || lastStatus == "P" || lastStatus == "U")) {
 					updateScanFiles();
 				}
-			} else if (currentPage == "scanner") {
-				showPage("control");
+			} else if (lastStatusResponse != undefined && lastStatusResponse.hasOwnProperty("scanner")) {
+				if (currentPage == "scanner") {
+					showPage("control");
+				}
 				$(".scan-control").addClass("hidden");
+
+				if ($("#modal_scanner").hasClass("in")) {
+					$("#modal_scanner").modal("hide");
+				}
+				if ($("#modal_scanner_calibration").hasClass("in")) {
+					$("#modal_scanner_calibration").modal("hide");
+				}
 			}
 
 			/*** Print status response ***/
@@ -860,7 +877,7 @@ function updateStatus() {
 					setTimeout(function() {
 						connect(sessionPassword, false);
 					}, settings.updateReconnectDelay);
-				} else {
+				} else if (uploadFirmwareFile != undefined || uploadDWCFile != undefined || uploadDWSFile != undefined) {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 
 					var duration = 0;
@@ -870,14 +887,25 @@ function updateStatus() {
 
 					showUpdateMessage(3, duration);
 					setTimeout(function() {
-						connect(sessionPassword, false);
-
 						if (uploadDWCFile != undefined) {
-							showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+							if (sessionPassword != defaultPassword) {
+								connect(sessionPassword, false);
+
+								showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+									location.reload();
+								});
+							} else {
 								location.reload();
-							});
+							}
+						} else {
+							connect(sessionPassword, false);
 						}
 					}, duration);
+				} else {
+					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
+					disconnect(false);
+
+					showMessage("warning", T("Updating Firmware..."), T("The connection has been closed because a firmware update is in progress. Please reconnect when it has finished."), 0, false);
 				}
 			} else if (status.status == 'H') {
 				if (!reconnectingAfterHalt) {
@@ -1007,4 +1035,28 @@ function sendGCode(gcode, fromInput) {
 	$.ajax(ajaxPrefix + "rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
 	});
+}
+
+
+// For OEM functionality
+
+function getOemFeatures() {
+	$.ajax(ajaxPrefix + "rr_download?name=0:/sys/oem.json", {
+		dataType: "json",
+		global: false,
+		success: function(response) {
+			if (response != "" && response.hasOwnProperty("vendor")) {
+				vendor = response.vendor;
+
+				// Diabase Engineering
+				if (vendor == "diabase") {
+					$(".diabase").removeClass("hidden");
+				}
+			}
+		}
+	});
+}
+
+function resetOem() {
+	$(".diabase").addClass("hidden");
 }

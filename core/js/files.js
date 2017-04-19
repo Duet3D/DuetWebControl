@@ -1,6 +1,6 @@
 /* File management logic for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016
+ * written by Christian Hammacher (c) 2016-2017
  * 
  * licensed under the terms of the GPL v2
  * see http://www.gnu.org/licenses/gpl-2.0.html
@@ -89,14 +89,32 @@ $(".span-refresh-scans").click(function() {
 	$(".span-refresh-scans").addClass("hidden");
 });
 
+$("#btn_calibrate_scanner").click(function() {
+	if ($(this).hasClass("disabled")) {
+		// Don't proceed if the button is disabled
+		return;
+	}
+
+	showConfirmationDialog(T("Calibrate Scanner"), T("Before you can calibrate the 3D scanner you need to place the object in the back-right corner. Do you want to continue?"), function() {
+		// Send calibration G-code to the firmware
+		sendGCode("M754");
+	});
+});
+
 $("#btn_start_scan").click(function() {
 	if (!$(this).hasClass("disabled")) {
-		showTextInput(T("Start new 3D scan"), T("Please enter a name for the new scan:"), function(name) {
-			// Let the firmware do the communication to the board
-			sendGCode("M752 P" + name);
-		}, undefined, function() {
-			showMessage("danger", T("Error"), T("The filename for a new scan must not be empty!"));
-		});
+		if (vendor == "diabase") {
+			// Properietary implemenation with extra steps
+			$("#modal_start_scan").modal("show");
+		} else {
+			// Basic open-source variant
+			showTextInput(T("Start new 3D scan"), T("Please enter a name for the new scan:"), function(name) {
+				// Let the firmware do the communication to the board
+				sendGCode("M752 S360 P" + name);
+			}, undefined, function() {
+				showMessage("danger", T("Error"), T("The filename for a new scan must not be empty!"));
+			});
+		}
 	}
 });
 
@@ -1254,21 +1272,21 @@ function getFilePath() {
 
 $("body").on("click", ".btn-download-file", function(e) {
 	var filename = $(this).parents("tr").data("file");
+	var filepath = getFilePath() + "/" + filename;
+
+	// DuetWiFiServer isn't multi-threaded yet. Suspend status updates by disconnecting,
+	// so the user has to reconnect when the download has finished
 	if (boardType.indexOf("duetwifi") == 0)
 	{
-		// DuetWiFiServer isn't multi-threaded yet. To interrupt
-		// all the communication until the file has been downloaded,
-		// navigate to the rr_download request for now.
-		var targetLocation = "http://" + location.hostname + "/rr_download?name=" + encodeURIComponent(getFilePath() + "/" + filename);
+		showMessage("info", T("Connection suspended"), T("Please click on the Connect button when the download has finished."), 0, false)
 		disconnect(false);
-		location.href = targetLocation;
-	} else {
-		// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
-		var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(getFilePath() + "/" + filename) + '" download="' + filename + '"></a>');
-		elem.appendTo("body");
-		elem[0].click();
-		elem.remove();
 	}
+
+	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
+	var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(filepath) + '" download="' + filename + '"></a>');
+	elem.appendTo("body");
+	elem[0].click();
+	elem.remove();
 });
 
 function editFile(file) {

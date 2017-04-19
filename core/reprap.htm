@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.15a
+<!--	Duet Web Control v1.15b
 
 	written by Christian Hammacher
 
@@ -20,9 +20,9 @@
 		<link rel="shortcut icon" href="favicon.ico">
 		<!-- CSS -->
 		<link href="css/animate.css" rel="stylesheet">
-		<link href="css/bootstrap.min.css" rel="stylesheet">
-		<link href="css/bootstrap-theme.min.css" rel="stylesheet">
-		<link href="css/bootstrap-slider.min.css" rel="stylesheet">
+		<link href="css/bootstrap.css" rel="stylesheet">
+		<link href="css/bootstrap-theme.css" rel="stylesheet">
+		<link href="css/bootstrap-slider.css" rel="stylesheet">
 		<link href="css/defaults.css" rel="stylesheet">
 	</head>
 
@@ -780,14 +780,14 @@
 												<label class="btn btn-default disabled">
 													<input type="radio" name="feedrate" value="60"> 60
 												</label>
-												<label class="btn btn-primary disabled active">
-													<input type="radio" name="feedrate" value="30" checked> 30
+												<label class="btn btn-default disabled">
+													<input type="radio" name="feedrate" value="30"> 30
 												</label>
 												<label class="btn btn-default disabled">
 													<input type="radio" name="feedrate" value="15"> 15
 												</label>
-												<label class="btn btn-default disabled">
-													<input type="radio" name="feedrate" value="5"> 5
+												<label class="btn btn-primary disabled active">
+													<input type="radio" name="feedrate" value="5" checked> 5
 												</label>
 												<label class="btn btn-default disabled">
 													<input type="radio" name="feedrate" value="1"> 1
@@ -1173,6 +1173,9 @@
 							<div class="col-md-12">
 								<table id="table_scan_files_directory" class="table-file-navigation">
 									<tr>
+										<td class="diabase hidden">
+											<button id="btn_calibrate_scanner" class="btn btn-success disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate</button>
+										</td>
 										<td>
 											<button id="btn_start_scan" class="btn btn-primary disabled"><span class="glyphicon glyphicon glyphicon-eye-open"></span> Start Scan</button>
 										</td>
@@ -1180,6 +1183,9 @@
 											<ol class="breadcrumb breadcrumb-directory" id="ol_scan_directory">
 												<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> Scans Directory</li>
 											</ol>
+										</td>
+										<td class="diabase hidden">
+											<button id="btn_shutdown_scanner" class="btn btn-danger disabled" data-gcode="M756"><span class="glyphicon glyphicon glyphicon-off"></span> Shutdown Scanner</button>
 										</td>
 									</tr>
 								</table>
@@ -1409,7 +1415,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.15a</td>
+														<td>1.15b</td>
 													</tr>
 												</table>
 												<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2341,7 +2347,7 @@
 		</div>
 
 		<div class="modal fade" id="modal_scanner" data-backdrop="static">
-			<div class="modal-dialog">
+			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
 						<h4 class="modal-title">Scanning...</h4>
@@ -2351,6 +2357,13 @@
 						<div class="progress">
 							<div id="progress_scan" class="progress-bar progress-bar-success progress-bar-striped">
 								<span id="span_scan_progress">0%</span>
+							</div>
+						</div>
+
+						<h4 class="diabase hidden">Post-Processing Progress</h4>
+						<div class="progress diabase hidden">
+							<div id="progress_scan_postprocessing" class="progress-bar progress-bar-warning progress-bar-striped">
+								<span id="span_scan_postprocessing_progress">0%</span>
 							</div>
 						</div>
 
@@ -2364,9 +2377,68 @@
 						<p id="p_scan_info">Please wait while a scan is being made. This may take a while...</p>
 					</div>
 					<div class="modal-footer">
-						<button id="btn_cancel_scan" class="btn btn-danger gcode"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						<button id="btn_cancel_scan" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
 						<button id="btn_close_scan" class="btn btn-success hidden" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Close</button>
 					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="modal_scanner_calibration" data-backdrop="static">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">Calibrating...</h4>
+					</div>
+					<div class="modal-body">
+						<h4>Calibration Progress</h4>
+						<div class="progress">
+							<div id="progress_calibration" class="progress-bar progress-bar-success progress-bar-striped">
+								<span id="span_calibration_progress">0%</span>
+							</div>
+						</div>
+
+						<p id="p_scan_info">Please wait while the scanner is being calibrated. This may take a while...</p>
+					</div>
+					<div class="modal-footer">
+						<button id="btn_cancel_calibration" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="modal fade" id="modal_start_scan">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<form>
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+							<h4 class="modal-title">Start 3D Scan</h4>
+						</div>
+						<div class="modal-body">
+							<h4>1. Enter a filename for your scan</h4>
+							<div class="description input-group">
+								<input type="text" required="required" placeholder="Choose a filename..." id="input_scan_filename" class="form-control">
+							</div>
+
+							<h4>2. Specify the scan length</h4>
+							<div class="description input-group">
+								<input type="number" required="required" min="0" max="300" step="any" value="300" id="input_scan_length" class="form-control">
+								<span class="input-group-addon">mm</span>
+							</div>
+
+							<h4>3. Check alignment</h4>
+							<div class="description">
+								<p>In order to align your object you can toggle the right laser before you start:</p>
+								<button id="btn_toggle_laser" class="btn btn-info"><span class="glyphicon glyphicon-certificate"></span> <span class="content">Activate Laser</span></button>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+							<button type="submit" id="btn_start_scan_modal" class="btn btn-success disabled"><span class="glyphicon glyphicon-ok"></span> Start Scan</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
@@ -2375,16 +2447,16 @@
 		<!-- Bootstrap core JavaScript
 		================================================== -->
 		<!-- Placed at the end of the document so the pages load faster -->
-		<script src="js/3rd-party/jquery-3.1.0.min.js"></script>
-		<script src="js/3rd-party/jquery.flot.min.js"></script>
-		<script src="js/3rd-party/jquery.flot.resize.min.js"></script>
-		<script src="js/3rd-party/jquery.flot.navigate.min.js"></script>
-		<script src="js/3rd-party/bootstrap.min.js"></script>
-		<script src="js/3rd-party/bootstrap-notify.min.js"></script>
-		<script src="js/3rd-party/bootstrap-slider.min.js"></script>
-		<script src="js/3rd-party/jszip.min.js"></script>
-		<script src="js/3rd-party/three.min.js"></script>
-		<script src="js/3rd-party/three.orbit.min.js"></script>
+		<script src="js/3rd-party/jquery-3.1.0.js"></script>
+		<script src="js/3rd-party/jquery.flot.js"></script>
+		<script src="js/3rd-party/jquery.flot.resize.js"></script>
+		<script src="js/3rd-party/jquery.flot.navigate.js"></script>
+		<script src="js/3rd-party/bootstrap.js"></script>
+		<script src="js/3rd-party/bootstrap-notify.js"></script>
+		<script src="js/3rd-party/bootstrap-slider.js"></script>
+		<script src="js/3rd-party/jszip.js"></script>
+		<script src="js/3rd-party/three.js"></script>
+		<script src="js/3rd-party/three.orbit.js"></script>
 		<script src="js/charts.js"></script>
 		<script src="js/comm.js"></script>
 		<script src="js/files.js"></script>

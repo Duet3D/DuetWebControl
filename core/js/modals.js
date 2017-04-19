@@ -1,9 +1,9 @@
 /* Modal dialog functions for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016
+ * written by Christian Hammacher (c) 2016-2017
  * 
- * licensed under the terms of the GPL v2
- * see http://www.gnu.org/licenses/gpl-2.0.html
+ * licensed under the terms of the GPL v3
+ * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 
@@ -142,12 +142,63 @@ $(document).delegate("#modal_edit textarea", "keydown", function(e) {
 	}
 });
 
-/* Scan progress dialog */
+/* Start scan dialog (proprietary) */
 
-function updateScannerDialog(scanResponse) {
-	var scanProgress = 100, uploadProgress = 100;
+$("#modal_start_scan input").keyup(function() {
+	$("#btn_start_scan_modal").toggleClass("disabled", $("#modal_start_scan input:invalid").length > 0);
+});
 
-	if (scanResponse.status == "S" || scanResponse.status == "U") {
+$("#btn_toggle_laser").click(function(e) {
+	if ($(this).hasClass("active")) {
+		sendGCode("M755 P0");
+		$(this).removeClass("active").children("span.content").text(T("Activate Laser"));
+	} else {
+		sendGCode("M755 P1")
+		$(this).addClass("active").children("span.content").text(T("Deactivate Laser"));
+	}
+
+	$(this).blur();
+	e.preventDefault();
+});
+
+$("#modal_start_scan form").submit(function(e) {
+	if (!$("#btn_start_scan_modal").hasClass("disabled")) {
+		// 1. Turn off the alignment laser if it is still active
+		if ($("#btn_toggle_laser").hasClass("active")) {
+			$("#btn_toggle_laser").removeClass("active").children("span.content").text(T("Activate Laser"));
+			if (isConnected) {
+				sendGCode("M755 P0");
+			}
+		}
+
+		// 2. Start a new scan
+		var filename = $("#input_scan_filename").val();
+		var length = $("#input_scan_length").val();
+		sendGCode("M752 S" + length + " P" + filename);
+
+		// 3. Hide the modal dialog
+		$("#modal_start_scan").modal("hide");
+	}
+
+	e.preventDefault();
+});
+
+$("#modal_start_scan").on("hidden.bs.modal", function() {
+	if ($("#btn_toggle_laser").hasClass("active")) {
+		$("#btn_toggle_laser").removeClass("active").children("span.content").text(T("Activate Laser"));
+		if (isConnected) {
+			// Turn off laser again when the dialog is closed
+			sendGCode("M755 P0");
+		}
+	}
+});
+
+/* Scanner progress dialogs */
+
+function updateScannerDialogs(scanResponse) {
+	var scanProgress = 100, postProcessingProgress = 100, uploadProgress = 100;
+
+	if (scanResponse.status == "S" || scanResponse.status == "P" || scanResponse.status == "U") {
 		// Scanner is active
 		if (!$("#modal_scanner").hasClass("in")) {
 			$("#btn_cancel_scan").removeClass("hidden").removeClass("disabled");
@@ -162,25 +213,53 @@ function updateScannerDialog(scanResponse) {
 		// Update progress
 		if (scanResponse.status == "S") {
 			scanProgress = scanResponse.progress;
+			postProcessingProgress = 0;
+			uploadProgress = 0;
+		} else if (scanResponse.status == "P") {
+			scanProgress = 100;
+			postProcessingProgress = scanResponse.progress;
 			uploadProgress = 0;
 		} else if (scanResponse.status == "U") {
 			scanProgress = 100;
+			postProcessingProgress = 100;
 			uploadProgress = scanResponse.progress;
 			$("#btn_cancel_scan").addClass("disabled");
 		}
-	} else if ($("#modal_scanner").hasClass("in")) {
+	} else if (scanResponse.status == "C") {
+		// Scanner calibration is running
+		if (!$("#modal_scanner_calibration").hasClass("in")) {
+			$("#btn_cancel_calibration").removeClass("disabled");
+			$("#modal_scanner_calibration").modal("show");
+		}
+
+		// Update progress
+		$("#progress_calibration").css("width", scanResponse.progress + "%");
+		$("#span_calibration_progress").text(T("{0} %", scanResponse.progress));
+	} else if (scanResponse.status == "I") {
 		// Scanner is inactive
-		$("#btn_cancel_scan").addClass("hidden");
-		$("#btn_close_scan").removeClass("hidden");
+		if ($("#modal_scanner").hasClass("in")) {
+			$("#modal_scanner .modal-title").text(T("Scan complete"));
+			$("#p_scan_info").text(T("Your 3D scan is now complete! You may download it from the file list next."));
+
+			$("#btn_cancel_scan").addClass("hidden");
+			$("#btn_close_scan").removeClass("hidden");
+		}
+
+		if ($("#modal_scanner_calibration").hasClass("in")) {
+			$("#modal_scanner_calibration").modal("hide");
+		}
 	}
 
 	// Update progress bars
 	if ($("#modal_scanner").hasClass("in")) {
 		$("#progress_scan").css("width", scanProgress + "%");
-		$("#span_scan_upload_progress").text(T("{0} %", uploadProgress));
+		$("#span_scan_progress").text(T("{0} %", scanProgress));
+
+		$("#progress_scan_postprocessing").css("width", postProcessingProgress + "%");
+		$("#span_scan_postprocessing_progress").text(T("{0} %", postProcessingProgress));
 
 		$("#progress_scan_upload").css("width", uploadProgress + "%");
-		$("#span_scan_progress").text(T("{0} %", scanProgress));
+		$("#span_scan_upload_progress").text(T("{0} %", uploadProgress));
 	}
 }
 
@@ -190,3 +269,11 @@ $("#btn_cancel_scan").click(function() {
 		$("#modal_scanner").modal("hide");
 	}
 });
+
+$("#btn_cancel_calibration").click(function() {
+	if (!$(this).hasClass("disabled")) {
+		sendGCode("M753");
+		$(this).addClass("disabled");
+	}
+});
+
