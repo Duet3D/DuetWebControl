@@ -1,9 +1,9 @@
 /* Upload handling for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016
+ * written by Christian Hammacher (c) 2016-2017
  * 
- * licensed under the terms of the GPL v2
- * see http://www.gnu.org/licenses/gpl-2.0.html
+ * licensed under the terms of the GPL v3
+ * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 
@@ -373,7 +373,7 @@ function fileUploadSkipped() {
 
 function cancelUpload() {
 	isUploading = uploadFilesSkipped = false;
-	finishCurrentUpload(false);
+	//finishCurrentUpload(false);	// this is called by the AJAX error handler
 	finishUpload(false);
 	$("#modal_upload h4").text(T("Upload Cancelled!"));
 	uploadRequest.abort();

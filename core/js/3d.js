@@ -1,9 +1,9 @@
-/* 3D bed visualisation for Duet Web Control
+/* 3D bed visualization for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016
+ * written by Christian Hammacher (c) 2016-2017
  * 
- * licensed under the terms of the GPL v2
- * see http://www.gnu.org/licenses/gpl-2.0.html
+ * licensed under the terms of the GPL v3
+ * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 var scaleZ = 0.5, maxVisualizationZ = 0.25, pointTolerance = 2.0;

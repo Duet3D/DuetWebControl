@@ -728,14 +728,24 @@ div.panel table.table-status:not(:last-child)
 
 /* Scanner */
 
-#table_scan_files_directory tr > td:first-child {
+#table_scan_files_directory tr > td {
 	width: auto;
 	padding-right: 6px;
 }
 
 #table_scan_files_directory tr > td:nth-child(2) {
 	padding-left: 0px;
+}
+
+#table_scan_files_directory tr > td:nth-child(3) {
 	width: 100%;
+	padding-left: 0px;
+	padding-right: 0px;
+}
+
+#table_scan_files_directory tr > td:last-child {
+	padding-left: 6px;
+	padding-right: 0px;
 }
 
 #table_scan_files > tbody > tr > td:first-child {
@@ -1197,8 +1207,28 @@ label[for="dropdown_language"] {
 }
 
 #progress_scan,
-#progress_scan_upload {
+#progress_scan_postprocessing,
+#progress_scan_upload,
+#progress_calibration {
 	min-width: 2em;
+}
+
+#modal_start_scan h4:first-child {
+	margin-top: 0px;
+}
+
+#modal_start_scan .description {
+	margin-left: 20px;
+	width: calc(100% - 20px);
+}
+
+#modal_start_scan .description:not(:last-child) {
+	margin-bottom: 20px;
+}
+
+#modal_start_scan .description > input,
+#btn_toggle_laser {
+	width: 100%;
 }
 
 
