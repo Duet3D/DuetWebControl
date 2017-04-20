@@ -191,15 +191,20 @@ function uploadNextFile() {
 	// Check if this file should be skipped
 	if (uploadType == "generic") {
 		var skipFile = false;
-		var lcName = uploadFileName.toLowerCase();
 
-		if (!boardType.indexOf("duetwifi") == 0) {
-			// Skip DuetWebControl*.bin on first-gen Duets
+		if (!filenameValid(uploadFileName)) {
+			// Skip files that contain invalid characters
+			skipFile = true;
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		} else if (!boardType.indexOf("duetwifi") == 0) {
+			var lcName = uploadFileName.toLowerCase();
+
+			// Skip DuetWebControl*.bin on wired Duets
 			if (lcName.match("^duetwebcontrol.*\\.bin") != null) {
 				skipFile = true;
 			}
 
-			// Skip DuetWiFiServer*.bin on first-gen Duets
+			// Skip DuetWiFiServer*.bin on wired Duets
 			if (lcName.match("^duetwifiserver.*\\.bin") != null) {
 				skipFile = true;
 			}
@@ -237,12 +242,12 @@ function uploadNextFile() {
 				case "html":
 				case "htm":
 				case "xml":
-					targetPath = "/www/" + uploadFileName;
+					targetPath = "0:/www/" + uploadFileName;
 					break;
 
 				case "css":
 				case "map":
-					targetPath = "/www/css/" + uploadFileName;
+					targetPath = "0:/www/css/" + uploadFileName;
 					break;
 
 				case "eot":
@@ -250,21 +255,21 @@ function uploadNextFile() {
 				case "ttf":
 				case "woff":
 				case "woff2":
-					targetPath = "/www/fonts/" + uploadFileName;
+					targetPath = "0:/www/fonts/" + uploadFileName;
 					break;
 
 				case "jpeg":
 				case "jpg":
 				case "png":
-					targetPath = "/www/img/" + uploadFileName;
+					targetPath = "0:/www/img/" + uploadFileName;
 					break;
 
 				case "js":
-					targetPath = "/www/js/" + uploadFileName;
+					targetPath = "0:/www/js/" + uploadFileName;
 					break;
 
 				default:
-					targetPath = "/sys/" + uploadFileName;
+					targetPath = "0:/sys/" + uploadFileName;
 			}
 	}
 
@@ -425,12 +430,19 @@ function uploadHasFinished(success) {
 			sendGCode("M32 " + currentGCodeDirectory + "/" + uploadFileName);
 		}
 
-		// Ask for page reload if DWC has been updated
+		// Ask for page reload if DWC has been updated (wired Duets, DWC on SD card)
 		if (uploadedDWC) {
 			$("#modal_upload").modal("hide");
-			showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+
+			if (sessionPassword != defaultPassword) {
+				connect(sessionPassword, false);
+
+				showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+					location.reload();
+				});
+			} else {
 				location.reload();
-			});
+			}
 		}
 
 		// Ask for software reset if it's safe to do

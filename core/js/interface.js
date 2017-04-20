@@ -7,6 +7,8 @@
  */
 
 
+var machineName = "Duet Web Control";
+
 var maxAxes = 6, maxExtruders = 6, maxDrives = 9, maxHeaters = 8, maxFans = 3;
 var axisNames = ["X", "Y", "Z", "U", "V", "W"];
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
@@ -23,7 +25,6 @@ var coldExtrudeTemp, coldRetractTemp, tempLimit;
 var isPrinting, isPaused, printHasFinished;
 
 var currentPage = "control", waitingForPrintStart;
-var darkThemeInclude;
 
 
 function resetGuiData() {
@@ -87,23 +88,11 @@ function pageLoadComplete() {
 
 function updateGui() {
 	// Visibility of heater temperatures
-	if (heatedBed) {						// Heated Bed
-		$("#tr_bed").removeClass("hidden");
-	} else {
-		$("#tr_bed").addClass("hidden");
+	$("#tr_bed").toggleClass("hidden", !heatedBed);
+	for(var i = 1; i < maxHeaters; i++) {
+		$("#tr_head_" + i).toggleClass("hidden", i > numHeads);
 	}
-	if (chamber) {							// Chamber
-		$("#tr_chamber").removeClass("hidden");
-	} else {
-		$("#tr_chamber").addClass("hidden");
-	}
-	for(var i = 1; i <= maxHeaters; i++) {	// Heads (Heaters)
-		if (i <= numHeads) {
-			$("#tr_head_" + i).removeClass("hidden");
-		} else {
-			$("#tr_head_" + i).addClass("hidden");
-		}
-	}
+	$("#tr_chamber").toggleClass("hidden", !chamber);
 
 	// Visibility of additional axis control buttons
 	$("#panel_extra_axes").toggleClass("hidden", numAxes <= 3);
@@ -181,7 +170,7 @@ function resetGui() {
 	drawPrintChart();
 
 	// Navbar
-	setTitle("Duet Web Control");
+	setMachineName("Duet Web Control");
 	setStatusLabel("Disconnected", "default");
 
 	// Heater Temperatures
@@ -190,7 +179,7 @@ function resetGui() {
 	setTemperatureInput("bed", 0, 1);
 	setCurrentTemperature("chamber",  undefined);
 	setTemperatureInput("chamber", 0, 1);
-	for(var i = 1; i <= maxHeaters; i++) {
+	for(var i = 1; i < maxHeaters; i++) {
 		setCurrentTemperature(i, undefined);
 		setTemperatureInput(i, 0, 1);
 		setTemperatureInput(i, 0, 0);
@@ -271,6 +260,9 @@ function updateWebcam(externalTrigger) {
 
 	if (settings.webcamURL == "") {
 		webcamUpdating = false;
+	} else if (settings.webcamEmbedded) {
+		webcamUpdating = false;
+		$("#ifm_webcam").attr("src", settings.webcamURL);
 	} else if (settings.webcamInterval == 0) {
 		webcamUpdating = false;
 		$("#img_webcam").attr("src", settings.webcamURL);
@@ -438,15 +430,20 @@ $("#a_heaters_off").click(function(e) {
 });
 
 $("#a_webcam").click(function(e) {
-	if ($("#img_webcam").hasClass("hidden")) {
+	var panelContent= $("#panel_webcam > div.panel-body");
+	if (panelContent.hasClass("hidden")) {
 		$("#span_webcam").removeClass("glyphicon-menu-up").addClass("glyphicon-menu-down");
-		$("#img_webcam").removeClass("hidden");
+		panelContent.removeClass("hidden");
 	} else {
 		$("#span_webcam").removeClass("glyphicon-menu-down").addClass("glyphicon-menu-up");
-		$("#img_webcam").addClass("hidden");
+		panelContent.addClass("hidden");
 	}
 	$(this).blur();
 	e.preventDefault();
+});
+
+$("#img_webcam").click(function(){
+	updateWebcam(true);
 });
 
 $("#btn_baby_down").click(function() {
@@ -1212,6 +1209,8 @@ function setPrintStatus(printing) {
 		drawPrintChart();
 		printHasFinished = false;
 
+		// Progress is set in the status response callback
+
 		$(".btn-upload").addClass("disabled");
 		$("#page_general .btn-upload").removeClass("disabled");
 
@@ -1296,6 +1295,12 @@ function setProgress(progress, labelLeft, labelRight) {
 		$("#span_progress_right").text(labelRight);
 	}
 	$("#progress").css("width", progress + "%");
+
+	if (progress == 100) {
+		Piecon.reset();
+	} else {
+		Piecon.setProgress(progress);
+	}
 }
 
 function setStatusLabel(text, style) {
@@ -1334,9 +1339,13 @@ function setTimeLeft(field, value) {
 	}
 }
 
-function setTitle(title) {
-	$(".machine-name").html(title);
-	$("head > title").text(title);
+function setMachineName(name) {
+	if (name == machineName) {
+		return;
+	}
+
+	$("#title, .machine-name").text(name);
+	machineName = name;
 }
 
 function showPage(name) {
@@ -1427,16 +1436,14 @@ function showPage(name) {
 
 /* Theme support */
 
-function applyThemeColors(themeActive) {
+function applyThemeColors() {
 	// Update temp chart colors and repaint it
 	tempChartOptions.colors[0] = $("#tr_bed a").css("color");
-	tempChartOptions.colors[1] = $("#tr_head_1 a").css("color");
-	tempChartOptions.colors[2] = $("#tr_head_2 a").css("color");
-	tempChartOptions.colors[3] = $("#tr_head_3 a").css("color");
-	tempChartOptions.colors[4] = $("#tr_head_4 a").css("color");
-	tempChartOptions.colors[5] = $("#tr_head_5 a").css("color");
-	tempChartOptions.colors[6] = $("#tr_head_5 a").css("color");
-	tempChartOptions.colors[7] = $("#tr_chamber th").css("color");
+	for(var head = 1; head < maxHeaters; head++) {
+		tempChartOptions.colors[head] = $("#tr_head_" + head + " a").css("color");
+	}
+	tempChartOptions.colors[maxHeaters] = $("#tr_chamber th").css("color");
+
 	if (tempChart != undefined) {
 		tempChart.destroy();
 		tempChart = undefined;
@@ -1451,7 +1458,8 @@ function applyThemeColors(themeActive) {
 		drawPrintChart();
 	}
 
-	if (themeActive) {
+	// Update background color for print chart tooltip
+	if (settings.theme == "dark") {
 		$("#layer_tooltip").css("background-color", $("#panel_print_info").css("background-color"));
 	} else {
 		$("#layer_tooltip").css("background-color", "");

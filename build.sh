@@ -49,6 +49,7 @@ gzip -c ./core/language.xml > ./build/language.xml.gz
 echo "Minifying CSS files and changing font paths"
 mkdir ./build/css
 yui-compressor -o ./build/css/slate.css ./core/css/slate.css
+yui-compressor -o ./build/css/bootstrap-theme.css ./core/css/bootstrap-theme.css
 CSS_FILES=$(grep -e "\.css" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//')
 for FILE in $CSS_FILES; do
 	echo "- Minifying $FILE..."
@@ -60,6 +61,8 @@ sed -i "s/-halflings-regular\./\./g" ./build/css/dwc.css
 echo "Compressing CSS files"
 gzip -c ./build/css/dwc.css > ./build/css/dwc.css.gz
 rm ./build/css/dwc.css
+gzip -c ./build/css/bootstrap-theme.css > ./build/css/bootstrap-theme.css.gz
+rm ./build/css/bootstrap-theme.css
 gzip -c ./build/css/slate.css > ./build/css/slate.css.gz
 rm ./build/css/slate.css
 

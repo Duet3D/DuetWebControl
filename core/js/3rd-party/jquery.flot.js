@@ -2994,6 +2994,11 @@ Licensed under the MIT license.
         function drawOverlay() {
             redrawTimeout = null;
 
+			// chrishamm added 20-04-2017: This may cause JS errors with latest JQuery because octx may become undefined
+			if (octx == undefined) {
+				return;
+			}
+
             // draw highlights
             octx.save();
             overlay.clear();
