@@ -623,6 +623,11 @@ div.panel table.table-status:not(:last-child)
 	width: 100%;
 }
 
+#ifm_webcam {
+	width: 100%;
+	border: 0px;
+}
+
 #page_print .checkbox {
 	margin-top: 0px;
 	margin-bottom: 0px;
@@ -930,8 +935,16 @@ div.panel table.table-status:not(:last-child)
 	width: 100%;
 }
 
-#btn_language {
-	margin-left: 9px;
+@media (min-width: 1200px) {
+	#btn_language,
+	#btn_theme {
+		margin-left: 9px;
+	}
+
+	#dropdown_language,
+	#dropdown_theme {
+		display: inline-block;
+	}
 }
 
 #check_heaters > label:first-child {
@@ -945,10 +958,6 @@ div.panel table.table-status:not(:last-child)
 
 #div_fan_settings > div {
 	padding-right: 0px;
-}
-
-#dropdown_language {
-	display: inline-block;
 }
 
 label[for="dropdown_language"] {

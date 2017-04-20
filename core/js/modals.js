@@ -174,9 +174,15 @@ $("#modal_start_scan form").submit(function(e) {
 		// 2. Start a new scan
 		var filename = $("#input_scan_filename").val();
 		var length = $("#input_scan_length").val();
-		sendGCode("M752 S" + length + " P" + filename);
 
-		// 3. Hide the modal dialog
+		// 3. Check the filename and start a new scan
+		if (filenameValid(filename)) {
+			sendGCode("M752 S" + length + " P" + filename);
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
+
+		// 4. Hide the modal dialog
 		$("#modal_start_scan").modal("hide");
 	}
 

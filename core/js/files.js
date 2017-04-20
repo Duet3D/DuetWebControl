@@ -109,8 +109,12 @@ $("#btn_start_scan").click(function() {
 		} else {
 			// Basic open-source variant
 			showTextInput(T("Start new 3D scan"), T("Please enter a name for the new scan:"), function(name) {
-				// Let the firmware do the communication to the board
-				sendGCode("M752 S360 P" + name);
+				if (filenameValid(name)) {
+					// Let the firmware do the communication to the board
+					sendGCode("M752 S360 P" + name);
+				} else {
+					showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+				}
 			}, undefined, function() {
 				showMessage("danger", T("Error"), T("The filename for a new scan must not be empty!"));
 			});
@@ -352,17 +356,21 @@ $("body").on("click", "#ol_gcode_directory a", function(e) {
 
 $("#btn_new_gcode_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
-		$.ajax(ajaxPrefix + "rr_mkdir?dir=" + encodeURIComponent(currentGCodeDirectory + "/" + value), {
-			dataType: "json",
-			success: function(response) {
-				if (response.err == 0) {
-					gcodeUpdateIndex = -1;
-					updateGCodeFiles();
-				} else {
-					showMessage("warning", T("Error"), T("Could not create this directory!"));
+		if (filenameValid(value)) {
+			$.ajax(ajaxPrefix + "rr_mkdir?dir=" + encodeURIComponent(currentGCodeDirectory + "/" + value), {
+				dataType: "json",
+				success: function(response) {
+					if (response.err == 0) {
+						gcodeUpdateIndex = -1;
+						updateGCodeFiles();
+					} else {
+						showMessage("warning", T("Error"), T("Could not create this directory!"));
+					}
 				}
-			}
-		});
+			});
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
 	});
 });
 
@@ -657,24 +665,32 @@ function setMacroDirectory(directory) {
 
 $("#btn_new_macro_directory").click(function() {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
-		$.ajax(ajaxPrefix + "rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
-			dataType: "json",
-			success: function(response) {
-				if (response.err == 0) {
-					updateMacroFiles();
-				} else {
-					showMessage("warning", T("Error"), T("Could not create this directory!"));
+		if (filenameValid(value)) {
+			$.ajax(ajaxPrefix + "rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
+				dataType: "json",
+				success: function(response) {
+					if (response.err == 0) {
+						updateMacroFiles();
+					} else {
+						showMessage("warning", T("Error"), T("Could not create this directory!"));
+					}
 				}
-			}
-		});
+			});
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
 	});
 });
 
 $("#btn_new_macro_file").click(function() {
 	showTextInput(T("New macro"), T("Please enter a filename:"), function(file) {
-		showEditDialog(currentMacroDirectory + "/" + file, "", function(value) {
-			uploadTextFile(currentMacroDirectory + "/" + file, value, updateMacroFiles);
-		});
+		if (filenameValid(file)) {
+			showEditDialog(currentMacroDirectory + "/" + file, "", function(value) {
+				uploadTextFile(currentMacroDirectory + "/" + file, value, updateMacroFiles);
+			});
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
 	});
 });
 
@@ -930,6 +946,25 @@ function loadMacroDropdown(directory, dropdown) {
 
 /* Common functions */
 
+function filenameValid(name) {
+	if (name.indexOf('"') != -1 || name.indexOf("'") != -1) {
+		// Don't allow quotes in filenames
+		return false;
+	}
+
+	if (name.indexOf("/") != -1 || name.indexOf("\"") != -1) {
+		// Don't allow (back)slashes either
+		return false;
+	}
+
+	if (name.indexOf(":") != -1) {
+		// Colons should be avoided too
+		return false;
+	}
+
+	return true;
+}
+
 function resetFiles() {
 	setVolumes(1);
 	setMountedVolumes(1);
@@ -1150,9 +1185,13 @@ $('a[href="#page_sysedit"]').on('shown.bs.tab', function() {
 
 $("#a_new_sys_file").click(function() {
 	showTextInput(T("New File"), T("Please enter a filename:"), function(file) {
-		showEditDialog("0:/sys/" + file, "", function(value) {
-			uploadTextFile("0:/sys/" + file, value, updateSysFiles);
-		});
+		if (filenameValid(file)) {
+			showEditDialog("0:/sys/" + file, "", function(value) {
+				uploadTextFile("0:/sys/" + file, value, updateSysFiles);
+			});
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
 	});
 });
 

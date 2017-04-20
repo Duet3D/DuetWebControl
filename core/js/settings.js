@@ -21,7 +21,7 @@ var settings = {
 
 	confirmStop: false,				// ask for confirmation when pressing Emergency STOP
 	useKiB: true,					// display file sizes in KiB instead of KB
-	useDarkTheme: false,			// load dark theme by Fotomas
+	theme: "default",				// name of the theme to use
 	scrollContent: true,			// make the main content scrollable on md+ resolutions
 	language: "en",
 
@@ -48,6 +48,7 @@ var settings = {
 	webcamURL: "",
 	webcamInterval: 5000,			// in ms
 	webcamFix: false,				// do not append extra HTTP qualifier when reloading images
+	webcamEmbedded: false,			// use iframe to embed webcam stream
 
 	defaultActiveTemps: [0, 180, 190, 200, 210, 220, 235],
 	defaultStandbyTemps: [0, 95, 120, 140, 155, 170],
@@ -61,6 +62,8 @@ var settings = {
 };
 
 var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
+
+var themeInclude;
 
 
 /* Setting methods */
@@ -76,9 +79,15 @@ function loadSettings() {
 			loadedSettings = JSON.parse(loadedSettings);
 
 			for(var key in settings) {
+				// Try to copy each setting if their types are equal
 				if (loadedSettings.hasOwnProperty(key) && settings[key].constructor === loadedSettings[key].constructor) {
 					settings[key] = loadedSettings[key];
 				}
+			}
+
+			// Backward-compatibility
+			if (loadedSettings.hasOwnProperty("useDarkTheme")) {
+				settings.theme = loadedSettings.useDarkTheme ? "dark" : "default";
 			}
 		}
 	}
@@ -131,6 +140,9 @@ function applySettings() {
 	// Webcam
 	if (settings.webcamURL != "") {
 		$("#panel_webcam").removeClass("hidden");
+		$("#img_webcam").toggleClass("hidden", settings.webcamEmbedded);
+		$("#div_ifm_webcam").toggleClass("hidden", !settings.webcamEmbedded);
+
 		updateWebcam(true);
 	} else {
 		$("#panel_webcam").addClass("hidden");
@@ -169,19 +181,29 @@ function applySettings() {
 	$(".atx-control").toggleClass("hidden", !settings.showATXControl);
 
 	// Apply or revoke theme
-	if (settings.useDarkTheme) {
-		if (darkThemeInclude == undefined) {
-			darkThemeInclude = $('<link onload="applyThemeColors(true);" rel="stylesheet" href="css/slate.css" type="text/css"></link>');
-			darkThemeInclude.appendTo('head');
-			$("#theme_notice").removeClass("hidden");
-		}
-	} else {
-		if (darkThemeInclude != undefined) {
-			darkThemeInclude.remove();
-			darkThemeInclude = undefined;
-			applyThemeColors(false);
+	if (themeInclude != undefined) {
+		themeInclude.remove();
+		themeInclude = undefined;
+	}
+
+	switch (settings.theme) {
+		case "default":	// Default Bootstrap theme
+			themeInclude = $('<link onload="applyThemeColors();" rel="stylesheet" href="css/bootstrap-theme.css" type="text/css"></link>');
+			themeInclude.appendTo("head");
 			$("#theme_notice").addClass("hidden");
-		}
+			break;
+
+		case "dark":	// Bootstrap theme + fotomas's customizations
+			themeInclude = $('<link rel="stylesheet" href="css/bootstrap-theme.css" type="text/css"></link>' +
+							 '<link onload="applyThemeColors();" rel="stylesheet" href="css/slate.css" type="text/css"></link>');
+			themeInclude.appendTo("head");
+			$("#theme_notice").removeClass("hidden");
+			break;
+
+		case "none":	// No theme at all
+			applyThemeColors();
+			$("#theme_notice").addClass("hidden");
+			break;
 	}
 
 	// Make main content scrollable on md+ screens or restore default behavior
@@ -202,11 +224,16 @@ function applySettings() {
 					factor = 1;
 				}
 				element.val(settings[key] / factor);
-			} else {
+			} else if (type != "button") {
 				element.val(settings[key]);
 			}
 		}
 	}
+
+	// Set theme selection
+	$("#btn_theme").data("theme", settings.theme);
+	var themeName = $('#dropdown_theme ul [data-theme="' + settings.theme + '"]').text();
+	$("#btn_theme > span:first-child").text(themeName);
 
 	// Language is set in XML AJAX handler
 
@@ -253,6 +280,9 @@ function saveSettings() {
 			}
 		}
 	}
+
+	// Save theme
+	settings.theme = $("#btn_theme").data("theme");
 
 	// Save language
 	if (settings.language != $("#btn_language").data("language")) {
@@ -324,8 +354,11 @@ $("#btn_reset_settings").click(function(e) {
 		if (defaultSettings.language != settings.language) {
 			showMessage("info", T("Language has changed"), T("You have changed the current language. Please reload the web interface to apply this change."), 0);
 		}
+
 		settings = jQuery.extend(true, {}, defaultSettings);
 		$("#btn_language").data("language", "en").children("span:first-child").text("English");
+		$("#btn_theme").data("theme", "default").children("span:first-child").text(T("Bootstrap"));
+
 		applySettings();
 		saveSettings();
 	});
@@ -358,7 +391,13 @@ $("input[type='number']").focus(function() {
 
 // User Interface
 
-$("body").on("click", "#dropdown_language a", function(e) {
+$("#dropdown_theme > ul a").click(function(e) {
+	$("#btn_theme > span:first-child").text($(this).text());
+	$("#btn_theme").data("theme", $(this).data("theme"));
+	e.preventDefault();
+});
+
+$("body").on("click", "#dropdown_language > ul a", function(e) {
 	$("#btn_language > span:first-child").text($(this).text());
 	$("#btn_language").data("language", $(this).data("language"));
 	e.preventDefault();
@@ -503,3 +542,13 @@ $('a[href="#page_general"], a[href="#page_ui"], a[href="#page_listitems"]').on('
 $('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"]').on('shown.bs.tab', function () {
 	$("#row_save_settings").addClass("hidden");
 });
+
+// Piecon settings
+
+Piecon.setOptions({
+	color: "#0000ff",		// Pie chart color
+	background: "#bbb",		// Empty pie chart color
+	shadow: "#fff",			// Outer ring color
+	fallback: "force"		// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+});
+

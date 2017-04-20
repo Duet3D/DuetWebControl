@@ -301,7 +301,7 @@ function updateStatus() {
 
 			// Machine Name
 			if (status.hasOwnProperty("name")) {
-				setTitle(status.name);
+				setMachineName(status.name);
 			}
 
 			// Probe Parameters (maybe hide probe info for type 0 someday?)
@@ -312,7 +312,7 @@ function updateStatus() {
 				var probeType;
 				switch (status.probe.type) {
 					case 0:
-						probeType = T("Switch (0)");
+						probeType = T("Z Switch (0)");
 						break;
 					case 1:
 						probeType = T("Unmodulated (1)");
@@ -324,7 +324,16 @@ function updateStatus() {
 						probeType = T("Alternative (3)");
 						break;
 					case 4:
-						probeType = T("Two Switches (4)");
+						probeType = T("E0 Switch (4)");
+						break;
+					case 5:
+						probeType = T("Digital Switch (5)");
+						break;
+					case 6:
+						probeType = T("E1 Switch (6)");
+						break;
+					case 7:
+						probeType = T("Alternative (7)");
 						break;
 					default:
 						probeType = T("Unknown ({0})", status.probe.type);
@@ -752,6 +761,7 @@ function updateStatus() {
 							printJustFinished = printHasFinished = true;
 						}
 					}
+
 					setProgress(progress, T("Printing {0}, {1}% Complete", fileInfo.fileName, progress), 
 							(progressText.length > 0) ? progressText.reduce(function(a, b) { return a + ", " + b; }) : "");
 				}
@@ -858,12 +868,20 @@ function updateStatus() {
 				if (uploadDWCFile != undefined && uploadDWSFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Duet Web Control...") + "</strong>");
 					showUpdateMessage(2);
+
+					// Ask for page reload if DWC has been updated (wireless Duets, DWC on WiFi chip)
 					setTimeout(function() {
 						connect(sessionPassword, false);
 
-						showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+						if (sessionPassword != defaultPassword) {
+							connect(sessionPassword, false);
+
+							showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+								location.reload();
+							});
+						} else {
 							location.reload();
-						});
+						}
 					}, settings.dwcReconnectDelay);
 				} else if (uploadDWSFile != undefined && uploadDWCFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Duet WiFi Server...") + "</strong>");
@@ -884,8 +902,9 @@ function updateStatus() {
 					if (uploadDWCFile != undefined) { duration += settings.dwcReconnectDelay; }
 					if (uploadDWSFile != undefined) { duration += settings.dwcReconnectDelay; }
 					if (uploadFirmwareFile != undefined) { duration += settings.updateReconnectDelay; }
-
 					showUpdateMessage(3, duration);
+
+					// Ask for page reload if DWC has been updated (wireless Duets, DWC on WiFi chip)
 					setTimeout(function() {
 						if (uploadDWCFile != undefined) {
 							if (sessionPassword != defaultPassword) {

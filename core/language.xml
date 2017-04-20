@@ -335,11 +335,10 @@
 		<string t="Acceleration">Beschleunigung</string>
 		<string t="Motor Current">Motorstrom</string>
 		<string t="Type:">Typ:</string>
-		<string t="Switch (0)">Schalter (0)</string>
+		<string t="Z Switch (0)">Z-Schalter (0)</string>
 		<string t="Unmodulated (1)">Unmoduliert (1)</string>
 		<string t="Modulated (2)">Moduliert (2)</string>
 		<string t="Alternative (3)">Alternativ (3)</string>
-		<string t="Two Switches (4)">Zwei Schalter (4)</string>
 		<string t="Unknown ({0})">Unbekannt ({0})</string>
 		<string t="Trigger Height:">Auslösehöhe:</string>
 		<string t="Trigger Value:">Auslösewert:</string>
@@ -516,6 +515,9 @@
 
 		<!-- New in DWC 1.15a -->
 		<string t="Please enter a name for the new scan:">Bitte geben Sie einen Namen für den neuen Scan ein:</string>
+
+		<!-- New in DWC 1.15b -->
+		<string t="The specified filename is invalid. It may not contain quotes, colons or (back)slashes.">Der angegebene Dateiname ist ungültig. Er darf keine Anführungszeichen, Doppelpunkte oder (Back)Slashes enthalten.</string>
 		<string t="The filename for a new scan must not be empty!">Der Dateiname für den neuen Scan darf nicht leer sein!</string>
 		<string t="Connect to your Duet to display scanned files">Stellen Sie eine Verbindung zum Duet her um gescannte Dateien anzuzeigen</string>
 		<string t="View this heightmap">Diese Höhenkarte betrachten</string>
@@ -525,13 +527,24 @@
 		<string t="Your 3D scan is now complete! You may download it from the file list next.">Ihr 3D-Scan ist jetzt abgeschlossen! Sie können diesen jetzt aus der Dateiliste herunterladen.</string>
 		<string t="No scans found">Keine Scans gefunden</string>
 		<string t="Start new 3D scan">Neuen 3D-Scan starten</string>
+		<string t="Calibrate">Kalibrieren</string>
 		<string t="Start Scan">Scan starten</string>
+		<string t="Shutdown Scanner">Scanner herunterfahren</string>
 		<string t="Date Created">Erstellungsdatum</string>
 		<string t="Scans Directory">Scanverzeichnis</string>
 		<string t="Show Sliders for">Schieberegler anzeigen für</string>
 		<string t="Notifications">Benachrichtigungen</string>
 		<string t="Please wait while the following files are being uploaded:">Bitte warten Sie während die folgenden Dateien hochgeladen werden:</string>
 		<string t="Options">Optionen</string>
+		<string t="Theme:">Thema:</string>
+		<string t="None">Keins</string>
+		<string t="Dark">Dunkel</string>
+		<string t="Embed Webcam Stream">Webcam-Stream einbetten</string>
+		<string t="Enable this option if you need to embed a page using an iframe to display a webcam stream">Aktiveren Sie diese Option falls Sie Ihren Webcam-Stream mittels eines iframes einbetten müssen</string>
+		<string t="E0 Switch (4)">E0-Schalter (4)</string>
+		<string t="Digital Switch (5)">Digitaler Schalter (5)</string>
+		<string t="E1 Switch (6)">E1-Schalter</string>
+		<string t="Alternative (7)"></string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -1189,11 +1202,10 @@
 		<string t="Acceleration">Accélération</string>
 		<string t="Motor Current">Courant moteur</string>
 		<string t="Type:">Type:</string>
-		<string t="Switch (0)">Contact (0)</string>
+		<string t="Z Switch (0)">Z Contact (0)</string>
 		<string t="Unmodulated (1)">Non modulé (1)</string>
 		<string t="Modulated (2)">Modulé (2)</string>
 		<string t="Alternative (3)">Alternative (3)</string>
-		<string t="Two Switches (4)">Deux contacts (4)</string>
 		<string t="Unknown ({0})">Inconnu ({0})</string>
 		<string t="Trigger Height:">Hauteur de déclenchement:</string>
 		<string t="Trigger Value:">Valeur de déclenchement:</string>
@@ -1576,11 +1588,10 @@
 		<string t="Acceleration">Aceleração</string>
 		<string t="Motor Current">Motor atual</string>
 		<string t="Type:">Tipo:</string>
-		<string t="Switch (0)">Chave (0)</string>
+		<string t="Z Switch (0)">Z Chave (0)</string>
 		<string t="Unmodulated (1)">Não modulado (1)</string>
 		<string t="Modulated (2)">Modulado (2)</string>
 		<string t="Alternative (3)">Alternativa (3)</string>
-		<string t="Two Switches (4)">Chaves (4)</string>
 		<string t="Unknown ({0})">Desconhecido ({0})</string>
 		<string t="Trigger Height:">Altura do acionamento:</string>
 		<string t="Trigger Value:">Valor do acionamento:</string>
@@ -2066,11 +2077,10 @@
 		<string t="Acceleration">Acceleration</string>
 		<string t="Motor Current">Motorström</string>
 		<string t="Type:">Typ:</string>
-		<string t="Switch (0)">Brytare (0)</string>
+		<string t="Z Switch (0)">Z Brytare (0)</string>
 		<string t="Unmodulated (1)">Omodulerad (1)</string>
 		<string t="Modulated (2)">Modulerad (2)</string>
 		<string t="Alternative (3)">Alternativ (3)</string>
-		<string t="Two Switches (4)">Två brytare (4)</string>
 		<string t="Unknown ({0})">Okänt ({0})</string>
 		<string t="Trigger Height:">Utslagshöjd:</string>
 		<string t="Trigger Value:">Utslagsvärde:</string>
@@ -2422,11 +2432,10 @@
 		<string t="Acceleration">Gyorsulás</string>
 		<string t="Motor Current">Motor áram</string>
 		<string t="Type:">Típus:</string>
-		<string t="Switch (0)">Kapcsoló (0)</string>
+		<string t="Z Switch (0)">Z Kapcsoló (0)</string>
 		<string t="Unmodulated (1)">Nem modulált (1)</string>
 		<string t="Modulated (2)">Modulált (2)</string>
 		<string t="Alternative (3)">Alternatív (3)</string>
-		<string t="Two Switches (4)">Két kapcsoló (4)</string>
 		<string t="Unknown ({0})">Ismeretlen ({0})</string>
 		<string t="Trigger Height:">Jelzés magassága:</string>
 		<string t="Trigger Value:">Jelzés értéke:</string>

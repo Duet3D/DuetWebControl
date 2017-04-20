@@ -21,7 +21,6 @@
 		<!-- CSS -->
 		<link href="css/animate.css" rel="stylesheet">
 		<link href="css/bootstrap.css" rel="stylesheet">
-		<link href="css/bootstrap-theme.css" rel="stylesheet">
 		<link href="css/bootstrap-slider.css" rel="stylesheet">
 		<link href="css/defaults.css" rel="stylesheet">
 	</head>
@@ -922,6 +921,10 @@
 									</div>
 									<div class="panel-body">
 										<img src="about:blank" id="img_webcam" alt="(image not available)">
+
+										<div id="div_ifm_webcam" class="embed-responsive embed-responsive-16by9 hidden">
+											<iframe src="about:blank" id="ifm_webcam" class="embed-responsive-item"></iframe>
+										</div>
 									</div>
 								</div>
 
@@ -1184,7 +1187,7 @@
 												<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> Scans Directory</li>
 											</ol>
 										</td>
-										<td class="diabase hidden">
+										<td class="diabase hidden hidden-xs hidden-sm">
 											<button id="btn_shutdown_scanner" class="btn btn-danger disabled" data-gcode="M756"><span class="glyphicon glyphicon glyphicon-off"></span> Shutdown Scanner</button>
 										</td>
 									</tr>
@@ -1521,27 +1524,39 @@
 													</label>
 												</div>
 
-												<div class="checkbox">
-													<label title="Use dark theme by Fotomas">
-														<input type="checkbox" data-setting="useDarkTheme" /> Use dark theme
-													</label>
-												</div>
-
 												<div class="checkbox hidden-xs hidden-sm">
 													<label title="Turning on this option ensures the info area and the main menu are always shown on larger displays. This option has no effect on small devices">
 														<input type="checkbox" data-setting="scrollContent" /> Always show info area and main menu
 													</label>
 												</div>
 
-												<label id="label_language">Language:</label>
-												<div class="dropdown" id="dropdown_language">
-													<button class="btn btn-default dropdown-toggle" type="button" id="btn_language" data-language="en" data-toggle="dropdown">
-														<span>English</span>
-														<span class="caret"></span>
-													</button>
-													<ul class="dropdown-menu">
-														<li><a data-language="en" href="#">English</a></li>
-													</ul>
+												<div class="row">
+													<div class="col-md-6">
+														<label id="label_language">Language:</label>
+														<div class="dropdown" id="dropdown_language">
+															<button class="btn btn-default dropdown-toggle" type="button" id="btn_language" data-language="en" data-toggle="dropdown">
+																<span>English</span>
+																<span class="caret"></span>
+															</button>
+															<ul class="dropdown-menu">
+																<li><a data-language="en" href="#">English</a></li>
+															</ul>
+														</div>
+													</div>
+													<div class="col-md-6">
+														<label>Theme:</label>
+														<div class="dropdown" id="dropdown_theme">
+															<button class="btn btn-default dropdown-toggle" type="button" id="btn_theme" data-theme="default" data-toggle="dropdown">
+																<span>Bootstrap</span>
+																<span class="caret"></span>
+															</button>
+															<ul class="dropdown-menu">
+																<li><a data-theme="default" href="#">Bootstrap</a></li>
+																<li><a data-theme="dark" href="#">Dark</a></li>
+																<li><a data-theme="none" href="#">None</a></li>
+															</ul>
+														</div>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -1726,6 +1741,12 @@
 												<div class="checkbox">
 													<label title="Enable this option if your webcam cannot handle additional HTTP keys. Some IP cameras need this">
 														<input type="checkbox" data-setting="webcamFix" /> Do not append extra HTTP qualifier
+													</label>
+												</div>
+
+												<div class="checkbox">
+													<label title="Enable this option if you need to embed a page using an iframe to display a webcam stream">
+														<input type="checkbox" data-setting="webcamEmbedded" /> Embed Webcam Stream
 													</label>
 												</div>
 											</div>
@@ -2455,6 +2476,7 @@
 		<script src="js/3rd-party/bootstrap-notify.js"></script>
 		<script src="js/3rd-party/bootstrap-slider.js"></script>
 		<script src="js/3rd-party/jszip.js"></script>
+		<script src="js/3rd-party/piecon.js"></script>
 		<script src="js/3rd-party/three.js"></script>
 		<script src="js/3rd-party/three.orbit.js"></script>
 		<script src="js/charts.js"></script>
