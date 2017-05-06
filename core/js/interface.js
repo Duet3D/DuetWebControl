@@ -239,7 +239,7 @@ function resetGui() {
 	updateMacroFiles();
 
 	// Settings
-	$("#tr_firmware_electronics, #panel_tool_changes").addClass("hidden");
+	$("#tr_firmware_electronics").addClass("hidden");
 	$("#firmware_name, #firmware_electronics, #firmware_version, #dws_version").html(T("n/a"));
 	$("#page_machine td:not(:first-child), #page_machine dd").html(T("n/a"));
 

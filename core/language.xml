@@ -545,6 +545,11 @@
 		<string t="Digital Switch (5)">Digitaler Schalter (5)</string>
 		<string t="E1 Switch (6)">E1-Schalter</string>
 		<string t="Alternative (7)"></string>
+
+		<!-- New in DWC 1.15c -->
+		<string t="Heightmap Colors">Farben der Höhenkarte</string>
+		<string t="Terrain (Default)">Terrain (Standard)</string>
+		<string t="Heat">Hitze</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -2167,7 +2172,7 @@
 		<string t="Upload G-Code File(s)">G-kód file(ok) feltöltése</string>
 		<string t="Make new Directory">Új mappa létrehozása</string>
 		<string t="Upload Macro File(s)">Makró file(ok) feltöltése</string>
-		<string t="Go Up">Menj fel</string>
+		<string t="Go Up">Vissza</string>
 		<string t="Unload Filament">Filament kifűzése</string>
 		<string t="Load Filament">Filament befűzése</string>
 		<string t="General">Általános</string>
@@ -2384,7 +2389,7 @@
 		<string t="{0} has returned an error:">{0} hibával válaszolt:</string>
 		<string t="An AJAX error has been reported, so the current session has been terminated.&lt;br/&gt;&lt;br/&gt;Please check if your printer is still on and try to connect again.">A rendszer AJAX hibát észlelt, a jelenlegi kapcsolat bezárásra került. &lt;br/&gt;&lt;br/&gt;Ellenőrizze hogy a nyomtató még mindíg be van kapcsolva és csatlakozzon újra.</string>
 		<string t="Password required">Jelszó szükséges</string>
-		<string t="Please enter your password:">Kérem írja be a jalszót:</string>
+		<string t="Please enter your password:">Kérem írja be a jelszót:</string>
 		<string t="OK">Ok</string>
 		<string t="Cancel">Mégse</string>
 		<string t="Verify">Ellenőrzés</string>
@@ -2532,6 +2537,115 @@
 		<string t="Error! Unknown update parameter!">Hiba! Ismeretlen frissítési paraméter!</string>
 		<string t="System Directory">Rendszer mappa</string>
 
+		<!-- New in DWC 1.13 -->
+		<string t="Failed to retrieve files of this directory">A mappában található file-ok listázása sikertelen</string>
+		<string t="Last modified on {0}">Utoljára módosítva {0}</string>
+		<string t="Mounting...">Felcsatolás...</string>
+		<string t="Root Directory">Fő könyvtár</string>
+		<string t="SD Card {0}">SD-Kártya {0}</string>
+		<string t="SD Card {0} ({1})">SD-Kártya {0} ({1})</string>
+		<string t="The current volume is not mounted">A kiválasztott partíció nincs felcsatolva</string>
+		<string t="mounted">felcsatolva</string>
+		<string t="not mounted">leválasztva</string>
+		<string t="unknown">ismeretlen</string>
+
+		<!-- New in DWC 1.14 -->
+		<string t="Changing Tool">Szerszám váltás</string>
+		<string t="Tool Changes">Szerszám váltás</string>
+		<string t="Run free macro">szabad-Makró futtatása</string>
+		<string t="Run pre macro">elő-Makró futtatása</string>
+		<string t="Run post macro">utó-Makró futtatása</string>
+		<string t="Could not update file {0}!">A {0} file frissítése sikertelen!</string>
+		<string t="File Updated">File frissítve</string>
+		<string t="New File">Új file</string>
+		<string t="The file {0} has been successfully uploaded.">A {0} fájl sikeresen frissítve</string>
+		<string t="Show Heightmap">Magassági térkép mutatása</string>
+		<string t="Failed to download height map">A magassági térkép letöltése sikertelen</string>
+		<string t="Failed to download and process /sys/heightmap.csv from the SD card. Have you run G29 yet?">A /sys/heightmap.csv file letöltése és feldolgozása sikertelen. Futtatta már a G29 kódot?</string>
+		<string t="Automatic Calibration Results">Automatikus kalibrálás eredménye</string>
+		<string t="loading...">töltés...</string>
+		<string t="Scale:">Lépték:</string>
+		<string t="or more">vagy több</string>
+		<string t="Axes:">Tengelyek:</string>
+		<string t="Number of probe points:">Mintavételezési pontok száma:</string>
+		<string t="Probe area:">Mintavételezési terület:</string>
+		<string t="Probing radius:">Mintavételezési sugár:</string>
+		<string t="Maximum deviations:">Maximális eltérés:</string>
+		<string t="Mean error:">Átlagos hiba:</string>
+		<string t="RMS error:">RMS hiba:</string>
+		<string t="Top View">Felülnézet</string>
+		<string t="Help">Súgó</string>
+		<string t="Click and hold the left mouse button for orbit controls and press and hold the right mouse button to pan around. Use the mouse wheel to zoom in and out.">Nyomja le és tartsa lenyomva a bal egér gombot a nézet körbeforgatásához. Használja az egér görgőt a közelítéshez vagy távolításhoz.</string>
+
+		<!-- New in DWC 1.15 -->
+		<string t="A JavaScript error has occurred so the web interface has closed the connection to your board. It is recommended to reload the web interface now. If this happens again, please contact the author and share this error message:">JavaScript hiba történt, a Web interfész bezárta a kapcsolatot a vezérlővel. Ha a hiba ismét előfordul, vegye fel a kapcsolatot a fejlesztőkkel és küldje el az alábbi hibaüzenet tartalmát:</string>
+		<string t="JavaScript Error">JavaScript Hiba</string>
+		<string t="No System Files found">Nem találhatóak rendszerfileok</string>
+		<string t="Perform firmware reset?">Szoftver újraindítás?</string>
+		<string t="Please enter a new name:">Adjon meg egy új nevet:</string>
+		<string t="Please wait while multiple firmware updates are being installed...">Kérem várjon amíg a szoftver frissítések telepítése befejeződik...</string>
+		<string t="Please wait while the firmware is restarting...">Kérem várjon amíg a szoftver újraindul...</string>
+		<string t="Rename File or Directory">File vagy mappa átnevezése</string>
+		<string t="The firmware still reports to be halted after an emergency stop. Would you like to reset your board now?">A rendszer jelenti hogy vészleállás történt. Szeretné most újraindítani a vezérlőt?</string>
+		<string t="The first volume is not mounted">Az első partíció nincs felcsatolva</string>
+		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">Szoftver fileok másolása kész. Szeretné most telepíteni őket?</string>
+		<string t="or less">v. kevesebb</string>
+		<string t="Always show info area and main menu">Mindíg mutassa az információs területet és a fő menüt</string>
+		<string t="Fan 1">Ventillátor 1</string>
+		<string t="Fan 2">Ventillátor 2</string>
+		<string t="Fan 3">Ventillátor 3</string>
+		<string t="Do not append extra HTTP qualifier">Ne csatoljon extra HTTP minősítést</string>
+		<string t="Z Baby Stepping">Z korrekció</string>
+		<string t="Current Offset:">Jelenlegi korrekció:</string>
+		<string t="Show Probed Points">Mintavételezési pontok mutatása</string>
+		<string t="Disable Bed Compensation">Tárgyasztal kompenzáció kikapcsolása</string>
+		<string t="Run Mesh Grid Compensation">Hálós tárgyasztal kompenzáció futtatása</string>
+		<string t="Show Mesh Grid Heightmap">Hálós kompenzáció térkép mutatása</string>
+		<string t="Load Heightmap from SD Card">Kompenzációs térkép betöltése SD kártyáról</string>
+		<string t="Disable Mesh Grid Compensation">Hálós tárgyasztal kompenzáció kikapcsolása</string>
+		<string t="Shows the currently used probe points as generated by G32">Mutassa a G32 alapján generált mintavételezési pontokat</string>
+		<string t="Disables the automatic bed compensation (M561)">Kikapcsolja az automatikus tárgyasztal kompenzációt (M561)</string>
+		<string t="Perform automatic mesh compensation (G29)">Automatikus tárgyasztal kompenzáció végrehajtása (G29)</string>
+		<string t="Show the probe point heightmap as generated by G29">Mutassa a G29 szerint generált kompenzációs térkép pontjait</string>
+		<string t="Load the saved heightmap from /sys/heightmap.csv and enable it (G29 S1)">Kompenzációs térkép betöltése és aktiválása a /sys/heightmap.csv fileból (G29 S1)</string>
+		<string t="Clear the automatic mesh-based compensation parameters (G29 S2)">A kompenzációs térkép adatainak törlése (G29 S2)</string>
+		<string t="Last modified">Utoljára módosítva</string>
+		<string t="Firmware Name:">Szoftver név:</string>
+		<string t="Firmware Electronics:">Vezérlő típusa:</string>
+
+		<!-- New in DWC 1.15a -->
+		<string t="Please enter a name for the new scan:">Kérem adjon meg egy új nevet a beolvasáshoz:</string>
+
+		<!-- New in DWC 1.15b -->
+		<string t="The specified filename is invalid. It may not contain quotes, colons or (back)slashes.">A megadott file név érvénytelen. Nem tartalmazhat idézőjelet, kettőspontot vagy visszaperjelet.</string>
+		<string t="The filename for a new scan must not be empty!">A filenév nem lehet üres!</string>
+		<string t="Connect to your Duet to display scanned files">Kapcsolódás a Duet-hez a beolvasott fileok megjelenítéséhet</string>
+		<string t="View this heightmap">A kompenzációs térkép mutatása</string>
+		<string t="Please wait while a scan is being made. This may take a while...">Kérem váron amíg a beolvasás tart. Igénybe vehet egy kis időt...</string>
+		<string t="Scanning...">Beolvasás...</string>
+		<string t="Scan complete">Beolvasás kész</string>
+		<string t="Your 3D scan is now complete! You may download it from the file list next.">A 3D beolvasás kész! A következő listáról letöltheti.</string>
+		<string t="No scans found">Nem találhatóak beolvasások</string>
+		<string t="Start new 3D scan">Új 3D beolvasás kezdése</string>
+		<string t="Calibrate">Kalibrálás</string>
+		<string t="Start Scan">Beolvasás kezdése</string>
+		<string t="Shutdown Scanner">Beolvasó kikapcsolása</string>
+		<string t="Date Created">Létrehozás dátuma</string>
+		<string t="Scans Directory">Beolvasások mappája</string>
+		<string t="Show Sliders for">Csúszkák mutatása</string>
+		<string t="Notifications">Értesítések</string>
+		<string t="Please wait while the following files are being uploaded:">Kérem váron amíg az alábbi fileok feltöltődnek:</string>
+		<string t="Options">Beállítások</string>
+		<string t="Theme:">Téma:</string>
+		<string t="None">Semmi</string>
+		<string t="Dark">Sötét</string>
+		<string t="Embed Webcam Stream">Beágyazott webkamera nézet</string>
+		<string t="Enable this option if you need to embed a page using an iframe to display a webcam stream">Engedélyezze az alábbi beállítást ha iframe beágyazott oldalt használ a webkamera kép megjelenítéséhez</string>
+		<string t="E0 Switch (4)">E0 kapcsoló (4)</string>
+		<string t="Digital Switch (5)">Digitális kapcsoló (5)</string>
+		<string t="E1 Switch (6)">E1-Kapcsoló</string>
+		<string t="Alternatív (7)"></string>
+
 		<!-- Added by Nhadrian -->
 		<string t="G-Code">G-Kód</string>
 		<string t="Z-Probe">Z-szenzor</string>
@@ -2544,6 +2658,12 @@
 		<string t="Tools">Szerszámok</string>
 		<string t="Tool {0}">Szerszám {0}</string>
 		<string t="tuning">finomhangolás</string>
+		<string t="Z Distance per Babystep:">Z korrekció értéke lépésenként:</string>
+
+		<!-- New in DWC 1.15c -->
+		<string t="Heightmap Colors">Magassági térkép színek</string>
+		<string t="Terrain (Default)">Kék-piros (Alapértelmezett)</string>
+		<string t="Heat">Zöld-Piros</string>
 	</hu>
 	<ch name="中文">
 		<!-- JavaScript Strings -->

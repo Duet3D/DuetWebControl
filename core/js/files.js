@@ -1313,14 +1313,6 @@ $("body").on("click", ".btn-download-file", function(e) {
 	var filename = $(this).parents("tr").data("file");
 	var filepath = getFilePath() + "/" + filename;
 
-	// DuetWiFiServer isn't multi-threaded yet. Suspend status updates by disconnecting,
-	// so the user has to reconnect when the download has finished
-	if (boardType.indexOf("duetwifi") == 0)
-	{
-		showMessage("info", T("Connection suspended"), T("Please click on the Connect button when the download has finished."), 0, false)
-		disconnect(false);
-	}
-
 	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
 	var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(filepath) + '" download="' + filename + '"></a>');
 	elem.appendTo("body");
