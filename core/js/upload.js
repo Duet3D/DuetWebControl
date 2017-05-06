@@ -83,12 +83,6 @@ function startUpload(type, files, fromCallback) {
 		return;
 	}
 
-	// Don't allow DuetWebControl*.zip to be uploaded on DuetWiFi
-	if (boardType.indexOf("duetwifi") == 0 && type == "generic" && files.length == 1 && files[0].name.toLowerCase().match("^duetwebcontrol.*\\.zip") != null) {
-		showMessage("warning", T("Error"), T("You cannot upload web interface files as a ZIP file on a Duet WiFi!"));
-		return;
-	}
-
 	// Unzip files if necessary
 	if (type == "macro" || type == "generic") {
 		var containsZip = false;
@@ -196,7 +190,7 @@ function uploadNextFile() {
 			// Skip files that contain invalid characters
 			skipFile = true;
 			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
-		} else if (!boardType.indexOf("duetwifi") == 0) {
+		} else if (boardType.indexOf("duetwifi") != 0) {
 			var lcName = uploadFileName.toLowerCase();
 
 			// Skip DuetWebControl*.bin on wired Duets

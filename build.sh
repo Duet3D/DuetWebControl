@@ -2,8 +2,9 @@
 # Script to compress and build additional spiffs file system for DWC
 #
 # This script requires the following tools:
-# - mkspiffs from https://github.com/igrr/mkspiffs/releases
+# - mkspiffs from https://github.com/igrr/mkspiffs/releases (will be removed in v1.16)
 # - yui-compressor from https://yui.github.io/yuicompressor
+# - UglifyJS from https://github.com/mishoo/UglifyJS
 # Make sure both tools are accessible via your PATH environment variable!
 
 # Core directory must contain reprap.htm
@@ -67,11 +68,18 @@ gzip -c ./build/css/slate.css > ./build/css/slate.css.gz
 rm ./build/css/slate.css
 
 # Concatenate JS files. They could be minified as well, but that would make debugging rather tricky
-echo "Concatenating JS files"
+echo "Minifying and concatenating JS files"
 mkdir ./build/js
+rm -f ./build/js/dwc.js
 JS_FILES=$(grep -e "\.js" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//' | tr '\n' ' ')
 for FILE in $JS_FILES; do
-	cat $FILE >> ./build/js/dwc.js
+	if [[ $FILE == "core/js/3rd-party/"* ]]; then
+		echo "- Minifying $FILE..."
+		cat $FILE | uglifyjs -c -m --keep-fnames >> ./build/js/dwc.js
+	else
+		echo "- Appending $FILE..."
+		cat $FILE >> ./build/js/dwc.js
+	fi
 done
 
 # Compress minified JS file
@@ -90,6 +98,7 @@ gzip -c ./core/fonts/glyphicons-halflings-regular.woff2 > ./build/fonts/glyphico
 gzip -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.gz
 
 # Create SPIFFS image for DuetWiFi
+# NOTE: THIS IS NOW OBSOLETE AND WILL BE REMOVED FROM THE NEXT VERSION
 echo "Creating SPIFFS image for Duet WiFi"
 mkspiffs -c ./build -b 8192 -p 256 -s 3125248 ./DuetWebControl-$VERSION.bin
 

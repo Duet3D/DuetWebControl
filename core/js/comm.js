@@ -1007,7 +1007,6 @@ function getConfigResponse() {
 			configResponse = response;
 
 			$("#firmware_name").text(response.firmwareName);
-			$("#panel_tool_changes").toggleClass("hidden", response.firmwareName.indexOf("ch fork") == -1);
 
 			if (response.hasOwnProperty("firmwareElectronics")) {
 				$("#tr_firmware_electronics").removeClass("hidden");

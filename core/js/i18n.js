@@ -53,7 +53,7 @@ function translatePage() {
 		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
 		if (root != null) {
 			// Translate HTML attributes
-			translateEntries(root, $("p, span, th, td, strong, dt, button"), "textContent");
+			translateEntries(root, $("p, span, th, td, strong, dt, button, li.dropdown-header"), "textContent");
 			translateEntries(root, $("h1, h4, label, a, #main_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
 			translateEntries(root, $("input[type='text']"), "placeholder");
 			translateEntries(root, $("a, abbr, button, label, li, #chart_temp, input, td"), "title");
@@ -82,7 +82,7 @@ function translateEntries(root, entries, key) {
 			translateEntry(root, this, key);
 			// Otherwise we need to check for non-empty text nodes
 		} else {
-			for(var i=0; i<this.childNodes.length; i++) {
+			for(var i = 0; i < this.childNodes.length; i++) {
 				var val = this.childNodes[i][key];
 				if (this.childNodes[i].nodeType == 3 && val != undefined && this.childNodes[i].childNodes.length == 0 && val.trim().length > 0) {
 					translateEntry(root, this.childNodes[i], key);
