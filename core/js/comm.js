@@ -900,7 +900,7 @@ function updateStatus() {
 
 					var duration = 0;
 					if (uploadDWCFile != undefined) { duration += settings.dwcReconnectDelay; }
-					if (uploadDWSFile != undefined) { duration += settings.dwcReconnectDelay; }
+					if (uploadDWSFile != undefined) { duration += settings.dwsReconnectDelay; }
 					if (uploadFirmwareFile != undefined) { duration += settings.updateReconnectDelay; }
 					showUpdateMessage(3, duration);
 

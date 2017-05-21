@@ -564,8 +564,9 @@ function generateIndicators(meshGeometry) {
 
 		// FIXME: Implement this for delta geometries as well
 		if (meshGeometry.type != "RingGeometry") {
-			// Get the true Z probe point coordinate or NaN if there is no close point
-			trueProbePoint.z = getNearestZOnGrid(probePoints, trueProbePoint.x, trueProbePoint.y, pointTolerance);
+			// Calculate the actual height from the model.
+			// Since we're using double precision this should be accurate enough
+			trueProbePoint.z = z / scaleZ;
 		}
 
 		// If we have a close point, create a new indicator

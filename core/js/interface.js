@@ -74,6 +74,15 @@ $(document).ready(function() {
 
 	loadSettings();
 	loadFileCache();
+
+	// Check if this browser is supported and display a message if it is not
+	var userAgent = navigator.userAgent.toLowerCase();
+	var browserSupported = true;
+	browserSupported &= (String.prototype.startsWith != undefined);
+	browserSupported &= (userAgent.indexOf("webkit") != -1 || userAgent.indexOf("gecko") != -1);
+	if (!browserSupported) {
+		showMessage("warning", T("Unsupported browser"), "<strong>" + T("Warning") + ":</strong> " + T("Your browser is not officially supported. To achieve the best experience it is recommended to use either Mozilla Firefox, Google Chrome or Opera."), 0, true);
+	}
 });
 
 function pageLoadComplete() {
@@ -666,7 +675,7 @@ $("#input_temp_chamber").keydown(function(e) {
 
 $("input[id^='input_temp_h']").keydown(function(e) {
 	var enterKeyPressed = (e.which == 13);
-	enterKeyPressed |= (e.which == 9 && windowXsSm()); // need this for Android
+	enterKeyPressed |= (e.which == 9 && windowIsXsSm()); // need this for Android
 	if (isConnected && enterKeyPressed) {
 		var activeOrStandby = ($(this).prop("id").match("active$")) ? "S" : "R";
 		var heater = parseInt($(this).prop("id").match("_h(.)_")[1]);
