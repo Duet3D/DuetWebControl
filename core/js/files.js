@@ -1318,6 +1318,8 @@ $("body").on("click", ".btn-download-file", function(e) {
 	elem.appendTo("body");
 	elem[0].click();
 	elem.remove();
+
+	e.preventDefault();
 });
 
 function editFile(file) {

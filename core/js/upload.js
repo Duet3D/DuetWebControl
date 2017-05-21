@@ -12,7 +12,7 @@ var isUploading = false;					// Is a file upload in progress?
 var uploadType, uploadFiles, uploadRows, uploadedFileCount;
 var uploadTotalBytes, uploadedTotalBytes;
 var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
-var uploadedDWC, uploadIncludedConfig, uploadFirmwareFile, uploadDWCFile, uploadDWSFile;
+var uploadedDWC, uploadIncludedConfig, uploadFirmwareFile, uploadDWCFile, uploadDWSFile, uploadDWSSFile;
 var uploadHadError, uploadFilesSkipped;
 
 var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .bin extension
@@ -74,7 +74,7 @@ function startUpload(type, files, fromCallback) {
 		uploadedDWC = false;
 	}
 	uploadIncludedConfig = false;
-	uploadFirmwareFile = uploadDWCFile = uploadDWSFile = undefined;
+	uploadFirmwareFile = uploadDWCFile = uploadDWSFile = uploadDWSSFile = undefined;
 	uploadFilesSkipped = uploadHadError = false;
 
 	// Safety check for Upload and Print
@@ -152,7 +152,9 @@ function startUpload(type, files, fromCallback) {
 
 			// DuetWiFi-specific files can be used only on a Duet WiFi
 			if (boardType.indexOf("duetwifi") == 0) {
-				if (this.name.toUpperCase().match("^DUETWIFISERVER.*\.BIN") != null) {
+				if (this.name.toUpperCase().match("^DUETWIFISOCKETSERVER.*\.BIN") != null) {
+					uploadDWSSFile = this.name;
+				} else if (this.name.toUpperCase().match("^DUETWIFISERVER.*\.BIN") != null) {
 					uploadDWSFile = this.name;
 				} else if (this.name.toUpperCase().match("^DUETWEBCONTROL.*\.BIN") != null) {
 					uploadDWCFile = this.name;
@@ -198,8 +200,8 @@ function uploadNextFile() {
 				skipFile = true;
 			}
 
-			// Skip DuetWiFiServer*.bin on wired Duets
-			if (lcName.match("^duetwifiserver.*\\.bin") != null) {
+			// Skip DuetWiFiServer*.bin and DuetWiFiSocketServer*.bin on wired Duets
+			if (lcName.match("^duetwifiserver.*\\.bin") != null || lcName.match("^duetwifisocketserver.*\\.bin") != null) {
 				skipFile = true;
 			}
 		}
@@ -372,10 +374,10 @@ function fileUploadSkipped() {
 
 function cancelUpload() {
 	isUploading = uploadFilesSkipped = false;
-	//finishCurrentUpload(false);	// this is called by the AJAX error handler
+	finishCurrentUpload(false);
+	uploadRequest.abort();
 	finishUpload(false);
 	$("#modal_upload h4").text(T("Upload Cancelled!"));
-	uploadRequest.abort();
 	startUpdates();
 }
 
@@ -442,16 +444,16 @@ function uploadHasFinished(success) {
 		// Ask for software reset if it's safe to do
 		else if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
 			// Test for firmware update before we test for a new config file, because a firmware update includes a reset
-			if (uploadFirmwareFile != undefined && uploadDWSFile == undefined && uploadDWCFile == undefined) {
+			if (uploadFirmwareFile != undefined && uploadDWSFile == undefined && uploadDWSSFile == undefined && uploadDWCFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Firmware Update?"), T("You have just uploaded a firmware file. Would you like to update your Duet now?"), startFirmwareUpdate);
-			} else if (uploadDWSFile != undefined && uploadFirmwareFile == undefined && uploadDWCFile == undefined) {
+			} else if ((uploadDWSFile != undefined || uploadDWSSFile != undefined) && uploadFirmwareFile == undefined && uploadDWCFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform WiFi Server Update?"), T("You have just uploaded a Duet WiFi server firmware file. Would you like to install it now?"), startDWSUpdate);
-			} else if (uploadDWCFile != undefined && uploadFirmwareFile == undefined && uploadDWSFile == undefined) {
+			} else if (uploadDWCFile != undefined && uploadFirmwareFile == undefined && uploadDWSFile == undefined && uploadDWSSFile == undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Duet Web Control Update?"), T("You have just uploaded a Duet Web Control package. Would you like to install it now?"), startDWCUpdate);
-			} else if (uploadFirmwareFile != undefined || uploadDWSFile != undefined || uploadDWCFile != undefined) {
+			} else if (uploadFirmwareFile != undefined || uploadDWSFile != undefined || uploadDWSSFile != undefined || uploadDWCFile != undefined) {
 				$("#modal_upload").modal("hide");
 				showConfirmationDialog(T("Perform Firmware Update?"), T("You have just uploaded multiple firmware files. Would you like to install them now?"), startFirmwareUpdates);
 			} else if (uploadIncludedConfig) {
@@ -471,7 +473,10 @@ function startFirmwareUpdates() {
 		fwFile = "0:/sys/" + uploadFirmwareFile;
 		sParams.push("0");
 	}
-	if (uploadDWSFile != undefined) {
+	if (uploadDWSSFile != undefined) {
+		dwsFile = "0:/sys/" + uploadDWSSFile;
+		sParams.push("1");
+	} else if (uploadDWSFile != undefined) {
 		dwsFile = "0:/sys/" + uploadDWSFile;
 		sParams.push("1");
 	}
@@ -514,12 +519,20 @@ function startDWSUpdate() {
 	// Stop status updates so the user doesn't see any potential error messages
 	stopUpdates();
 
-	// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
-	moveFile("0:/sys/" + uploadDWSFile, "0:/sys/DuetWiFiServer.bin", function() {
-		// Rename succeeded and flashing can be performed now
-		sendGCode("M997 S1");
-		startUpdates();
-	}, startUpdates);
+	// We prefer DWSS over DWS. Move it into place and start the update
+	if (uploadDWSSFile != undefined) {
+		moveFile("0:/sys/" + uploadDWSSFile, "0:/sys/DuetWiFiServer.bin", function() {
+			// Rename succeeded and flashing can be performed now
+			sendGCode("M997 S1");
+			startUpdates();
+		}, startUpdates);
+	} else {
+		moveFile("0:/sys/" + uploadDWSFile, "0:/sys/DuetWiFiServer.bin", function() {
+			// Rename succeeded and flashing can be performed now
+			sendGCode("M997 S1");
+			startUpdates();
+		}, startUpdates);
+	}
 }
 
 function startDWCUpdate() {
