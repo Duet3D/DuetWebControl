@@ -400,8 +400,20 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 	var width = (xMax - xMin);
 	var height = (yMax - yMin);
 	for(var i = planeGeometry.vertices.length - 1; i >= 0; i--) {
-		var x = (planeGeometry.vertices[i].x + 0.5) * width + xMin;
-		var y = (planeGeometry.vertices[i].y + 0.5) * height + yMin;
+		if (planeGeometry.vertices[i].x < 0) {
+			var x = xMax - (Math.abs(planeGeometry.vertices[i].x) / planeWidth + 0.5) * width;
+		} else if (planeGeometry.vertices[i].x == 0) {
+			var x = 0.5 * xMax;
+		} else if (planeGeometry.vertices[i].x > 0) {
+			var x = (planeGeometry.vertices[i].x / planeWidth + 0.5) * width + xMin;
+		}
+		if (planeGeometry.vertices[i].y < 0) {
+			var y = yMax - (Math.abs(planeGeometry.vertices[i].y) / planeHeight + 0.5) * height;
+		} else if (planeGeometry.vertices[i].y == 0) {
+			var y = 0.5 * yMax;
+		} else if (planeGeometry.vertices[i].y > 0) {
+			var y = (planeGeometry.vertices[i].y / planeHeight + 0.5) * height + yMin;
+		}
 		var z = getNearestZOnGrid(probePoints, x, y) * scaleZ;
 
 		planeGeometry.vertices[i].z = z;
