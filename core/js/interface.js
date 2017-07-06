@@ -1174,8 +1174,10 @@ function setHeaterState(heater, status, currentTool) {
 			} else {
 				$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
 			}
+			$("#table_heaters tr").eq(heater).removeClass("hidden");
 		} else {
 			$("#table_heaters tr > th:first-child").eq(heater).find(".caret").addClass("hidden");
+			$("#table_heaters tr").eq(heater).addClass("hidden");
 		}
 		$("#table_heaters tr > th:first-child").eq(heater).children("span").html(statusText);
 	}
