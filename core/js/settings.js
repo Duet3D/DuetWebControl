@@ -162,6 +162,11 @@ function applySettings() {
 		increaseVal *= 10;
 	});
 
+	decreaseVal = (settings.halfZMovements) ? "-0.05" : "-0.1";
+	increaseVal = (settings.halfZMovements) ? "0.05" : "0.1";
+	$("#btn_msgbox_dec_z").data("z", decreaseVal).contents().last().replaceWith(" " + decreaseVal);
+	$("#btn_msgbox_inc_z").data("z", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
+
 	// Babystepping
 	$("#btn_baby_down > span.content").text(T("{0} mm", (-settings.babysteppingZ)));
 	$("#btn_baby_up > span.content").text(T("{0} mm ", "+" + settings.babysteppingZ));
@@ -361,6 +366,11 @@ $("#btn_reset_settings").click(function(e) {
 
 		applySettings();
 		saveSettings();
+
+		localStorage.removeItem("extraSensorVisibility");
+		resetChartData();
+
+		localStorage.removeItem("cachedFileInfo");
 	});
 	e.preventDefault();
 });
@@ -378,15 +388,6 @@ $("#frm_settings > ul > li a").on("shown.bs.tab", function(e) {
 	$.each(links, function() {
 		$(this).parent().addClass("active");
 	});
-});
-
-// Select full text on focus
-
-$("input[type='number']").focus(function() {
-	var input = $(this);
-	setTimeout(function() {
-		input.select();
-	}, 10);
 });
 
 // User Interface
@@ -472,7 +473,7 @@ $("#page_listitems input").on("input", function() {
 
 $("#page_listitems input").keydown(function(e) {
 	if (e.which == 13) {
-		var button = $(this).parents("div:not(.input-group):eq(0)").find("button");
+		var button = $(this).closest("div:not(.input-group):eq(0)").find("button");
 		if (!button.hasClass("disabled")) {
 			button.click();
 		}
@@ -492,7 +493,7 @@ $("#btn_fw_diagnostics").click(function() {
 // Tools
 
 $("#btn_add_tool").click(function(e) {
-	var gcode = "M563 P" + $("#input_tool_number").val();
+	var gcode = "M563 P" + $("#input_tool_number").val() + " S\"" + $("#input_tool_name").val() + "\"";
 
 	var drives = $("input[name='tool_drives']:checked");
 	if (drives.length > 0) {
@@ -511,25 +512,6 @@ $("#btn_add_tool").click(function(e) {
 	sendGCode(gcode);
 	extendedStatusCounter = settings.extendedStatusInterval;
 
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-select-tool", function(e) {
-	var tool = $(this).parents("div.panel-body").data("tool");
-	if (lastStatusResponse != undefined && lastStatusResponse.currentTool == tool) {
-		changeTool(-1);
-	} else {
-		changeTool(tool);
-	}
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-remove-tool", function(e) {
-	var tool = $(this).parents("div.panel-body").data("tool");
-	showConfirmationDialog(T("Delete Tool"), T("Are you sure you wish to remove tool {0}?", tool), function() {
-		sendGCode("M563 P" + tool + " D-1 H-1");
-		extendedStatusCounter = settings.extendedStatusInterval;
-	});
 	e.preventDefault();
 });
 

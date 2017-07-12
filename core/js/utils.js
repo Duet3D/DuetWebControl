@@ -6,6 +6,8 @@
  * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+var heatersInUse;
+
 
 /* Text formatting */
 
@@ -117,6 +119,22 @@ function strToTime(str) {
 	return undefined;
 }
 
+function getHeaterStateText(state) {
+	switch (state) {
+		case 0:
+			return T("off");
+		case 1:
+			return T("standby");
+		case 2:
+			return T("active");
+		case 3:
+			return T("fault");
+		case 4:
+			return T("tuning");
+	}
+	return T("n/a");
+}
+
 
 /* CSV Parsing */
 
@@ -163,14 +181,69 @@ function getCSVValue(csvArray, key) {
 }
 
 
+/* Heaters */
+
+function setHeatersInUse() {
+	heatersInUse = [];
+	for(var heater = 0; heater < maxHeaters; heater++) {
+		var heaterAssigned = (heater == bedHeater);
+		heaterAssigned |= (heater == chamberHeater);
+		heaterAssigned |= (getToolsByHeater(heater).length > 0);
+		heatersInUse.push(heaterAssigned);
+	}
+}
+
+
 /* Tool Mapping */
 
-function setToolMapping(mapping) {
-	// Don't compare raw objects here as this would always evaluate as false
-	if (JSON.stringify(toolMapping) != JSON.stringify(mapping)) {
-		toolMapping = mapping;
+var initialTools = "";
+$("#table_tools > tbody > tr[data-tool]").each(function() {
+	initialTools += this.outerHTML;
+});
 
-		/** Machine Status **/
+function setToolMapping(mapping) {
+	var mappingHasChanged = (toolMapping == undefined);
+	if (!mappingHasChanged) {
+		// Add missing fields in case we're talking with an older firmware version
+		for(var i = 0; i < mapping.length; i++) {
+			if (!mapping[i].hasOwnProperty("number")) {
+				// This is rather ugly and should be never used
+				mapping[i].number = i + 1;
+			}
+
+			if (!mapping[i].hasOwnProperty("name")) {
+				mapping[i].name = "";
+			}
+		}
+
+		// Compare the old tool mapping with the new one
+		if (mapping.length != toolMapping.length) {
+			mappingHasChanged = true;
+		} else {
+			for(var i = 0; i < mapping.length; i++) {
+				// Stop immediately if anything significant has changed
+				if (mapping[i].number != toolMapping[i].number ||
+					mapping[i].name != toolMapping[i].name ||
+					mapping[i].hasOwnProperty("filament") != toolMapping[i].hasOwnProperty("filament") ||
+					mapping[i].heaters.toString() != toolMapping[i].heaters.toString() ||
+					mapping[i].drives.toString() != toolMapping[i].drives.toString()
+				) {
+					mappingHasChanged = true;
+					break;
+				}
+
+				// If only the filament has changed, update it
+				if (mapping[i].hasOwnProperty("filament") && mapping[i].filament != toolMapping[i].filament) {
+					setToolFilament(i, mapping[i].filament);
+				}
+			}
+		}
+	}
+
+	// See if anything significant has changed
+	if (mappingHasChanged) {
+		toolMapping = mapping;
+		setHeatersInUse();
 
 		// TODO: The web interface has no idea which drive is assigned to which axis/extruder,
 		// so the following cannot be fully implemented yet.
@@ -204,53 +277,33 @@ function setToolMapping(mapping) {
 			$("#th_x").text("X");
 		}*/
 
-		/** Settings page **/
-
-		// Clean up current tools
-		$("#page_tools").children(":not(:first-child)").remove();
-
-		// Create new panels for each tool
-		if (toolMapping != undefined) {
-			for(var i = 0; i < toolMapping.length; i++) {
-				var number = toolMapping[i].hasOwnProperty("number") ? toolMapping[i].number : (i + 1);
-
-				var heaters;
-				if (toolMapping[i].heaters.length == 0) {
-					heaters = T("none");
-				} else {
-					heaters = toolMapping[i].heaters.reduce(function(a, b) { return a + ", " + b; });
-				}
-
-				var drives;
-				if (toolMapping[i].drives.length == 0) {
-					drives = T("none");
-				} else {
-					drives = toolMapping[i].drives.reduce(function(a, b) { return a + ", " + b; });
-				}
-
-				var div =	'<div class="col-xs-6 col-sm-6 col-md-3 col-lg-3"><div class="panel panel-default">';
-				div +=		'<div class="panel-heading"><span>' + T("Tool {0}", number) + '</span></div>';
-				div +=		'<div data-tool="' + number + '" class="panel-body">';
-				div +=		'<dl><dt>' + T("Heaters:") + '</dt><dd>' + heaters + '</dd>';
-				div +=		'<dt>' + T("Drives:") + '</dt><dd>' + drives + '</dd>';
-				div +=		'</dl><div class="row"><div class="col-md-12 text-center">';
-				if (lastStatusResponse != undefined && lastStatusResponse.currentTool == number) {
-					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Deselect this tool") + '">';
-					div +=		'<span class="glyphicon glyphicon-remove"></span> <span>' + T("Deselect") + '</span></button>';
-				} else {
-					div +=		'<button class="btn btn-success btn-select-tool" title="' + T("Select this tool") + '">';
-					div +=		'<span class="glyphicon glyphicon-pencil"></span> <span>' + T("Select") + '</span></button>';
-				}
-				div +=		' <button class="btn btn-danger btn-remove-tool" title="' + T("Remove this tool") + '">';
-				div +=		'<span class="glyphicon glyphicon-trash"></span> ' + T("Remove") + '</button>';
-				div +=		'</div></div></div></div></div>';
-				$("#page_tools").append(div);
-			}
-		}
-
-		// Keep the GUI updated
-		validateAddTool();
+		return true;
 	}
+	return false;
+}
+
+function setToolFilament(tool, filament) {
+	toolMapping[tool].filament = filament;
+
+	var label = "T" + toolMapping[tool].number + ((filament == "") ? "" : (" - " + filament));
+	$("#table_tools tr[data-tool='" + toolMapping[tool].number + "'] > th:first-child > span.text-muted").text(label);
+
+	var filamentLabel = (filament == "") ? T("none") : filament;
+	$("#page_tools div[data-tool='" + toolMapping[tool].number + "'] dd.filament").text(filamentLabel);
+}
+
+function updateFixedToolTemps(rows) {
+	settings.defaultActiveTemps.forEach(function(temp) {
+		rows.find(".ul-active-temp").append('<li><a href="#" class="heater-temp" data-temp="' + temp + '">' + T("{0} °C", temp) + '</a></li>');
+		rows.find(".btn-active-temp").removeClass("disabled");
+	});
+
+	settings.defaultStandbyTemps.forEach(function(temp) {
+		rows.find(".ul-standby-temp").append('<li><a href="#" class="heater-temp" data-temp="' + temp + '">' + T("{0} °C", temp) + '</a></li>');
+		rows.find(".btn-standby-temp").removeClass("disabled");
+	});
+
+	rows.find("input").prop("disabled", !isConnected);
 }
 
 function getTool(number) {
@@ -321,13 +374,22 @@ function setCurrentTool(toolNumber) {
 			$("#div_extruders > div > label:not(.hidden):first-child").click();
 		}
 	}
+
+	// Underline current tool
+	$("#table_tools > tbody > tr").each(function() {
+		$(this).find("th:first-child > a > span:first-child").css("text-decoration", ($(this).data("tool") == toolNumber) ? "underline" : "");
+	});
+
+	// Update tools on the Settings page
+	$("#page_tools button.btn-select-tool").prop("title", T("Select this tool")).html('<span class="glyphicon glyphicon-pencil"></span> <span>' + T("Select") + '</span>');
+	$("#page_tools div[data-tool='" + toolNumber + "'] button.btn-select-tool").prop("title", T("Deselect this tool")).html('<span class="glyphicon glyphicon-remove"></span> <span>' + T("Deselect") + '</span>');
 }
 
 
 /* Control state management */
 
 function enableControls() {
-	$("nav input, #div_heaters input, #main_content input").prop("disabled", false);			// Generic inputs
+	$("nav input, #div_tools_heaters input, #main_content input").prop("disabled", false);		// Generic inputs
 	$("#page_tools label").removeClass("disabled");												// and on Settings page
 	$(".machine-button").removeClass("disabled");
 
@@ -353,7 +415,7 @@ function enableControls() {
 }
 
 function disableControls() {
-	$("nav input, #div_heaters input, #main_content input").prop("disabled", true);				// Generic inputs
+	$("nav input, #div_tools_heaters input, #main_content input").prop("disabled", true);		// Generic inputs
 	$("#page_general input, #page_ui input, #page_listitems input").prop("disabled", false);	// ... except ...
 	$("#page_tools label").addClass("disabled");												// ... for Settings
 	$(".machine-button").addClass("disabled");
@@ -382,7 +444,6 @@ function disableControls() {
 
 /* Window size queries */
 
-
 function windowIsXsSm() {
 	return window.matchMedia('(max-width: 991px)').matches;
 }
@@ -393,6 +454,22 @@ function windowIsMdLg() {
 
 
 /* Misc */
+
+function arraysEqual(a, b) {
+	if (a != undefined && b != undefined && a.length == b.length) {
+		for(var i = 0; i < a.length; i++) {
+			if (a[i].constructor === Array && b[i].constructor === Array) {
+				if (!arraysEqual(a[i], b[i])) {
+					return false;
+				}
+			} else if (a[i] != b[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return false;
+}
 
 function log(style, message) {
 	var entry =		'<div class="row alert-' + style + '">';

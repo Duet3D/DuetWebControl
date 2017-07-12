@@ -15,7 +15,7 @@ $(".modal").on("hidden.bs.modal", function() {
 });
 
 
-/* Confirmation dialog */
+/* Confirmation Dialog */
 
 function showConfirmationDialog(title, message, callback) {
 	$("#modal_confirmation h4").html('<span class="glyphicon glyphicon-question-sign"></span> ' + title);
@@ -26,7 +26,7 @@ function showConfirmationDialog(title, message, callback) {
 }
 
 
-/* Text input dialog */
+/* Text Input Dialog */
 
 function showTextInput(title, message, callback, text, emptyCallback) {
 	$("#modal_textinput h4").html(title);
@@ -50,7 +50,7 @@ $("#modal_textinput").on("shown.bs.modal", function() {
 });
 
 
-/* Host prompt */
+/* Host Prompt */
 
 function showHostPrompt() {
 	if (settings.hasOwnProperty("lastHost")) {
@@ -101,11 +101,61 @@ $("#modal_pass_input").on("shown.bs.modal", function() {
 });
 
 
-/* File edit dialog */
+/* Filament Change Dialog */
+
+var filamentChangeTool, changingFilament;
+
+function showFilamentDialog(tool, changeFilament) {
+	// make list of all available filaments
+	$("#div_filaments").children().remove();
+	$("#table_filaments > tbody > tr").each(function() {
+		var filament = $(this).data("filament");
+		var isLoaded = false;
+		for(var i = 0; i < toolMapping.length; i++) {
+			if (toolMapping[i].hasOwnProperty("filament") && toolMapping[i].filament == filament) {
+				isLoaded = true;
+				break;
+			}
+		}
+
+		if (!isLoaded) {
+			$("#div_filaments").append('<a href="#" class="a-load-filament list-group-item" data-filament="' + filament + '"><span class="glyphicon glyphicon-cd"></span> ' + filament + '</a>');
+		}
+	});
+
+	// show notification or selection dialog
+	if ($("#div_filaments").children().length == 0) {
+		showMessage("warning", T("No Filaments"), T("There are no other filaments available to choose. Please go to the Filaments page and define more."));
+	} else {
+		filamentChangeTool = tool;
+		changingFilament = changeFilament;
+		$("#modal_change_filament").modal("show");
+	}
+}
+
+$("body").on("click", ".a-load-filament", function(e) {
+	$("#modal_change_filament").modal("hide");
+
+	var gcode = "";
+	if (lastStatusResponse != undefined && lastStatusResponse.currentTool != filamentChangeTool) {
+		gcode = "T" + filamentChangeTool + "\n";
+	}
+	if (changingFilament) {
+		gcode += "M702\n";
+	}
+	gcode += "M701 S\"" + $(this).data("filament") + "\"";
+	sendGCode(gcode);
+
+	e.preventDefault();
+});
+
+
+/* File Edit Dialog */
 
 function showEditDialog(title, content, callback) {
 	$("#modal_edit .modal-title").text(T("Editing {0}", title));
-	$("#modal_edit textarea").val(content);
+	var edit = $("#modal_edit textarea").val(content).get(0);
+	edit.selectionStart = edit.selectionEnd = 0;
 	$("#modal_edit").modal("show");
 	$("#btn_save_file").off("click").click(function() {
 		$("#modal_edit").modal("hide");
@@ -142,7 +192,8 @@ $(document).delegate("#modal_edit textarea", "keydown", function(e) {
 	}
 });
 
-/* Start scan dialog (proprietary) */
+
+/* Start Scan Dialog (proprietary) */
 
 $("#modal_start_scan input").keyup(function() {
 	$("#btn_start_scan_modal").toggleClass("disabled", $("#modal_start_scan input:invalid").length > 0);
@@ -199,7 +250,8 @@ $("#modal_start_scan").on("hidden.bs.modal", function() {
 	}
 });
 
-/* Scanner progress dialogs */
+
+/* Scanner Progress Dialogs */
 
 function updateScannerDialogs(scanResponse) {
 	var scanProgress = 100, postProcessingProgress = 100, uploadProgress = 100;
@@ -281,5 +333,87 @@ $("#btn_cancel_calibration").click(function() {
 		sendGCode("M753");
 		$(this).addClass("disabled");
 	}
+});
+
+
+/* Message Box Dialog */
+
+var messageBoxResponse = undefined;
+
+function updateMessageBox(response) {
+	var timeout = response.timeout;
+	response.timeout = 0;
+
+	var stringifiedResponse = JSON.stringify(response);
+	if (stringifiedResponse != messageBoxResponse)
+	{
+		messageBoxResponse = stringifiedResponse;
+		showMessageBox(response.msg, response.title, response.mode, timeout, response.showZ != 0);
+	}
+}
+
+function closeMessageBox() {
+	if (messageBoxResponse != undefined) {
+		if ($("#modal_messagebox").hasClass("in")) {
+			$("#modal_messagebox").modal("hide");
+		}
+		messageBoxResponse = undefined;
+	}
+}
+
+
+var messageBoxTimer = undefined;
+
+function showMessageBox(message, title, mode, timeout, showZ) {
+	// Display message, title and optionally show Z controls
+	$("#h3_messagebox").text(message);
+	$("#h4_messagebox_title").text(title);
+	$("#modal_messagebox div.modal-header").toggleClass("hidden", title == "");
+	$("#div_z_controls").toggleClass("hidden", !showZ);
+
+	// Toggle button visibility
+	$("#modal_messagebox div.modal-footer").toggleClass("hidden", mode == 0);
+	$("#modal_messagebox [data-dismiss]").toggleClass("hidden", mode != 1);
+	$("#btn_ack_messagebox").toggleClass("hidden", mode == 0 || mode == 1);
+	$("#btn_cancel_messagebox").toggleClass("hidden", mode != 3);
+
+	// Show message box
+	var backdropValue = (mode != 1) ? "static" : "true";
+	$("#modal_messagebox").modal({ backdrop: backdropValue });
+
+	var data = $("#modal_messagebox").data("bs.modal");
+	data.options.backdrop = backdropValue;
+	$("#modal_messagebox").data("bs.modal", data);
+
+	// Take care of the timeouts
+	if (messageBoxTimer != undefined) {
+		clearTimeout(messageBoxTimer);
+	}
+	if (timeout > 0) {
+		messageBoxTimer = setTimeout(function() {
+			messageBoxTimer = undefined;
+			$("#modal_messagebox").modal("hide");
+		}, timeout * 1000);
+	}
+}
+
+$("#btn_ack_messagebox").click(function() {
+	$("#modal_messagebox").modal("hide");
+	sendGCode("M292");
+});
+
+$("#btn_cancel_messagebox").click(function() {
+	$("#modal_messagebox").modal("hide");
+	sendGCode("M292 P1");
+});
+
+$('#modal_messagebox').on("hide.bs.modal", function() {
+	if (messageBoxTimer != undefined) {
+		clearTimeout(messageBoxTimer);
+		messageBoxTimer = undefined;
+	}
+
+	// FIXME: This is needed to ensure the backdrop always works as intended
+	$('#modal_messagebox').removeData();
 });
 

@@ -9,13 +9,20 @@
 
 var tempChart;
 var tempChartOptions = 	{
-	// This should hold maxHeater + 1 entries (+ 1 for the chamber heater)
-	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#00FFFF", "#ffff00", "#000000"],
+	// This array should hold maxHeaters + maxTempSensors + 1 (for the chamber heater) items
+	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#000000", "#E0E000",	// Heater colors
+			"#00DCDC",																					// Chamber color (deprecated)
+			"#AEAEAE", "#BC0000", "#00CB00", "#0000DC", "#FEABEF", "#A0A000"],							// Temp sensor colors
 	grid: {
 		borderWidth: 0
 	},
 	xaxis: {
 		show: false
+		/*labelWidth: 0,
+		labelHeight: 0,
+		tickSize: 30000,
+		tickFormatter: function() { return ""; },
+		reserveSpace: false*/
 	},
 	yaxis: {
 		min: 0,
@@ -70,45 +77,68 @@ var printChartOptions =	{
 };
 
 var refreshTempChart = false, refreshPrintChart = false;
-var recordedBedTemperatures, recordedChamberTemperatures, recordedHeadTemperatures, layerData;
+var recordedTemperatures, layerData;
 
 
 /* Temperature chart */
 
-function recordHeaterTemperatures(bedTemp, chamberTemp, headTemps) {
+function recordHeadTemperatures(bedTemp, chamberTemp, headTemps) {
 	var timeNow = (new Date()).getTime();
 
-	// Add bed temperature
-	if (heatedBed) {
-		recordedBedTemperatures.push([timeNow, bedTemp]);
-	} else {
-		recordedBedTemperatures = [];
-	}
-	if (recordedBedTemperatures.length > maxTemperatureSamples) {
-		recordedBedTemperatures.shift();
-	}
+	// Add temperatures for each configured head
+	// Also cut off the last one if there are too many temperature samples
+	for(var i = 0; i < maxHeaters + 1; i++) {
+		if (i > 0 && i < headTemps.length + 1) {
+			recordedTemperatures[i].push([timeNow, headTemps[i - 1]]);
+		} else {
+			recordedTemperatures[i].push([]);
+		}
 
-	// Add chamber temperature
-	if (chamber) {
-		recordedChamberTemperatures.push([timeNow, chamberTemp]);
-	} else {
-		recordedChamberTemperatures = [];
-	}
-	if (recordedChamberTemperatures.length > maxTemperatureSamples) {
-		recordedChamberTemperatures.shift();
-	}
-
-	// Add heater temperatures
-	for(var i = 0; i < headTemps.length; i++) {
-		recordedHeadTemperatures[i].push([timeNow, headTemps[i]]);
-		if (recordedHeadTemperatures[i].length > maxTemperatureSamples) {
-			recordedHeadTemperatures[i].shift();
+		if (recordedTemperatures[i].length > maxTemperatureSamples) {
+			recordedTemperatures[i].shift();
 		}
 	}
 
-	// Remove invalid data (in case the number of heads has changed)
-	for(var i = headTemps.length; i < maxHeaters; i++) {
-		recordedHeadTemperatures[i] = [];
+	// Set bed temperature (if any)
+	if (bedHeater != -1) {
+		recordedTemperatures[bedHeater][recordedTemperatures[bedHeater].length - 1] = [timeNow, bedTemp];
+	}
+
+	// Set chamber temperature (if any)
+	if (chamberHeater != -1) {
+		recordedTemperatures[chamberHeater][recordedTemperatures[chamberHeater].length - 1] = [timeNow, chamberTemp];
+	}
+}
+
+function recordCurrentTemperatures(temps) {
+	var timeNow = (new Date()).getTime();
+
+	// Add temperatures for each heater
+	// Also cut off the last one if there are too many temperature samples
+	for(var heater = 0; heater < maxHeaters; heater++) {
+		if (heater < temps.length && heatersInUse[heater]) {
+			recordedTemperatures[heater].push([timeNow, temps[heater]]);
+		} else {
+			recordedTemperatures[heater].push([]);
+		}
+
+		if (recordedTemperatures[heater].length > maxTemperatureSamples) {
+			recordedTemperatures[heater].shift();
+		}
+	}
+}
+
+function recordExtraTemperatures(temps) {
+	var timeNow = (new Date()).getTime();
+
+	// Add dashed series for each temperature sensor
+	for(var i = 0; i < temps.length; i++)
+	{
+		recordedTemperatures[maxHeaters + 1 + i].data.push([timeNow, temps[i].temp]);
+
+		if (recordedTemperatures[maxHeaters + 1 + i].data.length > maxTemperatureSamples) {
+			recordedTemperatures[maxHeaters + 1 + i].data.shift();
+		}
 	}
 }
 
@@ -119,18 +149,6 @@ function drawTemperatureChart() {
 		return;
 	}
 
-	// Prepare the data
-	var tempData = [];
-	tempData.push(recordedBedTemperatures);
-	for(var head = 0; head < maxHeaters - 1; head++) {
-		if (head < recordedHeadTemperatures.length) {
-			tempData.push(recordedHeadTemperatures[head]);
-		} else {
-			tempData.push([]);
-		}
-	}
-	tempData.push(recordedChamberTemperatures);
-
 	// Check if we need to recreate the chart
 	var recreateChart = false;
 	if (tempLimit != tempChartOptions.yaxis.max) {
@@ -140,14 +158,25 @@ function drawTemperatureChart() {
 
 	// Draw it
 	if (tempChart == undefined || recreateChart) {
-		tempChart = $.plot("#chart_temp", tempData, tempChartOptions);
+		tempChart = $.plot("#chart_temp", recordedTemperatures, tempChartOptions);
 	} else {
-		tempChart.setData(tempData);
+		tempChart.setData(recordedTemperatures);
 		tempChart.setupGrid();
 		tempChart.draw();
 	}
 
 	refreshTempChart = false;
+}
+
+function setExtraTemperatureVisibility(sensor, visible) {
+	// Update visibility
+	recordedTemperatures[maxHeaters + 1 + sensor].dashes.show = visible;
+	recordedTemperatures[maxHeaters + 1 + sensor].lines.show = visible;
+
+	// Save state in localStorage
+	var extraSensorVisibility = JSON.parse(localStorage.getItem("extraSensorVisibility"));
+	extraSensorVisibility[sensor] = visible;
+	localStorage.setItem("extraSensorVisibility", JSON.stringify(extraSensorVisibility));
 }
 
 
@@ -230,13 +259,19 @@ function drawPrintChart() {
 /* Common functions */
 
 function resizeCharts() {
-	var headsHeight = $("#table_heaters").height();
+	var contentHeight = $("#table_tools").height();
+	if (!$("#div_heaters").hasClass("hidden")) {
+		contentHeight = $("#table_heaters").height();
+	} else if (!$("#div_extra").hasClass("hidden")) {
+		contentHeight = $("#table_extra").height();
+	}
+
 	var statusHeight = 0;
 	$("#div_status table").each(function() {
 		statusHeight += $(this).outerHeight();
 	});
 
-	var max = (headsHeight > statusHeight) ? headsHeight : statusHeight;
+	var max = (contentHeight > statusHeight) ? contentHeight : statusHeight;
 	max -= tempChartPadding;
 
 	if (max > 0) {
@@ -256,13 +291,36 @@ $(".panel-chart").resize(function() {
 });
 
 function resetChartData() {
-	recordedBedTemperatures = [];
-	recordedChamberTemperatures = [];
-	recordedHeadTemperatures = [];
-	for(var i = 0; i < maxHeaters; i++) {
-		recordedHeadTemperatures.push([]);
+	// Make sure the visibility state can be saved in localStorage
+	var extraSensorVisibility = localStorage.getItem("extraSensorVisibility");
+	if (extraSensorVisibility == null) {
+		extraSensorVisibility = [];
+		for(var i = 0; i < maxTempSensors; i++) {
+			// Don't show any extra temperatures in the chart by default
+			extraSensorVisibility.push(false);
+		}
+		localStorage.setItem("extraSensorVisibility", JSON.stringify(extraSensorVisibility));
+	} else {
+		extraSensorVisibility = JSON.parse(extraSensorVisibility);
 	}
 
+	// Reset data of the temperature chart
+	recordedTemperatures = [];
+	for(var i = 0; i < maxHeaters + 1; i++) {
+		recordedTemperatures.push([]);
+	}
+
+	for(var i = 0; i < maxTempSensors; i++) {
+		recordedTemperatures.push({
+			dashes: { show: extraSensorVisibility[i] },
+			lines: { show: extraSensorVisibility[i] },
+			data: []
+		});
+
+		$("#table_extra tr input[type='checkbox']").eq(i).prop("checked", extraSensorVisibility[i]);
+	}
+
+	// Reset data of the layer chart
 	layerData = [];
 	maxLayerTime = 0;
 }

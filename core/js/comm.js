@@ -88,11 +88,13 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 /* Connect / Disconnect */
 
 $("body").on("click", ".btn-connect", function() {
-	if (!isConnected) {
-		// Attempt to connect with the last-known password first
-		connect(sessionPassword, true);
-	} else {
-		disconnect(true);
+	if (!$(this).hasClass("disabled")) {
+		if (!isConnected) {
+			// Attempt to connect with the last-known password first
+			connect(sessionPassword, true);
+		} else {
+			disconnect(true);
+		}
 	}
 });
 
@@ -164,6 +166,8 @@ function postConnect(response) {
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
 
 	getOemFeatures();
+	updateFilaments();
+
 	startUpdates();
 	if (currentPage == "settings") {
 		getConfigResponse();
@@ -202,7 +206,7 @@ function disconnect(sendDisconnect) {
 
 	disableControls();
 	validateAddTool();
-	setToolMapping(undefined);
+	setToolMapping([]);
 }
 
 
@@ -282,13 +286,6 @@ function updateStatus() {
 				setGeometry(status.geometry);
 			}
 
-			// Number of axes
-			if (status.hasOwnProperty("axes") && numAxes != status.axes)
-			{
-				numAxes = status.axes;
-				needGuiUpdate = true;
-			}
-
 			// Number of volumes
 			if (status.hasOwnProperty("volumes")) {
 				setVolumes(status.volumes);
@@ -346,14 +343,14 @@ function updateStatus() {
 
 			// Tool Mapping
 			if (status.hasOwnProperty("tools")) {
-				setToolMapping(status.tools);
+				needGuiUpdate |= setToolMapping(status.tools);
 			}
 
-			// CPU temperature
-			if (status.hasOwnProperty("mcutemp")) {
-				$(".cpu-temp").removeClass("hidden");
-				$("#td_cputemp").html(T("{0} °C", status.mcutemp.cur.toFixed(1)));
-				$("#td_cputemp").prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.mcutemp.min.toFixed(1), status.mcutemp.max.toFixed(1)));
+			// Input voltage
+			if (status.hasOwnProperty("vin")) {
+				$(".vin").removeClass("hidden");
+				$("#td_vin").html(T("{0} V", status.vin.cur.toFixed(1)));
+				$("#td_vin").prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.vin.min.toFixed(1), status.vin.max.toFixed(1)));
 			}
 
 			/*** Default status response ***/
@@ -414,6 +411,8 @@ function updateStatus() {
 					updateGCodeFiles();
 				} else if (currentPage == "control" || currentPage == "macros") {
 					updateMacroFiles();
+				} else if (currentPage == "filaments") {
+					updateFilaments();
 				} else if (currentPage == "settings" && $("#page_sysedit").is(".active")) {
 					updateSysFiles();
 				}
@@ -422,13 +421,16 @@ function updateStatus() {
 			}
 
 			// Set homed axes
-			setAxesHomed(status.coords.axesHomed);
+			if (lastStatusResponse == undefined || !arraysEqual(status.coords.axesHomed, lastStatusResponse.coords.axesHomed)) {
+				setAxesHomed(status.coords.axesHomed);
+			}
 
 			// Update extruder drives
 			if (status.coords.extr.length != numExtruderDrives) {
 				numExtruderDrives = status.coords.extr.length;
 				needGuiUpdate = true;
 			}
+
 			for(var i = 1; i <= numExtruderDrives; i++) {
 				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
 			}
@@ -438,20 +440,29 @@ function updateStatus() {
 				$("#td_extr_total").html(T("n/a"));
 			}
 
-			// XYZ coordinates
+			// XYZ+UVW coordinates
 			if (geometry == "delta" && !status.coords.axesHomed[0]) {
 				$("#td_x, #td_y, #td_z").html(T("n/a"));
+				$("#btn_msgbox_z").text("Z = " + T("n/a"));
 			} else {
 				$("#td_x").text(status.coords.xyz[0].toFixed(1));
 				$("#td_y").text(status.coords.xyz[1].toFixed(1));
 				$("#td_z").text(status.coords.xyz[2].toFixed(2));
+				$("#btn_msgbox_z").text("Z = " + status.coords.xyz[2].toFixed(2));
 			}
 
-			// UVW coordinates
+			if (status.coords.xyz.length != numAxes)
+			{
+				numAxes = status.coords.xyz.length;
+				needGuiUpdate = true;
+			}
 			if (numAxes > 3) {
 				$("#td_u").text(numAxes > 3 ? status.coords.xyz[3].toFixed(1) : "n/a");
 				$("#td_v").text(numAxes > 4 ? status.coords.xyz[4].toFixed(1) : "n/a");
 				$("#td_w").text(numAxes > 5 ? status.coords.xyz[5].toFixed(1) : "n/a");
+				$("#td_a").text(numAxes > 6 ? status.coords.xyz[6].toFixed(1) : "n/a");
+				$("#td_b").text(numAxes > 7 ? status.coords.xyz[7].toFixed(1) : "n/a");
+				$("#td_c").text(numAxes > 8 ? status.coords.xyz[8].toFixed(1) : "n/a");
 			}
 
 			// Current Tool
@@ -480,10 +491,19 @@ function updateStatus() {
 				if (status.output.hasOwnProperty("message")) {
 					showMessage("info", T("Message from Duet firmware"), status.output.message, settings.autoCloseUserMessages ? settings.notificationTimeout : 0);
 				}
+				if (status.output.hasOwnProperty("msgBox")) {
+					updateMessageBox(status.output.msgBox);
+				} else {
+					closeMessageBox();
+				}
+			} else {
+				closeMessageBox();
 			}
 
 			// ATX Power
-			setATXPower(status.params.atxPower);
+			if (lastStatusResponse == undefined || status.params.atxPower != lastStatusResponse.params.atxPower) {
+				setATXPower(status.params.atxPower);
+			}
 
 			// Fan Control
 			if (!fanSliderActive) {
@@ -498,7 +518,7 @@ function updateStatus() {
 					}
 
 					// Update slider values
-					if (i == selectedFan) {
+					if (i == selectedFan && (lastStatusResponse == undefined || $(".fan-slider").children("input").slider("getValue") != fanValue * 100.0)) {
 						$(".fan-slider").children("input").slider("setValue", fanValue * 100.0);
 					}
 				}
@@ -618,50 +638,112 @@ function updateStatus() {
 			// Heated bed
 			var bedTemp = undefined;
 			if (status.temps.hasOwnProperty("bed")) {
-				if (!heatedBed) {
-					heatedBed = 1;
+				var configuredBedHeater = (status.temps.bed.hasOwnProperty("heater")) ? status.temps.bed.heater : 0;
+				if (bedHeater != configuredBedHeater) {
+					bedHeater = configuredBedHeater;
 					needGuiUpdate = true;
+					setHeatersInUse();
 				}
 
 				bedTemp = status.temps.bed.current;
-				setCurrentTemperature("bed", status.temps.bed.current);
-				setTemperatureInput("bed", status.temps.bed.active, 1);
-				setHeaterState("bed", status.temps.bed.state, status.currentTool);
-			} else if (heatedBed) {
-				heatedBed = 0;
+				setTemperatureInput("bed", status.temps.bed.active, true, true);
+
+				if (!status.temps.hasOwnProperty("current")) {
+					setCurrentTemperature("bed", status.temps.bed.current);
+					setHeaterState("bed", status.temps.bed.state, status.currentTool);
+				}
+			} else if (bedHeater != -1) {
+				bedHeater = -1;
 				needGuiUpdate = true;
 			}
 
 			// Chamber
 			var chamberTemp = undefined;
 			if (status.temps.hasOwnProperty("chamber")) {
-				if (!chamber)
+				var configuredChamberHeater = (status.temps.chamber.hasOwnProperty("heater")) ? status.temps.chamber.heater : maxHeaters0;
+				if (chamberHeater != configuredChamberHeater)
 				{
-					chamber = 1;
+					chamberHeater = configuredChamberHeater;
 					needGuiUpdate = true;
+					setHeatersInUse();
 				}
 
 				chamberTemp = status.temps.chamber.current;
-				setCurrentTemperature("chamber", chamberTemp);
-				setTemperatureInput("chamber", status.temps.chamber.active, 1);
-				setHeaterState("chamber", status.temps.chamber.state, status.currentTool);
-			} else if (chamber) {
-				chamber = 0;
+				setTemperatureInput("chamber", status.temps.chamber.active, true, true);
+
+				if (!status.temps.hasOwnProperty("current")) {
+					setCurrentTemperature("chamber", chamberTemp);
+					setHeaterState("chamber", status.temps.chamber.state, status.currentTool);
+				}
+			} else if (chamberHeater != -1) {
+				chamberHeater = -1;
 				needGuiUpdate = true;
 			}
 
-			// Heads
-			if (status.temps.heads.current.length != numHeads) {
-				numHeads = status.temps.heads.current.length;
-				needGuiUpdate = true;
+			// Heater temperatures and states
+			if (status.temps.hasOwnProperty("current") && status.temps.hasOwnProperty("state")) {
+				// Set current temperatures and states
+				for(var heater = 0; heater < status.temps.current.length; heater++) {
+					if (heater == bedHeater) {
+						setCurrentTemperature("bed", status.temps.current[heater]);
+						setHeaterState("bed", status.temps.state[heater], status.currentTool);
+					}
+					if (heater == chamberHeater) {
+						setCurrentTemperature("chamber", status.temps.current[heater]);
+						setHeaterState("chamber", status.temps.state[heater], status.currentTool);
+					}
+					setCurrentTemperature(heater, status.temps.current[heater]);
+					setHeaterState(heater, status.temps.state[heater], status.currentTool);
+				}
+
+				// Keep the temperature chart up-to-date
+				recordCurrentTemperatures(status.temps.current);
+			} else {
+				// Heads - deprecated
+				if (status.temps.heads.current.length != numHeads) {
+					numHeads = status.temps.heads.current.length;
+					needGuiUpdate = true;
+				}
+
+				for(var i = 0; i < status.temps.heads.current.length; i++) {
+					setCurrentTemperature(i + 1, status.temps.heads.current[i]);
+					setTemperatureInput(i + 1, status.temps.heads.active[i], true, !status.temps.hasOwnProperty("tools"));
+					setTemperatureInput(i + 1, status.temps.heads.standby[i], false, !status.temps.hasOwnProperty("tools"));
+					setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
+				}
+
+				// Keep the temperature chart up-to-date
+				recordHeadTemperatures(bedTemp, chamberTemp, status.temps.heads.current);
 			}
-			for(var i = 0; i < status.temps.heads.current.length; i++) {
-				setCurrentTemperature(i + 1, status.temps.heads.current[i]);
-				setTemperatureInput(i + 1, status.temps.heads.active[i], 1);
-				setTemperatureInput(i + 1, status.temps.heads.standby[i], 0);
-				setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
+
+			// Tool temperatures
+			var currentToolTemps = undefined;
+			if (status.temps.hasOwnProperty("tools") && toolMapping.length == status.temps.tools.active.length) {
+				for(var i = 0; i < status.temps.tools.active.length; i++) {
+					var toolNumber = toolMapping[i].number;
+					for(var heaterIndex = 0; heaterIndex < status.temps.tools.active[i].length; heaterIndex++) {
+						var heater = toolMapping[i].heaters[heaterIndex];
+						setToolTemperatureInput(toolNumber, heater, status.temps.tools.active[i][heaterIndex], true);
+						setToolTemperatureInput(toolNumber, heater, status.temps.tools.standby[i][heaterIndex], false);
+					}
+				}
 			}
-			recordHeaterTemperatures(bedTemp, chamberTemp, status.temps.heads.current);
+
+			// Extra temperatures
+			if (status.temps.hasOwnProperty("extra")) {
+				if (status.temps.extra.length != numTempSensors) {
+					numTempSensors = status.temps.extra.length;
+					needGuiUpdate = true;
+				}
+
+				for(var i = 0; i < status.temps.extra.length; i++) {
+					if (lastStatusResponse == undefined || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
+						$("#table_extra tr").eq(i + 1).children("th").text(status.temps.extra[i].name);
+					}
+					$("#table_extra tr").eq(i + 1).children("td:last-child").text(T("{0} °C", status.temps.extra[i].temp.toFixed(1)));
+				}
+				recordExtraTemperatures(status.temps.extra);
+			}
 
 			// Scanner extension
 			if (status.hasOwnProperty("scanner")) {
@@ -1046,10 +1128,13 @@ function getConfigResponse() {
 
 // Send G-Code directly to the firmware
 function sendGCode(gcode, fromInput) {
+	if (gcode == "") {
+		return;
+	}
 	lastSentGCode = gcode;
 
-	// Although rr_gcode gives us a JSON response, it doesn't provide any results.
-	// We only need to worry about an AJAX error event.
+	// Although rr_gcode gives us a JSON response, it doesn't provide any useful values for DWC.
+	// We only need to worry about an AJAX error event, which is handled by the global AJAX error callback.
 	$.ajax(ajaxPrefix + "rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
 	});
@@ -1057,7 +1142,6 @@ function sendGCode(gcode, fromInput) {
 
 
 // For OEM functionality
-
 function getOemFeatures() {
 	$.ajax(ajaxPrefix + "rr_download?name=0:/sys/oem.json", {
 		dataType: "json",

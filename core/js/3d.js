@@ -170,7 +170,7 @@ function showBedCompensation(points) {
 function showHeightmap(points, probeRadius, xMin, yMin, spacing) {
 	// Generate stats
 	var xMax, yMax;
-	var minDiff, maxDiff, numProbePoints = 0, meanError = 0, rmsError = 0;
+	var minDiff, maxDiff, numProbePoints = 0, rmsError = 0, meanError = 0;
 	for(var i = 0; i < points.length; i++) {
 		var z = points[i][2];
 		if (!isNaN(z)) {
@@ -182,14 +182,17 @@ function showHeightmap(points, probeRadius, xMin, yMin, spacing) {
 			if (yMax == undefined || yMax < y) { yMax = y; }
 
 			numProbePoints++;
-			meanError += Math.abs(z);
+			meanError += z;
 			rmsError += z * z;
 			if (minDiff == undefined || minDiff > z) { minDiff = z; }
 			if (maxDiff == undefined || maxDiff < z) { maxDiff = z; }
 		}
 	}
-	meanError = meanError / numProbePoints;
-	rmsError = Math.sqrt(rmsError / numProbePoints);
+
+	if (numProbePoints > 0) {
+		rmsError = Math.sqrt(((rmsError * numProbePoints) - (meanError * meanError))) / numProbePoints;
+		meanError = meanError / numProbePoints;
+	}
 
 	// Try to prepare a mesh geometry for the final visualization
 	probePoints = points;
@@ -393,15 +396,14 @@ function generateMeshGeometry(probePoints, probeRadius, xMin, xMax, yMin, yMax) 
 	}
 
 	// Generate plane geometry for grid
-	var planeWidth = (xMax - xMin < yMax - yMin) ? Math.abs((xMax - xMin) / (yMax - yMin)) : 1.0;
-	var planeHeight = (yMax - yMin < xMax - xMin) ? Math.abs((yMax - yMin) / (xMax - xMin)) : 1.0;
-	var planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight, xPoints.length - 1, yPoints.length - 1);
-
 	var width = (xMax - xMin);
 	var height = (yMax - yMin);
+	var planeWidth = (width < height) ? Math.abs(width / height) : 1.0;
+	var planeHeight = (height < width) ? Math.abs(height / width) : 1.0;
+	var planeGeometry = new THREE.PlaneGeometry(planeWidth, planeHeight, xPoints.length - 1, yPoints.length - 1);
 	for(var i = planeGeometry.vertices.length - 1; i >= 0; i--) {
-		var x = (planeGeometry.vertices[i].x + 0.5) * width + xMin;
-		var y = (planeGeometry.vertices[i].y + 0.5) * height + yMin;
+		var x = ((planeGeometry.vertices[i].x / planeWidth) + 0.5) * width + xMin;
+		var y = ((planeGeometry.vertices[i].y / planeHeight) + 0.5) * height + yMin;
 		var z = getNearestZOnGrid(probePoints, x, y) * scaleZ;
 
 		planeGeometry.vertices[i].z = z;

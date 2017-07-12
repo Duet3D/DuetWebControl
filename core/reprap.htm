@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.16
+<!--	Duet Web Control v1.17-RC6
 
 	written by Christian Hammacher
 
@@ -122,8 +122,9 @@
 										<li role="presentation" class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> Console</a></li>
 										<li role="presentation" class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
+										<li role="presentation" class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
 										<li role="presentation" class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-										<li role="presentation" class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
+										<!--<li role="presentation" class="navitem navitem-help"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>-->
 									</ul>
 								</td>
 							</tr>
@@ -137,21 +138,26 @@
 		<div class="container-fluid">
 			<!-- Info Panels -->
 			<div class="row" id="row_info">
-				<!-- Heater Temperatures -->
-				<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_heaters">
-					<div class="panel panel-info panel-status">
+				<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_tools_heaters">
+					<!-- Tools -->
+					<div id="div_tools" class="panel panel-info panel-status">
 						<div class="panel-heading">
-							<span>Heater Temperatures</span>
-							<div class="dropdown pull-right" id="control_all">
-								<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-target="control_all">Control All <span class="caret"></span></a>
-								<ul class="dropdown-menu" id="ul_control_dropdown">
+							<strong><span class="glyphicon glyphicon-wrench"></span> Tools</strong>
+							<span>&nbsp;/&nbsp;</span>
+							<a href="#" class="a-heaters"><span class="glyphicon glyphicon-fire"></span> Heaters</a>
+							<span class="extra-temps hidden">&nbsp;/&nbsp;</span>
+							<a href="#" class="a-extra extra-temps hidden"><span class="glyphicon glyphicon-plus"></span> Extra</a>
+
+							<div class="dropdown pull-right" id="control_all_tools">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-target="control_all_tools"><span class="glyphicon glyphicon-menu-hamburger"></span> Control All <span class="caret"></span></a>
+								<ul class="dropdown-menu" id="ul_control_dropdown_tools">
 									<li>
-										<a href="#" id="a_heaters_off"><span class="glyphicon glyphicon-off"></span> Turn everything off</a>
+										<a href="#" class="heaters-off"><span class="glyphicon glyphicon-off"></span> Turn everything off</a>
 									</li>
 									<li>
-										<label for="input_temp_all_active">Active:</label>
+										<label>Active:</label>
 										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_all_active" disabled="">
+											<input type="number" class="form-control all-temp-input" value="0" data-type="active" disabled>
 											<div class="input-group-btn div-head-temp dropdown">
 												<button type="button" class="btn btn-default dropdown-toggle btn-active-temp" data-toggle="dropdown"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu"></ul>
@@ -159,9 +165,171 @@
 										</div>
 									</li>
 									<li>
-										<label for="input_temp_all_standby">Standby:</label>
+										<label>Standby:</label>
 										<div class="input-group input-group-sm">
-											<input type="number" class="form-control" value="0" id="input_temp_all_standby" disabled="">
+											<input type="number" class="form-control all-temp-input" value="0" data-type="standby" disabled>
+											<div class="input-group-btn div-head-temp dropdown">
+												<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp" data-toggle="dropdown"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu"></ul>
+											</div>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</div>
+
+						<table class="table table-bordered table-condensed table-centered-cells" id="table_tools">
+							<thead>
+								<tr>
+									<th>Tool</th>
+									<th>Heater</th>
+									<th>Current</th>
+									<th>Active</th>
+									<th>Standby</th>
+								</tr>
+							</thead>
+
+							<tbody>
+								<tr data-tool="0" data-heater="1">
+									<th>
+										<a href="#"><span>Tool 0</span></a>
+										<span class="text-muted"></span>
+									</th>
+									<th>
+										<a href="#" class="heater-1">Heater 1</a>
+										<span class="text-muted heater-state"></span>
+									</th>
+									<td class="current">n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" data-type="active" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control standby-input" value="0" data-type="standby" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+
+								<tr data-tool="1" data-heater="2">
+									<th>
+										<a href="#"><span>Tool 1</span></a>
+										<span class="text-muted"></span>
+									</th>
+									<th>
+										<a href="#" class="heater-2">Heater 2</a>
+										<span class="text-muted heater-state"></span>
+									</th>
+									<td class="current">n/a</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" data-type="active" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td class="input-td">
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" data-type="standby" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+								</tr>
+
+								<tr data-heater="bed">
+									<th>
+										<a href="#">Bed</a>
+									</th>
+									<th>
+										<a href="#" class="heater-0">Heater 0</a>
+										<span class="text-muted heater-state"></span>
+									</th>
+									<td class="current">n/a</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td></td>
+								</tr>
+
+								<tr data-heater="chamber" class="hidden">
+									<th>
+										<a href="#">Chamber</a>
+									</th>
+									<th>
+										<a href="#" class="chamber">n/a</a>
+										<span class="text-muted heater-state"></span>
+									</th>
+									<td class="current">n/a</td>
+									<td>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control" value="0" disabled>
+											<div class="input-group-btn div-head-temp hidden-sm">
+												<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
+												</ul>
+											</div>
+										</div>
+									</td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<!-- Heater Temperatures -->
+					<div id="div_heaters" class="panel panel-info panel-status hidden">
+						<div class="panel-heading">
+							<a href="#" class="a-tools"><span class="glyphicon glyphicon-wrench"></span> Tools</a>
+							<span>&nbsp;/&nbsp;</span>
+							<strong><span class="glyphicon glyphicon-fire"></span> Heaters</strong>
+							<span class="extra-temps hidden">&nbsp;/&nbsp;</span>
+							<a href="#" class="a-extra extra-temps hidden"><span class="glyphicon glyphicon-plus"></span> Extra</a>
+
+							<div class="dropdown pull-right" id="control_all_heaters">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown" data-target="control_all_heaters"><span class="glyphicon glyphicon-menu-hamburger"></span> Control All <span class="caret"></span></a>
+								<ul class="dropdown-menu" id="ul_control_dropdown_heaters">
+									<li>
+										<a href="#" class="heaters-off"><span class="glyphicon glyphicon-off"></span> Turn everything off</a>
+									</li>
+									<li>
+										<label>Active:</label>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control all-temp-input" value="0" data-type="active" disabled>
+											<div class="input-group-btn div-head-temp dropdown">
+												<button type="button" class="btn btn-default dropdown-toggle btn-active-temp" data-toggle="dropdown"><span class="caret"></span></button>
+												<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu"></ul>
+											</div>
+										</div>
+									</li>
+									<li>
+										<label>Standby:</label>
+										<div class="input-group input-group-sm">
+											<input type="number" class="form-control all-temp-input" value="0" data-type="standby" disabled>
 											<div class="input-group-btn div-head-temp dropdown">
 												<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp" data-toggle="dropdown"><span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu"></ul>
@@ -180,15 +348,15 @@
 								<th>Standby</th>
 							</tr>
 
-							<tr id="tr_head_1">
+							<tr data-heater="1">
 								<th>
-									<a href="#">Heater 1<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-1">Heater 1<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h1_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -198,7 +366,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h1_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -208,15 +376,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_2">
+							<tr data-heater="2">
 								<th>
-									<a href="#">Heater 2<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-2">Heater 2<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h2_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -226,7 +394,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h2_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -236,15 +404,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_3" class="hidden">
+							<tr data-heater="3" class="hidden">
 								<th>
-									<a href="#">Heater 3<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-3">Heater 3<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h3_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -254,7 +422,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h3_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -264,15 +432,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_4" class="hidden">
+							<tr data-heater="4" class="hidden">
 								<th>
-									<a href="#">Heater 4<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-4">Heater 4<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h4_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -282,7 +450,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h4_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -292,15 +460,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_5" class="hidden">
+							<tr data-heater="5" class="hidden">
 								<th>
-									<a href="#">Heater 5<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-5">Heater 5<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h5_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -310,7 +478,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h5_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -320,15 +488,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_6" class="hidden">
+							<tr data-heater="6" class="hidden">
 								<th>
-									<a href="#">Heater 6<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-6">Heater 6<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h6_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -338,7 +506,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h6_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -348,15 +516,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_head_7" class="hidden">
+							<tr data-heater="7" class="hidden">
 								<th>
-									<a href="#">Heater 7<span class="caret hidden"></span></a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-7">Heater 7<span class="caret hidden"></span></a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h7_active" disabled>
+										<input type="number" class="form-control" value="0" data-type="active" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-active-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-active-temp" role="menu">
@@ -366,7 +534,7 @@
 								</td>
 								<td class="input-td">
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_h7_standby" disabled>
+										<input type="number" class="form-control" value="0" data-type="standby" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-standby-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-standby-temp" role="menu">
@@ -376,15 +544,15 @@
 								</td>
 							</tr>
 
-							<tr id="tr_bed">
+							<tr data-heater="bed">
 								<th>
-									<a href="#">Bed</a>
-									<span class="text-muted"></span>
+									<a href="#" class="heater-0">Bed</a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td>
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_bed" disabled>
+										<input type="number" class="form-control" value="0" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
@@ -395,15 +563,15 @@
 								<td></td>
 							</tr>
 
-							<tr id="tr_chamber" class="hidden">
+							<tr data-heater="chamber" class="hidden">
 								<th>
-									Chamber
-									<span class="text-muted"></span>
+									<a href="#" class="chamber">Chamber</a>
+									<span class="text-muted heater-state"></span>
 								</th>
-								<td>n/a</td>
+								<td class="current">n/a</td>
 								<td>
 									<div class="input-group input-group-sm">
-										<input type="number" class="form-control" value="0" id="input_temp_chamber" disabled>
+										<input type="number" class="form-control" value="0" disabled>
 										<div class="input-group-btn div-head-temp">
 											<button type="button" class="btn btn-default dropdown-toggle btn-bed-temp disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
 											<ul class="dropdown-menu dropdown-menu-right ul-bed-temp" role="menu">
@@ -412,6 +580,54 @@
 									</div>
 								</td>
 								<td></td>
+							</tr>
+						</table>
+					</div>
+
+					<div id="div_extra" class="panel panel-info panel-status hidden">
+						<div class="panel-heading">
+							<a href="#" class="a-tools"><span class="glyphicon glyphicon-wrench"></span> Tools</a>
+							<span>&nbsp;/&nbsp;</span>
+							<a href="#" class="a-heaters"><span class="glyphicon glyphicon-fire"></span> Heaters</a>
+							<span>&nbsp;/&nbsp;</span>
+							<strong><span class="glyphicon glyphicon-plus"></span> Extra</strong>
+						</div>
+
+						<table class="table table-bordered table-condensed table-centered-cells" id="table_extra">
+							<tr>
+								<th class="hidden-sm hidden-xs"></th>
+								<th>Temperature Sensor</th>
+								<th>Value</th>
+							</tr>
+							<tr data-sensor="0">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-0">Sensor 1</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="1">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-1">Sensor 2</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="2">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-2">Sensor 3</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="3">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-3">Sensor 4</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="4">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-4">Sensor 5</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="5">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-5">Sensor 6</th>
+								<td>n/a</td>
 							</tr>
 						</table>
 					</div>
@@ -448,6 +664,9 @@
 								<th class="hidden" id="th_u">U</th>
 								<th class="hidden" id="th_v">V</th>
 								<th class="hidden" id="th_w">W</th>
+								<th class="hidden hidden-md hidden-xs" id="th_a">A</th>
+								<th class="hidden hidden-md hidden-xs" id="th_b">B</th>
+								<th class="hidden hidden-md hidden-xs" id="th_c">C</th>
 							</tr>
 							<tr>
 								<td id="td_x">n/a</td>
@@ -456,6 +675,9 @@
 								<td class="hidden" id="td_u">n/a</td>
 								<td class="hidden" id="td_v">n/a</td>
 								<td class="hidden" id="td_w">n/a</td>
+								<td class="hidden hidden-md hidden-xs" id="td_a">n/a</td>
+								<td class="hidden hidden-md hidden-xs" id="td_b">n/a</td>
+								<td class="hidden hidden-md hidden-xs" id="td_c">n/a</td>
 							</tr>
 						</table>
 
@@ -484,12 +706,12 @@
 						<table class="table table-bordered table-condensed table-centered-cells table-status">
 							<tr>
 								<th rowspan="2" class="th-status">Sensors</th>
-								<th class="cpu-temp hidden">CPU Temp.</th>
+								<th class="vin hidden" title="Input voltage of your board">Vin</th>
 								<th id="th_probe">Z-Probe</th>
 								<th class="fan-rpm hidden">Fan RPM</th>
 							</tr>
 							<tr>
-								<td id="td_cputemp" class="cpu-temp hidden" title="Current CPU temperature">n/a</td>
+								<td id="td_vin" class="vin hidden" title="Power supply voltage for this board">n/a</td>
 								<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
 								<td id="td_fanrpm" class="fan-rpm hidden" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
 							</tr>
@@ -515,8 +737,9 @@
 						<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
 					</ul>
 					<ul class="nav nav-sidebar">
+						<li class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
 						<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-						<li class="navitem navitem-help hidden"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
+						<!--<li class="navitem navitem-help"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>-->
 					</ul>
 				</div>
 
@@ -707,6 +930,75 @@
 													</div>
 												</td>
 											</tr>
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a href="#" role="button" class="btn btn-primary btn-home-a disabled" title="Home A axis (G28 A)" data-home="A">Home A</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-a="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-100</a>
+														<a href="#" role="button" data-a="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-10</a>
+														<a href="#" role="button" data-a="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-1</a>
+														<a href="#" role="button" data-a="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-a="0.1" class="btn btn-default disabled">A+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-a="1" class="btn btn-default disabled">A+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-a="10" class="btn btn-default disabled">A+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-a="100" class="btn btn-default visible-lg disabled">A+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary btn-home-v disabled" title="Home B axis (G28 B)" data-home="B">Home B</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-b="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-100</a>
+														<a role="button" data-b="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-10</a>
+														<a role="button" data-b="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-1</a>
+														<a role="button" data-b="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-b="0.1" class="btn btn-default disabled">B+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-b="1" class="btn btn-default disabled">B+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-b="10" class="btn btn-default disabled">B+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-b="100" class="btn btn-default visible-lg disabled">B+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
+											<tr>
+												<td class="home-buttons visible-lg">
+													<div class="btn-group" role="group">
+														<a role="button" class="btn btn-primary btn-home-w disabled" title="Home C axis (G28 C)" data-home="C">Home C</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a role="button" data-c="-100" class="btn btn-default visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-100</a>
+														<a role="button" data-c="-10" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-10</a>
+														<a role="button" data-c="-1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-1</a>
+														<a role="button" data-c="-0.1" class="btn btn-default disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-0.1</a>
+													</div>
+												</td>
+												<td>
+													<div class="btn-group btn-group-justified" role="group">
+														<a href="#" role="button" data-c="0.1" class="btn btn-default disabled">C+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-c="1" class="btn btn-default disabled">C+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-c="10" class="btn btn-default disabled">C+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+														<a href="#" role="button" data-c="100" class="btn btn-default visible-lg disabled">C+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+													</div>
+												</td>
+											</tr>
 										</table>
 									</div>
 								</div>
@@ -815,7 +1107,7 @@
 									</div>
 
 									<div class="panel-body text-center">
-										<h4 class="text-muted">Go to the Macros page to define your own actions</h4>
+										<h4 class="text-muted">Connect to your Duet to display Macro files</h4>
 										<div class="btn-group-vertical btn-group-vertical-justified"></div>
 									</div>
 								</div>
@@ -891,7 +1183,6 @@
 								</div>
 							</div>
 						</div>
-
 					</div>
 
 					<!-- Print Status -->
@@ -1198,7 +1489,7 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_scan_files">
 									<thead>
 										<tr>
-											<th colspan="2"></th>
+											<th colspan="2"><!-- see JS --></th>
 											<th>File Name</th>
 											<th>Size</th>
 											<th>Date Created</th>
@@ -1221,7 +1512,7 @@
 										<input type="text" name="gcode" class="form-control" placeholder="Send G-Code..." disabled>
 										<div class="input-group-btn div-gcodes">
 											<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown" aria-expanded="false"><span class="caret"></span></button>
-											<ul class="dropdown-menu dropdown-menu-right ul-gcodes" role="menu">
+											<ul class="dropdown-menu dropdown-menu-right ul-gcodes">
 											</ul>
 										</div>
 									</div>
@@ -1282,14 +1573,11 @@
 												<li class="pull-right"><span class="glyphicon glyphicon-level-up"></span> Go Up</li>
 											</ol>
 										</td>
-										<td class="hidden-xs hidden-sm hidden online-control no-drag-target">
+										<td class="hidden-xs hidden-sm hidden online-control">
 											<button class="btn btn-primary btn-upload disabled" title="Upload one or more G-Code files (drag&amp;drop is supported as well)" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
 										</td>
-										<td class="hidden-xs hidden online-control no-drag-target">
+										<td class="hidden-xs hidden-sm hidden online-control">
 											<button class="btn btn-info" id="btn_new_gcode_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
-										</td>
-										<td class="hidden-xs hidden drag-target">
-											<button class="btn btn-warning btn-rename"><span class="glyphicon glyphicon-pencil"></span> Rename File or Directory</button>
 										</td>
 									</tr>
 								</table>
@@ -1299,13 +1587,13 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_gcode_files">
 									<thead>
 										<tr>
-											<th colspan="3"></th>
-											<th>File Name</th>
-											<th class="hidden-xs">Size</th>
-											<th>Object Height</th>
-											<th>Layer Height</th>
-											<th class="hidden-xs">Filament Usage</th>
-											<th class="hidden-xs hidden-sm">Generated by</th>
+											<th><input type="checkbox"></th>
+											<th><a href="#" data-attribute="filename">File Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
+											<th class="hidden-xs"><a href="#" data-attribute="size">Size</a> <span></span></th>
+											<th><a href="#" data-attribute="object-height">Object Height</a> <span></span></th>
+											<th><a href="#" data-attribute="layer-height">Layer Height</a> <span></span></th>
+											<th class="hidden-xs"><a href="#" data-attribute="filament-usage">Filament Usage</a> <span></span></th>
+											<th class="hidden-xs hidden-sm"><a href="#" data-attribute="generated-by">Generated by</a> <span></span></th>
 										</tr>
 									</thead>
 									<tbody>
@@ -1328,17 +1616,19 @@
 												<li class="pull-right"><span class="glyphicon glyphicon-level-up"></span> Go Up</li>
 											</ol>
 										</td>
-										<td class="hidden-xs hidden-sm hidden online-control no-drag-target">
+										<td class="hidden-xs hidden-sm hidden online-control">
 											<button class="btn btn-primary btn-upload disabled" title="Upload one or more macro files (drag&amp;drop is supported as well)" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
 										</td>
-										<td class="hidden-xs hidden-sm hidden online-control no-drag-target">
-											<button class="btn btn-info" id="btn_new_macro_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Make new Directory</button>
-										</td>
-										<td class="hidden-xs hidden online-control no-drag-target">
-											<button class="btn btn-info" id="btn_new_macro_file" title="Create a new macro file"><span class="glyphicon glyphicon-file"></span> Make new Macro</button>
-										</td>
-										<td class="hidden-xs hidden drag-target">
-											<button class="btn btn-warning btn-rename"><span class="glyphicon glyphicon-pencil"></span> Rename File or Directory</button>
+										<td class"hidden online-control">
+											<div class="btn-group">
+												<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+													<span class="glyphicon glyphicon-plus"></span> Make new... <span class="caret"></span>
+												</button>
+												<ul class="dropdown-menu dropdown-menu-right">
+													<li><a href="#" id="a_new_macro_directory" title="Create a new directory"><span class="glyphicon glyphicon-folder-open"></span> Directory</a></li>
+													<li><a href="#" id="a_new_macro_file" title="Create a new macro file"><span class="glyphicon glyphicon-file"></span> Macro</a></li>
+												</ul>
+											</div>
 										</td>
 									</tr>
 								</table>
@@ -1348,10 +1638,10 @@
 								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_macro_files">
 									<thead>
 										<tr>
-											<th colspan="3"></th>
-											<th>File Name</th>
-											<th>Size</th>
-											<th>Last modified</th>
+											<th><input type="checkbox"></th>
+											<th><a href="#" data-attribute="filename">File Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
+											<th><a href="#" data-attribute="size">Size</a> <span></span></th>
+											<th><a href="#" data-attribute="last-modified">Last modified</a> <span></span></th>
 										</tr>
 									</thead>
 									<tbody>
@@ -1360,7 +1650,46 @@
 								</table>
 							</div>
 						</div>
-					</div> 
+					</div>
+
+					<!-- Filaments -->
+					<div id="page_filaments" class="page">
+						<div class="row">
+							<div class="col-md-12">
+								<table class="table-file-navigation">
+									<tr>
+										<td>
+											<ol class="breadcrumb breadcrumb-directory" id="ol_filament">
+												<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Filaments Directory</li>
+											</ol>
+										</td>
+
+										<td class="hidden-xs hidden-sm hidden online-control">
+											<button class="btn btn-primary btn-upload disabled" title="Upload one or more filament configurations (drag&amp;drop is supported as well)" data-type="filament" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Configuration(s)</button>
+										</td>
+										<td class="hidden online-control">
+											<button class="btn btn-info" id="btn_new_filament" title="Create a new filament configuration"><span class="glyphicon glyphicon-plus"></span> Create new Filament</button>
+										</td>
+									</tr>
+								</table>
+
+								<h1 class="text-center text-muted">Connect to your Duet to display Filaments</h1>
+
+								<table class="table table-bordered table-files table-hover table-striped hidden" id="table_filaments">
+									<thead>
+										<tr>
+											<th><input type="checkbox"></th>
+											<th><a href="#" data-attribute="filament">Filament Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
+											<th><a href="#" data-attribute="date-created">Date Created</a> <span></span></th>
+										</tr>
+									</thead>
+									<tbody>
+										<!-- see JS -->
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
 
 					<!-- Settings -->
 					<div id="page_settings" class="page">
@@ -1418,7 +1747,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.16</td>
+														<td>1.17-RC6</td>
 													</tr>
 												</table>
 												<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -1884,9 +2213,8 @@
 								<div class="tab-pane" id="page_sysedit">
 									<ol class="breadcrumb" id="ol_sys_directory">
 										<li class="active"><span class="glyphicon glyphicon-folder-open"></span> System Directory</li>
-										<li class="pull-right hidden online-control no-drag-target"><a href="#" id="a_refresh_sys"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
-										<li class="pull-right hidden online-control no-drag-target"><a href="#" id="a_new_sys_file"><span class="glyphicon glyphicon-file"></span> New File</a></li>
-										<li class="pull-right hidden drag-target"><a href="#" id="a_rename_file"><span class="glyphicon glyphicon-pencil"></span> <strong>Rename File or Directory</strong></a></li>
+										<li class="pull-right hidden online-control"><a href="#" id="a_refresh_sys"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
+										<li class="pull-right hidden online-control"><a href="#" id="a_new_sys_file"><span class="glyphicon glyphicon-file"></span> New File</a></li>
 									</ol>
 
 									<h1 class="text-center text-muted">Connect to your Duet to display System files</h1>
@@ -1894,10 +2222,10 @@
 									<table class="table table-bordered table-files table-hover table-striped hidden" id="table_sys_files">
 										<thead>
 											<tr>
-												<th colspan="3"></th>
-												<th>File Name</th>
-												<th>Size</th>
-												<th>Last modified</th>
+												<th><input type="checkbox"></th>
+												<th><a href="#" data-attribute="filename">File Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
+												<th><a href="#" data-attribute="size">Size</a> <span></span></th>
+												<th><a href="#" data-attribute="last-modified">Last modified</a> <span></span></th>
 											</tr>
 										</thead>
 										<tbody>
@@ -2014,7 +2342,7 @@
 													<td class="hidden-xs">n/a</td>
 													<td class="hidden-xs hidden-sm">n/a</td>
 												</tr>
-												<tr id="tr_drive_9" class="extruder-7 hidden">
+												<tr id="tr_drive_9" class="7-extruders hidden">
 													<td>9</td>
 													<td>n/a</td>
 													<td>n/a</td>
@@ -2067,79 +2395,84 @@
 
 								<!-- Tools -->
 								<div class="tab-pane row" id="page_tools">
-									<div class="col-sm-12 col-md-7 col-lg-6">
-										<div class="panel panel-default">
+									<div class="col-md-12">
+										<div id="div_add_tool" class="panel panel-default">
 											<div class="panel-heading">
 												<span>Define new Tool</span>
 											</div>
 											<div class="panel-body">
-												<table id="table_define_tool">
-													<tr>
-														<td rowspan="2">
-															<label for="input_tool_number">Tool Number:</label>
-															<input type="number" min="0" max="255" value="127" class="form-control" id="input_tool_number" disabled>
-														</td>
-														<td>
-															<label>Associated Heater(s):</label>
-															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_heaters">
-																<label class="btn btn-primary active disabled" title="Heater 1">
-																	<input type="checkbox" name="tool_heaters" value="1" checked disabled> 1
-																</label>
-																<label class="btn btn-default disabled" title="Heater 2">
-																	<input type="checkbox" name="tool_heaters" value="2" disabled> 2
-																</label>
-																<label class="btn btn-default disabled" title="Heater 3">
-																	<input type="checkbox" name="tool_heaters" value="3" disabled> 3
-																</label>
-																<label class="btn btn-default disabled" title="Heater 4">
-																	<input type="checkbox" name="tool_heaters" value="4" disabled> 4
-																</label>
-																<label class="btn btn-default disabled" title="Heater 5">
-																	<input type="checkbox" name="tool_heaters" value="5" disabled> 5
-																</label>
-																<label class="btn btn-default disabled" title="Heater 6">
-																	<input type="checkbox" name="tool_heaters" value="6" disabled> 6
-																</label>
-																<label class="btn btn-default disabled heater-7" title="Heater 7">
-																	<input type="checkbox" name="tool_heaters" value="7" disabled> 7
-																</label>
-															</div>
-														</td>
-													</tr>
-													<tr>
-														<td>
-															<label>Associated Drive(s):</label>
-															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_drives">
-																<label class="btn btn-primary active disabled" title="Extruder 1">
-																	<input type="checkbox" name="tool_drives" value="0" checked disabled> 0
-																</label>
-																<label class="btn btn-default disabled" title="Extruder 2">
-																	<input type="checkbox" name="tool_drives" value="1" disabled> 1
-																</label>
-																<label class="btn btn-default disabled" title="Extruder 3">
-																	<input type="checkbox" name="tool_drives" value="2" disabled> 2
-																</label>
-																<label class="btn btn-default disabled" title="Extruder 4">
-																	<input type="checkbox" name="tool_drives" value="3" disabled> 3
-																</label>
-																<label class="btn btn-default disabled" title="Extruder 5">
-																	<input type="checkbox" name="tool_drives" value="4" disabled> 4
-																</label>
-																<label class="btn btn-default disabled" title="Extruder 6">
-																	<input type="checkbox" name="tool_drives" value="5" disabled> 5
-																</label>
-																<label class="btn btn-default disabled extruder-7" title="Extruder 7">
-																	<input type="checkbox" name="tool_drives" value="6" disabled> 6
-																</label>
-															</div>
-														</td>
-													</tr>
-													<tr>
-														<td colspan="2" class="text-center">
-															<button class="btn btn-success disabled" id="btn_add_tool" title="Define a new tool"><span class="glyphicon glyphicon-plus"></span> Add Tool</button>
-														</td>
-													</tr>
-												</table>
+												<div class="row">
+													<div class="col-lg-1 col-md-6 col-sm-6">
+														<label for="input_tool_number">Number:</label>
+														<input type="number" min="0" max="255" value="127" class="form-control" id="input_tool_number" disabled>
+													</div>
+
+													<div class="col-lg-1 col-md-6 col-sm-6">
+														<label for="input_tool_name">Name:</label>
+														<input type="text" value="" placeholder="optional" class="form-control" id="input_tool_name" disabled>
+													</div>
+
+													<div class="col-lg-4 col-md-6 col-sm-6">
+														<label>Associated Heater(s):</label>
+														<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_heaters">
+															<label class="btn btn-default disabled" title="Heater 0">
+																<input type="checkbox" name="tool_heaters" value="0" disabled> 0
+															</label>
+															<label class="btn btn-primary active disabled" title="Heater 1">
+																<input type="checkbox" name="tool_heaters" value="1" checked disabled> 1
+															</label>
+															<label class="btn btn-default disabled" title="Heater 2">
+																<input type="checkbox" name="tool_heaters" value="2" disabled> 2
+															</label>
+															<label class="btn btn-default disabled" title="Heater 3">
+																<input type="checkbox" name="tool_heaters" value="3" disabled> 3
+															</label>
+															<label class="btn btn-default disabled" title="Heater 4">
+																<input type="checkbox" name="tool_heaters" value="4" disabled> 4
+															</label>
+															<label class="btn btn-default disabled" title="Heater 5">
+																<input type="checkbox" name="tool_heaters" value="5" disabled> 5
+															</label>
+															<label class="btn btn-default disabled" title="Heater 6">
+																<input type="checkbox" name="tool_heaters" value="6" disabled> 6
+															</label>
+															<label class="btn btn-default disabled 7-heaters" title="Heater 7">
+																<input type="checkbox" name="tool_heaters" value="7" disabled> 7
+															</label>
+														</div>
+													</div>
+
+													<div class="col-lg-4 col-md-6 col-sm-6">
+														<label>Associated Drive(s):</label>
+														<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_drives">
+															<label class="btn btn-primary active disabled" title="Extruder 1">
+																<input type="checkbox" name="tool_drives" value="0" checked disabled> 0
+															</label>
+															<label class="btn btn-default disabled" title="Extruder 2">
+																<input type="checkbox" name="tool_drives" value="1" disabled> 1
+															</label>
+															<label class="btn btn-default disabled" title="Extruder 3">
+																<input type="checkbox" name="tool_drives" value="2" disabled> 2
+															</label>
+															<label class="btn btn-default disabled" title="Extruder 4">
+																<input type="checkbox" name="tool_drives" value="3" disabled> 3
+															</label>
+															<label class="btn btn-default disabled" title="Extruder 5">
+																<input type="checkbox" name="tool_drives" value="4" disabled> 4
+															</label>
+															<label class="btn btn-default disabled" title="Extruder 6">
+																<input type="checkbox" name="tool_drives" value="5" disabled> 5
+															</label>
+															<label class="btn btn-default disabled 7-extruders" title="Extruder 7">
+																<input type="checkbox" name="tool_drives" value="6" disabled> 6
+															</label>
+														</div>
+													</div>
+
+													<div class="col-lg-2 col-md-12 col-sm-12">
+														<button class="btn btn-success disabled" id="btn_add_tool" title="Define a new tool"><span class="glyphicon glyphicon-plus"></span> Add Tool</button>
+													</div>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -2181,8 +2514,8 @@
 							<p class="text-muted">Note: If you want to remember this value, save the settings once after a connection has been established.</p>
 						</div>
 						<div class="modal-footer">
-							<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-							<button type="submit" class="btn btn-primary">Connect</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+							<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-log-in"></span> Connect</button>
 						</div>
 					</form>
 				</div>
@@ -2208,6 +2541,21 @@
 							<button type="submit" class="btn btn-primary">Verify</button>
 						</div>
 					</form>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="modal_change_filament">
+			<div class="modal-dialog modal-sm">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title">Change Filament</h4>
+					</div>
+					<div class="modal-body">
+						<p>Please choose a filament for this tool:</p>
+						<div id="div_filaments" class="list-group"></div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -2419,7 +2767,7 @@
 							</div>
 						</div>
 
-						<p id="p_scan_info">Please wait while the scanner is being calibrated. This may take a while...</p>
+						<p>Please wait while the scanner is being calibrated. This may take a while...</p>
 					</div>
 					<div class="modal-footer">
 						<button id="btn_cancel_calibration" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
@@ -2464,18 +2812,63 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modal_messagebox">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 id="h4_messagebox_title" class="modal-title"><!-- See JS --></h4>
+					</div>
+					<div class="modal-body">
+						<h3 id="h3_messagebox"></h3>
+
+						<div id="div_z_controls">
+							<label>Use the following controls to adjust Z:</label>
+							<br/>
+							<div class="btn-group">
+								<button type="button" id="btn_msgbox_dec_z" class="btn btn-default" data-z="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+								<button type="button" id="btn_msgbox_z" class="btn btn-default disabled">Z = n/a</button>
+								<button type="button" id="btn_msgbox_inc_z" class="btn btn-default" data-z="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" id="btn_ack_messagebox" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> OK</button>
+						<button type="button" id="btn_cancel_messagebox" class="btn btn-danger"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						<button type="button" class="btn btn-success" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<ul id="ul_file_contextmenu" class="dropdown-menu">
+			<li class="gcode-action single file"><a tabindex="-1" href="#" id="a_context_print"><span class="glyphicon glyphicon-play"></span> Print File</a></li>
+			<li class="macro-action single file"><a tabindex="-1" href="#" id="a_context_run"><span class="glyphicon glyphicon-play"></span> Run Macro</a></li>
+			<li class="filament-action single"><a tabindex="-1" href="#" id="a_context_edit_load"><span class="glyphicon glyphicon-arrow-down"></span> Edit Load Macro</a></li>
+			<li class="filament-action single"><a tabindex="-1" href="#" id="a_context_edit_unload"><span class="glyphicon glyphicon-arrow-up"></span> Edit Unload Macro</a></li>
+			<li class="single file"><a tabindex="-1" href="#" id="a_context_view_heightmap"><span class="glyphicon glyphicon-eye-open"></span> View Heightmap</a></li>
+			<li class="single file"><a tabindex="-1" href="#" id="a_context_download_file"><span class="glyphicon glyphicon-download-alt"></span> Download</a></li>
+			<li class="multi file"><a tabindex="-1" href="#" id="a_context_download_zip"><span class="glyphicon glyphicon-compressed"></span> Download as ZIP</a></li>
+			<li class="divider"></li>
+			<li class="single file"><a tabindex="-1" href="#" id="a_context_edit"><span class="glyphicon glyphicon-pencil"></span> Edit</a></li>
+			<li class="single"><a tabindex="-1" href="#" id="a_context_rename"><span class="glyphicon glyphicon-text-size"></span> Rename</a></li>
+			<li><a tabindex="-1" href="#" id="a_context_delete"><span class="glyphicon glyphicon-remove"></span> Delete</a></li>
+		</ul>
+
 		<div id="layer_tooltip"></div>
 		<!-- Bootstrap core JavaScript
 		================================================== -->
 		<!-- Placed at the end of the document so the pages load faster -->
 		<script src="js/3rd-party/jquery-3.1.0.js"></script>
 		<script src="js/3rd-party/jquery.flot.js"></script>
+		<script src="js/3rd-party/jquery.flot.dashes.js"></script>
 		<script src="js/3rd-party/jquery.flot.resize.js"></script>
 		<script src="js/3rd-party/jquery.flot.navigate.js"></script>
 		<script src="js/3rd-party/bootstrap.js"></script>
 		<script src="js/3rd-party/bootstrap-notify.js"></script>
 		<script src="js/3rd-party/bootstrap-slider.js"></script>
 		<script src="js/3rd-party/jszip.js"></script>
+		<script src="js/3rd-party/FileSaver.js"></script>
 		<script src="js/3rd-party/piecon.js"></script>
 		<script src="js/3rd-party/three.js"></script>
 		<script src="js/3rd-party/three.orbit.js"></script>

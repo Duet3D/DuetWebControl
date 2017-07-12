@@ -63,7 +63,7 @@ a:focus, a:hover {
     background-color: #fe4d4d;
     border-color: #353535;
 }
-.table-striped>tbody>tr:nth-of-type(odd) {
+.table-striped>tbody>tr:nth-of-type(odd)>td {
     background-color: #555555;
 }
 
@@ -132,6 +132,9 @@ a:focus, a:hover {
 .table-file-navigation button {
     font-size: 18px !important;
 }
+.table-files tr.info > td {
+	background-color: #A0A0A0 !important;
+}
 
 /*Layer statistics value ------------------------------------------*/
 #span_progress_right{
@@ -193,7 +196,7 @@ a {
 
 
 /* Dropdown menu -------------------------------------------------------*/
-.dropdown-menu {
+.dropdown-menu, .popover {
     background-color: #555;
 }
 
@@ -212,6 +215,10 @@ a {
     background-image: none;
     background-color: #828282;
     color: #f0f0f0;
+}
+
+.popover {
+	border: 1px solid;
 }
 
 /*Buttons-------------------------------------------------------*/
@@ -278,39 +285,42 @@ a {
 }
 
 /* Heater Temperatures-------------------------------------------------------*/
-#tr_head_1 th > a {
-    color: #fe4d4d; /*Heater 1 color*/
+.heater-0 {
+    color: #3F99DC !important; /*Bed color*/
 }
 
-#tr_head_2 th > a {
-    color: #63b03c; /*Heater 2 color*/
+.heater-1 {
+    color: #fe4d4d !important; /*Heater 1 color*/
 }
 
-#tr_head_4 th > a {
-    color: #E040E0; /*Heater 5 color*/
+.heater-2 {
+    color: #63b03c !important; /*Heater 2 color*/
 }
 
-#tr_head_5 th > a {
-    color: #8A46F5; /*Heater 5 color*/
+.heater-3 {
+    color: #E040E0 !important; /*Heater 3 color*/
 }
 
-#tr_head_6 th > a {
-    color: #30DCDC; /*Heater 5 color*/
+.heater-4 {
+    color: #8A46F5 !important; /*Heater 4 color*/
 }
 
-#tr_bed th > a {
-    color: #3F99DC; /*Bed color*/
+.heater-5 {
+    color: #30DCDC !important; /*Heater 5 color*/
 }
 
-#tr_chamber th {
-    color: #BBBBBB; /*Chamber color*/
+.chamber {
+    color: #BBBBBB !important; /*Chamber color*/
 }
 
-#tr_head_1 td, #tr_head_2 td, #tr_head_3 td, #tr_head_4 td, #tr_head_5 td, #tr_head_6 td, #tr_bed td, #tr_chamber td {
+#table_tools td,
+#table_heaters td,
+#table_extra td {
     color: #0fa4f4; /*Value text color*/
 }
 
-#tr_head_1 th > a, #tr_head_1 th > a, #tr_head_2 th > a, #tr_head_2 th > a, #tr_head_3 th > a, #tr_head_4 th > a, #tr_head_5 th > a, #tr_head_6 th > a, #tr_bed th > a, #tr_bed th > a, #tr_chamber th {
+#table_tools a,
+#table_heaters a {
     font-size: 18px; /*Name and value font size*/
 }
 
@@ -325,7 +335,8 @@ span.text-muted {
 
 /* Machine status-------------------------------------------------------*/
 
-#td_x, #td_y, #td_z, #td_extr_1, #td_extr_2, #td_extr_3, #td_extr_4, #td_extr_5 {
+#td_x, #td_y, #td_z, #td_u, #td_v, #td_w, #td_a, #td_b, #td_c,
+#td_extr_1, #td_extr_2, #td_extr_3, #td_extr_4, #td_extr_5, #td_extr_6 {
     color: #0fa4f4;
 }
 

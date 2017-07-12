@@ -18,7 +18,35 @@ var uploadHadError, uploadFilesSkipped;
 var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .bin extension
 
 
-function uploadTextFile(filename, content, callback) {
+function uploadTextFile(filename, content, callback, showNotification, configFileHandled) {
+	if (showNotification == undefined) { showNotification = true; }
+	if (configFileHandled == undefined) { configFileHandled = false; }
+
+	// Move config.g to config.g.bak if it is overwritten
+	if (filename == "0:/sys/config.g" && !configFileHandled && $("#table_sys_files tr[data-file='config.g']").length != 0) {
+		if ($("#table_sys_files tr[data-file='config.g.bak']").length == 0) {
+			$.ajax(ajaxPrefix + "rr_move?old=0:/sys/config.g&new=0:/sys/config.g.bak", {
+				dataType: "json",
+				success: function() {
+					uploadTextFile(filename, content, callback, showNotification, true);
+				}
+			});
+		} else {
+			$.ajax(ajaxPrefix + "rr_delete?name=0:/sys/config.g.bak", {
+				dataType: "json",
+				success: function() {
+					$.ajax(ajaxPrefix + "rr_move?old=0:/sys/config.g&new=0:/sys/config.g.bak", {
+						dataType: "json",
+						success: function() {
+							uploadTextFile(filename, content, callback, showNotification, true);
+						}
+					});
+				}
+			});
+		}
+		return;
+	}
+
 	// Ideally we should use FileAPI here, but IE+Edge don't support it
 	//var file = new File([content], filename, { type: "application/octet-stream" });
 	var file = new Blob([content], { type: "application/octet-stream" });
@@ -39,13 +67,15 @@ function uploadTextFile(filename, content, callback) {
 		},
 		success: function(response) {
 			if (response.err == 0) {
-				showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", this.filename));
-				if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
-					if (this.filename.toLowerCase() == "0:/sys/config.g") {
-						showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
-							// Perform software reset
-							sendGCode("M999");
-						});
+				if (showNotification) {
+					showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", this.filename));
+					if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
+						if (this.filename.toLowerCase() == "0:/sys/config.g") {
+							showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
+								// Perform software reset
+								sendGCode("M999");
+							});
+						}
 					}
 				}
 			} else {
@@ -60,9 +90,93 @@ function uploadTextFile(filename, content, callback) {
 }
 
 function startUpload(type, files, fromCallback) {
+	// Unzip files if necessary
+	if (type == "filament" || type == "macro" || type == "generic") {
+		var containsZip = false;
+		$.each(files, function() {
+			if (this.name.toLowerCase().match("\\.zip$") != null) {
+				uploadedDWC |= this.name.toLowerCase().match("^duetwebcontrol.*\\.zip") != null;
+
+				var fileReader = new FileReader();
+				fileReader.onload = (function(theFile) {
+					return function(e) {
+						try {
+							var zipFile = new JSZip(), filesToUnpack = 0, filesUnpacked = 0;
+							zipFile.loadAsync(e.target.result).then(function(zip) {
+								var zipFiles = [];
+								$.each(zip.files, function(index, zipEntry) {
+									if (!zipEntry.dir && zipEntry.name.indexOf(".") != 0 && zipEntry.name.match("README") == null) {
+										var zipName = zipEntry.name;
+										if (type != "filament") {
+											zipName = zipEntry.name.split("/");
+											zipName = zipName[zipName.length - 1];
+										}
+
+										filesToUnpack++;
+										zipEntry.async("arraybuffer").then(function(buffer) {
+											// See above. FileAPI isn't supported by IE+Edge
+											//var unpackedFile = new File([zipEntry.asArrayBuffer()], zipName, { type: "application/octet-stream", lastModified: zipEntry.date });
+											var unpackedFile = new Blob([buffer], { type: "application/octet-stream" });
+											unpackedFile.name = zipName;
+											unpackedFile.lastModified = zipEntry.date;
+											zipFiles.push(unpackedFile);
+
+											filesUnpacked++;
+											if (filesToUnpack == filesUnpacked) {
+												// This had to be moved because the new JSZip API is completely async
+												startUpload(type, zipFiles, true);
+											}
+										});
+									}
+								});
+
+								if (zip.files.length == 0) {
+									showMessage("warning", T("Error"), T("The archive {0} does not contain any files!", theFile.name));
+								}
+							});
+						} catch(e) {
+							console.log("ZIP error: " + e);
+							showMessage("danger", T("Error"), T("Could not read contents of file {0}!", theFile.name));
+						}
+					}
+				})(this);
+				fileReader.readAsArrayBuffer(this);
+
+				containsZip = true;
+				return false;
+			}
+		});
+
+		if (containsZip) {
+			// We're relying on an async task which will trigger this method again when required
+			return false;
+		}
+	}
+
+	// Safety check for Upload and Print
+	if (type == "print" && files.length > 1) {
+		showMessage("warning", T("Error"), T("You can only upload and print one file at once!"));
+		return false;
+	}
+
+	// Safety check for Filament uploads
+	if (type == "filament") {
+		var hadError = false;
+		$.each(files, function() {
+			if (this.name.indexOf("/") == -1) {
+				showMessage("danger", T("Error"), T("You cannot upload single files. Please upload only ZIP files that contain at least one directory per filament configuration."));
+				hadError = true;
+				return false;
+			}
+		});
+		if (hadError) {
+			return false;
+		}
+	}
+
 	// Initialize some values
 	stopUpdates();
-	isUploading = true;	
+	isUploading = true;
 	uploadType = type;
 	uploadTotalBytes = uploadedTotalBytes = uploadedFileCount = 0;
 	uploadFiles = files;
@@ -76,63 +190,6 @@ function startUpload(type, files, fromCallback) {
 	uploadIncludedConfig = false;
 	uploadFirmwareFile = uploadDWCFile = uploadDWSFile = uploadDWSSFile = undefined;
 	uploadFilesSkipped = uploadHadError = false;
-
-	// Safety check for Upload and Print
-	if (type == "print" && files.length > 1) {
-		showMessage("warning", T("Error"), T("You can only upload and print one file at once!"));
-		return;
-	}
-
-	// Unzip files if necessary
-	if (type == "macro" || type == "generic") {
-		var containsZip = false;
-		$.each(files, function() {
-			if (this.name.toLowerCase().match("\\.zip$") != null) {
-				uploadedDWC |= this.name.toLowerCase().match("^duetwebcontrol.*\\.zip") != null;
-
-				var fileReader = new FileReader();
-				fileReader.onload = (function(theFile) {
-					return function(e) {
-						try {
-							var zip = new JSZip(e.target.result);
-
-							var zipFiles = [];
-							$.each(zip.files, function(index, zipEntry) {
-								if (!zipEntry.dir && zipEntry.name.match("\/\\.git") == null && zipEntry.name.match("README") == null) {
-									var zipName = zipEntry.name.split("/");
-									zipName = zipName[zipName.length - 1];
-
-									// See above. FileAPI isn't supported by IE+Edge
-									//var unpackedFile = new File([zipEntry.asArrayBuffer()], zipName, { type: "application/octet-stream", lastModified: zipEntry.date });
-									var unpackedFile = new Blob([zipEntry.asArrayBuffer()], { type: "application/octet-stream" });
-									unpackedFile.name = zipName;
-									unpackedFile.lastModified = zipEntry.date;
-
-									zipFiles.push(unpackedFile);
-								}
-							});
-
-							if (zipFiles.length == 0) {
-								showMessage("warning", T("Error"), T("The archive {0} does not contain any files!", theFile.name));
-							} else {
-								startUpload(type, zipFiles, true);
-							}
-						} catch(e) {
-							showMessage("danger", T("Error"), T("Could not read contents of file {0}!", theFile.name));
-						}
-					}
-				})(this);
-				fileReader.readAsArrayBuffer(this);
-
-				containsZip = true;
-				return false;
-			}
-		});
-		if (containsZip) {
-			// We're relying on an async task which will trigger this method again when required
-			return;
-		}
-	}
 
 	// Reset modal dialog
 	$("#modal_upload").data("backdrop", "static");
@@ -223,6 +280,10 @@ function uploadNextFile() {
 
 		case "macro":	// Upload Macro
 			targetPath = currentMacroDirectory + "/" + uploadFileName;
+			break;
+
+		case "filament": // Filament (only to sub-directories)
+			targetPath = "0:/filaments/" + uploadFileName;
 			break;
 
 		default:		// Generic Upload (on the Settings page)
@@ -413,6 +474,10 @@ function uploadHasFinished(success) {
 		if (currentPage == "control" || currentPage == "macros") {
 			updateMacroFiles();
 		}
+	} else if (uploadType == "filament") {
+		if (currentPage == "filaments") {
+			updateFilaments();
+		}
 	}
 
 	// Start polling again
@@ -545,38 +610,6 @@ function startDWCUpdate() {
 		sendGCode("M997 S2");
 		startUpdates();
 	}, startUpdates);
-}
-
-function moveFile(oldFile, newFile, onSuccess, onError) {
-	if (oldFile == undefined || oldFile.toUpperCase() == newFile.toUpperCase()) {
-		// No need to rename the file or directory
-		onSuccess();
-	} else {
-		// File names are different, so attempt to move the old path to the new one
-		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(oldFile) + "&new=" + encodeURIComponent(newFile), {
-			dataType: "json",
-			success: function(response) {
-				if (response.err == 0) {
-					// If that succeeds, return to the callback
-					onSuccess();
-				} else {
-					// Could not rename the file, so delete it first. Once done, call this method again
-					$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(newFile), {
-						dataType: "json",
-						success: function(response) {
-							if (response.err == 0) {
-								// File delete succeeded, attempt to rename the file once again
-								moveFile(oldFile, newFile, onSuccess, onError);
-							} else if (onError != undefined) {
-								// Didn't work? Should never happen
-								onError();
-							}
-						}
-					});
-				}
-			}
-		});
-	}
 }
 
 

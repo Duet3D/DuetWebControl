@@ -16,7 +16,11 @@ var currentGCodeDirectory, knownGCodeFiles, gcodeUpdateIndex, gcodeLastDirectory
 var cachedFileInfo;
 
 var currentMacroDirectory, macroLastDirectoryRow, macroLastDirectoryItem, macrosLoaded;
+var filamentsLoaded, filamentsExist;
 var sysLoaded;
+
+var multiFileOperations, doingFileTask;
+var downloadNotification, zipFile;
 
 
 /* G-Code file info caching */
@@ -126,22 +130,14 @@ function addScanFile(filename, size, lastModified) {
 	$("#page_scanner h1").addClass("hidden");
 	$("#table_scan_files").removeClass("hidden");
 
-	var isDisabled = false;
-	isDisabled |= filename.toLowerCase().endsWith(".bin");
-
-	var row =	'<tr data-file="' + filename + '"><td></td>';
+	var row =	'<tr data-file="' + filename + '">';
 	row +=		'<td><button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button></td>';
 	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
-	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
+	row +=		'<td><a href="#" class="btn-download-file"><span class="glyphicon glyphicon-file"></span>' + filename + '</a></td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
-
-	var rowElem = $(row);
-	/*rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);*/
-
-	$("#table_scan_files > tbody").append(rowElem);
+	$("#table_scan_files > tbody").append(row);
 }
 
 function updateScanFiles() {
@@ -173,7 +169,7 @@ function updateScanFiles() {
 	// Don't request updates while loading the file list
 	stopUpdates();
 
-	// Request filelist for /sys
+	// Request filelist for /scans
 	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/scans", {
 		dataType: "json",
 		success: function(response) {
@@ -215,14 +211,31 @@ function scanUpdateFinished() {
 	}
 }
 
-/*$("#table_scan_files").on("click", "a", function(e) {
-	// This is only for drag&drop
+$("body").on("click", ".btn-download-file", function(e) {
+	var filename = $(this).closest("tr").data("file");
+	var filepath = getFilePath() + "/" + filename;
+
+	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
+	var elem = $('<a target="_blank" href="' + ajaxPrefix + 'rr_download?name=' + encodeURIComponent(filepath) + '" download="' + filename + '"></a>');
+	elem.appendTo("body");
+	elem[0].click();
+	elem.remove();
+
 	e.preventDefault();
-});*/
+});
+
+$("body").on("click", ".btn-delete-file", function(e) {
+	var row = $(this).closest("tr");
+	var file = row.data("file");
+	showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
+		deletePath(file, row);
+	});
+
+	e.preventDefault();
+});
 
 
 /* G-Code Files */
-
 
 // Volume support
 
@@ -282,9 +295,10 @@ function setMountedVolumes(bitmap) {
 		}
 
 		// Check if the requested volume has been mounted
-		if (mountRequested && (bitmap & (1 << i)) != (mountedVolumes & (1 << i))) {
+		if (mountRequested && (bitmap & (1 << i)) != (oldBitmap & (1 << i))) {
 			mountRequested = false;
 			changeGCodeVolume(i);
+			return;
 		}
 	}
 
@@ -407,9 +421,9 @@ function addGCodeFile(filename, size, lastModified) {
 	$("#table_gcode_files").removeClass("hidden");
 
 	var title = (lastModified == undefined) ? "" : (' title="' + T("Last modified on {0}", lastModified.toLocaleString()) + '"');
-
-	var row =	'<tr data-file="' + filename + '"' + title + '>';
-	row +=		'<td></td><td></td><td></td>';
+	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+	var row =	'<tr draggable="true" data-file="' + filename + '"' + title + ' data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
+	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
 	row +=		'<td class="hidden-xs">' + formatSize(size) + '</td>';
 	row +=		'<td class="object-height">' + T("loading") + '</td>';
@@ -417,7 +431,6 @@ function addGCodeFile(filename, size, lastModified) {
 	row +=		'<td class="hidden-xs filament-usage">' + T("loading") + '</td>';
 	row +=		'<td class="hidden-xs hidden-sm generated-by">' + T("loading") + '</td>';
 	row +=		'</tr>';
-
 	return $(row).appendTo("#table_gcode_files > tbody");
 }
 
@@ -425,16 +438,14 @@ function addGCodeDirectory(name) {
 	$("#page_files h1").addClass("hidden");
 	$("#table_gcode_files").removeClass("hidden");
 
-	var row =	'<tr data-directory="' + name + '">';
-	row +=		'<td colspan="3"><button class="btn btn-danger btn-delete-directory btn-sm" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
-	row +=		'<td class="hidden"></td>';
-	row +=		'<td class="hidden"></td>';
+	var row =	'<tr draggable="true" data-directory="' + name + '">';
+	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td colspan="6"><a href="#" class="a-gcode-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
 	row +=		'</tr>';
 
 	var rowElem = $(row);
-	rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+	rowElem[0].addEventListener("dragstart", fileDragStart, false);
+	rowElem[0].addEventListener("dragend", fileDragEnd, false);
 
 	if (gcodeLastDirectory == undefined) {
 		var firstRow = $("#table_gcode_files > tbody > tr:first-child");
@@ -450,18 +461,19 @@ function addGCodeDirectory(name) {
 }
 
 function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUsage, generatedBy) {
-	// Add buttons
-	var filename = row.data("file");
-	row.children().eq(0).html('<button class="btn btn-success btn-print-file btn-sm" title="' + T("Print this file (M32)") + '"><span class="glyphicon glyphicon-print"></span></button>').attr("colspan", "");
-	row.children().eq(1).html('<button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button>');
-	row.children().eq(2).html('<button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button>');
-
-	// Make entry interactive and add drag&drop handlers
-	var linkCell = row.children().eq(3);
+	// Make entry interactive and link the missing data attributes to it
+	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	linkCell.html('<a href="#" class="a-gcode-file">' + linkCell.html() + '</a>');
-	linkCell.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	linkCell.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+	row.data("height", height);
+	row.data("first-layer-height", firstLayerHeight);
+	row.data("layer-height", layerHeight);
+	row.data("filament-usage", filamentUsage);
+	row.data("generated-by", generatedBy);
+
+	// Add drag&drop handlers
+	row[0].addEventListener("dragstart", fileDragStart, false);
+	row[0].addEventListener("dragend", fileDragEnd, false);
 
 	// Set object height
 	row.find(".object-height").text((height > 0) ? T("{0} mm", height) : T("n/a"));
@@ -495,6 +507,7 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 function clearGCodeFiles() {
 	gcodeLastDirectory = undefined;
 	
+	$("#table_gcode_files > thead input[type='checkbox']:first-child").prop("checked", false);
 	$("#table_gcode_files > tbody").children().remove();
 	$("#table_gcode_files").addClass("hidden");
 	$("#page_files h1").removeClass("hidden");
@@ -545,10 +558,7 @@ function updateGCodeFiles() {
 						gcodeUpdateFinished();
 					} else {
 						// otherwise add each file and directory
-						knownGCodeFiles = response.files.sort(function (a, b) {
-							return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-						});
-
+						knownGCodeFiles = response.files;
 						for(var i = 0; i < knownGCodeFiles.length; i++) {
 							if (knownGCodeFiles[i].type == 'd') {
 								addGCodeDirectory(knownGCodeFiles[i].name);
@@ -608,7 +618,9 @@ function updateGCodeFiles() {
 }
 
 function gcodeUpdateFinished() {
-	$("#table_gcode_files").css("cursor", "");
+	var table = $("#table_gcode_files").css("cursor", "");
+	sortTable(table);
+
 	if (isConnected) {
 		$(".span-refresh-files").toggleClass("hidden", currentPage != "files");
 		startUpdates();
@@ -618,9 +630,24 @@ function gcodeUpdateFinished() {
 }
 
 $("body").on("click", ".a-gcode-directory", function(e) {
-	setGCodeDirectory(currentGCodeDirectory + "/" + $(this).parents("tr").data("directory"));
+	setGCodeDirectory(currentGCodeDirectory + "/" + $(this).closest("tr").data("directory"));
 	gcodeUpdateIndex = -1;
 	updateGCodeFiles();
+	e.preventDefault();
+});
+
+$("body").on("click", ".a-gcode-file", function(e) {
+	var file = $(this).closest("tr").data("file");
+	showConfirmationDialog(T("Start Print"), T("Do you want to print <strong>{0}</strong>?", file), function() {
+		waitingForPrintStart = true;
+		if (currentGCodeVolume != 0) {
+			sendGCode("M32 " + currentGCodeDirectory + "/" + file);
+		} else if (currentGCodeDirectory == "0:/gcodes") {
+			sendGCode("M32 " + file);
+		} else {
+			sendGCode("M32 " + currentGCodeDirectory.substring(10) + "/" + file);
+		}
+	});
 	e.preventDefault();
 });
 
@@ -663,7 +690,7 @@ function setMacroDirectory(directory) {
 	}
 }
 
-$("#btn_new_macro_directory").click(function() {
+$("#a_new_macro_directory").click(function(e) {
 	showTextInput(T("New directory"), T("Please enter a name:"), function(value) {
 		if (filenameValid(value)) {
 			$.ajax(ajaxPrefix + "rr_mkdir?dir=" + currentMacroDirectory + "/" + value, {
@@ -680,9 +707,10 @@ $("#btn_new_macro_directory").click(function() {
 			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
 		}
 	});
+	e.preventDefault();
 });
 
-$("#btn_new_macro_file").click(function() {
+$("#a_new_macro_file").click(function(e) {
 	showTextInput(T("New macro"), T("Please enter a filename:"), function(file) {
 		if (filenameValid(file)) {
 			showEditDialog(currentMacroDirectory + "/" + file, "", function(value) {
@@ -692,6 +720,7 @@ $("#btn_new_macro_file").click(function() {
 			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
 		}
 	});
+	e.preventDefault();
 });
 
 function stripMacroFilename(filename) {
@@ -727,18 +756,17 @@ function addMacroFile(filename, size, lastModified) {
 	$("#page_macros h1").addClass("hidden");
 	$("#table_macro_files").removeClass("hidden");
 
-	var row =	'<tr data-file="' + filename + '">';
-	row +=		'<td><button class="btn btn-success btn-run-macro btn-sm" title="' + T("Run this macro file (M98)") + '"><span class="glyphicon glyphicon-play"></span></button></td>';
-	row +=		'<td><button class="btn btn-info btn-edit-file btn-sm" title="' + T("Edit this macro") + '"><span class="glyphicon glyphicon-pencil"></span></button></td>';
-	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this macro") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
+	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+	var row =	'<tr draggable="true" data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
+	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#" class="a-macro-file"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
-	row +=		'</tr>';
+	row +=		'</tr>\n';
 
 	var rowElem = $(row);
-	rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+	rowElem[0].addEventListener("dragstart", fileDragStart, false);
+	rowElem[0].addEventListener("dragend", fileDragEnd, false);
 	rowElem.appendTo("#table_macro_files > tbody");
 }
 
@@ -770,18 +798,16 @@ function addMacroDirectory(name) {
 	$("#page_macros h1").addClass("hidden");
 	$("#table_macro_files").removeClass("hidden");
 
-	var row =	'<tr data-directory="' + name + '">';
-	row +=		'<td colspan="3"><button class="btn btn-danger btn-delete-directory btn-sm" title="' + T("Delete this directory") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
-	row +=		'<td class="hidden"></td>';
-	row +=		'<td class="hidden"></td>';
+	var row =	'<tr draggable="true" data-directory="' + name + '">';
+	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td colspan="3"><a href="#" class="a-macro-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
 	row +=		'<td class="hidden"></td>';
 	row +=		'<td class="hidden"></td>';
-	row +=		'</tr>';
+	row +=		'</tr>\n';
 
 	var rowElem = $(row);
-	rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);
+	rowElem[0].addEventListener("dragstart", fileDragStart, false);
+	rowElem[0].addEventListener("dragend", fileDragEnd, false);
 
 	if (macroLastDirectoryRow == undefined) {
 		var firstRow = $("#table_macro_files > tbody > tr:first-child");
@@ -824,6 +850,8 @@ function updateMacroFiles() {
 						$("#panel_macro_buttons h4").text(T("Failed to retrieve files of this directory"));
 					}
 				} else {
+					// Sort the macros by name when we get the response, because we
+					// may need to use the sorted array on the Control page
 					var files = response.files.sort(function (a, b) {
 						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
 					});
@@ -839,6 +867,8 @@ function updateMacroFiles() {
 
 					if (files.length == 0) {
 						$("#page_macros h1").text(T("No Macro Files found"));
+					} else {
+						sortTable($("#table_macro_files"));
 					}
 
 					if (currentPage == "macros") {
@@ -853,19 +883,15 @@ function updateMacroFiles() {
 	});
 }
 
-$("body").on("click", ".a-macro-directory", function(e) {
-	setMacroDirectory(currentMacroDirectory + "/" + $(this).parents("tr").data("directory"));
-	updateMacroFiles();
-	e.preventDefault();
-});
-
 function clearMacroFiles() {
 	// Control Page
 	if (currentMacroDirectory == "0:/macros") {
 		macroLastDirectoryItem = undefined;
 
 		$("#panel_macro_buttons .btn-group-vertical").children().remove();
-		if (isConnected && (mountedVolumes & (1 << 0)) == 0) {
+		if (!isConnected) {
+			$("#panel_macro_buttons h4").text(T("Connect to your Duet to display Macro files"));
+		} else if ((mountedVolumes & (1 << 0)) == 0) {
 			$("#panel_macro_buttons h4").text(T("The first volume is not mounted"));
 		} else {
 			$("#panel_macro_buttons h4").text(T("Go to the Macros page to define your own actions"));
@@ -877,6 +903,7 @@ function clearMacroFiles() {
 	macrosLoaded = false;
 	macroLastDirectoryRow = undefined;
 
+	$("#table_macro_files > thead input[type='checkbox']:first-child").prop("checked", false);
 	$("#table_macro_files > tbody").children().remove();
 	$("#table_macro_files").addClass("hidden");
 	$("#page_macros h1").removeClass("hidden");
@@ -924,7 +951,7 @@ function loadMacroDropdown(directory, dropdown) {
 					if (file.type == 'd') {
 						var item = $('<li class="bg-info"><a href="#" data-directory="' + directory + '/' + file.name + '">' + file.name + ' <span class="caret"></span></a></li>');
 						item.find("a").click(function(e) {
-							loadMacroDropdown($(this).data("directory"), $(this).parents("ul"));
+							loadMacroDropdown($(this).data("directory"), $(this).closest("ul"));
 							e.stopPropagation();
 							e.preventDefault();
 						});
@@ -943,235 +970,158 @@ function loadMacroDropdown(directory, dropdown) {
 	});
 }
 
-
-/* Common functions */
-
-function filenameValid(name) {
-	if (name.indexOf('"') != -1 || name.indexOf("'") != -1) {
-		// Don't allow quotes in filenames
-		return false;
-	}
-
-	if (name.indexOf("/") != -1 || name.indexOf("\"") != -1) {
-		// Don't allow (back)slashes either
-		return false;
-	}
-
-	if (name.indexOf(":") != -1) {
-		// Colons should be avoided too
-		return false;
-	}
-
-	return true;
-}
-
-function resetFiles() {
-	setVolumes(1);
-	setMountedVolumes(1);
-	mountRequested = false;
-
-	//updateScanFiles();
-
-	knownGCodeFiles = [];
-	gcodeUpdateIndex = -1;
-	currentGCodeVolume = 0;
-	currentGCodeDirectory = "0:/gcodes";
-	//updateGCodeFiles();
-
-	currentMacroDirectory = "0:/macros";
-	//updateMacroFiles();
-
-	//updateSysFiles();
-}
-
-var draggingObject;
-
-function fileDragStart(e) {
-	$(".no-drag-target").addClass("hidden");
-	$(".drag-target").removeClass("hidden");
-
-	draggingObject = $(this).closest("tr");
-	// The following doesn't work, although it's recommended. I wonder who invented this crappy API...
-	//e.dataTransfer.setData('text/html', this.innerHTML);
-}
-
-function fileDragEnd(e) {
-	$(".no-drag-target").removeClass("hidden");
-	$(".drag-target").addClass("hidden");
-
-	draggingObject = undefined;
-}
-
-$(".table-files").on("dragover", "tr", function(e) {
-	var row = $(e.target).closest("tr");
-	if (draggingObject != undefined && row != undefined) {
-		var dir = row.data("directory");
-		if (dir != undefined && dir != draggingObject.data("directory")) {
-			e.stopPropagation();
-			e.preventDefault();
-		}
-	}
+$("body").on("click", ".a-macro-directory", function(e) {
+	setMacroDirectory(currentMacroDirectory + "/" + $(this).closest("tr").data("directory"));
+	updateMacroFiles();
+	e.preventDefault();
 });
 
-$(".table-files").on("drop", "tr", function(e) {
-	if (draggingObject == undefined) {
-		return;
-	}
-
-	var sourcePath = draggingObject.data("file");
-	if (sourcePath == undefined) {
-		sourcePath = draggingObject.data("directory");
-	}
-
-	var targetPath = $(e.target).closest("tr").data("directory");
-	if (targetPath != undefined && sourcePath != targetPath) {
-		if (currentPage == "files") {
-			targetPath = currentGCodeDirectory + "/" + targetPath + "/" + sourcePath;
-			sourcePath = currentGCodeDirectory + "/" + sourcePath;
-
-			clearFileCache(sourcePath);
-			clearFileCache(targetPath);
-		} else {
-			targetPath = currentMacroDirectory + "/" + targetPath + "/" + sourcePath;
-			sourcePath = currentMacroDirectory + "/" + sourcePath;
-		}
-
-		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
-			dataType: "json",
-			row: draggingObject,
-			success: function(response) {
-				if (response.err == 0) {
-					// We can never run out of files/dirs if we move FSOs to sub-directories...
-					this.row.remove();
-				}
-				// else an error is reported via rr_reply
-			}
-		});
-
-		e.stopPropagation();
-		e.preventDefault();
-	}
+$("body").on("click", ".a-macro-file", function(e) {
+	var file = $(this).closest("tr").data("file");
+	showConfirmationDialog(T("Run Macro"), T("Do you want to run <strong>{0}</strong>?", file), function() {
+		sendGCode("M98 P" + currentMacroDirectory + "/" + file);
+	});
+	e.preventDefault();
 });
 
-$("#ol_gcode_directory, #ol_macro_directory").on("dragover", "a", function(e) {
-	if (draggingObject != undefined) {
-		e.stopPropagation();
-		e.preventDefault();
-	}
+
+/* Filaments */
+
+$(".span-refresh-filaments").click(function() {
+	updateFilaments();
+	$(".span-refresh-filaments").addClass("hidden");
 });
 
-$("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
-	if (draggingObject == undefined) {
-		return;
-	}
-	draggingObject = draggingObject.closest("tr");
-
-	var targetDir = $(e.target).data("directory");
-	if (targetDir != undefined) {
-		var sourcePath = draggingObject.data("file");
-		if (sourcePath == undefined) {
-			sourcePath = draggingObject.data("directory");
-		}
-
-		var targetPath, fileTable;
-		if (currentPage == "files") {
-			targetPath = targetDir + "/" + sourcePath;
-			sourcePath = currentGCodeDirectory + "/" + sourcePath;
-			fileTable = $("#table_gcode_files > tbody");
-
-			clearFileCache(sourcePath);
-			clearFileCache(targetPath);
-		} else {
-			targetPath = targetDir + "/" + sourcePath;
-			sourcePath = currentMacroDirectory + "/" + sourcePath;
-			fileTable = $("#table_macro_files > tbody");
-		}
-
-		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(sourcePath) + "&new=" + encodeURIComponent(targetPath), {
-			dataType: "json",
-			row: draggingObject,
-			table: fileTable,
-			success: function(response) {
-				if (response.err == 0) {
-					this.row.remove();
-					if (this.table.children().length == 0) {
-						if (currentPage == "files") {
-							gcodeUpdateIndex = -1;
-							updateGCodeFiles();
+$("#btn_new_filament").click(function() {
+	showTextInput(T("New filament"), T("Please enter a name:"), function(value) {
+		if (filenameValid(value)) {
+			if (filamentsExist) {
+				$.ajax(ajaxPrefix + "rr_mkdir?dir=" + encodeURIComponent("0:/filaments/" + value), {
+					dataType: "json",
+					success: function(response) {
+						if (response.err == 0) {
+							uploadTextFile("0:/filaments/" + value + "/load.g", "", undefined, false);
+							uploadTextFile("0:/filaments/" + value + "/unload.g", "", undefined, false);
+							updateFilaments();
 						} else {
-							updateMacroFiles();
+							showMessage("warning", T("Error"), T("Could not create this directory!"));
 						}
 					}
-				}
-				// else an error is reported via rr_reply
-			}
-		});
-
-		e.stopPropagation();
-		e.preventDefault();
-	}
-});
-
-$(".btn-rename, #a_rename_file").on("dragover", function(e) {
-	if (draggingObject != undefined) {
-		if ($(this).is("button")) {
-			$(this).removeClass("btn-warning").addClass("btn-success");
-		}
-
-		e.stopPropagation();
-		e.preventDefault();
-	}
-});
-
-$(".btn-rename, #a_rename_file").on("drop", function(e) {
-	if (draggingObject != undefined) {
-		if ($(this).is("button")) {
-			$(this).removeClass("btn-success").addClass("btn-warning");
-		}
-
-		var oldFileName = draggingObject.data("file");
-		if (oldFileName == undefined) {
-			oldFileName = draggingObject.data("directory");
-		}
-
-		showTextInput(T("Rename File or Directory"), T("Please enter a new name:"), function(newFileName) {
-			// Get current path
-			var filePath;
-			if (currentPage == "files") {
-				filePath = currentGCodeDirectory;
-				clearFileCache(filePath + "/" + oldFileName);
-			} else if (currentPage == "macros") {
-				filePath = currentMacroDirectory;
+				});
 			} else {
-				filePath = "0:/sys";
-			}
-
-			// Try to move that file
-			$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(filePath + "/" + oldFileName) + "&new=" + encodeURIComponent(filePath + "/" + newFileName), {
-				dataType: "json",
-				success: function(response) {
-					if (response.err == 0) {
-						if (currentPage == "files") {
-							gcodeUpdateIndex = -1;
-							updateGCodeFiles();
-						} else if (currentPage == "macros") {
-							updateMacroFiles();
-						} else {
-							updateSysFiles();
+				$.ajax(ajaxPrefix + "rr_mkdir?dir=0:/filaments", {
+					dataType: "json",
+					success: function(response) {
+						if (response.err == 0) {
+							$.ajax(ajaxPrefix + "rr_mkdir?dir=" + encodeURIComponent("0:/filaments/" + value), {
+								dataType: "json",
+								success: function(response) {
+									if (response.err == 0) {
+										uploadTextFile("0:/filaments/" + value + "/load.g", "", undefined, false);
+										uploadTextFile("0:/filaments/" + value + "/unload.g", "", undefined, false);
+										updateFilaments();
+									} else {
+										showMessage("warning", T("Error"), T("Could not create this directory!"));
+									}
+								}
+							});
 						}
 					}
-					// else an error is reported via rr_reply
-				}
-			});
-		}, oldFileName);
-
-		e.preventDefault();
-		e.stopPropagation();
-	}
+				});
+			}
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
+	});
 });
 
-$(".btn-rename").on("dragleave", function(e) {
-	$(this).removeClass("btn-success").addClass("btn-warning");
+function updateFilaments() {
+	clearFilaments();
+	if (!isConnected) {
+		$(".span-refresh-filaments").addClass("hidden");
+		return;
+	}
+
+	// Is the macro volume mounted?
+	if ((mountedVolumes & (1 << 0)) == 0) {
+		// No - stop here
+		clearFilaments();
+		return;
+	}
+
+	// Yes - fetch the filelist for the current directory and proceed
+	stopUpdates();
+
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/filaments", {
+		dataType: "json",
+		success: function(response) {
+			if (isConnected) {
+				if (response.hasOwnProperty("err")) {
+					// don't proceed if the firmware has reported an error
+					filamentsExist = false;
+					$("#page_filaments h1").text(T("Failed to retrieve Filaments"));
+				} else {
+					var files = response.files, filamentsAdded = 0;
+					for(var i = 0; i < files.length; i++) {
+						if (files[i].type == 'd') {
+							var dateCreated = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+							addFilament(files[i].name, dateCreated);
+							filamentsAdded++;
+						}
+					}
+
+					if (filamentsAdded == 0) {
+						$("#page_filaments h1").text(T("No Filaments found"));
+					} else {
+						sortTable($("#table_filaments"));
+					}
+
+					if (currentPage == "filaments") {
+						$(".span-refresh-filaments").removeClass("hidden");
+					}
+					filamentsLoaded = true;
+					filamentsExist = true;
+				}
+
+				startUpdates();
+			}
+		}
+	});
+}
+
+function addFilament(name, dateCreated) {
+	$("#page_filaments h1").addClass("hidden");
+	$("#table_filaments").removeClass("hidden");
+
+	var row =	'<tr data-filament="' + name + '" data-date-created="' + dateCreated.getTime() + '">';
+	row +=		'<td><input type="checkbox"></td>';
+	row +=		'<td><a href="#" class="a-filament"><span class="glyphicon glyphicon-cd"></span> ' + name + '</a></td>';
+	row +=		'<td>' + ((dateCreated == undefined) ? T("unknown") : dateCreated.toLocaleString()) + '</td>';
+	row +=		'</tr>';
+	$("#table_filaments > tbody").append(row);
+}
+
+function clearFilaments() {
+	filamentsLoaded = false;
+	filamentsExist = false;
+
+	$("#table_filaments > thead input[type='checkbox']:first-child").prop("checked", false);
+	$("#table_filaments > tbody").children().remove();
+	$("#table_filaments").addClass("hidden");
+	$("#page_filaments h1").removeClass("hidden");
+	if (isConnected) {
+		if ((mountedVolumes & (1 << 0)) == 0) {
+			$("#page_filaments h1").text(T("The first volume is not mounted"));
+		} else {
+			$("#page_filaments h1").text(T("loading"));
+		}
+	} else {
+		$("#page_filaments h1").text(T("Connect to your Duet to display Filaments"));
+	}
+}
+
+$("#table_filaments > tbody").on("click", ".a-filament", function(e) {
+	e.preventDefault();
 });
 
 
@@ -1204,27 +1154,14 @@ function addSysFile(filename, size, lastModified) {
 	$("#page_sysedit h1").addClass("hidden");
 	$("#table_sys_files").removeClass("hidden");
 
-	var isDisabled = false;
-	isDisabled |= filename.toLowerCase().endsWith(".bin");
-
-	var row =	'<tr data-file="' + filename + '">';
-	if (filename.endsWith(".csv")) {
-		row +=	'<td><button class="btn btn-success btn-view-heightmap btn-sm" title="' + T("View this heightmap") + '"><span class="glyphicon glyphicon-eye-open"></span></button></td>';
-	} else {
-		row +=	'<td><button class="btn btn-success btn-edit-file ' + (isDisabled ? "disabled" : "") + ' btn-sm" title="' + T("Edit this file") + '"><span class="glyphicon glyphicon-pencil"></span></button></td>';
-	}
-	row +=		'<td><button class="btn btn-info btn-download-file btn-sm" title="' + T("Download this file") + '"><span class="glyphicon glyphicon-download-alt"></span></button></td>';
-	row +=		'<td><button class="btn btn-danger btn-delete-file btn-sm" title="' + T("Delete this file") + '"><span class="glyphicon glyphicon-trash"></span></button></td>';
+	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+	var row =	'<tr data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
+	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
 	row +=		'<td>' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
-
-	var rowElem = $(row);
-	rowElem.find("a")[0].addEventListener("dragstart", fileDragStart, false);
-	rowElem.find("a")[0].addEventListener("dragend", fileDragEnd, false);
-
-	$("#table_sys_files > tbody").append(rowElem);
+	$("#table_sys_files > tbody").append(row);
 }
 
 function updateSysFiles() {
@@ -1260,19 +1197,19 @@ function updateSysFiles() {
 					// don't proceed if the firmware has reported an error
 					$("#page_sysedit h1").text(T("Failed to retrieve files of this directory"));
 				} else {
-					var files = response.files.sort(function (a, b) {
-						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-					});
-
+					var files = response.files, filesAdded = 0;
 					for(var i = 0; i < files.length; i++) {
 						if (files[i].type != 'd') {
 							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
 							addSysFile(files[i].name, files[i].size, lastModified);
+							filesAdded++;
 						}
 					}
 
-					if (files.length == 0) {
+					if (filesAdded == 0) {
 						$("#page_sysedit h1").text(T("No System Files found"));
+					} else {
+						sortTable($("#table_sys_files"));
 					}
 
 					$("#a_refresh_sys").removeClass("hidden");
@@ -1285,13 +1222,762 @@ function updateSysFiles() {
 	});
 }
 
-$("#table_sys_files").on("click", "a", function(e) {
-	// This is only for drag&drop
+$("#table_sys_files").on("click", "tbody a", function(e) {
+	var row = $(this).closest("tr");
+	var file = row.data("file");
+	if (file.match("\.g$") != null || file == "filaments.csv") {
+		// Edit .g files
+		editFile(getFilePath() + "/" + file, true, row.data("size"));
+	} else if (file.match("\.csv$") != null) {
+		// Treat .csv files as heightmaps
+		getHeightmap(getFilePath() + "/" + file);
+	} else {
+		// Download every other file
+		var elem = $('<a target="_blank" href="' + ajaxPrefix + 'rr_download?name=' + encodeURIComponent(getFilePath() + "/" + file) + '" download="' + file + '"></a>');
+		elem.appendTo("body");
+		elem[0].click();
+		elem.remove();
+	}
 	e.preventDefault();
 });
 
 
-/* List item events */
+/* Drag & Drop */
+
+var draggingObjects, dragImage;
+
+function fileDragStart(e) {
+	// Work out which elements shall be dragged
+	draggingObjects = $(this);
+	if ($(this).find("input[type='checkbox']").prop("checked")) {
+		draggingObjects = $(this).closest("tbody").find("input[type='checkbox']:checked").parents("tr");
+	}
+
+	// Set an alternative drag image
+	if (typeof e.dataTransfer.setDragImage === "function") {
+		dragImage = draggingObjects.closest("table").clone();
+		dragImage.children("thead").remove();
+
+		if (draggingObjects.length == 1) {
+			var file = draggingObjects.data("file");
+			if (file != undefined) {
+				dragImage.find('tr[data-file!="' + file + '"]').remove();
+			} else {
+				var directory = draggingObjects.data("directory");
+				dragImage.find('tr[data-directory!="' + directory + '"]').remove();
+			}
+		} else {
+			dragImage.find("input[type='checkbox']:not(:checked)").parents("tr").remove();
+		}
+
+		$(document.body).css("overflow", "none");
+		dragImage.css({
+			"top": (e.pageY - e.offsetY) + "px",
+			"left": (e.pageX - e.offsetX) + "px",
+			"opacity": 0.5,
+			"position": "absolute",
+			"pointerEvents": "none",
+			"width": draggingObjects.closest("table").width()
+		}).appendTo(document.body);
+
+		e.dataTransfer.setDragImage(dragImage[0], e.offsetX, e.offsetY);
+		setTimeout(function() {
+			dragImage.remove();
+			$(document.body).css("overflow", "");
+		});
+	}
+
+	dobjs = draggingObjects;
+	ev = e;
+}
+
+function fileDragEnd(e) {
+	draggingObjects = undefined;
+}
+
+$(".table-files").on("dragover", "tr", function(e) {
+	var row = $(e.target).closest("tr");
+	if (draggingObjects != undefined && row != undefined) {
+		var dir = row.data("directory");
+		if (dir != undefined) {
+			for(var i = 0; i < draggingObjects.length; i++) {
+				if (dir == draggingObjects.eq(i).data("directory")) {
+					return;
+				}
+			}
+
+			e.stopPropagation();
+			e.preventDefault();
+		}
+	}
+});
+
+$(".table-files").on("drop", "tr", function(e) {
+	if (draggingObjects == undefined) {
+		return;
+	}
+
+	var directory = $(e.target).closest("tr").data("directory");
+	for(var i = 0; i < draggingObjects.length; i++) {
+		var sourcePath = draggingObjects.eq(i).data("file");
+		if (sourcePath == undefined) {
+			sourcePath = draggingObjects.eq(i).data("directory");
+		}
+
+		var targetPath;
+		if (currentPage == "files") {
+			targetPath = currentGCodeDirectory + "/" + directory + "/" + sourcePath;
+			sourcePath = currentGCodeDirectory + "/" + sourcePath;
+
+			clearFileCache(sourcePath);
+			clearFileCache(targetPath);
+		} else {
+			targetPath = currentMacroDirectory + "/" + directory + "/" + sourcePath;
+			sourcePath = currentMacroDirectory + "/" + sourcePath;
+		}
+
+		moveFile(sourcePath, targetPath, undefined, undefined, draggingObjects.eq(i));
+	}
+
+	e.stopPropagation();
+	e.preventDefault();
+});
+
+$("#ol_gcode_directory, #ol_macro_directory").on("dragover", "a", function(e) {
+	if (draggingObjects != undefined) {
+		e.stopPropagation();
+		e.preventDefault();
+	}
+});
+
+$("#ol_gcode_directory, #ol_macro_directory").on("drop", "a", function(e) {
+	if (draggingObjects == undefined) {
+		return;
+	}
+
+	var directory = $(e.target).data("directory");
+	for(var i = 0; i < draggingObjects.length; i++) {
+		var sourcePath = draggingObjects.eq(i).data("file");
+		if (sourcePath == undefined) {
+			sourcePath = draggingObjects.eq(i).data("directory");
+		}
+
+		var targetPath;
+		if (currentPage == "files") {
+			targetPath = directory + "/" + sourcePath;
+			sourcePath = currentGCodeDirectory + "/" + sourcePath;
+
+			clearFileCache(sourcePath);
+			clearFileCache(targetPath);
+		} else {
+			targetPath = directory + "/" + sourcePath;
+			sourcePath = currentMacroDirectory + "/" + sourcePath;
+		}
+
+		moveFile(sourcePath, targetPath, undefined, undefined, draggingObjects.eq(i));
+	}
+});
+
+
+/* List Item Events */
+
+$(".table-files > thead input[type='checkbox']:first-child").change(function(e) {
+	$(this).closest("table").find("tbody > tr > td:first-child > input[type='checkbox']").prop("checked", $(this).prop("checked")).trigger("change");
+});
+
+$(".table-files").on("change", "td:first-child > input[type='checkbox']", function() {
+	$(this).closest("tr").toggleClass("info", $(this).prop("checked"));
+});
+
+$(".table-files").on("click", "tr", function(e) {
+	if ($(e.target).is("td")) {
+		var row = $(e.target).closest("tr");
+		var checkbox = row.find('input[type="checkbox"]');
+		if (checkbox.length > 0) {
+			// Toggle state of checkbox if available
+			checkbox.prop("checked", !checkbox.prop("checked")).trigger("change");
+		}
+	}
+});
+
+$(".table-files").on("contextmenu", "tr", function(e) {
+	if ($(e.target).closest("tbody").length > 0) {
+		showContextMenu($(e.target).closest("tr"), e.clientX, e.clientY);
+		e.stopPropagation();
+	}
+	e.preventDefault();
+});
+
+$(".table-files").on("dblclick", "tr", function(e) {
+	if ($(e.target).is("td")) {
+		var row = $(e.target).closest("tr");
+		var link = row.find("a");
+		if (link.length > 0) {
+			// Simulate click on link when the row is double-clicked
+			link.trigger("click");
+		}
+	}
+});
+
+
+/* Table Headers */
+
+$(".table-files > thead a").click(function(e) {
+	// Determine in which way the column needs to be sorted
+	var span = $(this).closest("th").children("span");
+	var sortAscending = !span.hasClass("glyphicon-sort-by-alphabet");
+	$(this).closest("tr").find("span").removeClass("glyphicon").removeClass("glyphicon-sort-by-alphabet").removeClass("glyphicon glyphicon-sort-by-alphabet-alt");
+	if (sortAscending) {
+		span.addClass("glyphicon").addClass("glyphicon-sort-by-alphabet");
+	} else {
+		span.addClass("glyphicon").addClass("glyphicon glyphicon-sort-by-alphabet-alt");
+	}
+
+	// Do the actual sorting
+	sortTable($(this).closest("table"));
+
+	$(this).blur();
+	e.preventDefault();
+});
+
+function sortTable(table) {
+	var sortingSpan = table.children("thead").find("span.glyphicon");
+	var attribute = sortingSpan.parent().children("a").data("attribute");
+	var ascending = sortingSpan.hasClass("glyphicon-sort-by-alphabet");
+
+	var rows = table.children("tbody").children().detach();
+	if (table.prop("id") == "table_filaments") {
+		sortTableArray(rows, attribute, ascending);
+	} else {
+		var directories = rows.filter("[data-directory]");
+		var files = rows.filter("[data-file]");
+
+		sortTableArray(directories, (attribute == "filename") ? "directory" : attribute, ascending);
+		sortTableArray(files, (attribute == "filename") ? "file" : attribute, ascending);
+
+		rows = [];
+		$.each(directories, function() { rows.push(this); });
+		$.each(files, function() { rows.push(this); });
+	}
+
+	var body = table.children("tbody");
+	$.each(rows, function() {
+		$(this).appendTo(body);
+	});
+}
+
+function sortTableArray(array, attribute, ascending) {
+	array.sort(function(a, b) {
+		var aVal = $(a).data(attribute), bVal = $(b).data(attribute);
+		if (aVal == undefined && bVal == undefined) {
+			return 0;
+		}
+		if (aVal == undefined && bVal != undefined) {
+			return (ascending) ? -1 : 1;
+		}
+		if (aVal != undefined && bVal == undefined) {
+			return (ascending) ? 1 : -1;
+		}
+
+		var result = (ascending) ? (aVal - bVal) : (bVal - aVal);
+		if (isNaN(result)) {
+			aVal = aVal.toString();
+			bVal = bVal.toString();
+			if (ascending) {
+				return aVal.toLowerCase().localeCompare(bVal.toLowerCase());
+			}
+			return bVal.toLowerCase().localeCompare(aVal.toLowerCase());
+		}
+		return result;
+	});
+}
+
+
+/* Context Menu */
+
+var contextMenuShown = false, contextMenuTargets;
+
+function hideContextMenu() {
+	if (contextMenuShown) {
+		$("#ul_file_contextmenu").hide();
+
+		contextMenuTargets.closest("tbody").children("tr").removeClass("info");
+		contextMenuTargets.closest("tbody").find("input[type='checkbox']:checked").parents("tr").addClass("info");
+		contextMenuShown = false;
+	}
+}
+
+function showContextMenu(target, x, y) {
+	// Context menu isn't available on the Scans page (yet)
+	if (currentPage == "scanner") {
+		return;
+	}
+
+	// Hide context menu if it is already shown
+	if (contextMenuShown) {
+		hideContextMenu();
+	}
+
+	// Apply color to selected items
+	contextMenuTargets = target;
+	if (target.find("input[type='checkbox']").prop("checked")) {
+		contextMenuTargets = target.closest("tbody").find("input[type='checkbox']:checked").parents("tr");
+	} else {
+		target.closest("tbody").children("tr").removeClass("info");
+	}
+	contextMenuTargets.addClass("info");
+
+	// Decide which actions can be shown
+	var contextMenu = $("#ul_file_contextmenu");
+	contextMenu.children().removeClass("hidden");
+	if (contextMenuTargets.length > 1) { contextMenu.children(".single").addClass("hidden"); }
+	if (contextMenuTargets.length < 2) { contextMenu.children(".multi").addClass("hidden"); }
+	if (contextMenuTargets.filter("[data-directory], [data-filament]").length > 0) { contextMenu.children(".file").addClass("hidden"); }
+	if (contextMenuTargets.filter("[data-file]").length > 0) { contextMenu.children(".directory").addClass("hidden"); }
+	if (contextMenuTargets.filter("[data-file$='.csv']").length == 0) { $("#a_context_view_heightmap").closest("li").addClass("hidden"); }
+	if (currentPage != "files") { contextMenu.children(".gcode-action").addClass("hidden"); }
+	if (currentPage != "macros") { contextMenu.children(".macro-action").addClass("hidden"); }
+	if (currentPage != "filaments") { contextMenu.children(".filament-action").addClass("hidden"); }
+
+	// Take care of the divider visibility
+	var items = $("#ul_file_contextmenu").children();
+	var isPrecededByAction = false;
+	for(var i = 0; i < items.length; i++) {
+		var item = items.eq(i);
+		if (item.hasClass("divider")) {
+			item.toggleClass("hidden", !isPrecededByAction);
+			isPrecededByAction = false;
+		} else {
+			isPrecededByAction |= !item.hasClass("hidden");
+		}
+	}
+
+	// Show it
+	contextMenu.css({
+		left: getMenuPosition(x, "width", "scrollLeft"),
+		top: getMenuPosition(y, "height", "scrollTop")
+	}).show();
+	contextMenuShown = true;
+}
+
+function getMenuPosition(mouse, direction, scrollDir) {
+	var win = $(window)[direction](),
+		scroll = $(window)[scrollDir](),
+		menu = $(settings.menuSelector)[direction](),
+		position = mouse + scroll;
+
+	// opening menu would pass the side of the page
+	if (mouse + menu > win && menu < mouse) {
+		position -= menu;
+	}
+
+	return position;
+}
+
+$("body").click(hideContextMenu).contextmenu(hideContextMenu);
+
+
+/* Context Menu Actions */
+
+$("#a_context_print").click(function(e) {
+	var file = contextMenuTargets.data("file");
+	waitingForPrintStart = true;
+	if (currentGCodeVolume != 0) {
+		sendGCode("M32 " + currentGCodeDirectory + "/" + file);
+	} else if (currentGCodeDirectory == "0:/gcodes") {
+		sendGCode("M32 " + file);
+	} else {
+		sendGCode("M32 " + currentGCodeDirectory.substring(10) + "/" + file);
+	}
+	e.preventDefault();
+});
+
+$("#a_context_run").click(function(e) {
+	var file = contextMenuTargets.data("file");
+	sendGCode("M98 P" + currentMacroDirectory + "/" + file);
+	e.preventDefault();
+});
+
+$("#a_context_edit_load").click(function(e) {
+	var filament = contextMenuTargets.data("filament");
+	editFile("0:/filaments/" + filament + "/load.g", false);
+	e.preventDefault();
+});
+
+$("#a_context_edit_unload").click(function(e) {
+	var filament = contextMenuTargets.data("filament");
+	editFile("0:/filaments/" + filament + "/unload.g", false);
+	e.preventDefault();
+});
+
+$("#a_context_view_heightmap").click(function(e) {
+	getHeightmap(getFilePath() + "/" + contextMenuTargets.data("file"));
+	e.preventDefault();
+});
+
+$("#a_context_download_file").click(function(e) {
+	var filename = contextMenuTargets.data("file");
+	var filepath = getFilePath() + "/" + filename;
+
+	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
+	var elem = $('<a target="_blank" href="' + ajaxPrefix + 'rr_download?name=' + encodeURIComponent(filepath) + '" download="' + filename + '"></a>');
+	elem.appendTo("body");
+	elem[0].click();
+	elem.remove();
+
+	e.preventDefault();
+});
+
+$("#a_context_download_zip").click(function(e) {
+	if (doingFileTask) {
+		showMessage("warning", T("Download as ZIP"), T("Please wait until the pending operations have finished before you download more files"));
+	} else {
+		downloadNotification = showDownloadMessage();
+		zipFile = new JSZip();
+
+		var fileIndex = 1;
+		$.each(contextMenuTargets, function() {
+			var row = $(this);
+			multiFileOperations.push({
+				action: "download_zip",
+				filename: row.data("file"),
+				path: getFilePath() + "/" + row.data("file"),
+				progress: fileIndex / contextMenuTargets.length * 100
+			});
+			fileIndex++;
+		});
+		doFileTask();
+	}
+	e.preventDefault();
+});
+
+$("#a_context_edit").click(function(e) {
+	editFile(getFilePath() + "/" + contextMenuTargets.data("file"), true, contextMenuTargets.data("size"));
+	e.preventDefault();
+});
+
+$("#a_context_rename").click(function(e) {
+	var oldFileName = contextMenuTargets.data("file");
+	if (oldFileName == undefined) {
+		oldFileName = contextMenuTargets.data("directory");
+	}
+	if (oldFileName == undefined) {
+		oldFileName = contextMenuTargets.data("filament");
+	}
+
+	showTextInput(T("Rename File or Directory"), T("Please enter a new name:"), function(newFileName) {
+		// Try to move that file
+		var filePath = getFilePath();
+		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(filePath + "/" + oldFileName) + "&new=" + encodeURIComponent(filePath + "/" + newFileName), {
+			dataType: "json",
+			success: function(response) {
+				if (response.err == 0) {
+					if (currentPage == "scans") {
+						updateScanFiles();
+					} else if (currentPage == "files") {
+						clearFileCache(filePath + "/" + oldFileName);
+
+						gcodeUpdateIndex = -1;
+						updateGCodeFiles();
+					} else if (currentPage == "macros") {
+						updateMacroFiles();
+					} else if (currentPage == "filaments") {
+						updateFilaments();
+					} else {
+						updateSysFiles();
+					}
+				}
+				// else an error is reported via rr_reply
+			}
+		});
+	}, oldFileName);
+	e.preventDefault();
+});
+
+$("#a_context_delete").click(function(e) {
+	if (contextMenuTargets.length == 1) {
+		var file = contextMenuTargets.data("file");
+		if (file != undefined) {
+			// Delete single file
+			showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
+				deletePath(file, contextMenuTargets);
+			});
+		} else {
+			// Delete single directory
+			var directory = contextMenuTargets.data("directory");
+			if (directory != undefined) {
+				deletePath(directory, contextMenuTargets);
+			} else {
+				// Delete single filament
+				var filament = contextMenuTargets.data("filament");
+				showConfirmationDialog(T("Delete Filament"), T("Are you sure you want to delete <strong>{0}</strong>?", filament), function() {
+					deleteFilament(filament, contextMenuTargets);
+				});
+			}
+		}
+	} else {
+		// Delete multiple items
+		showConfirmationDialog(T("Delete multiple Items"), T("Are you sure you want to delete the selected items?"), function() {
+			$.each(contextMenuTargets, function() {
+				var row = $(this);
+
+				var file = row.data("file");
+				if (file != undefined) {
+					deletePath(file, row);
+				} else {
+					var directory = row.data("directory");
+					if (directory != undefined) {
+						deletePath(directory, row);
+					} else {
+						var filament = row.data("filament");
+						deleteFilament(filament, row);
+					}
+				}
+			});
+		});
+	}
+	e.preventDefault();
+});
+
+
+/* Common functions */
+
+function deleteFilament(filament, elementToRemove) {
+	multiFileOperations.push({
+		action: "delete",
+		elementToRemove: elementToRemove,
+		filament: filament,
+		path: directory,
+		type: "filament"
+	});
+	doFileTask();
+}
+
+function deletePath(filename, elementToRemove, type) {
+	multiFileOperations.push({
+		action: "delete",
+		elementToRemove: elementToRemove,
+		path: getFilePath() + "/" + filename,
+		type: type
+	});
+	doFileTask();
+}
+
+function doFileTask() {
+	if (doingFileTask || !isConnected) {
+		return;
+	}
+
+	doingFileTask = (multiFileOperations.length > 0);
+	if (doingFileTask) {
+		var task = multiFileOperations.shift();
+		if (task.action == "delete") {
+			if (task.type == "filament") {
+				$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent("0:/filaments/" + task.filament), {
+					dataType: "json",
+					success: function(response) {
+						if (isConnected) {
+							if (response.hasOwnProperty("err")) {
+								showMessage("warning", T("Warning"), T("Could not delete filament {0}", task.filament));
+							} else {
+								for(var i = 0; i < response.files.length; i++) {
+									$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent("0:/filaments/" + task.filament + "/" + response.files[i].name));
+								}
+
+								$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent("0:/filaments/" + task.filament), {
+									dataType: "json",
+									success: function(response) {
+										if (response.err == 0) {
+											elementToRemove.remove();
+											updateFilesConditionally();
+										}
+									}
+								});
+							}
+						}
+					}
+				});
+			} else {
+				$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(task.path), {
+					dataType: "json",
+					success: function(response) {
+						if (response.err == 0) {
+							task.elementToRemove.remove()
+							updateFilesConditionally();
+						} else if (task.type == "file") {
+							showMessage("warning", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete file <strong>{0}</strong>!", file));
+						} else if (task.type == "directory") {
+							showMessage("warning", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete directory <strong>{0}</strong>!<br/><br/>Perhaps it isn't empty?", directory));
+						} else {
+
+						}
+
+						doingFileTask = false;
+						doFileTask();
+					}
+				});
+			}
+		} else if (task.action == "move") {
+			if (task.from == undefined || task.from.toUpperCase() == task.to.toUpperCase()) {
+				// No need to rename the file or directory
+				if (task.onSuccess != undefined) {
+					task.onSuccess();
+				}
+
+				doingFileTask = false;
+				doFileTask();
+			} else {
+				// File names are different, so attempt to move the old path to the new one
+				$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(task.from) + "&new=" + encodeURIComponent(task.to), {
+					dataType: "json",
+					success: function(response) {
+						if (response.err == 0) {
+							// If that succeeds, return to the callback
+							if (task.onSuccess != undefined) {
+								task.onSuccess();
+							}
+
+							// Check if we need to remove an element
+							if (task.elementToRemove != undefined) {
+								task.elementToRemove.remove();
+								updateFilesConditionally();
+							}
+						} else {
+							// Could not rename the file, so delete it first. Once done, call this method again
+							$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(task.to), {
+								dataType: "json",
+								success: function(response) {
+									if (response.err == 0) {
+										// File delete succeeded, attempt to rename the file once again
+										moveFile(task.from, task.to, task.onSuccess, task.onError);
+									} else if (task.onError != undefined) {
+										// Didn't work? Should never happen
+										task.onError();
+									}
+								}
+							});
+						}
+
+						doingFileTask = false;
+						doFileTask();
+					}
+				});
+			}
+		} else if (task.action == "download_zip") {
+			// JQuery cannot retrieve binary data, use plain JS instead
+			var xhr = new XMLHttpRequest();
+			xhr.onreadystatechange = function() {
+				if (isConnected && zipFile != undefined) {
+					if (this.readyState == 4) {
+						if (this.status == 200) {
+							// Add incoming file blob
+							zipFile.file(task.filename, this.response);
+							downloadNotification.update("progress", task.progress);
+
+							// See if we're done
+							if (multiFileOperations.length == 0 || multiFileOperations[0].action != "download_zip") {
+								if (JSZip.support.blob) {
+									// Download as blob
+									zipFile.generateAsync({ type: "blob" }).then(function (blob) {
+										downloadNotification.close();
+										downloadNotification = undefined;
+										zipFile = undefined;
+
+										saveAs(blob, "download.zip");
+									});
+								} else {
+									// Download via data URI
+									zipFile.generateAsync({ type: "base64" }).then(function (base64) {
+										downloadNotification.close();
+										downloadNotification = undefined;
+										zipFile = undefined;
+
+										window.location = "data:application/zip;base64," + base64;
+									});
+								}
+							}
+						}
+
+						doingFileTask = false;
+						doFileTask();
+					}
+				}
+			}
+			xhr.open('GET', ajaxPrefix + "rr_download?name=" + encodeURIComponent(task.path));
+			xhr.responseType = 'arraybuffer';
+			xhr.send();
+		}
+	}
+}
+
+var editFileNotification = undefined;
+function editFile(file, mustExist, size) {
+	if (size != undefined && size > 1000000) {
+		editFileNotification = showMessage("info", T("Downloading File"), T("This file is quite big. It may take a while before it is fully loaded..."), 0);
+	}
+	if (mustExist == undefined) { mustExist = true; }
+
+	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent(file), {
+		dataType: "text",
+		global: mustExist,
+		error: mustExist ? undefined : function(jqXHR, textStatus, errorThrown) {
+			if (editFileNotification != undefined) {
+				editFileNotification.close();
+				editFileNotification = undefined;
+			}
+
+			showEditDialog(file, "", function(value) {
+				uploadTextFile(file, value, function() {
+					if (currentPage == "files") {
+						updateGCodeFiles();
+					} else if (currentPage == "macros") {
+						updateMacroFiles();
+					} else if (currentPage == "settings") {
+						updateSysFiles();
+					}
+				});
+			});
+		},
+		success: function(response) {
+			if (editFileNotification != undefined) {
+				editFileNotification.close();
+				editFileNotification = undefined;
+			}
+
+			showEditDialog(file, response, function(value) {
+				uploadTextFile(file, value, function() {
+					if (currentPage == "files") {
+						updateGCodeFiles();
+					} else if (currentPage == "macros") {
+						updateMacroFiles();
+					} else if (currentPage == "settings") {
+						updateSysFiles();
+					}
+				});
+			});
+		},
+		timeout: 0
+	});
+}
+
+function filenameValid(name) {
+	if (name.indexOf('"') != -1 || name.indexOf("'") != -1) {
+		// Don't allow quotes in filenames
+		return false;
+	}
+
+	if (name.indexOf("/") != -1 || name.indexOf("\"") != -1) {
+		// Don't allow (back)slashes either
+		return false;
+	}
+
+	if (name.indexOf(":") != -1) {
+		// Colons should be avoided too
+		return false;
+	}
+
+	return true;
+}
 
 function getFilePath() {
 	if (currentPage == "scanner") {
@@ -1306,140 +1992,70 @@ function getFilePath() {
 		return currentMacroDirectory;
 	}
 
+	if (currentPage == "filaments") {
+		return "0:/filaments";
+	}
+
 	return "0:/sys";
 }
 
-$("body").on("click", ".btn-download-file", function(e) {
-	var filename = $(this).parents("tr").data("file");
-	var filepath = getFilePath() + "/" + filename;
-
-	// Should use a button link instead, but for some reason it isn't properly displayed with latest Bootstrap 3.3.7
-	var elem = $('<a target="_blank" href="rr_download?name=' + encodeURIComponent(filepath) + '" download="' + filename + '"></a>');
-	elem.appendTo("body");
-	elem[0].click();
-	elem.remove();
-
-	e.preventDefault();
-});
-
-function editFile(file) {
-	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent(file), {
-		dataType: "text",
-		success: function(response) {
-			showEditDialog(file, response, function(value) {
-				uploadTextFile(file, value, function() {
-					if (currentPage == "files") {
-						updateGCodeFiles();
-					} else if (currentPage == "macros") {
-						updateMacroFiles();
-					} else if (currentPage == "settings") {
-						updateSysFiles();
-					}
-				});
-			});
-		}
+function moveFile(from, to, onSuccess, onError, elementToRemove) {
+	multiFileOperations.push({
+		action: "move",
+		from: from,
+		to: to,
+		onSuccess: onSuccess,
+		onError: onError,
+		elementToRemove: elementToRemove
 	});
+	doFileTask();
 }
 
-$("body").on("click", ".btn-edit-file", function(e) {
-	if (!$(this).is(".disabled")) {
-		editFile(getFilePath() + "/" + $(this).parents("tr").data("file"));
+function resetFiles() {
+	setVolumes(1);
+	setMountedVolumes(1);
+	mountRequested = false;
+
+	//updateScanFiles();
+
+	knownGCodeFiles = [];
+	gcodeUpdateIndex = -1;
+	currentGCodeVolume = 0;
+	currentGCodeDirectory = "0:/gcodes";
+	//updateGCodeFiles();
+
+	currentMacroDirectory = "0:/macros";
+	//updateMacroFiles();
+
+	//updateFilaments();
+
+	//updateSysFiles();
+
+	multiFileOperations = [];
+	doingFileTask = false;
+
+	downloadNotification = undefined;
+	targetZipName = undefined;
+	zipFile = undefined;
+}
+
+function updateFilesConditionally() {
+	if (currentPage == "scanner") {
+		if ($("#table_scan_files > tbody").children().length == 0) {
+			updateScanFiles();
+		}
+	} else if (currentPage == "files") {
+		if ($("#table_gcode_files > tbody").children().length == 0) {
+			gcodeUpdateIndex = -1;
+			updateGCodeFiles();
+		}
+	} else if (currentPage == "macros") {
+		if ($("#table_macro_files > tbody").children().length == 0) {
+			updateMacroFiles();
+		}
+	} else if (currentPage == "settings") {
+		if ($("#table_sys_files > tbody").children().length == 0) {
+			updateSysFiles();
+		}
 	}
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-delete-file", function(e) {
-	var row = $(this).parents("tr");
-	var file = row.data("file");
-	showConfirmationDialog(T("Delete File"), T("Are you sure you want to delete <strong>{0}</strong>?", file), function() {
-		$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + file), {
-			dataType: "json",
-			row: row,
-			file: file,
-			success: function(response) {
-				if (response.err == 0) {
-					this.row.remove();
-
-					if (currentPage == "scanner") {
-						updateScanFiles();
-					} else if (currentPage == "files") {
-						if ($("#table_gcode_files > tbody").children().length == 0) {
-							gcodeUpdateIndex = -1;
-							updateGCodeFiles();
-						}
-					} else if (currentPage == "macros") {
-						if ($("#table_macro_files > tbody").children().length == 0) {
-							updateMacroFiles();
-						}
-					} else {
-						if ($("#table_sys_files > tbody").children().length == 0) {
-							updateSysFiles();
-						}
-					}
-				} else {
-					showMessage("warning", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete file <strong>{0}</strong>!", this.file));
-				}
-			}
-		});
-	});
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-delete-directory", function(e) {
-	var row = $(this).parents("tr");
-	var directory = row.data("directory");
-	$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(getFilePath() + "/" + directory), {
-		dataType: "json",
-		row: row,
-		directory: directory,
-		success: function(response) {
-			if (response.err == 0) {
-				this.row.remove();
-
-				if (currentPage == "files") {
-					if ($("#table_gcode_files > tbody").children().length == 0) {
-						gcodeUpdateIndex = -1;
-						updateGCodeFiles();
-					}
-				} else if (currentPage == "macros") {
-					if ($("#table_macro_files > tbody").children().length == 0) {
-						updateMacroFiles();
-					}
-				} else {
-					if ($("#table_sys_files > tbody").children().length == 0) {
-						updateSysFiles();
-					}
-				}
-			} else {
-				showMessage("warning", T("Deletion failed"), T("<strong>Warning:</strong> Could not delete directory <strong>{0}</strong>!<br/><br/>Perhaps it isn't empty?", this.directory));
-			}
-		}
-	});
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-print-file, .a-gcode-file", function(e) {
-	var file = $(this).parents("tr").data("file");
-	showConfirmationDialog(T("Start Print"), T("Do you want to print <strong>{0}</strong>?", file), function() {
-		waitingForPrintStart = true;
-		if (currentGCodeVolume != 0) {
-			sendGCode("M32 " + currentGCodeDirectory + "/" + file);
-		} else if (currentGCodeDirectory == "0:/gcodes") {
-			sendGCode("M32 " + file);
-		} else {
-			sendGCode("M32 " + currentGCodeDirectory.substring(10) + "/" + file);
-		}
-	});
-	e.preventDefault();
-});
-
-
-$("body").on("click", ".btn-run-macro, .a-macro-file", function(e) {
-	sendGCode("M98 P" + currentMacroDirectory + "/" + $(this).parents("tr").data("file"));
-	e.preventDefault();
-});
-
-$("body").on("click", ".btn-view-heightmap", function(e) {
-	getHeightmap(getFilePath() + "/" + $(this).parents("tr").data("file"));
-	e.preventDefault();
-});
+}
