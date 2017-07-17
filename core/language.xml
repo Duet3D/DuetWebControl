@@ -651,6 +651,9 @@
 		<string t="This file is quite big. It may take a while before it is fully loaded...">Diese Datei ist recht groß. Es kann eine Weile dauern bevor sie vollständig geladen ist...</string>
 		<string t="You cannot upload single files. Please upload only ZIP files that contain at least one directory per filament configuration.">Sie können keine einzelnen Dateien hochladen. Bitte laden Sie nur ZIP-Dateien hoch, die mindestens ein Verzeichnis pro Filamentkonfiguration enthalten.</string>
 		<string t="error">Fehler</string>
+		<string t="This browser does not support desktop notification">Dieser Browser unterstützt keine Desktopbenachrichtigungen</string>
+		<string t="Use HTML5-based desktop notifications when the page is hidden">Benutze HTML5-basierte Desktopbenachrichtigungen wenn die Seite versteckt ist</string>
+		<string t="Show HTML5 desktop notifications when the web interface is not visible">Zeige HTML5 Desktopbenachrichtigungen wenn die Weboberfläche nicht sichtbar ist</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->

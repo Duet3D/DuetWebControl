@@ -7,7 +7,7 @@
  */
 
 
-var notificationOptions = {
+var jsNotificationOptions = {
 	animate: {
 		enter: 'animated fadeInDown',
 		exit: 'animated fadeOutDown'
@@ -29,7 +29,7 @@ var notificationOptions = {
 };
 
 // Apply custom options for JS plugin
-$.notifyDefaults(notificationOptions);
+$.notifyDefaults(jsNotificationOptions);
 
 function showDownloadMessage() {
 	var notifySettings = { icon: "glyphicon glyphicon-compressed",
@@ -68,7 +68,30 @@ function showHaltMessage() {
 }
 
 function showMessage(type, title, message, timeout, allowDismiss) {
-	// Find a suitable icon
+	// Set default arguments
+	if (timeout == undefined) { timeout = settings.notificationTimeout; }
+	if (allowDismiss == undefined) { allowDismiss = true; }
+
+	// Check if an HTML5 notification shall be displayed
+	if (document.hidden && settings.useHtmlNotifications) {
+		// HTML5 notifications expect plain strings. Remove potential styles first
+		if (title.indexOf("<") != -1) { title = $("<span>" + title + "</span>").text(); }
+		if (message.indexOf("<") != -1) { message = $("<span>" + message + "</span>").text(); }
+
+		// Create new notification and display it
+		var options = {
+			body: message,
+			icon: "favicon.ico",
+			dir : "ltr",
+			requireInteraction: allowDismiss
+		};
+		var notification = new Notification(title, options);
+		if (allowDismiss) { notification.onclick = function() { this.close(); }; }
+		if (timeout > 0) { setTimeout(function() { notification.close(); }, timeout); }
+		return notification;
+	}
+
+	// Otherwise display a JQuery notification. Find a suitable icon first
 	var icon = "glyphicon glyphicon-info-sign";
 	if (type == "warning") {
 		icon = "glyphicon glyphicon-warning-sign";
@@ -87,7 +110,7 @@ function showMessage(type, title, message, timeout, allowDismiss) {
 	}
 
 	// Show the notification
-	var notifySettings = { icon: "glyphicon glyphicon-" + icon,
+	var notifySettings = { icon: icon,
 		title: title,
 		message: message};
 	var options = { type: type,

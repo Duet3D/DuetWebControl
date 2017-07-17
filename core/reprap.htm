@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.17-RC6
+<!--	Duet Web Control v1.17
 
 	written by Christian Hammacher
 
@@ -1747,7 +1747,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.17-RC6</td>
+														<td>1.17</td>
 													</tr>
 												</table>
 												<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2039,6 +2039,12 @@
 											</div>
 
 											<div class="panel-body">
+												<div class="checkbox">
+													<label title="Show HTML5 desktop notifications when the web interface is not visible">
+														<input type="checkbox" data-setting="useHtmlNotifications" /> Use HTML5-based desktop notifications when the page is hidden
+													</label>
+												</div>
+
 												<label for="input_notification_timeout">Default Notification Timeout:</label>
 												<div class="input-group">
 													<input type="number" id="input_notification_timeout" class="form-control" title="Time after which default notifications are automatically closed" data-setting="notificationTimeout" data-factor="1000">

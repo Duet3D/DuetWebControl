@@ -42,6 +42,7 @@ var settings = {
 	doTpre: true,					// change
 	doTpost: true,					// options
 
+	useHtmlNotifications: false,	// whether HTML5-based notifications can be used
 	notificationTimeout: 5000,		// in ms
 	autoCloseUserMessages: false,	// whether M117 messages are automatically closed
 
@@ -413,6 +414,29 @@ $("#btn_clear_cache").click(function(e) {
 	clearFileCache();
 	$("#btn_clear_cache").addClass("disabled");
 	e.preventDefault();
+});
+
+$("[data-setting='useHtmlNotifications']").change(function() {
+	if ($(this).prop("checked")) {
+		if (!("Notification" in window)) {
+			// Don't allow this option to be set if the browser doesn't support it
+			$(this).prop("checked", false);
+			alert(T("This browser does not support desktop notification"));
+		}
+		else if (Notification.permission !== 'denied') {
+			$(this).prop("checked", false);
+			Notification.requestPermission(function(permission) {
+				if (!('permission' in Notification)) {
+					Notification.permission = permission;
+				}
+
+				if (permission === "granted") {
+					// Don't allow this option to be set unless permission has been granted
+					$("[data-setting='useHtmlNotifications']").prop("checked", true);
+				}
+			});
+		}
+	}
 });
 
 // List Items
