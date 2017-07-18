@@ -1791,6 +1791,9 @@ function setTemperatureInput(heater, value, active, setToolHeaters) {
 }
 
 function setToolTemperatureInput(tool, heater, value, active) {
+	// Update Heaters panel as well
+	setTemperatureInput(heater, value, active, false);
+
 	var tempInput = undefined;
 	if (heater == "bed") {
 		tempInput = $("#table_tools tr[data-heater='bed'] input");

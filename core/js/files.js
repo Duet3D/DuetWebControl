@@ -1093,7 +1093,8 @@ function addFilament(name, dateCreated) {
 	$("#page_filaments h1").addClass("hidden");
 	$("#table_filaments").removeClass("hidden");
 
-	var row =	'<tr data-filament="' + name + '" data-date-created="' + dateCreated.getTime() + '">';
+	var dateCreatedValue = (dateCreated == undefined) ? 0 : dateCreated.getTime();
+	var row =	'<tr data-filament="' + name + '" data-date-created="' + dateCreatedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#" class="a-filament"><span class="glyphicon glyphicon-cd"></span> ' + name + '</a></td>';
 	row +=		'<td>' + ((dateCreated == undefined) ? T("unknown") : dateCreated.toLocaleString()) + '</td>';
@@ -1747,7 +1748,6 @@ function deleteFilament(filament, elementToRemove) {
 		action: "delete",
 		elementToRemove: elementToRemove,
 		filament: filament,
-		path: directory,
 		type: "filament"
 	});
 	doFileTask();
@@ -1788,7 +1788,7 @@ function doFileTask() {
 									dataType: "json",
 									success: function(response) {
 										if (response.err == 0) {
-											elementToRemove.remove();
+											task.elementToRemove.remove();
 											updateFilesConditionally();
 										}
 									}
