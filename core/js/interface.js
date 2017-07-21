@@ -9,7 +9,7 @@
 
 var machineName = "Duet Web Control";
 
-var maxAxes = 9, maxExtruders = 6, maxDrives = 9, maxHeaters = 8, maxTempSensors = 8, maxFans = 3;
+var maxAxes = 9, maxExtruders = 6, maxDrives = 9, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
 var axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 

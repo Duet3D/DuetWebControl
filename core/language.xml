@@ -460,7 +460,7 @@
 		<string t="The file {0} has been successfully uploaded.">Die Datei {0} ist erfolgreich hochgeladen worden.</string>
 		<string t="Show Heightmap">Höhenkarte anzeigen</string>
 		<string t="Failed to download height map">Konnte Höhenkarte nicht herunterladen</string>
-		<string t="Failed to download and process /sys/heightmap.csv from the SD card. Have you run G29 yet?">Konnte die Datei /sys/heightmap.csv nicht herunterladen und verarbeiten. Haben Sie schon G29 laufen lassen?</string>
+		<string t="Failed to download and process {0} from the SD card. Have you run G29 yet?">Konnte die Datei {0} nicht herunterladen und verarbeiten. Haben Sie schon G29 laufen lassen?</string>
 		<string t="Automatic Calibration Results">Ergebnisse der automatischen Kalibrierung</string>
 		<string t="loading...">lade...</string>
 		<string t="Scale:">Skala:</string>
@@ -1822,7 +1822,7 @@
 		<string t="The file {0} has been successfully uploaded.">O Arquivo {0} foi enviado com sucesso.</string>
 		<string t="Show Heightmap">Mostrar mapa de elevação</string>
 		<string t="Failed to download height map">Falha ao baixar mapa de elevação</string>
-		<string t="Failed to download and process /sys/heightmap.csv from the SD card. Have you run G29 yet?">Falha ao baixar e processar /sys/heightmap.csv do cartão SD. Você já executou o comando G29?</string>
+		<string t="Failed to download and process {0} from the SD card. Have you run G29 yet?">Falha ao baixar e processar {0} do cartão SD. Você já executou o comando G29?</string>
 		<string t="Automatic Calibration Results">Resultados da Calibração Automática</string>
 		<string t="loading...">carregando...</string>
 		<string t="Scale:">Escala:</string>
@@ -2665,7 +2665,7 @@
 		<string t="The file {0} has been successfully uploaded.">A {0} fájl sikeresen frissítve</string>
 		<string t="Show Heightmap">Magassági térkép mutatása</string>
 		<string t="Failed to download height map">A magassági térkép letöltése sikertelen</string>
-		<string t="Failed to download and process /sys/heightmap.csv from the SD card. Have you run G29 yet?">A /sys/heightmap.csv file letöltése és feldolgozása sikertelen. Futtatta már a G29 kódot?</string>
+		<string t="Failed to download and process {0} from the SD card. Have you run G29 yet?">A {0} file letöltése és feldolgozása sikertelen. Futtatta már a G29 kódot?</string>
 		<string t="Automatic Calibration Results">Automatikus kalibrálás eredménye</string>
 		<string t="loading...">töltés...</string>
 		<string t="Scale:">Lépték:</string>

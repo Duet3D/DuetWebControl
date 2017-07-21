@@ -737,8 +737,10 @@ function updateStatus() {
 				}
 
 				for(var i = 0; i < status.temps.extra.length; i++) {
-					if (lastStatusResponse == undefined || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
-						$("#table_extra tr").eq(i + 1).children("th").text(status.temps.extra[i].name);
+					if (lastStatusResponse == undefined || status.temps.extra.length != lastStatusResponse.temps.extra.length || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
+						var name = status.temps.extra[i].name;
+						if (name == "") { name = T("Sensor " + (i + 1)); }
+						$("#table_extra tr").eq(i + 1).children("th").text(name);
 					}
 					$("#table_extra tr").eq(i + 1).children("td:last-child").text(T("{0} °C", status.temps.extra[i].temp.toFixed(1)));
 				}

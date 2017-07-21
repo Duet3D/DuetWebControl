@@ -418,6 +418,18 @@ div.panel table.table-status:not(:last-child)
 .temp-sensor-5 {
 	color: #A0A000 !important;
 }
+.temp-sensor-6 {
+	color: #DDDD00 !important;
+}
+.temp-sensor-7 {
+	color: #00BDBD !important;
+}
+.temp-sensor-8 {
+	color: #CCBBAA !important;
+}
+.temp-sensor-9 {
+	color: #AA00AA !important;
+}
 
 /* Sidebar navigation */
 

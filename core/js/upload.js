@@ -621,12 +621,20 @@ $("#btn_cancel_upload").click(function() {
 
 $(".btn-upload").click(function(e) {
 	if (!$(this).is(".disabled")) {
-		$("#input_file_upload").data("type", $(this).data("type")).click();
+		var type = $(this).data("type"), filter = "";
+		if (type == "print" || type == "gcode") {
+			filter = ".gcode,.gc,.gco,.tap";
+		} else if (type == "filament") {
+			filter = ".zip";
+		} else if (type == "generic") {
+			filter=".zip,.bin,.csv,.g,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
+		}
+		$("#input_file_upload").prop("accept", filter).data("type", type).click();
 	}
 	e.preventDefault();
 });
 
-["print", "gcode", "macro", "generic"].forEach(function(type) {
+["print", "gcode", "macro", "filament", "generic"].forEach(function(type) {
 	var child = $(".btn-upload[data-type='" + type + "']");
 
 	// Drag Enter
