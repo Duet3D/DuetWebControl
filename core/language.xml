@@ -654,6 +654,11 @@
 		<string t="This browser does not support desktop notification">Dieser Browser unterstützt keine Desktopbenachrichtigungen</string>
 		<string t="Use HTML5-based desktop notifications when the page is hidden">Benutze HTML5-basierte Desktopbenachrichtigungen wenn die Seite versteckt ist</string>
 		<string t="Show HTML5 desktop notifications when the web interface is not visible">Zeige HTML5 Desktopbenachrichtigungen wenn die Weboberfläche nicht sichtbar ist</string>
+
+		<!-- New in DWC 1.19 -->
+		<string t="Use the following controls to adjust X:">Benutzen Sie die folgenden Steuerelemente um X anzupassen:</string>
+		<string t="Use the following controls to adjust Y:">Benutzen Sie die folgenden Steuerelemente um Y anzupassen:</string>
+		<string t="Mix">Mischen</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->

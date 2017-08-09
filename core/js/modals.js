@@ -348,7 +348,7 @@ function updateMessageBox(response) {
 	if (stringifiedResponse != messageBoxResponse)
 	{
 		messageBoxResponse = stringifiedResponse;
-		showMessageBox(response.msg, response.title, response.mode, timeout, response.showZ != 0);
+		showMessageBox(response.msg, response.title, response.mode, timeout, response.controls);
 	}
 }
 
@@ -364,12 +364,16 @@ function closeMessageBox() {
 
 var messageBoxTimer = undefined;
 
-function showMessageBox(message, title, mode, timeout, showZ) {
+function showMessageBox(message, title, mode, timeout, controls) {
 	// Display message, title and optionally show Z controls
 	$("#h3_messagebox").text(message);
 	$("#h4_messagebox_title").text(title);
 	$("#modal_messagebox div.modal-header").toggleClass("hidden", title == "");
-	$("#div_z_controls").toggleClass("hidden", !showZ);
+
+	// Toggle axis control visibility
+	$("#div_x_controls").toggleClass("hidden", (controls & (1 << 0)) == 0);
+	$("#div_y_controls").toggleClass("hidden", (controls & (1 << 1)) == 0);
+	$("#div_z_controls").toggleClass("hidden", (controls & (1 << 2)) == 0);
 
 	// Toggle button visibility
 	$("#modal_messagebox div.modal-footer").toggleClass("hidden", mode == 0);

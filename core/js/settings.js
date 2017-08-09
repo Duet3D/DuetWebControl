@@ -163,10 +163,17 @@ function applySettings() {
 		increaseVal *= 10;
 	});
 
-	decreaseVal = (settings.halfZMovements) ? "-0.05" : "-0.1";
-	increaseVal = (settings.halfZMovements) ? "0.05" : "0.1";
-	$("#btn_msgbox_dec_z").data("z", decreaseVal).contents().last().replaceWith(" " + decreaseVal);
-	$("#btn_msgbox_inc_z").data("z", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
+	decreaseVal = (settings.halfZMovements) ? 5 : 10;
+	increaseVal = (settings.halfZMovements) ? 0.05 : 0.1;
+	$("#div_z_controls > div > button[data-z]").each(function() {
+		if ($(this).data("z") < 0) {
+			$(this).data("z", decreaseVal * (-1)).contents().last().replaceWith(" -" + decreaseVal);
+			decreaseVal /= 10;
+		} else {
+			$(this).data("z", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
+			increaseVal *= 10;
+		}
+	});
 
 	// Babystepping
 	$("#btn_baby_down > span.content").text(T("{0} mm", (-settings.babysteppingZ)));
