@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.17+1
+<!--	Duet Web Control v1.19
 
 	written by Christian Hammacher
 
@@ -629,6 +629,26 @@
 								<th class="temp-sensor-5">Sensor 6</th>
 								<td>n/a</td>
 							</tr>
+							<tr data-sensor="6">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-6">Sensor 7</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="7">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-7">Sensor 8</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="8">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-8">Sensor 9</th>
+								<td>n/a</td>
+							</tr>
+							<tr data-sensor="9">
+								<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+								<th class="temp-sensor-9">Sensor 10</th>
+								<td>n/a</td>
+							</tr>
 						</table>
 					</div>
 				</div>
@@ -956,7 +976,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary btn-home-v disabled" title="Home B axis (G28 B)" data-home="B">Home B</a>
+														<a role="button" class="btn btn-primary btn-home-b disabled" title="Home B axis (G28 B)" data-home="B">Home B</a>
 													</div>
 												</td>
 												<td>
@@ -979,7 +999,7 @@
 											<tr>
 												<td class="home-buttons visible-lg">
 													<div class="btn-group" role="group">
-														<a role="button" class="btn btn-primary btn-home-w disabled" title="Home C axis (G28 C)" data-home="C">Home C</a>
+														<a role="button" class="btn btn-primary btn-home-c disabled" title="Home C axis (G28 C)" data-home="C">Home C</a>
 													</div>
 												</td>
 												<td>
@@ -1018,7 +1038,10 @@
 											<label>Extruder Drive:</label>
 											<div class="btn-group btn-group-justified" data-toggle="buttons">
 												<label class="btn btn-primary disabled active" title="Requires mixing to be configured via M567+M568">
-													<input type="radio" name="extruder" value="all" checked> All
+													<input type="radio" name="extruder" value="mix" checked> Mix
+												</label>
+												<label class="btn btn-default disabled">
+													<input type="radio" name="extruder" value="all"> All
 												</label>
 												<label class="btn btn-default disabled extr-1">
 													<input type="radio" name="extruder" value="0"> 1
@@ -1747,7 +1770,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.17+1</td>
+														<td>1.19</td>
 													</tr>
 												</table>
 												<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2828,13 +2851,43 @@
 					<div class="modal-body">
 						<h3 id="h3_messagebox"></h3>
 
+						<div id="div_x_controls">
+							<label>Use the following controls to adjust X:</label>
+							<br/>
+							<div class="btn-group">
+								<button type="button" class="btn btn-default" data-x="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+								<button type="button" class="btn btn-default" data-x="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+								<button type="button" class="btn btn-default" data-x="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+								<button type="button" id="btn_msgbox_x" class="btn btn-default disabled">X = n/a</button>
+								<button type="button" class="btn btn-default" data-x="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-x="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-x="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+							</div>
+						</div>
+						<div id="div_y_controls">
+							<label>Use the following controls to adjust Y:</label>
+							<br/>
+							<div class="btn-group">
+								<button type="button" class="btn btn-default" data-y="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+								<button type="button" class="btn btn-default" data-y="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+								<button type="button" class="btn btn-default" data-y="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+								<button type="button" id="btn_msgbox_y" class="btn btn-default disabled">Y = n/a</button>
+								<button type="button" class="btn btn-default" data-y="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-y="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-y="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+							</div>
+						</div>
 						<div id="div_z_controls">
 							<label>Use the following controls to adjust Z:</label>
 							<br/>
 							<div class="btn-group">
-								<button type="button" id="btn_msgbox_dec_z" class="btn btn-default" data-z="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+								<button type="button" class="btn btn-default" data-z="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+								<button type="button" class="btn btn-default" data-z="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+								<button type="button" class="btn btn-default" data-z="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
 								<button type="button" id="btn_msgbox_z" class="btn btn-default disabled">Z = n/a</button>
-								<button type="button" id="btn_msgbox_inc_z" class="btn btn-default" data-z="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-z="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-z="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button type="button" class="btn btn-default" data-z="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
 							</div>
 						</div>
 					</div>

@@ -443,11 +443,15 @@ function updateStatus() {
 			// XYZ+UVW coordinates
 			if (geometry == "delta" && !status.coords.axesHomed[0]) {
 				$("#td_x, #td_y, #td_z").html(T("n/a"));
+				$("#btn_msgbox_x").text("X = " + T("n/a"));
+				$("#btn_msgbox_y").text("Y = " + T("n/a"));
 				$("#btn_msgbox_z").text("Z = " + T("n/a"));
 			} else {
 				$("#td_x").text(status.coords.xyz[0].toFixed(1));
 				$("#td_y").text(status.coords.xyz[1].toFixed(1));
 				$("#td_z").text(status.coords.xyz[2].toFixed(2));
+				$("#btn_msgbox_x").text("X = " + status.coords.xyz[0].toFixed(1));
+				$("#btn_msgbox_y").text("Y = " + status.coords.xyz[1].toFixed(1));
 				$("#btn_msgbox_z").text("Z = " + status.coords.xyz[2].toFixed(2));
 			}
 
@@ -466,7 +470,7 @@ function updateStatus() {
 			}
 
 			// Current Tool
-			if (lastStatusResponse == undefined || lastStatusResponse.currentTool != status.currentTool) {
+			if (lastStatusResponse != undefined && lastStatusResponse.currentTool != status.currentTool) {
 				setCurrentTool(status.currentTool);
 			}
 
@@ -660,7 +664,7 @@ function updateStatus() {
 			// Chamber
 			var chamberTemp = undefined;
 			if (status.temps.hasOwnProperty("chamber")) {
-				var configuredChamberHeater = (status.temps.chamber.hasOwnProperty("heater")) ? status.temps.chamber.heater : maxHeaters0;
+				var configuredChamberHeater = (status.temps.chamber.hasOwnProperty("heater")) ? status.temps.chamber.heater : maxHeaters;
 				if (chamberHeater != configuredChamberHeater)
 				{
 					chamberHeater = configuredChamberHeater;
@@ -737,8 +741,10 @@ function updateStatus() {
 				}
 
 				for(var i = 0; i < status.temps.extra.length; i++) {
-					if (lastStatusResponse == undefined || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
-						$("#table_extra tr").eq(i + 1).children("th").text(status.temps.extra[i].name);
+					if (lastStatusResponse == undefined || status.temps.extra.length != lastStatusResponse.temps.extra.length || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
+						var name = status.temps.extra[i].name;
+						if (name == "") { name = T("Sensor " + (i + 1)); }
+						$("#table_extra tr").eq(i + 1).children("th").text(name);
 					}
 					$("#table_extra tr").eq(i + 1).children("td:last-child").text(T("{0} °C", status.temps.extra[i].temp.toFixed(1)));
 				}
@@ -939,6 +945,7 @@ function updateStatus() {
 			// Update the GUI when we have processed the whole status response
 			if (needGuiUpdate) {
 				updateGui();
+				setCurrentTool(status.currentTool);
 			}
 			drawTemperatureChart();
 

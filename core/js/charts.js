@@ -10,9 +10,9 @@
 var tempChart;
 var tempChartOptions = 	{
 	// This array should hold maxHeaters + maxTempSensors + 1 (for the chamber heater) items
-	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#000000", "#E0E000",	// Heater colors
-			"#00DCDC",																					// Chamber color (deprecated)
-			"#AEAEAE", "#BC0000", "#00CB00", "#0000DC", "#FEABEF", "#A0A000"],							// Temp sensor colors
+	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#000000", "#E0E000",							// Heater colors
+			"#00DCDC",																											// Chamber color (deprecated)
+			"#AEAEAE", "#BC0000", "#00CB00", "#0000DC", "#FEABEF", "#A0A000", "#DDDD00", "#00BDBD", "#CCBBAA", "#AA00AA"],		// Temp sensor colors
 	grid: {
 		borderWidth: 0
 	},
@@ -132,9 +132,13 @@ function recordExtraTemperatures(temps) {
 	var timeNow = (new Date()).getTime();
 
 	// Add dashed series for each temperature sensor
-	for(var i = 0; i < temps.length; i++)
+	for(var i = 0; i < maxTempSensors; i++)
 	{
-		recordedTemperatures[maxHeaters + 1 + i].data.push([timeNow, temps[i].temp]);
+		if (i < temps.length) {
+			recordedTemperatures[maxHeaters + 1 + i].data.push([timeNow, temps[i].temp]);
+		} else {
+			recordedTemperatures[maxHeaters + 1 + i].data.push([]);
+		}
 
 		if (recordedTemperatures[maxHeaters + 1 + i].data.length > maxTemperatureSamples) {
 			recordedTemperatures[maxHeaters + 1 + i].data.shift();
