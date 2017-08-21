@@ -422,6 +422,7 @@ function addGCodeFile(filename, size, lastModified) {
 
 	var title = (lastModified == undefined) ? "" : (' title="' + T("Last modified on {0}", lastModified.toLocaleString()) + '"');
 	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+	var sortableLastModifiedValue = (lastModified.getYear()+1900) + "-" + (lastModified.getMonth()+1) + "-" + lastModified.getDate() + " " + (lastModified.getHours()<10?"0"+lastModified.getHours():lastModified.getHours()) + ":" + (lastModified.getSeconds()<10?"0"+lastModified.getSeconds():lastModified.getSeconds());
 	var row =	'<tr draggable="true" data-file="' + filename + '"' + title + ' data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
@@ -430,6 +431,7 @@ function addGCodeFile(filename, size, lastModified) {
 	row +=		'<td class="layer-height">' + T("loading") + '</td>';
 	row +=		'<td class="hidden-xs filament-usage">' + T("loading") + '</td>';
 	row +=		'<td class="hidden-xs hidden-sm generated-by">' + T("loading") + '</td>';
+	row +=		'<td class="hidden-xs hidden-sm last-modified">' + sortableLastModifiedValue + '</td>';
 	row +=		'</tr>';
 	return $(row).appendTo("#table_gcode_files > tbody");
 }
@@ -1442,6 +1444,7 @@ $(".table-files > thead a").click(function(e) {
 });
 
 function sortTable(table) {
+	debugger;
 	var sortingSpan = table.children("thead").find("span.glyphicon");
 	var attribute = sortingSpan.parent().children("a").data("attribute");
 	var ascending = sortingSpan.hasClass("glyphicon-sort-by-alphabet");
