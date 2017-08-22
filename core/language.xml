@@ -3750,5 +3750,9 @@ Er is een JavaScript-fout opgetreden, zodat de webinterface de verbinding met uw
 		<string t="This browser does not support desktop notification">Deze browser ondersteunt geen desktop notificatie</string>
 		<string t="Use HTML5-based desktop notifications when the page is hidden">Gebruik HTML5-gebaseerde desktop notificaties wanneer de pagina verborgen is</string>
 		<string t="Show HTML5 desktop notifications when the web interface is not visible">Laat HTML5-bureaubladberichten zien wanneer de webinterface niet zichtbaar is</string>
+		<!-- New in DWC 1.19 -->
+		<string t="Use the following controls to adjust X:">Gebruik de volgende besturingen om X aan te passen:</string>
+		<string t="Use the following controls to adjust Y:">Gebruik de volgende besturingen om Y aan te passen:</string>
+		<string t="Mix">Mixen</string>
 	</nl>
 </languages>
