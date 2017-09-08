@@ -659,6 +659,9 @@
 		<string t="Use the following controls to adjust X:">Benutzen Sie die folgenden Steuerelemente um X anzupassen:</string>
 		<string t="Use the following controls to adjust Y:">Benutzen Sie die folgenden Steuerelemente um Y anzupassen:</string>
 		<string t="Mix">Mischen</string>
+
+		<!-- New in DWC 1.19a -->
+		<string t="Simulate File">Datei simulieren</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
@@ -2773,6 +2776,115 @@
 		<string t="Heightmap Colors">Magassági térkép színek</string>
 		<string t="Terrain (Default)">Kék-piros (Alapértelmezett)</string>
 		<string t="Heat">Zöld-Piros</string>
+
+		<!-- New in DWC 1.17 -->
+		<string t="Temperature Sensor">Hőmérséklet érzékelő</string>
+		<string t="Value">Érték</string>
+		<string t="Filaments">Filemantek</string>
+		<string t="Show in chart">Mutassa a diagramon</string>
+		<string t="Print Another">Másik nyomtatása</string>
+		<string t="Note: If you want to remember this value, save the settings once after a connection has been established.">Megjegyzés: Ha szeretné tárolni az értéket, kapcsolódás után egyszer mentse a beállításokat.</string>
+		<string t="Please choose a filament for this tool:">Kérem válasszon filamentet a szerszámhoz:</string>
+		<string t="Please wait while the scanner is being calibrated. This may take a while...">Kérem várjon amíg a scanner kalibrálása tart. Eltarthat egy ideig...</string>
+		<string t="In order to align your object you can toggle the right laser before you start:">In order to align your object you can toggle the right laser before you start:</string>
+		<string t="Activate Laser">Lézer aktiválása</string>
+		<string t="3D Scanner">3D-Szkenner</string>
+		<string t="Connect to Board">Kapcsolódás a Vezérlőhöz</string>
+		<string t="Please enter the address of your board:">Kérem adja meg a vezérlő címét:</string>
+		<string t="Scan Progress">Szkennelési folyamat</string>
+		<string t="Post-Processing Progress">Utó-feldolgozás folyamatban</string>
+		<string t="Upload Progress">Feltöltési folyamat</string>
+		<string t="Calibrating...">Kalibrálás...</string>
+		<string t="Calibration Progress">Kalibrálási folyamat</string>
+		<string t="Start 3D Scan">3D Szkennelés kezdése</string>
+		<string t="1. Enter a filename for your scan">1. Adja meg a szkennelés file nevét </string>
+		<string t="2. Specify the scan length">2. Adja meg a szkennelési hosszt</string>
+		<string t="3. Check alignment">3. Ellenőrizze az elrendezést</string>
+		<string t="Use the following controls to adjust Z:">Használja az alábbi gombokat a Z finomhangolásához:</string>
+		<string t="Print File">File nyomtatása</string>
+		<string t="Edit Load Macro">A Betöltő makró szerkesztése</string>
+		<string t="Edit Unload Macro">A kifűző makró szerkesztése</string>
+		<string t="View Heightmap">Magassági térkép megtekintése</string>
+		<string t="Download">Letöltés</string>
+		<string t="Edit">Szerkesztés</string>
+		<string t="Rename">Átnevezés</string>
+		<string t="Delete">Törlés</string>
+		<string t="Choose a filename...">File név választása...</string>
+		<string t="Power supply voltage for this board">A vezérlő tápegység tápfeszültsége</string>
+		<string t="Extruder Drive:">Extrúder motor:</string>
+		<string t="More">Több</string>
+		<string t="Home U">U Nullpont</string>
+		<string t="Home V">V Nullpont</string>
+		<string t="Home W">W Nullpont</string>
+		<string t="Home A">A Nullpont</string>
+		<string t="Home B">B Nullpont</string>
+		<string t="Home C">C Nullpont</string>
+		<string t="Home U axis (G28 U)">U tengely nullázása (G28 U)</string>
+		<string t="Home V axis (G28 Y)">V tengely nullázása (G28 V)</string>
+		<string t="Home W axis (G28 W)">W tengely nullázása (G28 W)</string>
+		<string t="Home A axis (G28 A)">A tengely nullázása (G28 A)</string>
+		<string t="Home B axis (G28 B)">B tengely nullázása (G28 B)</string>
+		<string t="Home C axis (G28 C)">C tengely nullázása (G28 C)</string>
+		<string t="Requires mixing to be configured via M567+M568">Keverés beállítása szükséges az M567+M568 parancsokkal</string>
+		<string t="Print the same file once again">Ismét kinyomtatja a file-t</string>
+		<string t="Lower the print head by a tiny amount without modifying the machine's Z position (M290 Sxxx)">Kis mértékben csökkenti a nyomtató fej magasságát a Z pozíció módosítása nélkül (M290 Sxxx)</string>
+		<string t="Lift the print head by a tiny amount without modifying the machine's Z position (M290 Sxxx)">Kis mértékben növeli a nyomtató fej magasságát a Z pozíció módosítása nélkül (M290 Sxxx) (M290 Sxxx)</string>
+		<string t="Upload one or more filament configurations (drag&amp;drop is supported as well)">Egy- vagy több filament konfiguráció feltöltése (Drag&amp;drop funkció támogatva)</string>
+		<string t="Create a new filament configuration">Új filament konfiguráció készítése</string>
+		<string t="Turning on this option ensures the info area and the main menu are always shown on larger displays. This option has no effect on small devices">Ennek a beállításnak a bekapcsolása biztosítja hogy az információk és a fő menü még nagyobb kilejzők esetén is mindíg látható marad, kis kijelzők esetén nincs hatása.</string>
+		<string t="Z Distance per Babystep:">Z érték változtatása lépésenként</string>
+		<string t="Default Z Amount per Babystep">Alapértelmezett Z érték lépésenként</string>
+		<string t="Show fan slider for this fan to utilize M106. This setting may be overridden if the firmware reports fewer fan values">A ventillátor csúszka bekapcsolása az M106 parancs végrehajtásához. Az érték felülíródhat ha a szoftver kisebb értéket engedélyez.</string>
+		<string t="Run tfree*.g macro when the current tool is changed via the web interface">tfree*.g-Makró futtatása web-interfészen keresztül történő szerszám csere esetén.</string>
+		<string t="Run tpre*.g macro when the current tool is changed via the web interface">tpre*.g-Makró futtatása web-interfészen keresztül történő szerszám csere esetén.</string>
+		<string t="Run tpost*.g macro when the current tool is changed via the web interface">tpost*.g-Makró futtatása web-interfészen keresztül történő szerszám csere esetén.</string>
+		<string t="Enable this option if your webcam cannot handle additional HTTP keys. Some IP cameras need this">Kapcsolja be ezt a beállítást ha a webkamera nem tud további HTTP vezérlőket használni. Néhány IP kamera esetén szükséges.</string>
+		<string t="Change Filament">Filament csere</string>
+		<string t="Filaments Directory">Filament könyvtár</string>
+		<string t="Are you sure you want to delete the selected items?">Biztos benne hogy törli a kiválasztott tételeket?</string>
+		<string t="Connect to your Duet to display Filaments">Kapcsolódjon a Duet-hez hogy megjelenítse a Filamenteket</string>
+		<string t="Could not delete filament {0}">A kiválasztott {0} Filament nem törölhető</string>
+		<string t="Delete Filament">Filament törlése</string>
+		<string t="Delete Tool">Szerszám törlése</string>
+		<string t="Delete multiple Items">Több tétel törlése</string>
+		<string t="Deselect Tool">Szerszám kiválasztás megszüntetése</string>
+		<string t="Do you want to run &lt;strong&gt;{0}&lt;/strong&gt;?">Futtatni kívánja: &lt;strong&gt;{0}&lt;/strong&gt;?</string>
+		<string t="Download as ZIP">Letöltés ZIP fileként</string>
+		<string t="Downloading File">File letöltése</string>
+		<string t="Downloading Files">Fileok letöltése</string>
+		<string t="Failed to retrieve Filaments">A filamentek lekérdezése sikertelen</string>
+		<string t="Filament usage">Filament felhasználás</string>
+		<string t="Filament:">Filament:</string>
+		<string t="Heaters">Fűtőelemek</string>
+		<string t="Heater 0">0 Fűtőelem</string>
+		<string t="Heater {0}">{0} Fűtőelem</string>
+		<string t="Minimum: {0} °C Maximum: {1} °C">Minimum: {0} °C Maximum: {1} °C</string>
+		<string t="New filament">Új Filament</string>
+		<string t="Make new...">Új készítése...</string>
+		<string t="Directory">Könyvtár</string>
+		<string t="Macro">Makró</string>
+		<string t="Upload Configuration(s)">Konfiguráció(k) feltöltése</string>
+		<string t="Create new Filament">Új Filament létrehozása</string>
+		<string t="Number:">Sorszám:</string>
+		<string t="No Filaments">Nincsenek Filamentek</string>
+		<string t="No Filaments found">Nem találhatóak Filamentek</string>
+		<string t="Filament Name">Filament név</string>
+		<string t="Please wait until the pending operations have finished before you download more files">Kérem várja meg a folyamatban lévő műveleteket mielőtt további fileokat tölt le.</string>
+		<string t="Please wait while the selected files are being downloaded...">Kérem várjon amíg a kiválasztott fileok letöltődnek...</string>
+		<string t="Run Macro">Makró futtatása</string>
+		<string t="The archive {0} does not contain any files!">A {0} tömörített file nem tartalmaz adatokat!</string>
+		<string t="There are no other filaments available to choose. Please go to the Filaments page and define more.">Nem állnak rendelkezésre további filamentek. Ugorjon a 'Filamentek' oldalra és hozzon létre továbbiakat.</string>
+		<string t="This file is quite big. It may take a while before it is fully loaded...">A file mérete elég nagy. Eltarthat egy ideig a teljes betöltés...</string>
+		<string t="You cannot upload single files. Please upload only ZIP files that contain at least one directory per filament configuration.">Nem tölthet fel különálló fileokat. Csak ZIP file feltöltése engedélyezett aminben legalább egy könyvtár tartalmaz Filament konfigurációt.</string>
+		<string t="error">hiba</string>
+		<string t="This browser does not support desktop notification">Ez a böngésző nem támogatja az asztali értesítéseket.</string>
+		<string t="Use HTML5-based desktop notifications when the page is hidden">Használjon HTML-5 alapú asztali értesítéseket amikor az oldal el van rejtve.</string>
+		<string t="Show HTML5 desktop notifications when the web interface is not visible">Használjon HTML-5 alapú asztali értesítéseket amikor a web interfész nem látható.</string>
+
+		<!-- New in DWC 1.19 -->
+		<string t="Use the following controls to adjust X:">Használja az alábbi vezérlőket az X állításához:</string>
+		<string t="Use the following controls to adjust Y:">Használja az alábbi vezérlőket az Y állításához:</string>
+		<string t="Mix">Vegyes</string>
 	</hu>
 	<ch name="中文">
 		<!-- JavaScript Strings -->

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.19
+<!--	Duet Web Control v1.19a
 
 	written by Christian Hammacher
 
@@ -11,6 +11,7 @@
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width">
+		<meta name="apple-mobile-web-app-capable" content="yes">
 		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
 		<meta name="author" content="Christian Hammacher">
 
@@ -1571,7 +1572,7 @@
 							<div class="col-md-12">
 								<table id="table_gcode_files_directory" class="table-file-navigation">
 									<tr>
-										<td id="td_volume" class="hidden">
+										<td id="td_volume" class="hidden hidden-xs">
 											<div class="dropdown">
 												<button id="btn_volume" class="btn btn-success dropdown-toggle" type="button" data-toggle="dropdown">
 													<span class="glyphicon glyphicon-hdd"></span> <span class="content">SD Card 0</span> <span class="caret"></span>
@@ -1613,6 +1614,7 @@
 											<th><input type="checkbox"></th>
 											<th><a href="#" data-attribute="filename">File Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
 											<th class="hidden-xs"><a href="#" data-attribute="size">Size</a> <span></span></th>
+											<th class="hidden-xs hidden-sm"><a href="#" data-attribute="last-modified">Last modified</a> <span></span></th>
 											<th><a href="#" data-attribute="object-height">Object Height</a> <span></span></th>
 											<th><a href="#" data-attribute="layer-height">Layer Height</a> <span></span></th>
 											<th class="hidden-xs"><a href="#" data-attribute="filament-usage">Filament Usage</a> <span></span></th>
@@ -1770,7 +1772,7 @@
 													</tr>
 													<tr>
 														<th>Web Interface Version:</th>
-														<td>1.19</td>
+														<td>1.19a</td>
 													</tr>
 												</table>
 												<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2902,6 +2904,7 @@
 
 		<ul id="ul_file_contextmenu" class="dropdown-menu">
 			<li class="gcode-action single file"><a tabindex="-1" href="#" id="a_context_print"><span class="glyphicon glyphicon-play"></span> Print File</a></li>
+			<li class="gcode-action single file"><a tabindex="-1" href="#" id="a_context_simulate"><span class="glyphicon glyphicon-forward"></span> Simulate File</a></li>
 			<li class="macro-action single file"><a tabindex="-1" href="#" id="a_context_run"><span class="glyphicon glyphicon-play"></span> Run Macro</a></li>
 			<li class="filament-action single"><a tabindex="-1" href="#" id="a_context_edit_load"><span class="glyphicon glyphicon-arrow-down"></span> Edit Load Macro</a></li>
 			<li class="filament-action single"><a tabindex="-1" href="#" id="a_context_edit_unload"><span class="glyphicon glyphicon-arrow-up"></span> Edit Unload Macro</a></li>

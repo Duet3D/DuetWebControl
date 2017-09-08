@@ -77,6 +77,7 @@ $(document).ready(function() {
 
 	loadSettings();
 	loadFileCache();
+	loadTableSorting();
 
 	// Check if this browser is supported and display a message if it is not
 	var userAgent = navigator.userAgent.toLowerCase();

@@ -623,7 +623,7 @@ $(".btn-upload").click(function(e) {
 	if (!$(this).is(".disabled")) {
 		var type = $(this).data("type"), filter = "";
 		if (type == "print" || type == "gcode") {
-			filter = ".gcode,.gc,.gco,.tap";
+			filter = ".g,.gcode,.gc,.gco,.nc,.ngc,.tap";
 		} else if (type == "filament") {
 			filter = ".zip";
 		} else if (type == "generic") {

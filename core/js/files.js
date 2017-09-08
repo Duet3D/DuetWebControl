@@ -420,12 +420,12 @@ function addGCodeFile(filename, size, lastModified) {
 	$("#page_files h1").addClass("hidden");
 	$("#table_gcode_files").removeClass("hidden");
 
-	var title = (lastModified == undefined) ? "" : (' title="' + T("Last modified on {0}", lastModified.toLocaleString()) + '"');
 	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
 	var row =	'<tr draggable="true" data-file="' + filename + '"' + title + ' data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
-	row +=		'<td><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
+	row +=		'<td class="name"><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
 	row +=		'<td class="hidden-xs">' + formatSize(size) + '</td>';
+	row +=		'<td class="hidden-xs hidden-sm last-modified">' + ((lastModified == undefined) ? T("n/a") : lastModified.toLocaleString()) + '</td>';
 	row +=		'<td class="object-height">' + T("loading") + '</td>';
 	row +=		'<td class="layer-height">' + T("loading") + '</td>';
 	row +=		'<td class="hidden-xs filament-usage">' + T("loading") + '</td>';
@@ -440,7 +440,7 @@ function addGCodeDirectory(name) {
 
 	var row =	'<tr draggable="true" data-directory="' + name + '">';
 	row +=		'<td><input type="checkbox"></td>';
-	row +=		'<td colspan="6"><a href="#" class="a-gcode-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
+	row +=		'<td colspan="7"><a href="#" class="a-gcode-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
 	row +=		'</tr>';
 
 	var rowElem = $(row);
@@ -475,6 +475,16 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 	row[0].addEventListener("dragstart", fileDragStart, false);
 	row[0].addEventListener("dragend", fileDragEnd, false);
 
+	// Set slicer
+	var slicer = generatedBy.match(/(.*\d\.\d)\s/);
+	if (slicer == null) {
+		slicer = generatedBy;
+	} else {
+		slicer = slicer[1];
+	}
+	slicer = slicer.replace(" Version", "");
+	row.find(".generated-by").text((slicer != "") ? slicer : T("n/a"));
+
 	// Set object height
 	row.find(".object-height").text((height > 0) ? T("{0} mm", height) : T("n/a"));
 
@@ -499,9 +509,6 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 	} else {
 		row.find(".filament-usage").text(T("n/a"));
 	}
-
-	// Set slicer
-	row.find(".generated-by").text((generatedBy != "") ? generatedBy : T("n/a"));
 }
 
 function clearGCodeFiles() {
@@ -1423,6 +1430,21 @@ $(".table-files").on("dblclick", "tr", function(e) {
 
 /* Table Headers */
 
+function loadTableSorting() {
+	var tableSorting = localStorage.getItem("tableSorting");
+	if (tableSorting != null) {
+		tableSorting = JSON.parse(tableSorting);
+
+		for(var tableId in tableSorting) {
+			var tableHeader = $("#" + tableId).children("thead");
+			tableHeader.find("span").removeClass("glyphicon").removeClass("glyphicon-sort-by-alphabet").removeClass("glyphicon glyphicon-sort-by-alphabet-alt");
+
+			var link = tableHeader.find("a[data-attribute='" + tableSorting[tableId].column + "']");
+			link.parent().find("span").addClass("glyphicon").addClass(tableSorting[tableId].ascending ? "glyphicon-sort-by-alphabet" : "glyphicon-sort-by-alphabet-alt");
+		}
+	}
+}
+
 $(".table-files > thead a").click(function(e) {
 	// Determine in which way the column needs to be sorted
 	var span = $(this).closest("th").children("span");
@@ -1436,6 +1458,16 @@ $(".table-files > thead a").click(function(e) {
 
 	// Do the actual sorting
 	sortTable($(this).closest("table"));
+
+	// Make sure we remember the last sorting order
+	var tableSorting = localStorage.getItem("tableSorting");
+	if (tableSorting == null) {
+		tableSorting = {};
+	} else {
+		tableSorting = JSON.parse(tableSorting);
+	}
+	tableSorting[$(this).closest("table").prop("id")] = { column: $(this).data("attribute"), ascending: sortAscending };
+	localStorage.setItem("tableSorting", JSON.stringify(tableSorting));
 
 	$(this).blur();
 	e.preventDefault();
@@ -1589,6 +1621,19 @@ $("#a_context_print").click(function(e) {
 		sendGCode("M32 " + file);
 	} else {
 		sendGCode("M32 " + currentGCodeDirectory.substring(10) + "/" + file);
+	}
+	e.preventDefault();
+});
+
+$("#a_context_simulate").click(function(e) {
+	var file = contextMenuTargets.data("file");
+	waitingForPrintStart = true;
+	if (currentGCodeVolume != 0) {
+		sendGCode('M37 P"' + currentGCodeDirectory + "/" + file + '"');
+	} else if (currentGCodeDirectory == "0:/gcodes" + '"') {
+		sendGCode('M37 P"' + file);
+	} else {
+		sendGCode('M37 P"' + currentGCodeDirectory.substring(10) + "/" + file + '"');
 	}
 	e.preventDefault();
 });

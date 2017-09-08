@@ -279,13 +279,17 @@ label {
 	height: 200px;
 }
 
-.extr-1, .extr-2, .extr-3, .extr-4, .extr-5, .extr-6 {
-	white-space: nowrap;
+#div_tools_heaters input[type="number"] {
+	min-width: 50px;
 }
 
 #div_temp_chart {
 	padding-left: 0px;
 	padding-right: 0px;
+}
+
+.extr-1, .extr-2, .extr-3, .extr-4, .extr-5, .extr-6 {
+	white-space: nowrap;
 }
 
 .input-td {
