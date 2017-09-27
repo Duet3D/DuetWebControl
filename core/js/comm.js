@@ -389,6 +389,11 @@ function updateStatus() {
 					printing = true;
 					break;
 
+				case 'M':	// Simulating
+					setStatusLabel("Simulating", "success");
+					printing = true;
+					break;
+
 				case 'B':	// Busy
 					setStatusLabel("Busy", "warning");
 					break;
@@ -741,12 +746,24 @@ function updateStatus() {
 				}
 
 				for(var i = 0; i < status.temps.extra.length; i++) {
+					var name = status.temps.extra[i].name;
 					if (lastStatusResponse == undefined || status.temps.extra.length != lastStatusResponse.temps.extra.length || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
-						var name = status.temps.extra[i].name;
-						if (name == "") { name = T("Sensor " + (i + 1)); }
+						if (name == "") {
+							name = T("Sensor " + (i + 1));
+						} else if (name.indexOf("[") != -1) {
+							name = name.substr(0, name.indexOf("[")).trim();
+						}
 						$("#table_extra tr").eq(i + 1).children("th").text(name);
 					}
-					$("#table_extra tr").eq(i + 1).children("td:last-child").text(T("{0} °C", status.temps.extra[i].temp.toFixed(1)));
+
+					var unit = name.match(/\[(.*?)\]/);
+					var value = status.temps.extra[i].temp.toFixed(1);
+					if (unit == null) {
+						value = T("{0} °C", value);
+					} else {
+						value = value + " " + unit[1];
+					}
+					$("#table_extra tr").eq(i + 1).children("td:last-child").text(value);
 				}
 				recordExtraTemperatures(status.temps.extra);
 			}

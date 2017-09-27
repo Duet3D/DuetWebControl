@@ -1233,7 +1233,7 @@ function updateSysFiles() {
 $("#table_sys_files").on("click", "tbody a", function(e) {
 	var row = $(this).closest("tr");
 	var file = row.data("file");
-	if (file.match("\.g$") != null) {
+	if (file.match("\.g$") != null || file.match("\.txt$") != null) {
 		// Edit .g files
 		editFile(getFilePath() + "/" + file, true, row.data("size"));
 	} else if (file.match("\.csv$") != null) {
@@ -1630,8 +1630,8 @@ $("#a_context_simulate").click(function(e) {
 	waitingForPrintStart = true;
 	if (currentGCodeVolume != 0) {
 		sendGCode('M37 P"' + currentGCodeDirectory + "/" + file + '"');
-	} else if (currentGCodeDirectory == "0:/gcodes" + '"') {
-		sendGCode('M37 P"' + file);
+	} else if (currentGCodeDirectory == "0:/gcodes") {
+		sendGCode('M37 P"' + file + '"');
 	} else {
 		sendGCode('M37 P"' + currentGCodeDirectory.substring(10) + "/" + file + '"');
 	}
