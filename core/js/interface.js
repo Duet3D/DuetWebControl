@@ -9,7 +9,7 @@
 
 var machineName = "Duet Web Control";
 
-var maxAxes = 9, maxExtruders = 6, maxDrives = 9, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
+var maxAxes = 9, maxExtruders = 6, maxDrives = 11, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
 var axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
@@ -1546,24 +1546,22 @@ function setATXPower(value) {
 }
 
 function setBoardType(type) {
-	var isWiFi = false;
-	var show7Extruders = false, show7Heaters = false;
+	boardType = type;
 
+	var isWiFi, isDuetNG;
 	if (type.indexOf("duetwifi") == 0) {
 		firmwareFileName = "DuetWiFiFirmware";
-		isWiFi = show7Extruders = show7Heaters = true;
+		isWiFi = isDuetNG = true;
 	} else if (type.indexOf("duetethernet") == 0) {
 		firmwareFileName = "DuetEthernetFirmware";
-		show7Extruders = show7Heaters = true;
+		isWiFi = false;
+		isDuetNG = true;
 	} else {
 		firmwareFileName = "RepRapFirmware";
+		isWiFi = isDuetNG = false;
 	}
-
-	$(".7-extruders").toggleClass("hidden", !show7Extruders);
-	$(".7-heaters").toggleClass("hidden", !show7Heaters);
+	$(".duet-ng").toggleClass("hidden", !isDuetNG);
 	$(".wifi-setting").toggleClass("hidden", !isWiFi);
-
-	boardType = type;
 }
 
 function setCurrentTemperature(heater, temperature) {
