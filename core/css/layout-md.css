@@ -1,0 +1,31 @@
+@media (min-width: 992px) and (max-width: 1199px) {
+	/* Main content */
+	#div_content row > div[class^='col-'] {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	/* Control page */
+	#page_control .col-right,
+	#panel_extrude div.panel-body > div:first-child {
+		padding-left: 0px;
+	}
+
+	/* Print status page */
+	#page_print .col-right {
+		padding-left: 0px;
+	}
+
+	/* Settings page */
+	#div_add_tool div.row > div > label {
+		margin-top: 9px;
+	}
+
+	#page_settings .col-left {
+		padding-right: 0px;
+	}
+
+	#page_settings .col-right {
+		padding-left: 0px;
+	}
+} 

@@ -55,7 +55,7 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 		// error in this case. However if we get one, treat it as a timeout.
 		var response = jqxhr.responseText || jqxhr.responseJSON;
 		if (thrownError == "timeout" || (thrownError == "" && response == undefined)) {
-			if (!xhrsettings.hasOwnProperty('retryCount')) {
+			if (!xhrsettings.hasOwnProperty("retryCount")) {
 				xhrsettings.retryCount = 1;
 			} else {
 				xhrsettings.retryCount++;
@@ -286,6 +286,12 @@ function updateStatus() {
 				setGeometry(status.geometry);
 			}
 
+			// Axis names
+			if (status.hasOwnProperty("axisNames") && status.axisNames != axisNames.join("")) {
+				axisNames = status.axisNames.split("");
+				needGuiUpdate = true;
+			}
+
 			// Number of volumes
 			if (status.hasOwnProperty("volumes")) {
 				setVolumes(status.volumes);
@@ -436,8 +442,8 @@ function updateStatus() {
 				needGuiUpdate = true;
 			}
 
-			for(var i = 1; i <= numExtruderDrives; i++) {
-				$("#td_extr_" + i).html(status.coords.extr[i - 1].toFixed(1));
+			for(var i = 0; i < numExtruderDrives; i++) {
+				$("td[data-extruder='" + i + "']").html(status.coords.extr[i].toFixed(1));
 			}
 			if (numExtruderDrives > 0) {
 				$("#td_extr_total").html(status.coords.extr.reduce(function(a, b) { return a + b; }));
@@ -445,33 +451,34 @@ function updateStatus() {
 				$("#td_extr_total").html(T("n/a"));
 			}
 
-			// XYZ+UVW coordinates
-			if (geometry == "delta" && !status.coords.axesHomed[0]) {
-				$("#td_x, #td_y, #td_z").html(T("n/a"));
-				$("#btn_msgbox_x").text("X = " + T("n/a"));
-				$("#btn_msgbox_y").text("Y = " + T("n/a"));
-				$("#btn_msgbox_z").text("Z = " + T("n/a"));
-			} else {
-				$("#td_x").text(status.coords.xyz[0].toFixed(1));
-				$("#td_y").text(status.coords.xyz[1].toFixed(1));
-				$("#td_z").text(status.coords.xyz[2].toFixed(2));
-				$("#btn_msgbox_x").text("X = " + status.coords.xyz[0].toFixed(1));
-				$("#btn_msgbox_y").text("Y = " + status.coords.xyz[1].toFixed(1));
-				$("#btn_msgbox_z").text("Z = " + status.coords.xyz[2].toFixed(2));
-			}
-
+			// Axis coordinates
 			if (status.coords.xyz.length != numAxes)
 			{
 				numAxes = status.coords.xyz.length;
 				needGuiUpdate = true;
 			}
-			if (numAxes > 3) {
-				$("#td_u").text(numAxes > 3 ? status.coords.xyz[3].toFixed(1) : "n/a");
-				$("#td_v").text(numAxes > 4 ? status.coords.xyz[4].toFixed(1) : "n/a");
-				$("#td_w").text(numAxes > 5 ? status.coords.xyz[5].toFixed(1) : "n/a");
-				$("#td_a").text(numAxes > 6 ? status.coords.xyz[6].toFixed(1) : "n/a");
-				$("#td_b").text(numAxes > 7 ? status.coords.xyz[7].toFixed(1) : "n/a");
-				$("#td_c").text(numAxes > 8 ? status.coords.xyz[8].toFixed(1) : "n/a");
+
+			for(var i = 0; i < status.coords.xyz.length; i++) {
+				$("td[data-axis='" + i + "']").html(status.coords.xyz[i].toFixed(axisNames[i] == 'Z' ? 2 : 1));
+			}
+
+			if (geometry == "delta" && axisNames.indexOf("X") != -1 && !status.coords.axesHomed[axisNames.indexOf("X")]) {
+				// Override XYZ coordinates on a Delta with 'n/a' if the axes are not homed
+				$("td[data-axis='" + axisNames.indexOf("X") + "']").html(T("n/a"));
+				$("td[data-axis='" + axisNames.indexOf("Y") + "']").html(T("n/a"));
+				$("td[data-axis='" + axisNames.indexOf("Z") + "']").html(T("n/a"));
+
+				// Set message box coordinates
+				$("#btn_msgbox_x").text("X = " + T("n/a"));
+				$("#btn_msgbox_y").text("Y = " + T("n/a"));
+				$("#btn_msgbox_z").text("Z = " + T("n/a"));
+			} else {
+				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(1);
+				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(1);
+				var z = (axisNames.indexOf("Z") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Z")].toFixed(2);
+				$("#btn_msgbox_x").text("X = " + x);
+				$("#btn_msgbox_y").text("Y = " + y);
+				$("#btn_msgbox_z").text("Z = " + z);
 			}
 
 			// Current Tool
@@ -656,11 +663,6 @@ function updateStatus() {
 
 				bedTemp = status.temps.bed.current;
 				setTemperatureInput("bed", status.temps.bed.active, true, true);
-
-				if (!status.temps.hasOwnProperty("current")) {
-					setCurrentTemperature("bed", status.temps.bed.current);
-					setHeaterState("bed", status.temps.bed.state, status.currentTool);
-				}
 			} else if (bedHeater != -1) {
 				bedHeater = -1;
 				needGuiUpdate = true;
@@ -679,11 +681,6 @@ function updateStatus() {
 
 				chamberTemp = status.temps.chamber.current;
 				setTemperatureInput("chamber", status.temps.chamber.active, true, true);
-
-				if (!status.temps.hasOwnProperty("current")) {
-					setCurrentTemperature("chamber", chamberTemp);
-					setHeaterState("chamber", status.temps.chamber.state, status.currentTool);
-				}
 			} else if (chamberHeater != -1) {
 				chamberHeater = -1;
 				needGuiUpdate = true;
@@ -707,33 +704,17 @@ function updateStatus() {
 
 				// Keep the temperature chart up-to-date
 				recordCurrentTemperatures(status.temps.current);
-			} else {
-				// Heads - deprecated
-				if (status.temps.heads.current.length != numHeads) {
-					numHeads = status.temps.heads.current.length;
-					needGuiUpdate = true;
-				}
-
-				for(var i = 0; i < status.temps.heads.current.length; i++) {
-					setCurrentTemperature(i + 1, status.temps.heads.current[i]);
-					setTemperatureInput(i + 1, status.temps.heads.active[i], true, !status.temps.hasOwnProperty("tools"));
-					setTemperatureInput(i + 1, status.temps.heads.standby[i], false, !status.temps.hasOwnProperty("tools"));
-					setHeaterState(i + 1, status.temps.heads.state[i], status.currentTool);
-				}
-
-				// Keep the temperature chart up-to-date
-				recordHeadTemperatures(bedTemp, chamberTemp, status.temps.heads.current);
 			}
 
-			// Tool temperatures
+			// Active+Standby tool temperatures
 			var currentToolTemps = undefined;
 			if (status.temps.hasOwnProperty("tools") && toolMapping.length == status.temps.tools.active.length) {
-				for(var i = 0; i < status.temps.tools.active.length; i++) {
-					var toolNumber = toolMapping[i].number;
-					for(var heaterIndex = 0; heaterIndex < status.temps.tools.active[i].length; heaterIndex++) {
-						var heater = toolMapping[i].heaters[heaterIndex];
-						setToolTemperatureInput(toolNumber, heater, status.temps.tools.active[i][heaterIndex], true);
-						setToolTemperatureInput(toolNumber, heater, status.temps.tools.standby[i][heaterIndex], false);
+				for(var toolIndex = 0; toolIndex < status.temps.tools.active.length; toolIndex++) {
+					var toolNumber = toolMapping[toolIndex].number;
+					for(var heaterIndex = 0; heaterIndex < status.temps.tools.active[toolIndex].length; heaterIndex++) {
+						var heater = toolMapping[toolIndex].heaters[heaterIndex];
+						setToolTemperatureInput(toolNumber, heater, status.temps.tools.active[toolIndex][heaterIndex], true);
+						setToolTemperatureInput(toolNumber, heater, status.temps.tools.standby[toolIndex][heaterIndex], false);
 					}
 				}
 			}
@@ -773,7 +754,7 @@ function updateStatus() {
 				// Toggle visibility of scanner controls
 				if (lastStatusResponse == undefined || !lastStatusResponse.hasOwnProperty("scanner")) {
 					$(".scan-control").removeClass("hidden");
-					$("#main_content").resize();
+					$("#div_content").resize();
 				}
 
 				// Enable scan controls only if the scanner is ready
@@ -1172,15 +1153,24 @@ function getOemFeatures() {
 		global: false,
 		success: function(response) {
 			if (response != "" && response.hasOwnProperty("vendor")) {
-				vendor = response.vendor;
-
-				// Diabase Engineering
-				if (vendor == "diabase") {
-					$(".diabase").removeClass("hidden");
-				}
+				setOem(response.vendor);
 			}
 		}
 	});
+}
+
+function setOem(oem) {
+	vendor = oem;
+
+	// Diabase Engineering
+	if (oem == "diabase") {
+		// Show non-default controls
+		$(".diabase").removeClass("hidden");
+
+		// Change "Chamber" to "Dry Cabinet"
+		$("#table_tools tr[data-heater='chamber'] > th:first-child > a").text(T("Dry Cabinet"));
+		$("#table_heaters tr[data-heater='chamber'] > th:first-child > a").text(T("Dry Cabinet"));
+	}
 }
 
 function resetOem() {

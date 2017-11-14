@@ -54,7 +54,7 @@ function translatePage() {
 		if (root != null) {
 			// Translate HTML attributes
 			translateEntries(root, $("p, span, th, td, strong, dt, button, li.dropdown-header"), "textContent");
-			translateEntries(root, $("h1, h4, label, a, #main_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
+			translateEntries(root, $("h1, h4, label, a, #div_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
 			translateEntries(root, $("input[type='text']"), "placeholder");
 			translateEntries(root, $("a, abbr, button, label, li, #chart_temp, input, td"), "title");
 			translateEntries(root, $("img"), "alt");

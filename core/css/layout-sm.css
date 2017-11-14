@@ -1,0 +1,38 @@
+@media (min-width: 768px) and (max-width: 991px) {
+	/* Navigation bar */
+	.navbar-checkbox {
+		margin-left: 15px;
+		margin-top: 8px;
+		margin-bottom: 8px;
+	}
+
+	/* Main content */
+	.content-collapsed-padding {
+		padding-top: 12px;
+	}
+
+	#div_content row > div[class^='col-'] {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	/* Static sidebar */
+	.nav-sidebar > li > a {
+		padding-left: 15px;
+	}
+
+	/* Control page */
+	#panel_head_movement > div.panel-heading {
+		text-align: left;
+	}
+
+	/* Scanner page */
+	#table_scan_files th:first-child {
+		width: 100px;
+	}
+
+	/* Settings page */
+	#div_add_tool div.row > div > label {
+		margin-top: 9px;
+	}
+}

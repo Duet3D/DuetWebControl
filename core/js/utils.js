@@ -389,7 +389,7 @@ function setCurrentTool(toolNumber) {
 /* Control state management */
 
 function enableControls() {
-	$("nav input, #div_tools_heaters input, #main_content input").prop("disabled", false);		// Generic inputs
+	$("nav input, #div_tools_heaters input, #div_content input").prop("disabled", false);		// Generic inputs
 	$("#page_tools label").removeClass("disabled");												// and on Settings page
 	$(".machine-button").removeClass("disabled");
 
@@ -415,7 +415,7 @@ function enableControls() {
 }
 
 function disableControls() {
-	$("nav input, #div_tools_heaters input, #main_content input").prop("disabled", true);		// Generic inputs
+	$("nav input, #div_tools_heaters input, #div_content input").prop("disabled", true);		// Generic inputs
 	$("#page_general input, #page_ui input, #page_listitems input").prop("disabled", false);	// ... except ...
 	$("#page_tools label").addClass("disabled");												// ... for Settings
 	$(".machine-button").addClass("disabled");
@@ -482,7 +482,7 @@ var audioContext = new (window.AudioContext || window.webkitAudioContext);
 function beep(frequency, duration) {
 	var oscillator = audioContext.createOscillator();
 
-	oscillator.type = 'sine';
+	oscillator.type = "sine";
 	oscillator.frequency.value = frequency;
 	oscillator.connect(audioContext.destination);
 	oscillator.start();

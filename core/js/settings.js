@@ -149,28 +149,15 @@ function applySettings() {
 		$("#panel_webcam").addClass("hidden");
 	}
 
-	// Half Z Movements
-	var decreaseChildren = $("#td_decrease_z a");
-	var decreaseVal = (settings.halfZMovements) ? 50 : 100;
-	decreaseChildren.each(function(index) {
-		decreaseChildren.eq(index).data("z", decreaseVal * (-1)).contents().last().replaceWith(" Z-" + decreaseVal);
-		decreaseVal /= 10;
-	});
-	var increaseChildren = $("#td_increase_z a");
-	var increaseVal = (settings.halfZMovements) ? 0.05 : 0.1;
-	increaseChildren.each(function(index) {
-		increaseChildren.eq(index).data("z", increaseVal).contents().first().replaceWith("Z+" + increaseVal + " ");
-		increaseVal *= 10;
-	});
-
+	// Half Z Movements on the message box dialog
 	decreaseVal = (settings.halfZMovements) ? 5 : 10;
 	increaseVal = (settings.halfZMovements) ? 0.05 : 0.1;
-	$("#div_z_controls > div > button[data-z]").each(function() {
-		if ($(this).data("z") < 0) {
-			$(this).data("z", decreaseVal * (-1)).contents().last().replaceWith(" -" + decreaseVal);
+	$("#div_z_controls > div > button[data-axis-letter='Z']").each(function() {
+		if ($(this).data("amount") < 0) {
+			$(this).data("amount", decreaseVal * (-1)).contents().last().replaceWith(" -" + decreaseVal);
 			decreaseVal /= 10;
 		} else {
-			$(this).data("z", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
+			$(this).data("amount", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
 			increaseVal *= 10;
 		}
 	});
@@ -220,7 +207,7 @@ function applySettings() {
 	}
 
 	// Make main content scrollable on md+ screens or restore default behavior
-	$("#main_content").css("overflow-y", (settings.scrollContent) ? "auto" : "").resize();
+	$("#div_content").css("overflow-y", (settings.scrollContent) ? "auto" : "").resize();
 
 	/* Set values on the Settings page */
 
@@ -270,6 +257,9 @@ function applySettings() {
 	settings.defaultGCodes.forEach(function(entry) {
 		addDefaultGCode(entry[1], entry[0]);
 	});
+
+	// Force GUI update to apply half Z movements in the axes
+	updateGui();
 }
 
 function saveSettings() {
@@ -362,7 +352,7 @@ function constrainSetting(value, defaultValue, minValue, maxValue) {
 
 // Apply & Reset settings
 
-$("#btn_reset_settings").click(function(e) {
+$(".btn-reset-settings").click(function(e) {
 	showConfirmationDialog(T("Reset Settings"), T("Are you sure you want to revert to Factory Settings?"), function() {
 		if (defaultSettings.language != settings.language) {
 			showMessage("info", T("Language has changed"), T("You have changed the current language. Please reload the web interface to apply this change."), 0);
@@ -549,7 +539,7 @@ $("#btn_add_tool").click(function(e) {
 // Display toggle for settings sub-pages
 
 $('a[href="#page_general"], a[href="#page_ui"], a[href="#page_listitems"]').on('shown.bs.tab', function () {
-	$("#row_save_settings, #btn_reset_settings").removeClass("hidden");
+	$("#row_save_settings").removeClass("hidden");
 });
 
 $('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"]').on('shown.bs.tab', function () {

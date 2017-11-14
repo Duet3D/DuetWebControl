@@ -24,26 +24,12 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 
 	// Move config.g to config.g.bak if it is overwritten
 	if (filename == "0:/sys/config.g" && !configFileHandled && $("#table_sys_files tr[data-file='config.g']").length != 0) {
-		if ($("#table_sys_files tr[data-file='config.g.bak']").length == 0) {
-			$.ajax(ajaxPrefix + "rr_move?old=0:/sys/config.g&new=0:/sys/config.g.bak", {
-				dataType: "json",
-				success: function() {
-					uploadTextFile(filename, content, callback, showNotification, true);
-				}
-			});
-		} else {
-			$.ajax(ajaxPrefix + "rr_delete?name=0:/sys/config.g.bak", {
-				dataType: "json",
-				success: function() {
-					$.ajax(ajaxPrefix + "rr_move?old=0:/sys/config.g&new=0:/sys/config.g.bak", {
-						dataType: "json",
-						success: function() {
-							uploadTextFile(filename, content, callback, showNotification, true);
-						}
-					});
-				}
-			});
-		}
+		$.ajax(ajaxPrefix + "rr_move?old=0:/sys/config.g&new=0:/sys/config.g.bak&deleteexisting=yes", {
+			dataType: "json",
+			success: function() {
+				uploadTextFile(filename, content, callback, showNotification, true);
+			}
+		});
 		return;
 	}
 
@@ -56,21 +42,21 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 	var uploadRequest = $.ajax(ajaxPrefix + "rr_upload?name=" + encodeURIComponent(filename) + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		data: file,
 		dataType: "json",
-		filename: filename,
 		processData: false,
 		contentType: false,
 		timeout: 0,
 		type: "POST",
 		global: false,
 		error: function(jqXHR, textStatus, errorThrown) {
-			finishCurrentUpload(false);
+			showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
+			console.log("Text file upload failed!\nStatus: " + textStatus + "\nError: " + errorThrown);
 		},
 		success: function(response) {
 			if (response.err == 0) {
 				if (showNotification) {
-					showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", this.filename));
+					showMessage("success", T("File Updated"), T("The file {0} has been successfully uploaded.", filename));
 					if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
-						if (this.filename.toLowerCase() == "0:/sys/config.g") {
+						if (filename.toLowerCase() == "0:/sys/config.g") {
 							showConfirmationDialog(T("Reboot Duet?"), T("You have just uploaded a config file. Would you like to reboot your Duet now?"), function() {
 								// Perform software reset
 								sendGCode("M999");
@@ -79,7 +65,7 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 					}
 				}
 			} else {
-				showMessage("danger", T("Error"), T("Could not update file {0}!", this.filename));
+				showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
 			}
 
 			if (callback != undefined) {
@@ -331,8 +317,8 @@ function uploadNextFile() {
 	}
 
 	// Update the GUI
-	uploadRows[0].find(".progress-bar > span").text(T("Starting"));
-	uploadRows[0].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
+	uploadRows[uploadedFileCount].find(".progress-bar > span").text(T("Starting"));
+	uploadRows[uploadedFileCount].find(".glyphicon").removeClass("glyphicon-asterisk").addClass("glyphicon-cloud-upload");
 
 	// Begin another POST file upload
 	uploadRequest = $.ajax(ajaxPrefix + "rr_upload?name=" + encodeURIComponent(targetPath) + "&time=" + encodeURIComponent(timeToStr(new Date(file.lastModified))), {
@@ -370,8 +356,8 @@ function uploadNextFile() {
 
 					// Update progress bar
 					var progress = ((event.loaded / event.total) * 100).toFixed(0);
-					uploadRows[0].find(".progress-bar").css("width", progress + "%");
-					uploadRows[0].find(".progress-bar > span").text(progress + " %");
+					uploadRows[uploadedFileCount].find(".progress-bar").css("width", progress + "%");
+					uploadRows[uploadedFileCount].find(".progress-bar > span").text(progress + " %");
 				}
 			}, false);
 			return xhr;
@@ -387,21 +373,18 @@ function finishCurrentUpload(success) {
 	}
 
 	// Update glyphicon and progress bar
-	uploadRows[0].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
-	uploadRows[0].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
-	uploadRows[0].find(".progress-bar > span").text(success ? "100 %" : T("ERROR"));
+	uploadRows[uploadedFileCount].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
+	uploadRows[uploadedFileCount].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
+	uploadRows[uploadedFileCount].find(".progress-bar > span").text(success ? "100 %" : T("ERROR"));
 
 	// Go on with upload logic if we're still busy
 	if (isUploading) {
 		uploadedFileCount++;
 		if (uploadFiles.length > uploadedFileCount) {
-			// Purge last-uploaded file row
-			uploadRows.shift();
-
-			// Upload the next one
+			// Upload the next file
 			uploadNextFile();
 		} else {
-			// We're done
+			// No more files to upload - we're done
 			finishUpload(!uploadHadError);
 		}
 	}
@@ -412,22 +395,19 @@ function fileUploadSkipped() {
 	uploadedTotalBytes += (uploadFileSize - uploadPosition);
 
 	// Update glyphicon and progress bar
-	uploadRows[0].find(".glyphicon").removeClass("glyphicon-cloud-asterisk").addClass("glyphicon-warning-sign");
-	uploadRows[0].find(".progress-bar").removeClass("progress-bar-info").addClass("progress-bar-warning").css("width", "100%");
-	uploadRows[0].find(".progress-bar > span").text(T("SKIPPED"));
+	uploadRows[uploadedFileCount].find(".glyphicon").removeClass("glyphicon-cloud-asterisk").addClass("glyphicon-warning-sign");
+	uploadRows[uploadedFileCount].find(".progress-bar").removeClass("progress-bar-info").addClass("progress-bar-warning").css("width", "100%");
+	uploadRows[uploadedFileCount].find(".progress-bar > span").text(T("SKIPPED"));
 
 	// Go on with upload logic if we're still busy
 	uploadFilesSkipped = true;
 	if (isUploading) {
 		uploadedFileCount++;
 		if (uploadFiles.length > uploadedFileCount) {
-			// Purge last-uploaded file row
-			uploadRows.shift();
-
-			// Upload the next one
+			// Upload the next file
 			uploadNextFile();
 		} else {
-			// We're done
+			// No more files to upload - we're done
 			finishUpload(true);
 		}
 	}
@@ -445,7 +425,6 @@ function cancelUpload() {
 function finishUpload(success) {
 	// Reset upload variables
 	isUploading = false;
-	uploadFiles = uploadRows = [];
 	$("#input_file_upload").val("");
 
 	// Set some values in the modal dialog

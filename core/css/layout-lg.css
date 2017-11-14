@@ -1,0 +1,65 @@
+@media (min-width: 1200px) {
+	/* Workarounds (may be dropped in future releases) */
+	.btn-group-justified .visible-lg {
+		display: table-cell !important;
+	}
+
+	/* Navigation bar */
+	.brand-sm {
+		display: none !important;
+	}
+	.brand-lg {
+		display: inline-block !important;
+	}
+
+	/* Sidebar */
+	.nav-sidebar {
+		margin-bottom: 20px;
+	}
+
+	.nav-sidebar > li > a {
+		font-size: 16px;
+	}
+
+	/* Main content */
+	#div_content row > div[class^='col-'] {
+		padding-left: 8px !important;
+		padding-right: 8px !important;
+	}
+
+	/* Control page */
+	#page_control .col-right,
+	#panel_extrude div.panel-body > div:first-child {
+		padding-left: 0px;
+	}
+
+	#panel_head_movement .panel-heading,
+	#panel_macro_buttons .panel-heading {
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+
+	/* Print status page */
+	#page_print .col-right {
+		padding-left: 0px;
+	}
+
+	/* Settings page */
+	#btn_language,
+	#btn_theme {
+		margin-left: 9px;
+	}
+
+	#dropdown_language,
+	#dropdown_theme {
+		display: inline-block;
+	}
+
+	#page_settings .col-left {
+		padding-right: 0px;
+	}
+
+	#page_settings .col-right {
+		padding-left: 0px;
+	}
+}

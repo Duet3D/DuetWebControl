@@ -427,8 +427,8 @@ function addGCodeFile(filename, size, lastModified) {
 	row +=		'<td class="hidden-xs">' + formatSize(size) + '</td>';
 	row +=		'<td class="hidden-xs hidden-sm last-modified">' + ((lastModified == undefined) ? T("n/a") : lastModified.toLocaleString()) + '</td>';
 	row +=		'<td class="object-height">' + T("loading") + '</td>';
-	row +=		'<td class="layer-height">' + T("loading") + '</td>';
-	row +=		'<td class="hidden-xs filament-usage">' + T("loading") + '</td>';
+	row +=		'<td class="hidden-xs layer-height">' + T("loading") + '</td>';
+	row +=		'<td class="filament-usage">' + T("loading") + '</td>';
 	row +=		'<td class="hidden-xs hidden-sm generated-by">' + T("loading") + '</td>';
 	row +=		'</tr>';
 	return $(row).appendTo("#table_gcode_files > tbody");
@@ -1714,7 +1714,7 @@ $("#a_context_rename").click(function(e) {
 	showTextInput(T("Rename File or Directory"), T("Please enter a new name:"), function(newFileName) {
 		// Try to move that file
 		var filePath = getFilePath();
-		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(filePath + "/" + oldFileName) + "&new=" + encodeURIComponent(filePath + "/" + newFileName), {
+		$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(filePath + "/" + oldFileName) + "&new=" + encodeURIComponent(filePath + "/" + newFileName) + "&deleteexisting=no", {
 			dataType: "json",
 			success: function(response) {
 				if (response.err == 0) {
@@ -1873,7 +1873,7 @@ function doFileTask() {
 				doFileTask();
 			} else {
 				// File names are different, so attempt to move the old path to the new one
-				$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(task.from) + "&new=" + encodeURIComponent(task.to), {
+				$.ajax(ajaxPrefix + "rr_move?old=" + encodeURIComponent(task.from) + "&new=" + encodeURIComponent(task.to) + "&deleteexisting=yes", {
 					dataType: "json",
 					success: function(response) {
 						if (response.err == 0) {
@@ -1887,20 +1887,9 @@ function doFileTask() {
 								task.elementToRemove.remove();
 								updateFilesConditionally();
 							}
-						} else {
-							// Could not rename the file, so delete it first. Once done, call this method again
-							$.ajax(ajaxPrefix + "rr_delete?name=" + encodeURIComponent(task.to), {
-								dataType: "json",
-								success: function(response) {
-									if (response.err == 0) {
-										// File delete succeeded, attempt to rename the file once again
-										moveFile(task.from, task.to, task.onSuccess, task.onError);
-									} else if (task.onError != undefined) {
-										// Didn't work? Should never happen
-										task.onError();
-									}
-								}
-							});
+						} else if (task.onError != undefined) {
+							// Didn't work? Should never happen
+							task.onError();
 						}
 
 						doingFileTask = false;

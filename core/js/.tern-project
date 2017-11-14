@@ -1,0 +1,5 @@
+{
+  "loadEagerly": [
+	  "./3rd-party/*.js"
+    ]
+}

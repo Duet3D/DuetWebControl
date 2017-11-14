@@ -1,0 +1,57 @@
+@media (max-width: 767px) {
+	/* Navigation bar */
+	.navbar-brand {
+		margin-left: 15px !important;
+	}
+
+	.navbar-checkbox {
+		float: right;
+		margin-right: 15px;
+		margin-top: 8px;
+		margin-bottom: 8px;
+	}
+
+	/* Main content */
+	#div_content {
+		padding-top: 12px;
+	}
+
+	.page {
+		min-height: calc(100vh - 52px);
+	}
+
+	/* Static sidebar */
+	.sidebar,
+	.sidebar-continuaton {
+		display: none;
+	}
+
+	/* Control page */
+	#panel_head_movement > div.panel-heading {
+		text-align: left;
+	}
+
+	#page_control {
+		min-height: auto;
+	}
+	
+	#page_control .col-right:last-child {
+		padding-left: 15px;
+	}
+	
+	/* Scanner page */
+	#table_scan_files th:first-child {
+		width: 100px;
+	}
+
+	/* G-Code console page */
+	#page_console div.well {
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+
+	/* Settings page */
+	#div_add_tool div.row > div > label {
+		margin-top: 9px;
+	}
+}
