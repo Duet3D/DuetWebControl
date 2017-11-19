@@ -9,10 +9,9 @@
 
 var tempChart;
 var tempChartOptions = 	{
-	// This array should hold maxHeaters + maxTempSensors + 1 (for the chamber heater) items
+	// This array should hold maxHeaters + maxTempSensors items
 	colors: ["#0000FF", "#FF0000", "#00DD00", "#FFA000", "#FF00FF", "#337AB7", "#000000", "#E0E000",							// Heater colors
-			"#00DCDC",																											// Chamber color (deprecated)
-			"#AEAEAE", "#BC0000", "#00CB00", "#0000DC", "#FEABEF", "#A0A000", "#DDDD00", "#00BDBD", "#CCBBAA", "#AA00AA"],		// Temp sensor colors
+			"#AEAEAE", "#BC0000", "#00CB00", "#0000DC", "#FEABEF", "#A0A000", "#DDDD00", "#00BDBD", "#CCBBAA", "#AA00AA"],		// Virtual heater colors
 	grid: {
 		borderWidth: 0
 	},
@@ -82,34 +81,6 @@ var recordedTemperatures, layerData;
 
 /* Temperature chart */
 
-function recordHeadTemperatures(bedTemp, chamberTemp, headTemps) {
-	var timeNow = (new Date()).getTime();
-
-	// Add temperatures for each configured head
-	// Also cut off the last one if there are too many temperature samples
-	for(var i = 0; i < maxHeaters + 1; i++) {
-		if (i > 0 && i < headTemps.length + 1) {
-			recordedTemperatures[i].push([timeNow, headTemps[i - 1]]);
-		} else {
-			recordedTemperatures[i].push([]);
-		}
-
-		if (recordedTemperatures[i].length > maxTemperatureSamples) {
-			recordedTemperatures[i].shift();
-		}
-	}
-
-	// Set bed temperature (if any)
-	if (bedHeater != -1) {
-		recordedTemperatures[bedHeater][recordedTemperatures[bedHeater].length - 1] = [timeNow, bedTemp];
-	}
-
-	// Set chamber temperature (if any)
-	if (chamberHeater != -1) {
-		recordedTemperatures[chamberHeater][recordedTemperatures[chamberHeater].length - 1] = [timeNow, chamberTemp];
-	}
-}
-
 function recordCurrentTemperatures(temps) {
 	var timeNow = (new Date()).getTime();
 
@@ -135,13 +106,13 @@ function recordExtraTemperatures(temps) {
 	for(var i = 0; i < maxTempSensors; i++)
 	{
 		if (i < temps.length) {
-			recordedTemperatures[maxHeaters + 1 + i].data.push([timeNow, temps[i].temp]);
+			recordedTemperatures[maxHeaters + i].data.push([timeNow, temps[i].temp]);
 		} else {
-			recordedTemperatures[maxHeaters + 1 + i].data.push([]);
+			recordedTemperatures[maxHeaters + i].data.push([]);
 		}
 
-		if (recordedTemperatures[maxHeaters + 1 + i].data.length > maxTemperatureSamples) {
-			recordedTemperatures[maxHeaters + 1 + i].data.shift();
+		if (recordedTemperatures[maxHeaters + i].data.length > maxTemperatureSamples) {
+			recordedTemperatures[maxHeaters + i].data.shift();
 		}
 	}
 }
@@ -174,8 +145,7 @@ function drawTemperatureChart() {
 
 function setExtraTemperatureVisibility(sensor, visible) {
 	// Update visibility
-	recordedTemperatures[maxHeaters + 1 + sensor].dashes.show = visible;
-	recordedTemperatures[maxHeaters + 1 + sensor].lines.show = visible;
+	recordedTemperatures[maxHeaters + sensor].dashes.show = visible;
 
 	// Save state in localStorage
 	var extraSensorVisibility = JSON.parse(localStorage.getItem("extraSensorVisibility"));
@@ -186,8 +156,8 @@ function setExtraTemperatureVisibility(sensor, visible) {
 
 /* Print statistics chart */
 
-function addLayerData(lastLayerTime, updateGui) {
-	layerData.push([layerData.length + 1, lastLayerTime]);
+function addLayerData(lastLayerTime, filamentUsed, updateGui) {
+	layerData.push([layerData.length + 1, lastLayerTime, filamentUsed]);
 	if (lastLayerTime > maxLayerTime) {
 		maxLayerTime = lastLayerTime;
 	}
@@ -243,16 +213,27 @@ function drawPrintChart() {
 	refreshPrintChart = false;
 
 	// Add hover events to chart
-	$("#chart_print").unbind("plothover").bind("plothover", function (event, pos, item) {
+	$("#chart_print").unbind("plothover").bind("plothover", function(e, pos, item) {
 		if (item) {
+			// Get layer number and time used
 			var layer = item.datapoint[0];
-			if (layer == 0) {
-				layer = 1;
+			var timeUsed = item.datapoint[1];
+
+			// Get filament usage
+			var filamentUsed;
+			if (layer > 1) {
+				filamentUsed = layerData[layer - 1][2] - layerData[layer - 2][2];
+			} else {
+				filamentUsed = layerData[layer - 1][2];
 			}
 
-			$("#layer_tooltip").html(T("Layer {0}: {1}", layer, formatTime(item.datapoint[1])))
-				.css({top: item.pageY + 5, left: item.pageX + 5})
-				.fadeIn(200);
+			// Build tool tip
+			var toolTip =	"<center><strong>" + T("Layer {0}", layer) + "</strong></center><br/>";
+			toolTip +=		T("Time: {0}", formatTime(timeUsed)) + "<br/>";
+			toolTip +=		T("Filament usage: {0} mm", filamentUsed.toFixed(1));
+
+			// Show it
+			$("#layer_tooltip").html(toolTip).css({top: item.pageY + 5, left: item.pageX + 5}).fadeIn(200);
 		} else {
 			$("#layer_tooltip").hide();
 		}
@@ -310,14 +291,14 @@ function resetChartData() {
 
 	// Reset data of the temperature chart
 	recordedTemperatures = [];
-	for(var i = 0; i < maxHeaters + 1; i++) {
+	for(var i = 0; i < maxHeaters; i++) {
 		recordedTemperatures.push([]);
 	}
 
 	for(var i = 0; i < maxTempSensors; i++) {
 		recordedTemperatures.push({
 			dashes: { show: extraSensorVisibility[i] },
-			lines: { show: extraSensorVisibility[i] },
+			lines: { show: false },
 			data: []
 		});
 

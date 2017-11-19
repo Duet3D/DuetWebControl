@@ -18,7 +18,7 @@ var fileInfo, currentLayerTime, lastLayerPrintDuration;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
 var axisNames, numAxes, numExtruderDrives, numVolumes, numFans;
-var bedHeater = 0, chamberHeater = -1, numTempSensors, toolMapping = undefined;
+var bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors, toolMapping = undefined;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
 
 var isPrinting, isPaused, printHasFinished;
@@ -41,7 +41,7 @@ function resetGuiData() {
 
 	probeSlowDownValue = probeTriggerValue = undefined;
 	bedHeater = 0;
-	chamberHeater = -1;
+	chamberHeater = cabinetHeater = -1;
 	numTempSensors = 0;
 
 	axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
@@ -156,6 +156,9 @@ function updateGui() {
 							} else if (heater == chamberHeater && lastStatusResponse.temps.hasOwnProperty("chamber")) {
 								heaterState = getHeaterStateText(lastStatusResponse.temps.chamber.state);
 								currentTemp = T("{0} °C", lastStatusResponse.temps.chamber.current.toFixed(1));
+							} else if (heater == cabinetHeater && lastStatusResponse.temps.hasOwnProperty("cabinet")) {
+								heaterState = getHeaterStateText(lastStatusResponse.temps.cabinet.state);
+								currentTemp = T("{0} °C", lastStatusResponse.temps.cabinet.current.toFixed(1));
 							} else if (heater < lastStatusResponse.temps.heads.state.length + 1) {
 								heaterState = getHeaterStateText(lastStatusResponse.temps.heads.state[heater - 1]);
 								currentTemp = T("{0} °C", lastStatusResponse.temps.heads.current[heater - 1].toFixed(1));
@@ -251,6 +254,14 @@ function updateGui() {
 		var heaterName = T("Heater {0}", chamberHeater);
 		$("#table_tools tr[data-heater='chamber'] > th:nth-child(2) > a").text(heaterName);
 		$("#table_tools tr[data-heater='chamber'] > th:nth-child(2) > a, #table_heaters tr[data-heater='chamber'] > th:first-child > a").removeClass().addClass("heater-" + chamberHeater);
+	}
+
+	// Cabinet heater
+	$("tr[data-heater='cabinet']").toggleClass("hidden", cabinetHeater == -1);
+	if (cabinetHeater != -1) {
+		var heaterName = T("Heater {0}", cabinetHeater);
+		$("#table_tools tr[data-heater='cabinet'] > th:nth-child(2) > a").text(heaterName);
+		$("#table_tools tr[data-heater='cabinet'] > th:nth-child(2) > a, #table_heaters tr[data-heater='cabinet'] > th:first-child > a").removeClass().addClass("heater-" + cabinetHeater);
 	}
 
 	// Visibility of heater temperatures (deprecated)
@@ -422,6 +433,8 @@ function resetGui() {
 	setTemperatureInput("bed", 0, true, false);
 	setCurrentTemperature("chamber",  undefined);
 	setTemperatureInput("chamber", 0, true, false);
+	setCurrentTemperature("cabinet",  undefined);
+	setTemperatureInput("cabinet", 0, true, false);
 	for(var i = 1; i < maxHeaters; i++) {
 		setCurrentTemperature(i, undefined);
 		setTemperatureInput(i, 0, true, false);
@@ -537,10 +550,13 @@ $("body").on("focus", "input[type='number']", function() {
 });
 
 $("#div_tools_heaters").on("click", ".bed-temp", function(e) {
-	if ($(this).closest("tr").data("heater") == "bed") {
+	var heater = $(this).closest("tr").data("heater");
+	if (heater == "bed") {
 		sendGCode("M140 S" + $(this).data("temp"));		// Set bed temperature
-	} else {
+	} else if (heater == "chamber") {
 		sendGCode("M141 S" + $(this).data("temp"));		// Set chamber temperature
+	} else if (heater == "cabinet") {
+		sendGCode("M141 P1 S" + $(this).data("temp"));	// Set cabinet temperature
 	}
 	e.preventDefault();
 });
@@ -676,7 +692,7 @@ $("#table_tools").on("click", "tr > th:nth-child(2) > a", cbHeaterClick);
 $("#table_tools").on("keydown", "tr > td > div > input", function(e) {
 	// Ignore bed and chamber heaters. They're handled by a static event callback
 	var heater = $(this).closest("tr").data("heater");
-	if (heater == "bed" || heater == "chamber") {
+	if (heater == "bed" || heater == "chamber" || heater == "cabinet") {
 		return;
 	}
 
@@ -705,7 +721,7 @@ $("#table_tools").on("keydown", "tr > td > div > input", function(e) {
 $("#table_tools").on("click", "tr > th:first-child > a", function(e) {
 	// Ignore bed and chamber heaters. They're handled by a static event callback
 	var heater = $(this).closest("tr").data("heater");
-	if (heater == "bed" || heater == "chamber") {
+	if (heater == "bed" || heater == "chamber" || heater == "cabinet") {
 		return;
 	}
 
@@ -857,6 +873,11 @@ $(".heaters-off").click(function(e) {
 		// Turn off chamber
 		if (chamberHeater != -1) {
 			gcode += "M141 S-273.15\n";
+		}
+
+		// Turn off cabinet
+		if (cabinetHeater != -1) {
+			gcode += "M141 P1 S-273.15\n";
 		}
 
 		sendGCode(gcode);
@@ -1093,7 +1114,8 @@ $(".div-gcodes").bind("shown.bs.dropdown", function() {
 
 $("#table_heaters > tbody > tr > td > div > input," +
   "#table_tools > tbody > tr[data-heater='bed'] > td > div > input," +
-  "#table_tools > tbody > tr[data-heater='chamber'] > td > div > input").keydown(function(e) {
+  "#table_tools > tbody > tr[data-heater='chamber'] > td > div > input," +
+  "#table_tools > tbody > tr[data-heater='cabinet'] > td > div > input").keydown(function(e) {
 	var enterKeyPressed = (e.which == 13);
 	enterKeyPressed |= (e.which == 9 && windowIsXsSm()); // need this for Android
 	if (isConnected && enterKeyPressed) {
@@ -1106,6 +1128,8 @@ $("#table_heaters > tbody > tr > td > div > input," +
 			gcode = "M140 S" + temperature;
 		} else if (heater == "chamber") {
 			gcode = "M141 S" + temperature;
+		} else if (heater == "cabinet") {
+			gcode = "M141 P1 S" + temperature;
 		} else {
 			// 2. Is the active tool mapped to this heater?
 			var activeOrStandby = ($(this).data("type") == "active") ? "S" : "R";
@@ -1229,7 +1253,8 @@ $("#panel_extrude label.btn").click(function() {
 
 $("#table_heaters > tbody > tr > th > a," +
 	"#table_tools > tbody > tr[data-heater='bed'] > th:first-child > a," +
-	"#table_tools > tbody > tr[data-heater='chamber'] > th:first-child > a").click(cbHeaterClick);
+	"#table_tools > tbody > tr[data-heater='chamber'] > th:first-child > a," +
+	"#table_tools > tbody > tr[data-heater='cabinet'] > th:first-child > a").click(cbHeaterClick);
 
 
 $("#check_heaters input[type='checkbox'], #check_drives input[type='checkbox']").change(function() {
@@ -1332,10 +1357,22 @@ function cbHeaterClick(e) {
 					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
 				} else if (chamberState == 2) {
 					// Put chamber into off mode
-					sendGCode("M141 S-273.15");
+					sendGCode("M141 P0 S-273.15");
 				} else {
 					// Bed is either off or in standby mode, send M140 to turn it back on
-					sendGCode("M141 S" + lastStatusResponse.temps.chamber.active);
+					sendGCode("M141 P0 S" + lastStatusResponse.temps.chamber.active);
+				}
+				$(this).blur();
+			} else if (heater == "cabinet") {
+				var cabinetState = lastStatusResponse.temps.cabinet.state;
+				if (cabinetState == 3) {
+					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
+				} else if (cabinetState == 2) {
+					// Put cabinet into off mode
+					sendGCode("M141 P1 S-273.15");
+				} else {
+					// Bed is either off or in standby mode, send M140 to turn it back on
+					sendGCode("M141 P1 S" + lastStatusResponse.temps.cabinet.active);
 				}
 				$(this).blur();
 			} else {
@@ -1515,14 +1552,14 @@ function setCurrentTemperature(heater, temperature) {
 		tempCell.html(T("n/a"));
 	} else if (temperature < -270) {
 		tempCell.html(T("error"));
-	} else if (vendor == "diabase" && heater == "chamber") {
+	} else if (vendor == "diabase" && heater == "cabinet") {
 		tempCell.html(T("{0} %RH", temperature.toFixed(1)));
 	} else {
 		tempCell.html(T("{0} °C", temperature.toFixed(1)));
 	}
 
 	// Update Extrude+Retract buttons
-	if (heater != "bed" && heater != "chamber" && lastStatusResponse != undefined) {
+	if (heater != "bed" && heater != "chamber" && heater != "cabinet" && lastStatusResponse != undefined) {
 		if (lastStatusResponse.currentTool != -1) {
 			var isActiveHead = false;
 			getToolsByHeater(heater).forEach(function(tool) { if (tool == lastStatusResponse.currentTool) { isActiveHead = true; } });
@@ -1575,7 +1612,7 @@ function setGeometry(g) {
 
 function setHeaterState(heater, state, currentTool) {
 	var statusText = getHeaterStateText(state);
-	if (heater == "bed" || heater == "chamber") {
+	if (heater == "bed" || heater == "chamber" || heater == "cabinet") {
 		$("#div_tools_heaters tr[data-heater='" + heater + "'] > th > span:last-child").text(statusText);
 	} else {
 		// Set status texts on Tools panel
@@ -1667,7 +1704,7 @@ function setPrintStatus(printing) {
 			}
 
 			if (!printHasFinished && currentLayerTime > 0) {
-				addLayerData(currentLayerTime, true);
+				addLayerData(currentLayerTime, lastStatusResponse.coords.extr.reduce(function(a, b) { return a + b; }), true);
 				$("#td_layertime").html(T("n/a"));
 			}
 			printHasFinished = true;
@@ -1744,10 +1781,8 @@ function setTemperatureInput(heater, value, active, setToolHeaters) {
 	var prefix = (setToolHeaters) ? "" : "#table_heaters ";
 
 	var tempInput = undefined;
-	if (heater == "bed") {
-		tempInput = $(prefix + "tr[data-heater='bed'] input");
-	} else if (heater == "chamber") {
-		tempInput = $(prefix + "tr[data-heater='chamber'] input");
+	if (heater == "bed" || heater == "chamber" || heater == "cabinet") {
+		tempInput = $(prefix + "tr[data-heater='" + heater + "'] input");
 	} else {
 		var activeOrStandby = (active) ? "active": "standby";
 		tempInput = $(prefix + "tr[data-heater='" + heater + "'] input[data-type='" + activeOrStandby + "']");
@@ -1764,10 +1799,8 @@ function setToolTemperatureInput(tool, heater, value, active) {
 	setTemperatureInput(heater, value, active, false);
 
 	var tempInput = undefined;
-	if (heater == "bed") {
-		tempInput = $("#table_tools tr[data-heater='bed'] input");
-	} else if (heater == "chamber") {
-		tempInput = $("#table_tools tr[data-heater='chamber'] input");
+	if (heater == "bed" || heater == "chamber" || heater == "cabinet") {
+		tempInput = $("#table_tools tr[data-heater='" + heater + "'] input");
 	} else {
 		var activeOrStandby = (active) ? "active": "standby";
 		tempInput = $("#table_tools tr[data-tool='" + tool + "'][data-heater='" + heater + "'] input[data-type='" + activeOrStandby + "']");
@@ -1803,6 +1836,8 @@ function setMachineName(name) {
 }
 
 function showPage(name) {
+	$("#layer_tooltip").hide();
+
 	$(".navitem, .page").removeClass("active");
 	$(".navitem-" + name + ", #page_" + name).addClass("active");
 	setTimeout(function() {
@@ -1938,9 +1973,8 @@ function applyThemeColors() {
 	for(var heater = 0; heater < maxHeaters; heater++) {
 		tempChartOptions.colors[heater] = $(".heater-" + heater).css("color");
 	}
-	tempChartOptions.colors[maxHeaters] = $(".chamber").css("color");
 	for(var tempSensor = 0; tempSensor < maxTempSensors; tempSensor++) {
-		tempChartOptions.colors[maxHeaters + 1 + tempSensor] = $(".temp-sensor-" + tempSensor).css("color");
+		tempChartOptions.colors[maxHeaters + tempSensor] = $(".temp-sensor-" + tempSensor).css("color");
 	}
 
 	if (tempChart != undefined) {

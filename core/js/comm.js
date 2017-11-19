@@ -652,7 +652,6 @@ function updateStatus() {
 			$("#td_fanrpm").html(status.sensors.fanRPM);
 
 			// Heated bed
-			var bedTemp = undefined;
 			if (status.temps.hasOwnProperty("bed")) {
 				var configuredBedHeater = (status.temps.bed.hasOwnProperty("heater")) ? status.temps.bed.heater : 0;
 				if (bedHeater != configuredBedHeater) {
@@ -661,7 +660,6 @@ function updateStatus() {
 					setHeatersInUse();
 				}
 
-				bedTemp = status.temps.bed.current;
 				setTemperatureInput("bed", status.temps.bed.active, true, true);
 			} else if (bedHeater != -1) {
 				bedHeater = -1;
@@ -669,7 +667,6 @@ function updateStatus() {
 			}
 
 			// Chamber
-			var chamberTemp = undefined;
 			if (status.temps.hasOwnProperty("chamber")) {
 				var configuredChamberHeater = (status.temps.chamber.hasOwnProperty("heater")) ? status.temps.chamber.heater : maxHeaters;
 				if (chamberHeater != configuredChamberHeater)
@@ -679,10 +676,24 @@ function updateStatus() {
 					setHeatersInUse();
 				}
 
-				chamberTemp = status.temps.chamber.current;
 				setTemperatureInput("chamber", status.temps.chamber.active, true, true);
 			} else if (chamberHeater != -1) {
 				chamberHeater = -1;
+				needGuiUpdate = true;
+			}
+
+			// Dry Cabinet
+			if (status.temps.hasOwnProperty("cabinet")) {
+				if (cabinetHeater != status.temps.cabinet.heater)
+				{
+					cabinetHeater = status.temps.cabinet.heater;
+					needGuiUpdate = true;
+					setHeatersInUse();
+				}
+
+				setTemperatureInput("cabinet", status.temps.cabinet.active, true, true);
+			} else if (cabinetHeater != -1) {
+				cabinetHeater = -1;
 				needGuiUpdate = true;
 			}
 
@@ -697,6 +708,11 @@ function updateStatus() {
 					if (heater == chamberHeater) {
 						setCurrentTemperature("chamber", status.temps.current[heater]);
 						setHeaterState("chamber", status.temps.state[heater], status.currentTool);
+					}
+					if (heater == cabinetHeater)
+					{
+						setCurrentTemperature("cabinet", status.temps.current[heater]);
+						setHeaterState("cabinet", status.temps.state[heater], status.currentTool);
 					}
 					setCurrentTemperature(heater, status.temps.current[heater]);
 					setHeaterState(heater, status.temps.state[heater], status.currentTool);
@@ -855,16 +871,21 @@ function updateStatus() {
 				// Print Chart
 				if (status.currentLayer > 1) {
 					var realPrintTime = (status.printDuration - status.warmUpDuration - status.firstLayerDuration);
+					var totalFilamentUsage = status.coords.extr.reduce(function(a, b) { return a + b; });
 					if (layerData.length == 0) {
 						if (status.currentLayer > 2) {						// add avg values on reconnect
-							addLayerData(status.firstLayerDuration, false);
+							var avgFilamentUsage = totalFilamentUsage / status.currentLayer;
+							addLayerData(status.firstLayerDuration, avgFilamentUsage, false);
 							realPrintTime -= status.currentLayerTime;
-							for(var layer=2; layer<status.currentLayer; layer++) {
-								addLayerData(realPrintTime / (status.currentLayer - 1), false);
+
+							var accFilamentUsage = avgFilamentUsage;
+							for(var layer = 2; layer < status.currentLayer; layer++) {
+								accFilamentUsage += avgFilamentUsage;
+								addLayerData(realPrintTime / (status.currentLayer - 1), accFilamentUsage, false);
 							}
 							drawPrintChart();
 						} else {											// else only the first layer is complete
-							addLayerData(status.firstLayerDuration, true);
+							addLayerData(status.firstLayerDuration, totalFilamentUsage, true);
 						}
 
 						if (status.currentLayer == 2) {
@@ -873,7 +894,7 @@ function updateStatus() {
 							lastLayerPrintDuration = realPrintTime;
 						}
 					} else if (printJustFinished || status.currentLayer - 1 > layerData.length) {
-						addLayerData(realPrintTime - lastLayerPrintDuration, true);
+						addLayerData(realPrintTime - lastLayerPrintDuration, totalFilamentUsage, true);
 						lastLayerPrintDuration = realPrintTime;
 					}
 				}
@@ -1168,8 +1189,8 @@ function setOem(oem) {
 		$(".diabase").removeClass("hidden");
 
 		// Change "Chamber" to "Dry Cabinet"
-		$("#table_tools tr[data-heater='chamber'] > th:first-child > a").text(T("Dry Cabinet"));
-		$("#table_heaters tr[data-heater='chamber'] > th:first-child > a").text(T("Dry Cabinet"));
+		$("#table_tools tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
+		$("#table_heaters tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 	}
 }
 

@@ -344,6 +344,9 @@ div.panel table.table-status:not(:last-child)
 .chamber {
 	color: #00DCDC !important;
 }
+.cabinet {
+	color: #8b1892 !important;
+}
 .temp-sensor-0 {
 	color: #AEAEAE !important;
 }
@@ -389,7 +392,7 @@ div.panel table.table-status:not(:last-child)
 
 .sidebar-continuation {
 	border-top: 0px;
-	height: 100%;
+	height: 100vh;
 	position: fixed;
 	top: 0px;
 	bottom: 0px;
@@ -673,6 +676,7 @@ div.panel table.table-status:not(:last-child)
 	padding: 2px;
 	background-color: #fee;
 	opacity: 0.80;
+	z-index: 1;
 }
 
 #panel_print_control > div > div.btn-group-justified {

@@ -309,10 +309,6 @@ a {
     color: #30DCDC !important; /*Heater 5 color*/
 }
 
-.chamber {
-    color: #BBBBBB !important; /*Chamber color*/
-}
-
 #table_tools td,
 #table_heaters td,
 #table_extra td {

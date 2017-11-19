@@ -188,6 +188,7 @@ function setHeatersInUse() {
 	for(var heater = 0; heater < maxHeaters; heater++) {
 		var heaterAssigned = (heater == bedHeater);
 		heaterAssigned |= (heater == chamberHeater);
+		heaterAssigned |= (heater == cabinetHeater);
 		heaterAssigned |= (getToolsByHeater(heater).length > 0);
 		heatersInUse.push(heaterAssigned);
 	}
