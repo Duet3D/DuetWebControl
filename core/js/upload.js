@@ -33,6 +33,9 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 		return;
 	}
 
+	// Stop status updates as long as files are being transferred (should not be needed but leave it here because some users reported issues)
+	stopUpdates();
+
 	// Ideally we should use FileAPI here, but IE+Edge don't support it
 	//var file = new File([content], filename, { type: "application/octet-stream" });
 	var file = new Blob([content], { type: "application/octet-stream" });
@@ -48,6 +51,7 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 		type: "POST",
 		global: false,
 		error: function(jqXHR, textStatus, errorThrown) {
+			startUpdates();
 			showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
 			console.log("Text file upload failed!\nStatus: " + textStatus + "\nError: " + errorThrown);
 		},
@@ -68,6 +72,7 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 				showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
 			}
 
+			startUpdates();
 			if (callback != undefined) {
 				callback();
 			}
@@ -470,22 +475,7 @@ function uploadHasFinished(success) {
 			sendGCode("M32 " + currentGCodeDirectory + "/" + uploadFileName);
 		}
 
-		// Ask for page reload if DWC has been updated (wired Duets, DWC on SD card)
-		if (uploadedDWC) {
-			$("#modal_upload").modal("hide");
-
-			if (sessionPassword != defaultPassword) {
-				connect(sessionPassword, false);
-
-				showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
-					location.reload();
-				});
-			} else {
-				location.reload();
-			}
-		}
-
-		// Ask for software reset if it's safe to do
+		// Ask for firmware/DWC update if it's safe to do
 		else if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
 			// Test for firmware update before we test for a new config file, because a firmware update includes a reset
 			if (uploadFirmwareFile != undefined && uploadDWSFile == undefined && uploadDWSSFile == undefined && uploadDWCFile == undefined) {
@@ -506,6 +496,18 @@ function uploadHasFinished(success) {
 					// Perform software reset
 					sendGCode("M999");
 				});
+			} else if (uploadedDWC) {
+				$("#modal_upload").modal("hide");
+
+				if (sessionPassword != defaultPassword) {
+					connect(sessionPassword, false);
+
+					showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+						location.reload();
+					});
+				} else {
+					location.reload();
+				}
 			}
 		}
 	}

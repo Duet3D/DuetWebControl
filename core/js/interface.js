@@ -9,7 +9,7 @@
 
 var machineName = "Duet Web Control";
 
-var maxAxes = 9, maxExtruders = 6, maxDrives = 11, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
+var maxAxes = 9, maxExtruders = 9, maxDrives = 11, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var webcamUpdating = false;
@@ -323,8 +323,8 @@ function updateGui() {
 	}
 
 	// Visibility of extrusion factor sliders
-	for(var i = 1; i <= maxExtruders; i++) {
-		if (i <= numExtruderDrives) {
+	for(var i = 0; i < maxExtruders; i++) {
+		if (i < numExtruderDrives) {
 			$(".extr-" + i).removeClass("hidden");
 			$("#slider_extr_" + i).slider("relayout");
 		} else {
@@ -342,15 +342,15 @@ function updateGui() {
 	// Rearrange extruder drive cells if neccessary. Only show total usage on md desktop if more than three extruders are in use
 	if (numExtruderDrives <= 3) {
 		$("#col_extr_totals, #td_extr_total").addClass("hidden-md");
-		for(var i = 1; i <= 3; i++) {
-			$("#table_extruder_positions th[data-extruder='" + (i - 1) + "']").removeClass("hidden-md").html(T("Drive " + i));
-			$("#table_extruder_positions td[data-extruder='" + (i - 1) + "']").removeClass("hidden-md");
+		for(var i = 0; i < 3; i++) {
+			$("#table_extruder_positions th[data-extruder='" + i + "']").removeClass("hidden-md").html(T("Drive {0}", i));
+			$("#table_extruder_positions td[data-extruder='" + i + "']").removeClass("hidden-md");
 		}
 	} else {
 		$("#col_extr_totals, #td_extr_total").removeClass("hidden-md");
-		for(var i = 1; i <= maxExtruders; i++) {
-			$("#table_extruder_positions th[data-extruder='" + (i - 1) + "']").addClass("hidden-md").html(T("D" + i));
-			$("#table_extruder_positions td[data-extruder='" + (i - 1) + "']").addClass("hidden-md");
+		for(var i = 0; i < maxExtruders; i++) {
+			$("#table_extruder_positions th[data-extruder='" + i + "']").addClass("hidden-md").html(T("D{0}", i));
+			$("#table_extruder_positions td[data-extruder='" + i + "']").addClass("hidden-md");
 		}
 	}
 
@@ -373,6 +373,45 @@ function updateGui() {
 	resizeCharts();
 	drawTemperatureChart();
 	drawPrintChart();
+
+	// Tool list on Calibration page (OEM)
+	if (vendor == "diabase") {
+		$("#table_calibration_tools > tbody").children().remove();
+		for(var i = 0 ; i < toolMapping.length; i++) {
+			var tool = toolMapping[i];
+			if (!tool.hasOwnProperty("offsets")) {
+				tool.offsets = [ 0.0, 0.0, 0.0 ];
+			}
+
+			var row = '<tr data-tool="' + tool.number + '">';
+			row += '<td>' + ((tool.name == "") ? T("Tool {0}", tool.number) : tool.name) + '</td><td>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="X"><span class="glyphicon glyphicon-arrow-left"></span></button>';
+			row += '<span>' + T("{0} mm", tool.offsets[0].toFixed(2)) + '</span>';
+			row += '<button class="btn btn-default tool-offset-up" data-axis="X"><span class="glyphicon glyphicon-arrow-right"></span></button>';
+			row += '</td><td>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="Y"><span class="glyphicon glyphicon-arrow-left"></span></button>';
+			row += '<span>' + T("{0} mm", tool.offsets[1].toFixed(2)) + '</span>';
+			row += '<button class="btn btn-default tool-offset-up" data-axis="Y"><span class="glyphicon glyphicon-arrow-right"></span></button>';
+			row += '</td><td>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span></button>';
+			if (i == 0) {
+				row += '<span id="span_probe_height">' + T("{0} mm", zTriggerHeight.toFixed(2)) + '</span>';
+			} else {
+				row += '<span>' + T("{0} mm", tool.offsets[2].toFixed(2)) + '</span>';
+			}
+			row += '<button class="btn btn-default tool-offset-up" data-axis="Z"><span class="glyphicon glyphicon-arrow-up"></span></button>';
+			row += '</td><td>';
+			row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Calibrate") + '</button>';
+			row += '</td></tr>';
+
+			var rowElem = $("#table_calibration_tools > tbody").append(row);
+			if (i == 0) {
+				rowElem.find('button[data-axis="X"]').addClass("disabled");
+				rowElem.find('button[data-axis="Y"]').addClass("disabled");
+				rowElem.find('button.tool-calibrate').addClass("disabled");
+			}
+		}
+	}
 
 	// Tool list on Settings page
 	$("#page_tools").children(":not(:first-child)").remove();
@@ -453,10 +492,10 @@ function resetGui() {
 	setATXPower(false);
 	$('#slider_fan_control').slider("setValue", 35);
 
-	// Hide Scanner page
+	// Hide Scanner and Calibration pages
 	$(".scan-control").addClass("hidden");
 	$("#div_content").resize();
-	if (currentPage == "scanner") {
+	if (currentPage == "scanner" || currentPage == "calibration") {
 		showPage("control");
 	}
 
@@ -781,6 +820,64 @@ $("#table_tools").on("click", "tr > th:first-child > a", function(e) {
 		$(this).blur();
 	}
 	e.preventDefault();
+});
+
+$("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
+	if (!$(this).hasClass("disabled")) {
+		var axis = $(this).data("axis");
+		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
+		if (changeTriggerHeight)
+		{
+			zTriggerHeight += 0.01;
+			sendGCode("G31 Z" + zTriggerHeight + "\nM500");
+			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
+		}
+		else
+		{
+			var toolNumber = $(this).parents("tr").data("tool");
+			var tool = getTool($(this).parents("tr").data("tool"));
+			if (tool.hasOwnProperty("offsets")) {
+				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
+				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] + 0.01) * 100) / 100;
+				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
+			}
+		}
+	}
+});
+
+$("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
+	if (!$(this).hasClass("disabled")) {
+		var axis = $(this).data("axis");
+		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
+		if (changeTriggerHeight)
+		{
+			zTriggerHeight -= 0.01;
+			sendGCode("G31 Z" + zTriggerHeight + "\nM500");
+			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
+		}
+		else
+		{
+			var toolNumber = $(this).parents("tr").data("tool");
+			var tool = getTool(toolNumber);
+			if (tool.hasOwnProperty("offsets")) {
+				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
+				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] - 0.01) * 100) / 100;
+				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
+			}
+		}
+	}
+});
+
+$("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
+	var toolNumber = $(this).parents("tr").data("tool");
+	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
+		function() {
+			showMessage("info", T("Calibrating..."), T("Please wait until your tool has been calibrated..."));
+			sendGCode("T" + toolNumber + "\n" + "M98 Pcalibrate.g");
+		}
+	);
 });
 
 $("body").on("click", ".load-filament", function(e) {
@@ -1730,6 +1827,7 @@ function setPrintStatus(printing) {
 	}
 
 	isPrinting = printing;
+	$(".disable-printing").toggleClass("disabled", printing);
 
 	if (waitingForPrintStart && printing) {
 		$("#modal_upload").modal("hide");

@@ -23,6 +23,7 @@ var updateTaskLive = false;				// Are status responses being polled?
 var stopUpdating = false;				// This will be true if status updates should be no longer polled
 var extendedStatusCounter = 0;			// Counts the number of regular status updates so extended ones are polled from time to time
 var lastStatusResponse;					// Contains the last available status response (rr_status)
+var zTriggerHeight = 0.0;				// Trigger height of the Z-probe (only used for OEM)
 
 var configResponse;						// Contains the last rr_config response (if any)
 var configFile;							// This is a cached copy of the machine's config.g file
@@ -67,13 +68,22 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 			}
 		}
 
-		// Disconenct and report an error if we exceeded the maximum number of retries
-		var msg = T("An AJAX error has been reported, so the current session has been terminated.<br/><br/>Please check if your printer is still on and try to connect again.");
-		if (thrownError != undefined && thrownError != "") {
-			msg += "<br/><br/>" + T("Error reason: {0}", T(thrownError.toString()));
+		// Report an error and disconnect if we exceeded the maximum number of retries
+		var msg, title;
+		if (thrownError == "timeout") {
+			title = T("Request Timeout");
+			msg = T("The last HTTP request has timed out. Please make sure the connection between your device and the board is not interrupted.");
+		} else if (thrownError == "parsererror") {
+			title = T("Invalid Response");
+			msg = T("The firmware has sent an invalid response to the web interface. Open the developer console to view further details.");
+		} else {
+			title = T("Communication Error");
+			msg = T("A communication error was reported, so the current session has been terminated. Please check your board and try to connect again.");
+			if (thrownError != undefined && thrownError != "") {
+				msg += "<br/><br/>" + T("Error reason: {0}", T(thrownError.toString()));
+			}
 		}
-		showMessage("danger", T("Communication Error"), msg, 0);
-
+		showMessage("danger", title, msg, 0);
 		disconnect(false);
 
 		// Try to log the faulty response to console
@@ -345,6 +355,9 @@ function updateStatus() {
 				$("#dd_probe_type").text(probeType);
 				$("#dd_probe_height").text(T("{0} mm", status.probe.height));
 				$("#dd_probe_value").text(probeTriggerValue);
+
+				zTriggerHeight = status.probe.height;
+				$("#span_probe_height").text(T("{0} mm", zTriggerHeight.toFixed(2)));
 			}
 
 			// Tool Mapping
@@ -523,8 +536,23 @@ function updateStatus() {
 
 			// Fan Control
 			if (!fanSliderActive) {
-				var selectedFan = getFanSelection();
 				var fanValues = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent : [status.params.fanPercent];
+				var selectedFan = getFanSelection();
+				if (selectedFan == undefined) {
+					selectedFan = 0;
+
+					// Figure out what the first printing fan is
+					var tool = getTool(status.currentTool);
+					if (tool != undefined && tool.hasOwnProperty("fans")) {
+						for(var i = 0; i < Math.min(maxFans, fanValues.length); i++) {
+							if ((tool.fans & (1 << i)) != 0) {
+								selectedFan = i;
+								break;
+							}
+						}
+					}
+				}
+
 				for(var i = 0; i < Math.min(maxFans, fanValues.length); i++) {
 					// Check if the prior fan value must be enforced
 					var fanValue = fanValues[i] / 100.0;
@@ -846,7 +874,7 @@ function updateStatus() {
 
 					}
 					// Otherwise by comparing the current Z position to the total height
-					else if (fileInfo.height > 0) {
+					else if (fileInfo.height > 0 && fileInfo.layerHeight > 0) {
 						progress = ((status.coords.xyz[2] / fileInfo.height) * 100.0).toFixed(1);
 						if (progress < 0) {
 							progress = 0;
@@ -1014,7 +1042,7 @@ function updateStatus() {
 
 					// Ask for page reload if DWC has been updated (wireless Duets, DWC on WiFi chip)
 					setTimeout(function() {
-						if (uploadDWCFile != undefined) {
+						if (uploadedDWC || uploadDWCFile != undefined) {
 							if (sessionPassword != defaultPassword) {
 								connect(sessionPassword, false);
 

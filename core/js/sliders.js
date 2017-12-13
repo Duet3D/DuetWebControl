@@ -8,7 +8,7 @@
 
 
 var fanSliderActive, speedSliderActive, extrSliderActive;
-var overriddenFanValues = [undefined, undefined, undefined];	// this must have maxFans items
+var overriddenFanValues = [undefined, undefined, undefined];	// this must hold maxFans items
 
 
 /* Fan Control */
@@ -21,7 +21,6 @@ $('#slider_fan_control').slider({
 	step: 1,
 	value: 35,
 	tooltip: "always",
-
 	formatter: function(value) {
 		return value + " %";
 	}
@@ -31,12 +30,16 @@ $('#slider_fan_control').slider({
 	if (isConnected && !isNaN(slideEvt.value)) {
 		var fan = getFanSelection();
 		var fanValue = slideEvt.value / 100.0;
-
-		if (overriddenFanValues[fan] != undefined) {
-			overriddenFanValues[fan] = fanValue;
+		if (fan == undefined) {
+			// Generic print fan is selected
+			sendGCode("M106 S" + fanValue);
+		} else {
+			// Specific fan is selected
+			if (overriddenFanValues[fan] != undefined) {
+				overriddenFanValues[fan] = fanValue;
+			}
+			sendGCode("M106 P" + fan + " S" + fanValue);
 		}
-		sendGCode("M106 P" + fan + " S" + fanValue);
-
 		$("#slider_fan_print").slider("setValue", slideEvt.value);
 	}
 	fanSliderActive = false;
@@ -50,7 +53,6 @@ $('#slider_fan_print').slider({
 	step: 1,
 	value: 35,
 	tooltip: "always",
-
 	formatter: function(value) {
 		return value + " %";
 	}
@@ -60,12 +62,16 @@ $('#slider_fan_print').slider({
 	if (isConnected && !isNaN(slideEvt.value)) {
 		var fan = getFanSelection();
 		var fanValue = slideEvt.value / 100.0;
-
-		if (overriddenFanValues[fan] != undefined) {
-			overriddenFanValues[fan] = fanValue;
+		if (fan == undefined) {
+			// Generic print fan is selected
+			sendGCode("M106 S" + fanValue);
+		} else {
+			// Specific fan is selected
+			if (overriddenFanValues[fan] != undefined) {
+				overriddenFanValues[fan] = fanValue;
+			}
+			sendGCode("M106 P" + fan + " S" + fanValue);
 		}
-		sendGCode("M106 P" + fan + " S" + fanValue);
-
 		$("#slider_fan_control").slider("setValue", slideEvt.value);
 	}
 	fanSliderActive = false;
@@ -77,10 +83,10 @@ function setFanVisibility(fan, visible) {
 	// update selection and check if the whole panel can be hidden
 	var hideFanControl = false;
 	if (visible) {
-		if (visibleFans.length == 0) {
+		/*if (visibleFans.length == 0) {
 			// set selected fan to this fan
 			setFanSelection(fan);
-		}
+		}*/
 	} else {
 		var firstVisibleFan;
 		visibleFans.each(function() {
@@ -91,10 +97,10 @@ function setFanVisibility(fan, visible) {
 		});
 
 		hideFanControl = (firstVisibleFan == undefined);
-		if (!hideFanControl) {
+		/*if (!hideFanControl) {
 			// set selected fan to first visible fan
 			setFanSelection(firstVisibleFan.data("fan"));
-		}
+		}*/
 	}
 
 	$(".fan-control").toggleClass("hidden", hideFanControl);
@@ -111,12 +117,15 @@ function setFanVisibility(fan, visible) {
 }
 
 function getFanSelection() {
-	return $(".table-fan-control button.btn-primary.fan-selection").data("fan");
+	var selection = $(".table-fan-control button.btn-primary.fan-selection");
+	return (selection.length == 0) ? undefined : selection.data("fan");
 }
 
 function setFanSelection(fan) {
 	$(".table-fan-control button.fan-selection").removeClass("btn-primary").removeClass("active").addClass("btn-default");
-	$('.table-fan-control button.fan-selection[data-fan="' + fan + '"]').removeClass("btn-default").addClass("btn-primary").addClass("active");
+	if (fan != undefined) {
+		$('.table-fan-control button.fan-selection[data-fan="' + fan + '"]').removeClass("btn-default").addClass("btn-primary").addClass("active");
+	}
 }
 
 function setFanOverride(fan, overriddenValue) {
@@ -132,8 +141,13 @@ function setFanOverride(fan, overriddenValue) {
 
 $("button.fan-selection").click(function() {
 	var fan = $(this).data("fan");
-	if ($(this).hasClass("disabled") || fan == getFanSelection()) {
+	if ($(this).hasClass("disabled")) {
 		// only apply other values if the selection has changed
+		return;
+	}
+
+	if (fan == getFanSelection()) {
+		setFanSelection(undefined);
 		return;
 	}
 	setFanSelection(fan);
@@ -167,7 +181,7 @@ $("button.fan-override").click(function() {
 
 /* Extrusion Multiplier */
 
-for(var extr = 1; extr <= maxExtruders; extr++) {
+for(var extr = 0; extr < maxExtruders; extr++) {
 	$('#slider_extr_' + extr).slider({
 		enabled: false,
 		id: "extr-" + extr,
@@ -176,7 +190,6 @@ for(var extr = 1; extr <= maxExtruders; extr++) {
 		step: 1,
 		value: 100,
 		tooltip: "always",
-
 		formatter: function(value) {
 			return value + " %";
 		}
@@ -201,7 +214,6 @@ $('#slider_speed').slider({
 	step: 1,
 	value: 100,
 	tooltip: "always",
-
 	formatter: function(value) {
 		return value + " %";
 	}

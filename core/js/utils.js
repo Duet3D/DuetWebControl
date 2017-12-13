@@ -348,14 +348,14 @@ function setCurrentTool(toolNumber) {
 	if (toolMapping == undefined) {
 		return;
 	}
-	var hideExtruderInputs = true;
 
 	// Hide extruder drives that cannot be used
+	var hideExtruderInputs = true;
 	if (toolNumber >= 0) {
 		var drives = getTool(toolNumber).drives;
 		for(var i = 0; i < numExtruderDrives; i++) {
 			var toolHasDrive = (drives.indexOf(i) != -1);
-			$("#div_extruders > div > .extr-" + (i + 1)).toggleClass("hidden", !toolHasDrive);
+			$("#div_extruders > div > .extr-" + i).toggleClass("hidden", !toolHasDrive);
 		}
 
 		hideExtruderInputs = (drives.length < 2);
@@ -408,7 +408,7 @@ function enableControls() {
 	$("#slider_fan_print").slider("enable");													// Fan ...
 	$(".table-fan-control button").removeClass("disabled");										// ... Control
 	$("#slider_speed").slider("enable");														// Speed Factor
-	for(var extr = 1; extr <= maxExtruders; extr++) {
+	for(var extr = 0; extr < maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("enable");												// Extrusion Factors
 	}
 
@@ -435,7 +435,7 @@ function disableControls() {
 	$("#slider_fan_print").slider("disable");													// Fan ...
 	$(".table-fan-control button").addClass("disabled");										// ... Control
 	$("#slider_speed").slider("disable");														// Speed Factor
-	for(var extr = 1; extr <= maxExtruders; extr++) {
+	for(var extr = 0; extr < maxExtruders; extr++) {
 		$("#slider_extr_" + extr).slider("disable");											// Extrusion Factors
 	}
 

@@ -621,6 +621,29 @@ div.panel table.table-status:not(:last-child)
 	padding-bottom: 0px;
 }
 
+/* Calibration page (OEM) */
+
+#table_calibration_tools > thead > tr > th:not(:first-child) {
+	text-align: center;
+}
+
+#table_calibration_tools > thead > tr > th:last-child {
+	width: 1%;
+}
+
+#table_calibration_tools > tbody > tr > td:first-child {
+	vertical-align: middle;
+}
+
+#table_calibration_tools > tbody > tr > td:not(:first-child) {
+	text-align: center;
+}
+
+#table_calibration_tools > tbody > tr > td:not(:first-child) > span {
+	margin-left: 15px;
+	margin-right: 15px;
+}
+
 /* Print status page */
 
 #img_webcam {

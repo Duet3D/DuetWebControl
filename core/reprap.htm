@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.20-b4
+<!--	Duet Web Control v1.20-RC1
 
 	written by Christian Hammacher
 
@@ -57,8 +57,8 @@
 				</ul>
 				<ul class="nav nav-sidebar">
 					<li class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
+					<li class="navitem navitem-calibration diabase hidden"><a class="navlink" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a></li>
 					<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-					<!--<li class="navitem navitem-help"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>-->
 				</ul>
 			</section>
 
@@ -633,52 +633,52 @@
 									<th>Value</th>
 								</tr>
 								<tr data-sensor="0">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-0">Sensor 1</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="1">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-1">Sensor 2</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="2">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-2">Sensor 3</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="3">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-3">Sensor 4</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="4">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-4">Sensor 5</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="5">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-5">Sensor 6</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="6">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-6">Sensor 7</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="7">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-7">Sensor 8</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="8">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-8">Sensor 9</th>
 									<td>n/a</td>
 								</tr>
 								<tr data-sensor="9">
-									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> Show in chart</label></td>
+									<td class="hidden-sm hidden-xs"><label><input type="checkbox"> <span>Show in chart</span></label></td>
 									<th class="temp-sensor-9">Sensor 10</th>
 									<td>n/a</td>
 								</tr>
@@ -738,12 +738,15 @@
 								<tr>
 									<th rowspan="2" class="th-status">Extruder Drives</th>
 									<th class="hidden"><!-- for HTML validation --></th>
-									<th class="hidden-md" data-extruder="0">D1</th>
-									<th class="hidden-md" data-extruder="1">D2</th>
-									<th class="hidden-md hidden" data-extruder="2">D3</th>
-									<th class="hidden-md hidden" data-extruder="3">D4</th>
-									<th class="hidden-md hidden" data-extruder="4">D5</th>
-									<th class="hidden-md hidden" data-extruder="5">D6</th>
+									<th class="hidden-md" data-extruder="0">D0</th>
+									<th class="hidden-md" data-extruder="1">D1</th>
+									<th class="hidden-md hidden" data-extruder="2">D2</th>
+									<th class="hidden-md hidden" data-extruder="3">D3</th>
+									<th class="hidden-md hidden" data-extruder="4">D4</th>
+									<th class="hidden-md hidden" data-extruder="5">D5</th>
+									<th class="hidden-md hidden" data-extruder="6">D6</th>
+									<th class="hidden-md hidden" data-extruder="7">D7</th>
+									<th class="hidden-md hidden" data-extruder="8">D8</th>
 								</tr>
 								<tr>
 									<td class="hidden-xs hidden-sm hidden-lg" data-extruder="total">n/a</td>
@@ -753,6 +756,9 @@
 									<td class="hidden-md hidden" data-extruder="3">n/a</td>
 									<td class="hidden-md hidden" data-extruder="4">n/a</td>
 									<td class="hidden-md hidden" data-extruder="5">n/a</td>
+									<th class="hidden-md hidden" data-extruder="6">n/a</th>
+									<th class="hidden-md hidden" data-extruder="7">n/a</th>
+									<th class="hidden-md hidden" data-extruder="8">n/a</th>
 								</tr>
 							</table>
 
@@ -791,8 +797,8 @@
 						</ul>
 						<ul class="nav nav-sidebar">
 							<li class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
+							<li class="navitem navitem-calibration diabase hidden"><a class="navlink" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a></li>
 							<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-							<!--<li class="navitem navitem-help"><a class="navlink" href="#" data-target="help"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>-->
 						</ul>
 					</div>
 
@@ -1079,23 +1085,32 @@
 													<label class="btn btn-default disabled">
 														<input type="radio" name="extruder" value="all"> All
 													</label>
-													<label class="btn btn-default disabled">
-														<input type="radio" name="extruder" value="0"> 1
+													<label class="btn btn-default disabled extr-0">
+														<input type="radio" name="extruder" value="0"> 0
 													</label>
-													<label class="btn btn-default disabled">
-														<input type="radio" name="extruder" value="1"> 2
+													<label class="btn btn-default disabled extr-1">
+														<input type="radio" name="extruder" value="1"> 1
 													</label>
-													<label class="btn btn-default disabled hidden">
-														<input type="radio" name="extruder" value="2"> 3
+													<label class="btn btn-default disabled extr-2 hidden">
+														<input type="radio" name="extruder" value="2"> 2
 													</label>
-													<label class="btn btn-default disabled hidden">
-														<input type="radio" name="extruder" value="3"> 4
+													<label class="btn btn-default disabled extr-3 hidden">
+														<input type="radio" name="extruder" value="3"> 3
 													</label>
-													<label class="btn btn-default disabled hidden">
-														<input type="radio" name="extruder" value="4"> 5
+													<label class="btn btn-default disabled extr-4 hidden">
+														<input type="radio" name="extruder" value="4"> 4
 													</label>
-													<label class="btn btn-default disabled hidden">
-														<input type="radio" name="extruder" value="5"> 6
+													<label class="btn btn-default disabled extr-5 hidden">
+														<input type="radio" name="extruder" value="5"> 5
+													</label>
+													<label class="btn btn-default disabled extr-6 hidden">
+														<input type="radio" name="extruder" value="6"> 6
+													</label>
+													<label class="btn btn-default disabled extr-7 hidden">
+														<input type="radio" name="extruder" value="7"> 7
+													</label>
+													<label class="btn btn-default disabled extr-8 hidden">
+														<input type="radio" name="extruder" value="8"> 8
 													</label>
 												</div>
 											</div>
@@ -1201,7 +1216,7 @@
 														<table class="table-fan-control" id="table_fan_control">
 															<tr>
 																<td>
-																	<button class="btn btn-primary btn-sm active disabled fan-selection" data-fan="0">Fan 1</button>
+																	<button class="btn btn-default btn-sm disabled fan-selection" data-fan="0">Fan 0</button>
 																</td>
 																<td>
 																	<button class="btn btn-default btn-sm disabled fan-override" data-fan="0" title="Override Fan Value">
@@ -1216,7 +1231,7 @@
 															</tr>
 															<tr>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="1">Fan 2</button>
+																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="1">Fan 1</button>
 																</td>
 																<td>
 																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="1" title="Override Fan Value">
@@ -1226,7 +1241,7 @@
 															</tr>
 															<tr>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="2">Fan 3</button>
+																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="2">Fan 2</button>
 																</td>
 																<td>
 																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="2" title="Override Fan Value">
@@ -1421,7 +1436,7 @@
 											<table class="table-fan-control" id="table_fan_print">
 												<tr>
 													<td>
-														<button class="btn btn-primary btn-sm disabled active fan-selection" data-fan="0">Fan 1</button>
+														<button class="btn btn-default btn-sm disabled fan-selection" data-fan="0">Fan 0</button>
 													</td>
 													<td>
 														<button class="btn btn-default btn-sm disabled fan-override" data-fan="0" title="Override Fan Value">
@@ -1436,7 +1451,7 @@
 												</tr>
 												<tr>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="1">Fan 2</button>
+														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="1">Fan 1</button>
 													</td>
 													<td>
 														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="1" title="Override Fan Value">
@@ -1446,7 +1461,7 @@
 												</tr>
 												<tr>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="2">Fan 3</button>
+														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="2">Fan 2</button>
 													</td>
 													<td>
 														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="2" title="Override Fan Value">
@@ -1477,40 +1492,58 @@
 										</div>
 										<div class="panel-body">
 											<table class="table-description">
+												<tr class="extr-0">
+													<td>Extruder 0:</td>
+													<td class="slider-container" data-slideout-ignore>
+														<input id="slider_extr_0" type="text" title="Set extrude factor override (via M221)" data-drive="0"/>
+													</td>
+												</tr>
 												<tr class="extr-1">
 													<td>Extruder 1:</td>
 													<td class="slider-container" data-slideout-ignore>
-														<input id="slider_extr_1" type="text" title="Set extrude factor override (via M221)" data-drive="0"/>
+														<input id="slider_extr_1" type="text" title="Set extrude factor override (via M221)" data-drive="1"/>
 													</td>
 												</tr>
 												<tr class="extr-2">
 													<td>Extruder 2:</td>
 													<td class="slider-container" data-slideout-ignore>
-														<input id="slider_extr_2" type="text" title="Set extrude factor override (via M221)" data-drive="1"/>
+														<input id="slider_extr_2" type="text" title="Set extrude factor override (via M221)" data-drive="2"/>
 													</td>
 												</tr>
 												<tr class="extr-3">
 													<td>Extruder 3:</td>
 													<td class="slider-container" data-slideout-ignore>
-														<input id="slider_extr_3" type="text" title="Set extrude factor override (via M221)" data-drive="2"/>
+														<input id="slider_extr_3" type="text" title="Set extrude factor override (via M221)" data-drive="3"/>
 													</td>
 												</tr>
 												<tr class="extr-4">
 													<td>Extruder 4:</td>
 													<td class="slider-container" data-slideout-ignore>
-														<input id="slider_extr_4" type="text" title="Set extrude factor override (via M221)" data-drive="3"/>
+														<input id="slider_extr_4" type="text" title="Set extrude factor override (via M221)" data-drive="4"/>
 													</td>
 												</tr>
 												<tr class="extr-5">
 													<td>Extruder 5:</td>
 													<td class="slider-container" data-slideout-ignore>
-														<input id="slider_extr_5" type="text" title="Set extrude factor override (via M221)" data-drive="4"/>
+														<input id="slider_extr_5" type="text" title="Set extrude factor override (via M221)" data-drive="5"/>
 													</td>
 												</tr>
 												<tr class="extr-6">
 													<td>Extruder 6:</td>
 													<td class="slider-container" data-slideout-ignore>
 														<input id="slider_extr_6" type="text" title="Set extrude factor override (via M221)" data-drive="5"/>
+													</td>
+												</tr>
+												<tr class="extr-7">
+													<td>Extruder 7:</td>
+													<td class="slider-container" data-slideout-ignore>
+														<input id="slider_extr_7" type="text" title="Set extrude factor override (via M221)" data-drive="5"/>
+													</td>
+												</tr>
+												<tr class="extr-8">
+													<td>Extruder 8:</td>
+													<td class="slider-container" data-slideout-ignore>
+														<input id="slider_extr_8" type="text" title="Set extrude factor override (via M221)" data-drive="5"/>
 													</td>
 												</tr>
 											</table>
@@ -1751,6 +1784,37 @@
 							</div>
 						</div>
 
+						<!-- Calibration -->
+						<div id="page_calibration" class="page">
+							<div class="row">
+								<div class="col-md-push-2 col-md-8">
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>Tool Offsets</span>
+										</div>
+										<table id="table_calibration_tools" class="table table-striped">
+											<thead>
+												<tr>
+													<th>Name</th>
+													<th>X</th>
+													<th>Y</th>
+													<th>Z</th>
+													<th></th>
+												</tr>
+											</thead>
+
+											<tbody>
+												<!-- Filled by JS -->
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+							<div class="row text-center">
+								<button class="btn btn-lg btn-warning disable-printing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
+							</div>
+						</div>
+
 						<!-- Settings -->
 						<div id="page_settings" class="page">
 							<form id="frm_settings">
@@ -1807,7 +1871,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.20-b4</td>
+															<td id="dwc_version">1.20-RC1</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2007,21 +2071,21 @@
 														<div class="col-xs-12 col-sm-6 col-md-4">
 															<div class="checkbox">
 																<label title="Show fan slider for this fan to utilize M106. This setting may be overridden if the firmware reports fewer fan values">
-																	<input type="checkbox" data-setting="showFan1" checked /> Fan 1
+																	<input type="checkbox" data-setting="showFan1" checked /> Fan 0
 																</label>
 															</div>
 														</div>
 														<div class="col-xs-12 col-sm-6 col-md-4">
 															<div class="checkbox">
 																<label title="Show fan slider for this fan to utilize M106. This setting may be overridden if the firmware reports fewer fan values">
-																	<input type="checkbox" data-setting="showFan2" checked /> Fan 2
+																	<input type="checkbox" data-setting="showFan2" checked /> Fan 1
 																</label>
 															</div>
 														</div>
 														<div class="col-xs-12 col-sm-12 col-md-4">
 															<div class="checkbox">
 																<label title="Show fan slider for this fan to utilize M106. This setting may be overridden if the firmware reports fewer fan values">
-																	<input type="checkbox" data-setting="showFan3" checked /> Fan 3
+																	<input type="checkbox" data-setting="showFan3" checked /> Fan 2
 																</label>
 															</div>
 														</div>
@@ -2531,31 +2595,31 @@
 														<div class="col-lg-4 col-md-6 col-sm-6">
 															<label>Associated Drive(s):</label>
 															<div class="btn-group btn-group-justified" data-toggle="buttons" id="check_drives">
-																<label class="btn btn-primary active disabled" title="Extruder 1">
+																<label class="btn btn-primary active disabled" title="Extruder 0">
 																	<input type="checkbox" name="tool_drives" value="0" checked disabled> 0
 																</label>
-																<label class="btn btn-default disabled" title="Extruder 2">
+																<label class="btn btn-default disabled" title="Extruder 1">
 																	<input type="checkbox" name="tool_drives" value="1" disabled> 1
 																</label>
-																<label class="btn btn-default disabled" title="Extruder 3">
+																<label class="btn btn-default disabled" title="Extruder 2">
 																	<input type="checkbox" name="tool_drives" value="2" disabled> 2
 																</label>
-																<label class="btn btn-default disabled" title="Extruder 4">
+																<label class="btn btn-default disabled" title="Extruder 3">
 																	<input type="checkbox" name="tool_drives" value="3" disabled> 3
 																</label>
-																<label class="btn btn-default disabled" title="Extruder 5">
+																<label class="btn btn-default disabled" title="Extruder 4">
 																	<input type="checkbox" name="tool_drives" value="4" disabled> 4
 																</label>
-																<label class="btn btn-default disabled" title="Extruder 6">
+																<label class="btn btn-default disabled" title="Extruder 5">
 																	<input type="checkbox" name="tool_drives" value="5" disabled> 5
 																</label>
-																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 7">
+																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 6">
 																	<input type="checkbox" name="tool_drives" value="6" disabled> 6
 																</label>
-																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 8">
+																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 7">
 																	<input type="checkbox" name="tool_drives" value="7" disabled> 7
 																</label>
-																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 9">
+																<label class="btn btn-default disabled duet-ng hidden" title="Extruder 8">
 																	<input type="checkbox" name="tool_drives" value="8" disabled> 8
 																</label>
 															</div>
