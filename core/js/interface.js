@@ -1961,7 +1961,7 @@ function showPage(name) {
 		if (name == "print") {
 			$("#slider_speed").slider("relayout");
 			$("#slider_fan_print").slider("relayout");
-			for(var extr = 1; extr <= maxExtruders; extr++) {
+			for(var extr = 0; extr < maxExtruders; extr++) {
 				$("#slider_extr_" + extr).slider("relayout");
 			}
 			if (refreshPrintChart) {

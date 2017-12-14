@@ -583,7 +583,7 @@ function updateStatus() {
 			}
 			if (!extrSliderActive) {
 				for(var i = 0; i < status.params.extrFactors.length; i++) {
-					var extrSlider = $("#slider_extr_" + (i + 1));
+					var extrSlider = $("#slider_extr_" + i);
 					if (lastStatusResponse == undefined || extrSlider.slider("getValue") != status.params.extrFactors) {
 						extrSlider.slider("setValue", status.params.extrFactors[i]);
 					}
@@ -1006,56 +1006,24 @@ function updateStatus() {
 					showUpdateMessage(2);
 
 					// Ask for page reload if DWC has been updated (wireless Duets, DWC on WiFi chip)
-					setTimeout(function() {
-						connect(sessionPassword, false);
-
-						if (sessionPassword != defaultPassword) {
-							connect(sessionPassword, false);
-
-							showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
-								location.reload();
-							});
-						} else {
-							location.reload();
-						}
-					}, settings.dwcReconnectDelay);
+					setTimeout(reconnectAfterUpdate, settings.dwcReconnectDelay);
 				} else if (uploadDWSFile != undefined && uploadDWCFile == undefined && uploadFirmwareFile == undefined) {
 					log("info", "<strong>" + T("Updating Duet WiFi Server...") + "</strong>");
 					showUpdateMessage(1);
-					setTimeout(function() {
-						connect(sessionPassword, false);
-					}, settings.dwsReconnectDelay);
+					setTimeout(reconnectAfterUpdate, settings.dwsReconnectDelay);
 				} else if (uploadFirmwareFile != undefined && uploadDWCFile == undefined && uploadDWSFile == undefined) {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					showUpdateMessage(0);
-					setTimeout(function() {
-						connect(sessionPassword, false);
-					}, settings.updateReconnectDelay);
+					setTimeout(reconnectAfterUpdate, settings.updateReconnectDelay);
 				} else if (uploadFirmwareFile != undefined || uploadDWCFile != undefined || uploadDWSFile != undefined) {
-					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
-
 					var duration = 0;
 					if (uploadDWCFile != undefined) { duration += settings.dwcReconnectDelay; }
 					if (uploadDWSFile != undefined) { duration += settings.dwsReconnectDelay; }
 					if (uploadFirmwareFile != undefined) { duration += settings.updateReconnectDelay; }
+
+					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					showUpdateMessage(3, duration);
-
-					// Ask for page reload if DWC has been updated (wireless Duets, DWC on WiFi chip)
-					setTimeout(function() {
-						if (uploadedDWC || uploadDWCFile != undefined) {
-							if (sessionPassword != defaultPassword) {
-								connect(sessionPassword, false);
-
-								showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
-									location.reload();
-								});
-							} else {
-								location.reload();
-							}
-						} else {
-							connect(sessionPassword, false);
-						}
-					}, duration);
+					setTimeout(reconnectAfterUpdate, duration);
 				} else {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					disconnect(false);
@@ -1093,6 +1061,22 @@ function reconnectAfterHalt() {
 		reconnectingAfterHalt = true;
 		connect(sessionPassword, false);
 	}, settings.haltedReconnectDelay);
+}
+
+function reconnectAfterUpdate() {
+	if (uploadedDWC || uploadDWCFile != undefined) {
+		if (sessionPassword != defaultPassword) {
+			connect(sessionPassword, false);
+
+			showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
+				location.reload();
+			});
+		} else {
+			location.reload();
+		}
+	} else {
+		connect(sessionPassword, false);
+	}
 }
 
 function requestFileInfo() {

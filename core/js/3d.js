@@ -677,7 +677,7 @@ $("#modal_bed").on("shown.bs.modal", function () {
 	scene.add(zAxis);
 
 	// Make grid on XY plane
-	var grid = new THREE.GridHelper(0.75, 15);
+	var grid = new THREE.GridHelper(1.1, 15);
 	grid.rotation.x = -Math.PI / 2;
 	scene.add(grid);
 

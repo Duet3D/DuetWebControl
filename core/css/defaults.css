@@ -392,7 +392,8 @@ div.panel table.table-status:not(:last-child)
 
 .sidebar-continuation {
 	border-top: 0px;
-	height: 100vh;
+	min-height: 100vh;
+	height: 100%;
 	position: fixed;
 	top: 0px;
 	bottom: 0px;

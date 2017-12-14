@@ -198,6 +198,9 @@ function startUpload(type, files, fromCallback) {
 				uploadFirmwareFile = this.name;
 			}
 
+			// See if a new DWC version is being installed
+			uploadedDWC |= this.name.indexOf("reprap.htm") != -1;
+
 			// DuetWiFi-specific files can be used only on a Duet WiFi
 			if (boardType.indexOf("duetwifi") == 0) {
 				if (this.name.toUpperCase().match("^DUETWIFISOCKETSERVER.*\.BIN") != null) {
