@@ -35,10 +35,14 @@ body {
     font-size: 18px;
 }
 
+#main_content {
+	background-color: #222222;
+}
+
 a:focus, a:hover {
     color: #0fa4f4;
 }
-#row_info {
+#div_info_panels {
     background-color: #1c1c1c;
     padding-top: 12px;
 }
@@ -121,6 +125,12 @@ a:focus, a:hover {
 .nav-sidebar > .active > a, .nav-sidebar > .active > a:hover, .nav-sidebar > .active > a:focus {
     color: #fff;
     background-color: #226699;
+}
+
+/* Navigation menu (mobile) --------------------------------*/
+.slideout-menu {
+	background-color: #555555;
+    border-right: 1px solid transparent;
 }
 
 /*G-Code File list------------------------------------------*/

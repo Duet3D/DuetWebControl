@@ -44,7 +44,7 @@ label {
 }
 
 #main_content {
-	background-color: #FFFFFF;
+	background-color: inherit;
 }
 
 .no-horizontal-padding {
