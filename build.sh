@@ -96,7 +96,8 @@ rm ./build/css/slate.css
 # Concatenate JS files. They could be minified as well, but that would make debugging rather tricky
 echo "Minifying and concatenating JS files"
 mkdir ./build/js
-rm -f ./build/js/dwc.js
+echo "var dwcVersion = \"$VERSION\";" > ./build/js/dwc.js
+
 JS_FILES=$(grep -e "\.js" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//' | tr '\n' ' ')
 for FILE in $JS_FILES; do
 	if [[ $FILE == "core/js/3rd-party/"* ]]; then

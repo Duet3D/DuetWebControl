@@ -9,8 +9,8 @@
 
 var jsNotificationOptions = {
 	animate: {
-		enter: 'animated fadeInDown',
-		exit: 'animated fadeOutDown'
+		enter: "animated fadeInDown",
+		exit: "animated fadeOutDown"
 	},
 	placement: {
 		from: "bottom",
@@ -114,7 +114,7 @@ function showMessage(type, title, message, timeout, allowDismiss) {
 		title: title,
 		message: message};
 	var options = { type: type,
-		allow_dismiss: (allowDismiss == undefined) ? true : allowDismiss,
+		allow_dismiss: allowDismiss,
 		delay: (timeout == undefined) ? settings.notificationTimeout : timeout };
 	var notification = $.notify(notifySettings, options);
 	if (allowDismiss == undefined || allowDismiss) {

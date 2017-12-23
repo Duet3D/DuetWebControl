@@ -68,7 +68,7 @@ $(document).ready(function() {
 	$('[data-min]').each(function() { $(this).attr("min", $(this).data("min")).attr("step", "any"); });
 	$('[data-max]').each(function() { $(this).attr("max", $(this).data("max")).attr("step", "any"); });
 	$('[data-toggle="popover"]').popover();
-	$(".app-control").toggleClass("hidden", typeof app === 'undefined');
+	$(".app-control").toggleClass("hidden", typeof app === "undefined");
 
 	disableControls();
 	resetGuiData();
@@ -77,6 +77,17 @@ $(document).ready(function() {
 	loadSettings();
 	loadFileCache();
 	loadTableSorting();
+});
+
+function pageLoadComplete() {
+	// Add link to GitHub and log event
+	$("#span_copyright").html($("#span_copyright").html().replace("Christian Hammacher", '<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">Christian Hammacher</a>'));
+	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
+
+	// Users may want to connect automatically once the page has loaded
+	if (settings.autoConnect) {
+		connect(sessionPassword, true);
+	}
 
 	// Check if this browser is supported and display a message if it is not
 	var userAgent = navigator.userAgent.toLowerCase();
@@ -86,15 +97,10 @@ $(document).ready(function() {
 	if (!browserSupported) {
 		showMessage("warning", T("Unsupported browser"), "<strong>" + T("Warning") + ":</strong> " + T("Your browser is not officially supported. To achieve the best experience it is recommended to use either Mozilla Firefox, Google Chrome or Opera."), 0, true);
 	}
-});
 
-function pageLoadComplete() {
-	$("#span_copyright").html($("#span_copyright").html().replace("Christian Hammacher", '<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">Christian Hammacher</a>'));
-	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
-
-	if (settings.autoConnect) {
-		// Users may want to connect automatically once the page has loaded
-		connect(sessionPassword, true);
+	// Make sure the loaded JS matches the HTML version
+	if (typeof dwcVersion != "undefined" && dwcVersion != $("#dwc_version").text()) {
+		showMessage("warning", T("Version mismatch"), "<strong>" + T("Warning") + ":</strong> " + T("The versions of your HTML and JavaScript files do not match. This can lead to unpredictable behavior and other problems. Please install Duet Web Control once more and clear your browser cache."), 0, false);
 	}
 }
 

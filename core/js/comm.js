@@ -346,7 +346,10 @@ function updateStatus() {
 						probeType = T("E1 Switch (6)");
 						break;
 					case 7:
-						probeType = T("Alternative (7)");
+						probeType = T("Z Switch (7)");
+						break;
+					case 8:
+						probeType = T("Digital Switch (8)");
 						break;
 					default:
 						probeType = T("Unknown ({0})", status.probe.type);
@@ -1204,6 +1207,9 @@ function setOem(oem) {
 		$("#table_tools tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 		$("#table_heaters tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 	}
+
+	// Update GUI just in case the response was received after the first status response
+	updateGui();
 }
 
 function resetOem() {

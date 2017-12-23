@@ -605,7 +605,7 @@ function updateGCodeFiles() {
 				if (fileinfo.err == 0) {
 					setGCodeFileItem(row, fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
 				} else {
-					setGCodeFileItem(row, 0, 0, [], "");
+					setGCodeFileItem(row, 0, 0, 0, [], "");
 				}
 
 				if (currentPage == "files") {

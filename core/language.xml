@@ -658,7 +658,7 @@
 		<!-- New in DWC 1.19b -->
 		<string t="Simulating">Simuliere</string>
 
-		<!-- New in DWC 1.20-RC1 -->
+		<!-- New in DWC 1.20 -->
 		<string t="Tool">Werkzeug</string>
 		<string t="Tool {0}">Werkzeug {0}</string>
 		<string t="Heater">Heizer</string>
@@ -677,6 +677,8 @@
 		<string t="Request Timeout">Zeitüberschreitung bei Anfrage</string>
 		<string t="The firmware has sent an invalid response to the web interface. Open the developer console to view further details.">Die Firmware hat eine ungültige Antwort an die Weboberfläche gesendet. Öffnen Sie die Entwicklerkonsole um weitere Details zu erhalten.</string>
 		<string t="The last HTTP request has timed out. Please make sure the connection between your device and the board is not interrupted.">Es ist zu einer Zeitüberschreitung bei der letzten HTTP-Anfrage gekommen. Bitte stellen Sie sicher, dass die Verbindung zwischen Ihrem Gerät und dem Board nicht unterbrochen ist.</string>
+		<string t="Version mismatch">Falsche Version</string>
+		<string t="The versions of your HTML and JavaScript files do not match. This can lead to unpredictable behavior and other problems. Please install Duet Web Control once more and clear your browser cache.">Die Versionen der HTML und JavaScript-Dateien stimmen nicht überein. Dies kann zu unvorhergesehenem Verhalten und anderen Problemen führen. Bitte installieren Sie Duet Web Control erneut und leeren Sie ihren Browsercache.</string>
 	</de>
 	<es name="Espanol">
 		<!-- JavaScript Strings -->
