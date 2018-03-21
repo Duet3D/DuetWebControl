@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.20
+<!--	Duet Web Control v1.21
 
 	written by Christian Hammacher
 
@@ -1787,7 +1787,7 @@
 						<!-- Calibration -->
 						<div id="page_calibration" class="page">
 							<div class="row">
-								<div class="col-md-push-2 col-md-8">
+								<div class="col-md-8">
 									<div class="panel panel-default">
 										<div class="panel-heading">
 											<span>Tool Offsets</span>
@@ -1802,16 +1802,29 @@
 													<th></th>
 												</tr>
 											</thead>
-
 											<tbody>
 												<!-- Filled by JS -->
 											</tbody>
 										</table>
 									</div>
+
+									<div class="text-center">
+										<button id="btn_calibrate_all" class="btn btn-lg btn-success disable-printing disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate All</button>
+										<button class="btn btn-lg btn-warning disable-printing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
+									</div>
 								</div>
-							</div>
-							<div class="row text-center">
-								<button class="btn btn-lg btn-warning disable-printing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
+
+								<div class="col-md-4">
+									<div class="panel panel-default">
+										<div class="panel-heading">
+											<span>Axis Orientation</span>
+										</div>
+
+										<div class="panel-body">
+											<img src="img/diabase_calibration_diagram.png" class="img-responsive">
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 
@@ -1871,7 +1884,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.20</td>
+															<td id="dwc_version">1.21</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2371,137 +2384,141 @@
 												<div class="panel-heading">
 													<span>Drive Configuration</span>
 												</div>
-												<table class="table table-striped">
-													<tr>
-														<th>Drive</th>
-														<th>Endstop hit</th>
-														<th>Minimum</th>
-														<th>Maximum</th>
-														<th class="hidden-xs">InstantDv</th>
-														<th>Max Speed</th>
-														<th class="hidden-xs">Acceleration</th>
-														<th class="hidden-xs hidden-sm">Motor Current</th>
-													</tr>
-													<tr id="tr_drive_0">
-														<td>0</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_1">
-														<td>1</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_2">
-														<td>2</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_3">
-														<td>3</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_4">
-														<td>4</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_5">
-														<td>5</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_6">
-														<td>6</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_7">
-														<td>7</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_8">
-														<td>8</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_9" class="duet-ng hidden">
-														<td>9</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_10" class="duet-ng hidden">
-														<td>10</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
-													<tr id="tr_drive_11" class="duet-ng hidden">
-														<td>11</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td>n/a</td>
-														<td class="hidden-xs">n/a</td>
-														<td class="hidden-xs hidden-sm">n/a</td>
-													</tr>
+												<table id="table_drives" class="table table-striped">
+													<thead>
+														<tr>
+															<th>Logical Drive</th>
+															<th>Endstop hit</th>
+															<th>Minimum</th>
+															<th>Maximum</th>
+															<th class="hidden-xs">InstantDv</th>
+															<th>Max Speed</th>
+															<th class="hidden-xs">Acceleration</th>
+															<th class="hidden-xs hidden-sm">Motor Current</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<td>X</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>Y</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>Z</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E0</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E1</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E2</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E3</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E4</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E5</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E6</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E7</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+														<tr>
+															<td>E8</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td>n/a</td>
+															<td class="hidden-xs">n/a</td>
+															<td class="hidden-xs hidden-sm">n/a</td>
+														</tr>
+													</tbody>
 												</table>
 											</div>
 										</div>

@@ -16,6 +16,7 @@ var uploadedDWC, uploadIncludedConfig, uploadFirmwareFile, uploadDWCFile, upload
 var uploadHadError, uploadFilesSkipped;
 
 var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .bin extension
+var targetFirmwareFileName = firmwareFileName;
 
 
 function uploadTextFile(filename, content, callback, showNotification, configFileHandled) {
@@ -196,6 +197,11 @@ function startUpload(type, files, fromCallback) {
 			uploadIncludedConfig |= (this.name == "config.g");
 			if (this.name.toUpperCase().match("^" + firmwareFileName.toUpperCase() + ".*\.BIN") != null) {
 				uploadFirmwareFile = this.name;
+				targetFirmwareFileName = firmwareFileName;
+			}
+			else if (allowCombinedFirmware && this.name.toUpperCase().match("^DUET2COMBINEDFIRMWARE.*\.BIN") != null) {
+				uploadFirmwareFile = this.name;
+				targetFirmwareFileName = "Duet2CombinedFirmware";
 			}
 
 			// See if a new DWC version is being installed
@@ -475,7 +481,7 @@ function uploadHasFinished(success) {
 		// Check if a print is supposed to be started
 		if (uploadType == "print") {
 			waitingForPrintStart = true;
-			sendGCode("M32 " + currentGCodeDirectory + "/" + uploadFileName);
+			sendGCode('M32 "' + currentGCodeDirectory + "/" + uploadFileName + '"');
 		}
 
 		// Ask for firmware/DWC update if it's safe to do
@@ -538,7 +544,7 @@ function startFirmwareUpdates() {
 	stopUpdates();
 
 	// Move the file(s) into place
-	moveFile(fwFile, "0:/sys/" + firmwareFileName + ".bin", function() {
+	moveFile(fwFile, "0:/sys/" + targetFirmwareFileName + ".bin", function() {
 		moveFile(dwsFile, "0:/sys/DuetWiFiServer.bin", function() {
 			moveFile(dwcFile, "0:/sys/DuetWebControl.bin", function() {
 				// Initiate firmware updates
@@ -557,7 +563,7 @@ function startFirmwareUpdate() {
 	stopUpdates();
 
 	// The filename is hardcoded in the firmware binary, so try to rename the uploaded file first
-	moveFile("0:/sys/" + uploadFirmwareFile, "0:/sys/" + firmwareFileName + ".bin", function() {
+	moveFile("0:/sys/" + uploadFirmwareFile, "0:/sys/" + targetFirmwareFileName + ".bin", function() {
 		// Rename succeeded and flashing can be performed now
 		sendGCode("M997 S0");
 		startUpdates();

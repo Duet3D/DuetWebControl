@@ -8,8 +8,9 @@
 
 
 var machineName = "Duet Web Control";
+var boardType = "unknown", allowCombinedFirmware = false;
 
-var maxAxes = 9, maxExtruders = 9, maxDrives = 11, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
+var maxAxes = 9, maxExtruders = 9, maxDrives = 12, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var webcamUpdating = false;
@@ -20,6 +21,7 @@ var geometry, probeSlowDownValue, probeTriggerValue;
 var axisNames, numAxes, numExtruderDrives, numVolumes, numFans;
 var bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors, toolMapping = undefined;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
+var spindleTool, spindleCurrent, spindleActive;
 
 var isPrinting, isPaused, printHasFinished;
 
@@ -52,6 +54,9 @@ function resetGuiData() {
 	coldExtrudeTemp = 160;
 	coldRetractTemp = 90;
 	tempLimit = 280;
+
+	spindleTool = spindleCurrent = -1;
+	spindleActive = 0;
 
 	resetChartData();
 	lastLayerPrintDuration = 0;
@@ -143,7 +148,17 @@ function updateGui() {
 					row +=		'</a><span class="text-muted">T' + tool.number + '</span>';
 				}
 				row +=		'</th>';
-				row +=		'<td colspan="4"></td>';
+				if (tool.number == spindleTool || (spindleTool == -1 && tool.name == T("Spindle"))) {
+					row +=	'<td></td>';
+					row +=	'<td><span class="text-muted spindle-current">' + (spindleCurrent < 0) ? T("n/a") : T("{0} RPM", spindleCurrent) + '</span></td>';
+					row +=	'<td class="input-td"><div class="input-group input-group-sm">';
+					row +=		'<input type="number" class="form-control spindle-active" value="' + spindleActive + '">';
+					row +=		'<span class="input-group-addon">RPM</span>';
+					row +=	'</div></td>';
+					row +=	'<td></td>';
+				} else {
+					row +=	'<td colspan="4"></td>';
+				}
 				row +=	'</tr>';
 				generatedHTML += row;
 			} else {
@@ -301,7 +316,7 @@ function updateGui() {
 
 	// Visibility of axis positions in the Machine Status panel
 	for(var i = 0; i < maxAxes; i++) {
-		var isHidden = (i >= numAxes) || (vendor == "diabase" && i < axisNames.length && "UVW".indexOf(axisNames[i]) != -1);
+		var isHidden = (i >= numAxes); // || (vendor == "diabase" && i < axisNames.length && "UVW".indexOf(axisNames[i]) != -1);
 
 		var cells = $("#table_axis_positions [data-axis='" + i + "']");
 		cells.toggleClass("hidden", isHidden);
@@ -312,7 +327,7 @@ function updateGui() {
 	$("#panel_extra_axes").toggleClass("hidden", numAxes <= 3);
 
 	for(var i = 3; i < maxAxes; i++) {
-		var isHidden = (i >= numAxes) || (vendor == "diabase" && i < axisNames.length && "UVW".indexOf(axisNames[i]) != -1);
+		var isHidden = (i >= numAxes); // || (vendor == "diabase" && i < axisNames.length && "UVW".indexOf(axisNames[i]) != -1);
 
 		var row = $("#table_move_axes > tbody > tr").eq(i - 3);
 		if (isHidden) {
@@ -391,21 +406,21 @@ function updateGui() {
 
 			var row = '<tr data-tool="' + tool.number + '">';
 			row += '<td>' + ((tool.name == "") ? T("Tool {0}", tool.number) : tool.name) + '</td><td>';
-			row += '<button class="btn btn-default tool-offset-down" data-axis="X"><span class="glyphicon glyphicon-arrow-left"></span></button>';
+			row += '<button class="btn btn-default tool-offset-up" data-axis="X"><span class="glyphicon glyphicon-arrow-left"></span> Left</button>';
 			row += '<span>' + T("{0} mm", tool.offsets[0].toFixed(2)) + '</span>';
-			row += '<button class="btn btn-default tool-offset-up" data-axis="X"><span class="glyphicon glyphicon-arrow-right"></span></button>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="X"><span class="glyphicon glyphicon-arrow-right"></span> Right</button>';
 			row += '</td><td>';
-			row += '<button class="btn btn-default tool-offset-down" data-axis="Y"><span class="glyphicon glyphicon-arrow-left"></span></button>';
+			row += '<button class="btn btn-default tool-offset-up" data-axis="Y"><span class="glyphicon glyphicon-arrow-down"></span> Front</button>';
 			row += '<span>' + T("{0} mm", tool.offsets[1].toFixed(2)) + '</span>';
-			row += '<button class="btn btn-default tool-offset-up" data-axis="Y"><span class="glyphicon glyphicon-arrow-right"></span></button>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="Y"><span class="glyphicon glyphicon-arrow-up"></span> Back</button>';
 			row += '</td><td>';
-			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span></button>';
+			row += '<button class="btn btn-default tool-offset-up" data-axis="Z"><span class="glyphicon glyphicon-arrow-up"></span> Up</button>';
 			if (i == 0) {
 				row += '<span id="span_probe_height">' + T("{0} mm", zTriggerHeight.toFixed(2)) + '</span>';
 			} else {
 				row += '<span>' + T("{0} mm", tool.offsets[2].toFixed(2)) + '</span>';
 			}
-			row += '<button class="btn btn-default tool-offset-up" data-axis="Z"><span class="glyphicon glyphicon-arrow-up"></span></button>';
+			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span> Down</button>';
 			row += '</td><td>';
 			row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Calibrate") + '</button>';
 			row += '</td></tr>';
@@ -538,7 +553,8 @@ function resetGui() {
 	// Settings
 	$("#tr_firmware_electronics").addClass("hidden");
 	$("#firmware_name, #firmware_electronics, #firmware_version, #dws_version").html(T("n/a"));
-	$("#page_machine td:not(:first-child), #page_machine dd").html(T("n/a"));
+	$("#table_drives > tbody > tr > td:not(:first-child), #page_machine dd").html(T("n/a"));
+	$("#table_drives > tbody > tr").removeClass("hidden");
 
 	updateSysFiles();
 
@@ -746,17 +762,23 @@ $("#table_tools").on("keydown", "tr > td > div > input", function(e) {
 	enterKeyPressed |= (e.which == 9 && windowIsXsSm());
 	if (isConnected && enterKeyPressed) {
 		var tool = $(this).closest("tr").data("tool");
-		var type = $(this).data("type");
+		if ($(this).hasClass("spindle-active")) {
+			// Call M3 to set the spindle RPM
+			sendGCode("M3 S" + $(this).val());
+		} else {
+			// Set active or standby temperature
+			var type = $(this).data("type");
 
-		var temps = [];
-		getTool(tool).heaters.forEach(function(h) {
-			var cell = $("#table_tools > tbody > tr[data-tool='" + tool + "'][data-heater='" + h + "'] > td");
-			temps.push(cell.find("div > input[data-type='" + type + "']").val());
-		});
+			var temps = [];
+			getTool(tool).heaters.forEach(function(h) {
+				var cell = $("#table_tools > tbody > tr[data-tool='" + tool + "'][data-heater='" + h + "'] > td");
+				temps.push(cell.find("div > input[data-type='" + type + "']").val());
+			});
 
-		var gcode = "G10 P" + tool  + " " + (type == "active" ? "S" : "R");
-		gcode += temps.reduce(function(a, b) { return a + ":" + b; });
-		sendGCode(gcode);
+			var gcode = "G10 P" + tool  + " " + (type == "active" ? "S" : "R");
+			gcode += temps.reduce(function(a, b) { return a + ":" + b; });
+			sendGCode(gcode);
+		}
 
 		$(this).select();
 		e.preventDefault();
@@ -834,8 +856,8 @@ $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
 		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
 		if (changeTriggerHeight)
 		{
-			zTriggerHeight += 0.01;
-			sendGCode("G31 Z" + zTriggerHeight + "\nM500");
+			zTriggerHeight -= 0.01;
+			sendGCode("G31 Z" + zTriggerHeight + "\nM290 S-0.01\nM500 P31");
 			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
 		}
 		else
@@ -845,7 +867,7 @@ $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
 			if (tool.hasOwnProperty("offsets")) {
 				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
 				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] + 0.01) * 100) / 100;
-				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500 P31");
 				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
 			}
 		}
@@ -858,8 +880,8 @@ $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
 		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
 		if (changeTriggerHeight)
 		{
-			zTriggerHeight -= 0.01;
-			sendGCode("G31 Z" + zTriggerHeight + "\nM500");
+			zTriggerHeight += 0.01;
+			sendGCode("G31 Z" + zTriggerHeight + "\nM290 S0.01\nM500 P31");
 			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
 		}
 		else
@@ -869,7 +891,7 @@ $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
 			if (tool.hasOwnProperty("offsets")) {
 				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
 				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] - 0.01) * 100) / 100;
-				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500 P31");
 				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
 			}
 		}
@@ -880,8 +902,7 @@ $("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
 	var toolNumber = $(this).parents("tr").data("tool");
 	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
 		function() {
-			showMessage("info", T("Calibrating..."), T("Please wait until your tool has been calibrated..."));
-			sendGCode("T" + toolNumber + "\n" + "M98 Pcalibrate.g");
+			sendGCode('M98 P"tcalibrate' + toolNumber + '.g"');
 		}
 	);
 });
@@ -1017,6 +1038,14 @@ $("#btn_baby_up").click(function() {
 	}
 });
 
+$("#btn_calibrate_all").click(function() {
+	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
+		function() {
+			sendGCode('M98 P"calibrate_all.g"');
+		}
+	);
+});
+
 $("#btn_cancel").click(function() {
 	sendGCode("M0 H1");	// Stop / Cancel Print, but leave all the heaters on
 	$(this).addClass("disabled");
@@ -1148,7 +1177,7 @@ $("#btn_pause").click(function() {
 
 $("#btn_print_another").click(function() {
 	if (isConnected) {
-		sendGCode("M32 " + $(this).data("file"));
+		sendGCode('M32 "' + $(this).data("file") + '"');
 		$("#div_print_another").addClass("hidden");
 	}
 });
@@ -1631,15 +1660,19 @@ function setATXPower(value) {
 
 function setBoardType(type) {
 	boardType = type;
+	allowCombinedFirmware = false;
 
 	var isWiFi, isDuetNG;
 	if (type.indexOf("duetwifi") == 0) {
 		firmwareFileName = "DuetWiFiFirmware";
-		isWiFi = isDuetNG = true;
+		allowCombinedFirmware = isWiFi = isDuetNG = true;
 	} else if (type.indexOf("duetethernet") == 0) {
 		firmwareFileName = "DuetEthernetFirmware";
 		isWiFi = false;
-		isDuetNG = true;
+		allowCombinedFirmware = isDuetNG = true;
+	} else if (type.indexOf("duetmaestro") == 0) {
+		firmwareFileName = "DuetMaestroFirmware";
+		isWiFi = isDuetNG = false;
 	} else {
 		firmwareFileName = "RepRapFirmware";
 		isWiFi = isDuetNG = false;
@@ -1879,6 +1912,12 @@ function setProgress(progress, labelLeft, labelRight) {
 function setStatusLabel(text, style) {
 	text = T(text);
 	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success label-primary").addClass("label-" + style).text(text);
+}
+
+function setSpindleInput(rpm) {
+	if ($(".spindle-active").length > 0 && !$(".spindle-active").is(":focus")) {
+		$(".spindle-active").val(rpm);
+	}
 }
 
 function setTemperatureInput(heater, value, active, setToolHeaters) {

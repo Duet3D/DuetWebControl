@@ -11,7 +11,6 @@ var ajaxPrefix = "";					// Host to use for AJAX requests + "?" char or empty if
 var defaultPassword = "reprap";			// Default password that is used when a new connection is established
 var sessionPassword = defaultPassword	// The actual password of the board
 var sessionTimeout = 8000;				// Time in ms before RepRapFirmware kills our session
-var boardType;							// Which electronics board is this?
 
 var isConnected = false;				// Are we connected?
 var justConnected = false;				// Have we just connected?
@@ -287,7 +286,7 @@ function updateStatus() {
 						displayText = T("No");
 					}
 
-					$("#tr_drive_" + i + " > td:nth-child(2)").text(displayText);
+					$("#table_drives > tbody > tr").eq(i).children().eq(1).text(displayText);
 				}
 			}
 
@@ -836,6 +835,15 @@ function updateStatus() {
 				}
 			}
 
+			// Spindle extension
+			if (status.hasOwnProperty("spindle"))
+			{
+				spindleCurrent = status.spindle.current;
+				spindleActive = status.spindle.active;
+				$(".spindle-current").text((spindleCurrent < 0) ? T("n/a") : T("{0} RPM", spindleCurrent));
+				setSpindleInput(spindleActive);
+			}
+
 			/*** Print status response ***/
 
 			if (status.hasOwnProperty("fractionPrinted") && fileInfo != undefined) {
@@ -1142,18 +1150,18 @@ function getConfigResponse() {
 
 			$("#firmware_version").text(response.firmwareVersion + " (" + response.firmwareDate + ")");
 
-			for(var drive = 0; drive < response.accelerations.length; drive++) {
-				if (drive < response.axisMins.length) {
-					$("#tr_drive_" + drive + " > td:nth-child(3)").text(T("{0} mm", response.axisMins[drive]));
-				}
-				if (drive < response.axisMaxes.length) {
-					$("#tr_drive_" + drive + " > td:nth-child(4)").text(T("{0} mm", response.axisMaxes[drive]));
-				}
-				$("#tr_drive_" + drive + " > td:nth-child(5)").text(T("{0} mm/s", response.minFeedrates[drive]));
-				$("#tr_drive_" + drive + " > td:nth-child(6)").text(T("{0} mm/s", response.maxFeedrates[drive]));
-				$("#tr_drive_" + drive + " > td:nth-child(7)").text(T("{0} mm/s²", response.accelerations[drive]));
-				if (response.hasOwnProperty("currents")) {
-					$("#tr_drive_" + drive + " > td:nth-child(8)").text(T("{0} mA", response.currents[drive]));
+			var driveRows = $("#table_drives > tbody > tr");
+			for(var drive = 0; drive < maxDrives; drive++) {
+				if (lastStatusResponse != undefined && drive < lastStatusResponse.coords.xyz.length + lastStatusResponse.coords.extr.length) {
+					var rowCells = driveRows.eq(drive).removeClass("hidden").children();
+					rowCells.eq(2).text((drive < response.axisMins.length) ? T("{0} mm", response.axisMins[drive]) : T("n/a"));
+					rowCells.eq(3).text((drive < response.axisMaxes.length) ? T("{0} mm", response.axisMaxes[drive]) : T("n/a"));
+					rowCells.eq(4).text(T("{0} mm/s", response.minFeedrates[drive]));
+					rowCells.eq(5).text(T("{0} mm/s", response.maxFeedrates[drive]));
+					rowCells.eq(6).text(T("{0} mm/s²", response.accelerations[drive]));
+					rowCells.eq(7).text(response.hasOwnProperty("currents") ? T("{0} mA", response.currents[drive]) : T("n/a"));
+				} else {
+					driveRows.eq(drive).addClass("hidden");
 				}
 			}
 			if (response.hasOwnProperty("idleCurrentFactor")) {
@@ -1188,8 +1196,13 @@ function getOemFeatures() {
 		dataType: "json",
 		global: false,
 		success: function(response) {
-			if (response != "" && response.hasOwnProperty("vendor")) {
-				setOem(response.vendor);
+			if (response != "") {
+				if (response.hasOwnProperty("spindleTool")) {
+					spindleTool = response.spindleTool;
+				}
+				if (response.hasOwnProperty("vendor")) {
+					setOem(response.vendor);
+				}
 			}
 		}
 	});

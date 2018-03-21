@@ -124,6 +124,11 @@ $GZIP -c ./core/fonts/glyphicons-halflings-regular.woff > ./build/fonts/glyphico
 $GZIP -c ./core/fonts/glyphicons-halflings-regular.woff2 > ./build/fonts/glyphicons.woff2.gz
 $GZIP -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.gz
 
+# Add image files (optional)
+#echo "Adding images"
+#mkdir ./build/img
+#cp ./core/img/* ./build/img/*
+
 # Now build DWC for wired Duets
 echo "=> Building final Duet Web Control package"
 cd ./build

@@ -366,8 +366,8 @@ var messageBoxTimer = undefined;
 
 function showMessageBox(message, title, mode, timeout, controls) {
 	// Display message, title and optionally show Z controls
-	$("#h3_messagebox").text(message);
-	$("#h4_messagebox_title").text(title);
+	$("#h3_messagebox").html(message);
+	$("#h4_messagebox_title").html(title);
 	$("#modal_messagebox div.modal-header").toggleClass("hidden", title == "");
 
 	// Toggle axis control visibility
