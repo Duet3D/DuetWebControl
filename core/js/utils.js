@@ -413,6 +413,8 @@ function enableControls() {
 	}
 
 	$(".online-control").removeClass("hidden");													// G-Code/Macro Files
+
+	$(".btn-apply-settings, .btn-reset-settings").removeClass("disabled");						// Settings
 }
 
 function disableControls() {
@@ -440,6 +442,8 @@ function disableControls() {
 	}
 
 	$(".online-control").addClass("hidden");													// G-Code/Macro Files
+
+	$(".btn-apply-settings, .btn-reset-settings").toggleClass("disabled", $("[data-setting='settingsOnDuet']").is(":checked"));
 }
 
 

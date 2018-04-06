@@ -1,6 +1,6 @@
 /* Slider implementation for the Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v3
  * see http://www.gnu.org/licenses/gpl-3.0.html
@@ -82,12 +82,7 @@ function setFanVisibility(fan, visible) {
 
 	// update selection and check if the whole panel can be hidden
 	var hideFanControl = false;
-	if (visible) {
-		/*if (visibleFans.length == 0) {
-			// set selected fan to this fan
-			setFanSelection(fan);
-		}*/
-	} else {
+	if (!visible) {
 		var firstVisibleFan;
 		visibleFans.each(function() {
 			if ($(this).data("fan") != fan) {
@@ -97,10 +92,6 @@ function setFanVisibility(fan, visible) {
 		});
 
 		hideFanControl = (firstVisibleFan == undefined);
-		/*if (!hideFanControl) {
-			// set selected fan to first visible fan
-			setFanSelection(firstVisibleFan.data("fan"));
-		}*/
 	}
 
 	$(".fan-control").toggleClass("hidden", hideFanControl);

@@ -1,6 +1,6 @@
 /* Settings management for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v3
  * see http://www.gnu.org/licenses/gpl-3.0.html
@@ -23,6 +23,8 @@ var settings = {
 	useKiB: true,					// display file sizes in KiB instead of KB
 	theme: "default",				// name of the theme to use
 	scrollContent: true,			// make the main content scrollable on md+ resolutions
+	showFanRPM: false,				// show fan RPM in sensors
+	settingsOnDuet: true,			// store the DWC settings on the Duet
 	language: "en",
 
 	moveFeedrate: 6000,				// in mm/min
@@ -30,21 +32,20 @@ var settings = {
 	babysteppingZ: 0.05,			// in mm
 	showATXControl: false,			// show ATX control
 
-	showFan1: true,					// show fan controls for fan 1
-	showFan2: false,				// show fan controls for fan 2
-	showFan3: false,				// show fan controls for fan 3
-	showFanRPM: false,				// show fan RPM in sensors
-
-	logSuccess: false,				// log all sucessful G-Codes in the console
 	uppercaseGCode: true,			// convert G-Codes to upper-case before sending them
 
 	doTfree: true,					// tool
 	doTpre: true,					// change
 	doTpost: true,					// options
 
-	useHtmlNotifications: false,	// whether HTML5-based notifications can be used
-	notificationTimeout: 5000,		// in ms
+	useHtmlNotifications: false,	// use HTML5-based notifications
 	autoCloseUserMessages: false,	// whether M117 messages are automatically closed
+	showEmptyResponses: false,		// show successful pop-up notification for G-codes that returned no response
+	showInfoMessages: true,			// show info messages
+	showWarningMessages: true,		// show warning messages
+	showErrorMessages: true,		// show error messages
+	notificationTimeout: 5000,		// timeout of pop-up notifications in ms
+	maxNotifications: 3,			// maximum number of simultaneously opened notifications
 
 	webcamURL: "",
 	webcamInterval: 5000,			// in ms
@@ -61,6 +62,7 @@ var settings = {
 		["M561", "Disable bed compensation"]
 	]
 };
+var needsInitialSettingsUpload = false;
 
 var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
 
@@ -70,7 +72,7 @@ var themeInclude;
 /* Setting methods */
 
 function loadSettings() {
-	// Delete cookie and use localStorage instead
+	// Delete cookie (usually not used unless a really old web interface version was used before)
 	document.cookie = "settings=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 
 	// Try to parse the stored settings (if any)
@@ -93,6 +95,32 @@ function loadSettings() {
 		}
 	}
 
+	// See if we need to fetch the settings once again from the Duet
+	if (settings.settingsOnDuet) {
+		$.ajax("dwc.json", {
+			type: "GET",
+			dataType: "json",
+			global: false,
+			error: function() {
+				needsInitialSettingsUpload = true;
+				settingsLoaded();
+			},
+			success: function(response) {
+				for(var key in settings) {
+					// Try to copy each setting if their types are equal
+					if (response.hasOwnProperty(key) && settings[key].constructor === response[key].constructor) {
+						settings[key] = response[key];
+					}
+				}
+				settingsLoaded();
+			}
+		});
+	} else {
+		settingsLoaded();
+	}
+}
+
+function settingsLoaded() {
 	// Apply them
 	applySettings();
 
@@ -101,14 +129,11 @@ function loadSettings() {
 		type: "GET",
 		dataType: "xml",
 		global: false,
-		error: function() {
-			pageLoadComplete();
-		},
+		error: pageLoadComplete,
 		success: function(response) {
 			translationData = response;
 
-			if (translationData.children == undefined)
-			{
+			if (translationData.children == undefined) {
 				// Internet Explorer and Edge cannot deal with XML files in the way we want.
 				// Disable translations for those browsers.
 				translationData = undefined;
@@ -123,10 +148,8 @@ function loadSettings() {
 						$("#btn_language > span:first-child").text(name);
 					}
 				}
-
 				translatePage();
 			}
-
 			pageLoadComplete();
 		}
 	});
@@ -145,6 +168,7 @@ function applySettings() {
 		$("#div_ifm_webcam").toggleClass("hidden", !settings.webcamEmbedded);
 
 		updateWebcam(true);
+		updateCalibrationWebcam(true);
 	} else {
 		$("#panel_webcam").addClass("hidden");
 	}
@@ -166,12 +190,6 @@ function applySettings() {
 	$("#btn_baby_down > span.content").text(T("{0} mm", (-settings.babysteppingZ)));
 	$("#btn_baby_up > span.content").text(T("{0} mm ", "+" + settings.babysteppingZ));
 	$(".babystepping").toggleClass("hidden", settings.babysteppingZ <= 0);
-
-	// Show/Hide Fan Controls
-	setFanVisibility(0, settings.showFan1);
-	setFanVisibility(1, settings.showFan2);
-	setFanVisibility(2, settings.showFan3);
-	numFans = undefined;						// let the next status response callback hide fans that are not available
 
 	// Show/Hide Fan RPM
 	$(".fan-rpm").toggleClass("hidden", !settings.showFanRPM);
@@ -331,6 +349,9 @@ function saveSettings() {
 
 	// Save Settings
 	localStorage.setItem("settings", JSON.stringify(settings));
+	if (settings.settingsOnDuet) {
+		uploadTextFile("0:/www/dwc.json", JSON.stringify(settings), undefined, false);
+	}
 }
 
 function constrainSetting(value, defaultValue, minValue, maxValue) {
@@ -434,6 +455,10 @@ $("[data-setting='useHtmlNotifications']").change(function() {
 			});
 		}
 	}
+});
+
+$("[data-setting='settingsOnDuet']").change(function() {
+	$(".btn-apply-settings, .btn-reset-settings").toggleClass("disabled", !isConnected && $(this).is(":checked"));
 });
 
 // List Items

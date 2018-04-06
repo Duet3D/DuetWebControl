@@ -1,31 +1,32 @@
 /* Main interface logic for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v3
  * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-
 var machineName = "Duet Web Control";
 var boardType = "unknown", allowCombinedFirmware = false;
 
-var maxAxes = 9, maxExtruders = 9, maxDrives = 12, maxHeaters = 8, maxTempSensors = 10, maxFans = 3;
+var maxAxes = 9, maxExtruders = 9, maxDrives = 12, maxHeaters = 8, maxTempSensors = 10, maxFans = 9;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
-var webcamUpdating = false;
+var webcamUpdating = false, calibrationWebcamUpdating = false;
+var calibrationWebcamSource = "", calibrationWebcamEmbedded = false;
 
 var fileInfo, currentLayerTime, lastLayerPrintDuration;
+var isPrinting, isPaused, printHasFinished, waitingForPrintStart;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
-var axisNames, numAxes, numExtruderDrives, numVolumes, numFans;
-var bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors, toolMapping = undefined;
+var axisNames, numAxes, numExtruderDrives, numVolumes;
+var bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors, controllableFans;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
-var spindleTool, spindleCurrent, spindleActive;
 
-var isPrinting, isPaused, printHasFinished;
+var toolMapping = undefined;
+var spindleTools, spindleCurrents, spindleActives;
 
-var currentPage = "control", waitingForPrintStart;
+var currentPage = "control";
 
 
 function resetGuiData() {
@@ -49,14 +50,16 @@ function resetGuiData() {
 	axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
-	numFans = undefined;
+
+	controllableFans = 7;
 
 	coldExtrudeTemp = 160;
 	coldRetractTemp = 90;
 	tempLimit = 280;
 
-	spindleTool = spindleCurrent = -1;
-	spindleActive = 0;
+	spindleTools = [];
+	spindleCurrents = [];
+	spindleActives = [];
 
 	resetChartData();
 	lastLayerPrintDuration = 0;
@@ -148,11 +151,25 @@ function updateGui() {
 					row +=		'</a><span class="text-muted">T' + tool.number + '</span>';
 				}
 				row +=		'</th>';
-				if (tool.number == spindleTool || (spindleTool == -1 && tool.name == T("Spindle"))) {
+
+				var spindleIndex = -1;
+				if (spindleTools.length <= 1 && tool.name == T("Spindle")) {
+					spindleTools = [0];
+					spindleIndex = 0;
+				} else {
+					for(var i = 0; i < spindleTools.length; i++) {
+						if (spindleTools[i] == tool.number) {
+							spindleIndex = i;
+							break;
+						}
+					}
+				}
+
+				if (spindleIndex >= 0) {
 					row +=	'<td></td>';
-					row +=	'<td><span class="text-muted spindle-current">' + (spindleCurrent < 0) ? T("n/a") : T("{0} RPM", spindleCurrent) + '</span></td>';
+					row +=	'<td><span class="spindle-current">' + T("{0} RPM", spindleCurrents[spindleIndex]) + '</span></td>';
 					row +=	'<td class="input-td"><div class="input-group input-group-sm">';
-					row +=		'<input type="number" class="form-control spindle-active" value="' + spindleActive + '">';
+					row +=		'<input type="number" class="form-control spindle-active" value="' + spindleActives[spindleIndex] + '">';
 					row +=		'<span class="input-group-addon">RPM</span>';
 					row +=	'</div></td>';
 					row +=	'<td></td>';
@@ -528,10 +545,9 @@ function resetGui() {
 	$("#span_babystepping, #page_print dd, #panel_print_info table td, #table_estimations td").html(T("n/a"));
 
 	// Fan Sliders
-	setFanVisibility(0, settings.showFan1);
-	setFanVisibility(1, settings.showFan2);
-	setFanVisibility(2, settings.showFan3);
-	numFans = undefined;						// let the next status response callback hide fans that are not available
+	for(var i = 0; i < maxFans; i++) {
+		setFanVisibility(i, controllableFans & (1 << i));
+	}
 	$('#slider_fan_print').slider("setValue", 35);
 	
 	$('#slider_speed').slider("setValue", 100);
@@ -600,6 +616,36 @@ function updateWebcam(externalTrigger) {
 	}
 }
 
+function updateCalibrationWebcam(externalTrigger) {
+	if (externalTrigger && calibrationWebcamUpdating) {
+		// When the settings are applied, make sure this only runs once
+		return;
+	}
+
+	if (calibrationWebcamSource == "") {
+		calibrationWebcamUpdating = false;
+	} else if (calibrationWebcamEmbedded) {
+		calibrationWebcamUpdating = false;
+		$("#ifm_webcam_calibration").attr("src", calibrationWebcamSource);
+	} else {
+		var newURL = calibrationWebcamSource;
+		if (settings.webcamFix) {
+			newURL += "_" + Math.random();
+		} else {
+			if (newURL.indexOf("?") == -1) {
+				newURL += "?dummy=" + Math.random();
+			} else {
+				newURL += "&dummy=" + Math.random();
+			}
+		}
+		$("#img_webcam_calibration").attr("src", newURL);
+
+		calibrationWebcamUpdating = true;
+		setTimeout(function() {
+			updateCalibrationWebcam(false);
+		}, settings.webcamInterval);
+	}
+}
 
 /* Dynamic GUI Events */
 
@@ -764,7 +810,15 @@ $("#table_tools").on("keydown", "tr > td > div > input", function(e) {
 		var tool = $(this).closest("tr").data("tool");
 		if ($(this).hasClass("spindle-active")) {
 			// Call M3 to set the spindle RPM
-			sendGCode("M3 S" + $(this).val());
+			for(var i = 0; i < spindleTools.length; i++) {
+				if (spindleTools[i] == tool) {
+					if ($(this).val() >= 0) {
+						sendGCode("M3 P" + i + " S" + $(this).val());
+					} else {
+						sendGCode("M4 P" + i + " S" + -$(this).val());
+					}
+				}
+			}
 		} else {
 			// Set active or standby temperature
 			var type = $(this).data("type");
@@ -1022,8 +1076,26 @@ $("#a_webcam").click(function(e) {
 	e.preventDefault();
 });
 
-$("#img_webcam").click(function(){
+$("#img_webcam").click(function() {
 	updateWebcam(true);
+});
+
+$("#img_webcam_calibration").click(function() {
+	updateCalibrationWebcam(true);
+});
+
+$("#img_webcam_calibration").resize(function() {
+	if (!calibrationWebcamEmbedded) {
+		$("#img_crosshair").css("left", $(this).position().left + $(this).width() / 2 - $("#img_crosshair").width() / 2);
+		$("#img_crosshair").css("top", $(this).position().top + $(this).height() / 2 - $("#img_crosshair").height() / 2);
+	}
+});
+
+$("#ifm_webcam_calibration").resize(function() {
+	if (calibrationWebcamEmbedded) {
+		$("#img_crosshair").css("left", $("#div_ifm_webcam_calibration").position().left + $(this).width() / 2 - $("#img_crosshair").width() / 2);
+		$("#img_crosshair").css("top", $("#div_ifm_webcam_calibration").position().top + $(this).height() / 2 - $("#img_crosshair").height() / 2);
+	}
 });
 
 $("#btn_baby_down").click(function() {
@@ -1448,7 +1520,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 
 	if (isConnected) {
 		disconnect();
-		showMessage("danger", T("JavaScript Error"), T("A JavaScript error has occurred so the web interface has closed the connection to your board. It is recommended to reload the web interface now. If this happens again, please contact the author and share this error message:") + "<br/><br/>" + errorMessage, 0);
+		showMessage("danger", T("JavaScript Error"), T("A JavaScript error has occurred so the web interface has closed the connection to your board. It is recommended to reload the web interface now. If this happens again, please contact the author and share this error message:") + "<br/><br/>" + errorMessage, 0, true, false);
 	}
 
 	return false;
@@ -1460,27 +1532,49 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 function cbHeaterClick(e) {
 	if (isConnected && !$(this).hasClass("disabled") && lastStatusResponse != undefined) {
 		var tool = $(this).closest("tr").data("tool");
+		var heater = $(this).closest("tr").data("heater");
 		if (tool != undefined) {
-			// Heater clicked on Tools panel. Change the associated tool
-			if (tool == lastStatusResponse.currentTool) {
-				changeTool(-1);
-			} else {
-				changeTool(tool);
-			}
-			$(this).blur();
-		} else {
-			// Heater clicked on Heaters panel. Work out what to do
-			var heater = $(this).closest("tr").data("heater");
-			if (heater == "bed") {
-				var bedState = lastStatusResponse.temps.bed.state;
-				if (bedState == 3) {
+			// Heater clicked on Tools panel
+			switch (lastStatusResponse.temps.state[heater])
+			{
+				case 0:	// Off
+					changeTool(tool);													// Select associated tool
+					break;
+				case 1:	// Standby
+					var active = [], standby = [], heaters = getTool(tool).heaters;
+					for(var i = 0; i < heaters.length; i++) {
+						active.push((heaters[i] == heater) ? -273.15 : $("#table_tools tr[data-tool=" + tool + "] input[data-type=\"active\"]").val());
+						standby.push((heaters[i] == heater) ? -273.15 : $("#table_tools tr[data-tool=" + tool + "] input[data-type=\"standby\"]").val());
+					}
+
+					var sParam = active.join(function(a, b) { return a + ":" + b; });
+					var rParam = standby.join(function(a, b) { return a + ":" + b; });
+					sendGCode("G10 P" + tool + "S" + sParam + " R" + rParam);			// Turn off clicked heater
+					break;
+				case 2:	// Active
+					changeTool(-1);														// Deselect current tool
+					break;
+				case 3:	// Fault
 					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
-				} else if (bedState == 2) {
-					// Put bed into standby mode
-					sendGCode("M144");
-				} else {
-					// Bed is either off or in standby mode, send M140 to turn it back on
-					sendGCode("M140 S" + lastStatusResponse.temps.bed.active);
+					break;
+			}
+		} else {
+			// Heater clicked on Heaters panel
+			if (heater == "bed") {
+				switch (lastStatusResponse.temps.bed.state)
+				{
+					case 0:	// Off
+						sendGCode("M140 S" + lastStatusResponse.temps.bed.active);		// Turn on bed heater
+						break;
+					case 1: // Standby
+						sendGCode("M140 S-273.15");										// Turn off bed completely
+						break;
+					case 2: // Active
+						sendGCode("M144");												// Put bed into standby mode
+						break;
+					case 3:	// Fault
+						showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
+						break;
 				}
 				$(this).blur();
 			} else if (heater == "chamber") {
@@ -1488,11 +1582,9 @@ function cbHeaterClick(e) {
 				if (chamberState == 3) {
 					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
 				} else if (chamberState == 2) {
-					// Put chamber into off mode
-					sendGCode("M141 P0 S-273.15");
+					sendGCode("M141 P0 S-273.15");										// Turn off chamber
 				} else {
-					// Bed is either off or in standby mode, send M140 to turn it back on
-					sendGCode("M141 P0 S" + lastStatusResponse.temps.chamber.active);
+					sendGCode("M141 P0 S" + lastStatusResponse.temps.chamber.active);	// Turn on chamber
 				}
 				$(this).blur();
 			} else if (heater == "cabinet") {
@@ -1500,54 +1592,61 @@ function cbHeaterClick(e) {
 				if (cabinetState == 3) {
 					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
 				} else if (cabinetState == 2) {
-					// Put cabinet into off mode
-					sendGCode("M141 P1 S-273.15");
+					sendGCode("M141 P1 S-273.15");										// Turn off cabinet
 				} else {
-					// Bed is either off or in standby mode, send M140 to turn it back on
-					sendGCode("M141 P1 S" + lastStatusResponse.temps.cabinet.active);
+					sendGCode("M141 P1 S" + lastStatusResponse.temps.cabinet.active);	// Turn on cabinet
 				}
 				$(this).blur();
 			} else {
-				var heaterState = lastStatusResponse.temps.heads.state[heater - 1];
-				if (heaterState == 3) {
-					showMessage("danger", T("Heater Fault"), T("<strong>Error:</strong> A heater fault has occured on this particular heater.<br/><br/>Please turn off your machine and check your wiring for loose connections."));
-				} else {
-					var tools = getToolsByHeater(heater), hasToolSelected = false;
-					tools.forEach(function(tool) {
-						if (tool == lastStatusResponse.currentTool) {
-							hasToolSelected = true;
-						}
-					});
+				var tools = getToolsByHeater(heater), hasToolSelected = false;
+				tools.forEach(function(tool) {
+					if (tool == lastStatusResponse.currentTool) {
+						hasToolSelected = true;
+					}
+				});
 
-					if (hasToolSelected) {
-						changeTool(-1);
-						$(this).blur();
-					} else if (tools.length == 1) {
-						changeTool(tools[0]);
-						$(this).blur();
-					} else if (tools.length > 0) {
-						var popover = $(this).parent().children("div.popover");
-						if (popover.length > 0) {
-							$(this).popover("hide");
-							$(this).blur();
-						} else {
-							var content = '<div class="btn-group-vertical btn-group-vertical-justified">';
-							tools.forEach(function(toolNumber) {
-								content += '<div class="btn-group"><a href="#" class="btn btn-default btn-sm tool" data-tool="' + toolNumber + '">T' + toolNumber + '</a></div>';
-							});
-							content += '</div>';
-
-							$(this).popover({
-								content: content,
-								html: true,
-								title: T("Select Tool"),
-								trigger: "manual",
-								placement: "bottom",
-							}).popover("show");
+				if (hasToolSelected) {
+					changeTool(-1);
+					$(this).blur();
+				} else if (tools.length == 1) {
+					if (lastStatusResponse.temps.state[heater] == 1) {
+						var active = [], standby = [], heaters = getTool(tools[0]).heaters;
+						for(var i = 0; i < heaters.length; i++) {
+							active.push((heaters[i] == heater) ? -273.15 : $("#table_tools tr[data-tool=" + tool + "] input[data-type=\"active\"]").val());
+							standby.push((heaters[i] == heater) ? -273.15 : $("#table_tools tr[data-tool=" + tool + "] input[data-type=\"standby\"]").val());
 						}
+
+						var sParam = active.join(function(a, b) { return a + ":" + b; });
+						var rParam = standby.join(function(a, b) { return a + ":" + b; });
+						sendGCode("G10 P" + tools[0] + "S" + sParam + " R" + rParam);	// Turn off associated heater
+					} else {
+						changeTool(tools[0]);											// Select tool
+					}
+					$(this).blur();
+				} else if (tools.length > 0) {
+					var popover = $(this).parent().children("div.popover");
+					if (popover.length > 0) {
+						$(this).popover("hide");
+						$(this).blur();
+					} else {
+						var content = '<div class="btn-group-vertical btn-group-vertical-justified">';
+						tools.forEach(function(toolNumber) {
+							content += '<div class="btn-group"><a href="#" class="btn btn-default btn-sm tool" data-tool="' + toolNumber + '">T' + toolNumber + '</a></div>';
+						});
+						content += '</div>';
+
+						$(this).popover({
+							content: content,
+							html: true,
+							title: T("Select Tool"),
+							trigger: "manual",
+							placement: "bottom",
+						}).popover("show");
 					}
 				}
 			}
+
+			$(this).blur();
 		}
 	}
 	e.preventDefault();
@@ -1661,6 +1760,7 @@ function setATXPower(value) {
 function setBoardType(type) {
 	boardType = type;
 	allowCombinedFirmware = false;
+	controllableFans = 7;
 
 	var isWiFi, isDuetNG;
 	if (type.indexOf("duetwifi") == 0) {
@@ -1674,6 +1774,7 @@ function setBoardType(type) {
 		firmwareFileName = "DuetMaestroFirmware";
 		isWiFi = isDuetNG = false;
 	} else {
+		controllableFans = 1;
 		firmwareFileName = "RepRapFirmware";
 		isWiFi = isDuetNG = false;
 	}
@@ -1914,10 +2015,17 @@ function setStatusLabel(text, style) {
 	$(".label-status").removeClass("label-default label-danger label-info label-warning label-success label-primary").addClass("label-" + style).text(text);
 }
 
-function setSpindleInput(rpm) {
-	if ($(".spindle-active").length > 0 && !$(".spindle-active").is(":focus")) {
-		$(".spindle-active").val(rpm);
+function setSpindleCurrent(spindle, current) {
+	$("[data-tool=" + spindleTools[spindle] + "] .spindle-current").text(T("{0} RPM", current));
+	spindleCurrents[spindle] = current;
+}
+
+function setSpindleInput(spindle, rpm) {
+	var spindleInput = $("[data-tool=" + spindleTools[spindle] + "] .spindle-active");
+	if (spindleInput.length > 0 && !spindleInput.is(":focus")) {
+		spindleInput.val(rpm);
 	}
+	spindleActives[spindle] = rpm;
 }
 
 function setTemperatureInput(heater, value, active, setToolHeaters) {

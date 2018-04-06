@@ -1233,8 +1233,8 @@ function updateSysFiles() {
 $("#table_sys_files").on("click", "tbody a", function(e) {
 	var row = $(this).closest("tr");
 	var file = row.data("file");
-	if (file.match("\.g$") != null || file.match("\.txt$") != null) {
-		// Edit .g files
+	if (file.match("\.g$") != null || file.match("\.txt$") != null || file.match("\.json$") != null) {
+		// Edit .g, .txt and .json files
 		editFile(getFilePath() + "/" + file, true, row.data("size"));
 	} else if (file.match("\.csv$") != null) {
 		// Treat .csv files as heightmaps or open them in the editor if their header doesn't match

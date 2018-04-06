@@ -1,13 +1,13 @@
 /* Notification subsystem for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v3
  * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 
-var jsNotificationOptions = {
+$.notifyDefaults({
 	animate: {
 		enter: "animated fadeInDown",
 		exit: "animated fadeOutDown"
@@ -16,7 +16,8 @@ var jsNotificationOptions = {
 		from: "bottom",
 		align: "center"
 	},
-	template: '<div data-notify="container" class="col-xs-11 col-sm-9 col-md-8 col-lg-5 alert alert-{0}" role="alert">' +
+	newest_on_top: true,
+	template: '<div data-notify="container" class="col-xs-12 col-sm-12 col-md-8 col-lg-5 alert alert-{0}" role="alert">' +
 		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
 		'<span data-notify="icon"></span> ' +
 		'<span data-notify="title">{1}</span> ' +
@@ -26,10 +27,10 @@ var jsNotificationOptions = {
 		'</div>' +
 		'<a href="{3}" target="{4}" data-notify="url"></a>' +
 		'</div>'
-};
+});
 
-// Apply custom options for JS plugin
-$.notifyDefaults(jsNotificationOptions);
+var openMessageNotifications = [];
+
 
 function showDownloadMessage() {
 	var notifySettings = { icon: "glyphicon glyphicon-compressed",
@@ -67,10 +68,11 @@ function showHaltMessage() {
 	$(notification.$ele).css("z-index", 9999);
 }
 
-function showMessage(type, title, message, timeout, allowDismiss) {
+function showMessage(type, title, message, timeout, allowDismiss, regularNotification) {
 	// Set default arguments
 	if (timeout == undefined) { timeout = settings.notificationTimeout; }
 	if (allowDismiss == undefined) { allowDismiss = true; }
+	if (regularNotification == undefined) { regularNotification = true; }
 
 	// Check if an HTML5 notification shall be displayed
 	if (document.hidden && settings.useHtmlNotifications) {
@@ -109,19 +111,34 @@ function showMessage(type, title, message, timeout, allowDismiss) {
 		title += "<br/><br/>";
 	}
 
-	// Show the notification
+	// Create and show the notification
 	var notifySettings = { icon: icon,
 		title: title,
-		message: message};
+		message: message };
 	var options = { type: type,
 		allow_dismiss: allowDismiss,
-		delay: (timeout == undefined) ? settings.notificationTimeout : timeout };
+		delay: timeout };
 	var notification = $.notify(notifySettings, options);
-	if (allowDismiss == undefined || allowDismiss) {
+	if (allowDismiss) {
 		$(notification.$ele).click(function() {
+			openMessageNotifications = openMessageNotifications.filter(function(notif) { return notif != notification; });
 			notification.close();
 		});
 	}
+
+	// Make sure we don't display more notifications than allowed
+	if (regularNotification && settings.maxNotifications >= 1) {
+		if (timeout > 0) {
+			setTimeout(function() {
+				openMessageNotifications = openMessageNotifications.filter(function(item) { return item != notification; });
+			}, timeout);
+		}
+		while (openMessageNotifications.length >= settings.maxNotifications) {
+			openMessageNotifications.shift().close();
+		}
+		openMessageNotifications.push(notification);
+	}
+
 	return notification;
 }
 
@@ -181,3 +198,9 @@ function showUpdateMessage(type, customTimeout) {
 	return notification;
 }
 
+function closeNotifications() {
+	openMessageNotifications.forEach(function(notification) {
+		notification.close();
+	});
+	openMessageNotifications = [];
+}

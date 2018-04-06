@@ -624,6 +624,25 @@ div.panel table.table-status:not(:last-child)
 
 /* Calibration page (OEM) */
 
+#div_calibration_webcam > div.panel-body {
+	position: relative;
+}
+
+#ifm_webcam_calibration {
+	width: 100%;
+	border: 0px;
+}
+
+#img_crosshair {
+	pointer-events: none;
+	position: absolute;
+	z-index: 1;
+}
+
+#img_webcam_calibration {
+	width: 100%;
+}
+
 #table_calibration_tools > thead > tr > th:not(:first-child) {
 	text-align: center;
 }
@@ -765,11 +784,11 @@ div.panel table.table-status:not(:last-child)
 	padding-right: 6px;
 }
 
-#table_scan_files_directory tr > td:nth-child(2) {
+#table_scan_files_directory tr > td:first-child {
 	padding-left: 0px;
 }
 
-#table_scan_files_directory tr > td:nth-child(3) {
+#table_scan_files_directory tr > td:nth-child(2) {
 	width: 100%;
 	padding-left: 0px;
 	padding-right: 0px;
@@ -965,6 +984,10 @@ label[for="dropdown_language"] {
 #frm_settings li.open li > a {
 	height: 40px;
 	padding-top: 10px;
+}
+
+#div_show_empty_responses {
+	margin-bottom: 5px;
 }
 
 #panel_head_temps > div > label:first-child {

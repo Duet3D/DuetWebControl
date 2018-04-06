@@ -1,6 +1,6 @@
 /* Communication routines between RepRapFirmware and Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v3
  * see http://www.gnu.org/licenses/gpl-3.0.html
@@ -110,7 +110,7 @@ $("body").on("click", ".btn-connect", function() {
 function connect(password, regularConnect) {
 	if (regularConnect) {
 		// Close all notifications before we connect...
-		$.notifyClose();
+		closeNotifications();
 
 		// If we are running on localhost, ask for a destination
 		if (document.location.host == "" && ajaxPrefix == "") {
@@ -176,6 +176,10 @@ function postConnect(response) {
 
 	getOemFeatures();
 	updateFilaments();
+
+	if (needsInitialSettingsUpload) {
+		uploadTextFile("0:/www/dwc.json", JSON.stringify(settings), undefined, false);
+	}
 
 	startUpdates();
 	if (currentPage == "settings") {
@@ -311,6 +315,14 @@ function updateStatus() {
 				setMountedVolumes(status.mountedVolumes);
 			}
 
+			// Bitmap of configurable fans
+			if (status.hasOwnProperty("controllableFans") && controllableFans != status.controllableFans) {
+				controllableFans = status.controllableFans;
+				for(var i = 0; i < maxFans; i++) {
+					setFanVisibility(i, i & (1 << i));
+				}
+			}
+
 			// Machine Name
 			if (status.hasOwnProperty("name")) {
 				setMachineName(status.name);
@@ -381,6 +393,10 @@ function updateStatus() {
 			switch (status.status) {
 				case 'F':	// Flashing new firmware
 					setStatusLabel("Updating", "success");
+					break;
+
+				case 'O':	// Off
+					setStatusLabel("off", "danger");
 					break;
 
 				case 'H':	// Halted
@@ -568,15 +584,6 @@ function updateStatus() {
 						$(".fan-slider").children("input").slider("setValue", fanValue * 100.0);
 					}
 				}
-
-				if (numFans != fanValues.length) {
-					numFans = fanValues.length;
-
-					var fanVisible = [settings.showFan1, settings.showFan2, settings.showFan3];
-					for(var i = 0; i < maxFans; i++) {
-						setFanVisibility(i, fanVisible[i] && i < numFans);
-					}
-				}
 			}
 
 			// Speed Factor
@@ -634,7 +641,7 @@ function updateStatus() {
 						}
 
 						// Is this a response that should be logged?
-						if ((response != "") || (lastSentGCode != "" && (settings.logSuccess || currentPage == "console"))) {
+						if (lastSentGCode != "") {
 							// What kind of reply are we dealing with?
 							var style = "success", content = response;
 							if (response.match("^Warning: ") != null) {
@@ -655,12 +662,18 @@ function updateStatus() {
 							var prefix = (lastSentGCode != "") ? "<strong>" + lastSentGCode + "</strong><br/>" : "";
 							log(style, prefix + content);
 
-							// If the console isn't visible, show a notification too
+							// If the console isn't visible, check if a notification can be displayed
 							if (currentPage != "console") {
-								if (response == "" && lastSentGCode != "") {
-									showMessage(style, "", "<strong>" + lastSentGCode + "</strong>");
-								} else {
-									showMessage(style, lastSentGCode, content);
+								if ((style == "success" && settings.showEmptyResponses) ||
+									(style == "info" && settings.showInfoMessages) ||
+									(style == "warning" && settings.showWarningMessages) ||
+									(style == "error" && settings.showErrorMessages))
+								{
+									if (response == "") {
+										showMessage(style, "", "<strong>" + lastSentGCode + "</strong>");
+									} else {
+										showMessage(style, lastSentGCode, content);
+									}
 								}
 							}
 
@@ -669,10 +682,10 @@ function updateStatus() {
 							{
 								$("#modal_scanner").modal("hide");
 							}
-						}
 
-						// Reset info about the last sent G-Code again
-						lastSentGCode = "";
+							// Reset info about the last sent G-Code again
+							lastSentGCode = "";
+						}
 					}
 				});
 			}
@@ -835,13 +848,33 @@ function updateStatus() {
 				}
 			}
 
-			// Spindle extension
-			if (status.hasOwnProperty("spindle"))
-			{
-				spindleCurrent = status.spindle.current;
-				spindleActive = status.spindle.active;
-				$(".spindle-current").text((spindleCurrent < 0) ? T("n/a") : T("{0} RPM", spindleCurrent));
-				setSpindleInput(spindleActive);
+			// CNC Spindles
+			if (status.hasOwnProperty("spindles")) {
+				for(var i = spindleTools.length - 1; i >= status.spindles.length; i--) {
+					needGuiUpdate = true;
+					spindleTools[i] = -1;
+				}
+
+				for(var i = 0; i < status.spindles.length; i++) {
+					if (i + 1 > spindleTools.length) {
+						if (status.spindles[i].hasOwnProperty("tool")) {
+							needGuiUpdate = true;
+							spindleTools.push(status.spindles[i].tool);
+							spindleCurrents.push(status.spindles[i].current);
+							spindleActives.push(status.spindles[i].active);
+						}
+					} else {
+						if (status.spindles[i].hasOwnProperty("tool") && spindleTools[i] != status.spindles[i].tool) {
+							needGuiUpdate = true;
+							spindleTools[i] = status.spindles[i].tool;
+						}
+						setSpindleCurrent(i, status.spindles[i].current);
+						setSpindleInput(i, status.spindles[i].active);
+					}
+				}
+			} else if (status.hasOwnProperty("spindle") && spindleTools.length > 0) {			// deprecated
+				setSpindleCurrent(0, status.spindle.current);
+				setSpindleInput(0, status.spindle.active);
 			}
 
 			/*** Print status response ***/
@@ -1198,10 +1231,23 @@ function getOemFeatures() {
 		success: function(response) {
 			if (response != "") {
 				if (response.hasOwnProperty("spindleTool")) {
-					spindleTool = response.spindleTool;
+					spindleTools = [response.spindleTool];
 				}
 				if (response.hasOwnProperty("vendor")) {
 					setOem(response.vendor);
+				}
+				if (response.hasOwnProperty("calibrationCamSource") && response.calibrationCamSource != "") {
+					calibrationWebcamSource = response.calibrationCamSource;
+					calibrationWebcamEmbedded = response.hasOwnProperty("calibrationCamEmbedded") && response.calibrationCamEmbedded;
+
+					$("#div_webcam_calibration").removeClass("hidden");
+					$("#img_webcam_calibration").toggleClass("hidden", calibrationWebcamEmbedded);
+					$("#div_ifm_webcam_calibration").toggleClass("hidden", !calibrationWebcamEmbedded);
+
+					updateCalibrationWebcam(true);
+				} else {
+					calibrationWebcamUpdating = false;
+					$("#div_calibration_webcam").addClass("hidden");
 				}
 			}
 		}
@@ -1227,4 +1273,7 @@ function setOem(oem) {
 
 function resetOem() {
 	$(".diabase").addClass("hidden");
+
+	calibrationWebcamSource = "";
+	$("#div_calibration_webcam").addClass("hidden");
 }
