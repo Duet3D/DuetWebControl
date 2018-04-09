@@ -78,32 +78,16 @@ $('#slider_fan_print').slider({
 });
 
 function setFanVisibility(fan, visible) {
-	var visibleFans = $(".table-fan-control [data-fan]:not(.hidden)");
+	// set visibility of the corresponding control button
+	$('.table-fan-control [data-fan="' + fan + '"]').toggleClass("hidden", !visible);
 
-	// update selection and check if the whole panel can be hidden
-	var hideFanControl = false;
-	if (!visible) {
-		var firstVisibleFan;
-		visibleFans.each(function() {
-			if ($(this).data("fan") != fan) {
-				firstVisibleFan = $(this);
-				return false;
-			}
-		});
-
-		hideFanControl = (firstVisibleFan == undefined);
-	}
-
-	$(".fan-control").toggleClass("hidden", hideFanControl);
+	/*$(".fan-control").toggleClass("hidden", hideFanControl);
 	if (hideFanControl) {
 		// Hide entire misc control panel if ATX control is hidden
 		$("#panel_control_misc").toggleClass("hidden", !settings.showATXControl);
-	}
+	}*/
 
-	// set visibility of control buttons
-	$('.table-fan-control [data-fan="' + fan + '"]').toggleClass("hidden", !visible);
-
-	// if this fan value is being enforced, undo it
+	// if this fan's value was being enforced, undo it
 	setFanOverride(fan, undefined);
 }
 

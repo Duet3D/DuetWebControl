@@ -42,17 +42,16 @@ function getFileInfo(directory, filename, callback) {
 	var path = directory + "/" + filename;
 	var fileInfo = cachedFileInfo[path];
 	if (fileInfo == undefined) {
-		$.ajax(ajaxPrefix + "rr_fileinfo?name=" + encodeURIComponent(directory + "/" + filename), {
+		// Fileinfo is not available, query it from the board
+		$.ajax(ajaxPrefix + "rr_fileinfo?name=" + encodeURIComponent(path), {
 			dataType: "json",
-			dir: directory,
-			file: filename,
-			cb: callback,
+			timeout: 0,
 			success: function(response) {
 				// Add response to cache list
-				cachedFileInfo[this.dir + "/" + this.file] = response;
+				cachedFileInfo[path] = response;
 
 				// We've got it
-				this.cb(this.dir, this.file, response);
+				callback(directory, filename, response);
 			}
 		});
 	} else {

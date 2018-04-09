@@ -319,7 +319,7 @@ function updateStatus() {
 			if (status.hasOwnProperty("controllableFans") && controllableFans != status.controllableFans) {
 				controllableFans = status.controllableFans;
 				for(var i = 0; i < maxFans; i++) {
-					setFanVisibility(i, i & (1 << i));
+					setFanVisibility(i, (controllableFans & (1 << i)) != 0);
 				}
 			}
 
@@ -490,7 +490,7 @@ function updateStatus() {
 			}
 
 			for(var i = 0; i < status.coords.xyz.length; i++) {
-				$("td[data-axis='" + i + "']").html(status.coords.xyz[i].toFixed(axisNames[i] == 'Z' ? 2 : 1));
+				$("td[data-axis='" + i + "']").html(status.coords.xyz[i].toFixed(2));
 			}
 
 			if (geometry == "delta" && axisNames.indexOf("X") != -1 && !status.coords.axesHomed[axisNames.indexOf("X")]) {
@@ -667,7 +667,7 @@ function updateStatus() {
 								if ((style == "success" && settings.showEmptyResponses) ||
 									(style == "info" && settings.showInfoMessages) ||
 									(style == "warning" && settings.showWarningMessages) ||
-									(style == "error" && settings.showErrorMessages))
+									(style == "danger" && settings.showErrorMessages))
 								{
 									if (response == "") {
 										showMessage(style, "", "<strong>" + lastSentGCode + "</strong>");
