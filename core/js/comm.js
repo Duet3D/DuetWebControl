@@ -316,11 +316,16 @@ function updateStatus() {
 			}
 
 			// Bitmap of configurable fans
-			if (status.hasOwnProperty("controllableFans") && controllableFans != status.controllableFans) {
-				controllableFans = status.controllableFans;
-				for(var i = 0; i < maxFans; i++) {
-					setFanVisibility(i, (controllableFans & (1 << i)) != 0);
+			if (status.hasOwnProperty("controllableFans")) {
+				if (controllableFans != status.controllableFans) {
+					controllableFans = status.controllableFans;
+					for(var i = 0; i < maxFans; i++) {
+						setFanVisibility(i, (controllableFans & (1 << i)) != 0);
+					}
 				}
+			} else if (configResponse == undefined) {
+				// For legacy firmware versions download the config response. It will tell us if a DueX is attached
+				getConfigResponse();
 			}
 
 			// Machine Name
@@ -500,16 +505,16 @@ function updateStatus() {
 				$("td[data-axis='" + axisNames.indexOf("Z") + "']").html(T("n/a"));
 
 				// Set message box coordinates
-				$("#btn_msgbox_x").text("X = " + T("n/a"));
-				$("#btn_msgbox_y").text("Y = " + T("n/a"));
-				$("#btn_msgbox_z").text("Z = " + T("n/a"));
+				$(".msgbox-x").text("X = " + T("n/a"));
+				$(".msgbox-y").text("Y = " + T("n/a"));
+				$(".msgbox-z").text("Z = " + T("n/a"));
 			} else {
-				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(1);
-				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(1);
+				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(2);
+				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(2);
 				var z = (axisNames.indexOf("Z") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Z")].toFixed(2);
-				$("#btn_msgbox_x").text("X = " + x);
-				$("#btn_msgbox_y").text("Y = " + y);
-				$("#btn_msgbox_z").text("Z = " + z);
+				$(".msgbox-x").text("X = " + x);
+				$(".msgbox-y").text("Y = " + y);
+				$(".msgbox-z").text("Z = " + z);
 			}
 
 			// Current Tool
@@ -553,35 +558,35 @@ function updateStatus() {
 			}
 
 			// Fan Control
-			if (!fanSliderActive) {
-				var fanValues = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent : [status.params.fanPercent];
-				var selectedFan = getFanSelection();
-				if (selectedFan == undefined) {
-					selectedFan = 0;
+			var fanValues = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent : [status.params.fanPercent];
 
-					// Figure out what the first printing fan is
-					var tool = getTool(status.currentTool);
-					if (tool != undefined && tool.hasOwnProperty("fans")) {
-						for(var i = 0; i < Math.min(maxFans, fanValues.length); i++) {
-							if ((tool.fans & (1 << i)) != 0) {
-								selectedFan = i;
-								break;
-							}
+			if ($("tr[data-fan='print'] button.fan-visibility").hasClass("active") && fanValues.length > 0) {
+				// Set Print/Tool fan value
+				var printFan = 0;
+				var tool = getTool(status.currentTool);
+				if (tool != undefined && tool.hasOwnProperty("fans")) {
+					for(var fan = 0; fan < Math.min(maxFans, fanValues.length); fan++) {
+						if ((tool.fans & (1 << fan)) != 0) {
+							printFan = fan;
+							break;
 						}
 					}
 				}
 
-				for(var i = 0; i < Math.min(maxFans, fanValues.length); i++) {
-					// Check if the prior fan value must be enforced
-					var fanValue = fanValues[i] / 100.0;
-					if (overriddenFanValues[i] != undefined && overriddenFanValues[i] != fanValue) {
-						fanValue = overriddenFanValues[i];
-						sendGCode("M106 P" + i + " S" + fanValue);
-					}
+				if (lastStatusResponse == undefined || $("tr[data-fan='print'] .fan-slider > input").slider("getValue") != fanValues[printFan]) {
+					$("tr[data-fan='print'] .fan-slider > input").slider("setValue", fanValues[printFan]);
+				}
+			}
 
-					// Update slider values
-					if (i == selectedFan && (lastStatusResponse == undefined || $(".fan-slider").children("input").slider("getValue") != fanValue * 100.0)) {
-						$(".fan-slider").children("input").slider("setValue", fanValue * 100.0);
+			for(var fan = 0; fan < Math.min(maxFans, fanValues.length); fan++) {
+				if (fan != fanSliderActive) {
+					var fanValue = fanValues[fan] / 100.0;
+					if (overriddenFanValues[fan] != undefined && overriddenFanValues[fan] != fanValue) {
+						// Enforce overriden fan value
+						sendGCode("M106 P" + fan + " S" + overriddenFanValues[fan]);
+					} else if (lastStatusResponse == undefined || $("tr[data-fan='" + fan + "'] .fan-slider > input").slider("getValue") != fanValue * 100.0) {
+						// Update slider value
+						$("tr[data-fan='" + fan + "'] .fan-slider > input").slider("setValue", fanValue * 100.0);
 					}
 				}
 			}
@@ -1175,6 +1180,11 @@ function getConfigResponse() {
 			if (response.hasOwnProperty("firmwareElectronics")) {
 				$("#tr_firmware_electronics").removeClass("hidden");
 				$("#firmware_electronics").text(response.firmwareElectronics);
+
+				if (!lastStatusResponse.hasOwnProperty("controllableFans") && response.firmwareElectronics.indexOf("DueX") != -1) {
+					controllableFans = 511; // we have 9 fans total with the DueX
+					updateGui();
+				}
 			}
 
 			if (response.hasOwnProperty("dwsVersion")) {

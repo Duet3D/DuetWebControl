@@ -23,6 +23,7 @@ var settings = {
 	useKiB: true,					// display file sizes in KiB instead of KB
 	theme: "default",				// name of the theme to use
 	scrollContent: true,			// make the main content scrollable on md+ resolutions
+	showFanControl: true,			// show fan sliders
 	showFanRPM: false,				// show fan RPM in sensors
 	settingsOnDuet: true,			// store the DWC settings on the Duet
 	language: "en",
@@ -191,12 +192,16 @@ function applySettings() {
 	$("#btn_baby_up > span.content").text(T("{0} mm ", "+" + settings.babysteppingZ));
 	$(".babystepping").toggleClass("hidden", settings.babysteppingZ <= 0);
 
+	// Show/Hide Fan Controls
+	$(".fan-control").toggleClass("hidden", !settings.showFanControl);
+
 	// Show/Hide Fan RPM
 	$(".fan-rpm").toggleClass("hidden", !settings.showFanRPM);
 	$("#th_probe, #td_probe").css("border-right", settings.showFanRPM ? "" : "0px");
 
 	// Show/Hide ATX Power
 	$(".atx-control").toggleClass("hidden", !settings.showATXControl);
+	$("#panel_control_misc").toggleClass("hidden", !settings.showFanControl && !settings.showATXControl);
 
 	// Apply or revoke theme
 	if (themeInclude != undefined) {
@@ -211,7 +216,7 @@ function applySettings() {
 			$("#theme_notice").addClass("hidden");
 			break;
 
-		case "dark":	// Bootstrap theme + fotomas's customizations
+		case "dark":	// Bootstrap theme + fotomas' customizations
 			themeInclude = $('<link rel="stylesheet" href="css/bootstrap-theme.css" type="text/css"></link>' +
 							 '<link onload="applyThemeColors();" rel="stylesheet" href="css/slate.css" type="text/css"></link>');
 			themeInclude.appendTo("head");
@@ -395,10 +400,14 @@ $(".btn-reset-settings").click(function(e) {
 });
 
 $("#frm_settings").submit(function(e) {
+	e.preventDefault();
+	if ($(".btn-apply-settings").hasClass("disabled")) {
+		return;
+	}
+
 	saveSettings();
 	applySettings();
 	showMessage("success", "", "<strong>" + T("Settings applied!") + "</strong>");
-	e.preventDefault();
 });
 
 $("#frm_settings > ul > li a").on("shown.bs.tab", function(e) {

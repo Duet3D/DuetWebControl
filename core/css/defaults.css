@@ -275,12 +275,17 @@ label {
 	width: 100%;
 }
 
-.table-fan-control tr > td:nth-child(2) {
+.table-fan-control tr:first-child > td:first-child,
+.table-fan-control tr:not(:first-child) > td:nth-child(2) {
 	padding-right: 15px;
 }
 
-.table-fan-control tr:first-child > td:last-child {
+.table-fan-control tr > td:last-child {
 	width: 100%;
+}
+
+.table-fan-control tr:not(:last-child) > td:last-child {
+	padding-bottom: 9px;
 }
 
 #table_tools tr:first-child > th {
@@ -622,6 +627,10 @@ div.panel table.table-status:not(:last-child)
 	padding-bottom: 0px;
 }
 
+tr[data-fan="print"] > td:first-child > button {
+	width: 100%;
+}
+
 /* Calibration page (OEM) */
 
 #div_calibration_webcam > div.panel-body {
@@ -778,6 +787,18 @@ div.panel table.table-status:not(:last-child)
 }
 
 /* Scanner */
+
+.scan-move-controls {
+	text-align: center;
+}
+
+.scan-move-controls > div {
+	margin-top: 15px;
+}
+
+.scan-move-controls > div:first-child {
+	margin-top: 9px;
+}
 
 #table_scan_files_directory tr > td {
 	width: auto;

@@ -104,27 +104,6 @@ $("#btn_calibrate_scanner").click(function() {
 	});
 });
 
-$("#btn_start_scan").click(function() {
-	if (!$(this).hasClass("disabled")) {
-		if (vendor == "diabase") {
-			// Properietary implemenation with extra steps
-			$("#modal_start_scan").modal("show");
-		} else {
-			// Basic open-source variant
-			showTextInput(T("Start new 3D scan"), T("Please enter a name for the new scan:"), function(name) {
-				if (filenameValid(name)) {
-					// Let the firmware do the communication to the board
-					sendGCode("M752 S360 P" + name);
-				} else {
-					showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
-				}
-			}, undefined, function() {
-				showMessage("danger", T("Error"), T("The filename for a new scan must not be empty!"));
-			});
-		}
-	}
-});
-
 function addScanFile(filename, size, lastModified) {
 	$("#page_scanner h1").addClass("hidden");
 	$("#table_scan_files").removeClass("hidden");

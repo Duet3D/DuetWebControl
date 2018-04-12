@@ -7,100 +7,85 @@
  */
 
 
-var fanSliderActive, speedSliderActive, extrSliderActive;
-var overriddenFanValues = [undefined, undefined, undefined];	// this must hold maxFans items
+var fanSliderActive = undefined, speedSliderActive = false, extrSliderActive = false;
+var overriddenFanValues = [undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined];	// this must hold maxFans items
 
 
 /* Fan Control */
 
-$('#slider_fan_control').slider({
-	enabled: false,
-	id: "fan_control",
-	min: 0,
-	max: 100,
-	step: 1,
-	value: 35,
-	tooltip: "always",
-	formatter: function(value) {
-		return value + " %";
-	}
-}).on("slideStart", function() {
-	fanSliderActive = true;
-}).on("slideStop", function(slideEvt) {
-	if (isConnected && !isNaN(slideEvt.value)) {
-		var fan = getFanSelection();
-		var fanValue = slideEvt.value / 100.0;
-		if (fan == undefined) {
-			// Generic print fan is selected
-			sendGCode("M106 S" + fanValue);
-		} else {
-			// Specific fan is selected
-			if (overriddenFanValues[fan] != undefined) {
-				overriddenFanValues[fan] = fanValue;
-			}
-			sendGCode("M106 P" + fan + " S" + fanValue);
+for(var fan = -1; fan < maxFans; fan++) {
+	var fanID = (fan == -1) ? "print" : fan;
+	$('#slider_fan_control_' + fanID).slider({
+		enabled: false,
+		id: "fan_control_" + fanID,
+		min: 0,
+		max: 100,
+		step: 1,
+		value: 35,
+		tooltip: "always",
+		formatter: function(value) {
+			return value + " %";
 		}
-		$("#slider_fan_print").slider("setValue", slideEvt.value);
-	}
-	fanSliderActive = false;
-});
+	}).on("slideStart", function() {
+		fanSliderActive = fanID;
+	}).on("slideStop", function(slideEvt) {
+		if (isConnected && !isNaN(slideEvt.value)) {
+			var fanID = $(this).parents("tr").data("fan");
+			var fanValue = slideEvt.value / 100.0;
+			if (fanID == "print") {
+				// Generic print fan is selected
+				sendGCode("M106 S" + fanValue);
+			} else {
+				// Specific fan is selected
+				if (overriddenFanValues[fanID] != undefined) {
+					overriddenFanValues[fanID] = fanValue;
+				}
+				sendGCode("M106 P" + fanID + " S" + fanValue);
+			}
+			$("#slider_fan_print_" + fanID).slider("setValue", slideEvt.value);
+		}
+		fanSliderActive = undefined;
+	});
 
-$('#slider_fan_print').slider({
-	enabled: false,
-	id: "fan_print",
-	min: 0,
-	max: 100,
-	step: 1,
-	value: 35,
-	tooltip: "always",
-	formatter: function(value) {
-		return value + " %";
-	}
-}).on("slideStart", function() {
-	fanSliderActive = true;
-}).on("slideStop", function(slideEvt) {
-	if (isConnected && !isNaN(slideEvt.value)) {
-		var fan = getFanSelection();
-		var fanValue = slideEvt.value / 100.0;
-		if (fan == undefined) {
-			// Generic print fan is selected
-			sendGCode("M106 S" + fanValue);
-		} else {
-			// Specific fan is selected
-			if (overriddenFanValues[fan] != undefined) {
-				overriddenFanValues[fan] = fanValue;
-			}
-			sendGCode("M106 P" + fan + " S" + fanValue);
+	$('#slider_fan_print_' + fanID).slider({
+		enabled: false,
+		id: "fan_print_" + fanID,
+		min: 0,
+		max: 100,
+		step: 1,
+		value: 35,
+		tooltip: "always",
+		formatter: function(value) {
+			return value + " %";
 		}
-		$("#slider_fan_control").slider("setValue", slideEvt.value);
-	}
-	fanSliderActive = false;
-});
+	}).on("slideStart", function() {
+		fanSliderActive = fanID;
+	}).on("slideStop", function(slideEvt) {
+		if (isConnected && !isNaN(slideEvt.value)) {
+			var fanID = $(this).parents("tr").data("fan");
+			var fanValue = slideEvt.value / 100.0;
+			if (fanID == "print") {
+				// Generic print fan is selected
+				sendGCode("M106 S" + fanValue);
+			} else {
+				// Specific fan is selected
+				if (overriddenFanValues[fanID] != undefined) {
+					overriddenFanValues[fanID] = fanValue;
+				}
+				sendGCode("M106 P" + fanID + " S" + fanValue);
+			}
+			$("#slider_fan_control_" + fanID).slider("setValue", slideEvt.value);
+		}
+		fanSliderActive = undefined;
+	});
+}
 
 function setFanVisibility(fan, visible) {
 	// set visibility of the corresponding control button
-	$('.table-fan-control [data-fan="' + fan + '"]').toggleClass("hidden", !visible);
-
-	/*$(".fan-control").toggleClass("hidden", hideFanControl);
-	if (hideFanControl) {
-		// Hide entire misc control panel if ATX control is hidden
-		$("#panel_control_misc").toggleClass("hidden", !settings.showATXControl);
-	}*/
+	$('.table-fan-control tr[data-fan="' + fan + '"]').toggleClass("hidden", !visible);
 
 	// if this fan's value was being enforced, undo it
 	setFanOverride(fan, undefined);
-}
-
-function getFanSelection() {
-	var selection = $(".table-fan-control button.btn-primary.fan-selection");
-	return (selection.length == 0) ? undefined : selection.data("fan");
-}
-
-function setFanSelection(fan) {
-	$(".table-fan-control button.fan-selection").removeClass("btn-primary").removeClass("active").addClass("btn-default");
-	if (fan != undefined) {
-		$('.table-fan-control button.fan-selection[data-fan="' + fan + '"]').removeClass("btn-default").addClass("btn-primary").addClass("active");
-	}
 }
 
 function setFanOverride(fan, overriddenValue) {
@@ -109,49 +94,86 @@ function setFanOverride(fan, overriddenValue) {
 
 	// update UI
 	var overridden = (overriddenValue != undefined);
-	var toggleButton = $('.table-fan-control button.fan-override[data-fan="' + fan + '"]');
+	var toggleButton = $('.table-fan-control tr[data-fan="' + fan + '"] button.fan-override');
 	toggleButton.toggleClass("btn-primary", overridden).toggleClass("btn-default", !overridden);
 	toggleButton.toggleClass("active", overridden);
 }
 
-$("button.fan-selection").click(function() {
-	var fan = $(this).data("fan");
-	if ($(this).hasClass("disabled")) {
-		// only apply other values if the selection has changed
-		return;
-	}
-
-	if (fan == getFanSelection()) {
-		setFanSelection(undefined);
-		return;
-	}
-	setFanSelection(fan);
-
-	var fanValue = overriddenFanValues[fan];
-	if (fanValue == undefined && lastStatusResponse != undefined) {
-		// this is only called if the firmware reports fan values as an array
-		fanValue = lastStatusResponse.params.fanPercent[fan] / 100.0;
-	}
-	if (fanValue != undefined) {
-		$(".fan-slider").children("input").slider("setValue", fanValue * 100.0);
-	}
+$("button.fan-visibility").click(function() {
+	var fan = $(this).parents("tr").data("fan");
+	setFanDisplayed(fan, !$(this).hasClass("active"));
 });
 
 $("button.fan-override").click(function() {
-	var fan = $(this).data("fan");
 	if ($(this).hasClass("disabled")) {
 		return;
 	}
 
+	var fan = $(this).parents("tr").data("fan");
 	if (overriddenFanValues[fan] == undefined) {
-		if (fan == getFanSelection()) {
-			var sliderValue = $(".fan-slider").children("input").slider("getValue") / 100.0;
-			setFanOverride(fan, sliderValue);
-		}
+		var sliderValue = $(this).parents("tr").find(".fan-slider > input").slider("getValue");
+		setFanOverride(fan, sliderValue / 100.0);
 	} else {
 		setFanOverride(fan, undefined);
 	}
 });
+
+function loadFanVisibility() {
+	var fanVisibility = localStorage.getItem("fanVisibility");
+	if (fanVisibility != null) {
+		for(var fan = 0; fan <= maxFans; fan++) {
+			if (fan == 0) {
+				setFanDisplayed("print", (fanVisibility & 1) != 0);
+			} else {
+				setFanDisplayed(fan - 1, (fanVisibility & (1 << fan)) != 0);
+			}
+		}
+	}
+}
+
+function setFanDisplayed(fan, show) {
+	if (show) {
+		$(".table-fan-control tr[data-fan='" + fan + "'] button.fan-visibility").removeClass("btn-default").addClass("btn-primary active");
+		$(".table-fan-control tr[data-fan='" + fan + "'] button.fan-override").toggleClass("disabled", !isConnected);
+		$(".table-fan-control tr[data-fan='" + fan + "'] > td:last-child").children().removeClass("hidden");
+
+		// Restore correct value
+		if (fan != "print") {
+			var fanValue = overriddenFanValues[fan];
+			if (fanValue == undefined && lastStatusResponse != undefined) {
+				// this is only called if the firmware reports fan values as an array
+				fanValue = lastStatusResponse.params.fanPercent[fan] / 100.0;
+			}
+
+			if (fanValue != undefined) {
+				$("tr[data-fan='" + fan + "'] .fan-slider > input").slider("setValue", fanValue * 100.0);
+			}
+		} else {
+			$("tr[data-fan='print'] .fan-slider > input").slider("relayout");
+		}
+	} else {
+		$(".table-fan-control tr[data-fan='" + fan + "'] button.fan-visibility").removeClass("btn-primary active").addClass("btn-default");
+		$(".table-fan-control tr[data-fan='" + fan + "'] button.fan-override").addClass("disabled");
+		$(".table-fan-control tr[data-fan='" + fan + "'] > td:last-child").children().addClass("hidden");
+
+		if (fan != "print") {
+			setFanOverride(fan, undefined);
+		}
+	}
+
+	// Store the fan visibility in localStorage
+	var visibilityBitmap = 0;
+	for(var fan = 0; fan <= maxFans; fan++) {
+		if (fan == 0) {
+			if ($(".table-fan-control tr[data-fan='print'] button.fan-visibility").hasClass("active")) {
+				visibilityBitmap |= 1;
+			}
+		} else if ($(".table-fan-control tr[data-fan='" + (fan - 1) + "'] button.fan-visibility").hasClass("active")) {
+			visibilityBitmap |= (1 << fan);
+		}
+	}
+	localStorage.setItem("fanVisibility", visibilityBitmap);
+}
 
 
 /* Extrusion Multiplier */

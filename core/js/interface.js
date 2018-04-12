@@ -51,7 +51,7 @@ function resetGuiData() {
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
 
-	controllableFans = 7;
+	controllableFans = 0;
 
 	coldExtrudeTemp = 160;
 	coldRetractTemp = 90;
@@ -69,7 +69,7 @@ function resetGuiData() {
 	resetFiles();
 	resetOem();
 
-	waitingForPrintStart = fanSliderActive = speedSliderActive = extrSliderActive = false;
+	waitingForPrintStart = false;
 }
 
 $(document).ready(function() {
@@ -85,6 +85,7 @@ $(document).ready(function() {
 	loadSettings();
 	loadFileCache();
 	loadTableSorting();
+	loadFanVisibility();
 });
 
 function pageLoadComplete() {
@@ -1760,7 +1761,7 @@ function setATXPower(value) {
 function setBoardType(type) {
 	boardType = type;
 	allowCombinedFirmware = false;
-	controllableFans = 7;
+	controllableFans = 7;	// show first three fans
 
 	var isWiFi, isDuetNG;
 	if (type.indexOf("duetwifi") == 0) {
@@ -2099,7 +2100,7 @@ function showPage(name) {
 
 	if (name != currentPage) {
 		if (name == "control") {
-			$("#slider_fan_control").slider("relayout");
+			$("#page_control .table-fan-control input").slider("relayout");
 			if (currentMacroDirectory == "0:/macros" && !macrosLoaded) {
 				updateMacroFiles();
 			}
@@ -2113,7 +2114,7 @@ function showPage(name) {
 
 		if (name == "print") {
 			$("#slider_speed").slider("relayout");
-			$("#slider_fan_print").slider("relayout");
+			$("#page_print .table-fan-control input").slider("relayout");
 			for(var extr = 0; extr < maxExtruders; extr++) {
 				$("#slider_extr_" + extr).slider("relayout");
 			}

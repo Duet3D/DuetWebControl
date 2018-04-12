@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.21.1-b2
+<!--	Duet Web Control v1.21.1-b3
 
 	written by Christian Hammacher
 
@@ -1214,99 +1214,149 @@
 												<tr class="fan-control">
 													<td colspan="2">
 														<table class="table-fan-control" id="table_fan_control">
-															<tr>
-																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection" data-fan="0">Fan 0</button>
+															<tr data-fan="print">
+																<td colspan="2">
+																	<button class="btn btn-primary btn-sm active fan-visibility">Tool Fan</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override" data-fan="0" title="Override Fan Value">
-																		<span class="glyphicon glyphicon-pushpin"></span>
-																	</button>
-																</td>
-																<td rowspan="9">
 																	<div class="fan-slider" data-slideout-ignore>
-																		<input id="slider_fan_control" type="text" title="Set current fan value (via M106)" disabled/>
+																		<input id="slider_fan_control_print" type="text" title="Set current fan value (via M106)" disabled/>
 																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="0" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection" data-fan="1">Fan 1</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 0</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override" data-fan="1" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_0" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="1" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection" data-fan="2">Fan 2</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 1</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override" data-fan="2" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_1" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="2" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="3">Fan 3</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 2</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="3" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_2" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="3" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="4">Fan 4</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 3</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="4" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_3" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="4" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="5">Fan 5</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 4</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="5" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_4" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="5" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="6">Fan 6</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 5</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="6" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_5" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="6" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="7">Fan 7</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 6</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="7" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_6" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
-															<tr>
+															<tr data-fan="7" class="hidden">
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="8">Fan 8</button>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 7</button>
 																</td>
 																<td>
-																	<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="8" title="Override Fan Value">
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 																		<span class="glyphicon glyphicon-pushpin"></span>
 																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_7" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
+																</td>
+															</tr>
+															<tr data-fan="8" class="hidden">
+																<td>
+																	<button class="btn btn-primary btn-sm active fan-visibility">Fan 8</button>
+																</td>
+																<td>
+																	<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
+																		<span class="glyphicon glyphicon-pushpin"></span>
+																	</button>
+																</td>
+																<td>
+																	<div class="fan-slider" data-slideout-ignore>
+																		<input id="slider_fan_control_8" type="text" title="Set current fan value (via M106)" disabled/>
+																	</div>
 																</td>
 															</tr>
 														</table>
@@ -1494,99 +1544,149 @@
 
 										<div class="panel-body">
 											<table class="table-fan-control" id="table_fan_print">
-												<tr>
-													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection" data-fan="0">Fan 0</button>
+												<tr data-fan="print">
+													<td colspan="2">
+														<button class="btn btn-primary btn-sm active fan-visibility">Tool Fan</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override" data-fan="0" title="Override Fan Value">
-															<span class="glyphicon glyphicon-pushpin"></span>
-														</button>
-													</td>
-													<td rowspan="9">
-														<div class="fan-slider slider-container" data-slideout-ignore>
-															<input id="slider_fan_print" type="text" title="Set current fan value (via M106)" disabled/>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_print" type="text" title="Set current fan value (via M106)" disabled/>
 														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="0" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection" data-fan="1">Fan 1</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 0</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override" data-fan="1" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_0" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="1" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection" data-fan="2">Fan 2</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 1</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override" data-fan="2" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_1" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="2" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="3">Fan 3</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 2</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="3" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_2" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="3" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="4">Fan 4</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 3</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="4" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_3" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="4" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="5">Fan 5</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 4</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="5" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_4" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="5" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="6">Fan 6</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 5</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="6" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_5" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="6" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="7">Fan 7</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 6</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="7" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_6" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
-												<tr>
+												<tr data-fan="7" class="hidden">
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-selection hidden" data-fan="8">Fan 8</button>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 7</button>
 													</td>
 													<td>
-														<button class="btn btn-default btn-sm disabled fan-override hidden" data-fan="8" title="Override Fan Value">
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
 															<span class="glyphicon glyphicon-pushpin"></span>
 														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_7" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
+													</td>
+												</tr>
+												<tr data-fan="8" class="hidden">
+													<td>
+														<button class="btn btn-primary btn-sm active fan-visibility">Fan 8</button>
+													</td>
+													<td>
+														<button class="btn btn-default btn-sm disabled fan-override" title="Override Fan Value">
+															<span class="glyphicon glyphicon-pushpin"></span>
+														</button>
+													</td>
+													<td>
+														<div class="fan-slider" data-slideout-ignore>
+															<input id="slider_fan_print_8" type="text" title="Set current fan value (via M106)" disabled/>
+														</div>
 													</td>
 												</tr>
 											</table>
@@ -2013,7 +2113,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.1-b2</td>
+															<td id="dwc_version">1.21.1-b3</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2122,6 +2222,12 @@
 													<div class="checkbox hidden-xs hidden-sm">
 														<label title="Turning on this option ensures the info area and the main menu are always shown on larger displays. This option has no effect on small devices">
 															<input type="checkbox" data-setting="scrollContent" /> Always show info area and main menu
+														</label>
+													</div>
+
+													<div class="checkbox">
+														<label title="Show Fan Sliders allowing you to control the Fan Outputs">
+															<input type="checkbox" data-setting="showFanControl" checked /> Show Fan Controls
 														</label>
 													</div>
 
@@ -3090,7 +3196,7 @@
 
 
 		<div class="modal fade" id="modal_start_scan">
-			<div class="modal-dialog modal-sm">
+			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form>
 						<div class="modal-header">
@@ -3105,7 +3211,7 @@
 
 							<h4>2. Specify the scan length</h4>
 							<div class="description input-group">
-								<input type="number" required="required" min="0" max="300" step="any" value="390" id="input_scan_length" class="form-control">
+								<input type="number" required="required" min="0" max="360" step="any" value="360" id="input_scan_length" class="form-control">
 								<span class="input-group-addon">mm</span>
 							</div>
 
@@ -3113,6 +3219,37 @@
 							<div class="description">
 								<p>In order to align your object you can toggle the right laser before you start:</p>
 								<button id="btn_toggle_laser" class="btn btn-info"><span class="glyphicon glyphicon-certificate"></span> <span class="content">Activate Laser</span></button>
+							</div>
+
+							<h4>4. Move the object to the center</h4>
+							<div class="description scan-move-controls">
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+									<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+									<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+									<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								</div>
 							</div>
 						</div>
 						<div class="modal-footer">
@@ -3141,7 +3278,7 @@
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
-								<button type="button" id="btn_msgbox_x" class="btn btn-default disabled">X = n/a</button>
+								<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
@@ -3154,7 +3291,7 @@
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
-								<button type="button" id="btn_msgbox_y" class="btn btn-default disabled">Y = n/a</button>
+								<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
@@ -3167,7 +3304,7 @@
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
-								<button type="button" id="btn_msgbox_z" class="btn btn-default disabled">Z = n/a</button>
+								<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>

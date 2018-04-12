@@ -127,7 +127,7 @@ $GZIP -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.
 # Add image files (optional)
 #echo "Adding images"
 #mkdir ./build/img
-#cp ./core/img/* ./build/img/*
+#cp ./core/img/* ./build/img/
 
 # Now build DWC for wired Duets
 echo "=> Building final Duet Web Control package"
