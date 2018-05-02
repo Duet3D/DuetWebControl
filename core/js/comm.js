@@ -50,11 +50,18 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 	}
 
 	if (isConnected) {
+		// If we get a 401, that means that the session has timed out.
+		// In this case attempt to reconnect with the last set password
+		if (jqxhr.status == 401) {
+			reconnectAfterTimeout();
+			return;
+		}
+
 		// Resend this request if it timed out. This may be necessary for DuetWiFi
 		// Also check for empty responses, although not every browser reports an
 		// error in this case. However if we get one, treat it as a timeout.
 		var response = jqxhr.responseText || jqxhr.responseJSON;
-		if (thrownError == "timeout" || (thrownError == "" && response == undefined)) {
+		if (thrownError == "timeout" || typeof app !== "undefined" || (thrownError == "" && response == undefined)) {
 			if (!xhrsettings.hasOwnProperty("retryCount")) {
 				xhrsettings.retryCount = 1;
 			} else {
@@ -136,6 +143,10 @@ function connect(password, regularConnect) {
 				showMessage("danger", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), 0);
 				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
+
+				if (isConnected) {
+					disconnect(false);
+				}
 			}
 			else if (regularConnect)
 			{
@@ -154,6 +165,10 @@ function connect(password, regularConnect) {
 					showMessage("danger", T("Error"), T("Invalid password!"), 0);
 					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
+
+					if (isConnected) {
+						disconnect(false);
+					}
 				}
 			}
 		}
@@ -645,9 +660,8 @@ function updateStatus() {
 							clearBedPoints();
 						}
 
-						// Is this a response that should be logged?
-						if (lastSentGCode != "") {
-							// What kind of reply are we dealing with?
+						// What kind of reply are we dealing with?
+						if (response != "" || lastSentGCode != "") {
 							var style = "success", content = response;
 							if (response.match("^Warning: ") != null) {
 								style = "warning";
@@ -791,7 +805,7 @@ function updateStatus() {
 				}
 
 				for(var i = 0; i < status.temps.extra.length; i++) {
-					var name = status.temps.extra[i].name;
+					var name = status.temps.extra[i].hasOwnProperty("name") ? status.temps.extra[i].name : "";
 					if (lastStatusResponse == undefined || status.temps.extra.length != lastStatusResponse.temps.extra.length || status.temps.extra[i].name != lastStatusResponse.temps.extra[i].name) {
 						if (name == "") {
 							name = T("Sensor " + (i + 1));
@@ -1128,6 +1142,11 @@ function reconnectAfterUpdate() {
 	}
 }
 
+function reconnectAfterTimeout() {
+	updateTaskLive = false;
+	connect(sessionPassword, false);
+}
+
 function requestFileInfo() {
 	$.ajax(ajaxPrefix + "rr_fileinfo", {
 		dataType: "json",
@@ -1181,7 +1200,7 @@ function getConfigResponse() {
 				$("#tr_firmware_electronics").removeClass("hidden");
 				$("#firmware_electronics").text(response.firmwareElectronics);
 
-				if (!lastStatusResponse.hasOwnProperty("controllableFans") && response.firmwareElectronics.indexOf("DueX") != -1) {
+				if (lastStatusResponse != undefined && !lastStatusResponse.hasOwnProperty("controllableFans") && response.firmwareElectronics.indexOf("DueX") != -1) {
 					controllableFans = 511; // we have 9 fans total with the DueX
 					updateGui();
 				}

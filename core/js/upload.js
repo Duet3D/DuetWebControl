@@ -485,7 +485,7 @@ function uploadHasFinished(success) {
 		}
 
 		// Ask for firmware/DWC update if it's safe to do
-		else if (lastStatusResponse != undefined && lastStatusResponse.status == 'I') {
+		else if (lastStatusResponse != undefined && (lastStatusResponse.status == 'I' || lastStatusResponse.status == 'O')) {
 			// Test for firmware update before we test for a new config file, because a firmware update includes a reset
 			if (uploadFirmwareFile != undefined && uploadDWSFile == undefined && uploadDWSSFile == undefined && uploadDWCFile == undefined) {
 				$("#modal_upload").modal("hide");

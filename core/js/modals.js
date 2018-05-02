@@ -216,6 +216,10 @@ $("#btn_start_scan").click(function() {
 	}
 });
 
+$("input[name='scanMode']").change(function() {
+	$("#span_scan_length").text(($("input[name='scanMode']:checked").val() == 0) ? T("mm") : T("°"));
+});
+
 $("#modal_start_scan input").keyup(function() {
 	$("#btn_start_scan_modal").toggleClass("disabled", $("#modal_start_scan input:invalid").length > 0);
 });
@@ -245,11 +249,13 @@ $("#modal_start_scan form").submit(function(e) {
 
 		// 2. Start a new scan
 		var filename = $("#input_scan_filename").val();
-		var length = $("#input_scan_length").val();
+		var range = $("#input_scan_range").val();
+		var resolution = $("#input_scan_resolution").val();
+		var mode = $("input[name='scanMode']:checked").val();
 
 		// 3. Check the filename and start a new scan
 		if (filenameValid(filename)) {
-			sendGCode("M752 S" + length + " P" + filename);
+			sendGCode("M752 S" + range + " R" + resolution + " N" + mode + " P\"" + filename + "\"");
 		} else {
 			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
 		}
@@ -316,12 +322,15 @@ function updateScannerDialogs(scanResponse) {
 		$("#span_calibration_progress").text(T("{0} %", scanResponse.progress));
 	} else if (scanResponse.status == "I") {
 		// Scanner is inactive
-		if ($("#modal_scanner").hasClass("in")) {
+		if ($("#modal_scanner").hasClass("in") && $("#modal_scanner .modal-title").text() != T("Scan complete")) {
 			$("#modal_scanner .modal-title").text(T("Scan complete"));
 			$("#p_scan_info").text(T("Your 3D scan is now complete! You may download it from the file list next."));
 
 			$("#btn_cancel_scan").addClass("hidden");
 			$("#btn_close_scan").removeClass("hidden");
+
+			updateScanFiles();
+			$(".span-refresh-scans").addClass("hidden");
 		}
 
 		if ($("#modal_scanner_calibration").hasClass("in")) {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.21.1-b3
+<!--	Duet Web Control v1.21.1-RC1
 
 	written by Christian Hammacher
 
@@ -2113,7 +2113,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.1-b3</td>
+															<td id="dwc_version">1.21.1-RC1</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2955,8 +2955,8 @@
 							</div>
 						</div>
 						<div class="modal-footer">
-							<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-							<button type="submit" class="btn btn-primary">Verify</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+							<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Verify</button>
 						</div>
 					</form>
 				</div>
@@ -3205,14 +3205,43 @@
 						</div>
 						<div class="modal-body">
 							<h4>1. Enter a filename for your scan</h4>
-							<div class="description input-group">
+							<div class="description">
 								<input type="text" required="required" placeholder="Choose a filename..." id="input_scan_filename" class="form-control">
 							</div>
 
-							<h4>2. Specify the scan length</h4>
-							<div class="description input-group">
-								<input type="number" required="required" min="0" max="360" step="any" value="360" id="input_scan_length" class="form-control">
-								<span class="input-group-addon">mm</span>
+							<h4>2. Specify scan details</h4>
+							<div class="description">
+								<div class="row">
+									<div class="col-md-4">
+										<label for="input_scan_range">Scan range:</label>
+										<div class="input-group">
+											<input type="number" required="required" min="0" max="360" step="1" value="360" id="input_scan_range" class="form-control">
+											<span id="span_scan_length" class="input-group-addon">mm</span>
+										</div>
+									</div>
+									<div class="col-md-4">
+										<label for="input_scan_resolution">Resolution:</label>
+										<div class="input-group">
+											<input type="number" required="required" min="0" max="100" step="1" value="100" id="input_scan_resolution" class="form-control">
+											<span class="input-group-addon">%</span>
+										</div>
+									</div>
+									<div class="col-md-4">
+										<label>Mode:</label>
+										<div class="btn-group btn-group-justified" data-toggle="buttons">
+											<div class="btn-group">
+												<label class="btn btn-default active">
+													<input type="radio" name="scanMode" value="0" checked>Linear
+												</label>
+											</div>
+											<div class="btn-group">
+												<label class="btn btn-default">
+													<input type="radio" name="scanMode" value="1">Rotary
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
 
 							<h4>3. Check alignment</h4>

@@ -1918,7 +1918,7 @@ function setPrintStatus(printing) {
 
 		// Progress is set in the status response callback
 
-		$(".btn-upload").addClass("disabled");
+		//$(".btn-upload").addClass("disabled");
 		$("#page_general .btn-upload").removeClass("disabled");
 
 		$("#btn_pause").removeClass("disabled");
@@ -1929,7 +1929,7 @@ function setPrintStatus(printing) {
 		requestFileInfo();
 	} else {
 		$("#btn_pause").addClass("disabled");
-		$(".btn-upload").toggleClass("disabled", !isConnected);
+		//$(".btn-upload").toggleClass("disabled", !isConnected);
 
 		if (!isConnected || fileInfo == undefined) {
 			$(".row-progress").addClass("hidden");
