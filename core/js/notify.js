@@ -70,9 +70,14 @@ function showHaltMessage() {
 
 function showMessage(type, title, message, timeout, allowDismiss, regularNotification) {
 	// Set default arguments
-	if (timeout == undefined) { timeout = settings.notificationTimeout; }
 	if (allowDismiss == undefined) { allowDismiss = true; }
-	if (regularNotification == undefined) { regularNotification = true; }
+	if (type == "danger" && allowDismiss && !settings.autoCloseErrorMessages) {
+		if (timeout == undefined) { timeout = 0; }
+		if (regularNotification == undefined) { regularNotification = false; }
+	} else {
+		if (timeout == undefined) { timeout = settings.notificationTimeout; }
+		if (regularNotification == undefined) { regularNotification = true; }
+	}
 
 	// Check if an HTML5 notification shall be displayed
 	if (document.hidden && settings.useHtmlNotifications) {

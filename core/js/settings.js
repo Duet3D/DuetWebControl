@@ -41,6 +41,7 @@ var settings = {
 
 	useHtmlNotifications: false,	// use HTML5-based notifications
 	autoCloseUserMessages: false,	// whether M117 messages are automatically closed
+	autoCloseErrorMessages: false,	// whether error messages by the firmware are automatically closed
 	showEmptyResponses: false,		// show successful pop-up notification for G-codes that returned no response
 	showInfoMessages: true,			// show info messages
 	showWarningMessages: true,		// show warning messages
@@ -160,6 +161,7 @@ function applySettings() {
 	/* Apply settings */
 
 	// Set AJAX timeout
+	if (settings.maxRetries > 50) { settings.maxRetries = 50; }
 	$.ajaxSetup({ timeout: sessionTimeout / (settings.maxRetries + 1) });
 
 	// Webcam

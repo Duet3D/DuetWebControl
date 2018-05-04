@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.21.1-RC1
+<!--	Duet Web Control v1.21.1-RC2
 
 	written by Christian Hammacher
 
@@ -2113,7 +2113,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.1-RC1</td>
+															<td id="dwc_version">1.21.1-RC2</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2164,7 +2164,7 @@
 													</div>
 
 													<label for="input_max_retries">Maximum number of AJAX retries:</label>
-													<input type="number" id="input_max_retries" class="form-control" title="Maximum number of AJAX retries before the connection is terminated" data-setting="maxRetries" data-min="0">
+													<input type="number" id="input_max_retries" class="form-control" title="Maximum number of AJAX retries before the connection is terminated" data-setting="maxRetries" data-min="0" data-max="50">
 												</div>
 											</div>
 										</div>
@@ -2368,6 +2368,11 @@
 													<div class="checkbox">
 														<label title="Activate this to display M117 messages only for a certain time span">
 															<input type="checkbox" data-setting="autoCloseUserMessages" checked /> Automatically close user-generated firmware messages
+														</label>
+													</div>
+													<div class="checkbox">
+														<label title="Activate this to automatically close error messages">
+															<input type="checkbox" data-setting="autoCloseErrorMessages" checked /> Automatically close error messages
 														</label>
 													</div>
 

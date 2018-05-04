@@ -35,11 +35,12 @@ var vendor = undefined;					// For OEM functionality
 
 /* AJAX Events */
 
-$(document).ajaxSend(function(event, jqxhr, settings) {
+$(document).ajaxSend(function(event, jqxhr, xhrsettings) {
+	xhrsettings.sendTime = new Date();
 	ajaxRequests.push(jqxhr);
 });
 
-$(document).ajaxComplete(function(event, jqxhr, settings) {
+$(document).ajaxComplete(function(event, jqxhr, xhrsettings) {
 	ajaxRequests = $.grep(ajaxRequests, function(item) { item != jqxhr; });
 });
 
@@ -69,7 +70,18 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 			}
 
 			if (xhrsettings.retryCount <= settings.maxRetries) {
-				$.ajax(xhrsettings);
+				var retryInterval = sessionTimeout / (settings.maxRetries + 1);
+				var timeSinceSend = new Date() - xhrsettings.sendTime;
+				if (timeSinceSend < retryInterval) {
+					// The time difference between sending and this error is very low,
+					// wait a while longer before retrying
+					setTimeout(function() {
+						$.ajax(settings);
+					}, retryInterval - timeSinceSend);
+				} else {
+					// This request timed out after a while, retry now
+					$.ajax(xhrsettings);
+				}
 				return;
 			}
 		}
