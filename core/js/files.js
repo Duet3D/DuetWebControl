@@ -17,7 +17,7 @@ var cachedFileInfo;
 
 var currentMacroDirectory, macroLastDirectoryRow, macroLastDirectoryItem, macrosLoaded;
 var filamentsLoaded, filamentsExist;
-var sysLoaded;
+var sysLoaded, displayLoaded;
 
 var multiFileOperations, doingFileTask;
 var downloadNotification, zipFile;
@@ -98,10 +98,24 @@ $("#btn_calibrate_scanner").click(function() {
 		return;
 	}
 
-	showConfirmationDialog(T("Calibrate Scanner"), T("Before you can calibrate the 3D scanner you need to place the object in the back-right corner. Do you want to continue?"), function() {
-		// Send calibration G-code to the firmware
-		sendGCode("M754");
-	});
+	if (vendor == "diabase") {
+		$("#modal_calibrate").modal("show");
+	} else {
+		showConfirmationDialog(T("Calibrate Scanner"), T("Before you can calibrate the 3D scanner you need to place the object in the back-right corner. Do you want to continue?"), function() {
+			// Send calibration G-code to the firmware
+			sendGCode("M754");
+		});
+	}
+});
+
+$("#btn_calibrate_linear").click(function() {
+	$("#modal_calibrate").modal("hide");
+	sendGCode("M754 N0");
+});
+
+$("#btn_calibrate_rotary").click(function() {
+	$("#modal_calibrate").modal("hide");
+	sendGCode("M754 N1");
 });
 
 function addScanFile(filename, size, lastModified) {
@@ -1228,6 +1242,113 @@ $("#table_sys_files").on("click", "tbody a", function(e) {
 });
 
 
+/* Display Editor */
+
+$('a[href="#page_display"]').on('shown.bs.tab', function() {
+	if (!displayLoaded) {
+		updateDisplayFiles();
+	}
+});
+
+$("#a_new_display_file").click(function() {
+	showTextInput(T("New File"), T("Please enter a name for the display item:"), function(file) {
+		if (filenameValid(file)) {
+			showEditDialog("0:/menu/" + file, "", function(value) {
+				uploadTextFile("0:/menu/" + file, value, updateSysFiles);
+			});
+		} else {
+			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
+		}
+	});
+});
+
+$("#a_refresh_display").click(function(e) {
+	updateDisplayFiles();
+	e.preventDefault();
+});
+
+function addDisplayFile(filename, size, lastModified) {
+	$("#page_display h1").addClass("hidden");
+	$("#table_display_files").removeClass("hidden");
+
+	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+	var row =	'<tr data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
+	row +=		'<td><input type="checkbox"></td>';
+	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
+	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
+	row +=		'</tr>';
+	$("#table_display_files > tbody").append(row);
+}
+
+function updateDisplayFiles() {
+	// Clear the file list
+	displayLoaded = false;
+	$("#table_display_files > tbody").children().remove();
+	$("#table_display_files").addClass("hidden");
+	$("#page_display h1").removeClass("hidden");
+	if (isConnected) {
+		$("#a_refresh_display").addClass("hidden");
+
+		// Is the macro volume mounted?
+		if ((mountedVolumes & (1 << 0)) == 0) {
+			$("#page_display h1").text(T("The current volume is not mounted"));
+			return;
+		}
+
+		$("#page_display h1").text(T("loading"));
+	} else {
+		$("#page_display h1").text(T("Connect to your Duet to show Display items"));
+		return;
+	}
+
+	// Don't request updates while loading the file list
+	stopUpdates();
+
+	// Request filelist for /sys
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/menu", {
+		dataType: "json",
+		success: function(response) {
+			if (isConnected) {
+				if (response.hasOwnProperty("err")) {
+					// don't proceed if the firmware has reported an error
+					$("#page_display h1").text(T("Failed to retrieve files of this directory"));
+				} else {
+					var files = response.files, filesAdded = 0;
+					for(var i = 0; i < files.length; i++) {
+						if (files[i].type != 'd') {
+							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
+							addDisplayFile(files[i].name, files[i].size, lastModified);
+							filesAdded++;
+						}
+					}
+
+					if (filesAdded == 0) {
+						$("#page_display h1").text(T("No Display items found"));
+					} else {
+						sortTable($("#table_display_files"));
+					}
+
+					$("#a_refresh_display").removeClass("hidden");
+					displayLoaded = true;
+				}
+
+				startUpdates();
+			}
+		}
+	});
+}
+
+$("#table_display_files").on("click", "tbody a", function(e) {
+	// Edit menu items as text files
+	var row = $(this).closest("tr");
+	var file = row.data("file");
+	editFile(getFilePath() + "/" + file, true, row.data("size"));
+
+	e.preventDefault();
+});
+
+
 /* Drag & Drop */
 
 var draggingObjects, dragImage;
@@ -1945,7 +2066,11 @@ function editFile(file, mustExist, size) {
 					} else if (currentPage == "macros") {
 						updateMacroFiles();
 					} else if (currentPage == "settings") {
-						updateSysFiles();
+						if ($("#page_sysedit").hasClass("active")) {
+							updateSysFiles();
+						} else {
+							updateDisplayFiles();
+						}
 					}
 				});
 			});
@@ -1963,7 +2088,11 @@ function editFile(file, mustExist, size) {
 					} else if (currentPage == "macros") {
 						updateMacroFiles();
 					} else if (currentPage == "settings") {
-						updateSysFiles();
+						if ($("#page_sysedit").hasClass("active")) {
+							updateSysFiles();
+						} else {
+							updateDisplayFiles();
+						}
 					}
 				});
 			});
@@ -2008,7 +2137,11 @@ function getFilePath() {
 		return "0:/filaments";
 	}
 
-	return "0:/sys";
+	if ($("#page_sysedit").hasClass("active")) {
+		return "0:/sys";
+	}
+
+	return "0:/menu";
 }
 
 function moveFile(from, to, onSuccess, onError, elementToRemove) {
@@ -2042,6 +2175,7 @@ function resetFiles() {
 	//updateFilaments();
 
 	//updateSysFiles();
+	//updateDisplayFiles();
 
 	multiFileOperations = [];
 	doingFileTask = false;
@@ -2066,8 +2200,14 @@ function updateFilesConditionally() {
 			updateMacroFiles();
 		}
 	} else if (currentPage == "settings") {
-		if ($("#table_sys_files > tbody").children().length == 0) {
-			updateSysFiles();
+		if ($("#page_sysedit").hasClass("active")) {
+			if ($("#table_sys_files > tbody").children().length == 0) {
+				updateSysFiles();
+			}
+		} else {
+			if ($("#table_display_files > tbody").children().length == 0) {
+				updateDisplayFiles();
+			}
 		}
 	}
 }

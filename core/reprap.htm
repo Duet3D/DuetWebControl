@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<!--	Duet Web Control v1.21.1-RC2
+<sys!DOCTYPE html>
+<!--	Duet Web Control v1.21.1-RC3
 
 	written by Christian Hammacher
 
@@ -1780,6 +1780,9 @@
 									<table id="table_scan_files_directory" class="table-file-navigation">
 										<tr>
 											<td>
+												<button id="btn_calibrate_scanner" class="btn btn-success disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate</button>
+											</td>
+											<td>
 												<button id="btn_start_scan" class="btn btn-primary disabled"><span class="glyphicon glyphicon glyphicon-eye-open"></span> Start Scan</button>
 											</td>
 											<td>
@@ -2029,6 +2032,7 @@
 													<th>Y</th>
 													<th>Z</th>
 													<th></th>
+													<th></th>
 												</tr>
 											</thead>
 											<tbody>
@@ -2066,6 +2070,7 @@
 									<li><a href="#page_ui" data-toggle="tab">User Interface</a></li>
 									<li><a href="#page_listitems" data-toggle="tab">List Items</a></li>
 									<li><a href="#page_sysedit" data-toggle="tab">System Editor</a></li>
+									<li class="li-display hidden"><a href="#page_display" data-toggle="tab">Display Editor</a></li>
 									<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 									<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
 								</ul>
@@ -2079,6 +2084,7 @@
 										<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
 										<ul class="dropdown-menu dropdown-menu-right" id="collapsed">
 											<li><a href="#page_sysedit" data-toggle="tab">System Editor</a></li>
+											<li class="li-display hidden"><a href="#page_display" data-toggle="tab">Display Editor</a></li>
 											<li><a href="#page_machine" data-toggle="tab">Machine Properties</a></li>
 											<li><a href="#page_tools" data-toggle="tab">Tools</a></li>
 										</ul>
@@ -2113,7 +2119,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.1-RC2</td>
+															<td id="dwc_version">1.21.1-RC3</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2613,6 +2619,31 @@
 												<tr>
 													<th><input type="checkbox"></th>
 													<th><a href="#" data-attribute="filename">File Name</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
+													<th><a href="#" data-attribute="size">Size</a> <span></span></th>
+													<th><a href="#" data-attribute="last-modified">Last modified</a> <span></span></th>
+												</tr>
+											</thead>
+											<tbody>
+												<!-- see JS -->
+											</tbody>
+										</table>
+									</div>
+
+									<!-- Display Editor -->
+									<div class="tab-pane" id="page_display">
+										<ol class="breadcrumb" id="ol_display_directory">
+											<li class="active"><span class="glyphicon glyphicon-folder-open"></span> Display Directory</li>
+											<li class="pull-right hidden online-control"><a href="#" id="a_refresh_display"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></li>
+											<li class="pull-right hidden online-control"><a href="#" id="a_new_display_file"><span class="glyphicon glyphicon-file"></span> New Item</a></li>
+										</ol>
+
+										<h1 class="text-center text-muted">Connect to your Duet to show Display items</h1>
+
+										<table class="table table-bordered table-files table-hover table-striped hidden" id="table_display_files">
+											<thead>
+												<tr>
+													<th><input type="checkbox"></th>
+													<th><a href="#" data-attribute="filename">Menu Item</a> <span class="glyphicon glyphicon-sort-by-alphabet"></span></th>
 													<th><a href="#" data-attribute="size">Size</a> <span></span></th>
 													<th><a href="#" data-attribute="last-modified">Last modified</a> <span></span></th>
 												</tr>
@@ -3199,6 +3230,24 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modal_calibrate">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal-title">Calibrate Scanner</h4>
+					</div>
+					<div class="modal-body">
+						<p>In what mode would you like to run the calibration?</p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						<button type="button" id="btn_calibrate_linear" class="btn btn-success"><span class="glyphicon glyphicon-resize-full"></span> Linear</button>
+						<button type="button" id="btn_calibrate_rotary" class="btn btn-success"><span class="glyphicon glyphicon-repeat"></span> Rotary</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
 
 		<div class="modal fade" id="modal_start_scan">
 			<div class="modal-dialog modal-md">
@@ -3221,14 +3270,14 @@
 										<label for="input_scan_range">Scan range:</label>
 										<div class="input-group">
 											<input type="number" required="required" min="0" max="360" step="1" value="360" id="input_scan_range" class="form-control">
-											<span id="span_scan_length" class="input-group-addon">mm</span>
+											<span class="input-group-addon scan-unit">mm</span>
 										</div>
 									</div>
 									<div class="col-md-4">
-										<label for="input_scan_resolution">Resolution:</label>
+										<label for="input_scan_resolution">Step size:</label>
 										<div class="input-group">
-											<input type="number" required="required" min="0" max="100" step="1" value="100" id="input_scan_resolution" class="form-control">
-											<span class="input-group-addon">%</span>
+											<input type="number" required="required" min="0" max="10" step="1" value="1" id="input_scan_resolution" class="form-control">
+											<span class="input-group-addon scan-unit">mm</span>
 										</div>
 									</div>
 									<div class="col-md-4">
@@ -3283,6 +3332,15 @@
 									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
 									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> -10</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> -1</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> -0.1</button>
+									<button type="button" class="btn btn-default disabled msgbox-a">A = n/a</button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="0.1">+0.1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="1">+1 <span class="glyphicon glyphicon-chevron-right"></span></button>
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="10">+10 <span class="glyphicon glyphicon-chevron-right"></span></button>
 								</div>
 							</div>
 						</div>

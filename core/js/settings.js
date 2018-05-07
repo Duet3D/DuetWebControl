@@ -578,7 +578,7 @@ $('a[href="#page_general"], a[href="#page_ui"], a[href="#page_listitems"]').on('
 	$("#row_save_settings").removeClass("hidden");
 });
 
-$('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"]').on('shown.bs.tab', function () {
+$('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"], a[href="#page_display"]').on('shown.bs.tab', function () {
 	$("#row_save_settings").addClass("hidden");
 });
 

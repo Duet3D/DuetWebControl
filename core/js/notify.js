@@ -30,6 +30,7 @@ $.notifyDefaults({
 });
 
 var openMessageNotifications = [];
+var openConnectFailNotification = undefined;
 
 
 function showDownloadMessage() {
@@ -127,6 +128,7 @@ function showMessage(type, title, message, timeout, allowDismiss, regularNotific
 	if (allowDismiss) {
 		$(notification.$ele).click(function() {
 			openMessageNotifications = openMessageNotifications.filter(function(notif) { return notif != notification; });
+			if (openConnectFailNotification == notification) { openConnectFailNotification = undefined; }
 			notification.close();
 		});
 	}
@@ -208,4 +210,9 @@ function closeNotifications() {
 		notification.close();
 	});
 	openMessageNotifications = [];
+
+	if (openConnectFailNotification != undefined) {
+		openConnectFailNotification.close();
+		openConnectFailNotification = undefined;
+	}
 }

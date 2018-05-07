@@ -805,11 +805,11 @@ tr[data-fan="print"] > td:first-child > button {
 	padding-right: 6px;
 }
 
-#table_scan_files_directory tr > td:first-child {
+#table_scan_files_directory tr > td:nth-child(2) {
 	padding-left: 0px;
 }
 
-#table_scan_files_directory tr > td:nth-child(2) {
+#table_scan_files_directory tr > td:nth-child(3) {
 	width: 100%;
 	padding-left: 0px;
 	padding-right: 0px;
@@ -1124,22 +1124,26 @@ label[for="dropdown_language"] {
 	padding: 6px;
 }
 
-#page_sysedit {
+#page_sysedit,
+#page_display {
 	margin: -16px -16px;
 }
 
-#page_sysedit h1 {
+#page_sysedit h1,
+#page_display h1 {
 	margin-bottom: 31px;
 }
 
-#ol_sys_directory {
+#ol_sys_directory,
+#ol_display_directory {
 	margin-left: 1px;
 	margin-right: 1px;
 	margin-top: 1px;
 	margin-bottom: 0px;
 }
 
-#ol_sys_directory .pull-right:before {
+#ol_sys_directory .pull-right:before,
+#ol_display_directory .pull-right:before {
 	content: "";
 }
 

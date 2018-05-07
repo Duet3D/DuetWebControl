@@ -441,6 +441,7 @@ function updateGui() {
 			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span> Down</button>';
 			row += '</td><td>';
 			row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Calibrate") + '</button>';
+			row += '<button class="btn btn-info tool-calibrate"><span class="glyphicon glyphicon-ok"></span> ' + T("Calibrate") + '</button>';
 			row += '</td></tr>';
 
 			var rowElem = $("#table_calibration_tools > tbody").append(row);
@@ -574,6 +575,7 @@ function resetGui() {
 	$("#table_drives > tbody > tr").removeClass("hidden");
 
 	updateSysFiles();
+	updateDisplayFiles();
 
 	// Modal dialogs
 	closeMessageBox();
@@ -1763,10 +1765,11 @@ function setBoardType(type) {
 	allowCombinedFirmware = false;
 	controllableFans = 7;	// show first three fans
 
-	var isWiFi, isDuetNG;
+	var isWiFi, isDuetNG, isDuetMaestro;
 	if (type.indexOf("duetwifi") == 0) {
 		firmwareFileName = "DuetWiFiFirmware";
 		allowCombinedFirmware = isWiFi = isDuetNG = true;
+		isDuetMaestro = false;
 	} else if (type.indexOf("duetethernet") == 0) {
 		firmwareFileName = "DuetEthernetFirmware";
 		isWiFi = false;
@@ -1774,6 +1777,7 @@ function setBoardType(type) {
 	} else if (type.indexOf("duetmaestro") == 0) {
 		firmwareFileName = "DuetMaestroFirmware";
 		isWiFi = isDuetNG = false;
+		isDuetMaestro = true;
 	} else {
 		controllableFans = 1;
 		firmwareFileName = "RepRapFirmware";
@@ -1781,6 +1785,11 @@ function setBoardType(type) {
 	}
 	$(".duet-ng").toggleClass("hidden", !isDuetNG);
 	$(".wifi-setting").toggleClass("hidden", !isWiFi);
+
+	$(".li-display").toggleClass("hidden", !isDuetMaestro);
+	if (!isDuetMaestro && $("#page_display").hasClass("active")) {
+		$("a[href='#page_general']").click();
+	}
 }
 
 function setCurrentTemperature(heater, temperature) {
@@ -2174,13 +2183,19 @@ function showPage(name) {
 		if (name == "settings" && isConnected) {
 			getConfigResponse();
 
-			if ($("#page_ui").is(".active")) {
+			if ($("#page_ui").hasClass("active")) {
 				$("#btn_clear_cache").toggleClass("disabled", $.isEmptyObject(cachedFileInfo));
-			} else if ($("#page_sysedit").is(".active")) {
+			} else if ($("#page_sysedit").hasClass("active")) {
 				if (sysLoaded) {
 					$("#a_refresh_sys").removeClass("hidden");
 				} else {
 					updateSysFiles();
+				}
+			} else if ($("#page_display").hasClass("active")) {
+				if (displayLoaded) {
+					$("#a_refresh_display").removeClass("hidden");
+				} else {
+					updateDisplayFiles();
 				}
 			}
 		}

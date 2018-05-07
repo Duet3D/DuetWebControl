@@ -152,7 +152,7 @@ function connect(password, regularConnect) {
 		},
 		success: function(response) {
 			if (response.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				showMessage("danger", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), 0);
+				openConnectFailNotification = showMessage("danger", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), 0);
 				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
 				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
 
@@ -487,8 +487,12 @@ function updateStatus() {
 					updateMacroFiles();
 				} else if (currentPage == "filaments") {
 					updateFilaments();
-				} else if (currentPage == "settings" && $("#page_sysedit").is(".active")) {
-					updateSysFiles();
+				} else if (currentPage == "settings") {
+					if ($("#page_sysedit").hasClass("active")) {
+						updateSysFiles();
+					} else if ($("#page_display").hasClass("active")) {
+						updateDisplayFiles();
+					}
 				}
 
 				justConnected = false;
@@ -535,13 +539,16 @@ function updateStatus() {
 				$(".msgbox-x").text("X = " + T("n/a"));
 				$(".msgbox-y").text("Y = " + T("n/a"));
 				$(".msgbox-z").text("Z = " + T("n/a"));
+				$(".msgbox-a").text("A = " + T("n/a"));
 			} else {
 				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(2);
 				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(2);
 				var z = (axisNames.indexOf("Z") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Z")].toFixed(2);
+				var a = (axisNames.indexOf("A") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("A")].toFixed(2);
 				$(".msgbox-x").text("X = " + x);
 				$(".msgbox-y").text("Y = " + y);
 				$(".msgbox-z").text("Z = " + z);
+				$(".msgbox-a").text("A = " + a);
 			}
 
 			// Current Tool

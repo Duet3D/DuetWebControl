@@ -217,7 +217,7 @@ $("#btn_start_scan").click(function() {
 });
 
 $("input[name='scanMode']").change(function() {
-	$("#span_scan_length").text(($("input[name='scanMode']:checked").val() == 0) ? T("mm") : T("°"));
+	$(".scan-unit").text(($("input[name='scanMode']:checked").val() == 0) ? T("mm") : T("°"));
 });
 
 $("#modal_start_scan input").keyup(function() {
