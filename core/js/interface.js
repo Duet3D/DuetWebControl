@@ -441,7 +441,8 @@ function updateGui() {
 			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span> Down</button>';
 			row += '</td><td>';
 			row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Calibrate") + '</button>';
-			row += '<button class="btn btn-info tool-calibrate"><span class="glyphicon glyphicon-ok"></span> ' + T("Calibrate") + '</button>';
+			row += '</td><td>';
+			row += '<button class="btn btn-info tool-set-offset"><span class="glyphicon glyphicon-ok"></span> ' + T("Set Offset") + '</button>';
 			row += '</td></tr>';
 
 			var rowElem = $("#table_calibration_tools > tbody").append(row);
@@ -962,6 +963,16 @@ $("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
 			sendGCode('M98 P"tcalibrate' + toolNumber + '.g"');
 		}
 	);
+});
+
+$("#table_calibration_tools").on("click", ".tool-set-offset", function(e) {
+	if (lastStatusResponse != undefined) {
+		var toolNumber = $(this).parents("tr").data("tool");
+		sendGCode("G10 P" + toolNumber + " X" + lastStatusResponse.coords.xyz[0] + " Y" + lastStatusResponse.coords.xyz[1] + "\nM500");
+
+		$(this).closest("tr").find("td:nth-child(2) > span").text(T("{0} mm", lastStatusResponse.coords.xyz[0].toFixed(2)));
+		$(this).closest("tr").find("td:nth-child(3) > span").text(T("{0} mm", lastStatusResponse.coords.xyz[1].toFixed(2)));
+	}
 });
 
 $("body").on("click", ".load-filament", function(e) {
@@ -1783,6 +1794,11 @@ function setBoardType(type) {
 		firmwareFileName = "RepRapFirmware";
 		isWiFi = isDuetNG = false;
 	}
+
+	for(var i = 0; i < maxFans; i++) {
+		setFanVisibility(i, controllableFans & (1 << i));
+	}
+
 	$(".duet-ng").toggleClass("hidden", !isDuetNG);
 	$(".wifi-setting").toggleClass("hidden", !isWiFi);
 
