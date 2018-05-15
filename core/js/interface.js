@@ -154,15 +154,10 @@ function updateGui() {
 				row +=		'</th>';
 
 				var spindleIndex = -1;
-				if (spindleTools.length <= 1 && tool.name == T("Spindle")) {
-					spindleTools = [0];
-					spindleIndex = 0;
-				} else {
-					for(var i = 0; i < spindleTools.length; i++) {
-						if (spindleTools[i] == tool.number) {
-							spindleIndex = i;
-							break;
-						}
+				for(var i = 0; i < spindleTools.length; i++) {
+					if (spindleTools[i] == tool.number) {
+						spindleIndex = i;
+						break;
 					}
 				}
 
@@ -1987,6 +1982,12 @@ function setPrintStatus(printing) {
 					$("#et_" + id).html((new Date()).toLocaleTimeString());
 				}
 			});
+
+			// If a file print was simulated, update the file info once again
+			if (lastStatusResponse != undefined && lastStatusResponse.status == 'M' && fileInfo != undefined) {
+				var path = (fileInfo.fileName.indexOf(":") == -1) ? ("0:/gcodes/" + fileInfo.fileName) : fileInfo.fileName;
+				reloadFileCache(path);
+			}
 		}
 
 		fileInfo = undefined;

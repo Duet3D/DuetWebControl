@@ -867,7 +867,7 @@ function updateStatus() {
 				updateScannerDialogs(status.scanner);
 
 				// Reload scans as soon as a 3D scan has finished
-				var lastStatus = (lastStatusResponse == undefined || lastStatusResponse.hasOwnProperty("scanner"))
+				var lastStatus = (lastStatusResponse == undefined || !lastStatusResponse.hasOwnProperty("scanner"))
 									? "?" : lastStatusResponse.scanner.status;
 				if (status.scanner.status == "I" && (lastStatus == "S" || lastStatus == "P" || lastStatus == "U")) {
 					updateScanFiles();

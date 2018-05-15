@@ -652,6 +652,10 @@ tr[data-fan="print"] > td:first-child > button {
 	width: 100%;
 }
 
+#table_calibration_tools td {
+	white-space: nowrap;
+}
+
 #table_calibration_tools > thead > tr > th:not(:first-child) {
 	text-align: center;
 }
@@ -669,8 +673,8 @@ tr[data-fan="print"] > td:first-child > button {
 }
 
 #table_calibration_tools > tbody > tr > td:not(:first-child) > span {
-	margin-left: 15px;
-	margin-right: 15px;
+	margin-left: 6px;
+	margin-right: 6px;
 }
 
 /* Print status page */

@@ -78,6 +78,17 @@ function clearFileCacheDirectory(directory) {
 	}
 }
 
+function reloadFileCache(path) {
+	cachedFileInfo[path] = undefined;
+	$.ajax(ajaxPrefix + "rr_fileinfo?name=" + encodeURIComponent(path), {
+		dataType: "json",
+		timeout: 0,
+		success: function(response) {
+			cachedFileInfo[path] = response;
+		}
+	});
+}
+
 
 /* Scans */
 
