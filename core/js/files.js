@@ -605,10 +605,12 @@ function updateGCodeFiles() {
 				gcodeUpdateIndex++;
 
 				var row = $('#table_gcode_files > tbody > tr[data-file="' + filename + '"]');
-				if (fileinfo.err == 0) {
-					setGCodeFileItem(row, fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
-				} else {
-					setGCodeFileItem(row, 0, 0, 0, [], "");
+				if (row.length > 0) {
+					if (fileinfo.err == 0) {
+						setGCodeFileItem(row, fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
+					} else {
+						setGCodeFileItem(row, 0, 0, 0, [], "");
+					}
 				}
 
 				if (currentPage == "files") {

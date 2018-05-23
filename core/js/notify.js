@@ -17,7 +17,7 @@ $.notifyDefaults({
 		align: "center"
 	},
 	newest_on_top: true,
-	template: '<div data-notify="container" class="col-xs-12 col-sm-12 col-md-8 col-lg-5 alert alert-{0}" role="alert">' +
+	template: '<div data-notify="container" class="col-xs-12 col-sm-12 col-md-8 col-lg-5 alert alert-{0}">' +
 		'<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
 		'<span data-notify="icon"></span> ' +
 		'<span data-notify="title">{1}</span> ' +
@@ -29,6 +29,7 @@ $.notifyDefaults({
 		'</div>'
 });
 
+var openNotifications = [];
 var openMessageNotifications = [];
 var openConnectFailNotification = undefined;
 
@@ -127,6 +128,7 @@ function showMessage(type, title, message, timeout, allowDismiss, regularNotific
 	var notification = $.notify(notifySettings, options);
 	if (allowDismiss) {
 		$(notification.$ele).click(function() {
+			openNotifications = openNotifications.filter(function(notif) { return notif != notification; });
 			openMessageNotifications = openMessageNotifications.filter(function(notif) { return notif != notification; });
 			if (openConnectFailNotification == notification) { openConnectFailNotification = undefined; }
 			notification.close();
@@ -137,6 +139,7 @@ function showMessage(type, title, message, timeout, allowDismiss, regularNotific
 	if (regularNotification && settings.maxNotifications >= 1) {
 		if (timeout > 0) {
 			setTimeout(function() {
+				openNotifications = openNotifications.filter(function(notif) { return notif != notification; });
 				openMessageNotifications = openMessageNotifications.filter(function(item) { return item != notification; });
 			}, timeout);
 		}
@@ -145,6 +148,7 @@ function showMessage(type, title, message, timeout, allowDismiss, regularNotific
 		}
 		openMessageNotifications.push(notification);
 	}
+	openNotifications.push(notification);
 
 	return notification;
 }
@@ -205,10 +209,24 @@ function showUpdateMessage(type, customTimeout) {
 	return notification;
 }
 
-function closeNotifications() {
+/*function closeNotifications() {
 	openMessageNotifications.forEach(function(notification) {
+		openNotifications = openNotifications.filter(function(notif) { return notif != notification; });
 		notification.close();
 	});
+	openMessageNotifications = [];
+
+	if (openConnectFailNotification != undefined) {
+		openConnectFailNotification.close();
+		openConnectFailNotification = undefined;
+	}
+}*/
+
+function closeAllNotifications() {
+	openNotifications.forEach(function(notification) {
+		notification.close();
+	});
+	openNotifications = [];
 	openMessageNotifications = [];
 
 	if (openConnectFailNotification != undefined) {

@@ -129,7 +129,7 @@ $("body").on("click", ".btn-connect", function() {
 function connect(password, regularConnect) {
 	if (regularConnect) {
 		// Close all notifications before we connect...
-		closeNotifications();
+		closeAllNotifications();
 
 		// If we are running on localhost, ask for a destination
 		if (document.location.host == "" && ajaxPrefix == "") {
