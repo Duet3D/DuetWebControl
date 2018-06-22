@@ -2209,7 +2209,8 @@ function updateFilesConditionally() {
 			updateGCodeFiles();
 		}
 	} else if (currentPage == "macros") {
-		if ($("#table_macro_files > tbody").children().length == 0) {
+		// Reload macros when no bulk operations are pending so that deleted files get updated on the main page
+		if ($("#table_macro_files > tbody").children().length == 0 || multiFileOperations.length == 0) {
 			updateMacroFiles();
 		}
 	} else if (currentPage == "settings") {

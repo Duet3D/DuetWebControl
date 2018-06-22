@@ -376,8 +376,9 @@ function setCurrentTool(toolNumber) {
 		}
 	}
 
-	// Underline current tool
+	// Underline and highlight current tool
 	$("#table_tools > tbody > tr").each(function() {
+		$(this).toggleClass("active-tool-row", $(this).data("tool") == toolNumber);
 		$(this).find("th:first-child > a > span:first-child").css("text-decoration", ($(this).data("tool") == toolNumber) ? "underline" : "");
 	});
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.21.1
+<!--	Duet Web Control v1.21.2-b1
 
 	written by Christian Hammacher
 
@@ -82,14 +82,12 @@
 							</button>
 						</div>
 
-						<form class="navbar-form padding-small navbar-left hidden-sm gcode-input">
+						<form class="navbar-form padding-small navbar-left hidden-sm gcode-input" autocomplete="off">
 							<div class="input-group">
-								<input type="text" name="gcode" class="form-control" placeholder="Send G-Code..." disabled>
-								<div class="input-group-btn div-gcodes">
-									<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown"><span class="caret"></span></button>
-									<ul class="dropdown-menu dropdown-menu-right ul-gcodes">
-									</ul>
-								</div>
+								<input type="text" name="gcode" class="form-control typeahead" placeholder="Send G-Code..." data-provide="typeahead" disabled>
+								<span class="input-group-addon">
+									<a href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">?</a>
+								</span>
 							</div>
 							<button type="submit" class="btn btn-default disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
 						</form>
@@ -1119,22 +1117,28 @@
 												<label>Feed amount in mm:</label>
 												<div class="btn-group btn-group-justified" data-toggle="buttons">
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feed" value="100"> 100
+														<input type="radio" name="feed" value="100">
+														<span>100</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feed" value="50"> 50
+														<input type="radio" name="feed" value="50">
+														<span>50</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feed" value="20"> 20
+														<input type="radio" name="feed" value="20">
+														<span>20</span>
 													</label>
 													<label class="btn btn-primary disabled active">
-														<input type="radio" name="feed" value="10" checked> 10
+														<input type="radio" name="feed" value="10" checked>
+														<span>10</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feed" value="5"> 5
+														<input type="radio" name="feed" value="5">
+														<span>5</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feed" value="1"> 1
+														<input type="radio" name="feed" value="1">
+														<span>1</span>
 													</label>
 												</div>
 											</div>
@@ -1143,19 +1147,24 @@
 												<label>Feedrate in mm/sec:</label>
 												<div class="btn-group btn-group-justified" data-toggle="buttons">
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feedrate" value="60"> 60
+														<input type="radio" name="feedrate" value="60">
+														<span>60</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feedrate" value="30"> 30
+														<input type="radio" name="feedrate" value="30">
+														<span>30</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feedrate" value="15"> 15
+														<input type="radio" name="feedrate" value="15">
+														<span>15</span>
 													</label>
 													<label class="btn btn-primary disabled active">
-														<input type="radio" name="feedrate" value="5" checked> 5
+														<input type="radio" name="feedrate" value="5" checked>
+														<span>5</span>
 													</label>
 													<label class="btn btn-default disabled">
-														<input type="radio" name="feedrate" value="1"> 1
+														<input type="radio" name="feedrate" value="1">
+														<span>1</span>
 													</label>
 												</div>
 											</div>
@@ -1501,13 +1510,13 @@
 											<div class="btn-group btn-group-justified">
 												<div class="btn-group">
 													<button class="btn btn-default btn-sm disabled" id="btn_baby_down" title="Lower the print head by a tiny amount without modifying the machine's Z position (M290 Sxxx)">
-														<span class="glyphicon glyphicon-hand-down"></span>
+														<span class="glyphicon glyphicon-save"></span>
 														<span class="content">-</span>
 													</button>
 												</div>
 												<div class="btn-group">
 													<button class="btn btn-default btn-sm disabled" id="btn_baby_up" title="Lift the print head by a tiny amount without modifying the machine's Z position (M290 Sxxx)">
-														<span class="glyphicon glyphicon-hand-up"></span>
+														<span class="glyphicon glyphicon-open"></span>
 														<span class="content">+</span>
 													</button>
 												</div>
@@ -1818,15 +1827,13 @@
 						<!-- G-Code Console -->
 						<div id="page_console" class="page">
 							<div class="row">
-								<form class="gcode-input">
+								<form class="gcode-input" autocomplete="off">
 									<div class="col-xs-7 col-sm-7 col-md-8 col-lg-9">
 										<div class="input-group">
-											<input type="text" name="gcode" class="form-control" placeholder="Send G-Code..." disabled>
-											<div class="input-group-btn div-gcodes">
-												<button type="button" class="btn btn-default dropdown-toggle btn-gcodes disabled" data-toggle="dropdown"><span class="caret"></span></button>
-												<ul class="dropdown-menu dropdown-menu-right ul-gcodes">
-												</ul>
-											</div>
+											<input type="text" name="gcode" class="form-control typeahead" placeholder="Send G-Code..." data-provide="typeahead" disabled>
+											<span class="input-group-addon">
+												<a href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">?</a>
+											</span>
 										</div>
 									</div>
 									<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1">
@@ -2011,7 +2018,7 @@
 									<div id="div_webcam_calibration" class="panel panel-default hidden">
 										<div class="panel-heading">Live Stream</div>
 										<div class="panel-body">
-											<img id="img_crosshair" src="img/crosshair.png">
+											<img id="img_crosshair" alt="(crosshair not available)">
 
 											<img id="img_webcam_calibration" src="about:blank" alt="(image not available)">
 											<div id="div_ifm_webcam_calibration" class="embed-responsive embed-responsive-16by9 hidden">
@@ -2044,6 +2051,7 @@
 									<div class="text-center">
 										<button id="btn_calibrate_all" class="btn btn-lg btn-success disable-printing disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate All</button>
 										<button class="btn btn-lg btn-warning disable-printing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
+										<button class="btn btn-lg btn-info diabase hidden" data-toggle="modal" data-target="#modal_wifi_cam"><span class="glyphicon glyphicon-wrench"></span> Set up WiFi</button>
 									</div>
 								</div>
 
@@ -2054,7 +2062,7 @@
 										</div>
 
 										<div class="panel-body">
-											<img src="img/diabase_calibration_diagram.png" class="img-responsive">
+											<img id="img_calibration_diagram" alt="(calibration diagram)" class="img-responsive">
 										</div>
 									</div>
 								</div>
@@ -2119,7 +2127,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.1</td>
+															<td id="dwc_version">1.21.2-b1</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2305,14 +2313,14 @@
 													</div>
 
 													<div class="checkbox">
-														<label title="Confirm emergency stop by displaying a message box">
-															<input type="checkbox" data-setting="confirmStop" /> Confirm Emergency STOP
+														<label title="Send movement codes with the S2 parameter to allow movements while the axes are nt homed">
+															<input type="checkbox" data-setting="allowUnhomedMoves" /> Allow moves if axes are not homed
 														</label>
 													</div>
 
 													<div class="checkbox">
-														<label title="Use half Z movements for more accurate Z positioning">
-															<input type="checkbox" data-setting="halfZMovements" /> Half Z Movements
+														<label title="Confirm emergency stop by displaying a message box">
+															<input type="checkbox" data-setting="confirmStop" /> Confirm Emergency STOP
 														</label>
 													</div>
 
@@ -2489,7 +2497,6 @@
 													<thead>
 														<tr>
 															<th>G-Code</th>
-															<th>Description</th>
 															<th></th>
 														</tr>
 													</thead>
@@ -2498,32 +2505,8 @@
 													</tbody>
 												</table>
 											</div>
-
-											<div class="panel panel-default">
-												<div class="panel-heading">
-													<span>Add new G-Code</span>
-												</div>
-												<div class="panel-body">
-													<table id="table_add_gcode">
-														<tr>
-															<td>
-																<label for="input_gcode">G-Code:</label>
-																<input type="text" class="form-control" id="input_gcode">
-															</td>
-															<td>
-																<label for="input_gcode_description">Description:</label>
-																<input type="text" class="form-control" id="input_gcode_description">
-															</td>
-														</tr>
-														<tr>
-															<td colspan="2" class="text-center">
-																<button class="btn btn-success disabled" id="btn_add_gcode" title="Add new G-Code item"><span class="glyphicon glyphicon-plus"></span> Add G-Code</button>
-															</td>
-														</tr>
-													</table>
-												</div>
-											</div>
 										</div>
+
 										<div class="col-md-4 col-lg-5">
 											<div class="panel panel-default" id="panel_head_temps">
 												<div class="panel-heading">
@@ -3055,6 +3038,31 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modal_change_step">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<form>
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+							<h4 class="modal-title">Change Step Size</h4>
+						</div>
+						<div class="modal-body">
+							<p>Please enter a new value for the right-clicked button:</p>
+							<div class="input-group">
+								<input id="input_step_amount" type="number" min="0.00001" step="any" required="required" class="form-control">
+								<span id="input_step_amount_unit" class="input-group-addon">mm</span>
+							</div>
+							<p>Be aware that this change will not be saved permanently unless you save the settings again on the Settings page.</p>
+						</div>
+						<div class="modal-footer">
+							<button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> OK</button>
+							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
 		<input type="file" id="input_file_upload" class="hidden" multiple>
 		<div class="modal fade" id="modal_upload" data-backdrop="static">
 			<div class="modal-dialog modal-md">
@@ -3352,6 +3360,32 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="modal_wifi_cam">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<form>
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+							<h4 class="modal-title">Configure Calibration Camera</h4>
+						</div>
+						<div class="modal-body">
+							<p>Before you can configure your calibration camera, please plug it into the Duet and wait at least one minute for it to start. After that you can enter the credentials of your WPA-protected WiFi below.</p>
+
+							<label for="input_cam_ssid">SSID:</label>
+							<input type="text" required="required" value="" id="input_cam_ssid" class="form-control">
+							<br/>
+							<label for="input_cam_password">Password:</label>
+							<input type="password" required="required" value="" id="input_cam_password" class="form-control">
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+							<button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> OK</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
 		<div class="modal fade" id="modal_messagebox">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
@@ -3438,6 +3472,7 @@
 		<script src="js/3rd-party/bootstrap.js"></script>
 		<script src="js/3rd-party/bootstrap-notify.js"></script>
 		<script src="js/3rd-party/bootstrap-slider.js"></script>
+		<script src="js/3rd-party/bootstrap3-typeahead.js"></script>
 		<script src="js/3rd-party/jszip.js"></script>
 		<script src="js/3rd-party/FileSaver.js"></script>
 		<script src="js/3rd-party/piecon.js"></script>

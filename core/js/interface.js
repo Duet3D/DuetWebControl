@@ -9,7 +9,8 @@
 var machineName = "Duet Web Control";
 var boardType = "unknown", allowCombinedFirmware = false;
 
-var maxAxes = 9, maxExtruders = 9, maxDrives = 12, maxHeaters = 8, maxTempSensors = 10, maxFans = 9;
+var maxAxes = 9, maxExtruders = 9, maxDrives = 12, axisOrder = "XYZUVWABC";
+var maxHeaters = 8, maxTempSensors = 10, maxFans = 9;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var webcamUpdating = false, calibrationWebcamUpdating = false;
@@ -86,6 +87,13 @@ $(document).ready(function() {
 	loadFileCache();
 	loadTableSorting();
 	loadFanVisibility();
+
+	// NB: Recreating the typeahead instances is buggy. Do NOT attempt to do this!
+	$(".gcode-input input").typeahead({
+		autoSelect: true,
+		fitToElement: true,
+		source: function(arg, cb) { cb(rememberedGCodes); }
+	});
 });
 
 function pageLoadComplete() {
@@ -268,6 +276,11 @@ function updateGui() {
 		});
 		updateFixedToolTemps(toolRows);
 		toolRows.prependTo("#table_tools > tbody");
+
+		// Set current tool again
+		if (lastStatusResponse != undefined) {
+			setCurrentTool(lastStatusResponse.currentTool);
+		}
 	} else {
 		var toolRows = $(initialTools);
 		updateFixedToolTemps(toolRows);
@@ -304,28 +317,8 @@ function updateGui() {
 		$("#table_heaters tr[data-heater='" + i + "']").toggleClass("hidden", hideHeater);
 	}
 
-	// Axis apperance
-	for(var i = 0; i < axisNames.length; i++) {
-		// Set Home button names+titles
-		var axis = axisNames[i];
-		$(".btn-home[data-axis='" + i + "']").text(T("Home " + axis)).prop("title", T("Home " + axis + " axis (G28 " + axis + ")"));
-
-		// Set labels and values for decrease and increase buttons
-		var decreaseVal = (axis == "Z" && settings.halfZMovements) ? -50 : -100;
-		$("#page_control a.btn-move[data-axis='" + i + "'][data-amount^='-']").each(function() {
-			$(this).data("amount", decreaseVal).contents().last().replaceWith(" " + axis + decreaseVal);
-			decreaseVal /= 10;
-		});
-
-		var increaseVal = (axis == "Z" && settings.halfZMovements) ? 0.05 : 0.1;
-		$("#page_control a.btn-move[data-axis='" + i + "']:not([data-amount^='-'])").each(function() {
-			$(this).data("amount", increaseVal).contents().first().replaceWith(axis + "+" + increaseVal + " ");
-			increaseVal *= 10;
-		});
-
-		// Set headers for position cells in the Machine Status panel
-		$("#table_axis_positions th[data-axis='" + i + "']").text(axisNames[i]);
-	}
+	// Update movement steps
+	applyMovementSteps();
 
 	// Visibility of axis positions in the Machine Status panel
 	for(var i = 0; i < maxAxes; i++) {
@@ -356,9 +349,15 @@ function updateGui() {
 		$("#mobile_extra_home_buttons > div.btn-group").eq(i - 3).toggleClass("hidden", isHidden);
 	}
 
+	// Update homed axes once more
+	if (lastStatusResponse != undefined) {
+		setAxesHomed(lastStatusResponse.coords.axesHomed);
+	}
+
 	// Visibility of extrusion factor sliders
+	var numExtrudersToShow = (vendor == "diabase") ? Math.max(numExtruderDrives - 1, 0) : numExtruderDrives;
 	for(var i = 0; i < maxExtruders; i++) {
-		if (i < numExtruderDrives) {
+		if (i < numExtrudersToShow) {
 			$(".extr-" + i).removeClass("hidden");
 			$("#slider_extr_" + i).slider("relayout");
 		} else {
@@ -369,8 +368,8 @@ function updateGui() {
 	// Appearance of extruder drive cells
 	for(var i = 0; i < maxExtruders; i++) {
 		var cells = $("#table_extruder_positions [data-extruder='" + i + "']");
-		cells.toggleClass("hidden", i >= numExtruderDrives);
-		cells.css("border-right", (i + 1 < numExtruderDrives) ? "1px" : "0px");
+		cells.toggleClass("hidden", i >= numExtrudersToShow);
+		cells.css("border-right", (i + 1 < numExtrudersToShow) ? "1px" : "0px");
 	}
 
 	// Rearrange extruder drive cells if neccessary. Only show total usage on md desktop if more than three extruders are in use
@@ -615,34 +614,41 @@ function updateWebcam(externalTrigger) {
 	}
 }
 
-function updateCalibrationWebcam(externalTrigger) {
-	if (externalTrigger && calibrationWebcamUpdating) {
-		// When the settings are applied, make sure this only runs once
+function updateCalibrationWebcam(externalTrigger, id) {
+	if ((externalTrigger && calibrationWebcamUpdating) || calibrationWebcamSource == "") {
 		return;
 	}
 
 	if (calibrationWebcamSource == "") {
 		calibrationWebcamUpdating = false;
-	} else if (calibrationWebcamEmbedded) {
-		calibrationWebcamUpdating = false;
-		$("#ifm_webcam_calibration").attr("src", calibrationWebcamSource);
+		$("#div_calibration_webcam").addClass("hidden");
 	} else {
-		var newURL = calibrationWebcamSource;
-		if (settings.webcamFix) {
-			newURL += "_" + Math.random();
-		} else {
-			if (newURL.indexOf("?") == -1) {
-				newURL += "?dummy=" + Math.random();
-			} else {
-				newURL += "&dummy=" + Math.random();
-			}
-		}
-		$("#img_webcam_calibration").attr("src", newURL);
+		$("#div_webcam_calibration").removeClass("hidden");
+		$("#img_webcam_calibration").toggleClass("hidden", calibrationWebcamEmbedded);
+		$("#div_ifm_webcam_calibration").toggleClass("hidden", !calibrationWebcamEmbedded);
 
-		calibrationWebcamUpdating = true;
-		setTimeout(function() {
-			updateCalibrationWebcam(false);
-		}, settings.webcamInterval);
+		if (calibrationWebcamEmbedded) {
+			$("#ifm_webcam_calibration").attr("src", calibrationWebcamSource);
+		} else {
+			var newURL = (id == undefined) ? calibrationWebcamSource : calibrationWebcamSource.replace(".", id + ".");
+			if (settings.webcamInterval > 0) {
+				if (settings.webcamFix) {
+					newURL += "_" + Math.random();
+				} else {
+					if (newURL.indexOf("?") == -1) {
+						newURL += "?dummy=" + Math.random();
+					} else {
+						newURL += "&dummy=" + Math.random();
+					}
+				}
+
+				calibrationWebcamUpdating = true;
+				setTimeout(function() {
+					updateCalibrationWebcam(false);
+				}, settings.webcamInterval);
+			}
+			$("#img_webcam_calibration").attr("src", newURL);
+		}
 	}
 }
 
@@ -1148,6 +1154,16 @@ $("#btn_clear_log").click(function(e) {
 	e.preventDefault();
 });
 
+$('input[name="feed"]').parent().contextmenu(function(e) {
+	showStepDialog("amount", $(this).index(), Math.abs($(this).children("input").prop("value")));
+	e.preventDefault();
+});
+
+$('input[name="feedrate"]').parent().contextmenu(function(e) {
+	showStepDialog("feedrate", $(this).index(), Math.abs($(this).children("input").prop("value")));
+	e.preventDefault();
+});
+
 $("#btn_extrude").click(function(e) {
 	var feedrate = $("#panel_extrude input[name=feedrate]:checked").val() * 60;
 	var amount = $("#panel_extrude input[name=feed]:checked").val();
@@ -1240,10 +1256,24 @@ $(".btn-move").click(function(e) {
 		axis = axisNames[axisNumber];
 	}
 
-	var moveString = "M120\nG91\nG1 ";
-	moveString += axis + $(this).data("amount");
-	moveString += " F" + settings.moveFeedrate + "\nM121";
-	sendGCode(moveString);
+	var axisIndex = axisOrder.indexOf(axis);
+	if (settings.allowUnhomedMoves || (lastStatusResponse != undefined && lastStatusResponse.coords.axesHomed[axisIndex])) {
+		var moveString = "M120\nG91\nG1 ";
+		if (settings.allowUnhomedMoves) {
+			moveString += "S2 ";
+		}
+		moveString += axis + $(this).data("amount");
+		moveString += " F" + settings.moveFeedrate + "\nM121";
+		sendGCode(moveString);
+	}
+	e.preventDefault();
+});
+
+$(".btn-move").contextmenu(function(e) {
+	var axis = axisOrder[$(this).data("axis")];
+	var axisIndex = axisOrder.indexOf(axis);
+	var cellIndex = ($(this).data("amount") < 0) ? $(this).index() : $(this).parent().children().length - $(this).index() - 1;
+	showStepDialog("axis", cellIndex, Math.abs($(this).data("amount")), axisIndex);
 	e.preventDefault();
 });
 
@@ -1676,23 +1706,6 @@ function addBedTemperature(temperature) {
 	$("#ul_bed_temps").append(item);
 }
 
-function addDefaultGCode(label, gcode) {
-	// Drop-Down item
-	var item =	'<li><a href="#" class="gcode" data-gcode="' + gcode + '">';
-	item +=		'<span>' + label + '</span>';
-	item +=		'<span class="label label-primary">' + gcode + '</span>';
-	item +=		'</a></li>';
-
-	$(".ul-gcodes").append(item);
-	$(".btn-gcodes").removeClass("disabled");
-
-	// Entry on Settings page
-	item =	'<tr><td><label class="label label-primary">' + gcode + '</label></td><td>' + label + '</td><td>';
-	item +=	'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
-	item += '<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
-	$("#table_gcodes > tbody").append(item);
-}
-
 function addHeadTemperature(temperature, type) {
 	// Drop-Down item
 	$(".ul-" + type + "-temp").append('<li><a href="#" class="heater-temp" data-temp="' + temperature + '">' + T("{0} °C", temperature) + '</a></li>');
@@ -1723,12 +1736,6 @@ function changeTool(tool) {
 function clearBedTemperatures() {
 	$(".ul-bed-temp, #ul_bed_temps").html("");
 	$(".btn-bed-temp").addClass("disabled");
-}
-
-function clearDefaultGCodes() {
-	$(".ul-gcodes").html("");
-	$("#table_gcodes > tbody").children().remove();
-	$(".btn-gcodes").addClass("disabled");
 }
 
 function clearHeadTemperatures() {
@@ -2195,6 +2202,11 @@ function showPage(name) {
 			}
 		} else {
 			$(".span-refresh-filaments").addClass("hidden");
+		}
+
+		if (name == "calibration" && vendor == "diabase") {
+			sendGCode("M118 P1 S\"IP\"");
+			lastSentGCode = "";
 		}
 
 		if (name == "settings" && isConnected) {

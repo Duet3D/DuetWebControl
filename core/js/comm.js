@@ -76,7 +76,7 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 					// The time difference between sending and this error is very low,
 					// wait a while longer before retrying
 					setTimeout(function() {
-						$.ajax(settings);
+						$.ajax(xhrsettings);
 					}, retryInterval - timeSinceSend);
 				} else {
 					// This request timed out after a while, retry now
@@ -255,7 +255,6 @@ function disconnect(sendDisconnect) {
 function startUpdates() {
 	stopUpdating = false;
 	if (!updateTaskLive) {
-		retryCount = 0;
 		updateStatus();
 	}
 }
@@ -544,7 +543,8 @@ function updateStatus() {
 				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(2);
 				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(2);
 				var z = (axisNames.indexOf("Z") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Z")].toFixed(2);
-				var a = (axisNames.indexOf("A") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("A")].toFixed(2);
+				var aIndex = axisNames.indexOf("A");
+				var a = (aIndex == -1 || status.coords.xyz.length <= aIndex) ? T("n/a") : status.coords.xyz[aIndex].toFixed(2);
 				$(".msgbox-x").text("X = " + x);
 				$(".msgbox-y").text("Y = " + y);
 				$(".msgbox-z").text("Z = " + z);
@@ -663,9 +663,32 @@ function updateStatus() {
 								showBedCompensation(points);
 							}
 
-							// Has grid-based probing finished?
+							// Has grid-based probing finished? If so, attempt to get the P-parameter if present because represents the filename
 							if (response.indexOf(" points probed, mean error ") != -1) {
-								getHeightmap();
+								var csvFile = undefined;
+								if (lastSentGCode.indexOf("G29") == 0) {
+									var inQuotes = false, readingFilename = false;
+									for(var i = 0; i < lastSentGCode.length; i++) {
+										if (lastSentGCode[i] == '"') {
+											inQuotes = !inQuotes;
+										} else if (inQuotes) {
+											if (readingFilename) {
+												if (csvFile == undefined) {
+													csvFile = lastSentGCode[i];
+												} else {
+													csvFile += lastSentGCode[i];
+												}
+											}
+										} else if (lastSentGCode[i] == 'P') {
+											readingFilename = true;
+										}
+									}
+
+									if (csvFile != undefined && csvFile.indexOf("/") == -1) {
+										csvFile = "0:/sys/" + csvFile;
+									}
+								}
+								getHeightmap(csvFile);
 							}
 
 							// If an error is reported and we're trying to mount a volume, don't wait for it any longer
@@ -677,6 +700,22 @@ function updateStatus() {
 						if (lastSentGCode == "M561") {
 							// We should not isplay the probe points if they are no longer valid
 							clearBedPoints();
+						}
+
+						// Check if the reply contains a request to load a calibration stream (OEM)
+						var oldResponse = response;
+						response = response.replace(/\{UpdateCam\d*\}/g, "");
+						var snapshotId = oldResponse.match(/\{UpdateCam(\d*)\}/);
+						snapshotId = (snapshotId != null && snapshotId.length > 1) ? snapshotId[snapshotId.length - 1] : "";
+						if (response != oldResponse) {
+							updateCalibrationWebcam(false, snapshotId);
+						} else {
+							var camAddress = response.match(/\{CamAddress-(.+)\}/);
+							if (camAddress != null && camAddress.length > 1) {
+								calibrationWebcamSource = "http://" + camAddress[1];
+								updateCalibrationWebcam(true);
+							}
+							response = response.replace(/\{CamAddress-.+\}/, "");
 						}
 
 						// What kind of reply are we dealing with?
@@ -716,12 +755,16 @@ function updateStatus() {
 							}
 
 							// Close the scanner modal dialog if an error occurred
-							if (style == "danger")
-							{
+							if (style == "danger") {
 								$("#modal_scanner").modal("hide");
 							}
 
-							// Reset info about the last sent G-Code again
+							// See if this code can be remembered and reset info about the last sent G-Code again
+							if (lastSentGCode != "" && (style == "success" || style == "info") && rememberedGCodes.indexOf(lastSentGCode) == -1) {
+								rememberedGCodes.push(lastSentGCode);
+								saveGCodes();
+								applyGCodes();
+							}
 							lastSentGCode = "";
 						}
 					}
@@ -1126,7 +1169,6 @@ function updateStatus() {
 				}
 			} else {
 				reconnectingAfterHalt = resetConfirmationShown = false;
-				retryCount = 0;
 				setTimeout(updateStatus, settings.updateInterval);
 			}
 
@@ -1284,19 +1326,14 @@ function getOemFeatures() {
 				if (response.hasOwnProperty("vendor")) {
 					setOem(response.vendor);
 				}
+
 				if (response.hasOwnProperty("calibrationCamSource") && response.calibrationCamSource != "") {
 					calibrationWebcamSource = response.calibrationCamSource;
 					calibrationWebcamEmbedded = response.hasOwnProperty("calibrationCamEmbedded") && response.calibrationCamEmbedded;
-
-					$("#div_webcam_calibration").removeClass("hidden");
-					$("#img_webcam_calibration").toggleClass("hidden", calibrationWebcamEmbedded);
-					$("#div_ifm_webcam_calibration").toggleClass("hidden", !calibrationWebcamEmbedded);
-
-					updateCalibrationWebcam(true);
 				} else {
-					calibrationWebcamUpdating = false;
-					$("#div_calibration_webcam").addClass("hidden");
+					calibrationWebcamSource = "";
 				}
+				updateCalibrationWebcam(true);
 			}
 		}
 	});
@@ -1313,6 +1350,10 @@ function setOem(oem) {
 		// Change "Chamber" to "Dry Cabinet"
 		$("#table_tools tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 		$("#table_heaters tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
+
+		// Load crosshair+calibration diagram
+		$("#img_crosshair").prop("src", "img/crosshair.png");
+		$("#img_calibration_diagram").prop("src", "img/diabase_calibration_diagram.png");
 	}
 
 	// Update GUI just in case the response was received after the first status response
@@ -1322,6 +1363,7 @@ function setOem(oem) {
 function resetOem() {
 	$(".diabase").addClass("hidden");
 
+	$("#img_crosshair").prop("src", "");
 	calibrationWebcamSource = "";
 	$("#div_calibration_webcam").addClass("hidden");
 }

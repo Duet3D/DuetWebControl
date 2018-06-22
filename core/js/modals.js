@@ -40,13 +40,46 @@ function showTextInput(title, message, callback, text, emptyCallback) {
 		} else if (emptyCallback != undefined) {
 			emptyCallback();
 		}
-		e.preventDefault();
 	});
 	$("#modal_textinput").modal("show");
 }
 
 $("#modal_textinput").on("shown.bs.modal", function() {
 	$("#modal_textinput input").focus();
+});
+
+
+/* Change Step Dialog */
+
+var stepChangeType, stepChangeIndex, stepChangeAxisIndex;
+
+function showStepDialog(type, index, currentValue, axisIndex) {
+	stepChangeType = type;
+	stepChangeIndex = index;
+	stepChangeAxisIndex = axisIndex;
+
+	$("#input_step_amount").val(currentValue);
+	$("#input_step_amount_unit").text((type == "feedrate") ? T("mm/s") : T("mm"));
+	$("#modal_change_step").modal("show");
+}
+
+$("#modal_change_step").on("shown.bs.modal", function() {
+	$("#modal_change_step input").focus();
+});
+
+$("#modal_change_step form").submit(function(e) {
+	if (stepChangeType == "axis") {
+		settings.axisMoveSteps[stepChangeAxisIndex][stepChangeIndex] = $("#input_step_amount").val();
+	} else if (stepChangeType == "amount") {
+		settings.extruderAmounts[stepChangeIndex] = $("#input_step_amount").val();
+	} else {
+		settings.extruderFeedrates[stepChangeIndex] = $("#input_step_amount").val();
+	}
+
+	applyMovementSteps();
+	$("#modal_change_step").modal("hide");
+
+	e.preventDefault();
 });
 
 
@@ -363,6 +396,16 @@ $("#btn_cancel_calibration").click(function() {
 		sendGCode("M753");
 		$(this).addClass("disabled");
 	}
+});
+
+
+/* WiFi cam setup dialog (OEM) */
+
+$("#modal_wifi_cam form").submit(function(e) {
+	sendGCode("M118 P1 S\"WIFI " + $("#input_cam_ssid").val() + " " + $("#input_cam_password").val() + "\"");
+	lastSentGCode = "";
+	$("#modal_wifi_cam").modal("hide");
+	e.preventDefault();
 });
 
 

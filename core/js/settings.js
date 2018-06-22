@@ -29,7 +29,26 @@ var settings = {
 	language: "en",
 
 	moveFeedrate: 6000,				// in mm/min
-	halfZMovements: false,			// use half Z movements
+	axisMoveSteps: [				// in mm
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[50, 5, 0.5, 0.05],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1],
+		[100, 10, 1, 0.1]
+	],
+	extruderAmounts: [100, 50, 20, 10, 5, 1],	// in mm
+	extruderFeedrates: [60, 30, 15, 5, 1],		// in mm/s
+	allowUnhomedMoves: true,		// allow moves while axes are unhomed
 	babysteppingZ: 0.05,			// in mm
 	showATXControl: false,			// show ATX control
 
@@ -56,19 +75,15 @@ var settings = {
 
 	defaultActiveTemps: [0, 180, 190, 200, 210, 220, 235],
 	defaultStandbyTemps: [0, 95, 120, 140, 155, 170],
-	defaultBedTemps: [0, 55, 60, 65, 90, 110, 120],
-	defaultGCodes: [
-		["M0", "Stop"],
-		["M1", "Sleep"],
-		["M84", "Motors Off"],
-		["M561", "Disable bed compensation"]
-	]
+	defaultBedTemps: [0, 55, 60, 65, 90, 110, 120]
 };
 var needsInitialSettingsUpload = false;
 
 var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to get a valid copy
 
 var themeInclude;
+
+var rememberedGCodes = ["M0", "M1", "M84", "M561"], defaultGCodes = jQuery.extend(true, {}, rememberedGCodes);
 
 
 /* Setting methods */
@@ -97,14 +112,19 @@ function loadSettings() {
 		}
 	}
 
+	// Also try to load the remembered G-codes. At present they are always stored in the browser's cache
+	if (localStorage.getItem("rememberedGCodes") != null) {
+		rememberedGCodes = JSON.parse(localStorage.getItem("rememberedGCodes"));
+	}
+
 	// See if we need to fetch the settings once again from the Duet
 	if (settings.settingsOnDuet) {
 		$.ajax("dwc.json", {
 			type: "GET",
 			dataType: "json",
 			global: false,
-			error: function() {
-				needsInitialSettingsUpload = true;
+			error: function(jqxhr, xhrsettings, thrownError) {
+				needsInitialSettingsUpload = (jqxhr.status == 404);
 				settingsLoaded();
 			},
 			success: function(response) {
@@ -176,18 +196,8 @@ function applySettings() {
 		$("#panel_webcam").addClass("hidden");
 	}
 
-	// Half Z Movements on the message box dialog
-	decreaseVal = (settings.halfZMovements) ? 5 : 10;
-	increaseVal = (settings.halfZMovements) ? 0.05 : 0.1;
-	$("#div_z_controls > div > button[data-axis-letter='Z']").each(function() {
-		if ($(this).data("amount") < 0) {
-			$(this).data("amount", decreaseVal * (-1)).contents().last().replaceWith(" -" + decreaseVal);
-			decreaseVal /= 10;
-		} else {
-			$(this).data("amount", increaseVal).contents().first().replaceWith("+" + increaseVal + " ");
-			increaseVal *= 10;
-		}
-	});
+	// Movement steps
+	applyMovementSteps();
 
 	// Babystepping
 	$("#btn_baby_down > span.content").text(T("{0} mm", (-settings.babysteppingZ)));
@@ -277,14 +287,53 @@ function applySettings() {
 		addBedTemperature(temp);
 	});
 
-	// Default G-Codes
-	clearDefaultGCodes();
-	settings.defaultGCodes.forEach(function(entry) {
-		addDefaultGCode(entry[1], entry[0]);
-	});
+	// G-Codes for autocompletion
+	applyGCodes();
 
 	// Force GUI update to apply half Z movements in the axes
 	updateGui();
+}
+
+function applyMovementSteps() {
+	// Axis apperance
+	for(var i = 0; i < axisNames.length; i++) {
+		// Set Home button names+titles
+		var axis = axisNames[i];
+		var axisIndex = axisOrder.indexOf(axis);
+		$(".btn-home[data-axis='" + i + "']").text(T("Home " + axis)).prop("title", T("Home " + axis + " axis (G28 " + axis + ")"));
+
+		// Set labels and values for decrease and increase buttons
+		var buttonIndex = 0;
+		$("#page_control a.btn-move[data-axis='" + i + "'][data-amount^='-']").each(function() {
+			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
+			$(this).data("amount", decreaseVal).contents().last().replaceWith(" " + axis + decreaseVal);
+		});
+
+		buttonIndex = 3;
+		$("#page_control a.btn-move[data-axis='" + i + "']:not([data-amount^='-'])").each(function() {
+			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
+			$(this).data("amount", increaseVal).contents().first().replaceWith(axis + "+" + increaseVal + " ");
+		});
+
+		// Set headers for position cells in the Machine Status panel
+		$("#table_axis_positions th[data-axis='" + i + "']").text(axisNames[i]);
+	}
+
+	// Extruder amounts
+	var amountIndex = 0;
+	$("#div_feed > div.btn-group > label").each(function() {
+		var amount = settings.extruderAmounts[amountIndex++];
+		$(this).children("input").prop("value", amount);
+		$(this).children("span").text(amount);
+	});
+
+	// Extruder feedrates
+	var feedrateIndex = 0;
+	$("#div_feedrate > div.btn-group > label").each(function() {
+		var feedrate = settings.extruderFeedrates[feedrateIndex++];
+		$(this).children("input").prop("value", feedrate);
+		$(this).children("span").text(feedrate);
+	});
 }
 
 function saveSettings() {
@@ -318,22 +367,12 @@ function saveSettings() {
 	}
 	settings.language = $("#btn_language").data("language");
 
-	// Default G-Codes
-	settings.defaultGCodes = [];
+	// G-Codes for autocompletion
+	rememberedGCodes = [];
 	$("#table_gcodes > tbody > tr").each(function() {
-		settings.defaultGCodes.push([$(this).find("label").text(), $(this).find("td:eq(1)").text()]);
+		rememberedGCodes.push($(this).find("th:eq(0)").text());
 	});
-	settings.defaultGCodes = settings.defaultGCodes.sort(function(a, b) {
-		if (a[0][0] != b[0][0]) {
-			return a[0].charCodeAt(0) - b[0].charCodeAt(0);
-		}
-		var x = a[0].match(/(\d+)/g)[0];
-		var y = b[0].match(/(\d+)/g)[0];
-		if (x == undefined || y == undefined) {
-			return parseInt(a[0]) - parseInt(b[0]);
-		}
-		return x - y;
-	});
+	saveGCodes();
 
 	// Default Heater Temperatures
 	settings.defaultActiveTemps = [];
@@ -376,6 +415,23 @@ function constrainSetting(value, defaultValue, minValue, maxValue) {
 }
 
 
+/* Remembered G-Codes */
+
+function applyGCodes() {
+	$("#table_gcodes > tbody").children().remove();
+	rememberedGCodes.forEach(function(gcode) {
+		var item =  '<tr><th>' + gcode + '</th><td>';
+		item += '<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
+		item += '<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
+		$("#table_gcodes > tbody").append(item);
+	});
+}
+
+function saveGCodes() {
+	localStorage.setItem("rememberedGCodes", JSON.stringify(rememberedGCodes));
+}
+
+
 /* Setting events */
 
 // Apply & Reset settings
@@ -392,6 +448,10 @@ $(".btn-reset-settings").click(function(e) {
 
 		applySettings();
 		saveSettings();
+
+		rememberedGCodes = jQuery.extend(true, {}, defaultGCodes);
+		applyGCodes();
+		saveGCodes();
 
 		localStorage.removeItem("extraSensorVisibility");
 		resetChartData();
