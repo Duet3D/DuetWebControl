@@ -74,24 +74,23 @@ $GZIP -c ./core/language.xml > ./build/language.xml.gz
 # Minify and compress CSS files
 echo "Minifying and compressing CSS files"
 mkdir ./build/css
-$YUI_COMPRESSOR -o ./build/css/slate.css ./core/css/slate.css
-$YUI_COMPRESSOR -o ./build/css/bootstrap-theme.css ./core/css/bootstrap-theme.css
 CSS_FILES=$(grep -e "\.css" ./core/reprap.htm | cut -d '"' -f 2 | sed -e 's/^/core\//')
 for FILE in $CSS_FILES; do
 	echo "- Minifying $FILE..."
 	$YUI_COMPRESSOR $FILE >> ./build/css/dwc.css
 done
+CSS_THEMES=$(ls ./core/css/*.theme.css | cut -d '/' -f 4)
+for THEME_FILE in $CSS_THEMES; do
+	echo "- Minifying and compressing $THEME_FILE..."
+	$YUI_COMPRESSOR -o ./build/css/$THEME_FILE ./core/css/$THEME_FILE
+	$GZIP -c ./build/css/$THEME_FILE > ./build/css/$THEME_FILE.gz
+	rm ./build/css/$THEME_FILE
+done
 
-echo "- Changing font paths and compressing minified file"
+echo "- Changing font paths and compressing minified CSS file"
 sed -i "s/-halflings-regular\./\./g" ./build/css/dwc.css
 $GZIP -c ./build/css/dwc.css > ./build/css/dwc.css.gz
 rm ./build/css/dwc.css
-echo "- Compressing bootstrap-theme.css"
-$GZIP -c ./build/css/bootstrap-theme.css > ./build/css/bootstrap-theme.css.gz
-rm ./build/css/bootstrap-theme.css
-echo "- Compressing slate.css"
-$GZIP -c ./build/css/slate.css > ./build/css/slate.css.gz
-rm ./build/css/slate.css
 
 # Concatenate JS files. They could be minified as well, but that would make debugging rather tricky
 echo "Minifying and concatenating JS files"

@@ -28,9 +28,11 @@ var configResponse;						// Contains the last rr_config response (if any)
 var configFile;							// This is a cached copy of the machine's config.g file
 
 var ajaxRequests = [];					// List of all outstanding AJAX requests
-var lastSentGCode;						// The last sent G-code
+var lastSentGCode, lastGCodeFromInput;	// The last sent G-code
 
 var vendor = undefined;					// For OEM functionality
+var calibrationWebcamSource = "", calibrationWebcamEmbedded = false;
+var hideLastExtruderDrive = false;
 
 
 /* AJAX Events */
@@ -201,6 +203,7 @@ function postConnect(response) {
 	isConnected = justConnected = true;
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
 
+	loadThemes();
 	getOemFeatures();
 	updateFilaments();
 
@@ -301,6 +304,13 @@ function updateStatus() {
 				coldRetractTemp = status.coldRetractTemp;
 			}
 
+			// Compensation type
+			if (status.hasOwnProperty("compensation"))
+			{
+				$(".compensation").removeClass("hidden");
+				$("#span_compensation").text(status.compensation);
+			}
+
 			// Temperature limit
 			if (status.hasOwnProperty("tempLimit")) {
 				tempLimit = status.tempLimit;
@@ -352,6 +362,12 @@ function updateStatus() {
 			} else if (configResponse == undefined) {
 				// For legacy firmware versions download the config response. It will tell us if a DueX is attached
 				getConfigResponse();
+			}
+
+			// Fan Names
+			if (status.params.hasOwnProperty("fanNames") && (lastStatusResponse == undefined || !arraysEqual(status.params.fanNames, fanNames))) {
+				fanNames = status.params.fanNames;
+				needGuiUpdate = true;
 			}
 
 			// Machine Name
@@ -410,11 +426,24 @@ function updateStatus() {
 				needGuiUpdate |= setToolMapping(status.tools);
 			}
 
+			// Heater name
+			if (status.temps.hasOwnProperty("names") && (lastStatusResponse == undefined || !arraysEqual(status.temps.names, heaterNames))) {
+				heaterNames = status.temps.names;
+				needGuiUpdate = true;
+			}
+
 			// Input voltage
 			if (status.hasOwnProperty("vin")) {
 				$(".vin").removeClass("hidden");
 				$("#td_vin").html(T("{0} V", status.vin.cur.toFixed(1)));
 				$("#td_vin").prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.vin.min.toFixed(1), status.vin.max.toFixed(1)));
+			}
+
+			// Requested and top speeds
+			if (status.hasOwnProperty("speeds")) {
+				$(".speeds").removeClass("hidden");
+				$("#td_req_speed").text(T("{0} mm/s", status.speeds.requested));
+				$("#td_top_speed").text(T("{0} mm/s", status.speeds.top));
 			}
 
 			/*** Default status response ***/
@@ -518,9 +547,9 @@ function updateStatus() {
 			}
 
 			// Axis coordinates
-			if (status.coords.xyz.length != numAxes)
+			if (status.hasOwnProperty("axes") && status.axes != numAxes)
 			{
-				numAxes = status.coords.xyz.length;
+				numAxes = status.axes;
 				needGuiUpdate = true;
 			}
 
@@ -607,7 +636,7 @@ function updateStatus() {
 					}
 				}
 
-				if (lastStatusResponse == undefined || $("tr[data-fan='print'] .fan-slider > input").slider("getValue") != fanValues[printFan]) {
+				if (fanSliderActive != "print" && (lastStatusResponse == undefined || $("tr[data-fan='print'] .fan-slider > input").slider("getValue") != fanValues[printFan])) {
 					$("tr[data-fan='print'] .fan-slider > input").slider("setValue", fanValues[printFan]);
 				}
 			}
@@ -718,6 +747,19 @@ function updateStatus() {
 							response = response.replace(/\{CamAddress-.+\}/, "");
 						}
 
+						// Check if a reload of DWC / DWC settings has been requested
+						if (response.match(/\{reloadDWC\}/) != null) {
+							response = response.replace(/\{reloadDWC\}/, "");
+							location.reload();
+						} else if (response.match(/\{reloadSettings\}/) != null) {
+							response = response.replace(/\{reloadSettings\}/, "");
+							if (settings.settingsOnDuet) {
+								// Reload the settings once again from the Duet
+								loadSettings();
+								showMessage("success", "", "<strong>" + T("Settings applied!") + "</strong>");
+							}
+						}
+
 						// What kind of reply are we dealing with?
 						if (response != "" || lastSentGCode != "") {
 							var style = "success", content = response;
@@ -737,7 +779,7 @@ function updateStatus() {
 
 							// Log this message in the G-Code console
 							var prefix = (lastSentGCode != "") ? "<strong>" + lastSentGCode + "</strong><br/>" : "";
-							log(style, prefix + content);
+							log(style, prefix + "<span>" + content + "</span>");
 
 							// If the console isn't visible, check if a notification can be displayed
 							if (currentPage != "console") {
@@ -760,7 +802,9 @@ function updateStatus() {
 							}
 
 							// See if this code can be remembered and reset info about the last sent G-Code again
-							if (lastSentGCode != "" && (style == "success" || style == "info") && rememberedGCodes.indexOf(lastSentGCode) == -1) {
+							if (lastSentGCode != "" && lastGCodeFromInput &&
+								(style == "success" || style == "info") && rememberedGCodes.indexOf(lastSentGCode) == -1)
+							{
 								rememberedGCodes.push(lastSentGCode);
 								saveGCodes();
 								applyGCodes();
@@ -1304,11 +1348,33 @@ function sendGCode(gcode, fromInput) {
 		return;
 	}
 	lastSentGCode = gcode;
+	lastGCodeFromInput = fromInput;
 
 	// Although rr_gcode gives us a JSON response, it doesn't provide any useful values for DWC.
 	// We only need to worry about an AJAX error event, which is handled by the global AJAX error callback.
 	$.ajax(ajaxPrefix + "rr_gcode?gcode=" + encodeURIComponent(gcode), {
 		dataType: "json"
+	});
+}
+
+
+// Theme support
+function loadThemes() {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/www/css", {
+		dataType: "json",
+		success: function(response) {
+			if (response.hasOwnProperty("files")) {
+				response.files.forEach(function(item) {
+					var theme = item.name.match(/(.+)\.theme\.css/);
+					if (item.type == "f" && theme != null) {
+						theme = theme[1];
+						if (theme != "bootstrap") {
+							$("#dropdown_theme > ul").append('<li><a data-theme="' + theme + '" href="#">' + theme + '</a></li>');
+						}
+					}
+				});
+			}
+		}
 	});
 }
 
@@ -1323,9 +1389,6 @@ function getOemFeatures() {
 				if (response.hasOwnProperty("spindleTool")) {
 					spindleTools = [response.spindleTool];
 				}
-				if (response.hasOwnProperty("vendor")) {
-					setOem(response.vendor);
-				}
 
 				if (response.hasOwnProperty("calibrationCamSource") && response.calibrationCamSource != "") {
 					calibrationWebcamSource = response.calibrationCamSource;
@@ -1334,6 +1397,11 @@ function getOemFeatures() {
 					calibrationWebcamSource = "";
 				}
 				updateCalibrationWebcam(true);
+
+				hideLastExtruderDrive = response.hasOwnProperty("hideLastExtruderDrive") && response.hideLastExtruderDrive > 0;
+				if (response.hasOwnProperty("vendor")) {
+					setOem(response.vendor);
+				}
 			}
 		}
 	});
@@ -1366,4 +1434,6 @@ function resetOem() {
 	$("#img_crosshair").prop("src", "");
 	calibrationWebcamSource = "";
 	$("#div_calibration_webcam").addClass("hidden");
+
+	hideLastExtruderDrive = false;
 }

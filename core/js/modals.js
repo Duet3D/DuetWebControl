@@ -40,6 +40,7 @@ function showTextInput(title, message, callback, text, emptyCallback) {
 		} else if (emptyCallback != undefined) {
 			emptyCallback();
 		}
+		e.preventDefault();
 	});
 	$("#modal_textinput").modal("show");
 }

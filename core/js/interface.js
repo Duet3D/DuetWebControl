@@ -14,14 +14,14 @@ var maxHeaters = 8, maxTempSensors = 10, maxFans = 9;
 var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 
 var webcamUpdating = false, calibrationWebcamUpdating = false;
-var calibrationWebcamSource = "", calibrationWebcamEmbedded = false;
 
 var fileInfo, currentLayerTime, lastLayerPrintDuration;
 var isPrinting, isPaused, printHasFinished, waitingForPrintStart;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
 var axisNames, numAxes, numExtruderDrives, numVolumes;
-var bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors, controllableFans;
+var heaterNames, bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors;
+var fanNames, controllableFans;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
 
 var toolMapping = undefined;
@@ -42,8 +42,11 @@ function resetGuiData() {
 	fileInfo = lastStatusResponse = configResponse = configFile = undefined;
 
 	lastSentGCode = "";
+	lastGCodeFromInput = false;
 
 	probeSlowDownValue = probeTriggerValue = undefined;
+
+	heaterNames = undefined;
 	bedHeater = 0;
 	chamberHeater = cabinetHeater = -1;
 	numTempSensors = 0;
@@ -52,6 +55,7 @@ function resetGuiData() {
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
 
+	fanNames = undefined;
 	controllableFans = 0;
 
 	coldExtrudeTemp = 160;
@@ -87,6 +91,7 @@ $(document).ready(function() {
 	loadFileCache();
 	loadTableSorting();
 	loadFanVisibility();
+	loadGCodes();
 
 	// NB: Recreating the typeahead instances is buggy. Do NOT attempt to do this!
 	$(".gcode-input input").typeahead({
@@ -185,7 +190,7 @@ function updateGui() {
 			} else {
 				var heaterIndex = 0;
 				tool.heaters.forEach(function(heater) {
-					var heaterName = T("Heater {0}", heater);
+					var heaterName = (heaterNames == undefined || heaterNames[heater] == "") ? T("Heater {0}", heater) : heaterNames[heater];
 					var heaterState, currentTemp, activeTemp, standbyTemp;
 					if (lastStatusResponse != undefined) {
 						if (lastStatusResponse.temps.hasOwnProperty("current") && lastStatusResponse.temps.hasOwnProperty("state")) {
@@ -290,7 +295,7 @@ function updateGui() {
 	// Bed heater
 	$("tr[data-heater='bed']").toggleClass("hidden", bedHeater == -1);
 	if (bedHeater != -1) {
-		var heaterName = T("Heater {0}", bedHeater);
+		var heaterName = (heaterNames == undefined || heaterNames[bedHeater] == "") ? T("Heater {0}", bedHeater) : heaterNames[bedHeater];
 		$("#table_tools tr[data-heater='bed'] > th:nth-child(2) > a").text(heaterName);
 		$("#table_tools tr[data-heater='bed'] > th:nth-child(2) > a, #table_heaters tr[data-heater='bed'] > th:first-child > a").removeClass().addClass("heater-" + bedHeater);
 	}
@@ -298,7 +303,7 @@ function updateGui() {
 	// Chamber heater
 	$("tr[data-heater='chamber']").toggleClass("hidden", chamberHeater == -1);
 	if (chamberHeater != -1) {
-		var heaterName = T("Heater {0}", chamberHeater);
+		var heaterName = (heaterNames == undefined || heaterNames[chamberHeater] == "") ? T("Heater {0}", chamberHeater) : heaterNames[chamberHeater];
 		$("#table_tools tr[data-heater='chamber'] > th:nth-child(2) > a").text(heaterName);
 		$("#table_tools tr[data-heater='chamber'] > th:nth-child(2) > a, #table_heaters tr[data-heater='chamber'] > th:first-child > a").removeClass().addClass("heater-" + chamberHeater);
 	}
@@ -306,7 +311,7 @@ function updateGui() {
 	// Cabinet heater
 	$("tr[data-heater='cabinet']").toggleClass("hidden", cabinetHeater == -1);
 	if (cabinetHeater != -1) {
-		var heaterName = T("Heater {0}", cabinetHeater);
+		var heaterName = (heaterNames == undefined || heaterNames[cabinetHeater] == "") ? T("Heater {0}", cabinetHeater) : heaterNames[cabinetHeater];
 		$("#table_tools tr[data-heater='cabinet'] > th:nth-child(2) > a").text(heaterName);
 		$("#table_tools tr[data-heater='cabinet'] > th:nth-child(2) > a, #table_heaters tr[data-heater='cabinet'] > th:first-child > a").removeClass().addClass("heater-" + cabinetHeater);
 	}
@@ -354,8 +359,14 @@ function updateGui() {
 		setAxesHomed(lastStatusResponse.coords.axesHomed);
 	}
 
+	// Fan Names
+	for(var fan = 0; fan < maxFans; fan++) {
+		var fanName = (fanNames == undefined || fanNames.length <= fan || fanNames[fan] == "") ? T("Fan {0}", fan) : fanNames[fan];
+		$("tr[data-fan=" + fan + "] > td:first-child > button").text(fanName);
+	}
+
 	// Visibility of extrusion factor sliders
-	var numExtrudersToShow = (vendor == "diabase") ? Math.max(numExtruderDrives - 1, 0) : numExtruderDrives;
+	var numExtrudersToShow = (isConnected && hideLastExtruderDrive) ? Math.max(numExtruderDrives - 1, 0) : numExtruderDrives;
 	for(var i = 0; i < maxExtruders; i++) {
 		if (i < numExtrudersToShow) {
 			$(".extr-" + i).removeClass("hidden");
@@ -365,7 +376,8 @@ function updateGui() {
 		}
 	}
 
-	// Appearance of extruder drive cells
+	// Appearance of extruder drive cells + extrusion factor slider panel
+	$("#th_extruder_drives, #panel_extrusion_factors").toggleClass("hidden", numExtruderDrives <= 0);
 	for(var i = 0; i < maxExtruders; i++) {
 		var cells = $("#table_extruder_positions [data-extruder='" + i + "']");
 		cells.toggleClass("hidden", i >= numExtrudersToShow);
@@ -518,14 +530,15 @@ function resetGui() {
 	// Status fields
 	$("td[data-axis], td[data-extruder]").text(T("n/a"));
 	setProbeValue(-1, undefined);
-	$("#td_fanrpm, #td_cputemp").text(T("n/a"));
-	$(".vin").addClass("hidden");
+	$("#td_fanrpm, #td_cputemp, td.speeds").text(T("n/a"));
+	$(".vin, .speeds").addClass("hidden");
 
 	// Control page
 	clearBedPoints();
 	setAxesHomed([1, 1, 1]);
 	setATXPower(false);
-	$('#slider_fan_control').slider("setValue", 35);
+	$('#slider_fan_control_print').slider("setValue", 35);
+	$(".compensation").addClass("hidden");
 
 	// Hide Scanner and Calibration pages
 	$(".scan-control").addClass("hidden");
@@ -545,7 +558,7 @@ function resetGui() {
 	for(var i = 0; i < maxFans; i++) {
 		setFanVisibility(i, controllableFans & (1 << i));
 	}
-	$('#slider_fan_print').slider("setValue", 35);
+	$('#slider_fan_print_print').slider("setValue", 35);
 	
 	$('#slider_speed').slider("setValue", 100);
 	for(var extr = 1; extr <= maxExtruders; extr++) {
@@ -1078,6 +1091,38 @@ $(".heaters-off").click(function(e) {
 	e.preventDefault();
 });
 
+$("#a_download_text").click(function(e) {
+	var textContent = "";
+	$("#console_log > div.row").each(function() {
+		var time = $(this).children().eq(0).text();
+		var event = $(this).children().eq(1).children("strong").text();
+		var response = $(this).children().eq(1).children("span").text();
+		event = event.replace(/"/g,'""');
+		response = response.replace(/"/g,'""');
+		textContent += time + ": " + (response == "" ? event : (event + ": " + response)) + "\r\n";
+	});
+
+	var file = new File([textContent], "console.txt", {type: "text/plain;charset=utf-8"});
+	saveAs(file);
+	e.preventDefault();
+});
+
+$("#a_download_csv").click(function(e) {
+	var csvContent = '"time","event","response"\r\n';
+	$("#console_log > div.row").each(function() {
+		var time = $(this).children().eq(0).text();
+		var event = $(this).children().eq(1).children("strong").text();
+		var response = $(this).children().eq(1).children("span").text();
+		event = event.replace(/"/g,'""');
+		response = response.replace(/"/g,'""');
+		csvContent += '"' + time + '","' + event + '","' + response + '"\r\n';
+	});
+
+	var file = new File([csvContent], "console.csv", {type: "text/csv;charset=utf-8"});
+	saveAs(file);
+	e.preventDefault();
+});
+
 $("#a_webcam").click(function(e) {
 	var panelContent= $("#panel_webcam > div.panel-body");
 	if (panelContent.hasClass("hidden")) {
@@ -1259,7 +1304,7 @@ $(".btn-move").click(function(e) {
 	var axisIndex = axisOrder.indexOf(axis);
 	if (settings.allowUnhomedMoves || (lastStatusResponse != undefined && lastStatusResponse.coords.axesHomed[axisIndex])) {
 		var moveString = "M120\nG91\nG1 ";
-		if (settings.allowUnhomedMoves) {
+		if (settings.allowUnhomedMoves && geometry != "delta" && geometry != "scara") {
 			moveString += "S2 ";
 		}
 		moveString += axis + $(this).data("amount");
@@ -1269,7 +1314,7 @@ $(".btn-move").click(function(e) {
 	e.preventDefault();
 });
 
-$(".btn-move").contextmenu(function(e) {
+$("#page_control .btn-move").contextmenu(function(e) {
 	var axis = axisOrder[$(this).data("axis")];
 	var axisIndex = axisOrder.indexOf(axis);
 	var cellIndex = ($(this).data("amount") < 0) ? $(this).index() : $(this).parent().children().length - $(this).index() - 1;
@@ -1290,6 +1335,15 @@ $("#btn_print_another").click(function() {
 	if (isConnected) {
 		sendGCode('M32 "' + $(this).data("file") + '"');
 		$("#div_print_another").addClass("hidden");
+	}
+});
+
+$(".gcode-input input").keydown(function(e) {
+	var enterKeyPressed = (e.which == 13);
+	enterKeyPressed |= (e.which == 9 && windowIsXsSm()); // need this for Android
+	if (enterKeyPressed && $(this).typeahead("getActive") == $(this).val()) {
+		$(this).closest("form").submit();
+		e.preventDefault();
 	}
 });
 
@@ -1323,36 +1377,6 @@ $(".gcode-input").submit(function(e) {
 		$(this).find("input").select();
 	}
 	e.preventDefault();
-});
-
-// Make the auto-complete dropdown items look nice.
-// This should be replaced by proper CSS someday, but
-// for now we only check which elements may float around.
-$(".div-gcodes").bind("shown.bs.dropdown", function() {
-	var maxWidth = 0;
-	$(this).find("ul > li > a").each(function() {
-		var rowWidth = 0;
-		$(this).find("span").each(function() {
-			rowWidth += $(this).width();
-		});
-
-		if (rowWidth > maxWidth) {
-			maxWidth = rowWidth;
-		}
-	});
-
-	if (maxWidth > 0) {
-		$(this).find("ul > li > a").each(function() {
-			var rowWidth = 0;
-			$(this).find("span").each(function() {
-				rowWidth += $(this).width();
-			});
-
-			if (rowWidth < maxWidth) {
-				$(this).addClass("gcode-float");
-			}
-		});
-	}
 });
 
 $("#table_heaters > tbody > tr > td > div > input," +

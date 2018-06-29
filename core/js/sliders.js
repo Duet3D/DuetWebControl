@@ -27,7 +27,7 @@ for(var fan = -1; fan < maxFans; fan++) {
 			return value + " %";
 		}
 	}).on("slideStart", function() {
-		fanSliderActive = fanID;
+		fanSliderActive = $(this).parents("tr").data("fan");
 	}).on("slideStop", function(slideEvt) {
 		if (isConnected && !isNaN(slideEvt.value)) {
 			var fanID = $(this).parents("tr").data("fan");
@@ -59,7 +59,7 @@ for(var fan = -1; fan < maxFans; fan++) {
 			return value + " %";
 		}
 	}).on("slideStart", function() {
-		fanSliderActive = fanID;
+		fanSliderActive = $(this).parents("tr").data("fan");
 	}).on("slideStop", function(slideEvt) {
 		if (isConnected && !isNaN(slideEvt.value)) {
 			var fanID = $(this).parents("tr").data("fan");

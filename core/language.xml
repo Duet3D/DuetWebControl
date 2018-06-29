@@ -482,9 +482,7 @@
 		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">Sie haben gerade mehrere Firmwaredateien hochgeladen. Möchten Sie diese jetzt installieren?</string>
 		<string t="or less">o. weniger</string>
 		<string t="Always show info area and main menu">Infobereich und Hauptmenü immer anzeigen</string>
-		<string t="Fan 0">Lüfter 0</string>
-		<string t="Fan 1">Lüfter 1</string>
-		<string t="Fan 2">Lüfter 2</string>
+		<string t="Fan {0}">Lüfter {0}</string>
 		<string t="Do not append extra HTTP qualifier">Keinen zusätzlichen HTTP-Schlüssel anhängen</string>
 		<string t="Rename File or Directory">Datei oder Verzeichnis umbennen</string>
 		<string t="Z Baby Stepping">Z Babystepping</string>
@@ -1858,9 +1856,7 @@
 		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">Você fez upload de vários arquivos de firmware. Deseja instalá-los agora?</string>
 		<string t="or less">o. ou menos</string>
 		<string t="Always show info area and main menu">Sempre mostre área de informações e menu principal</string>
-		<string t="Fan 0">Cooler 0</string>
-		<string t="Fan 1">Cooler 1</string>
-		<string t="Fan 2">Cooler 2</string>
+		<string t="Fan {0}">Cooler {0}</string>
 		<string t="Do not append extra HTTP qualifier">Não adicione qualificador HTTP adicional</string>
 		<string t="Rename File or Directory">Renomeie o Arquivo ou Diretório</string>
 		<string t="Z Baby Stepping">Z Baby Stepping</string>
@@ -2873,9 +2869,7 @@
 		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">Szoftver fileok másolása kész. Szeretné most telepíteni őket?</string>
 		<string t="or less">v. kevesebb</string>
 		<string t="Always show info area and main menu">Mindíg mutassa az információs területet és a fő menüt</string>
-		<string t="Fan 0">Ventillátor 0</string>
-		<string t="Fan 1">Ventillátor 1</string>
-		<string t="Fan 2">Ventillátor 2</string>
+		<string t="Fan {0}">Ventillátor {0}</string>
 		<string t="Do not append extra HTTP qualifier">Ne csatoljon extra HTTP minősítést</string>
 		<string t="Z Baby Stepping">Z korrekció</string>
 		<string t="Current Offset:">Jelenlegi korrekció:</string>
@@ -3852,9 +3846,7 @@ Er is een JavaScript-fout opgetreden, zodat de webinterface de verbinding met uw
 		<string t="You have just uploaded multiple firmware files. Would you like to install them now?">U heeft zojuist meerdere firmware bestanden opgeladen. Wilt u ze nu installeren?</string>
 		<string t="or less">of minder</string>
 		<string t="Always show info area and main menu">Infogebied en Hoofdmenu altijd tonen</string>
-		<string t="Fan 0">Ventilator 0</string>
-		<string t="Fan 1">Ventilator 1</string>
-		<string t="Fan 2">Ventilator 2</string>
+		<string t="Fan 0">Ventilator {0}</string>
 		<string t="Do not append extra HTTP qualifier">Voeg geen extra HTTP-kwalificatie toe</string>
 		<string t="Rename File or Directory">Bestand of Map hernoemen</string>
 		<string t="Z Baby Stepping">Z Babystappen</string>

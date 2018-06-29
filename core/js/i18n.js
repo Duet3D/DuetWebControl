@@ -9,7 +9,7 @@
 
 var showTranslationWarning = false;		// Set this to "true" if you want to look for missing translation entries
 
-var translationData;
+var translationData = undefined;
 
 
 // Called to look up English strings and to translate them into the configured language.

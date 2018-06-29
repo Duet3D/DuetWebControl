@@ -72,6 +72,8 @@ var settings = {
 	webcamInterval: 5000,			// in ms
 	webcamFix: false,				// do not append extra HTTP qualifier when reloading images
 	webcamEmbedded: false,			// use iframe to embed webcam stream
+	webcamRotation: 0,
+	webcamFlip: "none",
 
 	defaultActiveTemps: [0, 180, 190, 200, 210, 220, 235],
 	defaultStandbyTemps: [0, 95, 120, 140, 155, 170],
@@ -100,7 +102,7 @@ function loadSettings() {
 
 			for(var key in settings) {
 				// Try to copy each setting if their types are equal
-				if (loadedSettings.hasOwnProperty(key) && settings[key].constructor === loadedSettings[key].constructor) {
+				if (loadedSettings.hasOwnProperty(key) && loadedSettings[key] != null && settings[key].constructor === loadedSettings[key].constructor) {
 					settings[key] = loadedSettings[key];
 				}
 			}
@@ -112,9 +114,10 @@ function loadSettings() {
 		}
 	}
 
-	// Also try to load the remembered G-codes. At present they are always stored in the browser's cache
-	if (localStorage.getItem("rememberedGCodes") != null) {
-		rememberedGCodes = JSON.parse(localStorage.getItem("rememberedGCodes"));
+	// Do NOT allow storage of the settings on the Duet if this is running on localhost
+	if (location.host == "") {
+		settings.settingsOnDuet = false;
+		defaultSettings = jQuery.extend(true, {}, settings);
 	}
 
 	// See if we need to fetch the settings once again from the Duet
@@ -130,7 +133,7 @@ function loadSettings() {
 			success: function(response) {
 				for(var key in settings) {
 					// Try to copy each setting if their types are equal
-					if (response.hasOwnProperty(key) && settings[key].constructor === response[key].constructor) {
+					if (response.hasOwnProperty(key) && response[key] != null && settings[key].constructor === response[key].constructor) {
 						settings[key] = response[key];
 					}
 				}
@@ -147,34 +150,36 @@ function settingsLoaded() {
 	applySettings();
 
 	// Try to load the translation data
-	$.ajax("language.xml", {
-		type: "GET",
-		dataType: "xml",
-		global: false,
-		error: pageLoadComplete,
-		success: function(response) {
-			translationData = response;
+	if (translationData == undefined) {
+		$.ajax("language.xml", {
+			type: "GET",
+			dataType: "xml",
+			global: false,
+			error: pageLoadComplete,
+			success: function(response) {
+				translationData = response;
 
-			if (translationData.children == undefined) {
-				// Internet Explorer and Edge cannot deal with XML files in the way we want.
-				// Disable translations for those browsers.
-				translationData = undefined;
-				$("#dropdown_language, #label_language").addClass("hidden");
-			} else {
-				$("#dropdown_language ul > li:not(:first-child)").remove();
-				for(var i = 0; i < translationData.children[0].children.length; i++) {
-					var id = translationData.children[0].children[i].tagName;
-					var name = translationData.children[0].children[i].attributes["name"].value;
-					$("#dropdown_language ul").append('<li><a data-language="' + id + '" href="#">' + name + '</a></li>');
-					if (settings.language == id) {
-						$("#btn_language > span:first-child").text(name);
+				if (translationData.children == undefined) {
+					// Internet Explorer and Edge cannot deal with XML files in the way we want.
+					// Disable translations for those browsers.
+					translationData = undefined;
+					$("#dropdown_language, #label_language").addClass("hidden");
+				} else {
+					$("#dropdown_language ul > li:not(:first-child)").remove();
+					for(var i = 0; i < translationData.children[0].children.length; i++) {
+						var id = translationData.children[0].children[i].tagName;
+						var name = translationData.children[0].children[i].attributes["name"].value;
+						$("#dropdown_language ul").append('<li><a data-language="' + id + '" href="#">' + name + '</a></li>');
+						if (settings.language == id) {
+							$("#btn_language > span:first-child").text(name);
+						}
 					}
+					translatePage();
 				}
-				translatePage();
+				pageLoadComplete();
 			}
-			pageLoadComplete();
-		}
-	});
+		});
+	}
 }
 
 function applySettings() {
@@ -189,6 +194,12 @@ function applySettings() {
 		$("#panel_webcam").removeClass("hidden");
 		$("#img_webcam").toggleClass("hidden", settings.webcamEmbedded);
 		$("#div_ifm_webcam").toggleClass("hidden", !settings.webcamEmbedded);
+
+		$("#img_webcam, #ifm_webcam").toggleClass("rotate-90", settings.webcamRotation == 90);
+		$("#img_webcam, #ifm_webcam").toggleClass("rotate-180", settings.webcamRotation == 180);
+		$("#img_webcam, #ifm_webcam").toggleClass("rotate-270", settings.webcamRotation == 270);
+		$("#img_webcam, #ifm_webcam").toggleClass("flip-x", settings.webcamFlip == "x" || settings.webcamFlip == "both");
+		$("#img_webcam, #ifm_webcam").toggleClass("flip-y", settings.webcamFlip == "y" || settings.webcamFlip == "both");
 
 		updateWebcam(true);
 		updateCalibrationWebcam(true);
@@ -223,22 +234,19 @@ function applySettings() {
 
 	switch (settings.theme) {
 		case "default":	// Default Bootstrap theme
-			themeInclude = $('<link onload="applyThemeColors();" rel="stylesheet" href="css/bootstrap-theme.css" type="text/css"></link>');
+			themeInclude = $('<link onload="applyThemeColors();" rel="stylesheet" href="css/bootstrap.theme.css" type="text/css"></link>');
 			themeInclude.appendTo("head");
-			$("#theme_notice").addClass("hidden");
-			break;
-
-		case "dark":	// Bootstrap theme + fotomas' customizations
-			themeInclude = $('<link rel="stylesheet" href="css/bootstrap-theme.css" type="text/css"></link>' +
-							 '<link onload="applyThemeColors();" rel="stylesheet" href="css/slate.css" type="text/css"></link>');
-			themeInclude.appendTo("head");
-			$("#theme_notice").removeClass("hidden");
 			break;
 
 		case "none":	// No theme at all
 			applyThemeColors();
-			$("#theme_notice").addClass("hidden");
 			break;
+
+		default:		// Custom theme
+			themeInclude = $('<link onload="applyThemeColors();" rel="stylesheet" href="css/' + settings.theme + '.theme.css" type="text/css"></link>');
+			themeInclude.appendTo("head");
+			break;
+
 	}
 
 	// Make main content scrollable on md+ screens or restore default behavior
@@ -267,7 +275,7 @@ function applySettings() {
 
 	// Set theme selection
 	$("#btn_theme").data("theme", settings.theme);
-	var themeName = $('#dropdown_theme ul [data-theme="' + settings.theme + '"]').text();
+	var themeName = settings.theme == "default" ? "Bootstrap" : (settings.theme == "none" ? T("None") : settings.theme);
 	$("#btn_theme > span:first-child").text(themeName);
 
 	// Language is set in XML AJAX handler
@@ -287,9 +295,6 @@ function applySettings() {
 		addBedTemperature(temp);
 	});
 
-	// G-Codes for autocompletion
-	applyGCodes();
-
 	// Force GUI update to apply half Z movements in the axes
 	updateGui();
 }
@@ -308,11 +313,31 @@ function applyMovementSteps() {
 			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
 			$(this).data("amount", decreaseVal).contents().last().replaceWith(" " + axis + decreaseVal);
 		});
+		buttonIndex = 1;
+		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
+			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
+			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
+		});
+		buttonIndex = 1;
+		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
+			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
+			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
+		});
 
 		buttonIndex = 3;
 		$("#page_control a.btn-move[data-axis='" + i + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
 			$(this).data("amount", increaseVal).contents().first().replaceWith(axis + "+" + increaseVal + " ");
+		});
+		buttonIndex = 3;
+		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
+			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
+			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
+		});
+		buttonIndex = 3;
+		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
+			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
+			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
 		});
 
 		// Set headers for position cells in the Machine Status panel
@@ -396,7 +421,10 @@ function saveSettings() {
 	// Save Settings
 	localStorage.setItem("settings", JSON.stringify(settings));
 	if (settings.settingsOnDuet) {
-		uploadTextFile("0:/www/dwc.json", JSON.stringify(settings), undefined, false);
+		uploadTextFile("0:/www/dwc.json", JSON.stringify(settings), function() {
+			// Tell DWC clients to reload its config
+			sendGCode("M118 P3 S\"{reloadSettings}\"", false);
+		}, false);
 	}
 }
 
@@ -417,14 +445,21 @@ function constrainSetting(value, defaultValue, minValue, maxValue) {
 
 /* Remembered G-Codes */
 
+function loadGCodes() {
+	if (localStorage.getItem("rememberedGCodes") != null) {
+		rememberedGCodes = JSON.parse(localStorage.getItem("rememberedGCodes"));
+	}
+	applyGCodes();
+}
+
 function applyGCodes() {
 	$("#table_gcodes > tbody").children().remove();
-	rememberedGCodes.forEach(function(gcode) {
+	for(var gcode in rememberedGCodes) {
 		var item =  '<tr><th>' + gcode + '</th><td>';
 		item += '<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
 		item += '<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
 		$("#table_gcodes > tbody").append(item);
-	});
+	}
 }
 
 function saveGCodes() {
@@ -468,8 +503,11 @@ $("#frm_settings").submit(function(e) {
 	}
 
 	saveSettings();
-	applySettings();
-	showMessage("success", "", "<strong>" + T("Settings applied!") + "</strong>");
+	if (!settings.settingsOnDuet) {
+		applySettings();
+		showMessage("success", "", "<strong>" + T("Settings applied!") + "</strong>");
+	}
+	applyGCodes();
 });
 
 $("#frm_settings > ul > li a").on("shown.bs.tab", function(e) {
@@ -482,13 +520,13 @@ $("#frm_settings > ul > li a").on("shown.bs.tab", function(e) {
 
 // User Interface
 
-$("#dropdown_theme > ul a").click(function(e) {
+$("#dropdown_theme > ul").on("click", "a", function(e) {
 	$("#btn_theme > span:first-child").text($(this).text());
 	$("#btn_theme").data("theme", $(this).data("theme"));
 	e.preventDefault();
 });
 
-$("body").on("click", "#dropdown_language > ul a", function(e) {
+$("#dropdown_language > ul").on("click", "a", function(e) {
 	$("#btn_language > span:first-child").text($(this).text());
 	$("#btn_language").data("language", $(this).data("language"));
 	e.preventDefault();
@@ -534,15 +572,6 @@ $("[data-setting='settingsOnDuet']").change(function() {
 
 // List Items
 
-$("#btn_add_gcode").click(function(e) {
-	var item =	'<tr><td><label class="label label-primary">' + $("#input_gcode").val().trim() + '</label></td><td>' + $("#input_gcode_description").val().trim() + '</td><td>';
-	item +=		'<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
-	item += 	'<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
-	$("#table_gcodes > tbody").append(item);
-
-	e.preventDefault();
-});
-
 $("input[name='temp_selection']:radio").change(function() {
 	if ($(this).val() == "active") {
 		$("#ul_active_temps").removeClass("hidden");
@@ -582,8 +611,6 @@ $("body").on("click", ".btn-delete-parent", function(e) {
 });
 
 $("#page_listitems input").on("input", function() {
-	// Validate form controls
-	$("#btn_add_gcode").toggleClass("disabled", $("#input_gcode").val().trim() == "" || $("#input_gcode_description").val().trim() == "");
 	$("#btn_add_head_temp").toggleClass("disabled", isNaN(parseFloat($("#input_add_head_temp").val())));
 	$("#btn_add_bed_temp").toggleClass("disabled", isNaN(parseFloat($("#input_add_bed_temp").val())));
 });

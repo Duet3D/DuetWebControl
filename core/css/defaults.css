@@ -880,13 +880,7 @@ tr[data-fan="print"] > td:first-child > button {
 }
 
 #page_console form > div:last-child {
-	padding-left: 0px;
 	padding-right: 15px;
-}
-
-#page_console button[type='submit'] {
-	padding-left: 6px;
-	padding-right: 6px;
 }
 
 #page_console div.row:last-child {

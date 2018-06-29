@@ -354,11 +354,11 @@ function setCurrentTool(toolNumber) {
 	if (toolNumber >= 0) {
 		var drives = getTool(toolNumber).drives;
 		for(var i = 0; i < numExtruderDrives; i++) {
-			var toolHasDrive = (drives.indexOf(i) != -1);
+			var toolHasDrive = (drives.indexOf(i) != -1) || (i > 0 && vendor == "diabase");
 			$("#div_extruders > div > .extr-" + i).toggleClass("hidden", !toolHasDrive);
 		}
 
-		hideExtruderInputs = (drives.length < 2);
+		hideExtruderInputs = (drives.length < 2) || (vendor == "diabase");
 	}
 
 	// Hide whole selection if there is no point showing it
@@ -418,6 +418,7 @@ function enableControls() {
 
 	$(".online-control").removeClass("hidden");													// G-Code/Macro Files
 
+	$('[data-setting="settingsOnDuet"]').prop("disabled", location.host == "");
 	$(".btn-apply-settings, .btn-reset-settings").removeClass("disabled");						// Settings
 }
 

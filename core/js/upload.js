@@ -512,10 +512,10 @@ function uploadHasFinished(success) {
 					connect(sessionPassword, false);
 
 					showConfirmationDialog(T("Reload Page?"), T("You have just updated Duet Web Control. Would you like to reload the page now?"), function() {
-						location.reload();
+						sendGCode("M118 P3 S\"{reloadDWC}\"");
 					});
 				} else {
-					location.reload();
+					sendGCode("M118 P3 S\"{reloadDWC}\"");
 				}
 			}
 		}
