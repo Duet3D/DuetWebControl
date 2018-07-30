@@ -1,3 +1,9 @@
+@media (min-width: 1200px) and (max-width: 1600px) {
+	.visible-xl {
+		display: none !important;
+	}
+}
+
 @media (min-width: 1200px) {
 	/* Workarounds (may be dropped in future releases) */
 	.btn-group-justified .visible-lg {
@@ -12,13 +18,10 @@
 		display: inline-block !important;
 	}
 
-	/* Sidebar */
-	.nav-sidebar {
-		margin-bottom: 20px;
-	}
-
-	.nav-sidebar > li > a {
-		font-size: 16px;
+	/* Info panels */
+	#div_tools_heaters {
+		padding-left: 0px;
+		padding-right: 0px;
 	}
 
 	/* Main content */
@@ -28,6 +31,10 @@
 	}
 
 	/* Control page */
+	#div_content .panel-heading {
+		padding-left: 9px !important;
+	}
+
 	#page_control .col-right,
 	#panel_extrude div.panel-body > div:first-child {
 		padding-left: 0px;

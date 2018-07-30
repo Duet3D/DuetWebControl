@@ -31,7 +31,6 @@ $.notifyDefaults({
 
 var openNotifications = [];
 var openMessageNotifications = [];
-var openConnectFailNotification = undefined;
 
 
 function showDownloadMessage() {
@@ -130,7 +129,6 @@ function showMessage(type, title, message, timeout, allowDismiss, regularNotific
 		$(notification.$ele).click(function() {
 			openNotifications = openNotifications.filter(function(notif) { return notif != notification; });
 			openMessageNotifications = openMessageNotifications.filter(function(notif) { return notif != notification; });
-			if (openConnectFailNotification == notification) { openConnectFailNotification = undefined; }
 			notification.close();
 		});
 	}
@@ -215,11 +213,6 @@ function showUpdateMessage(type, customTimeout) {
 		notification.close();
 	});
 	openMessageNotifications = [];
-
-	if (openConnectFailNotification != undefined) {
-		openConnectFailNotification.close();
-		openConnectFailNotification = undefined;
-	}
 }*/
 
 function closeAllNotifications() {
@@ -228,9 +221,4 @@ function closeAllNotifications() {
 	});
 	openNotifications = [];
 	openMessageNotifications = [];
-
-	if (openConnectFailNotification != undefined) {
-		openConnectFailNotification.close();
-		openConnectFailNotification = undefined;
-	}
 }

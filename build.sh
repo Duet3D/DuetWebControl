@@ -121,7 +121,6 @@ $GZIP -c ./core/fonts/glyphicons-halflings-regular.svg > ./build/fonts/glyphicon
 $GZIP -c ./core/fonts/glyphicons-halflings-regular.ttf > ./build/fonts/glyphicons.ttf.gz
 $GZIP -c ./core/fonts/glyphicons-halflings-regular.woff > ./build/fonts/glyphicons.woff.gz
 $GZIP -c ./core/fonts/glyphicons-halflings-regular.woff2 > ./build/fonts/glyphicons.woff2.gz
-$GZIP -c ./core/fonts/Homenaje-Regular.ttf > ./build/fonts/Homenaje-Regular.ttf.gz
 
 # Add image files (optional)
 #echo "Adding images"

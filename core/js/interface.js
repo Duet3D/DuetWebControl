@@ -72,7 +72,6 @@ function resetGuiData() {
 	setToolMapping([]);
 
 	resetFiles();
-	resetOem();
 
 	waitingForPrintStart = false;
 }
@@ -95,7 +94,7 @@ $(document).ready(function() {
 
 	// NB: Recreating the typeahead instances is buggy. Do NOT attempt to do this!
 	$(".gcode-input input").typeahead({
-		autoSelect: true,
+		autoSelect: false,
 		fitToElement: true,
 		source: function(arg, cb) { cb(rememberedGCodes); }
 	});
@@ -106,10 +105,8 @@ function pageLoadComplete() {
 	$("#span_copyright").html($("#span_copyright").html().replace("Christian Hammacher", '<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">Christian Hammacher</a>'));
 	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
 
-	// Users may want to connect automatically once the page has loaded
-	if (settings.autoConnect) {
-		connect(sessionPassword, true);
-	}
+	// Always try to connect once the page has been loaded
+	connect(sessionPassword, true);
 
 	// Check if this browser is supported and display a message if it is not
 	var userAgent = navigator.userAgent.toLowerCase();
@@ -129,13 +126,12 @@ function pageLoadComplete() {
 function updateGui() {
 	// Visibility of the Extra temperatures panel
 	if (numTempSensors == 0) {
-		$(".extra-temps").addClass("hidden");
 		if (!$("#div_extra").hasClass("hidden")) {
 			$("#div_extra").addClass("hidden");
 			$("#div_tools").removeClass("hidden");
 		}
 	} else {
-		$(".extra-temps").removeClass("hidden");
+		$(".extra-temps, .mcutemp").removeClass("hidden");
 		for(var i = 0; i < maxTempSensors; i++) {
 			$("#table_extra tr").eq(i + 1).toggleClass("hidden", i >= numTempSensors);
 		}
@@ -329,7 +325,7 @@ function updateGui() {
 	for(var i = 0; i < maxAxes; i++) {
 		var isHidden = (i >= numAxes); // || (vendor == "diabase" && i < axisNames.length && "UVW".indexOf(axisNames[i]) != -1);
 
-		var cells = $("#table_axis_positions [data-axis='" + i + "']");
+		var cells = $(".table-axis-positions [data-axis='" + i + "']");
 		cells.toggleClass("hidden", isHidden);
 		cells.css("border-right", (i + 1 < numAxes) ? "1px" : "0px");
 	}
@@ -351,7 +347,7 @@ function updateGui() {
 				row.find("div.btn-group").removeAttr("style");
 			}
 		}
-		$("#mobile_extra_home_buttons > div.btn-group").eq(i - 3).toggleClass("hidden", isHidden);
+		$(".mobile-home-buttons [data-axis='" + i + "']").parent().toggleClass("hidden", isHidden);
 	}
 
 	// Update homed axes once more
@@ -400,7 +396,7 @@ function updateGui() {
 	}
 
 	// Do some rearrangement if we have fewer than four extruders and fewer than five axes
-	if (numExtruderDrives <= 3 && numAxes <= 4) {
+	if ((numExtruderDrives <= 3 && numAxes <= 4) || vendor == "diabase") {
 		$("#table_heaters .div-head-temp").removeClass("hidden-sm");
 		$("#control_all_tools, #control_all_heaters").removeClass("hidden-sm");
 		$("#div_tools_heaters").removeClass("col-sm-5").addClass("col-sm-6");
@@ -528,10 +524,9 @@ function resetGui() {
 	}
 
 	// Status fields
-	$("td[data-axis], td[data-extruder]").text(T("n/a"));
+	$("#span_mode").addClass("hidden");
+	$("td[data-axis], td[data-extruder], .table-status td").text(T("n/a"));
 	setProbeValue(-1, undefined);
-	$("#td_fanrpm, #td_cputemp, td.speeds").text(T("n/a"));
-	$(".vin, .speeds").addClass("hidden");
 
 	// Control page
 	clearBedPoints();
@@ -1044,6 +1039,11 @@ $("body").on("hidden.bs.popover", function(e) {
 
 /* Static GUI Events */
 
+$("#a_list_devices").click(function(e) {
+	app.listDevices();
+	e.preventDefault();
+});
+
 $(".a-tools, .a-heaters, .a-extra").click(function(e) {
 	var showTools = $(this).hasClass("a-tools");
 	var showHeaters = $(this).hasClass("a-heaters");
@@ -1254,13 +1254,13 @@ $("#btn_retract").click(function(e) {
 $(".btn-hide-info").click(function() {
 	if ($(this).hasClass("active")) {
 		$("#div_info_panels").addClass("hidden-sm");
-		$("#div_content").addClass("content-collapsed-padding");
+		$("#div_content, #div_static_sidebar").addClass("content-collapsed-padding");
 		setTimeout(function() {
 			$(".btn-hide-info").removeClass("active");
 		}, 100);
 	} else {
 		$("#div_info_panels").removeClass("hidden-sm");
-		$("#div_content").removeClass("content-collapsed-padding");
+		$("#div_content, #div_static_sidebar").removeClass("content-collapsed-padding");
 		setTimeout(function() {
 			$(".btn-hide-info").addClass("active");
 		}, 100);
@@ -1302,11 +1302,8 @@ $(".btn-move").click(function(e) {
 	}
 
 	var axisIndex = axisOrder.indexOf(axis);
-	if (settings.allowUnhomedMoves || (lastStatusResponse != undefined && lastStatusResponse.coords.axesHomed[axisIndex])) {
+	if (lastStatusResponse != undefined && lastStatusResponse.coords.axesHomed[axisIndex]) {
 		var moveString = "M120\nG91\nG1 ";
-		if (settings.allowUnhomedMoves && geometry != "delta" && geometry != "scara") {
-			moveString += "S2 ";
-		}
 		moveString += axis + $(this).data("amount");
 		moveString += " F" + settings.moveFeedrate + "\nM121";
 		sendGCode(moveString);
@@ -1453,6 +1450,17 @@ $("#table_heaters > tbody > tr > td > div > input," +
 	}
 });
 
+$(".table-axis-positions td").click(function() {
+	if (isConnected) {
+		var axis = axisNames[$(this).data("axis")];
+		showTextInput(T("Set {0} position", axis), T("Please enter a new position for the {0} axis:", axis), function(value) {
+			if (!isNaN(value)) {
+				sendGCode("G92 " + axis + value);
+			}
+		}, $(this).text());
+	}
+});
+
 $(".all-temp-input").keydown(function(e) {
 	if (isConnected && e.which == 13) {
 		if (toolMapping != undefined) {
@@ -1478,11 +1486,11 @@ $("#div_content").resize(function() {
 	// a) this option is explicitly enabled
 	// b) DWC is not running in a small window
 	// c) the sidebar has enough space to be fully displayed
-	if (!settings.scrollContent || windowIsXsSm() || $(".sidebar").first().offset().top + $(".sidebar").first().height() > $(window).height()) {
+	if (!settings.scrollContent || windowIsXsSm() || $("#div_static_sidebar").first().offset().top + $("#div_static_sidebar").first().height() > $(window).height()) {
 		$(this).css("height", "").css("min-height", "");
 	} else {
 		var height = "calc(100vh - " + $(this).offset().top + "px)";
-		var minHeight = $(".sidebar:not(.sidebar-continuation)").height() + "px";
+		var minHeight = $("#div_static_sidebar").height() + "px";
 		$(this).css("height", height).css("min-height", minHeight);
 
 		if ($("body").height() > $(window).height()) {
@@ -1491,7 +1499,12 @@ $("#div_content").resize(function() {
 	}
 });
 
-$(".navbar-brand").click(function(e) { e.preventDefault(); });
+$(".navbar-brand").click(function(e) {
+	if ($(this).prop("href") == "#") {
+		e.preventDefault();
+	}
+});
+
 $(".navbar-brand.visible-xs > abbr").click(function(e) {
 	showMessage("warning", T("Warning"), T("Some axes are not homed"));
 	e.preventDefault();
@@ -1582,7 +1595,7 @@ window.onerror = function (msg, url, lineNo, columnNo, error) {
 	}
 
 	if (isConnected) {
-		disconnect();
+		disconnect(true);
 		showMessage("danger", T("JavaScript Error"), T("A JavaScript error has occurred so the web interface has closed the connection to your board. It is recommended to reload the web interface now. If this happens again, please contact the author and share this error message:") + "<br/><br/>" + errorMessage, 0, true, false);
 	}
 
@@ -2147,8 +2160,8 @@ function setMachineName(name) {
 function showPage(name) {
 	$("#layer_tooltip").hide();
 
-	$(".navitem, .page").removeClass("active");
-	$(".navitem-" + name + ", #page_" + name).addClass("active");
+	$("#div_static_sidebar a, #section_navigation a, .page").removeClass("active");
+	$("#div_static_sidebar a[data-target='" + name + "'], #page_" + name + ", #section_navigation a[data-target='" + name + "']").addClass("active");
 	setTimeout(function() {
 		if (slideout.isOpen()) {
 			slideout.close();
@@ -2331,3 +2344,13 @@ function getColorFromCSS(classname)
 	ghostSpan.remove();
 	return color;
 }
+
+/* Piecon dynamic icon support */
+
+Piecon.setOptions({
+	color: "#0000ff",		// Pie chart color
+	background: "#bbb",		// Empty pie chart color
+	shadow: "#fff",			// Outer ring color
+	fallback: "force"		// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+});
+

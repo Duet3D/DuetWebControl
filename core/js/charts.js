@@ -6,6 +6,8 @@
  * see http://www.gnu.org/licenses/gpl-3.0.html
  */
 
+// Temperature chart options
+var maxTemperatureSamples = 1000;
 
 var tempChart;
 var tempChartOptions = 	{
@@ -28,12 +30,12 @@ var tempChartOptions = 	{
 		max: 280
 	}
 };
-var tempChartPadding = 15;
 
-var maxTemperatureSamples = 1000;
+var recordedTemperatures, extraSensorVisibility;
 var maxLayerTime = 0;
+var refreshTempChart = false;
 
-
+// Print chart options
 var printChart;
 var printChartOptions =	{
 	colors: ["#EDC240"],
@@ -75,8 +77,8 @@ var printChartOptions =	{
 	}
 };
 
-var refreshTempChart = false, refreshPrintChart = false;
-var recordedTemperatures, layerData;
+var refreshPrintChart = false;
+var layerData;
 
 
 /* Temperature chart */
@@ -147,10 +149,9 @@ function setExtraTemperatureVisibility(sensor, visible) {
 	// Update visibility
 	recordedTemperatures[maxHeaters + sensor].dashes.show = visible;
 
-	// Save state in localStorage
-	var extraSensorVisibility = JSON.parse(localStorage.getItem("extraSensorVisibility"));
+	// Save state
 	extraSensorVisibility[sensor] = visible;
-	localStorage.setItem("extraSensorVisibility", JSON.stringify(extraSensorVisibility));
+	setLocalSetting("extraSensorVisibility", extraSensorVisibility);
 }
 
 
@@ -257,7 +258,8 @@ function resizeCharts() {
 	});
 
 	var max = (contentHeight > statusHeight) ? contentHeight : statusHeight;
-	max -= tempChartPadding;
+	var padding = $("#chart_temp").parent().outerHeight() - $("#chart_temp").height();
+	max -= padding;
 
 	if (max > 0) {
 		$("#chart_temp").css("height", max);
@@ -276,17 +278,14 @@ $(".panel-chart").resize(function() {
 });
 
 function resetChartData() {
-	// Make sure the visibility state can be saved in localStorage
-	var extraSensorVisibility = localStorage.getItem("extraSensorVisibility");
-	if (extraSensorVisibility == null) {
+	// Initialize visibility states of the extra temperature sensors
+	extraSensorVisibility = getLocalSetting("extraSensorVisibility", null);
+	if (extraSensorVisibility == null || extraSensorVisibility.length < maxTempSensors) {
 		extraSensorVisibility = [];
 		for(var i = 0; i < maxTempSensors; i++) {
 			// Don't show any extra temperatures in the chart by default
 			extraSensorVisibility.push(false);
 		}
-		localStorage.setItem("extraSensorVisibility", JSON.stringify(extraSensorVisibility));
-	} else {
-		extraSensorVisibility = JSON.parse(extraSensorVisibility);
 	}
 
 	// Reset data of the temperature chart

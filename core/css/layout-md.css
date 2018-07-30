@@ -1,4 +1,14 @@
 @media (min-width: 992px) and (max-width: 1199px) {
+	.visible-xl {
+		display: none !important;
+	}
+
+	/* Info panels */
+	#div_tools_heaters {
+		padding-left: 0px;
+		padding-right: 0px;
+	}
+
 	/* Main content */
 	#div_content row > div[class^='col-'] {
 		padding-left: 8px !important;
@@ -6,6 +16,10 @@
 	}
 
 	/* Control page */
+	#div_content .panel-heading {
+		padding-left: 9px !important;
+	}
+
 	#page_control .col-right,
 	#panel_extrude div.panel-body > div:first-child {
 		padding-left: 0px;

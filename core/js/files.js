@@ -26,16 +26,11 @@ var downloadNotification, zipFile;
 /* G-Code file info caching */
 
 function loadFileCache() {
-	var cacheInfo = localStorage.getItem("cachedFileInfo");
-	if (cacheInfo == null) {
-		cachedFileInfo = {};
-	} else {
-		cachedFileInfo = JSON.parse(cacheInfo);
-	}
+	cachedFileInfo = getLocalSetting("cachedFileInfo", {});
 }
 
 function saveFileCache() {
-	localStorage.setItem("cachedFileInfo", JSON.stringify(cachedFileInfo));
+	setLocalSetting("cachedFileInfo", cachedFileInfo);
 }
 
 function getFileInfo(directory, filename, callback) {
@@ -151,6 +146,7 @@ function updateScanFiles() {
 
 	// Clear the file list
 	scansLoaded = false;
+	$("#table_scan_files > thead > tr > th:first-child").prop("colspan", 2);
 	$("#table_scan_files > tbody").children().remove();
 	$("#table_scan_files").addClass("hidden");
 	$("#page_scanner h1").removeClass("hidden");
@@ -650,7 +646,7 @@ $("body").on("click", ".a-gcode-directory", function(e) {
 
 $("body").on("click", ".a-gcode-file", function(e) {
 	var file = $(this).closest("tr").data("file");
-	showConfirmationDialog(T("Start Print"), T("Do you want to print <strong>{0}</strong>?", file), function() {
+	showConfirmationDialog(T("Run G-Code File"), T("Do you want to run <strong>{0}</strong>?", file), function() {
 		waitingForPrintStart = true;
 		if (currentGCodeVolume != 0) {
 			sendGCode('M32 "' + currentGCodeDirectory + "/" + file + '"');
@@ -1543,10 +1539,8 @@ $(".table-files").on("dblclick", "tr", function(e) {
 /* Table Headers */
 
 function loadTableSorting() {
-	var tableSorting = localStorage.getItem("tableSorting");
+	var tableSorting = getLocalSetting("tableSorting", null);
 	if (tableSorting != null) {
-		tableSorting = JSON.parse(tableSorting);
-
 		for(var tableId in tableSorting) {
 			var tableHeader = $("#" + tableId).children("thead");
 			tableHeader.find("span").removeClass("glyphicon").removeClass("glyphicon-sort-by-alphabet").removeClass("glyphicon glyphicon-sort-by-alphabet-alt");
@@ -1561,25 +1555,16 @@ $(".table-files > thead a").click(function(e) {
 	// Determine in which way the column needs to be sorted
 	var span = $(this).closest("th").children("span");
 	var sortAscending = !span.hasClass("glyphicon-sort-by-alphabet");
-	$(this).closest("tr").find("span").removeClass("glyphicon").removeClass("glyphicon-sort-by-alphabet").removeClass("glyphicon glyphicon-sort-by-alphabet-alt");
-	if (sortAscending) {
-		span.addClass("glyphicon").addClass("glyphicon-sort-by-alphabet");
-	} else {
-		span.addClass("glyphicon").addClass("glyphicon glyphicon-sort-by-alphabet-alt");
-	}
+	$(this).closest("tr").find("span").removeClass("glyphicon").removeClass("glyphicon-sort-by-alphabet").removeClass("glyphicon-sort-by-alphabet-alt");
+	span.addClass("glyphicon").addClass(sortAscending ? "glyphicon-sort-by-alphabet" : "glyphicon-sort-by-alphabet-alt");
 
 	// Do the actual sorting
 	sortTable($(this).closest("table"));
 
 	// Make sure we remember the last sorting order
-	var tableSorting = localStorage.getItem("tableSorting");
-	if (tableSorting == null) {
-		tableSorting = {};
-	} else {
-		tableSorting = JSON.parse(tableSorting);
-	}
+	var tableSorting = getLocalSetting("tableSorting", {});
 	tableSorting[$(this).closest("table").prop("id")] = { column: $(this).data("attribute"), ascending: sortAscending };
-	localStorage.setItem("tableSorting", JSON.stringify(tableSorting));
+	setLocalSetting("tableSorting", tableSorting);
 
 	$(this).blur();
 	e.preventDefault();

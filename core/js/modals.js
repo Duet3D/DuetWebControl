@@ -87,9 +87,7 @@ $("#modal_change_step form").submit(function(e) {
 /* Host Prompt */
 
 function showHostPrompt() {
-	if (settings.hasOwnProperty("lastHost")) {
-		$('#input_host').val(settings.lastHost);
-	}
+	$('#input_host').val(getLocalSetting("lastHost", ""));
 	$("#modal_host_input").modal("show");
 }
 
@@ -117,11 +115,6 @@ $("#form_host").submit(function(e) {
 function showPasswordPrompt() {
 	$('#input_password').val("");
 	$("#modal_pass_input").modal("show");
-	$("#modal_pass_input").one("hide.bs.modal", function() {
-		// The network request will take a few ms anyway, so no matter if the user has
-		// cancelled the password input, we can reset the Connect button here...
-		$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-	});
 }
 
 $("#form_password").submit(function(e) {

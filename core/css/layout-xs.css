@@ -1,9 +1,9 @@
 @media (max-width: 767px) {
-	/* Navigation bar */
-	.navbar-brand {
-		margin-left: 15px !important;
+	.visible-xl {
+		display: none !important;
 	}
 
+	/* Navigation bar */
 	.navbar-checkbox {
 		float: right;
 		margin-right: 15px;
@@ -11,13 +11,13 @@
 		margin-bottom: 8px;
 	}
 
+	.navbar span.label-status {
+		float: right;
+	}
+
 	/* Main content */
 	#div_content {
 		padding-top: 12px;
-	}
-
-	.page {
-		min-height: calc(100vh - 52px);
 	}
 
 	/* Static sidebar */
@@ -50,7 +50,22 @@
 		padding-right: 15px;
 	}
 
+	/* G-Code files page */
+	#page_files {
+		padding-bottom: 15px;
+	}
+
+	/* Macros page */
+	#page_macros {
+		padding-bottom: 15px;
+	}
+
 	/* Settings page */
+	#btn_language,
+	#dropdown_theme {
+		width: 100%;
+	}
+
 	#div_add_tool div.row > div > label {
 		margin-top: 9px;
 	}

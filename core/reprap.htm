@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.21.2-b2
+<!--	Duet Web Control v1.22-b1
 
 	written by Christian Hammacher
 
@@ -11,7 +11,7 @@
 		<meta charset="utf-8">
 		<title id="title">Duet Web Control</title>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta http-equiv="cleartype" content="on">
+		<!--[if IEMobile]><meta http-equiv="cleartype" content="on"><![endif]-->
 		<meta name="description" content="Web Interface for Duet Electronics (+ Extension)">
 		<meta name="author" content="Christian Hammacher">
 		<meta name="MobileOptimized" content="320">
@@ -34,37 +34,43 @@
 
 	<body>
 		<!-- Dynamic sidebar -->
-		<nav class="hidden" id="nav_sidebar">
-			<section id="section_actions">
+		<nav class="well hidden" id="nav_sidebar">
+			<section id="section_actions" class="online-control hidden">
 				<h4 class="text-muted">Actions</h4>
-				<button type="button" class="btn btn-connect btn-info"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
-				<button type="button" class="btn btn-danger btn-emergency-stop pull-right online-control hidden" title="Enforces an immediate software reset (M112+M999)"><span class="glyphicon glyphicon-flash"></span> Emergency STOP</button>
+				<div class="list-group">
+					<a class="list-group-item list-group-item-danger btn-emergency-stop" href="#" data-target="print"><span class="glyphicon glyphicon-flash"></span> Emergency STOP</a>
+				</div>
 			</section>
 
 			<section id="section_navigation">
 				<h4 class="text-muted">Navigation</h4>
-				<ul class="nav nav-sidebar">
-					<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
-					<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
-				</ul>
-				<ul class="nav nav-sidebar scan-control hidden">
-					<li class="navitem navitem-scanner"><a class="navlink" href="#" data-target="scanner"><span class="glyphicon glyphicon-facetime-video"></span> 3D Scanner <span class="glyphicon glyphicon-refresh span-refresh-scans hidden"></span></a></li>
-				</ul>
-				<ul class="nav nav-sidebar">
-					<li class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> G-Code Console</a></li>
-					<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
-					<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
-				</ul>
-				<ul class="nav nav-sidebar">
-					<li class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
-					<li class="navitem navitem-calibration diabase hidden"><a class="navlink" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a></li>
-					<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-				</ul>
+				<div class="list-group">
+					<a class="navlink list-group-item active" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a>
+					<a class="navlink list-group-item" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a>
+				</div>
+
+				<div class="list-group scan-control hidden">
+					<a class="navlink list-group-item" href="#" data-target="scanner"><span class="glyphicon glyphicon-facetime-video"></span> 3D Scanner <span class="glyphicon glyphicon-refresh span-refresh-scans hidden"></span></a>
+				</div>
+
+				<div class="list-group">
+					<a class="navlink list-group-item" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> G-Code Console</a>
+					<a class="navlink list-group-item" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a>
+					<a class="navlink list-group-item" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a>
+				</div>
+
+				<div class="list-group">
+					<a class="navlink list-group-item" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a>
+					<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a>
+					<a class="navlink list-group-item" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a>
+				</div>
 			</section>
 
 			<section id="section_app" class="app-control hidden">
 				<h4 class="text-muted">App</h4>
-				<button type="button" class="btn btn-default" onClick="app.listDevices()"><span class="glyphicon glyphicon-arrow-left"></span> List available Devices</button>
+				<div class="list-group">
+					<a id="a_list_devices" class="list-group-item" href="#"><span class="glyphicon glyphicon-arrow-left"></span> List available Devices</a>
+				</div>
 			</section>
 		</nav>
 
@@ -73,9 +79,19 @@
 			<!-- Navigation Bar -->
 			<nav class="navbar navbar-default">
 				<div class="container-fluid">
+					<!-- Machine Name -->
+					<div class="navbar-header">
+						<a class="navbar-brand hidden-xs" href="#">
+							<img alt="logo" class="hidden" src="about:blank">
+							<span class="machine-name">Duet Web Control</span>
+							<abbr class="hidden home-warning small" title="Some axes are not homed"><span class="glyphicon glyphicon-alert"></span></abbr>
+						</a>
+					</div>
+
+					<span class="label label-default label-status navbar-left">Disconnected</span>
+
 					<!-- Regular navbar entries -->
-					<div class="collapse navbar-collapse">
-						<button type="button" class="btn btn-connect btn-info navbar-btn navbar-left"><span class="glyphicon glyphicon-log-in"></span> <span>Connect</span></button>
+					<div id="div_navbar_buttons" class="collapse navbar-collapse navbar-right">
 						<div class="btn-group navbar-checkbox navbar-left hidden-md hidden-lg" data-toggle="buttons">
 							<button class="btn btn-default btn-hide-info active">
 								<span class="glyphicon glyphicon-dashboard"></span>
@@ -84,27 +100,20 @@
 
 						<form class="navbar-form padding-small navbar-left hidden-sm gcode-input" autocomplete="off">
 							<div class="input-group">
-								<input type="text" name="gcode" class="form-control typeahead" placeholder="Send G-Code..." data-provide="typeahead" disabled>
 								<span class="input-group-addon">
 									<a href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">?</a>
 								</span>
+
+								<input type="text" name="gcode" class="form-control typeahead" placeholder="Send G-Code..." data-provide="typeahead" disabled>
+								<div class="input-group-btn">
+									<button type="submit" class="btn btn-default disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
+								</div>
 							</div>
-							<button type="submit" class="btn btn-default disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
 						</form>
 
-						<button type="button" class="btn btn-default btn-upload navbar-btn padding-small navbar-left hidden-xs hidden-sm disabled" title="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
+						<button type="button" class="btn btn-default btn-upload navbar-btn navbar-left padding-small hidden-xs hidden-sm disabled" title="Upload &amp; Print one or more G-Code files (drag&amp;drop is supported as well)" data-type="print" data-style="btn-default"><span class="glyphicon glyphicon-cloud-upload"></span> Upload &amp; Print</button>
 
-						<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-right disabled" title="Enforces an immediate software reset (M112+M999)"><span class="glyphicon glyphicon-flash"></span> Emergency STOP</button>
-						<span class="label label-default label-status navbar-label navbar-right">Disconnected</span>
-
-						<ul class="nav nav-justified hidden-xs">
-							<li>
-								<a href="#" class="navbar-brand">
-									<span class="machine-name">Duet Web Control</span>
-									<abbr title="Some axes are not homed" class="hidden home-warning small"><span class="glyphicon glyphicon-alert"></span></abbr>
-								</a>
-							</li>
-						</ul>
+						<button type="button" class="btn btn-danger btn-emergency-stop navbar-btn navbar-left disabled" title="Enforces an immediate software reset (M112+M999)"><span class="glyphicon glyphicon-flash"></span> Emergency STOP</button>
 					</div>
 
 					<!-- Mobile navbar entries -->
@@ -115,7 +124,6 @@
 							<span class="icon-bar"></span>
 							<span class="icon-bar"></span>
 						</button>
-						<span class="label label-default label-status pull-right navbar-label visible-xs">Disconnected</span>
 
 						<a class="navbar-brand visible-xs">
 							<span class="machine-name">Duet Web Control</span>
@@ -125,12 +133,140 @@
 				</div>
 			</nav>
 
-			<div class="container-fluid">
-				<!-- Info Panels -->
-				<div class="row" id="div_info_panels">
+			<!-- Info Panels -->
+			<div class="container-fluid" id="div_info_panels">
+				<div class="row">
+					<!-- Machine Status -->
+					<div class="col-xs-12 col-sm-7 col-md-4 col-lg-3" id="div_status">
+						<div class="panel panel-default panel-status">
+							<div class="panel-heading">
+								<span class="glyphicon glyphicon-info-sign"></span>
+								<span>Machine Status</span>
+								<span id="span_mode" class="label label-default hidden">Mode: <span>n/a</span></span>
+							</div>
+
+							<div class="panel-table-container">
+								<table class="table table-bordered table-condensed table-centered-cells table-axis-positions table-status diabase hidden">
+									<tr>
+										<th rowspan="9" class="th-status">Axis Positions</th>
+										<th data-axis="0">X</th>
+										<td data-axis="0">n/a</td>
+									</tr>
+									<tr>
+										<th data-axis="1">Y</th>
+										<td data-axis="1">n/a</td>
+									</tr>
+									<tr>
+										<th data-axis="2">Z</th>
+										<td data-axis="2">n/a</td>
+									</tr>
+									<tr>
+										<th data-axis="3">U</th>
+										<td data-axis="3">n/a</td>
+									</tr>
+									<tr>
+										<th class="hidden" data-axis="4">V</th>
+										<td class="hidden" data-axis="4">n/a</td>
+									</tr>
+									<tr>
+										<th class="hidden" data-axis="5">W</th>
+										<td class="hidden" data-axis="5">n/a</td>
+									</tr>
+									<tr>
+										<th class="hidden" data-axis="6">A</th>
+										<td class="hidden" data-axis="6">n/a</td>
+									</tr>
+									<tr>
+										<th class="hidden" data-axis="7">B</th>
+										<td class="hidden" data-axis="7">n/a</td>
+									</tr>
+									<tr>
+										<th class="hidden" data-axis="8">C</th>
+										<td class="hidden" data-axis="8">n/a</td>
+									</tr>
+								</table>
+
+								<table class="table table-bordered table-condensed table-centered-cells table-axis-positions table-status no-diabase">
+									<tr>
+										<th rowspan="2" class="th-status">Head Position</th>
+										<th data-axis="0">X</th>
+										<th data-axis="1">Y</th>
+										<th data-axis="2">Z</th>
+										<th class="hidden" data-axis="3">U</th>
+										<th class="hidden" data-axis="4">V</th>
+										<th class="hidden" data-axis="5">W</th>
+										<th class="hidden hidden-md hidden-xs" data-axis="6">A</th>
+										<th class="hidden hidden-md hidden-xs" data-axis="7">B</th>
+										<th class="hidden hidden-md hidden-xs" data-axis="8">C</th>
+									</tr>
+									<tr>
+										<td data-axis="0">n/a</td>
+										<td data-axis="1">n/a</td>
+										<td data-axis="2">n/a</td>
+										<td class="hidden" data-axis="3">n/a</td>
+										<td class="hidden" data-axis="4">n/a</td>
+										<td class="hidden" data-axis="5">n/a</td>
+										<td class="hidden hidden-md hidden-xs" data-axis="6">n/a</td>
+										<td class="hidden hidden-md hidden-xs" data-axis="7">n/a</td>
+										<td class="hidden hidden-md hidden-xs" data-axis="8">n/a</td>
+									</tr>
+								</table>
+
+								<table id="table_extruder_positions" class="table table-bordered table-condensed table-centered-cells table-status no-diabase">
+									<tr>
+										<th id="th_extruder_drives" rowspan="2" class="th-status">Extruder Drives</th>
+										<th class="hidden"><!-- for HTML validation --></th>
+										<th class="hidden-md" data-extruder="0">Drive 0</th>
+										<th class="hidden-md" data-extruder="1">Drive 1</th>
+										<th class="hidden-md hidden" data-extruder="2">Drive 2</th>
+										<th class="hidden-md hidden" data-extruder="3">Drive 3</th>
+										<th class="hidden-md hidden" data-extruder="4">Drive 4</th>
+										<th class="hidden-md hidden" data-extruder="5">Drive 5</th>
+										<th class="hidden-md hidden" data-extruder="6">Drive 6</th>
+										<th class="hidden-md hidden" data-extruder="7">Drive 7</th>
+										<th class="hidden-md hidden" data-extruder="8">Drive 8</th>
+									</tr>
+									<tr>
+										<td class="hidden-xs hidden-sm hidden-lg" data-extruder="total">n/a</td>
+										<td class="hidden-md" data-extruder="0">n/a</td>
+										<td class="hidden-md" data-extruder="1">n/a</td>
+										<td class="hidden-md hidden" data-extruder="2">n/a</td>
+										<td class="hidden-md hidden" data-extruder="3">n/a</td>
+										<td class="hidden-md hidden" data-extruder="4">n/a</td>
+										<td class="hidden-md hidden" data-extruder="5">n/a</td>
+										<th class="hidden-md hidden" data-extruder="6">n/a</th>
+										<th class="hidden-md hidden" data-extruder="7">n/a</th>
+										<th class="hidden-md hidden" data-extruder="8">n/a</th>
+									</tr>
+								</table>
+
+								<table class="table table-bordered table-condensed table-centered-cells table-status">
+									<tr>
+										<th rowspan="2" class="th-status">Sensors</th>
+										<th class="vin hidden" title="Input voltage of your board">Vin</th>
+										<th class="mcutemp hidden hidden-sm">MCU Temp.</th>
+										<th id="th_probe">Z-Probe</th>
+										<th class="fan-rpm hidden">Fan RPM</th>
+										<th class="speeds hidden-md hidden">Req. Speed</th>
+										<th class="speeds hidden-md hidden">Top Speed</th>
+									</tr>
+									<tr>
+										<td id="td_vin" class="vin hidden" title="Power supply voltage for this board">n/a</td>
+										<td id="td_mcutemp" class="mcutemp hidden-sm hidden" title="Current temperature of the MCU">n/a</td>
+										<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
+										<td id="td_fanrpm" class="fan-rpm hidden" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
+										<td id="td_req_speed" class="speeds hidden-md hidden" title="Requested speed of the current move">n/a</td>
+										<td id="td_top_speed" class="speeds hidden-md hidden" title="Top speed of the current move">n/a</td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					<!-- Tools / Heaters / Extra -->
 					<div class="col-xs-12 col-sm-5 col-md-5 col-lg-4" id="div_tools_heaters">
 						<!-- Tools -->
-						<div id="div_tools" class="panel panel-info panel-status">
+						<div id="div_tools" class="panel panel-default panel-status">
 							<div class="panel-heading">
 								<strong><span class="glyphicon glyphicon-wrench"></span> Tools</strong>
 								<span>&nbsp;/&nbsp;</span>
@@ -314,7 +450,7 @@
 						</div>
 
 						<!-- Heater Temperatures -->
-						<div id="div_heaters" class="panel panel-info panel-status hidden">
+						<div id="div_heaters" class="panel panel-default panel-status hidden">
 							<div class="panel-heading">
 								<a href="#" class="a-tools"><span class="glyphicon glyphicon-wrench"></span> Tools</a>
 								<span>&nbsp;/&nbsp;</span>
@@ -615,7 +751,7 @@
 							</table>
 						</div>
 
-						<div id="div_extra" class="panel panel-info panel-status hidden">
+						<div id="div_extra" class="panel panel-default panel-status hidden">
 							<div class="panel-heading">
 								<a href="#" class="a-tools"><span class="glyphicon glyphicon-wrench"></span> Tools</a>
 								<span>&nbsp;/&nbsp;</span>
@@ -686,8 +822,9 @@
 
 					<!-- Temperature Chart -->
 					<div class="hidden-xs hidden-sm col-md-3 col-lg-5" id="div_temp_chart">
-						<div class="panel panel-info panel-status">
+						<div class="panel panel-default panel-status">
 							<div class="panel-heading">
+								<span class="glyphicon glyphicon-scale"></span>
 								<span>Temperature Chart</span>
 							</div>
 
@@ -698,110 +835,36 @@
 							</div>
 						</div>
 					</div>
-
-					<!-- Machine Status -->
-					<div class="col-xs-12 col-sm-7 col-md-4 col-lg-3" id="div_status">
-						<div class="panel panel-info panel-status">
-							<div class="panel-heading">
-								<span>Machine Status</span>
-							</div>
-
-							<table class="table table-bordered table-condensed table-centered-cells table-status" id="table_axis_positions">
-								<tr>
-									<th rowspan="2" class="th-status">Head Position</th>
-									<th data-axis="0">X</th>
-									<th data-axis="1">Y</th>
-									<th data-axis="2">Z</th>
-									<th class="hidden" data-axis="3">U</th>
-									<th class="hidden" data-axis="4">V</th>
-									<th class="hidden" data-axis="5">W</th>
-									<th class="hidden hidden-md hidden-xs" data-axis="6">A</th>
-									<th class="hidden hidden-md hidden-xs" data-axis="7">B</th>
-									<th class="hidden hidden-md hidden-xs" data-axis="8">C</th>
-								</tr>
-								<tr>
-									<td data-axis="0">n/a</td>
-									<td data-axis="1">n/a</td>
-									<td data-axis="2">n/a</td>
-									<td class="hidden" data-axis="3">n/a</td>
-									<td class="hidden" data-axis="4">n/a</td>
-									<td class="hidden" data-axis="5">n/a</td>
-									<td class="hidden hidden-md hidden-xs" data-axis="6">n/a</td>
-									<td class="hidden hidden-md hidden-xs" data-axis="7">n/a</td>
-									<td class="hidden hidden-md hidden-xs" data-axis="8">n/a</td>
-								</tr>
-							</table>
-
-							<table class="table table-bordered table-condensed table-centered-cells table-status" id="table_extruder_positions">
-								<tr>
-									<th id="th_extruder_drives" rowspan="2" class="th-status">Extruder Drives</th>
-									<th class="hidden"><!-- for HTML validation --></th>
-									<th class="hidden-md" data-extruder="0">Drive 0</th>
-									<th class="hidden-md" data-extruder="1">Drive 1</th>
-									<th class="hidden-md hidden" data-extruder="2">Drive 2</th>
-									<th class="hidden-md hidden" data-extruder="3">Drive 3</th>
-									<th class="hidden-md hidden" data-extruder="4">Drive 4</th>
-									<th class="hidden-md hidden" data-extruder="5">Drive 5</th>
-									<th class="hidden-md hidden" data-extruder="6">Drive 6</th>
-									<th class="hidden-md hidden" data-extruder="7">Drive 7</th>
-									<th class="hidden-md hidden" data-extruder="8">Drive 8</th>
-								</tr>
-								<tr>
-									<td class="hidden-xs hidden-sm hidden-lg" data-extruder="total">n/a</td>
-									<td class="hidden-md" data-extruder="0">n/a</td>
-									<td class="hidden-md" data-extruder="1">n/a</td>
-									<td class="hidden-md hidden" data-extruder="2">n/a</td>
-									<td class="hidden-md hidden" data-extruder="3">n/a</td>
-									<td class="hidden-md hidden" data-extruder="4">n/a</td>
-									<td class="hidden-md hidden" data-extruder="5">n/a</td>
-									<th class="hidden-md hidden" data-extruder="6">n/a</th>
-									<th class="hidden-md hidden" data-extruder="7">n/a</th>
-									<th class="hidden-md hidden" data-extruder="8">n/a</th>
-								</tr>
-							</table>
-
-							<table class="table table-bordered table-condensed table-centered-cells table-status">
-								<tr>
-									<th rowspan="2" class="th-status">Sensors</th>
-									<th class="vin hidden" title="Input voltage of your board">Vin</th>
-									<th id="th_probe">Z-Probe</th>
-									<th class="fan-rpm hidden">Fan RPM</th>
-									<th class="speeds hidden">Requested Speed</th>
-									<th class="speeds hidden">Top Speed</th>
-								</tr>
-								<tr>
-									<td id="td_vin" class="vin hidden" title="Power supply voltage for this board">n/a</td>
-									<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
-									<td id="td_fanrpm" class="fan-rpm hidden" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
-									<td id="td_req_speed" class="speeds hidden" title="Requested speed of the current move">n/a</td>
-									<td id="td_top_speed" class="speeds hidden" title="Top speed of the current move">n/a</td>
-								</tr>
-							</table>
-						</div>
-					</div>
 				</div>
+			</div>
 
-				<!-- Content -->
+			<!-- Content -->
+			<div class="container-fluid">
 				<div class="row">
 					<!-- Static sidebar -->
-					<div class="col-sm-3 col-md-2 col-lg-2 sidebar">
-						<ul class="nav nav-sidebar">
-							<li class="navitem navitem-control active"><a class="navlink" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a></li>
-							<li class="navitem navitem-print"><a class="navlink" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a></li>
-						</ul>
-						<ul class="nav nav-sidebar scan-control hidden">
-							<li class="navitem navitem-scanner"><a class="navlink" href="#" data-target="scanner"><span class="glyphicon glyphicon-facetime-video"></span> 3D Scanner <span class="glyphicon glyphicon-refresh span-refresh-scans hidden"></span></a></li>
-						</ul>
-						<ul class="nav nav-sidebar">
-							<li class="navitem navitem-console"><a class="navlink" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> G-Code Console</a></li>
-							<li class="navitem navitem-files"><a class="navlink" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a></li>
-							<li class="navitem navitem-macros"><a class="navlink" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a></li>
-						</ul>
-						<ul class="nav nav-sidebar">
-							<li class="navitem navitem-filaments"><a class="navlink" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a></li>
-							<li class="navitem navitem-calibration diabase hidden"><a class="navlink" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a></li>
-							<li class="navitem navitem-settings"><a class="navlink" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a></li>
-						</ul>
+					<div id="div_static_sidebar" class="col-sm-3 col-md-2 col-lg-2 hidden-xs">
+						<div class="well">
+							<div class="list-group">
+								<a class="navlink list-group-item active" href="#" data-target="control"><span class="glyphicon glyphicon-home"></span> Machine Control</a>
+								<a class="navlink list-group-item" href="#" data-target="print"><span class="glyphicon glyphicon-print"></span> Print Status</a>
+							</div>
+
+							<div class="list-group scan-control hidden">
+								<a class="navlink list-group-item" href="#" data-target="scanner"><span class="glyphicon glyphicon-facetime-video"></span> 3D Scanner <span class="glyphicon glyphicon-refresh span-refresh-scans hidden"></span></a>
+							</div>
+
+							<div class="list-group">
+								<a class="navlink list-group-item" href="#" data-target="console"><span class="glyphicon glyphicon-console"></span> G-Code Console</a>
+								<a class="navlink list-group-item" href="#" data-target="files"><span class="glyphicon glyphicon-hdd"></span> G-Code Files <span class="glyphicon glyphicon-refresh span-refresh-files hidden"></span></a>
+								<a class="navlink list-group-item" href="#" data-target="macros"><span class="glyphicon glyphicon-link"></span> Macros <span class="glyphicon glyphicon-refresh span-refresh-macros hidden"></span></a>
+							</div>
+
+							<div class="list-group">
+								<a class="navlink list-group-item" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a>
+								<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a>
+								<a class="navlink list-group-item" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a>
+							</div>
+						</div>
 					</div>
 
 					<!-- Page Contents -->
@@ -832,7 +895,7 @@
 										</div>
 
 										<div class="panel-body">
-											<div class="hidden-lg btn-group btn-group-justified" id="mobile_home_buttons">
+											<div class="hidden-lg btn-group btn-group-justified mobile-home-buttons">
 												<div class="btn-group"><button data-axis="all" class="btn btn-primary btn-home disabled">Home All</button></div>
 												<div class="btn-group"><button data-axis="0" class="btn btn-primary btn-home disabled">Home X</button></div>
 												<div class="btn-group"><button data-axis="1" class="btn btn-primary btn-home disabled">Home Y</button></div>
@@ -848,6 +911,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="0" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-100</a>
+															<a href="#" data-axis="0" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-50</a>
 															<a href="#" data-axis="0" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-10</a>
 															<a href="#" data-axis="0" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-1</a>
 															<a href="#" data-axis="0" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> X-0.1</a>
@@ -858,6 +922,7 @@
 															<a href="#" data-axis="0" data-amount="0.1" class="btn btn-default btn-move disabled">X+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="0" data-amount="1" class="btn btn-default btn-move disabled">X+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="0" data-amount="10" class="btn btn-default btn-move disabled">X+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="0" data-amount="50" class="btn btn-default btn-move visible-xl disabled">X+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="0" data-amount="100" class="btn btn-default btn-move visible-lg disabled">X+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -871,6 +936,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="1" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-100</a>
+															<a href="#" data-axis="1" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-50</a>
 															<a href="#" data-axis="1" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-10</a>
 															<a href="#" data-axis="1" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-1</a>
 															<a href="#" data-axis="1" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Y-0.1</a>
@@ -881,6 +947,7 @@
 															<a href="#" data-axis="1" data-amount="0.1" class="btn btn-default btn-move disabled">Y+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="1" data-amount="1" class="btn btn-default btn-move disabled">Y+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="1" data-amount="10" class="btn btn-default btn-move disabled">Y+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="1" data-amount="50" class="btn btn-default btn-move visible-xl disabled">Y+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="1" data-amount="100" class="btn btn-default btn-move visible-lg disabled">Y+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -893,18 +960,20 @@
 													</td>
 													<td>
 														<div class="btn-group btn-group-justified">
-															<a href="#" data-axis="2" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-100</a>
-															<a href="#" data-axis="2" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-10</a>
-															<a href="#" data-axis="2" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-1</a>
-															<a href="#" data-axis="2" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-0.1</a>
+															<a href="#" data-axis="2" data-amount="-50" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-50</a>
+															<a href="#" data-axis="2" data-amount="-25" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-25</a>
+															<a href="#" data-axis="2" data-amount="-5" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-5</a>
+															<a href="#" data-axis="2" data-amount="-0.5" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-0.5</a>
+															<a href="#" data-axis="2" data-amount="-0.05" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> Z-0.05</a>
 														</div>
 													</td>
 													<td>
 														<div class="btn-group btn-group-justified">
-															<a href="#" data-axis="2" data-amount="0.1" class="btn btn-default btn-move disabled">Z+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
-															<a href="#" data-axis="2" data-amount="1" class="btn btn-default btn-move disabled">Z+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
-															<a href="#" data-axis="2" data-amount="10" class="btn btn-default btn-move disabled">Z+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
-															<a href="#" data-axis="2" data-amount="100" class="btn btn-default btn-move visible-lg disabled">Z+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="2" data-amount="0.05" class="btn btn-default btn-move disabled">Z+0.05 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="2" data-amount="0.5" class="btn btn-default btn-move disabled">Z+0.5 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="2" data-amount="5" class="btn btn-default btn-move disabled">Z+5 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="2" data-amount="25" class="btn btn-default btn-move visible-xl disabled">Z+25 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="2" data-amount="50" class="btn btn-default btn-move visible-lg disabled">Z+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
 												</tr>
@@ -918,7 +987,7 @@
 										</div>
 
 										<div class="panel-body">
-											<div class="hidden-lg btn-group btn-group-justified" id="mobile_extra_home_buttons">
+											<div class="hidden-lg btn-group btn-group-justified mobile-home-buttons">
 												<div class="btn-group"><button data-axis="3" class="btn btn-primary btn-home disabled">Home U</button></div>
 												<div class="btn-group"><button data-axis="4" class="btn btn-primary btn-home disabled">Home V</button></div>
 												<div class="btn-group"><button data-axis="5" class="btn btn-primary btn-home disabled">Home W</button></div>
@@ -936,6 +1005,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="3" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-100</a>
+															<a href="#" data-axis="3" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-50</a>
 															<a href="#" data-axis="3" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-10</a>
 															<a href="#" data-axis="3" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-1</a>
 															<a href="#" data-axis="3" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> U-0.1</a>
@@ -946,6 +1016,7 @@
 															<a href="#" data-axis="3" data-amount="0.1" class="btn btn-default btn-move disabled">U+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="3" data-amount="1" class="btn btn-default btn-move disabled">U+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="3" data-amount="10" class="btn btn-default btn-move disabled">U+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="3" data-amount="50" class="btn btn-default btn-move visible-xl disabled">U+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="3" data-amount="100" class="btn btn-default btn-move visible-lg disabled">U+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -959,6 +1030,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="4" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-100</a>
+															<a href="#" data-axis="4" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-50</a>
 															<a href="#" data-axis="4" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-10</a>
 															<a href="#" data-axis="4" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-1</a>
 															<a href="#" data-axis="4" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> V-0.1</a>
@@ -969,6 +1041,7 @@
 															<a href="#" data-axis="4" data-amount="0.1" class="btn btn-default btn-move disabled">V+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="4" data-amount="1" class="btn btn-default btn-move disabled">V+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="4" data-amount="10" class="btn btn-default btn-move disabled">V+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="4" data-amount="50" class="btn btn-default btn-move visible-xl disabled">V+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="4" data-amount="100" class="btn btn-default btn-move visible-lg disabled">V+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -982,6 +1055,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="5" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-100</a>
+															<a href="#" data-axis="5" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-10</a>
 															<a href="#" data-axis="5" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-10</a>
 															<a href="#" data-axis="5" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-1</a>
 															<a href="#" data-axis="5" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> W-0.1</a>
@@ -992,6 +1066,7 @@
 															<a href="#" data-axis="5" data-amount="0.1" class="btn btn-default btn-move disabled">W+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="5" data-amount="1" class="btn btn-default btn-move disabled">W+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="5" data-amount="10" class="btn btn-default btn-move disabled">W+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="5" data-amount="50" class="btn btn-default btn-move visible-xl disabled">W+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="5" data-amount="100" class="btn btn-default btn-move visible-lg disabled">W+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -1005,6 +1080,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="6" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-100</a>
+															<a href="#" data-axis="6" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-50</a>
 															<a href="#" data-axis="6" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-10</a>
 															<a href="#" data-axis="6" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-1</a>
 															<a href="#" data-axis="6" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> A-0.1</a>
@@ -1015,6 +1091,7 @@
 															<a href="#" data-axis="6" data-amount="0.1" class="btn btn-default btn-move disabled">A+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="6" data-amount="1" class="btn btn-default btn-move disabled">A+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="6" data-amount="10" class="btn btn-default btn-move disabled">A+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="6" data-amount="50" class="btn btn-default btn-move visible-xl disabled">A+50 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="6" data-amount="100" class="btn btn-default btn-move visible-lg disabled">A+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -1028,6 +1105,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="7" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-100</a>
+															<a href="#" data-axis="7" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-10</a>
 															<a href="#" data-axis="7" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-10</a>
 															<a href="#" data-axis="7" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-1</a>
 															<a href="#" data-axis="7" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> B-0.1</a>
@@ -1038,6 +1116,7 @@
 															<a href="#" data-axis="7" data-amount="0.1" class="btn btn-default btn-move disabled">B+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="7" data-amount="1" class="btn btn-default btn-move disabled">B+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="7" data-amount="10" class="btn btn-default btn-move disabled">B+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="7" data-amount="50" class="btn btn-default btn-move visible-xl disabled">B+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="7" data-amount="100" class="btn btn-default btn-move visible-lg disabled">B+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -1051,6 +1130,7 @@
 													<td>
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="8" data-amount="-100" class="btn btn-default btn-move visible-lg disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-100</a>
+															<a href="#" data-axis="8" data-amount="-50" class="btn btn-default btn-move visible-xl disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-50</a>
 															<a href="#" data-axis="8" data-amount="-10" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-10</a>
 															<a href="#" data-axis="8" data-amount="-1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-1</a>
 															<a href="#" data-axis="8" data-amount="-0.1" class="btn btn-default btn-move disabled"><span class="glyphicon glyphicon-chevron-left"></span> C-0.1</a>
@@ -1060,7 +1140,7 @@
 														<div class="btn-group btn-group-justified">
 															<a href="#" data-axis="8" data-amount="0.1" class="btn btn-default btn-move disabled">C+0.1 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="8" data-amount="1" class="btn btn-default btn-move disabled">C+1 <span class="glyphicon glyphicon-chevron-right"></span></a>
-															<a href="#" data-axis="8" data-amount="10" class="btn btn-default btn-move disabled">C+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
+															<a href="#" data-axis="8" data-amount="10" class="btn btn-default btn-move visible-xl disabled">C+10 <span class="glyphicon glyphicon-chevron-right"></span></a>
 															<a href="#" data-axis="8" data-amount="100" class="btn btn-default btn-move visible-lg disabled">C+100 <span class="glyphicon glyphicon-chevron-right"></span></a>
 														</div>
 													</td>
@@ -1794,6 +1874,9 @@
 								<div class="col-md-12">
 									<table id="table_scan_files_directory" class="table-file-navigation">
 										<tr>
+											<td class="diabase hidden">
+												<button class="btn btn-success disabled" data-gcode="M98 P&quot;scanner_go.g&quot;"><span class="glyphicon glyphicon-home"></span> Go to Scan Location</button>
+											</td>
 											<td>
 												<button id="btn_calibrate_scanner" class="btn btn-success disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate</button>
 											</td>
@@ -1816,7 +1899,7 @@
 									<table class="table table-bordered table-files table-hover table-striped hidden" id="table_scan_files">
 										<thead>
 											<tr>
-												<th colspan="2"><!-- see JS --></th>
+												<th><!-- see JS --></th>
 												<th>File Name</th>
 												<th>Size</th>
 												<th>Date Created</th>
@@ -1843,7 +1926,7 @@
 											<div class="input-group-btn">
 												<button type="submit" class="btn btn-primary disabled" title="Send G-Code from input"><span class="glyphicon glyphicon-send"></span> Send</button>
 												<button class="btn btn-default" id="btn_clear_log" title="Clear G-Code Console"><span class="glyphicon glyphicon-trash"></span> Clear Log</button>
-												<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-floppy-save"></span> Download as <span class="caret"></span></button>
+												<button type="button" class="btn btn-default dropdown-toggle hidden-xs" data-toggle="dropdown"><span class="glyphicon glyphicon-floppy-save"></span> Download as <span class="caret"></span></button>
 												<ul class="dropdown-menu dropdown-menu-right">
 													<li><a id="a_download_text" href="#"><span class="glyphicon glyphicon-align-justify"></span> Text</a></li>
 													<li><a id="a_download_csv" href="#"><span class="glyphicon glyphicon-list"></span> CSV</a></li>
@@ -1923,8 +2006,8 @@
 									</table>
 
 									<div class="row visible-xs">
-										<div class="col-md-12 text-center">
-											<button class="btn btn-primary btn-upload disabled" title="Upload one or more G-Code files (drag&amp;drop is supported as well)" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
+										<div class="col-md-12 text-center hidden online-control">
+											<button class="btn btn-primary btn-upload" title="Upload one or more G-Code files (drag&amp;drop is supported as well)" data-type="gcode" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload G-Code File(s)</button>
 										</div>
 									</div>
 								</div>
@@ -1946,7 +2029,7 @@
 											<td class="hidden-xs hidden-sm hidden online-control">
 												<button class="btn btn-primary btn-upload disabled" title="Upload one or more macro files (drag&amp;drop is supported as well)" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
 											</td>
-											<td class"hidden online-control">
+											<td class="hidden online-control">
 												<div class="btn-group">
 													<button type="button" class="btn btn-info dropdown-toggle online-control hidden" data-toggle="dropdown">
 														<span class="glyphicon glyphicon-plus"></span> Make new... <span class="caret"></span>
@@ -1977,8 +2060,8 @@
 									</table>
 
 									<div class="row visible-xs">
-										<div class="col-md-12 text-center">
-											<button class="btn btn-primary btn-upload disabled" title="Upload one or more macro files (drag&amp;drop is supported as well)" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
+										<div class="col-md-12 text-center hidden online-control">
+											<button class="btn btn-primary btn-upload" title="Upload one or more macro files (drag&amp;drop is supported as well)" data-type="macro" data-style="btn-primary"><span class="glyphicon glyphicon-cloud-upload"></span> Upload Macro File(s)</button>
 										</div>
 									</div>
 								</div>
@@ -2031,11 +2114,11 @@
 									<div id="div_webcam_calibration" class="panel panel-default hidden">
 										<div class="panel-heading">Live Stream</div>
 										<div class="panel-body">
-											<img id="img_crosshair" alt="(crosshair not available)">
+											<img id="img_crosshair" src="about:blank" alt="(crosshair not available)">
 
 											<img id="img_webcam_calibration" src="about:blank" alt="(image not available)">
 											<div id="div_ifm_webcam_calibration" class="embed-responsive embed-responsive-16by9 hidden">
-												<iframe src="about:blank" id="ifm_webcam_calibration" class="embed-responsive-item" scrolling="no"></iframe>
+												<iframe src="about:blank" id="ifm_webcam_calibration" class="embed-responsive-item"></iframe>
 											</div>
 										</div>
 									</div>
@@ -2075,7 +2158,7 @@
 										</div>
 
 										<div class="panel-body">
-											<img id="img_calibration_diagram" alt="(calibration diagram)" class="img-responsive">
+											<img id="img_calibration_diagram" src="about:blank" alt="(calibration diagram)" class="img-responsive">
 										</div>
 									</div>
 								</div>
@@ -2112,7 +2195,7 @@
 									</li>
 								</ul>
 
-								<div class="tab-content">
+								<div class="tab-content well well-sm">
 									<!-- General Settings -->
 									<div class="tab-pane row active" id="page_general">
 										<div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 col-left">
@@ -2140,7 +2223,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.21.2-b2</td>
+															<td id="dwc_version">1.22-b1</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2170,12 +2253,6 @@
 												</div>
 
 												<div class="panel-body">
-													<div class="checkbox">
-														<label title="Connect automatically to the Duet once the web interface is ready">
-															<input type="checkbox" data-setting="autoConnect" /> Connect automatically
-														</label>
-													</div>
-
 													<label for="input_update_interval">Status Update Interval:</label>
 													<div class="input-group">
 														<input type="number" id="input_update_interval" class="form-control" title="Interval at which status updates are requested" data-setting="updateInterval" data-min="50">
@@ -2494,8 +2571,8 @@
 
 													<div class="row">
 														<div class="col-md-6">
-															<label for="webcamRotation">Rotation angle:</label>
-															<select class="form-control" data-setting="webcamRotation">
+															<label for="select_webcam_rotation">Rotation angle:</label>
+															<select id="select_webcam_rotation" class="form-control" data-setting="webcamRotation">
 																<option value="0" selected>0°</option>
 																<option value="90">90°</option>
 																<option value="180">180°</option>
@@ -2504,8 +2581,8 @@
 														</div>
 
 														<div class="col-md-6">
-															<label for="board">Flip image:</label>
-															<select class="form-control" data-setting="webcamFlip">
+															<label for="select_webcam_flip">Flip image:</label>
+															<select id="select_webcam_flip" class="form-control" data-setting="webcamFlip">
 																<option value="no" selected>No</option>
 																<option value="x">Flip X</option>
 																<option value="y">Flip Y</option>
@@ -2644,8 +2721,8 @@
 										</table>
 
 										<div class="row visible-xs">
-											<div class="col-md-12 text-center">
-												<button class="btn btn-info btn-upload disabled" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
+											<div class="col-md-12 text-center hidden online-control">
+												<button class="btn btn-info btn-upload" title="Upload one or more files to the /sys or /www directory (drag&amp;drop is supported as well)" data-type="generic" data-style="btn-info"><span class="glyphicon glyphicon-cloud-upload"></span>  Upload File(s)</button>
 											</div>
 										</div>
 									</div>
@@ -2964,20 +3041,21 @@
 					</div>
 				</div>
 
-				<!-- Sidebar Continuation -->
+				<!-- Sidebar Overlay -->
 				<div class="row">
-					<div class="col-sm-3 col-md-2 col-lg-2 sidebar sidebar-continuation"></div>
+					<div id="div_sidebar_overlay" class="hidden-xs hidden-sm col-md-2 col-lg-2">
+						<div class="well"></div>
+					</div>
 				</div>
 			</div>
 		</main>
 
 		<!-- Modal dialogs -->
-		<div class="modal fade" id="modal_host_input">
+		<div id="modal_host_input" class="modal fade" data-backdrop="static">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form id="form_host">
 						<div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
 							<h4 class="modal-title">Connect to Board</h4>
 						</div>
 						<div class="modal-body">
@@ -2985,11 +3063,8 @@
 								<label for="input_host">Please enter the address of your board:</label>
 								<input type="text" class="form-control" id="input_host">
 							</div>
-
-							<p class="text-muted">Note: If you want to remember this value, save the settings once after a connection has been established.</p>
 						</div>
 						<div class="modal-footer">
-							<button type="button" class="btn btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
 							<button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-log-in"></span> Connect</button>
 						</div>
 					</form>
@@ -2997,7 +3072,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_pass_input">
+		<div id="modal_pass_input" class="modal fade" data-backdrop="static">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form id="form_password">
@@ -3020,7 +3095,22 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_change_filament">
+		<div id="modal_reconnecting" class="modal fade" data-backdrop="static">
+			<div class="modal-dialog modal-md">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4 class="modal=title"><span class="glyphicon glyphicon-exclamation-sign"></span> <span id="span_reconnect_title">Connection Lost</span></h4>
+					</div>
+					<div class="modal-body">
+						<p>The connection between the browser and your machine has been interrupted.</p>
+						<p>Reason: <span id="span_reconnect_reason">Unknown</span></p>
+						<p>Please wait while a new connection is being established...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="modal_change_filament" class="modal fade">
 			<div class="modal-dialog modal-sm">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3035,7 +3125,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_confirmation">
+		<div id="modal_confirmation" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3053,7 +3143,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_textinput">
+		<div id="modal_textinput" class="modal fade">
 			<div class="modal-dialog modal-sm">
 				<div class="modal-content">
 					<form>
@@ -3076,7 +3166,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_change_step">
+		<div id="modal_change_step" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form>
@@ -3101,8 +3191,8 @@
 			</div>
 		</div>
 
-		<input type="file" id="input_file_upload" class="hidden" multiple>
-		<div class="modal fade" id="modal_upload" data-backdrop="static">
+		<input id="input_file_upload" class="hidden" type="file" multiple>
+		<div id="modal_upload" class="modal fade" data-backdrop="static">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3132,7 +3222,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_edit">
+		<div id="modal_edit" class="modal fade">
 			<div class="modal-dialog">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3150,7 +3240,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_bed">
+		<div id="modal_bed" class="modal fade">
 			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3165,7 +3255,7 @@
 								</div>
 							</div>
 							<div id="div_visualization" class="col-xs-10 col-sm-10 col-md-11 hidden">
-								<!-- See JS -->
+								<!-- see JS -->
 							</div>
 							<div id="div_legend" class="col-xs-2 col-sm-2 col-md-1 hidden">
 								<canvas id="canvas_legend"></canvas>
@@ -3212,10 +3302,9 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_backdrop" data-backdrop="static">
-		</div>
+		<div id="modal_backdrop" class="modal fade" data-backdrop="static"></div>
 
-		<div class="modal fade" id="modal_scanner" data-backdrop="static">
+		<div id="modal_scanner" class="modal fade" data-backdrop="static">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3253,7 +3342,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_scanner_calibration" data-backdrop="static">
+		<div id="modal_scanner_calibration" class="modal fade" data-backdrop="static">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3276,7 +3365,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_calibrate">
+		<div id="modal_calibrate" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
@@ -3294,7 +3383,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_start_scan">
+		<div id="modal_start_scan" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form>
@@ -3398,7 +3487,7 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_wifi_cam">
+		<div id="modal_wifi_cam" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<form>
@@ -3424,15 +3513,15 @@
 			</div>
 		</div>
 
-		<div class="modal fade" id="modal_messagebox">
+		<div id="modal_messagebox" class="modal fade">
 			<div class="modal-dialog modal-md">
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-						<h4 id="h4_messagebox_title" class="modal-title"><!-- See JS --></h4>
+						<h4 id="h4_messagebox_title" class="modal-title"><!-- see JS --></h4>
 					</div>
 					<div class="modal-body">
-						<h3 id="h3_messagebox"></h3>
+						<h3 id="h3_messagebox"><!-- see JS --></h3>
 
 						<div id="div_x_controls">
 							<label>Use the following controls to adjust X:</label>

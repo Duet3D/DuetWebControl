@@ -8,8 +8,6 @@
 
 
 var settings = {
-	autoConnect: true,				// automatically connect once the page has loaded
-	lastHost: "",					// only used on localhost
 	updateInterval: 250,			// in ms
 	extendedStatusInterval: 10,		// nth status request will include extended values
 	maxRetries: 1,					// number of AJAX retries before the connection is terminated
@@ -30,25 +28,18 @@ var settings = {
 
 	moveFeedrate: 6000,				// in mm/min
 	axisMoveSteps: [				// in mm
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[50, 5, 0.5, 0.05],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1],
-		[100, 10, 1, 0.1]
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
+		[50, 25, 5, 0.5, 0.05],
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
+		[100, 50, 10, 1, 0.1],
 	],
 	extruderAmounts: [100, 50, 20, 10, 5, 1],	// in mm
 	extruderFeedrates: [60, 30, 15, 5, 1],		// in mm/s
-	allowUnhomedMoves: true,		// allow moves while axes are unhomed
 	babysteppingZ: 0.05,			// in mm
 	showATXControl: false,			// show ATX control
 
@@ -88,6 +79,33 @@ var themeInclude;
 var rememberedGCodes = ["M0", "M1", "M84", "M561"], defaultGCodes = jQuery.extend(true, {}, rememberedGCodes);
 
 
+/* Safe wrappers for localStorage */
+
+function getLocalSetting(key, defaultValue) {
+	if (typeof localStorage === "undefined") {
+		return defaultValue;
+	}
+
+	var value = localStorage.getItem(key);
+	if (value == undefined || value.length == 0) {
+		return defaultValue;
+	}
+	return JSON.parse(value);
+}
+
+function setLocalSetting(key, value) {
+	if (typeof localStorage !== "undefined") {
+		localStorage.setItem(key, JSON.stringify(value));
+	}
+}
+
+function removeLocalSetting(key) {
+	if (typeof localStorage !== "undefined") {
+		localStorage.removeItem(key);
+	}
+}
+
+
 /* Setting methods */
 
 function loadSettings() {
@@ -95,22 +113,18 @@ function loadSettings() {
 	document.cookie = "settings=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 
 	// Try to parse the stored settings (if any)
-	if (localStorage.getItem("settings") != null) {
-		var loadedSettings = localStorage.getItem("settings");
-		if (loadedSettings != undefined && loadedSettings.length > 0) {
-			loadedSettings = JSON.parse(loadedSettings);
-
-			for(var key in settings) {
-				// Try to copy each setting if their types are equal
-				if (loadedSettings.hasOwnProperty(key) && loadedSettings[key] != null && settings[key].constructor === loadedSettings[key].constructor) {
-					settings[key] = loadedSettings[key];
-				}
+	var loadedSettings = getLocalSetting("settings", null);
+	if (loadedSettings != null) {
+		for(var key in settings) {
+			// Try to copy each setting if their types are equal
+			if (loadedSettings.hasOwnProperty(key) && loadedSettings[key] != null && settings[key].constructor === loadedSettings[key].constructor) {
+				settings[key] = loadedSettings[key];
 			}
+		}
 
-			// Backward-compatibility
-			if (loadedSettings.hasOwnProperty("useDarkTheme")) {
-				settings.theme = loadedSettings.useDarkTheme ? "dark" : "default";
-			}
+		// Backward-compatibility
+		if (loadedSettings.hasOwnProperty("useDarkTheme")) {
+			settings.theme = loadedSettings.useDarkTheme ? "dark" : "default";
 		}
 	}
 
@@ -122,7 +136,7 @@ function loadSettings() {
 
 	// See if we need to fetch the settings once again from the Duet
 	if (settings.settingsOnDuet) {
-		$.ajax("dwc.json", {
+		$.ajax(ajaxPrefix + "dwc.json", {
 			type: "GET",
 			dataType: "json",
 			global: false,
@@ -300,6 +314,13 @@ function applySettings() {
 }
 
 function applyMovementSteps() {
+	// Check values
+	for(var axis = 0; axis < settings.axisMoveSteps.length; axis++) {
+		if (settings.axisMoveSteps[axis].length < 5) {
+			settings.axisMoveSteps[axis].splice(1, 0, (axis == 2) ? 25 : 50);
+		}
+	}
+
 	// Axis apperance
 	for(var i = 0; i < axisNames.length; i++) {
 		// Set Home button names+titles
@@ -313,35 +334,35 @@ function applyMovementSteps() {
 			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
 			$(this).data("amount", decreaseVal).contents().last().replaceWith(" " + axis + decreaseVal);
 		});
-		buttonIndex = 1;
+		buttonIndex = 0;
 		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
 			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
 			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
 		});
-		buttonIndex = 1;
+		buttonIndex = 0;
 		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
 			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
 			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
 		});
 
-		buttonIndex = 3;
+		buttonIndex = 4;
 		$("#page_control a.btn-move[data-axis='" + i + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
 			$(this).data("amount", increaseVal).contents().first().replaceWith(axis + "+" + increaseVal + " ");
 		});
-		buttonIndex = 3;
+		buttonIndex = 4;
 		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
 			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
 		});
-		buttonIndex = 3;
+		buttonIndex = 4;
 		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
 			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
 		});
 
 		// Set headers for position cells in the Machine Status panel
-		$("#table_axis_positions th[data-axis='" + i + "']").text(axisNames[i]);
+		$(".table-axis-positions th[data-axis='" + i + "']").text(axisNames[i]);
 	}
 
 	// Extruder amounts
@@ -419,7 +440,7 @@ function saveSettings() {
 	settings.defaultBedTemps = settings.defaultBedTemps.sort(function(a, b) { return a - b; });
 
 	// Save Settings
-	localStorage.setItem("settings", JSON.stringify(settings));
+	setLocalSetting("settings", settings);
 	if (settings.settingsOnDuet) {
 		uploadTextFile("0:/www/dwc.json", JSON.stringify(settings), function() {
 			// Tell DWC clients to reload its config
@@ -446,16 +467,14 @@ function constrainSetting(value, defaultValue, minValue, maxValue) {
 /* Remembered G-Codes */
 
 function loadGCodes() {
-	if (localStorage.getItem("rememberedGCodes") != null) {
-		rememberedGCodes = JSON.parse(localStorage.getItem("rememberedGCodes"));
-	}
+	rememberedGCodes = getLocalSetting("rememberedGCodes", defaultGCodes);
 	applyGCodes();
 }
 
 function applyGCodes() {
 	$("#table_gcodes > tbody").children().remove();
-	for(var gcode in rememberedGCodes) {
-		var item =  '<tr><th>' + gcode + '</th><td>';
+	for(var index in rememberedGCodes) {
+		var item =  '<tr><th>' + rememberedGCodes[index] + '</th><td>';
 		item += '<button class="btn btn-sm btn-danger btn-delete-parent" title="' + T("Delete this G-Code item") + '">';
 		item += '<span class="glyphicon glyphicon-trash"></span></button></td></tr>';
 		$("#table_gcodes > tbody").append(item);
@@ -463,7 +482,7 @@ function applyGCodes() {
 }
 
 function saveGCodes() {
-	localStorage.setItem("rememberedGCodes", JSON.stringify(rememberedGCodes));
+	setLocalSetting("rememberedGCodes", rememberedGCodes);
 }
 
 
@@ -478,20 +497,41 @@ $(".btn-reset-settings").click(function(e) {
 		}
 
 		settings = jQuery.extend(true, {}, defaultSettings);
-		$("#btn_language").data("language", "en").children("span:first-child").text("English");
-		$("#btn_theme").data("theme", "default").children("span:first-child").text(T("Bootstrap"));
+		if (vendor != undefined) {
+			$.ajax(ajaxPrefix + "dwc_factory.json", {
+				type: "GET",
+				dataType: "json",
+				global: false,
+				error: function(jqxhr, xhrsettings, thrownError) {
+					settings = jQuery.extend(true, {}, defaultSettings);
+					settingsLoaded();
+				},
+				success: function(response) {
+					for(var key in settings) {
+						// Try to copy each setting if their types are equal
+						if (response.hasOwnProperty(key) && response[key] != null && settings[key].constructor === response[key].constructor) {
+							settings[key] = response[key];
+						}
+					}
+					settingsLoaded();
+				}
+			});
+		} else {
+			$("#btn_language").data("language", "en").children("span:first-child").text("English");
+			$("#btn_theme").data("theme", "default").children("span:first-child").text(T("Bootstrap"));
 
-		applySettings();
-		saveSettings();
+			applySettings();
+			saveSettings();
+		}
 
 		rememberedGCodes = jQuery.extend(true, {}, defaultGCodes);
 		applyGCodes();
 		saveGCodes();
 
-		localStorage.removeItem("extraSensorVisibility");
+		removeLocalSetting("extraSensorVisibility");
 		resetChartData();
 
-		localStorage.removeItem("cachedFileInfo");
+		removeLocalSetting("cachedFileInfo");
 	});
 	e.preventDefault();
 });
@@ -667,14 +707,5 @@ $('a[href="#page_general"], a[href="#page_ui"], a[href="#page_listitems"]').on('
 
 $('a[href="#page_machine"], a[href="#page_tools"], a[href="#page_sysedit"], a[href="#page_display"]').on('shown.bs.tab', function () {
 	$("#row_save_settings").addClass("hidden");
-});
-
-// Piecon settings
-
-Piecon.setOptions({
-	color: "#0000ff",		// Pie chart color
-	background: "#bbb",		// Empty pie chart color
-	shadow: "#fff",			// Outer ring color
-	fallback: "force"		// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
 });
 

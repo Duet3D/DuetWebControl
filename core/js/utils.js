@@ -378,7 +378,7 @@ function setCurrentTool(toolNumber) {
 
 	// Underline and highlight current tool
 	$("#table_tools > tbody > tr").each(function() {
-		$(this).toggleClass("active-tool-row", $(this).data("tool") == toolNumber);
+		$(this).toggleClass("active", $(this).data("tool") == toolNumber);
 		$(this).find("th:first-child > a > span:first-child").css("text-decoration", ($(this).data("tool") == toolNumber) ? "underline" : "");
 	});
 
@@ -391,6 +391,7 @@ function setCurrentTool(toolNumber) {
 /* Control state management */
 
 function enableControls() {
+	$(".table-axis-positions td").css("cursor", "pointer");
 	$("nav input, #div_tools_heaters input, #div_content input").prop("disabled", false);		// Generic inputs
 	$("#page_tools label").removeClass("disabled");												// and on Settings page
 	$(".machine-button").removeClass("disabled");
@@ -398,7 +399,7 @@ function enableControls() {
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").removeClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").removeClass("disabled");					// List items and Upload buttons
 
-	$("#mobile_home_buttons button, #btn_homeall, .table-move a").removeClass("disabled");		// Move buttons
+	$(".mobile-home-buttons button, #btn_homeall, .table-move a").removeClass("disabled");		// Move buttons
 	$("#btn_bed_dropdown").removeClass("disabled");												// Automatic Bed Compensation
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
@@ -423,6 +424,7 @@ function enableControls() {
 }
 
 function disableControls() {
+	$(".table-axis-positions td").css("cursor", "");
 	$("nav input, #div_tools_heaters input, #div_content input").prop("disabled", true);		// Generic inputs
 	$("#page_general input, #page_ui input, #page_listitems input").prop("disabled", false);	// ... except ...
 	$("#page_tools label").addClass("disabled");												// ... for Settings
@@ -431,7 +433,7 @@ function disableControls() {
 	$(".btn-emergency-stop, .gcode-input button[type=submit], .gcode").addClass("disabled");	// Navbar
 	$(".bed-temp, .gcode, .heater-temp, .btn-upload").addClass("disabled");						// List items and Upload buttons
 
-	$("#mobile_home_buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
+	$(".mobile-home-buttons button, #btn_homeall, #table_move_head a").addClass("disabled");	// Move buttons
 	$("#btn_bed_dropdown").addClass("disabled");												// Automatic Bed Compensation
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
@@ -486,8 +488,8 @@ function arraysEqual(a, b) {
 
 function log(style, message) {
 	var entry =		'<div class="row alert-' + style + '">';
-	entry +=		'<div class="col-xs-2 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
-	entry +=		'<div class="col-xs-10 col-sm-10 col-md-10 col-lg-11">' + message + '</div></div>';
+	entry +=		'<div class="col-xs-3 col-sm-2 col-md-2 col-lg-1 text-center"><strong>' + (new Date()).toLocaleTimeString() + '</strong></div>';
+	entry +=		'<div class="col-xs-9 col-sm-10 col-md-10 col-lg-11">' + message + '</div></div>';
 	$("#console_log").prepend(entry);
 }
 

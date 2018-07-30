@@ -1,9 +1,9 @@
 /* Generic classes */
 
 body {
-	min-width: 465px;
 	width: 100%;
 	height: 100%;
+	min-width: 480px;
 }
 
 dl {
@@ -40,11 +40,7 @@ input[type="number"] {
 }
 
 label {
-	font-weight: inherit;
-}
-
-#main_content {
-	background-color: inherit;
+	font-weight: inherit !important;
 }
 
 .no-horizontal-padding {
@@ -63,13 +59,17 @@ label {
 	padding-top: 3px;
 	padding-bottom: 3px;
 }
-.panel-heading span {
+.panel-heading > span:not(.label) {
 	font-size: 14px;
 }
 
 .padding-small {
 	padding-left: 8px !important;
 	padding-right: 8px !important;
+}
+
+.panel-table-container {
+	margin: -1px;
 }
 
 .slider .slider-handle {
@@ -123,11 +123,12 @@ label {
 	margin-left: 15px;
 }
 
-.brand-sm {
-	display: inline-block !important;
+#div_navbar_buttons {
+	padding-right: 0px;
 }
-.brand-lg {
-	display: none !important;
+
+#div_navbar_buttons > :last-child {
+	margin-left: 9px;
 }
 
 .gcode {
@@ -148,17 +149,17 @@ label {
 	margin-left: 15px;
 }
 
-/* There appears to be no easy way to right-align list item labels, so I use JS for now
-*  If anyone has a better solution for this, please implement it.
-*/
-.gcode-float span.label {
-	position: absolute;
-	right: 9px;
-	margin-top: 3px;
+.navbar {
+	margin-bottom: 0px !important;
+}
+
+.navbar span.label-status {
+	margin-left: 9px;
+	margin-top: 16px;
 }
 
 .navbar-brand {
-	float: none;
+	display: flex;
 	font-size: 20px;
 	margin-left: 0px !important;
 	padding-left: 3px !important;
@@ -170,8 +171,13 @@ label {
 	border: 0px;
 	margin-left: 9px;
 }
+
 .navbar-brand > abbr > span {
 	color: #F0AD4E;
+}
+
+.navbar-brand > img {
+	margin-right: 9px;
 }
 
 .navbar-default {
@@ -223,11 +229,6 @@ label {
 	min-width: 50px;
 }
 
-#div_temp_chart {
-	padding-left: 0px;
-	padding-right: 0px;
-}
-
 #table_extruder_positions td {
 	white-space: nowrap;
 }
@@ -235,6 +236,10 @@ label {
 .input-td {
 	padding-top: 6px !important;
 	padding-bottom: 6px !important;
+}
+
+.label-status {
+	margin-top: 2px;
 }
 
 .panel-status {
@@ -250,7 +255,6 @@ label {
 }
 
 #div_info_panels {
-	background-color: #FFFFFF;
 	padding-top: 12px;
 }
 
@@ -258,17 +262,25 @@ label {
 	cursor: pointer;
 }
 
+#span_mode {
+	float: right;
+	margin-top: 2px;
+}
+
+.table-axis-positions.diabase > tbody > tr:first-child > th:nth-child(2),
+.table-axis-positions.diabase > tbody > tr:not(:first-child) > th,
+.table-axis-positions.diabase > tbody > tr > td {
+	font-size: 30px;
+}
+
+.table-axis-positions.diabase > tbody > tr > td {
+	padding-right: 15px;
+	text-align: right;
+}
+
 .table-centered-cells th, .table-centered-cells td {
 	text-align: center;
 	vertical-align: middle !important;
-}
-
-#table_heaters input[type="number"] {
-	min: 0;
-	max: 300;
-}
-#input_temp_bed {
-	max: 160;
 }
 
 .table-fan-control {
@@ -313,10 +325,6 @@ label {
 	margin: 0px !important;
 	table-layout: fixed;
 }
-div.panel table.table-status:not(:last-child)
-{
-	border-bottom:  1px solid #ddd;
-}
 
 .th-status {
 	width: 100px;
@@ -329,7 +337,7 @@ div.panel table.table-status:not(:last-child)
 	color: #FF0000 !important;
 }
 .heater-2 {
-	color: #00DD00 !important;
+	color: #00CC00 !important;
 }
 .heater-3 {
 	color: #FFA000 !important;
@@ -382,68 +390,42 @@ div.panel table.table-status:not(:last-child)
 .temp-sensor-9 {
 	color: #AA00AA !important;
 }
-.active-tool-row > th,
-.active-tool-row > td {
-	background-color: #D9EDF7;
-}
 
 
 /* Static sidebar (for desktops) */
 
-.sidebar {
-	padding-left: 20px;
-	padding-right: 20px;
-	padding-top: 0px;
-	background-color: #f5f5f5;
-	border-right: 1px solid #bfbfbf;
-	border-top: 1px solid #bfbfbf;
-}
-
-.sidebar-continuation {
-	border-top: 0px;
+#div_sidebar_overlay {
 	min-height: 100vh;
 	height: 100%;
+	padding-right: 0px;
 	position: fixed;
 	top: 0px;
 	bottom: 0px;
 	z-index: -9999;
 }
 
-.nav-sidebar {
-	margin-right: -20px;
-	margin-bottom: 10px;
-	margin-left: -20px;
-}
-
-.nav-sidebar > li > a {
-	font-size: 15px;
-	padding-right: 20px;
-	padding-left: 20px;
-	white-space: nowrap;
-}
-
-.nav-sidebar:last-child {
+#div_sidebar_overlay > div.well {
+	height: 100%;
 	margin-bottom: 0px;
 }
 
-.nav-sidebar .glyphicon {
-	padding-right: 3px;
+#div_static_sidebar {
+	padding-right: 0px;
 }
 
-.nav-sidebar > .active > a,
-.nav-sidebar > .active > a:hover,
-.nav-sidebar > .active > a:focus {
-	color: #fff;
-	background-color: #428bca;
+#div_static_sidebar > div.well {
+	padding: 0px;
+	margin-bottom: 0px;
+	border-bottom: none;
 }
 
-.nav-sidebar .span-refresh-scans,
-.nav-sidebar .span-refresh-files,
-.nav-sidebar .span-refresh-macros,
-.nav-sidebar .span-refresh-filaments {
-	position: absolute;
+.span-refresh-scans,
+.span-refresh-files,
+.span-refresh-macros,
+.span-refresh-filaments {
+	position: absolute !important;
 	right: 15px;
-	top: 14px;
+	top: 12px !important;
 }
 
 
@@ -451,28 +433,38 @@ div.panel table.table-status:not(:last-child)
 
 .slideout-menu {
 	position: fixed;
-	left: 0;
 	top: 0;
 	bottom: 0;
-	right: 0;
-	z-index: 0;
 	width: 220px;
-	overflow-y: scroll;
+	min-height: 100vh;
+	padding: 0px !important;
+	margin-bottom: 0px !important;
 	-webkit-overflow-scrolling: touch;
+	z-index: 0;
 	display: none;
-
-	background-color: #f5f5f5;
-	padding-left: 15px;
 }
 
-.slideout-menu .nav-sidebar {
-	margin-right: 0px;
+.slideout-menu h4 {
+	margin-left: 15px;
+}
+
+.slideout-menu > section {
+	margin-bottom: 30px;
+}
+
+.slideout-menu-left {
+	left: 0;
+}
+
+.slideout-menu-right {
+	right: 0;
 }
 
 .slideout-panel {
 	position: relative;
 	z-index: 1;
 	will-change: transform;
+	min-height: 100vh;
 }
 
 .slideout-open,
@@ -489,31 +481,6 @@ div.panel table.table-status:not(:last-child)
 	margin-top: 15px;
 }
 
-#section_actions,
-#section_app {
-	margin-right: 15px;
-}
-
-#section_actions > button,
-#section_app > button {
-	width: 100%;
-	margin-bottom: 15px;
-}
-
-#section_actions > :last-child {
-	margin-bottom: 30px;
-}
-
-#section_navigation > :last-child {
-	margin-bottom: 15px;
-}
-
-#section_app {
-	position: absolute;
-	bottom: 0px;
-	width: 190px;
-}
-
 
 /* Main content */
 
@@ -522,9 +489,14 @@ div.panel table.table-status:not(:last-child)
 }
 
 #div_content .panel-heading {
-	padding-left: 9px !important;
 	padding-right: 9px !important;
 	text-align: center;
+}
+
+#main_content,
+#div_info_panels,
+#div_info_panels > div {
+	background-color: inherit;
 }
 
 .page {
@@ -560,12 +532,6 @@ div.panel table.table-status:not(:last-child)
 	float: right;
 }
 
-.home-warning {
-	margin-top: -11px;
-	padding-top: 6px;
-	padding-bottom: 6px;
-}
-
 #panel_control_misc .btn-group label {
 	padding-left: 0px;
 	padding-right: 0px;
@@ -585,8 +551,7 @@ div.panel table.table-status:not(:last-child)
 	padding-bottom: 9px;
 }
 
-#mobile_home_buttons,
-#mobile_extra_home_buttons {
+.mobile-home-buttons {
 	padding-bottom: 9px;
 }
 
@@ -641,6 +606,7 @@ tr[data-fan="print"] > td:first-child > button {
 #ifm_webcam_calibration {
 	width: 100%;
 	border: 0px;
+	overflow: hidden;
 }
 
 #img_crosshair {
@@ -814,11 +780,12 @@ tr[data-fan="print"] > td:first-child > button {
 	padding-right: 6px;
 }
 
-#table_scan_files_directory tr > td:nth-child(2) {
+#table_scan_files_directory tr > td:nth-child(2),
+#table_scan_files_directory tr > td:nth-child(3) {
 	padding-left: 0px;
 }
 
-#table_scan_files_directory tr > td:nth-child(3) {
+#table_scan_files_directory tr > td:nth-child(4) {
 	width: 100%;
 	padding-left: 0px;
 	padding-right: 0px;
@@ -1068,6 +1035,10 @@ label[for="dropdown_language"] {
 	margin-top: 6px;
 }
 
+#page_sysedit button.btn-upload {
+	margin-bottom: 15px;
+}
+
 .tab-content {
 	border: 1px solid #ddd;
 	border-bottom-width: 1px;
@@ -1075,7 +1046,7 @@ label[for="dropdown_language"] {
 	border-right-width: 1px;
 	border-top-width: 0px;
 	padding: 15px;
-	padding-bottom: 0px;
+	padding-bottom: 0px !important;
 	margin-bottom: 15px;
 }
 
@@ -1123,14 +1094,9 @@ label[for="dropdown_language"] {
 	padding: 6px;
 }
 
-#page_sysedit,
-#page_display {
-	margin: -16px -16px;
-}
-
 #page_sysedit h1,
 #page_display h1 {
-	margin-bottom: 31px;
+	margin-bottom: 20px;
 }
 
 #ol_sys_directory,
@@ -1170,6 +1136,25 @@ label[for="dropdown_language"] {
 
 #modal_change_step div.input-group {
 	margin-bottom: 15px;
+}
+
+#modal_reconnecting {
+  text-align: center;
+  padding: 0!important;
+}
+
+#modal_reconnecting:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -4px; /* Adjusts for spacing */
+}
+
+#modal_reconnecting > .modal-dialog {
+  display: inline-block;
+  text-align: left;
+  vertical-align: middle;
 }
 
 #modal_textinput div.input-group {

@@ -10,12 +10,14 @@
 var ajaxPrefix = "";					// Host to use for AJAX requests + "?" char or empty if running on a webserver
 var defaultPassword = "reprap";			// Default password that is used when a new connection is established
 var sessionPassword = defaultPassword	// The actual password of the board
+var reconnectInterval = 1000;			// Interval in which DWC attempts to reconnect to the firmware
 var sessionTimeout = 8000;				// Time in ms before RepRapFirmware kills our session
 
 var isConnected = false;				// Are we connected?
 var justConnected = false;				// Have we just connected?
 
-var reconnectingAfterHalt = false;		// Have we just reconnected after a firmware halt?
+var reconnectingAfterHalt = false;		// Are we trying to reconnect after a firmware halt?
+var reconnectingAfterUpdate = false;	// Are we trying to reconnect after a firmware update?
 var resetConfirmationShown = false;		// Have we shown a prompt to send a reset code yet?
 
 var updateTaskLive = false;				// Are status responses being polled?
@@ -88,23 +90,13 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 			}
 		}
 
-		// Report an error and disconnect if we exceeded the maximum number of retries
-		var msg, title;
-		if (thrownError == "timeout") {
-			title = T("Request Timeout");
-			msg = T("The last HTTP request has timed out. Please make sure the connection between your device and the board is not interrupted.");
-		} else if (thrownError == "parsererror") {
-			title = T("Invalid Response");
-			msg = T("The firmware has sent an invalid response to the web interface. Open the developer console to view further details.");
-		} else {
-			title = T("Communication Error");
-			msg = T("A communication error was reported, so the current session has been terminated. Please check your board and try to connect again.");
-			if (thrownError != undefined && thrownError != "") {
-				msg += "<br/><br/>" + T("Error reason: {0}", T(thrownError.toString()));
-			}
-		}
-		showMessage("danger", title, msg, 0);
+		// Try to reconnect
 		disconnect(false);
+		$("#span_reconnect_title").text(T("Connection Lost"));
+		$("#span_reconnect_reason").text(errorToDescription(thrownError, ""));
+		$("#modal_reconnecting").modal("show");
+		setStatusLabel("Reconnecting", "warning");
+		connect(sessionPassword, false);
 
 		// Try to log the faulty response to console
 		if (response != undefined) {
@@ -117,71 +109,62 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 
 /* Connect / Disconnect */
 
-$("body").on("click", ".btn-connect", function() {
-	if (!$(this).hasClass("disabled")) {
-		if (!isConnected) {
-			// Attempt to connect with the last-known password first
-			connect(sessionPassword, true);
-		} else {
-			disconnect(true);
-		}
-	}
-});
-
 function connect(password, regularConnect) {
 	if (regularConnect) {
-		// Close all notifications before we connect...
+		$("#main_content").css("cursor", "wait");
+		setStatusLabel("Connecting", "warning");
 		closeAllNotifications();
 
 		// If we are running on localhost, ask for a destination
-		if (document.location.host == "" && ajaxPrefix == "") {
+		if (location.host == "" && ajaxPrefix == "") {
 			showHostPrompt();
 			return;
 		}
 	}
 
-	$(".btn-connect").removeClass("btn-info").addClass("btn-warning disabled").find("span:not(.glyphicon)").text(T("Connecting..."));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
 	$.ajax(ajaxPrefix + "rr_connect?password=" + password + "&time=" + encodeURIComponent(timeToStr(new Date())), {
 		dataType: "json",
-		error: function() {
-			showMessage("danger", T("Error"), T("Could not establish a connection to the Duet firmware! Please check your settings and try again.") + "<div class=\"visible-xs visible-sm\"><br/><center><button id=\"btn_quick_connect\" class=\"btn btn-info btn-connect\"><span class=\"glyphicon glyphicon-log-in\"></span> Connect</button></center>", 0);
+		global: false,
+		error: function(jqXHR, textStatus, errorThrown) {
+			if (regularConnect && location.host == "") {
+				$("#main_content").css("cursor", "");
+				setStatusLabel("Disconnected", "idle");
+				showMessage("danger", T("Error"), T("Could not establish a connection to the Duet firmware! Please check your settings and try again."), 0, false);
+			} else {
+				if (!reconnectingAfterUpdate) {
+					$("#span_reconnect_reason").text(errorToDescription(textStatus, errorThrown));
+				}
+				if (regularConnect) {
+					$("#span_reconnect_title").text(T("Failed to connect"));
+					$("#modal_reconnecting").modal("show");
+				}
 
-			$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-			$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-
-			disconnect(false);
+				setTimeout(function() {
+					connect(password, false);
+				}, reconnectInterval);
+			}
 		},
 		success: function(response) {
-			if (response.err == 2) {		// Looks like the firmware ran out of HTTP sessions
-				openConnectFailNotification = showMessage("danger", T("Error"), T("Could not connect to Duet, because there are no more HTTP sessions available."), 0);
-				$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-				$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-
-				if (isConnected) {
-					disconnect(false);
+			if (response.err == 2) {				// Looks like the firmware ran out of HTTP sessions
+				$("#span_reconnect_reason").text(T("No more HTTP sessions available"));
+				if (regularConnect) {
+					$("#span_reconnect_title").text(T("Failed to connect"));
+					$("#modal_reconnecting").modal("show");
 				}
-			}
-			else if (regularConnect)
-			{
-				if (response.err == 0) {	// No password authentication required
+
+				setTimeout(function() {
+					connect(password, false);
+				}, reconnectInterval);
+			} else {
+				$("#modal_reconnecting").modal("hide");
+
+				if (response.err == 0) {		// Connection established
 					sessionPassword = password;
 					postConnect(response);
-				} else {					// We can connect, but we need a password first
+				} else {						// Invalid password
 					showPasswordPrompt();
-				}
-			}
-			else {
-				if (response.err == 0) {	// Connect successful
-					sessionPassword = password;
-					postConnect(response);
-				} else {
-					showMessage("danger", T("Error"), T("Invalid password!"), 0);
-					$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-					$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
-
-					if (isConnected) {
-						disconnect(false);
+					if (password != "") {
+						showMessage("danger", T("Error"), T("Invalid password!"));
 					}
 				}
 			}
@@ -198,7 +181,11 @@ function postConnect(response) {
 		setBoardType(response.boardType);
 	}
 
+	$("#main_content").css("cursor", "");
 	log("success", "<strong>" + T("Connection established!") + "</strong>");
+	if (location.host == "") {
+		setLocalSetting("lastHost", $("#input_host").val());
+	}
 
 	isConnected = justConnected = true;
 	extendedStatusCounter = settings.extendedStatusInterval; // ask for extended status response on first poll
@@ -216,9 +203,6 @@ function postConnect(response) {
 		getConfigResponse();
 	}
 
-	$(".btn-connect").removeClass("btn-warning disabled").addClass("btn-success").find("span:not(.glyphicon)").text(T("Disconnect"));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
-
 	enableControls();
 	validateAddTool();
 }
@@ -228,10 +212,6 @@ function disconnect(sendDisconnect) {
 		log("danger", "<strong>" + T("Disconnected.") + "</strong>");
 	}
 	isConnected = false;
-	ajaxPrefix = "";
-
-	$(".btn-connect").removeClass("btn-success").addClass("btn-info").find("span:not(.glyphicon)").text(T("Connect"));
-	$(".btn-connect span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
 
 	if (sendDisconnect) {
 		$.ajax(ajaxPrefix + "rr_disconnect", { dataType: "json", global: false });
@@ -250,6 +230,21 @@ function disconnect(sendDisconnect) {
 	disableControls();
 	validateAddTool();
 	setToolMapping([]);
+}
+
+function errorToDescription(textStatus, errorThrown) {
+	if (errorThrown != "" && textStatus != errorThrown) {
+		return errorThrown;
+	}
+
+	switch (textStatus) {
+		case "timeout": return  T("Request Timeout");
+		case "error": return T("Host unreachable");
+		case "abort": return T("Request aborted");
+		case "parsererror": return T("Invalid Response");
+		case "": return T("Communication Error");
+		default: return T("Unknown ({0})", textStatus);
+	}
 }
 
 
@@ -370,6 +365,12 @@ function updateStatus() {
 				needGuiUpdate = true;
 			}
 
+			// Machine Mode
+			if (status.hasOwnProperty("mode")) {
+				$("#span_mode").removeClass("hidden");
+				$("#span_mode > span").text(status.mode);
+			}
+
 			// Machine Name
 			if (status.hasOwnProperty("name")) {
 				setMachineName(status.name);
@@ -436,7 +437,7 @@ function updateStatus() {
 			if (status.hasOwnProperty("vin")) {
 				$(".vin").removeClass("hidden");
 				$("#td_vin").html(T("{0} V", status.vin.cur.toFixed(1)));
-				$("#td_vin").prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.vin.min.toFixed(1), status.vin.max.toFixed(1)));
+				$("#td_vin").prop("title", T("Minimum: {0} V Maximum: {1} V", status.vin.min.toFixed(1), status.vin.max.toFixed(1)));
 			}
 
 			// Requested and top speeds
@@ -761,7 +762,7 @@ function updateStatus() {
 						}
 
 						// What kind of reply are we dealing with?
-						if (response != "" || lastSentGCode != "") {
+						if (response != "" || (lastSentGCode != "" && oldResponse == response)) {
 							var style = "success", content = response;
 							if (response.match("^Warning: ") != null) {
 								style = "warning";
@@ -809,15 +810,19 @@ function updateStatus() {
 								saveGCodes();
 								applyGCodes();
 							}
-							lastSentGCode = "";
 						}
+						lastSentGCode = "";
 					}
 				});
 			}
 
 			// Sensors
 			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
-			$("#td_fanrpm").html(status.sensors.fanRPM);
+			if (status.sensors.fanRPM.constructor == Array) {
+				$("#td_fanrpm").html(status.sensors.fanRPM.join(" / "));
+			} else {
+				$("#td_fanrpm").html(status.sensors.fanRPM);
+			}
 
 			// Heated bed
 			if (status.temps.hasOwnProperty("bed")) {
@@ -928,7 +933,11 @@ function updateStatus() {
 					} else {
 						value = value + " " + unit[1];
 					}
+
 					$("#table_extra tr").eq(i + 1).children("td:last-child").text(value);
+					if (name == "MCU") {
+						$("td.mcutemp").text(value);
+					}
 				}
 				recordExtraTemperatures(status.temps.extra);
 			}
@@ -1195,9 +1204,14 @@ function updateStatus() {
 					setTimeout(reconnectAfterUpdate, duration);
 				} else {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
-					disconnect(false);
 
-					showMessage("warning", T("Updating Firmware..."), T("The connection has been closed because a firmware update is in progress. Please reconnect when it has finished."), 0, false);
+					disconnect(false);
+					reconnectingAfterUpdate = true;
+					$("#span_reconnect_title").text(T("Connection Lost"));
+					$("#span_reconnect_reason").text(T("Firmware Update"));
+					$("#modal_reconnecting").modal("show");
+					setStatusLabel("Reconnecting", "warning");
+					connect(sessionPassword, false);
 				}
 			} else if (status.status == 'H') {
 				if (!reconnectingAfterHalt) {
@@ -1212,7 +1226,7 @@ function updateStatus() {
 					}
 				}
 			} else {
-				reconnectingAfterHalt = resetConfirmationShown = false;
+				reconnectingAfterHalt = reconnectingAfterUpdate = resetConfirmationShown = false;
 				setTimeout(updateStatus, settings.updateInterval);
 			}
 
@@ -1381,6 +1395,10 @@ function loadThemes() {
 
 // For OEM functionality
 function getOemFeatures() {
+	if (location.host == "") {
+		return;
+	}
+
 	$.ajax(ajaxPrefix + "rr_download?name=0:/sys/oem.json", {
 		dataType: "json",
 		global: false,
@@ -1412,28 +1430,21 @@ function setOem(oem) {
 
 	// Diabase Engineering
 	if (oem == "diabase") {
-		// Show non-default controls
 		$(".diabase").removeClass("hidden");
+		$(".no-diabase").addClass("hidden");
 
-		// Change "Chamber" to "Dry Cabinet"
+		$(".navbar-brand").prop("href", "https://www.diabasepe.com").prop("target", "_blank");
+		$(".navbar-brand > img").removeClass("hidden").prop("src", "img/diabase_banner.png");
+
 		$("#table_tools tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 		$("#table_heaters tr[data-heater='cabinet'] > th:first-child > a").text(T("Dry Cabinet"));
 
-		// Load crosshair+calibration diagram
 		$("#img_crosshair").prop("src", "img/crosshair.png");
 		$("#img_calibration_diagram").prop("src", "img/diabase_calibration_diagram.png");
 	}
 
 	// Update GUI just in case the response was received after the first status response
-	updateGui();
-}
-
-function resetOem() {
-	$(".diabase").addClass("hidden");
-
-	$("#img_crosshair").prop("src", "");
-	calibrationWebcamSource = "";
-	$("#div_calibration_webcam").addClass("hidden");
-
-	hideLastExtruderDrive = false;
+	if (toolMapping != undefined) {
+		updateGui();
+	}
 }

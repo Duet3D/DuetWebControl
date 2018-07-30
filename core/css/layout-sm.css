@@ -1,4 +1,8 @@
 @media (min-width: 768px) and (max-width: 991px) {
+	.visible-xl {
+		display: none !important;
+	}
+
 	/* Navigation bar */
 	.navbar-checkbox {
 		margin-left: 15px;

@@ -119,7 +119,7 @@ $("button.fan-override").click(function() {
 });
 
 function loadFanVisibility() {
-	var fanVisibility = localStorage.getItem("fanVisibility");
+	var fanVisibility = getLocalSetting("fanVisibility", null);
 	if (fanVisibility != null) {
 		for(var fan = 0; fan <= maxFans; fan++) {
 			if (fan == 0) {
@@ -161,7 +161,7 @@ function setFanDisplayed(fan, show) {
 		}
 	}
 
-	// Store the fan visibility in localStorage
+	// Save the fan visibility states
 	var visibilityBitmap = 0;
 	for(var fan = 0; fan <= maxFans; fan++) {
 		if (fan == 0) {
@@ -172,7 +172,7 @@ function setFanDisplayed(fan, show) {
 			visibilityBitmap |= (1 << fan);
 		}
 	}
-	localStorage.setItem("fanVisibility", visibilityBitmap);
+	setLocalSetting("fanVisibility", visibilityBitmap);
 }
 
 
