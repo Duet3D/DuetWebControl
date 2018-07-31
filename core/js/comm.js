@@ -416,7 +416,7 @@ function updateStatus() {
 				}
 				$("#dd_probe_type").text(probeType);
 				$("#dd_probe_height").text(T("{0} mm", status.probe.height));
-				$("#dd_probe_value").text(probeTriggerValue);
+				$("#dd_probe_trigger_value").text(probeTriggerValue);
 
 				zTriggerHeight = status.probe.height;
 				$("#span_probe_height").text(T("{0} mm", zTriggerHeight.toFixed(2)));
@@ -451,8 +451,8 @@ function updateStatus() {
 			// Requested and top speeds
 			if (status.hasOwnProperty("speeds")) {
 				$(".speeds").removeClass("hidden");
-				$("#td_req_speed").text(T("{0} mm/s", status.speeds.requested));
-				$("#td_top_speed").text(T("{0} mm/s", status.speeds.top));
+				$(".req-speed").text(T("{0} mm/s", status.speeds.requested));
+				$(".top-speed").text(T("{0} mm/s", status.speeds.top));
 			}
 
 			/*** Default status response ***/
@@ -827,9 +827,9 @@ function updateStatus() {
 			// Sensors
 			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
 			if (status.sensors.fanRPM.constructor == Array) {
-				$("#td_fanrpm").html(status.sensors.fanRPM.join(" / "));
+				$("td.fan-rpm").html(status.sensors.fanRPM.join(" / "));
 			} else {
-				$("#td_fanrpm").html(status.sensors.fanRPM);
+				$("td.fan-rpm").html(status.sensors.fanRPM);
 			}
 
 			// Heated bed

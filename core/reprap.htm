@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.22-b2
+<!--	Duet Web Control v1.22-b3
 
 	written by Christian Hammacher
 
@@ -215,7 +215,7 @@
 								<table id="table_extruder_positions" class="table table-bordered table-condensed table-centered-cells table-status no-diabase">
 									<tr>
 										<th id="th_extruder_drives" rowspan="2" class="th-status">Extruder Drives</th>
-										<th class="hidden"><!-- for HTML validation --></th>
+										<th class="hidden"><!-- only for HTML validation --></th>
 										<th class="hidden-md" data-extruder="0">Drive 0</th>
 										<th class="hidden-md" data-extruder="1">Drive 1</th>
 										<th class="hidden-md hidden" data-extruder="2">Drive 2</th>
@@ -227,7 +227,7 @@
 										<th class="hidden-md hidden" data-extruder="8">Drive 8</th>
 									</tr>
 									<tr>
-										<td class="hidden-xs hidden-sm hidden-lg" data-extruder="total">n/a</td>
+										<td class="hidden-xs hidden-sm hidden-md hidden-lg" data-extruder="total">n/a</td>
 										<td class="hidden-md" data-extruder="0">n/a</td>
 										<td class="hidden-md" data-extruder="1">n/a</td>
 										<td class="hidden-md hidden" data-extruder="2">n/a</td>
@@ -240,23 +240,31 @@
 									</tr>
 								</table>
 
+								<table class="table table-bordered table-condensed table-centered-cells table-status speeds hidden">
+									<tr>
+										<th rowspan="2" class="th-status">Speeds</th>
+										<th>Requested Speed</th>
+										<th>Top Speed</th>
+									</tr>
+									<tr>
+										<td class="req-speed" title="Requested speed of the current move">n/a</td>
+										<td class="top-speed" title="Top speed of the current move">n/a</td>
+									</tr>
+								</table>
+
 								<table class="table table-bordered table-condensed table-centered-cells table-status">
 									<tr>
 										<th rowspan="2" class="th-status">Sensors</th>
 										<th class="vin hidden" title="Input voltage of your board">Vin</th>
 										<th class="mcutemp hidden hidden-sm">MCU Temp.</th>
-										<th id="th_probe">Z-Probe</th>
+										<th id="th_probe" class="no-diabase">Z-Probe</th>
 										<th class="fan-rpm hidden">Fan RPM</th>
-										<th class="speeds hidden-md hidden">Req. Speed</th>
-										<th class="speeds hidden-md hidden">Top Speed</th>
 									</tr>
 									<tr>
 										<td id="td_vin" class="vin hidden" title="Power supply voltage for this board">n/a</td>
 										<td id="td_mcutemp" class="mcutemp hidden-sm hidden" title="Current temperature of the MCU">n/a</td>
-										<td id="td_probe" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
-										<td id="td_fanrpm" class="fan-rpm hidden" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
-										<td id="td_req_speed" class="speeds hidden-md hidden" title="Requested speed of the current move">n/a</td>
-										<td id="td_top_speed" class="speeds hidden-md hidden" title="Top speed of the current move">n/a</td>
+										<td id="td_probe" class="no-diabase" title="Current Z-Probe reading on a scale between 0 and 1024">n/a</td>
+										<td class="fan-rpm hidden" title="Current Fan RPM (needs a 4-pin PWM fan and proper wiring)">n/a</td>
 									</tr>
 								</table>
 							</div>
@@ -2223,7 +2231,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.22-b2</td>
+															<td id="dwc_version">1.22-b3</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -2397,12 +2405,6 @@
 																<span class="input-group-addon">mm</span>
 															</div>
 														</div>
-													</div>
-
-													<div class="checkbox">
-														<label title="Send movement codes with the S2 parameter to allow movements while the axes are nt homed">
-															<input type="checkbox" data-setting="allowUnhomedMoves" /> Allow moves if axes are not homed
-														</label>
 													</div>
 
 													<div class="checkbox">
@@ -2909,7 +2911,9 @@
 														<dt>Trigger Height:</dt>
 														<dd id="dd_probe_height">n/a</dd>
 														<dt>Trigger Value:</dt>
-														<dd id="dd_probe_value">n/a</dd>
+														<dd id="dd_probe_trigger_value">n/a</dd>
+														<dt>Current Value:</dt>
+														<dd id="dd_probe_current_value">n/a</dd>
 													</dl>
 												</div>
 											</div>
