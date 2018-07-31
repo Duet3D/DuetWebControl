@@ -131,7 +131,7 @@ function updateGui() {
 			$("#div_tools").removeClass("hidden");
 		}
 	} else {
-		$(".extra-temps, .mcutemp").removeClass("hidden");
+		$(".extra-temps").removeClass("hidden");
 		for(var i = 0; i < maxTempSensors; i++) {
 			$("#table_extra tr").eq(i + 1).toggleClass("hidden", i >= numTempSensors);
 		}

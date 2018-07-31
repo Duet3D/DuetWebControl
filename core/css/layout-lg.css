@@ -47,6 +47,12 @@
 	}
 
 	/* Print status page */
+	#btn_baby_up,
+	#btn_baby_down {
+		word-wrap: break-word;
+		white-space: normal;
+	}
+
 	#page_print .col-right {
 		padding-left: 0px;
 	}

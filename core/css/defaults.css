@@ -6,6 +6,11 @@ body {
 	min-width: 480px;
 }
 
+.btn-move {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
+
 dl {
 	margin-bottom: 0px;
 }
@@ -721,8 +726,8 @@ tr[data-fan="print"] > td:first-child > button {
 
 #btn_baby_up,
 #btn_baby_down {
-    word-wrap: break-word;
-    white-space: normal;
+	padding-left: 0px !important;
+	padding-right: 0px !important;
 }
 
 #div_cancel,
@@ -1178,6 +1183,14 @@ label[for="dropdown_language"] {
 #modal_edit > div > div,
 #modal_bed > div > div {
 	height: calc(100vh - 60px);
+}
+
+.msgbox-x,
+.msgbox-y,
+.msgbox-z,
+.msgbox-a {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
 }
 
 #text_edit {

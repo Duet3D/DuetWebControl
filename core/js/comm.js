@@ -433,6 +433,14 @@ function updateStatus() {
 				needGuiUpdate = true;
 			}
 
+			// MCU temperature
+			if (status.hasOwnProperty("mcutemp")) {
+				if (lastStatusResponse == undefined) {
+					$(".mcutemp").removeClass("hidden");
+				}
+				$("td.mcutemp").text(status.mcutemp.cur).prop("title", T("Minimum: {0} °C Maximum: {1} °C", status.mcutemp.min, status.mcutemp.max));
+			}
+
 			// Input voltage
 			if (status.hasOwnProperty("vin")) {
 				$(".vin").removeClass("hidden");
@@ -565,20 +573,20 @@ function updateStatus() {
 				$("td[data-axis='" + axisNames.indexOf("Z") + "']").html(T("n/a"));
 
 				// Set message box coordinates
-				$(".msgbox-x").text("X = " + T("n/a"));
-				$(".msgbox-y").text("Y = " + T("n/a"));
-				$(".msgbox-z").text("Z = " + T("n/a"));
-				$(".msgbox-a").text("A = " + T("n/a"));
+				$(".msgbox-x").text("X=" + T("n/a"));
+				$(".msgbox-y").text("Y=" + T("n/a"));
+				$(".msgbox-z").text("Z=" + T("n/a"));
+				$(".msgbox-a").text("A=" + T("n/a"));
 			} else {
 				var x = (axisNames.indexOf("X") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("X")].toFixed(2);
 				var y = (axisNames.indexOf("Y") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Y")].toFixed(2);
 				var z = (axisNames.indexOf("Z") == -1) ? T("n/a") : status.coords.xyz[axisNames.indexOf("Z")].toFixed(2);
 				var aIndex = axisNames.indexOf("A");
 				var a = (aIndex == -1 || status.coords.xyz.length <= aIndex) ? T("n/a") : status.coords.xyz[aIndex].toFixed(2);
-				$(".msgbox-x").text("X = " + x);
-				$(".msgbox-y").text("Y = " + y);
-				$(".msgbox-z").text("Z = " + z);
-				$(".msgbox-a").text("A = " + a);
+				$(".msgbox-x").text("X=" + x);
+				$(".msgbox-y").text("Y=" + y);
+				$(".msgbox-z").text("Z=" + z);
+				$(".msgbox-a").text("A=" + a);
 			}
 
 			// Current Tool

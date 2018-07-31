@@ -335,30 +335,30 @@ function applyMovementSteps() {
 			$(this).data("amount", decreaseVal).contents().last().replaceWith(" " + axis + decreaseVal);
 		});
 		buttonIndex = 0;
-		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
-			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
-			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
-		});
-		buttonIndex = 0;
 		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
 			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
 			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
 		});
+		buttonIndex = 0;
+		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "'][data-amount^='-']").each(function() {
+			var decreaseVal = -settings.axisMoveSteps[axisIndex][buttonIndex++];
+			$(this).data("amount", decreaseVal).children("span:last-child").text(axis + decreaseVal);
+		});
 
-		buttonIndex = 4;
+		buttonIndex = settings.axisMoveSteps[axisIndex].length - 1;
 		$("#page_control a.btn-move[data-axis='" + i + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
 			$(this).data("amount", increaseVal).contents().first().replaceWith(axis + "+" + increaseVal + " ");
 		});
-		buttonIndex = 4;
-		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
-			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
-			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
-		});
-		buttonIndex = 4;
+		buttonIndex = settings.axisMoveSteps[axisIndex].length - 1;
 		$("#modal_messagebox button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
 			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
-			$(this).data("amount", increaseVal).children("span:first-child").text(axis + increaseVal);
+			$(this).data("amount", increaseVal).children("span:first-child").text(axis + "+" + increaseVal);
+		});
+		buttonIndex = settings.axisMoveSteps[axisIndex].length - 1;
+		$("#modal_start_scan button.btn-move[data-axis-letter='" + axis + "']:not([data-amount^='-'])").each(function() {
+			var increaseVal = settings.axisMoveSteps[axisIndex][buttonIndex--];
+			$(this).data("amount", increaseVal).children("span:first-child").text(axis + "+" + increaseVal);
 		});
 
 		// Set headers for position cells in the Machine Status panel

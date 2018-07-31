@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.22-b1
+<!--	Duet Web Control v1.22-b2
 
 	written by Christian Hammacher
 
@@ -2223,7 +2223,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.22-b1</td>
+															<td id="dwc_version">1.22-b2</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
@@ -3384,7 +3384,7 @@
 		</div>
 
 		<div id="modal_start_scan" class="modal fade">
-			<div class="modal-dialog modal-md">
+			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
 					<form>
 						<div class="modal-header">
@@ -3440,41 +3440,148 @@
 
 							<h4>4. Move the object to the center</h4>
 							<div class="description scan-move-controls">
-								<div class="btn-group">
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-									<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+								<div class="btn-group btn-group-justified">
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-100"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-100</span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-10</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="100"><span>+100</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
 								</div>
-								<div class="btn-group">
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-									<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+
+								<div class="btn-group btn-group-justified">
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-100"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-100</span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-10</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="100"><span>+100</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
 								</div>
-								<div class="btn-group">
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-									<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+
+								<div class="btn-group btn-group-justified">
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-25"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-25</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-5"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-5</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.5"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.5</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.05"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.05</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.05"><span>+0.05</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.5"><span>+0.5</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="5"><span>+5</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="25"><span>+25</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
 								</div>
-								<div class="btn-group">
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-									<button type="button" class="btn btn-default disabled msgbox-a">A = n/a</button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-									<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+
+								<div class="btn-group btn-group-justified">
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-100"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-100</span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-10"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-10</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.1</span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default disabled msgbox-a">A = n/a</button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-xl">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
+									<div class="btn-group visible-lg">
+										<button type="button" class="btn btn-default btn-move" data-axis-letter="A" data-amount="100"><span>+100</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -3514,7 +3621,7 @@
 		</div>
 
 		<div id="modal_messagebox" class="modal fade">
-			<div class="modal-dialog modal-md">
+			<div class="modal-dialog modal-lg">
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
@@ -3526,40 +3633,118 @@
 						<div id="div_x_controls">
 							<label>Use the following controls to adjust X:</label>
 							<br/>
-							<div class="btn-group">
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-								<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+							<div class="btn-group btn-group-justified">
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-100"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-100</span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-10"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-10</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-1</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.1</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default disabled msgbox-x">X = n/a</button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="X" data-amount="100"><span>+100</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
 							</div>
 						</div>
 						<div id="div_y_controls">
 							<label>Use the following controls to adjust Y:</label>
 							<br/>
-							<div class="btn-group">
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-								<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+							<div class="btn-group btn-group-justified">
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-100"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-100</span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-10"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-10</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-1</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.1</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default disabled msgbox-y">Y = n/a</button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Y" data-amount="100"><span>+100</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
 							</div>
 						</div>
 						<div id="div_z_controls">
 							<label>Use the following controls to adjust Z:</label>
 							<br/>
-							<div class="btn-group">
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-10"><span class="glyphicon glyphicon-chevron-left"></span> <span>-10</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-1</span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.1"><span class="glyphicon glyphicon-chevron-left"></span> <span>-0.1</span></button>
-								<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.1"><span>+0.1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="1"><span>+1</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="10"><span>+10</span> <span class="glyphicon glyphicon-chevron-right"></span></button>
+							<div class="btn-group btn-group-justified">
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-50"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-50</span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-25"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-25</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-5"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-5</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.5"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.5</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="-0.05"><span class="glyphicon glyphicon-chevron-left hidden-xs"></span> <span>-0.05</span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default disabled msgbox-z">Z = n/a</button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.05"><span>+0.05</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="0.5"><span>+0.5</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="5"><span>+5</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-xl">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="25"><span>+25</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
+								<div class="btn-group visible-lg">
+									<button type="button" class="btn btn-default btn-move" data-axis-letter="Z" data-amount="50"><span>+50</span> <span class="glyphicon glyphicon-chevron-right hidden-xs"></span></button>
+								</div>
 							</div>
 						</div>
 					</div>
