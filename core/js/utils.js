@@ -33,7 +33,7 @@ function formatUploadSpeed(bytesPerSec) {
 			return (bytesPerSec / 1000).toFixed(1) + " KB/s";
 		}
 	}
-	return bytesPerSec + " B/s";
+	return bytesPerSec.toFixed(1) + " B/s";
 }
 
 function formatSize(bytes) {

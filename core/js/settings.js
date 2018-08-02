@@ -10,13 +10,14 @@
 var settings = {
 	updateInterval: 250,			// in ms
 	extendedStatusInterval: 10,		// nth status request will include extended values
-	maxRetries: 1,					// number of AJAX retries before the connection is terminated
+	maxRetries: 2,					// number of AJAX retries before the connection is terminated
 
 	haltedReconnectDelay: 10000,	// in ms (increased from 5000 for Duet WiFi)
 	updateReconnectDelay: 20000,	// in ms
 	dwsReconnectDelay: 45000,		// in ms
-	dwcReconnectDelay: 225000,		// in ms
+	dwcReconnectDelay: 225000,		// in ms (only for SPIFFS updates)
 
+	showConnect: false,				// whether the Connect button is shown on remote connections
 	confirmStop: false,				// ask for confirmation when pressing Emergency STOP
 	useKiB: true,					// display file sizes in KiB instead of KB
 	theme: "default",				// name of the theme to use
@@ -198,6 +199,9 @@ function settingsLoaded() {
 
 function applySettings() {
 	/* Apply settings */
+
+	// Show connect button
+	$(".btn-connect").toggleClass("hidden", !settings.showConnect && location.host != "");
 
 	// Set AJAX timeout
 	if (settings.maxRetries > 50) { settings.maxRetries = 50; }

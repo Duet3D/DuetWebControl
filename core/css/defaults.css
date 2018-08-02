@@ -12,7 +12,7 @@ body {
 }
 
 dl {
-	margin-bottom: 0px;
+	margin-bottom: 0px !important;
 }
 
 dd {
@@ -132,6 +132,7 @@ label {
 	padding-right: 0px;
 }
 
+button.btn-connect,
 #div_navbar_buttons > :last-child {
 	margin-left: 9px;
 }
@@ -704,9 +705,6 @@ tr[data-fan="print"] > td:first-child > button {
 #layer_tooltip {
 	position: absolute;
 	display: none;
-	border: 1px solid #fdd;
-	padding: 2px;
-	background-color: #fee;
 	opacity: 0.80;
 	z-index: 1;
 }

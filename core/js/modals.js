@@ -105,7 +105,7 @@ $("#form_host").submit(function(e) {
 		ajaxPrefix = "http://" + ajaxPrefix;
 	}
 
-	connect(sessionPassword, true);
+	connect(sessionPassword, false);
 	e.preventDefault();
 });
 

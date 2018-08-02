@@ -109,14 +109,32 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 
 /* Connect / Disconnect */
 
+$(".btn-connect").click(function(e) {
+	if (!$(this).hasClass("disabled")) {
+		if (!isConnected) {
+			// Attempt to connect with the last-known password first
+			connect(sessionPassword, true);
+		} else {
+			disconnect(true);
+		}
+	}
+	e.preventDefault();
+});
+
 function connect(password, regularConnect) {
 	if (regularConnect) {
 		$("#main_content").css("cursor", "wait");
+
 		setStatusLabel("Connecting", "warning");
+		$(".btn-connect > span:not(.glyphicon)").text(T("Connecting..."));
+		$(".btn-connect > span.glyphicon").removeClass("glyphicon-log-in").addClass("glyphicon-transfer");
+		$("a.btn-connect").removeClass("list-group-item-info").addClass("list-group-item-warning disabled");
+		$("button.btn-connect").removeClass("btn-info").addClass("btn-warning disabled");
+
 		closeAllNotifications();
 
 		// If we are running on localhost, ask for a destination
-		if (location.host == "" && ajaxPrefix == "") {
+		if (location.host == "") {
 			showHostPrompt();
 			return;
 		}
@@ -129,6 +147,10 @@ function connect(password, regularConnect) {
 			if (regularConnect && location.host == "") {
 				$("#main_content").css("cursor", "");
 				setStatusLabel("Disconnected", "idle");
+				$(".btn-connect > span:not(.glyphicon)").text(T("Connect"));
+				$(".btn-connect > span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-in");
+				$("a.btn-connect").removeClass("list-group-item-warning disabled").addClass("list-group-item-info");
+				$("button.btn-connect").removeClass("btn-warning disabled").addClass("btn-info");
 				showMessage("danger", T("Error"), T("Could not establish a connection to the Duet firmware! Please check your settings and try again."), 0, false);
 			} else {
 				if (!reconnectingAfterUpdate) {
@@ -203,6 +225,11 @@ function postConnect(response) {
 		getConfigResponse();
 	}
 
+	$(".btn-connect > span:not(.glyphicon)").text(T("Disconnect"));
+	$(".btn-connect > span.glyphicon").removeClass("glyphicon-transfer").addClass("glyphicon-log-out");
+	$("a.btn-connect").removeClass("list-group-item-warning disabled").addClass("list-group-item-success");
+	$("button.btn-connect").removeClass("btn-warning disabled").addClass("btn-success");
+
 	enableControls();
 	validateAddTool();
 }
@@ -212,6 +239,11 @@ function disconnect(sendDisconnect) {
 		log("danger", "<strong>" + T("Disconnected.") + "</strong>");
 	}
 	isConnected = false;
+
+	$(".btn-connect > span:not(.glyphicon)").text(T("Connect"));
+	$(".btn-connect > span.glyphicon").removeClass("glyphicon-log-out").addClass("glyphicon-log-in");
+	$("a.btn-connect").removeClass("list-group-item-success").addClass("list-group-item-info");
+	$("button.btn-connect").removeClass("btn-success").addClass("btn-info");
 
 	if (sendDisconnect) {
 		$.ajax(ajaxPrefix + "rr_disconnect", { dataType: "json", global: false });
@@ -416,7 +448,7 @@ function updateStatus() {
 				}
 				$("#dd_probe_type").text(probeType);
 				$("#dd_probe_height").text(T("{0} mm", status.probe.height));
-				$("#dd_probe_value").text(probeTriggerValue);
+				$("#dd_probe_trigger_value").text(probeTriggerValue);
 
 				zTriggerHeight = status.probe.height;
 				$("#span_probe_height").text(T("{0} mm", zTriggerHeight.toFixed(2)));
@@ -451,8 +483,8 @@ function updateStatus() {
 			// Requested and top speeds
 			if (status.hasOwnProperty("speeds")) {
 				$(".speeds").removeClass("hidden");
-				$("#td_req_speed").text(T("{0} mm/s", status.speeds.requested));
-				$("#td_top_speed").text(T("{0} mm/s", status.speeds.top));
+				$(".req-speed").text(T("{0} mm/s", status.speeds.requested));
+				$(".top-speed").text(T("{0} mm/s", status.speeds.top));
 			}
 
 			/*** Default status response ***/
@@ -759,7 +791,9 @@ function updateStatus() {
 						// Check if a reload of DWC / DWC settings has been requested
 						if (response.match(/\{reloadDWC\}/) != null) {
 							response = response.replace(/\{reloadDWC\}/, "");
-							location.reload();
+							if (location.host != "") {
+								location.reload();
+							}
 						} else if (response.match(/\{reloadSettings\}/) != null) {
 							response = response.replace(/\{reloadSettings\}/, "");
 							if (settings.settingsOnDuet) {
@@ -827,9 +861,9 @@ function updateStatus() {
 			// Sensors
 			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
 			if (status.sensors.fanRPM.constructor == Array) {
-				$("#td_fanrpm").html(status.sensors.fanRPM.join(" / "));
+				$("td.fan-rpm").html(status.sensors.fanRPM.join(" / "));
 			} else {
-				$("#td_fanrpm").html(status.sensors.fanRPM);
+				$("td.fan-rpm").html(status.sensors.fanRPM);
 			}
 
 			// Heated bed
@@ -1254,7 +1288,7 @@ function reconnectAfterHalt() {
 }
 
 function reconnectAfterUpdate() {
-	if (uploadedDWC || uploadDWCFile != undefined) {
+	if ((uploadedDWC || uploadDWCFile != undefined) && location.host != "") {
 		if (sessionPassword != defaultPassword) {
 			connect(sessionPassword, false);
 

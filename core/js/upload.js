@@ -52,6 +52,21 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 		type: "POST",
 		global: false,
 		error: function(jqXHR, textStatus, errorThrown) {
+			// Retry upload if this file is smaller than 1MiB
+			if (file.size < 1048576) {
+				if (!this.hasOwnProperty("retryCount")) {
+					this.retryCount = 1;
+				} else {
+					this.retryCount++;
+				}
+
+				if (this.retryCount <= settings.maxRetries) {
+					$.ajax(this);
+					return;
+				}
+			}
+
+			// Resume status updates and report and error if that failed
 			startUpdates();
 			showMessage("danger", T("Error"), T("Could not update file {0}!", filename));
 			console.log("Text file upload failed!\nStatus: " + textStatus + "\nError: " + errorThrown);
@@ -221,7 +236,7 @@ function startUpload(type, files, fromCallback) {
 
 		var row = 	'<tr><td><span class="glyphicon glyphicon-asterisk"></span> ' + this.name + '</td>';
 		row += 		'<td>' + formatSize(this.size) + '</td>';
-		row +=		'<td><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar"><span></span></div></div></td></tr>';
+		row +=		'<td><div class="progress"><div class="progress-bar progress-bar-info progress-bar-striped"><span></span></div></div></td></tr>';
 
 		var rowElem = $(row);
 		rowElem.appendTo("#table_upload_files > tbody");
@@ -343,7 +358,25 @@ function uploadNextFile() {
 		timeout: 0,
 		type: "POST",
 		global: false,
-		error: function(jqXHR, textStatus, errorThrown) {
+		error: function(jqxhr, textStatus, errorThrown) {
+			// Retry upload if this file is smaller than 1MiB
+			if (file.size < 1048576) {
+				if (!this.hasOwnProperty("retryCount")) {
+					this.retryCount = 1;
+				} else {
+					this.retryCount++;
+				}
+
+				if (this.retryCount <= settings.maxRetries) {
+					uploadRows[uploadedFileCount].find(".progress-bar").removeClass("progress-bar-info").addClass("progress-bar-warning");
+					uploadRows[uploadedFileCount].find(".progress-bar > span").text(T("Retrying"));
+
+					$.ajax(this);
+					return;
+				}
+			}
+
+			// If that failed or if the file was bigger than 1MiB, report an error
 			finishCurrentUpload(false);
 		},
 		success: function(data) {
@@ -388,7 +421,7 @@ function finishCurrentUpload(success) {
 
 	// Update glyphicon and progress bar
 	uploadRows[uploadedFileCount].find(".glyphicon").removeClass("glyphicon-cloud-upload").addClass(success ? "glyphicon-ok" : "glyphicon-alert");
-	uploadRows[uploadedFileCount].find(".progress-bar").removeClass("progress-bar-info").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
+	uploadRows[uploadedFileCount].find(".progress-bar").removeClass("progress-bar-info progress-bar-warning").addClass(success ? "progress-bar-success" : "progress-bar-danger").css("width", "100%");
 	uploadRows[uploadedFileCount].find(".progress-bar > span").text(success ? "100 %" : T("ERROR"));
 
 	// Go on with upload logic if we're still busy

@@ -101,11 +101,12 @@ $(document).ready(function() {
 });
 
 function pageLoadComplete() {
-	// Add link to GitHub and log event
+	// Add link to GitHub, replace dash in Z-probe and log event
 	$("#span_copyright").html($("#span_copyright").html().replace("Christian Hammacher", '<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">Christian Hammacher</a>'));
+	$("#th_probe").html(T("Z-Probe").replace("-", "-&#8203;"));
 	log("info", "<strong>" + T("Page Load complete!") + "</strong>");
 
-	// Always try to connect once the page has been loaded
+	// Try to connect once the page has been loaded provided this is not running on localhost
 	connect(sessionPassword, true);
 
 	// Check if this browser is supported and display a message if it is not
@@ -382,13 +383,13 @@ function updateGui() {
 
 	// Rearrange extruder drive cells if neccessary. Only show total usage on md desktop if more than three extruders are in use
 	if (numExtruderDrives <= 3) {
-		$("#col_extr_totals, #td_extr_total").addClass("hidden-md");
+		$("#table_extruder_positions [data-extruder='total']").addClass("hidden-md");
 		for(var i = 0; i < 3; i++) {
 			$("#table_extruder_positions th[data-extruder='" + i + "']").removeClass("hidden-md").html(T("Drive {0}", i));
 			$("#table_extruder_positions td[data-extruder='" + i + "']").removeClass("hidden-md");
 		}
 	} else {
-		$("#col_extr_totals, #td_extr_total").removeClass("hidden-md");
+		$("#table_extruder_positions [data-extruder='total']").removeClass("hidden-md");
 		for(var i = 0; i < maxExtruders; i++) {
 			$("#table_extruder_positions th[data-extruder='" + i + "']").addClass("hidden-md").html(T("D{0}", i));
 			$("#table_extruder_positions td[data-extruder='" + i + "']").addClass("hidden-md");
@@ -1295,19 +1296,18 @@ $(".btn-home").click(function(e) {
 });
 
 $(".btn-move").click(function(e) {
+	// Get the axis to move
 	var axis = $(this).data("axis-letter");
 	if (axis == undefined) {
 		var axisNumber = parseInt($(this).data("axis"));
 		axis = axisNames[axisNumber];
 	}
 
-	var axisIndex = axisOrder.indexOf(axis);
-	if (lastStatusResponse != undefined && lastStatusResponse.coords.axesHomed[axisIndex]) {
-		var moveString = "M120\nG91\nG1 ";
-		moveString += axis + $(this).data("amount");
-		moveString += " F" + settings.moveFeedrate + "\nM121";
-		sendGCode(moveString);
-	}
+	// Send a G-code
+	var moveString = "M120\nG91\nG1 ";
+	moveString += axis + $(this).data("amount");
+	moveString += " F" + settings.moveFeedrate + "\nM121";
+	sendGCode(moveString);
 	e.preventDefault();
 });
 
@@ -2049,11 +2049,11 @@ function setPrintStatus(printing) {
 
 function setProbeValue(value, secondaryValue) {
 	if (value < 0) {
-		$("#td_probe").html(T("n/a"));
+		$("#td_probe, #dd_probe_current_value").html(T("n/a"));
 	} else if (secondaryValue == undefined) {
-		$("#td_probe").html(value);
+		$("#td_probe, #dd_probe_current_value").html(value);
 	} else {
-		$("#td_probe").html(value + " (" + secondaryValue.reduce(function(a, b) { return a + b; }) + ")");
+		$("#td_probe, #dd_probe_current_value").html(value + " (" + secondaryValue.reduce(function(a, b) { return a + b; }) + ")");
 	}
 
 	if (probeTriggerValue != undefined && value > probeTriggerValue && !isPrinting) {
