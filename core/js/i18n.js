@@ -53,9 +53,10 @@ function translatePage() {
 		var root = translationData.getElementsByTagName(settings.language).item(settings.language);
 		if (root != null) {
 			// Translate HTML attributes
-			translateEntries(root, $("p, span, strong, button, li.dropdown-header"), "textContent");
+			translateEntries(root, $("p, span, strong, button, li.dropdown-header, select > option"), "textContent");
 			translateEntries(root, $("th, td, dt"), "textContent");
-			translateEntries(root, $("h1, h4, label, a, #div_content ol > li:first-child, ol.breadcrumb-directory > li:last-child"), "textContent");
+			translateEntries(root, $("h1, h4, label, a, #div_content ol > li:first-child"), "textContent");
+			translateEntries(root, $("#ol_gcode_directory > li:last-child, #ol_macro_directory > li:last-child"), "textContent");
 			translateEntries(root, $("input[type='text']"), "placeholder");
 			translateEntries(root, $("a, abbr, button, label, li, #chart_temp, input, td"), "title");
 			translateEntries(root, $("img"), "alt");

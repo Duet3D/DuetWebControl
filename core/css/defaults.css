@@ -18,13 +18,40 @@ dl {
 dd {
 	padding-bottom: 6px;
 }
+
 dd:last-child {
 	padding-bottom: 0px;
 }
 
+.fan-visibility {
+	float: right;
+}
+
+.fan-override {
+	float: left;
+}
+
+.flip-x {
+	-moz-transform: scaleX(-1);
+	-o-transform: scaleX(-1);
+	-webkit-transform: scaleX(-1);
+	transform: scaleX(-1);
+	filter: FlipH;
+	-ms-filter: "FlipH";
+}
+
+.flip-y {
+	-moz-transform: scaleY(-1);
+	-o-transform: scaleY(-1);
+	-webkit-transform: scaleY(-1);
+	transform: scaleY(-1);
+	filter: FlipV;
+	-ms-filter: "FlipV";
+}
+
 hr {
-	margin-top: 5px;
-	margin-bottom: 5px;
+	margin-top: 5px !important;
+	margin-bottom: 5px !important;
 }
 
 @-moz-document url-prefix() {
@@ -75,6 +102,30 @@ label {
 
 .panel-table-container {
 	margin: -1px;
+}
+
+.rotate-90 {
+	transform: rotate(90deg);
+	-ms-transform: rotate(90deg);
+	-moz-transform: rotate(90deg);
+	-webkit-transform: rotate(90deg);
+	-o-transform: rotate(90deg);
+}
+
+.rotate-180 {
+	transform: rotate(180deg);
+	-ms-transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	-o-transform: rotate(180deg);
+}
+
+.rotate-270 {
+	transform: rotate(270deg);
+	-ms-transform: rotate(270deg);
+	-moz-transform: rotate(270deg);
+	-webkit-transform: rotate(270deg);
+	-o-transform: rotate(270deg);
 }
 
 .slider .slider-handle {
@@ -1073,6 +1124,9 @@ label[for="dropdown_language"] {
 
 #table_gcodes {
 	margin-bottom: 0px;
+	max-height: 340px;
+	overflow-y: auto;
+	display: block;
 }
 
 #table_add_gcode td:first-child,

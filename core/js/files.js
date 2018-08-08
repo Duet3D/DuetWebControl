@@ -1,6 +1,6 @@
 /* File management logic for Duet Web Control
  * 
- * written by Christian Hammacher (c) 2016-2017
+ * written by Christian Hammacher (c) 2016-2018
  * 
  * licensed under the terms of the GPL v2
  * see http://www.gnu.org/licenses/gpl-2.0.html
@@ -165,37 +165,41 @@ function updateScanFiles() {
 		return;
 	}
 
-	// Don't request updates while loading the file list
+	// Stop updates and requst files for /scans
 	stopUpdates();
+	getScanFiles(0);
+}
 
-	// Request filelist for /scans
-	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/scans", {
+function getScanFiles(first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/scans&first=" + first, {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
 				if (response.hasOwnProperty("err")) {
 					// don't proceed if the firmware has reported an error
 					$("#page_scanner h1").text(T("Failed to retrieve files of this directory"));
+					startUpdates();
 				} else {
-					var files = response.files.sort(function (a, b) {
-						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-					});
-
-					for(var i = 0; i < files.length; i++) {
-						if (files[i].type != 'd') {
-							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
-							addScanFile(files[i].name, files[i].size, lastModified);
+					// add the files
+					for(var i = 0; i < response.files.length; i++) {
+						if (response.files[i].type != 'd') {
+							var lastModified = response.files[i].hasOwnProperty("date") ? strToTime(response.files[i].date) : undefined;
+							addScanFile(response.files[i].name, response.files[i].size, lastModified);
 						}
 					}
 
-					if (files.length == 0) {
-						$("#page_scanner h1").text(T("No scans found"));
-					}
-					scansLoaded = true;
-				}
+					// see if there is more
+					if (response.next != 0) {
+						getScanFiles(response.next);
+					} else {
+						if (response.files.length == 0) {
+							$("#page_scanner h1").text(T("No scans found"));
+						}
 
-				startUpdates();
-				scanUpdateFinished();
+						scanUpdateFinished();
+						startUpdates();
+					}
+				}
 			}
 		}
 	});
@@ -208,6 +212,7 @@ function scanUpdateFinished() {
 	} else {
 		$(".span-refresh-scans").addClass("hidden");
 	}
+	scansLoaded = true;
 }
 
 $("body").on("click", ".btn-download-file", function(e) {
@@ -415,20 +420,19 @@ function clearGCodeDirectory() {
 	$("#ol_gcode_directory > li.content").replaceWith('<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> ' + baseCaption + '</li>');
 }
 
-function addGCodeFile(filename, size, lastModified) {
+function addGCodeFile(filename) {
 	$("#page_files h1").addClass("hidden");
 	$("#table_gcode_files").removeClass("hidden");
 
-	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
-	var row =	'<tr draggable="true" data-file="' + filename + '"' + title + ' data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
+	var row =	'<tr draggable="true" data-file="' + filename + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td class="name"><span class="glyphicon glyphicon-asterisk"></span> ' + filename + '</td>';
-	row +=		'<td class="hidden-xs">' + formatSize(size) + '</td>';
-	row +=		'<td class="hidden-xs hidden-sm last-modified">' + ((lastModified == undefined) ? T("n/a") : lastModified.toLocaleString()) + '</td>';
+	row +=		'<td class="size hidden-xs">' + T("loading") + '</td>';
+	row +=		'<td class="last-modified hidden-xs hidden-sm">' + T("loading") + '</td>';
 	row +=		'<td class="object-height">' + T("loading") + '</td>';
-	row +=		'<td class="hidden-xs layer-height">' + T("loading") + '</td>';
+	row +=		'<td class="layer-height hidden-xs">' + T("loading") + '</td>';
 	row +=		'<td class="filament-usage">' + T("loading") + '</td>';
-	row +=		'<td class="hidden-xs hidden-sm generated-by">' + T("loading") + '</td>';
+	row +=		'<td class="generated-by hidden-xs hidden-sm">' + T("loading") + '</td>';
 	row +=		'</tr>';
 	return $(row).appendTo("#table_gcode_files > tbody");
 }
@@ -459,11 +463,15 @@ function addGCodeDirectory(name) {
 	gcodeLastDirectory = rowElem;
 }
 
-function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUsage, generatedBy) {
+function setGCodeFileItem(row, size, lastModified, height, firstLayerHeight, layerHeight, filamentUsage, generatedBy) {
+	var lastModifiedValue = (lastModified == undefined) ? 0 : lastModified.getTime();
+
 	// Make entry interactive and link the missing data attributes to it
 	var linkCell = row.children().eq(1);
 	linkCell.find("span").removeClass("glyphicon-asterisk").addClass("glyphicon-file");
 	linkCell.html('<a href="#" class="a-gcode-file">' + linkCell.html() + '</a>');
+	row.data("size", size);
+	row.data("last-modified", lastModifiedValue);
 	row.data("height", height);
 	row.data("first-layer-height", firstLayerHeight);
 	row.data("layer-height", layerHeight);
@@ -474,15 +482,11 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 	row[0].addEventListener("dragstart", fileDragStart, false);
 	row[0].addEventListener("dragend", fileDragEnd, false);
 
-	// Set slicer
-	var slicer = generatedBy.match(/(.*\d\.\d)\s/);
-	if (slicer == null) {
-		slicer = generatedBy;
-	} else {
-		slicer = slicer[1];
-	}
-	slicer = slicer.replace(" Version", "");
-	row.find(".generated-by").text((slicer != "") ? slicer : T("n/a"));
+	// Set size
+	row.find(".size").text(formatSize(size));
+
+	// Set last modified date
+	row.find(".last-modified").text(((lastModified == undefined) ? T("n/a") : lastModified.toLocaleString()));
 
 	// Set object height
 	row.find(".object-height").text((height > 0) ? T("{0} mm", height) : T("n/a"));
@@ -502,12 +506,22 @@ function setGCodeFileItem(row, height, firstLayerHeight, layerHeight, filamentUs
 			row.find(".filament-usage").text(totalUsage);
 		} else {
 			var individualUsage = T("{0} mm", filamentUsage.reduce(function(a, b) { return T("{0} mm", a) + ", " + b; }));
-			var filaUsage = "<abbr class=\"filament-usage\" title=\"" + individualUsage + "\">" + totalUsage + "</abbr>";
+			var filaUsage = '<abbr class="filament-usage" title="' + individualUsage + '">' + totalUsage + "</abbr>";
 			row.find(".filament-usage").html(filaUsage);
 		}
 	} else {
 		row.find(".filament-usage").text(T("n/a"));
 	}
+
+	// Set slicer
+	var slicer = generatedBy.match(/(.*\d\.\d)\s/);
+	if (slicer == null) {
+		slicer = generatedBy;
+	} else {
+		slicer = slicer[1];
+	}
+	slicer = slicer.replace(" Version", "");
+	row.find(".generated-by").text((slicer != "") ? slicer : T("n/a"));
 }
 
 function clearGCodeFiles() {
@@ -546,83 +560,86 @@ function updateGCodeFiles() {
 			return;
 		}
 
-		// Yes - fetch the filelist for the current directory and proceed
+		// Yes - fetch the files in the current directory and proceed
 		stopUpdates();
-		gcodeUpdateIndex = 0;
+		$("#table_gcode_files").css("cursor", "wait");
+
 		gcodeLastDirectory = undefined;
 		clearGCodeFiles();
 
-		$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(currentGCodeDirectory), {
-			dataType: "json",
-			success: function(response) {
-				if (isConnected) {
-					if (response.hasOwnProperty("err")) {
-						// don't proceed if the firmware has reported an error
-						$("#page_files h1").text(T("Failed to retrieve files of this directory"));
+		gcodeUpdateIndex = 0;
+		knownGCodeFiles = [];
+		getGCodeFiles(0);
+	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
+		getFileInfo(currentGCodeDirectory, knownGCodeFiles[gcodeUpdateIndex], function(dir, filename, fileinfo) {
+			if (!isConnected || dir != currentGCodeDirectory) {
+				return;
+			}
+			gcodeUpdateIndex++;
 
-						gcodeUpdateIndex = -1;
+			var row = $('#table_gcode_files > tbody > tr[data-file="' + filename + '"]');
+			if (row.length > 0) {
+				if (fileinfo.err == 0) {
+					setGCodeFileItem(row, fileinfo.size, strToTime(fileinfo.lastModified), fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
+				} else {
+					setGCodeFileItem(row, 0, undefined, 0, 0, 0, [], "");
+				}
+			}
+
+			if (currentPage == "files") {
+				saveFileCache();
+				if (gcodeUpdateIndex >= knownGCodeFiles.length) {
+					gcodeUpdateFinished();
+				} else {
+					updateGCodeFiles();
+				}
+			} else {
+				// Updates were suspended so that multiple sessions don't block each other. Resume status updats again
+				startUpdates();
+			}
+		});
+	}
+}
+
+function getGCodeFiles(first) {
+	$.ajax(ajaxPrefix + "rr_files?dir=" + encodeURIComponent(currentGCodeDirectory) + "&first=" + first + "&flagDirs=1", {
+		dataType: "json",
+		success: function(response) {
+			if (isConnected) {
+				if (response.err != 0) {
+					// don't proceed if the firmware has reported an error
+					$("#page_files h1").text(T("Failed to retrieve files of this directory"));
+
+					gcodeUpdateIndex = -1;
+					gcodeUpdateFinished();
+				} else {
+					if (response.files.length == 0) {
+						// no files found
+						$("#page_files h1").text(T("No Files or Directories found"));
 						gcodeUpdateFinished();
 					} else {
-						// otherwise add each file and directory
-						knownGCodeFiles = response.files;
-						for(var i = 0; i < knownGCodeFiles.length; i++) {
-							if (knownGCodeFiles[i].type == 'd') {
-								addGCodeDirectory(knownGCodeFiles[i].name);
+						// add each file and directory
+						for(var i = 0; i < response.files.length; i++) {
+							if (response.files[i].indexOf("*") == 0) {
+								addGCodeDirectory(response.files[i].substr(1));
 							} else {
-								var lastModified = knownGCodeFiles[i].hasOwnProperty("date") ? strToTime(knownGCodeFiles[i].date) : undefined;
-								addGCodeFile(knownGCodeFiles[i].name, knownGCodeFiles[i].size, lastModified);
+								knownGCodeFiles.push(response.files[i]);
+								addGCodeFile(response.files[i]);
 							}
 						}
 
-						if (knownGCodeFiles.length == 0) {
-							$("#page_files h1").text(T("No Files or Directories found"));
-							gcodeUpdateFinished();
+						// see if there are more
+						if (response.next != 0) {
+							getGCodeFiles(response.next);
 						} else {
-							$("#table_gcode_files").css("cursor", "wait");
+							// got everything, start fileinfo requests
 							updateGCodeFiles();
 						}
 					}
 				}
 			}
-		});
-	} else if (gcodeUpdateIndex < knownGCodeFiles.length) {
-		if (knownGCodeFiles[gcodeUpdateIndex].type == 'd') {
-			gcodeUpdateIndex++;
-			if (gcodeUpdateIndex >= knownGCodeFiles.length) {
-				gcodeUpdateFinished();
-			} else {
-				updateGCodeFiles();
-			}
-		} else {
-			getFileInfo(currentGCodeDirectory, knownGCodeFiles[gcodeUpdateIndex].name, function(dir, filename, fileinfo) {
-				if (!isConnected || dir != currentGCodeDirectory) {
-					return;
-				}
-				gcodeUpdateIndex++;
-
-				var row = $('#table_gcode_files > tbody > tr[data-file="' + filename + '"]');
-				if (row.length > 0) {
-					if (fileinfo.err == 0) {
-						setGCodeFileItem(row, fileinfo.height, fileinfo.firstLayerHeight, fileinfo.layerHeight, fileinfo.filament, fileinfo.generatedBy);
-					} else {
-						setGCodeFileItem(row, 0, 0, 0, [], "");
-					}
-				}
-
-				if (currentPage == "files") {
-					saveFileCache();
-					if (gcodeUpdateIndex >= knownGCodeFiles.length) {
-						gcodeUpdateFinished();
-					} else {
-						updateGCodeFiles();
-					}
-				} else {
-					// Although wired Duets can handle fileinfo requests in parallel, DuetWiFiServer cannot do that yet
-					startUpdates();
-				}
-			});
 		}
-	}
+	});
 }
 
 function gcodeUpdateFinished() {
@@ -768,7 +785,7 @@ function addMacroFile(filename, size, lastModified) {
 	var row =	'<tr draggable="true" data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#" class="a-macro-file"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
-	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td class="size">' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>\n';
 
@@ -846,8 +863,11 @@ function updateMacroFiles() {
 
 	// Yes - fetch the filelist for the current directory and proceed
 	stopUpdates();
+	getMacroFiles(0);
+}
 
-	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(currentMacroDirectory), {
+function getMacroFiles(first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(currentMacroDirectory) + "&first=" + first, {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
@@ -857,38 +877,51 @@ function updateMacroFiles() {
 					if (currentMacroDirectory == "0:/macros") {
 						$("#panel_macro_buttons h4").text(T("Failed to retrieve files of this directory"));
 					}
+					startUpdates();
 				} else {
-					// Sort the macros by name when we get the response, because we
-					// may need to use the sorted array on the Control page
-					var files = response.files.sort(function (a, b) {
-						return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-					});
-
-					for(var i = 0; i < files.length; i++) {
-						if (files[i].type == 'd') {
-							addMacroDirectory(files[i].name);
+					// add macro files and directories
+					for(var i = 0; i < response.files.length; i++) {
+						if (response.files[i].type == 'd') {
+							addMacroDirectory(response.files[i].name);
 						} else {
-							var lastModified = files[i].hasOwnProperty("date") ? strToTime(files[i].date) : undefined;
-							addMacroFile(files[i].name, files[i].size, lastModified);
+							var lastModified = response.files[i].hasOwnProperty("date") ? strToTime(response.files[i].date) : undefined;
+							addMacroFile(response.files[i].name, response.files[i].size, lastModified);
 						}
 					}
 
-					if (files.length == 0) {
-						$("#page_macros h1").text(T("No Macro Files found"));
+					// see if there is more
+					if (response.next != 0) {
+						getMacroFiles(response.next);
 					} else {
-						sortTable($("#table_macro_files"));
-					}
+						if (response.files.length == 0) {
+							$("#page_macros h1").text(T("No Macro Files found"));
+						}
 
-					if (currentPage == "macros") {
-						$(".span-refresh-macros").removeClass("hidden");
+						startUpdates();
+						macroFilesLoaded();
 					}
-					macrosLoaded = true;
 				}
-
-				startUpdates();
 			}
 		}
 	});
+}
+
+function macroFilesLoaded() {
+	if (currentPage == "macros") {
+		$(".span-refresh-macros").removeClass("hidden");
+	}
+
+	sortTable($("#table_macro_files"));
+	if (currentMacroDirectory == "0:/macros") {
+		var listitems = $("#panel_macro_buttons > div > div.btn-group-vertical").children("div.btn-group").get();
+		listitems.sort(function(a, b) {
+			var result = $(a).children("button").text().toUpperCase().localeCompare($(b).children("button").text().toUpperCase());
+			return ($(a).children("button").data("directory") != null) ? result - 1 : result;
+		})
+		$.each(listitems, function(idx, itm) { $("#panel_macro_buttons > div > div.btn-group-vertical").append(itm); });
+	}
+
+	macrosLoaded = true;
 }
 
 function clearMacroFiles() {
@@ -931,7 +964,7 @@ $("body").on("click", ".btn-macro", function(e) {
 	if (directory != undefined) {
 		var dropdown = $(this).parent().children("ul");
 		dropdown.css("width", $(this).outerWidth());
-		loadMacroDropdown(directory, dropdown);
+		getMacroDropdown(directory, dropdown, 0);
 		dropdown.dropdown();
 	} else {
 		sendGCode('M98 P"' + $(this).data("macro") + '"');
@@ -939,27 +972,26 @@ $("body").on("click", ".btn-macro", function(e) {
 	e.preventDefault();
 });
 
-function loadMacroDropdown(directory, dropdown) {
-	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(directory), {
+function getMacroDropdown(directory, dropdown, first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=" + encodeURIComponent(directory) + "&first=" + first, {
 		dataType: "json",
-		directory: directory,
-		dropdown: dropdown,
 		success: function(response) {
 			if (response.hasOwnProperty("err")) {
 				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + T("Failed to retrieve files of this directory") + '</a></li>');
 			} else if (response.files.length == 0) {
 				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + T("No files found!") + '</a></li>');
 			} else {
-				dropdown.html('<li><a href="#" class="disabled" style="color:#777;">' + directory + '</a></li><li class="divider"></li>');
-				var files = response.files.sort(function (a, b) {
-					return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
-				});
+				// prepare drop-down content
+				if (first == 0) {
+					dropdown.html('<li class="static"><a href="#" class="disabled" style="color:#777;">' + directory + '</a></li><li class="divider"></li>');
+				}
 
-				files.forEach(function(file) {
+				// add the macro files and directories
+				response.files.forEach(function(file) {
 					if (file.type == 'd') {
 						var item = $('<li class="bg-info"><a href="#" data-directory="' + directory + '/' + file.name + '">' + file.name + ' <span class="caret"></span></a></li>');
 						item.find("a").click(function(e) {
-							loadMacroDropdown($(this).data("directory"), $(this).closest("ul"));
+							getMacroDropdown($(this).data("directory"), $(this).closest("ul"), 0);
 							e.stopPropagation();
 							e.preventDefault();
 						});
@@ -973,6 +1005,24 @@ function loadMacroDropdown(directory, dropdown) {
 						dropdown.append(item);
 					}
 				});
+
+				// see if there is more
+				if (response.next != 0) {
+					getMacroDropdown(directory, dropdown, response.next);
+				} else {
+					var listitems = dropdown.children("li").get();
+					listitems.sort(function(a, b) {
+						var result = $(a).text().toUpperCase().localeCompare($(b).text().toUpperCase());
+						if ($(a).hasClass("static")) {
+							return result - 3;
+						}
+						if ($(a).hasClass("divider")) {
+							return result - 2;
+						}
+						return ($(a).data("directory") != null) ? result - 1 : result;
+					})
+					$.each(listitems, function(idx, itm) { dropdown.append(itm); });
+				}
 			}
 		}
 	});
@@ -1059,8 +1109,11 @@ function updateFilaments() {
 
 	// Yes - fetch the filelist for the current directory and proceed
 	stopUpdates();
+	getFilaments(0);
+}
 
-	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/filaments", {
+function getFilaments(first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/filaments&first=" + first, {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
@@ -1068,6 +1121,7 @@ function updateFilaments() {
 					// don't proceed if the firmware has reported an error
 					filamentsExist = false;
 					$("#page_filaments h1").text(T("Failed to retrieve Filaments"));
+					startUpdates();
 				} else {
 					var files = response.files, filamentsAdded = 0;
 					for(var i = 0; i < files.length; i++) {
@@ -1078,20 +1132,24 @@ function updateFilaments() {
 						}
 					}
 
-					if (filamentsAdded == 0) {
-						$("#page_filaments h1").text(T("No Filaments found"));
+					if (response.next != 0) {
+						getFilaments(response.next);
 					} else {
-						sortTable($("#table_filaments"));
-					}
+						if (filamentsAdded == 0) {
+							$("#page_filaments h1").text(T("No Filaments found"));
+						} else {
+							sortTable($("#table_filaments"));
+						}
 
-					if (currentPage == "filaments") {
-						$(".span-refresh-filaments").removeClass("hidden");
+						if (currentPage == "filaments") {
+							$(".span-refresh-filaments").removeClass("hidden");
+						}
+
+						filamentsLoaded = true;
+						filamentsExist = true;
+						startUpdates();
 					}
-					filamentsLoaded = true;
-					filamentsExist = true;
 				}
-
-				startUpdates();
 			}
 		}
 	});
@@ -1167,7 +1225,7 @@ function addSysFile(filename, size, lastModified) {
 	var row =	'<tr data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
-	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td class="size">' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
 	$("#table_sys_files > tbody").append(row);
@@ -1196,16 +1254,20 @@ function updateSysFiles() {
 
 	// Don't request updates while loading the file list
 	stopUpdates();
+	getSysFiles(0);
+}
 
-	// Request filelist for /sys
-	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/sys", {
+function getSysFiles(first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/sys&first=" + first, {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
 				if (response.hasOwnProperty("err")) {
 					// don't proceed if the firmware has reported an error
 					$("#page_sysedit h1").text(T("Failed to retrieve files of this directory"));
+					startUpdates();
 				} else {
+					// add the files
 					var files = response.files, filesAdded = 0;
 					for(var i = 0; i < files.length; i++) {
 						if (files[i].type != 'd') {
@@ -1215,17 +1277,21 @@ function updateSysFiles() {
 						}
 					}
 
-					if (filesAdded == 0) {
-						$("#page_sysedit h1").text(T("No System Files found"));
+					// see if there is more
+					if (response.next != 0) {
+						getSysFiles(response.next);
 					} else {
-						sortTable($("#table_sys_files"));
+						if (filesAdded == 0) {
+							$("#page_sysedit h1").text(T("No System Files found"));
+						} else {
+							sortTable($("#table_sys_files"));
+						}
+						$("#a_refresh_sys").removeClass("hidden");
+
+						sysLoaded = true;
+						startUpdates();
 					}
-
-					$("#a_refresh_sys").removeClass("hidden");
-					sysLoaded = true;
 				}
-
-				startUpdates();
 			}
 		}
 	});
@@ -1236,7 +1302,10 @@ $("#table_sys_files").on("click", "tbody a", function(e) {
 	var file = row.data("file");
 	if (file.match("\.g$") != null || file.match("\.txt$") != null || file.match("\.json$") != null) {
 		// Edit .g, .txt and .json files
-		editFile(getFilePath() + "/" + file, true, row.data("size"));
+		editFile(getFilePath() + "/" + file, true, row.data("size"), function(newSize) {
+			row.data("size", newSize).find(".size").text(formatSize(newSize));
+			sortTable($("#table_sys_files"));
+		});
 	} else if (file.match("\.csv$") != null) {
 		// Treat .csv files as heightmaps or open them in the editor if their header doesn't match
 		getHeightmap(getFilePath() + "/" + file);
@@ -1284,7 +1353,7 @@ function addDisplayFile(filename, size, lastModified) {
 	var row =	'<tr data-file="' + filename + '" data-size="' + size + '" data-last-modified="' + lastModifiedValue + '">';
 	row +=		'<td><input type="checkbox"></td>';
 	row +=		'<td><a href="#"><span class="glyphicon glyphicon-file"></span> ' + filename + '</a></td>';
-	row +=		'<td>' + formatSize(size) + '</td>';
+	row +=		'<td class="size">' + formatSize(size) + '</td>';
 	row +=		'<td>' + ((lastModified == undefined) ? T("unknown") : lastModified.toLocaleString()) + '</td>';
 	row +=		'</tr>';
 	$("#table_display_files > tbody").append(row);
@@ -1313,16 +1382,20 @@ function updateDisplayFiles() {
 
 	// Don't request updates while loading the file list
 	stopUpdates();
+	getDisplayFiles(0);
+}
 
-	// Request filelist for /sys
-	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/menu", {
+function getDisplayFiles(first) {
+	$.ajax(ajaxPrefix + "rr_filelist?dir=0:/menu&first=" + first, {
 		dataType: "json",
 		success: function(response) {
 			if (isConnected) {
 				if (response.hasOwnProperty("err")) {
 					// don't proceed if the firmware has reported an error
 					$("#page_display h1").text(T("Failed to retrieve files of this directory"));
+					startUpdates();
 				} else {
+					// add the files
 					var files = response.files, filesAdded = 0;
 					for(var i = 0; i < files.length; i++) {
 						if (files[i].type != 'd') {
@@ -1332,17 +1405,21 @@ function updateDisplayFiles() {
 						}
 					}
 
-					if (filesAdded == 0) {
-						$("#page_display h1").text(T("No Display items found"));
+					// see if there is more
+					if (response.next != 0) {
+						getDisplayFiles(response.next);
 					} else {
-						sortTable($("#table_display_files"));
+						if (filesAdded == 0) {
+							$("#page_display h1").text(T("No Display items found"));
+						} else {
+							sortTable($("#table_display_files"));
+						}
+						$("#a_refresh_display").removeClass("hidden");
+
+						displayLoaded = true;
+						startUpdates();
 					}
-
-					$("#a_refresh_display").removeClass("hidden");
-					displayLoaded = true;
 				}
-
-				startUpdates();
 			}
 		}
 	});
@@ -1352,7 +1429,10 @@ $("#table_display_files").on("click", "tbody a", function(e) {
 	// Edit menu items as text files
 	var row = $(this).closest("tr");
 	var file = row.data("file");
-	editFile(getFilePath() + "/" + file, true, row.data("size"));
+	editFile(getFilePath() + "/" + file, true, row.data("size"), function(newSize) {
+		row.data("size", newSize).find(".size").text(formatSize(newSize));
+		sortTable($("#table_display_files"));
+	});
 
 	e.preventDefault();
 });
@@ -1747,6 +1827,12 @@ $("#a_context_edit_load").click(function(e) {
 	e.preventDefault();
 });
 
+$("#a_context_edit_config").click(function(e) {
+	var filament = contextMenuTargets.data("filament");
+	editFile("0:/filaments/" + filament + "/config.g", false);
+	e.preventDefault();
+});
+
 $("#a_context_edit_unload").click(function(e) {
 	var filament = contextMenuTargets.data("filament");
 	editFile("0:/filaments/" + filament + "/unload.g", false);
@@ -1795,7 +1881,16 @@ $("#a_context_download_zip").click(function(e) {
 });
 
 $("#a_context_edit").click(function(e) {
-	editFile(getFilePath() + "/" + contextMenuTargets.data("file"), true, contextMenuTargets.data("size"));
+	var file = getFilePath() + "/" + contextMenuTargets.data("file");
+	editFile(file, true, contextMenuTargets.data("size"), function(newSize) {
+		contextMenuTargets.data("size", newSize).find(".size").text(formatSize(newSize));
+		sortTable(contextMenuTargets.closest("table"));
+
+		if (currentPage == "files") {
+			cachedFileInfo[file].size = newSize;
+			saveFileCache();
+		}
+	});
 	e.preventDefault();
 });
 
@@ -2042,16 +2137,16 @@ function doFileTask() {
 }
 
 var editFileNotification = undefined;
-function editFile(file, mustExist, size) {
+function editFile(file, editingFile, size, editCallback) {
 	if (size != undefined && size > 1000000) {
 		editFileNotification = showMessage("info", T("Downloading File"), T("This file is quite big. It may take a while before it is fully loaded..."), 0);
 	}
-	if (mustExist == undefined) { mustExist = true; }
+	if (editingFile == undefined) { editingFile = true; }
 
 	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent(file), {
 		dataType: "text",
-		global: mustExist,
-		error: mustExist ? undefined : function(jqXHR, textStatus, errorThrown) {
+		global: editingFile,
+		error: editingFile ? undefined : function(jqXHR, textStatus, errorThrown) {
 			if (editFileNotification != undefined) {
 				editFileNotification.close();
 				editFileNotification = undefined;
@@ -2059,15 +2154,21 @@ function editFile(file, mustExist, size) {
 
 			showEditDialog(file, "", function(value) {
 				uploadTextFile(file, value, function() {
-					if (currentPage == "files") {
-						updateGCodeFiles();
-					} else if (currentPage == "macros") {
-						updateMacroFiles();
-					} else if (currentPage == "settings") {
-						if ($("#page_sysedit").hasClass("active")) {
-							updateSysFiles();
-						} else {
-							updateDisplayFiles();
+					if (editingFile) {
+						if (editCallback != undefined) {
+							editCallback(new Blob([value]).size);
+						}
+					} else {
+						if (currentPage == "files") {
+							updateGCodeFiles();
+						} else if (currentPage == "macros") {
+							updateMacroFiles();
+						} else if (currentPage == "settings") {
+							if ($("#page_sysedit").hasClass("active")) {
+								updateSysFiles();
+							} else {
+								updateDisplayFiles();
+							}
 						}
 					}
 				});
@@ -2081,15 +2182,21 @@ function editFile(file, mustExist, size) {
 
 			showEditDialog(file, response, function(value) {
 				uploadTextFile(file, value, function() {
-					if (currentPage == "files") {
-						updateGCodeFiles();
-					} else if (currentPage == "macros") {
-						updateMacroFiles();
-					} else if (currentPage == "settings") {
-						if ($("#page_sysedit").hasClass("active")) {
-							updateSysFiles();
-						} else {
-							updateDisplayFiles();
+					if (editingFile) {
+						if (editCallback != undefined) {
+							editCallback(new Blob([value]).size);
+						}
+					} else {
+						if (currentPage == "files") {
+							updateGCodeFiles();
+						} else if (currentPage == "macros") {
+							updateMacroFiles();
+						} else if (currentPage == "settings") {
+							if ($("#page_sysedit").hasClass("active")) {
+								updateSysFiles();
+							} else {
+								updateDisplayFiles();
+							}
 						}
 					}
 				});

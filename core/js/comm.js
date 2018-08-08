@@ -90,18 +90,21 @@ $(document).ajaxError(function(event, jqxhr, xhrsettings, thrownError) {
 			}
 		}
 
-		// Try to reconnect
+		// Disconnect and display the error message
 		disconnect(false);
 		$("#span_reconnect_title").text(T("Connection Lost"));
 		$("#span_reconnect_reason").text(errorToDescription(thrownError, ""));
 		$("#modal_reconnecting").modal("show");
-		setStatusLabel("Reconnecting", "warning");
-		connect(sessionPassword, false);
 
-		// Try to log the faulty response to console
 		if (response != undefined) {
+			// Bad JSON response, don't do anything else
+			$("#modal_reconnecting p:last-child").text(T("Please reload the web interface to proceed."))
 			console.log("Error! The following JSON response could not be parsed:");
 			console.log(response);
+		} else {
+			// Other error (probably timeout), try to reconnect
+			setStatusLabel("Reconnecting", "warning");
+			connect(sessionPassword, false);
 		}
 	}
 });

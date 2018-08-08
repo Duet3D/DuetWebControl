@@ -77,7 +77,7 @@ var defaultSettings = jQuery.extend(true, {}, settings);		// need to do this to 
 
 var themeInclude;
 
-var rememberedGCodes = ["M0", "M1", "M84", "M561"], defaultGCodes = jQuery.extend(true, {}, rememberedGCodes);
+var rememberedGCodes = ["M0", "M1", "M84", "M561"], defaultGCodes = rememberedGCodes.slice();
 
 
 /* Safe wrappers for localStorage */

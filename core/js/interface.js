@@ -891,10 +891,11 @@ $("#table_tools").on("click", "tr > th:first-child > a", function(e) {
 			}
 			content += "<hr>";
 			if (toolObj != undefined && toolObj.filament == "") {
-				content += '<a href="#" class="load-filament"><span class="glyphicon glyphicon glyphicon-arrow-down"></span> Load Filament</a>';
+				content += '<a href="#" class="load-filament"><span class="glyphicon glyphicon glyphicon-arrow-down"></span> ' + T("Load Filament") + '</a>';
 			} else {
-				content += '<a href="#" class="change-filament"><span class="glyphicon glyphicon-transfer"></span> Change Filament</a>';
-				content += '<br/><a href="#" class="unload-filament"><span class="glyphicon glyphicon-arrow-up"></span> Unload Filament</a>';
+				content += '<a href="#" class="change-filament"><span class="glyphicon glyphicon-transfer"></span> ' + T("Change Filament") + '</a>';
+				content += '</br>';
+				content += '<a href="#" class="unload-filament"><span class="glyphicon glyphicon-arrow-up"></span> ' + T("Unload Filament") + '</a>';
 			}
 
 			// show it

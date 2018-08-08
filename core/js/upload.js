@@ -52,6 +52,11 @@ function uploadTextFile(filename, content, callback, showNotification, configFil
 		type: "POST",
 		global: false,
 		error: function(jqXHR, textStatus, errorThrown) {
+			if (errorThrown == "abort") {
+				// Ignore this error if this request was cancelled intentionally
+				return;
+			}
+
 			// Retry upload if this file is smaller than 1MiB
 			if (file.size < 1048576) {
 				if (!this.hasOwnProperty("retryCount")) {
@@ -359,6 +364,11 @@ function uploadNextFile() {
 		type: "POST",
 		global: false,
 		error: function(jqxhr, textStatus, errorThrown) {
+			if (errorThrown == "abort") {
+				// Ignore this error if this request was cancelled intentionally
+				return;
+			}
+
 			// Retry upload if this file is smaller than 1MiB
 			if (file.size < 1048576) {
 				if (!this.hasOwnProperty("retryCount")) {
