@@ -14,6 +14,7 @@ var reconnectInterval = 1000;			// Interval in which DWC attempts to reconnect t
 var sessionTimeout = 8000;				// Time in ms before RepRapFirmware kills our session
 
 var isConnected = false;				// Are we connected?
+var firstConnect = true;				// Are we trying to connect for the first time?
 var justConnected = false;				// Have we just connected?
 
 var reconnectingAfterHalt = false;		// Are we trying to reconnect after a firmware halt?
@@ -188,10 +189,11 @@ function connect(password, regularConnect) {
 					postConnect(response);
 				} else {						// Invalid password
 					showPasswordPrompt();
-					if (password != "") {
+					if (!firstConnect) {
 						showMessage("danger", T("Error"), T("Invalid password!"));
 					}
 				}
+				firstConnect = false;
 			}
 		}
 	});

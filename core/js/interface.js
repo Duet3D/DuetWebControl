@@ -1470,7 +1470,7 @@ $(".all-temp-input").keydown(function(e) {
 
 			var gcode = "";
 			for(var i = 0; i < toolMapping.length; i++) {
-				if ($.inArray(0, toolMapping[i].heaters) == -1) {
+				if ($.inArray(0, toolMapping[i].heaters) == -1 && toolMapping[i].heaters.length > 0) {
 					// Make sure we don't set temperatures for the heated bed
 					gcode += "G10 P" + toolMapping[i].number + " " + activeOrStandby + $(this).val() + "\n";
 				}
