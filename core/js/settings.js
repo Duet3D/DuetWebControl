@@ -88,7 +88,8 @@ function getLocalSetting(key, defaultValue) {
 	}
 
 	var value = localStorage.getItem(key);
-	if (value == undefined || value.length == 0) {
+	if (value == undefined || value.length == 0 ||
+		(defaultValue != undefined && value.constructor !== defaultValue.constructor)) {
 		return defaultValue;
 	}
 	return JSON.parse(value);

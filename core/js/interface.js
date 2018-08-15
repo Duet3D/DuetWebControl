@@ -804,7 +804,11 @@ $("#table_tools").on("click", ".heater-temp", function(e) {
 	gcode += temps.reduce(function(a, b) { return a + ":" + b; });
 	sendGCode(gcode);
 
-	$(this).select();
+	if (windowIsXsSm()) {
+		$(this).blur();
+	} else {
+		$(this).select();
+	}
 	e.preventDefault();
 });
 
@@ -848,7 +852,11 @@ $("#table_tools").on("keydown", "tr > td > div > input", function(e) {
 			sendGCode(gcode);
 		}
 
-		$(this).select();
+		if (windowIsXsSm()) {
+			$(this).blur();
+		} else {
+			$(this).select();
+		}
 		e.preventDefault();
 	}
 });
@@ -1446,7 +1454,11 @@ $("#table_heaters > tbody > tr > td > div > input," +
 		}
 		sendGCode(gcode);
 
-		$(this).select();
+		if (windowIsXsSm()) {
+			$(this).blur();
+		} else {
+			$(this).select();
+		}
 		e.preventDefault();
 	}
 });
