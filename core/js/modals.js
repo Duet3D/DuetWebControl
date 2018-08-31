@@ -170,7 +170,8 @@ $("body").on("click", ".a-load-filament", function(e) {
 	if (changingFilament) {
 		gcode += "M702\n";
 	}
-	gcode += "M701 S\"" + $(this).data("filament") + "\"\nM703";
+	gcode += "M701 S\"" + $(this).data("filament") + "\"";
+	if (!compatibilityMode) { gcode += "\nM703"; }
 	sendGCode(gcode);
 
 	e.preventDefault();

@@ -189,7 +189,7 @@ function getScanFiles(first) {
 					}
 
 					// see if there is more
-					if (response.next != 0) {
+					if (response.next != 0 && !compatibilityMode) {
 						getScanFiles(response.next);
 					} else {
 						if (response.files.length == 0) {
@@ -890,7 +890,7 @@ function getMacroFiles(first) {
 					}
 
 					// see if there is more
-					if (response.next != 0) {
+					if (response.next != 0 && !compatibilityMode) {
 						getMacroFiles(response.next);
 					} else {
 						if (response.files.length == 0) {
@@ -1007,7 +1007,7 @@ function getMacroDropdown(directory, dropdown, first) {
 				});
 
 				// see if there is more
-				if (response.next != 0) {
+				if (response.next != 0 && !compatibilityMode) {
 					getMacroDropdown(directory, dropdown, response.next);
 				} else {
 					var listitems = dropdown.children("li").get();
@@ -1132,7 +1132,7 @@ function getFilaments(first) {
 						}
 					}
 
-					if (response.next != 0) {
+					if (response.next != 0 && !compatibilityMode) {
 						getFilaments(response.next);
 					} else {
 						if (filamentsAdded == 0) {
@@ -1278,7 +1278,7 @@ function getSysFiles(first) {
 					}
 
 					// see if there is more
-					if (response.next != 0) {
+					if (response.next != 0 && !compatibilityMode) {
 						getSysFiles(response.next);
 					} else {
 						if (filesAdded == 0) {
@@ -1332,7 +1332,7 @@ $("#a_new_display_file").click(function() {
 	showTextInput(T("New File"), T("Please enter a name for the display item:"), function(file) {
 		if (filenameValid(file)) {
 			showEditDialog("0:/menu/" + file, "", function(value) {
-				uploadTextFile("0:/menu/" + file, value, updateSysFiles);
+				uploadTextFile("0:/menu/" + file, value, updateDisplayFiles);
 			});
 		} else {
 			showMessage("danger", T("Error"), T("The specified filename is invalid. It may not contain quotes, colons or (back)slashes."));
@@ -1406,7 +1406,7 @@ function getDisplayFiles(first) {
 					}
 
 					// see if there is more
-					if (response.next != 0) {
+					if (response.next != 0 && !compatibilityMode) {
 						getDisplayFiles(response.next);
 					} else {
 						if (filesAdded == 0) {

@@ -37,6 +37,8 @@ var vendor = undefined;					// For OEM functionality
 var calibrationWebcamSource = "", calibrationWebcamEmbedded = false;
 var hideLastExtruderDrive = false;
 
+var compatibilityMode = false;			// TEMPORARY: Compatibility mode for latest official RRF 2.01
+
 
 /* AJAX Events */
 
@@ -1377,6 +1379,7 @@ function getConfigResponse() {
 			}
 
 			$("#firmware_version").text(response.firmwareVersion + " (" + response.firmwareDate + ")");
+			compatibilityMode = response.firmwareVersion == "2.01(RTOS)";
 
 			var driveRows = $("#table_drives > tbody > tr");
 			for(var drive = 0; drive < maxDrives; drive++) {

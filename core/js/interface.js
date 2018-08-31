@@ -1054,6 +1054,20 @@ $("#a_list_devices").click(function(e) {
 	e.preventDefault();
 });
 
+$("#a_mode").click(function(e) {
+	if (vendor == "diabase") {
+		var currentMode = $(this).children("span").children("span").text();
+		if (currentMode == "FFF") {
+			sendGCode("M453");			// switch to CNC mode
+		} else {
+			sendGCode("M451");			// switch to FFF mode
+		}
+	}
+	// TODO: It would be good to know what kind of machine this is and what types of tools are actually configured
+	// Unfortunately we can only assign spindles to tools but not laser cutters, hence clicking on this link does not do anything yet
+	e.preventDefault();
+});
+
 $(".a-tools, .a-heaters, .a-extra").click(function(e) {
 	var showTools = $(this).hasClass("a-tools");
 	var showHeaters = $(this).hasClass("a-heaters");
