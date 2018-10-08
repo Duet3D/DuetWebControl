@@ -404,13 +404,13 @@ function enableControls() {
 	$("#panel_extrude label.btn, #panel_extrude button").removeClass("disabled");				// Extruder Control
 	$("#panel_control_misc label.btn").removeClass("disabled");									// ATX Power
 	for(var fan = -1; fan < maxFans; fan++) {
-		var fanID = (fan == -1) ? "print": fan;
+		var fanID = (fan == -1) ? "tool": fan;
 		$("#slider_fan_control_" + fanID).slider("enable");										// Fan
-		$("#slider_fan_print_" + fanID).slider("enable");										// Control
+		$("#slider_fan_job_" + fanID).slider("enable");											// Control
 	}
 
 	$("#page_scanner button").removeClass("disabled");											// Scanner
-	$("#page_print .checkbox, #btn_baby_down, #btn_baby_up").removeClass("disabled");			// Print Control
+	$("#page_job .checkbox, #btn_baby_down, #btn_baby_up").removeClass("disabled");				// Job Control
 	$(".table-fan-control tr > td:not(:first-child) > button").removeClass("disabled");			// Fan Control
 	$("#slider_speed").slider("enable");														// Speed Factor
 	for(var extr = 0; extr < maxExtruders; extr++) {
@@ -438,13 +438,13 @@ function disableControls() {
 	$("#panel_extrude label.btn, #panel_extrude button").addClass("disabled");					// Extruder Control
 	$("#panel_control_misc label.btn").addClass("disabled");									// ATX Power
 	for(var fan = -1; fan < maxFans; fan++) {
-		var fanID = (fan == -1) ? "print": fan;
+		var fanID = (fan == -1) ? "tool": fan;
 		$("#slider_fan_control_" + fanID).slider("disable");									// Fan
-		$("#slider_fan_print_" + fanID).slider("disable");										// Control
+		$("#slider_fan_job_" + fanID).slider("disable");										// Control
 	}
 
 	$("#page_scanner button").addClass("disabled");												// Scanner
-	$("#btn_pause, #page_print .checkbox, #btn_baby_down, #btn_baby_up").addClass("disabled");	// Print Control
+	$("#btn_pause, #page_job .checkbox, #btn_baby_down, #btn_baby_up").addClass("disabled");	// Job Control
 	$(".table-fan-control tr > td:not(:first-child) > button").addClass("disabled");			// Fan Control
 	$("#slider_speed").slider("disable");														// Speed Factor
 	for(var extr = 0; extr < maxExtruders; extr++) {

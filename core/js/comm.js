@@ -309,10 +309,10 @@ function updateStatus() {
 
 	var machinePropsVisible = (currentPage == "settings") && $("#page_machine").hasClass("active");
 	var ajaxRequest = "rr_status";
-	if (extendedStatusCounter >= settings.extendedStatusInterval || machinePropsVisible && (!isPrinting || extendedStatusCounter > 1)) {
+	if (extendedStatusCounter >= settings.extendedStatusInterval || machinePropsVisible && (!isProcessing || extendedStatusCounter > 1)) {
 		extendedStatusCounter = 0;
 		ajaxRequest += "?type=2";
-	} else if (isPrinting) {
+	} else if (isProcessing) {
 		ajaxRequest += "?type=3";
 	} else {
 		ajaxRequest += "?type=1";
@@ -342,7 +342,7 @@ function updateStatus() {
 			if (status.hasOwnProperty("compensation"))
 			{
 				$(".compensation").removeClass("hidden");
-				$("#span_compensation").text(status.compensation);
+				$("#span_compensation").text(T(status.compensation));
 			}
 
 			// Temperature limit
@@ -364,7 +364,7 @@ function updateStatus() {
 				}
 			}
 
-			// Printer Geometry
+			// Geometry
 			if (status.hasOwnProperty("geometry")) {
 				setGeometry(status.geometry);
 			}
@@ -497,7 +497,7 @@ function updateStatus() {
 			/*** Default status response ***/
 
 			// Status
-			var printing = false, paused = false;
+			var processing = false, paused = false;
 			switch (status.status) {
 				case 'F':	// Flashing new firmware
 					setStatusLabel("Updating", "success");
@@ -513,30 +513,30 @@ function updateStatus() {
 
 				case 'D':	// Pausing / Decelerating
 					setStatusLabel("Pausing", "warning");
-					printing = true;
+					processing = true;
 					paused = true;
 					break;
 
 				case 'S':	// Paused / Stopped
 					setStatusLabel("Paused", "info");
-					printing = true;
+					processing = true;
 					paused = true;
 					break;
 
 				case 'R':	// Resuming
 					setStatusLabel("Resuming", "warning");
-					printing = true;
+					processing = true;
 					paused = true;
 					break;
 
-				case 'P':	// Printing
-					setStatusLabel("Printing", "success");
-					printing = true;
+				case 'P':	// Processing
+					setStatusLabel("Processing", "success");
+					processing = true;
 					break;
 
 				case 'M':	// Simulating
 					setStatusLabel("Simulating", "success");
-					printing = true;
+					processing = true;
 					break;
 
 				case 'B':	// Busy
@@ -544,7 +544,7 @@ function updateStatus() {
 					break;
 
 				case 'T':	// Changing tool
-					printing = isPrinting;
+					processing = isProcessing;
 					setStatusLabel("Changing Tool", "primary");
 					break;
 
@@ -552,7 +552,7 @@ function updateStatus() {
 					setStatusLabel("Idle", "default");
 					break;
 			}
-			setPrintStatus(printing);
+			setJobStatus(processing);
 			setPauseStatus(paused);
 
 			// Update file lists of the visible page after the first status response
@@ -671,21 +671,21 @@ function updateStatus() {
 			// Fan Control
 			var fanValues = (status.params.fanPercent.constructor === Array) ? status.params.fanPercent : [status.params.fanPercent];
 
-			if ($("tr[data-fan='print'] button.fan-visibility").hasClass("active") && fanValues.length > 0) {
-				// Set Print/Tool fan value
-				var printFan = 0;
+			if ($("tr[data-fan='tool'] button.fan-visibility").hasClass("active") && fanValues.length > 0) {
+				// Set Tool fan value
+				var toolFan = 0;
 				var tool = getTool(status.currentTool);
 				if (tool != undefined && tool.hasOwnProperty("fans")) {
 					for(var fan = 0; fan < Math.min(maxFans, fanValues.length); fan++) {
 						if ((tool.fans & (1 << fan)) != 0) {
-							printFan = fan;
+							toolFan = fan;
 							break;
 						}
 					}
 				}
 
-				if (fanSliderActive != "print" && (lastStatusResponse == undefined || $("tr[data-fan='print'] .fan-slider > input").slider("getValue") != fanValues[printFan])) {
-					$("tr[data-fan='print'] .fan-slider > input").slider("setValue", fanValues[printFan]);
+				if (fanSliderActive != "tool" && (lastStatusResponse == undefined || $("tr[data-fan='tool'] .fan-slider > input").slider("getValue") != fanValues[toolFan])) {
+					$("tr[data-fan='tool'] .fan-slider > input").slider("setValue", fanValues[toolFan]);
 				}
 			}
 
@@ -732,7 +732,7 @@ function updateStatus() {
 						response = response.trim();
 
 						// Deal with firmware responses that can be parsed
-						if (!isPrinting && response != "") {
+						if (!isProcessing && response != "") {
 							// Is this a bed compensation report?
 							if (response.indexOf("Bed equation fits points ") == 0) {
 								var points = response.substr("Bed equation fits points ".length);
@@ -1063,8 +1063,8 @@ function updateStatus() {
 			/*** Print status response ***/
 
 			if (status.hasOwnProperty("fractionPrinted") && fileInfo != undefined) {
-				var printJustFinished = false;
-				if (!printHasFinished) {
+				var jobJustFinished = false;
+				if (!jobHasFinished) {
 					var progress = 100, progressText = [];
 
 					// Get the current layer progress text
@@ -1092,7 +1092,7 @@ function updateStatus() {
 							progress = 100;
 							totalRawFilament = totalFileFilament;
 							remainingFilament = 0;
-							printJustFinished = printHasFinished = true;
+							jobJustFinished = jobHasFinished = true;
 						}
 						progressText.push(T("Filament Usage: {0}mm of {1}mm", totalRawFilament, totalFileFilament));
 
@@ -1107,7 +1107,7 @@ function updateStatus() {
 							progress = 0;
 						} else if (progress > 100) {
 							progress = 100;
-							printJustFinished = printHasFinished = true;
+							jobJustFinished = jobHasFinished = true;
 						}
 					}
 					// Use the file-based progress as a fallback option
@@ -1115,11 +1115,11 @@ function updateStatus() {
 						progress = status.fractionPrinted;
 						if (progress < 0) {
 							progress = 100;
-							printJustFinished = printHasFinished = true;
+							jobJustFinished = jobHasFinished = true;
 						}
 					}
 
-					setProgress(progress, T("Printing {0}, {1}% Complete", fileInfo.fileName, progress), 
+					setProgress(progress, T("Processing {0}, {1}% Complete", fileInfo.fileName, progress),
 							(progressText.length > 0) ? progressText.reduce(function(a, b) { return a + ", " + b; }) : "");
 				}
 
@@ -1148,7 +1148,7 @@ function updateStatus() {
 						} else {
 							lastLayerPrintDuration = realPrintTime;
 						}
-					} else if (printJustFinished || status.currentLayer - 1 > layerData.length) {
+					} else if (jobJustFinished || status.currentLayer - 1 > layerData.length) {
 						addLayerData(realPrintTime - lastLayerPrintDuration, totalFilamentUsage, true);
 						lastLayerPrintDuration = realPrintTime;
 					}
@@ -1161,12 +1161,12 @@ function updateStatus() {
 					} else {
 						$("#td_warmup_time").html(formatTime(status.warmUpDuration));
 					}
-				} else if (!printHasFinished) {
+				} else if (!jobHasFinished) {
 					$("#td_warmup_time").html(T("n/a"));
 				}
 
 				// Current Layer Time
-				if (!printHasFinished) {
+				if (!jobHasFinished) {
 					if (status.currentLayerTime > 0 || status.currentLayer > 1) {
 						currentLayerTime = status.currentLayerTime;
 						$("#td_layertime").html(formatTime(status.currentLayerTime));
@@ -1180,11 +1180,11 @@ function updateStatus() {
 					$("#td_layertime").html(T("n/a"));
 				}
 
-				// Print Duration
+				// Job Duration
 				if (status.printDuration > 0) {
-					$("#td_print_duration").html(formatTime(status.printDuration));
-				} else if (!printHasFinished) {
-					$("#td_print_duration").html(T("n/a"));
+					$("#td_job_duration").html(formatTime(status.printDuration));
+				} else if (!jobHasFinished) {
+					$("#td_job_duration").html(T("n/a"));
 				}
 
 				// First Layer Height (maybe we need to update the layer height info)
@@ -1193,8 +1193,8 @@ function updateStatus() {
 					$("#dd_layer_height").html(T("{0} mm", status.firstLayerHeight) + " / " + $("#dd_layer_height").html());
 				}
 
-				// Print Estimations
-				if (printHasFinished) {
+				// Estimations
+				if (jobHasFinished) {
 					["filament", "layer", "file"].forEach(function(id) {
 						if ($("#tl_" + id).html() != T("n/a")) {
 							$("#tl_" + id).html("00s");
@@ -1251,7 +1251,7 @@ function updateStatus() {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 					showUpdateMessage(3, duration);
 					setTimeout(reconnectAfterUpdate, duration);
-				} else {
+				} else if (!reconnectingAfterUpdate) {
 					log("info", "<strong>" + T("Updating Firmware...") + "</strong>");
 
 					disconnect(false);
@@ -1260,7 +1260,11 @@ function updateStatus() {
 					$("#span_reconnect_reason").text(T("Firmware Update"));
 					$("#modal_reconnecting").modal("show");
 					setStatusLabel("Reconnecting", "warning");
-					connect(sessionPassword, false);
+
+					setTimeout(function() {
+						// Wait a moment so that the firmware enters the updating mode...
+						connect(sessionPassword, false);
+					}, 2000);
 				}
 			} else if (status.status == 'H') {
 				if (!reconnectingAfterHalt) {
@@ -1330,7 +1334,7 @@ function requestFileInfo() {
 				// File info is valid, use it
 				fileInfo = response;
 
-				$("#span_progress_left").html(T("Printing {0}", response.fileName));
+				$("#span_progress_left").html(T("Processing {0}", response.fileName));
 
 				$("#dd_size").html(formatSize(response.size));
 				$("#dd_height").html((response.height > 0) ? T("{0} mm", response.height) : T("n/a"));
@@ -1350,7 +1354,7 @@ function requestFileInfo() {
 
 				$("#dd_generatedby").html((response.generatedBy == "") ? T("n/a") : response.generatedBy);
 
-				$("#td_print_duration").html(formatTime(response.printDuration));
+				$("#td_job_duration").html(formatTime(response.printDuration));
 			}
 		}
 	});

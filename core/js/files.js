@@ -664,7 +664,7 @@ $("body").on("click", ".a-gcode-directory", function(e) {
 $("body").on("click", ".a-gcode-file", function(e) {
 	var file = $(this).closest("tr").data("file");
 	showConfirmationDialog(T("Run G-Code File"), T("Do you want to run <strong>{0}</strong>?", file), function() {
-		waitingForPrintStart = true;
+		waitingForJobStart = true;
 		if (currentGCodeVolume != 0) {
 			sendGCode('M32 "' + currentGCodeDirectory + "/" + file + '"');
 		} else if (currentGCodeDirectory == "0:/gcodes") {
@@ -1789,9 +1789,9 @@ $("body").click(hideContextMenu).contextmenu(hideContextMenu);
 
 /* Context Menu Actions */
 
-$("#a_context_print").click(function(e) {
+$("#a_context_start").click(function(e) {
 	var file = contextMenuTargets.data("file");
-	waitingForPrintStart = true;
+	waitingForJobStart = true;
 	if (currentGCodeVolume != 0) {
 		sendGCode('M32 "' + currentGCodeDirectory + "/" + file + '"');
 	} else if (currentGCodeDirectory == "0:/gcodes") {
@@ -1804,7 +1804,7 @@ $("#a_context_print").click(function(e) {
 
 $("#a_context_simulate").click(function(e) {
 	var file = contextMenuTargets.data("file");
-	waitingForPrintStart = true;
+	waitingForJobStart = true;
 	if (currentGCodeVolume != 0) {
 		sendGCode('M37 P"' + currentGCodeDirectory + "/" + file + '"');
 	} else if (currentGCodeDirectory == "0:/gcodes") {
@@ -1886,7 +1886,7 @@ $("#a_context_edit").click(function(e) {
 		contextMenuTargets.data("size", newSize).find(".size").text(formatSize(newSize));
 		sortTable(contextMenuTargets.closest("table"));
 
-		if (currentPage == "files") {
+		if (currentPage == "files" && cachedFileInfo.hasOwnProperty(file)) {
 			cachedFileInfo[file].size = newSize;
 			saveFileCache();
 		}

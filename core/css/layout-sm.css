@@ -15,7 +15,7 @@
 		padding-top: 12px;
 	}
 
-	#div_content row > div[class^='col-'] {
+	#div_content div.row > div[class^='col-'] {
 		padding-left: 8px !important;
 		padding-right: 8px !important;
 	}
@@ -33,6 +33,16 @@
 	/* Scanner page */
 	#table_scan_files th:first-child {
 		width: 100px;
+	}
+
+	/* G-Code files page */
+	#page_files {
+		padding-bottom: 15px;
+	}
+
+	/* Macros page */
+	#page_macros {
+		padding-bottom: 15px;
 	}
 
 	/* Settings page */

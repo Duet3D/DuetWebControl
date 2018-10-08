@@ -489,3 +489,32 @@ $('#modal_messagebox').on("hide.bs.modal", function() {
 	$('#modal_messagebox').removeData();
 });
 
+/* Set mesh grid area */
+
+$("#a_define_mesh").click(function(e) {
+	$("#div_mesh_x, #div_mesh_y").toggleClass("hidden", geometry == "delta");
+	$("#div_mesh_delta").toggleClass("hidden", geometry != "delta");
+	$("#modal_define_mesh").modal("show");
+	e.preventDefault();
+});
+
+
+$("#modal_define_mesh form").submit(function(e) {
+	if (geometry != "delta") {
+		var minX = $("#input_mesh_x_min").val();
+		var maxX = $("#input_mesh_x_max").val();
+		var spacingX = $("#input_mesh_x_spacing").val();
+		var minY = $("#input_mesh_y_min").val();
+		var maxY = $("#input_mesh_y_max").val();
+		var spacingY = $("#input_mesh_y_spacing").val();
+		sendGCode("M557 X" + minX + ":" + maxX + " Y" + minY + ":" + maxY + " S" + spacingX + ":" + spacingY);
+	} else {
+		var radius = $("#input_mesh_radius").val();
+		var spacing = $("#input_mesh_spacing").val();
+		sendGCode("M557 R" + radius + " S" + spacing);
+	}
+
+	$("#modal_define_mesh").modal("hide");
+	e.preventDefault();
+});
+

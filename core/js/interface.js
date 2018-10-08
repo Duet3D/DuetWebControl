@@ -16,7 +16,7 @@ var probeSlowDownColor = "#FFFFE0", probeTriggerColor = "#FFF0F0";
 var webcamUpdating = false, calibrationWebcamUpdating = false;
 
 var fileInfo, currentLayerTime, lastLayerPrintDuration;
-var isPrinting, isPaused, printHasFinished, waitingForPrintStart;
+var isProcessing, isPaused, jobHasFinished, waitingForJobStart;
 
 var geometry, probeSlowDownValue, probeTriggerValue;
 var axisNames, numAxes, numExtruderDrives, numVolumes;
@@ -33,7 +33,7 @@ var currentPage = "control";
 function resetGuiData() {
 	setBoardType("unknown");
 	setPauseStatus(false);
-	setPrintStatus(false);
+	setJobStatus(false);
 	setGeometry("cartesian");
 
 	justConnected = isUploading = updateTaskLive = false;
@@ -73,7 +73,7 @@ function resetGuiData() {
 
 	resetFiles();
 
-	waitingForPrintStart = false;
+	waitingForJobStart = false;
 }
 
 $(document).ready(function() {
@@ -533,7 +533,7 @@ function resetGui() {
 	clearBedPoints();
 	setAxesHomed([1, 1, 1]);
 	setATXPower(false);
-	$('#slider_fan_control_print').slider("setValue", 35);
+	$('#slider_fan_control_tool').slider("setValue", 35);
 	$(".compensation").addClass("hidden");
 
 	// Hide Scanner and Calibration pages
@@ -543,18 +543,18 @@ function resetGui() {
 		showPage("control");
 	}
 
-	// Print Status
+	// Job Status
 	$(".row-progress").addClass("hidden");
 	setProgress(100, "", "");
-	$("#div_print_another").addClass("hidden");
+	$("#div_process_another").addClass("hidden");
 	$("#override_fan, #auto_sleep").prop("checked", false);
-	$("#span_babystepping, #page_print dd, #panel_print_info table td, #table_estimations td").html(T("n/a"));
+	$("#span_babystepping, #page_job dd, #panel_job_info table td, #table_estimations td").html(T("n/a"));
 
 	// Fan Sliders
 	for(var i = 0; i < maxFans; i++) {
 		setFanVisibility(i, controllableFans & (1 << i));
 	}
-	$('#slider_fan_print_print').slider("setValue", 35);
+	$('#slider_fan_job_tool').slider("setValue", 35);
 	
 	$('#slider_speed').slider("setValue", 100);
 	for(var extr = 1; extr <= maxExtruders; extr++) {
@@ -1203,7 +1203,7 @@ $("#btn_calibrate_all").click(function() {
 });
 
 $("#btn_cancel").click(function() {
-	sendGCode("M0 H1");	// Stop / Cancel Print, but leave all the heaters on
+	sendGCode("M0 H1");	// Stop / Cancel Job, but leave all the heaters on
 	$(this).addClass("disabled");
 });
 
@@ -1345,16 +1345,16 @@ $("#page_control .btn-move").contextmenu(function(e) {
 $("#btn_pause").click(function() {
 	if (isPaused) {
 		sendGCode("M24");	// Resume
-	} else if (isPrinting) {
+	} else if (isProcessing) {
 		sendGCode("M25");	// Pause
 	}
 	$(this).addClass("disabled");
 });
 
-$("#btn_print_another").click(function() {
+$("#btn_process_another").click(function() {
 	if (isConnected) {
 		sendGCode('M32 "' + $(this).data("file") + '"');
-		$("#div_print_another").addClass("hidden");
+		$("#div_process_another").addClass("hidden");
 	}
 });
 
@@ -1855,6 +1855,9 @@ function setBoardType(type) {
 		firmwareFileName = "DuetMaestroFirmware";
 		isWiFi = isDuetNG = false;
 		isDuetMaestro = true;
+	} else if (type.indexOf("duet3") == 0 || type.indexOf("same70") == 0) {
+		firmwareFileName = "Duet3Firmware";
+		isWiFi = isDuetNG = true;
 	} else {
 		controllableFans = 1;
 		firmwareFileName = "RepRapFirmware";
@@ -1978,49 +1981,53 @@ function setPauseStatus(paused) {
 	$("#div_cancel").toggleClass("hidden", !paused);
 	if (paused) {
 		$("#btn_cancel").removeClass("disabled");
-		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").attr("title", T("Resume paused print (M24)"));
+		$("#btn_pause").removeClass("btn-warning disabled").addClass("btn-success").attr("title", T("Resume paused job (M24)"));
 		$("#btn_pause > span.glyphicon").removeClass("glyphicon-pause").addClass("glyphicon-play");
 		$("#btn_pause > span:last-child").text(T("Resume"));
 	} else {
-		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").attr("title", T("Pause current print (M25)"));
+		$("#btn_pause").removeClass("btn-success").addClass("btn-warning").attr("title", T("Pause current job (M25)"));
 		$("#btn_pause > span.glyphicon").removeClass("glyphicon-play").addClass("glyphicon-pause");
-		$("#btn_pause > span:last-child").text(T("Pause Print"));
-		if (isPrinting) {
+		$("#btn_pause > span:last-child").text(T("Pause Job"));
+		if (isProcessing) {
 			$("#btn_pause").removeClass("disabled");
 		}
 	}
 	isPaused = paused;
 }
 
-function setPrintStatus(printing) {
-	if (printing == isPrinting) {
+function setJobStatus(processing) {
+	if (processing == isProcessing) {
 		return;
 	}
 
-	if (printing) {
+	if (processing) {
 		if (justConnected) {
-			showPage("print");
+			showPage("job");
 		}
 
 		layerData = [];
 		currentLayerTime = maxLayerTime = lastLayerPrintDuration = 0;
 		drawPrintChart();
-		printHasFinished = false;
+		jobHasFinished = false;
 
 		// Progress is set in the status response callback
 
-		//$(".btn-upload").addClass("disabled");
+		if (boardType.indexOf("duet0") == 0) {
+			$(".btn-upload").addClass("disabled");
+		}
 		$("#page_general .btn-upload").removeClass("disabled");
 
 		$("#btn_pause").removeClass("disabled");
-		$("#div_print_another").addClass("hidden");
+		$("#div_process_another").addClass("hidden");
 		$(".row-progress").removeClass("hidden");
 		$("#td_last_layertime").html(T("n/a"));
 
 		requestFileInfo();
 	} else {
 		$("#btn_pause").addClass("disabled");
-		//$(".btn-upload").toggleClass("disabled", !isConnected);
+		if (boardType.indexOf("duet0") == 0) {
+			$(".btn-upload").toggleClass("disabled", !isConnected);
+		}
 
 		if (!isConnected || fileInfo == undefined) {
 			$(".row-progress").addClass("hidden");
@@ -2032,19 +2039,19 @@ function setPrintStatus(printing) {
 				$("#auto_sleep").prop("checked", false);
 			}
 
-			if (!printHasFinished && currentLayerTime > 0) {
+			if (!jobHasFinished && currentLayerTime > 0) {
 				addLayerData(currentLayerTime, lastStatusResponse.coords.extr.reduce(function(a, b) { return a + b; }), true);
 				$("#td_layertime").html(T("n/a"));
 			}
-			printHasFinished = true;
+			jobHasFinished = true;
 
 			if (fileInfo != undefined) {
-				$("#div_print_another").removeClass("hidden");
-				$("#btn_print_another").data("file", fileInfo.fileName);
+				$("#div_process_another").removeClass("hidden");
+				$("#btn_process_another").data("file", fileInfo.fileName);
 
-				setProgress(100, T("Printed {0}, 100% Complete", fileInfo.fileName), undefined);
+				setProgress(100, T("Processed {0}, 100% Complete", fileInfo.fileName), undefined);
 			} else {
-				setProgress(100, T("Print Complete!"), undefined);
+				setProgress(100, T("Job Complete!"), undefined);
 			}
 
 			["filament", "layer", "file"].forEach(function(id) {
@@ -2054,7 +2061,7 @@ function setPrintStatus(printing) {
 				}
 			});
 
-			// If a file print was simulated, update the file info once again
+			// If a file job was simulated, update the file info once again
 			if (lastStatusResponse != undefined && lastStatusResponse.status == 'M' && fileInfo != undefined) {
 				var path = (fileInfo.fileName.indexOf(":") == -1) ? ("0:/gcodes/" + fileInfo.fileName) : fileInfo.fileName;
 				reloadFileCache(path);
@@ -2064,13 +2071,13 @@ function setPrintStatus(printing) {
 		fileInfo = undefined;
 	}
 
-	isPrinting = printing;
-	$(".disable-printing").toggleClass("disabled", printing);
+	isProcessing = processing;
+	$(".disable-processing").toggleClass("disabled", processing);
 
-	if (waitingForPrintStart && printing) {
+	if (waitingForJobStart && processing) {
 		$("#modal_upload").modal("hide");
-		showPage("print");
-		waitingForPrintStart = false;
+		showPage("job");
+		waitingForJobStart = false;
 	}
 }
 
@@ -2083,9 +2090,9 @@ function setProbeValue(value, secondaryValue) {
 		$("#td_probe, #dd_probe_current_value").html(value + " (" + secondaryValue.reduce(function(a, b) { return a + b; }) + ")");
 	}
 
-	if (probeTriggerValue != undefined && value > probeTriggerValue && !isPrinting) {
+	if (probeTriggerValue != undefined && value > probeTriggerValue && !isProcessing) {
 		$("#td_probe").css("background-color", probeTriggerColor);
-	} else if (probeSlowDownValue != undefined && value > probeSlowDownValue && !isPrinting) {
+	} else if (probeSlowDownValue != undefined && value > probeSlowDownValue && !isProcessing) {
 		$("#td_probe").css("background-color", probeSlowDownColor);
 	} else {
 		$("#td_probe").css("background-color", "");
@@ -2162,7 +2169,7 @@ function setToolTemperatureInput(tool, heater, value, active) {
 }
 
 function setTimeLeft(field, value) {
-	if (value == undefined || (value == 0 && isPrinting)) {
+	if (value == undefined || (value == 0 && isProcessing)) {
 		$("#et_" + field + ", #tl_" + field).html(T("n/a"));
 	} else {
 		// Estimate end time
@@ -2209,16 +2216,16 @@ function showPage(name) {
 			$("#div_content").addClass("content-collapsed-padding-xs");
 		}
 
-		if (name == "print") {
+		if (name == "job") {
 			$("#slider_speed").slider("relayout");
-			$("#page_print .table-fan-control input").slider("relayout");
+			$("#page_job .table-fan-control input").slider("relayout");
 			for(var extr = 0; extr < maxExtruders; extr++) {
 				$("#slider_extr_" + extr).slider("relayout");
 			}
 			if (refreshPrintChart) {
 				drawPrintChart();
 			}
-			waitingForPrintStart = false;
+			waitingForJobStart = false;
 		}
 
 		if (name == "scanner") {
@@ -2353,7 +2360,7 @@ function applyThemeColors() {
 
 	// Update background color for print chart tooltip
 	if (settings.theme == "dark") {
-		$("#layer_tooltip").css("background-color", $("#panel_print_info").css("background-color"));
+		$("#layer_tooltip").css("background-color", $("#panel_job_info").css("background-color"));
 	} else {
 		$("#layer_tooltip").css("background-color", "");
 	}

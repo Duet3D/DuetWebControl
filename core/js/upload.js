@@ -13,7 +13,7 @@ var uploadType, uploadFiles, uploadRows, uploadedFileCount;
 var uploadTotalBytes, uploadedTotalBytes;
 var uploadStartTime, uploadRequest, uploadFileSize, uploadFileName, uploadPosition;
 var uploadedDWC, uploadIncludedConfig, uploadFirmwareFile, uploadDWCFile, uploadDWSFile, uploadDWSSFile;
-var uploadHadError, uploadFilesSkipped;
+var uploadHadError, uploadFilesSkipped, refreshSysFiles;
 
 var firmwareFileName = "RepRapFirmware";	// Name of the firmware file without .bin extension
 var targetFirmwareFileName = firmwareFileName;
@@ -165,9 +165,9 @@ function startUpload(type, files, fromCallback) {
 		}
 	}
 
-	// Safety check for Upload and Print
-	if (type == "print" && files.length > 1) {
-		showMessage("warning", T("Error"), T("You can only upload and print one file at once!"));
+	// Safety check for Upload and Start
+	if (type == "start" && files.length > 1) {
+		showMessage("warning", T("Error"), T("You can only upload and start one file at once!"));
 		return false;
 	}
 
@@ -201,7 +201,7 @@ function startUpload(type, files, fromCallback) {
 	}
 	uploadIncludedConfig = false;
 	uploadFirmwareFile = uploadDWCFile = uploadDWSFile = uploadDWSSFile = undefined;
-	uploadFilesSkipped = uploadHadError = false;
+	uploadFilesSkipped = uploadHadError = refreshSysFiles = false;
 
 	// Reset modal dialog
 	$("#modal_upload").data("backdrop", "static");
@@ -293,7 +293,7 @@ function uploadNextFile() {
 	var targetPath = "";
 	switch (uploadType) {
 		case "gcode":	// Upload G-Code
-		case "print":	// Upload & Print G-Code
+		case "start":	// Upload & Start G-Code
 			targetPath = currentGCodeDirectory + "/" + uploadFileName;
 			clearFileCache(targetPath);
 			break;
@@ -347,6 +347,8 @@ function uploadNextFile() {
 
 				default:
 					targetPath = "0:/sys/" + uploadFileName;
+					refreshSysFiles = true;
+					break;
 			}
 	}
 
@@ -500,7 +502,7 @@ function finishUpload(success) {
 
 function uploadHasFinished(success) {
 	// Make sure the G-Codes and Macro pages are updated
-	if (uploadType == "gcode" || uploadType == "print") {
+	if (uploadType == "gcode" || uploadType == "start") {
 		gcodeUpdateIndex = -1;
 		if (currentPage == "files") {
 			updateGCodeFiles();
@@ -514,6 +516,8 @@ function uploadHasFinished(success) {
 		if (currentPage == "filaments") {
 			updateFilaments();
 		}
+	} else if (refreshSysFiles) {
+		updateSysFiles();
 	}
 
 	// Start polling again
@@ -521,9 +525,9 @@ function uploadHasFinished(success) {
 
 	// Deal with different upload types
 	if (success) {
-		// Check if a print is supposed to be started
-		if (uploadType == "print") {
-			waitingForPrintStart = true;
+		// Check if a job is supposed to be started
+		if (uploadType == "start") {
+			waitingForJobStart = true;
 			sendGCode('M32 "' + currentGCodeDirectory + "/" + uploadFileName + '"');
 		}
 
@@ -655,7 +659,7 @@ $("#btn_cancel_upload").click(function() {
 $(".btn-upload").click(function(e) {
 	if (!$(this).is(".disabled")) {
 		var type = $(this).data("type"), filter = "";
-		if (type == "print" || type == "gcode") {
+		if (type == "gcode" || type == "start") {
 			filter = ".g,.gcode,.gc,.gco,.nc,.ngc,.tap";
 		} else if (type == "filament") {
 			filter = ".zip";
@@ -667,7 +671,7 @@ $(".btn-upload").click(function(e) {
 	e.preventDefault();
 });
 
-["print", "gcode", "macro", "filament", "generic"].forEach(function(type) {
+["start", "gcode", "macro", "filament", "generic"].forEach(function(type) {
 	var child = $(".btn-upload[data-type='" + type + "']");
 
 	// Drag Enter
