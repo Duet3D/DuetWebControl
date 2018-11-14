@@ -933,8 +933,8 @@ $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
 		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
 		if (changeTriggerHeight)
 		{
-			zTriggerHeight -= 0.01;
-			sendGCode("G31 Z" + zTriggerHeight + "\nM290 S-0.01\nM500 P31");
+			zTriggerHeight = Math.round((zTriggerHeight - 0.01) * 100) / 100;
+			sendGCode("G31 Z" + zTriggerHeight.toFixed(2) + "\nM290 S-0.01\nM500 P31");
 			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
 		}
 		else
@@ -957,7 +957,7 @@ $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
 		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
 		if (changeTriggerHeight)
 		{
-			zTriggerHeight += 0.01;
+			zTriggerHeight = Math.round((zTriggerHeight + 0.01) * 100) / 100;
 			sendGCode("G31 Z" + zTriggerHeight + "\nM290 S0.01\nM500 P31");
 			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
 		}
@@ -976,12 +976,14 @@ $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
 });
 
 $("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
-	var toolNumber = $(this).parents("tr").data("tool");
-	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
-		function() {
-			sendGCode('M98 P"tcalibrate' + toolNumber + '.g"');
-		}
-	);
+	if (!$(this).hasClass("disabled")) {
+		var toolNumber = $(this).parents("tr").data("tool");
+		showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
+			function() {
+				sendGCode('M98 P"tcalibrate' + toolNumber + '.g"');
+			}
+		);
+	}
 });
 
 $("#table_calibration_tools").on("click", ".tool-set-offset", function(e) {

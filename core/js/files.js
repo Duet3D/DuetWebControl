@@ -915,8 +915,10 @@ function macroFilesLoaded() {
 	if (currentMacroDirectory == "0:/macros") {
 		var listitems = $("#panel_macro_buttons > div > div.btn-group-vertical").children("div.btn-group").get();
 		listitems.sort(function(a, b) {
-			var result = $(a).children("button").text().toUpperCase().localeCompare($(b).children("button").text().toUpperCase());
-			return ($(a).children("button").data("directory") != null) ? result - 1 : result;
+			var filename1 = $(a).children("button").data("macro") || $(a).children("button").data("directory");
+			var filename2 = $(b).children("button").data("macro") || $(b).children("button").data("directory");
+			var result = filename1.toUpperCase().localeCompare(filename2.toUpperCase());
+			return ($(a).children("button").data("directory") != undefined) ? result - 1 : result;
 		})
 		$.each(listitems, function(idx, itm) { $("#panel_macro_buttons > div > div.btn-group-vertical").append(itm); });
 	}

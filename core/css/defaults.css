@@ -1070,6 +1070,10 @@ label[for="dropdown_language"] {
 	margin-bottom: 0px;
 }
 
+#page_display button.btn-upload {
+	margin-bottom: 15px;
+}
+
 #page_settings {
 	padding-bottom: 15px;
 }

@@ -306,6 +306,10 @@ function uploadNextFile() {
 			targetPath = "0:/filaments/" + uploadFileName;
 			break;
 
+		case "menu":	// Upload Display items
+			targetPath = "0:/menu/" + uploadFileName;
+			break;
+
 		default:		// Generic Upload (on the Settings page)
 			var fileExts = uploadFileName.split('.');
 			var fileExt = fileExts.pop().toLowerCase();
@@ -516,6 +520,8 @@ function uploadHasFinished(success) {
 		if (currentPage == "filaments") {
 			updateFilaments();
 		}
+	} else if (uploadType == "menu") {
+		updateDisplayFiles();
 	} else if (refreshSysFiles) {
 		updateSysFiles();
 	}

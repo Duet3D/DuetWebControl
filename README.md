@@ -1,4 +1,4 @@
-# DuetWebControl
+# Duet Web Control
 
 Duet Web Control is a fully-responsive HTML5-based web interface for RepRapFirmware which utilizes the Bootstrap framework, JQuery and a few other libraries to allow easy control of Duet-based 3D printer electronics.
 
@@ -17,7 +17,7 @@ At this time the following platforms are supported:
 
 ## Communication to the firmware
 
-Since RepRapFirmware can only process one HTTP request at a time (excluding rr_fileinfo and rr_upload on certain platforms), DuetWebControl should attempt to avoid parallel requests. In general, the communication between the web interface and RepRapFirmware looks like this:
+Since RepRapFirmware can only process one HTTP request at a time (excluding rr_fileinfo and rr_upload on certain platforms), Duet Web Control should attempt to avoid parallel requests. In general, the communication between the web interface and RepRapFirmware looks like this:
 
 - Establish a connection (via rr_connect)
 - Send an extended status request (rr_status?type=2) and start status update loop
