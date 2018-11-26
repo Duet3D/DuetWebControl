@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Build script for Duet Web Control
 #
 # licensed under the terms of the GNU Public License v3,
