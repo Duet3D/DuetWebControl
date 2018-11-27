@@ -129,7 +129,7 @@
 
 			<v-spacer></v-spacer>
 
-			<upload-btn target="uploadPrint" class="hidden-sm-and-down"></upload-btn>
+			<upload-btn target="gcodeStart" class="hidden-sm-and-down"></upload-btn>
 			<emergency-btn></emergency-btn>
 
 			<!-- TODO: Add quick actions and UI designer here -->
@@ -139,11 +139,11 @@
 		</v-toolbar>
 
 		<v-content>
-			<dynamic-grid :editing="ui.designMode" :selectedItem="selectedItem" :size="$vuetify.breakpoint.name" ref="globalGrid">
-				<dynamic-grid-item :xs="[0, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[0, 0, 8, 8]" :lg="[0, 0, 6, 8]" :min-h="8" :max-h="8">
+			<base-grid>
+				<dynamic-grid-item :xs="[0, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[0, 0, 8, 8]" :lg="[0, 0, 6, 8]">
 					<status-panel></status-panel>
 				</dynamic-grid-item>
-			</dynamic-grid>
+			</base-grid>
 
 			<router-view></router-view>
 		</v-content>
@@ -159,31 +159,25 @@
 </template>
 
 <script>
-'use strict';
+'use strict'
 
 import { mapGetters, mapState, mapMutations } from 'vuex'
 
 export default {
 	computed: {
 		...mapGetters(['isLocal', 'machine']),
-		...mapState(['ui']),
+		...mapState({ uiDesignMode: 'ui/designMode' }),
 		designMode: {
-			get() { return this.ui.designMode; },
+			get() { return this.uiDesignMode; },
 			set(value) { this.setDesignMode(value); }
-		},
-		selectedItem: {
-			get() { return this.ui.selectedItem; },
-			set(value) { this.setSelectedItem(value); }
 		}
 	},
+	methods: mapMutations('ui', ['setDesignMode']),
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			rightDrawer: false
 		}
-	},
-	methods: {
-		...mapMutations('ui', ['setDesignMode'])
 	}
 }
 </script>

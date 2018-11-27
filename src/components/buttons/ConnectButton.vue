@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-btn :color="color" :depressed="isConnecting" round @click="clicked">
+		<v-btn :color="color" :depressed="isConnecting || isDisconnecting" round @click="clicked">
 			<i v-if="!isConnecting && !isDisconnecting" :class="icon"></i>
 			<v-progress-circular size="20" v-if="isConnecting || isDisconnecting" indeterminate></v-progress-circular>
 			<span class="ml-2">{{ caption }}</span>
@@ -20,7 +20,8 @@ export default {
 		...mapGetters(['isConnected', 'isLocal']),
 		...mapState(['isConnecting', 'isDisconnecting', 'selectedMachine']),
 		color() {
-			return (this.isConnecting || this.isDisconnecting) ? 'warning' : (this.isConnected ? 'success' : 'primary');
+			return (this.isConnecting || this.isDisconnecting) ? 'warning'
+				: (this.isConnected ? 'success' : 'primary');
 		},
 		icon() {
 			return `fas fa-${this.isConnected ? 'times' : 'sign-in-alt'}`;

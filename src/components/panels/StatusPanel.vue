@@ -17,7 +17,11 @@ hr {
 
 <template>
 	<base-panel icon="info-circle">
-		<template slot="title">{{ $t('panel.status.caption') }}</template>
+		<template slot="title">
+			<span>{{ $t('panel.status.caption') }}</span>
+			<v-spacer></v-spacer>
+			<span v-if="mode">{{ $t('panel.status.mode', [mode]) }}</span>
+		</template>
 		<table>
 			<tr>
 				<!-- TODO allow easy switching to machine position by clicking on the caption or so -->
@@ -65,6 +69,11 @@ hr {
 import { mapGetters } from 'vuex'
 
 export default {
-	computed: mapGetters(['machine'])
+	computed: {
+		...mapGetters(['machine']),
+		mode() {
+			// TODO: Return undefined or localized string
+		}
+	}
 }
 </script>

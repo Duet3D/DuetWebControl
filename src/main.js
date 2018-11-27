@@ -1,5 +1,3 @@
-// The Vue build version to load with the `import` command
-// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 'use strict'
 
 import 'babel-polyfill'
@@ -12,6 +10,7 @@ import '@fortawesome/fontawesome-free/css/all.css'
 
 import 'vue-dynamic-grid'
 import './components'
+import './plugins'
 
 import App from './App.vue'
 import i18n from './i18n'

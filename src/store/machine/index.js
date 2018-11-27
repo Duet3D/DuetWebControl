@@ -1,27 +1,26 @@
 'use strict'
 
-import { MachineActions } from './connector/BaseConnector.js'
+import { GlobalMachineActions, LocalMachineActions } from './connector/BaseConnector.js'
 
-export default function(connector) {
-	function mapConnectorActions() {
-		let actions = {}
-		MachineActions.forEach(function(action) {
-			if (connector === null) {
-				// Map global action to the root instance instead of the default instance
-				actions[action] = {
-					root: true,
-					async handler({ dispatch, rootState }, payload) {
-						await dispatch(`machines/${rootState.selectedMachine}/${action}`, payload, { root: true });
-					}
-				}
-			} else {
-				// Map local action to the connector
-				actions[action] = async function handler({ dispatch, rootState }, payload) { await connector[action](payload); }
+export function mapConnectorActions(connector) {
+	let actions = {}
+	if (connector === undefined) {
+		GlobalMachineActions.forEach(function(action) {
+			// Map global action to the root instance
+			actions[action] = async function handler({ dispatch, state }, payload) {
+				await dispatch(`machines/${state.selectedMachine}/${action}`, payload);
 			}
 		});
-		return actions;
+	} else if (connector !== null) {
+		LocalMachineActions.forEach(function(action) {
+			// Map local action to the connector
+			actions[action] = async function handler({ dispatch }, payload) { await connector[action](payload); }
+		});
 	}
+	return actions;
+}
 
+export default function(connector) {
 	return {
 		namespaced: true,
 		state: {
@@ -39,6 +38,6 @@ export default function(connector) {
 				value: NaN
 			}
 		},
-		actions: mapConnectorActions()
+		actions: mapConnectorActions(connector)
 	}
 }

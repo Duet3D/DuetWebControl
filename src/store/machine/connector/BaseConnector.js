@@ -1,6 +1,6 @@
 'use strict'
 
-import { NotImplementedError } from './errors'
+import { NotImplementedError } from '../../../utils/errors.js'
 
 // Base class for network connectors that keep the machine store up-to-date
 //
@@ -30,16 +30,16 @@ class BaseConnector {
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
 
 	// Upload a file
-	async upload({ filename, content }) { throw new NotImplementedError('upload'); }
+	async upload({ file, destination }) { throw new NotImplementedError('upload'); }
 
 	// Delete a file
 	async delete(filename) { throw new NotImplementedError('delete'); }
 
 	// Rename a file
-	async rename(filename) { throw new NotImplementedError('rename'); }
+	async rename({ from, to }) { throw new NotImplementedError('rename'); }
 
 	// Download a file
-	async download({ filename, content }) { throw new NotImplementedError('download'); }
+	async download(filename) { throw new NotImplementedError('download'); }
 
 	// Get the file list
 	async getFileList(directory) { throw new NotImplementedError('getFileList'); }
@@ -48,5 +48,6 @@ class BaseConnector {
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
 }
 
-export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
+export const GlobalMachineActions = ['sendCode', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
+export const LocalMachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
 export default BaseConnector

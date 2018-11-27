@@ -3,12 +3,14 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import i18n from '../i18n'
-import connector from './machine/connector'
-import { LoginError, WrongPasswordError } from './machine/connector/errors.js'
-
-import machineModule from './machine'
+import machineModule, { mapConnectorActions } from './machine'
 import uiModule from './ui'
+
+import i18n from '../i18n'
+import Toast from '../plugins/Toast.js'
+
+import connector from './machine/connector'
+import { LoginError } from '../utils/errors.js'
 
 Vue.use(Vuex)
 
@@ -32,15 +34,17 @@ export default new Vuex.Store({
 				const moduleInstance = machineModule(connectorInstance);
 				commit('addMachine', { machine: hostname, moduleInstance });
 				connectorInstance.register(this);
+
+				Toast.makeNotification('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
-				console.log(e);
-				// TODO show notification
+				const message = (e instanceof LoginError) ? i18n.t(e.message) : e.message;
+				Toast.makeNotification('error', i18n.t('notification.connectFailed', [hostname]), message);
 			}
 			commit('setConnecting', false);
 		},
 
 		// Disconnect from the given hostname
-		async disconnect({ state, commit, dispatch }, hostname = state.selectedMachine) {
+		async disconnect({ state, commit, dispatch }, { hostname, doDisconnect = true } = { hostname: state.selectedMachine, doDisconnect: true }) {
 			if (hostname === 'default') {
 				throw new Error('Invalid hostname (default is reserved)');
 			}
@@ -48,19 +52,28 @@ export default new Vuex.Store({
 				throw new Error(`Host ${hostname} is already disconnected!`);
 			}
 
-			commit('setDisconnecting', true);
-			try {
-				await dispatch(`machines/${hostname}/disconnect`);
-				// Disconnecting must always work - even if it does not always happen cleanly
-			} catch (e) {
-				console.log(e);
-				// TODO show notification
+			if (doDisconnect) {
+				commit('setDisconnecting', true);
+				try {
+					await dispatch(`machines/${hostname}/disconnect`);
+					Toast.makeNotification('success', i18n.t('notification.disconnected', [hostname]));
+					// Disconnecting must always work - even if it does not always happen cleanly
+				} catch (e) {
+					Toast.makeNotification('warning', i18n.t('notification.disconnectFailed', [hostname]), e.message);
+				}
+				commit('setDisconnecting', false);
 			}
 			commit('removeMachine', hostname);
-			commit('setDisconnecting', false);
-		}
+		},
 
-		// Other actions for the currently selected machine are accessible here (registered by the Machine component)
+		// Upload a given file
+		async upload({ state }, { file, destination, type }) {
+			// TODO: Create notification etc
+			console.log(`upload ${type} ${destination} (${file.size} bytes)`);
+		},
+
+		// Shortcuts to the currently selected machine
+		...mapConnectorActions()
 	},
 	getters: {
 		isConnected: (state) => state.selectedMachine !== 'default',
@@ -92,7 +105,7 @@ export default new Vuex.Store({
 			this.unregisterModule(['machines', machine]);
 		},
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
-		setDisconnecting: (state, connecting) => state.isConnecting = connecting,
+		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		setSelectedMachine: (state, machine) => state.selectedMachine = machine
 	},
 	state: {
@@ -100,5 +113,6 @@ export default new Vuex.Store({
 		isDisconnecting: false,
 		selectedMachine: 'default'
 	},
+	plugins: [Toast.installStore],
 	strict: process.env.NODE_ENV !== 'production'
 })

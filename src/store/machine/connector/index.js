@@ -1,6 +1,6 @@
 'use strict'
 
-import { LoginError } from './errors.js'
+import { LoginError } from '../../../utils/errors.js'
 
 import PollConnector from './PollConnector.js'
 // import SocketConnector from './SocketConnector.js'	// TODO: Replace status updates with websocket and other requests with REST

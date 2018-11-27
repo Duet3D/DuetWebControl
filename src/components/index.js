@@ -11,8 +11,10 @@ import misc from './misc'
 import panels from './panels'
 import tables from './tables'
 
+import BaseGrid from './BaseGrid.vue'
 import BasePanel from './BasePanel.vue'
 
+Vue.component('base-grid', BaseGrid)
 Vue.component('base-panel', BasePanel)
 
 export default {

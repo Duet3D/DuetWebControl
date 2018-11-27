@@ -1,7 +1,5 @@
 'use strict'
 
-import Vue from 'vue'
-
 // Unfortunately extending the Error class does not seem to work for the following...
 
 // Generic Errors
@@ -22,13 +20,13 @@ LoginError.prototype = Error.prototype;
 
 function InvalidPasswordError(message) {
 	this.name = 'InvalidPasswordError';
-	this.message = (message || 'errors.invalidPassword');
+	this.message = (message || 'error.invalidPassword');
 }
 InvalidPasswordError.prototype = LoginError.prototype;
 
 function NoFreeSessionError(message) {
 	this.name = 'NoFreeSessionError';
-	this.message = (message || 'errors.noFreeSession');
+	this.message = (message || 'error.noFreeSession');
 }
 NoFreeSessionError.prototype = LoginError.prototype;
 

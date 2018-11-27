@@ -25,7 +25,7 @@ module.exports = {
 		'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
 		// use tabs
 		'no-tabs': 0,
-		'indent': ["warn", "tab"],
+		'indent': ["warn", "tab", { "SwitchCase": 1 }],
 		// no space before functions
 		'space-before-function-paren': 0,
 		// allow semicolons
