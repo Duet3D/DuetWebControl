@@ -1,6 +1,6 @@
 <template>
 	<v-btn color="error" :disabled="frozen" :title="$t('button.emergencyStop.title')" @click="sendCode('M112\nM999')">
-		<i class="fas fa-bolt mr-2"></i> {{ $t('button.emergencyStop.caption') }}
+		<v-icon class="mr-1">flash_on</v-icon> {{ $t('button.emergencyStop.caption') }}
 	</v-btn>
 </template>
 

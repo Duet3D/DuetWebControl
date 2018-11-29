@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<v-btn @click="chooseFile" :disabled="!canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)">
-			<i class="fas fa-cloud-upload-alt mr-2"></i> {{ $t(`button.upload['${target}'].caption`) }}
+			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
 		</v-btn>
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple />
 	</div>

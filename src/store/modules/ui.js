@@ -14,7 +14,8 @@ export default {
 		routes: {
 			// TODO: implement this when working on the UI designer
 		},
-		designMode: false
+		designMode: false,
+		globalEvents: []
 	},
 	mutations: {
 		setDesignMode: (state, value) => state.designMode = value,

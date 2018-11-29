@@ -1,4 +1,18 @@
 export default {
+	'$vuetify': {
+		dataIterator: {
+			rowsPerPageText: 'Items per page:',
+				rowsPerPageAll: 'All',
+				pageText: '{0}-{1} of {2}',
+				noResultsText: 'No matching records found',
+				nextPage: 'Next page',
+				prevPage: 'Previous page'
+		},
+		dataTable: {
+			rowsPerPageText: 'Rows per page:'
+		},
+		noDataText: 'No data available'
+	},
 	button: {
 		connect: {
 			connect: 'Connect',
@@ -48,10 +62,23 @@ export default {
 	error: {
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
-		uploadStartWrongFileCount: 'Only a single file can be uploaded & started'
+		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
+		gcodeResponseError: 'Could not run code because a bad response has been received',
+		gcodeBufferError: 'Could run code because the buffer space has been exhausted',
+		gcodeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated'
 	},
 	generic: {
-		novalue: 'n/a'
+		error: 'Error',
+		info: 'Info',
+		novalue: 'n/a',
+		warning: 'Warning',
+		success: 'Success'
+	},
+	input: {
+		code: {
+			send: 'Send',
+			placeholder: 'Send Code...'
+		}
 	},
 	menu: {
 		control: {
@@ -92,7 +119,30 @@ export default {
 			machinePosition: 'Machine Position',
 			extruders: 'Extruder Drives',
 			extruderDrive: 'Drive {0}',
+			speeds: 'Speeds',
+			requestedSpeed: 'Requested Speed',
+			topSpeed: 'Top Speed',
 			sensors: 'Sensors'
+		},
+		tools: {
+			caption: 'Tools',
+			controlAll: 'Control all',
+			tool: 'Tool {0}',
+			heater: 'Heater {0}',
+			current: 'Current',
+			active: 'Active',
+			standby: 'Standby',
+			extra: {
+				caption: 'Extra'
+			}
+		}
+	},
+	table: {
+		eventLog: {
+			date: 'Date',
+			type: 'Type',
+			message: 'Event',
+			noEvents: 'No Events'
 		}
 	}
 }

@@ -1,5 +1,8 @@
 'use strict'
 
-// import Vue from 'vue'
+import Vue from 'vue'
+import PanelLink from './PanelLink.vue'
 
-export default { }
+Vue.component('panel-link', PanelLink);
+
+export default { PanelLink }

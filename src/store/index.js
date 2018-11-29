@@ -3,18 +3,34 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import machineModule, { mapConnectorActions } from './machine'
-import uiModule from './ui'
+import connector from './connector'
+import machine from './modules/machine.js'
+import ui from './modules/ui.js'
 
 import i18n from '../i18n'
-import Toast from '../plugins/Toast.js'
-
-import connector from './machine/connector'
+import { Logger, Toast } from '../plugins'
 import { LoginError } from '../utils/errors.js'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+const machines = {
+	default: machine()
+}
+
+const store = new Vuex.Store({
+	getters: {
+		isConnected: (state) => state.selectedMachine !== 'default',
+		isLocal() {
+			const hostname = location.hostname;
+			return (hostname === "localhost") || (hostname === "127.0.0.1") || (hostname === "[::1]");
+		}
+	},
+	state: {
+		isConnecting: false,
+		isDisconnecting: false,
+		selectedMachine: 'default'
+	},
+
 	actions: {
 		// Connect to the given hostname using the specified credentials
 		async connect({ state, commit }, { hostname = location.hostname, user = "", password = "reprap" }) {
@@ -31,14 +47,15 @@ export default new Vuex.Store({
 			commit('setConnecting', true);
 			try {
 				const connectorInstance = await connector.connect(hostname, user, password);
-				const moduleInstance = machineModule(connectorInstance);
-				commit('addMachine', { machine: hostname, moduleInstance });
+				const moduleInstance = machine(connectorInstance);
+				commit('addMachine', { hostname, moduleInstance });
 				connectorInstance.register(this);
 
-				Toast.makeNotification('success', i18n.t('notification.connected', [hostname]));
+				commit('setSelectedMachine', hostname);
+				Logger.logGlobal('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
 				const message = (e instanceof LoginError) ? i18n.t(e.message) : e.message;
-				Toast.makeNotification('error', i18n.t('notification.connectFailed', [hostname]), message);
+				Logger.logGlobal('error', i18n.t('notification.connectFailed', [hostname]), message);
 			}
 			commit('setConnecting', false);
 		},
@@ -56,63 +73,54 @@ export default new Vuex.Store({
 				commit('setDisconnecting', true);
 				try {
 					await dispatch(`machines/${hostname}/disconnect`);
-					Toast.makeNotification('success', i18n.t('notification.disconnected', [hostname]));
+					Logger.logGlobal('success', i18n.t('notification.disconnected', [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
-					Toast.makeNotification('warning', i18n.t('notification.disconnectFailed', [hostname]), e.message);
+					Logger.logGlobal('warning', i18n.t('notification.disconnectFailed', [hostname]), e.message);
 				}
 				commit('setDisconnecting', false);
 			}
-			commit('removeMachine', hostname);
-		},
 
-		// Upload a given file
-		async upload({ state }, { file, destination, type }) {
-			// TODO: Create notification etc
-			console.log(`upload ${type} ${destination} (${file.size} bytes)`);
-		},
-
-		// Shortcuts to the currently selected machine
-		...mapConnectorActions()
-	},
-	getters: {
-		isConnected: (state) => state.selectedMachine !== 'default',
-		isLocal() {
-			const hostname = location.hostname;
-			return (hostname === "localhost") || (hostname === "127.0.0.1") || (hostname === "[::1]");
-		},
-		machine: (state) => state.machines[state.selectedMachine]
-	},
-	modules: {
-		machines: {
-			namespaced: true,
-			modules: {
-				default: machineModule(null)						// This represents the factory defaults
-				// ... other machines are added as sub-modules to this object
+			if (state.selectedMachine === hostname) {
+				this.commit('setSelectedMachine', 'default');
 			}
-		},
-		ui: uiModule
+			commit('removeMachine', hostname);
+		}
 	},
 	mutations: {
-		addMachine(state, { machine, moduleInstance }) {
-			this.registerModule(['machines', machine], moduleInstance);
-			state.selectedMachine = machine;
+		addMachine(state, { hostname, moduleInstance }) {
+			machines[hostname] = moduleInstance;
+			this.registerModule(['machines', hostname], moduleInstance);
 		},
-		removeMachine(state, machine) {
-			if (state.selectedMachine === machine) {
-				state.selectedMachine = 'default';
-			}
-			this.unregisterModule(['machines', machine]);
+		removeMachine(state, hostname) {
+			this.unregisterModule(['machines', hostname]);
+			delete machines[hostname];
 		},
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
-		setSelectedMachine: (state, machine) => state.selectedMachine = machine
+		setSelectedMachine(state, selectedMachine) {
+			this.unregisterModule('machine');
+			this.registerModule('machine', machines[selectedMachine]);
+			state.selectedMachine = selectedMachine
+		}
 	},
-	state: {
-		isConnecting: false,
-		isDisconnecting: false,
-		selectedMachine: 'default'
+
+	modules: {
+		// machine will provide the currently selected machine
+		machines: {
+			namespaced: true,
+			modules: {
+				default: machines.default 				// This represents the factory defaults
+				// ... other machines are added as sub-modules to this object
+			}
+		},
+		ui
 	},
-	plugins: [Toast.installStore],
+	plugins: [Logger.installStore, Toast.installStore],
 	strict: process.env.NODE_ENV !== 'production'
 })
+
+// This has to be registered dynamically, else unregisterModule will not work cleanly
+store.registerModule('machine', machines.default)
+
+export default store

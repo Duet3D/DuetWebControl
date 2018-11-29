@@ -1,8 +1,8 @@
 'use strict'
 
 import Vue from 'vue'
-import GCodeInput from './GCodeInput.vue'
+import CodeInput from './CodeInput.vue'
 
-Vue.component('gcode-input', GCodeInput)
+Vue.component('code-input', CodeInput)
 
-export default { GCodeInput }
+export default { CodeInput }

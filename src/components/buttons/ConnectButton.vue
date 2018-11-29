@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<v-btn :color="color" :depressed="isConnecting || isDisconnecting" round @click="clicked">
-			<i v-if="!isConnecting && !isDisconnecting" :class="icon"></i>
+			<v-icon v-if="!isConnecting && !isDisconnecting">{{ icon }}</v-icon>
 			<v-progress-circular size="20" v-if="isConnecting || isDisconnecting" indeterminate></v-progress-circular>
 			<span class="ml-2">{{ caption }}</span>
 		</v-btn>
@@ -24,7 +24,7 @@ export default {
 				: (this.isConnected ? 'success' : 'primary');
 		},
 		icon() {
-			return `fas fa-${this.isConnected ? 'times' : 'sign-in-alt'}`;
+			return this.isConnected ? 'close' : 'power_settings_new';
 		},
 		caption() {
 			return this.$t(this.isConnecting ? 'button.connect.connecting'

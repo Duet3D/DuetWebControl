@@ -1,4 +1,8 @@
 <style>
+.vue-grid-item > * {
+	height: auto !important;
+}
+
 #title:not(:hover) {
 	color: inherit;
 }
@@ -12,102 +16,102 @@
 		<v-navigation-drawer persistent clipped v-model="drawer" enable-resize-watcher fixed app>
 			<v-list class="pt-0" expand>
 				<!-- This static content is only temporary and will be replaced by v-for directives as soon as the UI designer is ready -->
-				<v-list-group prepend-icon="fas fa-cog" no-action value="true">
+				<v-list-group prepend-icon="tune" no-action value="true">
 					<v-list-tile slot="activator">
 						<v-list-tile-title>{{ $t('menu.control.caption') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-tachometer-alt</v-icon>
+							<v-icon>dashboard</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.control.dashboard') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Console" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-terminal</v-icon>
+							<v-icon>code</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.control.console') }}</v-list-tile-title>
 					</v-list-tile>
 				</v-list-group>
 
-				<v-list-group prepend-icon="fas fa-print" no-action value="true">
+				<v-list-group prepend-icon="print" no-action value="true">
 					<v-list-tile slot="activator">
 						<v-list-tile-title>{{ $t('menu.job.caption') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Job/Status" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-info-circle</v-icon>
+							<v-icon>info</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.job.status') }}</v-list-tile-title>
 					</v-list-tile>
 
-					<v-list-tile v-ripple to="/Job/Visualiser" @click="">
+					<!--<v-list-tile v-ripple to="/Job/Visualiser" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-object-group</v-icon>
+							<v-icon>theaters</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.job.visualiser') }}</v-list-tile-title>
-					</v-list-tile>
+					</v-list-tile>-->
 				</v-list-group>
 				
-				<v-list-group prepend-icon="fas fa-hdd" no-action value="true">
+				<v-list-group prepend-icon="sd_storage" no-action value="true">
 					<v-list-tile slot="activator">
 						<v-list-tile-title>{{ $t('menu.files.caption') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Files/Jobs" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-print</v-icon>
+							<v-icon>play_arrow</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.files.jobs') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Files/Macros" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-link</v-icon>
+							<v-icon>polymer</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.files.macros') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Files/System" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-cogs</v-icon>
+							<v-icon>settings</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.files.system') }}</v-list-tile-title>
 					</v-list-tile>
 					
 					<v-list-tile v-ripple to="/Files/Web" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-cloud</v-icon>
+							<v-icon>cloud</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.files.web') }}</v-list-tile-title>
 					</v-list-tile>
 				</v-list-group>
 
-				<v-list-group prepend-icon="fas fa-sliders-h" no-action value="true">
+				<v-list-group prepend-icon="settings" no-action value="true">
 					<v-list-tile slot="activator">
 						<v-list-tile-title>{{ $t('menu.settings.caption') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Settings/Interface" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-globe</v-icon>
+							<v-icon>devices</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.settings.interface') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Settings/Machine" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-wrench</v-icon>
+							<v-icon>router</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.settings.machine') }}</v-list-tile-title>
 					</v-list-tile>
 
 					<v-list-tile v-ripple to="/Settings/Update" @click="">
 						<v-list-tile-action>
-							<v-icon>fas fa-sync</v-icon>
+							<v-icon>update</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.settings.update') }}</v-list-tile-title>
 					</v-list-tile>
@@ -119,13 +123,13 @@
 			<v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
 			<v-toolbar-title>
 				<!-- TODO: Optional OEM branding -->
-				<a id="title">{{ machine.name }}</a>
+				<a id="title">{{ name }}</a>
 			</v-toolbar-title>
 			<connect-btn v-if="isLocal"></connect-btn>
 
 			<v-spacer></v-spacer>
 
-			<gcode-input class="hidden-sm-and-down"></gcode-input>
+			<code-input class="hidden-sm-and-down mt-3"></code-input>
 
 			<v-spacer></v-spacer>
 
@@ -133,8 +137,8 @@
 			<emergency-btn></emergency-btn>
 
 			<!-- TODO: Add quick actions and UI designer here -->
-		   <!--<v-btn icon @click.stop="rightDrawer = !rightDrawer">
-				<v-icon>fas fa-bars</v-icon>
+			<!--<v-btn icon class="hidden-xs" @click="rightDrawer = !rightDrawer">
+				<v-icon>menu</v-icon>
 			</v-btn>-->
 		</v-toolbar>
 
@@ -143,7 +147,12 @@
 				<dynamic-grid-item :xs="[0, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[0, 0, 8, 8]" :lg="[0, 0, 6, 8]">
 					<status-panel></status-panel>
 				</dynamic-grid-item>
+				<dynamic-grid-item :xs="[8, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[8, 0, 8, 8]" :lg="[6, 0, 8, 8]">
+					<tools-panel></tools-panel>
+				</dynamic-grid-item>
 			</base-grid>
+
+			<v-divider></v-divider>
 
 			<router-view></router-view>
 		</v-content>
@@ -165,14 +174,20 @@ import { mapGetters, mapState, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters(['isLocal', 'machine']),
-		...mapState({ uiDesignMode: 'ui/designMode' }),
+		...mapGetters(['isLocal']),
+		...mapState({
+			name: state => state.machine.network.name,
+			uiDesignMode: state => state.ui.designMode
+		}),
 		designMode: {
 			get() { return this.uiDesignMode; },
 			set(value) { this.setDesignMode(value); }
 		}
 	},
-	methods: mapMutations('ui', ['setDesignMode']),
+	methods: {
+		...mapMutations('ui', ['setDesignMode']),
+		foo() { this.$store.commit('machine/test'); }
+	},
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
