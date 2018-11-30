@@ -9,6 +9,15 @@
 #title {
 	margin-right: 20px;
 }
+
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
 </style>
 
 <template>
@@ -75,6 +84,13 @@
 						<v-list-tile-title>{{ $t('menu.files.macros') }}</v-list-tile-title>
 					</v-list-tile>
 
+					<v-list-tile v-ripple to="/Files/Filaments" @click="">
+						<v-list-tile-action>
+							<v-icon>radio_button_checked</v-icon>
+						</v-list-tile-action>
+						<v-list-tile-title>{{ $t('menu.files.filaments') }}</v-list-tile-title>
+					</v-list-tile>
+
 					<v-list-tile v-ripple to="/Files/System" @click="">
 						<v-list-tile-action>
 							<v-icon>settings</v-icon>
@@ -109,12 +125,12 @@
 						<v-list-tile-title>{{ $t('menu.settings.machine') }}</v-list-tile-title>
 					</v-list-tile>
 
-					<v-list-tile v-ripple to="/Settings/Update" @click="">
+					<!--<v-list-tile v-ripple to="/Settings/Update" @click="">
 						<v-list-tile-action>
 							<v-icon>update</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.settings.update') }}</v-list-tile-title>
-					</v-list-tile>
+					</v-list-tile>-->
 				</v-list-group>
 			</v-list>
 		</v-navigation-drawer>
@@ -144,11 +160,14 @@
 
 		<v-content>
 			<base-grid>
-				<dynamic-grid-item :xs="[0, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[0, 0, 8, 8]" :lg="[0, 0, 6, 8]">
+				<dynamic-grid-item :xs="[0, 0, 24, 11]" :sm="[0, 0, 12, 11]" :md="[0, 0, 8, 11]" :lg="[0, 0, 8, 11]">
 					<status-panel></status-panel>
 				</dynamic-grid-item>
-				<dynamic-grid-item :xs="[8, 0, 24, 8]" :sm="[0, 0, 12, 8]" :md="[8, 0, 8, 8]" :lg="[6, 0, 8, 8]">
+				<dynamic-grid-item :xs="[8, 0, 24, 11]" :sm="[12, 0, 12, 11]" :md="[8, 0, 10, 11]" :lg="[8, 0, 8, 11]">
 					<tools-panel></tools-panel>
+				</dynamic-grid-item>
+				<dynamic-grid-item xs="hidden" sm="hidden" :md="[18, 0, 6, 11]" :lg="[16, 0, 8, 11]">
+					<chart-panel></chart-panel>
 				</dynamic-grid-item>
 			</base-grid>
 

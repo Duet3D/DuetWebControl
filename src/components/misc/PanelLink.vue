@@ -4,19 +4,14 @@ a:not(:hover) {
 }
 
 span {
-	cursor: pointer;
+	cursor: default;
 }
 </style>
 
 <template>
-	<div>
-		<span v-if="selected">
-			<slot></slot>
-		</span>
-		<a v-if="!selected" href="#" @click.prevent="$emit('click')">
-			<slot></slot>
-		</a>
-	</div>
+	<component :is="active ? 'a' : 'span'" :href="active ? '#' : undefined" @click.prevent="active && $emit('click')">
+		<slot></slot>
+	</component>
 </template>
 
 <script>
@@ -24,7 +19,7 @@ span {
 
 export default {
 	props: {
-		selected: Boolean
+		active: Boolean
 	}
 }
 </script>

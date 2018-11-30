@@ -1,61 +1,61 @@
 'use strict'
 
-// Unfortunately extending the Error class does not seem to work for the following...
+import i18n from '../i18n'
 
 // Generic Errors
 
-function NotImplementedError(field) {
-	this.name = 'NotImplementedError'
-	this.message = `Field '${field} is not implemented`
+class NotImplementedError extends Error {
+	constructor(field) {
+		const message = i18n.t('error.notImplemented', [field]);
+		super(message);
+		this.name = this.constructor.name;
+		if (typeof Error.captureStackTrace === 'function') {
+			Error.captureStackTrace(this, this.constructor);
+		} else {
+			this.stack = (new Error(message)).stack;
+		}
+	}
 }
-NotImplementedError.prototype = Error.prototype;
 
 // Login Errors
 
-function LoginError(message) {
-	this.name = 'LoginError';
-	this.message = message;
-}
-LoginError.prototype = Error.prototype;
+class LoginError extends Error {}
 
-function InvalidPasswordError(message) {
-	this.name = 'InvalidPasswordError';
-	this.message = (message || 'error.invalidPassword');
+class InvalidPasswordError extends LoginError {
+	constructor() {
+		super(i18n.t('error.invalidPassword'));
+	}
 }
-InvalidPasswordError.prototype = LoginError.prototype;
 
-function NoFreeSessionError(message) {
-	this.name = 'NoFreeSessionError';
-	this.message = (message || 'error.noFreeSession');
+class NoFreeSessionError extends LoginError {
+	constructor() {
+		super(i18n.t('error.noFreeSession'));
+	}
 }
-NoFreeSessionError.prototype = LoginError.prototype;
 
 // GCode Errors
 
-function GCodeError(message) {
-	this.name = 'GCodeError';
-	this.message = message;
-}
-GCodeError.prototype = Error.prototype;
+class GCodeError extends Error {}
 
-function GCodeBufferError(message) {
-	this.name = 'GCodeBufferError';
-	this.message = (message || 'error.gcodeBufferError');
+class GCodeBufferError extends GCodeError {
+	constructor() {
+		super(i18n.t('error.gcodeBufferError'));
+	}
 }
-GCodeBufferError.prototype = GCodeError.prototype;
 
-function GCodeResponseError(message) {
-	this.name = 'GCodeResponseError';
-	this.message = (message || 'error.gcodeResponseError');
+class GCodeResponseError extends GCodeError {
+	constructor() {
+		super(i18n.t('error.gcodeResponseError'));
+	}
 }
-GCodeResponseError.prototype = GCodeError.prototype;
 
-function GCodeDisconnectedError(message) {
-	this.name = 'GCodeDisconnectedError';
-	this.message = (message || 'error.gcodeDisconnectedError');
+class GCodeDisconnectedError extends GCodeError {
+	constructor() {
+		super(i18n.t('error.gcodeDisconnectedError'));
+	}
 }
-GCodeDisconnectedError.prototype = GCodeError.prototype;
 
+// Exports
 
 export {
 	NotImplementedError,

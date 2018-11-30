@@ -9,7 +9,6 @@ import ui from './modules/ui.js'
 
 import i18n from '../i18n'
 import { Logger, Toast } from '../plugins'
-import { LoginError } from '../utils/errors.js'
 
 Vue.use(Vuex)
 
@@ -54,8 +53,7 @@ const store = new Vuex.Store({
 				commit('setSelectedMachine', hostname);
 				Logger.logGlobal('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
-				const message = (e instanceof LoginError) ? i18n.t(e.message) : e.message;
-				Logger.logGlobal('error', i18n.t('notification.connectFailed', [hostname]), message);
+				Logger.logGlobal('error', i18n.t('notification.connectFailed', [hostname]), e.message);
 			}
 			commit('setConnecting', false);
 		},

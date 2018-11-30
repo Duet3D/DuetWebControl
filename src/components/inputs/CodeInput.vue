@@ -13,7 +13,7 @@
 'use strict'
 
 import { mapGetters, mapActions } from 'vuex'
-import { GCodeError, GCodeBufferError, GCodeDisconnectedError } from '../../utils/errors.js'
+import { GCodeBufferError, GCodeDisconnectedError } from '../../utils/errors.js'
 
 export default {
 	computed: mapGetters('ui', ['frozen']),
@@ -41,8 +41,7 @@ export default {
 				} catch (e) {
 					if (!(e instanceof GCodeDisconnectedError)) {
 						const type = (e instanceof GCodeBufferError) ? 'warning' : 'error';
-						const message = (e instanceof GCodeError) ? this.$t(e.message) : e.message;
-						this.$logGlobal(type, message);
+						this.$log(type, e.message);
 					}
 				}
 				this.sendingCode = false;

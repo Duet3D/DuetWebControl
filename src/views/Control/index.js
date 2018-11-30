@@ -1,3 +1,5 @@
+'use strict'
+
 import Dashboard from './Dashboard.vue'
 import Console from './Console.vue'
 

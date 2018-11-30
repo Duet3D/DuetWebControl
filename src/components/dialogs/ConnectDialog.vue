@@ -8,7 +8,7 @@
 
 				<v-card-text>
 					{{ $t('dialog.connect.prompt') }}
-					<v-text-field :placeholder="$t('dialog.connect.placeholder')" v-model="hostname" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
+					<v-text-field ref="hostname" :placeholder="$t('dialog.connect.placeholder')" v-model="hostname" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
 				</v-card-text>
 
 				<v-card-actions>
@@ -49,6 +49,15 @@ export default {
 		},
 		hide() {
 			this.$emit("update:shown", false);
+		}
+	},
+	watch: {
+		shown(to) {
+			if (to) {
+				// Auto-focus hostname input
+				const input = this.$refs.hostname;
+				setTimeout(function() { input.focus(); }, 100);
+			}
 		}
 	}
 }

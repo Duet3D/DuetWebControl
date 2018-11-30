@@ -13,9 +13,9 @@
   "dependencies": {
     "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
+    "chart.js": "^2.7.3",
     "izitoast": "^1.4.0",
     "vue": "^2.5.2",
-    "vue-chartjs": "^3.4.0",
     "vue-dynamic-grid": "github:chrishamm/vue-dynamic-grid",
     "vue-i18n": "^8.3.2",
     "vue-router": "^3.0.2",
@@ -27,6 +27,7 @@
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^7.1.2",
+    "babel-plugin-transform-builtin-extend": "^1.1.2",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.0",
     "babel-preset-stage-2": "^6.24.1",

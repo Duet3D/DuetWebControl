@@ -1,6 +1,7 @@
 'use strict'
 
 import { mapConnectorActions } from '../connector'
+import merge from '../../utils/merge.js'
 
 const ExpansionBoard = {
 	name: undefined,
@@ -54,7 +55,7 @@ const NetworkInterface = {
 const Endstop = {
 	position: undefined,			// 0: none 1: low end 2: high end
 	type: undefined					// 0: active low 1: active high 3: zprobe 4: motor load detection
-}	
+}
 
 const Storage = {
 	mounted: undefined,
@@ -89,15 +90,17 @@ export default function(connector) {
 			heaters: {
 				beds: [
 					{
+						number: 0,
 						active: undefined,
-						standby: undefined,
+						name: undefined,
 						heaters: [0]
 					}
 				],
-				chambers: [],				// same items as in 'beds'
-				heaters: [					// may contain null elements as dummies (e.g. if no heated bed is present)
+				chambers: [],							// same items as in 'beds'
+				heaters: [								// may contain null elements as dummies (e.g. if no heated bed is present)
 					{
 						current: undefined,
+						name: undefined,
 						state: undefined,				// see RRF state enum
 						model: {
 							gain: undefined,
@@ -109,6 +112,7 @@ export default function(connector) {
 					},
 					{
 						current: undefined,
+						name: undefined,
 						state: undefined,				// see RRF state enum
 						model: {
 							gain: undefined,
@@ -120,6 +124,7 @@ export default function(connector) {
 					},
 					{
 						current: undefined,
+						name: undefined,
 						state: undefined,				// see RRF state enum
 						model: {
 							gain: undefined,
@@ -127,6 +132,14 @@ export default function(connector) {
 							deadTime: undefined,
 							maxPwm: undefined
 						},
+						sensor: undefined
+					}
+				],
+				extra: [
+					{
+						current: undefined,
+						name: 'MCU',
+						state: undefined,
 						sensor: undefined
 					}
 				]
@@ -162,23 +175,25 @@ export default function(connector) {
 						drives: [0],
 						homed: true,
 						min: undefined,
-						max: undefined
+						max: undefined,
+						visible: true
 					},
 					{
 						letter: 'Y',
 						drives: [1],
 						homed: true,
 						min: undefined,
-						max: undefined
+						max: undefined,
+						visible: true
 					},
 					{
 						letter: 'Z',
 						drives: [2],
 						homed: true,
 						min: undefined,
-						max: undefined
+						max: undefined,
+						visible: true
 					}
-					// Optional axes go here. They can have { visible } too
 				],
 				extruders: [
 					{
@@ -290,13 +305,20 @@ export default function(connector) {
 						disablesBed: undefined
 					}
 				],
-				thermistors: [],
+				sensors: [
+					{
+						// TODO
+					}
+				]
 			},
 			storages: [],
 			tools: [
 				{
 					number: 0,
+					active: [0],
+					standby: [0],
 					name: undefined,
+					filament: undefined,
 					extruders: [0],
 					fan: 0,
 					mix: [],
@@ -307,7 +329,10 @@ export default function(connector) {
 				},
 				{
 					number: 1,
+					active: [0],
+					standby: [0],
 					name: undefined,
+					filament: undefined,
 					extruders: [1],
 					fan: 0,
 					mix: [],
@@ -328,11 +353,13 @@ export default function(connector) {
 			probeSecondaryValues(state) {
 				const result = state.sensors.probes.map(probe => probe.secondaryValue);
 				return (result.some(item => item)) ? result : [];
-			},
+			}
 		},
 		actions: mapConnectorActions(connector),
 		mutations: {
-			log: (state, payload) => state.events.push(payload)
+			log: (state, payload) => state.events.push(payload),
+			update: (state, payload) => merge(state, payload),
+			test: (state, payload) => state.tools[0].heaters = [1, 0]
 		}
 	}
 }

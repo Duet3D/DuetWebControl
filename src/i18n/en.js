@@ -2,11 +2,11 @@ export default {
 	'$vuetify': {
 		dataIterator: {
 			rowsPerPageText: 'Items per page:',
-				rowsPerPageAll: 'All',
-				pageText: '{0}-{1} of {2}',
-				noResultsText: 'No matching records found',
-				nextPage: 'Next page',
-				prevPage: 'Previous page'
+			rowsPerPageAll: 'All',
+			pageText: '{0}-{1} of {2}',
+			noResultsText: 'No matching records found',
+			nextPage: 'Next page',
+			prevPage: 'Previous page'
 		},
 		dataTable: {
 			rowsPerPageText: 'Rows per page:'
@@ -37,7 +37,7 @@ export default {
 				caption: 'Upload Macro File(s)',
 				title: 'Upload one or more macro files (drag&drop is supported as well)'
 			},
-			filanent: {
+			filament: {
 				caption: 'Upload Filament Configs',
 				title: 'Upload one or more filament configurations (drag&drop is supported as well)'
 			},
@@ -60,19 +60,28 @@ export default {
 		}
 	},
 	error: {
+		notImplemented: '{0} is not implemented',
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
 		gcodeResponseError: 'Could not run code because a bad response has been received',
 		gcodeBufferError: 'Could run code because the buffer space has been exhausted',
-		gcodeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated'
+		gcodeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated',
+		enterValidNumber: 'Please enter a valid number'
 	},
 	generic: {
 		error: 'Error',
 		info: 'Info',
 		novalue: 'n/a',
 		warning: 'Warning',
-		success: 'Success'
+		success: 'Success',
+		heaterStates: [
+			'off',
+			'standby',
+			'active',
+			'fault',
+			'tuning'
+		]
 	},
 	input: {
 		code: {
@@ -94,6 +103,7 @@ export default {
 		files: {
 			caption: 'File Management',
 			jobs: 'G-Code Jobs',
+			filaments: 'Filaments',
 			macros: 'Macros',
 			system: 'System',
 			web: 'Web'
@@ -122,19 +132,29 @@ export default {
 			speeds: 'Speeds',
 			requestedSpeed: 'Requested Speed',
 			topSpeed: 'Top Speed',
-			sensors: 'Sensors'
+			sensors: 'Sensors',
+			probe: 'Z-Probe | Z-Probes'
 		},
 		tools: {
 			caption: 'Tools',
 			controlAll: 'Control all',
 			tool: 'Tool {0}',
+			loadFilament: 'Load Filament',
 			heater: 'Heater {0}',
 			current: 'Current',
 			active: 'Active',
 			standby: 'Standby',
+			bed: 'Bed {0}',
+			chamber: 'Chamber {0}',
 			extra: {
-				caption: 'Extra'
+				caption: 'Extra',
+				sensor: 'Sensor',
+				value: 'Value',
+				showInChart: 'Show in Chart'
 			}
+		},
+		tempChart: {
+			caption: 'Temperature Chart'
 		}
 	},
 	table: {

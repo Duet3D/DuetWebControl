@@ -36,7 +36,7 @@ function resize(el, binding, vnode) {
 			if (child.style.marginTop !== "") { totalHeight += child.style.marginTop; }
 			if (child.style.marginBottom !== "") { totalHeight += child.style.marginBottom; }
 		});
-		gridItem.$emit("requestHeight", totalHeight);	
+		gridItem.$emit("requestHeight", totalHeight);
 	}
 }
 
@@ -49,7 +49,7 @@ export default {
 	install(Vue) {
 		Vue.directive('auto-size', {
 			bind: (el, binding, vnode) => resizableElements.push({ el, binding, vnode }),
-			unbind: (el, binding, vnode) => resizableElements = resizableElements.filter(item => item.vnode != vnode),
+			unbind: (el, binding, vnode) => resizableElements = resizableElements.filter(item => item.vnode !== vnode),
 			inserted: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode), 0),
 			componentUpdated: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode), 0)
 		});
