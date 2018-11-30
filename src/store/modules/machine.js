@@ -87,11 +87,12 @@ export default function(connector) {
 				expansion: []
 			},
 			fans: [],
-			heaters: {
-				beds: [
+			heat: {
+				beds: [									// may contain null items
 					{
 						number: 0,
 						active: undefined,
+						standby: undefined,
 						name: undefined,
 						heaters: [0]
 					}
@@ -280,11 +281,6 @@ export default function(connector) {
 				password: undefined,
 				interfaces: []
 			},
-			operation: {
-				currentTool: undefined,
-				mode: undefined,			// 0: FFF 1: Laser 2: CNC (see RRF)
-				status: undefined			// see RRF status character
-			},
 			scanner: {
 				// TODO
 			},
@@ -310,6 +306,11 @@ export default function(connector) {
 						// TODO
 					}
 				]
+			},
+			state: {
+				currentTool: undefined,
+				mode: undefined,			// 0: FFF 1: Laser 2: CNC (see RRF)
+				status: undefined			// see RRF status character
 			},
 			storages: [],
 			tools: [

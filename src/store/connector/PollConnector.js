@@ -4,10 +4,20 @@
 import axios from 'axios'
 
 import { timeToStr } from '../../utils/time.js'
-import { LoginError, InvalidPasswordError, NoFreeSessionError,
-	GCodeResponseError, GCodeBufferError, GCodeDisconnectedError } from '../../utils/errors.js'
+import {
+	LoginError, InvalidPasswordError, NoFreeSessionError,
+	CodeResponseError, CodeBufferError, CodeDisconnectedError
+} from '../../utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
+
+// By default axios turns spaces into pluses which is undersired.
+// It is better to encode everything via encodeURIComponent
+axios.defaults.paramsSerializer = function(params) {
+	return Object.keys(params)
+		.map(key => `${key}=${encodeURIComponent(params[key])}`)
+		.reduce((a, b) => a + '&' + b);
+}
 
 export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
@@ -47,7 +57,7 @@ export default class PollConnector extends BaseConnector {
 	async disconnect() {
 		this.pendingCodes.forEach(function(promise) {
 			// Reject pending code promises before disconnecting
-			promise.reject(new GCodeDisconnectedError());
+			promise.reject(new CodeDisconnectedError());
 		});
 		return this.axios.get('rr_disconnect');
 	}
@@ -59,10 +69,10 @@ export default class PollConnector extends BaseConnector {
 
 		if (response.data.buff === undefined) {
 			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response.data)}`);
-			throw new GCodeResponseError();
+			throw new CodeResponseError();
 		}
 		if (response.data.buff === 0) {
-			throw new GCodeBufferError();
+			throw new CodeBufferError();
 		}
 
 		const pendingCodes = this.pendingCodes, currentSeq = this.currentSeq;

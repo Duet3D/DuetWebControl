@@ -64,10 +64,11 @@ export default {
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
-		gcodeResponseError: 'Could not run code because a bad response has been received',
-		gcodeBufferError: 'Could run code because the buffer space has been exhausted',
-		gcodeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated',
-		enterValidNumber: 'Please enter a valid number'
+		codeResponseError: 'Could not run code because a bad response has been received',
+		codeBufferError: 'Could run code because the buffer space has been exhausted',
+		codeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated',
+		enterValidNumber: 'Please enter a valid number',
+		turnOffEverythingFailed: 'Failed to turn everything off'
 	},
 	generic: {
 		error: 'Error',
@@ -137,7 +138,8 @@ export default {
 		},
 		tools: {
 			caption: 'Tools',
-			controlAll: 'Control all',
+			controlAll: 'Control All',
+			turnEverythingOff: 'Turn Everything Off',
 			tool: 'Tool {0}',
 			loadFilament: 'Load Filament',
 			heater: 'Heater {0}',

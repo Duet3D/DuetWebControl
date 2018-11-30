@@ -1,0 +1,45 @@
+<template>
+	<v-btn :color="color" :small="small" :disabled="frozen" :loading="sendingCode" @click="click">
+		<slot></slot>
+	</v-btn>
+</template>
+
+<script>
+'use strict'
+
+import { mapGetters, mapActions } from 'vuex'
+import { CodeDisconnectedError } from '../../utils/errors.js'
+
+export default {
+	computed: mapGetters('ui', ['frozen']),
+	props: {
+		code: {
+			type: String,
+			required: true
+		},
+		color: String,
+		small: Boolean
+	},
+	data() {
+		return {
+			sendingCode: false
+		}
+	},
+	methods: {
+		...mapActions('machine', ['sendCode']),
+		async click() {
+			if (!this.sendingCode) {
+				this.sendingCode = true;
+				try {
+					await this.sendCode(this.code);
+				} catch (e) {
+					if (!(e instanceof CodeDisconnectedError)) {
+						this.$log('error', this.code, e.message);
+					}
+				}
+				this.sendingCode = false;
+			}
+		}
+	}
+}
+</script>

@@ -1,8 +1,8 @@
 <template>
-	<v-form @submit.prevent="sendCode" ref="form">
+	<v-form @submit.prevent="send" ref="form">
 		<v-layout row inline :class="{ 'mt-2' : solo }">
 			<v-combobox :solo="solo" :disabled="frozen" :placeholder="$t('input.code.placeholder')" v-model.trim="code" @keyup="onKeyUp"></v-combobox>
-			<v-btn type="submit" color="info" :disabled="frozen" :depressed="sendingCode" :loading="sendingCode">
+			<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
 				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
 		</v-layout>
@@ -13,7 +13,7 @@
 'use strict'
 
 import { mapGetters, mapActions } from 'vuex'
-import { GCodeBufferError, GCodeDisconnectedError } from '../../utils/errors.js'
+import { CodeBufferError, CodeDisconnectedError } from '../../utils/errors.js'
 
 export default {
 	computed: mapGetters('ui', ['frozen']),
@@ -37,10 +37,11 @@ export default {
 			if (this.code !== "" && !this.sendingCode) {
 				this.sendingCode = true;
 				try {
+					console.log(this.code);
 					await this.sendCode(this.code);
 				} catch (e) {
-					if (!(e instanceof GCodeDisconnectedError)) {
-						const type = (e instanceof GCodeBufferError) ? 'warning' : 'error';
+					if (!(e instanceof CodeDisconnectedError)) {
+						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
 						this.$log(type, e.message);
 					}
 				}

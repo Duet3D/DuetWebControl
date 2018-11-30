@@ -33,25 +33,25 @@ class NoFreeSessionError extends LoginError {
 	}
 }
 
-// GCode Errors
+// Code Errors
 
-class GCodeError extends Error {}
+class CodeError extends Error {}
 
-class GCodeBufferError extends GCodeError {
+class CodeBufferError extends CodeError {
 	constructor() {
-		super(i18n.t('error.gcodeBufferError'));
+		super(i18n.t('error.codeBufferError'));
 	}
 }
 
-class GCodeResponseError extends GCodeError {
+class CodeResponseError extends CodeError {
 	constructor() {
-		super(i18n.t('error.gcodeResponseError'));
+		super(i18n.t('error.codeResponseError'));
 	}
 }
 
-class GCodeDisconnectedError extends GCodeError {
+class CodeDisconnectedError extends CodeError {
 	constructor() {
-		super(i18n.t('error.gcodeDisconnectedError'));
+		super(i18n.t('error.codeDisconnectedError'));
 	}
 }
 
@@ -60,5 +60,5 @@ class GCodeDisconnectedError extends GCodeError {
 export {
 	NotImplementedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
-	GCodeError, GCodeResponseError, GCodeBufferError, GCodeDisconnectedError
+	CodeError, CodeResponseError, CodeBufferError, CodeDisconnectedError
 }

@@ -20,7 +20,7 @@ hr {
 		<template slot="title">
 			<span>{{ $t('panel.status.caption') }}</span>
 			<v-spacer></v-spacer>
-			<span v-if="operation.mode">{{ $t('panel.status.mode', [operation.mode]) }}</span>
+			<span v-if="state.mode">{{ $t('panel.status.mode', [state.mode]) }}</span>
 		</template>
 
 		<div class="status-container">
@@ -99,7 +99,7 @@ import { mapGetters, mapState } from 'vuex'
 export default {
 	computed: {
 		...mapGetters('machine', ['probeValues', 'probeSecondaryValues']),
-		...mapState('machine', ['move', 'operation']),
+		...mapState('machine', ['move', 'state']),
 		mode() {
 			// TODO: Return undefined or localized string for machine mode (FFF/CNC/Laser)
 		}
