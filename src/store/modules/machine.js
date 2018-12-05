@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 'use strict'
 
 import { mapConnectorActions } from '../connector'
@@ -22,6 +23,7 @@ const ExpansionBoard = {
 const Fan = {
 	value: undefined,
 	name: undefined,
+	rpm: undefined,
 	inverted: undefined,
 	frequency: undefined,
 	minimum: undefined,
@@ -70,6 +72,7 @@ export default function(connector) {
 		namespaced: true,
 		state: {
 			electronics: {
+				type: undefined,
 				name: undefined,
 				revision: undefined,
 				firmware: {
@@ -97,7 +100,7 @@ export default function(connector) {
 						heaters: [0]
 					}
 				],
-				chambers: [],							// same items as in 'beds'
+				chambers: [],							// same structure as 'beds'
 				heaters: [								// may contain null elements as dummies (e.g. if no heated bed is present)
 					{
 						current: undefined,
@@ -109,6 +112,7 @@ export default function(connector) {
 							deadTime: undefined,
 							maxPwm: undefined
 						},
+						max: undefined,
 						sensor: undefined
 					},
 					{
@@ -121,6 +125,7 @@ export default function(connector) {
 							deadTime: undefined,
 							maxPwm: undefined
 						},
+						max: undefined,
 						sensor: undefined
 					},
 					{
@@ -133,6 +138,7 @@ export default function(connector) {
 							deadTime: undefined,
 							maxPwm: undefined
 						},
+						max: undefined,
 						sensor: undefined
 					}
 				],
@@ -162,19 +168,12 @@ export default function(connector) {
 				}
 			},
 			move: {
-				currentMove: {
-					requestedSpeed: undefined,
-					topSpeed: undefined
-				},
-				geometry: {
-					type: undefined
-					// TODO: Expand this for delta/corexy/corexz
-				},
 				axes: [
 					{
 						letter: 'X',
 						drives: [0],
 						homed: true,
+						machinePosition: undefined,
 						min: undefined,
 						max: undefined,
 						visible: true
@@ -183,6 +182,7 @@ export default function(connector) {
 						letter: 'Y',
 						drives: [1],
 						homed: true,
+						machinePosition: undefined,
 						min: undefined,
 						max: undefined,
 						visible: true
@@ -191,33 +191,17 @@ export default function(connector) {
 						letter: 'Z',
 						drives: [2],
 						homed: true,
+						machinePosition: undefined,
 						min: undefined,
 						max: undefined,
 						visible: true
 					}
 				],
-				extruders: [
-					{
-						factor: 1.0,
-						drive: 3,
-						nonlinear: {
-							a: undefined,
-							b: undefined,
-							upperLimit: undefined,
-							temperature: undefined
-						}
-					},
-					{
-						factor: 1.0,
-						drive: 4,
-						nonlinear: {
-							a: undefined,
-							b: undefined,
-							upperLimit: undefined,
-							temperature: undefined
-						}
-					}
-				],
+				babystepZ: undefined,
+				currentMove: {
+					requestedSpeed: undefined,
+					topSpeed: undefined
+				},
 				drives: [
 					{
 						position: undefined,
@@ -270,19 +254,46 @@ export default function(connector) {
 						acceleration: undefined
 					}
 				],
-				speedFactor: 1.0,
+				extruders: [
+					{
+						factor: 1.0,
+						physicalDrive: 3,
+						nonlinear: {
+							a: undefined,
+							b: undefined,
+							upperLimit: undefined,
+							temperature: undefined
+						}
+					},
+					{
+						factor: 1.0,
+						physicalDrive: 4,
+						nonlinear: {
+							a: undefined,
+							b: undefined,
+							upperLimit: undefined,
+							temperature: undefined
+						}
+					}
+				],
+				geometry: {
+					type: undefined
+					// TODO: Expand this for delta/corexy/corexz
+				},
 				idle: {
 					timeout: undefined,
 					factor: undefined
-				}
+				},
+				speedFactor: 1.0
 			},
 			network: {
-				name: (connector === undefined) ? 'Duet Web Control 2' : connector.hostname,
+				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
 				password: undefined,
 				interfaces: []
 			},
 			scanner: {
-				// TODO
+				progress: undefined,
+				status: undefined
 			},
 			sensors: {
 				endstops: [],
@@ -308,6 +319,7 @@ export default function(connector) {
 				]
 			},
 			state: {
+				atxPower: undefined,
 				currentTool: undefined,
 				mode: undefined,			// 0: FFF 1: Laser 2: CNC (see RRF)
 				status: undefined			// see RRF status character
@@ -347,6 +359,15 @@ export default function(connector) {
 			events: []
 		},
 		getters: {
+			maxHeaterTemperature(state) {
+				let maxTemp = undefined;
+				state.heat.heaters.forEach(function(heater) {
+					if (!maxTemp || heater.max > maxTemp) {
+						maxTemp = heater.max;
+					}
+				});
+				return maxTemp;
+			},
 			probeValues(state) {
 				const result = state.sensors.probes.map(probe => probe.value);
 				return (result.some(item => item)) ? result : [];
@@ -358,9 +379,9 @@ export default function(connector) {
 		},
 		actions: mapConnectorActions(connector),
 		mutations: {
+			unregister: () => connector.unregister(),
 			log: (state, payload) => state.events.push(payload),
-			update: (state, payload) => merge(state, payload),
-			test: (state, payload) => state.tools[0].heaters = [1, 0]
+			update: (state, payload) => merge(state, payload)
 		}
 	}
 }

@@ -6,14 +6,13 @@ import i18n from '../i18n'
 
 class NotImplementedError extends Error {
 	constructor(field) {
-		const message = i18n.t('error.notImplemented', [field]);
-		super(message);
-		this.name = this.constructor.name;
-		if (typeof Error.captureStackTrace === 'function') {
-			Error.captureStackTrace(this, this.constructor);
-		} else {
-			this.stack = (new Error(message)).stack;
-		}
+		super(i18n.t('error.notImplemented', [field]));
+	}
+}
+
+class DisconnectedError extends Error {
+	constructor() {
+		super(i18n.t('error.disconnectedError'));
 	}
 }
 
@@ -49,16 +48,21 @@ class CodeResponseError extends CodeError {
 	}
 }
 
-class CodeDisconnectedError extends CodeError {
+// File Tranmission Errors
+
+class FileTransmissionError extends Error {}
+
+class FileTransmissionCancelledError extends FileTransmissionError {
 	constructor() {
-		super(i18n.t('error.codeDisconnectedError'));
+		super(i18n.t('error.fileTransmissionCancelled'));
 	}
 }
 
 // Exports
 
 export {
-	NotImplementedError,
+	NotImplementedError, DisconnectedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
-	CodeError, CodeResponseError, CodeBufferError, CodeDisconnectedError
+	CodeError, CodeResponseError, CodeBufferError,
+	FileTransmissionError, FileTransmissionCancelledError
 }

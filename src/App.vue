@@ -141,7 +141,7 @@ input::-webkit-inner-spin-button {
 				<!-- TODO: Optional OEM branding -->
 				<a id="title">{{ name }}</a>
 			</v-toolbar-title>
-			<connect-btn v-if="isLocal"></connect-btn>
+			<connect-btn></connect-btn>
 
 			<v-spacer></v-spacer>
 
@@ -167,7 +167,7 @@ input::-webkit-inner-spin-button {
 					<tools-panel></tools-panel>
 				</dynamic-grid-item>
 				<dynamic-grid-item xs="hidden" sm="hidden" :md="[18, 0, 6, 11]" :lg="[16, 0, 8, 11]">
-					<chart-panel></chart-panel>
+					<temperature-chart></temperature-chart>
 				</dynamic-grid-item>
 			</base-grid>
 

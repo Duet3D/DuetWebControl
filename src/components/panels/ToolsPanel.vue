@@ -152,16 +152,16 @@ table.extra tr > td:first-child {
 									<a href="#" @click.prevent="bedClick(bed)">
 										{{ bed.name || $t('panel.tools.bed', [(heat.beds.length !== 1) ? index : '']) }}
 									</a>
-									<br/>
-									<span v-if="bed.heaters.length > 0 && heat.heaters[bed.heaters[0]].state !== undefined" class="font-weight-regular caption">
-										{{ $t(`generic.heaterStates[${heat.heaters[bed.heaters[0]].state}]`) }}
-									</span>
 								</th>
 
 								<th>
 									<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, 0)">
 										{{ heat.heaters[bed.heaters[0]].name ? heat.heaters[bed.heaters[0]].name : $t('panel.tools.heater', [bed.heaters[0]]) }}
 									</a>
+									<br/>
+									<span v-if="bed.heaters.length > 0 && heat.heaters[bed.heaters[0]].state !== undefined" class="font-weight-regular caption">
+										{{ $t(`generic.heaterStates[${heat.heaters[bed.heaters[0]].state}]`) }}
+									</span>
 								</th>
 								<td class="text-center">
 									<span v-if="bed.heaters.length">
@@ -212,16 +212,16 @@ table.extra tr > td:first-child {
 									<a href="#" @click.prevent="chamberClick(chamber)">
 										{{ chamber.name || $t('panel.tools.chamber', [(heat.chambers.length !== 1) ? index : '']) }}
 									</a>
-									<br/>
-									<span v-if="chamber.heaters.length > 0 && heat.heaters[chamber.heaters[0]].state !== undefined" class="font-weight-regular caption">
-										{{ $t(`generic.heaterStates[${heat.heaters[chamber.heaters[0]].state}]`) }}
-									</span>
 								</th>
 
 								<th>
 									<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, 0)">
 										{{ heat.heaters[chamber.heaters[0]].name ? heat.heaters[chamber.heaters[0]].name : $t('panel.tools.heater', [chamber.heaters[0]]) }}
 									</a>
+									<br/>
+									<span v-if="chamber.heaters.length > 0 && heat.heaters[chamber.heaters[0]].state !== undefined" class="font-weight-regular caption">
+										{{ $t(`generic.heaterStates[${heat.heaters[chamber.heaters[0]].state}]`) }}
+									</span>
 								</th>
 								<td class="text-center">
 									<span v-if="chamber.heaters.length > 0">
@@ -293,7 +293,8 @@ table.extra tr > td:first-child {
 import { mapActions, mapGetters, mapState } from 'vuex'
 
 import { getHeaterColor } from '../../utils/colors.js'
-import { CodeDisconnectedError } from '../../utils/errors.js'
+import { DisconnectedError } from '../../utils/errors.js'
+import { isNumber } from '../../utils/numbers.js'
 
 export default {
 	components: {
@@ -324,7 +325,7 @@ export default {
 			methods: {
 				...mapActions('machine', ['sendCode']),
 				async apply() {
-					if (!this.applying && this.isNumber(this.value) && this.value >= -273 && this.value <= 1999) {
+					if (!this.applying && isNumber(this.value) && this.value >= -273 && this.value <= 1999) {
 						this.applying = true;
 						try {
 							if (this.tool) {
@@ -336,11 +337,13 @@ export default {
 							} else if (this.bed) {
 								// Set bed temp
 								const currentTemps = this.bed[this.active ? 'active' : 'standby'];
+								const value = this.value, heaterIndex = this.heaterIndex;
 								const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
 								await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
 							} else if (this.chamber) {
 								// Set chamber temp
 								const currentTemps = this.chamber[this.active ? 'active' : 'standby'];
+								const value = this.value, heaterIndex = this.heaterIndex;
 								const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
 								await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
 							} else if (this.all) {
@@ -370,7 +373,7 @@ export default {
 								console.warn('[heater-input] Invalid target for heater-input');
 							}
 						} catch (e) {
-							if (!(e instanceof CodeDisconnectedError)) {
+							if (!(e instanceof DisconnectedError)) {
 								this.$log('error', e.message);
 							}
 						}
@@ -463,7 +466,7 @@ export default {
 			try {
 				await this.sendCode(code);
 			} catch (e) {
-				if (!(e instanceof CodeDisconnectedError)) {
+				if (!(e instanceof DisconnectedError)) {
 					this.$log('error', this.$t('error.turnOffEverythingFailed'), e.message);
 				}
 			}
@@ -471,11 +474,12 @@ export default {
 		},
 
 		getHeaterColor: (heater) => getHeaterColor(heater),
-		getSensorUnit: (sensor) => (sensor >= 450 && sensor < 500) ? '%RH' : 'C', // '&#8451;' = degC
+		getSensorUnit: (sensor) => (sensor >= 450 && sensor < 500) ? '%RH' : 'C',
 
 		canLoadFilament(tool) {
 			// TODO enhance this using dedicate setting defining if the E count does not matter
-			return this.isConnected && (tool.extruders.length === 1);
+			// return this.isConnected && (tool.extruders.length === 1);
+			return false;
 		},
 		filamentClick(tool) {
 			// TODO
@@ -496,7 +500,7 @@ export default {
 					this.sendCode(`T${tool.number}`);
 				}
 			} catch (e) {
-				if (!(e instanceof GCodeDisconnectedError)) {
+				if (!(e instanceof DisconnectedError)) {
 					this.$log('error', e.message);
 				}
 			}

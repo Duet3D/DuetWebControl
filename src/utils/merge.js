@@ -26,6 +26,8 @@ function merge(a, b) {
 				a[key] = merge(a[key].slice(), b[key]);
 			} else if (a[key] instanceof Object) {
 				merge(a[key], b[key]);
+			} else if (a[key] !== undefined && typeof a[key] !== typeof b[key]) {
+				console.warn(`[merge] Skipped merge of ${key} due to incompatible types`);
 			} else if (a[key] !== b[key]) {
 				a[key] = b[key];
 			}

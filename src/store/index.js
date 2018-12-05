@@ -3,12 +3,13 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import connector from './connector'
+import comm from './modules/comm'
 import machine from './modules/machine.js'
 import ui from './modules/ui.js'
 
+import connector, { mapConnectorActions } from './connector'
 import i18n from '../i18n'
-import { Logger, Toast } from '../plugins'
+import Plugins, { Logger } from '../plugins'
 
 Vue.use(Vuex)
 
@@ -48,12 +49,12 @@ const store = new Vuex.Store({
 				const connectorInstance = await connector.connect(hostname, user, password);
 				const moduleInstance = machine(connectorInstance);
 				commit('addMachine', { hostname, moduleInstance });
-				connectorInstance.register(this);
+				connectorInstance.register(moduleInstance);
 
 				commit('setSelectedMachine', hostname);
 				Logger.logGlobal('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
-				Logger.logGlobal('error', i18n.t('notification.connectFailed', [hostname]), e.message);
+				Logger.logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
 			}
 			commit('setConnecting', false);
 		},
@@ -74,16 +75,20 @@ const store = new Vuex.Store({
 					Logger.logGlobal('success', i18n.t('notification.disconnected', [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
-					Logger.logGlobal('warning', i18n.t('notification.disconnectFailed', [hostname]), e.message);
+					Logger.logGlobal('warning', i18n.t('error.disconnectError', [hostname]), e.message);
 				}
 				commit('setDisconnecting', false);
 			}
+			commit(`machines/${hostname}/unregister`);
 
 			if (state.selectedMachine === hostname) {
-				this.commit('setSelectedMachine', 'default');
+				commit('setSelectedMachine', 'default');
 			}
 			commit('removeMachine', hostname);
-		}
+		},
+
+		// Other actions
+		...mapConnectorActions()
 	},
 	mutations: {
 		addMachine(state, { hostname, moduleInstance }) {
@@ -112,9 +117,13 @@ const store = new Vuex.Store({
 				// ... other machines are added as sub-modules to this object
 			}
 		},
+		comm,
 		ui
 	},
-	plugins: [Logger.installStore, Toast.installStore],
+	plugins: [
+		connector.installStore,
+		Plugins.installStore
+	],
 	strict: process.env.NODE_ENV !== 'production'
 })
 

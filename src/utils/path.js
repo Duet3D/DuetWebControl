@@ -21,5 +21,17 @@ export default {
 			}
 		});
 		return result;
+	},
+
+	extractFileName(path) {
+		if (path.contains('/')) {
+			const items = path.split('/');
+			return items[items.length - 1];
+		}
+		if (path.contains('\\')) {
+			const items = path.split('\\');
+			return items[items.length - 1];
+		}
+		return path;
 	}
 }

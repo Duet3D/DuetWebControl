@@ -54,7 +54,7 @@ hr {
 				</tr>
 				<tr>
 					<td v-for="(extruder, index) in move.extruders" :key="index">
-						{{ $display(move.drives[index + move.axes.length].position) }}
+						{{ $display(move.drives[index + move.axes.length].position, 1) }}
 					</td>
 				</tr>
 			</table>

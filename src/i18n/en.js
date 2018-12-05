@@ -63,12 +63,16 @@ export default {
 		notImplemented: '{0} is not implemented',
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
+		connectError: 'Failed to connect to {0}',
+		disconnectError: 'Could not disconnect cleanly from {0}',
+		disconnectedError: 'Could not complete action because the connection has been terminated',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
+		fileTransmissionCancelled: 'The file transmission has been cancelled',
 		codeResponseError: 'Could not run code because a bad response has been received',
 		codeBufferError: 'Could run code because the buffer space has been exhausted',
-		codeDisconnectedError: 'Failed to wait for G-code because the connection has been terminated',
 		enterValidNumber: 'Please enter a valid number',
-		turnOffEverythingFailed: 'Failed to turn everything off'
+		turnOffEverythingFailed: 'Failed to turn everything off',
+		statusUpdateFailed: 'Failed to get status update'
 	},
 	generic: {
 		error: 'Error',
@@ -118,9 +122,20 @@ export default {
 	},
 	notification: {
 		connected: 'Connected to {0}',
-		connectFailed: 'Failed to connect to {0}',
 		disconnected: 'Disconnected from {0}',
-		disconnectFailed: 'Could not disconnect cleanly from {0}'
+		responseTooLong: '(Response too long, see G-Code Console)',
+		upload: {
+			title: 'Uploading {0} @ {1}, {2}% complete',
+			message: 'Please stand by while the file is being uploaded...',
+			success: 'Upload of {0} successful after {1}',
+			error: 'Failed to upload {0}'
+		},
+		download: {
+			title: 'Downloading {0} @ {1}, {2}% complete',
+			message: 'Please stand by while the file is being downloaded...',
+			success: 'Download of {0} successful after {1}',
+			error: 'Failed to download {0}'
+		}
 	},
 	panel: {
 		status: {

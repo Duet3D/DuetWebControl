@@ -8,7 +8,7 @@
 'use strict'
 
 import { mapGetters, mapActions } from 'vuex'
-import { CodeDisconnectedError } from '../../utils/errors.js'
+import { DisconnectedError } from '../../utils/errors.js'
 
 export default {
 	computed: mapGetters('ui', ['frozen']),
@@ -31,9 +31,10 @@ export default {
 			if (!this.sendingCode) {
 				this.sendingCode = true;
 				try {
-					await this.sendCode(this.code);
+					const response = await this.sendCode(this.code);
+					this.$logCode(this.code, response);
 				} catch (e) {
-					if (!(e instanceof CodeDisconnectedError)) {
+					if (!(e instanceof DisconnectedError)) {
 						this.$log('error', this.code, e.message);
 					}
 				}

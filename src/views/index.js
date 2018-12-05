@@ -43,6 +43,10 @@ export default new VueRouter({
 			component: Files.Macros
 		},
 		{
+			path: '/Files/Filaments',
+			component: Files.Filaments
+		},
+		{
 			path: '/Files/System',
 			component: Files.System
 		},

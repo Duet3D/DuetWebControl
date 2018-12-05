@@ -1,9 +1,10 @@
 'use strict'
 
+import { isNumber } from '../utils/numbers.js'
 import i18n from '../i18n'
 
 function display(value, precision, unit) {
-	if (value instanceof Number) {
+	if (isNumber(value)) {
 		return value.toFixed(precision || 2) + (unit ? (' ' + unit) : '');
 	}
 	if (value instanceof Array && value.length > 0) {

@@ -3,13 +3,21 @@
 	padding-left: 0px !important;
 	padding-right: 0px !important;
 }
-</style>
 
-<style scoped>
-td.content {
+td.log-cell {
 	padding-top: 8px !important;
 	padding-bottom: 8px !important;
 	height: auto !important;
+}
+
+td.title-cell {
+	vertical-align: top;
+}
+</style>
+
+<style scoped>
+.message {
+	white-space: pre-wrap;
 }
 </style>
 
@@ -20,13 +28,11 @@ td.content {
 		</template>
 
 		<template slot="items" slot-scope="props">
-			<td class="content" :class="props.item.type">{{ props.item.date.toLocaleString() }}</td>
-			<td class="content" :class="props.item.type">
-				{{ props.item.title }}
-				<template v-if="props.item.message">
-					<br/>
-					{{ props.item.message }}
-				</template>
+			<td class="log-cell title-cell" :class="props.item.type">{{ props.item.date.toLocaleString() }}</td>
+			<td class="log-cell content-cell" :class="props.item.type">
+				<strong>{{ props.item.title }}</strong>
+				<br v-if="props.item.title && props.item.message"/>
+				<span v-if="props.item.message" class="message">{{ props.item.message }}</span>
 			</td>
 		</template>
 	</v-data-table>

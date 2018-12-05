@@ -1,6 +1,7 @@
 <template>
 	<div>
-		<v-btn @click="chooseFile" :disabled="!canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)">
+		<v-btn @click="chooseFile" :disabled="!canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)"
+			:color="color" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave" @drop.prevent.stop="dragDrop">
 			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
 		</v-btn>
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple />
@@ -51,6 +52,7 @@ export default {
 	},
 	data() {
 		return {
+			color: 'default',
 			uploading: false
 		}
 	},
@@ -70,29 +72,43 @@ export default {
 			}
 		},
 		async fileSelected(e) {
-			if (this.type === 'uploadStart' && e.target.files.length !== 1) {
+			await this.doUpload(e.target.files);
+			this.$refs.fileInput.value = "";
+		},
+		async doUpload(files) {
+			if (this.type === 'uploadStart' && files.length !== 1) {
 				this.$toast.makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
-				this.$refs.fileInput.value = "";
 			}
 
 			this.uploading = true;
-			try {
-				for (let i = 0; i < e.target.files.length; i++) {
+			for (let i = 0; i < files.length; i++) {
+				const type = (this.target === 'gcodeStart') ? 'gcode' : this.target;
+				const file = files[i], destination = Path.combine(this.destinationDirectory, file.name);
+				try {
 					// Upload a file
-					const type = (this.target === 'gcodeStart') ? 'gcode' : this.target;
-					const file = e.target.files[i], destination = Path.combine(this.destinationDirectory, file.name);
-					await this.upload({ file, destination, type });
+					const fileTransfer = await this.upload({ file, destination, type });
+					await this.$toast.makeFileTransferNotification(fileTransfer);
 
 					// Run it (if required)
 					if (this.target === 'uploadStart') {
 						await this.sendCode(`M32 "${destination}"`);
 					}
+				} catch (e) {
+					// There is basically no need to do anything else here; the toast wrapper takes care of everything
+					break;
 				}
-			} catch (e) {
-				console.warn(`Upload failed: ${e}`);
 			}
 			this.uploading = false;
-			this.$refs.fileInput.value = "";
+		},
+		dragOver(e) {
+			this.color = 'success';
+		},
+		dragLeave(e) {
+			this.color = 'default';
+		},
+		async dragDrop(e) {
+			this.color = 'default';
+			await this.doUpload(e.dataTransfer.files);
 		}
 	}
 }
