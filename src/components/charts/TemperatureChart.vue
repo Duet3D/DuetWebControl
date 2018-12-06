@@ -13,7 +13,7 @@
 	<v-card no-body class="card">
 		<v-layout column class="content">
 			<v-card-title class="base-panel-title pb-0">
-				<v-icon>show_chart</v-icon> {{ $t('panel.tempChart.caption') }}
+				<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
 			</v-card-title>
 
 			<v-card-text class="content pt-0 pl-2 pr-2 pb-0">
@@ -29,53 +29,66 @@
 import Chart from 'chart.js'
 import { mapGetters, mapState } from 'vuex'
 
+import i18n from '../../i18n'
+import { getRealHeaterColor } from '../../utils/colors.js'
+
 const sampleInterval = 1000			// ms
 const maxSamples = 600				// 10min
 const defaultMaxTemperature = 300	// degC
 
-function defaultSeries() {
-	return {
+function makeDataset(heaterIndex, extra, label) {
+	const color = getRealHeaterColor(heaterIndex, extra), dataset = {
+		heaterIndex,
+		extra,
+		label,
+		fill: false,
+		backgroundColor: color,
+		borderColor: color,
+		borderDash: extra ? [10, 5] : undefined,
+		borderWidth: 2,
+		data: [],
+		pointRadius: 0,
+		pointHitRadius: 0,
+		showLine: true
+	};
+	for (let i = 0; i < maxSamples; i++) {
+		dataset.data.push(NaN);
+	}
+	return dataset;
+}
+
+const tempSamples = {
+	default: {
 		times: [],
-		series: [
-			{
-				label: "Bed",
-				fill: false,
-				backgroundColor: '#1976d2',
-				borderColor: '#1976d2',
-				borderWidth: 2,
-				data: [],
-				pointRadius: 0,
-				pointHitRadius: 3,
-				showLine: true
-			},
-			{
-				label: "T0",
-				fill: false,
-				backgroundColor: '#f44336',
-				borderColor: '#f44336',
-				borderWidth: 2,
-				data: [],
-				pointRadius: 0,
-				pointHitRadius: 3,
-				showLine: true
-			},
-			{
-				label: "T1",
-				fill: false,
-				backgroundColor: '#4caf50',
-				borderColor: '#4caf50',
-				borderWidth: 2,
-				data: [],
-				pointRadius: 0,
-				pointHitRadius: 3,
-				showLine: true
-			}
-		]
+		temps: []
 	}
 }
 
-const datasets = {
-	default: defaultSeries()
+function pushSeriesData(machine, heaterIndex, heater, extra) {
+	// Get series from dataset
+	const machineData = tempSamples[machine];
+	let dataset;
+	machineData.temps.forEach(function(item) {
+		if (item.heaterIndex === heaterIndex && item.extra === extra) {
+			dataset = item;
+		}
+	});
+
+	if (!dataset) {
+		const label = heater.name ? heater.name : i18n.t('chart.temperature.heater', [heaterIndex]);
+		dataset = makeDataset(heaterIndex, extra, label);
+		machineData.temps.push(dataset);
+	}
+
+	// Add new sample
+	dataset.data.push(heater.current);
+}
+
+function isHeaterConfigured(state, machine, heaterIndex) {
+	if (state.machines[machine].tools.some(tool => tool.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	if (state.machines[machine].heat.beds.some(bed => bed && bed.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	if (state.machines[machine].heat.chambers.some(chamber => chamber && chamber.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	return false;
 }
 
 let storeSubscribed = false, instances = []
@@ -89,17 +102,23 @@ export default {
 	data() {
 		return {
 			chart: null,
+			pauseUpdate: false,
 			options: {
 				animation: {
-					duration: 0,				// general animation time
+					duration: 0					// general animation time
 				},
 				elements: {
 					line: {
-						tension: 0				// Disables bezier curves
+						tension: 0				// disable bezier curves
 					}
 				},
 				hover: {
-					animationDuration: 0,		// duration of animations when hovering an item
+					animationDuration: 0		// duration of animations when hovering an item
+				},
+				legend: {
+					labels: {
+						filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine
+					}
 				},
 				maintainAspectRatio: false,
 				responsiveAnimationDuration: 0, // animation duration after a resize
@@ -120,7 +139,6 @@ export default {
 					],
 					yAxes: [
 						{
-							stacked: true,
 							gridLines: {
 								display: true
 							},
@@ -131,9 +149,6 @@ export default {
 							}
 						}
 					]
-				},
-				tooltips: {
-					mode: 'index'
 				}
 			}
 		}
@@ -150,8 +165,8 @@ export default {
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {
-				labels: datasets.default.times,
-				datasets: datasets.default.series
+				labels: tempSamples.default.times,
+				datasets: tempSamples.default.temps
 			}
 		});
 
@@ -161,64 +176,81 @@ export default {
 			this.$store.subscribe((mutation, state) => {
 				const result = /machines\/(.+)\/update/.exec(mutation.type);
 				if (result) {
-					// See if we can record more temperature samples
-					const machine = result[1], dataset = datasets[machine], now = new Date();
-					if (dataset && now - dataset.times[dataset.times.length - 1] > sampleInterval) {
+					// Keep track of temperature updates
+					const machine = result[1], dataset = tempSamples[machine], now = new Date();
+					if (now - dataset.times[dataset.times.length - 1] > sampleInterval) {
+						// Record time
 						dataset.times.push(now);
+
+						// Record heater temperatures
+						const usedHeaters = []
 						state.machines[machine].heat.heaters.forEach(function(heater, heaterIndex) {
-							if (heater && heaterIndex < dataset.series.length) {
-								dataset.series[heaterIndex].data.push(heater.current);
+							if (heater) {
+								pushSeriesData(machine, heaterIndex, heater, false);
+								if (isHeaterConfigured(state, machine, heaterIndex)) {
+									// Display it only if is mapped to at least one tool, bed or chamber
+									usedHeaters.push({ heaterIndex, extra: false });
+								}
 							}
 						});
 
-						// Cut off last points if necessary
+						state.machines[machine].heat.extra.forEach(function(heater, heaterIndex) {
+							pushSeriesData(machine, heaterIndex, heater, true);
+							if (state.ui.machines[state.selectedMachine].displayedExtraTemperatures.indexOf(heaterIndex) !== -1) {
+								// Visibility of extra temps can be configured
+								usedHeaters.push({ heaterIndex, extra: true });
+							}
+						});
+
+						// Cut off oldest samples and deal with visibility
 						dataset.times.shift();
-						dataset.series.forEach(function(series) {
-							if (series.data.length > maxSamples) {
-								series.data.shift();
-							}
+						dataset.temps.forEach(function(dataset) {
+							dataset.showLine = usedHeaters.some(item => item.heaterIndex === dataset.heaterIndex && item.extra === dataset.extra);
+							dataset.data.shift();
 						});
 
-						// Tell instances to update
+						// Tell chart instances to update
 						instances.forEach(instance => instance.update());
 					}
+				} else if (mutation.type === 'addMachine') {
+					// Add new dataset for added machines
+					const dataset = {
+						times: [],
+						temps: []
+					}
+					tempSamples[mutation.payload.hostname] = dataset;
+
+					// Fill times with some dummy data
+					let t = new Date() - sampleInterval * maxSamples;
+					for (let i = 0; i < maxSamples; i++) {
+						dataset.times.push(t);
+						t += sampleInterval;
+					}
 				} else {
+					// Delete datasets of disconnected machines
 					const result = /machines\/(.+)\/unregister/.exec(mutation.type);
 					if (result) {
 						const machine = result[1];
-						if (datasets[machine] !== undefined) {
-							delete datasets[machine];
+						if (tempSamples[machine] !== undefined) {
+							delete tempSamples[machine];
 						}
 					}
 				}
 			});
+
 			storeSubscribed = true;
 		}
-
-		window.datasets = datasets;
 	},
 	beforeDestroy() {
-		const that = this;
-		instances = instances.filter(instance => instance !== that);
+		instances = instances.filter(instance => instance !== this, this);
 	},
 	watch: {
 		selectedMachine(machine) {
-			// Get valid dataset and fill it with some dummy data
-			if (datasets[machine] === undefined) {
-				datasets[machine] = defaultSeries();
-
-				let t = new Date() - sampleInterval * maxSamples;
-				for (let i = 0; i < maxSamples; i++) {
-					datasets[machine].times.push(t);
-					datasets[machine].series.forEach(series => series.data.push(NaN));
-					t += sampleInterval;
-				}
-			}
-
-			// Enable new dataset, works only by recreating the chart
+			// At the moment each chart instance is fixed to the currently selected machine
+			// Reassign the corresponding dataset whenever the selected machine changes
 			this.chart.config.data = {
-				labels: datasets[machine].times,
-				datasets: datasets[machine].series
+				labels: tempSamples[machine].times,
+				datasets: tempSamples[machine].temps
 			};
 			this.chart.update();
 		}

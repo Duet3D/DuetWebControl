@@ -46,7 +46,7 @@ table.extra tr > td:first-child {
 					<v-icon small>more_horiz</v-icon> {{ $t('panel.tools.controlAll') }}
 				</a>
 				<v-card>
-					<v-layout justify-center column class="pt-2 pl-2 pr-2">
+					<v-layout justify-center column class="pt-2 px-2">
 						<v-btn block color="primary" class="all-off mb-3 pa-2" :disabled="!canTurnEverythingOff" @click="turnEverythingOff">
 							<v-icon>power_off</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
@@ -89,7 +89,7 @@ table.extra tr > td:first-child {
 							</th>
 
 							<th>
-								<a v-if="tool.heaters.length" href="#" :class="getHeaterColor(tool.heaters[0])" @click.prevent="toolHeaterClick(tool, 0)">
+								<a v-if="tool.heaters.length" href="#" :class="getHeaterColor(tool.heaters[0])" @click.prevent="toolHeaterClick(tool, tool.heaters[0])">
 									{{ heat.heaters[tool.heaters[0]].name ? heat.heaters[tool.heaters[0]].name : $t('panel.tools.heater', [tool.heaters[0]]) }}
 								</a>
 								<br/>
@@ -155,7 +155,7 @@ table.extra tr > td:first-child {
 								</th>
 
 								<th>
-									<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, 0)">
+									<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, bed.heaters[0])">
 										{{ heat.heaters[bed.heaters[0]].name ? heat.heaters[bed.heaters[0]].name : $t('panel.tools.heater', [bed.heaters[0]]) }}
 									</a>
 									<br/>
@@ -215,7 +215,7 @@ table.extra tr > td:first-child {
 								</th>
 
 								<th>
-									<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, 0)">
+									<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, chamber.heaters[0])">
 										{{ heat.heaters[chamber.heaters[0]].name ? heat.heaters[chamber.heaters[0]].name : $t('panel.tools.heater', [chamber.heaters[0]]) }}
 									</a>
 									<br/>
@@ -232,7 +232,7 @@ table.extra tr > td:first-child {
 									<heater-input v-if="chamber.heaters.length > 0" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" active></heater-input>
 								</td>
 								<td class="pl-1 pr-2">
-									<heater-input v-if="chamber.heaters.length > 0" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" standby></heater-input>
+									<!--<heater-input v-if="chamber.heaters.length > 0" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" standby></heater-input>-->
 								</td>
 							</tr>
 							<tr v-for="(heater, heaterIndex) in chamber.heaters.slice(1)" :key="`chamber-${index}-${heater}`">
@@ -252,7 +252,7 @@ table.extra tr > td:first-child {
 									<heater-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" active></heater-input>
 								</td>
 								<td class="pl-1 pr-2">
-									<heater-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" standby></heater-input>
+									<!--<heater-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" standby></heater-input>-->
 								</td>
 							</tr>
 						</template>
@@ -272,9 +272,9 @@ table.extra tr > td:first-child {
 				<tbody>
 					<tr v-for="(extraHeater, index) in heat.extra" :key="`extra-${index}`">
 						<td>
-							<v-switch class="ml-3" @change="setExtraVisibility(index, $event)" :label="$t('panel.tools.extra.showInChart')"></v-switch>
+							<v-switch class="ml-3" :value="machineUI.displayedExtraTemperatures.indexOf(index) !== -1" @change="setExtraHeaterVisibility({ machine: selectedMachine, index, visible: $event })" :label="$t('panel.tools.extra.showInChart')" :disabled="frozen"></v-switch>
 						</td>
-						<th>
+						<th :class="getExtraHeaterColor(index)">
 							{{ extraHeater.name }}
 						</th>
 						<td>
@@ -284,25 +284,42 @@ table.extra tr > td:first-child {
 				</tbody>
 			</table>
 		</template>
+
+		<reset-heater-fault-dialog :shown.sync="resetHeaterFault" :heater="faultyHeater"></reset-heater-fault-dialog>
 	</base-panel>
 </template>
 
 <script>
 'use strict'
 
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapMutations, mapActions, mapGetters, mapState } from 'vuex'
 
-import { getHeaterColor } from '../../utils/colors.js'
+import { getHeaterColor, getExtraHeaterColor } from '../../utils/colors.js'
 import { DisconnectedError } from '../../utils/errors.js'
 import { isNumber } from '../../utils/numbers.js'
 
 export default {
 	components: {
 		'heater-input': {
-			template: '<v-combobox type="number" min="-273" max="1999" v-model.number="value" :loading="applying" :disabled="frozen" @keyup="keyUp"></v-combobox>',
+			template: '<v-combobox type="number" min="-273" max="1999" v-model.number="value" :items="items" @change="apply" :loading="applying" :disabled="frozen"></v-combobox>',
 			computed: {
-				...mapGetters('ui', ['frozen']),
-				...mapState('machine', ['heat'])
+				...mapGetters('ui', ['frozen', 'machineUI']),
+				...mapState('machine', ['heat']),
+				items() {
+					const key = this.active ? 'active' : 'standby';
+					if (this.tool || this.all) {
+						return this.machineUI.temperatures.tool[key];
+					}
+					if (this.bed) {
+						return this.machineUI.temperatures.bed[key];
+					}
+					if (this.chamer) {
+						return this.machineUI.temperatures.chamber[key];
+					}
+
+					console.warn('[heater-input] Failed to retrieve temperature presets');
+					return [];
+				}
 			},
 			data() {
 				return {
@@ -381,11 +398,6 @@ export default {
 					} else {
 						this.$toast.makeNotification('warning', this.$t('error.enterValidNumber'));
 					}
-				},
-				keyUp(e) {
-					if (e.keyCode === 13 || (e.keyCode === 9 && this.$vuetify.breakpoint.smAndDown)) {
-						this.apply();
-					}
 				}
 			},
 			mounted() {
@@ -393,33 +405,37 @@ export default {
 			},
 			watch: {
 				'tool.active'(to) {
-					if (document.activeElement !== this.input && this.active) {
+					if (document.activeElement !== this.input && this.active && this.value !== to) {
 						this.value = to;
 					}
 				},
 				'tool.standby'(to) {
-					if (document.activeElement !== this.input && this.standby) {
+					if (document.activeElement !== this.input && this.standby && this.value !== to) {
 						this.value = to;
 					}
 				},
 				'bed.active'(to) {
-					if (document.activeElement !== this.input && this.active) {
-						this.value = (to instanceof Array) ? to[this.heaterIndex] : to;
+					const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+					if (document.activeElement !== this.input && this.active && this.value !== val) {
+						this.value = val;
 					}
 				},
 				'bed.standby'(to) {
-					if (document.activeElement !== this.input && this.standby) {
-						this.value = (to instanceof Array) ? to[this.heaterIndex] : to;
+					const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+					if (document.activeElement !== this.input && this.standby && this.value !== val) {
+						this.value = val;
 					}
 				},
 				'chamber.active'(to) {
-					if (document.activeElement !== this.input && this.active) {
-						this.value = (to instanceof Array) ? to[this.heaterIndex] : to;
+					const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+					if (document.activeElement !== this.input && this.active && this.value !== val) {
+						this.value = val;
 					}
 				},
 				'chamber.standby'(to) {
-					if (document.activeElement !== this.input && this.standby) {
-						this.value = (to instanceof Array) ? to[this.heaterIndex] : to;
+					const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+					if (document.activeElement !== this.input && this.standby && this.value !== val) {
+						this.value = val;
 					}
 				}
 			}
@@ -427,7 +443,8 @@ export default {
 	},
 	computed: {
 		...mapGetters(['isConnected']),
-		...mapGetters('ui', ['frozen']),
+		...mapGetters('ui', ['frozen', 'machineUI']),
+		...mapState(['selectedMachine']),
 		...mapState('machine', ['heat', 'state', 'tools']),
 		canTurnEverythingOff() {
 			return !this.frozen && this.heat.heaters.some(heater => heater.state);
@@ -438,11 +455,15 @@ export default {
 			currentPage: 'tools',
 			turningEverythingOff: false,
 			loadingFilament: false,
-			waitingForCode: false
+			waitingForCode: false,
+
+			resetHeaterFault: false,
+			faultyHeater: -1
 		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
+		...mapMutations('ui', ['setExtraHeaterVisibility']),
 		async turnEverythingOff() {
 			let code = '';
 			this.tools.forEach(function(tool) {
@@ -474,6 +495,7 @@ export default {
 		},
 
 		getHeaterColor: (heater) => getHeaterColor(heater),
+		getExtraHeaterColor: (heater) => getExtraHeaterColor(heater),
 		getSensorUnit: (sensor) => (sensor >= 450 && sensor < 500) ? '%RH' : 'C',
 
 		canLoadFilament(tool) {
@@ -507,26 +529,93 @@ export default {
 			this.waitingForCode = false;
 		},
 		toolHeaterClick(tool, heater) {
-			// TODO: Mimic old DWC behaviour (i.e. cycle through heater states)
-			this.toolClick(tool);
+			if (!this.isConnected) {
+				return;
+			}
+
+			switch (this.heat.heaters[heater].state) {
+				case 0:		// Off -> Active
+					this.sendCode(`T${tool.number}`);
+					break;
+
+				case 1:		// Standby -> Off
+					const offTemps = tool.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`);
+					this.sendCode(`G10 P${tool.number} S${offTemps} R${offTemps}`);
+					break;
+
+				case 2:		// Active -> Standby
+					this.sendCode('T-1');
+					break;
+
+				case 3:		// Fault -> Ask for reset
+					this.faultyHeater = heater;
+					this.resetHeaterFault = true;
+					break;
+			}
 		},
 
 		bedClick(bed) {
-
+			if (bed.heaters.length) {
+				// There is no special action for clicking Bed yet
+				this.bedHeaterClick(bed, bed.heaters[0]);
+			}
 		},
 		bedHeaterClick(bed, heater) {
-			this.bedClick(bed);
+			if (!this.isConnected) {
+				return;
+			}
+
+			switch (this.heat.heaters[heater].state) {
+				case 0:		// Off -> Active
+					const activeTemps = (bed.active instanceof Array) ? bed.active.reduce((a, b) => `${a}:${b}`) : bed.active;
+					this.sendCode(`M140 P${bed.number} S${activeTemps}`);
+					break;
+
+				case 1:		// Standby -> Off
+					const offTemps = (bed.active instanceof Array) ? bed.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
+					this.sendCode(`M140 P${bed.number} S${offTemps}`);
+					break;
+
+				case 2:		// Active -> Standby
+					this.sendCode(`M144 P${bed.number}`);
+					break;
+
+				case 3:		// Fault -> Ask for reset
+					this.faultyHeater = heater;
+					this.resetHeaterFault = true;
+					break;
+			}
 		},
 
 		chamberClick(chamber) {
-
+			if (chamber.heaters.length) {
+				// There is no special action for clicking Chamber yet
+				this.chamberHeaterClick(chamber, chamber.heaters[0]);
+			}
 		},
 		chamberHeaterClick(chamber, heater) {
-			this.chamberClick(chamber);
-		},
+			if (!this.isConnected) {
+				return;
+			}
 
-		setExtraVisibility(index, visibility) {
-			// TODO bind this to the ui store
+			switch (this.heat.heaters[heater].state) {
+				case 0:		// Off -> Active
+					const activeTemps = (chamber.active instanceof Array) ? chamber.active.reduce((a, b) => `${a}:${b}`) : chamber.active;
+					this.sendCode(`M141 P${chamber.number} S${activeTemps}`);
+					break;
+
+				// Standby mode for chambers is not officially supported yet (there's no code for standby control)
+
+				case 3:		// Fault -> Ask for reset
+					this.faultyHeater = heater;
+					this.resetHeaterFault = true;
+					break;
+
+				default:	// Active -> Off
+					const offTemps = (chamber.active instanceof Array) ? chamber.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
+					this.sendCode(`M141 P${chamber.number} S${offTemps}`);
+					break;
+			}
 		}
 	}
 }

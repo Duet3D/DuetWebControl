@@ -3,10 +3,10 @@
 import iziToast from 'izitoast'
 import 'izitoast/dist/css/iziToast.css'
 
+import { formatSpeed } from './display.js'
+
 import i18n from '../i18n'
-import { UploadFileTransfer, DownloadFileTransfer } from '../store/connector/FileTransfer.js'
-import { FileTransmissionCancelledError } from '../utils/errors.js'
-import { formatSize, formatSpeed } from '../utils/numbers.js'
+import { UploadFileTransfer, DownloadFileTransfer } from '../store/machine/connector/FileTransfer.js'
 import { formatTime } from '../utils/time.js'
 
 const defaults = {
@@ -60,7 +60,8 @@ async function makeFileTransferNotification(fileTransfer, showSuccess = true, sh
 	} else if (fileTransfer instanceof DownloadFileTransfer) {
 		type = 'download';
 	} else {
-		throw '[makeFileTransferNotification] Invalid file transfer type';
+		console.warn('[makeFileTransferNotification] Invalid file transfer type');
+		return;
 	}
 
 	iziToast.info({
@@ -105,7 +106,7 @@ async function makeFileTransferNotification(fileTransfer, showSuccess = true, sh
 		}
 	} catch (e) {
 		// Show and report error message
-		if (e && !(e instanceof FileTransmissionCancelledError) && showError) {
+		if (e && !fileTransfer.cancelled && showError) {
 			makeNotification('error', i18n.t(`notification.${type}.error`, [fileTransfer.filename]), e.message);
 		}
 		err = e;

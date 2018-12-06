@@ -1,13 +1,11 @@
 <template>
-	<div>
-		<v-btn :color="color" :depressed="isConnecting || isDisconnecting" round @click="clicked">
-			<v-icon v-if="!isConnecting && !isDisconnecting">{{ icon }}</v-icon>
-			<v-progress-circular size="20" v-if="isConnecting || isDisconnecting" indeterminate></v-progress-circular>
-			<span class="ml-2">{{ caption }}</span>
-		</v-btn>
+	<v-btn :color="color" :depressed="isConnecting || isDisconnecting" round @click="clicked">
+		<v-icon v-if="!isConnecting && !isDisconnecting">{{ icon }}</v-icon>
+		<v-progress-circular size="20" v-if="isConnecting || isDisconnecting" indeterminate></v-progress-circular>
+		<span class="ml-2">{{ caption }}</span>
 
 		<connect-dialog :shown.sync="showConnectDialog" @hostEntered="connect(hostname)"></connect-dialog>
-	</div>
+	</v-btn>
 </template>
 
 <script>

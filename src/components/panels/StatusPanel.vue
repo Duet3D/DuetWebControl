@@ -6,12 +6,21 @@ table > tr > td {
 	text-align: center;
 }
 
+a:not(:hover) {
+	color: inherit;
+	text-decoration: none;
+}
+
 hr {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
 .status-container {
 	padding-bottom: 3px;
+}
+
+.probe-span {
+	border-radius: 5px;
 }
 </style>
 
@@ -20,6 +29,8 @@ hr {
 		<template slot="title">
 			<span>{{ $t('panel.status.caption') }}</span>
 			<v-spacer></v-spacer>
+			<status-label v-if="this.state.status !== undefined"></status-label>
+			<v-spacer></v-spacer>
 			<span v-if="state.mode">{{ $t('panel.status.mode', [state.mode]) }}</span>
 		</template>
 
@@ -27,7 +38,11 @@ hr {
 			<table class="ml-2 mr-2">
 				<tr>
 					<!-- TODO allow easy switching to machine position by clicking on the caption or so -->
-					<th rowspan="2">{{ $t('panel.status.toolPosition') }}</th>
+					<th rowspan="2">
+						<a href="#" @click.prevent="displayToolPosition = !displayToolPosition">
+							{{ $t(displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') }}
+						</a>
+					</th>
 					<template v-for="(axis, index) in move.axes">
 						<th v-if="axis.visible" :key="index">
 							{{ axis.letter }}
@@ -37,7 +52,7 @@ hr {
 				<tr>
 					<template v-for="(axis, index) in move.axes">
 						<td v-if="axis.visible" :key="index">
-							{{ $display(move.drives[index].position) }}
+							{{ $display(displayToolPosition ? move.drives[index].position : axis.machinePosition, index === 2 ? 3 : 2) }}
 						</td>
 					</template>
 				</tr>
@@ -78,12 +93,14 @@ hr {
 			<table class="ml-2 mr-2">
 				<tr>
 					<th rowspan="2">{{ $t('panel.status.sensors') }}</th>
-					<th>{{ $tc('panel.status.probe', Math.max(1, probeValues.length)) }}</th>
+					<th v-if="sensors.probes.length">{{ $tc('panel.status.probe', sensors.probes.length) }}</th>
 				</tr>
 				<tr>
-					<td>
-						{{ $display(probeValues, 0) }}
-						<template v-if="probeSecondaryValues.some(value => value !== undefined)">{{ $display(probeSecondaryValues) }}</template>
+					<td v-if="sensors.probes.length">
+						<span v-for="(probe, index) in sensors.probes" class="pa-1 probe-span" :class="{ 'ml-2' : (index && sensors.probes.length > 1), 'warning' : probeIsClose(probe), 'error' : probeIsTriggered(probe) }">
+							{{ $display(probe.value, 0) }}
+							<template v-if="probe.secondaryValues.length"> ({{ $display(probe.secondaryValues, 0) }})</template>
+						</span>
 					</td>
 				</tr>
 			</table>
@@ -94,16 +111,21 @@ hr {
 <script>
 'use strict'
 
-import { mapGetters, mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('machine', ['probeValues', 'probeSecondaryValues']),
-		...mapState('machine', ['move', 'state']),
-		mode() {
-			// TODO: Return undefined or localized string for machine mode (FFF/CNC/Laser)
+		...mapState('machine', ['move', 'sensors', 'state']),
+		...mapGetters(['isConnected'])
+	},
+	data() {
+		return {
+			displayToolPosition: true
 		}
+	},
+	methods: {
+		probeIsClose(probe) { return this.state.status !== 'P' && probe.value > (probe.threshold * 0.9) && probe.value < probe.threshold; },
+		probeIsTriggered(probe) { return this.state.status !== 'P' && probe.value >= probe.threshold; }
 	}
-	// TODO: Add watcher for number of axes+extruder drives
 }
 </script>

@@ -1,6 +1,6 @@
 'use strict'
 
-import { NotImplementedError } from '../../utils/errors.js'
+import { NotImplementedError } from '../../../utils/errors.js'
 
 // Base class for network connectors that keep the machine store up-to-date
 //
@@ -18,6 +18,8 @@ class BaseConnector {
 
 	registered = false
 	hostname = null
+	verbose = false
+
 	constructor(hostname) {
 		this.hostname = hostname;
 	}
@@ -34,7 +36,7 @@ class BaseConnector {
 		}
 	}
 
-	// Disconnect from the current machine
+	// Disconnect from the current machine. Returns true on success
 	async disconnect() { throw new NotImplementedError('disconnect'); }
 
 	// Called before the module is unregistered

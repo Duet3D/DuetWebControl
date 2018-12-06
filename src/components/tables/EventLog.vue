@@ -28,8 +28,8 @@ td.title-cell {
 		</template>
 
 		<template slot="items" slot-scope="props">
-			<td class="log-cell title-cell" :class="props.item.type">{{ props.item.date.toLocaleString() }}</td>
-			<td class="log-cell content-cell" :class="props.item.type">
+			<td class="log-cell title-cell" :class="getClassByEvent(props.item.type)">{{ props.item.date.toLocaleString() }}</td>
+			<td class="log-cell content-cell" :class="getClassByEvent(props.item.type)">
 				<strong>{{ props.item.title }}</strong>
 				<br v-if="props.item.title && props.item.message"/>
 				<span v-if="props.item.message" class="message">{{ props.item.message }}</span>
@@ -60,6 +60,16 @@ export default {
 					width: '75%'
 				}
 			]
+		}
+	},
+	methods: {
+		getClassByEvent(type) {
+			switch (type) {
+				case 'success': return 'green accent-3';
+				case 'warning': return 'amber accent-2';
+				case 'error': return 'red accent-2';
+			}
+			return 'light-blue accent-1';
 		}
 	}
 }

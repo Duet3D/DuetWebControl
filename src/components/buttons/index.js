@@ -1,19 +1,19 @@
 'use strict'
 
 import Vue from 'vue'
-import ConnectButton from './ConnectButton.vue'
-import EmergencyButton from './EmergencyButton.vue'
-import UploadButton from './UploadButton.vue'
-import CodeButton from './CodeButton.vue'
+import CodeBtn from './CodeBtn.vue'
+import ConnectBtn from './ConnectBtn.vue'
+import EmergencyBtn from './EmergencyBtn.vue'
+import UploadBtn from './UploadBtn.vue'
 
-Vue.component('connect-btn', ConnectButton)
-Vue.component('emergency-btn', EmergencyButton)
-Vue.component('upload-btn', UploadButton)
-Vue.component('code-btn', CodeButton)
+Vue.component('code-btn', CodeBtn)
+Vue.component('connect-btn', ConnectBtn)
+Vue.component('emergency-btn', EmergencyBtn)
+Vue.component('upload-btn', UploadBtn)
 
 export default {
-	ConnectButton,
-	EmergencyButton,
-	UploadButton,
-	CodeButton
+	ConnectBtn,
+	EmergencyBtn,
+	UploadBtn,
+	CodeBtn
 }

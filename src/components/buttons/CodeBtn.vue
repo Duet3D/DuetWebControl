@@ -1,5 +1,5 @@
 <template>
-	<v-btn :color="color" :small="small" :disabled="frozen" :loading="sendingCode" @click="click">
+	<v-btn :color="color" :small="small" :title="title" :disabled="frozen" :loading="sendingCode" @click="click">
 		<slot></slot>
 	</v-btn>
 </template>
@@ -8,7 +8,6 @@
 'use strict'
 
 import { mapGetters, mapActions } from 'vuex'
-import { DisconnectedError } from '../../utils/errors.js'
 
 export default {
 	computed: mapGetters('ui', ['frozen']),
@@ -18,7 +17,8 @@ export default {
 			required: true
 		},
 		color: String,
-		small: Boolean
+		small: Boolean,
+		title: String
 	},
 	data() {
 		return {
@@ -26,17 +26,14 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
+		...mapActions(['sendCode']),
 		async click() {
 			if (!this.sendingCode) {
 				this.sendingCode = true;
 				try {
-					const response = await this.sendCode(this.code);
-					this.$logCode(this.code, response);
+					await this.sendCode(this.code);
 				} catch (e) {
-					if (!(e instanceof DisconnectedError)) {
-						this.$log('error', this.code, e.message);
-					}
+					// handled before we get here
 				}
 				this.sendingCode = false;
 			}

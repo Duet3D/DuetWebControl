@@ -1,26 +1,25 @@
 'use strict'
 
-import { LoginError } from '../../utils/errors.js'
+import { LoginError } from '../../../utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
 import PollConnector from './PollConnector.js'
 // import SocketConnector from './SocketConnector.js'	// TODO: Replace status updates with websocket and other requests with REST
 
 const connectors = [PollConnector]
-export const GlobalMachineActions = ['sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
-export const LocalMachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
+export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
 
-export function mapConnectorActions(connector) {
+export function mapConnectorActions(connector, toIgnore = []) {
 	let actions = {}
-	if (connector === undefined) {
-		GlobalMachineActions.forEach(function(action) {
+	if (!connector) {
+		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
 			// Map global action to the root instance
 			actions[action] = function handler({ dispatch, state }, payload) {
 				return dispatch(`machines/${state.selectedMachine}/${action}`, payload);
 			}
 		});
 	} else {
-		LocalMachineActions.forEach(function(action) {
+		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
 			// Map local action to the connector
 			actions[action] = function handler({ dispatch }, payload) { return connector[action](payload); }
 		});

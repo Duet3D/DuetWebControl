@@ -16,6 +16,18 @@ class DisconnectedError extends Error {
 	}
 }
 
+class TimeoutError extends Error {
+	constructor() {
+		super(i18n.t('error.timeoutError'));
+	}
+}
+
+class OperationFailedError extends Error {
+	constructor(reason) {
+		super(i18n.t('error.operationFailed', [reason]));
+	}
+}
+
 // Login Errors
 
 class LoginError extends Error {}
@@ -48,21 +60,10 @@ class CodeResponseError extends CodeError {
 	}
 }
 
-// File Tranmission Errors
-
-class FileTransmissionError extends Error {}
-
-class FileTransmissionCancelledError extends FileTransmissionError {
-	constructor() {
-		super(i18n.t('error.fileTransmissionCancelled'));
-	}
-}
-
 // Exports
 
 export {
-	NotImplementedError, DisconnectedError,
+	NotImplementedError, DisconnectedError, TimeoutError, OperationFailedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
-	CodeError, CodeResponseError, CodeBufferError,
-	FileTransmissionError, FileTransmissionCancelledError
+	CodeError, CodeResponseError, CodeBufferError
 }

@@ -8,7 +8,7 @@
 <template>
 	<v-card>
 		<v-card-title class="base-panel-title">
-			<v-icon small v-if="icon" class="mr-2">{{ icon }}</v-icon>
+			<v-icon small v-if="icon" class="mr-1">{{ icon }}</v-icon>
 			<slot name="title"></slot>
 		</v-card-title>
 

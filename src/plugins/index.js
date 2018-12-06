@@ -21,6 +21,7 @@ export default {
 	},
 
 	installStore(store) {
+		Display.installStore(store);
 		Logger.installStore(store);
 		Toast.installStore(store);
 	}

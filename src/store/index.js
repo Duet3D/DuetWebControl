@@ -3,13 +3,14 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import comm from './modules/comm'
-import machine from './modules/machine.js'
-import ui from './modules/ui.js'
+import communication from './communication'
+import machine from './machine'
+import connector, { mapConnectorActions } from './machine/connector'
+import ui from './ui.js'
 
-import connector, { mapConnectorActions } from './connector'
 import i18n from '../i18n'
 import Plugins, { Logger } from '../plugins'
+import { DisconnectedError, CodeBufferError } from '../utils/errors.js'
 
 Vue.use(Vuex)
 
@@ -49,6 +50,7 @@ const store = new Vuex.Store({
 				const connectorInstance = await connector.connect(hostname, user, password);
 				const moduleInstance = machine(connectorInstance);
 				commit('addMachine', { hostname, moduleInstance });
+				commit('ui/addMachine', hostname);
 				connectorInstance.register(moduleInstance);
 
 				commit('setSelectedMachine', hostname);
@@ -76,6 +78,7 @@ const store = new Vuex.Store({
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
 					Logger.logGlobal('warning', i18n.t('error.disconnectError', [hostname]), e.message);
+					console.warn(e);
 				}
 				commit('setDisconnecting', false);
 			}
@@ -87,8 +90,23 @@ const store = new Vuex.Store({
 			commit('removeMachine', hostname);
 		},
 
+		// Send a code to the current machine
+		async sendCode({ state, dispatch }, code) {
+			const hostname = state.selectedMachine;
+			try {
+				const response = await dispatch(`machines/${hostname}/sendCode`, code);
+				Logger.logCode(code, response, hostname);
+			} catch (e) {
+				if (!(e instanceof DisconnectedError)) {
+					const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
+					this.$log(type, e.message);
+				}
+				throw e;
+			}
+		},
+
 		// Other actions
-		...mapConnectorActions()
+		...mapConnectorActions(null, ['disconnect', 'sendCode'])
 	},
 	mutations: {
 		addMachine(state, { hostname, moduleInstance }) {
@@ -117,7 +135,7 @@ const store = new Vuex.Store({
 				// ... other machines are added as sub-modules to this object
 			}
 		},
-		comm,
+		communication,
 		ui
 	},
 	plugins: [

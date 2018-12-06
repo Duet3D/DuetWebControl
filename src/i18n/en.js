@@ -51,12 +51,24 @@ export default {
 			}
 		}
 	},
+	chart: {
+		temperature: {
+			caption: 'Temperature Chart',
+			heater: 'Heater {0}'
+		}
+	},
 	dialog: {
 		connect: {
 			title: 'Connect to Machine',
 			prompt: 'Please enter the hostname of the machine that you would like to connect to:',
 			placeholder: 'Hostname',
 			hostRequired: 'Hostname is required'
+		},
+		resetHeaterFault: {
+			title: 'Reset Heater Fault',
+			prompt: 'A heater fault has occurred on heater {0}. Please turn off your machine and check your wiring before you continue. If you are certain that you have already resolved this problem, you can reset the fault now but this is not recommended and can lead to other problems. How would you like to proceed?',
+			resetFault: 'Reset Fault',
+			cancel: 'Cancel'
 		}
 	},
 	error: {
@@ -66,13 +78,14 @@ export default {
 		connectError: 'Failed to connect to {0}',
 		disconnectError: 'Could not disconnect cleanly from {0}',
 		disconnectedError: 'Could not complete action because the connection has been terminated',
+		timeoutError: 'HTTP request timed out',
+		operationFailed: 'Operation failed (Reason: {0})',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
-		fileTransmissionCancelled: 'The file transmission has been cancelled',
 		codeResponseError: 'Could not run code because a bad response has been received',
 		codeBufferError: 'Could run code because the buffer space has been exhausted',
 		enterValidNumber: 'Please enter a valid number',
 		turnOffEverythingFailed: 'Failed to turn everything off',
-		statusUpdateFailed: 'Failed to get status update'
+		statusUpdateFailed: 'Failed to get status update for {0}'
 	},
 	generic: {
 		error: 'Error',
@@ -86,7 +99,22 @@ export default {
 			'active',
 			'fault',
 			'tuning'
-		]
+		],
+		status: {
+			updating: 'Updating',
+			off: 'Off',
+			halted: 'Halted',
+			pausing: 'Pausing',
+			paused: 'Paused',
+			resuming: 'Resuming',
+			printing: 'Printing',
+			processing: 'Processing',
+			simulating: 'Simulating',
+			busy: 'Busy',
+			changingTool: 'Changing Tool',
+			idle: 'Idle',
+			unknown: 'Unknown'
+		}
 	},
 	input: {
 		code: {
@@ -123,7 +151,7 @@ export default {
 	notification: {
 		connected: 'Connected to {0}',
 		disconnected: 'Disconnected from {0}',
-		responseTooLong: '(Response too long, see G-Code Console)',
+		responseTooLong: 'Response too long, see Console',
 		upload: {
 			title: 'Uploading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being uploaded...',
@@ -169,9 +197,6 @@ export default {
 				value: 'Value',
 				showInChart: 'Show in Chart'
 			}
-		},
-		tempChart: {
-			caption: 'Temperature Chart'
 		}
 	},
 	table: {

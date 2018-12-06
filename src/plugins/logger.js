@@ -10,12 +10,13 @@ function log(type, title, message) {
 	store.commit('machine/log', { date: new Date(), type, title, message });
 }
 
-function logCode(code, response) {
+function logCode(code, response, hostname = store.selectedMachine) {
 	if (!code && !response) {
 		// Make sure there is something to log...
 		return;
 	}
 
+	// Determine type
 	let type = 'info', toLog = response;
 	if (response.startsWith('Error: ')) {
 		type = 'error';
@@ -27,11 +28,13 @@ function logCode(code, response) {
 		type = 'success';
 	}
 
+	// Log it
 	const responseLines = toLog.split("\n")
-	const htmlResponse = responseLines.reduce((a, b) => `${a}<br/>${b}`);
-
-	Toast.makeNotification(type, code, (responseLines.length <= 3) ? htmlResponse : i18n.t('notification.responseTooLong'));
-	store.commit('machine/log', { date: new Date(), type, title: code, message: response });
+	if (hostname === store.state.selectedMachine) {
+		const htmlResponse = responseLines.length ? responseLines.reduce((a, b) => `${a}<br/>${b}`) : '';
+		Toast.makeNotification(type, code, (responseLines.length <= 3) ? htmlResponse : i18n.t('notification.responseTooLong'));
+	}
+	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
 }
 
 function logGlobal(type, title, message) {

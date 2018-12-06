@@ -1,7 +1,7 @@
 <template>
 	<v-form @submit.prevent="send" ref="form">
 		<v-layout row inline :class="{ 'mt-2' : solo }">
-			<v-combobox :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" v-model.trim="code" @keyup="onKeyUp"></v-combobox>
+			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup="onKeyUp"></v-combobox>
 			<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
 				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
@@ -12,11 +12,13 @@
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
-import { DisconnectedError, CodeBufferError } from '../../utils/errors.js'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
-	computed: mapGetters('ui', ['frozen']),
+	computed: {
+		...mapState('ui', ['codes']),
+		...mapGetters('ui', ['frozen'])
+	},
 	data() {
 		return {
 			code: '',
@@ -27,7 +29,7 @@ export default {
 		solo: Boolean
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
+		...mapActions(['sendCode']),
 		onKeyUp(e) {
 			if (e.keyCode === 13) {
 				this.send();
@@ -36,14 +38,11 @@ export default {
 		async send() {
 			if (this.code !== "" && !this.sendingCode) {
 				this.sendingCode = true;
+				this.$refs.input.isMenuActive = false;
 				try {
-					const response = await this.sendCode(this.code);
-					this.$logCode(this.code, response);
+					await this.sendCode(this.code);
 				} catch (e) {
-					if (!(e instanceof DisconnectedError)) {
-						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-						this.$log(type, e.message);
-					}
+					// handled before we get here
 				}
 				this.sendingCode = false;
 			}
