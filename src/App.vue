@@ -43,6 +43,13 @@ input::-webkit-inner-spin-button {
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.control.console') }}</v-list-tile-title>
 					</v-list-tile>
+
+					<v-list-tile v-ripple to="/Heightmap" @click="">
+						<v-list-tile-action>
+							<v-icon>grid_on</v-icon>
+						</v-list-tile-action>
+						<v-list-tile-title>{{ $t('menu.control.heightmap') }}</v-list-tile-title>
+					</v-list-tile>
 				</v-list-group>
 
 				<v-list-group prepend-icon="print" no-action value="true">

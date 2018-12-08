@@ -121,10 +121,45 @@ export default class PollConnector extends BaseConnector {
 		super.unregister();
 	}
 
-	async updateLoop() {
-		// Request status update
-		const statusType = (this.justConnected || this.updateLoopCounter === this.settings.extendedUpdateEvery || (this.verbose && this.updateLoopCounter % 2 === 0)) ? 2 : ((this.lastStatusResponse.status === 'P') ? 3 : 1);
+	arraySizesDiffer(a, b) {
+		if (a instanceof Array) {
+			if (a.length !== b.length) {
+				return true;
+			}
+
+			for (let i = 0; i < a.length; i++) {
+				if (a[i] instanceof Object && b[i] instanceof Object) {
+					if (this.arraySizesDiffer(a[i], b[i])) {
+						return true;
+					}
+				}
+			}
+		} else if (a instanceof Object) {
+			for (let key in a) {
+				if (a[key] instanceof Object && b[key] instanceof Object) {
+					if (this.arraySizesDiffer(a[key], b[key])) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	async updateLoop(requestExtendedStatus = false) {
+		// Decide which type of status update to poll and request it
+		const statusType =
+			requestExtendedStatus ||
+			this.justConnected ||
+			(this.updateLoopCounter % this.settings.extendedUpdateEvery) === 0 ||
+			(this.verbose && (this.updateLoopCounter % 2) === 0) ? 2 : ((this.lastStatusResponse.status === 'P') ? 3 : 1);
 		const response = await this.axios.get(`rr_status?type=${statusType}`);
+
+		// Check if an extended status response needs to be polled in case machine parameters have changed
+		if (statusType !== 2 && this.arraySizesDiffer(response.data, this.lastStatusResponse)) {
+			await this.updateLoop(true);
+			return;
+		}
 
 		// Standard Status Response
 		const fanRPMs = (response.data.sensors.fanRPM instanceof Array) ? response.data.sensors.fanRPM : [response.data.sensors.fanRPM];
@@ -188,7 +223,7 @@ export default class PollConnector extends BaseConnector {
 				]
 			},
 			state: {
-				atxPower: response.data.params.atxPower,
+				atxPower: !!response.data.params.atxPower,
 				currentTool: response.data.currentTool,
 				status: response.data.status
 			},
@@ -389,13 +424,14 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Sometimes we need to update the config as well
-		if (this.justConnected || (this.verbose && this.updateLoopCounter % 2 === 0)) {
+		if (requestExtendedStatus || this.justConnected || (this.verbose && this.updateLoopCounter % 2 === 0)) {
 			await this.getConfigResponse();
 		}
 
 		// Schedule next status update
 		this.lastStatusResponse = response.data;
 		this.justConnected = false;
+		this.updateLoopCounter++;
 		this.scheduleUpdate();
 	}
 
@@ -407,7 +443,6 @@ export default class PollConnector extends BaseConnector {
 				try {
 					/* eslint-disable no-useless-call */
 					await that.updateLoop.call(that);
-					this.updateLoopCounter++;
 				} catch (e) {
 					if (!axios.isCancel(e)) {
 						await that.store.dispatch('disconnect', { hostname: that.hostname, doDisconnect: false });

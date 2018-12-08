@@ -15,6 +15,12 @@ export default function(connector) {
 			events: []
 		},
 		getters: {
+			currentTool(state) {
+				if (state.state.currentTool >= 0) {
+					return state.tools[state.state.currentTool];
+				}
+				return null;
+			},
 			maxHeaterTemperature(state) {
 				let maxTemp
 				state.heat.heaters.forEach(function(heater) {

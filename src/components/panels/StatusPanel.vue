@@ -15,8 +15,8 @@ hr {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
-.status-container {
-	padding-bottom: 3px;
+.content {
+	padding-bottom: 3px !important;
 }
 
 .probe-span {
@@ -25,16 +25,20 @@ hr {
 </style>
 
 <template>
-	<base-panel icon="info" v-auto-size>
-		<template slot="title">
-			<span>{{ $t('panel.status.caption') }}</span>
-			<v-spacer></v-spacer>
-			<status-label v-if="this.state.status !== undefined"></status-label>
-			<v-spacer></v-spacer>
-			<span v-if="state.mode">{{ $t('panel.status.mode', [state.mode]) }}</span>
-		</template>
+	<v-card v-auto-size>
+		<v-card-title class="py-2">
+			<v-icon small class="mr-1">info</v-icon> {{ $t('panel.status.caption') }}
 
-		<div class="status-container">
+			<v-spacer></v-spacer>
+
+			<status-label v-if="this.state.status !== undefined"></status-label>
+
+			<v-spacer></v-spacer>
+
+			<span v-if="state.mode">{{ $t('panel.status.mode', [state.mode]) }}</span>
+		</v-card-title>
+
+		<v-card-text class="pa-0 content">
 			<table class="ml-2 mr-2">
 				<tr>
 					<!-- TODO allow easy switching to machine position by clicking on the caption or so -->
@@ -104,8 +108,8 @@ hr {
 					</td>
 				</tr>
 			</table>
-		</div>
-	</base-panel>
+		</v-card-text>
+	</v-card>
 </template>
 
 <script>

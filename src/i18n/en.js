@@ -14,6 +14,12 @@ export default {
 		noDataText: 'No data available'
 	},
 	button: {
+		compensation: {
+			caption: 'Auto Bed Compensation',
+			captionDelta: 'Auto Delta Calibration',
+			title: 'Perform automatic bed compensation (G32)',
+			titleDelta: 'Perform automatic delta compensation (G32)'
+		},
 		connect: {
 			connect: 'Connect',
 			connecting: 'Connecting...',
@@ -23,6 +29,12 @@ export default {
 		emergencyStop: {
 			caption: 'Emergency Stop',
 			title: 'Enforce an immediate software reset (M112+M999)'
+		},
+		home: {
+			caption: 'Home {0}',
+			captionAll: 'Home All',
+			title: 'Home the {0} axis (G28 {0})',
+			titleAll: 'Home all axes (G28)'
 		},
 		upload: {
 			gcode: {
@@ -114,7 +126,8 @@ export default {
 			changingTool: 'Changing Tool',
 			idle: 'Idle',
 			unknown: 'Unknown'
-		}
+		},
+		rpm: 'RPM'
 	},
 	input: {
 		code: {
@@ -126,7 +139,8 @@ export default {
 		control: {
 			caption: 'Machine Control',
 			dashboard: 'Dashboard',
-			console: 'G-Code Console'
+			console: 'G-Code Console',
+			heightmap: 'Height Map'
 		},
 		job: {
 			caption: 'Current Job',
@@ -166,6 +180,11 @@ export default {
 		}
 	},
 	panel: {
+		movement: {
+			caption: 'Machine Movement',
+			axisNotHomed: 'The following axis is not homed:',
+			axesNotHomed: 'The following axes are not homed:'
+		},
 		status: {
 			caption: 'Status',
 			mode: 'Mode: {0}',

@@ -5,7 +5,7 @@ export default{
 	state: {
 		ajaxRetries: 2,
 		updateInterval: 250,
-		extendedUpdateEvery: 10,
+		extendedUpdateEvery: 20,
 		fileTransferRetryThreshold: 358400		// 350 KiB
 	},
 	mutations: {

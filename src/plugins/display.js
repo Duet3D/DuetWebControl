@@ -5,7 +5,7 @@ import i18n from '../i18n'
 
 let store
 
-function display(value, precision, unit) {
+export function display(value, precision, unit) {
 	if (isNumber(value)) {
 		return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : '');
 	}
@@ -68,7 +68,10 @@ export function formatSpeed(bytesPerSecond) {
 
 export default {
 	install(Vue) {
+		Vue.prototype.isNumber = isNumber;
 		Vue.prototype.$display = display;
+		Vue.prototype.$formatSize = formatSize;
+		Vue.prototype.$formatSpeed = formatSpeed;
 	},
 
 	installStore(Vuex) {

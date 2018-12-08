@@ -27,6 +27,10 @@ export default new VueRouter({
 			component: Control.Console
 		},
 		{
+			path: '/Heightmap',
+			component: Control.Heightmap
+		},
+		{
 			path: '/Job/Status',
 			component: Job.Status
 		},

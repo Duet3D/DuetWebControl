@@ -5,18 +5,18 @@
 }
 
 .content {
-	flex: 1;
+	flex-grow: 1;
 }
 </style>
 
 <template>
 	<v-card no-body class="card">
 		<v-layout column class="content">
-			<v-card-title class="base-panel-title pb-0">
+			<v-card-title class="pt-2 pb-0">
 				<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
 			</v-card-title>
 
-			<v-card-text class="content pt-0 pl-2 pr-2 pb-0">
+			<v-card-text class="content px-2 py-0">
 				<canvas ref="chart"></canvas>
 			</v-card-text>
 		</v-layout>

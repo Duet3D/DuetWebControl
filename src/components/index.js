@@ -7,15 +7,13 @@ import charts from './charts'
 import containers from './containers'
 import dialogs from './dialogs'
 import inputs from './inputs'
+import lists from './lists'
 import misc from './misc'
 import panels from './panels'
-import tables from './tables'
 
 import BaseGrid from './BaseGrid.vue'
-import BasePanel from './BasePanel.vue'
 
 Vue.component('base-grid', BaseGrid)
-Vue.component('base-panel', BasePanel)
 
 export default {
 	buttons,
@@ -23,7 +21,7 @@ export default {
 	containers,
 	dialogs,
 	inputs,
+	lists,
 	misc,
-	panels,
-	tables
+	panels
 }

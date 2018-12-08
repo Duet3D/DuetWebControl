@@ -8,7 +8,17 @@ let _selectedItem = null;
 
 function makeMachineSettings() {
 	return {
+		codes: ['M0', 'M1', 'M84', 'M561'],
 		displayedExtraTemperatures: [],
+		moveFeedrate: 6000,							// in mm/min
+		moveSteps: {								// in mm
+			x: [100, 50, 10, 1, 0.1],
+			y: [100, 50, 10, 1, 0.1],
+			z: [50, 25, 5, 0.5, 0.05],
+			default: [100, 50, 10, 1, 0.1]
+		},
+		extruderAmounts: [100, 50, 20, 10, 5, 1],	// in mm
+		extruderFeedrates: [60, 30, 15, 5, 1],		// in mm/s
 		temperatures: {
 			tool: {
 				active: [250, 235, 220, 205, 195, 160, 120, 100, 0],
@@ -21,7 +31,8 @@ function makeMachineSettings() {
 			chamber: {
 				active: [90, 80, 70, 60, 50, 40, 0]
 			}
-		}
+		},
+		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
 	}
 }
 
@@ -29,8 +40,13 @@ export default {
 	namespaced: true,
 	getters: {
 		frozen: (state, getters, rootState, rootGetters) => rootState.isConnecting || rootState.isDisconnecting || !rootGetters.isConnected,
+		selectedItem: () => _selectedItem,
+
 		machineUI: (state, getters, rootState) => state.machines[rootState.selectedMachine],
-		selectedItem: () => _selectedItem
+		moveSteps: (state, getters) => function(axis) {
+			const moveSteps = getters.machineUI.moveSteps, axisLetter = axis.toLowerCase();
+			return moveSteps.hasOwnProperty(axisLetter) ? moveSteps[axisLetter] : moveSteps.default;
+		}
 	},
 	state: {
 		designMode: false,
@@ -38,7 +54,6 @@ export default {
 			// TODO: implement this when working on the UI designer
 		},
 
-		codes: ['M0', 'M1', 'M84', 'M561'],
 		useBinaryPrefix: true,
 
 		machines: {

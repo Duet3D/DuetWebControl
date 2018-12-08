@@ -4,7 +4,7 @@
 			<code-input solo></code-input>
 		</dynamic-grid-item>
 		<dynamic-grid-item :md="[0, 3, 24, 6]">
-			<event-log></event-log>
+			<event-list></event-list>
 		</dynamic-grid-item>
 	</base-grid>
 </template>

@@ -1,10 +1,15 @@
 <template>
 	<v-form @submit.prevent="send" ref="form">
 		<v-layout row inline :class="{ 'mt-2' : solo }">
-			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup="onKeyUp"></v-combobox>
-			<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
-				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
-			</v-btn>
+			<v-flex>
+				<v-combobox ref="input" v-model.trim="code" :items="machineUI.codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup="onKeyUp"></v-combobox>
+			</v-flex>
+
+			<v-flex shrink>
+				<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
+					<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
+				</v-btn>
+			</v-flex>
 		</v-layout>
 	</v-form>
 </template>
@@ -16,8 +21,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('ui', ['codes']),
-		...mapGetters('ui', ['frozen'])
+		...mapGetters('ui', ['frozen', 'machineUI'])
 	},
 	data() {
 		return {
@@ -36,9 +40,12 @@ export default {
 			}
 		},
 		async send() {
+			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
+
 			if (this.code !== "" && !this.sendingCode) {
+				// TODO: Remove potential comments and convert to upper-case (see DWC1)
+
 				this.sendingCode = true;
-				this.$refs.input.isMenuActive = false;
 				try {
 					await this.sendCode(this.code);
 				} catch (e) {

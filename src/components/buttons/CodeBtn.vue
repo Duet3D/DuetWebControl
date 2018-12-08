@@ -1,5 +1,5 @@
 <template>
-	<v-btn :color="color" :small="small" :title="title" :disabled="frozen" :loading="sendingCode" @click="click">
+	<v-btn v-bind="$props" :disabled="frozen" :loading="sendingCode" @click="click">
 		<slot></slot>
 	</v-btn>
 </template>
@@ -7,22 +7,23 @@
 <script>
 'use strict'
 
+import VBtn from 'vuetify/es5/components/VBtn'
 import { mapGetters, mapActions } from 'vuex'
 
 export default {
-	computed: mapGetters('ui', ['frozen']),
-	props: {
-		code: {
-			type: String,
-			required: true
-		},
-		color: String,
-		small: Boolean,
-		title: String
+	computed: {
+		...mapGetters('ui', ['frozen'])
 	},
 	data() {
 		return {
 			sendingCode: false
+		}
+	},
+	extends: VBtn,
+	props: {
+		code: {
+			type: String,
+			required: true
 		}
 	},
 	methods: {
