@@ -1,49 +1,83 @@
-/* eslint-disable */
 'use strict'
 
 class CSV {
-	// TODO turn the following into a useful CSV parser class
-	
-	parseCSV(str) {
-		let arr = [];
-		let quote = false;  // true means we're inside a quoted field
+	headers = []
+	content = []
 
-		// iterate over each character, keep track of current row and column (of the returned array)
-		for (let row = col = c = 0; c < str.length; c++) {
-			let cc = str[c], nc = str[c+1];        // current character, next character
-			if (arr.length <= row) { arr.push([]); }
-			if (arr[row].length <= col) { arr[row].push([""]); }
+	constructor(content) {
+		let row = 0, col = 0, inQuote = false;
+		for (let i = 0; i < content.length; i++) {
+			const char = content[i], nextChar = content[i + 1];
 
-			// If the current character is a quotation mark, and we're inside a
-			// quoted field, and the next character is also a quotation mark,
-			// add a quotation mark to the current column and skip the next character
-			if (cc == '"' && quote && nc == '"') { arr[row][col] += cc; ++c; continue; }
+			// Make sure we have enough rows+cols
+			if (row === 0) {
+				if (this.headers.length <= col) {
+					this.headers.push('');
+				}
+			} else {
+				if (this.content.length < row) {
+					this.content.push([]);
+				}
+				if (this.content[row - 1].length <= col) {
+					this.content[row - 1].push('');
+				}
+			}
 
-			// If it's just one quotation mark, begin/end quoted field
-			if (cc == '"') { quote = !quote; continue; }
+			// Deal with escaped quotes
+			if (inQuote && char == '"' && nextChar == '"') {
+				if (row === 0) {
+					this.headers[col] += char;
+				} else {
+					this.content[row - 1][col] += char;
+				}
+				i++;
+				continue;
+			}
 
-			// If it's a comma and we're not in a quoted field, move on to the next column
-			if (cc == ',' && !quote) { ++col; continue; }
+			// Deal with the start or end of a field
+			if (char === '"') {
+				inQuote = !inQuote;
+				continue;
+			}
 
-			// If it's a newline and we're not in a quoted field, move on to the next
-			// row and move to column 0 of that new row
-			if (cc == '\n' && !quote) { ++row; col = 0; continue; }
+			// Check if we can move on to the next field
+			if (char === ',' && !inQuote) {
+				col++;
+				continue;
+			}
 
-			// Otherwise, append the current character to the current column
-			arr[row][col] += cc;
+			// Check if we can move on to the next row
+			if (char === '\n' && !inQuote) {
+				this.content.push([]);
+				col = 0;
+				++row;
+				continue;
+			}
+
+			// Otherwise append the current character
+			if (row === 0) {
+				this.headers[col] += char;
+			} else {
+				this.content[row - 1][col] += char;
+			}
 		}
-		return arr;
+
+		this.content.forEach(function(row) {
+			row.forEach(function(colData, col) {
+				const numericValue = parseFloat(colData);
+				if (!isNaN(numericValue)) {
+					row[col] = numericValue;
+				}
+			});
+		});
 	}
 
-	getCSVValue(csvArray, key) {
-		if (csvArray.length > 1) {
-			let index = csvArray[0].indexOf(key);
-			if (index == -1) {
-				return undefined;
-			}
-			return csvArray[1][index].trim();
+	get(fieldName, row = 0) {
+		const index = this.headers.findIndex(header => header === fieldName);
+		if (index === -1) {
+			return undefined;
 		}
-		return undefined;
+		return this.content[row][index];
 	}
 }
 

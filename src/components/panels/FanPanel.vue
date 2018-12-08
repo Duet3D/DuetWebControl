@@ -22,9 +22,11 @@
 						<v-btn flat :value="-1" :disabled="frozen" color="primary">
 							Tool Fan
 						</v-btn>
-						<v-btn flat v-for="(fan, index) in fans" v-if="!fan.thermostatic.control" :key="index" :value="index":disabled="frozen" color="primary">
-							{{ fan.name ? fan.name : `Fan ${index}` }}
-						</v-btn>
+						<template v-for="(fan, index) in fans">
+							<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index":disabled="frozen" color="primary">
+								{{ fan.name ? fan.name : `Fan ${index}` }}
+							</v-btn>
+						</template>
 					</v-btn-toggle>
 				</v-flex>
 

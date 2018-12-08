@@ -196,6 +196,8 @@ export default {
 			requestedSpeed: 'Requested Speed',
 			topSpeed: 'Top Speed',
 			sensors: 'Sensors',
+			mcuTemp: 'MCU Temperature',
+			mcuTempTitle: 'Minimum: {0} Maximum: {0}',
 			probe: 'Z-Probe | Z-Probes'
 		},
 		tools: {

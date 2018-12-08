@@ -1,5 +1,7 @@
 <style scoped>
-.card, .content {
+.card {
+	display: flex;
+	flex-direction: column;
 	width: 100%;
 	height: 100% !important;
 }
@@ -10,16 +12,14 @@
 </style>
 
 <template>
-	<v-card no-body class="card">
-		<v-layout column class="content">
-			<v-card-title class="pt-2 pb-0">
-				<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
-			</v-card-title>
+	<v-card class="card">
+		<v-card-title class="pt-2 pb-0">
+			<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
+		</v-card-title>
 
-			<v-card-text class="content px-2 py-0">
-				<canvas ref="chart"></canvas>
-			</v-card-text>
-		</v-layout>
+		<v-card-text class="content px-2 py-0">
+			<canvas ref="chart"></canvas>
+		</v-card-text>
 	</v-card>
 </template>
 
