@@ -105,40 +105,20 @@ input::-webkit-inner-spin-button {
 						<v-list-tile-title>{{ $t('menu.files.system') }}</v-list-tile-title>
 					</v-list-tile>
 					
-					<v-list-tile v-ripple to="/Files/Web" @click="">
+					<!--<v-list-tile v-ripple to="/Files/Web" @click="">
 						<v-list-tile-action>
 							<v-icon>cloud</v-icon>
 						</v-list-tile-action>
 						<v-list-tile-title>{{ $t('menu.files.web') }}</v-list-tile-title>
-					</v-list-tile>
-				</v-list-group>
-
-				<v-list-group prepend-icon="settings" no-action value="true">
-					<v-list-tile slot="activator">
-						<v-list-tile-title>{{ $t('menu.settings.caption') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Settings/Interface" @click="">
-						<v-list-tile-action>
-							<v-icon>devices</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.settings.interface') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Settings/Machine" @click="">
-						<v-list-tile-action>
-							<v-icon>router</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.settings.machine') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<!--<v-list-tile v-ripple to="/Settings/Update" @click="">
-						<v-list-tile-action>
-							<v-icon>update</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.settings.update') }}</v-list-tile-title>
 					</v-list-tile>-->
 				</v-list-group>
+
+				<v-list-tile v-ripple to="/Settings" @click="">
+					<v-list-tile-action>
+						<v-icon>settings</v-icon>
+					</v-list-tile-action>
+					<v-list-tile-title>{{ $t('menu.settings.caption') }}</v-list-tile-title>
+				</v-list-tile>
 			</v-list>
 		</v-navigation-drawer>
 
@@ -190,6 +170,8 @@ input::-webkit-inner-spin-button {
 		<v-footer app>
 			<span class="ml-3">&copy; 2018 Christian Hammacher for Duet3D</span>
 		</v-footer>
+
+		<messagebox-dialog></messagebox-dialog>
 	</v-app>
 </template>
 
@@ -210,10 +192,7 @@ export default {
 			set(value) { this.setDesignMode(value); }
 		}
 	},
-	methods: {
-		...mapMutations('ui', ['setDesignMode']),
-		foo() { this.$store.commit('machine/test'); }
-	},
+	methods: mapMutations('ui', ['setDesignMode']),
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,

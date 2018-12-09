@@ -82,11 +82,10 @@ export default {
 
 			this.uploading = true;
 			for (let i = 0; i < files.length; i++) {
-				const type = (this.target === 'gcodeStart') ? 'gcode' : this.target;
 				const file = files[i], destination = Path.combine(this.destinationDirectory, file.name);
 				try {
 					// Upload a file
-					const fileTransfer = await this.upload({ file, destination, type });
+					const fileTransfer = await this.upload({ file, destination });
 					await this.$toast.makeFileTransferNotification(fileTransfer);
 
 					// Run it (if required)
@@ -94,7 +93,7 @@ export default {
 						await this.sendCode(`M32 "${destination}"`);
 					}
 				} catch (e) {
-					// There is basically no need to do anything else here; the toast wrapper takes care of everything
+					// handled before we get here
 					break;
 				}
 			}

@@ -22,6 +22,12 @@ class TimeoutError extends Error {
 	}
 }
 
+class OperationCancelledError extends Error {
+	constructor() {
+		super(i18n.t('error.cancelled'));
+	}
+}
+
 class OperationFailedError extends Error {
 	constructor(reason) {
 		super(i18n.t('error.operationFailed', [reason]));
@@ -60,10 +66,21 @@ class CodeResponseError extends CodeError {
 	}
 }
 
+// Heightmap errors
+
+class HeightmapError extends Error {}
+
+class InvalidHeightmapError extends HeightmapError {
+	constructor() {
+		super(i18n.t('error.invalidHeightmap'));
+	}
+}
+
 // Exports
 
 export {
-	NotImplementedError, DisconnectedError, TimeoutError, OperationFailedError,
+	NotImplementedError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
-	CodeError, CodeResponseError, CodeBufferError
+	CodeError, CodeResponseError, CodeBufferError,
+	HeightmapError, InvalidHeightmapError
 }

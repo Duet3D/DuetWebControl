@@ -34,16 +34,17 @@ canvas {
 		<v-container fluid>
 			<v-layout row fill-height>
 				<!-- TODO: Add CSV list here -->
+
 				<v-flex>
 					<v-layout row fill-height>
-						<v-flex ref="loading" class="loading" v-show="loading">
+						<v-flex ref="loading" class="loading" v-show="!ready">
 							<v-layout fill-height align-center>
 								<v-flex tag="h1" class="text-xs-center">
-									{{ isConnected ? 'loading...' : 'height map not available' }}
+									{{ loading ? 'loading...' : errorMessage }}
 								</v-flex>
 							</v-layout>
 						</v-flex>
-						<v-flex ref="canvasParent" v-show="!loading">
+						<v-flex ref="canvasParent" v-show="ready">
 							<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
 								<template slot="activator">
 									<canvas ref="canvas" class="canvas" @mousemove="canvasMouseMove"></canvas>
@@ -61,6 +62,7 @@ canvas {
 						</v-flex>
 					</v-layout>
 				</v-flex>
+
 				<v-flex shrink class="pl-3">
 					<v-layout column fill-height justifiy-space-between>
 						<v-flex>
@@ -82,7 +84,7 @@ canvas {
 							RMS error: {{ $display(rmsError, 3, 'mm') }}
 						</v-flex>
 						<v-flex>
-							<v-btn class="ml-0" :disabled="loading" @click="topView">
+							<v-btn class="ml-0" :disabled="!ready" @click="topView">
 								<v-icon small class="mr-1">vertical_align_bottom</v-icon> Top view
 							</v-btn>
 						</v-flex>
@@ -103,7 +105,7 @@ canvas {
 <script>
 'use strict'
 
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
 import OrbitControls from 'three-orbitcontrols'
@@ -138,7 +140,10 @@ export default {
 	computed: mapGetters(['isConnected']),
 	data() {
 		return {
-			loading: true,
+			ready: false,
+			loading: false,
+			errorMessage: 'height map not available',
+
 			colorScheme: 'terrain',
 			tooltip: {
 				coord: {
@@ -160,6 +165,7 @@ export default {
 		}
 	},
 	methods: {
+		...mapActions('machine', ['download']),
 		init() {
 			// Perform initial resize
 			const size = this.resize();
@@ -176,11 +182,14 @@ export default {
 
 			// Register this instance in order to deal with size changes
 			threeInstances.push(this);
+			if (this.isConnected) {
+				this.getHeightmap();
+			}
 		},
 		resize() {
 			// Resize canvas elements
-			const width = this.loading ? this.$refs.loading.offsetWidth : this.$refs.canvasParent.offsetWidth;
-			const height = this.loading ? this.$refs.loading.offsetHeight : this.$refs.canvasParent.offsetHeight;
+			const width = this.ready ? this.$refs.canvasParent.offsetWidth : this.$refs.loading.offsetWidth;
+			const height = this.ready ? this.$refs.canvasParent.offsetHeight : this.$refs.loading.offsetHeight;
 			this.$refs.legend.height = height;
 			this.$refs.canvas.width = width;
 			this.$refs.canvas.height = height;
@@ -199,17 +208,20 @@ export default {
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
 			const csv = new CSV(csvData.substr(csvData.indexOf("\n") + 1));
-			const radius = csv.get('radius');
-			const xMin = csv.get('xmin');
-			const yMin = csv.get('ymin');
-			const spacing = csv.get('spacing');
+			const radius = parseFloat(csv.get('radius'));
+			const xMin = parseFloat(csv.get('xmin'));
+			const yMin = parseFloat(csv.get('ymin'));
+			let xSpacing = parseFloat(csv.get('xspacing'));
+			if (isNaN(xSpacing)) { xSpacing = parseFloat(csv.get('spacing')); }
+			let ySpacing = parseFloat(csv.get('yspacing'));
+			if (isNaN(ySpacing)) { ySpacing = parseFloat(csv.get('spacing')); }
 
 			// Convert each point to a vector
 			const points = [];
 			for (let y = 1; y < csv.content.length; y++) {
 				for (let x = 0; x < csv.content[y].length; x++) {
-					const value = csv.content[y][x];
-					points.push([xMin + x * spacing, yMin + (y - 2) * spacing, (value === 0) ? NaN : value]);
+					const value = csv.content[y][x].trim();
+					points.push([xMin + x * xSpacing, yMin + (y - 1) * ySpacing, (value === "0") ? NaN : parseFloat(value)]);
 				}
 			}
 
@@ -231,7 +243,7 @@ export default {
 			}
 
 			// Generate stats
-			let xMin, xMax, yMin, yMax, minDiff, maxDiff;
+			let xMin, xMax, yMin, yMax;
 
 			this.radius = probeRadius;
 			this.numPoints = 0;
@@ -293,7 +305,7 @@ export default {
 			}
 
 			// Render scene
-			this.loading = false;
+			this.ready = true;
 			this.render();
 		},
 		render() {
@@ -312,20 +324,19 @@ export default {
 			const rect = e.target.getBoundingClientRect();
 			const mouse = new Vector2();
 			mouse.x = (e.clientX - rect.left) / e.target.clientWidth * 2 - 1;
-			mouse.y = - (e.clientY - rect.top) / e.target.clientHeight * 2 + 1;
+			mouse.y = -(e.clientY - rect.top) / e.target.clientHeight * 2 + 1;
 
 			// Is the cursor on a point indicator?
 			this.three.raycaster.setFromCamera(mouse, this.three.camera);
 			const intersection = this.three.raycaster.intersectObjects(this.three.meshIndicators);
-			if (this.three.lastIntersection != undefined &&
-				(intersection.length === 0 || intersection[0] !== this.three.lastIntersection)) {
+			if (this.three.lastIntersection && (intersection.length === 0 || intersection[0] !== this.three.lastIntersection)) {
 				this.three.lastIntersection.object.material.opacity = indicatorOpacity;
 				this.three.lastIntersection = undefined;
 			}
 
-			let intersectionPoint = undefined;
+			let intersectionPoint;
 			if (intersection.length > 0) {
-				if (intersection[0] != this.three.lastIntersection) {
+				if (intersection[0] !== this.three.lastIntersection) {
 					intersection[0].object.material.opacity = indicatorOpacityHighlighted;
 					this.three.lastIntersection = intersection[0];
 				}
@@ -333,7 +344,7 @@ export default {
 			}
 
 			// Show or hide the tooltip
-			if (intersectionPoint !== undefined) {
+			if (intersectionPoint) {
 				this.tooltip.coord.x = intersectionPoint.x;
 				this.tooltip.coord.y = intersectionPoint.y;
 				this.tooltip.coord.z = intersectionPoint.z;
@@ -348,6 +359,24 @@ export default {
 			this.three.camera.position.set(0, 0, 1.5);
 			this.three.camera.rotation.set(0, 0, 0);
 			this.three.camera.updateProjectionMatrix();
+		},
+
+		async getHeightmap(file = '0:/sys/heightmap.csv') {
+			if (this.loading) {
+				// Don't attempt to load more than one file at once...
+				return;
+			}
+
+			this.ready = false;
+			this.loading = true;
+			try {
+				const heightmap = await this.download(file);
+				this.showCSV(heightmap);
+			} catch (e) {
+				console.warn(e);
+				this.errorMessage = e.message;
+			}
+			this.loading = false;
 		},
 
 		testMeshGrid() {
@@ -388,6 +417,11 @@ export default {
 				setFaceColors(this.three.meshGeometry, scaleZ, to, maxVisualizationZ);
 			}
 			drawLegend(this.$refs.legend, maxVisualizationZ, to);
+		},
+		isConnected(to) {
+			if (to) {
+				this.getHeightmap();
+			}
 		}
 	}
 }

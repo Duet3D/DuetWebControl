@@ -6,11 +6,14 @@ import Vuex from 'vuex'
 import communication from './communication'
 import machine from './machine'
 import connector, { mapConnectorActions } from './machine/connector'
+import BaseConnector from './machine/connector/BaseConnector.js'
 import ui from './ui.js'
 
 import i18n from '../i18n'
-import Plugins, { Logger } from '../plugins'
-import { DisconnectedError, CodeBufferError } from '../utils/errors.js'
+import Plugins, { Logger, Toast } from '../plugins'
+import { DisconnectedError, OperationCancelledError, CodeBufferError } from '../utils/errors.js'
+import { extractFileName } from '../utils/path.js'
+import { formatTime } from '../utils/time.js'
 
 Vue.use(Vuex)
 
@@ -69,6 +72,9 @@ const store = new Vuex.Store({
 			if (!state.machines.hasOwnProperty(hostname)) {
 				throw new Error(`Host ${hostname} is already disconnected!`);
 			}
+			if (state.isDisconnecting) {
+				throw new Error('Already disconnecting');
+			}
 
 			if (doDisconnect) {
 				commit('setDisconnecting', true);
@@ -90,23 +96,87 @@ const store = new Vuex.Store({
 			commit('removeMachine', hostname);
 		},
 
-		// Send a code to the current machine
-		async sendCode({ state, dispatch }, code) {
-			const hostname = state.selectedMachine;
+		// Send a code to the current machine and automatically log the result
+		// Parameter can be either the code or an object { code, (hostname) }
+		async sendCode({ state, dispatch }, payload) {
+			const code = (payload instanceof Object) ? payload.code : payload;
+			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
 			try {
 				const response = await dispatch(`machines/${hostname}/sendCode`, code);
 				Logger.logCode(code, response, hostname);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-					this.$log(type, e.message);
+					Logger.log(type, e, undefined, hostname);
+				}
+				throw e;
+			}
+		},
+
+		// Upload a file and show progress
+		async upload({ state, dispatch }, { file, destination, hostname = state.selectedMachine, showSuccess = true, showError = true }) {
+			const cancelSource = BaseConnector.getCancelSource();
+			const notification = Toast.makeFileTransferNotification('upload', destination, cancelSource);
+			try {
+				const startTime = new Date();
+				const response = await dispatch(`machines/${hostname}/upload`, { file, destination, cancelSource, onProgress: notification.onProgress });
+
+				// Show success message
+				if (showSuccess) {
+					const secondsPassed = Math.round((new Date() - startTime) / 1000);
+					Logger.log('success', i18n.t('notification.upload.success', [extractFileName(destination), formatTime(secondsPassed)]), undefined, hostname);
+				}
+
+				// Return the response
+				notification.hide();
+				return response;
+			} catch (e) {
+				// Show and report error message
+				notification.hide();
+				if (showError && !(e instanceof OperationCancelledError)) {
+					console.warn(e);
+					Logger.log('error', i18n.t('notification.upload.error', [extractFileName(destination)]), e, hostname);
+				}
+				throw e;
+			}
+		},
+
+		// Download a file and show progress
+		// Parameter can be either the filename or an object { filename, (hostname, showSuccess, showError) }
+		async download({ state, dispatch }, payload) {
+			const filename = (payload instanceof Object) ? payload.filename : payload;
+			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
+			const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
+			const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
+
+			const cancelSource = BaseConnector.getCancelSource();
+			const notification = Toast.makeFileTransferNotification('download', filename, cancelSource);
+			try {
+				const startTime = new Date();
+				const response = await dispatch(`machines/${hostname}/download`, { filename, cancelSource, onProgress: notification.onProgress });
+
+				// Show success message
+				if (showSuccess) {
+					const secondsPassed = Math.round((new Date() - startTime) / 1000);
+					Logger.log('success', i18n.t('notification.download.success', [extractFileName(filename), formatTime(secondsPassed)]), undefined, hostname);
+				}
+
+				// Return the downloaded data
+				notification.hide();
+				return response;
+			} catch (e) {
+				// Show and report error message
+				notification.hide();
+				if (showError && !(e instanceof OperationCancelledError)) {
+					console.warn(e);
+					Logger.log('error', i18n.t('notification.download.error', [extractFileName(filename)]), e, hostname);
 				}
 				throw e;
 			}
 		},
 
 		// Other actions
-		...mapConnectorActions(null, ['disconnect', 'sendCode'])
+		...mapConnectorActions(null, ['disconnect', 'sendCode', 'upload', 'download'])
 	},
 	mutations: {
 		addMachine(state, { hostname, moduleInstance }) {

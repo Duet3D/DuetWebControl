@@ -2,6 +2,8 @@
 
 import { Color, Vector3, Face3, SphereGeometry, Matrix4, Mesh, MeshBasicMaterial, Geometry, PlaneGeometry } from 'three'
 
+import { InvalidHeightmapError } from './errors.js'
+
 const pointTolerance = 2.0
 const smallIndicatorRadius = 0.01, mediumIndicatorRadius = 0.02, bigIndicatorRadius = 0.05
 
@@ -68,14 +70,14 @@ export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
 
 function getColorByZ(z, colorScheme, maxVisualizationZ) {
 	// Terrain color scheme (i.e. from blue to red, asymmetric)
-	if (colorScheme == "terrain") {
+	if (colorScheme === "terrain") {
 		z = Math.max(Math.min(z, maxVisualizationZ), -maxVisualizationZ);
-		var hue = 240 - ((z + maxVisualizationZ) / maxVisualizationZ) * 120;
+		const hue = 240 - ((z + maxVisualizationZ) / maxVisualizationZ) * 120;
 		return new Color("hsl(" + hue + ",100%,45%)");
 	}
 
 	// Default color scheme (i.e. the worse the redder, symmetric)
-	var hue = 120 - Math.min(Math.abs(z), maxVisualizationZ) / maxVisualizationZ * 120;
+	const hue = 120 - Math.min(Math.abs(z), maxVisualizationZ) / maxVisualizationZ * 120;
 	return new Color("hsl(" + hue + ",100%,45%)");
 }
 
@@ -100,10 +102,10 @@ export function setFaceColors(geometry, scaleZ, colorScheme, maxVisualizationZ) 
 
 function translateGridPoint(meshGeometry, vector, scaleZ) {
 	let x, y;
-	if (meshGeometry.type == "PlaneGeometry") {
+	if (meshGeometry.type === "PlaneGeometry") {
 		x = (vector.x / meshGeometry.parameters.width + 0.5) * (meshGeometry.xMax - meshGeometry.xMin) + meshGeometry.xMin;
 		y = (vector.y / meshGeometry.parameters.height + 0.5) * (meshGeometry.yMax - meshGeometry.yMin) + meshGeometry.yMin;
-	} else if (meshGeometry.type == "Geometry") {
+	} else if (meshGeometry.type === "Geometry") {
 		x = (vector.x + 0.5) * (meshGeometry.xMax - meshGeometry.xMin) + meshGeometry.xMin;
 		y = (vector.y + 0.5) * (meshGeometry.yMax - meshGeometry.yMin) + meshGeometry.yMin;
 	} else {
@@ -135,8 +137,8 @@ export function generateIndicators(meshGeometry, numPoints, scaleZ, color, opaci
 		// If we have a close point, create a new indicator
 		if (!isNaN(trueProbePoint.z)) {
 			const radius = (numPoints > 64) ? smallIndicatorRadius
-				:(numPoints > 9) ? mediumIndicatorRadius
-				: bigIndicatorRadius;
+				: (numPoints > 9) ? mediumIndicatorRadius
+					: bigIndicatorRadius;
 			const sphereGeometry = new SphereGeometry(radius);
 			sphereGeometry.applyMatrix(new Matrix4().makeTranslation(x, y, z));
 
@@ -153,7 +155,7 @@ export function generateIndicators(meshGeometry, numPoints, scaleZ, color, opaci
 
 function getNearestZ(points, x, y, maxDelta) {
 	// Get the point that is closest to X+Y
-	let point, delta = undefined;
+	let point, delta;
 	for (let i = 0; i < points.length; i++) {
 		const deltaNew = Math.sqrt(Math.pow(x - points[i][0], 2) + Math.pow(y - points[i][1], 2));
 		if (delta === undefined || deltaNew < delta) {
@@ -192,7 +194,7 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 		}
 
 		// Generate faces
-		if (probePoints.length == 3) {
+		if (probePoints.length === 3) {
 			geometry.faces.push(new Face3(0, 1, 2));
 		} else {
 			geometry.faces.push(new Face3(0, 1, 4));
@@ -212,13 +214,18 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 		const z = probePoints[i][2];
 		if (!isNaN(z)) {
 			const x = probePoints[i][0], y = probePoints[i][1];
-			if (xPoints.indexOf(x) == -1) {
+			if (xPoints.indexOf(x) === -1) {
 				xPoints.push(x);
 			}
-			if (yPoints.indexOf(y) == -1) {
+			if (yPoints.indexOf(y) === -1) {
 				yPoints.push(y);
 			}
 		}
+	}
+
+	// Check if the coordinates are valid
+	if (!xPoints.some(point => !isNaN(point)) || !yPoints.some(point => !isNaN(point))) {
+		throw new InvalidHeightmapError();
 	}
 
 	// Generate plane geometry for grid
@@ -241,7 +248,7 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 	}
 
 	// Add extra faces to each top row to avoid zig-zag lines (for round grids)
-	let yCurrent = undefined;
+	let yCurrent;
 	for (let i = 1; i < planeGeometry.vertices.length / 2; i++) {
 		const vertex = planeGeometry.vertices[i], prevVertex = planeGeometry.vertices[i - 1];
 
@@ -252,10 +259,10 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 				yCurrent = yPoint;
 
 				// Find the next two points below and below+right to this one
-				let a = undefined, b;
+				let a, b;
 				for (let k = i + 1; k < planeGeometry.vertices.length - 1; k++) {
 					const nextVertex = planeGeometry.vertices[k];
-					if (nextVertex.x == prevVertex.x && nextVertex.y == planeGeometry.vertices[k + 1].y) {
+					if (nextVertex.x === prevVertex.x && nextVertex.y === planeGeometry.vertices[k + 1].y) {
 						a = k;
 						b = k + 1;
 						break;
@@ -263,7 +270,7 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 				}
 
 				// If that succeeds add a new face
-				if (a != undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
+				if (a !== undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
 					const face = new Face3(a, b, i - 1);
 					planeGeometry.faces.push(face);
 				}
@@ -272,16 +279,16 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 	}
 
 	// Add extra faces to each bottom row to avoid zig-zag lines (for round grids)
-	let prevVertex = undefined;
+	let prevVertex;
 	for (let i = Math.floor(planeGeometry.vertices.length / 2); i < planeGeometry.vertices.length; i++) {
 		const vertex = planeGeometry.vertices[i];
 
 		// Check if this is the first defined point in this row
 		if (prevVertex !== undefined && prevVertex.y === vertex.y && isNaN(prevVertex.z) && !isNaN(vertex.z)) {
 			// Find the two points above and above+left to this one
-			let a = undefined, b;
+			let a, b;
 			for (let k = i - 1; k > 0; k--) {
-				const prevVertex = planeGeometry.vertices[k], prev2Vertex = planeGeometry.vertices[k - 1];
+				const prevVertex = planeGeometry.vertices[k];
 				if (prevVertex.x === vertex.x && prevVertex.y === planeGeometry.vertices[k - 1].y) {
 					a = k - 1;
 					b = k;
@@ -290,7 +297,7 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 			}
 
 			// If that succeeds add a new face
-			if (a != undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
+			if (a !== undefined && !isNaN(planeGeometry.vertices[a].z) && !isNaN(planeGeometry.vertices[b].z)) {
 				const face = new Face3(a, b, i);
 				planeGeometry.faces.push(face);
 			}
@@ -304,7 +311,7 @@ export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ
 			// Remove and rearrange the associated face(s)
 			for (let k = planeGeometry.faces.length - 1; k >= 0; k--) {
 				const face = planeGeometry.faces[k];
-				if (face.a == i || face.b == i || face.c == i) {
+				if (face.a === i || face.b === i || face.c === i) {
 					planeGeometry.faces.splice(k, 1);
 				} else {
 					if (face.a > i) { face.a--; }

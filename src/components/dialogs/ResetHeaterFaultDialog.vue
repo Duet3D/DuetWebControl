@@ -10,12 +10,12 @@
 			<v-card-actions>
 				<v-spacer></v-spacer>
 
-				<v-btn color="blue darken-1" flat="flat" @click="resetFault">
-					{{ $t('dialog.resetHeaterFault.resetFault') }}
+				<v-btn color="blue darken-1" flat="flat" :disabled="!!counter" @click="resetFault">
+					{{ $t('dialog.resetHeaterFault.resetFault') + (counter ? ` (${counter})` : '') }}
 				</v-btn>
 
 				<v-btn color="blue darken-1" flat="flat" @click="hide">
-					{{ $t('dialog.resetHeaterFault.cancel') }}
+					{{ $t('generic.cancel') }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>
@@ -38,6 +38,11 @@ export default {
 			required: true
 		}
 	},
+	data() {
+		return {
+			counter: 10
+		}
+	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		resetFault() {
@@ -46,6 +51,20 @@ export default {
 		},
 		hide() {
 			this.$emit('update:shown', false);
+		},
+		countDown() {
+			this.counter--;
+			if (this.counter) {
+				setTimeout(this.countDown, 1000);
+			}
+		}
+	},
+	watch: {
+		shown(to) {
+			if (to) {
+				this.counter = 10;
+				this.countDown();
+			}
 		}
 	}
 }

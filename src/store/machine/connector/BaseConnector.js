@@ -1,5 +1,7 @@
 'use strict'
 
+import axios from 'axios'
+
 import { NotImplementedError } from '../../../utils/errors.js'
 
 // Base class for network connectors that keep the machine store up-to-date
@@ -15,6 +17,18 @@ class BaseConnector {
 
 	// Connect to a machine. Throw one of the errors in 'error' for more granular control
 	static async connect(hostname, username, password) { throw new NotImplementedError('connect'); }
+
+	// Get a new cancel token
+	static getCancelSource() {
+		const source = axios.CancelToken.source();
+
+		// Work-around for global cancel token, see https://github.com/axios/axios/issues/978
+		source.token.throwIfRequested = source.token.throwIfRequested;
+		source.token.promise.then = source.token.promise.then.bind(source.token.promise);
+		source.token.promise.catch = source.token.promise.catch.bind(source.token.promise);
+
+		return source;
+	}
 
 	registered = false
 	hostname = null
@@ -48,7 +62,7 @@ class BaseConnector {
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
 
 	// Upload a file. Returns a FileTransfer instance
-	async upload({ file, destination }) { throw new NotImplementedError('upload'); }
+	async upload({ file, destination, cancelSource, onProgress }) { throw new NotImplementedError('upload'); }
 
 	// Delete a file
 	async delete(filename) { throw new NotImplementedError('delete'); }
@@ -60,7 +74,8 @@ class BaseConnector {
 	async makeDirectory(path) { throw new NotImplementedError('makeDirectory'); }
 
 	// Download a file. Returns a FileTransfer instance
-	async download(filename) { throw new NotImplementedError('download'); }
+	// Parameter can be either the filename or an object { filename, (cancelSource, onProgress) }
+	async download(payload) { throw new NotImplementedError('download'); }
 
 	// Get the file list
 	async getFileList(directory) { throw new NotImplementedError('getFileList'); }

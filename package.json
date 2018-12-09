@@ -15,6 +15,7 @@
     "babel-polyfill": "^6.26.0",
     "chart.js": "^2.7.3",
     "es6-promise": "^4.2.5",
+    "file-saver": "^2.0.0",
     "izitoast": "^1.4.0",
     "three": "^0.99.0",
     "three-orbitcontrols": "^2.99.1",

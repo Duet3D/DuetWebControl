@@ -35,7 +35,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters('ui', ['frozen']),
-		...mapState('machine', ['state']),
+		...mapState('machine', ['state'])
 	},
 	data() {
 		return {

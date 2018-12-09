@@ -4,7 +4,6 @@
 import axios from 'axios'
 
 import BaseConnector from './BaseConnector.js'
-import { UploadFileTransfer, DownloadFileTransfer } from './FileTransfer.js'
 import { getBoardDefinition } from '../boards.js'
 
 import { Logger } from '../../../plugins'
@@ -17,7 +16,6 @@ import {
 } from '../../../utils/errors.js'
 import merge from '../../../utils/merge.js'
 import { bitmapToArray } from '../../../utils/numbers.js'
-import { extractFileName } from '../../../utils/path.js'
 import { timeToStr } from '../../../utils/time.js'
 
 export default class PollConnector extends BaseConnector {
@@ -48,31 +46,27 @@ export default class PollConnector extends BaseConnector {
 	pendingCodes = []
 	updateLoopTimeout = null
 	updateLoopCounter = 1
+	lastStatusResponse = { seq: 0 }
 
 	justConnected = true
 	name = null
 	password = null
 	boardType = null
-	lastStatusResponse = { seq: 0 }
 	layers = []
+	messageBoxShown = false;
 
 	constructor(hostname, password, responseData) {
 		super(hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
 
-		// Work-around for global cancel token, see https://github.com/axios/axios/issues/978
-		this.cancelSource = axios.CancelToken.source();
-		this.cancelSource.token.throwIfRequested = this.cancelSource.token.throwIfRequested;
-		this.cancelSource.token.promise.then = this.cancelSource.token.promise.then.bind(this.cancelSource.token.promise);
-		this.cancelSource.token.promise.catch = this.cancelSource.token.promise.catch.bind(this.cancelSource.token.promise);
+		this.cancelSource = BaseConnector.getCancelSource();
 
 		this.axios = axios.create({
 			baseURL: `http://${hostname}/`,
 			cancelToken: this.cancelSource.token,
 			timeout: responseData.sessionTimeout / (this.settings.ajaxRetries + 1)
 		});
-
 		this.axios.interceptors.response.use(null, (error) => {
 			if (error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
 				if (!error.config.retry) {
@@ -83,12 +77,12 @@ export default class PollConnector extends BaseConnector {
 					error.config.retry++;
 					return this.axios.request(error.config);
 				} else if (error.message.startsWith('timeout')) {
-					error = new TimeoutError();
+					error.message = new TimeoutError();
 				} else {
 					console.warn(JSON.stringify(error, null, 2));
 				}
 			}
-			return Promise.reject(error);
+			return Promise.reject(error.message);
 		});
 	}
 
@@ -218,7 +212,7 @@ export default class PollConnector extends BaseConnector {
 				probes: [
 					{
 						value: response.data.sensors.probeValue,
-						secondaryValues: response.data.sensors.probeSecondary
+						secondaryValues: response.data.sensors.probeSecondary ? response.data.sensors.probeSecondary : []
 					}
 				]
 			},
@@ -242,6 +236,11 @@ export default class PollConnector extends BaseConnector {
 					firmware: {
 						name: response.data.firmwareName
 					},
+					mcuTemp: response.data.mcutemp ? {
+						min: response.data.mcutemp.min,
+						current: response.data.mcutemp.cur,
+						max: response.data.mcutemp.max
+					} : {},
 					vIn: response.data.vin ? {
 						min: response.data.vin.min,
 						current: response.data.vin.cur,
@@ -363,24 +362,46 @@ export default class PollConnector extends BaseConnector {
 		// Output Utilities
 		if (response.data.output) {
 			// Beep
-			const beepDuration = response.data.output.beepDuration;
-			const beepFrequency = response.data.output.beepFrequency;
-			if (beepDuration && beepFrequency) {
-				this.store.dispatch(`machines/${this.hostname}/beep`, { beepDuration, beepFrequency });
+			const frequency = response.data.output.beepFrequency;
+			const duration = response.data.output.beepDuration;
+			if (frequency && duration) {
+				this.store.commit(`machines/${this.hostname}/beep`, { frequency, duration });
 			}
 
 			// Message
 			const message = response.data.output.message;
 			if (message) {
-				this.store.dispatch(`machines/${this.hostname}/message`, message);
+				this.store.commit(`machines/${this.hostname}/message`, message);
 			}
 
 			// Message Box
 			const msgBox = response.data.output.msgBox;
 			if (msgBox) {
-				// TODO: deal with seq here
-				this.store.dispatch(`machines/${this.hostname}/messageBox`, msgBox);
+				this.messageBoxShown = true;
+				merge(newData, {
+					messageBox: {
+						mode: msgBox.mode,
+						title: msgBox.title,
+						message: msgBox.msg,
+						timeout: msgBox.timeout,
+						controls: msgBox.controls
+					}
+				});
+			} else if (this.messageBoxShown) {
+				this.messageBoxShown = false;
+				merge(newData, {
+					messageBox: {
+						mode: null
+					}
+				});
 			}
+		} else if (this.messageBoxShown) {
+			this.messageBoxShown = false;
+			merge(newData, {
+				messageBox: {
+					mode: null
+				}
+			});
 		}
 
 		// Spindles
@@ -444,9 +465,10 @@ export default class PollConnector extends BaseConnector {
 					/* eslint-disable no-useless-call */
 					await that.updateLoop.call(that);
 				} catch (e) {
-					if (!axios.isCancel(e)) {
+					if (!(e instanceof DisconnectedError)) {
+						console.warn(e);
 						await that.store.dispatch('disconnect', { hostname: that.hostname, doDisconnect: false });
-						Logger.logGlobal('error', i18n.t('error.statusUpdateFailed', [that.name]), e.message);
+						Logger.logGlobal('error', i18n.t('error.statusUpdateFailed', [that.hostname]), e.message);
 					}
 				}
 			}, this.settings.updateInterval);
@@ -458,9 +480,9 @@ export default class PollConnector extends BaseConnector {
 		const reply = await this.axios.get('rr_reply');
 		const response = reply.data.trim();
 
-		if (this.pendingCodes.length === 0) {
+		if (!this.pendingCodes.length) {
 			// Just log this response
-			Logger.logCode('', response);
+			Logger.logCode(undefined, response, this.hostname);
 		} else {
 			// Resolve pending code promises
 			this.pendingCodes.forEach(function(code) {
@@ -515,14 +537,9 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	async sendCode(code) {
-		let response;
-		try {
-			response = await this.axios.get('rr_gcode', {
-				params: { gcode: code }
-			});
-		} catch (e) {
-			throw (axios.isCancel(e)) ? new DisconnectedError() : e;
-		}
+		const response = await this.axios.get('rr_gcode', {
+			params: { gcode: code }
+		});
 
 		if (response.data.buff === undefined) {
 			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response.data)}`);
@@ -536,15 +553,17 @@ export default class PollConnector extends BaseConnector {
 		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
 	}
 
-	upload({ file, destination }) {
+	upload({ file, destination, cancelSource = axios.cancelToken.source(), onProgress }) {
 		const that = this;
 		return new Promise(function(resolve, reject) {
 			const reader = new FileReader();
-			reader.onerror = (e) => reject(e);
+			reader.onerror = e => reject(e);
 			reader.onload = () => {
 				// Create upload options
 				const options = {
+					cancelToken: cancelSource.token,
 					isFileTransfer: true,
+					onUploadProgress: onProgress,
 					params: {
 						name: destination,
 						time: timeToStr(new Date(file.lastModified))
@@ -556,33 +575,20 @@ export default class PollConnector extends BaseConnector {
 					}
 				};
 
-				// Create file transfer and attach start method
-				const transfer = new UploadFileTransfer(file.name, options);
-				transfer.start = function(onProgress) {
-					// Make promise for the actual file transfer
-					let _resolve, _reject;
-					transfer.promise = new Promise(function(resolve, reject) {
-						_resolve = resolve;
-						_reject = reject;
-					});
-
-					// Start new axios transfer
-					options.onUploadProgress = onProgress;
+				try {
+					// Create file transfer and start it
 					that.axios.post('rr_upload', reader.result, options)
-						.then(_resolve)
-						.catch(_reject)
+						.then(resolve)
+						.catch(reject)
 						.then(function() {
-							transfer.finished = true;
-							that.fileTransfers = that.fileTransfers.filter(item => item !== transfer);
+							that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
 						});
 
-					// Keep it in the list of transfers and return the promise
-					that.fileTransfers.push(transfer);
-					return transfer.promise;
-				};
-
-				// Let calling function decide when to start this transfer
-				resolve(transfer);
+					// Keep it in the list of transfers
+					that.fileTransfers.push(cancelSource);
+				} catch (e) {
+					reject(e);
+				}
 			}
 			reader.readAsArrayBuffer(file);
 		});
@@ -621,43 +627,39 @@ export default class PollConnector extends BaseConnector {
 		}
 	}
 
-	download(filename) {
-		// Create download options
-		const options = {
-			isFileTransfer: true,
-			params: {
-				name: filename
-			},
-			timeout: 0
-		};
+	download(payload) {
+		const filename = (payload instanceof Object) ? payload.filename : payload;
+		const cancelSource = (payload instanceof Object && payload.cancelSource) ? payload.cancelSource : BaseConnector.getCancelSource();
+		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 
-		// Create file transfer and attach start method
 		const that = this;
-		const transfer = new DownloadFileTransfer(extractFileName(filename), options);
-		transfer.start = function(onProgress) {
-			// Make promise for the actual file transfer
-			let _resolve, _reject;
-			transfer.promise = new Promise(function(resolve, reject) {
-				_resolve = resolve;
-				_reject = reject;
-			});
+		return new Promise(function(resolve, reject) {
+			// Create download options
+			const options = {
+				cancelToken: cancelSource.token,
+				isFileTransfer: true,
+				onDownloadProgress: onProgress,
+				params: {
+					name: filename
+				},
+				timeout: 0
+			};
 
-			// Start new axios transfer
-			options.onUploadProgress = onProgress;
-			that.axios.get('rr_download', options)
-				.then(_resolve)
-				.catch(_reject)
-				.then(function() {
-					transfer.finished = true;
-					that.fileTransfers = that.fileTransfers.filter(item => item !== transfer);
-				});
+			try {
+				// Create file transfer and start it
+				that.axios.get('rr_download', options)
+					.then(response => resolve(response.data))
+					.catch(reject)
+					.then(function() {
+						that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
+					});
 
-			// Keep it in the list of transfers and return the promise
-			that.fileTransfers.push(transfer);
-			return transfer.promise;
-		};
-
-		return transfer;
+				// Keep it in the list of transfers and return the promise
+				that.fileTransfers.push(cancelSource);
+			} catch (e) {
+				reject(e);
+			}
+		});
 	}
 
 	async getFileList(directory) {
@@ -670,7 +672,7 @@ export default class PollConnector extends BaseConnector {
 				}
 			});
 
-			// TODO
+			fileList = fileList.concat(response.data.files);
 			next = response.data.next;
 		} while (next !== 0);
 		return fileList;

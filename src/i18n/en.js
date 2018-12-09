@@ -74,13 +74,18 @@ export default {
 			title: 'Connect to Machine',
 			prompt: 'Please enter the hostname of the machine that you would like to connect to:',
 			placeholder: 'Hostname',
-			hostRequired: 'Hostname is required'
+			hostRequired: 'Hostname is required',
+			connect: 'Connect'
+		},
+		filament: {
+			titleChange: 'Change Filament',
+			titleLoad: 'Load Filament',
+			prompt: 'Please choose a filament:'
 		},
 		resetHeaterFault: {
 			title: 'Reset Heater Fault',
-			prompt: 'A heater fault has occurred on heater {0}. Please turn off your machine and check your wiring before you continue. If you are certain that you have already resolved this problem, you can reset the fault now but this is not recommended and can lead to other problems. How would you like to proceed?',
-			resetFault: 'Reset Fault',
-			cancel: 'Cancel'
+			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a phsical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
+			resetFault: 'Reset Fault'
 		}
 	},
 	error: {
@@ -90,16 +95,22 @@ export default {
 		connectError: 'Failed to connect to {0}',
 		disconnectError: 'Could not disconnect cleanly from {0}',
 		disconnectedError: 'Could not complete action because the connection has been terminated',
+		invalidHeightmap: 'Invalid Height Map',
 		timeoutError: 'HTTP request timed out',
+		cancelled: 'Operation has been cancelled',
 		operationFailed: 'Operation failed (Reason: {0})',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
 		codeResponseError: 'Could not run code because a bad response has been received',
 		codeBufferError: 'Could run code because the buffer space has been exhausted',
 		enterValidNumber: 'Please enter a valid number',
 		turnOffEverythingFailed: 'Failed to turn everything off',
-		statusUpdateFailed: 'Failed to get status update for {0}'
+		statusUpdateFailed: 'Failed to get status update for {0}',
+		filelistRequestFailed: 'Failed to get file list'
 	},
 	generic: {
+		ok: 'OK',
+		cancel: 'Cancel',
+		close: 'Close',
 		error: 'Error',
 		info: 'Info',
 		novalue: 'n/a',
@@ -135,6 +146,17 @@ export default {
 			placeholder: 'Send Code...'
 		}
 	},
+	list: {
+		eventLog: {
+			date: 'Date',
+			type: 'Type',
+			message: 'Event',
+			noEvents: 'No Events',
+			clear: 'Clear',
+			downloadText: 'Download as Text',
+			downloadCSV: 'Download as CSV'
+		}
+	},
 	menu: {
 		control: {
 			caption: 'Machine Control',
@@ -165,23 +187,30 @@ export default {
 	notification: {
 		connected: 'Connected to {0}',
 		disconnected: 'Disconnected from {0}',
+		download: {
+			title: 'Downloading {0} @ {1}, {2}% complete',
+			message: 'Please stand by while the file is being downloaded...',
+			success: 'Download of {0} successful after {1}',
+			error: 'Failed to download {0}'
+		},
+		message: 'Message',
 		responseTooLong: 'Response too long, see Console',
 		upload: {
 			title: 'Uploading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being uploaded...',
 			success: 'Upload of {0} successful after {1}',
 			error: 'Failed to upload {0}'
-		},
-		download: {
-			title: 'Downloading {0} @ {1}, {2}% complete',
-			message: 'Please stand by while the file is being downloaded...',
-			success: 'Download of {0} successful after {1}',
-			error: 'Failed to download {0}'
 		}
 	},
 	panel: {
 		movement: {
 			caption: 'Machine Movement',
+			compensationInUse: 'Compensation in use: {0}',
+			disableBedCompensation: 'Disable Bed Compensation (M561)',
+			disableMeshCompensation: 'Disable Grid Compensation (G29 S2)',
+			editMeshGrid: 'Define Area for Mesh Grid Compensation (M557)',
+			runMeshGrid: 'Run Mesh Grid Compensation (G29)',
+			loadMeshGrid: 'Load Saved Heightmap from SD Card (G29 S1)',
 			axisNotHomed: 'The following axis is not homed:',
 			axesNotHomed: 'The following axes are not homed:'
 		},
@@ -197,7 +226,9 @@ export default {
 			topSpeed: 'Top Speed',
 			sensors: 'Sensors',
 			mcuTemp: 'MCU Temperature',
-			mcuTempTitle: 'Minimum: {0} Maximum: {0}',
+			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
+			vIn: 'Vin',
+			vInTitle: 'Minimum: {0}, Maximum {1}',
 			probe: 'Z-Probe | Z-Probes'
 		},
 		tools: {
@@ -206,6 +237,8 @@ export default {
 			turnEverythingOff: 'Turn Everything Off',
 			tool: 'Tool {0}',
 			loadFilament: 'Load Filament',
+			changeFilament: 'Change Filament',
+			unloadFilament: 'Unload Filament',
 			heater: 'Heater {0}',
 			current: 'Current',
 			active: 'Active',
@@ -218,14 +251,6 @@ export default {
 				value: 'Value',
 				showInChart: 'Show in Chart'
 			}
-		}
-	},
-	table: {
-		eventLog: {
-			date: 'Date',
-			type: 'Type',
-			message: 'Event',
-			noEvents: 'No Events'
 		}
 	}
 }

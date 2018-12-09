@@ -13,8 +13,8 @@
 
 				<v-card-actions>
 					<v-spacer></v-spacer>
-					<v-btn color="blue darken-1" flat @click="hide">Close</v-btn>
-					<v-btn color="blue darken-1" flat type="submit">Connect</v-btn>
+					<v-btn color="blue darken-1" flat @click="hide">{{ $t('generic.cancel') }}</v-btn>
+					<v-btn color="blue darken-1" flat type="submit">{{ $t('dialog.connect.connect') }}</v-btn>
 				</v-card-actions>
 			</v-form>
 		</v-card>
@@ -29,7 +29,6 @@ import { mapActions } from 'vuex'
 export default {
 	data() {
 		return {
-			valid: false,
 			hostname: ""
 		}
 	},

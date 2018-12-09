@@ -1,5 +1,5 @@
 <template>
-	<v-combobox type="number" min="-273.15" max="1999" step="any" v-model.number="value" :items="items" @change="apply" :loading="applying" :disabled="frozen" menu-props="auto, overflowY"></v-combobox>
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" :loading="applying" :disabled="frozen" menu-props="auto, overflowY"></v-combobox>
 </template>
 
 <script>
@@ -55,15 +55,17 @@ export default {
 	methods: {
 		...mapActions(['sendCode']),
 		async apply() {
+			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
+
 			if (!this.applying && this.isNumber(this.value)) {
 				this.applying = true;
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
 						if (this.value >= 0) {
-							this.sendCode(`M3 P${spindleIndex} S${this.value}`);
+							this.sendCode(`M3 P${this.spindleIndex} S${this.value}`);
 						} else {
-							this.sendCode(`M4 P${spindleIndex} S${-this.value}`);
+							this.sendCode(`M4 P${this.spindleIndex} S${-this.value}`);
 						}
 					} else if (this.value >= -273.15 && this.value <= 1999) {
 						if (this.tool) {

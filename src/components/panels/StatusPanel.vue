@@ -124,14 +124,43 @@ a:not(:hover) {
 							{{ $t('panel.status.sensors') }}
 						</v-flex>
 
-						<v-flex v-if="electronics.mcuTemp.current">
+						<v-flex v-if="electronics.vIn.current !== undefined">
+							<v-layout column>
+								<v-flex class="header">
+									{{ $t('panel.status.vIn') }}
+								</v-flex>
+
+								<v-tooltip bottom>
+									<template slot="activator">
+										<v-flex>
+											{{ $display(electronics.vIn.current, 1, 'V') }}
+										</v-flex>
+									</template>
+
+									<span>
+										{{ $t('panel.status.vInTitle', [$display(electronics.vIn.min, 1, 'V'), $display(electronics.vIn.max, 1, 'V')]) }}
+									</span>
+								</v-tooltip>
+							</v-layout>
+						</v-flex>
+
+						<v-flex v-if="electronics.mcuTemp.current !== undefined">
 							<v-layout column>
 								<v-flex class="header">
 									{{ $t('panel.status.mcuTemp') }}
 								</v-flex>
-								<v-flex :title="$t('panel.status.mcuTempTitle', [electronics.mcuTemp.min, electronics.mcuTemp.max])">
-									{{ $display(electronics.mcuTemp.current, 1, 'C') }}
-								</v-flex>
+
+								<v-tooltip bottom>
+									<template slot="activator">
+										<v-flex>
+											{{ $display(electronics.mcuTemp.current, 1, 'C') }}
+										</v-flex>
+									</template>
+
+									<span>
+										{{ $t('panel.status.mcuTempTitle', [$display(electronics.mcuTemp.min, 1, 'C'), $display(electronics.mcuTemp.max, 1, 'C')]) }}
+									</span>
+								</v-tooltip>
 							</v-layout>
 						</v-flex>
 

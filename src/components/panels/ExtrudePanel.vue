@@ -48,10 +48,10 @@
 					</v-layout>
 				</v-flex>
 				<v-flex shrink>
-					<v-btn block :disabled="frozen || !canExtrudeRetract" :loading="busy" @click="buttonClicked(false)">
+					<v-btn block :disabled="frozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
 						<v-icon>arrow_upward</v-icon> Retract
 					</v-btn>
-					<v-btn block :disabled="frozen || !canExtrudeRetract" :loading="busy" @click="buttonClicked(true)">
+					<v-btn block :disabled="frozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
 						<v-icon>arrow_downward</v-icon> Extrude
 					</v-btn>
 				</v-flex>
@@ -67,11 +67,24 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine', ['tools']),
+		...mapState('machine', ['heat', 'tools']),
 		...mapGetters('machine', ['currentTool']),
 		...mapGetters('ui', ['frozen', 'machineUI']),
-		canExtrudeRetract() {
-			return true;
+		canExtrude() {
+			if (this.currentTool && this.currentTool.heaters.length) {
+				const selectedHeaters = (this.mixValue[0] === 'mix') ? this.currentTool.heaters : this.mixValue;
+				const heaters = this.heat.heaters, minTemp = this.heat.coldExtrudeTemperature;
+				return !selectedHeaters.some(heater => heaters[heater].current < minTemp);
+			}
+			return false;
+		},
+		canRetract() {
+			if (this.currentTool && this.currentTool.heaters.length) {
+				const selectedHeaters = (this.mixValue[0] === 'mix') ? this.currentTool.heaters : this.mixValue;
+				const heaters = this.heat.heaters, minTemp = this.heat.coldRetractTemperature;
+				return !selectedHeaters.some(heater => heaters[heater].current < minTemp);
+			}
+			return false;
 		},
 		mix: {
 			get() {
@@ -125,8 +138,7 @@ export default {
 			try {
 				const amount = amounts.map(amount => extrude ? amount : -amount).reduce((a, b) => `${a}:${b}`);
 				// TODO let users decide if they want to send M400 as well so this call blocks until the extrusion is complete
-				//await this.sendCode(`G1 E${amount} F${this.feedrate * 60}`);
-				alert(`G1 E${amount} F${this.feedrate * 60}`);
+				await this.sendCode(`G1 E${amount} F${this.feedrate * 60}`);
 			} catch (e) {
 				// handled before we get here
 			}
@@ -139,7 +151,7 @@ export default {
 	},
 	watch: {
 		currentTool(to) {
-			if (to.extruders.length <= 1) {
+			if (!to || to.extruders.length <= 1) {
 				// Switch back to mixing mode if the selection panel is hidden
 				this.mix = ['mix'];
 			}

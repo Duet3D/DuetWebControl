@@ -126,6 +126,7 @@ class NetworkInterface {
 	type = undefined				// 0: Ethernet 1: WiFi
 	firmwareVersion = undefined
 	speed = undefined				// 0 if no link
+	signal = undefined				// only WiFi
 	configuredIP = undefined
 	actualIP = undefined
 	subnet = undefined

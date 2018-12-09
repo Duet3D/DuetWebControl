@@ -9,7 +9,7 @@ span {
 </style>
 
 <template>
-	<component :is="active ? 'a' : 'span'" :href="active ? '#' : undefined" @click.prevent="active && $emit('click')">
+	<component :is="active ? 'a' : 'span'" :href="active ? '#' : undefined" @click.prevent="active && $emit('click', $event)">
 		<slot></slot>
 	</component>
 </template>

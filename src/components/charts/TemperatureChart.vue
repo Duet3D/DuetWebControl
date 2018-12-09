@@ -33,8 +33,8 @@ import i18n from '../../i18n'
 import { getRealHeaterColor } from '../../utils/colors.js'
 
 const sampleInterval = 1000			// ms
-const maxSamples = 600				// 10min
 const defaultMaxTemperature = 300	// degC
+const maxSamples = 600				// 10min
 
 function makeDataset(heaterIndex, extra, label) {
 	const color = getRealHeaterColor(heaterIndex, extra), dataset = {
@@ -51,9 +51,7 @@ function makeDataset(heaterIndex, extra, label) {
 		pointHitRadius: 0,
 		showLine: true
 	};
-	for (let i = 0; i < maxSamples; i++) {
-		dataset.data.push(NaN);
-	}
+	dataset.data = (new Array(maxSamples)).fill(NaN);
 	return dataset;
 }
 

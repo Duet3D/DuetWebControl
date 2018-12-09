@@ -1,41 +1,51 @@
+<style>
+.list-icon {
+	width: 32px !important;
+	height: 32px !important;
+}
+</style>
+
 <template>
-	<v-card>
+	<v-card v-auto-size>
 		<v-card-title>
 			<v-icon small class="mr-1">polymer</v-icon> Macros
+			<v-spacer></v-spacer>
+			<span v-show="isConnected">{{ directory }}</span>
 		</v-card-title>
 
 		<v-card-text class="pa-0">
+			<v-progress-linear v-show="loading" :indeterminate="true" class="my-0"></v-progress-linear>
+			<v-alert v-model="!filelist.length" type="info" class="my-0">
+				No Macros
+			</v-alert>
+
 			<v-list class="pt-0" dense>
-				<v-list-tile
-					v-for="item in items"
-					:key="item.title"
-					avatar
-					@click=""
-					>
+				<v-list-tile v-if="!isRootDirectory" @click="goUp">
 					<v-list-tile-avatar>
-						<v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
+						<v-icon class="list-icon grey lighten-1 white--text">
+							keyboard_arrow_up
+						</v-icon>
 					</v-list-tile-avatar>
 
 					<v-list-tile-content>
-						<v-list-tile-title>{{ item.title }}</v-list-tile-title>
-						<v-list-tile-sub-title>{{ item.subtitle }}</v-list-tile-sub-title>
+						Go up
 					</v-list-tile-content>
 				</v-list-tile>
 
-				<v-list-tile
-					v-for="item in items2"
-					:key="item.title"
-					avatar
-					@click=""
-					>
+				<v-list-tile v-for="item in filelist" :key="item.name" @click="itemClick(item)">
 					<v-list-tile-avatar>
-						<v-icon :class="[item.iconClass]">{{ item.icon }}</v-icon>
+						<v-icon class="list-icon" :class="(item.type === 'f') ? 'blue white--text' : 'grey lighten-1 white--text'">
+							{{ item.type == 'f' ? 'assignment' : 'folder' }}
+						</v-icon>
 					</v-list-tile-avatar>
 
 					<v-list-tile-content>
-						<v-list-tile-title>{{ item.title }}</v-list-tile-title>
-						<v-list-tile-sub-title>{{ item.subtitle }}</v-list-tile-sub-title>
+						<v-list-tile-title>{{ item.displayName }}</v-list-tile-title>
 					</v-list-tile-content>
+
+					<v-list-tile-action v-if="item.type === 'f' && item.executing">
+						<v-progress-circular indeterminate color="blue"></v-progress-circular>
+					</v-list-tile-action>
 				</v-list-tile>
 			</v-list>
 		</v-card-text>
@@ -45,18 +55,83 @@
 <script>
 'use strict'
 
+import { mapGetters, mapActions } from 'vuex'
+
+import { DisconnectedError } from '../../utils/errors.js'
+import Path from '../../utils/path.js'
+
 export default {
+	computed: {
+		...mapGetters(['isConnected']),
+		isRootDirectory() { return this.directory === Path.macros; }
+	},
 	data () {
 		return {
-			items: [
-				{ icon: 'folder', iconClass: 'grey lighten-1 white--text', title: 'Directory A'},
-				{ icon: 'folder', iconClass: 'grey lighten-1 white--text', title: 'Directory B'},
-				{ icon: 'folder', iconClass: 'grey lighten-1 white--text', title: 'Directory C'}
-			],
-			items2: [
-				{ icon: 'assignment', iconClass: 'blue white--text', title: 'File A'},
-				{ icon: 'assignment', iconClass: 'blue white--text', title: 'File B'}
-			]
+			loading: false,
+			directory: Path.macros,
+			filelist: []
+		}
+	},
+	methods: {
+		...mapActions('machine', ['getFileList']),
+		...mapActions(['sendCode']),
+		async loadDirectory(directory = Path.macros) {
+			if (this.loading) {
+				return;
+			}
+
+			this.loading = true;
+			try {
+				const files = await this.getFileList(directory);
+				files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensivity: 'base' }));
+				files.sort((a, b) => (a.type === b.type) ? 0 : ((a.type === 'd') ? -1 : 1));
+				files.forEach(function(item) {
+					item.displayName = Path.stripMacroFilename(item.name);
+					item.executing = false;
+				});
+
+				this.directory = directory;
+				this.filelist = files;
+			} catch (e) {
+				if (!(e instanceof DisconnectedError)) {
+					console.warn(e);
+					this.$log('error', this.$t('error.filelistRequestFailed'), e.message);
+				}
+			}
+			this.loading = false;
+		},
+		async itemClick(item) {
+			const filename = Path.combine(this.directory, item.name);
+			if (item.type === 'd') {
+				await this.loadDirectory(filename);
+			} else if (!item.executing) {
+				item.executing = true;
+				try {
+					await this.sendCode(`M98 P"${filename}"`);
+				} catch (e) {
+					if (!(e instanceof DisconnectedError)) {
+						console.warn(e);
+					}
+				}
+				item.executing = false;
+			}
+		},
+		async goUp() {
+			await this.loadDirectory(Path.extractDirectory(this.directory));
+		}
+	},
+	mounted() {
+		if (this.isConnected) {
+			this.loadDirectory();
+		}
+	},
+	watch: {
+		isConnected(to) {
+			if (to) {
+				this.loadDirectory();
+			} else {
+				this.filelist = [];
+			}
 		}
 	}
 }

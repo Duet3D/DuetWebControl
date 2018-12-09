@@ -5,6 +5,8 @@ import { mapConnectorActions } from './connector'
 import makeModel from './model.js'
 import { fixMachineItems } from './modelItems.js'
 
+import { Toast } from '../../plugins'
+import beep from '../../utils/beep.js'
 import merge from '../../utils/merge.js'
 
 export default function(connector) {
@@ -31,21 +33,13 @@ export default function(connector) {
 				return maxTemp;
 			}
 		},
-		actions: {
-			...mapConnectorActions(connector),
-			beep(frequency, duration) {
-				// TODO
-			},
-			showMessage(message) {
-				// TODO
-			},
-			showMessageBox(title, message, mode, seq, timeout, controls) {
-				// TODO
-			}
-		},
+		actions: mapConnectorActions(connector),
 		mutations: {
 			unregister: () => connector.unregister(),
+			clearLog: (state) => state.events = [],
 			log: (state, payload) => state.events.push(payload),
+			beep: (state, { frequency, duration }) => beep(frequency, duration),
+			message: (state, message) => Toast.showMessage(message),
 			update(state, payload) {
 				merge(state, payload, true);
 				fixMachineItems(state, payload);

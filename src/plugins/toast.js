@@ -6,8 +6,8 @@ import 'izitoast/dist/css/iziToast.css'
 import { formatSpeed } from './display.js'
 
 import i18n from '../i18n'
-import { UploadFileTransfer, DownloadFileTransfer } from '../store/machine/connector/FileTransfer.js'
-import { formatTime } from '../utils/time.js'
+import { OperationCancelledError } from '../utils/errors.js'
+import { extractFileName } from '../utils/path.js'
 
 const defaults = {
 	layout: 2,
@@ -15,12 +15,12 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-function makeNotification(type, title, message = "") {
+function makeNotification(type, title, message = '') {
 	// Prepare and show new toast
 	const options = Object.assign({
 		class: 'new-toast',
-		title,
-		message
+		title: title.replace(/\n/g, '<br/>'),
+		message: message.replace(/\n/g, '<br/>')
 	}, defaults);
 
 	switch (type) {
@@ -52,25 +52,17 @@ function makeNotification(type, title, message = "") {
 	return toast;
 }
 
-async function makeFileTransferNotification(fileTransfer, showSuccess = true, showError = true) {
-	// Prepare and show new toast
-	let type;
-	if (fileTransfer instanceof UploadFileTransfer) {
-		type = 'upload';
-	} else if (fileTransfer instanceof DownloadFileTransfer) {
-		type = 'download';
-	} else {
-		console.warn('[makeFileTransferNotification] Invalid file transfer type');
-		return;
-	}
+function makeFileTransferNotification(type, destination, cancelSource) {
+	const filename = extractFileName(destination);
 
+	// Prepare toast
 	iziToast.info({
 		class: 'file-transfer',
-		title: i18n.t(`notification.${type}.title`, [fileTransfer.filename, 0, 0]),
+		title: i18n.t(`notification.${type}.title`, [filename, 0, 0]),
 		message: i18n.t(`notification.${type}.message`),
 		layout: 2,
 		timeout: false,
-		onClosing: () => { fileTransfer.cancel() }
+		onClosing: () => cancelSource.cancel(new OperationCancelledError())
 	});
 
 	// Get it and fix up the layout
@@ -86,46 +78,40 @@ async function makeFileTransferNotification(fileTransfer, showSuccess = true, sh
 	const progressBar = toast.querySelector('div.iziToast-progressbar > div');
 	progressBar.style.width = '0%';
 
-	window.a = toast;
-	window.b = iziToast;
-
-	// Perform file transmission
-	let err = null
-	try {
-		const startTime = new Date();
-		await fileTransfer.start(e => {
+	// Return object with enough info about it
+	const startTime = new Date();
+	return {
+		onProgress(e) {
 			const uploadSpeed = e.loaded / (((new Date()) - startTime) / 1000), progress = (e.loaded / e.total) * 100;
-			title.textContent = i18n.t(`notification.${type}.title`, [fileTransfer.filename, formatSpeed(uploadSpeed), Math.round(progress)]);
+			title.textContent = i18n.t(`notification.${type}.title`, [filename, formatSpeed(uploadSpeed), Math.round(progress)]);
 			progressBar.style.width = progress.toFixed(1) + '%';
-		});
-
-		// Show success message
-		if (showSuccess) {
-			const secondsPassed = Math.round((new Date() - startTime) / 1000);
-			makeNotification('success', i18n.t(`notification.${type}.success`, [fileTransfer.filename, formatTime(secondsPassed)]));
+		},
+		hide() {
+			iziToast.hide({}, toast);
 		}
-	} catch (e) {
-		// Show and report error message
-		if (e && !fileTransfer.cancelled && showError) {
-			makeNotification('error', i18n.t(`notification.${type}.error`, [fileTransfer.filename]), e.message);
-		}
-		err = e;
 	}
+}
 
-	iziToast.hide({}, toast);
-	if (err) {
-		throw err;
-	}
+export function showMessage(message) {
+	const options = Object.assign({
+		title: i18n.t('notification.message'),
+		message: message.replace(/\n/g, '<br/>'),
+		timeout: false
+	}, defaults);
+
+	iziToast.info(options);
 }
 
 export default {
 	makeNotification,
 	makeFileTransferNotification,
+	showMessage,
 
 	install(Vue) {
 		Vue.prototype.$toast = {
 			makeNotification,
-			makeFileTransferNotification
+			makeFileTransferNotification,
+			showMessage
 		}
 	},
 

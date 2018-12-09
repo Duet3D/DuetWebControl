@@ -68,13 +68,20 @@ export default function(connector) {
 			fractionPrinted: undefined,
 			printDuration: undefined,
 			warmUpDuration: undefined,
-			layers: [],					// may be only the first one on a Duet 2 but more on the Duet 3 (for print history, people want this)
-			// ^-- alternatively this could be stored in a file that the web interface downloads from the board or using a dedicate request
+			layers: [],
+			// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
 			timesLeft: {
 				file: undefined,
 				filament: undefined,
 				layer: undefined
 			}
+		},
+		messageBox: {
+			mode: null,
+			title: undefined,
+			message: undefined,
+			timeout: undefined,
+			controls: undefined
 		},
 		move: {
 			axes: [
@@ -120,7 +127,7 @@ export default function(connector) {
 			],
 			geometry: {
 				type: undefined
-				// TODO: Expand this for delta/corexy/corexz
+				// TODO Expand this for delta/corexy/corexz
 			},
 			idle: {
 				timeout: undefined,
@@ -141,19 +148,15 @@ export default function(connector) {
 			endstops: [],
 			probes: [
 				new Probe()
-			],
-			sensors: [
-				{
-					// TODO: Thermistors etc.
-				}
 			]
+			// sensors: []							// TODO thermistors etc
 		},
 		spindles: [],
 		state: {
 			atxPower: undefined,
 			currentTool: undefined,
 			mode: undefined,
-			status: undefined			// see RRF status character
+			status: undefined						// see RRF status character
 		},
 		storages: [],
 		tools: [

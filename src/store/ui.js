@@ -1,7 +1,5 @@
 'use strict'
 
-import merge from '../utils/merge.js'
-
 // We cannot store the Vue instance in Vuex because that makes it freak out ('too much recursion')
 // Let's keep our own copy here...
 let _selectedItem = null;
@@ -70,7 +68,6 @@ export default {
 				state.machines[machine] = makeMachineSettings();
 			}
 		},
-		update: (state, payload) => merge(state, payload),
 
 		setExtraHeaterVisibility(state, { machine, index, visible }) {
 			const machineSettings = state.machines[machine];

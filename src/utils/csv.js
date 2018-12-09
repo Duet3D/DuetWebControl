@@ -24,7 +24,7 @@ class CSV {
 			}
 
 			// Deal with escaped quotes
-			if (inQuote && char == '"' && nextChar == '"') {
+			if (inQuote && char === '"' && nextChar === '"') {
 				if (row === 0) {
 					this.headers[col] += char;
 				} else {
@@ -61,15 +61,6 @@ class CSV {
 				this.content[row - 1][col] += char;
 			}
 		}
-
-		this.content.forEach(function(row) {
-			row.forEach(function(colData, col) {
-				const numericValue = parseFloat(colData);
-				if (!isNaN(numericValue)) {
-					row[col] = numericValue;
-				}
-			});
-		});
 	}
 
 	get(fieldName, row = 0) {

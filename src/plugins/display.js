@@ -78,5 +78,7 @@ export default {
 		store = Vuex;
 	},
 
-	display
+	display,
+	formatSize,
+	formatSpeed
 }

@@ -9,7 +9,7 @@ import Page404 from './Page404.vue'
 import Control from './Control'
 import Job from './Job'
 import Files from './Files'
-import Settings from './Settings'
+import Settings from './Settings.vue'
 
 Vue.use(VueRouter)
 Vue.component('base-page', BasePage)
@@ -59,16 +59,8 @@ export default new VueRouter({
 			component: Files.Web
 		},
 		{
-			path: '/Settings/Interface',
-			component: Settings.Interface
-		},
-		{
-			path: '/Settings/Machine',
-			component: Settings.Machine
-		},
-		{
-			path: '/Settings/Update',
-			component: Settings.Update
+			path: '/Settings',
+			component: Settings
 		},
 		{
 			path: '*',

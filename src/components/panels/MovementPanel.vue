@@ -1,3 +1,9 @@
+<style>
+.center-menu-item > div {
+	justify-content: center;
+}
+</style>
+
 <style scoped>
 .dropdown-btn {
 	border-radius: 2px;
@@ -34,7 +40,7 @@
 			<code-btn color="primary" small code="G32" class="mr-0" title="$t(move.geometry === 'delta' ? 'button.compensation.titleDelta' : 'button.compensation.title')">
 				{{ $t(move.geometry === 'delta' ? 'button.compensation.captionDelta' : 'button.compensation.caption') }}
 			</code-btn>
-			<v-menu offset-y left :close-on-content-click="false" :disabled="frozen">
+			<v-menu offset-y left :disabled="frozen">
 				<template slot="activator">
 					<v-btn color="primary" small class="mx-0 dropdown-btn" :disabled="frozen">
 						<v-icon>arrow_drop_down</v-icon>
@@ -42,9 +48,33 @@
 				</template>
 
 				<v-card>
-					<v-layout justify-center column class="pt-2 px-2">
-						TODO some more stuff here, see DWC1
-					</v-layout>
+					<v-list>
+						<template v-if="move.compensation">
+							<v-list-tile class="center-menu-item">
+								{{ $t('panel.movement.compensationInUse', [move.compensation]) }}
+							</v-list-tile>
+							<v-divider></v-divider>
+						</template>
+
+						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
+							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
+						</v-list-tile>
+						<v-list-tile :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
+							<v-icon class="mr-1">grid_off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
+						</v-list-tile>
+
+						<v-divider></v-divider>
+
+						<v-list-tile @click="showMeshEditDialog = true">
+							<v-icon class="mr-1">edit</v-icon> {{ $t('panel.movement.editMeshGrid') }} 
+						</v-list-tile>
+						<v-list-tile @click="sendCode('G29')">
+							<v-icon class="mr-1">how_to_vote</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
+						</v-list-tile>
+						<v-list-tile @click="sendCode('G29 S1')">
+							<v-icon class="mr-1">save</v-icon> {{ $t('panel.movement.loadMeshGrid') }} 
+						</v-list-tile>
+					</v-list>
 				</v-card>
 			</v-menu>
 		</v-card-title>
@@ -84,7 +114,7 @@
 						<v-flex v-for="index in numAxisSteps" :key="-index" :class="getMoveCellClass(index - 1)">
 							<v-layout column>
 								<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-									<code-btn code="`G1 ${axis}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
+									<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
 										<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 									</code-btn>
 								</v-flex>
@@ -97,7 +127,7 @@
 						<v-flex v-for="index in numAxisSteps" :key="index" :class="getMoveCellClass(numAxisSteps - index)">
 							<v-layout column>
 								<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-									<code-btn code="`G1 ${axis}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
+									<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
 										{{ axis.letter + '+' + moveSteps(axis.letter)[numAxisSteps - index] }} <v-icon>arrow_right</v-icon>
 									</code-btn>
 								</v-flex>
@@ -114,22 +144,31 @@
 				{{ unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) }}
 			</strong>
 		</v-alert>
+
+		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
 	</v-card>
 </template>
 
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
+		...mapGetters(['isConnected']),
 		...mapState('machine', ['move']),
 		...mapGetters('ui', ['frozen', 'machineUI', 'moveSteps']),
 		unhomedAxes() { return this.move.axes.filter(axis => axis.visible && !axis.homed); },
 		numAxisSteps() { return this.moveSteps('x').length; }
 	},
+	data() {
+		return {
+			showMeshEditDialog: false
+		}
+	},
 	methods: {
+		...mapActions(['sendCode']),
 		getMoveCellClass(index) {
 			let classes = '';
 			if (index === 0 || index === 5) {
@@ -139,6 +178,12 @@ export default {
 				classes += 'hidden-md-and-down';
 			}
 			return classes;
+		}
+	},
+	watch: {
+		isConnected() {
+			// Hide mesh edit dialog when the connection is interrupted
+			this.showMeshEditDialog = false;
 		}
 	}
 }

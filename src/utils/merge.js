@@ -9,7 +9,7 @@ export default function merge(a, b, skipNonexistentFields = false, fullPath = ''
 		for (let i = 0; i < b.length; i++) {
 			if (i < a.length) {
 				if (a[i] !== b[i]) {
-					if (a[i] instanceof Object) {
+					if (a[i] && b[i] && a[i] instanceof Object) {
 						// There are no setters inside an array, see below
 						merge(a[i], b[i], skipNonexistentFields, fullPath + '/' + i);
 					} else {
@@ -24,8 +24,8 @@ export default function merge(a, b, skipNonexistentFields = false, fullPath = ''
 		for (let key in b) {
 			if (skipNonexistentFields && !a.hasOwnProperty(key)) {
 				console.warn(`[merge] Skipped merge of ${fullPath}/${key} because it does not exist in the source`);
-			} else if (a[key] !== undefined && typeof a[key] !== typeof b[key]) {
-				console.warn(`[merge] Skipped merge of ${fullPath}/${key} due to incompatible types`);
+			} else if (a[key] && b[key] && typeof a[key] !== typeof b[key]) {
+				console.warn(`[merge] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);
 			} else if (a[key] instanceof Array) {
 				// Caveat: Without slice() no watcher gets triggered
 				a[key] = merge(a[key].slice(), b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
