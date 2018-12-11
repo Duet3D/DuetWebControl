@@ -13,11 +13,8 @@
 			<span v-show="isConnected">{{ directory }}</span>
 		</v-card-title>
 
-		<v-card-text class="pa-0">
+		<v-card-text class="pa-0" v-show="loading || filelist.length">
 			<v-progress-linear v-show="loading" :indeterminate="true" class="my-0"></v-progress-linear>
-			<v-alert v-model="!filelist.length" type="info" class="my-0">
-				No Macros
-			</v-alert>
 
 			<v-list class="pt-0" dense>
 				<v-list-tile v-if="!isRootDirectory" @click="goUp">
@@ -49,6 +46,10 @@
 				</v-list-tile>
 			</v-list>
 		</v-card-text>
+
+		<v-alert v-model="!filelist.length" type="info">
+			No Macros
+		</v-alert>
 	</v-card>
 </template>
 

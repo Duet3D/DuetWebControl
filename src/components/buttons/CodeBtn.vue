@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :disabled="frozen" :loading="sendingCode" @click="click">
+	<v-btn v-bind="$props" :disabled="$props.disabled || frozen" :loading="sendingCode" @click="click">
 		<slot></slot>
 	</v-btn>
 </template>

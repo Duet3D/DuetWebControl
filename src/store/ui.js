@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 // We cannot store the Vue instance in Vuex because that makes it freak out ('too much recursion')
 // Let's keep our own copy here...
 let _selectedItem = null;
@@ -8,6 +10,8 @@ function makeMachineSettings() {
 	return {
 		codes: ['M0', 'M1', 'M84', 'M561'],
 		displayedExtraTemperatures: [],
+		displayedExtruders: [0, 1],
+		displayedFans: [-1],
 		moveFeedrate: 6000,							// in mm/min
 		moveSteps: {								// in mm
 			x: [100, 50, 10, 1, 0.1],
@@ -52,6 +56,7 @@ export default {
 			// TODO: implement this when working on the UI designer
 		},
 
+		babystepAmount: 0.05,
 		useBinaryPrefix: true,
 
 		machines: {
@@ -64,9 +69,7 @@ export default {
 		setSelectedItem: (state, value) => _selectedItem = value,
 
 		addMachine(state, machine) {
-			if (state.machines[machine] === undefined) {
-				state.machines[machine] = makeMachineSettings();
-			}
+			Vue.set(state.machines, machine, makeMachineSettings());
 		},
 
 		setExtraHeaterVisibility(state, { machine, index, visible }) {
@@ -77,6 +80,20 @@ export default {
 				}
 			} else {
 				machineSettings.displayedExtraTemperatures = machineSettings.displayedExtraTemperatures.filter(heater => heater !== index);
+			}
+		},
+		toggleExtruderVisibility(state, { machine, extruder }) {
+			if (state.machines[machine].displayedExtruders.indexOf(extruder) === -1) {
+				state.machines[machine].displayedExtruders.push(extruder);
+			} else {
+				state.machines[machine].displayedExtruders = state.machines[machine].displayedExtruders.filter(item => item !== extruder);
+			}
+		},
+		toggleFanVisibility(state, { machine, fan }) {
+			if (state.machines[machine].displayedFans.indexOf(fan) === -1) {
+				state.machines[machine].displayedFans.push(fan);
+			} else {
+				state.machines[machine].displayedFans = state.machines[machine].displayedFans.filter(item => item !== fan);
 			}
 		}
 	}

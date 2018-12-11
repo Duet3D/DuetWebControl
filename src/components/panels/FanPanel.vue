@@ -15,7 +15,7 @@
 		</v-card-title>
 
 		<v-card-text class="px-3 pt-0 pb-2">
-			<v-layout row align-start>
+			<v-layout row wrap align-start>
 				<v-flex>
 					<p class="mb-1">Fan selection:</p>
 					<v-btn-toggle v-model="fan" mandatory>
@@ -30,20 +30,8 @@
 					</v-btn-toggle>
 				</v-flex>
 
-				<v-flex shrink class="pl-3">
-					<v-btn large icon :disabled="!canControlFans" @click="change(-5)">
-						<v-icon>remove</v-icon>
-					</v-btn>
-				</v-flex>
-
-				<v-flex class="px-2">
-					<v-slider :value="fanValue" @change="fanValue = $event" :min="0" :max="100" validate-on-blur :disabled="frozen" thumb-label="always"></v-slider>
-				</v-flex>
-
-				<v-flex shrink>
-					<v-btn large icon :disabled="!canControlFans" @click="change(5)">
-						<v-icon>add</v-icon>
-					</v-btn>
+				<v-flex>
+					<slider v-model="fanValue" :disabled="!canControlFans"></slider>
 				</v-flex>
 			</v-layout>
 		</v-card-text>
@@ -55,8 +43,6 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-const debounceTime = 500
-
 export default {
 	computed: {
 		...mapGetters('ui', ['frozen']),
@@ -66,10 +52,6 @@ export default {
 		fanValue: {
 			get() {
 				if (this.canControlFans) {
-					if (this.debounce.value !== undefined) {
-						return this.debounce.value;
-					}
-
 					if (this.fan === -1) {
 						let toolFan = 0;
 						if (this.currentTool && this.currentTool.fans.length) {
@@ -95,44 +77,11 @@ export default {
 	},
 	data() {
 		return {
-			debounce: {
-				value: undefined,
-				timer: undefined,
-				time: undefined
-			},
 			fan: -1
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
-		change(diff) {
-			if (this.debounce.timer) {
-				this.debounce.value += diff;
-				clearTimeout(this.debounce.timer);
-			} else {
-				this.debounce.value = this.fanValue + diff;
-			}
-
-			this.debounce.value = Math.min(100, Math.max(0, this.debounce.value));
-			this.debounce.timer = setTimeout(this.doDebounce, debounceTime);
-		},
-		doDebounce() {
-			if (!this.frozen) {
-				this.fanValue = this.debounce.value;
-			}
-			this.debounce.timer = undefined;
-		}
-	},
-	watch: {
-		fans: {
-			deep: true,
-			handler() {
-				if (!this.debounce.timer) {
-					// If this changes we've got an update. Debounce should be complete now
-					this.debounce.value = undefined;
-				}
-			}
-		}
+		...mapActions(['sendCode'])
 	}
 }
 </script>

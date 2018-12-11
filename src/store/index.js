@@ -10,10 +10,13 @@ import BaseConnector from './machine/connector/BaseConnector.js'
 import ui from './ui.js'
 
 import i18n from '../i18n'
-import Plugins, { Logger, Toast } from '../plugins'
+import Plugins from '../plugins'
+import { displayTime } from '../plugins/display.js'
+import { logGlobal, logCode, log } from '../plugins/logging.js'
+import { makeFileTransferNotification } from '../plugins/toast.js'
+
 import { DisconnectedError, OperationCancelledError, CodeBufferError } from '../utils/errors.js'
 import { extractFileName } from '../utils/path.js'
-import { formatTime } from '../utils/time.js'
 
 Vue.use(Vuex)
 
@@ -57,9 +60,9 @@ const store = new Vuex.Store({
 				connectorInstance.register(moduleInstance);
 
 				commit('setSelectedMachine', hostname);
-				Logger.logGlobal('success', i18n.t('notification.connected', [hostname]));
+				logGlobal('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
-				Logger.logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
+				logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
 			}
 			commit('setConnecting', false);
 		},
@@ -80,10 +83,10 @@ const store = new Vuex.Store({
 				commit('setDisconnecting', true);
 				try {
 					await dispatch(`machines/${hostname}/disconnect`);
-					Logger.logGlobal('success', i18n.t('notification.disconnected', [hostname]));
+					logGlobal('success', i18n.t('notification.disconnected', [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
-					Logger.logGlobal('warning', i18n.t('error.disconnectError', [hostname]), e.message);
+					logGlobal('warning', i18n.t('error.disconnectError', [hostname]), e.message);
 					console.warn(e);
 				}
 				commit('setDisconnecting', false);
@@ -103,11 +106,11 @@ const store = new Vuex.Store({
 			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
 			try {
 				const response = await dispatch(`machines/${hostname}/sendCode`, code);
-				Logger.logCode(code, response, hostname);
+				logCode(code, response, hostname);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-					Logger.log(type, e, undefined, hostname);
+					log(type, e, undefined, hostname);
 				}
 				throw e;
 			}
@@ -116,7 +119,7 @@ const store = new Vuex.Store({
 		// Upload a file and show progress
 		async upload({ state, dispatch }, { file, destination, hostname = state.selectedMachine, showSuccess = true, showError = true }) {
 			const cancelSource = BaseConnector.getCancelSource();
-			const notification = Toast.makeFileTransferNotification('upload', destination, cancelSource);
+			const notification = makeFileTransferNotification('upload', destination, cancelSource);
 			try {
 				const startTime = new Date();
 				const response = await dispatch(`machines/${hostname}/upload`, { file, destination, cancelSource, onProgress: notification.onProgress });
@@ -124,7 +127,7 @@ const store = new Vuex.Store({
 				// Show success message
 				if (showSuccess) {
 					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					Logger.log('success', i18n.t('notification.upload.success', [extractFileName(destination), formatTime(secondsPassed)]), undefined, hostname);
+					log('success', i18n.t('notification.upload.success', [extractFileName(destination), displayTime(secondsPassed)]), undefined, hostname);
 				}
 
 				// Return the response
@@ -135,7 +138,7 @@ const store = new Vuex.Store({
 				notification.hide();
 				if (showError && !(e instanceof OperationCancelledError)) {
 					console.warn(e);
-					Logger.log('error', i18n.t('notification.upload.error', [extractFileName(destination)]), e, hostname);
+					log('error', i18n.t('notification.upload.error', [extractFileName(destination)]), e, hostname);
 				}
 				throw e;
 			}
@@ -150,7 +153,7 @@ const store = new Vuex.Store({
 			const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
 
 			const cancelSource = BaseConnector.getCancelSource();
-			const notification = Toast.makeFileTransferNotification('download', filename, cancelSource);
+			const notification = makeFileTransferNotification('download', filename, cancelSource);
 			try {
 				const startTime = new Date();
 				const response = await dispatch(`machines/${hostname}/download`, { filename, cancelSource, onProgress: notification.onProgress });
@@ -158,7 +161,7 @@ const store = new Vuex.Store({
 				// Show success message
 				if (showSuccess) {
 					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					Logger.log('success', i18n.t('notification.download.success', [extractFileName(filename), formatTime(secondsPassed)]), undefined, hostname);
+					log('success', i18n.t('notification.download.success', [extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
 				}
 
 				// Return the downloaded data
@@ -169,7 +172,7 @@ const store = new Vuex.Store({
 				notification.hide();
 				if (showError && !(e instanceof OperationCancelledError)) {
 					console.warn(e);
-					Logger.log('error', i18n.t('notification.download.error', [extractFileName(filename)]), e, hostname);
+					log('error', i18n.t('notification.download.error', [extractFileName(filename)]), e, hostname);
 				}
 				throw e;
 			}

@@ -3,7 +3,7 @@
 import iziToast from 'izitoast'
 import 'izitoast/dist/css/iziToast.css'
 
-import { formatSpeed } from './display.js'
+import { displaySpeed } from './display.js'
 
 import i18n from '../i18n'
 import { OperationCancelledError } from '../utils/errors.js'
@@ -15,7 +15,7 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-function makeNotification(type, title, message = '') {
+export function makeNotification(type, title, message = '') {
 	// Prepare and show new toast
 	const options = Object.assign({
 		class: 'new-toast',
@@ -52,7 +52,7 @@ function makeNotification(type, title, message = '') {
 	return toast;
 }
 
-function makeFileTransferNotification(type, destination, cancelSource) {
+export function makeFileTransferNotification(type, destination, cancelSource) {
 	const filename = extractFileName(destination);
 
 	// Prepare toast
@@ -83,7 +83,7 @@ function makeFileTransferNotification(type, destination, cancelSource) {
 	return {
 		onProgress(e) {
 			const uploadSpeed = e.loaded / (((new Date()) - startTime) / 1000), progress = (e.loaded / e.total) * 100;
-			title.textContent = i18n.t(`notification.${type}.title`, [filename, formatSpeed(uploadSpeed), Math.round(progress)]);
+			title.textContent = i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
 			progressBar.style.width = progress.toFixed(1) + '%';
 		},
 		hide() {
@@ -103,10 +103,6 @@ export function showMessage(message) {
 }
 
 export default {
-	makeNotification,
-	makeFileTransferNotification,
-	showMessage,
-
 	install(Vue) {
 		Vue.prototype.$toast = {
 			makeNotification,
@@ -116,6 +112,6 @@ export default {
 	},
 
 	installStore(store) {
-		// TODO: register for notification changes here
+		// TODO: register for UI notification changes here
 	}
 }

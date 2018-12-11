@@ -116,9 +116,9 @@ class Heater {
 class Layer {
 	constructor(initData) { merge(this, initData, true); }
 	duration = undefined
-	height = undefined				// layer height (not Z coordinate)
-	filament = []					// optional consumed filament per extruder
-	fractionPrinted = undefined		// optional
+	height = undefined
+	filament = []
+	fractionPrinted = undefined
 }
 
 class NetworkInterface {

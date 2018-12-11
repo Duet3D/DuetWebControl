@@ -1,8 +1,4 @@
 <style scoped>
-a:not(:hover) {
-	text-decoration: none;
-}
-
 span {
 	cursor: default;
 }

@@ -1,6 +1,6 @@
 'use strict'
 
-function resize(el, binding, vnode) {
+function resize(el, binding, vnode, inserted) {
 	// Resize width (non-default)
 	let resizeWidth = false, totalWidth = 0;
 	if (binding.modifiers.width) {
@@ -53,6 +53,26 @@ function resize(el, binding, vnode) {
 			gridItem.$emit("requestHeight", totalHeight);
 		}
 	}
+
+	// Make sure to update the sizes when the owning grid item is resized
+	if (inserted) {
+		let gridItem = vnode.componentInstance;
+		if (!gridItem) {
+			console.warn('[v-auto-size] No component instance on insert');
+			return;
+		}
+
+		while (gridItem && gridItem.$options._componentTag !== 'vue-grid-item') {
+			gridItem = gridItem.$parent;
+		}
+
+		if (!gridItem) {
+			console.warn('[v-auto-size] Failed to retrieve grid item parent on insert');
+			return;
+		}
+
+		gridItem.$on('resized', () => setTimeout(() => resize(el, binding, vnode, false), 0));
+	}
 }
 
 let resizableElements = []
@@ -65,8 +85,8 @@ export default {
 		Vue.directive('auto-size', {
 			bind: (el, binding, vnode) => resizableElements.push({ el, binding, vnode }),
 			unbind: (el, binding, vnode) => resizableElements = resizableElements.filter(item => item.vnode !== vnode),
-			inserted: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode), 100),
-			componentUpdated: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode), 0)
+			inserted: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode, true), 100),
+			componentUpdated: (el, binding, vnode) => setTimeout(() => resize(el, binding, vnode, false), 0)
 		});
 	}
 }

@@ -60,16 +60,19 @@ export default function(connector) {
 			]
 		},
 		job: {
-			filename: undefined,
-			layer: undefined,
-			layerTime: undefined,
 			extrudedRaw: [],
+			duration: undefined,
+			filamentNeeded: [],
+			fileName: undefined,
 			filePosition: undefined,
-			fractionPrinted: undefined,
-			printDuration: undefined,
-			warmUpDuration: undefined,
+			fileSize: undefined,
+			generatedBy: undefined,
+			height: undefined,
+			layer: undefined,
 			layers: [],
 			// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
+			layerTime: undefined,
+			warmUpDuration: undefined,
 			timesLeft: {
 				file: undefined,
 				filament: undefined,

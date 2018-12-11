@@ -44,9 +44,9 @@ class BaseConnector {
 	}
 
 	// Call this to update the machine store
-	update(data) {
+	async update(data) {
 		if (this.registered) {
-			this.store.commit(`machines/${this.hostname}/update`, data);
+			await this.store.dispatch(`machines/${this.hostname}/update`, data);
 		}
 	}
 

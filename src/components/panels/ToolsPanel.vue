@@ -1,8 +1,4 @@
 <style scoped>
-a:not(:hover) {
-	text-decoration: none;
-}
-
 table {
 	width: 100%;
 	border-spacing: 0;
@@ -91,7 +87,7 @@ table.extra tr > td:first-child {
 
 								<th>
 									<a v-if="tool.heaters.length" href="#" :class="getHeaterColor(tool.heaters[0])" @click.prevent="toolHeaterClick(tool, tool.heaters[0])">
-										{{ getHeaterName(heat.heaters[tool.heaters[0]].name, tool.heaters[0]) }}
+										{{ formatHeaterName(heat.heaters[tool.heaters[0]], tool.heaters[0]) }}
 									</a>
 									<br/>
 									<span v-if="tool.heaters.length && heat.heaters[tool.heaters[0]].state !== undefined" class="font-weight-regular caption">
@@ -100,7 +96,7 @@ table.extra tr > td:first-child {
 								</th>
 								<td class="text-center">
 									<span v-if="tool.heaters.length">
-										{{ $display(heat.heaters[tool.heaters[0]].current, 1, getHeaterUnit(heat.heaters[tool.heaters[0]].name, heat.heaters[tool.heaters[0]].sensor)) }}
+										{{ formatHeaterValue(heat.heaters[tool.heaters[0]]) }}
 									</span>
 									<span v-else-if="isNumber(tool.spindle)">
 										{{ $display(spindles[tool.spindle].current, 0, $t('generic.rpm')) }}
@@ -118,7 +114,7 @@ table.extra tr > td:first-child {
 							<tr v-for="(heater, heaterIndex) in tool.heaters.slice(1)" :class="{ 'grey lighten-4' : tool.number === state.currentTool }" :key="`tool-${index}-${heater}`">
 								<th>
 									<a href="#" :class="getHeaterColor(heater)" @click.prevent="toolHeaterClick(tool, heater)">
-										{{ getHeaterName(heat.heaters[heater].name, heater) }}
+										{{ formatHeaterName(heat.heaters[heater], heater) }}
 									</a>
 									<br/>
 									<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
@@ -126,7 +122,7 @@ table.extra tr > td:first-child {
 									</span>
 								</th>
 								<td>
-									{{ $display(heat.heaters[heater].current, 1, getHeaterUnit(heat.heaters[heater].name, heat.heaters[heater].sensor)) }}
+									{{ formatHeaterValue(heat.heaters[heater]) }}
 								</td>
 								<td class="pl-2 pr-1">
 									<tool-input :tool="tool" :heaterIndex="heaterIndex + 1" active></tool-input>
@@ -161,7 +157,7 @@ table.extra tr > td:first-child {
 
 									<th>
 										<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, bed.heaters[0])">
-											{{ getHeaterName(heat.heaters[bed.heaters[0]].name, bed.heaters[0]) }}
+											{{ formatHeaterName(heat.heaters[bed.heaters[0]], bed.heaters[0]) }}
 										</a>
 										<br/>
 										<span v-if="bed.heaters.length > 0 && heat.heaters[bed.heaters[0]].state !== undefined" class="font-weight-regular caption">
@@ -170,7 +166,7 @@ table.extra tr > td:first-child {
 									</th>
 									<td class="text-center">
 										<span v-if="bed.heaters.length">
-											{{ $display(heat.heaters[bed.heaters[0]].current, 1, getHeaterUnit(heat.heaters[bed.heaters[0]].name, heat.heaters[bed.heaters[0]].sensor)) }}
+											{{ formatHeaterValue(heat.heaters[bed.heaters[0]]) }}
 										</span>
 									</td>
 									<td class="pl-2 pr-1">
@@ -183,7 +179,7 @@ table.extra tr > td:first-child {
 								<tr v-for="(heater, heaterIndex) in bed.heaters.slice(1)" :key="`bed-${index}-${heater}`">
 									<th>
 										<a href="#" :class="getHeaterColor(heater)" @click.prevent="toolHeaterClick(tool, heater)">
-											{{ getHeaterName(heat.heaters[heater].name, heater) }}
+											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
 										<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
@@ -191,7 +187,7 @@ table.extra tr > td:first-child {
 										</span>
 									</th>
 									<td>
-										{{ $display(heat.heaters[heater].current, 1, getHeaterUnit(heat.heaters[heater].name, heat.heaters[heater].sensor)) }}
+										{{ formatHeaterValue(heat.heaters[heater]) }}
 									</td>
 									<td class="pl-2 pr-1">
 										<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" active></tool-input>
@@ -221,7 +217,7 @@ table.extra tr > td:first-child {
 
 									<th>
 										<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, chamber.heaters[0])">
-											{{ getHeaterName(heat.heaters[chamber.heaters[0]].name, chamber.heaters[0]) }}
+											{{ formatHeaterName(heat.heaters[chamber.heaters[0]], chamber.heaters[0]) }}
 										</a>
 										<br/>
 										<span v-if="chamber.heaters.length > 0 && heat.heaters[chamber.heaters[0]].state !== undefined" class="font-weight-regular caption">
@@ -230,7 +226,7 @@ table.extra tr > td:first-child {
 									</th>
 									<td class="text-center">
 										<span v-if="chamber.heaters.length > 0">
-											{{ $display(heat.heaters[chamber.heaters[0]].current, 1, getHeaterUnit(heat.heaters[chamber.heaters[0]].name, heat.heaters[chamber.heaters[0]].sensor)) }}
+											{{ formatHeaterValue(heat.heaters[chamber.heaters[0]]) }}
 										</span>
 									</td>
 									<td class="pl-2 pr-1">
@@ -243,7 +239,7 @@ table.extra tr > td:first-child {
 								<tr v-for="(heater, heaterIndex) in chamber.heaters.slice(1)" :key="`chamber-${index}-${heater}`">
 									<th>
 										<a href="#" :class="getHeaterColor(heater)" @click.prevent="toolHeaterClick(tool, heater)">
-											{{ getHeaterName(heat.heaters[heater].name, heater) }}
+											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
 										<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
@@ -251,7 +247,7 @@ table.extra tr > td:first-child {
 										</span>
 									</th>
 									<td>
-										{{ $display(heat.heaters[heater].current, 1, getHeaterUnit(heat.heaters[heater].name, heat.heaters[heater].sensor)) }}
+										{{ formatHeaterValue(heat.heaters[heater]) }}
 									</td>
 									<td class="pl-2 pr-1">
 										<tool-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" active></tool-input>
@@ -293,10 +289,10 @@ table.extra tr > td:first-child {
 								<v-switch class="ml-3" :value="machineUI.displayedExtraTemperatures.indexOf(index) !== -1" @change="setExtraHeaterVisibility({ machine: selectedMachine, index, visible: $event })" :label="$t('panel.tools.extra.showInChart')" :disabled="frozen"></v-switch>
 							</td>
 							<th :class="getExtraHeaterColor(index)">
-								{{ getHeaterName(extraHeater.name, index) }}
+								{{ formatHeaterName(extraHeater, index + 100) }}
 							</th>
 							<td>
-								{{ $display(extraHeater.current, 1, getHeaterUnit(extraHeater.name, extraHeater.sensor)) }}
+								{{ formatHeaterValue(extraHeater) }}
 							</td>
 						</tr>
 					</tbody>
@@ -377,25 +373,25 @@ export default {
 
 		getHeaterColor: heater => getHeaterColor(heater),
 		getExtraHeaterColor: heater => getExtraHeaterColor(heater),
-
-		getHeaterName(name, heater) {
-			if (name) {
-				const matches = /(.*)\[(.*)\]$/.exec(name);
+		formatHeaterName(heater, index) {
+			if (heater.name) {
+				const matches = /(.*)\[(.*)\]$/.exec(heater.name);
 				if (matches) {
 					return matches[1];
 				}
-				return name;
+				return heater.name;
 			}
-			return this.$t('panel.tools.heater', [heater]);
+			return this.$t('panel.tools.heater', [index]);
 		},
-		getHeaterUnit(name, sensor) {
+		formatHeaterValue(heater) {
+			let unit = (heater.sensor >= 450 && heater.sensor < 500) ? '%RH' : 'C';
 			if (name) {
-				const matches = /(.*)\[(.*)\]$/.exec(name);
+				const matches = /(.*)\[(.*)\]$/.exec(heater.name);
 				if (matches) {
 					return matches[2];
 				}
 			}
-			return (sensor >= 450 && sensor < 500) ? '%RH' : 'C';
+			return this.$display(heater.current, 1, unit);
 		},
 
 		canLoadFilament(tool) {

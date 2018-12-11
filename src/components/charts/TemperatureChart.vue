@@ -110,9 +110,6 @@ export default {
 						tension: 0				// disable bezier curves
 					}
 				},
-				hover: {
-					animationDuration: 0		// duration of animations when hovering an item
-				},
 				legend: {
 					labels: {
 						filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine

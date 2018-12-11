@@ -111,9 +111,10 @@ export default {
 		ok: 'OK',
 		cancel: 'Cancel',
 		close: 'Close',
+		reset: 'Reset',
+		novalue: 'n/a',
 		error: 'Error',
 		info: 'Info',
-		novalue: 'n/a',
 		warning: 'Warning',
 		success: 'Success',
 		heaterStates: [

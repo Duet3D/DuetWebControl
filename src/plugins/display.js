@@ -16,7 +16,11 @@ export function display(value, precision, unit) {
 	return i18n.t('generic.novalue');
 }
 
-export function formatSize(bytes) {
+export function displayZ(value, showUnit = true) {
+	return display(value, (store.state.machine.state.mode === 'CNC') ? 3 : 2, showUnit ? 'mm' : undefined);
+}
+
+export function displaySize(bytes) {
 	if (store.state.ui.useBinaryPrefix) {
 		if (bytes > 1073741824) {	// GiB
 			return (bytes / 1073741824).toFixed(1) + " GiB";
@@ -41,7 +45,7 @@ export function formatSize(bytes) {
 	return bytes + " B";
 }
 
-export function formatSpeed(bytesPerSecond) {
+export function displaySpeed(bytesPerSecond) {
 	if (store.state.ui.useBinaryPrefix) {
 		if (bytesPerSecond > 1073741824) {		// GiB
 			return (bytesPerSecond / 1073741824).toFixed(2) + " GiB/s";
@@ -66,19 +70,48 @@ export function formatSpeed(bytesPerSecond) {
 	return bytesPerSecond.toFixed(1) + " B/s";
 }
 
+export function displayTime(value, showTrailingZeroes = false) {
+	if (isNaN(value)) {
+		return i18n.t('generic.novalue');
+	}
+
+	value = Math.round(value);
+	if (value < 0) {
+		value = 0;
+	}
+
+	let timeLeft = [], temp;
+	if (value >= 3600) {
+		temp = Math.floor(value / 3600);
+		if (temp > 0) {
+			timeLeft.push(temp + "h");
+			value = value % 3600;
+		}
+	}
+	if (value >= 60) {
+		temp = Math.floor(value / 60);
+		if (temp > 0) {
+			timeLeft.push(((value > 9 || !showTrailingZeroes) ? temp : "0" + temp) + "m");
+			value = value % 60;
+		}
+	}
+	value = value.toFixed(0);
+	timeLeft.push(((value > 9 || !showTrailingZeroes) ? value : "0" + value) + "s");
+
+	return timeLeft.reduce(function(a, b) { return `${a} ${b}`; });
+}
+
 export default {
 	install(Vue) {
 		Vue.prototype.isNumber = isNumber;
 		Vue.prototype.$display = display;
-		Vue.prototype.$formatSize = formatSize;
-		Vue.prototype.$formatSpeed = formatSpeed;
+		Vue.prototype.$displayZ = displayZ;
+		Vue.prototype.$displaySize = displaySize;
+		Vue.prototype.$displaySpeed = displaySpeed;
+		Vue.prototype.$displayTime = displayTime;
 	},
 
 	installStore(Vuex) {
 		store = Vuex;
-	},
-
-	display,
-	formatSize,
-	formatSpeed
+	}
 }

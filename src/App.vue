@@ -18,6 +18,10 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
 }
+
+a:not(:hover) {
+	text-decoration: none;
+}
 </style>
 
 <template>
@@ -169,6 +173,10 @@ input::-webkit-inner-spin-button {
 
 		<v-footer app>
 			<span class="ml-3">&copy; 2018 Christian Hammacher for Duet3D</span>
+
+			<v-spacer></v-spacer>
+			
+			<!--<v-switch v-model="designMode" label="Design Mode (DEMO)"></v-switch>-->
 		</v-footer>
 
 		<messagebox-dialog></messagebox-dialog>

@@ -1,18 +1,18 @@
 'use strict'
 
-import Toast from './toast.js'
+import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
 import router from '../views'
 
 let store
 
-function log(type, title, message, hostname = store.state.selectedMachine) {
-	Toast.makeNotification(type, title, message);
+export function log(type, title, message, hostname = store.state.selectedMachine) {
+	makeNotification(type, title, message);
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
 }
 
-function logCode(code = '', response, hostname = store.state.selectedMachine) {
+export function logCode(code = '', response, hostname = store.state.selectedMachine) {
 	if (!code && !response) {
 		// Make sure there is something to log...
 		return;
@@ -42,26 +42,22 @@ function logCode(code = '', response, hostname = store.state.selectedMachine) {
 			message = (responseLines.length > 1) ? responseLines.slice(1).reduce((a, b) => `${a}<br/>${b}`) : '';
 		}
 
-		const notification = Toast.makeNotification(type, title, message);
+		const notification = makeNotification(type, title, message);
 		notification.onclick = () => router.push('/Console');
 	}
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
 }
 
-function logGlobal(type, title, message) {
+export function logGlobal(type, title, message) {
 	if (store.state.selectedMachine !== 'default') {
 		log(type, title, message);
 	} else {
-		Toast.makeNotification(type, title, message);
+		makeNotification(type, title, message);
 	}
 	store.commit('machines/default/log', { date: new Date(), type, title, message });
 }
 
 export default {
-	log,
-	logCode,
-	logGlobal,
-
 	install(Vue) {
 		Vue.prototype.$log = log;
 		Vue.prototype.$logCode = logCode;

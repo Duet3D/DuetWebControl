@@ -6,7 +6,7 @@ import axios from 'axios'
 import BaseConnector from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 
-import { Logger } from '../../../plugins'
+import { logGlobal, logCode } from '../../../plugins/logging.js'
 import i18n from '../../../i18n'
 
 import {
@@ -53,6 +53,7 @@ export default class PollConnector extends BaseConnector {
 	password = null
 	boardType = null
 	layers = []
+	printStats = undefined
 	messageBoxShown = false;
 
 	constructor(hostname, password, responseData) {
@@ -202,7 +203,7 @@ export default class PollConnector extends BaseConnector {
 					position: (drive < response.data.coords.xyz.length) ? xyz : response.data.coords.extr[drive - response.data.coords.xyz.length]
 				})),
 				extruders: response.data.params.extrFactors.map(factor => ({ factor })),
-				speedFactor: response.data.params.speedFactor
+				speedFactor: response.data.params.speedFactor / 100
 			},
 			scanner: (response.data.scanner) ? {
 				progress: response.data.scanner.progress,
@@ -320,12 +321,11 @@ export default class PollConnector extends BaseConnector {
 			// Print Status Response
 			merge(newData, {
 				job: {
-					layer: response.data.currentLayer,
-					layerTime: response.data.currentLayerTime,
+					duration: response.data.printDuration,
 					extrudedRaw: response.data.extrRaw,
 					filePosition: response.data.filePosition,
-					fractionPrinted: response.data.fractionPrinted,
-					printDuration: response.data.printDuration,
+					layer: response.data.currentLayer,
+					layerTime: response.data.currentLayerTime,
 					warmUpDuration: response.data.warmUpDuration,
 					timesLeft: {
 						file: response.data.timesLeft.file,
@@ -335,28 +335,65 @@ export default class PollConnector extends BaseConnector {
 				}
 			});
 
-			if (response.layer > this.layers.length) {
+			// See if we need to record more layer stats
+			if (response.data.currentLayer > this.layers.length) {
+				let addLayers = false;
 				if (!this.layers.length) {
-					if (response.layer > 1) {
-						// Deal with first layer
+					// Is the first layer complete?
+					if (response.data.currentLayer > 1) {
 						this.layers.push({
 							duration: response.data.firstLayerDuration,
-							height: response.data.firstLayerHeight
-							// filament[]
-							// fractionPrinted
+							height: response.data.firstLayerHeight,
+							filament: (response.layer === 2) ? response.data.extrRaw : undefined,
+							fractionPrinted: (response.layer === 2) ? response.data.fractionPrinted : undefined
 						});
 
-						// Interpolate layer data (e.g. because we just connected)
-						for (let layerNum = 2; layerNum < response.layer; layerNum++) {
-							// TODO
+						// Keep track of the past layer
+						if (response.data.currentLayer === 2) {
+							this.printStats.duration = response.data.warmUpDuration + response.data.firstLayerDuration;
+							this.printStats.extrRaw = response.data.extrRaw;
+							this.printStats.fractionPrinted = response.data.fractionPrinted;
+							this.printStats.measuredLayerHeight = response.data.xyz[2] - response.data.firstLayerHeight;
+							this.printStats.zPosition = response.data.xyz[2];
+						} else {
+							addLayers = true;
 						}
 					}
 				} else {
-					// Layer complete, add new layer
-					// TODO
+					// Another layer is complete, add it
+					addLayers = true;
+				}
+
+				if (addLayers) {
+					const layerJustChanged = (response.data.currentLayer - this.layers.length) === 1;
+					if (this.printStats.duration) {
+						// Got info about the past layer, add what we know
+						this.layers.push({
+							duration: response.data.printDuration - this.printStats.duration,
+							height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
+							filament: response.data.extrRaw.map((amount, index) => amount - this.printStats.extrRaw[index]),
+							fractionPrinted: response.data.fractionPrinted - this.printStats.fractionPrinted
+						});
+					} else {
+						// Interpolate data...
+						const avgDuration = (response.data.printDuration - response.data.warmUpduration - response.data.firstLayerDuration - response.data.currentLayerTime) / (response.data.currentLayer - 2);
+						for (let layer = this.layers.length; layer < response.data.currentLayer; layer++) {
+							this.layers.push({ duration: avgDuration });
+						}
+						this.printStats.zPosition = response.data.xyz[2];
+					}
+					newData.layers = this.layers;
+
+					// Keep track of the past layer if the layer change just happened
+					if (layerJustChanged) {
+						this.printStats.duration = response.data.printDuration;
+						this.printStats.extrRaw = response.data.extrRaw;
+						this.printStats.fractionPrinted = response.dat.fractionPrinted;
+						this.printStats.measuredLayerHeight = response.data.xyz[2] - this.printStats.zPosition;
+						this.printStats.zPosition = response.data.xyz[2];
+					}
 				}
 			}
-			newData.layers = this.layers;
 		}
 
 		// Output Utilities
@@ -433,11 +470,26 @@ export default class PollConnector extends BaseConnector {
 
 		// See if a print has started
 		if (response.data.status === 'P' && this.lastStatusResponse.status !== 'P') {
+			const currentFileInfo = await this.getFileInfo();
+			merge(newData, {
+				job: {
+					filamentNeeded: currentFileInfo.filament,
+					fileName: currentFileInfo.fileName,
+					fileSize: currentFileInfo.size,
+					generatedBy: currentFileInfo.generatedBy,
+					height: currentFileInfo.height,
+					layerHeight: currentFileInfo.layerHeight
+				}
+			});
+
 			this.layers = [];
+			this.printStats = {
+				layerHeight: currentFileInfo.layerHeight
+			};
 		}
 
 		// Update the data model
-		this.update(newData);
+		await this.update(newData);
 
 		// Check if the G-code response needs to be polled
 		if (response.data.seq !== this.lastStatusResponse.seq) {
@@ -468,7 +520,7 @@ export default class PollConnector extends BaseConnector {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
 						await that.store.dispatch('disconnect', { hostname: that.hostname, doDisconnect: false });
-						Logger.logGlobal('error', i18n.t('error.statusUpdateFailed', [that.hostname]), e.message);
+						logGlobal('error', i18n.t('error.statusUpdateFailed', [that.hostname]), e.message);
 					}
 				}
 			}, this.settings.updateInterval);
@@ -482,7 +534,7 @@ export default class PollConnector extends BaseConnector {
 
 		if (!this.pendingCodes.length) {
 			// Just log this response
-			Logger.logCode(undefined, response, this.hostname);
+			logCode(undefined, response, this.hostname);
 		} else {
 			// Resolve pending code promises
 			this.pendingCodes.forEach(function(code) {
@@ -497,7 +549,6 @@ export default class PollConnector extends BaseConnector {
 	// Call this only from updateLoop()
 	async getConfigResponse(updateData) {
 		const response = await this.axios.get('rr_config');
-
 		const configData = {
 			electronics: {
 				name: response.data.firmwareElectronics,
@@ -527,13 +578,13 @@ export default class PollConnector extends BaseConnector {
 				interfaces: [
 					{
 						type: (response.data.dwsVersion === undefined) ? 0 : 1
-						// Unfortunately we cannot populate anything else yet
+						// Unfortunately we cannot populate anything else here
 					}
 				]
 			}
 		};
 
-		this.update(configData);
+		await this.update(configData);
 	}
 
 	async sendCode(code) {
@@ -680,7 +731,7 @@ export default class PollConnector extends BaseConnector {
 
 	getFileInfo(filename) {
 		const response = this.axios.get('rr_fileinfo', {
-			params: { name: filename }
+			params: filename ? { name: filename } : {}
 		});
 
 		if (response.data.err) {
