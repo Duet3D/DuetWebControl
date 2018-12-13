@@ -1,9 +1,9 @@
 'use strict'
 
-export function combine(a, b) {
-	let result = "";
+export function combine() {
+	let result = '';
 	Array.from(arguments).forEach(function(arg) {
-		if (result !== "") {
+		if (result !== '') {
 			result += '/';
 		}
 

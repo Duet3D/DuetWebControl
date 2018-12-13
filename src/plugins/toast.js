@@ -15,13 +15,17 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-export function makeNotification(type, title, message = '') {
+export function makeNotification(type, title, message = '', timeout) {
 	// Prepare and show new toast
 	const options = Object.assign({
 		class: 'new-toast',
 		title: title.replace(/\n/g, '<br/>'),
 		message: message.replace(/\n/g, '<br/>')
 	}, defaults);
+
+	if (timeout !== undefined) {
+		options.timeout = timeout;
+	}
 
 	switch (type) {
 		case 'info':
@@ -49,7 +53,10 @@ export function makeNotification(type, title, message = '') {
 		messageElement.parentNode.insertBefore(document.createElement('br'), messageElement);
 	}
 
-	return toast;
+	return {
+		domElement: toast,
+		hide() { iziToast.hide({}, toast); }
+	}
 }
 
 export function makeFileTransferNotification(type, destination, cancelSource) {
@@ -81,6 +88,7 @@ export function makeFileTransferNotification(type, destination, cancelSource) {
 	// Return object with enough info about it
 	const startTime = new Date();
 	return {
+		domElement: toast,
 		onProgress(e) {
 			const uploadSpeed = e.loaded / (((new Date()) - startTime) / 1000), progress = (e.loaded / e.total) * 100;
 			title.textContent = i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
@@ -104,11 +112,9 @@ export function showMessage(message) {
 
 export default {
 	install(Vue) {
-		Vue.prototype.$toast = {
-			makeNotification,
-			makeFileTransferNotification,
-			showMessage
-		}
+		Vue.prototype.$makeNotification = makeNotification;
+		Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification;
+		Vue.prototype.$showMessage = showMessage;
 	},
 
 	installStore(store) {

@@ -1,7 +1,7 @@
 <template>
 	<v-dialog v-model="shown" persistent width="360">
 		<v-card>
-			<v-form ref="form" @submit.prevent="doConnect">
+			<v-form ref="form" @submit.prevent="connect">
 				<v-card-title>
 					<span class="headline">{{ $t('dialog.connect.title') }}</span>
 				</v-card-title>
@@ -27,27 +27,29 @@
 import { mapActions } from 'vuex'
 
 export default {
-	data() {
-		return {
-			hostname: ""
-		}
-	},
 	props: {
 		shown: {
 			type: Boolean,
 			required: true
 		}
 	},
+	data() {
+		return {
+			hostname: ''
+		}
+	},
 	methods: {
-		...mapActions(['connect']),
-		doConnect() {
+		...mapActions({
+			connectMachine: 'connect'
+		}),
+		connect() {
 			if (this.$refs.form.validate()) {
 				this.hide();
-				this.connect({ hostname: this.hostname });
+				this.connectMachine({ hostname: this.hostname });
 			}
 		},
 		hide() {
-			this.$emit("update:shown", false);
+			this.$emit('update:shown', false);
 		}
 	},
 	watch: {

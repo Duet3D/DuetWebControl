@@ -22,6 +22,11 @@ input::-webkit-inner-spin-button {
 a:not(:hover) {
 	text-decoration: none;
 }
+
+.empty-table-fix td {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
 </style>
 
 <template>
@@ -140,7 +145,7 @@ a:not(:hover) {
 
 			<v-spacer></v-spacer>
 
-			<upload-btn target="gcodeStart" class="hidden-sm-and-down"></upload-btn>
+			<upload-btn target="start" class="hidden-sm-and-down"></upload-btn>
 			<emergency-btn></emergency-btn>
 
 			<!-- TODO: Add quick actions and UI designer here -->

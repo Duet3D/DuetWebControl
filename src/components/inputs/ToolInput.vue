@@ -118,7 +118,7 @@ export default {
 				}
 				this.applying = false;
 			} else {
-				this.$toast.makeNotification('warning', this.$t('error.enterValidNumber'));
+				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
 			}
 		}
 	},

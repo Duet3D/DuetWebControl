@@ -30,7 +30,7 @@ class BaseConnector {
 		return source;
 	}
 
-	registered = false
+	machineModule = null
 	hostname = null
 	verbose = false
 
@@ -39,45 +39,45 @@ class BaseConnector {
 	}
 
 	// Called when a new machine module is registered
-	register() {
-		this.registered = true;
+	register(module) {
+		this.machineModule = module;
 	}
 
-	// Call this to update the machine store
-	async update(data) {
-		if (this.registered) {
-			await this.store.dispatch(`machines/${this.hostname}/update`, data);
+	// Called to invoke actions on the registered module
+	async dispatch(action, payload) {
+		if (this.machineModule) {
+			await this.store.dispatch(`machines/${this.hostname}/${action}`, payload);
 		}
 	}
 
-	// Disconnect from the current machine. Returns true on success
+	// Disconnect from the current machine
 	async disconnect() { throw new NotImplementedError('disconnect'); }
 
 	// Called before the module is unregistered
 	unregister() {
-		this.registered = false;
+		this.machineModule = null
 	}
 
 	// Send a G-/M-/T-code to the machine. Returns a promise that is resolved when finished
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
 
-	// Upload a file. Returns a FileTransfer instance
-	async upload({ file, destination, cancelSource, onProgress }) { throw new NotImplementedError('upload'); }
+	// Upload a file asynchronously
+	async upload({ filename, content, cancelSource, onProgress }) { throw new NotImplementedError('upload'); }
 
 	// Delete a file
 	async delete(filename) { throw new NotImplementedError('delete'); }
 
-	// Rename a file
-	async rename({ from, to }) { throw new NotImplementedError('rename'); }
+	// Move a file
+	async move({ from, to }) { throw new NotImplementedError('move'); }
 
 	// Make a new directroy
-	async makeDirectory(path) { throw new NotImplementedError('makeDirectory'); }
+	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }
 
-	// Download a file. Returns a FileTransfer instance
+	// Download a file asynchronously. Returns the file content on completion
 	// Parameter can be either the filename or an object { filename, (cancelSource, onProgress) }
 	async download(payload) { throw new NotImplementedError('download'); }
 
-	// Get the file list
+	// Get the file list. Each item is returned as { isDirectory, name, size, lastModified }
 	async getFileList(directory) { throw new NotImplementedError('getFileList'); }
 
 	// Get G-code file info

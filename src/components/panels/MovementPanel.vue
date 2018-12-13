@@ -138,14 +138,14 @@
 			</v-layout>
 		</v-card-text>
 
+		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
+
 		<v-alert v-if="unhomedAxes.length" :value="true" type="warning">
 			{{ $t(unhomedAxes.length === 1 ? 'panel.movement.axisNotHomed' : 'panel.movement.axesNotHomed') }}
 			<strong>
 				{{ unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) }}
 			</strong>
 		</v-alert>
-
-		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
 	</v-card>
 </template>
 

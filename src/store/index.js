@@ -117,17 +117,17 @@ const store = new Vuex.Store({
 		},
 
 		// Upload a file and show progress
-		async upload({ state, dispatch }, { file, destination, hostname = state.selectedMachine, showSuccess = true, showError = true }) {
+		async upload({ state, dispatch }, { filename, content, hostname = state.selectedMachine, showSuccess = true, showError = true }) {
 			const cancelSource = BaseConnector.getCancelSource();
-			const notification = makeFileTransferNotification('upload', destination, cancelSource);
+			const notification = makeFileTransferNotification('upload', filename, cancelSource);
 			try {
 				const startTime = new Date();
-				const response = await dispatch(`machines/${hostname}/upload`, { file, destination, cancelSource, onProgress: notification.onProgress });
+				const response = await dispatch(`machines/${hostname}/upload`, { filename, content, cancelSource, onProgress: notification.onProgress });
 
 				// Show success message
 				if (showSuccess) {
 					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					log('success', i18n.t('notification.upload.success', [extractFileName(destination), displayTime(secondsPassed)]), undefined, hostname);
+					log('success', i18n.t('notification.upload.success', [extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
 				}
 
 				// Return the response
@@ -138,7 +138,7 @@ const store = new Vuex.Store({
 				notification.hide();
 				if (showError && !(e instanceof OperationCancelledError)) {
 					console.warn(e);
-					log('error', i18n.t('notification.upload.error', [extractFileName(destination)]), e, hostname);
+					log('error', i18n.t('notification.upload.error', [extractFileName(filename)]), e, hostname);
 				}
 				throw e;
 			}

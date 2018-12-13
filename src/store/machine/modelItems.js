@@ -291,6 +291,10 @@ export function fixMachineItems(state, mergeData) {
 		}
 	}
 
+	if (mergeData.storages) {
+		fixItems(state.storages, Storage);
+	}
+
 	if (mergeData.tools) {
 		fixItems(state.tools, Tool);
 	}

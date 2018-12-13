@@ -5,10 +5,14 @@ import { mapConnectorActions } from './connector'
 import makeModel from './model.js'
 import { fixMachineItems } from './modelItems.js'
 
+import i18n from '../../i18n'
+import { logCode, logGlobal } from '../../plugins/logging.js'
 import { showMessage } from '../../plugins/toast.js'
 
 import beep from '../../utils/beep.js'
 import merge from '../../utils/merge.js'
+
+export const crudActions = ['onDirectoryCreated', 'onFileUploaded', 'onFileMoved', 'onFileDeleted'];
 
 export default function(connector) {
 	return {
@@ -46,7 +50,7 @@ export default function(connector) {
 		},
 		actions: {
 			...mapConnectorActions(connector),
-			update({ getters, state, commit, dispatch }, payload) {
+			async update({ getters, state, commit, dispatch }, payload) {
 				const wasPrinting = getters.isPrinting, filename = state.job.filename;
 
 				// Merge updates into the object model
@@ -58,10 +62,29 @@ export default function(connector) {
 
 					// Send M1 if auto-sleep is enabled
 					if (state.autoSleep) {
-						dispatch('sendCode', 'M1');
+						try {
+							await dispatch('sendCode', 'M1');
+						} catch (e) {
+							logCode('M1', e.message, this.connector.hostname);
+						}
 					}
 				}
-			}
+			},
+			onCodeCompleted(context, { code, reply }) {
+				if (code === undefined) {
+					logCode(undefined, reply, this.hostname);
+				}
+			},
+			async onConnectionError({ state, dispatch }, error) {
+				// TODO: Implement auto reconnect here
+				await dispatch('disconnect', { hostname: state.hostname, doDisconnect: false }, { root: true });
+				logGlobal('error', i18n.t('error.statusUpdateFailed', [state.hostname]), error.message);
+			},
+			onDirectoryCreated: (context, directory) => null,
+			onFileUploaded: (context, { filename, content }) => null,
+			onFileDownloaded: (context, { filename, content }) => null,
+			onFileMoved: (context, { from, to }) => null,
+			onFileDeleted: (context, filename) => null
 		},
 		mutations: {
 			clearLog: state => state.events = [],

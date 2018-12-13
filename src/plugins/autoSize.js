@@ -4,11 +4,15 @@ function resize(el, binding, vnode, inserted) {
 	// Resize width (non-default)
 	let resizeWidth = false, totalWidth = 0;
 	if (binding.modifiers.width) {
-		Array.from(el.children).forEach(function(child) {
-			totalWidth += child.offsetWidth;
-			if (child.style.marginLeft !== "") { totalWidth += child.style.marginLeft; }
-			if (child.style.marginRight !== "") { totalWidth += child.style.marginRight; }
-		});
+		if (vnode.componentInstance) {
+			Array.from(el.children).forEach(function(child) {
+				totalWidth += child.offsetWidth;
+				if (child.style.marginLeft !== "") { totalWidth += child.style.marginLeft; }
+				if (child.style.marginRight !== "") { totalWidth += child.style.marginRight; }
+			});
+		} else {
+			totalWidth = el.offsetWidth;
+		}
 
 		/* eslint-disable eqeqeq */
 		resizeWidth = totalWidth != el.dataset.resizeWidth;
@@ -17,11 +21,15 @@ function resize(el, binding, vnode, inserted) {
 	// Resize height (default)
 	let resizeHeight = false, totalHeight = 0;
 	if (!binding.modifiers.noHeight) {
-		Array.from(el.children).forEach(function(child) {
-			totalHeight += child.offsetHeight;
-			if (child.style.marginTop !== "") { totalHeight += child.style.marginTop; }
-			if (child.style.marginBottom !== "") { totalHeight += child.style.marginBottom; }
-		});
+		if (vnode.componentInstance) {
+			Array.from(el.children).forEach(function(child) {
+				totalHeight += child.offsetHeight;
+				if (child.style.marginTop !== "") { totalHeight += child.style.marginTop; }
+				if (child.style.marginBottom !== "") { totalHeight += child.style.marginBottom; }
+			});
+		} else {
+			totalHeight = el.offsetHeight;
+		}
 
 		/* eslint-disable eqeqeq */
 		resizeHeight = totalHeight != el.dataset.resizeHeight;
@@ -29,8 +37,9 @@ function resize(el, binding, vnode, inserted) {
 
 	// See if we need to do anything
 	if (resizeWidth || resizeHeight) {
-		let gridItem = vnode.componentInstance;
+		let gridItem = vnode.componentInstance || vnode.context;
 		if (!gridItem) {
+			console.log(gridItem);
 			console.warn('[v-auto-size] No component instance');
 			return;
 		}
@@ -56,7 +65,7 @@ function resize(el, binding, vnode, inserted) {
 
 	// Make sure to update the sizes when the owning grid item is resized
 	if (inserted) {
-		let gridItem = vnode.componentInstance;
+		let gridItem = vnode.componentInstance || vnode.context;
 		if (!gridItem) {
 			console.warn('[v-auto-size] No component instance on insert');
 			return;

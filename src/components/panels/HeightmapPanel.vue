@@ -140,6 +140,7 @@ export default {
 	computed: mapGetters(['isConnected']),
 	data() {
 		return {
+			isActive: true,
 			ready: false,
 			loading: false,
 			errorMessage: 'height map not available',
@@ -187,6 +188,10 @@ export default {
 			}
 		},
 		resize() {
+			if (!this.isActive) {
+				return;
+			}
+
 			// Resize canvas elements
 			const width = this.ready ? this.$refs.canvasParent.offsetWidth : this.$refs.loading.offsetWidth;
 			const height = this.ready ? this.$refs.canvasParent.offsetHeight : this.$refs.loading.offsetHeight;
@@ -401,7 +406,15 @@ export default {
 			this.showHeightmap(testPoints);
 		}
 	},
+	activated() {
+		this.isActive = true;
+		this.resize();
+	},
+	deactivate() {
+		this.isActive = false;
+	},
 	mounted() {
+		// FIXME give the grid some time to resize everything...
 		setTimeout(this.init, 100);
 	},
 	beforeDestroy() {

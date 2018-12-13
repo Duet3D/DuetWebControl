@@ -6,9 +6,6 @@ import axios from 'axios'
 import BaseConnector from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 
-import { logGlobal, logCode } from '../../../plugins/logging.js'
-import i18n from '../../../i18n'
-
 import {
 	DisconnectedError, TimeoutError, OperationFailedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
@@ -16,7 +13,7 @@ import {
 } from '../../../utils/errors.js'
 import merge from '../../../utils/merge.js'
 import { bitmapToArray } from '../../../utils/numbers.js'
-import { timeToStr } from '../../../utils/time.js'
+import { strToTime, timeToStr } from '../../../utils/time.js'
 
 export default class PollConnector extends BaseConnector {
 	static installStore(store) {
@@ -39,6 +36,7 @@ export default class PollConnector extends BaseConnector {
 		}
 	}
 
+	module = null
 	axios = null
 	cancelSource = null
 
@@ -87,8 +85,8 @@ export default class PollConnector extends BaseConnector {
 		});
 	}
 
-	register() {
-		super.register();
+	register(module) {
+		super.register(module);
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
 		// notifications even while DWC2 is running in the background. However, we cannot do
@@ -98,9 +96,8 @@ export default class PollConnector extends BaseConnector {
 		this.scheduleUpdate();
 	}
 
-	async disconnect(doDisconnect) {
-		const response = await this.axios.get('rr_disconnect');
-		return !response.data.err;
+	async disconnect() {
+		await this.axios.get('rr_disconnect');
 	}
 
 	unregister() {
@@ -303,9 +300,6 @@ export default class PollConnector extends BaseConnector {
 				state: {
 					mode: response.data.mode
 				},
-				storages: new Array(response.data.volumes).map((dummy, index) => ({
-					mounted: (response.data.mountedVolumes & (1 << index)) !== 0
-				})),
 				tools: response.data.tools.map(tool => ({
 					number: tool.number,
 					name: tool.name,
@@ -317,6 +311,13 @@ export default class PollConnector extends BaseConnector {
 					offsets: tool.offsets
 				}))
 			});
+
+			newData.storages = [];
+			for (let i = 0; i < response.data.volumes; i++) {
+				newData.storages.push({
+					mounted: (response.data.mountedVolumes & (1 << i)) !== 0
+				});
+			}
 		} else if (statusType === 3) {
 			// Print Status Response
 			merge(newData, {
@@ -489,7 +490,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Update the data model
-		await this.update(newData);
+		await this.dispatch('update', newData);
 
 		// Check if the G-code response needs to be polled
 		if (response.data.seq !== this.lastStatusResponse.seq) {
@@ -519,8 +520,7 @@ export default class PollConnector extends BaseConnector {
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
-						await that.store.dispatch('disconnect', { hostname: that.hostname, doDisconnect: false });
-						logGlobal('error', i18n.t('error.statusUpdateFailed', [that.hostname]), e.message);
+						that.dispatch('onConnectionError', e);
 					}
 				}
 			}, this.settings.updateInterval);
@@ -529,17 +529,18 @@ export default class PollConnector extends BaseConnector {
 
 	// Call this only from updateLoop()
 	async getGCodeReply(seq = this.lastStatusResponse.seq) {
-		const reply = await this.axios.get('rr_reply');
-		const response = reply.data.trim();
+		const response = await this.axios.get('rr_reply');
+		const reply = response.data.trim();
 
 		if (!this.pendingCodes.length) {
 			// Just log this response
-			logCode(undefined, response, this.hostname);
+			this.dispatch('onCodeCompleted', { code: undefined, reply });
 		} else {
 			// Resolve pending code promises
 			this.pendingCodes.forEach(function(code) {
 				if (code.seq < seq) {
-					code.resolve(response);
+					code.resolve(reply);
+					this.dispatch('onCodeCompleted', { code, reply });
 				}
 			}, this);
 			this.pendingCodes = this.pendingCodes.filter(code => code.seq >= seq);
@@ -584,7 +585,7 @@ export default class PollConnector extends BaseConnector {
 			}
 		};
 
-		await this.update(configData);
+		await this.dispatch('update', configData);
 	}
 
 	async sendCode(code) {
@@ -604,7 +605,7 @@ export default class PollConnector extends BaseConnector {
 		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
 	}
 
-	upload({ file, destination, cancelSource = axios.cancelToken.source(), onProgress }) {
+	upload({ filename, content, cancelSource = axios.cancelToken.source(), onProgress }) {
 		const that = this;
 		return new Promise(function(resolve, reject) {
 			const reader = new FileReader();
@@ -616,8 +617,8 @@ export default class PollConnector extends BaseConnector {
 					isFileTransfer: true,
 					onUploadProgress: onProgress,
 					params: {
-						name: destination,
-						time: timeToStr(new Date(file.lastModified))
+						name: filename,
+						time: timeToStr(content.lastModified ? new Date(content.lastModified) : new Date())
 					},
 					timeout: 0,
 					transformRequest(data, headers) {
@@ -629,7 +630,10 @@ export default class PollConnector extends BaseConnector {
 				try {
 					// Create file transfer and start it
 					that.axios.post('rr_upload', reader.result, options)
-						.then(resolve)
+						.then(function(response) {
+							resolve(response);
+							that.dispatch('onFileUploaded', { filename, content });
+						})
 						.catch(reject)
 						.then(function() {
 							that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
@@ -641,7 +645,7 @@ export default class PollConnector extends BaseConnector {
 					reject(e);
 				}
 			}
-			reader.readAsArrayBuffer(file);
+			reader.readAsArrayBuffer(content);
 		});
 	}
 
@@ -653,9 +657,10 @@ export default class PollConnector extends BaseConnector {
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
+		await this.dispatch('onFileDeleted', filename);
 	}
 
-	async rename({ from, to }) {
+	async move({ from, to }) {
 		const response = await this.axios.get('rr_move', {
 			params: {
 				old: from,
@@ -666,16 +671,18 @@ export default class PollConnector extends BaseConnector {
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
+		await this.dispatch('onFileMoved', { from, to });
 	}
 
-	async makeDirectory(path) {
+	async makeDirectory(directory) {
 		const response = await this.axios.get('rr_mkdir', {
-			params: { dir: path }
+			params: { dir: directory }
 		});
 
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
+		await this.dispatch('onDirectoryCreated', directory);
 	}
 
 	download(payload) {
@@ -699,7 +706,10 @@ export default class PollConnector extends BaseConnector {
 			try {
 				// Create file transfer and start it
 				that.axios.get('rr_download', options)
-					.then(response => resolve(response.data))
+					.then(function(response) {
+						resolve(response.data);
+						that.dispatch('onFileDownloaded', { filename, content: response.data });
+					})
 					.catch(reject)
 					.then(function() {
 						that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
@@ -719,18 +729,24 @@ export default class PollConnector extends BaseConnector {
 			const response = await this.axios.get('rr_filelist', {
 				params: {
 					dir: directory,
-					next: next
+					first: next
 				}
 			});
 
 			fileList = fileList.concat(response.data.files);
 			next = response.data.next;
 		} while (next !== 0);
-		return fileList;
+
+		return fileList.map(item => ({
+			isDirectory: item.type === 'd',
+			name: item.name,
+			size: (item.type === 'd') ? null : item.size,
+			lastModified: strToTime(item.date)
+		}));
 	}
 
-	getFileInfo(filename) {
-		const response = this.axios.get('rr_fileinfo', {
+	async getFileInfo(filename) {
+		const response = await this.axios.get('rr_fileinfo', {
 			params: filename ? { name: filename } : {}
 		});
 

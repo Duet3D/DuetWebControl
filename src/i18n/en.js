@@ -37,19 +37,19 @@ export default {
 			titleAll: 'Home all axes (G28)'
 		},
 		upload: {
-			gcode: {
+			gcodes: {
 				caption: 'Upload G-Code File(s)',
 				title: 'Upload one or more G-Code files (drag&drop is supported as well)'
 			},
-			gcodeStart: {
+			start: {
 				caption: 'Upload & Start',
 				title: 'Upload & Start one or more G-Code files (drag&drop is supported as well)'
 			},
-			macro: {
+			macros: {
 				caption: 'Upload Macro File(s)',
 				title: 'Upload one or more macro files (drag&drop is supported as well)'
 			},
-			filament: {
+			filaments: {
 				caption: 'Upload Filament Configs',
 				title: 'Upload one or more filament configurations (drag&drop is supported as well)'
 			},
@@ -57,8 +57,12 @@ export default {
 				caption: 'Upload System Files',
 				title: 'Upload one or more system files (drag&drop is supported as well)'
 			},
+			www: {
+				caption: 'Upload Web Files',
+				title: 'Upload one or more web files (drag&drop is supported as well)'
+			},
 			update: {
-				caption: 'Upload Update Package',
+				caption: 'Upload Update',
 				title: 'Upload an update package (drag&drop is supported as well)'
 			}
 		}
@@ -105,14 +109,18 @@ export default {
 		enterValidNumber: 'Please enter a valid number',
 		turnOffEverythingFailed: 'Failed to turn everything off',
 		statusUpdateFailed: 'Failed to get status update for {0}',
-		filelistRequestFailed: 'Failed to get file list'
+		filelistRequestFailed: 'Failed to get file list',
+		fileinfoRequestFailed: 'Failed to get file info'
 	},
 	generic: {
 		ok: 'OK',
 		cancel: 'Cancel',
+		yes: 'Yes',
+		no: 'No',
 		close: 'Close',
 		reset: 'Reset',
 		novalue: 'n/a',
+		loading: 'loading',
 		error: 'Error',
 		info: 'Info',
 		warning: 'Warning',

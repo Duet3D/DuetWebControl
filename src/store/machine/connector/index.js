@@ -7,7 +7,7 @@ import PollConnector from './PollConnector.js'
 // import SocketConnector from './SocketConnector.js'	// TODO: Replace status updates with websocket and other requests with REST
 
 const connectors = [PollConnector]
-export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'rename', 'download', 'getFileList', 'getFileInfo']
+export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'download', 'getFileList', 'getFileInfo']
 
 export function mapConnectorActions(connector, toIgnore = []) {
 	let actions = {}

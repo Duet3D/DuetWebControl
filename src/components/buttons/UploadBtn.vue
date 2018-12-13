@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<v-btn @click="chooseFile" :disabled="!canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)"
-			:color="color" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave" @drop.prevent.stop="dragDrop">
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)"
+			:color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop">
 			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
 		</v-btn>
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple />
@@ -10,6 +10,8 @@
 
 <script>
 'use strict'
+
+import VBtn from 'vuetify/es5/components/VBtn'
 
 import { mapGetters, mapActions } from 'vuex'
 import Path from '../../utils/path.js'
@@ -25,37 +27,38 @@ export default {
 		},
 		accept() {
 			switch (this.target) {
-				case 'gcode': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
-				case 'gcodeStart': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
-				case 'macro': return '.g,.gcode,.gc,.gco,.nc,.ngc';
-				case 'filament': return '.zip';
+				case 'gcodes': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
+				case 'start': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
+				case 'macros': return '.g,.gcode,.gc,.gco,.nc,.ngc';
+				case 'filaments': return '.zip';
 				case 'sys': return '.zip,.g,.csv';
-				case 'web': return '.zip,.csv,.g,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
+				case 'www': return '.zip,.csv,.g,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}
 		},
 		destinationDirectory() {
-			if (this.directory !== undefined) {
+			if (this.directory) {
 				return this.directory;
 			}
 
 			switch (this.target) {
-				case 'gcode': return Path.gcodes;
-				case 'gcodeStart': return Path.gcodes;
-				case 'macro': return Path.macros;
-				case 'filament': return Path.filaments;
+				case 'gcodes': return Path.gcodes;
+				case 'start': return Path.gcodes;
+				case 'macros': return Path.macros;
+				case 'filaments': return Path.filaments;
 				case 'sys': return Path.sys;
-				case 'web': return Path.www;
+				case 'www': return Path.www;
 				case 'update': return Path.sys;
 			}
 		}
 	},
 	data() {
 		return {
-			color: 'default',
+			innerColor: this.color,
 			uploading: false
 		}
 	},
+	extends: VBtn,
 	props: {
 		directory: String,
 		target: {
@@ -76,37 +79,44 @@ export default {
 			this.$refs.fileInput.value = "";
 		},
 		async doUpload(files) {
-			if (this.type === 'uploadStart' && files.length !== 1) {
-				this.$toast.makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
+			if (this.type === 'start' && files.length !== 1) {
+				this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
 			}
 
 			this.uploading = true;
 			for (let i = 0; i < files.length; i++) {
-				const file = files[i], destination = Path.combine(this.destinationDirectory, file.name);
+				const content = files[i], filename = Path.combine(this.destinationDirectory, files[i].name);
 				try {
 					// Upload a file
-					const fileTransfer = await this.upload({ file, destination });
-					await this.$toast.makeFileTransferNotification(fileTransfer);
+					await this.upload({ filename, content });
 
 					// Run it (if required)
-					if (this.target === 'uploadStart') {
-						await this.sendCode(`M32 "${destination}"`);
+					if (this.target === 'start') {
+						await this.sendCode(`M32 "${filename}"`);
 					}
 				} catch (e) {
-					// handled before we get here
+					this.$emit('uploadFailed', { filename, reason: e });
 					break;
 				}
 			}
 			this.uploading = false;
 		},
 		dragOver(e) {
-			this.color = 'success';
+			if (e.dataTransfer.files.length) {
+				e.preventDefault();
+				e.stopPropagation();
+				this.innerColor = 'success';
+			}
 		},
 		dragLeave(e) {
-			this.color = 'default';
+			if (e.dataTransfer.files.length) {
+				e.preventDefault();
+				e.stopPropagation();
+				this.innerColor = this.color;
+			}
 		},
 		async dragDrop(e) {
-			this.color = 'default';
+			this.innerColor = this.color;
 			await this.doUpload(e.dataTransfer.files);
 		}
 	}
