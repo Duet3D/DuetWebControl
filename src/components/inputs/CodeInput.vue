@@ -1,17 +1,21 @@
-<template>
-	<v-form @submit.prevent="send" ref="form">
-		<v-layout row inline :class="{ 'mt-2' : solo }">
-			<v-flex>
-				<v-combobox ref="input" v-model="code" :items="machineUI.codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send"></v-combobox>
-			</v-flex>
+<style scoped>
+.grow {
+	flex-grow: 1;
+}
+</style>
 
-			<v-flex shrink>
-				<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
-					<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
-				</v-btn>
-			</v-flex>
-		</v-layout>
-	</v-form>
+<template>
+	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
+		<v-flex>
+			<v-combobox ref="input" v-model="code" :items="machineUI.codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details></v-combobox>
+		</v-flex>
+
+		<v-flex shrink>
+			<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
+				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
+			</v-btn>
+		</v-flex>
+	</v-layout>
 </template>
 
 <script>
@@ -30,6 +34,7 @@ export default {
 		}
 	},
 	props: {
+		grow: Boolean,
 		solo: Boolean
 	},
 	methods: {

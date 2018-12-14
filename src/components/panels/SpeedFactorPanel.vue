@@ -1,5 +1,5 @@
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">timer</v-icon> Speed Factor
 			<v-spacer></v-spacer>

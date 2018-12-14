@@ -44,13 +44,16 @@
 				<v-spacer></v-spacer>
 
 				<v-toolbar-items>
+					<v-btn dark flat href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
+						<v-icon class="mr-1">help</v-icon> G-Code Reference
+					</v-btn>
 					<v-btn dark flat @click="save">
 						<v-icon class="mr-1">save</v-icon> Save
 					</v-btn>
 				</v-toolbar-items>
 			</v-toolbar>
 
-			<v-textarea :value="value" @change="$emit('change', $event)" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -72,18 +75,22 @@ export default {
 		},
 		value: String
 	},
+	data() {
+		return {
+			innerValue: ''
+		}
+	},
 	methods: {
 		...mapActions(['upload']),
 		close() {
-			this.$emit('change', '');
+			this.$emit('input', '');
 			this.$emit('update:shown', false);
 		},
 		async save() {
-			const content = new Blob([this.value]);
+			const content = new Blob([this.innerValue]);
 			this.close();
 
 			try {
-				// TODO Move config.g first if necessary
 				await this.upload({ filename: this.filename, content });
 			} catch (e) {
 				// TODO Optionally ask user to save file somewhere else
@@ -98,12 +105,19 @@ export default {
 	},
 	watch: {
 		shown(to) {
+			// Set textarea content
+			this.innerValue = this.value;
+
 			// Notify users that they may not have saved their changes yet
 			if (to) {
 				window.addEventListener('beforeunload', this.onBeforeLeave);
 			} else {
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
 			}
+
+			// Auto-focus textarea
+			const textarea = this.$refs.textarea;
+			setTimeout(function() { textarea.focus(); }, 100);
 		}
 	}
 }

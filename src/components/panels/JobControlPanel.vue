@@ -1,5 +1,5 @@
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">build</v-icon> Job Control
 		</v-card-title>

@@ -3,7 +3,7 @@
 import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
-import router from '../views'
+import router from '../routes'
 
 let store
 

@@ -1,13 +1,22 @@
 <style>
-.vue-grid-item > * {
-	height: auto !important;
-}
-
 #title:not(:hover) {
 	color: inherit;
 }
 #title {
 	margin-right: 20px;
+}
+
+.container {
+	padding: 4px;
+}
+.container div.component,
+.container div.v-card {
+	margin: 8px;
+}
+
+.empty-table-fix td {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
 }
 
 input[type='number'] {
@@ -22,112 +31,29 @@ input::-webkit-inner-spin-button {
 a:not(:hover) {
 	text-decoration: none;
 }
-
-.empty-table-fix td {
-	padding-left: 0px !important;
-	padding-right: 0px !important;
-}
 </style>
 
 <template>
 	<v-app>
 		<v-navigation-drawer persistent clipped v-model="drawer" enable-resize-watcher fixed app>
+			<div class="pa-2 hidden-sm-and-up">
+				<connect-btn block></connect-btn>
+				<emergency-btn class="mt-3" block></emergency-btn>
+			</div>
+
 			<v-list class="pt-0" expand>
-				<!-- This static content is only temporary and will be replaced by v-for directives as soon as the UI designer is ready -->
-				<v-list-group prepend-icon="tune" no-action value="true">
+				<v-list-group v-for="(category, index) in routing" :key="index" :prepend-icon="category.icon" no-action :value="true">
 					<v-list-tile slot="activator">
-						<v-list-tile-title>{{ $t('menu.control.caption') }}</v-list-tile-title>
+						<v-list-tile-title>{{ $t(category.caption) }}</v-list-tile-title>
 					</v-list-tile>
 
-					<v-list-tile v-ripple to="/" @click="">
+					<v-list-tile v-for="(page, pageIndex) in category.pages" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click="">
 						<v-list-tile-action>
-							<v-icon>dashboard</v-icon>
+							<v-icon>{{ page.icon }}</v-icon>
 						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.control.dashboard') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Console" @click="">
-						<v-list-tile-action>
-							<v-icon>code</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.control.console') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Heightmap" @click="">
-						<v-list-tile-action>
-							<v-icon>grid_on</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.control.heightmap') }}</v-list-tile-title>
+						<v-list-tile-title>{{ $t(page.caption) }}</v-list-tile-title>
 					</v-list-tile>
 				</v-list-group>
-
-				<v-list-group prepend-icon="print" no-action value="true">
-					<v-list-tile slot="activator">
-						<v-list-tile-title>{{ $t('menu.job.caption') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Job/Status" @click="">
-						<v-list-tile-action>
-							<v-icon>info</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.job.status') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<!--<v-list-tile v-ripple to="/Job/Visualiser" @click="">
-						<v-list-tile-action>
-							<v-icon>theaters</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.job.visualiser') }}</v-list-tile-title>
-					</v-list-tile>-->
-				</v-list-group>
-				
-				<v-list-group prepend-icon="sd_storage" no-action value="true">
-					<v-list-tile slot="activator">
-						<v-list-tile-title>{{ $t('menu.files.caption') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Files/Jobs" @click="">
-						<v-list-tile-action>
-							<v-icon>play_arrow</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.files.jobs') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Files/Macros" @click="">
-						<v-list-tile-action>
-							<v-icon>polymer</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.files.macros') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Files/Filaments" @click="">
-						<v-list-tile-action>
-							<v-icon>radio_button_checked</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.files.filaments') }}</v-list-tile-title>
-					</v-list-tile>
-
-					<v-list-tile v-ripple to="/Files/System" @click="">
-						<v-list-tile-action>
-							<v-icon>settings</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.files.system') }}</v-list-tile-title>
-					</v-list-tile>
-					
-					<!--<v-list-tile v-ripple to="/Files/Web" @click="">
-						<v-list-tile-action>
-							<v-icon>cloud</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t('menu.files.web') }}</v-list-tile-title>
-					</v-list-tile>-->
-				</v-list-group>
-
-				<v-list-tile v-ripple to="/Settings" @click="">
-					<v-list-tile-action>
-						<v-icon>settings</v-icon>
-					</v-list-tile-action>
-					<v-list-tile-title>{{ $t('menu.settings.caption') }}</v-list-tile-title>
-				</v-list-tile>
 			</v-list>
 		</v-navigation-drawer>
 
@@ -137,51 +63,58 @@ a:not(:hover) {
 				<!-- TODO: Optional OEM branding -->
 				<a id="title">{{ name }}</a>
 			</v-toolbar-title>
-			<connect-btn></connect-btn>
+			<connect-btn class="hidden-xs-only"></connect-btn>
 
 			<v-spacer></v-spacer>
 
-			<code-input class="hidden-sm-and-down mt-3"></code-input>
+			<code-input class="hidden-sm-and-down"></code-input>
 
 			<v-spacer></v-spacer>
 
 			<upload-btn target="start" class="hidden-sm-and-down"></upload-btn>
-			<emergency-btn></emergency-btn>
+			<emergency-btn class="hidden-xs-only"></emergency-btn>
 
+			<v-btn icon class="hidden-sm-and-up" @click="hideGlobalContainer = !hideGlobalContainer">
+				<v-icon>aspect_ratio</v-icon>
+			</v-btn>
 			<!-- TODO: Add quick actions and UI designer here -->
-			<!--<v-btn icon class="hidden-xs" @click="rightDrawer = !rightDrawer">
+			<!--<v-btn icon class="hidden-sm-and-down" @click="rightDrawer = !rightDrawer">
 				<v-icon>menu</v-icon>
 			</v-btn>-->
 		</v-toolbar>
 
-		<v-content>
-			<base-grid>
-				<dynamic-grid-item :xs="[0, 0, 24, 11]" :sm="[0, 0, 12, 11]" :md="[0, 0, 8, 11]" :lg="[0, 0, 8, 11]">
-					<status-panel></status-panel>
-				</dynamic-grid-item>
-				<dynamic-grid-item :xs="[8, 0, 24, 11]" :sm="[12, 0, 12, 11]" :md="[8, 0, 10, 11]" :lg="[8, 0, 8, 11]">
-					<tools-panel></tools-panel>
-				</dynamic-grid-item>
-				<dynamic-grid-item xs="hidden" sm="hidden" :md="[18, 0, 6, 11]" :lg="[16, 0, 8, 11]">
-					<temperature-chart></temperature-chart>
-				</dynamic-grid-item>
-			</base-grid>
+		<v-content id="content">
+			<v-scroll-y-transition>
+				<v-container fluid class="container" v-show="!hideGlobalContainer || $vuetify.breakpoint.smAndUp">
+					<v-layout row wrap>
+						<v-flex xs12 sm6 md4 lg4>
+							<status-panel></status-panel>
+						</v-flex>
 
-			<v-divider></v-divider>
+						<v-flex xs12 sm6 md5 lg4>
+							<tools-panel></tools-panel>
+						</v-flex>
 
-			<router-view></router-view>
+						<v-flex v-if="$vuetify.breakpoint.mdAndUp" d-flex md3 lg4>
+							<temperature-chart></temperature-chart>
+						</v-flex>
+					</v-layout>
+				</v-container>
+			</v-scroll-y-transition>
+
+			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.smAndUp"></v-divider>
+
+			<v-container fluid class="container">
+				<router-view></router-view>
+			</v-container>
 		</v-content>
 
 		<v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
-			<!-- In design mode: Add component list here -->
+			<!-- TODO Add quick access / component list here in design mode -->
 		</v-navigation-drawer>
 
 		<v-footer app>
 			<span class="ml-3">&copy; 2018 Christian Hammacher for Duet3D</span>
-
-			<v-spacer></v-spacer>
-			
-			<!--<v-switch v-model="designMode" label="Design Mode (DEMO)"></v-switch>-->
 		</v-footer>
 
 		<messagebox-dialog></messagebox-dialog>
@@ -192,6 +125,8 @@ a:not(:hover) {
 'use strict'
 
 import { mapGetters, mapState, mapMutations } from 'vuex'
+
+import { Routing } from './routes'
 
 export default {
 	computed: {
@@ -209,7 +144,9 @@ export default {
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
-			rightDrawer: false
+			hideGlobalContainer: false,
+			rightDrawer: false,
+			routing: Routing
 		}
 	}
 }

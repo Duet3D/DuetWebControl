@@ -6,7 +6,7 @@
 </style>
 
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">polymer</v-icon> Macros
 			<v-spacer></v-spacer>
@@ -58,6 +58,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
+import { getModifiedDirectory } from '../../store/machine'
 import { DisconnectedError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
@@ -69,6 +70,7 @@ export default {
 	},
 	data () {
 		return {
+			unsubscribe: undefined,
 			loading: false,
 			wasMounted: false,
 			directory: Path.macros,
@@ -120,13 +122,25 @@ export default {
 			}
 		},
 		async goUp() {
-			await this.loadDirectory(Path.extractDirectory(this.directory));
+			await this.loadDirectory(Path.extractFilePath(this.directory));
 		}
 	},
 	mounted() {
+		// Perform initial load
 		if (this.isConnected) {
 			this.loadDirectory();
 		}
+
+		// Keep track of file changes
+		const that = this;
+		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
+			if (Path.pathAffectsFilelist(getModifiedDirectory(action, state), that.directory, that.filelist)) {
+				await that.loadDirectory(that.directory);
+			}
+		});
+	},
+	beforeDestroy() {
+		this.unsubscribe();
 	},
 	watch: {
 		isConnected(to) {

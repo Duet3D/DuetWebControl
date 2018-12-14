@@ -11,8 +11,23 @@ import { showMessage } from '../../plugins/toast.js'
 
 import beep from '../../utils/beep.js'
 import merge from '../../utils/merge.js'
+import Path from '../../utils/path.js'
 
-export const crudActions = ['onDirectoryCreated', 'onFileUploaded', 'onFileMoved', 'onFileDeleted'];
+export function getModifiedDirectory(action, state) {
+	const segments = action.type.split('/');
+	if (segments.length === 3 && segments[1] === state.selectedMachine) {
+		if (segments[2] === 'onDirectoryCreated' || segments[2] === 'onFileOrDirectoryDeleted') {
+			return Path.extractFilePath(action.payload);
+		}
+		if (segments[2] === 'onFileUploaded') {
+			return Path.extractFilePath(action.payload.filename);
+		}
+		if (segments[2] === 'onFileOrDirectoryMoved') {
+			return Path.extractFilePath(action.payload.to);
+		}
+	}
+	return undefined;
+}
 
 export default function(connector) {
 	return {
@@ -30,6 +45,8 @@ export default function(connector) {
 				}
 				return null;
 			},
+			isPaused: state => ['D', 'S', 'R'].indexOf(state.state.status) !== -1,
+			isPrinting: state => ['D', 'S', 'R', 'P'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
 				let maxTemp
 				state.heat.heaters.forEach(function(heater) {
@@ -39,8 +56,6 @@ export default function(connector) {
 				});
 				return maxTemp;
 			},
-			isPaused: state => ['D', 'S', 'R'].indexOf(state.state.status) !== -1,
-			isPrinting: state => ['D', 'S', 'R', 'P'].indexOf(state.state.status) !== -1,
 			jobProgress(state) {
 				if (state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
 					return Math.min(1, state.job.filamentNeeded.reduce((a, b) => a + b) / state.job.extrudedRaw.reduce((a, b) => a + b));
@@ -83,8 +98,8 @@ export default function(connector) {
 			onDirectoryCreated: (context, directory) => null,
 			onFileUploaded: (context, { filename, content }) => null,
 			onFileDownloaded: (context, { filename, content }) => null,
-			onFileMoved: (context, { from, to }) => null,
-			onFileDeleted: (context, filename) => null
+			onFileOrDirectoryMoved: (context, { from, to, force }) => null,
+			onFileOrDirectoryDeleted: (context, filename) => null
 		},
 		mutations: {
 			clearLog: state => state.events = [],

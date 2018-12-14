@@ -1,5 +1,5 @@
 <template>
-	<v-layout row inline>
+	<v-layout row>
 		<v-flex shrink>
 			<v-btn large icon :disabled="disabled || innerValue === min" @click="change(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)" @touchstart="mouseDown(false)" @touchend="mouseUp(false)">
 				<v-icon>remove</v-icon>
@@ -7,7 +7,7 @@
 		</v-flex>
 
 		<v-flex class="px-2">
-			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled" thumb-label="always"></v-slider>
+			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled" hide-details thumb-label="always"></v-slider>
 		</v-flex>
 
 		<v-flex shrink>

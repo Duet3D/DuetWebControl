@@ -5,14 +5,6 @@
 </style>
 
 <style scoped>
-.dropdown-btn {
-	border-radius: 2px;
-	background: transparent;
-	justify-content: center;
-	min-width: 0;
-	width: 36px;
-}
-
 .move-btn {
 	padding-left: 0;
 	padding-right: 0;
@@ -25,7 +17,7 @@
 </style>
 
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title class="pt-2 pb-0 nowrap">
 			<code-btn color="primary" small code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
 				{{ $t('button.home.captionAll') }}
@@ -37,13 +29,10 @@
 
 			<v-spacer></v-spacer>
 
-			<code-btn color="primary" small code="G32" class="mr-0" title="$t(move.geometry === 'delta' ? 'button.compensation.titleDelta' : 'button.compensation.title')">
-				{{ $t(move.geometry === 'delta' ? 'button.compensation.captionDelta' : 'button.compensation.caption') }}
-			</code-btn>
 			<v-menu offset-y left :disabled="frozen">
 				<template slot="activator">
-					<v-btn color="primary" small class="mx-0 dropdown-btn" :disabled="frozen">
-						<v-icon>arrow_drop_down</v-icon>
+					<v-btn color="primary" small class="mx-0" :disabled="frozen">
+						{{ $t('panel.movement.compensation') }} <v-icon>arrow_drop_down</v-icon>
 					</v-btn>
 				</template>
 
@@ -56,11 +45,13 @@
 							<v-divider></v-divider>
 						</template>
 
-						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
-							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
+						<v-divider></v-divider>
+
+						<v-list-tile @click="sendCode('G32')">
+							<v-icon class="mr-1">how_to_vote</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
 						</v-list-tile>
-						<v-list-tile :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
-							<v-icon class="mr-1">grid_off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
+						<v-list-tile @click="sendCode('G29')">
+							<v-icon class="mr-1">grid_on</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
 						</v-list-tile>
 
 						<v-divider></v-divider>
@@ -68,11 +59,17 @@
 						<v-list-tile @click="showMeshEditDialog = true">
 							<v-icon class="mr-1">edit</v-icon> {{ $t('panel.movement.editMeshGrid') }} 
 						</v-list-tile>
-						<v-list-tile @click="sendCode('G29')">
-							<v-icon class="mr-1">how_to_vote</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
-						</v-list-tile>
 						<v-list-tile @click="sendCode('G29 S1')">
 							<v-icon class="mr-1">save</v-icon> {{ $t('panel.movement.loadMeshGrid') }} 
+						</v-list-tile>
+
+						<v-divider></v-divider>
+
+						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
+							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
+						</v-list-tile>
+						<v-list-tile :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
+							<v-icon class="mr-1">grid_off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
 						</v-list-tile>
 					</v-list>
 				</v-card>
@@ -98,7 +95,7 @@
 			<v-layout row>
 				<!-- Regular home buttons -->
 				<v-flex shrink class="hidden-sm-and-down">
-					<v-layout column inline>
+					<v-layout column>
 						<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
 							<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="frozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">
 
@@ -108,15 +105,21 @@
 					</v-layout>
 				</v-flex>
 
+				<!-- Jog control -->
 				<v-flex>
-					<v-layout row inline>
+					<v-layout row wrap>
 						<!-- Decreasing movements -->
-						<v-flex v-for="index in numAxisSteps" :key="-index" :class="getMoveCellClass(index - 1)">
-							<v-layout column>
-								<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-									<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
-										<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
-									</code-btn>
+						<v-flex>
+							<v-layout row>
+								<!-- Decreasing movements -->
+								<v-flex v-for="index in numAxisSteps" :key="-index" :class="getMoveCellClass(index - 1)">
+									<v-layout column>
+										<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
+											<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
+												<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
+											</code-btn>
+										</v-flex>
+									</v-layout>
 								</v-flex>
 							</v-layout>
 						</v-flex>
@@ -124,12 +127,16 @@
 						<v-flex shrink class="hidden-sm-and-down px-1"></v-flex>
 
 						<!-- Increasing movements -->
-						<v-flex v-for="index in numAxisSteps" :key="index" :class="getMoveCellClass(numAxisSteps - index)">
-							<v-layout column>
-								<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-									<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
-										{{ axis.letter + '+' + moveSteps(axis.letter)[numAxisSteps - index] }} <v-icon>arrow_right</v-icon>
-									</code-btn>
+						<v-flex>
+							<v-layout row>
+								<v-flex v-for="index in numAxisSteps" :key="index" :class="getMoveCellClass(numAxisSteps - index)">
+									<v-layout column>
+										<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
+											<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
+												{{ axis.letter + '+' + moveSteps(axis.letter)[numAxisSteps - index] }} <v-icon>arrow_right</v-icon>
+											</code-btn>
+										</v-flex>
+									</v-layout>
 								</v-flex>
 							</v-layout>
 						</v-flex>

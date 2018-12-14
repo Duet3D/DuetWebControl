@@ -8,14 +8,12 @@ import Vue from 'vue'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
-
-import 'vue-dynamic-grid'
 import './components'
 
 import App from './App.vue'
 import plugins from './plugins'
 import i18n from './i18n'
-import router from './views'
+import router from './routes'
 import store from './store'
 
 // By default axios turns spaces into pluses which is undesired.

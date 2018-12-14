@@ -422,7 +422,7 @@ export default class PollConnector extends BaseConnector {
 						title: msgBox.title,
 						message: msgBox.msg,
 						timeout: msgBox.timeout,
-						controls: msgBox.controls
+						axisControls: bitmapToArray(msgBox.controls)
 					}
 				});
 			} else if (this.messageBoxShown) {
@@ -657,21 +657,22 @@ export default class PollConnector extends BaseConnector {
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
-		await this.dispatch('onFileDeleted', filename);
+		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
-	async move({ from, to }) {
+	async move({ from, to, force }) {
 		const response = await this.axios.get('rr_move', {
 			params: {
 				old: from,
-				new: to
+				new: to,
+				deleteexisting: force ? 'yes' : 'no'
 			}
 		});
 
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
-		await this.dispatch('onFileMoved', { from, to });
+		await this.dispatch('onFileOrDirectoryMoved', { from, to, force });
 	}
 
 	async makeDirectory(directory) {

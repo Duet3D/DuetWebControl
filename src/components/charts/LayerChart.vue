@@ -3,11 +3,11 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	height: 100% !important;
 }
 
 .content {
 	flex-grow: 1;
+	min-height: 200px;
 }
 </style>
 
@@ -19,11 +19,11 @@
 			</span>
 			<v-spacer></v-spacer>
 			<a v-show="job.layers.length > 30" href="#" @click.prevent="showAllLayers = !showAllLayers">
-				{{ showAllLayers ? "Show Last 30 Layers" : "Show All Layers" }}
+				{{ showAllLayers ? 'Show Last 30 Layers' : 'Show All Layers' }}
 			</a>
 		</v-card-title>
 
-		<v-card-text class="content py-0">
+		<v-card-text class="content px-2 py-0">
 			<canvas ref="chart"></canvas>
 		</v-card-text>
 	</v-card>

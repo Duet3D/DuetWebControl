@@ -8,6 +8,7 @@
 'use strict'
 
 import VBtn from 'vuetify/es5/components/VBtn'
+
 import { mapGetters, mapActions } from 'vuex'
 
 export default {

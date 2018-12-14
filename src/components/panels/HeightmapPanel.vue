@@ -1,13 +1,4 @@
 <style scoped>
-.card {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	height: 100% !important;
-}
-.content {
-	flex-grow: 1;
-}
 .loading {
 	background-color: black;
 }
@@ -23,6 +14,7 @@
 }
 canvas {
 	display: flex;
+	min-height: 480px;
 }
 .no-cursor {
 	pointer-events: none;
@@ -30,76 +22,78 @@ canvas {
 </style>
 
 <template>
-	<v-card class="card">
-		<v-container fluid>
-			<v-layout row fill-height>
-				<!-- TODO: Add CSV list here -->
+	<div class="component">
+		<v-card class="card">
+			<v-container ref="container" class="pa-1" fluid>
+				<v-layout row wrap fill-height>
+					<!-- TODO: Add CSV list here -->
 
-				<v-flex>
-					<v-layout row fill-height>
-						<v-flex ref="loading" class="loading" v-show="!ready">
-							<v-layout fill-height align-center>
-								<v-flex tag="h1" class="text-xs-center">
-									{{ loading ? 'loading...' : errorMessage }}
-								</v-flex>
-							</v-layout>
-						</v-flex>
-						<v-flex ref="canvasParent" v-show="ready">
-							<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
-								<template slot="activator">
-									<canvas ref="canvas" class="canvas" @mousemove="canvasMouseMove"></canvas>
-								</template>
+					<v-flex class="pa-2" xs12 sm12 md9 lg10 xl10>
+						<v-layout ref="parentElement" row fill-height>
+							<v-flex class="loading" v-show="!ready">
+								<v-layout fill-height align-center>
+									<v-flex tag="h1" class="text-xs-center">
+										{{ loading ? 'loading...' : errorMessage }}
+									</v-flex>
+								</v-layout>
+							</v-flex>
+							<v-flex v-show="ready" shrink>
+								<canvas ref="canvas" class="canvas" @mousemove="canvasMouseMove"></canvas>
+							</v-flex>
+							<v-flex d-flex shrink>
+								<canvas ref="legend" class="legend" width="80"></canvas>
+							</v-flex>
+						</v-layout>
+					</v-flex>
 
-								<span class="no-cursor">
-									X: {{ $display(tooltip.coord.x, 1, 'mm') }}<br/>
-									Y: {{ $display(tooltip.coord.y, 1, 'mm') }}<br/>
-									Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
-								</span>
-							</v-tooltip>
-						</v-flex>
-						<v-flex shrink>
-							<canvas ref="legend" class="legend" width="80"></canvas>
-						</v-flex>
-					</v-layout>
-				</v-flex>
+					<v-flex class="pa-2" xs12 sm12 md3 lg2 xl2>
+						<v-layout column fill-height justifiy-space-between>
+							<v-flex class="pt-2">
+								Number of points: {{ $display(numPoints, 0) }}
+							</v-flex>
+							<v-flex>
+								Probing radius: {{ $display(radius, 0, 'mm') }}
+							</v-flex>
+							<v-flex>
+								Probe area: {{ $display(area / 100, 1, 'cm²') }}
+							</v-flex>
+							<v-flex>
+								Maximum deviations: {{ $display(minDiff, 3) }} / {{ $display(maxDiff, 3, 'mm') }}
+							</v-flex>
+							<v-flex>
+								Mean error: {{ $display(meanError, 3, 'mm') }}
+							</v-flex>
+							<v-flex>
+								RMS error: {{ $display(rmsError, 3, 'mm') }}
+							</v-flex>
+							<v-flex>
+								<v-btn class="ml-0" :disabled="!ready" @click="topView">
+									<v-icon small class="mr-1">vertical_align_bottom</v-icon> Top view
+								</v-btn>
+							</v-flex>
+							<v-flex shrink>
+								Color scheme:
+							</v-flex>
+							<v-flex class="pb-2" shrink>
+								<v-btn-toggle v-model="colorScheme">
+									<v-btn value="terrain">Terrain</v-btn>
+									<v-btn value="heat">Heat</v-btn>
+								</v-btn-toggle>
+							</v-flex>
+						</v-layout>
+					</v-flex>
+				</v-layout>
+			</v-container>
+		</v-card>
 
-				<v-flex shrink class="pl-3">
-					<v-layout column fill-height justifiy-space-between>
-						<v-flex>
-							Number of points: {{ $display(numPoints, 0) }}
-						</v-flex>
-						<v-flex>
-							Probing radius: {{ $display(radius, 0, 'mm') }}
-						</v-flex>
-						<v-flex>
-							Probe area: {{ $display(area / 100, 1, 'cm²') }}
-						</v-flex>
-						<v-flex>
-							Maximum deviations: {{ $display(minDiff, 3) }} / {{ $display(maxDiff, 3, 'mm') }}
-						</v-flex>
-						<v-flex>
-							Mean error: {{ $display(meanError, 3, 'mm') }}
-						</v-flex>
-						<v-flex>
-							RMS error: {{ $display(rmsError, 3, 'mm') }}
-						</v-flex>
-						<v-flex>
-							<v-btn class="ml-0" :disabled="!ready" @click="topView">
-								<v-icon small class="mr-1">vertical_align_bottom</v-icon> Top view
-							</v-btn>
-						</v-flex>
-						<v-flex>
-							Color scheme:<br/>
-							<v-btn-toggle v-model="colorScheme">
-								<v-btn value="terrain">Terrain</v-btn>
-								<v-btn value="heat">Heat</v-btn>
-							</v-btn-toggle>
-						</v-flex>
-					</v-layout>
-				</v-flex>
-			</v-layout>
-		</v-container>
-	</v-card>
+		<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
+			<span class="no-cursor">
+				X: {{ $display(tooltip.coord.x, 1, 'mm') }}<br/>
+				Y: {{ $display(tooltip.coord.y, 1, 'mm') }}<br/>
+				Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
+			</span>
+		</v-tooltip>
+	</div>
 </template>
 
 <script>
@@ -110,8 +104,9 @@ import { mapGetters, mapActions } from 'vuex'
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
 import OrbitControls from 'three-orbitcontrols'
 
-import CSV from '../../utils/csv.js'
 import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from '../../utils/3d.js'
+import CSV from '../../utils/csv.js'
+import Path from '../../utils/path.js'
 
 const scaleZ = 0.5, maxVisualizationZ = 0.25
 const indicatorColor = 0xFFFFFF, indicatorOpacity = 0.4, indicatorOpacityHighlighted = 1.0
@@ -193,8 +188,9 @@ export default {
 			}
 
 			// Resize canvas elements
-			const width = this.ready ? this.$refs.canvasParent.offsetWidth : this.$refs.loading.offsetWidth;
-			const height = this.ready ? this.$refs.canvasParent.offsetHeight : this.$refs.loading.offsetHeight;
+			const containerOffset = this.$refs.container.scrollWidth - this.$refs.container.offsetWidth;
+			const width = this.$refs.parentElement.offsetWidth - this.$refs.legend.offsetWidth - containerOffset;
+			const height = this.$refs.parentElement.offsetHeight;
 			this.$refs.legend.height = height;
 			this.$refs.canvas.width = width;
 			this.$refs.canvas.height = height;
@@ -311,6 +307,7 @@ export default {
 
 			// Render scene
 			this.ready = true;
+			this.resize();
 			this.render();
 		},
 		render() {
@@ -366,7 +363,7 @@ export default {
 			this.three.camera.updateProjectionMatrix();
 		},
 
-		async getHeightmap(file = '0:/sys/heightmap.csv') {
+		async getHeightmap(file = Path.heightmap) {
 			if (this.loading) {
 				// Don't attempt to load more than one file at once...
 				return;

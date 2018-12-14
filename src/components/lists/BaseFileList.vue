@@ -6,11 +6,18 @@ td {
 th.checkbox {
 	width: 1%;
 }
+
+.loading-cursor {
+	cursor: wait;
+}
+.loading-cursor td {
+	cursor: wait;
+}
 </style>
 
 <template>
 	<div>
-		<v-data-table v-model="innerValue" v-bind="$props" :items="innerFilelist" :loading="loading || innerLoading" :custom-sort="sort" :pagination.sync="innerPagination" select-all hide-actions item-key="name" class="elevation-3" :class="{ 'empty-table-fix' : innerFilelist.length === 0 }">
+		<v-data-table v-model="innerValue" v-bind="$props" :items="innerFilelist" :loading="loading || innerLoading" :custom-sort="sort" :pagination.sync="innerPagination" select-all hide-actions item-key="name" class="elevation-3" :class="{ 'empty-table-fix' : innerFilelist.length === 0, 'loading-cursor' : (loading || innerLoading || doingFileOperation || innerDoingFileOperation) }">
 			<template slot="progress">
 				<slot name="progress">
 				<v-progress-linear indeterminate></v-progress-linear>
@@ -76,16 +83,16 @@ th.checkbox {
 			<v-list>
 				<slot name="context-menu"></slot>
 
-				<v-list-tile v-show="innerValue.length === 1 && filesSelected" @click="download">
+				<v-list-tile v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
 					<v-icon class="mr-1">cloud_download</v-icon> Download File
 				</v-list-tile>
-				<v-list-tile v-show="innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit">
-					<v-icon class="mr-1">edit</v-icon> Edit
+				<v-list-tile v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit">
+					<v-icon class="mr-1">edit</v-icon> Edit File
 				</v-list-tile>
-				<v-list-tile v-show="innerValue.length === 1" @click="rename">
-					<v-icon class="mr-1">short_text</v-icon> Rename File or Directory
+				<v-list-tile v-show="!noRename && innerValue.length === 1" @click="rename">
+					<v-icon class="mr-1">short_text</v-icon> Rename
 				</v-list-tile>
-				<v-list-tile @click="remove">
+				<v-list-tile v-show="!noDelete" @click="remove">
 					<v-icon class="mr-1">delete</v-icon> Delete
 				</v-list-tile>
 				<v-list-tile v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
@@ -95,7 +102,7 @@ th.checkbox {
 		</v-menu>
 
 		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content"></file-edit-dialog>
-		<file-rename-dialog :shown.sync="renameDialog.shown" :directory="renameDialog.directory" :filename="renameDialog.filename"></file-rename-dialog>
+		<input-dialog :shown.sync="renameDialog.shown" title="Rename File or Directory" prompt="Please enter a new name:" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback"></input-dialog>
 	</div>
 </template>
 
@@ -108,7 +115,7 @@ import VDataTable from 'vuetify/es5/components/VDataTable'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { crudActions } from '../../store/machine'
+import { getModifiedDirectory } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
@@ -150,7 +157,13 @@ export default {
 		},
 		filelist: Array,
 		value: Array,
-		loading: Boolean
+		loading: Boolean,
+		doingFileOperation: Boolean,
+		noDragDrop: Boolean,
+		noDownload: Boolean,
+		noEdit: Boolean,
+		noRename: Boolean,
+		noDelete: Boolean
 	},
 	computed: {
 		...mapState('machine', ['storages']),
@@ -180,6 +193,7 @@ export default {
 			innerDirectory: this.directory,
 			innerFilelist: [],
 			innerLoading: false,
+			innerDoingFileOperation: false,
 			innerPagination: {
 				sortBy: this.sortBy,
 				descending: this.descending,
@@ -200,7 +214,7 @@ export default {
 			renameDialog: {
 				shown: false,
 				directory: '',
-				filename: ''
+				item: null
 			}
 		}
 	},
@@ -291,6 +305,8 @@ export default {
 
 				this.innerDirectory = directory;
 				this.innerFilelist = files;
+				this.innerValue = [];
+
 				this.$nextTick(function() {
 					this.$emit('directoryLoaded', directory);
 				});
@@ -335,7 +351,11 @@ export default {
 			});
 		},
 		dragStart(item, e) {
-			const itemsToDrag = this.innerValue.slice();
+			if (this.noDragDrop) {
+				return;
+			}
+
+			const itemsToDrag = this.innerValue;
 			if (itemsToDrag.indexOf(item) === -1) {
 				itemsToDrag.push(item);
 			}
@@ -377,7 +397,7 @@ export default {
 			this.$nextTick(() => tableClone.remove());
 		},
 		dragOver(item, e) {
-			if (item.isDirectory) {
+			if (!this.noDragDrop && item.isDirectory) {
 				const jsonData = e.dataTransfer.getData('application/json');
 				if (jsonData) {
 					const data = JSON.parse(jsonData);
@@ -444,17 +464,53 @@ export default {
 		},
 		async rename(item) {
 			this.renameDialog.directory = this.innerDirectory;
-			this.renameDialog.filename = (item && item.name) ? item.name : this.innerValue[0].name;
+			this.renameDialog.item = (item && item.name) ? item : this.innerValue[0];
 			this.renameDialog.shown = true;
 		},
-		async remove(items) {
-			if (!items || !(items instanceof Array)) { items = this.innerValue.slice(); }
+		async renameCallback(newFilename) {
+			const oldFilename = this.renameDialog.item.name;
+			if (this.innerDoingFileOperation) {
+				return;
+			}
 
+			this.innerDoingFileOperation = true;
+			try {
+				await this.machineMove({
+					from: Path.combine(this.renameDialog.directory, oldFilename),
+					to: Path.combine(this.renameDialog.directory, newFilename)
+				});
+
+				this.innerFilelist.some(function(file) {
+					if (file.isDirectory === this.isDirectory && file.name === this.name) {
+						file.name = newFilename;
+						return true;
+					}
+					return false;
+				}, this.renameDialog.item);
+
+				this.$makeNotification('success', `Successfully renamed ${oldFilename} to ${newFilename}`);
+			} catch (e) {
+				console.warn(e);
+				this.$log('error', `Failed to rename ${oldFilename} to ${newFilename}`, e.message);
+			}
+			this.innerDoingFileOperation = false;
+		},
+		async remove(items) {
+			if (!items || !(items instanceof Array)) {
+				items = this.innerValue.slice();
+			}
+
+			if (this.innerDoingFileOperation) {
+				return;
+			}
+
+			this.innerDoingFileOperation = true;
 			const deletedItems = [], directory = this.directory;
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const item = items[i];
 					await this.machineDelete(Path.combine(directory, item.name));
+
 					deletedItems.push(items[i]);
 					this.innerFilelist = this.innerFilelist.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 					this.innerValue = this.innerValue.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
@@ -466,6 +522,7 @@ export default {
 			if (deletedItems.length) {
 				this.$log('success', (deletedItems.length > 1) ? `Successfully deleted ${deletedItems.length} items` : `Successfully deleted ${deletedItems[0].name}`);
 			}
+			this.innerDoingFileOperation = false;
 		},
 		async downloadZIP(items) {
 			if (!items || !(items instanceof Array)) { items = this.innerValue.slice(); }
@@ -475,7 +532,7 @@ export default {
 			const zip = new JSZip();
 			for (let i = 0; i < items.length; i++) {
 				try {
-					const file = await this.machineDownload({ filename: Path.combine(directory, items[i].name), showSuccess: false });
+					const file = await this.machineDownload({ filename: Path.combine(directory, items[i].name), num: i + 1, count: items.length });
 					zip.file(items[i].name, file);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
@@ -499,17 +556,21 @@ export default {
 		}
 	},
 	mounted() {
+		// Perform initial load
 		if (this.isConnected) {
 			this.wasMounted = (this.storages.length > this.storageIndex) && this.storages[this.storageIndex].mounted;
 			this.loadDirectory(this.innerDirectory);
 		}
 
+		// Keep track of file changes
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			const segments = action.type.split('/');
-			if (segments.length === 3 && segments[1] === state.selectedMachine && crudActions.indexOf(segments[2]) !== -1) {
-				// TODO Ideally we should map CRUD actions here so no full refresh would be needed
-				await that.refresh();
+			if (!that.doingFileOperation && !that.innerDoingFileOperation) {
+				const modifiedDirectory = getModifiedDirectory(action, state);
+				if (Path.pathAffectsFilelist(modifiedDirectory, that.innerDirectory, that.innerFilelist)) {
+					// Refresh when an external operation has caused a change
+					await that.refresh();
+				}
 			}
 		});
 	},
@@ -541,16 +602,24 @@ export default {
 			}
 		},
 		innerDirectory(to) {
-			this.$emit('update:directory', to);
+			if (this.directory !== to) {
+				this.$emit('update:directory', to);
+			}
 		},
 		innerFilelist(to) {
-			this.$emit('update:filelist', to);
+			if (this.filelist !== to) {
+				this.$emit('update:filelist', to);
+			}
 		},
 		innerLoading(to) {
-			this.$emit('update:loading', to);
+			if (this.loading !== to) {
+				this.$emit('update:loading', to);
+			}
 		},
 		innerValue(to) {
-			this.$emit('input', to);
+			if (this.value !== to) {
+				this.$emit('input', to);
+			}
 		}
 	}
 }

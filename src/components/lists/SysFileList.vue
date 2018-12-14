@@ -1,11 +1,17 @@
 <template>
-	<div v-auto-size>
+	<div class="component">
 		<v-toolbar>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>
 
-			<v-btn :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn :disabled="frozen" @click="showNewFile = true">
+				<v-icon class="mr-1">add</v-icon> New File
+			</v-btn>
+			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+			</v-btn>
+			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn :directory="directory" target="sys" color="primary"></upload-btn>
@@ -16,6 +22,9 @@
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No System Files</v-alert>
 			</template>
 		</base-file-list>
+
+		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
+		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
 	</div>
 </template>
 
@@ -38,12 +47,8 @@ export default {
 			directory: Path.sys,
 			loading: false,
 			selection: [],
-			confirmDialog: {
-				question: '',
-				prompt: '',
-				filename: '',
-				shown: false
-			}
+			showNewDirectory: false,
+			showNewFile: false
 		}
 	},
 	methods: {

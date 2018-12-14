@@ -11,7 +11,7 @@
 
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="blue darken-1" flat @click="declined">{{ $t('generic.no') }}</v-btn>
+				<v-btn color="blue darken-1" flat @click="dismissed">{{ $t('generic.no') }}</v-btn>
 				<v-btn color="blue darken-1" flat @click="confirmed">{{ $t('generic.yes') }}</v-btn>
 			</v-card-actions>
 		</v-card>
@@ -41,8 +41,8 @@ export default {
 			this.$emit('confirmed');
 			this.$emit('update:shown', false);
 		},
-		declined() {
-			this.$emit('declined');
+		dismissed() {
+			this.$emit('dismissed');
 			this.$emit('update:shown', false);
 		}
 	}

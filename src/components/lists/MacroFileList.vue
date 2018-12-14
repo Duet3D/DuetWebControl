@@ -1,14 +1,20 @@
 <template>
-	<div v-auto-size>
+	<div class="component">
 		<v-toolbar>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>
 
-			<v-btn :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewFile = true">
+				<v-icon class="mr-1">add</v-icon> New Macro
+			</v-btn>
+			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewDirectory = true">
+				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+			</v-btn>
+			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="frozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
-			<upload-btn :directory="directory" target="macros" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :directory="directory" target="macros" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" @fileClicked="fileClicked">
@@ -23,7 +29,22 @@
 			</template>
 		</base-file-list>
 
-		<confirm-dialog :shown.sync="confirmDialog.shown" :question="confirmDialog.question" :prompt="confirmDialog.prompt" @confirmed="runFile(confirmDialog.filename)"></confirm-dialog>
+		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
+			<v-btn :disabled="frozen" @click="showNewFile = true">
+				<v-icon class="mr-1">add</v-icon> New Macro
+			</v-btn>
+			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+			</v-btn>
+			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+				<v-icon class="mr-1">refresh</v-icon> Refresh
+			</v-btn>
+			<upload-btn :directory="directory" target="macros" color="primary"></upload-btn>
+		</v-layout>
+
+		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
+		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
+		<confirm-dialog :shown.sync="runMacroDialog.shown" :question="runMacroDialog.question" :prompt="runMacroDialog.prompt" @confirmed="runFile(runMacroDialog.filename)"></confirm-dialog>
 	</div>
 </template>
 
@@ -46,12 +67,14 @@ export default {
 			directory: Path.macros,
 			loading: false,
 			selection: [],
-			confirmDialog: {
+			runMacroDialog: {
 				question: '',
 				prompt: '',
 				filename: '',
 				shown: false
-			}
+			},
+			showNewDirectory: false,
+			showNewFile: false
 		}
 	},
 	methods: {
@@ -60,10 +83,10 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			this.confirmDialog.question = `Run ${item.name}`;
-			this.confirmDialog.prompt = `Do you want to run ${item.name}?`;
-			this.confirmDialog.filename = item.name;
-			this.confirmDialog.shown = true;
+			this.runMacroDialog.question = `Run ${item.name}`;
+			this.runMacroDialog.prompt = `Do you want to run ${item.name}?`;
+			this.runMacroDialog.filename = item.name;
+			this.runMacroDialog.shown = true;
 		},
 		runFile(filename) {
 			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);

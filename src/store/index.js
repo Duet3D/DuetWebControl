@@ -16,7 +16,7 @@ import { logGlobal, logCode, log } from '../plugins/logging.js'
 import { makeFileTransferNotification } from '../plugins/toast.js'
 
 import { DisconnectedError, OperationCancelledError, CodeBufferError } from '../utils/errors.js'
-import { extractFileName } from '../utils/path.js'
+import Path from '../utils/path.js'
 
 Vue.use(Vuex)
 
@@ -117,17 +117,33 @@ const store = new Vuex.Store({
 		},
 
 		// Upload a file and show progress
-		async upload({ state, dispatch }, { filename, content, hostname = state.selectedMachine, showSuccess = true, showError = true }) {
+		async upload({ state, dispatch }, { filename, content, hostname = state.selectedMachine, showSuccess = true, showError = true, num, count }) {
 			const cancelSource = BaseConnector.getCancelSource();
-			const notification = makeFileTransferNotification('upload', filename, cancelSource);
+			const notification = makeFileTransferNotification('upload', filename, cancelSource, num, count);
 			try {
+				// Check if config.g needs to be backed up
+				if (filename === Path.configFile) {
+					try {
+						await dispatch(`machines/${hostname}/move`, { from: Path.configFile, to: Path.configBackupFile, force: true });
+					} catch (e) {
+						console.warn(e);
+						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, hostname);
+						return;
+					}
+				}
+
+				// Perform upload
 				const startTime = new Date();
 				const response = await dispatch(`machines/${hostname}/upload`, { filename, content, cancelSource, onProgress: notification.onProgress });
 
 				// Show success message
-				if (showSuccess) {
-					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					log('success', i18n.t('notification.upload.success', [extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+				if (showSuccess && num === count) {
+					if (count) {
+						log('success', i18n.t('notification.upload.successMulti', [count]), undefined, hostname);
+					} else {
+						const secondsPassed = Math.round((new Date() - startTime) / 1000);
+						log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+					}
 				}
 
 				// Return the response
@@ -138,30 +154,36 @@ const store = new Vuex.Store({
 				notification.hide();
 				if (showError && !(e instanceof OperationCancelledError)) {
 					console.warn(e);
-					log('error', i18n.t('notification.upload.error', [extractFileName(filename)]), e, hostname);
+					log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, hostname);
 				}
 				throw e;
 			}
 		},
 
 		// Download a file and show progress
-		// Parameter can be either the filename or an object { filename, (hostname, showSuccess, showError) }
+		// Parameter can be either the filename or an object { filename, (hostname, showSuccess, showError, num, count) }
 		async download({ state, dispatch }, payload) {
 			const filename = (payload instanceof Object) ? payload.filename : payload;
 			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
 			const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
 			const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
+			const num = (payload instanceof Object) ? payload.num : undefined;
+			const count = (payload instanceof Object) ? payload.count : undefined;
 
 			const cancelSource = BaseConnector.getCancelSource();
-			const notification = makeFileTransferNotification('download', filename, cancelSource);
+			const notification = makeFileTransferNotification('download', filename, cancelSource, num, count);
 			try {
 				const startTime = new Date();
 				const response = await dispatch(`machines/${hostname}/download`, { filename, cancelSource, onProgress: notification.onProgress });
 
 				// Show success message
-				if (showSuccess) {
-					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					log('success', i18n.t('notification.download.success', [extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+				if (showSuccess && num === count) {
+					if (count) {
+						log('success', i18n.t('notification.download.successMulti', [count]), undefined, hostname);
+					} else {
+						const secondsPassed = Math.round((new Date() - startTime) / 1000);
+						log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+					}
 				}
 
 				// Return the downloaded data
@@ -172,7 +194,7 @@ const store = new Vuex.Store({
 				notification.hide();
 				if (showError && !(e instanceof OperationCancelledError)) {
 					console.warn(e);
-					log('error', i18n.t('notification.download.error', [extractFileName(filename)]), e, hostname);
+					log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e, hostname);
 				}
 				throw e;
 			}

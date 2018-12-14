@@ -1,5 +1,5 @@
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">vertical_align_center</v-icon> Z Babystepping
 		</v-card-title>

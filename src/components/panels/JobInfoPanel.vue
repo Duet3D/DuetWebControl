@@ -8,7 +8,7 @@ p:last-child {
 </style>
 
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">info</v-icon> Job Information
 		</v-card-title>

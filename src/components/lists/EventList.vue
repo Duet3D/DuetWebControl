@@ -17,7 +17,7 @@ td.title-cell {
 </style>
 
 <template>
-	<div v-auto-size>
+	<div class="component">
 		<v-data-table :headers="headers" :items="events" :pagination="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : events.length === 0 }">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">{{ $t('list.eventLog.noEvents') }}</v-alert>

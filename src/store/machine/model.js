@@ -84,7 +84,7 @@ export default function(connector) {
 			title: undefined,
 			message: undefined,
 			timeout: undefined,
-			controls: undefined
+			axisControls: []						// provides axis indices
 		},
 		move: {
 			axes: [

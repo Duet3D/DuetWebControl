@@ -14,9 +14,9 @@
 			<v-icon small class="mr-1">ac_unit</v-icon> Fan Control
 		</v-card-title>
 
-		<v-card-text class="px-3 pt-0 pb-2">
+		<v-card-text class="px-3 pt-0">
 			<v-layout row wrap align-start>
-				<v-flex>
+				<v-flex order-sm2 order-md1>
 					<p class="mb-1">Fan selection:</p>
 					<v-btn-toggle v-model="fan" mandatory>
 						<v-btn flat :value="-1" :disabled="!canControlFans" color="primary">
@@ -30,7 +30,7 @@
 					</v-btn-toggle>
 				</v-flex>
 
-				<v-flex>
+				<v-flex order-sm1 order-md2>
 					<slider v-model="fanValue" :disabled="!canControlFans"></slider>
 				</v-flex>
 			</v-layout>
@@ -59,9 +59,9 @@ export default {
 							// we assume they all share the same fan value if such a config is set
 							toolFan = this.currentTool.fans[0];
 						}
-						return this.fans[toolFan].value * 100;
+						return Math.round(this.fans[toolFan].value * 100);
 					}
-					return this.fans[this.fan].value * 100;
+					return Math.round(this.fans[this.fan].value * 100);
 				}
 				return 0;
 			},

@@ -68,7 +68,7 @@ class BaseConnector {
 	async delete(filename) { throw new NotImplementedError('delete'); }
 
 	// Move a file
-	async move({ from, to }) { throw new NotImplementedError('move'); }
+	async move({ from, to, force }) { throw new NotImplementedError('move'); }
 
 	// Make a new directroy
 	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }

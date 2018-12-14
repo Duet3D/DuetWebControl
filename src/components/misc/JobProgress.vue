@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="component">
 		<v-layout column>
 			<v-flex>
 				<v-layout row wrap>

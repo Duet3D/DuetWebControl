@@ -28,7 +28,7 @@ export function extractFileName(path) {
 	return path;
 }
 
-export function extractDirectory(path) {
+export function extractFilePath(path) {
 	if (path.indexOf('/') !== -1) {
 		const items = path.split('/');
 		items.pop();
@@ -40,6 +40,25 @@ export function extractDirectory(path) {
 		return items.length ? items.reduce((a, b) => `${a}\\${b}`) : '';
 	}
 	return path;
+}
+
+export function pathAffectsFilelist(path, directory, filelist) {
+	if (!path || !directory || !filelist || path.length < directory.length) {
+		return false;
+	}
+
+	if (path === directory) {
+		return true;
+	}
+
+	if (path.startsWith(directory)) {
+		const subPath = path.substr(directory.length + (directory.endsWith('/') ? 0 : 1));
+		if (subPath === '' || filelist.some(file => subPath === file.name)) {
+			return true;
+		}
+		return !filelist.some(file => file.isDirectory && subPath.startsWith(file.name + '/'));
+	}
+	return false;
 }
 
 export function stripMacroFilename(filename) {
@@ -67,9 +86,14 @@ export default {
 	sys: '0:/sys',
 	www: '0:/www',
 
+	configFile: '0:/sys/config.g',
+	configBackupFile: '0:/sys/config.bak',
+	heightmap: '0:/sys/heightmap.csv',
+
 	combine,
 	extractFileName,
-	extractDirectory,
+	extractFilePath,
 
+	pathAffectsFilelist,
 	stripMacroFilename
 }

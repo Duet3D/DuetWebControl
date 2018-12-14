@@ -9,13 +9,13 @@
 </style>
 
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">opacity</v-icon> Extrusion Control
 		</v-card-title>
 
-		<v-card-text class="px-3 pt-0 pb-2">
-			<v-layout row align-center>
+		<v-card-text class="px-3 pt-0">
+			<v-layout row align-end>
 				<v-flex>
 					<v-layout row wrap>
 						<v-flex v-if="currentTool && currentTool.extruders.length > 1" class="pr-3">

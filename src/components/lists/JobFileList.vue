@@ -1,5 +1,5 @@
 <template>
-	<div v-auto-size>
+	<div class="component">
 		<v-toolbar>
 			<v-menu offset-y v-if="storages.length > 1">
 				<v-btn color="success" slot="activator">
@@ -17,10 +17,13 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewDirectory = true">
+				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+			</v-btn>
+			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="frozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
-			<upload-btn :directory="directory" target="gcodes" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked">
@@ -40,7 +43,18 @@
 			</template>
 		</base-file-list>
 
-		<confirm-dialog :shown.sync="confirmDialog.shown" :question="confirmDialog.question" :prompt="confirmDialog.prompt" @confirmed="start(confirmDialog.item)"></confirm-dialog>
+		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
+			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+			</v-btn>
+			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+				<v-icon class="mr-1">refresh</v-icon> Refresh
+			</v-btn>
+			<upload-btn :directory="directory" target="gcodes" color="primary"></upload-btn>
+		</v-layout>
+
+		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
+		<confirm-dialog :shown.sync="startJobDialog.shown" :question="startJobDialog.question" :prompt="startJobDialog.prompt" @confirmed="start(startJobDialog.item)"></confirm-dialog>
 	</div>
 </template>
 
@@ -115,12 +129,13 @@ export default {
 			loadingValue: false,
 			fileinfoDirectory: undefined,
 			fileinfoProgress: -1,
-			confirmDialog: {
+			startJobDialog: {
 				question: '',
 				prompt: '',
 				item: undefined,
 				shown: false
-			}
+			},
+			showNewDirectory: false
 		}
 	},
 	methods: {
@@ -209,10 +224,10 @@ export default {
 			}
 		},
 		fileClicked(item) {
-			this.confirmDialog.question = `Start ${item.name}`;
-			this.confirmDialog.prompt = `Do you want to start ${item.name}?`;
-			this.confirmDialog.item = item;
-			this.confirmDialog.shown = true;
+			this.startJobDialog.question = `Start ${item.name}`;
+			this.startJobDialog.prompt = `Do you want to start ${item.name}?`;
+			this.startJobDialog.item = item;
+			this.startJobDialog.shown = true;
 		},
 		start(item) {
 			this.sendCode(`M32 "${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);

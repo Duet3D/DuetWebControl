@@ -25,7 +25,7 @@ a:not(:hover) {
 </style>
 
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title class="py-2">
 			<v-icon small class="mr-1">info</v-icon> {{ $t('panel.status.caption') }}
 

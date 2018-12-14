@@ -1,5 +1,5 @@
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">ac_unit</v-icon> Fans
 			<v-spacer></v-spacer>
@@ -34,7 +34,7 @@
 					<span>
 						{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
 					</span>
-					<slider :value="fans.length ? fans[(fan === -1) ? toolFan : fan].value * 100 : 0" @input="setFanValue(fan, $event)" :disabled="frozen" class="pt-3"></slider>
+					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="frozen" class="pt-3"></slider>
 				</v-flex>
 			</v-layout>
 		</v-card-text>
@@ -72,6 +72,9 @@ export default {
 	methods: {
 		...mapActions(['sendCode']),
 		...mapMutations('ui', ['toggleFanVisibility']),
+		getFanValue(fan) {
+			return this.fans.length ? Math.round(this.fans[(fan === -1) ? this.toolFan : fan].value * 100) : 0;
+		},
 		setFanValue(fan, value) {
 			if (fan === -1) {
 				this.sendCode(`M106 S${value / 100}`);

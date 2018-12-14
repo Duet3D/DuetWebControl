@@ -7,7 +7,7 @@ export function bitmapToArray(bitmap) {
 		const bit = (1 << i);
 		if (bitmap & bit) {
 			bitmap &= ~bit;
-			result.push(bit);
+			result.push(i);
 		}
 		i++;
 	} while (bitmap !== 0);

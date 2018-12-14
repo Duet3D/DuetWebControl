@@ -1,5 +1,5 @@
 <template>
-	<v-card v-auto-size>
+	<v-card>
 		<v-card-title>
 			<v-icon small class="mr-1">texture</v-icon> Extrusion Factors
 			<v-spacer></v-spacer>
@@ -38,7 +38,7 @@
 						</v-layout>
 					</v-flex>
 					<v-flex>
-						<slider :value="move.extruders[extruder].factor * 100" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="frozen" class="pt-4"></slider>
+						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="frozen" class="pt-4"></slider>
 					</v-flex>
 				</v-flex>
 			</v-layout>
@@ -68,6 +68,9 @@ export default {
 		...mapActions(['sendCode']),
 		...mapMutations('ui', ['toggleExtruderVisibility']),
 		getMax(extruder) { return Math.max(150, this.move.extruders[extruder].factor * 100 + 50); },
+		getExtrusionFactor(extruder) {
+			return Math.round(this.move.extruders[extruder].factor * 100);
+		},
 		setExtrusionFactor(extruder, value) {
 			this.sendCode(`M221 D${extruder} S${value}`);
 		}

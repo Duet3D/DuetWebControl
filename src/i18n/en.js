@@ -14,12 +14,6 @@ export default {
 		noDataText: 'No data available'
 	},
 	button: {
-		compensation: {
-			caption: 'Auto Bed Compensation',
-			captionDelta: 'Auto Delta Calibration',
-			title: 'Perform automatic bed compensation (G32)',
-			titleDelta: 'Perform automatic delta compensation (G32)'
-		},
 		connect: {
 			connect: 'Connect',
 			connecting: 'Connecting...',
@@ -90,7 +84,8 @@ export default {
 			title: 'Reset Heater Fault',
 			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a phsical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
 			resetFault: 'Reset Fault'
-		}
+		},
+		inputRequired: 'Please enter a value'
 	},
 	error: {
 		notImplemented: '{0} is not implemented',
@@ -104,6 +99,9 @@ export default {
 		cancelled: 'Operation has been cancelled',
 		operationFailed: 'Operation failed (Reason: {0})',
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
+		uploadNoSingleZIP: 'Only a single ZIP file can be uploaded at once',
+		uploadNoFiles: 'This ZIP does not contain any usable fiels',
+		uploadDecompressionFailed: 'Failed to decompress ZIP file',
 		codeResponseError: 'Could not run code because a bad response has been received',
 		codeBufferError: 'Could run code because the buffer space has been exhausted',
 		enterValidNumber: 'Please enter a valid number',
@@ -200,6 +198,7 @@ export default {
 			title: 'Downloading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being downloaded...',
 			success: 'Download of {0} successful after {1}',
+			successMulti: 'Successfully downloaded {0} files',
 			error: 'Failed to download {0}'
 		},
 		message: 'Message',
@@ -208,12 +207,16 @@ export default {
 			title: 'Uploading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being uploaded...',
 			success: 'Upload of {0} successful after {1}',
+			successMulti: 'Successfully uploaded {0} files',
 			error: 'Failed to upload {0}'
 		}
 	},
 	panel: {
 		movement: {
 			caption: 'Machine Movement',
+			compensation: 'Auto Compensation',
+			runBed: 'Run Automatic Bed Compensation (G32)',
+			runDelta: 'Run Automatic Delta Compensation (G32)',
 			compensationInUse: 'Compensation in use: {0}',
 			disableBedCompensation: 'Disable Bed Compensation (M561)',
 			disableMeshCompensation: 'Disable Grid Compensation (G29 S2)',
