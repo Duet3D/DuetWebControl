@@ -30,8 +30,8 @@ import { extractFileName } from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine', ['job', 'state']),
-		...mapGetters('machine', ['jobProgress']),
+		...mapState('machine/model', ['job', 'state']),
+		...mapGetters('machine/model', ['jobProgress']),
 		filamentLeft() {
 			return Math.max(0, this.job.filamentNeeded.reduce((a, b) => a + b) - this.job.extrudedRaw.reduce((a, b) => a + b));
 		},

@@ -71,8 +71,11 @@ export default {
 		connect: {
 			title: 'Connect to Machine',
 			prompt: 'Please enter the hostname of the machine that you would like to connect to:',
-			placeholder: 'Hostname',
+			hostPlaceholder: 'Hostname',
 			hostRequired: 'Hostname is required',
+			passwordPlaceholderOptional: 'Password (optional)',
+			passwordPlaceholder: 'Password',
+			passwordRequired: 'Password is required',
 			connect: 'Connect'
 		},
 		filament: {

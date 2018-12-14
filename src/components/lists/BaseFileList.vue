@@ -166,8 +166,9 @@ export default {
 		noDelete: Boolean
 	},
 	computed: {
-		...mapState('machine', ['storages']),
+		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected']),
+		...mapState('machine/model', ['storages']),
 		storageIndex() {
 			const matches = /^(\d+)/.exec(this.innerDirectory);
 			if (matches) {
@@ -221,12 +222,10 @@ export default {
 	extends: VDataTable,
 	methods: {
 		...mapActions('machine', {
-			getFileList: 'getFileList',
+			machineDownload: 'download',
 			machineMove: 'move',
-			machineDelete: 'delete'
-		}),
-		...mapActions({
-			machineDownload: 'download'
+			machineDelete: 'delete',
+			getFileList: 'getFileList'
 		}),
 		toggleAll() {
 			// FIXME For some reason this is called twice when the checkbox is checked
@@ -578,13 +577,10 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
-		isConnected(to) {
-			if (!to) {
-				// Clear list on disconnect and close the dialogs
-				this.innerFilelist = [];
-				this.editDialog.shown = false;
-				this.renameDialog.shown = false;
-			}
+		selectedMachine() {
+			this.innerFilelist = [];
+			this.editDialog.shown = false;
+			this.renameDialog.shown = false;
 		},
 		storages: {
 			deep: true,

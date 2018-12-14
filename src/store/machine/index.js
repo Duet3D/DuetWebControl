@@ -2,15 +2,19 @@
 
 import { mapConnectorActions } from './connector'
 
-import makeModel from './model.js'
-import { fixMachineItems } from './modelItems.js'
+import BaseConnector from './connector/BaseConnector.js'
+import cache from './cache.js'
+import model from './model.js'
+import settings from './settings.js'
 
 import i18n from '../../i18n'
-import { logCode, logGlobal } from '../../plugins/logging.js'
-import { showMessage } from '../../plugins/toast.js'
+
+import { displayTime } from '../../plugins/display.js'
+import { log, logCode } from '../../plugins/logging.js'
+import { makeFileTransferNotification, showMessage } from '../../plugins/toast.js'
 
 import beep from '../../utils/beep.js'
-import merge from '../../utils/merge.js'
+import { DisconnectedError, CodeBufferError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export function getModifiedDirectory(action, state) {
@@ -29,71 +33,162 @@ export function getModifiedDirectory(action, state) {
 	return undefined;
 }
 
-export default function(connector) {
+export default function(hostname, connector) {
 	return {
 		namespaced: true,
 		state: {
-			...makeModel(connector),
-			events: [],
-			autoSleep: false,
-			lastProcessedFile: undefined
+			hostname,
+
+			cache: cache(),
+			model: model(connector),
+			events: [],								// provides machine events in the form of { date, type, title, message }
+			settings: settings(),
+
+			autoSleep: false
 		},
 		getters: {
-			currentTool(state) {
-				if (state.state.currentTool >= 0) {
-					return state.tools[state.state.currentTool];
-				}
-				return null;
-			},
-			isPaused: state => ['D', 'S', 'R'].indexOf(state.state.status) !== -1,
-			isPrinting: state => ['D', 'S', 'R', 'P'].indexOf(state.state.status) !== -1,
-			maxHeaterTemperature(state) {
-				let maxTemp
-				state.heat.heaters.forEach(function(heater) {
-					if (!maxTemp || heater.max > maxTemp) {
-						maxTemp = heater.max;
-					}
-				});
-				return maxTemp;
-			},
-			jobProgress(state) {
-				if (state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
-					return Math.min(1, state.job.filamentNeeded.reduce((a, b) => a + b) / state.job.extrudedRaw.reduce((a, b) => a + b));
-				}
-				return state.job.fractionPrinted;
-			}
+			isPaused: () => connector && connector.isPaused(),
+			isPrinting: () => connector && connector.isPrinting()
 		},
 		actions: {
-			...mapConnectorActions(connector),
-			async update({ getters, state, commit, dispatch }, payload) {
-				const wasPrinting = getters.isPrinting, filename = state.job.filename;
+			...mapConnectorActions(connector, ['sendCode', 'upload', 'download', 'getFileInfo']),
 
-				// Merge updates into the object model
-				commit('updateModel', payload);
+			// Send a code and log the result (if applicable)
+			// Parameter can be either a string or an object { code, (fromInput) }
+			async sendCode({ state }, payload) {
+				const code = (payload instanceof Object) ? payload.code : payload;
+				const fromInput = (payload instanceof Object) ? !!payload.fromInput : false;
+				try {
+					const response = await connector.sendCode(code);
+					logCode(code, response, state.hostname, fromInput);
+				} catch (e) {
+					if (!(e instanceof DisconnectedError)) {
+						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
+						log(type, e, undefined, state.hostname);
+					}
+					throw e;
+				}
+			},
 
-				if (filename && wasPrinting && !getters.isPrinting) {
-					// Store the last file being processed if we are no longer printing
-					commit('setLastProcessedFile', filename);
-
-					// Send M1 if auto-sleep is enabled
-					if (state.autoSleep) {
+			// Upload a file and show progress
+			async upload({ state }, { filename, content, showSuccess = true, showError = true, num, count }) {
+				const cancelSource = BaseConnector.getCancelSource();
+				const notification = makeFileTransferNotification('upload', filename, cancelSource, num, count);
+				try {
+					// Check if config.g needs to be backed up
+					if (filename === Path.configFile) {
 						try {
-							await dispatch('sendCode', 'M1');
+							await connector.move({ from: Path.configFile, to: Path.configBackupFile, force: true });
 						} catch (e) {
-							logCode('M1', e.message, this.connector.hostname);
+							console.warn(e);
+							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, state.hostname);
+							return;
 						}
 					}
+
+					// Perform upload
+					const startTime = new Date();
+					const response = await connector.upload({ filename, content, cancelSource, onProgress: notification.onProgress });
+
+					// Show success message
+					if (showSuccess && num === count) {
+						if (count) {
+							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, state.hostname);
+						} else {
+							const secondsPassed = Math.round((new Date() - startTime) / 1000);
+							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, state.hostname);
+						}
+					}
+
+					// Return the response
+					notification.hide();
+					return response;
+				} catch (e) {
+					// Show and report error message
+					notification.hide();
+					if (showError && !(e instanceof OperationCancelledError)) {
+						console.warn(e);
+						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, state.hostname);
+					}
+					throw e;
 				}
+			},
+
+			// Download a file and show progress
+			// Parameter can be either the filename or an object { filename, (showSuccess, showError, num, count) }
+			async download({ state }, payload) {
+				const filename = (payload instanceof Object) ? payload.filename : payload;
+				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
+				const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
+				const num = (payload instanceof Object) ? payload.num : undefined;
+				const count = (payload instanceof Object) ? payload.count : undefined;
+
+				const cancelSource = BaseConnector.getCancelSource();
+				const notification = makeFileTransferNotification('download', filename, cancelSource, num, count);
+				try {
+					const startTime = new Date();
+					const response = await connector.download({ filename, cancelSource, onProgress: notification.onProgress });
+
+					// Show success message
+					if (showSuccess && num === count) {
+						if (count) {
+							log('success', i18n.t('notification.download.successMulti', [count]), undefined, state.hostname);
+						} else {
+							const secondsPassed = Math.round((new Date() - startTime) / 1000);
+							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, state.hostname);
+						}
+					}
+
+					// Return the downloaded data
+					notification.hide();
+					return response;
+				} catch (e) {
+					// Show and report error message
+					notification.hide();
+					if (showError && !(e instanceof OperationCancelledError)) {
+						console.warn(e);
+						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e, state.hostname);
+					}
+					throw e;
+				}
+			},
+
+			// Get info about the specified filename
+			async getFileInfo({ state, commit }, filename) {
+				if (state.cache.fileInfos.hasOwnProperty(filename)) {
+					return state.cache.fileInfos[filename];
+				}
+
+				const fileInfo = await connector.getFileInfo(filename);
+				commit('cache/setFileInfo', { filename, fileInfo });
+				return fileInfo;
+			},
+
+			// Update machine mode. Reserved for the machine connector!
+			async update({ getters, state, commit, dispatch }, payload) {
+				const wasPrinting = getters.isPrinting;
+
+				// Merge updates into the object model
+				commit('model/update', payload);
+
+				// Send M1 if auto-sleep is enabled
+				if (wasPrinting && !getters.isPrinting && state.autoSleep) {
+					try {
+						await dispatch('sendCode', 'M1');
+					} catch (e) {
+						logCode('M1', e.message, this.connector.hostname);
+					}
+				}
+			},
+
+			// Events for specific actions triggered from the machine connector
+			async onConnectionError({ state, dispatch }, error) {
+				await dispatch('onConnectionError', { hostname: state.hostname, error }, { root: true });
 			},
 			onCodeCompleted(context, { code, reply }) {
 				if (code === undefined) {
 					logCode(undefined, reply, this.hostname);
 				}
-			},
-			async onConnectionError({ state, dispatch }, error) {
-				// TODO: Implement auto reconnect here
-				await dispatch('disconnect', { hostname: state.hostname, doDisconnect: false }, { root: true });
-				logGlobal('error', i18n.t('error.statusUpdateFailed', [state.hostname]), error.message);
 			},
 			onDirectoryCreated: (context, directory) => null,
 			onFileUploaded: (context, { filename, content }) => null,
@@ -105,18 +200,18 @@ export default function(connector) {
 			clearLog: state => state.events = [],
 			log: (state, payload) => state.events.push(payload),
 
-			updateModel(state, payload) {
-				merge(state, payload, true);
-				fixMachineItems(state, payload);
-			},
 			beep: (state, { frequency, duration }) => beep(frequency, duration),
 			message: (state, message) => showMessage(message),
 			unregister: () => connector.unregister(),
 
 			setAutoSleep: (state, value) => state.autoSleep = value,
-			setLastProcessedFile: (state, filename) => state.lastProcessedFile = filename,
 			setHighVerbosity() { connector.verbose = true; },
 			setNormalVerbosity() { connector.verbose = false; }
+		},
+		modules: {
+			cache: cache(),
+			model: model(connector),
+			settings: settings()
 		}
 	}
 }

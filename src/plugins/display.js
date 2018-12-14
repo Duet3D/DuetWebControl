@@ -17,11 +17,11 @@ export function display(value, precision, unit) {
 }
 
 export function displayZ(value, showUnit = true) {
-	return display(value, (store.state.machine.state.mode === 'CNC') ? 3 : 2, showUnit ? 'mm' : undefined);
+	return display(value, (store.state.machine.model.state.mode === 'CNC') ? 3 : 2, showUnit ? 'mm' : undefined);
 }
 
 export function displaySize(bytes) {
-	if (store.state.ui.useBinaryPrefix) {
+	if (store.state.settings.useBinaryPrefix) {
 		if (bytes > 1073741824) {	// GiB
 			return (bytes / 1073741824).toFixed(1) + " GiB";
 		}
@@ -46,7 +46,7 @@ export function displaySize(bytes) {
 }
 
 export function displaySpeed(bytesPerSecond) {
-	if (store.state.ui.useBinaryPrefix) {
+	if (store.state.settings.useBinaryPrefix) {
 		if (bytesPerSecond > 1073741824) {		// GiB
 			return (bytesPerSecond / 1073741824).toFixed(2) + " GiB/s";
 		}

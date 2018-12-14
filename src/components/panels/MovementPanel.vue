@@ -1,16 +1,16 @@
 <style>
-.center-menu-item > div {
-	justify-content: center;
-}
-</style>
-
-<style scoped>
 .move-btn {
 	padding-left: 0;
 	padding-right: 0;
 	min-width: 0;
 }
 
+.center-menu-item > div {
+	justify-content: center;
+}
+</style>
+
+<style scoped>
 .nowrap {
 	flex-wrap: nowrap;
 }
@@ -29,9 +29,9 @@
 
 			<v-spacer></v-spacer>
 
-			<v-menu offset-y left :disabled="frozen">
+			<v-menu offset-y left :disabled="uiFrozen">
 				<template slot="activator">
-					<v-btn color="primary" small class="mx-0" :disabled="frozen">
+					<v-btn color="primary" small class="mx-0" :disabled="uiFrozen">
 						{{ $t('panel.movement.compensation') }} <v-icon>arrow_drop_down</v-icon>
 					</v-btn>
 				</template>
@@ -84,8 +84,8 @@
 						{{ $t('button.home.captionAll') }}
 					</code-btn>
 				</v-flex>
-				<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="frozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block>
+				<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block>
 
 						{{ $t('button.home.caption', [axis.letter]) }}
 					</code-btn>
@@ -96,8 +96,8 @@
 				<!-- Regular home buttons -->
 				<v-flex shrink class="hidden-sm-and-down">
 					<v-layout column>
-						<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-							<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="frozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">
+						<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+							<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">
 
 								{{ $t('button.home.caption', [axis.letter]) }}
 							</code-btn>
@@ -112,10 +112,10 @@
 						<v-flex>
 							<v-layout row>
 								<!-- Decreasing movements -->
-								<v-flex v-for="index in numAxisSteps" :key="-index" :class="getMoveCellClass(index - 1)">
+								<v-flex v-for="index in numMoveSteps" :key="-index" :class="getMoveCellClass(index - 1)">
 									<v-layout column>
-										<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-											<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
+										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+											<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}`" block class="move-btn">
 												<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 											</code-btn>
 										</v-flex>
@@ -129,11 +129,11 @@
 						<!-- Increasing movements -->
 						<v-flex>
 							<v-layout row>
-								<v-flex v-for="index in numAxisSteps" :key="index" :class="getMoveCellClass(numAxisSteps - index)">
+								<v-flex v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 									<v-layout column>
-										<v-flex v-for="axis in move.axes.filter(axis => axis.visible)" :key="axis.letter">
-											<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
-												{{ axis.letter + '+' + moveSteps(axis.letter)[numAxisSteps - index] }} <v-icon>arrow_right</v-icon>
+										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+											<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}`" block class="move-btn">
+												{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>arrow_right</v-icon>
 											</code-btn>
 										</v-flex>
 									</v-layout>
@@ -163,11 +163,12 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected']),
-		...mapState('machine', ['move']),
-		...mapGetters('ui', ['frozen', 'machineUI', 'moveSteps']),
-		unhomedAxes() { return this.move.axes.filter(axis => axis.visible && !axis.homed); },
-		numAxisSteps() { return this.moveSteps('x').length; }
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/model', ['move']),
+		...mapState('machine/settings', ['moveFeedrate']),
+		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
+		displayedAxes() { return this.move.axes.filter(axis => axis.visible); },
+		unhomedAxes() { return this.move.axes.filter(axis => axis.visible && !axis.homed); }
 	},
 	data() {
 		return {
@@ -175,7 +176,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		getMoveCellClass(index) {
 			let classes = '';
 			if (index === 0 || index === 5) {

@@ -5,7 +5,7 @@
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template slot="activator">
-					<a v-show="!frozen && controllableFans.length" href="#" @click.prevent="">
+					<a v-show="!uiFrozen && controllableFans.length" href="#" @click.prevent="">
 						Change Visibility
 					</a>
 				</template>
@@ -13,14 +13,14 @@
 				<v-list>
 					<v-list-tile @click="toggleFanVisibility({ machine: selectedMachine, fan: -1})">
 						<v-icon class="mr-1">
-							{{ (machineUI.displayedFans.indexOf(-1) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
+							{{ (displayedFans.indexOf(-1) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
 						Tool Fan
 					</v-list-tile>
 
-					<v-list-tile v-for="(fan, index) in controllableFans" :key="index" @click="toggleFanVisibility({ machine: selectedMachine, fan: index })">
+					<v-list-tile v-for="(fan, index) in controllableFans" :key="index" @click="toggleFanVisibility(index)">
 						<v-icon class="mr-1">
-							{{ (machineUI.displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
+							{{ (displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
 						{{ fan.name ? fan.name : `Fan ${index}` }}
 					</v-list-tile>
@@ -34,7 +34,7 @@
 					<span>
 						{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
 					</span>
-					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="frozen" class="pt-3"></slider>
+					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen" class="pt-3"></slider>
 				</v-flex>
 			</v-layout>
 		</v-card-text>
@@ -52,15 +52,15 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapState('machine', ['fans']),
-		...mapGetters('machine', ['currentTool']),
-		...mapGetters('ui', ['frozen', 'machineUI']),
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['fans']),
+		...mapGetters('machine/model', ['currentTool']),
+		...mapState('machine/settings', ['displayedFans']),
 		controllableFans() {
 			return this.fans.filter(fan => !fan.thermostatic.control);
 		},
 		visibleFans() {
-			return this.machineUI.displayedFans.filter(fan => (fan === -1) || (fan < this.fans.length && !this.fans[fan].thermostatic.control), this);
+			return this.displayedFans.filter(fan => (fan === -1) || (fan < this.fans.length && !this.fans[fan].thermostatic.control), this);
 		},
 		toolFan() {
 			if (this.currentTool && this.currentTool.fans.length) {
@@ -70,8 +70,8 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
-		...mapMutations('ui', ['toggleFanVisibility']),
+		...mapActions('machine', ['sendCode']),
+		...mapMutations('machine/settings', ['toggleFanVisibility']),
 		getFanValue(fan) {
 			return this.fans.length ? Math.round(this.fans[(fan === -1) ? this.toolFan : fan].value * 100) : 0;
 		},

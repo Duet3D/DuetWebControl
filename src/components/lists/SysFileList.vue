@@ -5,13 +5,13 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn :disabled="frozen" @click="showNewFile = true">
+			<v-btn :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New File
 			</v-btn>
-			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
-			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn :directory="directory" target="sys" color="primary"></upload-btn>
@@ -31,13 +31,14 @@
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['uiFrozen']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		}
@@ -52,13 +53,17 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
 		refresh() {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
 			// TODO Add file type detection here
 			this.$refs.filelist.edit(item);
+		}
+	},
+	watch: {
+		selectedMachine() {
+			this.directory = Path.sys;
 		}
 	}
 }

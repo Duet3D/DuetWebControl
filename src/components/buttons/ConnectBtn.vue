@@ -1,10 +1,8 @@
 <template>
-	<v-btn v-bind="$props" :color="buttonColor" :depressed="isConnecting || isDisconnecting" @click="clicked">
-		<v-icon v-if="!isConnecting && !isDisconnecting">{{ buttonIcon }}</v-icon>
-		<v-progress-circular size="20" v-if="isConnecting || isDisconnecting" indeterminate></v-progress-circular>
+	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked">
+		<v-icon v-show="!isBusy">{{ buttonIcon }}</v-icon>
+		<v-progress-circular size="20" v-show="isBusy" indeterminate></v-progress-circular>
 		<span class="ml-2">{{ caption }}</span>
-
-		<connect-dialog :shown.sync="showConnectDialog" @hostEntered="connect(hostname)"></connect-dialog>
 	</v-btn>
 </template>
 
@@ -13,14 +11,15 @@
 
 import VBtn from 'vuetify/es5/components/VBtn'
 
-import { mapGetters, mapState, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected', 'isLocal']),
-		...mapState(['isConnecting', 'isDisconnecting', 'selectedMachine']),
+		...mapState(['isConnecting', 'isDisconnecting', 'isLocal']),
+		...mapGetters(['isConnected']),
+		isBusy() { return this.isConnecting || this.isDisconnecting },
 		buttonColor() {
-			return (this.isConnecting || this.isDisconnecting) ? 'warning'
+			return this.isBusy ? 'warning'
 				: (this.isConnected ? 'success' : 'primary');
 		},
 		buttonIcon() {
@@ -33,31 +32,25 @@ export default {
 						: 'button.connect.connect');
 		}
 	},
-	data() {
-		return {
-			showConnectDialog: false
-		}
-	},
 	extends: VBtn,
 	methods: {
 		...mapActions(['connect', 'disconnect']),
+		...mapMutations(['showConnectDialog']),
 		async clicked() {
-			if (this.isConnecting) {
+			if (this.isBusy) {
 				// Cannot disable this button because that messes up the color
 				return;
 			}
 
-			if (this.selectedMachine === 'default') {
-				if (this.isLocal) {
-					// Ask user for hostname before connecting
-					this.showConnectDialog = true;
-				} else {
-					// Connect to the host this is running on
-					await this.connect();
-				}
-			} else {
+			if (this.isConnected) {
 				// Disconnect from the current machine
 				await this.disconnect();
+			} else if (this.isLocal) {
+				// Ask user for hostname before connecting
+				this.showConnectDialog();
+			} else {
+				// Connect to the host this is running on
+				await this.connect();
 			}
 		}
 	}

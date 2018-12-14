@@ -7,7 +7,7 @@ import BaseConnector from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 
 import {
-	DisconnectedError, TimeoutError, OperationFailedError,
+	DisconnectedError, TimeoutError, OperationFailedError, FileNotFoundError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from '../../../utils/errors.js'
@@ -16,10 +16,6 @@ import { bitmapToArray } from '../../../utils/numbers.js'
 import { strToTime, timeToStr } from '../../../utils/time.js'
 
 export default class PollConnector extends BaseConnector {
-	static installStore(store) {
-		PollConnector.prototype.settings = store.state.communication.poll;
-	}
-
 	static async connect(hostname, username, password) {
 		const response = await axios.get(`http://${hostname}/rr_connect`, {
 			params: {
@@ -30,26 +26,27 @@ export default class PollConnector extends BaseConnector {
 
 		switch (response.data.err) {
 			case 0: return new PollConnector(hostname, password, response.data);
-			case 1: throw InvalidPasswordError();
-			case 2: throw NoFreeSessionError();
-			default: throw LoginError(`Unknown err value: ${response.data.err}`)
+			case 1: throw new InvalidPasswordError();
+			case 2: throw new NoFreeSessionError();
+			default: throw new LoginError(`Unknown err value: ${response.data.err}`)
 		}
 	}
 
-	module = null
 	axios = null
 	cancelSource = null
-
-	fileTransfers = []
-	pendingCodes = []
-	updateLoopTimeout = null
-	updateLoopCounter = 1
-	lastStatusResponse = { seq: 0 }
 
 	justConnected = true
 	name = null
 	password = null
 	boardType = null
+	sessionTimeout = null
+
+	updateLoopTimeout = null
+	updateLoopCounter = 1
+	lastStatusResponse = { seq: 0 }
+
+	pendingCodes = []
+	fileTransfers = []
 	layers = []
 	printStats = undefined
 	messageBoxShown = false;
@@ -58,14 +55,21 @@ export default class PollConnector extends BaseConnector {
 		super(hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
+		this.sessionTimeout = responseData.sessionTimeout;
 
 		this.cancelSource = BaseConnector.getCancelSource();
-
 		this.axios = axios.create({
 			baseURL: `http://${hostname}/`,
 			cancelToken: this.cancelSource.token,
-			timeout: responseData.sessionTimeout / (this.settings.ajaxRetries + 1)
+			timeout: 8000	// default session timeout in RepRapFirmware
 		});
+	}
+
+	register(module) {
+		super.register(module);
+
+		// Apply axios defaults
+		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 		this.axios.interceptors.response.use(null, (error) => {
 			if (error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
 				if (!error.config.retry) {
@@ -83,16 +87,12 @@ export default class PollConnector extends BaseConnector {
 			}
 			return Promise.reject(error.message);
 		});
-	}
-
-	register(module) {
-		super.register(module);
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
 		// notifications even while DWC2 is running in the background. However, we cannot do
-		// this because ServiceWorkers require secured HTTPS connections, which are no option
+		// this because ServiceWorkers require secured HTTP connections, which are no option
 		// for standard end-users. That is also the reason why they are disabled in the build
-		// script (which, by default, is used for enhanced caching)
+		// script, which by default is used for improved caching
 		this.scheduleUpdate();
 	}
 
@@ -217,7 +217,7 @@ export default class PollConnector extends BaseConnector {
 			state: {
 				atxPower: !!response.data.params.atxPower,
 				currentTool: response.data.currentTool,
-				status: response.data.status
+				status: this.convertStatusLetter(response.data.status)
 			},
 			tools: response.data.temps.tools.active.map((active, index) => ({
 				active,
@@ -509,6 +509,23 @@ export default class PollConnector extends BaseConnector {
 		this.scheduleUpdate();
 	}
 
+	convertStatusLetter(letter) {
+		switch (letter) {
+			case 'F': return 'updating';
+			case 'O': return 'off';
+			case 'H': return 'halted';
+			case 'D': return 'pausing';
+			case 'S': return 'paused';
+			case 'R': return 'resuming';
+			case 'P': return 'processing';
+			case 'M': return 'simulating';
+			case 'B': return 'busy';
+			case 'T': return 'changingTool';
+			case 'I': return 'idle';
+		}
+		return 'unknown';
+	}
+
 	scheduleUpdate() {
 		if (this.justConnected || this.updateLoopTimeout) {
 			const that = this;
@@ -530,7 +547,7 @@ export default class PollConnector extends BaseConnector {
 	// Call this only from updateLoop()
 	async getGCodeReply(seq = this.lastStatusResponse.seq) {
 		const response = await this.axios.get('rr_reply');
-		const reply = response.data.trim();
+		const reply = response.data ? response.data.trim() : '';
 
 		if (!this.pendingCodes.length) {
 			// Just log this response
@@ -711,7 +728,11 @@ export default class PollConnector extends BaseConnector {
 						resolve(response.data);
 						that.dispatch('onFileDownloaded', { filename, content: response.data });
 					})
-					.catch(reject)
+					.catch(function(response) {
+						// FIXME reject with FileNotFoundError if 404 was returned
+						console.log(response);
+						reject(response);
+					})
 					.then(function() {
 						that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
 					});
@@ -757,5 +778,13 @@ export default class PollConnector extends BaseConnector {
 		delete response.data.err;
 
 		return response.data;
+	}
+
+	isPrinting() {
+		return this.lastStatusResponse.state && ['D', 'S', 'R', 'P'].indexOf(this.lastStatusResponse.state.status) !== -1;
+	}
+
+	isPaused() {
+		return this.lastStatusResponse.state && ['D', 'S', 'R'].indexOf(this.lastStatusResponse.state.status) !== -1;
 	}
 }

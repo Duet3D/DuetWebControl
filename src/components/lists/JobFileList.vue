@@ -17,10 +17,10 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewDirectory = true">
+			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
@@ -44,10 +44,10 @@
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
-			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
-			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn :directory="directory" target="gcodes" color="primary"></upload-btn>
@@ -61,16 +61,16 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import { DisconnectedError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected']),
-		...mapState('machine', ['storages']),
-		...mapGetters('ui', ['frozen']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/model', ['storages']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		},
@@ -139,8 +139,8 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
-		...mapActions('machine', ['getFileInfo']),
+		...mapActions('machine', ['sendCode', 'getFileInfo']),
+		...mapMutations('machine/cache', ['clearFileInfo']),
 		async selectStorage(storage, cardIndex) {
 			let mountSuccess = true, mountResponse;
 			this.loading = true;
@@ -166,6 +166,7 @@ export default {
 			}
 		},
 		refresh() {
+			this.clearFileInfo(this.directory);
 			this.$refs.filelist.refresh();
 		},
 		async requestFileInfo(directory, fileIndex, fileCount) {
@@ -234,6 +235,11 @@ export default {
 		},
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+		}
+	},
+	watch: {
+		selectedMachine() {
+			this.directory = Path.gcodes;
 		}
 	}
 }

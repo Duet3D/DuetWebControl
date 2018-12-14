@@ -12,7 +12,7 @@ export function log(type, title, message, hostname = store.state.selectedMachine
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
 }
 
-export function logCode(code = '', response, hostname = store.state.selectedMachine) {
+export function logCode(code = '', response, hostname = store.state.selectedMachine, fromInput = false) {
 	if (!code && !response) {
 		// Make sure there is something to log...
 		return;
@@ -49,12 +49,12 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 }
 
 export function logGlobal(type, title, message) {
-	if (store.state.selectedMachine !== 'default') {
+	if (store.state.selectedMachine !== '[default]') {
 		log(type, title, message);
 	} else {
 		makeNotification(type, title, message);
 	}
-	store.commit('machines/default/log', { date: new Date(), type, title, message });
+	store.commit('machines/[default]/log', { date: new Date(), type, title, message });
 }
 
 export default {

@@ -4,6 +4,14 @@ import axios from 'axios'
 
 import { NotImplementedError } from '../../../utils/errors.js'
 
+// By default axios turns spaces into pluses which is undesired.
+// It is better to encode everything via encodeURIComponent
+axios.defaults.paramsSerializer = function(params) {
+	return Object.keys(params)
+		.map(key => `${key}=${encodeURIComponent(params[key])}`)
+		.reduce((a, b) => a + '&' + b);
+}
+
 // Base class for network connectors that keep the machine store up-to-date
 //
 // IMPORTANT: When adding new methods with more than one parameter to this class, make sure to
@@ -30,7 +38,8 @@ class BaseConnector {
 		return source;
 	}
 
-	machineModule = null
+	module = null
+	settings = null
 	hostname = null
 	verbose = false
 
@@ -40,12 +49,13 @@ class BaseConnector {
 
 	// Called when a new machine module is registered
 	register(module) {
-		this.machineModule = module;
+		this.module = module;
+		this.settings = module.state.settings;
 	}
 
 	// Called to invoke actions on the registered module
 	async dispatch(action, payload) {
-		if (this.machineModule) {
+		if (this.module) {
 			await this.store.dispatch(`machines/${this.hostname}/${action}`, payload);
 		}
 	}
@@ -55,7 +65,8 @@ class BaseConnector {
 
 	// Called before the module is unregistered
 	unregister() {
-		this.machineModule = null
+		this.module = null;
+		this.settings = null;
 	}
 
 	// Send a G-/M-/T-code to the machine. Returns a promise that is resolved when finished
@@ -82,6 +93,12 @@ class BaseConnector {
 
 	// Get G-code file info
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
+
+	// Is the machine printing?
+	isPrinting() { throw new NotImplementedError('isPrinting'); }
+
+	// Is the machine paused?
+	isPaused() { throw new NotImplementedError('isPaused'); }
 }
 
 export default BaseConnector

@@ -59,7 +59,7 @@ import { mapState } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine', ['job']),
+		...mapState('machine/model', ['job']),
 		lastLayerTime() {
 			if (!this.job.layers.length) {
 				return undefined;

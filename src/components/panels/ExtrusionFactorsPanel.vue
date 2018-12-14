@@ -5,15 +5,15 @@
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template slot="activator">
-					<a v-show="!frozen && move.extruders.length" href="#" @click.prevent="">
+					<a v-show="!uiFrozen && move.extruders.length" href="#" @click.prevent="">
 						Change Visibility
 					</a>
 				</template>
 
 				<v-list>
-					<v-list-tile v-for="(extruder, index) in move.extruders" :key="index" @click="toggleExtruderVisibility({ machine: selectedMachine, extruder: index })">
+					<v-list-tile v-for="(extruder, index) in move.extruders" :key="index" @click="toggleExtruderVisibility(index)">
 						<v-icon class="mr-1">
-							{{ (machineUI.displayedExtruders.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
+							{{ (displayedExtruders.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
 						{{ `Extruder ${index}` }}
 					</v-list-tile>
@@ -38,7 +38,7 @@
 						</v-layout>
 					</v-flex>
 					<v-flex>
-						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="frozen" class="pt-4"></slider>
+						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen" class="pt-4"></slider>
 					</v-flex>
 				</v-flex>
 			</v-layout>
@@ -57,16 +57,16 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapState('machine', ['move']),
-		...mapGetters('ui', ['frozen', 'machineUI']),
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['move']),
+		...mapState('machine/settings', ['displayedExtruders']),
 		visibleExtruders() {
-			return this.machineUI.displayedExtruders.filter(drive => drive < this.move.extruders.length, this);
+			return this.displayedExtruders.filter(drive => drive < this.move.extruders.length, this);
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
-		...mapMutations('ui', ['toggleExtruderVisibility']),
+		...mapActions('machine', ['sendCode']),
+		...mapMutations('machine/settings', ['toggleExtruderVisibility']),
 		getMax(extruder) { return Math.max(150, this.move.extruders[extruder].factor * 100 + 50); },
 		getExtrusionFactor(extruder) {
 			return Math.round(this.move.extruders[extruder].factor * 100);

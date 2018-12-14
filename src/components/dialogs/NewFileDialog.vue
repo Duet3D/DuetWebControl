@@ -36,7 +36,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['upload']),
+		...mapActions('machine', ['upload']),
 		cancelled() {
 			this.$emit('update:shown', false);
 		},

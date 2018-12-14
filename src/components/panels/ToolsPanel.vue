@@ -37,7 +37,7 @@ table.extra tr > td:first-child {
 
 			<v-spacer></v-spacer>
 
-			<v-menu offset-y left open-on-hover :close-on-content-click="false">
+			<v-menu offset-y left open-on-hover :close-on-content-click="false" :disabled="uiFrozen">
 				<a href="#" slot="activator" @click.prevent="">
 					<v-icon small>more_horiz</v-icon> {{ $t('panel.tools.controlAll') }}
 				</a>
@@ -286,7 +286,7 @@ table.extra tr > td:first-child {
 					<tbody>
 						<tr v-for="(extraHeater, index) in heat.extra" :key="`extra-${index}`">
 							<td>
-								<v-switch class="ml-3" :value="machineUI.displayedExtraTemperatures.indexOf(index) !== -1" @change="setExtraHeaterVisibility({ machine: selectedMachine, index, visible: $event })" :label="$t('panel.tools.extra.showInChart')" :disabled="frozen"></v-switch>
+								<v-switch class="ml-3" :value="displayedExtraTemperatures.indexOf(index) !== -1" @change="toggleExtraHeaterVisibility(index)" :label="$t('panel.tools.extra.showInChart')" :disabled="uiFrozen"></v-switch>
 							</td>
 							<th :class="getExtraHeaterColor(index)">
 								{{ formatHeaterName(extraHeater, index + 100) }}
@@ -305,19 +305,18 @@ table.extra tr > td:first-child {
 <script>
 'use strict'
 
-import { mapGetters, mapState, mapMutations, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import { getHeaterColor, getExtraHeaterColor } from '../../utils/colors.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected']),
-		...mapGetters('ui', ['frozen', 'machineUI']),
-		...mapState(['selectedMachine']),
-		...mapState('machine', ['heat', 'state', 'spindles', 'tools']),
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/model', ['heat', 'state', 'spindles', 'tools']),
+		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		canTurnEverythingOff() {
-			return !this.frozen && this.heat.heaters.some(heater => heater.state);
+			return !this.uiFrozen && this.heat.heaters.some(heater => heater.state);
 		}
 	},
 	data() {
@@ -340,7 +339,7 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
-		...mapMutations('ui', ['setExtraHeaterVisibility']),
+		...mapMutations('machine/settings', ['toggleExtraHeaterVisibility']),
 		async turnEverythingOff() {
 			let code = '';
 			this.tools.forEach(function(tool) {

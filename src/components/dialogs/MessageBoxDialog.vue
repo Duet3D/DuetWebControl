@@ -1,6 +1,3 @@
-<style scoped>
-</style>
-
 <template>
 	<v-dialog v-model="shown" :persistent="persistent">
 		<v-card>
@@ -14,14 +11,14 @@
 				</center>
 
 				<!-- Jog control -->
-				<v-layout v-if="jogAxes.length" row wrap class="my-2">
+				<v-layout v-if="displayedAxes.length" row wrap class="my-2">
 					<!-- Decreasing movements -->
 					<v-flex>
 						<v-layout row>
-							<v-flex v-for="index in numAxisSteps" :key="-index" :class="getMoveCellClass(index - 1)">
+							<v-flex v-for="index in numMoveSteps" :key="-index" :class="getMoveCellClass(index - 1)">
 								<v-layout column>
-									<v-flex v-for="axis in jogAxes" :key="axis.letter">
-										<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${machineUI.moveFeedrate}`" block class="move-btn">
+									<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+										<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}`" block>
 											<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 										</code-btn>
 									</v-flex>
@@ -35,11 +32,11 @@
 					<!-- Increasing movements -->
 					<v-flex>
 						<v-layout row>
-							<v-flex v-for="index in numAxisSteps" :key="index" :class="getMoveCellClass(numAxisSteps - index)">
+							<v-flex v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 								<v-layout column>
-									<v-flex v-for="axis in jogAxes" :key="axis.letter">
-										<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numAxisSteps - index]} F${machineUI.moveFeedrate}`" block class="move-btn">
-											{{ axis.letter + '+' + moveSteps(axis.letter)[numAxisSteps - index] }} <v-icon>arrow_right</v-icon>
+									<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+										<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}`" block>
+											{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>arrow_right</v-icon>
 										</code-btn>
 									</v-flex>
 								</v-layout>
@@ -70,10 +67,11 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine', ['messageBox', 'move']),
-		...mapGetters('ui', ['machineUI', 'moveSteps']),
-		numAxisSteps() { return this.moveSteps('x').length; },
-		jogAxes() {
+		// no need to observe isConnected here because the default machine instance never displays a messagebox anyway
+		...mapState('machine/model', ['messageBox', 'move']),
+		...mapState('machine/settings', ['moveFeedrate']),
+		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
+		displayedAxes() {
 			const axisControls = this.messageBox.axisControls;
 			return this.move.axes.filter((axis, index) => axis.visible && axisControls.indexOf(index) !== -1);
 		}

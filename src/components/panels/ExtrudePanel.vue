@@ -21,10 +21,10 @@
 						<v-flex v-if="currentTool && currentTool.extruders.length > 1" class="pr-3">
 							<p class="mb-1">Mix ratio:</p>
 							<v-btn-toggle v-model="mix" mandatory multiple>
-								<v-btn flat value="mix":disabled="frozen" color="primary">
+								<v-btn flat value="mix":disabled="uiFrozen" color="primary">
 									Mix
 								</v-btn>
-								<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder":disabled="frozen" color="primary">
+								<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder":disabled="uiFrozen" color="primary">
 									{{ `E${extruder}` }}
 								</v-btn>
 							</v-btn-toggle>
@@ -32,7 +32,7 @@
 						<v-flex class="pr-3">
 							<p class="my-1">Feed amount in mm:</p>
 							<v-btn-toggle v-model="amount" mandatory>
-								<v-btn flat v-for="(amount, index) in machineUI.extruderAmounts" :key="index" :value="amount" :disabled="frozen" color="primary">
+								<v-btn flat v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" color="primary">
 									{{ amount }}
 								</v-btn>
 							</v-btn-toggle>
@@ -40,7 +40,7 @@
 						<v-flex class="pr-3">
 							<p class="my-1">Feedrate in mm/s:</p>
 							<v-btn-toggle v-model="feedrate" mandatory>
-								<v-btn flat v-for="(feedrate, index) in machineUI.extruderFeedrates" :key="index" :value="feedrate" :disabled="frozen" color="primary">
+								<v-btn flat v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" color="primary">
 									{{ feedrate }}
 								</v-btn>
 							</v-btn-toggle>
@@ -48,10 +48,10 @@
 					</v-layout>
 				</v-flex>
 				<v-flex shrink>
-					<v-btn block :disabled="frozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
+					<v-btn block :disabled="uiFrozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
 						<v-icon>arrow_upward</v-icon> Retract
 					</v-btn>
-					<v-btn block :disabled="frozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
+					<v-btn block :disabled="uiFrozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
 						<v-icon>arrow_downward</v-icon> Extrude
 					</v-btn>
 				</v-flex>
@@ -67,9 +67,10 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine', ['heat', 'tools']),
-		...mapGetters('machine', ['currentTool']),
-		...mapGetters('ui', ['frozen', 'machineUI']),
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['heat', 'tools']),
+		...mapGetters('machine/model', ['currentTool']),
+		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
 			if (this.currentTool && this.currentTool.heaters.length) {
 				const selectedHeaters = (this.mixValue[0] === 'mix') ? this.currentTool.heaters : this.mixValue;
@@ -119,7 +120,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		async buttonClicked(extrude) {
 			if (!this.currentTool.extruders.length) {
 				return;
@@ -146,8 +147,8 @@ export default {
 		}
 	},
 	mounted() {
-		this.amount = this.machineUI.extruderAmounts[0];
-		this.feedrate = this.machineUI.extruderFeedrates[0];
+		this.amount = this.extruderAmounts[0];
+		this.feedrate = this.extruderFeedrates[0];
 	},
 	watch: {
 		currentTool(to) {

@@ -31,7 +31,7 @@ a:not(:hover) {
 
 			<v-spacer></v-spacer>
 
-			<status-label v-if="this.state.status !== undefined"></status-label>
+			<status-label v-if="this.state.status"></status-label>
 
 			<v-spacer></v-spacer>
 
@@ -189,8 +189,9 @@ import { mapState, mapGetters } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine', ['electronics', 'move', 'sensors', 'state']),
-		...mapGetters(['isConnected'])
+		...mapGetters(['isConnected']),
+		...mapGetters('machine', ['isPrinting']),
+		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state'])
 	},
 	data() {
 		return {
@@ -202,8 +203,8 @@ export default {
 			const position = this.displayToolPosition ? this.move.drives[index].position : axis.machinePosition;
 			return (axis.letter === 'Z') ? this.$displayZ(position) : this.$display(position, 1);
 		},
-		probeIsClose(probe) { return this.state.status !== 'P' && probe.value > (probe.threshold * 0.9) && probe.value < probe.threshold; },
-		probeIsTriggered(probe) { return this.state.status !== 'P' && probe.value >= probe.threshold; }
+		probeIsClose(probe) { return !this.isPrinting && (probe.value > probe.threshold * 0.9) && (probe.value < probe.threshold); },
+		probeIsTriggered(probe) { return !this.isPrinting && (probe.value >= probe.threshold); }
 	}
 }
 </script>

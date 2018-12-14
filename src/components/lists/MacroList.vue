@@ -64,8 +64,9 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected']),
-		...mapState('machine', ['storages']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/model', ['storages']),
 		isRootDirectory() { return this.directory === Path.macros; }
 	},
 	data () {
@@ -78,8 +79,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['getFileList']),
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode', 'getFileList']),
 		async loadDirectory(directory = Path.macros) {
 			if (this.loading) {
 				return;
@@ -106,6 +106,10 @@ export default {
 			this.loading = false;
 		},
 		async itemClick(item) {
+			if (this.uiFrozen) {
+				return;
+			}
+
 			const filename = Path.combine(this.directory, item.name);
 			if (item.isDirectory) {
 				await this.loadDirectory(filename);
@@ -128,6 +132,7 @@ export default {
 	mounted() {
 		// Perform initial load
 		if (this.isConnected) {
+			this.wasMounted = this.storages.length && this.storages[0].mounted;
 			this.loadDirectory();
 		}
 
@@ -143,9 +148,11 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
-		isConnected(to) {
-			if (!to) {
-				this.wasMounted = false;
+		selectedMachine() {
+			if (this.isConnected) {
+				this.wasMounted = this.storages.length && this.storages[0].mounted;
+				this.loadDirectory();
+			} else {
 				this.filelist = [];
 			}
 		},
@@ -153,9 +160,9 @@ export default {
 			deep: true,
 			handler() {
 				// Refresh file list when the first storage is mounted or unmounted
-				if (this.storages.length === 0 || this.wasMounted !== this.storages[0].mounted) {
+				if (this.isConnected && (!this.storages.length || this.wasMounted !== this.storages[0].mounted)) {
+					this.wasMounted = this.storages.length && this.storages[0].mounted;
 					this.loadDirectory();
-					this.wasMounted = (this.storages.length !== 0) && this.storages[0].mounted;
 				}
 			}
 		}

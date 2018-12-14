@@ -4,7 +4,7 @@ import merge from '../../utils/merge.js'
 
 class Axis {
 	constructor(initData) { merge(this, initData, true); }
-	letter = undefined
+	letter = undefined				// must be upper-case
 	drives = []
 	homed = undefined
 	machinePosition = undefined

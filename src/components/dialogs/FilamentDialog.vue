@@ -42,8 +42,8 @@ export default {
 		tool: Object
 	},
 	computed: {
-		...mapGetters('machine', ['currentTool']),
-		...mapState('machine', ['tools'])
+		...mapState('machine/model', ['tools']),
+		...mapGetters('machine/model', ['currentTool'])
 	},
 	data() {
 		return {
@@ -52,8 +52,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['getFileList']),
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode', 'getFileList']),
 		async loadFilaments() {
 			if (this.loading) {
 				return;

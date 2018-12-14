@@ -5,13 +5,13 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down" v-show="!isRootDirectory" :disabled="frozen" @click="showNewFile = true">
+			<v-btn class="hidden-sm-and-down" v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New File
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" v-show="isRootDirectory" :disabled="frozen" @click="showNewFilament = true">
+			<v-btn class="hidden-sm-and-down" v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Filament
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" target="filaments" color="primary"></upload-btn>
@@ -36,13 +36,13 @@
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
-			<v-btn v-show="!isRootDirectory" :disabled="frozen" @click="showNewFile = true">
+			<v-btn v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New File
 			</v-btn>
-			<v-btn v-show="isRootDirectory" :disabled="frozen" @click="showNewFilament = true">
+			<v-btn v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Filament
 			</v-btn>
-			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn target="filaments" color="primary"></upload-btn>
@@ -66,8 +66,9 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine', ['tools']),
-		...mapGetters('ui', ['frozen']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['tools']),
 		isRootDirectory() { return this.directory === Path.filaments; },
 		filamentSelected() { return (this.directory === Path.filaments) && (this.selection.length === 1) && this.selection[0].isDirectory; }
 	},
@@ -82,8 +83,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['upload', 'download', 'sendCode']),
-		...mapActions('machine', ['getFileList', 'delete']),
+		...mapActions('machine', ['sendCode', 'upload', 'download', 'delete', 'getFileList']),
 		directoryCreationFailed(error) {
 			this.$makeNotification('error', 'Failed to create filament', error.message);
 		},
@@ -203,8 +203,12 @@ export default {
 			this.doingFileOperation = false;
 		},
 		fileClicked(item) {
-			// TODO Add file type detection here
 			this.$refs.filelist.edit(item);
+		}
+	},
+	watch: {
+		selectedMachine() {
+			this.directory = Path.filaments;
 		}
 	}
 }

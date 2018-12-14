@@ -5,13 +5,13 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewFile = true">
+			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New Macro
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" :disabled="frozen" @click="showNewDirectory = true">
+			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="macros" color="primary"></upload-btn>
@@ -30,13 +30,13 @@
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
-			<v-btn :disabled="frozen" @click="showNewFile = true">
+			<v-btn :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New Macro
 			</v-btn>
-			<v-btn :disabled="frozen" @click="showNewDirectory = true">
+			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
-			<v-btn color="info" :loading="loading" :disabled="frozen" @click="refresh">
+			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
 			<upload-btn :directory="directory" target="macros" color="primary"></upload-btn>
@@ -51,13 +51,14 @@
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['uiFrozen']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		}
@@ -78,7 +79,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		refresh() {
 			this.$refs.filelist.refresh();
 		},
@@ -90,6 +91,11 @@ export default {
 		},
 		runFile(filename) {
 			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);
+		}
+	},
+	watch: {
+		selectedMachine() {
+			this.directory = Path.macros;
 		}
 	}
 }

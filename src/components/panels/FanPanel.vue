@@ -23,7 +23,7 @@
 							Tool Fan
 						</v-btn>
 						<template v-for="(fan, index) in fans">
-							<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index":disabled="frozen" color="primary">
+							<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index":disabled="uiFrozen" color="primary">
 								{{ fan.name ? fan.name : `Fan ${index}` }}
 							</v-btn>
 						</template>
@@ -45,10 +45,10 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen']),
-		...mapGetters('machine', ['currentTool']),
-		...mapState('machine', ['fans']),
-		canControlFans() { return !this.frozen && this.fans.length; },
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['fans']),
+		...mapGetters('machine/model', ['currentTool']),
+		canControlFans() { return !this.uiFrozen && this.fans.length; },
 		fanValue: {
 			get() {
 				if (this.canControlFans) {
@@ -80,8 +80,6 @@ export default {
 			fan: -1
 		}
 	},
-	methods: {
-		...mapActions(['sendCode'])
-	}
+	methods: mapActions('machine', ['sendCode'])
 }
 </script>

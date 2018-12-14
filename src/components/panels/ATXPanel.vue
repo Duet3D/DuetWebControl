@@ -16,10 +16,10 @@
 
 		<v-card-text class="pt-0">
 			<v-btn-toggle :value="!!state.atxPower" @change="togglePower" mandatory>
-				<v-btn flat :value="true" :disabled="frozen" :loading="sendingCode" color="success" @click="togglePower(true)">
+				<v-btn flat :value="true" :disabled="uiFrozen" :loading="sendingCode" color="success" @click="togglePower(true)">
 					On
 				</v-btn>
-				<v-btn flat :value="false":disabled="frozen" :loading="sendingCode" color="error" @click="togglePower(false)">
+				<v-btn flat :value="false":disabled="uiFrozen" :loading="sendingCode" color="error" @click="togglePower(false)">
 					Off
 				</v-btn>
 			</v-btn-toggle>
@@ -34,8 +34,8 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen']),
-		...mapState('machine', ['state'])
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['state'])
 	},
 	data() {
 		return {
@@ -43,7 +43,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		async togglePower(state) {
 			if (!this.sendingCode) {
 				this.sendingCode = true;

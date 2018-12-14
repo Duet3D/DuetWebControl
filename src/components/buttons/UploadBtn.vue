@@ -19,12 +19,9 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters({
-			isConnected: 'isConnected',
-			frozen: 'ui/frozen'
-		}),
+		...mapGetters(['isConnected', 'uiFrozen']),
 		canUpload() {
-			return this.isConnected && !this.frozen;
+			return this.isConnected && !this.uiFrozen;
 		},
 		accept() {
 			switch (this.target) {
@@ -69,7 +66,7 @@ export default {
 		uploadPrint: Boolean
 	},
 	methods: {
-		...mapActions(['sendCode', 'upload']),
+		...mapActions('machine', ['sendCode', 'upload']),
 		chooseFile() {
 			if (!this.uploading) {
 				this.$refs.fileInput.click();

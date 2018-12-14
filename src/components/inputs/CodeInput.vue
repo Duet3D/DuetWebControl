@@ -7,11 +7,11 @@
 <template>
 	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
 		<v-flex>
-			<v-combobox ref="input" v-model="code" :items="machineUI.codes" :solo="solo" :disabled="frozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details></v-combobox>
+			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details></v-combobox>
 		</v-flex>
 
 		<v-flex shrink>
-			<v-btn type="submit" color="info" :disabled="frozen" :loading="sendingCode">
+			<v-btn color="info" :disabled="uiFrozen" :loading="sendingCode" @click="send">
 				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
 		</v-flex>
@@ -21,11 +21,12 @@
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen', 'machineUI'])
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/settings', ['codes'])
 	},
 	data() {
 		return {
@@ -38,13 +39,14 @@ export default {
 		solo: Boolean
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
+		...mapMutations('machine/settings', ['addCode']),
 		async send() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
-			if (this.code !== "" && !this.sendingCode) {
+			if (this.code !== '' && !this.sendingCode) {
 				// Convert the input to upper-case and remove comments
-				let codeToSend = '', inQuotes = false;
+				let codeToSend = '', inQuotes = false, inWhiteSpace = false;
 				for (let i = 0; i < this.code.length; i++) {
 					const char = this.code[i];
 					if (inQuotes) {
@@ -61,10 +63,17 @@ export default {
 						if (char === '"') {
 							// don't convert escaped strings
 							inQuotes = true;
+						} else if (char === ' ' || char === '\t') {
+							// remove duplicate white spaces
+							if (inWhiteSpace) {
+								continue;
+							}
+							inWhiteSpace = true;
 						} else if (char === ';' || char === '(') {
 							// stop when comments start
 							break;
 						}
+						inWhiteSpace = false;
 						codeToSend += char.toUpperCase();
 					}
 				}
@@ -73,8 +82,11 @@ export default {
 				// Send the code and wait for completion
 				this.sendingCode = true;
 				try {
-					await this.sendCode(codeToSend);
-					// TODO save code on successful completion
+					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
+					if (!reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && this.codes.indexOf(codeToSend) === -1) {
+						// Automatically remember successful codes
+						this.addCode(codeToSend);
+					}
 				} catch (e) {
 					// handled before we get here
 				}
@@ -83,7 +95,7 @@ export default {
 		}
 	},
 	watch: {
-		frozen(to) {
+		uiFrozen(to) {
 			if (to) {
 				// Clear input when the UI is frozen
 				this.code = '';

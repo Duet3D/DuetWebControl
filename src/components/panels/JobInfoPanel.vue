@@ -21,10 +21,10 @@ p:last-child {
 				<v-flex tag="p">
 					<strong>Height:</strong> {{ $displayZ(job.height) }}
 				</v-flex>
-				<v-flex tag="p" v-if="!state.mode || state.mode === 'FFF'">
+				<v-flex tag="p" v-if="!mode || mode === 'FFF'">
 					<strong>Layer Height:</strong> {{ $displayZ(job.height) }}
 				</v-flex>
-				<v-flex tag="p" v-if="!state.mode || state.mode === 'FFF'">
+				<v-flex tag="p" v-if="!mode || mode === 'FFF'">
 					<strong>Filament Usage:</strong> {{ $displayZ(job.filamentUsage, 'mm') }}
 				</v-flex>
 				<v-flex tag="p">
@@ -45,7 +45,10 @@ import { extractFileName } from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine', ['state', 'job']),
+		...mapState('machine/model', {
+			mode: state => state.state.mode,
+			job: state => state.job
+		}),
 		filename() { return this.job.filename && extractFileName(this.job.filename); }
 	}
 }

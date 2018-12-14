@@ -10,27 +10,37 @@ class NotImplementedError extends Error {
 	}
 }
 
-class DisconnectedError extends Error {
+// Network Errors
+
+class NetworkError extends Error {}
+
+class DisconnectedError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.disconnectedError'));
 	}
 }
 
-class TimeoutError extends Error {
+class TimeoutError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.timeoutError'));
 	}
 }
 
-class OperationCancelledError extends Error {
+class OperationCancelledError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.cancelled'));
 	}
 }
 
-class OperationFailedError extends Error {
+class OperationFailedError extends NetworkError {
 	constructor(reason) {
 		super(i18n.t('error.operationFailed', [reason]));
+	}
+}
+
+class FileNotFoundError extends NetworkError {
+	constructor(file) {
+		super(i18n.t('error.fileNotFound', [file]));
 	}
 }
 
@@ -79,7 +89,8 @@ class InvalidHeightmapError extends HeightmapError {
 // Exports
 
 export {
-	NotImplementedError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
+	NotImplementedError,
+	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeError, CodeResponseError, CodeBufferError,
 	HeightmapError, InvalidHeightmapError

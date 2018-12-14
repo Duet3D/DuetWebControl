@@ -47,6 +47,6 @@
 import { mapState } from 'vuex'
 
 export default {
-	computed: mapState('machine', ['job'])
+	computed: mapState('machine/model', ['job'])
 }
 </script>

@@ -33,6 +33,7 @@
 'use strict'
 
 import Chart from 'chart.js'
+
 import { mapState } from 'vuex'
 
 import { display, displayZ, displayTime } from '../../plugins/display.js'
@@ -40,7 +41,7 @@ import { display, displayZ, displayTime } from '../../plugins/display.js'
 let layers
 
 export default {
-	computed: mapState('machine', ['job']),
+	computed: mapState('machine/model', ['job']),
 	data() {
 		return {
 			chart: null,
@@ -106,12 +107,13 @@ export default {
 			layers = this.job.layers;
 			this.chart.data.labels = layers.map((dummy, index) => index + 1);
 			this.chart.data.datasets[0].data = layers.map(layer => layer.duration);
+
 			if (this.showAllLayers) {
 				this.chart.config.options.scales.xAxes[0].ticks.min = 1;
-				this.chart.config.options.scales.xAxes[0].ticks.max = this.job.layers.length;
+				this.chart.config.options.scales.xAxes[0].ticks.max = layers.length;
 			} else {
-				this.chart.config.options.scales.xAxes[0].ticks.min = Math.max(1, this.job.layers.length - 30);
-				this.chart.config.options.scales.xAxes[0].ticks.max = Math.max(30, this.job.layers.length);
+				this.chart.config.options.scales.xAxes[0].ticks.min = Math.max(1, layers.length - 30);
+				this.chart.config.options.scales.xAxes[0].ticks.max = Math.max(30, layers.length);
 			}
 			this.chart.update();
 		}

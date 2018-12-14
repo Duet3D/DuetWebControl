@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :disabled="$props.disabled || frozen" :loading="sendingCode" @click="click">
+	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :loading="sendingCode" @click="click">
 		<slot></slot>
 	</v-btn>
 </template>
@@ -13,7 +13,7 @@ import { mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen'])
+		...mapGetters(['uiFrozen'])
 	},
 	data() {
 		return {
@@ -28,7 +28,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		async click() {
 			if (!this.sendingCode) {
 				this.sendingCode = true;

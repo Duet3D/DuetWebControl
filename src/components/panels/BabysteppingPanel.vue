@@ -31,8 +31,10 @@ import { mapState } from 'vuex'
 
 export default {
 	computed: {
-		...mapState({ babystepping: state => state.machine.move.babystepZ }),
-		...mapState('ui', ['babystepAmount'])
+		...mapState('machine/model', {
+			babystepping: state => state.move.babystepZ
+		}),
+		...mapState('machine/settings', ['babystepAmount'])
 	}
 }
 </script>

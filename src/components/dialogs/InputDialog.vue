@@ -24,8 +24,6 @@
 <script>
 'use strict'
 
-import { mapActions } from 'vuex'
-
 export default {
 	props: {
 		title: {
@@ -48,7 +46,6 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['move']),
 		async submit() {
 			if (this.$refs.form.validate()) {
 				this.$emit("update:shown", false);

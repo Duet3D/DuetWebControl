@@ -26,7 +26,7 @@
 'use strict'
 
 import Chart from 'chart.js'
-import { mapGetters, mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import i18n from '../../i18n'
 import { getRealHeaterColor } from '../../utils/colors.js'
@@ -55,7 +55,7 @@ function makeDataset(heaterIndex, extra, label) {
 }
 
 const tempSamples = {
-	default: {
+	'[default]': {
 		times: [],
 		temps: []
 	}
@@ -82,9 +82,9 @@ function pushSeriesData(machine, heaterIndex, heater, extra) {
 }
 
 function isHeaterConfigured(state, machine, heaterIndex) {
-	if (state.machines[machine].tools.some(tool => tool.heaters.indexOf(heaterIndex) !== -1)) { return true; }
-	if (state.machines[machine].heat.beds.some(bed => bed && bed.heaters.indexOf(heaterIndex) !== -1)) { return true; }
-	if (state.machines[machine].heat.chambers.some(chamber => chamber && chamber.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	if (state.machines[machine].model.tools.some(tool => tool.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	if (state.machines[machine].model.heat.beds.some(bed => bed && bed.heaters.indexOf(heaterIndex) !== -1)) { return true; }
+	if (state.machines[machine].model.heat.chambers.some(chamber => chamber && chamber.heaters.indexOf(heaterIndex) !== -1)) { return true; }
 	return false;
 }
 
@@ -93,8 +93,9 @@ let storeSubscribed = false, instances = []
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
-		...mapGetters('machine', ['maxHeaterTemperature']),
-		...mapState('machine', ['heat', 'tools'])
+		...mapGetters(['isConnected']),
+		...mapGetters('machine/model', ['maxHeaterTemperature']),
+		...mapState('machine/model', ['heat', 'tools'])
 	},
 	data() {
 		return {
@@ -159,8 +160,8 @@ export default {
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {
-				labels: tempSamples.default.times,
-				datasets: tempSamples.default.temps
+				labels: tempSamples['[default]'].times,
+				datasets: tempSamples['[default]'].temps
 			}
 		});
 
@@ -168,7 +169,7 @@ export default {
 		instances.push(this);
 		if (!storeSubscribed) {
 			this.$store.subscribe((mutation, state) => {
-				const result = /machines\/(.+)\/update/.exec(mutation.type);
+				const result = /machines\/(.+)\/model\/update/.exec(mutation.type);
 				if (result) {
 					// Keep track of temperature updates
 					const machine = result[1], dataset = tempSamples[machine], now = new Date();
@@ -178,7 +179,7 @@ export default {
 
 						// Record heater temperatures
 						const usedHeaters = []
-						state.machines[machine].heat.heaters.forEach(function(heater, heaterIndex) {
+						state.machines[machine].model.heat.heaters.forEach(function(heater, heaterIndex) {
 							if (heater) {
 								pushSeriesData(machine, heaterIndex, heater, false);
 								if (isHeaterConfigured(state, machine, heaterIndex)) {
@@ -188,9 +189,9 @@ export default {
 							}
 						});
 
-						state.machines[machine].heat.extra.forEach(function(heater, heaterIndex) {
+						state.machines[machine].model.heat.extra.forEach(function(heater, heaterIndex) {
 							pushSeriesData(machine, heaterIndex, heater, true);
-							if (state.ui.machines[state.selectedMachine].displayedExtraTemperatures.indexOf(heaterIndex) !== -1) {
+							if (state.machines[state.selectedMachine].settings.displayedExtraTemperatures.indexOf(heaterIndex) !== -1) {
 								// Visibility of extra temps can be configured
 								usedHeaters.push({ heaterIndex, extra: true });
 							}
@@ -240,7 +241,7 @@ export default {
 	},
 	watch: {
 		selectedMachine(machine) {
-			// At the moment each chart instance is fixed to the currently selected machine
+			// Each chart instance is fixed to the currently selected machine
 			// Reassign the corresponding dataset whenever the selected machine changes
 			this.chart.config.data = {
 				labels: tempSamples[machine].times,

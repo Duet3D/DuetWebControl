@@ -1,29 +1,30 @@
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" :loading="applying" :disabled="frozen" menu-props="auto, overflowY"></v-combobox>
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" :loading="applying" :disabled="uiFrozen" menu-props="auto, overflowY"></v-combobox>
 </template>
 
 <script>
 'use strict'
 
-import { mapGetters, mapState, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters('ui', ['frozen', 'machineUI']),
-		...mapState('machine', ['heat']),
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['heat']),
+		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		items() {
 			const key = this.active ? 'active' : 'standby';
 			if (this.tool || this.all) {
-				return this.machineUI.temperatures.tool[key];
+				return this.temperatures.tool[key];
 			}
 			if (this.bed) {
-				return this.machineUI.temperatures.bed[key];
+				return this.temperatures.bed[key];
 			}
 			if (this.chamer) {
-				return this.machineUI.temperatures.chamber[key];
+				return this.temperatures.chamber[key];
 			}
 			if (this.spindle) {
-				return this.machineUI.spindleRPM;
+				return this.spindleRPM;
 			}
 
 			console.warn('[tool-input] Failed to retrieve temperature presets');
@@ -53,7 +54,7 @@ export default {
 		spindleIndex: Number
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		async apply() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 

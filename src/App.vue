@@ -117,6 +117,8 @@ a:not(:hover) {
 			<span class="ml-3">&copy; 2018 Christian Hammacher for Duet3D</span>
 		</v-footer>
 
+		<connect-dialog></connect-dialog>
+		<connection-dialog></connection-dialog>
 		<messagebox-dialog></messagebox-dialog>
 	</v-app>
 </template>
@@ -124,29 +126,34 @@ a:not(:hover) {
 <script>
 'use strict'
 
-import { mapGetters, mapState, mapMutations } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 import { Routing } from './routes'
 
 export default {
 	computed: {
-		...mapGetters(['isLocal']),
 		...mapState({
-			name: state => state.machine.network.name,
-			uiDesignMode: state => state.ui.designMode
-		}),
-		designMode: {
-			get() { return this.uiDesignMode; },
-			set(value) { this.setDesignMode(value); }
-		}
+			isLocal: state => state.isLocal,
+			globalShowConnectDialog: state => state.showConnectDialog,
+			name: state => state.machine.model.network.name
+		})
 	},
-	methods: mapMutations('ui', ['setDesignMode']),
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			hideGlobalContainer: false,
 			rightDrawer: false,
 			routing: Routing
+		}
+	},
+	methods: mapActions(['connect', 'disconnectAll']),
+	mounted() {
+		// Attempt to disconnect from every machine when the page is being unloaded
+		window.addEventListener('onunload', this.disconnectAll);
+
+		// Connect if running on a board
+		if (!this.isLocal) {
+			this.connect();
 		}
 	}
 }

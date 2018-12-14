@@ -3,46 +3,43 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import communication from './communication'
 import machine from './machine'
-import connector, { mapConnectorActions } from './machine/connector'
-import BaseConnector from './machine/connector/BaseConnector.js'
-import ui from './ui.js'
+import connector from './machine/connector'
+import settings from './settings.js'
 
 import i18n from '../i18n'
 import Plugins from '../plugins'
-import { displayTime } from '../plugins/display.js'
-import { logGlobal, logCode, log } from '../plugins/logging.js'
-import { makeFileTransferNotification } from '../plugins/toast.js'
+import { logGlobal } from '../plugins/logging.js'
 
-import { DisconnectedError, OperationCancelledError, CodeBufferError } from '../utils/errors.js'
-import Path from '../utils/path.js'
+import { InvalidPasswordError } from '../utils/errors.js'
 
 Vue.use(Vuex)
 
+const defaultUsername = ''
+const defaultPassword = 'reprap'
+
 const machines = {
-	default: machine()
+	'[default]': machine('[default]')
 }
 
 const store = new Vuex.Store({
-	getters: {
-		isConnected: (state) => state.selectedMachine !== 'default',
-		isLocal() {
-			const hostname = location.hostname;
-			return (hostname === "localhost") || (hostname === "127.0.0.1") || (hostname === "[::1]");
-		}
-	},
 	state: {
 		isConnecting: false,
 		isDisconnecting: false,
-		selectedMachine: 'default'
+		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
+		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
+		passwordRequired: false,
+		selectedMachine: '[default]'
 	},
-
+	getters: {
+		isConnected: state => state.selectedMachine !== '[default]',
+		uiFrozen: (state, getters) => state.isConnecting || state.isDisconnecting || !getters.isConnected
+	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
-		async connect({ state, commit }, { hostname = location.hostname, user = "", password = "reprap" }) {
-			if (hostname === 'default') {
-				throw new Error('Invalid hostname (default is reserved)');
+		async connect({ state, commit }, { hostname = location.hostname, username = defaultUsername, password = defaultPassword, reconnecting = false }) {
+			if (!hostname || hostname === '[default]') {
+				throw new Error('Invalid hostname');
 			}
 			if (state.machines.hasOwnProperty(hostname)) {
 				throw new Error(`Host ${hostname} is already connected!`);
@@ -53,24 +50,37 @@ const store = new Vuex.Store({
 
 			commit('setConnecting', true);
 			try {
-				const connectorInstance = await connector.connect(hostname, user, password);
-				const moduleInstance = machine(connectorInstance);
+				const connectorInstance = await connector.connect(hostname, username || defaultUsername, password || defaultPassword);
+				const moduleInstance = machine(hostname, connectorInstance);
 				commit('addMachine', { hostname, moduleInstance });
-				commit('ui/addMachine', hostname);
 				connectorInstance.register(moduleInstance);
 
 				commit('setSelectedMachine', hostname);
 				logGlobal('success', i18n.t('notification.connected', [hostname]));
 			} catch (e) {
-				logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
+				if (!reconnecting) {
+					logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
+				}
+
+				if (e instanceof InvalidPasswordError) {
+					commit('askForPassword');
+				}
 			}
 			commit('setConnecting', false);
 		},
 
+		// Reconnect to the given host until the attempt succeeds
+		async reconnect({ getters, dispatch }, hostname) {
+			await dispatch('connect', { hostname, reconnecting: true });
+			if (!getters.isConnected) {
+				dispatch('reconnect', hostname);
+			}
+		},
+
 		// Disconnect from the given hostname
 		async disconnect({ state, commit, dispatch }, { hostname, doDisconnect = true } = { hostname: state.selectedMachine, doDisconnect: true }) {
-			if (hostname === 'default') {
-				throw new Error('Invalid hostname (default is reserved)');
+			if (!hostname || hostname === '[default]') {
+				throw new Error('Invalid hostname');
 			}
 			if (!state.machines.hasOwnProperty(hostname)) {
 				throw new Error(`Host ${hostname} is already disconnected!`);
@@ -94,126 +104,54 @@ const store = new Vuex.Store({
 			commit(`machines/${hostname}/unregister`);
 
 			if (state.selectedMachine === hostname) {
-				commit('setSelectedMachine', 'default');
+				commit('setSelectedMachine', '[default]');
 			}
 			commit('removeMachine', hostname);
 		},
 
-		// Send a code to the current machine and automatically log the result
-		// Parameter can be either the code or an object { code, (hostname) }
-		async sendCode({ state, dispatch }, payload) {
-			const code = (payload instanceof Object) ? payload.code : payload;
-			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
-			try {
-				const response = await dispatch(`machines/${hostname}/sendCode`, code);
-				logCode(code, response, hostname);
-			} catch (e) {
-				if (!(e instanceof DisconnectedError)) {
-					const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-					log(type, e, undefined, hostname);
+		// Disconnect from every host
+		async disconnectAll({ dispatch }) {
+			for (let hostname in machines) {
+				if (hostname !== '[default]') {
+					// Don't do this via await because we don't have much time...
+					dispatch('disconnect', { hostname });
 				}
-				throw e;
 			}
 		},
 
-		// Upload a file and show progress
-		async upload({ state, dispatch }, { filename, content, hostname = state.selectedMachine, showSuccess = true, showError = true, num, count }) {
-			const cancelSource = BaseConnector.getCancelSource();
-			const notification = makeFileTransferNotification('upload', filename, cancelSource, num, count);
-			try {
-				// Check if config.g needs to be backed up
-				if (filename === Path.configFile) {
-					try {
-						await dispatch(`machines/${hostname}/move`, { from: Path.configFile, to: Path.configBackupFile, force: true });
-					} catch (e) {
-						console.warn(e);
-						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, hostname);
-						return;
-					}
-				}
-
-				// Perform upload
-				const startTime = new Date();
-				const response = await dispatch(`machines/${hostname}/upload`, { filename, content, cancelSource, onProgress: notification.onProgress });
-
-				// Show success message
-				if (showSuccess && num === count) {
-					if (count) {
-						log('success', i18n.t('notification.upload.successMulti', [count]), undefined, hostname);
-					} else {
-						const secondsPassed = Math.round((new Date() - startTime) / 1000);
-						log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
-					}
-				}
-
-				// Return the response
-				notification.hide();
-				return response;
-			} catch (e) {
-				// Show and report error message
-				notification.hide();
-				if (showError && !(e instanceof OperationCancelledError)) {
-					console.warn(e);
-					log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, hostname);
-				}
-				throw e;
+		// Called when a machine cannot stay connected
+		async onConnectionError({ state, dispatch }, { hostname, error }) {
+			await dispatch('disconnect', { hostname, doDisconnect: false });
+			if (state.isLocal) {
+				logGlobal('error', i18n.t('error.statusUpdateFailed', [hostname]), error.message);
+			} else {
+				dispatch('reconnect');
 			}
-		},
-
-		// Download a file and show progress
-		// Parameter can be either the filename or an object { filename, (hostname, showSuccess, showError, num, count) }
-		async download({ state, dispatch }, payload) {
-			const filename = (payload instanceof Object) ? payload.filename : payload;
-			const hostname = (payload instanceof Object && payload.hostname) ? payload.hostname : state.selectedMachine;
-			const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
-			const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
-			const num = (payload instanceof Object) ? payload.num : undefined;
-			const count = (payload instanceof Object) ? payload.count : undefined;
-
-			const cancelSource = BaseConnector.getCancelSource();
-			const notification = makeFileTransferNotification('download', filename, cancelSource, num, count);
-			try {
-				const startTime = new Date();
-				const response = await dispatch(`machines/${hostname}/download`, { filename, cancelSource, onProgress: notification.onProgress });
-
-				// Show success message
-				if (showSuccess && num === count) {
-					if (count) {
-						log('success', i18n.t('notification.download.successMulti', [count]), undefined, hostname);
-					} else {
-						const secondsPassed = Math.round((new Date() - startTime) / 1000);
-						log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
-					}
-				}
-
-				// Return the downloaded data
-				notification.hide();
-				return response;
-			} catch (e) {
-				// Show and report error message
-				notification.hide();
-				if (showError && !(e instanceof OperationCancelledError)) {
-					console.warn(e);
-					log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e, hostname);
-				}
-				throw e;
-			}
-		},
-
-		// Other actions
-		...mapConnectorActions(null, ['disconnect', 'sendCode', 'upload', 'download'])
+		}
 	},
 	mutations: {
+		showConnectDialog: state => state.connectDialogShown = true,
+		hideConnectDialog(state) {
+			state.connectDialogShown = false;
+			state.passwordRequired = false;
+		},
+		askForPassword(state) {
+			state.connectDialogShown = true;
+			state.passwordRequired = true;
+		},
+
+		setConnecting: (state, connecting) => state.isConnecting = connecting,
 		addMachine(state, { hostname, moduleInstance }) {
 			machines[hostname] = moduleInstance;
 			this.registerModule(['machines', hostname], moduleInstance);
 		},
+
+		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {
 			this.unregisterModule(['machines', hostname]);
 			delete machines[hostname];
 		},
-		setConnecting: (state, connecting) => state.isConnecting = connecting,
-		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
+
 		setSelectedMachine(state, selectedMachine) {
 			this.unregisterModule('machine');
 			this.registerModule('machine', machines[selectedMachine]);
@@ -226,12 +164,11 @@ const store = new Vuex.Store({
 		machines: {
 			namespaced: true,
 			modules: {
-				default: machines.default 				// This represents the factory defaults
+				'[default]': machines['[default]'] 				// This represents the factory defaults
 				// ... other machines are added as sub-modules to this object
 			}
 		},
-		communication,
-		ui
+		settings
 	},
 	plugins: [
 		connector.installStore,
@@ -241,6 +178,6 @@ const store = new Vuex.Store({
 })
 
 // This has to be registered dynamically, else unregisterModule will not work cleanly
-store.registerModule('machine', machines.default)
+store.registerModule('machine', machines['[default]'])
 
 export default store

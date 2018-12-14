@@ -8,7 +8,7 @@
 					</v-card-title>
 					<v-card-text>
 						<v-container grid-list-md>
-							<v-layout wrap v-if="move.geometry === 'delta'">
+							<v-layout wrap v-if="geometry === 'delta'">
 								<v-flex xs12 sm6 md6>
 									<v-text-field type="number" label="Probe radius" v-model.number="radius" required></v-text-field>
 								</v-flex>
@@ -55,7 +55,9 @@
 import { mapState, mapActions } from 'vuex'
 
 export default {
-	computed: mapState('machine', ['move']),
+	computed: mapState('machine/model', {
+		geometry: state => state.move.geometry
+	}),
 	data() {
 		return {
 			radius: 150,
@@ -76,12 +78,12 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['sendCode']),
+		...mapActions('machine', ['sendCode']),
 		apply() {
 			if (this.$refs.form.validate()) {
 				this.hide();
 
-				if (this.move.geometry === 'delta') {
+				if (this.geometry === 'delta') {
 					this.sendCode(`M557 R${this.radius} S${this.spacing}`);
 				} else {
 					this.sendCode(`M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);

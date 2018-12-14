@@ -81,7 +81,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions(['upload']),
+		...mapActions('machine', ['upload']),
 		close() {
 			this.$emit('input', '');
 			this.$emit('update:shown', false);

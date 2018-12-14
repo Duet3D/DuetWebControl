@@ -11,16 +11,9 @@ export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'mo
 
 export function mapConnectorActions(connector, toIgnore = []) {
 	let actions = {}
-	if (!connector) {
+	if (connector) {
 		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
-			// Map global action to the root instance
-			actions[action] = function handler({ dispatch, state }, payload) {
-				return dispatch(`machines/${state.selectedMachine}/${action}`, payload);
-			}
-		});
-	} else {
-		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
-			// Map local action to the connector
+			// Map action to the connector
 			actions[action] = function handler({ dispatch }, payload) { return connector[action](payload); }
 		});
 	}
@@ -52,9 +45,8 @@ export default {
 		return connector;
 	},
 
-	// Register the global Vuex store
+	// Install the global Vuex store
 	installStore(store) {
 		BaseConnector.installStore(store);
-		connectors.forEach(connector => connector.installStore(store));
 	}
 }
