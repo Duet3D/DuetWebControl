@@ -47,6 +47,10 @@ export default {
 				caption: 'Upload Filament Configs',
 				title: 'Upload one or more filament configurations (drag&drop is supported as well)'
 			},
+			display: {
+				caption: 'Upload Menu Files',
+				title: 'Upload one or more menu files (drag&drop is supported as well)'
+			},
 			sys: {
 				caption: 'Upload System Files',
 				title: 'Upload one or more system files (drag&drop is supported as well)'

@@ -14,7 +14,7 @@
 			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
-			<upload-btn :directory="directory" target="sys" color="primary"></upload-btn>
+			<upload-btn :directory="directory" target="display" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" @fileClicked="fileClicked">

@@ -115,7 +115,7 @@ export default {
 			if (this.webcam.useFix) {
 				url += "_" + Math.random();
 			} else {
-				if (url.indexOf("?") == -1) {
+				if (url.indexOf("?") === -1) {
 					url += "?dummy=" + Math.random();
 				} else {
 					url += "&dummy=" + Math.random();

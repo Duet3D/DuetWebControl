@@ -193,8 +193,8 @@ export default {
 			}
 		},
 		'spindle.active'(to) {
-			if (this.active && this.actualValue !== val) {
-				this.actualValue = val;
+			if (this.active && this.actualValue !== to) {
+				this.actualValue = to;
 				if (document.activeElement !== this.input) {
 					this.value = to;
 				}
