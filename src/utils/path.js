@@ -80,6 +80,7 @@ export function stripMacroFilename(filename) {
 }
 
 export default {
+	display: '0:/menu',
 	gcodes: '0:/gcodes',
 	macros: '0:/macros',
 	filaments: '0:/filaments',

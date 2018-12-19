@@ -137,6 +137,7 @@ export default {
 		...mapState({
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
+			board: state => state.machine.model.electronics.board,
 			name: state => state.machine.model.network.name,
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
@@ -157,6 +158,9 @@ export default {
 		checkMenuCondition(condition) {
 			if (condition === 'webcam') {
 				return (this.webcam.url !== '');
+			}
+			if (condition === 'display') {
+				return this.board.hasDisplay;
 			}
 			return true;
 		}

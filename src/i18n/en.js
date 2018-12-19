@@ -186,6 +186,7 @@ export default {
 			jobs: 'G-Code Jobs',
 			filaments: 'Filaments',
 			macros: 'Macros',
+			display: 'Display',
 			system: 'System',
 			web: 'Web'
 		},

@@ -8,9 +8,9 @@
 			<v-btn :disabled="uiFrozen" @click="showNewFile = true">
 				<v-icon class="mr-1">add</v-icon> New File
 			</v-btn>
-			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
+			<!--<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
-			</v-btn>
+			</v-btn>-->
 			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">refresh</v-icon> Refresh
 			</v-btn>
@@ -19,7 +19,7 @@
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" @fileClicked="fileClicked">
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No System Files</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No Display Files</v-alert>
 			</template>
 		</base-file-list>
 
@@ -42,7 +42,7 @@ export default {
 	},
 	data() {
 		return {
-			directory: Path.sys,
+			directory: Path.display,
 			loading: false,
 			selection: [],
 			showNewDirectory: false,
@@ -54,11 +54,7 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			if (item.name.toLowerCase().endsWith('.bin')) {
-				this.$refs.filelist.download(item);
-			} else {
-				this.$refs.filelist.edit(item);
-			}
+			this.$refs.filelist.edit(item);
 		}
 	},
 	watch: {

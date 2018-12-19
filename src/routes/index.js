@@ -96,6 +96,14 @@ export const Routing = [
 				path: '/Files/Filaments',
 				component: Files.Filaments
 			},
+			// Display
+			{
+				icon: 'format_list_numbered',
+				caption: 'menu.files.display',
+				path: '/Files/Display',
+				component: Files.Display,
+				condition: 'display'
+			},
 			// System
 			{
 				icon: 'settings',

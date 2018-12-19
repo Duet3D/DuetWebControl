@@ -39,6 +39,10 @@ export default {
 					pathItems.shift();
 					pathItems[0] = Path.filaments;
 					rootCaption = 'Filaments Directory';
+				} else if (this.value.startsWith(Path.display)) {
+					pathItems.shift();
+					pathItems[0] = Path.display;
+					rootCaption = 'Menu Directory';
 				} else if (this.value.startsWith(Path.sys)) {
 					pathItems.shift();
 					pathItems[0] = Path.sys;
