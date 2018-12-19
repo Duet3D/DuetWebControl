@@ -5,6 +5,7 @@ import Vuex from 'vuex'
 
 import machine from './machine'
 import connector from './machine/connector'
+import observer from './observer.js'
 import settings from './settings.js'
 
 import i18n from '../i18n'
@@ -25,6 +26,7 @@ const machines = {
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
+		isReconnecting: false,
 		isDisconnecting: false,
 		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
 		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
@@ -32,12 +34,13 @@ const store = new Vuex.Store({
 		selectedMachine: '[default]'
 	},
 	getters: {
-		isConnected: state => state.selectedMachine !== '[default]',
+		connectedMachines: () => Object.keys(machines).filter(machine => machine !== '[default]'),
+		isConnected: state => state.selectedMachine !== '[default]' && !state.isReconnecting,
 		uiFrozen: (state, getters) => state.isConnecting || state.isDisconnecting || !getters.isConnected
 	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
-		async connect({ state, commit }, { hostname = location.hostname, username = defaultUsername, password = defaultPassword, reconnecting = false }) {
+		async connect({ state, getters, commit, dispatch }, { hostname = location.hostname, username = defaultUsername, password = defaultPassword }) {
 			if (!hostname || hostname === '[default]') {
 				throw new Error('Invalid hostname');
 			}
@@ -57,24 +60,19 @@ const store = new Vuex.Store({
 
 				commit('setSelectedMachine', hostname);
 				logGlobal('success', i18n.t('notification.connected', [hostname]));
-			} catch (e) {
-				if (!reconnecting) {
-					logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
-				}
 
+				if (state.isLocal) {
+					commit('settings/setLastHostname', hostname);
+				}
+				await dispatch('machine/settings/load');
+				await dispatch('machine/cache/load');
+			} catch (e) {
+				logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
 				if (e instanceof InvalidPasswordError) {
 					commit('askForPassword');
 				}
 			}
 			commit('setConnecting', false);
-		},
-
-		// Reconnect to the given host until the attempt succeeds
-		async reconnect({ getters, dispatch }, hostname) {
-			await dispatch('connect', { hostname, reconnecting: true });
-			if (!getters.isConnected) {
-				dispatch('reconnect', hostname);
-			}
 		},
 
 		// Disconnect from the given hostname
@@ -89,6 +87,9 @@ const store = new Vuex.Store({
 				throw new Error('Already disconnecting');
 			}
 
+			if (state.isReconnecting) {
+				commit('setReconnecting', false);
+			}
 			if (doDisconnect) {
 				commit('setDisconnecting', true);
 				try {
@@ -120,12 +121,15 @@ const store = new Vuex.Store({
 		},
 
 		// Called when a machine cannot stay connected
-		async onConnectionError({ state, dispatch }, { hostname, error }) {
-			await dispatch('disconnect', { hostname, doDisconnect: false });
-			if (state.isLocal) {
-				logGlobal('error', i18n.t('error.statusUpdateFailed', [hostname]), error.message);
+		async onConnectionError({ state, dispatch, commit }, { hostname, error }) {
+			logGlobal('error', i18n.t('error.statusUpdateFailed', [hostname]), error.message);
+			if (error instanceof InvalidPasswordError) {
+				await dispatch('disconnect', { hostname, doDisconnect: false });
+				commit('askForPassword');
+			} else if (state.isLocal) {
+				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
-				dispatch('reconnect');
+				dispatch(`machines/${hostname}/reconnect`);
 			}
 		}
 	},
@@ -141,11 +145,11 @@ const store = new Vuex.Store({
 		},
 
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
+		setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
 		addMachine(state, { hostname, moduleInstance }) {
 			machines[hostname] = moduleInstance;
 			this.registerModule(['machines', hostname], moduleInstance);
 		},
-
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {
 			this.unregisterModule(['machines', hostname]);
@@ -172,6 +176,7 @@ const store = new Vuex.Store({
 	},
 	plugins: [
 		connector.installStore,
+		observer,
 		Plugins.installStore
 	],
 	strict: process.env.NODE_ENV !== 'production'

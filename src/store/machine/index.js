@@ -38,17 +38,8 @@ export default function(hostname, connector) {
 		namespaced: true,
 		state: {
 			hostname,
-
-			cache: cache(),
-			model: model(connector),
 			events: [],								// provides machine events in the form of { date, type, title, message }
-			settings: settings(),
-
 			autoSleep: false
-		},
-		getters: {
-			isPaused: () => connector && connector.isPaused(),
-			isPrinting: () => connector && connector.isPrinting()
 		},
 		actions: {
 			...mapConnectorActions(connector, ['sendCode', 'upload', 'download', 'getFileInfo']),
@@ -61,6 +52,7 @@ export default function(hostname, connector) {
 				try {
 					const response = await connector.sendCode(code);
 					logCode(code, response, state.hostname, fromInput);
+					return response;
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
@@ -71,9 +63,9 @@ export default function(hostname, connector) {
 			},
 
 			// Upload a file and show progress
-			async upload({ state }, { filename, content, showSuccess = true, showError = true, num, count }) {
+			async upload({ state }, { filename, content, showProgress = true, showSuccess = true, showError = true, num, count }) {
 				const cancelSource = BaseConnector.getCancelSource();
-				const notification = makeFileTransferNotification('upload', filename, cancelSource, num, count);
+				const notification = showProgress && makeFileTransferNotification('upload', filename, cancelSource, num, count);
 				try {
 					// Check if config.g needs to be backed up
 					if (filename === Path.configFile) {
@@ -88,7 +80,7 @@ export default function(hostname, connector) {
 
 					// Perform upload
 					const startTime = new Date();
-					const response = await connector.upload({ filename, content, cancelSource, onProgress: notification.onProgress });
+					const response = await connector.upload({ filename, content, cancelSource, onProgress: notification && notification.onProgress });
 
 					// Show success message
 					if (showSuccess && num === count) {
@@ -101,11 +93,15 @@ export default function(hostname, connector) {
 					}
 
 					// Return the response
-					notification.hide();
+					if (showProgress) {
+						notification.hide();
+					}
 					return response;
 				} catch (e) {
 					// Show and report error message
-					notification.hide();
+					if (showProgress) {
+						notification.hide();
+					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
 						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, state.hostname);
@@ -115,19 +111,21 @@ export default function(hostname, connector) {
 			},
 
 			// Download a file and show progress
-			// Parameter can be either the filename or an object { filename, (showSuccess, showError, num, count) }
+			// Parameter can be either the filename or an object { filename, (showProgress, showSuccess, showError, num, count) }
 			async download({ state }, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
+				const asText = (payload instanceof Object) ? payload.asText : false;
+				const showProgress = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showProgress : true;
 				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
 				const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
 				const num = (payload instanceof Object) ? payload.num : undefined;
 				const count = (payload instanceof Object) ? payload.count : undefined;
 
 				const cancelSource = BaseConnector.getCancelSource();
-				const notification = makeFileTransferNotification('download', filename, cancelSource, num, count);
+				const notification = showProgress && makeFileTransferNotification('download', filename, cancelSource, num, count);
 				try {
 					const startTime = new Date();
-					const response = await connector.download({ filename, cancelSource, onProgress: notification.onProgress });
+					const response = await connector.download({ filename, asText, cancelSource, onProgress: notification && notification.onProgress });
 
 					// Show success message
 					if (showSuccess && num === count) {
@@ -140,11 +138,15 @@ export default function(hostname, connector) {
 					}
 
 					// Return the downloaded data
-					notification.hide();
+					if (showProgress) {
+						notification.hide();
+					}
 					return response;
 				} catch (e) {
 					// Show and report error message
-					notification.hide();
+					if (showProgress) {
+						notification.hide();
+					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
 						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e, state.hostname);
@@ -165,18 +167,31 @@ export default function(hostname, connector) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ getters, state, commit, dispatch }, payload) {
-				const wasPrinting = getters.isPrinting;
+			async update({ state, getters, rootState, commit, dispatch }, payload) {
+				const wasPrinting = getters['model/isPrinting'];
 
 				// Merge updates into the object model
 				commit('model/update', payload);
 
-				// Send M1 if auto-sleep is enabled
-				if (wasPrinting && !getters.isPrinting && state.autoSleep) {
-					try {
-						await dispatch('sendCode', 'M1');
-					} catch (e) {
-						logCode('M1', e.message, this.connector.hostname);
+				// Have we just performed an update or an emergency reset?
+				const isReconnecting = (state.model.state.status === 'updating') || (state.model.state.status === 'halted');
+				if (isReconnecting) {
+					commit('setReconnecting', true, { root: true });
+				} else if (rootState.isReconnecting) {
+					commit('setReconnecting', false, { root: true });
+				}
+
+				if (!isReconnecting && wasPrinting && !getters['model/isPrinting']) {
+					// Reset the job details
+					commit('model/resetJob');
+
+					// Send M1 if auto-sleep is enabled and the print has finished
+					if (state.autoSleep) {
+						try {
+							await dispatch('sendCode', 'M1');
+						} catch (e) {
+							logCode('M1', e.message, this.connector.hostname);
+						}
 					}
 				}
 			},
@@ -209,9 +224,9 @@ export default function(hostname, connector) {
 			setNormalVerbosity() { connector.verbose = false; }
 		},
 		modules: {
-			cache: cache(),
+			cache: cache(hostname),
 			model: model(connector),
-			settings: settings()
+			settings: settings(hostname)
 		}
 	}
 }

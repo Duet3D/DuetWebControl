@@ -123,6 +123,7 @@ export default {
 			options: this.options,
 			data: {
 				datasets: [{
+					borderColor: 'rgba(0, 129, 214, 0.8)',
 					backgroundColor: 'rgba(0, 129, 214, 0.8)',
 					fill: false,
 					label: 'Layer Time'

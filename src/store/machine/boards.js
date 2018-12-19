@@ -2,6 +2,8 @@
 
 const boardDefinitions = {
 	duetwifi10: {
+		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
+		firmwareFile: 'Duet2CombinedFirmware.bin',
 		motorWarningCurrent: 2000,
 		motorLimitCurrent: 2400,
 		seriesResistor: 4700,
@@ -18,6 +20,8 @@ const boardDefinitions = {
 		hasMotorLoadDetection: true
 	},
 	duetethernet10: {
+		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
+		firmwareFile: 'Duet2CombinedFirmware.bin',
 		motorWarningCurrent: 2000,
 		motorLimitCurrent: 2400,
 		seriesResistor: 4700,
@@ -34,6 +38,8 @@ const boardDefinitions = {
 		hasMotorLoadDetection: true
 	},
 	duetm10: {
+		firmwareFileRegEx: /DuetMaestroFirmware(.*)\.bin/i,
+		firmwareFile: 'DuetMaestroFirmware.bin',
 		motorWarningCurrent: 1200,
 		motorLimitCurrent: 1600,
 		seriesResistor: 2200,

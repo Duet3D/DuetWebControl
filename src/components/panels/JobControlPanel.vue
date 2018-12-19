@@ -6,7 +6,11 @@
 
 		<v-card-text class="py-0">
 			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting" :code="this.isPaused ? 'M24' : 'M25'">
-				<v-icon class="mr-1">{{ isPaused ? "play" : "pause" }}</v-icon> {{ isPaused ? "Resume Print" : "Pause Print" }}
+				<v-icon class="mr-1">{{ isPaused ? "play_arrow" : "pause" }}</v-icon> {{ isPaused ? "Resume Print" : "Pause Print" }}
+			</code-btn>
+
+			<code-btn v-if="isPaused" color="error" block code="M0 H1">
+				<v-icon class="mr-1">stop</v-icon> {{ this.state.mode === 'FFF' ? 'Cancel Print' : 'Cancel Job' }}
 			</code-btn>
 
 			<code-btn v-if="!isPrinting && lastProcessedFile" color="success" block :code="processAnotherCode">
@@ -27,8 +31,8 @@ export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
 		...mapState('machine', ['autoSleep', 'lastProcessedFile']),
-		...mapGetters('machine', ['isPrinting', 'isPaused']),
-		...mapState('machine/mode', ['state']),
+		...mapState('machine/model', ['state']),
+		...mapGetters('machine/model', ['isPrinting', 'isPaused']),
 		autoSleepActive: {
 			get() { return this.autoSleep; },
 			set(value) { this.setAutoSleep(value) }

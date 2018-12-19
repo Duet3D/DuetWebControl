@@ -26,7 +26,7 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 	} else if (response.startsWith('Warning: ')) {
 		type = 'warning';
 		toLog = response.substr(9);
-	} else if (!response) {
+	} else if (response === '') {
 		type = 'success';
 	}
 

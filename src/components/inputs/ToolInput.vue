@@ -1,5 +1,6 @@
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" :loading="applying" :disabled="uiFrozen" menu-props="auto, overflowY"></v-combobox>
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" @change="change" @blur="blur" :loading="applying" :disabled="uiFrozen" menu-props="auto, overflowY">
+	</v-combobox>
 </template>
 
 <script>
@@ -35,6 +36,7 @@ export default {
 		return {
 			applying: false,
 			input: null,
+			actualValue: 0,
 			value: 0
 		}
 	},
@@ -82,7 +84,7 @@ export default {
 							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
 							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.chamber) {
-							// Set chamber temp
+							// Set chamber tem
 							const currentTemps = this.chamber[this.active ? 'active' : 'standby'];
 							const value = this.value, heaterIndex = this.heaterIndex;
 							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
@@ -121,6 +123,15 @@ export default {
 			} else {
 				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
 			}
+		},
+		change(value) {
+			// Note that value is of type String when a user enters a value and then leaves it without confirming...
+			if (value.constructor === Number) {
+				this.apply();
+			}
+		},
+		blur() {
+			this.value = this.actualValue;
 		}
 	},
 	mounted() {
@@ -129,43 +140,64 @@ export default {
 	watch: {
 		'tool.active'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.active && this.value !== val) {
-				this.value = val;
+			if (this.active && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'tool.standby'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.standby && this.value !== val) {
-				this.value = val;
+			if (this.standby && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'bed.active'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.active && this.value !== val) {
-				this.value = val;
+			if (this.active && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'bed.standby'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.standby && this.value !== val) {
-				this.value = val;
+			if (this.standby && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'chamber.active'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.active && this.value !== val) {
-				this.value = val;
+			if (this.active && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'chamber.standby'(to) {
 			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (document.activeElement !== this.input && this.standby && this.value !== val) {
-				this.value = val;
+			if (this.active && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = val;
+				}
 			}
 		},
 		'spindle.active'(to) {
-			if (document.activeElement !== this.input && this.value !== to) {
-				this.value = to;
+			if (this.active && this.actualValue !== val) {
+				this.actualValue = val;
+				if (document.activeElement !== this.input) {
+					this.value = to;
+				}
 			}
 		}
 	}

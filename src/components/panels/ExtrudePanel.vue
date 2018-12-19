@@ -32,7 +32,7 @@
 						<v-flex class="pr-3">
 							<p class="my-1">Feed amount in mm:</p>
 							<v-btn-toggle v-model="amount" mandatory>
-								<v-btn flat v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" color="primary">
+								<v-btn flat v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editAmount(index)">
 									{{ amount }}
 								</v-btn>
 							</v-btn-toggle>
@@ -40,7 +40,7 @@
 						<v-flex class="pr-3">
 							<p class="my-1">Feedrate in mm/s:</p>
 							<v-btn-toggle v-model="feedrate" mandatory>
-								<v-btn flat v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" color="primary">
+								<v-btn flat v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editFeedrate(index)">
 									{{ feedrate }}
 								</v-btn>
 							</v-btn-toggle>
@@ -57,13 +57,16 @@
 				</v-flex>
 			</v-layout>
 		</v-card-text>
+
+		<input-dialog :shown.sync="editAmountDialog.shown" title="Edit extrusion amount" prompt="Please enter a new value for the clicked button:" :preset="editAmountDialog.preset" is-numeric-value @confirmed="setAmount"></input-dialog>
+		<input-dialog :shown.sync="editFeedrateDialog.shown" title="Edit extrusion feedrate" prompt="Please enter a new value for the clicked button:" :preset="editFeedrateDialog.preset" is-numeric-value @confirmed="setFeedrate"></input-dialog>
 	</v-card>
 </template>
 
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
@@ -116,11 +119,22 @@ export default {
 			busy: false,
 			mixValue: ['mix'],
 			amount: 0,
-			feedrate: 0
+			feedrate: 0,
+			editAmountDialog: {
+				shown: false,
+				index: 0,
+				preset: 0
+			},
+			editFeedrateDialog: {
+				shown: false,
+				index: 0,
+				preset: 0
+			}
 		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
+		...mapMutations('machine/settings', ['setExtrusionAmount', 'setExtrusionFeedrate']),
 		async buttonClicked(extrude) {
 			if (!this.currentTool.extruders.length) {
 				return;
@@ -144,6 +158,24 @@ export default {
 				// handled before we get here
 			}
 			this.busy = false;
+		},
+		editAmount(index) {
+			this.editAmountDialog.index = index;
+			this.editAmountDialog.preset = this.extruderAmounts[index];
+			this.editAmountDialog.shown = true;
+		},
+		setAmount(value) {
+			this.setExtrusionAmount({ index: this.editAmountDialog.index, value });
+			this.amount = value;
+		},
+		editFeedrate(index) {
+			this.editFeedrateDialog.index = index;
+			this.editFeedrateDialog.preset = this.extruderFeedrates[index];
+			this.editFeedrateDialog.shown = true;
+		},
+		setFeedrate(value) {
+			this.setExtrusionFeedrate({ index: this.editFeedrateDialog.index, value });
+			this.feedrate = value;
 		}
 	},
 	mounted() {
@@ -156,6 +188,12 @@ export default {
 				// Switch back to mixing mode if the selection panel is hidden
 				this.mix = ['mix'];
 			}
+		},
+		extruderAmounts() {
+			this.amount = this.extruderAmounts[0];
+		},
+		extruderFeedrates() {
+			this.feedrate = this.extruderFeedrates[0];
 		}
 	}
 }

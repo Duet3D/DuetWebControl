@@ -15,17 +15,16 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
+let settings
+
 export function makeNotification(type, title, message = '', timeout) {
 	// Prepare and show new toast
 	const options = Object.assign({
 		class: 'new-toast',
 		title: title.replace(/\n/g, '<br/>'),
-		message: message.replace(/\n/g, '<br/>')
+		message: message.replace(/\n/g, '<br/>'),
+		timeout: (timeout !== undefined) ? timeout : ((type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout)
 	}, defaults);
-
-	if (timeout !== undefined) {
-		options.timeout = timeout;
-	}
 
 	switch (type) {
 		case 'info':
@@ -118,6 +117,6 @@ export default {
 	},
 
 	installStore(store) {
-		// TODO: register for UI notification changes here
+		settings = store.state.settings.notifications;
 	}
 }

@@ -34,7 +34,7 @@ a:not(:hover) {
 </style>
 
 <template>
-	<v-app>
+	<v-app :dark="darkTheme">
 		<v-navigation-drawer persistent clipped v-model="drawer" enable-resize-watcher fixed app>
 			<div class="pa-2 hidden-sm-and-up">
 				<connect-btn block></connect-btn>
@@ -47,12 +47,14 @@ a:not(:hover) {
 						<v-list-tile-title>{{ $t(category.caption) }}</v-list-tile-title>
 					</v-list-tile>
 
-					<v-list-tile v-for="(page, pageIndex) in category.pages" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click="">
-						<v-list-tile-action>
-							<v-icon>{{ page.icon }}</v-icon>
-						</v-list-tile-action>
-						<v-list-tile-title>{{ $t(page.caption) }}</v-list-tile-title>
-					</v-list-tile>
+					<template v-for="(page, pageIndex) in category.pages">
+						<v-list-tile v-if="checkMenuCondition(page.condition)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click="">
+							<v-list-tile-action>
+								<v-icon>{{ page.icon }}</v-icon>
+							</v-list-tile-action>
+							<v-list-tile-title>{{ $t(page.caption) }}</v-list-tile-title>
+						</v-list-tile>
+					</template>
 				</v-list-group>
 			</v-list>
 		</v-navigation-drawer>
@@ -126,7 +128,7 @@ a:not(:hover) {
 <script>
 'use strict'
 
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Routing } from './routes'
 
@@ -135,8 +137,11 @@ export default {
 		...mapState({
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
-			name: state => state.machine.model.network.name
-		})
+			name: state => state.machine.model.network.name,
+			darkTheme: state => state.settings.darkTheme,
+			webcam: state => state.settings.webcam
+		}),
+		...mapGetters('machine/model', ['isPrinting'])
 	},
 	data() {
 		return {
@@ -146,7 +151,16 @@ export default {
 			routing: Routing
 		}
 	},
-	methods: mapActions(['connect', 'disconnectAll']),
+	methods: {
+		...mapActions(['connect', 'disconnectAll']),
+		...mapActions('settings', ['load']),
+		checkMenuCondition(condition) {
+			if (condition === 'webcam') {
+				return (this.webcam.url !== '');
+			}
+			return true;
+		}
+	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
 		window.addEventListener('onunload', this.disconnectAll);
@@ -154,6 +168,17 @@ export default {
 		// Connect if running on a board
 		if (!this.isLocal) {
 			this.connect();
+		}
+
+		// Attempt to load the settings
+		this.load();
+	},
+	watch: {
+		isPrinting(to) {
+			if (to) {
+				// Go to Job Status when a print starts
+				this.$router.push('/Job/Status');
+			}
 		}
 	}
 }

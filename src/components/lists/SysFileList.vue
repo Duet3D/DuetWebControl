@@ -57,8 +57,11 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			// TODO Add file type detection here
-			this.$refs.filelist.edit(item);
+			if (item.name.toLowerCase().endsWith('.bin')) {
+				this.$refs.filelist.download(item);
+			} else {
+				this.$refs.filelist.edit(item);
+			}
 		}
 	},
 	watch: {

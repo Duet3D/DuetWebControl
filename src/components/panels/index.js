@@ -14,9 +14,12 @@ import JobControlPanel from './JobControlPanel.vue'
 import JobDataPanel from './JobDataPanel.vue'
 import JobEstimationsPanel from './JobEstimationsPanel.vue'
 import JobInfoPanel from './JobInfoPanel.vue'
+import SettingsGeneralPanel from './SettingsGeneralPanel.vue'
+import SettingsMachinePanel from './SettingsMachinePanel.vue'
 import SpeedFactorPanel from './SpeedFactorPanel.vue'
 import StatusPanel from './StatusPanel.vue'
 import ToolsPanel from './ToolsPanel.vue'
+import WebcamPanel from './WebcamPanel.vue'
 
 Vue.component('atx-panel', ATXPanel)
 Vue.component('babystepping-panel', BabysteppingPanel)
@@ -30,9 +33,12 @@ Vue.component('job-data-panel', JobDataPanel)
 Vue.component('job-estimations-panel', JobEstimationsPanel)
 Vue.component('job-info-panel', JobInfoPanel)
 Vue.component('movement-panel', MovementPanel)
+Vue.component('settings-general-panel', SettingsGeneralPanel)
+Vue.component('settings-machine-panel', SettingsMachinePanel)
 Vue.component('status-panel', StatusPanel)
 Vue.component('speed-factor-panel', SpeedFactorPanel)
 Vue.component('tools-panel', ToolsPanel)
+Vue.component('webcam-panel', WebcamPanel)
 
 export default {
 	ATXPanel,
@@ -47,7 +53,10 @@ export default {
 	JobEstimationsPanel,
 	JobInfoPanel,
 	MovementPanel,
+	SettingsGeneralPanel,
+	SettingsMachinePanel,
 	SpeedFactorPanel,
 	StatusPanel,
-	ToolsPanel
+	ToolsPanel,
+	WebcamPanel
 }

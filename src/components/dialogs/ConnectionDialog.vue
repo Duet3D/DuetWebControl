@@ -1,5 +1,5 @@
 <template>
-	<v-dialog :value="isConnecting || isDisconnecting" persistent width="480">
+	<v-dialog :value="isConnecting || isReconnecting || isDisconnecting" persistent width="480">
 		<v-card color="primary" dark>
 			<v-card-text>
 				Please stand by
@@ -15,6 +15,6 @@
 import { mapState } from 'vuex'
 
 export default {
-	computed: mapState(['isConnecting', 'isDisconnecting'])
+	computed: mapState(['isConnecting', 'isReconnecting', 'isDisconnecting'])
 }
 </script>

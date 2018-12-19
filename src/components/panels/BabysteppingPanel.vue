@@ -10,13 +10,13 @@
 			<v-layout row wrap>
 				<v-flex>
 					<code-btn :code="`M290 R1 Z${-babystepAmount}`" class="px-0" block>
-						<v-icon class="mr-1">vertical_align_bottom</v-icon> {{ $displayZ(-babystepAmount) }}
+						<v-icon>vertical_align_bottom</v-icon> {{ $displayZ(-babystepAmount) }}
 					</code-btn>
 				</v-flex>
 
 				<v-flex>
 					<code-btn :code="`M290 R1 Z${babystepAmount}`" class="px-0" block>
-						<v-icon class="mr-1">vertical_align_top</v-icon> +{{ $displayZ(babystepAmount) }}
+						<v-icon>vertical_align_top</v-icon> +{{ $displayZ(babystepAmount) }}
 					</code-btn>
 				</v-flex>
 			</v-layout>

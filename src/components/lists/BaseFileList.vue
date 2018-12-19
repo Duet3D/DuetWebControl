@@ -437,7 +437,7 @@ export default {
 		async edit(item) {
 			try {
 				const filename = Path.combine(this.innerDirectory, (item && item.name) ? item.name : this.innerValue[0].name);
-				const response = await this.machineDownload({ filename, showSuccess: false });
+				const response = await this.machineDownload({ filename, asText: true, showSuccess: false });
 				let notification, showDelay = 0;
 				if (response.length > bigFileThreshold) {
 					notification = this.$makeNotification('warning', 'Loading file', 'This file is relatively big so it may take a while before it is displayed.', false);

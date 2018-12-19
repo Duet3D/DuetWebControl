@@ -173,7 +173,7 @@ table.extra tr > td:first-child {
 										<tool-input v-if="bed.heaters.length" :bed="bed" :bedIndex="0" :heaterIndex="0" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<tool-input v-if="bed.heaters.length" :bed="bed" :bedIndex="0" :heaterIndex="0" standby></tool-input>
+										<!--<tool-input v-if="bed.heaters.length" :bed="bed" :bedIndex="0" :heaterIndex="0" standby></tool-input>-->
 									</td>
 								</tr>
 								<tr v-for="(heater, heaterIndex) in bed.heaters.slice(1)" :key="`bed-${index}-${heater}`">
@@ -193,7 +193,7 @@ table.extra tr > td:first-child {
 										<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>
+										<!--<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>-->
 									</td>
 								</tr>
 							</template>
@@ -384,10 +384,10 @@ export default {
 		},
 		formatHeaterValue(heater) {
 			let unit = (heater.sensor >= 450 && heater.sensor < 500) ? '%RH' : 'C';
-			if (name) {
+			if (heater.name) {
 				const matches = /(.*)\[(.*)\]$/.exec(heater.name);
 				if (matches) {
-					return matches[2];
+					return this.$display(heater.current, 1, matches[2]);
 				}
 			}
 			return this.$display(heater.current, 1, unit);

@@ -7,7 +7,15 @@
 <template>
 	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
 		<v-flex>
-			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details></v-combobox>
+			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details>
+				<template slot="item" slot-scope="{ item }">
+					<code>{{ item }}</code>
+					<v-spacer></v-spacer>
+					<v-btn icon @click.prevent.stop="removeCode(item)">
+						<v-icon>delete</v-icon>
+					</v-btn>
+				</template>
+			</v-combobox>
 		</v-flex>
 
 		<v-flex shrink>
@@ -40,7 +48,7 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
-		...mapMutations('machine/settings', ['addCode']),
+		...mapMutations('machine/settings', ['addCode', 'removeCode']),
 		async send() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
@@ -83,7 +91,7 @@ export default {
 				this.sendingCode = true;
 				try {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && this.codes.indexOf(codeToSend) === -1) {
+					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && this.codes.indexOf(codeToSend) === -1) {
 						// Automatically remember successful codes
 						this.addCode(codeToSend);
 					}

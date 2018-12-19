@@ -12,7 +12,7 @@
 							Based on Filament Usage
 						</v-flex>
 						<v-flex>
-							{{ $display(job.timesLeft.filament) }}
+							{{ $displayTime(job.timesLeft.filament) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>
@@ -22,7 +22,7 @@
 							Based on File Progress
 						</v-flex>
 						<v-flex>
-							{{ $display(job.timesLeft.file) }}
+							{{ $displayTime(job.timesLeft.file) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>
@@ -32,7 +32,7 @@
 							Based on Layer Time
 						</v-flex>
 						<v-flex>
-							{{ $display(job.timesLeft.layer) }}
+							{{ $displayTime(job.timesLeft.layer) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>

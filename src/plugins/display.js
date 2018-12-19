@@ -10,10 +10,10 @@ export function display(value, precision, unit) {
 		return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : '');
 	}
 	if (value instanceof Array && value.length > 0) {
-		return value.map(item => item ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : '')
+		return value.map(item => (item !== undefined) ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : '')
 			: i18n.t('generic.novalue')).reduce((a, b) => a + ', ' + b);
 	}
-	return i18n.t('generic.novalue');
+	return (value && value.constructor === String) ? value : i18n.t('generic.novalue');
 }
 
 export function displayZ(value, showUnit = true) {

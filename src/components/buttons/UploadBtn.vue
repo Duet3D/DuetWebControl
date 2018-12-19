@@ -4,7 +4,9 @@
 			:color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop">
 			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
 		</v-btn>
+
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple />
+		<confirm-dialog :shown.sync="confirmUpdate" question="Install updates?" prompt="You have uploaded at least one firmware update. Would you like to install them now?" @confirmed="startUpdate"></confirm-dialog>
 	</div>
 </template>
 
@@ -14,12 +16,14 @@
 import JSZip from 'jszip'
 import VBtn from 'vuetify/es5/components/VBtn'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
+		...mapState(['isLocal']),
 		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/model', ['electronics']),
 		canUpload() {
 			return this.isConnected && !this.uiFrozen;
 		},
@@ -30,7 +34,7 @@ export default {
 				case 'macros': return '.g,.gcode,.gc,.gco,.nc,.ngc';
 				case 'filaments': return '.zip';
 				case 'sys': return '.zip,.g,.csv';
-				case 'www': return '.zip,.csv,.g,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
+				case 'www': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}
 		},
@@ -53,7 +57,15 @@ export default {
 	data() {
 		return {
 			innerColor: this.color,
-			uploading: false
+			uploading: false,
+
+			confirmUpdate: false,
+			updates: {
+				webInterface: false,
+				firmware: false,
+				wifiServer: false,
+				wifiServerSpiffs: false
+			}
 		}
 	},
 	extends: VBtn,
@@ -75,6 +87,10 @@ export default {
 		async fileSelected(e) {
 			await this.doUpload(e.target.files);
 			this.$refs.fileInput.value = "";
+		},
+		isWebFile(filename) {
+			const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png', '.gz'];
+			return webExtensions.some(extension => filename.toLowerCase().endsWith(extension));
 		},
 		async doUpload(files, zipName, startTime) {
 			if (!files.length) {
@@ -124,12 +140,38 @@ export default {
 				}
 			}
 
+			this.updates.webInterface = false;
+			this.updates.firmware = false;
+			this.updates.wifiServer = false;
+			this.updates.wifiServerSpiffs = false;
+
 			let success = true;
 			this.uploading = true;
 			for (let i = 0; i < files.length; i++) {
-				const content = files[i], filename = Path.combine(this.destinationDirectory, files[i].name);
+				const content = files[i];
+
+				// Adjust filename if an update is being uploaded
+				let filename = Path.combine(this.destinationDirectory, files[i].name);
+				if (this.target === 'sys' || this.target === 'update') {
+					if (this.isWebFile(files[i].name)) {
+						filename = Path.combine(Path.www, files[i].name);
+						this.updates.webInterface |= (files[i].name.toLowerCase() === 'index.html');
+					} else if (this.electronics.board.firmwareFileRegEx.test(files[i].name)) {
+						filename = Path.combine(Path.sys, this.electronics.board.firmwareFile);
+						this.updates.firmware = true;
+					} else if (this.electronics.board.hasWiFi) {
+						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(files[i].name) || /DuetWiFiServer(.*)\.bin/i.test(files[i].name))) {
+							filename = Path.combine(Path.sys, 'DuetWiFiServer.bin');
+							this.updates.wifiServer = true;
+						} else if (/DuetWebControl(.*)\.bin/i.test(files[i].name)) {
+							filename = Path.combine(Path.sys, 'DuetWebControl.bin');
+							this.updates.wifiServerSpiffs = true;
+						}
+					}
+				}
+
 				try {
-					// Upload another file
+					// Start uploading
 					if (files.length > 1) {
 						await this.upload({ filename, content, showSuccess: !zipName, num: i + 1, count: files.length });
 					} else {
@@ -154,6 +196,33 @@ export default {
 					this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
 				}
 				this.$emit('uploadComplete', files);
+
+				if (this.updates.firmware || this.updates.wifiServer || this.updates.wifiServerSpiffs) {
+					// Ask user to perform an update
+					this.confirmUpdate = true;
+				} else if (this.updates.webInterface) {
+					// Reload the web interface immediately if it was the only update
+					location.reload();
+				}
+			}
+		},
+		async startUpdate() {
+			// Start firmware update
+			let modules = [];
+			if (this.updates.firmware) {
+				modules.push('0');
+			}
+			if (this.updates.wifiServer) {
+				modules.push('1');
+			}
+			if (this.updates.wifiServerSpiffs) {
+				modules.push('2');
+			}
+
+			try {
+				await this.sendCode(`M997 S${modules.reduce((a, b) => `${a}:${b}`)}`);
+			} catch (e) {
+				// this is expected
 			}
 		},
 		dragOver(e) {
@@ -173,6 +242,14 @@ export default {
 		async dragDrop(e) {
 			this.innerColor = this.color;
 			await this.doUpload(e.dataTransfer.files);
+		}
+	},
+	watch: {
+		isConnected(to) {
+			if (to && !this.isLocal && this.updates.webInterface) {
+				// Reload web interface when the connection could be established again
+				location.reload();
+			}
 		}
 	}
 }

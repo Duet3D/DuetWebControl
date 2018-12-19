@@ -190,8 +190,8 @@ import { mapState, mapGetters } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['isConnected']),
-		...mapGetters('machine', ['isPrinting']),
-		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state'])
+		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state']),
+		...mapGetters('machine/model', ['isPrinting'])
 	},
 	data() {
 		return {

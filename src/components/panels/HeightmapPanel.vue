@@ -363,7 +363,7 @@ export default {
 			this.three.camera.updateProjectionMatrix();
 		},
 
-		async getHeightmap(file = Path.heightmap) {
+		async getHeightmap(filename = Path.heightmap) {
 			if (this.loading) {
 				// Don't attempt to load more than one file at once...
 				return;
@@ -372,7 +372,7 @@ export default {
 			this.ready = false;
 			this.loading = true;
 			try {
-				const heightmap = await this.download(file);
+				const heightmap = await this.download({ filename, asText: true, showSuccess: false, showError: false });
 				this.showCSV(heightmap);
 			} catch (e) {
 				console.warn(e);

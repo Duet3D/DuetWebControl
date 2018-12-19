@@ -52,6 +52,14 @@ export const Routing = [
 				caption: 'menu.job.status',
 				path: '/Job/Status',
 				component: Job.Status
+			},
+			// Webcam
+			{
+				icon: 'photo_camera',
+				caption: 'menu.job.webcam',
+				path: '/Job/Webcam',
+				component: Job.Webcam,
+				condition: 'webcam'
 			}
 			// Visualiser (coming soon)
 			/* {

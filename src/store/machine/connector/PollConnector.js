@@ -33,15 +33,16 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	axios = null
-	cancelSource = null
+	cancelSource = BaseConnector.getCancelSource()
 
 	justConnected = true
+	isReconnecting = false
 	name = null
 	password = null
 	boardType = null
 	sessionTimeout = null
 
-	updateLoopTimeout = null
+	updateLoopTimer = null
 	updateLoopCounter = 1
 	lastStatusResponse = { seq: 0 }
 
@@ -57,7 +58,6 @@ export default class PollConnector extends BaseConnector {
 		this.boardType = responseData.boardType;
 		this.sessionTimeout = responseData.sessionTimeout;
 
-		this.cancelSource = BaseConnector.getCancelSource();
 		this.axios = axios.create({
 			baseURL: `http://${hostname}/`,
 			cancelToken: this.cancelSource.token,
@@ -65,21 +65,73 @@ export default class PollConnector extends BaseConnector {
 		});
 	}
 
+	async reconnect() {
+		// Cancel pending requests
+		this.cancelSource.cancel(new DisconnectedError());
+		this.fileTransfers.forEach(transfer => transfer.cancel(new DisconnectedError()));
+		this.fileTransfers = [];
+		this.pendingCodes.forEach(code => code.reject(new DisconnectedError()));
+		this.pendingCodes = [];
+
+		// Attempt to reconnect
+		try {
+			const response = await axios.get(`http://${this.hostname}/rr_connect`, {
+				params: {
+					password: this.password,
+					time: timeToStr(new Date())
+				},
+				timeout: 2000
+			});
+
+			switch (response.data.err) {
+				case 0:
+					this.justConnected = true;
+					this.boardType = response.data.boardType;
+					this.sessionTimeout = response.data.sessionTimeout;
+					this.cancelSource = BaseConnector.getCancelSource()
+					this.axios.defaults.cancelToken = this.cancelSource.token;
+					this.axios.defaults.timeout = response.data.sessionTimeout / (this.settings.ajaxRetries + 1)
+					this.scheduleUpdate();
+					break;
+				case 1:
+					this.dispatch('onConnectionError', new InvalidPasswordError());
+					break;
+				case 2:
+					this.dispatch('onConnectionError', new NoFreeSessionError());
+					break;
+				default:
+					this.dispatch('onConnectionError', new LoginError(`Unknown err value: ${response.data.err}`))
+					break;
+			}
+		} catch (e) {
+			const that = this;
+			setTimeout(async function() {
+				await that.reconnect();
+			}, 1000);
+		}
+	}
+
 	register(module) {
 		super.register(module);
 
 		// Apply axios defaults
+		const that = this;
 		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 		this.axios.interceptors.response.use(null, (error) => {
-			if (error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
+			if (error.response && error.response.status === 404) {
+				return Promise.reject(new FileNotFoundError());
+			}
+
+			if (error.config && !that.isReconnecting && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
 				if (!error.config.retry) {
 					error.config.retry = 0;
 				}
-
 				if (error.config.retry < this.settings.ajaxRetries) {
 					error.config.retry++;
 					return this.axios.request(error.config);
-				} else if (error.message.startsWith('timeout')) {
+				}
+
+				if (error.message.startsWith('timeout')) {
 					error.message = new TimeoutError();
 				} else {
 					console.warn(JSON.stringify(error, null, 2));
@@ -101,14 +153,14 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	unregister() {
-		if (this.updateLoopTimeout) {
-			clearTimeout(this.updateLoopTimeout);
-			this.updateLoopTimeout = null;
+		if (this.updateLoopTimer) {
+			clearTimeout(this.updateLoopTimer);
+			this.updateLoopTimer = null;
 		}
 
 		this.cancelSource.cancel(new DisconnectedError());
 		this.fileTransfers.forEach(transfer => transfer.cancel(new DisconnectedError()));
-		this.pendingCodes.forEach(promise => promise.reject(new DisconnectedError()));
+		this.pendingCodes.forEach(code => code.reject(new DisconnectedError()));
 
 		super.unregister();
 	}
@@ -140,12 +192,14 @@ export default class PollConnector extends BaseConnector {
 
 	async updateLoop(requestExtendedStatus = false) {
 		// Decide which type of status update to poll and request it
+		const wasPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(this.lastStatusResponse.status) !== -1;
 		const statusType =
 			requestExtendedStatus ||
 			this.justConnected ||
 			(this.updateLoopCounter % this.settings.extendedUpdateEvery) === 0 ||
-			(this.verbose && (this.updateLoopCounter % 2) === 0) ? 2 : ((this.lastStatusResponse.status === 'P') ? 3 : 1);
+			(this.verbose && (this.updateLoopCounter % 2) === 0) ? 2 : (wasPrinting ? 3 : 1);
 		const response = await this.axios.get(`rr_status?type=${statusType}`);
+		const isPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(response.data.status) !== -1;
 
 		// Check if an extended status response needs to be polled in case machine parameters have changed
 		if (statusType !== 2 && this.arraySizesDiffer(response.data, this.lastStatusResponse)) {
@@ -163,18 +217,18 @@ export default class PollConnector extends BaseConnector {
 			heat: {
 				beds: [
 					response.data.temps.bed ? {
-						active: response.data.temps.bed.active,
-						standby: response.data.temps.bed.standby
+						active: [response.data.temps.bed.active],
+						standby: (response.data.temps.bed.standby === undefined) ? [] : [response.data.temps.bed.standby]
 					} : null
 				],
 				chambers: (response.data.temps.chamber || response.data.temps.cabinet) ? [
 					response.data.temps.chamber ? {
-						active: response.data.temps.chamber.active,
-						standby: response.data.temps.chamber.standby
+						active: [response.data.temps.chamber.active],
+						standby: (response.data.temps.chamber.standby === undefined) ? [] : [response.data.temps.chamber.standby]
 					} : null,
 					response.data.temps.cabinet ? {
-						active: response.data.temps.cabinet.active,
-						standby: response.data.temps.cabinet.standby
+						active: [response.data.temps.cabinet.active],
+						standby: (response.data.temps.cabinet.standby === undefined) ? [] : [response.data.temps.cabinet.standby]
 					} : null
 				] : [],
 				extra: response.data.temps.extra.map((extraHeater) => ({
@@ -346,52 +400,56 @@ export default class PollConnector extends BaseConnector {
 							duration: response.data.firstLayerDuration,
 							height: response.data.firstLayerHeight,
 							filament: (response.layer === 2) ? response.data.extrRaw : undefined,
-							fractionPrinted: (response.layer === 2) ? response.data.fractionPrinted : undefined
+							fractionPrinted: (response.layer === 2) ? response.data.fractionPrinted / 100 : undefined
 						});
+
+						newData.job = {};
+						newData.job.layers = this.layers;
 
 						// Keep track of the past layer
 						if (response.data.currentLayer === 2) {
 							this.printStats.duration = response.data.warmUpDuration + response.data.firstLayerDuration;
 							this.printStats.extrRaw = response.data.extrRaw;
 							this.printStats.fractionPrinted = response.data.fractionPrinted;
-							this.printStats.measuredLayerHeight = response.data.xyz[2] - response.data.firstLayerHeight;
-							this.printStats.zPosition = response.data.xyz[2];
-						} else {
+							this.printStats.measuredLayerHeight = response.data.coords.xyz[2] - response.data.firstLayerHeight;
+							this.printStats.zPosition = response.data.coords.xyz[2];
+						} else if (response.data.currentLayer > this.layers.length + 1) {
 							addLayers = true;
 						}
 					}
-				} else {
+				} else if (response.data.currentLayer > this.layers.length + 1) {
 					// Another layer is complete, add it
 					addLayers = true;
 				}
 
 				if (addLayers) {
-					const layerJustChanged = (response.data.currentLayer - this.layers.length) === 1;
+					const layerJustChanged = (response.data.currentLayer - this.layers.length) === 2;
 					if (this.printStats.duration) {
 						// Got info about the past layer, add what we know
 						this.layers.push({
 							duration: response.data.printDuration - this.printStats.duration,
 							height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
-							filament: response.data.extrRaw.map((amount, index) => amount - this.printStats.extrRaw[index]),
-							fractionPrinted: response.data.fractionPrinted - this.printStats.fractionPrinted
+							filament: response.data.extrRaw.map((amount, index) => amount - this.printStats.extrRaw[index]).filter((dummy, index) => response.data.extrRaw[index] > 0),
+							fractionPrinted: (response.data.fractionPrinted - this.printStats.fractionPrinted) / 100
 						});
 					} else {
 						// Interpolate data...
-						const avgDuration = (response.data.printDuration - response.data.warmUpduration - response.data.firstLayerDuration - response.data.currentLayerTime) / (response.data.currentLayer - 2);
-						for (let layer = this.layers.length; layer < response.data.currentLayer; layer++) {
+						const avgDuration = (response.data.printDuration - response.data.warmUpDuration - response.data.firstLayerDuration - response.data.currentLayerTime) / (response.data.currentLayer - 2);
+						for (let layer = this.layers.length; layer + 1 < response.data.currentLayer; layer++) {
 							this.layers.push({ duration: avgDuration });
 						}
-						this.printStats.zPosition = response.data.xyz[2];
+						this.printStats.zPosition = response.data.coords.xyz[2];
 					}
-					newData.layers = this.layers;
+					newData.job = {};
+					newData.job.layers = this.layers;
 
 					// Keep track of the past layer if the layer change just happened
 					if (layerJustChanged) {
 						this.printStats.duration = response.data.printDuration;
 						this.printStats.extrRaw = response.data.extrRaw;
-						this.printStats.fractionPrinted = response.dat.fractionPrinted;
-						this.printStats.measuredLayerHeight = response.data.xyz[2] - this.printStats.zPosition;
-						this.printStats.zPosition = response.data.xyz[2];
+						this.printStats.fractionPrinted = response.data.fractionPrinted;
+						this.printStats.measuredLayerHeight = response.data.coords.xyz[2] - this.printStats.zPosition;
+						this.printStats.zPosition = response.data.coords.xyz[2];
 					}
 				}
 			}
@@ -470,7 +528,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// See if a print has started
-		if (response.data.status === 'P' && this.lastStatusResponse.status !== 'P') {
+		if (isPrinting && (this.justConnected || !wasPrinting)) {
 			const currentFileInfo = await this.getFileInfo();
 			merge(newData, {
 				job: {
@@ -479,11 +537,12 @@ export default class PollConnector extends BaseConnector {
 					fileSize: currentFileInfo.size,
 					generatedBy: currentFileInfo.generatedBy,
 					height: currentFileInfo.height,
-					layerHeight: currentFileInfo.layerHeight
+					layerHeight: currentFileInfo.layerHeight,
+					layers: [],
+					numLayers: (currentFileInfo.height && currentFileInfo.firstLayerHeight && currentFileInfo.layerHeight) ? Math.round((currentFileInfo.height - currentFileInfo.firstLayerHeight) / currentFileInfo.layerHeight) + 1 : undefined
 				}
 			});
 
-			this.layers = [];
 			this.printStats = {
 				layerHeight: currentFileInfo.layerHeight
 			};
@@ -504,6 +563,7 @@ export default class PollConnector extends BaseConnector {
 
 		// Schedule next status update
 		this.lastStatusResponse = response.data;
+		this.isReconnecting = (response.data.status === 'F') || (response.data.status === 'H');
 		this.justConnected = false;
 		this.updateLoopCounter++;
 		this.scheduleUpdate();
@@ -527,17 +587,22 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	scheduleUpdate() {
-		if (this.justConnected || this.updateLoopTimeout) {
+		if (this.justConnected || this.updateLoopTimer) {
 			const that = this;
-			this.updateLoopTimeout = setTimeout(async function() {
-				// Perform status update
+			// Perform status update
+			this.updateLoopTimer = setTimeout(async function() {
 				try {
 					/* eslint-disable no-useless-call */
 					await that.updateLoop.call(that);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
-						console.warn(e);
-						that.dispatch('onConnectionError', e);
+						if (that.isReconnecting) {
+							that.updateLoopTimer = undefined;
+							that.reconnect();
+						} else {
+							console.warn(e);
+							that.dispatch('onConnectionError', e);
+						}
 					}
 				}
 			}, this.settings.updateInterval);
@@ -546,8 +611,13 @@ export default class PollConnector extends BaseConnector {
 
 	// Call this only from updateLoop()
 	async getGCodeReply(seq = this.lastStatusResponse.seq) {
-		const response = await this.axios.get('rr_reply');
-		const reply = response.data ? response.data.trim() : '';
+		const response = await this.axios.get('rr_reply', {
+			responseType: 'arraybuffer' 	// responseType: 'text' is broken, see https://github.com/axios/axios/issues/907
+		});
+		const reply = Buffer.from(response.data).toString().trim();
+
+		// TODO? Check for special JSON responses generated by M119, see DWC1
+		// Probably makes sense only as soon as the settings update notifications are working again
 
 		if (!this.pendingCodes.length) {
 			// Just log this response
@@ -705,6 +775,7 @@ export default class PollConnector extends BaseConnector {
 
 	download(payload) {
 		const filename = (payload instanceof Object) ? payload.filename : payload;
+		const asText = (payload instanceof Object) ? payload.asText : false;
 		const cancelSource = (payload instanceof Object && payload.cancelSource) ? payload.cancelSource : BaseConnector.getCancelSource();
 		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 
@@ -713,6 +784,7 @@ export default class PollConnector extends BaseConnector {
 			// Create download options
 			const options = {
 				cancelToken: cancelSource.token,
+				responseType: asText ? 'arraybuffer' : 'json',	// responseType: 'text' is broken, see https://github.com/axios/axios/issues/907
 				isFileTransfer: true,
 				onDownloadProgress: onProgress,
 				params: {
@@ -725,14 +797,14 @@ export default class PollConnector extends BaseConnector {
 				// Create file transfer and start it
 				that.axios.get('rr_download', options)
 					.then(function(response) {
+						if (asText) {
+							// see above...
+							response.data = Buffer.from(response.data).toString();
+						}
 						resolve(response.data);
 						that.dispatch('onFileDownloaded', { filename, content: response.data });
 					})
-					.catch(function(response) {
-						// FIXME reject with FileNotFoundError if 404 was returned
-						console.log(response);
-						reject(response);
-					})
+					.catch(reject)
 					.then(function() {
 						that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
 					});
@@ -769,7 +841,9 @@ export default class PollConnector extends BaseConnector {
 
 	async getFileInfo(filename) {
 		const response = await this.axios.get('rr_fileinfo', {
-			params: filename ? { name: filename } : {}
+			params: {
+				filename: filename ? { name: filename } : {}
+			}
 		});
 
 		if (response.data.err) {
@@ -778,13 +852,5 @@ export default class PollConnector extends BaseConnector {
 		delete response.data.err;
 
 		return response.data;
-	}
-
-	isPrinting() {
-		return this.lastStatusResponse.state && ['D', 'S', 'R', 'P'].indexOf(this.lastStatusResponse.state.status) !== -1;
-	}
-
-	isPaused() {
-		return this.lastStatusResponse.state && ['D', 'S', 'R'].indexOf(this.lastStatusResponse.state.status) !== -1;
 	}
 }

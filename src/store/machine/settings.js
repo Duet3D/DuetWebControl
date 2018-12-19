@@ -1,6 +1,10 @@
 'use strict'
 
-export default function() {
+import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
+import merge from '../../utils/merge.js'
+import Path from '../../utils/path.js'
+
+export default function(hostname) {
 	return {
 		namespaced: true,
 		state: {
@@ -34,9 +38,7 @@ export default function() {
 					active: [110, 100, 90, 70, 65, 60, 0],
 					standby: [40, 30, 0]
 				},
-				chamber: {
-					active: [90, 80, 70, 60, 50, 40, 0]
-				}
+				chamber: [90, 80, 70, 60, 50, 40, 0]
 			},
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
 		},
@@ -46,10 +48,63 @@ export default function() {
 			},
 			numMoveSteps: state => state.moveSteps.default.length
 		},
+		actions: {
+			async save({ state, rootState, dispatch }) {
+				if (rootState.settings.settingsStorageLocal) {
+					setLocalSetting(`settings/${hostname}`, state);
+				} else {
+					removeLocalSetting(`settings/${hostname}`);
+
+					try {
+						const content = new Blob([JSON.stringify({ main: rootState.settings, machine: state })]);
+						await dispatch(`machines/${hostname}/upload`, { filename: Path.dwcSettingsFile, content, showProgress: false, showSuccess: false }, { root: true });
+					} catch (e) {
+						// handled before we get here
+					}
+				}
+			},
+			async load({ rootState, dispatch, commit }) {
+				if (rootState.settings.settingsStorageLocal) {
+					const machineSettings = getLocalSetting(`settings/${hostname}`);
+					if (machineSettings) {
+						commit('load', machineSettings);
+					}
+				} else {
+					try {
+						const settings = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcSettingsFile, showProgress: false, showSuccess: false, showError: false }, { root: true });
+						commit('settings/load', settings.main, { root: true });
+						commit('load', settings.machine);
+					} catch (e) {
+						// may happen if the user has not saved new settings yet
+						try {
+							const settings = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcFactoryDefaults, showProgress: false, showSuccess: false, showError: false }, { root: true });
+							commit('settings/load', settings.main, { root: true });
+							commit('load', settings.machine);
+						} catch (ex) {
+							// use shipped values
+						}
+					}
+				}
+			}
+		},
 		mutations: {
+			load: (state, payload) => merge(state, payload, true),
+
 			addCode: (state, code) => state.codes.push(code),
 			removeCode: (state, code) => state.codes = state.codes.filter(item => item !== code),
 
+			setExtrusionAmount(state, { index, value }) {
+				state.extruderAmounts[index] = value;
+			},
+			setExtrusionFeedrate(state, { index, value }) {
+				state.extruderFeedrates[index] = value;
+			},
+			setMoveStep(state, { axis, index, value }) {
+				if (!state.moveSteps.hasOwnProperty(axis)) {
+					state.moveSteps[axis] = state.moveSteps.default.slice();
+				}
+				state.moveSteps[axis][index] = value;
+			},
 			toggleExtraHeaterVisibility(state, extraHeater) {
 				if (state.displayedExtraTemperatures.indexOf(extraHeater) === -1) {
 					state.displayedExtraTemperatures.push(extraHeater);
@@ -70,7 +125,8 @@ export default function() {
 				} else {
 					state.displayedFans = state.displayedFans.filter(item => item !== fan);
 				}
-			}
+			},
+			update: (state, payload) => merge(state, payload, true)
 		}
 	}
 }

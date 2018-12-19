@@ -32,7 +32,7 @@
 							Last Layer Time
 						</v-flex>
 						<v-flex tag="span">
-							{{ $displayTime(job.warmUpDuration) }}
+							{{ $displayTime(job.layers.length ? job.layers[job.layers.length - 1].duration : undefined) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>

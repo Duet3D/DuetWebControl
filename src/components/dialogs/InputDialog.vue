@@ -8,7 +8,7 @@
 
 				<v-card-text>
 					{{ prompt }}
-					<v-text-field ref="input" v-model="input" :rules="[v => !!v || $t('dialog.inputRequired')]" required></v-text-field>
+					<v-text-field ref="input" v-model="input" :rules="[v => !!v || $t('dialog.inputRequired'), v => !isNumericValue || isNumber(parseFloat(v)) || $t('dialog.numberRequired')]" required></v-text-field>
 				</v-card-text>
 
 				<v-card-actions>
@@ -26,6 +26,10 @@
 
 export default {
 	props: {
+		shown: {
+			type: Boolean,
+			required: true
+		},
 		title: {
 			type: String,
 			required: true
@@ -34,11 +38,8 @@ export default {
 			type: String,
 			required: true
 		},
-		shown: {
-			type: Boolean,
-			required: true
-		},
-		preset: String
+		isNumericValue: Boolean,
+		preset: String | Number
 	},
 	data() {
 		return {
@@ -48,12 +49,12 @@ export default {
 	methods: {
 		async submit() {
 			if (this.$refs.form.validate()) {
-				this.$emit("update:shown", false);
-				this.$emit('confirmed', this.input);
+				this.$emit('update:shown', false);
+				this.$emit('confirmed', this.isNumericValue ? parseFloat(this.input) : this.input);
 			}
 		},
 		hide() {
-			this.$emit("update:shown", false);
+			this.$emit('update:shown', false);
 			this.$emit('cancelled');
 		}
 	},

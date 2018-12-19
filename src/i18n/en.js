@@ -70,7 +70,7 @@ export default {
 	dialog: {
 		connect: {
 			title: 'Connect to Machine',
-			prompt: 'Please enter the hostname of the machine that you would like to connect to:',
+			prompt: 'Please enter the hostname and password of the machine that you would like to connect to:',
 			hostPlaceholder: 'Hostname',
 			hostRequired: 'Hostname is required',
 			passwordPlaceholderOptional: 'Password (optional)',
@@ -88,7 +88,8 @@ export default {
 			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a phsical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
 			resetFault: 'Reset Fault'
 		},
-		inputRequired: 'Please enter a value'
+		inputRequired: 'Please enter a value',
+		numberRequired: 'Please enter a valid number'
 	},
 	error: {
 		notImplemented: '{0} is not implemented',
@@ -177,6 +178,7 @@ export default {
 		job: {
 			caption: 'Current Job',
 			status: 'Status',
+			webcam: 'Webcam',
 			visualiser: 'Visualiser'
 		},
 		files: {

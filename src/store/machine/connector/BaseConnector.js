@@ -85,7 +85,7 @@ class BaseConnector {
 	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }
 
 	// Download a file asynchronously. Returns the file content on completion
-	// Parameter can be either the filename or an object { filename, (cancelSource, onProgress) }
+	// Parameter can be either the filename or an object { filename, (asText, cancelSource, onProgress) }
 	async download(payload) { throw new NotImplementedError('download'); }
 
 	// Get the file list. Each item is returned as { isDirectory, name, size, lastModified }
@@ -93,12 +93,6 @@ class BaseConnector {
 
 	// Get G-code file info
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
-
-	// Is the machine printing?
-	isPrinting() { throw new NotImplementedError('isPrinting'); }
-
-	// Is the machine paused?
-	isPaused() { throw new NotImplementedError('isPaused'); }
 }
 
 export default BaseConnector

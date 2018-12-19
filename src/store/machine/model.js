@@ -75,9 +75,11 @@ export default function(connector) {
 				generatedBy: undefined,
 				height: undefined,
 				layer: undefined,
+				layerHeight: undefined,
 				layers: [],
 				// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
 				layerTime: undefined,
+				numLayers: undefined,
 				warmUpDuration: undefined,
 				timesLeft: {
 					file: undefined,
@@ -193,6 +195,8 @@ export default function(connector) {
 				}
 				return null;
 			},
+			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
+			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
 				let maxTemp
 				state.heat.heaters.forEach(function(heater) {
@@ -202,21 +206,31 @@ export default function(connector) {
 				});
 				return maxTemp;
 			},
-			jobProgress(state) {
-				if (state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
-					return Math.min(1, state.job.filamentNeeded.reduce((a, b) => a + b) / state.job.extrudedRaw.reduce((a, b) => a + b));
+			jobProgress(state, getters) {
+				if (getters.isPrinting) {
+					if (state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
+						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.filamentNeeded.reduce((a, b) => a + b));
+					}
+					return state.job.fractionPrinted;
 				}
-				return state.job.fractionPrinted;
+				return 0.0;
 			}
 		},
 		mutations: {
+			resetJob(state) {
+				for (let key in state.job) {
+					if (!(state.job[key] instanceof Array)) {
+						state.job[key] = undefined;
+					}
+				}
+			},
 			update(state, payload) {
 				const lastJobFile = state.job.fileName;
 
 				merge(state, payload, true);
 				fixMachineItems(state, payload);
 
-				if (state.job.fileName !== lastJobFile) {
+				if (state.job.fileName && state.job.fileName !== lastJobFile) {
 					state.job.lastFileName = lastJobFile;
 				}
 			}

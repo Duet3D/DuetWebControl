@@ -50,23 +50,20 @@
 						<v-list-tile @click="sendCode('G32')">
 							<v-icon class="mr-1">how_to_vote</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
 						</v-list-tile>
-						<v-list-tile @click="sendCode('G29')">
-							<v-icon class="mr-1">grid_on</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
+						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
+							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
 						</v-list-tile>
 
 						<v-divider></v-divider>
 
+						<v-list-tile @click="sendCode('G29')">
+							<v-icon class="mr-1">grid_on</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
+						</v-list-tile>
 						<v-list-tile @click="showMeshEditDialog = true">
 							<v-icon class="mr-1">edit</v-icon> {{ $t('panel.movement.editMeshGrid') }} 
 						</v-list-tile>
 						<v-list-tile @click="sendCode('G29 S1')">
 							<v-icon class="mr-1">save</v-icon> {{ $t('panel.movement.loadMeshGrid') }} 
-						</v-list-tile>
-
-						<v-divider></v-divider>
-
-						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
-							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
 						</v-list-tile>
 						<v-list-tile :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
 							<v-icon class="mr-1">grid_off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
@@ -115,7 +112,7 @@
 								<v-flex v-for="index in numMoveSteps" :key="-index" :class="getMoveCellClass(index - 1)">
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
-											<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}`" block class="move-btn">
+											<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${Math.round(moveFeedrate * 60)}`" @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block class="move-btn">
 												<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 											</code-btn>
 										</v-flex>
@@ -132,7 +129,7 @@
 								<v-flex v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
-											<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}`" block class="move-btn">
+											<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${Math.round(moveFeedrate * 60)}`" @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block class="move-btn">
 												{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>arrow_right</v-icon>
 											</code-btn>
 										</v-flex>
@@ -146,6 +143,7 @@
 		</v-card-text>
 
 		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
+		<input-dialog :shown.sync="moveStepDialog.shown" title="Change move step" prompt="Please enter a new value for the clicked move button:" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
 
 		<v-alert v-if="unhomedAxes.length" :value="true" type="warning">
 			{{ $t(unhomedAxes.length === 1 ? 'panel.movement.axisNotHomed' : 'panel.movement.axesNotHomed') }}
@@ -159,7 +157,7 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
@@ -172,11 +170,18 @@ export default {
 	},
 	data() {
 		return {
-			showMeshEditDialog: false
+			showMeshEditDialog: false,
+			moveStepDialog: {
+				shown: false,
+				axis: 'X',
+				index: 0,
+				preset: 0
+			}
 		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
+		...mapMutations('machine/settings', ['setMoveStep']),
 		getMoveCellClass(index) {
 			let classes = '';
 			if (index === 0 || index === 5) {
@@ -186,12 +191,22 @@ export default {
 				classes += 'hidden-md-and-down';
 			}
 			return classes;
+		},
+		showMoveStepDialog(axis, index) {
+			this.moveStepDialog.axis = axis;
+			this.moveStepDialog.index = index;
+			this.moveStepDialog.preset = this.moveSteps(this.moveStepDialog.axis)[this.moveStepDialog.index];
+			this.moveStepDialog.shown = true;
+		},
+		moveStepDialogConfirmed(value) {
+			this.setMoveStep({ axis: this.moveStepDialog.axis, index: this.moveStepDialog.index, value });
 		}
 	},
 	watch: {
 		isConnected() {
-			// Hide mesh edit dialog when the connection is interrupted
+			// Hide dialogs when the connection is interrupted
 			this.showMeshEditDialog = false;
+			this.moveStepDialog.shown = false;
 		}
 	}
 }

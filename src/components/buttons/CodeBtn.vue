@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :loading="sendingCode" @click="click">
+	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :loading="sendingCode" @click="click" @contextmenu="$emit('contextmenu', $event)">
 		<slot></slot>
 	</v-btn>
 </template>
