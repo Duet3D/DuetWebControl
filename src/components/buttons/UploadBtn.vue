@@ -93,8 +93,15 @@ export default {
 			this.$refs.fileInput.value = "";
 		},
 		isWebFile(filename) {
-			const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png', '.gz'];
-			return webExtensions.some(extension => filename.toLowerCase().endsWith(extension));
+			const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
+			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension))) {
+				return true;
+			}
+
+			const matches = /\.(.+).gz$/i.exec(filename);
+			if (matches && webExtensions.indexOf(matches[1].toLowerCase()) !== -1) {
+				return true;
+			}
 		},
 		async doUpload(files, zipName, startTime) {
 			if (!files.length) {
