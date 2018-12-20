@@ -39,7 +39,7 @@ export default {
 			required: true
 		},
 		isNumericValue: Boolean,
-		preset: String | Number
+		preset: [String, Number]
 	},
 	data() {
 		return {

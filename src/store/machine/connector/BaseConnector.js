@@ -24,6 +24,7 @@ class BaseConnector {
 	}
 
 	// Connect to a machine. Throw one of the errors in 'error' for more granular control
+	// eslint-disable-next-line
 	static async connect(hostname, username, password) { throw new NotImplementedError('connect'); }
 
 	// Get a new cancel token
@@ -31,7 +32,6 @@ class BaseConnector {
 		const source = axios.CancelToken.source();
 
 		// Work-around for global cancel token, see https://github.com/axios/axios/issues/978
-		source.token.throwIfRequested = source.token.throwIfRequested;
 		source.token.promise.then = source.token.promise.then.bind(source.token.promise);
 		source.token.promise.catch = source.token.promise.catch.bind(source.token.promise);
 
@@ -53,6 +53,12 @@ class BaseConnector {
 		this.settings = module.state.settings;
 	}
 
+	// Called before the module is unregistered
+	unregister() {
+		this.module = null;
+		this.settings = null;
+	}
+
 	// Called to invoke actions on the registered module
 	async dispatch(action, payload) {
 		if (this.module) {
@@ -60,14 +66,10 @@ class BaseConnector {
 		}
 	}
 
+	/* eslint-disable no-unused-vars */
+
 	// Disconnect from the current machine
 	async disconnect() { throw new NotImplementedError('disconnect'); }
-
-	// Called before the module is unregistered
-	unregister() {
-		this.module = null;
-		this.settings = null;
-	}
 
 	// Send a G-/M-/T-code to the machine. Returns a promise that is resolved when finished
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
@@ -93,6 +95,8 @@ class BaseConnector {
 
 	// Get G-code file info
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
+
+	/* eslint-enable no-unused-vars */
 }
 
 export default BaseConnector

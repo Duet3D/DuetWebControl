@@ -43,7 +43,7 @@ export default function(hostname) {
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
 		},
 		getters: {
-			moveSteps: (state, getters) => function(axis) {
+			moveSteps: state => function(axis) {
 				return state.moveSteps.hasOwnProperty(axis) ? state.moveSteps[axis] : state.moveSteps.default;
 			},
 			numMoveSteps: state => state.moveSteps.default.length

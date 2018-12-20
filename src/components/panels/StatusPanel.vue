@@ -168,7 +168,7 @@ a:not(:hover) {
 									{{ $tc('panel.status.probe', sensors.probes.length) }}
 								</v-flex>
 								<v-flex tag="span">
-									<span v-for="(probe, index) in sensors.probes" class="pa-1 probe-span" :class="{ 'ml-2' : (index && sensors.probes.length > 1), 'warning' : probeIsClose(probe), 'error' : probeIsTriggered(probe) }">
+									<span v-for="(probe, index) in sensors.probes" :key="index" class="pa-1 probe-span" :class="probeSpanClasses(probe, index)">
 										{{ $display(probe.value, 0) }}
 										<template v-if="probe.secondaryValues.length"> ({{ $display(probe.secondaryValues, 0) }})</template>
 									</span>
@@ -203,8 +203,20 @@ export default {
 			const position = this.displayToolPosition ? this.move.drives[index].position : axis.machinePosition;
 			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
 		},
-		probeIsClose(probe) { return !this.isPrinting && (probe.value > probe.threshold * 0.9) && (probe.value < probe.threshold); },
-		probeIsTriggered(probe) { return !this.isPrinting && (probe.value >= probe.threshold); }
+		probeSpanClasses(probe, index) {
+			let result = [];
+			if (index && this.sensors.probes.length > 1){
+				result.push('ml-2');
+			}
+			if (!this.isPrinting) {
+				if (probe.value >= probe.threshold) {
+					result.push('error');
+				} else if (probe.value > probe.threshold * 0.9) {
+					result.push('warning');
+				}
+			}
+			return result;
+		}
 	}
 }
 </script>

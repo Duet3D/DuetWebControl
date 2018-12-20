@@ -48,7 +48,7 @@ a:not(:hover) {
 					</v-list-tile>
 
 					<template v-for="(page, pageIndex) in category.pages">
-						<v-list-tile v-if="checkMenuCondition(page.condition)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click="">
+						<v-list-tile v-if="checkMenuCondition(page.condition)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent>
 							<v-list-tile-action>
 								<v-icon>{{ page.icon }}</v-icon>
 							</v-list-tile-action>

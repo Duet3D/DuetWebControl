@@ -370,7 +370,7 @@ export default {
 			let offsetY = 0, countingOffset = true;
 
 			tableClone.tHead.remove();
-			Array.from(tableClone.tBodies[0].rows).forEach(function(row, index) {
+			Array.from(tableClone.tBodies[0].rows).forEach(function(row) {
 				const filename = row.dataset.filename;
 				if (itemsToDrag.some(item => (item.isDirectory ? '*' : '') + item.name === filename)) {
 					Array.from(row.children).forEach((td, index) => td.style.width = `${firstRow.children[index].offsetWidth}px`);

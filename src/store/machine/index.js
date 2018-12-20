@@ -205,11 +205,14 @@ export default function(hostname, connector) {
 					logCode(undefined, reply, this.hostname);
 				}
 			},
+
+			/* eslint-disable no-unused-vars */
 			onDirectoryCreated: (context, directory) => null,
 			onFileUploaded: (context, { filename, content }) => null,
 			onFileDownloaded: (context, { filename, content }) => null,
 			onFileOrDirectoryMoved: (context, { from, to, force }) => null,
 			onFileOrDirectoryDeleted: (context, filename) => null
+			/* eslint-enable no-unused-vars */
 		},
 		mutations: {
 			clearLog: state => state.events = [],

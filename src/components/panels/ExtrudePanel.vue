@@ -21,10 +21,10 @@
 						<v-flex v-if="currentTool && currentTool.extruders.length > 1" class="pr-3">
 							<p class="mb-1">Mix ratio:</p>
 							<v-btn-toggle v-model="mix" mandatory multiple>
-								<v-btn flat value="mix":disabled="uiFrozen" color="primary">
+								<v-btn flat value="mix" :disabled="uiFrozen" color="primary">
 									Mix
 								</v-btn>
-								<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder":disabled="uiFrozen" color="primary">
+								<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder" :disabled="uiFrozen" color="primary">
 									{{ `E${extruder}` }}
 								</v-btn>
 							</v-btn-toggle>

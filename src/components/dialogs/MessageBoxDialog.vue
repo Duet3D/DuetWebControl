@@ -19,7 +19,7 @@
 								<v-layout column>
 									<v-flex v-for="axis in displayedAxes" :key="axis.letter">
 										<code-btn :code="`G1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}`" block>
-											<v-icon>arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
+											<v-icon>keyboard_arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 										</code-btn>
 									</v-flex>
 								</v-layout>
@@ -36,7 +36,7 @@
 								<v-layout column>
 									<v-flex v-for="axis in displayedAxes" :key="axis.letter">
 										<code-btn :code="`G1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}`" block>
-											{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>arrow_right</v-icon>
+											{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>keyboard_arrow_right</v-icon>
 										</code-btn>
 									</v-flex>
 								</v-layout>

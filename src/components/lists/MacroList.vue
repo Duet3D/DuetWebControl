@@ -47,7 +47,7 @@
 			</v-list>
 		</v-card-text>
 
-		<v-alert v-model="!filelist.length" type="info">
+		<v-alert :value="!filelist.length" type="info">
 			No Macros
 		</v-alert>
 	</v-card>

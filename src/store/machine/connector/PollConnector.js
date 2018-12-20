@@ -640,7 +640,7 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	// Call this only from updateLoop()
-	async getConfigResponse(updateData) {
+	async getConfigResponse() {
 		const response = await this.axios.get('rr_config');
 		const configData = {
 			electronics: {

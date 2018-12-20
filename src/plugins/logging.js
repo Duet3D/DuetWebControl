@@ -12,6 +12,7 @@ export function log(type, title, message, hostname = store.state.selectedMachine
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
 }
 
+// eslint-disable-next-line
 export function logCode(code = '', response, hostname = store.state.selectedMachine, fromInput = false) {
 	if (!code && !response) {
 		// Make sure there is something to log...

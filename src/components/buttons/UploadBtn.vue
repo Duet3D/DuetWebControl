@@ -38,6 +38,7 @@ export default {
 				case 'www': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}
+			return undefined;
 		},
 		destinationDirectory() {
 			if (this.directory) {
@@ -54,6 +55,7 @@ export default {
 				case 'www': return Path.www;
 				case 'update': return Path.sys;
 			}
+			return undefined;
 		}
 	},
 	data() {

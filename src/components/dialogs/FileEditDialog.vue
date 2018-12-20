@@ -44,13 +44,13 @@
 				<v-spacer></v-spacer>
 
 				<v-toolbar-items>
-					<v-btn dark flat href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
+					<v-btn v-if="showGCodeHelp" dark flat href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
 						<v-icon class="mr-1">help</v-icon> G-Code Reference
 					</v-btn>
-					<v-btn v-if="showGCodeHelp" dark flat href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
-						<v-icon class="mr-1">help</v-icon> Display System
+					<v-btn v-if="showDisplayHelp" dark flat href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
+						<v-icon class="mr-1">help</v-icon> Menu Reference
 					</v-btn>
-					<v-btn v-if="showDisplayHelp" dark flat @click="save">
+					<v-btn dark flat @click="save">
 						<v-icon class="mr-1">save</v-icon> Save
 					</v-btn>
 				</v-toolbar-items>
@@ -66,6 +66,8 @@
 
 import { mapActions } from 'vuex'
 
+import Path from '../../utils/path.js'
+
 export default {
 	props: {
 		shown: {
@@ -76,9 +78,19 @@ export default {
 			type: String,
 			required: true
 		},
-		showGCodeHelp: Boolean,
-		showDisplayHelp: Boolean,
 		value: String
+	},
+	computed: {
+		showGCodeHelp() {
+			if (this.filename.startsWith(Path.macros)) {
+				return true;
+			}
+			const matches = /\.(.*)$/.exec(this.filename.toLowerCase());
+			return matches && ['.g', '.gcode', '.gc', '.gco', '.nc', '.ngc', '.tap'].indexOf(matches[1]);
+		},
+		showDisplayHelp() {
+			return this.filename.startsWith(Path.display);
+		}
 	},
 	data() {
 		return {

@@ -441,13 +441,14 @@ export default {
 				return;
 			}
 
+			let offTemps;
 			switch (this.heat.heaters[heater].state) {
 				case 0:		// Off -> Active
 					this.sendCode(`T${tool.number}`);
 					break;
 
 				case 1:		// Standby -> Off
-					const offTemps = tool.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`);
+					offTemps = tool.active.map(() => '-273.15').reduce((a, b) => `${a}:${b}`);
 					this.sendCode(`G10 P${tool.number} S${offTemps} R${offTemps}`);
 					break;
 
@@ -473,15 +474,16 @@ export default {
 				return;
 			}
 
+			let temps;
 			switch (this.heat.heaters[heater].state) {
 				case 0:		// Off -> Active
-					const activeTemps = (bed.active instanceof Array) ? bed.active.reduce((a, b) => `${a}:${b}`) : bed.active;
-					this.sendCode(`M140 P${bed.number} S${activeTemps}`);
+					temps = (bed.active instanceof Array) ? bed.active.reduce((a, b) => `${a}:${b}`) : bed.active;
+					this.sendCode(`M140 P${bed.number} S${temps}`);
 					break;
 
 				case 1:		// Standby -> Off
-					const offTemps = (bed.active instanceof Array) ? bed.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
-					this.sendCode(`M140 P${bed.number} S${offTemps}`);
+					temps = (bed.active instanceof Array) ? bed.active.map(() => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
+					this.sendCode(`M140 P${bed.number} S${temps}`);
 					break;
 
 				case 2:		// Active -> Standby
@@ -506,10 +508,11 @@ export default {
 				return;
 			}
 
+			let temps;
 			switch (this.heat.heaters[heater].state) {
 				case 0:		// Off -> Active
-					const activeTemps = (chamber.active instanceof Array) ? chamber.active.reduce((a, b) => `${a}:${b}`) : chamber.active;
-					this.sendCode(`M141 P${chamber.number} S${activeTemps}`);
+					temps = (chamber.active instanceof Array) ? chamber.active.reduce((a, b) => `${a}:${b}`) : chamber.active;
+					this.sendCode(`M141 P${chamber.number} S${temps}`);
 					break;
 
 				// Standby mode for chambers is not officially supported yet (there's no code for standby control)
@@ -520,8 +523,8 @@ export default {
 					break;
 
 				default:	// Active -> Off
-					const offTemps = (chamber.active instanceof Array) ? chamber.active.map(active => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
-					this.sendCode(`M141 P${chamber.number} S${offTemps}`);
+					temps = (chamber.active instanceof Array) ? chamber.active.map(() => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
+					this.sendCode(`M141 P${chamber.number} S${temps}`);
 					break;
 			}
 		}

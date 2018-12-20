@@ -55,7 +55,7 @@ export default {
 				dispatch('machine/settings/load', undefined, { root: true });
 			}
 		},
-		async save({ state, getters, rootGetters, dispatch }) {
+		async save({ state, rootGetters, dispatch }) {
 			// See if we need to save everything in the local storage
 			if (state.settingsStorageLocal) {
 				setLocalSetting('settings', state);
@@ -69,7 +69,7 @@ export default {
 				}
 			}
 		},
-		async reset({ state, rootState, dispatch }) {
+		async reset({ rootState, dispatch }) {
 			// Delete settings
 			removeLocalSetting('settings');
 			removeLocalSetting(`machines/${rootState.selectedMachine}`);

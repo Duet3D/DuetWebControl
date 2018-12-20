@@ -19,7 +19,7 @@
 				<v-btn flat :value="true" :disabled="uiFrozen" :loading="sendingCode" color="success" @click="togglePower(true)">
 					On
 				</v-btn>
-				<v-btn flat :value="false":disabled="uiFrozen" :loading="sendingCode" color="error" @click="togglePower(false)">
+				<v-btn flat :value="false" :disabled="uiFrozen" :loading="sendingCode" color="error" @click="togglePower(false)">
 					Off
 				</v-btn>
 			</v-btn-toggle>

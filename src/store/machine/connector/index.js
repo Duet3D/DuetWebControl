@@ -14,7 +14,7 @@ export function mapConnectorActions(connector, toIgnore = []) {
 	if (connector) {
 		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
 			// Map action to the connector
-			actions[action] = function handler({ dispatch }, payload) { return connector[action](payload); }
+			actions[action] = function handler(context, payload) { return connector[action](payload); }
 		});
 	}
 	return actions;
