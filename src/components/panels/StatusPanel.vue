@@ -201,7 +201,7 @@ export default {
 	methods: {
 		displayAxisPosition(axis, index) {
 			const position = this.displayToolPosition ? this.move.drives[index].position : axis.machinePosition;
-			return (axis.letter === 'Z') ? this.$displayZ(position) : this.$display(position, 1);
+			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
 		},
 		probeIsClose(probe) { return !this.isPrinting && (probe.value > probe.threshold * 0.9) && (probe.value < probe.threshold); },
 		probeIsTriggered(probe) { return !this.isPrinting && (probe.value >= probe.threshold); }

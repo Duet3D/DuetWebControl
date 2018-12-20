@@ -47,7 +47,10 @@
 					<v-btn dark flat href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
 						<v-icon class="mr-1">help</v-icon> G-Code Reference
 					</v-btn>
-					<v-btn dark flat @click="save">
+					<v-btn v-if="showGCodeHelp" dark flat href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
+						<v-icon class="mr-1">help</v-icon> Display System
+					</v-btn>
+					<v-btn v-if="showDisplayHelp" dark flat @click="save">
 						<v-icon class="mr-1">save</v-icon> Save
 					</v-btn>
 				</v-toolbar-items>
@@ -73,6 +76,8 @@ export default {
 			type: String,
 			required: true
 		},
+		showGCodeHelp: Boolean,
+		showDisplayHelp: Boolean,
 		value: String
 	},
 	data() {

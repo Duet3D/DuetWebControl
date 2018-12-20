@@ -7,7 +7,7 @@ import BaseConnector from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 
 import {
-	DisconnectedError, TimeoutError, OperationFailedError, FileNotFoundError,
+	CORSError, DisconnectedError, TimeoutError, OperationFailedError, DirectoryNotFoundError, FileNotFoundError, DriveUnmountedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from '../../../utils/errors.js'
@@ -118,11 +118,15 @@ export default class PollConnector extends BaseConnector {
 		const that = this;
 		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 		this.axios.interceptors.response.use(null, (error) => {
-			if (error.response && error.response.status === 404) {
+			if (error.response === undefined) {
+				return Promise.reject(new CORSError());
+			}
+
+			if (error.response.status === 404) {
 				return Promise.reject(new FileNotFoundError());
 			}
 
-			if (error.config && !that.isReconnecting && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
+			if (!that.isReconnecting && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
 				if (!error.config.retry) {
 					error.config.retry = 0;
 				}
@@ -137,6 +141,7 @@ export default class PollConnector extends BaseConnector {
 					console.warn(JSON.stringify(error, null, 2));
 				}
 			}
+
 			return Promise.reject(error.message);
 		});
 
@@ -253,7 +258,7 @@ export default class PollConnector extends BaseConnector {
 				drives: Array.concat(response.data.coords.xyz, response.data.coords.extr).map((xyz, drive) => ({
 					position: (drive < response.data.coords.xyz.length) ? xyz : response.data.coords.extr[drive - response.data.coords.xyz.length]
 				})),
-				extruders: response.data.params.extrFactors.map(factor => ({ factor })),
+				extruders: response.data.params.extrFactors.map(factor => ({ factor: factor / 100 })),
 				speedFactor: response.data.params.speedFactor / 100
 			},
 			scanner: (response.data.scanner) ? {
@@ -826,6 +831,12 @@ export default class PollConnector extends BaseConnector {
 					first: next
 				}
 			});
+
+			if (response.data.err === 1) {
+				throw new DriveUnmountedError();
+			} else if (response.data.err === 2) {
+				throw new DirectoryNotFoundError();
+			}
 
 			fileList = fileList.concat(response.data.files);
 			next = response.data.next;

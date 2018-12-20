@@ -39,7 +39,7 @@ const boardDefinitions = {
 		hasPowerFailureDetection: true,
 		hasMotorLoadDetection: true
 	},
-	duetm10: {
+	duetmaestro100: {
 		firmwareFileRegEx: /DuetMaestroFirmware(.*)\.bin/i,
 		firmwareFile: 'DuetMaestroFirmware.bin',
 		motorWarningCurrent: 1200,

@@ -97,7 +97,7 @@ a:not(:hover) {
 							<tools-panel></tools-panel>
 						</v-flex>
 
-						<v-flex v-if="$vuetify.breakpoint.mdAndUp" d-flex md3 lg4>
+						<v-flex d-flex md3 lg4 class="hidden-sm-and-down">
 							<temperature-chart></temperature-chart>
 						</v-flex>
 					</v-layout>
@@ -176,6 +176,20 @@ export default {
 
 		// Attempt to load the settings
 		this.load();
+
+		// Validate navigation
+		const checkMenuCondition = this.checkMenuCondition;
+		this.$router.beforeEach((to, from, next) => {
+			if (Routing.some(group => group.pages.some(page => page.path === to.path && !checkMenuCondition(page.condition)))) {
+				next('/');
+			} else {
+				next();
+			}
+		});
+
+		if (Routing.some(group => group.pages.some(page => page.path === this.$route.path && !checkMenuCondition(page.condition)))) {
+			this.$router.push('/');
+		}
 	},
 	watch: {
 		isPrinting(to) {

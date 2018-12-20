@@ -14,15 +14,21 @@ class NotImplementedError extends Error {
 
 class NetworkError extends Error {}
 
+class CORSError extends NetworkError {
+	constructor() {
+		super(i18n.t('error.cors'));
+	}
+}
+
 class DisconnectedError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.disconnectedError'));
+		super(i18n.t('error.disconnected'));
 	}
 }
 
 class TimeoutError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.timeoutError'));
+		super(i18n.t('error.timeout'));
 	}
 }
 
@@ -38,9 +44,23 @@ class OperationFailedError extends NetworkError {
 	}
 }
 
+// File Access Errors
+
+class DriveUnmountedError extends NetworkError {
+	constructor() {
+		super(i18n.t('error.driveUnmounted', []));
+	}
+}
+
 class FileNotFoundError extends NetworkError {
-	constructor(file) {
-		super(i18n.t('error.fileNotFound', [file]));
+	constructor() {
+		super(i18n.t('error.fileNotFound'));
+	}
+}
+
+class DirectoryNotFoundError extends NetworkError {
+	constructor() {
+		super(i18n.t('error.directoryNotFound'));
 	}
 }
 
@@ -66,13 +86,13 @@ class CodeError extends Error {}
 
 class CodeBufferError extends CodeError {
 	constructor() {
-		super(i18n.t('error.codeBufferError'));
+		super(i18n.t('error.codeBuffer'));
 	}
 }
 
 class CodeResponseError extends CodeError {
 	constructor() {
-		super(i18n.t('error.codeResponseError'));
+		super(i18n.t('error.codeResponse'));
 	}
 }
 
@@ -90,7 +110,8 @@ class InvalidHeightmapError extends HeightmapError {
 
 export {
 	NotImplementedError,
-	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError,
+	NetworkError, CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
+	DriveUnmountedError, FileNotFoundError, DirectoryNotFoundError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeError, CodeResponseError, CodeBufferError,
 	HeightmapError, InvalidHeightmapError
