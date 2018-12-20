@@ -1093,11 +1093,13 @@ label[for="dropdown_language"] {
 	margin-top: 6px;
 }
 
-#page_sysedit {
+#page_sysedit,
+#page_display {
 	margin: -15px;
 }
 
-#page_sysedit button.btn-upload {
+#page_sysedit button.btn-upload,
+#page_display button.btn-upload {
 	margin-bottom: 30px;
 }
 

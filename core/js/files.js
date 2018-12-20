@@ -1924,7 +1924,11 @@ $("#a_context_rename").click(function(e) {
 					} else if (currentPage == "filaments") {
 						updateFilaments();
 					} else {
-						updateSysFiles();
+						if ($("#page_sysedit").hasClass("active")) {
+							updateSysFiles();
+						} else {
+							updateDisplayFiles();
+						}
 					}
 				}
 				// else an error is reported via rr_reply

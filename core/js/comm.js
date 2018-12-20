@@ -867,10 +867,12 @@ function updateStatus() {
 
 			// Sensors
 			setProbeValue(status.sensors.probeValue, status.sensors.probeSecondary);
-			if (status.sensors.fanRPM.constructor == Array) {
-				$("td.fan-rpm").html(status.sensors.fanRPM.join(" / "));
-			} else {
-				$("td.fan-rpm").html(status.sensors.fanRPM);
+			if (status.sensors.hasOwnProperty("fanRPM")) {
+				if (status.sensors.fanRPM.constructor === Array) {
+					$("td.fan-rpm").html(status.sensors.fanRPM.join(" / "));
+				} else {
+					$("td.fan-rpm").html(status.sensors.fanRPM);
+				}
 			}
 
 			// Heated bed
