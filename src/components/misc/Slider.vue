@@ -1,5 +1,11 @@
+<style scoped>
+.slider {
+	margin-top: 40px;
+}
+</style>
+
 <template>
-	<v-layout row>
+	<v-layout row align-center>
 		<v-flex shrink>
 			<v-btn large icon :disabled="disabled || innerValue === min" @click="change(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)" @touchstart="mouseDown(false)" @touchend="mouseUp(false)">
 				<v-icon>remove</v-icon>
@@ -7,7 +13,7 @@
 		</v-flex>
 
 		<v-flex class="px-2">
-			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled" hide-details thumb-label="always"></v-slider>
+			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled" hide-details thumb-label="always" class="slider"></v-slider>
 		</v-flex>
 
 		<v-flex shrink>

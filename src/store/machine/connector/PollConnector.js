@@ -7,7 +7,8 @@ import BaseConnector from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 
 import {
-	CORSError, DisconnectedError, TimeoutError, OperationFailedError, DirectoryNotFoundError, FileNotFoundError, DriveUnmountedError,
+	CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
+	DirectoryNotFoundError, FileNotFoundError, DriveUnmountedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from '../../../utils/errors.js'
@@ -118,6 +119,10 @@ export default class PollConnector extends BaseConnector {
 		const that = this;
 		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 		this.axios.interceptors.response.use(null, (error) => {
+			if (axios.isCancel(error)) {
+				return Promise.reject(new OperationCancelledError());
+			}
+
 			if (error.response === undefined) {
 				return Promise.reject(new CORSError());
 			}

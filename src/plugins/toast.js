@@ -59,12 +59,12 @@ export function makeNotification(type, title, message = '', timeout) {
 }
 
 export function makeFileTransferNotification(type, destination, cancelSource, num, count) {
-	const filename = extractFileName(destination);
+	const filename = extractFileName(destination), titlePrefix = count ? `(${num}/${count}) ` : '';
 
 	// Prepare toast
 	iziToast.info({
 		class: 'file-transfer',
-		title: (count ? `(${num}/${count}) ` : '') + i18n.t(`notification.${type}.title`, [filename, 0, 0]),
+		title: titlePrefix  + i18n.t(`notification.${type}.title`, [filename, 0, 0]),
 		message: i18n.t(`notification.${type}.message`),
 		layout: 2,
 		timeout: false,
@@ -90,7 +90,7 @@ export function makeFileTransferNotification(type, destination, cancelSource, nu
 		domElement: toast,
 		onProgress(e) {
 			const uploadSpeed = e.loaded / (((new Date()) - startTime) / 1000), progress = (e.loaded / e.total) * 100;
-			title.textContent = i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
+			title.textContent = titlePrefix + i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
 			progressBar.style.width = progress.toFixed(1) + '%';
 		},
 		hide() {

@@ -3,7 +3,7 @@ const ZipPlugin = require('zip-webpack-plugin')
 
 module.exports = {
 	configureWebpack: {
-		plugins: [
+		plugins: (process.env.NODE_ENV === 'production') ? [
 			new CompressionPlugin({
 				cache: true
 			}),
@@ -16,6 +16,6 @@ module.exports = {
 				filename: 'DuetWebControl-symbols.zip',
 				include: [/\.gz$/, /\.woff$/, /\.woff2$/],
 			})
-		]
+		] : []
 	}
 }

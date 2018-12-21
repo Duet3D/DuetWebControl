@@ -8,7 +8,7 @@
 			</a>
 		</v-card-title>
 
-		<v-card-text class="pt-2 pb-0">
+		<v-card-text class="py-0">
 			<slider v-model="speedFactor" :min="speedFactorMin" :max="speedFactorMax" :disabled="uiFrozen"></slider>
 		</v-card-text>
 	</v-card>

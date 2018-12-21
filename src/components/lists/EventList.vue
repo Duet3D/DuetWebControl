@@ -18,16 +18,16 @@ td.title-cell {
 
 <template>
 	<div class="component">
-		<v-data-table :headers="headers" :items="events" :pagination="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : events.length === 0 }">
+		<v-data-table :headers="headers" :items="events" :pagination="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">{{ $t('list.eventLog.noEvents') }}</v-alert>
 			</template>
 
 			<template slot="items" slot-scope="{ item }">
-				<td class="log-cell title-cell" :class="getClassByEvent(item.type)" @contextmenu="showContextMenu">
+				<td class="log-cell title-cell" :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)">
 					{{ item.date.toLocaleString() }}
 				</td>
-				<td class="log-cell content-cell" :class="getClassByEvent(item.type)" @contextmenu="showContextMenu">
+				<td class="log-cell content-cell" :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)">
 					<strong>{{ item.title }}</strong>
 					<br v-if="item.title && item.message"/>
 					<span v-if="item.message" class="message" v-html="formatMessage(item.message)"></span>
@@ -37,6 +37,9 @@ td.title-cell {
 
 		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
 			<v-list>
+				<v-list-tile v-show="contextMenu.item" @click="copy">
+					<v-icon class="mr-1">assignment</v-icon> {{ $t('list.eventLog.copy') }}
+				</v-list-tile>
 				<v-list-tile @click="clearLog">
 					<v-icon class="mr-1">clear_all</v-icon> {{ $t('list.eventLog.clear') }}
 				</v-list-tile>
@@ -63,6 +66,7 @@ export default {
 		return {
 			contextMenu: {
 				shown: false,
+				item: null,
 				x: 0,
 				y: 0
 			},
@@ -99,14 +103,20 @@ export default {
 		formatMessage(message) {
 			return message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
 		},
-		showContextMenu(e) {
-			e.preventDefault();
+		showContextMenu(e, item) {
 			this.contextMenu.shown = false;
+			this.contextMenu.item = item;
 			this.contextMenu.x = e.clientX;
 			this.contextMenu.y = e.clientY;
 			this.$nextTick(() => {
 				this.contextMenu.shown = true;
 			});
+		},
+		copy() {
+			const title = this.contextMenu.item.title.replace(/\n/g, '\r\n');
+			const message = this.contextMenu.item.message ? this.contextMenu.item.message.replace(/\n/g, '\r\n') : '';
+			const value = `${this.contextMenu.item.date.toLocaleString()}: ${message ? (title + ": " + message) : title}`;
+			navigator.clipboard.writeText(value);
 		},
 		downloadText() {
 			let textContent = '';

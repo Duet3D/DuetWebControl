@@ -38,7 +38,7 @@
 						</v-layout>
 					</v-flex>
 					<v-flex>
-						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen" class="pt-4"></slider>
+						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen"></slider>
 					</v-flex>
 				</v-flex>
 			</v-layout>

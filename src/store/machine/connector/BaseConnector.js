@@ -32,6 +32,8 @@ class BaseConnector {
 		const source = axios.CancelToken.source();
 
 		// Work-around for global cancel token, see https://github.com/axios/axios/issues/978
+		// eslint-disable-next-line
+		source.token.throwIfRequested = source.token.throwIfRequested;
 		source.token.promise.then = source.token.promise.then.bind(source.token.promise);
 		source.token.promise.catch = source.token.promise.catch.bind(source.token.promise);
 

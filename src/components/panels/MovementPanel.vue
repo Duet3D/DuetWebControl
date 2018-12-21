@@ -48,7 +48,7 @@
 						<v-divider></v-divider>
 
 						<v-list-tile @click="sendCode('G32')">
-							<v-icon class="mr-1">how_to_vote</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
+							<v-icon class="mr-1">view_module</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
 						</v-list-tile>
 						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
 							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 

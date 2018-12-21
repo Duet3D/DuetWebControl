@@ -34,7 +34,7 @@
 					<span>
 						{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
 					</span>
-					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen" class="pt-3"></slider>
+					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen"></slider>
 				</v-flex>
 			</v-layout>
 		</v-card-text>

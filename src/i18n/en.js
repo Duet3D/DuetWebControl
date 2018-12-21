@@ -171,6 +171,7 @@ export default {
 			type: 'Type',
 			message: 'Event',
 			noEvents: 'No Events',
+			copy: 'Copy',
 			clear: 'Clear',
 			downloadText: 'Download as Text',
 			downloadCSV: 'Download as CSV'

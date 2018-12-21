@@ -1,18 +1,7 @@
 <template>
 	<div class="component">
 		<v-toolbar>
-			<v-menu offset-y v-if="storages.length > 1">
-				<v-btn color="success" slot="activator">
-					<v-icon class="mr-1">sd_storage</v-icon> SD Card {{ storageIndex }} <v-icon class="ml-1">arrow_drop_down</v-icon>
-				</v-btn>
-
-				<v-list>
-					<v-list-tile v-for="(storage, index) in storages" :key="index" @click="selectStorage(storage, index)">
-						<v-icon class="mr-1">{{ storage.mounted ? 'done' : 'clear' }}</v-icon>
-						SD Card {{ index }} ({{ storage.mounted ? 'mounted' : 'not mounted' }})
-					</v-list-tile>
-				</v-list>
-			</v-menu>
+			<sd-card-btn :directory="directory" @storageSelected="selectStorage"></sd-card-btn>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>
@@ -44,6 +33,7 @@
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
+			<sd-card-btn :directory="directory" @storageSelected="selectStorage"></sd-card-btn>
 			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
 			</v-btn>
@@ -73,13 +63,6 @@ export default {
 		...mapState('machine/model', ['storages']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
-		},
-		storageIndex() {
-			const matches = /^(\d+)/.exec(this.directory);
-			if (matches) {
-				return parseInt(matches[1]);
-			}
-			return 0;
 		},
 		loading: {
 			get() { return this.loadingValue || this.fileinfoProgress !== -1; },
@@ -141,13 +124,14 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileInfo']),
 		...mapMutations('machine/cache', ['clearFileInfo']),
-		async selectStorage(storage, cardIndex) {
+		async selectStorage(index) {
+			const storage = this.storages[index];
 			let mountSuccess = true, mountResponse;
 			this.loading = true;
 			if (!storage.mounted) {
 				try {
 					// Mount storage
-					mountResponse = await this.sendCode(`M21 P${cardIndex}`);
+					mountResponse = await this.sendCode(`M21 P${index}`);
 				} catch (e) {
 					mountResponse = e.message;
 					mountSuccess = false;
@@ -158,7 +142,7 @@ export default {
 			if (this.isConnected) {
 				if (mountSuccess && storage.mounted) {
 					// Change directory
-					this.directory = (cardIndex === 0) ? Path.gcodes : `${cardIndex}:`;
+					this.directory = (index === 0) ? Path.gcodes : `${index}:`;
 				} else {
 					// Show mount message
 					this.$log('error', 'Failed to mount SD card', mountResponse);

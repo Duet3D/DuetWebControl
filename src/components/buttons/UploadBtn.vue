@@ -19,6 +19,8 @@ import VBtn from 'vuetify/es5/components/VBtn'
 import { mapState, mapGetters, mapActions } from 'vuex'
 import Path from '../../utils/path.js'
 
+const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
+
 export default {
 	computed: {
 		...mapState(['isLocal']),
@@ -93,15 +95,15 @@ export default {
 			this.$refs.fileInput.value = "";
 		},
 		isWebFile(filename) {
-			const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension))) {
 				return true;
 			}
 
-			const matches = /\.(.+).gz$/i.exec(filename);
+			const matches = /(\.[^.]+).gz$/i.exec(filename);
 			if (matches && webExtensions.indexOf(matches[1].toLowerCase()) !== -1) {
 				return true;
 			}
+			return false;
 		},
 		async doUpload(files, zipName, startTime) {
 			if (!files.length) {
@@ -142,7 +144,7 @@ export default {
 							zipFiles[i] = await zip.file(name).async('blob');
 							zipFiles[i].name = name;
 						}
-						this.doUpload(zipFiles, /^(.*).zip/i.exec(files[0].name)[1], new Date());
+						this.doUpload(zipFiles, files[0].name, new Date());
 					} catch (e) {
 						console.warn(e);
 						this.$makeNotification('error', this.$t('error.uploadDecompressionFailed'), e.message);
@@ -162,19 +164,19 @@ export default {
 				const content = files[i];
 
 				// Adjust filename if an update is being uploaded
-				let filename = Path.combine(this.destinationDirectory, files[i].name);
+				let filename = Path.combine(this.destinationDirectory, content.name);
 				if (this.target === 'sys' || this.target === 'update') {
-					if (this.isWebFile(files[i].name)) {
-						filename = Path.combine(Path.www, files[i].name);
-						this.updates.webInterface |= (files[i].name.toLowerCase() === 'index.html');
-					} else if (this.electronics.board.firmwareFileRegEx.test(files[i].name)) {
+					if (this.isWebFile(content.name)) {
+						filename = Path.combine(Path.www, content.name);
+						this.updates.webInterface |= (content.name.toLowerCase() === 'index.html');
+					} else if (this.electronics.board.firmwareFileRegEx.test(content.name)) {
 						filename = Path.combine(Path.sys, this.electronics.board.firmwareFile);
 						this.updates.firmware = true;
 					} else if (this.electronics.board.hasWiFi) {
-						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(files[i].name) || /DuetWiFiServer(.*)\.bin/i.test(files[i].name))) {
+						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 							filename = Path.combine(Path.sys, 'DuetWiFiServer.bin');
 							this.updates.wifiServer = true;
-						} else if (/DuetWebControl(.*)\.bin/i.test(files[i].name)) {
+						} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
 							filename = Path.combine(Path.sys, 'DuetWebControl.bin');
 							this.updates.wifiServerSpiffs = true;
 						}
