@@ -14,7 +14,7 @@
 				<v-chip close v-for="(temp, index) in items.standby" :key="temp" @input="removeStandby(index)">{{ temp }} {{ unit }}</v-chip>
 			</v-flex>
 			<v-flex xs6>
-				<v-layout row>
+				<v-layout row wrap>
 					<v-flex>
 						<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999" label="Value of new temperature"></v-text-field>
 					</v-flex>
@@ -26,7 +26,7 @@
 				</v-layout>
 			</v-flex>
 			<v-flex xs6>
-				<v-layout row>
+				<v-layout row wrap>
 					<v-flex>
 						<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999" label="Value of new temperature"></v-text-field>
 					</v-flex>

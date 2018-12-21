@@ -97,7 +97,7 @@ a:not(:hover) {
 							<tools-panel></tools-panel>
 						</v-flex>
 
-						<v-flex d-flex md3 lg4 class="hidden-sm-and-down">
+						<v-flex v-if="$vuetify.breakpoint.mdAndUp" d-flex md3 lg4>
 							<temperature-chart></temperature-chart>
 						</v-flex>
 					</v-layout>
