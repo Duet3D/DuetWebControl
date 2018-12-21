@@ -7,9 +7,11 @@ import { NotImplementedError } from '../../../utils/errors.js'
 // By default axios turns spaces into pluses which is undesired.
 // It is better to encode everything via encodeURIComponent
 axios.defaults.paramsSerializer = function(params) {
-	return Object.keys(params)
+	const keys = Object.keys(params);
+	return keys.length ? keys
 		.map(key => `${key}=${encodeURIComponent(params[key])}`)
-		.reduce((a, b) => a + '&' + b);
+		.reduce((a, b) => a + '&' + b)
+		: '';
 }
 
 // Base class for network connectors that keep the machine store up-to-date

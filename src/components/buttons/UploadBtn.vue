@@ -25,7 +25,7 @@ export default {
 	computed: {
 		...mapState(['isLocal']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', ['electronics']),
+		...mapGetters('machine/model', ['board']),
 		canUpload() {
 			return this.isConnected && !this.uiFrozen;
 		},
@@ -70,7 +70,9 @@ export default {
 				webInterface: false,
 				firmware: false,
 				wifiServer: false,
-				wifiServerSpiffs: false
+				wifiServerSpiffs: false,
+
+				codeSent: false
 			}
 		}
 	},
@@ -168,11 +170,11 @@ export default {
 				if (this.target === 'sys' || this.target === 'update') {
 					if (this.isWebFile(content.name)) {
 						filename = Path.combine(Path.www, content.name);
-						this.updates.webInterface |= (content.name.toLowerCase() === 'index.html');
-					} else if (this.electronics.board.firmwareFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.sys, this.electronics.board.firmwareFile);
+						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
+					} else if (this.board.firmwareFileRegEx.test(content.name)) {
+						filename = Path.combine(Path.sys, this.board.firmwareFile);
 						this.updates.firmware = true;
-					} else if (this.electronics.board.hasWiFi) {
+					} else if (this.board.hasWiFi) {
 						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 							filename = Path.combine(Path.sys, 'DuetWiFiServer.bin');
 							this.updates.wifiServer = true;
@@ -213,7 +215,7 @@ export default {
 				if (this.updates.firmware || this.updates.wifiServer || this.updates.wifiServerSpiffs) {
 					// Ask user to perform an update
 					this.confirmUpdate = true;
-				} else if (this.updates.webInterface) {
+				} else if (!this.isLocal && this.updates.webInterface) {
 					// Reload the web interface immediately if it was the only update
 					location.reload();
 				}
@@ -232,6 +234,7 @@ export default {
 				modules.push('2');
 			}
 
+			this.updates.codeSent = true;
 			try {
 				await this.sendCode(`M997 S${modules.reduce((a, b) => `${a}:${b}`)}`);
 			} catch (e) {
@@ -259,8 +262,8 @@ export default {
 	},
 	watch: {
 		isConnected(to) {
-			if (to && !this.isLocal && this.updates.webInterface) {
-				// Reload web interface when the connection could be established again
+			if (to && !this.isLocal && this.updates.codeSent && this.updates.webInterface) {
+				// Reload the web interface when the connection could be established again
 				location.reload();
 			}
 		}

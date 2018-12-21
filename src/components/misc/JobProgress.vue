@@ -3,7 +3,7 @@
 		<v-layout column>
 			<v-flex>
 				<v-layout row wrap>
-					{{ printFile ? `Printing ${printFile}, ${$display(jobProgress * 100, 1, '%')} complete` : (job.lastFileName ? `Printed ${job.lastFileName}, 100% complete` : 'No Job running.') }}
+					{{ printStatus }}
 					<v-spacer></v-spacer>
 					<span>{{ printDetails }}</span>
 				</v-layout>
@@ -28,6 +28,27 @@ export default {
 		...mapState('machine', ['lastPrintedFile']),
 		...mapState('machine/model', ['job', 'state']),
 		...mapGetters('machine/model', ['isPrinting', 'jobProgress']),
+		printStatus() {
+			if (this.printFile) {
+				const progress = this.$display(this.jobProgress * 100, 1, '%');
+				if (this.state.status === 'simulating') {
+					return `Simulating ${this.printFile}, ${progress} complete`;
+				}
+				if (this.state.mode === 'CNC') {
+					return `Processing ${this.printFile}, ${progress} complete`;
+				}
+				return `Printing ${this.printFile}, ${progress} complete`;
+			} else if (this.job.lastFileName) {
+				if (this.job.lastFileSimulated) {
+					return `Simulated ${this.job.lastFileName}, 100% complete`;
+				}
+				if (this.state.mode === 'CNC') {
+					return `Processed ${this.job.lastFileName}, 100% complete`;
+				}
+				return `Printed ${this.job.lastFileName}, 100% complete`;
+			}
+			return 'No Job running.';
+		},
 		printDetails() {
 			if (!this.isPrinting) {
 				return '';

@@ -1,6 +1,6 @@
 'use strict'
 
-import { defaultBoard } from './boards.js'
+import { getBoardDefinition } from './boards.js'
 import {
 	Axis,
 	BedOrChamber,
@@ -39,7 +39,6 @@ export default function(connector) {
 					min: undefined,
 					max: undefined
 				},
-				board: defaultBoard,
 				expansionBoards: []
 			},
 			fans: [],
@@ -70,6 +69,7 @@ export default function(connector) {
 				filamentNeeded: [],
 				fileName: undefined,
 				lastFileName: undefined,
+				lastFileSimulated: false,
 				filePosition: undefined,
 				fileSize: undefined,
 				generatedBy: undefined,
@@ -189,12 +189,14 @@ export default function(connector) {
 			]
 		},
 		getters: {
+			board: state => getBoardDefinition(state.electronics.type),
 			currentTool(state) {
 				if (state.state.currentTool >= 0) {
 					return state.tools[state.state.currentTool];
 				}
 				return null;
 			},
+			fractionPrinted: state => state.job.fileSize ? state.job.filePosition / state.job.fileSize : 1,
 			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
 			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
@@ -208,30 +210,37 @@ export default function(connector) {
 			},
 			jobProgress(state, getters) {
 				if (getters.isPrinting) {
-					if (state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
+					if (state.state.status !== 'simulating' && state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
 						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.filamentNeeded.reduce((a, b) => a + b));
 					}
-					return state.job.fractionPrinted;
+					return getters.fractionPrinted;
 				}
 				return 0.0;
 			}
 		},
 		mutations: {
-			resetJob(state) {
-				for (let key in state.job) {
-					if (!(state.job[key] instanceof Array)) {
-						state.job[key] = undefined;
-					}
-				}
-			},
 			update(state, payload) {
 				const lastJobFile = state.job.fileName;
+				const wasSimulating = state.state.status === 'simulating';
 
 				merge(state, payload, true);
 				fixMachineItems(state, payload);
 
-				if (state.job.fileName && state.job.fileName !== lastJobFile) {
+				if (lastJobFile && state.job.fileName !== lastJobFile) {
+					for (let key in state.job) {
+						if (!(state.job[key] instanceof Array)) {
+							if (state.job[key] instanceof Object) {
+								for (let subkey in state.job[key]) {
+									state.job[key][subkey] = undefined;
+								}
+							} else {
+								state.job[key] = undefined;
+							}
+						}
+					}
+
 					state.job.lastFileName = lastJobFile;
+					state.job.lastFileSimulated = wasSimulating;
 				}
 			}
 		}

@@ -16,9 +16,6 @@ p:last-child {
 		<v-card-text class="pt-0">
 			<v-layout column class="list">
 				<v-flex tag="p">
-					<strong>Filename:</strong> {{ $display(printFile) }}
-				</v-flex>
-				<v-flex tag="p">
 					<strong>Height:</strong> {{ $displayZ(job.height) }}
 				</v-flex>
 				<v-flex tag="p" v-if="!mode || mode === 'FFF'">
@@ -41,17 +38,12 @@ p:last-child {
 
 import { mapState } from 'vuex'
 
-import { extractFileName } from '../../utils/path.js'
-
 export default {
 	computed: {
 		...mapState('machine/model', {
 			mode: state => state.state.mode,
 			job: state => state.job
-		}),
-		printFile() {
-			return this.job.fileName ? extractFileName(this.job.fileName) : undefined;
-		}
+		})
 	}
 }
 </script>

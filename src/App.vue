@@ -137,12 +137,11 @@ export default {
 		...mapState({
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
-			board: state => state.machine.model.electronics.board,
 			name: state => state.machine.model.network.name,
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
-		...mapGetters('machine/model', ['isPrinting'])
+		...mapGetters('machine/model', ['board', 'isPrinting'])
 	},
 	data() {
 		return {

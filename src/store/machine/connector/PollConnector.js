@@ -123,18 +123,15 @@ export default class PollConnector extends BaseConnector {
 				return Promise.reject(new OperationCancelledError());
 			}
 
-			if (error.response === undefined) {
-				return Promise.reject(new CORSError());
-			}
-
-			if (error.response.status === 404) {
+			if (error.response && error.response.status === 404) {
 				return Promise.reject(new FileNotFoundError());
 			}
 
-			if (!that.isReconnecting && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
+			if (!that.isReconnecting && error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
 				if (!error.config.retry) {
 					error.config.retry = 0;
 				}
+
 				if (error.config.retry < this.settings.ajaxRetries) {
 					error.config.retry++;
 					return this.axios.request(error.config);
@@ -147,7 +144,11 @@ export default class PollConnector extends BaseConnector {
 				}
 			}
 
-			return Promise.reject(error.message);
+			if (error.message) {
+				return Promise.reject(error.message);
+			}
+
+			return Promise.reject(new CORSError());
 		});
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
@@ -857,9 +858,7 @@ export default class PollConnector extends BaseConnector {
 
 	async getFileInfo(filename) {
 		const response = await this.axios.get('rr_fileinfo', {
-			params: {
-				filename: filename ? { name: filename } : {}
-			}
+			params: filename ? { name: filename } : {}
 		});
 
 		if (response.data.err) {

@@ -120,7 +120,7 @@ export default {
 		turnOffEverythingFailed: 'Failed to turn everything off',
 		statusUpdateFailed: 'Failed to get status update for {0}',
 		filelistRequestFailed: 'Failed to get file list',
-		fileinfoRequestFailed: 'Failed to get file info'
+		fileinfoRequestFailed: 'Failed to get file info for {0}'
 	},
 	generic: {
 		ok: 'OK',

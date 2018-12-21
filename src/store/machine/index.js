@@ -181,17 +181,12 @@ export default function(hostname, connector) {
 					commit('setReconnecting', false, { root: true });
 				}
 
-				if (!isReconnecting && wasPrinting && !getters['model/isPrinting']) {
-					// Reset the job details
-					commit('model/resetJob');
-
+				if (!isReconnecting && wasPrinting && !getters['model/isPrinting'] && state.autoSleep) {
 					// Send M1 if auto-sleep is enabled and the print has finished
-					if (state.autoSleep) {
-						try {
-							await dispatch('sendCode', 'M1');
-						} catch (e) {
-							logCode('M1', e.message, this.connector.hostname);
-						}
+					try {
+						await dispatch('sendCode', 'M1');
+					} catch (e) {
+						logCode('M1', e.message, this.connector.hostname);
 					}
 				}
 			},

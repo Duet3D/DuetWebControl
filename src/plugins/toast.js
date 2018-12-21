@@ -15,9 +15,16 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-let settings
+let settings, openNotifications = []
 
 export function makeNotification(type, title, message = '', timeout) {
+	// If there is already an equal notification, reset its time and don't display a new one
+	const equalNotification = openNotifications.find(item => item.type === type && item.title == title && item.message === message);
+	if (equalNotification) {
+		equalNotification.resetTimeout();
+		return equalNotification;
+	}
+
 	// Prepare and show new toast
 	const options = Object.assign({
 		class: 'new-toast',
@@ -52,10 +59,23 @@ export function makeNotification(type, title, message = '', timeout) {
 		messageElement.parentNode.insertBefore(document.createElement('br'), messageElement);
 	}
 
-	return {
+	const item = {
+		type,
+		title,
+		message,
+		timeout,
 		domElement: toast,
-		hide() { iziToast.hide({}, toast); }
+		hide() {
+			iziToast.hide({}, toast);
+			openNotifications = openNotifications.filter(notification => notification !== item);
+		},
+		resetTimeout() {
+			iziToast.progress({}, toast).reset();
+		}
 	}
+
+	openNotifications.push(item);
+	return item;
 }
 
 export function makeFileTransferNotification(type, destination, cancelSource, num, count) {

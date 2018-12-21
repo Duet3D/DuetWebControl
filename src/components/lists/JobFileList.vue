@@ -156,10 +156,12 @@ export default {
 		async requestFileInfo(directory, fileIndex, fileCount) {
 			if (this.fileinfoDirectory === directory) {
 				if (this.isConnected && fileIndex < fileCount) {
+					const file = this.filelist[fileIndex];
+					let height = null, layerHeight = null, filament = [], generatedBy = null;
+
 					this.fileinfoProgress = fileIndex;
 					try {
 						// Request file info
-						const file = this.filelist[fileIndex];
 						if (!file.isDirectory) {
 							const fileInfo = await this.getFileInfo(Path.combine(directory, file.name));
 
@@ -171,23 +173,30 @@ export default {
 							}
 
 							// Set file info
-							file.height = fileInfo.height;
-							file.layerHeight = fileInfo.layerHeight;
-							file.filament = fileInfo.filament;
-							file.generatedBy = fileInfo.generatedBy;
+							height = fileInfo.height;
+							layerHeight = fileInfo.layerHeight;
+							filament = fileInfo.filament;
+							generatedBy = fileInfo.generatedBy;
 						}
-
-						// Move on to the next item
-						await this.requestFileInfo(directory, fileIndex + 1, fileCount);
 					} catch (e) {
-						this.fileinfoProgress = -1;
-						this.fileinfoDirectory = undefined;
-
-						if (!(e instanceof DisconnectedError)) {
-							console.warn(e);
-							this.$log('error', this.$t('error.fileinfoRequestFailed'), e.message);
+						if (e instanceof DisconnectedError) {
+							this.fileinfoProgress = -1;
+							this.fileinfoDirectory = undefined;
+							return;
 						}
+
+						console.warn(e);
+						this.$log('error', this.$t('error.fileinfoRequestFailed', [file.name]), e.message);
 					}
+
+					// Set file info
+					file.height = height;
+					file.layerHeight = layerHeight;
+					file.filament = filament;
+					file.generatedBy = generatedBy;
+
+					// Move on to the next item
+					await this.requestFileInfo(directory, fileIndex + 1, fileCount);
 				} else {
 					this.fileinfoProgress = -1;
 					this.fileinfoDirectory = undefined;
