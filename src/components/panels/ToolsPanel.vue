@@ -69,7 +69,7 @@ table.extra tr > td:first-child {
 					</thead>
 					<tbody>
 						<template v-for="(tool, index) in tools">
-							<tr :class="{ 'grey lighten-4' : tool.number === state.currentTool }" :key="`tool-${index}-${tool.heaters.length && tool.heaters[0]}`">
+							<tr :class="{ [selectedToolClass] : tool.number === state.currentTool }" :key="`tool-${index}-${tool.heaters.length && tool.heaters[0]}`">
 								<th :rowspan="Math.max(1, tool.heaters.length)" class="pl-2" :class="{ 'pt-2 pb-2' : !tool.heaters.length}">
 									<a href="#" @click.prevent="toolClick(tool)">
 										{{ tool.name || $t('panel.tools.tool', [tool.number]) }}
@@ -315,8 +315,12 @@ export default {
 		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapState('machine/model', ['heat', 'state', 'spindles', 'tools']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
+		...mapState('settings', ['darkTheme']),
 		canTurnEverythingOff() {
 			return !this.uiFrozen && this.heat.heaters.some(heater => heater.state);
+		},
+		selectedToolClass() {
+			return this.darkTheme ? 'grey darken-3' : 'grey lighten-4';
 		}
 	},
 	data() {

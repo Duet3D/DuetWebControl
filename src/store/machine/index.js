@@ -39,33 +39,39 @@ export default function(hostname, connector) {
 	return {
 		namespaced: true,
 		state: {
-			hostname,
+			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
-			autoSleep: false
+			isReconnecting: false
 		},
 		actions: {
-			...mapConnectorActions(connector, ['sendCode', 'upload', 'download', 'getFileInfo']),
+			...mapConnectorActions(connector, ['reconnect', 'sendCode', 'upload', 'download', 'getFileInfo']),
+
+			// Reconnect after a connection error
+			async reconnect({ commit }) {
+				commit('setReconnecting', true);
+				await connector.reconnect();
+			},
 
 			// Send a code and log the result (if applicable)
 			// Parameter can be either a string or an object { code, (fromInput) }
-			async sendCode({ state }, payload) {
+			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
 				const fromInput = (payload instanceof Object) ? !!payload.fromInput : false;
 				try {
 					const response = await connector.sendCode(code);
-					logCode(code, response, state.hostname, fromInput);
+					logCode(code, response, hostname, fromInput);
 					return response;
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-						log(type, e, undefined, state.hostname);
+						log(type, e, undefined, hostname);
 					}
 					throw e;
 				}
 			},
 
 			// Upload a file and show progress
-			async upload({ state }, { filename, content, showProgress = true, showSuccess = true, showError = true, num, count }) {
+			async upload(context, { filename, content, showProgress = true, showSuccess = true, showError = true, num, count }) {
 				const cancelSource = BaseConnector.getCancelSource();
 				const notification = showProgress && makeFileTransferNotification('upload', filename, cancelSource, num, count);
 				try {
@@ -75,7 +81,7 @@ export default function(hostname, connector) {
 							await connector.move({ from: Path.configFile, to: Path.configBackupFile, force: true });
 						} catch (e) {
 							console.warn(e);
-							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, state.hostname);
+							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);
 							return;
 						}
 					}
@@ -87,10 +93,10 @@ export default function(hostname, connector) {
 					// Show success message
 					if (showSuccess && num === count) {
 						if (count) {
-							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, state.hostname);
+							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, state.hostname);
+							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
 						}
 					}
 
@@ -106,7 +112,7 @@ export default function(hostname, connector) {
 					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
-						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e, state.hostname);
+						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);
 					}
 					throw e;
 				}
@@ -114,7 +120,7 @@ export default function(hostname, connector) {
 
 			// Download a file and show progress
 			// Parameter can be either the filename or an object { filename, (showProgress, showSuccess, showError, num, count) }
-			async download({ state }, payload) {
+			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
 				const asText = (payload instanceof Object) ? payload.asText : false;
 				const showProgress = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showProgress : true;
@@ -132,10 +138,10 @@ export default function(hostname, connector) {
 					// Show success message
 					if (showSuccess && num === count) {
 						if (count) {
-							log('success', i18n.t('notification.download.successMulti', [count]), undefined, state.hostname);
+							log('success', i18n.t('notification.download.successMulti', [count]), undefined, hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, state.hostname);
+							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
 						}
 					}
 
@@ -151,7 +157,7 @@ export default function(hostname, connector) {
 					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
-						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e, state.hostname);
+						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e.message, hostname);
 					}
 					throw e;
 				}
@@ -169,37 +175,45 @@ export default function(hostname, connector) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, getters, rootState, commit, dispatch }, payload) {
-				const wasPrinting = getters['model/isPrinting'];
+			async update({ state, getters, commit, dispatch }, payload) {
+				const wasPrinting = getters['model/isPrinting'], lastJobFile = state.model.job.fileName;
 
 				// Merge updates into the object model
 				commit('model/update', payload);
 
-				// Have we just performed an update or an emergency reset?
-				const isReconnecting = (state.model.state.status === 'updating') || (state.model.state.status === 'halted');
-				if (isReconnecting) {
-					commit('setReconnecting', true, { root: true });
-				} else if (rootState.isReconnecting) {
-					commit('setReconnecting', false, { root: true });
-				}
+				// Is an update or emergency reset in progress?
+				const reconnect = (state.model.state.status === 'updating') || (state.model.state.status === 'halted');
+				if (reconnect) {
+					commit('setReconnecting', true);
+				} else {
+					if (state.isReconnecting) {
+						commit('setReconnecting', false);
+					}
+					
+					// Have we just finished a job?
+					if (wasPrinting && !getters['model/isPrinting']) {
+						// Clear the cache of the last file
+						commit('cache/clearFileInfo', lastJobFile);
 
-				if (!isReconnecting && wasPrinting && !getters['model/isPrinting'] && state.autoSleep) {
-					// Send M1 if auto-sleep is enabled and the print has finished
-					try {
-						await dispatch('sendCode', 'M1');
-					} catch (e) {
-						logCode('M1', e.message, this.connector.hostname);
+						// Send M1 if auto-sleep is enabled
+						if (state.autoSleep) {
+							try {
+								await dispatch('sendCode', 'M1');
+							} catch (e) {
+								logCode('M1', e.message, hostname);
+							}
+						}
 					}
 				}
 			},
 
 			// Actions for specific events triggered by the machine connector
-			async onConnectionError({ state, dispatch }, error) {
-				await dispatch('onConnectionError', { hostname: state.hostname, error }, { root: true });
+			async onConnectionError({ dispatch }, error) {
+				await dispatch('onConnectionError', { hostname, error }, { root: true });
 			},
 			onCodeCompleted(context, { code, reply }) {
 				if (code === undefined) {
-					logCode(undefined, reply, this.hostname);
+					logCode(undefined, reply, hostname);
 				}
 			},
 			/* eslint-disable no-unused-vars */
@@ -219,6 +233,7 @@ export default function(hostname, connector) {
 			unregister: () => connector.unregister(),
 
 			setAutoSleep: (state, value) => state.autoSleep = value,
+			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
 			setHighVerbosity() { connector.verbose = true; },
 			setNormalVerbosity() { connector.verbose = false; }
 		},

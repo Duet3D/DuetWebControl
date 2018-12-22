@@ -105,7 +105,7 @@ export default {
 		disconnected: 'Could not complete action because the connection has been terminated',
 		cancelled: 'Operation has been cancelled',
 		cors: 'CORS request failed',
-		timeoutError: 'HTTP request timed out',
+		timeout: 'HTTP request timed out',
 		driveUnmounted: 'Target drive is unmounted',
 		directoryNotFound: 'Directory {0} not found',
 		fileNotFound: 'File {0} not found',
@@ -120,7 +120,8 @@ export default {
 		enterValidNumber: 'Please enter a valid number',
 		turnOffEverythingFailed: 'Failed to turn everything off',
 		filelistRequestFailed: 'Failed to get file list',
-		fileinfoRequestFailed: 'Failed to get file info for {0}'
+		fileinfoRequestFailed: 'Failed to get file info for {0}',
+		filamentsLoadFailed: 'Failed to load filaments'
 	},
 	generic: {
 		ok: 'OK',

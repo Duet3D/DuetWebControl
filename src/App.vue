@@ -29,7 +29,7 @@
 	background-color: #616161 !important;
 }
 #global-container .v-card.theme--dark {
-	background-color: #616161 !important;
+	background-color: #515151 !important;
 }
 
 
@@ -51,12 +51,12 @@ a:not(:hover) {
 	<v-app :dark="darkTheme">
 		<v-navigation-drawer persistent clipped v-model="drawer" enable-resize-watcher fixed app>
 			<div class="pa-2 hidden-sm-and-up">
-				<connect-btn class="mb-3" block></connect-btn>
+				<connect-btn v-if="isLocal" class="mb-3" block></connect-btn>
 				<emergency-btn block></emergency-btn>
 			</div>
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
-				<v-list-group v-for="(category, index) in routing" :key="index" :prepend-icon="category.icon" no-action :value="true">
+				<v-list-group v-for="(category, index) in routing" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
 					<v-list-tile slot="activator">
 						<v-list-tile-title>{{ $t(category.caption) }}</v-list-tile-title>
 					</v-list-tile>
@@ -79,7 +79,7 @@ a:not(:hover) {
 				<!-- TODO: Optional OEM branding -->
 				<a id="title">{{ name }}</a>
 			</v-toolbar-title>
-			<connect-btn class="hidden-xs-only"></connect-btn>
+			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>
 
 			<v-spacer></v-spacer>
 
@@ -162,7 +162,8 @@ export default {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			hideGlobalContainer: false,
 			rightDrawer: false,
-			routing: Routing
+			routing: Routing,
+			wasXs: this.$vuetify.breakpoint.xsOnly
 		}
 	},
 	methods: {
@@ -174,6 +175,13 @@ export default {
 			}
 			if (condition === 'display') {
 				return this.board.hasDisplay;
+			}
+			return true;
+		},
+		isExpanded(category) {
+			if (this.$vuetify.breakpoint.xsOnly) {
+				const route = this.$route;
+				return category.pages.some(page => page.path === route.path);
 			}
 			return true;
 		}
@@ -200,7 +208,8 @@ export default {
 			}
 		});
 
-		if (Routing.some(group => group.pages.some(page => page.path === this.$route.path && !checkMenuCondition(page.condition)))) {
+		const route = this.$route;
+		if (Routing.some(group => group.pages.some(page => page.path === route.path && !checkMenuCondition(page.condition)))) {
 			this.$router.push('/');
 		}
 	},

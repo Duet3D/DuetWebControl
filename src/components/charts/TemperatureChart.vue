@@ -124,6 +124,7 @@ export default {
 					xAxes: [
 						{
 							gridLines: {
+								color: 'rgba(0,0,0,0.2)',
 								display: true
 							},
 							ticks: {
@@ -146,6 +147,8 @@ export default {
 					yAxes: [
 						{
 							gridLines: {
+								color: 'rgba(0,0,0,0.2)',
+								zeroLineColor: 'rgba(0,0,0,0.2)',
 								display: true
 							},
 							ticks: {
@@ -177,11 +180,17 @@ export default {
 			const legendColor = active ? '#FFF' : 'rgba(0,0,0,0.87)';
 			this.chart.config.options.legend.labels.fontColor = legendColor;
 
-			const ticksTextColor = active ? '#FFF' : '#666';
-			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksTextColor;
-			this.chart.config.options.scales.xAxes[0].ticks.minor.fontColor = ticksTextColor;
-			this.chart.config.options.scales.yAxes[0].ticks.major.fontColor = ticksTextColor;
-			this.chart.config.options.scales.yAxes[0].ticks.minor.fontColor = ticksTextColor;
+			const ticksColor = active ? '#FFF' : '#666';
+			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksColor;
+			this.chart.config.options.scales.xAxes[0].ticks.minor.fontColor = ticksColor;
+			this.chart.config.options.scales.yAxes[0].ticks.major.fontColor = ticksColor;
+			this.chart.config.options.scales.yAxes[0].ticks.minor.fontColor = ticksColor;
+
+			const gridLineColor = active ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)';
+			this.chart.config.options.scales.xAxes[0].gridLines.color = gridLineColor;
+			this.chart.config.options.scales.yAxes[0].gridLines.color = gridLineColor;
+			this.chart.config.options.scales.yAxes[0].gridLines.zeroLineColor = gridLineColor;
+
 			this.chart.update();
 		}
 	},

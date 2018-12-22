@@ -215,32 +215,36 @@ export default function(connector) {
 					}
 					return getters.fractionPrinted;
 				}
-				return 0.0;
+				return state.job.lastFileName ? 1 : 0;
 			}
 		},
 		mutations: {
 			update(state, payload) {
 				const lastJobFile = state.job.fileName;
+				const wasPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
 				const wasSimulating = state.state.status === 'simulating';
 
 				merge(state, payload, true);
 				fixMachineItems(state, payload);
 
-				if (lastJobFile && state.job.fileName !== lastJobFile) {
-					for (let key in state.job) {
-						if (!(state.job[key] instanceof Array)) {
-							if (state.job[key] instanceof Object) {
-								for (let subkey in state.job[key]) {
-									state.job[key][subkey] = undefined;
+				if (wasPrinting) {
+					const isPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
+					if (!isPrinting) {
+						for (let key in state.job) {
+							if (!(state.job[key] instanceof Array)) {
+								if (state.job[key] instanceof Object) {
+									for (let subkey in state.job[key]) {
+										state.job[key][subkey] = undefined;
+									}
+								} else {
+									state.job[key] = undefined;
 								}
-							} else {
-								state.job[key] = undefined;
 							}
 						}
-					}
 
-					state.job.lastFileName = lastJobFile;
-					state.job.lastFileSimulated = wasSimulating;
+						state.job.lastFileName = lastJobFile;
+						state.job.lastFileSimulated = wasSimulating;
+					}
 				}
 			}
 		}

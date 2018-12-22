@@ -71,7 +71,10 @@ th.checkbox {
 								</span>
 							</v-tooltip>
 						</td>
-						<td v-else-if="header.value !== 'name'" :key="header.value">
+						<td v-else-if="header.unit === 'time'" :key="header.value">
+							{{ (props.item[header.value] !== null) ? $displayTime(props.item[header.value]) : $t('generic.i18n') }}
+						</td>
+						<td v-else :key="header.value">
 							{{ displayLoadingValue(props.item, header.value, header.unit) }}
 						</td>
 					</template>

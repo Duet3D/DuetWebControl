@@ -26,7 +26,6 @@ const machines = {
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
-		isReconnecting: false,
 		isDisconnecting: false,
 		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
 		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
@@ -35,7 +34,7 @@ const store = new Vuex.Store({
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
-		isConnected: state => state.selectedMachine !== defaultMachine && !state.isReconnecting,
+		isConnected: state => state.selectedMachine !== defaultMachine && !state.machine.isReconnecting,
 		uiFrozen: (state, getters) => state.isConnecting || state.isDisconnecting || !getters.isConnected
 	},
 	actions: {
@@ -67,7 +66,7 @@ const store = new Vuex.Store({
 				await dispatch('machine/settings/load');
 				await dispatch('machine/cache/load');
 			} catch (e) {
-				logGlobal('error', i18n.t('error.connectError', [hostname]), e.message);
+				logGlobal('error', i18n.t('error.connect', [hostname]), e.message);
 				if (e instanceof InvalidPasswordError) {
 					commit('askForPassword');
 				}
@@ -87,9 +86,6 @@ const store = new Vuex.Store({
 				throw new Error('Already disconnecting');
 			}
 
-			if (state.isReconnecting) {
-				commit('setReconnecting', false);
-			}
 			if (doDisconnect) {
 				commit('setDisconnecting', true);
 				try {
@@ -97,7 +93,7 @@ const store = new Vuex.Store({
 					logGlobal('success', i18n.t('notification.disconnected', [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
-					logGlobal('warning', i18n.t('error.disconnectError', [hostname]), e.message);
+					logGlobal('warning', i18n.t('error.disconnect', [hostname]), e.message);
 					console.warn(e);
 				}
 				commit('setDisconnecting', false);
@@ -145,7 +141,6 @@ const store = new Vuex.Store({
 		},
 
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
-		setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
 		addMachine(state, { hostname, moduleInstance }) {
 			machines[hostname] = moduleInstance;
 			this.registerModule(['machines', hostname], moduleInstance);

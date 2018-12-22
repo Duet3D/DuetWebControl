@@ -7,11 +7,11 @@
 <template>
 	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
 		<v-flex>
-			<v-combobox ref="input" v-model.trim="code" :items="codes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" hide-details>
+			<v-combobox ref="input" v-model.trim="code" :items="displayedCodes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
 				<template slot="item" slot-scope="{ item }">
-					<code>{{ item }}</code>
+					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
-					<v-btn icon @click.prevent.stop="removeCode(item)">
+					<v-btn icon @click.prevent.stop="removeCode(item.value)">
 						<v-icon>delete</v-icon>
 					</v-btn>
 				</template>
@@ -34,7 +34,10 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/settings', ['codes'])
+		...mapState('machine/settings', ['codes']),
+		displayedCodes() {
+			return this.codes.map(code => ({ text: code, value: code }));
+		}
 	},
 	data() {
 		return {
@@ -49,16 +52,22 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		...mapMutations('machine/settings', ['addCode', 'removeCode']),
+		change(value) {
+			if (value && value.constructor !== String) {
+				this.send();
+			}
+		},
 		async send() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
-			if (this.code !== '' && !this.sendingCode) {
+			const code = (this.code.constructor === String) ? this.code : this.code.value;
+			if (code && code.trim() !== '' && !this.sendingCode) {
 				// Convert the input to upper-case and remove comments
 				let codeToSend = '', inQuotes = false, inWhiteSpace = false;
-				for (let i = 0; i < this.code.length; i++) {
-					const char = this.code[i];
+				for (let i = 0; i < code.length; i++) {
+					const char = code[i];
 					if (inQuotes) {
-						if (i < this.code.length - 1 && char === '\\' && this.code[i + 1] === '"') {
+						if (i < code.length - 1 && char === '\\' && code[i + 1] === '"') {
 							codeToSend += '\\"';
 							i++;
 						} else {

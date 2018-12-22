@@ -17,12 +17,20 @@ import { strToTime, timeToStr } from '../../../utils/time.js'
 
 export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
-		const response = await axios.get(`http://${hostname}/rr_connect`, {
-			params: {
-				password,
-				time: timeToStr(new Date())
+		let response;
+		try {
+			response = await axios.get(`http://${hostname}/rr_connect`, {
+				params: {
+					password,
+					time: timeToStr(new Date())
+				}
+			});
+		} catch (e) {
+			if (e.response) {
+				throw e;
 			}
-		});
+			throw new CORSError();
+		}
 
 		switch (response.data.err) {
 			case 0: return new PollConnector(hostname, password, response.data);
@@ -119,7 +127,7 @@ export default class PollConnector extends BaseConnector {
 		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 		this.axios.interceptors.response.use(null, error => {
 			if (axios.isCancel(error)) {
-				return Promise.reject(new OperationCancelledError());
+				return Promise.reject(error || new OperationCancelledError());
 			}
 
 			if (error.response && error.response.status === 404) {
@@ -135,16 +143,13 @@ export default class PollConnector extends BaseConnector {
 					error.config.retry++;
 					return this.axios.request(error.config);
 				}
-
-				if (error.message.startsWith('timeout')) {
-					error.message = new TimeoutError();
-				} else {
-					console.warn(JSON.stringify(error, null, 2));
-				}
 			}
 
-			if (error.message) {
-				return Promise.reject(error.message);
+			if (error.response) {
+				if (error.message && error.message.startsWith('timeout')) {
+					return Promise.reject(new TimeoutError());
+				}
+				return Promise.reject(error);
 			}
 
 			return Promise.reject(new CORSError());

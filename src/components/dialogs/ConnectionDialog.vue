@@ -15,6 +15,9 @@
 import { mapState } from 'vuex'
 
 export default {
-	computed: mapState(['isConnecting', 'isReconnecting', 'isDisconnecting'])
+	computed: {
+		...mapState(['isConnecting', 'isDisconnecting']),
+		...mapState('machine', ['isReconnecting'])
+	}
 }
 </script>

@@ -48,11 +48,22 @@ export default function(hostname) {
 			setFileInfo(state, { filename, fileInfo }) {
 				state.fileInfos[filename] = fileInfo;
 			},
-			clearFileInfo(state, directory) {
-				for (let filename in state.fileInfos) {
-					if (!directory || Path.extractFilePath(filename) === directory) {
-						delete state.fileInfos[filename];
+			clearFileInfo(state, fileOrDirectory) {
+				if (fileOrDirectory) {
+					if (state.fileInfos[fileOrDirectory]) {
+						// Delete specific item
+						delete state.fileInfos[fileOrDirectory];
+					} else {
+						// Delete directory items
+						for (let filename in state.fileInfos) {
+							if (Path.extractFilePath(filename) === fileOrDirectory) {
+								delete state.fileInfos[filename];
+							}
+						}
 					}
+				} else {
+					// Reset everything
+					state.fileInfos = {};
 				}
 			}
 		}

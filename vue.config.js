@@ -3,6 +3,7 @@ const ZipPlugin = require('zip-webpack-plugin')
 
 module.exports = {
 	configureWebpack: {
+		performance: { hints: false },
 		plugins: (process.env.NODE_ENV === 'production') ? [
 			new CompressionPlugin({
 				cache: true

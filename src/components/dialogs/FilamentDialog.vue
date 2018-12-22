@@ -68,7 +68,7 @@ export default {
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$log('error', this.$t('error.filelistRequestFilaments'), e);
+					this.$log('error', this.$t('error.filamentsLoadFailed'), e.message);
 				}
 				this.hide();
 			}

@@ -16,7 +16,6 @@ const defaults = {
 }
 
 let settings, openNotifications = []
-window.openNotifications = openNotifications;
 
 export function makeNotification(type, title, message = '', timeout) {
 	// If there is already an equal notification, reset its time and don't display a new one
@@ -73,7 +72,7 @@ export function makeNotification(type, title, message = '', timeout) {
 		openNotifications = openNotifications.filter(notification => notification !== item);
 	};
 	item.resetTimeout = function() {
-		iziToast.progress({}, toast).reset();
+		iziToast.progress(options, toast).reset();
 	};
 
 	openNotifications.push(item);

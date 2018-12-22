@@ -10,7 +10,7 @@
 			</v-flex>
 
 			<v-flex>
-				<v-progress-linear :value="job.lastFileName ? 100 : (jobProgress * 100)" class="my-1"></v-progress-linear>
+				<v-progress-linear :value="jobProgress * 100" class="my-1"></v-progress-linear>
 			</v-flex>
 		</v-layout>
 	</div>
