@@ -1,7 +1,7 @@
 <template>
 	<div class="component">
 		<v-toolbar>
-			<sd-card-btn :directory="directory" @storageSelected="selectStorage"></sd-card-btn>
+			<sd-card-btn class="hidden-sm-and-down" :directory="directory" @storageSelected="selectStorage"></sd-card-btn>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>

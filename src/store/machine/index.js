@@ -17,6 +17,8 @@ import beep from '../../utils/beep.js'
 import { DisconnectedError, CodeBufferError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
+export const defaultMachine = '[default]'			// must not be a valid hostname
+
 export function getModifiedDirectory(action, state) {
 	const segments = action.type.split('/');
 	if (segments.length === 3 && segments[1] === state.selectedMachine) {
@@ -191,7 +193,7 @@ export default function(hostname, connector) {
 				}
 			},
 
-			// Events for specific actions triggered from the machine connector
+			// Actions for specific events triggered by the machine connector
 			async onConnectionError({ state, dispatch }, error) {
 				await dispatch('onConnectionError', { hostname: state.hostname, error }, { root: true });
 			},
@@ -200,7 +202,6 @@ export default function(hostname, connector) {
 					logCode(undefined, reply, this.hostname);
 				}
 			},
-
 			/* eslint-disable no-unused-vars */
 			onDirectoryCreated: (context, directory) => null,
 			onFileUploaded: (context, { filename, content }) => null,

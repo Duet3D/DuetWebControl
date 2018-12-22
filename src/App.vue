@@ -19,6 +19,20 @@
 	padding-right: 0px !important;
 }
 
+.global-control.theme--light {
+	background-color: #E0E0E0 !important;
+}
+#global-container .v-card.theme--light {
+	background-color: #F5F5F5 !important;
+}
+.global-control.theme--dark {
+	background-color: #616161 !important;
+}
+#global-container .v-card.theme--dark {
+	background-color: #616161 !important;
+}
+
+
 input[type='number'] {
     -moz-appearance: textfield;
 }
@@ -76,7 +90,7 @@ a:not(:hover) {
 			<upload-btn target="start" class="hidden-sm-and-down"></upload-btn>
 			<emergency-btn class="hidden-xs-only"></emergency-btn>
 
-			<v-btn icon class="hidden-sm-and-up" @click="hideGlobalContainer = !hideGlobalContainer">
+			<v-btn icon class="global-control hidden-md-and-up" @click="hideGlobalContainer = !hideGlobalContainer">
 				<v-icon>aspect_ratio</v-icon>
 			</v-btn>
 			<!-- TODO: Add quick actions and UI designer here -->
@@ -87,7 +101,7 @@ a:not(:hover) {
 
 		<v-content id="content">
 			<v-scroll-y-transition>
-				<v-container fluid class="container" v-show="!hideGlobalContainer || $vuetify.breakpoint.smAndUp">
+				<v-container fluid id="global-container" class="container" v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp">
 					<v-layout row wrap>
 						<v-flex xs12 sm6 md4 lg4>
 							<status-panel></status-panel>
@@ -104,7 +118,7 @@ a:not(:hover) {
 				</v-container>
 			</v-scroll-y-transition>
 
-			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.smAndUp"></v-divider>
+			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
 
 			<v-container fluid class="container">
 				<router-view></router-view>

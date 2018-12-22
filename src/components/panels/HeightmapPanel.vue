@@ -28,7 +28,7 @@ canvas {
 				<v-layout row wrap fill-height>
 					<!-- TODO: Add CSV list here -->
 
-					<v-flex class="pa-2" xs12 sm12 md9 lg10 xl10>
+					<v-flex class="heightmap-container pa-2" xs12 sm12 md9 lg10 xl10>
 						<v-layout ref="parentElement" row fill-height>
 							<v-flex class="loading" v-show="!ready">
 								<v-layout fill-height align-center>

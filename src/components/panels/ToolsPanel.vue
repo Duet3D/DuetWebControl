@@ -279,19 +279,19 @@ table.extra tr > td:first-child {
 			<template v-else-if="currentPage === 'extra'">
 				<table class="extra ml-2 mr-2">
 					<thead>
-						<th></th>
+						<th class="hidden-sm-and-down"></th>
 						<th>{{ $t('panel.tools.extra.sensor') }}</th>
 						<th>{{ $t('panel.tools.extra.value') }}</th>
 					</thead>
 					<tbody>
 						<tr v-for="(extraHeater, index) in heat.extra" :key="`extra-${index}`">
-							<td>
+							<td class="hidden-sm-and-down">
 								<v-switch class="ml-3" :value="displayedExtraTemperatures.indexOf(index) !== -1" @change="toggleExtraHeaterVisibility(index)" :label="$t('panel.tools.extra.showInChart')" :disabled="uiFrozen"></v-switch>
 							</td>
-							<th :class="getExtraHeaterColor(index)">
+							<th class="py-2" :class="getExtraHeaterColor(index)">
 								{{ formatHeaterName(extraHeater, index + 100) }}
 							</th>
-							<td>
+							<td class="py-2">
 								{{ formatHeaterValue(extraHeater) }}
 							</td>
 						</tr>

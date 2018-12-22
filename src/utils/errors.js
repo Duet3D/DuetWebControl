@@ -53,14 +53,14 @@ class DriveUnmountedError extends NetworkError {
 }
 
 class FileNotFoundError extends NetworkError {
-	constructor() {
-		super(i18n.t('error.fileNotFound'));
+	constructor(file) {
+		super(i18n.t('error.fileNotFound', [file]));
 	}
 }
 
 class DirectoryNotFoundError extends NetworkError {
-	constructor() {
-		super(i18n.t('error.directoryNotFound'));
+	constructor(directory) {
+		super(i18n.t('error.directoryNotFound', [directory]));
 	}
 }
 

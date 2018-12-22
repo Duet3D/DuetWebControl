@@ -1,6 +1,6 @@
 'use strict'
 
-import { getBoardDefinition } from './boards.js'
+import { defaultBoardName, getBoardDefinition } from './boards.js'
 import {
 	Axis,
 	BedOrChamber,
@@ -20,7 +20,7 @@ export default function(connector) {
 		namespaced: true,
 		state: {
 			electronics: {
-				type: undefined,
+				type: defaultBoardName,
 				name: undefined,
 				revision: undefined,
 				firmware: {

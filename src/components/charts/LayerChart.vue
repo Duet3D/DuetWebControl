@@ -41,7 +41,10 @@ import { display, displayZ, displayTime } from '../../plugins/display.js'
 let layers
 
 export default {
-	computed: mapState('machine/model', ['job']),
+	computed: {
+		...mapState('machine/model', ['job']),
+		...mapState('settings', ['darkTheme'])
+	},
 	data() {
 		return {
 			chart: null,
@@ -62,6 +65,14 @@ export default {
 								display: true
 							},
 							ticks: {
+								minor: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
+								major: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
 								beginAtZero: true,
 								maxRotation: 0,
 								stepSize: 5
@@ -74,6 +85,14 @@ export default {
 								display: true
 							},
 							ticks: {
+								minor: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
+								major: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
 								beginAtZero: true,
 								suggestedMax: 30,
 								callback: function(value) {
@@ -116,6 +135,14 @@ export default {
 				this.chart.config.options.scales.xAxes[0].ticks.max = Math.max(30, layers.length);
 			}
 			this.chart.update();
+		},
+		applyDarkTheme(active) {
+			const ticksTextColor = active ? '#FFF' : '#666';
+			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksTextColor;
+			this.chart.config.options.scales.xAxes[0].ticks.minor.fontColor = ticksTextColor;
+			this.chart.config.options.scales.yAxes[0].ticks.major.fontColor = ticksTextColor;
+			this.chart.config.options.scales.yAxes[0].ticks.minor.fontColor = ticksTextColor;
+			this.chart.update();
 		}
 	},
 	mounted() {
@@ -130,9 +157,13 @@ export default {
 				}]
 			}
 		});
+		this.applyDarkTheme(this.darkTheme);
 		this.updateChart();
 	},
 	watch: {
+		darkTheme(to) {
+			this.applyDarkTheme(to);
+		},
 		'job.layers'() {
 			this.updateChart();
 		},

@@ -4,7 +4,6 @@
 import axios from 'axios'
 
 import BaseConnector from './BaseConnector.js'
-import { getBoardDefinition } from '../boards.js'
 
 import {
 	CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -118,13 +117,13 @@ export default class PollConnector extends BaseConnector {
 		// Apply axios defaults
 		const that = this;
 		this.axios.defaults.timeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
-		this.axios.interceptors.response.use(null, (error) => {
+		this.axios.interceptors.response.use(null, error => {
 			if (axios.isCancel(error)) {
 				return Promise.reject(new OperationCancelledError());
 			}
 
 			if (error.response && error.response.status === 404) {
-				return Promise.reject(new FileNotFoundError());
+				return Promise.reject(new FileNotFoundError(error.config && error.config.filename));
 			}
 
 			if (!that.isReconnecting && error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
@@ -261,7 +260,7 @@ export default class PollConnector extends BaseConnector {
 					requestedSpeed: response.data.speeds.requested,
 					topSpeed: response.data.speeds.top
 				},
-				drives: Array.concat(response.data.coords.xyz, response.data.coords.extr).map((xyz, drive) => ({
+				drives: [].concat(response.data.coords.xyz, response.data.coords.extr).map((xyz, drive) => ({
 					position: (drive < response.data.coords.xyz.length) ? xyz : response.data.coords.extr[drive - response.data.coords.xyz.length]
 				})),
 				extruders: response.data.params.extrFactors.map(factor => ({ factor: factor / 100 })),
@@ -529,8 +528,7 @@ export default class PollConnector extends BaseConnector {
 		if (this.justConnected) {
 			merge(newData, {
 				electronics: {
-					type: this.boardType,
-					board: getBoardDefinition(this.boardType)
+					type: this.boardType
 				},
 				network: {
 					password: this.password
@@ -841,7 +839,7 @@ export default class PollConnector extends BaseConnector {
 			if (response.data.err === 1) {
 				throw new DriveUnmountedError();
 			} else if (response.data.err === 2) {
-				throw new DirectoryNotFoundError();
+				throw new DirectoryNotFoundError(directory);
 			}
 
 			fileList = fileList.concat(response.data.files);

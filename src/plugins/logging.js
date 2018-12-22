@@ -4,6 +4,7 @@ import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
 import router from '../routes'
+import { defaultMachine } from '../store/machine'
 
 let store
 
@@ -50,12 +51,12 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 }
 
 export function logGlobal(type, title, message) {
-	if (store.state.selectedMachine !== '[default]') {
+	if (store.state.selectedMachine !== defaultMachine) {
 		log(type, title, message);
 	} else {
 		makeNotification(type, title, message);
 	}
-	store.commit('machines/[default]/log', { date: new Date(), type, title, message });
+	store.commit(`machines/${defaultMachine}/log`, { date: new Date(), type, title, message });
 }
 
 export default {

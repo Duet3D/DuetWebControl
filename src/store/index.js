@@ -3,7 +3,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import machine from './machine'
+import machine, { defaultMachine } from './machine'
 import connector from './machine/connector'
 import observer from './observer.js'
 import settings from './settings.js'
@@ -20,7 +20,7 @@ const defaultUsername = ''
 const defaultPassword = 'reprap'
 
 const machines = {
-	'[default]': machine('[default]')
+	[defaultMachine]: machine(defaultMachine)
 }
 
 const store = new Vuex.Store({
@@ -31,17 +31,17 @@ const store = new Vuex.Store({
 		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
 		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
 		passwordRequired: false,
-		selectedMachine: '[default]'
+		selectedMachine: defaultMachine
 	},
 	getters: {
-		connectedMachines: () => Object.keys(machines).filter(machine => machine !== '[default]'),
-		isConnected: state => state.selectedMachine !== '[default]' && !state.isReconnecting,
+		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
+		isConnected: state => state.selectedMachine !== defaultMachine && !state.isReconnecting,
 		uiFrozen: (state, getters) => state.isConnecting || state.isDisconnecting || !getters.isConnected
 	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
 		async connect({ state, commit, dispatch }, { hostname, username = defaultUsername, password = defaultPassword } = { hostname: location.hostname, username: defaultUsername, password: defaultPassword }) {
-			if (!hostname || hostname === '[default]') {
+			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
 			if (state.machines.hasOwnProperty(hostname)) {
@@ -77,7 +77,7 @@ const store = new Vuex.Store({
 
 		// Disconnect from the given hostname
 		async disconnect({ state, commit, dispatch }, { hostname, doDisconnect = true } = { hostname: state.selectedMachine, doDisconnect: true }) {
-			if (!hostname || hostname === '[default]') {
+			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
 			if (!state.machines.hasOwnProperty(hostname)) {
@@ -105,7 +105,7 @@ const store = new Vuex.Store({
 			commit(`machines/${hostname}/unregister`);
 
 			if (state.selectedMachine === hostname) {
-				commit('setSelectedMachine', '[default]');
+				commit('setSelectedMachine', defaultMachine);
 			}
 			commit('removeMachine', hostname);
 		},
@@ -113,7 +113,7 @@ const store = new Vuex.Store({
 		// Disconnect from every host
 		async disconnectAll({ dispatch }) {
 			for (let hostname in machines) {
-				if (hostname !== '[default]') {
+				if (hostname !== defaultMachine) {
 					// Don't do this via await because we don't have much time...
 					dispatch('disconnect', { hostname });
 				}
@@ -122,7 +122,7 @@ const store = new Vuex.Store({
 
 		// Called when a machine cannot stay connected
 		async onConnectionError({ state, dispatch, commit }, { hostname, error }) {
-			logGlobal('error', i18n.t('error.statusUpdateFailed', [hostname]), error.message);
+			logGlobal('error', i18n.t('error.connectionError', [hostname]), error.message);
 			if (error instanceof InvalidPasswordError) {
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 				commit('askForPassword');
@@ -168,7 +168,7 @@ const store = new Vuex.Store({
 		machines: {
 			namespaced: true,
 			modules: {
-				'[default]': machines['[default]'] 				// This represents the factory defaults
+				[defaultMachine]: machines[defaultMachine] 				// This represents the factory defaults
 				// ... other machines are added as sub-modules to this object
 			}
 		},
@@ -183,6 +183,6 @@ const store = new Vuex.Store({
 })
 
 // This has to be registered dynamically, else unregisterModule will not work cleanly
-store.registerModule('machine', machines['[default]'])
+store.registerModule('machine', machines[defaultMachine])
 
 export default store

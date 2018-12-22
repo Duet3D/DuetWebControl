@@ -1,5 +1,7 @@
 'use strict'
 
+import { defaultMachine } from './machine'
+
 let settingsTimer, machineSettingsTimer = {}, machineCacheTimer = {}
 
 export default function(store) {
@@ -9,7 +11,7 @@ export default function(store) {
 		if (!mutation.type.endsWith('/load') && !mutation.type.endsWith('/setLastHostname')) {
 			const machineMatches = /^machines\/(.+)\//.exec(mutation.type);
 			const machine = machineMatches ? machineMatches[1] : state.selectedMachine;
-			if (machine === '[default]') {
+			if (machine === defaultMachine) {
 				return;
 			}
 

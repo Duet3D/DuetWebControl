@@ -16,6 +16,7 @@ const defaults = {
 }
 
 let settings, openNotifications = []
+window.openNotifications = openNotifications;
 
 export function makeNotification(type, title, message = '', timeout) {
 	// If there is already an equal notification, reset its time and don't display a new one
@@ -26,10 +27,13 @@ export function makeNotification(type, title, message = '', timeout) {
 	}
 
 	// Prepare and show new toast
-	const options = Object.assign({
+	const item = {}, options = Object.assign({
 		class: 'new-toast',
 		title: title.replace(/\n/g, '<br/>'),
 		message: message.replace(/\n/g, '<br/>'),
+		onClosed() {
+			openNotifications = openNotifications.filter(notification => notification !== item);
+		},
 		timeout: (timeout !== undefined) ? timeout : ((type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout)
 	}, defaults);
 
@@ -59,20 +63,18 @@ export function makeNotification(type, title, message = '', timeout) {
 		messageElement.parentNode.insertBefore(document.createElement('br'), messageElement);
 	}
 
-	const item = {
-		type,
-		title,
-		message,
-		timeout,
-		domElement: toast,
-		hide() {
-			iziToast.hide({}, toast);
-			openNotifications = openNotifications.filter(notification => notification !== item);
-		},
-		resetTimeout() {
-			iziToast.progress({}, toast).reset();
-		}
-	}
+	item.type = type;
+	item.title = title;
+		item.message = message;
+	item.timeout = timeout;
+	item.domElement = toast;
+	item.hide = function() {
+		iziToast.hide({}, toast);
+		openNotifications = openNotifications.filter(notification => notification !== item);
+	};
+	item.resetTimeout = function() {
+		iziToast.progress({}, toast).reset();
+	};
 
 	openNotifications.push(item);
 	return item;

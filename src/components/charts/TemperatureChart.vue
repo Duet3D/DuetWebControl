@@ -29,6 +29,7 @@ import Chart from 'chart.js'
 import { mapState, mapGetters } from 'vuex'
 
 import i18n from '../../i18n'
+import { defaultMachine } from '../../store/machine'
 import { getRealHeaterColor } from '../../utils/colors.js'
 
 const sampleInterval = 1000			// ms
@@ -55,7 +56,7 @@ function makeDataset(heaterIndex, extra, label) {
 }
 
 const tempSamples = {
-	'[default]': {
+	[defaultMachine]: {
 		times: [],
 		temps: []
 	}
@@ -95,7 +96,8 @@ export default {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
-		...mapState('machine/model', ['heat', 'tools'])
+		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('settings', ['darkTheme'])
 	},
 	data() {
 		return {
@@ -112,7 +114,8 @@ export default {
 				},
 				legend: {
 					labels: {
-						filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine
+						filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine,
+						fontFamily: 'Roboto,sans-serif'
 					}
 				},
 				maintainAspectRatio: false,
@@ -124,6 +127,14 @@ export default {
 								display: true
 							},
 							ticks: {
+								minor: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
+								major: {
+									fontColor: 'rgba(0,0,0,0.87)',
+									fontFamily: 'Roboto,sans-serif'
+								},
 								max: new Date()
 							},
 							time: {
@@ -138,6 +149,14 @@ export default {
 								display: true
 							},
 							ticks: {
+								minor: {
+									fontColor: '#666',
+									fontFamily: 'Roboto,sans-serif'
+								},
+								major: {
+									fontColor: '#666',
+									fontFamily: 'Roboto,sans-serif'
+								},
 								min: 0,
 								max: defaultMaxTemperature,
 								stepSize: 50
@@ -153,6 +172,17 @@ export default {
 			this.options.scales.yAxes[0].ticks.max = this.maxHeaterTemperature || defaultMaxTemperature;
 			this.options.scales.xAxes[0].ticks.max = new Date();
 			this.chart.update();
+		},
+		applyDarkTheme(active) {
+			const legendColor = active ? '#FFF' : 'rgba(0,0,0,0.87)';
+			this.chart.config.options.legend.labels.fontColor = legendColor;
+
+			const ticksTextColor = active ? '#FFF' : '#666';
+			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksTextColor;
+			this.chart.config.options.scales.xAxes[0].ticks.minor.fontColor = ticksTextColor;
+			this.chart.config.options.scales.yAxes[0].ticks.major.fontColor = ticksTextColor;
+			this.chart.config.options.scales.yAxes[0].ticks.minor.fontColor = ticksTextColor;
+			this.chart.update();
 		}
 	},
 	mounted() {
@@ -160,10 +190,11 @@ export default {
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {
-				labels: tempSamples['[default]'].times,
-				datasets: tempSamples['[default]'].temps
+				labels: tempSamples[defaultMachine].times,
+				datasets: tempSamples[defaultMachine].temps
 			}
 		});
+		this.applyDarkTheme(this.darkTheme);
 
 		// Keep track of updates
 		instances.push(this);
@@ -173,7 +204,7 @@ export default {
 				if (result) {
 					// Keep track of temperature updates
 					const machine = result[1], dataset = tempSamples[machine], now = new Date();
-					if (now - dataset.times[dataset.times.length - 1] > sampleInterval) {
+					if (dataset && now - dataset.times[dataset.times.length - 1] > sampleInterval) {
 						// Record time
 						dataset.times.push(now);
 
@@ -240,6 +271,9 @@ export default {
 		instances = instances.filter(instance => instance !== this, this);
 	},
 	watch: {
+		darkTheme(to) {
+			this.applyDarkTheme(to);
+		},
 		selectedMachine(machine) {
 			// Each chart instance is fixed to the currently selected machine
 			// Reassign the corresponding dataset whenever the selected machine changes

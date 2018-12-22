@@ -72,6 +72,9 @@ class BaseConnector {
 
 	/* eslint-disable no-unused-vars */
 
+	// Reconnect after a connection error
+	async reconnect() { throw new NotImplementedError('reconnect'); }
+
 	// Disconnect from the current machine
 	async disconnect() { throw new NotImplementedError('disconnect'); }
 
