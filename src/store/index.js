@@ -66,7 +66,9 @@ const store = new Vuex.Store({
 				await dispatch('machine/settings/load');
 				await dispatch('machine/cache/load');
 			} catch (e) {
-				logGlobal('error', i18n.t('error.connect', [hostname]), e.message);
+				if (!(e instanceof InvalidPasswordError) || password !== defaultPassword)  {
+					logGlobal('error', i18n.t('error.connect', [hostname]), e.message);
+				}
 				if (e instanceof InvalidPasswordError) {
 					commit('askForPassword');
 				}

@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			Duet Web Control 2.0.0-RC1 {{ electronics.firmware.version ? `/ RepRapFirmware ${electronics.firmware.version}` : '' }}
+			Duet Web Control 2.0.0-RC2 {{ electronics.firmware.version ? `/ RepRapFirmware ${electronics.firmware.version}` : '' }}
 			<br/><br/>
 			Web Interface developed by <a href="mailto:chr.hammacher@gmail.com">Christian Hammacher</a> for <a href="https://www.duet3d.com" target="_blank">Duet3D</a>
 			<br/>

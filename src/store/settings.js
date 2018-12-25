@@ -7,7 +7,7 @@ import Path from '../utils/path.js'
 export default {
 	namespaced: true,
 	state: {
-		lastHostname: '',
+		lastHostname: location.hostname,
 		darkTheme: false,
 		useBinaryPrefix: true,
 		settingsStorageLocal: false,
