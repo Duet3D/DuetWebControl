@@ -7,7 +7,7 @@
 <template>
 	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
 		<v-flex>
-			<v-combobox ref="input" v-model.trim="code" :items="displayedCodes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
+			<v-combobox ref="input" v-model.trim="code" :items="displayedCodes" :menu-props="$vuetify.breakpoint.xsOnly ? { maxHeight: 125 } : undefined" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
 				<template slot="item" slot-scope="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>

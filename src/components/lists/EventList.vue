@@ -18,7 +18,7 @@ td.title-cell {
 
 <template>
 	<div class="component">
-		<v-data-table :headers="headers" :items="events" :pagination="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
+		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">{{ $t('list.eventLog.noEvents') }}</v-alert>
 			</template>
@@ -61,7 +61,11 @@ import saveAs from 'file-saver'
 import { mapState, mapMutations } from 'vuex'
 
 export default {
-	computed: mapState('machine', ['events']),
+	computed: {
+		...mapState('machine', ['events']),
+		...mapState('machine/cache', ['sorting']),
+		...mapState('settings', ['darkTheme'])
+	},
 	data() {
 		return {
 			contextMenu: {
@@ -92,13 +96,23 @@ export default {
 	},
 	methods: {
 		...mapMutations('machine', ['clearLog']),
+		...mapMutations('machine/cache', ['setSorting']),
 		getClassByEvent(type) {
-			switch (type) {
-				case 'success': return 'green accent-2';
-				case 'warning': return 'amber accent-1';
-				case 'error': return 'red accent-1';
+			if (this.darkTheme) {
+				switch (type) {
+					case 'success': return 'green darken-1';
+					case 'warning': return 'amber darken-1';
+					case 'error': return 'red darken-1';
+				}
+				return 'blue darken-1';
+			} else {
+				switch (type) {
+					case 'success': return 'green accent-2';
+					case 'warning': return 'amber accent-1';
+					case 'error': return 'red accent-1';
+				}
+				return 'light-blue accent-1';
 			}
-			return 'light-blue accent-1';
 		},
 		formatMessage(message) {
 			return message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
@@ -139,6 +153,27 @@ export default {
 
 			const file = new File([csvContent], "console.csv", {type: "text/csv;charset=utf-8"});
 			saveAs(file);
+		}
+	},
+	mounted() {
+		this.pagination.sortBy = this.sorting.events.column;
+		this.pagination.descending = this.sorting.events.descending;
+	},
+	watch: {
+		pagination: {
+			deep: true,
+			handler(to) {
+				if (this.sorting.events.column !== to.sortBy || this.sorting.events.descending !== to.descending) {
+					this.setSorting({ table: 'events', column: to.sortBy, descending: to.descending });
+				}
+			}
+		},
+		'sorting.events': {
+			deep: true,
+			handler(to) {
+				this.pagination.sortBy = to.column;
+				this.pagination.descending = to.descending;
+			}
 		}
 	}
 }

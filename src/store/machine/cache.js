@@ -1,5 +1,6 @@
 'use strict'
 
+import { defaultMachine } from './index.js'
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import merge from '../../utils/merge.js'
 import Path from '../../utils/path.js'
@@ -8,10 +9,40 @@ export default function(hostname) {
 	return {
 		namespaced: true,
 		state: {
-			fileInfos: {}
+			fileInfos: {},
+			sorting: {
+				display: {
+					column: 'name',
+					descending: true
+				},
+				events: {
+					column: 'date',
+					descending: true
+				},
+				filaments: {
+					column: 'name',
+					descending: true
+				},
+				jobs: {
+					column: 'lastModified',
+					descending: false
+				},
+				macros: {
+					column: 'name',
+					descending: true
+				},
+				sys: {
+					column: 'name',
+					descending: true
+				}
+			}
 		},
 		actions: {
 			async load({ rootState, commit, dispatch }) {
+				if (hostname === defaultMachine) {
+					return;
+				}
+
 				let cache;
 				if (rootState.settings.cacheStorageLocal) {
 					cache = getLocalSetting(`cache/${hostname}`);
@@ -28,6 +59,10 @@ export default function(hostname) {
 				}
 			},
 			save({ state, rootState, dispatch }) {
+				if (hostname === defaultMachine) {
+					return;
+				}
+
 				if (rootState.settings.cacheStorageLocal) {
 					setLocalSetting(`cache/${hostname}`, state);
 				} else {
@@ -65,6 +100,11 @@ export default function(hostname) {
 					// Reset everything
 					state.fileInfos = {};
 				}
+			},
+
+			setSorting(state, { table, column, descending }) {
+				state.sorting[table].column = column;
+				state.sorting[table].descending = descending;
 			}
 		}
 	}

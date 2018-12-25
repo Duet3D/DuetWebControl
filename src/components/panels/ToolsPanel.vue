@@ -37,20 +37,18 @@ table.extra tr > td:first-child {
 
 			<v-spacer></v-spacer>
 
-			<v-menu offset-y left open-on-hover :close-on-content-click="false" :disabled="uiFrozen">
-				<a href="#" slot="activator" @click.prevent="">
+			<v-menu offset-y left :close-on-content-click="false" :disabled="uiFrozen">
+				<a href="#" @click.prevent slot="activator">
 					<v-icon small>more_horiz</v-icon> {{ $t('panel.tools.controlAll') }}
 				</a>
 				<v-card>
 					<v-layout justify-center column class="pt-2 px-2">
-						<v-btn block color="primary" class="all-off mb-3 pa-2" :disabled="!canTurnEverythingOff" @click="turnEverythingOff">
-							<v-icon>power_off</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
+						<v-btn block color="primary" class="mb-3 pa-2" :disabled="!canTurnEverythingOff" @click="turnEverythingOff">
+							<v-icon class="mr-1">power</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
-						<label>Set all active temperatures to:</label>
-						<tool-input all active></tool-input>
-						<label>Set all standby temperatures to:</label>
-						<tool-input all standby></tool-input>
+						<tool-input label="Set all active temperatures" all active></tool-input>
+						<tool-input label="Set all standby temperatures" all standby></tool-input>
 					</v-layout>
 				</v-card>
 			</v-menu>
@@ -326,8 +324,8 @@ export default {
 	data() {
 		return {
 			currentPage: 'tools',
-			turningEverythingOff: false,
 			waitingForCode: false,
+			turningEverythingOff: false,
 
 			loadingFilament: false,
 			filamentMenu: {

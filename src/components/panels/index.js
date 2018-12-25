@@ -2,6 +2,7 @@
 
 import Vue from 'vue'
 
+import AboutPanel from './AboutPanel.vue'
 import ATXPanel from './ATXPanel.vue'
 import BabysteppingPanel from './BabysteppingPanel.vue'
 import ExtrudePanel from './ExtrudePanel.vue'
@@ -21,6 +22,7 @@ import StatusPanel from './StatusPanel.vue'
 import ToolsPanel from './ToolsPanel.vue'
 import WebcamPanel from './WebcamPanel.vue'
 
+Vue.component('about-panel', AboutPanel)
 Vue.component('atx-panel', ATXPanel)
 Vue.component('babystepping-panel', BabysteppingPanel)
 Vue.component('extrude-panel', ExtrudePanel)

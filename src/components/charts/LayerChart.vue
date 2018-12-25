@@ -48,79 +48,6 @@ export default {
 	data() {
 		return {
 			chart: null,
-			options: {
-				elements: {
-					line: {
-						tension: 0
-					}
-				},
-				legend: {
-					display: false
-				},
-				maintainAspectRatio: false,
-				scales: {
-					xAxes: [
-						{
-							gridLines: {
-								color: 'rgba(0,0,0,0.2)',
-								display: true
-							},
-							ticks: {
-								minor: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								major: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								beginAtZero: true,
-								maxRotation: 0,
-								stepSize: 5
-							}
-						}
-					],
-					yAxes: [
-						{
-							gridLines: {
-								color: 'rgba(0,0,0,0.87)',
-								zeroLineColor: 'rgba(0,0,0,0.2)',
-								display: true
-							},
-							ticks: {
-								minor: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								major: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								beginAtZero: true,
-								suggestedMax: 30,
-								callback: function(value) {
-									return displayTime(value, false);
-								}
-							}
-						}
-					]
-				},
-				tooltips: {
-					displayColors: false,
-					callbacks: {
-						title: tooltipItems => `Layer ${tooltipItems[0].index + 1}`,
-						label(tooltipItem) {
-							const layer = layers[tooltipItem.index];
-							let result = [`Duration: ${displayTime(layer.duration, false)}`];
-							if (layer.height) { result.push(`Layer Height: ${displayZ(layer.height)}`); }
-							if (layer.filament) { result.push(`Filament Usage: ${display(layer.filament, 1, 'mm')}`); }
-							if (layer.fractionPrinted) { result.push(`File Progress: ${display(layer.fractionPrinted * 100, 1, '%')}`); }
-							return result;
-						}
-					}
-				}
-				// panning and zooming is not supported until the panning feature of chartjs-plugin-zoom is fixed
-			},
 			showAllLayers: false
 		}
 	},
@@ -155,6 +82,82 @@ export default {
 		}
 	},
 	mounted() {
+		// Create new chart options. Don't use data for the following because it should not be reactive
+		this.options = {
+			elements: {
+				line: {
+					tension: 0
+				}
+			},
+			legend: {
+				display: false
+			},
+			maintainAspectRatio: false,
+			scales: {
+				xAxes: [
+					{
+						gridLines: {
+							color: 'rgba(0,0,0,0.2)',
+							display: true
+						},
+						ticks: {
+							minor: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							major: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							beginAtZero: true,
+							maxRotation: 0,
+							stepSize: 5
+						}
+					}
+				],
+				yAxes: [
+					{
+						gridLines: {
+							color: 'rgba(0,0,0,0.87)',
+							zeroLineColor: 'rgba(0,0,0,0.2)',
+							display: true
+						},
+						ticks: {
+							minor: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							major: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							beginAtZero: true,
+							suggestedMax: 30,
+							callback: function(value) {
+								return displayTime(value, false);
+							}
+						}
+					}
+				]
+			},
+			tooltips: {
+				displayColors: false,
+				callbacks: {
+					title: tooltipItems => `Layer ${tooltipItems[0].index + 1}`,
+					label(tooltipItem) {
+						const layer = layers[tooltipItem.index];
+						let result = [`Duration: ${displayTime(layer.duration, false)}`];
+						if (layer.height) { result.push(`Layer Height: ${displayZ(layer.height)}`); }
+						if (layer.filament) { result.push(`Filament Usage: ${display(layer.filament, 1, 'mm')}`); }
+						if (layer.fractionPrinted) { result.push(`File Progress: ${display(layer.fractionPrinted * 100, 1, '%')}`); }
+						return result;
+					}
+				}
+			}
+			// panning and zooming is not supported until the panning feature of chartjs-plugin-zoom is fixed
+		};
+
+		// Create the chart
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {

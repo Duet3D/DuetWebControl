@@ -1,7 +1,11 @@
 <template>
 	<v-card>
 		<v-card-title>
-			Machine-Specific Settings
+			<span>Machine-Specific Settings</span>
+			<v-spacer></v-spacer>
+			<a href="#" @click.prevent="revertToDWC1">
+				<v-icon small class="mr-1">warning</v-icon> Revert to Duet Web Control 1
+			</a>
 		</v-card-title>
 
 		<v-container fluid grid-list-lg class="px-3">
@@ -51,10 +55,12 @@
 <script>
 'use strict'
 
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapGetters, mapMutations } from 'vuex'
 
 export default {
 	computed: {
+		...mapState(['isLocal']),
+		...mapGetters(['isConnected']),
 		...mapState('machine', ['settings']),
 		ajaxRetries: {
 			get() { return this.settings.ajaxRetries; },
@@ -81,6 +87,21 @@ export default {
 			set(value) { if (this.isNumber(value) && value > 0) { this.update({ moveFeedrate: value }); } }
 		}
 	},
-	methods: mapMutations('machine/settings', ['update'])
+	methods: {
+		...mapMutations('machine/settings', ['update']),
+		revertToDWC1() {
+			let hostname = location.hostname;
+			if (this.isLocal) {
+				hostname = prompt('Please enter the IP address of the machine you wish to reset:');
+				if (!hostname) {
+					return;
+				}
+			}
+
+			if (confirm('The page will now perform the file command that allows you to return to Duet Web Control 1.\nOnce you see "err: 0" you can reload the web interface.\n\nAre you sure you wish to proceed?')) {
+				window.navigate(`http://${hostname}/rr_delete?name=0:/www/index.html.gz`);
+			}
+		}
+	}
 }
 </script>

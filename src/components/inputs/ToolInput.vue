@@ -1,5 +1,5 @@
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" @change="change" @blur="blur" :loading="applying" :disabled="uiFrozen" menu-props="auto, overflowY">
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" @change="change" @blur="blur" :label="label" :loading="applying" :disabled="uiFrozen" :menu-props="$vuetify.breakpoint.xsOnly ? { maxHeight: 125 } : undefined">
 	</v-combobox>
 </template>
 
@@ -11,7 +11,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat']),
+		...mapState('machine/model', ['heat', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		items() {
 			const key = this.active ? 'active' : 'standby';
@@ -41,6 +41,7 @@ export default {
 		}
 	},
 	props: {
+		label: String,
 		active: Boolean,
 		standby: Boolean,
 
@@ -112,12 +113,14 @@ export default {
 								}
 							}, this);
 							await this.sendCode(code);
+							this.actualValue = this.value;
 						} else {
 							console.warn('[tool-input] Invalid target for tool-input');
 						}
 					}
 				} catch (e) {
-					// handled before we get here
+					// should be handled before we get here
+					console.warn(e);
 				}
 				this.applying = false;
 			} else {

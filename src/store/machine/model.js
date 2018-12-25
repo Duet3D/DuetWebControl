@@ -166,6 +166,8 @@ export default function(connector) {
 			state: {
 				atxPower: undefined,
 				currentTool: undefined,
+				isPrinting: undefined,					// auto-evaluated on update
+				isSimulating: undefined,				// auto-evaluated on update
 				mode: undefined,						// one of ['FFF', 'CNC', 'Laser', undefined]
 				status: undefined						// one of the following:
 				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', undefined]
@@ -196,7 +198,7 @@ export default function(connector) {
 				}
 				return null;
 			},
-			fractionPrinted: state => state.job.fileSize ? state.job.filePosition / state.job.fileSize : 1,
+			fractionPrinted: state => (state.job.filePosition && state.job.fileSize) ? state.job.filePosition / state.job.fileSize : 0,
 			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
 			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
@@ -221,15 +223,22 @@ export default function(connector) {
 		mutations: {
 			update(state, payload) {
 				const lastJobFile = state.job.fileName;
-				const wasPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
-				const wasSimulating = state.state.status === 'simulating';
+				const wasPrinting = state.state.isPrinting, wasSimulating = state.state.isSimulating;
 
 				merge(state, payload, true);
 				fixMachineItems(state, payload);
 
-				if (wasPrinting) {
-					const isPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
-					if (!isPrinting) {
+				const isPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
+				if (state.state.isPrinting !== isPrinting) {
+					state.state.isPrinting = isPrinting;
+					if (isPrinting) {
+						const isSimulating = state.state.status === 'simulating';
+						if ((isSimulating || state.state.status === 'processing') && state.state.isSimulating !== isSimulating) {
+							state.state.isSimulating = isSimulating;
+						}
+					} else if (wasPrinting) {
+						state.state.isSimulating = false;
+
 						for (let key in state.job) {
 							if (!(state.job[key] instanceof Array)) {
 								if (state.job[key] instanceof Object) {
@@ -241,7 +250,6 @@ export default function(connector) {
 								}
 							}
 						}
-
 						state.job.lastFileName = lastJobFile;
 						state.job.lastFileSimulated = wasSimulating;
 					}

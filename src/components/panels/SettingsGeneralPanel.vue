@@ -4,7 +4,7 @@
 			<span>General Settings</span>
 			<v-spacer></v-spacer>
 			<a v-show="!uiFrozen" href="#" @click.prevent="showResetConfirmation = true">
-				<v-icon class="mr-1">restore</v-icon> Revert to Factory Defaults
+				<v-icon small class="mr-1">restore</v-icon> Revert to Factory Defaults
 			</a>
 		</v-card-title>
 

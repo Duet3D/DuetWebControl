@@ -102,72 +102,7 @@ export default {
 	data() {
 		return {
 			chart: null,
-			pauseUpdate: false,
-			options: {
-				animation: {
-					duration: 0					// general animation time
-				},
-				elements: {
-					line: {
-						tension: 0				// disable bezier curves
-					}
-				},
-				legend: {
-					labels: {
-						filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine,
-						fontFamily: 'Roboto,sans-serif'
-					}
-				},
-				maintainAspectRatio: false,
-				responsiveAnimationDuration: 0, // animation duration after a resize
-				scales: {
-					xAxes: [
-						{
-							gridLines: {
-								color: 'rgba(0,0,0,0.2)',
-								display: true
-							},
-							ticks: {
-								minor: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								major: {
-									fontColor: 'rgba(0,0,0,0.87)',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								max: new Date()
-							},
-							time: {
-								unit: 'minute'
-							},
-							type: 'time'
-						}
-					],
-					yAxes: [
-						{
-							gridLines: {
-								color: 'rgba(0,0,0,0.2)',
-								zeroLineColor: 'rgba(0,0,0,0.2)',
-								display: true
-							},
-							ticks: {
-								minor: {
-									fontColor: '#666',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								major: {
-									fontColor: '#666',
-									fontFamily: 'Roboto,sans-serif'
-								},
-								min: 0,
-								max: defaultMaxTemperature,
-								stepSize: 50
-							}
-						}
-					]
-				}
-			}
+			pauseUpdate: false
 		}
 	},
 	methods: {
@@ -195,7 +130,74 @@ export default {
 		}
 	},
 	mounted() {
-		// Create new chart instance
+		// Create new chart options. Don't use data for the following because it should not be reactive
+		this.options = {
+			animation: {
+				duration: 0					// general animation time
+			},
+			elements: {
+				line: {
+					tension: 0				// disable bezier curves
+				}
+			},
+			legend: {
+				labels: {
+					filter: (legendItem, data) => data.datasets[legendItem.datasetIndex].showLine,
+					fontFamily: 'Roboto,sans-serif'
+				}
+			},
+			maintainAspectRatio: false,
+			responsiveAnimationDuration: 0, // animation duration after a resize
+			scales: {
+				xAxes: [
+					{
+						gridLines: {
+							color: 'rgba(0,0,0,0.2)',
+							display: true
+						},
+						ticks: {
+							minor: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							major: {
+								fontColor: 'rgba(0,0,0,0.87)',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							max: new Date()
+						},
+						time: {
+							unit: 'minute'
+						},
+						type: 'time'
+					}
+				],
+				yAxes: [
+					{
+						gridLines: {
+							color: 'rgba(0,0,0,0.2)',
+							zeroLineColor: 'rgba(0,0,0,0.2)',
+							display: true
+						},
+						ticks: {
+							minor: {
+								fontColor: '#666',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							major: {
+								fontColor: '#666',
+								fontFamily: 'Roboto,sans-serif'
+							},
+							min: 0,
+							max: defaultMaxTemperature,
+							stepSize: 50
+						}
+					}
+				]
+			}
+		};
+
+		// Create the chart
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {

@@ -53,16 +53,19 @@ export default function(hostname, connector) {
 			},
 
 			// Send a code and log the result (if applicable)
-			// Parameter can be either a string or an object { code, (fromInput) }
+			// Parameter can be either a string or an object { code, (fromInput, log = true) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
-				const fromInput = (payload instanceof Object) ? !!payload.fromInput : false;
+				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? !!payload.fromInput : false;
+				const doLog = (payload instanceof Object && payload.log !== undefined) ? !!payload.log : true;
 				try {
 					const response = await connector.sendCode(code);
-					logCode(code, response, hostname, fromInput);
+					if (doLog) {
+						logCode(code, response, hostname, fromInput);
+					}
 					return response;
 				} catch (e) {
-					if (!(e instanceof DisconnectedError)) {
+					if (!(e instanceof DisconnectedError) && doLog) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
 						log(type, e, undefined, hostname);
 					}
@@ -175,8 +178,8 @@ export default function(hostname, connector) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, getters, commit, dispatch }, payload) {
-				const wasPrinting = getters['model/isPrinting'], lastJobFile = state.model.job.fileName;
+			async update({ state, commit, dispatch }, payload) {
+				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.fileName;
 
 				// Merge updates into the object model
 				commit('model/update', payload);
@@ -191,7 +194,7 @@ export default function(hostname, connector) {
 					}
 					
 					// Have we just finished a job?
-					if (wasPrinting && !getters['model/isPrinting']) {
+					if (wasPrinting && !state.model.state.isPrinting) {
 						// Clear the cache of the last file
 						commit('cache/clearFileInfo', lastJobFile);
 

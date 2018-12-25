@@ -190,8 +190,7 @@ import { mapState, mapGetters } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['isConnected']),
-		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state']),
-		...mapGetters('machine/model', ['isPrinting'])
+		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state'])
 	},
 	data() {
 		return {
@@ -208,7 +207,7 @@ export default {
 			if (index && this.sensors.probes.length > 1){
 				result.push('ml-2');
 			}
-			if (!this.isPrinting) {
+			if (!this.state.isPrinting) {
 				if (probe.value >= probe.threshold) {
 					result.push('error');
 				} else if (probe.value > probe.threshold * 0.9) {

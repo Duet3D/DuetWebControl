@@ -9,12 +9,12 @@ module.exports = {
 				cache: true
 			}),
 			new ZipPlugin({
-				filename: 'DuetWebControl.zip',
+				filename: 'DuetWebControl-mini.zip',
 				include: [/\.gz$/, /\.woff$/, /\.woff2$/],
 				exclude: [/\.map.gz$/]
 			}),
 			new ZipPlugin({
-				filename: 'DuetWebControl-symbols.zip',
+				filename: 'DuetWebControl.zip',
 				include: [/\.gz$/, /\.woff$/, /\.woff2$/],
 			})
 		] : []

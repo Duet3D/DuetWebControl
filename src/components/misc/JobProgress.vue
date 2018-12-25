@@ -25,13 +25,12 @@ import { extractFileName } from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine', ['lastPrintedFile']),
 		...mapState('machine/model', ['job', 'state']),
-		...mapGetters('machine/model', ['isPrinting', 'jobProgress']),
+		...mapGetters('machine/model', ['jobProgress']),
 		printStatus() {
-			if (this.printFile) {
+			if (this.state.isPrinting) {
 				const progress = this.$display(this.jobProgress * 100, 1, '%');
-				if (this.state.status === 'simulating') {
+				if (this.state.isSimulating) {
 					return `Simulating ${this.printFile}, ${progress} complete`;
 				}
 				if (this.state.mode === 'CNC') {
@@ -50,7 +49,7 @@ export default {
 			return 'No Job running.';
 		},
 		printDetails() {
-			if (!this.isPrinting) {
+			if (!this.state.isPrinting) {
 				return '';
 			}
 

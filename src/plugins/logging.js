@@ -45,7 +45,7 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 		}
 
 		const notification = makeNotification(type, title, message);
-		notification.onclick = () => router.push('/Console');
+		notification.domElement.onclick = () => router.push('/Console');
 	}
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
 }

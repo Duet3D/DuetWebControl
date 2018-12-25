@@ -414,8 +414,8 @@ export default class PollConnector extends BaseConnector {
 						this.layers.push({
 							duration: response.data.firstLayerDuration,
 							height: response.data.firstLayerHeight,
-							filament: (response.layer === 2) ? response.data.extrRaw : undefined,
-							fractionPrinted: (response.layer === 2) ? response.data.fractionPrinted / 100 : undefined
+							filament: (response.data.currentLayer === 2) ? response.data.extrRaw.filter(amount => amount > 0) : undefined,
+							fractionPrinted: (response.data.currentLayer === 2) ? response.data.fractionPrinted / 100 : undefined
 						});
 
 						newData.job = {};
@@ -568,6 +568,12 @@ export default class PollConnector extends BaseConnector {
 		// Check if the G-code response needs to be polled
 		if (response.data.seq !== this.lastStatusResponse.seq) {
 			await this.getGCodeReply(response.data.seq);
+		}
+
+		// Check if the firmware rebooted
+		if (!this.justConnected && response.data.time < this.lastStatusResponse.time) {
+			this.pendingCodes.forEach(code => code.reject(new DisconnectedError()));
+			this.pendingCodes = [];
 		}
 
 		// Sometimes we need to update the config as well

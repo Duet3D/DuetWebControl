@@ -15,11 +15,11 @@
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
 		</v-toolbar>
 		
-		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked">
+		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" sort-table="jobs" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked">
 			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100"></v-progress-linear>
 
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No Job Files</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No Jobs</v-alert>
 			</template>
 
 			<template slot="context-menu">
@@ -137,27 +137,30 @@ export default {
 		async selectStorage(index) {
 			const storage = this.storages[index];
 			let mountSuccess = true, mountResponse;
-			this.loading = true;
-			if (!storage.mounted) {
+			if (storage.mounted) {
+				this.directory = (index === 0) ? Path.gcodes : `${index}:`;
+			} else {
+				this.loading = true;
 				try {
 					// Mount storage
-					mountResponse = await this.sendCode(`M21 P${index}`);
+					mountResponse = await this.sendCode({ code: `M21 P${index}`, log: false });
 				} catch (e) {
 					mountResponse = e.message;
 					mountSuccess = false;
 				}
-			}
-			this.loading = false;
 
-			if (this.isConnected) {
-				if (mountSuccess && storage.mounted) {
-					// Change directory
-					this.directory = (index === 0) ? Path.gcodes : `${index}:`;
-				} else {
-					// Show mount message
-					this.$log('error', 'Failed to mount SD card', mountResponse);
+				if (this.isConnected) {
+					if (mountSuccess && storage.mounted) {
+						// Change directory
+						this.directory = (index === 0) ? Path.gcodes : `${index}:`;
+						this.$log('success', 'SD card mounted');
+					} else {
+						// Show mount message
+						this.$log('error', 'Failed to mount SD card', mountResponse);
+					}
 				}
 			}
+			this.loading = false;
 		},
 		refresh() {
 			this.clearFileInfo(this.directory);

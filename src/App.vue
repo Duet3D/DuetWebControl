@@ -20,18 +20,17 @@
 }
 
 .global-control.theme--light {
-	background-color: #E0E0E0 !important;
+	background-color: #F5F5F5 !important;
 }
 #global-container .v-card.theme--light {
 	background-color: #F5F5F5 !important;
 }
 .global-control.theme--dark {
-	background-color: #616161 !important;
+	background-color: #515151 !important;
 }
 #global-container .v-card.theme--dark {
 	background-color: #515151 !important;
 }
-
 
 input[type='number'] {
     -moz-appearance: textfield;
@@ -73,7 +72,7 @@ a:not(:hover) {
 			</v-list>
 		</v-navigation-drawer>
 
-		<v-toolbar app clipped-left>
+		<v-toolbar ref="appToolbar" app clipped-left>
 			<v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
 			<v-toolbar-title>
 				<!-- TODO: Optional OEM branding -->
@@ -120,7 +119,7 @@ a:not(:hover) {
 
 			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
 
-			<v-container fluid class="container">
+			<v-container fluid id="page-container" class="container">
 				<router-view></router-view>
 			</v-container>
 		</v-content>
@@ -128,10 +127,6 @@ a:not(:hover) {
 		<!--<v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
 			TODO Add quick access / component list here in design mode
 		</v-navigation-drawer>-->
-
-		<v-footer app>
-			<span class="ml-3">&copy; 2018 Christian Hammacher for Duet3D</span>
-		</v-footer>
 
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
@@ -142,6 +137,7 @@ a:not(:hover) {
 <script>
 'use strict'
 
+import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Routing } from './routes'
@@ -151,11 +147,14 @@ export default {
 		...mapState({
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
+
+			isPrinting: state => state.machine.model.state.isPrinting,
 			name: state => state.machine.model.network.name,
+
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
-		...mapGetters('machine/model', ['board', 'isPrinting'])
+		...mapGetters('machine/model', ['board', 'jobProgress'])
 	},
 	data() {
 		return {
@@ -184,6 +183,13 @@ export default {
 				return category.pages.some(page => page.path === route.path);
 			}
 			return true;
+		},
+		updateTitle() {
+			const jobProgress = this.jobProgress;
+			const title = ((jobProgress > 0 && this.isPrinting) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
+			if (document.title !== title) {
+				document.title = title;
+			}
 		}
 	},
 	mounted() {
@@ -199,9 +205,9 @@ export default {
 		this.load();
 
 		// Validate navigation
-		const checkMenuCondition = this.checkMenuCondition;
+		const that = this;
 		this.$router.beforeEach((to, from, next) => {
-			if (Routing.some(group => group.pages.some(page => page.path === to.path && !checkMenuCondition(page.condition)))) {
+			if (Routing.some(group => group.pages.some(page => page.path === to.path && !that.checkMenuCondition(page.condition)))) {
 				next('/');
 			} else {
 				next();
@@ -209,9 +215,17 @@ export default {
 		});
 
 		const route = this.$route;
-		if (Routing.some(group => group.pages.some(page => page.path === route.path && !checkMenuCondition(page.condition)))) {
+		if (Routing.some(group => group.pages.some(page => page.path === route.path && !this.checkMenuCondition(page.condition)))) {
 			this.$router.push('/');
 		}
+
+		// Set up Piecon
+		Piecon.setOptions({
+			color: '#00f',			// Pie chart color
+			background: '#bbb',		// Empty pie chart color
+			shadow: '#fff',			// Outer ring color
+			fallback: false			// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+		});
 	},
 	watch: {
 		isPrinting(to) {
@@ -219,6 +233,15 @@ export default {
 				// Go to Job Status when a print starts
 				this.$router.push('/Job/Status');
 			}
+		},
+		name() { this.updateTitle(); },
+		jobProgress(to) {
+			if (to === undefined || to == 1) {
+				Piecon.reset();
+			} else {
+				Piecon.setProgress(to * 100);
+			}
+			this.updateTitle();
 		}
 	}
 }

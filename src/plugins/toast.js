@@ -64,7 +64,7 @@ export function makeNotification(type, title, message = '', timeout) {
 
 	item.type = type;
 	item.title = title;
-		item.message = message;
+	item.message = message;
 	item.timeout = timeout;
 	item.domElement = toast;
 	item.hide = function() {

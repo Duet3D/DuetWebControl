@@ -1,7 +1,10 @@
 <template>
 	<v-dialog v-model="shown" max-width="360">
 		<v-card>
-			<v-card-title class="headline">{{ $t('dialog.resetHeaterFault.title') }}</v-card-title>
+			<v-card-title class="headline">
+				<v-icon class="mr-1">warning</v-icon>
+				{{ $t('dialog.resetHeaterFault.title') }}
+			</v-card-title>
 
 			<v-card-text>
 				{{ $t('dialog.resetHeaterFault.prompt', [this.heater]) }}

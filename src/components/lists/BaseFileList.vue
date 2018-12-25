@@ -50,8 +50,10 @@ th.checkbox {
 					<template v-for="header in headers">
 						<td v-if="header.value === 'name'" :key="header.value">
 							<a href="#" @click.prevent.stop="itemClicked(props.item)">
-								<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
-								{{ props.item.name }}
+								<v-layout row align-center>
+									<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
+									<span>{{ props.item.name }}</span>
+								</v-layout>
 							</a>
 						</td>
 						<td v-else-if="header.unit === 'bytes'" :key="header.value">
@@ -116,7 +118,7 @@ import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import VDataTable from 'vuetify/es5/components/VDataTable'
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import { getModifiedDirectory } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
@@ -154,6 +156,7 @@ export default {
 			type: Boolean,
 			default: true
 		},
+		sortTable: String,
 		directory: {
 			type: String,
 			required: true
@@ -171,6 +174,7 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected']),
+		...mapState('machine/cache', ['sorting']),
 		...mapState('machine/model', ['storages']),
 		storageIndex() {
 			const matches = /^(\d+)/.exec(this.innerDirectory);
@@ -230,6 +234,7 @@ export default {
 			machineDelete: 'delete',
 			getFileList: 'getFileList'
 		}),
+		...mapMutations('machine/cache', ['setSorting']),
 		toggleAll() {
 			// FIXME For some reason this is called twice when the checkbox is checked
 			if (!this.togglingSelected) {
@@ -575,6 +580,16 @@ export default {
 				}
 			}
 		});
+
+		// Get sorting from cache
+		if (this.sortTable) {
+			const column = this.sorting[this.sortTable].column;
+			const descending = this.sorting[this.sortTable].descending;
+			if (column !== this.innerPagination.sortBy || descending !== this.innerPagination.descending) {
+				this.innerPagination.sortBy = column;
+				this.innerPagination.descending = descending;
+			}
+		}
 	},
 	beforeDestroy() {
 		this.unsubscribe();
@@ -618,6 +633,25 @@ export default {
 		innerValue(to) {
 			if (this.value !== to) {
 				this.$emit('input', to);
+			}
+		},
+		innerPagination: {
+			deep: true,
+			handler(to) {
+				if (this.sortTable && (this.sorting[this.sortTable].column !== to.sortBy || this.sorting[this.sortTable].descending !== to.descending)) {
+					this.setSorting({ table: this.sortTable, column: to.sortBy, descending: to.descending });
+				}
+			}
+		},
+		sorting: {
+			deep: true,
+			handler(to) {
+				const column = to[this.sortTable].column;
+				const descending = to[this.sortTable].descending;
+				if (column !== this.innerPagination.sortBy || descending !== this.innerPagination.descending) {
+					this.innerPagination.sortBy = column;
+					this.innerPagination.descending = descending;
+				}
 			}
 		}
 	}
