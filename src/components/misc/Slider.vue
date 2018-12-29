@@ -7,7 +7,7 @@
 <template>
 	<v-layout row align-center>
 		<v-flex shrink>
-			<v-btn large icon :disabled="disabled || innerValue === min" @click="change(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)" @touchstart="mouseDown(false)" @touchend="mouseUp(false)">
+			<v-btn large icon :disabled="disabled || innerValue === min" @click="change(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)" @touchstart="mouseDown(false)" @touchend="mouseUp(false)" class="ml-0">
 				<v-icon>remove</v-icon>
 			</v-btn>
 		</v-flex>
@@ -17,7 +17,7 @@
 		</v-flex>
 
 		<v-flex shrink>
-			<v-btn large icon :disabled="disabled || innerValue === max" @click="change(step)" @mousedown="mouseDown(true)" @mouseup="mouseUp(true)" @mouseleave="mouseUp(true)" @touchstart="mouseDown(true)" @touchend="mouseUp(true)">
+			<v-btn large icon :disabled="disabled || innerValue === max" @click="change(step)" @mousedown="mouseDown(true)" @mouseup="mouseUp(true)" @mouseleave="mouseUp(true)" @touchstart="mouseDown(true)" @touchend="mouseUp(true)" class="mr-0">
 				<v-icon>add</v-icon>
 			</v-btn>
 		</v-flex>

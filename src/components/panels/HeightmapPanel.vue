@@ -74,11 +74,16 @@ canvas {
 							<v-flex shrink>
 								Color scheme:
 							</v-flex>
-							<v-flex class="pb-2" shrink>
+							<v-flex>
 								<v-btn-toggle v-model="colorScheme">
 									<v-btn value="terrain">Terrain</v-btn>
 									<v-btn value="heat">Heat</v-btn>
 								</v-btn-toggle>
+							</v-flex>
+							<v-flex class="pb-2" shrink :loading="loading" @click="getHeightmap">
+								<v-btn>
+									<v-icon class="mr-1">refresh</v-icon> Reload Height Map
+								</v-btn>
 							</v-flex>
 						</v-layout>
 					</v-flex>
@@ -372,7 +377,7 @@ export default {
 			this.ready = false;
 			this.loading = true;
 			try {
-				const heightmap = await this.download({ filename, asText: true, showSuccess: false, showError: false });
+				const heightmap = await this.download({ filename, type: 'text', showSuccess: false, showError: false });
 				this.showCSV(heightmap);
 			} catch (e) {
 				console.warn(e);

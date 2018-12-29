@@ -29,7 +29,7 @@
 
 			<v-spacer></v-spacer>
 
-			<v-menu offset-y left :disabled="uiFrozen">
+			<v-menu offset-y left :disabled="uiFrozen" v-tab-control>
 				<template slot="activator">
 					<v-btn color="primary" small class="mx-0" :disabled="uiFrozen">
 						{{ $t('panel.movement.compensation') }} <v-icon>arrow_drop_down</v-icon>
@@ -42,10 +42,9 @@
 							<v-list-tile class="center-menu-item">
 								{{ $t('panel.movement.compensationInUse', [move.compensation]) }}
 							</v-list-tile>
+
 							<v-divider></v-divider>
 						</template>
-
-						<v-divider></v-divider>
 
 						<v-list-tile @click="sendCode('G32')">
 							<v-icon class="mr-1">view_module</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
@@ -170,6 +169,7 @@ export default {
 	},
 	data() {
 		return {
+			dropdownShown: false,
 			showMeshEditDialog: false,
 			moveStepDialog: {
 				shown: false,

@@ -1,6 +1,6 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">timer</v-icon> Speed Factor
 			<v-spacer></v-spacer>
 			<a href="#" v-show="speedFactor !== 100" flat small color="primary" @click.prevent="sendCode('M220 S100')">

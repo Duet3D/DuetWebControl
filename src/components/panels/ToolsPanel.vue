@@ -37,8 +37,8 @@ table.extra tr > td:first-child {
 
 			<v-spacer></v-spacer>
 
-			<v-menu offset-y left :close-on-content-click="false" :disabled="uiFrozen">
-				<a href="#" @click.prevent slot="activator">
+			<v-menu v-model="dropdownShown" offset-y left :close-on-content-click="false" :disabled="uiFrozen">
+				<a slot="activator" ref="dropdownActivator" href="#" @click.prevent tabindex="0" @keyup.enter="showDropdown">
 					<v-icon small>more_horiz</v-icon> {{ $t('panel.tools.controlAll') }}
 				</a>
 				<v-card>
@@ -47,8 +47,8 @@ table.extra tr > td:first-child {
 							<v-icon class="mr-1">power</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
-						<tool-input label="Set all active temperatures" all active></tool-input>
-						<tool-input label="Set all standby temperatures" all standby></tool-input>
+						<tool-input ref="allActive" label="Set all active temperatures" all active></tool-input>
+						<tool-input label="Set all standby temperatures" all standby :tab-target="$refs.dropdownActivator"></tool-input>
 					</v-layout>
 				</v-card>
 			</v-menu>
@@ -323,9 +323,11 @@ export default {
 	},
 	data() {
 		return {
+			dropdownShown: false,
+			turningEverythingOff: false,
+
 			currentPage: 'tools',
 			waitingForCode: false,
-			turningEverythingOff: false,
 
 			loadingFilament: false,
 			filamentMenu: {
@@ -342,6 +344,14 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		...mapMutations('machine/settings', ['toggleExtraHeaterVisibility']),
+
+		showDropdown() {
+			this.dropdownShown = !this.dropdownShown;
+			if (this.dropdownShown) {
+				const input = this.$refs.allActive;
+				setTimeout(() => input.focus(), 300);
+			}
+		},
 		async turnEverythingOff() {
 			let code = '';
 			this.tools.forEach(function(tool) {

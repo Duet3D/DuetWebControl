@@ -61,7 +61,7 @@ export default {
 				this.chart.config.options.scales.xAxes[0].ticks.min = 1;
 				this.chart.config.options.scales.xAxes[0].ticks.max = layers.length;
 			} else {
-				this.chart.config.options.scales.xAxes[0].ticks.min = Math.max(1, layers.length - 30);
+				this.chart.config.options.scales.xAxes[0].ticks.min = Math.max((layers.length > 2) ? 2 : 1, layers.length - 30);
 				this.chart.config.options.scales.xAxes[0].ticks.max = Math.max(30, layers.length);
 			}
 			this.chart.update();

@@ -17,7 +17,7 @@
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="sys" color="primary"></upload-btn>
 		</v-toolbar>
 		
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked">
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No System Files</v-alert>
 			</template>
@@ -38,19 +38,21 @@
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
+		<confirm-dialog :shown.sync="showResetPrompt" question="Reset board?" prompt="Would you like to restart your board to apply the updated configuration?" @confirmed="resetBoard"></confirm-dialog>
 	</div>
 </template>
 
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
+		...mapState('machine/model', ['state']),
 		...mapGetters(['uiFrozen'])
 	},
 	data() {
@@ -59,10 +61,12 @@ export default {
 			loading: false,
 			selection: [],
 			showNewDirectory: false,
-			showNewFile: false
+			showNewFile: false,
+			showResetPrompt: false
 		}
 	},
 	methods: {
+		...mapActions('machine', ['sendCode']),
 		refresh() {
 			this.$refs.filelist.refresh();
 		},
@@ -71,6 +75,18 @@ export default {
 				this.$refs.filelist.download(item);
 			} else {
 				this.$refs.filelist.edit(item);
+			}
+		},
+		fileEdited(filename) {
+			if (filename === Path.configFile && !this.state.isPrinting) {
+				this.showResetPrompt = true;
+			}
+		},
+		async resetBoard() {
+			try {
+				await this.sendCode('M999');
+			} catch (e) {
+				// this is expected
 			}
 		}
 	},

@@ -109,6 +109,7 @@ export default {
 
 			try {
 				await this.upload({ filename: this.filename, content });
+				this.$emit('editComplete', this.filename);
 			} catch (e) {
 				// TODO Optionally ask user to save file somewhere else
 			}

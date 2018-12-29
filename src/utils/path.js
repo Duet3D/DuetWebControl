@@ -88,7 +88,7 @@ export default {
 	www: '0:/www',
 
 	configFile: '0:/sys/config.g',
-	configBackupFile: '0:/sys/config.bak',
+	configBackupFile: '0:/sys/config.g.bak',
 	dwcCacheFile: '0:/sys/dwc2cache.json',
 	dwcFactoryDefaults: '0:/sys/dwc2defaults.json',
 	dwcSettingsFile: '0:/sys/dwc2settings.json',

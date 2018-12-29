@@ -1,11 +1,10 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)"
-			:color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop">
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop" tabindex="0">
 			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
 		</v-btn>
 
-		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple />
+		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
 		<confirm-dialog :shown.sync="confirmUpdate" question="Install updates?" prompt="You have uploaded at least one firmware update. Would you like to install them now?" @confirmed="startUpdate"></confirm-dialog>
 	</div>
 </template>
@@ -242,22 +241,20 @@ export default {
 			}
 		},
 		dragOver(e) {
-			if (e.dataTransfer.files.length) {
-				e.preventDefault();
-				e.stopPropagation();
-				this.innerColor = 'success';
-			}
+			e.preventDefault();
+			e.stopPropagation();
+			this.innerColor = 'success';
 		},
 		dragLeave(e) {
-			if (e.dataTransfer.files.length) {
-				e.preventDefault();
-				e.stopPropagation();
-				this.innerColor = this.color;
-			}
+			e.preventDefault();
+			e.stopPropagation();
+			this.innerColor = this.color;
 		},
 		async dragDrop(e) {
 			this.innerColor = this.color;
-			await this.doUpload(e.dataTransfer.files);
+			if (e.dataTransfer.files.length) {
+				await this.doUpload(e.dataTransfer.files);
+			}
 		}
 	},
 	watch: {

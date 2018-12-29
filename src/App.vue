@@ -73,10 +73,10 @@ a:not(:hover) {
 		</v-navigation-drawer>
 
 		<v-toolbar ref="appToolbar" app clipped-left>
-			<v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
+			<v-toolbar-side-icon @click.stop="drawer = !drawer" v-tab-control></v-toolbar-side-icon>
 			<v-toolbar-title>
 				<!-- TODO: Optional OEM branding -->
-				<a id="title">{{ name }}</a>
+				<a id="title" v-tab-control>{{ name }}</a>
 			</v-toolbar-title>
 			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>
 
@@ -120,7 +120,9 @@ a:not(:hover) {
 			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
 
 			<v-container fluid id="page-container" class="container">
-				<router-view></router-view>
+				<keep-alive>
+					<router-view></router-view>
+				</keep-alive>
 			</v-container>
 		</v-content>
 

@@ -13,6 +13,7 @@ import router from './routes'
 import store from './store'
 
 Vue.config.productionTip = false
+
 Vue.use(plugins)
 Vue.use(Vuetify, {
 	lang: { t: (key, ...params) => i18n.t(key, params) }

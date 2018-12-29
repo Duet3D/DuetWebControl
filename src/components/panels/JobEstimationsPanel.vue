@@ -36,6 +36,16 @@
 						</v-flex>
 					</v-layout>
 				</v-flex>
+				<v-flex v-if="totalTime">
+					<v-layout column>
+						<v-flex tag="strong">
+							Based on Simulation
+						</v-flex>
+						<v-flex>
+							{{ $displayTime(Math.max(0, totalTime - job.duration)) }}
+						</v-flex>
+					</v-layout>
+				</v-flex>
 			</v-layout>
 		</v-card-text>
 	</v-card>
@@ -47,6 +57,12 @@
 import { mapState } from 'vuex'
 
 export default {
-	computed: mapState('machine/model', ['job'])
+	computed: {
+		...mapState('machine/model', ['job']),
+		totalTime() {
+			// Simulated times are usually more accurate than the slicers' print time estmations
+			return this.job.file.simulatedTime ? this.job.file.simulatedTime : this.job.file.printTime;
+		}
+	}
 }
 </script>

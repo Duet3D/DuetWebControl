@@ -1,6 +1,6 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">texture</v-icon> Extrusion Factors
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
@@ -21,28 +21,26 @@
 			</v-menu>
 		</v-card-title>
 		
-		<v-card-text class="py-0" v-show="!!visibleExtruders.length">
-			<v-layout column>
-				<v-flex v-for="extruder in visibleExtruders" :key="extruder">
-					<v-flex>
-						<v-layout row>
-							<v-flex tag="span">
-								{{ `Extruder ${extruder}` }}
-							</v-flex>
-							<v-spacer></v-spacer>
-							<v-flex shrink>
-								<a href="#" v-show="move.extruders[extruder].factor !== 1.0" flat small color="primary" @click.prevent="setExtrusionFactor(extruder, 100)">
-									<v-icon small class="mr-1">settings_backup_restore</v-icon> {{ $t('generic.reset') }}
-								</a>
-							</v-flex>
-						</v-layout>
-					</v-flex>
-					<v-flex>
-						<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen"></slider>
-					</v-flex>
+		<v-layout v-if="!!visibleExtruders.length" column class="px-3">
+			<v-flex v-for="extruder in visibleExtruders" :key="extruder">
+				<v-flex class="pt-2">
+					<v-layout row>
+						<v-flex tag="span">
+							{{ `Extruder ${extruder}` }}
+						</v-flex>
+						<v-spacer></v-spacer>
+						<v-flex shrink>
+							<a href="#" v-show="move.extruders[extruder].factor !== 1.0" flat small color="primary" @click.prevent="setExtrusionFactor(extruder, 100)">
+								<v-icon small class="mr-1">settings_backup_restore</v-icon> {{ $t('generic.reset') }}
+							</a>
+						</v-flex>
+					</v-layout>
 				</v-flex>
-			</v-layout>
-		</v-card-text>
+				<v-flex>
+					<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen"></slider>
+				</v-flex>
+			</v-flex>
+		</v-layout>
 
 		<v-alert type="info" :value="!visibleExtruders.length">
 			No Extruders Configured

@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked">
+	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked" tabindex="0">
 		<v-icon v-show="!isBusy">{{ buttonIcon }}</v-icon>
 		<v-progress-circular size="20" v-show="isBusy" indeterminate></v-progress-circular>
 		<span class="ml-2">{{ caption }}</span>

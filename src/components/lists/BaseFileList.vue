@@ -35,7 +35,7 @@ th.checkbox {
 					<th class="checkbox pr-0">
 						<v-checkbox :input-value="props.all" :indeterminate="props.indeterminate" primary hide-details @click="toggleAll"></v-checkbox>
 					</th>
-					<th v-for="header in props.headers" :key="header.text" :class="['text-xs-left column sortable', innerPagination.descending ? 'desc' : 'asc', header.value === innerPagination.sortBy ? 'active' : '']" @click="changeSort(header.value)">
+					<th v-for="header in props.headers" :key="header.text" :class="['text-xs-left column sortable', innerPagination.descending ? 'desc' : 'asc', header.value === innerPagination.sortBy ? 'active' : '']" @click="changeSort(header.value)" v-tab-control>
 						{{ header.text }}
 						<v-icon small>arrow_upward</v-icon>
 					</th>
@@ -43,13 +43,13 @@ th.checkbox {
 			</template>
 
 			<template slot="items" slot-scope="props">
-				<tr :active="props.selected" @click="props.selected = !props.selected" @dblclick="itemClicked(props.item)" @contextmenu.prevent="itemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="dragStart(props.item, $event)" @dragover="dragOver(props.item, $event)" @drop.prevent="dragDrop(props.item, $event)">
+				<tr :active="props.selected" @click="props.selected = !props.selected" @dblclick="itemClicked(props.item)" @contextmenu.prevent="itemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="dragStart(props.item, $event)" @dragover="dragOver(props.item, $event)" @drop.prevent="dragDrop(props.item, $event)" v-tab-control.contextmenu.dblclick @keydown.space="props.selected = !props.selected">
 					<td class="pr-0">
 						<v-checkbox :input-value="props.selected" primary hide-details></v-checkbox>
 					</td>
 					<template v-for="header in headers">
 						<td v-if="header.value === 'name'" :key="header.value">
-							<a href="#" @click.prevent.stop="itemClicked(props.item)">
+							<a href="#" @click.prevent.stop="itemClicked(props.item)" tabindex="-1">
 								<v-layout row align-center>
 									<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
 									<span>{{ props.item.name }}</span>
@@ -65,11 +65,11 @@ th.checkbox {
 						<td v-else-if="header.unit === 'filaments'" :key="header.value">
 							<v-tooltip bottom :disabled="!props.item[header.value] || props.item[header.value].length <= 1">
 								<span slot="activator">
-									{{ displayLoadingValue(props.item, header.value, 'mm') }}
+									{{ displayLoadingValue(props.item, header.value, 1, 'mm') }}
 								</span>
 
 								<span>
-									$display(props.item[header.value], 1, 'mm');
+									{{ $display(props.item[header.value], 1, 'mm') }}
 								</span>
 							</v-tooltip>
 						</td>
@@ -77,14 +77,14 @@ th.checkbox {
 							{{ (props.item[header.value] !== null) ? $displayTime(props.item[header.value]) : $t('generic.i18n') }}
 						</td>
 						<td v-else :key="header.value">
-							{{ displayLoadingValue(props.item, header.value, header.unit) }}
+							{{ displayLoadingValue(props.item, header.value, header.precision, header.unit) }}
 						</td>
 					</template>
 				</tr>
 			</template>
 		</v-data-table>
 
-		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
+		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y v-tab-control.contextmenu>
 			<v-list>
 				<slot name="context-menu"></slot>
 
@@ -106,7 +106,7 @@ th.checkbox {
 			</v-list>
 		</v-menu>
 
-		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content"></file-edit-dialog>
+		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content" @editComplete="$emit('fileEdited', $event)"></file-edit-dialog>
 		<input-dialog :shown.sync="renameDialog.shown" title="Rename File or Directory" prompt="Please enter a new name:" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback"></input-dialog>
 	</div>
 </template>
@@ -325,17 +325,28 @@ export default {
 			}
 			this.innerLoading = false;
 		},
-		displayLoadingValue(item, prop, unit = '') {
+		displayLoadingValue(item, prop, precision, unit = '') {
 			if (item.isDirectory) {
 				return '';
 			}
 			if (!item[prop]) {
 				return this.$t((item[prop] === undefined) ? 'generic.loading' : 'generic.novalue');
 			}
+
+			let displayValue;
 			if (item[prop] instanceof Array) {
-				return item[prop].length ? `${item[prop].reduce((a, b) => a + b)} ${unit}` : this.$t('generic.novalue');
+				if (!item[prop].length) {
+					return this.$t('generic.novalue');
+				}
+				displayValue = item[prop].reduce((a, b) => a + b);
+			} else {
+				displayValue = item[prop];
 			}
-			return `${item[prop]} ${unit}`;
+
+			if (precision !== undefined) {
+				displayValue = displayValue.toFixed(precision);
+			}
+			return `${displayValue} ${unit}`;
 		},
 		itemClicked(item) {
 			if (item.isDirectory) {
@@ -432,8 +443,7 @@ export default {
 		async download(item) {
 			try {
 				const filename = (item && item.name) ? item.name : this.innerValue[0].name;
-				const response = await this.machineDownload(Path.combine(this.innerDirectory, filename));
-				const blob = new Blob([response], { type: 'text/plain;charset=utf-8' })
+				const blob = await this.machineDownload({ filename: Path.combine(this.innerDirectory, filename), type: 'blob' });
 				saveAs(blob, filename);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
@@ -445,7 +455,7 @@ export default {
 		async edit(item) {
 			try {
 				const filename = Path.combine(this.innerDirectory, (item && item.name) ? item.name : this.innerValue[0].name);
-				const response = await this.machineDownload({ filename, asText: true, showSuccess: false });
+				const response = await this.machineDownload({ filename, type: 'text', showSuccess: false });
 				let notification, showDelay = 0;
 				if (response.length > bigFileThreshold) {
 					notification = this.$makeNotification('warning', 'Loading file', 'This file is relatively big so it may take a while before it is displayed.', false);
@@ -539,8 +549,8 @@ export default {
 			const zip = new JSZip();
 			for (let i = 0; i < items.length; i++) {
 				try {
-					const file = await this.machineDownload({ filename: Path.combine(directory, items[i].name), num: i + 1, count: items.length });
-					zip.file(items[i].name, file);
+					const blob = await this.machineDownload({ filename: Path.combine(directory, items[i].name), type: 'blob', num: i + 1, count: items.length });
+					zip.file(items[i].name, blob);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 						// should be handled before we get here

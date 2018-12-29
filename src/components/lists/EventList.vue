@@ -24,29 +24,31 @@ td.title-cell {
 			</template>
 
 			<template slot="items" slot-scope="{ item }">
-				<td class="log-cell title-cell" :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)">
-					{{ item.date.toLocaleString() }}
-				</td>
-				<td class="log-cell content-cell" :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)">
-					<strong>{{ item.title }}</strong>
-					<br v-if="item.title && item.message"/>
-					<span v-if="item.message" class="message" v-html="formatMessage(item.message)"></span>
-				</td>
+				<tr :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)" v-tab-control.contextmenu>
+					<td class="log-cell title-cell">
+						{{ item.date.toLocaleString() }}
+					</td>
+					<td class="log-cell content-cell">
+						<strong>{{ item.title }}</strong>
+						<br v-if="item.title && item.message"/>
+						<span v-if="item.message" class="message" v-html="formatMessage(item.message)"></span>
+					</td>
+				</tr>
 			</template>
 		</v-data-table>
 
-		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
+		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y v-tab-control.contextmenu>
 			<v-list>
-				<v-list-tile v-show="contextMenu.item" @click="copy">
+				<v-list-tile ref="firstMenuItem" v-show="contextMenu.item" @click="copy" tabindex="0">
 					<v-icon class="mr-1">assignment</v-icon> {{ $t('list.eventLog.copy') }}
 				</v-list-tile>
-				<v-list-tile @click="clearLog">
+				<v-list-tile @click="clearLog" tabindex="0">
 					<v-icon class="mr-1">clear_all</v-icon> {{ $t('list.eventLog.clear') }}
 				</v-list-tile>
-				<v-list-tile :disabled="!events.length" @click="downloadText">
+				<v-list-tile :disabled="!events.length" @click="downloadText" tabindex="0">
 					<v-icon class="mr-1">font_download</v-icon> {{ $t('list.eventLog.downloadText') }}
 				</v-list-tile>
-				<v-list-tile :disabled="!events.length" @click="downloadCSV">
+				<v-list-tile :disabled="!events.length" @click="downloadCSV" tabindex="0">
 					<v-icon class="mr-1">cloud_download</v-icon> {{ $t('list.eventLog.downloadCSV') }}
 				</v-list-tile>
 			</v-list>
@@ -116,6 +118,14 @@ export default {
 		},
 		formatMessage(message) {
 			return message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
+		},
+		changeSort(column) {
+			if (this.pagination.sortBy === column) {
+				this.pagination.descending = !this.pagination.descending;
+			} else {
+				this.pagination.sortBy = column;
+				this.pagination.descending = false;
+			}
 		},
 		showContextMenu(e, item) {
 			this.contextMenu.shown = false;

@@ -10,31 +10,29 @@
 
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">ac_unit</v-icon> Fan Control
 		</v-card-title>
 
-		<v-card-text class="px-3 pt-0">
-			<v-layout row wrap align-start>
-				<v-flex order-sm2 order-md1>
-					<p class="mb-1">Fan selection:</p>
-					<v-btn-toggle v-model="fan" mandatory>
-						<v-btn flat :value="-1" :disabled="!canControlFans" color="primary">
-							Tool Fan
+		<v-layout row wrap align-start class="px-3 py-1">
+			<v-flex order-sm2 order-md1 class="ma-1">
+				<p class="mb-1">Fan selection:</p>
+				<v-btn-toggle v-model="fan" mandatory>
+					<v-btn flat :value="-1" :disabled="!canControlFans" color="primary">
+						Tool Fan
+					</v-btn>
+					<template v-for="(fan, index) in fans">
+						<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen" color="primary">
+							{{ fan.name ? fan.name : `Fan ${index}` }}
 						</v-btn>
-						<template v-for="(fan, index) in fans">
-							<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen" color="primary">
-								{{ fan.name ? fan.name : `Fan ${index}` }}
-							</v-btn>
-						</template>
-					</v-btn-toggle>
-				</v-flex>
+					</template>
+				</v-btn-toggle>
+			</v-flex>
 
-				<v-flex order-sm1 order-md2>
-					<slider v-model="fanValue" :disabled="!canControlFans"></slider>
-				</v-flex>
-			</v-layout>
-		</v-card-text>
+			<v-flex order-sm1 order-md2 class="ma-1">
+				<slider v-model="fanValue" :disabled="!canControlFans"></slider>
+			</v-flex>
+		</v-layout>
 	</v-card>
 </template>
 

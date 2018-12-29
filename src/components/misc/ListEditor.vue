@@ -8,15 +8,15 @@
 				<h3 class="text-xs-center mt-3">Standby</h3>
 			</v-flex>
 			<v-flex xs6>
-				<v-chip close v-for="(temp, index) in items.active" :key="temp" @input="removeActive(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items.active" :key="temp" @input="removeActive(index)" @keyup.delete="removeActive(index)">{{ temp }} {{ unit }}</v-chip>
 			</v-flex>
 			<v-flex xs6>
-				<v-chip close v-for="(temp, index) in items.standby" :key="temp" @input="removeStandby(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items.standby" :key="temp" @input="removeStandby(index)" @keyup.delete="removeStandby(index)">{{ temp }} {{ unit }}</v-chip>
 			</v-flex>
 			<v-flex xs6>
 				<v-layout row wrap>
 					<v-flex>
-						<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999" label="Value of new temperature"></v-text-field>
+						<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="addActive"></v-text-field>
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAddActive" @click="addActive">
@@ -28,7 +28,7 @@
 			<v-flex xs6>
 				<v-layout row wrap>
 					<v-flex>
-						<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999" label="Value of new temperature"></v-text-field>
+						<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="canAddStandby && addStandby"></v-text-field>
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAddStandby" @click="addStandby">
@@ -40,13 +40,13 @@
 		</template>
 		<template v-else>
 			<v-flex xs12 class="mt-3">
-				<v-chip close v-for="(temp, index) in items" :key="temp" @input="remove(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items" :key="temp" @input="remove(index)" @keyup.delete="remove(index)">{{ temp }} {{ unit }}</v-chip>
 			</v-flex>
 			<v-flex xs12>
 				<v-layout row align-center>
 					<v-flex>
-						<v-text-field v-if="temperature" v-model.number="value" type="number" min="-273" max="1999" label="Value of new temperature"></v-text-field>
-						<v-text-field v-else v-model.number="value" type="number" min="0" label="Value of new element"></v-text-field>
+						<v-text-field v-if="temperature" v-model.number="value" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="canAdd && add"></v-text-field>
+						<v-text-field v-else v-model.number="value" type="number" min="0" label="Value of new element" @keyup.enter="canAdd && add"></v-text-field>
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAdd" @click="add">
@@ -99,11 +99,13 @@ export default {
 			this.update(updateData);
 		},
 		addActive() {
-			const updateData = { temperatures: {} };
-			updateData.temperatures[this.itemKey] = { active: this.items.active.slice() };
-			updateData.temperatures[this.itemKey].active.push(this.activeValue);
-			updateData.temperatures[this.itemKey].active.sort((a, b) => b - a);
-			this.update(updateData);
+			if (this.canAddActive) {
+				const updateData = { temperatures: {} };
+				updateData.temperatures[this.itemKey] = { active: this.items.active.slice() };
+				updateData.temperatures[this.itemKey].active.push(this.activeValue);
+				updateData.temperatures[this.itemKey].active.sort((a, b) => b - a);
+				this.update(updateData);
+			}
 		},
 		removeStandby(index) {
 			const updateData = { temperatures: {} };
@@ -112,11 +114,13 @@ export default {
 			this.update(updateData);
 		},
 		addStandby() {
-			const updateData = { temperatures: {} };
-			updateData.temperatures[this.itemKey] = { standby: this.items.standby.slice() };
-			updateData.temperatures[this.itemKey].standby.push(this.standbyValue);
-			updateData.temperatures[this.itemKey].standby.sort((a, b) => b - a);
-			this.update(updateData);
+			if (this.canAddStandby) {
+				const updateData = { temperatures: {} };
+				updateData.temperatures[this.itemKey] = { standby: this.items.standby.slice() };
+				updateData.temperatures[this.itemKey].standby.push(this.standbyValue);
+				updateData.temperatures[this.itemKey].standby.sort((a, b) => b - a);
+				this.update(updateData);
+			}
 		},
 		remove(index) {
 			const updateData = {};
@@ -129,18 +133,20 @@ export default {
 			this.update(updateData);
 		},
 		add() {
-			const updateData = {};
-			if (this.settings[this.itemKey] === undefined) {
-				updateData.temperatures = {};
-				updateData.temperatures[this.itemKey] = this.items.slice();
-				updateData.temperatures[this.itemKey].push(this.value);
-				updateData.temperatures[this.itemKey].sort((a, b) => b - a);
-			} else {
-				updateData[this.itemKey] = this.items.slice();
-				updateData[this.itemKey].push(this.value);
-				updateData[this.itemKey].sort((a, b) => b - a);
+			if (this.canAdd) {
+				const updateData = {};
+				if (this.settings[this.itemKey] === undefined) {
+					updateData.temperatures = {};
+					updateData.temperatures[this.itemKey] = this.items.slice();
+					updateData.temperatures[this.itemKey].push(this.value);
+					updateData.temperatures[this.itemKey].sort((a, b) => b - a);
+				} else {
+					updateData[this.itemKey] = this.items.slice();
+					updateData[this.itemKey].push(this.value);
+					updateData[this.itemKey].sort((a, b) => b - a);
+				}
+				this.update(updateData);
 			}
-			this.update(updateData);
 		}
 	}
 }

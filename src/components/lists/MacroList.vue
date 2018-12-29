@@ -17,7 +17,7 @@
 			<v-progress-linear v-show="loading" :indeterminate="true" class="my-0"></v-progress-linear>
 
 			<v-list class="pt-0" dense>
-				<v-list-tile v-if="!isRootDirectory" @click="goUp">
+				<v-list-tile v-if="!isRootDirectory" @click="goUp" v-tab-control>
 					<v-list-tile-avatar>
 						<v-icon class="list-icon grey lighten-1 white--text">
 							keyboard_arrow_up
@@ -29,7 +29,7 @@
 					</v-list-tile-content>
 				</v-list-tile>
 
-				<v-list-tile v-for="item in filelist" :key="item.name" @click="itemClick(item)">
+				<v-list-tile v-for="item in filelist" :key="item.name" @click="itemClick(item)" v-tab-control>
 					<v-list-tile-avatar>
 						<v-icon class="list-icon" :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
 							{{ item.isDirectory ? 'folder' : 'assignment' }}

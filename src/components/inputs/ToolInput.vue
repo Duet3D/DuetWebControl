@@ -1,5 +1,5 @@
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keyup.enter="apply" @change="change" @blur="blur" :label="label" :loading="applying" :disabled="uiFrozen" :menu-props="$vuetify.breakpoint.xsOnly ? { maxHeight: 125 } : undefined">
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keydown.native="onkeydown" @keyup.enter="apply" @change="onchange" @blur="onblur" :label="label" :loading="applying" :disabled="uiFrozen" :menu-props="$vuetify.breakpoint.xsOnly ? { maxHeight: 125 } : undefined">
 	</v-combobox>
 </template>
 
@@ -44,6 +44,7 @@ export default {
 		label: String,
 		active: Boolean,
 		standby: Boolean,
+		tabTarget: [Object, HTMLAnchorElement],
 
 		all: Boolean,
 		heaterIndex: Number,
@@ -127,14 +128,26 @@ export default {
 				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
 			}
 		},
-		change(value) {
+		onchange(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
 			if (value.constructor === Number) {
 				this.apply();
 			}
 		},
-		blur() {
+		onkeydown(e) {
+			if (e.keyCode === 9 && this.tabTarget) {
+				e.preventDefault();
+				this.tabTarget.focus();
+			}
+		},
+		onblur() {
 			this.value = this.actualValue;
+		},
+		blur() {
+			this.input.blur();
+		},
+		focus() {
+			this.input.focus();
 		}
 	},
 	mounted() {

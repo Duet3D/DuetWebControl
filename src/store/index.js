@@ -39,7 +39,7 @@ const store = new Vuex.Store({
 	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
-		async connect({ state, commit, dispatch }, { hostname, username = defaultUsername, password = defaultPassword } = { hostname: location.hostname, username: defaultUsername, password: defaultPassword }) {
+		async connect({ state, commit, dispatch }, { hostname, username = defaultUsername, password = defaultPassword } = { hostname: location.host, username: defaultUsername, password: defaultPassword }) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}

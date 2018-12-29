@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :loading="sendingCode" @click="click" @contextmenu="$emit('contextmenu', $event)">
+	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :loading="waitingForCode" @click="click" @contextmenu="$emit('contextmenu', $event)" tabindex="0">
 		<slot></slot>
 	</v-btn>
 </template>
@@ -17,7 +17,7 @@ export default {
 	},
 	data() {
 		return {
-			sendingCode: false
+			waitingForCode: false
 		}
 	},
 	extends: VBtn,
@@ -25,19 +25,20 @@ export default {
 		code: {
 			type: String,
 			required: true
-		}
+		},
+		noWait: Boolean
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		async click() {
-			if (!this.sendingCode) {
-				this.sendingCode = true;
+			if (!this.waitingForCode) {
+				this.waitingForCode = !this.noWait;
 				try {
-					await this.sendCode(this.code);
+					await this.sendCode({ code: this.code, showSuccess: !this.noWait });
 				} catch (e) {
 					// handled before we get here
 				}
-				this.sendingCode = false;
+				this.waitingForCode = false;
 			}
 		}
 	}

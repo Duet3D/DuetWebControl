@@ -122,10 +122,10 @@ export default function(hostname, connector) {
 			},
 
 			// Download a file and show progress
-			// Parameter can be either the filename or an object { filename, (showProgress, showSuccess, showError, num, count) }
+			// Parameter can be either the filename or an object { filename, (type, showProgress, showSuccess, showError, num, count) }
 			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
-				const asText = (payload instanceof Object) ? payload.asText : false;
+				const type = (payload instanceof Object) ? payload.type : 'auto';
 				const showProgress = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showProgress : true;
 				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
 				const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
@@ -136,7 +136,7 @@ export default function(hostname, connector) {
 				const notification = showProgress && makeFileTransferNotification('download', filename, cancelSource, num, count);
 				try {
 					const startTime = new Date();
-					const response = await connector.download({ filename, asText, cancelSource, onProgress: notification && notification.onProgress });
+					const response = await connector.download({ filename, type, cancelSource, onProgress: notification && notification.onProgress });
 
 					// Show success message
 					if (showSuccess && num === count) {
@@ -179,7 +179,7 @@ export default function(hostname, connector) {
 
 			// Update machine mode. Reserved for the machine connector!
 			async update({ state, commit, dispatch }, payload) {
-				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.fileName;
+				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.file.name;
 
 				// Merge updates into the object model
 				commit('model/update', payload);

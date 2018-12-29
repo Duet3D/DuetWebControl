@@ -8,7 +8,7 @@
 
 				<v-card-text>
 					{{ $t('dialog.connect.prompt') }}
-					<v-text-field v-if="!mustConnect" ref="hostname" :placeholder="$t('dialog.connect.hostPlaceholder')" v-model="hostname" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
+					<v-text-field v-if="!mustConnect" ref="hostname" v-model="hostname" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
 					<v-text-field ref="password" type="password" :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')" v-model="password" :rules="[v => !!v || !passwordRequired || $t('dialog.connect.passwordRequired')]" :required="passwordRequired"></v-text-field>
 				</v-card-text>
 
@@ -44,7 +44,7 @@ export default {
 		...mapActions(['connect']),
 		...mapMutations(['hideConnectDialog']),
 		async submit() {
-			if (this.$refs.form.validate()) {
+			if (this.shown && this.$refs.form.validate()) {
 				this.hideConnectDialog();
 
 				await this.connect({ hostname: this.hostname, password: this.password });

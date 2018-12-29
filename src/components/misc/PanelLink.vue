@@ -5,9 +5,12 @@ span {
 </style>
 
 <template>
-	<component :is="active ? 'a' : 'span'" :href="active ? '#' : undefined" @click.prevent="active && $emit('click', $event)">
+	<a v-if="active" href="#" tabindex="0" @click="$emit('click', $event)">
 		<slot></slot>
-	</component>
+	</a>
+	<span v-else>
+		<slot></slot>
+	</span>
 </template>
 
 <script>

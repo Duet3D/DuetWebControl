@@ -18,5 +18,8 @@ module.exports = {
 				include: [/\.gz$/, /\.woff$/, /\.woff2$/],
 			})
 		] : []
+	},
+	chainWebpack: config => {
+		config.optimization.delete('splitChunks')
 	}
 }

@@ -1,6 +1,6 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">ac_unit</v-icon> Fans
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
@@ -28,16 +28,14 @@
 			</v-menu>
 		</v-card-title>
 		
-		<v-card-text class="py-0" v-if="visibleFans.length">
-			<v-layout column>
-				<v-flex v-for="fan in visibleFans" :key="fan">
-					<span>
-						{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
-					</span>
-					<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen"></slider>
-				</v-flex>
-			</v-layout>
-		</v-card-text>
+		<v-layout v-if="visibleFans.length" column class="px-3">
+			<v-flex v-for="fan in visibleFans" :key="fan" class="pt-2">
+				<span>
+					{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
+				</span>
+				<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen"></slider>
+			</v-flex>
+		</v-layout>
 
 		<v-alert type="info" :value="!visibleFans.length">
 			No Fans Configured

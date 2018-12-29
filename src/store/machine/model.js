@@ -64,22 +64,29 @@ export default function(connector) {
 				]
 			},
 			job: {
-				extrudedRaw: [],
-				duration: undefined,
-				filamentNeeded: [],
-				fileName: undefined,
+				file: {
+					name: undefined,
+					size: undefined,
+					filamentNeeded: [],
+					generatedBy: undefined,
+					height: undefined,
+					layerHeight: undefined,
+					numLayers: undefined,
+					printTime: undefined,
+					simulatedTime: undefined
+				},
+				filePosition: undefined,
+
 				lastFileName: undefined,
 				lastFileSimulated: false,
-				filePosition: undefined,
-				fileSize: undefined,
-				generatedBy: undefined,
-				height: undefined,
+
+				extrudedRaw: [],						// total extruded amount without any modifiers like mixing or extrusion factor
+				duration: undefined,
 				layer: undefined,
-				layerHeight: undefined,
+				layerTime: undefined,
 				layers: [],
 				// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
-				layerTime: undefined,
-				numLayers: undefined,
+
 				warmUpDuration: undefined,
 				timesLeft: {
 					file: undefined,
@@ -198,7 +205,7 @@ export default function(connector) {
 				}
 				return null;
 			},
-			fractionPrinted: state => (state.job.filePosition && state.job.fileSize) ? state.job.filePosition / state.job.fileSize : 0,
+			fractionPrinted: state => (state.job.filePosition && state.job.file.size) ? state.job.filePosition / state.job.file.size : 0,
 			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
 			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
@@ -212,8 +219,8 @@ export default function(connector) {
 			},
 			jobProgress(state, getters) {
 				if (getters.isPrinting) {
-					if (state.state.status !== 'simulating' && state.job.filamentNeeded.length && state.job.extrudedRaw.length) {
-						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.filamentNeeded.reduce((a, b) => a + b));
+					if (state.state.status !== 'simulating' && state.job.file.filamentNeeded.length && state.job.extrudedRaw.length) {
+						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.file.filamentNeeded.reduce((a, b) => a + b));
 					}
 					return getters.fractionPrinted;
 				}
@@ -222,7 +229,7 @@ export default function(connector) {
 		},
 		mutations: {
 			update(state, payload) {
-				const lastJobFile = state.job.fileName;
+				const lastJobFile = state.job.file.name;
 				const wasPrinting = state.state.isPrinting, wasSimulating = state.state.isSimulating;
 
 				merge(state, payload, true);

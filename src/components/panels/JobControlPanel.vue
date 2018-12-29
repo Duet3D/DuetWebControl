@@ -4,8 +4,8 @@
 			<v-icon small class="mr-1">build</v-icon> Job Control
 		</v-card-title>
 
-		<v-card-text class="py-0">
-			<code-btn color="warning" block :disabled="uiFrozen || !state.isPrinting" :code="this.isPaused ? 'M24' : 'M25'">
+		<v-card-text class="pt-0">
+			<code-btn color="warning" block :disabled="uiFrozen || !state.isPrinting" :code="this.isPaused ? 'M24' : 'M25'" tabindex="0">
 				<v-icon class="mr-1">{{ isPaused ? "play_arrow" : "pause" }}</v-icon> {{ pauseResumeText }}
 			</code-btn>
 
@@ -17,7 +17,7 @@
 				<v-icon class="mr-1">refresh</v-icon> {{ processAnotherText }}
 			</code-btn>
 
-			<v-switch label="Enable Auto-Sleep" v-model="autoSleepActive" :disabled="uiFrozen"></v-switch>
+			<v-switch label="Enable Auto-Sleep" v-model="autoSleepActive" :disabled="uiFrozen" hide-details></v-switch>
 		</v-card-text>
 	</v-card>
 </template>

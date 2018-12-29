@@ -19,7 +19,7 @@
 		</v-flex>
 
 		<v-flex shrink>
-			<v-btn color="info" :disabled="uiFrozen" :loading="sendingCode" @click="send">
+			<v-btn color="info" :disabled="uiFrozen" :loading="sendingCode" @click="doSend">
 				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
 		</v-flex>
@@ -42,6 +42,7 @@ export default {
 	data() {
 		return {
 			code: '',
+			sendPending: false,
 			sendingCode: false
 		}
 	},
@@ -53,7 +54,16 @@ export default {
 		...mapActions('machine', ['sendCode']),
 		...mapMutations('machine/settings', ['addCode', 'removeCode']),
 		change(value) {
-			if (value && value.constructor !== String) {
+			if (value && (this.sendPending || value.constructor !== String)) {
+				this.sendPending = false;
+				this.send();
+			}
+		},
+		doSend() {
+			if (this.$refs.input.isMenuActive) {
+				this.$refs.input.isMenuActive = false;		// FIXME There must be a better solution than this
+				this.sendPending = true;
+			} else {
 				this.send();
 			}
 		},
