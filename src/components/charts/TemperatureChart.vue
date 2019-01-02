@@ -167,7 +167,10 @@ export default {
 							max: new Date()
 						},
 						time: {
-							unit: 'minute'
+							unit: 'minute',
+							displayFormats: {
+								minute: 'LT'
+							}
 						},
 						type: 'time'
 					}

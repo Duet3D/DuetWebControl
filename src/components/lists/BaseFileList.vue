@@ -74,7 +74,7 @@ th.checkbox {
 							</v-tooltip>
 						</td>
 						<td v-else-if="header.unit === 'time'" :key="header.value">
-							{{ (props.item[header.value] !== null) ? $displayTime(props.item[header.value]) : $t('generic.i18n') }}
+							{{ displayTimeValue(props.item, header.value) }}
 						</td>
 						<td v-else :key="header.value">
 							{{ displayLoadingValue(props.item, header.value, header.precision, header.unit) }}
@@ -347,6 +347,12 @@ export default {
 				displayValue = displayValue.toFixed(precision);
 			}
 			return `${displayValue} ${unit}`;
+		},
+		displayTimeValue(item, prop) {
+			if (item.isDirectory) {
+				return '';
+			}
+			return (item[prop] !== null) ? this.$displayTime(item[prop]) : this.$t('generic.novalue');
 		},
 		itemClicked(item) {
 			if (item.isDirectory) {

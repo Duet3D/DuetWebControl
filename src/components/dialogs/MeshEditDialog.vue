@@ -4,7 +4,7 @@
 			<v-card>
 				<v-form ref="form" @submit.prevent="apply">
 					<v-card-title>
-						<span class="headline">Set Mesh Grid Parameters</span>
+						<span class="headline">Set Mesh Parameters</span>
 					</v-card-title>
 					<v-card-text>
 						<v-container grid-list-md>

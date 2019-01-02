@@ -35,7 +35,7 @@ export default {
 				case 'macros': return '.g,.gcode,.gc,.gco,.nc,.ngc';
 				case 'filaments': return '.zip';
 				case 'display': return '*';
-				case 'sys': return '.zip,.g,.csv';
+				case 'sys': return '.zip,.bin,.json,.g,.csv';
 				case 'www': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}

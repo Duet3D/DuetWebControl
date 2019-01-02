@@ -173,7 +173,7 @@ function getNearestZ(points, x, y, maxDelta) {
 	return point[2];
 }
 
-// Generate a mesh grid
+// Generate a mesh geometry
 export function generateMeshGeometry(probePoints, xMin, xMax, yMin, yMax, scaleZ) {
 	/** Cartesian 3-point and 5-point bed compensation (deprecated) **/
 

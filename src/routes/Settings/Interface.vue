@@ -5,8 +5,6 @@
 		</v-flex>
 		<v-flex xs12 sm12 md7 lg6>
 			<settings-machine-panel></settings-machine-panel>
-		</v-flex>
-		<v-flex xs12 sm12 md5 lg6>
 			<about-panel></about-panel>
 		</v-flex>
 	</v-layout>

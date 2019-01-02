@@ -89,7 +89,7 @@ a:not(:hover) {
 			<upload-btn target="start" class="hidden-sm-and-down"></upload-btn>
 			<emergency-btn class="hidden-xs-only"></emergency-btn>
 
-			<v-btn icon class="global-control hidden-md-and-up" @click="hideGlobalContainer = !hideGlobalContainer">
+			<v-btn icon class="hidden-md-and-up" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
 				<v-icon>aspect_ratio</v-icon>
 			</v-btn>
 			<!-- TODO: Add quick actions and UI designer here -->
@@ -156,7 +156,13 @@ export default {
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
-		...mapGetters('machine/model', ['board', 'jobProgress'])
+		...mapGetters('machine/model', ['board', 'jobProgress']),
+		toggleGlobalContainerColor() {
+			if (this.hideGlobalContainer) {
+				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
+			}
+			return this.darkTheme ? 'green darken-5' : 'green lighten-4';
+		}
 	},
 	data() {
 		return {

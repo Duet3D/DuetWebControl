@@ -123,7 +123,7 @@ class Layer {
 
 class NetworkInterface {
 	constructor(initData) { merge(this, initData, true); }
-	type = undefined				// 0: Ethernet 1: WiFi
+	type = undefined				// one of ['wifi', 'lan']
 	firmwareVersion = undefined
 	speed = undefined				// 0 if no link
 	signal = undefined				// only WiFi

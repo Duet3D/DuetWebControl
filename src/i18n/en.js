@@ -230,17 +230,16 @@ export default {
 	panel: {
 		movement: {
 			caption: 'Machine Movement',
-			compensation: 'Auto Compensation',
-			runBed: 'Run Automatic Bed Compensation (G32)',
-			runDelta: 'Run Automatic Delta Compensation (G32)',
+			compensation: 'Compensation & Calibration',
+			runBed: 'True Bed Levelling (G32)',
+			runDelta: 'Delta Calibration (G32)',
 			compensationInUse: 'Compensation in use: {0}',
 			disableBedCompensation: 'Disable Bed Compensation (M561)',
-			disableMeshCompensation: 'Disable Grid Compensation (G29 S2)',
-			editMeshGrid: 'Define Area for Mesh Grid Compensation (M557)',
-			runMeshGrid: 'Run Mesh Grid Compensation (G29)',
-			loadMeshGrid: 'Load Saved Heightmap from SD Card (G29 S1)',
-			axisNotHomed: 'The following axis is not homed:',
-			axesNotHomed: 'The following axes are not homed:'
+			disableMeshCompensation: 'Disable Mesh Compensation (G29 S2)',
+			editMesh: 'Define Area for Mesh Compensation (M557)',
+			runMesh: 'Run Mesh Compensation (G29)',
+			loadMesh: 'Load Saved Height Map from SD Card (G29 S1)',
+			axesNotHomed: 'The following axis is not homed:|The following axes are not homed:'
 		},
 		status: {
 			caption: 'Status',

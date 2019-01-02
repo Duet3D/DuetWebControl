@@ -60,7 +60,7 @@ export default function(hostname, connector) {
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? !!payload.log : true;
 				try {
 					const response = await connector.sendCode(code);
-					if (doLog) {
+					if (fromInput) {	// FIXME enhance this
 						logCode(code, response, hostname, fromInput);
 					}
 					return response;

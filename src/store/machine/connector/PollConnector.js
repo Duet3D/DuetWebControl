@@ -685,8 +685,9 @@ export default class PollConnector extends BaseConnector {
 			network: {
 				interfaces: [
 					{
-						type: (response.data.dwsVersion === undefined) ? 0 : 1
-						// Unfortunately we cannot populate anything else here
+						type: (response.data.dwsVersion !== undefined) ? 'wifi' : 'lan',
+						firmwareVersion: response.data.dwsVersion
+						// Unfortunately we cannot populate anything else here yet
 					}
 				]
 			}

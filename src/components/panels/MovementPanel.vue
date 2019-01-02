@@ -47,7 +47,7 @@
 						</template>
 
 						<v-list-tile @click="sendCode('G32')">
-							<v-icon class="mr-1">view_module</v-icon> {{ $t(move.geometry === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
+							<v-icon class="mr-1">view_module</v-icon> {{ $t(move.geometry.type === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
 						</v-list-tile>
 						<v-list-tile :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
 							<v-icon class="mr-1">clear</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
@@ -56,13 +56,13 @@
 						<v-divider></v-divider>
 
 						<v-list-tile @click="sendCode('G29')">
-							<v-icon class="mr-1">grid_on</v-icon> {{ $t('panel.movement.runMeshGrid') }} 
+							<v-icon class="mr-1">grid_on</v-icon> {{ $t('panel.movement.runMesh') }}
 						</v-list-tile>
 						<v-list-tile @click="showMeshEditDialog = true">
-							<v-icon class="mr-1">edit</v-icon> {{ $t('panel.movement.editMeshGrid') }} 
+							<v-icon class="mr-1">edit</v-icon> {{ $t('panel.movement.editMesh') }}
 						</v-list-tile>
 						<v-list-tile @click="sendCode('G29 S1')">
-							<v-icon class="mr-1">save</v-icon> {{ $t('panel.movement.loadMeshGrid') }} 
+							<v-icon class="mr-1">save</v-icon> {{ $t('panel.movement.loadMesh') }}
 						</v-list-tile>
 						<v-list-tile :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
 							<v-icon class="mr-1">grid_off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
@@ -145,7 +145,7 @@
 		<input-dialog :shown.sync="moveStepDialog.shown" title="Change move step" prompt="Please enter a new value for the clicked move button:" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
 
 		<v-alert v-if="unhomedAxes.length" :value="true" type="warning">
-			{{ $t(unhomedAxes.length === 1 ? 'panel.movement.axisNotHomed' : 'panel.movement.axesNotHomed') }}
+			{{ $tc('panel.movement.axesNotHomed', unhomedAxes.length) }}
 			<strong>
 				{{ unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) }}
 			</strong>
