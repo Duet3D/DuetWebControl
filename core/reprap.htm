@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.22.6
+<!--	Duet Web Control v1.22.6-diabase
 
 	written by Christian Hammacher
 
@@ -62,7 +62,7 @@
 
 				<div class="list-group">
 					<a class="navlink list-group-item" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a>
-					<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a>
+					<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Offsets</a>
 					<a class="navlink list-group-item" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a>
 				</div>
 			</section>
@@ -872,7 +872,7 @@
 
 							<div class="list-group">
 								<a class="navlink list-group-item" href="#" data-target="filaments"><span class="glyphicon glyphicon-cd"></span> Filaments <span class="glyphicon glyphicon-refresh span-refresh-filaments hidden"></span></a>
-								<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Calibration</a>
+								<a class="navlink list-group-item diabase hidden" href="#" data-target="calibration"><span class="glyphicon glyphicon-screenshot"></span> Offsets</a>
 								<a class="navlink list-group-item" href="#" data-target="settings"><span class="glyphicon glyphicon-cog"></span> Settings</a>
 							</div>
 						</div>
@@ -2159,6 +2159,40 @@
 										</table>
 									</div>
 
+									<div class="panel panel-default" id="panel_offset">
+										<div class="panel-body">
+											<div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 no-horizontal-padding" id="div_offsets">
+												<label>Offset amount in mm:</label>
+												<div class="btn-group btn-group-justified" data-toggle="buttons">
+													<label class="btn btn-default">
+														<input type="radio" name="offset" value="10">
+														<span>10</span>
+													</label>
+													<label class="btn btn-default">
+														<input type="radio" name="offset" value="5">
+														<span>5</span>
+													</label>
+													<label class="btn btn-default">
+														<input type="radio" name="offset" value="2">
+														<span>2</span>
+													</label>
+													<label class="btn btn-default">
+														<input type="radio" name="offset" value="1">
+														<span>1</span>
+													</label>
+													<label class="btn btn-default">
+														<input type="radio" name="offset" value="0.1">
+														<span>0.1</span>
+													</label>
+													<label class="btn btn-primary active">
+														<input type="radio" name="offset" value="0.01" checked>
+														<span>0.01</span>
+													</label>
+												</div>
+											</div>
+										</div>
+									</div>
+
 									<div class="text-center">
 										<button id="btn_calibrate_all" class="btn btn-lg btn-success disable-processing disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate All</button>
 										<button class="btn btn-lg btn-warning disable-processing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
@@ -2238,7 +2272,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.22.6</td>
+															<td id="dwc_version">1.22.6-diabase</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>

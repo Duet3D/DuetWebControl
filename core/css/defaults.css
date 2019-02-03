@@ -608,6 +608,20 @@ button.btn-connect,
 	padding-bottom: 9px;
 }
 
+#panel_offset button {
+	padding-left: 6px !important;
+	padding-right: 6px !important;
+}
+
+#panel_offset .btn-group label.btn {
+	padding-left: 0px !important;
+	padding-right: 0px !important;
+}
+
+#panel_offset div.panel-body > div:first-child {
+	padding-bottom: 9px;
+}
+
 .mobile-home-buttons {
 	padding-bottom: 9px;
 }

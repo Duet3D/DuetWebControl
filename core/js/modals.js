@@ -73,6 +73,8 @@ $("#modal_change_step form").submit(function(e) {
 		settings.axisMoveSteps[stepChangeAxisIndex][stepChangeIndex] = $("#input_step_amount").val();
 	} else if (stepChangeType == "amount") {
 		settings.extruderAmounts[stepChangeIndex] = $("#input_step_amount").val();
+	} else if (stepChangeType == "offset") {
+		settings.offsetAmounts[stepChangeIndex] = $("#input_step_amount").val();
 	} else {
 		settings.extruderFeedrates[stepChangeIndex] = $("#input_step_amount").val();
 	}

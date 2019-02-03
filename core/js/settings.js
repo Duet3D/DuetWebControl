@@ -41,6 +41,7 @@ var settings = {
 	],
 	extruderAmounts: [100, 50, 20, 10, 5, 1],	// in mm
 	extruderFeedrates: [60, 30, 15, 5, 1],		// in mm/s
+	offsetAmounts: [10, 5, 2, 1, 0.1, 0.01],	// in mm
 	babysteppingZ: 0.05,			// in mm
 	showATXControl: false,			// show ATX control
 
@@ -384,6 +385,14 @@ function applyMovementSteps() {
 		var feedrate = settings.extruderFeedrates[feedrateIndex++];
 		$(this).children("input").prop("value", feedrate);
 		$(this).children("span").text(feedrate);
+	});
+
+	// Offset amounts
+	var amountIndex = 0;
+	$("#div_offsets > div.btn-group > label").each(function() {
+		var amount = settings.offsetAmounts[amountIndex++];
+		$(this).children("input").prop("value", amount);
+		$(this).children("span").text(amount);
 	});
 }
 
