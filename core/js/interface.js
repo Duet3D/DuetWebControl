@@ -931,7 +931,7 @@ $("#panel_offset label.btn").click(function() {
 $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
 	if (!$(this).hasClass("disabled")) {
 		var axis = $(this).data("axis");
-		var amount = $("#panel_offset input[name=offset]:checked").val();
+		var amount = parseFloat($("#panel_offset input[name=offset]:checked").val());
 		var toolNumber = $(this).parents("tr").data("tool");
 		var tool = getTool($(this).parents("tr").data("tool"));
 		if (tool.hasOwnProperty("offsets")) {
@@ -946,7 +946,7 @@ $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
 $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
 	if (!$(this).hasClass("disabled")) {
 		var axis = $(this).data("axis");
-		var amount = $("#panel_offset input[name=offset]:checked").val();
+		var amount = parseFloat($("#panel_offset input[name=offset]:checked").val());
 		var toolNumber = $(this).parents("tr").data("tool");
 		var tool = getTool(toolNumber);
 		if (tool.hasOwnProperty("offsets")) {
