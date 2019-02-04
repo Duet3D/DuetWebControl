@@ -2138,7 +2138,7 @@
 										</div>
 									</div>
 
-									<div class="panel panel-default">
+									<div class="panel panel-default" id=panel_offset>
 										<div class="panel-heading">
 											<span>Tool Offsets</span>
 										</div>
@@ -2157,9 +2157,6 @@
 												<!-- Filled by JS -->
 											</tbody>
 										</table>
-									</div>
-
-									<div class="panel panel-default" id="panel_offset">
 										<div class="panel-body">
 											<div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 no-horizontal-padding" id="div_offsets">
 												<label>Offset amount in mm:</label>
@@ -2189,6 +2186,37 @@
 														<span>0.01</span>
 													</label>
 												</div>
+											</div>
+										</div>
+									</div>
+
+									<div class="panel panel-default" id="panel_workpiece_probing">
+										<div class="panel-heading">
+											<span>Probe Workpiece</span>
+										</div>
+										<div class="panel-body">
+											<div class="col-xs-5 col-sm-5 col-md-5 col-lg-5 no-horizontal-padding" id="div_workpiece_probing">
+												<label>Start probing from (and move)</label>
+												<div class="btn-group btn-group-justified" data-toggle="buttons">
+													<div class="btn-group">
+														<button type="button" class="btn btn-default btn-workpiece-probe" data-axis-letter="X" data-dir="max"><span>-X</span> (<span class="glyphicon glyphicon-arrow-right"></span>)</button>
+													</div>
+													<div class="btn-group">
+														<button type="button" class="btn btn-default btn-workpiece-probe" data-axis-letter="X" data-dir="min"><span>X</span> (<span class="glyphicon glyphicon-arrow-left"></span>)</button>
+													</div>
+													<div class="btn-group">
+														<button type="button" class="btn btn-default btn-workpiece-probe" data-axis-letter="Y" data-dir="max"><span>-Y</span> (<span class="glyphicon glyphicon-arrow-up"></span>)</button>
+													</div>
+													<div class="btn-group">
+														<button type="button" class="btn btn-default btn-workpiece-probe" data-axis-letter="Y" data-dir="min"><span>Y</span> (<span class="glyphicon glyphicon-arrow-down"></span>)</button>
+													</div>
+													<div class="btn-group">
+														<button type="button" class="btn btn-default btn-workpiece-probe" data-axis-letter="Z" data-dir="min"><span>Z</span> (<span class="glyphicon glyphicon-arrow-down">)</span></button>
+													</div>
+												</div>
+											</div>
+											<div class="col-xs-2 col-sm-2 col-md-2 col-lg-2 no-horizontal-padding" id="div_save_offset">
+												<button class="btn btn-info tool-set-offset" id="btn_save_offset_after_probe"><span class="glyphicon glyphicon-ok"></span>Save Offset</button>
 											</div>
 										</div>
 									</div>

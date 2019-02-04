@@ -979,6 +979,30 @@ $("#table_calibration_tools").on("click", ".tool-set-offset", function(e) {
 	}
 });
 
+$(".btn-workpiece-probe").click(function(e) {
+	// Get the axis to move
+	var axis = $(this).data("axis-letter");
+	if (axis == undefined) {
+		return;
+	}
+	var direction = $(this).data("dir");
+
+	// Send a G-code
+	var moveString = "M585 T1 E1000 F500 " + axis + " ";
+	if (direction === "max") {
+		moveString += "R30";
+	} else if (direction === "min") {
+		moveString += "R-30";
+	}
+	sendGCode(moveString);
+	e.preventDefault();
+});
+
+$("#btn_save_offset_after_probe").click(function(e) {
+	// TODO: Do something
+	e.preventDefault();
+});
+
 $("body").on("click", ".load-filament", function(e) {
 	showFilamentDialog($(this).closest("tr").data("tool"), false);
 	e.preventDefault();
