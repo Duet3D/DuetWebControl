@@ -719,6 +719,10 @@ tr[data-fan="tool"] > td:first-child > button {
 	margin-right: 6px;
 }
 
+.tool-offset-value {
+	cursor: pointer;
+}
+
 /* Print status page */
 
 #img_webcam {
