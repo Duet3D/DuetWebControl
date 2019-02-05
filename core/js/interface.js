@@ -23,6 +23,7 @@ var axisNames, numAxes, numExtruderDrives, numVolumes;
 var heaterNames, bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors;
 var fanNames, controllableFans;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
+var wcsNames;
 
 var toolMapping = undefined;
 var spindleTools, spindleCurrents, spindleActives;
@@ -54,6 +55,8 @@ function resetGuiData() {
 	axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
+
+	wcsNames = ["", "G54", "G55", "G56", "G57", "G58", "G59", "G59.1", "G59.2", "G59.3"]
 
 	fanNames = undefined;
 	controllableFans = 0;
@@ -418,6 +421,7 @@ function updateGui() {
 
 	// Tool list on Calibration page (OEM)
 	if (vendor == "diabase") {
+		updateWCSTable();
 		$("#table_calibration_tools > tbody").children().remove();
 		for(var i = 0 ; i < toolMapping.length; i++) {
 			var tool = toolMapping[i];
@@ -1010,6 +1014,60 @@ $(".btn-workpiece-probe").click(function(e) {
 	sendGCode(moveString);
 	e.preventDefault();
 });
+
+$("#table_workspace_coordinates td.wcs-cell").click(function(e) {
+	var axis = $(this).data("axis");
+	var wcs = parseInt($(this).parents("tr").data("wcs"));
+	var wcsName = wcsNames[wcs];
+	showTextInput(T("Set {0} offset", wcsName), T("Please enter a new {0} offset for {1}:", axis, wcsName), function(value) {
+		if (!isNaN(value)) {
+			sendGCode("G10 L2 P" + wcs + " " + axis + value +"\nM500");
+			setTimeout(updateWCSTable, 750);
+		}
+	}, $(this).text());
+});
+
+function updateWCSTable() {
+	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent("/sys/config-override.g"), {
+		dataType: "text",
+		global: false,
+		error: undefined,
+		success: function(content) {
+			var lines = content.split(/\r\n|\r|\n/);
+			var tableCells = $("#table_workspace_coordinates td.wcs-cell");
+			var wcsCells = {
+				"wcs1": [],
+				"wcs2": [],
+				"wcs3": [],
+				"wcs4": [],
+				"wcs5": [],
+				"wcs6": [],
+				"wcs7": [],
+				"wcs8": [],
+				"wcs9": [],
+			};
+			var re = new RegExp('G10 L2 P([0-9]) X([0-9.]*) Y([0-9.]*) Z([0-9.]*)');
+			$.each(tableCells, function() {
+				var $_this = $(this);
+				var wcs = $_this.parents("tr").data("wcs");
+				var axis = $_this.data("axis");
+				var axisIndex = (axis == "X") ? 0 : (axis == "Y") ? 1 : 2;
+				wcsCells["wcs" + wcs][axisIndex] = $_this;
+			});
+			$.each(lines, function() {
+				if(!this.startsWith("G10 L2")) {
+					return;
+				}
+				var match = re.exec(this);
+				var wcs = match[1];
+				wcsCells["wcs" + wcs][0].text(match[2]);
+				wcsCells["wcs" + wcs][1].text(match[3]);
+				wcsCells["wcs" + wcs][2].text(match[4]);
+			});
+		},
+		timeout: 0
+	});
+}
 
 $("body").on("click", ".load-filament", function(e) {
 	showFilamentDialog($(this).closest("tr").data("tool"), false);

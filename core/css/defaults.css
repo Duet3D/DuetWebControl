@@ -723,6 +723,10 @@ tr[data-fan="tool"] > td:first-child > button {
 	cursor: pointer;
 }
 
+.wcs-cell {
+	cursor: pointer;
+}
+
 /* Print status page */
 
 #img_webcam {
