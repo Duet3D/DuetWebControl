@@ -1011,11 +1011,6 @@ $(".btn-workpiece-probe").click(function(e) {
 	e.preventDefault();
 });
 
-$("#btn_save_offset_after_probe").click(function(e) {
-	// TODO: Do something
-	e.preventDefault();
-});
-
 $("body").on("click", ".load-filament", function(e) {
 	showFilamentDialog($(this).closest("tr").data("tool"), false);
 	e.preventDefault();
