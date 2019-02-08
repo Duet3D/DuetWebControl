@@ -396,16 +396,6 @@ $("#btn_cancel_calibration").click(function() {
 });
 
 
-/* WiFi cam setup dialog (OEM) */
-
-$("#modal_wifi_cam form").submit(function(e) {
-	sendGCode("M118 P1 S\"WIFI " + $("#input_cam_ssid").val() + " " + $("#input_cam_password").val() + "\"");
-	lastSentGCode = "";
-	$("#modal_wifi_cam").modal("hide");
-	e.preventDefault();
-});
-
-
 /* Message Box Dialog */
 
 var messageBoxResponse = undefined;

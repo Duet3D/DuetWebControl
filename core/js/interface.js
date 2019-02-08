@@ -1269,14 +1269,6 @@ $("#btn_baby_up").click(function() {
 	}
 });
 
-$("#btn_calibrate_all").click(function() {
-	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
-		function() {
-			sendGCode('M98 P"calibrate_all.g"');
-		}
-	);
-});
-
 $("#btn_cancel").click(function() {
 	sendGCode("M0 H1");	// Stop / Cancel Job, but leave all the heaters on
 	$(this).addClass("disabled");

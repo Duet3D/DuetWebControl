@@ -1036,7 +1036,7 @@
 													</td>
 												</tr>
 												<tr>
-													<td class="visible-lg">
+				<td class="visible-lg">
 														<div class="btn-group">
 															<a href="#" data-axis="4" class="btn btn-primary btn-home disabled" title="Home V axis (G28 V)">Home V</a>
 														</div>
@@ -2287,12 +2287,6 @@
 												</tr>
 											</tbody>
 										</table>
-									</div>
-
-									<div class="text-center">
-										<button id="btn_calibrate_all" class="btn btn-lg btn-success disable-processing disabled"><span class="glyphicon glyphicon-screenshot"></span> Calibrate All</button>
-										<button class="btn btn-lg btn-warning disable-processing disabled" data-gcode="M32 calibrate.g"><span class="glyphicon glyphicon-print"></span> Print Calibration Piece</button>
-										<button class="btn btn-lg btn-info diabase hidden" data-toggle="modal" data-target="#modal_wifi_cam"><span class="glyphicon glyphicon-wrench"></span> Set up WiFi</button>
 									</div>
 								</div>
 
@@ -3741,32 +3735,6 @@
 						<div class="modal-footer">
 							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
 							<button type="submit" id="btn_start_scan_modal" class="btn btn-success disabled"><span class="glyphicon glyphicon-ok"></span> Start Scan</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</div>
-
-		<div id="modal_wifi_cam" class="modal fade">
-			<div class="modal-dialog modal-md">
-				<div class="modal-content">
-					<form>
-						<div class="modal-header">
-							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-							<h4 class="modal-title">Configure Calibration Camera</h4>
-						</div>
-						<div class="modal-body">
-							<p>Before you can configure your calibration camera, please plug it into the Duet and wait at least one minute for it to start. After that you can enter the credentials of your WPA-protected WiFi below.</p>
-
-							<label for="input_cam_ssid">SSID:</label>
-							<input type="text" required="required" value="" id="input_cam_ssid" class="form-control">
-							<br/>
-							<label for="input_cam_password">Password:</label>
-							<input type="password" required="required" value="" id="input_cam_password" class="form-control">
-						</div>
-						<div class="modal-footer">
-							<button type="button" class="btn btn-danger" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-							<button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-ok"></span> OK</button>
 						</div>
 					</form>
 				</div>
