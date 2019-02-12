@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--	Duet Web Control v1.22.6-diabase
+<!--	Duet Web Control v1.22.7-diabase
 
 	written by Christian Hammacher
 
@@ -2141,6 +2141,7 @@
 									<div class="panel panel-default" id=panel_offset>
 										<div class="panel-heading">
 											<span>Tool Offsets</span>
+											<span class="pull-right"><a href="#" id="a_refresh_tool_offsets"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></span>
 										</div>
 										<table id="table_calibration_tools" class="table table-striped">
 											<thead>
@@ -2219,7 +2220,8 @@
 
 									<div class="panel panel-default" id="panel_workspace_coordinates">
 										<div class="panel-heading">
-											<span>Workspace Coordinates</span>
+											<span>Workplace Coordinate Offsets (click to edit)</span>
+											<span class="pull-right"><a href="#" id="a_refresh_wcs"><span class="glyphicon glyphicon-refresh"></span> Refresh</a></span>
 										</div>
 										<table id="table_workspace_coordinates" class="table table-striped">
 											<thead>
@@ -2233,57 +2235,57 @@
 											<tbody>
 												<tr data-wcs="1">
 													<td>G54</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="2">
 													<td>G55</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="3">
 													<td>G56</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="4">
 													<td>G57</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="5">
 													<td>G58</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="6">
 													<td>G59</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="7">
 													<td>G59.1</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="8">
 													<td>G59.2</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 												<tr data-wcs="9">
 													<td>G59.3</td>
-													<td data-axis="X" class="wcs-cell">0.00</td>
-													<td data-axis="Y" class="wcs-cell">0.00</td>
-													<td data-axis="Z" class="wcs-cell">0.00</td>
+													<td><span data-axis="X" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Y" class="wcs-cell">0.00</span> mm</td>
+													<td><span data-axis="Z" class="wcs-cell">0.00</span> mm</td>
 												</tr>
 											</tbody>
 										</table>
@@ -2362,7 +2364,7 @@
 														</tr>
 														<tr>
 															<th>Web Interface Version:</th>
-															<td id="dwc_version">1.22.6-diabase</td>
+															<td id="dwc_version">1.22.7-diabase</td>
 														</tr>
 													</table>
 													<span id="span_copyright">Web Interface by Christian Hammacher<br/>Licensed under the terms of the <a href="https://www.gnu.org/licenses/gpl-3.0" target="blank">GPL v3</a></span>
