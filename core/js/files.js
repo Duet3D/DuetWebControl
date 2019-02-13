@@ -1,7 +1,7 @@
 /* File management logic for Duet Web Control
- * 
+ *
  * written by Christian Hammacher (c) 2016-2018
- * 
+ *
  * licensed under the terms of the GPL v2
  * see http://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -396,7 +396,7 @@ function setGCodeDirectory(directory) {
 	currentGCodeDirectory = directory;
 	var basePath = (currentGCodeVolume == 0) ? "0:/gcodes" : currentGCodeVolume + ":";
 	var baseCaption = (currentGCodeVolume == 0) ? T("G-Codes Directory") : T("Root Directory");
-	
+
 	$("#ol_gcode_directory > li.content:not(:first-child)").remove();
 	if (directory == basePath) {
 		$("#ol_gcode_directory > li.content").replaceWith('<li class="active content"><span class="glyphicon glyphicon-folder-open"></span> ' + baseCaption + '</li>');
@@ -526,7 +526,7 @@ function setGCodeFileItem(row, size, lastModified, height, firstLayerHeight, lay
 
 function clearGCodeFiles() {
 	gcodeLastDirectory = undefined;
-	
+
 	$("#table_gcode_files > thead input[type='checkbox']:first-child").prop("checked", false);
 	$("#table_gcode_files > tbody").children().remove();
 	$("#table_gcode_files").addClass("hidden");
@@ -707,9 +707,9 @@ function setMacroDirectory(directory) {
 		var directoryItems = directory.split("/"), directoryPath = "0:/macros";
 		for(var i = 2; i < directoryItems.length - 1; i++) {
 			directoryPath += "/" + directoryItems[i];
-			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + directoryItems[i] + '</a></li>';
+			listContent += '<li class="active"><a href="#" data-directory="' + directoryPath + '">' + stripMacroFilename(directoryItems[i]) + '</a></li>';
 		}
-		listContent += '<li class="active">' + directoryItems[directoryItems.length -1] + '</li>';
+		listContent += '<li class="active">' + stripMacroFilename(directoryItems[directoryItems.length -1]) + '</li>';
 		$("#ol_macro_directory").prepend(listContent);
 		$("#ol_macro_directory li:last-child").html('<a href="#" data-directory="' + directoryPath + '"><span class="glyphicon glyphicon-level-up"></span> ' + T("Go Up") + '</a>');
 	}
@@ -801,7 +801,7 @@ function addMacroDirectory(name) {
 		$("#panel_macro_buttons h4").addClass("hidden");
 
 		var button =	'<div class="btn-group">';
-		button +=		'<button class="btn btn-info btn-macro btn-sm" data-directory="0:/macros/' + name + '" data-toggle="dropdown">' + name + ' <span class="caret"></span></button>';
+		button +=		'<button class="btn btn-info btn-macro btn-sm" data-directory="0:/macros/' + name + '" data-toggle="dropdown">' + stripMacroFilename(name) + ' <span class="caret"></span></button>';
 		button +=		'<ul class="dropdown-menu"></ul>';
 		button +=		'</div>';
 
@@ -825,7 +825,7 @@ function addMacroDirectory(name) {
 
 	var row =	'<tr draggable="true" data-directory="' + name + '">';
 	row +=		'<td><input type="checkbox"></td>';
-	row +=		'<td colspan="3"><a href="#" class="a-macro-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + name + '</a></td>';
+	row +=		'<td colspan="3"><a href="#" class="a-macro-directory"><span class="glyphicon glyphicon-folder-open"></span> ' + stripMacroFilename(name) + '</a></td>';
 	row +=		'<td class="hidden"></td>';
 	row +=		'<td class="hidden"></td>';
 	row +=		'</tr>\n';
@@ -991,7 +991,7 @@ function getMacroDropdown(directory, dropdown, first) {
 				// add the macro files and directories
 				response.files.forEach(function(file) {
 					if (file.type == 'd') {
-						var item = $('<li class="bg-info"><a href="#" data-directory="' + directory + '/' + file.name + '">' + file.name + ' <span class="caret"></span></a></li>');
+						var item = $('<li class="bg-info"><a href="#" data-directory="' + directory + '/' + file.name + '">' + stripMacroFilename(file.name) + ' <span class="caret"></span></a></li>');
 						item.find("a").click(function(e) {
 							getMacroDropdown($(this).data("directory"), $(this).closest("ul"), 0);
 							e.stopPropagation();
