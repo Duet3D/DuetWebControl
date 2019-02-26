@@ -21,8 +21,8 @@ export default {
 			if (this.bed) {
 				return this.temperatures.bed[key];
 			}
-			if (this.chamer) {
-				return this.temperatures.chamber[key];
+			if (this.chamber) {
+				return this.temperatures.chamber;
 			}
 			if (this.spindle) {
 				return this.spindleRPM;

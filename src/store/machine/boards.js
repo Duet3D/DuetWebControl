@@ -1,7 +1,7 @@
 'use strict'
 
 const boardDefinitions = {
-	duetwifi10: {
+	duetwifi: {
 		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
 		firmwareFile: 'Duet2CombinedFirmware.bin',
 		motorWarningCurrent: 2000,
@@ -20,7 +20,7 @@ const boardDefinitions = {
 		hasPowerFailureDetection: true,
 		hasMotorLoadDetection: true
 	},
-	duetethernet10: {
+	duetethernet: {
 		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
 		firmwareFile: 'Duet2CombinedFirmware.bin',
 		motorWarningCurrent: 2000,
@@ -39,7 +39,7 @@ const boardDefinitions = {
 		hasPowerFailureDetection: true,
 		hasMotorLoadDetection: true
 	},
-	duetmaestro100: {
+	duetmaestro: {
 		firmwareFileRegEx: /DuetMaestroFirmware(.*)\.bin/i,
 		firmwareFile: 'DuetMaestroFirmware.bin',
 		motorWarningCurrent: 1200,
@@ -60,16 +60,14 @@ const boardDefinitions = {
 	}
 }
 
-export const defaultBoardName = 'duetwifi10'
+export const defaultBoardName = 'duetwifi'
 export const defaultBoard = boardDefinitions[defaultBoardName]
 
-export function isBoardValid(boardType) {
-	return boardDefinitions[boardType] !== undefined;
-}
-
 export function getBoardDefinition(boardType) {
-	if (boardDefinitions[boardType] !== undefined) {
-		return boardDefinitions[boardType];
+	for (let board in boardDefinitions) {
+		if (boardType.startsWith(board)) {
+			return boardDefinitions[board];
+		}
 	}
 
 	console.warn(`Unsupported board ${boardType}, assuming Duet WiFi`);

@@ -2,7 +2,7 @@
 
 import { defaultMachine } from './index.js'
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
-import merge from '../../utils/merge.js'
+import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
 export default function(hostname) {
@@ -78,7 +78,7 @@ export default function(hostname) {
 			}
 		},
 		mutations: {
-			load: (state, content) => merge(state, content),
+			load: (state, content) => patch(state, content),
 
 			setFileInfo(state, { filename, fileInfo }) {
 				state.fileInfos[filename] = fileInfo;

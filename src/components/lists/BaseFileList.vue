@@ -120,7 +120,7 @@ import VDataTable from 'vuetify/es5/components/VDataTable'
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
-import { getModifiedDirectory } from '../../store/machine'
+import { getModifiedDirectories } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
@@ -261,7 +261,16 @@ export default {
 		sort(items, index, isDescending) {
 			// Sort by index
 			items.sort(function(a, b) {
-				if (a[index] && a[index].constructor === String && b[index] && b[index].constructor === String) {
+				if (a[index] === b[index]) {
+					return 0;
+				}
+				if (a[index] === null || a[index] === undefined) {
+					return -1;
+				}
+				if (b[index] === null || b[index] === undefined) {
+					return 1;
+				}
+				if (a[index].constructor === String && b[index].constructor === String) {
 					return a[index].localeCompare(b[index], undefined, { sensivity: 'base' });
 				}
 				if (a[index] instanceof Array && b[index] instanceof Array) {
@@ -271,9 +280,6 @@ export default {
 				}
 				return a[index] - b[index];
 			});
-
-			// Sort by null values
-			items.sort((a, b) => (a[index] === b[index]) ? 0 : (a[index] === null ? -1 : 1));
 
 			// Deal with descending order
 			if (isDescending) {
@@ -589,8 +595,8 @@ export default {
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
 			if (!that.doingFileOperation && !that.innerDoingFileOperation) {
-				const modifiedDirectory = getModifiedDirectory(action, state);
-				if (Path.pathAffectsFilelist(modifiedDirectory, that.innerDirectory, that.innerFilelist)) {
+				const modifiedDirectories = getModifiedDirectories(action, state);
+				if (Path.pathAffectsFilelist(modifiedDirectories, that.innerDirectory, that.innerFilelist)) {
 					// Refresh when an external operation has caused a change
 					await that.refresh();
 				}

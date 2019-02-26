@@ -88,7 +88,7 @@ table.extra tr > td:first-child {
 										{{ formatHeaterName(heat.heaters[tool.heaters[0]], tool.heaters[0]) }}
 									</a>
 									<br/>
-									<span v-if="tool.heaters.length && heat.heaters[tool.heaters[0]].state !== undefined" class="font-weight-regular caption">
+									<span v-if="tool.heaters.length && heat.heaters[tool.heaters[0]].state !== null" class="font-weight-regular caption">
 										{{ $t(`generic.heaterStates[${heat.heaters[tool.heaters[0]].state}]`) }}
 									</span>
 								</th>
@@ -96,7 +96,7 @@ table.extra tr > td:first-child {
 									<span v-if="tool.heaters.length">
 										{{ formatHeaterValue(heat.heaters[tool.heaters[0]]) }}
 									</span>
-									<span v-else-if="isNumber(tool.spindle)">
+									<span v-else-if="isNumber(tool.spindle) && tool.spindle < spindles.length">
 										{{ $display(spindles[tool.spindle].current, 0, $t('generic.rpm')) }}
 									</span>
 								</td>
@@ -115,7 +115,7 @@ table.extra tr > td:first-child {
 										{{ formatHeaterName(heat.heaters[heater], heater) }}
 									</a>
 									<br/>
-									<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
+									<span v-if="heat.heaters[heater].state !== null" class="font-weight-regular caption">
 										{{ $t(`generic.heaterStates[${heat.heaters[heater].state}]`) }}
 									</span>
 								</th>
@@ -158,7 +158,7 @@ table.extra tr > td:first-child {
 											{{ formatHeaterName(heat.heaters[bed.heaters[0]], bed.heaters[0]) }}
 										</a>
 										<br/>
-										<span v-if="bed.heaters.length > 0 && heat.heaters[bed.heaters[0]].state !== undefined" class="font-weight-regular caption">
+										<span v-if="bed.heaters.length > 0 && heat.heaters[bed.heaters[0]].state !== null" class="font-weight-regular caption">
 											{{ $t(`generic.heaterStates[${heat.heaters[bed.heaters[0]].state}]`) }}
 										</span>
 									</th>
@@ -171,7 +171,7 @@ table.extra tr > td:first-child {
 										<tool-input v-if="bed.heaters.length" :bed="bed" :bedIndex="0" :heaterIndex="0" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<!--<tool-input v-if="bed.heaters.length" :bed="bed" :bedIndex="0" :heaterIndex="0" standby></tool-input>-->
+										<tool-input v-if="bed.standby.length" :bed="bed" :bedIndex="0" :heaterIndex="0" standby></tool-input>
 									</td>
 								</tr>
 								<tr v-for="(heater, heaterIndex) in bed.heaters.slice(1)" :key="`bed-${index}-${heater}`">
@@ -180,7 +180,7 @@ table.extra tr > td:first-child {
 											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
-										<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
+										<span v-if="heat.heaters[heater].state !== null" class="font-weight-regular caption">
 											{{ $t(`generic.heaterStates[${heat.heaters[heater].state}]`) }}
 										</span>
 									</th>
@@ -191,7 +191,7 @@ table.extra tr > td:first-child {
 										<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<!--<tool-input :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>-->
+										<tool-input v-if="bed.standby.length > heaterIndex + 1" :bed="bed" :bedIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>
 									</td>
 								</tr>
 							</template>
@@ -218,7 +218,7 @@ table.extra tr > td:first-child {
 											{{ formatHeaterName(heat.heaters[chamber.heaters[0]], chamber.heaters[0]) }}
 										</a>
 										<br/>
-										<span v-if="chamber.heaters.length > 0 && heat.heaters[chamber.heaters[0]].state !== undefined" class="font-weight-regular caption">
+										<span v-if="chamber.heaters.length > 0 && heat.heaters[chamber.heaters[0]].state !== null" class="font-weight-regular caption">
 											{{ $t(`generic.heaterStates[${heat.heaters[chamber.heaters[0]].state}]`) }}
 										</span>
 									</th>
@@ -228,10 +228,10 @@ table.extra tr > td:first-child {
 										</span>
 									</td>
 									<td class="pl-2 pr-1">
-										<tool-input v-if="chamber.heaters.length > 0" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" active></tool-input>
+										<tool-input v-if="chamber.heaters.length" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<!--<tool-input v-if="chamber.heaters.length > 0" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" standby></tool-input>-->
+										<tool-input v-if="chamber.standby.length" :chamber="chamber" :chamberIndex="index" :heaterIndex="0" standby></tool-input>
 									</td>
 								</tr>
 								<tr v-for="(heater, heaterIndex) in chamber.heaters.slice(1)" :key="`chamber-${index}-${heater}`">
@@ -240,7 +240,7 @@ table.extra tr > td:first-child {
 											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
-										<span v-if="heat.heaters[heater].state !== undefined" class="font-weight-regular caption">
+										<span v-if="heat.heaters[heater].state !== null" class="font-weight-regular caption">
 											{{ $t(`generic.heaterStates[${heat.heaters[heater].state}]`) }}
 										</span>
 									</th>
@@ -251,7 +251,7 @@ table.extra tr > td:first-child {
 										<tool-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" active></tool-input>
 									</td>
 									<td class="pl-1 pr-2">
-										<!--<tool-input :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>-->
+										<tool-input v-if="chamber.standby.length > heaterIndex + 1" :chamber="chamber" :chamberIndex="index" :heaterIndex="heaterIndex + 1" standby></tool-input>
 									</td>
 								</tr>
 							</template>
@@ -420,7 +420,7 @@ export default {
 		},
 		unloadFilament() {
 			let code = '';
-			if (this.state.currentTool === this.filamentMenu.tool.number) {
+			if (this.state.currentTool !== this.filamentMenu.tool.number) {
 				code = `T${this.filamentMenu.tool.number}\n`;
 			}
 			code += 'M702';

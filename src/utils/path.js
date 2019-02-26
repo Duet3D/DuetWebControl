@@ -43,6 +43,10 @@ export function extractFilePath(path) {
 }
 
 export function pathAffectsFilelist(path, directory, filelist) {
+	if (path instanceof(Array)) {
+		return path.some(subPath => pathAffectsFilelist(subPath, directory, filelist));
+	}
+
 	if (!path || !directory || !filelist || path.length < directory.length) {
 		return false;
 	}

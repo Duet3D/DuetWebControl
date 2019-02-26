@@ -54,22 +54,22 @@ export default {
 			}
 
 			let details = '';
-			if (this.job.layer !== undefined && this.job.file.numLayers) {
+			if (this.job.layer !== null && this.job.file.numLayers) {
 				details = `Layer ${this.job.layer} of ${this.job.file.numLayers}`;
 			}
 			if (this.job.extrudedRaw.length) {
 				if (details !== '') { details += ', '; }
 				details += `Filament Usage: ${this.$display(this.job.extrudedRaw.reduce((a, b) => a + b), 1, 'mm')}`;
-				if (this.job.file.filamentNeeded.length) {
+				if (this.job.file.filament.length) {
 					const used = this.job.extrudedRaw.reduce((a, b) => a + b);
-					const needed = this.job.file.filamentNeeded.reduce((a, b) => a + b);
+					const needed = this.job.file.filament.reduce((a, b) => a + b);
 					details += ` (${this.$display(Math.max(0, needed - used), 1, 'mm')} remaining)`;
 				}
 			}
 			return details;
 		},
 		printFile() {
-			return this.job.file.name ? extractFileName(this.job.file.name) : undefined;
+			return this.job.file.fileName ? extractFileName(this.job.file.fileName) : undefined;
 		}
 	}
 }

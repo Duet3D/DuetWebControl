@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			Duet Web Control 2.0.0-RC3
+			Duet Web Control 2.0.0-RC4
 			<br/>
 			<template v-if="electronics.name || electronics.firmware.name || (network.interfaces.length && network.interfaces[0].type === 'wifi')">
 				<br/>

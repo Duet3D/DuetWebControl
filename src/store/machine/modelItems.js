@@ -1,204 +1,213 @@
 'use strict'
 
-import merge from '../../utils/merge.js'
+import { quickPatch } from '../../utils/patch.js'
 
-class Axis {
-	constructor(initData) { merge(this, initData, true); }
-	letter = undefined				// must be upper-case
+export class Axis {
+	constructor(initData) { quickPatch(this, initData); }
+	letter = null				// must be upper-case
 	drives = []
-	homed = undefined
-	machinePosition = undefined
-	min = undefined
-	max = undefined
-	visible = undefined
+	homed = null
+	machinePosition = null
+	min = null
+	max = null
+	visible = null
 }
 
-class BedOrChamber {
-	constructor(initData) { merge(this, initData, true); }
-	number = undefined
-	active = undefined
-	standby = undefined
-	name = undefined
+export class BedOrChamber {
+	constructor(initData) { quickPatch(this, initData); }
+	number = null
+	active = []
+	standby = []
+	name = null
 	heaters = []
 }
 
-class Drive {
-	constructor(initData) { merge(this, initData, true); }
-	position = undefined
+export class Drive {
+	constructor(initData) { quickPatch(this, initData); }
+	position = null
 	babystepping = {
-		value: undefined,
-		interpolated: undefined
+		value: null,
+		interpolated: null
 	}
-	current = undefined
-	acceleration = undefined
-	minSpeed = undefined
-	maxSpeed = undefined
+	current = null
+	acceleration = null
+	minSpeed = null
+	maxSpeed = null
 }
 
-class Endstop {
-	constructor(initData) { merge(this, initData, true); }
-	triggered = undefined
-	position = undefined			// 0: none, 1: low end 2: high end
-	type = undefined				// 0: active low, 1: active high, 3: zprobe, 4: motor load detection
+export class Endstop {
+	constructor(initData) { quickPatch(this, initData); }
+	triggered = false
+	position = 0				// 0: none, 1: low end 2: high end
+	type = 0					// 0: active low, 1: active high, 3: zprobe, 4: motor load detection
 }
 
-class ExpansionBoard {
-	constructor(initData) { merge(this, initData, true); }
-	name = undefined
-	revision = undefined
-	firmware = {
-		name: undefined,
-		version: undefined,
-		date: undefined
-	}
+export class ExpansionBoard {
+	constructor(initData) { quickPatch(this, initData); }
+	name = null
+	revision = null
+	firmware = new Firmware()
 	vIn = {
-		current: undefined,
-		min: undefined,
-		max: undefined
+		current: null,
+		min: null,
+		max: null
 	}
-	mcuTemp = undefined
-	maxHeaters = undefined
-	maxMotors = undefined
+	mcuTemp = {
+		current: null,
+		min: null,
+		max: null
+	}
+	maxHeaters = null
+	maxMotors = null
 }
 
-class ExtraHeater {
-	constructor(initData) { merge(this, initData, true); }
-	current = undefined
-	name = undefined
-	state = undefined
-	sensor = undefined
+export class ExtraHeater {
+	constructor(initData) { quickPatch(this, initData); }
+	current = null
+	name = null
+	state = null
+	sensor = null
 }
 
-class Extruder {
-	constructor(initData) { merge(this, initData, true); }
+export class Extruder {
+	constructor(initData) { quickPatch(this, initData); }
 	factor = 1.0
 	nonlinear = {
-		a: undefined,
-		b: undefined,
-		upperLimit: undefined,
-		temperature: undefined
+		a: 0,
+		b: 0,
+		upperLimit: 0.2,
+		temperature: 0
 	}
 }
 
-class Fan {
-	constructor(initData) { merge(this, initData, true); }
-	value = undefined
-	name = undefined
-	rpm = undefined
-	inverted = undefined
-	frequency = undefined
-	minimum = undefined
-	maximum = undefined
-	blip = undefined
+export class Fan {
+	constructor(initData) { quickPatch(this, initData); }
+	value = null
+	name = null
+	rpm = null
+	inverted = false
+	frequency = null
+	min = 0.0
+	max = 1.0
+	blip = 0.1
 	thermostatic = {
-		control: false,
+		control: true,
 		heaters: [],
-		temperature: undefined
+		temperature: null
 	}
-	pin = undefined
+	pin = null
 }
 
-class Heater {
-	constructor(initData) { merge(this, initData, true); }
-	current = undefined
-	name = undefined
-	state = undefined				// see RRF state enum
-	model = {
-		gain: undefined,
-		timeConst: undefined,
-		deadTime: undefined,
-		maxPwm: undefined
+export class FileInfo {
+	constructor(initData) {
+		if (initData) {
+			quickPatch(this, initData);
+			if (!this.numLayers && initData.height && initData.firstLayerHeight && initData.layerHeight) {
+				this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
+			}
+		}
 	}
-	max = undefined
-	sensor = undefined
-}
-
-class Layer {
-	constructor(initData) { merge(this, initData, true); }
-	duration = undefined
-	height = undefined
+	fileName = null
+	size = null
 	filament = []
-	fractionPrinted = undefined
+	generatedBy = null
+	height = null
+	firstLayerHeight = null
+	layerHeight = null
+	numLayers = null
+	printTime = null
+	simulatedTime = null
 }
 
-class NetworkInterface {
-	constructor(initData) { merge(this, initData, true); }
-	type = undefined				// one of ['wifi', 'lan']
-	firmwareVersion = undefined
-	speed = undefined				// 0 if no link
-	signal = undefined				// only WiFi
-	configuredIP = undefined
-	actualIP = undefined
-	subnet = undefined
-	gateway = undefined
-	numReconnects = undefined
-	activeProtocols = []			// one or more of ['http' 'ftp' 'telnet']
+export class Firmware {
+	name = null
+	version = null
+	date = null
 }
 
-class Probe {
-	constructor(initData) { merge(this, initData, true); }
-	type = undefined
-	value = undefined
+export class Heater {
+	constructor(initData) { quickPatch(this, initData); }
+	current = null
+	name = null
+	state = null				// see RRF state enum
+	model = {
+		gain: null,
+		timeConst: null,
+		deadTime: null,
+		maxPwm: null
+	}
+	max = null
+	sensor = null
+}
+
+export class Layer {
+	constructor(initData) { quickPatch(this, initData); }
+	duration = null
+	height = null
+	filament = []
+	fractionPrinted = null
+}
+
+export class NetworkInterface {
+	constructor(initData) { quickPatch(this, initData); }
+	type = null					// one of ['wifi', 'lan']
+	firmwareVersion = null
+	speed = null				// null if unknown and 0 if no link
+	signal = null				// only WiFi (dBm)
+	configuredIP = null
+	actualIP = null
+	subnet = null
+	gateway = null
+	numReconnects = null
+	activeProtocols = []		// one or more of ['http' 'ftp' 'telnet']
+}
+
+export class Probe {
+	constructor(initData) { quickPatch(this, initData); }
+	type = null
+	value = null
 	secondaryValues = []
-	threshold = undefined
-	speed = undefined
-	diveHeight = undefined
-	triggerHeight = undefined
-	inverted = undefined
-	recoveryTime = undefined
-	travelSpeed = undefined
-	maxProbeCount = undefined
-	tolerance = undefined
-	disablesBed = undefined
+	threshold = 500
+	speed = 2
+	diveHeight = 5
+	triggerHeight = 0.7
+	inverted = false
+	recoveryTime = 0
+	travelSpeed = 100
+	maxProbeCount = 1
+	tolerance = 0.03
+	disablesBed = false
 }
 
-class Spindle {
-	constructor(initData) { merge(this, initData, true); }
-	active = undefined				// RPM
-	current = undefined				// RPM
+export class Spindle {
+	constructor(initData) { quickPatch(this, initData); }
+	active = null				// RPM
+	current = null				// RPM
 }
 
-class Storage {
-	constructor(initData) { merge(this, initData, true); }
-	mounted = undefined
-	speed = undefined				// in Bytes/s
-	capacity = undefined			// in Bytes
-	free = undefined				// in Bytes
-	openFiles = undefined
+export class Storage {
+	constructor(initData) { quickPatch(this, initData); }
+	mounted = null
+	speed = null				// in Bytes/s
+	capacity = null				// in Bytes
+	free = null					// in Bytes
+	openFiles = null
 }
 
-class Tool {
-	constructor(initData) { merge(this, initData, true); }
-	number = undefined
+export class Tool {
+	constructor(initData) { quickPatch(this, initData); }
+	number = null
 	active = []
 	standby = []
-	name = undefined
-	filament = undefined
+	name = null
+	filament = null
 	fans = []
 	heaters = []
 	extruders = []
 	mix = []
-	spindle = undefined
-	axes = []
+	spindle = -1
+	axes = []							// may hold sub-arrays of drives per axis
 	offsets = []						// offsets in the same order as the axes
-}
-
-export {
-	Axis,
-	BedOrChamber,
-	Drive,
-	Endstop,
-	ExpansionBoard,
-	ExtraHeater,
-	Extruder,
-	Fan,
-	Heater,
-	Layer,
-	NetworkInterface,
-	Probe,
-	Spindle,
-	Storage,
-	Tool
 }
 
 function fixObject(item, preset) {

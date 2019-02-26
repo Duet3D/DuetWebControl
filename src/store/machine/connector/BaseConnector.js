@@ -100,7 +100,7 @@ class BaseConnector {
 	// Get the file list. Each item is returned as { isDirectory, name, size, lastModified }
 	async getFileList(directory) { throw new NotImplementedError('getFileList'); }
 
-	// Get G-code file info
+	// Get G-code file info and return an instance of FileInfo
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
 
 	/* eslint-enable no-unused-vars */

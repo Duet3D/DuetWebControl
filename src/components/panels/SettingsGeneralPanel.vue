@@ -41,7 +41,7 @@
 					<v-text-field v-model="webcamUpdateInterval" label="Webcam update interval (ms)" step="1" min="250"></v-text-field>
 				</v-flex>
 				<v-flex xs12 sm12 md6>
-					<v-switch v-model="webcamFix" label="Do not append extra HTTP qulifier when reloading images"></v-switch>
+					<v-switch v-model="webcamFix" label="Do not append extra HTTP qualifier when reloading images"></v-switch>
 				</v-flex>
 				<v-flex xs12 sm12 md6>
 					<v-switch v-model="webcamEmbedded" label="Embed webcam image in an iframe"></v-switch>

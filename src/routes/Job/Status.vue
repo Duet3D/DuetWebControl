@@ -20,15 +20,19 @@
 					</v-layout>
 				</v-flex>
 				<v-flex order-sm1 order-md2 md6 xl7 d-flex>
-					<v-layout row wrap>
-						<v-flex xs12 md12 d-flex>
+					<v-layout column>
+						<v-flex d-flex>
 							<layer-chart></layer-chart>
 						</v-flex>
-						<v-flex xs6 md12>
-							<job-data-panel></job-data-panel>
-						</v-flex>
-						<v-flex xs6 md12>
-							<job-estimations-panel></job-estimations-panel>
+						<v-flex shrink>
+							<v-layout row wrap>
+								<v-flex xs6 md12>
+									<job-data-panel></job-data-panel>
+								</v-flex>
+								<v-flex xs6 md12>
+									<job-estimations-panel></job-estimations-panel>
+								</v-flex>
+							</v-layout>
 						</v-flex>
 					</v-layout>
 				</v-flex>

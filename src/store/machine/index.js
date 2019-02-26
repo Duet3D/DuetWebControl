@@ -19,17 +19,17 @@ import Path from '../../utils/path.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export function getModifiedDirectory(action, state) {
+export function getModifiedDirectories(action, state) {
 	const segments = action.type.split('/');
 	if (segments.length === 3 && segments[1] === state.selectedMachine) {
 		if (segments[2] === 'onDirectoryCreated' || segments[2] === 'onFileOrDirectoryDeleted') {
-			return Path.extractFilePath(action.payload);
+			return [Path.extractFilePath(action.payload)];
 		}
 		if (segments[2] === 'onFileUploaded') {
-			return Path.extractFilePath(action.payload.filename);
+			return [Path.extractFilePath(action.payload.filename)];
 		}
 		if (segments[2] === 'onFileOrDirectoryMoved') {
-			return Path.extractFilePath(action.payload.to);
+			return [Path.extractFilePath(action.payload.from), Path.extractFilePath(action.payload.to)];
 		}
 	}
 	return undefined;
@@ -53,14 +53,14 @@ export default function(hostname, connector) {
 			},
 
 			// Send a code and log the result (if applicable)
-			// Parameter can be either a string or an object { code, (fromInput, log = true) }
+			// Parameter can be either a string or an object { code, (fromInput = false, log = true) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
-				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? !!payload.fromInput : false;
-				const doLog = (payload instanceof Object && payload.log !== undefined) ? !!payload.log : true;
+				const fromInput = (payload instanceof Object) ? !!payload.fromInput : false;
+				const doLog = (payload instanceof Object) ? !!payload.log : true;
 				try {
 					const response = await connector.sendCode(code);
-					if (fromInput) {	// FIXME enhance this
+					if (fromInput || response != '') {
 						logCode(code, response, hostname, fromInput);
 					}
 					return response;
@@ -126,9 +126,9 @@ export default function(hostname, connector) {
 			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
 				const type = (payload instanceof Object) ? payload.type : 'auto';
-				const showProgress = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showProgress : true;
-				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? payload.showSuccess : true;
-				const showError = (payload instanceof Object && payload.showError !== undefined) ? payload.showError : true;
+				const showProgress = (payload instanceof Object) ? !!payload.showProgress : true;
+				const showSuccess = (payload instanceof Object) ? !!payload.showSuccess : true;
+				const showError = (payload instanceof Object) ? !!payload.showError : true;
 				const num = (payload instanceof Object) ? payload.num : undefined;
 				const count = (payload instanceof Object) ? payload.count : undefined;
 
@@ -166,7 +166,7 @@ export default function(hostname, connector) {
 				}
 			},
 
-			// Get info about the specified filename
+			// Get info about the specified filename in the form of a FileInfo instance
 			async getFileInfo({ state, commit }, filename) {
 				if (state.cache.fileInfos.hasOwnProperty(filename)) {
 					return state.cache.fileInfos[filename];
@@ -179,7 +179,7 @@ export default function(hostname, connector) {
 
 			// Update machine mode. Reserved for the machine connector!
 			async update({ state, commit, dispatch }, payload) {
-				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.file.name;
+				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.file.fileName;
 
 				// Merge updates into the object model
 				commit('model/update', payload);

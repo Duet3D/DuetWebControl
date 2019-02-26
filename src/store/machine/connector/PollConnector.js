@@ -4,6 +4,7 @@
 import axios from 'axios'
 
 import BaseConnector from './BaseConnector.js'
+import { FileInfo } from '../modelItems.js'
 
 import {
 	CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -11,7 +12,7 @@ import {
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from '../../../utils/errors.js'
-import { quickMerge } from '../../../utils/merge.js'
+import { quickPatch } from '../../../utils/patch.js'
 import { bitmapToArray } from '../../../utils/numbers.js'
 import { strToTime, timeToStr } from '../../../utils/time.js'
 
@@ -226,7 +227,7 @@ export default class PollConnector extends BaseConnector {
 		const fanRPMs = (response.data.sensors.fanRPM instanceof Array) ? response.data.sensors.fanRPM : [response.data.sensors.fanRPM];
 		const newData = {
 			fans: response.data.params.fanPercent.map((fanPercent, index) => ({
-				rpm: (index < fanRPMs.length) ? fanRPMs[index] : undefined,
+				rpm: (index < fanRPMs.length) ? fanRPMs[index] : null,
 				value: fanPercent / 100
 			})),
 			heat: {
@@ -236,7 +237,7 @@ export default class PollConnector extends BaseConnector {
 						standby: (response.data.temps.bed.standby === undefined) ? [] : [response.data.temps.bed.standby]
 					} : null
 				],
-				chambers: (response.data.temps.chamber || response.data.temps.cabinet) ? [
+				chambers: [
 					response.data.temps.chamber ? {
 						active: [response.data.temps.chamber.active],
 						standby: (response.data.temps.chamber.standby === undefined) ? [] : [response.data.temps.chamber.standby]
@@ -245,7 +246,7 @@ export default class PollConnector extends BaseConnector {
 						active: [response.data.temps.cabinet.active],
 						standby: (response.data.temps.cabinet.standby === undefined) ? [] : [response.data.temps.cabinet.standby]
 					} : null
-				] : [],
+				],
 				extra: response.data.temps.extra.map((extraHeater) => ({
 					current: extraHeater.temp,
 					name: extraHeater.name
@@ -298,7 +299,7 @@ export default class PollConnector extends BaseConnector {
 			// Extended Status Response
 			this.name = name;
 
-			quickMerge(newData, {
+			quickPatch(newData, {
 				electronics: {
 					firmware: {
 						name: response.data.firmwareName
@@ -315,7 +316,7 @@ export default class PollConnector extends BaseConnector {
 					} : {}
 				},
 				fans: newData.fans.map((fanData, index) => ({
-					name: response.data.params.fanNames ? response.data.params.fanNames[index] : undefined,
+					name: !response.data.params.fanNames ? null : response.data.params.fanNames[index],
 					thermostatic: {
 						control: (response.data.controllableFans & (1 << index)) === 0,
 					}
@@ -368,11 +369,11 @@ export default class PollConnector extends BaseConnector {
 					]
 				},
 				state: {
-					mode: response.data.mode
+					mode: response.data.mode ? response.data.mode : null,
 				},
 				tools: response.data.tools.map(tool => ({
 					number: tool.number,
-					name: tool.name,
+					name: tool.name ? tool.name : null,
 					heaters: tool.heaters,
 					extruders: tool.drives,
 					axes: tool.axisMap,
@@ -413,8 +414,8 @@ export default class PollConnector extends BaseConnector {
 						this.layers.push({
 							duration: response.data.firstLayerDuration,
 							height: response.data.firstLayerHeight,
-							filament: (response.data.currentLayer === 2) ? response.data.extrRaw.filter(amount => amount > 0) : undefined,
-							fractionPrinted: (response.data.currentLayer === 2) ? response.data.fractionPrinted / 100 : undefined
+							filament: (response.data.currentLayer === 2) ? response.data.extrRaw.filter(amount => amount > 0) : null,
+							fractionPrinted: (response.data.currentLayer === 2) ? response.data.fractionPrinted / 100 : null
 						});
 						newData.job.layers = this.layers;
 
@@ -453,6 +454,7 @@ export default class PollConnector extends BaseConnector {
 						this.printStats.zPosition = response.data.coords.xyz[2];
 					}
 					newData.job.layers = this.layers;
+					newData.job.file.firstLayerHeight = response.data.firstLayerHeight;
 
 					// Keep track of the past layer if the layer change just happened
 					if (layerJustChanged) {
@@ -464,6 +466,11 @@ export default class PollConnector extends BaseConnector {
 					}
 				}
 			}
+		}
+
+		// Remove unused chamber heaters
+		while (newData.heat.chambers.length > 0 && newData.heat.chambers[newData.heat.chambers.length - 1] === null) {
+			newData.heat.chambers.pop();
 		}
 
 		// Output Utilities
@@ -485,7 +492,7 @@ export default class PollConnector extends BaseConnector {
 			const msgBox = response.data.output.msgBox;
 			if (msgBox) {
 				this.messageBoxShown = true;
-				quickMerge(newData, {
+				quickPatch(newData, {
 					messageBox: {
 						mode: msgBox.mode,
 						title: msgBox.title,
@@ -496,7 +503,7 @@ export default class PollConnector extends BaseConnector {
 				});
 			} else if (this.messageBoxShown) {
 				this.messageBoxShown = false;
-				quickMerge(newData, {
+				quickPatch(newData, {
 					messageBox: {
 						mode: null
 					}
@@ -504,7 +511,7 @@ export default class PollConnector extends BaseConnector {
 			}
 		} else if (this.messageBoxShown) {
 			this.messageBoxShown = false;
-			quickMerge(newData, {
+			quickPatch(newData, {
 				messageBox: {
 					mode: null
 				}
@@ -513,7 +520,7 @@ export default class PollConnector extends BaseConnector {
 
 		// Spindles
 		if (response.data.spindles) {
-			quickMerge(newData, {
+			quickPatch(newData, {
 				spindles: response.data.spindles.map(spindle => ({
 					active: spindle.active,
 					current: spindle.current
@@ -527,7 +534,7 @@ export default class PollConnector extends BaseConnector {
 
 		// See if we need to pass some info from the connect response
 		if (this.justConnected) {
-			quickMerge(newData, {
+			quickPatch(newData, {
 				electronics: {
 					type: this.boardType
 				},
@@ -540,19 +547,9 @@ export default class PollConnector extends BaseConnector {
 		// See if a print has started
 		if (isPrinting && (this.justConnected || !wasPrinting)) {
 			const currentFileInfo = await this.getFileInfo();
-			quickMerge(newData, {
+			quickPatch(newData, {
 				job: {
-					file: {
-						name: currentFileInfo.fileName,
-						size: currentFileInfo.size,
-						filamentNeeded: currentFileInfo.filament,
-						generatedBy: currentFileInfo.generatedBy,
-						height: currentFileInfo.height,
-						layerHeight: currentFileInfo.layerHeight,
-						numLayers: (currentFileInfo.height && currentFileInfo.firstLayerHeight && currentFileInfo.layerHeight) ? Math.round((currentFileInfo.height - currentFileInfo.firstLayerHeight) / currentFileInfo.layerHeight) + 1 : undefined,
-						printTime: currentFileInfo.printTime,
-						simulatedTime: currentFileInfo.simulatedTime
-					},
+					file: currentFileInfo,
 					layers: []
 				}
 			});
@@ -876,6 +873,6 @@ export default class PollConnector extends BaseConnector {
 		}
 		delete response.data.err;
 
-		return response.data;
+		return new FileInfo(response.data);
 	}
 }

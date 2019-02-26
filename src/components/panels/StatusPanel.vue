@@ -136,7 +136,7 @@ a:not(:hover) {
 
 						<v-flex>
 							<v-layout row wrap>
-								<v-flex v-if="electronics.vIn.current !== undefined">
+								<v-flex v-if="electronics.vIn.current !== null">
 									<v-layout column>
 										<v-flex tag="strong">
 											{{ $t('panel.status.vIn') }}
@@ -156,7 +156,7 @@ a:not(:hover) {
 									</v-layout>
 								</v-flex>
 
-								<v-flex v-if="electronics.mcuTemp.current !== undefined">
+								<v-flex v-if="electronics.mcuTemp.current !== null">
 									<v-layout column>
 										<v-flex tag="strong">
 											{{ $t('panel.status.mcuTemp') }}
@@ -223,7 +223,7 @@ export default {
 			if (index && this.sensors.probes.length > 1){
 				result.push('ml-2');
 			}
-			if (!this.state.isPrinting) {
+			if (!this.state.isPrinting && probe.value !== null) {
 				if (probe.value >= probe.threshold) {
 					result.push('error');
 				} else if (probe.value > probe.threshold * 0.9) {

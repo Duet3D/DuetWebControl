@@ -56,7 +56,7 @@
 				</v-toolbar-items>
 			</v-toolbar>
 
-			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" @keydown.tab.exact.prevent="onTextareaTab" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -119,6 +119,13 @@ export default {
 			e.preventDefault();
 			// Chrome requires returnValue to be set
 			e.returnValue = '';
+		},
+		onTextareaTab(e) {
+			const originalSelectionStart = e.target.selectionStart;
+			const textStart = e.target.value.slice(0, originalSelectionStart);
+			const textEnd = e.target.value.slice(originalSelectionStart);
+			e.target.value = `${textStart}\t${textEnd}`;
+			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + 1;
 		}
 	},
 	watch: {

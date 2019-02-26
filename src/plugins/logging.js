@@ -3,7 +3,6 @@
 import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
-import router from '../routes'
 import { defaultMachine } from '../store/machine'
 
 let store
@@ -44,8 +43,7 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 			message = (responseLines.length > 1) ? responseLines.slice(1).reduce((a, b) => `${a}<br/>${b}`) : '';
 		}
 
-		const notification = makeNotification(type, title, message);
-		notification.domElement.onclick = () => router.push('/Console');
+		makeNotification(type, title, message);
 	}
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
-import merge from '../utils/merge.js'
+import patch from '../utils/patch.js'
 import Path from '../utils/path.js'
 
 export default {
@@ -28,13 +28,13 @@ export default {
 		}
 	},
 	mutations: {
-		load: (state, payload) => merge(state, payload, true),
+		load: (state, payload) => patch(state, payload, true),
 		setLastHostname(state, hostname) {
 			state.lastHostname = hostname;
 			setLocalSetting('lastHostname', hostname);
 		},
 
-		update: (state, payload) => merge(state, payload, true)
+		update: (state, payload) => patch(state, payload, true)
 	},
 	actions: {
 		async load({ rootState, rootGetters, commit, dispatch }) {

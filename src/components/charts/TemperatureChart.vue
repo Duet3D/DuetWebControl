@@ -6,7 +6,12 @@
 }
 
 .content {
+	position: relative;
 	flex-grow: 1;
+}
+
+.content > canvas {
+	position: absolute;
 }
 </style>
 
@@ -107,8 +112,8 @@ export default {
 	},
 	methods: {
 		update() {
-			this.options.scales.yAxes[0].ticks.max = this.maxHeaterTemperature || defaultMaxTemperature;
-			this.options.scales.xAxes[0].ticks.max = new Date();
+			this.chart.config.options.scales.yAxes[0].ticks.max = this.maxHeaterTemperature || defaultMaxTemperature;
+			this.chart.config.options.scales.xAxes[0].ticks.max = new Date();
 			this.chart.update();
 		},
 		applyDarkTheme(active) {
@@ -147,6 +152,7 @@ export default {
 				}
 			},
 			maintainAspectRatio: false,
+			responsive: true,
 			responsiveAnimationDuration: 0, // animation duration after a resize
 			scales: {
 				xAxes: [
@@ -169,7 +175,7 @@ export default {
 						time: {
 							unit: 'minute',
 							displayFormats: {
-								minute: 'LT'
+								minute: 'HH:mm'
 							}
 						},
 						type: 'time'
@@ -295,7 +301,7 @@ export default {
 				labels: tempSamples[machine].times,
 				datasets: tempSamples[machine].temps
 			};
-			this.chart.update();
+			this.update();
 		}
 	}
 }

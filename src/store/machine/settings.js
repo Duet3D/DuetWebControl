@@ -1,7 +1,7 @@
 'use strict'
 
 import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
-import merge from '../../utils/merge.js'
+import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
 export default function(hostname) {
@@ -88,7 +88,7 @@ export default function(hostname) {
 			}
 		},
 		mutations: {
-			load: (state, payload) => merge(state, payload, true),
+			load: (state, payload) => patch(state, payload, true),
 
 			addCode: (state, code) => state.codes.push(code),
 			removeCode: (state, code) => state.codes = state.codes.filter(item => item !== code),
@@ -126,7 +126,7 @@ export default function(hostname) {
 					state.displayedFans = state.displayedFans.filter(item => item !== fan);
 				}
 			},
-			update: (state, payload) => merge(state, payload, true)
+			update: (state, payload) => patch(state, payload, true)
 		}
 	}
 }

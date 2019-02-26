@@ -80,7 +80,7 @@ canvas {
 									<v-btn value="heat">Heat</v-btn>
 								</v-btn-toggle>
 							</v-flex>
-							<v-flex class="pb-2" shrink :loading="loading" @click="getHeightmap">
+							<v-flex class="pb-2" shrink :loading="loading" @click="getHeightmap()">
 								<v-btn>
 									<v-icon class="mr-1">refresh</v-icon> Reload Height Map
 								</v-btn>

@@ -26,7 +26,7 @@
 					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001" label="Babystep amount (mm)"></v-text-field>
 				</v-flex>
 				<v-flex xs6 sm6 md4>
-					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001" label="Feedrate for move buttons (mm/s)"></v-text-field>
+					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001" label="Feedrate for move buttons (mm/min)"></v-text-field>
 				</v-flex>
 			</v-layout>
 

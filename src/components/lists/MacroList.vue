@@ -58,7 +58,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { getModifiedDirectory } from '../../store/machine'
+import { getModifiedDirectories } from '../../store/machine'
 import { DisconnectedError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
@@ -139,7 +139,7 @@ export default {
 		// Keep track of file changes
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			if (Path.pathAffectsFilelist(getModifiedDirectory(action, state), that.directory, that.filelist)) {
+			if (Path.pathAffectsFilelist(getModifiedDirectories(action, state), that.directory, that.filelist)) {
 				await that.loadDirectory(that.directory);
 			}
 		});

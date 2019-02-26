@@ -6,8 +6,13 @@
 }
 
 .content {
+	position: relative;
 	flex-grow: 1;
 	min-height: 200px;
+}
+
+.content > canvas {
+	position: absolute;
 }
 </style>
 

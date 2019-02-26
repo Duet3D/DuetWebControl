@@ -7,13 +7,15 @@ import {
 	Drive,
 	ExtraHeater,
 	Extruder,
+	FileInfo,
+	Firmware,
 	Heater,
 	Probe,
 	Tool,
 	fixMachineItems
 } from './modelItems.js'
 
-import merge from '../../utils/merge.js'
+import patch from '../../utils/patch.js'
 
 export default function(connector) {
 	return {
@@ -21,23 +23,19 @@ export default function(connector) {
 		state: {
 			electronics: {
 				type: defaultBoardName,
-				name: undefined,
-				revision: undefined,
-				firmware: {
-					name: undefined,
-					version: undefined,
-					date: undefined
-				},
-				processorID: undefined,
+				name: null,
+				revision: null,
+				firmware: new Firmware(),
+				processorID: null,
 				vIn: {
-					current: undefined,
-					min: undefined,
-					max: undefined
+					current: null,
+					min: null,
+					max: null
 				},
 				mcuTemp: {
-					current: undefined,
-					min: undefined,
-					max: undefined
+					current: null,
+					min: null,
+					max: null
 				},
 				expansionBoards: []
 			},
@@ -64,41 +62,31 @@ export default function(connector) {
 				]
 			},
 			job: {
-				file: {
-					name: undefined,
-					size: undefined,
-					filamentNeeded: [],
-					generatedBy: undefined,
-					height: undefined,
-					layerHeight: undefined,
-					numLayers: undefined,
-					printTime: undefined,
-					simulatedTime: undefined
-				},
-				filePosition: undefined,
+				file: new FileInfo(),
+				filePosition: null,
 
-				lastFileName: undefined,
+				lastFileName: null,
 				lastFileSimulated: false,
 
-				extrudedRaw: [],						// total extruded amount without any modifiers like mixing or extrusion factor
-				duration: undefined,
-				layer: undefined,
-				layerTime: undefined,
+				extrudedRaw: [],						// virtual amount extruded without any modifiers like mixing or extrusion factors
+				duration: null,
+				layer: null,
+				layerTime: null,
 				layers: [],
 				// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
 
-				warmUpDuration: undefined,
+				warmUpDuration: null,
 				timesLeft: {
-					file: undefined,
-					filament: undefined,
-					layer: undefined
+					file: null,
+					filament: null,
+					layer: null
 				}
 			},
 			messageBox: {
 				mode: null,
-				title: undefined,
-				message: undefined,
-				timeout: undefined,
+				title: null,
+				message: null,
+				timeout: null,
 				axisControls: []						// provides axis indices
 			},
 			move: {
@@ -122,12 +110,12 @@ export default function(connector) {
 						visible: true
 					})
 				],
-				babystepZ: undefined,
+				babystepZ: null,
 				currentMove: {
-					requestedSpeed: undefined,
-					topSpeed: undefined
+					requestedSpeed: null,
+					topSpeed: null
 				},
-				compensation: undefined,
+				compensation: null,
 				drives: [
 					new Drive(),
 					new Drive(),
@@ -136,31 +124,27 @@ export default function(connector) {
 					new Drive()
 				],
 				extruders: [
-					new Extruder({
-						factor: 1.0
-					}),
-					new Extruder({
-						factor: 1.0
-					})
+					new Extruder(),
+					new Extruder()
 				],
 				geometry: {
-					type: undefined
+					type: null
 					// TODO Expand this for delta/corexy/corexz
 				},
 				idle: {
-					timeout: undefined,
-					factor: undefined
+					timeout: null,
+					factor: null
 				},
 				speedFactor: 1.0
 			},
 			network: {
 				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
-				password: undefined,
+				password: null,
 				interfaces: []
 			},
 			scanner: {
-				progress: undefined,
-				status: undefined
+				progress: null,
+				status: null
 			},
 			sensors: {
 				endstops: [],
@@ -171,13 +155,16 @@ export default function(connector) {
 			},
 			spindles: [],
 			state: {
-				atxPower: undefined,
-				currentTool: undefined,
-				isPrinting: undefined,					// auto-evaluated on update
-				isSimulating: undefined,				// auto-evaluated on update
-				mode: undefined,						// one of ['FFF', 'CNC', 'Laser', undefined]
-				status: undefined						// one of the following:
-				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', undefined]
+				isPrinting: false,						// auto-evaluated on update
+				isSimulating: false,					// auto-evaluated on update
+
+				atxPower: null,
+				currentTool: null,
+				mode: null,								// one of ['FFF', 'CNC', 'Laser', null]
+				relativeExtrusion: false,
+				relativePositioning: false,
+				status: null							// one of the following:
+				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
 			},
 			storages: [],
 			tools: [
@@ -219,8 +206,8 @@ export default function(connector) {
 			},
 			jobProgress(state, getters) {
 				if (getters.isPrinting) {
-					if (state.state.status !== 'simulating' && state.job.file.filamentNeeded.length && state.job.extrudedRaw.length) {
-						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.file.filamentNeeded.reduce((a, b) => a + b));
+					if (state.state.status !== 'simulating' && state.job.file.filament.length && state.job.extrudedRaw.length) {
+						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.file.filament.reduce((a, b) => a + b));
 					}
 					return getters.fractionPrinted;
 				}
@@ -229,10 +216,10 @@ export default function(connector) {
 		},
 		mutations: {
 			update(state, payload) {
-				const lastJobFile = state.job.file.name;
+				const lastJobFile = state.job.file.fileName;
 				const wasPrinting = state.state.isPrinting, wasSimulating = state.state.isSimulating;
 
-				merge(state, payload, true);
+				patch(state, payload, true);
 				fixMachineItems(state, payload);
 
 				const isPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
@@ -250,10 +237,10 @@ export default function(connector) {
 							if (!(state.job[key] instanceof Array)) {
 								if (state.job[key] instanceof Object) {
 									for (let subkey in state.job[key]) {
-										state.job[key][subkey] = undefined;
+										state.job[key][subkey] = null;
 									}
 								} else {
-									state.job[key] = undefined;
+									state.job[key] = null;
 								}
 							}
 						}

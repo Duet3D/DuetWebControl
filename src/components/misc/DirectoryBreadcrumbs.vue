@@ -97,7 +97,7 @@ export default {
 				try {
 					await this.move({ from, to });
 				} catch (e) {
-					this.$log('error', `Failed to move ${data.items[i]} to ${directory}`, e.message);
+					this.$log('error', `Failed to move ${data.items[i].name} to ${directory}`, e.message);
 					break;
 				}
 			}
