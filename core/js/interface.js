@@ -23,6 +23,7 @@ var axisNames, numAxes, numExtruderDrives, numVolumes;
 var heaterNames, bedHeater = 0, chamberHeater = -1, cabinetHeater = -1, numTempSensors;
 var fanNames, controllableFans;
 var coldExtrudeTemp, coldRetractTemp, tempLimit;
+var wcsNames;
 
 var toolMapping = undefined;
 var spindleTools, spindleCurrents, spindleActives;
@@ -54,6 +55,8 @@ function resetGuiData() {
 	axisNames = ["X", "Y", "Z", "U", "V", "W", "A", "B", "C"];
 	numAxes = 3;			// only 3 are visible on load
 	numExtruderDrives = 2;	// only 2 are visible on load
+
+	wcsNames = ["", "G54", "G55", "G56", "G57", "G58", "G59", "G59.1", "G59.2", "G59.3"]
 
 	fanNames = undefined;
 	controllableFans = 0;
@@ -418,43 +421,8 @@ function updateGui() {
 
 	// Tool list on Calibration page (OEM)
 	if (vendor == "diabase") {
-		$("#table_calibration_tools > tbody").children().remove();
-		for(var i = 0 ; i < toolMapping.length; i++) {
-			var tool = toolMapping[i];
-			if (!tool.hasOwnProperty("offsets")) {
-				tool.offsets = [ 0.0, 0.0, 0.0 ];
-			}
-
-			var row = '<tr data-tool="' + tool.number + '">';
-			row += '<td>' + ((tool.name == "") ? T("Tool {0}", tool.number) : tool.name) + '</td><td>';
-			row += '<button class="btn btn-default tool-offset-up" data-axis="X"><span class="glyphicon glyphicon-arrow-left"></span> Left</button>';
-			row += '<span>' + T("{0} mm", tool.offsets[0].toFixed(2)) + '</span>';
-			row += '<button class="btn btn-default tool-offset-down" data-axis="X"><span class="glyphicon glyphicon-arrow-right"></span> Right</button>';
-			row += '</td><td>';
-			row += '<button class="btn btn-default tool-offset-up" data-axis="Y"><span class="glyphicon glyphicon-arrow-down"></span> Front</button>';
-			row += '<span>' + T("{0} mm", tool.offsets[1].toFixed(2)) + '</span>';
-			row += '<button class="btn btn-default tool-offset-down" data-axis="Y"><span class="glyphicon glyphicon-arrow-up"></span> Back</button>';
-			row += '</td><td>';
-			row += '<button class="btn btn-default tool-offset-up" data-axis="Z"><span class="glyphicon glyphicon-arrow-up"></span> Up</button>';
-			if (i == 0) {
-				row += '<span id="span_probe_height">' + T("{0} mm", zTriggerHeight.toFixed(2)) + '</span>';
-			} else {
-				row += '<span>' + T("{0} mm", tool.offsets[2].toFixed(2)) + '</span>';
-			}
-			row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span> Down</button>';
-			row += '</td><td>';
-			row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Calibrate") + '</button>';
-			row += '</td><td>';
-			row += '<button class="btn btn-info tool-set-offset"><span class="glyphicon glyphicon-ok"></span> ' + T("Set Offset") + '</button>';
-			row += '</td></tr>';
-
-			var rowElem = $("#table_calibration_tools > tbody").append(row);
-			if (i == 0) {
-				rowElem.find('button[data-axis="X"]').addClass("disabled");
-				rowElem.find('button[data-axis="Y"]').addClass("disabled");
-				rowElem.find('button.tool-calibrate').addClass("disabled");
-			}
-		}
+		fillToolOffsetTable();
+		updateWCSTable();
 	}
 
 	// Tool list on Settings page
@@ -927,53 +895,42 @@ $("#table_tools").on("click", "tr > th:first-child > a", function(e) {
 	e.preventDefault();
 });
 
+$('input[name="offset"]').parent().contextmenu(function(e) {
+	showStepDialog("offset", $(this).index(), Math.abs($(this).children("input").prop("value")));
+	e.preventDefault();
+});
+
+$("#panel_offset label.btn").click(function() {
+	$(this).parent().find("label.btn").removeClass("btn-primary").addClass("btn-default");
+	$(this).removeClass("btn-default").addClass("btn-primary");
+});
+
 $("#table_calibration_tools").on("click", ".tool-offset-up", function(e) {
-	if (!$(this).hasClass("disabled")) {
-		var axis = $(this).data("axis");
-		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
-		if (changeTriggerHeight)
-		{
-			zTriggerHeight = Math.round((zTriggerHeight - 0.01) * 100) / 100;
-			sendGCode("G31 Z" + zTriggerHeight.toFixed(2) + "\nM290 S-0.01\nM500 P31");
-			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
-		}
-		else
-		{
-			var toolNumber = $(this).parents("tr").data("tool");
-			var tool = getTool($(this).parents("tr").data("tool"));
-			if (tool.hasOwnProperty("offsets")) {
-				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
-				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] + 0.01) * 100) / 100;
-				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500 P31");
-				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
-			}
-		}
+	var axis = $(this).data("axis");
+	var amount = parseFloat($("#panel_offset input[name=offset]:checked").val());
+	var toolNumber = $(this).parents("tr").data("tool");
+	var tool = getTool($(this).parents("tr").data("tool"));
+	if (tool.hasOwnProperty("offsets")) {
+		var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
+		tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] + amount) * 100) / 100;
+		sendGCode("G10 L1 O1 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+		$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
 	}
 });
 
 $("#table_calibration_tools").on("click", ".tool-offset-down", function(e) {
-	if (!$(this).hasClass("disabled")) {
-		var axis = $(this).data("axis");
-		var changeTriggerHeight = (axis == "Z" && $(this).parents("tr").prop("rowIndex") == 1);
-		if (changeTriggerHeight)
-		{
-			zTriggerHeight = Math.round((zTriggerHeight + 0.01) * 100) / 100;
-			sendGCode("G31 Z" + zTriggerHeight + "\nM290 S0.01\nM500 P31");
-			$(this).parents("td").children("span").text(T("{0} mm", zTriggerHeight.toFixed(2)));
-		}
-		else
-		{
-			var toolNumber = $(this).parents("tr").data("tool");
-			var tool = getTool(toolNumber);
-			if (tool.hasOwnProperty("offsets")) {
-				var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
-				tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] - 0.01) * 100) / 100;
-				sendGCode("G10 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500 P31");
-				$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
-			}
-		}
+	var axis = $(this).data("axis");
+	var amount = parseFloat($("#panel_offset input[name=offset]:checked").val());
+	var toolNumber = $(this).parents("tr").data("tool");
+	var tool = getTool(toolNumber);
+	if (tool.hasOwnProperty("offsets")) {
+		var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
+		tool.offsets[axisIndex] = Math.round((tool.offsets[axisIndex] - amount) * 100) / 100;
+		sendGCode("G10 L1 O1 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+		$(this).parents("td").children("span").text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
 	}
 });
+
 
 $("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
 	if (!$(this).hasClass("disabled")) {
@@ -989,12 +946,155 @@ $("#table_calibration_tools").on("click", ".tool-calibrate", function(e) {
 $("#table_calibration_tools").on("click", ".tool-set-offset", function(e) {
 	if (lastStatusResponse != undefined) {
 		var toolNumber = $(this).parents("tr").data("tool");
-		sendGCode("G10 P" + toolNumber + " X" + lastStatusResponse.coords.xyz[0] + " Y" + lastStatusResponse.coords.xyz[1] + "\nM500");
+		sendGCode("G10 L1 O1 P" + toolNumber + " X" + lastStatusResponse.coords.xyz[0] + " Y" + lastStatusResponse.coords.xyz[1] + "\nM500");
 
 		$(this).closest("tr").find("td:nth-child(2) > span").text(T("{0} mm", lastStatusResponse.coords.xyz[0].toFixed(2)));
 		$(this).closest("tr").find("td:nth-child(3) > span").text(T("{0} mm", lastStatusResponse.coords.xyz[1].toFixed(2)));
 	}
 });
+
+$(".btn-workpiece-probe").click(function(e) {
+	// Get the axis to move
+	var axis = $(this).data("axis-letter");
+	if (axis == undefined) {
+		return;
+	}
+	var direction = $(this).data("dir");
+
+	// Send a G-code
+	var moveString = "M585 T1 E1000 F500 " + axis + " ";
+	if (direction === "max") {
+		moveString += "R30";
+	} else if (direction === "min") {
+		moveString += "R-30";
+	}
+	sendGCode(moveString);
+	e.preventDefault();
+});
+
+$("#table_workspace_coordinates td span.wcs-cell").click(function(e) {
+	var $_this = $(this);
+	var axis = $_this.data("axis");
+	var wcs = parseInt($_this.parents("tr").data("wcs"));
+	var wcsName = wcsNames[wcs];
+	showTextInput(T("Set {0} offset", wcsName), T("Please enter a new {0} offset for {1}:", axis, wcsName), function(value) {
+		if (!isNaN(value)) {
+			sendGCode("G10 L2 P" + wcs + " " + axis + value +"\nM500");
+			$_this.text(value);
+			setTimeout(updateWCSTable, 750);
+		}
+	}, $_this.text());
+});
+
+$("#a_refresh_tool_offsets").click(function(e) {
+	$(this).addClass("hidden");
+	fillToolOffsetTable();
+	e.preventDefault();
+});
+
+$("#a_refresh_wcs").click(function(e) {
+	$(this).addClass("hidden");
+	updateWCSTable();
+	e.preventDefault();
+});
+
+function fillToolOffsetTable() {
+	$("#table_calibration_tools > tbody").children().remove();
+	for(var i = 0 ; i < toolMapping.length; i++) {
+		var tool = toolMapping[i];
+		if (!tool.hasOwnProperty("offsets")) {
+			tool.offsets = [ 0.0, 0.0, 0.0 ];
+		}
+
+		var row = '<tr data-tool="' + tool.number + '">';
+		row += '<td>' + ((tool.name == "") ? T("Tool {0}", tool.number) : tool.name) + '</td><td>';
+		row += '<button class="btn btn-default tool-offset-up" data-axis="X"><span class="glyphicon glyphicon-arrow-left"></span> Left</button>';
+		row += '<span data-axis="X" class="tool-offset-value">' + T("{0} mm", tool.offsets[0].toFixed(2)) + '</span>';
+		row += '<button class="btn btn-default tool-offset-down" data-axis="X"><span class="glyphicon glyphicon-arrow-right"></span> Right</button>';
+		row += '</td><td>';
+		row += '<button class="btn btn-default tool-offset-up" data-axis="Y"><span class="glyphicon glyphicon-arrow-down"></span> Front</button>';
+		row += '<span data-axis="Y" class="tool-offset-value">' + T("{0} mm", tool.offsets[1].toFixed(2)) + '</span>';
+		row += '<button class="btn btn-default tool-offset-down" data-axis="Y"><span class="glyphicon glyphicon-arrow-up"></span> Back</button>';
+		row += '</td><td>';
+		row += '<button class="btn btn-default tool-offset-up" data-axis="Z"><span class="glyphicon glyphicon-arrow-down"></span> Down</button>';
+		row += '<span data-axis="Z" class="tool-offset-value">' + T("{0} mm", tool.offsets[2].toFixed(2)) + '</span>';
+		row += '<button class="btn btn-default tool-offset-down" data-axis="Z"><span class="glyphicon glyphicon-arrow-up"></span> Up</button>';
+		row += '</td><td>';
+		row += '<button class="btn btn-success tool-calibrate"><span class="glyphicon glyphicon-screenshot"></span> ' + T("Find Center") + '</button>';
+		row += '</td><td>';
+		row += '<button class="btn btn-info tool-set-offset"><span class="glyphicon glyphicon-ok"></span> ' + T("Set Offset") + '</button>';
+		row += '</td></tr>';
+
+		$("#table_calibration_tools > tbody").append(row);
+	}
+	$(".tool-offset-value").on("click", function() {
+		var span = $(this);
+		var axis = span.data("axis");
+		var toolNumber = span.parents("tr").data("tool");
+		var tool = getTool(toolNumber);
+		if (tool.hasOwnProperty("offsets")) {
+			var axisIndex = ((axis == "X") ? 0 : ((axis == "Y") ? 1 : 2));
+			showTextInput(T("Set {0} position", axis), T("Please enter a new offset for the {0} axis:", axis), function(value) {
+				if (!isNaN(value)) {
+					tool.offsets[axisIndex] = parseFloat(value);
+					sendGCode("G10 L1 O1 P" + toolNumber + " " + axis + tool.offsets[axisIndex] + "\nM500");
+					span.text(T("{0} mm", tool.offsets[axisIndex].toFixed(2)));
+				}
+			}, tool.offsets[axisIndex]);
+		}
+	});
+	// Add this tiny timeout to create a visual effect when updating
+	setTimeout(function() { $("#a_refresh_tool_offsets").removeClass("hidden"); }, 50);
+}
+
+function updateWCSTable() {
+	$.ajax(ajaxPrefix + "rr_download?name=" + encodeURIComponent("/sys/config-override.g"), {
+		dataType: "text",
+		global: false,
+		error: function() {
+			var tableCells = $("#table_workspace_coordinates td span.wcs-cell");
+			$.each(tableCells, function() {
+				$(this).text("0.00");
+			});
+			$("#a_refresh_wcs").removeClass("hidden");
+		},
+		success: function(content) {
+			var lines = content.split(/\r\n|\r|\n/);
+			var tableCells = $("#table_workspace_coordinates td span.wcs-cell");
+			var wcsCells = {
+				"wcs1": [],
+				"wcs2": [],
+				"wcs3": [],
+				"wcs4": [],
+				"wcs5": [],
+				"wcs6": [],
+				"wcs7": [],
+				"wcs8": [],
+				"wcs9": [],
+			};
+			var re = new RegExp('G10 L2 P([0-9]) X([0-9.]*) Y([0-9.]*) Z([0-9.]*)');
+			$.each(tableCells, function() {
+				var $_this = $(this);
+				var wcs = $_this.parents("tr").data("wcs");
+				var axis = $_this.data("axis");
+				var axisIndex = (axis == "X") ? 0 : (axis == "Y") ? 1 : 2;
+				wcsCells["wcs" + wcs][axisIndex] = $_this;
+			});
+			$.each(lines, function() {
+				if(!this.startsWith("G10 L2 ")) {
+					return;
+				}
+				var match = re.exec(this);
+				var wcs = match[1];
+				wcsCells["wcs" + wcs][0].text(match[2]);
+				wcsCells["wcs" + wcs][1].text(match[3]);
+				wcsCells["wcs" + wcs][2].text(match[4]);
+			});
+			$("#a_refresh_wcs").removeClass("hidden");
+		},
+		timeout: 0
+	});
+}
 
 $("body").on("click", ".load-filament", function(e) {
 	showFilamentDialog($(this).closest("tr").data("tool"), false);
@@ -1194,14 +1294,6 @@ $("#btn_baby_up").click(function() {
 	if (isConnected) {
 		sendGCode("M290 S" + (settings.babysteppingZ));
 	}
-});
-
-$("#btn_calibrate_all").click(function() {
-	showConfirmationDialog(T("Calibrate Tool"), T("Before you proceed please make sure that the calibration tool is installed. Continue?"),
-		function() {
-			sendGCode('M98 P"calibrate_all.g"');
-		}
-	);
 });
 
 $("#btn_cancel").click(function() {
@@ -2278,6 +2370,8 @@ function showPage(name) {
 		}
 
 		if (name == "calibration" && vendor == "diabase") {
+			fillToolOffsetTable();
+			updateWCSTable();
 			sendGCode("M118 P1 S\"IP\"");
 			lastSentGCode = "";
 		}
