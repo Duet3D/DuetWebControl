@@ -2,25 +2,34 @@
 	<v-layout row wrap>
 		<template v-if="items.active !== undefined">
 			<v-flex xs6>
-				<h3 class="text-xs-center mt-3">Active</h3>
+				<h3 class="text-xs-center mt-3">
+					{{ $t('generic.active') }}
+				</h3>
 			</v-flex>
 			<v-flex xs6>
-				<h3 class="text-xs-center mt-3">Standby</h3>
+				<h3 class="text-xs-center mt-3">
+					{{ $t('generic.standby') }}
+				</h3>
 			</v-flex>
 			<v-flex xs6>
-				<v-chip close v-for="(temp, index) in items.active" :key="temp" @input="removeActive(index)" @keyup.delete="removeActive(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items.active" :key="temp" @input="removeActive(index)" @keyup.delete="removeActive(index)">
+					{{ temp }} {{ unit }}
+				</v-chip>
 			</v-flex>
 			<v-flex xs6>
-				<v-chip close v-for="(temp, index) in items.standby" :key="temp" @input="removeStandby(index)" @keyup.delete="removeStandby(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items.standby" :key="temp" @input="removeStandby(index)" @keyup.delete="removeStandby(index)">
+					{{ temp }} {{ unit }}
+				</v-chip>
 			</v-flex>
 			<v-flex xs6>
 				<v-layout row wrap>
 					<v-flex>
-						<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="addActive"></v-text-field>
+						<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999" :label="$t('input.addTemperature')" @keyup.enter="addActive"></v-text-field>
+
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAddActive" @click="addActive">
-							<v-icon class="mr-1">add</v-icon> Add
+							<v-icon class="mr-1">add</v-icon> {{ $t('button.add.caption') }}
 						</v-btn>
 					</v-flex>
 				</v-layout>
@@ -28,11 +37,11 @@
 			<v-flex xs6>
 				<v-layout row wrap>
 					<v-flex>
-						<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="canAddStandby && addStandby"></v-text-field>
+						<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999" :label="$t('input.addTemperature')" @keyup.enter="canAddStandby && addStandby"></v-text-field>
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAddStandby" @click="addStandby">
-							<v-icon class="mr-1">add</v-icon> Add
+							<v-icon class="mr-1">add</v-icon> {{ $t('button.add.caption') }}
 						</v-btn>
 					</v-flex>
 				</v-layout>
@@ -40,17 +49,19 @@
 		</template>
 		<template v-else>
 			<v-flex xs12 class="mt-3">
-				<v-chip close v-for="(temp, index) in items" :key="temp" @input="remove(index)" @keyup.delete="remove(index)">{{ temp }} {{ unit }}</v-chip>
+				<v-chip close v-for="(temp, index) in items" :key="temp" @input="remove(index)" @keyup.delete="remove(index)">
+					{{ temp }} {{ unit }}
+				</v-chip>
 			</v-flex>
 			<v-flex xs12>
 				<v-layout row align-center>
 					<v-flex>
-						<v-text-field v-if="temperature" v-model.number="value" type="number" min="-273" max="1999" label="Value of new temperature" @keyup.enter="canAdd && add"></v-text-field>
-						<v-text-field v-else v-model.number="value" type="number" min="0" label="Value of new element" @keyup.enter="canAdd && add"></v-text-field>
+						<v-text-field v-if="temperature" v-model.number="value" type="number" min="-273" max="1999" :label="$t('input.addTemperature')" @keyup.enter="canAdd && add"></v-text-field>
+						<v-text-field v-else v-model.number="value" type="number" min="0" :label="$t('input.addRPM')" @keyup.enter="canAdd && add"></v-text-field>
 					</v-flex>
 					<v-flex shrink>
 						<v-btn color="primary" :disabled="!canAdd" @click="add">
-							<v-icon class="mr-1">add</v-icon> Add
+							<v-icon class="mr-1">add</v-icon> {{ $t('button.add.caption') }}
 						</v-btn>
 					</v-flex>
 				</v-layout>

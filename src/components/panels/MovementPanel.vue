@@ -10,15 +10,9 @@
 }
 </style>
 
-<style scoped>
-.nowrap {
-	flex-wrap: nowrap;
-}
-</style>
-
 <template>
 	<v-card>
-		<v-card-title class="pt-2 pb-0 nowrap">
+		<v-card-title class="pt-2 pb-0">
 			<code-btn color="primary" small code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
 				{{ $t('button.home.captionAll') }}
 			</code-btn>
@@ -111,7 +105,7 @@
 								<v-flex v-for="index in numMoveSteps" :key="-index" :class="getMoveCellClass(index - 1)">
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
-											<code-btn :code="`G91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${Math.round(moveFeedrate * 60)}\nG90`" @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block class="move-btn">
+											<code-btn :code="`G91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${Math.round(moveFeedrate * 60)}\nG90`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block class="move-btn">
 												<v-icon>keyboard_arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
 											</code-btn>
 										</v-flex>
@@ -128,7 +122,7 @@
 								<v-flex v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
-											<code-btn :code="`G91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${Math.round(moveFeedrate * 60)}\nG90`" @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block class="move-btn">
+											<code-btn :code="`G91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${Math.round(moveFeedrate * 60)}\nG90`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block class="move-btn">
 												{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>keyboard_arrow_right</v-icon>
 											</code-btn>
 										</v-flex>
@@ -142,7 +136,7 @@
 		</v-card-text>
 
 		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
-		<input-dialog :shown.sync="moveStepDialog.shown" title="Change move step" prompt="Please enter a new value for the clicked move button:" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
+		<input-dialog :shown.sync="moveStepDialog.shown" :title="$t('dialog.changeMoveStep.title')" :prompt="$t('dialog.changeMoveStep.prompt')" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
 
 		<v-alert v-if="unhomedAxes.length" :value="true" type="warning">
 			{{ $tc('panel.movement.axesNotHomed', unhomedAxes.length) }}

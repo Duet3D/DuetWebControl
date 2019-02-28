@@ -4,7 +4,7 @@ import i18n from '../i18n'
 
 // Generic Errors
 
-class NotImplementedError extends Error {
+export class NotImplementedError extends Error {
 	constructor(field) {
 		super(i18n.t('error.notImplemented', [field]));
 	}
@@ -12,33 +12,32 @@ class NotImplementedError extends Error {
 
 // Network Errors
 
-class NetworkError extends Error {}
-
-class CORSError extends NetworkError {
+export class NetworkError extends Error
+{
 	constructor() {
-		super(i18n.t('error.cors'));
+		super(i18n.t('error.network'));
 	}
 }
 
-class DisconnectedError extends NetworkError {
+export class DisconnectedError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.disconnected'));
 	}
 }
 
-class TimeoutError extends NetworkError {
+export class TimeoutError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.timeout'));
 	}
 }
 
-class OperationCancelledError extends NetworkError {
+export class OperationCancelledError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.cancelled'));
 	}
 }
 
-class OperationFailedError extends NetworkError {
+export class OperationFailedError extends NetworkError {
 	constructor(reason) {
 		super(i18n.t('error.operationFailed', [reason]));
 	}
@@ -46,19 +45,19 @@ class OperationFailedError extends NetworkError {
 
 // File Access Errors
 
-class DriveUnmountedError extends NetworkError {
+export class DriveUnmountedError extends NetworkError {
 	constructor() {
 		super(i18n.t('error.driveUnmounted', []));
 	}
 }
 
-class FileNotFoundError extends NetworkError {
+export class FileNotFoundError extends NetworkError {
 	constructor(file) {
 		super(i18n.t('error.fileNotFound', [file]));
 	}
 }
 
-class DirectoryNotFoundError extends NetworkError {
+export class DirectoryNotFoundError extends NetworkError {
 	constructor(directory) {
 		super(i18n.t('error.directoryNotFound', [directory]));
 	}
@@ -66,15 +65,15 @@ class DirectoryNotFoundError extends NetworkError {
 
 // Login Errors
 
-class LoginError extends Error {}
+export class LoginError extends Error {}
 
-class InvalidPasswordError extends LoginError {
+export class InvalidPasswordError extends LoginError {
 	constructor() {
 		super(i18n.t('error.invalidPassword'));
 	}
 }
 
-class NoFreeSessionError extends LoginError {
+export class NoFreeSessionError extends LoginError {
 	constructor() {
 		super(i18n.t('error.noFreeSession'));
 	}
@@ -82,15 +81,15 @@ class NoFreeSessionError extends LoginError {
 
 // Code Errors
 
-class CodeError extends Error {}
+export class CodeError extends Error {}
 
-class CodeBufferError extends CodeError {
+export class CodeBufferError extends CodeError {
 	constructor() {
 		super(i18n.t('error.codeBuffer'));
 	}
 }
 
-class CodeResponseError extends CodeError {
+export class CodeResponseError extends CodeError {
 	constructor() {
 		super(i18n.t('error.codeResponse'));
 	}
@@ -98,21 +97,10 @@ class CodeResponseError extends CodeError {
 
 // Heightmap errors
 
-class HeightmapError extends Error {}
+export class HeightmapError extends Error {}
 
-class InvalidHeightmapError extends HeightmapError {
+export class InvalidHeightmapError extends HeightmapError {
 	constructor() {
 		super(i18n.t('error.invalidHeightmap'));
 	}
-}
-
-// Exports
-
-export {
-	NotImplementedError,
-	NetworkError, CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
-	DriveUnmountedError, FileNotFoundError, DirectoryNotFoundError,
-	LoginError, InvalidPasswordError, NoFreeSessionError,
-	CodeError, CodeResponseError, CodeBufferError,
-	HeightmapError, InvalidHeightmapError
 }

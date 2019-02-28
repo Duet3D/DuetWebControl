@@ -38,7 +38,7 @@ export default {
 				case 'paused': return this.darkTheme ? 'orange darken-2' : 'yellow lighten-1';
 				case 'resuming': return this.darkTheme ? 'yellow darken-3' : 'orange accent-2';
 				case 'processing': return 'green white--text';
-				case 'simulating': return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-3';
+				case 'simulating': return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
 				case 'busy': return this.darkTheme ? 'amber darken-2 white--text' : 'amber white--text';
 				case 'changingTool': return this.darkTheme ? 'light-blue darken-2' : 'light-blue';
 				case 'idle': return this.darkTheme ? 'light-green darken-3' : 'light-green lighten-4';

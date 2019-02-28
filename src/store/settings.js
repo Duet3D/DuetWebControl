@@ -1,5 +1,7 @@
 'use strict'
 
+import i18n from '../i18n'
+
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
 import patch from '../utils/patch.js'
 import Path from '../utils/path.js'
@@ -7,6 +9,7 @@ import Path from '../utils/path.js'
 export default {
 	namespaced: true,
 	state: {
+		language: 'en',
 		lastHostname: location.host,
 		darkTheme: false,
 		useBinaryPrefix: true,
@@ -28,13 +31,23 @@ export default {
 		}
 	},
 	mutations: {
-		load: (state, payload) => patch(state, payload, true),
+		load(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			patch(state, payload, true);
+		},
 		setLastHostname(state, hostname) {
 			state.lastHostname = hostname;
 			setLocalSetting('lastHostname', hostname);
 		},
 
-		update: (state, payload) => patch(state, payload, true)
+		update(state, payload) {
+			if (payload.language) {
+				i18n.locale = payload.language;
+			}
+			patch(state, payload, true);
+		}
 	},
 	actions: {
 		async load({ rootState, rootGetters, commit, dispatch }) {

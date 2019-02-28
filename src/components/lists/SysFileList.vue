@@ -6,39 +6,41 @@
 			<v-spacer></v-spacer>
 
 			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New File
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewDirectory = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="sys" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited">
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No System Files</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+					{{ $t('list.sys.noFiles') }}
+				</v-alert>
 			</template>
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
 			<v-btn :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New File
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
 			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn :directory="directory" target="sys" color="primary"></upload-btn>
 		</v-layout>
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
-		<confirm-dialog :shown.sync="showResetPrompt" question="Reset board?" prompt="Would you like to restart your board to apply the updated configuration?" @confirmed="resetBoard"></confirm-dialog>
+		<confirm-dialog :shown.sync="showResetPrompt" :question="$t('dialog.configUpdated.title')" :prompt="$t('dialog.configUpdated.prompt')" @confirmed="resetBoard"></confirm-dialog>
 	</div>
 </template>
 

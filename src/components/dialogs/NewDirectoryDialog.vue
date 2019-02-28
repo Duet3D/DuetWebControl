@@ -1,5 +1,5 @@
 <template>
-	<input-dialog :shown.sync="innerShown" :title="innerTitle" :prompt="innerPrompt" @confirmed="createDirectory"></input-dialog>
+	<input-dialog :shown.sync="innerShown" :title="title || $t('dialog.newDirectory.title')" :prompt="prompt || $t('dialog.newDirectory.prompt')" @confirmed="createDirectory"></input-dialog>
 </template>
 
 <script>
@@ -34,8 +34,6 @@ export default {
 	computed: mapGetters(['isConnected']),
 	data() {
 		return {
-			innerTitle: this.title || 'New Directory',
-			innerPrompt: this.prompt || 'Please enter a new directory name:',
 			innerShown: this.shown
 		}
 	},
@@ -49,14 +47,14 @@ export default {
 
 				this.$emit('directoryCreated', path);
 				if (this.showSuccess) {
-					this.$makeNotification('success', 'Directory created', `Successfully created directory ${directory}`);
+					this.$makeNotification('success', this.$t('notification.newDirectory.successTitle'), this.$t('notification.newDirectory.successMessage', [directory]));
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
 					this.$emit('directoryCreationFailed', e);
 					if (this.showError) {
-						this.$makeNotification('error', 'Failed to create directory', e.message);
+						this.$makeNotification('error', this.$t('notification.newDirectory.errorTitle'), e.message);
 					}
 				}
 			}
@@ -76,16 +74,6 @@ export default {
 		shown(to) {
 			if (this.innerShown !== to) {
 				this.innerShown = to;
-			}
-		},
-		title(to) {
-			if (this.innerTitle !== to) {
-				this.innerTitle = to;
-			}
-		},
-		prompt(to) {
-			if (this.innerPrompt !== to) {
-				this.innerPrompt = to;
 			}
 		}
 	}

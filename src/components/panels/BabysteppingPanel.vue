@@ -1,11 +1,11 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">vertical_align_center</v-icon> Z Babystepping
+			<v-icon small class="mr-1">vertical_align_center</v-icon> {{ $t('panel.babystepping.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			Current Offset: {{ $displayZ(babystepping) }}
+			{{ $t('panel.babystepping.current', [$displayZ(babystepping)]) }}
 
 			<v-layout row wrap>
 				<v-flex>

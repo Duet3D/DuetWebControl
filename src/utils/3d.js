@@ -2,6 +2,7 @@
 
 import { Color, Vector3, Face3, SphereGeometry, Matrix4, Mesh, MeshBasicMaterial, Geometry, PlaneGeometry } from 'three'
 
+import i18n from '../i18n'
 import { InvalidHeightmapError } from './errors.js'
 
 const pointTolerance = 2.0
@@ -10,75 +11,75 @@ const smallIndicatorRadius = 0.01, mediumIndicatorRadius = 0.02, bigIndicatorRad
 // Draw scale+legend next to the 3D control
 export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
 	// Clear background
-	const context = canvas.getContext("2d");
+	const context = canvas.getContext('2d');
 	context.rect(0, 0, canvas.width, canvas.height);
-	context.fillStyle = "black";
+	context.fillStyle = 'black';
 	context.fill();
 
 	// Put annotations above gradient
-	context.font = "14px Roboto,sans-serif";
-	context.textAlign = "center";
-	context.fillStyle = "white";
-	context.fillText("Scale:", canvas.width / 2, 21);
+	context.font = '14px Roboto,sans-serif';
+	context.textAlign = 'center';
+	context.fillStyle = 'white';
+	context.fillText(i18n.t('panel.heightmap.scale'), canvas.width / 2, 21);
 	context.fillText(`${maxVisualizationZ} mm`, canvas.width / 2, 44);
-	context.fillText("or more", canvas.width / 2, 60);
+	context.fillText(i18n.t('panel.heightmap.orMore'), canvas.width / 2, 60);
 
 	// Make scale gradient
 	const showAxes = canvas.height > 180;
 	let scaleHeight = showAxes ? (canvas.height - 139) : (canvas.height - 96);
-	if (colorScheme === "terrain") {
+	if (colorScheme === 'terrain') {
 		scaleHeight -= 16;
 	}
 
 	const gradient = context.createLinearGradient(0, 66, 0, 66 + scaleHeight);
-	if (colorScheme === "terrain") {
-		gradient.addColorStop(0.0, "hsl(0,100%,45%)");
-		gradient.addColorStop(0.25, "hsl(60,100%,45%)");
-		gradient.addColorStop(0.5, "hsl(120,100%,45%)");
-		gradient.addColorStop(0.75, "hsl(180,100%,45%)");
-		gradient.addColorStop(1.0, "hsl(240,100%,45%)");
+	if (colorScheme === 'terrain') {
+		gradient.addColorStop(0.0, 'hsl(0,100%,45%)');
+		gradient.addColorStop(0.25, 'hsl(60,100%,45%)');
+		gradient.addColorStop(0.5, 'hsl(120,100%,45%)');
+		gradient.addColorStop(0.75, 'hsl(180,100%,45%)');
+		gradient.addColorStop(1.0, 'hsl(240,100%,45%)');
 	} else {
-		gradient.addColorStop(0.0, "hsl(0,100%,45%)");
-		gradient.addColorStop(0.5, "hsl(60,100%,45%)");
-		gradient.addColorStop(1.0, "hsl(120,100%,45%)");
+		gradient.addColorStop(0.0, 'hsl(0,100%,45%)');
+		gradient.addColorStop(0.5, 'hsl(60,100%,45%)');
+		gradient.addColorStop(1.0, 'hsl(120,100%,45%)');
 	}
 	context.fillStyle = gradient;
 	context.fillRect(canvas.width / 2 - 12, 66, 24, scaleHeight);
 
 	// Put annotation below gradient
-	context.fillStyle = "white";
-	if (colorScheme === "terrain") {
+	context.fillStyle = 'white';
+	if (colorScheme === 'terrain') {
 		context.fillText(`${-maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
-		context.fillText("or less", canvas.width / 2, scaleHeight + 98);
+		context.fillText(i18n.t('panel.heightmap.orLess'), canvas.width / 2, scaleHeight + 98);
 		scaleHeight += 16;
 	} else {
-		context.fillText("0.00 mm", canvas.width / 2, scaleHeight + 82);
+		context.fillText('0.00 mm', canvas.width / 2, scaleHeight + 82);
 	}
 
 	// Add axes
 	if (showAxes) {
-		context.fillText("Axes:", canvas.width / 2, scaleHeight + 109);
-		context.font = "bold " + context.font;
-		context.fillStyle = "rgb(255,0,0)";
-		context.fillText("X", canvas.width / 3, scaleHeight + 129);
-		context.fillStyle = "rgb(0,255,0)";
-		context.fillText("Y", canvas.width / 2, scaleHeight + 129);
-		context.fillStyle = "rgb(0,0,255)";
-		context.fillText("Z", 2 * canvas.width / 3, scaleHeight + 129);
+		context.fillText(i18n.t('panel.heightmap.axes'), canvas.width / 2, scaleHeight + 109);
+		context.font = 'bold ' + context.font;
+		context.fillStyle = 'rgb(255,0,0)';
+		context.fillText('X', canvas.width / 3, scaleHeight + 129);
+		context.fillStyle = 'rgb(0,255,0)';
+		context.fillText('Y', canvas.width / 2, scaleHeight + 129);
+		context.fillStyle = 'rgb(0,0,255)';
+		context.fillText('Z', 2 * canvas.width / 3, scaleHeight + 129);
 	}
 }
 
 function getColorByZ(z, colorScheme, maxVisualizationZ) {
 	// Terrain color scheme (i.e. from blue to red, asymmetric)
-	if (colorScheme === "terrain") {
+	if (colorScheme === 'terrain') {
 		z = Math.max(Math.min(z, maxVisualizationZ), -maxVisualizationZ);
 		const hue = 240 - ((z + maxVisualizationZ) / maxVisualizationZ) * 120;
-		return new Color("hsl(" + hue + ",100%,45%)");
+		return new Color('hsl(' + hue + ',100%,45%)');
 	}
 
 	// Default color scheme (i.e. the worse the redder, symmetric)
 	const hue = 120 - Math.min(Math.abs(z), maxVisualizationZ) / maxVisualizationZ * 120;
-	return new Color("hsl(" + hue + ",100%,45%)");
+	return new Color('hsl(' + hue + ',100%,45%)');
 }
 
 // Apply colors to the faces
@@ -102,10 +103,10 @@ export function setFaceColors(geometry, scaleZ, colorScheme, maxVisualizationZ) 
 
 function translateGridPoint(meshGeometry, vector, scaleZ) {
 	let x, y;
-	if (meshGeometry.type === "PlaneGeometry") {
+	if (meshGeometry.type === 'PlaneGeometry') {
 		x = (vector.x / meshGeometry.parameters.width + 0.5) * (meshGeometry.xMax - meshGeometry.xMin) + meshGeometry.xMin;
 		y = (vector.y / meshGeometry.parameters.height + 0.5) * (meshGeometry.yMax - meshGeometry.yMin) + meshGeometry.yMin;
-	} else if (meshGeometry.type === "Geometry") {
+	} else if (meshGeometry.type === 'Geometry') {
 		x = (vector.x + 0.5) * (meshGeometry.xMax - meshGeometry.xMin) + meshGeometry.xMin;
 		y = (vector.y + 0.5) * (meshGeometry.yMax - meshGeometry.yMin) + meshGeometry.yMin;
 	} else {
@@ -120,7 +121,7 @@ export function generateIndicators(meshGeometry, numPoints, scaleZ, color, opaci
 	let indicators = [], centerPointGenerated = false;
 
 	for (let i = 0; i < meshGeometry.vertices.length; i++) {
-		// Convert world coordinate to "real" probe coordinates
+		// Convert world coordinate to 'real' probe coordinates
 		const x = meshGeometry.vertices[i].x;
 		const y = meshGeometry.vertices[i].y;
 		const z = meshGeometry.vertices[i].z;

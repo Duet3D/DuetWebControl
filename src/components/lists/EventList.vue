@@ -20,7 +20,18 @@ td.title-cell {
 	<div class="component">
 		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">{{ $t('list.eventLog.noEvents') }}</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+					{{ $t('list.eventLog.noEvents') }}
+				</v-alert>
+			</template>
+
+			<template slot="headers" slot-scope="props">
+				<tr>
+					<th v-for="header in props.headers" :key="header.value" :class="['text-xs-left column sortable', pagination.descending ? 'desc' : 'asc', header.value === pagination.sortBy ? 'active' : '']" :width="header.width" @click="changeSort(header.value)" v-tab-control>
+						{{ getHeaderText(header) }}
+						<v-icon small>arrow_upward</v-icon>
+					</th>
+				</tr>
 			</template>
 
 			<template slot="items" slot-scope="{ item }">
@@ -59,6 +70,8 @@ td.title-cell {
 <script>
 'use strict'
 
+import i18n from '../../i18n'
+
 import saveAs from 'file-saver'
 import { mapState, mapMutations } from 'vuex'
 
@@ -78,12 +91,12 @@ export default {
 			},
 			headers: [
 				{
-					text: this.$t('list.eventLog.date'),
+					text: () => i18n.t('list.eventLog.date'),
 					value: 'date',
 					width: '15%'
 				},
 				{
-					text: this.$t('list.eventLog.message'),
+					text: () => i18n.t('list.eventLog.message'),
 					value: 'message',
 					sortable: false,
 					width: '75%'
@@ -99,6 +112,7 @@ export default {
 	methods: {
 		...mapMutations('machine', ['clearLog']),
 		...mapMutations('machine/cache', ['setSorting']),
+		getHeaderText: (header) => (header.text instanceof(Function)) ? header.text() : header.text,
 		getClassByEvent(type) {
 			if (this.darkTheme) {
 				switch (type) {

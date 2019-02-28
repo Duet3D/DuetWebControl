@@ -20,7 +20,7 @@ export default class RestSocketConnector extends BaseConnector {
 			if (e.response) {
 				throw e;
 			}
-			throw new CORSError();
+			throw new NetworkError();
 		}
 
 		switch (response.data.err) {

@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">linear_scale</v-icon> Collected Data
+			<v-icon small class="mr-1">linear_scale</v-icon> {{ $t('panel.jobData.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0 text-xs-center">
@@ -9,7 +9,7 @@
 				<v-flex>
 					<v-layout column>
 						<v-flex tag="strong">
-							Warm-Up Time
+							{{ $t('panel.jobData.warmUpTime') }}
 						</v-flex>
 						<v-flex tag="span">
 							{{ $displayTime(job.warmUpTime) }}
@@ -19,7 +19,7 @@
 				<v-flex>
 					<v-layout column>
 						<v-flex tag="strong">
-							Current Layer Time
+							{{ $t('panel.jobData.currentLayerTime') }}
 						</v-flex>
 						<v-flex tag="span">
 							{{ $displayTime(job.layerTime) }}
@@ -29,7 +29,7 @@
 				<v-flex>
 					<v-layout column>
 						<v-flex tag="strong">
-							Last Layer Time
+							{{ $t('panel.jobData.lastLayerTime') }}
 						</v-flex>
 						<v-flex tag="span">
 							{{ $displayTime(job.layers.length ? job.layers[job.layers.length - 1].duration : undefined) }}
@@ -39,7 +39,7 @@
 				<v-flex>
 					<v-layout column>
 						<v-flex tag="strong">
-							Job Duration
+							{{ $t('panel.jobData.jobDuration') }}
 						</v-flex>
 						<v-flex tag="span">
 							{{ $displayTime(job.duration) }}

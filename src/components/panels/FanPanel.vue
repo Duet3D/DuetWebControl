@@ -11,19 +11,21 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">ac_unit</v-icon> Fan Control
+			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fan.caption') }}
 		</v-card-title>
 
 		<v-layout row wrap align-start class="px-3 py-1">
 			<v-flex order-sm2 order-md1 class="ma-1">
-				<p class="mb-1">Fan selection:</p>
+				<p class="mb-1">
+					{{ $t('panel.fan.selection') }}
+				</p>
 				<v-btn-toggle v-model="fan" mandatory>
 					<v-btn flat :value="-1" :disabled="!canControlFans" color="primary">
-						Tool Fan
+						{{ $t('panel.fan.toolFan') }}
 					</v-btn>
 					<template v-for="(fan, index) in fans">
 						<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen" color="primary">
-							{{ fan.name ? fan.name : `Fan ${index}` }}
+							{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
 						</v-btn>
 					</template>
 				</v-btn-toggle>

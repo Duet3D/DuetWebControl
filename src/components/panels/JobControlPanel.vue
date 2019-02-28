@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">build</v-icon> Job Control
+			<v-icon small class="mr-1">build</v-icon> {{ $t('panel.jobControl.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
@@ -17,7 +17,7 @@
 				<v-icon class="mr-1">refresh</v-icon> {{ processAnotherText }}
 			</code-btn>
 
-			<v-switch label="Enable Auto-Sleep" v-model="autoSleepActive" :disabled="uiFrozen" hide-details></v-switch>
+			<v-switch :label="$t('panel.jobControl.autoSleep')" v-model="autoSleepActive" :disabled="uiFrozen" hide-details></v-switch>
 		</v-card-text>
 	</v-card>
 </template>
@@ -39,21 +39,21 @@ export default {
 		},
 		pauseResumeText() {
 			if (this.state.isSimulating) {
-				return this.isPaused ? 'Resume Simulation' : 'Pause Simulation';
+				return this.$t(this.isPaused ? 'panel.jobControl.resumeSimulation' : 'panel.jobControl.pauseSimulation');
 			}
 			if (this.state.mode === 'FFF') {
-				return this.isPaused ? 'Resume Print' : 'Pause Print';
+				return this.$t(this.isPaused ? 'panel.jobControl.resumePrint' : 'panel.jobControl.pausePrint');
 			}
-			return this.isPaused ? 'Resume Job' : 'Pause Job';
+			return this.$t(this.isPaused ? 'panel.jobControl.resumeJob' : 'panel.jobControl.pauseJob');
 		},
 		cancelText() {
 			if (this.state.isSimulating) {
-				return 'Cancel Simulation';
+				return this.$t('panel.jobControl.cancelSimulation');
 			}
 			if (this.state.mode === 'FFF') {
-				return 'Cancel Print';
+				return this.$t('panel.jobControl.cancelPrint');
 			}
-			return 'Cancel Job';
+			return this.$t('panel.jobControl.cancelJob');
 		},
 		processAnotherCode() {
 			if (this.job.lastFileName) {
@@ -66,12 +66,12 @@ export default {
 		},
 		processAnotherText() {
 			if (this.job.lastFileSimulated) {
-				return 'Simulate Again';
+				return this.$t('panel.jobControl.repeatSimulation');
 			}
 			if (this.state.mode === 'FFF') {
-				return 'Print Again';
+				return this.$t('panel.jobControl.repeatPrint');
 			}
-			return 'Start Again';
+			return this.$t('panel.jobControl.repeatJob');
 		}
 	},
 	methods: mapMutations('machine', ['setAutoSleep'])

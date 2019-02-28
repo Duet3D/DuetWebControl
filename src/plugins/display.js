@@ -11,9 +11,9 @@ export function display(value, precision, unit) {
 	}
 	if (value instanceof Array && value.length > 0) {
 		return value.map(item => (item !== undefined) ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : '')
-			: i18n.t('generic.novalue')).reduce((a, b) => a + ', ' + b);
+			: i18n.t('generic.noValue')).reduce((a, b) => a + ', ' + b);
 	}
-	return (value && value.constructor === String) ? value : i18n.t('generic.novalue');
+	return (value && value.constructor === String) ? value : i18n.t('generic.noValue');
 }
 
 export function displayZ(value, showUnit = true) {
@@ -72,7 +72,7 @@ export function displaySpeed(bytesPerSecond) {
 
 export function displayTime(value, showTrailingZeroes = false) {
 	if (isNaN(value)) {
-		return i18n.t('generic.novalue');
+		return i18n.t('generic.noValue');
 	}
 
 	value = Math.round(value);

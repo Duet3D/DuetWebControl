@@ -1,28 +1,28 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">ac_unit</v-icon> Fans
+			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fans.caption') }}
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template slot="activator">
 					<a v-show="!uiFrozen && controllableFans.length" href="#" @click.prevent="">
-						Change Visibility
+						{{ $t('panel.fans.changeVisibility') }}
 					</a>
 				</template>
 
 				<v-list>
-					<v-list-tile @click="toggleFanVisibility({ machine: selectedMachine, fan: -1})">
+					<v-list-tile @click="toggleFanVisibility(-1)">
 						<v-icon class="mr-1">
 							{{ (displayedFans.indexOf(-1) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
-						Tool Fan
+						{{ $t('panel.fans.toolFan') }}
 					</v-list-tile>
 
 					<v-list-tile v-for="(fan, index) in controllableFans" :key="index" @click="toggleFanVisibility(index)">
 						<v-icon class="mr-1">
 							{{ (displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
-						{{ fan.name ? fan.name : `Fan ${index}` }}
+						{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
 					</v-list-tile>
 				</v-list>
 			</v-menu>
@@ -31,14 +31,14 @@
 		<v-layout v-if="visibleFans.length" column class="px-3">
 			<v-flex v-for="fan in visibleFans" :key="fan" class="pt-2">
 				<span>
-					{{ (fan === -1) ? 'Tool Fan' : (fans[fan].name ? fans[fan].name : `Fan ${fan}`) }}
+					{{ (fan === -1) ? $t('panel.fans.toolFan') : (fans[fan].name ? fans[fan].name : $t('panel.fans.fan', [fan])) }}
 				</span>
 				<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen"></slider>
 			</v-flex>
 		</v-layout>
 
 		<v-alert type="info" :value="!visibleFans.length">
-			No Fans Configured
+			$t('panel.fans.noFans') }}
 		</v-alert>
 	</v-card>
 </template>
@@ -50,6 +50,7 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
+		...mapState(['selectedMachine']),
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/model', ['fans']),
 		...mapGetters('machine/model', ['currentTool']),

@@ -109,6 +109,7 @@ export class FileInfo {
 	}
 	fileName = null
 	size = null
+	lastModified = null
 	filament = []
 	generatedBy = null
 	height = null

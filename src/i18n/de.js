@@ -1,4 +1,5 @@
 export default {
+	language: 'Deutsch',
 	'$vuetify': {
 		dataIterator: {
 			rowsPerPageText: 'Elemente pro Seite:',

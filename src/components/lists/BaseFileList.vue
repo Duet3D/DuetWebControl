@@ -26,17 +26,19 @@ th.checkbox {
 
 			<template slot="no-data">
 				<slot name="no-data">
-					<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No Files</v-alert>
+					<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+						{{ $t('list.baseFileList.noFiles') }}
+					</v-alert>
 				</slot>
 			</template>
 
 			<template slot="headers" slot-scope="props">
 				<tr>
 					<th class="checkbox pr-0">
-						<v-checkbox :input-value="props.all" :indeterminate="props.indeterminate" primary hide-details @click="toggleAll"></v-checkbox>
+						<v-checkbox :input-value="props.all" :indeterminate="props.indeterminate" primary hide-details @click.stop.prevent="toggleAll"></v-checkbox>
 					</th>
-					<th v-for="header in props.headers" :key="header.text" :class="['text-xs-left column sortable', innerPagination.descending ? 'desc' : 'asc', header.value === innerPagination.sortBy ? 'active' : '']" @click="changeSort(header.value)" v-tab-control>
-						{{ header.text }}
+					<th v-for="header in props.headers" :key="header.value" :class="['text-xs-left column sortable', innerPagination.descending ? 'desc' : 'asc', header.value === innerPagination.sortBy ? 'active' : '']" @click="changeSort(header.value)" v-tab-control>
+						{{ getHeaderText(header) }}
 						<v-icon small>arrow_upward</v-icon>
 					</th>
 				</tr>
@@ -45,22 +47,20 @@ th.checkbox {
 			<template slot="items" slot-scope="props">
 				<tr :active="props.selected" @click="props.selected = !props.selected" @dblclick="itemClicked(props.item)" @contextmenu.prevent="itemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="dragStart(props.item, $event)" @dragover="dragOver(props.item, $event)" @drop.prevent="dragDrop(props.item, $event)" v-tab-control.contextmenu.dblclick @keydown.space="props.selected = !props.selected">
 					<td class="pr-0">
-						<v-checkbox :input-value="props.selected" primary hide-details></v-checkbox>
+						<v-checkbox :input-value="props.selected" tabindex="-1" primary hide-details></v-checkbox>
 					</td>
 					<template v-for="header in headers">
 						<td v-if="header.value === 'name'" :key="header.value">
-							<a href="#" @click.prevent.stop="itemClicked(props.item)" tabindex="-1">
-								<v-layout row align-center>
-									<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
-									<span>{{ props.item.name }}</span>
-								</v-layout>
-							</a>
+							<v-layout row align-center>
+								<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
+								<span>{{ props.item.name }}</span>
+							</v-layout>
 						</td>
 						<td v-else-if="header.unit === 'bytes'" :key="header.value">
 							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : '' }}
 						</td>
 						<td v-else-if="header.unit === 'date'" :key="header.value">
-							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t('generic.novalue') }}
+							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t('generic.noValue') }}
 						</td>
 						<td v-else-if="header.unit === 'filaments'" :key="header.value">
 							<v-tooltip bottom :disabled="!props.item[header.value] || props.item[header.value].length <= 1">
@@ -89,25 +89,25 @@ th.checkbox {
 				<slot name="context-menu"></slot>
 
 				<v-list-tile v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
-					<v-icon class="mr-1">cloud_download</v-icon> Download File
+					<v-icon class="mr-1">cloud_download</v-icon> {{ $tc('list.baseFileList.download', innerValue.length) }}
 				</v-list-tile>
 				<v-list-tile v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit">
-					<v-icon class="mr-1">edit</v-icon> Edit File
+					<v-icon class="mr-1">edit</v-icon> {{ $t('list.baseFileList.edit') }}
 				</v-list-tile>
 				<v-list-tile v-show="!noRename && innerValue.length === 1" @click="rename">
-					<v-icon class="mr-1">short_text</v-icon> Rename
+					<v-icon class="mr-1">short_text</v-icon> {{ $t('list.baseFileList.rename') }}
 				</v-list-tile>
 				<v-list-tile v-show="!noDelete" @click="remove">
-					<v-icon class="mr-1">delete</v-icon> Delete
+					<v-icon class="mr-1">delete</v-icon> {{ $t('list.baseFileList.delete') }}
 				</v-list-tile>
 				<v-list-tile v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
-					<v-icon class="mr-1">archive</v-icon> Download as ZIP
+					<v-icon class="mr-1">archive</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
 				</v-list-tile>
 			</v-list>
 		</v-menu>
 
 		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content" @editComplete="$emit('fileEdited', $event)"></file-edit-dialog>
-		<input-dialog :shown.sync="renameDialog.shown" title="Rename File or Directory" prompt="Please enter a new name:" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback"></input-dialog>
+		<input-dialog :shown.sync="renameDialog.shown" :title="$t('dialog.renameFile.title')" :prompt="$t('dialog.renameFile.prompt')" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback"></input-dialog>
 	</div>
 </template>
 
@@ -120,6 +120,7 @@ import VDataTable from 'vuetify/es5/components/VDataTable'
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
+import i18n from '../../i18n'
 import { getModifiedDirectories } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
@@ -133,16 +134,16 @@ export default {
 			type: Array,
 			default: () => [
 				{
-					text: 'Filename',
+					text: () => i18n.t('list.baseFileList.fileName'),
 					value: 'name'
 				},
 				{
-					text: 'Size',
+					text: () => i18n.t('list.baseFileList.size'),
 					value: 'size',
 					unit: 'bytes'
 				},
 				{
-					text: 'Last Modified',
+					text: () => i18n.t('list.baseFileList.lastModified'),
 					value: 'lastModified',
 					unit: 'date'
 				}
@@ -208,7 +209,6 @@ export default {
 				rowsPerPage: -1
 			},
 			innerValue: [],
-			togglingSelected: false,
 			contextMenu: {
 				shown: false,
 				x: 0,
@@ -235,14 +235,9 @@ export default {
 			getFileList: 'getFileList'
 		}),
 		...mapMutations('machine/cache', ['setSorting']),
+		getHeaderText: (header) => (header.text instanceof(Function)) ? header.text() : header.text,
 		toggleAll() {
-			// FIXME For some reason this is called twice when the checkbox is checked
-			if (!this.togglingSelected) {
-				this.togglingSelected = true;
-				this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
-			} else {
-				this.togglingSelected = false;
-			}
+			this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
 		},
 		changeSort(column) {
 			if (this.innerPagination.sortBy === column) {
@@ -336,13 +331,13 @@ export default {
 				return '';
 			}
 			if (!item[prop]) {
-				return this.$t((item[prop] === undefined) ? 'generic.loading' : 'generic.novalue');
+				return this.$t((item[prop] === undefined) ? 'generic.loading' : 'generic.noValue');
 			}
 
 			let displayValue;
 			if (item[prop] instanceof Array) {
 				if (!item[prop].length) {
-					return this.$t('generic.novalue');
+					return this.$t('generic.noValue');
 				}
 				displayValue = item[prop].reduce((a, b) => a + b);
 			} else {
@@ -358,7 +353,7 @@ export default {
 			if (item.isDirectory) {
 				return '';
 			}
-			return (item[prop] !== null) ? this.$displayTime(item[prop]) : this.$t('generic.novalue');
+			return (item[prop] !== null) ? this.$displayTime(item[prop]) : this.$t('generic.noValue');
 		},
 		itemClicked(item) {
 			if (item.isDirectory) {
@@ -368,11 +363,15 @@ export default {
 			}
 		},
 		itemContextmenu(props, e) {
+			// Deal with selection
 			if (!props.selected) {
-				props.selected = true;
+				this.innerValue = [];
+				this.$nextTick(() => {
+					props.selected = true;
+				});
 			}
-			e.preventDefault();
 
+			// Open the context menu
 			this.contextMenu.shown = false;
 			this.contextMenu.x = e.clientX;
 			this.contextMenu.y = e.clientY;
@@ -470,7 +469,7 @@ export default {
 				const response = await this.machineDownload({ filename, type: 'text', showSuccess: false });
 				let notification, showDelay = 0;
 				if (response.length > bigFileThreshold) {
-					notification = this.$makeNotification('warning', 'Loading file', 'This file is relatively big so it may take a while before it is displayed.', false);
+					notification = this.$makeNotification('warning', this.$t('notification.loading.title'), this.$t('notification.loading.message'), false);
 					showDelay = 1000;
 				}
 
@@ -517,10 +516,10 @@ export default {
 					return false;
 				}, this.renameDialog.item);
 
-				this.$makeNotification('success', `Successfully renamed ${oldFilename} to ${newFilename}`);
+				this.$makeNotification('success', this.$t('notification.rename.success', [oldFilename, newFilename]));
 			} catch (e) {
 				console.warn(e);
-				this.$log('error', `Failed to rename ${oldFilename} to ${newFilename}`, e.message);
+				this.$log('error', this.$t('notification.rename.error'), e.message);
 			}
 			this.innerDoingFileOperation = false;
 		},
@@ -544,12 +543,12 @@ export default {
 					this.innerFilelist = this.innerFilelist.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 					this.innerValue = this.innerValue.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 				} catch (e) {
-					this.$makeNotification('error', `Failed to delete ${items[i].name}`, items[i].isDirectory ? 'Please make sure that this directory is empty' : e.message);
+					this.$makeNotification('error', this.$t('notification.delete.errorTitle', [items[i].name]), items[i].isDirectory ? this.$t('notification.delete.errorMessageDirectory') : e.message);
 				}
 			}
 
 			if (deletedItems.length) {
-				this.$log('success', (deletedItems.length > 1) ? `Successfully deleted ${deletedItems.length} items` : `Successfully deleted ${deletedItems[0].name}`);
+				this.$log('success', (deletedItems.length > 1) ? this.$t('notification.delete.successMultiple', [deletedItems.length]) : this.$t('notification.delete.success', [deletedItems[0].name]));
 			}
 			this.innerDoingFileOperation = false;
 		},
@@ -573,13 +572,13 @@ export default {
 			}
 
 			// Compress files and save the new archive
-			const notification = this.$makeNotification('info', 'Compressing files...', 'Please stand by while your files are being compressed...');
+			const notification = this.$makeNotification('info', this.$t('notification.compress.title'), this.$t('notification.compress.message'));
 			try {
 				const zipBlob = await zip.generateAsync({ type: 'blob' });
 				saveAs(zipBlob, 'download.zip');
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification('error', 'Failed to compress files', e.message);
+				this.$makeNotification('error', this.$t('notification.compress.errorTitle'), e.message);
 			}
 			notification.hide();
 		}

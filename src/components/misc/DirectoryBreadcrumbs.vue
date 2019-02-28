@@ -25,41 +25,42 @@ export default {
 	computed: {
 		pathItems() {
 			const pathItems = this.value.split('/');
-			let rootCaption = pathItems.length ? this.$t('generic.novalue') : pathItems[0];
+			let rootCaption = pathItems.length ? this.$t('generic.noValue') : pathItems[0];
 			if (pathItems.length > 1) {
 				if (this.value.startsWith(Path.gcodes)) {
 					pathItems.shift();
 					pathItems[0] = Path.gcodes;
-					rootCaption = 'G-Codes Directory';
+					rootCaption = this.$t('directory.gcodes');
 				} else if (this.value.startsWith(Path.macros)) {
 					pathItems.shift();
 					pathItems[0] = Path.macros;
-					rootCaption = 'Macros Directory';
+					rootCaption = this.$t('directory.macros');
 				} else if (this.value.startsWith(Path.filaments)) {
 					pathItems.shift();
 					pathItems[0] = Path.filaments;
-					rootCaption = 'Filaments Directory';
+					rootCaption = this.$t('directory.filaments');
 				} else if (this.value.startsWith(Path.display)) {
 					pathItems.shift();
 					pathItems[0] = Path.display;
-					rootCaption = 'Menu Directory';
+					rootCaption = this.$t('directory.display');
 				} else if (this.value.startsWith(Path.sys)) {
 					pathItems.shift();
 					pathItems[0] = Path.sys;
-					rootCaption = 'System Directory';
+					rootCaption = this.$t('directory.sys');
 				} else if (this.value.startsWith(Path.www)) {
 					pathItems.shift();
 					pathItems[0] = Path.www;
-					rootCaption = 'WWW Directory';
+					rootCaption = this.$t('directory.www');
 				}
 			}
 
+			const that = this;
 			let items = [], path = '';
 			pathItems.forEach(function(item, index) {
 				path = (path === '') ? item : path + '/' + item;
 				if (index === 0) {
 					items.push({
-						text: item.startsWith('0:') ? rootCaption : `SD Card ${/^(\d+)/.exec(item)[1]}`,
+						text: item.startsWith('0:') ? rootCaption : that.$t('generic.sdCard', [/^(\d+)/.exec(item)[1]]),
 						disabled: index === pathItems.length - 1,
 						href: path
 					});
@@ -97,7 +98,7 @@ export default {
 				try {
 					await this.move({ from, to });
 				} catch (e) {
-					this.$log('error', `Failed to move ${data.items[i].name} to ${directory}`, e.message);
+					this.$log('error', this.$t('error.move', [data.items[i].name, directory]), e.message);
 					break;
 				}
 			}

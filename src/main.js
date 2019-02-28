@@ -13,6 +13,7 @@ import router from './routes'
 import store from './store'
 
 Vue.config.productionTip = false
+window.Vue = Vue
 
 Vue.use(plugins)
 Vue.use(Vuetify, {

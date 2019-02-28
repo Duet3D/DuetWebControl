@@ -6,38 +6,40 @@
 			<v-spacer></v-spacer>
 
 			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New Macro
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" :disabled="uiFrozen" @click="showNewDirectory = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="macros" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="macros" @fileClicked="fileClicked">
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">No Macro Files</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+					{{ $t('list.macro.noMacros') }}
+				</v-alert>
 			</template>
 
 			<template slot="context-menu">
 				<v-list-tile v-show="isFile" @click="runFile(selection[0])">
-					<v-icon class="mr-1">play_arrow</v-icon> Run Macro
+					<v-icon class="mr-1">play_arrow</v-icon> {{ $t('list.macro.run') }}
 				</v-list-tile>
 			</template>
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
 			<v-btn :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New Macro
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn :disabled="uiFrozen" @click="showNewDirectory = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Directory
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
 			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn :directory="directory" target="macros" color="primary"></upload-btn>
 		</v-layout>
@@ -84,8 +86,8 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			this.runMacroDialog.question = `Run ${item.name}`;
-			this.runMacroDialog.prompt = `Do you want to run ${item.name}?`;
+			this.runMacroDialog.question = this.$t('dialog.runMacro.title');
+			this.runMacroDialog.prompt = this.$t('dialog.runMacro.prompt', [item.name]);
 			this.runMacroDialog.filename = item.name;
 			this.runMacroDialog.shown = true;
 		},

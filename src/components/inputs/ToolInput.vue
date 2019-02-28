@@ -152,6 +152,16 @@ export default {
 	},
 	mounted() {
 		this.input = this.$el.querySelector('input');
+		if (this.tool) {
+			this.value = this.tool[this.active ? 'active' : 'standby'][this.heaterIndex];
+		} else if (this.bed) {
+			this.value = this.bed[this.active ? 'active' : 'standby'][this.heaterIndex];
+		} else if (this.chamber) {
+			this.value = this.chamber[this.active ? 'active' : 'standby'][this.heaterIndex];
+		} else if (this.spindle) {
+			this.value = this.spindle.active;
+		}
+		this.actualValue = this.value;
 	},
 	watch: {
 		'tool.active'(to) {

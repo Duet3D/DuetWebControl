@@ -1,11 +1,15 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="uploading" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop" tabindex="0">
-			<v-icon class="mr-2">cloud_upload</v-icon> {{ $t(`button.upload['${target}'].caption`) }}
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop" tabindex="0">
+			<template slot="loader">
+				<v-progress-circular indeterminate :size="23" :width="2" class="mr-2"></v-progress-circular>
+				{{ caption }}
+			</template>
+			<v-icon class="mr-2">cloud_upload</v-icon> {{ caption }}
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<confirm-dialog :shown.sync="confirmUpdate" question="Install updates?" prompt="You have uploaded at least one firmware update. Would you like to install them now?" @confirmed="startUpdate"></confirm-dialog>
+		<confirm-dialog :shown.sync="confirmUpdate" :question="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
 	</div>
 </template>
 
@@ -18,13 +22,22 @@ import VBtn from 'vuetify/es5/components/VBtn'
 import { mapState, mapGetters, mapActions } from 'vuex'
 import Path from '../../utils/path.js'
 
-const webExtensions = ['.json', '.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
+const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 
 export default {
 	computed: {
 		...mapState(['isLocal']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapGetters('machine/model', ['board']),
+		caption() {
+			if (this.extracting) {
+				return this.$t('generic.extracting');
+			}
+			if (this.uploading) {
+				return this.$t('generic.uploading');
+			}
+			return this.$t(`button.upload['${this.target}'].caption`);
+		},
 		canUpload() {
 			return this.isConnected && !this.uiFrozen;
 		},
@@ -57,11 +70,15 @@ export default {
 				case 'update': return Path.sys;
 			}
 			return undefined;
+		},
+		isBusy() {
+			return this.extracting || this.uploading;
 		}
 	},
 	data() {
 		return {
 			innerColor: this.color,
+			extracting: false,
 			uploading: false,
 
 			confirmUpdate: false,
@@ -87,7 +104,7 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode', 'upload']),
 		chooseFile() {
-			if (!this.uploading) {
+			if (!this.isBusy) {
 				this.$refs.fileInput.click();
 			}
 		},
@@ -123,23 +140,25 @@ export default {
 				}
 
 				if (files[0].name.toLowerCase().endsWith('.zip')) {
-					// Open the ZIP file and read its content
 					const zip = new JSZip(), zipFiles = [], target = this.target;
-					await zip.loadAsync(files[0], { checkCRC32: true });
-					zip.forEach(function(file) {
-						if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
-							zipFiles.push(file);
-						}
-					});
-
-					// Could we get anything useful?
-					if (!zipFiles.length) {
-						this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
-						return;
-					}
-
-					// Extract everything and start the upload
+					this.extracting = true;
 					try {
+						// Open the ZIP file and read its content
+						await zip.loadAsync(files[0], { checkCRC32: true });
+						zip.forEach(function(file) {
+							if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
+								zipFiles.push(file);
+							}
+						});
+
+						// Could we get anything useful?
+						if (!zipFiles.length) {
+							this.extracting = false;
+							this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
+							return;
+						}
+
+						// Extract everything and start the upload
 						for (let i = 0; i < zipFiles.length; i++) {
 							const name = zipFiles[i];
 							zipFiles[i] = await zip.file(name).async('blob');
@@ -150,6 +169,7 @@ export default {
 						console.warn(e);
 						this.$makeNotification('error', this.$t('error.uploadDecompressionFailed'), e.message);
 					}
+					this.extracting = false;
 					return;
 				}
 			}
@@ -243,7 +263,9 @@ export default {
 		dragOver(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			this.innerColor = 'success';
+			if (!this.isBusy) {
+				this.innerColor = 'success';
+			}
 		},
 		dragLeave(e) {
 			e.preventDefault();
@@ -252,7 +274,7 @@ export default {
 		},
 		async dragDrop(e) {
 			this.innerColor = this.color;
-			if (e.dataTransfer.files.length) {
+			if (!this.isBusy && e.dataTransfer.files.length) {
 				await this.doUpload(e.dataTransfer.files);
 			}
 		}

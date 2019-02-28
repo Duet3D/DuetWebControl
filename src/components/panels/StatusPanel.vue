@@ -205,6 +205,7 @@ import { mapState, mapGetters } from 'vuex'
 
 export default {
 	computed: {
+		...mapState('settings', ['darkTheme']),
 		...mapGetters(['isConnected']),
 		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state'])
 	},
@@ -225,9 +226,11 @@ export default {
 			}
 			if (!this.state.isPrinting && probe.value !== null) {
 				if (probe.value >= probe.threshold) {
-					result.push('error');
+					result.push('red');
+					result.push(this.darkTheme ? 'darken-3' : 'lighten-4');
 				} else if (probe.value > probe.threshold * 0.9) {
-					result.push('warning');
+					result.push('orange');
+					result.push(this.darkTheme ? 'darken-2' : 'lighten-4');
 				}
 			}
 			return result;

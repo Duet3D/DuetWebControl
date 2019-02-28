@@ -1,7 +1,9 @@
 'use strict'
 
-import Interface from './Interface.vue'
+import General from './General.vue'
+import Machine from './Machine.vue'
 
 export default {
-	Interface
+	General,
+	Machine
 }

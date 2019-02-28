@@ -47,8 +47,8 @@ table.extra tr > td:first-child {
 							<v-icon class="mr-1">power</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
-						<tool-input ref="allActive" label="Set all active temperatures" all active></tool-input>
-						<tool-input label="Set all standby temperatures" all standby :tab-target="$refs.dropdownActivator"></tool-input>
+						<tool-input ref="allActive" :label="$t('panel.tools.allActiveTemperatures')" all active></tool-input>
+						<tool-input :label="$t('panel.tools.allStandbyTemperatures')" all standby :tab-target="$refs.dropdownActivator"></tool-input>
 					</v-layout>
 				</v-card>
 			</v-menu>

@@ -11,17 +11,19 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">opacity</v-icon> Extrusion Control
+			<v-icon small class="mr-1">opacity</v-icon> {{ $t('panel.extrude.caption') }}
 		</v-card-title>
 
 		<v-layout row class="px-3 py-1" align-center>
 			<v-flex>
 				<v-layout row wrap align-center>
 					<v-flex v-if="currentTool && currentTool.extruders.length > 1" class="ma-1">
-						<p class="mb-1">Mix ratio:</p>
+						<p class="mb-1">
+							{{ $t('panel.extrude.mixRatio') }}
+						</p>
 						<v-btn-toggle v-model="mix" mandatory multiple>
 							<v-btn flat value="mix" :disabled="uiFrozen" color="primary">
-								Mix
+								{{ $t('panel.extrude.mix') }}
 							</v-btn>
 							<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder" :disabled="uiFrozen" color="primary">
 								{{ `E${extruder}` }}
@@ -29,7 +31,9 @@
 						</v-btn-toggle>
 					</v-flex>
 					<v-flex class="ma-1">
-						<p class="mb-1">Feed amount in mm:</p>
+						<p class="mb-1">
+							{{ $t('panel.extrude.amount', ['mm']) }}
+						</p>
 						<v-btn-toggle v-model="amount" mandatory>
 							<v-btn flat v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editAmount(index)">
 								{{ amount }}
@@ -37,7 +41,9 @@
 						</v-btn-toggle>
 					</v-flex>
 					<v-flex class="ma-1">
-						<p class="mb-1">Feedrate in mm/s:</p>
+						<p class="mb-1">
+							{{ $t('panel.extrude.feedrate', ['mm/s']) }}
+						</p>
 						<v-btn-toggle v-model="feedrate" mandatory>
 							<v-btn flat v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editFeedrate(index)">
 								{{ feedrate }}
@@ -48,16 +54,16 @@
 			</v-flex>
 			<v-flex shrink class="ml-2 mb-1">
 				<v-btn block :disabled="uiFrozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
-					<v-icon>arrow_upward</v-icon> Retract
+					<v-icon>arrow_upward</v-icon> {{ $t('panel.extrude.retract') }}
 				</v-btn>
 				<v-btn block :disabled="uiFrozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
-					<v-icon>arrow_downward</v-icon> Extrude
+					<v-icon>arrow_downward</v-icon> {{ $t('panel.extrude.extrude') }}
 				</v-btn>
 			</v-flex>
 		</v-layout>
 
-		<input-dialog :shown.sync="editAmountDialog.shown" title="Edit extrusion amount" prompt="Please enter a new value for the clicked button:" :preset="editAmountDialog.preset" is-numeric-value @confirmed="setAmount"></input-dialog>
-		<input-dialog :shown.sync="editFeedrateDialog.shown" title="Edit extrusion feedrate" prompt="Please enter a new value for the clicked button:" :preset="editFeedrateDialog.preset" is-numeric-value @confirmed="setFeedrate"></input-dialog>
+		<input-dialog :shown.sync="editAmountDialog.shown" :title="$t('dialog.editExtrusionAmount.title')" :prompt="$t('dialog.editExtrusionAmount.prompt')" :preset="editAmountDialog.preset" is-numeric-value @confirmed="setAmount"></input-dialog>
+		<input-dialog :shown.sync="editFeedrateDialog.shown" :title="$t('dialog.editExtrusionFeedrate.title')" :prompt="$t('dialog.editExtrusionFeedrate.prompt')" :preset="editFeedrateDialog.preset" is-numeric-value @confirmed="setFeedrate"></input-dialog>
 	</v-card>
 </template>
 

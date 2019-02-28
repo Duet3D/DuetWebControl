@@ -33,7 +33,7 @@ canvas {
 							<v-flex class="loading" v-show="!ready">
 								<v-layout fill-height align-center>
 									<v-flex tag="h1" class="text-xs-center">
-										{{ loading ? 'loading...' : errorMessage }}
+										{{ loading ? $t('generic.loading') : errorMessage }}
 									</v-flex>
 								</v-layout>
 							</v-flex>
@@ -49,40 +49,40 @@ canvas {
 					<v-flex class="pa-2" xs12 sm12 md3 lg2 xl2>
 						<v-layout column fill-height justifiy-space-between>
 							<v-flex class="pt-2">
-								Number of points: {{ $display(numPoints, 0) }}
+								{{ $t('panel.heightmap.numPoints', [$display(numPoints, 0)]) }}
 							</v-flex>
 							<v-flex>
-								Probing radius: {{ $display(radius, 0, 'mm') }}
+								{{ $t('panel.heightmap.radius', [$display(radius, 0, 'mm')]) }}
 							</v-flex>
 							<v-flex>
-								Probe area: {{ $display(area / 100, 1, 'cm²') }}
+								{{ $t('panel.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}
 							</v-flex>
 							<v-flex>
-								Maximum deviations: {{ $display(minDiff, 3) }} / {{ $display(maxDiff, 3, 'mm') }}
+								{{ $t('panel.heightmap.maxDeviations', [$display(minDiff, 3), $display(maxDiff, 3, 'mm')]) }}
 							</v-flex>
 							<v-flex>
-								Mean error: {{ $display(meanError, 3, 'mm') }}
+								{{ $t('panel.heightmap.meanError', [$display(meanError, 3, 'mm')]) }}
 							</v-flex>
 							<v-flex>
-								RMS error: {{ $display(rmsError, 3, 'mm') }}
-							</v-flex>
-							<v-flex>
-								<v-btn class="ml-0" :disabled="!ready" @click="topView">
-									<v-icon small class="mr-1">vertical_align_bottom</v-icon> Top view
-								</v-btn>
+								{{ $t('panel.heightmap.rmsError', [$display(rmsError, 3, 'mm')]) }}
 							</v-flex>
 							<v-flex shrink>
-								Color scheme:
+								{{ $t('panel.heightmap.colorScheme') }}
 							</v-flex>
 							<v-flex>
 								<v-btn-toggle v-model="colorScheme">
-									<v-btn value="terrain">Terrain</v-btn>
-									<v-btn value="heat">Heat</v-btn>
+									<v-btn value="terrain">{{ $t('panel.heightmap.terrain') }}</v-btn>
+									<v-btn value="heat">{{ $t('panel.heightmap.heat') }}</v-btn>
 								</v-btn-toggle>
 							</v-flex>
-							<v-flex class="pb-2" shrink :loading="loading" @click="getHeightmap()">
-								<v-btn>
-									<v-icon class="mr-1">refresh</v-icon> Reload Height Map
+							<v-flex>
+								<v-btn class="ml-0" :disabled="!ready" @click="topView">
+									<v-icon small class="mr-1">vertical_align_bottom</v-icon> {{ $t('panel.heightmap.topView') }}
+								</v-btn>
+							</v-flex>
+							<v-flex shrink>
+								<v-btn class="ml-0" :loading="loading" @click="getHeightmap()">
+									<v-icon class="mr-1">refresh</v-icon> {{ $t('panel.heightmap.reload') }}
 								</v-btn>
 							</v-flex>
 						</v-layout>
@@ -104,7 +104,7 @@ canvas {
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
 import OrbitControls from 'three-orbitcontrols'
@@ -137,7 +137,10 @@ export default {
 			lastIntersection: null
 		}
 	},
-	computed: mapGetters(['isConnected']),
+	computed: {
+		...mapGetters(['isConnected']),
+		...mapState('settings', ['language'])
+	},
 	data() {
 		return {
 			isActive: true,
@@ -437,6 +440,9 @@ export default {
 			if (to) {
 				this.getHeightmap();
 			}
+		},
+		language() {
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);
 		}
 	}
 }

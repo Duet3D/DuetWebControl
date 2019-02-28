@@ -20,15 +20,15 @@ export default {
 		...mapState('machine', ['isReconnecting']),
 		message() {
 			if (this.isConnecting) {
-				return 'Connecting...';
+				return this.$t('dialog.connection.connecting');
 			}
 			if (this.isReconnecting) {
-				return 'Connection lost, attempting to reconnect...';
+				return this.$t('dialog.connection.reconnecting');
 			}
 			if (this.isDisconnecting) {
-				return 'Disconnecting...';
+				return this.$t('dialog.connection.disconnecting');
 			}
-			return 'Please stand by...';
+			return this.$t('dialog.connection.standBy');
 		}
 	}
 }

@@ -115,16 +115,30 @@ export const Routing = [
 	},
 	// Settings
 	{
-		icon: 'settings',
+		icon: 'build',
 		caption: 'menu.settings.caption',
 		pages: [
-			// Interface
+			// General
+			{
+				icon: 'settings',
+				caption: 'menu.settings.general',
+				path: '/Settings/General',
+				component: Settings.General
+			},
+			// Machine
 			{
 				icon: 'settings_applications',
-				caption: 'menu.settings.interface',
-				path: '/Settings/Interface',
-				component: Settings.Interface
+				caption: 'menu.settings.machine',
+				path: '/Settings/Machine',
+				component: Settings.Machine
 			}
+			// Update (coming soon)
+			/* {
+				icon: 'update',
+				caption: 'menu.settings.update',
+				path: '/Settings/Update',
+				component: Settings.Update
+			} */
 		]
 	}
 ]

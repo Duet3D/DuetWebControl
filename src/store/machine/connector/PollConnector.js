@@ -7,7 +7,7 @@ import BaseConnector from './BaseConnector.js'
 import { FileInfo } from '../modelItems.js'
 
 import {
-	CORSError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
+	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError, DriveUnmountedError,
 	LoginError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
@@ -30,7 +30,7 @@ export default class PollConnector extends BaseConnector {
 			if (e.response) {
 				throw e;
 			}
-			throw new CORSError();
+			throw new NetworkError();
 		}
 
 		switch (response.data.err) {
@@ -58,7 +58,8 @@ export default class PollConnector extends BaseConnector {
 	pendingCodes = []
 	fileTransfers = []
 	layers = []
-	printStats = undefined
+	currentFileInfo = new FileInfo()
+	printStats = {}
 	messageBoxShown = false;
 
 	constructor(hostname, password, responseData) {
@@ -153,7 +154,7 @@ export default class PollConnector extends BaseConnector {
 				return Promise.reject(error);
 			}
 
-			return Promise.reject(new CORSError());
+			return Promise.reject(new NetworkError());
 		});
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
@@ -216,6 +217,7 @@ export default class PollConnector extends BaseConnector {
 			(this.verbose && (this.updateLoopCounter % 2) === 0) ? 2 : (wasPrinting ? 3 : 1);
 		const response = await this.axios.get(`rr_status?type=${statusType}`);
 		const isPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(response.data.status) !== -1;
+		const newData = {};
 
 		// Check if an extended status response needs to be polled in case machine parameters have changed
 		if (statusType !== 2 && this.arraySizesDiffer(response.data, this.lastStatusResponse)) {
@@ -223,9 +225,27 @@ export default class PollConnector extends BaseConnector {
 			return;
 		}
 
+		// Retrieve job file information if a print has started
+		if (isPrinting && (this.justConnected || !wasPrinting)) {
+			this.currentFileInfo = await this.getFileInfo();
+			delete this.currentFileInfo.printDuration;
+
+			quickPatch(newData, {
+				job: {
+					file: this.currentFileInfo,
+					layers: []
+				}
+			});
+
+			this.layers = [];
+			this.printStats = {
+				layerHeight: this.currentFileInfo.layerHeight
+			};
+		}
+
 		// Standard Status Response
 		const fanRPMs = (response.data.sensors.fanRPM instanceof Array) ? response.data.sensors.fanRPM : [response.data.sensors.fanRPM];
-		const newData = {
+		quickPatch(newData, {
 			fans: response.data.params.fanPercent.map((fanPercent, index) => ({
 				rpm: (index < fanRPMs.length) ? fanRPMs[index] : null,
 				value: fanPercent / 100
@@ -293,7 +313,7 @@ export default class PollConnector extends BaseConnector {
 				active,
 				standby: response.data.temps.tools.standby[index]
 			}))
-		};
+		});
 
 		if (statusType === 2) {
 			// Extended Status Response
@@ -392,6 +412,7 @@ export default class PollConnector extends BaseConnector {
 		} else if (statusType === 3) {
 			// Print Status Response
 			newData.job  = {
+				file: {},
 				filePosition: response.data.filePosition,
 				extrudedRaw: response.data.extrRaw,
 				duration: response.data.printDuration,
@@ -413,7 +434,7 @@ export default class PollConnector extends BaseConnector {
 					if (response.data.currentLayer > 1) {
 						this.layers.push({
 							duration: response.data.firstLayerDuration,
-							height: response.data.firstLayerHeight,
+							height: this.currentFileInfo.firstLayerHeight,
 							filament: (response.data.currentLayer === 2) ? response.data.extrRaw.filter(amount => amount > 0) : null,
 							fractionPrinted: (response.data.currentLayer === 2) ? response.data.fractionPrinted / 100 : null
 						});
@@ -424,7 +445,7 @@ export default class PollConnector extends BaseConnector {
 							this.printStats.duration = response.data.warmUpDuration + response.data.firstLayerDuration;
 							this.printStats.extrRaw = response.data.extrRaw;
 							this.printStats.fractionPrinted = response.data.fractionPrinted;
-							this.printStats.measuredLayerHeight = response.data.coords.xyz[2] - response.data.firstLayerHeight;
+							this.printStats.measuredLayerHeight = response.data.coords.xyz[2] - this.currentFileInfo.firstLayerHeight;
 							this.printStats.zPosition = response.data.coords.xyz[2];
 						} else if (response.data.currentLayer > this.layers.length + 1) {
 							addLayers = true;
@@ -436,7 +457,7 @@ export default class PollConnector extends BaseConnector {
 				}
 
 				if (addLayers) {
-					const layerJustChanged = (response.data.currentLayer - this.layers.length) === 2;
+					const layerJustChanged = (response.data.status === 'M') || ((response.data.currentLayer - this.layers.length) === 2);
 					if (this.printStats.duration) {
 						// Got info about the past layer, add what we know
 						this.layers.push({
@@ -454,7 +475,6 @@ export default class PollConnector extends BaseConnector {
 						this.printStats.zPosition = response.data.coords.xyz[2];
 					}
 					newData.job.layers = this.layers;
-					newData.job.file.firstLayerHeight = response.data.firstLayerHeight;
 
 					// Keep track of the past layer if the layer change just happened
 					if (layerJustChanged) {
@@ -542,21 +562,6 @@ export default class PollConnector extends BaseConnector {
 					password: this.password
 				}
 			});
-		}
-
-		// See if a print has started
-		if (isPrinting && (this.justConnected || !wasPrinting)) {
-			const currentFileInfo = await this.getFileInfo();
-			quickPatch(newData, {
-				job: {
-					file: currentFileInfo,
-					layers: []
-				}
-			});
-
-			this.printStats = {
-				layerHeight: currentFileInfo.layerHeight
-			};
 		}
 
 		// Update the data model
@@ -713,44 +718,40 @@ export default class PollConnector extends BaseConnector {
 	upload({ filename, content, cancelSource = axios.cancelToken.source(), onProgress }) {
 		const that = this;
 		return new Promise(function(resolve, reject) {
-			const reader = new FileReader();
-			reader.onerror = e => reject(e);
-			reader.onload = () => {
-				// Create upload options
-				const options = {
-					cancelToken: cancelSource.token,
-					isFileTransfer: true,
-					onUploadProgress: onProgress,
-					params: {
-						name: filename,
-						time: timeToStr(content.lastModified ? new Date(content.lastModified) : new Date())
-					},
-					timeout: 0,
-					transformRequest(data, headers) {
-						delete headers.post['Content-Type'];
-						return data;
-					}
-				};
-
-				try {
-					// Create file transfer and start it
-					that.axios.post('rr_upload', reader.result, options)
-						.then(function(response) {
-							resolve(response);
-							that.dispatch('onFileUploaded', { filename, content });
-						})
-						.catch(reject)
-						.then(function() {
-							that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
-						});
-
-					// Keep it in the list of transfers
-					that.fileTransfers.push(cancelSource);
-				} catch (e) {
-					reject(e);
+			// Create upload options
+			const payload = (content instanceof(Blob)) ? content : new Blob([content]);
+			const options = {
+				cancelToken: cancelSource.token,
+				isFileTransfer: true,
+				onUploadProgress: onProgress,
+				params: {
+					name: filename,
+					time: timeToStr(content.lastModified ? new Date(content.lastModified) : new Date())
+				},
+				timeout: 0,
+				transformRequest(data, headers) {
+					delete headers.post['Content-Type'];
+					return data;
 				}
+			};
+
+			try {
+				// Create file transfer and start it
+				that.axios.post('rr_upload', payload, options)
+					.then(function(response) {
+						resolve(response);
+						that.dispatch('onFileUploaded', { filename, content });
+					})
+					.catch(reject)
+					.then(function() {
+						that.fileTransfers = that.fileTransfers.filter(item => item !== cancelSource);
+					});
+
+				// Keep it in the list of transfers
+				that.fileTransfers.push(cancelSource);
+			} catch (e) {
+				reject(e);
 			}
-			reader.readAsArrayBuffer(content);
 		});
 	}
 
@@ -762,10 +763,11 @@ export default class PollConnector extends BaseConnector {
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
+
 		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
-	async move({ from, to, force }) {
+	async move({ from, to, force, silent }) {
 		const response = await this.axios.get('rr_move', {
 			params: {
 				old: from,
@@ -774,10 +776,13 @@ export default class PollConnector extends BaseConnector {
 			}
 		});
 
-		if (response.data.err) {
-			throw new OperationFailedError(`err ${response.data.err}`);
+		if (!silent) {
+			if (response.data.err) {
+				throw new OperationFailedError(`err ${response.data.err}`);
+			}
+
+			await this.dispatch('onFileOrDirectoryMoved', { from, to, force });
 		}
-		await this.dispatch('onFileOrDirectoryMoved', { from, to, force });
 	}
 
 	async makeDirectory(directory) {
@@ -788,6 +793,7 @@ export default class PollConnector extends BaseConnector {
 		if (response.data.err) {
 			throw new OperationFailedError(`err ${response.data.err}`);
 		}
+
 		await this.dispatch('onDirectoryCreated', directory);
 	}
 

@@ -1,12 +1,12 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">texture</v-icon> Extrusion Factors
+			<v-icon small class="mr-1">texture</v-icon> {{ $t('panel.extrusionFactors.caption') }}
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template slot="activator">
 					<a v-show="!uiFrozen && move.extruders.length" href="#" @click.prevent="">
-						Change Visibility
+						{{ $t('panel.extrusionFactors.changeVisibility') }}
 					</a>
 				</template>
 
@@ -15,7 +15,7 @@
 						<v-icon class="mr-1">
 							{{ (displayedExtruders.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
-						{{ `Extruder ${index}` }}
+						{{ $t('panel.extrusionFactors.extruder', [index]) }}
 					</v-list-tile>
 				</v-list>
 			</v-menu>
@@ -26,7 +26,7 @@
 				<v-flex class="pt-2">
 					<v-layout row>
 						<v-flex tag="span">
-							{{ `Extruder ${extruder}` }}
+							{{ $t('panel.extrusionFactors.extruder', [extruder]) }}
 						</v-flex>
 						<v-spacer></v-spacer>
 						<v-flex shrink>
@@ -43,7 +43,7 @@
 		</v-layout>
 
 		<v-alert type="info" :value="!visibleExtruders.length">
-			No Extruders Configured
+			{{ $t('panel.extrusionFactors.noExtruders') }}
 		</v-alert>
 	</v-card>
 </template>

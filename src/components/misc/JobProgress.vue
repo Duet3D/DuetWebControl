@@ -31,22 +31,22 @@ export default {
 			if (this.state.isPrinting) {
 				const progress = this.$display(this.jobProgress * 100, 1, '%');
 				if (this.state.isSimulating) {
-					return `Simulating ${this.printFile}, ${progress} complete`;
+					return this.$t('jobProgress.simulating', [this.printFile, progress]);
 				}
-				if (this.state.mode === 'CNC') {
-					return `Processing ${this.printFile}, ${progress} complete`;
+				if (this.state.mode === 'FFF') {
+					return this.$t('jobProgress.printing', [this.printFile, progress]);
 				}
-				return `Printing ${this.printFile}, ${progress} complete`;
+				return this.$t('jobProgress.processing', [this.printFile, progress]);
 			} else if (this.job.lastFileName) {
 				if (this.job.lastFileSimulated) {
-					return `Simulated ${this.job.lastFileName}, 100% complete`;
+					return this.$t('jobProgress.simulated', [this.job.lastFileName]);
 				}
-				if (this.state.mode === 'CNC') {
-					return `Processed ${this.job.lastFileName}, 100% complete`;
+				if (this.state.mode === 'FFF') {
+					return this.$t('jobProgress.printed', [this.job.lastFileName]);
 				}
-				return `Printed ${this.job.lastFileName}, 100% complete`;
+				return this.$t('jobProgress.processed', [this.job.lastFileName]);
 			}
-			return 'No Job running.';
+			return this.$t('jobProgress.noJob');
 		},
 		printDetails() {
 			if (!this.state.isPrinting) {
@@ -55,15 +55,15 @@ export default {
 
 			let details = '';
 			if (this.job.layer !== null && this.job.file.numLayers) {
-				details = `Layer ${this.job.layer} of ${this.job.file.numLayers}`;
+				details = this.$t('jobProgress.layer', [this.job.layer, this.job.file.numLayers]);
 			}
 			if (this.job.extrudedRaw.length) {
 				if (details !== '') { details += ', '; }
-				details += `Filament Usage: ${this.$display(this.job.extrudedRaw.reduce((a, b) => a + b), 1, 'mm')}`;
+				details += this.$t('jobProgress.filament', [this.$display(this.job.extrudedRaw.reduce((a, b) => a + b), 1, 'mm')]);
 				if (this.job.file.filament.length) {
 					const used = this.job.extrudedRaw.reduce((a, b) => a + b);
 					const needed = this.job.file.filament.reduce((a, b) => a + b);
-					details += ` (${this.$display(Math.max(0, needed - used), 1, 'mm')} remaining)`;
+					details += ' (' + this.$t('jobProgress.filamentRemaining', [this.$display(Math.max(needed - used, 0), 1, 'mm')]) + ')';
 				}
 			}
 			return details;

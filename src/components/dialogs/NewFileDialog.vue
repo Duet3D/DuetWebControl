@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<input-dialog :shown.sync="showFilenameDialog" :title="filenameTitle" :prompt="filenamePrompt" @cancelled="cancelled" @confirmed="showEditor"></input-dialog>
+		<input-dialog :shown.sync="showFilenameDialog" :title="$t('dialog.newFile.title')" :prompt="$t('dialog.newFile.prompt')" @cancelled="cancelled" @confirmed="showEditor"></input-dialog>
 		<file-edit-dialog :shown.sync="showEditorDialog" :filename="filename"></file-edit-dialog>
 	</div>
 </template>
@@ -26,8 +26,6 @@ export default {
 	computed: mapGetters(['isConnected']),
 	data() {
 		return {
-			filenameTitle: 'New File',
-			filenamePrompt: 'Please enter a new file name:',
 			showFilenameDialog: this.shown,
 
 			filename: '',

@@ -6,49 +6,51 @@
 			<v-spacer></v-spacer>
 
 			<v-btn class="hidden-sm-and-down" v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New File
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Filament
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newFilament.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" target="filaments" color="primary"></upload-btn>
 		</v-toolbar>
 
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop>
 			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">{{ isRootDirectory ? 'No Filaments' : 'No Files' }}</v-alert>
+				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+					{{ isRootDirectory ? $t('list.filament.noFilaments') : $t('list.baseFileList.noFiles') }}
+				</v-alert>
 			</template>
 
 			<template slot="context-menu">
 				<v-list-tile v-show="filamentSelected" @click="downloadFilament">
-					<v-icon class="mr-1">cloud_download</v-icon> Download
+					<v-icon class="mr-1">cloud_download</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
 				</v-list-tile>
 				<v-list-tile v-show="filamentSelected" @click="rename">
-					<v-icon class="mr-1">short_text</v-icon> Rename File or Directory
+					<v-icon class="mr-1">short_text</v-icon> {{ $t('list.baseFileList.rename') }}
 				</v-list-tile>
 				<v-list-tile @click="remove">
-					<v-icon class="mr-1">delete</v-icon> Delete
+					<v-icon class="mr-1">delete</v-icon> {{ $t('list.baseFileList.delete') }}
 				</v-list-tile>
 			</template>
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
 			<v-btn v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> New File
+				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<v-btn v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> New Filament
+				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newFilament.caption') }}
 			</v-btn>
 			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> Refresh
+				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn target="filaments" color="primary"></upload-btn>
 		</v-layout>
 
-		<new-directory-dialog :shown.sync="showNewFilament" :directory="directory" title="New Filament" prompt="Please enter a name for the new filament" :showSuccess="false" :showError="false" @directoryCreationFailed="directoryCreationFailed" @directoryCreated="createFilamentFiles"></new-directory-dialog>
+		<new-directory-dialog :shown.sync="showNewFilament" :directory="directory" :title="$t('dialog.newFilament.title')" :prompt="$t('dialog.newFilament.prompt')" :showSuccess="false" :showError="false" @directoryCreationFailed="directoryCreationFailed" @directoryCreated="createFilamentFiles"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
 	</div>
 </template>
@@ -85,7 +87,7 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode', 'upload', 'download', 'delete', 'getFileList']),
 		directoryCreationFailed(error) {
-			this.$makeNotification('error', 'Failed to create filament', error.message);
+			this.$makeNotification('error', this.$t('notification.newFilament.errorTitle'), error.message);
 		},
 		async createFilamentFiles(path) {
 			if (this.doingFileOperation) {
@@ -99,10 +101,10 @@ export default {
 				await this.upload({ filename: Path.combine(path, 'load.g'), content: emptyFile, showSuccess: false });
 				await this.upload({ filename: Path.combine(path, 'config.g'), content: emptyFile, showSuccess: false });
 				await this.upload({ filename: Path.combine(path, 'unload.g'), content: emptyFile, showSuccess: false });
-				this.$makeNotification('success', 'Filament created', `Successfully created filament ${Path.extractFileName(path)}`);
+				this.$makeNotification('success', this.$t('notification.newFilament.successTitle'), this.$t('notification.newFilament.successMessage', [Path.extractFileName(path)]));
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification('error', 'Failed to create filament macros', e.message);
+				this.$makeNotification('error', this.$t('notification.newFilament.errorTitleMacros'), e.message);
 			}
 			this.doingFileOperation = false;
 		},
@@ -117,7 +119,7 @@ export default {
 				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), showSuccess: false, showError: false });
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
-					this.$makeNotification('error', 'Failed to download load.g', e.message);
+					this.$makeNotification('error', this.$t('notification.download.error', ['load.g']), e.message);
 				}
 				return;
 			}
@@ -125,7 +127,7 @@ export default {
 				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), showSuccess: false, showError: false });
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
-					this.$makeNotification('error', 'Failed to download unload.g', e.message);
+					this.$makeNotification('error', this.$t('notification.download.error', ['unload.g']), e.message);
 				}
 				return;
 			}
@@ -147,13 +149,13 @@ export default {
 				saveAs(zipBlob, `${filament}.zip`);
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification('error', 'Failed to compress files', e.message);
+				this.$makeNotification('error', this.$t('notification.compress.errorTitle', ['load.g']), e.message);
 			}
 		},
 		async rename() {
 			const filament = this.selection[0].name;
 			if (this.tools.some(tool => tool.filament === filament)) {
-				this.$makeNotification('error', 'Cannot rename filament', 'This filament is still loaded. Please unload it before you proceed');
+				this.$makeNotification('error', this.$t('notification.renameFilament.errorTitle'), this.$t('notification.renameFilament.errorStillLoaded'));
 				return;
 			}
 
@@ -165,7 +167,7 @@ export default {
 			}
 
 			if (items.some(item => item.isDirectory && this.tools.some(tool => tool.filament === item.name))) {
-				this.$makeNotification('error', 'Could not delete filament', 'At least one of these filaments is still loaded. Please unload them before you proceed');
+				this.$makeNotification('error', this.$t('notification.deleteFilament.errorTitle'), this.$t('notification.deleteFilament.errorStillLoaded'));
 				return;
 			}
 
@@ -180,7 +182,7 @@ export default {
 						// Get files from the filament directory
 						const files = await this.getFileList(Path.combine(Path.filaments, items[i].name));
 						if (files.some(item => item.isDirectory)) {
-							this.$makeNotification('error', 'Cannot delete filament', `The filament ${items[i].name} contains sub-directories. Please delete them manually.`);
+							this.$makeNotification('error', this.$t('notification.deleteFilament.errorTitle'), this.$t('notification.deleteFilament.errorSubDirectories', [items[i].name]));
 							break;
 						}
 
@@ -195,7 +197,7 @@ export default {
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
-						this.$makeNotification('error', 'Could not delete filament', e.message);
+						this.$makeNotification('error', this.$t('notification.deleteFilament.errorTitle'), e.message);
 					}
 					break;
 				}

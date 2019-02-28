@@ -8,12 +8,12 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">polymer</v-icon> Macros
+			<v-icon small class="mr-1">polymer</v-icon> {{ $t('list.macro.caption') }}
 			<v-spacer></v-spacer>
-			<span v-show="isConnected">{{ directory.replace('0:/macros', 'Root') }}</span>
+			<span v-show="isConnected">{{ directory.replace('0:/macros', $t('list.macro.root')) }}</span>
 		</v-card-title>
 
-		<v-card-text class="pa-0" v-show="loading || filelist.length">
+		<v-card-text class="pa-0" v-show="loading || filelist.length || !isRootDirectory">
 			<v-progress-linear v-show="loading" :indeterminate="true" class="my-0"></v-progress-linear>
 
 			<v-list class="pt-0" dense>
@@ -25,7 +25,7 @@
 					</v-list-tile-avatar>
 
 					<v-list-tile-content>
-						Go up
+						<v-list-tile-title>{{ $t('list.baseFileList.goUp') }}</v-list-tile-title>
 					</v-list-tile-content>
 				</v-list-tile>
 
@@ -41,14 +41,14 @@
 					</v-list-tile-content>
 
 					<v-list-tile-action v-if="!item.isDirectory && item.executing">
-						<v-progress-circular indeterminate color="blue"></v-progress-circular>
+						<v-progress-circular class="list-icon" indeterminate color="blue"></v-progress-circular>
 					</v-list-tile-action>
 				</v-list-tile>
 			</v-list>
 		</v-card-text>
 
 		<v-alert :value="!filelist.length" type="info">
-			No Macros
+			{{ $t('list.macro.noMacros') }}
 		</v-alert>
 	</v-card>
 </template>

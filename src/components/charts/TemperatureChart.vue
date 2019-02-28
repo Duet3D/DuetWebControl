@@ -52,6 +52,7 @@ function makeDataset(heaterIndex, extra, label) {
 		borderDash: extra ? [10, 5] : undefined,
 		borderWidth: 2,
 		data: [],
+		locale: i18n.locale,
 		pointRadius: 0,
 		pointHitRadius: 0,
 		showLine: true
@@ -70,17 +71,21 @@ const tempSamples = {
 function pushSeriesData(machine, heaterIndex, heater, extra) {
 	// Get series from dataset
 	const machineData = tempSamples[machine];
-	let dataset;
-	machineData.temps.forEach(function(item) {
+	let dataset = machineData.temps.find(function(item) {
 		if (item.heaterIndex === heaterIndex && item.extra === extra) {
-			dataset = item;
+			return item;
 		}
 	});
 
-	if (!dataset) {
+	if (!dataset || dataset.locale !== i18n.locale) {
 		const label = heater.name ? heater.name : i18n.t('chart.temperature.heater', [heaterIndex]);
-		dataset = makeDataset(heaterIndex, extra, label);
-		machineData.temps.push(dataset);
+		if (dataset) {
+			dataset.label = label;
+			dataset.locale = i18n.locale;
+		} else {
+			dataset = makeDataset(heaterIndex, extra, label);
+			machineData.temps.push(dataset);
+		}
 	}
 
 	// Add new sample
