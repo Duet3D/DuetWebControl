@@ -16,8 +16,9 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapState(['isConnecting', 'isDisconnecting', 'isLocal']),
+		...mapState('machine', ['isReconnecting']),
 		...mapGetters(['isConnected']),
-		isBusy() { return this.isConnecting || this.isDisconnecting },
+		isBusy() { return this.isConnecting || this.isReconnecting || this.isDisconnecting },
 		buttonColor() {
 			return this.isBusy ? 'warning'
 				: (this.isConnected ? 'success' : 'primary');
@@ -26,7 +27,7 @@ export default {
 			return this.isConnected ? 'close' : 'power_settings_new';
 		},
 		caption() {
-			return this.$t(this.isConnecting ? 'button.connect.connecting'
+			return this.$t((this.isConnecting || this.isReconnecting) ? 'button.connect.connecting'
 				: this.isDisconnecting ? 'button.connect.disconnecting'
 					: this.isConnected ? 'button.connect.disconnect'
 						: 'button.connect.connect');

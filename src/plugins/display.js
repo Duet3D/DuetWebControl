@@ -71,7 +71,7 @@ export function displaySpeed(bytesPerSecond) {
 }
 
 export function displayTime(value, showTrailingZeroes = false) {
-	if (isNaN(value)) {
+	if (value === null || isNaN(value)) {
 		return i18n.t('generic.noValue');
 	}
 

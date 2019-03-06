@@ -148,11 +148,22 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
+		isConnected(to) {
+			if (to) {
+				this.wasMounted = this.storages.length && this.storages[0].mounted;
+				this.loadDirectory();
+			} else {
+				this.directory = Path.macros;
+				this.filelist = [];
+			}
+		},
 		selectedMachine() {
+			// TODO store current directory per selected machine
 			if (this.isConnected) {
 				this.wasMounted = this.storages.length && this.storages[0].mounted;
 				this.loadDirectory();
 			} else {
+				this.directory = Path.macros;
 				this.filelist = [];
 			}
 		},

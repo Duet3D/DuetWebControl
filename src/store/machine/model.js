@@ -233,17 +233,6 @@ export default function(connector) {
 					} else if (wasPrinting) {
 						state.state.isSimulating = false;
 
-						for (let key in state.job) {
-							if (!(state.job[key] instanceof Array)) {
-								if (state.job[key] instanceof Object) {
-									for (let subkey in state.job[key]) {
-										state.job[key][subkey] = null;
-									}
-								} else {
-									state.job[key] = null;
-								}
-							}
-						}
 						state.job.lastFileName = lastJobFile;
 						state.job.lastFileSimulated = wasSimulating;
 					}

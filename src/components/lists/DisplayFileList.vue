@@ -46,15 +46,12 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { mapGetters } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
-	computed: {
-		...mapState(['selectedMachine']),
-		...mapGetters(['uiFrozen'])
-	},
+	computed: mapGetters(['uiFrozen']),
 	data() {
 		return {
 			sortBy: 'name',
@@ -72,11 +69,6 @@ export default {
 		},
 		fileClicked(item) {
 			this.$refs.filelist.edit(item);
-		}
-	},
-	watch: {
-		selectedMachine() {
-			this.directory = Path.sys;
 		}
 	}
 }

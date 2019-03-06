@@ -39,7 +39,7 @@ const store = new Vuex.Store({
 	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
-		async connect({ state, commit, dispatch }, { hostname, username = defaultUsername, password = defaultPassword } = { hostname: location.host, username: defaultUsername, password: defaultPassword }) {
+		async connect({ state, commit, dispatch }, { hostname = location.host, username = defaultUsername, password = defaultPassword } = {}) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
@@ -58,7 +58,7 @@ const store = new Vuex.Store({
 				connectorInstance.register(moduleInstance);
 
 				commit('setSelectedMachine', hostname);
-				logGlobal('success', i18n.t('notification.connected', [hostname]));
+				logGlobal('success', i18n.t('events.connected', [hostname]));
 
 				if (state.isLocal) {
 					commit('settings/setLastHostname', hostname);
@@ -77,7 +77,7 @@ const store = new Vuex.Store({
 		},
 
 		// Disconnect from the given hostname
-		async disconnect({ state, commit, dispatch }, { hostname, doDisconnect = true } = { hostname: state.selectedMachine, doDisconnect: true }) {
+		async disconnect({ state, commit, dispatch }, { hostname = state.selectedMachine, doDisconnect = true } = {}) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
@@ -92,7 +92,7 @@ const store = new Vuex.Store({
 				commit('setDisconnecting', true);
 				try {
 					await dispatch(`machines/${hostname}/disconnect`);
-					logGlobal('success', i18n.t('notification.disconnected', [hostname]));
+					logGlobal('success', i18n.t('events.disconnected', [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
 					logGlobal('warning', i18n.t('error.disconnect', [hostname]), e.message);
@@ -120,13 +120,15 @@ const store = new Vuex.Store({
 
 		// Called when a machine cannot stay connected
 		async onConnectionError({ state, dispatch, commit }, { hostname, error }) {
-			logGlobal('error', i18n.t('error.connectionError', [hostname]), error.message);
 			if (error instanceof InvalidPasswordError) {
+				logGlobal('error', i18n.t('events.connectionLost', [hostname]), error.message);
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 				commit('askForPassword');
 			} else if (state.isLocal) {
+				logGlobal('error', i18n.t('events.connectionLost', [hostname]), error.message);
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
+				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
 				dispatch(`machines/${hostname}/reconnect`);
 			}
 		}

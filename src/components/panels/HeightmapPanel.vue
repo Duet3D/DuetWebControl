@@ -165,7 +165,9 @@ export default {
 			minDiff: undefined,
 			maxDiff: undefined,
 			meanError: undefined,
-			rmsError: undefined
+			rmsError: undefined,
+
+			unsubscribe: undefined
 		}
 	},
 	methods: {
@@ -217,7 +219,8 @@ export default {
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
 			const csv = new CSV(csvData.substr(csvData.indexOf("\n") + 1));
-			const radius = parseFloat(csv.get('radius'));
+			let radius = parseFloat(csv.get('radius'));
+			if (radius <= 0) { radius = undefined; }
 			const xMin = parseFloat(csv.get('xmin'));
 			const yMin = parseFloat(csv.get('ymin'));
 			let xSpacing = parseFloat(csv.get('xspacing'));
@@ -419,10 +422,19 @@ export default {
 		this.isActive = false;
 	},
 	mounted() {
+		const getHeightmap = this.getHeightmap;
+		this.unsubscribe = this.$store.subscribeAction(function(action) {
+			if (action.type.endsWith('onCodeCompleted') && action.payload.reply.indexOf('heightmap.csv') !== -1) {
+				getHeightmap();
+			}
+		});
+
 		// FIXME give the grid some time to resize everything...
 		setTimeout(this.init, 100);
 	},
 	beforeDestroy() {
+		this.unsubscribe();
+
 		threeInstances = threeInstances.filter(item => item !== this);
 		if (this.three.renderer) {
 			this.three.renderer.forceContextLoss();

@@ -1,6 +1,6 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-1">
 			<v-icon small class="mr-1">build</v-icon> {{ $t('panel.jobControl.caption') }}
 		</v-card-title>
 

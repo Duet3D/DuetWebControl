@@ -56,7 +56,7 @@
 				</v-toolbar-items>
 			</v-toolbar>
 
-			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" @keydown.tab.exact.prevent="onTextareaTab" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>

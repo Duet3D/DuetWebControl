@@ -204,7 +204,6 @@ export default {
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
 		connect: 'Failed to connect to {0}',
-		connectionError: 'Failed to maintain connection to {0}',
 		disconnect: 'Could not disconnect cleanly from {0}',
 		disconnected: 'Could not complete action because the connection has been terminated',
 		cancelled: 'Operation has been cancelled',
@@ -227,6 +226,14 @@ export default {
 		fileinfoRequestFailed: 'Failed to get file info for {0}',
 		filamentsLoadFailed: 'Failed to load filaments',
 		move: 'Failed to move {0} to {1}'
+	},
+	events: {
+		connected: 'Connected to {0}',
+		connectionLost: 'Failed to maintain connection to {0}',
+		emergencyStop: 'Emergency stop, attemping to reconnect...',
+		reconnecting: 'Connection interrupted, attempting to reconnect...',
+		reconnected: 'Connection established',
+		disconnected: 'Disconnected from {0}'
 	},
 	generic: {
 		ok: 'OK',
@@ -378,7 +385,6 @@ export default {
 			message: 'Please stand by while your files are being compressed...',
 			errorTitle: 'Failed to compress files'
 		},
-		connected: 'Connected to {0}',
 		delete: {
 			errorTitle: 'Failed to delete {0}',
 			errorMessageDirectory: 'Please make sure that this directory is empty',
@@ -390,7 +396,6 @@ export default {
 			errorStillLoaded: 'At least one of the selected filaments is still loaded. Please unload them before you proceed',
 			errorSubDirectories: 'The filament {0} contains sub-directories. Please delete them manually and try again.'
 		},
-		disconnected: 'Disconnected from {0}',
 		download: {
 			title: 'Downloading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being downloaded...',
@@ -399,7 +404,7 @@ export default {
 			error: 'Failed to download {0}'
 		},
 		loadingFile: {
-			title: 'Loading file',
+			title: 'Loading file...',
 			message: 'This file is relatively big so it may take a while before it is displayed.'
 		},
 		message: 'Message',
@@ -508,7 +513,7 @@ export default {
 		},
 		jobData: {
 			caption: 'Collected Data',
-			warmUpTime: 'Warm-Up Time',
+			warmUpDuration: 'Warm-Up Time',
 			currentLayerTime: 'Current Layer Time',
 			lastLayerTime: 'Last Layer Time',
 			jobDuration: 'Job Duration'
@@ -518,6 +523,7 @@ export default {
 			filament: 'Based on Filament Usage',
 			file: 'Based on File Progress',
 			layer: 'Based on Layer Time',
+			slicer: 'Based on Slicer',
 			simulation: 'Based on Simulation'
 		},
 		jobInfo: {

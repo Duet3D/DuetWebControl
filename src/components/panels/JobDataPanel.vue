@@ -9,10 +9,10 @@
 				<v-flex>
 					<v-layout column>
 						<v-flex tag="strong">
-							{{ $t('panel.jobData.warmUpTime') }}
+							{{ $t('panel.jobData.warmUpDuration') }}
 						</v-flex>
 						<v-flex tag="span">
-							{{ $displayTime(job.warmUpTime) }}
+							{{ $displayTime(job.warmUpDuration) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>

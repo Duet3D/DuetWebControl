@@ -68,7 +68,6 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/model', ['tools']),
 		isRootDirectory() { return this.directory === Path.filaments; },
@@ -206,11 +205,6 @@ export default {
 		},
 		fileClicked(item) {
 			this.$refs.filelist.edit(item);
-		}
-	},
-	watch: {
-		selectedMachine() {
-			this.directory = Path.filaments;
 		}
 	}
 }

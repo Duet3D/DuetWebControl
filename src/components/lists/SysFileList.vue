@@ -53,7 +53,6 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
 		...mapState('machine/model', ['state']),
 		...mapGetters(['uiFrozen'])
 	},
@@ -90,11 +89,6 @@ export default {
 			} catch (e) {
 				// this is expected
 			}
-		}
-	},
-	watch: {
-		selectedMachine() {
-			this.directory = Path.sys;
 		}
 	}
 }

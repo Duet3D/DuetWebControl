@@ -414,16 +414,31 @@ export default class PollConnector extends BaseConnector {
 			newData.job  = {
 				file: {},
 				filePosition: response.data.filePosition,
-				extrudedRaw: response.data.extrRaw,
-				duration: response.data.printDuration,
-				layer: response.data.currentLayer,
-				layerTime: response.data.currentLayerTime,
-				warmUpDuration: response.data.warmUpDuration,
-				timesLeft: {
-					file: response.data.timesLeft.file,
-					filament: response.data.timesLeft.filament,
-					layer: response.data.timesLeft.layer
-				}
+				extrudedRaw: response.data.extrRaw
+			}
+
+			// Update some stats only if the print is still live
+			if (isPrinting) {
+				quickPatch(newData.job, {
+					duration: response.data.printDuration,
+					layer: response.data.currentLayer,
+					layerTime: response.data.currentLayerTime,
+					warmUpDuration: response.data.warmUpDuration,
+					timesLeft: {
+						file: response.data.timesLeft.file,
+						filament: response.data.timesLeft.filament,
+						layer: response.data.timesLeft.layer
+					}
+				});
+			} else {
+				quickPatch(newData.job, {
+					layerTime: null,
+					timesLeft: {
+						file: null,
+						filament: null,
+						layer: null
+					}
+				});
 			}
 
 			// See if we need to record more layer stats

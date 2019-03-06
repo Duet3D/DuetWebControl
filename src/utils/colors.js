@@ -9,12 +9,12 @@ const heaterColors = [
 	'lime',
 	'black',
 	'purple',
+	'yellow',
 	'teal',
 	'brown',
 	'deep-orange',
 	'pink',
-	'blue-grey',
-	'yellow'
+	'blue-grey'
 ]
 
 export function getHeaterColor(heater) {

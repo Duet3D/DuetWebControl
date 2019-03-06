@@ -36,13 +36,23 @@
 						</v-flex>
 					</v-layout>
 				</v-flex>
-				<v-flex v-if="totalTime">
+				<v-flex v-show="job.file.printTime && !state.isSimulating">
+					<v-layout column>
+						<v-flex tag="strong">
+							{{ $t('panel.jobEstimations.slicer') }}
+						</v-flex>
+						<v-flex>
+							{{ $displayTime(state.isPrinting ? Math.max(0, job.file.printTime - job.duration) : job.file.printTime) }}
+						</v-flex>
+					</v-layout>
+				</v-flex>
+				<v-flex v-show="job.file.simulatedTime && !state.isSimulating">
 					<v-layout column>
 						<v-flex tag="strong">
 							{{ $t('panel.jobEstimations.simulation') }}
 						</v-flex>
 						<v-flex>
-							{{ $displayTime(Math.max(0, totalTime - job.duration)) }}
+							{{ $displayTime(state.isPrinting ? Math.max(0, job.file.simulatedTime - job.duration) : job.file.simulatedTime) }}
 						</v-flex>
 					</v-layout>
 				</v-flex>
@@ -57,12 +67,6 @@
 import { mapState } from 'vuex'
 
 export default {
-	computed: {
-		...mapState('machine/model', ['job']),
-		totalTime() {
-			// Simulated times are usually more accurate than the slicers' print time estmations
-			return this.job.file.simulatedTime ? this.job.file.simulatedTime : this.job.file.printTime;
-		}
-	}
+	computed: mapState('machine/model', ['job', 'state'])
 }
 </script>

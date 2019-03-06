@@ -88,18 +88,28 @@ export default {
 					e.preventDefault();
 					e.stopPropagation();
 				}
+			} else {
+				// Fix for Chrome: It does not grant access to dataTransfer on the same domain "for security reasons"...
+				e.preventDefault();
+				e.stopPropagation();
 			}
 		},
 		async dragDrop(directory, e) {
-			const data = JSON.parse(e.dataTransfer.getData('application/json'));
-			for (let i = 0; i < data.items.length; i++) {
-				const from = Path.combine(data.directory, data.items[i].name);
-				const to = Path.combine(directory, data.items[i].name);
-				try {
-					await this.move({ from, to });
-				} catch (e) {
-					this.$log('error', this.$t('error.move', [data.items[i].name, directory]), e.message);
-					break;
+			const jsonData = e.dataTransfer.getData('application/json');
+			if (jsonData) {
+				const data = JSON.parse(jsonData);
+				if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && directory === Path.combine(data.directory, dataItem.name))) {
+					const data = JSON.parse(jsonData);
+					for (let i = 0; i < data.items.length; i++) {
+						const from = Path.combine(data.directory, data.items[i].name);
+						const to = Path.combine(directory, data.items[i].name);
+						try {
+							await this.move({ from, to });
+						} catch (e) {
+							this.$log('error', this.$t('error.move', [data.items[i].name, directory]), e.message);
+							break;
+						}
+					}
 				}
 			}
 		}

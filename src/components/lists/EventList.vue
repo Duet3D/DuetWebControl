@@ -14,11 +14,20 @@ td.title-cell {
 .message {
 	white-space: pre-wrap;
 }
+
+.no-selection {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
 </style>
 
 <template>
 	<div class="component">
-		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
+		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3 no-selection" :class="{ 'empty-table-fix' : !events.length }">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
 					{{ $t('list.eventLog.noEvents') }}
@@ -35,7 +44,7 @@ td.title-cell {
 			</template>
 
 			<template slot="items" slot-scope="{ item }">
-				<tr :class="getClassByEvent(item.type)" @contextmenu.prevent="showContextMenu($event, item)" v-tab-control.contextmenu>
+				<tr :class="getClassByEvent(item.type)" @touchstart="onItemTouchStart(item, $event)" @touchend="onItemTouchEnd" @contextmenu.prevent="onItemContextmenu(item, $event)" v-tab-control.contextmenu>
 					<td class="log-cell title-cell">
 						{{ item.date.toLocaleString() }}
 					</td>
@@ -50,7 +59,7 @@ td.title-cell {
 
 		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y v-tab-control.contextmenu>
 			<v-list>
-				<v-list-tile ref="firstMenuItem" v-show="contextMenu.item" @click="copy" tabindex="0">
+				<v-list-tile v-show="contextMenu.item" @click="copy" tabindex="0">
 					<v-icon class="mr-1">assignment</v-icon> {{ $t('list.eventLog.copy') }}
 				</v-list-tile>
 				<v-list-tile @click="clearLog" tabindex="0">
@@ -85,6 +94,7 @@ export default {
 		return {
 			contextMenu: {
 				shown: false,
+				touchTimer: undefined,
 				item: null,
 				x: 0,
 				y: 0
@@ -141,7 +151,22 @@ export default {
 				this.pagination.descending = false;
 			}
 		},
-		showContextMenu(e, item) {
+		onItemTouchStart(item, e) {
+			const that = this;
+			this.contextMenu.touchTimer = setTimeout(function() {
+				that.contextMenu.touchTimer = undefined;
+				that.onItemContextmenu(item, { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY });
+			}, 1000);
+		},
+		onItemTouchEnd() {
+			if (this.contextMenu.touchTimer) {
+				clearTimeout(this.contextMenu.touchTimer);
+				this.contextMenu.touchTimer = undefined;
+			}
+		},
+		onItemContextmenu(item, e) {
+			this.onItemTouchEnd();
+
 			this.contextMenu.shown = false;
 			this.contextMenu.item = item;
 			this.contextMenu.x = e.clientX;

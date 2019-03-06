@@ -45,9 +45,9 @@ th.checkbox {
 			</template>
 
 			<template slot="items" slot-scope="props">
-				<tr :active="props.selected" @click="props.selected = !props.selected" @dblclick="itemClicked(props.item)" @contextmenu.prevent="itemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="dragStart(props.item, $event)" @dragover="dragOver(props.item, $event)" @drop.prevent="dragDrop(props.item, $event)" v-tab-control.contextmenu.dblclick @keydown.space="props.selected = !props.selected">
+				<tr :active="props.selected" @touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)" @contextmenu.prevent="onItemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)" v-tab-control.contextmenu @keydown.space="props.selected = !props.selected">
 					<td class="pr-0">
-						<v-checkbox :input-value="props.selected" tabindex="-1" primary hide-details></v-checkbox>
+						<v-checkbox :input-value="props.selected" @touchstart.stop="" @touchend.stop="" @click.stop.prevent="props.selected = !props.selected" primary hide-details></v-checkbox>
 					</td>
 					<template v-for="header in headers">
 						<td v-if="header.value === 'name'" :key="header.value">
@@ -91,7 +91,7 @@ th.checkbox {
 				<v-list-tile v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
 					<v-icon class="mr-1">cloud_download</v-icon> {{ $tc('list.baseFileList.download', innerValue.length) }}
 				</v-list-tile>
-				<v-list-tile v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit">
+				<v-list-tile v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit(innerValue[0])">
 					<v-icon class="mr-1">edit</v-icon> {{ $t('list.baseFileList.edit') }}
 				</v-list-tile>
 				<v-list-tile v-show="!noRename && innerValue.length === 1" @click="rename">
@@ -175,6 +175,7 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected']),
+		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/cache', ['sorting']),
 		...mapState('machine/model', ['storages']),
 		storageIndex() {
@@ -211,6 +212,7 @@ export default {
 			innerValue: [],
 			contextMenu: {
 				shown: false,
+				touchTimer: undefined,
 				x: 0,
 				y: 0
 			},
@@ -355,20 +357,32 @@ export default {
 			}
 			return (item[prop] !== null) ? this.$displayTime(item[prop]) : this.$t('generic.noValue');
 		},
-		itemClicked(item) {
-			if (item.isDirectory) {
-				this.loadDirectory(Path.combine(this.innerDirectory, item.name));
-			} else {
-				this.$emit('fileClicked', item);
+		onItemTouchStart(props, e) {
+			const that = this;
+			this.contextMenu.touchTimer = setTimeout(function() {
+				that.contextMenu.touchTimer = undefined;
+				that.onItemContextmenu(props, { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY });
+			}, 1000);
+		},
+		onItemTouchEnd() {
+			if (this.contextMenu.touchTimer) {
+				clearTimeout(this.contextMenu.touchTimer);
+				this.contextMenu.touchTimer = undefined;
 			}
 		},
-		itemContextmenu(props, e) {
+		onItemClick(props) {
+			if (props.item.isDirectory) {
+				this.loadDirectory(Path.combine(this.innerDirectory, props.item.name));
+			} else {
+				this.$emit('fileClicked', props.item);
+			}
+		},
+		onItemContextmenu(props, e) {
+			this.onItemTouchEnd();
+
 			// Deal with selection
 			if (!props.selected) {
-				this.innerValue = [];
-				this.$nextTick(() => {
-					props.selected = true;
-				});
+				props.selected = true;
 			}
 
 			// Open the context menu
@@ -379,7 +393,7 @@ export default {
 				this.contextMenu.shown = true;
 			});
 		},
-		dragStart(item, e) {
+		onItemDragStart(item, e) {
 			if (this.noDragDrop) {
 				return;
 			}
@@ -423,9 +437,10 @@ export default {
 			const x = e.clientX - table.getClientRects()[0].left;
 			const y = e.clientY - e.target.closest('tr').getClientRects()[0].top + offsetY;
 			e.dataTransfer.setDragImage(tableClone, x, y);
-			this.$nextTick(() => tableClone.remove());
+
+			setTimeout(() => tableClone.remove(), 0);
 		},
-		dragOver(item, e) {
+		onItemDragOver(item, e) {
 			if (!this.noDragDrop && item.isDirectory) {
 				const jsonData = e.dataTransfer.getData('application/json');
 				if (jsonData) {
@@ -434,20 +449,29 @@ export default {
 						e.preventDefault();
 						e.stopPropagation();
 					}
+				} else {
+					// Fix for Chrome: It does not grant access to dataTransfer on the same domain "for security reasons"...
+					e.preventDefault();
+					e.stopPropagation();
 				}
 			}
 		},
-		async dragDrop(item, e) {
-			const data = JSON.parse(e.dataTransfer.getData('application/json'));
-			const directory = this.innerDirectory;
-			for (let i = 0; i < data.items.length; i++) {
-				const from = Path.combine(data.directory, data.items[i].name);
-				const to = Path.combine(directory, item.name, data.items[i].name);
-				try {
-					await this.machineMove({ from, to });
-				} catch (e) {
-					this.$makeNotification('error', `Failed to move ${data.items[i].name} to ${directory}`, e.message);
-					break;
+		async onItemDragDrop(item, e) {
+			const jsonData = e.dataTransfer.getData('application/json');
+			if (jsonData) {
+				const data = JSON.parse(jsonData);
+				if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
+					const directory = this.innerDirectory;
+					for (let i = 0; i < data.items.length; i++) {
+						const from = Path.combine(data.directory, data.items[i].name);
+						const to = Path.combine(directory, item.name, data.items[i].name);
+						try {
+							await this.machineMove({ from, to });
+						} catch (e) {
+							this.$makeNotification('error', `Failed to move ${data.items[i].name} to ${directory}`, e.message);
+							break;
+						}
+					}
 				}
 			}
 		},
@@ -465,14 +489,14 @@ export default {
 		},
 		async edit(item) {
 			try {
-				const filename = Path.combine(this.innerDirectory, (item && item.name) ? item.name : this.innerValue[0].name);
-				const response = await this.machineDownload({ filename, type: 'text', showSuccess: false });
 				let notification, showDelay = 0;
-				if (response.length > bigFileThreshold) {
-					notification = this.$makeNotification('warning', this.$t('notification.loading.title'), this.$t('notification.loading.message'), false);
+				if (item.size > bigFileThreshold) {
+					notification = this.$makeNotification('warning', this.$t('notification.loadingFile.title'), this.$t('notification.loadingFile.message'), false);
 					showDelay = 1000;
 				}
 
+				const filename = Path.combine(this.innerDirectory, item.name);
+				const response = await this.machineDownload({ filename, type: 'text', showSuccess: false });
 				const editDialog = this.editDialog;
 				setTimeout(function() {
 					editDialog.filename = filename;
@@ -616,8 +640,22 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
+		isConnected(to) {
+			if (to) {
+				this.refresh();
+			} else {
+				this.innerDirectory = this.initialDirectory;
+				this.innerFilelist = [];
+
+				this.editDialog.shown = false;
+				this.renameDialog.shown = false;
+			}
+		},
 		selectedMachine() {
+			// TODO store current directory per selected machine
+			this.innerDirectory = this.initialDirectory;
 			this.innerFilelist = [];
+
 			this.editDialog.shown = false;
 			this.renameDialog.shown = false;
 		},

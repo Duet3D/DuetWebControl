@@ -53,13 +53,12 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
 		...mapGetters(['uiFrozen']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
@@ -86,18 +85,13 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			this.runMacroDialog.question = this.$t('dialog.runMacro.title');
+			this.runMacroDialog.question = this.$t('dialog.runMacro.title', [item.name]);
 			this.runMacroDialog.prompt = this.$t('dialog.runMacro.prompt', [item.name]);
 			this.runMacroDialog.filename = item.name;
 			this.runMacroDialog.shown = true;
 		},
 		runFile(filename) {
 			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);
-		}
-	},
-	watch: {
-		selectedMachine() {
-			this.directory = Path.macros;
 		}
 	}
 }

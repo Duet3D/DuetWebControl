@@ -25,10 +25,10 @@
 			</template>
 
 			<template slot="context-menu">
-				<v-list-tile v-show="isFile" @click="start">
+				<v-list-tile v-show="isFile && !state.isPrinting" @click="start">
 					<v-icon class="mr-1">play_arrow</v-icon> {{ $t('list.jobs.start') }}
 				</v-list-tile>
-				<v-list-tile v-show="isFile" @click="simulate">
+				<v-list-tile v-show="isFile && !state.isPrinting" @click="simulate">
 					<v-icon class="mr-1">fast_forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-tile>
 			</template>
@@ -61,10 +61,8 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine', ['isReconnecting']),
-		...mapState('machine/model', ['storages']),
+		...mapState('machine/model', ['state', 'storages']),
 		...mapState('settings', ['language']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
@@ -235,7 +233,7 @@ export default {
 						item.filament = null;
 						item.generatedBy = null;
 						item.printTime = null;
-						item.simuatedTime = null;
+						item.simulatedTime = null;
 					}
 				});
 				this.requestFileInfo(directory, 0, this.filelist.length);
@@ -252,14 +250,6 @@ export default {
 		},
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
-		}
-	},
-	watch: {
-		isReconnecting() {
-			this.directory = Path.gcodes;
-		},
-		selectedMachine() {
-			this.directory = Path.gcodes;
 		}
 	}
 }

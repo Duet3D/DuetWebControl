@@ -187,9 +187,17 @@ export default function(hostname, connector) {
 				// Is an update or emergency reset in progress?
 				const reconnect = (state.model.state.status === 'updating') || (state.model.state.status === 'halted');
 				if (reconnect) {
-					commit('setReconnecting', true);
+					if (!state.isReconnecting) {
+						if (state.model.state.status === 'halted') {
+							log('warning', i18n.t('events.emergencyStop'));
+						} else {
+							log('warning', i18n.t('events.reconnecting'));
+						}
+						commit('setReconnecting', true);
+					}
 				} else {
 					if (state.isReconnecting) {
+						log('success', i18n.t('events.reconnected'));
 						commit('setReconnecting', false);
 					}
 					
