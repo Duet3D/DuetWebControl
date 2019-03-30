@@ -95,11 +95,13 @@ export default {
 				{
 					text: () => i18n.t('list.jobs.height'),
 					value: 'height',
+					precision: 2,
 					unit: 'mm'
 				},
 				{
 					text: () => i18n.t('list.jobs.layerHeight'),
 					value: 'layerHeight',
+					precision: 2,
 					unit: 'mm'
 				},
 				{
@@ -240,10 +242,12 @@ export default {
 			}
 		},
 		fileClicked(item) {
-			this.startJobDialog.question = this.$t('dialog.startJob.title', [item.name]);
-			this.startJobDialog.prompt = this.$t('dialog.startJob.prompt', [item.name]);
-			this.startJobDialog.item = item;
-			this.startJobDialog.shown = true;
+			if (!this.state.isPrinting) {
+				this.startJobDialog.question = this.$t('dialog.startJob.title', [item.name]);
+				this.startJobDialog.prompt = this.$t('dialog.startJob.prompt', [item.name]);
+				this.startJobDialog.item = item;
+				this.startJobDialog.shown = true;
+			}
 		},
 		start(item) {
 			this.sendCode(`M32 "${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);

@@ -66,12 +66,12 @@ export default class PollConnector extends BaseConnector {
 		super(hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.sessionTimeout = responseData.sessionTimeout;
+		this.sessionTimeout = responseData.sessionTimeout || 8000;	/// default timeout in RRF is 8000ms
 
 		this.axios = axios.create({
 			baseURL: `http://${hostname}/`,
 			cancelToken: this.cancelSource.token,
-			timeout: 8000	// default session timeout in RepRapFirmware
+			timeout: this.sessionTimeout
 		});
 	}
 

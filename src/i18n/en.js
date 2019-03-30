@@ -97,7 +97,8 @@ export default {
 		},
 		temperature: {
 			caption: 'Temperature Chart',
-			heater: 'Heater {0}'
+			heater: 'Heater {0}',
+			noData: 'No Data'
 		}
 	},
 	dialog: {
@@ -544,7 +545,8 @@ export default {
 			editMesh: 'Define Area for Mesh Compensation (M557)',
 			runMesh: 'Run Mesh Compensation (G29)',
 			loadMesh: 'Load Saved Height Map from SD Card (G29 S1)',
-			axesNotHomed: 'The following axis is not homed:|The following axes are not homed:'
+			axesNotHomed: 'The following axis is not homed:|The following axes are not homed:',
+			noAxes: 'No Axes'
 		},
 		settingsAbout: {
 			caption: 'About',
@@ -629,7 +631,8 @@ export default {
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
 			vInTitle: 'Minimum: {0}, Maximum {1}',
-			probe: 'Z-Probe|Z-Probes'
+			probe: 'Z-Probe|Z-Probes',
+			noStatus: 'No Status'
 		},
 		tools: {
 			caption: 'Tools',
@@ -651,8 +654,10 @@ export default {
 				caption: 'Extra',
 				sensor: 'Sensor',
 				value: 'Value',
-				showInChart: 'Show in Chart'
-			}
+				showInChart: 'Show in Chart',
+				noItems: 'No Extra Heaters'
+			},
+			noTools: 'No Tools'
 		},
 		webcam: {
 			caption: 'Webcam Surveillance',

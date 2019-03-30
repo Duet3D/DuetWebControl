@@ -21,8 +21,15 @@
 			<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
 		</v-card-title>
 
-		<v-card-text class="content px-2 py-0">
+		<v-card-text class="content px-2 py-0" v-show="hasData">
 			<canvas ref="chart"></canvas>
+		</v-card-text>
+
+		<v-spacer v-show="!hasData"></v-spacer>
+		<v-card-text class="pa-0" v-show="!hasData">
+			<v-alert :value="true" type="info" class="mb-0">
+				{{ $t('chart.temperature.noData') }}
+			</v-alert>
 		</v-card-text>
 	</v-card>
 </template>
@@ -107,7 +114,9 @@ export default {
 		...mapGetters(['isConnected']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
 		...mapState('machine/model', ['heat', 'tools']),
-		...mapState('settings', ['darkTheme'])
+		...mapState('machine/settings', ['displayedExtraTemperatures']),
+		...mapState('settings', ['darkTheme']),
+		hasData() { return this.heat.heaters.length || this.displayedExtraTemperatures.length; }
 	},
 	data() {
 		return {

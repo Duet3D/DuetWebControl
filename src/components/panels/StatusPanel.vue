@@ -38,9 +38,9 @@ a:not(:hover) {
 			<span v-if="state.mode">{{ $t('panel.status.mode', [state.mode]) }}</span>
 		</v-card-title>
 
-		<v-card-text class="px-0 pt-0 pb-2 content text-xs-center">
+		<v-card-text class="px-0 pt-0 pb-2 content text-xs-center" v-show="sensorsPresent || (move.axes.length + move.extruders.length)">
 			<v-layout column class="content-layout">
-				<v-flex>
+				<v-flex v-show="move.axes.length">
 					<v-layout row align-center>
 						<v-flex tag="strong" class="category-header">
 							<a href="#" @click.prevent="displayToolPosition = !displayToolPosition">
@@ -65,9 +65,9 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2"></v-divider>
+				<v-divider class="my-2" v-show="move.axes.length + move.extruders.length"></v-divider>
 
-				<v-flex>
+				<v-flex v-show="move.extruders.length">
 					<v-layout row align-center>
 						<v-flex tag="strong" class="category-header">
 							{{ $t('panel.status.extruders') }}
@@ -90,9 +90,9 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2"></v-divider>
+				<v-divider class="my-2" v-show="move.axes.length + move.extruders.length"></v-divider>
 
-				<v-flex>
+				<v-flex v-show="move.axes.length">
 					<v-layout row align-center>
 						<v-flex tag="strong" class="category-header">
 							{{ $t('panel.status.speeds') }}
@@ -126,9 +126,9 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2"></v-divider>
+				<v-divider class="my-2" v-show="sensorsPresent && (move.axes.length + move.extruders.length)"></v-divider>
 
-				<v-flex>
+				<v-flex v-show="sensorsPresent">
 					<v-layout row align-center>
 						<v-flex tag="strong" class="category-header">
 							{{ $t('panel.status.sensors') }}
@@ -195,6 +195,12 @@ a:not(:hover) {
 				</v-flex>
 			</v-layout>
 		</v-card-text>
+
+		<v-card-text class="pa-0" v-show="!sensorsPresent && !(move.axes.length + move.extruders.length)">
+			<v-alert :value="true" type="info">
+				{{ $t('panel.status.noStatus') }}
+			</v-alert>
+		</v-card-text>
 	</v-card>
 </template>
 
@@ -207,7 +213,10 @@ export default {
 	computed: {
 		...mapState('settings', ['darkTheme']),
 		...mapGetters(['isConnected']),
-		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state'])
+		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state']),
+		sensorsPresent() {
+			return (this.electronics.vIn.current !== null) || (this.electronics.mcuTemp.current !== null) || (this.sensors.probes.length);
+		}
 	},
 	data() {
 		return {

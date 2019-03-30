@@ -15,11 +15,17 @@ export class Axis {
 
 export class BedOrChamber {
 	constructor(initData) { quickPatch(this, initData); }
-	number = null
 	active = []
 	standby = []
 	name = null
 	heaters = []
+}
+
+export class Channel {
+	constructor(initData) { quickPatch(this, initData); }
+	feedrate = 50
+	relativeExtrusion = true
+	relativePositioning = false
 }
 
 export class Drive {
@@ -193,6 +199,7 @@ export class Storage {
 	capacity = null				// in Bytes
 	free = null					// in Bytes
 	openFiles = null
+	path = null
 }
 
 export class Tool {

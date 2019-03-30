@@ -144,6 +144,10 @@
 				{{ unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) }}
 			</strong>
 		</v-alert>
+
+		<v-alert :value="!move.axes.length" type="info">
+			{{ $t('panel.movement.noAxes') }}
+		</v-alert>
 	</v-card>
 </template>
 

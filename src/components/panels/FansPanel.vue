@@ -5,7 +5,7 @@
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template slot="activator">
-					<a v-show="!uiFrozen && controllableFans.length" href="#" @click.prevent="">
+					<a v-show="!uiFrozen && fans.some(fan => !fan.thermostatic.control)" href="#" @click.prevent="">
 						{{ $t('panel.fans.changeVisibility') }}
 					</a>
 				</template>
@@ -18,12 +18,14 @@
 						{{ $t('panel.fans.toolFan') }}
 					</v-list-tile>
 
-					<v-list-tile v-for="(fan, index) in controllableFans" :key="index" @click="toggleFanVisibility(index)">
-						<v-icon class="mr-1">
-							{{ (displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
-						</v-icon>
-						{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
-					</v-list-tile>
+					<template v-for="(fan, index) in fans">
+						<v-list-tile v-if="!fan.thermostatic.control" :key="index" @click="toggleFanVisibility(index)">
+							<v-icon class="mr-1">
+								{{ (displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
+							</v-icon>
+							{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
+						</v-list-tile>
+					</template>
 				</v-list>
 			</v-menu>
 		</v-card-title>
@@ -38,7 +40,7 @@
 		</v-layout>
 
 		<v-alert type="info" :value="!visibleFans.length">
-			$t('panel.fans.noFans') }}
+			{{ $t('panel.fans.noFans') }}
 		</v-alert>
 	</v-card>
 </template>
@@ -55,9 +57,6 @@ export default {
 		...mapState('machine/model', ['fans']),
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['displayedFans']),
-		controllableFans() {
-			return this.fans.filter(fan => !fan.thermostatic.control);
-		},
 		visibleFans() {
 			return this.displayedFans.filter(fan => (fan === -1) || (fan < this.fans.length && !this.fans[fan].thermostatic.control), this);
 		},

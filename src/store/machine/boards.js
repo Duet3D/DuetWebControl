@@ -57,6 +57,25 @@ const boardDefinitions = {
 		hasWiFi: false,
 		hasPowerFailureDetection: true,
 		hasMotorLoadDetection: true
+	},
+	duet3: {
+		firmwareFileRegEx: /Duet3Firmware(.*)\.bin/i,
+		firmwareFile: 'Duet3Firmware.bin',
+		motorWarningCurrent: 1234,
+		motorLimitCurrent: 2345,
+		seriesResistor: 4700,
+		microstepping: true,
+		microsteppingInterpolation: true,
+		maxDrives: 18,
+		maxHeaters: 4,
+		maxThermistors: 4,
+		maxRtdBoards: 4,
+		maxFans: 6,
+		hasDisplay: false,
+		hasEthernet: true,
+		hasWiFi: true,
+		hasPowerFailureDetection: true,
+		hasMotorLoadDetection: true
 	}
 }
 

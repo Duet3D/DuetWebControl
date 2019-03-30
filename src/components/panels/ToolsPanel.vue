@@ -57,7 +57,7 @@ table.extra tr > td:first-child {
 		<v-card-text class="pa-0">
 			<template v-if="currentPage === 'tools'">
 				<!-- Tools -->
-				<table class="tools">
+				<table class="tools" v-show="tools.length">
 					<thead>
 						<th class="pl-2">{{ $t('panel.tools.tool', ['']) }}</th>
 						<th>{{ $t('panel.tools.heater', ['']) }}</th>
@@ -148,13 +148,13 @@ table.extra tr > td:first-child {
 
 								<tr :key="`bed-${index}-${bed.heaters.length && bed.heaters[0]}`">
 									<th :rowspan="Math.max(1, bed.heaters.length)" class="pl-2" :class="{ 'pt-2 pb-2' : !bed.heaters.length}">
-										<a href="#" @click.prevent="bedClick(bed)">
+										<a href="#" @click.prevent="bedClick(bed, index)">
 											{{ bed.name || $t('panel.tools.bed', [(heat.beds.length !== 1) ? index : '']) }}
 										</a>
 									</th>
 
 									<th>
-										<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, bed.heaters[0])">
+										<a v-if="bed.heaters.length" href="#" :class="getHeaterColor(bed.heaters[0])" @click.prevent="bedHeaterClick(bed, index, bed.heaters[0])">
 											{{ formatHeaterName(heat.heaters[bed.heaters[0]], bed.heaters[0]) }}
 										</a>
 										<br/>
@@ -176,7 +176,7 @@ table.extra tr > td:first-child {
 								</tr>
 								<tr v-for="(heater, heaterIndex) in bed.heaters.slice(1)" :key="`bed-${index}-${heater}`">
 									<th>
-										<a href="#" :class="getHeaterColor(heater)" @click.prevent="toolHeaterClick(tool, heater)">
+										<a href="#" :class="getHeaterColor(heater)" @click.prevent="bedHeaterClick(bed, index, heater)">
 											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
@@ -208,13 +208,13 @@ table.extra tr > td:first-child {
 
 								<tr :key="`chamber-${index}-${chamber.heaters.length && chamber.heaters[0]}`">
 									<th :rowspan="Math.max(1, chamber.heaters.length)" class="pl-2" :class="{ 'pt-2 pb-2' : !chamber.heaters.length}">
-										<a href="#" @click.prevent="chamberClick(chamber)">
+										<a href="#" @click.prevent="chamberClick(chamber, index)">
 											{{ chamber.name || $t('panel.tools.chamber', [(heat.chambers.length !== 1) ? index : '']) }}
 										</a>
 									</th>
 
 									<th>
-										<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, chamber.heaters[0])">
+										<a v-if="chamber.heaters.length > 0" href="#" :class="getHeaterColor(chamber.heaters[0])" @click.prevent="chamberHeaterClick(chamber, index, chamber.heaters[0])">
 											{{ formatHeaterName(heat.heaters[chamber.heaters[0]], chamber.heaters[0]) }}
 										</a>
 										<br/>
@@ -236,7 +236,7 @@ table.extra tr > td:first-child {
 								</tr>
 								<tr v-for="(heater, heaterIndex) in chamber.heaters.slice(1)" :key="`chamber-${index}-${heater}`">
 									<th>
-										<a href="#" :class="getHeaterColor(heater)" @click.prevent="toolHeaterClick(tool, heater)">
+										<a href="#" :class="getHeaterColor(heater)" @click.prevent="chamberHeaterClick(chamber, index, heater)">
 											{{ formatHeaterName(heat.heaters[heater], heater) }}
 										</a>
 										<br/>
@@ -258,6 +258,9 @@ table.extra tr > td:first-child {
 						</template>
 					</tbody>
 				</table>
+				<v-alert :value="!tools.length" type="info">
+					{{ $t('panel.tools.noTools') }}
+				</v-alert>
 
 				<reset-heater-fault-dialog :shown.sync="resetHeaterFault" :heater="faultyHeater"></reset-heater-fault-dialog>
 
@@ -275,7 +278,7 @@ table.extra tr > td:first-child {
 			</template>
 
 			<template v-else-if="currentPage === 'extra'">
-				<table class="extra ml-2 mr-2">
+				<table class="extra ml-2 mr-2" v-show="heat.extra.length">
 					<thead>
 						<th class="hidden-sm-and-down"></th>
 						<th>{{ $t('panel.tools.extra.sensor') }}</th>
@@ -295,6 +298,9 @@ table.extra tr > td:first-child {
 						</tr>
 					</tbody>
 				</table>
+				<v-alert :value="!heat.extra.length" type="info">
+					{{ $t('panel.tools.extra.noItems') }}
+				</v-alert>
 			</template>
 		</v-card-text>
 	</v-card>
@@ -475,13 +481,13 @@ export default {
 			}
 		},
 
-		bedClick(bed) {
+		bedClick(bed, bedIndex) {
 			if (bed.heaters.length) {
 				// There is no special action for clicking Bed yet
-				this.bedHeaterClick(bed, bed.heaters[0]);
+				this.bedHeaterClick(bed, bedIndex, bed.heaters[0]);
 			}
 		},
-		bedHeaterClick(bed, heater) {
+		bedHeaterClick(bed, bedIndex, heater) {
 			if (!this.isConnected) {
 				return;
 			}
@@ -490,16 +496,16 @@ export default {
 			switch (this.heat.heaters[heater].state) {
 				case 0:		// Off -> Active
 					temps = (bed.active instanceof Array) ? bed.active.reduce((a, b) => `${a}:${b}`) : bed.active;
-					this.sendCode(`M140 P${bed.number} S${temps}`);
+					this.sendCode(`M140 P${bedIndex} S${temps}`);
 					break;
 
 				case 1:		// Standby -> Off
 					temps = (bed.active instanceof Array) ? bed.active.map(() => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
-					this.sendCode(`M140 P${bed.number} S${temps}`);
+					this.sendCode(`M140 P${bedIndex} S${temps}`);
 					break;
 
 				case 2:		// Active -> Standby
-					this.sendCode(`M144 P${bed.number}`);
+					this.sendCode(`M144 P${bedIndex}`);
 					break;
 
 				case 3:		// Fault -> Ask for reset
@@ -509,13 +515,13 @@ export default {
 			}
 		},
 
-		chamberClick(chamber) {
+		chamberClick(chamber, chamberIndex) {
 			if (chamber.heaters.length) {
 				// There is no special action for clicking Chamber yet
-				this.chamberHeaterClick(chamber, chamber.heaters[0]);
+				this.chamberHeaterClick(chamber, chamberIndex, chamber.heaters[0]);
 			}
 		},
-		chamberHeaterClick(chamber, heater) {
+		chamberHeaterClick(chamber, chamberIndex, heater) {
 			if (!this.isConnected) {
 				return;
 			}
@@ -524,7 +530,7 @@ export default {
 			switch (this.heat.heaters[heater].state) {
 				case 0:		// Off -> Active
 					temps = (chamber.active instanceof Array) ? chamber.active.reduce((a, b) => `${a}:${b}`) : chamber.active;
-					this.sendCode(`M141 P${chamber.number} S${temps}`);
+					this.sendCode(`M141 P${chamberIndex} S${temps}`);
 					break;
 
 				// Standby mode for chambers is not officially supported yet (there's no code for standby control)
@@ -536,7 +542,7 @@ export default {
 
 				default:	// Active -> Off
 					temps = (chamber.active instanceof Array) ? chamber.active.map(() => '-273.15').reduce((a, b) => `${a}:${b}`) : '-273.15';
-					this.sendCode(`M141 P${chamber.number} S${temps}`);
+					this.sendCode(`M141 P${chamberIndex} S${temps}`);
 					break;
 			}
 		}

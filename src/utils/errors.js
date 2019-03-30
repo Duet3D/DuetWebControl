@@ -12,10 +12,9 @@ export class NotImplementedError extends Error {
 
 // Network Errors
 
-export class NetworkError extends Error
-{
-	constructor() {
-		super(i18n.t('error.network'));
+export class NetworkError extends Error {
+	constructor(msg) {
+		super(msg || i18n.t('error.network'));
 	}
 }
 

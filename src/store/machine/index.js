@@ -67,7 +67,7 @@ export default function(hostname, connector) {
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && doLog) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-						log(type, e, undefined, hostname);
+						log(type, code, e.message, hostname);
 					}
 					throw e;
 				}

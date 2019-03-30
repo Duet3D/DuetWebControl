@@ -4,9 +4,9 @@ import { LoginError } from '../../../utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
 import PollConnector from './PollConnector.js'
-// import RestSocketConnector from './RestSocketConnector.js'	// TODO: Replace status updates with websocket and other requests with REST
+import RestConnector from './RestConnector.js'
 
-const connectors = [PollConnector]
+const connectors = [PollConnector, RestConnector]
 export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'makeDirectory', 'download', 'getFileList', 'getFileInfo']
 
 export function mapConnectorActions(connector, toIgnore = []) {

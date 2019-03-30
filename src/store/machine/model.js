@@ -3,6 +3,7 @@
 import { defaultBoardName, getBoardDefinition } from './boards.js'
 import {
 	Axis,
+	Channel,
 	BedOrChamber,
 	Drive,
 	ExtraHeater,
@@ -21,6 +22,13 @@ export default function(connector) {
 	return {
 		namespaced: true,
 		state: {
+			channels: {
+				main: new Channel(),
+				serial: new Channel(),
+				file: new Channel(),
+				http: new Channel(),
+				telnet: new Channel()
+			},
 			electronics: {
 				type: defaultBoardName,
 				name: null,
@@ -43,7 +51,6 @@ export default function(connector) {
 			heat: {
 				beds: [									// may contain null items
 					new BedOrChamber({
-						number: 0,
 						heaters: [0]
 					})
 				],
@@ -161,8 +168,6 @@ export default function(connector) {
 				atxPower: null,
 				currentTool: null,
 				mode: null,								// one of ['FFF', 'CNC', 'Laser', null]
-				relativeExtrusion: false,
-				relativePositioning: false,
 				status: null							// one of the following:
 				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
 			},
