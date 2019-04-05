@@ -65,7 +65,7 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2" v-show="move.axes.length + move.extruders.length"></v-divider>
+				<v-divider class="my-2" v-show="move.axes.length"></v-divider>
 
 				<v-flex v-show="move.extruders.length">
 					<v-layout row align-center>
@@ -90,7 +90,7 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2" v-show="move.axes.length + move.extruders.length"></v-divider>
+				<v-divider class="my-2" v-show="move.extruders.length"></v-divider>
 
 				<v-flex v-show="move.axes.length">
 					<v-layout row align-center>

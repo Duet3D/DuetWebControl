@@ -18,7 +18,7 @@
 					{{ $t('panel.settingsElectronics.firmware', [electronics.firmware.name + ' ' + $display(electronics.firmware.version), $display(electronics.firmware.date)]) }}
 					<br/><br/>
 				</template>
-				<template v-if="network.interfaces.length && network.interfaces[0].type === 'wifi'">
+				<template v-if="electronics.type != 'duet3' && network.interfaces.length && network.interfaces[0].type === 'wifi'">
 					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(network.interfaces[0].firmwareVersion)]) }}
 				</template>
 			</template>

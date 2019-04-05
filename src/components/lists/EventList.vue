@@ -14,20 +14,11 @@ td.title-cell {
 .message {
 	white-space: pre-wrap;
 }
-
-.no-selection {
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-}
 </style>
 
 <template>
 	<div class="component">
-		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3 no-selection" :class="{ 'empty-table-fix' : !events.length }">
+		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 			<template slot="no-data">
 				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
 					{{ $t('list.eventLog.noEvents') }}

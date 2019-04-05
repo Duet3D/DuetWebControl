@@ -26,12 +26,14 @@ export class Channel {
 	feedrate = 50
 	relativeExtrusion = true
 	relativePositioning = false
+	stackDepth = 0
+	usingInches = false
 }
 
 export class Drive {
 	constructor(initData) { quickPatch(this, initData); }
 	position = null
-	babystepping = {
+	microstepping = {
 		value: null,
 		interpolated: null
 	}
@@ -77,6 +79,7 @@ export class ExtraHeater {
 
 export class Extruder {
 	constructor(initData) { quickPatch(this, initData); }
+	drives = []
 	factor = 1.0
 	nonlinear = {
 		a: 0,
@@ -161,6 +164,7 @@ export class NetworkInterface {
 	firmwareVersion = null
 	speed = null				// null if unknown and 0 if no link
 	signal = null				// only WiFi (dBm)
+	macAddress = null
 	configuredIP = null
 	actualIP = null
 	subnet = null

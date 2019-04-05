@@ -289,7 +289,10 @@ export default class PollConnector extends BaseConnector {
 				drives: [].concat(response.data.coords.xyz, response.data.coords.extr).map((xyz, drive) => ({
 					position: (drive < response.data.coords.xyz.length) ? xyz : response.data.coords.extr[drive - response.data.coords.xyz.length]
 				})),
-				extruders: response.data.params.extrFactors.map(factor => ({ factor: factor / 100 })),
+				extruders: response.data.params.extrFactors.map((factor, index) => ({
+					drives: [response.data.coords.xyz.length + index],
+					factor: factor / 100
+				})),
 				speedFactor: response.data.params.speedFactor / 100
 			},
 			scanner: (response.data.scanner) ? {

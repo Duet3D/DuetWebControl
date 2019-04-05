@@ -23,11 +23,16 @@ export default function(connector) {
 		namespaced: true,
 		state: {
 			channels: {
-				main: new Channel(),
-				serial: new Channel(),
-				file: new Channel(),
 				http: new Channel(),
-				telnet: new Channel()
+				telnet: new Channel(),
+				file: new Channel(),
+				usb: new Channel(),
+				aux: new Channel(),
+				daemon: new Channel(),
+				codeQueue: new Channel(),
+				lcd: new Channel(),
+				spi: new Channel(),
+				autoPause: new Channel()
 			},
 			electronics: {
 				type: defaultBoardName,
