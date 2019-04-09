@@ -42,6 +42,7 @@ export default class RestSocketConnector extends BaseConnector {
 
 	model = {}
 	fileTransfers = []
+	layers = []
 
 	constructor(hostname, password, socket, model) {
 		super(hostname);
@@ -151,25 +152,36 @@ export default class RestSocketConnector extends BaseConnector {
 	}
 
 	async startSocket() {
+		const that = this;
+
 		// Deal with generic messages
 		if (this.model.messages !== undefined) {
 			this.model.messages.forEach(async function(message) {
-				await this.dispatch('onCodeCompleted', { code: undefined, reply: message });
+				await that.dispatch('onCodeCompleted', { code: undefined, reply: message.content });
 			});
 			delete this.model.messages;
 		}
 
 		// Set up socket events
-		const that = this;
 		this.socket.onmessage = async function(e) {
 			const data = JSON.parse(e.data);
 
 			// Deal with generic messages
-			if (data.messages !== undefined) {
+			if (data.messages) {
 				data.messages.forEach(async function(message) {
-					await that.dispatch('onCodeCompleted', { code: undefined, reply: message });
+					await that.dispatch('onCodeCompleted', { code: undefined, reply: message.content });
 				});
 				delete data.messages;
+			}
+
+			// Deal with layers
+			if (data.job && data.job.layers !== undefined) {
+				if (data.job.layers.length === 0) {
+					that.layers = [];
+				} else {
+					data.job.layers.forEach(layer => that.layers.push(layer));
+				}
+				data.job.layers = that.layers;
 			}
 
 			// Update model and acknowledge receival
