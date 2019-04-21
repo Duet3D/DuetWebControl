@@ -110,7 +110,7 @@ a:not(:hover) {
 							<tools-panel></tools-panel>
 						</v-flex>
 
-						<v-flex v-if="$vuetify.breakpoint.mdAndUp" d-flex md3 lg4>
+						<v-flex v-if="$vuetify.breakpoint.mdAndUp" :d-flex="hasTemperaturesToDisplay" md3 lg4>
 							<temperature-chart></temperature-chart>
 						</v-flex>
 					</v-layout>
@@ -156,6 +156,7 @@ export default {
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
+		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['board', 'jobProgress']),
 		toggleGlobalContainerColor() {
 			if (this.hideGlobalContainer) {

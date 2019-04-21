@@ -92,7 +92,7 @@ a:not(:hover) {
 
 				<v-divider class="my-2" v-show="move.extruders.length"></v-divider>
 
-				<v-flex v-show="move.axes.length">
+				<v-flex v-show="isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)">
 					<v-layout row align-center>
 						<v-flex tag="strong" class="category-header">
 							{{ $t('panel.status.speeds') }}
@@ -100,7 +100,7 @@ a:not(:hover) {
 
 						<v-flex>
 							<v-layout row wrap>
-								<v-flex class="equal-width">
+								<v-flex v-show="isNumber(move.currentMove.requestedSpeed)" class="equal-width">
 									<v-layout column>
 										<v-flex tag="strong">
 											{{ $t('panel.status.requestedSpeed') }}
@@ -111,7 +111,7 @@ a:not(:hover) {
 									</v-layout>
 								</v-flex>
 
-								<v-flex class="equal-width">
+								<v-flex v-show="isNumber(move.currentMove.topSpeed)" class="equal-width">
 									<v-layout column>
 										<v-flex tag="strong">
 											{{ $t('panel.status.topSpeed') }}
@@ -126,7 +126,7 @@ a:not(:hover) {
 					</v-layout>
 				</v-flex>
 
-				<v-divider class="my-2" v-show="sensorsPresent && (move.axes.length + move.extruders.length)"></v-divider>
+				<v-divider class="my-2" v-show="isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)"></v-divider>
 
 				<v-flex v-show="sensorsPresent">
 					<v-layout row align-center>
@@ -176,6 +176,18 @@ a:not(:hover) {
 									</v-layout>
 								</v-flex>
 
+								<v-flex v-show="fanRPM.length">
+									<v-layout column>
+										<v-flex tag="strong">
+											{{ $t('panel.status.fanRPM') }}
+										</v-flex>
+
+										<v-flex tag="span">
+											{{ fanRPM.join(', ') }}
+										</v-flex>
+									</v-layout>
+								</v-flex>
+
 								<v-flex v-if="sensors.probes.length">
 									<v-layout column>
 										<v-flex tag="strong">
@@ -213,9 +225,14 @@ export default {
 	computed: {
 		...mapState('settings', ['darkTheme']),
 		...mapGetters(['isConnected']),
-		...mapState('machine/model', ['electronics', 'move', 'sensors', 'state']),
+		...mapState('machine/model', ['electronics', 'fans', 'move', 'sensors', 'state']),
+		fanRPM() {
+			const rpms = [];
+			this.fans.forEach(fan => { if (fan.rpm != null) { rpms.push(fan.rpm); } });
+			return rpms;
+		},
 		sensorsPresent() {
-			return (this.electronics.vIn.current !== null) || (this.electronics.mcuTemp.current !== null) || (this.sensors.probes.length);
+			return (this.electronics.vIn.current !== null) || (this.electronics.mcuTemp.current !== null) || this.fanRPM.length || (this.sensors.probes.length);
 		}
 	},
 	data() {

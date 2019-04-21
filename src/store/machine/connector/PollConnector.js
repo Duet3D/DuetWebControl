@@ -247,7 +247,7 @@ export default class PollConnector extends BaseConnector {
 		const fanRPMs = (response.data.sensors.fanRPM instanceof Array) ? response.data.sensors.fanRPM : [response.data.sensors.fanRPM];
 		quickPatch(newData, {
 			fans: response.data.params.fanPercent.map((fanPercent, index) => ({
-				rpm: (index < fanRPMs.length) ? fanRPMs[index] : null,
+				rpm: (index < fanRPMs.length && fanRPMs[index] >= 0) ? fanRPMs[index] : null,
 				value: fanPercent / 100
 			})),
 			heat: {
@@ -277,14 +277,14 @@ export default class PollConnector extends BaseConnector {
 				}))
 			},
 			move: {
-				axes: response.data.coords.machine.map((machinePosition, drive) => ({
+				axes: response.data.coords.xyz.map((machinePosition, drive) => ({
 					homed: !!response.data.coords.axesHomed[drive],
 					machinePosition
 				})),
 				babystepZ: response.data.params.babystep,
 				currentMove: {
-					requestedSpeed: response.data.speeds.requested,
-					topSpeed: response.data.speeds.top
+					requestedSpeed: (response.data.speeds !== undefined) ? response.data.speeds.requested : null,
+					topSpeed: (response.data.speeds !== undefined) ? response.data.speeds.top : null
 				},
 				drives: [].concat(response.data.coords.xyz, response.data.coords.extr).map((xyz, drive) => ({
 					position: (drive < response.data.coords.xyz.length) ? xyz : response.data.coords.extr[drive - response.data.coords.xyz.length]
@@ -299,14 +299,14 @@ export default class PollConnector extends BaseConnector {
 				progress: response.data.scanner.progress,
 				status: response.data.scanner.status
 			} : {},
-			sensors: {
+			sensors: (response.data.sensors.probeValue !== undefined) || (response.data.sensors.probeSecondary !== undefined) ? {
 				probes: [
 					{
 						value: response.data.sensors.probeValue,
 						secondaryValues: response.data.sensors.probeSecondary ? response.data.sensors.probeSecondary : []
 					}
 				]
-			},
+			} : {},
 			state: {
 				atxPower: !!response.data.params.atxPower,
 				currentTool: response.data.currentTool,
@@ -320,6 +320,7 @@ export default class PollConnector extends BaseConnector {
 
 		if (statusType === 2) {
 			// Extended Status Response
+			const axisNames = (response.data.axisNames !== undefined) ? response.data.axisNames.split('') : ['X', 'Y', 'Z', 'U', 'V', 'W', 'A', 'B', 'C'];
 			this.name = name;
 
 			quickPatch(newData, {
@@ -361,15 +362,15 @@ export default class PollConnector extends BaseConnector {
 					],
 					coldExtrudeTemperature: response.data.coldExtrudeTemp,
 					coldRetractTemperature: response.data.coldRetractTemp,
-					heaters: response.data.temps.names.map(name => ({
+					heaters: response.data.temps.current.map((current, index) => ({
 						max: response.data.tempLimit,
-						name
+						name: (response.data.temps.names !== undefined) ? response.data.temps.names[index] : null
 					}))
 				},
 				move: {
-					axes: response.data.axisNames.split('').map((axis, index) => ({
-						letter: axis,
-						visible: index < response.data.axes
+					axes: response.data.coords.xyz.map((position, index) => ({
+						letter: axisNames[index],
+						visible: (response.data.axes !== undefined) ? (index < response.data.axes) : true
 					})),
 					compensation: response.data.compensation,
 					geometry: {
@@ -383,18 +384,18 @@ export default class PollConnector extends BaseConnector {
 					endstops: newData.move.drives.map((drive, index) => ({
 						triggered: (response.data.endstops & (1 << index)) !== 0
 					})),
-					probes: [
+					probes: (response.data.probe !== undefined) ? [
 						{
 							threshold: response.data.probe.threshold,
 							triggerHeight: response.data.probe.height,
 							type: response.data.probe.type
 						}
-					]
+					] : []
 				},
 				state: {
 					mode: response.data.mode ? response.data.mode : null,
 				},
-				tools: response.data.tools.map(tool => ({
+				tools: (response.data.tools !== undefined) ? response.data.tools.map(tool => ({
 					number: tool.number,
 					name: tool.name ? tool.name : null,
 					heaters: tool.heaters,
@@ -403,7 +404,7 @@ export default class PollConnector extends BaseConnector {
 					fans: bitmapToArray(tool.fans),
 					filament: tool.filament,
 					offsets: tool.offsets
-				}))
+				})) : []
 			});
 
 			newData.storages = [];

@@ -98,7 +98,8 @@ export default {
 		},
 		temperature: {
 			caption: 'Graphique de Température',
-			heater: 'Chauffage {0}'
+			heater: 'Chauffage {0}',
+			noData: 'Aucune donnée'
 		}
 	},
 	dialog: {
@@ -205,7 +206,6 @@ export default {
 		invalidPassword: 'Mauvais mot de passe!',
 		noFreeSession: 'Plus de sessions libre!',
 		connect: 'Échec de la connexion à {0}',
-		connectionError: 'Échec du maintien de la connexion à {0}',
 		disconnect: 'Impossible de se déconnecter correctement de {0}',
 		disconnected: 'Impossible de compléter l\'action car la connexion s\'est terminée',
 		cancelled: 'Opération annulée',
@@ -228,6 +228,14 @@ export default {
 		fileinfoRequestFailed: 'Impossible d\'obtenir les informations du fichier pour {0}',
 		filamentsLoadFailed: 'Impossible de charger le filament',
 		move: 'Impossible de déplacer {0} à {1}'
+	},
+	events: {
+		connected: 'Connecté à {0}',
+		connectionLost: 'N\'a pas réussi à maintenir la connexion à {0}',
+		emergencyStop: 'Arrêt d\'urgence, tentative de rebranchement...',
+		reconnecting: 'Connexion interrompue, tentative de reconnexion...',
+		reconnected: 'Connexion établie',
+		disconnected: 'Déconnecté de {0}'
 	},
 	generic: {
 		ok: 'OK',
@@ -314,7 +322,6 @@ export default {
 			type: 'Type',
 			message: 'Événement',
 			noEvents: 'Aucun Événement',
-			copy: 'Copier',
 			clear: 'Effacer',
 			downloadText: 'Télécharger en Texte',
 			downloadCSV: 'Télécharger en CSV'
@@ -379,7 +386,6 @@ export default {
 			message: 'Merci de vous tenir prêt pendant que vos fichiers se font compresser...',
 			errorTitle: 'Échec de la compression des fichiers'
 		},
-		connected: 'Connecter à {0}',
 		delete: {
 			errorTitle: 'Impossible de supprimer {0}',
 			errorMessageDirectory: 'Merci de vous assurez que ce dossier est vide',
@@ -391,7 +397,6 @@ export default {
 			errorStillLoaded: 'Au moins un des filaments séléctionné est toujours chargé. Merci de les décharger avant de procéder',
 			errorSubDirectories: 'Le filament {0} contient des sous-dossiers. Merci de les supprimer manuellement et réessayer.'
 		},
-		disconnected: 'Déconnecter de {0}',
 		download: {
 			title: 'Téléchargement {0} @ {1}, {2}% complet',
 			message: 'Veuillez patienter pendant que le fichier est en téléchargement...',
@@ -509,17 +514,18 @@ export default {
 		},
 		jobData: {
 			caption: 'Données Collectés',
-			warmUpTime: 'Temps de Chauffe',
+			warmUpDuration: 'Temps de Chauffe',
 			currentLayerTime: 'Durée de la Couche Actuelle',
 			lastLayerTime: 'Durée de la Dernière Couche',
 			jobDuration: 'Durée du Travail'
 		},
 		jobEstimations: {
-			caption: 'Estimations',
-			filament: 'Basée sur l\'Utilisation de Filament',
-			file: 'Basée sur le Progrès du Fichier',
-			layer: 'Basée sur la Durée de Couche',
-			simulation: 'Basée sur la Simulation'
+			caption: 'Estimations basée sur',
+			filament: 'Utilisation de Filament',
+			file: 'Progrès du Fichier',
+			layer: 'Progrès du Fichier',
+			slicer: 'Trancheur',
+			simulation: 'Simulation'
 		},
 		jobInfo: {
 			caption: 'Information du Travail',
@@ -539,7 +545,8 @@ export default {
 			editMesh: 'Définir Zone pour la Mesh Compensation (M557)',
 			runMesh: 'Lancer Mesh Compensation (G29)',
 			loadMesh: 'Charger la Carte de Hauteur Sauvegardée depuis la SD (G29 S1)',
-			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivantss n\'ont pas été à leur origine:'
+			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivantss n\'ont pas été à leur origine:',
+			noAxes: 'Pas d\'axes'
 		},
 		settingsAbout: {
 			caption: 'À propos',
@@ -624,7 +631,9 @@ export default {
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
 			vInTitle: 'Minimum: {0}, Maximum {1}',
-			probe: 'Sonde-Z|Sondes-Z'
+			fanRPM: 'TPM Ventilateur',
+			probe: 'Sonde-Z|Sondes-Z',
+			noStatus: 'Pas de Statut'
 		},
 		tools: {
 			caption: 'Outils',
@@ -646,8 +655,10 @@ export default {
 				caption: 'Extra',
 				sensor: 'Capteur',
 				value: 'Valeur',
-				showInChart: 'Afficher dans le Graphique'
-			}
+				showInChart: 'Afficher dans le Graphique',
+				noItems: 'Pas de Chauffage supplémentaire'
+			},
+			noTools: 'Pas d\'Outils'
 		},
 		webcam: {
 			caption: 'Surveillance Webcam',

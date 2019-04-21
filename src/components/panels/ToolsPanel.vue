@@ -96,13 +96,13 @@ table.extra tr > td:first-child {
 									<span v-if="tool.heaters.length">
 										{{ formatHeaterValue(heat.heaters[tool.heaters[0]]) }}
 									</span>
-									<span v-else-if="isNumber(tool.spindle) && tool.spindle < spindles.length">
+									<span v-else-if="isNumber(tool.spindle) && tool.spindle >= 0 && tool.spindle < spindles.length">
 										{{ $display(spindles[tool.spindle].current, 0, $t('generic.rpm')) }}
 									</span>
 								</td>
 								<td class="pl-2 pr-1">
 									<tool-input v-if="tool.heaters.length" :tool="tool" :heaterIndex="0" active></tool-input>
-									<tool-input v-else-if="isNumber(tool.spindle)" :spindle="spindles[tool.spindle]" active></tool-input>
+									<tool-input v-else-if="isNumber(tool.spindle) && tool.spindle >= 0" :spindle="spindles[tool.spindle]" active></tool-input>
 								</td>
 								<td class="pl-1 pr-2">
 									<tool-input v-if="tool.heaters.length" :tool="tool" :heaterIndex="0" standby></tool-input>

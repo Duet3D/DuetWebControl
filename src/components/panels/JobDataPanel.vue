@@ -8,7 +8,7 @@
 			<v-layout row wrap>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobData.warmUpDuration') }}
 						</v-flex>
 						<v-flex tag="span">
@@ -18,7 +18,7 @@
 				</v-flex>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobData.currentLayerTime') }}
 						</v-flex>
 						<v-flex tag="span">
@@ -28,7 +28,7 @@
 				</v-flex>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobData.lastLayerTime') }}
 						</v-flex>
 						<v-flex tag="span">
@@ -38,7 +38,7 @@
 				</v-flex>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobData.jobDuration') }}
 						</v-flex>
 						<v-flex tag="span">

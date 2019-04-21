@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<span>Duet Web Control 2.0.0-RC6+4</span>
+			<span>Duet Web Control 2.0.0-RC6+7</span>
 			<v-spacer></v-spacer>
 			<a href="https://github.com/chrishamm/DuetWebControl/tree/next" target="_blank">
 				<v-icon small>star</v-icon> GitHub

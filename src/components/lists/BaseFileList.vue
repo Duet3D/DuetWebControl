@@ -116,7 +116,7 @@ th.checkbox {
 
 import JSZip from 'jszip'
 import saveAs from 'file-saver'
-import VDataTable from 'vuetify/es5/components/VDataTable'
+import { VDataTable } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
@@ -155,7 +155,7 @@ export default {
 		},
 		descending: {
 			type: Boolean,
-			default: true
+			default: false
 		},
 		sortTable: String,
 		directory: {

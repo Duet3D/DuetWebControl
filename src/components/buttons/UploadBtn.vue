@@ -17,7 +17,7 @@
 'use strict'
 
 import JSZip from 'jszip'
-import VBtn from 'vuetify/es5/components/VBtn'
+import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 import Path from '../../utils/path.js'

@@ -6,5 +6,5 @@ module.exports = {
 		["transform-builtin-extend", {
 			globals: ["Error", "Array"]
 		}]
-	],
+	]
 }

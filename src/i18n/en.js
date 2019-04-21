@@ -321,7 +321,6 @@ export default {
 			type: 'Type',
 			message: 'Event',
 			noEvents: 'No Events',
-			copy: 'Copy',
 			clear: 'Clear',
 			downloadText: 'Download as Text',
 			downloadCSV: 'Download as CSV'
@@ -520,12 +519,12 @@ export default {
 			jobDuration: 'Job Duration'
 		},
 		jobEstimations: {
-			caption: 'Estimations',
-			filament: 'Based on Filament Usage',
-			file: 'Based on File Progress',
-			layer: 'Based on Layer Time',
-			slicer: 'Based on Slicer',
-			simulation: 'Based on Simulation'
+			caption: 'Estimations based on',
+			filament: 'Filament Usage',
+			file: 'File Progress',
+			layer: 'Layer Time',
+			slicer: 'Slicer',
+			simulation: 'Simulation'
 		},
 		jobInfo: {
 			caption: 'Job Information',
@@ -631,6 +630,7 @@ export default {
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
 			vInTitle: 'Minimum: {0}, Maximum {1}',
+			fanRPM: 'Fan RPM',
 			probe: 'Z-Probe|Z-Probes',
 			noStatus: 'No Status'
 		},

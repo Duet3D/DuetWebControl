@@ -1,4 +1,4 @@
-// RESTful connector for the new Duet 3 API
+// RESTful connector for the Duet 3 API
 'use strict'
 
 import axios from 'axios'

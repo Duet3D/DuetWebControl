@@ -9,7 +9,7 @@
 <script>
 'use strict'
 
-import VBtn from 'vuetify/es5/components/VBtn'
+import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 

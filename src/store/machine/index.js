@@ -43,6 +43,9 @@ export default function(hostname, connector) {
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false
 		},
+		getters: {
+			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length
+		},
 		actions: {
 			...mapConnectorActions(connector, ['reconnect', 'sendCode', 'upload', 'download', 'getFileInfo']),
 
@@ -185,7 +188,8 @@ export default function(hostname, connector) {
 				commit('model/update', payload);
 
 				// Is an update or emergency reset in progress?
-				const reconnect = (state.model.state.status === 'updating') || (state.model.state.status === 'halted');
+				const reconnect = (state.model.state.status === 'updating') ||
+					(!state.model.electronics.type.startsWith('duet3') && state.model.state.status === 'halted');
 				if (reconnect) {
 					if (!state.isReconnecting) {
 						if (state.model.state.status === 'halted') {

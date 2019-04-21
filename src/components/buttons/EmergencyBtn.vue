@@ -7,7 +7,7 @@
 <script>
 'use strict'
 
-import VBtn from 'vuetify/es5/components/VBtn'
+import { VBtn } from 'vuetify/lib'
 
 export default {
 	extends: VBtn

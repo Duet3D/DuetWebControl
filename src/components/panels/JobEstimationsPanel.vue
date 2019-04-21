@@ -8,7 +8,7 @@
 			<v-layout row wrap>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobEstimations.filament') }}
 						</v-flex>
 						<v-flex>
@@ -18,7 +18,7 @@
 				</v-flex>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobEstimations.file') }}
 						</v-flex>
 						<v-flex>
@@ -28,7 +28,7 @@
 				</v-flex>
 				<v-flex>
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobEstimations.layer') }}
 						</v-flex>
 						<v-flex>
@@ -38,7 +38,7 @@
 				</v-flex>
 				<v-flex v-show="job.file.printTime && !state.isSimulating">
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobEstimations.slicer') }}
 						</v-flex>
 						<v-flex>
@@ -48,7 +48,7 @@
 				</v-flex>
 				<v-flex v-show="job.file.simulatedTime && !state.isSimulating">
 					<v-layout column>
-						<v-flex tag="strong">
+						<v-flex tag="strong" class="px-1">
 							{{ $t('panel.jobEstimations.simulation') }}
 						</v-flex>
 						<v-flex>

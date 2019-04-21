@@ -21,12 +21,12 @@
 			<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
 		</v-card-title>
 
-		<v-card-text class="content px-2 py-0" v-show="hasData">
+		<v-card-text class="content px-2 py-0" v-show="hasTemperaturesToDisplay">
 			<canvas ref="chart"></canvas>
 		</v-card-text>
 
-		<v-spacer v-show="!hasData"></v-spacer>
-		<v-card-text class="pa-0" v-show="!hasData">
+		<v-spacer v-show="!hasTemperaturesToDisplay"></v-spacer>
+		<v-card-text class="pa-0" v-show="!hasTemperaturesToDisplay">
 			<v-alert :value="true" type="info" class="mb-0">
 				{{ $t('chart.temperature.noData') }}
 			</v-alert>
@@ -46,9 +46,9 @@ import { getRealHeaterColor } from '../../utils/colors.js'
 
 const sampleInterval = 1000			// ms
 const defaultMaxTemperature = 300	// degC
-const maxSamples = 600				// 10min
+const maxSampleTime = 600000		// 10min (in ms)
 
-function makeDataset(heaterIndex, extra, label) {
+function makeDataset(heaterIndex, extra, label, numSamples) {
 	const color = getRealHeaterColor(heaterIndex, extra), dataset = {
 		heaterIndex,
 		extra,
@@ -64,7 +64,7 @@ function makeDataset(heaterIndex, extra, label) {
 		pointHitRadius: 0,
 		showLine: true
 	};
-	dataset.data = (new Array(maxSamples)).fill(NaN);
+	dataset.data = (new Array(numSamples)).fill(NaN);
 	return dataset;
 }
 
@@ -90,7 +90,7 @@ function pushSeriesData(machine, heaterIndex, heater, extra) {
 			dataset.label = label;
 			dataset.locale = i18n.locale;
 		} else {
-			dataset = makeDataset(heaterIndex, extra, label);
+			dataset = makeDataset(heaterIndex, extra, label, tempSamples[machine].times.length);
 			machineData.temps.push(dataset);
 		}
 	}
@@ -112,11 +112,11 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected']),
+		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
 		...mapState('machine/model', ['heat', 'tools']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
-		...mapState('settings', ['darkTheme']),
-		hasData() { return this.heat.heaters.length || this.displayedExtraTemperatures.length; }
+		...mapState('settings', ['darkTheme'])
 	},
 	data() {
 		return {
@@ -127,7 +127,8 @@ export default {
 	methods: {
 		update() {
 			this.chart.config.options.scales.yAxes[0].ticks.max = this.maxHeaterTemperature || defaultMaxTemperature;
-			this.chart.config.options.scales.xAxes[0].ticks.max = new Date();
+			this.chart.config.options.scales.xAxes[0].time.min = new Date() - maxSampleTime;
+			this.chart.config.options.scales.xAxes[0].time.max = new Date();
 			this.chart.update();
 		},
 		applyDarkTheme(active) {
@@ -183,16 +184,17 @@ export default {
 							major: {
 								fontColor: 'rgba(0,0,0,0.87)',
 								fontFamily: 'Roboto,sans-serif'
-							},
-							max: new Date()
+							}
 						},
 						time: {
 							unit: 'minute',
 							displayFormats: {
 								minute: 'HH:mm'
-							}
+							},
+							min: new Date() - maxSampleTime,
+							max: new Date()
 						},
-						type: 'time'
+						type: 'time',
 					}
 				],
 				yAxes: [
@@ -238,10 +240,7 @@ export default {
 				if (result) {
 					// Keep track of temperature updates
 					const machine = result[1], dataset = tempSamples[machine], now = new Date();
-					if (dataset && now - dataset.times[dataset.times.length - 1] > sampleInterval) {
-						// Record time
-						dataset.times.push(now);
-
+					if (dataset && (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval)) {
 						// Record heater temperatures
 						const usedHeaters = []
 						state.machines[machine].model.heat.heaters.forEach(function(heater, heaterIndex) {
@@ -262,14 +261,17 @@ export default {
 							}
 						});
 
-						// Cut off oldest samples and deal with visibility
-						dataset.times.shift();
+						// Record time and deal wih expired temperature samples
+						while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
+							dataset.times.shift();
+							dataset.temps.forEach(data => data.data.shift());
+						}
+						dataset.times.push(now);
+
+						// Deal with visibility and tell chart instances to update
 						dataset.temps.forEach(function(dataset) {
 							dataset.showLine = usedHeaters.some(item => item.heaterIndex === dataset.heaterIndex && item.extra === dataset.extra);
-							dataset.data.shift();
 						});
-
-						// Tell chart instances to update
 						instances.forEach(instance => instance.update());
 					}
 				} else if (mutation.type === 'addMachine') {
@@ -279,13 +281,6 @@ export default {
 						temps: []
 					}
 					tempSamples[mutation.payload.hostname] = dataset;
-
-					// Fill times with some dummy data
-					let t = new Date() - sampleInterval * maxSamples;
-					for (let i = 0; i < maxSamples; i++) {
-						dataset.times.push(t);
-						t += sampleInterval;
-					}
 				} else {
 					// Delete datasets of disconnected machines
 					const result = /machines\/(.+)\/unregister/.exec(mutation.type);

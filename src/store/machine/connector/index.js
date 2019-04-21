@@ -6,7 +6,7 @@ import BaseConnector from './BaseConnector.js'
 import PollConnector from './PollConnector.js'
 import RestConnector from './RestConnector.js'
 
-const connectors = [PollConnector, RestConnector]
+const connectors = [RestConnector, PollConnector]
 export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'makeDirectory', 'download', 'getFileList', 'getFileInfo']
 
 export function mapConnectorActions(connector, toIgnore = []) {

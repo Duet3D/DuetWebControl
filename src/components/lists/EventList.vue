@@ -50,9 +50,6 @@ td.title-cell {
 
 		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y v-tab-control.contextmenu>
 			<v-list>
-				<v-list-tile v-show="contextMenu.item" @click="copy" tabindex="0">
-					<v-icon class="mr-1">assignment</v-icon> {{ $t('list.eventLog.copy') }}
-				</v-list-tile>
 				<v-list-tile @click="clearLog" tabindex="0">
 					<v-icon class="mr-1">clear_all</v-icon> {{ $t('list.eventLog.clear') }}
 				</v-list-tile>
@@ -165,12 +162,6 @@ export default {
 			this.$nextTick(() => {
 				this.contextMenu.shown = true;
 			});
-		},
-		copy() {
-			const title = this.contextMenu.item.title.replace(/\n/g, '\r\n');
-			const message = this.contextMenu.item.message ? this.contextMenu.item.message.replace(/\n/g, '\r\n') : '';
-			const value = `${this.contextMenu.item.date.toLocaleString()}: ${message ? (title + ": " + message) : title}`;
-			navigator.clipboard.writeText(value);
 		},
 		downloadText() {
 			let textContent = '';

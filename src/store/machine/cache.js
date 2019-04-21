@@ -13,7 +13,7 @@ export default function(hostname) {
 			sorting: {
 				display: {
 					column: 'name',
-					descending: true
+					descending: false
 				},
 				events: {
 					column: 'date',
@@ -21,19 +21,19 @@ export default function(hostname) {
 				},
 				filaments: {
 					column: 'name',
-					descending: true
+					descending: false
 				},
 				jobs: {
 					column: 'lastModified',
-					descending: false
+					descending: true
 				},
 				macros: {
 					column: 'name',
-					descending: true
+					descending: false
 				},
 				sys: {
 					column: 'name',
-					descending: true
+					descending: false
 				}
 			}
 		},
