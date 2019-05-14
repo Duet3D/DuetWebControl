@@ -149,6 +149,10 @@ export default {
 				}
 			]
 		},
+		items: {
+			default: () => [],
+			required: false
+		},
 		sortBy: {
 			type: String,
 			default: 'name'

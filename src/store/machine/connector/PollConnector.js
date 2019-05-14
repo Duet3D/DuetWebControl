@@ -63,7 +63,7 @@ export default class PollConnector extends BaseConnector {
 	messageBoxShown = false;
 
 	constructor(hostname, password, responseData) {
-		super(hostname);
+		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
 		this.sessionTimeout = responseData.sessionTimeout || 8000;	/// default timeout in RRF is 8000ms

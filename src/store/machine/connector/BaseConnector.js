@@ -45,9 +45,11 @@ class BaseConnector {
 	module = null
 	settings = null
 	hostname = null
+	type = 'unknown'
 	verbose = false
 
-	constructor(hostname) {
+	constructor(type, hostname) {
+		this.type = type;
 		this.hostname = hostname;
 	}
 

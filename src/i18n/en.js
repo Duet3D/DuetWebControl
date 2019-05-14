@@ -283,7 +283,7 @@ export default {
 	input: {
 		code: {
 			send: 'Send',
-			placeholder: 'Send Code...'
+			placeholder: 'Send code...'
 		},
 		addTemperature: 'Value of new temperature',
 		addRPM: 'Value of new preset'
@@ -354,7 +354,7 @@ export default {
 		control: {
 			caption: 'Machine Control',
 			dashboard: 'Dashboard',
-			console: 'G-Code Console',
+			console: 'Console',
 			heightmap: 'Height Map'
 		},
 		job: {
@@ -365,7 +365,7 @@ export default {
 		},
 		files: {
 			caption: 'File Management',
-			jobs: 'G-Code Jobs',
+			jobs: 'Jobs',
 			filaments: 'Filaments',
 			macros: 'Macros',
 			display: 'Display',
@@ -483,6 +483,7 @@ export default {
 			orMore: 'or more',
 			orLess: 'or less',
 			axes: 'Axes:',
+			notAvailable: 'height map not available',
 			numPoints: 'Number of points: {0}',
 			radius: 'Probing radius: {0}',
 			area: 'Probe area: {0}',
@@ -562,16 +563,20 @@ export default {
 		},
 		settingsCommunication: {
 			caption: 'Communication',
+			pingInterval: 'PING interval when idle (ms)',
 			ajaxRetries: 'Number of maximum AJAX retries',
 			updateInterval: 'Update interval ({0})',
 			extendedUpdateEvery: 'Extended status update interval',
-			fileTransferRetryThreshold: 'Retry threshold for file transfers ({0})'
+			fileTransferRetryThreshold: 'Retry threshold for file transfers ({0})',
+			unavailable: 'No settings available'
 		},
 		settingsElectronics: {
 			caption: 'Electronics',
 			diagnostics: 'Diagnostics',
+			board: 'Board: {0}',
 			firmware: 'Firmware: {0} ({1})',
-			dwsFirmware: 'Duet WiFi Server Version: {0}'
+			dwsFirmware: 'Duet WiFi Server Version: {0}',
+			updateNote: 'Note: You can install updates on the System page.'
 		},
 		settingsGeneral: {
 			caption: 'General',

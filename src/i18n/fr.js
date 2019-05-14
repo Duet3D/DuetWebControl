@@ -54,7 +54,7 @@ export default {
 			},
 			start: {
 				caption: 'Envoyer & Lancer',
-				title: 'Envoyer & lancer un ou plusieurs fichiers G-Code (le glisser/déposer est supporté)'
+				title: 'Envoyer & lancer un fichier G-Code (le glisser/déposer est supporté)'
 			},
 			macros: {
 				caption: 'Envoyer Fichier(s) Macro',
@@ -355,7 +355,7 @@ export default {
 		control: {
 			caption: 'Contrôle de la Machine',
 			dashboard: 'Tableau de Bord',
-			console: 'Console G-Code',
+			console: 'Console',
 			heightmap: 'Carte de Hauteur'
 		},
 		job: {
@@ -366,7 +366,7 @@ export default {
 		},
 		files: {
 			caption: 'Gestion de Fichiers',
-			jobs: 'Travails G-Code',
+			jobs: 'Travails',
 			filaments: 'Filaments',
 			macros: 'Macros',
 			display: 'Affichage',
@@ -484,6 +484,7 @@ export default {
 			orMore: 'ou plus',
 			orLess: 'ou moins',
 			axes: 'Axes:',
+			notAvailable: 'Carte de Hauteur non disponible',
 			numPoints: 'Nombre de points: {0}',
 			radius: 'Rayon de palpage: {0}',
 			area: 'Zone de palpage: {0}',
@@ -544,7 +545,7 @@ export default {
 			disableMeshCompensation: 'Désactiver Mesh Compensation (G29 S2)',
 			editMesh: 'Définir Zone pour la Mesh Compensation (M557)',
 			runMesh: 'Lancer Mesh Compensation (G29)',
-			loadMesh: 'Charger la Carte de Hauteur Sauvegardée depuis la SD (G29 S1)',
+			loadMesh: 'Charger la Carte de Hauteur Sauvegardée (G29 S1)',
 			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivantss n\'ont pas été à leur origine:',
 			noAxes: 'Pas d\'axes'
 		},
@@ -563,16 +564,20 @@ export default {
 		},
 		settingsCommunication: {
 			caption: 'Communication',
+			pingInterval: 'Intervalle PING au repos ({0})',
 			ajaxRetries: 'Nombre maximal de tentatives AJAX',
 			updateInterval: 'Intervalle de mise à jour ({0})',
 			extendedUpdateEvery: 'Intervalle de mise à jour du statut étendu',
-			fileTransferRetryThreshold: 'Limite d\'essais pour le transfert de fichiers ({0})'
+			fileTransferRetryThreshold: 'Limite d\'essais pour le transfert de fichiers ({0})',
+			unavailable: 'Aucun réglage disponible.',
 		},
 		settingsElectronics: {
 			caption: 'Électroniques',
 			diagnostics: 'Diagnostiques',
+			board: 'Circuit: {0}',
 			firmware: 'Firmware: {0} ({1})',
-			dwsFirmware: 'Duet WiFi Server Version: {0}'
+			dwsFirmware: 'Duet WiFi Server Version: {0}',
+			updateNote: 'Remarque: Vous pouvez installer les mises à jour sur la page Système.'
 		},
 		settingsGeneral: {
 			caption: 'Général',

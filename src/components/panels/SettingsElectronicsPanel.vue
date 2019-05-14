@@ -11,16 +11,18 @@
 		<v-card-text class="pt-0">
 			<template v-if="isConnected">
 				<template v-if="electronics.name">
-					{{ electronics.name }}
-					<br/><br/>
+					{{ $t('panel.settingsElectronics.board', [electronics.name]) }}
 				</template>
 				<template v-if="electronics.firmware.name">
+					<br/>
 					{{ $t('panel.settingsElectronics.firmware', [electronics.firmware.name + ' ' + $display(electronics.firmware.version), $display(electronics.firmware.date)]) }}
-					<br/><br/>
 				</template>
 				<template v-if="electronics.type != 'duet3' && network.interfaces.length && network.interfaces[0].type === 'wifi'">
+					<br/>
 					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(network.interfaces[0].firmwareVersion)]) }}
 				</template>
+				<br/><br/>
+				{{ $t('panel.settingsElectronics.updateNote') }}
 			</template>
 			<template v-else>
 				(not connected)

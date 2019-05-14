@@ -14,6 +14,9 @@ export default function(hostname) {
 			extendedUpdateEvery: 20,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 
+			// REST Connector
+			pingInterval: 2000,							// ms
+
 			// UI
 			babystepAmount: 0.05,						// mm
 			codes: ['M0', 'M1', 'M84'],

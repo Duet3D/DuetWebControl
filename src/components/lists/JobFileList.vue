@@ -195,8 +195,8 @@ export default {
 							layerHeight = fileInfo.layerHeight;
 							filament = fileInfo.filament;
 							generatedBy = fileInfo.generatedBy;
-							printTime = fileInfo.printTime;
-							simulatedTime = fileInfo.simulatedTime;
+							if (fileInfo.printTime) { printTime = fileInfo.printTime; }
+							if (fileInfo.simulatedTime) { simulatedTime = fileInfo.simulatedTime; }
 						}
 					} catch (e) {
 						if (e instanceof DisconnectedError) {

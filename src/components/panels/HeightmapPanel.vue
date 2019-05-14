@@ -33,7 +33,7 @@ canvas {
 							<v-flex class="loading" v-show="!ready">
 								<v-layout fill-height align-center>
 									<v-flex tag="h1" class="text-xs-center">
-										{{ loading ? $t('generic.loading') : errorMessage }}
+										{{ loading ? $t('generic.loading') : (errorMessage ? errorMessage : $t('panel.heightmap.notAvailable')) }}
 									</v-flex>
 								</v-layout>
 							</v-flex>
@@ -81,7 +81,7 @@ canvas {
 								</v-btn>
 							</v-flex>
 							<v-flex shrink>
-								<v-btn class="ml-0" :loading="loading" @click="getHeightmap()">
+								<v-btn class="ml-0" :disabled="!isConnected" :loading="loading" @click="getHeightmap()">
 									<v-icon class="mr-1">refresh</v-icon> {{ $t('panel.heightmap.reload') }}
 								</v-btn>
 							</v-flex>
@@ -146,7 +146,7 @@ export default {
 			isActive: true,
 			ready: false,
 			loading: false,
-			errorMessage: 'height map not available',
+			errorMessage: null,
 
 			colorScheme: 'terrain',
 			tooltip: {

@@ -56,6 +56,8 @@ export default function(connector) {
 			heat: {
 				beds: [									// may contain null items
 					new BedOrChamber({
+						active: [0],
+						standby: [0],
 						heaters: [0]
 					})
 				],
@@ -140,14 +142,23 @@ export default function(connector) {
 					new Extruder()
 				],
 				geometry: {
-					type: null
-					// TODO Expand this for delta/corexy/corexz
+					type: null,
+					anchors: [],
+					printRadius: null,
+					diagonals: [],
+					radius: null,
+					homedHeight: null,
+					angleCorrections: null,
+					endstopAdjustments: [],
+					tilt: []
 				},
 				idle: {
 					timeout: null,
 					factor: null
 				},
-				speedFactor: 1.0
+				speedFactor: 1.0,
+				currentWorkplace: 0,
+				workplaceCoordinates: []
 			},
 			network: {
 				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',

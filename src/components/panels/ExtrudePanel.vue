@@ -122,8 +122,8 @@ export default {
 		return {
 			busy: false,
 			mixValue: ['mix'],
-			amount: 0,
-			feedrate: 0,
+			amount: 10,
+			feedrate: 5,
 			editAmountDialog: {
 				shown: false,
 				index: 0,
@@ -156,8 +156,7 @@ export default {
 			this.busy = true;
 			try {
 				const amount = amounts.map(amount => extrude ? amount : -amount).reduce((a, b) => `${a}:${b}`);
-				// TODO let users decide if they want to send M400 as well so this call blocks until the extrusion is complete
-				await this.sendCode(`G1 E${amount} F${this.feedrate * 60}`);
+				await this.sendCode(`M120\nM83\nG1 E${amount} F${this.feedrate * 60}\nM121`);
 			} catch (e) {
 				// handled before we get here
 			}
@@ -183,8 +182,8 @@ export default {
 		}
 	},
 	mounted() {
-		this.amount = this.extruderAmounts[0];
-		this.feedrate = this.extruderFeedrates[0];
+		this.amount = this.extruderAmounts[3];
+		this.feedrate = this.extruderFeedrates[3];
 	},
 	watch: {
 		currentTool(to) {

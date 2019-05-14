@@ -9,7 +9,9 @@ export class Axis {
 	homed = null
 	machinePosition = null
 	min = null
+	minProbed = false
 	max = null
+	maxProbed = false
 	visible = null
 }
 
@@ -25,6 +27,7 @@ export class Channel {
 	constructor(initData) { quickPatch(this, initData); }
 	feedrate = 50
 	relativeExtrusion = true
+	volumetricExtrusion = false
 	relativePositioning = false
 	stackDepth = 0
 	usingInches = false
@@ -142,9 +145,15 @@ export class Heater {
 	state = null				// see RRF state enum
 	model = {
 		gain: null,
-		timeConst: null,
+		timeConstant: null,
 		deadTime: null,
-		maxPwm: null
+		maxPwm: null,
+		standardVoltage: null,
+		usePID: true,
+		customPID: false,
+		p: null,
+		i: null,
+		d: null
 	}
 	max = null
 	sensor = null
@@ -181,6 +190,7 @@ export class Probe {
 	threshold = 500
 	speed = 2
 	diveHeight = 5
+	offset = []
 	triggerHeight = 0.7
 	inverted = false
 	recoveryTime = 0
@@ -188,6 +198,7 @@ export class Probe {
 	maxProbeCount = 1
 	tolerance = 0.03
 	disablesBed = false
+	persistent = false
 }
 
 export class Spindle {
@@ -220,6 +231,7 @@ export class Tool {
 	spindle = -1
 	axes = []							// may hold sub-arrays of drives per axis
 	offsets = []						// offsets in the same order as the axes
+	offsetsProbed = false
 }
 
 function fixObject(item, preset) {

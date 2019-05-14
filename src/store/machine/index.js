@@ -44,7 +44,8 @@ export default function(hostname, connector) {
 			isReconnecting: false
 		},
 		getters: {
-			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length
+			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length,
+			connector: () => connector ? connector.type : null
 		},
 		actions: {
 			...mapConnectorActions(connector, ['reconnect', 'sendCode', 'upload', 'download', 'getFileInfo']),
