@@ -53,7 +53,7 @@ export default {
 			get() { return this.settings.webcam.updateInterval; },
 			set(value) {
 		        	value = parseInt(value);  
-				if (!isNaN(value) && value >= 250) { 
+				if (!isNaN(value) && (value >= 250 || value === 0)) { 
 					this.update({ webcam: { updateInterval: value } }); } 
 				}
 		},
