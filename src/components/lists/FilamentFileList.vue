@@ -17,13 +17,7 @@
 			<upload-btn class="hidden-sm-and-down" target="filaments" color="primary"></upload-btn>
 		</v-toolbar>
 
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop>
-			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
-					{{ isRootDirectory ? $t('list.filament.noFilaments') : $t('list.baseFileList.noFiles') }}
-				</v-alert>
-			</template>
-
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop :no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
 			<template slot="context-menu">
 				<v-list-tile v-show="filamentSelected" @click="downloadFilament">
 					<v-icon class="mr-1">cloud_download</v-icon> {{ $t('list.baseFileList.downloadZIP') }}

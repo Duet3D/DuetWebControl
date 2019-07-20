@@ -308,7 +308,7 @@ export default class PollConnector extends BaseConnector {
 				]
 			} : {},
 			state: {
-				atxPower: !!response.data.params.atxPower,
+				atxPower: (response.data.params.atxPower === -1) ? null : (response.data.params.atxPower !== 0),
 				currentTool: response.data.currentTool,
 				status: this.convertStatusLetter(response.data.status)
 			},
@@ -513,18 +513,17 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Output Utilities
+		let beepFrequency = 0, beepDuration = 0, persistentMessage = "";
 		if (response.data.output) {
 			// Beep
-			const frequency = response.data.output.beepFrequency;
-			const duration = response.data.output.beepDuration;
-			if (frequency && duration) {
-				this.store.commit(`machines/${this.hostname}/beep`, { frequency, duration });
+			if (response.data.output.hasOwnProperty("beepFrequency")) {
+				beepFrequency = response.data.output.beepFrequency;
+				beepDuration = response.data.output.beepDuration;
 			}
 
-			// Message
-			const message = response.data.output.message;
-			if (message) {
-				this.store.commit(`machines/${this.hostname}/message`, message);
+			// Persistent Message
+			if (response.data.output.hasOwnProperty("message")) {
+				persistentMessage = response.data.output.message;
 			}
 
 			// Message Box
@@ -556,6 +555,16 @@ export default class PollConnector extends BaseConnector {
 				}
 			});
 		}
+
+		quickPatch(newData, {
+			state: {
+				beep: {
+					frequency: beepFrequency,
+					duration: beepDuration
+				},
+				displayMessage: persistentMessage
+			}
+		});
 
 		// Spindles
 		if (response.data.spindles) {

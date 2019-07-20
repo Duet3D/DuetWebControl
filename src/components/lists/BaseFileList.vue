@@ -27,7 +27,7 @@ th.checkbox {
 			<template slot="no-data">
 				<slot name="no-data">
 					<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
-						{{ $t('list.baseFileList.noFiles') }}
+						{{ $t(noItemsText) }}
 					</v-alert>
 				</slot>
 			</template>
@@ -121,7 +121,7 @@ import { VDataTable } from 'vuetify/lib'
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
-import { getModifiedDirectories } from '../../store/machine'
+import { defaultMachine, getModifiedDirectories } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
@@ -173,6 +173,11 @@ export default {
 		noDragDrop: Boolean,
 		noDownload: Boolean,
 		noEdit: Boolean,
+		noFilesText:
+		{
+			type: String,
+			default: ''
+		},
 		noRename: Boolean,
 		noDelete: Boolean
 	},
@@ -197,6 +202,12 @@ export default {
 		},
 		canEditFile() {
 			return (this.innerValue.length > 0) && (this.innerValue[0].size < maxEditFileSize);
+		},
+		noItemsText() {
+			if (this.selectedMachine === defaultMachine) {
+				return this.noFilesText;
+			}
+			return (this.storages.length > this.storageIndex && this.storages[this.storageIndex].mounted) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
 		}
 	},
 	data() {

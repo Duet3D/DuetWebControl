@@ -184,6 +184,7 @@ export default {
 			this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
 			this.three.renderer.setSize(size.width, size.height);
 			this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
+			this.three.orbitControls.enableKeys = false;
 			this.three.raycaster = new Raycaster();
 
 			// Register this instance in order to deal with size changes

@@ -10,7 +10,7 @@
 					<v-text-field v-model="webcamURL" :label="$t('panel.settingsWebcam.webcamURL')"></v-text-field>
 				</v-flex>
 				<v-flex xs12 sm12 md6>
-					<v-text-field v-model="webcamUpdateInterval" type="number" step="1" min="250" :label="$t('panel.settingsWebcam.webcamUpdateInterval', ['ms'])"></v-text-field>
+					<v-text-field v-model.number="webcamUpdateInterval" type="number" step="1" min="250" :label="$t('panel.settingsWebcam.webcamUpdateInterval', ['ms'])"></v-text-field>
 				</v-flex>
 				<v-flex xs12 sm12 md6>
 					<v-switch v-model="webcamFix" :label="$t('panel.settingsWebcam.webcamFix')"></v-switch>

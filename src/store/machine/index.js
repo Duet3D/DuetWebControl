@@ -184,9 +184,23 @@ export default function(hostname, connector) {
 			// Update machine mode. Reserved for the machine connector!
 			async update({ state, commit, dispatch }, payload) {
 				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.file.fileName;
+				const beepFrequency = state.model.state.beep.frequency, beepDuration = state.model.state.beep.duration;
+				const displayMessage = state.model.state.displayMessage;
 
 				// Merge updates into the object model
 				commit('model/update', payload);
+				
+				// Is a beep requested?
+				if (state.model.state.beep.frequency != 0 && state.model.state.beep.duration != 0 &&
+					(state.model.state.beep.frequency != beepFrequency || state.model.state.beep.duration != beepDuration))
+				{
+					beep(state.model.state.beep.frequency, state.model.state.beep.duration);
+				}
+
+				// Is a message supposed to be shown?
+				if (state.model.state.displayMessage != "" && state.model.state.displayMessage != displayMessage) {
+					showMessage(state.model.state.displayMessage);
+				}
 
 				// Is an update or emergency reset in progress?
 				const reconnect = (state.model.state.status === 'updating') ||
@@ -244,8 +258,6 @@ export default function(hostname, connector) {
 			clearLog: state => state.events = [],
 			log: (state, payload) => state.events.push(payload),
 
-			beep: (state, { frequency, duration }) => beep(frequency, duration),
-			message: (state, message) => showMessage(message),
 			unregister: () => connector.unregister(),
 
 			setAutoSleep: (state, value) => state.autoSleep = value,

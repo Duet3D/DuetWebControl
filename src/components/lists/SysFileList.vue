@@ -17,12 +17,8 @@
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="sys" color="primary"></upload-btn>
 		</v-toolbar>
 		
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited">
-			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
-					{{ $t('list.sys.noFiles') }}
-				</v-alert>
-			</template>
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited" no-files-text="list.sys.noFiles">
+			<!-- Files go here -->
 		</base-file-list>
 
 		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>

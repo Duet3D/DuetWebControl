@@ -311,6 +311,7 @@ export default {
 			delete: 'Delete',
 			downloadZIP: 'Download as ZIP',
 			noFiles: 'No Files or Directories',
+			driveUnmounted: 'Drive is unmounted',
 			goUp: 'Go up'
 		},
 		display: {

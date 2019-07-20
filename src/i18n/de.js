@@ -311,6 +311,7 @@ export default {
 			delete: 'Löschen',
 			downloadZIP: 'Als ZIP herunterladen',
 			noFiles: 'Keine Dateien oder Verzeichnisse',
+			driveUnmounted: 'Laufwerk ist nicht eingebunden',
 			goUp: 'Nach oben'
 		},
 		display: {

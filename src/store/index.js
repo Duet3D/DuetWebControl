@@ -158,7 +158,7 @@ const store = new Vuex.Store({
 		setSelectedMachine(state, selectedMachine) {
 			this.unregisterModule('machine');
 			this.registerModule('machine', machines[selectedMachine]);
-			state.selectedMachine = selectedMachine
+			state.selectedMachine = selectedMachine;
 		}
 	},
 

@@ -6,13 +6,15 @@
 					<movement-panel></movement-panel>
 				</v-flex>
 
-				<v-flex>
-					<v-layout row>
-						<v-flex sm12 md9 lg9 xl10>
+				<v-flex v-if="!state.mode || state.mode === 'FFF' || state.atxPower !== null">
+					<v-layout v-if="!state.mode || state.mode === 'FFF'" row>
+						<v-flex sm12
+							:md9="state.atxPower !== null" :lg9="state.atxPower !== null" :xl10="state.atxPower !== null"
+							:md12="state.atxPower === null" :lg12="state.atxPower === null" :xl12="state.atxPower === null">
 							<extrude-panel></extrude-panel>
 						</v-flex>
 
-						<v-flex class="hidden-sm-and-down" align-self-center md3 lg3 xl2>
+						<v-flex v-if="state.atxPower !== null" class="hidden-sm-and-down" align-self-center md3 lg3 xl2>
 							<atx-panel></atx-panel>
 						</v-flex>
 					</v-layout>
@@ -22,7 +24,7 @@
 					<fan-panel></fan-panel>
 				</v-flex>
 
-				<v-flex class="hidden-md-and-up">
+				<v-flex v-if="state.atxPower !== null" class="hidden-md-and-up">
 					<atx-panel></atx-panel>
 				</v-flex>
 			</v-layout>
@@ -33,3 +35,12 @@
 		</v-flex>
 	</v-layout>
 </template>
+
+<script>
+
+import { mapState } from 'vuex'
+
+export default {
+	computed: mapState('machine/model', ['state'])
+}
+</script>

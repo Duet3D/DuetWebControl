@@ -9,7 +9,7 @@
 </style>
 
 <template>
-	<v-card>
+	<v-card v-show="canControlFans">
 		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fan.caption') }}
 		</v-card-title>
@@ -20,9 +20,10 @@
 					{{ $t('panel.fan.selection') }}
 				</p>
 				<v-btn-toggle v-model="fan" mandatory>
-					<v-btn flat :value="-1" :disabled="!canControlFans" color="primary">
+					<v-btn flat v-show="currentTool && currentTool.fans.length > 0" :value="-1" color="primary">
 						{{ $t('panel.fan.toolFan') }}
 					</v-btn>
+
 					<template v-for="(fan, index) in fans">
 						<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen" color="primary">
 							{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
@@ -32,7 +33,7 @@
 			</v-flex>
 
 			<v-flex order-sm1 order-md2 class="ma-1">
-				<slider v-model="fanValue" :disabled="!canControlFans"></slider>
+				<slider v-model="fanValue" :disabled="uiFrozen"></slider>
 			</v-flex>
 		</v-layout>
 	</v-card>
@@ -46,9 +47,9 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['fans']),
+		...mapState('machine/model', ['fans', 'tools']),
 		...mapGetters('machine/model', ['currentTool']),
-		canControlFans() { return !this.uiFrozen && this.fans.length; },
+		canControlFans() { return !this.uiFrozen && ((this.currentTool && this.currenTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control))); },
 		fanValue: {
 			get() {
 				if (this.canControlFans) {
@@ -80,6 +81,22 @@ export default {
 			fan: -1
 		}
 	},
-	methods: mapActions('machine', ['sendCode'])
+	methods: {
+		...mapActions('machine', ['sendCode']),
+		updateFanSelection() {
+			if ((this.fan === -1 && !this.currentTool) ||
+				(this.fan !== -1 && (this.fans.length < this.fan || this.fans[this.fan].thermostatic.control))) {
+				this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
+			}
+		}
+	},
+	watch: {
+		currentTool() {
+			this.updateFanSelection();
+		},
+		fans() {
+			this.updateFanSelection();
+		}
+	}
 }
 </script>

@@ -17,13 +17,7 @@
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="macros" color="primary"></upload-btn>
 		</v-toolbar>
 		
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="macros" @fileClicked="fileClicked">
-			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
-					{{ $t('list.macro.noMacros') }}
-				</v-alert>
-			</template>
-
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="macros" @fileClicked="fileClicked" no-files-text="list.macro.noMacros">
 			<template slot="context-menu">
 				<v-list-tile v-show="isFile" @click="runFile(selection[0].name)">
 					<v-icon class="mr-1">play_arrow</v-icon> {{ $t('list.macro.run') }}

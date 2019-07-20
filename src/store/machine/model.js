@@ -182,7 +182,12 @@ export default function(connector) {
 				isSimulating: false,					// auto-evaluated on update
 
 				atxPower: null,
+				beep: {
+					frequency: 0,
+					duration: 0
+				},
 				currentTool: null,
+				displayMessage: "",
 				mode: null,								// one of ['FFF', 'CNC', 'Laser', null]
 				status: null							// one of the following:
 				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
@@ -203,7 +208,8 @@ export default function(connector) {
 					heaters: [2],
 					extruders: [1]
 				})
-			]
+			],
+			userVariables: []
 		},
 		getters: {
 			board: state => getBoardDefinition(state.electronics.type),

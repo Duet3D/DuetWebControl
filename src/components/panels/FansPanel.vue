@@ -1,5 +1,5 @@
 <template>
-	<v-card>
+	<v-card v-show="(currentTool && currentTool.fans.length > 0) || fans.some(fan => !fan.thermostatic.control)">
 		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fans.caption') }}
 			<v-spacer></v-spacer>
@@ -11,7 +11,7 @@
 				</template>
 
 				<v-list>
-					<v-list-tile @click="toggleFanVisibility(-1)">
+					<v-list-tile v-show="currentTool && currentTool.fans.length > 0" @click="toggleFanVisibility(-1)">
 						<v-icon class="mr-1">
 							{{ (displayedFans.indexOf(-1) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
 						</v-icon>
@@ -58,7 +58,12 @@ export default {
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['displayedFans']),
 		visibleFans() {
-			return this.displayedFans.filter(fan => (fan === -1) || (fan < this.fans.length && !this.fans[fan].thermostatic.control), this);
+			return this.displayedFans.filter(function(fan) {
+				if (fan === -1) {
+					return this.currentTool && this.currentTool.fans.length > 0;
+				}
+				return fan < this.fans.length && !this.fans[fan].thermostatic.control;
+			}, this);
 		},
 		toolFan() {
 			if (this.currentTool && this.currentTool.fans.length) {
