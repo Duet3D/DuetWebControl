@@ -20,7 +20,7 @@ export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		let response;
 		try {
-			response = await axios.get(`http://${hostname}/rr_connect`, {
+			response = await axios.get(`${location.protocol}//${hostname}/rr_connect`, {
 				params: {
 					password,
 					time: timeToStr(new Date())
@@ -69,7 +69,7 @@ export default class PollConnector extends BaseConnector {
 		this.sessionTimeout = responseData.sessionTimeout || 8000;	/// default timeout in RRF is 8000ms
 
 		this.axios = axios.create({
-			baseURL: `http://${hostname}/`,
+			baseURL: `${location.protocol}//${hostname}/`,
 			cancelToken: this.cancelSource.token,
 			timeout: this.sessionTimeout
 		});
@@ -85,7 +85,7 @@ export default class PollConnector extends BaseConnector {
 
 		// Attempt to reconnect
 		try {
-			const response = await axios.get(`http://${this.hostname}/rr_connect`, {
+			const response = await axios.get(`${location.protocol}//${this.hostname}/rr_connect`, {
 				params: {
 					password: this.password,
 					time: timeToStr(new Date())
