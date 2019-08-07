@@ -241,13 +241,15 @@ export default {
 			if (to) {
 				// Go to Job Status when a print starts
 				this.$router.push('/Job/Status');
+			} else {
+				Piecon.reset();
 			}
 		},
 		name() { this.updateTitle(); },
 		jobProgress(to) {
 			if (to === undefined || to == 1) {
 				Piecon.reset();
-			} else {
+			} else if (this.isPrinting) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();

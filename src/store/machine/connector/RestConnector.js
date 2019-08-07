@@ -49,6 +49,9 @@ export default class RestConnector extends BaseConnector {
 		this.password = password;
 		this.socket = socket;
 		this.model = model;
+		if (model.job && model.job.layers) {
+			this.layers = model.job.layers;
+		}
 
 		this.axios = axios.create({
 			baseURL: `http://${hostname}/`,

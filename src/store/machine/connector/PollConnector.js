@@ -60,7 +60,6 @@ export default class PollConnector extends BaseConnector {
 	layers = []
 	currentFileInfo = new FileInfo()
 	printStats = {}
-	messageBoxShown = false;
 
 	constructor(hostname, password, responseData) {
 		super('poll', hostname);
@@ -513,7 +512,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Output Utilities
-		let beepFrequency = 0, beepDuration = 0, persistentMessage = "";
+		let beepFrequency = 0, beepDuration = 0, displayMessage = "", msgBoxMode = null;
 		if (response.data.output) {
 			// Beep
 			if (response.data.output.hasOwnProperty("beepFrequency")) {
@@ -523,46 +522,35 @@ export default class PollConnector extends BaseConnector {
 
 			// Persistent Message
 			if (response.data.output.hasOwnProperty("message")) {
-				persistentMessage = response.data.output.message;
+				displayMessage = response.data.output.message;
 			}
 
 			// Message Box
 			const msgBox = response.data.output.msgBox;
 			if (msgBox) {
-				this.messageBoxShown = true;
+				msgBoxMode = msgBox.mode;
 				quickPatch(newData, {
 					messageBox: {
-						mode: msgBox.mode,
 						title: msgBox.title,
 						message: msgBox.msg,
 						timeout: msgBox.timeout,
-						axisControls: bitmapToArray(msgBox.controls)
-					}
-				});
-			} else if (this.messageBoxShown) {
-				this.messageBoxShown = false;
-				quickPatch(newData, {
-					messageBox: {
-						mode: null
+						axisControls: bitmapToArray(msgBox.controls),
+						seq: msgBox.seq
 					}
 				});
 			}
-		} else if (this.messageBoxShown) {
-			this.messageBoxShown = false;
-			quickPatch(newData, {
-				messageBox: {
-					mode: null
-				}
-			});
 		}
 
 		quickPatch(newData, {
+			messageBox: {
+				mode: msgBoxMode
+			},
 			state: {
 				beep: {
 					frequency: beepFrequency,
 					duration: beepDuration
 				},
-				displayMessage: persistentMessage
+				displayMessage: displayMessage
 			}
 		});
 

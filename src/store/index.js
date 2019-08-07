@@ -34,7 +34,7 @@ const store = new Vuex.Store({
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
-		isConnected: state => state.selectedMachine !== defaultMachine && !state.machine.isReconnecting,
+		isConnected: state => state.selectedMachine !== defaultMachine && state.machine && !state.machine.isReconnecting,
 		uiFrozen: (state, getters) => state.isConnecting || state.isDisconnecting || !getters.isConnected
 	},
 	actions: {

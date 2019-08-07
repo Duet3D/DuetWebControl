@@ -96,8 +96,10 @@ export default function(connector) {
 					layer: null
 				}
 			},
+			lasers: [],
 			messageBox: {
 				mode: null,
+				seq: -1,
 				title: null,
 				message: null,
 				timeout: null,
@@ -161,6 +163,7 @@ export default function(connector) {
 				workplaceCoordinates: []
 			},
 			network: {
+				hostname: connector ? connector.hostname : 'myduet',
 				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
 				password: null,
 				interfaces: []
@@ -189,6 +192,7 @@ export default function(connector) {
 				currentTool: null,
 				displayMessage: "",
 				mode: null,								// one of ['FFF', 'CNC', 'Laser', null]
+				logFile: null,
 				status: null							// one of the following:
 				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
 			},

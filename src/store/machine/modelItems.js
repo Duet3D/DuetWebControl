@@ -169,6 +169,12 @@ export class Layer {
 	fractionPrinted = null
 }
 
+export class Laser {
+	constructor(initData) { quickPatch(this, initData); }
+	actualPwm = 0.0;
+	requestedPwm = 0.0;
+}
+
 export class NetworkInterface {
 	constructor(initData) { quickPatch(this, initData); }
 	type = null					// one of ['wifi', 'lan']
@@ -226,6 +232,7 @@ export class Tool {
 	active = []
 	standby = []
 	name = null
+	filamentExtruder = -1
 	filament = null
 	fans = []
 	heaters = []
@@ -303,6 +310,10 @@ export function fixMachineItems(state, mergeData) {
 		if (mergeData.heat.heaters) {
 			fixItems(state.heat.heaters, Heater);
 		}
+	}
+
+	if (mergeData.lasers) {
+		fixItems(state.lasers, Laser);
 	}
 
 	// Layers are not verified for performance reasons

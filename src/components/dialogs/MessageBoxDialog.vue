@@ -108,7 +108,7 @@ export default {
 			deep: true,
 			handler(to) {
 				this.shown = (to.mode !== null);
-				this.persistent = (to.mode === 1);
+				this.persistent = (to.mode !== 0);
 			}
 		}
 	}
