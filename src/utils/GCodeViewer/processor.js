@@ -265,7 +265,7 @@ class processor {
         { width: 1, height: 0.3, depth: 0.6 },
         scene
       );
-      console.log(this.lines.length);
+
       var l = this.lines;
 
       var particleBuilder = function(particle, i, s){
@@ -276,9 +276,10 @@ class processor {
         updatable: false,
         isPickable: false,
       });
+      
       sps.addShape(box, this.lines.length, {positionFunction: particleBuilder});
       sps.buildMesh();
-
+      
       sps.mesh.freezeWorldMatrix();       // prevents from re-computing the World Matrix each frame
       sps.mesh.freezeNormals();  
       }
