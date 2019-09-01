@@ -29,6 +29,9 @@
 				<v-list-tile v-show="isFile" @click="simulate">
 					<v-icon class="mr-1">fast_forward</v-icon> Simulate File
 				</v-list-tile>
+				<v-list-tile v-show="isFile" @click="view3D">
+					<v-icon class="mr-1">play_arrow</v-icon> 3D View
+				</v-list-tile>
 			</template>
 		</base-file-list>
 
@@ -55,6 +58,12 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import { DisconnectedError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
+
+import gcode_viewer from '../../utils/GCodeViewer/gcodeviewer.js'
+import processor from '../../utils/GCodeViewer/processor.js'
+import gcodeLine from '../../utils/GCodeViewer/gcodeline.js'
+
+
 
 export default {
 	computed: {
@@ -247,6 +256,36 @@ export default {
 		},
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+		},
+		view3D(item) {
+		var filePath =`${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}`;
+		var file = contextMenuTargets.data("file")
+			var viewer = new gcode_viewer(null);
+			viewer.init();
+				$.ajax({
+					type:"GET",
+					url: ajaxPrefix + 'rr_download?name=' + encodeURIComponent(filePath),
+					timeout : 0,
+					xhr: function(){
+						var xhr = new window.XMLHttpRequest();
+						xhr.timeout = 0;
+						xhr.addEventListener("progress", function(evt) {
+							if(evt.lengthComputable){
+								var percent = evt.loaded / evt.total;
+								viewer.setProgress(percent * 100);
+							}
+						});
+						return xhr;
+					},
+					success: function(response) {
+										viewer.processFile(response);
+										viewer.hideProgress();
+						}
+				});
+
+
+
+
 		}
 	},
 	watch: {

@@ -9,18 +9,20 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "report": "vue-cli-service build --report",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "webpack-defaults": "webpack-defaults"
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "babylonjs": "^4.0.3",
     "chart.js": "^2.7.3",
     "file-saver": "^2.0.0",
     "izitoast": "^1.4.0",
     "jszip": "^3.1.5",
     "piecon": "^0.5.0",
     "roboto-fontface": "*",
-    "three": "^0.99.0",
-    "three-orbitcontrols": "^2.99.1",
+    "three": "^0.102.0",
+    "three-orbitcontrols": "^2.102.2",
     "vue": "^2.5.17",
     "vue-i18n": "^8.6.0",
     "vue-router": "^3.0.1",
