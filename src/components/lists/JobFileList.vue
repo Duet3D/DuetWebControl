@@ -59,11 +59,9 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import { DisconnectedError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
-import gcode_viewer from '../../utils/GCodeViewer/gcodeviewer.js'
-import processor from '../../utils/GCodeViewer/processor.js'
-import gcodeLine from '../../utils/GCodeViewer/gcodeline.js'
-
-
+import jQuery from 'jquery'
+//let $ = jQuery;
+import gcodeViewer from '../../utils/GCodeViewer/gcodeviewer.js'
 
 export default {
 	computed: {
@@ -141,7 +139,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'getFileInfo']),
+		...mapActions('machine', ['sendCode', 'getFileInfo','download']),
 		...mapMutations('machine/cache', ['clearFileInfo']),
 		async selectStorage(index) {
 			const storage = this.storages[index];
@@ -257,11 +255,14 @@ export default {
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
 		},
-		view3D(item) {
+		async view3D(item) {
 		var filePath =`${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}`;
-		var file = contextMenuTargets.data("file")
-			var viewer = new gcode_viewer(null);
+			var viewer = new gcodeViewer(null);
 			viewer.init();
+			var blob = await this.download({filename:filePath});		
+			viewer.processFile(blob);
+	
+			/*
 				$.ajax({
 					type:"GET",
 					url: ajaxPrefix + 'rr_download?name=' + encodeURIComponent(filePath),
@@ -282,7 +283,7 @@ export default {
 										viewer.hideProgress();
 						}
 				});
-
+				*/
 
 
 
