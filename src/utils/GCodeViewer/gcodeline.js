@@ -15,6 +15,9 @@ class gcodeLine {
     this.material;
   }
 
+length (){
+  return this.distanceVector(this.start,this.end);
+}
 
  renderLine (scene) {
     var points = [this.start, this.end];

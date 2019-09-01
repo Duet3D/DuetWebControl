@@ -61,7 +61,9 @@ class gcodeViewer {
   }
   
   init(){
-    this.engine = new BABYLON.Engine(this.canvas, true);
+    this.engine = new BABYLON.Engine(this.canvas, true, {doNotHandleContextLost: true});
+    this.engine.enableOfflineSupport = false;
+
     this.scene = new BABYLON.Scene(this.engine);
         // Add a camera to the scene and attach it to the canvas
        this.orbitCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI/2, 2.356194 ,-250, new BABYLON.Vector3(117.5,0,117.5), this.scene);

@@ -2,9 +2,9 @@
 /* eslint-disable no-redeclare */
 "use strict";
 
-import * as BABYLON from "babylonjs"
-import gcodeLine from "./gcodeline.js"
-import jQuery from 'jquery'
+import * as BABYLON from "babylonjs";
+import gcodeLine from "./gcodeline.js";
+import jQuery from "jquery";
 let $ = jQuery;
 
 class processor {
@@ -13,6 +13,7 @@ class processor {
     this.color;
     this.absolute = true; //Track if we are in relative or absolute mode.
     this.lines = [];
+    this.extrudedLines = [];
     this.travels = [];
     this.currentColor = new BABYLON.Color4(1, 1, 1, 1);
     this.sps;
@@ -23,6 +24,8 @@ class processor {
       new BABYLON.Color4(0, 0, 0, 1) //k
     ];
   }
+
+
 
   processGcodeFile(file) {
     var lines = file.split(/\r\n|\n/);
@@ -69,7 +72,7 @@ class processor {
           }
           line.end = this.currentPosition.clone();
 
-          if (line.extruding) {
+          if (line.extruding && line.length() >= 0.5) { //&& line.length() > 0.5)
             line.color = this.currentColor.clone();
             this.lines.push(line);
           } else {
@@ -127,11 +130,12 @@ class processor {
         }
         this.currentColor = this.extruderColors[extruder].clone();
       }
+
     }
   }
 
   createScene(scene) {
-    var ver = 5;
+    var ver = 6;
 
     //If there are more than 500k lines of gcode then we need to switch to line rendering to avoid an out of memory exception.
     if (this.lines.length > 400000) {
@@ -230,7 +234,11 @@ class processor {
         scene
       );
       console.log(this.lines.length);
-      this.sps = new BABYLON.SolidParticleSystem("sps", scene, {updatable:false, isPickable:false});
+      this.sps = new BABYLON.SolidParticleSystem("sps", scene, {
+        updatable: true,
+        isPickable: false,
+        boundingSphereOnly: true
+      });
       this.sps.addShape(cylinder, this.lines.length);
       this.sps.buildMesh();
       this.sps.setParticles();
@@ -246,7 +254,40 @@ class processor {
       this.sps.computeParticleVertex = true;
       this.sps.isAlwaysVisible = true;
       this.sps.setParticles();
+
+      scene.clearCachedVertexData();
     }
+
+    if (ver === 6) {
+
+      var box = BABYLON.MeshBuilder.CreateBox(
+        "box",
+        { width: 1, height: 0.3, depth: 0.6 },
+        scene
+      );
+      console.log(this.lines.length);
+      var l = this.lines;
+
+      var particleBuilder = function(particle, i, s){
+        l[s].renderLineV3(particle);
+      }
+
+      var sps = new BABYLON.SolidParticleSystem("sps" , scene, {
+        updatable: false,
+        isPickable: false,
+      });
+      sps.addShape(box, this.lines.length, {positionFunction: particleBuilder});
+      sps.buildMesh();
+
+      sps.mesh.freezeWorldMatrix();       // prevents from re-computing the World Matrix each frame
+      sps.mesh.freezeNormals();  
+      }
+      
+    
+
+
+
+
   }
 }
 
