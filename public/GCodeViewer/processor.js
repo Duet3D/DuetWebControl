@@ -2,10 +2,6 @@
 /* eslint-disable no-redeclare */
 "use strict";
 
-import * as BABYLON from "babylonjs";
-import gcodeLine from "./gcodeline.js";
-import jQuery from "jquery";
-let $ = jQuery;
 
 class processor {
   constructor() {
@@ -24,8 +20,6 @@ class processor {
       new BABYLON.Color4(0, 0, 0, 1) //k
     ];
   }
-
-
 
   processGcodeFile(file) {
     var lines = file.split(/\r\n|\n/);
@@ -72,7 +66,8 @@ class processor {
           }
           line.end = this.currentPosition.clone();
 
-          if (line.extruding && line.length() >= 0.5) { //&& line.length() > 0.5)
+          if (line.extruding && line.length() >= 0.01) {
+            
             line.color = this.currentColor.clone();
             this.lines.push(line);
           } else {
@@ -130,7 +125,6 @@ class processor {
         }
         this.currentColor = this.extruderColors[extruder].clone();
       }
-
     }
   }
 
@@ -138,7 +132,7 @@ class processor {
     var ver = 6;
 
     //If there are more than 500k lines of gcode then we need to switch to line rendering to avoid an out of memory exception.
-    if (this.lines.length > 400000) {
+    if (this.lines.length > 500000) {
       console.log(this.lines.length);
       console.log("Switching to line rendering mode.");
       ver = 2;
@@ -227,39 +221,29 @@ class processor {
     }
 
     if (ver === 5) {
-      //var cylinder = BABYLON.MeshBuilder.CreateCylinder("cylinder", {diameterTop: 0.2, diameterBottom : 0.2, height : 1, segments: 4}, scene);
       var cylinder = BABYLON.MeshBuilder.CreateBox(
         "box",
         { width: 1, height: 0.3, depth: 0.6 },
         scene
       );
-      console.log(this.lines.length);
-      this.sps = new BABYLON.SolidParticleSystem("sps", scene, {
-        updatable: true,
-        isPickable: false,
-        boundingSphereOnly: true
-      });
-      this.sps.addShape(cylinder, this.lines.length);
-      this.sps.buildMesh();
-      this.sps.setParticles();
-
+      var sps = new BABYLON.SolidParticleSystem("sps", scene);
+      sps.addShape(cylinder, this.lines.length);
+      sps.buildMesh();
+    
       var length = this.lines.length;
       var lines = this.lines;
-      this.sps.initParticles = function() {
+      sps.initParticles = function() {
         for (var idx = 0; idx < length; idx++) {
           lines[idx].renderLineV3(this.particles[idx]);
         }
       };
-      this.sps.initParticles();
-      this.sps.computeParticleVertex = true;
-      this.sps.isAlwaysVisible = true;
-      this.sps.setParticles();
-
-      scene.clearCachedVertexData();
+      sps.initParticles();
+      sps.computeParticleVertex = true;
+      sps.isAlwaysVisible = true;
+      sps.setParticles();
     }
 
     if (ver === 6) {
-
       var box = BABYLON.MeshBuilder.CreateBox(
         "box",
         { width: 1, height: 0.3, depth: 0.6 },
@@ -268,28 +252,20 @@ class processor {
 
       var l = this.lines;
 
-      var particleBuilder = function(particle, i, s){
+      var particleBuilder = function(particle, i, s) {
         l[s].renderLineV3(particle);
-      }
+      };
 
-      var sps = new BABYLON.SolidParticleSystem("sps" , scene, {
-        updatable: false,
-        isPickable: false,
+      var sps = new BABYLON.SolidParticleSystem("sps", scene, {updatable : false});
+
+      sps.addShape(box, this.lines.length, {
+        positionFunction: particleBuilder
       });
-      
-      sps.addShape(box, this.lines.length, {positionFunction: particleBuilder});
       sps.buildMesh();
-      
-      sps.mesh.freezeWorldMatrix();       // prevents from re-computing the World Matrix each frame
-      sps.mesh.freezeNormals();  
-      }
-      
-    
-
-
-
-
+      sps.mesh.freezeWorldMatrix(); // prevents from re-computing the World Matrix each frame
+      sps.mesh.freezeNormals();
+    }
   }
 }
 
-export default processor;
+//export default processor;

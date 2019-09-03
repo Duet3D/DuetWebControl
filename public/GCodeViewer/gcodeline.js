@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-vars */
 "use strict";
 
-import BABYLON from "babylonjs";
-
 class gcodeLine {
   constructor() {
     this.start; //babylon vector3
@@ -78,4 +76,4 @@ length (){
 
 }
 
-export default gcodeLine
+//export default gcodeLine

@@ -88,10 +88,6 @@ import { mapState, mapGetters, mapActions, mapMutations } from "vuex";
 import { DisconnectedError } from "../../utils/errors.js";
 import Path from "../../utils/path.js";
 
-import jQuery from "jquery";
-//let $ = jQuery;
-import gcodeViewer from "../../utils/GCodeViewer/gcodeviewer.js";
-
 export default {
   computed: {
     ...mapState(["selectedMachine"]),
@@ -315,15 +311,12 @@ export default {
         )}"`
       );
     },
-    async view3D(item) {
+    view3D(item) {
       var filePath = `${Path.combine(
-        this.directory,
+       this.directory,
         item && item.name ? item.name : this.selection[0].name
       )}`;
-      var viewer = new gcodeViewer(null);
-      viewer.init();
-      var blob = await this.download({ filename: filePath });
-      viewer.processFile(blob);
+      window.open("/viewer.html?filepath=" + filePath + "&printerip=" + this.selectedMachine, "_blank","noopener,noreferrer" );
     }
   },
   watch: {
