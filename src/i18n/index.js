@@ -6,6 +6,7 @@ import VueI18n from 'vue-i18n'
 import en from './en.js'
 import de from './de.js'
 import fr from './fr.js'
+import ru from './ru.js'
 
 Vue.use(VueI18n)
 
@@ -38,7 +39,7 @@ if (process.env.NODE_ENV !== 'production') {
 	}
 
 	//compareTranslations(en, de, 'de');
-	compareTranslations(en, fr, 'fr');
+	compareTranslations(en, ru, 'ru');
 }
 /* eslint-enable */
 
@@ -47,6 +48,7 @@ export default new VueI18n({
 	messages: {
 		en,
 		de,
-		fr
+		fr,
+		ru
 	}
 })
