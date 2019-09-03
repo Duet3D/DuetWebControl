@@ -16,7 +16,8 @@ import { strToTime } from '../../../utils/time.js'
 
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
-		const socket = new WebSocket(`ws://${hostname}/machine`);
+		const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
+		const socket = new WebSocket(`${socketProtocol}//${hostname}/machine`);
 		const model = await new Promise(function(resolve, reject) {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
@@ -54,7 +55,7 @@ export default class RestConnector extends BaseConnector {
 		}
 
 		this.axios = axios.create({
-			baseURL: `http://${hostname}/`,
+			baseURL:  `${location.protocol}//${hostname}/`,
 			cancelToken: this.cancelSource.token,
 			timeout: 8000		// default RRF session timeout
 		});
