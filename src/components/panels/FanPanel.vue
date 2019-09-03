@@ -49,7 +49,7 @@ export default {
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/model', ['fans', 'tools']),
 		...mapGetters('machine/model', ['currentTool']),
-		canControlFans() { return !this.uiFrozen && ((this.currentTool && this.currenTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control))); },
+		canControlFans() { return !this.uiFrozen && ((this.currentTool && this.currentTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control))); },
 		fanValue: {
 			get() {
 				if (this.canControlFans) {

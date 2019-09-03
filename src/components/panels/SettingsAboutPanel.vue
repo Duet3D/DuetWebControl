@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<span>Duet Web Control 2.0.0-RC8-b3</span>
+			<span>Duet Web Control {{ version }}-RC8-b4</span>
 			<v-spacer></v-spacer>
 			<a href="https://github.com/chrishamm/DuetWebControl/tree/next" target="_blank">
 				<v-icon small>star</v-icon> GitHub
@@ -15,3 +15,15 @@
 		</v-card-text>
 	</v-card>
 </template>
+
+<script>
+'use strict';
+
+import { version } from '../../../package.json'
+
+export default {
+	computed: {
+		version() { return version; }
+	}
+}
+</script>

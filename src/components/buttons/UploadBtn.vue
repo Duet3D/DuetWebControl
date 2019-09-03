@@ -191,8 +191,16 @@ export default {
 						filename = Path.combine(Path.www, content.name);
 						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
 					} else if (this.board.firmwareFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.sys, this.board.firmwareFile);
-						this.updates.firmware = true;
+						if (!this.board.firmwareFile) {
+							const matches = this.board.firmwareFileRegEx.exec(filename);
+							if (matches) {
+								filename = Path.combine(Path.sys, matches.slice(1).join(''));
+								this.updates.firmware = true;
+							}
+						} else {
+							filename = Path.combine(Path.sys, this.board.firmwareFile);
+							this.updates.firmware = true;
+						}
 					} else if (this.board.hasWiFi) {
 						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 							filename = Path.combine(Path.sys, 'DuetWiFiServer.bin');

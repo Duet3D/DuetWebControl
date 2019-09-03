@@ -74,17 +74,19 @@
 						{{ $t('button.home.captionAll') }}
 					</code-btn>
 				</v-flex>
-				<v-flex v-for="axis in displayedAxes" :key="axis.letter">
-					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block>
+				<template v-if="move.geometry.type !== 'delta'">
+					<v-flex v-for="axis in displayedAxes" :key="axis.letter">
+						<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block>
 
-						{{ $t('button.home.caption', [axis.letter]) }}
-					</code-btn>
-				</v-flex>
+							{{ $t('button.home.caption', [axis.letter]) }}
+						</code-btn>
+					</v-flex>
+				</template>
 			</v-layout>
 
 			<v-layout row>
 				<!-- Regular home buttons -->
-				<v-flex shrink class="hidden-sm-and-down">
+				<v-flex v-if="move.geometry.type !== 'delta'" shrink class="hidden-sm-and-down">
 					<v-layout column>
 						<v-flex v-for="axis in displayedAxes" :key="axis.letter">
 							<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">

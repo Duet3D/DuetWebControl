@@ -79,18 +79,16 @@ export default {
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
-			if (this.currentTool && this.currentTool.heaters.length) {
-				const selectedHeaters = (this.mixValue[0] === 'mix') ? this.currentTool.heaters : this.mixValue;
+			if (this.currentTool) {
 				const heaters = this.heat.heaters, minTemp = this.heat.coldExtrudeTemperature;
-				return !selectedHeaters.some(heater => heaters[heater].current < minTemp);
+				return !this.currentTool.heaters.some(heater => heaters[heater].current < minTemp);
 			}
 			return false;
 		},
 		canRetract() {
 			if (this.currentTool && this.currentTool.heaters.length) {
-				const selectedHeaters = (this.mixValue[0] === 'mix') ? this.currentTool.heaters : this.mixValue;
 				const heaters = this.heat.heaters, minTemp = this.heat.coldRetractTemperature;
-				return !selectedHeaters.some(heater => heaters[heater].current < minTemp);
+				return !this.currentTool.heaters.some(heater => heaters[heater].current < minTemp);
 			}
 			return false;
 		},
@@ -145,7 +143,7 @@ export default {
 			}
 
 			let amounts;
-			if (this.mix.length === 1 && this.mix[0] === 'mix') {
+			if (this.mixValue[0] === 'mix') {
 				// Split total amount to extrude evenly
 				amounts = [this.amount];
 			} else {

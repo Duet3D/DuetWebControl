@@ -169,6 +169,15 @@ export default class RestConnector extends BaseConnector {
 			delete this.model.messages;
 		}
 
+		// Send PING in predefined intervals to detect disconnects from the client side
+		that.pingTask = setTimeout(function() {
+			// Although the WebSocket standard is supposed to provide PING frames,
+			// there is no way to send them since a WebSocket instance does not provide a method for that.
+			// Hence we rely on our own optional PING-PONG implementation
+			that.socket.send('PING\n');
+			that.pingTask = undefined;
+		}, that.settings.pingInterval);
+
 		// Set up socket events
 		this.socket.onmessage = async function(e) {
 			// Don't do anything if the connection has been terminated...
