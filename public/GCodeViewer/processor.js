@@ -138,10 +138,10 @@ class processor {
         var ver = 2;
 
         //If there are more than 400k lines of gcode then we need to switch to line rendering to avoid an out of memory exception.
+        console.log(this.lines.length);
         if (this.lines.length > 400000) {
-            console.log(this.lines.length);
             console.log("Switching to line rendering mode.");
-            ver = 2;
+            ver = 1;
         }
 
         if (ver === 1) {
