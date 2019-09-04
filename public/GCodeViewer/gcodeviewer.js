@@ -10,6 +10,7 @@ class gcodeViewer {
     constructor(canvas) {
         let that = this;
         this.gcodeProcessor = new processor();
+        this.maxHeight = 0;
         if (canvas === undefined || canvas === null) {
             $('body').append(
                 '<div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%;background-color:#FF0000;z-index:3">' +
@@ -27,7 +28,9 @@ class gcodeViewer {
             this.canvas = canvas;
         }
     }
-
+    getMaxHeight(){
+        return this.maxHeight;
+    }
     setProgress(percent) {
         $('#FileProgressBar').attr('aria-valuenow', percent);
         $('#FileProgressBar').css('width', percent + "%");
@@ -45,23 +48,33 @@ class gcodeViewer {
         }
     }
 
+    setZClipPlane(value) {
+            this.scene.clipPlane = new BABYLON.Plane(0,1,0,-value);
+    }
+
     init() {
         this.engine = new BABYLON.Engine(this.canvas, true); //, {doNotHandleContextLost: true})
         this.engine.enableOfflineSupport = false;
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color3.Black();
-
+       
         // Add a camera to the scene and attach it to the canvas
         this.orbitCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, 2.356194, -250, new BABYLON.Vector3(117.5, 0, 117.5), this.scene);
         this.flyCamera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), this.scene);
         this.orbitCamera.attachControl(this.canvas, true);
 
         // Add lights to the scene
-        var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
+        //var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
         var light2 = new BABYLON.PointLight("light2", new BABYLON.Vector3(0, 1, -1), this.scene);
+        light2.diffuse = new BABYLON.Color3(1, 1, 1);
+        light2.specular = new BABYLON.Color3(1, 1, 1);
         var that = this;
         this.engine.runRenderLoop(function() {
             that.scene.render();
+
+            //Update light 2 position
+            light2.position = that.scene.cameras[0].position;
+
         });
 
         //Render the corner axis
@@ -84,6 +97,7 @@ class gcodeViewer {
     processFile(fileContents) {
         this.gcodeProcessor.processGcodeFile(fileContents);
         this.gcodeProcessor.createScene(this.scene);
+        this.maxHeight = this.gcodeProcessor.getMaxHeight();
     }
 
 

@@ -14,9 +14,12 @@ function updateProgress(percent) {
 }
 
 
+
 $(document).ready(function() {
     var viewer = new gcodeViewer($("#3DCanvas")[0]);
     viewer.init();
+
+    
 
     $.ajax({
         type: "GET",
@@ -32,7 +35,6 @@ $(document).ready(function() {
                 if (evt.lengthComputable) {
                     var percent = evt.loaded / evt.total;
                     updateProgress(percent * 100);
-                    console.log(percent * 100);
                 }
             });
             return xhr;
@@ -40,6 +42,16 @@ $(document).ready(function() {
         success: function(response) {
             $('.progress').hide();
             viewer.processFile(response);
+            var maxHeight = viewer.getMaxHeight();
+          $("#layerSlider").slider("setAttribute", "max", maxHeight);
+          console.log($("#layerSlider").slider("getAttribute", "max"));
         }
     });
+
+    $("#layerSlider").on("change", function(e){
+        var value =   $("#layerSlider").slider("getValue");
+        viewer.setZClipPlane(value);
+    })
+
+
 });
