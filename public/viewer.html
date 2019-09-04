@@ -1,11 +1,6 @@
 <html>
 
 <head>
-
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
-    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.css" crossorigin="anonymous">
-
     <script type="text/javascript" src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
@@ -15,6 +10,10 @@
     <script src="/GCodeViewer/gcodeline.js" type="text/javascript"></script>
     <script src="/GCodeViewer/processor.js" type="text/javascript"></script>
     <script src="/GCodeViewer/page.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slideout/1.0.1/slideout.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css"/>
+
     <style>
         .center-progress {
             width: 500px;
@@ -27,28 +26,106 @@
         .layerSlider {
             position: fixed;
             top: 10%;
-            bottom:10%;
+            bottom: 10%;
             right: 3%;
         }
-        .ui-layer{
-            z-index:4;
+        
+        body {
+            width: 100%;
+            height: 100%;
         }
-        .slider.slider-vertical {
-            height:100% !important;
+        
+        .slideout-menu {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 256px;
+            min-height: 100vh;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            z-index: 0;
+            display: none;
+        }
+        
+        .slideout-menu-left {
+            left: 0;
+        }
+        
+        .slideout-menu-right {
+            right: 0;
+        }
+        
+        .slideout-panel {
+            position: relative;
+            z-index: 1;
+            will-change: transform;
+            background-color: #FFF;
+            /* A background-color is required */
+            min-height: 100vh;
+        }
+        
+        .slideout-open,
+        .slideout-open body,
+        .slideout-open .slideout-panel {
+            overflow: hidden;
+        }
+        
+        .slideout-open .slideout-menu {
+            display: block;
+        }
+        
+        .toggle-button {
+            font-size: large;
+            color: white;
+            background: black;
+            background-color: Transparent;
+            background-repeat: no-repeat;
+            border: none;
+            cursor: pointer;
+            overflow: hidden;
+            outline: none;
+            position: fixed;
+            top: 0%;
+            left: 0%;
+        }
+        
+        .ui-layer {
+            z-index: 4;
+        }
+        
+        #menu {
+            padding-left:5px;
+            color: white;
+            background: #505050;
+            overflow: auto;
+        }
+
+        .slider.slider-vertical{
+            height:100%
         }
     </style>
 </head>
 
+
 <body>
-    <div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%">
-        <canvas style="position:absolute;width:100%;height:100%" id="3DCanvas"></canvas>
-    </div>
-    <div class="progress center-progress ui-layer" >
-        <div id="progressBarIndicator" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-    </div>
-    <div class="layerSlider ui-layer">
-    <input id="layerSlider" height="100%" type="text"  data-provide="slider" data-slider-reversed="true" data-slider-min="0.1" data-slider-max="200" data-slider-step="1" data-slider-value="200" data-slider-orientation="vertical"/>
-    </div>
+    <nav id="menu">
+        <header>
+            <h2>Menu</h2>
+            <input type="button" class="btn btn-info" id="resetCam" value="Reset Camera" >
+        </header>
+    </nav>
+    <main id="panel">
+        <button class="toggle-button ui-layer">☰</button>
+        <div class="progress center-progress ui-layer">
+            <div id="progressBarIndicator" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="layerSlider ui-layer">
+            <input id="layerSlider" height="100%" type="text" data-provide="slider" data-slider-reversed="true" data-slider-min="0.1" data-slider-max="200" data-slider-step="1" data-slider-value="200" data-slider-orientation="vertical" />
+        </div>
+        <div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%;">
+            <canvas style="position:absolute;width:100%;height:100%" id="3DCanvas"></canvas>
+        </div>
+    </main>
 </body>
 
 </html>

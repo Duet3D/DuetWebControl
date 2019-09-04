@@ -28,7 +28,7 @@ class gcodeViewer {
             this.canvas = canvas;
         }
     }
-    getMaxHeight(){
+    getMaxHeight() {
         return this.maxHeight;
     }
     setProgress(percent) {
@@ -49,7 +49,7 @@ class gcodeViewer {
     }
 
     setZClipPlane(value) {
-            this.scene.clipPlane = new BABYLON.Plane(0,1,0,-value);
+        this.scene.clipPlane = new BABYLON.Plane(0, 1, 0, -value);
     }
 
     init() {
@@ -57,11 +57,12 @@ class gcodeViewer {
         this.engine.enableOfflineSupport = false;
         this.scene = new BABYLON.Scene(this.engine);
         this.scene.clearColor = BABYLON.Color3.Black();
-       
+
         // Add a camera to the scene and attach it to the canvas
         this.orbitCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, 2.356194, -250, new BABYLON.Vector3(117.5, 0, 117.5), this.scene);
         this.flyCamera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 0, -10), this.scene);
         this.orbitCamera.attachControl(this.canvas, true);
+        this.scene.activeCamera.panningSensibility = 10;
 
         // Add lights to the scene
         //var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
@@ -92,6 +93,13 @@ class gcodeViewer {
         window.addEventListener("resize", function() {
             that.engine.resize();
         });
+    }
+
+    resetCamera(){
+        this.scene.activeCamera.alpha = Math.PI / 2, 
+        this.scene.activeCamera.beta = 2.356194 
+        this.scene.activeCamera.radius = -250
+        this.scene.activeCamera.target = new BABYLON.Vector3(117.5, 0, 117.5)
     }
 
     processFile(fileContents) {

@@ -14,12 +14,9 @@ function updateProgress(percent) {
 }
 
 
-
 $(document).ready(function() {
     var viewer = new gcodeViewer($("#3DCanvas")[0]);
     viewer.init();
-
-    
 
     $.ajax({
         type: "GET",
@@ -43,15 +40,35 @@ $(document).ready(function() {
             $('.progress').hide();
             viewer.processFile(response);
             var maxHeight = viewer.getMaxHeight();
-          $("#layerSlider").slider("setAttribute", "max", maxHeight);
-          console.log($("#layerSlider").slider("getAttribute", "max"));
+            $("#layerSlider").slider("setAttribute", "max", maxHeight);
         }
     });
 
-    $("#layerSlider").on("change", function(e){
-        var value =   $("#layerSlider").slider("getValue");
+    $("#layerSlider").on("change", function(e) {
+        var value = $("#layerSlider").slider("getValue");
         viewer.setZClipPlane(value);
-    })
+    });
+
+
+    var slideout = new Slideout({
+        'panel': document.getElementById('panel'),
+        'menu': document.getElementById('menu'),
+        'padding': 256,
+        'tolerance': 70
+    });
+
+    // Toggle button
+    $('.toggle-button').on('click', function() {
+        slideout.toggle();
+    });
+
+
+    $("#resetCam").on("click", function(){
+        viewer.resetCamera();
+    });
+
+    
+
 
 
 });
