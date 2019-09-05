@@ -9,7 +9,7 @@ class gcodeViewer {
 
     constructor(canvas) {
         let that = this;
-        this.gcodeProcessor = new processor();
+        this.gcodeProcessor = new gcodeProcessor();
         this.maxHeight = 0;
         if (canvas === undefined || canvas === null) {
             $('body').append(
@@ -95,9 +95,9 @@ class gcodeViewer {
         });
     }
 
-    resetCamera(){
-        this.scene.activeCamera.alpha = Math.PI / 2, 
-        this.scene.activeCamera.beta = 2.356194 
+    resetCamera() {
+        this.scene.activeCamera.alpha = Math.PI / 2,
+            this.scene.activeCamera.beta = 2.356194
         this.scene.activeCamera.radius = -250
         this.scene.activeCamera.target = new BABYLON.Vector3(117.5, 0, 117.5)
     }

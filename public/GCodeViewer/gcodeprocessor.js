@@ -3,7 +3,7 @@
 "use strict";
 
 
-class processor {
+class gcodeProcessor {
     constructor() {
         this.currentPosition = new BABYLON.Vector3(0, 0, 0);
         this.color;
@@ -21,10 +21,9 @@ class processor {
             new BABYLON.Color4(1, 1, 0, 1), //y
             new BABYLON.Color4(0, 0, 0, 1) //k
         ];
-        
     }
-    getMaxHeight(){
-      return this.maxHeight;
+    getMaxHeight() {
+        return this.maxHeight;
     }
     processGcodeFile(file) {
         var lines = file.split(/\r\n|\n/);
@@ -35,6 +34,7 @@ class processor {
                 this.processLine(line);
             }
         }
+        file = {}; //Clear out the file.
     }
 
     processLine(tokenString) {
@@ -139,6 +139,7 @@ class processor {
 
         //If there are more than 400k lines of gcode then we need to switch to line rendering to avoid an out of memory exception.
         console.log(this.lines.length);
+
         if (this.lines.length > 400000) {
             console.log("Switching to line rendering mode.");
             ver = 1;

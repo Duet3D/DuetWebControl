@@ -8,11 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/bootstrap-slider.js"></script>
     <script src="/GCodeViewer/gcodeviewer.js" type="text/javascript"></script>
     <script src="/GCodeViewer/gcodeline.js" type="text/javascript"></script>
-    <script src="/GCodeViewer/processor.js" type="text/javascript"></script>
-    <script src="/GCodeViewer/page.js" type="text/javascript"></script>
+    <script src="/GCodeViewer/gcodeprocessor.js" type="text/javascript"></script>
+    <script src="/GCodeViewer/viewer.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slideout/1.0.1/slideout.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css" />
 
     <style>
         .center-progress {
@@ -75,7 +75,7 @@
         }
         
         .toggle-button {
-            font-size: large;
+            font-size: xx-large;
             color: white;
             background: black;
             background-color: Transparent;
@@ -94,14 +94,24 @@
         }
         
         #menu {
-            padding-left:5px;
+            padding-left: 5px;
             color: white;
             background: #505050;
             overflow: auto;
         }
-
-        .slider.slider-vertical{
-            height:100%
+        
+        .slider.slider-vertical {
+            height: 100%
+        }
+        
+        .btn {
+            width: 100%;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        
+        hr {
+            height: 2px;
         }
     </style>
 </head>
@@ -110,12 +120,29 @@
 <body>
     <nav id="menu">
         <header>
-            <h2>Menu</h2>
-            <input type="button" class="btn btn-info" id="resetCam" value="Reset Camera" >
+            <h2>Configuration</h2>
+            <br>
+            <div>
+                <h3>Camera</h3>
+                <input type="button" class="btn btn-info" id="resetCam" value="Reset Camera">
+            </div>
+            <br>
+            <div>
+                <h3>Extruders</h3>
+                <hr>
+                <h5>0</h5>
+                <hr>
+                <h5>1</h5>
+                <hr>
+                <h5>2</h5>
+                <hr>
+                <h5>3</h5>
+                <hr>
+            </div>
         </header>
     </nav>
     <main id="panel">
-        <button class="toggle-button ui-layer">☰</button>
+        <button class="toggle-button ui-layer">&#x2630;</button>
         <div class="progress center-progress ui-layer">
             <div id="progressBarIndicator" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
