@@ -11,6 +11,8 @@
     <script src="/GCodeViewer/gcodeprocessor.js" type="text/javascript"></script>
     <script src="/GCodeViewer/viewer.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/slideout/1.0.1/slideout.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/2.5.3/js/bootstrap-colorpicker.js" integrity="sha256-DQMtbH0EZgaw6tLtBLk8KW50A7ouiB4oc8+hwuienog=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/2.5.3/css/bootstrap-colorpicker.min.css" integrity="sha256-1kg+SaNnqDn7AaD0skLFrhW4KoZVnAnYnuVP3rC8wqE=" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.2/css/bootstrap-slider.min.css" />
 
@@ -113,6 +115,10 @@
         hr {
             height: 2px;
         }
+        
+        .colorPicker {}
+        
+        .extruder {}
     </style>
 </head>
 
@@ -128,29 +134,37 @@
             </div>
             <br>
             <div>
+                <h3>Scene</h3>
+                <div>
+                    <input id="backgroundColor" data-color="000000" type="text" class="form-control colorPicker"></input>
+                </div>
+                <div style="font-size:xx-small">*Reload scene after changing extruder colors.</div>
+                <input type="button" class="btn btn-info " id="resetScene" value="Reload Scene "></input>
+            </div>
+            <br>
+            <div>
                 <h3>Extruders</h3>
-                <hr>
-                <h5>0</h5>
-                <hr>
-                <h5>1</h5>
-                <hr>
-                <h5>2</h5>
-                <hr>
-                <h5>3</h5>
+                <hr> 0 <input id="extruder0" data-color="000000" type="text" class="form-control colorPicker extruder "></input>
+                <hr> 1 <input id="extruder1" data-color="000000" type="text" class="form-control colorPicker extruder"></input>
+                <hr> 2 <input id="extruder2" data-color="000000" type="text" class="form-control colorPicker extruder "></input>
+                <hr> 3 <input id="extruder3" data-color="000000" type="text" class="form-control colorPicker extruder"></input>
+                <hr> 4 <input id="extruder4" data-color="000000" type="text" class="form-control colorPicker extruder"></input>
+                <br>
+                <input type="button" class="btn btn-info" id="resetColors" value="Reset to Default Colors"></input>
                 <hr>
             </div>
         </header>
     </nav>
     <main id="panel">
-        <button class="toggle-button ui-layer">&#x2630;</button>
+        <button class="toggle-button ui-layer ">&#x2630;</button>
         <div class="progress center-progress ui-layer">
             <div id="progressBarIndicator" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
         <div class="layerSlider ui-layer">
-            <input id="layerSlider" height="100%" type="text" data-provide="slider" data-slider-reversed="true" data-slider-min="0.1" data-slider-max="200" data-slider-step="1" data-slider-value="200" data-slider-orientation="vertical" />
+            <input id="layerSlider" height="100% " type="text " data-provide="slider" data-slider-reversed="true" data-slider-min="0.1" data-slider-max="200" data-slider-step="1" data-slider-value="200" data-slider-orientation="vertical" />
         </div>
-        <div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%;">
-            <canvas style="position:absolute;width:100%;height:100%" id="3DCanvas"></canvas>
+        <div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%; ">
+            <canvas style="position:absolute;width:100%;height:100% " id="3DCanvas"></canvas>
         </div>
     </main>
 </body>

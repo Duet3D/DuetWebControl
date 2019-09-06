@@ -54,7 +54,7 @@
           <v-icon class="mr-1">fast_forward</v-icon>Simulate File
         </v-list-tile>
         <v-list-tile v-show="isFile" @click="view3D">
-          <v-icon class="mr-1">play_arrow</v-icon>3D View
+          <v-icon class="mr-1">3d_rotation</v-icon>3D View
         </v-list-tile>
       </template>
     </base-file-list>

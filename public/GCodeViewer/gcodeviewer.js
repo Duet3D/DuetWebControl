@@ -5,12 +5,12 @@
 
 class gcodeViewer {
 
-
-
     constructor(canvas) {
+        this.fileData;
         let that = this;
         this.gcodeProcessor = new gcodeProcessor();
         this.maxHeight = 0;
+        this.sceneBackgroundColor = "#000000";
         if (canvas === undefined || canvas === null) {
             $('body').append(
                 '<div id="GCodeViewer" style="position:fixed;top:0;left:0;width:100%;height:100%;background-color:#FF0000;z-index:3">' +
@@ -56,7 +56,7 @@ class gcodeViewer {
         this.engine = new BABYLON.Engine(this.canvas, true); //, {doNotHandleContextLost: true})
         this.engine.enableOfflineSupport = false;
         this.scene = new BABYLON.Scene(this.engine);
-        this.scene.clearColor = BABYLON.Color3.Black();
+        this.scene.clearColor = BABYLON.Color3.FromHexString(this.getBackgroundcColor());
 
         // Add a camera to the scene and attach it to the canvas
         this.orbitCamera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, 2.356194, -250, new BABYLON.Vector3(117.5, 0, 117.5), this.scene);
@@ -78,17 +78,8 @@ class gcodeViewer {
 
         });
 
-        //Render the corner axis
-        this.showWorldAxis(50);
 
-        var planeMaterial = new BABYLON.StandardMaterial(this.scene);
-        planeMaterial.alpha = 0.5;
-        planeMaterial.diffuseColor = new BABYLON.Color3(0.25, 0.25, 0.25);
 
-        var buildPlatePlane = BABYLON.MeshBuilder.CreatePlane("BuildPlate", { width: 235, height: 235 }, this.scene);
-        buildPlatePlane.material = planeMaterial;
-        buildPlatePlane.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
-        buildPlatePlane.translate(new BABYLON.Vector3(117.5, 0, 117.5), 1, BABYLON.Space.WORLD);
 
         window.addEventListener("resize", function() {
             that.engine.resize();
@@ -103,6 +94,22 @@ class gcodeViewer {
     }
 
     processFile(fileContents) {
+
+        var planeMaterial = new BABYLON.StandardMaterial(this.scene);
+        planeMaterial.alpha = 0.5;
+        planeMaterial.diffuseColor = new BABYLON.Color3(0.25, 0.25, 0.25);
+
+
+        //build the scene static objects
+        var buildPlatePlane = BABYLON.MeshBuilder.CreatePlane("BuildPlate", { width: 235, height: 235 }, this.scene);
+        buildPlatePlane.material = planeMaterial;
+        buildPlatePlane.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
+        buildPlatePlane.translate(new BABYLON.Vector3(117.5, 0, 117.5), 1, BABYLON.Space.WORLD);
+        //Render the corner axis
+        this.showWorldAxis(50);
+
+        this.fileData = fileContents;
+        this.gcodeProcessor.setExtruderColors(this.getExtruderColors());
         this.gcodeProcessor.processGcodeFile(fileContents);
         this.gcodeProcessor.createScene(this.scene);
         this.maxHeight = this.gcodeProcessor.getMaxHeight();
@@ -115,6 +122,7 @@ class gcodeViewer {
             mesh.isVisible = !mesh.isVisible;
         }
     }
+
 
     showWorldAxis(size) {
         var scene = this.scene;
@@ -151,6 +159,47 @@ class gcodeViewer {
         var zChar = makeTextPlane("Y", "blue", size / 10);
         zChar.position = new BABYLON.Vector3(0, 0.05 * size, 0.9 * size);
     }
+    getExtruderColors() {
+        var colors = localStorage.getItem('extruderColors');
+        if (colors === null) {
+            colors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"];
+            this.saveExtruderColors(colors);
+        } else {
+            colors = colors.split(',');
+        }
+        return colors;
+    }
+    saveExtruderColors(colors) {
+        localStorage.setItem('extruderColors', colors);
+    }
+    resetExtruderColors() {
+        localStorage.removeItem("extruderColors");
+        this.getExtruderColors();
+    }
+
+    getBackgroundcColor() {
+        var color = localStorage.getItem('sceneBackgroundColor');
+        if (color === null) {
+            color = "#000000";
+        }
+        return color;
+    }
+    setBackgroundColor(color) {
+        if (this.scene !== null && this.scene !== undefined) {
+            this.scene.clearColor = BABYLON.Color3.FromHexString(color);
+        }
+        localStorage.setItem("sceneBackgroundColor", color);
+    }
+    clearScene() {
+        for (var idx = this.scene.meshes.length - 1; idx >= 0; idx--) {
+            this.scene.removeMesh(this.scene.meshes[idx]);
+        }
+    }
+    reload() {
+        this.clearScene();
+        this.processFile(this.fileData);
+    }
+
 
 }
 

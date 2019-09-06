@@ -15,13 +15,26 @@ class gcodeProcessor {
         this.sps;
         this.layerDictionary = {};
         this.maxHeight = 0;
+
         this.extruderColors = [
             new BABYLON.Color4(0, 1, 1, 1), //c
             new BABYLON.Color4(1, 0, 1, 1), //m
             new BABYLON.Color4(1, 1, 0, 1), //y
-            new BABYLON.Color4(0, 0, 0, 1) //k
+            new BABYLON.Color4(0, 0, 0, 1), //k
+            new BABYLON.Color4(1, 1, 1, 1) //w
         ];
     }
+
+    setExtruderColors(colors) {
+        if (colors === null || colors.length === 0) return;
+        this.extruderColors = [];
+        for (var idx = 0; idx < colors.length; idx++) {
+            this.extruderColors.push(BABYLON.Color3.FromHexString(colors[idx]));
+        }
+
+
+    }
+
     getMaxHeight() {
         return this.maxHeight;
     }
