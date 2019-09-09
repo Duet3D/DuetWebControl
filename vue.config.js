@@ -7,7 +7,6 @@ module.exports = {
         plugins: (process.env.NODE_ENV === 'production') ? [
             new CompressionPlugin({
                 cache: true,
-                test: /\.(js|css|html|svg)$/
             }),
             new ZipPlugin({
                 filename: 'DuetWebControl-mini.zip',
