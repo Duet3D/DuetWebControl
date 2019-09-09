@@ -15,6 +15,8 @@ class gcodeProcessor {
         this.sps;
         this.layerDictionary = {};
         this.maxHeight = 0;
+        this.lineCount = 0;
+        this.renderMode = "";
 
         this.extruderColors = [
             new BABYLON.Color4(0, 1, 1, 1), //c
@@ -150,8 +152,7 @@ class gcodeProcessor {
     createScene(scene) {
         var ver = 2;
 
-        //If there are more than 400k lines of gcode then we need to switch to line rendering to avoid an out of memory exception.
-        console.log(this.lines.length);
+        this.lineCount = this.lines.length; //rendered lines
 
         if (this.lines.length > 400000) {
             console.log("Switching to line rendering mode.");
@@ -159,6 +160,7 @@ class gcodeProcessor {
         }
 
         if (ver === 1) {
+            this.renderMode = "Line Rendering";
             var lineArray = [];
             var colorArray = [];
             for (var lineIdx = 0; lineIdx < this.lines.length; lineIdx++) {
@@ -199,6 +201,7 @@ class gcodeProcessor {
 
 
         if (ver === 2) {
+            this.renderMode = "Mesh Rendering";
             var box = BABYLON.MeshBuilder.CreateBox(
                 "box", { width: 1, height: 0.3, depth: 0.6 },
                 scene

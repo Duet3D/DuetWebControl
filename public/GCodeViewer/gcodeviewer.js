@@ -51,7 +51,6 @@ class gcodeViewer {
     setZClipPlane(value) {
         this.scene.clipPlane = new BABYLON.Plane(0, 1, 0, -value);
     }
-
     init() {
         this.engine = new BABYLON.Engine(this.canvas, true); //, {doNotHandleContextLost: true})
         this.engine.enableOfflineSupport = false;
@@ -199,7 +198,12 @@ class gcodeViewer {
         this.clearScene();
         this.processFile(this.fileData);
     }
-
+    getLineCount() {
+        return this.gcodeProcessor.lineCount;
+    }
+    getRenderMode() {
+        return this.gcodeProcessor.renderMode;
+    }
 
 }
 

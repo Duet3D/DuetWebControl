@@ -64,6 +64,8 @@ $(document).ready(function() {
             viewer.processFile(response);
             $('.progress').hide();
             $("#layerSlider").slider("setAttribute", "max", viewer.getMaxHeight());
+            $("#lineCount").text("Rendered Lines: " + viewer.getLineCount());
+            $("#renderMode").text("Render Mode:    " + viewer.getRenderMode());
         }
     });
 

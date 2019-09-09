@@ -119,6 +119,10 @@
         .colorPicker {}
         
         .extruder {}
+        
+        .basicText {
+            font-size: small;
+        }
     </style>
 </head>
 
@@ -126,6 +130,14 @@
 <body>
     <nav id="menu">
         <header>
+            <h2>Stats </h2>
+            <div>
+                <span id="lineCount" class="basicText"></span>
+            </div>
+            <div>
+                <span id="renderMode" class="basicText"></span>
+            </div>
+            <br>
             <h2>Configuration</h2>
             <br>
             <div>
@@ -139,6 +151,7 @@
                     <span>Background Color</span>
                     <input id="backgroundColor" data-color="000000" type="text" class="form-control colorPicker"></input>
                 </div>
+                <br>
                 <div style="font-size:xx-small">*Reload scene after changing extruder colors.</div>
                 <input type="button" class="btn btn-info " id="resetScene" value="Reload Scene "></input>
             </div>
