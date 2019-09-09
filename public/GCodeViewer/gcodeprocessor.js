@@ -18,6 +18,12 @@ class gcodeProcessor {
         this.lineCount = 0;
         this.renderMode = "";
 
+        //We'll look at the last 2 layer heights for now to determine layer height.
+        this.previousLayerHeight = 0;
+        this.currentLayerHeight = 0;
+
+
+
         this.extruderColors = [
             new BABYLON.Color4(0, 1, 1, 1), //c
             new BABYLON.Color4(1, 0, 1, 1), //m
@@ -49,11 +55,13 @@ class gcodeProcessor {
                 this.processLine(line);
             }
         }
+
         file = {}; //Clear out the file.
     }
 
     processLine(tokenString) {
         var tokens = tokenString.toUpperCase().split(" ");
+        var layerHeights = [];
         if (tokens.length > 1) {
             switch (tokens[0]) {
                 case "G0":
@@ -88,9 +96,14 @@ class gcodeProcessor {
                     line.end = this.currentPosition.clone();
 
                     if (line.extruding && line.length() >= 0.01) {
-
                         line.color = this.currentColor.clone();
                         this.lines.push(line);
+
+                        if (this.currentPosition.y > this.currentLayerHeight && this.currentPosition.y < 20) {
+                            this.previousLayerHeight = this.currentLayerHeight;
+                            this.currentLayerHeight = this.currentPosition.y;
+                        }
+
                     } else {
                         line.color = new BABYLON.Color4(1, 0, 0, 1);
                         this.travels.push(line);
@@ -138,6 +151,12 @@ class gcodeProcessor {
                     );
                     break;
             }
+
+
+
+
+
+
         } else {
             if (tokenString.startsWith("T")) {
                 var extruder = Number(tokenString.substring(1));
@@ -201,9 +220,12 @@ class gcodeProcessor {
 
 
         if (ver === 2) {
+
+            var layerHeight = Math.floor((this.currentLayerHeight - this.previousLayerHeight) * 100) / 100;
+
             this.renderMode = "Mesh Rendering";
             var box = BABYLON.MeshBuilder.CreateBox(
-                "box", { width: 1, height: 0.3, depth: 0.6 },
+                "box", { width: 1, height: layerHeight, depth: layerHeight * 1.2 },
                 scene
             );
 
