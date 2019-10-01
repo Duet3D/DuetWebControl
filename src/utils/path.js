@@ -42,6 +42,15 @@ export function extractFilePath(path) {
 	return path;
 }
 
+export function isSdPath(path) {
+	path = combine('0:', path);
+	return (path.startsWith(pathObj.display) ||
+			path.startsWith(pathObj.gcodes) ||
+			path.startsWith(pathObj.macros) ||
+			path.startsWith(pathObj.sys) ||
+			path.startsWith(pathObj.www));
+}
+
 export function pathAffectsFilelist(path, directory, filelist) {
 	if (path instanceof(Array)) {
 		return path.some(subPath => pathAffectsFilelist(subPath, directory, filelist));
@@ -83,7 +92,7 @@ export function stripMacroFilename(filename) {
 	return label;
 }
 
-export default {
+const pathObj = {
 	display: '0:/menu',
 	gcodes: '0:/gcodes',
 	macros: '0:/macros',
@@ -102,6 +111,9 @@ export default {
 	extractFileName,
 	extractFilePath,
 
+	isSdPath,
 	pathAffectsFilelist,
 	stripMacroFilename
 }
+
+export default pathObj

@@ -46,10 +46,12 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters(['uiFrozen']),
 		...mapState('machine/model', ['fans', 'tools']),
+		...mapGetters(['uiFrozen']),
 		...mapGetters('machine/model', ['currentTool']),
-		canControlFans() { return !this.uiFrozen && ((this.currentTool && this.currentTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control))); },
+		canControlFans() {
+			return !this.uiFrozen && ((this.currentTool && this.currentTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control)));
+		},
 		fanValue: {
 			get() {
 				if (this.canControlFans) {
@@ -84,9 +86,16 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		updateFanSelection() {
-			if ((this.fan === -1 && !this.currentTool) ||
-				(this.fan !== -1 && (this.fans.length < this.fan || this.fans[this.fan].thermostatic.control))) {
-				this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
+			if (this.fan === -1) {
+				if (!this.currentTool) {
+					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
+				}
+			} else if (this.fan >= this.fans.length || this.fans[this.fan].thermostatic.control) {
+				if (this.currentTool) {
+					this.fan = -1;
+				} else {
+					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
+				}
 			}
 		}
 	},

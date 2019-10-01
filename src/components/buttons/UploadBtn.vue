@@ -27,6 +27,7 @@ const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '
 export default {
 	computed: {
 		...mapState(['isLocal']),
+		...mapState('machine/model', ['electronics']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapGetters('machine/model', ['board']),
 		caption() {
@@ -187,20 +188,21 @@ export default {
 				// Adjust filename if an update is being uploaded
 				let filename = Path.combine(this.destinationDirectory, content.name);
 				if (this.target === 'sys' || this.target === 'update') {
-					if (this.isWebFile(content.name)) {
+					if (Path.isSdPath(content.name)) {
+						filename = Path.combine('0:/', content.name);
+					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(Path.www, content.name);
 						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
-					} else if (this.board.firmwareFileRegEx.test(content.name)) {
-						if (!this.board.firmwareFile) {
-							const matches = this.board.firmwareFileRegEx.exec(filename);
-							if (matches) {
-								filename = Path.combine(Path.sys, matches.slice(1).join(''));
-								this.updates.firmware = true;
-							}
-						} else {
-							filename = Path.combine(Path.sys, this.board.firmwareFile);
+					} else if (!this.board.firmwareFileRegEx) {
+						if (this.electronics.shortName &&
+							content.name.toLowerCase().startsWith('duet3firmware_' + this.electronics.shortName.toLowerCase()) &&
+							content.name.toLowerCase().endsWith('.bin')) {
+							filename = Path.combine(Path.sys, `Duet3Firmware_${this.electronics.shortName}.bin`);
 							this.updates.firmware = true;
 						}
+					} else if (this.board.firmwareFileRegEx.test(content.name)) {
+						filename = Path.combine(Path.sys, this.board.firmwareFile);
+						this.updates.firmware = true;
 					} else if (this.board.hasWiFi) {
 						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 							filename = Path.combine(Path.sys, 'DuetWiFiServer.bin');

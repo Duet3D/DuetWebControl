@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<code-btn color="warning" block :disabled="uiFrozen || !state.isPrinting" :code="this.isPaused ? 'M24' : 'M25'" tabindex="0">
+			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting" :code="isPaused ? 'M24' : 'M25'" tabindex="0">
 				<v-icon class="mr-1">{{ isPaused ? "play_arrow" : "pause" }}</v-icon> {{ pauseResumeText }}
 			</code-btn>
 
@@ -13,7 +13,7 @@
 				<v-icon class="mr-1">stop</v-icon> {{ cancelText }}
 			</code-btn>
 
-			<code-btn v-if="!state.isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
+			<code-btn v-if="!isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
 				<v-icon class="mr-1">refresh</v-icon> {{ processAnotherText }}
 			</code-btn>
 
@@ -29,16 +29,16 @@ import { mapState, mapGetters, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapGetters(['uiFrozen']),
 		...mapState('machine', ['autoSleep']),
 		...mapState('machine/model', ['job', 'state']),
-		...mapGetters('machine/model', ['isPaused']),
+		...mapGetters(['uiFrozen']),
+		...mapGetters('machine/model', ['isPaused', 'isPrinting', 'isSimulating']),
 		autoSleepActive: {
 			get() { return this.autoSleep; },
 			set(value) { this.setAutoSleep(value) }
 		},
 		pauseResumeText() {
-			if (this.state.isSimulating) {
+			if (this.isSimulating) {
 				return this.$t(this.isPaused ? 'panel.jobControl.resumeSimulation' : 'panel.jobControl.pauseSimulation');
 			}
 			if (this.state.mode === 'FFF') {
@@ -47,7 +47,7 @@ export default {
 			return this.$t(this.isPaused ? 'panel.jobControl.resumeJob' : 'panel.jobControl.pauseJob');
 		},
 		cancelText() {
-			if (this.state.isSimulating) {
+			if (this.isSimulating) {
 				return this.$t('panel.jobControl.cancelSimulation');
 			}
 			if (this.state.mode === 'FFF') {

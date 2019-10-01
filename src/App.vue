@@ -150,14 +150,13 @@ export default {
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
 
-			isPrinting: state => state.machine.model.state.isPrinting,
 			name: state => state.machine.model.network.name,
 
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
-		...mapGetters('machine/model', ['board', 'jobProgress']),
+		...mapGetters('machine/model', ['board', 'isPrinting', 'jobProgress']),
 		toggleGlobalContainerColor() {
 			if (this.hideGlobalContainer) {
 				return this.darkTheme ? 'red darken-5' : 'red lighten-4';

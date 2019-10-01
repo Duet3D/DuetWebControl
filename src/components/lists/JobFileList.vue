@@ -19,10 +19,10 @@
 			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100"></v-progress-linear>
 
 			<template slot="context-menu">
-				<v-list-tile v-show="isFile && !state.isPrinting" @click="start">
+				<v-list-tile v-show="isFile && !isPrinting" @click="start">
 					<v-icon class="mr-1">play_arrow</v-icon> {{ $t('list.jobs.start') }}
 				</v-list-tile>
-				<v-list-tile v-show="isFile && !state.isPrinting" @click="simulate">
+				<v-list-tile v-show="isFile && !isPrinting" @click="simulate">
 					<v-icon class="mr-1">fast_forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-tile>
 			</template>
@@ -55,9 +55,10 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapState('machine/model', ['state', 'storages']),
 		...mapState('settings', ['language']),
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapGetters('machine/model', ['isPrinting']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		},
@@ -236,7 +237,7 @@ export default {
 			}
 		},
 		fileClicked(item) {
-			if (!this.state.isPrinting) {
+			if (!this.isPrinting) {
 				this.startJobDialog.question = this.$t('dialog.startJob.title', [item.name]);
 				this.startJobDialog.prompt = this.$t('dialog.startJob.prompt', [item.name]);
 				this.startJobDialog.item = item;

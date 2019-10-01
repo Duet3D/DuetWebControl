@@ -26,11 +26,11 @@ import { extractFileName } from '../../utils/path.js'
 export default {
 	computed: {
 		...mapState('machine/model', ['job', 'state']),
-		...mapGetters('machine/model', ['jobProgress']),
+		...mapGetters('machine/model', ['isPrinting', 'isSimulating', 'jobProgress']),
 		printStatus() {
-			if (this.state.isPrinting) {
+			if (this.isPrinting) {
 				const progress = this.$display(this.jobProgress * 100, 1, '%');
-				if (this.state.isSimulating) {
+				if (this.isSimulating) {
 					return this.$t('jobProgress.simulating', [this.printFile, progress]);
 				}
 				if (this.state.mode === 'FFF') {
@@ -49,7 +49,7 @@ export default {
 			return this.$t('jobProgress.noJob');
 		},
 		printDetails() {
-			if (!this.state.isPrinting) {
+			if (!this.isPrinting) {
 				return '';
 			}
 

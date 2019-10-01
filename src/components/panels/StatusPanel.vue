@@ -50,12 +50,12 @@ a:not(:hover) {
 
 						<v-flex>
 							<v-layout row wrap>
-								<v-flex v-for="(axis, index) in move.axes" :key="index" grow class="equal-width">
+								<v-flex v-for="(axis, index) in move.axes" :key="index" grow class="equal-width" v-show="axis.visible">
 									<v-layout column>
-										<v-flex v-if="axis.visible" tag="strong">
+										<v-flex tag="strong">
 											{{ axis.letter }}
 										</v-flex>
-										<v-flex v-if="axis.visible" tag="span">
+										<v-flex tag="span">
 											{{ displayAxisPosition(axis, index) }}
 										</v-flex>
 									</v-layout>
@@ -81,7 +81,7 @@ a:not(:hover) {
 											{{ $t('panel.status.extruderDrive', [index]) }}
 										</v-flex>
 										<v-flex tag="span">
-											{{ $display(move.drives[index + move.axes.length].position, 1) }}
+											{{ displayExtruderPosition(extruder, index) }}
 										</v-flex>
 									</v-layout>
 								</v-flex>
@@ -224,8 +224,9 @@ import { mapState, mapGetters } from 'vuex'
 export default {
 	computed: {
 		...mapState('settings', ['darkTheme']),
-		...mapGetters(['isConnected']),
 		...mapState('machine/model', ['electronics', 'fans', 'move', 'sensors', 'state']),
+		...mapGetters(['isConnected']),
+		...mapGetters('machine/model', ['isPrinting']),
 		fanRPM() {
 			const rpms = [];
 			this.fans.forEach(fan => { if (fan.rpm != null) { rpms.push(fan.rpm); } });
@@ -241,16 +242,25 @@ export default {
 		}
 	},
 	methods: {
-		displayAxisPosition(axis, index) {
-			const position = this.displayToolPosition ? this.move.drives[index].position : axis.machinePosition;
+		displayAxisPosition(axis) {
+			let position = NaN;
+			if (this.displayToolPosition) {
+				position = axis.machinePosition;
+			} else if (axis.drives.length > 0) {
+				position = this.move.drives[axis.drives[0]].position;
+			}
 			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
+		},
+		displayExtruderPosition(extruder) {
+			const position = (extruder.drives.length > 0) ? this.move.drives[extruder.drives[0]].position : NaN;
+			return this.$display(position, 1);
 		},
 		probeSpanClasses(probe, index) {
 			let result = [];
-			if (index && this.sensors.probes.length > 1){
+			if (index && this.sensors.probes.length > 1) {
 				result.push('ml-2');
 			}
-			if (!this.state.isPrinting && probe.value !== null) {
+			if (!this.isPrinting && probe.value !== null) {
 				if (probe.value >= probe.threshold) {
 					result.push('red');
 					result.push(this.darkTheme ? 'darken-3' : 'lighten-4');

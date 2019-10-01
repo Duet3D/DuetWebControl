@@ -59,8 +59,8 @@ const boardDefinitions = {
 		hasMotorLoadDetection: true
 	},
 	duet3: {
-		firmwareFileRegEx: /(Duet3Firmware_6HC)(?:-?.*)(.bin)/g,
-		firmwareFile: null,		// replaced with regex group
+		firmwareFileRegEx: null,
+		firmwareFile: null,
 		motorWarningCurrent: 1234,
 		motorLimitCurrent: 2345,
 		seriesResistor: 4700,

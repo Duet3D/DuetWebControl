@@ -35,7 +35,9 @@ export default function(connector) {
 				autoPause: new Channel()
 			},
 			electronics: {
+				version: null,
 				type: defaultBoardName,
+				shortName: null,
 				name: null,
 				revision: null,
 				firmware: new Firmware(),
@@ -80,6 +82,8 @@ export default function(connector) {
 				filePosition: null,
 
 				lastFileName: null,
+				lastFileAborted: false,
+				lastFileCancelled: false,
 				lastFileSimulated: false,
 
 				extrudedRaw: [],						// virtual amount extruded without any modifiers like mixing or extrusion factors
@@ -99,39 +103,36 @@ export default function(connector) {
 			lasers: [],
 			messageBox: {
 				mode: null,
-				seq: -1,
 				title: null,
 				message: null,
-				timeout: null,
-				axisControls: []						// provides axis indices
+				axisControls: [],						// provides axis indices
+				seq: -1,
+				timeout: null							// deprecated - will be dropped in a future version
 			},
 			move: {
 				axes: [
 					new Axis({
 						letter: 'X',
 						drives: [0],
-						homed: true,
-						visible: true
+						homed: true
 					}),
 					new Axis({
 						letter: 'Y',
 						drives: [1],
-						homed: true,
-						visible: true
+						homed: true
 					}),
 					new Axis({
 						letter: 'Z',
 						drives: [2],
-						homed: true,
-						visible: true
+						homed: true
 					})
 				],
-				babystepZ: null,
+				babystepZ: 0.0,
 				currentMove: {
-					requestedSpeed: null,
-					topSpeed: null
+					requestedSpeed: 0.0,
+					topSpeed: 0.0
 				},
-				compensation: null,
+				compensation: "None",
 				drives: [
 					new Drive(),
 					new Drive(),
@@ -144,33 +145,33 @@ export default function(connector) {
 					new Extruder()
 				],
 				geometry: {
-					type: null,
-					anchors: [],
-					printRadius: null,
-					diagonals: [],
-					radius: null,
-					homedHeight: null,
-					angleCorrections: null,
-					endstopAdjustments: [],
-					tilt: []
+					type: "cartesian",
+					anchors: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+					printRadius: 0.0,
+					diagonals: [0.0, 0.0, 0.0],
+					radius: 0.0,
+					homedHeight: 0.0,
+					angleCorrections: [0.0, 0.0, 0.0],
+					endstopAdjustments: [0.0, 0.0, 0.0],
+					tilt: [0.0, 0.0]
 				},
 				idle: {
-					timeout: null,
-					factor: null
+					timeout: 30.0,
+					factor: 0.3
 				},
 				speedFactor: 1.0,
 				currentWorkplace: 0,
 				workplaceCoordinates: []
 			},
 			network: {
-				hostname: connector ? connector.hostname : 'myduet',
+				hostname: connector ? connector.hostname : 'duet',
 				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
-				password: null,
+				password: "reprap",
 				interfaces: []
 			},
 			scanner: {
-				progress: null,
-				status: null
+				progress: 0.0,
+				status: 'D'
 			},
 			sensors: {
 				endstops: [],
@@ -181,18 +182,15 @@ export default function(connector) {
 			},
 			spindles: [],
 			state: {
-				isPrinting: false,						// auto-evaluated on update
-				isSimulating: false,					// auto-evaluated on update
-
 				atxPower: null,
 				beep: {
 					frequency: 0,
 					duration: 0
 				},
-				currentTool: null,
-				displayMessage: "",
-				mode: null,								// one of ['FFF', 'CNC', 'Laser', null]
+				currentTool: -1,
+				displayMessage: null,
 				logFile: null,
+				mode: null,								// one of ['FFF', 'CNC', 'Laser', null (exclusive in DWC)]
 				status: null							// one of the following:
 				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
 			},
@@ -225,6 +223,7 @@ export default function(connector) {
 			},
 			fractionPrinted: state => (state.job.filePosition && state.job.file.size) ? state.job.filePosition / state.job.file.size : 0,
 			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
+			isSimulating: state => state.state.status === 'simulating',
 			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
 			maxHeaterTemperature(state) {
 				let maxTemp
@@ -237,7 +236,7 @@ export default function(connector) {
 			},
 			jobProgress(state, getters) {
 				if (getters.isPrinting) {
-					if (state.state.status !== 'simulating' && state.job.file.filament.length && state.job.extrudedRaw.length) {
+					if (!getters.isSimulating && state.job.file.filament.length && state.job.extrudedRaw.length) {
 						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.file.filament.reduce((a, b) => a + b));
 					}
 					return getters.fractionPrinted;
@@ -247,27 +246,8 @@ export default function(connector) {
 		},
 		mutations: {
 			update(state, payload) {
-				const lastJobFile = state.job.file.fileName;
-				const wasPrinting = state.state.isPrinting, wasSimulating = state.state.isSimulating;
-
 				patch(state, payload, true);
 				fixMachineItems(state, payload);
-
-				const isPrinting = ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1;
-				if (state.state.isPrinting !== isPrinting) {
-					state.state.isPrinting = isPrinting;
-					if (isPrinting) {
-						const isSimulating = state.state.status === 'simulating';
-						if ((isSimulating || state.state.status === 'processing') && state.state.isSimulating !== isSimulating) {
-							state.state.isSimulating = isSimulating;
-						}
-					} else if (wasPrinting) {
-						state.state.isSimulating = false;
-
-						state.job.lastFileName = lastJobFile;
-						state.job.lastFileSimulated = wasSimulating;
-					}
-				}
 			}
 		}
 	}

@@ -60,12 +60,13 @@ export default class PollConnector extends BaseConnector {
 	layers = []
 	currentFileInfo = new FileInfo()
 	printStats = {}
+	probeType = 0
 
 	constructor(hostname, password, responseData) {
 		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.sessionTimeout = responseData.sessionTimeout || 8000;	/// default timeout in RRF is 8000ms
+		this.sessionTimeout = responseData.sessionTimeout || 8000;	// default timeout in RRF is 8000ms
 
 		this.axios = axios.create({
 			baseURL: `${location.protocol}//${hostname}/`,
@@ -209,6 +210,7 @@ export default class PollConnector extends BaseConnector {
 	async updateLoop(requestExtendedStatus = false) {
 		// Decide which type of status update to poll and request it
 		const wasPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(this.lastStatusResponse.status) !== -1;
+		const wasSimulating = this.lastStatusResponse.status === 'M';
 		const statusType =
 			requestExtendedStatus ||
 			this.justConnected ||
@@ -224,22 +226,31 @@ export default class PollConnector extends BaseConnector {
 			return;
 		}
 
-		// Retrieve job file information if a print has started
-		if (isPrinting && (this.justConnected || !wasPrinting)) {
-			this.currentFileInfo = await this.getFileInfo();
-			delete this.currentFileInfo.printDuration;
+		// Retrieve job file information if a print has started or set info about the last job if it has finished
+		if (isPrinting) {
+			if (this.justConnected || !wasPrinting) {
+				this.currentFileInfo = await this.getFileInfo();
+				delete this.currentFileInfo.printDuration;
 
+				quickPatch(newData, {
+					job: {
+						file: this.currentFileInfo,
+						layers: []
+					}
+				});
+
+				this.layers = [];
+				this.printStats = {
+					layerHeight: this.currentFileInfo.layerHeight
+				};
+			}
+		} else if (wasPrinting) {
 			quickPatch(newData, {
 				job: {
-					file: this.currentFileInfo,
-					layers: []
+					lastFileName: this.currentFileInfo.fileName,
+					lastFileSimulated: wasSimulating
 				}
 			});
-
-			this.layers = [];
-			this.printStats = {
-				layerHeight: this.currentFileInfo.layerHeight
-			};
 		}
 
 		// Standard Status Response
@@ -298,7 +309,7 @@ export default class PollConnector extends BaseConnector {
 				progress: response.data.scanner.progress,
 				status: response.data.scanner.status
 			} : {},
-			sensors: (response.data.sensors.probeValue !== undefined) || (response.data.sensors.probeSecondary !== undefined) ? {
+			sensors: (this.probeType !== 0) ? {
 				probes: [
 					{
 						value: response.data.sensors.probeValue,
@@ -321,6 +332,7 @@ export default class PollConnector extends BaseConnector {
 			// Extended Status Response
 			const axisNames = (response.data.axisNames !== undefined) ? response.data.axisNames.split('') : ['X', 'Y', 'Z', 'U', 'V', 'W', 'A', 'B', 'C'];
 			this.name = name;
+			this.probeType = response.data.probe ? response.data.probe.type : 0;
 
 			quickPatch(newData, {
 				electronics: {
@@ -383,7 +395,7 @@ export default class PollConnector extends BaseConnector {
 					endstops: newData.move.drives.map((drive, index) => ({
 						triggered: (response.data.endstops & (1 << index)) !== 0
 					})),
-					probes: (response.data.probe !== undefined) ? [
+					probes: (response.data.probe && response.data.probe.type !== 0) ? [
 						{
 							threshold: response.data.probe.threshold,
 							triggerHeight: response.data.probe.height,

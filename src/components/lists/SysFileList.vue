@@ -50,7 +50,8 @@ import Path from '../../utils/path.js'
 export default {
 	computed: {
 		...mapState('machine/model', ['state']),
-		...mapGetters(['uiFrozen'])
+		...mapGetters(['uiFrozen']),
+		...mapGetters('machine/model', ['isPrinting'])
 	},
 	data() {
 		return {
@@ -75,7 +76,7 @@ export default {
 			}
 		},
 		fileEdited(filename) {
-			if (filename === Path.configFile && !this.state.isPrinting) {
+			if (filename === Path.configFile && !this.isPrinting) {
 				this.showResetPrompt = true;
 			}
 		},

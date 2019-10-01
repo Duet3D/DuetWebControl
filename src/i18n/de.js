@@ -254,7 +254,8 @@ export default {
 			'standby',
 			'aktiv',
 			'fehler',
-			'kalibriere'
+			'kalibriere',
+			'abgeschaltet'
 		],
 		status: {
 			updating: 'Aktualisiere',

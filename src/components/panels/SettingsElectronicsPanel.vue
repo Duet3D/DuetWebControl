@@ -11,17 +11,18 @@
 		<v-card-text class="pt-0">
 			<template v-if="isConnected">
 				<template v-if="electronics.name">
-					{{ $t('panel.settingsElectronics.board', [electronics.name]) }}
+					{{ $t('panel.settingsElectronics.board', [electronics.name + (electronics.shortName ? ` (${electronics.shortName})` : '')]) }} <br>
+				</template>
+				<template v-if="electronics.version">
+					{{ `DSF Version: ${electronics.version}` }} <br>
 				</template>
 				<template v-if="electronics.firmware.name">
-					<br/>
-					{{ $t('panel.settingsElectronics.firmware', [electronics.firmware.name + ' ' + $display(electronics.firmware.version), $display(electronics.firmware.date)]) }}
+					{{ $t('panel.settingsElectronics.firmware', [electronics.firmware.name + ' ' + $display(electronics.firmware.version), $display(electronics.firmware.date)]) }} <br>
 				</template>
-				<template v-if="electronics.type != 'duet3' && network.interfaces.length && network.interfaces[0].type === 'wifi'">
-					<br/>
-					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(network.interfaces[0].firmwareVersion)]) }}
+				<template v-if="electronics.type !== 'duet3' && network.interfaces.length && network.interfaces[0].type === 'wifi'">
+					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(network.interfaces[0].firmwareVersion)]) }} <br>
 				</template>
-				<br/><br/>
+				<br>
 				{{ $t('panel.settingsElectronics.updateNote') }}
 			</template>
 			<template v-else>

@@ -255,7 +255,8 @@ export default {
 			'veille',
 			'actif',
 			'défaut',
-			'réglage'
+			'réglage',
+			'offline'
 		],
 		status: {
 			updating: 'Mise à Jour...',

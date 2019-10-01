@@ -256,7 +256,8 @@ export default {
 			'待机',
 			'活动',
 			'故障',
-			'正在调整？？？'
+			'正在调整？？？',
+			'offline'
 		],
 		status: {
 			updating: '正在更新',

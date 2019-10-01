@@ -182,12 +182,13 @@ export default function(hostname, connector) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, commit, dispatch }, payload) {
-				const wasPrinting = state.model.state.isPrinting, lastJobFile = state.model.job.file.fileName;
+			async update({ state, getters, commit, dispatch }, payload) {
+				const wasPrinting = getters.isPrinting, lastJobFile = state.model.job.file.fileName;
 				const beepFrequency = state.model.state.beep.frequency, beepDuration = state.model.state.beep.duration;
 				const displayMessage = state.model.state.displayMessage;
 
 				// Merge updates into the object model
+				//console.log(JSON.stringify(payload));
 				commit('model/update', payload);
 				
 				// Is a beep requested?
@@ -198,7 +199,7 @@ export default function(hostname, connector) {
 				}
 
 				// Is a message supposed to be shown?
-				if (state.model.state.displayMessage != "" && state.model.state.displayMessage != displayMessage) {
+				if (state.model.state.displayMessage && state.model.state.displayMessage != displayMessage) {
 					showMessage(state.model.state.displayMessage);
 				}
 
@@ -221,7 +222,7 @@ export default function(hostname, connector) {
 					}
 					
 					// Have we just finished a job?
-					if (wasPrinting && !state.model.state.isPrinting) {
+					if (wasPrinting && !getters.isPrinting) {
 						// Clear the cache of the last file
 						commit('cache/clearFileInfo', lastJobFile);
 

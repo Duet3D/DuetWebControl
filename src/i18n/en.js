@@ -254,7 +254,8 @@ export default {
 			'standby',
 			'active',
 			'fault',
-			'tuning'
+			'tuning',
+			'offline'
 		],
 		status: {
 			updating: 'Updating',
