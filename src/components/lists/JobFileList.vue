@@ -25,6 +25,9 @@
 				<v-list-tile v-show="isFile && !isPrinting" @click="simulate">
 					<v-icon class="mr-1">fast_forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-tile>
+				<v-list-tile v-show="isFile" @click="view3D">
+					<v-icon class="mr-1">3d_rotation</v-icon>3D View
+				</v-list-tile>
 			</template>
 		</base-file-list>
 
@@ -55,6 +58,7 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
+		...mapState(["selectedMachine"]),
 		...mapState('machine/model', ['state', 'storages']),
 		...mapState('settings', ['language']),
 		...mapGetters(['isConnected', 'uiFrozen']),
@@ -249,7 +253,18 @@ export default {
 		},
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+		},
+		view3D(item) {
+			var filePath = `${Path.combine(this.directory,item && item.name ? item.name : this.selection[0].name)}`;
+			window.open("/viewer.html?filepath=" + filePath + "&printerip=" + this.selectedMachine, "_blank","noopener,noreferrer" );
 		}
+  
+
+	},
+	watch:{
+		selectedMachine() {
+			this.directory = Path.gcodes;
+			}
 	}
 }
 </script>
