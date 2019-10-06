@@ -526,7 +526,7 @@ export default {
 			caption: 'Estimations basée sur',
 			filament: 'Utilisation de Filament',
 			file: 'Progrès du Fichier',
-			layer: 'Progrès du Fichier',
+			layer: 'Durée de la Dernière Couche',
 			slicer: 'Trancheur',
 			simulation: 'Simulation'
 		},
@@ -548,7 +548,7 @@ export default {
 			editMesh: 'Définir Zone pour la Mesh Compensation (M557)',
 			runMesh: 'Lancer Mesh Compensation (G29)',
 			loadMesh: 'Charger la Carte de Hauteur Sauvegardée (G29 S1)',
-			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivantss n\'ont pas été à leur origine:',
+			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivants n\'ont pas été à leur origine:',
 			noAxes: 'Pas d\'axes'
 		},
 		settingsAbout: {
