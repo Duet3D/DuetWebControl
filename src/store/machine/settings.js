@@ -13,6 +13,7 @@ export default function(hostname) {
 			updateInterval: 250,
 			extendedUpdateEvery: 20,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
+			crcUploads: true,
 
 			// REST Connector
 			pingInterval: 2000,							// ms

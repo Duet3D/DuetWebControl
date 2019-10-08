@@ -147,7 +147,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'Références G-Code',
 			menuReference: 'Référence Menu',
-			save: 'Sauvegarder'
+			save: 'Sauvegarder',
+			confirmClose: 'Le fichier a été modifié. Si vous continuez, vos modifications seront perdues.'
 		},
 		meshEdit: {
 			title: 'Définir Paramètres de Maillage',
@@ -526,7 +527,7 @@ export default {
 			caption: 'Estimations basée sur',
 			filament: 'Utilisation de Filament',
 			file: 'Progrès du Fichier',
-			layer: 'Progrès du Fichier',
+			layer: 'Durée de la Dernière Couche',
 			slicer: 'Trancheur',
 			simulation: 'Simulation'
 		},
@@ -548,7 +549,7 @@ export default {
 			editMesh: 'Définir Zone pour la Mesh Compensation (M557)',
 			runMesh: 'Lancer Mesh Compensation (G29)',
 			loadMesh: 'Charger la Carte de Hauteur Sauvegardée (G29 S1)',
-			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivantss n\'ont pas été à leur origine:',
+			axesNotHomed: 'L\'axe suivant  n\'a pas été à son origine:|Les axes suivants n\'ont pas été à leur origine:',
 			noAxes: 'Pas d\'axes'
 		},
 		settingsAbout: {
@@ -571,6 +572,7 @@ export default {
 			updateInterval: 'Intervalle de mise à jour ({0})',
 			extendedUpdateEvery: 'Intervalle de mise à jour du statut étendu',
 			fileTransferRetryThreshold: 'Limite d\'essais pour le transfert de fichiers ({0})',
+			crcUploads: 'Utiliser les sommes de contrôle CRC32 pour les téléchargements',
 			unavailable: 'Aucun réglage disponible.',
 		},
 		settingsElectronics: {
@@ -580,6 +582,11 @@ export default {
 			firmware: 'Firmware: {0} ({1})',
 			dwsFirmware: 'Duet WiFi Server Version: {0}',
 			updateNote: 'Remarque: Vous pouvez installer les mises à jour sur la page Système.'
+		},
+		settingsEndstops: {
+			caption: 'Interrupteur de position',
+			index: 'Index',
+			triggered: 'Déclenché'
 		},
 		settingsGeneral: {
 			caption: 'Général',

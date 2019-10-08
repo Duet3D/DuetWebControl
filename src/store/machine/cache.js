@@ -80,12 +80,10 @@ export default function(hostname) {
 		mutations: {
 			load: (state, content) => patch(state, content),
 
-			setFileInfo(state, { filename, fileInfo }) {
-				state.fileInfos[filename] = fileInfo;
-			},
+			setFileInfo: (state, { filename, fileInfo }) => state.fileInfos[filename] = fileInfo,
 			clearFileInfo(state, fileOrDirectory) {
 				if (fileOrDirectory) {
-					if (state.fileInfos[fileOrDirectory]) {
+					if (state.fileInfos.hasOwnProperty(fileOrDirectory)) {
 						// Delete specific item
 						delete state.fileInfos[fileOrDirectory];
 					} else {

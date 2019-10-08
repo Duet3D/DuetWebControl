@@ -148,7 +148,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'G-Code参考',
 			menuReference: '菜单参考',
-			save: '保存'
+			save: '保存',
+			confirmClose: 'The file has been changed. If you proceed, your changes will be lost.'
 		},
 		meshEdit: {
 			title: '设置网格参数',
@@ -571,6 +572,7 @@ export default {
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
 			fileTransferRetryThreshold: '重试文件传输的阈值（{0}）',
+			crcUploads: 'Use CRC32 checksums for uploads',
 			unavailable: '没有可用的设置'
 		},
 		settingsElectronics: {
@@ -588,6 +590,11 @@ export default {
 			settingsSaveDelay: '设置更改的更新延迟({0})',
 			cacheStorageLocal: '将缓存保存在本地存储中',
 			cacheSaveDelay: '缓存更改的更新延迟({0})'
+		},
+		settingsEndstops: {
+			caption: 'Endstops',
+			index: 'Index',
+			triggered: 'Triggered'
 		},
 		settingsListItems: {
 			caption: '列表项目',

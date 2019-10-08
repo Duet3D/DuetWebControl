@@ -146,7 +146,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'G-Code-Referenz',
 			menuReference: 'Menüreference',
-			save: 'Speichern'
+			save: 'Speichern',
+			confirmClose: 'Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.'
 		},
 		meshEdit: {
             title: 'Gitterparameter ändern',
@@ -570,6 +571,7 @@ export default {
 			updateInterval: 'Aktualisierungsintervall ({0})',
 			extendedUpdateEvery: 'Erweitertes Statusupdateintervall',
 			fileTransferRetryThreshold: 'Grenzwert für erneute Versuche von Dateiübetragungen ({0})',
+			crcUploads: 'CRC32-Prüfsummen für Uploads verwenden',
 			unavailable: 'Keine Einstellungen verfügbar'
 		},
 		settingsElectronics: {
@@ -579,6 +581,11 @@ export default {
 			firmware: 'Firmware: {0} ({1})',
 			dwsFirmware: 'Version von Duet WiFi Server: {0}',
 			updateNote: 'Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.'
+		},
+		settingsEndstops: {
+			caption: 'Endlagenschalter',
+			index: 'Index',
+			triggered: 'Ausgelöst'
 		},
 		settingsGeneral: {
 			caption: 'Allgemein',
@@ -626,7 +633,7 @@ export default {
 			caption: 'Status',
 			mode: 'Modus: {0}',
 			toolPosition: 'Werkzeugposition',
-			machinePosition: 'Machinenposition',
+			machinePosition: 'Maschinenposition',
 			extruders: 'Extruder',
 			extruderDrive: 'Motor {0}',
 			speeds: 'Geschwindigkeiten',

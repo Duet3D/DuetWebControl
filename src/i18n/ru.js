@@ -146,7 +146,8 @@
 		fileEdit: {
 			gcodeReference: 'Информация о G-коде',
 			menuReference: 'Информация о меню',
-			save: 'Save'
+			save: 'Save',
+			confirmClose: 'Файл был изменен. Если вы продолжите, ваши изменения будут потеряны.'
 		},
 		meshEdit: {
 			title: 'Set Mesh Parameters',
@@ -570,6 +571,7 @@
 			updateInterval: 'Интервал обновления({0})',
 			extendedUpdateEvery: 'Интервал обновления расширенного статуса',
 			fileTransferRetryThreshold: 'Порог повтора для передачи файлов ({0})',
+			crcUploads: 'Для загрузки используйте контрольные суммы CRC32',
 			unavailable: 'Нет доступных настроек'
 		},
 		settingsElectronics: {
@@ -579,6 +581,11 @@
 			firmware: 'Прошивка: {0} ({1})',
 			dwsFirmware: 'Версия сервера Duet WiFi: {0}',
 			updateNote: 'Вы можете установить обновления в Менеджере файлов - Система.'
+		},
+		settingsEndstops: {
+			caption: 'Конечный выключатель',
+			index: 'указатель',
+			triggered: 'инициированный'
 		},
 		settingsGeneral: {
 			caption: 'Установки',

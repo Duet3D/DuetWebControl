@@ -67,44 +67,50 @@ export default {
 				this.send();
 			}
 		},
+		hasUnprecedentedParameters: (code) => !code || code.trim() === '' || /(M23|M30|M32|M36)[^0-9]/i.test(code),
 		async send() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
 			const code = (this.code.constructor === String) ? this.code : this.code.value;
 			if (code && code.trim() !== '' && !this.sendingCode) {
-				// Convert the input to upper-case and remove comments
 				let codeToSend = '', inQuotes = false, inWhiteSpace = false;
-				for (let i = 0; i < code.length; i++) {
-					const char = code[i];
-					if (inQuotes) {
-						if (i < code.length - 1 && char === '\\' && code[i + 1] === '"') {
-							codeToSend += '\\"';
-							i++;
+				if (this.hasUnprecedentedParameters(code)) {
+					// Don't convert certain codes to upper-case
+					codeToSend = code.trim();
+				} else {
+					// Convert code to upper-case and remove comments
+					for (let i = 0; i < code.length; i++) {
+						const char = code[i];
+						if (inQuotes) {
+							if (i < code.length - 1 && char === '\\' && code[i + 1] === '"') {
+								codeToSend += '\\"';
+								i++;
+							} else {
+								if (char === '"') {
+									inQuotes = false;
+								}
+								codeToSend += char;
+							}
 						} else {
 							if (char === '"') {
-								inQuotes = false;
+								// don't convert escaped strings
+								inQuotes = true;
+							} else if (char === ' ' || char === '\t') {
+								// remove duplicate white spaces
+								if (inWhiteSpace) {
+									continue;
+								}
+								inWhiteSpace = true;
+							} else if (char === ';' || char === '(') {
+								// stop when comments start
+								break;
 							}
-							codeToSend += char;
+							inWhiteSpace = false;
+							codeToSend += char.toUpperCase();
 						}
-					} else {
-						if (char === '"') {
-							// don't convert escaped strings
-							inQuotes = true;
-						} else if (char === ' ' || char === '\t') {
-							// remove duplicate white spaces
-							if (inWhiteSpace) {
-								continue;
-							}
-							inWhiteSpace = true;
-						} else if (char === ';' || char === '(') {
-							// stop when comments start
-							break;
-						}
-						inWhiteSpace = false;
-						codeToSend += char.toUpperCase();
 					}
+					codeToSend = codeToSend.trim();
 				}
-				codeToSend = codeToSend.trim();
 
 				// Send the code and wait for completion
 				this.sendingCode = true;

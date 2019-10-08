@@ -50,11 +50,12 @@
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
-import { DisconnectedError } from '../../utils/errors.js'
+import { DisconnectedError, InvalidPasswordError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
+		...mapState('machine/cache', ['fileInfos']),
 		...mapState('machine/model', ['state', 'storages']),
 		...mapState('settings', ['language']),
 		...mapGetters(['isConnected', 'uiFrozen']),
@@ -133,7 +134,7 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileInfo']),
-		...mapMutations('machine/cache', ['clearFileInfo']),
+		...mapMutations('machine/cache', ['clearFileInfo', 'setFileInfo']),
 		async selectStorage(index) {
 			const storage = this.storages[index];
 			let mountSuccess = true, mountResponse;
@@ -170,51 +171,55 @@ export default {
 			if (this.fileinfoDirectory === directory) {
 				if (this.isConnected && fileIndex < fileCount) {
 					const file = this.filelist[fileIndex];
-					let height = null, layerHeight = null, filament = [], generatedBy = null, printTime = null, simulatedTime = null;
-
-					this.fileinfoProgress = fileIndex;
-					try {
-						// Request file info
-						if (!file.isDirectory) {
-							const fileInfo = await this.getFileInfo(Path.combine(directory, file.name));
+					if (!file.isDirectory) {
+						try {
+							// Get the fileinfo either from our cache or from the Duet
+							const filename = Path.combine(directory, file.name);
+							let fileInfo = this.fileInfos[filename];
+							if (!fileInfo) {
+								fileInfo = await this.getFileInfo(filename);
+								this.setFileInfo({ filename, fileInfo });
+							}
 
 							// Start again if the number of files has changed
 							if (fileCount !== this.filelist.length) {
-								this.fileinfoProgress = 0;
-								this.$nextTick(() => this.requestFileInfo(directory, 0, this.filelist.length));
+								fileIndex = -1;
+								fileCount = this.filelist.length;
 								return;
 							}
 
 							// Set file info
-							height = fileInfo.height;
-							layerHeight = fileInfo.layerHeight;
-							filament = fileInfo.filament;
-							generatedBy = fileInfo.generatedBy;
-							if (fileInfo.printTime) { printTime = fileInfo.printTime; }
-							if (fileInfo.simulatedTime) { simulatedTime = fileInfo.simulatedTime; }
-						}
-					} catch (e) {
-						if (e instanceof DisconnectedError) {
-							this.fileinfoProgress = -1;
-							this.fileinfoDirectory = undefined;
-							return;
-						}
+							file.height = fileInfo.height;
+							file.layerHeight = fileInfo.layerHeight;
+							file.filament = fileInfo.filament;
+							file.generatedBy = fileInfo.generatedBy;
+							file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
+							file.simulatedTime = fileInfo.simulationTime ? fileInfo.simulatedTime : null;
 
-						console.warn(e);
-						this.$log('error', this.$t('error.fileinfoRequestFailed', [file.name]), e.message);
+							// Update progress
+							this.fileinfoProgress = fileIndex;
+						} catch (e) {
+							// Invalidate file info
+							file.height = null;
+							file.layerHeight = null;
+							file.filament = [];
+							file.generatedBy = null;
+							file.printTime = null;
+							file.simulatedTime = null;
+
+							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
+							if (!(e instanceof DisconnectedError) && !(e instanceof InvalidPasswordError)) {
+								console.warn(e);
+								this.$log('error', this.$t('error.fileinfoRequestFailed', [file.name]), e.message);
+							}
+						}
 					}
 
-					// Set file info
-					file.height = height;
-					file.layerHeight = layerHeight;
-					file.filament = filament;
-					file.generatedBy = generatedBy;
-					file.printTime = printTime;
-					file.simulatedTime = simulatedTime;
-
 					// Move on to the next item
-					await this.requestFileInfo(directory, fileIndex + 1, fileCount);
+					this.fileinfoProgress = fileIndex;
+					this.requestFileInfo(directory, fileIndex + 1, fileCount);
 				} else {
+					// No longer connected or finished
 					this.fileinfoProgress = -1;
 					this.fileinfoDirectory = undefined;
 				}
@@ -233,6 +238,7 @@ export default {
 						item.simulatedTime = null;
 					}
 				});
+
 				this.requestFileInfo(directory, 0, this.filelist.length);
 			}
 		},

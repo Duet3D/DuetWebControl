@@ -44,6 +44,10 @@ input::-webkit-inner-spin-button {
 a:not(:hover) {
 	text-decoration: none;
 }
+
+.v-item-group.theme--dark .v-btn__content {
+	color: #FFF !important;
+}
 </style>
 
 <template>

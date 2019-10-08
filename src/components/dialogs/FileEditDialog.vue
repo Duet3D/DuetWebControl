@@ -5,6 +5,7 @@
 .edit-textarea > div > div {
 	align-items: stretch;
 	flex-grow: 1;
+	padding: 0 !important;
 }
 .edit-textarea > div > div > div {
 	align-items: stretch !important;
@@ -13,6 +14,7 @@
 	display: flex;
 	flex-grow: 1;
 	font-family: monospace;
+	padding-left: 12px;
 	margin-top: 0 !important;
 	resize: none;
 }
@@ -36,7 +38,7 @@
 	<v-dialog v-model="shown" fullscreen hide-overlay transition="dialog-bottom-transition">
 		<v-card tile class="card">
 			<v-toolbar card dark color="primary">
-				<v-btn icon dark @click="close">
+				<v-btn icon dark @click="close(false)">
 					<v-icon>close</v-icon>
 				</v-btn>
 				<v-toolbar-title>{{ filename }}</v-toolbar-title>
@@ -56,7 +58,7 @@
 				</v-toolbar-items>
 			</v-toolbar>
 
-			<v-textarea ref="textarea" :value="innerValue" @blur="innerValue = $event.target.value" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" :value="innerValue" @blur="setInnerValue($event.target.value)" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -94,18 +96,30 @@ export default {
 	},
 	data() {
 		return {
-			innerValue: ''
+			innerValue: '',
+			valueChanged: false
 		}
 	},
 	methods: {
 		...mapActions('machine', ['upload']),
-		close() {
+		setInnerValue(value) {
+			if (value != this.innerValue) {
+				this.valueChanged = true;
+				this.innerValue = value;
+			}
+		},
+		close(fileSaved) {
+			if (this.valueChanged && !fileSaved && !confirm(this.$t('dialog.fileEdit.confirmClose'))) {
+				return;
+			}
+
 			this.$emit('input', '');
 			this.$emit('update:shown', false);
+			this.$root.$emit('dialog-closing')
 		},
 		async save() {
 			const content = new Blob([this.innerValue]);
-			this.close();
+			this.close(true);
 
 			try {
 				await this.upload({ filename: this.filename, content });
@@ -115,10 +129,11 @@ export default {
 			}
 		},
 		onBeforeLeave(e) {
-			// Cancel the event
-			e.preventDefault();
-			// Chrome requires returnValue to be set
-			e.returnValue = '';
+			if (this.valueChanged) {
+				// Cancel the event. Chrome also requires returnValue to be set
+				e.preventDefault();
+				e.returnValue = '';
+			}
 		},
 		onTextareaTab(e) {
 			const originalSelectionStart = e.target.selectionStart;
@@ -131,18 +146,19 @@ export default {
 	watch: {
 		shown(to) {
 			// Set textarea content
+			this.valueChanged = false;
 			this.innerValue = this.value;
 
-			// Notify users that they may not have saved their changes yet
 			if (to) {
+				// Notify users that they may not have saved their changes yet
 				window.addEventListener('beforeunload', this.onBeforeLeave);
+
+				// Auto-focus textarea
+				const textarea = this.$refs.textarea;
+				setTimeout(function() { textarea.focus(); }, 100);
 			} else {
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
 			}
-
-			// Auto-focus textarea
-			const textarea = this.$refs.textarea;
-			setTimeout(function() { textarea.focus(); }, 100);
 		}
 	}
 }
