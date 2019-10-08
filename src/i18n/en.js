@@ -146,7 +146,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'G-Code Reference',
 			menuReference: 'Menu Reference',
-			save: 'Save'
+			save: 'Save',
+			confirmClose: 'The file has been changed. If you proceed, your changes will be lost.'
 		},
 		meshEdit: {
 			title: 'Set Mesh Parameters',
@@ -570,6 +571,7 @@ export default {
 			updateInterval: 'Update interval ({0})',
 			extendedUpdateEvery: 'Extended status update interval',
 			fileTransferRetryThreshold: 'Retry threshold for file transfers ({0})',
+			crcUploads: 'Use CRC32 checksums for uploads',
 			unavailable: 'No settings available'
 		},
 		settingsElectronics: {
@@ -579,6 +581,11 @@ export default {
 			firmware: 'Firmware: {0} ({1})',
 			dwsFirmware: 'Duet WiFi Server Version: {0}',
 			updateNote: 'Note: You can install updates on the System page.'
+		},
+		settingsEndstops: {
+			caption: 'Endstops',
+			index: 'Index',
+			triggered: 'Triggered'
 		},
 		settingsGeneral: {
 			caption: 'General',

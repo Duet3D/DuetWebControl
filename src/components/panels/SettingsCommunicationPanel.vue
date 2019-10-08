@@ -23,9 +23,14 @@
 				<v-flex xs6 sm6 md6>
 					<v-text-field v-model.number="fileTransferRetryThreshold" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.fileTransferRetryThreshold', ['KiB'])"></v-text-field>
 				</v-flex>
+				<v-flex xs6 sm6 md6>
+					<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" class="mt-0"></v-switch>
+				</v-flex>
 			</v-layout>
 			<template v-else>
-				{{ $t('panel.settingsCommunication.unavailable') }}
+				<div class="mb-2">
+					{{ $t('panel.settingsCommunication.unavailable') }}
+				</div>
 			</template>
 		</v-container>
 	</v-card>
@@ -59,6 +64,10 @@ export default {
 		fileTransferRetryThreshold: {
 			get() { return Math.round(this.settings.fileTransferRetryThreshold / 1024); },
 			set(value) { if (this.isNumber(value) && value > 0) { this.update({ fileTransferRetryThreshold: Math.round(value * 1024) }); } }
+		},
+		crcUploads: {
+			get() { return this.settings.crcUploads; },
+			set(value) { this.update({ crcUploads: value }); }
 		}
 	},
 	methods: mapMutations('machine/settings', ['update'])

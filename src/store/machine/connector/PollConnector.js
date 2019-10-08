@@ -2,6 +2,7 @@
 'use strict'
 
 import axios from 'axios'
+import crc32 from 'turbo-crc32/crc32'
 
 import BaseConnector from './BaseConnector.js'
 import { FileInfo } from '../modelItems.js'
@@ -132,8 +133,14 @@ export default class PollConnector extends BaseConnector {
 				return Promise.reject(error || new OperationCancelledError());
 			}
 
-			if (error.response && error.response.status === 404) {
-				return Promise.reject(new FileNotFoundError(error.config && error.config.filename));
+			if (error.response) {
+				if (error.response.status === 401) {
+					that.dispatch('onConnectionError', new InvalidPasswordError());
+					return Promise.reject(new InvalidPasswordError());
+				}
+				if (error.response.status === 404) {
+					return Promise.reject(new FileNotFoundError(error.config && error.config.filename));
+				}
 			}
 
 			if (!that.isReconnecting && error.config && (!error.config.isFileTransfer || error.config.data.byteLength <= this.settings.fileTransferRetryThreshold)) {
@@ -745,7 +752,7 @@ export default class PollConnector extends BaseConnector {
 
 	upload({ filename, content, cancelSource = axios.cancelToken.source(), onProgress }) {
 		const that = this;
-		return new Promise(function(resolve, reject) {
+		return new Promise(async function(resolve, reject) {
 			// Create upload options
 			const payload = (content instanceof(Blob)) ? content : new Blob([content]);
 			const options = {
@@ -762,6 +769,20 @@ export default class PollConnector extends BaseConnector {
 					return data;
 				}
 			};
+
+			// Check if the CRC32 checksum is required
+			if (that.settings.crcUploads) {
+				const checksum = await new Promise(async function(resolve) {
+					const fileReader = new FileReader();
+					fileReader.onload = function(e){
+						const result = crc32(e.target.result);
+						resolve(result);
+					}
+					fileReader.readAsArrayBuffer(payload);
+				});
+
+				options.params.crc32 = checksum.toString(16);
+			}
 
 			try {
 				// Create file transfer and start it

@@ -108,7 +108,7 @@
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
 											<code-btn :code="`M120\nG91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}\nG90\nM121`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block class="move-btn">
-												<v-icon>keyboard_arrow_left</v-icon> {{ axis.letter + -moveSteps(axis.letter)[index - 1] }}
+												<v-icon>keyboard_arrow_left</v-icon> {{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
 											</code-btn>
 										</v-flex>
 									</v-layout>
@@ -125,7 +125,7 @@
 									<v-layout column>
 										<v-flex v-for="axis in displayedAxes" :key="axis.letter">
 											<code-btn :code="`M120\nG91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}\nG90\nM121`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block class="move-btn">
-												{{ axis.letter + '+' + moveSteps(axis.letter)[numMoveSteps - index] }} <v-icon>keyboard_arrow_right</v-icon>
+												{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }} <v-icon>keyboard_arrow_right</v-icon>
 											</code-btn>
 										</v-flex>
 									</v-layout>
@@ -192,6 +192,7 @@ export default {
 			}
 			return classes;
 		},
+		showSign: (value) => (value > 0) ? `+${value}` : value,
 		showMoveStepDialog(axis, index) {
 			this.moveStepDialog.axis = axis;
 			this.moveStepDialog.index = index;

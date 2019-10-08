@@ -245,9 +245,11 @@ export default {
 		displayAxisPosition(axis) {
 			let position = NaN;
 			if (this.displayToolPosition) {
+				if (axis.drives.length > 0) {
+					position = this.move.drives[axis.drives[0]].position;
+				}
+			} else {
 				position = axis.machinePosition;
-			} else if (axis.drives.length > 0) {
-				position = this.move.drives[axis.drives[0]].position;
 			}
 			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
 		},

@@ -9,11 +9,11 @@
 		</v-card-title>
 
 		<v-container fluid grid-list-lg class="px-3">
-			<v-layout column>
-				<v-flex>
+			<v-layout row wrap>
+				<v-flex lg6>
 					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001" :label="$t('panel.settingsMachine.babystepAmount', ['mm'])"></v-text-field>
 				</v-flex>
-				<v-flex>
+				<v-flex lg6>
 					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001" :label="$t('panel.settingsMachine.moveFeedrate', ['mm/min'])"></v-text-field>
 				</v-flex>
 			</v-layout>

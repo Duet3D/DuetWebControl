@@ -9,10 +9,10 @@ import RestConnector from './RestConnector.js'
 const connectors = [RestConnector, PollConnector]
 export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'makeDirectory', 'download', 'getFileList', 'getFileInfo']
 
-export function mapConnectorActions(connector, toIgnore = []) {
+export function mapConnectorActions(connector, actionsToMap = []) {
 	let actions = {}
 	if (connector) {
-		MachineActions.filter(action => toIgnore.indexOf(action) === -1).forEach(function(action) {
+		actionsToMap.forEach(function(action) {
 			// Map action to the connector
 			actions[action] = function handler(context, payload) { return connector[action](payload); }
 		});

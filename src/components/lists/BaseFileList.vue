@@ -20,7 +20,7 @@ th.checkbox {
 		<v-data-table v-model="innerValue" v-bind="$props" :items="innerFilelist" :loading="loading || innerLoading" :custom-sort="sort" :pagination.sync="innerPagination" select-all hide-actions item-key="name" class="elevation-3" :class="{ 'empty-table-fix' : innerFilelist.length === 0, 'loading-cursor' : (loading || innerLoading || doingFileOperation || innerDoingFileOperation) }">
 			<template slot="progress">
 				<slot name="progress">
-				<v-progress-linear indeterminate></v-progress-linear>
+					<v-progress-linear indeterminate></v-progress-linear>
 				</slot>
 			</template>
 
@@ -45,24 +45,24 @@ th.checkbox {
 			</template>
 
 			<template slot="items" slot-scope="props">
-				<tr :active="props.selected" @touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)" @contextmenu.prevent="onItemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)" v-tab-control.contextmenu @keydown.space="props.selected = !props.selected">
+				<tr :active="props.selected" :key="props.item.name" @touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)" @contextmenu.prevent="onItemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)" v-tab-control.contextmenu @keydown.space="props.selected = !props.selected">
 					<td class="pr-0">
 						<v-checkbox :input-value="props.selected" @touchstart.stop="" @touchend.stop="" @click.stop.prevent="props.selected = !props.selected" primary hide-details></v-checkbox>
 					</td>
-					<template v-for="header in headers">
-						<td v-if="header.value === 'name'" :key="header.value">
+					<td v-for="header in headers" :key="header.value">
+						<template v-if="header.value === 'name'">
 							<v-layout row align-center>
 								<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
 								<span>{{ props.item.name }}</span>
 							</v-layout>
-						</td>
-						<td v-else-if="header.unit === 'bytes'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'bytes'">
 							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : '' }}
-						</td>
-						<td v-else-if="header.unit === 'date'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'date'">
 							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t('generic.noValue') }}
-						</td>
-						<td v-else-if="header.unit === 'filaments'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'filaments'">
 							<v-tooltip bottom :disabled="!props.item[header.value] || props.item[header.value].length <= 1">
 								<span slot="activator">
 									{{ displayLoadingValue(props.item, header.value, 1, 'mm') }}
@@ -72,14 +72,14 @@ th.checkbox {
 									{{ $display(props.item[header.value], 1, 'mm') }}
 								</span>
 							</v-tooltip>
-						</td>
-						<td v-else-if="header.unit === 'time'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'time'">
 							{{ displayTimeValue(props.item, header.value) }}
-						</td>
-						<td v-else :key="header.value">
+						</template>
+						<template v-else>
 							{{ displayLoadingValue(props.item, header.value, header.precision, header.unit) }}
-						</td>
-					</template>
+						</template>
+					</td>
 				</tr>
 			</template>
 		</v-data-table>

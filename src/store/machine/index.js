@@ -48,7 +48,7 @@ export default function(hostname, connector) {
 			connector: () => connector ? connector.type : null
 		},
 		actions: {
-			...mapConnectorActions(connector, ['reconnect', 'sendCode', 'upload', 'download', 'getFileInfo']),
+			...mapConnectorActions(connector, ['disconnect', 'delete', 'move', 'makeDirectory', 'getFileList', 'getFileInfo']),
 
 			// Reconnect after a connection error
 			async reconnect({ commit }) {
@@ -170,17 +170,6 @@ export default function(hostname, connector) {
 				}
 			},
 
-			// Get info about the specified filename in the form of a FileInfo instance
-			async getFileInfo({ state, commit }, filename) {
-				if (state.cache.fileInfos.hasOwnProperty(filename)) {
-					return state.cache.fileInfos[filename];
-				}
-
-				const fileInfo = await connector.getFileInfo(filename);
-				commit('cache/setFileInfo', { filename, fileInfo });
-				return fileInfo;
-			},
-
 			// Update machine mode. Reserved for the machine connector!
 			async update({ state, getters, commit, dispatch }, payload) {
 				const wasPrinting = getters.isPrinting, lastJobFile = state.model.job.file.fileName;
@@ -263,8 +252,8 @@ export default function(hostname, connector) {
 
 			setAutoSleep: (state, value) => state.autoSleep = value,
 			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
-			setHighVerbosity() { connector.verbose = true; },
-			setNormalVerbosity() { connector.verbose = false; }
+			setHighVerbosity() { if (connector) { connector.verbose = true; } },
+			setNormalVerbosity() { if (connector) { connector.verbose = false; } }
 		},
 		modules: {
 			cache: cache(hostname),
