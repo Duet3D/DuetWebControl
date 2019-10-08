@@ -432,12 +432,16 @@ export default class PollConnector extends BaseConnector {
 				});
 			}
 		} else if (statusType === 3) {
+			if (!newData.job) {
+				newData.job = {};
+			}
+
 			// Print Status Response
-			newData.job  = {
+			quickPatch(newData.job, {
 				file: {},
 				filePosition: response.data.filePosition,
 				extrudedRaw: response.data.extrRaw
-			}
+			});
 
 			// Update some stats only if the print is still live
 			if (isPrinting) {

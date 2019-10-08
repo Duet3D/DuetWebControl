@@ -32,7 +32,7 @@
 
 				<v-card>
 					<v-list>
-						<template v-if="move.compensation">
+						<template v-show="move.compensation">
 							<v-list-tile class="center-menu-item">
 								{{ $t('panel.movement.compensationInUse', [move.compensation]) }}
 							</v-list-tile>
@@ -140,10 +140,10 @@
 		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
 		<input-dialog :shown.sync="moveStepDialog.shown" :title="$t('dialog.changeMoveStep.title')" :prompt="$t('dialog.changeMoveStep.prompt')" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
 
-		<v-alert v-if="unhomedAxes.length" :value="true" type="warning">
+		<v-alert :value="!!unhomedAxes.length" type="warning">
 			{{ $tc('panel.movement.axesNotHomed', unhomedAxes.length) }}
 			<strong>
-				{{ unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) }}
+				{{ unhomedAxes.length ? unhomedAxes.map(axis => axis.letter).reduce((a, b) => `${a}, ${b}`) : '' }}
 			</strong>
 		</v-alert>
 
