@@ -391,7 +391,7 @@ export default {
 		getHeaterColor: heater => getHeaterColor(heater),
 		getExtraHeaterColor: heater => getExtraHeaterColor(heater),
 		formatHeaterName(heater, index) {
-			if (heater.name) {
+			if (heater && heater.name) {
 				const matches = /(.*)\[(.*)\]$/.exec(heater.name);
 				if (matches) {
 					return matches[1];

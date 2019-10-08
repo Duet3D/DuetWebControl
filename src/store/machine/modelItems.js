@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { quickPatch } from '../../utils/patch.js'
 
 export class Axis {
@@ -272,7 +274,7 @@ function fixItems(items, ClassType) {
 		if (item !== null) {
 			for (let key in preset) {
 				if (!item.hasOwnProperty(key)) {
-					item[key] = preset[key];
+					Vue.set(item, key, preset[key]);
 					if (preset[key] instanceof Object) {
 						preset = new ClassType();
 					}
