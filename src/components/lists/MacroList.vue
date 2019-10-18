@@ -8,42 +8,40 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">polymer</v-icon> {{ $t('list.macro.caption') }}
+			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t('list.macro.caption') }}
 			<v-spacer></v-spacer>
-			<span v-show="isConnected">{{ directory.replace('0:/macros', $t('list.macro.root')) }}</span>
+			<span v-show="isConnected" class="subtitle-2">{{ directory.replace('0:/macros', $t('list.macro.root')) }}</span>
 		</v-card-title>
 
 		<v-card-text class="pa-0" v-show="loading || filelist.length || !isRootDirectory">
 			<v-progress-linear v-show="loading" :indeterminate="true" class="my-0"></v-progress-linear>
 
 			<v-list class="pt-0" dense>
-				<v-list-tile v-if="!isRootDirectory" @click="goUp" v-tab-control>
-					<v-list-tile-avatar>
-						<v-icon class="list-icon grey lighten-1 white--text">
-							keyboard_arrow_up
+				<v-list-item v-if="!isRootDirectory" @click="goUp">
+					<v-list-item-icon>
+						<v-icon class="list-icon mr-1">mdi-arrow-up</v-icon>
+					</v-list-item-icon>
+
+					<v-list-item-content>
+						<v-list-item-title>{{ $t('list.baseFileList.goUp') }}</v-list-item-title>
+					</v-list-item-content>
+				</v-list-item>
+
+				<v-list-item v-for="item in filelist" :key="item.name" @click="itemClick(item)">
+					<v-list-item-icon>
+						<v-icon class="list-icon mr-1">
+							{{ item.isDirectory ? 'mdi-folder' : 'mdi-file' }}
 						</v-icon>
-					</v-list-tile-avatar>
+					</v-list-item-icon>
 
-					<v-list-tile-content>
-						<v-list-tile-title>{{ $t('list.baseFileList.goUp') }}</v-list-tile-title>
-					</v-list-tile-content>
-				</v-list-tile>
+					<v-list-item-content>
+						<v-list-item-title>{{ item.displayName }}</v-list-item-title>
+					</v-list-item-content>
 
-				<v-list-tile v-for="item in filelist" :key="item.name" @click="itemClick(item)" v-tab-control>
-					<v-list-tile-avatar>
-						<v-icon class="list-icon" :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
-							{{ item.isDirectory ? 'folder' : 'assignment' }}
-						</v-icon>
-					</v-list-tile-avatar>
-
-					<v-list-tile-content>
-						<v-list-tile-title>{{ item.displayName }}</v-list-tile-title>
-					</v-list-tile-content>
-
-					<v-list-tile-action v-if="!item.isDirectory && item.executing">
+					<v-list-item-action v-if="!item.isDirectory && item.executing">
 						<v-progress-circular class="list-icon" indeterminate color="blue"></v-progress-circular>
-					</v-list-tile-action>
-				</v-list-tile>
+					</v-list-item-action>
+				</v-list-item>
 			</v-list>
 		</v-card-text>
 

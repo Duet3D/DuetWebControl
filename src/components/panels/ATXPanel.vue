@@ -11,15 +11,15 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">power</v-icon> {{ $t('panel.atx.caption') }}
+			<v-icon small class="mr-1">mdi-power</v-icon> {{ $t('panel.atx.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
 			<v-btn-toggle :value="!!state.atxPower" @change="togglePower" mandatory>
-				<v-btn flat :value="true" :disabled="uiFrozen" :loading="sendingCode" color="success" @click="togglePower(true)">
+				<v-btn flat :value="true" :disabled="uiFrozen" :loading="sendingCode" @click="togglePower(true)">
 					{{ $t('panel.atx.on') }}
 				</v-btn>
-				<v-btn flat :value="false" :disabled="uiFrozen" :loading="sendingCode" color="error" @click="togglePower(false)">
+				<v-btn flat :value="false" :disabled="uiFrozen" :loading="sendingCode" @click="togglePower(false)">
 					{{ $t('panel.atx.off') }}
 				</v-btn>
 			</v-btn-toggle>

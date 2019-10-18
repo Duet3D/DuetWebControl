@@ -23,45 +23,42 @@ th:last-child {
 
 <template>
 	<div class="component">
-		<v-data-table :headers="headers" :items="events" :pagination.sync="pagination" hide-actions class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
-			<template slot="no-data">
-				<v-alert :value="true" type="info" class="ma-0">
+		<v-data-table
+			:headers="headers" :items="events" item-key="date"
+			disable-pagination hide-default-footer :mobile-breakpoint="0"
+			:sort-by.sync="sortBy" :sort-desc.sync="sortDesc" must-sort
+			class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
+
+			<template #no-data>
+				<v-alert :value="true" type="info" class="text-left ma-0">
 					{{ $t('list.eventLog.noEvents') }}
 				</v-alert>
 			</template>
 
-			<template slot="headers" slot-scope="props">
-				<tr>
-					<th v-for="header in props.headers" :key="header.value" :class="['text-xs-left column sortable', pagination.descending ? 'desc' : 'asc', header.value === pagination.sortBy ? 'active' : '']" :width="header.width" @click="changeSort(header.value)" v-tab-control>
-						{{ getHeaderText(header) }}
-						<v-icon small>arrow_upward</v-icon>
-					</th>
-					<th v-show="events.length">
-						<v-menu offset-y v-tab-control.contextmenu>
-							<template slot="activator">
-								<v-btn icon>
-									<v-icon small>menu</v-icon>
-								</v-btn>
-							</template>
+			<template #header.btn>
+				<v-menu offset-y>
+					<template #activator="{ on }">
+						<v-btn v-on="on" icon>
+							<v-icon small>mdi-menu</v-icon>
+						</v-btn>
+					</template>
 
-							<v-list>
-								<v-list-tile @click="clearLog" tabindex="0">
-									<v-icon class="mr-1">clear_all</v-icon> {{ $t('list.eventLog.clear') }}
-								</v-list-tile>
-								<v-list-tile :disabled="!events.length" @click="downloadText" tabindex="0">
-									<v-icon class="mr-1">font_download</v-icon> {{ $t('list.eventLog.downloadText') }}
-								</v-list-tile>
-								<v-list-tile :disabled="!events.length" @click="downloadCSV" tabindex="0">
-									<v-icon class="mr-1">cloud_download</v-icon> {{ $t('list.eventLog.downloadCSV') }}
-								</v-list-tile>
-							</v-list>
-						</v-menu>
-					</th>
-				</tr>
+					<v-list>
+						<v-list-item @click="clearLog">
+							<v-icon class="mr-1">mdi-notification-clear-all</v-icon> {{ $t('list.eventLog.clear') }}
+						</v-list-item>
+						<v-list-item :disabled="!events.length" @click="downloadText">
+							<v-icon class="mr-1">mdi-file-download</v-icon> {{ $t('list.eventLog.downloadText') }}
+						</v-list-item>
+						<v-list-item :disabled="!events.length" @click="downloadCSV">
+							<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $t('list.eventLog.downloadCSV') }}
+						</v-list-item>
+					</v-list>
+				</v-menu>
 			</template>
 
-			<template slot="items" slot-scope="{ item }">
-				<tr :class="getClassByEvent(item.type)" v-tab-control>
+			<template #item="{ item }">
+				<tr :class="getClassByEvent(item.type)">
 					<td class="log-cell title-cell">
 						{{ item.date.toLocaleString() }}
 					</td>
@@ -88,27 +85,38 @@ export default {
 	computed: {
 		...mapState('machine', ['events']),
 		...mapState('machine/cache', ['sorting']),
-		...mapState('settings', ['darkTheme'])
-	},
-	data() {
-		return {
-			headers: [
+		...mapState('settings', ['darkTheme']),
+		headers() {
+			return [
 				{
-					text: () => i18n.t('list.eventLog.date'),
+					text: i18n.t('list.eventLog.date'),
 					value: 'date',
 					width: '15%'
 				},
 				{
-					text: () => i18n.t('list.eventLog.message'),
+					text: i18n.t('list.eventLog.message'),
 					value: 'message',
 					sortable: false,
-					width: '75%'
+					width: '74%'
+				},
+				{
+					text: '',
+					value: 'btn',
+					sortable: false,
+					width: '1%'
 				}
-			],
-			pagination: {
-				sortBy: 'date',
-				descending: true,
-				rowsPerPage: -1
+			]
+		},
+		sortBy: {
+			get() { return this.sorting.events.column; },
+			set(value) {
+				this.setSorting({ table: 'events', column: value, descending: this.sortDesc });
+			}				
+		},
+		sortDesc: {
+			get() { return this.sorting.events.descending; },
+			set(value) {
+				this.setSorting({ table: 'events', column: this.sortBy, descending: value });
 			}
 		}
 	},
@@ -136,14 +144,6 @@ export default {
 		formatMessage(message) {
 			return message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
 		},
-		changeSort(column) {
-			if (this.pagination.sortBy === column) {
-				this.pagination.descending = !this.pagination.descending;
-			} else {
-				this.pagination.sortBy = column;
-				this.pagination.descending = false;
-			}
-		},
 		downloadText() {
 			let textContent = '';
 			this.events.forEach(function(e) {
@@ -165,27 +165,6 @@ export default {
 
 			const file = new File([csvContent], 'console.csv', { type: 'text/csv;charset=utf-8' });
 			saveAs(file);
-		}
-	},
-	mounted() {
-		this.pagination.sortBy = this.sorting.events.column;
-		this.pagination.descending = this.sorting.events.descending;
-	},
-	watch: {
-		pagination: {
-			deep: true,
-			handler(to) {
-				if (this.sorting.events.column !== to.sortBy || this.sorting.events.descending !== to.descending) {
-					this.setSorting({ table: 'events', column: to.sortBy, descending: to.descending });
-				}
-			}
-		},
-		'sorting.events': {
-			deep: true,
-			handler(to) {
-				this.pagination.sortBy = to.column;
-				this.pagination.descending = to.descending;
-			}
 		}
 	}
 }

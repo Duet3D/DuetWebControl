@@ -1,38 +1,36 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			{{ $t('panel.settingsCommunication.caption') }}
 		</v-card-title>
 
-		<v-container fluid grid-list-lg class="px-3">
-			<v-layout row wrap align-center v-if="connector === 'rest'">
-				<v-flex>
-					<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])"></v-text-field>
-				</v-flex>
-			</v-layout>
-			<v-layout row wrap align-center v-else-if="connector === 'poll'">
-				<v-flex xs6 sm6 md6>
-					<v-text-field v-model.number="ajaxRetries" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.ajaxRetries')"></v-text-field>
-				</v-flex>
-				<v-flex xs6 sm6 md6>
-					<v-text-field v-model.number="updateInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.updateInterval', ['ms'])"></v-text-field>
-				</v-flex>
-				<v-flex xs6 sm6 md6>
-					<v-text-field v-model.number="extendedUpdateEvery" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.extendedUpdateEvery')"></v-text-field>
-				</v-flex>
-				<v-flex xs6 sm6 md6>
-					<v-text-field v-model.number="fileTransferRetryThreshold" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.fileTransferRetryThreshold', ['KiB'])"></v-text-field>
-				</v-flex>
-				<v-flex xs6 sm6 md6>
-					<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" class="mt-0"></v-switch>
-				</v-flex>
-			</v-layout>
-			<template v-else>
-				<div class="mb-2">
+		<v-card-text>
+			<v-row>
+				<v-col v-if="connector === 'rest'">
+					<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>
+				</v-col>
+				<template v-else-if="connector === 'poll'">
+					<v-col cols="6">
+						<v-text-field v-model.number="ajaxRetries" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.ajaxRetries')" hide-details></v-text-field>
+					</v-col>
+					<v-col cols="6">
+						<v-text-field v-model.number="updateInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.updateInterval', ['ms'])" hide-details></v-text-field>
+					</v-col>
+					<v-col cols="6">
+						<v-text-field v-model.number="extendedUpdateEvery" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.extendedUpdateEvery')" hide-details></v-text-field>
+					</v-col>
+					<v-col cols="6">
+						<v-text-field v-model.number="fileTransferRetryThreshold" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.fileTransferRetryThreshold', ['KiB'])" hide-details></v-text-field>
+					</v-col>
+					<v-col cols="6">
+						<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" hide-details></v-switch>
+					</v-col>
+				</template>
+				<v-col v-else>
 					{{ $t('panel.settingsCommunication.unavailable') }}
-				</div>
-			</template>
-		</v-container>
+				</v-col>
+			</v-row>
+		</v-card-text>
 	</v-card>
 </template>
 

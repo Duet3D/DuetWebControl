@@ -1,10 +1,10 @@
 <template>
-	<v-layout column>
-		<v-flex>
+	<v-row>
+		<v-col cols="12" class="pt-1">
 			<code-input solo></code-input>
-		</v-flex>
-		<v-flex>
+		</v-col>
+		<v-col cols="12">
 			<event-list></event-list>
-		</v-flex>
-	</v-layout>
+		</v-col>
+	</v-row>
 </template>

@@ -34,13 +34,13 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 	// Log it
 	const responseLines = toLog.split("\n")
 	if (hostname === store.state.selectedMachine) {
-		let title = code, message = responseLines.reduce((a, b) => `${a}<br>${b}`);
+		let title = code, message = responseLines.join('<br>');
 		if (responseLines.length > 3) {
 			title = (code === '') ? i18n.t('notification.responseTooLong') : code;
 			message = (code === '') ? '' : i18n.t('notification.responseTooLong');
 		} else if (code === '') {
 			title = responseLines[0];
-			message = (responseLines.length > 1) ? responseLines.slice(1).reduce((a, b) => `${a}<br>${b}`) : '';
+			message = responseLines.slice(1).join('<br>');
 		}
 
 		makeNotification(type, title, message);

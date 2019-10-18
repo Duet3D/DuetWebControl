@@ -295,6 +295,7 @@ export default class PollConnector extends BaseConnector {
 			},
 			move: {
 				axes: response.data.coords.xyz.map((machinePosition, drive) => ({
+					drives: [drive],
 					homed: !!response.data.coords.axesHomed[drive],
 					machinePosition
 				})),
@@ -792,8 +793,12 @@ export default class PollConnector extends BaseConnector {
 				// Create file transfer and start it
 				that.axios.post('rr_upload', payload, options)
 					.then(function(response) {
-						resolve(response);
-						that.dispatch('onFileUploaded', { filename, content });
+						if (response.data.err === 0) {
+							that.dispatch('onFileUploaded', { filename, content });
+							resolve(response.data);
+						} else {
+							reject(new OperationFailedError(`err ${response.data.err}`));
+						}
 					})
 					.catch(reject)
 					.then(function() {

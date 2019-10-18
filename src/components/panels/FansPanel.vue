@@ -1,45 +1,41 @@
 <template>
-	<v-card v-show="(currentTool && currentTool.fans.length > 0) || fans.some(fan => !fan.thermostatic.control)">
+	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fans.caption') }}
+			<v-icon small class="mr-1">mdi-fan</v-icon> {{ $t('panel.fans.caption') }}
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
-				<template slot="activator">
-					<a v-show="!uiFrozen && fans.some(fan => !fan.thermostatic.control)" href="#" @click.prevent="">
+				<template #activator="{ on }">
+					<a v-show="!uiFrozen && fans.some(fan => !fan.thermostatic.control)" v-on="on" href="javascript:void(0)" class="subtitle-2">
 						{{ $t('panel.fans.changeVisibility') }}
 					</a>
 				</template>
 
 				<v-list>
-					<v-list-tile v-show="currentTool && currentTool.fans.length > 0" @click="toggleFanVisibility(-1)">
+					<v-list-item v-show="currentTool && currentTool.fans.length > 0" @click="toggleFanVisibility(-1)">
 						<v-icon class="mr-1">
-							{{ (displayedFans.indexOf(-1) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
+							{{ (displayedFans.indexOf(-1) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
 						</v-icon>
 						{{ $t('panel.fans.toolFan') }}
-					</v-list-tile>
+					</v-list-item>
 
-					<template v-for="(fan, index) in fans">
-						<v-list-tile v-if="!fan.thermostatic.control" :key="index" @click="toggleFanVisibility(index)">
-							<v-icon class="mr-1">
-								{{ (displayedFans.indexOf(index) !== -1) ? 'check_box' : 'check_box_outline_blank' }}
-							</v-icon>
-							{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
-						</v-list-tile>
-					</template>
+					<v-list-item v-for="(fan, index) in fans.filter(fan => !fan.thermostatic.control)" :key="index" @click="toggleFanVisibility(index)">
+						<v-icon class="mr-1">
+							{{ (displayedFans.indexOf(index) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
+						</v-icon>
+						{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
+					</v-list-item>
 				</v-list>
 			</v-menu>
 		</v-card-title>
 		
-		<v-layout v-if="visibleFans.length" column class="px-3">
-			<v-flex v-for="fan in visibleFans" :key="fan" class="pt-2">
-				<span>
-					{{ (fan === -1) ? $t('panel.fans.toolFan') : (fans[fan].name ? fans[fan].name : $t('panel.fans.fan', [fan])) }}
-				</span>
+		<v-card-text class="d-flex flex-column pb-0">
+			<div v-for="fan in visibleFans" :key="fan" class="d-flex flex-column pt-2">
+				{{ (fan === -1) ? $t('panel.fans.toolFan') : (fans[fan].name ? fans[fan].name : $t('panel.fans.fan', [fan])) }}
 				<slider :value="getFanValue(fan)" @input="setFanValue(fan, $event)" :disabled="uiFrozen"></slider>
-			</v-flex>
-		</v-layout>
+			</div>
+		</v-card-text>
 
-		<v-alert type="info" :value="!visibleFans.length">
+		<v-alert type="info" :value="!visibleFans.length" class="mb-0">
 			{{ $t('panel.fans.noFans') }}
 		</v-alert>
 	</v-card>

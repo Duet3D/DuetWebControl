@@ -1,31 +1,31 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			{{ $t('panel.settingsWebcam.caption') }}
 		</v-card-title>
 
-		<v-container fluid grid-list-lg class="px-3">
-			<v-layout row wrap align-center>
-				<v-flex xs12 sm12 md6>
-					<v-text-field v-model="webcamURL" :label="$t('panel.settingsWebcam.webcamURL')"></v-text-field>
-				</v-flex>
-				<v-flex xs12 sm12 md6>
-					<v-text-field v-model.number="webcamUpdateInterval" type="number" step="1" min="250" :label="$t('panel.settingsWebcam.webcamUpdateInterval', ['ms'])"></v-text-field>
-				</v-flex>
-				<v-flex xs12 sm12 md6>
-					<v-switch v-model="webcamFix" :label="$t('panel.settingsWebcam.webcamFix')"></v-switch>
-				</v-flex>
-				<v-flex xs12 sm12 md6>
-					<v-switch v-model="webcamEmbedded" :label="$t('panel.settingsWebcam.webcamEmbedded')"></v-switch>
-				</v-flex>
-				<v-flex xs12 sm12 md6>
-					<v-select v-model="webcamRotation" :items="rotationItems" :label="$t('panel.settingsWebcam.webcamRotation')" :disabled="webcamEmbedded"></v-select>
-				</v-flex>
-				<v-flex xs12 sm12 md6>
-					<v-select v-model="webcamFlip" :items="flipItems" :label="$t('panel.settingsWebcam.webcamFlip')" :disabled="webcamEmbedded"></v-select>
-				</v-flex>
-			</v-layout>
-		</v-container>
+		<v-card-text>
+			<v-row>
+				<v-col cols="12" md="6">
+					<v-text-field v-model="webcamURL" :label="$t('panel.settingsWebcam.webcamURL')" hide-details></v-text-field>
+				</v-col>
+				<v-col cols="12" md="6">
+					<v-text-field v-model.number="webcamUpdateInterval" type="number" step="1" min="250" :label="$t('panel.settingsWebcam.webcamUpdateInterval', ['ms'])" hide-details></v-text-field>
+				</v-col>
+				<v-col cols="12" md="6">
+					<v-switch v-model="webcamFix" :label="$t('panel.settingsWebcam.webcamFix')" hide-details></v-switch>
+				</v-col>
+				<v-col cols="12" md="6">
+					<v-switch v-model="webcamEmbedded" :label="$t('panel.settingsWebcam.webcamEmbedded')" hide-details></v-switch>
+				</v-col>
+				<v-col cols="12" md="6">
+					<v-select v-model="webcamRotation" :items="rotationItems" :label="$t('panel.settingsWebcam.webcamRotation')" :disabled="webcamEmbedded" hide-details></v-select>
+				</v-col>
+				<v-col cols="12" md="6">
+					<v-select v-model="webcamFlip" :items="flipItems" :label="$t('panel.settingsWebcam.webcamFlip')" :disabled="webcamEmbedded" hide-details></v-select>
+				</v-col>
+			</v-row>
+		</v-card-text>
 	</v-card>
 </template>
 

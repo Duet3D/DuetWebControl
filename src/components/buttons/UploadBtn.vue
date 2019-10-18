@@ -1,11 +1,14 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop" tabindex="0">
-			<template slot="loader">
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop">
+			<template #loader>
 				<v-progress-circular indeterminate :size="23" :width="2" class="mr-2"></v-progress-circular>
 				{{ caption }}
 			</template>
-			<v-icon class="mr-2">cloud_upload</v-icon> {{ caption }}
+
+			<slot>
+				<v-icon class="mr-2">mdi-cloud-upload</v-icon> {{ caption }}
+			</slot>
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
@@ -265,7 +268,7 @@ export default {
 
 			this.updates.codeSent = true;
 			try {
-				await this.sendCode(`M997 S${modules.reduce((a, b) => `${a}:${b}`)}`);
+				await this.sendCode(`M997 S${modules.join(':')}`);
 			} catch (e) {
 				// this is expected
 			}

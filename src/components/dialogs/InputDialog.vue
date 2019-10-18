@@ -8,13 +8,14 @@
 
 				<v-card-text>
 					{{ prompt }}
-					<v-text-field ref="input" v-model="input" :rules="[v => !!v || $t('dialog.inputRequired'), v => !isNumericValue || isNumber(parseFloat(v)) || $t('dialog.numberRequired')]" required></v-text-field>
+
+					<v-text-field v-model="input" :rules="[v => !!v || $t('dialog.inputRequired'), v => !isNumericValue || isNumber(parseFloat(v)) || $t('dialog.numberRequired')]" required autofocus></v-text-field>
 				</v-card-text>
 
 				<v-card-actions>
 					<v-spacer></v-spacer>
-					<v-btn color="blue darken-1" flat @click="hide">{{ $t('generic.cancel') }}</v-btn>
-					<v-btn color="blue darken-1" flat type="submit">{{ $t('generic.ok') }}</v-btn>
+					<v-btn color="blue darken-1" text @click="hide">{{ $t('generic.cancel') }}</v-btn>
+					<v-btn color="blue darken-1" text type="submit">{{ $t('generic.ok') }}</v-btn>
 				</v-card-actions>
 			</v-form>
 		</v-card>
@@ -63,10 +64,6 @@ export default {
 			if (to) {
 				// Apply preset
 				this.input = this.preset;
-
-				// Auto-focus input
-				const inputField = this.$refs.input;
-				setTimeout(function() { inputField.focus(); }, 100);
 			}
 		}
 	}

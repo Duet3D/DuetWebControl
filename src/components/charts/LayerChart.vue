@@ -1,14 +1,7 @@
 <style scoped>
-.card {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-}
-
 .content {
 	position: relative;
-	flex-grow: 1;
-	min-height: 200px;
+	min-height: 180px;
 }
 
 .content > canvas {
@@ -17,18 +10,18 @@
 </style>
 
 <template>
-	<v-card class="card">
+	<v-card class="d-flex flex-column flex-grow-1">
 		<v-card-title>
 			<span>
-				<v-icon small class="mr-1">timeline</v-icon> {{ $t('chart.layer.caption') }}
+				<v-icon small class="mr-1">mdi-vector-polyline</v-icon> {{ $t('chart.layer.caption') }}
 			</span>
 			<v-spacer></v-spacer>
-			<a v-show="job.layers.length > 30" href="#" @click.prevent="showAllLayers = !showAllLayers">
+			<a v-show="job.layers.length > 30" href="javascript:void(0)" @click.prevent="showAllLayers = !showAllLayers">
 				{{ showAllLayers ? $t('chart.layer.showLastLayers', [30]) : $t('chart.layer.showAllLayers') }}
 			</a>
 		</v-card-title>
 
-		<v-card-text class="content px-2 py-0">
+		<v-card-text class="content flex-grow-1 px-2 py-0">
 			<canvas ref="chart"></canvas>
 		</v-card-text>
 	</v-card>

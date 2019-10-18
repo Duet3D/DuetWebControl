@@ -1,19 +1,48 @@
-
 export default {
 	language: 'French',
 	'$vuetify': {
+		close: 'Fermer',
 		dataIterator: {
-			rowsPerPageText: 'Objets par page:',
-			rowsPerPageAll: 'Tout',
-			pageText: '{0}-{1} de {2}',
-			noResultsText: 'Aucun enregistrements correspondants trouvés',
-			nextPage: 'Page suivante',
-			prevPage: 'Page précédente'
+			noResultsText: 'Aucun enregistrement correspondant trouvé',
+			loadingText: "Chargement de l'élément..."
 		},
 		dataTable: {
-			rowsPerPageText: 'Rangées par page:'
+			itemsPerPageText: 'Lignes par page:',
+			ariaLabel: {
+				sortDescending: ': Tri décroissant. Activer pour supprimer le tri.',
+				sortAscending: ': Tri croissant. Activer pour trier par ordre décroissant.',
+				sortNone: ': Non trié. Activer pour trier par ordre croissant.'
+			},
+			sortBy: 'Trier par'
 		},
-		noDataText: 'Aucune donnée disponible'
+		dataFooter: {
+			itemsPerPageText: 'Élements par page:',
+			itemsPerPageAll: 'Tous',
+			nextPage: 'Page suivante',
+			prevPage: 'Page précédente',
+			firstPage: 'Première page',
+			lastPage: 'Dernière page',
+			pageText: '{0}-{1} de {2}'
+		},
+		datePicker: {
+			itemsSelected: '{0} sélectionnés'
+		},
+		noDataText: 'Aucune donnée disponible',
+		carousel: {
+			prev: 'Visuel précédent',
+			next: 'Visuel suivant'
+		},
+		calendar: {
+			moreEvents: '{0} plus'
+		},
+		fileInput: {
+			counter: '{0} fichiers',
+			counterSize: '{0} fichiers ({1} au total)'
+		},
+		timePicker: {
+			am: 'AM',
+			pm: 'PM'
+		}
 	},
 	button: {
 		add: {
@@ -124,6 +153,7 @@ export default {
 		connection: {
 			connecting: 'Connexion...',
 			disconnecting: 'Déconnexion...',
+			updating: 'Veuillez patienter pendant l\'installation des mises à jour....',
 			reconnecting: 'Connexion perdue, tentative de reconnexion...',
 			standBy: 'Merci de patienter...'
 		},
@@ -351,7 +381,8 @@ export default {
 			simulate: 'Simuler Fichier'
 		},
 		sys: {
-			noFiles: 'Aucun Fichiers Système'
+			noFiles: 'Aucun Fichiers Système',
+			configToolNote: 'éditer via l\'outil de configuration'
 		}
 	},
 	menu: {
@@ -563,7 +594,9 @@ export default {
 			darkTheme: 'Thème Sombre',
 			language: 'Langage',
 			binaryFileSizes: 'Utiliser des tailles de fichiers binaires',
-			binaryFileSizesTitle: 'Les tailles de fichier sont affichées avec une base de 1024 (IEC) au lieu de 1000 (SI)'
+			binaryFileSizesTitle: 'Les tailles de fichier sont affichées avec une base de 1024 (IEC) au lieu de 1000 (SI)',
+			disableAutoComplete: 'Disable auto-complete',
+			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
 		},
 		settingsCommunication: {
 			caption: 'Communication',

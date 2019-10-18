@@ -1,5 +1,5 @@
 <template>
-	<v-dialog v-model="shown" persistent width="480">
+	<v-dialog v-model="shown" @keydown.escape="dismissed" persistent width="480">
 		<v-card>
 			<v-card-title>
 				<span class="headline">{{ question }}</span>
@@ -11,8 +11,8 @@
 
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="blue darken-1" flat @click="dismissed">{{ $t('generic.no') }}</v-btn>
-				<v-btn color="blue darken-1" flat @click="confirmed">{{ $t('generic.yes') }}</v-btn>
+				<v-btn color="blue darken-1" text @click="dismissed">{{ $t('generic.no') }}</v-btn>
+				<v-btn color="blue darken-1" text @click="confirmed">{{ $t('generic.yes') }}</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>

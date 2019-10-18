@@ -5,25 +5,25 @@
 </style>
 
 <template>
-	<v-layout row class="component" :class="{ 'mt-2' : solo, 'grow' : grow }">
-		<v-flex>
-			<v-combobox ref="input" v-model.trim="code" :items="displayedCodes" :menu-props="$vuetify.breakpoint.xsOnly ? { maxHeight: 125 } : undefined" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
-				<template slot="item" slot-scope="{ item }">
+	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
+		<v-col>
+			<v-combobox ref="input" v-model="code" :items="displayedCodes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
+				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
 					<v-btn icon @click.prevent.stop="removeCode(item.value)">
-						<v-icon>delete</v-icon>
+						<v-icon>mdi-delete</v-icon>
 					</v-btn>
 				</template>
 			</v-combobox>
-		</v-flex>
+		</v-col>
 
-		<v-flex shrink>
+		<v-col class="ml-2 flex-shrink-1" cols="auto">
 			<v-btn color="info" :disabled="uiFrozen" :loading="sendingCode" @click="doSend">
-				<v-icon class="mr-2">send</v-icon> {{ $t('input.code.send') }} 
+				<v-icon class="mr-2">mdi-send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
-		</v-flex>
-	</v-layout>
+		</v-col>
+	</v-row>
 </template>
 
 <script>
@@ -35,8 +35,9 @@ export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/settings', ['codes']),
+		...mapState('settings', ['disableAutoComplete']),
 		displayedCodes() {
-			return this.codes.map(code => ({ text: code, value: code }));
+			return this.disableAutoComplete ? [] : this.codes.map(code => ({ text: code, value: code }));
 		}
 	},
 	data() {
@@ -116,7 +117,7 @@ export default {
 				this.sendingCode = true;
 				try {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && this.codes.indexOf(codeToSend) === -1) {
+					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && !this.disableAutoComplete && this.codes.indexOf(codeToSend) === -1) {
 						// Automatically remember successful codes
 						this.addCode(codeToSend);
 					}

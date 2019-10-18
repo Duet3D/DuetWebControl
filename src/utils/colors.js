@@ -27,9 +27,9 @@ export function getExtraHeaterColor(heater) {
 
 export function getRealHeaterColor(heater, extra) {
 	const ghostSpan = document.createElement('span');
+	document.body.querySelector('#app').appendChild(ghostSpan);
 	ghostSpan.classList.add(extra ? getExtraHeaterColor(heater) : getHeaterColor(heater));
-	document.body.appendChild(ghostSpan);
 	const trueColor = window.getComputedStyle(ghostSpan).color;
-	document.body.removeChild(ghostSpan);
+	ghostSpan.remove();
 	return trueColor;
 }
