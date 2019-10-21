@@ -1,10 +1,3 @@
-<style>
-.list-icon {
-	width: 32px !important;
-	height: 32px !important;
-}
-</style>
-
 <template>
 	<v-card>
 		<v-card-title>
@@ -18,9 +11,9 @@
 
 			<v-list class="pt-0" dense>
 				<v-list-item v-if="!isRootDirectory" @click="goUp">
-					<v-list-item-icon>
-						<v-icon class="list-icon mr-1">mdi-arrow-up</v-icon>
-					</v-list-item-icon>
+					<v-list-item-avatar>
+						<v-icon class="list-icon mr-1 grey lighten-1 white--text">mdi-arrow-up</v-icon>
+					</v-list-item-avatar>
 
 					<v-list-item-content>
 						<v-list-item-title>{{ $t('list.baseFileList.goUp') }}</v-list-item-title>
@@ -28,11 +21,11 @@
 				</v-list-item>
 
 				<v-list-item v-for="item in filelist" :key="item.name" @click="itemClick(item)">
-					<v-list-item-icon>
-						<v-icon class="list-icon mr-1">
+					<v-list-item-avatar>
+						<v-icon class="mr-1" :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
 							{{ item.isDirectory ? 'mdi-folder' : 'mdi-file' }}
 						</v-icon>
-					</v-list-item-icon>
+					</v-list-item-avatar>
 
 					<v-list-item-content>
 						<v-list-item-title>{{ item.displayName }}</v-list-item-title>

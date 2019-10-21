@@ -59,7 +59,7 @@ h1 {
 						<span>
 							{{ $t('panel.heightmap.numPoints', [$display(numPoints, 0)]) }}
 						</span>
-						<span>
+						<span v-if="radius > 0">
 							{{ $t('panel.heightmap.radius', [$display(radius, 0, 'mm')]) }}
 						</span>
 						<span>

@@ -163,13 +163,12 @@ a:not(:hover) {
 								</v-tooltip>
 							</v-col>
 
-							<v-col v-if="fanRPM.length" class="d-flex flex-column align-center">
+							<v-col v-if="fanRPM.length" md="auto" class="d-flex flex-column align-center">
 								<strong>
 									{{ $t('panel.status.fanRPM') }}
 								</strong>
-								<span>
-									{{ fanRPM.join(', ') }}
-								</span>
+
+								{{ fanRPM.join(', ') }}
 							</v-col>
 
 							<v-col v-if="sensors.probes.length" class="d-flex flex-column align-center">

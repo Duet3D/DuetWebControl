@@ -44,7 +44,7 @@
 				</v-toolbar-items>
 			</v-toolbar>
 
-			<v-textarea ref="textarea" :value="innerValue" @blur="setInnerValue($event.target.value)" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)" :rows="null" hide-details solo class="edit-textarea" browser-autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" :value="innerValue" @blur="setInnerValue($event.target.value)" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)" :rows="null" hide-details solo class="edit-textarea" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -136,13 +136,10 @@ export default {
 			this.innerValue = this.value;
 
 			if (to) {
-				// Notify users that they may not have saved their changes yet
+				// Add notification for users in case changes have not been saved yet
 				window.addEventListener('beforeunload', this.onBeforeLeave);
-
-				// Auto-focus textarea
-				const textarea = this.$refs.textarea;
-				setTimeout(function() { textarea.focus(); }, 100);
 			} else {
+				// ... and turn it off again when the dialog is hidden
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
 			}
 		}

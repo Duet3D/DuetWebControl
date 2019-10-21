@@ -90,7 +90,7 @@ export default {
 				if (!this.currentTool) {
 					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
 				}
-			} else if (this.fan >= this.fans.length || this.fans[this.fan].thermostatic.control) {
+			} else if (this.fan >= this.fans.length || (this.fan !== -1 && this.fans[this.fan].thermostatic.control)) {
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {

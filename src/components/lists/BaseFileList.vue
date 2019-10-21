@@ -115,6 +115,7 @@ import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import { VDataTable } from 'vuetify/lib'
 
+import Vue from 'vue'
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
@@ -318,7 +319,7 @@ export default {
 					files.forEach(function(item) {
 						this.headers.forEach(function(header) {
 							if (!item.hasOwnProperty(header.value)) {
-								item[header.value] = undefined;
+								Vue.set(item, header.value, undefined);
 							}
 						});
 					}, this);

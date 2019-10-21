@@ -207,7 +207,7 @@ export default {
 							file.filament = fileInfo.filament;
 							file.generatedBy = fileInfo.generatedBy;
 							file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
-							file.simulatedTime = fileInfo.simulationTime ? fileInfo.simulatedTime : null;
+							file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
 
 							// Update progress
 							this.fileinfoProgress = fileIndex;
