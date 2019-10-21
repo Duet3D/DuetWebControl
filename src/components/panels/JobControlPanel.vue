@@ -1,20 +1,20 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-1">
-			<v-icon small class="mr-1">build</v-icon> {{ $t('panel.jobControl.caption') }}
+			<v-icon small class="mr-1">mdi-wrench</v-icon> {{ $t('panel.jobControl.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
 			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting" :code="isPaused ? 'M24' : 'M25'" tabindex="0">
-				<v-icon class="mr-1">{{ isPaused ? "play_arrow" : "pause" }}</v-icon> {{ pauseResumeText }}
+				<v-icon class="mr-1">{{ isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon> {{ pauseResumeText }}
 			</code-btn>
 
 			<code-btn v-if="isPaused" color="error" block code="M0 H1">
-				<v-icon class="mr-1">stop</v-icon> {{ cancelText }}
+				<v-icon class="mr-1">mdi-stop</v-icon> {{ cancelText }}
 			</code-btn>
 
 			<code-btn v-if="!isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
-				<v-icon class="mr-1">refresh</v-icon> {{ processAnotherText }}
+				<v-icon class="mr-1">mdi-restart</v-icon> {{ processAnotherText }}
 			</code-btn>
 
 			<v-switch :label="$t('panel.jobControl.autoSleep')" v-model="autoSleepActive" :disabled="uiFrozen" hide-details></v-switch>

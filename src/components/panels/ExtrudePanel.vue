@@ -1,66 +1,54 @@
-<style scoped>
-.v-btn-toggle {
-	display: flex;
-}
-.v-btn-toggle > button {
-	display: flex;
-	flex: 1 1 auto;
-}
-</style>
-
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">opacity</v-icon> {{ $t('panel.extrude.caption') }}
+			<v-icon small class="mr-1">mdi-opacity</v-icon> {{ $t('panel.extrude.caption') }}
 		</v-card-title>
 
-		<v-layout row class="px-3 py-1" align-center>
-			<v-flex>
-				<v-layout row wrap align-center>
-					<v-flex v-if="currentTool && currentTool.extruders.length > 1" class="ma-1">
-						<p class="mb-1">
-							{{ $t('panel.extrude.mixRatio') }}
-						</p>
-						<v-btn-toggle v-model="mix" mandatory multiple>
-							<v-btn flat value="mix" :disabled="uiFrozen" color="primary">
-								{{ $t('panel.extrude.mix') }}
-							</v-btn>
-							<v-btn flat v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder" :disabled="uiFrozen" color="primary">
-								{{ `E${extruder}` }}
-							</v-btn>
-						</v-btn-toggle>
-					</v-flex>
-					<v-flex class="ma-1">
-						<p class="mb-1">
-							{{ $t('panel.extrude.amount', ['mm']) }}
-						</p>
-						<v-btn-toggle v-model="amount" mandatory>
-							<v-btn flat v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editAmount(index)">
-								{{ amount }}
-							</v-btn>
-						</v-btn-toggle>
-					</v-flex>
-					<v-flex class="ma-1">
-						<p class="mb-1">
-							{{ $t('panel.extrude.feedrate', ['mm/s']) }}
-						</p>
-						<v-btn-toggle v-model="feedrate" mandatory>
-							<v-btn flat v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" color="primary" @contextmenu.prevent="editFeedrate(index)">
-								{{ feedrate }}
-							</v-btn>
-						</v-btn-toggle>
-					</v-flex>
-				</v-layout>
-			</v-flex>
-			<v-flex shrink class="ml-2 mb-1">
-				<v-btn block :disabled="uiFrozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
-					<v-icon>arrow_upward</v-icon> {{ $t('panel.extrude.retract') }}
-				</v-btn>
-				<v-btn block :disabled="uiFrozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
-					<v-icon>arrow_downward</v-icon> {{ $t('panel.extrude.extrude') }}
-				</v-btn>
-			</v-flex>
-		</v-layout>
+		<v-card-text class="pb-0">
+			<v-row class="pb-1" align="center" justify="center">
+				<v-col v-if="currentTool && currentTool.extruders.length > 1">
+					<p class="mb-1">
+					{{ $t('panel.extrude.mixRatio') }}
+					</p>
+					<v-btn-toggle v-model="mix" mandatory multiple>
+						<v-btn text value="mix" :disabled="uiFrozen" color="primary">
+							{{ $t('panel.extrude.mix') }}
+						</v-btn>
+						<v-btn text v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder" :disabled="uiFrozen" color="primary">
+							{{ `E${extruder}` }}
+						</v-btn>
+					</v-btn-toggle>
+				</v-col>
+				<v-col>
+					<p class="mb-1">
+					{{ $t('panel.extrude.amount', ['mm']) }}
+					</p>
+					<v-btn-toggle v-model="amount" mandatory class="d-flex">
+						<v-btn v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" @contextmenu.prevent="editAmount(index)" class="flex-grow-1">
+							{{ amount }}
+						</v-btn>
+					</v-btn-toggle>
+				</v-col>
+				<v-col>
+					<p class="mb-1">
+					{{ $t('panel.extrude.feedrate', ['mm/s']) }}
+					</p>
+					<v-btn-toggle v-model="feedrate" mandatory class="d-flex">
+						<v-btn v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" @contextmenu.prevent="editFeedrate(index)" class="flex-grow-1">
+							{{ feedrate }}
+						</v-btn>
+					</v-btn-toggle>
+				</v-col>
+				<v-col cols="auto" class="flex-shrink-1">
+					<v-btn block tile :disabled="uiFrozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
+						<v-icon>mdi-arrow-up-bold</v-icon> {{ $t('panel.extrude.retract') }}
+					</v-btn>
+					<v-btn block tile :disabled="uiFrozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
+						<v-icon>mdi-arrow-down-bold</v-icon> {{ $t('panel.extrude.extrude') }}
+					</v-btn>
+				</v-col>
+			</v-row>
+		</v-card-text>
 
 		<input-dialog :shown.sync="editAmountDialog.shown" :title="$t('dialog.editExtrusionAmount.title')" :prompt="$t('dialog.editExtrusionAmount.prompt')" :preset="editAmountDialog.preset" is-numeric-value @confirmed="setAmount"></input-dialog>
 		<input-dialog :shown.sync="editFeedrateDialog.shown" :title="$t('dialog.editExtrusionFeedrate.title')" :prompt="$t('dialog.editExtrusionFeedrate.prompt')" :preset="editFeedrateDialog.preset" is-numeric-value @confirmed="setFeedrate"></input-dialog>
@@ -79,16 +67,22 @@ export default {
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
-			if (this.currentTool) {
-				const heaters = this.heat.heaters, minTemp = this.heat.coldExtrudeTemperature;
-				return !this.currentTool.heaters.some(heater => heaters[heater].current < minTemp);
+			if (this.currentTool && this.currentTool.extruders.length) {
+				if (this.currentTool.heaters.length) {
+					const heaters = this.heat.heaters, minTemp = this.heat.coldExtrudeTemperature;
+					return !this.currentTool.heaters.some(heater => heater >= heaters.length || heaters[heater].current < minTemp);
+				}
+				return true;
 			}
 			return false;
 		},
 		canRetract() {
-			if (this.currentTool && this.currentTool.heaters.length) {
-				const heaters = this.heat.heaters, minTemp = this.heat.coldRetractTemperature;
-				return !this.currentTool.heaters.some(heater => heaters[heater].current < minTemp);
+			if (this.currentTool && this.currentTool.extruders.length) {
+				if (this.currentTool.heaters.length) {
+					const heaters = this.heat.heaters, minTemp = this.heat.coldRetractTemperature;
+					return !this.currentTool.heaters.some(heater => heater >= heaters.length || heaters[heater].current < minTemp);
+				}
+				return true;
 			}
 			return false;
 		},
@@ -153,7 +147,7 @@ export default {
 
 			this.busy = true;
 			try {
-				const amount = amounts.map(amount => extrude ? amount : -amount).reduce((a, b) => `${a}:${b}`);
+				const amount = amounts.map(amount => extrude ? amount : -amount).join(':');
 				await this.sendCode(`M120\nM83\nG1 E${amount} F${this.feedrate * 60}\nM121`);
 			} catch (e) {
 				// handled before we get here

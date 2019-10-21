@@ -1,6 +1,6 @@
 <style scoped>
 .tool-input {
-	min-width: 4rem;
+	min-width: 5rem;
 }
 </style>
 
@@ -19,7 +19,12 @@ export default {
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/model', ['heat', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
+		...mapState('settings', ['disableAutoComplete']),
 		items() {
+			if (this.disableAutoComplete) {
+				return [];
+			}
+			
 			const key = this.active ? 'active' : 'standby';
 			if (this.tool || this.all) {
 				return this.temperatures.tool[key];
@@ -83,19 +88,19 @@ export default {
 							// Set tool temp
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
 							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
+							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
 							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
 							const currentTemps = this.bed[this.active ? 'active' : 'standby'];
 							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
+							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
 							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.chamber) {
 							// Set chamber tem
 							const currentTemps = this.chamber[this.active ? 'active' : 'standby'];
 							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).reduce((a, b) => `${a}:${b}`);
+							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
 							await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.all) {
 							// Set all temps
@@ -103,19 +108,19 @@ export default {
 							const targetTemp = this.value;
 							this.tools.forEach(function(tool) {
 								if (tool.heaters.length) {
-									const temps = tool.heaters.map(() => targetTemp).reduce((a, b) => a + ':' + b);
+									const temps = tool.heaters.map(() => targetTemp).join(':');
 									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
 							this.heat.beds.forEach(function(bed, index) {
 								if (bed && bed.heaters.length) {
-									const temps = bed.heaters.map(() => targetTemp).reduce((a, b) => a + ':' + b);
+									const temps = bed.heaters.map(() => targetTemp).join(':');
 									code += `M140 P${index} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
 							this.heat.chambers.forEach(function(chamber, index) {
 								if (chamber && chamber.heaters.length) {
-									const temps = chamber.heaters.map(() => targetTemp).reduce((a, b) => a + ':' + b);
+									const temps = chamber.heaters.map(() => targetTemp).join(':');
 									code += `M141 P${index} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);

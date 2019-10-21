@@ -8,10 +8,7 @@ import { NotImplementedError } from '../../../utils/errors.js'
 // It is better to encode everything via encodeURIComponent
 axios.defaults.paramsSerializer = function(params) {
 	const keys = Object.keys(params);
-	return keys.length ? keys
-		.map(key => `${key}=${encodeURIComponent(params[key])}`)
-		.reduce((a, b) => a + '&' + b)
-		: '';
+	return keys.length ? keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&') : '';
 }
 
 // Base class for network connectors that keep the machine store up-to-date

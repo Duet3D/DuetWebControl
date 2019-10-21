@@ -11,31 +11,31 @@
 <template>
 	<v-card v-show="canControlFans">
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">ac_unit</v-icon> {{ $t('panel.fan.caption') }}
+			<v-icon small class="mr-1">mdi-fan</v-icon> {{ $t('panel.fan.caption') }}
 		</v-card-title>
 
-		<v-layout row wrap align-start class="px-3 py-1">
-			<v-flex order-sm2 order-md1 class="ma-1">
-				<p class="mb-1">
-					{{ $t('panel.fan.selection') }}
-				</p>
-				<v-btn-toggle v-model="fan" mandatory>
-					<v-btn flat v-show="currentTool && currentTool.fans.length > 0" :value="-1" color="primary">
-						{{ $t('panel.fan.toolFan') }}
-					</v-btn>
+		<v-card-text class="py-0">
+			<v-row align="start">
+				<v-col cols="12" sm="auto" order="1" order-sm="0">
+					<p class="mb-1">
+						{{ $t('panel.fan.selection') }}
+					</p>
+					<v-btn-toggle v-model="fan" mandatory>
+						<v-btn v-if="currentTool && currentTool.fans.length > 0" :value="-1">
+							{{ $t('panel.fan.toolFan') }}
+						</v-btn>
 
-					<template v-for="(fan, index) in fans">
-						<v-btn flat v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen" color="primary">
+						<v-btn v-for="(fan, index) in fans.filter(fan => !fan.thermostatic.control)" :key="index" :value="index" :disabled="uiFrozen">
 							{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
 						</v-btn>
-					</template>
-				</v-btn-toggle>
-			</v-flex>
+					</v-btn-toggle>
+				</v-col>
 
-			<v-flex order-sm1 order-md2 class="ma-1">
-				<slider v-model="fanValue" :disabled="uiFrozen"></slider>
-			</v-flex>
-		</v-layout>
+				<v-col cols="12" sm="auto" order="0" order-sm="1" class="flex-sm-grow-1">
+					<slider v-model="fanValue" :disabled="uiFrozen"></slider>
+				</v-col>
+			</v-row>
+		</v-card-text>
 	</v-card>
 </template>
 
@@ -90,7 +90,7 @@ export default {
 				if (!this.currentTool) {
 					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
 				}
-			} else if (this.fan >= this.fans.length || this.fans[this.fan].thermostatic.control) {
+			} else if (this.fan >= this.fans.length || (this.fan !== -1 && this.fans[this.fan].thermostatic.control)) {
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {
@@ -98,6 +98,9 @@ export default {
 				}
 			}
 		}
+	},
+	mounted() {
+		this.updateFanSelection();
 	},
 	watch: {
 		currentTool() {

@@ -1,18 +1,39 @@
 export default {
 	language: 'English',
 	'$vuetify': {
+		close: 'Close',
 		dataIterator: {
-			rowsPerPageText: 'Items per page:',
-			rowsPerPageAll: 'All',
 			pageText: '{0}-{1} of {2}',
 			noResultsText: 'No matching records found',
-			nextPage: 'Next page',
-			prevPage: 'Previous page'
+			loadingText: 'Loading items...'
 		},
 		dataTable: {
-			rowsPerPageText: 'Rows per page:'
+			itemsPerPageText: 'Rows per page:',
+			ariaLabel: {
+				sortDescending: ': Sorted descending. Activate to remove sorting.',
+				sortAscending: ': Sorted ascending. Activate to sort descending.',
+				sortNone: ': Not sorted. Activate to sort ascending.'
+			},
 		},
-		noDataText: 'No data available'
+		dataFooter: {
+			itemsPerPageText: 'Items per page:',
+			itemsPerPageAll: 'All',
+			nextPage: 'Next page',
+			prevPage: 'Previous page',
+			firstPage: 'First page',
+			lastPage: 'Last page'
+		},
+		datePicker: {
+			itemsSelected: '{0} selected'
+		},
+		noDataText: 'No data available',
+		carousel: {
+			prev: 'Previous visual',
+			next: 'Next visual'
+		},
+		calendar: {
+			moreEvents: '{0} more'
+		}
 	},
 	button: {
 		add: {
@@ -123,6 +144,7 @@ export default {
 		connection: {
 			connecting: 'Connecting...',
 			disconnecting: 'Disconnecting...',
+			updating: 'Please wait while updates are being installed...',
 			reconnecting: 'Connection lost, attempting to reconnect...',
 			standBy: 'Please stand by...'
 		},
@@ -350,7 +372,8 @@ export default {
 			simulate: 'Simulate File'
 		},
 		sys: {
-			noFiles: 'No System Files'
+			noFiles: 'No System Files',
+			configToolNote: 'edit via config tool'
 		}
 	},
 	menu: {
@@ -562,7 +585,9 @@ export default {
 			darkTheme: 'Dark theme',
 			language: 'Language',
 			binaryFileSizes: 'Use binary file sizes',
-			binaryFileSizesTitle: 'File sizes are displayed with a basis of 1024 (IEC) instead of 1000 (SI)'
+			binaryFileSizesTitle: 'File sizes are displayed with a basis of 1024 (IEC) instead of 1000 (SI)',
+			disableAutoComplete: 'Disable auto-completion',
+			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
 		},
 		settingsCommunication: {
 			caption: 'Communication',

@@ -2,8 +2,7 @@
 
 import Vue from 'vue'
 import Vuetify from 'vuetify/lib'
-import 'vuetify/src/stylus/app.styl'
-import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import '@mdi/font/css/materialdesignicons.css'
 import './components'
 
 import App from './App.vue'
@@ -15,9 +14,7 @@ import store from './store'
 Vue.config.productionTip = false
 
 Vue.use(plugins)
-Vue.use(Vuetify, {
-	lang: { t: (key, ...params) => i18n.t(key, params) }
-})
+Vue.use(Vuetify)
 
 /* eslint-disable no-new */
 new Vue({
@@ -25,5 +22,11 @@ new Vue({
 	i18n,
 	render: h => h(App),
 	router,
-	store
+	store,
+	vuetify: new Vuetify({
+		icons: {
+			iconfont: 'mdiSvg',
+		},
+		lang: { t: (key, ...params) => i18n.t(key, params) }
+	})
 })

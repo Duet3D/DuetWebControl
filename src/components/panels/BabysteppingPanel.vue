@@ -1,25 +1,25 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">vertical_align_center</v-icon> {{ $t('panel.babystepping.caption') }}
+			<v-icon small class="mr-1">mdi-format-vertical-align-center</v-icon> {{ $t('panel.babystepping.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
 			{{ $t('panel.babystepping.current', [$displayZ(babystepping)]) }}
 
-			<v-layout row wrap>
-				<v-flex>
-					<code-btn :code="`M290 R1 Z${-babystepAmount}`" no-wait block class="px-0">
-						<v-icon>vertical_align_bottom</v-icon> {{ $displayZ(-babystepAmount) }}
+			<v-row no-gutters class="mt-1">
+				<v-col>
+					<code-btn :code="`M290 R1 Z${-babystepAmount}`" no-wait block>
+						<v-icon>mdi-arrow-collapse-vertical</v-icon> {{ $displayZ(-babystepAmount) }}
 					</code-btn>
-				</v-flex>
+				</v-col>
 
-				<v-flex>
-					<code-btn :code="`M290 R1 Z${babystepAmount}`" no-wait block class="px-0">
-						<v-icon>vertical_align_top</v-icon> +{{ $displayZ(babystepAmount) }}
+				<v-col>
+					<code-btn :code="`M290 R1 Z${babystepAmount}`" no-wait block>
+						<v-icon>mdi-arrow-split-horizontal</v-icon> +{{ $displayZ(babystepAmount) }}
 					</code-btn>
-				</v-flex>
-			</v-layout>
+				</v-col>
+			</v-row>
 		</v-card-text>
 	</v-card>
 </template>

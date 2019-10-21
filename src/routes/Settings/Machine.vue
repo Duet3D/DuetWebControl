@@ -1,27 +1,28 @@
 <template>
-	<v-layout row wrap>
-		<v-flex md6 lg4>
-			<v-layout row wrap>
-				<v-flex sm6 md12>
+	<v-row>
+		<v-col cols="12" md="4" class="pt-0">
+			<v-row>
+				<v-col cols="12" md="12">
 					<settings-electronics-panel></settings-electronics-panel>
-				</v-flex>
-				<v-flex sm6 md12>
+				</v-col>
+				<v-col cols="12" sm="6" md="12">
 					<settings-machine-panel></settings-machine-panel>
-				</v-flex>
-				<v-flex>
+				</v-col>
+				<v-col cols="12" sm="6" md="12">
 					<settings-communication-panel></settings-communication-panel>
-				</v-flex>
-			</v-layout>
-		</v-flex>
-		<v-flex md6 lg8>
-			<v-layout row wrap>
-				<v-flex sm9 md12 lg9>
+				</v-col>
+			</v-row>
+		</v-col>
+
+		<v-col cols="12" md="8" class="pt-0">
+			<v-row>
+				<v-col cols="12" lg="9">
 					<settings-list-items-panel></settings-list-items-panel>
-				</v-flex>
-				<v-flex sm3 md12 lg3>
+				</v-col>
+				<v-col cols="12" lg="3">
 					<settings-endstops-panel></settings-endstops-panel>
-				</v-flex>
-			</v-layout>
-		</v-flex>
-	</v-layout>
+				</v-col>
+			</v-row>
+		</v-col>
+	</v-row>
 </template>

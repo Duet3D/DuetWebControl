@@ -1,7 +1,7 @@
 <template>
 	<v-breadcrumbs :items="pathItems" divider=">">
-		<template slot="item" slot-scope="props">
-			<v-breadcrumbs-item :disabled="props.item.disabled" @click="changeDirectory(props.item.href)" @dragover="dragOver(props.item.href, $event)" @drop.prevent="dragDrop(props.item.href, $event)">
+		<template #item="props">
+			<v-breadcrumbs-item href="javascript:void(0)" :disabled="props.item.disabled" @click="changeDirectory(props.item.href)" @dragover="dragOver(props.item.href, $event)" @drop.prevent="dragDrop(props.item.href, $event)">
 				{{ props.item.text }}
 			</v-breadcrumbs-item>
 		</template>

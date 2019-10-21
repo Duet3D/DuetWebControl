@@ -8,6 +8,7 @@ import {
 	Drive,
 	ExtraHeater,
 	Extruder,
+	Fan,
 	FileInfo,
 	Firmware,
 	Heater,
@@ -54,7 +55,14 @@ export default function(connector) {
 				},
 				expansionBoards: []
 			},
-			fans: [],
+			fans: [
+				new Fan({
+					thermostatic: {
+						control: false
+					},
+					value: 0
+				})
+			],
 			heat: {
 				beds: [									// may contain null items
 					new BedOrChamber({
@@ -145,7 +153,7 @@ export default function(connector) {
 					new Extruder()
 				],
 				geometry: {
-					type: "cartesian",
+					type: 'cartesian',
 					anchors: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 					printRadius: 0.0,
 					diagonals: [0.0, 0.0, 0.0],
@@ -166,7 +174,7 @@ export default function(connector) {
 			network: {
 				hostname: connector ? connector.hostname : 'duet',
 				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
-				password: "reprap",
+				password: 'reprap',
 				interfaces: []
 			},
 			scanner: {

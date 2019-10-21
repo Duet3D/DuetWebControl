@@ -1,7 +1,7 @@
 <template>
-	<v-layout column>
-		<v-flex>
+	<v-row>
+		<v-col>
 			<webcam-panel></webcam-panel>
-		</v-flex>
-	</v-layout>
+		</v-col>
+	</v-row>
 </template>

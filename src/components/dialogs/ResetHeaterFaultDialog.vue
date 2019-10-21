@@ -2,8 +2,7 @@
 	<v-dialog v-model="shown" max-width="360">
 		<v-card>
 			<v-card-title class="headline">
-				<v-icon class="mr-1">warning</v-icon>
-				{{ $t('dialog.resetHeaterFault.title') }}
+				<v-icon class="mr-1">mdi-alert</v-icon> {{ $t('dialog.resetHeaterFault.title') }}
 			</v-card-title>
 
 			<v-card-text>
@@ -13,11 +12,11 @@
 			<v-card-actions>
 				<v-spacer></v-spacer>
 
-				<v-btn color="blue darken-1" flat="flat" :disabled="!!counter" @click="resetFault">
+				<v-btn color="blue darken-1" text :disabled="!!counter" @click="resetFault">
 					{{ $t('dialog.resetHeaterFault.resetFault') + (counter ? ` (${counter})` : '') }}
 				</v-btn>
 
-				<v-btn color="blue darken-1" flat="flat" @click="hide">
+				<v-btn color="blue darken-1" text @click="hide">
 					{{ $t('generic.cancel') }}
 				</v-btn>
 			</v-card-actions>

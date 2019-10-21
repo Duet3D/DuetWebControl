@@ -1,10 +1,10 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-0">
-			<v-icon small class="mr-1">timer</v-icon> {{ $t('panel.speedFactor.caption') }}
+			<v-icon small class="mr-1">mdi-timer</v-icon> {{ $t('panel.speedFactor.caption') }}
 			<v-spacer></v-spacer>
-			<a href="#" v-show="speedFactor !== 100" flat small color="primary" @click.prevent="sendCode('M220 S100')">
-				<v-icon small class="mr-1">settings_backup_restore</v-icon> {{ $t('generic.reset') }}
+			<a v-show="speedFactor !== 100" @click.prevent="sendCode('M220 S100')" href="javascript:void(0)" class="subtitle-2">
+				<v-icon small class="mr-1">mdi-backup-restore</v-icon> {{ $t('generic.reset') }}
 			</a>
 		</v-card-title>
 
