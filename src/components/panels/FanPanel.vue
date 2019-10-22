@@ -64,7 +64,9 @@ export default {
 						}
 						return Math.round(this.fans[toolFan].value * 100);
 					}
-					return Math.round(this.fans[this.fan].value * 100);
+					if (this.fan < this.fans.length && this.fans[this.fan]) {
+						return Math.round(this.fans[this.fan].value * 100);
+					}
 				}
 				return 0;
 			},
@@ -90,7 +92,7 @@ export default {
 				if (!this.currentTool) {
 					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
 				}
-			} else if (this.fan >= this.fans.length || (this.fan !== -1 && this.fans[this.fan].thermostatic.control)) {
+			} else if (this.fan >= this.fans.length || (this.fan !== -1 && this.fans[this.fan] && this.fans[this.fan].thermostatic.control)) {
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {
@@ -106,8 +108,11 @@ export default {
 		currentTool() {
 			this.updateFanSelection();
 		},
-		fans() {
-			this.updateFanSelection();
+		fans: {
+			deep: true,
+			handler() {
+				this.updateFanSelection();
+			}
 		}
 	}
 }
