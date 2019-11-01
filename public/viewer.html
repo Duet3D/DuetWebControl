@@ -167,12 +167,22 @@
                 <input type="button" class="btn btn-info" id="resetColors" value="Reset to Default Colors"></input>
                 <hr>
             </div>
+            <div>
+                <h3>Bed</h3>
+                X: <input type="text" id="bedX" class="form-control"></input>
+                Y: <input type="text" id="bedY" class="form-control"></input>
+            </div>
+            <br>
         </header>
     </nav>
     <main id="panel">
         <button class="toggle-button ui-layer ">&#x2630;</button>
+        <div class="progress">
+            <h2>Downloading File</h2>
+        </div>
         <div class="progress center-progress ui-layer">
             <div id="progressBarIndicator" class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <small id="progressText" class="justify-content-center d-flex position-absolute w-100">Downloading GCode</small>
         </div>
         <div class="layerSlider ui-layer">
             <input id="layerSlider" height="100% " type="text " data-provide="slider" data-slider-reversed="true" data-slider-min="0.1" data-slider-max="200" data-slider-step="1" data-slider-value="200" data-slider-orientation="vertical" />

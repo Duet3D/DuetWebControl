@@ -2,7 +2,6 @@
 /* eslint-disable no-unused-vars */
 'use strict'
 
-
 class gcodeViewer {
 
     constructor(canvas) {
@@ -77,33 +76,38 @@ class gcodeViewer {
 
         });
 
-
-
-
         window.addEventListener("resize", function() {
             that.engine.resize();
         });
     }
 
+    refreshUI() {
+        setTimeout(function() {}, 0);
+    }
+
     resetCamera() {
+        var bedSize = this.getBedSize();
         this.scene.activeCamera.alpha = Math.PI / 2,
             this.scene.activeCamera.beta = 2.356194
         this.scene.activeCamera.radius = -250
-        this.scene.activeCamera.target = new BABYLON.Vector3(117.5, 0, 117.5)
+        this.scene.activeCamera.target = new BABYLON.Vector3(bedSize.x / 2, 0, bedSize.y / 2);
     }
 
     processFile(fileContents) {
 
+        $(progressText).text("Processing GCode");
+        this.refreshUI();
         var planeMaterial = new BABYLON.StandardMaterial(this.scene);
         planeMaterial.alpha = 0.5;
         planeMaterial.diffuseColor = new BABYLON.Color3(0.25, 0.25, 0.25);
 
+        var bedSize = this.getBedSize();
 
         //build the scene static objects
-        var buildPlatePlane = BABYLON.MeshBuilder.CreatePlane("BuildPlate", { width: 235, height: 235 }, this.scene);
+        var buildPlatePlane = BABYLON.MeshBuilder.CreatePlane("BuildPlate", { width: bedSize.x, height: bedSize.y }, this.scene);
         buildPlatePlane.material = planeMaterial;
         buildPlatePlane.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
-        buildPlatePlane.translate(new BABYLON.Vector3(117.5, 0, 117.5), 1, BABYLON.Space.WORLD);
+        buildPlatePlane.translate(new BABYLON.Vector3(bedSize.x / 2, 0, bedSize.y / 2), 1, BABYLON.Space.WORLD);
         //Render the corner axis
         this.showWorldAxis(50);
 
@@ -158,6 +162,25 @@ class gcodeViewer {
         var zChar = makeTextPlane("Y", "blue", size / 10);
         zChar.position = new BABYLON.Vector3(0, 0.05 * size, 0.9 * size);
     }
+    getBedSize() {
+        var bedSize = localStorage.getItem('bedSize');
+        if (bedSize === null) {
+            bedSize = [235, 235];
+        } else {
+            bedSize = bedSize.split(",");
+            if (isNaN(bedSize[0])) {
+                bedSize = [235, 235];
+            }
+        }
+
+
+
+        return { x: bedSize[0], y: bedSize[1] };
+    }
+    setBedSize(x, y) {
+        var bedSize = [x, y];
+        localStorage.setItem("bedSize", bedSize);
+    }
     getExtruderColors() {
         var colors = localStorage.getItem('extruderColors');
         if (colors === null) {
@@ -204,6 +227,8 @@ class gcodeViewer {
     getRenderMode() {
         return this.gcodeProcessor.renderMode;
     }
+
+
 
 }
 

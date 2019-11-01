@@ -10,7 +10,6 @@ function updateProgress(percent) {
     $('#progressBarIndicator')
         .css("width", val + "%")
         .attr("aria-valuenow", val)
-        //$('#progressBarText').text(Math.floor(percent) + "%");
 }
 
 function invertHex(hex) {
@@ -31,6 +30,7 @@ function loadColors(viewer) {
 
 $(document).ready(function() {
     var viewer = new gcodeViewer($("#3DCanvas")[0]);
+
     viewer.init();
 
 
@@ -126,9 +126,25 @@ $(document).ready(function() {
         var backgroundColor = $("#backgroundColor").colorpicker('getValue');
         $("#backgroundColor").css("background-color", backgroundColor);
         $("#backgroundColor").css("color", invertHex(backgroundColor));
-
         viewer.setBackgroundColor(backgroundColor);
     })
+
+    var bedSize = viewer.getBedSize();
+    $("#bedX").attr("value", bedSize.x);
+    $("#bedY").attr("value", bedSize.y);
+
+    function updateBedSize() {
+        var x = $("#bedX")[0].value;
+        var y = $("#bedY")[0].value;
+        console.log(viewer);
+        viewer.setBedSize(x, y);
+    }
+    $("#bedX").on("focusout", function() {
+        updateBedSize();
+    });
+    $("#bedY").on("focusout", function() {
+        updateBedSize();
+    });
 
 
 
