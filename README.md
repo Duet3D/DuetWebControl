@@ -6,9 +6,6 @@ It is designed to communicate with RepRapFirmware using WebSockets and RESTful H
 
 Duet Web Control is free software; it is licensed under the terms of the GNU Public License v3.
 
-## Latest Test Build
-Latest test build of 3D Viewer is availble here - https://juan-rosario.com/DuetWebControl.zip
-
 ## Supported electronics
 
 At this time the following platforms are supported:
