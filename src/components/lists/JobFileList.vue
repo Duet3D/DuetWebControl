@@ -25,9 +25,9 @@
 				<v-list-item v-show="isFile && !isPrinting" @click="simulate">
 					<v-icon class="mr-1">mdi-fast-forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-item>
-				<v-list-tile v-show="isFile" @click="view3D">
-					<v-icon class="mr-1">3d_rotation</v-icon>3D View
-				</v-list-tile>
+				<v-list-item v-show="isFile" @click="view3D">
+					<v-icon class="mr-1">mdi-printer-3d</v-icon>3D View
+				</v-list-item>
 			</template>
 		</base-file-list>
 
