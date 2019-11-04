@@ -64,6 +64,14 @@ class gcodeProcessor {
     }
 
     processLine(tokenString) {
+
+        //Remove the comments in the line
+        var commentIndex = tokenString.indexOf(";");
+        if (commentIndex > -1) {
+            tokenString = tokenString.substring(0, commentIndex - 1).trim();
+        }
+
+
         var tokens = tokenString.toUpperCase().split(" ");
         var layerHeights = [];
         if (tokens.length > 1) {
@@ -157,10 +165,9 @@ class gcodeProcessor {
             }
         } else {
             if (tokenString.startsWith("T")) {
-                var extruder = Number(tokenString.substring(1));
-                if (extruder > 3) {
-                    extruder = extruder % 4;
-                }
+                var extruder = Number(tokenString.substring(1)) % 5; //For now map to extruders 0 - 4
+                if (extruder < 0) extruder = 0; // Cover the case where someone sets a tool to a -1 value
+                console.log(extruder);
                 this.currentColor = this.extruderColors[extruder].clone();
             }
         }
