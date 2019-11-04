@@ -48,6 +48,10 @@ class gcodeProcessor {
     }
     processGcodeFile(file) {
         var lines = file.split(/\r\n|\n/);
+
+        //set initial color to extruder 0
+        this.currentColor = this.extruderColors[0].clone();
+
         for (var lineNo = 0; lineNo < lines.length; lineNo++) {
             var line = lines[lineNo];
             line.trim();
@@ -151,12 +155,6 @@ class gcodeProcessor {
                     );
                     break;
             }
-
-
-
-
-
-
         } else {
             if (tokenString.startsWith("T")) {
                 var extruder = Number(tokenString.substring(1));
