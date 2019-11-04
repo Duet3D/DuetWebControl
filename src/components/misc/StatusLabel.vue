@@ -5,7 +5,7 @@ span {
 </style>
 
 <template>
-	<span class="px-2" :class="statusClass">{{ statusText }}</span>
+	<span class="px-2 subtitle-2" :class="statusClass">{{ statusText }}</span>
 </template>
 
 <script>

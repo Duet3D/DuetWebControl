@@ -1,7 +1,7 @@
 <template>
-	<v-layout column>
-		<v-flex>
+	<v-row>
+		<v-col>
 			<macro-file-list></macro-file-list>
-		</v-flex>
-	</v-layout>
+		</v-col>
+	</v-row>
 </template>

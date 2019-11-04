@@ -32,12 +32,12 @@ export function extractFilePath(path) {
 	if (path.indexOf('/') !== -1) {
 		const items = path.split('/');
 		items.pop();
-		return items.length ? items.reduce((a, b) => `${a}/${b}`) : '';
+		return items.join('/');
 	}
 	if (path.indexOf('\\') !== -1) {
 		const items = path.split('\\');
 		items.pop();
-		return items.length ? items.reduce((a, b) => `${a}\\${b}`) : '';
+		return items.join('\\');
 	}
 	return path;
 }

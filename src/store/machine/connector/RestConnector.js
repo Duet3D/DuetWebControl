@@ -276,13 +276,23 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	async sendCode(code) {
-		const response = await this.axios.post('machine/code', code, {
-			headers: { 'Content-Type' : 'text/plain' },
-			responseType: 'arraybuffer', 	// responseType: 'text' is broken, see https://github.com/axios/axios/issues/907
-			timeout: 0						// this may take a while...
-		});
+		let reply;
+		try {
+			const response = await this.axios.post('machine/code', code, {
+				headers: { 'Content-Type' : 'text/plain' },
+				responseType: 'arraybuffer', 	// responseType: 'text' is broken, see https://github.com/axios/axios/issues/907
+				timeout: 0						// this may take a while...
+			});
+			reply = Buffer.from(response.data).toString().trim();
+		}
+		catch (e) {
+			if (e.response) {
+				reply = 'Error: ' + Buffer.from(e.response.data).toString().trim();
+			} else {
+				reply = 'Error: ' + e.message;
+			}
+		}
 
-		const reply = Buffer.from(response.data).toString().trim();
 		this.dispatch('onCodeCompleted', { code, reply });
 		return reply;
 	}

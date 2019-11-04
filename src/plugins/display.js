@@ -11,7 +11,7 @@ export function display(value, precision, unit) {
 	}
 	if (value instanceof Array && value.length > 0) {
 		return value.map(item => (item !== undefined) ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : '')
-			: i18n.t('generic.noValue')).reduce((a, b) => a + ', ' + b);
+			: i18n.t('generic.noValue')).join(', ');
 	}
 	return (value && value.constructor === String) ? value : i18n.t('generic.noValue');
 }
@@ -98,7 +98,7 @@ export function displayTime(value, showTrailingZeroes = false) {
 	value = value.toFixed(0);
 	timeLeft.push(((value > 9 || !showTrailingZeroes) ? value : "0" + value) + "s");
 
-	return timeLeft.reduce(function(a, b) { return `${a} ${b}`; });
+	return timeLeft.join(' ');
 }
 
 export default {

@@ -6,14 +6,6 @@
 	margin-right: 20px;
 }
 
-.container {
-	padding: 4px;
-}
-.container div.component,
-.container div.v-card {
-	margin: 8px;
-}
-
 .empty-table-fix td {
 	padding-left: 0px !important;
 	padding-right: 0px !important;
@@ -44,11 +36,23 @@ input::-webkit-inner-spin-button {
 a:not(:hover) {
 	text-decoration: none;
 }
+
+.theme--dark textarea {
+	caret-color: #FFF;
+}
+
+.v-item-group.theme--dark .v-btn__content {
+	color: #FFF !important;
+}
+
+.v-card__title {
+	font-size: 1rem;
+}
 </style>
 
 <template>
-	<v-app :dark="darkTheme">
-		<v-navigation-drawer persistent clipped v-model="drawer" enable-resize-watcher fixed app>
+	<v-app>
+		<v-navigation-drawer v-model="drawer" clipped fixed app width="300">
 			<div class="pa-2 hidden-sm-and-up">
 				<connect-btn v-if="isLocal" class="mb-3" block></connect-btn>
 				<emergency-btn block></emergency-btn>
@@ -56,70 +60,70 @@ a:not(:hover) {
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
 				<v-list-group v-for="(category, index) in routing" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
-					<v-list-tile slot="activator">
-						<v-list-tile-title>{{ $t(category.caption) }}</v-list-tile-title>
-					</v-list-tile>
-
-					<template v-for="(page, pageIndex) in category.pages">
-						<v-list-tile v-if="checkMenuCondition(page.condition)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent>
-							<v-list-tile-action>
-								<v-icon>{{ page.icon }}</v-icon>
-							</v-list-tile-action>
-							<v-list-tile-title>{{ $t(page.caption) }}</v-list-tile-title>
-						</v-list-tile>
+					<template #activator>
+						<v-list-item-title>{{ $t(category.caption) }}</v-list-item-title>
 					</template>
+
+					<v-list-item v-for="(page, pageIndex) in category.pages.filter(page => checkMenuCondition(page.condition))" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
+						<v-list-item-icon>
+							<v-icon>{{ page.icon }}</v-icon>
+						</v-list-item-icon>
+						<v-list-item-title>{{ $t(page.caption) }}</v-list-item-title>
+					</v-list-item>
 				</v-list-group>
 			</v-list>
 		</v-navigation-drawer>
 
-		<v-toolbar ref="appToolbar" app clipped-left>
-			<v-toolbar-side-icon @click.stop="drawer = !drawer" v-tab-control></v-toolbar-side-icon>
+		<v-app-bar ref="appToolbar" app clipped-left>
+			<v-app-bar-nav-icon @click.stop="drawer = !drawer">
+				<v-icon>mdi-menu</v-icon>
+			</v-app-bar-nav-icon>
 			<v-toolbar-title>
 				<!-- TODO: Optional OEM branding -->
-				<a id="title" v-tab-control>{{ name }}</a>
+				<a href="javascript:void(0)" id="title">{{ name }}</a>
 			</v-toolbar-title>
 			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>
 
 			<v-spacer></v-spacer>
 
-			<code-input class="hidden-sm-and-down"></code-input>
+			<code-input class="mx-3 hidden-sm-and-down"></code-input>
 
 			<v-spacer></v-spacer>
 
-			<upload-btn target="start" class="hidden-sm-and-down"></upload-btn>
+			<upload-btn target="start" class="mr-3 hidden-sm-and-down"></upload-btn>
 			<emergency-btn class="hidden-xs-only"></emergency-btn>
 
-			<v-btn icon class="hidden-md-and-up" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
-				<v-icon>aspect_ratio</v-icon>
+			<v-btn icon class="hidden-md-and-up ml-3" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
+				<v-icon>mdi-aspect-ratio</v-icon>
 			</v-btn>
 			<!-- TODO: Add quick actions and UI designer here -->
 			<!--<v-btn icon class="hidden-sm-and-down" @click="rightDrawer = !rightDrawer">
 				<v-icon>menu</v-icon>
 			</v-btn>-->
-		</v-toolbar>
+		</v-app-bar>
 
 		<v-content id="content">
 			<v-scroll-y-transition>
-				<v-container fluid id="global-container" class="container" v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp">
-					<v-layout row wrap>
-						<v-flex xs12 sm6 md4 lg4>
+				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
+					<v-row>
+						<v-col>
 							<status-panel></status-panel>
-						</v-flex>
+						</v-col>
 
-						<v-flex xs12 sm6 md5 lg4>
+						<v-col>
 							<tools-panel></tools-panel>
-						</v-flex>
+						</v-col>
 
-						<v-flex v-if="$vuetify.breakpoint.mdAndUp" :d-flex="hasTemperaturesToDisplay" md3 lg4>
+						<v-col v-if="$vuetify.breakpoint.mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }">
 							<temperature-chart></temperature-chart>
-						</v-flex>
-					</v-layout>
+						</v-col>
+					</v-row>
 				</v-container>
 			</v-scroll-y-transition>
 
 			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
 
-			<v-container fluid id="page-container" class="container">
+			<v-container fluid class="pt-0">
 				<keep-alive>
 					<router-view></router-view>
 				</keep-alive>
@@ -236,6 +240,9 @@ export default {
 		});
 	},
 	watch: {
+		darkTheme(to) {
+			this.$vuetify.theme.dark = to;
+		},
 		isPrinting(to) {
 			if (to) {
 				// Go to Job Status when a print starts

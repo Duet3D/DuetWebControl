@@ -13,6 +13,7 @@ export default {
 		lastHostname: location.host,
 		darkTheme: false,
 		useBinaryPrefix: true,
+		disableAutoComplete: false,
 		settingsStorageLocal: false,
 		settingsSaveDelay: 2000,						// ms - how long to wait before settings updates are saved
 		cacheStorageLocal: localStorageSupported,

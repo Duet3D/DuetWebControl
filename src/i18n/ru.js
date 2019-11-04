@@ -1,18 +1,48 @@
 ﻿﻿export default {
 	language: 'Русский',
 	'$vuetify': {
+		close: 'Закрыть',
 		dataIterator: {
-			rowsPerPageText: 'Штук на странице:',
-			rowsPerPageAll: 'Все',
-			pageText: '{0}-{1} of {2}',
-			noResultsText: 'Совпадения не найдены',
-			nextPage: 'Следующая страница',
-			prevPage: 'Предыдущая страница'
+			noResultsText: 'Не найдено подходящих записей',
+			loadingText: 'Запись загружается...'
 		},
 		dataTable: {
-			rowsPerPageText: 'Строк на странице:'
+			itemsPerPageText: 'Строк на странице:',
+			ariaLabel: {
+				sortDescending: ': Упорядочено по нисходящей. Активируйте, чтобы убрать сортировку.',
+				sortAscending: ': Упорядочено во восходящей. Активируйте для упорядочивания по ниcходящей.',
+				sortNone: ': Не упорядочено. Активируйте для упорядочивания по восходящей.'
+			},
+			sortBy: 'Сортировать по'
 		},
-		noDataText: 'Нет данных'
+		dataFooter: {
+			itemsPerPageText: 'Записей на странице:',
+			itemsPerPageAll: 'Все',
+			nextPage: 'Следующая страница',
+			prevPage: 'Предыдущая страница',
+			firstPage: 'Первая страница',
+			lastPage: 'Последняя страница',
+			pageText: '{0}-{1} из {2}'
+		},
+		datePicker: {
+			itemsSelected: '{0} выбран'
+		},
+		noDataText: 'Отсутствуют данные',
+		carousel: {
+			prev: 'Предыдущий визуальный',
+			next: 'Следующий визуальный'
+		},
+		calendar: {
+			moreEvents: 'Еще {0}'
+		},
+		fileInput: {
+			counter: 'Файлов: {0}',
+			counterSize: 'Файлов: {0} (всего {1})'
+		},
+		timePicker: {
+			am: 'AM',
+			pm: 'PM'
+		}
 	},
 	button: {
 		add: {
@@ -123,6 +153,7 @@
 		connection: {
 			connecting: 'Подключение...',
 			disconnecting: 'Отключение...',
+			updating: 'Пожалуйста, подождите, пока будут установлены обновления....',
 			reconnecting: 'Соединение потеряно, переподключение...',
 			standBy: 'Пожалуйста подождите...'
 		},
@@ -146,7 +177,8 @@
 		fileEdit: {
 			gcodeReference: 'Информация о G-коде',
 			menuReference: 'Информация о меню',
-			save: 'Save'
+			save: 'Save',
+			confirmClose: 'Файл был изменен. Если вы продолжите, ваши изменения будут потеряны.'
 		},
 		meshEdit: {
 			title: 'Set Mesh Parameters',
@@ -349,7 +381,8 @@
 			simulate: 'Симулировать'
 		},
 		sys: {
-			noFiles: 'Нет системных файлов'
+			noFiles: 'Нет системных файлов',
+			configToolNote: 'Редактирование с помощью инструмента настройки'
 		}
 	},
 	menu: {
@@ -561,7 +594,9 @@
 			darkTheme: 'Тёмная тема',
 			language: 'Язык',
 			binaryFileSizes: 'Использовать бинарный размер файлов',
-			binaryFileSizesTitle: 'Размеры файлов отображаются в базисе 1024 (IEC) вместо 1000 (SI)'
+			binaryFileSizesTitle: 'Размеры файлов отображаются в базисе 1024 (IEC) вместо 1000 (SI)',
+			disableAutoComplete: 'Disable auto-complete',
+			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
 		},
 		settingsCommunication: {
 			caption: 'Коммуникация',
@@ -570,6 +605,7 @@
 			updateInterval: 'Интервал обновления({0})',
 			extendedUpdateEvery: 'Интервал обновления расширенного статуса',
 			fileTransferRetryThreshold: 'Порог повтора для передачи файлов ({0})',
+			crcUploads: 'Для загрузки используйте контрольные суммы CRC32',
 			unavailable: 'Нет доступных настроек'
 		},
 		settingsElectronics: {
@@ -579,6 +615,11 @@
 			firmware: 'Прошивка: {0} ({1})',
 			dwsFirmware: 'Версия сервера Duet WiFi: {0}',
 			updateNote: 'Вы можете установить обновления в Менеджере файлов - Система.'
+		},
+		settingsEndstops: {
+			caption: 'Конечный выключатель',
+			index: 'указатель',
+			triggered: 'инициированный'
 		},
 		settingsGeneral: {
 			caption: 'Установки',

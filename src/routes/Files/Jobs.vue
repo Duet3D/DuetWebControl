@@ -1,5 +1,7 @@
 <template>
-	<v-layout column>
-		<job-file-list></job-file-list>
-	</v-layout>
+	<v-row>
+		<v-col>
+			<job-file-list></job-file-list>
+		</v-col>
+	</v-row>
 </template>

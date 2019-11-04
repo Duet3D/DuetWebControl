@@ -1,8 +1,8 @@
 <template>
-	<v-dialog v-model="shown" persistent width="360">
+	<v-dialog v-model="shown" persistent width="360" @keydown.escape="hide">
 		<v-card>
-			<v-card-title>
-				<span class="headline">{{ $t((tool && tool.filament) ? 'dialog.filament.titleChange' : 'dialog.filament.titleLoad') }}</span>
+			<v-card-title class="headline">
+				{{ $t(tool ? (tool.filament ? 'dialog.filament.titleChange' : 'dialog.filament.titleLoad') : 'generic.noValue') }}
 			</v-card-title>
 
 			<v-card-text>
@@ -10,15 +10,15 @@
 
 				<v-progress-linear indeterminate v-if="loading"></v-progress-linear>
 				<v-list v-if="!loading">
-					<v-list-tile v-for="filament in filaments" :key="filament" @click="filamentClick(filament)">
-						<v-icon class="mr-1">radio_button_checked</v-icon> {{ filament }}
-					</v-list-tile>
+					<v-list-item v-for="filament in filaments" :key="filament" @click="filamentClick(filament)">
+						<v-icon class="mr-1">mdi-radiobox-marked</v-icon> {{ filament }}
+					</v-list-item>
 				</v-list>
 			</v-card-text>
 
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="blue darken-1" flat @click="hide">{{ $t('generic.cancel') }}</v-btn>
+				<v-btn color="blue darken-1" text @click="hide">{{ $t('generic.cancel') }}</v-btn>
 				<v-spacer></v-spacer>
 			</v-card-actions>
 		</v-card>

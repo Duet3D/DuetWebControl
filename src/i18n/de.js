@@ -1,18 +1,39 @@
 export default {
 	language: 'Deutsch',
 	'$vuetify': {
+		close: 'Schließen',
 		dataIterator: {
-			rowsPerPageText: 'Elemente pro Seite:',
-			rowsPerPageAll: 'Alle',
 			pageText: '{0}-{1} von {2}',
-			noResultsText: 'Keine Elemente gefunden',
-			nextPage: 'Nächste Seite',
-			prevPage: 'Vorherige Seite'
+			noResultsText: 'No matching records found',
+			loadingText: 'Lade Elemente...'
 		},
 		dataTable: {
-			rowsPerPageText: 'Zeilen pro Seite:'
+			itemsPerPageText: 'Zeilen pro Seite:',
+			ariaLabel: {
+				sortDescending: ': Absteigend sortiert. Aktivieren um Sortierung zu entfernen.',
+				sortAscending: ': Aufsteigend sortiert. Aktivieren um absteigend zu sortieren.',
+				sortNone: ': Nicht sortiert. Aktivieren um aufsteigend zu sortieren.'
+			},
 		},
-		noDataText: 'Keine Daten vorhanden'
+		dataFooter: {
+			itemsPerPageText: 'Elemente pro Seite:',
+			itemsPerPageAll: 'Alle',
+			nextPage: 'Nächste Seite',
+			prevPage: 'Vorherige Seite',
+			firstPage: 'Erste Seite',
+			lastPage: 'Letzte Seite'
+		},
+		datePicker: {
+			itemsSelected: '{0} ausgewählt'
+		},
+		noDataText: 'Keine Daten vorhanden',
+		carousel: {
+			prev: 'Vorheriges Bild',
+			next: 'Nächstes Bild'
+		},
+		calendar: {
+			moreEvents: '{0} mehr'
+		}
 	},
 	button: {
 		add: {
@@ -123,6 +144,7 @@ export default {
 		connection: {
 			connecting: 'Verbinde...',
 			disconnecting: 'Trenne...',
+			updating: 'Bitte warten Sie während Updates installiert werden...',
 			reconnecting: 'Verbindung verloren, versuche erneut zu verbinden...',
 			standBy: 'Bitte warten...'
 		},
@@ -146,7 +168,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'G-Code-Referenz',
 			menuReference: 'Menüreference',
-			save: 'Speichern'
+			save: 'Speichern',
+			confirmClose: 'Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.'
 		},
 		meshEdit: {
             title: 'Gitterparameter ändern',
@@ -349,7 +372,8 @@ export default {
 			simulate: 'Datei simulieren'
 		},
 		sys: {
-			noFiles: 'Keine Systemdateien'
+			noFiles: 'Keine Systemdateien',
+			configToolNote: 'mit config tool bearbeiten'
 		}
 	},
 	menu: {
@@ -561,7 +585,9 @@ export default {
 			darkTheme: 'Dunkles Erscheinungsbild',
 			language: 'Sprache',
 			binaryFileSizes: 'Benutze binäre Dateigrößen',
-			binaryFileSizesTitle: 'Dateigrößen werden mit einer Basis von 1024 (IEC) statt 1000 (SI) angezeigt'
+			binaryFileSizesTitle: 'Dateigrößen werden mit einer Basis von 1024 (IEC) statt 1000 (SI) angezeigt',
+			disableAutoComplete: 'Autovervollständigung deaktivieren',
+			disableAutoCompleteTitle: 'Keine Autovervollständigung bei der Eingabe von Codes oder Temperaturen anzeigen'
 		},
 		settingsCommunication: {
 			caption: 'Kommunikation',
@@ -570,6 +596,7 @@ export default {
 			updateInterval: 'Aktualisierungsintervall ({0})',
 			extendedUpdateEvery: 'Erweitertes Statusupdateintervall',
 			fileTransferRetryThreshold: 'Grenzwert für erneute Versuche von Dateiübetragungen ({0})',
+			crcUploads: 'CRC32-Prüfsummen für Uploads verwenden',
 			unavailable: 'Keine Einstellungen verfügbar'
 		},
 		settingsElectronics: {
@@ -579,6 +606,11 @@ export default {
 			firmware: 'Firmware: {0} ({1})',
 			dwsFirmware: 'Version von Duet WiFi Server: {0}',
 			updateNote: 'Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.'
+		},
+		settingsEndstops: {
+			caption: 'Endlagenschalter',
+			index: 'Index',
+			triggered: 'Ausgelöst'
 		},
 		settingsGeneral: {
 			caption: 'Allgemein',
@@ -626,7 +658,7 @@ export default {
 			caption: 'Status',
 			mode: 'Modus: {0}',
 			toolPosition: 'Werkzeugposition',
-			machinePosition: 'Machinenposition',
+			machinePosition: 'Maschinenposition',
 			extruders: 'Extruder',
 			extruderDrive: 'Motor {0}',
 			speeds: 'Geschwindigkeiten',

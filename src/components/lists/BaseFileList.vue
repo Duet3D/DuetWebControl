@@ -3,10 +3,6 @@ td {
 	cursor: pointer;
 }
 
-th.checkbox {
-	width: 1%;
-}
-
 .loading-cursor {
 	cursor: wait;
 }
@@ -17,92 +13,93 @@ th.checkbox {
 
 <template>
 	<div>
-		<v-data-table v-model="innerValue" v-bind="$props" :items="innerFilelist" :loading="loading || innerLoading" :custom-sort="sort" :pagination.sync="innerPagination" select-all hide-actions item-key="name" class="elevation-3" :class="{ 'empty-table-fix' : innerFilelist.length === 0, 'loading-cursor' : (loading || innerLoading || doingFileOperation || innerDoingFileOperation) }">
-			<template slot="progress">
+		<v-data-table v-model="innerValue" v-bind="$props"
+			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select 
+			:loading="loading || innerLoading"
+			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort
+			disable-pagination hide-default-footer :mobile-breakpoint="0"
+			class="elevation-3" :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
+
+			<template #progress>
 				<slot name="progress">
-				<v-progress-linear indeterminate></v-progress-linear>
+					<v-progress-linear indeterminate></v-progress-linear>
 				</slot>
 			</template>
 
-			<template slot="no-data">
+			<template #no-data>
 				<slot name="no-data">
-					<v-alert :value="true" type="info" class="ma-0" @contextmenu.prevent="">
+					<v-alert :value="true" type="info" class="text-left ma-0" @contextmenu.prevent="">
 						{{ $t(noItemsText) }}
 					</v-alert>
 				</slot>
 			</template>
 
-			<template slot="headers" slot-scope="props">
-				<tr>
-					<th class="checkbox pr-0">
-						<v-checkbox :input-value="props.all" :indeterminate="props.indeterminate" primary hide-details @click.stop.prevent="toggleAll"></v-checkbox>
-					</th>
-					<th v-for="header in props.headers" :key="header.value" :class="['text-xs-left column sortable', innerPagination.descending ? 'desc' : 'asc', header.value === innerPagination.sortBy ? 'active' : '']" @click="changeSort(header.value)" v-tab-control>
-						{{ getHeaderText(header) }}
-						<v-icon small>arrow_upward</v-icon>
-					</th>
-				</tr>
-			</template>
+			<template #item="props">
+				<tr v-ripple :active="props.isSelected" @keydown.space.prevent="props.select(!props.isSelected)"
+					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd"
+					@click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
+					@contextmenu.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"
+					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)"
+					:data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0">
 
-			<template slot="items" slot-scope="props">
-				<tr :active="props.selected" @touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)" @contextmenu.prevent="onItemContextmenu(props, $event)" :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" @dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)" v-tab-control.contextmenu @keydown.space="props.selected = !props.selected">
-					<td class="pr-0">
-						<v-checkbox :input-value="props.selected" @touchstart.stop="" @touchend.stop="" @click.stop.prevent="props.selected = !props.selected" primary hide-details></v-checkbox>
-					</td>
-					<template v-for="header in headers">
-						<td v-if="header.value === 'name'" :key="header.value">
-							<v-layout row align-center>
-								<v-icon class="mr-1">{{ props.item.isDirectory ? 'folder' : 'assignment' }}</v-icon>
-								<span>{{ props.item.name }}</span>
-							</v-layout>
-						</td>
-						<td v-else-if="header.unit === 'bytes'" :key="header.value">
+					<td v-for="header in props.headers" :key="header.value" :class="{ 'pr-0': header.value === 'data-table-select' }">
+						<template v-if="header.value === 'data-table-select'">
+							<v-checkbox :input-value="props.isSelected" @touchstart.stop="" @touchend.stop="" @click.stop.prevent="props.select(!props.isSelected)" primary hide-details class="mt-n1" tabindex="-1"></v-checkbox>
+						</template>
+						<template v-else-if="header.value === 'name'">
+							<div class="d-inline-flex align-center">
+								<slot :name="`${props.item.isDirectory ? 'folder' : 'file'}.${props.item.name}`">
+									<v-icon class="mr-1">{{ props.item.isDirectory ? folderIcon : fileIcon }}</v-icon> {{ props.item.name }}
+								</slot>
+							</div>
+						</template>
+						<template v-else-if="header.unit === 'bytes'">
 							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : '' }}
-						</td>
-						<td v-else-if="header.unit === 'date'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'date'">
 							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t('generic.noValue') }}
-						</td>
-						<td v-else-if="header.unit === 'filaments'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'filaments'">
 							<v-tooltip bottom :disabled="!props.item[header.value] || props.item[header.value].length <= 1">
-								<span slot="activator">
-									{{ displayLoadingValue(props.item, header.value, 1, 'mm') }}
-								</span>
+								<template #activator="{ on }">
+									<span v-on="on">
+										{{ displayLoadingValue(props.item, header.value, 1, 'mm') }}
+									</span>
+								</template>
 
-								<span>
-									{{ $display(props.item[header.value], 1, 'mm') }}
-								</span>
+								{{ $display(props.item[header.value], 1, 'mm') }}
 							</v-tooltip>
-						</td>
-						<td v-else-if="header.unit === 'time'" :key="header.value">
+						</template>
+						<template v-else-if="header.unit === 'time'">
 							{{ displayTimeValue(props.item, header.value) }}
-						</td>
-						<td v-else :key="header.value">
+						</template>
+						<template v-else>
 							{{ displayLoadingValue(props.item, header.value, header.precision, header.unit) }}
-						</td>
-					</template>
+						</template>
+					</td>
 				</tr>
 			</template>
 		</v-data-table>
 
-		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y v-tab-control.contextmenu>
+		<v-menu v-model="contextMenu.shown" :position-x="contextMenu.x" :position-y="contextMenu.y" absolute offset-y>
 			<v-list>
 				<slot name="context-menu"></slot>
 
-				<v-list-tile v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
-					<v-icon class="mr-1">cloud_download</v-icon> {{ $tc('list.baseFileList.download', innerValue.length) }}
-				</v-list-tile>
-				<v-list-tile v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit(innerValue[0])">
-					<v-icon class="mr-1">edit</v-icon> {{ $t('list.baseFileList.edit') }}
-				</v-list-tile>
-				<v-list-tile v-show="!noRename && innerValue.length === 1" @click="rename">
-					<v-icon class="mr-1">short_text</v-icon> {{ $t('list.baseFileList.rename') }}
-				</v-list-tile>
-				<v-list-tile v-show="!noDelete" @click="remove">
-					<v-icon class="mr-1">delete</v-icon> {{ $t('list.baseFileList.delete') }}
-				</v-list-tile>
-				<v-list-tile v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
-					<v-icon class="mr-1">archive</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
-				</v-list-tile>
+				<v-list-item v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
+					<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $tc('list.baseFileList.download', innerValue.length) }}
+				</v-list-item>
+				<v-list-item v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit(innerValue[0])">
+					<v-icon class="mr-1">mdi-file-document-edit</v-icon> {{ $t('list.baseFileList.edit') }}
+				</v-list-item>
+				<v-list-item v-show="!noRename && innerValue.length === 1" @click="rename">
+					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t('list.baseFileList.rename') }}
+				</v-list-item>
+				<v-list-item v-show="!noDelete" @click="remove">
+					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('list.baseFileList.delete') }}
+				</v-list-item>
+				<v-list-item v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
+					<v-icon class="mr-1">mdi-package-down</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
+				</v-list-item>
 			</v-list>
 		</v-menu>
 
@@ -118,6 +115,7 @@ import JSZip from 'jszip'
 import saveAs from 'file-saver'
 import { VDataTable } from 'vuetify/lib'
 
+import Vue from 'vue'
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
@@ -130,37 +128,7 @@ const maxEditFileSize = 15728640;		// 15 MiB
 
 export default {
 	props: {
-		headers: {
-			type: Array,
-			default: () => [
-				{
-					text: () => i18n.t('list.baseFileList.fileName'),
-					value: 'name'
-				},
-				{
-					text: () => i18n.t('list.baseFileList.size'),
-					value: 'size',
-					unit: 'bytes'
-				},
-				{
-					text: () => i18n.t('list.baseFileList.lastModified'),
-					value: 'lastModified',
-					unit: 'date'
-				}
-			]
-		},
-		items: {
-			default: () => [],
-			required: false
-		},
-		sortBy: {
-			type: String,
-			default: 'name'
-		},
-		descending: {
-			type: Boolean,
-			default: false
-		},
+		headers: Array,
 		sortTable: String,
 		directory: {
 			type: String,
@@ -168,6 +136,14 @@ export default {
 		},
 		filelist: Array,
 		value: Array,
+		fileIcon: {
+			type: String,
+			default: 'mdi-file'
+		},
+		folderIcon: {
+			type: String,
+			default: 'mdi-folder'
+		},
 		loading: Boolean,
 		doingFileOperation: Boolean,
 		noDragDrop: Boolean,
@@ -187,6 +163,27 @@ export default {
 		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/cache', ['sorting']),
 		...mapState('machine/model', ['storages']),
+		defaultHeaders() {
+			return [
+				{
+					text: i18n.t('list.baseFileList.fileName'),
+					value: 'name'
+				},
+				{
+					text: i18n.t('list.baseFileList.size'),
+					value: 'size',
+					unit: 'bytes'
+				},
+				{
+					text: i18n.t('list.baseFileList.lastModified'),
+					value: 'lastModified',
+					unit: 'date'
+				}
+			];
+		},
+		isLoading() {
+			return this.loading || this.innerLoading || this.doingFileOperation || this.innerDoingFileOperation;
+		},
 		storageIndex() {
 			const matches = /^(\d+)/.exec(this.innerDirectory);
 			if (matches) {
@@ -208,6 +205,18 @@ export default {
 				return this.noFilesText;
 			}
 			return (this.storages.length > this.storageIndex && this.storages[this.storageIndex].mounted) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
+		},
+		internalSortBy: {
+			get() { return this.sorting[this.sortTable].column; },
+			set(value) {
+				this.setSorting({ table: this.sortTable, column: value, descending: this.internalSortDesc });
+			}
+		},
+		internalSortDesc: {
+			get() { return this.sorting[this.sortTable].descending; },
+			set(value) {
+				this.setSorting({ table: this.sortTable, column: this.internalSortBy, descending: value });
+			}
 		}
 	},
 	data() {
@@ -219,12 +228,8 @@ export default {
 			innerFilelist: [],
 			innerLoading: false,
 			innerDoingFileOperation: false,
-			innerPagination: {
-				sortBy: this.sortBy,
-				descending: this.descending,
-				rowsPerPage: -1
-			},
 			innerValue: [],
+			prevSelection: [],
 			contextMenu: {
 				shown: false,
 				touchTimer: undefined,
@@ -252,49 +257,37 @@ export default {
 			getFileList: 'getFileList'
 		}),
 		...mapMutations('machine/cache', ['setSorting']),
-		getHeaderText: (header) => (header.text instanceof(Function)) ? header.text() : header.text,
 		toggleAll() {
 			this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
 		},
-		changeSort(column) {
-			if (this.innerPagination.sortBy === column) {
-				this.innerPagination.descending = !this.innerPagination.descending;
-			} else {
-				this.innerPagination.sortBy = column;
-				this.innerPagination.descending = true;
-			}
+		sort(items, sortBy, sortDesc) {
+			sortBy = sortBy.length ? sortBy[0] : 'name';
+			sortDesc = sortDesc[0];
 
-			this.$emit('update:sortBy', this.innerPagination.sortBy);
-			this.$emit('update:descending', this.innerPagination.descending);
-			this.$nextTick(function() {
-				this.$emit('changedSort');
-			});
-		},
-		sort(items, index, isDescending) {
 			// Sort by index
 			items.sort(function(a, b) {
-				if (a[index] === b[index]) {
+				if (a[sortBy] === b[sortBy]) {
 					return 0;
 				}
-				if (a[index] === null || a[index] === undefined) {
+				if (a[sortBy] === null || a[sortBy] === undefined) {
 					return -1;
 				}
-				if (b[index] === null || b[index] === undefined) {
+				if (b[sortBy] === null || b[sortBy] === undefined) {
 					return 1;
 				}
-				if (a[index].constructor === String && b[index].constructor === String) {
-					return a[index].localeCompare(b[index], undefined, { sensivity: 'base' });
+				if (a[sortBy].constructor === String && b[sortBy].constructor === String) {
+					return a[sortBy].localeCompare(b[sortBy], undefined, { sensivity: 'base' });
 				}
-				if (a[index] instanceof Array && b[index] instanceof Array) {
-					const reducedA = a[index].length ? a.filament.reduce((a, b) => a + b) : 0;
-					const reducedB = b[index].length ? b.filament.reduce((a, b) => a + b) : 0;
+				if (a[sortBy] instanceof Array && b[sortBy] instanceof Array) {
+					const reducedA = a[sortBy].length ? a.filament.reduce((a, b) => a + b) : 0;
+					const reducedB = b[sortBy].length ? b.filament.reduce((a, b) => a + b) : 0;
 					return reducedA - reducedB;
 				}
-				return a[index] - b[index];
+				return a[sortBy] - b[sortBy];
 			});
 
 			// Deal with descending order
-			if (isDescending) {
+			if (sortDesc) {
 				items.reverse();
 			}
 
@@ -318,15 +311,19 @@ export default {
 
 			this.innerLoading = true;
 			try {
-				// Load file list and create missing props
+				// Load file list
 				const files = await this.getFileList(directory);
-				files.forEach(function(item) {
-					this.headers.forEach(function(header) {
-						if (!item.hasOwnProperty(header.value)) {
-							item[header.value] = undefined;
-						}
-					});
-				}, this);
+
+				// Create missing props if required
+				if (this.headers) {
+					files.forEach(function(item) {
+						this.headers.forEach(function(header) {
+							if (!item.hasOwnProperty(header.value)) {
+								Vue.set(item, header.value, undefined);
+							}
+						});
+					}, this);
+				}
 
 				this.innerDirectory = directory;
 				this.innerFilelist = files;
@@ -396,8 +393,10 @@ export default {
 			this.onItemTouchEnd();
 
 			// Deal with selection
-			if (!props.selected) {
-				props.selected = true;
+			this.prevSelection = this.innerValue;
+			if (!props.isSelected) {
+				this.innerValue = [];
+				this.$nextTick(() => props.select(true));
 			}
 
 			// Open the context menu
@@ -432,7 +431,14 @@ export default {
 			Array.from(tableClone.tBodies[0].rows).forEach(function(row) {
 				const filename = row.dataset.filename;
 				if (itemsToDrag.some(item => (item.isDirectory ? '*' : '') + item.name === filename)) {
-					Array.from(row.children).forEach((td, index) => td.style.width = `${firstRow.children[index].offsetWidth}px`);
+					Array.from(row.children).forEach(function(td, index) {
+						if (td.tagName === 'TD') {
+							td.style.width = `${firstRow.children[index].offsetWidth}px`;
+						} else {
+							td.remove();
+						}
+					});
+
 					if (countingOffset) {
 						if (filename === itemFilename) {
 							countingOffset = false;
@@ -444,9 +450,13 @@ export default {
 					row.remove();
 				}
 			}, this);
+			tableClone.style.backgroundColor = this.$vuetify.theme.isDark ? '#424242' : '#FFFFFF';
 			tableClone.style.opacity = 0.5;
 			tableClone.style.position = 'absolute';
 			tableClone.style.pointerEvents = 'none';
+			Array.from(tableClone.querySelectorAll('[class^="v-ripple"]')).forEach(function(item) {
+				item.classList = Array.from(item.classList).filter(c => !c.startsWith('v-ripple'));
+			});
 			table.parentNode.append(tableClone);
 
 			const x = e.clientX - table.getClientRects()[0].left;
@@ -640,16 +650,6 @@ export default {
 				}
 			}
 		});
-
-		// Get sorting from cache
-		if (this.sortTable) {
-			const column = this.sorting[this.sortTable].column;
-			const descending = this.sorting[this.sortTable].descending;
-			if (column !== this.innerPagination.sortBy || descending !== this.innerPagination.descending) {
-				this.innerPagination.sortBy = column;
-				this.innerPagination.descending = descending;
-			}
-		}
 	},
 	beforeDestroy() {
 		this.unsubscribe();
@@ -709,23 +709,10 @@ export default {
 				this.$emit('input', to);
 			}
 		},
-		innerPagination: {
-			deep: true,
-			handler(to) {
-				if (this.sortTable && (this.sorting[this.sortTable].column !== to.sortBy || this.sorting[this.sortTable].descending !== to.descending)) {
-					this.setSorting({ table: this.sortTable, column: to.sortBy, descending: to.descending });
-				}
-			}
-		},
-		sorting: {
-			deep: true,
-			handler(to) {
-				const column = to[this.sortTable].column;
-				const descending = to[this.sortTable].descending;
-				if (column !== this.innerPagination.sortBy || descending !== this.innerPagination.descending) {
-					this.innerPagination.sortBy = column;
-					this.innerPagination.descending = descending;
-				}
+		'contextMenu.shown'(to) {
+			if (!to) {
+				// Restore previously selected items
+				this.innerValue = this.prevSelection;
 			}
 		}
 	}

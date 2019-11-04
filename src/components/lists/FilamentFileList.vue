@@ -5,44 +5,56 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down" v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
+			<v-btn class="hidden-sm-and-down mr-3" v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
+				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newFilament.caption') }}
+			<v-btn class="hidden-sm-and-down mr-3" v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
+				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newFilament.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
+			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
+				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" target="filaments" color="primary"></upload-btn>
 		</v-toolbar>
 
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop :no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
-			<template slot="context-menu">
-				<v-list-tile v-show="filamentSelected" @click="downloadFilament">
-					<v-icon class="mr-1">cloud_download</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
-				</v-list-tile>
-				<v-list-tile v-show="filamentSelected" @click="rename">
-					<v-icon class="mr-1">short_text</v-icon> {{ $t('list.baseFileList.rename') }}
-				</v-list-tile>
-				<v-list-tile @click="remove">
-					<v-icon class="mr-1">delete</v-icon> {{ $t('list.baseFileList.delete') }}
-				</v-list-tile>
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :folder-icon="isRootDirectory ? 'mdi-radiobox-marked' : 'mdi-folder'" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop :no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
+			<template #context-menu>
+				<v-list-item v-show="filamentSelected" @click="downloadFilament">
+					<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
+				</v-list-item>
+				<v-list-item v-show="filamentSelected" @click="rename">
+					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t('list.baseFileList.rename') }}
+				</v-list-item>
+				<v-list-item @click="remove">
+					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('list.baseFileList.delete') }}
+				</v-list-item>
 			</template>
 		</base-file-list>
 
-		<v-layout class="hidden-md-and-up mt-2" row wrap justify-space-around>
-			<v-btn v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">add</v-icon> {{ $t('button.newFile.caption') }}
+		<v-speed-dial v-model="fab" bottom right fixed open-on-hover direction="top" transition="scale-transition" class="hidden-md-and-up">
+			<template #activator>
+				<v-btn v-model="fab" dark color="primary" fab>
+					<v-icon v-if="fab">mdi-close</v-icon>
+					<v-icon v-else>mdi-dots-vertical</v-icon>
+				</v-btn>
+			</template>
+
+			<v-btn v-show="!isRootDirectory" fab :disabled="uiFrozen" @click="showNewFile = true">
+				<v-icon class="mr-1">mdi-file-plus</v-icon>
 			</v-btn>
-			<v-btn v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon class="mr-1">create_new_folder</v-icon> {{ $t('button.newFilament.caption') }}
+
+			<v-btn v-show="isRootDirectory" fab :disabled="uiFrozen" @click="showNewFilament = true">
+				<v-icon>mdi-folder-plus</v-icon>
 			</v-btn>
-			<v-btn color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">refresh</v-icon> {{ $t('button.refresh.caption') }}
+
+			<v-btn fab color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
+				<v-icon>mdi-refresh</v-icon>
 			</v-btn>
-			<upload-btn target="filaments" color="primary"></upload-btn>
-		</v-layout>
+
+			<upload-btn fab dark :directory="directory" target="filaments" color="primary">
+				<v-icon>mdi-cloud-upload</v-icon>
+			</upload-btn>
+		</v-speed-dial>
 
 		<new-directory-dialog :shown.sync="showNewFilament" :directory="directory" :title="$t('dialog.newFilament.title')" :prompt="$t('dialog.newFilament.prompt')" :showSuccess="false" :showError="false" @directoryCreationFailed="directoryCreationFailed" @directoryCreated="createFilamentFiles"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
@@ -74,7 +86,8 @@ export default {
 			loading: false,
 			doingFileOperation: false,
 			showNewFile: false,
-			showNewFilament: false
+			showNewFilament: false,
+			fab: false
 		}
 	},
 	methods: {

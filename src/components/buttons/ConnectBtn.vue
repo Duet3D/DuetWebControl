@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked" tabindex="0">
+	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked">
 		<v-icon v-show="!isBusy">{{ buttonIcon }}</v-icon>
 		<v-progress-circular size="20" v-show="isBusy" indeterminate></v-progress-circular>
 		<span class="ml-2">{{ caption }}</span>
@@ -24,7 +24,7 @@ export default {
 				: (this.isConnected ? 'success' : 'primary');
 		},
 		buttonIcon() {
-			return this.isConnected ? 'close' : 'power_settings_new';
+			return this.isConnected ? 'mdi-close-circle-outline' : 'mdi-power';
 		},
 		caption() {
 			return this.$t((this.isConnecting || this.isReconnecting) ? 'button.connect.connecting'

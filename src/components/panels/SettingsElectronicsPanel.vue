@@ -3,8 +3,8 @@
 		<v-card-title>
 			{{ $t('panel.settingsElectronics.caption') }}
 			<v-spacer></v-spacer>
-			<a href="#" @click.prevent="diagnostics" v-show="isConnected">
-				<v-icon small>info</v-icon> {{ $t('panel.settingsElectronics.diagnostics') }}
+			<a v-show="isConnected" href="javascript:void(0)" @click="diagnostics">
+				<v-icon small>mdi-lifebuoy</v-icon> {{ $t('panel.settingsElectronics.diagnostics') }}
 			</a>
 		</v-card-title>
 

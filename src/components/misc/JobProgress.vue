@@ -1,19 +1,15 @@
 <template>
-	<div class="component mb-0">
-		<v-layout column>
-			<v-flex>
-				<v-layout row wrap>
-					{{ printStatus }}
-					<v-spacer></v-spacer>
-					<span>{{ printDetails }}</span>
-				</v-layout>
-			</v-flex>
+	<v-row dense>
+		<v-col cols="12" class="d-flex">
+			<span>{{ printStatus }}</span>
+			<v-spacer></v-spacer>
+			<span>{{ printDetails }}</span>
+		</v-col>
 
-			<v-flex>
-				<v-progress-linear :value="jobProgress * 100" class="my-1"></v-progress-linear>
-			</v-flex>
-		</v-layout>
-	</div>
+		<v-col cols="12">
+			<v-progress-linear :value="jobProgress * 100" class="my-1"></v-progress-linear>
+		</v-col>
+	</v-row>
 </template>
 
 <script>

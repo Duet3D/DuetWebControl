@@ -4,7 +4,7 @@
 			{{ $t('panel.settingsListItems.caption') }}
 		</v-card-title>
 
-		<v-container fluid grid-list-lg class="px-3">
+		<v-container fluid grid-list-lg class="px-3 py-0">
 			<v-tabs>
 				<v-tab>{{ $t('panel.settingsListItems.toolTemperatures') }}</v-tab>
 				<v-tab>{{ $t('panel.settingsListItems.bedTemperatures') }}</v-tab>

@@ -1,11 +1,13 @@
 <style scoped>
-.equal-width {
-	flex-basis: 0;
+strong {
+	align-self: center;
+	text-align: center;
 }
 
 .category-header {
 	flex: 0 0 100px;
 }
+
 a:not(:hover) {
 	color: inherit;
 }
@@ -27,7 +29,7 @@ a:not(:hover) {
 <template>
 	<v-card>
 		<v-card-title class="py-2">
-			<v-icon small class="mr-1">info</v-icon> {{ $t('panel.status.caption') }}
+			<v-icon small class="mr-1">mdi-information</v-icon> {{ $t('panel.status.caption') }}
 
 			<v-spacer></v-spacer>
 
@@ -39,173 +41,151 @@ a:not(:hover) {
 		</v-card-title>
 
 		<v-card-text class="px-0 pt-0 pb-2 content text-xs-center" v-show="sensorsPresent || (move.axes.length + move.extruders.length)">
-			<v-layout column class="content-layout">
-				<v-flex v-show="move.axes.length">
-					<v-layout row align-center>
-						<v-flex tag="strong" class="category-header">
-							<a href="#" @click.prevent="displayToolPosition = !displayToolPosition">
-								{{ $t(displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') }}
-							</a>
-						</v-flex>
+			<!-- Axis Positions -->
+			<template v-if="move.axes.length">
+				<v-row no-gutters class="flex-nowrap">
+					<v-col tag="strong" class="category-header">
+						<a href="javascript:void(0)" @click="displayToolPosition = !displayToolPosition">
+							{{ $t(displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') }}
+						</a>
+					</v-col>
 
-						<v-flex>
-							<v-layout row wrap>
-								<v-flex v-for="(axis, index) in move.axes" :key="index" grow class="equal-width" v-show="axis.visible">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ axis.letter }}
-										</v-flex>
-										<v-flex tag="span">
-											{{ displayAxisPosition(axis, index) }}
-										</v-flex>
-									</v-layout>
-								</v-flex>
-							</v-layout>
-						</v-flex>
-					</v-layout>
-				</v-flex>
+					<v-col>
+						<v-row align-content="center" no-gutters>
+							<v-col v-for="(axis, index) in move.axes.filter(axis => axis.visible)" :key="index" class="d-flex flex-column align-center">
+								<strong>
+									{{ axis.letter }}
+								</strong>
+								<span>
+									{{ displayAxisPosition(axis, index) }}
+								</span>
+							</v-col>
+						</v-row>
+					</v-col>
+				</v-row>
+			</template>
 
-				<v-divider class="my-2" v-show="move.axes.length"></v-divider>
+			<!-- Extruders -->
+			<template v-if="move.extruders.length">
+				<v-divider v-show="move.axes.length" class="my-2"></v-divider>
 
-				<v-flex v-show="move.extruders.length">
-					<v-layout row align-center>
-						<v-flex tag="strong" class="category-header">
-							{{ $t('panel.status.extruders') }}
-						</v-flex>
+				<v-row align-content="center" no-gutters class="flex-nowrap">
+					<v-col tag="strong" class="category-header">
+						{{ $t('panel.status.extruders') }}
+					</v-col>
 
-						<v-flex>
-							<v-layout row wrap>
-								<v-flex v-for="(extruder, index) in move.extruders" :key="index" class="equal-width">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.extruderDrive', [index]) }}
-										</v-flex>
-										<v-flex tag="span">
-											{{ displayExtruderPosition(extruder, index) }}
-										</v-flex>
-									</v-layout>
-								</v-flex>
-							</v-layout>
-						</v-flex>
-					</v-layout>
-				</v-flex>
+					<v-col>
+						<v-row align-content="center" no-gutters>
+					<v-col v-for="(extruder, index) in move.extruders" :key="index" class="d-flex flex-column align-center">
+						<strong>
+							{{ $t('panel.status.extruderDrive', [index]) }}
+						</strong>
+						<span>
+							{{ displayExtruderPosition(extruder, index) }}
+						</span>
+					</v-col>
+						</v-row>
+					</v-col>
+				</v-row>
+			</template>
 
-				<v-divider class="my-2" v-show="move.extruders.length"></v-divider>
+			<!-- Speeds -->
+			<template v-show="isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)">
+				<v-divider v-show="move.axes.length + move.extruders.length" class="my-2"></v-divider>
 
-				<v-flex v-show="isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)">
-					<v-layout row align-center>
-						<v-flex tag="strong" class="category-header">
-							{{ $t('panel.status.speeds') }}
-						</v-flex>
+				<v-row align-content="center" no-gutters class="flex-nowrap">
+					<v-col tag="strong" class="category-header">
+						{{ $t('panel.status.speeds') }}
+					</v-col>
 
-						<v-flex>
-							<v-layout row wrap>
-								<v-flex v-show="isNumber(move.currentMove.requestedSpeed)" class="equal-width">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.requestedSpeed') }}
-										</v-flex>
-										<v-flex tag="span">
-											{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}
-										</v-flex>
-									</v-layout>
-								</v-flex>
+					<v-col>
+						<v-row align-content="center" no-gutters>
+					<v-col v-if="isNumber(move.currentMove.requestedSpeed)" class="d-flex flex-column align-center">
+						<strong>
+							{{ $t('panel.status.requestedSpeed') }}
+						</strong>
+						<span>
+							{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}
+						</span>
+					</v-col>
 
-								<v-flex v-show="isNumber(move.currentMove.topSpeed)" class="equal-width">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.topSpeed') }}
-										</v-flex>
-										<v-flex tag="span">
-											{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
-										</v-flex>
-									</v-layout>
-								</v-flex>
-							</v-layout>
-						</v-flex>
-					</v-layout>
-				</v-flex>
+					<v-col v-if="isNumber(move.currentMove.topSpeed)" class="d-flex flex-column align-center">
+						<strong>
+							{{ $t('panel.status.topSpeed') }}
+						</strong>
+						<span>
+							{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
+						</span>
+					</v-col>
+						</v-row>
+					</v-col>
+				</v-row>
+			</template>
 
-				<v-divider class="my-2" v-show="isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)"></v-divider>
+			<!-- Sensors -->
+			<template v-show="sensorsPresent">
+				<v-divider v-show="move.axes.length || move.extruders.length || isNumber(move.currentMove.requestedSpeed) || isNumber(move.currentMove.topSpeed)" class="my-2"></v-divider>
 
-				<v-flex v-show="sensorsPresent">
-					<v-layout row align-center>
-						<v-flex tag="strong" class="category-header">
-							{{ $t('panel.status.sensors') }}
-						</v-flex>
+				<v-row align-content="center" no-gutters class="flex-nowrap">
+					<v-col tag="strong" class="category-header">
+						{{ $t('panel.status.sensors') }}
+					</v-col>
 
-						<v-flex>
-							<v-layout row wrap>
-								<v-flex v-if="electronics.vIn.current !== null">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.vIn') }}
-										</v-flex>
+					<v-col>
+						<v-row align-content="center" justify="center" no-gutters>
+							<v-col v-if="electronics.vIn.current !== null" class="d-flex flex-column align-center">
+								<strong>
+									{{ $t('panel.status.vIn') }}
+								</strong>
+								<v-tooltip bottom>
+									<template #activator="{ on }">
+										<span v-on="on" class="text-no-wrap">
+											{{ $display(electronics.vIn.current, 1, 'V') }}
+										</span>
+									</template>
 
-										<v-tooltip bottom>
-											<template slot="activator">
-												<v-flex tag="span">
-													{{ $display(electronics.vIn.current, 1, 'V') }}
-												</v-flex>
-											</template>
+									{{ $t('panel.status.vInTitle', [$display(electronics.vIn.min, 1, 'V'), $display(electronics.vIn.max, 1, 'V')]) }}
+								</v-tooltip>
+							</v-col>
 
-											<span>
-												{{ $t('panel.status.vInTitle', [$display(electronics.vIn.min, 1, 'V'), $display(electronics.vIn.max, 1, 'V')]) }}
-											</span>
-										</v-tooltip>
-									</v-layout>
-								</v-flex>
+							<v-col v-if="electronics.mcuTemp.current !== null" md="auto" class="d-flex flex-column align-center">
+								<strong>
+									{{ $t('panel.status.mcuTemp') }}
+								</strong>
+								<v-tooltip bottom>
+									<template #activator="{ on }">
+										<span v-on="on" class="text-no-wrap">
+											{{ $display(electronics.mcuTemp.current, 1, 'C') }}
+										</span>
+									</template>
 
-								<v-flex v-if="electronics.mcuTemp.current !== null">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.mcuTemp') }}
-										</v-flex>
+									{{ $t('panel.status.mcuTempTitle', [$display(electronics.mcuTemp.min, 1, 'C'), $display(electronics.mcuTemp.max, 1, 'C')]) }}
+								</v-tooltip>
+							</v-col>
 
-										<v-tooltip bottom>
-											<template slot="activator">
-												<v-flex tag="span">
-													{{ $display(electronics.mcuTemp.current, 1, 'C') }}
-												</v-flex>
-											</template>
+							<v-col v-if="fanRPM.length" md="auto" class="d-flex flex-column align-center">
+								<strong>
+									{{ $t('panel.status.fanRPM') }}
+								</strong>
 
-											<span>
-												{{ $t('panel.status.mcuTempTitle', [$display(electronics.mcuTemp.min, 1, 'C'), $display(electronics.mcuTemp.max, 1, 'C')]) }}
-											</span>
-										</v-tooltip>
-									</v-layout>
-								</v-flex>
+								{{ fanRPM.join(', ') }}
+							</v-col>
 
-								<v-flex v-show="fanRPM.length">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $t('panel.status.fanRPM') }}
-										</v-flex>
-
-										<v-flex tag="span">
-											{{ fanRPM.join(', ') }}
-										</v-flex>
-									</v-layout>
-								</v-flex>
-
-								<v-flex v-if="sensors.probes.length">
-									<v-layout column>
-										<v-flex tag="strong">
-											{{ $tc('panel.status.probe', sensors.probes.length) }}
-										</v-flex>
-										<v-flex tag="span">
-											<span v-for="(probe, index) in sensors.probes" :key="index" class="pa-1 probe-span" :class="probeSpanClasses(probe, index)">
-												{{ $display(probe.value, 0) }}
-												<template v-if="probe.secondaryValues.length"> ({{ $display(probe.secondaryValues, 0) }})</template>
-											</span>
-										</v-flex>
-									</v-layout>
-								</v-flex>
-							</v-layout>
-						</v-flex>
-					</v-layout>
-				</v-flex>
-			</v-layout>
+							<v-col v-if="sensors.probes.length" class="d-flex flex-column align-center">
+								<strong>
+									{{ $tc('panel.status.probe', sensors.probes.length) }}
+								</strong>
+								<div class="d-flex-inline">
+									<span v-for="(probe, index) in sensors.probes" :key="index" class="pa-1 probe-span" :class="probeSpanClasses(probe, index)">
+										{{ $display(probe.value, 0) }}
+										<template v-if="probe.secondaryValues.length"> ({{ $display(probe.secondaryValues, 0) }})</template>
+									</span>
+								</div>
+							</v-col>
+						</v-row>
+					</v-col>
+				</v-row>
+			</template>
 		</v-card-text>
 
 		<v-card-text class="pa-0" v-show="!sensorsPresent && !(move.axes.length + move.extruders.length)">
@@ -227,11 +207,7 @@ export default {
 		...mapState('machine/model', ['electronics', 'fans', 'move', 'sensors', 'state']),
 		...mapGetters(['isConnected']),
 		...mapGetters('machine/model', ['isPrinting']),
-		fanRPM() {
-			const rpms = [];
-			this.fans.forEach(fan => { if (fan.rpm != null) { rpms.push(fan.rpm); } });
-			return rpms;
-		},
+		fanRPM() { return this.fans.map(fan => fan.rpm).filter(rpm => rpm !== null); },
 		sensorsPresent() {
 			return (this.electronics.vIn.current !== null) || (this.electronics.mcuTemp.current !== null) || this.fanRPM.length || (this.sensors.probes.length);
 		}
@@ -245,9 +221,11 @@ export default {
 		displayAxisPosition(axis) {
 			let position = NaN;
 			if (this.displayToolPosition) {
+				if (axis.drives.length > 0) {
+					position = this.move.drives[axis.drives[0]].position;
+				}
+			} else {
 				position = axis.machinePosition;
-			} else if (axis.drives.length > 0) {
-				position = this.move.drives[axis.drives[0]].position;
 			}
 			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
 		},

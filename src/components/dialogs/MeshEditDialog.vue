@@ -6,42 +6,42 @@
 					<v-card-title>
 						<span class="headline">{{ $t('dialog.meshEdit.title') }}</span>
 					</v-card-title>
+
 					<v-card-text>
-						<v-container grid-list-md>
-							<v-layout wrap v-if="geometry === 'delta'">
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacing" required></v-text-field>
-								</v-flex>
-							</v-layout>
-							<v-layout wrap v-else>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['X'])" v-model.number="minX" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['X'])" v-model.number="maxX" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['Y'])" v-model.number="minY" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['Y'])" v-model.number="maxY" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['X'])" v-model.number="spacingX" required></v-text-field>
-								</v-flex>
-								<v-flex xs12 sm6 md6>
-									<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['Y'])" v-model.number="spacingY" required></v-text-field>
-								</v-flex>
-							</v-layout>
-						</v-container>
+						<v-row v-if="geometry === 'delta'">
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacing" required hide-details></v-text-field>
+							</v-col>
+						</v-row>
+						<v-row v-else>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['X'])" v-model.number="minX" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['X'])" v-model.number="maxX" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['Y'])" v-model.number="minY" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['Y'])" v-model.number="maxY" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['X'])" v-model.number="spacingX" required hide-details></v-text-field>
+							</v-col>
+							<v-col cols="12" sm="6">
+								<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['Y'])" v-model.number="spacingY" required hide-details></v-text-field>
+							</v-col>
+						</v-row>
 					</v-card-text>
+
 					<v-card-actions>
 						<v-spacer></v-spacer>
-						<v-btn color="blue darken-1" flat @click="hide">{{ $t('generic.cancel') }}</v-btn>
-						<v-btn color="blue darken-1" flat type="submit">{{ $t('generic.ok') }}</v-btn>
+						<v-btn color="blue darken-1" text @click="hide">{{ $t('generic.cancel') }}</v-btn>
+						<v-btn color="blue darken-1" text type="submit">{{ $t('generic.ok') }}</v-btn>
 					</v-card-actions>
 				</v-form>
 			</v-card>

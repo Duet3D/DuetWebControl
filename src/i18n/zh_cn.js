@@ -3,18 +3,48 @@
 export default {
 	language: '简体中文',
 	'$vuetify': {
+		close: '关闭',
 		dataIterator: {
-			rowsPerPageText: '每页项目:',
-			rowsPerPageAll: '所有',
-			pageText: '{0}-{1} 共{2}',
-			noResultsText: '没有找到匹配的记录',
-			nextPage: '下一页',
-			prevPage: '上一页'
+			noResultsText: '没有符合条件的结果',
+			loadingText: '加载中……'
 		},
 		dataTable: {
-			rowsPerPageText: '每页行数：'
+			itemsPerPageText: '每页数目：',
+			ariaLabel: {
+				sortDescending: '：降序排列。点击以移除排序。',
+				sortAscending: '：升序排列。点击以降序排列。',
+				sortNone: '：未排序。点击以升序排列。'
+			},
+			sortBy: '排序方式'
 		},
-		noDataText: '没有可用数据'
+		dataFooter: {
+			itemsPerPageText: '每页数目：',
+			itemsPerPageAll: '全部',
+			nextPage: '下一页',
+			prevPage: '上一页',
+			firstPage: '首页',
+			lastPage: '尾页',
+			pageText: '{0}-{1} 共 {2}'
+		},
+		datePicker: {
+			itemsSelected: '已选择 {0}'
+		},
+		noDataText: '没有数据',
+		carousel: {
+			prev: '上一张',
+			next: '下一张'
+		},
+		calendar: {
+			moreEvents: '还有 {0} 项'
+		},
+		fileInput: {
+			counter: '{0} 个文件',
+			counterSize: '{0} 个文件（共 {1}）'
+		},
+		timePicker: {
+			am: 'AM',
+			pm: 'PM'
+		}
 	},
 	button: {
 		add: {
@@ -125,6 +155,7 @@ export default {
 		connection: {
 			connecting: '正在连接...',
 			disconnecting: '正在断开连接...',
+			updating: 'Please wait while updates are being installed...',
 			reconnecting: '连接丢失，尝试重新连接...',
 			standBy: '请等待...'
 		},
@@ -148,7 +179,8 @@ export default {
 		fileEdit: {
 			gcodeReference: 'G-Code参考',
 			menuReference: '菜单参考',
-			save: '保存'
+			save: '保存',
+			confirmClose: 'The file has been changed. If you proceed, your changes will be lost.'
 		},
 		meshEdit: {
 			title: '设置网格参数',
@@ -350,7 +382,8 @@ export default {
 			simulate: '模拟文件'
 		},
 		sys: {
-			noFiles: '没有系统文件'
+			noFiles: '没有系统文件',
+			configToolNote: 'edit via config tool'
 		}
 	},
 	menu: {
@@ -562,7 +595,9 @@ export default {
 			darkTheme: '黑色主题',
 			language: '语言',
 			binaryFileSizes: '适用二进制文件大小',
-			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基础显示'
+			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基础显示',
+			disableAutoComplete: 'Disable auto-complete',
+			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
 		},
 		settingsCommunication: {
 			caption: '通讯',
@@ -571,6 +606,7 @@ export default {
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
 			fileTransferRetryThreshold: '重试文件传输的阈值（{0}）',
+			crcUploads: 'Use CRC32 checksums for uploads',
 			unavailable: '没有可用的设置'
 		},
 		settingsElectronics: {
@@ -588,6 +624,11 @@ export default {
 			settingsSaveDelay: '设置更改的更新延迟({0})',
 			cacheStorageLocal: '将缓存保存在本地存储中',
 			cacheSaveDelay: '缓存更改的更新延迟({0})'
+		},
+		settingsEndstops: {
+			caption: 'Endstops',
+			index: 'Index',
+			triggered: 'Triggered'
 		},
 		settingsListItems: {
 			caption: '列表项目',

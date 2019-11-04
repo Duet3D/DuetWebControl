@@ -7,7 +7,6 @@
 
 .content {
 	position: relative;
-	flex-grow: 1;
 }
 
 .content > canvas {
@@ -16,12 +15,12 @@
 </style>
 
 <template>
-	<v-card class="card">
+	<v-card class="d-flex flex-column flex-grow-1">
 		<v-card-title class="pt-2 pb-0">
-			<v-icon class="mr-1">show_chart</v-icon> {{ $t('chart.temperature.caption') }}
+			<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('chart.temperature.caption') }}
 		</v-card-title>
 
-		<v-card-text class="content px-2 py-0" v-show="hasTemperaturesToDisplay">
+		<v-card-text v-show="hasTemperaturesToDisplay" class="content flex-grow-1 px-2 py-0">
 			<canvas ref="chart"></canvas>
 		</v-card-text>
 
