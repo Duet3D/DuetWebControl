@@ -178,7 +178,10 @@ class gcodeProcessor {
 
         this.lineCount = this.lines.length; //rendered lines
 
-        if (this.lines.length > 400000) {
+
+
+        //if we are on a mobile device we'll have less memory to play with so switch to line rendering earlier
+        if (this.lines.length > 400000 || (window.mobilecheck() && this.lines.length > 200000)) {
             console.log("Switching to line rendering mode.");
             ver = 1;
         }
