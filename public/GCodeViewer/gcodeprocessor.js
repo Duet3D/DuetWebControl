@@ -6,7 +6,7 @@
 class gcodeProcessor {
     constructor() {
         this.currentPosition = new BABYLON.Vector3(0, 0, 0);
-        this.color;
+        this.color = [];
         this.absolute = true; //Track if we are in relative or absolute mode.
         this.lines = [];
         this.extrudedLines = [];
@@ -37,7 +37,9 @@ class gcodeProcessor {
         if (colors === null || colors.length === 0) return;
         this.extruderColors = [];
         for (var idx = 0; idx < colors.length; idx++) {
-            this.extruderColors.push(BABYLON.Color3.FromHexString(colors[idx]));
+            var color = colors[idx] + "FF";
+            var extruderColor = BABYLON.Color4.FromHexString(color);
+            this.extruderColors.push(extruderColor);
         }
 
 
@@ -167,7 +169,6 @@ class gcodeProcessor {
             if (tokenString.startsWith("T")) {
                 var extruder = Number(tokenString.substring(1)) % 5; //For now map to extruders 0 - 4
                 if (extruder < 0) extruder = 0; // Cover the case where someone sets a tool to a -1 value
-                console.log(extruder);
                 this.currentColor = this.extruderColors[extruder].clone();
             }
         }
