@@ -18,12 +18,14 @@
 						{{ $t('panel.fans.toolFan') }}
 					</v-list-item>
 
-					<v-list-item v-for="(fan, index) in fans.filter(fan => !fan.thermostatic.control)" :key="index" @click="toggleFanVisibility(index)">
-						<v-icon class="mr-1">
-							{{ (displayedFans.indexOf(index) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
-						</v-icon>
-						{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
-					</v-list-item>
+					<template v-for="(fan, index) in fans" >
+						<v-list-item v-if="!fan.thermostatic.control" :key="index" @click="toggleFanVisibility(index)">
+							<v-icon class="mr-1">
+								{{ (displayedFans.indexOf(index) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
+							</v-icon>
+							{{ fan.name ? fan.name :$t('panel.fans.fan', [index]) }}
+						</v-list-item>
+					</template>
 				</v-list>
 			</v-menu>
 		</v-card-title>

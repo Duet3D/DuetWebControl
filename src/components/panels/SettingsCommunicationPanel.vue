@@ -22,7 +22,7 @@
 					<v-col cols="6">
 						<v-text-field v-model.number="fileTransferRetryThreshold" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.fileTransferRetryThreshold', ['KiB'])" hide-details></v-text-field>
 					</v-col>
-					<v-col cols="6">
+					<v-col cols="12">
 						<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" hide-details></v-switch>
 					</v-col>
 				</template>

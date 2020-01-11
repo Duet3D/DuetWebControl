@@ -93,19 +93,19 @@ export function stripMacroFilename(filename) {
 }
 
 const pathObj = {
-	display: '0:/menu',
-	gcodes: '0:/gcodes',
+	gCodes: '0:/gcodes',
 	macros: '0:/macros',
+	menu: '0:/menu',
 	filaments: '0:/filaments',
-	sys: '0:/sys',
+	system: '0:/sys',
 	www: '0:/www',
 
-	configFile: '0:/sys/config.g',
-	configBackupFile: '0:/sys/config.g.bak',
-	dwcCacheFile: '0:/sys/dwc2cache.json',
-	dwcFactoryDefaults: '0:/sys/dwc2defaults.json',
-	dwcSettingsFile: '0:/sys/dwc2settings.json',
-	heightmap: '0:/sys/heightmap.csv',
+	configFile: 'config.g',
+	configBackupFile: 'config.g.bak',
+	dwcCacheFile: 'dwc2cache.json',
+	dwcFactoryDefaults: 'dwc2defaults.json',
+	dwcSettingsFile: 'dwc2settings.json',
+	heightmapFile: 'heightmap.csv',
 
 	combine,
 	extractFileName,

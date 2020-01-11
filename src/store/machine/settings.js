@@ -48,7 +48,7 @@ export default function(hostname) {
 		},
 		getters: {
 			moveSteps: state => function(axis) {
-				return state.moveSteps.hasOwnProperty(axis) ? state.moveSteps[axis] : state.moveSteps.default;
+				return (state.moveSteps[axis] !== undefined) ? state.moveSteps[axis] : state.moveSteps.default;
 			},
 			numMoveSteps: state => state.moveSteps.default.length
 		},
@@ -104,7 +104,7 @@ export default function(hostname) {
 				state.extruderFeedrates[index] = value;
 			},
 			setMoveStep(state, { axis, index, value }) {
-				if (!state.moveSteps.hasOwnProperty(axis)) {
+				if (state.moveSteps[axis] !== undefined) {
 					state.moveSteps[axis] = state.moveSteps.default.slice();
 				}
 				state.moveSteps[axis][index] = value;

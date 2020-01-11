@@ -31,7 +31,6 @@
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { DisconnectedError } from '../../utils/errors.js'
-import Path from '../../utils/path.js'
 
 export default {
 	props: {
@@ -42,7 +41,7 @@ export default {
 		tool: Object
 	},
 	computed: {
-		...mapState('machine/model', ['tools']),
+		...mapState('machine/model', ['directories', 'tools']),
 		...mapGetters('machine/model', ['currentTool'])
 	},
 	data() {
@@ -60,7 +59,7 @@ export default {
 
 			this.loading = true
 			try {
-				const response = await this.getFileList(Path.filaments);
+				const response = await this.getFileList(this.directories.filaments);
 				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).filter(function(filament) {
 					// Exclude filaments that are already loaded (RRF does not allow loading the same filament into multiple tools)
 					return !this.tools.some(tool => tool.filament === filament);

@@ -147,7 +147,6 @@ export default {
 	},
 	data() {
 		return {
-			dropdownShown: false,
 			showMeshEditDialog: false,
 			moveStepDialog: {
 				shown: false,

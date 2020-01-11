@@ -43,7 +43,7 @@ const store = new Vuex.Store({
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
-			if (state.machines.hasOwnProperty(hostname)) {
+			if (state.machines[hostname] !== undefined) {
 				throw new Error(`Host ${hostname} is already connected!`);
 			}
 			if (state.isConnecting) {
@@ -60,11 +60,11 @@ const store = new Vuex.Store({
 				commit('setSelectedMachine', hostname);
 				logGlobal('success', i18n.t('events.connected', [hostname]));
 
+				await dispatch('machine/settings/load');
+				await dispatch('machine/cache/load');
 				if (state.isLocal) {
 					commit('settings/setLastHostname', hostname);
 				}
-				await dispatch('machine/settings/load');
-				await dispatch('machine/cache/load');
 			} catch (e) {
 				if (!(e instanceof InvalidPasswordError) || password !== defaultPassword)  {
 					logGlobal('error', i18n.t('error.connect', [hostname]), e.message);
@@ -81,7 +81,7 @@ const store = new Vuex.Store({
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
-			if (!state.machines.hasOwnProperty(hostname)) {
+			if (state.machines[hostname] === undefined) {
 				throw new Error(`Host ${hostname} is already disconnected!`);
 			}
 			if (state.isDisconnecting) {

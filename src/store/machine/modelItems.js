@@ -167,6 +167,14 @@ export class Heater {
 	sensor = null
 }
 
+export class HttpEndpoint {
+	constructor(initData) { quickPatch(this, initData); }
+	endpointType = 'GET'
+	namespace = null
+	path = null
+	unixSocket = null
+}
+
 export class Laser {
 	constructor(initData) { quickPatch(this, initData); }
 	actualPwm = 0.0
@@ -250,16 +258,24 @@ export class Tool {
 	offsetsProbed = 0			// bitmap of the probed axes
 }
 
+export class UserSession {
+	id = 0
+	accessLevel = 'readOnly'
+	sessionType = 'local'
+	origin = null
+	originId = -1
+}
+
 export class UserVariable {
-	name = ""
-	value = ""
+	name = ''
+	value = ''
 }
 
 function fixObject(item, preset) {
 	let fixed = false;
 	for (let key in preset) {
-		if (!item.hasOwnProperty(key)) {
-			item[key] = preset[key];
+		if (item[key] === undefined) {
+			Vue.set(item, key, preset[key]);
 			fixed = true;
 		} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
 			fixed |= fixObject(item[key], preset[key]);
@@ -273,7 +289,7 @@ function fixItems(items, ClassType) {
 	items.forEach(function(item) {
 		if (item !== null) {
 			for (let key in preset) {
-				if (!item.hasOwnProperty(key)) {
+				if (item[key] === undefined) {
 					Vue.set(item, key, preset[key]);
 					if (preset[key] instanceof Object) {
 						preset = new ClassType();
@@ -318,6 +334,10 @@ export function fixMachineItems(state, mergeData) {
 		}
 	}
 
+	if (mergeData.httpEndpoints) {
+		fixItems(state.httpEndpoints, HttpEndpoint);
+	}
+
 	if (mergeData.lasers) {
 		fixItems(state.lasers, Laser);
 	}
@@ -355,6 +375,10 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.tools) {
 		fixItems(state.tools, Tool);
+	}
+
+	if (mergeData.userSessions) {
+		fixItems(state.userSessions, UserSession);
 	}
 
 	if (mergeData.userVariables) {

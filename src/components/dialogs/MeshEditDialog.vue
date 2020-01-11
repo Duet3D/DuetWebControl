@@ -56,7 +56,8 @@ import { mapState, mapActions } from 'vuex'
 
 export default {
 	computed: mapState('machine/model', {
-		geometry: state => state.move.geometry
+		geometry: state => state.move.geometry,
+		probeGrid: state => state.move.probeGrid
 	}),
 	data() {
 		return {
@@ -92,6 +93,23 @@ export default {
 		},
 		hide() {
 			this.$emit('update:shown', false);
+		}
+	},
+	watch: {
+		shown(to) {
+			if (to) {
+				// FIXME: This can be enabled once probeGrid is populated
+				/*
+				this.radius = this.probeGrid.radius;
+				this.spacing = this.probeGrid.spacing;
+				this.minX = this.probeGrid.xMin;
+				this.maxX = this.probeGrid.xMax;
+				this.spacingX = this.probeGrid.xSpacing;
+				this.minY = this.probeGrid.yMin;
+				this.maxY = this.probeGrid.yMax;
+				this.spacingY = this.probeGrid.ySpacing;
+				*/
+			}
 		}
 	}
 }

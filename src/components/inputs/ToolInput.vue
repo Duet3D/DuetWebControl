@@ -5,7 +5,7 @@
 </style>
 
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" v-model.number="value" :items="items" @keydown.native="onkeydown" @keyup.enter="apply" @change="onchange" @blur="onblur" :label="label" :loading="applying" :disabled="uiFrozen" class="tool-input">
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :value="inputValue" :search-input.sync="inputValue" :items="items" :label="label" :loading="applying" :disabled="uiFrozen" @keyup.enter="apply" @blur="value = actualValue">
 	</v-combobox>
 </template>
 
@@ -20,6 +20,10 @@ export default {
 		...mapState('machine/model', ['heat', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		...mapState('settings', ['disableAutoComplete']),
+		inputValue: {
+			get() { return this.value.toString(); },
+			set(value) { this.value = parseFloat(value); }
+		},
 		items() {
 			if (this.disableAutoComplete) {
 				return [];
@@ -55,7 +59,6 @@ export default {
 		label: String,
 		active: Boolean,
 		standby: Boolean,
-		tabTarget: [Object, HTMLAnchorElement],
 
 		all: Boolean,
 		heaterIndex: Number,
@@ -138,27 +141,6 @@ export default {
 			} else {
 				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
 			}
-		},
-		onchange(value) {
-			// Note that value is of type String when a user enters a value and then leaves it without confirming...
-			if (value.constructor === Number) {
-				this.apply();
-			}
-		},
-		onkeydown(e) {
-			if (e.keyCode === 9 && this.tabTarget) {
-				e.preventDefault();
-				this.tabTarget.focus();
-			}
-		},
-		onblur() {
-			this.value = this.actualValue;
-		},
-		blur() {
-			this.input.blur();
-		},
-		focus() {
-			this.input.focus();
 		}
 	},
 	mounted() {

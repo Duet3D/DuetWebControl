@@ -7,7 +7,7 @@
 <template>
 	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
 		<v-col>
-			<v-combobox ref="input" v-model="code" :items="displayedCodes" :solo="solo" :disabled="uiFrozen" :loading="sendingCode" :placeholder="$t('input.code.placeholder')" @keyup.enter="send" @change="change" hide-details>
+			<v-combobox ref="input" :value="code" :search-input.sync="code" :items="displayedCodes" :filter="filter" :solo="solo" :disabled="uiFrozen" :loading="doingCode" :placeholder="$t('input.code.placeholder')" @click="click" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false" hide-details>
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -19,7 +19,7 @@
 		</v-col>
 
 		<v-col class="ml-2 flex-shrink-1" cols="auto">
-			<v-btn color="info" :disabled="uiFrozen" :loading="sendingCode" @click="doSend">
+			<v-btn color="info" :disabled="uiFrozen" :loading="doingCode" @click="doSend">
 				<v-icon class="mr-2">mdi-send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
 		</v-col>
@@ -31,20 +31,31 @@
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
+const conditionalKeywords = ['abort', 'echo', 'if', 'elif', 'else', 'while', 'break', 'var', 'set'];
+
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
 		...mapState('machine/settings', ['codes']),
 		...mapState('settings', ['disableAutoComplete']),
 		displayedCodes() {
-			return this.disableAutoComplete ? [] : this.codes.map(code => ({ text: code, value: code }));
+			if (this.showItems && !this.disableAutoComplete) {
+				const currentCode = this.code ? this.code.toLowerCase() : '';
+				return this.codes
+					.filter(code => (currentCode === '') || (code.toLowerCase().indexOf(currentCode) !== -1))
+					.map(code => ({ text: code, value: code }));
+			}
+			return [];
 		}
 	},
 	data() {
 		return {
 			code: '',
+			wasFocused: false,
+			showItems: false,
+			selectedItem: '',
 			sendPending: false,
-			sendingCode: false
+			doingCode: false
 		}
 	},
 	props: {
@@ -54,10 +65,36 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		...mapMutations('machine/settings', ['addCode', 'removeCode']),
+		click() {
+			if (this.wasFocused) {
+				this.showItems = !this.showItems;
+			} else {
+				this.wasFocused = true;
+			}
+		},
+		filter: () => true,
+		updateSelection(selection) {
+			if (selection instanceof Array) {
+				selection = (selection.length > 0) ? selection[0] : -1;
+			}
+
+			const items = this.displayedCodes;
+			if (selection >= 0 && selection < items.length) {
+				this.selectedItem = items[selection].value;
+			} else {
+				this.selectedItem = '';
+			}
+		},
+		selectItem(e) {
+			if (this.selectedItem !== '') {
+				this.code = this.selectedItem;
+				this.showItems = false;
+				e.preventDefault();
+			}
+		},
 		change(value) {
-			if (value && (this.sendPending || value.constructor !== String)) {
-				this.sendPending = false;
-				this.send();
+			if (value && !(value instanceof String)) {
+				this.code = value.value;
 			}
 		},
 		doSend() {
@@ -68,17 +105,15 @@ export default {
 				this.send();
 			}
 		},
-		hasUnprecedentedParameters: (code) => !code || code.trim() === '' || /(M23|M30|M32|M36)[^0-9]/i.test(code),
+		hasUnprecedentedParameters: (code) => !code || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(code),
 		async send() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
 			const code = (this.code.constructor === String) ? this.code : this.code.value;
-			if (code && code.trim() !== '' && !this.sendingCode) {
-				let codeToSend = '', inQuotes = false, inWhiteSpace = false;
-				if (this.hasUnprecedentedParameters(code)) {
-					// Don't convert certain codes to upper-case
-					codeToSend = code.trim();
-				} else {
+			if (code && code.trim() !== '' && !this.doingCode) {
+				let codeToSend = '', inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
+				if (!this.hasUnprecedentedParameters(codeToSend) &&
+					!conditionalKeywords.some(keyword => code.trim().startsWith(keyword))) {
 					// Convert code to upper-case and remove comments
 					for (let i = 0; i < code.length; i++) {
 						const char = code[i];
@@ -92,6 +127,12 @@ export default {
 								}
 								codeToSend += char;
 							}
+						} else if (inExpression) {
+							codeToSend += char;
+							inExpression = (char !== '}');
+						} else if (inComment) {
+							codeToSend += char;
+							inComment = (char !== ')');
 						} else {
 							if (char === '"') {
 								// don't convert escaped strings
@@ -102,33 +143,46 @@ export default {
 									continue;
 								}
 								inWhiteSpace = true;
-							} else if (char === ';' || char === '(') {
-								// stop when comments start
+							} else if (char === ';') {
+								// stop when final comments start
 								break;
+							} else if (char === '(') {
+								// don't process chars from encapsulated comments
+								inComment = true;
+							} else if (char === '{') {
+								// don't process chars from expressions
+								inExpression = true;
 							}
 							inWhiteSpace = false;
 							codeToSend += char.toUpperCase();
 						}
 					}
-					codeToSend = codeToSend.trim();
+				} else {
+					// Don't modify the user input
+					codeToSend = code;
 				}
 
 				// Send the code and wait for completion
-				this.sendingCode = true;
+				this.doingCode = true;
 				try {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && !this.disableAutoComplete && this.codes.indexOf(codeToSend) === -1) {
+					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && !this.disableAutoComplete && this.codes.indexOf(codeToSend.trim()) === -1) {
 						// Automatically remember successful codes
-						this.addCode(codeToSend);
+						this.addCode(codeToSend.trim());
 					}
-				} catch (e) {
+				} catch {
 					// handled before we get here
 				}
-				this.sendingCode = false;
+				this.doingCode = false;
 			}
 		}
 	},
 	watch: {
+		code(to) {
+			if (to && to.length >= 2) {
+				this.showItems = true;
+			}
+		},
 		uiFrozen(to) {
 			if (to) {
 				// Clear input when the UI is frozen

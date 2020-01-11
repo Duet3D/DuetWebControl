@@ -5,6 +5,7 @@ import VueI18n from 'vue-i18n'
 
 import en from './en.js'
 import de from './de.js'
+import es from './es.js'
 import fr from './fr.js'
 import ru from './ru.js'
 import zh_cn from './zh_cn.js'
@@ -48,6 +49,7 @@ export default new VueI18n({
 	messages: {
 		en,
 		de,
+		es,
 		fr,
 		ru,
 		zh_cn

@@ -57,7 +57,7 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', ['storages']),
+		...mapState('machine/model', ['directories', 'storages']),
 		isRootDirectory() { return this.directory === Path.macros; }
 	},
 	data () {
@@ -71,7 +71,7 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileList']),
-		async loadDirectory(directory = Path.macros) {
+		async loadDirectory(directory) {
 			if (this.loading) {
 				return;
 			}
@@ -95,6 +95,9 @@ export default {
 				}
 			}
 			this.loading = false;
+		},
+		async refresh() {
+			await this.loadDirectory(this.directory);
 		},
 		async itemClick(item) {
 			if (this.uiFrozen) {
@@ -124,14 +127,14 @@ export default {
 		// Perform initial load
 		if (this.isConnected) {
 			this.wasMounted = this.storages.length && this.storages[0].mounted;
-			this.loadDirectory();
+			this.refresh();
 		}
 
 		// Keep track of file changes
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
 			if (Path.pathAffectsFilelist(getModifiedDirectories(action, state), that.directory, that.filelist)) {
-				await that.loadDirectory(that.directory);
+				await that.refresh();
 			}
 		});
 	},
@@ -139,10 +142,15 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
+		'directories.macros'(to, from) {
+			if (this.directory == from) {
+				this.directory = to;
+			}
+		},
 		isConnected(to) {
 			if (to) {
 				this.wasMounted = this.storages.length && this.storages[0].mounted;
-				this.loadDirectory();
+				this.refresh();
 			} else {
 				this.directory = Path.macros;
 				this.filelist = [];
@@ -152,7 +160,7 @@ export default {
 			// TODO store current directory per selected machine
 			if (this.isConnected) {
 				this.wasMounted = this.storages.length && this.storages[0].mounted;
-				this.loadDirectory();
+				this.refresh();
 			} else {
 				this.directory = Path.macros;
 				this.filelist = [];
@@ -164,7 +172,7 @@ export default {
 				// Refresh file list when the first storage is mounted or unmounted
 				if (this.isConnected && (!this.storages.length || this.wasMounted !== this.storages[0].mounted)) {
 					this.wasMounted = this.storages.length && this.storages[0].mounted;
-					this.loadDirectory();
+					this.refresh();
 				}
 			}
 		}
