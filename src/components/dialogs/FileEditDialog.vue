@@ -17,6 +17,9 @@
 	padding-left: 12px;
 	margin-top: 0 !important;
 	resize: none;
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
 }
 </style>
 

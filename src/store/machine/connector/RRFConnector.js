@@ -76,7 +76,23 @@ export default class PollConnector extends BaseConnector {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					resolve(xhr.response);
 				} else if (xhr.status === 401) {
-					reject(new InvalidPasswordError());
+					// User might have closed another tab or the firmware restarted, which can cause
+					// the current session to be terminated. Try to send another rr_connect request
+					// with the last-known password and retry the pending request if that succeeds
+					BaseConnector.request('GET', `${location.protocol}//${that.hostname}/rr_connect`, {
+							password: that.password,
+							time: timeToStr(new Date())
+						})
+						.then(function(result) {
+							if (result instanceof Object && result.err === 0) {
+								that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename)
+									.then(result => resolve(result))
+									.catch(error => reject(error));
+							} else {
+								reject(new InvalidPasswordError());
+							}
+						})
+						.catch(error => reject(error));
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError());
 				} else if (xhr.status === 501) {

@@ -26,7 +26,7 @@ th:last-child {
 		<v-data-table
 			:headers="headers" :items="events" item-key="date"
 			disable-pagination hide-default-footer :mobile-breakpoint="0"
-			:sort-by.sync="sortBy" :sort-desc.sync="sortDesc" must-sort
+			:custom-sort="sort" :sort-by.sync="sortBy" :sort-desc.sync="sortDesc" must-sort
 			class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 
 			<template #no-data>
@@ -165,6 +165,30 @@ export default {
 
 			const file = new File([csvContent], 'console.csv', { type: 'text/csv;charset=utf-8' });
 			saveAs(file);
+		},
+		sort(items, sortBy, sortDesc) {
+			// FIXME This method should not be needed but it appears like Vuetify's default
+			// sort algorithm only takes into account times but not dates
+
+			// Sort by datetime - everything else is unsupported
+			items.sort(function(a, b) {
+				if (a.date === b.date) {
+					return 0;
+				}
+				if (a.date === null || a.date === undefined) {
+					return -1;
+				}
+				if (b.date === null || b.date === undefined) {
+					return 1;
+				}
+				return a.date - b.date;
+			});
+
+			// Deal with descending order
+			if (sortDesc[0]) {
+				items.reverse();
+			}
+			return items;
 		}
 	}
 }

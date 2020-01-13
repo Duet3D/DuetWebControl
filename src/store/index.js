@@ -66,10 +66,11 @@ const store = new Vuex.Store({
 					commit('settings/setLastHostname', hostname);
 				}
 			} catch (e) {
-				if (!(e instanceof InvalidPasswordError) || password !== defaultPassword)  {
-					logGlobal('error', i18n.t('error.connect', [hostname]), e.message);
+				const isPasswordError = e instanceof InvalidPasswordError;
+				if (!isPasswordError || password !== defaultPassword)  {
+					logGlobal(isPasswordError ? 'warning' : 'error', i18n.t('error.connect', [hostname]), e.message);
 				}
-				if (e instanceof InvalidPasswordError) {
+				if (isPasswordError) {
 					commit('askForPassword');
 				}
 			}
