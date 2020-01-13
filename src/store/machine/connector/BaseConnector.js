@@ -1,15 +1,12 @@
 'use strict'
 
-import axios from 'axios'
+import {
+	NotImplementedError,
+	NetworkError, TimeoutError, OperationCancelledError, OperationFailedError,
+	FileNotFoundError, InvalidPasswordError
+} from '../../../utils/errors.js'
 
-import { NotImplementedError } from '../../../utils/errors.js'
-
-// By default axios turns spaces into pluses which is undesired.
-// It is better to encode everything via encodeURIComponent
-axios.defaults.paramsSerializer = function(params) {
-	const keys = Object.keys(params);
-	return keys.length ? keys.map(key => `${key}=${encodeURIComponent(params[key])}`).join('&') : '';
-}
+export const defaultRequestTimeout = 4000;				// ms
 
 // Base class for network connectors that keep the machine store up-to-date
 //
@@ -17,6 +14,49 @@ axios.defaults.paramsSerializer = function(params) {
 // encapsulate these parameters in curly braces ({ }) to expand the payload object!
 //
 class BaseConnector {
+	// Function to perform an HTTP request. Returns a promise
+	static request(method, url, params = null) {
+		let internalURL = url;
+		if (params) {
+			let hadParam = false;
+			for (let key in params) {
+				internalURL += (hadParam ? '&' : '?') + key + '=' + encodeURIComponent(params[key]);
+				hadParam = true;
+			}
+		}
+
+		const xhr = new XMLHttpRequest();
+		xhr.open(method, internalURL);
+		xhr.responseType = 'json';
+		xhr.timeout = defaultRequestTimeout;
+
+		return new Promise((resolve, reject) => {
+			xhr.onload = function() {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					resolve(xhr.response);
+				} else if (xhr.status === 401) {
+					reject(new InvalidPasswordError());
+				} else if (xhr.status === 404) {
+					reject(new FileNotFoundError());
+				} else if (xhr.status >= 500) {
+					reject(new OperationFailedError(String(xhr.response)));
+				} else if (xhr.status !== 0) {
+					reject(new OperationFailedError());
+				}
+			};
+			xhr.onabort = function() {
+				reject(new OperationCancelledError());
+			}
+			xhr.onerror = function() {
+				reject(new NetworkError());
+			};
+			xhr.ontimeout = function () {
+				reject(new TimeoutError());
+			};
+			xhr.send(null);
+		});
+	}
+
 	// Register the global Vuex store. Subscribe to static connector settings here
 	static installStore(store) {
 		BaseConnector.prototype.store = store;
@@ -25,19 +65,6 @@ class BaseConnector {
 	// Connect to a machine. Throw one of the errors in 'error' for more granular control
 	// eslint-disable-next-line
 	static async connect(hostname, username, password) { throw new NotImplementedError('connect'); }
-
-	// Get a new cancel token
-	static getCancelSource() {
-		const source = axios.CancelToken.source();
-
-		// Work-around for global cancel token, see https://github.com/axios/axios/issues/978
-		// eslint-disable-next-line
-		source.token.throwIfRequested = source.token.throwIfRequested;
-		source.token.promise.then = source.token.promise.then.bind(source.token.promise);
-		source.token.promise.catch = source.token.promise.catch.bind(source.token.promise);
-
-		return source;
-	}
 
 	module = null
 	settings = null
@@ -78,28 +105,41 @@ class BaseConnector {
 	async disconnect() { throw new NotImplementedError('disconnect'); }
 
 	// Send a G-/M-/T-code to the machine. Returns a promise that is resolved when finished
+	// code: Code to send
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
 
 	// Upload a file asynchronously
-	async upload({ filename, content, cancelSource, onProgress }) { throw new NotImplementedError('upload'); }
+	// filename: Destination of the file
+	// content: Data of the file
+	// cancellationToken: Object which is populated with a 'cancel' method
+	// onProgress: Function called when data is being transferred with two parameters (loaded, total)
+	async upload({ filename, content, cancellationToken, onProgress }) { throw new NotImplementedError('upload'); }
 
 	// Delete a file
+	// filename: Filename to delete
 	async delete(filename) { throw new NotImplementedError('delete'); }
 
 	// Move a file
+	// from: Source file
+	// to: Destination file
+	// force: Overwrite file if it already exists
 	async move({ from, to, force }) { throw new NotImplementedError('move'); }
 
-	// Make a new directroy
+	// Make a new directroy path
+	// directory: Path of the directory
 	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }
 
 	// Download a file asynchronously. Returns the file content on completion
-	// Parameter can be either the filename or an object { filename, (type, cancelSource, onProgress) }
+	// Parameter can be either the filename or an object { filename, (type, onProgress) }
+	// See also upload()
 	async download(payload) { throw new NotImplementedError('download'); }
 
 	// Get the file list. Each item is returned as { isDirectory, name, size, lastModified }
+	// directory: Directory to query
 	async getFileList(directory) { throw new NotImplementedError('getFileList'); }
 
 	// Get G-code file info and return an instance of FileInfo
+	// filename: Filename to parse
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
 
 	/* eslint-enable no-unused-vars */

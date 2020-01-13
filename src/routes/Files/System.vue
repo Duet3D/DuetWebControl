@@ -1,7 +1,7 @@
 <template>
 	<v-row>
 		<v-col>
-			<sys-file-list></sys-file-list>
+			<system-file-list></system-file-list>
 		</v-col>
 	</v-row>
 </template>

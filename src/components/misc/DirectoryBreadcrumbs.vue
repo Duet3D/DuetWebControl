@@ -27,9 +27,9 @@ export default {
 			const pathItems = this.value.split('/');
 			let rootCaption = pathItems.length ? this.$t('generic.noValue') : pathItems[0];
 			if (pathItems.length > 1) {
-				if (this.value.startsWith(Path.gcodes)) {
+				if (this.value.startsWith(Path.gCodes)) {
 					pathItems.shift();
-					pathItems[0] = Path.gcodes;
+					pathItems[0] = Path.gCodes;
 					rootCaption = this.$t('directory.gcodes');
 				} else if (this.value.startsWith(Path.macros)) {
 					pathItems.shift();
@@ -39,13 +39,13 @@ export default {
 					pathItems.shift();
 					pathItems[0] = Path.filaments;
 					rootCaption = this.$t('directory.filaments');
-				} else if (this.value.startsWith(Path.display)) {
+				} else if (this.value.startsWith(Path.menu)) {
 					pathItems.shift();
-					pathItems[0] = Path.display;
+					pathItems[0] = Path.menu;
 					rootCaption = this.$t('directory.display');
-				} else if (this.value.startsWith(Path.sys)) {
+				} else if (this.value.startsWith(Path.system)) {
 					pathItems.shift();
-					pathItems[0] = Path.sys;
+					pathItems[0] = Path.system;
 					rootCaption = this.$t('directory.sys');
 				} else if (this.value.startsWith(Path.www)) {
 					pathItems.shift();

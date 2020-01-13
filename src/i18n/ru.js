@@ -1,4 +1,4 @@
-﻿﻿export default {
+﻿export default {
 	language: 'Русский',
 	'$vuetify': {
 		close: 'Закрыть',

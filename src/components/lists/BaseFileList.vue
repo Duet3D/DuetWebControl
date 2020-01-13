@@ -11,6 +11,12 @@ td {
 }
 </style>
 
+<style>
+.base-file-list th {
+	white-space: nowrap;
+}
+</style>
+
 <template>
 	<div>
 		<v-data-table v-model="innerValue" v-bind="$props"
@@ -18,7 +24,7 @@ td {
 			:loading="loading || innerLoading"
 			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort
 			disable-pagination hide-default-footer :mobile-breakpoint="0"
-			class="elevation-3" :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
+			class="base-file-list elevation-3" :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
 
 			<template #progress>
 				<slot name="progress">
@@ -318,7 +324,7 @@ export default {
 				if (this.headers) {
 					files.forEach(function(item) {
 						this.headers.forEach(function(header) {
-							if (!item.hasOwnProperty(header.value)) {
+							if (item[header.value] === undefined) {
 								Vue.set(item, header.value, undefined);
 							}
 						});

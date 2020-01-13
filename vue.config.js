@@ -22,6 +22,6 @@ module.exports = {
 		config.optimization.delete('splitChunks')
 	},
 	transpileDependencies: [
-		"vuetify"
+		'vuetify'
 	]
 }

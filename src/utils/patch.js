@@ -2,6 +2,31 @@
 
 import Vue from 'vue'
 
+export function arraySizesDiffer(a, b) {
+	if (a instanceof Array) {
+		if (a.length !== b.length) {
+			return true;
+		}
+
+		for (let i = 0; i < a.length; i++) {
+			if (a[i] instanceof Object && b[i] instanceof Object) {
+				if (arraySizesDiffer(a[i], b[i])) {
+					return true;
+				}
+			}
+		}
+	} else if (a instanceof Object) {
+		for (let key in a) {
+			if (a[key] instanceof Object && b[key] instanceof Object) {
+				if (arraySizesDiffer(a[key], b[key])) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 export function quickPatch(a, b) {
 	if (a instanceof Array) {
 		for (let i = 0; i < b.length; i++) {
@@ -48,7 +73,7 @@ export default function patch(a, b, skipNonexistentFields = false, fullPath = ''
 		}
 	} else if (a instanceof Object) {
 		for (let key in b) {
-			if (skipNonexistentFields && !a.hasOwnProperty(key)) {
+			if (skipNonexistentFields && a[key] === undefined) {
 				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source`);
 			} else if (a[key] && b[key] && typeof a[key] !== typeof b[key]) {
 				console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);

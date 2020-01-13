@@ -3,10 +3,10 @@
 import { LoginError } from '../../../utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
-import PollConnector from './PollConnector.js'
-import RestConnector from './RestConnector.js'
+import RRFConnector from './RRFConnector.js'
+import DSFConnector from './DSFConnector.js'
 
-const connectors = [RestConnector, PollConnector]
+const connectors = [RRFConnector, DSFConnector]
 export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'makeDirectory', 'download', 'getFileList', 'getFileInfo']
 
 export function mapConnectorActions(connector, actionsToMap = []) {

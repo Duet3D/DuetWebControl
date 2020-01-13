@@ -69,15 +69,15 @@ import saveAs from 'file-saver'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
+import { DisconnectedError, FileNotFoundError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['tools']),
-		isRootDirectory() { return this.directory === Path.filaments; },
-		filamentSelected() { return (this.directory === Path.filaments) && (this.selection.length === 1) && this.selection[0].isDirectory; }
+		...mapState('machine/model', ['directories', 'tools']),
+		isRootDirectory() { return this.directory === this.directories.filaments; },
+		filamentSelected() { return (this.directory === this.directories.filaments) && (this.selection.length === 1) && this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
@@ -120,29 +120,29 @@ export default {
 		async downloadFilament() {
 			const filament = this.selection[0].name;
 
-			let loadG, configG, unloadG;
+			// Download the files first
+			let loadG, unloadG;
 			try {
 				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), showSuccess: false, showError: false });
-			} catch (e) {
-				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
-					this.$makeNotification('error', this.$t('notification.download.error', ['load.g']), e.message);
-				}
-				return;
-			}
-			try {
 				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), showSuccess: false, showError: false });
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
-					this.$makeNotification('error', this.$t('notification.download.error', ['unload.g']), e.message);
+					this.$makeNotification('error', this.$t('notification.download.error', [!loadG ? 'load.g' : 'unload.g']), e.message);
 				}
 				return;
 			}
+
+			let configG;
 			try {
 				configG = await this.download({ filename: Path.combine(Path.filaments, filament, 'config.g'), showSuccess: false, showError: false });
 			} catch (e) {
 				// config.g may not exist
+				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError) && !(e instanceof FileNotFoundError)) {
+					this.$makeNotification('error', this.$t('notification.download.error', ['config.g']), e.message);
+				}
 			}
 
+			// Bundle them in a ZIP file and pass it to the user
 			const zip = new JSZip();
 			zip.file(`${filament}/load.g`, loadG);
 			zip.file(`${filament}/unload.g`, unloadG);
@@ -212,6 +212,13 @@ export default {
 		},
 		fileClicked(item) {
 			this.$refs.filelist.edit(item);
+		}
+	},
+	watch: {
+		'directories.filaments'(to, from) {
+			if (this.directory == from) {
+				this.directory = to;
+			}
 		}
 	}
 }

@@ -135,6 +135,7 @@ export default {
 	},
 	computed: {
 		...mapGetters(['isConnected']),
+		...mapState('machine/model', ['directories']),
 		...mapState('settings', ['language'])
 	},
 	data() {
@@ -194,7 +195,7 @@ export default {
 			}
 
 			// Resize canvas elements
-			const width = this.$refs.container.offsetWidth - 80;
+			const width = Math.max(this.$refs.container.offsetWidth - 80, 0);
 			let height;
 			switch (this.$vuetify.breakpoint.name) {
 				case 'xs':
@@ -388,10 +389,14 @@ export default {
 			this.three.camera.updateProjectionMatrix();
 		},
 
-		async getHeightmap(filename = Path.heightmap) {
+		async getHeightmap(filename) {
 			if (this.loading) {
 				// Don't attempt to load more than one file at once...
 				return;
+			}
+
+			if (!filename) {
+				filename = Path.combine(this.directories.system, Path.heightmapFile);
 			}
 
 			this.ready = false;

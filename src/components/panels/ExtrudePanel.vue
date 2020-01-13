@@ -24,8 +24,8 @@
 					{{ $t('panel.extrude.amount', ['mm']) }}
 					</p>
 					<v-btn-toggle v-model="amount" mandatory class="d-flex">
-						<v-btn v-for="(amount, index) in extruderAmounts" :key="index" :value="amount" :disabled="uiFrozen" @contextmenu.prevent="editAmount(index)" class="flex-grow-1">
-							{{ amount }}
+						<v-btn v-for="(savedAmount, index) in extruderAmounts" :key="index" :value="savedAmount" :disabled="uiFrozen" @contextmenu.prevent="editAmount(index)" class="flex-grow-1">
+							{{ savedAmount }}
 						</v-btn>
 					</v-btn-toggle>
 				</v-col>
@@ -34,8 +34,8 @@
 					{{ $t('panel.extrude.feedrate', ['mm/s']) }}
 					</p>
 					<v-btn-toggle v-model="feedrate" mandatory class="d-flex">
-						<v-btn v-for="(feedrate, index) in extruderFeedrates" :key="index" :value="feedrate" :disabled="uiFrozen" @contextmenu.prevent="editFeedrate(index)" class="flex-grow-1">
-							{{ feedrate }}
+						<v-btn v-for="(savedFeedrate, index) in extruderFeedrates" :key="index" :value="savedFeedrate" :disabled="uiFrozen" @contextmenu.prevent="editFeedrate(index)" class="flex-grow-1">
+							{{ savedFeedrate }}
 						</v-btn>
 					</v-btn-toggle>
 				</v-col>
@@ -185,10 +185,10 @@ export default {
 			}
 		},
 		extruderAmounts() {
-			this.amount = this.extruderAmounts[0];
+			this.amount = this.extruderAmounts[3];
 		},
 		extruderFeedrates() {
-			this.feedrate = this.extruderFeedrates[0];
+			this.feedrate = this.extruderFeedrates[3];
 		}
 	}
 }

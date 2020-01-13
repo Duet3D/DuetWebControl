@@ -17,6 +17,7 @@ import {
 	fixMachineItems
 } from './modelItems.js'
 
+import Path from '../../utils/path.js'
 import patch from '../../utils/patch.js'
 
 export default function(connector) {
@@ -34,6 +35,14 @@ export default function(connector) {
 				lcd: new Channel(),
 				spi: new Channel(),
 				autoPause: new Channel()
+			},
+			directories: {
+				filaments: Path.filaments,
+				gCodes: Path.gCodes,
+				macros: Path.macros,
+				menu: Path.menu,
+				system: Path.system,
+				www: Path.www
 			},
 			electronics: {
 				version: null,
@@ -85,6 +94,7 @@ export default function(connector) {
 					new Heater()
 				]
 			},
+			httpEndpoints: [],
 			job: {
 				file: new FileInfo(),
 				filePosition: null,
@@ -140,7 +150,8 @@ export default function(connector) {
 					requestedSpeed: 0.0,
 					topSpeed: 0.0
 				},
-				compensation: "None",
+				compensation: 'None',
+				heightmapFile: null,
 				drives: [
 					new Drive(),
 					new Drive(),
@@ -166,6 +177,16 @@ export default function(connector) {
 				idle: {
 					timeout: 30.0,
 					factor: 0.3
+				},
+				probeGrid: {
+					xMin: 0.0,
+					xMax: 0.0,
+					xSpacing: 0.0,
+					yMin: 0.0,
+					yMax: 0.0,
+					ySpacing: 0.0,
+					radius: 0.0,
+					spacing: 0.0
 				},
 				speedFactor: 1.0,
 				currentWorkplace: 0,
@@ -197,6 +218,7 @@ export default function(connector) {
 				},
 				currentTool: -1,
 				displayMessage: null,
+				dsfVersion: null,						// FIXME not present in the DSF OM yet but it is planned
 				logFile: null,
 				mode: null,								// one of ['FFF', 'CNC', 'Laser', null (exclusive in DWC)]
 				status: null							// one of the following:
@@ -219,6 +241,7 @@ export default function(connector) {
 					extruders: [1]
 				})
 			],
+			userSessions: [],
 			userVariables: []
 		},
 		getters: {

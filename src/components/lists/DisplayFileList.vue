@@ -54,15 +54,18 @@
 <script>
 'use strict'
 
-import { mapGetters } from 'vuex'
-
 import Path from '../../utils/path.js'
 
+import { mapGetters, mapState } from 'vuex'
+
 export default {
-	computed: mapGetters(['uiFrozen']),
+	computed: {
+		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['directories'])
+	},
 	data() {
 		return {
-			directory: Path.display,
+			directory: Path.menu,
 			loading: false,
 			selection: [],
 			showNewDirectory: false,
@@ -76,6 +79,13 @@ export default {
 		},
 		fileClicked(item) {
 			this.$refs.filelist.edit(item);
+		}
+	},
+	watch: {
+		'directories.menu'(to, from) {
+			if (this.directory == from) {
+				this.directory = to;
+			}
 		}
 	}
 }

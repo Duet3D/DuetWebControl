@@ -4,7 +4,7 @@
 			{{ $t('panel.settingsEndstops.caption') }}
 		</v-card-title>
 
-		<v-simple-table v-show="endstops.length" :dense="endstops.length > 6">
+		<v-simple-table v-show="endstops.length" dense>
 			<template v-slot:default>
 				<thead>
 					<tr>

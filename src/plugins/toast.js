@@ -6,7 +6,6 @@ import 'izitoast/dist/css/iziToast.css'
 import { displaySpeed } from './display.js'
 
 import i18n from '../i18n'
-import { OperationCancelledError } from '../utils/errors.js'
 import { extractFileName } from '../utils/path.js'
 
 const defaults = {
@@ -79,17 +78,17 @@ export function makeNotification(type, title, message, timeout) {
 	return item;
 }
 
-export function makeFileTransferNotification(type, destination, cancelSource, num, count) {
+export function makeFileTransferNotification(type, destination, cancellationToken, num, count) {
 	const filename = extractFileName(destination), titlePrefix = count ? `(${num}/${count}) ` : '';
 
 	// Prepare toast
 	iziToast.info({
 		class: 'file-transfer',
-		title: titlePrefix  + i18n.t(`notification.${type}.title`, [filename, 0, 0]),
+		title: titlePrefix  + i18n.t(`notification.${type}.title`, [filename, displaySpeed(0), 0]),
 		message: i18n.t(`notification.${type}.message`),
 		layout: 2,
 		timeout: false,
-		onClosing: () => cancelSource.cancel(new OperationCancelledError())
+		onClosing: () => cancellationToken.cancel()
 	});
 
 	// Get it and fix up the layout
@@ -109,8 +108,8 @@ export function makeFileTransferNotification(type, destination, cancelSource, nu
 	const startTime = new Date();
 	return {
 		domElement: toast,
-		onProgress(e) {
-			const uploadSpeed = e.loaded / (((new Date()) - startTime) / 1000), progress = (e.loaded / e.total) * 100;
+		onProgress(loaded, total) {
+			const uploadSpeed = loaded / (((new Date()) - startTime) / 1000), progress = (loaded / total) * 100;
 			title.textContent = titlePrefix + i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
 			progressBar.style.width = progress.toFixed(1) + '%';
 		},

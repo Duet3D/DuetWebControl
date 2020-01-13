@@ -126,8 +126,8 @@ export default {
 	methods: {
 		update() {
 			this.chart.config.options.scales.yAxes[0].ticks.max = this.maxHeaterTemperature || defaultMaxTemperature;
-			this.chart.config.options.scales.xAxes[0].time.min = new Date() - maxSampleTime;
-			this.chart.config.options.scales.xAxes[0].time.max = new Date();
+			this.chart.config.options.scales.xAxes[0].ticks.min = new Date() - maxSampleTime;
+			this.chart.config.options.scales.xAxes[0].ticks.max = new Date();
 			this.chart.update();
 		},
 		applyDarkTheme(active) {
@@ -176,6 +176,8 @@ export default {
 							display: true
 						},
 						ticks: {
+							min: new Date() - maxSampleTime,
+							max: new Date(),
 							minor: {
 								fontColor: 'rgba(0,0,0,0.87)',
 								fontFamily: 'Roboto,sans-serif'
@@ -189,9 +191,7 @@ export default {
 							unit: 'minute',
 							displayFormats: {
 								minute: 'HH:mm'
-							},
-							min: new Date() - maxSampleTime,
-							max: new Date()
+							}
 						},
 						type: 'time',
 					}

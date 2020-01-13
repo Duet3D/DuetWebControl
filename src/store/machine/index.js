@@ -2,7 +2,6 @@
 
 import { mapConnectorActions } from './connector'
 
-import BaseConnector from './connector/BaseConnector.js'
 import cache from './cache.js'
 import model from './model.js'
 import settings from './settings.js'
@@ -60,11 +59,11 @@ export default function(hostname, connector) {
 			// Parameter can be either a string or an object { code, (fromInput = false, log = true) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
-				const fromInput = (payload instanceof Object) ? !!payload.fromInput : false;
-				const doLog = (payload instanceof Object) ? !!payload.log : true;
+				const fromInput = (payload instanceof Object) ? Boolean(payload.fromInput) : false;
+				const doLog = (payload instanceof Object) ? Boolean(payload.log) : true;
 				try {
 					const response = await connector.sendCode(code);
-					if (fromInput || response != '') {
+					if (fromInput || response !== '') {
 						logCode(code, response, hostname, fromInput);
 					}
 					return response;
@@ -79,8 +78,9 @@ export default function(hostname, connector) {
 
 			// Upload a file and show progress
 			async upload(context, { filename, content, showProgress = true, showSuccess = true, showError = true, num, count }) {
-				const cancelSource = BaseConnector.getCancelSource();
-				const notification = showProgress && makeFileTransferNotification('upload', filename, cancelSource, num, count);
+				const cancellationToken = {}, startTime = new Date();
+				const notification = showProgress && makeFileTransferNotification('upload', filename, cancellationToken, num, count);
+
 				try {
 					// Check if config.g needs to be backed up
 					if (filename === Path.configFile) {
@@ -93,9 +93,9 @@ export default function(hostname, connector) {
 						}
 					}
 
-					// Perform upload
-					const startTime = new Date();
-					const response = await connector.upload({ filename, content, cancelSource, onProgress: notification && notification.onProgress });
+					// Clear the cached file info and wait for upload to finish
+					context.commit('cache/clearFileInfo', filename);
+					await connector.upload({ filename, content, cancellationToken, onProgress: notification && notification.onProgress });
 
 					// Show success message
 					if (showSuccess && num === count) {
@@ -107,11 +107,10 @@ export default function(hostname, connector) {
 						}
 					}
 
-					// Return the response
+					// Hide the notification again
 					if (showProgress) {
 						notification.hide();
 					}
-					return response;
 				} catch (e) {
 					// Show and report error message
 					if (showProgress) {
@@ -130,17 +129,18 @@ export default function(hostname, connector) {
 			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
 				const type = (payload instanceof Object) ? payload.type : 'auto';
-				const showProgress = (payload instanceof Object) ? !!payload.showProgress : true;
-				const showSuccess = (payload instanceof Object) ? !!payload.showSuccess : true;
-				const showError = (payload instanceof Object) ? !!payload.showError : true;
+				const showProgress = (payload instanceof Object) ? Boolean(payload.showProgress) : true;
+				const showSuccess = (payload instanceof Object) ? Boolean(payload.showSuccess) : true;
+				const showError = (payload instanceof Object) ? Boolean(payload.showError) : true;
 				const num = (payload instanceof Object) ? payload.num : undefined;
 				const count = (payload instanceof Object) ? payload.count : undefined;
 
-				const cancelSource = BaseConnector.getCancelSource();
-				const notification = showProgress && makeFileTransferNotification('download', filename, cancelSource, num, count);
+				const cancellationToken = {}, startTime = new Date();
+				const notification = showProgress && makeFileTransferNotification('download', filename, cancellationToken, num, count);
+
 				try {
-					const startTime = new Date();
-					const response = await connector.download({ filename, type, cancelSource, onProgress: notification && notification.onProgress });
+					// Wait for download to finish
+					const response = await connector.download({ filename, type, cancellationToken, onProgress: notification && notification.onProgress });
 
 					// Show success message
 					if (showSuccess && num === count) {
@@ -152,7 +152,7 @@ export default function(hostname, connector) {
 						}
 					}
 
-					// Return the downloaded data
+					// Hide the notification again and return the downloaded data
 					if (showProgress) {
 						notification.hide();
 					}
@@ -172,9 +172,14 @@ export default function(hostname, connector) {
 
 			// Update machine mode. Reserved for the machine connector!
 			async update({ state, getters, commit, dispatch }, payload) {
-				const wasPrinting = getters.isPrinting, lastJobFile = state.model.job.file.fileName;
+				const wasPrinting = getters['model/isPrinting'];
 				const beepFrequency = state.model.state.beep.frequency, beepDuration = state.model.state.beep.duration;
 				const displayMessage = state.model.state.displayMessage;
+
+				// Check if the job has finished and if so, clear the file cache
+				if (payload.job && payload.job.lastFileName) {
+					commit('cache/clearFileInfo', payload.job.lastFileName);
+				}
 
 				// Merge updates into the object model
 				//console.log(JSON.stringify(payload));
@@ -193,9 +198,9 @@ export default function(hostname, connector) {
 				}
 
 				// Is an update or emergency reset in progress?
-				const reconnect = (state.model.state.status === 'updating') ||
-					(!state.model.electronics.type.startsWith('duet3') && state.model.state.status === 'halted');
-				if (reconnect) {
+				if ((state.model.state.status === 'updating') ||
+					(!state.model.electronics.type.startsWith('duet3') && state.model.state.status === 'halted')) {
+					// Start reconnecting
 					if (!state.isReconnecting) {
 						if (state.model.state.status === 'halted') {
 							log('warning', i18n.t('events.emergencyStop'));
@@ -205,23 +210,18 @@ export default function(hostname, connector) {
 						commit('setReconnecting', true);
 					}
 				} else {
+					// No longer reconnecting...
 					if (state.isReconnecting) {
 						log('success', i18n.t('events.reconnected'));
 						commit('setReconnecting', false);
 					}
 					
-					// Have we just finished a job?
-					if (wasPrinting && !getters.isPrinting) {
-						// Clear the cache of the last file
-						commit('cache/clearFileInfo', lastJobFile);
-
-						// Send M1 if auto-sleep is enabled
-						if (state.autoSleep) {
-							try {
-								await dispatch('sendCode', 'M1');
-							} catch (e) {
-								logCode('M1', e.message, hostname);
-							}
+					// Have we just finished a job? Send M1 if auto-sleep is enabled
+					if (wasPrinting && !getters['model/isPrinting'] && state.autoSleep) {
+						try {
+							await dispatch('sendCode', 'M1');
+						} catch (e) {
+							logCode('M1', e.message, hostname);
 						}
 					}
 				}

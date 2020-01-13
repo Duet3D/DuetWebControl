@@ -70,14 +70,14 @@ import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine/model', ['state']),
+		...mapState('machine/model', ['directories', 'state']),
 		...mapGetters(['uiFrozen']),
 		...mapGetters('machine/model', ['isPrinting']),
-		isRootDirectory() { return this.directory === Path.sys; }
+		isRootDirectory() { return this.directory === Path.system; }
 	},
 	data() {
 		return {
-			directory: Path.sys,
+			directory: Path.system,
 			loading: false,
 			selection: [],
 			showNewDirectory: false,
@@ -99,7 +99,7 @@ export default {
 			}
 		},
 		fileEdited(filename) {
-			if (filename === Path.configFile && !this.isPrinting) {
+			if (filename === Path.combine(this.directories.system, Path.configFile) && !this.isPrinting) {
 				this.showResetPrompt = true;
 			}
 		},
@@ -111,7 +111,7 @@ export default {
 			}
 		},
 		async editConfigTemplate() {
-			const jsonTemplate = await this.download({ filename: Path.combine(Path.sys, 'config.json'), type: 'text' });
+			const jsonTemplate = await this.download({ filename: Path.combine(this.directories.system, 'config.json'), type: 'text' });
 
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -126,6 +126,13 @@ export default {
 			document.body.appendChild(form);
 			form.submit();
 			document.body.removeChild(form);
+		}
+	},
+	watch: {
+		'directories.system'(to, from) {
+			if (this.directory == from) {
+				this.directory = to;
+			}
 		}
 	}
 }

@@ -83,7 +83,7 @@ export default function(hostname) {
 			setFileInfo: (state, { filename, fileInfo }) => state.fileInfos[filename] = fileInfo,
 			clearFileInfo(state, fileOrDirectory) {
 				if (fileOrDirectory) {
-					if (state.fileInfos.hasOwnProperty(fileOrDirectory)) {
+					if (state.fileInfos[fileOrDirectory] !== undefined) {
 						// Delete specific item
 						delete state.fileInfos[fileOrDirectory];
 					} else {

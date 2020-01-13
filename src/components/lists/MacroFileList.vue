@@ -59,13 +59,14 @@
 <script>
 'use strict'
 
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapState, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
+		...mapState('machine/model', ['directories']),
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		}
@@ -99,6 +100,13 @@ export default {
 		},
 		runFile(filename) {
 			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);
+		}
+	},
+	watch: {
+		'directories.macros'(to, from) {
+			if (this.directory == from) {
+				this.directory = to;
+			}
 		}
 	}
 }

@@ -1,6 +1,6 @@
 <template>
-	<v-dialog :value="shown" persistent width="480">
-		<v-card color="primary" dark>
+	<v-overlay :value="shown" :opacity="0.3">
+		<v-card color="primary" width="480">
 			<v-card-title class="subtitle-1">
 				{{ message }}
 			</v-card-title>
@@ -9,7 +9,7 @@
 				<v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
 			</v-card-text>
 		</v-card>
-	</v-dialog>
+	</v-overlay>
 </template>
 
 <script>

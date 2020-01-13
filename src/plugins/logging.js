@@ -23,10 +23,8 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 	let type = 'info', toLog = response;
 	if (response.startsWith('Error: ')) {
 		type = 'error';
-		toLog = response.substr(7);
 	} else if (response.startsWith('Warning: ')) {
 		type = 'warning';
-		toLog = response.substr(9);
 	} else if (response === '') {
 		type = 'success';
 	}
