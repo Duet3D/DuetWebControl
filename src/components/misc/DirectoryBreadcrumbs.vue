@@ -46,7 +46,7 @@ export default {
 				} else if (this.value.startsWith(Path.system)) {
 					pathItems.shift();
 					pathItems[0] = Path.system;
-					rootCaption = this.$t('directory.sys');
+					rootCaption = this.$t('directory.system');
 				} else if (this.value.startsWith(Path.www)) {
 					pathItems.shift();
 					pathItems[0] = Path.www;

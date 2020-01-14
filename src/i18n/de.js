@@ -88,7 +88,7 @@ export default {
 				caption: 'Menüdatei(en) hochladen',
 				title: 'Eine oder mehr Menüdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
-			sys: {
+			system: {
 				caption: 'Systemdatei(en) hochladen',
                 title: 'Eine oder mehr Systemdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
@@ -220,7 +220,7 @@ export default {
 		filaments: 'Filamentverzeichnis',
 		gcodes: 'G-Code-Verzeichnis',
 		macros: 'Makroverzeichnis',
-		sys: 'Systemverzeichnis',
+		system: 'Systemverzeichnis',
 		www: 'WWW-Verzeichnis'
 	},
 	error: {
@@ -371,7 +371,7 @@ export default {
 			start: 'Datei starten',
 			simulate: 'Datei simulieren'
 		},
-		sys: {
+		system: {
 			noFiles: 'Keine Systemdateien',
 			configToolNote: 'mit config tool bearbeiten'
 		}

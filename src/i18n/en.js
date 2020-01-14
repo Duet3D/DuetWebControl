@@ -88,7 +88,7 @@ export default {
 				caption: 'Upload Menu Files',
 				title: 'Upload one or more menu files (drag&drop is supported as well)'
 			},
-			sys: {
+			system: {
 				caption: 'Upload System Files',
 				title: 'Upload one or more system files (drag&drop is supported as well)'
 			},
@@ -220,7 +220,7 @@ export default {
 		filaments: 'Filaments Directory',
 		gcodes: 'G-Codes Directory',
 		macros: 'Macros Directory',
-		sys: 'System Directory',
+		system: 'System Directory',
 		www: 'WWW Directory'
 	},
 	error: {
@@ -371,7 +371,7 @@ export default {
 			start: 'Start File',
 			simulate: 'Simulate File'
 		},
-		sys: {
+		system: {
 			noFiles: 'No System Files',
 			configToolNote: 'edit via config tool'
 		}

@@ -99,7 +99,7 @@ export default {
 				caption: '上传菜单文件',
 				title: '上传一个或多个菜单文件（也支持拖放）'
 			},
-			sys: {
+			system: {
 				caption: '上传系统文件',
 				title: '上传一个或多个系统文件（也支持拖放）'
 			},
@@ -231,7 +231,7 @@ export default {
 		filaments: '细丝目录',
 		gcodes: 'G-Codes目录',
 		macros: '宏目录',
-		sys: '系统目录',
+		system: '系统目录',
 		www: 'WWW目录'
 	},
 	error: {
@@ -381,7 +381,7 @@ export default {
 			start: '开始任务文件',
 			simulate: '模拟文件'
 		},
-		sys: {
+		system: {
 			noFiles: '没有系统文件',
 			configToolNote: 'edit via config tool'
 		}

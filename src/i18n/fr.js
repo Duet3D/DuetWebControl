@@ -97,7 +97,7 @@ export default {
 				caption: 'Envoyer Fichiers Menu',
 				title: 'Envoyer un ou plusieurs fichiers menu (le glisser/déposer est supporté)'
 			},
-			sys: {
+			system: {
 				caption: 'Envoyer Fichiers Système',
 				title: 'Envoyer un ou plusieurs fichiers système (le glisser/déposer est supporté)'
 			},
@@ -229,7 +229,7 @@ export default {
 		filaments: 'Répertoire Filaments',
 		gcodes: 'Répertoire G-Codes',
 		macros: 'Répertoire Macros',
-		sys: 'Répertoire Systeme',
+		system: 'Répertoire Systeme',
 		www: 'Répertoire WWW'
 	},
 	error: {
@@ -380,7 +380,7 @@ export default {
 			start: 'Lancer Fichier',
 			simulate: 'Simuler Fichier'
 		},
-		sys: {
+		system: {
 			noFiles: 'Aucun Fichiers Système',
 			configToolNote: 'éditer via l\'outil de configuration'
 		}
