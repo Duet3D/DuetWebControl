@@ -508,11 +508,12 @@ export default {
 			if (index < item.heaters.length) {
 				const heaterIndex = item.heaters[index];
 				if (heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex] && this.heat.heaters[heaterIndex].name) {
-					const matches = /(.*)\[(.*)\]$/.exec(this.heat.heaters[item.heaters[index]].name);
+					const heaterName = this.heat.heaters[item.heaters[index]].name;
+					const matches = /(.*)\[(.*)\]$/.exec(heaterName);
 					if (matches) {
 						return matches[1];
 					}
-					return item.name;
+					return heaterName;
 				}
 				return this.$t('panel.tools.heater', [heaterIndex]);
 			}

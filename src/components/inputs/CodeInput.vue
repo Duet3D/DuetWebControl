@@ -7,7 +7,9 @@
 <template>
 	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
 		<v-col>
-			<v-combobox ref="input" :value="code" :search-input.sync="code" :items="displayedCodes" :filter="filter" :solo="solo" :disabled="uiFrozen" :loading="doingCode" :placeholder="$t('input.code.placeholder')" @click="click" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false" hide-details>
+			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
+						:search-input.sync="code" @click="click" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
+						:items="displayedCodes" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem" hide-selected>
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -72,7 +74,6 @@ export default {
 				this.wasFocused = true;
 			}
 		},
-		filter: () => true,
 		updateSelection(selection) {
 			if (selection instanceof Array) {
 				selection = (selection.length > 0) ? selection[0] : -1;

@@ -94,7 +94,7 @@ export default class PollConnector extends BaseConnector {
 						})
 						.catch(error => reject(error));
 				} else if (xhr.status === 404) {
-					reject(new FileNotFoundError());
+					reject(new FileNotFoundError(filename));
 				} else if (xhr.status === 501) {
 					if (retry < maxRetries) {
 						// RRF may have run out of output buffers, retry if possible
@@ -743,6 +743,14 @@ export default class PollConnector extends BaseConnector {
 				]
 			}
 		};
+
+		if (response.sysdir !== undefined) {
+			if (response.sysdir.endsWith('/')) {
+				configData.directories = { system: response.sysdir.substr(0, response.sysdir.length - 1) };
+			} else {
+				configData.directories = { system: response.sysdir };
+			}
+		}
 
 		await this.dispatch('update', configData);
 	}

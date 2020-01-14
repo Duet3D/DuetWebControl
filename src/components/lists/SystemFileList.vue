@@ -105,7 +105,7 @@ export default {
 		},
 		async resetBoard() {
 			try {
-				await this.sendCode('M999');
+				await this.sendCode({ code: 'M999', log: false });
 			} catch (e) {
 				// this is expected
 			}
