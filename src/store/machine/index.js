@@ -83,9 +83,11 @@ export default function(hostname, connector) {
 
 				try {
 					// Check if config.g needs to be backed up
-					if (filename === Path.configFile) {
+					const configFile = Path.combine(context.state.model.directories.system, Path.configFile);
+					if (filename === configFile) {
 						try {
-							await connector.move({ from: Path.configFile, to: Path.configBackupFile, force: true, silent: true });
+							const configFileBackup = Path.combine(context.state.model.directories.system, Path.configBackupFile);
+							await connector.move({ from: configFile, to: configFileBackup, force: true, silent: true });
 						} catch (e) {
 							console.warn(e);
 							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);

@@ -27,19 +27,24 @@ class BaseConnector {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
-		xhr.responseType = 'json';
+		xhr.responseType = 'text';
+		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.timeout = defaultRequestTimeout;
 
 		return new Promise((resolve, reject) => {
 			xhr.onload = function() {
 				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve(xhr.response);
+					try {
+						resolve(JSON.parse(xhr.responseText));
+					} catch (e) {
+						reject(e);
+					}
 				} else if (xhr.status === 401) {
 					reject(new InvalidPasswordError());
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError());
 				} else if (xhr.status >= 500) {
-					reject(new OperationFailedError(String(xhr.response)));
+					reject(new OperationFailedError(xhr.responseText));
 				} else if (xhr.status !== 0) {
 					reject(new OperationFailedError());
 				}

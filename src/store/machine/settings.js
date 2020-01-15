@@ -104,7 +104,7 @@ export default function(hostname) {
 				state.extruderFeedrates[index] = value;
 			},
 			setMoveStep(state, { axis, index, value }) {
-				if (state.moveSteps[axis] !== undefined) {
+				if (state.moveSteps[axis] === undefined) {
 					state.moveSteps[axis] = state.moveSteps.default.slice();
 				}
 				state.moveSteps[axis][index] = value;
