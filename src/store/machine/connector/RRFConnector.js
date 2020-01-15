@@ -54,7 +54,12 @@ export default class PollConnector extends BaseConnector {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
-		xhr.responseType = responseType;
+		if (responseType === 'json') {
+			xhr.responseType = 'text';
+			xhr.setRequestHeader('Content-Type', 'application/json');
+		} else {
+			xhr.responseType = responseType;
+		}
 		if (onProgress) {
 			xhr.onprogress = function(e) {
 				if (e.loaded && e.total) {
@@ -74,7 +79,15 @@ export default class PollConnector extends BaseConnector {
 			xhr.onload = function() {
 				that.requests = that.requests.filter(request => request !== xhr);
 				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve(xhr.response);
+					if (responseType === 'json') {
+						try {
+							resolve(JSON.parse(xhr.responseText));
+						} catch (e) {
+							reject(e);
+						}
+					} else {
+						resolve(xhr.response);
+					}
 				} else if (xhr.status === 401) {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
@@ -94,7 +107,7 @@ export default class PollConnector extends BaseConnector {
 						})
 						.catch(error => reject(error));
 				} else if (xhr.status === 404) {
-					reject(new FileNotFoundError());
+					reject(new FileNotFoundError(filename));
 				} else if (xhr.status === 501) {
 					if (retry < maxRetries) {
 						// RRF may have run out of output buffers, retry if possible
@@ -102,10 +115,10 @@ export default class PollConnector extends BaseConnector {
 							.then(result => resolve(result))
 							.catch(error => reject(error));
 					} else {
-						reject(new OperationFailedError(String(xhr.response)));
+						reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 					}
 				} else if (xhr.status >= 500) {
-					reject(new OperationFailedError(String(xhr.response)));
+					reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 				} else if (xhr.status !== 0) {
 					reject(new OperationFailedError());
 				}
@@ -743,6 +756,16 @@ export default class PollConnector extends BaseConnector {
 				]
 			}
 		};
+
+		if (response.sysdir !== undefined) {
+			// FIXME Introduce new Path.equals / Path.startsWith functions to make the following transformation obsolete
+			const sysDir = response.sysdir.endsWith('/') ? response.sysdir.substr(0, response.sysdir.length - 1) : response.sysdir;
+			if (sysDir.startsWith('/')) {
+				configData.directories = { system: '0:' + sysDir };
+			} else {
+				configData.directories = { system: sysDir };
+			}
+		}
 
 		await this.dispatch('update', configData);
 	}

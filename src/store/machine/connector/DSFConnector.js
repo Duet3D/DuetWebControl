@@ -66,7 +66,12 @@ export default class RestConnector extends BaseConnector {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
-		xhr.responseType = responseType;
+		if (responseType === 'json') {
+			xhr.responseType = 'text';
+			xhr.setRequestHeader('Content-Type', 'application/json');
+		} else {
+			xhr.responseType = responseType;
+		}
 		if (onProgress) {
 			xhr.onprogress = function(e) {
 				if (e.loaded && e.total) {
@@ -86,13 +91,21 @@ export default class RestConnector extends BaseConnector {
 			xhr.onload = function() {
 				that.requests = that.requests.filter(request => request !== xhr);
 				if (xhr.status >= 200 && xhr.status < 300) {
-					resolve(xhr.response);
+					if (responseType === 'json') {
+						try {
+							resolve(JSON.parse(xhr.responseText));
+						} catch (e) {
+							reject(e);
+						}
+					} else {
+						resolve(xhr.response);
+					}
 				} else if (xhr.status === 401) {
 					reject(new InvalidPasswordError());
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
 				} else if (xhr.status >= 500) {
-					reject(new OperationFailedError(String(xhr.response)));
+					reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 				} else if (xhr.status !== 0) {
 					reject(new OperationFailedError());
 				}

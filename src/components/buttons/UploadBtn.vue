@@ -54,7 +54,7 @@ export default {
 				case 'macros': return '*';
 				case 'filaments': return '.zip';
 				case 'display': return '*';
-				case 'sys': return '.zip,.bin,.json,.g,.csv';
+				case 'system': return '.zip,.bin,.json,.g,.csv';
 				case 'www': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}
@@ -71,7 +71,7 @@ export default {
 				case 'macros': return this.directories.macros;
 				case 'filaments': return this.directories.filaments;
 				case 'display': return this.directories.display;
-				case 'sys': return this.directories.system;
+				case 'system': return this.directories.system;
 				case 'www': return this.directories.www;
 				case 'update': return this.directories.system;
 			}
@@ -116,7 +116,7 @@ export default {
 		},
 		async fileSelected(e) {
 			await this.doUpload(e.target.files);
-			this.$refs.fileInput.value = "";
+			e.target.value = '';
 		},
 		isWebFile(filename) {
 			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension))) {
@@ -192,7 +192,7 @@ export default {
 
 				// Adjust filename if an update is being uploaded
 				let filename = Path.combine(this.destinationDirectory, content.name);
-				if (this.target === 'sys' || this.target === 'update') {
+				if (this.target === 'system' || this.target === 'update') {
 					if (Path.isSdPath(content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
@@ -242,10 +242,6 @@ export default {
 			this.uploading = false;
 
 			if (success) {
-				if (zipName) {
-					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
-				}
 				this.$emit('uploadComplete', files);
 
 				if (this.updates.firmware || this.updates.wifiServer || this.updates.wifiServerSpiffs) {
@@ -254,6 +250,12 @@ export default {
 				} else if (!this.isLocal && this.updates.webInterface) {
 					// Reload the web interface immediately if it was the only update
 					location.reload(true);
+				}
+
+				// FIXME For some reason the $t function throws an exception when this button is floating
+				if (zipName) {
+					const secondsPassed = Math.round((new Date() - startTime) / 1000);
+					this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
 				}
 			}
 		},

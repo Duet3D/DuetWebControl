@@ -83,13 +83,22 @@ function pushSeriesData(machine, heaterIndex, heater, extra) {
 		}
 	});
 
-	if (!dataset || dataset.locale !== i18n.locale) {
-		const label = heater.name ? heater.name : i18n.t('chart.temperature.heater', [heaterIndex]);
+	// Check if the dataset has to be created first
+	if (!dataset || dataset.locale !== i18n.locale || dataset.rawLabel !== heater.name) {
+		let heaterName;
+		if (heater.name) {
+			const matches = /(.*)\[(.*)\]$/.exec(heaterName);
+			heaterName = matches ? matches[1] : heater.name;
+		} else {
+			heaterName = i18n.t('chart.temperature.heater', [heaterIndex]);
+		}
+
 		if (dataset) {
-			dataset.label = label;
+			dataset.rawLabel = heater.name;
+			dataset.label = heaterName;
 			dataset.locale = i18n.locale;
 		} else {
-			dataset = makeDataset(heaterIndex, extra, label, tempSamples[machine].times.length);
+			dataset = makeDataset(heaterIndex, extra, heaterName, tempSamples[machine].times.length);
 			machineData.temps.push(dataset);
 		}
 	}

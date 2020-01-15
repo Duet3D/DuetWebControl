@@ -1,6 +1,6 @@
 {
   "name": "duetwebcontrol",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -39,7 +39,7 @@
     "eslint": "^6.8.0",
     "eslint-plugin-vue": "^6.1.2",
     "sass": "^1.24.4",
-    "sass-loader": "^8.0.1",
+    "sass-loader": "^8.0.2",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.1",
     "vue-cli-plugin-vuetify": "^2.0.3",

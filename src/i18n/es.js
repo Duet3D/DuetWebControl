@@ -88,7 +88,7 @@ export default {
 				caption: 'Subir Archivo(s) de Menu',
 				title: 'Subir uno o más archivos de Menu (se permite arrastrar y soltar)'
 			},
-			sys: {
+			system: {
 				caption: 'Subir Archivo(s) de Sistema',
 				title: 'Subir uno o más archivos de Sistema (se permite arrastrar y soltar)'
 			},
@@ -221,7 +221,7 @@ export default {
 		filaments: 'Directorio: Filamentos',
 		gcodes: 'Directorio: G-Codes',
 		macros: 'Directorio: Macros',
-		sys: 'Directorio: Sistema',
+		system: 'Directorio: Sistema',
 		www: 'Directorio: Web'
 	},
 	error: {
@@ -373,7 +373,7 @@ export default {
 			start: 'Iniciar Archivo',
 			simulate: 'Simular Archivo'
 		},
-		sys: {
+		system: {
 			noFiles: 'Sin Archivos de Sistema',
 			configToolNote: 'Editar desde Herramienta de Configuración'
 		}

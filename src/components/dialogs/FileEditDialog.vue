@@ -45,7 +45,10 @@
 				</v-btn>
 			</v-app-bar>
 
-			<v-textarea ref="textarea" :value="innerValue" @blur="setInnerValue($event.target.value)" @keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)" :rows="null" hide-details solo class="edit-textarea" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></v-textarea>
+			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"
+						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
+						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -88,12 +91,6 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['upload']),
-		setInnerValue(value) {
-			if (value != this.innerValue) {
-				this.valueChanged = true;
-				this.innerValue = value;
-			}
-		},
 		close(fileSaved) {
 			if (this.valueChanged && !fileSaved && !confirm(this.$t('dialog.fileEdit.confirmClose'))) {
 				return;

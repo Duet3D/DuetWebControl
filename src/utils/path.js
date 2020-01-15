@@ -47,7 +47,7 @@ export function isSdPath(path) {
 	return (path.startsWith(pathObj.display) ||
 			path.startsWith(pathObj.gcodes) ||
 			path.startsWith(pathObj.macros) ||
-			path.startsWith(pathObj.sys) ||
+			path.startsWith(pathObj.system) ||
 			path.startsWith(pathObj.www));
 }
 

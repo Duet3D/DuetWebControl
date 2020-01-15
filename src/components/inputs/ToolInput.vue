@@ -5,7 +5,9 @@
 </style>
 
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :value="inputValue" :search-input.sync="inputValue" :items="items" :label="label" :loading="applying" :disabled="uiFrozen" @keyup.enter="apply" @blur="value = actualValue">
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :disabled="uiFrozen"
+				v-model.number="value" @keyup.enter="apply" :loading="applying"
+				:items="items" @change="change" hide-selected @blur="value = actualValue">
 	</v-combobox>
 </template>
 
@@ -20,10 +22,6 @@ export default {
 		...mapState('machine/model', ['heat', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		...mapState('settings', ['disableAutoComplete']),
-		inputValue: {
-			get() { return this.value.toString(); },
-			set(value) { this.value = parseFloat(value); }
-		},
 		items() {
 			if (this.disableAutoComplete) {
 				return [];
@@ -76,7 +74,12 @@ export default {
 		async apply() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
-			if (!this.applying && this.isNumber(this.value)) {
+			if (!this.isNumber(this.value)) {
+				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
+				return;
+			}
+
+			if (!this.applying) {
 				this.applying = true;
 				try {
 					if (this.spindle) {
@@ -138,8 +141,12 @@ export default {
 					console.warn(e);
 				}
 				this.applying = false;
-			} else {
-				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
+			}
+		},
+		async change(value) {
+			// Note that value is of type String when a user enters a value and then leaves it without confirming...
+			if (value.constructor === Number) {
+				await this.apply();
 			}
 		}
 	},

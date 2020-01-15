@@ -26,6 +26,10 @@ export default {
 			type: String,
 			required: true
 		},
+		log: {
+			type: Boolean,
+			default: true
+		},
 		noWait: Boolean
 	},
 	methods: {
@@ -34,7 +38,7 @@ export default {
 			if (!this.waitingForCode) {
 				this.waitingForCode = !this.noWait;
 				try {
-					await this.sendCode({ code: this.code, showSuccess: !this.noWait });
+					await this.sendCode({ code: this.code, log: this.log, showSuccess: !this.noWait });
 				} catch (e) {
 					// handled before we get here
 				}
