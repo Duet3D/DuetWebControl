@@ -396,6 +396,9 @@ export default {
 			}
 		},
 		onItemContextmenu(props, e) {
+			if (this.contextMenu.shown) {
+				return;
+			}
 			this.onItemTouchEnd();
 
 			// Deal with selection
@@ -414,7 +417,7 @@ export default {
 			});
 		},
 		onItemDragStart(item, e) {
-			if (this.noDragDrop) {
+			if (this.noDragDrop || this.contextMenu.touchTimer || this.contextMenu.shown) {
 				return;
 			}
 

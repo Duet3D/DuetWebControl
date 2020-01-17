@@ -4,7 +4,7 @@
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
-  "author": "Christian Hammacher <chr.hammacher@gmail.com> (https://chrishamm.io)",
+  "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
