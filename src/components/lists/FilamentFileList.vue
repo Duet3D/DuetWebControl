@@ -199,7 +199,8 @@ export default {
 					}
 
 					// Delete the item
-					await this.$refs.filelist.remove(items[i]);
+					await this.delete(Path.combine(Path.filaments, items[i].name));
+					await this.refresh();
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);

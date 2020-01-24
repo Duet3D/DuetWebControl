@@ -230,12 +230,20 @@ export default {
 			}
 		};
 
+		// Create the dataset if necessary
+		if (tempSamples[this.selectedMachine] === undefined) {
+			tempSamples[this.selectedMachine] = {
+				times: [],
+				temps: []
+			};
+		}
+
 		// Create the chart
 		this.chart = Chart.Line(this.$refs.chart, {
 			options: this.options,
 			data: {
-				labels: tempSamples[defaultMachine].times,
-				datasets: tempSamples[defaultMachine].temps
+				labels: tempSamples[this.selectedMachine].times,
+				datasets: tempSamples[this.selectedMachine].temps
 			}
 		});
 		this.applyDarkTheme(this.darkTheme);
@@ -244,58 +252,50 @@ export default {
 		instances.push(this);
 		if (!storeSubscribed) {
 			this.$store.subscribe((mutation, state) => {
-				const result = /machines\/(.+)\/model\/update/.exec(mutation.type);
-				if (result) {
-					// Keep track of temperature updates
-					const machine = result[1], dataset = tempSamples[machine], now = new Date();
-					if (dataset && (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval)) {
-						// Record heater temperatures
-						const usedHeaters = []
-						state.machines[machine].model.heat.heaters.forEach(function(heater, heaterIndex) {
-							if (heater) {
-								pushSeriesData(machine, heaterIndex, heater, false);
-								if (isHeaterConfigured(state, machine, heaterIndex)) {
-									// Display it only if is mapped to at least one tool, bed or chamber
-									usedHeaters.push({ heaterIndex, extra: false });
-								}
-							}
-						});
-
-						state.machines[machine].model.heat.extra.forEach(function(heater, heaterIndex) {
-							pushSeriesData(machine, heaterIndex, heater, true);
-							if (state.machines[state.selectedMachine].settings.displayedExtraTemperatures.indexOf(heaterIndex) !== -1) {
-								// Visibility of extra temps can be configured
-								usedHeaters.push({ heaterIndex, extra: true });
-							}
-						});
-
-						// Record time and deal wih expired temperature samples
-						while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
-							dataset.times.shift();
-							dataset.temps.forEach(data => data.data.shift());
-						}
-						dataset.times.push(now);
-
-						// Deal with visibility and tell chart instances to update
-						dataset.temps.forEach(function(dataset) {
-							dataset.showLine = usedHeaters.some(item => item.heaterIndex === dataset.heaterIndex && item.extra === dataset.extra);
-						});
-						instances.forEach(instance => instance.update());
-					}
-				} else if (mutation.type === 'addMachine') {
-					// Add new dataset for added machines
-					const dataset = {
+				if (mutation.type === 'addMachine') {
+					tempSamples[mutation.payload.hostname] = {
 						times: [],
 						temps: []
-					}
-					tempSamples[mutation.payload.hostname] = dataset;
+					};
+				} else if (mutation.type === 'removeMachine') {
+					delete tempSamples[mutation.payload];
 				} else {
-					// Delete datasets of disconnected machines
-					const result = /machines\/(.+)\/unregister/.exec(mutation.type);
+					const result = /machines\/(.+)\/model\/update/.exec(mutation.type);
 					if (result) {
-						const machine = result[1];
-						if (tempSamples[machine] !== undefined) {
-							delete tempSamples[machine];
+						const machine = result[1], dataset = tempSamples[machine], now = new Date();
+						if (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval) {
+							// Record heater temperatures
+							const usedHeaters = []
+							state.machines[machine].model.heat.heaters.forEach(function(heater, heaterIndex) {
+								if (heater) {
+									pushSeriesData(machine, heaterIndex, heater, false);
+									if (isHeaterConfigured(state, machine, heaterIndex)) {
+										// Display it only if is mapped to at least one tool, bed or chamber
+										usedHeaters.push({ heaterIndex, extra: false });
+									}
+								}
+							});
+
+							state.machines[machine].model.heat.extra.forEach(function(heater, heaterIndex) {
+								pushSeriesData(machine, heaterIndex, heater, true);
+								if (state.machines[machine].settings.displayedExtraTemperatures.indexOf(heaterIndex) !== -1) {
+									// Visibility of extra temps can be configured
+									usedHeaters.push({ heaterIndex, extra: true });
+								}
+							});
+
+							// Record time and deal wih expired temperature samples
+							while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
+								dataset.times.shift();
+								dataset.temps.forEach(data => data.data.shift());
+							}
+							dataset.times.push(now);
+
+							// Deal with visibility and tell chart instances to update
+							dataset.temps.forEach(function(dataset) {
+								dataset.showLine = usedHeaters.some(item => item.heaterIndex === dataset.heaterIndex && item.extra === dataset.extra);
+							});
+							instances.forEach(instance => instance.update());
 						}
 					}
 				}

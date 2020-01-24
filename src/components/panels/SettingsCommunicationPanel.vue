@@ -6,10 +6,10 @@
 
 		<v-card-text>
 			<v-row>
-				<v-col v-if="connector === 'rest'">
+				<v-col v-if="connectorType === 'rest'">
 					<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>
 				</v-col>
-				<template v-else-if="connector === 'poll'">
+				<template v-else-if="connectorType === 'poll'">
 					<v-col cols="6">
 						<v-text-field v-model.number="ajaxRetries" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.ajaxRetries')" hide-details></v-text-field>
 					</v-col>
@@ -43,6 +43,9 @@ export default {
 	computed: {
 		...mapState('machine', ['settings']),
 		...mapGetters('machine', ['connector']),
+		connectorType() {
+			return this.connector ? this.connector.type : null;
+		},
 		pingInterval: {
 			get() { return this.settings.pingInterval; },
 			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ pingInterval: value }); } }

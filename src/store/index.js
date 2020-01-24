@@ -39,14 +39,14 @@ const store = new Vuex.Store({
 	},
 	actions: {
 		// Connect to the given hostname using the specified credentials
-		async connect({ state, commit, dispatch }, { hostname = location.host, username = defaultUsername, password = defaultPassword } = {}) {
+		async connect({ state, commit, dispatch }, { hostname = location.host, username = defaultUsername, password = defaultPassword, retrying = false } = {}) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error('Invalid hostname');
 			}
 			if (state.machines[hostname] !== undefined) {
 				throw new Error(`Host ${hostname} is already connected!`);
 			}
-			if (state.isConnecting) {
+			if (state.isConnecting && !retrying) {
 				throw new Error('Already connecting');
 			}
 
@@ -70,8 +70,12 @@ const store = new Vuex.Store({
 				if (!isPasswordError || password !== defaultPassword)  {
 					logGlobal(isPasswordError ? 'warning' : 'error', i18n.t('error.connect', [hostname]), e.message);
 				}
+
 				if (isPasswordError) {
 					commit('askForPassword');
+				} else if (!state.isLocal && hostname === location.host) {
+					setTimeout(() => dispatch('connect', { hostname, username, password, retrying: true }), 1000);
+					return;
 				}
 			}
 			commit('setConnecting', false);
@@ -130,7 +134,7 @@ const store = new Vuex.Store({
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
 				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
-				dispatch(`machines/${hostname}/reconnect`);
+				setTimeout(() => dispatch(`machines/${hostname}/reconnect`), 1000);
 			}
 		}
 	},

@@ -81,7 +81,11 @@ export default class PollConnector extends BaseConnector {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					if (responseType === 'json') {
 						try {
-							resolve(JSON.parse(xhr.responseText));
+							if (!xhr.responseText) {
+								resolve(null);
+							} else {
+								resolve(JSON.parse(xhr.responseText));
+							}
 						} catch (e) {
 							reject(e);
 						}

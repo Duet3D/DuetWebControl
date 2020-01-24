@@ -278,7 +278,7 @@ export default {
 		},
 		'job.lastFileName'(to) {
 			if (to && Path.pathAffectsFilelist(to, this.directory, this.filelist)) {
-				this.refresh();
+				this.$refs.filelist.refresh();
 			}
 		}
 	}

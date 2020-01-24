@@ -100,11 +100,12 @@ const pathObj = {
 	system: '0:/sys',
 	www: '0:/www',
 
+	dwcCacheFile: '0:/sys/dwc2cache.json',
+	dwcFactoryDefaults: '0:/sys/dwc2defaults.json',
+	dwcSettingsFile: '0:/sys/dwc2settings.json',
+
 	configFile: 'config.g',
 	configBackupFile: 'config.g.bak',
-	dwcCacheFile: 'dwc2cache.json',
-	dwcFactoryDefaults: 'dwc2defaults.json',
-	dwcSettingsFile: 'dwc2settings.json',
 	heightmapFile: 'heightmap.csv',
 
 	combine,

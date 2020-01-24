@@ -63,7 +63,7 @@ export const Routing = [
 			}
 			// Visualiser (coming soon)
 			/* {
-				icon: 'mdi-theater',
+				icon: 'mdi-3d-rotation',
 				caption: 'menu.job.visualiser',
 				path: '/Job/Visualiser',
 				component: Job.Visualiser

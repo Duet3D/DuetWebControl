@@ -35,7 +35,11 @@ class BaseConnector {
 			xhr.onload = function() {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					try {
-						resolve(JSON.parse(xhr.responseText));
+						if (!xhr.responseText) {
+							resolve(null);
+						} else {
+							resolve(JSON.parse(xhr.responseText));
+						}
 					} catch (e) {
 						reject(e);
 					}
