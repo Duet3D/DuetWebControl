@@ -24,12 +24,11 @@ export default {
 	// Connect asynchronously and return the connector that worked.
 	// If no connector can be found, an error will be thrown.
 	async connect(hostname, user, password) {
-		let connector = null, lastError = null;
+		let lastError = null;
 		for (let i = 0; i < connectors.length; i++) {
 			try {
-				connector = await connectors[i].connect(hostname, user, password);
-				lastError = null;
-				break;
+				const connector = await connectors[i].connect(hostname, user, password);
+				return connector;
 			} catch (e) {
 				lastError = e;
 				if (e instanceof LoginError) {
@@ -38,11 +37,7 @@ export default {
 				}
 			}
 		}
-
-		if (lastError !== null) {
-			throw lastError;
-		}
-		return connector;
+		throw lastError;
 	},
 
 	// Install the global Vuex store

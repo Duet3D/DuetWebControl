@@ -43,8 +43,8 @@ export default function(hostname, connector) {
 			isReconnecting: false
 		},
 		getters: {
-			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length,
-			connector: () => connector ? connector.type : null
+			connector: () => connector,
+			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length
 		},
 		actions: {
 			...mapConnectorActions(connector, ['disconnect', 'delete', 'move', 'makeDirectory', 'getFileList', 'getFileInfo']),

@@ -94,7 +94,10 @@ export default function(hostname) {
 		mutations: {
 			load: (state, payload) => patch(state, payload, true),
 
-			addCode: (state, code) => state.codes.push(code),
+			addCode(state, code) {
+				state.codes.push(code),
+				state.codes.sort();
+			},
 			removeCode: (state, code) => state.codes = state.codes.filter(item => item !== code),
 
 			setExtrusionAmount(state, { index, value }) {

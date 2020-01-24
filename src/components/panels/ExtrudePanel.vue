@@ -6,7 +6,7 @@
 
 		<v-card-text class="pb-0">
 			<v-row class="pb-1" align="center" justify="center">
-				<v-col v-if="currentTool && currentTool.extruders.length > 1">
+				<v-col v-if="currentTool && currentTool.extruders.length > 1" cols="auto">
 					<p class="mb-1">
 					{{ $t('panel.extrude.mixRatio') }}
 					</p>

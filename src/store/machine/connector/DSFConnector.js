@@ -21,7 +21,7 @@ export default class RestConnector extends BaseConnector {
 				// Successfully connected, the first message is the full object model
 				const model = JSON.parse(e.data);
 				resolve(model);
-			}
+			};
 			socket.onclose = function(e) {
 				if (e.code === 1001 || e.code == 1011) {
 					// DCS unavailable or incompatible DCS version
@@ -30,7 +30,7 @@ export default class RestConnector extends BaseConnector {
 					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
 					reject(new NetworkError(e.reason));
 				}
-			}
+			};
 		});
 
 		return new RestConnector(hostname, password, socket, model);
@@ -93,7 +93,11 @@ export default class RestConnector extends BaseConnector {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					if (responseType === 'json') {
 						try {
-							resolve(JSON.parse(xhr.responseText));
+							if (!xhr.responseText) {
+								resolve(null);
+							} else {
+								resolve(JSON.parse(xhr.responseText));
+							}
 						} catch (e) {
 							reject(e);
 						}
