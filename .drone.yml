@@ -1,0 +1,43 @@
+---
+kind: pipeline
+type: docker
+name: default
+
+# TODO: Add caching
+# TODO: Build artifacts
+
+steps:
+- name: init
+  image: node:lts
+  commands:
+    - npm install
+
+- name: lint
+  image: node:lts
+  commands:
+    - npm run lint
+  depends_on:
+    - init
+
+# - name: test
+#   image: node:lts
+#   commands:
+#     - npm run test:unit
+#   depends_on:
+#     - init
+
+# - name: translation-report
+#   image: node:lts
+#   commands:
+#     - npm run i18n:report
+#   depends_on:
+#     - init
+
+- name: build
+  image: node:lts
+  commands:
+    - npm run build
+  depends_on:
+    - init
+    - lint
+    # - test
