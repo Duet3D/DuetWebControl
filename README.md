@@ -1,3 +1,5 @@
+[![Build Status](https://cloud.drone.io/api/badges/centerorbit/DuetWebControl/status.svg?branch=add-drone-pipeline)](https://cloud.drone.io/centerorbit/DuetWebControl)
+
 # Duet Web Control
 
 Duet Web Control is a fully-responsive HTML5-based web interface for RepRapFirmware which utilizes the Vue.js framework, Vuetify and a few other libraries to allow easy control of Duet-based 3D printer electronics.
