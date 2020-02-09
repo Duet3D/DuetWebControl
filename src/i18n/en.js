@@ -642,6 +642,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam URL (optional)',
 			webcamUpdateInterval: 'Webcam update interval ({0})',
+			webcamLiveURL: 'URL to open when Webcam image is clicked (optional)',
 			webcamFix: 'Do not append extra HTTP qualifier when reloading images',
 			webcamEmbedded: 'Embed webcam image in an iframe',
 			webcamRotation: 'Rotate webcam image',
