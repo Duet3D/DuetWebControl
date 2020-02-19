@@ -1,6 +1,16 @@
 'use strict'
 
 const boardDefinitions = {
+	LPC176x: {
+		firmwareFileRegEx: /firmware(.*)\.bin/i,
+		firmwareFile: 'firmware.bin',
+        iapFiles: [],
+        hasDisplay: true,
+        hasEthernet: true,
+        hasWiFi: true,
+        hasPowerFailureDetection: false,
+        hasMotorLoadDetection: false
+    },
 	duet06: {
 		firmwareFileRegEx: /RepRapFirmware(.*)\.bin/i,
 		firmwareFile: 'RepRapFirmware.bin',
