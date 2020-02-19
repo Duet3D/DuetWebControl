@@ -103,7 +103,7 @@ const pathObj = {
 	dwcCacheFile: '0:/sys/dwc2cache.json',
 	dwcFactoryDefaults: '0:/sys/dwc2defaults.json',
 	dwcSettingsFile: '0:/sys/dwc2settings.json',
-
+	boardFile: '0:/sys/board.txt',
 	configFile: 'config.g',
 	configBackupFile: 'config.g.bak',
 	heightmapFile: 'heightmap.csv',

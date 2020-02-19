@@ -99,7 +99,7 @@ export default {
 			}
 		},
 		fileEdited(filename) {
-			if (filename === Path.combine(this.directories.system, Path.configFile) && !this.isPrinting) {
+			if ((filename === Path.combine(this.directories.system, Path.configFile) || (filename === Path.combine(this.directories.system, Path.boardFile)) ) && !this.isPrinting) {
 				this.showResetPrompt = true;
 			}
 		},
