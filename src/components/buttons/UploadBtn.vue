@@ -12,7 +12,7 @@
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<confirm-dialog :shown.sync="confirmUpdate" :question="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
+		<confirm-dialog :shown.sync="confirmUpdate" :title="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
 	</div>
 </template>
 
@@ -24,6 +24,7 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
+import { NetworkInterfaceType } from '../../store/machine/modelEnums.js'
 import Path from '../../utils/path.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
@@ -32,9 +33,8 @@ const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '
 export default {
 	computed: {
 		...mapState(['isLocal']),
-		...mapState('machine/model', ['directories', 'electronics']),
+		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapGetters('machine/model', ['board']),
 		caption() {
 			if (this.extracting) {
 				return this.$t('generic.extracting');
@@ -55,7 +55,7 @@ export default {
 				case 'filaments': return '.zip';
 				case 'display': return '*';
 				case 'system': return '.zip,.bin,.json,.g,.csv';
-				case 'www': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
+				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 				case 'update': return '.zip,.bin';
 			}
 			return undefined;
@@ -72,7 +72,7 @@ export default {
 				case 'filaments': return this.directories.filaments;
 				case 'display': return this.directories.display;
 				case 'system': return this.directories.system;
-				case 'www': return this.directories.www;
+				case 'web': return this.directories.web;
 				case 'update': return this.directories.system;
 			}
 			return undefined;
@@ -185,6 +185,23 @@ export default {
 			this.updates.wifiServer = false;
 			this.updates.wifiServerSpiffs = false;
 
+			let firmwareFileName, iapSBCFileName, iapSDFileName;
+			let firmwareFileRegEx = /\*/, iapSBCFileRegEx = /\*/, iapSDFileRegEx = /\*/;
+			if (this.boards.length > 0) {
+				firmwareFileName = this.boards[0].firmwareFileName;
+				if (firmwareFileName) {
+					firmwareFileRegEx = new RegExp(firmwareFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
+				}
+				iapSBCFileName = this.boards[0].iapFileNameSBC;
+				if (iapSBCFileName) {
+					iapSBCFileRegEx = new RegExp(iapSBCFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
+				}
+				iapSDFileName = this.boards[0].iapFileNameSD;
+				if (iapSDFileName) {
+					iapSDFileRegEx = new RegExp(iapSDFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
+				}
+			}
+
 			let success = true;
 			this.uploading = true;
 			for (let i = 0; i < files.length; i++) {
@@ -196,21 +213,16 @@ export default {
 					if (Path.isSdPath(content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
-						filename = Path.combine(this.directories.www, content.name);
+						filename = Path.combine(this.directories.web, content.name);
 						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
-					} else if (!this.board.firmwareFileRegEx) {
-						if (this.electronics.shortName &&
-							content.name.toLowerCase().startsWith('duet3firmware_' + this.electronics.shortName.toLowerCase()) &&
-							content.name.toLowerCase().endsWith('.bin')) {
-							filename = Path.combine(Path.system, `Duet3Firmware_${this.electronics.shortName}.bin`);
-							this.updates.firmware = true;
-						}
-					} else if (this.board.firmwareFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.system, this.board.firmwareFile);
+					} else if (firmwareFileRegEx.test(content.name)) {
+						filename = Path.combine(Path.system, firmwareFileName);
 						this.updates.firmware = true;
-					} else if (this.board.iapFiles.indexOf(content.name) !== -1) {
-						filename = Path.combine(Path.system, Path.extractFileName(content.name));
-					} else if (this.board.hasWiFi) {
+					} else if (this.state.dsfVersion && iapSBCFileRegEx.test(content.name)) {
+						filename = Path.combine(Path.system, iapSBCFileName);
+					} else if (iapSDFileRegEx.test(content.name)) {
+						filename = Path.combine(Path.system, iapSDFileName);
+					} else if (!this.state.dsfVersion && this.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
 						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 							filename = Path.combine(Path.system, 'DuetWiFiServer.bin');
 							this.updates.wifiServer = true;

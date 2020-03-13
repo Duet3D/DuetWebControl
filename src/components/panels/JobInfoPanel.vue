@@ -15,12 +15,12 @@ p:last-child {
 
 		<v-card-text class="d-flex flex-column pt-0">
 			<p>
-				<strong>{{ $t('panel.jobInfo.height') }}</strong> {{ $displayZ(jobFile.height) }}
+				<strong>{{ $t('panel.jobInfo.height') }}</strong> {{ (jobFile.height > 0) ? $displayZ(jobFile.height) : $t('generic.noValue') }}
 			</p>
-			<p v-if="mode === 'FFF'">
+			<p v-if="isFFF">
 				<strong>{{ $t('panel.jobInfo.layerHeight') }}</strong> {{ $displayZ(jobFile.layerHeight) }}
 			</p>
-			<p v-if="mode === 'FFF'">
+			<p v-if="isFFF">
 				<strong>{{ $t('panel.jobInfo.filament') }}</strong> {{ $displayZ(jobFile.filament, 'mm') }}
 			</p>
 			<p>
@@ -36,12 +36,15 @@ p:last-child {
 
 import { mapState } from 'vuex'
 
+import { MachineMode } from '../../store/machine/modelEnums.js'
+
 export default {
 	computed: {
 		...mapState('machine/model', {
 			mode: state => state.state.mode,
 			jobFile: state => state.job.file
-		})
+		}),
+		isFFF() { return this.mode === MachineMode.fff; }
 	}
 }
 </script>

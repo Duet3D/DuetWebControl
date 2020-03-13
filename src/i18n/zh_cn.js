@@ -95,7 +95,7 @@ export default {
 				caption: '上传细丝配置',
 				title: '上传一个或多个细丝配置（也支持拖放）'
 			},
-			display: {
+			menu: {
 				caption: '上传菜单文件',
 				title: '上传一个或多个菜单文件（也支持拖放）'
 			},
@@ -103,7 +103,7 @@ export default {
 				caption: '上传系统文件',
 				title: '上传一个或多个系统文件（也支持拖放）'
 			},
-			www: {
+			web: {
 				caption: '上传Web文件',
 				title: '上传一个或多个Web文件（也支持拖放）'
 			},
@@ -227,12 +227,12 @@ export default {
 		numberRequired: '请输入有效的数值'
 	},
 	directory: {
-		display: '菜单目录',
+		menu: '菜单目录',
 		filaments: '细丝目录',
 		gcodes: 'G-Codes目录',
 		macros: '宏目录',
 		system: '系统目录',
-		www: 'WWW目录'
+		web: 'WWW目录'
 	},
 	error: {
 		notImplemented: '{0}没有实施',
@@ -283,14 +283,14 @@ export default {
 		info: '信息',
 		warning: '警告',
 		success: '成功',
-		heaterStates: [
-			'关闭',
-			'待机',
-			'活动',
-			'故障',
-			'正在调整？？？',
-			'offline'
-		],
+		heaterStates: {
+			off: '关闭',
+			standby: '待机',
+			active: '活动',
+			fault: '故障',
+			tuning: '正在调整？？？',
+			offline: 'offline'
+		},
 		status: {
 			updating: '正在更新',
 			off: '关闭',
@@ -348,7 +348,7 @@ export default {
 			noFiles: '没有文件或者目录',
 			goUp: '转到顶部'
 		},
-		display: {
+		menu: {
 			noFiles: '没有文件可显示'
 		},
 		eventLog: {
@@ -404,7 +404,7 @@ export default {
 			jobs: '任务',
 			filaments: '细丝',
 			macros: '宏',
-			display: '显示',
+			menu: '显示',
 			system: '系统',
 			web: 'Web'
 		},
@@ -678,7 +678,8 @@ export default {
 			mcuTemp: 'MCU温度',
 			mcuTempTitle: '最小值：{0}，最大值：{1}',
 			vIn: '输入电压',
-			vInTitle: '最小值：{0}，最大值：{1}',
+			v12: 'V12',
+			minMax: '最小值：{0}，最大值：{1}',
 			fanRPM: '风扇转速RPM',
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'
@@ -702,6 +703,7 @@ export default {
 			extra: {
 				caption: '额外',
 				sensor: '传感器',
+				sensorIndex: '传感器 {0}',
 				value: '值',
 				showInChart: '在图表中显示',
 				noItems: '没有额外加热器'

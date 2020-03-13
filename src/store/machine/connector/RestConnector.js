@@ -1,8 +1,8 @@
-// RESTful connector for the DSF API
+// RESTful connector for DSF
 'use strict'
 
 import BaseConnector from './BaseConnector.js'
-import { FileInfo } from '../modelItems.js'
+import { ParsedFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -316,7 +316,7 @@ export default class RestConnector extends BaseConnector {
 		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
-	async move({ from, to, force, silent }) {
+	async move({ from, to, force = false, silent = false }) {
 		const formData = new FormData();
 		formData.set('from', from);
 		formData.set('to', to);
@@ -339,7 +339,7 @@ export default class RestConnector extends BaseConnector {
 
 	async download(payload) {
 		const filename = (payload instanceof Object) ? payload.filename : payload;
-		const type = (payload instanceof Object) ? payload.type : 'text';
+		const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
 		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 		const cancellationToken = (payload instanceof Object && payload.cancellationToken) ? payload.cancellationToken : null;
 
@@ -368,6 +368,6 @@ export default class RestConnector extends BaseConnector {
 
 	async getFileInfo(filename) {
 		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
-		return new FileInfo(response);
+		return new ParsedFileInfo(response);
 	}
 }

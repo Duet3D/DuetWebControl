@@ -1,285 +1,352 @@
 'use strict'
 
-import { defaultBoardName, getBoardDefinition } from './boards.js'
+import {
+	InputChannelName,
+	KinematicsName,
+	StatusType,
+	isPrinting
+} from './modelEnums.js'
 import {
 	Axis,
-	Channel,
-	BedOrChamber,
-	Drive,
-	ExtraHeater,
+	Board,
 	Extruder,
 	Fan,
-	FileInfo,
-	Firmware,
 	Heater,
+	InputChannel,
+	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics,
+	ParsedFileInfo,
 	Probe,
 	Tool,
 	fixMachineItems
 } from './modelItems.js'
 
 import Path from '../../utils/path.js'
-import patch from '../../utils/patch.js'
+import { patch, quickPatch } from '../../utils/patch.js'
 
-export default function(connector) {
-	return {
-		namespaced: true,
-		state: {
-			channels: {
-				http: new Channel(),
-				telnet: new Channel(),
-				file: new Channel(),
-				usb: new Channel(),
-				aux: new Channel(),
-				daemon: new Channel(),
-				codeQueue: new Channel(),
-				lcd: new Channel(),
-				spi: new Channel(),
-				autoPause: new Channel()
-			},
-			directories: {
-				filaments: Path.filaments,
-				gCodes: Path.gCodes,
-				macros: Path.macros,
-				menu: Path.menu,
-				system: Path.system,
-				www: Path.www
-			},
-			electronics: {
-				version: null,
-				type: defaultBoardName,
-				shortName: null,
-				name: null,
-				revision: null,
-				firmware: new Firmware(),
-				processorID: null,
-				vIn: {
-					current: null,
-					min: null,
-					max: null
-				},
-				mcuTemp: {
-					current: null,
-					min: null,
-					max: null
-				},
-				expansionBoards: []
-			},
-			fans: [
-				new Fan({
-					thermostatic: {
-						control: false
-					},
-					value: 0
-				})
-			],
-			heat: {
-				beds: [									// may contain null items
-					new BedOrChamber({
-						active: [0],
-						standby: [0],
-						heaters: [0]
-					})
-				],
-				chambers: [],							// same structure as 'beds'
-				coldExtrudeTemperature: 160,
-				coldRetractTemperature: 90,
-				extra: [
-					new ExtraHeater({
-						name: 'MCU'
-					})
-				],
-				heaters: [								// may contain null elements as dummies (e.g. if no heated bed is present)
-					new Heater(),
-					new Heater(),
-					new Heater()
-				]
-			},
-			httpEndpoints: [],
-			job: {
-				file: new FileInfo(),
-				filePosition: null,
-
-				lastFileName: null,
-				lastFileAborted: false,
-				lastFileCancelled: false,
-				lastFileSimulated: false,
-
-				extrudedRaw: [],						// virtual amount extruded without any modifiers like mixing or extrusion factors
-				duration: null,
-				layer: null,
-				layerTime: null,
-				layers: [],
-				// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
-
-				warmUpDuration: null,
-				timesLeft: {
-					file: null,
-					filament: null,
-					layer: null
-				}
-			},
-			lasers: [],
-			messageBox: {
-				mode: null,
-				title: null,
-				message: null,
-				axisControls: [],						// provides axis indices
-				seq: -1,
-				timeout: null							// deprecated - will be dropped in a future version
-			},
-			move: {
-				axes: [
-					new Axis({
-						letter: 'X',
-						drives: [0],
-						homed: true
-					}),
-					new Axis({
-						letter: 'Y',
-						drives: [1],
-						homed: true
-					}),
-					new Axis({
-						letter: 'Z',
-						drives: [2],
-						homed: true
-					})
-				],
-				babystepZ: 0.0,
-				currentMove: {
-					requestedSpeed: 0.0,
-					topSpeed: 0.0
-				},
-				compensation: 'None',
-				heightmapFile: null,
-				drives: [
-					new Drive(),
-					new Drive(),
-					new Drive(),
-					new Drive(),
-					new Drive()
-				],
-				extruders: [
-					new Extruder(),
-					new Extruder()
-				],
-				geometry: {
-					type: 'cartesian',
-					anchors: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-					printRadius: 0.0,
-					diagonals: [0.0, 0.0, 0.0],
-					radius: 0.0,
-					homedHeight: 0.0,
-					angleCorrections: [0.0, 0.0, 0.0],
-					endstopAdjustments: [0.0, 0.0, 0.0],
-					tilt: [0.0, 0.0]
-				},
-				idle: {
-					timeout: 30.0,
-					factor: 0.3
-				},
-				probeGrid: {
-					xMin: 0.0,
-					xMax: 0.0,
-					xSpacing: 0.0,
-					yMin: 0.0,
-					yMax: 0.0,
-					ySpacing: 0.0,
-					radius: 0.0,
-					spacing: 0.0
-				},
-				speedFactor: 1.0,
-				currentWorkplace: 0,
-				workplaceCoordinates: []
-			},
-			network: {
-				hostname: connector ? connector.hostname : 'duet',
-				name: connector ? `(${connector.hostname})` : 'Duet Web Control 2',
-				password: 'reprap',
-				interfaces: []
-			},
-			scanner: {
-				progress: 0.0,
-				status: 'D'
-			},
-			sensors: {
-				endstops: [],
-				probes: [
-					new Probe()
-				]
-				// sensors: []							// TODO thermistors etc
-			},
-			spindles: [],
-			state: {
-				atxPower: null,
-				beep: {
-					frequency: 0,
-					duration: 0
-				},
-				currentTool: -1,
-				displayMessage: null,
-				dsfVersion: null,						// FIXME not present in the DSF OM yet but it is planned
-				logFile: null,
-				mode: null,								// one of ['FFF', 'CNC', 'Laser', null (exclusive in DWC)]
-				status: null							// one of the following:
-				// ['updating', 'off', 'halted', 'pausing', 'paused', 'resuming', 'processing', 'simulating', 'busy', 'changingTool', 'idle', null]
-			},
-			storages: [],
-			tools: [
-				new Tool({
-					number: 0,
-					active: [0],
-					standby: [0],
-					heaters: [1],
-					extruders: [0]
-				}),
-				new Tool({
-					number: 1,
-					active: [0],
-					standby: [0],
-					heaters: [2],
-					extruders: [1]
-				})
-			],
-			userSessions: [],
-			userVariables: []
+// Internal object model as provided by RepRapFirmware and DSF
+// This must be kept in sync for things to work properly...
+export class MachineModel {
+	constructor(initData) { quickPatch(this, initData); }
+	boards = []
+	directories = {
+		filaments: Path.filaments,
+		gCodes: Path.gCodes,
+		macros: Path.macros,
+		menu: Path.menu,
+		scans: Path.scans,
+		system: Path.system,
+		web: Path.web
+	}
+	fans = []
+	heat = {
+		bedHeaters: [],
+		chamberHeaters: [],
+		coldExtrudeTemperature: 160,
+		coldRetractTemperature: 90,
+		heaters: []
+	}
+	inputs = [
+		new InputChannel({ name: InputChannelName.http }),
+		new InputChannel({ name: InputChannelName.telnet }),
+		new InputChannel({ name: InputChannelName.file }),
+		new InputChannel({ name: InputChannelName.usb }),
+		new InputChannel({ name: InputChannelName.aux }),
+		new InputChannel({ name: InputChannelName.trigger }),
+		new InputChannel({ name: InputChannelName.codeQueue }),
+		new InputChannel({ name: InputChannelName.lcd }),
+		new InputChannel({ name: InputChannelName.sbc }),
+		new InputChannel({ name: InputChannelName.daemon }),
+		new InputChannel({ name: InputChannelName.autoPause })
+	]
+	httpEndpoints = []							// *** missing in RRF (only applicable for Duet 3 in SBC mode)
+	job = {
+		duration: null,
+		file: new ParsedFileInfo(),
+		filePosition: null,
+		firstLayerDuration: null,
+		lastFileName: null,
+		lastFileAborted: false,					// *** missing in RRF
+		lastFileCancelled: false,				// *** missing in RRF
+		lastFileSimulated: false,				// *** missing in RRF
+		layer: null,
+		layerTime: null,
+		layers: [],								// *** missing in RRF
+		// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
+		timesLeft: {
+			filament: null,
+			file: null,
+			layer: null
 		},
-		getters: {
-			board: state => getBoardDefinition(state.electronics.type),
-			currentTool(state) {
-				if (state.state.currentTool >= 0) {
-					return state.tools[state.state.currentTool];
-				}
-				return null;
+		warmUpDuration: null
+	}
+	limits = {
+		axes: null,
+		axesPlusExtruders: null,
+		bedHeaters: null,
+		boards: null,
+		chamberHeaters: null,
+		drivers: null,
+		driversPerAxis: null,
+		extruders: null,
+		extrudersPerTool: null,
+		fans: null,
+		gpInPorts: null,
+		gpOutPorts: null,
+		heaters: null,
+		heatersPerTool: null,
+		monitorsPerHeater: null,
+		sensors: null,
+		spindles: null,
+		triggers: null,
+		volumes: null,
+		workplaces: null,
+		zProbeProgramBytes: null,
+		zProbes: null
+	}
+	move = {
+		axes: [],
+		calibration: {
+			final: {
+				deviation: 0,
+				mean: 0
 			},
-			fractionPrinted: state => (state.job.filePosition && state.job.file.size) ? state.job.filePosition / state.job.file.size : 0,
-			isPrinting: state => ['pausing', 'paused', 'resuming', 'processing', 'simulating'].indexOf(state.state.status) !== -1,
-			isSimulating: state => state.state.status === 'simulating',
-			isPaused: state => ['pausing', 'paused', 'resuming'].indexOf(state.state.status) !== -1,
-			maxHeaterTemperature(state) {
-				let maxTemp
-				state.heat.heaters.forEach(function(heater) {
-					if (maxTemp === undefined || heater.max > maxTemp) {
-						maxTemp = heater.max;
-					}
-				});
-				return maxTemp;
+			initial: {
+				deviation: 0,
+				mean: 0
 			},
-			jobProgress(state, getters) {
-				if (getters.isPrinting) {
-					if (!getters.isSimulating && state.job.file.filament.length && state.job.extrudedRaw.length) {
-						return Math.min(1, state.job.extrudedRaw.reduce((a, b) => a + b) / state.job.file.filament.reduce((a, b) => a + b));
-					}
-					return getters.fractionPrinted;
-				}
-				return state.job.lastFileName ? 1 : 0;
-			}
+			numFactors: 0
 		},
-		mutations: {
-			update(state, payload) {
-				patch(state, payload, true);
-				fixMachineItems(state, payload);
-			}
+		compensation: {
+			fadeHeight: 0,
+			file: null,
+			meshDeviation: null,
+			probeGrid: {
+				xMin: 0.0,
+				xMax: 0.0,
+				xSpacing: 0.0,
+				yMin: 0.0,
+				yMax: 0.0,
+				ySpacing: 0.0,
+				radius: 0.0
+			},
+			type: 'none'
+		},
+		currentMove: {
+			acceleration: 0,
+			deceleration: 0,
+			requestedSpeed: 0,
+			topSpeed: 0
+		},
+		daa: {
+			enabled: false,
+			minimumAcceleration: 10,
+			period: 0
+		},
+		extruders: [],
+		idle: {
+			factor: 0.3,
+			timeout: 30.0
+		},
+		kinematics: new Kinematics(),
+		printingAcceleration: null,
+		speedFactor: 100,
+		travelAcceleration: null,
+		workspaceNumber: 1
+	}
+	network = {
+		hostname: 'duet',
+		interfaces: [],
+		name: 'My Duet'
+	}
+	scanner = {
+		progress: 0.0,
+		status: 'D'
+	}
+	sensors = {
+		analog: [],
+		endstops: [],
+		filamentMonitors: [],
+		inputs: [],
+		probes: []
+	}
+	spindles = []
+	state = {
+		atxPower: null,
+		beep: {
+			frequency: 0,
+			duration: 0
+		},
+		currentTool: -1,
+		displayMessage: null,
+		dsfVersion: null,						// *** missing in RRF
+		laserPwm: -1,
+		logFile: '',
+		messageBox: null,
+		machineMode: null,
+		nextTool: -1,
+		powerFailScript: '',
+		previousTool: -1,
+		status: null,
+		upTime: -1
+	}
+	tools = []
+	userSessions = []							// *** missing in RRF
+	userVariables = []							// *** missing in RRF (but reserved)
+	volumes = []
+}
+
+// Default machine model used to display initial values
+export const DefaultMachineModel = new MachineModel({
+	boards: [
+		new Board()
+	],
+	fans: [
+		new Fan({
+			thermostatic: {
+				control: false
+			},
+			value: 0
+		})
+	],
+	heat: {
+		bedHeaters: [
+			0
+		],
+		heaters: [
+			new Heater(),
+			new Heater(),
+			new Heater()
+		]
+	},
+	move: {
+		axes: [
+			new Axis({
+				letter: 'X',
+				drives: [0],
+				homed: true
+			}),
+			new Axis({
+				letter: 'Y',
+				drives: [1],
+				homed: true
+			}),
+			new Axis({
+				letter: 'Z',
+				drives: [2],
+				homed: true
+			})
+		],
+		extruders: [
+			new Extruder(),
+			new Extruder()
+		]
+	},
+	network: {
+		name: 'Duet Web Control 2'
+	},
+	sensors: {
+		probes: [
+			new Probe()
+		]
+	},
+	tools: [
+		new Tool({
+			number: 0,
+			active: [0],
+			standby: [0],
+			heaters: [1],
+			extruders: [0]
+		}),
+		new Tool({
+			number: 1,
+			active: [0],
+			standby: [0],
+			heaters: [2],
+			extruders: [1]
+		})
+	]
+})
+
+// Vuex module wrapper around the machine model
+export class MachineModelModule {
+	constructor(connector) {
+		if (connector) {
+			this.state = new MachineModel({
+				network: {
+					hostname: connector.hostname,
+					name: `(${connector.hostname})`
+				}
+			});
+		} else {
+			this.state = DefaultMachineModel;
 		}
 	}
+
+	namespaced = true
+	state = null
+	getters = {
+		currentTool(state) {
+			if (state.state.currentTool >= 0) {
+				return state.tools[state.state.currentTool];
+			}
+			return null;
+		},
+		fractionPrinted: state => (state.job.file.size > 0) ? (state.job.filePosition / state.job.file.size) : 0,
+		maxHeaterTemperature(state) {
+			let maxTemp
+			state.heat.heaters.forEach(function(heater) {
+				if (heater && (maxTemp === undefined || heater.max > maxTemp)) {
+					maxTemp = heater.max;
+				}
+			});
+			return maxTemp;
+		},
+		jobProgress(state, getters) {
+			if (isPrinting(state.state.status)) {
+				const totalRawExtruded = state.move.extruders
+											.map(extruder => extruder.rawPosition)
+											.reduce((a, b) => a + b);
+				if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
+					return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
+				}
+				return getters.fractionPrinted;
+			}
+			return state.job.lastFileName ? 1 : 0;
+		}
+	}
+	mutations = {
+		update(state, payload) {
+			if (payload.move && payload.move.kinematics && state.move.kinematics.name !== payload.move.kinematics.name) {
+				switch (payload.move.kinematics.name) {
+					case KinematicsName.cartesian:
+					case KinematicsName.coreXY:
+					case KinematicsName.coreXYU:
+					case KinematicsName.coreXYUV:
+					case KinematicsName.coreXZ:
+					case KinematicsName.markForged:
+						state.move.kinematics = new CoreKinematics();
+						break;
+					case KinematicsName.delta:
+					case KinematicsName.rotaryDelta:
+						state.move.kinematics = new DeltaKinematics();
+						break;
+					case KinematicsName.hangprinter:
+						state.move.kinematics = new HangprinterKinematics();
+						break;
+					default:
+						state.move.kinematics = new Kinematics();
+						break;
+				}
+			}
+			patch(state, payload, true);
+			fixMachineItems(state, payload);
+		}
+	}
+}
+
+// Vuex wrapper around the default machine model
+const DefaultMachineModelModule = new MachineModelModule(null)
+
+export default function(connector) {
+	return connector ? new MachineModelModule(connector) : DefaultMachineModelModule;
 }

@@ -3,7 +3,7 @@
 		<v-card-title class="pb-0">
 			<span>{{ $t('panel.settingsMachine.caption') }}</span>
 			<v-spacer></v-spacer>
-			<a v-if="!isLocal && electronics.type !== 'duet3'" href="/reprap.htm">
+			<a v-if="!isLocal && !boards.some(board => board.name.startsWith('Duet 3'))" href="/reprap.htm">
 				<v-icon small class="mr-1">mdi-rewind</v-icon> {{ $t('panel.settingsMachine.revertDWC') }}
 			</a>
 		</v-card-title>
@@ -29,7 +29,7 @@ import { mapState, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapState('machine', ['settings']),
-		...mapState('machine/model', ['electronics']),
+		...mapState('machine/model', ['boards']),
 		...mapState(['isLocal']),
 		babystepAmount: {
 			get() { return this.settings.babystepAmount; },

@@ -30,7 +30,7 @@
 			</template>
 		</base-file-list>
 		
-		<v-speed-dial v-model="fab" bottom right fixed open-on-hover direction="top" transition="scale-transition" class="hidden-md-and-up">
+		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition" class="hidden-md-and-up">
 			<template #activator>
 				<v-btn v-model="fab" dark color="primary" fab>
 					<v-icon v-if="fab">mdi-close</v-icon>
@@ -57,7 +57,7 @@
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
-		<confirm-dialog :shown.sync="showResetPrompt" :question="$t('dialog.configUpdated.title')" :prompt="$t('dialog.configUpdated.prompt')" @confirmed="resetBoard"></confirm-dialog>
+		<confirm-dialog :shown.sync="showResetPrompt" :title="$t('dialog.configUpdated.title')" :prompt="$t('dialog.configUpdated.prompt')" @confirmed="resetBoard"></confirm-dialog>
 	</div>
 </template>
 
@@ -66,14 +66,17 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
+import { isPrinting } from '../../store/machine/modelEnums.js'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine/model', ['directories', 'state']),
+		...mapState('machine/model', {
+			systemDirectory: state => state.directories.system,
+			status: state => state.state.status
+		}),
 		...mapGetters(['uiFrozen']),
-		...mapGetters('machine/model', ['isPrinting']),
-		isRootDirectory() { return this.directory === Path.system; }
+		isRootDirectory() { return Path.equals(this.directory, this.baseDirectory); }
 	},
 	data() {
 		return {
@@ -99,7 +102,8 @@ export default {
 			}
 		},
 		fileEdited(filename) {
-			if (filename === Path.combine(this.directories.system, Path.configFile) && !this.isPrinting) {
+			if (Path.equals(filename, Path.combine(this.systemDirectory, Path.configFile)) && !isPrinting(this.status)) {
+				// Ask for firmware reset when config.g has been edited
 				this.showResetPrompt = true;
 			}
 		},
@@ -111,7 +115,7 @@ export default {
 			}
 		},
 		async editConfigTemplate() {
-			const jsonTemplate = await this.download({ filename: Path.combine(this.directories.system, 'config.json'), type: 'text' });
+			const jsonTemplate = await this.download({ filename: Path.combine(this.systemDirectory, 'config.json'), type: 'text' });
 
 			const form = document.createElement('form');
 			form.method = 'POST';
@@ -128,9 +132,12 @@ export default {
 			document.body.removeChild(form);
 		}
 	},
+	mounted() {
+		this.directory = this.systemDirectory;
+	},
 	watch: {
-		'directories.system'(to, from) {
-			if (this.directory == from) {
+		systemDirectory(to, from) {
+			if (Path.equals(this.directory, from) || Path.getVolume(from) !== Path.getVolume(to)) {
 				this.directory = to;
 			}
 		}

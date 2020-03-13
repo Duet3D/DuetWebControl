@@ -112,7 +112,7 @@ export default function(hostname) {
 				}
 				state.moveSteps[axis][index] = value;
 			},
-			toggleExtraHeaterVisibility(state, extraHeater) {
+			toggleExtraVisibility(state, extraHeater) {
 				if (state.displayedExtraTemperatures.indexOf(extraHeater) === -1) {
 					state.displayedExtraTemperatures.push(extraHeater);
 				} else {

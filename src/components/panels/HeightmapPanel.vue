@@ -108,8 +108,9 @@ h1 {
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
-import OrbitControls from 'three-orbitcontrols'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
+import { getModifiedFiles } from '../../store/machine'
 import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from '../../utils/3d.js'
 import CSV from '../../utils/csv.js'
 import Path from '../../utils/path.js'
@@ -231,7 +232,7 @@ export default {
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
-			const csv = new CSV(csvData.substr(csvData.indexOf("\n") + 1));
+			const csv = new CSV(csvData.substring(csvData.indexOf("\n") + 1));
 			let radius = parseFloat(csv.get('radius'));
 			if (radius <= 0) { radius = undefined; }
 			const xMin = parseFloat(csv.get('xmin'));
@@ -402,7 +403,7 @@ export default {
 			this.ready = false;
 			this.loading = true;
 			try {
-				const heightmap = await this.download({ filename, type: 'text', showSuccess: false, showError: false });
+				const heightmap = await this.download({ filename, type: 'text', showProgress: false, showSuccess: false, showError: false });
 				this.showCSV(heightmap);
 			} catch (e) {
 				console.warn(e);
@@ -442,8 +443,9 @@ export default {
 	},
 	mounted() {
 		const getHeightmap = this.getHeightmap;
-		this.unsubscribe = this.$store.subscribeAction(function(action) {
-			if (action.type.endsWith('onCodeCompleted') && action.payload.reply.indexOf('heightmap.csv') !== -1) {
+		this.unsubscribe = this.$store.subscribeAction(function(action, state) {
+			if (getModifiedFiles(action, state).indexOf(Path.heightmapFile) !== -1 ||
+				action.type.endsWith('onCodeCompleted') && action.payload.reply.indexOf(Path.heightmapFile) !== -1) {
 				getHeightmap();
 			}
 		});

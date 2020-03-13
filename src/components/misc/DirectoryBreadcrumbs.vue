@@ -11,7 +11,7 @@
 <script>
 'use strict'
 
-import { mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
@@ -23,34 +23,39 @@ export default {
 		}
 	},
 	computed: {
+		...mapState('machine/model', ['directories']),
 		pathItems() {
-			const pathItems = this.value.split('/');
-			let rootCaption = pathItems.length ? this.$t('generic.noValue') : pathItems[0];
+			const pathItems = this.value.split('/').filter(item => item !== '');
+			let rootCaption = (pathItems.length === 0) ? this.$t('generic.noValue') : pathItems[0];
 			if (pathItems.length > 1) {
-				if (this.value.startsWith(Path.gCodes)) {
+				if (Path.startsWith(this.value, this.directories.gCodes)) {
 					pathItems.shift();
-					pathItems[0] = Path.gCodes;
+					pathItems[0] = this.directories.gCodes;
 					rootCaption = this.$t('directory.gcodes');
-				} else if (this.value.startsWith(Path.macros)) {
+				} else if (Path.startsWith(this.value, this.directories.macros)) {
 					pathItems.shift();
-					pathItems[0] = Path.macros;
+					pathItems[0] = this.directories.macros;
 					rootCaption = this.$t('directory.macros');
-				} else if (this.value.startsWith(Path.filaments)) {
+				} else if (Path.startsWith(this.value, this.directories.filaments)) {
 					pathItems.shift();
-					pathItems[0] = Path.filaments;
+					pathItems[0] = this.directories.filaments;
 					rootCaption = this.$t('directory.filaments');
-				} else if (this.value.startsWith(Path.menu)) {
+				} else if (Path.startsWith(this.value, this.directories.menu)) {
 					pathItems.shift();
-					pathItems[0] = Path.menu;
+					pathItems[0] = this.directories.menu;
 					rootCaption = this.$t('directory.display');
-				} else if (this.value.startsWith(Path.system)) {
+				} else if (Path.startsWith(this.value, Path.system)) {
 					pathItems.shift();
 					pathItems[0] = Path.system;
 					rootCaption = this.$t('directory.system');
-				} else if (this.value.startsWith(Path.www)) {
+				} else if (Path.startsWith(this.value, this.directories.system)) {
 					pathItems.shift();
-					pathItems[0] = Path.www;
-					rootCaption = this.$t('directory.www');
+					pathItems[0] = this.directories.system;
+					rootCaption = this.$t('directory.system');
+				} else if (Path.startsWith(this.value, this.directories.web)) {
+					pathItems.shift();
+					pathItems[0] = this.directories.web;
+					rootCaption = this.$t('directory.web');
 				}
 			}
 

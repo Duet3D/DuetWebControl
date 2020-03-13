@@ -141,7 +141,7 @@ export function generateIndicators(meshGeometry, numPoints, scaleZ, color, opaci
 				: (numPoints > 9) ? mediumIndicatorRadius
 					: bigIndicatorRadius;
 			const sphereGeometry = new SphereGeometry(radius);
-			sphereGeometry.applyMatrix(new Matrix4().makeTranslation(x, y, z));
+			sphereGeometry.applyMatrix4(new Matrix4().makeTranslation(x, y, z));
 
 			const material = new MeshBasicMaterial({ color, opacity, transparent: true });
 			const sphere = new Mesh(sphereGeometry, material);

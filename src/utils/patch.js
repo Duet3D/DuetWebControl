@@ -51,7 +51,7 @@ export function quickPatch(a, b) {
 	}
 }
 
-export default function patch(a, b, skipNonexistentFields = false, fullPath = '') {
+export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 	if (a instanceof Array) {
 		while (a.length > b.length) {
 			a.pop();
@@ -88,3 +88,5 @@ export default function patch(a, b, skipNonexistentFields = false, fullPath = ''
 		}
 	}
 }
+
+export default patch

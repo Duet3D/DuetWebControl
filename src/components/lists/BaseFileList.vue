@@ -168,7 +168,7 @@ export default {
 		...mapGetters(['isConnected']),
 		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/cache', ['sorting']),
-		...mapState('machine/model', ['storages']),
+		...mapState('machine/model', ['volumes']),
 		defaultHeaders() {
 			return [
 				{
@@ -190,13 +190,6 @@ export default {
 		isLoading() {
 			return this.loading || this.innerLoading || this.doingFileOperation || this.innerDoingFileOperation;
 		},
-		storageIndex() {
-			const matches = /^(\d+)/.exec(this.innerDirectory);
-			if (matches) {
-				return parseInt(matches[1]);
-			}
-			return 0;
-		},
 		foldersSelected() {
 			return this.innerValue.some(item => item.isDirectory)
 		},
@@ -210,7 +203,8 @@ export default {
 			if (this.selectedMachine === defaultMachine) {
 				return this.noFilesText;
 			}
-			return (this.storages.length > this.storageIndex && this.storages[this.storageIndex].mounted) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
+			const volume = Path.getVolume(this.innerDirectory);
+			return (volume >= 0 && volume < this.volumes.length && this.volumes[volume].mounted) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
 		},
 		internalSortBy: {
 			get() { return this.sorting[this.sortTable].column; },
@@ -309,15 +303,17 @@ export default {
 				return;
 			}
 
-			if (this.storageIndex >= this.storages.length || !this.storages[this.storageIndex].mounted) {
-				this.innerDirectory = (this.storageIndex === 0) ? this.initialDirectory : `${this.storageIndex}:`;
+			// Make sure the current volume is actually available
+			const volume = Path.getVolume(this.innerDirectory);
+			if (volume < 0 || volume >= this.volumes.length || !this.volumes[volume].mounted) {
+				this.innerDirectory = (volume === 0) ? this.initialDirectory : `${volume}:`;
 				this.innerFilelist = [];
 				return;
 			}
 
+			// Load file list
 			this.innerLoading = true;
 			try {
-				// Load file list
 				const files = await this.getFileList(directory);
 
 				// Create missing props if required
@@ -577,7 +573,7 @@ export default {
 				this.$makeNotification('success', this.$t('notification.rename.success', [oldFilename, newFilename]));
 			} catch (e) {
 				console.warn(e);
-				this.$log('error', this.$t('notification.rename.error'), e.message);
+				this.$log('error', this.$t('notification.rename.error', [oldFilename, newFilename]), e.message);
 			}
 			this.innerDoingFileOperation = false;
 		},
@@ -644,19 +640,18 @@ export default {
 	mounted() {
 		// Perform initial load
 		if (this.isConnected) {
-			this.wasMounted = (this.storages.length > this.storageIndex) && this.storages[this.storageIndex].mounted;
-			this.loadDirectory(this.innerDirectory);
+			const volume = Path.getVolume(this.innerDirectory);
+			this.wasMounted = (volume >= 0) && (volume >= this.volumes.length) && this.volumes[volume].mounted;
+			this.refresh();
 		}
 
 		// Keep track of file changes
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			if (!that.doingFileOperation && !that.innerDoingFileOperation) {
-				const modifiedDirectories = getModifiedDirectories(action, state);
-				if (Path.pathAffectsFilelist(modifiedDirectories, that.innerDirectory, that.innerFilelist)) {
-					// Refresh when an external operation has caused a change
-					await that.refresh();
-				}
+			if (!that.doingFileOperation && !that.innerDoingFileOperation &&
+				getModifiedDirectories(action, state).some(directory => Path.equals(directory, that.innerDirectory))) {
+				// Refresh the list when a file or directory has been changed
+				await that.refresh();
 			}
 		});
 	},
@@ -683,13 +678,21 @@ export default {
 			this.editDialog.shown = false;
 			this.renameDialog.shown = false;
 		},
-		storages: {
+		volumes: {
 			deep: true,
 			handler() {
-				// Refresh file list when the selected storage is mounted or unmounted
-				if (this.storages.length <= this.storageIndex || this.wasMounted !== this.storages[this.storageIndex].mounted) {
-					this.loadDirectory(this.wasMounted ? this.initialDirectory : this.innerDirectory);
-					this.wasMounted = (this.storages.length > this.storageIndex) && this.storages[this.storageIndex].mounted;
+				if (this.isConnected) {
+					const volume = Path.getVolume(this.directory);
+					if (volume >= 0 && volume < this.volumes.length) {
+						const mounted = this.volumes[volume].mounted;
+						if (this.wasMounted !== mounted) {
+							this.wasMounted = mounted;
+							this.refresh();
+						}
+					} else {
+						this.wasMounted = false;
+						this.refresh();
+					}
 				}
 			}
 		},

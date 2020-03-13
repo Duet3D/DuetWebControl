@@ -6,7 +6,7 @@
 			</v-card-title>
 
 			<v-card-text>
-				<v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+				<v-progress-linear :indeterminate="connectingProgress < 0" :value="connectingProgress" color="white" class="mb-0"></v-progress-linear>
 			</v-card-text>
 		</v-card>
 	</v-overlay>
@@ -19,13 +19,13 @@ import { mapState } from 'vuex'
 
 export default {
 	computed: {
-		...mapState(['isConnecting', 'isDisconnecting']),
+		...mapState(['connectingProgress', 'isConnecting', 'isDisconnecting']),
 		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/model', {
 			status: state => state.state.status
 		}),
 		message() {
-			if (this.isConnecting) {
+			if (this.isConnecting || this.connectingProgress >= 0) {
 				return this.$t('dialog.connection.connecting');
 			}
 			if (this.isReconnecting) {
@@ -37,7 +37,7 @@ export default {
 			return this.$t('dialog.connection.standBy');
 		},
 		shown() {
-			return this.isConnecting || this.isReconnecting || this.isDisconnecting;
+			return this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting;
 		}
 	}
 }

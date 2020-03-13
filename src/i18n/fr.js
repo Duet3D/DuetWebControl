@@ -93,7 +93,7 @@ export default {
 				caption: 'Envoyer Configs Filament',
 				title: 'Envoyer une ou plusieures configuration de filament (le glisser/déposer est supporté)'
 			},
-			display: {
+			menu: {
 				caption: 'Envoyer Fichiers Menu',
 				title: 'Envoyer un ou plusieurs fichiers menu (le glisser/déposer est supporté)'
 			},
@@ -101,7 +101,7 @@ export default {
 				caption: 'Envoyer Fichiers Système',
 				title: 'Envoyer un ou plusieurs fichiers système (le glisser/déposer est supporté)'
 			},
-			www: {
+			web: {
 				caption: 'Envoyer Fichiers Web',
 				title: 'Envoyer un ou plusieurs fichiers web (le glisser/déposer est supporté)'
 			},
@@ -225,12 +225,12 @@ export default {
 		numberRequired: 'Merci d\'entrer un nombre valide'
 	},
 	directory: {
-		display: 'Répertoire Menu',
+		menu: 'Répertoire Menu',
 		filaments: 'Répertoire Filaments',
 		gcodes: 'Répertoire G-Codes',
 		macros: 'Répertoire Macros',
 		system: 'Répertoire Systeme',
-		www: 'Répertoire WWW'
+		web: 'Répertoire WWW'
 	},
 	error: {
 		notImplemented: '{0} n\'est pas implémenté',
@@ -281,14 +281,14 @@ export default {
 		info: 'Info',
 		warning: 'Attetion',
 		success: 'Succès',
-		heaterStates: [
-			'off',
-			'veille',
-			'actif',
-			'défaut',
-			'réglage',
-			'offline'
-		],
+		heaterStates: {
+			off: 'off',
+			standby: 'veille',
+			active: 'actif',
+			fault: 'défaut',
+			tuning: 'réglage',
+			offline: 'offline'
+		},
 		status: {
 			updating: 'Mise à Jour...',
 			off: 'Off',
@@ -347,7 +347,7 @@ export default {
 			driveUnmounted: 'Le variateur n\'est pas monté',
 			goUp: 'Remonter'
 		},
-		display: {
+		menu: {
 			noFiles: 'Aucun Fichier d\'Affichage'
 		},
 		eventLog: {
@@ -403,7 +403,7 @@ export default {
 			jobs: 'Travails',
 			filaments: 'Filaments',
 			macros: 'Macros',
-			display: 'Affichage',
+			menu: 'Affichage',
 			system: 'Système',
 			web: 'Web'
 		},
@@ -677,7 +677,8 @@ export default {
 			mcuTemp: 'Température MCU',
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimum: {0}, Maximum {1}',
+			v12: 'V12',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'TPM Ventilateur',
 			probe: 'Sonde-Z|Sondes-Z',
 			noStatus: 'Pas de Statut'
@@ -701,9 +702,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Capteur',
+				sensorIndex: 'Capteur {0}',
 				value: 'Valeur',
 				showInChart: 'Afficher dans le Graphique',
-				noItems: 'Pas de Chauffage supplémentaire'
+				noItems: 'Pas de Capteur supplémentaire'
 			},
 			noTools: 'Pas d\'Outils'
 		},

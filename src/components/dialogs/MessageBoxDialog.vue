@@ -2,12 +2,14 @@
 	<v-dialog v-model="shown" :persistent="persistent">
 		<v-card>
 			<v-card-title class="justify-center">
-				<span class="headline">{{ messageBox.title }}</span>
+				<span class="headline">
+					{{ state.messageBox ? state.messageBox.title : $t('generic.noValue') }}
+				</span>
 			</v-card-title>
 
 			<v-card-text>
 				<!-- Main message -->
-				<center :class="{ 'mb-6': displayedAxes.length }" v-html="messageBox.message"></center>
+				<center :class="{ 'mb-6': displayedAxes.length }" v-html="state.messageBox ? state.messageBox.message : $t('generic.noValue')"></center>
 
 				<!-- Jog control -->
 				<!-- TODO Replace the following and the content in MovementPanel with an own component -->
@@ -43,12 +45,12 @@
 				</v-row>
 			</v-card-text>
 
-			<v-card-actions v-if="messageBox.mode">
+			<v-card-actions v-if="state.messageBox && state.messageBox.mode">
 				<v-spacer></v-spacer>
-				<v-btn v-if="messageBox.mode === 1 || messageBox.mode === 3" color="blue darken-1" text @click="cancel">
+				<v-btn v-if="state.messageBox.mode === 1 || state.messageBox.mode === 3" color="blue darken-1" text @click="cancel">
 					{{ $t(messageBox.mode === 1 ? 'generic.close' : 'generic.cancel') }}
 				</v-btn>
-				<v-btn v-if="messageBox.mode === 2 || messageBox.mode === 3" color="blue darken-1" text @click="ok">
+				<v-btn v-if="state.messageBox.mode === 2 || state.messageBox.mode === 3" color="blue darken-1" text @click="ok">
 					{{ $t('generic.ok') }}
 				</v-btn>
 				<v-spacer></v-spacer>
@@ -65,11 +67,11 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		// no need to observe isConnected here because the default machine instance never displays a messagebox anyway
-		...mapState('machine/model', ['messageBox', 'move']),
+		...mapState('machine/model', ['state', 'move']),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
 		displayedAxes() {
-			const axisControls = this.messageBox.axisControls;
+			const axisControls = this.state.messageBox ? this.state.messageBox.axisControls : [];
 			return this.move.axes.filter((axis, index) => axis.visible && axisControls.indexOf(index) !== -1);
 		}
 	},
@@ -113,11 +115,11 @@ export default {
 		}
 	},
 	watch: {
-		messageBox: {
+		'state.messageBox': {
 			deep: true,
 			handler(to) {
-				this.shown = (to.mode !== null);
-				this.persistent = (to.mode !== 0);
+				this.shown = (to && to.mode !== null);
+				this.persistent = (to && to.mode !== 0);
 			}
 		}
 	}

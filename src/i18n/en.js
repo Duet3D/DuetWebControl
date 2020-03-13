@@ -16,7 +16,7 @@ export default {
 			},
 		},
 		dataFooter: {
-			itemsPerPageText: 'Items per page:',
+			itemsPerPageText: 'Items perweb:',
 			itemsPerPageAll: 'All',
 			nextPage: 'Next page',
 			prevPage: 'Previous page',
@@ -84,7 +84,7 @@ export default {
 				caption: 'Upload Filament Configs',
 				title: 'Upload one or more filament configurations (drag&drop is supported as well)'
 			},
-			display: {
+			menu: {
 				caption: 'Upload Menu Files',
 				title: 'Upload one or more menu files (drag&drop is supported as well)'
 			},
@@ -92,7 +92,7 @@ export default {
 				caption: 'Upload System Files',
 				title: 'Upload one or more system files (drag&drop is supported as well)'
 			},
-			www: {
+			web: {
 				caption: 'Upload Web Files',
 				title: 'Upload one or more web files (drag&drop is supported as well)'
 			},
@@ -216,12 +216,12 @@ export default {
 		numberRequired: 'Please enter a valid number'
 	},
 	directory: {
-		display: 'Menu Directory',
+		menu: 'Menu Directory',
 		filaments: 'Filaments Directory',
 		gcodes: 'G-Codes Directory',
 		macros: 'Macros Directory',
 		system: 'System Directory',
-		www: 'WWW Directory'
+		web: 'WWW Directory'
 	},
 	error: {
 		notImplemented: '{0} is not implemented',
@@ -272,14 +272,14 @@ export default {
 		info: 'Info',
 		warning: 'Warning',
 		success: 'Success',
-		heaterStates: [
-			'off',
-			'standby',
-			'active',
-			'fault',
-			'tuning',
-			'offline'
-		],
+		heaterStates: {
+			off: 'off',
+			standby: 'standby',
+			active: 'active',
+			fault: 'fault',
+			tuning: 'tuning',
+			offline: 'offline'
+		},
 		status: {
 			updating: 'Updating',
 			off: 'Off',
@@ -338,7 +338,7 @@ export default {
 			driveUnmounted: 'Drive is unmounted',
 			goUp: 'Go up'
 		},
-		display: {
+		menu: {
 			noFiles: 'No Display Files'
 		},
 		eventLog: {
@@ -394,7 +394,7 @@ export default {
 			jobs: 'Jobs',
 			filaments: 'Filaments',
 			macros: 'Macros',
-			display: 'Display',
+			menu: 'Display',
 			system: 'System',
 			web: 'Web'
 		},
@@ -668,7 +668,8 @@ export default {
 			mcuTemp: 'MCU Temperature',
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimum: {0}, Maximum {1}',
+			v12: 'V12',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'Fan RPM',
 			probe: 'Z-Probe|Z-Probes',
 			noStatus: 'No Status'
@@ -692,9 +693,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Sensor',
+				sensorIndex: 'Sensor {0}',
 				value: 'Value',
 				showInChart: 'Show in Chart',
-				noItems: 'No Extra Heaters'
+				noItems: 'No Extra Sensors'
 			},
 			noTools: 'No Tools'
 		},

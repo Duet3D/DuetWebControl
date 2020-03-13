@@ -84,7 +84,7 @@ export default {
 				caption: 'Subir Configuración de Filamento',
 				title: 'Subir una o más configuración/es de Filamento/s (se permite arrastrar y soltar)'
 			},
-			display: {
+			menu: {
 				caption: 'Subir Archivo(s) de Menu',
 				title: 'Subir uno o más archivos de Menu (se permite arrastrar y soltar)'
 			},
@@ -92,7 +92,7 @@ export default {
 				caption: 'Subir Archivo(s) de Sistema',
 				title: 'Subir uno o más archivos de Sistema (se permite arrastrar y soltar)'
 			},
-			www: {
+			web: {
 				caption: 'Subir Archivo(s) Web',
 				title: 'Subir uno o más archivos Web (se permite arrastrar y soltar)'
 			},
@@ -217,12 +217,12 @@ export default {
 		numberRequired: 'Por favor, introduzca un número válido'
 	},
 	directory: {
-		display: 'Directorio: Menu',
+		menu: 'Directorio: Menu',
 		filaments: 'Directorio: Filamentos',
 		gcodes: 'Directorio: G-Codes',
 		macros: 'Directorio: Macros',
 		system: 'Directorio: Sistema',
-		www: 'Directorio: Web'
+		web: 'Directorio: Web'
 	},
 	error: {
 		notImplemented: '{0} no está implementado.',
@@ -273,14 +273,14 @@ export default {
 		info: 'Info',
 		warning: 'Atención',
 		success: 'Éxito',
-		heaterStates: [
-			'apagado',
-			'en espera',
-			'activo',
-			'fallo',
-			'ajustando',
-			'desconectado'
-		],
+		heaterStates: {
+			off: 'apagado',
+			standby: 'en espera',
+			active: 'activo',
+			fault: 'fallo',
+			tuning: 'ajustando',
+			offline: 'desconectado'
+		},
 		status: {
 			updating: 'Actualizando',
 			off: 'Off',
@@ -340,7 +340,7 @@ export default {
 			driveUnmounted: 'El disco no esta montado',
 			goUp: 'Subir'
 		},
-		display: {
+		menu: {
 			noFiles: 'No hay archivos que mostrar'
 		},
 		eventLog: {
@@ -396,7 +396,7 @@ export default {
 			jobs: 'Trabajos',
 			filaments: 'Filamentos',
 			macros: 'Macros',
-			display: 'Monitor',
+			menu: 'Monitor',
 			system: 'Sistema',
 			web: 'Web'
 		},
@@ -671,7 +671,8 @@ export default {
 			mcuTemp: 'Temperatura Placa',
 			mcuTempTitle: 'Minima: {0}, Máxima: {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimo: {0}, Máximo {1}',
+			v12: 'V12',
+			minMax: 'Minimo: {0}, Máximo {1}',
 			fanRPM: 'Ventilador RPM',
 			probe: 'Z-Sensor|Z-Sensores',
 			noStatus: 'Sin Estado'
@@ -695,9 +696,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Sensor',
+				sensorIndex: 'Sensor {0}',
 				value: 'Valor',
 				showInChart: 'Mostrar en gráfico',
-				noItems: 'No hay más Heaters'
+				noItems: 'No hay más Sensors'
 			},
 			noTools: 'Sin Herramientas'
 		},

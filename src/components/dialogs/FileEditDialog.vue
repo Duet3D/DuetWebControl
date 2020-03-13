@@ -58,6 +58,8 @@
 
 import { mapState, mapActions } from 'vuex'
 
+import Path from '../../utils/path.js'
+
 export default {
 	props: {
 		shown: {
@@ -71,16 +73,19 @@ export default {
 		value: String
 	},
 	computed: {
-		...mapState('machine/model', ['directories']),
+		...mapState('machine/model', {
+			macrosDirectory: state => state.directories.macros,
+			menuDirectory: state => state.directories.menu
+		}),
 		showGCodeHelp() {
-			if (this.filename.startsWith(this.directories.macros)) {
+			if (Path.startsWith(this.filename, this.macrosDirectory)) {
 				return true;
 			}
 			const matches = /\.(.*)$/.exec(this.filename.toLowerCase());
 			return matches && ['.g', '.gcode', '.gc', '.gco', '.nc', '.ngc', '.tap'].indexOf(matches[1]);
 		},
 		showDisplayHelp() {
-			return this.filename.startsWith(this.directories.menu);
+			return Path.startsWith(this.filename, this.menuDirectory);
 		}
 	},
 	data() {

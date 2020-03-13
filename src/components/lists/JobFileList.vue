@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<v-toolbar>
-			<sd-card-btn class="hidden-sm-and-down" :directory="directory" @storageSelected="selectStorage"></sd-card-btn>
+			<sd-card-btn v-if="volumes.length > 1" v-model="volume" class="hidden-sm-and-down"></sd-card-btn>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>
@@ -28,7 +28,7 @@
 			</template>
 		</base-file-list>
 
-		<v-speed-dial v-model="fab" bottom right fixed open-on-hover direction="top" transition="scale-transition" class="hidden-md-and-up">
+		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition" class="hidden-md-and-up">
 			<template #activator>
 				<v-btn v-model="fab" dark color="primary" fab>
 					<v-icon v-if="fab">mdi-close</v-icon>
@@ -50,7 +50,7 @@
 		</v-speed-dial>
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
-		<confirm-dialog :shown.sync="startJobDialog.shown" :question="startJobDialog.question" :prompt="startJobDialog.prompt" @confirmed="start(startJobDialog.item)"></confirm-dialog>
+		<confirm-dialog :shown.sync="startJobDialog.shown" :title="startJobDialog.title" :prompt="startJobDialog.prompt" @confirmed="start(startJobDialog.item)"></confirm-dialog>
 	</div>
 </template>
 
@@ -60,16 +60,21 @@
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
+import { isPrinting } from '../../store/machine/modelEnums.js'
 import { DisconnectedError, InvalidPasswordError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export default {
 	computed: {
 		...mapState('machine/cache', ['fileInfos']),
-		...mapState('machine/model', ['directories', 'job', 'state', 'storages']),
+		...mapState('machine/model', {
+			gCodesDirectory: state => state.directories.gCodes,
+			lastJobFile: state => state.job.lastFileName,
+			status: state => state.state.status,
+			volumes: state => state.volumes
+		}),
 		...mapState('settings', ['language']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapGetters('machine/model', ['isPrinting', 'isSimulating']),
 		headers() {
 			return [
 				{
@@ -122,9 +127,16 @@ export default {
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		},
+		isPrinting() {
+			return isPrinting(this.status);
+		},
 		loading: {
 			get() { return this.loadingValue || this.fileinfoProgress !== -1; },
 			set(value) { this.loadingValue = value; }
+		},
+		volume: {
+			get() { return Path.getVolume(this.directory); },
+			set(value) { this.directory = (value === Path.getVolume(this.gCodesDirectory)) ? this.gCodesDirectory : `${value}:`; }
 		}
 	},
 	data() {
@@ -136,7 +148,7 @@ export default {
 			fileinfoDirectory: undefined,
 			fileinfoProgress: -1,
 			startJobDialog: {
-				question: '',
+				title: '',
 				prompt: '',
 				item: undefined,
 				shown: false
@@ -148,34 +160,6 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileInfo']),
 		...mapMutations('machine/cache', ['clearFileInfo', 'setFileInfo']),
-		async selectStorage(index) {
-			const storage = this.storages[index];
-			let mountSuccess = true, mountResponse;
-			if (storage.mounted) {
-				this.directory = (index === 0) ? this.directories.gCodes : `${index}:`;
-			} else {
-				this.loading = true;
-				try {
-					// Mount storage
-					mountResponse = await this.sendCode({ code: `M21 P${index}`, log: false });
-				} catch (e) {
-					mountResponse = e.message;
-					mountSuccess = false;
-				}
-
-				if (this.isConnected) {
-					if (mountSuccess && mountResponse.indexOf('Error') === -1) {
-						// Change directory
-						this.directory = (index === 0) ? this.directory.gCodes : `${index}:`;
-						this.$log('success', this.$t('notification.mount.successTitle'));
-					} else {
-						// Show mount message
-						this.$log('error', this.$t('notification.mount.errorTitle'), mountResponse);
-					}
-				}
-			}
-			this.loading = false;
-		},
 		refresh() {
 			this.clearFileInfo(this.directory);
 			this.$refs.filelist.refresh();
@@ -257,7 +241,7 @@ export default {
 		},
 		fileClicked(item) {
 			if (!this.isPrinting) {
-				this.startJobDialog.question = this.$t('dialog.startJob.title', [item.name]);
+				this.startJobDialog.title = this.$t('dialog.startJob.title', [item.name]);
 				this.startJobDialog.prompt = this.$t('dialog.startJob.prompt', [item.name]);
 				this.startJobDialog.item = item;
 				this.startJobDialog.shown = true;
@@ -270,14 +254,17 @@ export default {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
 		}
 	},
+	mounted() {
+		this.directory = this.gCodesDirectory;
+	},
 	watch: {
-		'directories.macros'(to, from) {
-			if (this.directory == from) {
+		gCodesDirectory(to, from) {
+			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		},
-		'job.lastFileName'(to) {
-			if (to && Path.pathAffectsFilelist(to, this.directory, this.filelist)) {
+		lastJobFile(to) {
+			if (Path.equals(this.directory, Path.extractDirectory(to))) {
 				this.$refs.filelist.refresh();
 			}
 		}

@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<span>Duet Web Control {{ version }}</span>
+			<span>Duet Web Control {{ version }}-b8</span>
 			<v-spacer></v-spacer>
 			<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">
 				<v-icon small>mdi-star</v-icon> GitHub
@@ -22,8 +22,10 @@
 import { version } from '../../../package.json'
 
 export default {
-	computed: {
-		version: () => version
+	data() {
+		return {
+			version
+		}
 	}
 }
 </script>

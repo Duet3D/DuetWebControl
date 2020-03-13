@@ -2,273 +2,436 @@
 
 import Vue from 'vue'
 
+import {
+	Compatibility,
+	DistanceUnit,
+	FilamentMonitorType,
+	HeaterMonitorCondition,
+	HttpEndpointType,
+	InputChannelState,
+	KinematicsName,
+	MessageBoxMode,
+	NetworkInterfaceType,
+	ProbeType
+} from './modelEnums.js'
 import { quickPatch } from '../../utils/patch.js'
+
+export class AnalogSensor {
+	lastReading = null
+	name = ''
+	type = null
+}
 
 export class Axis {
 	constructor(initData) { quickPatch(this, initData); }
-	letter = '\0'
-	drives = []
+	acceleration = 500
+	babystep = 0
+	current = 0
+	drivers = []
 	homed = false
-	machinePosition = null
-	min = null
-	minEndstop = null
-	minProbed = false
-	max = null
-	maxEndstop = null
+	jerk = 15
+	letter = '\0'
+	machinePosition = 0
+	max = 200
 	maxProbed = false
+	min = 0
+	minProbed = false
+	speed = 100
+	userPosition = 0
 	visible = true
+	workplaceOffsets = []
 }
 
-export class BedOrChamber {
+export class Board {
 	constructor(initData) { quickPatch(this, initData); }
-	active = []
-	standby = []
-	name = null
-	heaters = []
-}
-
-export class Channel {
-	constructor(initData) { quickPatch(this, initData); }
-	compatibility = 1	// RepRapFirmware
-	feedrate = 50
-	relativeExtrusion = true
-	volumetricExtrusion = false
-	relativePositioning = false
-	stackDepth = 0
-	usingInches = false
-	lineNumber = 0
-}
-
-export class Drive {
-	constructor(initData) { quickPatch(this, initData); }
-	position = null
-	microstepping = {
-		value: 16,
-		interpolated: true
+	canAddress = null			// *** requires CAN support (TBD)
+	firmwareDate = ''
+	firmwareFileName = ''
+	firmwareName = ''
+	firmwareVersion = ''
+	iapFileNameSBC = null		// *** requires SBC support
+	iapFileNameSD = ''
+	maxHeaters = 0
+	maxMotors = 0
+	mcuTemp = {
+		current: -273.1,
+		min: -273.1,
+		max: -273.1
 	}
-	current = null
-	acceleration = null
-	minSpeed = null
-	maxSpeed = null
+	name = ''
+	shortName = ''
+	supports12864 = false
+	v12 = {
+		current: 0,
+		min: 0,
+		max: 0
+	}
+	vIn = {
+		current: 0,
+		min: 0,
+		max: 0
+	}
+}
+
+export class BeepRequest {
+	constructor(initData) { quickPatch(this, initData); }
+	duration = 0
+	frequency = 0
 }
 
 export class Endstop {
 	constructor(initData) { quickPatch(this, initData); }
-	action = 0					// 0: none, 1: reduce speed, 2: stop driver, 3: stop driver, 4: stop all
 	triggered = false
-	type = 0					// 0: active low, 1: active high, 3: probe, 4: stall any, 5: stall individual
-	probe = null
-}
-
-export class ExpansionBoard {
-	constructor(initData) { quickPatch(this, initData); }
-	shortName = null
-	name = null
-	revision = null
-	firmware = new Firmware()
-	vIn = {
-		current: null,
-		min: null,
-		max: null
-	}
-	mcuTemp = {
-		current: null,
-		min: null,
-		max: null
-	}
-	maxHeaters = null
-	maxMotors = null
-}
-
-export class ExtraHeater {
-	constructor(initData) { quickPatch(this, initData); }
-	current = null
-	name = null
-	state = null
-	sensor = null
+	type = null
+	zProbeNumber = null			// *** missing in RRF
 }
 
 export class Extruder {
 	constructor(initData) { quickPatch(this, initData); }
+	acceleration = 500
+	current = 0
 	drives = []
 	factor = 1.0
+	jerk = 15
 	nonlinear = {
 		a: 0,
 		b: 0,
-		upperLimit: 0.2,
-		temperature: 0
+		upperLimit: 0.2
 	}
+	position = 0
+	pressureAdvance = 0
+	rawPosition = 0
+	speed = 100
 }
 
 export class Fan {
 	constructor(initData) { quickPatch(this, initData); }
-	value = null
-	name = null
-	rpm = null
-	inverted = false
-	frequency = null
-	min = 0.0
-	max = 1.0
+	actualValue = 0
 	blip = 0.1
+	max = 1
+	min = 0.1
+	name = ''
+	requestedValue = 0
+	rpm = -1
 	thermostatic = {
-		control: true,
-		heaters: [],
-		temperature: null
+		control: false,
+		heaters: null,
+		highTemperature: null,
+		lowTemperature: null
 	}
-	pin = null
 }
 
-export class FileInfo {
-	constructor(initData) {
-		if (initData) {
-			quickPatch(this, initData);
-			if (!this.numLayers && initData.height && initData.firstLayerHeight && initData.layerHeight) {
-				this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
-			}
-		}
-	}
-	fileName = null
-	size = 0
-	lastModified = null
-	height = 0.0
-	firstLayerHeight = 0.0
-	layerHeight = 0.0
-	numLayers = null
-	filament = []
-	generatedBy = ''
-	printTime = 0
-	simulatedTime = 0
+export class SimpleFilamentMonitor {
+	constructor(initData) { quickPatch(this, initData); }
+	enabled = false
+	filamentPresent = false
+	type = FilamentMonitorType.simple
 }
 
-export class Firmware {
-	name = null
-	version = null
-	date = null
+export class LaserFilamentMonitor extends SimpleFilamentMonitor {
+	constructor(initData = {}) {
+		initData.type = FilamentMonitorType.laser;
+		super(initData);
+	}
+
+	calibrated = {
+		percentMax: 0,
+		percentMin: 0,
+		sensivity: 0,
+		totalDistance: 0
+	}
+	configured = {
+		percentMax: 160,
+		percentMin: 60,
+		sampleDistance: 3.0
+	}
+}
+
+export class PulsedFilamentMonitor extends SimpleFilamentMonitor {
+	constructor(initData = {}) {
+		initData.type = FilamentMonitorType.pulsed;
+		super(initData);
+	}
+
+	calibrated = {
+		mmPerPulse: 0,
+		percentMax: 0,
+		percentMin: 0,
+		totalDistance: 0
+	}
+	configured = {
+		mmPerPulse: 1,
+		percentMax: 160,
+		percentMin: 60,
+		sampleDistance: 5
+	}
+}
+
+export class RotatingMagnetFilamentMonitor extends SimpleFilamentMonitor {
+	constructor(initData = {}) {
+		initData.type = FilamentMonitorType.rotatingMagnet;
+		super(initData);
+	}
+
+	calibrated = {
+		mmPerRev: 0,
+		percentMax: 0,
+		percentMin: 0,
+		totalDistance: 0
+	}
+	configured = {
+		mmPerRev: 28.8,
+		percentMax: 160,
+		percentMin: 60,
+		sampleDistance: 3
+	}
 }
 
 export class Heater {
 	constructor(initData) { quickPatch(this, initData); }
+	active = 0
 	current = -273.15
-	name = null
-	state = null				// see RRF state enum
+	max = 285
+	min = -10
 	model = {
-		gain: null,
-		timeConstant: null,
-		deadTime: null,
-		maxPwm: null,
-		standardVoltage: null,
-		usePID: true,
-		customPID: false,
-		p: 0.0,
-		i: 0.0,
-		d: 0.0
+		deadTime: 5.5,
+		enabled: false,
+		gain: 340,
+		inverted: false,
+		maxPwm: 1,
+		pid: {
+			overridden: false,
+			d: 0.0,
+			i: 0.0,
+			p: 0.0,
+			used: true
+		},
+		standardVoltage: 0,
+		timeConstant: 140
 	}
-	max = null
-	sensor = null
+	monitors = []
+	name = null
+	sensor = -1
+	standby = 0
+	state = null
+}
+
+export class HeaterMonitor {
+	action = null
+	condition = HeaterMonitorCondition.disabled
+	limit = null
 }
 
 export class HttpEndpoint {
 	constructor(initData) { quickPatch(this, initData); }
-	endpointType = 'GET'
-	namespace = null
-	path = null
-	unixSocket = null
+	endpointType = HttpEndpointType.get
+	namespace = ''
+	path = ''
+	unixSocket = ''
 }
 
-export class Laser {
+export class InputChannel {
 	constructor(initData) { quickPatch(this, initData); }
-	actualPwm = 0.0
-	requestedPwm = 0.0
+	axesRelative = false
+	compatibility = Compatibility.repRapFirmware
+	distanceUnit = DistanceUnit.mm
+	drivesRelative = false
+	feedRate = 50
+	inMacro = false
+	lineNumber = 0
+	name = null
+	stackDepth = 0
+	state = InputChannelState.idle
+	volumetric = false
+}
+
+export class InputPort {
+	constructor(initData) { quickPatch(this, initData); }
+	configured = false
+	value = null
+}
+
+export class Kinematics {
+	constructor(initData) { quickPatch(this, initData); }
+	name = KinematicsName.unknown
+}
+
+export class CoreKinematics extends Kinematics {
+	constructor(initData) { super(initData); }
+	forwardMatrix = [
+		[1, 0, 0],
+		[0, 1, 0],
+		[0, 0, 1]
+	]
+	inverseMatrix = [
+		[1, 0, 0],
+		[0, 1, 0],
+		[0, 0, 1]
+	]
+}
+
+export class HangprinterKinematics extends Kinematics {
+	constructor(initData) { super(initData); }
+	anchorA = [0, -2000, -100]
+	anchorB = [2000, 1000, -100]
+	anchorC = [-2000, 1000, -100]
+	anchorDz = 3000
+	printRadius = 1500
+}
+
+export class DeltaKinematics extends Kinematics {
+	constructor(initData) { super(initData); }
+	printRadius = 0
+	deltaRadius = 0
+	homedHeight = 0
+	towers = [
+		new DeltaTower(),
+		new DeltaTower(),
+		new DeltaTower()
+	]
+	xTilt = 0
+	yTilt = 0
 }
 
 export class Layer {
 	constructor(initData) { quickPatch(this, initData); }
-	duration = 0.0
-	height = 0.0
+	duration = 0
 	filament = []
-	fractionPrinted = 0.0
+	fractionPrinted = 0
+	height = 0
+}
+
+export class MessageBox {
+	mode = MessageBoxMode.okOnly
+	title = ''
+	message = ''
+	axisControls = []
+	seq = -1
+	timeout = 0
 }
 
 export class NetworkInterface {
 	constructor(initData) { quickPatch(this, initData); }
-	type = 'wifi'				// one of ['wifi', 'lan']
+	actualIP = null
 	firmwareVersion = null
+	gateway = null
+	mac = null
+	subnet = null
+	type = NetworkInterfaceType.wifi
+
+	// *** missing in RRF:
 	speed = null				// null if unknown and 0 if no link
 	signal = null				// only WiFi (dBm)
-	macAddress = null
-	configuredIP = null
-	actualIP = null
-	subnet = null
-	gateway = null
 	numReconnects = null
-	activeProtocols = []		// one or more of ['http' 'ftp' 'telnet']
+	activeProtocols = []		// one or more of ['http', 'ftp', 'telnet']
+}
+
+export class ParsedFileInfo {
+	constructor(initData = {}) {
+		quickPatch(this, initData);
+		if (!this.numLayers && initData.height && initData.firstLayerHeight && initData.layerHeight) {
+			// approximate the number of layers if it isn't given
+			this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
+		}
+	}
+	filament = []
+	fileName = null
+	firstLayerHeight = 0
+	generatedBy = null
+	height = 0
+	lastModified = null
+	layerHeight = 0
+	numLayers = 0
+	printTime = null
+	simulatedTime = null
+	size = 0
 }
 
 export class Probe {
 	constructor(initData) { quickPatch(this, initData); }
-	type = null
-	value = null
-	secondaryValues = []
-	threshold = 500
-	speed = 2
+	calibrationTemperature = 25
+	deployedByUser = false
+	disablesHeaters = false
 	diveHeight = 5
-	offsets = []
-	triggerHeight = 0.7
-	filtered = true
-	inverted = false
-	recoveryTime = 0
-	travelSpeed = 100
 	maxProbeCount = 1
+	offsets = [0, 0]
+	recoveryTime = 0
+	speed = 2
+	temperatureCoefficient = 0
+	threshold = 500
 	tolerance = 0.03
-	disablesBed = false
-	persistent = false
+	travelSpeed = 100
+	triggerHeight = 0.7
+	type = ProbeType.none
+	value = [1000]
 }
 
 export class Spindle {
 	constructor(initData) { quickPatch(this, initData); }
 	active = 0					// RPM
 	current = 0					// RPM
-}
-
-export class Storage {
-	constructor(initData) { quickPatch(this, initData); }
-	mounted = false
-	speed = null				// in Bytes/s
-	capacity = null				// in Bytes
-	free = null					// in Bytes
-	openFiles = null
-	path = null
+	frequency = 0				// Hz
+	min = 0						// RPM	*** missing in RRF but reserved
+	max = 10000					// RPM
+	tool = -1
 }
 
 export class Tool {
 	constructor(initData) { quickPatch(this, initData); }
-	number = 0
 	active = []
-	standby = []
-	name = null
-	filamentExtruder = 0
-	filament = null
-	fans = []
-	heaters = []
-	extruders = []
-	mix = []
-	spindle = -1
 	axes = []					// may hold sub-arrays of drives per axis
+	extruders = []
+	fans = []
+	filament = ''
+	heaters = []
+	mix = []
+	name = ''
 	offsets = []				// offsets in the same order as the axes
 	offsetsProbed = 0			// bitmap of the probed axes
+	retraction = {
+		extraRestart: 0,
+		length: 0,
+		speed: 0,
+		unretractSpeed: 0,
+		zHop: 0
+	}
+	standby = []
+	state = 'off'
 }
 
-export class UserSession {
+export class DeltaTower {
+	constructor(initData) { quickPatch(this, initData); }
+	angleCorrection = 0
+	diagonal = 0
+	endstopAdjustment = 0
+	xPos = 0
+	yPos = 0
+}
+
+export class UserSession {		// *** missing in RRF
+	constructor(initData) { quickPatch(this, initData); }
 	id = 0
 	accessLevel = 'readOnly'
-	sessionType = 'local'
 	origin = null
 	originId = -1
+	sessionType = 'local'
 }
 
-export class UserVariable {
+export class UserVariable {		// *** missing in RRF but reserved
+	constructor(initData) { quickPatch(this, initData); }
 	name = ''
-	value = ''
+	value = null
+}
+
+export class Volume {
+	constructor(initData) { quickPatch(this, initData); }
+	capacity = null				// in Bytes
+	freeSpace = null			// in Bytes
+	mounted = false
+	name = null
+	openFiles = null
+	path = null
+	speed = null				// in Bytes/s
 }
 
 function fixObject(item, preset) {
@@ -307,39 +470,24 @@ function fixItems(items, ClassType) {
 // TODO: Eventually this could be combined with the 'merge' function
 // But getting everything the way it's supposed to work took longer than expected anyway...
 export function fixMachineItems(state, mergeData) {
-	if (mergeData.cnc && mergeData.cnc.spindles) {
-		fixItems(state.cnc.spindles, Spindle);
-	}
-
-	if (mergeData.electronics && mergeData.electronics.expansionBoards) {
-		fixItems(state.electronics.expansionBoards, ExpansionBoard);
+	if (mergeData.boards) {
+		fixItems(state.boards, Board)
 	}
 
 	if (mergeData.fans) {
 		fixItems(state.fans, Fan)
 	}
 
-	if (mergeData.heat) {
-		if (mergeData.heat.beds) {
-			fixItems(state.heat.beds, BedOrChamber);
-		}
-		if (mergeData.heat.chambers) {
-			fixItems(state.heat.chambers, BedOrChamber);
-		}
-		if (mergeData.heat.extra) {
-			fixItems(state.heat.extra, ExtraHeater);
-		}
-		if (mergeData.heat.heaters) {
-			fixItems(state.heat.heaters, Heater);
-		}
+	if (mergeData.heat && mergeData.heat.heaters) {
+		fixItems(state.heat.heaters, Heater);
 	}
 
 	if (mergeData.httpEndpoints) {
 		fixItems(state.httpEndpoints, HttpEndpoint);
 	}
 
-	if (mergeData.lasers) {
-		fixItems(state.lasers, Laser);
+	if (mergeData.inputs) {
+		fixItems(state.inputs, InputChannel);
 	}
 
 	// Layers are not verified for performance reasons
@@ -348,11 +496,11 @@ export function fixMachineItems(state, mergeData) {
 		if (mergeData.move.axes) {
 			fixItems(state.move.axes, Axis);
 		}
-		if (mergeData.move.drives) {
-			fixItems(state.move.drives, Drive);
-		}
 		if (mergeData.move.extruders) {
 			fixItems(state.move.extruders, Extruder);
+		}
+		if (mergeData.move.kinematics && mergeData.move.kinematics.towers) {
+			fixItems(state.move.kinematics.towers, DeltaTower);
 		}
 	}
 
@@ -364,13 +512,30 @@ export function fixMachineItems(state, mergeData) {
 		if (mergeData.sensors.endstops) {
 			fixItems(state.sensors.endstops, Endstop);
 		}
+		if (mergeData.sensors.filamentMonitors) {
+			state.sensors.filamentMonitors.forEach(function(filamentSensor) {
+				if (filamentSensor) {
+					switch (filamentSensor.type) {
+						case FilamentMonitorType.laser:
+							fixObject(filamentSensor, new LaserFilamentMonitor());
+							break;
+						case FilamentMonitorType.pulsed:
+							fixObject(filamentSensor, new PulsedFilamentMonitor());
+							break;
+						case FilamentMonitorType.rotatingMagnet:
+							fixObject(filamentSensor, new RotatingMagnetFilamentMonitor());
+							break;
+					}
+				}
+			});
+		}
 		if (mergeData.sensors.probes) {
 			fixItems(state.sensors.probes, Probe);
 		}
 	}
 
-	if (mergeData.storages) {
-		fixItems(state.storages, Storage);
+	if (mergeData.spindles) {
+		fixItems(state.spindles, Spindle);
 	}
 
 	if (mergeData.tools) {
@@ -383,5 +548,9 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.userVariables) {
 		fixItems(state.userVariables, UserVariable);
+	}
+
+	if (mergeData.volumes) {
+		fixItems(state.volumes, Volume);
 	}
 }

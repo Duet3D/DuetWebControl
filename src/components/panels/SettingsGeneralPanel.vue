@@ -25,7 +25,7 @@
 			</v-row>
 		</v-card-text>
 
-		<confirm-dialog :shown.sync="showResetConfirmation" :question="$t('dialog.factoryReset.title')" :prompt="$t('dialog.factoryReset.prompt')" @confirmed="reset"></confirm-dialog>
+		<confirm-dialog :shown.sync="showResetConfirmation" :title="$t('dialog.factoryReset.title')" :prompt="$t('dialog.factoryReset.prompt')" @confirmed="reset"></confirm-dialog>
 	</v-card>
 </template>
 

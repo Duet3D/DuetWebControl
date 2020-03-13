@@ -41,7 +41,10 @@ export default {
 		tool: Object
 	},
 	computed: {
-		...mapState('machine/model', ['directories', 'tools']),
+		...mapState('machine/model', {
+			filamentsDirectory: state => state.directories.filaments,
+			tools: state => state.tools
+		}),
 		...mapGetters('machine/model', ['currentTool'])
 	},
 	data() {
@@ -59,7 +62,7 @@ export default {
 
 			this.loading = true
 			try {
-				const response = await this.getFileList(this.directories.filaments);
+				const response = await this.getFileList(this.filamentsDirectory);
 				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).filter(function(filament) {
 					// Exclude filaments that are already loaded (RRF does not allow loading the same filament into multiple tools)
 					return !this.tools.some(tool => tool.filament === filament);

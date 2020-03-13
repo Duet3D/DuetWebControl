@@ -84,7 +84,7 @@ export default {
 				caption: 'Filamentkonfiguration Hochladen',
                 title: 'Eine oder mehr Filamentkonfigurationen hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
-			display: {
+			menu: {
 				caption: 'Menüdatei(en) hochladen',
 				title: 'Eine oder mehr Menüdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
@@ -92,7 +92,7 @@ export default {
 				caption: 'Systemdatei(en) hochladen',
                 title: 'Eine oder mehr Systemdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
-			www: {
+			web: {
 				caption: 'Webdatei(en) hochladen',
                 title: 'Eine oder mehr Webdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
@@ -216,12 +216,12 @@ export default {
 		numberRequired: 'Bitte gültige Zahl eingeben'
 	},
 	directory: {
-		display: 'Menüverzeichnis',
+		menu: 'Menüverzeichnis',
 		filaments: 'Filamentverzeichnis',
 		gcodes: 'G-Code-Verzeichnis',
 		macros: 'Makroverzeichnis',
 		system: 'Systemverzeichnis',
-		www: 'WWW-Verzeichnis'
+		web: 'WWW-Verzeichnis'
 	},
 	error: {
 		notImplemented: '{0} ist nicht implementiert',
@@ -272,14 +272,14 @@ export default {
 		info: 'Info',
 		warning: 'Warnung',
 		success: 'Erfolg',
-		heaterStates: [
-			'aus',
-			'standby',
-			'aktiv',
-			'fehler',
-			'kalibriere',
-			'abgeschaltet'
-		],
+		heaterStates: {
+			off: 'aus',
+			standby: 'standby',
+			active: 'aktiv',
+			fault: 'fehler',
+			tuning: 'kalibriere',
+			offline: 'abgeschaltet'
+		},
 		status: {
 			updating: 'Aktualisiere',
 			off: 'Aus',
@@ -338,8 +338,8 @@ export default {
 			driveUnmounted: 'Laufwerk ist nicht eingebunden',
 			goUp: 'Nach oben'
 		},
-		display: {
-			noFiles: 'Keine Displaydateien'
+		menu: {
+			noFiles: 'Keine Menüdateien'
 		},
 		eventLog: {
 			date: 'Datum',
@@ -394,7 +394,7 @@ export default {
 			jobs: 'Aufträge',
 			filaments: 'Filamente',
 			macros: 'Makros',
-			display: 'Display',
+			menu: 'Menü',
 			system: 'System',
 			web: 'Web'
 		},
@@ -668,7 +668,8 @@ export default {
 			mcuTemp: 'MCU-Temperatur',
 			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimum: {0}, Maximum {1}',
+			v12: 'V12',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'Lüfter-RPM',
 			probe: 'Z-Probe|Z-Probes',
 			noStatus: 'Kein Status'
@@ -692,9 +693,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Sensor',
+				sensorIndex: 'Sensor {0}',
 				value: 'Wert',
 				showInChart: 'Im Temperaturdiagramm anzeigen',
-				noItems: 'Keine zusätzlichen Heizer'
+				noItems: 'Keine zusätzlichen Sensoren'
 			},
 			noTools: 'Keine Werkzeuge'
 		},

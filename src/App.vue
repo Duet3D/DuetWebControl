@@ -96,10 +96,6 @@ a:not(:hover) {
 			<v-btn icon class="hidden-md-and-up ml-3" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
 				<v-icon>mdi-aspect-ratio</v-icon>
 			</v-btn>
-			<!-- TODO: Add quick actions and UI designer here -->
-			<!--<v-btn icon class="hidden-sm-and-down" @click="rightDrawer = !rightDrawer">
-				<v-icon>menu</v-icon>
-			</v-btn>-->
 		</v-app-bar>
 
 		<v-content id="content">
@@ -130,10 +126,6 @@ a:not(:hover) {
 			</v-container>
 		</v-content>
 
-		<!--<v-navigation-drawer temporary right v-model="rightDrawer" fixed app>
-			TODO Add quick access / component list here in design mode
-		</v-navigation-drawer>-->
-
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
 		<messagebox-dialog></messagebox-dialog>
@@ -147,6 +139,7 @@ import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Routing } from './routes'
+import { isPrinting } from './store/machine/modelEnums.js'
 
 export default {
 	computed: {
@@ -154,13 +147,15 @@ export default {
 			isLocal: state => state.isLocal,
 			globalShowConnectDialog: state => state.showConnectDialog,
 
+			boards: state => state.machine.model.boards,
 			name: state => state.machine.model.network.name,
+			status: state => state.machine.model.state.status,
 
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam
 		}),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
-		...mapGetters('machine/model', ['board', 'isPrinting', 'jobProgress']),
+		...mapGetters('machine/model', ['jobProgress']),
 		toggleGlobalContainerColor() {
 			if (this.hideGlobalContainer) {
 				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
@@ -172,7 +167,6 @@ export default {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			hideGlobalContainer: false,
-			rightDrawer: false,
 			routing: Routing,
 			wasXs: this.$vuetify.breakpoint.xsOnly
 		}
@@ -185,7 +179,7 @@ export default {
 				return (this.webcam.url !== '');
 			}
 			if (condition === 'display') {
-				return this.board.hasDisplay;
+				return this.boards.length ? this.boards[0].supports12864 : false;
 			}
 			return true;
 		},
@@ -198,7 +192,7 @@ export default {
 		},
 		updateTitle() {
 			const jobProgress = this.jobProgress;
-			const title = ((jobProgress > 0 && this.isPrinting) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
+			const title = ((jobProgress > 0 && isPrinting(this.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
 			if (document.title !== title) {
 				document.title = title;
 			}
@@ -243,19 +237,23 @@ export default {
 		darkTheme(to) {
 			this.$vuetify.theme.dark = to;
 		},
-		isPrinting(to) {
-			if (to) {
-				// Go to Job Status when a print starts
-				this.$router.push('/Job/Status');
-			} else {
-				Piecon.reset();
+		status(to, from) {
+			const printing = isPrinting(to);
+			if (printing !== isPrinting(from)) {
+				if (printing) {
+					// Go to Job Status when a print starts
+					if (this.$router.currentRoute.path !== '/Job/Status') {
+						this.$router.push('/Job/Status');
+					}
+				} else {
+					// Remove the Piecon again when the print has finished
+					Piecon.reset();
+				}
 			}
 		},
 		name() { this.updateTitle(); },
 		jobProgress(to) {
-			if (to === undefined || to == 1) {
-				Piecon.reset();
-			} else if (this.isPrinting) {
+			if (isPrinting(this.status)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();

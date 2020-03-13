@@ -15,7 +15,7 @@
 						<job-control-panel></job-control-panel>
 					</v-col>
 					<v-col cols="12">
-						<babystepping-panel></babystepping-panel>
+						<z-babystep-panel></z-babystep-panel>
 					</v-col>
 					<v-col class="hidden-sm-and-down">
 						<job-info-panel></job-info-panel>
