@@ -439,10 +439,6 @@ export default {
 			successMulti: '已成功下载{0}文件',
 			error: '下载{0}失败'
 		},
-		loadingFile: {
-			title: '正在载入文件...',
-			message: '此文件相对较大，因此可能需要一段时间才能显示。'
-		},
 		message: '消息',
 		mount: {
 			successTitle: 'SD卡已装载',

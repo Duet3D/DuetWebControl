@@ -429,10 +429,6 @@ export default {
 			successMulti: 'Erfolgreich {0} Dateien heruntergeladen',
 			error: 'Konnte {0} nicht herunterladen'
 		},
-		loadingFile: {
-			title: 'Lade Datei...',
-			message: 'Diese Datei ist recht groß. Deshalb kann es einen Moment dauern bis sie angezeigt wird.'
-		},
 		message: 'Nachricht',
 		mount: {
 			successTitle: 'SD-Karte eingebunden',

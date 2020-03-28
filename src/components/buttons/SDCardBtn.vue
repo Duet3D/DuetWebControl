@@ -45,32 +45,35 @@ export default {
 			return this.$t('generic.sdCard', [index]);
 		},
 		async selectVolume(index) {
-			let success = true, response;
-			if (this.isConnected) {
-				const volume = this.volumes[index];
-				if (!volume.mounted) {
-					this.mounting = true;
-					try {
-						response = await this.sendCode({ code: `M21 P${index}`, log: false });
-						success = response.indexOf('Error') === -1;
-					} catch (e) {
-						response = e.message;
-						success = false;
-					}
-					this.mounting = false;
-				}
+			if (!this.isConnected) {
+				return;
 			}
 
-			if (this.isConnected) {
-				if (success) {
-					// Show success message
-					this.$log('success', this.$t('notification.mount.successTitle'), response);
-				} else {
-					// Show mount message
-					this.$log('error', this.$t('notification.mount.errorTitle'), response);
-					return;
-				}
+			// Check if the volume is already mounted
+			const volume = this.volumes[index];
+			if (volume.mounted) {
 				this.$emit('input', index);
+				return;
+			}
+
+			// Try to mount it
+			let success = true, response;
+			this.mounting = true;
+			try {
+				response = await this.sendCode({ code: `M21 P${index}`, log: false });
+				success = response.indexOf('Error') === -1;
+			} catch (e) {
+				response = e.message;
+				success = false;
+			}
+			this.mounting = false;
+
+			// Deal with the result
+			if (success) {
+				this.$log('success', this.$t('notification.mount.successTitle'), response);
+				this.$emit('input', index);
+			} else {
+				this.$log('error', this.$t('notification.mount.errorTitle'), response);
 			}
 		}
 	}

@@ -102,11 +102,16 @@ export function startsWith(a, b) {
 	return false;
 }
 
-window.pathCombine = combine;
-window.pathStartsWith = startsWith;
+export function isGCodePath(path, gcodesDir) {
+	path = path.toLowerCase();
+	return (startsWith(path, pathObj.firmware) || startsWith(path, gcodesDir) ||
+			path.endsWith('.g') || path.endsWith('.gcode') || path.endsWith('.gc') || path.endsWith('.gco') ||
+			path.endsWith('.nc') || path.endsWith('.ngc') || path.endsWith('.tap'));
+}
 
 export function isSdPath(path) {
 	return (startsWith(path, pathObj.filaments) ||
+			startsWith(path, pathObj.firmware) ||
 			startsWith(path, pathObj.gCodes) ||
 			startsWith(path, pathObj.macros) ||
 			startsWith(path, pathObj.menu) ||
@@ -135,6 +140,7 @@ export function stripMacroFilename(filename) {
 
 const pathObj = {
 	filaments: '0:/filaments',
+	firmware: '0:/sys',
 	gCodes: '0:/gcodes',
 	macros: '0:/macros',
 	menu: '0:/menu',
@@ -157,6 +163,7 @@ const pathObj = {
 	getVolume,
 	startsWith,
 
+	isGCodePath,
 	isSdPath,
 	stripMacroFilename
 }

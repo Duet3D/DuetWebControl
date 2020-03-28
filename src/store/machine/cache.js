@@ -89,7 +89,7 @@ export default function(hostname) {
 					} else {
 						// Delete directory items
 						for (let filename in state.fileInfos) {
-							if (Path.extractDirectory(filename) === fileOrDirectory) {
+							if (Path.startsWith(filename, fileOrDirectory)) {
 								delete state.fileInfos[filename];
 							}
 						}

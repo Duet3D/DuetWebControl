@@ -2,6 +2,7 @@
 
 import {
 	InputChannelName,
+	MachineMode,
 	KinematicsName,
 	StatusType,
 	isPrinting
@@ -30,6 +31,7 @@ export class MachineModel {
 	boards = []
 	directories = {
 		filaments: Path.filaments,
+		firmware: Path.system,
 		gCodes: Path.gCodes,
 		macros: Path.macros,
 		menu: Path.menu,
@@ -45,6 +47,7 @@ export class MachineModel {
 		coldRetractTemperature: 90,
 		heaters: []
 	}
+	httpEndpoints = []							// *** missing in RRF (only applicable for Duet 3 in SBC mode)
 	inputs = [
 		new InputChannel({ name: InputChannelName.http }),
 		new InputChannel({ name: InputChannelName.telnet }),
@@ -58,8 +61,8 @@ export class MachineModel {
 		new InputChannel({ name: InputChannelName.daemon }),
 		new InputChannel({ name: InputChannelName.autoPause })
 	]
-	httpEndpoints = []							// *** missing in RRF (only applicable for Duet 3 in SBC mode)
 	job = {
+		build: null,
 		duration: null,
 		file: new ParsedFileInfo(),
 		filePosition: null,
@@ -117,7 +120,7 @@ export class MachineModel {
 			numFactors: 0
 		},
 		compensation: {
-			fadeHeight: 0,
+			fadeHeight: null,
 			file: null,
 			meshDeviation: null,
 			probeGrid: {
@@ -129,7 +132,7 @@ export class MachineModel {
 				ySpacing: 0.0,
 				radius: 0.0
 			},
-			type: 'none'
+			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
 		},
 		currentMove: {
 			acceleration: 0,
@@ -148,9 +151,9 @@ export class MachineModel {
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
-		printingAcceleration: null,
+		printingAcceleration: 10000,
 		speedFactor: 100,
-		travelAcceleration: null,
+		travelAcceleration: 10000,
 		workspaceNumber: 1
 	}
 	network = {
@@ -172,17 +175,14 @@ export class MachineModel {
 	spindles = []
 	state = {
 		atxPower: null,
-		beep: {
-			frequency: 0,
-			duration: 0
-		},
+		beep: null,
 		currentTool: -1,
-		displayMessage: null,
+		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
-		laserPwm: -1,
-		logFile: '',
+		laserPwm: null,
+		logFile: null,
 		messageBox: null,
-		machineMode: null,
+		machineMode: MachineMode.fff,
 		nextTool: -1,
 		powerFailScript: '',
 		previousTool: -1,
@@ -223,17 +223,23 @@ export const DefaultMachineModel = new MachineModel({
 			new Axis({
 				letter: 'X',
 				drives: [0],
-				homed: true
+				homed: true,
+				machinePosition: 0,
+				userPosition: 0
 			}),
 			new Axis({
 				letter: 'Y',
 				drives: [1],
-				homed: true
+				homed: true,
+				machinePosition: 0,
+				userPosition: 0
 			}),
 			new Axis({
 				letter: 'Z',
 				drives: [2],
-				homed: true
+				homed: true,
+				machinePosition: 0,
+				userPosition: 0
 			})
 		],
 		extruders: [

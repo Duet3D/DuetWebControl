@@ -169,46 +169,53 @@ export default {
 				if (this.isConnected && fileIndex < fileCount) {
 					const file = this.filelist[fileIndex];
 					if (!file.isDirectory) {
+						let gotFileInfo = false;
 						try {
-							// Get the fileinfo either from our cache or from the Duet
+							// Check if it is possible to parse this file
 							const filename = Path.combine(directory, file.name);
-							let fileInfo = this.fileInfos[filename];
-							if (!fileInfo) {
-								fileInfo = await this.getFileInfo(filename);
-								this.setFileInfo({ filename, fileInfo });
-							}
+							if (Path.isGCodePath(file.name, this.gCodesDirectory)) {
+								// Get the fileinfo either from our cache or from the Duet
+								let fileInfo = this.fileInfos[filename];
+								if (!fileInfo) {
+									fileInfo = await this.getFileInfo(filename);
+									this.setFileInfo({ filename, fileInfo });
+								}
 
-							// Start again if the number of files has changed
-							if (fileCount !== this.filelist.length) {
-								fileIndex = -1;
-								fileCount = this.filelist.length;
-								return;
-							}
+								// Start again if the number of files has changed
+								if (fileCount !== this.filelist.length) {
+									fileIndex = -1;
+									fileCount = this.filelist.length;
+									return;
+								}
 
-							// Set file info
-							file.height = fileInfo.height;
-							file.layerHeight = fileInfo.layerHeight;
-							file.filament = fileInfo.filament;
-							file.generatedBy = fileInfo.generatedBy;
-							file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
-							file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
+								// Set file info
+								gotFileInfo = true
+								file.height = fileInfo.height;
+								file.layerHeight = fileInfo.layerHeight;
+								file.filament = fileInfo.filament;
+								file.generatedBy = fileInfo.generatedBy;
+								file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
+								file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
+							}
 
 							// Update progress
 							this.fileinfoProgress = fileIndex;
 						} catch (e) {
-							// Invalidate file info
+							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
+							if (!(e instanceof DisconnectedError) && !(e instanceof InvalidPasswordError)) {
+								console.warn(e);
+								this.$log('error', this.$t('error.fileinfoRequestFailed', [file.name]), e.message);
+							}
+						}
+
+						// Remove loading state from the items if no info could be found
+						if (!gotFileInfo) {
 							file.height = null;
 							file.layerHeight = null;
 							file.filament = [];
 							file.generatedBy = null;
 							file.printTime = null;
 							file.simulatedTime = null;
-
-							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
-							if (!(e instanceof DisconnectedError) && !(e instanceof InvalidPasswordError)) {
-								console.warn(e);
-								this.$log('error', this.$t('error.fileinfoRequestFailed', [file.name]), e.message);
-							}
 						}
 					}
 

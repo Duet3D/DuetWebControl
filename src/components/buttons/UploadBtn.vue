@@ -53,10 +53,10 @@ export default {
 				case 'start': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
 				case 'macros': return '*';
 				case 'filaments': return '.zip';
+				case 'firmware': return '.zip,.bin';
 				case 'display': return '*';
 				case 'system': return '.zip,.bin,.json,.g,.csv';
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
-				case 'update': return '.zip,.bin';
 			}
 			return undefined;
 		},
@@ -68,12 +68,12 @@ export default {
 			switch (this.target) {
 				case 'gcodes': return this.directories.gCodes;
 				case 'start': return this.directories.gCodes;
+				case 'firmware': return this.directories.firmware;
 				case 'macros': return this.directories.macros;
 				case 'filaments': return this.directories.filaments;
 				case 'display': return this.directories.display;
 				case 'system': return this.directories.system;
 				case 'web': return this.directories.web;
-				case 'update': return this.directories.system;
 			}
 			return undefined;
 		},
@@ -209,27 +209,29 @@ export default {
 
 				// Adjust filename if an update is being uploaded
 				let filename = Path.combine(this.destinationDirectory, content.name);
-				if (this.target === 'system' || this.target === 'update') {
+				if (this.target === 'system' || this.target === 'firmware') {
 					if (Path.isSdPath(content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(this.directories.web, content.name);
 						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
 					} else if (firmwareFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.system, firmwareFileName);
+						filename = Path.combine(this.directories.firmware, firmwareFileName);
 						this.updates.firmware = true;
 					} else if (this.state.dsfVersion && iapSBCFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.system, iapSBCFileName);
+						filename = Path.combine(this.directories.firmware, iapSBCFileName);
 					} else if (iapSDFileRegEx.test(content.name)) {
-						filename = Path.combine(Path.system, iapSDFileName);
+						filename = Path.combine(this.directories.firmware, iapSDFileName);
 					} else if (!this.state.dsfVersion && this.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
 						if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
-							filename = Path.combine(Path.system, 'DuetWiFiServer.bin');
+							filename = Path.combine(this.directories.firmware, 'DuetWiFiServer.bin');
 							this.updates.wifiServer = true;
 						} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
-							filename = Path.combine(Path.system, 'DuetWebControl.bin');
+							filename = Path.combine(this.directories.firmware, 'DuetWebControl.bin');
 							this.updates.wifiServerSpiffs = true;
 						}
+					} else if (content.name.endsWith('.bin')) {
+						filename = Path.combine(this.directories.firmware, content.name);
 					}
 				}
 

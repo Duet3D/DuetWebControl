@@ -316,8 +316,8 @@ export default class PollConnector extends BaseConnector {
 				axes: response.coords.xyz.map((position, drive) => ({
 					drives: [drive],
 					homed: Boolean(response.coords.axesHomed[drive]),
-					machinePosition: position,
-					userPosition: position
+					machinePosition: (position === 9999) ? null : position,
+					userPosition: (position === 9999) ? null : position
 				})),
 				currentMove: {
 					requestedSpeed: (response.speeds !== undefined) ? response.speeds.requested : null,
@@ -337,7 +337,10 @@ export default class PollConnector extends BaseConnector {
 			} : {},
 			sensors: {
 				analog: response.temps.current.map((lastReading, number) => ({ lastReading, number }))
-						.concat(response.temps.extra.map(extra => ({ lastReading: extra.temp, name: extra.name }))),
+						.concat(response.temps.extra.map(extra => ({
+							lastReading: (extra.temp === 9999) ? null : extra.temp,
+							name: extra.name
+						}))),
 				probes: (this.probeType !== 0) ? [
 					{
 						value: [response.sensors.probeValue].concat(response.sensors.probeSecondary ? response.sensors.probeSecondary : [])
@@ -358,7 +361,9 @@ export default class PollConnector extends BaseConnector {
 			newData.move.axes[2].babystep = (response.params.babystep !== undefined) ? response.params.babystep : 0;
 		}
 		if (response.coords.machine) {
-			response.coords.machine.forEach((machinePosition, axis) => newData.move.axes[axis].machinePosition = machinePosition);
+			response.coords.machine.forEach(function(machinePosition, axis) {
+				newData.move.axes[axis].machinePosition = (machinePosition === 9999) ? null : machinePosition;
+			});
 		}
 		if (response.temps.bed && response.temps.bed.heater >= 0 && response.temps.bed.heater < newData.sensors.analog.length) {
 			newData.heat.heaters[response.temps.bed.heater].active = response.temps.bed.active;
@@ -594,7 +599,7 @@ export default class PollConnector extends BaseConnector {
 					title: response.output.msgBox.title,
 					message: response.output.msgBox.msg,
 					timeout: response.output.msgBox.timeout,
-					axisControls: bitmapToArray(response.output.msgBox.controls)
+					axisControls: response.output.msgBox.controls
 				});
 			}
 		}

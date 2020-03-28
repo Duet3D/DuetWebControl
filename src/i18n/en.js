@@ -429,10 +429,6 @@ export default {
 			successMulti: 'Successfully downloaded {0} files',
 			error: 'Failed to download {0}'
 		},
-		loadingFile: {
-			title: 'Loading file...',
-			message: 'This file is relatively big so it may take a while before it is displayed.'
-		},
 		message: 'Message',
 		mount: {
 			successTitle: 'SD card mounted',

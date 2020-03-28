@@ -431,10 +431,6 @@ export default {
 			successMulti: '{0} Archivos descargados con éxito',
 			error: 'Fallo al descargar {0}'
 		},
-		loadingFile: {
-			title: 'Cargando archivo...',
-			message: 'Este archivo es relativamente grande, por lo que puede pasar un tiempo antes de que se muestre.'
-		},
 		message: 'Mensaje',
 		mount: {
 			successTitle: 'Tarjeta SD montada',

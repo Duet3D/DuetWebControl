@@ -37,6 +37,10 @@ a:not(:hover) {
 	text-decoration: none;
 }
 
+textarea {
+	line-height: 1.25rem !important;
+}
+
 .theme--dark textarea {
 	caret-color: #FFF;
 }

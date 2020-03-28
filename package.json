@@ -22,9 +22,9 @@
     "three": "^0.114.0",
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.11",
-    "vue-i18n": "^8.15.5",
+    "vue-i18n": "^8.15.7",
     "vue-router": "^3.1.6",
-    "vuetify": "^2.2.15",
+    "vuetify": "^2.2.19",
     "vuex": "^3.1.3"
   },
   "devDependencies": {
@@ -37,7 +37,7 @@
     "compression-webpack-plugin": "^3.1.0",
     "eslint": "^6.8.0",
     "eslint-plugin-vue": "^6.2.2",
-    "sass": "^1.26.2",
+    "sass": "^1.26.3",
     "sass-loader": "^8.0.2",
     "stylus": "^0.54.7",
     "stylus-loader": "^3.0.1",

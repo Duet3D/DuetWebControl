@@ -73,7 +73,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 		}
 	} else if (a instanceof Object) {
 		for (let key in b) {
-			if (skipNonexistentFields && a[key] === undefined) {
+			if (skipNonexistentFields && !(key in a)) {
 				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source`);
 			} else if (a[key] && b[key] && typeof a[key] !== typeof b[key]) {
 				console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);
