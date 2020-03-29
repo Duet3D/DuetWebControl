@@ -69,7 +69,7 @@ export class Board {
 	}
 	name = ''
 	shortName = ''
-	supports12864 = false
+	supports12864 = undefined	// FIXME this will be removed again in favour of directories.menu != null
 	v12 = {
 		current: 0,
 		min: 0,
@@ -83,13 +83,15 @@ export class Board {
 }
 
 export class Build {
-	m486names = false
-	m486numbers = false
+	currentObject = -1
+	m486Names = false
+	m486Numbers = false
 	objects = []
 }
 
 export class BuildObject {
 	constructor(initData) { quickPatch(this, initData); }
+	cancelled = false
 	name = null
 	x = []
 	y = []
@@ -511,8 +513,8 @@ export function fixMachineItems(state, mergeData) {
 	}
 
 	if (mergeData.job && mergeData.job.build) {
-		fixObject(state.job.build, Build);
-		if (mergeData.job.build.objects) {
+		fixObject(state.job.build, new Build());
+		if (mergeData.job.build && mergeData.job.build.objects) {
 			fixItems(state.job.build.objects, BuildObject);
 		}
 	}
@@ -536,6 +538,9 @@ export function fixMachineItems(state, mergeData) {
 	}
 
 	if (mergeData.sensors) {
+		if (mergeData.sensors.analog) {
+			fixItems(state.sensors.analog, AnalogSensor);
+		}
 		if (mergeData.sensors.endstops) {
 			fixItems(state.sensors.endstops, Endstop);
 		}

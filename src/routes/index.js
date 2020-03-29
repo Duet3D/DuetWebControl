@@ -99,7 +99,7 @@ export const Routing = [
 			// Display
 			{
 				icon: 'mdi-format-list-numbered',
-				caption: 'menu.files.display',
+				caption: 'menu.files.menu',
 				path: '/Files/Display',
 				component: Files.Display,
 				condition: 'display'

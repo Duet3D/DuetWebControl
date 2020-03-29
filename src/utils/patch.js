@@ -75,15 +75,22 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 		for (let key in b) {
 			if (skipNonexistentFields && !(key in a)) {
 				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source`);
-			} else if (a[key] && b[key] && typeof a[key] !== typeof b[key]) {
-				console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);
-			} else if (a[key] instanceof Array) {
-				patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
-			} else if (a[key] instanceof Object) {
-				patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
-			} else if (a[key] !== b[key]) {
-				a[key] = b[key];
-				//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
+			} else {
+				if (typeof a[key] === 'boolean' && typeof b[key] === 'number') {
+					// RRF reports bools as ints so convert them if necessary
+					b[key] = Boolean(b[key]);
+				}
+
+				if (a[key] !== undefined && a[key] !== null && b[key] !== null && typeof a[key] !== typeof b[key]) {
+					console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);
+				} else if (a[key] instanceof Array) {
+					patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
+				} else if (a[key] instanceof Object) {
+					patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
+				} else if (a[key] !== b[key]) {
+					a[key] = b[key];
+					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
+				}
 			}
 		}
 	}

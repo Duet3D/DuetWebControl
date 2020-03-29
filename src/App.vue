@@ -152,6 +152,7 @@ export default {
 			globalShowConnectDialog: state => state.showConnectDialog,
 
 			boards: state => state.machine.model.boards,
+			menuDirectory: state => state.machine.model.directories.menu,
 			name: state => state.machine.model.network.name,
 			status: state => state.machine.model.state.status,
 
@@ -183,7 +184,10 @@ export default {
 				return (this.webcam.url !== '');
 			}
 			if (condition === 'display') {
-				return this.boards.length ? this.boards[0].supports12864 : false;
+				if (this.boards.length > 0 && this.boards[0].supports12864 !== undefined) {
+					return this.boards[0].supports12864;
+				}
+				return (this.menuDirectory !== null);
 			}
 			return true;
 		},

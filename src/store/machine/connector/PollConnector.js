@@ -234,12 +234,11 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	unregister() {
+		this.cancelRequests();
 		if (this.updateLoopTimer) {
 			clearTimeout(this.updateLoopTimer);
 			this.updateLoopTimer = null;
 		}
-
-		this.cancelRequests();
 		super.unregister();
 	}
 
@@ -651,11 +650,6 @@ export default class PollConnector extends BaseConnector {
 		this.justConnected = false;
 		this.updateLoopCounter++;
 
-		// Check if the connection is about to be interrupted
-		if (response.status === 'F' || response.status === 'H') {
-			throw new DisconnectedError();
-		}
-
 		// Schedule the next status update
 		this.scheduleUpdate();
 	}
@@ -764,9 +758,6 @@ export default class PollConnector extends BaseConnector {
 					} else if (key === 'state') {
 						status = keyResponse.result.status;
 						this.lastUptime = keyResponse.result.upTime;
-						if (keyResponse.result.status === StatusType.updating || keyResponse.result.status === StatusType.halted) {
-							throw new DisconnectedError();
-						}
 					}
 				}
 			} finally {
@@ -812,14 +803,9 @@ export default class PollConnector extends BaseConnector {
 				await this.getGCodeReply(seqs.reply);
 			}
 			this.lastSeqs = seqs;
-
-			// Check if the connection is about to be interrupted
-			if (response.result.state.status === StatusType.updating || response.result.state.status === StatusType.halted) {
-				throw new DisconnectedError();
-			}
 		}
 
-		// See if we need to record more layer stats (TODO move this to a dedicate file on the Duet)
+		// See if we need to record more layer stats
 		if (jobKey && isPrinting(status)) {
 			let layersChanged = false;
 			if (!isPrinting(this.lastStatus)) {
@@ -905,6 +891,7 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	async doUpdate(startTime) {
+		this.updateLoopTimer = null;
 		try {
 			if (new Date() - startTime > this.sessionTimeout) {
 				// Safari suspends setTimeout calls when a tab is inactive - check for this case
@@ -919,15 +906,13 @@ export default class PollConnector extends BaseConnector {
 				await this.updateLoopStatus();
 			}
 		} catch (e) {
-			if (!(e instanceof DisconnectedError)) {
-				console.warn(e);
-				await this.dispatch('onConnectionError', e);
-			}
+			console.warn(e);
+			await this.dispatch('onConnectionError', e);
 		}
 	}
 
 	scheduleUpdate() {
-		if (this.justConnected || this.updateLoopTimer) {
+		if (!this.updateLoopTimer) {
 			const startTime = new Date();
 			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this, startTime), this.settings.updateInterval);
 		}

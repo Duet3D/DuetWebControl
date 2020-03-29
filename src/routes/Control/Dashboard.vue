@@ -40,10 +40,10 @@ export default {
 	computed: {
 		...mapState('machine/model', {
 			atxPower: state => state.state.atxPower,
-			status: state => state.state.status
+			machineMode: state => state.state.machineMode
 		}),
 		isFFForUnset() {
-			return !this.status || (this.status === MachineMode.fff);
+			return !this.machineMode || (this.machineMode === MachineMode.fff);
 		}
 	}
 }

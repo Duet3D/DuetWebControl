@@ -168,7 +168,7 @@ const store = new Vuex.Store({
 			state.selectedMachine = selectedMachine;
 			
 			// Allow access to the machine's data store for debugging...
-			window.machineStore = state.machine
+			window.machineStore = state.machine;
 		}
 	},
 
@@ -193,5 +193,12 @@ const store = new Vuex.Store({
 
 // This has to be registered dynamically, else unregisterModule will not work cleanly
 store.registerModule('machine', machines[defaultMachine])
+
+// Debug function to replicate different machine states
+if (process.env.NODE_ENV !== 'production') {
+	window.updateMachineStore = function(newStore) {
+		store.dispatch('machine/update', newStore);
+	}
+}
 
 export default store

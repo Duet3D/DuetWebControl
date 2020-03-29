@@ -1,12 +1,12 @@
 <template>
-	<div class="component">
+	<div v-if="menuDirectory" class="component">
 		<v-toolbar>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 
 			<v-spacer></v-spacer>
 
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" @click="showNewFile = true">
-				<v-icon class="mr-1">mdi-file-lus</v-icon> {{ $t('button.newFile.caption') }}
+				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
 			<!--<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
@@ -84,7 +84,7 @@ export default {
 		}
 	},
 	mounted() {
-		this.directory = this.directories.menuDirectory;
+		this.directory = this.menuDirectory;
 	},
 	watch: {
 		menuDirectory(to, from) {

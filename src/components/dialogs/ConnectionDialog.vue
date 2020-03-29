@@ -17,6 +17,8 @@
 
 import { mapState } from 'vuex'
 
+import { StatusType } from '../../store/machine/modelEnums.js'
+
 export default {
 	computed: {
 		...mapState(['connectingProgress', 'isConnecting', 'isDisconnecting']),
@@ -28,8 +30,11 @@ export default {
 			if (this.isConnecting || this.connectingProgress >= 0) {
 				return this.$t('dialog.connection.connecting');
 			}
+			if (this.status === StatusType.updating) {
+				return this.$t('dialog.connection.updating');
+			}
 			if (this.isReconnecting) {
-				return this.$t((this.status === 'updating') ? 'dialog.connection.updating' : 'dialog.connection.reconnecting');
+				return this.$t('dialog.connection.reconnecting');
 			}
 			if (this.isDisconnecting) {
 				return this.$t('dialog.connection.disconnecting');
@@ -37,7 +42,8 @@ export default {
 			return this.$t('dialog.connection.standBy');
 		},
 		shown() {
-			return this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting;
+			return (this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting ||
+					this.status === StatusType.updating);
 		}
 	}
 }

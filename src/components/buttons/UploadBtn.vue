@@ -54,7 +54,7 @@ export default {
 				case 'macros': return '*';
 				case 'filaments': return '.zip';
 				case 'firmware': return '.zip,.bin';
-				case 'display': return '*';
+				case 'menu': return '*';
 				case 'system': return '.zip,.bin,.json,.g,.csv';
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 			}
@@ -71,7 +71,7 @@ export default {
 				case 'firmware': return this.directories.firmware;
 				case 'macros': return this.directories.macros;
 				case 'filaments': return this.directories.filaments;
-				case 'display': return this.directories.display;
+				case 'menu': return this.directories.menu;
 				case 'system': return this.directories.system;
 				case 'web': return this.directories.web;
 			}

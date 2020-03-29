@@ -139,7 +139,6 @@ export default class RestConnector extends BaseConnector {
 
 		// Attempt to reconnect
 		try {
-			const deprecatedDsfVersion = this.model.electronics.version;		// FIXME this will be moved to state.dsfVersion
 			const lastDsfVersion = this.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
 			const socket = new WebSocket(`${socketProtocol}//${this.hostname}/machine`);
@@ -163,7 +162,7 @@ export default class RestConnector extends BaseConnector {
 			this.socket = socket;
 			await this.startSocket();
 
-			if (deprecatedDsfVersion != this.model.electronics.version || lastDsfVersion !== this.model.state.dsfVersion) {
+			if (lastDsfVersion !== this.model.state.dsfVersion) {
 				// DSF has been updated so there is a chance that the web interface has been updated too
 				location.reload(true);
 			}

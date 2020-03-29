@@ -43,7 +43,7 @@ export default {
 				} else if (Path.startsWith(this.value, this.directories.menu)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.menu;
-					rootCaption = this.$t('directory.display');
+					rootCaption = this.$t('directory.menu');
 				} else if (Path.startsWith(this.value, Path.system)) {
 					pathItems.shift();
 					pathItems[0] = Path.system;
