@@ -1,5 +1,5 @@
 <template>
-	<div v-if="menuDirectory" class="component">
+	<div class="component">
 		<v-toolbar>
 			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
 

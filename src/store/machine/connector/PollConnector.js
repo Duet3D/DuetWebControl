@@ -463,12 +463,22 @@ export default class PollConnector extends BaseConnector {
 					extruders: tool.drives,
 					axes: tool.axisMap,
 					fans: bitmapToArray(tool.fans),
-					filament: tool.filament,
+					filamentExtruder: (tool.drives.length > 0) ? tool.drives[0] : -1,
 					offsets: tool.offsets
 				})) : []
 			});
 
 			newData.heat.heaters.forEach(heater => heater.max = response.tempLimit);
+
+			response.tools.forEach(tool => {
+				if (tool.drives.length > 0) {
+					const drive = tool.drive[0];
+					if (drive >= 0 && drive < newData.move.extruders.length) {
+						newData.move.extruders[0].filament = tool.filament;
+					}
+				}
+			});
+
 			if (response.temps.names !== undefined) {
 				response.temps.names.forEach((name, index) => newData.sensors.analog[index].name = name);
 			}

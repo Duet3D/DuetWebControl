@@ -9,7 +9,7 @@
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" @click="showNewDirectory = true">
 				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
@@ -167,6 +167,10 @@ export default {
 		async requestFileInfo(directory, fileIndex, fileCount) {
 			if (this.fileinfoDirectory === directory) {
 				if (this.isConnected && fileIndex < fileCount) {
+					// Update progress
+					this.fileinfoProgress = fileIndex;
+
+					// Try to get file info for the next file
 					const file = this.filelist[fileIndex];
 					if (!file.isDirectory) {
 						let gotFileInfo = false;
@@ -197,9 +201,6 @@ export default {
 								file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
 								file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
 							}
-
-							// Update progress
-							this.fileinfoProgress = fileIndex;
 						} catch (e) {
 							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
 							if (!(e instanceof DisconnectedError) && !(e instanceof InvalidPasswordError)) {
@@ -220,7 +221,6 @@ export default {
 					}
 
 					// Move on to the next item
-					this.fileinfoProgress = fileIndex;
 					this.requestFileInfo(directory, fileIndex + 1, fileCount);
 				} else {
 					// No longer connected or finished

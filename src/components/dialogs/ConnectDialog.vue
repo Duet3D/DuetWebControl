@@ -9,7 +9,7 @@
 				<v-card-text>
 					{{ $t('dialog.connect.prompt') }}
 
-					<v-text-field v-show="!mustConnect" v-model="hostname" ref="hostname" :autofocus="!mustConnect" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
+					<v-text-field v-show="!mustConnect" v-model="hostname" @input="passwordRequired = false" :autofocus="!mustConnect" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
 					<v-text-field ref="password" type="password" :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')" v-model="password" :autofocus="mustConnect" :rules="[v => !!v || !passwordRequired || $t('dialog.connect.passwordRequired')]" :required="passwordRequired"></v-text-field>
 				</v-card-text>
 
@@ -37,32 +37,38 @@ export default {
 	data() {
 		return {
 			shown: false,
-			hostname: '',
+			hostname: location.host,
 			password: ''
 		}
 	},
 	methods: {
 		...mapActions(['connect']),
-		...mapMutations(['hideConnectDialog']),
+		...mapMutations(['showConnectDialog', 'hideConnectDialog']),
 		async submit() {
 			if (this.shown && this.$refs.form.validate()) {
 				this.hideConnectDialog();
-
-				await this.connect({ hostname: this.hostname, password: this.password });
-				this.password = '';
+				try {
+					await this.connect({ hostname: this.hostname, password: this.password });
+					this.password = '';
+				} catch (e) {
+					console.warn(e);
+					this.showConnectDialog();
+				}
 			}
 		}
 	},
 	mounted() {
-		this.hostname = this.lastHostname;
+		if (this.isLocal) {
+			this.hostname = this.lastHostname;
+		}
 		this.shown = this.connectDialogShown;
 	},
 	watch: {
 		connectDialogShown(to) { this.shown = to; },
-		shown(to) {
-			if (to) {
-				// Fill in the last hostname
-				this.hostname = this.lastHostname;
+		lastHostname(to) {
+			if (this.isLocal) {
+				// Update the hostname
+				this.hostname = to;
 			}
 		}
 	}

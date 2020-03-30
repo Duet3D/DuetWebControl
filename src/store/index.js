@@ -68,7 +68,7 @@ const store = new Vuex.Store({
 				}
 			} catch (e) {
 				const isPasswordError = e instanceof InvalidPasswordError;
-				if (!isPasswordError || password !== defaultPassword)  {
+				if (!isPasswordError || password !== defaultPassword) {
 					logGlobal(isPasswordError ? 'warning' : 'error', i18n.t('error.connect', [hostname]), e.message);
 				}
 
@@ -135,7 +135,7 @@ const store = new Vuex.Store({
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
 				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
-				setTimeout(() => dispatch(`machines/${hostname}/reconnect`), 1000);
+				dispatch(`machines/${hostname}/reconnect`);
 			}
 		}
 	},

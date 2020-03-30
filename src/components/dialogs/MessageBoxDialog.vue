@@ -118,7 +118,7 @@ export default {
 		}
 	},
 	watch: {
-		'state.messageBox': {
+		messageBox: {
 			deep: true,
 			handler(to) {
 				this.shown = (to && to.mode !== null);

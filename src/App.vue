@@ -184,10 +184,7 @@ export default {
 				return (this.webcam.url !== '');
 			}
 			if (condition === 'display') {
-				if (this.boards.length > 0 && this.boards[0].supports12864 !== undefined) {
-					return this.boards[0].supports12864;
-				}
-				return (this.menuDirectory !== null);
+				return (this.boards.length > 0) && this.boards[0].supports12864;
 			}
 			return true;
 		},

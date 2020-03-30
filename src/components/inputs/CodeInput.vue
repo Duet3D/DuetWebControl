@@ -112,7 +112,7 @@ export default {
 
 			const code = (this.code.constructor === String) ? this.code : this.code.value;
 			if (code && code.trim() !== '' && !this.doingCode) {
-				let codeToSend = '', inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
+				let codeToSend = '', bareCode = '', inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
 				if (!this.hasUnprecedentedParameters(codeToSend) &&
 					!conditionalKeywords.some(keyword => code.trim().startsWith(keyword))) {
 					// Convert code to upper-case and remove comments
@@ -156,6 +156,7 @@ export default {
 							}
 							inWhiteSpace = false;
 							codeToSend += char.toUpperCase();
+							bareCode += code.toUpperCase();
 						}
 					}
 				} else {
@@ -167,7 +168,9 @@ export default {
 				this.doingCode = true;
 				try {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') && !this.disableAutoComplete && this.codes.indexOf(codeToSend.trim()) === -1) {
+					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') &&
+						bareCode.indexOf('M587') === -1 && bareCode.indexOf('M589') === -1 &&
+						!this.disableAutoComplete && this.codes.indexOf(codeToSend.trim()) === -1) {
 						// Automatically remember successful codes
 						this.addCode(codeToSend.trim());
 					}

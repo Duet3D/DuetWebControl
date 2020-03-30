@@ -69,7 +69,7 @@ export class Board {
 	}
 	name = ''
 	shortName = ''
-	supports12864 = undefined	// FIXME this will be removed again in favour of directories.menu != null
+	supports12864 = false
 	v12 = {
 		current: 0,
 		min: 0,
@@ -110,6 +110,7 @@ export class Extruder {
 	current = 0
 	driver = null
 	factor = 1.0
+	filament = ''
 	jerk = 15
 	nonlinear = {
 		a: 0,
@@ -411,7 +412,6 @@ export class Tool {
 	axes = []					// may hold sub-arrays of drives per axis
 	extruders = []
 	fans = []
-	filament = ''
 	filamentExtruder = -1
 	heaters = []
 	mix = []

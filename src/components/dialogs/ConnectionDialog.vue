@@ -43,7 +43,7 @@ export default {
 		},
 		shown() {
 			return (this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting ||
-					this.status === StatusType.updating);
+					this.status === StatusType.halted || this.status === StatusType.updating);
 		}
 	}
 }

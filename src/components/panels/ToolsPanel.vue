@@ -83,10 +83,10 @@ table.extra tr > td:first-child {
 
 										<template v-if="isConnected && canLoadFilament(tool)">
 											-
-											<v-menu v-if="tool.filament" offset-y auto>
+											<v-menu v-if="getFilament(tool)" offset-y auto>
 												<template #activator="{ on }">
 													<a v-on="on" @click="filamentMenu.tool = tool" href="javascript:void(0)" class="font-weight-regular">
-														{{ tool.filament }}
+														{{ getFilament(tool) }}
 													</a>
 												</template>
 
@@ -322,7 +322,7 @@ import { DisconnectedError } from '../../utils/errors.js'
 export default {
 	computed: {
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', ['heat', 'sensors', 'state', 'spindles', 'tools']),
+		...mapState('machine/model', ['heat', 'move', 'sensors', 'state', 'spindles', 'tools']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme']),
 		canTurnEverythingOff() {
@@ -454,9 +454,14 @@ export default {
 			}
 			this.waitingForCode = false;
 		},
-
+		getFilament(tool) {
+			if (this.isNumber(tool.filamentExtruder) && tool.filamentExtruder >= 0 && tool.filamentExtruder < this.move.extruders.length) {
+				return this.move.extruders[tool.filamentExtruder].filament;
+			}
+			return null;
+		},
 		canLoadFilament(tool) {
-			return !this.uiFrozen && (tool.filament !== undefined) && this.isNumber(tool.filamentExtruder);
+			return !this.uiFrozen && Boolean(this.getFilament(tool));
 		},
 		unloadFilament() {
 			if (!this.isConnected) {

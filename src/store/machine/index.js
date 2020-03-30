@@ -63,9 +63,9 @@ export default function(hostname, connector) {
 
 			// Reconnect after a connection error
 			async reconnect({ commit, dispatch }) {
+				commit('setReconnecting', true);
 				try {
 					await connector.reconnect();
-
 					commit('setReconnecting', false);
 					log('success', i18n.t('events.reconnected'));
 				} catch (e) {
@@ -196,7 +196,7 @@ export default function(hostname, connector) {
 				const lastBeepFrequency = state.model.state.beep ? state.model.state.beep.frequency : null;
 				const lastBeepDuration = state.model.state.beep ? state.model.state.beep.duration : null;
 				const lastDisplayMessage = state.model.state.displayMessage;
-				const wasPrinting = isPrinting(state.model.state.status);
+				const lastStatus = state.model.state.status;
 
 				// Check if the job has finished and if so, clear the file cache
 				if (payload.job && payload.job.lastFileName && payload.job.lastFileName !== state.model.job.lastFileName) {
@@ -219,13 +219,13 @@ export default function(hostname, connector) {
 					showMessage(state.model.state.displayMessage);
 				}
 
-				// Is an update or emergency reset in progress?
-				if (state.model.state.status === StatusType.halted) {
+				// Has the firmware halted?
+				if (lastStatus != state.model.state.status && state.model.state.status === StatusType.halted) {
 					log('warning', i18n.t('events.emergencyStop'));
 				}
 
 				// Have we just finished a job? Send M1 if auto-sleep is enabled
-				if (wasPrinting && !isPrinting(state.model.state.status) && state.autoSleep) {
+				if (isPrinting(lastStatus) && !isPrinting(state.model.state.status) && state.autoSleep) {
 					try {
 						await dispatch('sendCode', 'M1');
 					} catch (e) {
@@ -238,11 +238,11 @@ export default function(hostname, connector) {
 			async onConnectionError({ state, commit, dispatch }, error) {
 				if (!state.isReconnecting && (state.model.state.status === StatusType.updating || state.model.state.status === StatusType.halted)) {
 					// Try to reconnect after a short period of time
-					commit('setReconnecting', true);
 					if (state.model.state.status !== StatusType.updating) {
 						log('warning', i18n.t('events.reconnecting'));
 					}
 
+					commit('setReconnecting', true);
 					setTimeout(() => dispatch('reconnect'), 2000);
 				} else {
 					// Notify the global store about this event

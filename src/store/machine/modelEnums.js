@@ -105,8 +105,9 @@ export const InputChannelName = {
 export const InputChannelState = {
 	awaitingAcknowledgement: 'awaitingAcknowledgement',
 	idle: 'idle',
+	executing: 'executing',
 	waiting: 'waiting',
-	reading: 'reading',
+	reading: 'reading'
 }
 
 export const KinematicsName = {
