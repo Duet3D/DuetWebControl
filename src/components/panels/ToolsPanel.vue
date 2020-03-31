@@ -461,7 +461,7 @@ export default {
 			return null;
 		},
 		canLoadFilament(tool) {
-			return !this.uiFrozen && Boolean(this.getFilament(tool));
+			return !this.uiFrozen && tool.filamentExtruder >= 0 && tool.filamentExtruder < this.move.extruders.length;
 		},
 		unloadFilament() {
 			if (!this.isConnected) {

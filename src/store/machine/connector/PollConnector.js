@@ -390,7 +390,6 @@ export default class PollConnector extends BaseConnector {
 					{
 						firmwareFileName: boardDefinition.firmwareFileName,
 						firmwareName: response.firmwareName,
-						firmwareVersion: response.firmwareVersion,
 						iapFileNameSD: boardDefinition.iapFileNameSD,
 						maxHeaters: boardDefinition.maxHeaters,
 						maxMotors: boardDefinition.maxMotors,
@@ -635,6 +634,17 @@ export default class PollConnector extends BaseConnector {
 			});
 		}
 
+		// Remove invalid heaters
+		for (let i = 0; i < newData.heat.heaters.length; i++) {
+			const heater = newData.heat.heaters[i];
+			if (heater && heater.state === HeaterState.off) {
+				if (heater.sensor < 0 || heater.sensor >= newData.sensors.analog.length ||
+					newData.sensors.analog[heater.sensor].lastReading === 2000) {
+					newData.heat.heaters[i] = null;
+				}
+			}
+		}
+
 		// Update the data model
 		await this.dispatch('update', newData);
 
@@ -665,10 +675,9 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	convertHeaterState(state) {
-		for (let key in HeaterState) {
-			if (state === HeaterState[key]) {
-				return key;
-			}
+		const keys = Object.keys(HeaterState);
+		if (state >= 0 && state < keys.length) {
+			return keys[state];
 		}
 		return null;
 	}
