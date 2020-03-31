@@ -9,7 +9,7 @@
 				<v-card-text>
 					{{ $t('dialog.connect.prompt') }}
 
-					<v-text-field v-show="!mustConnect" v-model="hostname" @input="passwordRequired = false" :autofocus="!mustConnect" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
+					<v-text-field v-show="!mustConnect" v-model="hostname" :autofocus="!mustConnect" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
 					<v-text-field ref="password" type="password" :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')" v-model="password" :autofocus="mustConnect" :rules="[v => !!v || !passwordRequired || $t('dialog.connect.passwordRequired')]" :required="passwordRequired"></v-text-field>
 				</v-card-text>
 

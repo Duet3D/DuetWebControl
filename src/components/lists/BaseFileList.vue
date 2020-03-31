@@ -298,7 +298,13 @@ export default {
 			await this.loadDirectory(this.innerDirectory);
 		},
 		async loadDirectory(directory) {
-			if (!this.isConnected || this.innerLoading) {
+			if (!this.isConnected) {
+				return;
+			}
+
+			// Update our path even if we're still busy loading
+			this.innerDirectory = directory;
+			if (this.innerLoading) {
 				return;
 			}
 
@@ -326,10 +332,16 @@ export default {
 					}, this);
 				}
 
-				this.innerDirectory = directory;
+				// Check if another directory was requested while files were being loaded
+				if (directory !== this.innerDirectory) {
+					this.innerLoading = false;
+					this.loadDirectory(this.innerDirectory);
+					return;
+				}
+
+				// Assign new file list
 				this.innerFilelist = files;
 				this.innerValue = [];
-
 				this.$nextTick(function() {
 					this.$emit('directoryLoaded', directory);
 				});

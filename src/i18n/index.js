@@ -8,9 +8,20 @@ import de from './de.js'
 import es from './es.js'
 import fr from './fr.js'
 import ru from './ru.js'
+import tr from './tr.js'
 import zh_cn from './zh_cn.js'
 
 Vue.use(VueI18n)
+
+const messages = {
+	en,
+	de,
+	es,
+	fr,
+	ru,
+	tr,
+	zh_cn
+}
 
 /* eslint-disable */
 if (process.env.NODE_ENV !== 'production') {
@@ -40,18 +51,15 @@ if (process.env.NODE_ENV !== 'production') {
 		}
 	}
 
-	compareTranslations(en, de, 'de');
+	for (let key in messages) {
+		if (key !== 'en') {
+			compareTranslations(en, messages[key], key);
+		}
+	}
 }
 /* eslint-enable */
 
 export default new VueI18n({
 	locale: 'en',
-	messages: {
-		en,
-		de,
-		es,
-		fr,
-		ru,
-		zh_cn
-	}
+	messages
 })

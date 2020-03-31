@@ -174,7 +174,7 @@ a:not(:hover) {
 										</span>
 									</template>
 
-									{{ $t('panel.status.mcuTempTitle', [$display(boards[0].mcuTemp.min, 1, 'C'), $display(boards[0].mcuTemp.max, 1, 'C')]) }}
+									{{ $t('panel.status.minMax', [$display(boards[0].mcuTemp.min, 1, 'C'), $display(boards[0].mcuTemp.max, 1, 'C')]) }}
 								</v-tooltip>
 							</v-col>
 

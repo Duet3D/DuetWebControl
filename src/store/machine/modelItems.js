@@ -53,9 +53,10 @@ export class BeepRequest {
 
 export class Board {
 	constructor(initData) { quickPatch(this, initData); }
+	bootloaderFileName = null
 	canAddress = null			// *** requires CAN support (TBD)
 	firmwareDate = ''
-	firmwareFileName = ''
+	firmwareFileName = null
 	firmwareName = ''
 	firmwareVersion = ''
 	iapFileNameSBC = null		// *** requires SBC support

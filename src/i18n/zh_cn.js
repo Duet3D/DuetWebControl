@@ -344,6 +344,7 @@ export default {
 	},
 	list: {
 		baseFileList: {
+			driveUnmounted: 'Drive is unmounted',
 			fileName: '文件名',
 			size: '大小',
 			lastModified: '最后修改',
@@ -679,10 +680,9 @@ export default {
 			topSpeed: '最高速度',
 			sensors: '传感器',
 			mcuTemp: 'MCU温度',
-			mcuTempTitle: '最小值：{0}，最大值：{1}',
+			minMax: '最小值：{0}，最大值：{1}',
 			vIn: '输入电压',
 			v12: 'V12',
-			minMax: '最小值：{0}，最大值：{1}',
 			fanRPM: '风扇转速RPM',
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'

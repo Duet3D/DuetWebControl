@@ -5,8 +5,8 @@
 </style>
 
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :disabled="uiFrozen"
-				v-model.number="value" @keyup.enter="apply" :loading="applying"
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label"
+				v-model.number="value" @keyup.enter="apply" :loading="applying" :disabled="uiFrozen || !isValid"
 				:items="items" @change="change" hide-selected @blur="value = actualValue">
 	</v-combobox>
 </template>
@@ -43,6 +43,19 @@ export default {
 
 			console.warn('[tool-input] Failed to retrieve temperature presets');
 			return [];
+		},
+		isValid() {
+			if (this.all || this.spindle) {
+				return true;
+			} else if (this.tool && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < this.tool.heaters.length) {
+				const heater = this.tool.heaters[this.toolHeaterIndex];
+				return (heater >= 0 && heater < this.heat.heaters.length && this.heat.heaters[heater] !== null);
+			} else if (this.bed && this.bedIndex >= 0 && this.bedIndex < this.heat.heaters.length) {
+				return (this.heat.heaters[this.bedIndex] !== null);
+			} else if (this.chamber && this.chamberIndex >= 0 && this.chamberIndex < this.heat.heaters.length) {
+				return (this.heat.heaters[this.chamberIndex] !== null);
+			}
+			return false;
 		}
 	},
 	data() {
@@ -138,7 +151,7 @@ export default {
 		},
 		async change(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
-			if (value.constructor === Number) {
+			if (typeof value === 'number') {
 				await this.apply();
 			}
 		}

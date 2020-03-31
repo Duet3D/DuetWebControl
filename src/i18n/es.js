@@ -681,10 +681,9 @@ export default {
 			topSpeed: 'Velocidad Máxima',
 			sensors: 'Sensores',
 			mcuTemp: 'Temperatura Placa',
-			mcuTempTitle: 'Minima: {0}, Máxima: {1}',
+			minMax: 'Minimo: {0}, Máximo {1}',
 			vIn: 'Vin',
 			v12: 'V12',
-			minMax: 'Minimo: {0}, Máximo {1}',
 			fanRPM: 'Ventilador RPM',
 			probe: 'Z-Sensor|Z-Sensores',
 			noStatus: 'Sin Estado'

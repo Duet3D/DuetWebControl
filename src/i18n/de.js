@@ -678,7 +678,6 @@ export default {
 			topSpeed: 'Maximale Geschwindigkeit',
 			sensors: 'Sensoren',
 			mcuTemp: 'MCU-Temperatur',
-			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
 			vIn: 'Vin',
 			v12: 'V12',
 			minMax: 'Minimum: {0}, Maximum {1}',

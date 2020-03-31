@@ -472,7 +472,7 @@ export default class PollConnector extends BaseConnector {
 
 			response.tools.forEach(tool => {
 				if (tool.drives.length > 0) {
-					const drive = tool.drive[0];
+					const drive = tool.drives[0];
 					if (drive >= 0 && drive < newData.move.extruders.length) {
 						newData.move.extruders[0].filament = tool.filament;
 					}

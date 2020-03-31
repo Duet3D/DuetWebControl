@@ -678,10 +678,9 @@ export default {
 			topSpeed: 'Vitesses de Pointe',
 			sensors: 'Capteurs',
 			mcuTemp: 'Température MCU',
-			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			vIn: 'Vin',
 			v12: 'V12',
-			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'TPM Ventilateur',
 			probe: 'Sonde-Z|Sondes-Z',
 			noStatus: 'Pas de Statut'
