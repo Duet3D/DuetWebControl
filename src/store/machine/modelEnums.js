@@ -25,7 +25,7 @@ export const Compatibility = {
 	teacup: 'Teacup',
 	sprinter: 'Sprinter',
 	repetier: 'Repetier',
-	nanoDlp: 'nanoDLP'
+	nanoDlp: 'NanoDLP'
 }
 
 // This is currently unused because RRF <= 2 supports 'n Point' compensation

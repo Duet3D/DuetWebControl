@@ -330,6 +330,11 @@ export class Layer {
 	height = 0
 }
 
+export class MeshDeviation {
+	deviation = 0
+	mean = 0
+}
+
 export class MessageBox {
 	axisControls = 0
 	mode = MessageBoxMode.okOnly
@@ -524,6 +529,9 @@ export function fixMachineItems(state, mergeData) {
 	if (mergeData.move) {
 		if (mergeData.move.axes) {
 			fixItems(state.move.axes, Axis);
+		}
+		if (mergeData.move.compensation && mergeData.move.compensation.meshDeviation) {
+			fixObject(state.move.compensation.meshDeviation, new MeshDeviation());
 		}
 		if (mergeData.move.extruders) {
 			fixItems(state.move.extruders, Extruder);
