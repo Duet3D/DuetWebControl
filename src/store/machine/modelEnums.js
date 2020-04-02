@@ -63,9 +63,10 @@ export const HeaterMonitorAction = {
 }
 
 export const HeaterMonitorCondition = {
-	disabled: -1,
-	temperatureExceeded: 0,
-	temperatureTooLow: 1
+	disabled: 'disabled',
+	tooHigh: 'tooHigh',
+	tooLow: 'tooLow',
+	undefined: 'undefined'
 }
 
 export const HeaterState = {
