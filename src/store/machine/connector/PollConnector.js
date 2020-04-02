@@ -415,7 +415,7 @@ export default class PollConnector extends BaseConnector {
 				fans: newData.fans.map((fanData, index) => ({
 					name: !response.params.fanNames ? null : response.params.fanNames[index],
 					thermostatic: {
-						control: (response.controllableFans & (1 << index)) === 0,
+						heaters: ((response.controllableFans & (1 << index)) === 0) ? [] : [-1]
 					}
 				})),
 				heat: {

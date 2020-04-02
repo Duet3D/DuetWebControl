@@ -135,8 +135,7 @@ export class Fan {
 	requestedValue = 0
 	rpm = -1
 	thermostatic = {
-		control: false,
-		heaters: null,
+		heaters: [],
 		highTemperature: null,
 		lowTemperature: null
 	}

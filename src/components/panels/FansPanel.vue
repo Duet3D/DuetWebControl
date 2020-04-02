@@ -5,7 +5,7 @@
 			<v-spacer></v-spacer>
 			<v-menu offset-y right auto>
 				<template #activator="{ on }">
-					<a v-show="!uiFrozen && fans.some(fan => fan && !fan.thermostatic.control)" v-on="on" href="javascript:void(0)" class="subtitle-2">
+					<a v-show="!uiFrozen && fans.some(fan => fan && fan.thermostatic.heaters.length === 0)" v-on="on" href="javascript:void(0)" class="subtitle-2">
 						{{ $t('panel.fans.changeVisibility') }}
 					</a>
 				</template>
@@ -19,7 +19,7 @@
 					</v-list-item>
 
 					<template v-for="(fan, index) in fans" >
-						<v-list-item v-if="fan && !fan.thermostatic.control" :key="index" @click="toggleFanVisibility(index)">
+						<v-list-item v-if="fan && fan.thermostatic.heaters.length === 0" :key="index" @click="toggleFanVisibility(index)">
 							<v-icon class="mr-1">
 								{{ (displayedFans.indexOf(index) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
 							</v-icon>
@@ -60,7 +60,7 @@ export default {
 				if (fan === -1) {
 					return this.currentTool && this.currentTool.fans.length > 0;
 				}
-				return fan < this.fans.length && this.fans[fan] && !this.fans[fan].thermostatic.control;
+				return fan < this.fans.length && this.fans[fan] && this.fans[fan].thermostatic.heaters.length === 0;
 			}, this);
 		},
 		toolFan() {

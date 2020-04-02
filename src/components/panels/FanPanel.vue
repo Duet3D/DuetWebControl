@@ -27,7 +27,7 @@
 
 
 						<template v-for="(fan, index) in fans">
-							<v-btn v-if="fan && !fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen">
+							<v-btn v-if="fan && fan.thermostatic.heaters.length === 0" :key="index" :value="index" :disabled="uiFrozen">
 								{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
 							</v-btn>
 						</template>
