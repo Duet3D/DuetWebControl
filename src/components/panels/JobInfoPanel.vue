@@ -41,10 +41,10 @@ import { MachineMode } from '../../store/machine/modelEnums.js'
 export default {
 	computed: {
 		...mapState('machine/model', {
-			mode: state => state.state.mode,
+			machineMode: state => state.state.machineMode,
 			jobFile: state => state.job.file
 		}),
-		isFFF() { return this.mode === MachineMode.fff; }
+		isFFF() { return this.machineMode === MachineMode.fff; }
 	}
 }
 </script>

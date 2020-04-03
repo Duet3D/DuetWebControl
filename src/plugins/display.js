@@ -18,7 +18,7 @@ export function display(value, precision, unit) {
 }
 
 export function displayZ(value, showUnit = true) {
-	return display(value, (store.state.machine.model.state.mode === MachineMode.cnc) ? 3 : 2, showUnit ? 'mm' : undefined);
+	return display(value, (store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? 'mm' : undefined);
 }
 
 export function displaySize(bytes) {

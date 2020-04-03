@@ -59,7 +59,7 @@ table.extra tr > td:first-child {
 
 		<v-card-text class="pa-0">
 			<template v-if="currentPage === 'tools'">
-				<table class="tools" v-show="tools.length">
+				<table class="tools" v-show="canShowTools">
 					<thead>
 						<th class="pl-2">{{ $t('panel.tools.tool', ['']) }}</th>
 						<th class="px-1">{{ $t('panel.tools.heater', ['']) }}</th>
@@ -172,7 +172,7 @@ table.extra tr > td:first-child {
 						</template>
 
 						<!-- Beds -->
-						<template v-for="(bedHeater, bedIndex) in getBedHeaters()">
+						<template v-for="(bedHeater, bedIndex) in bedHeaters">
 							<template v-if="bedHeater">
 								<!-- Divider -->
 								<tr v-if="tools.length" :key="`div-bed-${bedIndex}`">
@@ -186,7 +186,7 @@ table.extra tr > td:first-child {
 									<!-- Bed name -->
 									<th class="pl-2">
 										<a href="javascript:void(0)" @click="bedHeaterClick(bedHeater, bedIndex)">
-											{{ $t('panel.tools.bed', [hasOneBed() ? '' : bedIndex]) }}
+											{{ $t('panel.tools.bed', [hasOneBed ? '' : bedIndex]) }}
 										</a>
 									</th>
 
@@ -222,7 +222,7 @@ table.extra tr > td:first-child {
 						</template>
 
 						<!-- Chambers -->
-						<template v-for="(chamberHeater, chamberIndex) in getChamberHeaters()">
+						<template v-for="(chamberHeater, chamberIndex) in chamberHeaters">
 							<template v-if="chamberHeater">
 								<!-- Divider -->
 								<tr :key="`div-chamber-${chamberIndex}`">
@@ -236,7 +236,7 @@ table.extra tr > td:first-child {
 									<!-- Chamber name -->
 									<th class="pl-2">
 										<a href="javascript:void(0)" @click="chamberHeaterClick(chamberHeater, chamberIndex)">
-											{{ $t('panel.tools.chamber', [hasOneChamber() ? '' : chamberIndex]) }}
+											{{ $t('panel.tools.chamber', [hasOneChamber ? '' : chamberIndex]) }}
 										</a>
 									</th>
 
@@ -273,7 +273,7 @@ table.extra tr > td:first-child {
 					</tbody>
 				</table>
 
-				<v-alert :value="!tools.length" type="info" class="mb-0">
+				<v-alert :value="!canShowTools" type="info" class="mb-0">
 					{{ $t('panel.tools.noTools') }}
 				</v-alert>
 
@@ -328,6 +328,11 @@ export default {
 		canTurnEverythingOff() {
 			return !this.uiFrozen && this.heat.heaters.some(heater => heater && heater.state);
 		},
+		canShowTools() {
+			return (this.tools.length > 0 ||
+					this.bedHeaters.some(bed => bed !== null) ||
+					this.chamberHeaters.some(chamber => chamber !== null));
+		},
 		selectedToolClass() {
 			return this.darkTheme ? 'grey darken-3' : 'blue lighten-5';
 		},
@@ -335,6 +340,30 @@ export default {
 			return this.sensors.analog
 				.map((sensor, index) => ({ sensor, index }))
 				.filter(item => item.sensor && !this.heat.heaters.some(heater => heater && heater.sensor === item.index));
+		},
+		bedHeaters() {
+			return this.heat.bedHeaters
+				.map(heaterIndex => {
+					if (heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex]) {
+						return this.heat.heaters[heaterIndex];
+					}
+					return null;
+				});
+		},
+		hasOneBed() {
+			return this.bedHeaters.filter(bed => bed).length === 1;
+		},
+		chamberHeaters() {
+			return this.heat.chamberHeaters
+				.map(heaterIndex => {
+					if (heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex]) {
+						return this.heat.heaters[heaterIndex];
+					}
+					return null;
+				});
+		},
+		hasOneChamber() {
+			return this.chamberHeaters.filter(chamber => chamber).length === 1;
 		}
 	},
 	data() {
@@ -517,19 +546,6 @@ export default {
 		},
 
 		// Beds
-		getBedHeaters() {
-			return this.heat.bedHeaters
-				.map(heaterIndex => {
-					if (heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex]) {
-						return this.heat.heaters[heaterIndex];
-					}
-					return null;
-				});
-		},
-		hasOneBed() {
-			return this.getBedHeaters().filter(bed => bed).length === 1;
-		},
-
 		bedHeaterClick(bedHeater, bedIndex) {
 			if (!this.isConnected) {
 				return;
@@ -556,19 +572,6 @@ export default {
 		},
 
 		// Chambers
-		getChamberHeaters() {
-			return this.heat.chamberHeaters
-				.map(heaterIndex => {
-					if (heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex]) {
-						return this.heat.heaters[heaterIndex];
-					}
-					return null;
-				});
-		},
-		hasOneChamber() {
-			return this.getChamberHeaters().filter(chamber => chamber).length === 1;
-		},
-
 		chamberHeaterClick(chamberHeater, chamberIndex) {
 			if (!this.isConnected) {
 				return;
