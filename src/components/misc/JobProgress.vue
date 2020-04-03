@@ -17,35 +17,44 @@
 
 import { mapState, mapGetters } from 'vuex'
 
+import { MachineMode, isPrinting, StatusType } from '../../store/machine/modelEnums.js'
 import { extractFileName } from '../../utils/path.js'
 
 export default {
 	computed: {
-		...mapState('machine/model', ['job', 'state']),
-		...mapGetters('machine/model', ['isPrinting', 'isSimulating', 'jobProgress']),
+		...mapState('machine/model', {
+			extruders: state => state.move.extruders,
+			job: state => state.job,
+			machineMode: state => state.state.machineMode,
+			status: state => state.state.status
+		}),
+		...mapGetters('machine/model', ['jobProgress']),
 		printStatus() {
-			if (this.isPrinting) {
-				const progress = this.$display(this.jobProgress * 100, 1, '%');
-				if (this.isSimulating) {
-					return this.$t('jobProgress.simulating', [this.printFile, progress]);
+			if (isPrinting(this.status)) {
+				if (this.printFile) {
+					const progress = this.$display(this.jobProgress * 100, 1, '%');
+					if (this.status === StatusType.simulating) {
+						return this.$t('jobProgress.simulating', [this.printFile, progress]);
+					}
+					if (this.machineMode === MachineMode.fff) {
+						return this.$t('jobProgress.printing', [this.printFile, progress]);
+					}
+					return this.$t('jobProgress.processing', [this.printFile, progress]);
 				}
-				if (this.state.mode === 'FFF') {
-					return this.$t('jobProgress.printing', [this.printFile, progress]);
-				}
-				return this.$t('jobProgress.processing', [this.printFile, progress]);
-			} else if (this.job.lastFileName) {
+				return this.$t('generic.loading');
+			} else if (this.lastPrintFile) {
 				if (this.job.lastFileSimulated) {
-					return this.$t('jobProgress.simulated', [this.job.lastFileName]);
+					return this.$t('jobProgress.simulated', [this.lastPrintFile]);
 				}
-				if (this.state.mode === 'FFF') {
-					return this.$t('jobProgress.printed', [this.job.lastFileName]);
+				if (this.machineMode === MachineMode.fff) {
+					return this.$t('jobProgress.printed', [this.lastPrintFile]);
 				}
-				return this.$t('jobProgress.processed', [this.job.lastFileName]);
+				return this.$t('jobProgress.processed', [this.lastPrintFile]);
 			}
 			return this.$t('jobProgress.noJob');
 		},
 		printDetails() {
-			if (!this.isPrinting) {
+			if (!isPrinting(this.status)) {
 				return '';
 			}
 
@@ -53,19 +62,24 @@ export default {
 			if (this.job.layer !== null && this.job.file.numLayers) {
 				details = this.$t('jobProgress.layer', [this.job.layer, this.job.file.numLayers]);
 			}
-			if (this.job.extrudedRaw.length) {
+			if (this.extruders.length > 0) {
 				if (details !== '') { details += ', '; }
-				details += this.$t('jobProgress.filament', [this.$display(this.job.extrudedRaw.reduce((a, b) => a + b), 1, 'mm')]);
-				if (this.job.file.filament.length) {
-					const used = this.job.extrudedRaw.reduce((a, b) => a + b);
+				const totalRawExtruded = this.extruders
+											.map(extruder => extruder.rawPosition)
+											.reduce((a, b) => a + b);
+				details += this.$t('jobProgress.filament', [this.$display(totalRawExtruded, 1, 'mm')]);
+				if (this.job.file.filament.length > 0) {
 					const needed = this.job.file.filament.reduce((a, b) => a + b);
-					details += ' (' + this.$t('jobProgress.filamentRemaining', [this.$display(Math.max(needed - used, 0), 1, 'mm')]) + ')';
+					details += ' (' + this.$t('jobProgress.filamentRemaining', [this.$display(Math.max(needed - totalRawExtruded, 0), 1, 'mm')]) + ')';
 				}
 			}
 			return details;
 		},
 		printFile() {
-			return this.job.file.fileName ? extractFileName(this.job.file.fileName) : undefined;
+			return (this.job.file.fileName !== null) ? extractFileName(this.job.file.fileName) : null;
+		},
+		lastPrintFile() {
+			return (this.job.lastFileName !== null) ? extractFileName(this.job.lastFileName) : null;
 		}
 	}
 }

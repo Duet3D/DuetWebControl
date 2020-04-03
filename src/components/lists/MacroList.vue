@@ -3,7 +3,7 @@
 		<v-card-title>
 			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t('list.macro.caption') }}
 			<v-spacer></v-spacer>
-			<span v-show="isConnected" class="subtitle-2">{{ directory.replace('0:/macros', $t('list.macro.root')) }}</span>
+			<span v-show="isConnected" class="subtitle-2">{{ directory.replace(macrosDirectory, $t('list.macro.root')) }}</span>
 		</v-card-title>
 
 		<v-card-text class="pa-0" v-show="loading || filelist.length || !isRootDirectory">
@@ -57,8 +57,11 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', ['directories', 'storages']),
-		isRootDirectory() { return this.directory === Path.macros; }
+		...mapState('machine/model', {
+			macrosDirectory: state => state.directories.macros,
+			volumes: state => state.volumes
+		}),
+		isRootDirectory() { return Path.equals(this.directory, this.macrosDirectory); }
 	},
 	data () {
 		return {
@@ -120,20 +123,22 @@ export default {
 			}
 		},
 		async goUp() {
-			await this.loadDirectory(Path.extractFilePath(this.directory));
+			await this.loadDirectory(Path.extractDirectory(this.directory));
 		}
 	},
 	mounted() {
 		// Perform initial load
+		this.directory = this.macrosDirectory;
 		if (this.isConnected) {
-			this.wasMounted = this.storages.length && this.storages[0].mounted;
+			this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
 			this.refresh();
 		}
 
 		// Keep track of file changes
 		const that = this;
 		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			if (Path.pathAffectsFilelist(getModifiedDirectories(action, state), that.directory, that.filelist)) {
+			if (getModifiedDirectories(action, state).some(directory => Path.equals(directory, that.directory))) {
+				// Refresh the list when a file or directory has been changed
 				await that.refresh();
 			}
 		});
@@ -142,14 +147,14 @@ export default {
 		this.unsubscribe();
 	},
 	watch: {
-		'directories.macros'(to, from) {
-			if (this.directory == from) {
+		macrosDirectory(to, from) {
+			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		},
 		isConnected(to) {
 			if (to) {
-				this.wasMounted = this.storages.length && this.storages[0].mounted;
+				this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
 				this.refresh();
 			} else {
 				this.directory = Path.macros;
@@ -159,20 +164,28 @@ export default {
 		selectedMachine() {
 			// TODO store current directory per selected machine
 			if (this.isConnected) {
-				this.wasMounted = this.storages.length && this.storages[0].mounted;
+				this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
 				this.refresh();
 			} else {
 				this.directory = Path.macros;
 				this.filelist = [];
 			}
 		},
-		storages: {
+		volumes: {
 			deep: true,
 			handler() {
-				// Refresh file list when the first storage is mounted or unmounted
-				if (this.isConnected && (!this.storages.length || this.wasMounted !== this.storages[0].mounted)) {
-					this.wasMounted = this.storages.length && this.storages[0].mounted;
-					this.refresh();
+				if (this.isConnected) {
+					const volume = Path.getVolume(this.directory);
+					if (volume >= 0 && volume < this.volumes.length) {
+						const mounted = this.volumes[volume].mounted;
+						if (this.wasMounted !== mounted) {
+							this.wasMounted = mounted;
+							this.refresh();
+						}
+					} else {
+						this.wasMounted = false;
+						this.refresh();
+					}
 				}
 			}
 		}

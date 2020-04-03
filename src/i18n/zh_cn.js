@@ -3,48 +3,55 @@
 export default {
 	language: '简体中文',
 	'$vuetify': {
-		close: '关闭',
+		badge: '徽章',
+		close: '關閉',
 		dataIterator: {
-			noResultsText: '没有符合条件的结果',
-			loadingText: '加载中……'
+			noResultsText: '沒有符合條件的結果',
+			loadingText: '讀取中...',
 		},
 		dataTable: {
-			itemsPerPageText: '每页数目：',
+			itemsPerPageText: '每頁列數：',
 			ariaLabel: {
-				sortDescending: '：降序排列。点击以移除排序。',
-				sortAscending: '：升序排列。点击以降序排列。',
-				sortNone: '：未排序。点击以升序排列。'
+				sortDescending: '：降序排列。',
+				sortAscending: '：升序排列。',
+				sortNone: '無排序方式。點擊以升序排列。',
+				activateNone: '點擊以移除排序方式。',
+				activateDescending: '點擊以降序排列。',
+				activateAscending: '點擊以移除排序方式。',
 			},
-			sortBy: '排序方式'
+			sortBy: '排序方式',
 		},
 		dataFooter: {
-			itemsPerPageText: '每页数目：',
+			itemsPerPageText: '每頁項目：',
 			itemsPerPageAll: '全部',
-			nextPage: '下一页',
-			prevPage: '上一页',
-			firstPage: '首页',
-			lastPage: '尾页',
-			pageText: '{0}-{1} 共 {2}'
+			nextPage: '下一頁',
+			prevPage: '上一頁',
+			firstPage: '第一頁',
+			lastPage: '最後頁',
+			pageText: '{2} 條中的 {0}~{1} 條',
 		},
 		datePicker: {
-			itemsSelected: '已选择 {0}'
+			itemsSelected: '已選擇 {0}',
 		},
-		noDataText: '没有数据',
+		noDataText: '沒有資料',
 		carousel: {
-			prev: '上一张',
-			next: '下一张'
+			prev: '上一張',
+			next: '下一張',
+			ariaLabel: {
+				delimiter: 'Carousel slide {0} of {1}',
+			},
 		},
 		calendar: {
-			moreEvents: '还有 {0} 项'
+			moreEvents: '還有其他 {0} 項',
 		},
 		fileInput: {
-			counter: '{0} 个文件',
-			counterSize: '{0} 个文件（共 {1}）'
+			counter: '{0} 個檔案',
+			counterSize: '{0} 個檔案（共 {1}）',
 		},
 		timePicker: {
 			am: 'AM',
-			pm: 'PM'
-		}
+			pm: 'PM',
+		},
 	},
 	button: {
 		add: {
@@ -95,7 +102,7 @@ export default {
 				caption: '上传细丝配置',
 				title: '上传一个或多个细丝配置（也支持拖放）'
 			},
-			display: {
+			menu: {
 				caption: '上传菜单文件',
 				title: '上传一个或多个菜单文件（也支持拖放）'
 			},
@@ -103,7 +110,7 @@ export default {
 				caption: '上传系统文件',
 				title: '上传一个或多个系统文件（也支持拖放）'
 			},
-			www: {
+			web: {
 				caption: '上传Web文件',
 				title: '上传一个或多个Web文件（也支持拖放）'
 			},
@@ -227,12 +234,12 @@ export default {
 		numberRequired: '请输入有效的数值'
 	},
 	directory: {
-		display: '菜单目录',
+		menu: '菜单目录',
 		filaments: '细丝目录',
 		gcodes: 'G-Codes目录',
 		macros: '宏目录',
 		system: '系统目录',
-		www: 'WWW目录'
+		web: 'WWW目录'
 	},
 	error: {
 		notImplemented: '{0}没有实施',
@@ -283,14 +290,14 @@ export default {
 		info: '信息',
 		warning: '警告',
 		success: '成功',
-		heaterStates: [
-			'关闭',
-			'待机',
-			'活动',
-			'故障',
-			'正在调整？？？',
-			'offline'
-		],
+		heaterStates: {
+			off: '关闭',
+			standby: '待机',
+			active: '活动',
+			fault: '故障',
+			tuning: '正在调整？？？',
+			offline: 'offline'
+		},
 		status: {
 			updating: '正在更新',
 			off: '关闭',
@@ -337,6 +344,7 @@ export default {
 	},
 	list: {
 		baseFileList: {
+			driveUnmounted: 'Drive is unmounted',
 			fileName: '文件名',
 			size: '大小',
 			lastModified: '最后修改',
@@ -348,7 +356,7 @@ export default {
 			noFiles: '没有文件或者目录',
 			goUp: '转到顶部'
 		},
-		display: {
+		menu: {
 			noFiles: '没有文件可显示'
 		},
 		eventLog: {
@@ -404,7 +412,7 @@ export default {
 			jobs: '任务',
 			filaments: '细丝',
 			macros: '宏',
-			display: '显示',
+			menu: '显示',
 			system: '系统',
 			web: 'Web'
 		},
@@ -438,10 +446,6 @@ export default {
 			success: '已成功下载{0}，总计{1}',
 			successMulti: '已成功下载{0}文件',
 			error: '下载{0}失败'
-		},
-		loadingFile: {
-			title: '正在载入文件...',
-			message: '此文件相对较大，因此可能需要一段时间才能显示。'
 		},
 		message: '消息',
 		mount: {
@@ -676,9 +680,9 @@ export default {
 			topSpeed: '最高速度',
 			sensors: '传感器',
 			mcuTemp: 'MCU温度',
-			mcuTempTitle: '最小值：{0}，最大值：{1}',
+			minMax: '最小值：{0}，最大值：{1}',
 			vIn: '输入电压',
-			vInTitle: '最小值：{0}，最大值：{1}',
+			v12: 'V12',
 			fanRPM: '风扇转速RPM',
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'
@@ -702,6 +706,7 @@ export default {
 			extra: {
 				caption: '额外',
 				sensor: '传感器',
+				sensorIndex: '传感器 {0}',
 				value: '值',
 				showInChart: '在图表中显示',
 				noItems: '没有额外加热器'

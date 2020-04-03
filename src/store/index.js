@@ -26,6 +26,7 @@ const machines = {
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
+		connectingProgress: -1,
 		isDisconnecting: false,
 		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
 		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
@@ -67,7 +68,7 @@ const store = new Vuex.Store({
 				}
 			} catch (e) {
 				const isPasswordError = e instanceof InvalidPasswordError;
-				if (!isPasswordError || password !== defaultPassword)  {
+				if (!isPasswordError || password !== defaultPassword) {
 					logGlobal(isPasswordError ? 'warning' : 'error', i18n.t('error.connect', [hostname]), e.message);
 				}
 
@@ -134,7 +135,7 @@ const store = new Vuex.Store({
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
 				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
-				setTimeout(() => dispatch(`machines/${hostname}/reconnect`), 1000);
+				dispatch(`machines/${hostname}/reconnect`);
 			}
 		}
 	},
@@ -150,6 +151,7 @@ const store = new Vuex.Store({
 		},
 
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
+		setConnectingProgress: (state, progress) => state.connectingProgress = progress,
 		addMachine(state, { hostname, moduleInstance }) {
 			machines[hostname] = moduleInstance;
 			this.registerModule(['machines', hostname], moduleInstance);
@@ -164,6 +166,9 @@ const store = new Vuex.Store({
 			this.unregisterModule('machine');
 			this.registerModule('machine', machines[selectedMachine]);
 			state.selectedMachine = selectedMachine;
+			
+			// Allow access to the machine's data store for debugging...
+			window.machineStore = state.machine;
 		}
 	},
 
@@ -188,5 +193,12 @@ const store = new Vuex.Store({
 
 // This has to be registered dynamically, else unregisterModule will not work cleanly
 store.registerModule('machine', machines[defaultMachine])
+
+// Debug function to replicate different machine states
+if (process.env.NODE_ENV !== 'production') {
+	window.updateMachineStore = function(newStore) {
+		store.dispatch('machine/update', newStore);
+	}
+}
 
 export default store

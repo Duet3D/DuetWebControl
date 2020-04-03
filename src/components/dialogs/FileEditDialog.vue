@@ -24,7 +24,7 @@
 </style>
 
 <template>
-	<v-dialog v-model="shown" fullscreen hide-overlay transition="dialog-bottom-transition">
+	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay transition="dialog-bottom-transition">
 		<v-card class="d-flex flex-column">
 			<v-app-bar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
 				<v-btn icon dark @click="close(false)">
@@ -48,7 +48,7 @@
 			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)"></v-textarea>
+						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
@@ -57,6 +57,8 @@
 'use strict'
 
 import { mapState, mapActions } from 'vuex'
+
+import Path from '../../utils/path.js'
 
 export default {
 	props: {
@@ -71,16 +73,19 @@ export default {
 		value: String
 	},
 	computed: {
-		...mapState('machine/model', ['directories']),
+		...mapState('machine/model', {
+			macrosDirectory: state => state.directories.macros,
+			menuDirectory: state => state.directories.menu
+		}),
 		showGCodeHelp() {
-			if (this.filename.startsWith(this.directories.macros)) {
+			if (Path.startsWith(this.filename, this.macrosDirectory)) {
 				return true;
 			}
 			const matches = /\.(.*)$/.exec(this.filename.toLowerCase());
 			return matches && ['.g', '.gcode', '.gc', '.gco', '.nc', '.ngc', '.tap'].indexOf(matches[1]);
 		},
 		showDisplayHelp() {
-			return this.filename.startsWith(this.directories.menu);
+			return Path.startsWith(this.filename, this.menuDirectory);
 		}
 	},
 	data() {

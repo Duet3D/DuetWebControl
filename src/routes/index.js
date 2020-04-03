@@ -99,14 +99,14 @@ export const Routing = [
 			// Display
 			{
 				icon: 'mdi-format-list-numbered',
-				caption: 'menu.files.display',
+				caption: 'menu.files.menu',
 				path: '/Files/Display',
 				component: Files.Display,
 				condition: 'display'
 			},
 			// System
 			{
-				icon: 'mdi-settings',
+				icon: 'mdi-cog',
 				caption: 'menu.files.system',
 				path: '/Files/System',
 				component: Files.System
@@ -120,7 +120,7 @@ export const Routing = [
 		pages: [
 			// General
 			{
-				icon: 'mdi-settings',
+				icon: 'mdi-tune',
 				caption: 'menu.settings.general',
 				path: '/Settings/General',
 				component: Settings.General

@@ -1,19 +1,23 @@
 export default {
 	language: 'French',
 	'$vuetify': {
+		badge: 'Badge',
 		close: 'Fermer',
 		dataIterator: {
 			noResultsText: 'Aucun enregistrement correspondant trouvé',
-			loadingText: "Chargement de l'élément..."
+			loadingText: "Chargement de l'élément...",
 		},
 		dataTable: {
 			itemsPerPageText: 'Lignes par page:',
 			ariaLabel: {
-				sortDescending: ': Tri décroissant. Activer pour supprimer le tri.',
-				sortAscending: ': Tri croissant. Activer pour trier par ordre décroissant.',
-				sortNone: ': Non trié. Activer pour trier par ordre croissant.'
+				sortDescending: 'Tri décroissant.',
+				sortAscending: 'Tri croissant.',
+				sortNone: 'Non trié.',
+				activateNone: 'Activer pour supprimer le tri.',
+				activateDescending: 'Activer pour trier par ordre décroissant.',
+				activateAscending: 'Activer pour trier par ordre croissant.',
 			},
-			sortBy: 'Trier par'
+			sortBy: 'Trier par',
 		},
 		dataFooter: {
 			itemsPerPageText: 'Élements par page:',
@@ -22,27 +26,30 @@ export default {
 			prevPage: 'Page précédente',
 			firstPage: 'Première page',
 			lastPage: 'Dernière page',
-			pageText: '{0}-{1} de {2}'
+			pageText: '{0}-{1} de {2}',
 		},
 		datePicker: {
-			itemsSelected: '{0} sélectionnés'
+			itemsSelected: '{0} sélectionnés',
 		},
 		noDataText: 'Aucune donnée disponible',
 		carousel: {
 			prev: 'Visuel précédent',
-			next: 'Visuel suivant'
+			next: 'Visuel suivant',
+			ariaLabel: {
+				delimiter: 'Carousel slide {0} of {1}',
+			},
 		},
 		calendar: {
-			moreEvents: '{0} plus'
+			moreEvents: '{0} plus',
 		},
 		fileInput: {
 			counter: '{0} fichiers',
-			counterSize: '{0} fichiers ({1} au total)'
+			counterSize: '{0} fichiers ({1} au total)',
 		},
 		timePicker: {
 			am: 'AM',
-			pm: 'PM'
-		}
+			pm: 'PM',
+		},
 	},
 	button: {
 		add: {
@@ -93,7 +100,7 @@ export default {
 				caption: 'Envoyer Configs Filament',
 				title: 'Envoyer une ou plusieures configuration de filament (le glisser/déposer est supporté)'
 			},
-			display: {
+			menu: {
 				caption: 'Envoyer Fichiers Menu',
 				title: 'Envoyer un ou plusieurs fichiers menu (le glisser/déposer est supporté)'
 			},
@@ -101,7 +108,7 @@ export default {
 				caption: 'Envoyer Fichiers Système',
 				title: 'Envoyer un ou plusieurs fichiers système (le glisser/déposer est supporté)'
 			},
-			www: {
+			web: {
 				caption: 'Envoyer Fichiers Web',
 				title: 'Envoyer un ou plusieurs fichiers web (le glisser/déposer est supporté)'
 			},
@@ -225,12 +232,12 @@ export default {
 		numberRequired: 'Merci d\'entrer un nombre valide'
 	},
 	directory: {
-		display: 'Répertoire Menu',
+		menu: 'Répertoire Menu',
 		filaments: 'Répertoire Filaments',
 		gcodes: 'Répertoire G-Codes',
 		macros: 'Répertoire Macros',
 		system: 'Répertoire Systeme',
-		www: 'Répertoire WWW'
+		web: 'Répertoire WWW'
 	},
 	error: {
 		notImplemented: '{0} n\'est pas implémenté',
@@ -281,14 +288,14 @@ export default {
 		info: 'Info',
 		warning: 'Attetion',
 		success: 'Succès',
-		heaterStates: [
-			'off',
-			'veille',
-			'actif',
-			'défaut',
-			'réglage',
-			'offline'
-		],
+		heaterStates: {
+			off: 'off',
+			standby: 'veille',
+			active: 'actif',
+			fault: 'défaut',
+			tuning: 'réglage',
+			offline: 'offline'
+		},
 		status: {
 			updating: 'Mise à Jour...',
 			off: 'Off',
@@ -347,7 +354,7 @@ export default {
 			driveUnmounted: 'Le variateur n\'est pas monté',
 			goUp: 'Remonter'
 		},
-		display: {
+		menu: {
 			noFiles: 'Aucun Fichier d\'Affichage'
 		},
 		eventLog: {
@@ -403,7 +410,7 @@ export default {
 			jobs: 'Travails',
 			filaments: 'Filaments',
 			macros: 'Macros',
-			display: 'Affichage',
+			menu: 'Affichage',
 			system: 'Système',
 			web: 'Web'
 		},
@@ -437,10 +444,6 @@ export default {
 			success: 'Téléchargement de {0} réussi après {1}',
 			successMulti: 'Téléchargement de {0} fichiers réussi',
 			error: 'Échec du téléchargement de {0}'
-		},
-		loadingFile: {
-			title: 'Chargement du fichier',
-			message: 'Ce fichier est relativement gros alors cela peut prendre du temps avant qu\'il s\'affiche.'
 		},
 		message: 'Message',
 		mount: {
@@ -675,9 +678,9 @@ export default {
 			topSpeed: 'Vitesses de Pointe',
 			sensors: 'Capteurs',
 			mcuTemp: 'Température MCU',
-			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimum: {0}, Maximum {1}',
+			v12: 'V12',
 			fanRPM: 'TPM Ventilateur',
 			probe: 'Sonde-Z|Sondes-Z',
 			noStatus: 'Pas de Statut'
@@ -701,9 +704,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Capteur',
+				sensorIndex: 'Capteur {0}',
 				value: 'Valeur',
 				showInChart: 'Afficher dans le Graphique',
-				noItems: 'Pas de Chauffage supplémentaire'
+				noItems: 'Pas de Capteur supplémentaire'
 			},
 			noTools: 'Pas d\'Outils'
 		},

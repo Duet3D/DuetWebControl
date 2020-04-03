@@ -15,7 +15,7 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<v-btn-toggle :value="!!state.atxPower" @change="togglePower" mandatory>
+			<v-btn-toggle :value="state.atxPower" @change="togglePower" mandatory>
 				<v-btn text :value="true" :disabled="uiFrozen" :loading="sendingCode" @click="togglePower(true)">
 					{{ $t('panel.atx.on') }}
 				</v-btn>

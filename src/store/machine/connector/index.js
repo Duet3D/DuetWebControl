@@ -3,10 +3,10 @@
 import { LoginError } from '../../../utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
-import RRFConnector from './RRFConnector.js'
-import DSFConnector from './DSFConnector.js'
+import PollConnector from './PollConnector.js'
+import RestConnector from './RestConnector.js'
 
-const connectors = [RRFConnector, DSFConnector]
+const connectors = [PollConnector, RestConnector]
 export const MachineActions = ['disconnect', 'sendCode', 'upload', 'delete', 'move', 'makeDirectory', 'download', 'getFileList', 'getFileInfo']
 
 export function mapConnectorActions(connector, actionsToMap = []) {
@@ -24,7 +24,7 @@ export default {
 	// Connect asynchronously and return the connector that worked.
 	// If no connector can be found, an error will be thrown.
 	async connect(hostname, user, password) {
-		let lastError = null;
+		let lastError = new LoginError();
 		for (let i = 0; i < connectors.length; i++) {
 			try {
 				const connector = await connectors[i].connect(hostname, user, password);

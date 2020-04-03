@@ -3,32 +3,48 @@
 export function combine() {
 	let result = '';
 	Array.from(arguments).forEach(function(arg) {
-		if (result !== '') {
-			result += '/';
-		}
-
-		if (arg.endsWith('/')) {
-			result += arg.substr(0, arg.length - 1);
+		if (arg.startsWith('/') || /(\d)+:.*/.test(arg)) {
+			if (arg.endsWith('/')) {
+				result = arg.substring(0, arg.length - 1);
+			} else {
+				result = arg;
+			}
 		} else {
-			result += arg;
+			if (result !== '') {
+				result += '/';
+			}
+			if (arg.endsWith('/')) {
+				result += arg.substring(0, arg.length - 1);
+			} else {
+				result += arg;
+			}
 		}
 	});
 	return result;
 }
 
-export function extractFileName(path) {
-	if (path.indexOf('/') !== -1) {
-		const items = path.split('/');
-		return items[items.length - 1];
+export function equals(a, b) {
+	if (a && b) {
+		if (a.startsWith('/')) {
+			a = '0:' + a;
+		}
+		if (a.endsWith('/')) {
+			a = a.substring(0, a.length - 1);
+		}
+		if (b.startsWith('/')) {
+			b = '0:' + b;
+		}
+		if (b.endsWith('/')) {
+			b = b.substring(0, b.length - 1);
+		}
 	}
-	if (path.indexOf('\\') !== -1) {
-		const items = path.split('\\');
-		return items[items.length - 1];
-	}
-	return path;
+	return a === b;
 }
 
-export function extractFilePath(path) {
+export function extractDirectory(path) {
+	if (!path) {
+		return path;
+	}
 	if (path.indexOf('/') !== -1) {
 		const items = path.split('/');
 		items.pop();
@@ -42,36 +58,66 @@ export function extractFilePath(path) {
 	return path;
 }
 
-export function isSdPath(path) {
-	path = combine('0:', path);
-	return (path.startsWith(pathObj.display) ||
-			path.startsWith(pathObj.gcodes) ||
-			path.startsWith(pathObj.macros) ||
-			path.startsWith(pathObj.system) ||
-			path.startsWith(pathObj.www));
+export function extractFileName(path) {
+	if (!path) {
+		return path;
+	}
+	if (path.indexOf('/') !== -1) {
+		const items = path.split('/');
+		return items[items.length - 1];
+	}
+	if (path.indexOf('\\') !== -1) {
+		const items = path.split('\\');
+		return items[items.length - 1];
+	}
+	return path;
 }
 
-export function pathAffectsFilelist(path, directory, filelist) {
-	if (path instanceof(Array)) {
-		return path.some(subPath => pathAffectsFilelist(subPath, directory, filelist));
-	}
-
-	if (!path || !directory || !filelist || path.length < directory.length) {
-		return false;
-	}
-
-	if (path === directory) {
-		return true;
-	}
-
-	if (path.startsWith(directory)) {
-		const subPath = path.substr(directory.length + (directory.endsWith('/') ? 0 : 1));
-		if (subPath === '' || filelist.some(file => subPath === file.name)) {
-			return true;
+export function getVolume(path) {
+	if (path) {
+		const matches = /(\d+).*/.exec(path);
+		if (matches) {
+			return parseInt(matches[1]);
 		}
-		return !filelist.some(file => file.isDirectory && subPath.startsWith(file.name + '/'));
+	}
+	return 0;
+}
+
+export function startsWith(a, b) {
+	if (a && b) {
+		if (a.startsWith('/')) {
+			a = '0:' + a;
+		}
+		if (a.endsWith('/')) {
+			a = a.substring(0, a.length - 1);
+		}
+		if (b.startsWith('/')) {
+			b = '0:' + b;
+		}
+		if (b.endsWith('/')) {
+			b = b.substring(0, b.length - 1);
+		}
+		return a.startsWith(b);
 	}
 	return false;
+}
+
+export function isGCodePath(path, gcodesDir) {
+	path = path.toLowerCase();
+	return (startsWith(path, pathObj.firmware) || startsWith(path, gcodesDir) ||
+			path.endsWith('.g') || path.endsWith('.gcode') || path.endsWith('.gc') || path.endsWith('.gco') ||
+			path.endsWith('.nc') || path.endsWith('.ngc') || path.endsWith('.tap'));
+}
+
+export function isSdPath(path) {
+	return (startsWith(path, pathObj.filaments) ||
+			startsWith(path, pathObj.firmware) ||
+			startsWith(path, pathObj.gCodes) ||
+			startsWith(path, pathObj.macros) ||
+			startsWith(path, pathObj.menu) ||
+			startsWith(path, pathObj.scans) ||
+			startsWith(path, pathObj.system) ||
+			startsWith(path, pathObj.web));
 }
 
 export function stripMacroFilename(filename) {
@@ -93,12 +139,14 @@ export function stripMacroFilename(filename) {
 }
 
 const pathObj = {
+	filaments: '0:/filaments',
+	firmware: '0:/sys',
 	gCodes: '0:/gcodes',
 	macros: '0:/macros',
 	menu: '0:/menu',
-	filaments: '0:/filaments',
+	scans: '0:/scans',
 	system: '0:/sys',
-	www: '0:/www',
+	web: '0:/www',
 
 	dwcCacheFile: '0:/sys/dwc2cache.json',
 	dwcFactoryDefaults: '0:/sys/dwc2defaults.json',
@@ -109,11 +157,14 @@ const pathObj = {
 	heightmapFile: 'heightmap.csv',
 
 	combine,
+	equals,
+	extractDirectory,
 	extractFileName,
-	extractFilePath,
+	getVolume,
+	startsWith,
 
+	isGCodePath,
 	isSdPath,
-	pathAffectsFilelist,
 	stripMacroFilename
 }
 

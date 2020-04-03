@@ -1,10 +1,13 @@
-// Polling connector for old-style status updates
+// Polling connector for RepRapFirmware
 'use strict'
 
 import crc32 from 'turbo-crc32/crc32'
 
 import BaseConnector, { defaultRequestTimeout } from './BaseConnector.js'
-import { FileInfo } from '../modelItems.js'
+import { getBoardDefinition } from '../boards.js'
+import { DefaultMachineModel } from '../model.js'
+import { HeaterState, StatusType, isPaused, isPrinting } from '../modelEnums.js'
+import { BeepRequest, MessageBox, ParsedFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -24,7 +27,12 @@ export default class PollConnector extends BaseConnector {
 		});
 
 		switch (response.err) {
-			case 0: return new PollConnector(hostname, password, response);
+			case 0:
+				if (!window.forceLegacyConnect && response.apiLevel > 0) {
+					// Don't hide the connection dialog while the full model is being loaded...
+					BaseConnector.setConnectingProgress(0);
+				}
+				return new PollConnector(hostname, password, response);
 			case 1: throw new InvalidPasswordError();
 			case 2: throw new NoFreeSessionError();
 			default: throw new LoginError(`Unknown err value: ${response.err}`)
@@ -33,10 +41,10 @@ export default class PollConnector extends BaseConnector {
 
 	sessionTimeout = 8000		// ms
 	justConnected = true
-	isReconnecting = false
 	name = null
 	password = null
 	boardType = null
+	apiLevel = 0
 
 	requestBase = ''
 	requestTimeout = defaultRequestTimeout
@@ -133,7 +141,14 @@ export default class PollConnector extends BaseConnector {
 			}
 			xhr.onerror = function() {
 				that.requests = that.requests.filter(request => request !== xhr);
-				reject(new NetworkError());
+				if (retry < maxRetries) {
+					// Unreliable connection, retry if possible
+					that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
+						.then(result => resolve(result))
+						.catch(error => reject(error));
+				} else {
+					reject(new NetworkError());
+				}
 			};
 			xhr.ontimeout = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
@@ -163,6 +178,7 @@ export default class PollConnector extends BaseConnector {
 		this.boardType = responseData.boardType;
 		this.requestBase = `${location.protocol}//${hostname}/`;
 		this.sessionTimeout = responseData.sessionTimeout;
+		this.apiLevel = responseData.apiLevel || 0;
 	}
 
 	register(module) {
@@ -181,35 +197,35 @@ export default class PollConnector extends BaseConnector {
 		// Cancel pending requests and reset the last 'seq' field
 		// so that the last G-code reply is queried again
 		this.cancelRequests();
-		this.lastStatusResponse.seq = 0;
+		this.lastStatusResponse = {};
+		this.lastSeq = 0;
+		this.lastSeqs = {}
+		this.lastUptime = 0
 
 		// Attempt to reconnect
-		try {
-			const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}/rr_connect`, {
-				password: this.password,
-				time: timeToStr(new Date())
-			});
+		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}/rr_connect`, {
+			password: this.password,
+			time: timeToStr(new Date())
+		});
 
-			switch (response.err) {
-				case 0:
-					this.justConnected = true;
-					this.boardType = response.boardType;
-					this.sessionTimeout = response.sessionTimeout;
-					this.requestTimeout = response.sessionTimeout / (this.settings.ajaxRetries + 1);
-					this.scheduleUpdate();
-					break;
-				case 1:
-					this.dispatch('onConnectionError', new InvalidPasswordError());
-					break;
-				case 2:
-					// Keep retrying until a session is available
-					throw new NoFreeSessionError();
-				default:
-					this.dispatch('onConnectionError', new LoginError(`Unknown err value: ${response.err}`))
-					break;
-			}
-		} catch (e) {
-			setTimeout(this.reconnect.bind(this), 1000);
+		switch (response.err) {
+			case 0:
+				this.justConnected = true;
+				this.boardType = response.boardType;
+				this.sessionTimeout = response.sessionTimeout;
+				this.requestTimeout = response.sessionTimeout / (this.settings.ajaxRetries + 1);
+				this.apiLevel = response.apiLevel || 0;
+				this.scheduleUpdate();
+				break;
+			case 1:
+				this.dispatch('onConnectionError', new InvalidPasswordError());
+				break;
+			case 2:
+				// Keep retrying until a session is available
+				throw new NoFreeSessionError();
+			default:
+				this.dispatch('onConnectionError', new LoginError(`Unknown err value: ${response.err}`))
+				break;
 		}
 	}
 
@@ -218,41 +234,42 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	unregister() {
+		this.cancelRequests();
 		if (this.updateLoopTimer) {
 			clearTimeout(this.updateLoopTimer);
 			this.updateLoopTimer = null;
 		}
-
-		this.cancelRequests();
 		super.unregister();
 	}
 
 	updateLoopTimer = null
 	updateLoopCounter = 1
-	lastStatusResponse = { seq: 0 }
+	lastStatusResponse = {}
+	lastSeq = 0
 
 	pendingCodes = []
 	layers = []
-	currentFileInfo = new FileInfo()
+	currentFileInfo = new ParsedFileInfo()
 	printStats = {}
 	probeType = 0
+	numExtruders = 0
 
-	async updateLoop(requestExtendedStatus = false) {
+	async updateLoopStatus(requestExtendedStatus = false) {
+		requestExtendedStatus |= this.justConnected ||
+			(this.updateLoopCounter % this.settings.extendedUpdateEvery) === 0 ||
+			(this.verbose && (this.updateLoopCounter % 2) === 0);
+
 		// Decide which type of status update to poll and request it
 		const wasPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(this.lastStatusResponse.status) !== -1;
 		const wasSimulating = this.lastStatusResponse.status === 'M', wasPaused = this.lastStatusResponse.status === 'P';
-		const statusType =
-			requestExtendedStatus ||
-			this.justConnected ||
-			(this.updateLoopCounter % this.settings.extendedUpdateEvery) === 0 ||
-			(this.verbose && (this.updateLoopCounter % 2) === 0) ? 2 : (wasPrinting ? 3 : 1);
+		const statusType = requestExtendedStatus ? 2 : (wasPrinting ? 3 : 1);
 		const response = await this.request('GET', 'rr_status', { type: statusType });
 		const isPrinting = ['D', 'S', 'R', 'P', 'M'].indexOf(response.status) !== -1;
 		const newData = {};
 
 		// Check if an extended status response needs to be polled in case machine parameters have changed
-		if (statusType !== 2 && arraySizesDiffer(response, this.lastStatusResponse)) {
-			await this.updateLoop(true);
+		if (!requestExtendedStatus && arraySizesDiffer(response, this.lastStatusResponse)) {
+			await this.updateLoopStatus(true);
 			return;
 		}
 
@@ -288,69 +305,49 @@ export default class PollConnector extends BaseConnector {
 		const fanRPMs = (response.sensors.fanRPM instanceof Array) ? response.sensors.fanRPM : [response.sensors.fanRPM];
 		quickPatch(newData, {
 			fans: response.params.fanPercent.map((fanPercent, index) => ({
-				rpm: (index < fanRPMs.length && fanRPMs[index] >= 0) ? fanRPMs[index] : null,
+				rpm: (index < fanRPMs.length) ? fanRPMs[index] : -1,
 				value: fanPercent / 100
 			})),
 			heat: {
-				beds: [
-					response.temps.bed ? {
-						active: [response.temps.bed.active],
-						standby: (response.temps.bed.standby === undefined) ? [] : [response.temps.bed.standby]
-					} : null
-				],
-				chambers: [
-					response.temps.chamber ? {
-						active: [response.temps.chamber.active],
-						standby: (response.temps.chamber.standby === undefined) ? [] : [response.temps.chamber.standby]
-					} : null,
-					response.temps.cabinet ? {
-						active: [response.temps.cabinet.active],
-						standby: (response.temps.cabinet.standby === undefined) ? [] : [response.temps.cabinet.standby]
-					} : null
-				],
-				extra: response.temps.extra.map((extraHeater) => ({
-					current: extraHeater.temp,
-					name: extraHeater.name
-				})),
-				heaters: response.temps.current.map((current, heater) => ({
-					current,
-					state: response.temps.state[heater]
-				}))
+				heaters: response.temps.state.map((state, sensor) => ({ state: this.convertHeaterState(state), sensor }), this)
 			},
 			move: {
-				axes: response.coords.xyz.map((machinePosition, drive) => ({
+				axes: response.coords.xyz.map((position, drive) => ({
 					drives: [drive],
 					homed: Boolean(response.coords.axesHomed[drive]),
-					machinePosition
+					machinePosition: (position === 9999) ? null : position,
+					userPosition: (position === 9999) ? null : position
 				})),
-				babystepZ: response.params.babystep,
 				currentMove: {
 					requestedSpeed: (response.speeds !== undefined) ? response.speeds.requested : null,
 					topSpeed: (response.speeds !== undefined) ? response.speeds.top : null
 				},
-				drives: [].concat(response.coords.xyz, response.coords.extr).map((xyz, drive) => ({
-					position: (drive < response.coords.xyz.length) ? xyz : response.coords.extr[drive - response.coords.xyz.length]
+				extruders: response.coords.extr.map((position, extruder) => ({
+					drives: [response.coords.xyz.length + extruder],
+					factor: response.params.extrFactors[extruder] / 100,
+					position: position
 				})),
-				extruders: response.params.extrFactors.map((factor, index) => ({
-					drives: [response.coords.xyz.length + index],
-					factor: factor / 100
-				})),
-				speedFactor: response.params.speedFactor / 100
+				speedFactor: response.params.speedFactor / 100,
+				workspaceNumber: (response.wpl !== undefined) ? response.wpl : 1
 			},
 			scanner: (response.scanner) ? {
 				progress: response.scanner.progress,
 				status: response.scanner.status
 			} : {},
-			sensors: (this.probeType !== 0) ? {
-				probes: [
+			sensors: {
+				analog: response.temps.current.map((lastReading, number) => ({ lastReading, number }))
+						.concat(response.temps.extra.map(extra => ({
+							lastReading: (extra.temp === 9999) ? null : extra.temp,
+							name: extra.name
+						}))),
+				probes: (this.probeType !== 0) ? [
 					{
-						value: response.sensors.probeValue,
-						secondaryValues: response.sensors.probeSecondary ? response.sensors.probeSecondary : []
+						value: [response.sensors.probeValue].concat(response.sensors.probeSecondary ? response.sensors.probeSecondary : [])
 					}
-				]
-			} : {},
+				] : []
+			},
 			state: {
-				atxPower: (response.params.atxPower === -1) ? null : (response.params.atxPower !== 0),
+				atxPower: (response.params.atxPower === -1) ? null : Boolean(response.params.atxPower),
 				currentTool: response.currentTool,
 				status: this.convertStatusLetter(response.status)
 			},
@@ -359,73 +356,93 @@ export default class PollConnector extends BaseConnector {
 				standby: response.temps.tools.standby[index]
 			}))
 		});
+		if (newData.move.axes.length >= 3) {
+			newData.move.axes[2].babystep = (response.params.babystep !== undefined) ? response.params.babystep : 0;
+		}
+		if (response.coords.machine) {
+			response.coords.machine.forEach(function(machinePosition, axis) {
+				newData.move.axes[axis].machinePosition = (machinePosition === 9999) ? null : machinePosition;
+			});
+		}
+		if (response.temps.bed && response.temps.bed.heater >= 0 && response.temps.bed.heater < newData.sensors.analog.length) {
+			newData.heat.heaters[response.temps.bed.heater].active = response.temps.bed.active;
+			newData.heat.heaters[response.temps.bed.heater].standby = response.temps.bed.standby;
+		}
+		if (response.temps.chamber && response.temps.chamber.heater >= 0 && response.temps.chamber.heater < newData.sensors.analog.length) {
+			newData.heat.heaters[response.temps.chamber.heater].active = response.temps.chamber.active;
+			newData.heat.heaters[response.temps.chamber.heater].standby = response.temps.chamber.standby;
+		}
+		if (response.temps.cabinet && response.temps.cabinet.heater >= 0 && response.temps.cabinet.heater < newData.sensors.analog.length) {
+			newData.heat.heaters[response.temps.cabinet.heater].active = response.temps.cabinet.active;
+			newData.heat.heaters[response.temps.cabinet.heater].standby = response.temps.cabinet.standby;
+		}
+		this.numExtruders = response.coords.extr.length;
 
 		if (statusType === 2) {
 			// Extended Status Response
 			const axisNames = (response.axisNames !== undefined) ? response.axisNames.split('') : ['X', 'Y', 'Z', 'U', 'V', 'W', 'A', 'B', 'C'];
+			const boardDefinition = getBoardDefinition(this.boardType);
 			this.name = name;
 			this.probeType = response.probe ? response.probe.type : 0;
 
 			quickPatch(newData, {
-				electronics: {
-					firmware: {
-						name: response.firmwareName
-					},
-					mcuTemp: response.mcutemp ? {
-						min: response.mcutemp.min,
-						current: response.mcutemp.cur,
-						max: response.mcutemp.max
-					} : {},
-					vIn: response.vin ? {
-						min: response.vin.min,
-						current: response.vin.cur,
-						max: response.vin.max
-					} : {}
-				},
+				boards: [
+					{
+						firmwareFileName: boardDefinition.firmwareFileName,
+						firmwareName: response.firmwareName,
+						iapFileNameSD: boardDefinition.iapFileNameSD,
+						maxHeaters: boardDefinition.maxHeaters,
+						maxMotors: boardDefinition.maxMotors,
+						mcuTemp: response.mcutemp ? {
+							min: response.mcutemp.min,
+							current: response.mcutemp.cur,
+							max: response.mcutemp.max
+						} : {},
+						shortName: this.boardType,
+						supports12864: boardDefinition.supports12864,
+						v12: response.v12 ? {
+							min: response.v12.min,
+							current: response.v12.cur,
+							max: response.v12.max
+						} : {},
+						vIn: response.vin ? {
+							min: response.vin.min,
+							current: response.vin.cur,
+							max: response.vin.max
+						} : {}
+					}
+				],
 				fans: newData.fans.map((fanData, index) => ({
 					name: !response.params.fanNames ? null : response.params.fanNames[index],
 					thermostatic: {
-						control: (response.controllableFans & (1 << index)) === 0,
+						heaters: ((response.controllableFans & (1 << index)) === 0) ? [] : [-1]
 					}
 				})),
 				heat: {
-					// FIXME-FW: 'heater' should not be part of the standard status response
-					beds: [
-						response.temps.bed ? {
-							heaters: [response.temps.bed.heater]
-						} : null
-					],
-					chambers: [
-						response.temps.chamber ? {
-							heaters: [response.temps.chamber.heater]
-						} : null,
-						response.temps.cabinet ? {
-							heaters: [response.temps.cabinet.heater]
-						} : null
-					],
+					bedHeaters: response.temps.bed ? [response.temps.bed.heater] : [],
+					chamberHeaters: (response.temps.chamber ? [response.temps.chamber.heater] : [])
+									.concat(response.temps.cabinet ? [response.temps.cabinet.heater] : []),
 					coldExtrudeTemperature: response.coldExtrudeTemp,
-					coldRetractTemperature: response.coldRetractTemp,
-					heaters: response.temps.current.map((current, index) => ({
-						max: response.tempLimit,
-						name: (response.temps.names !== undefined) ? response.temps.names[index] : null
-					}))
+					coldRetractTemperature: response.coldRetractTemp
 				},
 				move: {
 					axes: response.coords.xyz.map((position, index) => ({
 						letter: axisNames[index],
 						visible: (response.axes !== undefined) ? (index < response.axes) : true
 					})),
-					compensation: response.compensation,
-					geometry: {
-						type: response.geometry
+					compensation: {
+						type: response.compensation
+					},
+					kinematics: {
+						name: response.geometry
 					}
 				},
 				network: {
 					name: response.name
 				},
 				sensors: {
-					endstops: newData.move.drives.map((drive, index) => ({
-						triggered: (response.endstops & (1 << index)) !== 0
+					endstops: [...Array(response.coords.xyz.length + response.coords.extr.length)].map((dummy, drive) => ({
+						triggered: Boolean(response.endstops & (1 << drive))
 					})),
 					probes: (response.probe && response.probe.type !== 0) ? [
 						{
@@ -436,23 +453,38 @@ export default class PollConnector extends BaseConnector {
 					] : []
 				},
 				state: {
-					mode: response.mode ? response.mode : null,
+					machineMode: response.mode ? response.mode : null,
 				},
 				tools: (response.tools !== undefined) ? response.tools.map(tool => ({
 					number: tool.number,
-					name: tool.name ? tool.name : null,
+					name: tool.name ? tool.name : '',
 					heaters: tool.heaters,
 					extruders: tool.drives,
 					axes: tool.axisMap,
 					fans: bitmapToArray(tool.fans),
-					filament: tool.filament,
+					filamentExtruder: (tool.drives.length > 0) ? tool.drives[0] : -1,
 					offsets: tool.offsets
 				})) : []
 			});
 
-			newData.storages = [];
+			newData.heat.heaters.forEach(heater => heater.max = response.tempLimit);
+
+			response.tools.forEach(tool => {
+				if (tool.drives.length > 0) {
+					const drive = tool.drives[0];
+					if (drive >= 0 && drive < newData.move.extruders.length) {
+						newData.move.extruders[0].filament = tool.filament;
+					}
+				}
+			});
+
+			if (response.temps.names !== undefined) {
+				response.temps.names.forEach((name, index) => newData.sensors.analog[index].name = name);
+			}
+
+			newData.volumes = [];
 			for (let i = 0; i < response.volumes; i++) {
-				newData.storages.push({
+				newData.volumes.push({
 					mounted: (response.mountedVolumes & (1 << i)) !== 0
 				});
 			}
@@ -464,9 +496,9 @@ export default class PollConnector extends BaseConnector {
 			// Print Status Response
 			quickPatch(newData.job, {
 				file: {},
-				filePosition: response.filePosition,
-				extrudedRaw: response.extrRaw
+				filePosition: response.filePosition
 			});
+			response.extrRaw.forEach((rawPosition, extruder) => newData.move.extruders[extruder].rawPosition = rawPosition);
 
 			// Update some stats only if the print is still live
 			if (isPrinting) {
@@ -554,13 +586,8 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		// Remove unused chamber heaters
-		while (newData.heat.chambers.length > 0 && newData.heat.chambers[newData.heat.chambers.length - 1] === null) {
-			newData.heat.chambers.pop();
-		}
-
 		// Output Utilities
-		let beepFrequency = 0, beepDuration = 0, displayMessage = '', msgBoxMode = null;
+		let beepFrequency = 0, beepDuration = 0, displayMessage = '', messageBox = null;
 		if (response.output) {
 			// Beep
 			if (response.output.beepFrequency !== undefined && response.output.beepDuration !== undefined) {
@@ -574,31 +601,25 @@ export default class PollConnector extends BaseConnector {
 			}
 
 			// Message Box
-			const msgBox = response.output.msgBox;
-			if (msgBox) {
-				msgBoxMode = msgBox.mode;
-				quickPatch(newData, {
-					messageBox: {
-						title: msgBox.title,
-						message: msgBox.msg,
-						timeout: msgBox.timeout,
-						axisControls: bitmapToArray(msgBox.controls),
-						seq: msgBox.seq
-					}
+			if (response.output.msgBox) {
+				messageBox = new MessageBox({
+					mode: response.output.msgBox.mode,
+					title: response.output.msgBox.title,
+					message: response.output.msgBox.msg,
+					timeout: response.output.msgBox.timeout,
+					axisControls: response.output.msgBox.controls
 				});
 			}
 		}
 
 		quickPatch(newData, {
-			messageBox: {
-				mode: msgBoxMode
-			},
 			state: {
-				beep: {
+				beep: (beepFrequency > 0 && beepDuration > 0) ? new BeepRequest({
 					frequency: beepFrequency,
 					duration: beepDuration
-				},
-				displayMessage: displayMessage
+				}) : null,
+				displayMessage,
+				messageBox
 			}
 		});
 
@@ -607,33 +628,30 @@ export default class PollConnector extends BaseConnector {
 			quickPatch(newData, {
 				spindles: response.spindles.map(spindle => ({
 					active: spindle.active,
-					current: spindle.current
+					current: spindle.current,
+					tool: spindle.tool
 				}))
-			});
-
-			response.spindles.forEach((spindle, index) => {
-				newData.tools.find(tool => tool.number === spindle.tool).spindle = index;
 			});
 		}
 
-		// See if we need to pass some info from the connect response
-		if (this.justConnected) {
-			quickPatch(newData, {
-				electronics: {
-					type: this.boardType
-				},
-				network: {
-					password: this.password
+		// Remove invalid heaters
+		for (let i = 0; i < newData.heat.heaters.length; i++) {
+			const heater = newData.heat.heaters[i];
+			if (heater && heater.state === HeaterState.off) {
+				if (heater.sensor < 0 || heater.sensor >= newData.sensors.analog.length ||
+					newData.sensors.analog[heater.sensor].lastReading === 2000) {
+					newData.heat.heaters[i] = null;
 				}
-			});
+			}
 		}
 
 		// Update the data model
 		await this.dispatch('update', newData);
 
 		// Check if the G-code response needs to be polled
-		if (response.seq !== this.lastStatusResponse.seq) {
+		if (response.seq !== this.lastSeq) {
 			await this.getGCodeReply(response.seq);
+			this.lastSeq = response.seq;
 		}
 
 		// Check if the firmware rebooted
@@ -647,12 +665,21 @@ export default class PollConnector extends BaseConnector {
 			await this.getConfigResponse();
 		}
 
-		// Schedule next status update
+		// Status update complete
 		this.lastStatusResponse = response;
-		this.isReconnecting = (response.status === 'F') || (response.status === 'H');
 		this.justConnected = false;
 		this.updateLoopCounter++;
+
+		// Schedule the next status update
 		this.scheduleUpdate();
+	}
+
+	convertHeaterState(state) {
+		const keys = Object.keys(HeaterState);
+		if (state >= 0 && state < keys.length) {
+			return keys[state];
+		}
+		return null;
 	}
 
 	convertStatusLetter(letter) {
@@ -672,34 +699,258 @@ export default class PollConnector extends BaseConnector {
 		return 'unknown';
 	}
 
+	// Call this only from updateLoopStatus()
+	async getConfigResponse() {
+		const response = await this.request('GET', 'rr_config');
+		const configData = {
+			boards: [
+				{
+					name: response.firmwareElectronics,
+					firmwareDate: response.firmwareDate,
+					firmwareName: response.firmwareName,
+					firmwareVersion: response.firmwareVersion
+				}
+			],
+			directories: (response.sysdir !== undefined) ? {
+				system: response.sysdir
+			} : {},
+			move: {
+				axes: response.axisMins.map((min, index) => ({
+					acceleration: response.accelerations[index],
+					current: response.currents[index],
+					jerk: response.minFeedrates[index],
+					min,
+					max: response.axisMaxes[index],
+					speed: response.maxFeedrates[index]
+				})),
+				extruders: [...Array(this.numExtruders)].map((dummy, index) => ({
+					acceleration: response.accelerations[response.axisMins.length + index],
+					current: response.currents[response.axisMins.length + index],
+					jerk: response.minFeedrates[response.axisMins.length + index],
+					speed: response.maxFeedrates[response.axisMins.length + index]
+				})),
+				idle: {
+					factor: response.idleCurrentFactor,
+					timeout: response.idleTimeout
+				}
+			},
+			network: {
+				interfaces: [
+					{
+						type: (response.dwsVersion !== undefined) ? 'wifi' : 'lan',
+						firmwareVersion: response.dwsVersion
+					}
+				]
+			}
+		};
+
+		await this.dispatch('update', configData);
+	}
+
+	lastSeqs = {}
+	lastStatus = null
+	lastUptime = 0
+	async updateLoopModel() {
+		let jobKey = null, extruders = [], status = null, zPosition = null;
+		if (this.justConnected) {
+			this.justConnected = false;
+
+			// Query the seqs field and the G-code reply
+			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
+			if (this.lastSeqs.reply > 0) {
+				await this.getGCodeReply(this.lastSeqs.reply);
+			}
+
+			// Query the full object model initially
+			try {
+				let keyIndex = 1, numKeys = Object.keys(DefaultMachineModel).length;
+				for (let key in DefaultMachineModel) {
+					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
+					await this.dispatch('update', { [key]: keyResponse.result });
+					BaseConnector.setConnectingProgress((keyIndex++ / numKeys) * 100);
+
+					if (key === 'job') {
+						jobKey = keyResponse.result;
+					} else if (key === 'move') {
+						extruders = keyResponse.result.extruders;
+						zPosition = (keyResponse.result.axes.length > 2) ? keyResponse.result.axes[2].userPosition : null;
+					} else if (key === 'state') {
+						status = keyResponse.result.status;
+						this.lastUptime = keyResponse.result.upTime;
+					}
+				}
+			} finally {
+				BaseConnector.setConnectingProgress(-1);
+			}
+		} else {
+			// Query live values
+			const response = await this.request('GET', 'rr_model', { flags: 'd99fn' }), seqs = response.result.seqs;
+			extruders = response.result.move.extruders;
+			delete response.result.seqs;
+			status = response.result.state.status;
+			zPosition = (response.result.move.axes.length > 2) ? response.result.move.axes[2].userPosition : null;
+
+			// Apply new values
+			if (!isPrinting(status) && isPrinting(this.lastStatus)) {
+				response.result.job.lastFileCancelled = isPaused(this.lastStatus);
+				response.result.job.lastFileSimulated = (this.lastStatus === StatusType.simulating);
+			}
+			await this.dispatch('update', response.result);
+
+			// Check if any of the non-live fields have changed and query them if so
+			for (let key in DefaultMachineModel) {
+				if (this.lastSeqs[key] !== seqs[key]) {
+					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
+					await this.dispatch('update', { [key]: keyResponse.result });
+
+					if (key === 'job') {
+						jobKey = keyResponse.result;
+					}
+				}
+			}
+
+			// Check if the firmware has rebooted
+			if (response.result.state.upTime < this.lastUptime) {
+				this.justConnected = true;
+				this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
+				this.pendingCodes = [];
+			}
+			this.lastUptime = response.result.state.upTime;
+
+			// Finally check if there is a new G-code reply available
+			if (this.lastSeqs.reply !== seqs.reply) {
+				await this.getGCodeReply(seqs.reply);
+			}
+			this.lastSeqs = seqs;
+		}
+
+		// See if we need to record more layer stats
+		if (jobKey && isPrinting(status)) {
+			let layersChanged = false;
+			if (!isPrinting(this.lastStatus)) {
+				this.layers = [];
+				layersChanged = true;
+			}
+
+			const extrRaw = extruders.map(extruder => extruder.rawPosition);
+			const fractionPrinted = (jobKey.size > 0) ? (jobKey.filePosition / jobKey.file.size) : 0;
+			let addLayers = false;
+			if (this.layers.length === 0) {
+				// Is the first layer complete?
+				if (jobKey.layer > 1) {
+					this.layers.push({
+						duration: jobKey.firstLayerDuration,
+						height: jobKey.file.firstLayerHeight,
+						filament: (jobKey.layer === 2) ? extrRaw : null,
+						fractionPrinted: (jobKey.layer === 2) ? fractionPrinted : null
+					});
+					layersChanged = true;
+
+					// Keep track of the past layer
+					if (jobKey.layer === 2) {
+						this.printStats.duration = jobKey.warmUpDuration + jobKey.firstLayerDuration;
+						this.printStats.extrRaw = extrRaw;
+						this.printStats.fractionPrinted = fractionPrinted;
+						this.printStats.measuredLayerHeight = zPosition - jobKey.file.firstLayerHeight;
+						this.printStats.zPosition = zPosition;
+					} else if (jobKey.layer > this.layers.length + 1) {
+						addLayers = true;
+					}
+				}
+			} else if (jobKey.layer > this.layers.length + 1) {
+				// Another layer is complete, add it
+				addLayers = true;
+			}
+
+			if (addLayers) {
+				const layerJustChanged = (status === StatusType.simulating) || ((jobKey.layer - this.layers.length) === 2);
+				if (this.printStats.duration) {
+					// Got info about the past layer, add what we know
+					this.layers.push({
+						duration: jobKey.duration - this.printStats.duration,
+						height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
+						filament: extrRaw
+						.map((amount, index) => amount - this.printStats.extrRaw[index])
+						.filter((dummy, index) => extrRaw[index] > 0),
+						fractionPrinted: fractionPrinted - this.printStats.fractionPrinted
+					});
+					layersChanged = true;
+				} else {
+					// Interpolate data...
+					const avgDuration = (jobKey.duration - jobKey.warmUpDuration - jobKey.firstLayerDuration - jobKey.layerTime) / (jobKey.layer - 2);
+					for (let layer = this.layers.length; layer + 1 < jobKey.layer; layer++) {
+						this.layers.push({ duration: avgDuration });
+						layersChanged = true;
+					}
+					this.printStats.zPosition = zPosition;
+				}
+
+				// Keep track of the past layer if the layer change just happened
+				if (layerJustChanged) {
+					this.printStats.duration = jobKey.duration;
+					this.printStats.extrRaw = extrRaw;
+					this.printStats.fractionPrinted = fractionPrinted;
+					this.printStats.measuredLayerHeight = zPosition - this.printStats.zPosition;
+					this.printStats.zPosition = zPosition;
+				}
+			}
+
+			if (layersChanged) {
+				await this.dispatch('update', {
+					job: {
+						layers: this.layers
+					}
+				});
+			}
+		}
+
+		// Schedule the next status update
+		this.lastStatus = status;
+		this.scheduleUpdate();
+	}
+
 	async doUpdate(startTime) {
+		this.updateLoopTimer = null;
 		try {
 			if (new Date() - startTime > this.sessionTimeout) {
 				// Safari suspends setTimeout calls when a tab is inactive - check for this case
 				throw new TimeoutError();
 			}
-			await this.updateLoop();
-		} catch (e) {
-			if (!(e instanceof DisconnectedError)) {
-				if (this.isReconnecting) {
-					this.updateLoopTimer = undefined;
-					this.reconnect();
-				} else {
-					console.warn(e);
-					await this.dispatch('onConnectionError', e);
-				}
+
+			if (!window.forceLegacyConnect && this.apiLevel >= 1) {
+				// Request object model updates
+				await this.updateLoopModel();
+			} else {
+				// Request updates using the legacy poll adapter
+				await this.updateLoopStatus();
 			}
+		} catch (e) {
+			console.warn(e);
+			await this.dispatch('onConnectionError', e);
 		}
 	}
 
 	scheduleUpdate() {
-		if (this.justConnected || this.updateLoopTimer) {
+		if (!this.updateLoopTimer) {
 			const startTime = new Date();
 			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this, startTime), this.settings.updateInterval);
 		}
 	}
 
-	// Call this only from updateLoop()
+	async sendCode(code) {
+		const response = await this.request('GET', 'rr_gcode', { gcode: code });
+		if (!(response instanceof Object)) {
+			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
+			throw new CodeResponseError();
+		}
+		if (response.buff === 0) {
+			throw new CodeBufferError();
+		}
+
+		const pendingCodes = this.pendingCodes, seq = this.lastSeq;
+		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+	}
+
 	async getGCodeReply(seq) {
 		const response = await this.request('GET', 'rr_reply', this.requestTimeout, 'text');
 		const reply = response.trim();
@@ -720,72 +971,6 @@ export default class PollConnector extends BaseConnector {
 			}, this);
 			this.pendingCodes = this.pendingCodes.filter(code => code.seq >= seq);
 		}
-	}
-
-	// Call this only from updateLoop()
-	async getConfigResponse() {
-		const response = await this.request('GET', 'rr_config');
-		const configData = {
-			electronics: {
-				name: response.firmwareElectronics,
-				firmware: {
-					name: response.firmwareName,
-					version: response.firmwareVersion,
-					date: response.firmwareDate
-				}
-			},
-			move: {
-				axes: response.axisMins.map((min, index) => ({
-					min,
-					max: response.axisMaxes[index]
-				})),
-				drives: response.currents.map((current, index) => ({
-					current,
-					acceleration: response.accelerations[index],
-					minSpeed: response.minFeedrates[index],
-					maxSpeed: response.maxFeedrates[index]
-				})),
-				idle: {
-					factor: response.idleCurrentFactor,
-					timeout: response.idleTimeout
-				}
-			},
-			network: {
-				interfaces: [
-					{
-						type: (response.dwsVersion !== undefined) ? 'wifi' : 'lan',
-						firmwareVersion: response.dwsVersion
-						// Unfortunately we cannot populate anything else here yet
-					}
-				]
-			}
-		};
-
-		if (response.sysdir !== undefined) {
-			// FIXME Introduce new Path.equals / Path.startsWith functions to make the following transformation obsolete
-			const sysDir = response.sysdir.endsWith('/') ? response.sysdir.substr(0, response.sysdir.length - 1) : response.sysdir;
-			if (sysDir.startsWith('/')) {
-				configData.directories = { system: '0:' + sysDir };
-			} else {
-				configData.directories = { system: sysDir };
-			}
-		}
-
-		await this.dispatch('update', configData);
-	}
-
-	async sendCode(code) {
-		const response = await this.request('GET', 'rr_gcode', { gcode: code });
-		if (!(response instanceof Object)) {
-			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
-			throw new CodeResponseError();
-		}
-		if (response.buff === 0) {
-			throw new CodeBufferError();
-		}
-
-		const pendingCodes = this.pendingCodes, seq = this.lastStatusResponse.seq;
-		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
 	}
 
 	async upload({ filename, content, cancellationToken = null, onProgress }) {
@@ -829,7 +1014,7 @@ export default class PollConnector extends BaseConnector {
 		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
-	async move({ from, to, force, silent }) {
+	async move({ from, to, force = false, silent = false }) {
 		const response = await this.request('GET', 'rr_move', {
 			old: from,
 			new: to,
@@ -856,7 +1041,7 @@ export default class PollConnector extends BaseConnector {
 
 	async download(payload) {
 		const filename = (payload instanceof Object) ? payload.filename : payload;
-		const type = (payload instanceof Object) ? payload.type : 'text';
+		const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
 		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 		const cancellationToken = (payload instanceof Object && payload.cancellationToken) ? payload.cancellationToken : null;
 
@@ -895,6 +1080,6 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		delete response.err;
-		return new FileInfo(response);
+		return new ParsedFileInfo(response);
 	}
 }

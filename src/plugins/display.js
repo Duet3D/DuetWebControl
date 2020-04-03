@@ -1,7 +1,8 @@
 'use strict'
 
-import { isNumber } from '../utils/numbers.js'
 import i18n from '../i18n'
+import { isNumber } from '../utils/numbers.js'
+import { MachineMode } from '../store/machine/modelEnums.js'
 
 let store
 
@@ -17,7 +18,7 @@ export function display(value, precision, unit) {
 }
 
 export function displayZ(value, showUnit = true) {
-	return display(value, (store.state.machine.model.state.mode === 'CNC') ? 3 : 2, showUnit ? 'mm' : undefined);
+	return display(value, (store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? 'mm' : undefined);
 }
 
 export function displaySize(bytes) {

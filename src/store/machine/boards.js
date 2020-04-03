@@ -1,69 +1,55 @@
 'use strict'
 
+// Fallback definitions for firmware versions that do not support rr_model
 const boardDefinitions = {
-	duet06: {
-		firmwareFileRegEx: /RepRapFirmware(.*)\.bin/i,
-		firmwareFile: 'RepRapFirmware.bin',
-		iapFiles: ['iap.bin'],
-		hasDisplay: false,
+	duet1: {
+		firmwareFileName: 'RepRapFirmware.bin',
+		iapFileNameSD: 'iap.bin',
+		maxHeaters: 8,
+		maxMotors: 10,
+		supports12864: false,
 		hasEthernet: true,
-		hasWiFi: false,
-		hasPowerFailureDetection: false,
-		hasMotorLoadDetection: false
-	},
-	duet085: {
-		firmwareFileRegEx: /RepRapFirmware(.*)\.bin/i,
-		firmwareFile: 'RepRapFirmware.bin',
-		iapFiles: ['iap.bin'],
-		hasDisplay: false,
-		hasEthernet: true,
-		hasWiFi: false,
-		hasPowerFailureDetection: false,
-		hasMotorLoadDetection: false
+		hasWiFi: false
 	},
 	duetwifi: {
-		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
-		firmwareFile: 'Duet2CombinedFirmware.bin',
-		iapFiles: ['iap4e.bin', 'Duet2CombinedIAP.bin'],
-		hasDisplay: false,
+		firmwareFileName: 'Duet2CombinedFirmware.bin',
+		iapFileNameSD: 'iap4e.bin',
+		maxHeaters: 8,
+		maxMotors: 10,
+		supports12864: false,
 		hasEthernet: false,
-		hasWiFi: true,
-		hasPowerFailureDetection: true,
-		hasMotorLoadDetection: true
+		hasWiFi: true
 	},
 	duetethernet: {
-		firmwareFileRegEx: /Duet2CombinedFirmware(.*)\.bin/i,
-		firmwareFile: 'Duet2CombinedFirmware.bin',
-		iapFiles: ['iap4e.bin', 'Duet2CombinedIAP.bin'],
-		hasDisplay: false,
+		firmwareFileName: 'Duet2CombinedFirmware.bin',
+		iapFileNameSD: 'iap4e.bin',
+		maxHeaters: 8,
+		maxMotors: 10,
+		supports12864: false,
 		hasEthernet: true,
-		hasWiFi: false,
-		hasPowerFailureDetection: true,
-		hasMotorLoadDetection: true
+		hasWiFi: false
 	},
 	duetmaestro: {
-		firmwareFileRegEx: /DuetMaestroFirmware(.*)\.bin/i,
-		firmwareFile: 'DuetMaestroFirmware.bin',
-		iapFiles: ['iap4s.bin', ' DuetMaestroIAP.bin'],
-		hasDisplay: true,
+		firmwareFileName: 'DuetMaestroFirmware.bin',
+		maxHeaters: 3,
+		maxMotors: 7,
+		iapFileNameSD: 'iap4s.bin',
+		supports12864: true,
 		hasEthernet: true,
-		hasWiFi: false,
-		hasPowerFailureDetection: true,
-		hasMotorLoadDetection: true
+		hasWiFi: false
 	},
 	duet3: {
-		firmwareFileRegEx: null,
-		firmwareFile: null,
-		iapFiles: ['Duet3_SDiap_MB6HC.bin', 'Duet3_SDiap_MBP05.bin', 'Duet3_SBCiap_MB6HC.bin', 'Duet3_SBCiap_MBP05.bin'],
-		hasDisplay: false,
+		firmwareFileName: 'Duet3Firmware_MB6HC.bin',
+		iapFileNameSD: 'Duet3SDiap_MB6HC.bin',
+		maxHeaters: 32,
+		maxMotors: 6,
+		supports12864: false,
 		hasEthernet: true,
-		hasWiFi: true,
-		hasPowerFailureDetection: true,
-		hasMotorLoadDetection: true
-	}
+		hasWiFi: false
+	},
 }
 
-export const defaultBoardName = 'duetwifi'
+export const defaultBoardName = 'duet1'
 export const defaultBoard = boardDefinitions[defaultBoardName]
 
 export function getBoardDefinition(boardType) {
@@ -73,6 +59,6 @@ export function getBoardDefinition(boardType) {
 		}
 	}
 
-	console.warn(`Unsupported board ${boardType}, assuming Duet WiFi`);
+	console.warn(`Unsupported board ${boardType}, assuming ${defaultBoardName}`);
 	return boardDefinitions[defaultBoardName];
 }

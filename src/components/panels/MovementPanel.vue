@@ -9,7 +9,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<code-btn color="primary" small code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
+			<code-btn v-show="move.axes.length > 0" color="primary" small code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
 				{{ $t('button.home.captionAll') }}
 			</code-btn>
 
@@ -21,7 +21,7 @@
 
 			<v-menu offset-y left :disabled="uiFrozen">
 				<template #activator="{ on }">
-					<v-btn color="primary" small class="mx-0" :disabled="uiFrozen" v-on="on">
+					<v-btn v-show="move.axes.length > 0" color="primary" small class="mx-0" :disabled="uiFrozen" v-on="on">
 						{{ $t('panel.movement.compensation') }} <v-icon>mdi-menu-down</v-icon>
 					</v-btn>
 				</template>
@@ -31,7 +31,7 @@
 						<template v-show="move.compensation">
 							<v-list-item>
 								<v-spacer></v-spacer>
-								{{ $t('panel.movement.compensationInUse', [move.compensation]) }}
+								{{ $t('panel.movement.compensationInUse', [move.compensation.type]) }}
 								<v-spacer></v-spacer>
 							</v-list-item>
 
@@ -39,9 +39,9 @@
 						</template>
 
 						<v-list-item @click="sendCode('G32')">
-							<v-icon class="mr-1">mdi-format-vertical-align-center</v-icon> {{ $t(move.geometry.type === 'delta' ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
+							<v-icon class="mr-1">mdi-format-vertical-align-center</v-icon> {{ $t(isDelta ? 'panel.movement.runDelta' : 'panel.movement.runBed') }}
 						</v-list-item>
-						<v-list-item :disabled="!move.compensation || move.compensation.indexOf('Point') === -1" @click="sendCode('M561')">
+						<v-list-item :disabled="!move.compensation.type || move.compensation.type.indexOf('Point') === -1" @click="sendCode('M561')">
 							<v-icon class="mr-1">mdi-border-none</v-icon> {{ $t('panel.movement.disableBedCompensation') }} 
 						</v-list-item>
 
@@ -56,7 +56,7 @@
 						<v-list-item @click="sendCode('G29 S1')">
 							<v-icon class="mr-1">mdi-content-save</v-icon> {{ $t('panel.movement.loadMesh') }}
 						</v-list-item>
-						<v-list-item :disabled="move.compensation !== 'Mesh'" @click="sendCode('G29 S2')">
+						<v-list-item :disabled="move.compensation.type !== 'Mesh'" @click="sendCode('G29 S2')">
 							<v-icon class="mr-1">mdi-grid-off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
 						</v-list-item>
 					</v-list>
@@ -64,7 +64,7 @@
 			</v-menu>
 		</v-card-title>
 
-		<v-card-text>
+		<v-card-text v-show="move.axes.length > 0">
 			<!-- Mobile home buttons -->
 			<v-row class="hidden-md-and-up py-2" no-gutters>
 				<v-col>
@@ -72,7 +72,7 @@
 						{{ $t('button.home.captionAll') }}
 					</code-btn>
 				</v-col>
-				<template v-if="move.geometry.type !== 'delta'">
+				<template v-if="!isDelta">
 					<v-col v-for="axis in displayedAxes" :key="axis.letter">
 						<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block tile>
 
@@ -84,7 +84,7 @@
 
 			<v-row v-for="axis in displayedAxes" :key="axis.letter" dense>
 				<!-- Regular home buttons -->
-				<v-col v-if="move.geometry.type !== 'delta'" cols="auto" class="flex-shrink-1 hidden-sm-and-down">
+				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 hidden-sm-and-down">
 					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">
 
 						{{ $t('button.home.caption', [axis.letter]) }}
@@ -118,14 +118,14 @@
 		<mesh-edit-dialog :shown.sync="showMeshEditDialog"></mesh-edit-dialog>
 		<input-dialog :shown.sync="moveStepDialog.shown" :title="$t('dialog.changeMoveStep.title')" :prompt="$t('dialog.changeMoveStep.prompt')" :preset="moveStepDialog.preset" is-numeric-value @confirmed="moveStepDialogConfirmed"></input-dialog>
 
-		<v-alert :value="!!unhomedAxes.length" type="warning" class="mb-0">
+		<v-alert :value="unhomedAxes.length !== 0" type="warning" class="mb-0">
 			{{ $tc('panel.movement.axesNotHomed', unhomedAxes.length) }}
 			<strong>
 				{{ unhomedAxes.map(axis => axis.letter).join(', ') }}
 			</strong>
 		</v-alert>
 
-		<v-alert :value="!move.axes.length" type="info">
+		<v-alert :value="move.axes.length === 0" type="info">
 			{{ $t('panel.movement.noAxes') }}
 		</v-alert>
 	</v-card>
@@ -136,6 +136,8 @@
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
+import { KinematicsName } from '../../store/machine/modelEnums.js'
+
 export default {
 	computed: {
 		...mapGetters(['isConnected', 'uiFrozen']),
@@ -143,6 +145,10 @@ export default {
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
 		displayedAxes() { return this.move.axes.filter(axis => axis.visible); },
+		isDelta() {
+			return ((this.move.kinematics.name === KinematicsName.delta) ||
+					(this.move.kinematics.name === KinematicsName.rotaryDelta));
+		},
 		unhomedAxes() { return this.move.axes.filter(axis => axis.visible && !axis.homed); }
 	},
 	data() {

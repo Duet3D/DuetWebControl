@@ -1,19 +1,23 @@
 export default {
 	language: 'English',
 	'$vuetify': {
+		badge: 'Badge',
 		close: 'Close',
 		dataIterator: {
-			pageText: '{0}-{1} of {2}',
 			noResultsText: 'No matching records found',
-			loadingText: 'Loading items...'
+			loadingText: 'Loading items...',
 		},
 		dataTable: {
 			itemsPerPageText: 'Rows per page:',
 			ariaLabel: {
-				sortDescending: ': Sorted descending. Activate to remove sorting.',
-				sortAscending: ': Sorted ascending. Activate to sort descending.',
-				sortNone: ': Not sorted. Activate to sort ascending.'
+				sortDescending: 'Sorted descending.',
+				sortAscending: 'Sorted ascending.',
+				sortNone: 'Not sorted.',
+				activateNone: 'Activate to remove sorting.',
+				activateDescending: 'Activate to sort descending.',
+				activateAscending: 'Activate to sort ascending.',
 			},
+			sortBy: 'Sort by',
 		},
 		dataFooter: {
 			itemsPerPageText: 'Items per page:',
@@ -21,19 +25,31 @@ export default {
 			nextPage: 'Next page',
 			prevPage: 'Previous page',
 			firstPage: 'First page',
-			lastPage: 'Last page'
+			lastPage: 'Last page',
+			pageText: '{0}-{1} of {2}',
 		},
 		datePicker: {
-			itemsSelected: '{0} selected'
+			itemsSelected: '{0} selected',
 		},
 		noDataText: 'No data available',
 		carousel: {
 			prev: 'Previous visual',
-			next: 'Next visual'
+			next: 'Next visual',
+			ariaLabel: {
+				delimiter: 'Carousel slide {0} of {1}',
+			},
 		},
 		calendar: {
-			moreEvents: '{0} more'
-		}
+			moreEvents: '{0} more',
+		},
+		fileInput: {
+			counter: '{0} files',
+			counterSize: '{0} files ({1} in total)',
+		},
+		timePicker: {
+			am: 'AM',
+			pm: 'PM',
+		},
 	},
 	button: {
 		add: {
@@ -84,7 +100,7 @@ export default {
 				caption: 'Upload Filament Configs',
 				title: 'Upload one or more filament configurations (drag&drop is supported as well)'
 			},
-			display: {
+			menu: {
 				caption: 'Upload Menu Files',
 				title: 'Upload one or more menu files (drag&drop is supported as well)'
 			},
@@ -92,7 +108,7 @@ export default {
 				caption: 'Upload System Files',
 				title: 'Upload one or more system files (drag&drop is supported as well)'
 			},
-			www: {
+			web: {
 				caption: 'Upload Web Files',
 				title: 'Upload one or more web files (drag&drop is supported as well)'
 			},
@@ -216,12 +232,12 @@ export default {
 		numberRequired: 'Please enter a valid number'
 	},
 	directory: {
-		display: 'Menu Directory',
+		menu: 'Menu Directory',
 		filaments: 'Filaments Directory',
 		gcodes: 'G-Codes Directory',
 		macros: 'Macros Directory',
 		system: 'System Directory',
-		www: 'WWW Directory'
+		web: 'WWW Directory'
 	},
 	error: {
 		notImplemented: '{0} is not implemented',
@@ -272,14 +288,14 @@ export default {
 		info: 'Info',
 		warning: 'Warning',
 		success: 'Success',
-		heaterStates: [
-			'off',
-			'standby',
-			'active',
-			'fault',
-			'tuning',
-			'offline'
-		],
+		heaterStates: {
+			off: 'off',
+			standby: 'standby',
+			active: 'active',
+			fault: 'fault',
+			tuning: 'tuning',
+			offline: 'offline'
+		},
 		status: {
 			updating: 'Updating',
 			off: 'Off',
@@ -338,7 +354,7 @@ export default {
 			driveUnmounted: 'Drive is unmounted',
 			goUp: 'Go up'
 		},
-		display: {
+		menu: {
 			noFiles: 'No Display Files'
 		},
 		eventLog: {
@@ -394,7 +410,7 @@ export default {
 			jobs: 'Jobs',
 			filaments: 'Filaments',
 			macros: 'Macros',
-			display: 'Display',
+			menu: 'Display',
 			system: 'System',
 			web: 'Web'
 		},
@@ -428,10 +444,6 @@ export default {
 			success: 'Download of {0} successful after {1}',
 			successMulti: 'Successfully downloaded {0} files',
 			error: 'Failed to download {0}'
-		},
-		loadingFile: {
-			title: 'Loading file...',
-			message: 'This file is relatively big so it may take a while before it is displayed.'
 		},
 		message: 'Message',
 		mount: {
@@ -666,9 +678,9 @@ export default {
 			topSpeed: 'Top Speed',
 			sensors: 'Sensors',
 			mcuTemp: 'MCU Temperature',
-			mcuTempTitle: 'Minimum: {0}, Maximum: {1}',
+			minMax: 'Minimum: {0}, Maximum {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimum: {0}, Maximum {1}',
+			v12: 'V12',
 			fanRPM: 'Fan RPM',
 			probe: 'Z-Probe|Z-Probes',
 			noStatus: 'No Status'
@@ -692,9 +704,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Sensor',
+				sensorIndex: 'Sensor {0}',
 				value: 'Value',
 				showInChart: 'Show in Chart',
-				noItems: 'No Extra Heaters'
+				noItems: 'No Extra Sensors'
 			},
 			noTools: 'No Tools'
 		},

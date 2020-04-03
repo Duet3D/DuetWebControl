@@ -51,7 +51,7 @@ export function quickPatch(a, b) {
 	}
 }
 
-export default function patch(a, b, skipNonexistentFields = false, fullPath = '') {
+export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 	if (a instanceof Array) {
 		while (a.length > b.length) {
 			a.pop();
@@ -73,18 +73,29 @@ export default function patch(a, b, skipNonexistentFields = false, fullPath = ''
 		}
 	} else if (a instanceof Object) {
 		for (let key in b) {
-			if (skipNonexistentFields && a[key] === undefined) {
-				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source`);
-			} else if (a[key] && b[key] && typeof a[key] !== typeof b[key]) {
-				console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}`);
-			} else if (a[key] instanceof Array) {
-				patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
-			} else if (a[key] instanceof Object) {
-				patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
-			} else if (a[key] !== b[key]) {
-				a[key] = b[key];
-				//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
+			if (skipNonexistentFields && !(key in a)) {
+				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source. Value: ${JSON.stringify(b[key])}`);
+			} else if (b[key] === null) {
+				a[key] = null;
+			} else {
+				if (typeof a[key] === 'boolean' && typeof b[key] === 'number') {
+					// RRF reports bools as ints so convert them if necessary
+					b[key] = Boolean(b[key]);
+				}
+
+				if (a[key] !== undefined && a[key] !== null && typeof a[key] !== typeof b[key]) {
+					console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}. Value: ${JSON.stringify(b[key])}`);
+				} else if (a[key] instanceof Array) {
+					patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
+				} else if (a[key] instanceof Object) {
+					patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
+				} else if (a[key] !== b[key]) {
+					a[key] = b[key];
+					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
+				}
 			}
 		}
 	}
 }
+
+export default patch

@@ -5,8 +5,8 @@
 </style>
 
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :disabled="uiFrozen"
-				v-model.number="value" @keyup.enter="apply" :loading="applying"
+	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label"
+				v-model.number="value" @keyup.enter="apply" :loading="applying" :disabled="uiFrozen || !isValid"
 				:items="items" @change="change" hide-selected @blur="value = actualValue">
 	</v-combobox>
 </template>
@@ -43,6 +43,19 @@ export default {
 
 			console.warn('[tool-input] Failed to retrieve temperature presets');
 			return [];
+		},
+		isValid() {
+			if (this.all || this.spindle) {
+				return true;
+			} else if (this.tool && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < this.tool.heaters.length) {
+				const heater = this.tool.heaters[this.toolHeaterIndex];
+				return (heater >= 0 && heater < this.heat.heaters.length && this.heat.heaters[heater] !== null);
+			} else if (this.bed && this.bedIndex >= 0 && this.bedIndex < this.heat.heaters.length) {
+				return (this.heat.heaters[this.bedIndex] !== null);
+			} else if (this.chamber && this.chamberIndex >= 0 && this.chamberIndex < this.heat.heaters.length) {
+				return (this.heat.heaters[this.chamberIndex] !== null);
+			}
+			return false;
 		}
 	},
 	data() {
@@ -55,19 +68,22 @@ export default {
 	},
 	props: {
 		label: String,
+
+		all: Boolean,
 		active: Boolean,
 		standby: Boolean,
 
-		all: Boolean,
-		heaterIndex: Number,
 		tool: Object,
-		bed: Object,
-		bedIndex: Number,
-		chamber: Object,
-		chamberIndex: Number,
+		toolHeaterIndex: Number,
 
 		spindle: Object,
-		spindleIndex: Number
+		spindleIndex: Number,
+
+		bed: Object,
+		bedIndex: Number,
+
+		chamber: Object,
+		chamberIndex: Number
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
@@ -91,43 +107,33 @@ export default {
 						}
 					} else if (this.value >= -273.15 && this.value <= 1999) {
 						if (this.tool) {
-							// Set tool temp
+							// Set tool temps
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
-							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
+							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.value : temp, this).join(':');
 							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
-							const currentTemps = this.bed[this.active ? 'active' : 'standby'];
-							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
-							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
+							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.value}`);
 						} else if (this.chamber) {
-							// Set chamber tem
-							const currentTemps = this.chamber[this.active ? 'active' : 'standby'];
-							const value = this.value, heaterIndex = this.heaterIndex;
-							const newTemps = currentTemps.map((temp, i) => (i === heaterIndex) ? value : temp).join(':');
-							await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${newTemps}`);
+							// Set chamber temp
+							await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${this.value}`);
 						} else if (this.all) {
 							// Set all temps
 							let code = '';
-							const targetTemp = this.value;
 							this.tools.forEach(function(tool) {
 								if (tool.heaters.length) {
-									const temps = tool.heaters.map(() => targetTemp).join(':');
+									const temps = tool.heaters.map(() => this.value, this).join(':');
 									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
-							this.heat.beds.forEach(function(bed, index) {
-								if (bed && bed.heaters.length) {
-									const temps = bed.heaters.map(() => targetTemp).join(':');
-									code += `M140 P${index} ${this.active ? 'S' : 'R'}${temps}\n`;
+							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
+								if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
+									code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.value}\n`;
 								}
 							}, this);
-							this.heat.chambers.forEach(function(chamber, index) {
-								if (chamber && chamber.heaters.length) {
-									const temps = chamber.heaters.map(() => targetTemp).join(':');
-									code += `M141 P${index} ${this.active ? 'S' : 'R'}${temps}\n`;
+							this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
+								if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
+									code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.value}\n`;
 								}
 							}, this);
 							await this.sendCode(code);
@@ -145,7 +151,7 @@ export default {
 		},
 		async change(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
-			if (value.constructor === Number) {
+			if (typeof value === 'number') {
 				await this.apply();
 			}
 		}
@@ -153,11 +159,11 @@ export default {
 	mounted() {
 		this.input = this.$el.querySelector('input');
 		if (this.tool) {
-			this.value = this.tool[this.active ? 'active' : 'standby'][this.heaterIndex];
+			this.value = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
 		} else if (this.bed) {
-			this.value = this.bed[this.active ? 'active' : 'standby'][this.heaterIndex];
+			this.value = this.bed[this.active ? 'active' : 'standby'];
 		} else if (this.chamber) {
-			this.value = this.chamber[this.active ? 'active' : 'standby'][this.heaterIndex];
+			this.value = this.chamber[this.active ? 'active' : 'standby'];
 		} else if (this.spindle) {
 			this.value = this.spindle.active;
 		}
@@ -165,7 +171,7 @@ export default {
 	},
 	watch: {
 		'tool.active'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
 			if (this.active && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.input) {
@@ -174,7 +180,7 @@ export default {
 			}
 		},
 		'tool.standby'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
+			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
 			if (this.standby && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.input) {
@@ -183,38 +189,34 @@ export default {
 			}
 		},
 		'bed.active'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (this.active && this.actualValue !== val) {
-				this.actualValue = val;
+			if (this.active && this.actualValue !== to) {
+				this.actualValue = to;
 				if (document.activeElement !== this.input) {
-					this.value = val;
+					this.value = to;
 				}
 			}
 		},
 		'bed.standby'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (this.standby && this.actualValue !== val) {
-				this.actualValue = val;
+			if (this.standby && this.actualValue !== to) {
+				this.actualValue = to;
 				if (document.activeElement !== this.input) {
-					this.value = val;
+					this.value = to;
 				}
 			}
 		},
 		'chamber.active'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (this.active && this.actualValue !== val) {
-				this.actualValue = val;
+			if (this.active && this.actualValue !== to) {
+				this.actualValue = to;
 				if (document.activeElement !== this.input) {
-					this.value = val;
+					this.value = to;
 				}
 			}
 		},
 		'chamber.standby'(to) {
-			const val = (to instanceof Array) ? to[this.heaterIndex] : to;
-			if (this.active && this.actualValue !== val) {
-				this.actualValue = val;
+			if (this.standby && this.actualValue !== to) {
+				this.actualValue = to;
 				if (document.activeElement !== this.input) {
-					this.value = val;
+					this.value = to;
 				}
 			}
 		},

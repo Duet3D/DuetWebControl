@@ -27,21 +27,29 @@
 
 import { mapState, mapGetters, mapMutations } from 'vuex'
 
+import { MachineMode, StatusType, isPaused, isPrinting } from '../../store/machine/modelEnums.js'
+
 export default {
 	computed: {
 		...mapState('machine', ['autoSleep']),
-		...mapState('machine/model', ['job', 'state']),
+		...mapState('machine/model', {
+			lastFileName: state => state.job.lastFileName,
+			lastFileSimulated: state => state.job.lastFileSimulated,
+			machineMode: state => state.state.machineMode,
+			status: state => state.state.status
+		}),
 		...mapGetters(['uiFrozen']),
-		...mapGetters('machine/model', ['isPaused', 'isPrinting', 'isSimulating']),
 		autoSleepActive: {
 			get() { return this.autoSleep; },
 			set(value) { this.setAutoSleep(value) }
 		},
+		isPaused() { return isPaused(this.status); },
+		isPrinting() { return isPrinting(this.status); },
 		pauseResumeText() {
-			if (this.isSimulating) {
+			if (this.status === StatusType.simulating) {
 				return this.$t(this.isPaused ? 'panel.jobControl.resumeSimulation' : 'panel.jobControl.pauseSimulation');
 			}
-			if (this.state.mode === 'FFF') {
+			if (this.machineMode === MachineMode.fff) {
 				return this.$t(this.isPaused ? 'panel.jobControl.resumePrint' : 'panel.jobControl.pausePrint');
 			}
 			return this.$t(this.isPaused ? 'panel.jobControl.resumeJob' : 'panel.jobControl.pauseJob');
@@ -50,25 +58,25 @@ export default {
 			if (this.isSimulating) {
 				return this.$t('panel.jobControl.cancelSimulation');
 			}
-			if (this.state.mode === 'FFF') {
+			if (this.machineMode === MachineMode.fff) {
 				return this.$t('panel.jobControl.cancelPrint');
 			}
 			return this.$t('panel.jobControl.cancelJob');
 		},
 		processAnotherCode() {
-			if (this.job.lastFileName) {
-				if (this.job.lastFileSimulated) {
-					return `M37 P"${this.job.lastFileName}"`;
+			if (this.lastFileName) {
+				if (this.lastFileSimulated) {
+					return `M37 P"${this.lastFileName}"`;
 				}
-				return `M32 "${this.job.lastFileName}"`;
+				return `M32 "${this.lastFileName}"`;
 			}
-			return undefined;
+			return '';
 		},
 		processAnotherText() {
-			if (this.job.lastFileSimulated) {
+			if (this.lastFileSimulated) {
 				return this.$t('panel.jobControl.repeatSimulation');
 			}
-			if (this.state.mode === 'FFF') {
+			if (this.machineMode === MachineMode.fff) {
 				return this.$t('panel.jobControl.repeatPrint');
 			}
 			return this.$t('panel.jobControl.repeatJob');

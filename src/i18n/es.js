@@ -1,19 +1,23 @@
 export default {
 	language: 'Spanish',
 	'$vuetify': {
+		badge: 'Placa',
 		close: 'Cerrar',
 		dataIterator: {
-			pageText: '{0}-{1} de {2}',
-			noResultsText: 'No se han encontrado coincidencias',
-			loadingText: 'Cargando elementos...'
+			noResultsText: 'Ningún elemento coincide con la búsqueda',
+			loadingText: 'Cargando...',
 		},
 		dataTable: {
 			itemsPerPageText: 'Filas por página:',
 			ariaLabel: {
-				sortDescending: ': Orden descendente. Activar para anular clasificación.',
-				sortAscending: ': Orden ascendente. Activar para anular clasificación.',
-				sortNone: ': Sin ordenar. Activar para clasificar de forma ascendente.'
+				sortDescending: 'Orden descendente.',
+				sortAscending: 'Orden ascendente.',
+				sortNone: 'Sin ordenar.',
+				activateNone: 'Pulse para quitar orden.',
+				activateDescending: 'Pulse para ordenar descendente.',
+				activateAscending: 'Pulse para ordenar ascendente.',
 			},
+			sortBy: 'Ordenado por',
 		},
 		dataFooter: {
 			itemsPerPageText: 'Elementos por página:',
@@ -21,19 +25,31 @@ export default {
 			nextPage: 'Página siguiente',
 			prevPage: 'Página anterior',
 			firstPage: 'Primer página',
-			lastPage: 'Última página'
+			lastPage: 'Última página',
+			pageText: '{0}-{1} de {2}',
 		},
 		datePicker: {
-			itemsSelected: '{0} seleccionado'
+			itemsSelected: '{0} seleccionados',
 		},
 		noDataText: 'No hay datos disponibles',
 		carousel: {
-			prev: 'Vista anterior',
-			next: 'Vista posterior'
+			prev: 'Visual anterior',
+			next: 'Visual siguiente',
+			ariaLabel: {
+				delimiter: 'Carousel slide {0} of {1}',
+			},
 		},
 		calendar: {
-			moreEvents: '{0} más'
-		}
+			moreEvents: '{0} más',
+		},
+		fileInput: {
+			counter: '{0} archivos',
+			counterSize: '{0} archivos ({1} en total)',
+		},
+		timePicker: {
+			am: 'AM',
+			pm: 'PM',
+		},
 	},
 	button: {
 		add: {
@@ -84,7 +100,7 @@ export default {
 				caption: 'Subir Configuración de Filamento',
 				title: 'Subir una o más configuración/es de Filamento/s (se permite arrastrar y soltar)'
 			},
-			display: {
+			menu: {
 				caption: 'Subir Archivo(s) de Menu',
 				title: 'Subir uno o más archivos de Menu (se permite arrastrar y soltar)'
 			},
@@ -92,7 +108,7 @@ export default {
 				caption: 'Subir Archivo(s) de Sistema',
 				title: 'Subir uno o más archivos de Sistema (se permite arrastrar y soltar)'
 			},
-			www: {
+			web: {
 				caption: 'Subir Archivo(s) Web',
 				title: 'Subir uno o más archivos Web (se permite arrastrar y soltar)'
 			},
@@ -217,12 +233,12 @@ export default {
 		numberRequired: 'Por favor, introduzca un número válido'
 	},
 	directory: {
-		display: 'Directorio: Menu',
+		menu: 'Directorio: Menu',
 		filaments: 'Directorio: Filamentos',
 		gcodes: 'Directorio: G-Codes',
 		macros: 'Directorio: Macros',
 		system: 'Directorio: Sistema',
-		www: 'Directorio: Web'
+		web: 'Directorio: Web'
 	},
 	error: {
 		notImplemented: '{0} no está implementado.',
@@ -273,14 +289,14 @@ export default {
 		info: 'Info',
 		warning: 'Atención',
 		success: 'Éxito',
-		heaterStates: [
-			'apagado',
-			'en espera',
-			'activo',
-			'fallo',
-			'ajustando',
-			'desconectado'
-		],
+		heaterStates: {
+			off: 'apagado',
+			standby: 'en espera',
+			active: 'activo',
+			fault: 'fallo',
+			tuning: 'ajustando',
+			offline: 'desconectado'
+		},
 		status: {
 			updating: 'Actualizando',
 			off: 'Off',
@@ -340,7 +356,7 @@ export default {
 			driveUnmounted: 'El disco no esta montado',
 			goUp: 'Subir'
 		},
-		display: {
+		menu: {
 			noFiles: 'No hay archivos que mostrar'
 		},
 		eventLog: {
@@ -396,7 +412,7 @@ export default {
 			jobs: 'Trabajos',
 			filaments: 'Filamentos',
 			macros: 'Macros',
-			display: 'Monitor',
+			menu: 'Monitor',
 			system: 'Sistema',
 			web: 'Web'
 		},
@@ -430,10 +446,6 @@ export default {
 			success: 'Descargado con éxito {0} después de {1} ',
 			successMulti: '{0} Archivos descargados con éxito',
 			error: 'Fallo al descargar {0}'
-		},
-		loadingFile: {
-			title: 'Cargando archivo...',
-			message: 'Este archivo es relativamente grande, por lo que puede pasar un tiempo antes de que se muestre.'
 		},
 		message: 'Mensaje',
 		mount: {
@@ -669,9 +681,9 @@ export default {
 			topSpeed: 'Velocidad Máxima',
 			sensors: 'Sensores',
 			mcuTemp: 'Temperatura Placa',
-			mcuTempTitle: 'Minima: {0}, Máxima: {1}',
+			minMax: 'Minimo: {0}, Máximo {1}',
 			vIn: 'Vin',
-			vInTitle: 'Minimo: {0}, Máximo {1}',
+			v12: 'V12',
 			fanRPM: 'Ventilador RPM',
 			probe: 'Z-Sensor|Z-Sensores',
 			noStatus: 'Sin Estado'
@@ -695,9 +707,10 @@ export default {
 			extra: {
 				caption: 'Extra',
 				sensor: 'Sensor',
+				sensorIndex: 'Sensor {0}',
 				value: 'Valor',
 				showInChart: 'Mostrar en gráfico',
-				noItems: 'No hay más Heaters'
+				noItems: 'No hay más Sensors'
 			},
 			noTools: 'Sin Herramientas'
 		},
