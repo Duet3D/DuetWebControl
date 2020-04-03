@@ -48,7 +48,7 @@
 			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc="close(false)"></v-textarea>
+						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
 		</v-card>
 	</v-dialog>
 </template>
