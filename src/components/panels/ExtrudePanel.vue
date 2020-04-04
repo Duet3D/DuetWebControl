@@ -72,7 +72,7 @@ export default {
 					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
 						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
 						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
-							const sensor = this.sensors[heaterSensor];
+							const sensor = this.sensors.analog[heaterSensor];
 							return !sensor || sensor.lastReading < this.heat.coldExtrudeTemperature;
 						}
 					}
@@ -87,7 +87,7 @@ export default {
 					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
 						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
 						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
-							const sensor = this.sensors[heaterSensor];
+							const sensor = this.sensors.analog[heaterSensor];
 							return !sensor || sensor.lastReading < this.heat.coldRetractTemperature;
 						}
 					}

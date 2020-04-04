@@ -218,14 +218,14 @@ export default class PollConnector extends BaseConnector {
 				this.scheduleUpdate();
 				break;
 			case 1:
-				this.dispatch('onConnectionError', new InvalidPasswordError());
-				break;
+				// Bad password
+				throw new InvalidPasswordError();
 			case 2:
-				// Keep retrying until a session is available
+				// No free session available
 				throw new NoFreeSessionError();
 			default:
-				this.dispatch('onConnectionError', new LoginError(`Unknown err value: ${response.err}`))
-				break;
+				// Generic login error
+				throw new LoginError(`Unknown err value: ${response.err}`);
 		}
 	}
 
@@ -757,6 +757,12 @@ export default class PollConnector extends BaseConnector {
 
 			// Query the seqs field and the G-code reply
 			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
+			if (this.lastSeqs.reply === undefined) {
+				console.warn('Incompatible rr_model version detected, falling back to status responses');
+				window.forceLegacyConnect = true;
+				BaseConnector.setConnectingProgress(-1);
+				return;
+			}
 			if (this.lastSeqs.reply > 0) {
 				await this.getGCodeReply(this.lastSeqs.reply);
 			}

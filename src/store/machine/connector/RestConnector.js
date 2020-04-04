@@ -22,7 +22,7 @@ export default class RestConnector extends BaseConnector {
 				const model = JSON.parse(e.data);
 				resolve(model);
 			};
-			socket.onclose = function(e) {
+			socket.onerror = socket.onclose = function(e) {
 				if (e.code === 1001 || e.code == 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
@@ -32,7 +32,6 @@ export default class RestConnector extends BaseConnector {
 				}
 			};
 		});
-
 		return new RestConnector(hostname, password, socket, model);
 	}
 
@@ -138,37 +137,35 @@ export default class RestConnector extends BaseConnector {
 		this.cancelRequests();
 
 		// Attempt to reconnect
-		try {
-			const lastDsfVersion = this.model.state.dsfVersion;
+		const that = this;
+		await new Promise(function(resolve, reject) {
+			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${this.hostname}/machine`);
-			this.model = await new Promise(function(resolve, reject) {
-				socket.onmessage = function(e) {
-					// Successfully connected, the first message is the full object model
-					const model = JSON.parse(e.data);
-					resolve(model);
-				}
-				socket.onclose = function(e) {
-					if (e.code === 1001 || e.code == 1011) {
-						// DCS unavailable or incompatible DCS version
-						reject(new LoginError(e.reason));
-					} else {
-						// TODO accomodate InvalidPasswordError and NoFreeSessionError here
-						reject(new NetworkError(e.reason));
-					}
-				}
-			});
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}/machine`);
+			socket.onmessage = function(e) {
+				// Successfully connected, the first message is the full object model
+				that.model = JSON.parse(e.data);
+				that.socket = socket;
 
-			this.socket = socket;
-			await this.startSocket();
-
-			if (lastDsfVersion !== this.model.state.dsfVersion) {
-				// DSF has been updated so there is a chance that the web interface has been updated too
-				location.reload(true);
+				// Check if DSF has been updated
+				if (lastDsfVersion !== that.model.state.dsfVersion) {
+					location.reload(true);
+				}
+				resolve();
 			}
-		} catch (e) {
-			setTimeout(this.reconnect.bind(this), 1000);
-		}
+			socket.onerror = socket.onclose = function(e) {
+				if (e.code === 1001 || e.code == 1011) {
+					// DCS unavailable or incompatible DCS version
+					reject(new LoginError(e.reason));
+				} else {
+					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					reject(new NetworkError(e.reason));
+				}
+			}
+		});
+
+		// Apply new socket and machine model
+		await that.startSocket();
 	}
 
 	register(module) {
@@ -190,6 +187,7 @@ export default class RestConnector extends BaseConnector {
 
 		// Set up socket events
 		this.socket.onmessage = this.onMessage.bind(this);
+		this.socket.onerror = this.onClose.bind(this);
 		this.socket.onclose = this.onClose.bind(this);
 
 		// Update model and acknowledge receival
@@ -264,6 +262,7 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	onClose(e) {
+		this.cancelRequests();
 		if (this.pingTask) {
 			clearTimeout(this.pingTask);
 			this.pingTask = undefined;

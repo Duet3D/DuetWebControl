@@ -532,7 +532,7 @@ export default {
 					break;
 
 				case HeaterState.fault:		// Fault -> Ask for reset
-					this.faultyHeater = heater;
+					this.faultyHeater = this.heat.heaters.indexOf(heater);
 					this.resetHeaterFault = true;
 					break;
 			}
@@ -565,7 +565,7 @@ export default {
 					break;
 
 				case HeaterState.fault:		// Fault -> Ask for reset
-					this.faultyHeater = this.heat.bedHeaters[bedIndex];
+					this.faultyHeater = this.heat.heaters.indexOf(bedHeater);
 					this.resetHeaterFault = true;
 					break;
 			}
@@ -585,7 +585,7 @@ export default {
 				// Standby mode for chambers is not officially supported yet (there's no code for standby control)
 
 				case HeaterState.fault:		// Fault -> Ask for reset
-					this.faultyHeater = this.heat.chamberHeaters[chamberIndex];
+					this.faultyHeater = this.heat.heaters.indexOf(chamberHeater);
 					this.resetHeaterFault = true;
 					break;
 

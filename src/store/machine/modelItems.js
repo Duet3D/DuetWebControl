@@ -144,7 +144,7 @@ export class Fan {
 export class FilamentMonitor {
 	constructor(initData) { quickPatch(this, initData); }
 	enabled = false
-	filamentPresent = false
+	filamentPresent = null
 	type = FilamentMonitorType.unknown
 }
 

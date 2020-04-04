@@ -467,7 +467,7 @@ export default {
 				}
 			}, this);
 			tableClone.style.backgroundColor = this.$vuetify.theme.isDark ? '#424242' : '#FFFFFF';
-			tableClone.style.opacity = 0.5;
+			tableClone.style.opacity = 0.7;
 			tableClone.style.position = 'absolute';
 			tableClone.style.pointerEvents = 'none';
 			Array.from(tableClone.querySelectorAll('[class^="v-ripple"]')).forEach(function(item) {
