@@ -73,7 +73,7 @@
 					</code-btn>
 				</v-col>
 				<template v-if="!isDelta">
-					<v-col v-for="axis in displayedAxes" :key="axis.letter">
+					<v-col v-for="(axis, axisIndex) in displayedAxes" :key="axisIndex">
 						<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" block tile>
 
 							{{ $t('button.home.caption', [axis.letter]) }}
@@ -82,7 +82,7 @@
 				</template>
 			</v-row>
 
-			<v-row v-for="axis in displayedAxes" :key="axis.letter" dense>
+			<v-row v-for="(axis, axisIndex) in displayedAxes" :key="axisIndex" dense>
 				<!-- Regular home buttons -->
 				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 hidden-sm-and-down">
 					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">

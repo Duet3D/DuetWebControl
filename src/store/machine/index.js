@@ -14,7 +14,7 @@ import { log, logCode } from '../../plugins/logging.js'
 import { makeFileTransferNotification, showMessage } from '../../plugins/toast.js'
 
 import beep from '../../utils/beep.js'
-import { DisconnectedError, CodeBufferError, OperationCancelledError } from '../../utils/errors.js'
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
@@ -70,7 +70,7 @@ export default function(hostname, connector) {
 					log('success', i18n.t('events.reconnected'));
 				} catch (e) {
 					console.warn(e);
-					setTimeout(() => dispatch('reconnect'), 2000);
+					dispatch('onConnectionError', e);
 				}
 			},
 
@@ -236,16 +236,18 @@ export default function(hostname, connector) {
 
 			// Actions for specific events triggered by the machine connector
 			async onConnectionError({ state, commit, dispatch }, error) {
-				if (!state.isReconnecting && (state.model.state.status === StatusType.updating || state.model.state.status === StatusType.halted)) {
+				if (state.isReconnecting && !(error instanceof InvalidPasswordError)) {
+					// Retry after a short moment
+					setTimeout(() => dispatch('reconnect'), 2000);
+				} else if (!state.isReconnecting && (state.model.state.status === StatusType.updating || state.model.state.status === StatusType.halted)) {
 					// Try to reconnect after a short period of time
 					if (state.model.state.status !== StatusType.updating) {
 						log('warning', i18n.t('events.reconnecting'));
 					}
-
 					commit('setReconnecting', true);
 					setTimeout(() => dispatch('reconnect'), 2000);
 				} else {
-					// Notify the global store about this event
+					// Notify the root store about this event
 					await dispatch('onConnectionError', { hostname, error }, { root: true });
 				}
 			},

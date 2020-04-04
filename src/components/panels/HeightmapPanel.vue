@@ -137,7 +137,8 @@ export default {
 	computed: {
 		...mapGetters(['isConnected']),
 		...mapState('machine/model', {
-			heightmapFile: state => state.move.compensation.file
+			heightmapFile: state => state.move.compensation.file,
+			systemDirectory: state => state.directories.system,
 		}),
 		...mapState('settings', ['language'])
 	},
@@ -401,8 +402,7 @@ export default {
 			if (!filename) {
 				filename = this.heightmapFile;
 				if (!filename) {
-					this.errorMessage = null;
-					return;
+					filename = Path.combine(this.systemDirectory, Path.heightmapFile);
 				}
 			}
 
