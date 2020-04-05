@@ -60,7 +60,11 @@ export default {
 		cacheSaveDelay: {
 			get() { return this.settings.cacheSaveDelay; },
 			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ cacheSaveDelay: value }); } }
-		}
+		},
+		settingsEnableCodeEditor: {
+			get() { return this.settings.enableCodeEditor; },
+			set(value) { this.update({ enableCodeEditor: value }); }
+		},
 	},
 	data() {
 		return {
