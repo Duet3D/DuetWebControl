@@ -69,7 +69,8 @@ img {
 				<iframe :src="webcam.url"></iframe>
 			</v-responsive>
 
-			<img v-else :alt="$t('panel.webcam.alt')" :src="url" :class="imgClasses">
+			<a v-else :href="webcam.liveUrl"><img :alt="$t('panel.webcam.liveUrl')" :src="url" :class="imgClasses"></a>
+
 		</v-card-text>
 	</v-card>
 </template>

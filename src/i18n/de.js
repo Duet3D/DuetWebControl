@@ -654,6 +654,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam-URL (optional)',
 			webcamUpdateInterval: 'Aktualisierungsintervall der Webcam ({0})',
+			webcamLiveURL: 'URL, die geöffnet werden soll, wenn auf das Webcam-Bild geklickt wird (optional)',
 			webcamFix: 'Keinen extra HTTP-Qualifizierer beim Neuladen der Bilder anhängen',
 			webcamEmbedded: 'Webcambild in ein iframe einbetten',
 			webcamRotation: 'Webcambild drehen',

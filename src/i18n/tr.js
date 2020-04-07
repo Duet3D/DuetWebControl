@@ -654,6 +654,7 @@ export default {
 			caption: 'Web kamerası',
 			webcamURL: 'Web kamerası URL (opsiyonel)',
 			webcamUpdateInterval: 'Web kamerası güncelleme aralığı ({0})',
+			webcamLiveURL: 'Web kamerası görüntüsü tıklandığında açılacak URL (isteğe bağlı)',
 			webcamFix: 'Görüntüleri yeniden yüklerken fazladan HTTP niteleyicisi eklemeyin',
 			webcamEmbedded: 'Web kamerası görüntüsünü iframe e yerleştirme',
 			webcamRotation: 'Web kamerası görüntüsünü döndür',

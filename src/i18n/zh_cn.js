@@ -655,6 +655,7 @@ export default {
 		settingsWebcam: {
 			caption: '网络摄像头',
 			webcamURL: '网络摄像头URL(可选)',
+			webcamLiveURL: '单击Webcam图像时打开的URL（可选)',
 			webcamUpdateInterval: '网络摄像头更新间隔({0})',
 			webcamFix: '重新加载图像时，请勿附加HTTP限定符',
 			webcamEmbedded: '在iframe中嵌入网络摄像头图像',
