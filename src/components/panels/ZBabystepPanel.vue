@@ -32,7 +32,7 @@ import { mapState } from 'vuex'
 export default {
 	computed: {
 		...mapState('machine/model', {
-			babystepping: state => state.move.babystepZ
+			babystepping: state => (state.move.axes.length >= 3) ? state.move.axes[2].babystep : 0
 		}),
 		...mapState('machine/settings', ['babystepAmount'])
 	}

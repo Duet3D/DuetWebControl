@@ -98,6 +98,11 @@ class BaseConnector {
 		this.settings = null;
 	}
 
+	// Called to update the progress while connecting (in per cent)
+	static setConnectingProgress(progress) {
+		BaseConnector.prototype.store.commit('setConnectingProgress', progress);
+	}
+
 	// Called to invoke actions on the registered module
 	async dispatch(action, payload) {
 		if (this.module) {

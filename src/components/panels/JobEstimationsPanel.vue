@@ -58,12 +58,22 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { mapState } from 'vuex'
+
+import { isPrinting, StatusType } from '../../store/machine/modelEnums.js'
 
 export default {
 	computed: {
-		...mapState('machine/model', ['job']),
-		...mapGetters('machine/model', ['isPrinting', 'isSimulating'])
+		...mapState('machine/model', {
+			job: state => state.job,
+			status: state => state.state.status
+		}),
+		isPrinting() {
+			return isPrinting(this.status);
+		},
+		isSimulating() {
+			return this.status === StatusType.simulating;
+		}
 	}
 }
 </script>

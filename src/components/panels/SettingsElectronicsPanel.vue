@@ -10,17 +10,17 @@
 
 		<v-card-text class="pt-0">
 			<template v-if="isConnected">
-				<template v-if="electronics.name">
-					{{ $t('panel.settingsElectronics.board', [electronics.name + (electronics.shortName ? ` (${electronics.shortName})` : '')]) }} <br>
+				<template v-if="mainboard.name">
+					{{ $t('panel.settingsElectronics.board', [mainboard.name + (mainboard.shortName ? ` (${mainboard.shortName})` : '')]) }} <br>
 				</template>
-				<template v-if="electronics.version">
-					{{ `DSF Version: ${electronics.version}` }} <br>
+				<template v-if="dsfVersion">
+					{{ `DSF Version: ${dsfVersion}` }} <br>
 				</template>
-				<template v-if="electronics.firmware.name">
-					{{ $t('panel.settingsElectronics.firmware', [electronics.firmware.name + ' ' + $display(electronics.firmware.version), $display(electronics.firmware.date)]) }} <br>
+				<template v-if="mainboard.firmwareName">
+					{{ $t('panel.settingsElectronics.firmware', [mainboard.firmwareName + ' ' + $display(mainboard.firmwareVersion), $display(mainboard.firmwareDate)]) }} <br>
 				</template>
-				<template v-if="electronics.type !== 'duet3' && network.interfaces.length && network.interfaces[0].type === 'wifi'">
-					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(network.interfaces[0].firmwareVersion)]) }} <br>
+				<template v-if="firstInterface.firmwareVersion && firstInterface.type === 'wifi'">
+					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(firstInterface.firmwareVersion)]) }} <br>
 				</template>
 				<br>
 				{{ $t('panel.settingsElectronics.updateNote') }}
@@ -40,7 +40,11 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['isConnected']),
-		...mapState('machine/model', ['electronics', 'network'])
+		...mapState('machine/model', {
+			dsfVersion: state => state.state.dsfVersion,
+			mainboard: state => (state.boards.length > 0) ? state.boards[0] : {},
+			firstInterface: state => (state.network.interfaces.length > 0) ? state.network.interfaces[0] : {}
+		})
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),

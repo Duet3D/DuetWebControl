@@ -30,7 +30,10 @@ export default {
 			type: Boolean,
 			default: true
 		},
-		noWait: Boolean
+		noWait: {
+			type: Boolean,
+			default: false
+		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),

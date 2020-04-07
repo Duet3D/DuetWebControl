@@ -31,7 +31,7 @@
 			</template>
 		</base-file-list>
 
-		<v-speed-dial v-model="fab" bottom right fixed open-on-hover direction="top" transition="scale-transition" class="hidden-md-and-up">
+		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition" class="hidden-md-and-up">
 			<template #activator>
 				<v-btn v-model="fab" dark color="primary" fab>
 					<v-icon v-if="fab">mdi-close</v-icon>
@@ -75,9 +75,12 @@ import Path from '../../utils/path.js'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['directories', 'tools']),
-		isRootDirectory() { return this.directory === this.directories.filaments; },
-		filamentSelected() { return (this.directory === this.directories.filaments) && (this.selection.length === 1) && this.selection[0].isDirectory; }
+		...mapState('machine/model', {
+			filamentsDirectory: state => state.directories.filaments,
+			tools: state => state.tools
+		}),
+		isRootDirectory() { return this.directory === this.filamentsDirectory; },
+		filamentSelected() { return (this.directory === this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
@@ -215,9 +218,12 @@ export default {
 			this.$refs.filelist.edit(item);
 		}
 	},
+	mounted() {
+		this.directory = this.filamentsDirectory;
+	},
 	watch: {
-		'directories.filaments'(to, from) {
-			if (this.directory == from) {
+		filamentsDirectory(to, from) {
+			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		}

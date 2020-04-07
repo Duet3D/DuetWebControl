@@ -41,7 +41,11 @@ export default {
 		tool: Object
 	},
 	computed: {
-		...mapState('machine/model', ['directories', 'tools']),
+		...mapState('machine/model', {
+			extruders: state => state.move.extruders,
+			filamentsDirectory: state => state.directories.filaments,
+			tools: state => state.tools,
+		}),
 		...mapGetters('machine/model', ['currentTool'])
 	},
 	data() {
@@ -59,10 +63,10 @@ export default {
 
 			this.loading = true
 			try {
-				const response = await this.getFileList(this.directories.filaments);
+				const response = await this.getFileList(this.filamentsDirectory);
 				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).filter(function(filament) {
 					// Exclude filaments that are already loaded (RRF does not allow loading the same filament into multiple tools)
-					return !this.tools.some(tool => tool.filament === filament);
+					return !this.extruders.some(extruder => extruder.filament === filament);
 				}, this);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
@@ -81,7 +85,8 @@ export default {
 				// Select tool first
 				code = `T${this.tool.number}\n`;
 			}
-			if (this.tool.filament) {
+			if (this.tool.filamentExtruder >= 0 && this.tool.filamentExtruder < this.extruders.length &&
+				this.extruders[this.tool.filamentExtruder].filament) {
 				// Unload current filament
 				code += 'M702\n';
 			}

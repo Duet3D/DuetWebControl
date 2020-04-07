@@ -63,33 +63,41 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('machine/model', ['heat', 'sensors', 'tools']),
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
-			if (this.currentTool && this.currentTool.extruders.length) {
-				if (this.currentTool.heaters.length) {
-					const heaters = this.heat.heaters, minTemp = this.heat.coldExtrudeTemperature;
-					return !this.currentTool.heaters.some(heater => heater >= heaters.length || heaters[heater].current < minTemp);
-				}
-				return true;
+			if (this.currentTool && this.currentTool.extruders.length > 0) {
+				return !this.currentTool.heaters.some(heaterNumber => {
+					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
+						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
+						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
+							const sensor = this.sensors.analog[heaterSensor];
+							return !sensor || sensor.lastReading < this.heat.coldExtrudeTemperature;
+						}
+					}
+					return true;
+				}, this);
 			}
 			return false;
 		},
 		canRetract() {
-			if (this.currentTool && this.currentTool.extruders.length) {
-				if (this.currentTool.heaters.length) {
-					const heaters = this.heat.heaters, minTemp = this.heat.coldRetractTemperature;
-					return !this.currentTool.heaters.some(heater => heater >= heaters.length || heaters[heater].current < minTemp);
-				}
-				return true;
+			if (this.currentTool && this.currentTool.extruders.length > 0) {
+				return !this.currentTool.heaters.some(heaterNumber => {
+					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
+						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
+						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
+							const sensor = this.sensors.analog[heaterSensor];
+							return !sensor || sensor.lastReading < this.heat.coldRetractTemperature;
+						}
+					}
+					return true;
+				}, this);
 			}
 			return false;
 		},
 		mix: {
-			get() {
-				return this.mixValue;
-			},
+			get() { return this.mixValue; },
 			set(value) {
 				if (value.length > 1) {
 					if (this.mixValue.indexOf('mix') !== value.indexOf('mix')) {

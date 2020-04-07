@@ -13,9 +13,9 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="endstop in endstops" :key="endstop.index">
-						<td class="text-center">{{ endstop.index }}</td>
-						<td class="text-center">{{ endstop.triggered ? $t('generic.yes') : $t('generic.no') }}</td>
+					<tr v-for="(endstop, index) in endstops" :key="index">
+						<td class="text-center">{{ index }}</td>
+						<td class="text-center">{{ endstop ? (endstop.triggered ? $t('generic.yes') : $t('generic.no')) : $t('generic.noValue') }}</td>
 					</tr>
 				</tbody>
 			</template>
@@ -35,13 +35,9 @@ import { mapState, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
-		...mapState('machine/model', ['sensors']),
-		endstops() {
-			return this.sensors.endstops.map((endstop, index) => ({
-				index,
-				triggered: endstop.triggered
-			}));
-		}
+		...mapState('machine/model', {
+			endstops: state => state.sensors.endstops
+		})
 	},
 	data() {
 		return {

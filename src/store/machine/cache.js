@@ -11,10 +11,6 @@ export default function(hostname) {
 		state: {
 			fileInfos: {},
 			sorting: {
-				display: {
-					column: 'name',
-					descending: false
-				},
 				events: {
 					column: 'date',
 					descending: true
@@ -28,6 +24,10 @@ export default function(hostname) {
 					descending: true
 				},
 				macros: {
+					column: 'name',
+					descending: false
+				},
+				menu: {
 					column: 'name',
 					descending: false
 				},
@@ -89,7 +89,7 @@ export default function(hostname) {
 					} else {
 						// Delete directory items
 						for (let filename in state.fileInfos) {
-							if (Path.extractFilePath(filename) === fileOrDirectory) {
+							if (Path.startsWith(filename, fileOrDirectory)) {
 								delete state.fileInfos[filename];
 							}
 						}

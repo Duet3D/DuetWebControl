@@ -13,7 +13,7 @@
 								<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required hide-details></v-text-field>
 							</v-col>
 							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacing" required hide-details></v-text-field>
+								<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacingX" required hide-details></v-text-field>
 							</v-col>
 						</v-row>
 						<v-row v-else>
@@ -57,17 +57,15 @@ import { mapState, mapActions } from 'vuex'
 export default {
 	computed: mapState('machine/model', {
 		geometry: state => state.move.geometry,
-		probeGrid: state => state.move.probeGrid
+		probeGrid: state => state.move.compensation.probeGrid
 	}),
 	data() {
 		return {
-			radius: 150,
-			spacing: 15,
-
-			minX: 0,
 			maxX: 200,
-			minY: 0,
 			maxY: 200,
+			minX: 0,
+			minY: 0,
+			radius: 150,
 			spacingX: 20,
 			spacingY: 20
 		}
@@ -85,7 +83,7 @@ export default {
 				this.hide();
 
 				if (this.geometry === 'delta') {
-					this.sendCode(`M557 R${this.radius} S${this.spacing}`);
+					this.sendCode(`M557 R${this.radius} S${this.spacingX}`);
 				} else {
 					this.sendCode(`M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);
 				}
@@ -98,17 +96,13 @@ export default {
 	watch: {
 		shown(to) {
 			if (to) {
-				// FIXME: This can be enabled once probeGrid is populated
-				/*
-				this.radius = this.probeGrid.radius;
-				this.spacing = this.probeGrid.spacing;
-				this.minX = this.probeGrid.xMin;
 				this.maxX = this.probeGrid.xMax;
-				this.spacingX = this.probeGrid.xSpacing;
-				this.minY = this.probeGrid.yMin;
 				this.maxY = this.probeGrid.yMax;
+				this.minX = this.probeGrid.xMin;
+				this.minY = this.probeGrid.yMin;
+				this.radius = this.probeGrid.radius;
+				this.spacingX = this.probeGrid.xSpacing;
 				this.spacingY = this.probeGrid.ySpacing;
-				*/
 			}
 		}
 	}

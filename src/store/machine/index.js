@@ -4,6 +4,7 @@ import { mapConnectorActions } from './connector'
 
 import cache from './cache.js'
 import model from './model.js'
+import { StatusType, isPrinting } from './modelEnums.js'
 import settings from './settings.js'
 
 import i18n from '../../i18n'
@@ -13,25 +14,33 @@ import { log, logCode } from '../../plugins/logging.js'
 import { makeFileTransferNotification, showMessage } from '../../plugins/toast.js'
 
 import beep from '../../utils/beep.js'
-import { DisconnectedError, CodeBufferError, OperationCancelledError } from '../../utils/errors.js'
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
 import Path from '../../utils/path.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export function getModifiedDirectories(action, state) {
+export function getModifiedPaths(action, state) {
 	const segments = action.type.split('/');
 	if (segments.length === 3 && segments[1] === state.selectedMachine) {
 		if (segments[2] === 'onDirectoryCreated' || segments[2] === 'onFileOrDirectoryDeleted') {
-			return [Path.extractFilePath(action.payload)];
+			return [action.payload];
 		}
 		if (segments[2] === 'onFileUploaded') {
-			return [Path.extractFilePath(action.payload.filename)];
+			return [action.payload.filename];
 		}
 		if (segments[2] === 'onFileOrDirectoryMoved') {
-			return [Path.extractFilePath(action.payload.from), Path.extractFilePath(action.payload.to)];
+			return [action.payload.from, action.payload.to];
 		}
 	}
-	return undefined;
+	return [];
+}
+
+export function getModifiedDirectories(action, state) {
+	return getModifiedPaths(action, state).map(path => Path.extractDirectory(path));
+}
+
+export function getModifiedFiles(action, state) {
+	return getModifiedPaths(action, state).map(path => Path.extractFileName(path));
 }
 
 export default function(hostname, connector) {
@@ -40,30 +49,40 @@ export default function(hostname, connector) {
 		state: {
 			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
-			isReconnecting: false
+			isReconnecting: false,
 		},
 		getters: {
 			connector: () => connector,
-			hasTemperaturesToDisplay: state => state.model.heat.heaters.length || state.settings.displayedExtraTemperatures.length
+			hasTemperaturesToDisplay: state => state.model.sensors.analog.some(function(sensor, sensorIndex) {
+				return (state.model.heat.heaters.some(heater => heater && heater.sensor === sensorIndex) ||
+						state.settings.displayedExtraTemperatures.indexOf(sensorIndex) !== -1);
+			})
 		},
 		actions: {
 			...mapConnectorActions(connector, ['disconnect', 'delete', 'move', 'makeDirectory', 'getFileList', 'getFileInfo']),
 
 			// Reconnect after a connection error
-			async reconnect({ commit }) {
+			async reconnect({ commit, dispatch }) {
 				commit('setReconnecting', true);
-				await connector.reconnect();
+				try {
+					await connector.reconnect();
+					commit('setReconnecting', false);
+					log('success', i18n.t('events.reconnected'));
+				} catch (e) {
+					console.warn(e);
+					dispatch('onConnectionError', e);
+				}
 			},
 
 			// Send a code and log the result (if applicable)
 			// Parameter can be either a string or an object { code, (fromInput = false, log = true) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
-				const fromInput = (payload instanceof Object) ? Boolean(payload.fromInput) : false;
-				const doLog = (payload instanceof Object) ? Boolean(payload.log) : true;
+				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
+				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
 				try {
 					const response = await connector.sendCode(code);
-					if (fromInput || response !== '') {
+					if (doLog && (fromInput || response !== '')) {
 						logCode(code, response, hostname, fromInput);
 					}
 					return response;
@@ -84,7 +103,7 @@ export default function(hostname, connector) {
 				try {
 					// Check if config.g needs to be backed up
 					const configFile = Path.combine(context.state.model.directories.system, Path.configFile);
-					if (filename === configFile) {
+					if (Path.equals(filename, configFile)) {
 						try {
 							const configFileBackup = Path.combine(context.state.model.directories.system, Path.configBackupFile);
 							await connector.move({ from: configFile, to: configFileBackup, force: true, silent: true });
@@ -130,10 +149,10 @@ export default function(hostname, connector) {
 			// Parameter can be either the filename or an object { filename, (type, showProgress, showSuccess, showError, num, count) }
 			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
-				const type = (payload instanceof Object) ? payload.type : 'auto';
-				const showProgress = (payload instanceof Object) ? Boolean(payload.showProgress) : true;
-				const showSuccess = (payload instanceof Object) ? Boolean(payload.showSuccess) : true;
-				const showError = (payload instanceof Object) ? Boolean(payload.showError) : true;
+				const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
+				const showProgress = (payload instanceof Object && payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
+				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
+				const showError = (payload instanceof Object && payload.showError !== undefined) ? Boolean(payload.showError) : true;
 				const num = (payload instanceof Object) ? payload.num : undefined;
 				const count = (payload instanceof Object) ? payload.count : undefined;
 
@@ -173,65 +192,64 @@ export default function(hostname, connector) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, getters, commit, dispatch }, payload) {
-				const wasPrinting = getters['model/isPrinting'];
-				const beepFrequency = state.model.state.beep.frequency, beepDuration = state.model.state.beep.duration;
-				const displayMessage = state.model.state.displayMessage;
+			async update({ state, commit, dispatch }, payload) {
+				const lastBeepFrequency = state.model.state.beep ? state.model.state.beep.frequency : null;
+				const lastBeepDuration = state.model.state.beep ? state.model.state.beep.duration : null;
+				const lastDisplayMessage = state.model.state.displayMessage;
+				const lastStatus = state.model.state.status;
 
 				// Check if the job has finished and if so, clear the file cache
-				if (payload.job && payload.job.lastFileName) {
+				if (payload.job && payload.job.lastFileName && payload.job.lastFileName !== state.model.job.lastFileName) {
 					commit('cache/clearFileInfo', payload.job.lastFileName);
 				}
 
 				// Merge updates into the object model
-				//console.log(JSON.stringify(payload));
 				commit('model/update', payload);
 				
-				// Is a beep requested?
-				if (state.model.state.beep.frequency != 0 && state.model.state.beep.duration != 0 &&
-					(state.model.state.beep.frequency != beepFrequency || state.model.state.beep.duration != beepDuration))
-				{
+				// Is a new beep requested?
+				if (state.model.state.beep &&
+					lastBeepDuration !== state.model.state.beep.duration &&
+					lastBeepFrequency !== state.model.state.beep.frequency) {
 					beep(state.model.state.beep.frequency, state.model.state.beep.duration);
 				}
 
-				// Is a message supposed to be shown?
-				if (state.model.state.displayMessage && state.model.state.displayMessage != displayMessage) {
+				// Is a new message supposed to be shown?
+				if (state.model.state.displayMessage &&
+					state.model.state.displayMessage != lastDisplayMessage) {
 					showMessage(state.model.state.displayMessage);
 				}
 
-				// Is an update or emergency reset in progress?
-				if ((state.model.state.status === 'updating') ||
-					(!state.model.electronics.type.startsWith('duet3') && state.model.state.status === 'halted')) {
-					// Start reconnecting
-					if (!state.isReconnecting) {
-						if (state.model.state.status === 'halted') {
-							log('warning', i18n.t('events.emergencyStop'));
-						} else {
-							log('warning', i18n.t('events.reconnecting'));
-						}
-						commit('setReconnecting', true);
-					}
-				} else {
-					// No longer reconnecting...
-					if (state.isReconnecting) {
-						log('success', i18n.t('events.reconnected'));
-						commit('setReconnecting', false);
-					}
-					
-					// Have we just finished a job? Send M1 if auto-sleep is enabled
-					if (wasPrinting && !getters['model/isPrinting'] && state.autoSleep) {
-						try {
-							await dispatch('sendCode', 'M1');
-						} catch (e) {
-							logCode('M1', e.message, hostname);
-						}
+				// Has the firmware halted?
+				if (lastStatus != state.model.state.status && state.model.state.status === StatusType.halted) {
+					log('warning', i18n.t('events.emergencyStop'));
+				}
+
+				// Have we just finished a job? Send M1 if auto-sleep is enabled
+				if (isPrinting(lastStatus) && !isPrinting(state.model.state.status) && state.autoSleep) {
+					try {
+						await dispatch('sendCode', 'M1');
+					} catch (e) {
+						logCode('M1', e.message, hostname);
 					}
 				}
 			},
 
 			// Actions for specific events triggered by the machine connector
-			async onConnectionError({ dispatch }, error) {
-				await dispatch('onConnectionError', { hostname, error }, { root: true });
+			async onConnectionError({ state, commit, dispatch }, error) {
+				if (state.isReconnecting && !(error instanceof InvalidPasswordError)) {
+					// Retry after a short moment
+					setTimeout(() => dispatch('reconnect'), 2000);
+				} else if (!state.isReconnecting && (state.model.state.status === StatusType.updating || state.model.state.status === StatusType.halted)) {
+					// Try to reconnect after a short period of time
+					if (state.model.state.status !== StatusType.updating) {
+						log('warning', i18n.t('events.reconnecting'));
+					}
+					commit('setReconnecting', true);
+					setTimeout(() => dispatch('reconnect'), 2000);
+				} else {
+					// Notify the root store about this event
+					await dispatch('onConnectionError', { hostname, error }, { root: true });
+				}
 			},
 			onCodeCompleted(context, { code, reply }) {
 				if (code === undefined) {

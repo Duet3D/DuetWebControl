@@ -1,8 +1,10 @@
 <template>
-	<v-dialog v-model="shown" @keydown.escape="dismissed" persistent width="480">
+	<v-dialog v-model="internalShown" @keydown.escape="dismissed" persistent width="480">
 		<v-card>
 			<v-card-title>
-				<span class="headline">{{ question }}</span>
+				<span class="headline">
+					{{ title }}
+				</span>
 			</v-card-title>
 
 			<v-card-text>
@@ -23,7 +25,7 @@
 
 export default {
 	props: {
-		question: {
+		title: {
 			type: String,
 			required: true
 		},
@@ -34,6 +36,18 @@ export default {
 		shown: {
 			type: Boolean,
 			required: true
+		}
+	},
+	computed: {
+		internalShown: {
+			get() { return this.shown; },
+			set(value) {
+				if (value) {
+					this.confirmed();
+				} else {
+					this.dismissed();
+				}
+			}
 		}
 	},
 	methods: {

@@ -27,7 +27,7 @@
 
 
 						<template v-for="(fan, index) in fans">
-							<v-btn v-if="!fan.thermostatic.control" :key="index" :value="index" :disabled="uiFrozen">
+							<v-btn v-if="fan && fan.thermostatic.heaters.length === 0" :key="index" :value="index" :disabled="uiFrozen">
 								{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
 							</v-btn>
 						</template>
@@ -57,21 +57,12 @@ export default {
 		},
 		fanValue: {
 			get() {
-				if (this.canControlFans) {
-					if (this.fan === -1) {
-						let toolFan = 0;
-						if (this.currentTool && this.currentTool.fans.length) {
-							// Even though RRF allows multiple fans to be assigned to a tool,
-							// we assume they all share the same fan value if such a config is set
-							toolFan = this.currentTool.fans[0];
-						}
-						return Math.round(this.fans[toolFan].value * 100);
-					}
-					if (this.fan < this.fans.length && this.fans[this.fan]) {
-						return Math.round(this.fans[this.fan].value * 100);
-					}
-				}
-				return 0;
+				// Even though RRF allows multiple fans to be assigned to a tool,
+				// we assume they all share the same fan value if such a config is set
+				const fan = (this.fan === -1)
+					? ((this.currentTool && this.currentTool.fans.length > 0) ? this.currentTool.fans[0] : -1)
+					: this.fan;
+				return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].actualValue * 100) : 0;
 			},
 			set(value) {
 				value = Math.min(100, Math.max(0, value)) / 100;
@@ -93,9 +84,11 @@ export default {
 		updateFanSelection() {
 			if (this.fan === -1) {
 				if (!this.currentTool) {
+					// Tool no longer selected, try to change to the first available fan
 					this.fan = this.fans.findIndex(fan => fan && !fan.thermostatic.control);
 				}
 			} else if (this.fan >= this.fans.length || (this.fan !== -1 && this.fans[this.fan] && this.fans[this.fan].thermostatic.control)) {
+				// Selected fan is no longer controllable, try to change to another one
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {

@@ -25,7 +25,7 @@
 			</template>
 		</base-file-list>
 
-		<v-speed-dial v-model="fab" bottom right fixed open-on-hover direction="top" transition="scale-transition" class="hidden-md-and-up">
+		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition" class="hidden-md-and-up">
 			<template #activator>
 				<v-btn v-model="fab" dark color="primary" fab>
 					<v-icon v-if="fab">mdi-close</v-icon>
@@ -52,7 +52,7 @@
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
-		<confirm-dialog :shown.sync="runMacroDialog.shown" :question="runMacroDialog.question" :prompt="runMacroDialog.prompt" @confirmed="runFile(runMacroDialog.filename)"></confirm-dialog>
+		<confirm-dialog :shown.sync="runMacroDialog.shown" :title="runMacroDialog.title" :prompt="runMacroDialog.prompt" @confirmed="runFile(runMacroDialog.filename)"></confirm-dialog>
 	</div>
 </template>
 
@@ -66,10 +66,10 @@ import Path from '../../utils/path.js'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['directories']),
-		isFile() {
-			return (this.selection.length === 1) && !this.selection[0].isDirectory;
-		}
+		...mapState('machine/model', {
+			macrosDirectory: state => state.directories.macros
+		}),
+		isFile() { return (this.selection.length === 1) && !this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
@@ -77,7 +77,7 @@ export default {
 			loading: false,
 			selection: [],
 			runMacroDialog: {
-				question: '',
+				title: '',
 				prompt: '',
 				filename: '',
 				shown: false
@@ -93,7 +93,7 @@ export default {
 			this.$refs.filelist.refresh();
 		},
 		fileClicked(item) {
-			this.runMacroDialog.question = this.$t('dialog.runMacro.title', [item.name]);
+			this.runMacroDialog.title = this.$t('dialog.runMacro.title', [item.name]);
 			this.runMacroDialog.prompt = this.$t('dialog.runMacro.prompt', [item.name]);
 			this.runMacroDialog.filename = item.name;
 			this.runMacroDialog.shown = true;
@@ -102,9 +102,12 @@ export default {
 			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);
 		}
 	},
+	mounted() {
+		this.directory = this.macrosDirectory;
+	},
 	watch: {
-		'directories.macros'(to, from) {
-			if (this.directory == from) {
+		macrosDirectory(to, from) {
+			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		}
