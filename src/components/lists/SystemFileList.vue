@@ -102,8 +102,9 @@ export default {
 			}
 		},
 		fileEdited(filename) {
-			if (Path.equals(filename, Path.combine(this.systemDirectory, Path.configFile)) && !isPrinting(this.status)) {
-				// Ask for firmware reset when config.g has been edited
+			if (!isPrinting(this.status) &&
+				(Path.equals(filename, Path.combine(this.systemDirectory, Path.configFile)) || Path.equals(filename, '0:/sys/board.txt'))) {
+				// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been edited
 				this.showResetPrompt = true;
 			}
 		},

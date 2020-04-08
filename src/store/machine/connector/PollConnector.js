@@ -757,7 +757,7 @@ export default class PollConnector extends BaseConnector {
 
 			// Query the seqs field and the G-code reply
 			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
-			if (this.lastSeqs.reply === undefined) {
+			if (this.lastSeqs == null || this.lastSeqs.reply === undefined) {
 				console.warn('Incompatible rr_model version detected, falling back to status responses');
 				window.forceLegacyConnect = true;
 				BaseConnector.setConnectingProgress(-1);

@@ -67,6 +67,7 @@ export class MachineModel {
 		file: new ParsedFileInfo(),
 		filePosition: null,
 		firstLayerDuration: null,
+		lastDuration: null,
 		lastFileName: null,
 		lastFileAborted: false,					// *** missing in RRF
 		lastFileCancelled: false,				// *** missing in RRF

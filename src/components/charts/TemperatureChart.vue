@@ -115,7 +115,7 @@ export default {
 		...mapGetters(['isConnected']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
-		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('machine/model', ['heat']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme'])
 	},

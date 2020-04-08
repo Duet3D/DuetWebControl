@@ -105,7 +105,6 @@ export default {
 
 			this.doingFileOperation = true;
 			try {
-				console.log(path);
 				const emptyFile = new Blob();
 				await this.upload({ filename: Path.combine(path, 'load.g'), content: emptyFile, showSuccess: false });
 				await this.upload({ filename: Path.combine(path, 'config.g'), content: emptyFile, showSuccess: false });
@@ -163,7 +162,7 @@ export default {
 		},
 		async rename() {
 			const filament = this.selection[0].name;
-			if (this.tools.some(tool => tool.filament === filament)) {
+			if (this.tools.some(tool => tool && tool.filament === filament)) {
 				this.$makeNotification('error', this.$t('notification.renameFilament.errorTitle'), this.$t('notification.renameFilament.errorStillLoaded'));
 				return;
 			}
@@ -175,7 +174,7 @@ export default {
 				items = this.selection.slice();
 			}
 
-			if (items.some(item => item.isDirectory && this.tools.some(tool => tool.filament === item.name))) {
+			if (items.some(item => item.isDirectory && this.tools.some(tool => tool && tool.filament === item.name))) {
 				this.$makeNotification('error', this.$t('notification.deleteFilament.errorTitle'), this.$t('notification.deleteFilament.errorStillLoaded'));
 				return;
 			}
