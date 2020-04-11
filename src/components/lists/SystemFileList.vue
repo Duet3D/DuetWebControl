@@ -76,7 +76,7 @@ export default {
 			status: state => state.state.status
 		}),
 		...mapGetters(['uiFrozen']),
-		isRootDirectory() { return Path.equals(this.directory, this.baseDirectory); }
+		isRootDirectory() { return Path.equals(this.directory, this.systemDirectory); }
 	},
 	data() {
 		return {

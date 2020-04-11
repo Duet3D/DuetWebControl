@@ -66,7 +66,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		// no need to observe isConnected here because the default machine instance never displays a messagebox anyway
+		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/model', {
 			messageBox: state => state.state.messageBox,
 			move: state => state.move
@@ -118,6 +118,11 @@ export default {
 		}
 	},
 	watch: {
+		isReconnecting(to) {
+			if (to) {
+				this.shown = false;
+			}
+		},
 		messageBox: {
 			deep: true,
 			handler(to) {
