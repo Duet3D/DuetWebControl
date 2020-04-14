@@ -187,6 +187,7 @@ export class MachineModel {
 		nextTool: -1,
 		powerFailScript: '',
 		previousTool: -1,
+		restorePoints: [],
 		status: null,
 		upTime: -1
 	}

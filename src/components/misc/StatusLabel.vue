@@ -25,7 +25,7 @@ export default {
 			let type = this.state.status;
 			if (!this.state.status) {
 				type = 'unknown';
-			} else if (this.state.status === StatusType.processing && this.state.mode === MachineMode.fff) {
+			} else if (this.state.status === StatusType.processing && this.state.machineMode === MachineMode.fff) {
 				type = 'printing';
 			}
 			return this.$t(`generic.status.${type}`);

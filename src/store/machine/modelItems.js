@@ -401,6 +401,17 @@ export class Probe {
 	value = [1000]
 }
 
+export class RestorePoint {
+	constructor(initData) { quickPatch(this, initData); }
+	coords = []
+	extruderPos = 0
+	feedRate = 50
+	ioBits = 0
+	laserPwm = null
+	spindleSpeeds = []
+	toolNumber = -1
+}
+
 export class Spindle {
 	constructor(initData) { quickPatch(this, initData); }
 	active = 0					// RPM
@@ -582,6 +593,10 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.spindles) {
 		fixItems(state.spindles, Spindle);
+	}
+
+	if (mergeData.state && mergeData.state.restorePoints) {
+		fixItems(state.state.restorePoints, RestorePoint);
 	}
 
 	if (mergeData.tools) {
