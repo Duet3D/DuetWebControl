@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Aktualisieren'
 		},
+		reset: {
+			caption: 'Maschine zurücksetzen',
+			title: 'M999 an die Maschine senden um sie zurückzusetzen'
+		},
 		upload: {
 			gcodes: {
 				caption: 'G-Code-Datei(en) Hochladen',

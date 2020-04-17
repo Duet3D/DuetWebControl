@@ -29,7 +29,7 @@
 						{{ $t('panel.jobData.lastLayerTime') }}
 					</strong>
 					<span>
-						{{ $displayTime(job.layers.length ? job.layers[job.layers.length - 1].duration : undefined) }}
+						{{ $displayTime(job.layers.length ? job.layers[job.layers.length - 1].duration : null) }}
 					</span>
 				</v-col>
 

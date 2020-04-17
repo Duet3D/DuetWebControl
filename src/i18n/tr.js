@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Yenile'
 		},
+		reset: {
+			caption: 'Makineyi Sıfırla',
+			title: 'Sıfırlamak için makineye M999 gönderin'
+		},
 		upload: {
 			gcodes: {
 				caption: 'G-Code Dosyası Yükleyin',

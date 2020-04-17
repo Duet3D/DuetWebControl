@@ -83,6 +83,10 @@
 		refresh: {
 			caption: 'Обновить'
 		},
+		reset: {
+			caption: 'Сброс машины',
+			title: 'Отправьте M999 на машину, чтобы перезагрузить его.'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Загрузить G-код',

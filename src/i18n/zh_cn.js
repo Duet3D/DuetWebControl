@@ -85,6 +85,10 @@ export default {
 		refresh: {
 			caption: '刷新'
 		},
+		reset: {
+			caption: '复位机',
+			title: '送M999到机器上重置'
+		},
 		upload: {
 			gcodes: {
 				caption: '上传G-Code文件',

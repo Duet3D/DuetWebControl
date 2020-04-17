@@ -869,7 +869,6 @@ export default class PollConnector extends BaseConnector {
 			}
 
 			if (addLayers) {
-				const layerJustChanged = (status === StatusType.simulating) || ((jobKey.layer - this.layers.length) === 2);
 				if (this.printStats.duration) {
 					// Got info about the past layer, add what we know
 					this.layers.push({
@@ -888,11 +887,10 @@ export default class PollConnector extends BaseConnector {
 						this.layers.push({ duration: avgDuration });
 						layersChanged = true;
 					}
-					this.printStats.zPosition = zPosition;
 				}
 
-				// Keep track of the past layer if the layer change just happened
-				if (layerJustChanged) {
+				// Keep track of the past layer if new layers have been added
+				if (layersChanged) {
 					this.printStats.duration = jobKey.duration;
 					this.printStats.extrRaw = extrRaw;
 					this.printStats.fractionPrinted = fractionPrinted;
