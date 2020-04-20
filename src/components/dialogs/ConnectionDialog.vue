@@ -8,7 +8,7 @@
 			<v-card-text>
 				<v-progress-linear :indeterminate="connectingProgress < 0" :value="connectingProgress" color="white" class="mb-0"></v-progress-linear>
 				<center>
-					<code-btn v-show="displayReset" class="mt-5" code="M999" :log="false" color="warning" :title="$t('button.reset.title')">
+					<code-btn v-show="displayReset && isConnected" class="mt-5" code="M999" :log="false" color="warning" :title="$t('button.reset.title')">
 						<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.reset.caption') }}
 					</code-btn>
 				</center>
@@ -20,13 +20,14 @@
 <script>
 'use strict'
 
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 import { StatusType } from '../../store/machine/modelEnums.js'
 
 export default {
 	computed: {
 		...mapState(['connectingProgress', 'isConnecting', 'isDisconnecting']),
+		...mapGetters(['isConnected']),
 		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/model', {
 			status: state => state.state.status

@@ -209,8 +209,12 @@ export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
 
 export class GpInputPort {
 	constructor(initData) { quickPatch(this, initData); }
-	configured = false
-	value = null
+	value = 0
+}
+
+export class GpOutputPort {
+	constructor(initData) { quickPatch(this, initData); }
+	pwm = 0
 }
 
 export class Heater {
@@ -583,8 +587,8 @@ export function fixMachineItems(state, mergeData) {
 				}
 			});
 		}
-		if (mergeData.sensors.inputs) {
-			fixItems(state.sensors.inputs, GpInputPort);
+		if (mergeData.sensors.gpIn) {
+			fixItems(state.sensors.gpIn, GpInputPort);
 		}
 		if (mergeData.sensors.probes) {
 			fixItems(state.sensors.probes, Probe);
@@ -595,8 +599,13 @@ export function fixMachineItems(state, mergeData) {
 		fixItems(state.spindles, Spindle);
 	}
 
-	if (mergeData.state && mergeData.state.restorePoints) {
-		fixItems(state.state.restorePoints, RestorePoint);
+	if (mergeData.state) {
+		if (mergeData.state.gpOut) {
+			fixItems(state.state.gpOut, GpOutputPort);
+		}
+		if (mergeData.state.restorePoints) {
+			fixItems(state.state.restorePoints, RestorePoint);
+		}
 	}
 
 	if (mergeData.tools) {

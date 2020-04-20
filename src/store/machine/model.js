@@ -170,7 +170,7 @@ export class MachineModel {
 		analog: [],
 		endstops: [],
 		filamentMonitors: [],
-		inputs: [],
+		gpIn: [],
 		probes: []
 	}
 	spindles = []
@@ -180,6 +180,7 @@ export class MachineModel {
 		currentTool: -1,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
+		gpOut: [],
 		laserPwm: null,
 		logFile: null,
 		messageBox: null,
