@@ -145,6 +145,9 @@ export default class RestConnector extends BaseConnector {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
+				if (that.model.job && that.model.job.layers) {
+					that.layers = that.model.job.layers;
+				}
 				that.socket = socket;
 
 				// Check if DSF has been updated

@@ -309,11 +309,13 @@ export class MachineModelModule {
 		},
 		jobProgress(state, getters) {
 			if (isPrinting(state.state.status)) {
-				let totalRawExtruded = state.move.extruders
-											.map(extruder => extruder && extruder.rawPosition);
-				totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
-				if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
-					return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
+				if (state.state.status !== StatusType.simulating) {
+					let totalRawExtruded = state.move.extruders
+						.map(extruder => extruder && extruder.rawPosition);
+					totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
+					if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
+						return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
+					}
 				}
 				return getters.fractionPrinted;
 			}
