@@ -37,9 +37,14 @@ export class Axis {
 	machinePosition = null
 	max = 200
 	maxProbed = false
+	microstepping = {
+		interpolated: false,
+		value: 16
+	}
 	min = 0
 	minProbed = false
 	speed = 100
+	stepsPerMm = 80
 	userPosition = null
 	visible = true
 	workplaceOffsets = []
@@ -113,6 +118,10 @@ export class Extruder {
 	factor = 1.0
 	filament = ''
 	jerk = 15
+	microstepping = {
+		interpolated: false,
+		value: 16
+	}
 	nonlinear = {
 		a: 0,
 		b: 0,
@@ -122,6 +131,7 @@ export class Extruder {
 	pressureAdvance = 0
 	rawPosition = 0
 	speed = 100
+	stepsPerMm = 420
 }
 
 export class Fan {
