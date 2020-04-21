@@ -5,7 +5,7 @@ Version 2.1.4
 ==============
 Compatible files:
 - DuetSoftwareFramework 2.1.0
-- RepRapFirmware 2.05.1 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:
 - Added new object model fields from RepRapFirmware
