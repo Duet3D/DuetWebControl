@@ -56,7 +56,7 @@
 						<v-list-item @click="sendCode('G29 S1')">
 							<v-icon class="mr-1">mdi-content-save</v-icon> {{ $t('panel.movement.loadMesh') }}
 						</v-list-item>
-						<v-list-item :disabled="move.compensation.type !== 'Mesh'" @click="sendCode('G29 S2')">
+						<v-list-item :disabled="!isCompensationEnabled" @click="sendCode('G29 S2')">
 							<v-icon class="mr-1">mdi-grid-off</v-icon> {{ $t('panel.movement.disableMeshCompensation') }}
 						</v-list-item>
 					</v-list>
@@ -144,6 +144,7 @@ export default {
 		...mapState('machine/model', ['move']),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
+		isCompensationEnabled() { return this.move.compensation.type.toLowerCase() !== 'none' },
 		displayedAxes() { return this.move.axes.filter(axis => axis.visible); },
 		isDelta() {
 			return ((this.move.kinematics.name === KinematicsName.delta) ||
