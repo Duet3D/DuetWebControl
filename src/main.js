@@ -11,6 +11,12 @@ import i18n from './i18n'
 import router from './routes'
 import store from './store'
 
+import Default from './layouts/Default.vue'
+
+
+Vue.component('default-layout', Default);
+
+
 Vue.config.productionTip = false
 
 Vue.use(plugins)
