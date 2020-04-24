@@ -138,6 +138,7 @@ export class MachineModel {
 		currentMove: {
 			acceleration: 0,
 			deceleration: 0,
+			laserPwm: null,
 			requestedSpeed: 0,
 			topSpeed: 0
 		},
