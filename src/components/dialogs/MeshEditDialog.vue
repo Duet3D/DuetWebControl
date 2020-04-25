@@ -63,7 +63,7 @@ export default {
 			probeGrid: state => state.move.compensation.probeGrid
 		}),
 		isDelta() {
-			return this.kinematicsName === KinematicsName.delta;
+			return (this.kinematicsName === KinematicsName.delta) || (this.kinematicsName === KinematicsName.rotaryDelta);
 		}
 	},
 	data() {

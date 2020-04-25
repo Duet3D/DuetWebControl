@@ -1,10 +1,20 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 2.1.5
+==============
+Compatible files:
+- DuetSoftwareFramework 2.0.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Mesh edit dialog area showed the wrong inputs for delta kinematics
+- Menu item to disable mesh compensation was always disabled
+
 Version 2.1.4
 ==============
 Compatible files:
-- DuetSoftwareFramework 2.1.0
+- DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:
