@@ -1,6 +1,19 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 2.1.6
+==============
+Compatible files:
+- DuetSoftwareFramework 2.0.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Message box axis controls are only shown if the requested axes are visible and homed
+
+Bug fixes:
+- Filament assignment was not updated when using RRFv2 or older
+- IAP files could not be uploaded
+
 Version 2.1.5
 ==============
 Compatible files:

@@ -136,6 +136,11 @@ export class MachineModel {
 				ySpacing: 0.0,
 				radius: 0.0
 			},
+			skew: {
+				tanXY: 0,
+				tanXZ: 0,
+				tanYZ: 0
+			},
 			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
 		},
 		currentMove: {

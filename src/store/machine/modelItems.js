@@ -136,7 +136,7 @@ export class Extruder {
 
 export class Fan {
 	constructor(initData) { quickPatch(this, initData); }
-	actualValue = 0
+	actualValue = null
 	blip = 0.1
 	frequency = 250
 	max = 1

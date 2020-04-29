@@ -143,14 +143,16 @@ export default {
 			return result;
 		},
 		getBinaryName(key, fileName) {
-			return this.boards.find(board => {
+			let result = null;
+			this.boards.forEach(board => {
 				if (board && board[key]) {
 					const regEx = new RegExp(board[key].replace(/\.bin$/, '(.*)\\.bin'), 'i');
 					if (regEx.test(fileName)) {
-						return board[key];
+						result = board[key];
 					}
 				}
 			});
+			return result;
 		},
 		async doUpload(files, zipName, startTime) {
 			if (!files.length) {

@@ -488,6 +488,15 @@ export default class PollConnector extends BaseConnector {
 					mounted: (response.mountedVolumes & (1 << i)) !== 0
 				});
 			}
+
+			response.tools.forEach(tool => {
+				if (tool.drives.length > 0) {
+					const extruder = tool.drives[0];
+					if (extruder >= 0 && extruder < newData.move.extruders.length && newData.move.extruders[extruder] !== null) {
+						newData.move.extruders[extruder].filament = tool.filament;
+					}
+				}
+			});
 		} else if (statusType === 3) {
 			if (!newData.job) {
 				newData.job = {};
