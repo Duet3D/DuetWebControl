@@ -62,7 +62,7 @@ export default {
 			const that = this;
 			let items = [], path = '';
 			pathItems.forEach(function(item, index) {
-				path = (path === '') ? item : path + '/' + item;
+				path = Path.combine(path, item);
 				if (index === 0) {
 					items.push({
 						text: item.startsWith('0:') ? rootCaption : that.$t('generic.sdCard', [/^(\d+)/.exec(item)[1]]),

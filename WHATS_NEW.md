@@ -14,6 +14,7 @@ Bug fixes:
 - Filament assignment was not updated when using RRFv2 or older
 - IAP files could not be uploaded
 - Upload of update ZIPs was not working
+- The file path in the edit dialog could be wrong after returning from a deeper directory
 
 Version 2.1.5
 ==============
