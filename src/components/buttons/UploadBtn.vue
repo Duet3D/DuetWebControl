@@ -218,7 +218,7 @@ export default {
 				// Adjust filename if an update is being uploaded
 				let filename = Path.combine(this.destinationDirectory, content.name);
 				if (this.target === 'system' || this.target === 'firmware') {
-					if (Path.isSdPath(content.name)) {
+					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(this.directories.web, content.name);
