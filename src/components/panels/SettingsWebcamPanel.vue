@@ -61,8 +61,8 @@ export default {
 			set(value) { this.update({ webcam: { liveUrl: value } }); }
 		},
 		webcamFix: {
-			get() { return this.settings.webcam.fix; },
-			set(value) { this.update({ webcam: { fix: value } }); }
+			get() { return this.settings.webcam.useFix; },
+			set(value) { this.update({ webcam: { useFix: value } }); }
 		},
 		webcamEmbedded: {
 			get() { return this.settings.webcam.embedded; },
