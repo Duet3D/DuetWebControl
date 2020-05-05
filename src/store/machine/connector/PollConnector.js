@@ -120,12 +120,27 @@ export default class PollConnector extends BaseConnector {
 						.catch(error => reject(error));
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
-				} else if (xhr.status === 501) {
+				} else if (xhr.status === 503) {
 					if (retry < maxRetries) {
-						// RRF may have run out of output buffers, retry if possible
-						that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
-							.then(result => resolve(result))
-							.catch(error => reject(error));
+						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
+						if (retry === 0) {
+							that.lastSeq++;
+							that.getGCodeReply(that.lastSeq)
+								.then(function() {
+									// Retry the original request when the code reply has been received
+									that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
+										.then(result => resolve(result))
+										.catch(error => reject(error));
+								})
+								.catch(error => reject(error));
+						} else {
+							// Retry the original request after a while
+							setTimeout(function() {
+								that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
+									.then(result => resolve(result))
+									.catch(error => reject(error));
+							}, 2000);
+						}
 					} else {
 						reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 					}
@@ -960,8 +975,23 @@ export default class PollConnector extends BaseConnector {
 			throw new CodeBufferError();
 		}
 
-		const pendingCodes = this.pendingCodes, seq = this.lastSeq;
-		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+		let inBraces = false;
+		for (let i = 0; i < code.length; i++) {
+			if (inBraces) {
+				inBraces = (code[i] !== ')');
+			} else if (code[i] === '(') {
+				inBraces = true;
+			} else {
+				if (code[i] === ';') {
+					return '';
+				}
+
+				if (code[i] !== ' ' && code[i] !== '\t' && code[i] !== '\r' && code !== '\n') {
+					const pendingCodes = this.pendingCodes, seq = this.lastSeq;
+					return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+				}
+			}
+		}
 	}
 
 	async getGCodeReply(seq) {

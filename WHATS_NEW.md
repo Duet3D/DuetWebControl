@@ -1,6 +1,19 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 2.1.7
+==============
+Compatible files:
+- DuetSoftwareFramework 2.0.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Codes that only consist of comments no longer wait for a response
+
+Bug fixes:
+- Message box axis controls are shown again for unhomed axes
+- HTTP code 503 was not properly handled
+
 Version 2.1.6
 ==============
 Compatible files:

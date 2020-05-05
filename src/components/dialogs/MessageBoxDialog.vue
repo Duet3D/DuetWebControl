@@ -75,7 +75,7 @@ export default {
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
 		displayedAxes() {
 			const axisControls = this.messageBox ? this.messageBox.axisControls : 0;
-			return this.move.axes.filter((axis, index) => axis.visible && axis.homed && ((axisControls & (1 << index)) !== 0));
+			return this.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
 		}
 	},
 	data() {
