@@ -1,56 +1,56 @@
-// 注释：Version 2.0.0-RC7
-// 注释：https://github.com/chrishamm/DuetWebControl/tree/2.0.0-RC7/src/i18n
+// 注释：更新到2.1.7，实际版本为2.1.3
+// 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
 	'$vuetify': {
-		badge: '徽章',
-		close: '關閉',
+		badge: '标记',
+		close: '关闭',
 		dataIterator: {
-			noResultsText: '沒有符合條件的結果',
-			loadingText: '讀取中...',
+			noResultsText: '没有找到匹配的记录',
+			loadingText: '正在载入项目……',
 		},
 		dataTable: {
-			itemsPerPageText: '每頁列數：',
+			itemsPerPageText: '每页行数：',
 			ariaLabel: {
-				sortDescending: '：降序排列。',
-				sortAscending: '：升序排列。',
-				sortNone: '無排序方式。點擊以升序排列。',
-				activateNone: '點擊以移除排序方式。',
-				activateDescending: '點擊以降序排列。',
-				activateAscending: '點擊以移除排序方式。',
+				sortDescending: '降序排列',
+				sortAscending: '升序排列',
+				sortNone: '没有排序',
+				activateNone: '激活以删除排序。',
+				activateDescending: '激活以降序排列。',
+				activateAscending: '激活以升序排序。',
 			},
 			sortBy: '排序方式',
 		},
 		dataFooter: {
-			itemsPerPageText: '每頁項目：',
+			itemsPerPageText: '每页项目：',
 			itemsPerPageAll: '全部',
-			nextPage: '下一頁',
-			prevPage: '上一頁',
-			firstPage: '第一頁',
-			lastPage: '最後頁',
-			pageText: '{2} 條中的 {0}~{1} 條',
+			nextPage: '下一页',
+			prevPage: '上一页',
+			firstPage: '第一页',
+			lastPage: '最后一页',
+			pageText: '第{0}-{1}条，共{2}条',
 		},
 		datePicker: {
-			itemsSelected: '已選擇 {0}',
+			itemsSelected: '已选择{0}',
 		},
-		noDataText: '沒有資料',
+		noDataText: '没有可用数据',
 		carousel: {
-			prev: '上一張',
-			next: '下一張',
+			prev: '上一张',
+			next: '下一张',
 			ariaLabel: {
-				delimiter: 'Carousel slide {0} of {1}',
+				delimiter: '轮播图片：第{0}张，共{1}张',
 			},
 		},
 		calendar: {
-			moreEvents: '還有其他 {0} 項',
+			moreEvents: '还有{0}个',
 		},
 		fileInput: {
-			counter: '{0} 個檔案',
-			counterSize: '{0} 個檔案（共 {1}）',
+			counter: '{0}个文件',
+			counterSize: '{0}个文件，（总计{1}）',
 		},
 		timePicker: {
-			am: 'AM',
-			pm: 'PM',
+			am: '上午',
+			pm: '下午',
 		},
 	},
 	button: {
@@ -65,13 +65,13 @@ export default {
 		},
 		emergencyStop: {
 			caption: '紧急停止',
-			title: '强制立即进行软件重置(M112+M999)'
+			title: '立即执行软件重启(M112+M999)'
 		},
 		home: {
-			caption: '归位 {0}',
+			caption: '归位{0}轴',
 			captionAll: '全部归位',
-			title: '归位{0}轴(G28 {0})',
-			titleAll: '归位所有轴(G28)'
+			title: '归位{0}轴（G28 {0}）',
+			titleAll: '归位所有轴（G28）'
 		},
 		newDirectory: {
 			caption: '新建目录'
@@ -86,41 +86,41 @@ export default {
 			caption: '刷新'
 		},
 		reset: {
-			caption: '复位机',
-			title: '送M999到机器上重置'
+			caption: '重启机器',
+			title: '发送代码M999重启机器'
 		},
 		upload: {
 			gcodes: {
 				caption: '上传G-Code文件',
-				title: '上传一个或多个G-Code文件（也支持拖放）'
+				title: '上传一个或多个G-Code文件（支持拖放）'
 			},
 			start: {
 				caption: '上传并开始',
-				title: '上传和启动一个或多个G代码文件（也支持拖放）'
+				title: '上传和开始一个或多个G-Code文件（支持拖放）'
 			},
 			macros: {
 				caption: '上传宏文件',
-				title: '上传一个或多个宏文件（也支持拖放）'
+				title: '上传一个或多个宏文件（支持拖放）'
 			},
 			filaments: {
 				caption: '上传细丝配置',
-				title: '上传一个或多个细丝配置（也支持拖放）'
+				title: '上传一个或多个细丝配置（支持拖放）'
 			},
 			menu: {
 				caption: '上传菜单文件',
-				title: '上传一个或多个菜单文件（也支持拖放）'
+				title: '上传一个或多个菜单文件（支持拖放）'
 			},
 			system: {
 				caption: '上传系统文件',
-				title: '上传一个或多个系统文件（也支持拖放）'
+				title: '上传一个或多个系统文件（支持拖放）'
 			},
 			web: {
 				caption: '上传Web文件',
-				title: '上传一个或多个Web文件（也支持拖放）'
+				title: '上传一个或多个Web文件（支持拖放）'
 			},
 			update: {
 				caption: '上传更新',
-				title: '上传更新包（也支持拖放）'
+				title: '上传更新包（支持拖放）'
 			}
 		}
 	},
@@ -166,7 +166,7 @@ export default {
 		connection: {
 			connecting: '正在连接...',
 			disconnecting: '正在断开连接...',
-			updating: 'Please wait while updates are being installed...',
+			updating: '正在安装更新，请稍候...',
 			reconnecting: '连接丢失，尝试重新连接...',
 			standBy: '请等待...'
 		},
@@ -191,11 +191,11 @@ export default {
 			gcodeReference: 'G-Code参考',
 			menuReference: '菜单参考',
 			save: '保存',
-			confirmClose: 'The file has been changed. If you proceed, your changes will be lost.'
+			confirmClose: '文件已修改。如果继续，您的修改将丢失。'
 		},
 		meshEdit: {
 			title: '设置网格参数',
-			radius: '探针半径',
+			radius: '探测半径',
 			spacing: '间距',
 			startCoordinate: '从{0}方向开始坐标',
 			endCoordinate: '从{0}方向结束坐标',
@@ -203,15 +203,15 @@ export default {
 		},
 		newDirectory: {
 			title: '新建目录',
-			prompt: '请输入新建目录名称：'
+			prompt: '请输入新建目录的名称：'
 		},
 		newFilament: {
 			title: '新建细丝',
-			prompt: '请输入新建细丝名称：'
+			prompt: '请输入新建细丝的名称：'
 		},
 		newFile: {
 			title: '新建文件',
-			prompt: '请输入新建文件名称：'
+			prompt: '请输入新建文件的名称：'
 		},
 		renameFile: {
 			title: '重命名文件或者目录',
@@ -228,11 +228,11 @@ export default {
 		},
 		startJob: {
 			title: '开始{0}',
-			prompt: '你想要开始任务{0}吗？?'
+			prompt: '你想要开始任务{0}吗？'
 		},
 		update: {
 			title: '安装更新？',
-			prompt: '您已上传至少一个固件更新。 你想现在安装吗？'
+			prompt: '您已上传至少一个固件更新。你想现在安装吗？'
 		},
 		inputRequired: '请输入一个值',
 		numberRequired: '请输入有效的数值'
@@ -287,8 +287,8 @@ export default {
 		yes: '是',
 		no: '否',
 		close: '关闭',
-		reset: '重设？？？',
-		noValue: 'n/a',
+		reset: '重置',
+		noValue: '没有',
 		loading: '正在载入',
 		error: '错误',
 		info: '信息',
@@ -299,8 +299,8 @@ export default {
 			standby: '待机',
 			active: '活动',
 			fault: '故障',
-			tuning: '正在调整？？？',
-			offline: 'offline'
+			tuning: '正在调谐',
+			offline: '离线'
 		},
 		status: {
 			updating: '正在更新',
@@ -319,7 +319,7 @@ export default {
 		},
 		rpm: '转速RPM',
 		sdCard: 'SD卡{0}',
-		mounted: '装载',
+		mounted: '已装载',
 		notMounted: '没有装载',
 		extracting: '正在提取',
 		uploading: '正在上传',
@@ -348,7 +348,7 @@ export default {
 	},
 	list: {
 		baseFileList: {
-			driveUnmounted: 'Drive is unmounted',
+			driveUnmounted: '驱动器未装载',
 			fileName: '文件名',
 			size: '大小',
 			lastModified: '最后修改',
@@ -368,7 +368,7 @@ export default {
 			type: '类型',
 			message: '事件',
 			noEvents: '没有事件',
-			clear: '清理',
+			clear: '清空',
 			downloadText: '下载为文本文件',
 			downloadCSV: '下载为CSV格式'
 		},
@@ -387,7 +387,7 @@ export default {
 			filament: '细丝用量',
 			printTime: '打印时间',
 			simulatedTime: '模拟时间',
-			generatedBy: '生成由',
+			generatedBy: '生成软件',
 
 			noJobs: '没有任务',
 			start: '开始任务文件',
@@ -395,7 +395,7 @@ export default {
 		},
 		system: {
 			noFiles: '没有系统文件',
-			configToolNote: 'edit via config tool'
+			configToolNote: '使用配置工具编辑'
 		}
 	},
 	menu: {
@@ -418,7 +418,7 @@ export default {
 			macros: '宏',
 			menu: '显示',
 			system: '系统',
-			web: 'Web'
+			web: '网页'
 		},
 		settings: {
 			caption: '设置',
@@ -473,7 +473,7 @@ export default {
 		},
 		renameFilament: {
 			errorTitle: '重命名细丝失败',
-			errorStillLoaded: '选定的细丝已装载。 请在继续之前卸载它'
+			errorStillLoaded: '选定的细丝已装载。请在继续之前卸载它'
 		},
 		responseTooLong: '响应时间过长，请查看控制台',
 		upload: {
@@ -491,7 +491,7 @@ export default {
 			off: '关'
 		},
 		babystepping: {
-			caption: 'Z轴微调',
+			caption: 'Z轴微步调整',
 			current: '当前偏移: {0}'
 		},
 		extrude: {
@@ -523,14 +523,14 @@ export default {
 			noFans: '没有风扇'
 		},
 		heightmap: {
-			scale: '比例尺：',
+			scale: '比例：',
 			orMore: '更大',
 			orLess: '更小',
 			axes: '轴：',
 			notAvailable: '高度图无效',
 			numPoints: '点数: {0}',
-			radius: '探针半径: {0}',
-			area: '探针面积: {0}',
+			radius: '探测半径: {0}',
+			area: '探测面积: {0}',
 			maxDeviations: '最大偏差: {0} / {1}',
 			meanError: '平均误差: {0}',
 			rmsError: '均方误差: {0}',
@@ -554,7 +554,7 @@ export default {
 			repeatJob: '重新开始',
 			repeatPrint: '重新打印',
 			repeatSimulation: '重新模拟',
-			autoSleep: '启用自动睡眠'
+			autoSleep: '启用自动休眠'
 		},
 		jobData: {
 			caption: '采集数据',
@@ -564,7 +564,7 @@ export default {
 			jobDuration: '任务持续时间'
 		},
 		jobEstimations: {
-			caption: '估计基于',
+			caption: '估算',
 			filament: '细丝用量',
 			file: '文件进度',
 			layer: '层时间',
@@ -576,7 +576,7 @@ export default {
 			height: '高度:',
 			layerHeight: '层高:',
 			filament: '细丝用量:',
-			generatedBy: '生成由:'
+			generatedBy: '生成软件:'
 		},
 		movement: {
 			caption: '机器移动',
@@ -589,23 +589,23 @@ export default {
 			editMesh: '定义网格补偿区域(M557)',
 			runMesh: '运行网格补偿(G29)',
 			loadMesh: '从SD卡加载已保存的高度图(G29 S1)',
-			axesNotHomed: '以下轴未归位:|以下轴未归位',
+			axesNotHomed: '以下轴未归位：|以下轴未归位：',
 			noAxes: '没有轴'
 		},
 		settingsAbout: {
 			caption: '关于',
 			developedBy: 'Web界面开发：',
 			for: ' 适用于：',
-			licensedUnder: '中文翻译：宁甲尊， 许可条款：'
+			licensedUnder: '中文翻译：宁甲尊  许可条款：'
 		},
 		settingsAppearance: {
 			caption: '外观',
 			darkTheme: '黑色主题',
 			language: '语言',
-			binaryFileSizes: '适用二进制文件大小',
-			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基础显示',
-			disableAutoComplete: 'Disable auto-complete',
-			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
+			binaryFileSizes: '使用二进制文件大小',
+			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基准显示',
+			disableAutoComplete: '禁用自动完成',
+			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表'
 		},
 		settingsCommunication: {
 			caption: '通讯',
@@ -613,54 +613,54 @@ export default {
 			ajaxRetries: '最大AJAX重试次数',
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
-			fileTransferRetryThreshold: '重试文件传输的阈值（{0}）',
-			crcUploads: 'Use CRC32 checksums for uploads',
+			fileTransferRetryThreshold: '文件传输的重试阈值（{0}）',
+			crcUploads: '使用CRC32校验和进行上传',
 			unavailable: '没有可用的设置'
 		},
 		settingsElectronics: {
 			caption: '电子器件',
 			diagnostics: '诊断',
-			board: '主板: {0}',
-			firmware: '固件: {0} ({1})',
-			dwsFirmware: 'Duet WiFi Server 版本: {0}',
+			board: '主板：{0}',
+			firmware: '固件：{0} ({1})',
+			dwsFirmware: 'Duet WiFi Server版本：{0}',
 			updateNote: '注意：您可以在“系统”页面上安装更新。'
 		},
 		settingsGeneral: {
 			caption: '常规',
 			factoryReset: '恢复出厂默认设置',
 			settingsStorageLocal: '将设置保存在本地存储中',
-			settingsSaveDelay: '设置更改的更新延迟({0})',
+			settingsSaveDelay: '设置更改的更新延迟（{0}）',
 			cacheStorageLocal: '将缓存保存在本地存储中',
-			cacheSaveDelay: '缓存更改的更新延迟({0})'
+			cacheSaveDelay: '缓存更改的更新延迟（{0}）'
 		},
 		settingsEndstops: {
-			caption: 'Endstops',
-			index: 'Index',
-			triggered: 'Triggered'
+			caption: '限位开关',
+			index: '序号',
+			triggered: '触发'
 		},
 		settingsListItems: {
 			caption: '列表项目',
 			toolTemperatures: '工具温度',
-			bedTemperatures: '床温度',
-			chamberTemperatures: '室温',
+			bedTemperatures: '热床温度',
+			chamberTemperatures: '加热室温度',
 			spindleRPM: '轴转速'
 		},
 		settingsMachine: {
 			caption: '机器特性',
 			revertDWC: '返回到DWC1.X界面',
-			babystepAmount: 'Z轴每个微调步进距离({0})',
-			moveFeedrate: '移动按钮的进给速度({0})'
+			babystepAmount: 'Z轴每个微调步进距离（{0}）',
+			moveFeedrate: '移动按钮的进给速度（{0}）'
 		},
 		settingsNotifications: {
 			caption: '通知',
 			notificationErrorsPersistent: '不要自动关闭错误消息',
-			notificationTimeout: '默认通知超时({0})'
+			notificationTimeout: '默认通知超时（{0}）'
 		},
 		settingsWebcam: {
 			caption: '网络摄像头',
-			webcamURL: '网络摄像头URL(可选)',
-			webcamLiveURL: '单击Webcam图像时打开的URL（可选)',
-			webcamUpdateInterval: '网络摄像头更新间隔({0})',
+			webcamURL: '网络摄像头URL（可选）',
+			webcamLiveURL: '单击Webcam图像时打开的URL（可选）',
+			webcamUpdateInterval: '网络摄像头更新间隔（{0}）',
 			webcamFix: '重新加载图像时，请勿附加HTTP限定符',
 			webcamEmbedded: '在iframe中嵌入网络摄像头图像',
 			webcamRotation: '旋转网络摄像头图像',
@@ -688,7 +688,7 @@ export default {
 			minMax: '最小值：{0}，最大值：{1}',
 			vIn: '输入电压',
 			v12: 'V12',
-			fanRPM: '风扇转速RPM',
+			fanRPM: '风扇转速',
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'
 		},
@@ -706,15 +706,15 @@ export default {
 			current: '当前',
 			active: '活动',
 			standby: '待机',
-			bed: '床{0}',
-			chamber: '室温{0}',
+			bed: '热床{0}',
+			chamber: '加热室{0}',
 			extra: {
-				caption: '额外',
+				caption: '其它',
 				sensor: '传感器',
 				sensorIndex: '传感器 {0}',
 				value: '值',
 				showInChart: '在图表中显示',
-				noItems: '没有额外加热器'
+				noItems: '没有其它加热器'
 			},
 			noTools: '没有工具'
 		},
