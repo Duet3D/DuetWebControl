@@ -65,7 +65,7 @@ export default {
 		},
 		emergencyStop: {
 			caption: '紧急停止',
-			title: '立即执软件重启(M112+M999)'
+			title: '立即执行软件重启(M112+M999)'
 		},
 		home: {
 			caption: '归位{0}轴',
@@ -87,7 +87,7 @@ export default {
 		},
 		reset: {
 			caption: '重启机器',
-			title: '发送M999代码到重启机器'
+			title: '发送M999代码重启机器'
 		},
 		upload: {
 			gcodes: {
