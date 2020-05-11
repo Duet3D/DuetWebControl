@@ -847,7 +847,7 @@ export default class PollConnector extends BaseConnector {
 
 				// Send the rr_connect request and datetime again after a firmware reset
 				await this.request('GET', 'rr_connect', {
-					password,
+					password: this.password,
 					time: timeToStr(new Date())
 				});
 			}
