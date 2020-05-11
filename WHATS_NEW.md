@@ -1,6 +1,17 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 2.1.8
+==============
+Compatible files:
+- DuetSoftwareFramework 2.0.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Mesh edit dialog sent wrong M-code when using delta kinematics
+- Resetting the speed and extrusion factors worked even when the UI was frozen
+- Datetime was not updated after a firmware reset
+
 Version 2.1.7
 ==============
 Compatible files:
