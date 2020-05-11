@@ -844,6 +844,12 @@ export default class PollConnector extends BaseConnector {
 				this.justConnected = true;
 				this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
 				this.pendingCodes = [];
+
+				// Send the rr_connect request and datetime again after a firmware reset
+				await this.request('GET', 'rr_connect', {
+					password,
+					time: timeToStr(new Date())
+				});
 			}
 			this.lastUptime = response.result.state.upTime;
 

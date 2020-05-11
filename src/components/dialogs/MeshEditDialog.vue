@@ -89,7 +89,7 @@ export default {
 			if (this.$refs.form.validate()) {
 				this.hide();
 
-				if (this.geometry === 'delta') {
+				if (this.isDelta) {
 					this.sendCode(`M557 R${this.radius} S${this.spacingX}`);
 				} else {
 					this.sendCode(`M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);
