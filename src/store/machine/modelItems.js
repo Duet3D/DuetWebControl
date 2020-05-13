@@ -290,7 +290,19 @@ export class Kinematics {
 	name = KinematicsName.unknown
 }
 
-export class CoreKinematics extends Kinematics {
+export class ZLeadscrewKinematics extends Kinematics {
+	constructor(initData) { super(initData); }
+	tiltCorrection = {
+		correctionFactor: 0,
+		lastCorrections: [],
+		maxCorrection: 0,
+		screwPitch: 0,
+		screwX: [],
+		screwY: []
+	}
+}
+
+export class CoreKinematics extends ZLeadscrewKinematics {
 	constructor(initData) { super(initData); }
 	forwardMatrix = [
 		[1, 0, 0],
@@ -334,6 +346,10 @@ export class HangprinterKinematics extends Kinematics {
 	anchorC = [-2000, 1000, -100]
 	anchorDz = 3000
 	printRadius = 1500
+}
+
+export class ScaraKinematics extends ZLeadscrewKinematics {
+	constructor(initData) { super(initData); }
 }
 
 export class Layer {

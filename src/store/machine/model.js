@@ -14,7 +14,7 @@ import {
 	Fan,
 	Heater,
 	InputChannel,
-	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics,
+	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics, ScaraKinematics,
 	ParsedFileInfo,
 	Probe,
 	Tool,
@@ -164,6 +164,7 @@ export class MachineModel {
 		printingAcceleration: 10000,
 		speedFactor: 100,
 		travelAcceleration: 10000,
+		virtualEPos: 0,
 		workspaceNumber: 1
 	}
 	network = {
@@ -349,6 +350,10 @@ export class MachineModelModule {
 						break;
 					case KinematicsName.hangprinter:
 						state.move.kinematics = new HangprinterKinematics();
+						break;
+					case KinematicsName.fiveBarScara:
+					case KinematicsName.scara:
+						state.move.kinematics = new ScaraKinematics();
 						break;
 					default:
 						state.move.kinematics = new Kinematics();
