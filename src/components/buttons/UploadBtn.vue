@@ -24,7 +24,7 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { NetworkInterfaceType } from '../../store/machine/modelEnums.js'
+import { NetworkInterfaceType, StatusType } from '../../store/machine/modelEnums.js'
 import Path from '../../utils/path.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
@@ -291,15 +291,29 @@ export default {
 		},
 		async startUpdate() {
 			// Update expansion boards
-			let code = '';
-			this.updates.firmwareBoards.forEach(boardToUpdate => {
+			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
+				const boardToUpdate = this.updates.firmwareBoards[i];
 				if (boardToUpdate > 0) {
-					if (code !== '') {
-						code += '\n';
+					try {
+						await this.sendCode(`M997 B${boardToUpdate}`);
+						do {
+							// Wait in 2-second intervals until the status is no longer 'Updating'
+							await new Promise(resolve => setTimeout(resolve, 2000));
+
+							// Stop if the connection has been interrupted
+							if (!this.isConnected) {
+								return;
+							}
+						} while (this.state.status === StatusType.updating);
+
+					} catch (e) {
+						if (!(e instanceof DisconnectedError)) {
+							console.warn(e);
+							this.$log('error', this.$t('generic.error'), e.message);
+						}
 					}
-					code += `M997 B${boardToUpdate}`;
 				}
-			});
+			}
 
 			// Update other modules
 			let modules = [];
@@ -315,11 +329,7 @@ export default {
 
 			this.updates.codeSent = true;
 			try {
-				if (code !== '') {
-					code += '\n';
-				}
-				code += `M997 S${modules.join(':')}`;
-				await this.sendCode(code);
+				await this.sendCode(`M997 S${modules.join(':')}`);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);

@@ -7,6 +7,9 @@ Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
+Changed behaviour:
+- When installing expansion board updates, DWC waits for the status to become not 'Updating' before moving on to the next one
+
 Bug fixes:
 - Mesh edit dialog sent wrong M-code when using delta kinematics
 - Resetting the speed and extrusion factors worked even when the UI was frozen
