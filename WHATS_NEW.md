@@ -1,7 +1,7 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 2.1.8
+Version 3.1.0
 ==============
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
