@@ -79,8 +79,8 @@ export default {
 			filamentsDirectory: state => state.directories.filaments,
 			tools: state => state.tools
 		}),
-		isRootDirectory() { return this.directory === this.filamentsDirectory; },
-		filamentSelected() { return (this.directory === this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory; }
+		isRootDirectory() { return Path.equals(this.directory, this.filamentsDirectory); },
+		filamentSelected() { return Path.equals(this.directory, this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
