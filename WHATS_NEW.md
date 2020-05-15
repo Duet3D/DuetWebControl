@@ -14,6 +14,7 @@ Bug fixes:
 - Mesh edit dialog sent wrong M-code when using delta kinematics
 - Resetting the speed and extrusion factors worked even when the UI was frozen
 - Datetime was not updated after a firmware reset
+- When returning from a filament directory on the Filaments page, the "Create Filament" button was no longer visible
 
 Version 2.1.7
 ==============
