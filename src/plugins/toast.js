@@ -17,10 +17,16 @@ const defaults = {
 let settings, openNotifications = []
 
 export function makeNotification(type, title, message, timeout) {
+	if (timeout === undefined) {
+		timeout = (type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout;
+	}
+
 	// If there is already an equal notification, reset its time and don't display a new one
 	const equalNotification = openNotifications.find(item => item.type === type && item.title == title && item.message === message);
 	if (equalNotification) {
-		equalNotification.resetTimeout();
+		if (timeout > 0) {
+			equalNotification.resetTimeout();
+		}
 		return equalNotification;
 	}
 
@@ -32,7 +38,7 @@ export function makeNotification(type, title, message, timeout) {
 		onClosed() {
 			openNotifications = openNotifications.filter(notification => notification !== item);
 		},
-		timeout: (timeout !== undefined) ? timeout : ((type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout)
+		timeout
 	}, defaults);
 
 	switch (type) {
