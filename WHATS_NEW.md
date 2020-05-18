@@ -12,6 +12,8 @@ Bug fixes:
 - Downloading filaments did not work
 - When opening large files in DWC, a timeout exception could be thrown
 - When connected in SBC mode, the kinematics key could be incorrectly updated
+- Duplicate notifications were not closed again automatically
+- Display messages from M117 were displayed multiple times
 
 Version 3.1.0
 ==============

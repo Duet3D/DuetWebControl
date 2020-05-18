@@ -72,6 +72,7 @@ export function makeNotification(type, title, message, timeout) {
 	};
 	item.resetTimeout = function() {
 		iziToast.progress(options, toast).reset();
+		setTimeout(iziToast.progress(options, toast).start, 100);
 	};
 
 	openNotifications.push(item);
@@ -121,12 +122,18 @@ export function makeFileTransferNotification(type, destination, cancellationToke
 
 export function showMessage(message) {
 	const options = Object.assign({
+		class: 'display-message',
 		title: i18n.t('notification.message'),
 		message: message.replace(/\n/g, '<br>'),
 		timeout: false
 	}, defaults);
 
-	iziToast.info(options);
+	const toastContent = document.querySelector('.display-message p');
+	if (toastContent) {
+		toastContent.textContent = message;
+	} else {
+		iziToast.info(options);
+	}
 }
 
 export default {
