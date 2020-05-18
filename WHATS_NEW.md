@@ -1,8 +1,20 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.1.1
+==============
+
+Compatible files:
+- DuetSoftwareFramework 2.0.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Downloading filaments did not work
+- When opening large files in DWC, a timeout exception could be thrown
+
 Version 3.1.0
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
@@ -18,6 +30,7 @@ Bug fixes:
 
 Version 2.1.7
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
@@ -31,6 +44,7 @@ Bug fixes:
 
 Version 2.1.6
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
@@ -46,6 +60,7 @@ Bug fixes:
 
 Version 2.1.5
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
@@ -56,6 +71,7 @@ Bug fixes:
 
 Version 2.1.4
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0 or newer
 - RepRapFirmware 2 or newer (1.2x may work but untested)
@@ -75,6 +91,7 @@ Bug fixes:
 
 Version 2.1.3
 ==============
+
 Compatible files:
 - DuetSoftwareFramework 2.0.0
 - RepRapFirmware 3.01-RC7 to 3.01-RC8 (others may or may not work - untested)

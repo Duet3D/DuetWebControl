@@ -125,8 +125,8 @@ export default {
 			// Download the files first
 			let loadG, unloadG;
 			try {
-				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), showSuccess: false, showError: false });
-				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), showSuccess: false, showError: false });
+				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), type: 'blob', showSuccess: false, showError: false });
+				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), type: 'blob', showSuccess: false, showError: false });
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 					this.$makeNotification('error', this.$t('notification.download.error', [!loadG ? 'load.g' : 'unload.g']), e.message);
@@ -136,7 +136,7 @@ export default {
 
 			let configG;
 			try {
-				configG = await this.download({ filename: Path.combine(Path.filaments, filament, 'config.g'), showSuccess: false, showError: false });
+				configG = await this.download({ filename: Path.combine(Path.filaments, filament, 'config.g'), type: 'blob', showSuccess: false, showError: false });
 			} catch (e) {
 				// config.g may not exist
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError) && !(e instanceof FileNotFoundError)) {

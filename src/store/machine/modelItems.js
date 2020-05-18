@@ -4,6 +4,7 @@ import Vue from 'vue'
 
 import {
 	AnalogSensorType,
+	BoardState,
 	Compatibility,
 	DistanceUnit,
 	EndstopType,
@@ -75,6 +76,7 @@ export class Board {
 	}
 	name = ''
 	shortName = ''
+	state = BoardState.unknown
 	supports12864 = false
 	v12 = {
 		current: 0,

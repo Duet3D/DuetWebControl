@@ -943,14 +943,9 @@ export default class PollConnector extends BaseConnector {
 		this.scheduleUpdate();
 	}
 
-	async doUpdate(startTime) {
+	async doUpdate() {
 		this.updateLoopTimer = null;
 		try {
-			if (new Date() - startTime > this.sessionTimeout) {
-				// Safari suspends setTimeout calls when a tab is inactive - check for this case
-				throw new TimeoutError();
-			}
-
 			if (!window.forceLegacyConnect && this.apiLevel >= 1) {
 				// Request object model updates
 				await this.updateLoopModel();
@@ -966,8 +961,7 @@ export default class PollConnector extends BaseConnector {
 
 	scheduleUpdate() {
 		if (!this.updateLoopTimer) {
-			const startTime = new Date();
-			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this, startTime), this.settings.updateInterval);
+			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this), this.settings.updateInterval);
 		}
 	}
 

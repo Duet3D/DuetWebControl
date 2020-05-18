@@ -18,6 +18,14 @@ export const AnalogSensorType = {
 	unknown: 'unknown'
 }
 
+export const BoardState = {
+	unknown: 'unknown',
+	flashing: 'flashing',
+	flashFailed: 'flashFailed',
+	resetting: 'resetting',
+	running: 'running'
+}
+
 export const Compatibility = {
 	default: 'Default',
 	repRapFirmware: 'RepRapFirmware',

@@ -200,6 +200,7 @@ export class MachineModel {
 		previousTool: -1,
 		restorePoints: [],
 		status: null,
+		time: null,
 		upTime: -1
 	}
 	tools = []
