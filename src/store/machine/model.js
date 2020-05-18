@@ -335,7 +335,7 @@ export class MachineModelModule {
 	}
 	mutations = {
 		update(state, payload) {
-			if (payload.move && payload.move.kinematics && state.move.kinematics.name !== payload.move.kinematics.name) {
+			if (payload.move && payload.move.kinematics && payload.move.kinematics.name !== undefined && state.move.kinematics.name !== payload.move.kinematics.name) {
 				switch (payload.move.kinematics.name) {
 					case KinematicsName.cartesian:
 					case KinematicsName.coreXY:
@@ -357,6 +357,9 @@ export class MachineModelModule {
 						state.move.kinematics = new ScaraKinematics();
 						break;
 					default:
+						if (process.env.NODE_ENV !== 'production') {
+							console.warn(`Using fallback kinematics because the requested one is unsupported: ${payload.move.kinematics.name}`);
+						}
 						state.move.kinematics = new Kinematics();
 						break;
 				}
