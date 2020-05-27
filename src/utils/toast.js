@@ -1,11 +1,13 @@
 'use strict'
 
+import Vue from 'vue'
+
 import iziToast from 'izitoast'
 import 'izitoast/dist/css/iziToast.css'
 
 import { displaySpeed } from './display.js'
-
 import i18n from '../i18n'
+import store from '../store'
 import { extractFileName } from '../utils/path.js'
 
 const defaults = {
@@ -14,11 +16,11 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-let settings, openNotifications = []
+let openNotifications = []
 
 export function makeNotification(type, title, message, timeout) {
 	if (timeout === undefined) {
-		timeout = (type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout;
+		timeout = (type === 'error' && store.state.settings.notifications.errorsPersistent) ? 0 : store.state.settings.notifications.timeout;
 	}
 
 	// If there is already an equal notification, reset its time and don't display a new one
@@ -142,14 +144,7 @@ export function showMessage(message) {
 	}
 }
 
-export default {
-	install(Vue) {
-		Vue.prototype.$makeNotification = makeNotification;
-		Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification;
-		Vue.prototype.$showMessage = showMessage;
-	},
-
-	installStore(store) {
-		settings = store.state.settings.notifications;
-	}
-}
+// Register extensions
+Vue.prototype.$makeNotification = makeNotification
+Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification
+Vue.prototype.$showMessage = showMessage

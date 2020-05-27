@@ -687,7 +687,7 @@ export default {
 			v12: 'V12',
 			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'Lüfter-RPM',
-			probe: 'Z-Probe|Z-Probes',
+			probe: 'Z-Sonde|Z-Sonden',
 			noStatus: 'Kein Status'
 		},
 		tools: {

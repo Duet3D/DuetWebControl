@@ -1,19 +1,11 @@
 'use strict'
 
-import Display from './display.js'
-import Logging from './logging.js'
-import Toast from './toast.js'
+import Vue from 'vue'
 
-export default {
-	install(Vue) {
-		Vue.use(Display);
-		Vue.use(Logging);
-		Vue.use(Toast);
-	},
-
-	installStore(store) {
-		Display.installStore(store);
-		Logging.installStore(store);
-		Toast.installStore(store);
-	}
+// Load Height Map plugin manually
+window.loadHeightMap = () => {
+	import(
+		/* webpackChunkName: "HeightMap" */
+		'./HeightMap/HeightMap.vue'
+	).then(module => Vue.use(module.default));
 }

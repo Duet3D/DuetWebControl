@@ -9,10 +9,9 @@ import observer from './observer.js'
 import settings from './settings.js'
 
 import i18n from '../i18n'
-import Plugins from '../plugins'
-import { logGlobal } from '../plugins/logging.js'
 
 import { InvalidPasswordError } from '../utils/errors.js'
+import { logGlobal } from '../utils/logging.js'
 
 Vue.use(Vuex)
 
@@ -185,8 +184,7 @@ const store = new Vuex.Store({
 	},
 	plugins: [
 		connector.installStore,
-		observer,
-		Plugins.installStore
+		observer
 	],
 	strict: process.env.NODE_ENV !== 'production'
 })

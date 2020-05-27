@@ -418,6 +418,9 @@ export default {
 			system: 'System',
 			web: 'Web'
 		},
+		plugins: {
+			caption: 'Plugins'
+		},
 		settings: {
 			caption: 'Settings',
 			general: 'General',

@@ -1,11 +1,12 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
+import store from '../store'
 import { defaultMachine } from '../store/machine'
-
-let store
 
 export function log(type, title, message, hostname = store.state.selectedMachine) {
 	makeNotification(type, title, message);
@@ -55,14 +56,7 @@ export function logGlobal(type, title, message) {
 	store.commit(`machines/${defaultMachine}/log`, { date: new Date(), type, title, message });
 }
 
-export default {
-	install(Vue) {
-		Vue.prototype.$log = log;
-		Vue.prototype.$logCode = logCode;
-		Vue.prototype.$logGlobal = logGlobal;
-	},
-
-	installStore(storeInstance) {
-		store = storeInstance;
-	}
-}
+// Register extensions
+Vue.prototype.$log = log
+Vue.prototype.$logCode = logCode
+Vue.prototype.$logGlobal = logGlobal

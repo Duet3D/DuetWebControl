@@ -2,8 +2,8 @@
 
 import { Color, Vector3, Face3, SphereGeometry, Matrix4, Mesh, MeshBasicMaterial, Geometry, PlaneGeometry } from 'three'
 
-import i18n from '../i18n'
-import { InvalidHeightmapError } from './errors.js'
+import i18n from '../../i18n'
+import { InvalidHeightmapError } from '../../utils/errors.js'
 
 const pointTolerance = 2.0
 const smallIndicatorRadius = 0.01, mediumIndicatorRadius = 0.02, bigIndicatorRadius = 0.05

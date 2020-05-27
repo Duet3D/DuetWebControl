@@ -36,70 +36,74 @@ h1 {
 </style>
 
 <template>
-	<v-card class="card">
-		<v-card-text class="py-1">
-			<v-row>
-				<!-- TODO: Add CSV list here -->
+	<v-row>
+		<v-col>
+			<v-card class="card">
+				<v-card-text class="py-1">
+					<v-row>
+						<!-- TODO: Add CSV list here -->
 
-				<v-col :class="{ 'pa-1': $vuetify.breakpoint.xs }">
-					<div ref="container" class="heightmap-container" v-resize="resize">
-						<h1 v-show="!ready" class="text-center">
-							{{ loading ? $t('generic.loading') : (errorMessage ? errorMessage : $t('panel.heightmap.notAvailable')) }}
-						</h1>
+						<v-col :class="{ 'pa-1': $vuetify.breakpoint.xs }">
+							<div ref="container" class="heightmap-container" v-resize="resize">
+								<h1 v-show="!ready" class="text-center">
+									{{ loading ? $t('generic.loading') : (errorMessage ? errorMessage : $t('panel.heightmap.notAvailable')) }}
+								</h1>
 
-						<div v-show="ready" class="canvas-container">
-							<canvas ref="canvas" @mousemove="canvasMouseMove"></canvas>
-							<canvas ref="legend" class="legend" width="80"></canvas>
-						</div>
-					</div>
-				</v-col>
+								<div v-show="ready" class="canvas-container">
+									<canvas ref="canvas" @mousemove="canvasMouseMove"></canvas>
+									<canvas ref="legend" class="legend" width="80"></canvas>
+								</div>
+							</div>
+						</v-col>
 
-				<v-col cols="12" md="auto" class="d-flex">
-					<div class="d-flex flex-column flex-grow-1 justify-space-between">
-						<span>
-							{{ $t('panel.heightmap.numPoints', [$display(numPoints, 0)]) }}
-						</span>
-						<span v-if="radius > 0">
-							{{ $t('panel.heightmap.radius', [$display(radius, 0, 'mm')]) }}
-						</span>
-						<span>
-							{{ $t('panel.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}
-						</span>
-						<span>
-							{{ $t('panel.heightmap.maxDeviations', [$display(minDiff, 3), $display(maxDiff, 3, 'mm')]) }}
-						</span>
-						<span>
-							{{ $t('panel.heightmap.meanError', [$display(meanError, 3, 'mm')]) }}
-						</span>
-						<span>
-							{{ $t('panel.heightmap.rmsError', [$display(rmsError, 3, 'mm')]) }}
-						</span>
-						<div class="d-flex flex-column mt-1">
-							{{ $t('panel.heightmap.colorScheme') }}
-							<v-btn-toggle v-model="colorScheme" class="mt-1">
-								<v-btn value="terrain" class="flex-grow-1">{{ $t('panel.heightmap.terrain') }}</v-btn>
-								<v-btn value="heat" class="flex-grow-1">{{ $t('panel.heightmap.heat') }}</v-btn>
-							</v-btn-toggle>
-						</div>
-						<v-btn @click="topView" :disabled="!ready" class="ml-0 my-3" >
-							<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('panel.heightmap.topView') }}
-						</v-btn>
-						<v-btn class="ml-0" :disabled="!isConnected" :loading="loading" @click="getHeightmap()">
-							<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('panel.heightmap.reload') }}
-						</v-btn>
-					</div>
-				</v-col>
-			</v-row>
+						<v-col cols="12" md="auto" class="d-flex">
+							<div class="d-flex flex-column flex-grow-1 justify-space-between">
+								<span>
+									{{ $t('panel.heightmap.numPoints', [$display(numPoints, 0)]) }}
+								</span>
+								<span v-if="radius > 0">
+									{{ $t('panel.heightmap.radius', [$display(radius, 0, 'mm')]) }}
+								</span>
+								<span>
+									{{ $t('panel.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}
+								</span>
+								<span>
+									{{ $t('panel.heightmap.maxDeviations', [$display(minDiff, 3), $display(maxDiff, 3, 'mm')]) }}
+								</span>
+								<span>
+									{{ $t('panel.heightmap.meanError', [$display(meanError, 3, 'mm')]) }}
+								</span>
+								<span>
+									{{ $t('panel.heightmap.rmsError', [$display(rmsError, 3, 'mm')]) }}
+								</span>
+								<div class="d-flex flex-column mt-1">
+									{{ $t('panel.heightmap.colorScheme') }}
+									<v-btn-toggle v-model="colorScheme" class="mt-1">
+										<v-btn value="terrain" class="flex-grow-1">{{ $t('panel.heightmap.terrain') }}</v-btn>
+										<v-btn value="heat" class="flex-grow-1">{{ $t('panel.heightmap.heat') }}</v-btn>
+									</v-btn-toggle>
+								</div>
+								<v-btn @click="topView" :disabled="!ready" class="ml-0 my-3" >
+									<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('panel.heightmap.topView') }}
+								</v-btn>
+								<v-btn class="ml-0" :disabled="!isConnected" :loading="loading" @click="getHeightmap()">
+									<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('panel.heightmap.reload') }}
+								</v-btn>
+							</div>
+						</v-col>
+					</v-row>
 
-			<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
-				<span class="no-cursor">
-					X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
-					Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
-					Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
-				</span>
-			</v-tooltip>
-		</v-card-text>
-	</v-card>
+					<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
+						<span class="no-cursor">
+							X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
+							Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
+							Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
+						</span>
+					</v-tooltip>
+				</v-card-text>
+			</v-card>
+		</v-col>
+	</v-row>
 </template>
 
 <script>
@@ -110,8 +114,9 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
+import { registerRoute } from '../../routes'
 import { getModifiedFiles } from '../../store/machine'
-import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from '../../utils/3d.js'
+import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from './3d.js'
 import CSV from '../../utils/csv.js'
 import Path from '../../utils/path.js'
 
@@ -119,6 +124,18 @@ const scaleZ = 0.5, maxVisualizationZ = 0.25
 const indicatorColor = 0xFFFFFF, indicatorOpacity = 0.4, indicatorOpacityHighlighted = 1.0
 
 export default {
+	install() {
+		// Register a route via Control -> Height Map
+		registerRoute(this, {
+			Control: {
+				HeightMap: {
+					icon: 'mdi-grid',
+					caption: 'menu.control.heightmap',
+					path: '/Heightmap'
+				}
+			}
+		});
+	},
 	beforeCreate() {
 		this.three = {						// non-reactive data
 			scene: null,

@@ -19,7 +19,13 @@ module.exports = {
 		] : []
 	},
 	chainWebpack: config => {
-		config.optimization.delete('splitChunks')
+		config.optimization.set('splitChunks', {
+			cacheGroups: {
+				vendors: false,
+				common: false
+			}
+		});
+		config.plugins.delete('prefetch');
 	},
 	transpileDependencies: [
 		'vuetify'

@@ -9,13 +9,12 @@ import settings from './settings.js'
 
 import i18n from '../../i18n'
 
-import { displayTime } from '../../plugins/display.js'
-import { log, logCode } from '../../plugins/logging.js'
-import { makeFileTransferNotification, showMessage } from '../../plugins/toast.js'
-
 import beep from '../../utils/beep.js'
+import { displayTime } from '../../utils/display.js'
 import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
+import { log, logCode } from '../../utils/logging.js'
 import Path from '../../utils/path.js'
+import { makeFileTransferNotification, showMessage } from '../../utils/toast.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 

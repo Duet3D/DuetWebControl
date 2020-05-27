@@ -26,3 +26,24 @@
 		</v-col>
 	</v-row>
 </template>
+
+<script>
+'use strict'
+
+import { registerRoute } from '..'
+
+export default {
+	install() {
+		// Register a route via Settings -> General
+		registerRoute(this, {
+			Settings: {
+				General: {
+					icon: 'mdi-tune',
+					caption: 'menu.settings.general',
+					path: '/Settings/General'
+				}
+			}
+		});
+	}
+}
+</script>
