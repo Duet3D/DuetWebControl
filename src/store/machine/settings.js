@@ -1,10 +1,12 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
-export default function(hostname) {
+export default function(hostname, pluginSettingFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -44,7 +46,10 @@ export default function(hostname) {
 				},
 				chamber: [90, 80, 70, 60, 50, 40, 0]
 			},
-			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
+			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
+
+			// Third-Party values
+			plugins: Object.assign({}, pluginSettingFields)
 		},
 		getters: {
 			moveSteps: state => function(axis) {
@@ -133,7 +138,29 @@ export default function(hostname) {
 					state.displayedFans = state.displayedFans.filter(item => item !== fan);
 				}
 			},
-			update: (state, payload) => patch(state, payload, true)
+			update(state, payload) {
+				if (payload.plugins !== undefined) {
+					state.plugins = payload.plugins;
+					delete payload.plugins;
+				}
+				patch(state, payload, true);
+			},
+
+			registerPluginData(state, { plugin, key, defaultValue }) {
+				if (state.plugins[plugin] === undefined) {
+					Vue.set(state.plugins, plugin, { key: defaultValue });
+				}
+				if (!(key in state.plugins[plugin])) {
+					state.plugins[plugin][key] = defaultValue;
+				}
+			},
+			setPluginData(state, { plugin, key, value }) {
+				if (state.plugins[plugin] === undefined) {
+					state.plugins[plugin] = { key: value };
+				} else {
+					state.plugins[plugin][key] = value;
+				}
+			}
 		}
 	}
 }

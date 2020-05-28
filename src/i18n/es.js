@@ -522,24 +522,6 @@ export default {
 			fan: 'Ventilador {0}',
 			noFans: 'No hay ventiladores'
 		},
-		heightmap: {
-			scale: 'Escalar:',
-			orMore: 'o aumentar',
-			orLess: 'o disminuir',
-			axes: 'Ejes:',
-			notAvailable: 'mapa de altura no disponible',
-			numPoints: 'Número de puntos: {0}',
-			radius: 'Radio de prueba: {0}',
-			area: 'Area de prueba: {0}',
-			maxDeviations: 'Desviación Máxima: {0} / {1}',
-			meanError: 'Error medio: {0}',
-			rmsError: 'Error RMS: {0}',
-			topView: 'Vista superior',
-			colorScheme: 'Esquema de color:',
-			terrain: 'Superficie',
-			heat: 'Calor',
-			reload: 'Recargar Mapa de Altura'
-		},
 		jobControl: {
 			caption: 'Control de trabajo',
 			cancelJob: 'Cancelar Trabajo',
@@ -722,6 +704,26 @@ export default {
 		webcam: {
 			caption: 'Vigilancia por webcam',
 			alt: '(imagen de la Webcam)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: 'Escalar:',
+			orMore: 'o aumentar',
+			orLess: 'o disminuir',
+			axes: 'Ejes:',
+			notAvailable: 'mapa de altura no disponible',
+			numPoints: 'Número de puntos: {0}',
+			radius: 'Radio de prueba: {0}',
+			area: 'Area de prueba: {0}',
+			maxDeviations: 'Desviación Máxima: {0} / {1}',
+			meanError: 'Error medio: {0}',
+			rmsError: 'Error RMS: {0}',
+			topView: 'Vista superior',
+			colorScheme: 'Esquema de color:',
+			terrain: 'Superficie',
+			heat: 'Calor',
+			reload: 'Recargar Mapa de Altura'
 		}
 	}
 }

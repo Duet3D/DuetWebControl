@@ -21,6 +21,8 @@ import {
 	fixMachineItems
 } from './modelItems.js'
 
+import Root from '../../main.js'
+import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 import { patch, quickPatch } from '../../utils/patch.js'
 
@@ -110,6 +112,7 @@ export class MachineModel {
 		zProbeProgramBytes: null,
 		zProbes: null
 	}
+	messages = []								// *** never populated in DWC2, only used to transfer generic messages from connectors to the model
 	move = {
 		axes: [],
 		calibration: {
@@ -335,6 +338,7 @@ export class MachineModelModule {
 	}
 	mutations = {
 		update(state, payload) {
+			// Fix kinematics type
 			if (payload.move && payload.move.kinematics && payload.move.kinematics.name !== undefined && state.move.kinematics.name !== payload.move.kinematics.name) {
 				switch (payload.move.kinematics.name) {
 					case KinematicsName.cartesian:
@@ -364,8 +368,13 @@ export class MachineModelModule {
 						break;
 				}
 			}
+
+			// Apply new data
 			patch(state, payload, true);
 			fixMachineItems(state, payload);
+
+			// Update has finished
+			Root.$emit(Events.machineModelUpdated, state.network.hostname);
 		}
 	}
 }

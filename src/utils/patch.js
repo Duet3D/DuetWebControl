@@ -94,7 +94,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 				} else if (a[key] instanceof Object) {
 					patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
 				} else if (a[key] !== b[key]) {
-					a[key] = b[key];
+					Vue.set(a, key, b[key]);
 					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
 				}
 			}

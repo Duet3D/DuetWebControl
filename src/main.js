@@ -14,7 +14,6 @@ import store from './store'
 Vue.config.productionTip = false
 Vue.use(Vuetify)
 
-window.router = router
 export default new Vue({
 	el: '#app',
 	i18n,

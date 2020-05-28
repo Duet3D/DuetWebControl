@@ -19,11 +19,11 @@ h1 {
 }
 
 .canvas-container > :first-child {
-	border-radius: 8px 0 0 8px;
+	border-radius: 4px 0 0 4px;
 }
 
 .canvas-container > :last-child {
-	border-radius: 0 8px 8px 0;
+	border-radius: 0 4px 4px 0;
 }
 
 .canvas-container > canvas {
@@ -37,72 +37,95 @@ h1 {
 
 <template>
 	<v-row>
-		<v-col>
-			<v-card class="card">
-				<v-card-text class="py-1">
-					<v-row>
-						<!-- TODO: Add CSV list here -->
+		<v-col cols="12" sm="6" lg="auto" order="1" order-lg="0">
+			<v-card tile>
+				<v-card-title class="pt-2 pb-1">
+					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.heightmap.listTitle') }}
+				</v-card-title>
+				<v-card-text class="pa-0" v-show="files.length === 0">
+					<v-alert :value="true" type="info" class="mb-0">
+						{{ $t('plugins.heightmap.none') }}
+					</v-alert>
+				</v-card-text>
+				<v-list class="py-0" :disabled="uiFrozen || !ready || loading">
+					<v-list-item-group :value="files.indexOf(selectedFile)" color="primary">
+						<v-list-item v-for="file in files" :key="file" @click="selectedFile = file">
+							{{ file }}
+						</v-list-item>
+					</v-list-item-group>
+				</v-list>
+			</v-card>
+		</v-col>
 
-						<v-col :class="{ 'pa-1': $vuetify.breakpoint.xs }">
-							<div ref="container" class="heightmap-container" v-resize="resize">
-								<h1 v-show="!ready" class="text-center">
-									{{ loading ? $t('generic.loading') : (errorMessage ? errorMessage : $t('panel.heightmap.notAvailable')) }}
-								</h1>
+		<v-col cols="12" lg="auto" order="0" order-lg="0" :class="{ 'pa-1': $vuetify.breakpoint.xs }" class="flex-grow-1">
+			<div ref="container" class="heightmap-container" v-resize="resize">
+				<h1 v-show="!ready" class="text-center">
+					{{ loading ? $t('generic.loading') : (errorMessage ? errorMessage : $t('plugins.heightmap.notAvailable')) }}
+				</h1>
 
-								<div v-show="ready" class="canvas-container">
-									<canvas ref="canvas" @mousemove="canvasMouseMove"></canvas>
-									<canvas ref="legend" class="legend" width="80"></canvas>
-								</div>
-							</div>
-						</v-col>
+				<div v-show="ready" class="canvas-container">
+					<canvas ref="canvas" @mousemove="canvasMouseMove"></canvas>
+					<canvas ref="legend" class="legend" width="80"></canvas>
+				</div>
+			</div>
+		</v-col>
 
-						<v-col cols="12" md="auto" class="d-flex">
-							<div class="d-flex flex-column flex-grow-1 justify-space-between">
-								<span>
-									{{ $t('panel.heightmap.numPoints', [$display(numPoints, 0)]) }}
-								</span>
-								<span v-if="radius > 0">
-									{{ $t('panel.heightmap.radius', [$display(radius, 0, 'mm')]) }}
-								</span>
-								<span>
-									{{ $t('panel.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}
-								</span>
-								<span>
-									{{ $t('panel.heightmap.maxDeviations', [$display(minDiff, 3), $display(maxDiff, 3, 'mm')]) }}
-								</span>
-								<span>
-									{{ $t('panel.heightmap.meanError', [$display(meanError, 3, 'mm')]) }}
-								</span>
-								<span>
-									{{ $t('panel.heightmap.rmsError', [$display(rmsError, 3, 'mm')]) }}
-								</span>
-								<div class="d-flex flex-column mt-1">
-									{{ $t('panel.heightmap.colorScheme') }}
-									<v-btn-toggle v-model="colorScheme" class="mt-1">
-										<v-btn value="terrain" class="flex-grow-1">{{ $t('panel.heightmap.terrain') }}</v-btn>
-										<v-btn value="heat" class="flex-grow-1">{{ $t('panel.heightmap.heat') }}</v-btn>
-									</v-btn-toggle>
-								</div>
-								<v-btn @click="topView" :disabled="!ready" class="ml-0 my-3" >
-									<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('panel.heightmap.topView') }}
-								</v-btn>
-								<v-btn class="ml-0" :disabled="!isConnected" :loading="loading" @click="getHeightmap()">
-									<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('panel.heightmap.reload') }}
-								</v-btn>
-							</div>
-						</v-col>
-					</v-row>
+		<v-col cols="12" sm="6" lg="auto" order="2" class="d-flex flex-column">
+			<v-card tile class="d-flex flex-column flex-grow-1">
+				<v-card-title class="pt-2 pb-1">
+					<v-icon class="mr-2">mdi-information</v-icon> {{ $t('plugins.heightmap.statistics') }}
+				</v-card-title>
+				<v-card-text class="d-flex flex-column flex-grow-1 justify-space-between pt-2">
+					<span>
+						{{ $t('plugins.heightmap.numPoints', [$display(numPoints, 0)]) }}
+					</span>
+					<span v-if="radius > 0">
+						{{ $t('plugins.heightmap.radius', [$display(radius, 0, 'mm')]) }}
+					</span>
+					<span>
+						{{ $t('plugins.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}
+					</span>
+					<span>
+						{{ $t('plugins.heightmap.maxDeviations', [$display(minDiff, 3), $display(maxDiff, 3, 'mm')]) }}
+					</span>
+					<span>
+						{{ $t('plugins.heightmap.meanError', [$display(meanError, 3, 'mm')]) }}
+					</span>
+					<span>
+						{{ $t('plugins.heightmap.rmsError', [$display(rmsError, 3, 'mm')]) }}
+					</span>
+				</v-card-text>
+			</v-card>
 
-					<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
-						<span class="no-cursor">
-							X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
-							Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
-							Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
-						</span>
-					</v-tooltip>
+			<v-card tile class="d-flex flex-column mt-5">
+				<v-card-title class="pt-2 pb-1">
+					<v-icon class="mr-2">mdi-eye</v-icon> {{ $t('plugins.heightmap.display') }}
+				</v-card-title>
+				<v-card-text class="d-flex flex-column">
+					<div class="d-flex flex-column mt-1">
+						{{ $t('plugins.heightmap.colorScheme') }}
+						<v-btn-toggle v-model="colorScheme" class="mt-1">
+							<v-btn value="terrain" class="flex-grow-1">{{ $t('plugins.heightmap.terrain') }}</v-btn>
+							<v-btn value="heat" class="flex-grow-1">{{ $t('plugins.heightmap.heat') }}</v-btn>
+						</v-btn-toggle>
+					</div>
+
+					<v-switch v-model="invertZ" :label="$t('plugins.heightmap.invertZ')" :disabled="uiFrozen || loading || !ready"></v-switch>
+
+					<v-btn @click="topView" :disabled="uiFrozen || loading || !ready" class="ml-0 mt-3" >
+						<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('plugins.heightmap.topView') }}
+					</v-btn>
 				</v-card-text>
 			</v-card>
 		</v-col>
+
+		<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
+			<span class="no-cursor">
+				X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
+				Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
+				Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
+			</span>
+		</v-tooltip>
 	</v-row>
 </template>
 
@@ -115,9 +138,11 @@ import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMate
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 import { registerRoute } from '../../routes'
-import { getModifiedFiles } from '../../store/machine'
+import { registerPluginData, setPluginData, PluginDataType } from '../../store'
+
 import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from './3d.js'
 import CSV from '../../utils/csv.js'
+import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 
 const scaleZ = 0.5, maxVisualizationZ = 0.25
@@ -131,10 +156,14 @@ export default {
 				HeightMap: {
 					icon: 'mdi-grid',
 					caption: 'menu.control.heightmap',
-					path: '/Heightmap'
+					path: '/HeightMap'
 				}
 			}
 		});
+
+		// Register a new cached property
+		registerPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', 'terrain');
+		registerPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', false);
 	},
 	beforeCreate() {
 		this.three = {						// non-reactive data
@@ -152,21 +181,35 @@ export default {
 		}
 	},
 	computed: {
-		...mapGetters(['isConnected']),
+		...mapState(['selectedMachine']),
+		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState('machine/cache', {
+			pluginCache: state => state.plugins.HeightMap
+		}),
 		...mapState('machine/model', {
 			heightmapFile: state => state.move.compensation.file,
 			systemDirectory: state => state.directories.system,
 		}),
-		...mapState('settings', ['language'])
+		...mapState('settings', ['language']),
+		colorScheme: {
+			get() { return this.pluginCache.colorScheme; },
+			set(value) { setPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', value); }
+		},
+		invertZ: {
+			get() { return this.pluginCache.invertZ; },
+			set(value) { setPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', value); }
+		}
 	},
 	data() {
 		return {
+			files: [],
+			selectedFile: null,
+
 			isActive: true,
 			ready: false,
 			loading: false,
 			errorMessage: null,
 
-			colorScheme: 'terrain',
 			tooltip: {
 				coord: {
 					x: 0,
@@ -185,11 +228,12 @@ export default {
 			meanError: undefined,
 			rmsError: undefined,
 
-			unsubscribe: undefined
+			heightmapPoints: undefined,
+			probeRadius: undefined
 		}
 	},
 	methods: {
-		...mapActions('machine', ['download']),
+		...mapActions('machine', ['download', 'getFileList']),
 		init() {
 			// Perform initial resize
 			const size = this.resize();
@@ -207,7 +251,7 @@ export default {
 
 			// Register this instance in order to deal with size changes
 			if (this.isConnected) {
-				this.getHeightmap();
+				this.refresh();
 			}
 		},
 		resize() {
@@ -247,7 +291,7 @@ export default {
 			}
 
 			// Redraw the legend and return the canvas size
-			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ);
 			return { width, height };
 		},
 		showCSV(csvData) {
@@ -272,9 +316,9 @@ export default {
 			}
 
 			// Display height map
-			this.showHeightmap(points, radius);
+			this.showHeightMap(points, radius);
 		},
-		showHeightmap(points, probeRadius) {
+		showHeightMap(points, probeRadius) {
 			// Clean up first
 			if (this.three.meshGeometry) {
 				this.three.scene.remove(this.three.meshPlane);
@@ -321,7 +365,7 @@ export default {
 			this.meanError = this.meanError / this.numPoints;
 
 			// Generate mesh geometry and apply face colors
-			this.three.meshGeometry = generateMeshGeometry(points, xMin, xMax, yMin, yMax, scaleZ);
+			this.three.meshGeometry = generateMeshGeometry(points, xMin, xMax, yMin, yMax, this.invertZ ? -scaleZ : scaleZ);
 			setFaceColors(this.three.meshGeometry, scaleZ, this.colorScheme, maxVisualizationZ);
 
 			// Make 3D mesh and add it
@@ -351,11 +395,13 @@ export default {
 			}
 
 			// Render scene
+			this.heightmapPoints = points;
+			this.probeRadius = probeRadius;
 			this.ready = true;
 			this.render();
 
 			// Resize it again when the values have been changed
-			this.$nextTick(this.resize);
+			this.$nextTick(this.resize)
 		},
 		render() {
 			if (this.three.renderer) {
@@ -396,7 +442,7 @@ export default {
 			if (intersectionPoint) {
 				this.tooltip.coord.x = intersectionPoint.x;
 				this.tooltip.coord.y = intersectionPoint.y;
-				this.tooltip.coord.z = intersectionPoint.z;
+				this.tooltip.coord.z = this.invertZ ? -intersectionPoint.z : intersectionPoint.z;
 				this.tooltip.x = e.clientX;
 				this.tooltip.y = e.clientY;
 				this.tooltip.shown = true;
@@ -410,24 +456,61 @@ export default {
 			this.three.camera.updateProjectionMatrix();
 		},
 
-		async getHeightmap(filename) {
+		async refresh() {
+			if (!this.isConnected) {
+				this.ready = false;
+				this.errorMessage = null;
+				this.selectedFile = null;
+				this.files = [];
+				return;
+			}
+
+			if (this.loading) {
+				// Don't do multiple actions at once
+				return;
+			}
+
+			this.loading = true;
+			try {
+				const files = await this.getFileList(this.systemDirectory);
+				this.files = files
+					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'))
+					.map(file => file.name);
+			} finally {
+				this.loading = false;
+			}
+
+			if (this.files.indexOf(this.selectedFile) === -1) {
+				if (this.heightmapFile && this.files.indexOf(this.heightmapFile) !== -1) {
+					this.selectedFile = this.heightmapFile;
+				} else if (this.files.indexOf(Path.heightmapFile) !== -1) {
+					this.selectedFile = Path.heightmapFile;
+				} else {
+					this.selectedFile = null;
+				}
+			}
+		},
+		async getHeightMap() {
 			if (this.loading) {
 				// Don't attempt to load more than one file at once...
 				return;
 			}
 
-			if (!filename) {
-				filename = this.heightmapFile;
-				if (!filename) {
-					filename = Path.combine(this.systemDirectory, Path.heightmapFile);
-				}
-			}
-
 			this.ready = false;
 			this.loading = true;
 			try {
-				const heightmap = await this.download({ filename, type: 'text', showProgress: false, showSuccess: false, showError: false });
-				this.showCSV(heightmap);
+				if (this.selectedFile) {
+					const heightmap = await this.download({
+						filename: Path.combine(this.systemDirectory, this.selectedFile),
+						type: 'text',
+						showProgress: false,
+						showSuccess: false,
+						showError: false
+					});
+					this.showCSV(heightmap);
+				} else {
+					this.errorMessage = null;
+				}
 			} catch (e) {
 				console.warn(e);
 				this.errorMessage = e.message;
@@ -454,7 +537,20 @@ export default {
 				default:
 					throw new Error("Bad number of probe points, only one of 3/4/5 is supported");
 			}
-			this.showHeightmap(testPoints);
+			this.showHeightMap(testPoints);
+		},
+
+		filesOrDirectoriesChanged({ machine, files }) {
+			if (machine === this.selectedMachine) {
+				if (this.selectedFile && files.indexOf(Path.combine(this.systemDirectory, this.selectedFile)) >= 0) {
+					// Current heightmap has been changed, reload it and then refresh the list
+					this.getHeightMap(this.selectedFile).then(this.refresh);
+				}
+				else if (files.some(file => file.endsWith('.csv')) && Path.filesAffectDirectory(files, this.systemDirectory)) {
+					// CSV file or directory has been changed
+					this.refresh();
+				}
+			}
 		}
 	},
 	activated() {
@@ -465,20 +561,20 @@ export default {
 		this.isActive = false;
 	},
 	mounted() {
-		const getHeightmap = this.getHeightmap;
-		this.unsubscribe = this.$store.subscribeAction(function(action, state) {
-			if (getModifiedFiles(action, state).indexOf(Path.heightmapFile) !== -1 ||
-				action.type.endsWith('onCodeCompleted') && action.payload.reply.indexOf(Path.heightmapFile) !== -1) {
-				getHeightmap();
-			}
-		});
-
 		// FIXME give the grid some time to resize everything...
 		setTimeout(this.init, 100);
+
+		// Set current heightmap
+		this.selectedFile = this.heightmapFile;
+
+		// Keep track of file changes
+		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
-		this.unsubscribe();
+		// No longer keep track of file changes
+		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 
+		// Destroy the 3D view
 		if (this.three.renderer) {
 			this.three.renderer.forceContextLoss();
 			this.three.renderer = null;
@@ -491,15 +587,27 @@ export default {
 			}
 			drawLegend(this.$refs.legend, maxVisualizationZ, to);
 		},
-		isConnected(to) {
-			if (to) {
-				this.getHeightmap();
+		files() {
+			this.$nextTick(this.resize);
+		},
+		invertZ() {
+			if (this.heightmapPoints) {
+				this.showHeightMap(this.heightmapPoints, this.probeRadius);
 			}
+		},
+		isConnected() {
+			this.refresh();
 		},
 		heightmapFile(to) {
 			if (to) {
-				this.getHeightmap(to);
+				this.selectedFile = to;
 			}
+		},
+		selectedFile() {
+			this.getHeightMap();
+		},
+		systemDirectory() {
+			this.refresh();
 		},
 		language() {
 			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);

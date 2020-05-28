@@ -73,6 +73,13 @@ export function extractFileName(path) {
 	return path;
 }
 
+export function filesAffectDirectory(files, directory) {
+	return files.some(function(file) {
+		return (equals(directory, file) ||
+				equals(directory, extractDirectory(file)));
+	});
+}
+
 export function getVolume(path) {
 	if (path) {
 		const matches = /(\d+).*/.exec(path);
@@ -154,12 +161,14 @@ const pathObj = {
 
 	configFile: 'config.g',
 	configBackupFile: 'config.g.bak',
+	filamentsFile: 'filaments.csv',
 	heightmapFile: 'heightmap.csv',
 
 	combine,
 	equals,
 	extractDirectory,
 	extractFileName,
+	filesAffectDirectory,
 	getVolume,
 	startsWith,
 

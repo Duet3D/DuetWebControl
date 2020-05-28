@@ -523,24 +523,6 @@ export default {
 			fan: 'Fan {0}',
 			noFans: 'No Fans'
 		},
-		heightmap: {
-			scale: 'Scale:',
-			orMore: 'or more',
-			orLess: 'or less',
-			axes: 'Axes:',
-			notAvailable: 'height map not available',
-			numPoints: 'Number of points: {0}',
-			radius: 'Probing radius: {0}',
-			area: 'Probe area: {0}',
-			maxDeviations: 'Maximum deviations: {0} / {1}',
-			meanError: 'Mean error: {0}',
-			rmsError: 'RMS error: {0}',
-			topView: 'Top view',
-			colorScheme: 'Color scheme:',
-			terrain: 'Terrain',
-			heat: 'Heat',
-			reload: 'Reload Height Map'
-		},
 		jobControl: {
 			caption: 'Job Control',
 			cancelJob: 'Cancel Job',
@@ -722,6 +704,30 @@ export default {
 		webcam: {
 			caption: 'Webcam Surveillance',
 			alt: '(webcam image)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			listTitle: 'Height Maps',
+			none: 'None',
+			scale: 'Scale:',
+			orMore: 'or more',
+			orLess: 'or less',
+			axes: 'Axes:',
+			notAvailable: 'height map not available',
+			statistics: 'Statistics',
+			numPoints: 'Number of points: {0}',
+			radius: 'Probing radius: {0}',
+			area: 'Probe area: {0}',
+			maxDeviations: 'Maximum deviations: {0} / {1}',
+			meanError: 'Mean error: {0}',
+			rmsError: 'RMS error: {0}',
+			display: 'Display',
+			colorScheme: 'Color scheme:',
+			terrain: 'Terrain',
+			heat: 'Heat',
+			invertZ: 'Invert Z coordinates',
+			topView: 'Top view',
 		}
 	}
 }

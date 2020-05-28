@@ -14,24 +14,24 @@ export function log(type, title, message, hostname = store.state.selectedMachine
 }
 
 // eslint-disable-next-line
-export function logCode(code = '', response, hostname = store.state.selectedMachine, fromInput = false) {
-	if (!code && !response) {
+export function logCode(code = '', reply, hostname = store.state.selectedMachine, fromInput = false) {
+	if (!code && !reply) {
 		// Make sure there is something to log...
 		return;
 	}
 
 	// Determine type
-	let type = 'info', toLog = response;
-	if (response.startsWith('Error: ')) {
+	let type = 'info', toLog = reply;
+	if (reply.startsWith('Error: ')) {
 		type = 'error';
-	} else if (response.startsWith('Warning: ')) {
+	} else if (reply.startsWith('Warning: ')) {
 		type = 'warning';
-	} else if (response === '') {
+	} else if (reply === '') {
 		type = 'success';
 	}
 
 	// Log it
-	const responseLines = toLog.split("\n")
+	const responseLines = toLog.split('\n')
 	if (hostname === store.state.selectedMachine) {
 		let title = code, message = responseLines.join('<br>');
 		if (responseLines.length > 3) {
@@ -44,7 +44,7 @@ export function logCode(code = '', response, hostname = store.state.selectedMach
 
 		makeNotification(type, title, message);
 	}
-	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
+	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: reply });
 }
 
 export function logGlobal(type, title, message) {

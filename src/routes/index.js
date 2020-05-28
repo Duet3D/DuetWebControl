@@ -58,12 +58,13 @@ const router = new VueRouter({
 	routes: Routes
 })
 
-export function registerCategory(name, icon, caption) {
+export function registerCategory(name, icon, caption, translated = true) {
 	if (Menu[name] === undefined) {
 		Vue.set(Menu, name, {
 			icon,
 			caption,
-			pages: []
+			pages: [],
+			translated
 		});
 	}
 }
@@ -94,6 +95,9 @@ function registerRouteInternal(menu, component, route) {
 				Object.defineProperty(routeObj, 'condition', {
 					get: subRoute.condition
 				});
+			}
+			if (routeObj.translated === undefined) {
+				routeObj.translated = false;
 			}
 			menu.pages.push(routeObj);
 			Routes.push(routeObj);

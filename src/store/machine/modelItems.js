@@ -14,6 +14,7 @@ import {
 	InputChannelState,
 	KinematicsName,
 	MessageBoxMode,
+	MessageType,
 	NetworkInterfaceType,
 	ProbeType,
 	ToolState
@@ -363,11 +364,20 @@ export class Layer {
 }
 
 export class MeshDeviation {
+	constructor(initData) { quickPatch(this, initData); }
 	deviation = 0
 	mean = 0
 }
 
+export class Message {
+	constructor(initData) { quickPatch(this, initData); }
+	time = new Date()
+	type = MessageType.success
+	content = ''
+}
+
 export class MessageBox {
+	constructor(initData) { quickPatch(this, initData); }
 	axisControls = 0
 	mode = MessageBoxMode.okOnly
 	message = ''

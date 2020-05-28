@@ -65,14 +65,14 @@ textarea {
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
 				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
 					<template #activator>
-						<v-list-item-title>{{ $t(category.caption) }}</v-list-item-title>
+						<v-list-item-title>{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
 					</template>
 
 					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
 						<v-list-item-icon>
 							<v-icon>{{ page.icon }}</v-icon>
 						</v-list-item-icon>
-						<v-list-item-title>{{ $t(page.caption) }}</v-list-item-title>
+						<v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
 					</v-list-item>
 				</v-list-group>
 			</v-list>
@@ -83,7 +83,6 @@ textarea {
 				<v-icon>mdi-menu</v-icon>
 			</v-app-bar-nav-icon>
 			<v-toolbar-title>
-				<!-- TODO: Optional OEM branding -->
 				<a href="javascript:void(0)" id="title">{{ name }}</a>
 			</v-toolbar-title>
 			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>

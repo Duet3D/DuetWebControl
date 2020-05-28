@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 import i18n from '../i18n'
 
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
@@ -30,7 +32,8 @@ export default {
 			embedded: false,							// use iframe to embed webcam stream
 			rotation: 0,
 			flip: 'none'
-		}
+		},
+		plugins: {}
 	},
 	mutations: {
 		load(state, payload) {
@@ -48,7 +51,27 @@ export default {
 			if (payload.language) {
 				i18n.locale = payload.language;
 			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
 			patch(state, payload, true);
+		},
+
+		registerPluginData(state, { plugin, key, defaultValue }) {
+			if (state.plugins[plugin] === undefined) {
+				Vue.set(state.plugins, plugin, { key: defaultValue });
+			}
+			if (!(key in state.plugins[plugin])) {
+				state.plugins[plugin][key] = defaultValue;
+			}
+		},
+		setPluginData(state, { plugin, key, value }) {
+			if (state.plugins[plugin] === undefined) {
+				state.plugins[plugin] = { key: value };
+			} else {
+				state.plugins[plugin][key] = value;
+			}
 		}
 	},
 	actions: {

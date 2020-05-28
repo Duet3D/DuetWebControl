@@ -1,11 +1,13 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { defaultMachine } from './index.js'
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
-export default function(hostname) {
+export default function(hostname, pluginCacheFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -35,7 +37,8 @@ export default function(hostname) {
 					column: 'name',
 					descending: false
 				}
-			}
+			},
+			plugins: Object.assign({}, pluginCacheFields)
 		},
 		actions: {
 			async load({ rootState, commit, dispatch }) {
@@ -103,6 +106,21 @@ export default function(hostname) {
 			setSorting(state, { table, column, descending }) {
 				state.sorting[table].column = column;
 				state.sorting[table].descending = descending;
+			},
+
+			registerPluginData(state, { plugin, key, defaultValue }) {
+				if (state.plugins[plugin] === undefined) {
+					Vue.set(state.plugins, plugin, {});
+				}
+				if (!(key in state.plugins[plugin])) {
+					Vue.set(state.plugins[plugin], key, defaultValue)
+				}
+			},
+			setPluginData(state, { plugin, key, value }) {
+				if (state.plugins[plugin] === undefined) {
+					Vue.set(state.plugins, plugin, { key: value });
+				}
+				Vue.set(state.plugins[plugin], key, value)
 			}
 		}
 	}

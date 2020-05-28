@@ -148,6 +148,12 @@ export const MessageBoxMode = {
 	okCancel: 3			// blocking, requires M292 (P1) to continue
 }
 
+export const MessageType = {
+	success: 0,
+	warning: 1,
+	error: 2
+}
+
 export const NetworkInterfaceType = {
 	lan: 'lan',
 	wifi: 'wifi'

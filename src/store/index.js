@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+import Root from '../main.js'
 import machine, { defaultMachine } from './machine'
 import connector from './machine/connector'
 import observer from './observer.js'
@@ -11,6 +12,7 @@ import settings from './settings.js'
 import i18n from '../i18n'
 
 import { InvalidPasswordError } from '../utils/errors.js'
+import Events from '../utils/events.js'
 import { logGlobal } from '../utils/logging.js'
 
 Vue.use(Vuex)
@@ -21,6 +23,7 @@ const defaultPassword = 'reprap'
 const machines = {
 	[defaultMachine]: machine(defaultMachine)
 }
+const pluginCacheFields = {}, pluginSettingFields = {}
 
 const store = new Vuex.Store({
 	state: {
@@ -53,7 +56,7 @@ const store = new Vuex.Store({
 			commit('setConnecting', true);
 			try {
 				const connectorInstance = await connector.connect(hostname, username, password);
-				const moduleInstance = machine(hostname, connectorInstance);
+				const moduleInstance = machine(hostname, connectorInstance, pluginCacheFields, pluginSettingFields);
 				commit('addMachine', { hostname, moduleInstance });
 				connectorInstance.register(moduleInstance);
 
@@ -154,11 +157,13 @@ const store = new Vuex.Store({
 		addMachine(state, { hostname, moduleInstance }) {
 			machines[hostname] = moduleInstance;
 			this.registerModule(['machines', hostname], moduleInstance);
+			Root.$emit(Events.machineAdded, hostname);
 		},
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {
 			this.unregisterModule(['machines', hostname]);
 			delete machines[hostname];
+			Root.$emit(Events.machineRemoved, hostname);
 		},
 
 		setSelectedMachine(state, selectedMachine) {
@@ -196,6 +201,59 @@ store.registerModule('machine', machines[defaultMachine])
 if (process.env.NODE_ENV !== 'production') {
 	window.updateMachineStore = function(newStore) {
 		store.dispatch('machine/update', newStore);
+	}
+}
+
+// Expose plugin functionality
+export const PluginDataType = {
+	globalSetting: 'globalSetting',
+	machineCache: 'machineCache',
+	machineSetting: 'machineSetting'
+}
+
+export function registerPluginData(plugin, dataType, key, defaultValue) {
+	switch (dataType) {
+		case PluginDataType.globalSetting:
+			store.commit('settings/registerPluginData', { plugin, key, defaultValue });
+			break;
+		case PluginDataType.machineCache:
+			if (!(plugin in pluginCacheFields)) {
+				pluginCacheFields[plugin] = {}
+			}
+			pluginCacheFields[plugin][key] = defaultValue;
+
+			for (let machine in machines) {
+				store.commit(`machines/${machine}/cache/registerPluginData`, { plugin, key, defaultValue });
+			}
+			break;
+		case PluginDataType.machineSetting:
+			if (!(plugin in pluginSettingFields)) {
+				pluginSettingFields[plugin] = {}
+			}
+			pluginSettingFields[plugin][key] = defaultValue;
+
+			for (let machine in machines) {
+				store.commit(`machines/${machine}/settings/registerPluginData`, { plugin, key, defaultValue });
+			}
+			break;
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+	}
+}
+
+export function setPluginData(plugin, dataType, key, value) {
+	switch (dataType) {
+		case PluginDataType.globalSetting:
+			store.commit('settings/setPluginData', { plugin, key, value });
+			break;
+		case PluginDataType.machineCache:
+			store.commit('machine/cache/setPluginData', { plugin, key, value });
+			break;
+		case PluginDataType.machineSetting:
+			store.commit('machine/settings/setPluginData', { plugin, key, value });
+			break;
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
 	}
 }
 
