@@ -409,7 +409,7 @@ export default {
 			caption: '当前任务',
 			status: '状态',
 			webcam: '摄像头',
-			visualiser: '显示'
+			visualizer: '显示'
 		},
 		files: {
 			caption: '文件管理',

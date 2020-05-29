@@ -58,17 +58,34 @@ const router = new VueRouter({
 	routes: Routes
 })
 
-export function registerCategory(name, icon, caption, translated = true) {
+// Register a new menu category
+// name: Name of the category
+// icon: Icon of the category
+// caption: Caption to show in the menu
+// translated: Whether the caption is already translated
+export function registerCategory(name, icon, caption, translated = false) {
 	if (Menu[name] === undefined) {
-		Vue.set(Menu, name, {
+		const category = {
 			icon,
-			caption,
 			pages: [],
 			translated
-		});
+		};
+
+		if (caption instanceof Function) {
+			Object.defineProperty(category, 'caption', {
+				get: caption
+			});
+		} else {
+			category.caption = caption;
+		}
+
+		Vue.set(Menu, name, category);
 	}
 }
 
+// Register a new route and menu item
+// component: Component to register
+// route: Route element { Category: { Name: { icon, caption [, translated = false ], path [, condition = true] } }
 export function registerRoute(component, route) {
 	registerRouteInternal(Menu, component, route);
 }
@@ -83,11 +100,19 @@ function registerRouteInternal(menu, component, route) {
 				return;
 			}
 
-			// Register the new route
 			const routeObj = {
 				...subRoute,
 				component
 			};
+
+			// Prepare the actual route object
+			if (routeObj.caption instanceof Function) {
+				delete routeObj.caption;
+				Object.defineProperty(routeObj, 'caption', {
+					get: subRoute.caption
+				});
+			}
+
 			if (routeObj.condition === undefined) {
 				routeObj.condition = true;
 			} else {
@@ -96,10 +121,17 @@ function registerRouteInternal(menu, component, route) {
 					get: subRoute.condition
 				});
 			}
+
 			if (routeObj.translated === undefined) {
 				routeObj.translated = false;
 			}
-			menu.pages.push(routeObj);
+
+			// Register the new route
+			if (menu.pages !== undefined) {
+				menu.pages.push(routeObj);
+			} else {
+				menu[keys[0]] = routeObj;
+			}
 			Routes.push(routeObj);
 			router.addRoutes([routeObj]);
 			return;
@@ -113,6 +145,37 @@ function registerRouteInternal(menu, component, route) {
 		}
 	}
 	throw new Error('Invalid route argument');
+}
+
+export const GeneralSettingTabs = Vue.observable([])
+export const MachineSettingTabs = Vue.observable([])
+
+// Register a new settings page and a Vue component
+// global: Whether to register the tab on the general settings page
+// name: Name of the component
+// component: Component to register
+// caption: Caption of the tab
+// translated: Whether the caption is already translated
+export function registerSettingTab(general, name, component, caption, translated) {
+	const tab = {
+		component: name,
+		translated
+	}
+
+	if (caption instanceof Function) {
+		Object.defineProperty(tab, 'caption', {
+			get: caption
+		});
+	} else {
+		tab.caption = caption;
+	}
+
+	Vue.component(name, component);
+	if (general) {
+		GeneralSettingTabs.push(tab);
+	} else {
+		MachineSettingTabs.push(tab);
+	}
 }
 
 // Control
@@ -134,10 +197,12 @@ Vue.use(Webcam)
 Vue.use(General)
 Vue.use(Machine)
 
-// 404 Page
-Routes.push({
-	path: '*',
-	component: Page404
-})
+// 404 page
+router.addRoutes([
+	{
+		path: '*',
+		component: Page404
+	}
+])
 
 export default router

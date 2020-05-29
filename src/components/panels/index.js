@@ -16,7 +16,6 @@ import SettingsAboutPanel from './SettingsAboutPanel.vue'
 import SettingsAppearancePanel from './SettingsAppearancePanel.vue'
 import SettingsCommunicationPanel from './SettingsCommunicationPanel.vue'
 import SettingsElectronicsPanel from './SettingsElectronicsPanel.vue'
-import SettingsEndstopsPanel from './SettingsEndstopsPanel.vue'
 import SettingsGeneralPanel from './SettingsGeneralPanel.vue'
 import SettingsListItemsPanel from './SettingsListItemsPanel.vue'
 import SettingsMachinePanel from './SettingsMachinePanel.vue'
@@ -42,7 +41,6 @@ Vue.component('settings-about-panel', SettingsAboutPanel)
 Vue.component('settings-apperance-panel', SettingsAppearancePanel)
 Vue.component('settings-communication-panel', SettingsCommunicationPanel)
 Vue.component('settings-electronics-panel', SettingsElectronicsPanel)
-Vue.component('settings-endstops-panel', SettingsEndstopsPanel)
 Vue.component('settings-general-panel', SettingsGeneralPanel)
 Vue.component('settings-machine-panel', SettingsMachinePanel)
 Vue.component('settings-list-items-panel', SettingsListItemsPanel)
@@ -54,30 +52,3 @@ Vue.component('tools-panel', ToolsPanel)
 Vue.component('webcam-panel', WebcamPanel)
 Vue.component('z-babystep-panel', ZBabystepPanel)
 
-export default {
-	ATXPanel,
-	ExtrudePanel,
-	ExtrusionFactorsPanel,
-	FanPanel,
-	FansPanel,
-	JobControlPanel,
-	JobDataPanel,
-	JobEstimationsPanel,
-	JobInfoPanel,
-	MovementPanel,
-	SettingsAboutPanel,
-	SettingsAppearancePanel,
-	SettingsCommunicationPanel,
-	SettingsElectronicsPanel,
-	SettingsEndstopsPanel,
-	SettingsGeneralPanel,
-	SettingsMachinePanel,
-	SettingsListItemsPanel,
-	SettingsNotificationsPanel,
-	SettingsWebcamPanel,
-	SpeedFactorPanel,
-	StatusPanel,
-	ToolsPanel,
-	WebcamPanel,
-	ZBabystepPanel
-}

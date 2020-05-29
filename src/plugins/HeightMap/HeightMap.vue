@@ -47,6 +47,7 @@ h1 {
 						{{ $t('plugins.heightmap.none') }}
 					</v-alert>
 				</v-card-text>
+
 				<v-list class="py-0" :disabled="uiFrozen || !ready || loading">
 					<v-list-item-group :value="files.indexOf(selectedFile)" color="primary">
 						<v-list-item v-for="file in files" :key="file" @click="selectedFile = file">
@@ -481,8 +482,8 @@ export default {
 			}
 
 			if (this.files.indexOf(this.selectedFile) === -1) {
-				if (this.heightmapFile && this.files.indexOf(this.heightmapFile) !== -1) {
-					this.selectedFile = this.heightmapFile;
+				if (this.heightmapFile && this.files.indexOf(Path.extractFileName(this.heightmapFile)) !== -1) {
+					this.selectedFile = Path.extractFileName(this.heightmapFile);
 				} else if (this.files.indexOf(Path.heightmapFile) !== -1) {
 					this.selectedFile = Path.heightmapFile;
 				} else {
@@ -565,7 +566,9 @@ export default {
 		setTimeout(this.init, 100);
 
 		// Set current heightmap
-		this.selectedFile = this.heightmapFile;
+		if (this.heightmapFile) {
+			this.selectedFile = Path.extractFileName(this.heightmapFile);
+		}
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
@@ -600,7 +603,7 @@ export default {
 		},
 		heightmapFile(to) {
 			if (to) {
-				this.selectedFile = to;
+				this.refresh().then(() => this.selectedFile = Path.extractFileName(to));
 			}
 		},
 		selectedFile() {

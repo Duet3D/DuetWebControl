@@ -407,7 +407,7 @@ export default {
 			caption: 'Aktueller Auftrag',
 			status: 'Status',
 			webcam: 'Webcam',
-			visualiser: 'Visualisierer'
+			visualizer: 'Visualisierer'
 		},
 		files: {
 			caption: 'Dateiverwaltung',

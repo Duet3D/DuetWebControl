@@ -407,7 +407,7 @@ export default {
 			caption: 'Current Job',
 			status: 'Status',
 			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualizer'
 		},
 		files: {
 			caption: 'File Management',
@@ -728,6 +728,18 @@ export default {
 			heat: 'Heat',
 			invertZ: 'Invert Z coordinates',
 			topView: 'Top view',
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: 'General'
+		},
+		machineSettings: {
+			caption: 'General'
+		},
+		plugins: {
+			caption: 'Plugins',
+			loadPlugin: 'Load Plugin'
 		}
 	}
 }

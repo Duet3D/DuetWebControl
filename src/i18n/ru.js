@@ -407,7 +407,7 @@
 			caption: 'Текущее задание',
 			status: 'Статус',
 			webcam: 'Камера',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualiser'
 		},
 		files: {
 			caption: 'Менеджер файлов',

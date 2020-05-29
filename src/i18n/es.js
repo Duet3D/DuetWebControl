@@ -409,7 +409,7 @@ export default {
 			caption: 'Trabajo actual',
 			status: 'Stado',
 			webcam: 'Webcam',
-			visualiser: 'Visualizador'
+			visualizer: 'Visualizador'
 		},
 		files: {
 			caption: 'Gestor de Archivos',

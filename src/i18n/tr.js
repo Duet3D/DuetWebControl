@@ -407,7 +407,7 @@ export default {
 			caption: 'Mevcut iş',
 			status: 'Durum',
 			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualiser'
 		},
 		files: {
 			caption: 'Dosya Yönetimi',

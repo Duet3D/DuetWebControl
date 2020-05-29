@@ -14,10 +14,3 @@ Vue.component('emergency-btn', EmergencyBtn)
 Vue.component('sd-card-btn', SDCardBtn)
 Vue.component('upload-btn', UploadBtn)
 
-export default {
-	CodeBtn,
-	ConnectBtn,
-	EmergencyBtn,
-	SDCardBtn,
-	UploadBtn
-}
