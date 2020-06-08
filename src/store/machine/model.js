@@ -14,7 +14,7 @@ import {
 	Fan,
 	Heater,
 	InputChannel,
-	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics,
+	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics, ScaraKinematics,
 	ParsedFileInfo,
 	Probe,
 	Tool,
@@ -67,6 +67,7 @@ export class MachineModel {
 		file: new ParsedFileInfo(),
 		filePosition: null,
 		firstLayerDuration: null,
+		lastDuration: null,
 		lastFileName: null,
 		lastFileAborted: false,					// *** missing in RRF
 		lastFileCancelled: false,				// *** missing in RRF
@@ -98,8 +99,11 @@ export class MachineModel {
 		heaters: null,
 		heatersPerTool: null,
 		monitorsPerHeater: null,
+		restorePoints: null,
 		sensors: null,
 		spindles: null,
+		tools: null,
+		trackedObjects: null,
 		triggers: null,
 		volumes: null,
 		workplaces: null,
@@ -132,11 +136,17 @@ export class MachineModel {
 				ySpacing: 0.0,
 				radius: 0.0
 			},
+			skew: {
+				tanXY: 0,
+				tanXZ: 0,
+				tanYZ: 0
+			},
 			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
 		},
 		currentMove: {
 			acceleration: 0,
 			deceleration: 0,
+			laserPwm: null,
 			requestedSpeed: 0,
 			topSpeed: 0
 		},
@@ -154,6 +164,7 @@ export class MachineModel {
 		printingAcceleration: 10000,
 		speedFactor: 100,
 		travelAcceleration: 10000,
+		virtualEPos: 0,
 		workspaceNumber: 1
 	}
 	network = {
@@ -169,7 +180,7 @@ export class MachineModel {
 		analog: [],
 		endstops: [],
 		filamentMonitors: [],
-		inputs: [],
+		gpIn: [],
 		probes: []
 	}
 	spindles = []
@@ -179,6 +190,7 @@ export class MachineModel {
 		currentTool: -1,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
+		gpOut: [],
 		laserPwm: null,
 		logFile: null,
 		messageBox: null,
@@ -186,7 +198,9 @@ export class MachineModel {
 		nextTool: -1,
 		powerFailScript: '',
 		previousTool: -1,
+		restorePoints: [],
 		status: null,
+		time: null,
 		upTime: -1
 	}
 	tools = []
@@ -306,11 +320,13 @@ export class MachineModelModule {
 		},
 		jobProgress(state, getters) {
 			if (isPrinting(state.state.status)) {
-				let totalRawExtruded = state.move.extruders
-											.map(extruder => extruder && extruder.rawPosition);
-				totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
-				if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
-					return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
+				if (state.state.status !== StatusType.simulating) {
+					let totalRawExtruded = state.move.extruders
+						.map(extruder => extruder && extruder.rawPosition);
+					totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
+					if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
+						return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
+					}
 				}
 				return getters.fractionPrinted;
 			}
@@ -319,7 +335,7 @@ export class MachineModelModule {
 	}
 	mutations = {
 		update(state, payload) {
-			if (payload.move && payload.move.kinematics && state.move.kinematics.name !== payload.move.kinematics.name) {
+			if (payload.move && payload.move.kinematics && payload.move.kinematics.name !== undefined && state.move.kinematics.name !== payload.move.kinematics.name) {
 				switch (payload.move.kinematics.name) {
 					case KinematicsName.cartesian:
 					case KinematicsName.coreXY:
@@ -336,7 +352,14 @@ export class MachineModelModule {
 					case KinematicsName.hangprinter:
 						state.move.kinematics = new HangprinterKinematics();
 						break;
+					case KinematicsName.fiveBarScara:
+					case KinematicsName.scara:
+						state.move.kinematics = new ScaraKinematics();
+						break;
 					default:
+						if (process.env.NODE_ENV !== 'production') {
+							console.warn(`Using fallback kinematics because the requested one is unsupported: ${payload.move.kinematics.name}`);
+						}
 						state.move.kinematics = new Kinematics();
 						break;
 				}

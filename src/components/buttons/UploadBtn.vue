@@ -24,7 +24,7 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { NetworkInterfaceType } from '../../store/machine/modelEnums.js'
+import { NetworkInterfaceType, StatusType } from '../../store/machine/modelEnums.js'
 import Path from '../../utils/path.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
@@ -143,14 +143,16 @@ export default {
 			return result;
 		},
 		getBinaryName(key, fileName) {
-			return this.boards.find(board => {
+			let result = null;
+			this.boards.forEach(board => {
 				if (board && board[key]) {
 					const regEx = new RegExp(board[key].replace(/\.bin$/, '(.*)\\.bin'), 'i');
 					if (regEx.test(fileName)) {
-						return board[key];
+						result = board[key];
 					}
 				}
 			});
+			return result;
 		},
 		async doUpload(files, zipName, startTime) {
 			if (!files.length) {
@@ -216,7 +218,7 @@ export default {
 				// Adjust filename if an update is being uploaded
 				let filename = Path.combine(this.destinationDirectory, content.name);
 				if (this.target === 'system' || this.target === 'firmware') {
-					if (Path.isSdPath(content.name)) {
+					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(this.directories.web, content.name);
@@ -289,15 +291,29 @@ export default {
 		},
 		async startUpdate() {
 			// Update expansion boards
-			let code = '';
-			this.updates.firmwareBoards.forEach(boardToUpdate => {
+			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
+				const boardToUpdate = this.updates.firmwareBoards[i];
 				if (boardToUpdate > 0) {
-					if (code !== '') {
-						code += '\n';
+					try {
+						await this.sendCode(`M997 B${boardToUpdate}`);
+						do {
+							// Wait in 2-second intervals until the status is no longer 'Updating'
+							await new Promise(resolve => setTimeout(resolve, 2000));
+
+							// Stop if the connection has been interrupted
+							if (!this.isConnected) {
+								return;
+							}
+						} while (this.state.status === StatusType.updating);
+
+					} catch (e) {
+						if (!(e instanceof DisconnectedError)) {
+							console.warn(e);
+							this.$log('error', this.$t('generic.error'), e.message);
+						}
 					}
-					code += `M997 B${boardToUpdate}`;
 				}
-			});
+			}
 
 			// Update other modules
 			let modules = [];
@@ -313,11 +329,7 @@ export default {
 
 			this.updates.codeSent = true;
 			try {
-				if (code !== '') {
-					code += '\n';
-				}
-				code += `M997 S${modules.join(':')}`;
-				await this.sendCode(code);
+				await this.sendCode(`M997 S${modules.join(':')}`);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);

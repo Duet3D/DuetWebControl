@@ -17,7 +17,7 @@
 </template>
 
 <script>
-'use strict';
+'use strict'
 
 import { version } from '../../../package.json'
 

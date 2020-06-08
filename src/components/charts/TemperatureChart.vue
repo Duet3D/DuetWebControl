@@ -115,7 +115,7 @@ export default {
 		...mapGetters(['isConnected']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
-		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('machine/model', ['heat']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme'])
 	},
@@ -261,16 +261,13 @@ export default {
 						const machine = result[1], dataset = tempSamples[machine], now = new Date();
 						if (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval) {
 							// Record sensor temperatures
-							const itemsToDisplay = [];
 							state.machines[machine].model.sensors.analog.forEach(function(sensor, sensorIndex) {
 								if (sensor) {
 									const heaterIndex = state.machines[machine].model.heat.heaters.findIndex(heater => heater && heater.sensor === sensorIndex);
 									if (heaterIndex !== -1) {
 										pushSeriesData(machine, heaterIndex, false, sensor);
-										itemsToDisplay.push({ index: heaterIndex, extra: false });
 									} else {
 										pushSeriesData(machine, sensorIndex, true, sensor);
-										itemsToDisplay.push({ index: sensorIndex, extra: true });
 									}
 								}
 							});

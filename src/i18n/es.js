@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Actualizar'
 		},
+		reset: {
+			caption: 'Máquina de reajustes',
+			title: 'Envía M999 a la máquina para reiniciarla'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Subir Archivo(s) G-Code',
@@ -657,6 +661,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam URL (opcional)',
 			webcamUpdateInterval: 'Intervalo Actualización Webcam ({0})',
+			webcamLiveURL: 'URL para abrir cuando se hace clic en la imagen de la cámara web (opcional)',
 			webcamFix: 'No añadir cabecera HTTP adicional recargar imágenes',
 			webcamEmbedded: 'Incrustar imagen de cámara web en un iframe',
 			webcamRotation: 'Rotar imagen Webcam',

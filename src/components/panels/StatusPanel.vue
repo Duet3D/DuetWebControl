@@ -40,9 +40,9 @@ a:not(:hover) {
 			<span v-if="machineMode">{{ $t('panel.status.mode', [machineMode.toUpperCase()]) }}</span>
 		</v-card-title>
 
-		<v-card-text class="px-0 pt-0 pb-2 content text-xs-center" v-show="sensorsPresent || (move.axes.length + move.extruders.length)">
+		<v-card-text class="px-0 pt-0 pb-2 content text-xs-center" v-show="sensorsPresent || (visibleAxes.length + move.extruders.length)">
 			<!-- Axis Positions -->
-			<template v-if="move.axes.length">
+			<template v-if="visibleAxes.length">
 				<v-row no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
 						<a href="javascript:void(0)" @click="displayToolPosition = !displayToolPosition">
@@ -52,7 +52,7 @@ a:not(:hover) {
 
 					<v-col>
 						<v-row align-content="center" no-gutters>
-							<v-col v-for="(axis, index) in move.axes.filter(axis => axis.visible)" :key="index" class="d-flex flex-column align-center">
+							<v-col v-for="(axis, index) in visibleAxes" :key="index" class="d-flex flex-column align-center">
 								<strong>
 									{{ axis.letter }}
 								</strong>
@@ -255,6 +255,9 @@ export default {
 					(this.boards.length && this.boards[0].mcuTemp.current > -273) ||
 					(this.fanRPM.length !== 0) ||
 					(this.probesPresent));
+		},
+		visibleAxes() {
+			return this.move.axes.filter(axis => axis.visible);
 		}
 	},
 	data() {

@@ -63,7 +63,7 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat', 'sensors', 'tools']),
+		...mapState('machine/model', ['heat', 'sensors']),
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {

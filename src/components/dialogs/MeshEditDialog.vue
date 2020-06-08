@@ -8,7 +8,7 @@
 					</v-card-title>
 
 					<v-card-text>
-						<v-row v-if="geometry === 'delta'">
+						<v-row v-if="isDelta">
 							<v-col cols="12" sm="6">
 								<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required hide-details></v-text-field>
 							</v-col>
@@ -54,11 +54,18 @@
 
 import { mapState, mapActions } from 'vuex'
 
+import { KinematicsName } from '../../store/machine/modelEnums.js'
+
 export default {
-	computed: mapState('machine/model', {
-		geometry: state => state.move.geometry,
-		probeGrid: state => state.move.compensation.probeGrid
-	}),
+	computed: {
+		...mapState('machine/model', {
+			kinematicsName: state => state.move.kinematics.name,
+			probeGrid: state => state.move.compensation.probeGrid
+		}),
+		isDelta() {
+			return (this.kinematicsName === KinematicsName.delta) || (this.kinematicsName === KinematicsName.rotaryDelta);
+		}
+	},
 	data() {
 		return {
 			maxX: 200,
@@ -82,7 +89,7 @@ export default {
 			if (this.$refs.form.validate()) {
 				this.hide();
 
-				if (this.geometry === 'delta') {
+				if (this.isDelta) {
 					this.sendCode(`M557 R${this.radius} S${this.spacingX}`);
 				} else {
 					this.sendCode(`M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);

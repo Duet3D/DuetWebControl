@@ -144,7 +144,7 @@ class BaseConnector {
 	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }
 
 	// Download a file asynchronously. Returns the file content on completion
-	// Parameter can be either the filename or an object { filename, (type, onProgress) }
+	// Parameter can be either the filename or an object { filename, (type, onProgress, cancellationToken) }
 	// See also upload()
 	async download(payload) { throw new NotImplementedError('download'); }
 

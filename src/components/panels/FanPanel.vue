@@ -49,7 +49,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		...mapState('machine/model', ['fans', 'tools']),
+		...mapState('machine/model', ['fans']),
 		...mapGetters(['uiFrozen']),
 		...mapGetters('machine/model', ['currentTool']),
 		canControlFans() {
@@ -62,7 +62,7 @@ export default {
 				const fan = (this.fan === -1)
 					? ((this.currentTool && this.currentTool.fans.length > 0) ? this.currentTool.fans[0] : -1)
 					: this.fan;
-				return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].actualValue * 100) : 0;
+				return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].requestedValue * 100) : 0;
 			},
 			set(value) {
 				value = Math.min(100, Math.max(0, value)) / 100;

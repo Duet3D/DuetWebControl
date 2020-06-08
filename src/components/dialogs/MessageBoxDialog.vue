@@ -66,7 +66,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 export default {
 	computed: {
-		// no need to observe isConnected here because the default machine instance never displays a messagebox anyway
+		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/model', {
 			messageBox: state => state.state.messageBox,
 			move: state => state.move
@@ -75,7 +75,7 @@ export default {
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
 		displayedAxes() {
 			const axisControls = this.messageBox ? this.messageBox.axisControls : 0;
-			return this.move.axes.filter((axis, index) => axis.visible && (axisControls & (1 << index) !== 0));
+			return this.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
 		}
 	},
 	data() {
@@ -118,6 +118,11 @@ export default {
 		}
 	},
 	watch: {
+		isReconnecting(to) {
+			if (to) {
+				this.shown = false;
+			}
+		},
 		messageBox: {
 			deep: true,
 			handler(to) {

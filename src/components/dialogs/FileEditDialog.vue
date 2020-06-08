@@ -14,7 +14,7 @@
 	display: flex;
 	flex-grow: 1;
 	font-family: monospace;
-	padding-left: 12px;
+	padding-left: 12px !important;
 	margin-top: 0 !important;
 	resize: none;
 	-moz-tab-size: 4;

@@ -120,12 +120,27 @@ export default class PollConnector extends BaseConnector {
 						.catch(error => reject(error));
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
-				} else if (xhr.status === 501) {
+				} else if (xhr.status === 503) {
 					if (retry < maxRetries) {
-						// RRF may have run out of output buffers, retry if possible
-						that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
-							.then(result => resolve(result))
-							.catch(error => reject(error));
+						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
+						if (retry === 0) {
+							that.lastSeq++;
+							that.getGCodeReply(that.lastSeq)
+								.then(function() {
+									// Retry the original request when the code reply has been received
+									that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
+										.then(result => resolve(result))
+										.catch(error => reject(error));
+								})
+								.catch(error => reject(error));
+						} else {
+							// Retry the original request after a while
+							setTimeout(function() {
+								that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
+									.then(result => resolve(result))
+									.catch(error => reject(error));
+							}, 2000);
+						}
 					} else {
 						reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 					}
@@ -415,7 +430,7 @@ export default class PollConnector extends BaseConnector {
 				fans: newData.fans.map((fanData, index) => ({
 					name: !response.params.fanNames ? null : response.params.fanNames[index],
 					thermostatic: {
-						heaters: ((response.controllableFans & (1 << index)) === 0) ? [] : [-1]
+						heaters: ((response.controllableFans & (1 << index)) !== 0) ? [] : [-1]
 					}
 				})),
 				heat: {
@@ -488,6 +503,15 @@ export default class PollConnector extends BaseConnector {
 					mounted: (response.mountedVolumes & (1 << i)) !== 0
 				});
 			}
+
+			response.tools.forEach(tool => {
+				if (tool.drives.length > 0) {
+					const extruder = tool.drives[0];
+					if (extruder >= 0 && extruder < newData.move.extruders.length && newData.move.extruders[extruder] !== null) {
+						newData.move.extruders[extruder].filament = tool.filament;
+					}
+				}
+			});
 		} else if (statusType === 3) {
 			if (!newData.job) {
 				newData.job = {};
@@ -757,7 +781,7 @@ export default class PollConnector extends BaseConnector {
 
 			// Query the seqs field and the G-code reply
 			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
-			if (this.lastSeqs.reply === undefined) {
+			if (this.lastSeqs == null || this.lastSeqs.reply === undefined) {
 				console.warn('Incompatible rr_model version detected, falling back to status responses');
 				window.forceLegacyConnect = true;
 				BaseConnector.setConnectingProgress(-1);
@@ -820,6 +844,12 @@ export default class PollConnector extends BaseConnector {
 				this.justConnected = true;
 				this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
 				this.pendingCodes = [];
+
+				// Send the rr_connect request and datetime again after a firmware reset
+				await this.request('GET', 'rr_connect', {
+					password: this.password,
+					time: timeToStr(new Date())
+				});
 			}
 			this.lastUptime = response.result.state.upTime;
 
@@ -869,7 +899,6 @@ export default class PollConnector extends BaseConnector {
 			}
 
 			if (addLayers) {
-				const layerJustChanged = (status === StatusType.simulating) || ((jobKey.layer - this.layers.length) === 2);
 				if (this.printStats.duration) {
 					// Got info about the past layer, add what we know
 					this.layers.push({
@@ -888,11 +917,10 @@ export default class PollConnector extends BaseConnector {
 						this.layers.push({ duration: avgDuration });
 						layersChanged = true;
 					}
-					this.printStats.zPosition = zPosition;
 				}
 
-				// Keep track of the past layer if the layer change just happened
-				if (layerJustChanged) {
+				// Keep track of the past layer if new layers have been added
+				if (layersChanged) {
 					this.printStats.duration = jobKey.duration;
 					this.printStats.extrRaw = extrRaw;
 					this.printStats.fractionPrinted = fractionPrinted;
@@ -915,14 +943,9 @@ export default class PollConnector extends BaseConnector {
 		this.scheduleUpdate();
 	}
 
-	async doUpdate(startTime) {
+	async doUpdate() {
 		this.updateLoopTimer = null;
 		try {
-			if (new Date() - startTime > this.sessionTimeout) {
-				// Safari suspends setTimeout calls when a tab is inactive - check for this case
-				throw new TimeoutError();
-			}
-
 			if (!window.forceLegacyConnect && this.apiLevel >= 1) {
 				// Request object model updates
 				await this.updateLoopModel();
@@ -938,8 +961,7 @@ export default class PollConnector extends BaseConnector {
 
 	scheduleUpdate() {
 		if (!this.updateLoopTimer) {
-			const startTime = new Date();
-			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this, startTime), this.settings.updateInterval);
+			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this), this.settings.updateInterval);
 		}
 	}
 
@@ -953,8 +975,23 @@ export default class PollConnector extends BaseConnector {
 			throw new CodeBufferError();
 		}
 
-		const pendingCodes = this.pendingCodes, seq = this.lastSeq;
-		return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+		let inBraces = false;
+		for (let i = 0; i < code.length; i++) {
+			if (inBraces) {
+				inBraces = (code[i] !== ')');
+			} else if (code[i] === '(') {
+				inBraces = true;
+			} else {
+				if (code[i] === ';') {
+					return '';
+				}
+
+				if (code[i] !== ' ' && code[i] !== '\t' && code[i] !== '\r' && code !== '\n') {
+					const pendingCodes = this.pendingCodes, seq = this.lastSeq;
+					return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+				}
+			}
+		}
 	}
 
 	async getGCodeReply(seq) {

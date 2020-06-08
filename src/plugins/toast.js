@@ -17,10 +17,16 @@ const defaults = {
 let settings, openNotifications = []
 
 export function makeNotification(type, title, message, timeout) {
+	if (timeout === undefined) {
+		timeout = (type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout;
+	}
+
 	// If there is already an equal notification, reset its time and don't display a new one
 	const equalNotification = openNotifications.find(item => item.type === type && item.title == title && item.message === message);
 	if (equalNotification) {
-		equalNotification.resetTimeout();
+		if (timeout > 0) {
+			equalNotification.resetTimeout();
+		}
 		return equalNotification;
 	}
 
@@ -32,7 +38,7 @@ export function makeNotification(type, title, message, timeout) {
 		onClosed() {
 			openNotifications = openNotifications.filter(notification => notification !== item);
 		},
-		timeout: (timeout !== undefined) ? timeout : ((type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout)
+		timeout
 	}, defaults);
 
 	switch (type) {
@@ -72,6 +78,7 @@ export function makeNotification(type, title, message, timeout) {
 	};
 	item.resetTimeout = function() {
 		iziToast.progress(options, toast).reset();
+		setTimeout(iziToast.progress(options, toast).start, 100);
 	};
 
 	openNotifications.push(item);
@@ -121,12 +128,18 @@ export function makeFileTransferNotification(type, destination, cancellationToke
 
 export function showMessage(message) {
 	const options = Object.assign({
+		class: 'display-message',
 		title: i18n.t('notification.message'),
 		message: message.replace(/\n/g, '<br>'),
 		timeout: false
 	}, defaults);
 
-	iziToast.info(options);
+	const toastContent = document.querySelector('.display-message p');
+	if (toastContent) {
+		toastContent.textContent = message;
+	} else {
+		iziToast.info(options);
+	}
 }
 
 export default {
