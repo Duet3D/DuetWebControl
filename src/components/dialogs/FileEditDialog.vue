@@ -1,4 +1,4 @@
-<style>
+<style lang="scss">
 .edit-textarea {
 	align-items: stretch !important;
 }
@@ -10,10 +10,29 @@
 .edit-textarea > div > div > div {
 	align-items: stretch !important;
 }
-.edit-textarea textarea {
+
+.edit-textarea.prism-editor-wrapper,
+.edit-textarea.prism-editor-wrapper pre {
 	display: flex;
 	flex-grow: 1;
-	font-family: monospace;
+
+	code[class*="language-"], pre[class*="language-"] {
+		background-color: var(--background);
+		outline: none;
+		box-shadow: none;
+
+		&::before {
+			content: '';
+		}
+
+		&::selection * {
+			background-color: unset;
+			color: unset;
+			text-shadow: unset;
+		}
+	}
+
+  font-family: monospace;
 	padding-left: 12px !important;
 	margin-top: 0 !important;
 	resize: none;
@@ -21,10 +40,12 @@
 	-o-tab-size: 4;
 	tab-size: 4;
 }
+
 </style>
 
 <template>
 	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay transition="dialog-bottom-transition">
+		<promise-based-confirm-dialog ref="confirm" />
 		<v-card class="d-flex flex-column">
 			<v-app-bar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
 				<v-btn icon dark @click="close(false)">
@@ -40,15 +61,30 @@
 				<v-btn v-if="showDisplayHelp" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.menuReference') }}
 				</v-btn>
-				<v-btn dark text @click="save">
+				<v-btn dark text @click="save" :disabled="valueChanged === false">
 					<v-icon class="mr-1">mdi-floppy</v-icon> {{ $t('dialog.fileEdit.save') }}
 				</v-btn>
 			</v-app-bar>
 
-			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"
-						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
+
+
+<!--			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"-->
+<!--						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"-->
+<!--						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"-->
+<!--						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>-->
+
+			<PrismEditor
+					class="edit-textarea"
+					:language="detectedLanguage"
+					v-model="innerValue"
+					:emitEvents="true"
+					:lineNumbers="false"
+					@keydown.esc.prevent.stop="close(false)"
+					@keydown.tab.exact.prevent="onTextareaTab"
+					@input.passive="valueChanged = true"
+					@keydown.ctrl.83.prevent="save()"
+			/>
+
 		</v-card>
 	</v-dialog>
 </template>
@@ -60,7 +96,14 @@ import { mapState, mapActions } from 'vuex'
 
 import Path from '../../utils/path.js'
 
+import 'prismjs'
+import 'prismjs/components/prism-gcode'
+import PrismEditor from 'vue-prism-editor'
+
 export default {
+	components: {
+		PrismEditor
+	},
 	props: {
 		shown: {
 			type: Boolean,
@@ -72,6 +115,12 @@ export default {
 		},
 		value: String
 	},
+	mounted() {
+		require(this.$vuetify.theme.dark ?
+				'prism-themes/themes/prism-material-dark.css' :
+				'prism-themes/themes/prism-material-light.css'
+		);
+	},
 	computed: {
 		...mapState('machine/model', {
 			macrosDirectory: state => state.directories.macros,
@@ -81,11 +130,31 @@ export default {
 			if (Path.startsWith(this.filename, this.macrosDirectory)) {
 				return true;
 			}
-			const matches = /\.(.*)$/.exec(this.filename.toLowerCase());
-			return matches && ['.g', '.gcode', '.gc', '.gco', '.nc', '.ngc', '.tap'].indexOf(matches[1]);
+
+			return this.detectedLanguage === 'gcode';
 		},
 		showDisplayHelp() {
 			return Path.startsWith(this.filename, this.menuDirectory);
+		},
+		detectedLanguage() {
+			let fileExtension = this.filename.toLowerCase().split('.').pop();
+
+			switch (fileExtension) {
+				case 'g':
+				case 'gcode':
+				case 'gc':
+				case 'gco':
+				case 'nc':
+				case 'ngc':
+				case 'tap':
+					return 'gcode';
+
+				case 'json':
+					return 'js';
+
+				default:
+					return fileExtension;
+			}
 		}
 	},
 	data() {
@@ -96,14 +165,21 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['upload']),
-		close(fileSaved) {
-			if (this.valueChanged && !fileSaved && !confirm(this.$t('dialog.fileEdit.confirmClose'))) {
-				return;
-			}
+		async close(fileSaved) {
 
-			this.$emit('input', '');
-			this.$emit('update:shown', false);
-			this.$root.$emit('dialog-closing')
+			if (this.valueChanged && !fileSaved) {
+				if (await this.$refs.confirm.open('', this.$t('dialog.fileEdit.confirmClose'))) {
+					this.$emit('input', '');
+					this.$emit('update:shown', false);
+					this.$root.$emit('dialog-closing');
+				} else {
+					return;
+				}
+			} else {
+				this.$emit('input', '');
+				this.$emit('update:shown', false);
+				this.$root.$emit('dialog-closing')
+			}
 		},
 		async save() {
 			const content = new Blob([this.innerValue]);
@@ -129,7 +205,7 @@ export default {
 			this.innerValue = `${textStart}\t${textEnd}`;
 			e.target.value = this.innerValue;
 			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + 1;
-		}
+		},
 	},
 	watch: {
 		shown(to) {
