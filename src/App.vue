@@ -165,7 +165,18 @@ export default {
 		},
 		currentPageCondition() {
 			const currentRoute = this.$route;
-			return Routes.some(route => route.path === currentRoute.path && route.condition);
+			let checkRoute = function(route, isChild) {
+				let flag = (route.path === currentRoute.path && route.condition);
+				if (!flag && isChild) {
+					let curPath = currentRoute.path.replace(/\/$/, '');
+					if (curPath.endsWith(route.path))
+						flag = (curPath.substring(0, curPath.length-route.path.length) + route.path === curPath && route.condition)
+				}
+				if (!flag && route.children != undefined)
+					flag = route.children.some(child => checkRoute(child, true));
+				return flag;
+			};
+			return Routes.some(route => checkRoute(route));
 		},
 		toggleGlobalContainerColor() {
 			if (this.hideGlobalContainer) {
