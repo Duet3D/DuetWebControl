@@ -1,10 +1,11 @@
 'use strict'
 
+import Vue from 'vue'
+
 import i18n from '../i18n'
 import { isNumber } from '../utils/numbers.js'
+import store from '../store'
 import { MachineMode } from '../store/machine/modelEnums.js'
-
-let store
 
 export function display(value, precision, unit) {
 	if (isNumber(value)) {
@@ -102,17 +103,11 @@ export function displayTime(value, showTrailingZeroes = false) {
 	return timeLeft.join(' ');
 }
 
-export default {
-	install(Vue) {
-		Vue.prototype.isNumber = isNumber;
-		Vue.prototype.$display = display;
-		Vue.prototype.$displayZ = displayZ;
-		Vue.prototype.$displaySize = displaySize;
-		Vue.prototype.$displaySpeed = displaySpeed;
-		Vue.prototype.$displayTime = displayTime;
-	},
+// Register display extensions
+Vue.prototype.isNumber = isNumber;
+Vue.prototype.$display = display;
+Vue.prototype.$displayZ = displayZ;
+Vue.prototype.$displaySize = displaySize;
+Vue.prototype.$displaySpeed = displaySpeed;
+Vue.prototype.$displayTime = displayTime;
 
-	installStore(Vuex) {
-		store = Vuex;
-	}
-}

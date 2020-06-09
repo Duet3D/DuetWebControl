@@ -74,7 +74,9 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 	} else if (a instanceof Object) {
 		for (let key in b) {
 			if (skipNonexistentFields && !(key in a)) {
-				console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source. Value: ${JSON.stringify(b[key])}`);
+				if (process.env.NODE_ENV !== 'production') {
+					console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source. Value: ${JSON.stringify(b[key])}`);
+				}
 			} else if (b[key] === null) {
 				a[key] = null;
 			} else {
@@ -84,13 +86,15 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 				}
 
 				if (a[key] !== undefined && a[key] !== null && typeof a[key] !== typeof b[key]) {
-					console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}. Value: ${JSON.stringify(b[key])}`);
+					if (process.env.NODE_ENV !== 'production') {
+						console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}. Value: ${JSON.stringify(b[key])}`);
+					}
 				} else if (a[key] instanceof Array) {
 					patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
 				} else if (a[key] instanceof Object) {
 					patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
 				} else if (a[key] !== b[key]) {
-					a[key] = b[key];
+					Vue.set(a, key, b[key]);
 					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);
 				}
 			}

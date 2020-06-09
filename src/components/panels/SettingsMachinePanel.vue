@@ -1,5 +1,5 @@
 <template>
-	<v-card>
+	<v-card outlined>
 		<v-card-title class="pb-0">
 			<span>{{ $t('panel.settingsMachine.caption') }}</span>
 			<v-spacer></v-spacer>

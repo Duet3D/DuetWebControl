@@ -3,154 +3,206 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
+import Dashboard from './Control/Dashboard.vue'
+import Console from './Control/Console.vue'
+
+import Display from './Files/Display.vue'
+import Filaments from './Files/Filaments.vue'
+import Jobs from './Files/Jobs.vue'
+import Macros from './Files/Macros.vue'
+import System from './Files/System.vue'
+
+import Status from './Job/Status.vue'
+import Webcam from './Job/Webcam.vue'
+
+import General from './Settings/General.vue'
+import Machine from './Settings/Machine.vue'
+
 import Page404 from './Page404.vue'
 
-import Control from './Control'
-import Job from './Job'
-import Files from './Files'
-import Settings from './Settings'
+export const Menu = Vue.observable({
+	Control: {
+		icon: 'mdi-tune',
+		caption: 'menu.control.caption',
+		pages: []
+	},
+	Job: {
+		icon: 'mdi-printer',
+		caption: 'menu.job.caption',
+		pages: []
+	},
+	Files: {
+		icon: 'mdi-sd',
+		caption: 'menu.files.caption',
+		pages: []
+	},
+	Plugins: {
+		icon: 'mdi-puzzle',
+		caption: 'menu.plugins.caption',
+		pages: []
+	},
+	Settings: {
+		icon: 'mdi-wrench',
+		caption: 'menu.settings.caption',
+		pages: []
+	}
+})
+
+export const Routes = []
 
 Vue.use(VueRouter)
 
-export const Routing = [
-	// Control
-	{
-		icon: 'mdi-tune',
-		caption: 'menu.control.caption',
-		pages: [
-			// Dashboard
-			{
-				icon: 'mdi-view-dashboard',
-				caption: 'menu.control.dashboard',
-				path: '/',
-				component: Control.Dashboard
-			},
-			// Console
-			{
-				icon: 'mdi-code-tags',
-				caption: 'menu.control.console',
-				path: '/Console',
-				component: Control.Console
-			},
-			// Height Map
-			{
-				icon: 'mdi-grid',
-				caption: 'menu.control.heightmap',
-				path: '/Heightmap',
-				component: Control.Heightmap
-			}
-		]
-	},
-	// Job
-	{
-		icon: 'mdi-printer',
-		caption: 'menu.job.caption',
-		pages: [
-			// Status
-			{
-				icon: 'mdi-information',
-				caption: 'menu.job.status',
-				path: '/Job/Status',
-				component: Job.Status
-			},
-			// Webcam
-			{
-				icon: 'mdi-photo-camera',
-				caption: 'menu.job.webcam',
-				path: '/Job/Webcam',
-				component: Job.Webcam,
-				condition: 'webcam'
-			}
-			// Visualiser (coming soon)
-			/* {
-				icon: 'mdi-3d-rotation',
-				caption: 'menu.job.visualiser',
-				path: '/Job/Visualiser',
-				component: Job.Visualiser
-			} */
-		]
-	},
-	// Files
-	{
-		icon: 'mdi-sd',
-		caption: 'menu.files.caption',
-		pages: [
-			// Jobs
-			{
-				icon: 'mdi-play',
-				caption: 'menu.files.jobs',
-				path: '/Files/Jobs',
-				component: Files.Jobs
-			},
-			// Macros
-			{
-				icon: 'mdi-polymer',
-				caption: 'menu.files.macros',
-				path: '/Files/Macros',
-				component: Files.Macros
-			},
-			// Filaments
-			{
-				icon: 'mdi-radiobox-marked',
-				caption: 'menu.files.filaments',
-				path: '/Files/Filaments',
-				component: Files.Filaments
-			},
-			// Display
-			{
-				icon: 'mdi-format-list-numbered',
-				caption: 'menu.files.menu',
-				path: '/Files/Display',
-				component: Files.Display,
-				condition: 'display'
-			},
-			// System
-			{
-				icon: 'mdi-cog',
-				caption: 'menu.files.system',
-				path: '/Files/System',
-				component: Files.System
-			}
-		]
-	},
-	// Settings
-	{
-		icon: 'mdi-wrench',
-		caption: 'menu.settings.caption',
-		pages: [
-			// General
-			{
-				icon: 'mdi-tune',
-				caption: 'menu.settings.general',
-				path: '/Settings/General',
-				component: Settings.General
-			},
-			// Machine
-			{
-				icon: 'mdi-cogs',
-				caption: 'menu.settings.machine',
-				path: '/Settings/Machine',
-				component: Settings.Machine
-			}
-			// Update (coming soon)
-			/* {
-				icon: 'mdi-update',
-				caption: 'menu.settings.update',
-				path: '/Settings/Update',
-				component: Settings.Update
-			} */
-		]
-	}
-]
-
-export default new VueRouter({
+const router = new VueRouter({
 	mode: 'history',
 	base: process.env.BASE_URL,
-	routes: [
-		...Routing.map(category => category.pages).reduce((a, b) => a.concat(b)),
-		{
-			path: '*',
-			component: Page404
-		}
-	]
+	routes: Routes
 })
+
+// Register a new menu category
+// name: Name of the category
+// icon: Icon of the category
+// caption: Caption to show in the menu
+// translated: Whether the caption is already translated
+export function registerCategory(name, icon, caption, translated = false) {
+	if (Menu[name] === undefined) {
+		const category = {
+			icon,
+			pages: [],
+			translated
+		};
+
+		if (caption instanceof Function) {
+			Object.defineProperty(category, 'caption', {
+				get: caption
+			});
+		} else {
+			category.caption = caption;
+		}
+
+		Vue.set(Menu, name, category);
+	}
+}
+
+// Register a new route and menu item
+// component: Component to register
+// route: Route element { Category: { Name: { icon, caption [, translated = false ], path [, condition = true] } }
+export function registerRoute(component, route) {
+	registerRouteInternal(Menu, component, route);
+}
+
+function registerRouteInternal(menu, component, route) {
+	const keys = Object.keys(route);
+	if (keys.length === 1) {
+		const subRoute = route[keys[0]];
+		if (subRoute.path !== undefined) {
+			// This is the route we've been looking for
+			if (Routes.indexOf(subRoute) >= 0) {
+				return;
+			}
+
+			const routeObj = {
+				...subRoute,
+				component
+			};
+
+			// Prepare the actual route object
+			if (routeObj.caption instanceof Function) {
+				delete routeObj.caption;
+				Object.defineProperty(routeObj, 'caption', {
+					get: subRoute.caption
+				});
+			}
+
+			if (routeObj.condition === undefined) {
+				routeObj.condition = true;
+			} else {
+				routeObj.condition = undefined;
+				Object.defineProperty(routeObj, 'condition', {
+					get: subRoute.condition
+				});
+			}
+
+			if (routeObj.translated === undefined) {
+				routeObj.translated = false;
+			}
+
+			// Register the new route
+			if (menu.pages !== undefined) {
+				menu.pages.push(routeObj);
+			} else {
+				menu[keys[0]] = routeObj;
+			}
+			Routes.push(routeObj);
+			router.addRoutes([routeObj]);
+			return;
+		} else {
+			// Go one level deeper
+			const subCategory = menu[keys[0]];
+			if (subCategory !== undefined) {
+				registerRouteInternal(subCategory, component, subRoute);
+				return;
+			}
+		}
+	}
+	throw new Error('Invalid route argument');
+}
+
+export const GeneralSettingTabs = Vue.observable([])
+export const MachineSettingTabs = Vue.observable([])
+
+// Register a new settings page and a Vue component
+// global: Whether to register the tab on the general settings page
+// name: Name of the component
+// component: Component to register
+// caption: Caption of the tab
+// translated: Whether the caption is already translated
+export function registerSettingTab(general, name, component, caption, translated) {
+	const tab = {
+		component: name,
+		translated
+	}
+
+	if (caption instanceof Function) {
+		Object.defineProperty(tab, 'caption', {
+			get: caption
+		});
+	} else {
+		tab.caption = caption;
+	}
+
+	Vue.component(name, component);
+	if (general) {
+		GeneralSettingTabs.push(tab);
+	} else {
+		MachineSettingTabs.push(tab);
+	}
+}
+
+// Control
+Vue.use(Dashboard)
+Vue.use(Console)
+
+// Files
+Vue.use(Display)
+Vue.use(Filaments)
+Vue.use(Jobs)
+Vue.use(Macros)
+Vue.use(System)
+
+// Job
+Vue.use(Status)
+Vue.use(Webcam)
+
+// Settings
+Vue.use(General)
+Vue.use(Machine)
+
+// 404 page
+router.addRoutes([
+	{
+		path: '*',
+		component: Page404
+	}
+])
+
+export default router

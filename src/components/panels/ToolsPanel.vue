@@ -69,7 +69,7 @@ table.extra tr > td:first-child {
 					</thead>
 					<tbody>
 						<!-- Tools -->
-						<template v-for="(tool, toolIndex) in tools">
+						<template v-for="(tool, toolIndex) in visibleTools">
 							<!-- Tool -->
 							<tr v-for="(toolHeater, toolHeaterIndex) in getToolHeaters(tool)" :key="`tool-${toolIndex}-${toolHeaterIndex}`" :class="{ [selectedToolClass] : (tool.number === state.currentTool) }">
 								<!-- Tool Name -->
@@ -164,7 +164,7 @@ table.extra tr > td:first-child {
 							</tr>
 
 							<!-- Divider -->
-							<tr v-if="toolIndex < tools.length - 1" :key="`div-tool-${toolIndex}`">
+							<tr v-if="toolIndex < visibleTools.length - 1" :key="`div-tool-${toolIndex}`">
 								<td colspan="5">
 									<v-divider></v-divider>
 								</td>
@@ -175,7 +175,7 @@ table.extra tr > td:first-child {
 						<template v-for="(bedHeater, bedIndex) in bedHeaters">
 							<template v-if="bedHeater">
 								<!-- Divider -->
-								<tr v-if="tools.length" :key="`div-bed-${bedIndex}`">
+								<tr v-if="visibleTools.length" :key="`div-bed-${bedIndex}`">
 									<td colspan="5">
 										<v-divider></v-divider>
 									</td>
@@ -326,10 +326,19 @@ export default {
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme']),
 		canTurnEverythingOff() {
-			return !this.uiFrozen && this.heat.heaters.some(heater => heater && heater.state);
+			return (!this.uiFrozen &&
+					(this.tools.some(tool => tool && tool.heaters.some(toolHeater => toolHeater >= 0 && toolHeater < this.heat.heaters.length &&
+						this.heat.heaters[toolHeater] && this.heat.heaters[toolHeater].state !== HeaterState.off, this), this) ||
+					this.heat.bedHeaters.some(bedHeater => bedHeater >= 0 && bedHeater < this.heat.heaters.length &&
+						this.heat.heaters[bedHeater] && this.heat.heaters[bedHeater].state !== HeaterState.off, this) ||
+					this.heat.chamberHeaters.some(chamberHeater => chamberHeater >= 0 && chamberHeater < this.heat.heaters.length &&
+						this.heat.heaters[chamberHeater] && this.heat.heaters[chamberHeater].state !== HeaterState.off, this)));
+		},
+		visibleTools() {
+			return this.tools.filter(tool => tool !== null);
 		},
 		canShowTools() {
-			return (this.tools.length > 0 ||
+			return (this.visibleTools.length > 0 ||
 					this.bedHeaters.some(bed => bed !== null) ||
 					this.chamberHeaters.some(chamber => chamber !== null));
 		},
@@ -399,21 +408,21 @@ export default {
 		async turnEverythingOff() {
 			let code = '';
 			this.tools.forEach(function(tool) {
-				if (tool.heaters.length) {
+				if (tool && tool.heaters.length) {
 					const temps = tool.heaters.map(() => '-273.15').join(':');
 					code += `G10 P${tool.number} R${temps} S${temps}\n`;
 				}
 			});
-			this.heat.beds.forEach(function(bed, index) {
-				if (bed && bed.heaters.length) {
+			this.heat.bedHeaters.forEach(function(bedHeater, index) {
+				if (bedHeater >= -1 && bedHeater < this.heat.heaters.length) {
 					code += `M140 P${index} S-273.15\n`;
 				}
-			});
-			this.heat.chambers.forEach(function(chamber, index) {
-				if (chamber && chamber.heaters.length) {
+			}, this);
+			this.heat.chamberHeaters.forEach(function(chamberHeater, index) {
+				if (chamberHeater >= -1 && chamberHeater < this.heat.heaters.length) {
 					code += `M141 P${index} S-273.15\n`;
 				}
-			});
+			}, this);
 
 			this.turningEverythingOff = true;
 			try {

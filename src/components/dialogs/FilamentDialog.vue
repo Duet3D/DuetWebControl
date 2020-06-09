@@ -43,8 +43,7 @@ export default {
 	computed: {
 		...mapState('machine/model', {
 			extruders: state => state.move.extruders,
-			filamentsDirectory: state => state.directories.filaments,
-			tools: state => state.tools,
+			filamentsDirectory: state => state.directories.filaments
 		}),
 		...mapGetters('machine/model', ['currentTool'])
 	},

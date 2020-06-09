@@ -1,5 +1,5 @@
 <template>
-	<v-card>
+	<v-card outlined>
 		<v-card-title class="pb-0">
 			{{ $t('panel.settingsWebcam.caption') }}
 		</v-card-title>
@@ -11,6 +11,9 @@
 				</v-col>
 				<v-col cols="12" md="6">
 					<v-text-field v-model.number="webcamUpdateInterval" type="number" step="1" min="250" :label="$t('panel.settingsWebcam.webcamUpdateInterval', ['ms'])" hide-details></v-text-field>
+				</v-col>
+				<v-col cols="12" md="12">
+					<v-text-field v-model="webcamLiveURL" :label="$t('panel.settingsWebcam.webcamLiveURL')" hide-details></v-text-field>
 				</v-col>
 				<v-col cols="12" md="6">
 					<v-switch v-model="webcamFix" :label="$t('panel.settingsWebcam.webcamFix')" hide-details></v-switch>
@@ -53,9 +56,13 @@ export default {
 			get() { return this.settings.webcam.updateInterval; },
 			set(value) { if (this.isNumber(value) && value >= 250) { this.update({ webcam: { updateInterval: value } }); } }
 		},
+		webcamLiveURL: {
+			get() { return this.settings.webcam.liveUrl; },
+			set(value) { this.update({ webcam: { liveUrl: value } }); }
+		},
 		webcamFix: {
-			get() { return this.settings.webcam.fix; },
-			set(value) { this.update({ webcam: { fix: value } }); }
+			get() { return this.settings.webcam.useFix; },
+			set(value) { this.update({ webcam: { useFix: value } }); }
 		},
 		webcamEmbedded: {
 			get() { return this.settings.webcam.embedded; },

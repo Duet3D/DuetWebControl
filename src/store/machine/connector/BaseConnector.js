@@ -75,12 +75,22 @@ class BaseConnector {
 	// eslint-disable-next-line
 	static async connect(hostname, username, password) { throw new NotImplementedError('connect'); }
 
+	// Machine module
 	module = null
+
+	// Machine settings
 	settings = null
+
+	// Hostname
 	hostname = null
+
+	// Connector type
 	type = 'unknown'
+
+	// High verbosity mode
 	verbose = false
 
+	// Constructor of this class
 	constructor(type, hostname) {
 		this.type = type;
 		this.hostname = hostname;
@@ -118,22 +128,23 @@ class BaseConnector {
 	// Disconnect from the current machine
 	async disconnect() { throw new NotImplementedError('disconnect'); }
 
-	// Send a G-/M-/T-code to the machine. Returns a promise that is resolved when finished
+	// Send a G-/M-/T-code to the machine
 	// code: Code to send
+	// Returns the code reply when finished
 	async sendCode(code) { throw new NotImplementedError('sendCode'); }
 
-	// Upload a file asynchronously
+	// Upload a file
 	// filename: Destination of the file
 	// content: Data of the file
 	// cancellationToken: Object which is populated with a 'cancel' method
 	// onProgress: Function called when data is being transferred with two parameters (loaded, total)
 	async upload({ filename, content, cancellationToken, onProgress }) { throw new NotImplementedError('upload'); }
 
-	// Delete a file
+	// Delete a file or directory
 	// filename: Filename to delete
 	async delete(filename) { throw new NotImplementedError('delete'); }
 
-	// Move a file
+	// Move a file or directory
 	// from: Source file
 	// to: Destination file
 	// force: Overwrite file if it already exists
@@ -143,8 +154,8 @@ class BaseConnector {
 	// directory: Path of the directory
 	async makeDirectory(directory) { throw new NotImplementedError('makeDirectory'); }
 
-	// Download a file asynchronously. Returns the file content on completion
-	// Parameter can be either the filename or an object { filename, (type, onProgress) }
+	// Download a file. Returns the file content on completion
+	// Parameter can be either the filename or an object { filename, (type, onProgress, cancellationToken) }
 	// See also upload()
 	async download(payload) { throw new NotImplementedError('download'); }
 

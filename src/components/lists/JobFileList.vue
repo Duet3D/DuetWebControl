@@ -40,7 +40,7 @@
 				<v-icon>mdi-folder-plus</v-icon>
 			</v-btn>
 
-			<v-btn fab color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
+			<v-btn fab color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" @click="refresh">
 				<v-icon>mdi-refresh</v-icon>
 			</v-btn>
 
@@ -189,6 +189,7 @@ export default {
 								if (fileCount !== this.filelist.length) {
 									fileIndex = -1;
 									fileCount = this.filelist.length;
+									this.requestFileInfo(directory, fileIndex, fileCount);
 									return;
 								}
 

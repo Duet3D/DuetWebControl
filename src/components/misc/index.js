@@ -16,7 +16,3 @@ Vue.component('panel-link', PanelLink)
 Vue.component('slider', Slider)
 Vue.component('status-label', StatusLabel)
 
-export default {
-	JobProgress,
-	StatusLabel
-}

@@ -1,19 +1,35 @@
 'use strict'
 
-import Display from './display.js'
-import Logging from './logging.js'
-import Toast from './toast.js'
+import Vue from 'vue'
 
-export default {
-	install(Vue) {
-		Vue.use(Display);
-		Vue.use(Logging);
-		Vue.use(Toast);
+export default Vue.observable([
+	{
+		name: 'Auto Update',
+		author: 'Duet3D Ltd',
+		loaded: false,
+		module: () => import(
+			/* webpackChunkName: "AutoUpdate" */
+			'./AutoUpdate/AutoUpdate.vue'
+		)
 	},
+	{
+		name: 'Height Map',
+		author: 'Duet3D Ltd',
+		loaded: false,
+		module: () => import(
+			/* webpackChunkName: "HeightMap" */
+			'./HeightMap/HeightMap.vue'
+		)
+	},
+	{
+		name: 'G-Code Visualizer',
+		author: 'Duet3D Ltd',
+		loaded: false,
+		module: () => import(
+			/* webpackChunkName: "Visualizer" */
+			'./Visualizer/Visualizer.vue'
+		)
+	},
+	// Add your own plugins here while developing
+])
 
-	installStore(store) {
-		Display.installStore(store);
-		Logging.installStore(store);
-		Toast.installStore(store);
-	}
-}

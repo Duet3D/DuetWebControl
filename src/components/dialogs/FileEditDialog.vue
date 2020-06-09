@@ -31,6 +31,14 @@
 			text-shadow: unset;
 		}
 	}
+
+  font-family: monospace;
+	padding-left: 12px !important;
+	margin-top: 0 !important;
+	resize: none;
+	-moz-tab-size: 4;
+	-o-tab-size: 4;
+	tab-size: 4;
 }
 
 </style>

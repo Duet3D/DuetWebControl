@@ -4,6 +4,7 @@ import Vue from 'vue'
 
 import {
 	AnalogSensorType,
+	BoardState,
 	Compatibility,
 	DistanceUnit,
 	EndstopType,
@@ -13,6 +14,7 @@ import {
 	InputChannelState,
 	KinematicsName,
 	MessageBoxMode,
+	MessageType,
 	NetworkInterfaceType,
 	ProbeType,
 	ToolState
@@ -37,9 +39,14 @@ export class Axis {
 	machinePosition = null
 	max = 200
 	maxProbed = false
+	microstepping = {
+		interpolated: false,
+		value: 16
+	}
 	min = 0
 	minProbed = false
 	speed = 100
+	stepsPerMm = 80
 	userPosition = null
 	visible = true
 	workplaceOffsets = []
@@ -70,6 +77,7 @@ export class Board {
 	}
 	name = ''
 	shortName = ''
+	state = BoardState.unknown
 	supports12864 = false
 	v12 = {
 		current: 0,
@@ -113,6 +121,10 @@ export class Extruder {
 	factor = 1.0
 	filament = ''
 	jerk = 15
+	microstepping = {
+		interpolated: false,
+		value: 16
+	}
 	nonlinear = {
 		a: 0,
 		b: 0,
@@ -122,11 +134,12 @@ export class Extruder {
 	pressureAdvance = 0
 	rawPosition = 0
 	speed = 100
+	stepsPerMm = 420
 }
 
 export class Fan {
 	constructor(initData) { quickPatch(this, initData); }
-	actualValue = 0
+	actualValue = -1
 	blip = 0.1
 	frequency = 250
 	max = 1
@@ -209,8 +222,12 @@ export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
 
 export class GpInputPort {
 	constructor(initData) { quickPatch(this, initData); }
-	configured = false
-	value = null
+	value = 0
+}
+
+export class GpOutputPort {
+	constructor(initData) { quickPatch(this, initData); }
+	pwm = 0
 }
 
 export class Heater {
@@ -276,7 +293,19 @@ export class Kinematics {
 	name = KinematicsName.unknown
 }
 
-export class CoreKinematics extends Kinematics {
+export class ZLeadscrewKinematics extends Kinematics {
+	constructor(initData) { super(initData); }
+	tiltCorrection = {
+		correctionFactor: 0,
+		lastCorrections: [],
+		maxCorrection: 0,
+		screwPitch: 0,
+		screwX: [],
+		screwY: []
+	}
+}
+
+export class CoreKinematics extends ZLeadscrewKinematics {
 	constructor(initData) { super(initData); }
 	forwardMatrix = [
 		[1, 0, 0],
@@ -322,6 +351,10 @@ export class HangprinterKinematics extends Kinematics {
 	printRadius = 1500
 }
 
+export class ScaraKinematics extends ZLeadscrewKinematics {
+	constructor(initData) { super(initData); }
+}
+
 export class Layer {
 	constructor(initData) { quickPatch(this, initData); }
 	duration = 0
@@ -331,11 +364,20 @@ export class Layer {
 }
 
 export class MeshDeviation {
+	constructor(initData) { quickPatch(this, initData); }
 	deviation = 0
 	mean = 0
 }
 
+export class Message {
+	constructor(initData) { quickPatch(this, initData); }
+	time = new Date()
+	type = MessageType.success
+	content = ''
+}
+
 export class MessageBox {
+	constructor(initData) { quickPatch(this, initData); }
 	axisControls = 0
 	mode = MessageBoxMode.okOnly
 	message = ''
@@ -399,6 +441,17 @@ export class Probe {
 	triggerHeight = 0.7
 	type = ProbeType.none
 	value = [1000]
+}
+
+export class RestorePoint {
+	constructor(initData) { quickPatch(this, initData); }
+	coords = []
+	extruderPos = 0
+	feedRate = 50
+	ioBits = 0
+	laserPwm = null
+	spindleSpeeds = []
+	toolNumber = -1
 }
 
 export class Spindle {
@@ -476,22 +529,24 @@ function fixObject(item, preset) {
 
 function fixItems(items, ClassType) {
 	let preset = new ClassType();
-	items.forEach(function(item) {
-		if (item !== null) {
-			for (let key in preset) {
-				if (item[key] === undefined) {
-					Vue.set(item, key, preset[key]);
-					if (preset[key] instanceof Object) {
-						preset = new ClassType();
-					}
-				} else if (preset[key] instanceof Object) {
-					if (fixObject(item[key], preset[key])) {
-						preset = new ClassType();
+	if (items !== null && items !== undefined) {
+		items.forEach(function(item) {
+			if (item !== null) {
+				for (let key in preset) {
+					if (item[key] === undefined) {
+						Vue.set(item, key, preset[key]);
+						if (preset[key] instanceof Object) {
+							preset = new ClassType();
+						}
+					} else if (preset[key] instanceof Object) {
+						if (fixObject(item[key], preset[key])) {
+							preset = new ClassType();
+						}
 					}
 				}
 			}
-		}
-	});
+		});
+	}
 }
 
 // TODO: Eventually this could be combined with the 'merge' function
@@ -572,8 +627,8 @@ export function fixMachineItems(state, mergeData) {
 				}
 			});
 		}
-		if (mergeData.sensors.inputs) {
-			fixItems(state.sensors.inputs, GpInputPort);
+		if (mergeData.sensors.gpIn) {
+			fixItems(state.sensors.gpIn, GpInputPort);
 		}
 		if (mergeData.sensors.probes) {
 			fixItems(state.sensors.probes, Probe);
@@ -582,6 +637,15 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.spindles) {
 		fixItems(state.spindles, Spindle);
+	}
+
+	if (mergeData.state) {
+		if (mergeData.state.gpOut) {
+			fixItems(state.state.gpOut, GpOutputPort);
+		}
+		if (mergeData.state.restorePoints) {
+			fixItems(state.state.restorePoints, RestorePoint);
+		}
 	}
 
 	if (mergeData.tools) {

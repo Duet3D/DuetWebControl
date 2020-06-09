@@ -4,52 +4,29 @@ import { mapConnectorActions } from './connector'
 
 import cache from './cache.js'
 import model from './model.js'
-import { StatusType, isPrinting } from './modelEnums.js'
+import { MessageType, StatusType, isPrinting } from './modelEnums.js'
 import settings from './settings.js'
 
+import Root from '../../main.js'
 import i18n from '../../i18n'
-
-import { displayTime } from '../../plugins/display.js'
-import { log, logCode } from '../../plugins/logging.js'
-import { makeFileTransferNotification, showMessage } from '../../plugins/toast.js'
-
 import beep from '../../utils/beep.js'
+import { displayTime } from '../../utils/display.js'
+import Events from '../../utils/events.js'
 import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
+import { log, logCode } from '../../utils/logging.js'
 import Path from '../../utils/path.js'
+import { makeFileTransferNotification, showMessage } from '../../utils/toast.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export function getModifiedPaths(action, state) {
-	const segments = action.type.split('/');
-	if (segments.length === 3 && segments[1] === state.selectedMachine) {
-		if (segments[2] === 'onDirectoryCreated' || segments[2] === 'onFileOrDirectoryDeleted') {
-			return [action.payload];
-		}
-		if (segments[2] === 'onFileUploaded') {
-			return [action.payload.filename];
-		}
-		if (segments[2] === 'onFileOrDirectoryMoved') {
-			return [action.payload.from, action.payload.to];
-		}
-	}
-	return [];
-}
-
-export function getModifiedDirectories(action, state) {
-	return getModifiedPaths(action, state).map(path => Path.extractDirectory(path));
-}
-
-export function getModifiedFiles(action, state) {
-	return getModifiedPaths(action, state).map(path => Path.extractFileName(path));
-}
-
-export default function(hostname, connector) {
+export default function(hostname, connector, pluginCacheFields, pluginSettingFields) {
 	return {
 		namespaced: true,
 		state: {
 			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false,
+			filesBeingChanged: [],
 		},
 		getters: {
 			connector: () => connector,
@@ -59,7 +36,7 @@ export default function(hostname, connector) {
 			})
 		},
 		actions: {
-			...mapConnectorActions(connector, ['disconnect', 'delete', 'move', 'makeDirectory', 'getFileList', 'getFileInfo']),
+			...mapConnectorActions(connector, ['disconnect', 'getFileList', 'getFileInfo']),
 
 			// Reconnect after a connection error
 			async reconnect({ commit, dispatch }) {
@@ -81,11 +58,12 @@ export default function(hostname, connector) {
 				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
 				try {
-					const response = await connector.sendCode(code);
-					if (doLog && (fromInput || response !== '')) {
-						logCode(code, response, hostname, fromInput);
+					const reply = await connector.sendCode(code);
+					if (doLog && (fromInput || reply !== '')) {
+						logCode(code, reply, hostname, fromInput);
 					}
-					return response;
+					Root.$emit(Events.codeExecuted, { machine: hostname, code, reply });
+					return reply;
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && doLog) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
@@ -95,8 +73,15 @@ export default function(hostname, connector) {
 				}
 			},
 
-			// Upload a file and show progress
-			async upload(context, { filename, content, showProgress = true, showSuccess = true, showError = true, num, count }) {
+			// Upload a file
+			// filename: Destination of the file
+			// content: Data of the file
+			// showProgress: Show upload progress in a notification
+			// showSuccess: Show a success message when done
+			// showError: Show a message if the upload fails
+			// num: Number of this upload
+			// count: Total number of files to upload
+			async upload(context, { filename, content, showProgress = true, showSuccess = true, showError = true, num = 1, count = 1 }) {
 				const cancellationToken = {}, startTime = new Date();
 				const notification = showProgress && makeFileTransferNotification('upload', filename, cancellationToken, num, count);
 
@@ -120,7 +105,7 @@ export default function(hostname, connector) {
 
 					// Show success message
 					if (showSuccess && num === count) {
-						if (count) {
+						if (count > 1) {
 							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
@@ -132,7 +117,28 @@ export default function(hostname, connector) {
 					if (showProgress) {
 						notification.hide();
 					}
+
+					// File has been uploaded successfully, emit corresponding events
+					Root.$emit(Events.fileUploaded, { machine: hostname, filename, content, showProgress, showSuccess, showError, num, count });
+					if (num === count) {
+						if (context.state.filesBeingChanged.length > 0) {
+							const files = [...context.state.filesBeingChanged, filename];
+							context.commit('clearFilesBeingChanged');
+							Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files });
+						} else {
+							Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [filename] });
+						}
+					} else {
+						context.commit('addFileBeingChanged', filename);
+					}
 				} catch (e) {
+					// Emit pending file change notifications
+					if (context.state.filesBeingChanged.length > 0) {
+						const files = [...context.state.filesBeingChanged, filename];
+						context.commit('clearFilesBeingChanged');
+						Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files });
+					}
+
 					// Show and report error message
 					if (showProgress) {
 						notification.hide();
@@ -141,20 +147,49 @@ export default function(hostname, connector) {
 						console.warn(e);
 						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);
 					}
+
+					// Rethrow the error so the caller is notified
 					throw e;
 				}
 			},
 
+			// Delete a file or directory
+			// filename: Filename to delete
+			async delete(filename) {
+				await connector.delete(filename);
+				Root.$emit(Events.fileOrDirectoryDeleted, { machine: hostname, filename });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [filename] });
+			},
+
+			// Move a file or directory
+			// from: Source file
+			// to: Destination file
+			// force: Overwrite file if it already exists
+			async move({ from, to, force }) {
+				await connector.move({ from, to, force });
+				Root.$emit(Events.fileOrDirectoryMoved, { machine: hostname, from, to, force });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [from, to] });
+			},
+
+			// Make a new directroy path
+			// directory: Path of the directory
+			async makeDirectory(directory) {
+				await connector.makeDirectory({ machine: hostname, directory });
+				Root.$emit(Events.directoryCreated, { machine: hostname, directory });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [directory] });
+			},
+
 			// Download a file and show progress
 			// Parameter can be either the filename or an object { filename, (type, showProgress, showSuccess, showError, num, count) }
+			// Returns the response
 			async download(context, payload) {
 				const filename = (payload instanceof Object) ? payload.filename : payload;
 				const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
 				const showProgress = (payload instanceof Object && payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
 				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
 				const showError = (payload instanceof Object && payload.showError !== undefined) ? Boolean(payload.showError) : true;
-				const num = (payload instanceof Object) ? payload.num : undefined;
-				const count = (payload instanceof Object) ? payload.count : undefined;
+				const num = (payload instanceof Object && payload.num > 0) ? payload.num : 1;
+				const count = (payload instanceof Object && payload.count > 0) ? payload.count : 1;
 
 				const cancellationToken = {}, startTime = new Date();
 				const notification = showProgress && makeFileTransferNotification('download', filename, cancellationToken, num, count);
@@ -165,7 +200,7 @@ export default function(hostname, connector) {
 
 					// Show success message
 					if (showSuccess && num === count) {
-						if (count) {
+						if (count > 1) {
 							log('success', i18n.t('notification.download.successMulti', [count]), undefined, hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
@@ -173,10 +208,13 @@ export default function(hostname, connector) {
 						}
 					}
 
-					// Hide the notification again and return the downloaded data
+					// Hide the notification again
 					if (showProgress) {
 						notification.hide();
 					}
+
+					// Done
+					Root.$emit(Events.fileDownloaded, { filename, response, type, showProgress, showSuccess, showError, num, count });
 					return response;
 				} catch (e) {
 					// Show and report error message
@@ -201,6 +239,27 @@ export default function(hostname, connector) {
 				// Check if the job has finished and if so, clear the file cache
 				if (payload.job && payload.job.lastFileName && payload.job.lastFileName !== state.model.job.lastFileName) {
 					commit('cache/clearFileInfo', payload.job.lastFileName);
+				}
+
+				// Deal with incoming messages
+				if (payload.messages) {
+					payload.messages.forEach(function(message) {
+						let reply;
+						switch (message.type) {
+							case MessageType.warning:
+								reply = `Warning: ${message.content}`;
+								break;
+							case MessageType.error:
+								reply = `Error: ${message.content}`;
+								break;
+							default:
+								reply = message.content;
+								break;
+						}
+						logCode(null, reply, hostname);
+						Root.$emit(Events.codeExecuted, { machine: hostname, code: null, reply });
+					});
+					delete payload.messages;
 				}
 
 				// Merge updates into the object model
@@ -250,21 +309,16 @@ export default function(hostname, connector) {
 					// Notify the root store about this event
 					await dispatch('onConnectionError', { hostname, error }, { root: true });
 				}
-			},
-			onCodeCompleted(context, { code, reply }) {
-				if (code === undefined) {
-					logCode(undefined, reply, hostname);
-				}
-			},
-			/* eslint-disable no-unused-vars */
-			onDirectoryCreated: (context, directory) => null,
-			onFileUploaded: (context, { filename, content }) => null,
-			onFileDownloaded: (context, { filename, content }) => null,
-			onFileOrDirectoryMoved: (context, { from, to, force }) => null,
-			onFileOrDirectoryDeleted: (context, filename) => null
-			/* eslint-enable no-unused-vars */
+			}
 		},
 		mutations: {
+			addFileBeingChanged(state, filename) {
+				state.filesBeingChanged.push(filename);
+			},
+			clearFilesBeingChanged(state) {
+				state.filesBeingChanged.clear();
+			},
+
 			clearLog: state => state.events = [],
 			log: (state, payload) => state.events.push(payload),
 
@@ -276,9 +330,9 @@ export default function(hostname, connector) {
 			setNormalVerbosity() { if (connector) { connector.verbose = false; } }
 		},
 		modules: {
-			cache: cache(hostname),
+			cache: cache(hostname, pluginCacheFields),
 			model: model(connector),
-			settings: settings(hostname)
+			settings: settings(hostname, pluginSettingFields)
 		}
 	}
 }

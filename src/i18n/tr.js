@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Yenile'
 		},
+		reset: {
+			caption: 'Makineyi Sıfırla',
+			title: 'Sıfırlamak için makineye M999 gönderin'
+		},
 		upload: {
 			gcodes: {
 				caption: 'G-Code Dosyası Yükleyin',
@@ -403,7 +407,7 @@ export default {
 			caption: 'Mevcut iş',
 			status: 'Durum',
 			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualiser'
 		},
 		files: {
 			caption: 'Dosya Yönetimi',
@@ -515,24 +519,6 @@ export default {
 			toolFan: 'Takım Fanı',
 			fan: 'Fan {0}',
 			noFans: 'Fan Yok'
-		},
-		heightmap: {
-			scale: 'Ölçek:',
-			orMore: 'veya daha fazla',
-			orLess: 'veya daha az',
-			axes: 'Eksenler:',
-			notAvailable: 'yükseklik haritası mevcut değil',
-			numPoints: 'Nokta sayısı: {0}',
-			radius: 'Prob yarıçapı: {0}',
-			area: 'Probe alanı: {0}',
-			maxDeviations: 'Maksimum sapma: {0} / {1}',
-			meanError: 'Ortalama hata: {0}',
-			rmsError: 'RMS hatası: {0}',
-			topView: 'Üstten görünüm',
-			colorScheme: 'Renk şeması:',
-			terrain: 'Arazi',
-			heat: 'Sıcaklık',
-			reload: 'Yükseklik Haritasını Yeniden Yükle'
 		},
 		jobControl: {
 			caption: 'İş Kontrolü',
@@ -654,6 +640,7 @@ export default {
 			caption: 'Web kamerası',
 			webcamURL: 'Web kamerası URL (opsiyonel)',
 			webcamUpdateInterval: 'Web kamerası güncelleme aralığı ({0})',
+			webcamLiveURL: 'Web kamerası görüntüsü tıklandığında açılacak URL (isteğe bağlı)',
 			webcamFix: 'Görüntüleri yeniden yüklerken fazladan HTTP niteleyicisi eklemeyin',
 			webcamEmbedded: 'Web kamerası görüntüsünü iframe e yerleştirme',
 			webcamRotation: 'Web kamerası görüntüsünü döndür',
@@ -714,6 +701,26 @@ export default {
 		webcam: {
 			caption: 'Web Kamerası Gözetimi',
 			alt: '(web kamerası görüntüsü)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: 'Ölçek:',
+			orMore: 'veya daha fazla',
+			orLess: 'veya daha az',
+			axes: 'Eksenler:',
+			notAvailable: 'yükseklik haritası mevcut değil',
+			numPoints: 'Nokta sayısı: {0}',
+			radius: 'Prob yarıçapı: {0}',
+			area: 'Probe alanı: {0}',
+			maxDeviations: 'Maksimum sapma: {0} / {1}',
+			meanError: 'Ortalama hata: {0}',
+			rmsError: 'RMS hatası: {0}',
+			topView: 'Üstten görünüm',
+			colorScheme: 'Renk şeması:',
+			terrain: 'Arazi',
+			heat: 'Sıcaklık',
+			reload: 'Yükseklik Haritasını Yeniden Yükle'
 		}
 	}
 }

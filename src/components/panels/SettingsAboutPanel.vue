@@ -1,9 +1,9 @@
 <template>
-	<v-card>
+	<v-card outlined>
 		<v-card-title>
 			<span>Duet Web Control {{ version }}</span>
 			<v-spacer></v-spacer>
-			<a href="https://github.com/chrishamm/DuetWebControl" target="_blank">
+			<a href="https://github.com/Duet3D/DuetWebControl" target="_blank">
 				<v-icon small>mdi-star</v-icon> GitHub
 			</a>
 		</v-card-title>
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-'use strict';
+'use strict'
 
 import { version } from '../../../package.json'
 

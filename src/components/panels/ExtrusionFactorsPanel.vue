@@ -26,7 +26,7 @@
 				<div class="d-inline-flex">
 					{{ $t('panel.extrusionFactors.extruder', [extruder]) }}
 					<v-spacer></v-spacer>
-					<a v-show="move.extruders[extruder].factor !== 1.0" @click.prevent="setExtrusionFactor(extruder, 100)" href="javascript:void(0)" class="subtitle-2">
+					<a v-show="move.extruders[extruder].factor !== 1.0" href="javascript:void(0)" :disabled="uiFrozen" @click.prevent="setExtrusionFactor(extruder, 100)" class="subtitle-2">
 						<v-icon small class="mr-1">mdi-backup-restore</v-icon> {{ $t('generic.reset') }}
 					</a>
 				</div>

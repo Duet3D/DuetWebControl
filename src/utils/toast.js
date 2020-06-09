@@ -1,11 +1,13 @@
 'use strict'
 
+import Vue from 'vue'
+
 import iziToast from 'izitoast'
 import 'izitoast/dist/css/iziToast.css'
 
 import { displaySpeed } from './display.js'
-
 import i18n from '../i18n'
+import store from '../store'
 import { extractFileName } from '../utils/path.js'
 
 const defaults = {
@@ -14,13 +16,19 @@ const defaults = {
 	transitionOut: 'fadeOutRight'
 }
 
-let settings, openNotifications = []
+let openNotifications = []
 
 export function makeNotification(type, title, message, timeout) {
+	if (timeout === undefined) {
+		timeout = (type === 'error' && store.state.settings.notifications.errorsPersistent) ? 0 : store.state.settings.notifications.timeout;
+	}
+
 	// If there is already an equal notification, reset its time and don't display a new one
 	const equalNotification = openNotifications.find(item => item.type === type && item.title == title && item.message === message);
 	if (equalNotification) {
-		equalNotification.resetTimeout();
+		if (timeout > 0) {
+			equalNotification.resetTimeout();
+		}
 		return equalNotification;
 	}
 
@@ -32,7 +40,7 @@ export function makeNotification(type, title, message, timeout) {
 		onClosed() {
 			openNotifications = openNotifications.filter(notification => notification !== item);
 		},
-		timeout: (timeout !== undefined) ? timeout : ((type === 'error' && settings.errorsPersistent) ? 0 : settings.timeout)
+		timeout
 	}, defaults);
 
 	switch (type) {
@@ -72,6 +80,7 @@ export function makeNotification(type, title, message, timeout) {
 	};
 	item.resetTimeout = function() {
 		iziToast.progress(options, toast).reset();
+		setTimeout(iziToast.progress(options, toast).start, 100);
 	};
 
 	openNotifications.push(item);
@@ -79,7 +88,7 @@ export function makeNotification(type, title, message, timeout) {
 }
 
 export function makeFileTransferNotification(type, destination, cancellationToken, num, count) {
-	const filename = extractFileName(destination), titlePrefix = count ? `(${num}/${count}) ` : '';
+	const filename = extractFileName(destination), titlePrefix = (count > 1) ? `(${num}/${count}) ` : '';
 
 	// Prepare toast
 	iziToast.info({
@@ -121,22 +130,21 @@ export function makeFileTransferNotification(type, destination, cancellationToke
 
 export function showMessage(message) {
 	const options = Object.assign({
+		class: 'display-message',
 		title: i18n.t('notification.message'),
 		message: message.replace(/\n/g, '<br>'),
 		timeout: false
 	}, defaults);
 
-	iziToast.info(options);
-}
-
-export default {
-	install(Vue) {
-		Vue.prototype.$makeNotification = makeNotification;
-		Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification;
-		Vue.prototype.$showMessage = showMessage;
-	},
-
-	installStore(store) {
-		settings = store.state.settings.notifications;
+	const toastContent = document.querySelector('.display-message p');
+	if (toastContent) {
+		toastContent.textContent = message;
+	} else {
+		iziToast.info(options);
 	}
 }
+
+// Register extensions
+Vue.prototype.$makeNotification = makeNotification
+Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification
+Vue.prototype.$showMessage = showMessage

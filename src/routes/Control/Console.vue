@@ -8,3 +8,24 @@
 		</v-col>
 	</v-row>
 </template>
+
+<script>
+'use strict'
+
+import { registerRoute } from '..'
+
+export default {
+	install() {
+		// Register a route via Control -> Console
+		registerRoute(this, {
+			Control: {
+				Console: {
+					icon: 'mdi-code-tags',
+					caption: 'menu.control.console',
+					path: '/Console'
+				}
+			}
+		});
+	}
+}
+</script>

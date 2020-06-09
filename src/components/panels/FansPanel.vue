@@ -77,7 +77,7 @@ export default {
 			if (fan === -1) {
 				fan = this.toolFan;
 			}
-			return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].actualValue * 100) : 0;
+			return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].requestedValue * 100) : 0;
 		},
 		setFanValue(fan, value) {
 			if (fan === -1) {

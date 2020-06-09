@@ -79,8 +79,8 @@ export default {
 			filamentsDirectory: state => state.directories.filaments,
 			tools: state => state.tools
 		}),
-		isRootDirectory() { return this.directory === this.filamentsDirectory; },
-		filamentSelected() { return (this.directory === this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory; }
+		isRootDirectory() { return Path.equals(this.directory, this.filamentsDirectory); },
+		filamentSelected() { return Path.equals(this.directory, this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
@@ -105,7 +105,6 @@ export default {
 
 			this.doingFileOperation = true;
 			try {
-				console.log(path);
 				const emptyFile = new Blob();
 				await this.upload({ filename: Path.combine(path, 'load.g'), content: emptyFile, showSuccess: false });
 				await this.upload({ filename: Path.combine(path, 'config.g'), content: emptyFile, showSuccess: false });
@@ -126,8 +125,8 @@ export default {
 			// Download the files first
 			let loadG, unloadG;
 			try {
-				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), showSuccess: false, showError: false });
-				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), showSuccess: false, showError: false });
+				loadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'load.g'), type: 'blob', showSuccess: false, showError: false });
+				unloadG = await this.download({ filename: Path.combine(Path.filaments, filament, 'unload.g'), type: 'blob', showSuccess: false, showError: false });
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 					this.$makeNotification('error', this.$t('notification.download.error', [!loadG ? 'load.g' : 'unload.g']), e.message);
@@ -137,7 +136,7 @@ export default {
 
 			let configG;
 			try {
-				configG = await this.download({ filename: Path.combine(Path.filaments, filament, 'config.g'), showSuccess: false, showError: false });
+				configG = await this.download({ filename: Path.combine(Path.filaments, filament, 'config.g'), type: 'blob', showSuccess: false, showError: false });
 			} catch (e) {
 				// config.g may not exist
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError) && !(e instanceof FileNotFoundError)) {
@@ -163,7 +162,7 @@ export default {
 		},
 		async rename() {
 			const filament = this.selection[0].name;
-			if (this.tools.some(tool => tool.filament === filament)) {
+			if (this.tools.some(tool => tool && tool.filament === filament)) {
 				this.$makeNotification('error', this.$t('notification.renameFilament.errorTitle'), this.$t('notification.renameFilament.errorStillLoaded'));
 				return;
 			}
@@ -175,7 +174,7 @@ export default {
 				items = this.selection.slice();
 			}
 
-			if (items.some(item => item.isDirectory && this.tools.some(tool => tool.filament === item.name))) {
+			if (items.some(item => item.isDirectory && this.tools.some(tool => tool && tool.filament === item.name))) {
 				this.$makeNotification('error', this.$t('notification.deleteFilament.errorTitle'), this.$t('notification.deleteFilament.errorStillLoaded'));
 				return;
 			}

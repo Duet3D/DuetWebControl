@@ -2,14 +2,14 @@
 
 import { Color, Vector3, Face3, SphereGeometry, Matrix4, Mesh, MeshBasicMaterial, Geometry, PlaneGeometry } from 'three'
 
-import i18n from '../i18n'
-import { InvalidHeightmapError } from './errors.js'
+import i18n from '../../i18n'
+import { InvalidHeightmapError } from '../../utils/errors.js'
 
 const pointTolerance = 2.0
 const smallIndicatorRadius = 0.01, mediumIndicatorRadius = 0.02, bigIndicatorRadius = 0.05
 
 // Draw scale+legend next to the 3D control
-export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
+export function drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ) {
 	// Clear background
 	const context = canvas.getContext('2d');
 	context.rect(0, 0, canvas.width, canvas.height);
@@ -20,9 +20,9 @@ export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
 	context.font = '14px Roboto,sans-serif';
 	context.textAlign = 'center';
 	context.fillStyle = 'white';
-	context.fillText(i18n.t('panel.heightmap.scale'), canvas.width / 2, 21);
-	context.fillText(`${maxVisualizationZ} mm`, canvas.width / 2, 44);
-	context.fillText(i18n.t('panel.heightmap.orMore'), canvas.width / 2, 60);
+	context.fillText(i18n.t('plugins.heightmap.scale'), canvas.width / 2, 21);
+	context.fillText(`${invertZ ? -maxVisualizationZ : maxVisualizationZ} mm`, canvas.width / 2, 44);
+	context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orLess' : 'plugins.heightmap.orMore'), canvas.width / 2, 60);
 
 	// Make scale gradient
 	const showAxes = canvas.height > 180;
@@ -49,8 +49,8 @@ export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
 	// Put annotation below gradient
 	context.fillStyle = 'white';
 	if (colorScheme === 'terrain') {
-		context.fillText(`${-maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
-		context.fillText(i18n.t('panel.heightmap.orLess'), canvas.width / 2, scaleHeight + 98);
+		context.fillText(`${invertZ ? maxVisualizationZ : -maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
+		context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orMore' : 'plugins.heightmap.orLess'), canvas.width / 2, scaleHeight + 98);
 		scaleHeight += 16;
 	} else {
 		context.fillText('0.00 mm', canvas.width / 2, scaleHeight + 82);
@@ -58,7 +58,7 @@ export function drawLegend(canvas, maxVisualizationZ, colorScheme) {
 
 	// Add axes
 	if (showAxes) {
-		context.fillText(i18n.t('panel.heightmap.axes'), canvas.width / 2, scaleHeight + 109);
+		context.fillText(i18n.t('plugins.heightmap.axes'), canvas.width / 2, scaleHeight + 109);
 		context.font = 'bold ' + context.font;
 		context.fillStyle = 'rgb(255,0,0)';
 		context.fillText('X', canvas.width / 3, scaleHeight + 129);

@@ -18,6 +18,14 @@ export const AnalogSensorType = {
 	unknown: 'unknown'
 }
 
+export const BoardState = {
+	unknown: 'unknown',
+	flashing: 'flashing',
+	flashFailed: 'flashFailed',
+	resetting: 'resetting',
+	running: 'running'
+}
+
 export const Compatibility = {
 	default: 'Default',
 	repRapFirmware: 'RepRapFirmware',
@@ -138,6 +146,12 @@ export const MessageBoxMode = {
 	closeOnly: 1,		// non-blocking
 	okOnly: 2,			// blocking
 	okCancel: 3			// blocking, requires M292 (P1) to continue
+}
+
+export const MessageType = {
+	success: 0,
+	warning: 1,
+	error: 2
 }
 
 export const NetworkInterfaceType = {

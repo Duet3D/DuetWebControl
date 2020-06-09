@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Refresh'
 		},
+		reset: {
+			caption: 'Reset Machine',
+			title: 'Send M999 to the machine to reset it'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Upload G-Code File(s)',
@@ -403,7 +407,7 @@ export default {
 			caption: 'Current Job',
 			status: 'Status',
 			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualizer'
 		},
 		files: {
 			caption: 'File Management',
@@ -413,6 +417,9 @@ export default {
 			menu: 'Display',
 			system: 'System',
 			web: 'Web'
+		},
+		plugins: {
+			caption: 'Plugins'
 		},
 		settings: {
 			caption: 'Settings',
@@ -515,24 +522,6 @@ export default {
 			toolFan: 'Tool Fan',
 			fan: 'Fan {0}',
 			noFans: 'No Fans'
-		},
-		heightmap: {
-			scale: 'Scale:',
-			orMore: 'or more',
-			orLess: 'or less',
-			axes: 'Axes:',
-			notAvailable: 'height map not available',
-			numPoints: 'Number of points: {0}',
-			radius: 'Probing radius: {0}',
-			area: 'Probe area: {0}',
-			maxDeviations: 'Maximum deviations: {0} / {1}',
-			meanError: 'Mean error: {0}',
-			rmsError: 'RMS error: {0}',
-			topView: 'Top view',
-			colorScheme: 'Color scheme:',
-			terrain: 'Terrain',
-			heat: 'Heat',
-			reload: 'Reload Height Map'
 		},
 		jobControl: {
 			caption: 'Job Control',
@@ -654,6 +643,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam URL (optional)',
 			webcamUpdateInterval: 'Webcam update interval ({0})',
+			webcamLiveURL: 'URL to open when Webcam image is clicked (optional)',
 			webcamFix: 'Do not append extra HTTP qualifier when reloading images',
 			webcamEmbedded: 'Embed webcam image in an iframe',
 			webcamRotation: 'Rotate webcam image',
@@ -714,6 +704,42 @@ export default {
 		webcam: {
 			caption: 'Webcam Surveillance',
 			alt: '(webcam image)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			listTitle: 'Height Maps',
+			none: 'None',
+			scale: 'Scale:',
+			orMore: 'or more',
+			orLess: 'or less',
+			axes: 'Axes:',
+			notAvailable: 'height map not available',
+			statistics: 'Statistics',
+			numPoints: 'Number of points: {0}',
+			radius: 'Probing radius: {0}',
+			area: 'Probe area: {0}',
+			maxDeviations: 'Maximum deviations: {0} / {1}',
+			meanError: 'Mean error: {0}',
+			rmsError: 'RMS error: {0}',
+			display: 'Display',
+			colorScheme: 'Color scheme:',
+			terrain: 'Terrain',
+			heat: 'Heat',
+			invertZ: 'Invert Z coordinates',
+			topView: 'Top view',
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: 'General'
+		},
+		machineSettings: {
+			caption: 'General'
+		},
+		plugins: {
+			caption: 'Plugins',
+			loadPlugin: 'Load Plugin'
 		}
 	}
 }

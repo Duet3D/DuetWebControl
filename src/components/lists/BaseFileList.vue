@@ -125,11 +125,12 @@ import Vue from 'vue'
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
-import { defaultMachine, getModifiedDirectories } from '../../store/machine'
+import { defaultMachine } from '../../store/machine'
 import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
+import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 
-const maxEditFileSize = 15728640;		// 15 MiB
+const maxEditFileSize = 33554432;		// 32 MiB
 
 export default {
 	props: {
@@ -220,7 +221,6 @@ export default {
 	},
 	data() {
 		return {
-			unsubscribe: undefined,
 			wasMounted: false,
 			initialDirectory: this.directory,
 			innerDirectory: this.directory,
@@ -633,6 +633,13 @@ export default {
 				this.$makeNotification('error', this.$t('notification.compress.errorTitle'), e.message);
 			}
 			notification.hide();
+		},
+
+		filesOrDirectoriesChanged({ machine, files }) {
+			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
+				// File or directory has been changed in the current directory
+				this.refresh();
+			}
 		}
 	},
 	mounted() {
@@ -644,17 +651,11 @@ export default {
 		}
 
 		// Keep track of file changes
-		const that = this;
-		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			if (!that.doingFileOperation && !that.innerDoingFileOperation &&
-				getModifiedDirectories(action, state).some(directory => Path.equals(directory, that.innerDirectory))) {
-				// Refresh the list when a file or directory has been changed
-				await that.refresh();
-			}
-		});
+		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
-		this.unsubscribe();
+		// No longer keep track of file changes
+		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
 		isConnected(to) {

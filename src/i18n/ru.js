@@ -83,6 +83,10 @@
 		refresh: {
 			caption: 'Обновить'
 		},
+		reset: {
+			caption: 'Сброс машины',
+			title: 'Отправьте M999 на машину, чтобы перезагрузить его.'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Загрузить G-код',
@@ -403,7 +407,7 @@
 			caption: 'Текущее задание',
 			status: 'Статус',
 			webcam: 'Камера',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualiser'
 		},
 		files: {
 			caption: 'Менеджер файлов',
@@ -515,24 +519,6 @@
 			toolFan: 'Обдув детали',
 			fan: 'Вентилятор {0}',
 			noFans: 'Нет вентиляторов'
-		},
-		heightmap: {
-			scale: 'Масштаб:',
-			orMore: 'больше',
-			orLess: 'меньше',
-			axes: 'Оси:',
-			notAvailable: 'карта высот недоступна',
-			numPoints: 'Количество точек: {0}',
-			radius: 'Радиус замера: {0}',
-			area: 'Область замера: {0}',
-			maxDeviations: 'Макс. отклонения: {0} / {1}',
-			meanError: 'Средняя ошибка: {0}',
-			rmsError: 'RMS ошибка: {0}',
-			topView: 'Вид сверху',
-			colorScheme: 'Цветовая схема:',
-			terrain: 'Рельеф',
-			heat: 'Температура',
-			reload: 'Перезагрузить карту высот'
 		},
 		jobControl: {
 			caption: 'Контроль задания',
@@ -654,6 +640,7 @@
 			caption: 'Камера',
 			webcamURL: 'URL камеры (опционально)',
 			webcamUpdateInterval: 'Интервал обновления камеры ({0})',
+			webcamLiveURL: 'URL-адрес, который открывается при нажатии на изображение с веб-камеры (необязательно)',
 			webcamFix: 'Не добавлять доп. спецификатор HTTP при перезагрузке изображений',
 			webcamEmbedded: 'Вписать картинку с камеры в кадр',
 			webcamRotation: 'Поворот изображения',
@@ -714,6 +701,26 @@
 		webcam: {
 			caption: 'Обзор камеры',
 			alt: '(картинка с камеры)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: 'Масштаб:',
+			orMore: 'больше',
+			orLess: 'меньше',
+			axes: 'Оси:',
+			notAvailable: 'карта высот недоступна',
+			numPoints: 'Количество точек: {0}',
+			radius: 'Радиус замера: {0}',
+			area: 'Область замера: {0}',
+			maxDeviations: 'Макс. отклонения: {0} / {1}',
+			meanError: 'Средняя ошибка: {0}',
+			rmsError: 'RMS ошибка: {0}',
+			topView: 'Вид сверху',
+			colorScheme: 'Цветовая схема:',
+			terrain: 'Рельеф',
+			heat: 'Температура',
+			reload: 'Перезагрузить карту высот'
 		}
 	}
 }

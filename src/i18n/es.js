@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Actualizar'
 		},
+		reset: {
+			caption: 'Máquina de reajustes',
+			title: 'Envía M999 a la máquina para reiniciarla'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Subir Archivo(s) G-Code',
@@ -405,7 +409,7 @@ export default {
 			caption: 'Trabajo actual',
 			status: 'Stado',
 			webcam: 'Webcam',
-			visualiser: 'Visualizador'
+			visualizer: 'Visualizador'
 		},
 		files: {
 			caption: 'Gestor de Archivos',
@@ -517,24 +521,6 @@ export default {
 			toolFan: 'Herramienta Ventilador',
 			fan: 'Ventilador {0}',
 			noFans: 'No hay ventiladores'
-		},
-		heightmap: {
-			scale: 'Escalar:',
-			orMore: 'o aumentar',
-			orLess: 'o disminuir',
-			axes: 'Ejes:',
-			notAvailable: 'mapa de altura no disponible',
-			numPoints: 'Número de puntos: {0}',
-			radius: 'Radio de prueba: {0}',
-			area: 'Area de prueba: {0}',
-			maxDeviations: 'Desviación Máxima: {0} / {1}',
-			meanError: 'Error medio: {0}',
-			rmsError: 'Error RMS: {0}',
-			topView: 'Vista superior',
-			colorScheme: 'Esquema de color:',
-			terrain: 'Superficie',
-			heat: 'Calor',
-			reload: 'Recargar Mapa de Altura'
 		},
 		jobControl: {
 			caption: 'Control de trabajo',
@@ -657,6 +643,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam URL (opcional)',
 			webcamUpdateInterval: 'Intervalo Actualización Webcam ({0})',
+			webcamLiveURL: 'URL para abrir cuando se hace clic en la imagen de la cámara web (opcional)',
 			webcamFix: 'No añadir cabecera HTTP adicional recargar imágenes',
 			webcamEmbedded: 'Incrustar imagen de cámara web en un iframe',
 			webcamRotation: 'Rotar imagen Webcam',
@@ -717,6 +704,26 @@ export default {
 		webcam: {
 			caption: 'Vigilancia por webcam',
 			alt: '(imagen de la Webcam)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: 'Escalar:',
+			orMore: 'o aumentar',
+			orLess: 'o disminuir',
+			axes: 'Ejes:',
+			notAvailable: 'mapa de altura no disponible',
+			numPoints: 'Número de puntos: {0}',
+			radius: 'Radio de prueba: {0}',
+			area: 'Area de prueba: {0}',
+			maxDeviations: 'Desviación Máxima: {0} / {1}',
+			meanError: 'Error medio: {0}',
+			rmsError: 'Error RMS: {0}',
+			topView: 'Vista superior',
+			colorScheme: 'Esquema de color:',
+			terrain: 'Superficie',
+			heat: 'Calor',
+			reload: 'Recargar Mapa de Altura'
 		}
 	}
 }

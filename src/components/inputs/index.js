@@ -8,4 +8,3 @@ import ToolInput from './ToolInput.vue'
 Vue.component('code-input', CodeInput)
 Vue.component('tool-input', ToolInput)
 
-export default { CodeInput }

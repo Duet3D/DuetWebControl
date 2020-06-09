@@ -83,6 +83,10 @@ export default {
 		refresh: {
 			caption: 'Rafraîchir'
 		},
+		reset: {
+			caption: 'Réinitialisation de la machine',
+			title: 'Envoyez M999 à la machine pour la réinitialiser'
+		},
 		upload: {
 			gcodes: {
 				caption: 'Envoyer Fichier(s) G-Code',
@@ -403,7 +407,7 @@ export default {
 			caption: 'Travail Actuel',
 			status: 'Status',
 			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			visualizer: 'Visualiser'
 		},
 		files: {
 			caption: 'Gestion de Fichiers',
@@ -515,24 +519,6 @@ export default {
 			toolFan: 'Ventilateur Outil',
 			fan: 'Ventilateur {0}',
 			noFans: 'Aucun Ventilateur'
-		},
-		heightmap: {
-			scale: 'Échelle:',
-			orMore: 'ou plus',
-			orLess: 'ou moins',
-			axes: 'Axes:',
-			notAvailable: 'Carte de Hauteur non disponible',
-			numPoints: 'Nombre de points: {0}',
-			radius: 'Rayon de palpage: {0}',
-			area: 'Zone de palpage: {0}',
-			maxDeviations: 'Maximum déviations: {0} / {1}',
-			meanError: 'Erreur moyenne: {0}',
-			rmsError: 'Erreur RMS: {0}',
-			topView: 'Vue du dessus',
-			colorScheme: 'Schéma couleur:',
-			terrain: 'Terrain',
-			heat: 'Chaleur',
-			reload: 'Recharger Carte de Hauteur'
 		},
 		jobControl: {
 			caption: 'Contrôle du Travail',
@@ -654,6 +640,7 @@ export default {
 			caption: 'Webcam',
 			webcamURL: 'Webcam URL (optionnel)',
 			webcamUpdateInterval: '>Intervale de màj de la Webcam ({0})',
+			webcamLiveURL: 'URL à ouvrir lorsque l\'image de la webcam est cliquée (facultatif)',
 			webcamFix: 'Ne pas ajouter de qualificatif HTTP supplémentaire lors du rechargement d\'images',
 			webcamEmbedded: 'Incorporer l\'image de la webcam dans un iframe',
 			webcamRotation: 'Pivoter l\'image de la webcam',
@@ -714,6 +701,26 @@ export default {
 		webcam: {
 			caption: 'Surveillance Webcam',
 			alt: '(webcam image)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: 'Échelle:',
+			orMore: 'ou plus',
+			orLess: 'ou moins',
+			axes: 'Axes:',
+			notAvailable: 'Carte de Hauteur non disponible',
+			numPoints: 'Nombre de points: {0}',
+			radius: 'Rayon de palpage: {0}',
+			area: 'Zone de palpage: {0}',
+			maxDeviations: 'Maximum déviations: {0} / {1}',
+			meanError: 'Erreur moyenne: {0}',
+			rmsError: 'Erreur RMS: {0}',
+			topView: 'Vue du dessus',
+			colorScheme: 'Schéma couleur:',
+			terrain: 'Terrain',
+			heat: 'Chaleur',
+			reload: 'Recharger Carte de Hauteur'
 		}
 	}
 }

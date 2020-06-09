@@ -27,18 +27,3 @@ Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
 Vue.component('promise-based-confirm-dialog', PromiseBasedConfirmDialog)
-
-export default {
-	ConfirmDialog,
-	ConnectDialog,
-	ConnectionDialog,
-	FilamentDialog,
-	FileEditDialog,
-	InputDialog,
-	MeshEditDialog,
-	MessageBoxDialog,
-	NewDirectoryDialog,
-	NewFileDialog,
-	ResetHeaterFaultDialog,
-	PromiseBasedConfirmDialog
-}
