@@ -13,7 +13,6 @@ import MessageBoxDialog from './MessageBoxDialog.vue'
 import NewFileDialog from './NewFileDialog.vue'
 import NewDirectoryDialog from './NewDirectoryDialog.vue'
 import ResetHeaterFaultDialog from './ResetHeaterFaultDialog.vue'
-import PromiseBasedConfirmDialog from "./PromiseBasedConfirmDialog";
 
 Vue.component('confirm-dialog', ConfirmDialog)
 Vue.component('connect-dialog', ConnectDialog)
@@ -26,4 +25,4 @@ Vue.component('messagebox-dialog', MessageBoxDialog)
 Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
-Vue.component('promise-based-confirm-dialog', PromiseBasedConfirmDialog)
+
