@@ -20,7 +20,7 @@ td {
 <template>
 	<div>
 		<v-data-table v-model="innerValue" v-bind="$props"
-			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select
+			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select 
 			:loading="loading || innerLoading"
 			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort
 			disable-pagination hide-default-footer :mobile-breakpoint="0"

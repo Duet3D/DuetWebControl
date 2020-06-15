@@ -14,7 +14,6 @@ export default {
 		language: 'en',
 		lastHostname: location.host,
 		darkTheme: false,
-		enableCodeEditor: true,
 		useBinaryPrefix: true,
 		disableAutoComplete: false,
 		settingsStorageLocal: false,
