@@ -26,7 +26,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false,
-			filesBeingChanged: [],
+			filesBeingChanged: []
 		},
 		getters: {
 			connector: () => connector,

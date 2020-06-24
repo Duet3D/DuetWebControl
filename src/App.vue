@@ -101,7 +101,7 @@ textarea {
 			</v-btn>
 		</v-app-bar>
 
-		<v-content id="content">
+		<v-main id="content">
 			<v-scroll-y-transition>
 				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
 					<v-row>
@@ -127,7 +127,7 @@ textarea {
 					<router-view></router-view>
 				</keep-alive>
 			</v-container>
-		</v-content>
+		</v-main>
 
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>

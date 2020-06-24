@@ -1,6 +1,6 @@
 <template>
 	<span>
-		AutoUpdate page
+		AutoUpdate page (TBD!)
 	</span>
 </template>
 

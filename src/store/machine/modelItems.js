@@ -22,6 +22,7 @@ import {
 import { quickPatch } from '../../utils/patch.js'
 
 export class AnalogSensor {
+	constructor(initData) { quickPatch(this, initData); }
 	lastReading = null
 	name = ''
 	type = AnalogSensorType.unknown
@@ -92,6 +93,7 @@ export class Board {
 }
 
 export class Build {
+	constructor(initData) { quickPatch(this, initData); }
 	currentObject = -1
 	m486Names = false
 	m486Numbers = false

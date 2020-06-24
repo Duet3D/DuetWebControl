@@ -1,38 +1,44 @@
 'use strict'
 
+import CompareVersions from 'compare-versions'
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import Root from '../main.js'
-import machine, { defaultMachine } from './machine'
-import connector from './machine/connector'
-import observer from './observer.js'
-import settings from './settings.js'
-
+import { version } from '../../package.json'
 import i18n from '../i18n'
-
+import Root from '../main.js'
+import observer from './observer.js'
+import Plugins from '../plugins'
+import settings from './settings.js'
 import { InvalidPasswordError } from '../utils/errors.js'
 import Events from '../utils/events.js'
 import { logGlobal } from '../utils/logging.js'
 
+import machine, { defaultMachine } from './machine'
+import connector from './machine/connector'
+
 Vue.use(Vuex)
 
-const defaultUsername = ''
-const defaultPassword = 'reprap'
+const defaultUsername = '', defaultPassword = 'reprap'
 
 const machines = {
 	[defaultMachine]: machine(defaultMachine)
 }
-const pluginCacheFields = {}, pluginSettingFields = {}
+
+const plugins = {}, pluginCacheFields = {}, pluginSettingFields = {}
+Plugins.forEach(plugin => plugins[plugin.name] = plugin)
+
+const isLocal = (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]')
 
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
 		connectingProgress: -1,
 		isDisconnecting: false,
-		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
-		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
+		isLocal,
+		connectDialogShown: isLocal,
 		passwordRequired: false,
+		plugins,
 		selectedMachine: defaultMachine
 	},
 	getters: {
@@ -139,6 +145,66 @@ const store = new Vuex.Store({
 				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
 				dispatch(`machines/${hostname}/reconnect`);
 			}
+		},
+
+		// Called to load a plugin
+		async loadPlugin({ state, dispatch, commit }, name) {
+			// Get the plugin
+			const plugin = state.plugins[name];
+			if (!plugin) {
+				throw new Error(`Plugin ${name} not found when trying to load it`);
+			}
+
+			// Check if the corresponding SBC plugin has been loaded (if applicable)
+			if (plugin.dsfVersion) {
+				if (!machines.some(function(machineName) {
+					const machineState = state.machines[machineName];
+					return (machineState.model.state.dsfVersion &&
+							CompareVersions.compare(plugin.dsfVersion, machineState.model.state.dsfVersion, '=') &&
+							plugin.name in machineState.model.state.loadedPlugins);
+				})) {
+					throw new Error(`Plugin ${name} not loaded on any connected SBC machine`);
+				}
+			}
+
+			// Check if the RRF dependency could be fulfilled (if applicable)
+			if (plugin.rrfVersion) {
+				if (!machines.some(function(machineState) {
+					return (machineState.model.boards.length > 0 &&
+							CompareVersions.compare(plugin.rrfVersion, machineState.model.boards[0].firmwareVersion, '='));
+				})) {
+					throw new Error(`Plugin ${name} could not fulfill RepRapFirmware version dependency (requires ${plugin.rrfVersion})`);
+				}
+			}
+
+			// Load the DWC plugin files (if applicable)
+			if (plugin.dwcVersion) {
+				// Is this plugin compatible to the running DWC version?
+				if (!CompareVersions.compare(plugin.dwcVersion, version, '=')) {
+					throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				}
+
+				// Load plugin dependencies in DWC
+				for (let i = 0; i < plugin.dwcDependencies.length; i++) {
+					const dependentPlugin = state.plugins[plugin.dwcDependencies[i]];
+					if (!dependentPlugin) {
+						throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.name}`);
+					}
+
+					if (!dependentPlugin.loaded) {
+						await dispatch('loadPlugin', dependentPlugin.name);
+					}
+				}
+
+				// Load the required web module
+				const module = await plugin.loadModule();
+				if (module) {
+					Vue.use(module.default);
+				}
+			}
+
+			// DWC plugin has been loaded
+			commit('pluginLoaded', plugin.name);
 		}
 	},
 	mutations: {
@@ -173,9 +239,12 @@ const store = new Vuex.Store({
 			
 			// Allow access to the machine's data store for debugging...
 			window.machineStore = state.machine;
+		},
+
+		pluginLoaded(state, pluginName) {
+			state.plugins[pluginName].loaded = true;
 		}
 	},
-
 	modules: {
 		// machine will provide the currently selected machine
 		machines: {

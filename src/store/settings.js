@@ -33,6 +33,7 @@ export default {
 			rotation: 0,
 			flip: 'none'
 		},
+		autoLoadPlugins: [],
 		plugins: {}
 	},
 	mutations: {
@@ -58,6 +59,14 @@ export default {
 			patch(state, payload, true);
 		},
 
+		toggleAutoLoadPlugin(state, plugin) {
+			if (state.autoLoadPlugins.indexOf(plugin) < 0) {
+				state.autoLoadPlugins.push(plugin);
+			} else {
+				state.autoLoadPlugins = state.autoLoadPlugins.filter(item => item !== plugin);
+			}
+		},
+
 		registerPluginData(state, { plugin, key, defaultValue }) {
 			if (state.plugins[plugin] === undefined) {
 				Vue.set(state.plugins, plugin, { key: defaultValue });
@@ -75,7 +84,7 @@ export default {
 		}
 	},
 	actions: {
-		async load({ rootState, rootGetters, commit, dispatch }) {
+		async load({ rootState, rootGetters, state, commit, dispatch }) {
 			// First attempt to load the last hostname from the local storage if the are running on localhost
 			if (rootState.isLocal) {
 				const lastHostname = getLocalSetting('lastHostname');
@@ -90,8 +99,26 @@ export default {
 				commit('load', settings);
 			} else if (rootGetters.isConnected) {
 				// Otherwise try to load the settings from the selected board
-				dispatch('machine/settings/load', undefined, { root: true });
+				await dispatch('machine/settings/load', undefined, { root: true });
 			}
+
+			// Load the plugins
+			state.autoLoadPlugins.forEach(function(name) {
+				const plugin = rootState.plugins[name];
+				if (plugin) {
+					if (!plugin.loaded) {
+						dispatch('loadPlugin', name, { root: true })
+							.catch(function(e) {
+								commit('toggleAutoLoadPlugin', plugin.name);
+								console.warn(`Failed to load plugin ${plugin.name}: ${e}`);
+							});
+					}
+				} else {
+					// Plugin not found
+					console.warn(`Removing auto-load plugin ${plugin.name} because it could not be found`);
+					commit('removeAutoLoadPlugin', plugin.name);
+				}
+			});
 		},
 		async save({ state, rootGetters, dispatch }) {
 			// See if we need to save everything in the local storage

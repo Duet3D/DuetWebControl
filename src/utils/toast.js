@@ -35,7 +35,7 @@ export function makeNotification(type, title, message, timeout) {
 	// Prepare and show new toast
 	const item = {}, options = Object.assign({
 		class: 'new-toast',
-		title: title.replace(/\n/g, '<br>'),
+		title: title ? title.replace(/\n/g, '<br>') : '',
 		message: message ? message.replace(/\n/g, '<br>') : '',
 		onClosed() {
 			openNotifications = openNotifications.filter(notification => notification !== item);

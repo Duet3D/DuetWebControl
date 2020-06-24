@@ -1,3 +1,9 @@
+<style scoped>
+.no-wrap {
+	white-space: nowrap;
+}
+</style>
+
 <template>
 	<v-simple-table>
 		<template v-slot:default>
@@ -5,20 +11,36 @@
 				<tr>
 					<th class="text-left">Name</th>
 					<th class="text-left">Author</th>
-					<th class="text-right"></th>
+					<th class="text-left">Version</th>
+					<th class="text-left">License</th>
+					<th class="text-left">Dependencies</th>
+					<th width="1%" class="no-wrap">Load automatically</th>
+					<th width="1%" class="no-wrap"></th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr v-for="plugin in plugins" :key="plugin.name">
 					<td>{{ plugin.name }}</td>
 					<td>{{ plugin.author }}</td>
-					<td class="text-right">
-						<v-btn color="primary" :disabled="plugin.loaded" @click="loadPlugin(plugin)">
+					<td>{{ plugin.version }}</td>
+					<td>{{ plugin.license }}</td>
+					<td>{{ plugin.dependencies }}</td>
+					<td width="1%">
+						<v-simple-checkbox :value="autoLoadPlugins.indexOf(plugin.name) >= 0" @input="toggleAutoLoadPlugin(plugin.name)"></v-simple-checkbox>
+					</td>
+					<td class="no-wrap">
+						<v-btn color="primary" :disabled="plugin.loaded" @click="doLoadPlugin(plugin.name)">
 							<v-icon class="mr-1">mdi-open-in-app</v-icon> {{ $t('tabs.plugins.loadPlugin') }}
 						</v-btn>
 					</td>
 				</tr>
 			</tbody>
+		</template>
+
+		<template #no-data>
+			<v-alert :value="true" type="info" class="text-left ma-0" @contextmenu.prevent="">
+				No Plugins
+			</v-alert>
 		</template>
 	</v-simple-table>
 </template>
@@ -26,9 +48,8 @@
 <script>
 'use strict'
 
-import Vue from 'vue'
+import { mapState, mapActions, mapMutations } from 'vuex'
 
-import Plugins from '../../plugins'
 import { registerSettingTab } from '../../routes'
 
 export default {
@@ -36,23 +57,21 @@ export default {
 		// Register a settings tab on the General settings page
 		registerSettingTab(true, 'settings-plugins-tab', this, 'tabs.plugins.caption');
 	},
+
 	computed: {
-		plugins: () => Plugins
+		...mapState(['plugins']),
+		...mapState('settings', ['autoLoadPlugins'])
 	},
 	methods: {
-		loadPlugin(plugin) {
-			// TODO Load external plugins via import(/* webpackIgnore: true */ 'ignored-module.js');
-			plugin.module().then(function(module) {
-				try {
-					Vue.use(module.default);
-					plugin.loaded = true;
-				} catch (e) {
-					alert(`Failed to load plugin:\n${e}`);
-				}
-			});
-		},
-		toggleAutoLoad() {
-			alert('Sorry, not implemented yet');
+		...mapActions(['loadPlugin']),
+		...mapMutations('settings', ['toggleAutoLoadPlugin']),
+		async doLoadPlugin(pluginName) {
+			try {
+				await this.loadPlugin(pluginName);
+			} catch (e) {
+				alert(e);
+				throw e;
+			}
 		}
 	}
 }

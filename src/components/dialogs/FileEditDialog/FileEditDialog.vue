@@ -1,4 +1,22 @@
 <style>
+.vue-codemirror {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+}
+.CodeMirror {
+	display: flex;
+	flex-grow: 1;
+}
+.CodeMirror-sizer {
+	width: 100%;
+}
+.CodeMirror-scroll {
+	display: flex;
+	flex-grow: 1;
+	width: 100%;
+}
+
 .edit-textarea {
 	align-items: stretch !important;
 }
@@ -34,10 +52,10 @@
 
 				<v-spacer></v-spacer>
 
-				<v-btn v-if="showGCodeHelp" dark text href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
+				<v-btn v-if="isGCode" dark text href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.gcodeReference') }}
 				</v-btn>
-				<v-btn v-if="showDisplayHelp" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
+				<v-btn v-if="isMenu" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.menuReference') }}
 				</v-btn>
 				<v-btn dark text @click="save">
@@ -45,7 +63,12 @@
 				</v-btn>
 			</v-app-bar>
 
-			<v-textarea ref="textarea" hide-details solo :rows="null" class="edit-textarea"
+			<codemirror v-if="useEditor"
+						ref="cmEditor" :options="cmOptions"
+						v-model="innerValue" @blur.passive="valueChanged = (value != innerValue)"
+						@keydown.esc.prevent.stop="close(false)"></codemirror>
+			<v-textarea v-else
+						ref="textarea" hide-details solo :rows="null" class="edit-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
 						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
@@ -56,11 +79,22 @@
 <script>
 'use strict'
 
+import { codemirror } from 'vue-codemirror'
+import 'codemirror/addon/selection/active-line.js'
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/theme/blackboard.css'
+
 import { mapState, mapActions } from 'vuex'
 
-import Path from '../../utils/path.js'
+import './gcode-mode.js'
+import Path from '../../../utils/path.js'
+
+const maxEditorFileSize = 8388608			// 8 MiB
 
 export default {
+	components: {
+		codemirror
+	},
 	props: {
 		shown: {
 			type: Boolean,
@@ -74,24 +108,36 @@ export default {
 	},
 	computed: {
 		...mapState('machine/model', {
+			gCodesDirectory: state => state.directories.gCodes,
 			macrosDirectory: state => state.directories.macros,
 			menuDirectory: state => state.directories.menu
 		}),
-		showGCodeHelp() {
+		...mapState('settings', ['darkTheme']),
+		cmOptions() {
+			return {
+				autofocus: true,
+				mode: 'application/x-gcode',
+				theme: this.darkTheme ? 'blackboard' : 'default',
+				lineNumbers: true,
+				styleActiveLine: true
+			}
+		},
+		isGCode() {
 			if (Path.startsWith(this.filename, this.macrosDirectory)) {
 				return true;
 			}
 			const matches = /\.(.*)$/.exec(this.filename.toLowerCase());
 			return matches && ['.g', '.gcode', '.gc', '.gco', '.nc', '.ngc', '.tap'].indexOf(matches[1]);
 		},
-		showDisplayHelp() {
+		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
 		}
 	},
 	data() {
 		return {
 			innerValue: '',
-			valueChanged: false
+			valueChanged: false,
+			useEditor: false
 		}
 	},
 	methods: {
@@ -133,8 +179,9 @@ export default {
 	},
 	watch: {
 		shown(to) {
-			// Set textarea content
+			// Update textarea
 			this.valueChanged = false;
+			this.useEditor = this.value.length < maxEditorFileSize && this.isGCode;
 			this.innerValue = this.value || '';
 
 			if (to) {

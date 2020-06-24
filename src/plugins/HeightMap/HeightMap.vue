@@ -166,6 +166,7 @@ export default {
 		registerPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', 'terrain');
 		registerPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', false);
 	},
+
 	beforeCreate() {
 		this.three = {						// non-reactive data
 			scene: null,
