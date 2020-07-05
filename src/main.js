@@ -10,6 +10,7 @@ import plugins from './plugins'
 import i18n from './i18n'
 import router from './routes'
 import store from './store'
+import './registerServiceWorker'
 
 Vue.config.productionTip = false
 
