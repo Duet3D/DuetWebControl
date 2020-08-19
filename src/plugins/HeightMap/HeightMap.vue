@@ -156,7 +156,7 @@ export default {
 			Control: {
 				HeightMap: {
 					icon: 'mdi-grid',
-					caption: 'menu.control.heightmap',
+					caption: 'plugins.heightmap.menuCaption',
 					path: '/HeightMap'
 				}
 			}

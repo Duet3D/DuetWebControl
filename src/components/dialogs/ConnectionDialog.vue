@@ -1,6 +1,6 @@
 <template>
-	<v-overlay :value="shown" :opacity="0.3">
-		<v-card color="primary" width="480">
+	<v-dialog :value="shown" persistent width="480">
+		<v-card color="primary" dark>
 			<v-card-title class="subtitle-1">
 				{{ message }}
 			</v-card-title>
@@ -14,7 +14,7 @@
 				</center>
 			</v-card-text>
 		</v-card>
-	</v-overlay>
+	</v-dialog>
 </template>
 
 <script>

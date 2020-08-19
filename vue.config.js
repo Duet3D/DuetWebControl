@@ -20,9 +20,10 @@ module.exports = {
 	},
 	chainWebpack: config => {
 		config.optimization.set('splitChunks', {
+			chunks: 'all',
 			cacheGroups: {
-				vendors: false,
-				common: false
+				default: false,
+				vendors: false
 			}
 		});
 		config.plugins.delete('prefetch');

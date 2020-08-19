@@ -3,10 +3,12 @@
 import Vue from 'vue'
 
 import SettingsGeneralTab from './SettingsGeneralTab.vue'
+import SettingsGeneralPluginsTab from './SettingsGeneralPluginsTab.vue'
 import SettingsMachineTab from './SettingsMachineTab.vue'
-import SettingsPluginsTab from './SettingsPluginsTab.vue'
+import SettingsMachinePluginsTab from './SettingsMachinePluginsTab.vue'
 
 Vue.use(SettingsGeneralTab)
+Vue.use(SettingsGeneralPluginsTab)
 Vue.use(SettingsMachineTab)
-Vue.use(SettingsPluginsTab)
+Vue.use(SettingsMachinePluginsTab)
 

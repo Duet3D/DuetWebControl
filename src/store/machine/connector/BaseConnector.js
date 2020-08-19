@@ -120,6 +120,13 @@ class BaseConnector {
 		}
 	}
 
+	// Called to invoke mutations on the registered module
+	async commit(mutation, payload) {
+		if (this.module) {
+			await this.store.commit(`machines/${this.hostname}/${mutation}`, payload);
+		}
+	}
+
 	/* eslint-disable no-unused-vars */
 
 	// Reconnect after a connection error
@@ -166,6 +173,43 @@ class BaseConnector {
 	// Get G-code file info and return an instance of FileInfo
 	// filename: Filename to parse
 	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
+
+	// Install a plugin ZIP file
+	// zipFilename: Name of the ZIP file
+	// zipBlob: Blob of the compressed ZIP file
+	// zipFile: JSZip instance for reading from the file
+	// plugin: Plugin manifest
+	// start: Whether to start the plugin on completion
+	async installPlugin({ zipFilename, zipBlob, zipFile, plugin, start }) { throw new NotImplementedError('installPlugin'); }
+
+	// Uninstall a plugin
+	// plugin: Plugin instance
+	async uninstallPlugin(plugin) { throw new NotImplementedError('uninstallPlugin'); }
+
+	// Install a plugin ZIP file on the SBC
+	// filename: Name of the file
+	// content: ZIP file content
+	// cancellationToken: Object which is populated with a 'cancel' method
+	// onProgress: Function called when data is being transferred with two parameters (loaded, total)
+	async installSbcPlugin({ zipFilename, zipBlob, cancellationToken = null, onProgress }) { throw new NotImplementedError('installSbcPlugin'); }
+
+	// Uninstall a plugin from the SBC
+	// plugin: Name of the plugin
+	async uninstallSbcPlugin(plugin) { throw new NotImplementedError('uninstallSbcPlugin'); }
+
+	// Set custom plugin data on the SBC (only supported if there is no SBC executable)
+	// plugin: Name of the plguin
+	// key: Key to set
+	// value: JSON value to set
+	async setSbcPluginData({ plugin, key, value }) { throw new NotImplementedError('setSbcPluginData'); }
+
+	// Start a plugin on the SBC
+	// plugin: Name of the plugin
+	async startSbcPlugin(plugin) { throw new NotImplementedError('startSbcPlugin'); }
+
+	// Stop a plugin on the SBC
+	// plugin: Name of the plugin
+	async stopSbcPlugin(plugin) { throw new NotImplementedError('stopSbcPlugin'); }
 
 	/* eslint-enable no-unused-vars */
 }

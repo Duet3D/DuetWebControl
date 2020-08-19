@@ -2,12 +2,11 @@
 
 import Vue from 'vue'
 
-import { defaultMachine } from './index.js'
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
-export default function(hostname, pluginCacheFields) {
+export default function(connector, pluginCacheFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -42,16 +41,16 @@ export default function(hostname, pluginCacheFields) {
 		},
 		actions: {
 			async load({ rootState, commit, dispatch }) {
-				if (hostname === defaultMachine) {
+				if (!connector) {
 					return;
 				}
 
 				let cache;
 				if (rootState.settings.cacheStorageLocal) {
-					cache = getLocalSetting(`cache/${hostname}`);
+					cache = getLocalSetting(`cache/${connector.hostname}`);
 				} else {
 					try {
-						cache = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcCacheFile, showProgress: false, showSuccess: false, showError: false });
+						cache = await dispatch(`machines/${connector.hostname}/download`, { filename: Path.dwcCacheFile, showProgress: false, showSuccess: false, showError: false });
 					} catch (e) {
 						// may happen if the user is still using factory defaults
 					}
@@ -62,18 +61,18 @@ export default function(hostname, pluginCacheFields) {
 				}
 			},
 			save({ state, rootState, dispatch }) {
-				if (hostname === defaultMachine) {
+				if (!connector) {
 					return;
 				}
 
 				if (rootState.settings.cacheStorageLocal) {
-					setLocalSetting(`cache/${hostname}`, state);
+					setLocalSetting(`cache/${connector.hostname}`, state);
 				} else {
-					removeLocalSetting(`cache/${hostname}`);
+					removeLocalSetting(`cache/${connector.hostname}`);
 
 					try {
 						const content = new Blob([JSON.stringify(state)]);
-						dispatch(`machines/${hostname}/upload`, { filename: Path.dwcCacheFile, content, showProgress: false, showSuccess: false });
+						dispatch(`machines/${connector.hostname}/upload`, { filename: Path.dwcCacheFile, content, showProgress: false, showSuccess: false });
 					} catch (e) {
 						// handled before we get here
 					}

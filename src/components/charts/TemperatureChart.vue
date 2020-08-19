@@ -225,7 +225,7 @@ export default {
 		};
 
 		// Create the dataset if necessary
-		if (tempSamples[this.selectedMachine] === undefined) {
+		if (!tempSamples[this.selectedMachine]) {
 			tempSamples[this.selectedMachine] = {
 				times: [],
 				temps: []

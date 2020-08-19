@@ -2,6 +2,15 @@
 
 import Vue from 'vue'
 
+export class Dictionary {
+	constructor(initData) {
+		for (let key in initData) {
+			this[key] = initData[key];
+		}
+	}
+	// properties are dynamic in this class
+}
+
 export function arraySizesDiffer(a, b) {
 	if (a instanceof Array) {
 		if (a.length !== b.length) {
@@ -40,7 +49,7 @@ export function quickPatch(a, b) {
 				a.push(b[i]);
 			}
 		}
-	} else {
+	} else if (b instanceof Object) {
 		for (let key in b) {
 			if (a[key] instanceof Object) {
 				quickPatch(a[key], b[key]);
@@ -81,7 +90,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 				a[key] = null;
 			} else {
 				if (typeof a[key] === 'boolean' && typeof b[key] === 'number') {
-					// RRF reports bools as ints so convert them if necessary
+					// RRF may report bools as ints so convert them if necessary
 					b[key] = Boolean(b[key]);
 				}
 
@@ -92,7 +101,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 				} else if (a[key] instanceof Array) {
 					patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
 				} else if (a[key] instanceof Object) {
-					patch(a[key], b[key], skipNonexistentFields, fullPath + '/' + key);
+					patch(a[key], b[key], skipNonexistentFields && !(a[key] instanceof Dictionary), fullPath + '/' + key);
 				} else if (a[key] !== b[key]) {
 					Vue.set(a, key, b[key]);
 					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);

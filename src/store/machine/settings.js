@@ -6,7 +6,7 @@ import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../util
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
-export default function(hostname, pluginSettingFields) {
+export default function(connector, pluginSettingFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -48,8 +48,8 @@ export default function(hostname, pluginSettingFields) {
 			},
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
 
-			// Third-Party values
-			plugins: Object.assign({}, pluginSettingFields)
+			enabledPlugins: [],
+			plugins: Object.assign({}, pluginSettingFields)		// Third-party values
 		},
 		getters: {
 			moveSteps: state => function(axis) {
@@ -59,46 +59,82 @@ export default function(hostname, pluginSettingFields) {
 		},
 		actions: {
 			async save({ state, rootState, dispatch }) {
+				if (!connector) {
+					return;
+				}
+
 				if (rootState.settings.settingsStorageLocal) {
-					setLocalSetting(`settings/${hostname}`, state);
+					setLocalSetting(`settings/${connector.hostname}`, state);
 				} else {
-					removeLocalSetting(`settings/${hostname}`);
+					removeLocalSetting(`settings/${connector.hostname}`);
 
 					try {
 						const content = new Blob([JSON.stringify({ main: rootState.settings, machine: state })]);
-						await dispatch(`machines/${hostname}/upload`, { filename: Path.dwcSettingsFile, content, showProgress: false, showSuccess: false }, { root: true });
+						await dispatch(`machines/${connector.hostname}/upload`, {
+							filename: Path.dwcSettingsFile,
+							content,
+							showProgress: false,
+							showSuccess: false
+						}, { root: true });
 					} catch (e) {
 						// handled before we get here
 					}
 				}
 			},
 			async load({ rootState, dispatch, commit }) {
+				if (!connector) {
+					return;
+				}
+
 				if (rootState.settings.settingsStorageLocal) {
-					const machineSettings = getLocalSetting(`settings/${hostname}`);
+					const machineSettings = getLocalSetting(`settings/${connector.hostname}`);
 					if (machineSettings) {
-						commit('load', machineSettings);
+						commit('update', machineSettings);
 					}
 				} else {
+					// Load the settings from dwc2settings.json or fall back to dwc2defaults.json
+					let settings = {}
 					try {
-						const settings = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcSettingsFile, showProgress: false, showSuccess: false, showError: false }, { root: true });
-						commit('settings/load', settings.main, { root: true });
-						commit('load', settings.machine);
+						settings = await dispatch(`machines/${connector.hostname}/download`, {
+							filename: Path.dwcSettingsFile,
+							showProgress: false,
+							showSuccess: false,
+							showError: false
+						}, { root: true });
+						commit('settings/update', settings.main, { root: true });
+						commit('update', settings.machine);
 					} catch (e) {
 						// may happen if the user has not saved new settings yet
 						try {
-							const settings = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcFactoryDefaults, showProgress: false, showSuccess: false, showError: false }, { root: true });
-							commit('settings/load', settings.main, { root: true });
-							commit('load', settings.machine);
+							settings = await dispatch(`machines/${connector.hostname}/download`, {
+								filename: Path.dwcFactoryDefaults,
+								showProgress: false,
+								showSuccess: false,
+								showError: false
+							}, { root: true });
+							commit('settings/update', settings.main, { root: true });
+							commit('update', settings.machine);
 						} catch (ex) {
 							// use shipped values
+						}
+					}
+
+					// Load previously enabled DWC plugins
+					if (settings.main && settings.main.enabledPlugins) {
+						for (let i = 0; i < settings.main.enabledPlugins.length; i++) {
+							await dispatch('loadDwcPlugin', { name: settings.main.enabledPlugins[i], saveSettings: false }, { root: true });
+						}
+					}
+
+					if (settings.machine && settings.machine.enabledPlugins) {
+						for (let i = 0; i < settings.machine.enabledPlugins.length; i++) {
+							await dispatch('loadDwcPlugin', { name: settings.machine.enabledPlugins[i], saveSettings: false });
 						}
 					}
 				}
 			}
 		},
 		mutations: {
-			load: (state, payload) => patch(state, payload, true),
-
 			addCode(state, code) {
 				state.codes.push(code);
 				state.codes.sort();
@@ -144,6 +180,15 @@ export default function(hostname, pluginSettingFields) {
 					delete payload.plugins;
 				}
 				patch(state, payload, true);
+			},
+
+			dwcPluginLoaded(state, plugin) {
+				if (state.enabledPlugins.indexOf(plugin) === -1) {
+					state.enabledPlugins.push(plugin);
+				}
+			},
+			disableDwcPlugin(state, plugin) {
+				state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
 			},
 
 			registerPluginData(state, { plugin, key, defaultValue }) {

@@ -16,7 +16,7 @@ export default {
 			Settings: {
 				AutoUpdate: {
 					icon: 'mdi-update',
-					caption: 'menu.settings.update',
+					caption: 'plugins.autoUpdate.menuCaption',
 					path: '/Settings/Update'
 				}
 			}

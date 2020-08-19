@@ -5,10 +5,13 @@ import { mapConnectorActions } from './connector'
 import cache from './cache.js'
 import model from './model.js'
 import { MessageType, StatusType, isPrinting } from './modelEnums.js'
+import { Plugin } from './modelItems.js'
 import settings from './settings.js'
 
+import { version } from '../../../package.json'
 import Root from '../../main.js'
 import i18n from '../../i18n'
+import { checkVersion, loadDwcDependencies } from '../../plugins'
 import beep from '../../utils/beep.js'
 import { displayTime } from '../../utils/display.js'
 import Events from '../../utils/events.js'
@@ -19,7 +22,7 @@ import { makeFileTransferNotification, showMessage } from '../../utils/toast.js'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export default function(hostname, connector, pluginCacheFields, pluginSettingFields) {
+export default function(connector, pluginCacheFields, pluginSettingFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -29,14 +32,17 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 			filesBeingChanged: []
 		},
 		getters: {
-			connector: () => connector,
+			connector: () => connector,				// must remain a getter to avoid Vue from wrapping the object content
 			hasTemperaturesToDisplay: state => state.model.sensors.analog.some(function(sensor, sensorIndex) {
 				return (state.model.heat.heaters.some(heater => heater && heater.sensor === sensorIndex) ||
 						state.settings.displayedExtraTemperatures.indexOf(sensorIndex) !== -1);
 			})
 		},
 		actions: {
-			...mapConnectorActions(connector, ['disconnect', 'getFileList', 'getFileInfo']),
+			...mapConnectorActions(connector, [
+				'disconnect', 'getFileList', 'getFileInfo',
+				'uninstallPlugin', 'installSbcPlugin', 'uninstallSbcPlugin', 'setSbcPluginData', 'startSbcPlugin', 'stopSbcPlugin'
+			]),
 
 			// Reconnect after a connection error
 			async reconnect({ commit, dispatch }) {
@@ -60,14 +66,14 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 				try {
 					const reply = await connector.sendCode(code);
 					if (doLog && (fromInput || reply !== '')) {
-						logCode(code, reply, hostname, fromInput);
+						logCode(code, reply, connector.hostname, fromInput);
 					}
-					Root.$emit(Events.codeExecuted, { machine: hostname, code, reply });
+					Root.$emit(Events.codeExecuted, { machine: connector.hostname, code, reply });
 					return reply;
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && doLog) {
 						const type = (e instanceof CodeBufferError) ? 'warning' : 'error';
-						log(type, code, e.message, hostname);
+						log(type, code, e.message, connector.hostname);
 					}
 					throw e;
 				}
@@ -94,7 +100,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 							await connector.move({ from: configFile, to: configFileBackup, force: true, silent: true });
 						} catch (e) {
 							console.warn(e);
-							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);
+							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
 							return;
 						}
 					}
@@ -106,10 +112,10 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					// Show success message
 					if (showSuccess && num === count) {
 						if (count > 1) {
-							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, hostname);
+							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, connector.hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
 						}
 					}
 
@@ -119,14 +125,14 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					}
 
 					// File has been uploaded successfully, emit corresponding events
-					Root.$emit(Events.fileUploaded, { machine: hostname, filename, content, showProgress, showSuccess, showError, num, count });
+					Root.$emit(Events.fileUploaded, { machine: connector.hostname, filename, content, showProgress, showSuccess, showError, num, count });
 					if (num === count) {
 						if (context.state.filesBeingChanged.length > 0) {
 							const files = [...context.state.filesBeingChanged, filename];
 							context.commit('clearFilesBeingChanged');
-							Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files });
+							Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files });
 						} else {
-							Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [filename] });
+							Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [filename] });
 						}
 					} else {
 						context.commit('addFileBeingChanged', filename);
@@ -136,7 +142,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					if (context.state.filesBeingChanged.length > 0) {
 						const files = [...context.state.filesBeingChanged, filename];
 						context.commit('clearFilesBeingChanged');
-						Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files });
+						Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files });
 					}
 
 					// Show and report error message
@@ -145,7 +151,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
-						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, hostname);
+						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
 					}
 
 					// Rethrow the error so the caller is notified
@@ -155,28 +161,28 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 
 			// Delete a file or directory
 			// filename: Filename to delete
-			async delete(filename) {
+			async delete(context, filename) {
 				await connector.delete(filename);
-				Root.$emit(Events.fileOrDirectoryDeleted, { machine: hostname, filename });
-				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [filename] });
+				Root.$emit(Events.fileOrDirectoryDeleted, { machine: connector.hostname, filename });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [filename] });
 			},
 
 			// Move a file or directory
 			// from: Source file
 			// to: Destination file
 			// force: Overwrite file if it already exists
-			async move({ from, to, force }) {
+			async move(context, { from, to, force }) {
 				await connector.move({ from, to, force });
-				Root.$emit(Events.fileOrDirectoryMoved, { machine: hostname, from, to, force });
-				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [from, to] });
+				Root.$emit(Events.fileOrDirectoryMoved, { machine: connector.hostname, from, to, force });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [from, to] });
 			},
 
 			// Make a new directroy path
 			// directory: Path of the directory
-			async makeDirectory(directory) {
-				await connector.makeDirectory({ machine: hostname, directory });
-				Root.$emit(Events.directoryCreated, { machine: hostname, directory });
-				Root.$emit(Events.filesOrDirectoriesChanged, { machine: hostname, files: [directory] });
+			async makeDirectory(context, directory) {
+				await connector.makeDirectory({ machine: connector.hostname, directory });
+				Root.$emit(Events.directoryCreated, { machine: connector.hostname, directory });
+				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [directory] });
 			},
 
 			// Download a file and show progress
@@ -201,10 +207,10 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					// Show success message
 					if (showSuccess && num === count) {
 						if (count > 1) {
-							log('success', i18n.t('notification.download.successMulti', [count]), undefined, hostname);
+							log('success', i18n.t('notification.download.successMulti', [count]), undefined, connector.hostname);
 						} else {
 							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, hostname);
+							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
 						}
 					}
 
@@ -223,7 +229,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					}
 					if (showError && !(e instanceof OperationCancelledError)) {
 						console.warn(e);
-						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e.message, hostname);
+						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
 					}
 					throw e;
 				}
@@ -256,8 +262,8 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 								reply = message.content;
 								break;
 						}
-						logCode(null, reply, hostname);
-						Root.$emit(Events.codeExecuted, { machine: hostname, code: null, reply });
+						logCode(null, reply, connector.hostname);
+						Root.$emit(Events.codeExecuted, { machine: connector.hostname, code: null, reply });
 					});
 					delete payload.messages;
 				}
@@ -288,7 +294,7 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					try {
 						await dispatch('sendCode', 'M1');
 					} catch (e) {
-						logCode('M1', e.message, hostname);
+						logCode('M1', e.message, connector.hostname);
 					}
 				}
 			},
@@ -307,8 +313,106 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 					setTimeout(() => dispatch('reconnect'), 2000);
 				} else {
 					// Notify the root store about this event
-					await dispatch('onConnectionError', { hostname, error }, { root: true });
+					await dispatch('onConnectionError', { hostname: connector.hostname, error }, { root: true });
 				}
+			},
+
+			// Install a new plugin
+			async installPlugin({ dispatch }, { zipFilename, zipBlob, zipFile, start }) {
+				// Check the required DWC version
+				const manifestJson = JSON.parse(await zipFile.file('plugin.json').async('string'));
+				const plugin = new Plugin(manifestJson);
+
+				// Is the plugin compatible to the running DWC version?
+				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
+					throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				}
+
+				// Install the plugin
+				await connector.installPlugin({
+					zipFilename,
+					zipBlob,
+					zipFile,
+					plugin,
+					start
+				});
+
+				// Start it if required and show a message
+				if (start) {
+					await dispatch('loadDwcPlugin', { name: plugin.name, saveSettings: true });
+				}
+			},
+
+			// Called to load a DWC plugin from this machine
+			async loadDwcPlugin({ rootState, state, dispatch, commit }, { name, saveSettings }) {
+				// Don't load a DWC plugin twice
+				if (rootState.loadedDwcPlugins.indexOf(name) !== -1) {
+					return;
+				}
+
+				// Get the plugin
+				const plugin = state.model.plugins.find(item => item.name === name);
+				if (!plugin) {
+					throw new Error(`Plugin ${name} not found`);
+				}
+
+				// Check if there are any resources to load
+				if (plugin.dwcDependencies.length === 0) {
+					return;
+				}
+
+				// Check if the corresponding SBC plugin has been loaded (if applicable)
+				if (plugin.sbcRequired) {
+					if (!state.model.state.dsfVersion ||
+						(plugin.sbcDsfVersion && !checkVersion(plugin.sbcDsfVersion, state.model.state.dsfVersion)))
+					{
+						throw new Error(`Plugin ${name} cannot be loaded because the current machine does not have an SBC attached`);
+					}
+				}
+
+				// Check if the RRF dependency could be fulfilled (if applicable)
+				if (plugin.rrfVersion) {
+					if (state.model.boards.length === 0 ||
+						!checkVersion(plugin.rrfVersion, state.model.boards[0].firmwareVersion))
+					{
+						throw new Error(`Plugin ${name} could not fulfill RepRapFirmware version dependency (requires ${plugin.rrfVersion})`);
+					}
+				}
+
+				// Is the plugin compatible to the running DWC version?
+				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
+					throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				}
+
+				// Load plugin dependencies in DWC
+				for (let i = 0; i < plugin.dwcDependencies.length; i++) {
+					const dependentPlugin = state.plugins[plugin.dwcDependencies[i]];
+					if (!dependentPlugin) {
+						throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.name}`);
+					}
+
+					if (!dependentPlugin.loaded) {
+						await dispatch('loadPlugin', dependentPlugin.name);
+					}
+				}
+
+				// Load the required web module
+				await loadDwcDependencies(plugin);
+
+				// DWC plugin has been loaded
+				if (connector.type === 'poll') {
+					commit('model/addPlugin', plugin);
+				}
+				if (saveSettings) {
+					commit('settings/dwcPluginLoaded', plugin.name);
+				}
+				commit('dwcPluginLoaded', plugin.name, { root: true });
+			},
+
+			// Called to unload a DWC plugin from this machine
+			async unloadDwcPlugin({ dispatch, commit }, plugin) {
+				commit('settings/disableDwcPlugin', plugin);
+				await dispatch('settings/save');
 			}
 		},
 		mutations: {
@@ -330,9 +434,9 @@ export default function(hostname, connector, pluginCacheFields, pluginSettingFie
 			setNormalVerbosity() { if (connector) { connector.verbose = false; } }
 		},
 		modules: {
-			cache: cache(hostname, pluginCacheFields),
+			cache: cache(connector, pluginCacheFields),
 			model: model(connector),
-			settings: settings(hostname, pluginSettingFields)
+			settings: settings(connector, pluginSettingFields)
 		}
 	}
 }

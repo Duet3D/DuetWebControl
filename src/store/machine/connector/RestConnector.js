@@ -328,4 +328,35 @@ export default class RestConnector extends BaseConnector {
 		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
 		return new ParsedFileInfo(response);
 	}
+
+	async installPlugin({ zipFilename, zipBlob, plugin, start }) {
+		await this.installSbcPlugin({ zipFilename, zipBlob });
+		if (start) {
+			await this.startSbcPlugin(plugin.name);
+		}
+	}
+
+	async uninstallPlugin(plugin) {
+		await this.uninstallSbcPlugin(plugin.name);
+	}
+
+	async installSbcPlugin({ zipFilename, zipBlob, cancellationToken = null, onProgress }) {
+		await this.request('PUT', 'machine/plugin', null, '', zipBlob, onProgress, cancellationToken, zipFilename);
+	}
+
+	async uninstallSbcPlugin(plugin) {
+		await this.request('DELETE', 'machine/plugin', null, '', plugin);
+	}
+
+	async setSbcPluginData({ plugin, key, value }) {
+		await this.request('PATCH', 'machine/plugin', null, '', { plugin, key, value });
+	}
+
+	async startSbcPlugin(plugin) {
+		await this.request('POST', 'machine/startPlugin', null, '', plugin);
+	}
+
+	async stopSbcPlugin(plugin) {
+		await this.request('POST', 'machine/stopPlugin', null, '', plugin);
+	}
 }

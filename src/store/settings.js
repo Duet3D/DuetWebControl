@@ -33,92 +33,35 @@ export default {
 			rotation: 0,
 			flip: 'none'
 		},
-		autoLoadPlugins: [],
-		plugins: {}
-	},
-	mutations: {
-		load(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
-				i18n.locale = payload.language;
-			}
-			patch(state, payload, true);
-		},
-		setLastHostname(state, hostname) {
-			state.lastHostname = hostname;
-			setLocalSetting('lastHostname', hostname);
-		},
 
-		update(state, payload) {
-			if (payload.language) {
-				i18n.locale = payload.language;
-			}
-			if (payload.plugins) {
-				state.plugins = payload.plugins;
-				delete payload.plugins;
-			}
-			patch(state, payload, true);
-		},
-
-		toggleAutoLoadPlugin(state, plugin) {
-			if (state.autoLoadPlugins.indexOf(plugin) < 0) {
-				state.autoLoadPlugins.push(plugin);
-			} else {
-				state.autoLoadPlugins = state.autoLoadPlugins.filter(item => item !== plugin);
-			}
-		},
-
-		registerPluginData(state, { plugin, key, defaultValue }) {
-			if (state.plugins[plugin] === undefined) {
-				Vue.set(state.plugins, plugin, { key: defaultValue });
-			}
-			if (!(key in state.plugins[plugin])) {
-				state.plugins[plugin][key] = defaultValue;
-			}
-		},
-		setPluginData(state, { plugin, key, value }) {
-			if (state.plugins[plugin] === undefined) {
-				state.plugins[plugin] = { key: value };
-			} else {
-				state.plugins[plugin][key] = value;
-			}
-		}
+		enabledPlugins: [],
+		plugins: {}										// Third-party values
 	},
 	actions: {
-		async load({ rootState, rootGetters, state, commit, dispatch }) {
+		async load({ rootState, rootGetters, commit, dispatch }) {
 			// First attempt to load the last hostname from the local storage if the are running on localhost
 			if (rootState.isLocal) {
 				const lastHostname = getLocalSetting('lastHostname');
 				if (lastHostname) {
-					commit('load', { lastHostname });
+					commit('update', { lastHostname });
 				}
 			}
 
 			// Attempt to load the global settings from the local storage
 			const settings = getLocalSetting('settings');
 			if (settings) {
-				commit('load', settings);
+				commit('update', settings);
+
+				// Load previously enabled built-in plugins
+				if (settings.enabledPlugins) {
+					for (let i = 0; i < settings.enabledPlugins.length; i++) {
+						await dispatch('loadDwcPlugin', { name: settings.enabledPlugins[i], saveSettings: false });
+					}
+				}
 			} else if (rootGetters.isConnected) {
 				// Otherwise try to load the settings from the selected board
 				await dispatch('machine/settings/load', undefined, { root: true });
 			}
-
-			// Load the plugins
-			state.autoLoadPlugins.forEach(function(name) {
-				const plugin = rootState.plugins[name];
-				if (plugin) {
-					if (!plugin.loaded) {
-						dispatch('loadPlugin', name, { root: true })
-							.catch(function(e) {
-								commit('toggleAutoLoadPlugin', plugin.name);
-								console.warn(`Failed to load plugin ${plugin.name}: ${e}`);
-							});
-					}
-				} else {
-					// Plugin not found
-					console.warn(`Removing auto-load plugin ${plugin.name} because it could not be found`);
-					commit('removeAutoLoadPlugin', plugin.name);
-				}
-			});
 		},
 		async save({ state, rootGetters, dispatch }) {
 			// See if we need to save everything in the local storage
@@ -130,7 +73,7 @@ export default {
 
 				// And try to save everything on the selected board
 				if (rootGetters.isConnected) {
-					dispatch('machine/settings/save', undefined, { root: true });
+					await dispatch('machine/settings/save', undefined, { root: true });
 				}
 			}
 		},
@@ -162,6 +105,48 @@ export default {
 
 			// Reload the web interface to finish
 			location.reload();
+		}
+	},
+	mutations: {
+		setLastHostname(state, hostname) {
+			state.lastHostname = hostname;
+			setLocalSetting('lastHostname', hostname);
+		},
+
+		update(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
+			patch(state, payload, true);
+		},
+
+		dwcPluginLoaded(state, plugin) {
+			if (state.enabledPlugins.indexOf(plugin) === -1) {
+				state.enabledPlugins.push(plugin);
+			}
+		},
+		disableDwcPlugin(state, plugin) {
+			state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+		},
+
+		registerPluginData(state, { plugin, key, defaultValue }) {
+			if (state.plugins[plugin] === undefined) {
+				Vue.set(state.plugins, plugin, { key: defaultValue });
+			}
+			if (!(key in state.plugins[plugin])) {
+				state.plugins[plugin][key] = defaultValue;
+			}
+		},
+		setPluginData(state, { plugin, key, value }) {
+			if (state.plugins[plugin] === undefined) {
+				state.plugins[plugin] = { key: value };
+			} else {
+				state.plugins[plugin][key] = value;
+			}
 		}
 	}
 }

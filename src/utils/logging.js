@@ -34,10 +34,10 @@ export function logCode(code = '', reply, hostname = store.state.selectedMachine
 	const responseLines = toLog.split('\n')
 	if (hostname === store.state.selectedMachine) {
 		let title = code, message = responseLines.join('<br>');
-		if (responseLines.length > 3) {
-			title = (code === '') ? i18n.t('notification.responseTooLong') : code;
-			message = (code === '') ? '' : i18n.t('notification.responseTooLong');
-		} else if (code === '') {
+		if (responseLines.length > 3 || toLog.length > 128) {
+			title = (!code) ? i18n.t('notification.responseTooLong') : code;
+			message = (!code) ? '' : i18n.t('notification.responseTooLong');
+		} else if (!code) {
 			title = responseLines[0];
 			message = responseLines.slice(1).join('<br>');
 		}

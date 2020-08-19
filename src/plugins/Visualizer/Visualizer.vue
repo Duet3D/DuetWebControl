@@ -29,7 +29,7 @@ export default {
 			Job: {
 				Visualizer: {
 					icon: 'mdi-rotate-3d',
-					caption: 'menu.job.visualizer',
+					caption: 'plugins.visualizer.menuCaption',
 					path: '/Job/Visualizer'
 				}
 			}

@@ -217,7 +217,7 @@ export default {
 		},
 		resetHeaterFault: {
 			title: 'Reset Heater Fault',
-			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a phsical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
+			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a physical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
 			resetFault: 'Reset Fault'
 		},
 		runMacro: {
@@ -400,14 +400,12 @@ export default {
 		control: {
 			caption: 'Machine Control',
 			dashboard: 'Dashboard',
-			console: 'Console',
-			heightmap: 'Height Map'
+			console: 'Console'
 		},
 		job: {
 			caption: 'Current Job',
 			status: 'Status',
-			webcam: 'Webcam',
-			visualizer: 'Visualizer'
+			webcam: 'Webcam'
 		},
 		files: {
 			caption: 'File Management',
@@ -424,8 +422,7 @@ export default {
 		settings: {
 			caption: 'Settings',
 			general: 'General',
-			machine: 'Machine-Specific',
-			update: 'Update'
+			machine: 'Machine-Specific'
 		}
 	},
 	notification: {
@@ -707,7 +704,11 @@ export default {
 		}
 	},
 	plugins: {
+		autoUpdate: {
+			menuCaption: 'Update'
+		},
 		heightmap: {
+			menuCaption: 'Height Map',
 			listTitle: 'Height Maps',
 			none: 'None',
 			scale: 'Scale:',
@@ -728,6 +729,12 @@ export default {
 			heat: 'Heat',
 			invertZ: 'Invert Z coordinates',
 			topView: 'Top view',
+		},
+		objectModelBrowser: {
+			menuCaption: 'Object Model'
+		},
+		visualizer: {
+			menuCaption: 'Visualizer'
 		}
 	},
 	tabs: {
@@ -739,7 +746,9 @@ export default {
 		},
 		plugins: {
 			caption: 'Plugins',
-			loadPlugin: 'Load Plugin'
+			start: 'Start',
+			stop: 'Stop',
+			uninstall: 'Uninstall'
 		}
 	}
 }

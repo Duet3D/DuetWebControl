@@ -19,6 +19,7 @@ import {
 	ProbeType,
 	ToolState
 } from './modelEnums.js'
+import { PluginManifest } from '../../plugins/manifest.js'
 import { quickPatch } from '../../utils/patch.js'
 
 export class AnalogSensor {
@@ -164,7 +165,7 @@ export class FilamentMonitor {
 }
 
 export class LaserFilamentMonitor extends FilamentMonitor {
-	constructor(initData = {}) {
+	constructor(initData) {
 		initData.type = FilamentMonitorType.laser;
 		super(initData);
 	}
@@ -183,7 +184,7 @@ export class LaserFilamentMonitor extends FilamentMonitor {
 }
 
 export class PulsedFilamentMonitor extends FilamentMonitor {
-	constructor(initData = {}) {
+	constructor(initData) {
 		initData.type = FilamentMonitorType.pulsed;
 		super(initData);
 	}
@@ -203,7 +204,7 @@ export class PulsedFilamentMonitor extends FilamentMonitor {
 }
 
 export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
-	constructor(initData = {}) {
+	constructor(initData) {
 		initData.type = FilamentMonitorType.rotatingMagnet;
 		super(initData);
 	}
@@ -406,9 +407,9 @@ export class NetworkInterface {
 }
 
 export class ParsedFileInfo {
-	constructor(initData = {}) {
+	constructor(initData) {
 		quickPatch(this, initData);
-		if (!this.numLayers && initData.height && initData.firstLayerHeight && initData.layerHeight) {
+		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
 			// approximate the number of layers if it isn't given
 			this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
 		}
@@ -424,6 +425,14 @@ export class ParsedFileInfo {
 	printTime = null
 	simulatedTime = null
 	size = 0
+}
+
+export class Plugin extends PluginManifest {
+	constructor(initData) { super(initData); }
+	dwcFiles = []
+	sbcFiles = []
+	rrfFiles = []
+	pid = -1
 }
 
 export class Probe {
@@ -600,6 +609,10 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.network && mergeData.network.interfaces) {
 		fixItems(state.network.interfaces, NetworkInterface);
+	}
+
+	if (mergeData.plugins) {
+		fixItems(state.plugins, Plugin);
 	}
 
 	if (mergeData.sensors) {
