@@ -1,11 +1,12 @@
 'use strict'
 
-import { defaultMachine } from './index.js'
+import Vue from 'vue'
+
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
 
-export default function(hostname) {
+export default function(connector, pluginCacheFields) {
 	return {
 		namespaced: true,
 		state: {
@@ -35,20 +36,21 @@ export default function(hostname) {
 					column: 'name',
 					descending: false
 				}
-			}
+			},
+			plugins: Object.assign({}, pluginCacheFields)
 		},
 		actions: {
 			async load({ rootState, commit, dispatch }) {
-				if (hostname === defaultMachine) {
+				if (!connector) {
 					return;
 				}
 
 				let cache;
 				if (rootState.settings.cacheStorageLocal) {
-					cache = getLocalSetting(`cache/${hostname}`);
+					cache = getLocalSetting(`cache/${connector.hostname}`);
 				} else {
 					try {
-						cache = await dispatch(`machines/${hostname}/download`, { filename: Path.dwcCacheFile, showProgress: false, showSuccess: false, showError: false });
+						cache = await dispatch(`machines/${connector.hostname}/download`, { filename: Path.dwcCacheFile, showProgress: false, showSuccess: false, showError: false });
 					} catch (e) {
 						// may happen if the user is still using factory defaults
 					}
@@ -59,18 +61,18 @@ export default function(hostname) {
 				}
 			},
 			save({ state, rootState, dispatch }) {
-				if (hostname === defaultMachine) {
+				if (!connector) {
 					return;
 				}
 
 				if (rootState.settings.cacheStorageLocal) {
-					setLocalSetting(`cache/${hostname}`, state);
+					setLocalSetting(`cache/${connector.hostname}`, state);
 				} else {
-					removeLocalSetting(`cache/${hostname}`);
+					removeLocalSetting(`cache/${connector.hostname}`);
 
 					try {
 						const content = new Blob([JSON.stringify(state)]);
-						dispatch(`machines/${hostname}/upload`, { filename: Path.dwcCacheFile, content, showProgress: false, showSuccess: false });
+						dispatch(`machines/${connector.hostname}/upload`, { filename: Path.dwcCacheFile, content, showProgress: false, showSuccess: false });
 					} catch (e) {
 						// handled before we get here
 					}
@@ -103,6 +105,21 @@ export default function(hostname) {
 			setSorting(state, { table, column, descending }) {
 				state.sorting[table].column = column;
 				state.sorting[table].descending = descending;
+			},
+
+			registerPluginData(state, { plugin, key, defaultValue }) {
+				if (state.plugins[plugin] === undefined) {
+					Vue.set(state.plugins, plugin, {});
+				}
+				if (!(key in state.plugins[plugin])) {
+					Vue.set(state.plugins[plugin], key, defaultValue)
+				}
+			},
+			setPluginData(state, { plugin, key, value }) {
+				if (state.plugins[plugin] === undefined) {
+					Vue.set(state.plugins, plugin, { key: value });
+				}
+				Vue.set(state.plugins[plugin], key, value)
 			}
 		}
 	}

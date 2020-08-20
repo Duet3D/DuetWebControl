@@ -217,7 +217,7 @@ export default {
 		},
 		resetHeaterFault: {
 			title: 'Reset Heater Fault',
-			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a phsical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
+			prompt: 'A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a physical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?',
 			resetFault: 'Reset Fault'
 		},
 		runMacro: {
@@ -400,14 +400,12 @@ export default {
 		control: {
 			caption: 'Machine Control',
 			dashboard: 'Dashboard',
-			console: 'Console',
-			heightmap: 'Height Map'
+			console: 'Console'
 		},
 		job: {
 			caption: 'Current Job',
 			status: 'Status',
-			webcam: 'Webcam',
-			visualiser: 'Visualiser'
+			webcam: 'Webcam'
 		},
 		files: {
 			caption: 'File Management',
@@ -418,11 +416,13 @@ export default {
 			system: 'System',
 			web: 'Web'
 		},
+		plugins: {
+			caption: 'Plugins'
+		},
 		settings: {
 			caption: 'Settings',
 			general: 'General',
-			machine: 'Machine-Specific',
-			update: 'Update'
+			machine: 'Machine-Specific'
 		}
 	},
 	notification: {
@@ -519,24 +519,6 @@ export default {
 			toolFan: 'Tool Fan',
 			fan: 'Fan {0}',
 			noFans: 'No Fans'
-		},
-		heightmap: {
-			scale: 'Scale:',
-			orMore: 'or more',
-			orLess: 'or less',
-			axes: 'Axes:',
-			notAvailable: 'height map not available',
-			numPoints: 'Number of points: {0}',
-			radius: 'Probing radius: {0}',
-			area: 'Probe area: {0}',
-			maxDeviations: 'Maximum deviations: {0} / {1}',
-			meanError: 'Mean error: {0}',
-			rmsError: 'RMS error: {0}',
-			topView: 'Top view',
-			colorScheme: 'Color scheme:',
-			terrain: 'Terrain',
-			heat: 'Heat',
-			reload: 'Reload Height Map'
 		},
 		jobControl: {
 			caption: 'Job Control',
@@ -719,6 +701,54 @@ export default {
 		webcam: {
 			caption: 'Webcam Surveillance',
 			alt: '(webcam image)'
+		}
+	},
+	plugins: {
+		autoUpdate: {
+			menuCaption: 'Update'
+		},
+		heightmap: {
+			menuCaption: 'Height Map',
+			listTitle: 'Height Maps',
+			none: 'None',
+			scale: 'Scale:',
+			orMore: 'or more',
+			orLess: 'or less',
+			axes: 'Axes:',
+			notAvailable: 'height map not available',
+			statistics: 'Statistics',
+			numPoints: 'Number of points: {0}',
+			radius: 'Probing radius: {0}',
+			area: 'Probe area: {0}',
+			maxDeviations: 'Maximum deviations: {0} / {1}',
+			meanError: 'Mean error: {0}',
+			rmsError: 'RMS error: {0}',
+			display: 'Display',
+			colorScheme: 'Color scheme:',
+			terrain: 'Terrain',
+			heat: 'Heat',
+			invertZ: 'Invert Z coordinates',
+			topView: 'Top view',
+		},
+		objectModelBrowser: {
+			menuCaption: 'Object Model'
+		},
+		visualizer: {
+			menuCaption: 'Visualizer'
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: 'General'
+		},
+		machineSettings: {
+			caption: 'General'
+		},
+		plugins: {
+			caption: 'Plugins',
+			start: 'Start',
+			stop: 'Stop',
+			uninstall: 'Uninstall'
 		}
 	}
 }

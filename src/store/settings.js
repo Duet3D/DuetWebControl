@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 import i18n from '../i18n'
 
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
@@ -30,26 +32,10 @@ export default {
 			embedded: false,							// use iframe to embed webcam stream
 			rotation: 0,
 			flip: 'none'
-		}
-	},
-	mutations: {
-		load(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
-				i18n.locale = payload.language;
-			}
-			patch(state, payload, true);
-		},
-		setLastHostname(state, hostname) {
-			state.lastHostname = hostname;
-			setLocalSetting('lastHostname', hostname);
 		},
 
-		update(state, payload) {
-			if (payload.language) {
-				i18n.locale = payload.language;
-			}
-			patch(state, payload, true);
-		}
+		enabledPlugins: [],
+		plugins: {}										// Third-party values
 	},
 	actions: {
 		async load({ rootState, rootGetters, commit, dispatch }) {
@@ -57,17 +43,24 @@ export default {
 			if (rootState.isLocal) {
 				const lastHostname = getLocalSetting('lastHostname');
 				if (lastHostname) {
-					commit('load', { lastHostname });
+					commit('update', { lastHostname });
 				}
 			}
 
 			// Attempt to load the global settings from the local storage
 			const settings = getLocalSetting('settings');
 			if (settings) {
-				commit('load', settings);
+				commit('update', settings);
+
+				// Load previously enabled built-in plugins
+				if (settings.enabledPlugins) {
+					for (let i = 0; i < settings.enabledPlugins.length; i++) {
+						await dispatch('loadDwcPlugin', { name: settings.enabledPlugins[i], saveSettings: false });
+					}
+				}
 			} else if (rootGetters.isConnected) {
 				// Otherwise try to load the settings from the selected board
-				dispatch('machine/settings/load', undefined, { root: true });
+				await dispatch('machine/settings/load', undefined, { root: true });
 			}
 		},
 		async save({ state, rootGetters, dispatch }) {
@@ -80,7 +73,7 @@ export default {
 
 				// And try to save everything on the selected board
 				if (rootGetters.isConnected) {
-					dispatch('machine/settings/save', undefined, { root: true });
+					await dispatch('machine/settings/save', undefined, { root: true });
 				}
 			}
 		},
@@ -112,6 +105,48 @@ export default {
 
 			// Reload the web interface to finish
 			location.reload();
+		}
+	},
+	mutations: {
+		setLastHostname(state, hostname) {
+			state.lastHostname = hostname;
+			setLocalSetting('lastHostname', hostname);
+		},
+
+		update(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
+			patch(state, payload, true);
+		},
+
+		dwcPluginLoaded(state, plugin) {
+			if (state.enabledPlugins.indexOf(plugin) === -1) {
+				state.enabledPlugins.push(plugin);
+			}
+		},
+		disableDwcPlugin(state, plugin) {
+			state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+		},
+
+		registerPluginData(state, { plugin, key, defaultValue }) {
+			if (state.plugins[plugin] === undefined) {
+				Vue.set(state.plugins, plugin, { key: defaultValue });
+			}
+			if (!(key in state.plugins[plugin])) {
+				state.plugins[plugin][key] = defaultValue;
+			}
+		},
+		setPluginData(state, { plugin, key, value }) {
+			if (state.plugins[plugin] === undefined) {
+				state.plugins[plugin] = { key: value };
+			} else {
+				state.plugins[plugin][key] = value;
+			}
 		}
 	}
 }

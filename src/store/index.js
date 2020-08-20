@@ -3,35 +3,41 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import machine, { defaultMachine } from './machine'
-import connector from './machine/connector'
+import { version } from '../../package.json'
+import i18n from '../i18n'
+import Root from '../main.js'
 import observer from './observer.js'
 import settings from './settings.js'
-
-import i18n from '../i18n'
-import Plugins from '../plugins'
-import { logGlobal } from '../plugins/logging.js'
-
+import Plugins, { checkVersion, loadDwcDependencies } from '../plugins'
 import { InvalidPasswordError } from '../utils/errors.js'
+import Events from '../utils/events.js'
+import { logGlobal } from '../utils/logging.js'
+
+import machine, { defaultMachine } from './machine'
+import connector from './machine/connector'
 
 Vue.use(Vuex)
 
-const defaultUsername = ''
-const defaultPassword = 'reprap'
+const defaultUsername = '', defaultPassword = 'reprap'
 
 const machines = {
-	[defaultMachine]: machine(defaultMachine)
+	[defaultMachine]: machine(null)
 }
+
+const pluginCacheFields = {}, pluginSettingFields = {}
+
+const isLocal = (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]')
 
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
 		connectingProgress: -1,
 		isDisconnecting: false,
-		isLocal: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
-		connectDialogShown: (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]'),
+		isLocal,
+		connectDialogShown: isLocal,
 		passwordRequired: false,
-		selectedMachine: defaultMachine
+		selectedMachine: defaultMachine,
+		loadedDwcPlugins: []
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -54,9 +60,9 @@ const store = new Vuex.Store({
 			commit('setConnecting', true);
 			try {
 				const connectorInstance = await connector.connect(hostname, username, password);
-				const moduleInstance = machine(hostname, connectorInstance);
-				commit('addMachine', { hostname, moduleInstance });
-				connectorInstance.register(moduleInstance);
+				const module = machine(connectorInstance, pluginCacheFields, pluginSettingFields);
+				commit('addMachine', { hostname, module });
+				connectorInstance.register(module);
 
 				commit('setSelectedMachine', hostname);
 				logGlobal('success', i18n.t('events.connected', [hostname]));
@@ -137,6 +143,52 @@ const store = new Vuex.Store({
 				logGlobal('warning', i18n.t('events.reconnecting', [hostname]), error.message);
 				dispatch(`machines/${hostname}/reconnect`);
 			}
+		},
+
+		// Called to load a built-in DWC plugin
+		async loadDwcPlugin({ state, dispatch, commit }, { name, saveSettings }) {
+			// Don't load a DWC plugin twice
+			if (state.loadedDwcPlugins.indexOf(name) !== -1) {
+				return;
+			}
+
+			// Get the plugin
+			const plugin = Plugins.find(item => item.name === name);
+			if (!plugin) {
+				throw new Error(`Built-in plugin ${name} not found`);
+			}
+
+			// SBC and RRF dependencies are not checked for built-in plugins
+
+			// Is the plugin compatible to the running DWC version?
+			if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
+				throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+			}
+
+			// Load plugin dependencies in DWC
+			for (let i = 0; i < plugin.dwcDependencies.length; i++) {
+				const dependentPlugin = state.plugins[plugin.dwcDependencies[i]];
+				if (!dependentPlugin) {
+					throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.name}`);
+				}
+
+				if (!dependentPlugin.loaded) {
+					await dispatch('loadPlugin', dependentPlugin.name);
+				}
+			}
+
+			// Load the required web module
+			await loadDwcDependencies(plugin);
+
+			// DWC plugin has been loaded
+			commit('dwcPluginLoaded', plugin.name);
+			if (saveSettings) {
+				commit('settings/dwcPluginLoaded', plugin.name);
+			}
+		},
+		async unloadDwcPlugin({ dispatch, commit }, plugin) {
+			commit('settings/disableDwcPlugin', plugin);
+			await dispatch('settings/save');
 		}
 	},
 	mutations: {
@@ -152,14 +204,16 @@ const store = new Vuex.Store({
 
 		setConnecting: (state, connecting) => state.isConnecting = connecting,
 		setConnectingProgress: (state, progress) => state.connectingProgress = progress,
-		addMachine(state, { hostname, moduleInstance }) {
-			machines[hostname] = moduleInstance;
-			this.registerModule(['machines', hostname], moduleInstance);
+		addMachine(state, { hostname, module }) {
+			machines[hostname] = module;
+			this.registerModule(['machines', hostname], module);
+			Root.$emit(Events.machineAdded, hostname);
 		},
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {
 			this.unregisterModule(['machines', hostname]);
 			delete machines[hostname];
+			Root.$emit(Events.machineRemoved, hostname);
 		},
 
 		setSelectedMachine(state, selectedMachine) {
@@ -169,9 +223,12 @@ const store = new Vuex.Store({
 			
 			// Allow access to the machine's data store for debugging...
 			window.machineStore = state.machine;
+		},
+
+		dwcPluginLoaded(state, pluginName) {
+			state.loadedDwcPlugins.push(pluginName);
 		}
 	},
-
 	modules: {
 		// machine will provide the currently selected machine
 		machines: {
@@ -185,8 +242,7 @@ const store = new Vuex.Store({
 	},
 	plugins: [
 		connector.installStore,
-		observer,
-		Plugins.installStore
+		observer
 	],
 	strict: process.env.NODE_ENV !== 'production'
 })
@@ -198,6 +254,59 @@ store.registerModule('machine', machines[defaultMachine])
 if (process.env.NODE_ENV !== 'production') {
 	window.updateMachineStore = function(newStore) {
 		store.dispatch('machine/update', newStore);
+	}
+}
+
+// Expose plugin functionality
+export const PluginDataType = {
+	globalSetting: 'globalSetting',
+	machineCache: 'machineCache',
+	machineSetting: 'machineSetting'
+}
+
+export function registerPluginData(plugin, dataType, key, defaultValue) {
+	switch (dataType) {
+		case PluginDataType.globalSetting:
+			store.commit('settings/registerPluginData', { plugin, key, defaultValue });
+			break;
+		case PluginDataType.machineCache:
+			if (!(plugin in pluginCacheFields)) {
+				pluginCacheFields[plugin] = {}
+			}
+			pluginCacheFields[plugin][key] = defaultValue;
+
+			for (let machine in machines) {
+				store.commit(`machines/${machine}/cache/registerPluginData`, { plugin, key, defaultValue });
+			}
+			break;
+		case PluginDataType.machineSetting:
+			if (!(plugin in pluginSettingFields)) {
+				pluginSettingFields[plugin] = {}
+			}
+			pluginSettingFields[plugin][key] = defaultValue;
+
+			for (let machine in machines) {
+				store.commit(`machines/${machine}/settings/registerPluginData`, { plugin, key, defaultValue });
+			}
+			break;
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+	}
+}
+
+export function setPluginData(plugin, dataType, key, value) {
+	switch (dataType) {
+		case PluginDataType.globalSetting:
+			store.commit('settings/setPluginData', { plugin, key, value });
+			break;
+		case PluginDataType.machineCache:
+			store.commit('machine/cache/setPluginData', { plugin, key, value });
+			break;
+		case PluginDataType.machineSetting:
+			store.commit('machine/settings/setPluginData', { plugin, key, value });
+			break;
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
 	}
 }
 

@@ -1,5 +1,5 @@
 <template>
-	<v-card>
+	<v-card outlined>
 		<v-card-title class="pb-0">
 			{{ $t('panel.settingsCommunication.caption') }}
 		</v-card-title>

@@ -407,7 +407,7 @@ export default {
 			caption: 'Aktueller Auftrag',
 			status: 'Status',
 			webcam: 'Webcam',
-			visualiser: 'Visualisierer'
+			visualizer: 'Visualisierer'
 		},
 		files: {
 			caption: 'Dateiverwaltung',
@@ -417,6 +417,9 @@ export default {
 			menu: 'Menü',
 			system: 'System',
 			web: 'Web'
+		},
+		plugins: {
+			caption: 'Plugins'
 		},
 		settings: {
 			caption: 'Einstellungen',
@@ -519,24 +522,6 @@ export default {
 			toolFan: 'Werkzeuglüfter',
 			fan: 'Lüfter {0}',
 			noFans: 'Keine Lüfter'
-		},
-		heightmap: {
-			scale: 'Skala:',
-			orMore: 'o. mehr',
-			orLess: 'o. weniger',
-			axes: 'Achsen:',
-			numPoints: 'Anzahl der Punkte: {0}',
-			notAvailable: 'Höhenkarte nicht verfügbar',
-			radius: 'Messradius: {0}',
-			area: 'Messfläche: {0}',
-			maxDeviations: 'Maximale Abweichungen: {0} / {1}',
-			meanError: 'Gemittelter Fehler: {0}',
-			rmsError: 'Standardabweichung: {0}',
-			topView: 'Draufsicht',
-			colorScheme: 'Farbschema:',
-			terrain: 'Terrain',
-			heat: 'Hitze',
-			reload: 'Höhenkarte neu laden'
 		},
 		jobControl: {
 			caption: 'Auftragskontrolle',
@@ -687,7 +672,7 @@ export default {
 			v12: 'V12',
 			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'Lüfter-RPM',
-			probe: 'Z-Probe|Z-Probes',
+			probe: 'Z-Sonde|Z-Sonden',
 			noStatus: 'Kein Status'
 		},
 		tools: {
@@ -719,6 +704,30 @@ export default {
 		webcam: {
 			caption: 'Webcamüberwachung',
 			alt: '(webcam bild)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			listTitle: 'Höhenkarten',
+			none: 'Keine',
+			scale: 'Skala:',
+			orMore: 'o. mehr',
+			orLess: 'o. weniger',
+			axes: 'Achsen:',
+			statistics: 'Statistiken',
+			numPoints: 'Anzahl der Punkte: {0}',
+			notAvailable: 'Höhenkarte nicht verfügbar',
+			radius: 'Messradius: {0}',
+			area: 'Messfläche: {0}',
+			maxDeviations: 'Maximale Abweichungen: {0} / {1}',
+			meanError: 'Gemittelter Fehler: {0}',
+			rmsError: 'Standardabweichung: {0}',
+			display: 'Ansicht',
+			topView: 'Draufsicht',
+			invertZ: 'Z-Koordinaten invertieren',
+			colorScheme: 'Farbschema:',
+			terrain: 'Terrain',
+			heat: 'Hitze'
 		}
 	}
 }

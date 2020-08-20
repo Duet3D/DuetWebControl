@@ -47,11 +47,11 @@
 
 			<v-card-actions v-if="messageBox && messageBox.mode !== 0">
 				<v-spacer></v-spacer>
-				<v-btn v-if="messageBox && (messageBox.mode === 1 || messageBox.mode === 3)" color="blue darken-1" text @click="cancel">
-					{{ $t(messageBox.mode === 1 ? 'generic.close' : 'generic.cancel') }}
+				<v-btn color="blue darken-1" text @click="ok">
+					{{ $t(messageBox.mode === 1 ? 'generic.close' : 'generic.ok') }}
 				</v-btn>
-				<v-btn v-if="messageBox && (messageBox.mode === 2 || messageBox.mode === 3)" color="blue darken-1" text @click="ok">
-					{{ $t('generic.ok') }}
+				<v-btn v-if="messageBox && messageBox.mode === 3" color="blue darken-1" text @click="cancel">
+					{{ $t('generic.cancel') }}
 				</v-btn>
 				<v-spacer></v-spacer>
 			</v-card-actions>
@@ -110,7 +110,9 @@ export default {
 		showSign: (value) => (value > 0) ? `+${value}` : value,
 		ok() {
 			this.shown = false;
-			this.sendCode('M292');
+			if (this.messageBox.mode !== 1) {
+				this.sendCode('M292');
+			}
 		},
 		cancel() {
 			this.shown = false;
