@@ -30,5 +30,11 @@ module.exports = {
 	},
 	transpileDependencies: [
 		'vuetify'
-	]
+	],
+	pwa: {
+		name: 'Duet Web Control 2',
+		themeColor: '#2196f3',
+		appleMobileWebAppCapable: 'yes',
+		appleMobileWebAppStatusBarStyle: 'black'
+	}
 }
