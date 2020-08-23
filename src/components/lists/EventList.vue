@@ -142,7 +142,16 @@ export default {
 			}
 		},
 		formatMessage(message) {
-			return message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
+			let result = message.replace(/Error:/g, '<strong>Error:</strong>').replace(/Warning:/g, '<strong>Warning:</strong>');
+			if (message.startsWith('{') && message.endsWith('}')) {
+				try {
+					const json = JSON.parse(message);
+					result = JSON.stringify(json, null, 4).replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+				} catch {
+					// unhandled
+				}
+			}
+			return result;
 		},
 		downloadText() {
 			let textContent = '';

@@ -43,14 +43,14 @@ export default {
 			if (rootState.isLocal) {
 				const lastHostname = getLocalSetting('lastHostname');
 				if (lastHostname) {
-					commit('update', { lastHostname });
+					commit('load', { lastHostname });
 				}
 			}
 
 			// Attempt to load the global settings from the local storage
 			const settings = getLocalSetting('settings');
 			if (settings) {
-				commit('update', settings);
+				commit('load', settings);
 
 				// Load previously enabled built-in plugins
 				if (settings.enabledPlugins) {
@@ -113,6 +113,16 @@ export default {
 			setLocalSetting('lastHostname', hostname);
 		},
 
+		load(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
+			patch(state, payload, true);
+		},
 		update(state, payload) {
 			if (payload.language && i18n.locale != payload.language) {
 				i18n.locale = payload.language;

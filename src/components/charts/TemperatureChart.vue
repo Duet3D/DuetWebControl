@@ -117,7 +117,6 @@ export default {
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
 		...mapState('machine/model', ['heat']),
-		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme'])
 	},
 	data() {
@@ -280,7 +279,7 @@ export default {
 
 					// Deal with visibility and tell chart instances to update
 					dataset.temps.forEach(function(dataset) {
-						dataset.showLine = !dataset.extra || (this.displayedExtraTemperatures.indexOf(dataset.index) !== -1);
+						dataset.showLine = !dataset.extra || (machines[hostname].settings.displayedExtraTemperatures.indexOf(dataset.index) !== -1);
 					}, this);
 					instances.forEach(instance => instance.update());
 				}

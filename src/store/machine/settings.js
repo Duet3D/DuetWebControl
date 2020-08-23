@@ -89,7 +89,7 @@ export default function(connector, pluginSettingFields) {
 				if (rootState.settings.settingsStorageLocal) {
 					const machineSettings = getLocalSetting(`settings/${connector.hostname}`);
 					if (machineSettings) {
-						commit('update', machineSettings);
+						commit('load', machineSettings);
 					}
 				} else {
 					// Load the settings from dwc2settings.json or fall back to dwc2defaults.json
@@ -101,8 +101,8 @@ export default function(connector, pluginSettingFields) {
 							showSuccess: false,
 							showError: false
 						}, { root: true });
-						commit('settings/update', settings.main, { root: true });
-						commit('update', settings.machine);
+						commit('settings/load', settings.main, { root: true });
+						commit('load', settings.machine);
 					} catch (e) {
 						// may happen if the user has not saved new settings yet
 						try {
@@ -112,8 +112,8 @@ export default function(connector, pluginSettingFields) {
 								showSuccess: false,
 								showError: false
 							}, { root: true });
-							commit('settings/update', settings.main, { root: true });
-							commit('update', settings.machine);
+							commit('settings/load', settings.main, { root: true });
+							commit('load', settings.machine);
 						} catch (ex) {
 							// use shipped values
 						}
@@ -173,6 +173,13 @@ export default function(connector, pluginSettingFields) {
 				} else {
 					state.displayedFans = state.displayedFans.filter(item => item !== fan);
 				}
+			},
+			load(state, payload) {
+				if (payload.plugins !== undefined) {
+					state.plugins = payload.plugins;
+					delete payload.plugins;
+				}
+				patch(state, payload, true);
 			},
 			update(state, payload) {
 				if (payload.plugins !== undefined) {

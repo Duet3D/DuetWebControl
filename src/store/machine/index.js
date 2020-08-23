@@ -284,6 +284,11 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					showMessage(state.model.state.displayMessage);
 				}
 
+				// Has the network hostname been changed?
+				if (payload.network && payload.network.hostname && payload.network.hostname !== connector.hostname) {
+					commit('renameMachine', { from: connector.hostname, to: payload.network.hostname }, { root: true });
+				}
+
 				// Has the firmware halted?
 				if (lastStatus != state.model.state.status && state.model.state.status === StatusType.halted) {
 					log('warning', i18n.t('events.emergencyStop'));

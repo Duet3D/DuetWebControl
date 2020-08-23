@@ -110,9 +110,7 @@ export default {
 		showSign: (value) => (value > 0) ? `+${value}` : value,
 		ok() {
 			this.shown = false;
-			if (this.messageBox.mode !== 1) {
-				this.sendCode('M292');
-			}
+			this.sendCode('M292');
 		},
 		cancel() {
 			this.shown = false;

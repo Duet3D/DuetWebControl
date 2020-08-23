@@ -1,6 +1,5 @@
 'use strict'
 
-import { defaultMachine } from './'
 import {
 	InputChannelName,
 	MachineMode,
@@ -265,7 +264,7 @@ export const DefaultMachineModel = new MachineModel({
 		]
 	},
 	network: {
-		name: 'Duet Web Control 2'
+		name: 'Duet Web Control'
 	},
 	sensors: {
 		probes: [
@@ -377,7 +376,7 @@ export class MachineModelModule {
 			fixMachineItems(state, payload);
 
 			// Update has finished
-			Root.$emit(Events.machineModelUpdated, this.connector ? this.connector.hostname : defaultMachine);
+			Root.$emit(Events.machineModelUpdated, state.network.hostname);
 		},
 
 		addPlugin(state, plugin) {

@@ -29,9 +29,14 @@ export default class PollConnector extends BaseConnector {
 
 		switch (response.err) {
 			case 0:
-				if (!window.forceLegacyConnect && response.apiLevel > 0) {
-					// Don't hide the connection dialog while the full model is being loaded...
-					BaseConnector.setConnectingProgress(0);
+				if (!window.forceLegacyConnect) {
+					if (response.isEmulated) {
+						throw new OperationFailedError('Cancelling connection attempt because the remote endpoint is emulated');
+					}
+					if (response.apiLevel > 0) {
+						// Don't hide the connection dialog while the full model is being loaded...
+						BaseConnector.setConnectingProgress(0);
+					}
 				}
 				return new PollConnector(hostname, password, response);
 			case 1: throw new InvalidPasswordError();
@@ -318,8 +323,8 @@ export default class PollConnector extends BaseConnector {
 		const fanRPMs = (response.sensors.fanRPM instanceof Array) ? response.sensors.fanRPM : [response.sensors.fanRPM];
 		quickPatch(newData, {
 			fans: response.params.fanPercent.map((fanPercent, index) => ({
-				rpm: (index < fanRPMs.length) ? fanRPMs[index] : -1,
-				value: fanPercent / 100
+				rpm: (index < fanRPMs.length && fanRPMs[index] > 0) ? fanRPMs[index] : -1,
+				requestedValue: fanPercent / 100
 			})),
 			heat: {
 				heaters: response.temps.state.map((state, sensor) => ({ state: this.convertHeaterState(state), sensor }), this)
@@ -341,14 +346,14 @@ export default class PollConnector extends BaseConnector {
 					position: position
 				})),
 				speedFactor: response.params.speedFactor / 100,
-				workspaceNumber: (response.wpl !== undefined) ? response.wpl : 1
+				workplaceNumber: (response.wpl !== undefined) ? response.wpl - 1 : 0
 			},
 			scanner: (response.scanner) ? {
 				progress: response.scanner.progress,
 				status: response.scanner.status
 			} : {},
 			sensors: {
-				analog: response.temps.current.map((lastReading, number) => ({ lastReading, number }))
+				analog: response.temps.current.map((lastReading) => ({ lastReading }))
 						.concat(response.temps.extra.map(extra => ({
 							lastReading: (extra.temp === 9999) ? null : extra.temp,
 							name: extra.name
@@ -658,20 +663,29 @@ export default class PollConnector extends BaseConnector {
 			});
 		}
 
-		// Remove invalid heaters
+		// Remove invalid heaters and sensors
 		for (let i = 0; i < newData.heat.heaters.length; i++) {
 			const heater = newData.heat.heaters[i];
 			if (heater && heater.state === HeaterState.off) {
 				if (heater.sensor < 0 || heater.sensor >= newData.sensors.analog.length ||
 					newData.sensors.analog[heater.sensor].lastReading === 2000) {
 					newData.heat.heaters[i] = null;
+					newData.sensors.analog[heater.sensor] = null;
 				}
 			}
 		}
 
 		// Reload the plugins
-		const plugins = await this.download({ filename: Path.dwcPluginsFile });
-		newData.plugins = plugins;
+		if (this.justConnected) {
+			try {
+				const plugins = await this.download({ filename: Path.dwcPluginsFile });
+				newData.plugins = plugins;
+			} catch (e) {
+				if (!(e instanceof FileNotFoundError)) {
+					throw e;
+				}
+			}
+		}
 
 		// Update the data model
 		await this.dispatch('update', newData);
@@ -784,8 +798,14 @@ export default class PollConnector extends BaseConnector {
 			this.justConnected = false;
 
 			// Reload the plugins
-			const plugins = await this.download({ filename: Path.dwcPluginsFile });
-			await this.dispatch('update', { plugins });
+			try {
+				const plugins = await this.download({ filename: Path.dwcPluginsFile });
+				await this.dispatch('update', { plugins });
+			} catch (e) {
+				if (!(e instanceof FileNotFoundError)) {
+					throw e;
+				}
+			}
 
 			// Query the seqs field and the G-code reply
 			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
@@ -1169,7 +1189,9 @@ export default class PollConnector extends BaseConnector {
 		try {
 			plugins = await this.download({ filename: Path.dwcPluginsFile });
 		} catch (e) {
-			console.warn(`Failed to load DWC plugins file: ${e}`);
+			if (!(e instanceof FileNotFoundError)) {
+				console.warn(`Failed to load DWC plugins file: ${e}`);
+			}
 		}
 		plugins = plugins.filter(item => item.name !== plugin.name);
 		plugins.push(plugin);
@@ -1224,7 +1246,9 @@ export default class PollConnector extends BaseConnector {
 		try {
 			plugins = await this.download({ filename: Path.dwcPluginsFile });
 		} catch (e) {
-			console.warn(`Failed to load DWC plugins file: ${e}`);
+			if (!(e instanceof FileNotFoundError)) {
+				console.warn(`Failed to load DWC plugins file: ${e}`);
+			}
 		}
 		plugins = plugins.filter(item => item.name !== plugin.name);
 		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(plugins) });

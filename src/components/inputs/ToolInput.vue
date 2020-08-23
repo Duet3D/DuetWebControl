@@ -47,13 +47,16 @@ export default {
 		isValid() {
 			if (this.all || this.spindle) {
 				return true;
-			} else if (this.tool && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < this.tool.heaters.length) {
-				const heater = this.tool.heaters[this.toolHeaterIndex];
-				return (heater >= 0 && heater < this.heat.heaters.length && this.heat.heaters[heater] !== null);
-			} else if (this.bed && this.bedIndex >= 0 && this.bedIndex < this.heat.heaters.length) {
-				return (this.heat.heaters[this.bedIndex] !== null);
-			} else if (this.chamber && this.chamberIndex >= 0 && this.chamberIndex < this.heat.heaters.length) {
-				return (this.heat.heaters[this.chamberIndex] !== null);
+			}
+			if (this.tool) {
+				if (this.toolHeaterIndex >= 0 && this.toolHeaterIndex < this.tool.heaters.length) {
+					const heater = this.tool.heaters[this.toolHeaterIndex];
+					return (heater >= 0 && heater < this.heat.heaters.length && this.heat.heaters[heater] !== null);
+				}
+			} else if (this.bed) {
+				return (this.bedIndex >= 0 && this.bedIndex < this.heat.bedHeaters.length);
+			} else if (this.chamber) {
+				return (this.chamberIndex >= 0 && this.chamberIndex < this.heat.chamberHeaters.length);
 			}
 			return false;
 		}

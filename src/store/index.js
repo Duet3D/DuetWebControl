@@ -209,6 +209,26 @@ const store = new Vuex.Store({
 			this.registerModule(['machines', hostname], module);
 			Root.$emit(Events.machineAdded, hostname);
 		},
+		renameMachine(state, { from, to }) {
+			machines[to] = machine[from];
+			machines[to].connector.hostname = to;
+
+			const isSelected = (state.selectedMachine === from);
+			if (isSelected) {
+				this.unregisterModule('machine');
+			}
+			delete machines[from];
+
+			if (isSelected) {
+				this.registerModule('machine', machines[to]);
+				state.selectedMachine = to;
+			
+				// Allow access to the machine's data store for debugging...
+				window.machineStore = machines[to];
+			}
+
+			Root.$emit(Events.machineRenamed, { from, to });
+		},
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {
 			this.unregisterModule(['machines', hostname]);
