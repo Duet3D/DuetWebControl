@@ -210,7 +210,7 @@ const store = new Vuex.Store({
 			Root.$emit(Events.machineAdded, hostname);
 		},
 		renameMachine(state, { from, to }) {
-			machines[to] = machine[from];
+			machines[to] = machines[from];
 			machines[to].connector.hostname = to;
 
 			const isSelected = (state.selectedMachine === from);
