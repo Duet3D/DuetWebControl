@@ -21,8 +21,6 @@ import {
 	fixMachineItems
 } from './modelItems.js'
 
-import Root from '../../main.js'
-import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 import { patch, quickPatch } from '../../utils/patch.js'
 
@@ -374,9 +372,6 @@ export class MachineModelModule {
 			// Apply new data
 			patch(state, payload, true);
 			fixMachineItems(state, payload);
-
-			// Update has finished
-			Root.$emit(Events.machineModelUpdated, state.network.hostname);
 		},
 
 		addPlugin(state, plugin) {

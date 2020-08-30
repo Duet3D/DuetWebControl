@@ -11,10 +11,6 @@ export default {
 	// Payload: machine
 	machineAdded: 'machineAdded',
 
-	// Machine has been renamed (e.g. connected to DUET3 but the hostname was updated to duet3)
-	// Payload: { from, to }
-	machineRenamed: 'machineRenamed',
-
 	// Machine has been removed
 	// Payload: machine
 	machineRemoved: 'machineRemoved',

@@ -2,6 +2,8 @@
 
 import Vue from 'vue'
 
+import { resetSettingsTimer } from '../observer.js'
+
 import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
@@ -62,6 +64,8 @@ export default function(connector, pluginSettingFields) {
 				if (!connector) {
 					return;
 				}
+
+				resetSettingsTimer(connector.hostname);
 
 				if (rootState.settings.settingsStorageLocal) {
 					setLocalSetting(`settings/${connector.hostname}`, state);

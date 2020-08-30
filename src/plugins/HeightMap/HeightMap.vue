@@ -138,8 +138,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import { Scene, PerspectiveCamera, WebGLRenderer, Raycaster, Mesh, MeshBasicMaterial, Vector2, Vector3, VertexColors, DoubleSide, ArrowHelper, GridHelper } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
-import { registerRoute } from '../../routes'
-import { registerPluginData, setPluginData, PluginDataType } from '../../store'
+import { setPluginData, PluginDataType } from '../../store'
 
 import { drawLegend, setFaceColors, generateIndicators, generateMeshGeometry } from './3d.js'
 import CSV from '../../utils/csv.js'
@@ -150,23 +149,6 @@ const scaleZ = 0.5, maxVisualizationZ = 0.25
 const indicatorColor = 0xFFFFFF, indicatorOpacity = 0.4, indicatorOpacityHighlighted = 1.0
 
 export default {
-	install() {
-		// Register a route via Control -> Height Map
-		registerRoute(this, {
-			Control: {
-				HeightMap: {
-					icon: 'mdi-grid',
-					caption: 'plugins.heightmap.menuCaption',
-					path: '/HeightMap'
-				}
-			}
-		});
-
-		// Register a new cached property
-		registerPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', 'terrain');
-		registerPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', false);
-	},
-
 	beforeCreate() {
 		this.three = {						// non-reactive data
 			scene: null,

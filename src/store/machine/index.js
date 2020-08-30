@@ -11,7 +11,7 @@ import settings from './settings.js'
 import { version } from '../../../package.json'
 import Root from '../../main.js'
 import i18n from '../../i18n'
-import { checkVersion, loadDwcDependencies } from '../../plugins'
+import { checkVersion, loadDwcResources } from '../../plugins'
 import beep from '../../utils/beep.js'
 import { displayTime } from '../../utils/display.js'
 import Events from '../../utils/events.js'
@@ -270,6 +270,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 
 				// Merge updates into the object model
 				commit('model/update', payload);
+				Root.$emit(Events.machineModelUpdated, connector.hostname);
 				
 				// Is a new beep requested?
 				if (state.model.state.beep &&
@@ -282,11 +283,6 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				if (state.model.state.displayMessage &&
 					state.model.state.displayMessage != lastDisplayMessage) {
 					showMessage(state.model.state.displayMessage);
-				}
-
-				// Has the network hostname been changed?
-				if (payload.network && payload.network.hostname && payload.network.hostname !== connector.hostname) {
-					commit('renameMachine', { from: connector.hostname, to: payload.network.hostname }, { root: true });
 				}
 
 				// Has the firmware halted?
@@ -361,8 +357,8 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					throw new Error(`Plugin ${name} not found`);
 				}
 
-				// Check if there are any resources to load
-				if (plugin.dwcDependencies.length === 0) {
+				// Check if there are any resources to load and if it is actually possible
+				if (!plugin.dwcWebpackChunk || process.env.mode === 'development') {
 					return;
 				}
 
@@ -402,7 +398,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				}
 
 				// Load the required web module
-				await loadDwcDependencies(plugin);
+				await loadDwcResources(plugin, connector);
 
 				// DWC plugin has been loaded
 				if (connector.type === 'poll') {

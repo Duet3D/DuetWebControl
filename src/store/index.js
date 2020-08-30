@@ -8,7 +8,7 @@ import i18n from '../i18n'
 import Root from '../main.js'
 import observer from './observer.js'
 import settings from './settings.js'
-import Plugins, { checkVersion, loadDwcDependencies } from '../plugins'
+import Plugins, { checkVersion, loadDwcResources } from '../plugins'
 import { InvalidPasswordError } from '../utils/errors.js'
 import Events from '../utils/events.js'
 import { logGlobal } from '../utils/logging.js'
@@ -178,7 +178,7 @@ const store = new Vuex.Store({
 			}
 
 			// Load the required web module
-			await loadDwcDependencies(plugin);
+			await loadDwcResources(plugin);
 
 			// DWC plugin has been loaded
 			commit('dwcPluginLoaded', plugin.name);
@@ -208,26 +208,6 @@ const store = new Vuex.Store({
 			machines[hostname] = module;
 			this.registerModule(['machines', hostname], module);
 			Root.$emit(Events.machineAdded, hostname);
-		},
-		renameMachine(state, { from, to }) {
-			machines[to] = machine[from];
-			machines[to].connector.hostname = to;
-
-			const isSelected = (state.selectedMachine === from);
-			if (isSelected) {
-				this.unregisterModule('machine');
-			}
-			delete machines[from];
-
-			if (isSelected) {
-				this.registerModule('machine', machines[to]);
-				state.selectedMachine = to;
-			
-				// Allow access to the machine's data store for debugging...
-				window.machineStore = machines[to];
-			}
-
-			Root.$emit(Events.machineRenamed, { from, to });
 		},
 		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
 		removeMachine(state, hostname) {

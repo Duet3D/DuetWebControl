@@ -23,22 +23,7 @@
 
 import { mapState, mapGetters } from 'vuex'
 
-import { registerRoute } from '../../routes'
-
 export default {
-	install() {
-		// Register a route via Settings -> Object Model
-		registerRoute(this, {
-			Settings: {
-				ObjectModel: {
-					icon: 'mdi-file-tree',
-					caption: 'plugins.objectModelBrowser.menuCaption',
-					path: '/ObjectModel'
-				}
-			}
-		});
-	},
-
 	computed: {
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen'])

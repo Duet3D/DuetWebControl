@@ -50,7 +50,6 @@ export default class RestConnector extends BaseConnector {
 		}
 	}
 
-	requestBase = ''
 	requests = []
 
 	request(method, url, params = null, responseType = 'json', body = null, onProgress = null, cancellationToken = null, filename = 'n/a') {

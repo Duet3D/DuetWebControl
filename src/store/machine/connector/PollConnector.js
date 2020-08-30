@@ -52,7 +52,6 @@ export default class PollConnector extends BaseConnector {
 	boardType = null
 	apiLevel = 0
 
-	requestBase = ''
 	requestTimeout = defaultRequestTimeout
 	requests = []
 

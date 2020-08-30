@@ -22,13 +22,13 @@
     "piecon": "^0.5.0",
     "register-service-worker": "^1.7.1",
     "roboto-fontface": "*",
-    "three": "^0.119.1",
+    "three": "^0.120.0",
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.12",
     "vue-codemirror": "^4.0.6",
     "vue-i18n": "^8.21.0",
     "vue-router": "^3.4.3",
-    "vuetify": "^2.3.9",
+    "vuetify": "^2.3.10",
     "vuex": "^3.5.1"
   },
   "devDependencies": {

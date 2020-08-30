@@ -10,7 +10,7 @@ import i18n from './i18n'
 import './plugins'
 import router from './routes'
 import store from './store'
-import './registerServiceWorker'
+import './registerServiceWorker.js'
 
 Vue.config.productionTip = false
 Vue.use(Vuetify)

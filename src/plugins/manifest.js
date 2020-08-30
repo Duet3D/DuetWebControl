@@ -13,7 +13,7 @@ export class PluginManifest {
 
 	dwcVersion = version 							// Major/minor compatible DWC version
 	dwcDependencies = []							// List of DWC plugins this plugin depends on. Circular dependencies are not supported
-	dwcResources = []								// List of CSS and JS files to load in DWC
+	dwcWebpackChunk = null							// Name of the generated webpack chunk
 
 	sbcRequired = false								// Set to true if a SBC is absolutely required for this plugin
 	sbcDsfVersion = null							// Required DSF version for the plugin running on the SBC (ignored if there is no SBC executable)
@@ -37,7 +37,7 @@ export const SbcPermission = {
 	manageUserSessions: 'manageUserSessions',					// Manage user sessions
 	objectModelRead: 'objectModelRead',							// Read from the object model
 	objectModelReadWrite: 'objectModelReadWrite',				// Read from and write to the object model
-	registerHttpEndpoints: 'commandExecution',					// Create new HTTP endpoints
+	registerHttpEndpoints: 'registerHttpEndpoints',				// Create new HTTP endpoints
 
 	// --- Reserved permissions (will require AppArmor and elevation service) ---
 	// - Virtual SD
@@ -49,6 +49,8 @@ export const SbcPermission = {
 	writeGCodes: 'writeGCodes',									// Write files in 0:/gcodes
 	readMacros: 'readMacros',									// Read files in 0:/macros
 	writeMacros: 'writeMacros',									// Write files in 0:/macros
+	readMenu: 'readMenu',										// Read files in 0:/menu
+	writeMenu: 'writeMenu',										// Write files in 0:/menu
 	readSystem: 'readSystem',									// Read files in 0:/sys
 	writeSystem: 'writeSystem',									// Write files in 0:/sys
 	readWeb: 'readWeb',											// Read files in 0:/www

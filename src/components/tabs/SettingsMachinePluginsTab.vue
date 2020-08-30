@@ -18,6 +18,7 @@ button {
 						<th class="text-left">Author</th>
 						<th class="text-left">Version</th>
 						<th class="text-left">License</th>
+						<th class="text-left">Components</th>
 						<th class="text-left">Dependencies</th>
 						<th class="text-left">Status</th>
 						<th width="1%" class="no-wrap"></th>
@@ -25,23 +26,24 @@ button {
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="plugin in pluginList" :key="plugin.name">
+					<tr v-for="plugin in plugins" :key="plugin.name">
 						<td>{{ plugin.name }}</td>
 						<td>{{ plugin.author }}</td>
 						<td>{{ plugin.version }}</td>
 						<td>{{ plugin.license }}</td>
+						<td>{{ getPluginFunctionality(plugin) }}</td>
 						<td>{{ getPluginDependencies(plugin) }}</td>
 						<td>{{ getPluginStatus(plugin) }}</td>
 						<td class="no-wrap">
-							<v-btn v-if="!isPluginStarted(plugin)" color="success" @click="startPlugin(plugin)" :disabled="!canStartPlugin(plugin)" :loading="plugin.busy">
+							<v-btn v-if="!isPluginStarted(plugin)" color="success" @click="startPlugin(plugin)" :disabled="!canStartPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-play</v-icon> {{ $t('tabs.plugins.start') }}
 							</v-btn>
-							<v-btn v-else color="warning" @click="stopPlugin(plugin)" :disabled="!canStopPlugin(plugin)" :loading="plugin.busy">
+							<v-btn v-else color="warning" @click="stopPlugin(plugin)" :disabled="!canStopPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-stop</v-icon> {{ $t('tabs.plugins.stop') }}
 							</v-btn>
 						</td>
 						<td class="pl-0 no-wrap">
-							<v-btn color="primary" class="px-3" @click="doUninstallPlugin(plugin)" :loading="plugin.busy">
+							<v-btn color="primary" class="px-3" @click="doUninstallPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('tabs.plugins.uninstall') }}
 							</v-btn>
 						</td>
@@ -79,12 +81,6 @@ export default {
 		...mapState('machine/settings', ['enabledPlugins']),
 		onGlobalSettings() {
 			return !this.$route.path.contains('Machine');
-		},
-		pluginList() {
-			return this.plugins.map(plugin => ({
-				...plugin,
-				busy: this.busyPlugins.indexOf(plugin.name) !== -1
-			}));
 		}
 	},
 	data() {
@@ -94,7 +90,23 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['uninstallPlugin', 'startSbcPlugin', 'stopSbcPlugin', 'loadDwcPlugin', 'unloadDwcPlugin']),
+		...mapActions('machine', ['uninstallPlugin', 'loadDwcPlugin', 'unloadDwcPlugin', 'startSbcPlugin', 'stopSbcPlugin']),
+		isPluginBusy(plugin) {
+			return this.busyPlugins.indexOf(plugin.name) !== -1;
+		},
+		getPluginFunctionality(plugin) {
+			let result = [];
+			if (plugin.dwcFiles.length > 0 && plugin.dwcWebpackChunk) {
+				result.push('DWC');
+			}
+			if (plugin.sbcFiles.length > 0) {
+				result.push(plugin.sbcRequired ? 'DSF' : 'DSF (optional)');
+			}
+			if (plugin.rrfFiles.lenght > 0) {
+				result.push('RRF');
+			}
+			return (result.length > 0) ? result.join(', ') : this.$t('generic.noValue');
+		},
 		getPluginDependencies(plugin) {
 			let result = []
 			if (plugin.dwcVersion) {
@@ -126,10 +138,10 @@ export default {
 		},
 		isPluginStarted(plugin) {
 			return ((!plugin.sbcExecutable || plugin.pid > 0) &&
-					(plugin.dwcDependencies.length === 0 || this.loadedDwcPlugins.indexOf(plugin.name) !== -1));
+					(!plugin.dwcWebpackChunk || this.loadedDwcPlugins.indexOf(plugin.name) !== -1));
 		},
 		canStartPlugin(plugin) {
-			return plugin.sbcExecutable || plugin.dwcDependencies.length;
+			return plugin.sbcExecutable || plugin.dwcWebpackChunk;
 		},
 		canStopPlugin(plugin) {
 			return (plugin.sbcExecutable && plugin.pid > 0) || (this.loadedDwcPlugins.indexOf(plugin.name) !== -1);
@@ -148,7 +160,7 @@ export default {
 				}
 
 				// Load DWC resources
-				if (plugin.dwcDependencies.length > 0 && !this.loadedDwcPlugins.some(item => item.name === plugin.name)) {
+				if (plugin.dwcWebpackChunk && !this.loadedDwcPlugins.some(item => item.name === plugin.name)) {
 					await this.loadDwcPlugin(plugin);
 				}
 			} finally {

@@ -2,6 +2,8 @@
 
 import Vue from 'vue'
 
+import { resetSettingsTimer } from './observer.js'
+
 import i18n from '../i18n'
 
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
@@ -64,6 +66,8 @@ export default {
 			}
 		},
 		async save({ state, rootGetters, dispatch }) {
+			resetSettingsTimer();
+
 			// See if we need to save everything in the local storage
 			if (state.settingsStorageLocal) {
 				setLocalSetting('settings', state);

@@ -20,22 +20,7 @@ import { mapState, mapActions } from 'vuex'
 import { WebGLPreview } from 'gcode-preview'
 import { Color } from 'three'
 
-import { registerRoute } from '../../routes'
-
 export default {
-	install() {
-		// Register a route via Job -> Visualizer
-		registerRoute(this, {
-			Job: {
-				Visualizer: {
-					icon: 'mdi-rotate-3d',
-					caption: 'plugins.visualizer.menuCaption',
-					path: '/Job/Visualizer'
-				}
-			}
-		});
-	},
-
 	computed: {
 		...mapState('machine/model', {
 			jobFile: state => state.job.file.fileName,

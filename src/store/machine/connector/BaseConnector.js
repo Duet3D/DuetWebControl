@@ -84,6 +84,9 @@ class BaseConnector {
 	// Hostname
 	hostname = null
 
+	// Base URL for HTTP file requests
+	requestBase = null
+
 	// Connector type
 	type = 'unknown'
 
