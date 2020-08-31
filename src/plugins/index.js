@@ -52,16 +52,16 @@ const BuiltinPlugins = [
 			/ webpackChunkName: "AutoUpdate" /
 			'./AutoUpdate/index.js'
 		)
-	}),*
+	}),*/
 	new DwcPlugin({
 		name: 'Height Map',
 		author: 'Duet3D Ltd',
 		version,
 		loadDwcResources: () => import(
-			/* webpackChunkName: "HeightMap" *
+			/* webpackChunkName: "HeightMap" */
 			'./HeightMap/index.js'
 		)
-	}),*/
+	}),
 	new DwcPlugin({
 		name: 'G-Code Visualizer',
 		author: 'Duet3D Ltd',
