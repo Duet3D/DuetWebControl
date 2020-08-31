@@ -26,26 +26,18 @@ export function checkVersion(actual, required) {
 	return true;
 }
 
-export async function loadDwcResources(plugin, connector) {
+export function loadDwcResources(plugin, connector) {
 	if (plugin instanceof DwcPlugin) {
 		// Import built-in module from DWC
-		await plugin.loadDwcResources();
-		console.debug(`Built-in plugin ${plugin.name} has been loaded`);
+		return plugin.loadDwcResources();
 	} else if (process.env.mode !== 'development') {
 		// Import external webpack module
 		window.pluginBeingLoaded = plugin;
 		window.pluginBaseURL = connector.requestBase;
 
-		try {
-			/* eslint-disable no-undef */
-			await __webpack_require__.e(plugin.dwcWebpackChunk);
-			__webpack_require__.bind(null, `./src/plugins/${plugin.dwcWebpackChunk}/index.js`);
-			/* eslint-enable no-undef */
-			console.debug(`External plugin ${plugin.name} has been loaded`);
-		} finally {
-			delete window.pluginBeingLoaded;
-			delete window.pluginBaseURL;
-		}
+		/* eslint-disable no-undef */
+		return __webpack_require__.e(plugin.dwcWebpackChunk).then(__webpack_require__.bind(null, `./src/plugins/${plugin.dwcWebpackChunk}/index.js`));
+		/* eslint-enable no-undef */
 	} else {
 		throw new Error('Cannot load external plugins in dev mode');
 	}
@@ -58,25 +50,25 @@ const BuiltinPlugins = [
 		version,
 		loadDwcResources: () => import(
 			/ webpackChunkName: "AutoUpdate" /
-			'./AutoUpdate'
+			'./AutoUpdate/index.js'
 		)
-	}),*/
+	}),*
 	new DwcPlugin({
 		name: 'Height Map',
 		author: 'Duet3D Ltd',
 		version,
 		loadDwcResources: () => import(
-			/* webpackChunkName: "HeightMap" */
-			'./HeightMap'
+			/* webpackChunkName: "HeightMap" *
+			'./HeightMap/index.js'
 		)
-	}),
+	}),*/
 	new DwcPlugin({
 		name: 'G-Code Visualizer',
 		author: 'Duet3D Ltd',
 		version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "Visualizer" */
-			'./Visualizer'
+			'./Visualizer/index.js'
 		)
 	}),
 	new DwcPlugin({

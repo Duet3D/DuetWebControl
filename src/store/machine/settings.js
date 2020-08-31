@@ -132,7 +132,7 @@ export default function(connector, pluginSettingFields) {
 
 					if (settings.machine && settings.machine.enabledPlugins) {
 						for (let i = 0; i < settings.machine.enabledPlugins.length; i++) {
-							await dispatch('loadDwcPlugin', { name: settings.machine.enabledPlugins[i], saveSettings: false });
+							await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { name: settings.machine.enabledPlugins[i], saveSettings: false }, { root: true });
 						}
 					}
 				}

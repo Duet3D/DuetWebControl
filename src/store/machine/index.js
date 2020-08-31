@@ -362,6 +362,11 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					return;
 				}
 
+				// Check if the requested webpack chunk is already part of another plugin
+				if (state.model.plugins.some(item => item !== plugin && item.dwcWebpackChunk === item.dwcWebpackChunk)) {
+					throw new Error(`Plugin ${name} cannot be loaded because the requested webpack chunk is already used by another plugin`);
+				}
+
 				// Check if the corresponding SBC plugin has been loaded (if applicable)
 				if (plugin.sbcRequired) {
 					if (!state.model.state.dsfVersion ||

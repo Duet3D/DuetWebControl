@@ -28,3 +28,28 @@ export default new Vue({
 		lang: { t: (key, ...params) => i18n.t(key, params) }
 	})
 })
+
+// This is only for debugging; will be removed shortly
+window.importChunk = async function(name, chunk) {
+	window.pluginBeingLoaded = {
+		name: name,
+		dwcWebpackChunk: chunk,
+		dwcFiles: [`${chunk}.js`]
+	};
+	window.pluginBaseURL = 'http://127.0.0.1:8080/';
+
+	// eslint-disable-next-line no-undef
+	__webpack_require__.e(chunk).then(__webpack_require__.bind(null, `./src/plugins/${chunk}/index.js`));
+}
+
+import { loadDwcResources } from './plugins'
+window.importPlugin = () => loadDwcResources(
+	{
+		name: 'DWC Height Map',
+		dwcWebpackChunk: 'HeightMap',
+		dwcFiles: ['HeightMap.js']
+	},
+	{
+		requestBase: 'http://127.0.0.1:8080/'
+	}
+);
