@@ -293,6 +293,7 @@ export default {
 					}
 				} catch (e) {
 					success = false;
+					console.warn(e);
 					this.$emit('uploadFailed', { filename, reason: e });
 					break;
 				}

@@ -14,12 +14,12 @@ button {
 			<template #default>
 				<thead>
 					<tr>
-						<th class="text-left">Name</th>
-						<th class="text-left">Author</th>
-						<th class="text-left">Version</th>
-						<th class="text-left">License</th>
-						<th class="text-left">Dependencies</th>
-						<th class="text-left">Status</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.name') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.author') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.version') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.license') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.dependencies') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.status') }}</th>
 						<th width="1%" class="no-wrap"></th>
 					</tr>
 				</thead>
@@ -32,10 +32,10 @@ button {
 						<td>{{ getPluginDependencies(plugin) }}</td>
 						<td>{{ getPluginStatus(plugin) }}</td>
 						<td class="no-wrap">
-							<v-btn v-if="!isPluginStarted(plugin)" color="success" @click="startPlugin(plugin)">
+							<v-btn v-if="!isPluginStarted(plugin)" color="success" @click="startPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-play</v-icon> {{ $t('tabs.plugins.start') }}
 							</v-btn>
-							<v-btn v-else color="warning" @click="stopPlugin(plugin)" :disabled="!canStopPlugin(plugin)">
+							<v-btn v-else color="warning" @click="stopPlugin(plugin)" :disabled="!canStopPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-stop</v-icon> {{ $t('tabs.plugins.stop') }}
 							</v-btn>
 						</td>
@@ -45,11 +45,11 @@ button {
 		</v-simple-table>
 
 		<v-alert :value="plugins.length === 0" type="info" class="text-left ma-0" @contextmenu.prevent="">
-			No Plugins
+			{{ $t('tabs.plugins.noPlugins') }}
 		</v-alert>
 
 		<v-alert :value="dwcPluginsUnloaded" type="info" class="text-left ma-0" @contextmenu.prevent="">
-			Refresh the page to finish unloading some DWC plugins
+			{{ $t('tabs.plugins.refreshNote') }}
 		</v-alert>
 	</div>
 </template>
@@ -64,8 +64,10 @@ import { registerSettingTab } from '../../routes'
 
 export default {
 	install() {
-		// Register a settings tab on the General settings page
-		registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.caption');
+		if (Plugins.length > 0) {
+			// Register a settings tab on the General settings page
+			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.caption');
+		}
 	},
 
 	computed: {
@@ -75,20 +77,24 @@ export default {
 	},
 	data() {
 		return {
-			dwcPluginsUnloaded: false
+			dwcPluginsUnloaded: false,
+			busyPlugins: []
 		}
 	},
 	methods: {
 		...mapActions(['loadDwcPlugin', 'unloadDwcPlugin']),
 		...mapActions('machine', ['startSbcPlugin', 'stopSbcPlugin']),
+		isPluginBusy(plugin) {
+			return this.busyPlugins.indexOf(plugin.name) !== -1;
+		},
 		getPluginDependencies(plugin) {
 			return `DWC ${plugin.dwcVersion}`;
 		},
 		getPluginStatus(plugin) {
 			if (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
-				return (this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'started' : 'to be stopped';
+				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.toBeStopped');
 			}
-			return 'stopped';
+			return this.$t('tabs.plugins.stopped');
 		},
 		isPluginStarted(plugin) {
 			return this.loadedDwcPlugins.indexOf(plugin.name) !== -1;
@@ -97,7 +103,21 @@ export default {
 			return this.enabledPlugins.indexOf(plugin.name) !== -1;
 		},
 		async startPlugin(plugin) {
-			await this.loadDwcPlugin({ name: plugin.name, saveSettings: true });
+			this.busyPlugins.push(plugin.name);
+			try {
+				try {
+					// Load DWC resources
+					await this.loadDwcPlugin({ name: plugin.name, saveSettings: true });
+
+					// Display a message
+					alert('Plugin has been started');
+				} catch (e) {
+					alert(e);
+					throw e;
+				}
+			} finally {
+				this.busyPlugins = this.busyPlugins.filter(item => item != plugin.name);
+			}
 		},
 		async stopPlugin(plugin) {
 			await this.unloadDwcPlugin(plugin.name);

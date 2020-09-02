@@ -746,9 +746,25 @@ export default {
 		},
 		plugins: {
 			caption: 'Plugins',
+			headers: {
+				name: 'Name',
+				author: 'Author',
+				version: 'Version',
+				license: 'License',
+				components: 'Components',
+				dependencies: 'Dependencies',
+				status: 'Status'
+			},
+			optional: 'optional',
 			start: 'Start',
+			partiallyStarted: 'partially started',
+			started: 'started',
 			stop: 'Stop',
-			uninstall: 'Uninstall'
+			deactivated: 'deactivated',
+			stopped: 'stopped',
+			uninstall: 'Uninstall',
+			noPlugins: 'No Plugins',
+			refreshNote: 'Refresh the page to finish unloading some DWC plugins'
 		}
 	}
 }

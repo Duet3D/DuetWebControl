@@ -18,7 +18,7 @@ module.exports = {
 		plugins: (process.env.NODE_ENV === 'production') ? [
 			new CustomImportsPlugin(),
 			new CompressionPlugin({
-				cache: true
+				minRatio: Infinity
 			}),
 			new ZipPlugin({
 				filename: 'DuetWebControl-SD.zip',

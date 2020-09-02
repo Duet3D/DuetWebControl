@@ -378,7 +378,7 @@ export class MachineModelModule {
 			state.plugins.push(plugin);
 		},
 		removePlugin(state, plugin) {
-			state.plugins = state.plugins.filter(item => item.name !== plugin);
+			state.plugins = state.plugins.filter(item => item.name !== plugin.name);
 		}
 	}
 }

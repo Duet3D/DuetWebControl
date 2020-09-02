@@ -43,7 +43,7 @@ export function loadDwcResources(plugin, connector) {
 	}
 }
 
-const BuiltinPlugins = [
+export default [
 	/*new DwcPlugin({
 		name: 'Auto Update',
 		author: 'Duet3D Ltd',
@@ -82,15 +82,3 @@ const BuiltinPlugins = [
 	}),
 	// Add your own plugins here during development...
 ]
-
-// Import the dummy plugin once if no plugins are exported.
-// Without at least one import in DWC the customImports webpack plugin fails
-if (BuiltinPlugins.length === 0) {
-	window.importDummyPlugin = () => import(
-		/* webpackChunkName: "DummyPlugin" */
-		'./Dummy'
-	)
-	delete window.importDummyPlugin
-}
-
-export default BuiltinPlugins

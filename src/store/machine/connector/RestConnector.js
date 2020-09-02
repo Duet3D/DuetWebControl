@@ -131,6 +131,8 @@ export default class RestConnector extends BaseConnector {
 		this.requests.forEach(request => request.abort());
 	}
 
+	loadPlugins() { }
+
 	async reconnect() {
 		// Cancel pending requests
 		this.cancelRequests();

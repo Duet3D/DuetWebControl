@@ -132,6 +132,9 @@ class BaseConnector {
 
 	/* eslint-disable no-unused-vars */
 
+	// Load installed plugins
+	async loadPlugins() { throw new NotImplementedError('loadPlugins'); }
+
 	// Reconnect after a connection error
 	async reconnect() { throw new NotImplementedError('reconnect'); }
 

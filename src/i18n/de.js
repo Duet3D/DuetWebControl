@@ -400,14 +400,12 @@ export default {
 		control: {
 			caption: 'Maschinensteuerung',
 			dashboard: 'Übersicht',
-			console: 'Konsole',
-			heightmap: 'Höhenkarte'
+			console: 'Konsole'
 		},
 		job: {
 			caption: 'Aktueller Auftrag',
 			status: 'Status',
-			webcam: 'Webcam',
-			visualizer: 'Visualisierer'
+			webcam: 'Webcam'
 		},
 		files: {
 			caption: 'Dateiverwaltung',
@@ -424,8 +422,7 @@ export default {
 		settings: {
 			caption: 'Einstellungen',
 			general: 'Allgemein',
-			machine: 'Maschinenspezifisch',
-			update: 'Aktualisierung'
+			machine: 'Maschinenspezifisch'
 		}
 	},
 	notification: {
@@ -707,7 +704,11 @@ export default {
 		}
 	},
 	plugins: {
+		autoUpdate: {
+			menuCaption: 'Aktualisierung'
+		},
 		heightmap: {
+			menuCaption: 'Höhenkarte',
 			listTitle: 'Höhenkarten',
 			none: 'Keine',
 			scale: 'Skala:',
@@ -728,6 +729,42 @@ export default {
 			colorScheme: 'Farbschema:',
 			terrain: 'Terrain',
 			heat: 'Hitze'
+		},
+		objectModelBrowser: {
+			menuCaption: 'Objektmodell'
+		},
+		visualizer: {
+			menuCaption: 'Visualisierer'
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: 'Allgemein'
+		},
+		machineSettings: {
+			caption: 'Allgemein'
+		},
+		plugins: {
+			caption: 'Plugins',
+			headers: {
+				name: 'Name',
+				author: 'Autor',
+				version: 'Version',
+				license: 'Lizenz',
+				components: 'Komponenten',
+				dependencies: 'Abhängigkeiten',
+				status: 'Status'
+			},
+			optional: 'optional',
+			start: 'Starten',
+			partiallyStarted: 'teilweise gestartet',
+			started: 'gestartet',
+			stop: 'Stoppen',
+			deactivated: 'deaktiviert',
+			stopped: 'gestoppt',
+			uninstall: 'Deinstallieren',
+			noPlugins: 'Keine Plugins',
+			refreshNote: 'Laden Sie die Seite neu um einige DWC-Plugins zu entladen'
 		}
 	}
 }

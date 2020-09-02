@@ -354,16 +354,22 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				// Get the plugin
 				const plugin = state.model.plugins.find(item => item.name === name);
 				if (!plugin) {
-					throw new Error(`Plugin ${name} not found`);
+					if (saveSettings) {
+						throw new Error(`Plugin ${name} not found`);
+					}
+
+					// Fail silently if the config is being loaded
+					console.warn(`Plugin ${name} not found`);
+					return;
 				}
 
 				// Check if there are any resources to load and if it is actually possible
-				if (!plugin.dwcWebpackChunk || process.env.mode === 'development') {
+				if (!plugin.dwcWebpackChunk || process.env.NODE_ENV === 'development') {
 					return;
 				}
 
 				// Check if the requested webpack chunk is already part of another plugin
-				if (state.model.plugins.some(item => item !== plugin && item.dwcWebpackChunk === item.dwcWebpackChunk)) {
+				if (state.model.plugins.some(item => item !== plugin && item.dwcWebpackChunk === plugin.dwcWebpackChunk)) {
 					throw new Error(`Plugin ${name} cannot be loaded because the requested webpack chunk is already used by another plugin`);
 				}
 
@@ -398,7 +404,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					}
 
 					if (!dependentPlugin.loaded) {
-						await dispatch('loadPlugin', dependentPlugin.name);
+						await dispatch('loadDwcPlugin', { name: dependentPlugin.name, saveSettings: false });
 					}
 				}
 
@@ -406,13 +412,10 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				await loadDwcResources(plugin, connector);
 
 				// DWC plugin has been loaded
-				if (connector.type === 'poll') {
-					commit('model/addPlugin', plugin);
-				}
+				commit('dwcPluginLoaded', plugin.name, { root: true });
 				if (saveSettings) {
 					commit('settings/dwcPluginLoaded', plugin.name);
 				}
-				commit('dwcPluginLoaded', plugin.name, { root: true });
 			},
 
 			// Called to unload a DWC plugin from this machine
@@ -426,7 +429,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				state.filesBeingChanged.push(filename);
 			},
 			clearFilesBeingChanged(state) {
-				state.filesBeingChanged.clear();
+				state.filesBeingChanged = [];
 			},
 
 			clearLog: state => state.events = [],

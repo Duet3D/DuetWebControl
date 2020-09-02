@@ -14,13 +14,13 @@ button {
 			<template #default>
 				<thead>
 					<tr>
-						<th class="text-left">Name</th>
-						<th class="text-left">Author</th>
-						<th class="text-left">Version</th>
-						<th class="text-left">License</th>
-						<th class="text-left">Components</th>
-						<th class="text-left">Dependencies</th>
-						<th class="text-left">Status</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.name') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.author') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.version') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.license') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.components') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.dependencies') }}</th>
+						<th class="text-left">{{ $t('tabs.plugins.headers.status') }}</th>
 						<th width="1%" class="no-wrap"></th>
 						<th width="1%" class="no-wrap"></th>
 					</tr>
@@ -53,11 +53,11 @@ button {
 		</v-simple-table>
 
 		<v-alert :value="plugins.length === 0" type="info" class="text-left ma-0" @contextmenu.prevent="">
-			No Plugins
+			{{ $t('tabs.plugins.noPlugins') }}
 		</v-alert>
 
 		<v-alert :value="dwcPluginsUnloaded" type="info" class="text-left ma-0" @contextmenu.prevent="">
-			Refresh the page to finish unloading some DWC plugins
+			{{ $t('tabs.plugins.refreshNote') }}
 		</v-alert>
 	</div>
 </template>
@@ -67,12 +67,15 @@ button {
 
 import { mapState, mapActions } from 'vuex'
 
+import Plugins from '../../plugins'
 import { registerSettingTab } from '../../routes'
 
 export default {
 	install() {
-		// Register a settings tab on the Machine settings page
-		registerSettingTab(false, 'settings-machine-plugins-tab', this, 'tabs.plugins.caption');
+		if (Plugins.length > 0 && process.env.NODE_ENV !== 'development') {
+			// Register a settings tab on the Machine settings page
+			registerSettingTab(false, 'settings-machine-plugins-tab', this, 'tabs.plugins.caption');
+		}
 	},
 
 	computed: {
@@ -100,7 +103,7 @@ export default {
 				result.push('DWC');
 			}
 			if (plugin.sbcFiles.length > 0) {
-				result.push(plugin.sbcRequired ? 'DSF' : 'DSF (optional)');
+				result.push(plugin.sbcRequired ? 'DSF' : `DSF (${this.$t('tabs.plugins.optional')})`);
 			}
 			if (plugin.rrfFiles.lenght > 0) {
 				result.push('RRF');
@@ -122,46 +125,48 @@ export default {
 		},
 		getPluginStatus(plugin) {
 			if (plugin.sbcExecutable) {
-				if (plugin.pid > 0 && (plugin.dwcDependencies.length === 0 || this.enabledPlugins.indexOf(plugin.name) !== -1)) {
-					return 'started';
+				if (plugin.pid > 0 && this.enabledPlugins.indexOf(plugin.name) !== -1) {
+					return this.$t('tabs.plugins.started');
 				}
-				if (plugin.pid > 0 || (plugin.dwcDependencies.length > 0 && this.enabledPlugins.indexOf(plugin.name) !== -1)) {
-					return 'partially started';
+				if (plugin.pid > 0 || this.enabledPlugins.indexOf(plugin.name) !== -1) {
+					return this.$t('tabs.plugins.partiallyStarted');
 				}
-				return (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) ? 'to be stopped' : 'stopped';
+				return this.$t((this.loadedDwcPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.deactivated' : 'tabs.plugins.stopped');
 			}
 
 			if (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
-				return (this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'started' : 'to be stopped';
+				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.deactivated');
 			}
-			return 'stopped';
+			return this.$t('tabs.plugins.stopped');
 		},
 		isPluginStarted(plugin) {
-			return ((!plugin.sbcExecutable || plugin.pid > 0) &&
-					(!plugin.dwcWebpackChunk || this.loadedDwcPlugins.indexOf(plugin.name) !== -1));
+			return (plugin.pid > 0) || (this.loadedDwcPlugins.indexOf(plugin.name) !== -1);
 		},
 		canStartPlugin(plugin) {
 			return plugin.sbcExecutable || plugin.dwcWebpackChunk;
 		},
 		canStopPlugin(plugin) {
-			return (plugin.sbcExecutable && plugin.pid > 0) || (this.loadedDwcPlugins.indexOf(plugin.name) !== -1);
+			return (plugin.pid > 0) || (this.enabledPlugins.indexOf(plugin.name) !== -1);
 		},
 		async startPlugin(plugin) {
 			this.busyPlugins.push(plugin.name);
 			try {
-				// Start the plugin on the SBC
-				if (plugin.sbcExecutable && plugin.pid <= 0) {
-					try {
+				try {
+					// Start the plugin on the SBC
+					if (plugin.sbcExecutable && plugin.pid <= 0) {
 						await this.startSbcPlugin(plugin.name);
-					} catch (e) {
-						alert(e);
-						throw e;
 					}
-				}
 
-				// Load DWC resources
-				if (plugin.dwcWebpackChunk && !this.loadedDwcPlugins.some(item => item.name === plugin.name)) {
-					await this.loadDwcPlugin(plugin);
+					// Load DWC resources
+					if (plugin.dwcWebpackChunk && !this.loadedDwcPlugins.some(item => item.name === plugin.name)) {
+						await this.loadDwcPlugin( { name: plugin.name, saveSettings: true });
+					}
+
+					// Display a message
+					alert('Plugin has been started');
+				} catch (e) {
+					alert(e);
+					throw e;
 				}
 			} finally {
 				this.busyPlugins = this.busyPlugins.filter(item => item != plugin.name);

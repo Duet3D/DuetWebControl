@@ -90,7 +90,11 @@ export default function(connector, pluginSettingFields) {
 					return;
 				}
 
+				// Load the installed plugins
+				await connector.loadPlugins();
+
 				if (rootState.settings.settingsStorageLocal) {
+					// Load the settings from the local storage
 					const machineSettings = getLocalSetting(`settings/${connector.hostname}`);
 					if (machineSettings) {
 						commit('load', machineSettings);

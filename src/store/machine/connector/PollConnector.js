@@ -20,6 +20,9 @@ import { bitmapToArray } from '../../../utils/numbers.js'
 import Path from '../../../utils/path.js'
 import { strToTime, timeToStr } from '../../../utils/time.js'
 
+const keysToIgnore = ['httpEndpoints', 'messages', 'plugins', 'userSessions', 'userVariables']
+const keysToQuery = Object.keys(DefaultMachineModel).filter(key => keysToIgnore.indexOf(key) === -1);
+
 export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		const response = await BaseConnector.request('GET', `${location.protocol}//${hostname}/rr_connect`, {
@@ -211,6 +214,18 @@ export default class PollConnector extends BaseConnector {
 		// for standard end-users. That is also the reason why they are disabled in the build
 		// script, which by default is used for improved caching
 		this.scheduleUpdate();
+	}
+
+	plugins = []
+	async loadPlugins() {
+		try {
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+			await this.dispatch('update', { plugins: this.plugins });
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				throw e;
+			}
+		}
 	}
 
 	async reconnect() {
@@ -674,18 +689,6 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		// Reload the plugins
-		if (this.justConnected) {
-			try {
-				const plugins = await this.download({ filename: Path.dwcPluginsFile });
-				newData.plugins = plugins;
-			} catch (e) {
-				if (!(e instanceof FileNotFoundError)) {
-					throw e;
-				}
-			}
-		}
-
 		// Update the data model
 		await this.dispatch('update', newData);
 
@@ -791,20 +794,12 @@ export default class PollConnector extends BaseConnector {
 	lastSeqs = {}
 	lastStatus = null
 	lastUptime = 0
+	webDirectory = Path.web
+
 	async updateLoopModel() {
 		let jobKey = null, extruders = [], status = null, zPosition = null;
 		if (this.justConnected) {
 			this.justConnected = false;
-
-			// Reload the plugins
-			try {
-				const plugins = await this.download({ filename: Path.dwcPluginsFile });
-				await this.dispatch('update', { plugins });
-			} catch (e) {
-				if (!(e instanceof FileNotFoundError)) {
-					throw e;
-				}
-			}
 
 			// Query the seqs field and the G-code reply
 			this.lastSeqs = (await this.request('GET', 'rr_model', { key: 'seqs' })).result;
@@ -820,14 +815,17 @@ export default class PollConnector extends BaseConnector {
 
 			// Query the full object model initially
 			try {
-				let keyIndex = 1, numKeys = Object.keys(DefaultMachineModel).length;
-				for (let key in DefaultMachineModel) {
+				let keyIndex = 1;
+				for (let i = 0; i < keysToQuery.length; i++) {
+					const key = keysToQuery[i];
 					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
 					await this.dispatch('update', { [key]: keyResponse.result });
-					BaseConnector.setConnectingProgress((keyIndex++ / numKeys) * 100);
+					BaseConnector.setConnectingProgress((keyIndex++ / keysToQuery.length) * 100);
 
 					if (key === 'job') {
 						jobKey = keyResponse.result;
+					} else if (key === 'directories') {
+						this.webDirectory = keyResponse.result.web;
 					} else if (key === 'move') {
 						extruders = keyResponse.result.extruders;
 						zPosition = (keyResponse.result.axes.length > 2) ? keyResponse.result.axes[2].userPosition : null;
@@ -860,7 +858,9 @@ export default class PollConnector extends BaseConnector {
 					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
 					await this.dispatch('update', { [key]: keyResponse.result });
 
-					if (key === 'job') {
+					if (key === 'directories') {
+						this.webDirectory = keyResponse.result.web;
+					} else if (key === 'job') {
 						jobKey = keyResponse.result;
 					}
 				}
@@ -1153,6 +1153,12 @@ export default class PollConnector extends BaseConnector {
 			throw new Error(`Plugin ${plugin.name} cannot be loaded because the current machine does not have an SBC attached`);
 		}
 
+		// Uninstall the previous version if applicable
+		const pluginToUpgrade = this.plugins.find(item => item.name === plugin.name);
+		if (pluginToUpgrade) {
+			await this.uninstallPlugin(pluginToUpgrade);
+		}
+
 		// Clear potential files
 		plugin.dwcFiles = [];
 		plugin.rrfFiles = [];
@@ -1161,6 +1167,10 @@ export default class PollConnector extends BaseConnector {
 
 		// Install the files
 		for (let file in zipFile.files) {
+			if (file.endsWith('/')) {
+				continue;
+			}
+
 			let targetFilename = null;
 			if (file.startsWith('rrf/')) {
 				const filename = file.substring(4);
@@ -1168,7 +1178,7 @@ export default class PollConnector extends BaseConnector {
 				plugin.rrfFiles.push(filename);
 			} else if (file.startsWith('www/')) {
 				const filename = file.substring(4);
-				targetFilename = `0:/${plugin.name}/${filename}`;
+				targetFilename = Path.combine(this.webDirectory, plugin.name, filename);
 				plugin.dwcFiles.push(filename);
 			} else {
 				console.warn(`Skipping file ${file}`);
@@ -1179,22 +1189,20 @@ export default class PollConnector extends BaseConnector {
 				extractedFile.name = file;
 
 				console.debug(`Uploading plugin file ${file} to ${targetFilename}`);
-				await this.upload({ filename: file, content: extractedFile });
+				await this.upload({ filename: targetFilename, content: extractedFile });
 			}
 		}
 
 		// Update the plugins file
-		let plugins = []
 		try {
-			plugins = await this.download({ filename: Path.dwcPluginsFile });
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
 				console.warn(`Failed to load DWC plugins file: ${e}`);
 			}
 		}
-		plugins = plugins.filter(item => item.name !== plugin.name);
-		plugins.push(plugin);
-		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(plugins) });
+		this.plugins.push(plugin);
+		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
 
 		// Install the plugin manifest
 		await this.commit('model/addPlugin', plugin);
@@ -1220,7 +1228,7 @@ export default class PollConnector extends BaseConnector {
 		// Delete web files
 		for (let i = 0; i < plugin.dwcFiles.length; i++) {
 			try {
-				await this.delete(`0:/www/${plugin.name}/${plugin.dwcFiles[i]}`);
+				await this.delete(Path.combine(this.webDirectory, plugin.name, plugin.dwcFiles[i]));
 			} catch (e) {
 				if (e instanceof OperationFailedError) {
 					console.warn(e);
@@ -1241,15 +1249,14 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Update the plugins file
-		let plugins = []
 		try {
-			plugins = await this.download({ filename: Path.dwcPluginsFile });
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
 				console.warn(`Failed to load DWC plugins file: ${e}`);
 			}
 		}
-		plugins = plugins.filter(item => item.name !== plugin.name);
-		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(plugins) });
+		this.plugins = this.plugins.filter(item => item.name !== plugin.name);
+		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
 	}
 }
