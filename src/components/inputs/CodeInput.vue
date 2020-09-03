@@ -9,7 +9,7 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
 						:search-input.sync="code" @click="click" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						:items="displayedCodes" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem" hide-selected>
+						:items="displayedCodes" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -21,7 +21,7 @@
 		</v-col>
 
 		<v-col class="ml-2 flex-shrink-1" cols="auto">
-			<v-btn color="info" :disabled="uiFrozen" :loading="doingCode" @click="doSend">
+			<v-btn color="info" :disabled="uiFrozen" :loading="doingCode" @click="send">
 				<v-icon class="mr-2">mdi-send</v-icon> {{ $t('input.code.send') }} 
 			</v-btn>
 		</v-col>
@@ -98,17 +98,9 @@ export default {
 				this.code = value.value;
 			}
 		},
-		doSend() {
-			if (this.$refs.input.isMenuActive) {
-				this.$refs.input.isMenuActive = false;		// FIXME There must be a better solution than this
-				this.sendPending = true;
-			} else {
-				this.send();
-			}
-		},
 		hasUnprecedentedParameters: (code) => !code || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(code),
 		async send() {
-			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
+			this.showItems = false;
 
 			const code = (this.code.constructor === String) ? this.code : this.code.value;
 			if (code && code.trim() !== '' && !this.doingCode) {

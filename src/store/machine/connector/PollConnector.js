@@ -112,7 +112,7 @@ export default class PollConnector extends BaseConnector {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
 					// with the last-known password and retry the pending request if that succeeds
-					BaseConnector.request('GET', `${location.protocol}//${that.hostname}/rr_connect`, {
+					BaseConnector.request('GET', `${that.requestBase}/rr_connect`, {
 							password: that.password,
 							time: timeToStr(new Date())
 						})
@@ -199,7 +199,7 @@ export default class PollConnector extends BaseConnector {
 		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.requestBase = `${location.protocol}//${hostname}/`;
+		this.requestBase = (hostname === location.host) ? `${location.protocol}//${hostname}${process.env.BASE_URL}` : `http://${hostname}/`;
 		this.sessionTimeout = responseData.sessionTimeout;
 		this.apiLevel = responseData.apiLevel || 0;
 	}
