@@ -1,6 +1,26 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-beta1
+===================
+
+Compatible files:
+- DuetSoftwareFramework 3.2.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Plugins may now be loaded. Refer to the `plugins` directory for further details
+- Increased maximum editor size from 16MiB to 32MiB
+- JSON outputs are automatically formatted in the Code Console
+- Replaced `/sys/dwc2-` JSON files with `/sys/dwc-` (rename them manually to restore your DWC settings)
+
+Bug fixes:
+- Fixed some incompatibilities to RRFv2
+- Code input occasionally required enter to be pressed twice to send a code
+- Base URL as defined by compile options was not respected in the connectors
+- Depending on the configuration inputs for bed/chamber heaters were disabled
+- Under special circumstances the "Reset heater fault" dialog could never time out
+
 Version 3.1.1
 ==============
 

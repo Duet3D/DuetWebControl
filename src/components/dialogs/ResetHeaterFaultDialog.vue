@@ -42,30 +42,37 @@ export default {
 	},
 	data() {
 		return {
-			counter: 10
+			counter: 10,
+			timer: null
 		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
-		resetFault() {
-			this.sendCode(`M562 P${this.heater}`);
-			this.hide();
+		async resetFault() {
+			try {
+				await this.sendCode(`M562 P${this.heater}`);
+			} finally {
+				this.hide();
+			}
 		},
 		hide() {
 			this.$emit('update:shown', false);
 		},
 		countDown() {
 			this.counter--;
-			if (this.counter) {
-				setTimeout(this.countDown, 1000);
-			}
+			this.timer = (this.counter > 0) ? setTimeout(this.countDown.bind(this), 1000) : null;
 		}
 	},
 	watch: {
 		shown(to) {
 			if (to) {
-				this.counter = 10;
-				this.countDown();
+				if (!this.timer) {
+					this.counter = 10;
+					this.countDown();
+				}
+			} else if (this.timer) {
+				clearTimeout(this.timer);
+				this.timer = null;
 			}
 		}
 	}

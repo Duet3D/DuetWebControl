@@ -37,6 +37,7 @@
 'use strict'
 
 import Chart from 'chart.js'
+import dateFnsLocale from 'date-fns/locale/en-US'
 import { mapState, mapGetters } from 'vuex'
 
 import i18n from '../../i18n'
@@ -173,6 +174,11 @@ export default {
 			scales: {
 				xAxes: [
 					{
+						adapters: {
+							date: {
+								locale: dateFnsLocale
+							}
+						},
 						gridLines: {
 							color: 'rgba(0,0,0,0.2)',
 							display: true

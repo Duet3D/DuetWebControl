@@ -4,6 +4,9 @@ const ZipPlugin = require('zip-webpack-plugin')
 
 module.exports = {
 	configureWebpack: {
+		externals: {
+			moment: 'moment'
+		},
 		optimization: {
 			chunkIds: 'named',
 			concatenateModules: false,

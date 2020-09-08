@@ -470,7 +470,7 @@ export class Spindle {
 	active = 0					// RPM
 	current = 0					// RPM
 	frequency = 0				// Hz
-	min = 0						// RPM	*** missing in RRF but reserved
+	min = 60					// RPM
 	max = 10000					// RPM
 	tool = -1
 }

@@ -1239,7 +1239,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		try {
-			await this.delete(`0:/www/${plugin.name}`);
+			await this.delete(Path.combine(this.webDirectory, plugin.name));
 		} catch (e) {
 			if (e instanceof OperationFailedError) {
 				console.warn(e);
