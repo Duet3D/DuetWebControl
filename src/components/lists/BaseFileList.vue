@@ -646,7 +646,7 @@ export default {
 		// Perform initial load
 		if (this.isConnected) {
 			const volume = Path.getVolume(this.innerDirectory);
-			this.wasMounted = (volume >= 0) && (volume >= this.volumes.length) && this.volumes[volume].mounted;
+			this.wasMounted = (volume >= 0) && (volume < this.volumes.length) && this.volumes[volume].mounted;
 			this.refresh();
 		}
 
