@@ -13,6 +13,7 @@ Changed behaviour:
 - Increased maximum editor size from 16MiB to 32MiB
 - JSON outputs are automatically formatted in the Code Console
 - Replaced `/sys/dwc2-` JSON files with `/sys/dwc-` (rename them manually to restore your DWC settings)
+- Option to revert to DWC1 has been removed
 
 Bug fixes:
 - Fixed some incompatibilities to RRFv2
