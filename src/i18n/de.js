@@ -627,7 +627,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: 'Maschinenspezifisch',
-			revertDWC: 'Zu DWC1 zurückkehren',
 			babystepAmount: 'Schrittgröße für Babystepping ({0})',
 			moveFeedrate: 'Vorschubrate für Bewegungen ({0})'
 		},

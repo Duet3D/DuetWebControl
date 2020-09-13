@@ -627,7 +627,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: 'Machine-Specific',
-			revertDWC: 'Revert to DWC1',
 			babystepAmount: 'Babystep amount ({0})',
 			moveFeedrate: 'Feedrate for move buttons ({0})'
 		},

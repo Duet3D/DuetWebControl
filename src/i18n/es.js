@@ -630,7 +630,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: 'Especificaciones-Máquina',
-			revertDWC: 'Revertir a DWC1',
 			babystepAmount: 'Cantidad de Babystep ({0})',
 			moveFeedrate: 'Avance para botones de movimiento ({0})'
 		},

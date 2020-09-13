@@ -627,7 +627,6 @@
 		},
 		settingsMachine: {
 			caption: 'Установки устройства',
-			revertDWC: 'Обратно к DWC1',
 			babystepAmount: 'Шаг Babystep ({0})',
 			moveFeedrate: 'Скорость перемещения при управлении из DWC2 {0})'
 		},

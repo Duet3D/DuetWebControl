@@ -1,11 +1,7 @@
 <template>
 	<v-card outlined>
 		<v-card-title class="pb-0">
-			<span>{{ $t('panel.settingsMachine.caption') }}</span>
-			<v-spacer></v-spacer>
-			<a v-if="!isLocal && !boards.some(board => board.name.startsWith('Duet 3'))" href="/reprap.htm">
-				<v-icon small class="mr-1">mdi-rewind</v-icon> {{ $t('panel.settingsMachine.revertDWC') }}
-			</a>
+			{{ $t('panel.settingsMachine.caption') }}
 		</v-card-title>
 
 		<v-card-text>

@@ -13,7 +13,7 @@ const atomArray = [
 ]
 const builtinArray = [
 	"abs", "acos", "asin", "atan", "atan2", "cos", "degrees", "floor", "isnan",
-	"max", "min", "mod", "radians", "sin", "sqrt", "tan"
+	"max", "min", "mod", "random", "radians", "sin", "sqrt", "tan"
 ]
 const keywordArray = [
 	"abort", "echo", "if", "elif", "else", "while", "break", "abort", "return", "var", "set"

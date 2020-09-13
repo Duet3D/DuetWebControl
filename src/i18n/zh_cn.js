@@ -629,7 +629,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: '机器特性',
-			revertDWC: '返回到DWC1.X界面',
 			babystepAmount: 'Z轴每个微调步进距离（{0}）',
 			moveFeedrate: '移动按钮的进给速度（{0}）'
 		},

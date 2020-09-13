@@ -627,7 +627,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: 'Cihaza özel',
-			revertDWC: 'DWC1 e dön',
 			babystepAmount: 'Mikro adım miktarı ({0})',
 			moveFeedrate: 'Hareket butonları için ilerleme hızı ({0})'
 		},
