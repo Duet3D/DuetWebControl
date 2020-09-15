@@ -166,8 +166,8 @@ export class FilamentMonitor {
 
 export class LaserFilamentMonitor extends FilamentMonitor {
 	constructor(initData) {
-		initData.type = FilamentMonitorType.laser;
 		super(initData);
+		this.type = FilamentMonitorType.laser;
 	}
 
 	calibrated = {
@@ -185,8 +185,8 @@ export class LaserFilamentMonitor extends FilamentMonitor {
 
 export class PulsedFilamentMonitor extends FilamentMonitor {
 	constructor(initData) {
-		initData.type = FilamentMonitorType.pulsed;
 		super(initData);
+		this.type = FilamentMonitorType.pulsed;
 	}
 
 	calibrated = {
@@ -204,9 +204,9 @@ export class PulsedFilamentMonitor extends FilamentMonitor {
 }
 
 export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
-	constructor(initData) {
-		initData.type = FilamentMonitorType.rotatingMagnet;
+	constructor(initData = {}) {
 		super(initData);
+		this.type = FilamentMonitorType.rotatingMagnet;
 	}
 
 	calibrated = {
