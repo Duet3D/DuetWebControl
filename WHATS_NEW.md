@@ -10,6 +10,7 @@ Compatible files:
 
 Changed behaviour:
 - Plugins may now be loaded. Refer to the `plugins` directory for further details
+- The Height Map has been moved to a built-in plugin (see Settings -> General -> Plugins)
 - Increased maximum editor size from 16MiB to 32MiB
 - JSON outputs are automatically formatted in the Code Console
 - Replaced `/sys/dwc2-` JSON files with `/sys/dwc-` (rename them manually to restore your DWC settings)
