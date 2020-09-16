@@ -132,8 +132,7 @@ export default class PollConnector extends BaseConnector {
 					if (retry < maxRetries) {
 						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
 						if (retry === 0) {
-							that.lastSeq++;
-							that.getGCodeReply(that.lastSeq)
+							that.getGCodeReply()
 								.then(function() {
 									// Retry the original request when the code reply has been received
 									that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
@@ -695,7 +694,6 @@ export default class PollConnector extends BaseConnector {
 		// Check if the G-code response needs to be polled
 		if (response.seq !== this.lastSeq) {
 			await this.getGCodeReply(response.seq);
-			this.lastSeq = response.seq;
 		}
 
 		// Check if the firmware rebooted
@@ -1023,21 +1021,24 @@ export default class PollConnector extends BaseConnector {
 		}
 	}
 
-	async getGCodeReply(seq) {
+	async getGCodeReply(seq = null) {
+		if (seq !== null) {
+			this.lastSeq = seq;
+		}
+
 		const response = await this.request('GET', 'rr_reply', this.requestTimeout, 'text');
 		const reply = response.trim();
-
-		if (!this.pendingCodes.length) {
-			// Forward generic messages to the machine module
-			this.dispatch('update', { messages: [new Message({ content: reply })] });
-		} else {
+		if (this.pendingCodes.length > 0) {
 			// Resolve pending code promises
 			this.pendingCodes.forEach(function(code) {
-				if (code.seq < seq) {
+				if (seq === null || code.seq < seq) {
 					code.resolve(reply);
 				}
 			}, this);
-			this.pendingCodes = this.pendingCodes.filter(code => code.seq >= seq);
+			this.pendingCodes = this.pendingCodes.filter(code => (seq !== null) && (code.seq >= seq));
+		} else if (reply !== '') {
+			// Forward generic messages to the machine module
+			this.dispatch('update', { messages: [new Message({ content: reply })] });
 		}
 	}
 

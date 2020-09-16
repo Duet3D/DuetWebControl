@@ -180,7 +180,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			// Make a new directroy path
 			// directory: Path of the directory
 			async makeDirectory(context, directory) {
-				await connector.makeDirectory({ machine: connector.hostname, directory });
+				await connector.makeDirectory(directory);
 				Root.$emit(Events.directoryCreated, { machine: connector.hostname, directory });
 				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [directory] });
 			},
