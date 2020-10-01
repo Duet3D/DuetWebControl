@@ -2,6 +2,7 @@
 
 import Vue from 'vue'
 
+import { FileNotFoundError } from '../../utils/errors.js'
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
@@ -52,7 +53,20 @@ export default function(connector, pluginCacheFields) {
 					try {
 						cache = await dispatch(`machines/${connector.hostname}/download`, { filename: Path.dwcCacheFile, showProgress: false, showSuccess: false, showError: false });
 					} catch (e) {
-						// may happen if the user is still using factory defaults
+						if (!(e instanceof FileNotFoundError)) {
+							throw e;
+						}
+					}
+
+					if (!cache) {
+						try {
+							cache = await dispatch(`machines/${connector.hostname}/download`, { filename: Path.legacyDwcCacheFile, showProgress: false, showSuccess: false, showError: false });
+							await dispatch(`machines/${connector.hostname}/delete`, Path.legacyDwcCacheFile);
+						} catch (e) {
+							if (!(e instanceof FileNotFoundError)) {
+								throw e;
+							}
+						}
 					}
 				}
 

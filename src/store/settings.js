@@ -49,15 +49,19 @@ export default {
 				}
 			}
 
-			// Attempt to load the global settings from the local storage
-			const settings = getLocalSetting('settings');
-			if (settings) {
-				commit('load', settings);
+			const mainSettings = getLocalSetting('settings');
+			if (mainSettings) {
+				// Load the global settings from the local storage
+				commit('load', mainSettings);
 
-				// Load previously enabled built-in plugins
-				if (settings.enabledPlugins) {
-					for (let i = 0; i < settings.enabledPlugins.length; i++) {
-						await dispatch('loadDwcPlugin', { name: settings.enabledPlugins[i], saveSettings: false });
+				if (mainSettings.enabledPlugins) {
+					for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
+						try {
+							await dispatch('loadDwcPlugin', { name: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+						} catch (e) {
+							console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
+							console.warn(e);
+						}
 					}
 				}
 			} else if (rootGetters.isConnected) {

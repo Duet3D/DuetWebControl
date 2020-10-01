@@ -218,24 +218,29 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['download', 'getFileList']),
-		init() {
-			// Perform initial resize
-			const size = this.resize();
+		async init() {
+			if (!this.three.scene) {
+				// Wait 100ms to let the grid resize
+				await new Promise(resolve => setTimeout(resolve, 100));
 
-			// Create THREE instances
-			this.three.scene = new Scene();
-			this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
-			this.three.camera.position.set(1, 1, 1);
-			this.three.camera.up = new Vector3(0, 0, 1);
-			this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
-			this.three.renderer.setSize(size.width, size.height);
-			this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
-			this.three.orbitControls.enableKeys = false;
-			this.three.raycaster = new Raycaster();
+				// Perform initial resize
+				const size = this.resize();
 
-			// Register this instance in order to deal with size changes
-			if (this.isConnected) {
-				this.refresh();
+				// Create THREE instances
+				this.three.scene = new Scene();
+				this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
+				this.three.camera.position.set(1, 1, 1);
+				this.three.camera.up = new Vector3(0, 0, 1);
+				this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
+				this.three.renderer.setSize(size.width, size.height);
+				this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
+				this.three.orbitControls.enableKeys = false;
+				this.three.raycaster = new Raycaster();
+
+				// Register this instance in order to deal with size changes
+				if (this.isConnected) {
+					await this.refresh();
+				}
 			}
 		},
 		resize() {
@@ -480,6 +485,10 @@ export default {
 				return;
 			}
 
+			if (!this.three.scene) {
+				await this.init();
+			}
+
 			this.ready = false;
 			this.loading = true;
 			try {
@@ -502,11 +511,19 @@ export default {
 			this.loading = false;
 		},
 
-		testMesh() {
+		async testMesh() {
+			if (!this.three.scene) {
+				await this.init();
+			}
+
 			const csvData = 'RepRapFirmware height map file v1\nxmin,xmax,ymin,ymax,radius,spacing,xnum,ynum\n-140.00,140.10,-140.00,140.10,150.00,20.00,15,15\n0,0,0,0,0,-0.139,-0.188,-0.139,-0.202,-0.224,0,0,0,0,0\n0,0,0,-0.058,-0.066,-0.109,-0.141,-0.129,-0.186,-0.198,-0.191,-0.176,0,0,0\n0,0,0.013,-0.008,-0.053,-0.071,-0.087,-0.113,-0.162,-0.190,-0.199,-0.267,-0.237,0,0\n0,0.124,0.076,0.025,-0.026,-0.054,-0.078,-0.137,-0.127,-0.165,-0.201,-0.189,-0.227,-0.226,0\n0,0.198,0.120,0.047,0.089,-0.074,-0.097,-0.153,-0.188,-0.477,-0.190,-0.199,-0.237,-0.211,0\n0.312,0.229,0.198,0.098,0.097,0.004,-0.089,-0.516,-0.150,-0.209,-0.197,-0.183,-0.216,-0.296,-0.250\n0.287,0.263,0.292,0.100,0.190,0.015,-0.102,-0.039,-0.125,-0.149,-0.137,-0.198,-0.188,-0.220,-0.192\n0.378,0.289,0.328,0.172,0.133,0.078,-0.086,0.134,-0.100,-0.150,-0.176,-0.234,-0.187,-0.199,-0.221\n0.360,0.291,0.260,0.185,0.111,0.108,0.024,0.073,-0.024,-0.116,-0.187,-0.252,-0.201,-0.215,-0.187\n0.447,0.397,0.336,0.276,0.180,0.164,0.073,-0.050,-0.049,-0.109,-0.151,-0.172,-0.211,-0.175,-0.161\n0,0.337,0.289,0.227,0.179,0.127,0.086,0.034,-0.039,-0.060,-0.113,-0.108,-0.171,-0.153,0\n0,0.478,0.397,0.374,0.270,0.141,0.085,0.074,0.037,-0.048,-0.080,-0.187,-0.126,-0.175,0\n0,0,0.373,0.364,0.265,0.161,0.139,0.212,0.040,0.046,-0.008,-0.149,-0.115,0,0\n0,0,0,0.346,0.295,0.273,0.148,0.136,0.084,0.024,-0.055,-0.078,0,0,0\n0,0,0,0,0,0.240,0.178,0.084,0.090,0.004,0,0,0,0,0';
 			this.showCSV(csvData);
 		},
-		testBedCompensation(numPoints) {
+		async testBedCompensation(numPoints) {
+			if (!this.three.scene) {
+				await this.init();
+			}
+
 			let testPoints;
 			switch (numPoints) {
 				case 3:

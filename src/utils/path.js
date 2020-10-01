@@ -156,9 +156,12 @@ const pathObj = {
 	web: '0:/www',
 
 	dwcCacheFile: '0:/sys/dwc-cache.json',
-	dwcPluginsFile: '0:/sys/dwc-plugins.json',
-	dwcFactoryDefaults: '0:/sys/dwc-defaults.json',
+	legacyDwcCacheFile: '0:/sys/dwc-cache.json',
 	dwcSettingsFile: '0:/sys/dwc-settings.json',
+	legacyDwcSettingsFile: '0:/sys/dwc-settings.json',
+	dwcFactoryDefaults: '0:/sys/dwc-defaults.json',
+	legacyDwcFactoryDefaults: '0:/sys/dwc2-defaults.json',
+	dwcPluginsFile: '0:/sys/dwc-plugins.json',
 
 	configFile: 'config.g',
 	configBackupFile: 'config.g.bak',

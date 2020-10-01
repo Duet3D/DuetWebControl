@@ -198,6 +198,7 @@ export class MachineModel {
 		logFile: null,
 		messageBox: null,
 		machineMode: MachineMode.fff,
+		msUpTime: 0,
 		nextTool: -1,
 		powerFailScript: '',
 		previousTool: -1,

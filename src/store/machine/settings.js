@@ -4,6 +4,7 @@ import Vue from 'vue'
 
 import { resetSettingsTimer } from '../observer.js'
 
+import { FileNotFoundError } from '../../utils/errors.js'
 import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
 import patch from '../../utils/patch.js'
 import Path from '../../utils/path.js'
@@ -93,15 +94,15 @@ export default function(connector, pluginSettingFields) {
 				// Load the installed plugins
 				await connector.loadPlugins();
 
+				// Load the settings
+				let mainSettings, machineSettings;
 				if (rootState.settings.settingsStorageLocal) {
-					// Load the settings from the local storage
-					const machineSettings = getLocalSetting(`settings/${connector.hostname}`);
-					if (machineSettings) {
-						commit('load', machineSettings);
-					}
+					// Load them from the local storage
+					machineSettings = getLocalSetting(`settings/${connector.hostname}`);
 				} else {
-					// Load the settings from dwc2settings.json or fall back to dwc2defaults.json
-					let settings = {}
+					let settings;
+
+					// Try to get the saved DWC settings
 					try {
 						settings = await dispatch(`machines/${connector.hostname}/download`, {
 							filename: Path.dwcSettingsFile,
@@ -109,10 +110,14 @@ export default function(connector, pluginSettingFields) {
 							showSuccess: false,
 							showError: false
 						}, { root: true });
-						commit('settings/load', settings.main, { root: true });
-						commit('load', settings.machine);
 					} catch (e) {
-						// may happen if the user has not saved new settings yet
+						if (!(e instanceof FileNotFoundError)) {
+							throw e;
+						}
+					}
+
+					// If that fails, try to get the DWC defaults
+					if (!settings) {
 						try {
 							settings = await dispatch(`machines/${connector.hostname}/download`, {
 								filename: Path.dwcFactoryDefaults,
@@ -120,23 +125,80 @@ export default function(connector, pluginSettingFields) {
 								showSuccess: false,
 								showError: false
 							}, { root: true });
-							commit('settings/load', settings.main, { root: true });
-							commit('load', settings.machine);
-						} catch (ex) {
-							// use shipped values
+						} catch (e) {
+							if (!(e instanceof FileNotFoundError)) {
+								throw e;
+							}
 						}
 					}
 
-					// Load previously enabled DWC plugins
-					if (settings.main && settings.main.enabledPlugins) {
-						for (let i = 0; i < settings.main.enabledPlugins.length; i++) {
-							await dispatch('loadDwcPlugin', { name: settings.main.enabledPlugins[i], saveSettings: false }, { root: true });
+					// If that fails, try to get the DWC2 settings
+					if (!settings) {
+						try {
+							settings = await dispatch(`machines/${connector.hostname}/download`, {
+								filename: Path.legacyDwcSettings,
+								showProgress: false,
+								showSuccess: false,
+								showError: false
+							}, { root: true });
+						} catch (e) {
+							if (!(e instanceof FileNotFoundError)) {
+								throw e;
+							}
 						}
 					}
 
-					if (settings.machine && settings.machine.enabledPlugins) {
-						for (let i = 0; i < settings.machine.enabledPlugins.length; i++) {
-							await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { name: settings.machine.enabledPlugins[i], saveSettings: false }, { root: true });
+					// If that fails, try to get the DWC2 defaults
+					if (!settings) {
+						try {
+							settings = await dispatch(`machines/${connector.hostname}/download`, {
+								filename: Path.legacyDwcFactoryDefaults,
+								showProgress: false,
+								showSuccess: false,
+								showError: false
+							}, { root: true });
+						} catch (e) {
+							if (!(e instanceof FileNotFoundError)) {
+								throw e;
+							}
+						}
+					}
+
+					// Load them if applicable
+					if (settings) {
+						mainSettings = settings.main;
+						machineSettings = settings.machine;
+					}
+				}
+
+				// Load main settings
+				if (mainSettings) {
+					commit('settings/load', mainSettings, { root: true });
+
+					if (mainSettings.enabledPlugins) {
+						for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
+							try {
+								await dispatch('loadDwcPlugin', { name: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+							} catch (e) {
+								console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
+								console.warn(e);
+							}
+						}
+					}
+				}
+
+				// Load machine-specific settings
+				if (machineSettings) {
+					commit('load', machineSettings);
+
+					if (machineSettings.enabledPlugins) {
+						for (let i = 0; i < machineSettings.enabledPlugins.length; i++) {
+							try {
+								await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { name: machineSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+							} catch (e) {
+								console.warn(`Failed to load machine plugin ${machineSettings.enabledPlugins[i]}`);
+								console.warn(e);
+							}
 						}
 					}
 				}

@@ -174,6 +174,7 @@ export const ProbeType = {
 }
 
 export const StatusType = {
+	starting: 'starting',
 	updating: 'updating',
 	off: 'off',
 	halted: 'halted',

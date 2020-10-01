@@ -181,7 +181,7 @@ export default {
 		shown(to) {
 			// Update textarea
 			this.valueChanged = false;
-			this.useEditor = this.value.length < maxEditorFileSize && this.isGCode;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode;
 			this.innerValue = this.value || '';
 
 			if (to) {

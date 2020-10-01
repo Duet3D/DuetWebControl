@@ -301,6 +301,7 @@ export default {
 			offline: 'offline'
 		},
 		status: {
+			starting: 'Starting',
 			updating: 'Updating',
 			off: 'Off',
 			halted: 'Halted',
