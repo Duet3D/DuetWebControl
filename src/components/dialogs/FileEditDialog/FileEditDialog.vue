@@ -65,7 +65,7 @@
 
 			<codemirror v-if="useEditor"
 						ref="cmEditor" :options="cmOptions"
-						v-model="innerValue" @blur.passive="valueChanged = (value != innerValue)"
+						v-model="innerValue" @changes="valueChanged = true"
 						@keydown.esc.prevent.stop="close(false)"></codemirror>
 			<v-textarea v-else
 						ref="textarea" hide-details solo :rows="null" class="edit-textarea"
@@ -180,13 +180,18 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.valueChanged = false;
 			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode;
 			this.innerValue = this.value || '';
+			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
 				// Add notification for users in case changes have not been saved yet
 				window.addEventListener('beforeunload', this.onBeforeLeave);
+
+				// If using the editor, scroll to the top again to avoid glitches
+				if (this.$refs.cmEditor) {
+					this.$refs.cmEditor.cminstance.scrollTo(0, 0)
+				}
 			} else {
 				// ... and turn it off again when the dialog is hidden
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
