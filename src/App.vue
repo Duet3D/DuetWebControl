@@ -132,6 +132,8 @@ textarea {
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
 		<messagebox-dialog></messagebox-dialog>
+
+		<component v-for="component in injectedComponents" :is="component" :key="component"></component>
 	</v-app>
 </template>
 
@@ -141,6 +143,7 @@ textarea {
 import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
+import { setInjectComponent } from './plugins'
 import { Menu, Routes } from './routes'
 import { isPrinting } from './store/machine/modelEnums.js'
 
@@ -188,6 +191,7 @@ export default {
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
+			injectedComponents: [],
 			hideGlobalContainer: false,
 			wasXs: this.$vuetify.breakpoint.xsOnly
 		}
@@ -211,6 +215,10 @@ export default {
 			if (document.title !== title) {
 				document.title = title;
 			}
+		},
+		injectComponent(name, component) {
+			this.$options.components[name] = component;
+			this.injectedComponents.push(name);
 		}
 	},
 	mounted() {
@@ -241,6 +249,9 @@ export default {
 			shadow: '#fff',			// Outer ring color
 			fallback: false			// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
 		});
+
+		// Register function to inject custom components
+		setInjectComponent(this.injectComponent);
 	},
 	watch: {
 		currentPageCondition(to) {

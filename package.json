@@ -24,6 +24,7 @@
     "piecon": "^0.5.0",
     "register-service-worker": "^1.7.1",
     "roboto-fontface": "*",
+    "simple-keyboard": "^2.30.31",
     "three": "^0.120.1",
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.12",

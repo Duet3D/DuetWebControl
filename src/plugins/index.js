@@ -43,6 +43,15 @@ export function loadDwcResources(plugin, connector) {
 	}
 }
 
+let injectComponentFn
+export function setInjectComponent(fn) {
+	injectComponentFn = fn;
+}
+
+export function injectComponent(name, component) {
+	injectComponentFn(name, component)
+}
+
 export default [
 	/*new DwcPlugin({
 		name: 'Auto Update',
@@ -77,7 +86,16 @@ export default [
 		version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "ObjectModelBrowser" */
-			'./ObjectModelBrowser'
+			'./ObjectModelBrowser/index.js'
+		)
+	}),
+	new DwcPlugin({
+		name: 'On-Screen Keyboard',
+		author: 'Duet3D Ltd',
+		version,
+		loadDwcResources: () => import(
+			/* webpackChunkName: "OnScreenKeyboard" */
+			'./OnScreenKeyboard/index.js'
 		)
 	}),
 	// Add your own plugins here during development...

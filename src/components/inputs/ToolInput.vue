@@ -6,8 +6,8 @@
 
 <template>
 	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label"
-				v-model.number="value" @keyup.enter="apply" :loading="applying" :disabled="uiFrozen || !isValid"
-				:items="items" @change="change" hide-selected @blur="value = actualValue">
+				:value="inputValue" :search-input.sync="inputValue" @change="change" @keyup.enter="apply" @blur="blur"
+				:loading="applying" :disabled="uiFrozen || !isValid" :items="items" hide-selected>
 	</v-combobox>
 </template>
 
@@ -64,9 +64,10 @@ export default {
 	data() {
 		return {
 			applying: false,
-			input: null,
+			blurTimer: null,
+			inputElement: null,
 			actualValue: 0,
-			value: 0
+			inputValue: '0'
 		}
 	},
 	props: {
@@ -93,7 +94,8 @@ export default {
 		async apply() {
 			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
 
-			if (!this.isNumber(this.value)) {
+			const value = parseFloat(this.inputValue);
+			if (!this.isNumber(value)) {
 				this.$makeNotification('warning', this.$t('error.enterValidNumber'));
 				return;
 			}
@@ -103,44 +105,45 @@ export default {
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
-						if (this.value >= 0) {
-							this.sendCode(`M3 P${this.spindleIndex} S${this.value}`);
+						if (this.inputValue >= 0) {
+							this.sendCode(`M3 P${this.spindleIndex} S${this.inputValue}`);
 						} else {
-							this.sendCode(`M4 P${this.spindleIndex} S${-this.value}`);
+							this.sendCode(`M4 P${this.spindleIndex} S${-this.inputValue}`);
 						}
-					} else if (this.value >= -273.15 && this.value <= 1999) {
+					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {
 							// Set tool temps
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
-							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.value : temp, this).join(':');
+							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.inputValue : temp, this).join(':');
 							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
-							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.value}`);
+							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}`);
 						} else if (this.chamber) {
 							// Set chamber temp
-							await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${this.value}`);
+							await this.sendCode(`M141 P${this.chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}`);
 						} else if (this.all) {
 							// Set all temps
 							let code = '';
 							this.tools.forEach(function(tool) {
 								if (tool.heaters.length) {
-									const temps = tool.heaters.map(() => this.value, this).join(':');
+									const temps = tool.heaters.map(() => this.inputValue, this).join(':');
 									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
 							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
 								if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
-									code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.value}\n`;
+									code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
 								}
 							}, this);
 							this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
 								if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
-									code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.value}\n`;
+									code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
 								}
 							}, this);
 							await this.sendCode(code);
-							this.actualValue = this.value;
+							this.actualValue = parseFloat(this.inputValue);
+							console.log(this.actualValue);
 						} else {
 							console.warn('[tool-input] Invalid target for tool-input');
 						}
@@ -152,6 +155,21 @@ export default {
 				this.applying = false;
 			}
 		},
+		blur() {
+			if (window.oskOpen) {
+				if (!this.blurTimer) {
+					// Do not update the input value before a potentially installed on-screen keyboard is hidden.
+					// This work-around is necessary because the input field loses focus every time a button is pressed
+					this.blurTimer = setTimeout(this.checkAfterBlur.bind(this), 500);
+				}
+			} else {
+				this.inputValue = this.actualValue.toString();
+			}
+		},
+		checkAfterBlur() {
+			this.blurTimer = null;
+			this.blur();
+		},
 		async change(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
 			if (typeof value === 'number') {
@@ -160,25 +178,28 @@ export default {
 		}
 	},
 	mounted() {
-		this.input = this.$el.querySelector('input');
+		this.inputElement = this.$el.querySelector('input');
 		if (this.tool) {
-			this.value = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
+			this.actualValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
+			this.inputValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex].toString();
 		} else if (this.bed) {
-			this.value = this.bed[this.active ? 'active' : 'standby'];
+			this.actualValue = this.bed[this.active ? 'active' : 'standby'];
+			this.inputValue = this.bed[this.active ? 'active' : 'standby'].toString();
 		} else if (this.chamber) {
-			this.value = this.chamber[this.active ? 'active' : 'standby'];
+			this.actualValue = this.chamber[this.active ? 'active' : 'standby'];
+			this.inputValue = this.chamber[this.active ? 'active' : 'standby'].toString();
 		} else if (this.spindle) {
-			this.value = this.spindle.active;
+			this.actualValue = this.spindle.active;
+			this.inputValue = this.spindle.active.toString();
 		}
-		this.actualValue = this.value;
 	},
 	watch: {
 		'tool.active'(to) {
 			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
 			if (this.active && this.actualValue !== val) {
 				this.actualValue = val;
-				if (document.activeElement !== this.input) {
-					this.value = val;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = val.toString();
 				}
 			}
 		},
@@ -186,48 +207,48 @@ export default {
 			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
 			if (this.standby && this.actualValue !== val) {
 				this.actualValue = val;
-				if (document.activeElement !== this.input) {
-					this.value = val;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = val.toString();
 				}
 			}
 		},
 		'bed.active'(to) {
 			if (this.active && this.actualValue !== to) {
 				this.actualValue = to;
-				if (document.activeElement !== this.input) {
-					this.value = to;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = to.toString();
 				}
 			}
 		},
 		'bed.standby'(to) {
 			if (this.standby && this.actualValue !== to) {
 				this.actualValue = to;
-				if (document.activeElement !== this.input) {
-					this.value = to;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = to.toString();
 				}
 			}
 		},
 		'chamber.active'(to) {
 			if (this.active && this.actualValue !== to) {
 				this.actualValue = to;
-				if (document.activeElement !== this.input) {
-					this.value = to;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = to.toString();
 				}
 			}
 		},
 		'chamber.standby'(to) {
-			if (this.standby && this.actualValue !== to) {
+			if (this.standby && this.actualValue != to) {
 				this.actualValue = to;
-				if (document.activeElement !== this.input) {
-					this.value = to;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = to.toString();
 				}
 			}
 		},
 		'spindle.active'(to) {
-			if (this.active && this.actualValue !== to) {
+			if (this.active && this.actualValue != to) {
 				this.actualValue = to;
-				if (document.activeElement !== this.input) {
-					this.value = to;
+				if (document.activeElement !== this.inputElement) {
+					this.inputValue = to.toString();
 				}
 			}
 		}

@@ -92,7 +92,7 @@ export default {
 		},
 		getPluginStatus(plugin) {
 			if (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
-				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.toBeStopped');
+				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.deactivated');
 			}
 			return this.$t('tabs.plugins.stopped');
 		},

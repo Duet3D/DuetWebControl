@@ -42,7 +42,7 @@
 </style>
 
 <template>
-	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay transition="dialog-bottom-transition">
+	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay persistent no-click-animation transition="dialog-bottom-transition">
 		<v-card class="d-flex flex-column">
 			<v-app-bar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
 				<v-btn icon dark @click="close(false)">
@@ -180,21 +180,28 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
-				// Add notification for users in case changes have not been saved yet
-				window.addEventListener('beforeunload', this.onBeforeLeave);
-
 				// If using the editor, scroll to the top again to avoid glitches
 				if (this.$refs.cmEditor) {
 					this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 				}
+
+				// Add notification for users in case changes have not been saved yet
+				window.addEventListener('beforeunload', this.onBeforeLeave);
 			} else {
 				// ... and turn it off again when the dialog is hidden
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
+
+				// Remove focus again to close the OSK
+				if (this.$refs.cmEditor) {
+					this.$refs.cmEditor.cminstance.blur();
+				} else {
+					this.$refs.textarea.blur();
+				}
 			}
 		}
 	}
