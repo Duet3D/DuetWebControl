@@ -16,7 +16,6 @@ canvas {
 'use strict'
 
 import { mapState, mapActions } from 'vuex'
-
 import { WebGLPreview } from 'gcode-preview'
 import { Color } from 'three'
 
@@ -31,6 +30,7 @@ export default {
 	data() {
 		return {
 			active: true,
+			fileName: null,
 			fileContent: null,
 			lastFilePosition: 0,
 			preview: null
@@ -44,10 +44,20 @@ export default {
 			}
 		},
 		async loadFile(file) {
+			this.fileName = file;
 			this.fileContent = await this.download({ filename: file, type: 'text' });
 			this.preview.clear();
-			this.preview.processGCode((this.filePosition !== null) ? this.fileContent.substring(0, this.filePosition) : this.fileContent);
-			this.lastFilePosition = this.filePosition;
+			if (file === this.jobFile) {
+				if (this.filePosition) {
+					this.preview.processGCode(this.fileContent.substring(0, this.filePosition));
+					this.lastFilePosition = this.filePosition;
+				} else {
+					this.lastFilePosition = 0;
+				}
+			} else {
+				this.preview.processGCode(this.fileContent);
+				this.lastFilePosition = 0;
+			}
 		},
 		resize() {
 			if (this.preview) {
@@ -77,7 +87,7 @@ export default {
 	},
 	watch: {
 		filePosition(to) {
-			if (this.active && to > 0) {
+			if (this.active && this.jobFile === this.fileName && to > 0) {
 				if (this.fileContent) {
 					this.preview.processGCode(this.fileContent.substring(this.lastFilePosition, to));
 				}
