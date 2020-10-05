@@ -40,11 +40,14 @@ export default {
 		...mapActions('machine', ['download']),
 		async loadCurrentFile() {
 			if (this.jobFile) {
-				this.fileContent = await this.download({ filename: this.jobFile, type: 'text' });
-				this.preview.clear();
-				this.preview.processGCode(this.fileContent.substring(0, this.filePosition || this.fileSize));
-				this.lastFilePosition = this.filePosition;
+				await this.loadFile(this.jobFile);
 			}
+		},
+		async loadFile(file) {
+			this.fileContent = await this.download({ filename: file, type: 'text' });
+			this.preview.clear();
+			this.preview.processGCode((this.filePosition !== null) ? this.fileContent.substring(0, this.filePosition) : this.fileContent);
+			this.lastFilePosition = this.filePosition;
 		},
 		resize() {
 			if (this.preview) {
@@ -57,8 +60,7 @@ export default {
 			canvas: this.$refs.preview,
 			limit: Infinity,
 			topLayerColor: new Color('lime').getHex(),
-			lastSegmentColor: new Color('red').getHex(),
-			lineWidth: 0.01
+			lastSegmentColor: new Color('red').getHex()
 		});
 
 		this.loadCurrentFile();

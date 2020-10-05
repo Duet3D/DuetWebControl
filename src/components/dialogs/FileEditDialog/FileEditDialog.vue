@@ -14,6 +14,7 @@
 .CodeMirror-scroll {
 	display: flex;
 	flex-grow: 1;
+	height: unset;
 	width: 100%;
 }
 
@@ -198,7 +199,7 @@ export default {
 
 				// Remove focus again to close the OSK
 				if (this.$refs.cmEditor) {
-					this.$refs.cmEditor.cminstance.blur();
+					this.$refs.cmEditor.cminstance.getTextArea().blur();
 				} else {
 					this.$refs.textarea.blur();
 				}
