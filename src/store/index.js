@@ -15,6 +15,7 @@ import { logGlobal } from '../utils/logging.js'
 
 import machine, { defaultMachine } from './machine'
 import connector from './machine/connector'
+import uiinjection from './uiinjection.js'
 
 Vue.use(Vuex)
 
@@ -37,7 +38,7 @@ const store = new Vuex.Store({
 		connectDialogShown: isLocal,
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
-		loadedDwcPlugins: []
+		loadedDwcPlugins: [],
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -220,7 +221,7 @@ const store = new Vuex.Store({
 			this.unregisterModule('machine');
 			this.registerModule('machine', machines[selectedMachine]);
 			state.selectedMachine = selectedMachine;
-			
+
 			// Allow access to the machine's data store for debugging...
 			window.machineStore = state.machine;
 		},
@@ -238,7 +239,8 @@ const store = new Vuex.Store({
 				// ... other machines are added as sub-modules to this object
 			}
 		},
-		settings
+		settings,
+		uiinjection
 	},
 	plugins: [
 		connector.installStore,
@@ -308,6 +310,22 @@ export function setPluginData(plugin, dataType, key, value) {
 		default:
 			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
 	}
+}
+
+export const ContextMenuType = {
+	JobFileList: 'jobFileList'
+}
+
+export function registerPluginContextMenuItem(name, path, icon, action, contextMenuType) {
+    store.dispatch('uiinjection/addContextMenuItem', {
+		menu: contextMenuType,
+		item: {
+			name: name,
+			path: path,
+			icon: icon,
+			action: action
+		}
+	});
 }
 
 export default store
