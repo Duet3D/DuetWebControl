@@ -112,11 +112,11 @@ export default {
 		},
 		getPluginDependencies(plugin) {
 			let result = []
-			if (plugin.dwcVersion) {
+			if (plugin.dwcWebpackChunk && plugin.dwcVersion) {
 				result.push(`DWC ${plugin.dwcVersion}`);
 			}
-			if (plugin.dsfVersion) {
-				result.push(`DSF ${plugin.dsfVersion}`);
+			if (plugin.sbcDsfVersion) {
+				result.push(`DSF ${plugin.sbcDsfVersion}`);
 			}
 			if (plugin.rrfVersion) {
 				result.push(`RRF ${plugin.rrfVersion}`);
@@ -125,16 +125,16 @@ export default {
 		},
 		getPluginStatus(plugin) {
 			if (plugin.sbcExecutable) {
-				if (plugin.pid > 0 && this.enabledPlugins.indexOf(plugin.name) !== -1) {
+				if (plugin.pid > 0 && (!plugin.dwcWebpackChunk || this.enabledPlugins.indexOf(plugin.name) !== -1)) {
 					return this.$t('tabs.plugins.started');
 				}
-				if (plugin.pid > 0 || this.enabledPlugins.indexOf(plugin.name) !== -1) {
+				if (plugin.pid < 0 && plugin.dwcWebpackChunk && this.enabledPlugins.indexOf(plugin.name) !== -1) {
 					return this.$t('tabs.plugins.partiallyStarted');
 				}
-				return this.$t((this.loadedDwcPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.deactivated' : 'tabs.plugins.stopped');
+				return this.$t((plugin.pid === 0 || (plugin.dwcWebpackChunk && this.loadedDwcPlugins.indexOf(plugin.name) !== -1)) ? 'tabs.plugins.deactivated' : 'tabs.plugins.stopped');
 			}
 
-			if (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
+			if (plugin.dwcWebpackChunk && this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
 				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.deactivated');
 			}
 			return this.$t('tabs.plugins.stopped');

@@ -63,7 +63,12 @@ export class BeepRequest {
 export class Board {
 	constructor(initData) { quickPatch(this, initData); }
 	bootloaderFileName = null
-	canAddress = null			// *** requires CAN support (TBD)
+	canAddress = null
+	directDisplay = {
+		pulsesPerClick: 0,
+		spiFreq: 0,
+		typeName: null
+	}
 	firmwareDate = ''
 	firmwareFileName = null
 	firmwareName = ''
@@ -80,7 +85,7 @@ export class Board {
 	name = ''
 	shortName = ''
 	state = BoardState.unknown
-	supports12864 = false
+	supportsDirectDisplay = false
 	v12 = {
 		current: 0,
 		min: 0,
@@ -527,12 +532,14 @@ export class Volume {
 
 function fixObject(item, preset) {
 	let fixed = false;
-	for (let key in preset) {
-		if (item[key] === undefined) {
-			Vue.set(item, key, preset[key]);
-			fixed = true;
-		} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
-			fixed |= fixObject(item[key], preset[key]);
+	if (item !== null) {
+		for (let key in preset) {
+			if (item[key] === undefined) {
+				Vue.set(item, key, preset[key]);
+				fixed = true;
+			} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
+				fixed |= fixObject(item[key], preset[key]);
+			}
 		}
 	}
 	return fixed;
