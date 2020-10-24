@@ -267,7 +267,7 @@ export default {
 		},
 		contextMenuAction(menuItem){
 			let path = Path.combine(this.directory, this.selection[0].name);
-			if(menuItem.path !== ""){
+			if(menuItem.path !== ''){
 			this.$router.push(menuItem.path).then(() => {
 				this.$root.$emit(menuItem.action, path);
 			})
