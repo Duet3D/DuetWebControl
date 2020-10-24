@@ -312,20 +312,4 @@ export function setPluginData(plugin, dataType, key, value) {
 	}
 }
 
-export const ContextMenuType = {
-	JobFileList: 'jobFileList'
-}
-
-export function registerPluginContextMenuItem(name, path, icon, action, contextMenuType) {
-    store.dispatch('uiinjection/addContextMenuItem', {
-		menu: contextMenuType,
-		item: {
-			name: name,
-			path: path,
-			icon: icon,
-			action: action
-		}
-	});
-}
-
 export default store
