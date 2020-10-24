@@ -6,7 +6,7 @@
 
 <template>
 	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label"
-				:value="inputValue" :search-input.sync="inputValue" @change="change" @keyup.enter="apply" @blur="blur"
+				:value="inputValue" :search-input="inputValue" @update:search-input="change" @keyup.enter="apply" @blur="blur"
 				:loading="applying" :disabled="uiFrozen || !isValid" :items="items" hide-selected>
 	</v-combobox>
 </template>
@@ -173,15 +173,20 @@ export default {
 		async change(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
 			if (typeof value === 'number') {
+				this.searchInput = value.toString();
 				await this.apply();
+			} else {
+				this.searchInput = value;
 			}
 		}
 	},
 	mounted() {
 		this.inputElement = this.$el.querySelector('input');
 		if (this.tool) {
-			this.actualValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
-			this.inputValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex].toString();
+			if (this.tool[this.active ? 'active' : 'standby'].length > 0) {
+				this.actualValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
+				this.inputValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex].toString();
+			}
 		} else if (this.bed) {
 			this.actualValue = this.bed[this.active ? 'active' : 'standby'];
 			this.inputValue = this.bed[this.active ? 'active' : 'standby'].toString();
