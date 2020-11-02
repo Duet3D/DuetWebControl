@@ -43,15 +43,6 @@ export function loadDwcResources(plugin, connector) {
 	}
 }
 
-let injectComponentFn
-export function setInjectComponent(fn) {
-	injectComponentFn = fn;
-}
-
-export function injectComponent(name, component) {
-	injectComponentFn(name, component)
-}
-
 export default [
 	/*new DwcPlugin({
 		name: 'Auto Update',

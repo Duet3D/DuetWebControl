@@ -143,7 +143,7 @@ textarea {
 import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { setInjectComponent } from './plugins'
+import { setInjectComponent } from './store/uiinjection'
 import { Menu, Routes } from './routes'
 import { isPrinting } from './store/machine/modelEnums.js'
 
