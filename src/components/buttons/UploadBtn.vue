@@ -344,7 +344,7 @@ export default {
 				}
 			}
 
-			// Update other modules
+			// Update other modules if applicable
 			let modules = [];
 			if (this.updates.firmwareBoards.indexOf(0) >= 0) {
 				modules.push('0');
@@ -356,13 +356,15 @@ export default {
 				modules.push('2');
 			}
 
-			this.updates.codeSent = true;
-			try {
-				await this.sendCode(`M997 S${modules.join(':')}`);
-			} catch (e) {
-				if (!(e instanceof DisconnectedError)) {
-					console.warn(e);
-					this.$log('error', this.$t('generic.error'), e.message);
+			if (modules.length > 0) {
+				this.updates.codeSent = true;
+				try {
+					await this.sendCode(`M997 S${modules.join(':')}`);
+				} catch (e) {
+					if (!(e instanceof DisconnectedError)) {
+						console.warn(e);
+						this.$log('error', this.$t('generic.error'), e.message);
+					}
 				}
 			}
 		},
