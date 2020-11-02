@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line no-unused-vars
 import { version } from '../../package.json'
+import store from '../store'
 import { Plugin } from '../store/machine/modelItems.js'
 
 // This class is meant only built-in DWC plugins and for dev purposes.
@@ -41,6 +42,26 @@ export function loadDwcResources(plugin, connector) {
 	} else {
 		throw new Error('Cannot load external plugins in dev mode');
 	}
+}
+
+export const ContextMenuType = {
+	JobFileList: 'jobFileList'
+}
+
+export function registerPluginContextMenuItem(name, path, icon, action, contextMenuType) {
+	store.commit('uiInjection/registerPluginContextMenuItem', {
+		menu: contextMenuType,
+		item: {
+			name: name,
+			path: path,
+			icon: icon,
+			action: action
+		}
+	});
+}
+
+export function injectComponent(name, component) {
+	store.commit('uiInjection/injectComponent', { name, component });
 }
 
 export default [

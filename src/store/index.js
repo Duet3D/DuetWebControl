@@ -15,7 +15,7 @@ import { logGlobal } from '../utils/logging.js'
 
 import machine, { defaultMachine } from './machine'
 import connector from './machine/connector'
-import uiinjection from './uiinjection.js'
+import uiInjection from './uiInjection.js'
 
 Vue.use(Vuex)
 
@@ -240,7 +240,7 @@ const store = new Vuex.Store({
 			}
 		},
 		settings,
-		uiinjection
+		uiInjection
 	},
 	plugins: [
 		connector.installStore,
