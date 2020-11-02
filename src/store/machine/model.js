@@ -2,6 +2,7 @@
 
 import {
 	InputChannelName,
+	LogLevel,
 	MachineMode,
 	KinematicsName,
 	StatusType,
@@ -196,6 +197,7 @@ export class MachineModel {
 		gpOut: [],
 		laserPwm: null,
 		logFile: null,
+		logLevel: LogLevel.off,
 		messageBox: null,
 		machineMode: MachineMode.fff,
 		msUpTime: 0,
