@@ -77,7 +77,7 @@ export default {
 			volumes: state => state.volumes
 		}),
 		...mapState('settings', ['language']),
-		...mapState('uiinjection', ['contextMenuItems']),
+		...mapState('uiInjection', ['contextMenuItems']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		headers() {
 			return [
