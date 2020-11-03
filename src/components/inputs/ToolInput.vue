@@ -173,10 +173,10 @@ export default {
 		async change(value) {
 			// Note that value is of type String when a user enters a value and then leaves it without confirming...
 			if (typeof value === 'number') {
-				this.searchInput = value.toString();
+				this.inputValue = value.toString();
 				await this.apply();
 			} else {
-				this.searchInput = value;
+				this.inputValue = value;
 			}
 		}
 	},
