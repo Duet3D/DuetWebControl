@@ -3,7 +3,7 @@
 		<v-card-title>
 			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t('list.macro.caption') }}
 			<v-spacer></v-spacer>
-			<span v-show="isConnected" class="subtitle-2">{{ directory.replace(macrosDirectory, $t('list.macro.root')) }}</span>
+			<span v-show="isConnected" class="subtitle-2">{{ currentDirectory }}</span>
 		</v-card-title>
 
 		<v-card-text class="pa-0" v-show="loading || filelist.length || !isRootDirectory">
@@ -61,6 +61,16 @@ export default {
 			macrosDirectory: state => state.directories.macros,
 			volumes: state => state.volumes
 		}),
+		currentDirectory() {
+			if (Path.startsWith(this.directory, this.macrosDirectory)) {
+				let subDirectory = this.directory.substring(this.macrosDirectory.length);
+				if (subDirectory.length === 0 || subDirectory[0] === '/') {
+					return this.$t('list.macro.root') + (subDirectory === '/' ? '' : subDirectory);
+				}
+				return this.$t('list.macro.root') + '/' + subDirectory;
+			}
+			return this.directory;
+		},
 		isRootDirectory() { return Path.equals(this.directory, this.macrosDirectory); }
 	},
 	data () {

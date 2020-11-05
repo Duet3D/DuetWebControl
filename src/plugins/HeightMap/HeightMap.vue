@@ -285,7 +285,7 @@ export default {
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
-			const csv = new CSV(csvData.substring(csvData.indexOf("\n") + 1));
+			const csv = new CSV(csvData.substring(csvData.indexOf('\n') + 1));
 			let radius = parseFloat(csv.get('radius'));
 			if (radius <= 0) { radius = undefined; }
 			const xMin = parseFloat(csv.get('xmin'));
@@ -300,7 +300,7 @@ export default {
 			for (let y = 1; y < csv.content.length; y++) {
 				for (let x = 0; x < csv.content[y].length; x++) {
 					const value = csv.content[y][x].trim();
-					points.push([xMin + x * xSpacing, yMin + (y - 1) * ySpacing, (value === "0") ? NaN : parseFloat(value)]);
+					points.push([xMin + x * xSpacing, yMin + (y - 1) * ySpacing, (value === '0') ? NaN : parseFloat(value)]);
 				}
 			}
 
@@ -603,7 +603,15 @@ export default {
 		},
 		heightmapFile(to) {
 			if (to) {
-				this.refresh().then(() => this.selectedFile = Path.extractFileName(to));
+				const that = this;
+				this.refresh().then(async function() {
+					const fileName = Path.extractFileName(to);
+					if (that.selectedFile === fileName) {
+						await that.getHeightMap();
+					} else {
+						that.selectedFile = fileName;
+					}
+				});
 			}
 		},
 		selectedFile() {
