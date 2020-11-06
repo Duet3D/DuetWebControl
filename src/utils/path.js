@@ -158,7 +158,7 @@ const pathObj = {
 	dwcCacheFile: '0:/sys/dwc-cache.json',
 	legacyDwcCacheFile: '0:/sys/dwc-cache.json',
 	dwcSettingsFile: '0:/sys/dwc-settings.json',
-	legacyDwcSettingsFile: '0:/sys/dwc-settings.json',
+	legacyDwcSettingsFile: '0:/sys/dwc2-settings.json',
 	dwcFactoryDefaults: '0:/sys/dwc-defaults.json',
 	legacyDwcFactoryDefaults: '0:/sys/dwc2-defaults.json',
 	dwcPluginsFile: '0:/sys/dwc-plugins.json',

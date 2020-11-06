@@ -136,7 +136,7 @@ export default function(connector, pluginSettingFields) {
 					if (!settings) {
 						try {
 							settings = await dispatch(`machines/${connector.hostname}/download`, {
-								filename: Path.legacyDwcSettings,
+								filename: Path.legacyDwcSettingsFile,
 								showProgress: false,
 								showSuccess: false,
 								showError: false
@@ -158,7 +158,9 @@ export default function(connector, pluginSettingFields) {
 								showError: false
 							}, { root: true });
 						} catch (e) {
-							if (!(e instanceof FileNotFoundError)) {
+							if (e instanceof FileNotFoundError) {
+								await dispatch('settings/applyDefaults', null, { root: true });
+							} else {
 								throw e;
 							}
 						}

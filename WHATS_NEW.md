@@ -1,6 +1,21 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-beta3
+===================
+
+Compatible files:
+- DuetSoftwareFramework 3.2.0-b3 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Height Map plugin is loaded by default
+- Last job duration is now displayed on the Job Status page
+- Height Map plugin is automatically loaded if no settings could be loaded
+
+Bug fixes:
+- Heightmap wasn't refreshed automatically
+
 Version 3.2.0-beta2
 ===================
 
