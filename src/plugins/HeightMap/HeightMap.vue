@@ -229,7 +229,8 @@ export default {
 				// Create THREE instances
 				this.three.scene = new Scene();
 				this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
-				this.three.camera.position.set(1, 1, 1);
+				this.three.camera.rotation.set(Math.PI / 6, 0, 0)
+				this.three.camera.position.set(0, -0.9, 1.5);
 				this.three.camera.up = new Vector3(0, 0, 1);
 				this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
 				this.three.renderer.setSize(size.width, size.height);
@@ -443,6 +444,7 @@ export default {
 			this.three.camera.position.set(0, 0, 1.5);
 			this.three.camera.rotation.set(0, 0, 0);
 			this.three.camera.updateProjectionMatrix();
+			this.three.orbitControls.update();
 		},
 
 		async refresh() {

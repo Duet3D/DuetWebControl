@@ -12,9 +12,11 @@ Changed behaviour:
 - Height Map plugin is loaded by default
 - Last job duration is now displayed on the Job Status page
 - Height Map plugin is automatically loaded if no settings could be loaded
+- Changed default height map viewing angle
 
 Bug fixes:
 - Heightmap wasn't refreshed automatically
+- Text editor wasn't automatically focused when editing a file
 
 Version 3.2.0-beta2
 ===================

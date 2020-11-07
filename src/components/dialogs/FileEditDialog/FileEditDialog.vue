@@ -116,7 +116,6 @@ export default {
 		...mapState('settings', ['darkTheme']),
 		cmOptions() {
 			return {
-				autofocus: true,
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
 				lineNumbers: true,
@@ -187,9 +186,14 @@ export default {
 
 			if (to) {
 				// If using the editor, scroll to the top again to avoid glitches
-				if (this.$refs.cmEditor) {
-					this.$refs.cmEditor.cminstance.scrollTo(0, 0)
-				}
+				setTimeout(() => {
+					if (this.$refs.cmEditor) {
+						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
+						this.$refs.cmEditor.cminstance.focus();
+					} else {
+						this.$refs.textarea.focus();
+					}
+				}, 250);
 
 				// Add notification for users in case changes have not been saved yet
 				window.addEventListener('beforeunload', this.onBeforeLeave);

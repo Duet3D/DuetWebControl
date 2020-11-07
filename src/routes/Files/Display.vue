@@ -21,7 +21,7 @@ export default {
 					icon: 'mdi-format-list-numbered',
 					caption: 'menu.files.menu',
 					path: '/Files/Display',
-					condition: () => (store.state.machine.model.boards.length > 0) && store.state.machine.model.boards[0].supports12864
+					condition: () => (store.state.machine.model.boards.length > 0) && store.state.machine.model.boards[0].supportsDirectDisplay
 				}
 			}
 		});
