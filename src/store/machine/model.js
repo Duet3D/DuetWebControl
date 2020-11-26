@@ -140,6 +140,7 @@ export class MachineModel {
 				radius: 0.0
 			},
 			skew: {
+				compensateXY: true,
 				tanXY: 0,
 				tanXZ: 0,
 				tanYZ: 0

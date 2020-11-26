@@ -6,9 +6,14 @@
 
 		<v-card-text>
 			<v-row>
-				<v-col v-if="connectorType === 'rest'">
-					<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>
-				</v-col>
+				<template v-if="connectorType === 'rest'">
+					<v-col cols="6">
+						<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>
+					</v-col>
+					<v-col cols="6">
+						<v-text-field v-model.number="updateDelay" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.updateDelay', ['ms'])" hide-details></v-text-field>
+					</v-col>
+				</template>
 				<template v-else-if="connectorType === 'poll'">
 					<v-col cols="6">
 						<v-text-field v-model.number="ajaxRetries" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.ajaxRetries')" hide-details></v-text-field>
@@ -49,6 +54,10 @@ export default {
 		pingInterval: {
 			get() { return this.settings.pingInterval; },
 			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ pingInterval: value }); } }
+		},
+		updateDelay: {
+			get() { return this.settings.updateDelay; },
+			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ updateDelay: value }); } }
 		},
 		ajaxRetries: {
 			get() { return this.settings.ajaxRetries; },

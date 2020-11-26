@@ -33,7 +33,7 @@ export default {
 			if (isPrinting(this.status)) {
 				if (this.printFile) {
 					const progress = this.$display(this.jobProgress * 100, 1, '%');
-					if (this.status === StatusType.simulating) {
+					if (this.isSimulating) {
 						return this.$t('jobProgress.simulating', [this.printFile, progress]);
 					}
 					if (this.machineMode === MachineMode.fff) {
@@ -80,6 +80,20 @@ export default {
 		},
 		lastPrintFile() {
 			return (this.job.lastFileName !== null) ? extractFileName(this.job.lastFileName) : null;
+		}
+	},
+	data() {
+		return {
+			isSimulating: false
+		}
+	},
+	watch: {
+		status(to) {
+			if (to === StatusType.simulating) {
+				this.isSimulating = true;
+			} else if (!isPrinting(to)) {
+				this.isSimulating = false;
+			}
 		}
 	}
 }

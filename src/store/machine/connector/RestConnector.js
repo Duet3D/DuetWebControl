@@ -242,7 +242,11 @@ export default class RestConnector extends BaseConnector {
 
 		// Update model and acknowledge receipt
 		await this.dispatch('update', data);
-		this.socket.send('OK\n');
+		if (this.settings.updateDelay > 0) {
+			setTimeout(() => this.socket.send('OK\n'), this.settings.updateDelay);
+		} else {
+			this.socket.send('OK\n');
+		}
 	}
 
 	onClose(e) {

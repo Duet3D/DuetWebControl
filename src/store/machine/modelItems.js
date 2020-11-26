@@ -430,6 +430,14 @@ export class ParsedFileInfo {
 	printTime = null
 	simulatedTime = null
 	size = 0
+	thumbnails = []
+}
+
+export class ParsedThumbnail {
+	constructor(initData) { quickPatch(this, initData); }
+	EncodedImage = null
+	Height = 0
+	Width = 0
 }
 
 export class Plugin extends PluginManifest {
@@ -594,6 +602,9 @@ export function fixMachineItems(state, mergeData) {
 		fixObject(state.job.build, new Build());
 		if (mergeData.job.build && mergeData.job.build.objects) {
 			fixItems(state.job.build.objects, BuildObject);
+		}
+		if (mergeData.job.file && mergeData.job.file.thumbnails) {
+			fixItems(state.job.file.thumbnails, ParsedThumbnail);
 		}
 	}
 

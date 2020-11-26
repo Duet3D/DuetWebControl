@@ -15,13 +15,14 @@ export default function(connector, pluginSettingFields) {
 		state: {
 			// Poll Connector
 			ajaxRetries: 2,
-			updateInterval: 250,
+			updateInterval: 250,						// ms
 			extendedUpdateEvery: 20,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 			crcUploads: true,
 
 			// REST Connector
 			pingInterval: 2000,							// ms
+			updateDelay: 0,								// ms
 
 			// UI
 			babystepAmount: 0.05,						// mm

@@ -591,6 +591,7 @@ export default {
 		settingsCommunication: {
 			caption: 'Kommunikation',
 			pingInterval: 'PING-Intervall im Leerlauf ({0})',
+			updateDelay: 'Aktualisierungsverzögerung ({0})',
 			ajaxRetries: 'Maximale Anzahl an wiederholten AJAX-Versuchen',
 			updateInterval: 'Aktualisierungsintervall ({0})',
 			extendedUpdateEvery: 'Erweitertes Statusupdateintervall',
