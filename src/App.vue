@@ -271,8 +271,8 @@ export default {
 			}
 		},
 		name() { this.updateTitle(); },
-		jobProgress(to) {
-			if (isPrinting(this.status)) {
+		jobProgress(to, from) {
+			if (isPrinting(this.status) && Math.round(to * 100) !== Math.round(from * 100)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();
