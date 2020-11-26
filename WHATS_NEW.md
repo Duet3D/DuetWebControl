@@ -1,6 +1,16 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-beta4
+===================
+
+Changed behaviour:
+- Added new delay setting for SBC mode to reduce CPU usage on demand
+
+Bug fixes:
+- Job progress didn't show correct simulation status when the simulation was paused
+- Pause/Resume button didn't show correct captions when the simulation was paused
+
 Version 3.2.0-beta3
 ===================
 
