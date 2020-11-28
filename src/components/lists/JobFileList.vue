@@ -1,32 +1,39 @@
 <template>
 	<div>
 		<v-toolbar>
-			<sd-card-btn v-if="volumes.length > 1" v-model="volume" class="hidden-sm-and-down"></sd-card-btn>
-			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
+			<sd-card-btn v-if="volumes.length > 1" v-model="volume" class="hidden-sm-and-down" />
+			<directory-breadcrumbs v-model="directory" />
 
-			<v-spacer></v-spacer>
+			<v-spacer />
 
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" @click="showNewDirectory = true">
-				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
+				<v-icon class="mr-1">mdi-folder-plus</v-icon>
+				{{ $t('button.newDirectory.caption') }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" @click="refresh">
-				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
+				<v-icon class="mr-1">mdi-refresh</v-icon>
+				{{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary" />
 		</v-toolbar>
-		
-		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" sort-table="jobs" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked" no-files-text="list.jobs.noJobs">
-			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100"></v-progress-linear>
+
+		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" sort-table="jobs" no-files-text="list.jobs.noJobs" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked">
+			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100" />
 
 			<template #context-menu>
 				<v-list-item v-show="isFile && !isPrinting" @click="start">
-					<v-icon class="mr-1">mdi-play</v-icon> {{ $t('list.jobs.start') }}
+					<v-icon class="mr-1">mdi-play</v-icon>
+					{{ $t('list.jobs.start') }}
 				</v-list-item>
 				<v-list-item v-show="isFile && !isPrinting" @click="simulate">
-					<v-icon class="mr-1">mdi-fast-forward</v-icon> {{ $t('list.jobs.simulate') }}
+					<v-icon class="mr-1">mdi-fast-forward</v-icon>
+					{{ $t('list.jobs.simulate') }}
 				</v-list-item>
-				<v-list-item v-show="isFile" v-for="(menuItem, index) in contextMenuItems.jobFileList" :key="index" @click="contextMenuAction(menuItem)">
-					<v-icon class="mr-1">{{menuItem.icon}}</v-icon> {{ menuItem.name }}
+				<v-list-item v-for="(menuItem, index) in contextMenuItems.jobFileList" v-show="isFile" :key="index" @click="contextMenuAction(menuItem)">
+					<v-icon class="mr-1">
+						{{ menuItem.icon }}
+					</v-icon>
+					{{ menuItem.name }}
 				</v-list-item>
 			</template>
 		</base-file-list>
@@ -80,53 +87,63 @@ export default {
 		...mapState('uiInjection', ['contextMenuItems']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		headers() {
-			return [
+			let headers = [
 				{
 					text: i18n.t('list.baseFileList.fileName'),
-					value: 'name'
+					value: 'name',
 				},
 				{
 					text: i18n.t('list.baseFileList.size'),
 					value: 'size',
-					unit: 'bytes'
+					unit: 'bytes',
 				},
 				{
 					text: i18n.t('list.baseFileList.lastModified'),
 					value: 'lastModified',
-					unit: 'date'
+					unit: 'date',
 				},
 				{
 					text: i18n.t('list.jobs.height'),
 					value: 'height',
 					precision: 2,
-					unit: 'mm'
+					unit: 'mm',
 				},
 				{
 					text: i18n.t('list.jobs.layerHeight'),
 					value: 'layerHeight',
 					precision: 2,
-					unit: 'mm'
+					unit: 'mm',
 				},
 				{
 					text: i18n.t('list.jobs.filament'),
 					value: 'filament',
-					unit: 'filaments'
+					unit: 'filaments',
 				},
 				{
 					text: i18n.t('list.jobs.printTime'),
 					value: 'printTime',
-					unit: 'time'
+					unit: 'time',
 				},
 				{
 					text: i18n.t('list.jobs.simulatedTime'),
 					value: 'simulatedTime',
-					unit: 'time'
+					unit: 'time',
 				},
 				{
 					text: i18n.t('list.jobs.generatedBy'),
-					value: 'generatedBy'
-				}
+					value: 'generatedBy',
+				},
 			];
+
+			if (this.hasThumbnails) {
+				headers.splice(0, 0, {
+					text: 'Thumbnail',
+					value: 'thumbnails',
+					unit: 'image',
+				});
+			}
+
+			return headers;
 		},
 		isFile() {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
@@ -135,13 +152,17 @@ export default {
 			return isPrinting(this.status);
 		},
 		loading: {
-			get() { return this.loadingValue || this.fileinfoProgress !== -1; },
-			set(value) { this.loadingValue = value; }
+			get() {return this.loadingValue || this.fileinfoProgress !== -1; },
+			set(value) { this.loadingValue = value; },
 		},
 		volume: {
-			get() { return Path.getVolume(this.directory); },
-			set(value) { this.directory = (value === Path.getVolume(this.gCodesDirectory)) ? this.gCodesDirectory : `${value}:`; }
-		}
+			get() {
+				return Path.getVolume(this.directory);
+			},
+			set(value) {
+				this.directory = value === Path.getVolume(this.gCodesDirectory) ? this.gCodesDirectory : `${value}:`;
+			},
+		},
 	},
 	data() {
 		return {
@@ -158,8 +179,9 @@ export default {
 				shown: false
 			},
 			showNewDirectory: false,
-			fab: false
-		}
+			fab: false,
+			hasThumbnails: false,
+		};
 	},
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileInfo']),
@@ -198,13 +220,17 @@ export default {
 								}
 
 								// Set file info
-								gotFileInfo = true
+								gotFileInfo = true;
 								file.height = fileInfo.height;
 								file.layerHeight = fileInfo.layerHeight;
 								file.filament = fileInfo.filament;
 								file.generatedBy = fileInfo.generatedBy;
 								file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
 								file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
+								file.thumbnails = fileInfo.thumbnails ? fileInfo.thumbnails : null;
+								if (file.thumbnails.length > 0) {
+									this.hasThumbnails = true;
+								}
 							}
 						} catch (e) {
 							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
@@ -222,6 +248,7 @@ export default {
 							file.generatedBy = null;
 							file.printTime = null;
 							file.simulatedTime = null;
+							file.thumbnails = null;
 						}
 					}
 
@@ -237,7 +264,7 @@ export default {
 		directoryLoaded(directory) {
 			if (this.fileinfoDirectory !== directory) {
 				this.fileinfoDirectory = directory;
-				this.filelist.forEach(function(item) {
+				this.filelist.forEach(function (item) {
 					if (item.isDirectory) {
 						item.height = null;
 						item.layerHeight = null;
@@ -245,9 +272,11 @@ export default {
 						item.generatedBy = null;
 						item.printTime = null;
 						item.simulatedTime = null;
+						item.thumbnails = null;
 					}
 				});
 
+				this.hasThumbnails = false;
 				this.requestFileInfo(directory, 0, this.filelist.length);
 			}
 		},
@@ -260,26 +289,21 @@ export default {
 			}
 		},
 		start(item) {
-			this.sendCode(`M32 "${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+			this.sendCode(`M32 "${Path.combine(this.directory, item && item.name ? item.name : this.selection[0].name)}"`);
 		},
 		simulate(item) {
-			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+			this.sendCode(`M37 P"${Path.combine(this.directory, item && item.name ? item.name : this.selection[0].name)}"`);
 		},
-		contextMenuAction(menuItem){
+		contextMenuAction(menuItem) {
 			let path = Path.combine(this.directory, this.selection[0].name);
-			if(menuItem.path !== ''){
-			this.$router.push(menuItem.path).then(() => {
+			if (menuItem.path !== '') {
+				this.$router.push(menuItem.path).then(() => {
+					this.$root.$emit(menuItem.action, path);
+				});
+			} else {
 				this.$root.$emit(menuItem.action, path);
-			})
 			}
-			else{
-				this.$root.$emit(menuItem.action, path);
-			}
-			
-		}
-	},
-	mounted() {
-		this.directory = this.gCodesDirectory;
+		},
 	},
 	watch: {
 		gCodesDirectory(to, from) {
@@ -291,7 +315,10 @@ export default {
 			if (Path.equals(this.directory, Path.extractDirectory(to))) {
 				this.$refs.filelist.refresh();
 			}
-		}
-	}
-}
+		},
+	},
+	mounted() {
+		this.directory = this.gCodesDirectory;
+	},
+};
 </script>
