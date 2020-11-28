@@ -1,21 +1,39 @@
+
+<style>
+.category-header {
+	flex: 0 0 100px;
+}
+</style>
+
 <template>
-		<v-row>
-			<v-col cols="4">
+	<div>
+		<v-row align="stretch" >
+			<v-col cols="2" >
+				<v-card  class="justify-center fill-height">
+					<v-card-title>
+						<strong>Status</strong>
+					</v-card-title>
+					<v-card-text >
+						<status-label v-if="status" ></status-label>
+					</v-card-text>
+				</v-card>
+			</v-col>
+			<v-col cols="3">
 				<cnc-axes-position :machinePosition="true"></cnc-axes-position>
 			</v-col>
-			<v-col cols="4">
+			<v-col cols="3" class="fill-height">
 				<cnc-axes-position :machinePosition="false"></cnc-axes-position>
 			</v-col>
 			<v-col cols="2">
-				<v-card>
+				<v-card class="fill-height">
 					<v-card-title><strong>Requested Speed</strong></v-card-title>
 					<v-card-text>
 						{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}
 					</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="2">
-				<v-card>
+			<v-col cols="2" >
+				<v-card class="fill-height">
 					<v-card-title><strong>Top Speed</strong></v-card-title>
 					<v-card-text>
 						{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
@@ -23,6 +41,7 @@
 				</v-card>
 			</v-col>
 		</v-row>
+	</div>
 </template>
 
 <script>
@@ -46,9 +65,3 @@ export default {
 	},
 };
 </script>
-
-<style>
-.category-header {
-	flex: 0 0 100px;
-}
-</style>

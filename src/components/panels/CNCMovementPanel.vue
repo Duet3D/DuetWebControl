@@ -16,7 +16,7 @@
 			{{ $t('panel.movement.caption') }}
 
 			<v-spacer></v-spacer>
-
+			
 			<v-select v-model="currentWorkCoordinate" :items="workCoordinates" class="wcs-selection" hint="Work Coordinate System" persistent-hint></v-select>
 		</v-card-title>
 
@@ -220,7 +220,7 @@ export default {
 		},
 		async gotoWorkspaceZero() {
 			let code = `G0`;
-			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0`));
+			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0 F${this.moveFeedrate}`));
 			console.log(code);
 			await this.sendCode(code);
 		},		

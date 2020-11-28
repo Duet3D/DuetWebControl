@@ -1,6 +1,4 @@
 <template>
-
-
 	<v-row>
 		<v-col xs="12" sm="8" md="8" lg="9" xl="9">
 			<movement-panel class="mb-2"></movement-panel>
@@ -30,8 +28,6 @@
 			<macro-list></macro-list>
 		</v-col>
 	</v-row>
-	
-
 </template>
 
 <script>
