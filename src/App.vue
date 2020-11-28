@@ -12,10 +12,10 @@
 }
 
 .global-control.theme--light {
-	background-color: #F5F5F5 !important;
+	background-color: #f5f5f5 !important;
 }
 #global-container .v-card.theme--light {
-	background-color: #F5F5F5 !important;
+	background-color: #f5f5f5 !important;
 }
 .global-control.theme--dark {
 	background-color: #515151 !important;
@@ -25,12 +25,12 @@
 }
 
 input[type='number'] {
-    -moz-appearance: textfield;
+	-moz-appearance: textfield;
 }
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+	-webkit-appearance: none;
 }
 
 a:not(:hover) {
@@ -42,11 +42,11 @@ textarea {
 }
 
 .theme--dark textarea {
-	caret-color: #FFF;
+	caret-color: #fff;
 }
 
 .v-item-group.theme--dark .v-btn__content {
-	color: #FFF !important;
+	color: #fff !important;
 }
 
 .v-card__title {
@@ -105,19 +105,12 @@ textarea {
 		<v-content id="content">
 			<v-scroll-y-transition>
 				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
-					<v-row>
-						<v-col cols="12" sm="6" md="4" lg="4" xl="4">
-							<status-panel></status-panel>
-						</v-col>
-
-						<v-col cols="12" sm="6" md="5" lg="5" xl="4">
-							<tools-panel></tools-panel>
-						</v-col>
-
-						<v-col v-if="$vuetify.breakpoint.mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }" md="3" lg="3" xl="4">
-							<temperature-chart></temperature-chart>
-						</v-col>
-					</v-row>
+					<template v-if="isFFForUnset()">
+						<fff-container-panel></fff-container-panel>
+					</template>
+					<template v-else>
+						<cnc-container-panel></cnc-container-panel>
+					</template>
 				</v-container>
 			</v-scroll-y-transition>
 
@@ -137,14 +130,14 @@ textarea {
 </template>
 
 <script>
-'use strict'
+'use strict';
 
-import Piecon from 'piecon'
-import { mapState, mapGetters, mapActions } from 'vuex'
+import Piecon from 'piecon';
+import { mapState, mapGetters, mapActions } from 'vuex';
 
-import { Routing } from './routes'
-import { isPrinting } from './store/machine/modelEnums.js'
-
+import { Routing } from './routes';
+import { isPrinting } from './store/machine/modelEnums.js';
+import { MachineMode } from './store/machine/modelEnums.js';
 export default {
 	computed: {
 		...mapState({
@@ -157,7 +150,10 @@ export default {
 			status: state => state.machine.model.state.status,
 
 			darkTheme: state => state.settings.darkTheme,
-			webcam: state => state.settings.webcam
+			webcam: state => state.settings.webcam,
+
+			atxPower: state => state.state.atxPower,
+			machineMode: state => state.machine.model.state.machineMode,
 		}),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
@@ -166,25 +162,26 @@ export default {
 				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
 			}
 			return this.darkTheme ? 'green darken-5' : 'green lighten-4';
-		}
+		},
 	},
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			hideGlobalContainer: false,
 			routing: Routing,
-			wasXs: this.$vuetify.breakpoint.xsOnly
-		}
+			wasXs: this.$vuetify.breakpoint.xsOnly,
+		};
 	},
 	methods: {
 		...mapActions(['connect', 'disconnectAll']),
 		...mapActions('settings', ['load']),
+
 		checkMenuCondition(condition) {
 			if (condition === 'webcam') {
-				return (this.webcam.url !== '');
+				return this.webcam.url !== '';
 			}
 			if (condition === 'display') {
-				return (this.boards.length > 0) && this.boards[0].supports12864;
+				return this.boards.length > 0 && this.boards[0].supports12864;
 			}
 			return true;
 		},
@@ -197,11 +194,14 @@ export default {
 		},
 		updateTitle() {
 			const jobProgress = this.jobProgress;
-			const title = ((jobProgress > 0 && isPrinting(this.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
+			const title = (jobProgress > 0 && isPrinting(this.status) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
 			if (document.title !== title) {
 				document.title = title;
 			}
-		}
+		},
+		isFFForUnset() {
+			return !this.machineMode || this.machineMode === MachineMode.fff;
+		},
 	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
@@ -232,10 +232,10 @@ export default {
 
 		// Set up Piecon
 		Piecon.setOptions({
-			color: '#00f',			// Pie chart color
-			background: '#bbb',		// Empty pie chart color
-			shadow: '#fff',			// Outer ring color
-			fallback: false			// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+			color: '#00f', // Pie chart color
+			background: '#bbb', // Empty pie chart color
+			shadow: '#fff', // Outer ring color
+			fallback: false, // Toggles displaying percentage in the title bar (possible values - true, false, 'force')
 		});
 	},
 	watch: {
@@ -256,13 +256,15 @@ export default {
 				}
 			}
 		},
-		name() { this.updateTitle(); },
+		name() {
+			this.updateTitle();
+		},
 		jobProgress(to) {
 			if (isPrinting(this.status)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();
-		}
-	}
-}
+		},
+	},
+};
 </script>

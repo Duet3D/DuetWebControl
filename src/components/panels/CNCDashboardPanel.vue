@@ -1,12 +1,14 @@
 <template>
-	<div>
-		<template v-if="isFFForUnset">
-			<fff-dashboard-panel></fff-dashboard-panel>
-		</template>
-		<template v-else>
-			<cnc-dashboard-panel></cnc-dashboard-panel>
-		</template>
-	</div>
+	<v-row >
+		<v-col cols="12" class="pt-0 pb-0" >
+			<cnc-movement-panel class="mb-2"></cnc-movement-panel>
+		</v-col>
+			<v-row>
+				<v-col sm="12" :md="!isFFForUnset && atxPower !== null ? 9 : 12" :lg="!isFFForUnset && atxPower !== null ? 9 : 12" :xl="!isFFForUnset && atxPower !== null ? 10 : 12">
+					<fan-panel></fan-panel>
+				</v-col>
+			</v-row>
+	</v-row>
 </template>
 
 <script>
