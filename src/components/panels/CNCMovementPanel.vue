@@ -13,15 +13,10 @@
 	<v-card class="mt-2">
 		<v-card-title>
 			<v-icon small class="mr-1">mdi-swap-horizontal</v-icon>
-			{{ $t('panel.movement.caption') }} 
-			<br>
-			{{ move }}
-			{{ currentWorkspace }}
+			{{ $t('panel.movement.caption') }}
 			<v-spacer></v-spacer>
-
-			<v-select v-model="currentWorkspace" :items="workCoordinates"  class="wcs-selection" hint="Work Coordinate System" @change="updateWorkspaceCoordinate" persistent-hint></v-select>
+			<v-select v-model="currentWorkspace" :items="workCoordinates" class="wcs-selection" hint="Work Coordinate System" @change="updateWorkspaceCoordinate" persistent-hint></v-select>
 		</v-card-title>
-
 		<v-card-text v-show="visibleAxes.length">
 			<v-row no-gutters>
 				<v-col cols="2" class="pr-2">
@@ -227,7 +222,7 @@ export default {
 			console.log(code);
 			await this.sendCode(code);
 		},
-		async updateWorkspaceCoordinate(){
+		async updateWorkspaceCoordinate() {
 			let code;
 			if (this.currentWorkspace < 7) {
 				code = `G${53 + this.currentWorkspace}`;
@@ -239,10 +234,10 @@ export default {
 				await this.sendCode(code);
 				this.sendCode(`G10 L20 P${this.currentWorkspace}`);
 			}
-		}
+		},
 	},
 	mounted() {
-		this.currentWorkspace = this.workplaceNumber + 1  ;
+		this.currentWorkspace = this.workplaceNumber + 1;
 	},
 	watch: {
 		isConnected() {
@@ -251,7 +246,7 @@ export default {
 			this.moveStepDialog.shown = false;
 		},
 		workplaceNumber: function (to) {
-			console.log(`workplace number change ${to}`)
+			console.log(`workplace number change ${to}`);
 			this.currentWorkspace = to + 1;
 		},
 	},
