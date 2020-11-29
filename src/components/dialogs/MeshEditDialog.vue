@@ -1,6 +1,6 @@
 <template>
 	<v-layout row justify-center>
-		<v-dialog v-model="shown" max-width="600px">
+		<v-dialog v-model="shown" max-width="600px" persistent no-click-animation>
 			<v-card>
 				<v-form ref="form" @submit.prevent="apply">
 					<v-card-title>

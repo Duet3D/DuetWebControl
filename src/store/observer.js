@@ -4,6 +4,25 @@ import { defaultMachine } from './machine'
 
 let settingsTimer, machineSettingsTimer = {}, machineCacheTimer = {}
 
+export function resetCacheTimer(machine) {
+	if (machineCacheTimer[machine]) {
+		clearTimeout(machineCacheTimer[machine]);
+		machineCacheTimer[machine] = undefined;
+	}
+}
+
+export function resetSettingsTimer(machine) {
+	if (!machine) {
+		if (settingsTimer) {
+			clearTimeout(settingsTimer);
+			settingsTimer = undefined;
+		}
+	} else if (machineSettingsTimer[machine]) {
+		clearTimeout(machineSettingsTimer[machine]);
+		machineSettingsTimer[machine] = undefined;
+	}
+}
+
 export default function(store) {
 	// Observe the mutations of the store and make sure the cache and
 	// settings are saved automatically after a certain debounce delay

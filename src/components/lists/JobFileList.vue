@@ -25,6 +25,9 @@
 				<v-list-item v-show="isFile && !isPrinting" @click="simulate">
 					<v-icon class="mr-1">mdi-fast-forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-item>
+				<v-list-item v-show="isFile" v-for="(menuItem, index) in contextMenuItems.jobFileList" :key="index" @click="contextMenuAction(menuItem)">
+					<v-icon class="mr-1">{{menuItem.icon}}</v-icon> {{ menuItem.name }}
+				</v-list-item>
 			</template>
 		</base-file-list>
 
@@ -74,6 +77,7 @@ export default {
 			volumes: state => state.volumes
 		}),
 		...mapState('settings', ['language']),
+		...mapState('uiInjection', ['contextMenuItems']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		headers() {
 			return [
@@ -260,6 +264,18 @@ export default {
 		},
 		simulate(item) {
 			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+		},
+		contextMenuAction(menuItem){
+			let path = Path.combine(this.directory, this.selection[0].name);
+			if(menuItem.path !== ''){
+			this.$router.push(menuItem.path).then(() => {
+				this.$root.$emit(menuItem.action, path);
+			})
+			}
+			else{
+				this.$root.$emit(menuItem.action, path);
+			}
+			
 		}
 	},
 	mounted() {

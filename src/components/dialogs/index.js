@@ -6,7 +6,7 @@ import ConfirmDialog from './ConfirmDialog.vue'
 import ConnectDialog from './ConnectDialog.vue'
 import ConnectionDialog from './ConnectionDialog.vue'
 import FilamentDialog from './FilamentDialog.vue'
-import FileEditDialog from './FileEditDialog.vue'
+import FileEditDialog from './FileEditDialog/FileEditDialog.vue'
 import InputDialog from './InputDialog.vue'
 import MeshEditDialog from './MeshEditDialog.vue'
 import MessageBoxDialog from './MessageBoxDialog.vue'
@@ -26,16 +26,3 @@ Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
 
-export default {
-	ConfirmDialog,
-	ConnectDialog,
-	ConnectionDialog,
-	FilamentDialog,
-	FileEditDialog,
-	InputDialog,
-	MeshEditDialog,
-	MessageBoxDialog,
-	NewDirectoryDialog,
-	NewFileDialog,
-	ResetHeaterFaultDialog
-}

@@ -37,10 +37,12 @@
 'use strict'
 
 import Chart from 'chart.js'
+import dateFnsLocale from 'date-fns/locale/en-US'
 import { mapState, mapGetters } from 'vuex'
 
 import i18n from '../../i18n'
 import { defaultMachine } from '../../store/machine'
+import Events from '../../utils/events.js'
 import { getRealHeaterColor } from '../../utils/colors.js'
 
 const sampleInterval = 1000			// ms
@@ -116,7 +118,6 @@ export default {
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['maxHeaterTemperature']),
 		...mapState('machine/model', ['heat']),
-		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme'])
 	},
 	data() {
@@ -173,6 +174,11 @@ export default {
 			scales: {
 				xAxes: [
 					{
+						adapters: {
+							date: {
+								locale: dateFnsLocale
+							}
+						},
 						gridLines: {
 							color: 'rgba(0,0,0,0.2)',
 							display: true
@@ -224,7 +230,7 @@ export default {
 		};
 
 		// Create the dataset if necessary
-		if (tempSamples[this.selectedMachine] === undefined) {
+		if (!tempSamples[this.selectedMachine]) {
 			tempSamples[this.selectedMachine] = {
 				times: [],
 				temps: []
@@ -244,50 +250,47 @@ export default {
 		// Keep track of updates
 		instances.push(this);
 		if (!storeSubscribed) {
-			this.$store.subscribe((mutation, state) => {
-				if (mutation.type === 'addMachine') {
-					// Machine has been added
-					tempSamples[mutation.payload.hostname] = {
-						times: [],
-						temps: []
-					};
-				} else if (mutation.type === 'removeMachine') {
-					// Machine has been removed
-					delete tempSamples[mutation.payload];
-				} else {
-					const result = /machines\/(.+)\/model\/update/.exec(mutation.type);
-					if (result) {
-						// New data received
-						const machine = result[1], dataset = tempSamples[machine], now = new Date();
-						if (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval) {
-							// Record sensor temperatures
-							state.machines[machine].model.sensors.analog.forEach(function(sensor, sensorIndex) {
-								if (sensor) {
-									const heaterIndex = state.machines[machine].model.heat.heaters.findIndex(heater => heater && heater.sensor === sensorIndex);
-									if (heaterIndex !== -1) {
-										pushSeriesData(machine, heaterIndex, false, sensor);
-									} else {
-										pushSeriesData(machine, sensorIndex, true, sensor);
-									}
-								}
-							});
+			this.$root.$on(Events.machineAdded, function(hostname) {
+				tempSamples[hostname] = {
+					times: [],
+					temps: []
+				};
+			});
+			this.$root.$on(Events.machineRemoved, function(hostname) {
+				delete tempSamples[hostname];
+			});
 
-							// Record time and deal wih expired temperature samples
-							while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
-								dataset.times.shift();
-								dataset.temps.forEach(data => data.data.shift());
+			const machines = this.$store.state.machines;
+			this.$root.$on(Events.machineModelUpdated, function(hostname) {
+				const dataset = tempSamples[hostname], now = new Date();
+				if (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval) {
+					// Record sensor temperatures
+					machines[hostname].model.sensors.analog.forEach(function(sensor, sensorIndex) {
+						if (sensor) {
+							const heaterIndex = machines[hostname].model.heat.heaters.findIndex(heater => heater && heater.sensor === sensorIndex);
+							if (heaterIndex !== -1) {
+								pushSeriesData(hostname, heaterIndex, false, sensor);
+							} else {
+								pushSeriesData(hostname, sensorIndex, true, sensor);
 							}
-							dataset.times.push(now);
-
-							// Deal with visibility and tell chart instances to update
-							dataset.temps.forEach(function(dataset) {
-								dataset.showLine = !dataset.extra || (this.displayedExtraTemperatures.indexOf(dataset.index) !== -1);
-							}, this);
-							instances.forEach(instance => instance.update());
 						}
+					});
+
+					// Record time and deal wih expired temperature samples
+					while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
+						dataset.times.shift();
+						dataset.temps.forEach(data => data.data.shift());
 					}
+					dataset.times.push(now);
+
+					// Deal with visibility and tell chart instances to update
+					dataset.temps.forEach(function(dataset) {
+						dataset.showLine = !dataset.extra || (machines[hostname].settings.displayedExtraTemperatures.indexOf(dataset.index) !== -1);
+					}, this);
+					instances.forEach(instance => instance.update());
 				}
 			});
+
 			storeSubscribed = true;
 		}
 	},

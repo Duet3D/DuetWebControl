@@ -61,5 +61,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 export default new VueI18n({
 	locale: 'en',
+	fallbackLocale: 'en',
 	messages
 })

@@ -6,18 +6,16 @@ import '@mdi/font/css/materialdesignicons.css'
 import './components'
 
 import App from './App.vue'
-import plugins from './plugins'
 import i18n from './i18n'
+import './plugins'
 import router from './routes'
 import store from './store'
+import './registerServiceWorker.js'
 
 Vue.config.productionTip = false
-
-Vue.use(plugins)
 Vue.use(Vuetify)
 
-/* eslint-disable no-new */
-new Vue({
+export default new Vue({
 	el: '#app',
 	i18n,
 	render: h => h(App),

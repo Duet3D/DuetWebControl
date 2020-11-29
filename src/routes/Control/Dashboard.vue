@@ -10,19 +10,34 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+'use strict'
 
-import { MachineMode } from '../../store/machine/modelEnums.js';
+import { mapState } from 'vuex'
+
+import { registerRoute } from '..'
+import { MachineMode } from '../../store/machine/modelEnums.js'
 
 export default {
 	computed: {
 		...mapState('machine/model', {
 			atxPower: state => state.state.atxPower,
-			machineMode: state => state.state.machineMode,
+			machineMode: state => state.state.machineMode
 		}),
 		isFFForUnset() {
-			return !this.machineMode || this.machineMode === MachineMode.fff;
-		},
+			return !this.machineMode || (this.machineMode === MachineMode.fff);
+		}
 	},
-};
+	install() {
+		// Register a route via Control -> Dashboard
+		registerRoute(this, {
+			Control: {
+				Dashboard: {
+					icon: 'mdi-view-dashboard',
+					caption: 'menu.control.dashboard',
+					path: '/'
+				}
+			}
+		});
+	}
+}
 </script>

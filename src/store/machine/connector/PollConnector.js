@@ -7,7 +7,7 @@ import BaseConnector, { defaultRequestTimeout } from './BaseConnector.js'
 import { getBoardDefinition } from '../boards.js'
 import { DefaultMachineModel } from '../model.js'
 import { HeaterState, StatusType, isPaused, isPrinting } from '../modelEnums.js'
-import { BeepRequest, MessageBox, ParsedFileInfo } from '../modelItems.js'
+import { BeepRequest, Layer, Message, MessageBox, ParsedFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -17,7 +17,11 @@ import {
 } from '../../../utils/errors.js'
 import { arraySizesDiffer, quickPatch } from '../../../utils/patch.js'
 import { bitmapToArray } from '../../../utils/numbers.js'
+import Path from '../../../utils/path.js'
 import { strToTime, timeToStr } from '../../../utils/time.js'
+
+const keysToIgnore = ['httpEndpoints', 'messages', 'plugins', 'userSessions', 'userVariables']
+const keysToQuery = Object.keys(DefaultMachineModel).filter(key => keysToIgnore.indexOf(key) === -1);
 
 export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
@@ -28,9 +32,14 @@ export default class PollConnector extends BaseConnector {
 
 		switch (response.err) {
 			case 0:
-				if (!window.forceLegacyConnect && response.apiLevel > 0) {
-					// Don't hide the connection dialog while the full model is being loaded...
-					BaseConnector.setConnectingProgress(0);
+				if (!window.forceLegacyConnect) {
+					if (response.isEmulated) {
+						throw new OperationFailedError('Cancelling connection attempt because the remote endpoint is emulated');
+					}
+					if (response.apiLevel > 0) {
+						// Don't hide the connection dialog while the full model is being loaded...
+						BaseConnector.setConnectingProgress(0);
+					}
 				}
 				return new PollConnector(hostname, password, response);
 			case 1: throw new InvalidPasswordError();
@@ -46,7 +55,6 @@ export default class PollConnector extends BaseConnector {
 	boardType = null
 	apiLevel = 0
 
-	requestBase = ''
 	requestTimeout = defaultRequestTimeout
 	requests = []
 
@@ -104,7 +112,7 @@ export default class PollConnector extends BaseConnector {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
 					// with the last-known password and retry the pending request if that succeeds
-					BaseConnector.request('GET', `${location.protocol}//${that.hostname}/rr_connect`, {
+					BaseConnector.request('GET', `${that.requestBase}/rr_connect`, {
 							password: that.password,
 							time: timeToStr(new Date())
 						})
@@ -124,8 +132,7 @@ export default class PollConnector extends BaseConnector {
 					if (retry < maxRetries) {
 						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
 						if (retry === 0) {
-							that.lastSeq++;
-							that.getGCodeReply(that.lastSeq)
+							that.getGCodeReply()
 								.then(function() {
 									// Retry the original request when the code reply has been received
 									that.request(method, url, params, responseType, body, onProgress, timeout, cancellationToken, filename, retry + 1)
@@ -191,7 +198,7 @@ export default class PollConnector extends BaseConnector {
 		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.requestBase = `${location.protocol}//${hostname}/`;
+		this.requestBase = (hostname === location.host) ? `${location.protocol}//${hostname}${process.env.BASE_URL}` : `http://${hostname}/`;
 		this.sessionTimeout = responseData.sessionTimeout;
 		this.apiLevel = responseData.apiLevel || 0;
 	}
@@ -208,14 +215,24 @@ export default class PollConnector extends BaseConnector {
 		this.scheduleUpdate();
 	}
 
+	plugins = []
+	async loadPlugins() {
+		try {
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+			await this.dispatch('update', { plugins: this.plugins });
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				throw e;
+			}
+		}
+	}
+
 	async reconnect() {
 		// Cancel pending requests and reset the last 'seq' field
 		// so that the last G-code reply is queried again
 		this.cancelRequests();
 		this.lastStatusResponse = {};
 		this.lastSeq = 0;
-		this.lastSeqs = {}
-		this.lastUptime = 0
 
 		// Attempt to reconnect
 		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}/rr_connect`, {
@@ -225,7 +242,6 @@ export default class PollConnector extends BaseConnector {
 
 		switch (response.err) {
 			case 0:
-				this.justConnected = true;
 				this.boardType = response.boardType;
 				this.sessionTimeout = response.sessionTimeout;
 				this.requestTimeout = response.sessionTimeout / (this.settings.ajaxRetries + 1);
@@ -320,8 +336,8 @@ export default class PollConnector extends BaseConnector {
 		const fanRPMs = (response.sensors.fanRPM instanceof Array) ? response.sensors.fanRPM : [response.sensors.fanRPM];
 		quickPatch(newData, {
 			fans: response.params.fanPercent.map((fanPercent, index) => ({
-				rpm: (index < fanRPMs.length) ? fanRPMs[index] : -1,
-				value: fanPercent / 100
+				rpm: (index < fanRPMs.length && fanRPMs[index] > 0) ? fanRPMs[index] : -1,
+				requestedValue: fanPercent / 100
 			})),
 			heat: {
 				heaters: response.temps.state.map((state, sensor) => ({ state: this.convertHeaterState(state), sensor }), this)
@@ -343,14 +359,14 @@ export default class PollConnector extends BaseConnector {
 					position: position
 				})),
 				speedFactor: response.params.speedFactor / 100,
-				workspaceNumber: (response.wpl !== undefined) ? response.wpl : 1
+				workplaceNumber: (response.wpl !== undefined) ? response.wpl - 1 : 0
 			},
 			scanner: (response.scanner) ? {
 				progress: response.scanner.progress,
 				status: response.scanner.status
 			} : {},
 			sensors: {
-				analog: response.temps.current.map((lastReading, number) => ({ lastReading, number }))
+				analog: response.temps.current.map((lastReading) => ({ lastReading }))
 						.concat(response.temps.extra.map(extra => ({
 							lastReading: (extra.temp === 9999) ? null : extra.temp,
 							name: extra.name
@@ -554,12 +570,12 @@ export default class PollConnector extends BaseConnector {
 				if (!this.layers.length) {
 					// Is the first layer complete?
 					if (response.currentLayer > 1) {
-						this.layers.push({
+						this.layers.push(new Layer({
 							duration: response.firstLayerDuration,
-							height: this.currentFileInfo.firstLayerHeight,
-							filament: (response.currentLayer === 2) ? response.extrRaw.filter(amount => amount > 0) : null,
+							height: this.currentFileInfo.firstLayerHeight || 0,
+							filament: (response.currentLayer === 2) ? response.extrRaw.filter(amount => amount > 0) : [],
 							fractionPrinted: (response.currentLayer === 2) ? response.fractionPrinted / 100 : null
-						});
+						}));
 						newData.job.layers = this.layers;
 
 						// Keep track of the past layer
@@ -584,7 +600,7 @@ export default class PollConnector extends BaseConnector {
 						// Got info about the past layer, add what we know
 						this.layers.push({
 							duration: response.printDuration - this.printStats.duration,
-							height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
+							height: this.printStats.measuredLayerHeight || this.printStats.layerHeight || 0,
 							filament: response.extrRaw.map((amount, index) => amount - this.printStats.extrRaw[index]).filter((dummy, index) => response.extrRaw[index] > 0),
 							fractionPrinted: (response.fractionPrinted - this.printStats.fractionPrinted) / 100
 						});
@@ -592,7 +608,9 @@ export default class PollConnector extends BaseConnector {
 						// Interpolate data...
 						const avgDuration = (response.printDuration - response.warmUpDuration - response.firstLayerDuration - response.currentLayerTime) / (response.currentLayer - 2);
 						for (let layer = this.layers.length; layer + 1 < response.currentLayer; layer++) {
-							this.layers.push({ duration: avgDuration });
+							this.layers.push(new Layer({
+								duration: avgDuration
+							}));
 						}
 						this.printStats.zPosition = response.coords.xyz[2];
 					}
@@ -658,13 +676,14 @@ export default class PollConnector extends BaseConnector {
 			});
 		}
 
-		// Remove invalid heaters
+		// Remove invalid heaters and sensors
 		for (let i = 0; i < newData.heat.heaters.length; i++) {
 			const heater = newData.heat.heaters[i];
 			if (heater && heater.state === HeaterState.off) {
 				if (heater.sensor < 0 || heater.sensor >= newData.sensors.analog.length ||
 					newData.sensors.analog[heater.sensor].lastReading === 2000) {
 					newData.heat.heaters[i] = null;
+					newData.sensors.analog[heater.sensor] = null;
 				}
 			}
 		}
@@ -675,7 +694,6 @@ export default class PollConnector extends BaseConnector {
 		// Check if the G-code response needs to be polled
 		if (response.seq !== this.lastSeq) {
 			await this.getGCodeReply(response.seq);
-			this.lastSeq = response.seq;
 		}
 
 		// Check if the firmware rebooted
@@ -774,6 +792,8 @@ export default class PollConnector extends BaseConnector {
 	lastSeqs = {}
 	lastStatus = null
 	lastUptime = 0
+	webDirectory = Path.web
+
 	async updateLoopModel() {
 		let jobKey = null, extruders = [], status = null, zPosition = null;
 		if (this.justConnected) {
@@ -793,14 +813,17 @@ export default class PollConnector extends BaseConnector {
 
 			// Query the full object model initially
 			try {
-				let keyIndex = 1, numKeys = Object.keys(DefaultMachineModel).length;
-				for (let key in DefaultMachineModel) {
+				let keyIndex = 1;
+				for (let i = 0; i < keysToQuery.length; i++) {
+					const key = keysToQuery[i];
 					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
 					await this.dispatch('update', { [key]: keyResponse.result });
-					BaseConnector.setConnectingProgress((keyIndex++ / numKeys) * 100);
+					BaseConnector.setConnectingProgress((keyIndex++ / keysToQuery.length) * 100);
 
 					if (key === 'job') {
 						jobKey = keyResponse.result;
+					} else if (key === 'directories') {
+						this.webDirectory = keyResponse.result.web;
 					} else if (key === 'move') {
 						extruders = keyResponse.result.extruders;
 						zPosition = (keyResponse.result.axes.length > 2) ? keyResponse.result.axes[2].userPosition : null;
@@ -833,7 +856,9 @@ export default class PollConnector extends BaseConnector {
 					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
 					await this.dispatch('update', { [key]: keyResponse.result });
 
-					if (key === 'job') {
+					if (key === 'directories') {
+						this.webDirectory = keyResponse.result.web;
+					} else if (key === 'job') {
 						jobKey = keyResponse.result;
 					}
 				}
@@ -874,12 +899,12 @@ export default class PollConnector extends BaseConnector {
 			if (this.layers.length === 0) {
 				// Is the first layer complete?
 				if (jobKey.layer > 1) {
-					this.layers.push({
+					this.layers.push(new Layer({
 						duration: jobKey.firstLayerDuration,
 						height: jobKey.file.firstLayerHeight,
-						filament: (jobKey.layer === 2) ? extrRaw : null,
+						filament: (jobKey.layer === 2) ? extrRaw : [],
 						fractionPrinted: (jobKey.layer === 2) ? fractionPrinted : null
-					});
+					}));
 					layersChanged = true;
 
 					// Keep track of the past layer
@@ -901,20 +926,22 @@ export default class PollConnector extends BaseConnector {
 			if (addLayers) {
 				if (this.printStats.duration) {
 					// Got info about the past layer, add what we know
-					this.layers.push({
+					this.layers.push(new Layer({
 						duration: jobKey.duration - this.printStats.duration,
 						height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
 						filament: extrRaw
-						.map((amount, index) => amount - this.printStats.extrRaw[index])
-						.filter((dummy, index) => extrRaw[index] > 0),
+							.map((amount, index) => amount - this.printStats.extrRaw[index])
+							.filter((dummy, index) => extrRaw[index] > 0),
 						fractionPrinted: fractionPrinted - this.printStats.fractionPrinted
-					});
+					}));
 					layersChanged = true;
 				} else {
 					// Interpolate data...
 					const avgDuration = (jobKey.duration - jobKey.warmUpDuration - jobKey.firstLayerDuration - jobKey.layerTime) / (jobKey.layer - 2);
 					for (let layer = this.layers.length; layer + 1 < jobKey.layer; layer++) {
-						this.layers.push({ duration: avgDuration });
+						this.layers.push(new Layer({
+							duration: avgDuration
+						}));
 						layersChanged = true;
 					}
 				}
@@ -994,25 +1021,24 @@ export default class PollConnector extends BaseConnector {
 		}
 	}
 
-	async getGCodeReply(seq) {
+	async getGCodeReply(seq = null) {
+		if (seq !== null) {
+			this.lastSeq = seq;
+		}
+
 		const response = await this.request('GET', 'rr_reply', this.requestTimeout, 'text');
 		const reply = response.trim();
-
-		// TODO? Check for special JSON responses generated by M119, see DWC1
-		// Probably makes sense only as soon as the settings update notifications are working again
-
-		if (!this.pendingCodes.length) {
-			// Just log this response
-			this.dispatch('onCodeCompleted', { code: undefined, reply });
-		} else {
+		if (this.pendingCodes.length > 0) {
 			// Resolve pending code promises
 			this.pendingCodes.forEach(function(code) {
-				if (code.seq < seq) {
+				if (seq === null || code.seq < seq) {
 					code.resolve(reply);
-					this.dispatch('onCodeCompleted', { code, reply });
 				}
 			}, this);
-			this.pendingCodes = this.pendingCodes.filter(code => code.seq >= seq);
+			this.pendingCodes = this.pendingCodes.filter(code => (seq !== null) && (code.seq >= seq));
+		} else if (reply !== '') {
+			// Forward generic messages to the machine module
+			this.dispatch('update', { messages: [new Message({ content: reply })] });
 		}
 	}
 
@@ -1043,9 +1069,6 @@ export default class PollConnector extends BaseConnector {
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
-
-		// Upload successful
-		this.dispatch('onFileUploaded', { filename, content });
 	}
 
 	async delete(filename) {
@@ -1053,8 +1076,6 @@ export default class PollConnector extends BaseConnector {
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
-
-		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
 	async move({ from, to, force = false, silent = false }) {
@@ -1068,8 +1089,6 @@ export default class PollConnector extends BaseConnector {
 			if (response.err !== 0) {
 				throw new OperationFailedError(`err ${response.err}`);
 			}
-
-			await this.dispatch('onFileOrDirectoryMoved', { from, to, force });
 		}
 	}
 
@@ -1078,8 +1097,6 @@ export default class PollConnector extends BaseConnector {
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
-
-		await this.dispatch('onDirectoryCreated', directory);
 	}
 
 	async download(payload) {
@@ -1087,11 +1104,7 @@ export default class PollConnector extends BaseConnector {
 		const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
 		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 		const cancellationToken = (payload instanceof Object && payload.cancellationToken) ? payload.cancellationToken : null;
-
-		const response = await this.request('GET', 'rr_download', { name: filename }, type, null, onProgress, 0, cancellationToken, filename);
-
-		this.dispatch('onFileDownloaded', { filename, content: response });
-		return response;
+		return await this.request('GET', 'rr_download', { name: filename }, type, null, onProgress, 0, cancellationToken, filename);
 	}
 
 	async getFileList(directory) {
@@ -1124,5 +1137,127 @@ export default class PollConnector extends BaseConnector {
 
 		delete response.err;
 		return new ParsedFileInfo(response);
+	}
+
+	async installPlugin({ zipFile, plugin }) {
+		// Verify the name
+		if (!plugin.name || plugin.name.trim() === '' || plugin.name.length > 64) {
+			throw new Error('Invalid plugin name');
+		}
+
+		if (plugin.name.split('').some(c => !/[a-zA-Z0-9 .\-_]/.test(c))) {
+			throw new Error('Illegal plugin name');
+		}
+
+		// Check if it requires a SBC
+		if (plugin.sbcRequired) {
+			throw new Error(`Plugin ${plugin.name} cannot be loaded because the current machine does not have an SBC attached`);
+		}
+
+		// Uninstall the previous version if applicable
+		const pluginToUpgrade = this.plugins.find(item => item.name === plugin.name);
+		if (pluginToUpgrade) {
+			await this.uninstallPlugin(pluginToUpgrade);
+		}
+
+		// Clear potential files
+		plugin.dwcFiles = [];
+		plugin.rrfFiles = [];
+		plugin.sbcFiles = [];
+		plugin.pid = -1;
+
+		// Install the files
+		for (let file in zipFile.files) {
+			if (file.endsWith('/')) {
+				continue;
+			}
+
+			let targetFilename = null;
+			if (file.startsWith('rrf/')) {
+				const filename = file.substring(4);
+				targetFilename = `0:/${filename}`;
+				plugin.rrfFiles.push(filename);
+			} else if (file.startsWith('www/')) {
+				const filename = file.substring(4);
+				targetFilename = Path.combine(this.webDirectory, plugin.name, filename);
+				plugin.dwcFiles.push(filename);
+			} else {
+				console.warn(`Skipping file ${file}`);
+			}
+
+			if (targetFilename) {
+				const extractedFile = await zipFile.file(file).async('blob');
+				extractedFile.name = file;
+
+				console.debug(`Uploading plugin file ${file} to ${targetFilename}`);
+				await this.upload({ filename: targetFilename, content: extractedFile });
+			}
+		}
+
+		// Update the plugins file
+		try {
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				console.warn(`Failed to load DWC plugins file: ${e}`);
+			}
+		}
+		this.plugins.push(plugin);
+		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
+
+		// Install the plugin manifest
+		await this.commit('model/addPlugin', plugin);
+	}
+
+	async uninstallPlugin(plugin) {
+		// Uninstall the plugin manifest
+		await this.commit('model/removePlugin', plugin);
+
+		// Delete files from 0:/
+		for (let i = 0; i < plugin.rrfFiles.length; i++) {
+			try {
+				await this.delete(`0:/${plugin.rrfFiles[i]}`);
+			} catch (e) {
+				if (e instanceof OperationFailedError) {
+					console.warn(e);
+				} else {
+					throw e;
+				}
+			}
+		}
+
+		// Delete web files
+		for (let i = 0; i < plugin.dwcFiles.length; i++) {
+			try {
+				await this.delete(Path.combine(this.webDirectory, plugin.name, plugin.dwcFiles[i]));
+			} catch (e) {
+				if (e instanceof OperationFailedError) {
+					console.warn(e);
+				} else {
+					throw e;
+				}
+			}
+		}
+
+		try {
+			await this.delete(Path.combine(this.webDirectory, plugin.name));
+		} catch (e) {
+			if (e instanceof OperationFailedError) {
+				console.warn(e);
+			} else {
+				throw e;
+			}
+		}
+
+		// Update the plugins file
+		try {
+			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				console.warn(`Failed to load DWC plugins file: ${e}`);
+			}
+		}
+		this.plugins = this.plugins.filter(item => item.name !== plugin.name);
+		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
 	}
 }

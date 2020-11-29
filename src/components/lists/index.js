@@ -20,12 +20,3 @@ Vue.component('macro-file-list', MacroFileList)
 Vue.component('macro-list', MacroList)
 Vue.component('system-file-list', SystemFileList)
 
-export default {
-	DisplayFileList,
-	EventList,
-	FilamentFileList,
-	JobFileList,
-	MacroFileList,
-	MacroList,
-	SystemFileList
-}

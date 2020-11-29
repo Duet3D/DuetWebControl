@@ -1,5 +1,9 @@
 'use strict'
 
+import Vue from 'vue'
+
+import { resetSettingsTimer } from './observer.js'
+
 import i18n from '../i18n'
 
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
@@ -30,28 +34,25 @@ export default {
 			embedded: false,							// use iframe to embed webcam stream
 			rotation: 0,
 			flip: 'none'
-		}
-	},
-	mutations: {
-		load(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
-				i18n.locale = payload.language;
-			}
-			patch(state, payload, true);
-		},
-		setLastHostname(state, hostname) {
-			state.lastHostname = hostname;
-			setLocalSetting('lastHostname', hostname);
 		},
 
-		update(state, payload) {
-			if (payload.language) {
-				i18n.locale = payload.language;
-			}
-			patch(state, payload, true);
-		}
+		enabledPlugins: ['Height Map'],
+		plugins: {}										// Third-party values
 	},
 	actions: {
+		async applyDefaults({ state, dispatch }) {
+			// Load settings that are enabled by default
+			if (state.enabledPlugins) {
+				for (let i = 0; i < state.enabledPlugins.length; i++) {
+					try {
+						await dispatch('loadDwcPlugin', { name: state.enabledPlugins[i], saveSettings: false }, { root: true });
+					} catch (e) {
+						console.warn(`Failed to load built-in plugin ${state.enabledPlugins[i]}`);
+						console.warn(e);
+					}
+				}
+			}
+		},
 		async load({ rootState, rootGetters, commit, dispatch }) {
 			// First attempt to load the last hostname from the local storage if the are running on localhost
 			if (rootState.isLocal) {
@@ -61,16 +62,29 @@ export default {
 				}
 			}
 
-			// Attempt to load the global settings from the local storage
-			const settings = getLocalSetting('settings');
-			if (settings) {
-				commit('load', settings);
+			const mainSettings = getLocalSetting('settings');
+			if (mainSettings) {
+				// Load the global settings from the local storage
+				commit('load', mainSettings);
+
+				if (mainSettings.enabledPlugins) {
+					for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
+						try {
+							await dispatch('loadDwcPlugin', { name: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+						} catch (e) {
+							console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
+							console.warn(e);
+						}
+					}
+				}
 			} else if (rootGetters.isConnected) {
 				// Otherwise try to load the settings from the selected board
-				dispatch('machine/settings/load', undefined, { root: true });
+				await dispatch('machine/settings/load', undefined, { root: true });
 			}
 		},
 		async save({ state, rootGetters, dispatch }) {
+			resetSettingsTimer();
+
 			// See if we need to save everything in the local storage
 			if (state.settingsStorageLocal) {
 				setLocalSetting('settings', state);
@@ -80,7 +94,7 @@ export default {
 
 				// And try to save everything on the selected board
 				if (rootGetters.isConnected) {
-					dispatch('machine/settings/save', undefined, { root: true });
+					await dispatch('machine/settings/save', undefined, { root: true });
 				}
 			}
 		},
@@ -112,6 +126,58 @@ export default {
 
 			// Reload the web interface to finish
 			location.reload();
+		}
+	},
+	mutations: {
+		setLastHostname(state, hostname) {
+			state.lastHostname = hostname;
+			setLocalSetting('lastHostname', hostname);
+		},
+
+		load(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
+			patch(state, payload, true);
+		},
+		update(state, payload) {
+			if (payload.language && i18n.locale != payload.language) {
+				i18n.locale = payload.language;
+			}
+			if (payload.plugins) {
+				state.plugins = payload.plugins;
+				delete payload.plugins;
+			}
+			patch(state, payload, true);
+		},
+
+		dwcPluginLoaded(state, plugin) {
+			if (state.enabledPlugins.indexOf(plugin) === -1) {
+				state.enabledPlugins.push(plugin);
+			}
+		},
+		disableDwcPlugin(state, plugin) {
+			state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+		},
+
+		registerPluginData(state, { plugin, key, defaultValue }) {
+			if (state.plugins[plugin] === undefined) {
+				Vue.set(state.plugins, plugin, { key: defaultValue });
+			}
+			if (!(key in state.plugins[plugin])) {
+				state.plugins[plugin][key] = defaultValue;
+			}
+		},
+		setPluginData(state, { plugin, key, value }) {
+			if (state.plugins[plugin] === undefined) {
+				state.plugins[plugin] = { key: value };
+			} else {
+				state.plugins[plugin][key] = value;
+			}
 		}
 	}
 }

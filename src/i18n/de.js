@@ -301,6 +301,7 @@ export default {
 			offline: 'abgeschaltet'
 		},
 		status: {
+			starting: 'Starte',
 			updating: 'Aktualisiere',
 			off: 'Aus',
 			halted: 'Angehalten',
@@ -400,14 +401,12 @@ export default {
 		control: {
 			caption: 'Maschinensteuerung',
 			dashboard: 'Übersicht',
-			console: 'Konsole',
-			heightmap: 'Höhenkarte'
+			console: 'Konsole'
 		},
 		job: {
 			caption: 'Aktueller Auftrag',
 			status: 'Status',
-			webcam: 'Webcam',
-			visualiser: 'Visualisierer'
+			webcam: 'Webcam'
 		},
 		files: {
 			caption: 'Dateiverwaltung',
@@ -418,11 +417,13 @@ export default {
 			system: 'System',
 			web: 'Web'
 		},
+		plugins: {
+			caption: 'Plugins'
+		},
 		settings: {
 			caption: 'Einstellungen',
 			general: 'Allgemein',
-			machine: 'Maschinenspezifisch',
-			update: 'Aktualisierung'
+			machine: 'Maschinenspezifisch'
 		}
 	},
 	notification: {
@@ -520,24 +521,6 @@ export default {
 			fan: 'Lüfter {0}',
 			noFans: 'Keine Lüfter'
 		},
-		heightmap: {
-			scale: 'Skala:',
-			orMore: 'o. mehr',
-			orLess: 'o. weniger',
-			axes: 'Achsen:',
-			numPoints: 'Anzahl der Punkte: {0}',
-			notAvailable: 'Höhenkarte nicht verfügbar',
-			radius: 'Messradius: {0}',
-			area: 'Messfläche: {0}',
-			maxDeviations: 'Maximale Abweichungen: {0} / {1}',
-			meanError: 'Gemittelter Fehler: {0}',
-			rmsError: 'Standardabweichung: {0}',
-			topView: 'Draufsicht',
-			colorScheme: 'Farbschema:',
-			terrain: 'Terrain',
-			heat: 'Hitze',
-			reload: 'Höhenkarte neu laden'
-		},
 		jobControl: {
 			caption: 'Auftragskontrolle',
 			cancelJob: 'Auftrag abbrechen',
@@ -608,6 +591,7 @@ export default {
 		settingsCommunication: {
 			caption: 'Kommunikation',
 			pingInterval: 'PING-Intervall im Leerlauf ({0})',
+			updateDelay: 'Aktualisierungsverzögerung ({0})',
 			ajaxRetries: 'Maximale Anzahl an wiederholten AJAX-Versuchen',
 			updateInterval: 'Aktualisierungsintervall ({0})',
 			extendedUpdateEvery: 'Erweitertes Statusupdateintervall',
@@ -645,7 +629,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: 'Maschinenspezifisch',
-			revertDWC: 'Zu DWC1 zurückkehren',
 			babystepAmount: 'Schrittgröße für Babystepping ({0})',
 			moveFeedrate: 'Vorschubrate für Bewegungen ({0})'
 		},
@@ -687,7 +670,7 @@ export default {
 			v12: 'V12',
 			minMax: 'Minimum: {0}, Maximum {1}',
 			fanRPM: 'Lüfter-RPM',
-			probe: 'Z-Probe|Z-Probes',
+			probe: 'Z-Sonde|Z-Sonden',
 			noStatus: 'Kein Status'
 		},
 		tools: {
@@ -719,6 +702,70 @@ export default {
 		webcam: {
 			caption: 'Webcamüberwachung',
 			alt: '(webcam bild)'
+		}
+	},
+	plugins: {
+		autoUpdate: {
+			menuCaption: 'Aktualisierung'
+		},
+		heightmap: {
+			menuCaption: 'Höhenkarte',
+			listTitle: 'Höhenkarten',
+			none: 'Keine',
+			scale: 'Skala:',
+			orMore: 'o. mehr',
+			orLess: 'o. weniger',
+			axes: 'Achsen:',
+			statistics: 'Statistiken',
+			numPoints: 'Anzahl der Punkte: {0}',
+			notAvailable: 'Höhenkarte nicht verfügbar',
+			radius: 'Messradius: {0}',
+			area: 'Messfläche: {0}',
+			maxDeviations: 'Maximale Abweichungen: {0} / {1}',
+			meanError: 'Gemittelter Fehler: {0}',
+			rmsError: 'Standardabweichung: {0}',
+			display: 'Ansicht',
+			topView: 'Draufsicht',
+			invertZ: 'Z-Koordinaten invertieren',
+			colorScheme: 'Farbschema:',
+			terrain: 'Terrain',
+			heat: 'Hitze'
+		},
+		objectModelBrowser: {
+			menuCaption: 'Objektmodell'
+		},
+		visualizer: {
+			menuCaption: 'Visualisierer'
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: 'Allgemein'
+		},
+		machineSettings: {
+			caption: 'Allgemein'
+		},
+		plugins: {
+			caption: 'Plugins',
+			headers: {
+				name: 'Name',
+				author: 'Autor',
+				version: 'Version',
+				license: 'Lizenz',
+				components: 'Komponenten',
+				dependencies: 'Abhängigkeiten',
+				status: 'Status'
+			},
+			optional: 'optional',
+			start: 'Starten',
+			partiallyStarted: 'teilweise gestartet',
+			started: 'gestartet',
+			stop: 'Stoppen',
+			deactivated: 'deaktiviert',
+			stopped: 'gestoppt',
+			uninstall: 'Deinstallieren',
+			noPlugins: 'Keine Plugins',
+			refreshNote: 'Laden Sie die Seite neu um einige DWC-Plugins zu entladen'
 		}
 	}
 }

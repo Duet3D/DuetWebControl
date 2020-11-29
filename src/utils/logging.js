@@ -1,11 +1,12 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { makeNotification } from './toast.js'
 
 import i18n from '../i18n'
+import store from '../store'
 import { defaultMachine } from '../store/machine'
-
-let store
 
 export function log(type, title, message, hostname = store.state.selectedMachine) {
 	makeNotification(type, title, message);
@@ -13,37 +14,37 @@ export function log(type, title, message, hostname = store.state.selectedMachine
 }
 
 // eslint-disable-next-line
-export function logCode(code = '', response, hostname = store.state.selectedMachine, fromInput = false) {
-	if (!code && !response) {
+export function logCode(code = '', reply, hostname = store.state.selectedMachine, fromInput = false) {
+	if (!code && !reply) {
 		// Make sure there is something to log...
 		return;
 	}
 
 	// Determine type
-	let type = 'info', toLog = response;
-	if (response.startsWith('Error: ')) {
+	let type = 'info', toLog = reply;
+	if (reply.startsWith('Error: ')) {
 		type = 'error';
-	} else if (response.startsWith('Warning: ')) {
+	} else if (reply.startsWith('Warning: ')) {
 		type = 'warning';
-	} else if (response === '') {
+	} else if (reply === '') {
 		type = 'success';
 	}
 
 	// Log it
-	const responseLines = toLog.split("\n")
+	const responseLines = toLog.split('\n')
 	if (hostname === store.state.selectedMachine) {
 		let title = code, message = responseLines.join('<br>');
-		if (responseLines.length > 3) {
-			title = (code === '') ? i18n.t('notification.responseTooLong') : code;
-			message = (code === '') ? '' : i18n.t('notification.responseTooLong');
-		} else if (code === '') {
+		if (responseLines.length > 3 || toLog.length > 128) {
+			title = (!code) ? i18n.t('notification.responseTooLong') : code;
+			message = (!code) ? '' : i18n.t('notification.responseTooLong');
+		} else if (!code) {
 			title = responseLines[0];
 			message = responseLines.slice(1).join('<br>');
 		}
 
 		makeNotification(type, title, message);
 	}
-	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: response });
+	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: reply });
 }
 
 export function logGlobal(type, title, message) {
@@ -55,14 +56,7 @@ export function logGlobal(type, title, message) {
 	store.commit(`machines/${defaultMachine}/log`, { date: new Date(), type, title, message });
 }
 
-export default {
-	install(Vue) {
-		Vue.prototype.$log = log;
-		Vue.prototype.$logCode = logCode;
-		Vue.prototype.$logGlobal = logGlobal;
-	},
-
-	installStore(storeInstance) {
-		store = storeInstance;
-	}
-}
+// Register extensions
+Vue.prototype.$log = log
+Vue.prototype.$logCode = logCode
+Vue.prototype.$logGlobal = logGlobal

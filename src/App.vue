@@ -12,10 +12,10 @@
 }
 
 .global-control.theme--light {
-	background-color: #f5f5f5 !important;
+	background-color: #F5F5F5 !important;
 }
 #global-container .v-card.theme--light {
-	background-color: #f5f5f5 !important;
+	background-color: #F5F5F5 !important;
 }
 .global-control.theme--dark {
 	background-color: #515151 !important;
@@ -25,12 +25,12 @@
 }
 
 input[type='number'] {
-	-moz-appearance: textfield;
+    -moz-appearance: textfield;
 }
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
+    -webkit-appearance: none;
 }
 
 a:not(:hover) {
@@ -42,11 +42,11 @@ textarea {
 }
 
 .theme--dark textarea {
-	caret-color: #fff;
+	caret-color: #FFF;
 }
 
 .v-item-group.theme--dark .v-btn__content {
-	color: #fff !important;
+	color: #FFF !important;
 }
 
 .v-card__title {
@@ -63,16 +63,16 @@ textarea {
 			</div>
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
-				<v-list-group v-for="(category, index) in routing" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
+				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
 					<template #activator>
-						<v-list-item-title>{{ $t(category.caption) }}</v-list-item-title>
+						<v-list-item-title>{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
 					</template>
 
-					<v-list-item v-for="(page, pageIndex) in category.pages.filter(page => checkMenuCondition(page.condition))" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
+					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
 						<v-list-item-icon>
 							<v-icon>{{ page.icon }}</v-icon>
 						</v-list-item-icon>
-						<v-list-item-title>{{ $t(page.caption) }}</v-list-item-title>
+						<v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
 					</v-list-item>
 				</v-list-group>
 			</v-list>
@@ -83,7 +83,6 @@ textarea {
 				<v-icon>mdi-menu</v-icon>
 			</v-app-bar-nav-icon>
 			<v-toolbar-title>
-				<!-- TODO: Optional OEM branding -->
 				<a href="javascript:void(0)" id="title">{{ name }}</a>
 			</v-toolbar-title>
 			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>
@@ -102,7 +101,7 @@ textarea {
 			</v-btn>
 		</v-app-bar>
 
-		<v-content id="content">
+		<v-main id="content">
 			<v-scroll-y-transition>
 				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
 					<template v-if="isFFForUnset()">
@@ -121,23 +120,26 @@ textarea {
 					<router-view></router-view>
 				</keep-alive>
 			</v-container>
-		</v-content>
+		</v-main>
 
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
 		<messagebox-dialog></messagebox-dialog>
+
+		<component v-for="component in injectedComponentNames" :is="component" :key="component"></component>
 	</v-app>
 </template>
 
 <script>
-'use strict';
+'use strict'
 
-import Piecon from 'piecon';
-import { mapState, mapGetters, mapActions } from 'vuex';
+import Piecon from 'piecon'
+import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { Routing } from './routes';
-import { isPrinting } from './store/machine/modelEnums.js';
+import { Menu, Routes } from './routes'
+import { isPrinting } from './store/machine/modelEnums.js'
 import { MachineMode } from './store/machine/modelEnums.js';
+
 export default {
 	computed: {
 		...mapState({
@@ -152,38 +154,49 @@ export default {
 			darkTheme: state => state.settings.darkTheme,
 			webcam: state => state.settings.webcam,
 
-			atxPower: state => state.state.atxPower,
 			machineMode: state => state.machine.model.state.machineMode,
+			injectedComponents: state => state.uiInjection.injectedComponents
 		}),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
+		categories() {
+			return Object.keys(Menu).map(key => Menu[key]).filter(item => item.condition || item.pages.some(page => page.condition));
+		},
+		currentPageCondition() {
+			const currentRoute = this.$route;
+			let checkRoute = function(route, isChild) {
+				let flag = (route.path === currentRoute.path && route.condition);
+				if (!flag && isChild) {
+					let curPath = currentRoute.path.replace(/\/$/, '');
+					if (curPath.endsWith(route.path))
+						flag = (curPath.substring(0, curPath.length-route.path.length) + route.path === curPath && route.condition)
+				}
+				if (!flag && route.children != undefined)
+					flag = route.children.some(child => checkRoute(child, true));
+				return flag;
+			};
+			return Routes.some(route => checkRoute(route));
+		},
 		toggleGlobalContainerColor() {
 			if (this.hideGlobalContainer) {
 				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
 			}
 			return this.darkTheme ? 'green darken-5' : 'green lighten-4';
-		},
+		}
 	},
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
 			hideGlobalContainer: false,
-			routing: Routing,
 			wasXs: this.$vuetify.breakpoint.xsOnly,
-		};
+			injectedComponentNames: []
+		}
 	},
 	methods: {
 		...mapActions(['connect', 'disconnectAll']),
 		...mapActions('settings', ['load']),
-
-		checkMenuCondition(condition) {
-			if (condition === 'webcam') {
-				return this.webcam.url !== '';
-			}
-			if (condition === 'display') {
-				return this.boards.length > 0 && this.boards[0].supports12864;
-			}
-			return true;
+		getPages(category) {
+			return category.pages.filter(page => page.condition);
 		},
 		isExpanded(category) {
 			if (this.$vuetify.breakpoint.xsOnly) {
@@ -194,7 +207,7 @@ export default {
 		},
 		updateTitle() {
 			const jobProgress = this.jobProgress;
-			const title = (jobProgress > 0 && isPrinting(this.status) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
+			const title = ((jobProgress > 0 && isPrinting(this.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
 			if (document.title !== title) {
 				document.title = title;
 			}
@@ -216,29 +229,28 @@ export default {
 		this.load();
 
 		// Validate navigation
-		const that = this;
 		this.$router.beforeEach((to, from, next) => {
-			if (Routing.some(group => group.pages.some(page => page.path === to.path && !that.checkMenuCondition(page.condition)))) {
+			if (Routes.some(route => route.path === to.path && !route.condition)) {
 				next('/');
 			} else {
 				next();
 			}
 		});
 
-		const route = this.$route;
-		if (Routing.some(group => group.pages.some(page => page.path === route.path && !this.checkMenuCondition(page.condition)))) {
-			this.$router.push('/');
-		}
-
 		// Set up Piecon
 		Piecon.setOptions({
-			color: '#00f', // Pie chart color
-			background: '#bbb', // Empty pie chart color
-			shadow: '#fff', // Outer ring color
-			fallback: false, // Toggles displaying percentage in the title bar (possible values - true, false, 'force')
+			color: '#00f',			// Pie chart color
+			background: '#bbb',		// Empty pie chart color
+			shadow: '#fff',			// Outer ring color
+			fallback: false			// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
 		});
 	},
 	watch: {
+		currentPageCondition(to) {
+			if (!to) {
+				this.$router.push('/');
+			}
+		},
 		darkTheme(to) {
 			this.$vuetify.theme.dark = to;
 		},
@@ -256,15 +268,21 @@ export default {
 				}
 			}
 		},
-		name() {
-			this.updateTitle();
-		},
-		jobProgress(to) {
-			if (isPrinting(this.status)) {
+		name() { this.updateTitle(); },
+		jobProgress(to, from) {
+			if (isPrinting(this.status) && Math.round(to * 100) !== Math.round(from * 100)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();
 		},
-	},
-};
+		injectedComponents() {
+			this.injectedComponents.forEach(function(item) {
+				if (this.injectedComponentNames.indexOf(item.name) === -1) {
+					this.$options.components[item.name] = item.component;
+					this.injectedComponentNames.push(item.name);
+				}
+			}, this);
+		}
+	}
+}
 </script>

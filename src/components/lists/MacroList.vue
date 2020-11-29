@@ -3,7 +3,7 @@
 		<v-card-title>
 			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t('list.macro.caption') }}
 			<v-spacer></v-spacer>
-			<span v-show="isConnected" class="subtitle-2">{{ directory.replace(macrosDirectory, $t('list.macro.root')) }}</span>
+			<span v-show="isConnected" class="subtitle-2">{{ currentDirectory }}</span>
 		</v-card-title>
 
 		<v-card-text class="pa-0" v-show="loading || filelist.length || !isRootDirectory">
@@ -49,8 +49,8 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { getModifiedDirectories } from '../../store/machine'
 import { DisconnectedError } from '../../utils/errors.js'
+import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 
 export default {
@@ -61,11 +61,20 @@ export default {
 			macrosDirectory: state => state.directories.macros,
 			volumes: state => state.volumes
 		}),
+		currentDirectory() {
+			if (Path.startsWith(this.directory, this.macrosDirectory)) {
+				let subDirectory = this.directory.substring(this.macrosDirectory.length);
+				if (subDirectory.length === 0 || subDirectory[0] === '/') {
+					return this.$t('list.macro.root') + (subDirectory === '/' ? '' : subDirectory);
+				}
+				return this.$t('list.macro.root') + '/' + subDirectory;
+			}
+			return this.directory;
+		},
 		isRootDirectory() { return Path.equals(this.directory, this.macrosDirectory); }
 	},
 	data () {
 		return {
-			unsubscribe: undefined,
 			loading: false,
 			wasMounted: false,
 			directory: Path.macros,
@@ -124,6 +133,13 @@ export default {
 		},
 		async goUp() {
 			await this.loadDirectory(Path.extractDirectory(this.directory));
+		},
+
+		filesOrDirectoriesChanged({ machine, files }) {
+			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
+				// File or directory has been changed in the current directory
+				this.refresh();
+			}
 		}
 	},
 	mounted() {
@@ -135,16 +151,11 @@ export default {
 		}
 
 		// Keep track of file changes
-		const that = this;
-		this.unsubscribe = this.$store.subscribeAction(async function(action, state) {
-			if (getModifiedDirectories(action, state).some(directory => Path.equals(directory, that.directory))) {
-				// Refresh the list when a file or directory has been changed
-				await that.refresh();
-			}
-		});
+		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
-		this.unsubscribe();
+		// No longer keep track of file changes
+		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
 		macrosDirectory(to, from) {

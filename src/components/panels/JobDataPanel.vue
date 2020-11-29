@@ -38,7 +38,7 @@
 						{{ $t('panel.jobData.jobDuration') }}
 					</strong>
 					<span>
-						{{ $displayTime(job.duration) }}
+						{{ $displayTime(jobDuration) }}
 					</span>
 				</v-col>
 			</v-row>
@@ -51,14 +51,19 @@
 
 import { mapState } from 'vuex'
 
+import { isPrinting } from '../../store/machine/modelEnums.js'
+
 export default {
 	computed: {
-		...mapState('machine/model', ['job']),
+		...mapState('machine/model', ['job', 'state']),
 		lastLayerTime() {
 			if (!this.job.layers.length) {
 				return undefined;
 			}
 			return this.job.layers[this.job.layers.length - 1].time;
+		},
+		jobDuration() {
+			return isPrinting(this.state.status) ? this.job.duration : this.job.lastDuration;
 		}
 	}
 }

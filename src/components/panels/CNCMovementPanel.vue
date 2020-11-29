@@ -13,17 +13,19 @@
 	<v-card class="mt-2">
 		<v-card-title>
 			<v-icon small class="mr-1">mdi-swap-horizontal</v-icon>
-			{{ $t('panel.movement.caption') }}
-
+			{{ $t('panel.movement.caption') }} 
+			<br>
+			{{ move }}
+			{{ currentWorkspace }}
 			<v-spacer></v-spacer>
-			
-			<v-select v-model="currentWorkCoordinate" :items="workCoordinates" class="wcs-selection" hint="Work Coordinate System" persistent-hint></v-select>
+
+			<v-select v-model="currentWorkspace" :items="workCoordinates"  class="wcs-selection" hint="Work Coordinate System" @change="updateWorkspaceCoordinate" persistent-hint></v-select>
 		</v-card-title>
 
 		<v-card-text v-show="visibleAxes.length">
 			<v-row no-gutters>
 				<v-col cols="2" class="pr-2">
-					<code-btn v-show="visibleAxes.length" block color="primary" code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
+					<code-btn block v-show="visibleAxes.length" color="primary" code="G28" :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
 						{{ $t('button.home.captionAll') }}
 					</code-btn>
 				</v-col>
@@ -87,7 +89,7 @@
 			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense class="mt-2 mb-2">
 				<!-- Regular home buttons -->
 				<v-col cols="1" class="flex-shrink-1 hidden-sm-and-down">
-					<code-btn block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="ml-0">
+					<code-btn block tile :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen" :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`" class="move-btn ml-0">
 						{{ $t('button.home.caption', [axis.letter]) }}
 					</code-btn>
 				</v-col>
@@ -117,13 +119,13 @@
 				</v-col>
 				<!--  Set axis-->
 				<v-col cols="1">
-					<code-btn color="warning" block :code="`G10 L20 P${currentWorkCoordinate} ${axis.letter}0`">Set {{ axis.letter }}</code-btn>
+					<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkspace} ${axis.letter}0`" class="move-btn">Set {{ axis.letter }}</code-btn>
 				</v-col>
 			</v-row>
 
 			<v-row no-gutters>
 				<v-col>
-					<v-btn color="warning" @click="gotoWorkspaceZero" block>GOTO Work XYZ Zero</v-btn>
+					<v-btn color="warning" @click="gotoWorkspaceZero" tile block class="move-btn">GOTO Work XYZ Zero</v-btn>
 				</v-col>
 			</v-row>
 		</v-card-text>
@@ -142,8 +144,6 @@
 			{{ $t('panel.movement.noAxes') }}
 		</v-alert>
 	</v-card>
-
-
 </template>
 
 
@@ -156,7 +156,10 @@ import { KinematicsName } from '../../store/machine/modelEnums.js';
 export default {
 	computed: {
 		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', ['move']),
+		...mapState('machine/model', {
+			move: state => state.move,
+			workplaceNumber: state => state.move.workplaceNumber,
+		}),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
 		isCompensationEnabled() {
@@ -184,7 +187,7 @@ export default {
 				index: 0,
 				preset: 0,
 			},
-			currentWorkCoordinate: 1,
+			currentWorkspace: 1,
 		};
 	},
 	methods: {
@@ -212,18 +215,34 @@ export default {
 		},
 
 		async setWorkspaceZero() {
-			let code = `G10 L20 P${this.currentWorkCoordinate}`;
+			let code = `G10 L20 P${this.currentWorkspace}`;
 			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0`));
 			console.log(code);
 			await this.sendCode(code);
-			await this.sendCode(`G10 L20 P${this.currentWorkCoordinate}`);
+			await this.sendCode(`G10 L20 P${this.currentWorkspace}`);
 		},
 		async gotoWorkspaceZero() {
 			let code = `G0`;
 			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0 F${this.moveFeedrate}`));
 			console.log(code);
 			await this.sendCode(code);
-		},		
+		},
+		async updateWorkspaceCoordinate(){
+			let code;
+			if (this.currentWorkspace < 7) {
+				code = `G${53 + this.currentWorkspace}`;
+			} else {
+				code = `G59.${this.currentWorkspace - 6}`;
+			}
+			if (code) {
+				console.log(code);
+				await this.sendCode(code);
+				this.sendCode(`G10 L20 P${this.currentWorkspace}`);
+			}
+		}
+	},
+	mounted() {
+		this.currentWorkspace = this.workplaceNumber + 1  ;
 	},
 	watch: {
 		isConnected() {
@@ -231,17 +250,9 @@ export default {
 			this.showMeshEditDialog = false;
 			this.moveStepDialog.shown = false;
 		},
-		async currentWorkCoordinate(to) {
-			let code;
-			if (to < 7) {
-				code = `G${53 + to}`;
-			} else {
-				code = `G59.${to - 6}`;
-			}
-			if (code) {
-				await this.sendCode(code);
-				this.sendCode(`G10 L20 P${to}`);
-			}
+		workplaceNumber: function (to) {
+			console.log(`workplace number change ${to}`)
+			this.currentWorkspace = to + 1;
 		},
 	},
 };

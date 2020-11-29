@@ -1,5 +1,5 @@
 <template>
-	<v-dialog v-model="shown" persistent width="360">
+	<v-dialog v-model="shown" persistent no-click-animation width="360">
 		<v-card>
 			<v-form ref="form" @submit.prevent="submit">
 				<v-card-title>

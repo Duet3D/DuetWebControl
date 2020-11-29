@@ -1,6 +1,76 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-beta4
+===================
+
+Changed behaviour:
+- Added new delay setting for SBC mode to reduce CPU usage on demand
+
+Bug fixes:
+- Job progress didn't show correct simulation status when the simulation was paused
+- Pause/Resume button didn't show correct captions when the simulation was paused
+
+Version 3.2.0-beta3
+===================
+
+Compatible files:
+- DuetSoftwareFramework 3.2.0-b3 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Height Map plugin is loaded by default
+- Last job duration is now displayed on the Job Status page
+- Height Map plugin is automatically loaded if no settings could be loaded
+- Changed default height map viewing angle
+
+Bug fixes:
+- Heightmap wasn't refreshed automatically
+- Text editor wasn't automatically focused when editing a file
+
+Version 3.2.0-beta2
+===================
+
+Compatible files:
+- DuetSoftwareFramework 3.2.0-b2 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- robots.txt is no longer part of the SD package
+- Plugins may inject their own plugins into the App component
+- Added new on-screen keyboard plugin (primarily for Raspberry Pi touchscreens)
+
+Bug fixes:
+- When loading the settings from local storage, no plugins were started
+- When loading the heightmap, only an error message could be seen
+- Added missing "Starting" item to the status type enumeration
+- When creating a new macro the new editor was not activated
+- Visualizer wasn't displaying live G-code files correctly
+- Fixes for the new code editor
+- Made plugin loading more robust
+
+Version 3.2.0-beta1
+===================
+
+Compatible files:
+- DuetSoftwareFramework 3.2.0 or newer
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Plugins may now be loaded. Refer to the `plugins` directory for further details
+- The Height Map has been moved to a built-in plugin (see Settings -> General -> Plugins)
+- Increased maximum editor size from 16MiB to 32MiB
+- JSON outputs are automatically formatted in the Code Console
+- Replaced `/sys/dwc2-` JSON files with `/sys/dwc-` (rename them manually to restore your DWC settings)
+- Option to revert to DWC1 has been removed
+
+Bug fixes:
+- Fixed some incompatibilities to RRFv2
+- Code input occasionally required enter to be pressed twice to send a code
+- Base URL as defined by compile options was not respected in the connectors
+- Depending on the configuration inputs for bed/chamber heaters were disabled
+- Under special circumstances the "Reset heater fault" dialog could never time out
+
 Version 3.1.1
 ==============
 

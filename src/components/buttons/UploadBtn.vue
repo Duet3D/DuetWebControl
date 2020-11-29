@@ -50,12 +50,12 @@ export default {
 		accept() {
 			switch (this.target) {
 				case 'gcodes': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
-				case 'start': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
+				case 'start': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap,.zip';
 				case 'macros': return '*';
 				case 'filaments': return '.zip';
-				case 'firmware': return '.zip,.bin';
+				case 'firmware': return '.zip,.bin,.uf2';
 				case 'menu': return '*';
-				case 'system': return '.zip,.bin,.json,.g,.csv';
+				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv';
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 			}
 			return undefined;
@@ -108,7 +108,7 @@ export default {
 		uploadPrint: Boolean
 	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'upload']),
+		...mapActions('machine', ['sendCode', 'upload', 'installPlugin']),
 		chooseFile() {
 			if (!this.isBusy) {
 				this.$refs.fileInput.click();
@@ -133,8 +133,9 @@ export default {
 			let result = null;
 			this.boards.forEach((board, index) => {
 				if (board && board.firmwareFileName && (board.canAddress || index === 0)) {
-					const regEx = new RegExp(board.firmwareFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
-					if (regEx.test(fileName)) {
+					const binRegEx = new RegExp(board.firmwareFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
+					const uf2RegEx = new RegExp(board.firmwareFileName.replace(/\.uf2$/, '(.*)\\.uf2'), 'i');
+					if (binRegEx.test(fileName) || uf2RegEx.test(fileName)) {
 						result = board.firmwareFileName;
 						this.updates.firmwareBoards.push(board.canAddress || 0);
 					}
@@ -146,8 +147,9 @@ export default {
 			let result = null;
 			this.boards.forEach(board => {
 				if (board && board[key]) {
-					const regEx = new RegExp(board[key].replace(/\.bin$/, '(.*)\\.bin'), 'i');
-					if (regEx.test(fileName)) {
+					const binRegEx = new RegExp(board[key].replace(/\.bin$/, '(.*)\\.bin'), 'i');
+					const uf2RegEx = new RegExp(board[key].replace(/\.uf2$/, '(.*)\\.uf2'), 'i');
+					if (binRegEx.test(fileName) || uf2RegEx.test(fileName)) {
 						result = board[key];
 					}
 				}
@@ -171,36 +173,62 @@ export default {
 				}
 
 				if (files[0].name.toLowerCase().endsWith('.zip')) {
-					const zip = new JSZip(), zipFiles = [], target = this.target;
 					this.extracting = true;
 					try {
-						// Open the ZIP file and read its content
-						await zip.loadAsync(files[0], { checkCRC32: true });
-						zip.forEach(function(file) {
-							if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
-								zipFiles.push(file);
+						const zip = new JSZip(), zipFiles = [], target = this.target;
+						try {
+							await zip.loadAsync(files[0], { checkCRC32: true });
+
+							// Check if this is a plugin / TODO improve UI
+							if ((this.target === 'start' || this.target === 'system')) {
+								let isPlugin = false;
+								zip.forEach(function(file) {
+									if (file === 'plugin.json') {
+										isPlugin = true;
+									}
+								});
+
+								if (isPlugin) {
+									if (confirm('Would you like to install this plugin?')) {
+										await this.installPlugin({
+											zipFilename: files[0].name,
+											zipBlob: files[0],
+											zipFile: zip,
+											start: (this.target === 'start')
+										});
+									}
+									return;
+								}
 							}
-						});
 
-						// Could we get anything useful?
-						if (!zipFiles.length) {
-							this.extracting = false;
-							this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
-							return;
-						}
+							// Get a list of files to unpack
+							zip.forEach(function(file) {
+								if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
+									zipFiles.push(file);
+								}
+							});
 
-						// Extract everything and start the upload
-						for (let i = 0; i < zipFiles.length; i++) {
-							const name = zipFiles[i];
-							zipFiles[i] = await zip.file(name).async('blob');
-							zipFiles[i].name = name;
+							// Could we get anything useful?
+							if (zipFiles.length === 0) {
+								this.extracting = false;
+								this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
+								return;
+							}
+
+							// Extract everything and start the upload
+							for (let i = 0; i < zipFiles.length; i++) {
+								const name = zipFiles[i];
+								zipFiles[i] = await zip.file(name).async('blob');
+								zipFiles[i].name = name;
+							}
+							this.doUpload(zipFiles, files[0].name, new Date());
+						} catch (e) {
+							this.$makeNotification('error', this.$t('error.uploadDecompressionFailed'), e.message);
+							throw e;
 						}
-						this.doUpload(zipFiles, files[0].name, new Date());
-					} catch (e) {
-						console.warn(e);
-						this.$makeNotification('error', this.$t('error.uploadDecompressionFailed'), e.message);
+					} finally {
+						this.extracting = false;
 					}
-					this.extracting = false;
 					return;
 				}
 			}
@@ -244,7 +272,7 @@ export default {
 								filename = Path.combine(this.directories.firmware, 'DuetWebControl.bin');
 								this.updates.wifiServerSpiffs = true;
 							}
-						} else if (content.name.endsWith('.bin')) {
+						} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
 							// FIXME This will be no longer needed when CAN board enumeration is supported
 							filename = Path.combine(this.directories.firmware, content.name);
 						}
@@ -265,6 +293,7 @@ export default {
 					}
 				} catch (e) {
 					success = false;
+					console.warn(e);
 					this.$emit('uploadFailed', { filename, reason: e });
 					break;
 				}
@@ -315,7 +344,7 @@ export default {
 				}
 			}
 
-			// Update other modules
+			// Update other modules if applicable
 			let modules = [];
 			if (this.updates.firmwareBoards.indexOf(0) >= 0) {
 				modules.push('0');
@@ -327,13 +356,15 @@ export default {
 				modules.push('2');
 			}
 
-			this.updates.codeSent = true;
-			try {
-				await this.sendCode(`M997 S${modules.join(':')}`);
-			} catch (e) {
-				if (!(e instanceof DisconnectedError)) {
-					console.warn(e);
-					this.$log('error', this.$t('generic.error'), e.message);
+			if (modules.length > 0) {
+				this.updates.codeSent = true;
+				try {
+					await this.sendCode(`M997 S${modules.join(':')}`);
+				} catch (e) {
+					if (!(e instanceof DisconnectedError)) {
+						console.warn(e);
+						this.$log('error', this.$t('generic.error'), e.message);
+					}
 				}
 			}
 		},

@@ -409,7 +409,7 @@ export default {
 			caption: '当前任务',
 			status: '状态',
 			webcam: '摄像头',
-			visualiser: '显示'
+			visualizer: '显示'
 		},
 		files: {
 			caption: '文件管理',
@@ -522,24 +522,6 @@ export default {
 			fan: '风扇{0}',
 			noFans: '没有风扇'
 		},
-		heightmap: {
-			scale: '比例：',
-			orMore: '更大',
-			orLess: '更小',
-			axes: '轴：',
-			notAvailable: '高度图无效',
-			numPoints: '点数: {0}',
-			radius: '探测半径: {0}',
-			area: '探测面积: {0}',
-			maxDeviations: '最大偏差: {0} / {1}',
-			meanError: '平均误差: {0}',
-			rmsError: '均方误差: {0}',
-			topView: '顶视图',
-			colorScheme: '配色方案:',
-			terrain: '地形',
-			heat: '热力',
-			reload: '重载高度图'
-		},
 		jobControl: {
 			caption: '任务控制',
 			cancelJob: '取消任务',
@@ -647,7 +629,6 @@ export default {
 		},
 		settingsMachine: {
 			caption: '机器特性',
-			revertDWC: '返回到DWC1.X界面',
 			babystepAmount: 'Z轴每个微调步进距离（{0}）',
 			moveFeedrate: '移动按钮的进给速度（{0}）'
 		},
@@ -721,6 +702,26 @@ export default {
 		webcam: {
 			caption: '网络摄像头监控',
 			alt: '(网络摄像头图像)'
+		}
+	},
+	plugins: {
+		heightmap: {
+			scale: '比例：',
+			orMore: '更大',
+			orLess: '更小',
+			axes: '轴：',
+			notAvailable: '高度图无效',
+			numPoints: '点数: {0}',
+			radius: '探测半径: {0}',
+			area: '探测面积: {0}',
+			maxDeviations: '最大偏差: {0} / {1}',
+			meanError: '平均误差: {0}',
+			rmsError: '均方误差: {0}',
+			topView: '顶视图',
+			colorScheme: '配色方案:',
+			terrain: '地形',
+			heat: '热力',
+			reload: '重载高度图'
 		}
 	}
 }

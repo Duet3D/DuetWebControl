@@ -7,7 +7,6 @@ import ExtrudePanel from './ExtrudePanel.vue'
 import ExtrusionFactorsPanel from './ExtrusionFactorsPanel.vue'
 import FanPanel from './FanPanel.vue'
 import FansPanel from './FansPanel.vue'
-import HeightmapPanel from './HeightmapPanel.vue'
 import MovementPanel from './MovementPanel.vue'
 import JobControlPanel from './JobControlPanel.vue'
 import JobDataPanel from './JobDataPanel.vue'
@@ -17,7 +16,6 @@ import SettingsAboutPanel from './SettingsAboutPanel.vue'
 import SettingsAppearancePanel from './SettingsAppearancePanel.vue'
 import SettingsCommunicationPanel from './SettingsCommunicationPanel.vue'
 import SettingsElectronicsPanel from './SettingsElectronicsPanel.vue'
-import SettingsEndstopsPanel from './SettingsEndstopsPanel.vue'
 import SettingsGeneralPanel from './SettingsGeneralPanel.vue'
 import SettingsListItemsPanel from './SettingsListItemsPanel.vue'
 import SettingsMachinePanel from './SettingsMachinePanel.vue'
@@ -40,7 +38,6 @@ Vue.component('extrude-panel', ExtrudePanel)
 Vue.component('extrusion-factors-panel', ExtrusionFactorsPanel)
 Vue.component('fan-panel', FanPanel)
 Vue.component('fans-panel', FansPanel)
-Vue.component('heightmap-panel', HeightmapPanel)
 Vue.component('job-control-panel', JobControlPanel)
 Vue.component('job-data-panel', JobDataPanel)
 Vue.component('job-estimations-panel', JobEstimationsPanel)
@@ -50,7 +47,6 @@ Vue.component('settings-about-panel', SettingsAboutPanel)
 Vue.component('settings-apperance-panel', SettingsAppearancePanel)
 Vue.component('settings-communication-panel', SettingsCommunicationPanel)
 Vue.component('settings-electronics-panel', SettingsElectronicsPanel)
-Vue.component('settings-endstops-panel', SettingsEndstopsPanel)
 Vue.component('settings-general-panel', SettingsGeneralPanel)
 Vue.component('settings-machine-panel', SettingsMachinePanel)
 Vue.component('settings-list-items-panel', SettingsListItemsPanel)
@@ -68,34 +64,3 @@ Vue.component('cnc-container-panel', CNCContainerPanel)
 Vue.component('cnc-movement-panel', CNCMovementPanel)
 Vue.component('cnc-dashboard-panel', CNCDashboardPanel)
 
-export default {
-	ATXPanel,
-	ExtrudePanel,
-	ExtrusionFactorsPanel,
-	FanPanel,
-	FansPanel,
-	HeightmapPanel,
-	JobControlPanel,
-	JobDataPanel,
-	JobEstimationsPanel,
-	JobInfoPanel,
-	MovementPanel,
-	SettingsAboutPanel,
-	SettingsAppearancePanel,
-	SettingsCommunicationPanel,
-	SettingsElectronicsPanel,
-	SettingsEndstopsPanel,
-	SettingsGeneralPanel,
-	SettingsMachinePanel,
-	SettingsListItemsPanel,
-	SettingsNotificationsPanel,
-	SettingsWebcamPanel,
-	SpeedFactorPanel,
-	StatusPanel,
-	ToolsPanel,
-	WebcamPanel,
-	CNCAxesPosition,
-	ZBabystepPanel,
-	FFFContainerPanel,
-	CNCMovementPanel
-}

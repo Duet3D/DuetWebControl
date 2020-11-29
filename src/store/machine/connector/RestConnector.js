@@ -22,7 +22,17 @@ export default class RestConnector extends BaseConnector {
 				const model = JSON.parse(e.data);
 				resolve(model);
 			};
-			socket.onerror = socket.onclose = function(e) {
+			socket.onerror = function(e) {
+				if (e.code === 1001 || e.code == 1011) {
+					// DCS unavailable or incompatible DCS version
+					reject(new LoginError(e.reason));
+				} else {
+					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					reject(new NetworkError(e.reason));
+				}
+				socket.close();
+			};
+			socket.onclose = function(e) {
 				if (e.code === 1001 || e.code == 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
@@ -42,7 +52,7 @@ export default class RestConnector extends BaseConnector {
 	constructor(hostname, password, socket, model) {
 		super('rest', hostname);
 		this.password = password;
-		this.requestBase = `${location.protocol}//${hostname}/`;
+		this.requestBase = `${location.protocol}//${(hostname === location.host) ? hostname + process.env.BASE_URL : hostname + '/'}`;
 		this.socket = socket;
 		this.model = model;
 		if (model.job && model.job.layers) {
@@ -50,7 +60,6 @@ export default class RestConnector extends BaseConnector {
 		}
 	}
 
-	requestBase = ''
 	requests = []
 
 	request(method, url, params = null, responseType = 'json', body = null, onProgress = null, cancellationToken = null, filename = 'n/a') {
@@ -132,6 +141,8 @@ export default class RestConnector extends BaseConnector {
 		this.requests.forEach(request => request.abort());
 	}
 
+	loadPlugins() { }
+
 	async reconnect() {
 		// Cancel pending requests
 		this.cancelRequests();
@@ -177,14 +188,6 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	async startSocket() {
-		// Deal with generic messages
-		if (this.model.messages !== undefined) {
-			this.model.messages.forEach(async function(message) {
-				await this.dispatch('onCodeCompleted', { code: undefined, reply: message.content });
-			}, this);
-			delete this.model.messages;
-		}
-
 		// Send PING in predefined intervals to detect disconnects from the client side
 		this.pingTask = setTimeout(this.doPing.bind(this), this.settings.pingInterval);
 
@@ -227,28 +230,6 @@ export default class RestConnector extends BaseConnector {
 		// Process model updates
 		const data = JSON.parse(e.data);
 
-		// Deal with generic messages
-		if (data.messages) {
-			data.messages.forEach(async function(message) {
-				let reply;
-				switch (message.type) {
-					case 1:
-						reply  = `Warning: ${message.content}`;
-						break;
-					case 2:
-						reply  = `Error: ${message.content}`;
-						break;
-					default:
-						reply = message.content;
-						break;
-				}
-
-				// TODO Pass supplied date/time from the messages here
-				await this.dispatch('onCodeCompleted', { code: undefined, reply });
-			}, this);
-			delete data.messages;
-		}
-
 		// Deal with layers
 		if (data.job && data.job.layers !== undefined) {
 			if (data.job.layers.length === 0) {
@@ -261,7 +242,11 @@ export default class RestConnector extends BaseConnector {
 
 		// Update model and acknowledge receipt
 		await this.dispatch('update', data);
-		this.socket.send('OK\n');
+		if (this.settings.updateDelay > 0) {
+			setTimeout(() => this.socket.send('OK\n'), this.settings.updateDelay);
+		} else {
+			this.socket.send('OK\n');
+		}
 	}
 
 	onClose(e) {
@@ -298,23 +283,16 @@ export default class RestConnector extends BaseConnector {
 		} catch (e) {
 			reply = 'Error: ' + e.message;
 		}
-
-		this.dispatch('onCodeCompleted', { code, reply });
 		return reply;
 	}
 
 	async upload({ filename, content, cancellationToken = null, onProgress }) {
-		// Perform actual upload in the background
 		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
 		await this.request('PUT', 'machine/file/' + encodeURIComponent(filename), null, '', payload, onProgress, cancellationToken, filename);
-
-		// Upload successful
-		this.dispatch('onFileUploaded', { filename, content });
 	}
 
 	async delete(filename) {
 		await this.request('DELETE', 'machine/file/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
-		await this.dispatch('onFileOrDirectoryDeleted', filename);
 	}
 
 	async move({ from, to, force = false, silent = false }) {
@@ -325,7 +303,6 @@ export default class RestConnector extends BaseConnector {
 		
 		try {
 			await this.request('POST', 'machine/file/move', null, '', formData, null, null, from);
-			await this.dispatch('onFileOrDirectoryMoved', { from, to, force });
 		} catch (e) {
 			if (!silent) {
 				throw e;
@@ -335,7 +312,6 @@ export default class RestConnector extends BaseConnector {
 
 	async makeDirectory(directory) {
 		await this.request('PUT', 'machine/directory/' + encodeURIComponent(directory));
-		await this.dispatch('onDirectoryCreated', directory);
 	}
 
 	async download(payload) {
@@ -343,11 +319,7 @@ export default class RestConnector extends BaseConnector {
 		const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
 		const onProgress = (payload instanceof Object) ? payload.onProgress : undefined;
 		const cancellationToken = (payload instanceof Object && payload.cancellationToken) ? payload.cancellationToken : null;
-
-		const response = await this.request('GET', 'machine/file/' + encodeURIComponent(filename), null, type, null, onProgress, cancellationToken, filename);
-
-		this.dispatch('onFileDownloaded', { filename, content: response });
-		return response;
+		return await this.request('GET', 'machine/file/' + encodeURIComponent(filename), null, type, null, onProgress, cancellationToken, filename);
 	}
 
 	async getFileList(directory) {
@@ -370,5 +342,36 @@ export default class RestConnector extends BaseConnector {
 	async getFileInfo(filename) {
 		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
 		return new ParsedFileInfo(response);
+	}
+
+	async installPlugin({ zipFilename, zipBlob, plugin, start }) {
+		await this.installSbcPlugin({ zipFilename, zipBlob });
+		if (start) {
+			await this.startSbcPlugin(plugin.name);
+		}
+	}
+
+	async uninstallPlugin(plugin) {
+		await this.uninstallSbcPlugin(plugin.name);
+	}
+
+	async installSbcPlugin({ zipFilename, zipBlob, cancellationToken = null, onProgress }) {
+		await this.request('PUT', 'machine/plugin', null, '', zipBlob, onProgress, cancellationToken, zipFilename);
+	}
+
+	async uninstallSbcPlugin(plugin) {
+		await this.request('DELETE', 'machine/plugin', null, '', plugin);
+	}
+
+	async setSbcPluginData({ plugin, key, value }) {
+		await this.request('PATCH', 'machine/plugin', null, '', { plugin, key, value });
+	}
+
+	async startSbcPlugin(plugin) {
+		await this.request('POST', 'machine/startPlugin', null, '', plugin);
+	}
+
+	async stopSbcPlugin(plugin) {
+		await this.request('POST', 'machine/stopPlugin', null, '', plugin);
 	}
 }

@@ -14,13 +14,16 @@ import {
 	InputChannelState,
 	KinematicsName,
 	MessageBoxMode,
+	MessageType,
 	NetworkInterfaceType,
 	ProbeType,
 	ToolState
 } from './modelEnums.js'
+import { PluginManifest } from '../../plugins/manifest.js'
 import { quickPatch } from '../../utils/patch.js'
 
 export class AnalogSensor {
+	constructor(initData) { quickPatch(this, initData); }
 	lastReading = null
 	name = ''
 	type = AnalogSensorType.unknown
@@ -60,7 +63,12 @@ export class BeepRequest {
 export class Board {
 	constructor(initData) { quickPatch(this, initData); }
 	bootloaderFileName = null
-	canAddress = null			// *** requires CAN support (TBD)
+	canAddress = null
+	directDisplay = {
+		pulsesPerClick: 0,
+		spiFreq: 0,
+		typeName: null
+	}
 	firmwareDate = ''
 	firmwareFileName = null
 	firmwareName = ''
@@ -77,7 +85,7 @@ export class Board {
 	name = ''
 	shortName = ''
 	state = BoardState.unknown
-	supports12864 = false
+	supportsDirectDisplay = false
 	v12 = {
 		current: 0,
 		min: 0,
@@ -91,6 +99,7 @@ export class Board {
 }
 
 export class Build {
+	constructor(initData) { quickPatch(this, initData); }
 	currentObject = -1
 	m486Names = false
 	m486Numbers = false
@@ -161,9 +170,9 @@ export class FilamentMonitor {
 }
 
 export class LaserFilamentMonitor extends FilamentMonitor {
-	constructor(initData = {}) {
-		initData.type = FilamentMonitorType.laser;
+	constructor(initData) {
 		super(initData);
+		this.type = FilamentMonitorType.laser;
 	}
 
 	calibrated = {
@@ -180,9 +189,9 @@ export class LaserFilamentMonitor extends FilamentMonitor {
 }
 
 export class PulsedFilamentMonitor extends FilamentMonitor {
-	constructor(initData = {}) {
-		initData.type = FilamentMonitorType.pulsed;
+	constructor(initData) {
 		super(initData);
+		this.type = FilamentMonitorType.pulsed;
 	}
 
 	calibrated = {
@@ -201,8 +210,8 @@ export class PulsedFilamentMonitor extends FilamentMonitor {
 
 export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
 	constructor(initData = {}) {
-		initData.type = FilamentMonitorType.rotatingMagnet;
 		super(initData);
+		this.type = FilamentMonitorType.rotatingMagnet;
 	}
 
 	calibrated = {
@@ -363,11 +372,20 @@ export class Layer {
 }
 
 export class MeshDeviation {
+	constructor(initData) { quickPatch(this, initData); }
 	deviation = 0
 	mean = 0
 }
 
+export class Message {
+	constructor(initData) { quickPatch(this, initData); }
+	time = new Date()
+	type = MessageType.success
+	content = ''
+}
+
 export class MessageBox {
+	constructor(initData) { quickPatch(this, initData); }
 	axisControls = 0
 	mode = MessageBoxMode.okOnly
 	message = ''
@@ -394,9 +412,9 @@ export class NetworkInterface {
 }
 
 export class ParsedFileInfo {
-	constructor(initData = {}) {
+	constructor(initData) {
 		quickPatch(this, initData);
-		if (!this.numLayers && initData.height && initData.firstLayerHeight && initData.layerHeight) {
+		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
 			// approximate the number of layers if it isn't given
 			this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
 		}
@@ -412,6 +430,22 @@ export class ParsedFileInfo {
 	printTime = null
 	simulatedTime = null
 	size = 0
+	thumbnails = []
+}
+
+export class ParsedThumbnail {
+	constructor(initData) { quickPatch(this, initData); }
+	EncodedImage = null
+	Height = 0
+	Width = 0
+}
+
+export class Plugin extends PluginManifest {
+	constructor(initData) { super(initData); }
+	dwcFiles = []
+	sbcFiles = []
+	rrfFiles = []
+	pid = -1
 }
 
 export class Probe {
@@ -449,7 +483,7 @@ export class Spindle {
 	active = 0					// RPM
 	current = 0					// RPM
 	frequency = 0				// Hz
-	min = 0						// RPM	*** missing in RRF but reserved
+	min = 60					// RPM
 	max = 10000					// RPM
 	tool = -1
 }
@@ -506,12 +540,14 @@ export class Volume {
 
 function fixObject(item, preset) {
 	let fixed = false;
-	for (let key in preset) {
-		if (item[key] === undefined) {
-			Vue.set(item, key, preset[key]);
-			fixed = true;
-		} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
-			fixed |= fixObject(item[key], preset[key]);
+	if (item !== null) {
+		for (let key in preset) {
+			if (item[key] === undefined) {
+				Vue.set(item, key, preset[key]);
+				fixed = true;
+			} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
+				fixed |= fixObject(item[key], preset[key]);
+			}
 		}
 	}
 	return fixed;
@@ -567,6 +603,9 @@ export function fixMachineItems(state, mergeData) {
 		if (mergeData.job.build && mergeData.job.build.objects) {
 			fixItems(state.job.build.objects, BuildObject);
 		}
+		if (mergeData.job.file && mergeData.job.file.thumbnails) {
+			fixItems(state.job.file.thumbnails, ParsedThumbnail);
+		}
 	}
 
 	// Layers are not verified for performance reasons
@@ -588,6 +627,10 @@ export function fixMachineItems(state, mergeData) {
 
 	if (mergeData.network && mergeData.network.interfaces) {
 		fixItems(state.network.interfaces, NetworkInterface);
+	}
+
+	if (mergeData.plugins) {
+		fixItems(state.plugins, Plugin);
 	}
 
 	if (mergeData.sensors) {

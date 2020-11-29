@@ -135,6 +135,13 @@ export const KinematicsName = {
 	unknown: 'unknown'
 }
 
+export const LogLevel = {
+	debug: 'debug',
+	info: 'info',
+	warn: 'warn',
+	off: 'off'
+}
+
 export const MachineMode = {
 	fff: 'FFF',
 	cnc: 'CNC',
@@ -146,6 +153,12 @@ export const MessageBoxMode = {
 	closeOnly: 1,		// non-blocking
 	okOnly: 2,			// blocking
 	okCancel: 3			// blocking, requires M292 (P1) to continue
+}
+
+export const MessageType = {
+	success: 0,
+	warning: 1,
+	error: 2
 }
 
 export const NetworkInterfaceType = {
@@ -168,6 +181,7 @@ export const ProbeType = {
 }
 
 export const StatusType = {
+	starting: 'starting',
 	updating: 'updating',
 	off: 'off',
 	halted: 'halted',

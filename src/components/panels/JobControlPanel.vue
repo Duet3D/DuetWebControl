@@ -46,7 +46,7 @@ export default {
 		isPaused() { return isPaused(this.status); },
 		isPrinting() { return isPrinting(this.status); },
 		pauseResumeText() {
-			if (this.status === StatusType.simulating) {
+			if (this.isSimulating) {
 				return this.$t(this.isPaused ? 'panel.jobControl.resumeSimulation' : 'panel.jobControl.pauseSimulation');
 			}
 			if (this.machineMode === MachineMode.fff) {
@@ -82,6 +82,20 @@ export default {
 			return this.$t('panel.jobControl.repeatJob');
 		}
 	},
-	methods: mapMutations('machine', ['setAutoSleep'])
+	data() {
+		return {
+			isSimulating: false
+		}
+	},
+	methods: mapMutations('machine', ['setAutoSleep']),
+	watch: {
+		status(to) {
+			if (to === StatusType.simulating) {
+				this.isSimulating = true;
+			} else if (!isPrinting(to)) {
+				this.isSimulating = false;
+			}
+		}
+	}
 }
 </script>
