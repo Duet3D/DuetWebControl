@@ -10,8 +10,8 @@
 </style>
 
 <template>
-	<v-card class="mt-2">
-		<v-card-title>
+	<v-card >
+		<v-card-title class="pt-0">
 			<v-icon small class="mr-1">mdi-swap-horizontal</v-icon>
 			{{ $t('panel.movement.caption') }}
 			<v-spacer></v-spacer>
@@ -153,7 +153,7 @@ export default {
 		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapState('machine/model', {
 			move: state => state.move,
-			workplaceNumber: state => state.move.workplaceNumber,
+			workspaceNumber: state => state.move.workspaceNumber,
 		}),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
@@ -237,7 +237,7 @@ export default {
 		},
 	},
 	mounted() {
-		this.currentWorkspace = this.workplaceNumber + 1;
+		this.currentWorkspace = this.workspaceNumber;
 	},
 	watch: {
 		isConnected() {
@@ -245,9 +245,9 @@ export default {
 			this.showMeshEditDialog = false;
 			this.moveStepDialog.shown = false;
 		},
-		workplaceNumber: function (to) {
+		workspaceNumber: function (to) {
 			console.log(`workplace number change ${to}`);
-			this.currentWorkspace = to + 1;
+			this.currentWorkspace = to;
 		},
 	},
 };

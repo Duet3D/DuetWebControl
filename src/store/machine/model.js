@@ -169,7 +169,8 @@ export class MachineModel {
 		speedFactor: 100,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
-		workplaceNumber: 0
+		workplaceNumber : 0,
+		workspaceNumber: 1
 	}
 	network = {
 		hostname: 'duet',
