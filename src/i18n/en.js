@@ -191,6 +191,20 @@ export default {
 			save: 'Save',
 			confirmClose: 'The file has been changed. If you proceed, your changes will be lost.'
 		},
+		fileTransfer: {
+			uploadingTitle: 'Uploading File {0} of {1}, {2}% complete',
+			uploadDoneTitle: 'Uploads Complete!',
+			uploadFailedTitle: 'Uploads Failed!',
+			downloadingTitle: 'Downloading File {0} of {1}, {2}% complete',
+			downloadDoneTitle: 'Downloads Complete',
+			downloadFailedTitle: 'Downloads Failed!',
+			filename: 'Filename',
+			size: 'Size',
+			progress: 'Progress',
+			currentSpeed: 'Current Speed: {0}',
+			cancelUploads: 'Cancel Uploads',
+			cancelDownloads: 'Cancel Downloads'
+		},
 		meshEdit: {
 			title: 'Set Mesh Parameters',
 			radius: 'Probe Radius',
@@ -230,7 +244,9 @@ export default {
 		},
 		update: {
 			title: 'Install updates?',
-			prompt: 'You have uploaded at least one firmware update. Would you like to install them now?'
+			prompt: 'You have uploaded at least one firmware update. Would you like to install them now?',
+			resetTitle: 'Reset firmware?',
+			resetPrompt: 'You have just installed expansion board updates. Do you want to reboot the main controller to restore the previous configuration?'
 		},
 		inputRequired: 'Please enter a value',
 		numberRequired: 'Please enter a valid number'
@@ -261,7 +277,6 @@ export default {
 		uploadStartWrongFileCount: 'Only a single file can be uploaded & started',
 		uploadNoSingleZIP: 'Only a single ZIP file can be uploaded at once',
 		uploadNoFiles: 'This ZIP does not contain any usable fiels',
-		uploadDecompressionFailed: 'Failed to decompress ZIP file',
 		codeResponse: 'Could not run code because a bad response has been received',
 		codeBuffer: 'Could run code because the buffer space has been exhausted',
 		enterValidNumber: 'Please enter a valid number',
@@ -432,6 +447,11 @@ export default {
 			message: 'Please stand by while your files are being compressed...',
 			errorTitle: 'Failed to compress files'
 		},
+		decompress: {
+			title: 'Decompressing files...',
+			message: 'Please stand by while your files are being decompressed...',
+			errorTitle: 'Failed to decompress files'
+		},
 		delete: {
 			errorTitle: 'Failed to delete {0}',
 			errorMessageDirectory: 'Please make sure that this directory is empty',
@@ -447,7 +467,6 @@ export default {
 			title: 'Downloading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being downloaded...',
 			success: 'Download of {0} successful after {1}',
-			successMulti: 'Successfully downloaded {0} files',
 			error: 'Failed to download {0}'
 		},
 		message: 'Message',
@@ -479,7 +498,6 @@ export default {
 			title: 'Uploading {0} @ {1}, {2}% complete',
 			message: 'Please stand by while the file is being uploaded...',
 			success: 'Upload of {0} successful after {1}',
-			successMulti: 'Successfully uploaded {0} files',
 			error: 'Failed to upload {0}'
 		}
 	},
