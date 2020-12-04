@@ -289,7 +289,7 @@ export default {
 			try
 			{
 				if (files.length === 1) {
-					await this.upload({ filename: files[0].name, content: files[0], showSuccess: !zipName });
+					await this.upload({ filename: files[0].filename, content: files[0], showSuccess: !zipName });
 				} else {
 					const filelist = [];
 					files.forEach((file) => filelist.push({ filename: file.filename, content: file }));

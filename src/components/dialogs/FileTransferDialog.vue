@@ -40,7 +40,7 @@ td {
 								{{ getSize(file) }}
 							</td>
 							<td class="py-1" width="35%">
-								<v-progress-linear v-show="file.progress > 0" :color="getProgressColor(file)" height="1.25em"
+								<v-progress-linear v-show="file.startTime !== null || file.progress > 0" :color="getProgressColor(file)" height="1.25em"
 									:value="file.progress * 100" :indeterminate="!file.speed" rounded striped>
 									<template #default="{ value }">
 										<span class="white--text">{{ value.toFixed(0) }} %</span>
