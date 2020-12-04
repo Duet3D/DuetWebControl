@@ -74,6 +74,9 @@ export default {
 		isSimulating() {
 			return this.status === StatusType.simulating;
 		}
+	},
+	mounted() {
+		this.isSimulating = (this.status === StatusType.simulating);
 	}
 }
 </script>

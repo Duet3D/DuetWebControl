@@ -131,6 +131,7 @@ textarea {
 
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
+		<file-transfer-dialog></file-transfer-dialog>
 		<messagebox-dialog></messagebox-dialog>
 
 		<component v-for="component in injectedComponentNames" :is="component" :key="component"></component>

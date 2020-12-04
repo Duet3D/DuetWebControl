@@ -87,6 +87,9 @@ export default {
 			isSimulating: false
 		}
 	},
+	mounted() {
+		this.isSimulating = (this.status === StatusType.simulating);
+	},
 	watch: {
 		status(to) {
 			if (to === StatusType.simulating) {

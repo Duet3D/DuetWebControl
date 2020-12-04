@@ -13,6 +13,8 @@ import MessageBoxDialog from './MessageBoxDialog.vue'
 import NewFileDialog from './NewFileDialog.vue'
 import NewDirectoryDialog from './NewDirectoryDialog.vue'
 import ResetHeaterFaultDialog from './ResetHeaterFaultDialog.vue'
+import FileTransferDialog from './FileTransferDialog.vue'
+
 import ThumbnailDialog from './ThumbnailDialog.vue'
   
 Vue.component('confirm-dialog', ConfirmDialog)
@@ -26,4 +28,5 @@ Vue.component('messagebox-dialog', MessageBoxDialog)
 Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
+Vue.component('file-transfer-dialog', FileTransferDialog)
 Vue.component('thumbnail-dialog', ThumbnailDialog)

@@ -24,13 +24,8 @@ td {
 
 <template>
 	<div>
-		<v-data-table
-			v-model="innerValue"
-			v-bind="$props"
-			:items="innerFilelist"
-			item-key="name"
-			:headers="headers || defaultHeaders"
-			show-select
+		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll"
+			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select 
 			:loading="loading || innerLoading"
 			:custom-sort="sort"
 			:sort-by.sync="internalSortBy"
@@ -57,26 +52,16 @@ td {
 			</template>
 
 			<template #item="props">
-				<tr
-					v-ripple
-					:active="props.isSelected"
-					:data-filename="(props.item.isDirectory ? '*' : '') + props.item.name"
-					draggable="true"
-					tabindex="0"
-					@keydown.space.prevent="props.select(!props.isSelected)"
-					@touchstart="onItemTouchStart(props, $event)"
-					@touchend="onItemTouchEnd"
-					@click="onItemClick(props)"
-					@keydown.enter.prevent="onItemClick(props)"
-					@contextmenu.prevent="onItemContextmenu(props, $event)"
-					@keydown.escape.prevent="contextMenu.shown = false"
-					@dragstart="onItemDragStart(props.item, $event)"
-					@dragover="onItemDragOver(props.item, $event)"
-					@drop.prevent="onItemDragDrop(props.item, $event)"
-				>
+				<tr v-ripple :active="props.isSelected" @keydown.space.prevent="props.select(!props.isSelected)"
+					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd"
+					@click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
+					@contextmenu.stop.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"
+					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)"
+					:data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0">
+
 					<td v-for="header in props.headers" :key="header.value" :class="{ 'pr-0': header.value === 'data-table-select' }">
 						<template v-if="header.value === 'data-table-select'">
-							<v-checkbox :input-value="props.isSelected" primary hide-details class="mt-n1" tabindex="-1" @touchstart.stop="" @touchend.stop="" @click.stop.prevent="props.select(!props.isSelected)" />
+							<v-simple-checkbox :value="props.isSelected" @touchstart.stop="" @touchend.stop="" @input="props.select($event)" class="mt-n1" tabindex="-1"></v-simple-checkbox>
 						</template>
 						<template v-else-if="header.value === 'name'">
 							<div class="d-inline-flex align-center">
@@ -659,29 +644,36 @@ export default {
 			this.innerDoingFileOperation = false;
 		},
 		async downloadZIP(items) {
-			if (!items || !(items instanceof Array)) {
-				items = this.innerValue.slice();
-			}
-			const directory = this.directory;
+			if (!items || !(items instanceof Array)) { items = this.innerValue.slice(); }
 
-			// Download files
-			const zip = new JSZip();
+			// Download the selected files
+			const files = [];
 			for (let i = 0; i < items.length; i++) {
-				try {
-					const blob = await this.machineDownload({ filename: Path.combine(directory, items[i].name), type: 'blob', num: i + 1, count: items.length });
-					zip.file(items[i].name, blob);
-				} catch (e) {
-					if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
-						// should be handled before we get here
-						console.warn(e);
-					}
-					return;
-				}
+				files.push({
+					filename: Path.combine(this.directory, items[i].name),
+					type: 'blob'
+				});
 			}
 
-			// Compress files and save the new archive
-			const notification = this.$makeNotification('info', this.$t('notification.compress.title'), this.$t('notification.compress.message'));
+			let downloadedFiles;
 			try {
+				downloadedFiles = await this.machineDownload({ files, closeProgressOnSuccess: true });
+			} catch (e) {
+				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
+					// should be handled before we get here
+					console.warn(e);
+				}
+				return;
+			}
+
+			// Compress downloaded files and save the new archive
+			const notification = this.$makeNotification('info', this.$t('notification.compress.title'), this.$t('notification.compress.message'), 0);
+			try {
+				const zip = new JSZip();
+				downloadedFiles.forEach(function(file) {
+					zip.file(Path.extractFileName(file.filename), file.content);
+				});
+
 				const zipBlob = await zip.generateAsync({ type: 'blob' });
 				saveAs(zipBlob, 'download.zip');
 			} catch (e) {

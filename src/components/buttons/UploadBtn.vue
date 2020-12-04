@@ -13,6 +13,7 @@
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
 		<confirm-dialog :shown.sync="confirmUpdate" :title="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
+		<confirm-dialog :shown.sync="confirmReset" :title="$t('dialog.update.resetTitle')" :prompt="$t('dialog.update.resetPrompt')" @confirmed="reset"></confirm-dialog>
 	</div>
 </template>
 
@@ -95,7 +96,8 @@ export default {
 				wifiServerSpiffs: false,
 
 				codeSent: false
-			}
+			},
+			confirmReset: false
 		}
 	},
 	extends: VBtn,
@@ -119,7 +121,8 @@ export default {
 			e.target.value = '';
 		},
 		isWebFile(filename) {
-			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension))) {
+			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension)) ||
+				filename === 'manifest.json' || filename === 'robots.txt') {
 				return true;
 			}
 
@@ -127,6 +130,7 @@ export default {
 			if (matches && webExtensions.indexOf(matches[1].toLowerCase()) !== -1) {
 				return true;
 			}
+
 			return false;
 		},
 		getFirmwareName(fileName) {
@@ -161,11 +165,13 @@ export default {
 				return;
 			}
 
+			// Cannot start more than one file via Upload & Start
 			if (this.target === 'start' && files.length !== 1) {
 				this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
 				return;
 			}
 
+			// Check if a ZIP file may be extracted
 			if (!zipName) {
 				if (files.length > 1 && files[0].name.toLowerCase().endsWith('.zip')) {
 					this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoSingleZIP'));
@@ -173,78 +179,75 @@ export default {
 				}
 
 				if (files[0].name.toLowerCase().endsWith('.zip')) {
+					const zip = new JSZip(), zipFiles = [], target = this.target;
+					const notification = this.$makeNotification('info', this.$t('notification.decompress.title'), this.$t('notification.decompress.message'), 0);
 					this.extracting = true;
 					try {
-						const zip = new JSZip(), zipFiles = [], target = this.target;
-						try {
-							await zip.loadAsync(files[0], { checkCRC32: true });
+						await zip.loadAsync(files[0], { checkCRC32: true });
 
-							// Check if this is a plugin / TODO improve UI
-							if ((this.target === 'start' || this.target === 'system')) {
-								let isPlugin = false;
-								zip.forEach(function(file) {
-									if (file === 'plugin.json') {
-										isPlugin = true;
-									}
-								});
-
-								if (isPlugin) {
-									if (confirm('Would you like to install this plugin?')) {
-										await this.installPlugin({
-											zipFilename: files[0].name,
-											zipBlob: files[0],
-											zipFile: zip,
-											start: (this.target === 'start')
-										});
-									}
-									return;
-								}
-							}
-
-							// Get a list of files to unpack
+						// Check if this is a plugin / TODO improve UI
+						if ((this.target === 'start' || this.target === 'system')) {
+							let isPlugin = false;
 							zip.forEach(function(file) {
-								if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
-									zipFiles.push(file);
+								if (file === 'plugin.json') {
+									isPlugin = true;
 								}
 							});
 
-							// Could we get anything useful?
-							if (zipFiles.length === 0) {
-								this.extracting = false;
-								this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
+							if (isPlugin) {
+								if (confirm('Would you like to install this plugin?')) {
+									await this.installPlugin({
+										zipFilename: files[0].name,
+										zipBlob: files[0],
+										zipFile: zip,
+										start: (this.target === 'start')
+									});
+								}
 								return;
 							}
-
-							// Extract everything and start the upload
-							for (let i = 0; i < zipFiles.length; i++) {
-								const name = zipFiles[i];
-								zipFiles[i] = await zip.file(name).async('blob');
-								zipFiles[i].name = name;
-							}
-							this.doUpload(zipFiles, files[0].name, new Date());
-						} catch (e) {
-							this.$makeNotification('error', this.$t('error.uploadDecompressionFailed'), e.message);
-							throw e;
 						}
-					} finally {
+
+						// Get a list of files to unpack
+						zip.forEach(function(file) {
+							if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
+								zipFiles.push(file);
+							}
+						});
+
+						// Could we get anything useful?
+						if (zipFiles.length === 0) {
+							this.extracting = false;
+							this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
+							return;
+						}
+
+						// Extract everything and start the upload
+						for (let i = 0; i < zipFiles.length; i++) {
+							const name = zipFiles[i];
+							zipFiles[i] = await zip.file(name).async('blob');
+							zipFiles[i].name = name;
+						}
 						this.extracting = false;
+						notification.hide();
+						await this.doUpload(zipFiles, files[0].name, new Date());
+						return;
+					} catch (e) {
+						this.extracting = false;
+						notification.hide();
+						this.$makeNotification('error', this.$t('notification.decompress.errorTitle'), e.message);
+						throw e;
 					}
-					return;
 				}
 			}
 
+			// Check what types of files we have and where they need to go
 			this.updates.webInterface = false;
 			this.updates.firmwareBoards = [];
 			this.updates.wifiServer = false;
 			this.updates.wifiServerSpiffs = false;
 
-			let success = true;
-			this.uploading = true;
 			for (let i = 0; i < files.length; i++) {
-				const content = files[i];
-
-				// Adjust filename if an update is being uploaded
-				let filename = Path.combine(this.destinationDirectory, content.name);
+				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
 				if (this.target === 'system' || this.target === 'firmware') {
 					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine('0:/', content.name);
@@ -273,49 +276,51 @@ export default {
 								this.updates.wifiServerSpiffs = true;
 							}
 						} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
-							// FIXME This will be no longer needed when CAN board enumeration is supported
 							filename = Path.combine(this.directories.firmware, content.name);
 						}
 					}
 				}
+				content.filename = filename;
+			}
+			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs;
 
-				try {
-					// Start uploading
-					if (files.length > 1) {
-						await this.upload({ filename, content, showSuccess: !zipName, num: i + 1, count: files.length });
-					} else {
-						await this.upload({ filename, content });
-					}
-
-					// Run it (if required)
-					if (this.target === 'start') {
-						await this.sendCode(`M32 "${filename}"`);
-					}
-				} catch (e) {
-					success = false;
-					console.warn(e);
-					this.$emit('uploadFailed', { filename, reason: e });
-					break;
+			// Start uploading
+			this.uploading = true;
+			try
+			{
+				if (files.length === 1) {
+					await this.upload({ filename: files[0].name, content: files[0], showSuccess: !zipName });
+				} else {
+					const filelist = [];
+					files.forEach((file) => filelist.push({ filename: file.filename, content: file }));
+					await this.upload({ files: filelist, showSuccess: !zipName, closeProgressOnSuccess: askForUpdate });
 				}
+				this.$emit('uploadComplete', files);
+			} catch (e) {
+				this.uploading = false;
+				this.$emit('uploadFailed', { files, error: e });
+				return;
 			}
 			this.uploading = false;
 
-			if (success) {
-				this.$emit('uploadComplete', files);
+			// Deal with Upload & Start
+			if (this.target === 'start') {
+				await this.sendCode(`M32 "${files[0].filename}"`);
+			}
 
-				if ((this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs) {
-					// Ask user to perform an update
-					this.confirmUpdate = true;
-				} else if (!this.isLocal && this.updates.webInterface) {
-					// Reload the web interface immediately if it was the only update
-					location.reload(true);
-				}
+			// Deal with updates
+			if (askForUpdate) {
+				// Ask user to perform an update
+				this.confirmUpdate = true;
+			} else if (!this.isLocal && this.updates.webInterface) {
+				// Reload the web interface immediately if it was the only update
+				location.reload(true);
+			}
 
-				// FIXME For some reason the $t function throws an exception when this button is floating
-				if (zipName) {
-					const secondsPassed = Math.round((new Date() - startTime) / 1000);
-					this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
-				}
+			// FIXME For some reason the $t function throws an exception when this button is floating
+			if (zipName) {
+				const secondsPassed = Math.round((new Date() - startTime) / 1000);
+				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
 			}
 		},
 		async startUpdate() {
@@ -345,7 +350,7 @@ export default {
 			}
 
 			// Update other modules if applicable
-			let modules = [];
+			const modules = [];
 			if (this.updates.firmwareBoards.indexOf(0) >= 0) {
 				modules.push('0');
 			}
@@ -367,6 +372,13 @@ export default {
 					}
 				}
 			}
+
+			// Ask for a firmware reset if expansion boards have been updated
+			this.confirmReset = this.updates.firmwareBoards.findIndex(board => board > 0) !== -1;
+		},
+		async reset() {
+			this.confirmReset = false;
+			await this.sendCode('M999');
 		},
 		dragOver(e) {
 			e.preventDefault();

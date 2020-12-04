@@ -1,52 +1,50 @@
 <template>
-	<v-layout row justify-center>
-		<v-dialog v-model="shown" max-width="600px" persistent no-click-animation>
-			<v-card>
-				<v-form ref="form" @submit.prevent="apply">
-					<v-card-title>
-						<span class="headline">{{ $t('dialog.meshEdit.title') }}</span>
-					</v-card-title>
+	<v-dialog v-model="shown" max-width="600px" persistent no-click-animation>
+		<v-card>
+			<v-form ref="form" @submit.prevent="apply">
+				<v-card-title>
+					<span class="headline">{{ $t('dialog.meshEdit.title') }}</span>
+				</v-card-title>
 
-					<v-card-text>
-						<v-row v-if="isDelta">
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacingX" required hide-details></v-text-field>
-							</v-col>
-						</v-row>
-						<v-row v-else>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['X'])" v-model.number="minX" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['X'])" v-model.number="maxX" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['Y'])" v-model.number="minY" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['Y'])" v-model.number="maxY" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['X'])" v-model.number="spacingX" required hide-details></v-text-field>
-							</v-col>
-							<v-col cols="12" sm="6">
-								<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['Y'])" v-model.number="spacingY" required hide-details></v-text-field>
-							</v-col>
-						</v-row>
-					</v-card-text>
+				<v-card-text>
+					<v-row v-if="isDelta">
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.radius')" v-model.number="radius" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.spacing')" v-model.number="spacingX" required hide-details></v-text-field>
+						</v-col>
+					</v-row>
+					<v-row v-else>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['X'])" v-model.number="minX" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['X'])" v-model.number="maxX" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['Y'])" v-model.number="minY" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['Y'])" v-model.number="maxY" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['X'])" v-model.number="spacingX" required hide-details></v-text-field>
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['Y'])" v-model.number="spacingY" required hide-details></v-text-field>
+						</v-col>
+					</v-row>
+				</v-card-text>
 
-					<v-card-actions>
-						<v-spacer></v-spacer>
-						<v-btn color="blue darken-1" text @click="hide">{{ $t('generic.cancel') }}</v-btn>
-						<v-btn color="blue darken-1" text type="submit">{{ $t('generic.ok') }}</v-btn>
-					</v-card-actions>
-				</v-form>
-			</v-card>
-		</v-dialog>
-	</v-layout>
+				<v-card-actions>
+					<v-spacer></v-spacer>
+					<v-btn color="blue darken-1" text @click="hide">{{ $t('generic.cancel') }}</v-btn>
+					<v-btn color="blue darken-1" text type="submit">{{ $t('generic.ok') }}</v-btn>
+				</v-card-actions>
+			</v-form>
+		</v-card>
+	</v-dialog>
 </template>
 
 <script>

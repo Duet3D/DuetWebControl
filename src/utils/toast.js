@@ -75,7 +75,9 @@ export function makeNotification(type, title, message, timeout) {
 	item.timeout = timeout;
 	item.domElement = toast;
 	item.hide = function() {
-		iziToast.hide({}, toast);
+		if (toast) {
+			iziToast.hide({}, toast);
+		}
 		openNotifications = openNotifications.filter(notification => notification !== item);
 	};
 	item.resetTimeout = function() {
@@ -87,13 +89,13 @@ export function makeNotification(type, title, message, timeout) {
 	return item;
 }
 
-export function makeFileTransferNotification(type, destination, cancellationToken, num, count) {
-	const filename = extractFileName(destination), titlePrefix = (count > 1) ? `(${num}/${count}) ` : '';
+export function makeFileTransferNotification(type, destination, cancellationToken) {
+	const filename = extractFileName(destination);
 
 	// Prepare toast
 	iziToast.info({
 		class: 'file-transfer',
-		title: titlePrefix  + i18n.t(`notification.${type}.title`, [filename, displaySpeed(0), 0]),
+		title: i18n.t(`notification.${type}.title`, [filename, displaySpeed(0), 0]),
 		message: i18n.t(`notification.${type}.message`),
 		layout: 2,
 		timeout: false,
@@ -114,13 +116,14 @@ export function makeFileTransferNotification(type, destination, cancellationToke
 	progressBar.style.width = '0%';
 
 	// Return object with enough info about it
-	const startTime = new Date();
 	return {
 		domElement: toast,
-		onProgress(loaded, total) {
-			const uploadSpeed = loaded / (((new Date()) - startTime) / 1000), progress = (loaded / total) * 100;
-			title.textContent = titlePrefix + i18n.t(`notification.${type}.title`, [filename, displaySpeed(uploadSpeed), Math.round(progress)]);
-			progressBar.style.width = progress.toFixed(1) + '%';
+		onProgress(loaded, total, speed) {
+			if (total > 0) {
+				const progress = (loaded / total) * 100;
+				title.textContent = i18n.t(`notification.${type}.title`, [filename, displaySpeed(speed), Math.round(progress)]);
+				progressBar.style.width = progress.toFixed(1) + '%';
+			}
 		},
 		hide() {
 			iziToast.hide({}, toast);
