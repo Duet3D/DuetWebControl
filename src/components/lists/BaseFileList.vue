@@ -25,18 +25,9 @@ td {
 <template>
 	<div>
 		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll"
-			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select 
-			:loading="loading || innerLoading"
-			:custom-sort="sort"
-			:sort-by.sync="internalSortBy"
-			:sort-desc.sync="internalSortDesc"
-			must-sort
-			disable-pagination
-			hide-default-footer
-			:mobile-breakpoint="0"
-			class="base-file-list elevation-3"
-			:class="{ 'empty-table-fix': !innerFilelist.length, 'loading-cursor': isLoading }"
-		>
+			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select :loading="loading || innerLoading"	
+			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort disable-pagination hide-default-footer 
+			:mobile-breakpoint="0" class="base-file-list elevation-3" :class="{ 'empty-table-fix': !innerFilelist.length, 'loading-cursor': isLoading }">
 			<template #progress>
 				<slot name="progress">
 					<v-progress-linear indeterminate />
@@ -95,7 +86,7 @@ td {
 						</template>
 						<template v-else-if="header.unit === 'image'">
 							<template v-if="props.item.thumbnails && props.item.thumbnails.length > 0">
-								<v-img max-width="96px" :src="props.item.thumbnails[props.item.thumbnails.length - 1].encodedImage" @click.stop="showImage(props.item)"></v-img>
+								<thumbnail-popup :thumbnail="props.item.thumbnails"></thumbnail-popup>
 							</template>
 						</template>
 						<template v-else>
@@ -134,7 +125,6 @@ td {
 		</v-menu>
 		<file-edit-dialog v-model="editDialog.content" :shown.sync="editDialog.shown" :filename="editDialog.filename" @editComplete="$emit('fileEdited', $event)" />
 		<input-dialog :shown.sync="renameDialog.shown" :title="$t('dialog.renameFile.title')" :prompt="$t('dialog.renameFile.prompt')" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback" />
-		<thumbnail-dialog :shown.sync="thumbnailDialog.shown" :thumbnail="thumbnailDialog.thumbnail" :filename="thumbnailDialog.filename" />
 	</div>
 </template>
 
@@ -644,14 +634,16 @@ export default {
 			this.innerDoingFileOperation = false;
 		},
 		async downloadZIP(items) {
-			if (!items || !(items instanceof Array)) { items = this.innerValue.slice(); }
+			if (!items || !(items instanceof Array)) {
+				items = this.innerValue.slice();
+			}
 
 			// Download the selected files
 			const files = [];
 			for (let i = 0; i < items.length; i++) {
 				files.push({
 					filename: Path.combine(this.directory, items[i].name),
-					type: 'blob'
+					type: 'blob',
 				});
 			}
 
@@ -670,7 +662,7 @@ export default {
 			const notification = this.$makeNotification('info', this.$t('notification.compress.title'), this.$t('notification.compress.message'), 0);
 			try {
 				const zip = new JSZip();
-				downloadedFiles.forEach(function(file) {
+				downloadedFiles.forEach(function (file) {
 					zip.file(Path.extractFileName(file.filename), file.content);
 				});
 
