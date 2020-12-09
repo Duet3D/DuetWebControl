@@ -122,7 +122,7 @@ export default {
 		},
 		isWebFile(filename) {
 			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension)) ||
-				filename === 'manifest.json' || filename === 'robots.txt') {
+				filename === 'manifest.json' || filename === 'manifest.json.gz' || filename === 'robots.txt') {
 				return true;
 			}
 
