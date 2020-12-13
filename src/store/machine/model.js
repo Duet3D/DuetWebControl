@@ -173,6 +173,7 @@ export class MachineModel {
 		workspaceNumber: 1
 	}
 	network = {
+		corsSite: null,
 		hostname: 'duet',
 		interfaces: [],
 		name: 'My Duet'

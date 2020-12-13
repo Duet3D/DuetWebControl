@@ -10,7 +10,7 @@
 					<th>Set RPM</th>
                 </thead>
                 <tbody>
-                    <tr v-for="(spindle, index) in spindles" :key="index">
+                    <tr v-for="(spindle, index) in spindles" :key="index" :class="{'spindle-active' : spindle.current > 0 }">
                         <td>{{getName(spindle)}}</td>
                         <td>
 								<v-btn v-if="spindle.current <= 0"  :value="1"  block @click="spindleOn(spindle, index)">On</v-btn>
@@ -32,6 +32,10 @@
 td {
 	text-align: center;
 	vertical-align: middle;
+}
+
+.spindle-active { 
+	background-color : #00BB00;
 }
 
 .spindle-on {

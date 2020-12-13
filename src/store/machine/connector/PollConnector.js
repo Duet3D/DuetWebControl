@@ -993,7 +993,7 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	async sendCode(code) {
-		const response = await this.request('GET', 'rr_gcode', { gcode: code });
+		const codeSeq = this.lastSeq, response = await this.request('GET', 'rr_gcode', { gcode: code });
 		if (!(response instanceof Object)) {
 			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
 			throw new CodeResponseError();
@@ -1014,8 +1014,8 @@ export default class PollConnector extends BaseConnector {
 				}
 
 				if (code[i] !== ' ' && code[i] !== '\t' && code[i] !== '\r' && code !== '\n') {
-					const pendingCodes = this.pendingCodes, seq = this.lastSeq;
-					return new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+					const pendingCodes = this.pendingCodes;
+					return new Promise((resolve, reject) => pendingCodes.push({ seq: codeSeq, resolve, reject }));
 				}
 			}
 		}

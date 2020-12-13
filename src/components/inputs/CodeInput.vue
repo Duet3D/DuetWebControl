@@ -9,7 +9,8 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
 						:search-input.sync="code" @click="click" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						:items="displayedCodes" @update:list-index="updateSelection" @keyup.down="showItems = true" @keyup.tab.exact="selectItem">
+						:items="displayedCodes" @update:list-index="updateSelection" :menu-props="{ maxHeight: '50%' }"
+						@keyup.down="showItems = true" @keyup.tab.exact="selectItem">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -102,7 +103,7 @@ export default {
 		async send() {
 			this.showItems = false;
 
-			const code = (this.code.constructor === String) ? this.code : this.code.value;
+			const code = (!this.code || this.code.constructor === String) ? this.code : this.code.value;
 			if (code && code.trim() !== '' && !this.doingCode) {
 				let codeToSend = '', bareCode = '', inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
 				if (!this.hasUnprecedentedParameters(codeToSend) &&

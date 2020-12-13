@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 import { mapConnectorActions } from './connector'
 
 import cache from './cache.js'
@@ -29,7 +31,8 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false,
-			filesBeingChanged: []
+			filesBeingChanged: [],
+			transferringFiles: false				// indicates if multiple files are being transferred at once
 		},
 		getters: {
 			connector: () => connector,				// must remain a getter to avoid Vue from wrapping the object content
@@ -79,83 +82,159 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				}
 			},
 
-			// Upload a file
-			// filename: Destination of the file
-			// content: Data of the file
-			// showProgress: Show upload progress in a notification
-			// showSuccess: Show a success message when done
-			// showError: Show a message if the upload fails
-			// num: Number of this upload
-			// count: Total number of files to upload
-			async upload(context, { filename, content, showProgress = true, showSuccess = true, showError = true, num = 1, count = 1 }) {
-				const cancellationToken = {}, startTime = new Date();
-				const notification = showProgress && makeFileTransferNotification('upload', filename, cancellationToken, num, count);
+			// Upload one or more files. Payload can be either:
+			// {
+			//   filename: Name of the file to upload,
+			//   content: Content of the file,
+			//   showProgress = true: Show upload progress in a notification,
+			//   showSuccess = true: Show a sucess message when done,
+			//   showError = true: showError = true: Show an error message on error
+			// }
+			// or
+			// {
+			//   files: [
+			//     {
+			//       filename: Name of the file to upload,
+			//       content: Content of the file
+			//     },
+			//     ...
+			//   ],
+			//   showProgress = true: Show upload progress in a dialog,
+			//   closeProgressOnSuccess = false: Close the progress indicator automatically when done
+			// }
+			async upload(context, payload) {
+				const files = Vue.observable([]), cancellationToken = {};
+				const showProgress = (payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
+				const showSuccess = (payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
+				const showError = (payload.showError !== undefined) ? Boolean(payload.showError) : true;
+				const closeProgressOnSuccess = (payload.closeProgressOnSuccess !== undefined) ? Boolean(payload.closeProgressOnSuccess) : false;
 
+				// Prepare the arguments and tell listeners that an upload is about to start
+				let notification = null;
+				if (payload.filename) {
+					files.push({
+						filename: payload.filename,
+						content: payload.content,
+						startTime: null,
+						progress: 0,
+						speed: null,
+						error: null
+					});
+					context.commit('addFileBeingChanged', payload.filename);
+					if (showProgress) {
+						notification = makeFileTransferNotification('upload', payload.filename, cancellationToken);
+					}
+
+					Root.$emit(Events.fileUploading, {
+						machine: connector.hostname,
+						filename: payload.filename,
+						content: payload.content,
+						showProgress,
+						showSuccess,
+						showError,
+						cancellationToken
+					});
+				} else {
+					if (context.state.transferringFiles) {
+						throw new Error('Cannot perform two multi-file transfers at the same time');
+					}
+					context.commit('setMultiFileTransfer', true);
+
+					payload.files.forEach(function(file) {
+						files.push({
+							filename: file.filename,
+							content: file.content,
+							startTime: null,
+							progress: 0,
+							speed: null,
+							error: null
+						});
+						context.commit('addFileBeingChanged', file.filename);
+					});
+
+					Root.$emit(Events.multipleFilesUploading, {
+						machine: connector.hostname,
+						files,
+						showProgress,
+						closeProgressOnSuccess,
+						cancellationToken
+					});
+				}
+
+				// Upload the file(s)
 				try {
-					// Check if config.g needs to be backed up
-					const configFile = Path.combine(context.state.model.directories.system, Path.configFile);
-					if (Path.equals(filename, configFile)) {
+					for (let i = 0; i < files.length; i++) {
+						const item = files[i], filename = item.filename, content = item.content;
 						try {
-							const configFileBackup = Path.combine(context.state.model.directories.system, Path.configBackupFile);
-							await connector.move({ from: configFile, to: configFileBackup, force: true, silent: true });
+							// Check if config.g needs to be backed up
+							const configFile = Path.combine(context.state.model.directories.system, Path.configFile);
+							if (Path.equals(filename, configFile)) {
+								const configFileBackup = Path.combine(context.state.model.directories.system, Path.configBackupFile);
+								await connector.move({ from: configFile, to: configFileBackup, force: true, silent: true });
+							}
+
+							// Clear the cached file info (if any)
+							context.commit('cache/clearFileInfo', filename);
+
+							// Wait for the upload to finish
+							item.startTime = new Date();
+							await connector.upload({
+								filename,
+								content,
+								cancellationToken,
+								onProgress: (loaded, total) => {
+									item.progress = loaded / total;
+									item.speed = loaded / (((new Date()) - item.startTime) / 1000);
+									if (notification) {
+										notification.onProgress(loaded, total, item.speed);
+									}
+								}
+							});
+							item.progress = 1;
+
+							// Show success message
+							if (payload.filename && showSuccess) {
+								const secondsPassed = Math.round((new Date() - item.startTime) / 1000);
+								log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
+							}
+
+							// File has been uploaded successfully, emit an event
+							Root.$emit(Events.fileUploaded, {
+								machine: connector.hostname,
+								filename,
+								content,
+								num: i,
+								count: files.length
+							});
 						} catch (e) {
-							console.warn(e);
-							log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
-							return;
+							// Failed to upload a file, emit an event
+							Root.$emit(Events.fileUploadError, {
+								machine: connector.hostname,
+								filename,
+								content,
+								error: e
+							});
+
+							// Show an error if requested
+							if (showError && !(e instanceof OperationCancelledError)) {
+								console.warn(e);
+								log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
+							}
+
+							// Rethrow the error so the caller is notified
+							item.error = e;
+							throw e;
 						}
 					}
-
-					// Clear the cached file info and wait for upload to finish
-					context.commit('cache/clearFileInfo', filename);
-					await connector.upload({ filename, content, cancellationToken, onProgress: notification && notification.onProgress });
-
-					// Show success message
-					if (showSuccess && num === count) {
-						if (count > 1) {
-							log('success', i18n.t('notification.upload.successMulti', [count]), undefined, connector.hostname);
-						} else {
-							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.upload.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
-						}
-					}
-
-					// Hide the notification again
-					if (showProgress) {
+				} finally {
+					if (notification) {
 						notification.hide();
 					}
-
-					// File has been uploaded successfully, emit corresponding events
-					Root.$emit(Events.fileUploaded, { machine: connector.hostname, filename, content, showProgress, showSuccess, showError, num, count });
-					if (num === count) {
-						if (context.state.filesBeingChanged.length > 0) {
-							const files = [...context.state.filesBeingChanged, filename];
-							context.commit('clearFilesBeingChanged');
-							Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files });
-						} else {
-							Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [filename] });
-						}
-					} else {
-						context.commit('addFileBeingChanged', filename);
+					context.commit('clearFilesBeingChanged');
+					if (!payload.filename) {
+						context.commit('setMultiFileTransfer', false);
 					}
-				} catch (e) {
-					// Emit pending file change notifications
-					if (context.state.filesBeingChanged.length > 0) {
-						const files = [...context.state.filesBeingChanged, filename];
-						context.commit('clearFilesBeingChanged');
-						Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files });
-					}
-
-					// Show and report error message
-					if (showProgress) {
-						notification.hide();
-					}
-					if (showError && !(e instanceof OperationCancelledError)) {
-						console.warn(e);
-						log('error', i18n.t('notification.upload.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
-					}
-
-					// Rethrow the error so the caller is notified
-					throw e;
+					Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: files.map(file => file.filename) });
 				}
 			},
 
@@ -185,54 +264,156 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [directory] });
 			},
 
-			// Download a file and show progress
-			// Parameter can be either the filename or an object { filename, (type, showProgress, showSuccess, showError, num, count) }
-			// Returns the response
+			// Download one or more files. Payload can be either:
+			// {
+			//   filename: Name of the file to upload,
+			//   type = 'json': Type of the response,
+			//   showProgress = true: Show upload progress in a notification,
+			//   showSuccess = true: Show a sucess message when done,
+			//   showError = true: Show an error message on error
+			// }
+			// or
+			// {
+			//   files: [
+			//     {
+			//       filename,
+			//       type: 'blob'
+			//     }, ...
+			//   ],
+			//   showProgress = true: Show download progress in a dialog,
+			//   closeProgressOnSuccess = false: Close the progress indicator automatically when done
+			// }
+			// Returns the file response if a single file was requested, else the files list plus content property
 			async download(context, payload) {
-				const filename = (payload instanceof Object) ? payload.filename : payload;
-				const type = (payload instanceof Object && payload.type !== undefined) ? payload.type : 'json';
-				const showProgress = (payload instanceof Object && payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
-				const showSuccess = (payload instanceof Object && payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
-				const showError = (payload instanceof Object && payload.showError !== undefined) ? Boolean(payload.showError) : true;
-				const num = (payload instanceof Object && payload.num > 0) ? payload.num : 1;
-				const count = (payload instanceof Object && payload.count > 0) ? payload.count : 1;
+				const files = Vue.observable([]), cancellationToken = {};
+				const showProgress = (payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
+				const showSuccess = (payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
+				const showError = (payload.showError !== undefined) ? Boolean(payload.showError) : true;
+				const closeProgressOnSuccess = (payload.closeProgressOnSuccess !== undefined) ? Boolean(payload.closeProgressOnSuccess) : false;
 
-				const cancellationToken = {}, startTime = new Date();
-				const notification = showProgress && makeFileTransferNotification('download', filename, cancellationToken, num, count);
+				// Prepare the arguments and tell listeners that an upload is about to start
+				let notification = null;
+				if (payload.filename) {
+					files.push({
+						filename: payload.filename,
+						type: payload.type || 'json',
+						startTime: null,
+						size: null,
+						progress: 0,
+						speed: null,
+						error: null
+					});
+					if (showProgress) {
+						notification = makeFileTransferNotification('download', payload.filename, cancellationToken);
+					}
 
+					Root.$emit(Events.fileDownloading, {
+						machine: connector.hostname,
+						filename: payload.filename,
+						type: payload.type,
+						showProgress,
+						showSuccess,
+						showError,
+						cancellationToken
+					});
+				} else {
+					if (context.state.transferringFiles) {
+						throw new Error('Cannot perform two multi-file transfers at the same time');
+					}
+					context.commit('setMultiFileTransfer', true);
+
+					payload.files.forEach(function(file) {
+						files.push({
+							filename: file.filename,
+							type: file.type || 'blob',
+							startTime: null,
+							size: null,
+							progress: 0,
+							speed: null,
+							error: null
+						});
+					});
+
+					Root.$emit(Events.multipleFilesDownloading, {
+						machine: connector.hostname,
+						files,
+						showProgress,
+						closeProgressOnSuccess,
+						cancellationToken
+					});
+				}
+
+				// Download the file(s)
 				try {
-					// Wait for download to finish
-					const response = await connector.download({ filename, type, cancellationToken, onProgress: notification && notification.onProgress });
+					for (let i = 0; i < files.length; i++) {
+						const item = files[i], filename = item.filename, type = item.type;
+						try {
+							// Wait for download to finish
+							item.startTime = new Date();
+							const response = await connector.download({
+								filename,
+								type,
+								cancellationToken,
+								onProgress: (loaded, total) => {
+									item.size = total;
+									item.progress = loaded / total;
+									item.speed = loaded / (((new Date()) - item.startTime) / 1000);
+									if (notification) {
+										notification.onProgress(loaded, total, item.speed);
+									}
+								}
+							});
+							item.progress = 1;
 
-					// Show success message
-					if (showSuccess && num === count) {
-						if (count > 1) {
-							log('success', i18n.t('notification.download.successMulti', [count]), undefined, connector.hostname);
-						} else {
-							const secondsPassed = Math.round((new Date() - startTime) / 1000);
-							log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
+							// Show success message
+							if (payload.filename && showSuccess) {
+								const secondsPassed = Math.round((new Date() - item.startTime) / 1000);
+								log('success', i18n.t('notification.download.success', [Path.extractFileName(filename), displayTime(secondsPassed)]), undefined, connector.hostname);
+							}
+
+							// File has been uploaded successfully, emit an event
+							Root.$emit(Events.fileDownloaded, {
+								machine: connector.hostname,
+								filename,
+								type,
+								num: i,
+								count: files.length
+							});
+
+							// Return the response if a single file was requested
+							if (payload.filename) {
+								return response;
+							}
+							item.content = response;
+						} catch (e) {
+							// Failed to download a file, emit an event
+							Root.$emit(Events.fileDownloadError, {
+								machine: connector.hostname,
+								filename,
+								type,
+								error: e
+							});
+
+							// Show an error if requested
+							if (showError && !(e instanceof OperationCancelledError)) {
+								console.warn(e);
+								log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
+							}
+
+							// Rethrow the error so the caller is notified
+							item.error = e;
+							throw e;
 						}
 					}
-
-					// Hide the notification again
-					if (showProgress) {
+				} finally {
+					if (notification) {
 						notification.hide();
 					}
-
-					// Done
-					Root.$emit(Events.fileDownloaded, { filename, response, type, showProgress, showSuccess, showError, num, count });
-					return response;
-				} catch (e) {
-					// Show and report error message
-					if (showProgress) {
-						notification.hide();
+					if (!payload.filename) {
+						context.commit('setMultiFileTransfer', false);
 					}
-					if (showError && !(e instanceof OperationCancelledError)) {
-						console.warn(e);
-						log('error', i18n.t('notification.download.error', [Path.extractFileName(filename)]), e.message, connector.hostname);
-					}
-					throw e;
 				}
+				return files;
 			},
 
 			// Update machine mode. Reserved for the machine connector!
@@ -430,6 +611,9 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			},
 			clearFilesBeingChanged(state) {
 				state.filesBeingChanged = [];
+			},
+			setMultiFileTransfer(state, transferring) {
+				state.transferringFiles = transferring;
 			},
 
 			clearLog: state => state.events = [],

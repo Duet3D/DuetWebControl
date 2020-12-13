@@ -27,9 +27,21 @@ export default {
 	// Payload: { machine, files: [ file1, ... ] }
 	filesOrDirectoriesChanged: 'filesOrDirectoriesChanged',
 
+	// Single file is being uploaded
+	// Payload: { machine, filename, content, showProgress, showSuccess, showError, cancellationToken }
+	fileUploading: 'fileUploading',
+
+	// Multiple files are being uploaded
+	// Payload: { machine, files: [{ filename, content, startTime, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken }
+	multipleFilesUploading: 'multipleFilesUploading',
+
 	// File has been uploaded
-	// Payload: { machine, filename, content, showProgress, showSuccess, showError, num, count }
+	// Payload: { machine, filename, content, num, count }
 	fileUploaded: 'fileUploaded',
+
+	// File could not be uploaded
+	// Payload: { machine, filename, content, error }
+	fileUploadError: 'fileUploadError',
 
 	// File or directory has been moved
 	// Payload: { machine, from, to, force }
@@ -43,7 +55,19 @@ export default {
 	// Payload: { machine, file }
 	fileOrDirectoryDeleted: 'fileOrDirectoryDeleted',
 
+	// Single file is being downloaded
+	// Payload: { machine, filename, type, showProgress, showSuccess, showError, cancellationToken }
+	fileDownloading: 'fileDownloading',
+
+	// Multiple files are being downloaded
+	// Payload: { machine, files: [{ filename, type, startTime, size, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken }
+	multipleFilesDownloading: 'multipleFilesDownloading',
+
 	// File has been downloaded
 	// Payload: { machine, filename, response, type, showProgress, showSuccess, showError, num, count }
-	fileDownloaded: 'fileDownloaded'
+	fileDownloaded: 'fileDownloaded',
+
+	// File could not be downloaded
+	// Payload: { machine, filename, type, error }
+	fileDownloadError: 'fileDownloadError'
 }

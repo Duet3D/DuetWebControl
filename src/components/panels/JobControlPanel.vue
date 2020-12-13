@@ -88,6 +88,9 @@ export default {
 		}
 	},
 	methods: mapMutations('machine', ['setAutoSleep']),
+	mounted() {
+		this.isSimulating = (this.status === StatusType.simulating);
+	},
 	watch: {
 		status(to) {
 			if (to === StatusType.simulating) {
