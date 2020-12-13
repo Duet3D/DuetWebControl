@@ -1,4 +1,3 @@
-
 <style>
 .category-header {
 	flex: 0 0 100px;
@@ -7,7 +6,7 @@
 
 <template>
 	<div>
-		<v-row align="stretch">
+		<v-row dense align="stretch">
 			<v-col cols="3" order="1" sm="4" lg="2" order-lg="1">
 				<v-card class="justify-center fill-height">
 					<v-card-title>
