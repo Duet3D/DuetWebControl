@@ -6,7 +6,7 @@ It is designed to communicate with RepRapFirmware using WebSockets and RESTful H
 
 Duet Web Control is free software; it is licensed under the terms of the GNU Public License v3.
 
-Please note, **this CNC version of DWC is experimental and it may not be maintained**. Some or all of the features of this version may in future be made available as options in the regular version of Duet Web Control.
+Please note, **this CNC version of DWC is experimental and it may not be maintained**. Some or all of the features of this version may in future be made available as options in the regular version of Duet Web Control. The CNC dashboard will only be visible when the Duet is in CNC mode.
 
 ## Supported electronics
 
