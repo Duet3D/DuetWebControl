@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 'use strict';
-
-import * as BABYLON from 'babylonjs';
+import { Color4 } from '@babylonjs/core/Maths/math.color'
+import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder'
 
 export default class {
   constructor() {
@@ -19,18 +20,18 @@ export default class {
 
   renderLine(scene) {
     var points = [this.start, this.end];
-    let lineMesh = BABYLON.Mesh.CreateLines('lines', points, scene);
+    let lineMesh = Mesh.CreateLines('lines', points, scene);
     lineMesh.enableEdgesRendering();
     lineMesh.edgesWidth = 10;
-    lineMesh.edgesColor = new BABYLON.Color4(1, 1, 0, 1);
+    lineMesh.edgesColor = new Color4(1, 1, 0, 1);
   }
 
   renderLineV2(scene) {
-    var tube = BABYLON.MeshBuilder.CreateTube('tube', {
+    var tube = MeshBuilder.CreateTube('tube', {
       path: [this.start, this.end],
       radius: 0.2,
       tesselation: 4,
-      sideOrientation: BABYLON.Mesh.FRONTSIDE,
+      sideOrientation: Mesh.FRONTSIDE,
       updatable: false,
     });
     tube.doNotSyncBoundingInfo = true;
@@ -83,8 +84,8 @@ export default class {
 
   getColor() {
     if (this.extruding) {
-      return new BABYLON.Color4(1, 1, 1, 1);
+      return new Color4(1, 1, 1, 1);
     }
-    return new BABYLON.Color4(1, 0, 0, 1);
+    return new Color4(1, 0, 0, 1);
   }
 }

@@ -731,15 +731,33 @@ export default {
 			view3D: 'View 3D',
 			fullscreen: 'Full Screen',
 			showConfiguration: 'Show Viewer Configuration',
-			resetCamera: 'Reset Camera',
+			resetCamera: {	
+				caption : 'Reset Camera',
+				title: 'Reset camera to home position'
+			},
 			cancelLoad: 'Cancel File Loading',
-			reloadView: 'Reload View',
-			loadCurrentJob: 'Load Current Job',
-			unloadGCode: 'Unload G-Code',
-			loadLocalGCode: 'Load Local G-Code',
+			reloadView: { 
+				caption : 'Reload View',
+				title : 'Reload the current gcode, this is used when changing settings like color, feedrate color, etc.'
+			},
+			loadCurrentJob:  { 
+				caption :'Load Current Job',  
+				title : 'Load the current printing or simulating job.'
+			},
+			unloadGCode:  { 
+				caption:'Unload GCode',
+				title : 'Remove the loaded gcode from the viewer.'
+			},
+			loadLocalGCode: { 
+				caption : 'Load Local GCode',
+				title : 'Load a file from your local drive into the viewer.'
+			},
 			showCursor: 'Show Cursor',
 			showTravels: 'Show Travels', 
-			renderQuality: 'Render Quality',
+			renderQuality: {
+				caption : 'Render Quality',
+				title : 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available.'
+			},
 			sbc: 'SBC',
 			low: 'Low',
 			medium: 'Medium',			
@@ -750,18 +768,26 @@ export default {
 			transparency: 'Transparency',
 			showSolid: 'Show Solid',
 			spreadLines: 'Spread Lines',
-			extruders: 'Extruders',
+			extruders: {
+				caption:  'Extruders',
+				title : 'Sets the color used for rendering an extruder.'
+			},
 			tool: 'Tool {0}',
-			resetColors: 'Reset Tool Colors',
-			renderModes : 'Render Modes',
-			renderMode : 'Render Mode',
+			resetColor: 'Reset Tool Color | Reset Tool Colors',
+			renderMode : {
+				caption : 'Render Mode | Render Modes',
+				title : 'Render mode allows you to set extruder color or feedrate line coloring in the viewer.'
+			},
 			color: 'Color',
 			feedrate: 'Feedrate',
 			minFeedrate: 'Minimum Feedrate (mm/s)',
 			maxFeedrate: 'Maximum Feedrate (mm/s)',
 			minFeedrateColor: 'Minimum Feedrate Color',
 			maxFeedrateColor: 'Maximum Feedrate Color',
-			progress: 'Progress',
+			progress: {
+				caption : 'Progress',
+				title: 'Set the printed color for progress tracking.'
+			},
 			topClipping: 'Top Clipping',
 			bottomClipping:'Bottom Clipping',
 			progressColor: 'Progress Color',
@@ -774,7 +800,10 @@ export default {
 			showAxes: 'Show Axes',
 			showObjectLabels: 'Show Object Labels',
 			cameraInertia: 'Camera Inertia',
-			showObjectSelection: 'Show Object Selection',
+			showObjectSelection: {
+				caption : 'Show Object Selection',
+				title : 'Enabled if object are in the current job.'
+			},
 			renderFailed: 'Previous render failed. Setting render quality to SBC',
 		},
 		heightmap: {

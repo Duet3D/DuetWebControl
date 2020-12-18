@@ -99,36 +99,36 @@
             </div>
             <v-navigation-drawer v-model="drawer" :permanent="drawer" absolute width="350px">
                 <v-card>
-                    <v-btn @click="reset" block>
+                    <v-btn @click="reset" block :title="$t('plugins.gcodeViewer.resetCamera.title')">
                         <v-icon class="mr-2">mdi-camera</v-icon>
-                        {{ $t('plugins.gcodeViewer.resetCamera') }}
+                        {{ $t('plugins.gcodeViewer.resetCamera.caption') }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="reloadviewer" :disabled="loading" block>
+                    <v-btn class="mt-2" @click="reloadviewer" :disabled="loading" block :title="$t('plugins.gcodeViewer.reloadView.title') ">
                         <v-icon class="mr-2">mdi-reload-alert</v-icon>
-                        {{ $t('plugins.gcodeViewer.reloadView')  }}
+                        {{ $t('plugins.gcodeViewer.reloadView.caption')  }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="loadRunningJob" :disabled="!isJobRunning || loading || visualizingCurrentJob" block>
+                    <v-btn class="mt-2" @click="loadRunningJob" :disabled="!isJobRunning || loading || visualizingCurrentJob" block :title="$t('plugins.gcodeViewer.loadCurrentJob.title')">
                         <v-icon class="mr-2">mdi-printer-3d</v-icon>
-                        {{ $t('plugins.gcodeViewer.loadCurrentJob')  }}
+                        {{ $t('plugins.gcodeViewer.loadCurrentJob.caption')  }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="clearScene" :disabled="loading" block>
+                    <v-btn class="mt-2" @click="clearScene" :disabled="loading" block :title="$t('plugins.gcodeViewer.unloadGCode.title')">
                         <v-icon class="mr-2">mdi-video-3d-off</v-icon>
-                        {{ $t('plugins.gcodeViewer.unloadGCode')  }}
+                        {{ $t('plugins.gcodeViewer.unloadGCode.caption')  }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="chooseFile" :disabled="loading" block>
+                    <v-btn class="mt-2" @click="chooseFile" :disabled="loading" block :title="$t('plugins.gcodeViewer.loadLocalGCode.title')">
                         <v-icon>mdi-file</v-icon>
-                        {{ $t('plugins.gcodeViewer.loadLocalGCode')  }}
+                        {{ $t('plugins.gcodeViewer.loadLocalGCode.caption')  }}
                     </v-btn>
                     <input ref="fileInput" type="file" :accept="'.g,.gcode,.gc,.gco,.nc,.ngc,.tap'" hidden @change="fileSelected" multiple />
-                    <v-switch class="mt-4" v-model="showObjectSelection" :disabled="!canCancelObject" :label="jobSelectionLabel"></v-switch>
+                    <v-switch class="mt-4" v-model="showObjectSelection" :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeviewer.showObjectSelection.title')"></v-switch>
                     <v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"></v-switch>
                     <v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"></v-switch>
                 </v-card>
                 <v-expansion-panels>
                     <v-expansion-panel @click="scrollIntoView">
-                        <v-expansion-panel-header>
+                        <v-expansion-panel-header :title="$t('plugins.gcodeViewer.renderQuality.title')">
                             <v-icon class="mr-2">mdi-checkerboard</v-icon>
-                            <strong>{{$t('plugins.gcodeViewer.renderQuality')}}</strong>
+                            <strong>{{$t('plugins.gcodeViewer.renderQuality.caption')}}</strong>
                         </v-expansion-panel-header>
                         <v-expansion-panel-content eager>
                             <v-btn-toggle block exclusive v-model="renderQuality" class="btn-toggle d-flex">
@@ -146,29 +146,29 @@
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                     <v-expansion-panel @click="scrollIntoView">
-                        <v-expansion-panel-header>
+                        <v-expansion-panel-header :title="$t('plugins.gcodeViewer.extruders.title')">
                             <v-icon class="mr-2">mdi-printer-3d-nozzle</v-icon>
-                            <strong>{{$t('plugins.gcodeViewer.extruders')}}</strong>
+                            <strong>{{$t('plugins.gcodeViewer.extruders.caption')}}</strong>
                         </v-expansion-panel-header>
                         <v-expansion-panel-content>
-                            <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary">{{$t('plugins.gcodeViewer.reloadView')}}</v-btn>
+                            <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                             <v-card v-for="(extruder, index) in extruderColors" :key="index">
                                 <h3>{{$t('plugins.gcodeViewer.tool', [index])}}</h3>
                                 <gcodeviewer-color-picker :editcolor="extruder" @updatecolor="value => {updateColor(index, value);}"></gcodeviewer-color-picker>
                             </v-card>
                             <v-card>
-                                <v-btn block class="mt-4" @click="resetExtruderColors" color="warning">{{$t('plugins.gcodeViewer.resetColors')}}</v-btn>
+                                <v-btn block class="mt-4" @click="resetExtruderColors" color="warning">{{$tc('plugins.gcodeViewer.resetColor', extruderColors.length)}}</v-btn>
                             </v-card>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                     <v-expansion-panel @click="scrollIntoView">
-                        <v-expansion-panel-header>
+                        <v-expansion-panel-header :title="$t('plugins.gcodeViewer.renderMode.title')">
                             <v-icon class="mr-2">mdi-palette</v-icon>
-                            <strong>{{$t('plugins.gcodeViewer.renderModes')}}</strong>
+                            <strong>{{$tc('plugins.gcodeViewer.renderMode.caption', 2)}}</strong>
                         </v-expansion-panel-header>
                         <v-expansion-panel-content>
                             <v-card>
-                                <h4>{{$t('plugins.gcodeViewer.renderMode')}}</h4>
+                                <h4>{{$tc('plugins.gcodeViewer.renderMode'.caption, 2)}}</h4>
                                 <v-btn-toggle block exclusive v-model="colorMode" class="btn-toggle d-flex">
                                     <v-btn block :value="0" :disabled="loading">{{$t("plugins.gcodeViewer.color")}}</v-btn>
                                     <v-btn block :value="1" :disabled="loading">{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>
@@ -181,14 +181,14 @@
                                 <gcodeviewer-color-picker :editcolor="minFeedColor" @updatecolor="value => updateMinFeedColor(value)"></gcodeviewer-color-picker>
                                 <h4>{{$t('plugins.gcodeViewer.maxFeedrateColor')}}</h4>
                                 <gcodeviewer-color-picker :editcolor="maxFeedColor" @updatecolor="value => updateMaxFeedColor(value)"></gcodeviewer-color-picker>
-                                <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary">{{$t('plugins.gcodeViewer.reloadView')}}</v-btn>
+                                <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                             </v-card>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                     <v-expansion-panel @click="scrollIntoView">
-                        <v-expansion-panel-header>
+                        <v-expansion-panel-header :title="$t('plugins.gcodeViewer.progress.title')">
                             <v-icon class="mr-2">mdi-progress-clock</v-icon>
-                            <strong>{{$t('plugins.gcodeViewer.progress')}}</strong>
+                            <strong>{{$t('plugins.gcodeViewer.progress.caption')}}</strong>
                         </v-expansion-panel-header>
                         <v-expansion-panel-content>
                             <v-card>
@@ -263,7 +263,6 @@
 <script>
 'use strict';
 
-
 import gcodeViewer from './viewer/gcodeviewer.js';
 import { mapActions, mapState } from 'vuex';
 import Path from '../../utils/path.js';
@@ -312,7 +311,7 @@ export default {
 		maxFileFeedRate: 0,
 		minFeedColor: '#0000FF',
 		maxFeedColor: '#FF0000',
-		cameraInertia : true
+		cameraInertia: true,
 	}),
 	computed: {
 		...mapState('machine/model', ['job', 'move', 'state']),
@@ -337,11 +336,11 @@ export default {
 			return this.visualizingCurrentJob;
 		},
 		jobSelectionLabel() {
-			var selectionLabel = this.$t('plugins.gcodeViewer.showObjectSelection')
-			if ((this.canCancelObject && this.job.build.objects)) {
-				selectionLabel +=  ' (' + this.job.build.objects.length + ')';
+			var selectionLabel = this.$t('plugins.gcodeViewer.showObjectSelection.caption');
+			if (this.canCancelObject && this.job.build.objects) {
+				selectionLabel += ' (' + this.job.build.objects.length + ')';
 			}
-			return selectionLabel
+			return selectionLabel;
 		},
 	},
 	mounted() {
@@ -585,6 +584,13 @@ export default {
 			}, 250);
 		},
 	},
+	activated() {
+		viewer.pause = false;
+		this.resize();
+	},
+	deactivated() {
+		viewer.pause = true;
+	},
 	watch: {
 		move: {
 			handler(newValue) {
@@ -706,12 +712,12 @@ export default {
 		maxColorRate: function (to) {
 			viewer.gcodeProcessor.updateColorRate(this.minColorRate * 60, to * 60);
 		},
-		cameraInertia: function(to){
+		cameraInertia: function (to) {
 			viewer.setCameraInertia(to);
 		},
-		$route  : function() {
+		$route: function () {
 			this.resize();
-		}
+		},
 	},
 };
 </script>

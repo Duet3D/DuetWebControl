@@ -1,7 +1,15 @@
 /*eslint no-useless-escape: 0*/
 'use strict';
 
-import * as BABYLON from 'babylonjs';
+import { Engine } from '@babylonjs/core/Engines/engine'
+import { Vector3  } from '@babylonjs/core/Maths/math.vector'
+import { Color4  } from '@babylonjs/core/Maths/math.color'
+import { VertexBuffer  } from '@babylonjs/core/Meshes/buffer'
+import { StandardMaterial  } from '@babylonjs/core/Materials/standardMaterial'
+import { SolidParticleSystem } from '@babylonjs/core/Particles/solidParticleSystem'
+import { PointsCloudSystem } from '@babylonjs/core/Particles/pointsCloudSystem'
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
+
 import gcodeLine from './gcodeline';
 import { doArc } from './utils.js'
 
@@ -19,8 +27,8 @@ export const ColorMode = {
 
 export default class {
   constructor() {
-    this.currentPosition = new BABYLON.Vector3(0, 0, 0);
-    this.currentColor = new BABYLON.Color4(0.25, 0.25, 0.25, 1);
+    this.currentPosition = new Vector3(0, 0, 0);
+    this.currentColor = new Color4(0.25, 0.25, 0.25, 1);
     this.renderVersion = RenderMode.Line;
     this.absolute = true; //Track if we are in relative or absolute mode.
     this.lines = [];
@@ -50,14 +58,14 @@ export default class {
     this.lineLengthTolerance = 0.05;
 
     this.extruderColors = [
-      new BABYLON.Color4(0, 1, 1, 1), //c
-      new BABYLON.Color4(1, 0, 1, 1), //m
-      new BABYLON.Color4(1, 1, 0, 1), //y
-      new BABYLON.Color4(0, 0, 0, 1), //k
-      new BABYLON.Color4(1, 1, 1, 1), //w
+      new Color4(0, 1, 1, 1), //c
+      new Color4(1, 0, 1, 1), //m
+      new Color4(1, 1, 0, 1), //y
+      new Color4(0, 0, 0, 1), //k
+      new Color4(1, 1, 1, 1), //w
     ];
 
-    this.progressColor = new BABYLON.Color4(0, 1, 0, 1);
+    this.progressColor = new Color4(0, 1, 0, 1);
 
     //scene data
     this.lineMeshIndex = 0;
@@ -98,13 +106,13 @@ export default class {
     if (!this.minFeedColorString) {
       this.minFeedColorString = '#0000FF';
     }
-    this.minFeedColor = BABYLON.Color4.FromHexString(this.minFeedColorString.padEnd(9, 'F'));
+    this.minFeedColor = Color4.FromHexString(this.minFeedColorString.padEnd(9, 'F'));
 
     this.maxFeedColorString = localStorage.getItem('maxFeedColor');
     if (!this.maxFeedColorString) {
       this.maxFeedColorString = '#FF0000';
     }
-    this.maxFeedColor = BABYLON.Color4.FromHexString(this.maxFeedColorString.padEnd(9, 'F'));
+    this.maxFeedColor = Color4.FromHexString(this.maxFeedColorString.padEnd(9, 'F'));
 
     //render every nth row
     this.everyNthRow = 0;
@@ -123,7 +131,7 @@ export default class {
     this.spreadLines = false;
     this.spreadLineAmount = 10;
     this.debug = false;
-    this.specularColor = new BABYLON.Color4(0.1, 0.1, 0.1, 0.1);
+    this.specularColor = new Color4(0.1, 0.1, 0.1, 0.1);
 
     this.lookAheadLength = 500;
     this.cancelLoad = false;
@@ -139,13 +147,13 @@ export default class {
     for (var idx = 0; idx < colors.length; idx++) {
       var color = colors[idx];
 
-      var extruderColor = BABYLON.Color4.FromHexString(color.padEnd(9, 'F'));
+      var extruderColor = Color4.FromHexString(color.padEnd(9, 'F'));
       this.extruderColors.push(extruderColor);
     }
   }
 
   setProgressColor(color) {
-    this.progressColor = BABYLON.Color4.FromHexString(color.padEnd(9, 'F'));
+    this.progressColor = Color4.FromHexString(color.padEnd(9, 'F'));
   }
 
   getMaxHeight() {
@@ -252,7 +260,7 @@ export default class {
   }
 
   initVariables() {
-    this.currentPosition = new BABYLON.Vector3(0, 0, 0);
+    this.currentPosition = new Vector3(0, 0, 0);
     this.cancelLoad = false;
     this.absolute = true;
     this.currentZ = 0;
@@ -393,7 +401,7 @@ export default class {
                     } else if (ratio <= 0) {
                       this.currentColor = this.minFeedColor;
                     } else {
-                      this.currentColor = BABYLON.Color4.Lerp(this.minFeedColor, this.maxFeedColor, ratio);
+                      this.currentColor = Color4.Lerp(this.minFeedColor, this.maxFeedColor, ratio);
                     }
                   }
 
@@ -440,7 +448,7 @@ export default class {
               }
 
             } else if (this.renderTravels && !line.extruding) {
-              line.color = new BABYLON.Color4(1, 0, 0, 1);
+              line.color = new Color4(1, 0, 0, 1);
               this.travels.push(line);
             }
 
@@ -455,12 +463,12 @@ export default class {
             let line = new gcodeLine();
             line.gcodeLineNumber = this.gcodeLineNumber;
             line.start = curPt.clone();
-            line.end = new BABYLON.Vector3(point.x, point.y,point.z);
+            line.end = new Vector3(point.x, point.y,point.z);
             line.color = this.currentColor.clone();
             if(this.debug){
-              line.color = cw ? new BABYLON.Color4(0,1,1,1) :  new BABYLON.Color4(1,1,0,1)
+              line.color = cw ? new Color4(0,1,1,1) :  new Color4(1,1,0,1)
               if(idx == 0){
-              line.color = new BABYLON.Color4(0,1,0,1);
+              line.color = new Color4(0,1,0,1);
               }
             }
             curPt = line.end.clone();
@@ -470,11 +478,11 @@ export default class {
 
           
 
-          this.currentPosition = new BABYLON.Vector3( arcResult.position.x, arcResult.position.y, arcResult.position.z);
+          this.currentPosition = new Vector3( arcResult.position.x, arcResult.position.y, arcResult.position.z);
         } break;
         case 'G28':
           //Home
-          this.currentPosition = new BABYLON.Vector3(0, 0, 0);
+          this.currentPosition = new Vector3(0, 0, 0);
           break;
         case 'G90':
           this.absolute = true;
@@ -516,7 +524,7 @@ export default class {
             finalColors[1] -= (1 - this.extruderColors[extruderIdx].g) * this.extruderPercentage[extruderIdx];
             finalColors[2] -= (1 - this.extruderColors[extruderIdx].b) * this.extruderPercentage[extruderIdx];
           }
-          this.currentColor = new BABYLON.Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
+          this.currentColor = new Color4(finalColors[0], finalColors[1], finalColors[2], 0.1);
           break;
         }
       }
@@ -633,7 +641,7 @@ export default class {
       colorArray.push(data.colors);
     }
 
-    let lineMesh = BABYLON.MeshBuilder.CreateLineSystem(
+    let lineMesh = MeshBuilder.CreateLineSystem(
       'm ' + this.lineMeshIndex,
       {
         lines: lineArray,
@@ -653,12 +661,12 @@ export default class {
     lineMesh.doNotSyncBoundingInfo = true;
     lineMesh.freezeWorldMatrix(); // prevents from re-computing the World Matrix each frame
     lineMesh.freezeNormals();
-    lineMesh.markVerticesDataAsUpdatable(BABYLON.VertexBuffer.ColorKind);
+    lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
 
-    const lineSolidMat = new BABYLON.StandardMaterial('solidMaterial', scene);
+    const lineSolidMat = new StandardMaterial('solidMaterial', scene);
     lineSolidMat.specularColor = this.specularColor;
-    lineSolidMat.diffuseColor = new BABYLON.Color4(1, 1, 1, 0.5);
-    lineSolidMat.alphaMode = BABYLON.Engine.ALPHA_ONEONE;
+    lineSolidMat.diffuseColor = new Color4(1, 1, 1, 0.5);
+    lineSolidMat.alphaMode = Engine.ALPHA_ONEONE;
     lineSolidMat.needAlphaTesting = () => true;
     lineMesh.material = lineSolidMat;
 
@@ -673,7 +681,7 @@ export default class {
       } else {
         lastUpdate = Date.now();
 
-        var colorData = lineMesh.getVerticesData(BABYLON.VertexBuffer.ColorKind);
+        var colorData = lineMesh.getVerticesData(VertexBuffer.ColorKind);
 
         if (colorData === null || colorData === undefined) {
           console.log('Failed to Load Color VBO');
@@ -713,7 +721,7 @@ export default class {
         }
 
         lastRendered = renderTo;
-        lineMesh.updateVerticesData(BABYLON.VertexBuffer.ColorKind, colorData, true);
+        lineMesh.updateVerticesData(VertexBuffer.ColorKind, colorData, true);
         if (that.gcodeFilePosition === Number.MAX_VALUE) {
           runComplete = true;
         }
@@ -738,7 +746,7 @@ export default class {
     }
 
     this.renderMode = 'Mesh Rendering';
-    var box = BABYLON.MeshBuilder.CreateBox('box', { width: 1, height: layerHeight, depth: layerHeight * 1.2 }, scene);
+    var box = MeshBuilder.CreateBox('box', { width: 1, height: layerHeight, depth: layerHeight * 1.2 }, scene);
 
     let l = this.lines;
 
@@ -749,7 +757,7 @@ export default class {
       that.gcodeLineIndex[meshIndex].push(particle.props.gcodeLineNumber);
     };
 
-    let sps = new BABYLON.SolidParticleSystem('gcodemodel' + meshIndex, scene, {
+    let sps = new SolidParticleSystem('gcodemodel' + meshIndex, scene, {
       updatable: true,
       enableMultiMaterial: true,
       useVertexAlpha: this.lineVertexAlpha || this.liveTracking,
@@ -762,9 +770,9 @@ export default class {
     sps.buildMesh();
 
     //Build out solid and transparent material.
-    let solidMat = new BABYLON.StandardMaterial('solidMaterial', scene);
+    let solidMat = new StandardMaterial('solidMaterial', scene);
     solidMat.specularColor = this.specularColor;
-    let transparentMat = new BABYLON.StandardMaterial('transparentMaterial', scene);
+    let transparentMat = new StandardMaterial('transparentMaterial', scene);
     transparentMat.specularColor = this.specularColor;
     if (this.lineVertexAlpha || this.liveTracking) {
       transparentMat.alpha = this.liveTracking && !this.liveTrackingShowSolid ? 0 : this.materialTransparency;
@@ -787,10 +795,10 @@ export default class {
         particle.color = that.progressColor;
         particle.materialIndex = 0;
       } else if (that.gcodeLineIndex[meshIndex][particle.idx] < that.gcodeFilePosition + that.lookAheadLength) {
-        particle.color = new BABYLON.Color4(particle.color.r, particle.color.g, particle.color.b, 1);
+        particle.color = new Color4(particle.color.r, particle.color.g, particle.color.b, 1);
         particle.materialIndex = 0;
       } else {
-        particle.color = new BABYLON.Color4(particle.color.r, particle.color.g, particle.color.b, 0);
+        particle.color = new Color4(particle.color.r, particle.color.g, particle.color.b, 0);
       }
     };
 
@@ -818,7 +826,7 @@ export default class {
     let meshIndex = this.lineMeshIndex;
     this.gcodeLineIndex.push(new Array());
     //point cloud
-    this.sps = new BABYLON.PointsCloudSystem('pcs' + meshIndex, 1, scene);
+    this.sps = new PointsCloudSystem('pcs' + meshIndex, 1, scene);
 
     let l = this.lines;
 
@@ -857,7 +865,7 @@ export default class {
       travelArray.push(data.points);
       travelColorArray.push(data.colors);
     }
-    var travelMesh = BABYLON.MeshBuilder.CreateLineSystem(
+    var travelMesh = MeshBuilder.CreateLineSystem(
       'travels',
       {
         lines: travelArray,
@@ -912,13 +920,13 @@ export default class {
   updateMinFeedColor(value) {
     localStorage.setItem('minFeedColor', value);
     this.minFeedColorString = value;
-    this.minFeedColor = BABYLON.Color4.FromHexString(value.padEnd(9, 'F'));
+    this.minFeedColor = Color4.FromHexString(value.padEnd(9, 'F'));
   }
   updateMaxFeedColor(value) {
     localStorage.setItem('maxFeedColor', value);
     this.maxFeedColorString = value;
 
-    this.maxFeedColor = BABYLON.Color4.FromHexString(value.padEnd(9, 'F'));
+    this.maxFeedColor = Color4.FromHexString(value.padEnd(9, 'F'));
   }
 
   updateColorRate(min, max) {
