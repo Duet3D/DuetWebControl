@@ -1,6 +1,18 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-RC1
+=================
+
+Changed behaviour:
+- Added new dialog for up- and downloads of multiple files (similar to DWC1)
+- When an expansion board firmware update is performed, DWC asks for controller reset once done
+- Integrated new G-Code viewer plugin (thanks Sindarius)
+
+Bug fixes:
+- Print control buttons could show wrong captions during (paused) simulations
+- Code input could keep previously selected suggestion even if it differs
+
 Version 3.2.0-beta4
 ===================
 

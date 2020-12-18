@@ -191,6 +191,20 @@ export default {
 			save: 'Speichern',
 			confirmClose: 'Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.'
 		},
+		fileTransfer: {
+			uploadingTitle: 'Lade Datei {0} von {1} hoch, {2}% abgeschlossen',
+			uploadDoneTitle: 'Uploads Complete!',
+			uploadFailedTitle: 'Uploads Failed!',
+			downloadingTitle: 'Lade Datei {0} von {1} herunter, {2}% abgeschlossen',
+			downloadDoneTitle: 'Downloads abgeschlossen',
+			downloadFailedTitle: 'Downloads fehlgeschlagen!',
+			filename: 'Dateiname',
+			size: 'Größe',
+			progress: 'Fortschritt',
+			currentSpeed: 'Aktuelle Geschwindigkeit: {0}',
+			cancelUploads: 'Uploads abbrechen',
+			cancelDownloads: 'Downloads abbrechen'
+		},
 		meshEdit: {
             title: 'Gitterparameter ändern',
 			radius: 'Messradius',
@@ -400,17 +414,17 @@ export default {
 	},
 	menu: {
 		control: {
-			caption: 'Maschinensteuerung',
+			caption: 'Steuerung',
 			dashboard: 'Übersicht',
 			console: 'Konsole'
 		},
 		job: {
-			caption: 'Aktueller Auftrag',
+			caption: 'Aufträge',
 			status: 'Status',
 			webcam: 'Webcam'
 		},
 		files: {
-			caption: 'Dateiverwaltung',
+			caption: 'Dateien',
 			jobs: 'Aufträge',
 			filaments: 'Filamente',
 			macros: 'Makros',
@@ -453,7 +467,6 @@ export default {
 			title: 'Lade {0} @ {1} herunter, {2}% abgeschlossen',
 			message: 'Bitte warten Sie während die Datei heruntergeladen wird...',
 			success: 'Download von {0} erfolgreich nach {1}',
-			successMulti: 'Erfolgreich {0} Dateien heruntergeladen',
 			error: 'Konnte {0} nicht herunterladen'
 		},
 		message: 'Nachricht',
@@ -485,7 +498,6 @@ export default {
 			title: 'Lade {0} @ {1} hoch, {2}% abgeschlossen',
 			message: 'Bitte warten während die Datei hochgeladen wird...',
 			success: 'Datei {0} erfolgreich nach {1} hochgeladen',
-			successMulti: '{0} Dateien sind erfolgreich hochgeladen worden',
 			error: 'Konnte {0} nicht hochladen'
 		}
 	},
@@ -714,6 +726,57 @@ export default {
 		autoUpdate: {
 			menuCaption: 'Aktualisierung'
 		},
+		gcodeViewer: {
+			caption: 'G-Code Betracher',
+			view3D: '3D ansehen',
+			fullscreen: 'Vollbild',
+			showConfiguration: 'Konfiguration anzeigen',
+			resetCamera: 'Kamera zurücksetzen',
+			cancelLoad: 'Laden abbrechen',
+			reloadView: 'Ansicht neu laden',
+			loadCurrentJob: 'Aktuellen Auftrag laden',
+			unloadGCode: 'G-Code entladen',
+			loadLocalGCode: 'Lokalen G-Code laden',
+			showCursor: 'Cursor anzeigen',
+			showTravels: 'Reisen anzeigen', 
+			renderQuality: 'Darstellungsqualität',
+			sbc: 'SBC',
+			low: 'Niedrig',
+			medium: 'Mittel',			
+			high: 'Hoch',
+			ultra: 'Ultra',
+			max: 'Max',
+			forceLineRendering: 'Liniendarstellung erzwingen',
+			transparency: 'Transparenz',
+			showSolid: 'Körper anzeigen',
+			spreadLines: 'Linien ausbreiten',
+			extruders: 'Extruder',
+			tool: 'Werkzeug {0}',
+			resetColors: 'Werkzeugfarben zurücksetzen',
+			renderModes: 'Darstellungsmodi',
+			renderMode: 'Darstellungsmodus',
+			color: 'Farbe',
+			feedrate: 'Feedrate',
+			minFeedrate: 'Minimale Vorschubrate (mm/s)',
+			maxFeedrate: 'Maximale Vorschubrate (mm/s)',
+			minFeedrateColor: 'Farbe für kleinste Vorschubrate',
+			maxFeedrateColor: 'Farbe für größte Vorschubrate',
+			progress: 'Fortschritt',
+			topClipping: 'Oberes Clipping',
+			bottomClipping:'Unteres Clipping',
+			progressColor: 'Farbe für Fortschritt',
+			liveZTracking: 'Z-Verfolgung in Echtzeit',
+			settings: 'Einstellungen',
+			background: 'Hintergrund',
+			bedRenderMode:  'Bettdarstellungsmodus',
+			bed: 'Bett',
+			volume: 'Volumen',
+			showAxes: 'Achsen anzeigen',
+			showObjectLabels: 'Objektnamen anzeigen',
+			cameraInertia: 'Kameraträgheit',
+			showObjectSelection: 'Objektauswahl anzeigen',
+			renderFailed: 'Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC',
+		},
 		heightmap: {
 			menuCaption: 'Höhenkarte',
 			listTitle: 'Höhenkarten',
@@ -739,9 +802,6 @@ export default {
 		},
 		objectModelBrowser: {
 			menuCaption: 'Objektmodell'
-		},
-		visualizer: {
-			menuCaption: 'Visualisierer'
 		}
 	},
 	tabs: {

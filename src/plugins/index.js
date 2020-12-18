@@ -84,12 +84,12 @@ export default [
 		)
 	}),
 	new DwcPlugin({
-		name: 'G-Code Visualizer',
-		author: 'Duet3D Ltd',
+		name: 'G-Code Viewer',
+		author: 'Juan Rosario',
 		version,
 		loadDwcResources: () => import(
-			/* webpackChunkName: "Visualizer" */
-			'./Visualizer/index.js'
+			/* webpackChunkName: "GCodeViewer" */
+			'./GCodeViewer/index.js'
 		)
 	}),
 	new DwcPlugin({
