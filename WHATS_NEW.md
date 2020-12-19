@@ -4,6 +4,10 @@ Summary of important changes in recent versions
 Version 3.2.0-RC1
 =================
 
+Compatible versions:
+- DuetSoftwareFramework 3.2.0-RC1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
 Changed behaviour:
 - Added new dialog for up- and downloads of multiple files (similar to DWC1)
 - When an expansion board firmware update is performed, DWC asks for controller reset once done
