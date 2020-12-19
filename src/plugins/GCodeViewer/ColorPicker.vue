@@ -9,7 +9,7 @@
             </template>
             <v-card>
               <v-card-text class="pa-0">
-                <v-color-picker class="index-placement" v-model="color" flat @input="updateValue(color)"   />
+                <v-color-picker class="index-placement" v-model="color" flat @input="updateValue(color)"></v-color-picker>
               </v-card-text>
             </v-card>
           </v-menu>
@@ -20,6 +20,8 @@
 </template>
 
 <script>
+'use strict'
+
   export default {
     props: ["editcolor"],
     data: () => ({

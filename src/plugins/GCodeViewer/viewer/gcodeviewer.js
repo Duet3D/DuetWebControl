@@ -6,13 +6,12 @@ import { Plane } from '@babylonjs/core/Maths/math.plane'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Space } from '@babylonjs/core/Maths/math.axis'
-import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder'
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
 import { TransformNode} from '@babylonjs/core/Meshes/transformNode'
+import '@babylonjs/core/Rendering/edgesRenderer'
 import { ArcRotateCamera }  from '@babylonjs/core/Cameras/arcRotateCamera'
 import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
-
-
 
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
@@ -54,8 +53,8 @@ export default class {
       this.renderQuality = 1;
     }
 
-    this.hasCacheSupport = 'caches' in window;
-    if (this.hasCacheSupport) {
+    this.hasCacheSupport = false;
+    /*if (this.hasCacheSupport) {
       window.caches
         .open('gcode-viewer')
         .then(() => {
@@ -65,7 +64,7 @@ export default class {
           //Chrome and safari hide caches when not available. Firefox exposes it regardless so we have to force a fail to see if it is supported
           this.hasCacheSupport = false;
         });
-    }
+    }*/
   }
   getMaxHeight() {
     return this.maxHeight;

@@ -1,3 +1,4 @@
+'use strict';
 
 function getNumber(tokenNumber, value, relativeMove) {
     let number = Number(tokenNumber.substring(1));

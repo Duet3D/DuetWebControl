@@ -731,7 +731,7 @@ export default {
 			view3D: 'View 3D',
 			fullscreen: 'Full Screen',
 			showConfiguration: 'Show Viewer Configuration',
-			resetCamera: {	
+			resetCamera: {
 				caption : 'Reset Camera',
 				title: 'Reset camera to home position'
 			},
@@ -742,21 +742,21 @@ export default {
 			},
 			loadCurrentJob:  { 
 				caption :'Load Current Job',  
-				title : 'Load the current printing or simulating job.'
+				title : 'Load the current printing or simulating job'
 			},
 			unloadGCode:  { 
-				caption:'Unload GCode',
-				title : 'Remove the loaded gcode from the viewer.'
+				caption: 'Unload GCode',
+				title : 'Remove the loaded gcode from the viewer'
 			},
 			loadLocalGCode: { 
 				caption : 'Load Local GCode',
-				title : 'Load a file from your local drive into the viewer.'
+				title : 'Load a file from your local drive into the viewer'
 			},
 			showCursor: 'Show Cursor',
-			showTravels: 'Show Travels', 
+			showTravels: 'Show Travels',
 			renderQuality: {
 				caption : 'Render Quality',
-				title : 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available.'
+				title : 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available'
 			},
 			sbc: 'SBC',
 			low: 'Low',
@@ -770,13 +770,13 @@ export default {
 			spreadLines: 'Spread Lines',
 			extruders: {
 				caption:  'Extruders',
-				title : 'Sets the color used for rendering an extruder.'
+				title : 'Sets the color used for rendering an extruder'
 			},
 			tool: 'Tool {0}',
 			resetColor: 'Reset Tool Color | Reset Tool Colors',
 			renderMode : {
 				caption : 'Render Mode | Render Modes',
-				title : 'Render mode allows you to set extruder color or feedrate line coloring in the viewer.'
+				title : 'Render mode allows you to set extruder color or feedrate line coloring in the viewer'
 			},
 			color: 'Color',
 			feedrate: 'Feedrate',
@@ -786,7 +786,7 @@ export default {
 			maxFeedrateColor: 'Maximum Feedrate Color',
 			progress: {
 				caption : 'Progress',
-				title: 'Set the printed color for progress tracking.'
+				title: 'Set the printed color for progress tracking'
 			},
 			topClipping: 'Top Clipping',
 			bottomClipping:'Bottom Clipping',
@@ -802,7 +802,7 @@ export default {
 			cameraInertia: 'Camera Inertia',
 			showObjectSelection: {
 				caption : 'Show Object Selection',
-				title : 'Enabled if object are in the current job.'
+				title : 'Enabled if objects could be detected in the current print'
 			},
 			renderFailed: 'Previous render failed. Setting render quality to SBC',
 		},

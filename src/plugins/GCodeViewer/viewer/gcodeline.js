@@ -1,5 +1,5 @@
-/* eslint-disable no-unused-vars */
 'use strict';
+
 import { Color4 } from '@babylonjs/core/Maths/math.color'
 import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder'
@@ -26,7 +26,7 @@ export default class {
     lineMesh.edgesColor = new Color4(1, 1, 0, 1);
   }
 
-  renderLineV2(scene) {
+  renderLineV2() {
     var tube = MeshBuilder.CreateTube('tube', {
       path: [this.start, this.end],
       radius: 0.2,
