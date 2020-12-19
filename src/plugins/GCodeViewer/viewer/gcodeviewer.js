@@ -1,11 +1,24 @@
 'use strict';
 
-import * as BABYLON from 'babylonjs';
-import 'babylonjs-materials';
+import { Engine } from '@babylonjs/core/Engines/engine'
+import { Scene } from "@babylonjs/core/scene"
+import { Plane } from '@babylonjs/core/Maths/math.plane'
+import { Color3 } from '@babylonjs/core/Maths/math.color'
+import { Vector3 } from '@babylonjs/core/Maths/math.vector'
+import { Space } from '@babylonjs/core/Maths/math.axis'
+import {MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder'
+import { TransformNode} from '@babylonjs/core/Meshes/transformNode'
+import { ArcRotateCamera }  from '@babylonjs/core/Cameras/arcRotateCamera'
+import { PointLight } from '@babylonjs/core/Lights/pointLight'
+import { Axis } from '@babylonjs/core/Maths/math.axis'
+
+
+
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
 import Axes from './axes.js';
+
 
 export default class {
   constructor(canvas) {
@@ -26,6 +39,8 @@ export default class {
     this.zTopClipValue;
     this.zBottomClipValue;
     this.cancelHitTimer = 0;
+    this.pause = false;
+
 
     this.cameraInertia = localStorage.getItem('cameraInertia') === 'true';
 
@@ -68,17 +83,17 @@ export default class {
     if (bottom > top) {
       this.zTopClipValue = bottom + 1;
     }
-    this.scene.clipPlane = new BABYLON.Plane(0, 1, 0, this.zTopClipValue);
-    this.scene.clipPlane2 = new BABYLON.Plane(0, -1, 0, this.zBottomClipValue);
+    this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue);
+    this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue);
   }
   init() {
-    this.engine = new BABYLON.Engine(this.canvas, true, { doNotHandleContextLost: true });
+    this.engine = new Engine(this.canvas, true, { doNotHandleContextLost: true });
     this.engine.enableOfflineSupport = false;
-    this.scene = new BABYLON.Scene(this.engine);
+    this.scene = new Scene(this.engine);
     if (this.debug) {
       this.scene.debugLayer.show();
     }
-    this.scene.clearColor = BABYLON.Color3.FromHexString(this.getBackgroundColor());
+    this.scene.clearColor = Color3.FromHexString(this.getBackgroundColor());
 
     this.bed = new Bed(this.scene);
     this.bed.registerClipIgnore = (mesh) => {
@@ -87,27 +102,31 @@ export default class {
     var bedCenter = this.bed.getCenter();
 
     // Add a camera to the scene and attach it to the canvas
-    this.orbitCamera = new BABYLON.ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new BABYLON.Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
+    this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
     this.updateCameraInertiaProperties()
     //    this.orbitCamera.wheelDeltaPercentage = 0.02;
     //    this.orbitCamera.pinchDeltaPercentage = 0.02;
     //Disabled at the moment
-    //this.flyCamera = new BABYLON.UniversalCamera('UniversalCamera', new BABYLON.Vector3(0, 0, -10), this.scene);
+    //this.flyCamera = new UniversalCamera('UniversalCamera', new Vector3(0, 0, -10), this.scene);
 
     // Add lights to the scene
 
-    //var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(1, 1, 0), this.scene);
-    var light2 = new BABYLON.PointLight('light2', new BABYLON.Vector3(0, 1, -1), this.scene);
-    light2.diffuse = new BABYLON.Color3(1, 1, 1);
-    light2.specular = new BABYLON.Color3(1, 1, 1);
+    //var light1 = new HemisphericLight("light1", new Vector3(1, 1, 0), this.scene);
+    var light2 = new PointLight('light2', new Vector3(0, 1, -1), this.scene);
+    light2.diffuse = new Color3(1, 1, 1);
+    light2.specular = new Color3(1, 1, 1);
     var that = this;
     this.engine.runRenderLoop(function () {
+      
+      if(that.pause){
+        return;
+      }
       that.scene.render();
-
       //Update light 2 position
       light2.position = that.scene.cameras[0].position;
+
     });
 
     this.buildObjects = new BuildObjects(this.scene);
@@ -165,12 +184,12 @@ export default class {
     (this.scene.activeCamera.alpha = Math.PI / 2), (this.scene.activeCamera.beta = 2.356194);
     if (this.bed.isDelta) {
       this.scene.activeCamera.radius = bedCenter.x;
-      this.scene.activeCamera.target = new BABYLON.Vector3(bedCenter.x, -2, bedCenter.y);
-      this.scene.activeCamera.position = new BABYLON.Vector3(-bedSize.x, bedSize.z, -bedSize.x);
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
+      this.scene.activeCamera.position = new Vector3(-bedSize.x, bedSize.z, -bedSize.x);
     } else {
       this.scene.activeCamera.radius = 250;
-      this.scene.activeCamera.target = new BABYLON.Vector3(bedCenter.x, -2, bedCenter.y);
-      this.scene.activeCamera.position = new BABYLON.Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
+      this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
+      this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
     }
   }
 
@@ -280,7 +299,7 @@ export default class {
       if (color.length > 7) {
         color = color.substring(0, 7);
       }
-      this.scene.clearColor = BABYLON.Color3.FromHexString(color);
+      this.scene.clearColor = Color3.FromHexString(color);
     }
     localStorage.setItem('sceneBackgroundColor', color);
   }
@@ -379,17 +398,17 @@ export default class {
           break;
       }
 
-      this.toolCursor.setAbsolutePosition(new BABYLON.Vector3(x, z, y));
+      this.toolCursor.setAbsolutePosition(new Vector3(x, z, y));
     }
   }
   buildtoolCursor() {
     if (this.toolCursor !== undefined) return;
-    this.toolCursor = new BABYLON.TransformNode('toolCursorContainer');
-    this.toolCursorMesh = BABYLON.MeshBuilder.CreateCylinder('toolCursorMesh', { diameterTop: 0, diameterBottom: 1 }, this.scene);
+    this.toolCursor = new TransformNode('toolCursorContainer');
+    this.toolCursorMesh = MeshBuilder.CreateCylinder('toolCursorMesh', { diameterTop: 0, diameterBottom: 1 }, this.scene);
     this.toolCursorMesh.parent = this.toolCursor;
-    this.toolCursorMesh.position = new BABYLON.Vector3(0, 3, 0);
-    this.toolCursorMesh.rotate(BABYLON.Axis.X, Math.PI, BABYLON.Space.LOCAL);
-    this.toolCursorMesh.scaling = new BABYLON.Vector3(3, 3, 3);
+    this.toolCursorMesh.position = new Vector3(0, 3, 0);
+    this.toolCursorMesh.rotate(Axis.X, Math.PI, Space.LOCAL);
+    this.toolCursorMesh.scaling = new Vector3(3, 3, 3);
     this.toolCursorMesh.isVisible = this.toolCursorVisible;
     this.registerClipIgnore(this.toolCursorMesh);
   }
@@ -406,8 +425,8 @@ export default class {
       this.scene.clipPlane2 = null;
     });
     mesh.onAfterRenderObservable.add(() => {
-      this.scene.clipPlane = new BABYLON.Plane(0, 1, 0, this.zTopClipValue);
-      this.scene.clipPlane2 = new BABYLON.Plane(0, -1, 0, this.zBottomClipValue);
+      this.scene.clipPlane = new Plane(0, 1, 0, this.zTopClipValue);
+      this.scene.clipPlane2 = new Plane(0, -1, 0, this.zBottomClipValue);
     });
   }
   updateCameraInertiaProperties() {

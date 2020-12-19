@@ -1,6 +1,15 @@
 'use strict';
-import * as BABYLON from 'babylonjs';
+
 import * as d3 from 'd3';
+
+import { Vector3 } from '@babylonjs/core/Maths/math.vector'
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color'
+import { Texture } from '@babylonjs/core/Materials/Textures/texture'
+import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder'
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
+import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents'
+
 
 export default class {
   constructor(scene) {
@@ -39,9 +48,9 @@ export default class {
       alpha = this.alphaLevel;
     }
 
-    let material = new BABYLON.StandardMaterial(name, this.scene);
+    let material = new StandardMaterial(name, this.scene);
     material.diffuseColor = color;
-    material.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+    material.specularColor = new Color3(0.0, 0.0, 0.0);
     material.alpha = alpha;
     material.needAlphaTesting = () => true;
     material.separateCullingPass = true;
@@ -49,11 +58,11 @@ export default class {
     return material;
   }
   rebuildMaterials() {
-    this.baseMaterial = this.setBuildMaterial('BuildObjectBaseMaterial', new BABYLON.Color4(0.1, 0.5, 0.1), 0.25);
-    this.highlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new BABYLON.Color3(0.8, 0.8, 0.8));
-    this.cancelledMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new BABYLON.Color3(1, 0, 0), 0.4);
-    this.cancelledHighlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new BABYLON.Color3(1, 1, 0), 0.6);
-    let material = new BABYLON.Texture.CreateFromBase64String(this.xmark, 'checkerboard', this.scene);
+    this.baseMaterial = this.setBuildMaterial('BuildObjectBaseMaterial', new Color4(0.1, 0.5, 0.1), 0.25);
+    this.highlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(0.8, 0.8, 0.8));
+    this.cancelledMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(1, 0, 0), 0.4);
+    this.cancelledHighlightMaterial = this.setBuildMaterial('BuildObjectHighlightMateria', new Color3(1, 1, 0), 0.6);
+    let material = new Texture.CreateFromBase64String(this.xmark, 'checkerboard', this.scene);
     this.cancelledMaterial.diffuseTexture = material;
     this.cancelledHighlightMaterial.diffuseTexture = material;
   }
@@ -75,18 +84,18 @@ export default class {
     for (let cancelObjectIdx = 0; cancelObjectIdx < boundaryObjects.length; cancelObjectIdx++) {
       let cancelObject = boundaryObjects[cancelObjectIdx];
 
-      let buildObject = BABYLON.MeshBuilder.CreateTiledBox(
+      let buildObject = MeshBuilder.CreateTiledBox(
         'OBJECTMESH:' + cancelObject.name,
         {
-          pattern: BABYLON.Mesh.CAP_ALL,
-          alignVertical: BABYLON.Mesh.TOP,
-          alignHorizontal: BABYLON.Mesh.LEFT,
+          pattern: Mesh.CAP_ALL,
+          alignVertical: Mesh.TOP,
+          alignHorizontal: Mesh.LEFT,
           tileHeight: 4,
           tileWidth: 4,
           width: Math.abs(cancelObject.x[1] - cancelObject.x[0]),
           height: this.getMaxHeight() + 10,
           depth: Math.abs(cancelObject.y[1] - cancelObject.y[0]),
-          sideOrientation: BABYLON.Mesh.FRONTSIDE,
+          sideOrientation: Mesh.FRONTSIDE,
         },
         this.scene
       );
@@ -106,7 +115,7 @@ export default class {
       //generate a label
 
       var textPlane = this.makeTextPlane(cancelObject.name, cancelObject.cancelled ? 'yellow' : 'white', 20);
-      textPlane.position = new BABYLON.Vector3(0, this.getMaxHeight() / 2 + 10, 0);
+      textPlane.position = new Vector3(0, this.getMaxHeight() / 2 + 10, 0);
       textPlane.isPickable = false;
       textPlane.metadata = cancelObject;
       textPlane.parent = buildObject;
@@ -116,7 +125,7 @@ export default class {
   }
   makeTextPlane(text, color, size) {
     /*
-    var dynamicTexture = new BABYLON.DynamicTexture('DynamicTexture', { width: text.length * 20, height: 200 }, this.scene, true);
+    var dynamicTexture = new DynamicTexture('DynamicTexture', { width: text.length * 20, height: 200 }, this.scene, true);
     dynamicTexture.hasAlpha = true;
     dynamicTexture.drawText(text, null, null, 'bold 24px Roboto', color, 'transparent', true);*/
     var svg = d3
@@ -152,11 +161,11 @@ export default class {
     var url = window.URL.createObjectURL(blob);
     this.labelSVGS.push(url);
 
-    let plane = BABYLON.MeshBuilder.CreatePlane('TextPlane', { width: size, height: 8 }, this.scene);
-    plane.material = new BABYLON.StandardMaterial('TextPlaneMaterial', this.scene);
+    let plane = MeshBuilder.CreatePlane('TextPlane', { width: size, height: 8 }, this.scene);
+    plane.material = new StandardMaterial('TextPlaneMaterial', this.scene);
     plane.material.backFaceCulling = false;
-    plane.material.specularColor = new BABYLON.Color3(0, 0, 0);
-    plane.material.diffuseTexture = new BABYLON.Texture(url, this.scene); //dynamicTexture;
+    plane.material.specularColor = new Color3(0, 0, 0);
+    plane.material.diffuseTexture = new Texture(url, this.scene); //dynamicTexture;
     plane.material.diffuseTexture.hasAlpha = true;
     plane.billboardMode = 7;
     this.registerClipIgnore(plane);
@@ -171,12 +180,12 @@ export default class {
     this.observableControls = this.scene.onPointerObservable.add((pointerInfo) => {
       let pickInfo = pointerInfo.pickInfo;
       switch (pointerInfo.type) {
-        case BABYLON.PointerEventTypes.POINTERDOWN:
+        case PointerEventTypes.POINTERDOWN:
           {
             this.cancelHitTimer = Date.now();
           }
           break;
-        case BABYLON.PointerEventTypes.POINTERUP:
+        case PointerEventTypes.POINTERUP:
           {
             if (Date.now() - this.cancelHitTimer > 200) {
               return;
@@ -184,7 +193,7 @@ export default class {
             this.handleClick(pickInfo);
           }
           break;
-        case BABYLON.PointerEventTypes.POINTERMOVE: {
+        case PointerEventTypes.POINTERMOVE: {
           this.handlePointerMove(pickInfo);
         }
       }
@@ -213,12 +222,12 @@ export default class {
       mesh.material = this.cancelledMaterial;
       mesh.enableEdgesRendering();
       mesh.edgesWidth = 15.0;
-      mesh.edgesColor = new BABYLON.Color4(1, 0, 0, 1);
+      mesh.edgesColor = new Color4(1, 0, 0, 1);
     } else {
       mesh.material = this.baseMaterial;
       mesh.enableEdgesRendering();
       mesh.edgesWidth = 15.0;
-      mesh.edgesColor = new BABYLON.Color4(0, 1, 0, 1);
+      mesh.edgesColor = new Color4(0, 1, 0, 1);
     }
   }
   handleClick(pickInfo) {

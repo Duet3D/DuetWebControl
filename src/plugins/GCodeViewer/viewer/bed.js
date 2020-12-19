@@ -1,9 +1,13 @@
 'use strict';
 
-import * as BABYLON from 'babylonjs';
-import { GridMaterial } from 'babylonjs-materials';
+import { Color3, Color4 } from '@babylonjs/core/Maths/math.color'
+import { Vector3, Quaternion } from '@babylonjs/core/Maths/math.vector'
+import { Space } from '@babylonjs/core/Maths/math.axis'
+import {StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
+import { HighlightLayer } from '@babylonjs/core/Layers/highlightLayer'
+import { MeshBuilder} from '@babylonjs/core/Meshes/meshBuilder'
 
-import { Color4 } from 'babylonjs';
+import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
 
 export const RenderBedMode = {
   bed: 0,
@@ -44,10 +48,10 @@ export default class {
     this.bedLineColor = '#0000FF';
 
     /*
-    this.planeMaterial = new BABYLON.StandardMaterial('planeMaterial', this.scene);
+    this.planeMaterial = new StandardMaterial('planeMaterial', this.scene);
     this.planeMaterial.alpha = 1;
-    this.planeMaterial.diffuseColor = new BABYLON.Color3(0.25, 0.25, 0.25);
-    this.planeMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+    this.planeMaterial.diffuseColor = new Color3(0.25, 0.25, 0.25);
+    this.planeMaterial.specularColor = new Color3(0.1, 0.1, 0.1);
     */
 
     if (!this.getBedColor()) {
@@ -55,7 +59,7 @@ export default class {
     }
 
     this.planeMaterial = this.buildGridMaterial();
-    this.boxMaterial = new BABYLON.StandardMaterial('bedBoxMaterial', this.scene);
+    this.boxMaterial = new StandardMaterial('bedBoxMaterial', this.scene);
     this.boxMaterial.alpha = 0;
     this.debug = false;
   }
@@ -95,16 +99,16 @@ export default class {
     let bedSize = this.getSize();
     if (this.isDelta) {
       let radius = Math.abs(this.buildVolume.x.max - this.buildVolume.x.min) / 2;
-      this.bedMesh = BABYLON.MeshBuilder.CreateDisc('BuildPlate', { radius: radius }, this.scene);
-      this.bedMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
+      this.bedMesh = MeshBuilder.CreateDisc('BuildPlate', { radius: radius }, this.scene);
+      this.bedMesh.rotationQuaternion = new Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
       this.bedMesh.material = this.planeMaterial;
     } else {
       let width = bedSize.x;
       let depth = bedSize.y;
-      this.bedMesh = BABYLON.MeshBuilder.CreatePlane('BuildPlate', { width: width, height: depth }, this.scene);
+      this.bedMesh = MeshBuilder.CreatePlane('BuildPlate', { width: width, height: depth }, this.scene);
       this.bedMesh.material = this.planeMaterial;
-      this.bedMesh.rotationQuaternion = new BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
-      this.bedMesh.translate(new BABYLON.Vector3(bedCenter.x, 0, bedCenter.y), 1, BABYLON.Space.WORLD);
+      this.bedMesh.rotationQuaternion = new Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
+      this.bedMesh.translate(new Vector3(bedCenter.x, 0, bedCenter.y), 1, Space.WORLD);
     }
     this.registerClipIgnore(this.bedMesh);
   }
@@ -126,7 +130,7 @@ export default class {
     let bedSize = this.getSize();
     let bedCenter = this.getCenter();
     if (this.isDelta) {
-      this.bedMesh = BABYLON.MeshBuilder.CreateCylinder(
+      this.bedMesh = MeshBuilder.CreateCylinder(
         'bed',
         {
           diameterTop: bedSize.x,
@@ -146,7 +150,7 @@ export default class {
       this.bedMesh.renderingGroupId = 2;
       this.scene.setRenderingAutoClearDepthStencil(2, false, false, false);
 
-      var hl = new BABYLON.HighlightLayer('hl', this.scene, { isStroke: true, blurTextureSizeRatio: 3 });
+      var hl = new HighlightLayer('hl', this.scene, { isStroke: true, blurTextureSizeRatio: 3 });
       hl.addMesh(this.bedMesh,this.getBedColor4());
 
       this.bedMesh.onBeforeRenderObservable.add(() => {
@@ -159,7 +163,7 @@ export default class {
 
       this.registerClipIgnore(this.bedMesh);
     } else {
-      this.bedMesh = BABYLON.MeshBuilder.CreateBox(
+      this.bedMesh = MeshBuilder.CreateBox(
         'bed',
         {
           width: bedSize.x,
@@ -193,13 +197,13 @@ export default class {
   }
   buildGridMaterial() {
     let gridMaterial = new GridMaterial('bedMaterial', this.scene);
-    gridMaterial.mainColor = new BABYLON.Color4(0, 0, 0, 0);
-    gridMaterial.lineColor = BABYLON.Color3.FromHexString(this.getBedColor());
+    gridMaterial.mainColor = new Color4(0, 0, 0, 0);
+    gridMaterial.lineColor = Color3.FromHexString(this.getBedColor());
     gridMaterial.gridRatio = 5;
     gridMaterial.opacity = 0.8;
     gridMaterial.majorUnitFrequency = 10;
     gridMaterial.minorUnitVisibility = 0.6;
-    gridMaterial.gridOffset = new BABYLON.Vector3(0, 0, 0);
+    gridMaterial.gridOffset = new Vector3(0, 0, 0);
     return gridMaterial;
   }
   getBedColor() {
@@ -214,7 +218,7 @@ export default class {
     }
   }
   getBedColor4(){
-   return BABYLON.Color4.FromHexString(this.getBedColor().padEnd(9,'F'));
+   return Color4.FromHexString(this.getBedColor().padEnd(9,'F'));
   }
   dispose() {
     this.bedMesh.dispose(false, true);
