@@ -94,6 +94,8 @@
                 </v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close mb-10" @click="drawer = !drawer" :title="$t('plugins.gcodeViewer.showConfiguration')"><v-icon>mdi-cog</v-icon></v-btn>
+				<br/>
+				<v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')"><v-icon>mdi-printer-3d</v-icon></v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close" v-show="loading" @click="cancelLoad" :title="$t('plugins.gcodeViewer.cancelLoad')"><v-icon color="red">mdi-cancel</v-icon></v-btn>
             </div>

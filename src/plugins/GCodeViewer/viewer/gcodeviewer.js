@@ -430,7 +430,6 @@ export default class {
   }
   updateCameraInertiaProperties() {
 
-    console.log()
     if (this.cameraInertia) {
       this.orbitCamera.speed = 2;
       this.orbitCamera.inertia = 0.9;

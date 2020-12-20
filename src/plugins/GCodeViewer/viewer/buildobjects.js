@@ -177,23 +177,33 @@ export default class {
       return;
     }
 
+    let hitTestTimer  =0;
+    let mouseDown  = false;
+    let cancelHitTimer = 0;
+    
     this.observableControls = this.scene.onPointerObservable.add((pointerInfo) => {
+      
+      
       let pickInfo = pointerInfo.pickInfo;
       switch (pointerInfo.type) {
         case PointerEventTypes.POINTERDOWN:
           {
-            this.cancelHitTimer = Date.now();
+            mouseDown = true;
+            cancelHitTimer = Date.now();
           }
           break;
         case PointerEventTypes.POINTERUP:
           {
-            if (Date.now() - this.cancelHitTimer > 200) {
+            mouseDown = false;
+            if (Date.now() - cancelHitTimer > 200) {
               return;
             }
             this.handleClick(pickInfo);
           }
           break;
         case PointerEventTypes.POINTERMOVE: {
+          if(mouseDown || Date.now() - hitTestTimer < 100) return;
+          hitTestTimer = Date.now();
           this.handlePointerMove(pickInfo);
         }
       }
