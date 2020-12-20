@@ -1,28 +1,51 @@
 <template>
-	<v-card>
-		<v-card-title class="py-2">
-			<strong>{{ machinePosition ? $t('panel.status.machinePosition') : $t('panel.status.toolPosition') }} </strong>
-		</v-card-title>
-		<v-card-text>
-			<v-row no-gutters class="flex-nowrap">
-				<v-col>
-					<v-row  align-content="center" no-gutters>
-						<v-col v-for="(axis, index) in visibleAxes" :key="index" class="d-flex flex-column align-center">
-							<strong>
-								{{ axis.letter }}
-							</strong>
-							<span>
-								{{ displayAxisPosition(axis, index) }}
-							</span>
-						</v-col>
-					</v-row>
-				</v-col>
-			</v-row>
-		</v-card-text>
-	</v-card>
+    <v-card>
+        <v-card-title class="py-2">
+            <strong>{{ machinePosition ? $t('panel.status.machinePosition') : $t('panel.status.toolPosition') }} </strong>
+        </v-card-title>
+        <v-card-text>
+            <v-row align-content="center" no-gutters :class="{'large-font' : !machinePosition}">
+                <v-col v-for="(axis, index) in visibleAxes" :key="index" class="d-flex flex-column align-center">
+                    <div :class="{'large-font-height' : !machinePosition}">
+                        {{ axis.letter }}
+                    </div>
+                    <div>
+                        {{ displayAxisPosition(axis, index) }}
+                    </div>
+                </v-col>
+            </v-row>
+        </v-card-text>
+    </v-card>
 </template>
 
+
+<style scoped>
+
+@media screen and (max-width:600px)
+{
+	.large-font-height {
+		height:35px;
+	}
+	.large-font {
+		font-size:30px;
+	}
+}
+
+@media screen and (min-width:601px)
+{
+	.large-font-height {
+		height: 55px;
+	}
+	.large-font {
+		font-size: 50px;
+	}
+}
+
+
+</style>
+
 <script>
+'use strict'
 import { mapState } from 'vuex';
 export default {
 	props: {
@@ -50,5 +73,3 @@ export default {
 };
 </script>
 
-<style>
-</style>

@@ -111,4 +111,23 @@ export default [
 		)
 	}),
 	// Add your own plugins here during development...
+	new DwcPlugin({
+		name: 'DRO',
+		author: 'Juan Rosario',
+		version,
+		loadDwcResources: () => import(
+			/* webpackChunkName: "DRO" */
+			'./DRO/index.js'
+		)
+	}),
+	new DwcPlugin({
+		name: 'Jog',
+		author: 'Juan Rosario',
+		version,
+		loadDwcResources: () =>
+			import(
+				/* webpackChunkName: "TouchJog" */
+				'./TouchJog/index.js'
+			),
+	}),
 ]

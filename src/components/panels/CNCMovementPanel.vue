@@ -1,8 +1,9 @@
-<style>
+<style scoped>
 .move-btn {
 	padding-left: 0px !important;
 	padding-right: 0px !important;
 	min-width: 0;
+	height: 65px !important;
 }
 .wcs-selection {
 	max-width: 200px;
@@ -20,14 +21,14 @@
 		<v-card-text v-show="visibleAxes.length">
 			<v-row dense>
 				<v-col cols="6" order="1" md="2" order-md="1">
-					<code-btn block v-show="visibleAxes.length" color="primary" code="G28" :title="$t('button.home.titleAll')" class="ml-0">
+					<code-btn block v-show="visibleAxes.length" color="primary" code="G28" :title="$t('button.home.titleAll')" class="ml-0 move-btn">
 						{{ $t('button.home.captionAll') }}
 					</code-btn>
 				</v-col>
 				<v-col cols="6" order="2" md="8" order-md="2">
 					<v-menu offset-y left :disabled="uiFrozen">
 						<template #activator="{ on }">
-							<v-btn v-show="visibleAxes.length" color="primary" block class="mx-0" :disabled="uiFrozen" v-on="on">
+							<v-btn v-show="visibleAxes.length" color="primary" block class="mx-0 move-btn" :disabled="uiFrozen" v-on="on">
 								{{ $t('panel.movement.compensation') }}
 								<v-icon>mdi-menu-down</v-icon>
 							</v-btn>
@@ -77,7 +78,7 @@
 					</v-menu>
 				</v-col>
 				<v-col cols="12" order="3" md="2" order-md="3">
-					<v-btn @click="setWorkspaceZero" block>Set Work XYZ</v-btn>
+					<v-btn @click="setWorkspaceZero" block class="move-btn">Set Work XYZ</v-btn >
 				</v-col>
 			</v-row>
 

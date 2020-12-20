@@ -1,4 +1,4 @@
-<style>
+<style scoped>
 .category-header {
 	flex: 0 0 100px;
 }
@@ -7,7 +7,7 @@
 <template>
 	<div>
 		<v-row dense align="stretch">
-			<v-col cols="3" order="1" sm="4" lg="2" order-lg="1">
+			<v-col cols="3" order="1" sm="4" md="2" lg="2" order-lg="1">
 				<v-card class="justify-center fill-height">
 					<v-card-title>
 						<strong>Status</strong>
@@ -17,13 +17,10 @@
 					</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="6" order="4" sm="6" lg="3" order-lg="2">
+			<v-col cols="12" order="4" sm="12" md="4"  order-md="2" lg="4">
 				<cnc-axes-position class="fill-height" :machinePosition="true"></cnc-axes-position>
 			</v-col>
-			<v-col cols="6" order="5" sm="6" lg="3" order-lg="3">
-				<cnc-axes-position class="fill-height" :machinePosition="false"></cnc-axes-position>
-			</v-col>
-			<v-col cols="5" order="2" sm="4" lg="2" order-lg="4">
+			<v-col cols="5" order="2" sm="4" md="3" lg="3" order-lg="3">
 				<v-card class="fill-height">
 					<v-card-title><strong>Requested Speed</strong></v-card-title>
 					<v-card-text>
@@ -31,13 +28,16 @@
 					</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="4" order="3" sm="4" lg="2" order-lg="5">
-				<v-card class="fill-height">
+			<v-col cols="4" order="2" sm="4" md="3" lg="3" order-lg="4">
+				<v-card class="fill-height" order="5">
 					<v-card-title><strong>Top Speed</strong></v-card-title>
 					<v-card-text>
 						{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
 					</v-card-text>
 				</v-card>
+			</v-col>
+			<v-col cols="12" order="6">
+				<cnc-axes-position class="fill-height" :machinePosition="false"></cnc-axes-position>
 			</v-col>
 		</v-row>
 	</div>
