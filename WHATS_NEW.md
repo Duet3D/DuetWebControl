@@ -16,6 +16,7 @@ Changed behaviour:
 Bug fixes:
 - Print control buttons could show wrong captions during (paused) simulations
 - Code input could keep previously selected suggestion even if it differs
+- Sometimes code promises were not resolved in the correct order in standalone mode
 
 Version 3.2.0-beta4
 ===================
