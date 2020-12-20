@@ -8,9 +8,8 @@
 	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
-						:search-input.sync="code" @click="click" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						:items="displayedCodes" @update:list-index="updateSelection" :menu-props="{ maxHeight: '50%' }"
-						@keyup.down="showItems = true" @keyup.tab.exact="selectItem">
+						:search-input.sync="code" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
+						@click="click" :items="displayedCodes" hide-selected :menu-props="{ maxHeight: '50%' }" @keyup.down="showItems = true">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -56,7 +55,6 @@ export default {
 			code: '',
 			wasFocused: false,
 			showItems: false,
-			selectedItem: '',
 			sendPending: false,
 			doingCode: false
 		}
@@ -73,25 +71,6 @@ export default {
 				this.showItems = !this.showItems;
 			} else {
 				this.wasFocused = true;
-			}
-		},
-		updateSelection(selection) {
-			if (selection instanceof Array) {
-				selection = (selection.length > 0) ? selection[0] : -1;
-			}
-
-			const items = this.displayedCodes;
-			if (selection >= 0 && selection < items.length) {
-				this.selectedItem = items[selection].value;
-			} else {
-				this.selectedItem = '';
-			}
-		},
-		selectItem(e) {
-			if (this.selectedItem !== '') {
-				this.code = this.selectedItem;
-				this.showItems = false;
-				e.preventDefault();
 			}
 		},
 		change(value) {

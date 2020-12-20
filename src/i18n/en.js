@@ -414,17 +414,17 @@ export default {
 	},
 	menu: {
 		control: {
-			caption: 'Machine Control',
+			caption: 'Control',
 			dashboard: 'Dashboard',
 			console: 'Console'
 		},
 		job: {
-			caption: 'Current Job',
+			caption: 'Jobs',
 			status: 'Status',
 			webcam: 'Webcam'
 		},
 		files: {
-			caption: 'File Management',
+			caption: 'Files',
 			jobs: 'Jobs',
 			filaments: 'Filaments',
 			macros: 'Macros',
@@ -726,6 +726,86 @@ export default {
 		autoUpdate: {
 			menuCaption: 'Update'
 		},
+		gcodeViewer: {
+			caption: 'G-Code Viewer',
+			view3D: 'View 3D',
+			fullscreen: 'Full Screen',
+			showConfiguration: 'Show Viewer Configuration',
+			resetCamera: {
+				caption : 'Reset Camera',
+				title: 'Reset camera to home position'
+			},
+			cancelLoad: 'Cancel File Loading',
+			reloadView: { 
+				caption : 'Reload View',
+				title : 'Reload the current gcode, this is used when changing settings like color, feedrate color, etc.'
+			},
+			loadCurrentJob:  { 
+				caption :'Load Current Job',  
+				title : 'Load the current printing or simulating job'
+			},
+			unloadGCode:  { 
+				caption: 'Unload GCode',
+				title : 'Remove the loaded gcode from the viewer'
+			},
+			loadLocalGCode: { 
+				caption : 'Load Local GCode',
+				title : 'Load a file from your local drive into the viewer'
+			},
+			showCursor: 'Show Cursor',
+			showTravels: 'Show Travels',
+			renderQuality: {
+				caption : 'Render Quality',
+				title : 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available'
+			},
+			sbc: 'SBC',
+			low: 'Low',
+			medium: 'Medium',			
+			high: 'High',
+			ultra: 'Ultra',
+			max: 'Max',
+			forceLineRendering: 'Force Line Rendering',
+			transparency: 'Transparency',
+			showSolid: 'Show Solid',
+			spreadLines: 'Spread Lines',
+			extruders: {
+				caption:  'Extruders',
+				title : 'Sets the color used for rendering an extruder'
+			},
+			tool: 'Tool {0}',
+			resetColor: 'Reset Tool Color | Reset Tool Colors',
+			renderMode : {
+				caption : 'Render Mode | Render Modes',
+				title : 'Render mode allows you to set extruder color or feedrate line coloring in the viewer'
+			},
+			color: 'Color',
+			feedrate: 'Feedrate',
+			minFeedrate: 'Minimum Feedrate (mm/s)',
+			maxFeedrate: 'Maximum Feedrate (mm/s)',
+			minFeedrateColor: 'Minimum Feedrate Color',
+			maxFeedrateColor: 'Maximum Feedrate Color',
+			progress: {
+				caption : 'Progress',
+				title: 'Set the printed color for progress tracking'
+			},
+			topClipping: 'Top Clipping',
+			bottomClipping:'Bottom Clipping',
+			progressColor: 'Progress Color',
+			liveZTracking: 'Live Z Tracking',
+			settings: 'Settings',
+			background: 'Background',
+			bedRenderMode:  'Bed Render Mode',
+			bed: 'Bed',
+			volume: 'Volume',
+			showAxes: 'Show Axes',
+			showObjectLabels: 'Show Object Labels',
+			cameraInertia: 'Camera Inertia',
+			showObjectSelection: {
+				caption : 'Show Object Selection',
+				title : 'Enabled if objects could be detected in the current print'
+			},
+			renderFailed: 'Previous render failed. Setting render quality to SBC',
+		},
 		heightmap: {
 			menuCaption: 'Height Map',
 			listTitle: 'Height Maps',
@@ -751,9 +831,6 @@ export default {
 		},
 		objectModelBrowser: {
 			menuCaption: 'Object Model'
-		},
-		visualizer: {
-			menuCaption: 'Visualizer'
 		}
 	},
 	tabs: {

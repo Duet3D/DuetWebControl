@@ -80,7 +80,8 @@ export default function(connector, pluginSettingFields) {
 							filename: Path.dwcSettingsFile,
 							content,
 							showProgress: false,
-							showSuccess: false
+							showSuccess: false,
+							showError: false
 						}, { root: true });
 					} catch (e) {
 						// handled before we get here
@@ -133,7 +134,7 @@ export default function(connector, pluginSettingFields) {
 						}
 					}
 
-					// If that fails, try to get the DWC2 settings
+					// If that fails, try to get the DWC settings
 					if (!settings) {
 						try {
 							settings = await dispatch(`machines/${connector.hostname}/download`, {

@@ -993,32 +993,49 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	async sendCode(code) {
-		const codeSeq = this.lastSeq, response = await this.request('GET', 'rr_gcode', { gcode: code });
-		if (!(response instanceof Object)) {
-			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
-			throw new CodeResponseError();
-		}
-		if (response.buff === 0) {
-			throw new CodeBufferError();
-		}
-
-		let inBraces = false;
+		// Scan actual content of the requested code
+		let inBraces = false, inQuotes = false, strippedCode = '';
 		for (let i = 0; i < code.length; i++) {
-			if (inBraces) {
+			if (inQuotes) {
+				inQuotes = (code[i] !== '"');
+			} else if (inBraces) {
 				inBraces = (code[i] !== ')');
 			} else if (code[i] === '(') {
 				inBraces = true;
 			} else {
 				if (code[i] === ';') {
-					return '';
+					break;
 				}
-
-				if (code[i] !== ' ' && code[i] !== '\t' && code[i] !== '\r' && code !== '\n') {
-					const pendingCodes = this.pendingCodes;
-					return new Promise((resolve, reject) => pendingCodes.push({ seq: codeSeq, resolve, reject }));
+				if (code[i] === '"') {
+					inQuotes = true;
+				} else if (code[i] !== ' ' && code[i] !== '\t' && code[i] !== '\r' && code !== '\n') {
+					strippedCode += code[i];
 				}
 			}
 		}
+
+		// Check if a response can be expected
+		let result = '';
+		if (strippedCode !== '' && strippedCode.toUpperCase().indexOf('M997') === -1 && strippedCode.toUpperCase().indexOf('M999') === -1) {
+			const pendingCodes = this.pendingCodes, codeSeq = this.lastSeq;
+			result = new Promise((resolve, reject) => pendingCodes.push({ seq: codeSeq, resolve, reject }));
+		}
+
+		// Send the code to RRF
+		try {
+			const response = await this.request('GET', 'rr_gcode', { gcode: code });
+			if (!(response instanceof Object)) {
+				console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
+				throw new CodeResponseError();
+			}
+			if (response.buff === 0) {
+				throw new CodeBufferError();
+			}
+		} catch (e) {
+			this.pendingCodes = this.pendingCodes.filter(code => code !== result);
+			throw e;
+		}
+		return result;
 	}
 
 	async getGCodeReply(seq = null) {
