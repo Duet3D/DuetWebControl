@@ -1,10 +1,12 @@
-# Duet Web Control
+# Duet Web Control - EXPERIMENTAL CNC version
 
 Duet Web Control is a fully-responsive HTML5-based web interface for RepRapFirmware which utilizes the Bootstrap framework, JQuery and a few other libraries to allow easy control of Duet-based 3D printer electronics.
 
 It is designed to communicate with RepRapFirmware using WebSockets and RESTful HTTP requests. One goal of the core application is to keep things compact, so a good loading speed can be achieved even on slow networks. Another one is to communicate to the firmware using only AJAX calls, which either return JSON objects, plain texts or binary blobs.
 
 Duet Web Control is free software; it is licensed under the terms of the GNU Public License v3.
+
+Please note, **this CNC version of DWC is experimental and it may not be maintained**. Some or all of the features of this version may in future be made available as options in the regular version of Duet Web Control. The CNC dashboard will only be visible when the Duet is in CNC mode.
 
 ## Supported electronics
 
