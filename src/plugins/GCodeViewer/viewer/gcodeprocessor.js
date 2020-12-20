@@ -595,11 +595,13 @@ export default class {
 
     lineMesh.isVisible = true;
     lineMesh.isPickable = false;
+    lineMesh.alwaysSelectAsActiveMesh = true;
+    lineMesh.material.alpha = 0.01;
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
-    lineMesh.material.needDepthPrePass = true;
-    lineMesh.material.needAlphaTesting = () => true;
+    lineMesh.material.backFaceCulling = true;
+    lineMesh.material.transparencyMode = StandardMaterial.MATERIAL_ALPHATESTANDBLEND;
     lineMesh.material.useVertexAlpha = true;
-    lineMesh.material.transparencyMode = 3;
+    
 
     let lastRendered = 0;
 
