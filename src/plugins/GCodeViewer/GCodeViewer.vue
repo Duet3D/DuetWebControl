@@ -268,8 +268,8 @@
 import gcodeViewer from './viewer/gcodeviewer.js';
 import { mapActions, mapState } from 'vuex';
 import Path from '../../utils/path.js';
-import { StatusType, KinematicsName } from '../../store/machine/modelEnums';
-
+import {  KinematicsName } from '../../store/machine/modelEnums';
+import { isPrinting } from '../../store/machine/modelEnums.js'
 let viewer = {};
 
 export default {
@@ -317,7 +317,7 @@ export default {
 	}),
 	computed: {
 		...mapState('machine/model', ['job', 'move', 'state']),
-		isJobRunning: state => state.state.status === StatusType.simulating || state.state.status === StatusType.processing,
+		isJobRunning: state =>  isPrinting(state.state.status),
 		visualizingCurrentJob: function (state) {
 			try {
 				return state.job.file.fileName === this.selectedFile && this.isJobRunning;
@@ -384,6 +384,7 @@ export default {
 		this.minColorRate = viewer.gcodeProcessor.minColorRate / 60;
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
+		this.liveTrackingShowSolid = viewer.gcodeProcessor.liveTrackingShowSolid;
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
@@ -697,7 +698,7 @@ export default {
 			viewer.buildObjects.showLabels(newValue);
 		},
 		liveTrackingShowSolid: function (newValue) {
-			viewer.gcodeProcessor.liveTrackingShowSolid = newValue;
+			viewer.gcodeProcessor.setLiveTrackingShowSolid(newValue);
 			this.reloadviewer();
 		},
 		forceWireMode: function (newValue) {

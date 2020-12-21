@@ -44,7 +44,8 @@ export default class {
 
     //Live Rendering
     this.liveTracking = false; //Tracks if we loaded the current job to enable live rendering
-    this.liveTrackingShowSolid = false; //Flag if we want to continue showing the whole model while rendering
+    this.liveTrackingShowSolid = localStorage.getItem('showSolid') === 'true'; //Flag if we want to continue showing the whole model while rendering
+
 
     this.materialTransparency = 0.3;
     this.gcodeLineIndex = [];
@@ -567,7 +568,6 @@ export default class {
 
 
       if (this.liveTracking) {
-
         data.colors[0].a = this.liveTrackingShowSolid ? transparentValue : 0
         data.colors[1].a = this.liveTrackingShowSolid ? transparentValue : 0;
       } else {
@@ -585,7 +585,6 @@ export default class {
         lines: lineArray,
         colors: colorArray,
         updatable: true,
-        useVertexAlpha: true,
       },
       scene
     );
@@ -595,13 +594,13 @@ export default class {
 
     lineMesh.isVisible = true;
     lineMesh.isPickable = false;
-    lineMesh.alwaysSelectAsActiveMesh = true;
-    lineMesh.material.alpha = 0.01;
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
+    lineMesh.material = new StandardMaterial("m", scene);
     lineMesh.material.backFaceCulling = true;
-    lineMesh.material.transparencyMode = StandardMaterial.MATERIAL_ALPHATESTANDBLEND;
-    lineMesh.material.useVertexAlpha = true;
-    
+    lineMesh.alphaIndex =  meshIndex;
+    lineMesh.renderingGroupId = 2;
+
+
 
     let lastRendered = 0;
 
@@ -711,7 +710,7 @@ export default class {
     solidMat.specularColor = this.specularColor;
     let transparentMat = new StandardMaterial('transparentMaterial', scene);
     transparentMat.specularColor = this.specularColor;
-    transparentMat.alpha = this.liveTrackingShowSolid ? this.materialTransparency :  transparentValue;
+    transparentMat.alpha = this.liveTrackingShowSolid ? this.materialTransparency : transparentValue;
     transparentMat.needAlphaTesting = () => true;
     transparentMat.separateCullingPass = true;
     transparentMat.backFaceCulling = true;
@@ -873,4 +872,10 @@ export default class {
     this.forceWireMode = enabled;
     localStorage.setItem('forceWireMode', enabled);
   }
+
+  setLiveTrackingShowSolid(value) {
+    this.liveTrackingShowSolid = value;
+    localStorage.setItem('showSolid', value);
+  }
+
 }
