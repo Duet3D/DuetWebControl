@@ -597,6 +597,7 @@ export default class {
     lineMesh.markVerticesDataAsUpdatable(VertexBuffer.ColorKind);
     lineMesh.material = new StandardMaterial("m", scene);
     lineMesh.material.backFaceCulling = true;
+    lineMesh.material.forceDepthWrite = true;
     lineMesh.alphaIndex =  meshIndex;
     lineMesh.renderingGroupId = 2;
 
