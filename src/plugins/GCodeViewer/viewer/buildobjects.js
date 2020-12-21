@@ -107,6 +107,7 @@ export default class {
       cancelObject.index = cancelObjectIdx;
       buildObject.metadata = cancelObject;
       buildObject.enablePointerMoveEvents = true;
+      buildObject.renderingGroupId = 3;
       this.setObjectTexture(buildObject);
       buildObject.setEnabled(this.showCancelObjects);
       this.registerClipIgnore(buildObject);
