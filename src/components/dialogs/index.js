@@ -14,7 +14,7 @@ import NewFileDialog from './NewFileDialog.vue'
 import NewDirectoryDialog from './NewDirectoryDialog.vue'
 import ResetHeaterFaultDialog from './ResetHeaterFaultDialog.vue'
 import FileTransferDialog from './FileTransferDialog.vue'
-
+  
 Vue.component('confirm-dialog', ConfirmDialog)
 Vue.component('connect-dialog', ConnectDialog)
 Vue.component('connection-dialog', ConnectionDialog)
@@ -27,4 +27,3 @@ Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
 Vue.component('file-transfer-dialog', FileTransferDialog)
-
