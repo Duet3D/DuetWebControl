@@ -13,6 +13,10 @@ import { ArcRotateCamera }  from '@babylonjs/core/Cameras/arcRotateCamera'
 import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { Axis } from '@babylonjs/core/Maths/math.axis'
 
+
+//import '@babylonjs/core/Debug/debugLayer'
+//import '@babylonjs/inspector'
+
 import gcodeProcessor from './gcodeprocessor.js';
 import Bed from './bed.js';
 import BuildObjects from './buildobjects.js';
@@ -430,7 +434,6 @@ export default class {
   }
   updateCameraInertiaProperties() {
 
-    console.log()
     if (this.cameraInertia) {
       this.orbitCamera.speed = 2;
       this.orbitCamera.inertia = 0.9;

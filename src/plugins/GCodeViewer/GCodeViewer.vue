@@ -94,6 +94,8 @@
                 </v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close mb-10" @click="drawer = !drawer" :title="$t('plugins.gcodeViewer.showConfiguration')"><v-icon>mdi-cog</v-icon></v-btn>
+				<br/>
+				<v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')"><v-icon>mdi-printer-3d</v-icon></v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close" v-show="loading" @click="cancelLoad" :title="$t('plugins.gcodeViewer.cancelLoad')"><v-icon color="red">mdi-cancel</v-icon></v-btn>
             </div>
@@ -120,7 +122,7 @@
                         {{ $t('plugins.gcodeViewer.loadLocalGCode.caption')  }}
                     </v-btn>
                     <input ref="fileInput" type="file" :accept="'.g,.gcode,.gc,.gco,.nc,.ngc,.tap'" hidden @change="fileSelected" multiple />
-                    <v-switch class="mt-4" v-model="showObjectSelection" :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeviewer.showObjectSelection.title')"></v-switch>
+                    <v-switch class="mt-4" v-model="showObjectSelection" :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeViewer.showObjectSelection.title')"></v-switch>
                     <v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"></v-switch>
                     <v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"></v-switch>
                 </v-card>
@@ -266,8 +268,8 @@
 import gcodeViewer from './viewer/gcodeviewer.js';
 import { mapActions, mapState } from 'vuex';
 import Path from '../../utils/path.js';
-import { StatusType, KinematicsName } from '../../store/machine/modelEnums';
-
+import {  KinematicsName } from '../../store/machine/modelEnums';
+import { isPrinting } from '../../store/machine/modelEnums.js'
 let viewer = {};
 
 export default {
@@ -315,7 +317,7 @@ export default {
 	}),
 	computed: {
 		...mapState('machine/model', ['job', 'move', 'state']),
-		isJobRunning: state => state.state.status === StatusType.simulating || state.state.status === StatusType.processing,
+		isJobRunning: state =>  isPrinting(state.state.status),
 		visualizingCurrentJob: function (state) {
 			try {
 				return state.job.file.fileName === this.selectedFile && this.isJobRunning;
@@ -382,6 +384,7 @@ export default {
 		this.minColorRate = viewer.gcodeProcessor.minColorRate / 60;
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
+		this.liveTrackingShowSolid = viewer.gcodeProcessor.liveTrackingShowSolid;
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
@@ -695,7 +698,7 @@ export default {
 			viewer.buildObjects.showLabels(newValue);
 		},
 		liveTrackingShowSolid: function (newValue) {
-			viewer.gcodeProcessor.liveTrackingShowSolid = newValue;
+			viewer.gcodeProcessor.setLiveTrackingShowSolid(newValue);
 			this.reloadviewer();
 		},
 		forceWireMode: function (newValue) {
