@@ -71,12 +71,23 @@ export default {
 		isPrinting() {
 			return isPrinting(this.status);
 		},
-		isSimulating() {
-			return this.status === StatusType.simulating;
+	},
+	data() {
+		return {
+			isSimulating: false
 		}
 	},
 	mounted() {
 		this.isSimulating = (this.status === StatusType.simulating);
+	},
+	watch: {
+		status(to) {
+			if (to === StatusType.simulating) {
+				this.isSimulating = true;
+			} else if (!this.isPrinting) {
+				this.isSimulating = false;
+			}
+		}
 	}
 }
 </script>

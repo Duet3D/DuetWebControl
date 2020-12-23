@@ -419,7 +419,7 @@ export default {
 			console: 'Konsole'
 		},
 		job: {
-			caption: 'Aufträge',
+			caption: 'Auftrag',
 			status: 'Status',
 			webcam: 'Webcam'
 		},

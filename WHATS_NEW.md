@@ -1,11 +1,24 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0-rc2
+=================
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.0-rc2
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- New code editor has been disabled on touch devices for now due to incompatibilities
+- Extra sensors were labelled as heaters in the temperature chart
+- Change callbacks in the tool input component didn't check changed values properly
+- Simulation state wasn't recorded correctly in the job estimations panel
+
 Version 3.2.0-rc1
 =================
 
 Compatible versions:
-- DuetSoftwareFramework 3.2.0-RC1
+- DuetSoftwareFramework 3.2.0-rc1
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:

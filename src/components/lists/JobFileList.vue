@@ -26,7 +26,7 @@
 					<v-icon class="mr-1">mdi-fast-forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-item>
 				<v-list-item v-show="isFile" v-for="(menuItem, index) in contextMenuItems.jobFileList" :key="index" @click="contextMenuAction(menuItem)">
-					<v-icon class="mr-1">{{menuItem.icon}}</v-icon> {{ menuItem.name }}
+					<v-icon class="mr-1">{{ menuItem.icon }}</v-icon> {{ menuItem.name }}
 				</v-list-item>
 			</template>
 		</base-file-list>

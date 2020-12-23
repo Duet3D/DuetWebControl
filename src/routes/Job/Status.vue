@@ -85,7 +85,7 @@ import { registerRoute } from '..'
 
 export default {
 	install() {
-		// Register a route via Current Job -> Status
+		// Register a route via Job -> Status
 		registerRoute(this, {
 			Job: {
 				Status: {

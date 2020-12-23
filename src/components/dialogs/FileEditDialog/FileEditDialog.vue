@@ -131,6 +131,19 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
+		},
+		isTouchDevice() {
+			if ('ontouchstart' in window || window.TouchEvent) {
+				return true;
+			}
+
+			if (window.DocumentTouch && document instanceof window.DocumentTouch) {
+				return true;
+			}
+
+			const prefixes = ['', '-webkit-', '-moz-', '-o-', '-ms-'];
+			const queries = prefixes.map(prefix => `(${prefix}touch-enabled)`);
+			return window.matchMedia(queries.join(',')).matches;
 		}
 	},
 	data() {
@@ -180,7 +193,7 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isTouchDevice;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 

@@ -100,8 +100,7 @@ export default function(connector, pluginCacheFields) {
 							filename: Path.dwcCacheFile,
 							content,
 							showProgress: false,
-							showSuccess: false,
-							showError: false
+							showSuccess: false
 						});
 					} catch (e) {
 						// handled before we get here

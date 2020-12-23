@@ -200,8 +200,8 @@ export default {
 	},
 	watch: {
 		'tool.active'(to) {
-			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
-			if (this.active && this.actualValue !== val) {
+			const val = (to instanceof Array && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < to.length) ? to[this.toolHeaterIndex] : to;
+			if (this.active && this.isNumber(val) && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = val.toString();
@@ -209,8 +209,8 @@ export default {
 			}
 		},
 		'tool.standby'(to) {
-			const val = (to instanceof Array) ? to[this.toolHeaterIndex] : to;
-			if (this.standby && this.actualValue !== val) {
+			const val = (to instanceof Array && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < to.length) ? to[this.toolHeaterIndex] : to;
+			if (this.standby && this.isNumber(val) && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = val.toString();
@@ -218,7 +218,7 @@ export default {
 			}
 		},
 		'bed.active'(to) {
-			if (this.active && this.actualValue !== to) {
+			if (this.active && this.isNumber(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
@@ -226,7 +226,7 @@ export default {
 			}
 		},
 		'bed.standby'(to) {
-			if (this.standby && this.actualValue !== to) {
+			if (this.standby && this.isNumber(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
@@ -234,7 +234,7 @@ export default {
 			}
 		},
 		'chamber.active'(to) {
-			if (this.active && this.actualValue !== to) {
+			if (this.active && this.isNumber(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
@@ -242,7 +242,7 @@ export default {
 			}
 		},
 		'chamber.standby'(to) {
-			if (this.standby && this.actualValue != to) {
+			if (this.standby && this.isNumber(to) && this.actualValue != to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
@@ -250,7 +250,7 @@ export default {
 			}
 		},
 		'spindle.active'(to) {
-			if (this.active && this.actualValue != to) {
+			if (this.active && this.isNumber(to) && this.actualValue != to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();

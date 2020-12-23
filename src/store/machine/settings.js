@@ -80,8 +80,7 @@ export default function(connector, pluginSettingFields) {
 							filename: Path.dwcSettingsFile,
 							content,
 							showProgress: false,
-							showSuccess: false,
-							showError: false
+							showSuccess: false
 						}, { root: true });
 					} catch (e) {
 						// handled before we get here

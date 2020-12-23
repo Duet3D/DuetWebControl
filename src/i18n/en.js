@@ -139,6 +139,7 @@ export default {
 		temperature: {
 			caption: 'Temperature Chart',
 			heater: 'Heater {0}',
+			sensor: 'Sensor {0}',
 			noData: 'No Data'
 		}
 	},
@@ -419,7 +420,7 @@ export default {
 			console: 'Console'
 		},
 		job: {
-			caption: 'Jobs',
+			caption: 'Job',
 			status: 'Status',
 			webcam: 'Webcam'
 		},

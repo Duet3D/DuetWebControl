@@ -91,6 +91,8 @@ function pushSeriesData(machine, index, extra, sensor) {
 		if (sensor.name) {
 			const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
 			name = matches ? matches[1] : sensor.name;
+		} else if (extra) {
+			name = i18n.t('chart.temperature.sensor', [index]);
 		} else {
 			name = i18n.t('chart.temperature.heater', [index]);
 		}

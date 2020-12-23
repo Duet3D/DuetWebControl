@@ -52,10 +52,10 @@ export function registerPluginContextMenuItem(name, path, icon, action, contextM
 	store.commit('uiInjection/registerPluginContextMenuItem', {
 		menu: contextMenuType,
 		item: {
-			name: name,
-			path: path,
-			icon: icon,
-			action: action
+			name,
+			path,
+			icon,
+			action
 		}
 	});
 }

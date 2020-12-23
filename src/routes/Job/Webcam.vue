@@ -14,7 +14,7 @@ import store from '../../store'
 
 export default {
 	install() {
-		// Register a route via Current Job -> Webcam
+		// Register a route via Job -> Webcam
 		registerRoute(this, {
 			Job: {
 				Webcam: {
