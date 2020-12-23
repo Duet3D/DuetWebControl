@@ -13,6 +13,7 @@ Bug fixes:
 - Extra sensors were labelled as heaters in the temperature chart
 - Change callbacks in the tool input component didn't check changed values properly
 - Simulation state wasn't recorded correctly in the job estimations panel
+- When connected in SBC mode multiple concurrent reconnect attempts could be started
 
 Version 3.2.0-rc1
 =================

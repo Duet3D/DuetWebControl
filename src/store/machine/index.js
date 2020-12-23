@@ -482,17 +482,16 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			},
 
 			// Actions for specific events triggered by the machine connector
-			async onConnectionError({ state, commit, dispatch }, error) {
+			async onConnectionError({ state, dispatch }, error) {
 				if (state.isReconnecting && !(error instanceof InvalidPasswordError)) {
 					// Retry after a short moment
 					setTimeout(() => dispatch('reconnect'), 2000);
 				} else if (!state.isReconnecting && (state.model.state.status === StatusType.updating || state.model.state.status === StatusType.halted)) {
-					// Try to reconnect after a short period of time
+					// Try to reconnect
 					if (state.model.state.status !== StatusType.updating) {
 						log('warning', i18n.t('events.reconnecting'));
 					}
-					commit('setReconnecting', true);
-					setTimeout(() => dispatch('reconnect'), 2000);
+					await dispatch('reconnect');
 				} else {
 					// Notify the root store about this event
 					await dispatch('onConnectionError', { hostname: connector.hostname, error }, { root: true });
