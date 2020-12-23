@@ -55,6 +55,16 @@ export const EndstopType = {
 	unknown: 'unknown'
 }
 
+export const FilamentMonitorStatus = {
+	noMonitor: 'noMonitor',
+	ok: 'ok',
+	noDataReceived: 'noDataReceived',
+	noFilament: 'noFilament',
+	tooLittleMovement: 'tooLittleMovement',
+	tooMuchMovement: 'tooMuchMovement',
+	sensorError: 'sensorError'
+}
+
 export const FilamentMonitorType = {
 	simple: 'simple',
 	laser: 'laser',

@@ -8,6 +8,7 @@ import {
 	Compatibility,
 	DistanceUnit,
 	EndstopType,
+	FilamentMonitorStatus,
 	FilamentMonitorType,
 	HeaterMonitorAction, HeaterMonitorCondition,
 	HttpEndpointType,
@@ -166,6 +167,7 @@ export class FilamentMonitor {
 	constructor(initData) { quickPatch(this, initData); }
 	enabled = false
 	filamentPresent = null
+	status = FilamentMonitorStatus.noDataReceived
 	type = FilamentMonitorType.unknown
 }
 
