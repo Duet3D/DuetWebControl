@@ -14,7 +14,7 @@ Bug fixes:
 - Change callbacks in the tool input component didn't check changed values properly
 - Simulation state wasn't recorded correctly in the job estimations panel
 - When connected in SBC mode multiple concurrent reconnect attempts could be started
-= Fixed G3 in the GCode Viewer
+- Fixed G3 in the GCode Viewer
 
 Version 3.2.0-rc1
 =================
