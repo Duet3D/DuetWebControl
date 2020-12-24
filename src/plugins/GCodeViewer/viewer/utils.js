@@ -18,7 +18,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
         i = 0,
         j = 0,
         r = 0;
-    var cw = tokens.filter(t => t.startsWith('G2')) ? 1 : -1;  //use the sign to drive direction
+    var cw = tokens.some(t => t.includes('G2'));
     //read params
     for (let tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
         let token = tokens[tokenIdx];
@@ -98,13 +98,13 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
     }
 
     let arcAngleIncrement = totalArc / totalSegments;
-    arcAngleIncrement *= cw ? -1 :1;
+    arcAngleIncrement *= cw ? -1 : 1;
 
     let points = new Array();
 
     let zDist = currZ - z;
     let zStep = zDist / totalSegments;
-    
+
     //get points for the arc
     let px = currX;
     let py = currY;
@@ -113,8 +113,8 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
     let currentAngle = arcCurrentAngle;
     for (let moveIdx = 0; moveIdx < totalSegments - 1; moveIdx++) {
         currentAngle += arcAngleIncrement;
-        px = centerX + arcRadius * Math.cos(currentAngle) ;
-        py = centerY + arcRadius * Math.sin(currentAngle)  ;
+        px = centerX + arcRadius * Math.cos(currentAngle);
+        py = centerY + arcRadius * Math.sin(currentAngle);
         pz += zStep;
         points.push({ x: px, y: pz, z: py });
     }

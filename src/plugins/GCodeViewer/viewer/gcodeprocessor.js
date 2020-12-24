@@ -449,7 +449,7 @@ export default class {
           } break;
         case 'G2':
         case 'G3': {
-          tokens = tokenString.split(/(?=[GXYZIJFR])/);
+          tokens = tokenString.split(/(?=[GXYZIJFRE])/);
           let cw = tokens.filter(t => t === "G2");
           let arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1);
           let curPt = this.currentPosition.clone();
