@@ -197,6 +197,9 @@ export default {
 								});
 
 								if (isPlugin) {
+									this.extracting = false;
+									notification.hide();
+
 									// TODO improve UI
 									if (confirm('Would you like to install this plugin?')) {
 										await this.installPlugin({
@@ -230,7 +233,7 @@ export default {
 								zipFiles[i] = await zip.file(name).async('blob');
 								zipFiles[i].name = name;
 							}
-							await this.doUpload(zipFiles, files[0].name, new Date());
+							/*await*/ this.doUpload(zipFiles, files[0].name, new Date());
 						} finally {
 							this.extracting = false;
 							notification.hide();
