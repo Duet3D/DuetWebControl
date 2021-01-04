@@ -20,13 +20,14 @@
 
 .v-input--checkbox {
 	margin: 0;
-	padding: 0;
+	padding-left: 12px;
 }
 
 .v-input--switch {
 	margin: 0;
-	padding: 0;
+	padding-left: 12px;
 }
+
 .viewer-box {
 	position: absolute;
 	top: 0;
