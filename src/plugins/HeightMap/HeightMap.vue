@@ -218,33 +218,6 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['download', 'getFileList']),
-		async init() {
-			if (!this.three.scene) {
-				// Wait 100ms to let the grid resize
-				await new Promise(resolve => setTimeout(resolve, 100));
-
-				// Perform initial resize
-				const size = this.resize();
-
-				// Create THREE instances
-				this.three.scene = new Scene();
-				this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
-				this.three.camera.position.set(0, -1.25, 1.25);
-				this.three.camera.rotation.set(Math.PI / 4, 0, 0)
-				this.three.camera.up.set(0, 0, 1);
-				this.three.camera.updateProjectionMatrix();
-				this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
-				this.three.renderer.setSize(size.width, size.height);
-				this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
-				this.three.orbitControls.enableKeys = false;
-				this.three.raycaster = new Raycaster();
-
-				// Register this instance in order to deal with size changes
-				if (this.isConnected) {
-					await this.refresh();
-				}
-			}
-		},
 		resize() {
 			if (!this.isActive) {
 				return;
@@ -275,7 +248,7 @@ export default {
 			this.$refs.canvas.height = height;
 
 			// Resize the 3D height map
-			if (this.three.renderer) {
+			if (this.three.renderer && height > 0) {
 				this.three.camera.aspect = width / height;
 				this.three.camera.updateProjectionMatrix();
 				this.three.renderer.setSize(width, height);
@@ -390,9 +363,6 @@ export default {
 			this.probeRadius = probeRadius;
 			this.ready = true;
 			this.render();
-
-			// Resize it again when the values have been changed
-			this.$nextTick(this.resize)
 		},
 		render() {
 			if (this.three.renderer) {
@@ -565,16 +535,34 @@ export default {
 		this.isActive = false;
 	},
 	mounted() {
-		// FIXME give the grid some time to resize everything...
-		setTimeout(this.init, 100);
+		const size = this.resize();
+		if (size.height <= 0) {
+			size.height = 1;
+		}
+
+		// Create THREE instances
+		this.three.scene = new Scene();
+		this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
+		this.three.camera.position.set(0, -1.25, 1.25);
+		this.three.camera.rotation.set(Math.PI / 4, 0, 0)
+		this.three.camera.up.set(0, 0, 1);
+		this.three.camera.updateProjectionMatrix();
+		this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
+		this.three.renderer.setSize(size.width, size.height);
+		this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
+		this.three.orbitControls.enableKeys = false;
+		this.three.raycaster = new Raycaster();
 
 		// Set current heightmap
-		if (this.heightmapFile) {
-			this.selectedFile = Path.extractFileName(this.heightmapFile);
+		if (this.isConnected) {
+			this.refresh();
 		}
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+
+		// Trigger resize event once more to avoid rendering glitches
+		setTimeout(this.resize.bind(this), 250);
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes

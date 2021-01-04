@@ -16,7 +16,7 @@ Bug fixes:
 - When an error occurred during a plugin installation, the upload button became unusable
 - New code editor was always disabled in Chrome-based browsers due to touchscreen detection
 - Standard editor always displayed end of the file
-
+- Sometimes the heightmap could not be shown and only a black frame was displayed
 
 Version 3.2.0-rc2
 =================
