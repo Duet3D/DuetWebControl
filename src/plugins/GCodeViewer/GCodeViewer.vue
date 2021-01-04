@@ -468,7 +468,12 @@ export default {
 			viewer.bed.setBedColor(value);
 		},
 		resize() {
-			this.$refs.primarycontainer.style.height = window.innerHeight - document.getElementById('global-container').clientHeight - document.getElementsByClassName('v-toolbar__content')[0].clientHeight - 22 + 'px';
+			let contentArea =  getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
+			let globalContainer =getComputedStyle(document.getElementById('global-container'));
+			let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
+			let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
+			let globalContainerHeight = parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
+			this.$refs.primarycontainer.style.height = (window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop)) +  'px';
 			if (Object.keys(viewer).length !== 0) {
 				viewer.resize();
 			}
