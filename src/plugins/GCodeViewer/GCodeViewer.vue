@@ -94,8 +94,10 @@
                 </v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close mb-10" @click="drawer = !drawer" :title="$t('plugins.gcodeViewer.showConfiguration')"><v-icon>mdi-cog</v-icon></v-btn>
-				<br/>
-				<v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')"><v-icon>mdi-printer-3d</v-icon></v-btn>
+                <br />
+                <v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')">
+                    <v-icon>mdi-printer-3d</v-icon>
+                </v-btn>
                 <br />
                 <v-btn small class="toggle-menu-button-close" v-show="loading" @click="cancelLoad" :title="$t('plugins.gcodeViewer.cancelLoad')"><v-icon color="red">mdi-cancel</v-icon></v-btn>
             </div>
@@ -107,19 +109,19 @@
                     </v-btn>
                     <v-btn class="mt-2" @click="reloadviewer" :disabled="loading" block :title="$t('plugins.gcodeViewer.reloadView.title') ">
                         <v-icon class="mr-2">mdi-reload-alert</v-icon>
-                        {{ $t('plugins.gcodeViewer.reloadView.caption')  }}
+                        {{ $t('plugins.gcodeViewer.reloadView.caption') }}
                     </v-btn>
                     <v-btn class="mt-2" @click="loadRunningJob" :disabled="!isJobRunning || loading || visualizingCurrentJob" block :title="$t('plugins.gcodeViewer.loadCurrentJob.title')">
                         <v-icon class="mr-2">mdi-printer-3d</v-icon>
-                        {{ $t('plugins.gcodeViewer.loadCurrentJob.caption')  }}
+                        {{ $t('plugins.gcodeViewer.loadCurrentJob.caption') }}
                     </v-btn>
                     <v-btn class="mt-2" @click="clearScene" :disabled="loading" block :title="$t('plugins.gcodeViewer.unloadGCode.title')">
                         <v-icon class="mr-2">mdi-video-3d-off</v-icon>
-                        {{ $t('plugins.gcodeViewer.unloadGCode.caption')  }}
+                        {{ $t('plugins.gcodeViewer.unloadGCode.caption') }}
                     </v-btn>
                     <v-btn class="mt-2" @click="chooseFile" :disabled="loading" block :title="$t('plugins.gcodeViewer.loadLocalGCode.title')">
                         <v-icon>mdi-file</v-icon>
-                        {{ $t('plugins.gcodeViewer.loadLocalGCode.caption')  }}
+                        {{ $t('plugins.gcodeViewer.loadLocalGCode.caption') }}
                     </v-btn>
                     <input ref="fileInput" type="file" :accept="'.g,.gcode,.gc,.gco,.nc,.ngc,.tap'" hidden @change="fileSelected" multiple />
                     <v-switch class="mt-4" v-model="showObjectSelection" :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeViewer.showObjectSelection.title')"></v-switch>
@@ -155,8 +157,10 @@
                         <v-expansion-panel-content>
                             <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                             <v-card v-for="(extruder, index) in extruderColors" :key="index">
-                                <h3>{{$t('plugins.gcodeViewer.tool', [index])}}</h3>
-                                <gcodeviewer-color-picker :editcolor="extruder" @updatecolor="value => {updateColor(index, value);}"></gcodeviewer-color-picker>
+                                <v-card-title> <h3>{{$t('plugins.gcodeViewer.tool', [index])}}</h3></v-card-title>
+                                <v-card-text>
+                                    <gcodeviewer-color-picker :editcolor="extruder" @updatecolor="value => {updateColor(index, value);}"></gcodeviewer-color-picker>
+                                </v-card-text>
                             </v-card>
                             <v-card>
                                 <v-btn block class="mt-4" @click="resetExtruderColors" color="warning">{{$tc('plugins.gcodeViewer.resetColor', extruderColors.length)}}</v-btn>
@@ -179,12 +183,25 @@
                                 <slider v-model="minColorRate" :min="5" :max="500"></slider>
                                 <h4>{{$t('plugins.gcodeViewer.maxFeedrate')}}</h4>
                                 <slider v-model="maxColorRate" :min="5" :max="500"></slider>
-                                <h4>{{$t('plugins.gcodeViewer.minFeedrateColor')}}</h4>
-                                <gcodeviewer-color-picker :editcolor="minFeedColor" @updatecolor="value => updateMinFeedColor(value)"></gcodeviewer-color-picker>
-                                <h4>{{$t('plugins.gcodeViewer.maxFeedrateColor')}}</h4>
-                                <gcodeviewer-color-picker :editcolor="maxFeedColor" @updatecolor="value => updateMaxFeedColor(value)"></gcodeviewer-color-picker>
-                                <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                             </v-card>
+                            <v-card>
+                                <v-card-title>
+                                    <h4>{{$t('plugins.gcodeViewer.minFeedrateColor')}}</h4>
+                                </v-card-title>
+                                <v-card-text>
+                                    <gcodeviewer-color-picker :editcolor="minFeedColor" @updatecolor="value => updateMinFeedColor(value)"></gcodeviewer-color-picker>
+                                </v-card-text>
+                            </v-card>
+                            <v-card>
+                                <v-card-title>
+                                    <h4>{{$t('plugins.gcodeViewer.maxFeedrateColor')}}</h4>
+                                </v-card-title>
+                                <v-card-text>
+                                    <gcodeviewer-color-picker :editcolor="maxFeedColor" @updatecolor="value => updateMaxFeedColor(value)"></gcodeviewer-color-picker>
+                                </v-card-text>
+                            </v-card>
+
+                            <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                     <v-expansion-panel @click="scrollIntoView">
@@ -216,15 +233,20 @@
                         <v-expansion-panel-content>
                             <v-card>
                                 <v-card-title>{{$t('plugins.gcodeViewer.background')}}</v-card-title>
-                                <gcodeviewer-color-picker :editcolor="backgroundColor" @updatecolor="value => updateBackground(value)"></gcodeviewer-color-picker>
+                                <v-card-text>
+                                    <gcodeviewer-color-picker :editcolor="backgroundColor" @updatecolor="value => updateBackground(value)"></gcodeviewer-color-picker>
+                                </v-card-text>
                             </v-card>
                             <v-card>
                                 <v-card-title>{{$t('plugins.gcodeViewer.bedRenderMode')}}</v-card-title>
-                                <v-btn-toggle v-model="bedRenderMode" class="d-flex flex-column">
-                                    <v-btn block :value="0">{{$t('plugins.gcodeViewer.bed')}}</v-btn>
-                                    <v-btn block :value="1">{{$t('plugins.gcodeViewer.volume')}}</v-btn>
-                                </v-btn-toggle>
-                                <gcodeviewer-color-picker :editcolor="bedColor" @updatecolor="value => updateBedColor(value)"></gcodeviewer-color-picker>
+                                <v-card-text>
+                                    <v-btn-toggle v-model="bedRenderMode" class="d-flex flex-column">
+                                        <v-btn block :value="0">{{$t('plugins.gcodeViewer.bed')}}</v-btn>
+                                        <v-btn block :value="1">{{$t('plugins.gcodeViewer.volume')}}</v-btn>
+                                    </v-btn-toggle>
+                                    <br />
+                                    <gcodeviewer-color-picker :editcolor="bedColor" @updatecolor="value => updateBedColor(value)"></gcodeviewer-color-picker>
+                                </v-card-text>
                             </v-card>
                             <v-card>
                                 <v-card-text>
@@ -260,16 +282,14 @@
     </div>
 </template>
 
-
-
 <script>
 'use strict';
 
 import gcodeViewer from './viewer/gcodeviewer.js';
 import { mapActions, mapState } from 'vuex';
 import Path from '../../utils/path.js';
-import {  KinematicsName } from '../../store/machine/modelEnums';
-import { isPrinting } from '../../store/machine/modelEnums.js'
+import { KinematicsName } from '../../store/machine/modelEnums';
+import { isPrinting } from '../../store/machine/modelEnums.js';
 let viewer = {};
 
 export default {
@@ -317,7 +337,7 @@ export default {
 	}),
 	computed: {
 		...mapState('machine/model', ['job', 'move', 'state']),
-		isJobRunning: state =>  isPrinting(state.state.status),
+		isJobRunning: state => isPrinting(state.state.status),
 		visualizingCurrentJob: function (state) {
 			try {
 				return state.job.file.fileName === this.selectedFile && this.isJobRunning;
@@ -468,12 +488,12 @@ export default {
 			viewer.bed.setBedColor(value);
 		},
 		resize() {
-			let contentArea =  getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
-			let globalContainer =getComputedStyle(document.getElementById('global-container'));
+			let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
+			let globalContainer = getComputedStyle(document.getElementById('global-container'));
 			let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
 			let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
 			let globalContainerHeight = parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
-			this.$refs.primarycontainer.style.height = (window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop)) +  'px';
+			this.$refs.primarycontainer.style.height = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop) + 'px';
 			if (Object.keys(viewer).length !== 0) {
 				viewer.resize();
 			}
