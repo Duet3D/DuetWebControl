@@ -161,7 +161,8 @@ export default {
 			return result;
 		},
 		async doUpload(files, zipName, startTime) {
-			if (!files.length) {
+			if (files.length === 0) {
+				// Skip empty upload requests
 				return;
 			}
 
@@ -183,57 +184,59 @@ export default {
 					const notification = this.$makeNotification('info', this.$t('notification.decompress.title'), this.$t('notification.decompress.message'), 0);
 					this.extracting = true;
 					try {
-						await zip.loadAsync(files[0], { checkCRC32: true });
+						try {
+							await zip.loadAsync(files[0], { checkCRC32: true });
 
-						// Check if this is a plugin / TODO improve UI
-						if ((this.target === 'start' || this.target === 'system')) {
-							let isPlugin = false;
+							// Check if this is a plugin
+							if ((this.target === 'start' || this.target === 'system')) {
+								let isPlugin = false;
+								zip.forEach(function(file) {
+									if (file === 'plugin.json') {
+										isPlugin = true;
+									}
+								});
+
+								if (isPlugin) {
+									// TODO improve UI
+									if (confirm('Would you like to install this plugin?')) {
+										await this.installPlugin({
+											zipFilename: files[0].name,
+											zipBlob: files[0],
+											zipFile: zip,
+											start: (this.target === 'start')
+										});
+									}
+									return;
+								}
+							}
+
+							// Get a list of files to unpack
 							zip.forEach(function(file) {
-								if (file === 'plugin.json') {
-									isPlugin = true;
+								if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
+									zipFiles.push(file);
 								}
 							});
 
-							if (isPlugin) {
-								if (confirm('Would you like to install this plugin?')) {
-									await this.installPlugin({
-										zipFilename: files[0].name,
-										zipBlob: files[0],
-										zipFile: zip,
-										start: (this.target === 'start')
-									});
-								}
+							// Could we get anything useful?
+							if (zipFiles.length === 0) {
+								this.extracting = false;
+								this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
 								return;
 							}
-						}
 
-						// Get a list of files to unpack
-						zip.forEach(function(file) {
-							if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
-								zipFiles.push(file);
+							// Extract everything and start the upload
+							for (let i = 0; i < zipFiles.length; i++) {
+								const name = zipFiles[i];
+								zipFiles[i] = await zip.file(name).async('blob');
+								zipFiles[i].name = name;
 							}
-						});
-
-						// Could we get anything useful?
-						if (zipFiles.length === 0) {
+							await this.doUpload(zipFiles, files[0].name, new Date());
+						} finally {
 							this.extracting = false;
-							this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
-							return;
+							notification.hide();
 						}
-
-						// Extract everything and start the upload
-						for (let i = 0; i < zipFiles.length; i++) {
-							const name = zipFiles[i];
-							zipFiles[i] = await zip.file(name).async('blob');
-							zipFiles[i].name = name;
-						}
-						this.extracting = false;
-						notification.hide();
-						await this.doUpload(zipFiles, files[0].name, new Date());
 						return;
 					} catch (e) {
-						this.extracting = false;
-						notification.hide();
 						this.$makeNotification('error', this.$t('notification.decompress.errorTitle'), e.message);
 						throw e;
 					}

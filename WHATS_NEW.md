@@ -1,6 +1,23 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.2.0
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.0
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Apart from the tool fan the first three fans are displayed by default
+- Reduced extrusion slider step size from 5% to 1%
+
+Bug fixes:
+- When an error occurred during a plugin installation, the upload button became unusable
+- New code editor was always disabled in Chrome-based browsers due to touchscreen detection
+- Standard editor always displayed end of the file
+
+
 Version 3.2.0-rc2
 =================
 

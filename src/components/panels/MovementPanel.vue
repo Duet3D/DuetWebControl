@@ -21,7 +21,7 @@
 
 			<v-menu offset-y left :disabled="uiFrozen">
 				<template #activator="{ on }">
-					<v-btn v-show="visibleAxes.length" color="primary" small class="mx-0" :disabled="uiFrozen" v-on="on">
+					<v-btn v-show="visibleAxes.length" color="primary" small class="mx-0" :disabled="uiFrozen" :elevation="1" v-on="on">
 						{{ $t('panel.movement.compensation') }} <v-icon>mdi-menu-down</v-icon>
 					</v-btn>
 				</template>

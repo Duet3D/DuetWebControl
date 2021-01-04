@@ -65,7 +65,7 @@ textarea {
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
 				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
 					<template #activator>
-						<v-list-item-title>{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
+						<v-list-item-title class="mr-0">{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
 					</template>
 
 					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
@@ -93,7 +93,7 @@ textarea {
 
 			<v-spacer></v-spacer>
 
-			<upload-btn target="start" class="mr-3 hidden-sm-and-down"></upload-btn>
+			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"></upload-btn>
 			<emergency-btn class="hidden-xs-only"></emergency-btn>
 
 			<v-btn icon class="hidden-md-and-up ml-3" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
@@ -103,7 +103,7 @@ textarea {
 
 		<v-main id="content">
 			<v-scroll-y-transition>
-				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
+				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid>
 					<v-row>
 						<v-col cols="12" sm="6" md="4" lg="4" xl="4">
 							<status-panel></status-panel>
@@ -122,7 +122,7 @@ textarea {
 
 			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
 
-			<v-container fluid class="pt-0">
+			<v-container fluid>
 				<keep-alive>
 					<router-view></router-view>
 				</keep-alive>

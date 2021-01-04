@@ -113,7 +113,7 @@ h1 {
 
 					<v-switch v-model="invertZ" :label="$t('plugins.heightmap.invertZ')" :disabled="uiFrozen || loading || !ready"></v-switch>
 
-					<v-btn @click="topView" :disabled="uiFrozen || loading || !ready" class="ml-0 mt-3" >
+					<v-btn @click="topView" :disabled="uiFrozen || loading || !ready" :elevation="1" class="ml-0 mt-3" >
 						<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('plugins.heightmap.topView') }}
 					</v-btn>
 				</v-card-text>

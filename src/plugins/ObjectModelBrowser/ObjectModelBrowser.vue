@@ -5,7 +5,7 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn color="info" :disabled="uiFrozen" @click="refresh">
+			<v-btn color="info" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
 		</v-toolbar>

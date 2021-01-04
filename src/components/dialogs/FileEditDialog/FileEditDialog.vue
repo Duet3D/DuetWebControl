@@ -133,17 +133,9 @@ export default {
 			return Path.startsWith(this.filename, this.menuDirectory);
 		},
 		isTouchDevice() {
-			if ('ontouchstart' in window || window.TouchEvent) {
-				return true;
-			}
-
-			if (window.DocumentTouch && document instanceof window.DocumentTouch) {
-				return true;
-			}
-
-			const prefixes = ['', '-webkit-', '-moz-', '-o-', '-ms-'];
-			const queries = prefixes.map(prefix => `(${prefix}touch-enabled)`);
-			return window.matchMedia(queries.join(',')).matches;
+			return ('ontouchstart' in window) ||
+				(navigator.maxTouchPoints > 0) ||
+				(navigator.msMaxTouchPoints > 0); 
 		}
 	},
 	data() {
@@ -198,12 +190,13 @@ export default {
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
-				// If using the editor, scroll to the top again to avoid glitches
+				// Scroll to the top again to avoid glitches
 				setTimeout(() => {
 					if (this.$refs.cmEditor) {
 						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 						this.$refs.cmEditor.cminstance.focus();
 					} else {
+						this.$refs.textarea.scrollTo(0, 0);
 						this.$refs.textarea.focus();
 					}
 				}, 250);

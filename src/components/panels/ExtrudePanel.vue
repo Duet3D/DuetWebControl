@@ -40,10 +40,10 @@
 					</v-btn-toggle>
 				</v-col>
 				<v-col cols="auto" class="flex-shrink-1">
-					<v-btn block tile :disabled="uiFrozen || !canRetract" :loading="busy" @click="buttonClicked(false)">
+					<v-btn block tile :disabled="uiFrozen || !canRetract" :elevation="1" :loading="busy" @click="buttonClicked(false)">
 						<v-icon>mdi-arrow-up-bold</v-icon> {{ $t('panel.extrude.retract') }}
 					</v-btn>
-					<v-btn block tile :disabled="uiFrozen || !canExtrude" :loading="busy" @click="buttonClicked(true)">
+					<v-btn block tile :disabled="uiFrozen || !canExtrude" :elevation="1" :loading="busy" @click="buttonClicked(true)">
 						<v-icon>mdi-arrow-down-bold</v-icon> {{ $t('panel.extrude.extrude') }}
 					</v-btn>
 				</v-col>

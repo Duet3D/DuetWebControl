@@ -29,7 +29,7 @@ export default function(connector, pluginSettingFields) {
 			codes: ['M0', 'M1', 'M84'],
 			displayedExtraTemperatures: [],
 			displayedExtruders: [0, 1],
-			displayedFans: [-1],
+			displayedFans: [-1, 0, 1, 2],
 			moveSteps: {								// mm
 				X: [100, 50, 10, 1, 0.1],
 				Y: [100, 50, 10, 1, 0.1],

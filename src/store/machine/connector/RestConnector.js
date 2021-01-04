@@ -269,8 +269,8 @@ export default class RestConnector extends BaseConnector {
 				this.pingTask = undefined;
 			}
 
-			this.socket = null;
 			this.socket.close();
+			this.socket = null;
 		}
 	}
 

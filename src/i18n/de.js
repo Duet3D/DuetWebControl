@@ -139,7 +139,8 @@ export default {
 		temperature: {
 			caption: 'Temperaturdiagramm',
 			heater: 'Heizer {0}',
-			noData: 'Keine Daten'
+			noData: 'Keine Daten',
+			sensor: 'Sensor {0}'
 		}
 	},
 	dialog: {
