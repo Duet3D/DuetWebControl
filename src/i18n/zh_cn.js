@@ -1,4 +1,4 @@
-// 注释：更新到2.1.7，实际版本为2.1.3
+// 注释：更新到3.3dev 2021-1-19
 // 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
@@ -141,6 +141,7 @@ export default {
 		temperature: {
 			caption: '温度图表',
 			heater: '加热器{0}',
+			sensor: '传感器 {0}',// 注释：dev3.3更新
 			noData: '没有数据'
 		}
 	},
@@ -193,6 +194,20 @@ export default {
 			save: '保存',
 			confirmClose: '文件已修改。如果继续，您的修改将丢失。'
 		},
+		fileTransfer: {// 注释：dev3.3更新
+			uploadingTitle: '正在上传文件第{0}个，共{1}个，{2}%已完成',
+			uploadDoneTitle: '上传已完成！',
+			uploadFailedTitle: '上传失败！',
+			downloadingTitle: '正在下载文件第{0}个，共{1}个，{2}%已完成',
+			downloadDoneTitle: '下载完成',
+			downloadFailedTitle: '下载失败！',
+			filename: '文件名',
+			size: '大小',
+			progress: '进度',
+			currentSpeed: '当前速度： {0}',
+			cancelUploads: '取消上传',
+			cancelDownloads: '取消下载'
+		},
 		meshEdit: {
 			title: '设置网格参数',
 			radius: '探测半径',
@@ -219,7 +234,7 @@ export default {
 		},
 		resetHeaterFault: {
 			title: '重置加热器故障',
-		prompt: '加热器{0}发生加热器故障。强烈建议立即关闭机器并在继续之前检查接线。 如果您确认这不是硬件问题，您可以重置加热器故障，【自担风险】！请注意这是【不推荐】的，可能会导致进一步的问题。 你想怎样处理？',
+			prompt: '加热器{0}发生加热器故障。强烈建议立即关闭机器并在继续之前检查接线。 如果您确认这不是硬件问题，您可以重置加热器故障，【自担风险】！请注意这是【不推荐】的，可能会导致进一步的问题。 你想怎样处理？',
 			resetFault: '重置故障'
 		},
 		runMacro: {
@@ -232,7 +247,9 @@ export default {
 		},
 		update: {
 			title: '安装更新？',
-			prompt: '您已上传至少一个固件更新。你想现在安装吗？'
+			prompt: '您已上传至少一个固件更新。你想现在安装吗？',
+			resetTitle: '要重置固件吗？',
+			resetPrompt: '您刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？'
 		},
 		inputRequired: '请输入一个值',
 		numberRequired: '请输入有效的数值'
@@ -263,7 +280,6 @@ export default {
 		uploadStartWrongFileCount: '只能上传和启动单个文件',
 		uploadNoSingleZIP: '一次只能上传一个ZIP文件',
 		uploadNoFiles: '此ZIP不包含任何可用文件',
-		uploadDecompressionFailed: '无法解压缩ZIP文件',
 		codeResponse: '无法运行代码，因为收到了错误的响应',
 		codeBuffer: '可以运行代码，因为缓冲区空间已用完',
 		enterValidNumber: '请输入有效的数值',
@@ -303,6 +319,7 @@ export default {
 			offline: '离线'
 		},
 		status: {
+			starting: '正在启动',// 注释：dev 3.3更新
 			updating: '正在更新',
 			off: '关闭',
 			halted: '已停止',
@@ -348,7 +365,6 @@ export default {
 	},
 	list: {
 		baseFileList: {
-			driveUnmounted: '驱动器未装载',
 			fileName: '文件名',
 			size: '大小',
 			lastModified: '最后修改',
@@ -358,6 +374,7 @@ export default {
 			delete: '删除',
 			downloadZIP: '下载为ZIP',
 			noFiles: '没有文件或者目录',
+			driveUnmounted: '驱动器未装载',
 			goUp: '转到顶部'
 		},
 		menu: {
@@ -402,14 +419,12 @@ export default {
 		control: {
 			caption: '机器控制',
 			dashboard: '仪表板',
-			console: '控制台',
-			heightmap: '高度图'
+			console: '控制台'
 		},
 		job: {
 			caption: '当前任务',
 			status: '状态',
-			webcam: '摄像头',
-			visualizer: '显示'
+			webcam: '摄像头'
 		},
 		files: {
 			caption: '文件管理',
@@ -420,11 +435,13 @@ export default {
 			system: '系统',
 			web: '网页'
 		},
+		plugins: {
+			caption: '插件'
+		},
 		settings: {
 			caption: '设置',
 			general: '常规',
-			machine: '机器特性',
-			update: '更新'
+			machine: '机器特性'
 		}
 	},
 	notification: {
@@ -432,6 +449,11 @@ export default {
 			title: '正在压缩文件...',
 			message: '你的文件已经开始压缩，请等待...',
 			errorTitle: '压缩文件失败'
+		},
+		decompress: {// 注释：dev 3.3更新
+			title: '正在解压缩文件...',
+			message: '文件已经开始解压缩，请等待...',
+			errorTitle: '解压缩文件失败'
 		},
 		delete: {
 			errorTitle: '删除{0}失败',
@@ -448,7 +470,6 @@ export default {
 			title: '正在下载{0} @ {1}, {2}%完成',
 			message: '文件已经开始下载，请等待...',
 			success: '已成功下载{0}，总计{1}',
-			successMulti: '已成功下载{0}文件',
 			error: '下载{0}失败'
 		},
 		message: '消息',
@@ -480,7 +501,6 @@ export default {
 			title: '正在上传{0} @ {1}, {2}%完成',
 			message: '文件已经开始上传，请等待...',
 			success: '已成功上传{0}，总计{1}',
-			successMulti: '已成功上传{0}文件',
 			error: '上传{0}失败'
 		}
 	},
@@ -607,6 +627,11 @@ export default {
 			dwsFirmware: 'Duet WiFi Server版本：{0}',
 			updateNote: '注意：您可以在“系统”页面上安装更新。'
 		},
+		settingsEndstops: {
+			caption: '限位开关',
+			index: '序号',
+			triggered: '触发'
+		},
 		settingsGeneral: {
 			caption: '常规',
 			factoryReset: '恢复出厂默认设置',
@@ -614,11 +639,6 @@ export default {
 			settingsSaveDelay: '设置更改的更新延迟（{0}）',
 			cacheStorageLocal: '将缓存保存在本地存储中',
 			cacheSaveDelay: '缓存更改的更新延迟（{0}）'
-		},
-		settingsEndstops: {
-			caption: '限位开关',
-			index: '序号',
-			triggered: '触发'
 		},
 		settingsListItems: {
 			caption: '列表项目',
@@ -639,8 +659,8 @@ export default {
 		},
 		settingsWebcam: {
 			caption: '网络摄像头',
-			webcamURL: '网络摄像头URL（可选）',
 			webcamLiveURL: '单击Webcam图像时打开的URL（可选）',
+			webcamURL: '网络摄像头URL（可选）',
 			webcamUpdateInterval: '网络摄像头更新间隔（{0}）',
 			webcamFix: '重新加载图像时，请勿附加HTTP限定符',
 			webcamEmbedded: '在iframe中嵌入网络摄像头图像',
@@ -704,24 +724,145 @@ export default {
 			alt: '(网络摄像头图像)'
 		}
 	},
-	plugins: {
+	plugins: {// 注释：dev 3.3更新
+		autoUpdate: {
+			menuCaption: '更新'
+		},
+		gcodeViewer: {
+			caption: 'G-Code预览器',
+			view3D: '预览3D模型',
+			fullscreen: '全屏',
+			showConfiguration: '显示预览器配置',
+			resetCamera: {
+				caption : '重置视图',
+				title: '重置视图到初始位置'
+			},
+			cancelLoad: '取消文件载入',
+			reloadView: { 
+				caption : '重新加载预览',
+				title : '重新载入当前G-Code文件，当更改模型颜色、进给率颜色等设置时，需要重新加载当前G-Code文件。'
+			},
+			loadCurrentJob:  { 
+				caption :'载入当前任务',  
+				title : '载入当前正在打印或者正在模拟的任务'
+			},
+			unloadGCode:  { 
+				caption: '卸载G-Code文件',
+				title : '从预览器移除已加载的G-Code文件'
+			},
+			loadLocalGCode: { 
+				caption : '载入本地G-Code文件',
+				title : '从本地驱动器载入一个文件到预览器'
+			},
+			showCursor: '显示光标',
+			showTravels: '显示路径',
+			renderQuality: {
+				caption : '渲染质量',
+				title : '调整预览器的可视化质量。等级越高，可用的顶点和渲染模式越多。'
+			},
+			sbc: '单板机',
+			low: '低',
+			medium: '中',			
+			high: '高',
+			ultra: '超高',
+			max: '最高',
+			forceLineRendering: '强制线性渲染',
+			transparency: '透明度',
+			showSolid: '显示实心',
+			spreadLines: '展开线条',
+			extruders: {
+				caption:  '挤出机',
+				title : '设置挤出机渲染颜色'
+			},
+			tool: '工具{0}',
+			resetColor: '重置工具颜色|重置工具颜色',
+			renderMode : {
+				caption : '渲染模式|渲染模式',
+				title : '渲染模式允许您在预览器中设置挤出机颜色或进给率线颜色。'
+			},
+			color: '颜色',
+			feedrate: '进给率',
+			minFeedrate: '最小进给率（mm/s）',
+			maxFeedrate: '最大进给率（mm/s）',
+			minFeedrateColor: '最小进给率颜色',
+			maxFeedrateColor: '最大进给率颜色',
+			progress: {
+				caption : '进度',
+				title: '设置已打印部分颜色以追踪打印进度'
+			},
+			topClipping: '顶部剪裁',
+			bottomClipping:'底部剪裁',
+			progressColor: '进度颜色',
+			liveZTracking: '实时Z追踪',
+			settings: '设置',
+			background: '背景',
+			bedRenderMode:  '热床渲染模式',
+			bed: '热床',
+			volume: '体积',
+			showAxes: '显示轴',
+			showObjectLabels: '显示对象标签',
+			cameraInertia: '视图惯性',
+			showObjectSelection: {
+				caption : '显示对象选择',
+				title : '如果可以在当前打印中检测到对象则启用'
+			},
+			renderFailed: '上一次渲染失败，将渲染质量设置为单板机（SBC）。',
+		},
 		heightmap: {
+			menuCaption: '高度图',
+			listTitle: '高度图',
+			none: '没有',
 			scale: '比例：',
 			orMore: '更大',
 			orLess: '更小',
 			axes: '轴：',
-			notAvailable: '高度图无效',
-			numPoints: '点数: {0}',
-			radius: '探测半径: {0}',
-			area: '探测面积: {0}',
-			maxDeviations: '最大偏差: {0} / {1}',
-			meanError: '平均误差: {0}',
-			rmsError: '均方误差: {0}',
-			topView: '顶视图',
-			colorScheme: '配色方案:',
+			notAvailable: '高度图不可用',
+			statistics: '统计',
+			numPoints: '探测点数：{0}',
+			radius: '探测半径：{0}',
+			area: '探测面积：{0}',
+			maxDeviations: '最大偏差：{0} / {1}',
+			meanError: '平均误差：{0}',
+			rmsError: '均方根差：{0}',
+			display: '显示',
+			colorScheme: '配色方案：',
 			terrain: '地形',
 			heat: '热力',
-			reload: '重载高度图'
+			invertZ: '翻转Z轴坐标',
+			topView: '顶视图',
+		},
+		objectModelBrowser: {
+			menuCaption: '对象模型'
+		}
+	},
+	tabs: {
+		generalSettings: {
+			caption: '常规'
+		},
+		machineSettings: {
+			caption: '常规'
+		},
+		plugins: {
+			caption: '插件',
+			headers: {
+				name: '名称',
+				author: '作者',
+				version: '版本',
+				license: '授权',
+				components: '组件',
+				dependencies: '依赖',
+				status: '状态'
+			},
+			optional: '可选的',
+			start: '启动',
+			partiallyStarted: '部分已启动',
+			started: '已启动',
+			stop: '停止',
+			deactivated: '已停用',
+			stopped: '已停止',
+			uninstall: '卸载',
+			noPlugins: '没有插件',
+			refreshNote: '刷新页面，完成DWC插件的卸载'
 		}
 	}
 }
