@@ -1,6 +1,18 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3.0-b1
+================
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.0
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Auto-indentation used spaces regardless of last line indentation type
+- Fixed reset prompt for 0:/sys/board.txt (for STM and LPC users only)
+- Upload errors for dwc-settings and dwc-cache are no longer displayed
+
 Version 3.2.0
 =============
 

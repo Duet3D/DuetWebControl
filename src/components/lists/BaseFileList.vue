@@ -41,7 +41,7 @@ td {
 			</template>
 
 			<template #item="props">
-				<tr v-ripple :active="props.isSelected" @keydown.space.prevent="props.select(!props.isSelected)"
+				<tr :active="props.isSelected" @keydown.space.prevent="props.select(!props.isSelected)"
 					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd"
 					@click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
 					@contextmenu.stop.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"

@@ -1227,6 +1227,13 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	async uninstallPlugin(plugin) {
+		// Make sure uninstalling this plugin does not break any dependencies
+		for (let i = 0; i < this.plugins.length; i++) {
+			if (this.plugins[i].name !== plugin && this.plugins[i].dwcDependencies.indexOf(plugin) !== -1) {
+				throw new Error(`Cannot uninstall plugin because plugin ${this.plugins[i].name} depends on it`);
+			}
+		}
+
 		// Uninstall the plugin manifest
 		await this.commit('model/removePlugin', plugin);
 

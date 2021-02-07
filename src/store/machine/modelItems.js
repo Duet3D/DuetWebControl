@@ -117,9 +117,9 @@ export class BuildObject {
 
 export class Endstop {
 	constructor(initData) { quickPatch(this, initData); }
+	highEnd = false
 	triggered = false
 	type = EndstopType.unknown
-	probeNumber = null			// *** missing in RRF
 }
 
 export class Extruder {
@@ -405,9 +405,13 @@ export class NetworkInterface {
 	subnet = null
 	type = NetworkInterfaceType.wifi
 
+	// *** missing in DSF:
+	state = null				// one of [null, 'disabled', 'enabled', 'starting1', 'starting2', 'changingMode', 'establishingLink', 'obtainingIP', 'connected', 'active']
+
 	// *** missing in RRF:
-	activeProtocols = []		// one or more of ['http', 'ftp', 'telnet']
+	activeProtocols = []		// one or more of ['http', 'https', 'ftp', 'sftp', 'ssh', 'telnet']
 	configuredIP = null
+	dnsServer = null
 	numReconnects = null
 	signal = null				// only WiFi (dBm)
 	speed = null				// null if unknown and 0 if no link

@@ -504,9 +504,14 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				const manifestJson = JSON.parse(await zipFile.file('plugin.json').async('string'));
 				const plugin = new Plugin(manifestJson);
 
+				// Check plugin name
+				if (!plugin.name || plugin.name.length > 64 || !plugin.name.match(/^[0-9a-zA-Z -_]+$/)) {
+					throw new Error(`Invalid plugin name '${plugin.name};`);
+				}
+
 				// Is the plugin compatible to the running DWC version?
 				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-					throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+					throw new Error(`Plugin ${plugin.name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
 				}
 
 				// Install the plugin

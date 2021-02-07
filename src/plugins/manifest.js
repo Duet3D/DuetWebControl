@@ -31,33 +31,31 @@ export class PluginManifest {
 export const SbcPermission = {
 	// - DSF
 	commandExecution: 'commandExecution',						// Execute generic commands
-	codeInterceptionRead: 'codeInterceptionRead',				// Intercept codes in a non-blocking way
+	codeInterceptionRead: 'codeInterceptionRead',				// Intercept codes but don't interact with them
 	codeInterceptionReadWrite: 'codeInterceptionReadWrite',		// Intercept codes in a blocking way with options to resolve or cancel them
 	managePlugins: 'managePlugins',								// Install, load, unload, and uninstall plugions
 	manageUserSessions: 'manageUserSessions',					// Manage user sessions
 	objectModelRead: 'objectModelRead',							// Read from the object model
 	objectModelReadWrite: 'objectModelReadWrite',				// Read from and write to the object model
 	registerHttpEndpoints: 'registerHttpEndpoints',				// Create new HTTP endpoints
-
-	// --- Reserved permissions (will require AppArmor and elevation service) ---
 	// - Virtual SD
-	readFilaments: 'readFilaments',								// Read files in 0:/filaments
-	writeFilaments: 'writeFilaments',							// Write files in 0:/filaments
-	readFirmware: 'readFirmware',								// Read files in 0:/firmware
-	writeFirmware: 'writeFirmware',								// Write files in 0:/firmware
-	readGCodes: 'readGCodes',									// Read files in 0:/gcodes
-	writeGCodes: 'writeGCodes',									// Write files in 0:/gcodes
-	readMacros: 'readMacros',									// Read files in 0:/macros
-	writeMacros: 'writeMacros',									// Write files in 0:/macros
-	readMenu: 'readMenu',										// Read files in 0:/menu
-	writeMenu: 'writeMenu',										// Write files in 0:/menu
-	readSystem: 'readSystem',									// Read files in 0:/sys
-	writeSystem: 'writeSystem',									// Write files in 0:/sys
-	readWeb: 'readWeb',											// Read files in 0:/www
-	writeWeb: 'writeWeb',										// Write files in 0:/www
+	readFilaments: 'readFilaments',								// Read files from 0:/filaments
+	writeFilaments: 'writeFilaments',							// Write files to 0:/filaments
+	readFirmware: 'readFirmware',								// Read files from 0:/firmware
+	writeFirmware: 'writeFirmware',								// Write files to 0:/firmware
+	readGCodes: 'readGCodes',									// Read files from 0:/gcodes
+	writeGCodes: 'writeGCodes',									// Write files to 0:/gcodes
+	readMacros: 'readMacros',									// Read files from 0:/macros
+	writeMacros: 'writeMacros',									// Write files to 0:/macros
+	readMenu: 'readMenu',										// Read files from 0:/menu
+	writeMenu: 'writeMenu',										// Write files to 0:/menu
+	readSystem: 'readSystem',									// Read files from 0:/sys
+	writeSystem: 'writeSystem',									// Write files to 0:/sys
+	readWeb: 'readWeb',											// Read files from 0:/www
+	writeWeb: 'writeWeb',										// Write files to 0:/www
 	// - OS
 	fileSystemAccess: 'fileSystemAccess',						// Access files outside the virtual SD directory (as DSF user)
 	launchProcesses: 'launchProcesses',							// Launch new processes
 	networkAccess: 'networkAccess',								// Communicate over the network
-	superUser: 'superUser'										// Launch process as root user (for full device control - potentially dangerous)
+	superUser: 'superUser'										// Launch process as root user (potentially dangerous)
 }

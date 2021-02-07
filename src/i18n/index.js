@@ -7,6 +7,7 @@ import en from './en.js'
 import de from './de.js'
 import es from './es.js'
 import fr from './fr.js'
+import pt_br from './pt_br.js'
 import ru from './ru.js'
 import tr from './tr.js'
 import zh_cn from './zh_cn.js'
@@ -18,6 +19,7 @@ const messages = {
 	de,
 	es,
 	fr,
+	pt_br,
 	ru,
 	tr,
 	zh_cn

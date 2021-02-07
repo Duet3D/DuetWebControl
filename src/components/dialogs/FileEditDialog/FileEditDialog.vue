@@ -118,6 +118,7 @@ export default {
 			return {
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
+				indentWithTabs: true,
 				lineNumbers: true,
 				styleActiveLine: true
 			}
