@@ -118,6 +118,7 @@ export default {
 			return {
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
+				indentWithTabs: true,
 				lineNumbers: true,
 				styleActiveLine: true
 			}
@@ -196,7 +197,7 @@ export default {
 						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 						this.$refs.cmEditor.cminstance.focus();
 					} else {
-						this.$refs.textarea.scrollTo(0, 0);
+						this.$refs.textarea.scrollLeft = this.$refs.textarea.scrollTop = 0;
 						this.$refs.textarea.focus();
 					}
 				}, 250);

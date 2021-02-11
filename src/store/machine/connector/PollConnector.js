@@ -112,7 +112,7 @@ export default class PollConnector extends BaseConnector {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
 					// with the last-known password and retry the pending request if that succeeds
-					BaseConnector.request('GET', `${that.requestBase}/rr_connect`, {
+					BaseConnector.request('GET', `${that.requestBase}rr_connect`, {
 							password: that.password,
 							time: timeToStr(new Date())
 						})
@@ -198,7 +198,10 @@ export default class PollConnector extends BaseConnector {
 		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.requestBase = (hostname === location.host) ? `${location.protocol}//${hostname}${process.env.BASE_URL}` : `http://${hostname}/`;
+		this.requestBase = `${location.protocol}//${hostname + process.env.BASE_URL}`;
+		if (!this.requestBase.endsWith('/')) {
+			this.requestBase += '/';
+		}
 		this.sessionTimeout = responseData.sessionTimeout;
 		this.apiLevel = responseData.apiLevel || 0;
 	}
@@ -208,7 +211,7 @@ export default class PollConnector extends BaseConnector {
 		this.requestTimeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
-		// notifications even while DWC2 is running in the background. However, we cannot do
+		// notifications even while DWC is running in the background. However, we cannot do
 		// this because ServiceWorkers require secured HTTP connections, which are no option
 		// for standard end-users. That is also the reason why they are disabled in the build
 		// script, which by default is used for improved caching

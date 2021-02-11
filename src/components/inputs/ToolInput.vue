@@ -106,9 +106,9 @@ export default {
 					if (this.spindle) {
 						// Set Spindle RPM
 						if (this.inputValue >= 0) {
-							this.sendCode(`M3 P${this.spindleIndex} S${this.inputValue}`);
+							await this.sendCode(`M3 P${this.spindleIndex} S${this.inputValue}`);
 						} else {
-							this.sendCode(`M4 P${this.spindleIndex} S${-this.inputValue}`);
+							await this.sendCode(`M4 P${this.spindleIndex} S${-this.inputValue}`);
 						}
 					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {

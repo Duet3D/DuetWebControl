@@ -45,6 +45,7 @@ export default {
 	computed: mapState('settings', ['darkTheme']),
 	data() {
 		return {
+			originalMargin: null,
 			input: null,
 			keyboard: null
 		}
@@ -90,6 +91,9 @@ export default {
 							}
 						});
 						this.keyboard.setInput('');
+					} else if (e.target.type == 'textarea') {
+						this.originalMargin = e.target.style.marginBottom;
+						e.target.style.marginBottom = `${this.$refs.keyboard.offsetHeight}px`;
 					}
 
 					// Add some space at the bottom so the keyboard does not cover inputs 
@@ -99,16 +103,19 @@ export default {
 			}
 		},
 		globalClick() {
-			if (document.activeElement != this.input) {
+			if (document.activeElement !== this.input) {
 				// Hide the keyboard when a user clicks/taps outside the keyboard and selected input
 				this.hide();
 			}
 		},
 		hide() {
-			this.input = null;
-			this.keyboard = null;
-			document.body.style.marginBottom = '0px';
-			window.oskOpen = false;
+			if (this.keyboard !== null) {
+				window.oskOpen = false;
+				document.body.style.marginBottom = '0px';
+				this.input.style.marginBottom = this.originalMargin;
+				this.input = this.originalMargin = null;
+				this.keyboard = null;
+			}
 		},
 		onInput(e) {
 			this.keyboard.setInput(e.target.value);
