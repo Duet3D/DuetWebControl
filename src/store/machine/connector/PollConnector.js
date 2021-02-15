@@ -494,6 +494,8 @@ export default class PollConnector extends BaseConnector {
 					axes: tool.axisMap,
 					fans: bitmapToArray(tool.fans),
 					filamentExtruder: (tool.drives.length > 0) ? tool.drives[0] : -1,
+					spindle: tool.spindle,
+					spindleRpm: tool.spindleRpm,
 					offsets: tool.offsets
 				})) : []
 			});
@@ -671,7 +673,6 @@ export default class PollConnector extends BaseConnector {
 				spindles: response.spindles.map(spindle => ({
 					active: spindle.active,
 					current: spindle.current,
-					tool: spindle.tool
 				}))
 			});
 		}

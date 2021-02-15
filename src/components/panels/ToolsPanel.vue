@@ -108,18 +108,34 @@ table.extra tr > td:first-child {
 
 								<template v-if="!toolHeater && getSpindle(tool)">
 									<!-- Spindle Name -->
-									<th>
-										<!-- unused -->
-									</th>
+									<td>
+										<v-row dense v-if="state.currentTool == tool.number">
+											<v-col>
+												<code-btn :code="`M4`" no-wait small>
+													<v-icon>mdi-rotate-left</v-icon>
+												</code-btn>
+												<code-btn :code="`M3`" no-wait small>
+													<v-icon>mdi-rotate-right</v-icon>
+												</code-btn>
+											</v-col>
+										</v-row>
+										<v-row dense v-if="state.currentTool == tool.number">
+											<v-col>
+												<code-btn :code="`M5`" no-wait small>
+													<v-icon>mdi-stop</v-icon>
+												</code-btn>
+											</v-col>
+										</v-row>
+									</td>
 
 									<!-- Current RPM -->
 									<td class="text-center">
-										{{ $display(getSpindle(tool).current, 0, $t('generic.rpm')) }}
+										{{ $display(getSpindleSpeed(tool), 0, $t('generic.rpm')) }}
 									</td>
 
 									<!-- Active RPM -->
 									<td>
-										<tool-input :spindle="getSpindle(tool)" :spindle-index="getSpindleIndex(tool)" active></tool-input>
+										<tool-input :tool="tool" :spindle="getSpindle(tool)" :spindle-index="getSpindleIndex(tool)" active></tool-input>
 									</td>
 
 									<!-- Standby RPM -->
@@ -216,7 +232,7 @@ table.extra tr > td:first-child {
 									<!-- Heater standby -->
 									<td class="pl-1 pr-2">
 										<tool-input :bed="bedHeater" :bed-index="bedIndex" standby></tool-input>
-									</td>	
+									</td>
 								</tr>
 							</template>
 						</template>
@@ -266,7 +282,7 @@ table.extra tr > td:first-child {
 									<!-- Heater standby -->
 									<td class="pl-1 pr-2">
 										<tool-input :chamber="chamberHeater" :chamber-index="chamberIndex" standby></tool-input>
-									</td>	
+									</td>
 								</tr>
 							</template>
 						</template>
@@ -315,7 +331,7 @@ table.extra tr > td:first-child {
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
-import { AnalogSensorType, HeaterState } from '../../store/machine/modelEnums.js'
+import { AnalogSensorType, HeaterState, SpindleState } from '../../store/machine/modelEnums.js'
 import { getHeaterColor, getExtraColor } from '../../utils/colors.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
@@ -410,7 +426,7 @@ export default {
 			this.tools.forEach(function(tool) {
 				if (tool && tool.heaters.length) {
 					const temps = tool.heaters.map(() => '-273.15').join(':');
-					code += `G10 P${tool.number} R${temps} S${temps}\n`;
+					code += `M568 P${tool.number} R${temps} S${temps}\n`;
 				}
 			});
 			this.heat.bedHeaters.forEach(function(bedHeater, index) {
@@ -513,7 +529,7 @@ export default {
 			code += 'M702';
 			this.sendCode(code);
 		},
-		
+
 		getToolHeaters(tool) {
 			const toolHeaters = tool.heaters
 				.filter(heaterIndex => heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex], this)
@@ -533,7 +549,7 @@ export default {
 
 				case HeaterState.standby:	// Standby -> Off
 					offTemps = tool.active.map(() => '-273.15').join(':');
-					this.sendCode(`G10 P${tool.number} S${offTemps} R${offTemps}`);
+					this.sendCode(`M568 P${tool.number} S${offTemps} R${offTemps}`);
 					break;
 
 				case HeaterState.active:	// Active -> Standby
@@ -548,10 +564,16 @@ export default {
 		},
 
 		getSpindle(tool) {
-			return this.spindles.find(spindle => spindle.tool === tool.number);
+			let spindle = this.spindles.find(spindle => spindle.tool === tool.number);
+			return spindle ? spindle : this.spindles[tool.spindle];
 		},
 		getSpindleIndex(tool) {
-			return this.spindles.findIndex(spindle => spindle.tool === tool.number);
+			let spindleIndex = this.spindles.findIndex(spindle => spindle.tool === tool.number);
+			return spindleIndex && spindleIndex > -1 ? spindleIndex : tool.spindle;
+		},
+		getSpindleSpeed(tool) {
+			let spindle = this.getSpindle(tool);
+			return spindle ? (spindle.state === SpindleState.reverse) ? -spindle.current : spindle.current : 0;
 		},
 
 		// Beds

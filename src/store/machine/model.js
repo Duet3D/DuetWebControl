@@ -280,14 +280,18 @@ export const DefaultMachineModel = new MachineModel({
 			active: [0],
 			standby: [0],
 			heaters: [1],
-			extruders: [0]
+			extruders: [0],
+			spindle: -1,
+			spindleRpm: 0,
 		}),
 		new Tool({
 			number: 1,
 			active: [0],
 			standby: [0],
 			heaters: [2],
-			extruders: [1]
+			extruders: [1],
+			spindle: -1,
+			spindleRpm: 0,
 		})
 	]
 })

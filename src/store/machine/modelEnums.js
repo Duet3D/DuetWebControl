@@ -205,6 +205,12 @@ export const StatusType = {
 	idle: 'idle'
 }
 
+export const SpindleState = {
+	stopped: 'stopped',
+	forward: 'forward',
+	reverse: 'reverse'
+}
+
 export const ToolState = {
 	off: 'off',
 	active: 'active',

@@ -26,7 +26,10 @@ export default {
 			if (this.disableAutoComplete) {
 				return [];
 			}
-			
+
+			if (this.spindle) {
+				return this.spindleRPM;
+			}
 			const key = this.active ? 'active' : 'standby';
 			if (this.tool || this.all) {
 				return this.temperatures.tool[key];
@@ -36,9 +39,6 @@ export default {
 			}
 			if (this.chamber) {
 				return this.temperatures.chamber;
-			}
-			if (this.spindle) {
-				return this.spindleRPM;
 			}
 
 			console.warn('[tool-input] Failed to retrieve temperature presets');
@@ -105,17 +105,14 @@ export default {
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
-						if (this.inputValue >= 0) {
-							await this.sendCode(`M3 P${this.spindleIndex} S${this.inputValue}`);
-						} else {
-							await this.sendCode(`M4 P${this.spindleIndex} S${-this.inputValue}`);
-						}
+						await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
+						//this.actualValue = parseFloat(this.inputValue);
 					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {
 							// Set tool temps
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
 							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.inputValue : temp, this).join(':');
-							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
+							await this.sendCode(`M568 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
 							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}`);
@@ -128,7 +125,7 @@ export default {
 							this.tools.forEach(function(tool) {
 								if (tool.heaters.length) {
 									const temps = tool.heaters.map(() => this.inputValue, this).join(':');
-									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
+									code += `M568 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
 							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
@@ -182,7 +179,10 @@ export default {
 	},
 	mounted() {
 		this.inputElement = this.$el.querySelector('input');
-		if (this.tool) {
+		if (this.spindle) {
+			this.actualValue = this.tool.spindleRpm;
+			this.inputValue = this.tool.spindleRpm.toString();
+		} else if (this.tool) {
 			if (this.tool[this.active ? 'active' : 'standby'].length > 0) {
 				this.actualValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
 				this.inputValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex].toString();
@@ -193,9 +193,6 @@ export default {
 		} else if (this.chamber) {
 			this.actualValue = this.chamber[this.active ? 'active' : 'standby'];
 			this.inputValue = this.chamber[this.active ? 'active' : 'standby'].toString();
-		} else if (this.spindle) {
-			this.actualValue = this.spindle.active;
-			this.inputValue = this.spindle.active.toString();
 		}
 	},
 	watch: {
@@ -249,7 +246,7 @@ export default {
 				}
 			}
 		},
-		'spindle.active'(to) {
+		'tool.spindleRpm'(to) {
 			if (this.active && this.isNumber(to) && this.actualValue != to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {

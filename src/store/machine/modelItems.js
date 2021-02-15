@@ -18,6 +18,7 @@ import {
 	MessageType,
 	NetworkInterfaceType,
 	ProbeType,
+	SpindleState,
 	ToolState
 } from './modelEnums.js'
 import { PluginManifest } from '../../plugins/manifest.js'
@@ -487,11 +488,12 @@ export class RestorePoint {
 export class Spindle {
 	constructor(initData) { quickPatch(this, initData); }
 	active = 0					// RPM
+	configured = false
 	current = 0					// RPM
 	frequency = 0				// Hz
 	min = 60					// RPM
 	max = 10000					// RPM
-	tool = -1
+	state = SpindleState.stopped
 }
 
 export class Tool {
@@ -514,6 +516,8 @@ export class Tool {
 		unretractSpeed: 0,
 		zHop: 0
 	}
+	spindle = -1
+	spindleRpm = 0
 	standby = []
 	state = ToolState.off
 }
