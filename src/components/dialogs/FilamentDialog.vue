@@ -63,10 +63,7 @@ export default {
 			this.loading = true
 			try {
 				const response = await this.getFileList(this.filamentsDirectory);
-				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).filter(function(filament) {
-					// Exclude filaments that are already loaded (RRF does not allow loading the same filament into multiple tools)
-					return !this.extruders.some(extruder => extruder.filament === filament);
-				}, this);
+				this.filaments = response.filter(item => item.isDirectory).map(item => item.name), this);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
