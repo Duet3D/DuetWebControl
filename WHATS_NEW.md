@@ -1,17 +1,37 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 3.3.0-b1
+Version 3.3-b1
 ================
 
 Compatible versions:
-- DuetSoftwareFramework 3.2.0
+- DuetSoftwareFramework 3.3-b1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Code reply notifications are no longer shown on the Console page
+- Display menu has been moved to the System page and added new option for Firmware
+- M568 is used for inactive tools to set the spindle RPM, otherwise fallback to M3/M4
+- UI allows already loaded filaments be loaded into other extruders
+
+New features:
+- Added support for new heightmap format with variable axes
+
+Version 3.2.2
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.2
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Bug fixes:
 - Auto-indentation used spaces regardless of last line indentation type
 - Fixed reset prompt for 0:/sys/board.txt (for STM and LPC users only)
 - Upload errors for dwc-settings and dwc-cache are no longer displayed
+- Spindle RPM inputs didn't wait for code to finish
+- Failed uploads for DWC system files are no longer shown
+- On-Screen Keyboard hid lower end of the text editor
+- When DWC reconnected in standalone mode due to HTTP 401, the `rr_connect` request was malformed
 
 Version 3.2.0
 =============

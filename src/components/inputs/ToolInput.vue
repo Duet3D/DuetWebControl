@@ -19,7 +19,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('machine/model', ['heat', 'state', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		...mapState('settings', ['disableAutoComplete']),
 		items() {
@@ -105,14 +105,23 @@ export default {
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
-						await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
-						//this.actualValue = parseFloat(this.inputValue);
+						if (this.state.currentTool == this.tool.number) {
+							// Use M3/M4 for backwards-compatbility if this spindle is selected
+							if (this.inputValue >= 0) {
+								await this.sendCode(`M3 S${this.inputValue}`);
+							} else {
+								await this.sendCode(`M4 S${-this.inputValue}`);
+							}
+						} else {
+							// Fall back to M568 if this spindle isn't selected
+							await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
+						}
 					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {
 							// Set tool temps
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
 							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.inputValue : temp, this).join(':');
-							await this.sendCode(`M568 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
+							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
 							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}`);
@@ -125,7 +134,7 @@ export default {
 							this.tools.forEach(function(tool) {
 								if (tool.heaters.length) {
 									const temps = tool.heaters.map(() => this.inputValue, this).join(':');
-									code += `M568 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
+									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 								}
 							}, this);
 							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
@@ -140,7 +149,6 @@ export default {
 							}, this);
 							await this.sendCode(code);
 							this.actualValue = parseFloat(this.inputValue);
-							console.log(this.actualValue);
 						} else {
 							console.warn('[tool-input] Invalid target for tool-input');
 						}

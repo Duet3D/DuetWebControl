@@ -426,7 +426,7 @@ export default {
 			this.tools.forEach(function(tool) {
 				if (tool && tool.heaters.length) {
 					const temps = tool.heaters.map(() => '-273.15').join(':');
-					code += `M568 P${tool.number} R${temps} S${temps}\n`;
+					code += `G10 P${tool.number} R${temps} S${temps}\n`;
 				}
 			});
 			this.heat.bedHeaters.forEach(function(bedHeater, index) {
@@ -549,7 +549,7 @@ export default {
 
 				case HeaterState.standby:	// Standby -> Off
 					offTemps = tool.active.map(() => '-273.15').join(':');
-					this.sendCode(`M568 P${tool.number} S${offTemps} R${offTemps}`);
+					this.sendCode(`G10 P${tool.number} S${offTemps} R${offTemps}`);
 					break;
 
 				case HeaterState.active:	// Active -> Standby

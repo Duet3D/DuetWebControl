@@ -39,6 +39,7 @@ const store = new Vuex.Store({
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
 		loadedDwcPlugins: [],
+		hideCodeReplyNotifications: false
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -228,6 +229,13 @@ const store = new Vuex.Store({
 
 		dwcPluginLoaded(state, pluginName) {
 			state.loadedDwcPlugins.push(pluginName);
+		},
+
+		hideCodeReplyNotifications(state) {
+			state.hideCodeReplyNotifications = true;
+		},
+		showCodeReplyNotifications(state) {
+			state.hideCodeReplyNotifications = false;
 		}
 	},
 	modules: {

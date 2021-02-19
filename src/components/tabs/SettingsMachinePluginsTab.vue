@@ -74,7 +74,7 @@ export default {
 	install() {
 		if (Plugins.length > 0 && process.env.NODE_ENV !== 'development') {
 			// Register a settings tab on the Machine settings page
-			registerSettingTab(false, 'settings-machine-plugins-tab', this, 'tabs.plugins.caption');
+			registerSettingTab(false, 'settings-machine-plugins-tab', this, 'tabs.plugins.machineCaption');
 		}
 	},
 

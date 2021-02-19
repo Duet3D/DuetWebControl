@@ -255,6 +255,7 @@ export default {
 	directory: {
 		menu: 'Menüverzeichnis',
 		filaments: 'Filamentverzeichnis',
+		firmware: 'Firmwareverzeichnis',
 		gcodes: 'G-Code-Verzeichnis',
 		macros: 'Makroverzeichnis',
 		system: 'Systemverzeichnis',
@@ -389,6 +390,10 @@ export default {
 		},
 		filament: {
 			noFilaments: 'Keine Filamente'
+		},
+		firmware: {
+			installFile: 'Firmwaredatei installieren',
+			noFiles: 'Keine Firmwaredateien'
 		},
 		macro: {
 			caption: 'Makros',

@@ -265,6 +265,7 @@ export default {
 						const bootloaderFileName = this.getBinaryName('bootloaderFileName', content.name);
 						const iapFileNameSBC = this.getBinaryName('iapFileNameSBC', content.name);
 						const iapFileNameSD = this.getBinaryName('iapFileNameSD', content.name);
+
 						if (firmwareFileName) {
 							filename = Path.combine(this.directories.firmware, firmwareFileName);
 						} else if (bootloaderFileName) {

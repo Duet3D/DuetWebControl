@@ -66,7 +66,7 @@ export default {
 	install() {
 		if (Plugins.length > 0) {
 			// Register a settings tab on the General settings page
-			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.caption');
+			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.generalCaption');
 		}
 	},
 

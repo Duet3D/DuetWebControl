@@ -6,7 +6,6 @@ import VueRouter from 'vue-router'
 import Dashboard from './Control/Dashboard.vue'
 import Console from './Control/Console.vue'
 
-import Display from './Files/Display.vue'
 import Filaments from './Files/Filaments.vue'
 import Jobs from './Files/Jobs.vue'
 import Macros from './Files/Macros.vue'
@@ -183,7 +182,6 @@ Vue.use(Dashboard)
 Vue.use(Console)
 
 // Files
-Vue.use(Display)
 Vue.use(Filaments)
 Vue.use(Jobs)
 Vue.use(Macros)

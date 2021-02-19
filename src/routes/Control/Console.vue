@@ -12,6 +12,8 @@
 <script>
 'use strict'
 
+import { mapMutations } from 'vuex'
+
 import { registerRoute } from '..'
 
 export default {
@@ -26,6 +28,13 @@ export default {
 				}
 			}
 		});
+	},
+	methods: mapMutations(['hideCodeReplyNotifications', 'showCodeReplyNotifications']),
+	activated() {
+		this.hideCodeReplyNotifications();
+	},
+	deactivated() {
+		this.showCodeReplyNotifications();
 	}
 }
 </script>

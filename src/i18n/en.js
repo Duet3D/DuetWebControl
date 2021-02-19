@@ -96,6 +96,10 @@ export default {
 				caption: 'Upload & Start',
 				title: 'Upload & Start one or more G-Code files (drag&drop is supported as well)'
 			},
+			firmware: {
+				caption: 'Upload Firmware Files',
+				title: 'Upload one or more firmware files (drag&drop is supported as well)'
+			},
 			macros: {
 				caption: 'Upload Macro File(s)',
 				title: 'Upload one or more macro files (drag&drop is supported as well)'
@@ -255,6 +259,7 @@ export default {
 	directory: {
 		menu: 'Menu Directory',
 		filaments: 'Filaments Directory',
+		firmware: 'Firmware Directory',
 		gcodes: 'G-Codes Directory',
 		macros: 'Macros Directory',
 		system: 'System Directory',
@@ -389,6 +394,10 @@ export default {
 		},
 		filament: {
 			noFilaments: 'No Filaments'
+		},
+		firmware: {
+			installFile: 'Install Firmware File',
+			noFiles: 'No Firmware Files'
 		},
 		macro: {
 			caption: 'Macros',
@@ -842,7 +851,8 @@ export default {
 			caption: 'General'
 		},
 		plugins: {
-			caption: 'Plugins',
+			generalCaption: 'Built-in Plugins',
+			machineCaption: 'Third-party Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Author',

@@ -122,8 +122,8 @@ h1 {
 
 		<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
 			<span class="no-cursor">
-				X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
-				Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
+				{{ xLabel }}: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
+				{{ yLabel }}: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
 				Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
 			</span>
 		</v-tooltip>
@@ -204,6 +204,8 @@ export default {
 				y: undefined,
 				shown: false
 			},
+			xLabel: 'X',
+			yLabel: 'Y',
 			numPoints: undefined,			// points excluding NaN
 			area: undefined,
 			radius: undefined,
@@ -255,19 +257,25 @@ export default {
 			}
 
 			// Redraw the legend and return the canvas size
-			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ);
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			return { width, height };
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
 			const csv = new CSV(csvData.substring(csvData.indexOf('\n') + 1));
+			this.xLabel = csv.get('axis0') || 'X';
+			this.yLabel = csv.get('axis1') || 'Y';
 			let radius = parseFloat(csv.get('radius'));
 			if (radius <= 0) { radius = undefined; }
-			const xMin = parseFloat(csv.get('xmin'));
-			const yMin = parseFloat(csv.get('ymin'));
-			let xSpacing = parseFloat(csv.get('xspacing'));
+			let xMin = parseFloat(csv.get('min0'));
+			if (isNaN(xMin)) { xMin = parseFloat(csv.get('xmin')); }
+			let yMin = parseFloat(csv.get('min1'));
+			if (isNaN(yMin)) { yMin = parseFloat(csv.get('ymin')); }
+			let xSpacing = parseFloat(csv.get('spacing0'));
+			if (isNaN(xSpacing)) { xSpacing = parseFloat(csv.get('xspacing')); }
 			if (isNaN(xSpacing)) { xSpacing = parseFloat(csv.get('spacing')); }
-			let ySpacing = parseFloat(csv.get('yspacing'));
+			let ySpacing = parseFloat(csv.get('spacing1'));
+			if (isNaN(ySpacing)) { ySpacing = parseFloat(csv.get('yspacing')); }
 			if (isNaN(ySpacing)) { ySpacing = parseFloat(csv.get('spacing')); }
 
 			// Convert each point to a vector
@@ -279,8 +287,9 @@ export default {
 				}
 			}
 
-			// Display height map
+			// Display height map and redraw legend
 			this.showHeightMap(points, radius);
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 		},
 		showHeightMap(points, probeRadius) {
 			// Clean up first

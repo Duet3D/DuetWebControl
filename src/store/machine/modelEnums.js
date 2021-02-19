@@ -206,6 +206,7 @@ export const StatusType = {
 }
 
 export const SpindleState = {
+	unconfigured: 'unconfigured',
 	stopped: 'stopped',
 	forward: 'forward',
 	reverse: 'reverse'

@@ -169,7 +169,8 @@ export class MachineModel {
 		speedFactor: 100,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
-		workspaceNumber: 1
+		workspaceNumber: 0,
+		workplaceNumber: 1,			// *** deprecated, do not use
 	}
 	network = {
 		corsSite: null,
@@ -204,6 +205,7 @@ export class MachineModel {
 		machineMode: MachineMode.fff,
 		msUpTime: 0,
 		nextTool: -1,
+		pluginsStarted: false,					// *** missing in RRF
 		powerFailScript: '',
 		previousTool: -1,
 		restorePoints: [],
