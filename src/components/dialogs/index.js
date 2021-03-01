@@ -12,6 +12,7 @@ import MeshEditDialog from './MeshEditDialog.vue'
 import MessageBoxDialog from './MessageBoxDialog.vue'
 import NewFileDialog from './NewFileDialog.vue'
 import NewDirectoryDialog from './NewDirectoryDialog.vue'
+import PluginInstallDialog from './PluginInstallDialog.vue'
 import ResetHeaterFaultDialog from './ResetHeaterFaultDialog.vue'
 import FileTransferDialog from './FileTransferDialog.vue'
 
@@ -25,6 +26,7 @@ Vue.component('mesh-edit-dialog', MeshEditDialog)
 Vue.component('messagebox-dialog', MessageBoxDialog)
 Vue.component('new-file-dialog', NewFileDialog)
 Vue.component('new-directory-dialog', NewDirectoryDialog)
+Vue.component('plugin-install-dialog', PluginInstallDialog)
 Vue.component('reset-heater-fault-dialog', ResetHeaterFaultDialog)
 Vue.component('file-transfer-dialog', FileTransferDialog)
 

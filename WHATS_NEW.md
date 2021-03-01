@@ -1,8 +1,18 @@
 Summary of important changes in recent versions
 ===============================================
 
+Verson 3.3-b2
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-b1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+New features:
+- Added new wizard for plugin installation
+
 Version 3.3-b1
-================
+==============
 
 Compatible versions:
 - DuetSoftwareFramework 3.3-b1
@@ -16,6 +26,7 @@ Changed behaviour:
 
 New features:
 - Added support for new heightmap format with variable axes
+- Object model explorer shows live values (configuration changes may need manual refresh though)
 
 Version 3.2.2
 =============

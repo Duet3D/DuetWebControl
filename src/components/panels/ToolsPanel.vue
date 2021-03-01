@@ -40,18 +40,22 @@ table.extra tr > td:first-child {
 			<v-menu v-model="dropdownShown" left offset-y :close-on-content-click="false">
 				<template #activator="{ on }">
 					<a v-on="on" href="javascript:void(0)">
-						<v-icon small>mdi-menu-down</v-icon> {{ $t('panel.tools.controlAll') }}
+						<v-icon small>mdi-menu-down</v-icon> {{ $t('panel.tools.controlHeaters') }}
 					</a>
 				</template>
 
 				<v-card>
-					<v-layout justify-center column class="pt-2 px-2">
+					<v-layout justify-center column class="pt-2 pb-3 px-2">
 						<v-btn block color="primary" class="mb-3 pa-2" :disabled="!canTurnEverythingOff" @click="turnEverythingOff">
 							<v-icon class="mr-1">mdi-power-standby</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
-						<tool-input ref="allActive" :label="$t('panel.tools.allActiveTemperatures')" all active></tool-input>
-						<tool-input :label="$t('panel.tools.allStandbyTemperatures')" all standby></tool-input>
+						<tool-input ref="allActive" :label="$t('panel.tools.setActiveTemperatures')" all active :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
+						<tool-input :label="$t('panel.tools.setStandbyTemperatures')" all standby :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
+
+						<v-switch v-show="hasTools" v-model="controlTools" hide-details class="mx-1 mt-0" :label="$t('panel.tools.setToolTemperatures')"></v-switch>
+						<v-switch v-show="hasBeds" v-model="controlBeds" hide-details class="mx-1" :label="$t('panel.tools.setBedTemperatures')"></v-switch>
+						<v-switch v-show="hasChambers" v-model="controlChambers" hide-details class="mx-1" :label="$t('panel.tools.setChamberTemperatures')"></v-switch>
 					</v-layout>
 				</v-card>
 			</v-menu>
@@ -350,6 +354,15 @@ export default {
 					this.heat.chamberHeaters.some(chamberHeater => chamberHeater >= 0 && chamberHeater < this.heat.heaters.length &&
 						this.heat.heaters[chamberHeater] && this.heat.heaters[chamberHeater].state !== HeaterState.off, this)));
 		},
+		hasTools() {
+			return this.tools.some(tool => tool !== null);
+		},
+		hasBeds() {
+			return this.bedHeaters.some(bed => bed !== null);
+		},
+		hasChambers() {
+			return this.chamberHeaters.some(chamber => chamber !== null);
+		},
 		visibleTools() {
 			return this.tools.filter(tool => tool !== null);
 		},
@@ -395,6 +408,9 @@ export default {
 		return {
 			dropdownShown: false,
 			turningEverythingOff: false,
+			controlTools: true,
+			controlBeds: false,
+			controlChambers: false,
 
 			currentPage: 'tools',
 			waitingForCode: false,

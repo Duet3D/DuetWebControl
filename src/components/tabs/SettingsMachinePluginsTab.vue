@@ -102,10 +102,10 @@ export default {
 			if (plugin.dwcFiles.length > 0 && plugin.dwcWebpackChunk) {
 				result.push('DWC');
 			}
-			if (plugin.sbcFiles.length > 0) {
+			if (plugin.dsfFiles.length > 0) {
 				result.push(plugin.sbcRequired ? 'DSF' : `DSF (${this.$t('tabs.plugins.optional')})`);
 			}
-			if (plugin.rrfFiles.lenght > 0) {
+			if (plugin.sdFiles.lenght > 0) {
 				result.push('RRF');
 			}
 			return (result.length > 0) ? result.join(', ') : this.$t('generic.noValue');

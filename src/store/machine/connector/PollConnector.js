@@ -1179,9 +1179,9 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Clear potential files
+		plugin.dsfFiles = [];
 		plugin.dwcFiles = [];
-		plugin.rrfFiles = [];
-		plugin.sbcFiles = [];
+		plugin.sdFiles = [];
 		plugin.pid = -1;
 
 		// Install the files
@@ -1191,16 +1191,17 @@ export default class PollConnector extends BaseConnector {
 			}
 
 			let targetFilename = null;
-			if (file.startsWith('rrf/')) {
-				const filename = file.substring(4);
-				targetFilename = `0:/${filename}`;
-				plugin.rrfFiles.push(filename);
-			} else if (file.startsWith('www/')) {
+			if (file.startsWith('dwc/')) {
 				const filename = file.substring(4);
 				targetFilename = Path.combine(this.webDirectory, plugin.name, filename);
 				plugin.dwcFiles.push(filename);
+			} else if (file.startsWith('sd/')) {
+				const filename = file.substring(3);
+				targetFilename = `0:/${filename}`;
+				plugin.sdFiles.push(filename);
 			} else {
 				console.warn(`Skipping file ${file}`);
+				continue;
 			}
 
 			if (targetFilename) {
@@ -1239,9 +1240,9 @@ export default class PollConnector extends BaseConnector {
 		await this.commit('model/removePlugin', plugin);
 
 		// Delete files from 0:/
-		for (let i = 0; i < plugin.rrfFiles.length; i++) {
+		for (let i = 0; i < plugin.sdFiles.length; i++) {
 			try {
-				await this.delete(`0:/${plugin.rrfFiles[i]}`);
+				await this.delete(`0:/${plugin.sdFiles[i]}`);
 			} catch (e) {
 				if (e instanceof OperationFailedError) {
 					console.warn(e);

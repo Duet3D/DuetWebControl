@@ -26,8 +26,9 @@ import { VBtn } from 'vuetify/lib'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { NetworkInterfaceType, StatusType } from '../../store/machine/modelEnums.js'
-import Path from '../../utils/path.js'
 import { DisconnectedError } from '../../utils/errors.js'
+import Events from '../../utils/events.js'
+import Path from '../../utils/path.js'
 
 const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 
@@ -110,7 +111,7 @@ export default {
 		uploadPrint: Boolean
 	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'upload', 'installPlugin']),
+		...mapActions('machine', ['sendCode', 'upload']),
 		chooseFile() {
 			if (!this.isBusy) {
 				this.$refs.fileInput.click();
@@ -200,15 +201,12 @@ export default {
 									this.extracting = false;
 									notification.hide();
 
-									// TODO improve UI
-									if (confirm('Would you like to install this plugin?')) {
-										await this.installPlugin({
-											zipFilename: files[0].name,
-											zipBlob: files[0],
-											zipFile: zip,
-											start: (this.target === 'start')
-										});
-									}
+									this.$root.$emit(Events.installPlugin, {
+										zipFilename: files[0].name,
+										zipBlob: files[0],
+										zipFile: zip,
+										start: this.target === 'start'
+									});
 									return;
 								}
 							}

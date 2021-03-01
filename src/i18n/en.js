@@ -188,7 +188,8 @@ export default {
 		filament: {
 			titleChange: 'Change Filament',
 			titleLoad: 'Load Filament',
-			prompt: 'Please choose a filament:'
+			prompt: 'Please choose a filament:',
+			noFilaments: 'No Filaments available'
 		},
 		fileEdit: {
 			gcodeReference: 'G-Code Reference',
@@ -229,6 +230,39 @@ export default {
 		newFile: {
 			title: 'New File',
 			prompt: 'Please enter a new file name:'
+		},
+		pluginInstallation: {
+			installation: 'Plugin Installation',
+			prompt: 'The following plugin will be installed:',
+			by: 'by {0}',
+			license: 'License: {0}',
+			homepage: 'Homepage:',
+			contents: 'This package provides software components for',
+			dsf: 'Duet Software Framework',
+			dwc: 'Duet Web Control',
+			rrf: 'RepRapFirmware',
+			prerequisites: 'Prerequisites',
+			version: 'Version {0}',
+			noPluginSupport: 'Third-Party Plugins not allowed',
+			rootSupport: 'Support for Super-User Plugins',
+			invalidManifest: 'Invalid plugin manifest',
+			permissions: 'Required Permissions',
+			dwcWarning: 'This plugin contains components for the web interface. No permission checks can be enforced in browser sessions so it may manipulate your system and create security hazards that might result in physical damage of your setup.',
+			rootWarning: 'This plugin requires super-user permissions which means it can reconfigure the attached SBC and install potentially malicious software. This might result in physical damage of your setup.',
+			sbcPermissions: 'The plugin running on the SBC wants to',
+			noSpecialPermissions: 'This plugin does not require any special permissions.',
+			ready: 'Installation Ready',
+			readyMessage: 'The plugin is now ready to be installed. Please make sure you trust the plugin author before you confirm this final step.',
+			readyDisclaimer: 'Before you can continue you must accept that Duet3D Ltd cannot be held responsible for potential damage resulting from the installation of this third-party plugin.',
+			checkboxDisclaimer: 'I accept the risks, install this plugin',
+			progress: 'Installation Progress',
+			progressText: 'Please stand by while the plugin is being installed...',
+			installationSuccess: 'Installation complete!',
+			installationFailed: 'Installation failed!',
+			cancel: 'Cancel',
+			back: 'Back',
+			next: 'Next',
+			finish: 'Finish'
 		},
 		renameFile: {
 			title: 'Rename File or Directory',
@@ -703,10 +737,13 @@ export default {
 		},
 		tools: {
 			caption: 'Tools',
-			controlAll: 'Control All',
+			controlHeaters: 'Control Heaters',
 			turnEverythingOff: 'Turn Everything Off',
-			allActiveTemperatures: 'Set all active temperatures',
-			allStandbyTemperatures: 'Set all standby temperatures',
+			setActiveTemperatures: 'Set active temperatures',
+			setStandbyTemperatures: 'Set standby temperatures',
+			setToolTemperatures: 'Set tool temperatures',
+			setBedTemperatures: 'Set bed temperatures',
+			setChamberTemperatures: 'Set chamber temperatures',
 			tool: 'Tool {0}',
 			loadFilament: 'Load Filament',
 			changeFilament: 'Change Filament',
@@ -731,6 +768,34 @@ export default {
 			caption: 'Webcam Surveillance',
 			alt: '(webcam image)'
 		}
+	},
+	pluginPermissions: {
+		commandExecution: 'Execute generic DSF commands (e.g. G/M/T-codes)',
+		codeInterceptionRead: 'Intercept G/M/T-codes',
+		codeInterceptionReadWrite: 'Intercept G/M/T-codes codes and manipulate them',
+		managePlugins: 'Install, load, unload, and uninstall third-party plugins',
+		manageUserSessions: 'Manage user sessions',
+		objectModelRead: 'Read from the object model',
+		objectModelReadWrite: 'Read from and write to the object model',
+		registerHttpEndpoints: 'Create new HTTP endpoints',
+		readFilaments: 'Read files from the filaments directory',
+		writeFilaments: 'Write files to the filaments directory',
+		readFirmware: 'Read files from the firmware directory',
+		writeFirmware: 'Write files to the firmware directory',
+		readGCodes: 'Read files from the G-codes directory',
+		writeGCodes: 'Write files to the G-codes directory',
+		readMacros: 'Read files from the macros directory',
+		writeMacros: 'Write files to the macros directory',
+		readMenu: 'Read files from the menu directory',
+		writeMenu: 'Write files to the menu directory',
+		readSystem: 'Read files from the system directory',
+		writeSystem: 'Write files to the system directory',
+		readWeb: 'Read files from the web directory',
+		writeWeb: 'Write files to the web directory',
+		fileSystemAccess: 'Access files outside the virtual SD directory',
+		launchProcesses: 'Launch new processes',
+		networkAccess: 'Communicate over the network',
+		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
 		autoUpdate: {

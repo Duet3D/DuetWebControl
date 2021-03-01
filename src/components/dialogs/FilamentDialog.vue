@@ -6,7 +6,7 @@
 			</v-card-title>
 
 			<v-card-text>
-				{{ $t('dialog.filament.prompt') }}
+				{{ $t(filaments.length > 0 ? 'dialog.filament.prompt' : 'dialog.filament.noFilaments') }}
 
 				<v-progress-linear indeterminate v-if="loading"></v-progress-linear>
 				<v-list v-if="!loading">

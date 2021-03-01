@@ -197,6 +197,8 @@ export class MachineModel {
 		currentTool: -1,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
+		dsfPluginSupport: true,					// *** missing in RRF
+		dsfRootPluginSupport: false,			// *** missing in RRF
 		gpOut: [],
 		laserPwm: null,
 		logFile: null,

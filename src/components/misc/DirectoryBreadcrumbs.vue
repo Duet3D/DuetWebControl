@@ -9,7 +9,7 @@
 					</v-breadcrumbs-item>
 				</template>
 				<v-list>
-					<v-list-item v-if="directories.firmware !== directories.system" @click="changeDirectory(directories.firmware)">
+					<v-list-item v-if="firmwareDirectoryDiffers" @click="changeDirectory(directories.firmware)">
 						<v-icon class="mr-3">mdi-update</v-icon> {{ $t('directory.firmware') }}
 					</v-list-item>
 					<v-list-item v-if="hasDirectDisplay" @click="changeDirectory(directories.menu)">
@@ -85,7 +85,7 @@ export default {
 					rootCaption = this.$t('directory.web');
 				}
 			}
-			showDropdown &= (pathItems.length === 1) && (this.hasDirectDisplay || (this.directories.firmware !== this.directories.system));
+			showDropdown &= (pathItems.length === 1) && (this.hasDirectDisplay || this.firmwareDirectoryDiffers);
 
 			let items = [], path = '';
 			pathItems.forEach(function(item, index) {
@@ -106,6 +106,9 @@ export default {
 				}
 			}, this);
 			return items;
+		},
+		firmwareDirectoryDiffers() {
+			return !Path.equals(this.directories.firmware, this.directories.system);
 		},
 		hasDirectDisplay() {
 			return (this.boards.length > 0) && (this.boards[0].directDisplay !== null);

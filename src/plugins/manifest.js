@@ -9,7 +9,7 @@ export class PluginManifest {
 	author = ''										// Author of the plugin
 	version = '1.0.0'								// Version of the plugin
 	license = 'LGPL-3.0-or-later'					// License of the plugin. Should follow the SPDX format (see https://spdx.org/licenses/)
-	sourceRepository = null							// Link to the source code repository
+	homepage = null									// Link to the plugin homepage or source code repository
 
 	dwcVersion = version 							// Major/minor compatible DWC version
 	dwcDependencies = []							// List of DWC plugins this plugin depends on. Circular dependencies are not supported
@@ -26,6 +26,32 @@ export class PluginManifest {
 	sbcPluginDependencies = []						// List of SBC plugins this plugin depends on. Circular dependencies are not supported
 
 	rrfVersion = null								// Required RRF version
+
+	check() {
+		if (!this.name || this.name.trim() === '' || this.name.length > 64) {
+			console.warn('Invalid plugin name');
+			return false;
+		}
+		if (this.name.split('').some(c => !/[a-zA-Z0-9 .\-_]/.test(c))) {
+			console.warn('Illegal plugin name');
+			return false;
+		}
+		if (!this.author || this.author.trim() === '') {
+			console.warn('Missing author');
+			return false;
+		}
+		if (!this.version || this.version.trim() === '') {
+			console.warn('Missing version');
+			return false;
+		}
+		for (let i = 0; i < this.sbcPermissions.length; i++) {
+			if (SbcPermission[this.sbcPermissions[i]] === undefined) {
+				console.warn(`Unsupported SBC permission ${this.sbcPermissions[i]}`);
+				return false;
+			}
+		}
+		return true;
+	}
 }
 
 export const SbcPermission = {
@@ -33,7 +59,7 @@ export const SbcPermission = {
 	commandExecution: 'commandExecution',						// Execute generic commands
 	codeInterceptionRead: 'codeInterceptionRead',				// Intercept codes but don't interact with them
 	codeInterceptionReadWrite: 'codeInterceptionReadWrite',		// Intercept codes in a blocking way with options to resolve or cancel them
-	managePlugins: 'managePlugins',								// Install, load, unload, and uninstall plugions
+	managePlugins: 'managePlugins',								// Install, load, unload, and uninstall plugins
 	manageUserSessions: 'manageUserSessions',					// Manage user sessions
 	objectModelRead: 'objectModelRead',							// Read from the object model
 	objectModelReadWrite: 'objectModelReadWrite',				// Read from and write to the object model

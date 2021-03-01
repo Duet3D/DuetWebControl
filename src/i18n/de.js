@@ -184,7 +184,8 @@ export default {
 		filament: {
 			titleChange: 'Filament ändern',
 			titleLoad: 'Filament laden',
-			prompt: 'Bitte wählen Sie ein Filament:'
+			prompt: 'Bitte wählen Sie ein Filament:',
+			noFilaments: 'Keine Filamente verfügbar'
 		},
 		fileEdit: {
 			gcodeReference: 'G-Code-Referenz',

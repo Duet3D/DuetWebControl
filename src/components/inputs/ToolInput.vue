@@ -74,6 +74,10 @@ export default {
 		label: String,
 
 		all: Boolean,
+		controlTools: Boolean,
+		controlBeds: Boolean,
+		controlChambers: Boolean,
+
 		active: Boolean,
 		standby: Boolean,
 
@@ -131,23 +135,31 @@ export default {
 						} else if (this.all) {
 							// Set all temps
 							let code = '';
-							this.tools.forEach(function(tool) {
-								if (tool.heaters.length) {
-									const temps = tool.heaters.map(() => this.inputValue, this).join(':');
-									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
-								}
-							}, this);
-							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
-								if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
-									code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
-								}
-							}, this);
-							this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
-								if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
-									code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
-								}
-							}, this);
-							await this.sendCode(code);
+							if (this.controlTools) {
+								this.tools.forEach(function(tool) {
+									if (tool.heaters.length) {
+										const temps = tool.heaters.map(() => this.inputValue, this).join(':');
+										code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
+									}
+								}, this);
+							}
+							if (this.controlBeds) {
+								this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
+									if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
+										code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
+									}
+								}, this);
+							}
+							if (this.controlChambers) {
+								this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
+									if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
+										code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
+									}
+								}, this);
+							}
+							if (code !== '') {
+								await this.sendCode(code);
+							}
 							this.actualValue = parseFloat(this.inputValue);
 						} else {
 							console.warn('[tool-input] Invalid target for tool-input');

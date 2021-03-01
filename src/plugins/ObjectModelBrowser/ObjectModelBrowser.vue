@@ -11,6 +11,9 @@
 		</v-toolbar>
 
 		<v-treeview :items="modelTree" open-on-click activatable :active.sync="active">
+			<template #label="{ item }">
+				{{ item.getLabel ? item.getLabel() : item.name }}
+			</template>
 			<template #append="{ item }">
 				<v-chip v-if="item.type">{{ item.type }}</v-chip>
 			</template>
@@ -46,7 +49,7 @@ export default {
 
 					return {
 						id: itemPath.join('.'),
-						name: this.getItemLabel(index, item),
+						getLabel: () => this.getItemLabel(index, item),
 						type: this.getItemType(item),
 						children: this.makeModelTree(item, itemPath)
 					}
@@ -61,7 +64,7 @@ export default {
 
 						return {
 							id: itemPath.join('.'),
-							name: this.getItemLabel(key, obj[key]),
+							getLabel: () => this.getItemLabel(key, obj[key]),
 							type: this.getItemType(obj[key]),
 							children: this.makeModelTree(obj[key], itemPath)
 						};
@@ -70,16 +73,20 @@ export default {
 			return [];
 		},
 		getItemLabel(name, value) {
-			if (value === null) {
-				return `${name} = null`;
+			try {
+				if (value === null) {
+					return `${name} = null`;
+				}
+				if ((value || value === '') && value.constructor === String) {
+					return `${name} = "${value}"`;
+				}
+				if (value instanceof Object) {
+					return name;
+				}
+				return `${name} = ${value}`;
+			} catch {
+				return `${name} = ${this.$t('generic.noValue')}`;
 			}
-			if ((value || value === '') && value.constructor === String) {
-				return `${name} = "${value}"`;
-			}
-			if (value instanceof Object) {
-				return name;
-			}
-			return `${name} = ${value}`;
 		},
 		getItemType(obj) {
 			if (obj instanceof Array) {

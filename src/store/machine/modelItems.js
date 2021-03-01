@@ -449,9 +449,9 @@ export class ParsedThumbnail {
 
 export class Plugin extends PluginManifest {
 	constructor(initData) { super(initData); }
+	dsfFiles = []
 	dwcFiles = []
-	sbcFiles = []
-	rrfFiles = []
+	sdFiles = []
 	pid = -1
 }
 

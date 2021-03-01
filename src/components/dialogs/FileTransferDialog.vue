@@ -17,7 +17,7 @@ td {
 </style>
 
 <template>
-	<v-dialog :value="shown" max-width="720px" persistent no-click-animation>
+	<v-dialog :value="shown" max-width="720px" persistent scrollable no-click-animation>
 		<v-card>
 			<v-card-title>
 				<span class="headline">{{ title }}</span>
@@ -233,13 +233,13 @@ export default {
 		fileComplete({ machine, num, count }) {
 			if (this.selectedMachine === machine && num + 1 === count && this.closeProgressOnSuccess[machine]) {
 				this.close();
-			} /*else if (this.$refs.fileTable) {
+			} else if (this.$refs.fileTable) {
 				if (this.$refs.fileTable.rows.length > num + 1) {
 					this.$refs.fileTable.rows[num + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
 				} else {
 					this.$refs.fileTable.rows[this.$refs.fileTable.rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
 				}
-			}*/
+			}
 		}
 	}
 }
