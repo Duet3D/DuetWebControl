@@ -1,5 +1,7 @@
 'use strict'
 
+import Vue from 'vue'
+
 import {
 	InputChannelName,
 	LogLevel,
@@ -77,7 +79,6 @@ export class MachineModel {
 		layer: null,
 		layerTime: null,
 		layers: [],								// *** missing in RRF
-		// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
 		timesLeft: {
 			filament: null,
 			file: null,
@@ -169,8 +170,7 @@ export class MachineModel {
 		speedFactor: 100,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
-		workspaceNumber: 0,
-		workplaceNumber: 1,			// *** deprecated, do not use
+		workplaceNumber: 1
 	}
 	network = {
 		corsSite: null,
@@ -178,7 +178,7 @@ export class MachineModel {
 		interfaces: [],
 		name: 'My Duet'
 	}
-	plugins = []
+	plugins = {}
 	scanner = {
 		progress: 0.0,
 		status: 'D'
@@ -382,16 +382,30 @@ export class MachineModelModule {
 				}
 			}
 
+			// Update plugins
+			if (payload.plugins) {
+				for (let key in payload.plugins) {
+					if (!payload.plugins[key]) {
+						Vue.delete(state.plugins, key);
+					} else if (!state.plugins[key]) {
+						Vue.set(state.plugins, key, payload.plugins[key]);
+					} else {
+						patch(state.plugins[key], payload.plugins[key]);
+					}
+				}
+				delete payload.plugins;
+			}
+
 			// Apply new data
 			patch(state, payload, true);
 			fixMachineItems(state, payload);
 		},
 
 		addPlugin(state, plugin) {
-			state.plugins.push(plugin);
+			Vue.set(state.plugins, plugin.id, plugin);
 		},
 		removePlugin(state, plugin) {
-			state.plugins = state.plugins.filter(item => item.name !== plugin.name);
+			Vue.delete(state.plugins, plugin.id);
 		}
 	}
 }

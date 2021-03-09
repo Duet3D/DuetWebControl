@@ -30,8 +30,10 @@ export default {
 			}
 		});
 	},
-	computed: {
-		tabs: () => GeneralSettingTabs
+	data() {
+		return {
+			tabs: GeneralSettingTabs
+		}
 	}
 }
 </script>

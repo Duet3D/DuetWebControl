@@ -155,7 +155,7 @@ export const MachineSettingTabs = Vue.observable([])
 // component: Component to register
 // caption: Caption of the tab
 // translated: Whether the caption is already translated
-export function registerSettingTab(general, name, component, caption, translated) {
+export function registerSettingTab(general, name, component, caption, translated = false) {
 	const tab = {
 		component: name,
 		translated

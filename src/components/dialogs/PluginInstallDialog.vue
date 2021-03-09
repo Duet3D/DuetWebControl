@@ -164,7 +164,7 @@
 import { mapState, mapActions } from 'vuex'
 
 import { version } from '../../../package.json'
-import { checkVersion } from '../../plugins'
+import Plugins, { checkVersion } from '../../plugins'
 import { PluginManifest, SbcPermission } from '../../plugins/manifest.js'
 import Events from '../../utils/events.js'
 
@@ -313,6 +313,10 @@ export default {
 				const manifestJson = JSON.parse(await zipFile.file('plugin.json').async('string'));
 				this.pluginManifest = new PluginManifest(manifestJson);
 				this.pluginManifestValid = this.pluginManifest.check();
+				if (this.pluginManifestValid && Plugins.some(plugin => plugin.id === this.pluginManifest.id, this)) {
+					console.warn('Plugin identifier already reserved by built-in plugin');
+					this.pluginManifestValid = false;
+				}
 
 				this.hasSdFiles = this.hasDwcFiles = this.hasDsfFiles = false;
 				const that = this;

@@ -1159,23 +1159,22 @@ export default class PollConnector extends BaseConnector {
 
 	async installPlugin({ zipFile, plugin }) {
 		// Verify the name
-		if (!plugin.name || plugin.name.trim() === '' || plugin.name.length > 64) {
-			throw new Error('Invalid plugin name');
+		if (!plugin.id || plugin.id.trim() === '' || plugin.id.length > 32) {
+			throw new Error('Invalid plugin identifier');
 		}
 
-		if (plugin.name.split('').some(c => !/[a-zA-Z0-9 .\-_]/.test(c))) {
-			throw new Error('Illegal plugin name');
+		if (plugin.id.split('').some(c => !/[a-zA-Z0-9 .\-_]/.test(c))) {
+			throw new Error('Illegal plugin identifier');
 		}
 
 		// Check if it requires a SBC
 		if (plugin.sbcRequired) {
-			throw new Error(`Plugin ${plugin.name} cannot be loaded because the current machine does not have an SBC attached`);
+			throw new Error(`Plugin ${plugin.id} cannot be loaded because the current machine does not have an SBC attached`);
 		}
 
 		// Uninstall the previous version if applicable
-		const pluginToUpgrade = this.plugins.find(item => item.name === plugin.name);
-		if (pluginToUpgrade) {
-			await this.uninstallPlugin(pluginToUpgrade);
+		if (this.plugins[plugin.id]) {
+			await this.uninstallPlugin(plugin.id, true);
 		}
 
 		// Clear potential files
@@ -1193,7 +1192,7 @@ export default class PollConnector extends BaseConnector {
 			let targetFilename = null;
 			if (file.startsWith('dwc/')) {
 				const filename = file.substring(4);
-				targetFilename = Path.combine(this.webDirectory, plugin.name, filename);
+				targetFilename = Path.combine(this.webDirectory, filename);
 				plugin.dwcFiles.push(filename);
 			} else if (file.startsWith('sd/')) {
 				const filename = file.substring(3);
@@ -1228,18 +1227,33 @@ export default class PollConnector extends BaseConnector {
 		await this.commit('model/addPlugin', plugin);
 	}
 
-	async uninstallPlugin(plugin) {
-		// Make sure uninstalling this plugin does not break any dependencies
-		for (let i = 0; i < this.plugins.length; i++) {
-			if (this.plugins[i].name !== plugin && this.plugins[i].dwcDependencies.indexOf(plugin) !== -1) {
-				throw new Error(`Cannot uninstall plugin because plugin ${this.plugins[i].name} depends on it`);
+	async uninstallPlugin(plugin, forUpgrade = false) {
+		if (!forUpgrade) {
+			// Make sure uninstalling this plugin does not break any dependencies
+			for (let i = 0; i < this.plugins.length; i++) {
+				if (this.plugins[i].id !== plugin && this.plugins[i].dwcDependencies.indexOf(plugin) !== -1) {
+					throw new Error(`Cannot uninstall plugin because plugin ${this.plugins[i].id} depends on it`);
+				}
 			}
 		}
 
 		// Uninstall the plugin manifest
 		await this.commit('model/removePlugin', plugin);
 
-		// Delete files from 0:/
+		// Delete DWC files
+		for (let i = 0; i < plugin.dwcFiles.length; i++) {
+			try {
+				await this.delete(Path.combine(this.webDirectory, plugin.dwcFiles[i]));
+			} catch (e) {
+				if (e instanceof OperationFailedError) {
+					console.warn(e);
+				} else {
+					throw e;
+				}
+			}
+		}
+
+		// Delete SD files
 		for (let i = 0; i < plugin.sdFiles.length; i++) {
 			try {
 				await this.delete(`0:/${plugin.sdFiles[i]}`);
@@ -1252,29 +1266,6 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		// Delete web files
-		for (let i = 0; i < plugin.dwcFiles.length; i++) {
-			try {
-				await this.delete(Path.combine(this.webDirectory, plugin.name, plugin.dwcFiles[i]));
-			} catch (e) {
-				if (e instanceof OperationFailedError) {
-					console.warn(e);
-				} else {
-					throw e;
-				}
-			}
-		}
-
-		try {
-			await this.delete(Path.combine(this.webDirectory, plugin.name));
-		} catch (e) {
-			if (e instanceof OperationFailedError) {
-				console.warn(e);
-			} else {
-				throw e;
-			}
-		}
-
 		// Update the plugins file
 		try {
 			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
@@ -1283,7 +1274,7 @@ export default class PollConnector extends BaseConnector {
 				console.warn(`Failed to load DWC plugins file: ${e}`);
 			}
 		}
-		this.plugins = this.plugins.filter(item => item.name !== plugin.name);
+		delete this.plugins[plugin.id];
 		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
 	}
 }

@@ -529,6 +529,12 @@ export default {
 			successTitle: 'Filament created',
 			successMessage: 'Successfully created filament {0}'
 		},
+		plugins: {
+			started: 'Plugin has been started',
+			startError: 'Failed to start plugin',
+			stopped: 'Plugin has been stopped',
+			stopError: 'Failed to start plugin'
+		},
 		rename: {
 			success: 'Successfully renamed {0} to {1}',
 			error: 'Failed to rename {0} to {1}',
@@ -923,7 +929,6 @@ export default {
 				author: 'Author',
 				version: 'Version',
 				license: 'License',
-				components: 'Components',
 				dependencies: 'Dependencies',
 				status: 'Status'
 			},

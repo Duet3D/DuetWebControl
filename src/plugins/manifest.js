@@ -5,15 +5,15 @@ import { Dictionary, quickPatch } from '../utils/patch.js'
 
 export class PluginManifest {
 	constructor(initData) { quickPatch(this, initData); }
-	name = ''										// Name of the plugin
+	id = ''											// Identifier of this plugin (max 32 chars). For DWC plugins, this is the Webpack chunk name too
+	name = ''										// Name of the plugin (max 64 chars)
 	author = ''										// Author of the plugin
 	version = '1.0.0'								// Version of the plugin
 	license = 'LGPL-3.0-or-later'					// License of the plugin. Should follow the SPDX format (see https://spdx.org/licenses/)
 	homepage = null									// Link to the plugin homepage or source code repository
 
-	dwcVersion = version 							// Major/minor compatible DWC version
+	dwcVersion = version 							// Major/minor compatible DWC version. Mandatory for DWC plugins
 	dwcDependencies = []							// List of DWC plugins this plugin depends on. Circular dependencies are not supported
-	dwcWebpackChunk = null							// Name of the generated webpack chunk
 
 	sbcRequired = false								// Set to true if a SBC is absolutely required for this plugin
 	sbcDsfVersion = null							// Required DSF version for the plugin running on the SBC (ignored if there is no SBC executable)
@@ -28,6 +28,14 @@ export class PluginManifest {
 	rrfVersion = null								// Required RRF version
 
 	check() {
+		if (!this.id || this.id.trim() === '' || this.id.length > 32) {
+			console.warn('Invalid plugin identifier');
+			return false;
+		}
+		if (this.id.split('').some(c => !/[a-zA-Z0-9 .\-_]/.test(c))) {
+			console.warn('Illegal plugin identifier');
+			return false;
+		}
 		if (!this.name || this.name.trim() === '' || this.name.length > 64) {
 			console.warn('Invalid plugin name');
 			return false;

@@ -37,7 +37,7 @@ export function loadDwcResources(plugin, connector) {
 		window.pluginBaseURL = connector.requestBase;
 
 		/* eslint-disable no-undef */
-		return __webpack_require__.e(plugin.dwcWebpackChunk).then(__webpack_require__.bind(null, `./src/plugins/${plugin.dwcWebpackChunk}/index.js`));
+		return __webpack_require__.e(plugin.id).then(__webpack_require__.bind(null, `./src/plugins/${plugin.id}/index.js`));
 		/* eslint-enable no-undef */
 	} else {
 		throw new Error('Cannot load external plugins in dev mode');
@@ -75,6 +75,7 @@ export default [
 		)
 	}),*/
 	new DwcPlugin({
+		id: 'HeightMap',
 		name: 'Height Map',
 		author: 'Duet3D Ltd',
 		version,
@@ -84,6 +85,7 @@ export default [
 		)
 	}),
 	new DwcPlugin({
+		id: 'GCodeViewer',
 		name: 'G-Code Viewer',
 		author: 'Juan Rosario',
 		version,
@@ -93,6 +95,7 @@ export default [
 		)
 	}),
 	new DwcPlugin({
+		id: 'ObjectModelBrowser',
 		name: 'Object Model Browser',
 		author: 'Duet3D Ltd',
 		version,
@@ -102,6 +105,7 @@ export default [
 		)
 	}),
 	new DwcPlugin({
+		id: 'OnScreenKeyboard',
 		name: 'On-Screen Keyboard',
 		author: 'Duet3D Ltd',
 		version,

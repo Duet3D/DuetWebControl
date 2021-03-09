@@ -855,7 +855,6 @@ export default {
 				author: 'Autor',
 				version: 'Version',
 				license: 'Lizenz',
-				components: 'Komponenten',
 				dependencies: 'Abhängigkeiten',
 				status: 'Status'
 			},

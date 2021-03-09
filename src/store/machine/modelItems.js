@@ -639,10 +639,6 @@ export function fixMachineItems(state, mergeData) {
 		fixItems(state.network.interfaces, NetworkInterface);
 	}
 
-	if (mergeData.plugins) {
-		fixItems(state.plugins, Plugin);
-	}
-
 	if (mergeData.sensors) {
 		if (mergeData.sensors.analog) {
 			fixItems(state.sensors.analog, AnalogSensor);

@@ -30,8 +30,10 @@ export default {
 			}
 		});
 	},
-	computed: {
-		tabs: () => MachineSettingTabs
+	data() {
+		return {
+			tabs: MachineSettingTabs
+		}
 	}
 }
 </script>

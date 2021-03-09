@@ -182,7 +182,7 @@ export default function(connector, pluginSettingFields) {
 					if (mainSettings.enabledPlugins) {
 						for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
 							try {
-								await dispatch('loadDwcPlugin', { name: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+								await dispatch('loadDwcPlugin', { id: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
 							} catch (e) {
 								console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
 								console.warn(e);
@@ -198,9 +198,9 @@ export default function(connector, pluginSettingFields) {
 					if (machineSettings.enabledPlugins) {
 						for (let i = 0; i < machineSettings.enabledPlugins.length; i++) {
 							try {
-								await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { name: machineSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+								await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { id: machineSettings.enabledPlugins[i], saveSettings: false }, { root: true });
 							} catch (e) {
-								console.warn(`Failed to load machine plugin ${machineSettings.enabledPlugins[i]}`);
+								console.warn(`Failed to load third-party plugin ${machineSettings.enabledPlugins[i]}`);
 								console.warn(e);
 							}
 						}

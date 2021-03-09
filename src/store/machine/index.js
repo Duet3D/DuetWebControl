@@ -13,7 +13,7 @@ import settings from './settings.js'
 import { version } from '../../../package.json'
 import Root from '../../main.js'
 import i18n from '../../i18n'
-import { checkVersion, loadDwcResources } from '../../plugins'
+import Plugins, { checkVersion, loadDwcResources } from '../../plugins'
 import beep from '../../utils/beep.js'
 import { displayTime } from '../../utils/display.js'
 import Events from '../../utils/events.js'
@@ -504,14 +504,14 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				const manifestJson = JSON.parse(await zipFile.file('plugin.json').async('string'));
 				const plugin = new Plugin(manifestJson);
 
-				// Check plugin name
-				if (!plugin.name || plugin.name.length > 64 || !plugin.name.match(/^[0-9a-zA-Z -_]+$/)) {
-					throw new Error(`Invalid plugin name '${plugin.name};`);
+				// Check plugin manifest
+				if (!plugin.check()) {
+					throw new Error('Invalid plugin manifest');
 				}
 
 				// Is the plugin compatible to the running DWC version?
 				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-					throw new Error(`Plugin ${plugin.name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+					throw new Error(`Plugin ${plugin.id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
 				}
 
 				// Install the plugin
@@ -525,37 +525,37 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 
 				// Start it if required and show a message
 				if (start) {
-					await dispatch('loadDwcPlugin', { name: plugin.name, saveSettings: true });
+					await dispatch('loadDwcPlugin', { id: plugin.id, saveSettings: true });
 				}
 			},
 
 			// Called to load a DWC plugin from this machine
-			async loadDwcPlugin({ rootState, state, dispatch, commit }, { name, saveSettings }) {
+			async loadDwcPlugin({ rootState, state, dispatch, commit }, { id, saveSettings }) {
 				// Don't load a DWC plugin twice
-				if (rootState.loadedDwcPlugins.indexOf(name) !== -1) {
+				if (rootState.loadedDwcPlugins.indexOf(id) !== -1) {
 					return;
 				}
 
 				// Get the plugin
-				const plugin = state.model.plugins.find(item => item.name === name);
+				const plugin = state.model.plugins[id];
 				if (!plugin) {
 					if (saveSettings) {
-						throw new Error(`Plugin ${name} not found`);
+						throw new Error(`Plugin ${id} not found`);
 					}
 
 					// Fail silently if the config is being loaded
-					console.warn(`Plugin ${name} not found`);
+					console.warn(`Plugin ${id} not found`);
 					return;
 				}
 
 				// Check if there are any resources to load and if it is actually possible
-				if (!plugin.dwcWebpackChunk || process.env.NODE_ENV === 'development') {
+				if (!plugin.dwcFiles.some(file => file.indexOf(plugin.id) !== -1 && /\.js$/.test(file)) || process.env.NODE_ENV === 'development') {
 					return;
 				}
 
-				// Check if the requested webpack chunk is already part of another plugin
-				if (state.model.plugins.some(item => item !== plugin && item.dwcWebpackChunk === plugin.dwcWebpackChunk)) {
-					throw new Error(`Plugin ${name} cannot be loaded because the requested webpack chunk is already used by another plugin`);
+				// Check if the requested webpack chunk is already part of a built-in plugin
+				if (Plugins.some(item => item.id === plugin.id)) {
+					throw new Error(`Plugin ${id} cannot be loaded because the requested Webpack file is already reserved by a built-in plugin`);
 				}
 
 				// Check if the corresponding SBC plugin has been loaded (if applicable)
@@ -563,7 +563,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					if (!state.model.state.dsfVersion ||
 						(plugin.sbcDsfVersion && !checkVersion(plugin.sbcDsfVersion, state.model.state.dsfVersion)))
 					{
-						throw new Error(`Plugin ${name} cannot be loaded because the current machine does not have an SBC attached`);
+						throw new Error(`Plugin ${id} cannot be loaded because the current machine does not have an SBC attached`);
 					}
 				}
 
@@ -572,24 +572,24 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					if (state.model.boards.length === 0 ||
 						!checkVersion(plugin.rrfVersion, state.model.boards[0].firmwareVersion))
 					{
-						throw new Error(`Plugin ${name} could not fulfill RepRapFirmware version dependency (requires ${plugin.rrfVersion})`);
+						throw new Error(`Plugin ${id} could not fulfill RepRapFirmware version dependency (requires ${plugin.rrfVersion})`);
 					}
 				}
 
 				// Is the plugin compatible to the running DWC version?
 				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-					throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+					throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
 				}
 
 				// Load plugin dependencies in DWC
 				for (let i = 0; i < plugin.dwcDependencies.length; i++) {
 					const dependentPlugin = state.plugins[plugin.dwcDependencies[i]];
 					if (!dependentPlugin) {
-						throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.name}`);
+						throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.id}`);
 					}
 
 					if (!dependentPlugin.loaded) {
-						await dispatch('loadDwcPlugin', { name: dependentPlugin.name, saveSettings: false });
+						await dispatch('loadDwcPlugin', { id: dependentPlugin.id, saveSettings: false });
 					}
 				}
 
@@ -597,9 +597,9 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				await loadDwcResources(plugin, connector);
 
 				// DWC plugin has been loaded
-				commit('dwcPluginLoaded', plugin.name, { root: true });
+				commit('dwcPluginLoaded', plugin.id, { root: true });
 				if (saveSettings) {
-					commit('settings/dwcPluginLoaded', plugin.name);
+					commit('settings/dwcPluginLoaded', plugin.id);
 				}
 			},
 
