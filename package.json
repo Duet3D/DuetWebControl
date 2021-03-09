@@ -28,7 +28,7 @@
     "register-service-worker": "^1.7.2",
     "roboto-fontface": "*",
     "simple-keyboard": "^2.32.103",
-    "three": "^0.123.0",
+    "three": "^0.124.0",
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.12",
     "vue-codemirror": "^4.0.6",

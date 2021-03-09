@@ -303,6 +303,11 @@ export default {
 	methods: {
 		...mapActions('machine', ['installPlugin']),
 		async installPluginHook({ zipFilename, zipBlob, zipFile, start }) {
+			if (process.env.NODE_ENV === 'development') {
+				alert('Third-party plugins are not supported in dev mode');
+				return;
+			}
+
 			this.zipFilename = zipFilename;
 			this.zipBlob = zipBlob;
 			this.zipFile = zipFile;

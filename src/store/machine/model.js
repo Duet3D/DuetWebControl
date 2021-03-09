@@ -6,6 +6,7 @@ import {
 	InputChannelName,
 	LogLevel,
 	MachineMode,
+	MoveShapingType,
 	KinematicsName,
 	StatusType,
 	isPrinting
@@ -79,10 +80,12 @@ export class MachineModel {
 		layer: null,
 		layerTime: null,
 		layers: [],								// *** missing in RRF
+		pauseDuration: null,
 		timesLeft: {
 			filament: null,
 			file: null,
-			layer: null
+			layer: null,						// *** deprecated as of v3.3
+			slicer: null
 		},
 		warmUpDuration: null
 	}
@@ -132,12 +135,10 @@ export class MachineModel {
 			file: null,
 			meshDeviation: null,
 			probeGrid: {
-				xMin: 0.0,
-				xMax: 0.0,
-				xSpacing: 0.0,
-				yMin: 0.0,
-				yMax: 0.0,
-				ySpacing: 0.0,
+				axes: ['X', 'Y'],
+				maxs: [-1, -1],
+				mins: [0, 0],
+				spacings: [0, 0],
 				radius: 0.0
 			},
 			skew: {
@@ -155,18 +156,20 @@ export class MachineModel {
 			requestedSpeed: 0,
 			topSpeed: 0
 		},
-		daa: {
-			enabled: false,
-			minimumAcceleration: 10,
-			period: 0
-		},
 		extruders: [],
 		idle: {
 			factor: 0.3,
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
+		queue: [],
 		printingAcceleration: 10000,
+		shaping: {
+			damping: 0.2,
+			frequency:40,
+			minimumAcceleration:10,
+			type: MoveShapingType.none
+		},
 		speedFactor: 100,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
@@ -217,7 +220,6 @@ export class MachineModel {
 	}
 	tools = []
 	userSessions = []							// *** missing in RRF
-	userVariables = []							// *** missing in RRF (but reserved)
 	volumes = []
 }
 

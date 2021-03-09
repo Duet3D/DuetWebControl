@@ -11,6 +11,9 @@ Compatible versions:
 New features:
 - Added new wizard for plugin installation
 
+Bug fixes:
+- When the "Decompressing" notification was dismissed too soon, an error message was written to the console
+
 Version 3.3-b1
 ==============
 

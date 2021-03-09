@@ -533,7 +533,9 @@ export default {
 			started: 'Plugin has been started',
 			startError: 'Failed to start plugin',
 			stopped: 'Plugin has been stopped',
-			stopError: 'Failed to start plugin'
+			stopError: 'Failed to start plugin',
+			uninstalled: 'Plugin has been uninstalled',
+			uninstallError: 'Failed to uninstall plugin'
 		},
 		rename: {
 			success: 'Successfully renamed {0} to {1}',

@@ -171,6 +171,14 @@ export const MessageType = {
 	error: 2
 }
 
+export const MoveShapingType = {
+	none: 'none',
+	ZVD: 'ZVD',
+	ZVDD: 'ZVDD',
+	EI2: 'EI2',
+	DAA: 'DAA'
+}
+
 export const NetworkInterfaceType = {
 	lan: 'lan',
 	wifi: 'wifi'

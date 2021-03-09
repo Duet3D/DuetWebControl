@@ -208,18 +208,21 @@ export default class PollConnector extends BaseConnector {
 		this.requestTimeout = this.sessionTimeout / (this.settings.ajaxRetries + 1)
 
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
-		// notifications even while DWC2 is running in the background. However, we cannot do
+		// notifications even while DWC is running in the background. However, we cannot do
 		// this because ServiceWorkers require secured HTTP connections, which are no option
 		// for standard end-users. That is also the reason why they are disabled in the build
 		// script, which by default is used for improved caching
 		this.scheduleUpdate();
 	}
 
-	plugins = []
+	plugins = {}
 	async loadPlugins() {
 		try {
-			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
-			await this.dispatch('update', { plugins: this.plugins });
+			const plugins = await this.download({ filename: Path.dwcPluginsFile });
+			if (!(plugins instanceof Array)) {
+				this.plugins = plugins;
+				await this.dispatch('update', { plugins });
+			}
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
 				throw e;
@@ -1172,7 +1175,7 @@ export default class PollConnector extends BaseConnector {
 			throw new Error(`Plugin ${plugin.id} cannot be loaded because the current machine does not have an SBC attached`);
 		}
 
-		// Uninstall the previous version if applicable
+		// Uninstall the previous version if required
 		if (this.plugins[plugin.id]) {
 			await this.uninstallPlugin(plugin.id, true);
 		}
@@ -1214,13 +1217,16 @@ export default class PollConnector extends BaseConnector {
 
 		// Update the plugins file
 		try {
-			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+			const plugins = await this.download({ filename: Path.dwcPluginsFile });
+			if (!(plugins instanceof Array)) {
+				this.plugins = plugins;
+			}
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
 				console.warn(`Failed to load DWC plugins file: ${e}`);
 			}
 		}
-		this.plugins.push(plugin);
+		this.plugins[plugin.id] = plugin;
 		await this.upload({ filename: Path.dwcPluginsFile, content: JSON.stringify(this.plugins) });
 
 		// Install the plugin manifest
@@ -1230,9 +1236,9 @@ export default class PollConnector extends BaseConnector {
 	async uninstallPlugin(plugin, forUpgrade = false) {
 		if (!forUpgrade) {
 			// Make sure uninstalling this plugin does not break any dependencies
-			for (let i = 0; i < this.plugins.length; i++) {
-				if (this.plugins[i].id !== plugin && this.plugins[i].dwcDependencies.indexOf(plugin) !== -1) {
-					throw new Error(`Cannot uninstall plugin because plugin ${this.plugins[i].id} depends on it`);
+			for (let id in this.plugins) {
+				if (id !== plugin && this.plugins[id].dwcDependencies.indexOf(plugin) !== -1) {
+					throw new Error(`Cannot uninstall plugin because plugin ${id} depends on it`);
 				}
 			}
 		}
@@ -1268,7 +1274,10 @@ export default class PollConnector extends BaseConnector {
 
 		// Update the plugins file
 		try {
-			this.plugins = await this.download({ filename: Path.dwcPluginsFile });
+			const plugins = await this.download({ filename: Path.dwcPluginsFile });
+			if (!(plugins instanceof Array)) {
+				this.plugins = plugins;
+			}
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
 				console.warn(`Failed to load DWC plugins file: ${e}`);

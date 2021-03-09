@@ -397,6 +397,12 @@ export class MessageBox {
 	timeout = 0
 }
 
+export class MoveQueueItem {
+	constructor(initData) { quickPatch(this, initData); }
+	gracePeriod = 0
+	length = 0
+}
+
 export class NetworkInterface {
 	constructor(initData) { quickPatch(this, initData); }
 	actualIP = null
@@ -632,6 +638,9 @@ export function fixMachineItems(state, mergeData) {
 		}
 		if (mergeData.move.kinematics && mergeData.move.kinematics.towers) {
 			fixItems(state.move.kinematics.towers, DeltaTower);
+		}
+		if (mergeData.move.queue) {
+			fixItems(state.move.queue, MoveQueueItem);
 		}
 	}
 

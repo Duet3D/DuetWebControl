@@ -41,7 +41,7 @@ button {
 							</v-btn>
 						</td>
 						<td class="pl-0 no-wrap">
-							<v-btn color="primary" class="px-3" @click="doUninstallPlugin(plugin)" :loading="isPluginBusy(plugin)">
+							<v-btn color="primary" class="px-3" @click="doUninstallPlugin(plugin)" :disabled="!canUninstallPlugin(plugin)" :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('tabs.plugins.uninstall') }}
 							</v-btn>
 						</td>
@@ -134,6 +134,9 @@ export default {
 		canStopPlugin(plugin) {
 			return (plugin.pid > 0) || (this.enabledPlugins.indexOf(plugin.id) !== -1);
 		},
+		canUninstallPlugin(plugin) {
+			return (plugin.pid <= 0)  && (this.loadedDwcPlugins.indexOf(plugin.id) === -1);
+		},
 		async startPlugin(plugin) {
 			this.busyPlugins.push(plugin.id);
 			try {
@@ -161,7 +164,7 @@ export default {
 		async stopPlugin(plugin) {
 			this.busyPlugins.push(plugin.id);
 			try {
-				// Stop the plugin on the SBC
+				// Stop the plugin on the SBC (if needed)
 				if (plugin.sbcExecutable && plugin.pid > 0) {
 					try {
 						await this.stopSbcPlugin(plugin.id);
@@ -184,7 +187,17 @@ export default {
 		async doUninstallPlugin(plugin) {
 			this.busyPlugins.push(plugin.id);
 			try {
-				await this.uninstallPlugin(plugin);
+				try {
+					// Uninstall the plugin
+					await this.uninstallPlugin(plugin);
+
+					// Display a message
+					makeNotification('success', this.$t('notification.plugins.uninstalled'));
+				}
+				catch (e) {
+					makeNotification('error', this.$t('notification.plugins.uninstallError'), e.reason || e.toString());
+					throw e;
+				}
 			} finally {
 				this.busyPlugins = this.busyPlugins.filter(item => item != plugin.id);
 			}

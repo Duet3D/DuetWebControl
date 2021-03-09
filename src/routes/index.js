@@ -132,7 +132,7 @@ function registerRouteInternal(menu, component, route) {
 				menu[keys[0]] = routeObj;
 			}
 			Routes.push(routeObj);
-			router.addRoutes([routeObj]);
+			router.addRoute(routeObj);
 			return;
 		} else {
 			// Go one level deeper
@@ -196,11 +196,11 @@ Vue.use(General)
 Vue.use(Machine)
 
 // 404 page
-router.addRoutes([
+router.addRoute(
 	{
 		path: '*',
 		component: Page404
 	}
-])
+)
 
 export default router
