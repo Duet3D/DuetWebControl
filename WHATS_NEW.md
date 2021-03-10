@@ -10,9 +10,13 @@ Compatible versions:
 
 New features:
 - Added new wizard for plugin installation
+- Rewrote backend for layers chart in standalone mode
 
 Bug fixes:
 - When the "Decompressing" notification was dismissed too soon, an error message was written to the console
+- Setting all tool temps worked only if the tools array didn't contain gaps (null items)
+- New slicer time wasn't displayed correctly
+- Default speed factor was 10000% instead of 100% (only when not connected)
 
 Version 3.3-b1
 ==============

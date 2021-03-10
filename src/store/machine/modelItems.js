@@ -372,6 +372,7 @@ export class Layer {
 	filament = []
 	fractionPrinted = 0
 	height = 0
+	temperatures = []
 }
 
 export class MeshDeviation {

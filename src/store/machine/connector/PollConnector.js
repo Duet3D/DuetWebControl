@@ -799,7 +799,7 @@ export default class PollConnector extends BaseConnector {
 	webDirectory = Path.web
 
 	async updateLoopModel() {
-		let jobKey = null, extruders = [], status = null, zPosition = null;
+		let jobKey = null, axes = [], extruders = [], analogSensors = [], status = null;
 		if (this.justConnected) {
 			this.justConnected = false;
 
@@ -829,8 +829,11 @@ export default class PollConnector extends BaseConnector {
 					} else if (key === 'directories') {
 						this.webDirectory = keyResponse.result.web;
 					} else if (key === 'move') {
+						axes = keyResponse.result.axes;
 						extruders = keyResponse.result.extruders;
-						zPosition = (keyResponse.result.axes.length > 2) ? keyResponse.result.axes[2].userPosition : null;
+						this.updateZAxisIndex(axes);
+					} else if (key === 'sensors') {
+						analogSensors = keyResponse.result.analog;
 					} else if (key === 'state') {
 						status = keyResponse.result.status;
 						this.lastUptime = keyResponse.result.upTime;
@@ -842,10 +845,12 @@ export default class PollConnector extends BaseConnector {
 		} else {
 			// Query live values
 			const response = await this.request('GET', 'rr_model', { flags: 'd99fn' }), seqs = response.result.seqs;
+			jobKey = response.result.job;
+			axes = response.result.move.axes;
 			extruders = response.result.move.extruders;
-			delete response.result.seqs;
+			analogSensors = response.result.sensors.analog;
 			status = response.result.state.status;
-			zPosition = (response.result.move.axes.length > 2) ? response.result.move.axes[2].userPosition : null;
+			delete response.result.seqs;
 
 			// Apply new values
 			if (!isPrinting(status) && isPrinting(this.lastStatus)) {
@@ -864,6 +869,8 @@ export default class PollConnector extends BaseConnector {
 						this.webDirectory = keyResponse.result.web;
 					} else if (key === 'job') {
 						jobKey = keyResponse.result;
+					} else if (key === 'move') {
+						this.updateZAxisIndex(keyResponse.result.axes);
 					}
 				}
 			}
@@ -890,88 +897,116 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// See if we need to record more layer stats
-		if (jobKey && isPrinting(status)) {
-			let layersChanged = false;
-			if (!isPrinting(this.lastStatus)) {
-				this.layers = [];
-				layersChanged = true;
-			}
-
-			const extrRaw = extruders.map(extruder => extruder.rawPosition);
-			const fractionPrinted = (jobKey.size > 0) ? (jobKey.filePosition / jobKey.file.size) : 0;
-			let addLayers = false;
-			if (this.layers.length === 0) {
-				// Is the first layer complete?
-				if (jobKey.layer > 1) {
-					this.layers.push(new Layer({
-						duration: jobKey.firstLayerDuration,
-						height: jobKey.file.firstLayerHeight,
-						filament: (jobKey.layer === 2) ? extrRaw : [],
-						fractionPrinted: (jobKey.layer === 2) ? fractionPrinted : null
-					}));
-					layersChanged = true;
-
-					// Keep track of the past layer
-					if (jobKey.layer === 2) {
-						this.printStats.duration = jobKey.warmUpDuration + jobKey.firstLayerDuration;
-						this.printStats.extrRaw = extrRaw;
-						this.printStats.fractionPrinted = fractionPrinted;
-						this.printStats.measuredLayerHeight = zPosition - jobKey.file.firstLayerHeight;
-						this.printStats.zPosition = zPosition;
-					} else if (jobKey.layer > this.layers.length + 1) {
-						addLayers = true;
-					}
+		if (jobKey && this.updateLayersModel(jobKey, axes, extruders, analogSensors)) {
+			await this.dispatch('update', {
+				job: {
+					layers: this.layers
 				}
-			} else if (jobKey.layer > this.layers.length + 1) {
-				// Another layer is complete, add it
-				addLayers = true;
-			}
-
-			if (addLayers) {
-				if (this.printStats.duration) {
-					// Got info about the past layer, add what we know
-					this.layers.push(new Layer({
-						duration: jobKey.duration - this.printStats.duration,
-						height: this.printStats.measuredLayerHeight ? this.printStats.measuredLayerHeight : this.printStats.layerHeight,
-						filament: extrRaw
-							.map((amount, index) => amount - this.printStats.extrRaw[index])
-							.filter((dummy, index) => extrRaw[index] > 0),
-						fractionPrinted: fractionPrinted - this.printStats.fractionPrinted
-					}));
-					layersChanged = true;
-				} else {
-					// Interpolate data...
-					const avgDuration = (jobKey.duration - jobKey.warmUpDuration - jobKey.firstLayerDuration - jobKey.layerTime) / (jobKey.layer - 2);
-					for (let layer = this.layers.length; layer + 1 < jobKey.layer; layer++) {
-						this.layers.push(new Layer({
-							duration: avgDuration
-						}));
-						layersChanged = true;
-					}
-				}
-
-				// Keep track of the past layer if new layers have been added
-				if (layersChanged) {
-					this.printStats.duration = jobKey.duration;
-					this.printStats.extrRaw = extrRaw;
-					this.printStats.fractionPrinted = fractionPrinted;
-					this.printStats.measuredLayerHeight = zPosition - this.printStats.zPosition;
-					this.printStats.zPosition = zPosition;
-				}
-			}
-
-			if (layersChanged) {
-				await this.dispatch('update', {
-					job: {
-						layers: this.layers
-					}
-				});
-			}
+			});
 		}
 
 		// Schedule the next status update
 		this.lastStatus = status;
 		this.scheduleUpdate();
+	}
+
+	zAxisIndex = -1
+	updateZAxisIndex(axes) {
+		this.zAxisIndex = -1;
+		axes.forEach(function(axis, index) {
+			if (axis !== null && axis.letter === 'Z') {
+				this.zAxisIndex = index;
+			}
+		}, this);
+	}
+
+	lastLayer = -1
+	lastDuration = 0
+	lastFilamentUsage = []
+	lastFilePosition = 0
+	lastHeight = 0
+	printFileSize = 0
+
+	updateLayersModel(jobKey, axes, extruders, analogSensors) {
+		// Are we printing?
+		if (jobKey.duration === null || jobKey.layer === null) {
+			if (this.lastLayer !== -1) {
+				this.lastLayer = -1;
+				this.lastDuration = this.lastFilePosition = this.lastHeight = 0;
+				this.lastFilamentUsage = [];
+				this.printFileSize = 0;
+			}
+			return false;
+		}
+
+		// Reset the layers when a new print is started
+		if (this.lastLayer == -1) {
+			this.lastLayer = 0;
+			this.layers = [];
+		}
+
+		if (this.printFileSize === 0 && jobKey.file) {
+			this.printFileSize = jobKey.file.size;
+		}
+
+		const numChangedLayers = Math.abs(jobKey.layer - this.lastLayer);
+		if (numChangedLayers > 0 && jobKey.layer > 0 && this.lastLayer > 0) {
+			// Compute average stats per changed layer
+			const printDuration = jobKey.duration - (jobKey.warmUpDuration !== null ? jobKey.warmUpDuration : 0);
+			const avgLayerDuration = (printDuration - this.lastDuration) / numChangedLayers;
+			const totalFilamentUsage = [], avgFilamentUsage = [];
+			const bytesPrinted = (jobKey.filePosition !== null) ? (jobKey.filePosition - this.lastFilePosition) : 0;
+			const avgFractionPrinted = (this.printFileSize > 0) ? bytesPrinted / (this.printFileSize * numChangedLayers) : 0;
+			for (let i = 0; i < extruders.length; i++) {
+				if (extruders[i] != null) {
+					const lastFilamentUsage = (i < this.lastFilamentUsage.length) ? this.lastFilamentUsage[i] : 0;
+					totalFilamentUsage.push(extruders[i].rawPosition);
+					avgFilamentUsage.push((extruders[i].rawPosition - lastFilamentUsage) / numChangedLayers);
+				}
+			}
+			let currentHeight = 0.0;
+			if (this.zAxisIndex !== -1 && this.zAxisIndex < axes.length && axes[this.zAxisIndex] !== null) {
+				currentHeight = axes[this.zAxisIndex].userPosition;
+			}
+			const avgHeight = Math.abs(currentHeight - this.lastHeight) / numChangedLayers;
+
+			// Add missing layers
+			for (let i = this.layers.length; i < jobKey.layer - 1; i++) {
+				const newLayer = new Layer();
+				analogSensors.forEach(function(sensor) {
+					if (sensor != null) {
+						newLayer.temperatures.push(sensor.lastReading);
+					}
+				});
+				newLayer.height = avgHeight;
+				this.layers.push(newLayer);
+			}
+
+			// Merge data
+			for (let i = Math.min(this.lastLayer, jobKey.layer); i < Math.max(this.lastLayer, jobKey.layer); i++) {
+				const layer = this.layers[i - 1];
+				layer.duration += avgLayerDuration;
+				for (let k = 0; k < avgFilamentUsage.length; k++) {
+					if (k >= layer.filament.length) {
+						layer.filament.push(avgFilamentUsage[k]);
+					} else {
+						layer.filament[k] += avgFilamentUsage[k];
+					}
+				}
+				layer.fractionPrinted += avgFractionPrinted;
+			}
+
+			// Record values for the next layer change
+			this.lastDuration = printDuration;
+			this.lastFilamentUsage = totalFilamentUsage;
+			this.lastFilePosition = (jobKey.filePosition != null) ? jobKey.filePosition : 0;
+			this.lastHeight = currentHeight;
+			this.lastLayer = jobKey.layer;
+			return true;
+		}
+
+		this.lastLayer = jobKey.layer;
+		return false;
 	}
 
 	async doUpdate() {

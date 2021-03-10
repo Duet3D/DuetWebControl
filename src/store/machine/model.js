@@ -71,7 +71,6 @@ export class MachineModel {
 		duration: null,
 		file: new ParsedFileInfo(),
 		filePosition: null,
-		firstLayerDuration: null,
 		lastDuration: null,
 		lastFileName: null,
 		lastFileAborted: false,					// *** missing in RRF
@@ -170,7 +169,7 @@ export class MachineModel {
 			minimumAcceleration:10,
 			type: MoveShapingType.none
 		},
-		speedFactor: 100,
+		speedFactor: 1.0,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
 		workplaceNumber: 1
