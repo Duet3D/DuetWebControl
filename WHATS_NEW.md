@@ -5,7 +5,7 @@ Verson 3.3-b2
 =============
 
 Compatible versions:
-- DuetSoftwareFramework 3.3-b1
+- DuetSoftwareFramework 3.3-b2
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 New features:
