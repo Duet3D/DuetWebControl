@@ -238,7 +238,7 @@ export default class PollConnector extends BaseConnector {
 		this.lastSeq = 0;
 
 		// Attempt to reconnect
-		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}/rr_connect`, {
+		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}${process.env.BASE_URL}rr_connect`, {
 			password: this.password,
 			time: timeToStr(new Date())
 		});
