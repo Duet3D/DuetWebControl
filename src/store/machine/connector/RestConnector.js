@@ -15,7 +15,7 @@ import { strToTime } from '../../../utils/time.js'
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const socket = new WebSocket(`${socketProtocol}//${hostname}/machine`);
+		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine`);
 		const model = await new Promise(function(resolve, reject) {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
@@ -148,7 +148,7 @@ export default class RestConnector extends BaseConnector {
 		await new Promise(function(resolve, reject) {
 			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${that.hostname}/machine`);
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine`);
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
