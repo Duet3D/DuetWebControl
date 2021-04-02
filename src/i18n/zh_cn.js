@@ -190,7 +190,7 @@ export default {
 		filament: {
 			titleChange: '改变细丝',
 			titleLoad: '载入细丝',
-			prompt: '请选择细丝：'
+			prompt: '请选择细丝：',
 			noFilaments: '没有可用细丝'										
 		},
 		fileEdit: {
