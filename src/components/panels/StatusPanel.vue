@@ -173,11 +173,11 @@ a:not(:hover) {
 								<v-tooltip bottom>
 									<template #activator="{ on }">
 										<span v-on="on" class="text-no-wrap">
-											{{ $display(boards[0].mcuTemp.current, 1, 'C') }}
+											{{ $display(boards[0].mcuTemp.current, 1, '°C') }}
 										</span>
 									</template>
 
-									{{ $t('panel.status.minMax', [$display(boards[0].mcuTemp.min, 1, 'C'), $display(boards[0].mcuTemp.max, 1, 'C')]) }}
+									{{ $t('panel.status.minMax', [$display(boards[0].mcuTemp.min, 1, '°C'), $display(boards[0].mcuTemp.max, 1, '°C')]) }}
 								</v-tooltip>
 							</v-col>
 
