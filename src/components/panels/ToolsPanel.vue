@@ -466,7 +466,7 @@ export default {
 					return this.$display(sensor.lastReading, 1, matches[2]);
 				}
 			}
-			const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? '%RH' : 'C';
+			const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? '%RH' : '°C';
 			return this.$display(sensor.lastReading, 1, unit);
 		},
 
