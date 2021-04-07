@@ -25,7 +25,7 @@ const keysToQuery = Object.keys(DefaultMachineModel).filter(key => keysToIgnore.
 
 export default class PollConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
-		const response = await BaseConnector.request('GET', `${location.protocol}//${hostname}/rr_connect`, {
+		const response = await BaseConnector.request('GET', `${location.protocol}//${hostname}${process.env.BASE_URL}rr_connect`, {
 			password,
 			time: timeToStr(new Date())
 		});
@@ -112,7 +112,7 @@ export default class PollConnector extends BaseConnector {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
 					// with the last-known password and retry the pending request if that succeeds
-					BaseConnector.request('GET', `${that.requestBase}/rr_connect`, {
+					BaseConnector.request('GET', `${that.requestBase}rr_connect`, {
 							password: that.password,
 							time: timeToStr(new Date())
 						})
@@ -238,7 +238,7 @@ export default class PollConnector extends BaseConnector {
 		this.lastSeq = 0;
 
 		// Attempt to reconnect
-		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}/rr_connect`, {
+		const response = await BaseConnector.request('GET', `${location.protocol}//${this.hostname}${process.env.BASE_URL}rr_connect`, {
 			password: this.password,
 			time: timeToStr(new Date())
 		});
