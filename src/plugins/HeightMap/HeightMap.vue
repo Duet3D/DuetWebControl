@@ -41,6 +41,8 @@ h1 {
 			<v-card tile>
 				<v-card-title class="pt-2 pb-1">
 					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.heightmap.listTitle') }}
+					<v-spacer></v-spacer>
+					<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
 				</v-card-title>
 				<v-card-text class="pa-0" v-show="files.length === 0">
 					<v-alert :value="true" type="info" class="mb-0">

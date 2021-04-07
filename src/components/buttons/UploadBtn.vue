@@ -57,7 +57,7 @@ export default {
 				case 'filaments': return '.zip';
 				case 'firmware': return '.zip,.bin,.uf2';
 				case 'menu': return '*';
-				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv';
+				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml';
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 			}
 			return undefined;

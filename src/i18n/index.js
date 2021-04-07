@@ -53,11 +53,18 @@ if (process.env.NODE_ENV !== 'production') {
 		}
 	}
 
-	for (let key in messages) {
-		if (key !== 'en') {
-			compareTranslations(en, messages[key], key);
+	for (let i = 0; i < navigator.languages.length; i++) {
+		const lang = navigator.languages[i].replace('-', '_');
+		if (lang !== 'en' && messages[lang] !== undefined) {
+			compareTranslations(en, messages[lang], lang);
 		}
 	}
+
+//	for (let key in messages) {
+//		if (key !== 'en') {
+//			compareTranslations(en, messages[key], key);
+//		}
+//	}
 }
 /* eslint-enable */
 

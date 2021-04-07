@@ -806,6 +806,32 @@ export default {
 		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
+		accelerometer: {
+			name: 'Accelerometer',
+			listTitle: 'CSV Files',
+			none: 'No Files',
+			chartCaption: 'Acceleration Samples',
+			noData: 'No Samples Loaded',
+			analysis: 'Frequency Analysis',
+			samplingRate: 'Sampling Rate (in Hz)',
+			start: 'Start',
+			end: 'End',
+			wideBand: 'Wide-band analysis',
+			analyze: 'Analyze',
+			back: 'Back',
+			overflowPrompt: {
+				title: 'Overflows detected',
+				prompt: 'This CSV file has reported overflows. Are you sure you wish to continue?'
+			},
+			loadError: 'Failed to load CSV file',
+			parseError: 'Failed to parse CSV file',
+			frequency: 'Frequency (in Hz)',
+			amplitudes: 'Amplitudes',
+			samples: 'Samples',
+			accelerations: 'Accelerations (in g)',
+			sampleTooltip: 'Sample #{0}',
+			frequencyTooltip: '{0} ± {1} Hz'
+		},
 		autoUpdate: {
 			menuCaption: 'Update'
 		},

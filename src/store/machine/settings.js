@@ -26,7 +26,6 @@ export default function(connector, pluginSettingFields) {
 
 			// UI
 			babystepAmount: 0.05,						// mm
-			codes: ['M0', 'M1', 'M84'],
 			displayedExtraTemperatures: [],
 			displayedExtruders: [0, 1],
 			displayedFans: [-1, 0, 1, 2],
@@ -209,12 +208,6 @@ export default function(connector, pluginSettingFields) {
 			}
 		},
 		mutations: {
-			addCode(state, code) {
-				state.codes.push(code);
-				state.codes.sort();
-			},
-			removeCode: (state, code) => state.codes = state.codes.filter(item => item !== code),
-
 			setExtrusionAmount(state, { index, value }) {
 				state.extruderAmounts[index] = value;
 			},

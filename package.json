@@ -1,7 +1,7 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.3.0-b2",
-  "pkgVersion": "3.3-b2",
+  "version": "3.3.0-b2+3",
+  "pkgVersion": "3.3-b2+3",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
