@@ -116,14 +116,4 @@ export default [
 		)
 	}),
 	// Add your own plugins here during development...
-	/*new DwcPlugin({
-		id: 'ExecOnCode',
-		name: 'Exec On Code',
-		author: 'Duet3D Ltd',
-		version,
-		loadDwcResources: () => import(
-			/ webpackChunkName: "ExecOnCode" /
-			'./ExecOnCode/index.js'
-		)
-	}),*/
 ]

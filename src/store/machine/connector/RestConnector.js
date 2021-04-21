@@ -79,7 +79,7 @@ export default class RestConnector extends BaseConnector {
 		if (onProgress) {
 			xhr.onprogress = function(e) {
 				if (e.loaded && e.total) {
-					onProgress(e.loaded, e.total);
+					onProgress(e.loaded, e.total, 0);
 				}
 			}
 			xhr.upload.onprogress = xhr.onprogress;

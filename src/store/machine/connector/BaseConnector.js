@@ -150,7 +150,7 @@ class BaseConnector {
 	// filename: Destination of the file
 	// content: Data of the file
 	// cancellationToken: Object which is populated with a 'cancel' method
-	// onProgress: Function called when data is being transferred with two parameters (loaded, total)
+	// onProgress: Function called when data is being transferred with three parameters (loaded, total, retry)
 	async upload({ filename, content, cancellationToken, onProgress }) { throw new NotImplementedError('upload'); }
 
 	// Delete a file or directory
@@ -196,7 +196,7 @@ class BaseConnector {
 	// filename: Name of the file
 	// content: ZIP file content
 	// cancellationToken: Object which is populated with a 'cancel' method
-	// onProgress: Function called when data is being transferred with two parameters (loaded, total)
+	// onProgress: Function called when data is being transferred with three parameters (loaded, total, retry)
 	async installSbcPlugin({ zipFilename, zipBlob, cancellationToken = null, onProgress }) { throw new NotImplementedError('installSbcPlugin'); }
 
 	// Uninstall a plugin from the SBC

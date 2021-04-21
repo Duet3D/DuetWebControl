@@ -20,7 +20,7 @@
 			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" :target="uploadTarget" color="primary" @uploadComplete="uploadComplete"></upload-btn>
+			<upload-btn ref="mainUpload" class="hidden-sm-and-down" :elevation="1" :directory="directory" :target="uploadTarget" color="primary" @uploadComplete="uploadComplete"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited" :noFilesText="noFilesText">
@@ -58,9 +58,9 @@
 				<v-icon>mdi-refresh</v-icon>
 			</v-btn>
 
-			<upload-btn fab dark :directory="directory" target="system" color="primary" @uploadComplete="uploadComplete">
+			<v-btn fab color="primary" @click="clickUpload">
 				<v-icon>mdi-cloud-upload</v-icon>
-			</upload-btn>
+			</v-btn>
 		</v-speed-dial>
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
@@ -96,6 +96,9 @@ export default {
 					return true;
 				}
 				if (/DuetWebControl(.*)\.bin/i.test(this.selection[0].name)) {
+					return true;
+				}
+				if (/PanelDue(.*)\.bin/i.test(this.selection[0].name)) {
 					return true;
 				}
 				return this.boards.some((board, index) => {
@@ -142,6 +145,9 @@ export default {
 		refresh() {
 			this.$refs.filelist.refresh();
 		},
+		clickUpload() {
+			this.$refs.mainUpload.chooseFile();
+		},
 		fileClicked(item) {
 			if (item.name.toLowerCase().endsWith('.bin') || item.name.toLowerCase().endsWith('.uf2')) {
 				this.$refs.filelist.download(item);
@@ -170,6 +176,8 @@ export default {
 				module = 1;
 			} else if (/DuetWebControl(.*)\.bin/i.test(this.selection[0].name)) {
 				module = 2;
+			} else if (/PanelDue(.*)\.bin/i.test(this.selection[0].name)) {
+				module = 4;
 			} else {
 				this.boards.forEach((board, index) => {
 					if (board && board.firmwareFileName && (board.canAddress || index === 0)) {

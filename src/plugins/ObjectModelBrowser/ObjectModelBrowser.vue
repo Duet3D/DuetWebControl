@@ -29,7 +29,7 @@
 				</v-col>
 			</v-row>
 
-			<v-alert :value="apiFileError" outlined type="warning">
+			<v-alert :value="apiFileError !== null" outlined type="warning">
 				Documentation is not available (/www/DuetAPI.xml not found)
 			</v-alert>
 

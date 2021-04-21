@@ -12,11 +12,12 @@ const atomArray = [
 	"true", "false", "iterations", "line", "null", "pi", "result"
 ]
 const builtinArray = [
-	"abs", "acos", "asin", "atan", "atan2", "cos", "degrees", "floor", "isnan",
-	"max", "min", "mod", "random", "radians", "sin", "sqrt", "tan"
+	"abs", "acos", "asin", "atan", "atan2", "cos", "degrees", "exists", "floor",
+	"isnan", "max", "min", "mod", "radians", "random", "sin", "sqrt", "tan"
 ]
 const keywordArray = [
-	"abort", "echo", "if", "elif", "else", "while", "break", "abort", "return", "var", "set"
+	"echo", "if", "elif", "else", "while", "break", "abort",
+	"global", "param", "var", "set"
 ]
 const atoms = wordRegexp(atomArray), builtins = wordRegexp(builtinArray), keywords = wordRegexp(keywordArray)
 CodeMirror.registerHelper("hintWords", "gcode", atomArray.concat(builtinArray).concat(keywordArray));

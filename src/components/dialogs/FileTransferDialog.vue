@@ -177,7 +177,7 @@ export default {
 			if (file.progress === 1) {
 				return 'success';
 			}
-			return 'info';
+			return (file.retry > 0) ? 'warning' : 'info';
 		},
 		cancel() {
 			this.cancellationTokens[this.selectedMachine].cancel();
@@ -203,6 +203,7 @@ export default {
 				Vue.set(this.closeProgressOnSuccess, machine, closeProgressOnSuccess);
 				Vue.set(this.cancellationTokens, machine, cancellationToken);
 				Vue.set(this.filesBeingTransferred, machine, files);
+				Vue.set(this.retries, machine, []);
 				this.setFileNameOffsets(machine, files);
 			}
 		},

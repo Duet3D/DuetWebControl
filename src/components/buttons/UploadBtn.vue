@@ -95,6 +95,7 @@ export default {
 				firmwareBoards: [],
 				wifiServer: false,
 				wifiServerSpiffs: false,
+				panelDue: false,
 
 				codeSent: false
 			},
@@ -249,6 +250,7 @@ export default {
 			this.updates.firmwareBoards = [];
 			this.updates.wifiServer = false;
 			this.updates.wifiServerSpiffs = false;
+			this.updates.panelDue = false;
 
 			for (let i = 0; i < files.length; i++) {
 				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
@@ -279,15 +281,23 @@ export default {
 							} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
 								filename = Path.combine(this.directories.firmware, 'DuetWebControl.bin');
 								this.updates.wifiServerSpiffs = true;
+							} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
+								filename = Path.combine(this.directories.firmware, content.name);
+								if (content.name === 'PanelDueFirmware.bin') {
+									this.updates.panelDue = true;
+								}
 							}
 						} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
 							filename = Path.combine(this.directories.firmware, content.name);
+							if (content.name === 'PanelDueFirmware.bin') {
+								this.updates.panelDue = true;
+							}
 						}
 					}
 				}
 				content.filename = filename;
 			}
-			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs;
+			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 
 			// Start uploading
 			this.uploading = true;
@@ -322,7 +332,6 @@ export default {
 				location.reload(true);
 			}
 
-			// FIXME For some reason the $t function throws an exception when this button is floating
 			if (zipName) {
 				const secondsPassed = Math.round((new Date() - startTime) / 1000);
 				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
@@ -364,6 +373,10 @@ export default {
 			}
 			if (this.updates.wifiServerSpiffs) {
 				modules.push('2');
+			}
+			// module 3 means put wifi server into bootloader mode, not supported here
+			if (this.updates.panelDue) {
+				modules.push('4');
 			}
 
 			if (modules.length > 0) {

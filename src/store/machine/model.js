@@ -45,6 +45,7 @@ export class MachineModel {
 		web: Path.web
 	}
 	fans = []
+	global = {}
 	heat = {
 		bedHeaters: [],
 		chamberHeaters: [],
@@ -381,6 +382,18 @@ export class MachineModelModule {
 						state.move.kinematics = new Kinematics();
 						break;
 				}
+			}
+
+			// Update global variables
+			if (payload.global) {
+				for (let key in payload.global) {
+					if (!state.global[key]) {
+						Vue.set(state.global, key, payload.global[key]);
+					} else {
+						patch(state.global[key], payload.global[key]);
+					}
+				}
+				delete payload.global;
 			}
 
 			// Update plugins

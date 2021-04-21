@@ -1,6 +1,25 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3-b3
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-b3
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+New features:
+- Added new accelerometer plugin with frequency analysis
+- Object model browser reads DSF API docs for property descriptions
+- When PanelDueFirmware.bin is uploaded, DWC asks for update via M997
+- Updated syntax highlighting for new G-code meta keywords
+- Added global namespace to the object model
+
+Bug fixes:
+- In standalone mode no upload retries were attempted on upload errors
+- Update prompts were not shown when files were uploaded via floating buttons
+- Excessively long tool lists are queried using multiple requests (standalone mode)
+
 Verson 3.3-b2
 =============
 

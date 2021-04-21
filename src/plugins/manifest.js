@@ -20,6 +20,7 @@ export class PluginManifest {
 	sbcData = new Dictionary()						// Object holding key value pairs of a plugin running on the SBC
 	sbcExecutable = null							// Filename in the bin directory used to start the plugin
 	sbcExecutableArguments = null					// Command-line arguments for the executable
+	sbcExtraExecutables = []						// Optional list of additional executable filenames
 	sbcOutputRedirected = true						// Defines if messages from stdout/stderr are output as generic messages
 	sbcPermissions = []								// Permissions on the SBC. See also PluginPermissions
 	sbcPackageDependencies = []						// List of packages this plugin depends on (apt packages in the case of DuetPi)

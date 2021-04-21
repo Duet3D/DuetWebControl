@@ -1,5 +1,5 @@
 <template>
-	<v-tabs class="elevation-2 mt-3">
+	<v-tabs v-model="tab" class="elevation-2 mt-3">
 		<v-tabs-slider></v-tabs-slider>
 
 		<v-tab v-for="(tab, index) in tabs" :key="index" :href="`#machine-tab-${index}`">
@@ -32,6 +32,7 @@ export default {
 	},
 	data() {
 		return {
+			tab: 'machine-tab-0',
 			tabs: MachineSettingTabs
 		}
 	}
