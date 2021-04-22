@@ -827,14 +827,11 @@ export default class PollConnector extends BaseConnector {
 							flags: (next === 0) ? 'd99vn' : `d99vna${next}`
 						});
 
-						if (keyResponse.next) {
-							next = keyResponse.next;
-						}
-
-						if (keyResult === null) {
+						next = keyResponse.next ? keyResponse.next : 0;
+						if (keyResult === null || !(keyResult instanceof Array)) {
 							keyResult = keyResponse.result;
 						} else {
-							keyResult.concat(keyResponse.result);
+							keyResult = keyResult.concat(keyResponse.result);
 						}
 					} while (next !== 0);
 
@@ -879,15 +876,29 @@ export default class PollConnector extends BaseConnector {
 			// Check if any of the non-live fields have changed and query them if so
 			for (let key in DefaultMachineModel) {
 				if (this.lastSeqs[key] !== seqs[key]) {
-					const keyResponse = await this.request('GET', 'rr_model', { key, flags: 'd99vn' });
-					await this.dispatch('update', { [key]: keyResponse.result });
+					let keyResult = null, next = 0;
+					do {
+						const keyResponse = await this.request('GET', 'rr_model', {
+							key,
+							flags: (next === 0) ? 'd99vn' : `d99vna${next}`
+						});
+
+						next = keyResponse.next ? keyResponse.next : 0;
+						if (keyResult === null || !(keyResult instanceof Array)) {
+							keyResult = keyResponse.result;
+						} else {
+							keyResult = keyResult.concat(keyResponse.result);
+						}
+					} while (next !== 0);
+
+					await this.dispatch('update', { [key]: keyResult });
 
 					if (key === 'directories') {
-						this.webDirectory = keyResponse.result.web;
+						this.webDirectory = keyResult.web;
 					} else if (key === 'job') {
-						jobKey = keyResponse.result;
+						jobKey = keyResult;
 					} else if (key === 'move') {
-						this.updateZAxisIndex(keyResponse.result.axes);
+						this.updateZAxisIndex(keyResult.axes);
 					}
 				}
 			}
