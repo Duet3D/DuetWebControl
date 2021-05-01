@@ -142,7 +142,7 @@ export class Extruder {
 	}
 	position = 0
 	pressureAdvance = 0
-	rawPosition = 0
+	rawPosition = 0			// *** deprecated as of v3.3, to be replaced with job.rawExtrusion
 	speed = 100
 	stepsPerMm = 420
 }

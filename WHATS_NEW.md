@@ -1,6 +1,21 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3-rc1
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-rc1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- DWC does not ask for a firmware reset if the mainboard was updated as well
+
+Bug fixes:
+- Arrow icon next to the code input was misleading
+- Status panel stopped updating if Z-probes contained gaps in the OM
+- Global variables were not properly updated in the DWC object model
+
 Version 3.3-b3
 ==============
 

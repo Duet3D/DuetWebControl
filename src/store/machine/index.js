@@ -48,7 +48,12 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			]),
 
 			// Reconnect after a connection error
-			async reconnect({ commit, dispatch }) {
+			async reconnect({ state, commit, dispatch }) {
+				if (!state.isReconnecting) {
+					// Clear the global variables again
+					dispatch('update', { global: null });
+				}
+
 				commit('setReconnecting', true);
 				try {
 					await connector.reconnect();

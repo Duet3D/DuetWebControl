@@ -1,7 +1,7 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.3.0-b3",
-  "pkgVersion": "3.3-b3",
+  "version": "3.3.0-rc1",
+  "pkgVersion": "3.3-rc1",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -42,7 +42,7 @@
     "@vue/cli-plugin-babel": "^4.5.11",
     "@vue/cli-plugin-eslint": "^4.5.11",
     "@vue/cli-plugin-pwa": "^4.5.11",
-    "@vue/cli-service": "^4.5.11",
+    "@vue/cli-service": "^4.1.1",
     "babel-eslint": "^10.1.0",
     "babel-plugin-prismjs": "^2.0.1",
     "babel-plugin-transform-builtin-extend": "^1.1.2",

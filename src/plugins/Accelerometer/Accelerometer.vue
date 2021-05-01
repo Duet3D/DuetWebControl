@@ -61,7 +61,7 @@
 				<v-card-text>
 					<v-row>
 						<v-col>
-							<v-text-field v-model="samplingRate" :label="$t('plugins.accelerometer.samplingRate')" type="number" :rules="samplingRateRules" :min="10" :max="1000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
+							<v-text-field v-model="samplingRate" :label="$t('plugins.accelerometer.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
 						</v-col>
 						<v-col>
 							<v-slider v-model="start" :max="end - 1" :label="$t('plugins.accelerometer.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
@@ -228,7 +228,7 @@ export default {
 			this.axes = [];
 			this.accelerations = [];
 			this.alertType = 'info';
-			this.alertMessage = this.$t('plugin.accelerometer.noData');
+			this.alertMessage = this.$t('plugins.accelerometer.noData');
 			this.chart.data.datasets = [];
 			this.selectedFile = null;
 
@@ -377,7 +377,6 @@ export default {
 			// Compute how many frequencies may be displayed
 			const numPoints = this.end - this.start, resolution = this.samplingRate / numPoints;
 			const numFreqs = Math.floor(Math.min(numPoints / 2, (this.wideBand ? (this.samplingRate / 2) : 200) / resolution));
-			console.log(`numPoints ${numPoints}, numFreqs ${numFreqs}, resolution ${resolution} Hz`);
 
 			// Perform frequency analysis for visible datasets
 			const newDatasets = [];

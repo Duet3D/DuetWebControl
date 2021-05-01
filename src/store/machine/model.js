@@ -81,6 +81,7 @@ export class MachineModel {
 		layerTime: null,
 		layers: [],								// *** missing in RRF
 		pauseDuration: null,
+		rawExtrusion: null,
 		timesLeft: {
 			filament: null,
 			file: null,
@@ -387,24 +388,28 @@ export class MachineModelModule {
 			// Update global variables
 			if (payload.global) {
 				for (let key in payload.global) {
-					if (!state.global[key]) {
-						Vue.set(state.global, key, payload.global[key]);
+					if (state.global[key]) {
+						state.global[key] = payload.global[key];
 					} else {
-						patch(state.global[key], payload.global[key]);
+						Vue.set(state.global, key, payload.global[key]);
 					}
 				}
 				delete payload.global;
 			}
 
 			// Update plugins
-			if (payload.plugins) {
-				for (let key in payload.plugins) {
-					if (!payload.plugins[key]) {
-						Vue.delete(state.plugins, key);
-					} else if (!state.plugins[key]) {
-						Vue.set(state.plugins, key, payload.plugins[key]);
-					} else {
-						patch(state.plugins[key], payload.plugins[key]);
+			if (payload.plugins !== undefined) {
+				if (payload.plugins === null) {
+					state.plugins = {};
+				} else {
+					for (let key in payload.plugins) {
+						if (!payload.plugins[key]) {
+							Vue.delete(state.plugins, key);
+						} else if (!state.plugins[key]) {
+							Vue.set(state.plugins, key, payload.plugins[key]);
+						} else {
+							patch(state.plugins[key], payload.plugins[key]);
+						}
 					}
 				}
 				delete payload.plugins;

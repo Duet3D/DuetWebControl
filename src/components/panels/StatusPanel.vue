@@ -203,7 +203,7 @@ a:not(:hover) {
 									{{ $tc('panel.status.probe', sensors.probes.length) }}
 								</strong>
 								<div class="d-flex-inline">
-									<span v-for="(probe, index) in sensors.probes" :key="index" class="pa-1 probe-span" :class="probeSpanClasses(probe, index)">
+									<span v-for="(probe, index) in probes" :key="index" class="pa-1 probe-span" :class="probeSpanClasses(probe, index)">
 										{{ formatProbeValue(probe.value) }}
 									</span>
 								</div>
@@ -251,6 +251,9 @@ export default {
 		},
 		probesPresent() {
 			return this.sensors.probes.some(probe => probe && probe.type !== ProbeType.none);
+		},
+		probes() {
+			return this.sensors.probes.filter(probe => probe !== null && probe.type !== ProbeType.none);
 		},
 		sensorsPresent() {
 			return ((this.boards.length && this.boards[0].vIn.current > 0) ||

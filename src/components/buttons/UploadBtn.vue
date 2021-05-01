@@ -391,8 +391,8 @@ export default {
 				}
 			}
 
-			// Ask for a firmware reset if expansion boards have been updated
-			this.confirmReset = this.updates.firmwareBoards.findIndex(board => board > 0) !== -1;
+			// Ask for a firmware reset if expansion boards but not the main board have been updated
+			this.confirmReset = (modules.indexOf(0) === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
 		},
 		async reset() {
 			this.confirmReset = false;

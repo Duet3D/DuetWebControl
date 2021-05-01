@@ -155,8 +155,6 @@ export default {
 				console.warn(e);
 			}
 		}
-	},
-	mounted() {
 		this.refresh();
 	},
 	methods: {
