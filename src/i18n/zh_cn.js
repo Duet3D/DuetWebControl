@@ -1,4 +1,4 @@
-// 注释：更新到3.3dev 2021-1-19
+// 注释：更新到3.3b2dev 调整部分已翻译词语 2021-3-30
 // 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
@@ -98,6 +98,10 @@ export default {
 				caption: '上传并开始',
 				title: '上传和开始一个或多个G-Code文件（支持拖放）'
 			},
+			firmware: {// 注释：dev3.3b2更新
+				caption: '上传固件文件',
+				title: '上传和开始一个或多个固件文件（支持拖放）'
+			},
 			macros: {
 				caption: '上传宏文件',
 				title: '上传一个或多个宏文件（支持拖放）'
@@ -147,8 +151,8 @@ export default {
 	},
 	dialog: {
 		changeMoveStep: {
-			title: '改变移动步骤',
-			prompt: '请为单击的移动按钮输入新值：'
+			title: '改变移动距离',
+			prompt: '请为点击的移动按钮输入新值：'
 		},
 		configUpdated: {
 			title: '重启主板？',
@@ -172,12 +176,12 @@ export default {
 			standBy: '请等待...'
 		},
 		editExtrusionAmount: {
-			title: '编辑挤出量',
-			prompt: '请为点击按钮输入新的数值：'
+			title: '编辑挤出机进给长度',
+			prompt: '请为点击的按钮输入新的进给长度：'
 		},
 		editExtrusionFeedrate: {
 			title: '编辑挤出机进给速度',
-			prompt: '请为单击按钮输入新的进给速度：'
+			prompt: '请为点击的按钮输入新的进给速度：'
 		},
 		factoryReset: {
 			title: '恢复出厂设置？',
@@ -186,7 +190,8 @@ export default {
 		filament: {
 			titleChange: '改变细丝',
 			titleLoad: '载入细丝',
-			prompt: '请选择细丝：'
+			prompt: '请选择细丝：',
+			noFilaments: '没有可用细丝'										
 		},
 		fileEdit: {
 			gcodeReference: 'G-Code参考',
@@ -195,10 +200,10 @@ export default {
 			confirmClose: '文件已修改。如果继续，您的修改将丢失。'
 		},
 		fileTransfer: {// 注释：dev3.3更新
-			uploadingTitle: '正在上传文件第{0}个，共{1}个，{2}%已完成',
+			uploadingTitle: '正在上传文件第{0}个，共{1}个，已完成{2}%',
 			uploadDoneTitle: '上传已完成！',
 			uploadFailedTitle: '上传失败！',
-			downloadingTitle: '正在下载文件第{0}个，共{1}个，{2}%已完成',
+			downloadingTitle: '正在下载文件第{0}个，共{1}个，已完成{2}%',
 			downloadDoneTitle: '下载完成',
 			downloadFailedTitle: '下载失败！',
 			filename: '文件名',
@@ -227,6 +232,39 @@ export default {
 		newFile: {
 			title: '新建文件',
 			prompt: '请输入新建文件的名称：'
+		},
+		pluginInstallation: {//注释：3.3 b2dev更新
+			installation: '插件安装向导',
+			prompt: '将安装以下插件：',
+			by: '作者：{0}',
+			license: '许可证：{0}',
+			homepage: '主页:',
+			contents: '该软件包提供了用于',
+			dsf: 'Duet Software Framework',
+			dwc: 'Duet Web Control',
+			rrf: 'RepRapFirmware',
+			prerequisites: '依赖',
+			version: '版本{0}',
+			noPluginSupport: '不允许第三方插件',
+			rootSupport: '支持超级用户插件',
+			invalidManifest: '无效插件清单',
+			permissions: '需要权限',
+			dwcWarning: '该插件包含Web界面的组件。 无法在浏览器会话中强制执行权限检查，因此它可能会操纵您的系统并造成安全隐患，可能会导致物理损坏。',
+			rootWarning: '此插件需要超级用户权限，这意味着它可以重新配置连接的单板机（例如：树莓派）并安装潜在的恶意软件。 这可能会导致设置的物理损坏。',
+			sbcPermissions: '在单板机上运行的插件想要',
+			noSpecialPermissions: '该插件不需要任何特殊权限。',
+			ready: '准备安装',
+			readyMessage: '这个插件即将准备安装，执行最后一步操作之前，请确认您信任插件作者。',
+			readyDisclaimer: '在继续之前，您必须接受Duet3D公司对由于安装此第三方插件而造成的潜在损坏不承担任何责任。',
+			checkboxDisclaimer: '我接受风险，请安装此插件',
+			progress: '安装进度',
+			progressText: '正在安装插件，请等待...',
+			installationSuccess: '安装完成！',
+			installationFailed: '安装失败！',
+			cancel: '取消',
+			back: '上一步',
+			next: '下一步',
+			finish: '结束'
 		},
 		renameFile: {
 			title: '重命名文件或者目录',
@@ -257,7 +295,8 @@ export default {
 	directory: {
 		menu: '菜单目录',
 		filaments: '细丝目录',
-		gcodes: 'G-Codes目录',
+		firmware: '固件目录',								 
+		gcodes: 'G-Code目录',
 		macros: '宏目录',
 		system: '系统目录',
 		web: 'WWW目录'
@@ -272,7 +311,7 @@ export default {
 		cancelled: '操作已取消',
 		network: '网络错误',
 		timeout: 'HTTP请求超时',
-		driveUnmounted: '目标驱动器已卸载',
+		driveUnmounted: '驱动器已卸载',
 		directoryNotFound: '目录{0}不存在',
 		fileNotFound: '文件{0}不存在',
 		invalidHeightmap: '无效高度图',
@@ -313,7 +352,7 @@ export default {
 		heaterStates: {
 			off: '关闭',
 			standby: '待机',
-			active: '活动',
+			active: '工作',
 			fault: '故障',
 			tuning: '正在调谐',
 			offline: '离线'
@@ -334,14 +373,14 @@ export default {
 			idle: '空闲',
 			unknown: '未知'
 		},
-		rpm: '转速RPM',
+		rpm: '转速',
 		sdCard: 'SD卡{0}',
 		mounted: '已装载',
 		notMounted: '没有装载',
 		extracting: '正在提取',
 		uploading: '正在上传',
-		active: '活动',
-		standby: '待机'
+		active: '工作温度',
+		standby: '待机温度'
 	},
 	input: {
 		code: {
@@ -349,19 +388,19 @@ export default {
 			placeholder: '发送代码...'
 		},
 		addTemperature: '新的温度值',
-		addRPM: '新的转速值'
+		addRPM: '新的预设值'
 	},
 	jobProgress: {
-		simulating: '正在模拟{0}, {1} 完成',
-		simulated: '已模拟{0}, 100 % 完成',
-		processing: '正在处理{0}, {1}完成',
-		processed: '已处理{0}, 100 % 完成',
-		printing: '正在打印{0}, {1}完成',
-		printed: '已打印{0}, 100 %完成',
-		noJob: '没有任务在运行.',
+		simulating: '正在模拟{0}，已完成{1}',
+		simulated: '已模拟{0}，已完成100%',
+		processing: '正在处理{0}，已完成{1}',
+		processed: '已处理{0}，已完成100% ',
+		printing: '正在打印{0}，已完成{1}',
+		printed: '已打印{0}，已完成100%',
+		noJob: '没有任务在运行。',
 		layer: '第{0}层，共{1}层',
-		filament: '细丝用量 {0}',
-		filamentRemaining: '{0}剩余'
+		filament: '细丝用量{0}',
+		filamentRemaining: '剩余{0}'
 	},
 	list: {
 		baseFileList: {
@@ -392,6 +431,10 @@ export default {
 		filament: {
 			noFilaments: '没有细丝'
 		},
+		firmware: {//注释： 3.3b2dev更新
+			installFile: '安装固件文件',
+			noFiles: '没有固件文件'
+		},
 		macro: {
 			caption: '宏',
 			noMacros: '没有宏文件',
@@ -405,9 +448,9 @@ export default {
 			printTime: '打印时间',
 			simulatedTime: '模拟时间',
 			generatedBy: '生成软件',
-
 			noJobs: '没有任务',
 			start: '开始任务文件',
+					   
 			simulate: '模拟文件'
 		},
 		system: {
@@ -467,7 +510,7 @@ export default {
 			errorSubDirectories: '细丝{0}包含子目录。 请手动删除它们，然后重试。'
 		},
 		download: {
-			title: '正在下载{0} @ {1}, {2}%完成',
+			title: '正在下载{0} @ {1},已完成{2}%',
 			message: '文件已经开始下载，请等待...',
 			success: '已成功下载{0}，总计{1}',
 			error: '下载{0}失败'
@@ -488,6 +531,14 @@ export default {
 			successTitle: '细丝已创建',
 			successMessage: '创建细丝{0}已成功'
 		},
+		plugins: {//注释：3.3b2dev更新
+			started: '插件已启动',
+			startError: '插件启动失败',
+			stopped: '插件已停用',
+			stopError: '插件停用失败',
+			uninstalled: '插件已经卸载',
+			uninstallError: '插件卸载失败'
+		},
 		rename: {
 			success: '成功重命名{0}为{1}',
 			error: '重命名{0}为{1}失败',
@@ -498,7 +549,7 @@ export default {
 		},
 		responseTooLong: '响应时间过长，请查看控制台',
 		upload: {
-			title: '正在上传{0} @ {1}, {2}%完成',
+			title: '正在上传{0} @ {1}, 已完成{2}%',
 			message: '文件已经开始上传，请等待...',
 			success: '已成功上传{0}，总计{1}',
 			error: '上传{0}失败'
@@ -515,16 +566,16 @@ export default {
 			current: '当前偏移: {0}'
 		},
 		extrude: {
-			caption: '挤出机控制',
+			caption: '挤出控制',
 			mix: '混合',
 			mixRatio: '混合比例：',
-			amount: '进料量{0}:',
+			amount: '进给长度{0}:',
 			feedrate: '进给速度{0}:',
-			retract: '回退',
+			retract: '回抽',
 			extrude: '挤出'
 		},
 		extrusionFactors: {
-			caption: '挤出机系数',
+			caption: '挤出系数',
 			changeVisibility: '改变可见性',
 			extruder: '挤出机{0}',
 			noExtruders: '没有挤出机'
@@ -581,7 +632,7 @@ export default {
 			generatedBy: '生成软件:'
 		},
 		movement: {
-			caption: '机器移动',
+			caption: '机器运动',
 			compensation: '补偿和校准',
 			runBed: '真正的床铺平整(G32)',
 			runDelta: 'Delta校准(G32)',
@@ -612,6 +663,7 @@ export default {
 		settingsCommunication: {
 			caption: '通讯',
 			pingInterval: '空闲时的PING间隔（ms）',
+			updateDelay: '更新延迟(ms)',									
 			ajaxRetries: '最大AJAX重试次数',
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
@@ -645,12 +697,12 @@ export default {
 			toolTemperatures: '工具温度',
 			bedTemperatures: '热床温度',
 			chamberTemperatures: '加热室温度',
-			spindleRPM: '轴转速'
+			spindleRPM: '主轴转速'
 		},
 		settingsMachine: {
 			caption: '机器特性',
-			babystepAmount: 'Z轴每个微调步进距离（{0}）',
-			moveFeedrate: '移动按钮的进给速度（{0}）'
+			babystepAmount: 'Z轴微步调整的距离（{0}）',
+			moveFeedrate: '移动按钮的运行速度（{0}）'
 		},
 		settingsNotifications: {
 			caption: '通知',
@@ -659,11 +711,11 @@ export default {
 		},
 		settingsWebcam: {
 			caption: '网络摄像头',
-			webcamLiveURL: '单击Webcam图像时打开的URL（可选）',
-			webcamURL: '网络摄像头URL（可选）',
+			webcamURL: '网络摄像头网址（可选）',
 			webcamUpdateInterval: '网络摄像头更新间隔（{0}）',
+			webcamLiveURL: '点击网络摄像头图像时打开的网址（可选）',
 			webcamFix: '重新加载图像时，请勿附加HTTP限定符',
-			webcamEmbedded: '在iframe中嵌入网络摄像头图像',
+			webcamEmbedded: '在内联框架中嵌入网络摄像头图像',
 			webcamRotation: '旋转网络摄像头图像',
 			webcamFlip: '翻转网络摄像头图像',
 			flipNone: '没有',
@@ -679,7 +731,7 @@ export default {
 			mode: '模式：{0}',
 			toolPosition: '工具位置',
 			machinePosition: '机器位置',
-			extruders: '挤出机驱动器',
+			extruders: '挤出机',
 			extruderDrive: '驱动器{0}',
 			speeds: '速度',
 			requestedSpeed: '请求速度',
@@ -693,20 +745,23 @@ export default {
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'
 		},
-		tools: {
+		tools: {// 注释：3.3b2dev更新部分内容
 			caption: '工具',
-			controlAll: '控制所有',
+			controlHeaters: '控制加热器',
 			turnEverythingOff: '关闭所有',
-			allActiveTemperatures: '设置所有活动温度',
-			allStandbyTemperatures: '设置所有待机温度',
+			setActiveTemperatures: '设置目标温度',
+			setStandbyTemperatures: '设置待机温度',
+			setToolTemperatures: '设置工具温度',
+			setBedTemperatures: '设置热床温度',
+			setChamberTemperatures: '设置加热室温度',
 			tool: '工具{0}',
 			loadFilament: '载入细丝',
 			changeFilament: '更改细丝',
 			unloadFilament: '卸载细丝',
 			heater: '加热器{0}',
-			current: '当前',
-			active: '活动',
-			standby: '待机',
+			current: '当前温度',
+			active: '工作温度',
+			standby: '待机温度',
 			bed: '热床{0}',
 			chamber: '加热室{0}',
 			extra: {
@@ -723,6 +778,34 @@ export default {
 			caption: '网络摄像头监控',
 			alt: '(网络摄像头图像)'
 		}
+	},
+	pluginPermissions: {// 注释：3.3b2dev更新
+		commandExecution: '执行通用DSF命令（例如：G/M/T-code代码）',
+		codeInterceptionRead: '拦截G/M/T-code代码',
+		codeInterceptionReadWrite: '拦截G/M/T-code代码并对其进行操作',
+		managePlugins: '安装，加载，停用和卸载第三方插件',
+		manageUserSessions: '管理用户会话',
+		objectModelRead: '从对象模型中读取',
+		objectModelReadWrite: '读取和写入对象模型',
+		registerHttpEndpoints: '创建新的HTTP端点',
+		readFilaments: '从细丝目录中读取文件',
+		writeFilaments: '将文件写入细丝目录',
+		readFirmware: '从固件目录读取文件',
+		writeFirmware: '将文件写入固件目录',
+		readGCodes: '从G-code目录中读取文件',
+		writeGCodes: '将文件写入G-code目录',
+		readMacros: '从宏目录中读取文件',
+		writeMacros: '将文件写入宏目录',
+		readMenu: '从菜单目录中读取文件',
+		writeMenu: '将文件写入菜单目录',
+		readSystem: '从系统目录读取文件',
+		writeSystem: '将文件写入系统目录',
+		readWeb: '从Web目录读取文件',
+		writeWeb: '将文件写入Web目录',
+		fileSystemAccess: '访问虚拟SD目录之外的文件',
+		launchProcesses: '启动新进程',
+		networkAccess: '通过网络通讯',
+		superUser: '以root用户身份运行（潜在危险）'
 	},
 	plugins: {// 注释：dev 3.3更新
 		autoUpdate: {
@@ -781,11 +864,11 @@ export default {
 				title : '渲染模式允许您在预览器中设置挤出机颜色或进给率线颜色。'
 			},
 			color: '颜色',
-			feedrate: '进给率',
-			minFeedrate: '最小进给率（mm/s）',
-			maxFeedrate: '最大进给率（mm/s）',
-			minFeedrateColor: '最小进给率颜色',
-			maxFeedrateColor: '最大进给率颜色',
+			feedrate: '进给速度',
+			minFeedrate: '最小进给速度（mm/s）',
+			maxFeedrate: '最大进给速度（mm/s）',
+			minFeedrateColor: '最小进给速度颜色',
+			maxFeedrateColor: '最大进给速度颜色',
 			progress: {
 				caption : '进度',
 				title: '设置已打印部分颜色以追踪打印进度'
@@ -821,7 +904,7 @@ export default {
 			numPoints: '探测点数：{0}',
 			radius: '探测半径：{0}',
 			area: '探测面积：{0}',
-			maxDeviations: '最大偏差：{0} / {1}',
+			maxDeviations: '最大偏差：{0}/{1}',
 			meanError: '平均误差：{0}',
 			rmsError: '均方根差：{0}',
 			display: '显示',
@@ -842,14 +925,14 @@ export default {
 		machineSettings: {
 			caption: '常规'
 		},
-		plugins: {
-			caption: '插件',
+		plugins: {//注释：3.3b2dev更新
+			generalCaption: '内置插件',
+			machineCaption: '第三方插件',
 			headers: {
 				name: '名称',
 				author: '作者',
 				version: '版本',
 				license: '授权',
-				components: '组件',
 				dependencies: '依赖',
 				status: '状态'
 			},
@@ -862,7 +945,7 @@ export default {
 			stopped: '已停止',
 			uninstall: '卸载',
 			noPlugins: '没有插件',
-			refreshNote: '刷新页面，完成DWC插件的卸载'
+			refreshNote: '某些DWC插件卸载完成后需要刷新页面'
 		}
 	}
 }
