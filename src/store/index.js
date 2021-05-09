@@ -39,6 +39,7 @@ const store = new Vuex.Store({
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
 		loadedDwcPlugins: [],
+		hideCodeReplyNotifications: false
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -147,34 +148,37 @@ const store = new Vuex.Store({
 		},
 
 		// Called to load a built-in DWC plugin
-		async loadDwcPlugin({ state, dispatch, commit }, { name, saveSettings }) {
+		async loadDwcPlugin({ state, dispatch, commit }, { id, saveSettings }) {
 			// Don't load a DWC plugin twice
-			if (state.loadedDwcPlugins.indexOf(name) !== -1) {
+			if (state.loadedDwcPlugins.indexOf(id) !== -1) {
 				return;
 			}
 
 			// Get the plugin
-			const plugin = Plugins.find(item => item.name === name);
+			let plugin = Plugins.find(item => item.id === id);
 			if (!plugin) {
-				throw new Error(`Built-in plugin ${name} not found`);
+				plugin = Plugins.find(item => item.name === id);		// fall back to name for backwards-compatibility
+				if (!plugin) {
+					throw new Error(`Built-in plugin ${id} not found`);
+				}
 			}
 
 			// SBC and RRF dependencies are not checked for built-in plugins
 
 			// Is the plugin compatible to the running DWC version?
 			if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-				throw new Error(`Plugin ${name} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
 			}
 
 			// Load plugin dependencies in DWC
 			for (let i = 0; i < plugin.dwcDependencies.length; i++) {
 				const dependentPlugin = state.plugins[plugin.dwcDependencies[i]];
 				if (!dependentPlugin) {
-					throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.name}`);
+					throw new Error(`Failed to find DWC plugin dependency ${plugin.dwcDependencies[i]} for plugin ${plugin.id}`);
 				}
 
 				if (!dependentPlugin.loaded) {
-					await dispatch('loadPlugin', dependentPlugin.name);
+					await dispatch('loadPlugin', dependentPlugin.id);
 				}
 			}
 
@@ -182,14 +186,17 @@ const store = new Vuex.Store({
 			await loadDwcResources(plugin);
 
 			// DWC plugin has been loaded
-			commit('dwcPluginLoaded', plugin.name);
+			commit('dwcPluginLoaded', plugin.id);
 			if (saveSettings) {
-				commit('settings/dwcPluginLoaded', plugin.name);
+				commit('settings/dwcPluginLoaded', plugin.id);
 			}
 		},
 		async unloadDwcPlugin({ dispatch, commit }, plugin) {
-			commit('settings/disableDwcPlugin', plugin);
-			await dispatch('settings/save');
+			if (commit('settings/disableDwcPlugin', plugin)) {
+				await dispatch('settings/save');
+				return true;
+			}
+			return false;
 		}
 	},
 	mutations: {
@@ -228,6 +235,13 @@ const store = new Vuex.Store({
 
 		dwcPluginLoaded(state, pluginName) {
 			state.loadedDwcPlugins.push(pluginName);
+		},
+
+		hideCodeReplyNotifications(state) {
+			state.hideCodeReplyNotifications = true;
+		},
+		showCodeReplyNotifications(state) {
+			state.hideCodeReplyNotifications = false;
 		}
 	},
 	modules: {

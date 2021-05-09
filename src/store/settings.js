@@ -45,7 +45,7 @@ export default {
 			if (state.enabledPlugins) {
 				for (let i = 0; i < state.enabledPlugins.length; i++) {
 					try {
-						await dispatch('loadDwcPlugin', { name: state.enabledPlugins[i], saveSettings: false }, { root: true });
+						await dispatch('loadDwcPlugin', { id: state.enabledPlugins[i], saveSettings: false }, { root: true });
 					} catch (e) {
 						console.warn(`Failed to load built-in plugin ${state.enabledPlugins[i]}`);
 						console.warn(e);
@@ -70,7 +70,7 @@ export default {
 				if (mainSettings.enabledPlugins) {
 					for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
 						try {
-							await dispatch('loadDwcPlugin', { name: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+							await dispatch('loadDwcPlugin', { id: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
 						} catch (e) {
 							console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
 							console.warn(e);
@@ -161,7 +161,11 @@ export default {
 			}
 		},
 		disableDwcPlugin(state, plugin) {
-			state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+			if (state.enabledPlugins.indexOf(plugin) !== -1) {
+				state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+				return true;
+			}
+			return false;
 		},
 
 		registerPluginData(state, { plugin, key, defaultValue }) {

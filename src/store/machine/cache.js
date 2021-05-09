@@ -11,6 +11,7 @@ export default function(connector, pluginCacheFields) {
 	return {
 		namespaced: true,
 		state: {
+			lastSentCodes: ['M0', 'M1', 'M84'],
 			fileInfos: {},
 			sorting: {
 				events: {
@@ -111,6 +112,9 @@ export default function(connector, pluginCacheFields) {
 		},
 		mutations: {
 			load: (state, content) => patch(state, content),
+
+			addLastSentCode: (state, code) => state.lastSentCodes.push(code),
+			removeLastSentCode: (state, code) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
 
 			setFileInfo: (state, { filename, fileInfo }) => state.fileInfos[filename] = fileInfo,
 			clearFileInfo(state, fileOrDirectory) {

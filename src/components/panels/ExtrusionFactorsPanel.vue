@@ -31,7 +31,7 @@
 					</a>
 				</div>
 
-				<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :disabled="uiFrozen"></slider>
+				<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :step="1" :disabled="uiFrozen"></slider>
 			</div>
 		</v-card-text>
 

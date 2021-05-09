@@ -162,7 +162,7 @@ export default {
 		...mapGetters(['isConnected', 'uiFrozen']),
 		...mapState('machine/model', {
 			move: state => state.move,
-			workspaceNumber: state => state.move.workspaceNumber,
+			workspaceNumber: state => state.move.workplaceNumber,
 		}),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
@@ -246,7 +246,7 @@ export default {
 		},
 	},
 	mounted() {
-		this.currentWorkspace = this.workspaceNumber;
+		this.currentWorkspace = this.workspaceNumber + 1;
 	},
 	watch: {
 		isConnected() {
@@ -256,7 +256,7 @@ export default {
 		},
 		workspaceNumber: function (to) {
 			console.log(`workplace number change ${to}`);
-			this.currentWorkspace = to;
+			this.currentWorkspace = to + 1;
 		},
 	},
 };

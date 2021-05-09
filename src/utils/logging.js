@@ -32,7 +32,7 @@ export function logCode(code = '', reply, hostname = store.state.selectedMachine
 
 	// Log it
 	const responseLines = toLog.split('\n')
-	if (hostname === store.state.selectedMachine) {
+	if (hostname === store.state.selectedMachine && !store.state.hideCodeReplyNotifications) {
 		let title = code, message = responseLines.join('<br>');
 		if (responseLines.length > 3 || toLog.length > 128) {
 			title = (!code) ? i18n.t('notification.responseTooLong') : code;

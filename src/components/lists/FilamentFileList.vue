@@ -5,16 +5,16 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down mr-3" v-show="!isRootDirectory" :disabled="uiFrozen" @click="showNewFile = true">
+			<v-btn class="hidden-sm-and-down mr-3" v-show="!isRootDirectory" :disabled="uiFrozen" :elevation="1" @click="showNewFile = true">
 				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t('button.newFile.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down mr-3" v-show="isRootDirectory" :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newFilament.caption') }}
+			<v-btn class="hidden-sm-and-down mr-3" v-show="isRootDirectory" :disabled="uiFrozen" :elevation="1" @click="showNewFilament = true">
+				<v-icon class="mr-1">mdi-database-plus</v-icon> {{ $t('button.newFilament.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" target="filaments" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :elevation="1" target="filaments" color="primary"></upload-btn>
 		</v-toolbar>
 
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :folder-icon="isRootDirectory ? 'mdi-radiobox-marked' : 'mdi-folder'" :loading.sync="loading" :doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked" :no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop :no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
@@ -44,7 +44,7 @@
 			</v-btn>
 
 			<v-btn v-show="isRootDirectory" fab :disabled="uiFrozen" @click="showNewFilament = true">
-				<v-icon>mdi-folder-plus</v-icon>
+				<v-icon>mdi-database-plus</v-icon>
 			</v-btn>
 
 			<v-btn fab color="info" :loading="loading" :disabled="uiFrozen" @click="refresh">

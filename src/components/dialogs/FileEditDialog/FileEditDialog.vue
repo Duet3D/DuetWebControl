@@ -118,6 +118,7 @@ export default {
 			return {
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
+				indentWithTabs: true,
 				lineNumbers: true,
 				styleActiveLine: true
 			}
@@ -131,6 +132,11 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
+		},
+		isTouchDevice() {
+			return ('ontouchstart' in window) ||
+				(navigator.maxTouchPoints > 0) ||
+				(navigator.msMaxTouchPoints > 0); 
 		}
 	},
 	data() {
@@ -180,17 +186,18 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isTouchDevice;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
-				// If using the editor, scroll to the top again to avoid glitches
+				// Scroll to the top again to avoid glitches
 				setTimeout(() => {
 					if (this.$refs.cmEditor) {
 						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 						this.$refs.cmEditor.cminstance.focus();
 					} else {
+						this.$refs.textarea.scrollTo(0, 0);
 						this.$refs.textarea.focus();
 					}
 				}, 250);

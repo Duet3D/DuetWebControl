@@ -87,7 +87,7 @@ export default {
 			}
 			return this.settings.temperatures[this.itemKey];
 		},
-		unit() { return this.temperature ? 'C' : 'RPM'; },
+		unit() { return this.temperature ? '°C' : 'RPM'; },
 
 		canAddActive() { return this.isNumber(this.activeValue) && this.items.active.indexOf(this.activeValue) === -1; },
 		canAddStandby() { return this.isNumber(this.standbyValue) && this.items.standby.indexOf(this.standbyValue) === -1; },

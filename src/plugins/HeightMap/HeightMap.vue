@@ -41,6 +41,8 @@ h1 {
 			<v-card tile>
 				<v-card-title class="pt-2 pb-1">
 					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.heightmap.listTitle') }}
+					<v-spacer></v-spacer>
+					<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
 				</v-card-title>
 				<v-card-text class="pa-0" v-show="files.length === 0">
 					<v-alert :value="true" type="info" class="mb-0">
@@ -113,7 +115,7 @@ h1 {
 
 					<v-switch v-model="invertZ" :label="$t('plugins.heightmap.invertZ')" :disabled="uiFrozen || loading || !ready"></v-switch>
 
-					<v-btn @click="topView" :disabled="uiFrozen || loading || !ready" class="ml-0 mt-3" >
+					<v-btn @click="topView" :disabled="uiFrozen || loading || !ready" :elevation="1" class="ml-0 mt-3" >
 						<v-icon small class="mr-1">mdi-format-vertical-align-bottom</v-icon> {{ $t('plugins.heightmap.topView') }}
 					</v-btn>
 				</v-card-text>
@@ -122,8 +124,8 @@ h1 {
 
 		<v-tooltip top absolute v-model="tooltip.shown" :position-x="tooltip.x" :position-y="tooltip.y">
 			<span class="no-cursor">
-				X: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
-				Y: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
+				{{ xLabel }}: {{ $display(tooltip.coord.x, 1, 'mm') }} <br>
+				{{ yLabel }}: {{ $display(tooltip.coord.y, 1, 'mm') }} <br>
 				Z: {{ $display(tooltip.coord.z, 3, 'mm') }}
 			</span>
 		</v-tooltip>
@@ -204,6 +206,8 @@ export default {
 				y: undefined,
 				shown: false
 			},
+			xLabel: 'X',
+			yLabel: 'Y',
 			numPoints: undefined,			// points excluding NaN
 			area: undefined,
 			radius: undefined,
@@ -218,32 +222,6 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['download', 'getFileList']),
-		async init() {
-			if (!this.three.scene) {
-				// Wait 100ms to let the grid resize
-				await new Promise(resolve => setTimeout(resolve, 100));
-
-				// Perform initial resize
-				const size = this.resize();
-
-				// Create THREE instances
-				this.three.scene = new Scene();
-				this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
-				this.three.camera.rotation.set(Math.PI / 4, 0, 0)
-				this.three.camera.position.set(0, -1.25, 1.25);
-				this.three.camera.up = new Vector3(0, 0, 1);
-				this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
-				this.three.renderer.setSize(size.width, size.height);
-				this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
-				this.three.orbitControls.enableKeys = false;
-				this.three.raycaster = new Raycaster();
-
-				// Register this instance in order to deal with size changes
-				if (this.isConnected) {
-					await this.refresh();
-				}
-			}
-		},
 		resize() {
 			if (!this.isActive) {
 				return;
@@ -274,26 +252,32 @@ export default {
 			this.$refs.canvas.height = height;
 
 			// Resize the 3D height map
-			if (this.three.renderer) {
+			if (this.three.renderer && height > 0) {
 				this.three.camera.aspect = width / height;
 				this.three.camera.updateProjectionMatrix();
 				this.three.renderer.setSize(width, height);
 			}
 
 			// Redraw the legend and return the canvas size
-			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ);
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			return { width, height };
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
 			const csv = new CSV(csvData.substring(csvData.indexOf('\n') + 1));
+			this.xLabel = csv.get('axis0') || 'X';
+			this.yLabel = csv.get('axis1') || 'Y';
 			let radius = parseFloat(csv.get('radius'));
 			if (radius <= 0) { radius = undefined; }
-			const xMin = parseFloat(csv.get('xmin'));
-			const yMin = parseFloat(csv.get('ymin'));
-			let xSpacing = parseFloat(csv.get('xspacing'));
+			let xMin = parseFloat(csv.get('min0'));
+			if (isNaN(xMin)) { xMin = parseFloat(csv.get('xmin')); }
+			let yMin = parseFloat(csv.get('min1'));
+			if (isNaN(yMin)) { yMin = parseFloat(csv.get('ymin')); }
+			let xSpacing = parseFloat(csv.get('spacing0'));
+			if (isNaN(xSpacing)) { xSpacing = parseFloat(csv.get('xspacing')); }
 			if (isNaN(xSpacing)) { xSpacing = parseFloat(csv.get('spacing')); }
-			let ySpacing = parseFloat(csv.get('yspacing'));
+			let ySpacing = parseFloat(csv.get('spacing1'));
+			if (isNaN(ySpacing)) { ySpacing = parseFloat(csv.get('yspacing')); }
 			if (isNaN(ySpacing)) { ySpacing = parseFloat(csv.get('spacing')); }
 
 			// Convert each point to a vector
@@ -305,8 +289,9 @@ export default {
 				}
 			}
 
-			// Display height map
+			// Display height map and redraw legend
 			this.showHeightMap(points, radius);
+			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 		},
 		showHeightMap(points, probeRadius) {
 			// Clean up first
@@ -389,9 +374,6 @@ export default {
 			this.probeRadius = probeRadius;
 			this.ready = true;
 			this.render();
-
-			// Resize it again when the values have been changed
-			this.$nextTick(this.resize)
 		},
 		render() {
 			if (this.three.renderer) {
@@ -564,16 +546,34 @@ export default {
 		this.isActive = false;
 	},
 	mounted() {
-		// FIXME give the grid some time to resize everything...
-		setTimeout(this.init, 100);
+		const size = this.resize();
+		if (size.height <= 0) {
+			size.height = 1;
+		}
+
+		// Create THREE instances
+		this.three.scene = new Scene();
+		this.three.camera = new PerspectiveCamera(45, size.width / size.height, 0.1, 1000);
+		this.three.camera.position.set(0, -1.25, 1.25);
+		this.three.camera.rotation.set(Math.PI / 4, 0, 0)
+		this.three.camera.up.set(0, 0, 1);
+		this.three.camera.updateProjectionMatrix();
+		this.three.renderer = new WebGLRenderer({ canvas: this.$refs.canvas });
+		this.three.renderer.setSize(size.width, size.height);
+		this.three.orbitControls = new OrbitControls(this.three.camera, this.three.renderer.domElement);
+		this.three.orbitControls.enableKeys = false;
+		this.three.raycaster = new Raycaster();
 
 		// Set current heightmap
-		if (this.heightmapFile) {
-			this.selectedFile = Path.extractFileName(this.heightmapFile);
+		if (this.isConnected) {
+			this.refresh();
 		}
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+
+		// Trigger resize event once more to avoid rendering glitches
+		setTimeout(this.resize.bind(this), 250);
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes

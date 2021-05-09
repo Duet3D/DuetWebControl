@@ -55,6 +55,16 @@ export const EndstopType = {
 	unknown: 'unknown'
 }
 
+export const FilamentMonitorStatus = {
+	noMonitor: 'noMonitor',
+	ok: 'ok',
+	noDataReceived: 'noDataReceived',
+	noFilament: 'noFilament',
+	tooLittleMovement: 'tooLittleMovement',
+	tooMuchMovement: 'tooMuchMovement',
+	sensorError: 'sensorError'
+}
+
 export const FilamentMonitorType = {
 	simple: 'simple',
 	laser: 'laser',
@@ -161,6 +171,14 @@ export const MessageType = {
 	error: 2
 }
 
+export const MoveShapingType = {
+	none: 'none',
+	ZVD: 'ZVD',
+	ZVDD: 'ZVDD',
+	EI2: 'EI2',
+	DAA: 'DAA'
+}
+
 export const NetworkInterfaceType = {
 	lan: 'lan',
 	wifi: 'wifi'
@@ -193,6 +211,13 @@ export const StatusType = {
 	busy: 'busy',
 	changingTool: 'changingTool',
 	idle: 'idle'
+}
+
+export const SpindleState = {
+	unconfigured: 'unconfigured',
+	stopped: 'stopped',
+	forward: 'forward',
+	reverse: 'reverse'
 }
 
 export const ToolState = {

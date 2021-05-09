@@ -61,6 +61,11 @@ class CSV {
 				this.content[row - 1][col] += char;
 			}
 		}
+
+		if (this.content.length > 0 && this.content[this.content.length - 1].length === 0) {
+			// Remove last content row if it is empty
+			this.content.splice(-1, 1);
+		}
 	}
 
 	get(fieldName, row = 0) {

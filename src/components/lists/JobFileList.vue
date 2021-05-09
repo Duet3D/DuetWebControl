@@ -6,13 +6,13 @@
 
 			<v-spacer></v-spacer>
 
-			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" @click="showNewDirectory = true">
+			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewDirectory = true">
 				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" @click="refresh">
+			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" :directory="directory" target="gcodes" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="gcodes" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" sort-table="jobs" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked" no-files-text="list.jobs.noJobs">
@@ -26,7 +26,7 @@
 					<v-icon class="mr-1">mdi-fast-forward</v-icon> {{ $t('list.jobs.simulate') }}
 				</v-list-item>
 				<v-list-item v-show="isFile" v-for="(menuItem, index) in contextMenuItems.jobFileList" :key="index" @click="contextMenuAction(menuItem)">
-					<v-icon class="mr-1">{{menuItem.icon}}</v-icon> {{ menuItem.name }}
+					<v-icon class="mr-1">{{ menuItem.icon }}</v-icon> {{ menuItem.name }}
 				</v-list-item>
 			</template>
 		</base-file-list>
@@ -267,12 +267,11 @@ export default {
 		},
 		contextMenuAction(menuItem){
 			let path = Path.combine(this.directory, this.selection[0].name);
-			if(menuItem.path !== ''){
-			this.$router.push(menuItem.path).then(() => {
-				this.$root.$emit(menuItem.action, path);
-			})
-			}
-			else{
+			if (menuItem.path !== '') {
+				this.$router.push(menuItem.path).then(() => {
+					this.$root.$emit(menuItem.action, path);
+				})
+			} else {
 				this.$root.$emit(menuItem.action, path);
 			}
 			

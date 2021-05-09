@@ -1,11 +1,127 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3-rc1
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-rc1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- DWC does not ask for a firmware reset if the mainboard was updated as well
+
+Bug fixes:
+- Arrow icon next to the code input was misleading
+- Status panel stopped updating if Z-probes contained gaps in the OM
+- Global variables were not properly updated in the DWC object model
+
+Version 3.3-b3
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-b3
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+New features:
+- Added new accelerometer plugin with frequency analysis
+- Object model browser reads DSF API docs for property descriptions
+- When PanelDueFirmware.bin is uploaded, DWC asks for update via M997
+- Updated syntax highlighting for new G-code meta keywords
+- Added global namespace to the object model
+
+Bug fixes:
+- In standalone mode no upload retries were attempted on upload errors
+- Update prompts were not shown when files were uploaded via floating buttons
+- Excessively long tool lists are queried using multiple requests (standalone mode)
+
+Verson 3.3-b2
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-b2
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+New features:
+- Added new wizard for plugin installation
+- Rewrote backend for layers chart in standalone mode
+
+Bug fixes:
+- When the "Decompressing" notification was dismissed too soon, an error message was written to the console
+- Setting all tool temps worked only if the tools array didn't contain gaps (null items)
+- New slicer time wasn't displayed correctly
+- Default speed factor was 10000% instead of 100% (only when not connected)
+
+Version 3.3-b1
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-b1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Code reply notifications are no longer shown on the Console page
+- Display menu has been moved to the System page and added new option for Firmware
+- M568 is used for inactive tools to set the spindle RPM, otherwise fallback to M3/M4
+- UI allows already loaded filaments be loaded into other extruders
+
+New features:
+- Added support for new heightmap format with variable axes
+- Object model explorer shows live values (configuration changes may need manual refresh though)
+
+Version 3.2.2
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.2
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Auto-indentation used spaces regardless of last line indentation type
+- Fixed reset prompt for 0:/sys/board.txt (for STM and LPC users only)
+- Upload errors for dwc-settings and dwc-cache are no longer displayed
+- Spindle RPM inputs didn't wait for code to finish
+- Failed uploads for DWC system files are no longer shown
+- On-Screen Keyboard hid lower end of the text editor
+- When DWC reconnected in standalone mode due to HTTP 401, the `rr_connect` request was malformed
+
+Version 3.2.0
+=============
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.0
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Apart from the tool fan the first three fans are displayed by default
+- Reduced extrusion slider step size from 5% to 1%
+
+Bug fixes:
+- When an error occurred during a plugin installation, the upload button became unusable
+- New code editor was always disabled in Chrome-based browsers due to touchscreen detection
+- Standard editor always displayed end of the file
+- Sometimes the heightmap could not be shown and only a black frame was displayed
+
+Version 3.2.0-rc2
+=================
+
+Compatible versions:
+- DuetSoftwareFramework 3.2.0-rc2
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- New code editor has been disabled on touch devices for now due to incompatibilities
+- Extra sensors were labelled as heaters in the temperature chart
+- Change callbacks in the tool input component didn't check changed values properly
+- Simulation state wasn't recorded correctly in the job estimations panel
+- When connected in SBC mode multiple concurrent reconnect attempts could be started
+- Fixed G3 in the GCode Viewer
+
 Version 3.2.0-rc1
 =================
 
 Compatible versions:
-- DuetSoftwareFramework 3.2.0-RC1
+- DuetSoftwareFramework 3.2.0-rc1
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:

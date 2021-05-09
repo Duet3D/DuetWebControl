@@ -95,7 +95,7 @@ export default {
 		status(to) {
 			if (to === StatusType.simulating) {
 				this.isSimulating = true;
-			} else if (!isPrinting(to)) {
+			} else if (!this.isPrinting) {
 				this.isSimulating = false;
 			}
 		}

@@ -37,8 +37,10 @@ export class OperationCancelledError extends NetworkError {
 }
 
 export class OperationFailedError extends NetworkError {
+	reason = null
 	constructor(reason) {
 		super(i18n.t('error.operationFailed', [reason]));
+		this.reason = reason;
 	}
 }
 

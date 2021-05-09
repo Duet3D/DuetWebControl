@@ -9,11 +9,12 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
 						:search-input.sync="code" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						@click="click" :items="displayedCodes" hide-selected :menu-props="{ maxHeight: '50%' }" @keyup.down="showItems = true">
+						@click="click" :items="displayedCodes" hide-selected :menu-props="{ maxHeight: '50%' }" @keyup.down="showItems = true"
+						append-icon="">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
-					<v-btn icon @click.prevent.stop="removeCode(item.value)">
+					<v-btn icon @click.prevent.stop="removeLastSentCode(item.value)">
 						<v-icon>mdi-delete</v-icon>
 					</v-btn>
 				</template>
@@ -38,14 +39,15 @@ const conditionalKeywords = ['abort', 'echo', 'if', 'elif', 'else', 'while', 'br
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/settings', ['codes']),
+		...mapState('machine/cache', ['lastSentCodes']),
 		...mapState('settings', ['disableAutoComplete']),
 		displayedCodes() {
 			if (this.showItems && !this.disableAutoComplete) {
 				const currentCode = this.code ? this.code.toLowerCase() : '';
-				return this.codes
+				return this.lastSentCodes
 					.filter(code => (currentCode === '') || (code.toLowerCase().indexOf(currentCode) !== -1))
-					.map(code => ({ text: code, value: code }));
+					.map(code => ({ text: code, value: code }))
+					.reverse();
 			}
 			return [];
 		}
@@ -65,7 +67,7 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
-		...mapMutations('machine/settings', ['addCode', 'removeCode']),
+		...mapMutations('machine/cache', ['addLastSentCode', 'removeLastSentCode']),
 		click() {
 			if (this.wasFocused) {
 				this.showItems = !this.showItems;
@@ -142,9 +144,9 @@ export default {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
 					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') &&
 						bareCode.indexOf('M587') === -1 && bareCode.indexOf('M589') === -1 &&
-						!this.disableAutoComplete && this.codes.indexOf(codeToSend.trim()) === -1) {
+						!this.disableAutoComplete && this.lastSentCodes.indexOf(codeToSend.trim()) === -1) {
 						// Automatically remember successful codes
-						this.addCode(codeToSend.trim());
+						this.addLastSentCode(codeToSend.trim());
 					}
 				} catch {
 					// handled before we get here
