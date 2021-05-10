@@ -1,4 +1,8 @@
 <style>
+.always-on-top {
+	z-index: 1000 !important;
+}
+
 #title:not(:hover) {
 	color: inherit;
 }
@@ -59,7 +63,7 @@ textarea {
 		<v-navigation-drawer v-model="drawer" clipped fixed app width="300">
 			<div class="pa-2 hidden-sm-and-up">
 				<connect-btn v-if="isLocal" class="mb-3" block></connect-btn>
-				<emergency-btn block></emergency-btn>
+				<emergency-btn class="always-on-top" block></emergency-btn>
 			</div>
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
@@ -94,7 +98,7 @@ textarea {
 			<v-spacer></v-spacer>
 
 			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"></upload-btn>
-			<emergency-btn class="hidden-xs-only"></emergency-btn>
+			<emergency-btn class="hidden-xs-only always-on-top"></emergency-btn>
 
 			<v-btn icon class="hidden-md-and-up ml-3" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
 				<v-icon>mdi-aspect-ratio</v-icon>
