@@ -356,6 +356,7 @@ export default {
 			offline: 'abgeschaltet'
 		},
 		status: {
+			disconnected: 'Getrennt',
 			starting: 'Starte',
 			updating: 'Aktualisiere',
 			off: 'Aus',

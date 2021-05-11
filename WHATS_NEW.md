@@ -1,6 +1,20 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3-rc2
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-rc2
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+New features:
+- .deb packages can be installed if support for package management and root plugins is enabled in DSF
+
+Bug fixes:
+- Global variables were not cleared on disconnect
+- Added new `Disconnected` state to indicate when DWC is not connected to RRF
+
 Version 3.3-rc1
 ==============
 

@@ -32,6 +32,7 @@ export default {
 		},
 		statusClass() {
 			switch (this.state.status) {
+				case StatusType.disconnected: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
 				case StatusType.starting: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
 				case StatusType.updating: return this.darkTheme ? 'blue darken-3' : 'blue lighten-3';
 				case StatusType.off: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';

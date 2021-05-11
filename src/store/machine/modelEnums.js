@@ -88,6 +88,7 @@ export const HeaterMonitorCondition = {
 }
 
 export const HeaterState = {
+	disconnected: 'disconnected',
 	off: 'off',
 	standby: 'standby',
 	active: 'active',
