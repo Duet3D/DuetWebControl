@@ -386,7 +386,7 @@ export class MachineModelModule {
 			}
 
 			// Update global variables
-			if (payload.global) {
+			if (payload.global !== undefined) {
 				if (payload.global === null) {
 					state.global = {};
 				} else {
