@@ -85,7 +85,7 @@
 			</v-card>
 		</v-col>
 
-		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog> 
+		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" :prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
 	</v-row>
 </template>
 

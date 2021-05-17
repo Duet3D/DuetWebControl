@@ -1,6 +1,25 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.3
+===========
+
+Upgrade notes:
+- Saved G-codes from the inputs are no longer saved on the Duet to avoid excessive SD card wear
+- This will be the last DWC version that remains compatible with old-style status responses
+
+Compatible versions:
+- DuetSoftwareFramework 3.3
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Changed behaviour:
+- Changed caption of Third-Party Plugins to Machine-Specific Plugins
+
+Bug fixes:
+- Overflow confirmation of Accelerometer plugin did not display translated message
+- Fixed selection problem on the Accelerometer page
+- Fixed issue where global variables could be hidden on the OM browser after a reconnect
+
 Version 3.3-rc2
 ==============
 
