@@ -245,7 +245,7 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: '依赖',
 			version: '版本{0}',
-			noPluginSupport: '不允许第三方插件',
+			noPluginSupport: '不允许使用机器专用插件',//3.3rc2之后修改，其他位置“第三方”未修改
 			rootSupport: '支持超级用户插件',
 			invalidManifest: '无效插件清单',
 			permissions: '需要权限',
@@ -358,6 +358,7 @@ export default {
 			offline: '离线'
 		},
 		status: {
+			disconnected: '已断开连接',
 			starting: '正在启动',
 			updating: '正在更新',
 			off: '关闭',
@@ -952,7 +953,7 @@ export default {
 		},
 		plugins: {
 			generalCaption: '内置插件',
-			machineCaption: '第三方插件',									 
+			machineCaption: '机器专用插件',//3.3rc2之后修改									 
 			headers: {
 				name: '名称',
 				author: '作者',
