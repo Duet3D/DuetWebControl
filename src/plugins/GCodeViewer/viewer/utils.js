@@ -50,7 +50,7 @@ export function doArc(tokens, currentPosition, relativeMove, arcSegLength) {
         let deltaX = x - currX;
         let deltaY = y - currY;
         let dSquared = Math.pow(deltaX, 2) + Math.pow(deltaY, 2);
-        let hSquared = Math.pow(r) - dSquared / 4;
+        let hSquared = Math.pow(r,2) - dSquared / 4;
         if (dSquared == 0 || hSquared < 0) {
             return { position: { x: x, y: z, z: y }, points: [] }; //we'll abort the render and move te position to the new position.
         }

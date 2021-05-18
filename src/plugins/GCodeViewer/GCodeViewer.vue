@@ -80,47 +80,67 @@
 	top: 0px;
 	z-index: 50 !important;
 }
+
+.loading-progress {
+	position: absolute;
+	width: 50%;
+	left: 0px;
+	margin-left: 25%;
+	top : 5px;
+	z-index: 19 !important;
+}
+
+/* Transitions lag when trying to show loading progress */
+.disable-transition {
+	transition: none !important;
+}
 </style>
 
 <template>
     <div ref="primarycontainer" class="primary-container mt-2" v-resize="resize">
         <div :class="{ 'full-screen': fullscreen }" class="viewer-box">
             <div class="emergency-button-placement" v-show="fullscreen">
-                <code-btn :code="'M112\nM999'" :log="false" color="red" :title="$t('button.emergencyStop.title')"><v-icon>mdi-flash</v-icon></code-btn>
+                <code-btn :code="'M112\nM999'" :log="false" color="error" :title="$t('button.emergencyStop.title')"><v-icon>mdi-flash</v-icon></code-btn>
             </div>
             <canvas ref="viewerCanvas" class="babylon-canvas" :title="hoverLabel"></canvas>
+			<fs-overlay v-show="fullscreen && showOverlay"></fs-overlay>
+			<div class="loading-progress">
+				<v-progress-linear rounded v-show="loading"  height="15" :value="loadingProgress" class="disable-transition">
+					{{loadingProgress}}%
+				</v-progress-linear>
+			</div>
             <div class="button-container" :class="{ 'button-container-drawer': drawer }">
-                <v-btn class="full-screen-icon mb-2" small @click="toggleFullScreen" :title="$t('plugins.gcodeViewer.fullscreen')">
+                <v-btn class="full-screen-icon mb-2" small @click="toggleFullScreen" :title="$t('plugins.gcodeViewer.fullscreen')" color="secondary">
                     <v-icon>{{ fullscreen ? 'mdi-window-restore' : 'mdi-window-maximize' }}</v-icon>
                 </v-btn>
                 <br />
-                <v-btn small class="toggle-menu-button-close mb-10" @click="drawer = !drawer" :title="$t('plugins.gcodeViewer.showConfiguration')"><v-icon>mdi-cog</v-icon></v-btn>
+                <v-btn small class="toggle-menu-button-close mb-10" @click="drawer = !drawer" :title="$t('plugins.gcodeViewer.showConfiguration')" color="secondary"><v-icon>mdi-cog</v-icon></v-btn>
                 <br />
-                <v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')">
+                <v-btn small class="toggle-menu-button-close mb-10" @click="loadRunningJob" v-show="!(!isJobRunning || loading || visualizingCurrentJob)" :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" color="secondary">
                     <v-icon>mdi-printer-3d</v-icon>
                 </v-btn>
                 <br />
-                <v-btn small class="toggle-menu-button-close" v-show="loading" @click="cancelLoad" :title="$t('plugins.gcodeViewer.cancelLoad')"><v-icon color="red">mdi-cancel</v-icon></v-btn>
+                <v-btn small class="toggle-menu-button-close" v-show="loading" @click="cancelLoad" :title="$t('plugins.gcodeViewer.cancelLoad')" color="warning"><v-icon color="red">mdi-cancel</v-icon></v-btn>
             </div>
             <v-navigation-drawer v-model="drawer" :permanent="drawer" absolute width="350px">
                 <v-card>
-                    <v-btn @click="reset" block :title="$t('plugins.gcodeViewer.resetCamera.title')">
+                    <v-btn @click="reset" block :title="$t('plugins.gcodeViewer.resetCamera.title')" color="primary">
                         <v-icon class="mr-2">mdi-camera</v-icon>
                         {{ $t('plugins.gcodeViewer.resetCamera.caption') }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="reloadviewer" :disabled="loading" block :title="$t('plugins.gcodeViewer.reloadView.title') ">
+                    <v-btn class="mt-2" @click="reloadviewer" :disabled="loading" block :title="$t('plugins.gcodeViewer.reloadView.title') " color="primary">
                         <v-icon class="mr-2">mdi-reload-alert</v-icon>
                         {{ $t('plugins.gcodeViewer.reloadView.caption') }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="loadRunningJob" :disabled="!isJobRunning || loading || visualizingCurrentJob" block :title="$t('plugins.gcodeViewer.loadCurrentJob.title')">
+                    <v-btn class="mt-2" @click="loadRunningJob" :disabled="!isJobRunning || loading || visualizingCurrentJob" block :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" color="secondary">
                         <v-icon class="mr-2">mdi-printer-3d</v-icon>
                         {{ $t('plugins.gcodeViewer.loadCurrentJob.caption') }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="clearScene" :disabled="loading" block :title="$t('plugins.gcodeViewer.unloadGCode.title')">
+                    <v-btn class="mt-2" @click="clearScene" :disabled="loading" block :title="$t('plugins.gcodeViewer.unloadGCode.title')" color="primary">
                         <v-icon class="mr-2">mdi-video-3d-off</v-icon>
                         {{ $t('plugins.gcodeViewer.unloadGCode.caption') }}
                     </v-btn>
-                    <v-btn class="mt-2" @click="chooseFile" :disabled="loading" block :title="$t('plugins.gcodeViewer.loadLocalGCode.title')">
+                    <v-btn class="mt-2" @click="chooseFile" :disabled="loading" block :title="$t('plugins.gcodeViewer.loadLocalGCode.title')" color="primary">
                         <v-icon>mdi-file</v-icon>
                         {{ $t('plugins.gcodeViewer.loadLocalGCode.caption') }}
                     </v-btn>
@@ -176,7 +196,7 @@
                         <v-expansion-panel-content>
                             <v-card>
                                 <h4>{{$tc('plugins.gcodeViewer.renderMode'.caption, 2)}}</h4>
-                                <v-btn-toggle block exclusive v-model="colorMode" class="btn-toggle d-flex">
+                                <v-btn-toggle block exclusive v-model="colorMode"  class="btn-toggle d-flex">
                                     <v-btn block :value="0" :disabled="loading">{{$t("plugins.gcodeViewer.color")}}</v-btn>
                                     <v-btn block :value="1" :disabled="loading">{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>
                                 </v-btn-toggle>
@@ -201,7 +221,6 @@
                                     <gcodeviewer-color-picker :editcolor="maxFeedColor" @updatecolor="value => updateMaxFeedColor(value)"></gcodeviewer-color-picker>
                                 </v-card-text>
                             </v-card>
-
                             <v-btn class="mb-2" @click="reloadviewer" :disabled="loading" block color="primary" :title="$t('plugins.gcodeViewer.reloadView.title')">{{$t('plugins.gcodeViewer.reloadView.caption')}}</v-btn>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
@@ -213,9 +232,9 @@
                         <v-expansion-panel-content>
                             <v-card>
                                 <div>{{$t('plugins.gcodeViewer.topClipping')}}</div>
-                                <v-slider min="0.1" :max="maxHeight" v-model="sliderHeight" thumb-label thumb-size="24" step="0.1"></v-slider>
+                                <v-slider :min="minHeight" :max="maxHeight" v-model="sliderHeight" thumb-label thumb-size="24" step="0.1"></v-slider>
                                 <div>{{$t('plugins.gcodeViewer.bottomClipping')}}</div>
-                                <v-slider min="0.1" :max="maxHeight" v-model="sliderBottomHeight" thumb-label thumb-size="24" step="0.1"></v-slider>
+                                <v-slider :min="minHeight" :max="maxHeight" v-model="sliderBottomHeight" thumb-label thumb-size="24" step="0.1"></v-slider>
                                 <v-checkbox v-model="liveZTracking" :label="$t('plugins.gcodeViewer.liveZTracking')"></v-checkbox>
                             </v-card>
                             <v-card>
@@ -251,9 +270,11 @@
                             </v-card>
                             <v-card>
                                 <v-card-text>
+									<v-checkbox v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"></v-checkbox>
                                     <v-checkbox v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"></v-checkbox>
                                     <v-checkbox v-model="showObjectLabels" :label="$t('plugins.gcodeViewer.showObjectLabels')"></v-checkbox>
                                     <v-switch v-model="cameraInertia" :label="$t('plugins.gcodeViewer.cameraInertia')"></v-switch>
+									
                                 </v-card-text>
                             </v-card>
                         </v-expansion-panel-content>
@@ -294,48 +315,53 @@ import { isPrinting } from '../../store/machine/modelEnums.js';
 let viewer = {};
 
 export default {
-	data: () => ({
-		drawer: false,
-		extruderColors: ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'],
-		backgroundColor: '#000000FF',
-		progressColor: '#FFFFFFFF',
-		viewerHeight: '400px',
-		testValue: 'Test',
-		loading: false,
-		testData: '',
-		showCursor: false,
-		showTravelLines: false,
-		selectedFile: '',
-		nthRow: 1,
-		renderQuality: 1,
-		debugVisible: false,
-		maxHeight: 0,
-		sliderHeight: 0,
-		sliderBottomHeight: 0,
-		liveZTracking: false,
-		forceWireMode: false,
-		vertexAlpha: false,
-		spreadLines: false,
-		showObjectSelection: false,
-		objectDialogData: {
-			showDialog: false,
-			info: {},
-		},
-		hoverLabel: '',
-		bedRenderMode: 0,
-		showAxes: true,
-		showObjectLabels: true,
-		liveTrackingShowSolid: false,
-		fullscreen: false,
-		bedColor: '',
-		colorMode: 0,
-		minColorRate: 20,
-		maxColorRate: 60,
-		maxFileFeedRate: 0,
-		minFeedColor: '#0000FF',
-		maxFeedColor: '#FF0000',
-		cameraInertia: true,
-	}),
+	data: function () {
+		return {
+			drawer: false,
+			extruderColors: ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'],
+			backgroundColor: '#000000FF',
+			progressColor: '#FFFFFFFF',
+			viewerHeight: '400px',
+			testValue: 'Test',
+			loading: false,
+			testData: '',
+			showCursor: false,
+			showTravelLines: false,
+			selectedFile: '',
+			nthRow: 1,
+			renderQuality: 1,
+			debugVisible: false,
+			maxHeight: 0,
+			minHeight: 0,
+			sliderHeight: 0,
+			sliderBottomHeight: 0,
+			liveZTracking: false,
+			forceWireMode: false,
+			vertexAlpha: false,
+			spreadLines: false,
+			showObjectSelection: false,
+			objectDialogData: {
+				showDialog: false,
+				info: {},
+			},
+			hoverLabel: '',
+			bedRenderMode: 0,
+			showAxes: true,
+			showObjectLabels: true,
+			liveTrackingShowSolid: false,
+			fullscreen: false,
+			bedColor: '',
+			colorMode: 0,
+			minColorRate: 20,
+			maxColorRate: 60,
+			maxFileFeedRate: 0,
+			minFeedColor: '#0000FF',
+			maxFeedColor: '#FF0000',
+			cameraInertia: true,
+			loadingProgress: 0,
+			showOverlay : true,
+		};
+	},
 	computed: {
 		...mapState('machine/model', ['job', 'move', 'state']),
 		isJobRunning: state => isPrinting(state.state.status),
@@ -406,6 +432,8 @@ export default {
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
 		this.liveTrackingShowSolid = viewer.gcodeProcessor.liveTrackingShowSolid;
+		this.liveZTracking = localStorage.getItem('liveZTracking') === 'true';
+		this.showCursor = localStorage.getItem('showCursor') === 'true';
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
@@ -418,6 +446,9 @@ export default {
 		this.extruderColors = viewer.getExtruderColors();
 		this.backgroundColor = viewer.getBackgroundColor();
 		this.progressColor = viewer.getProgressColor();
+		viewer.gcodeProcessor.loadingProgressCallback = progress => {
+			this.loadingProgress = Math.ceil(progress * 100);
+		};
 		this.viewModelEvent = async path => {
 			this.selectedFile = path;
 
@@ -430,9 +461,7 @@ export default {
 
 				await viewer.processFile(blob);
 				viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
-				this.maxHeight = viewer.getMaxHeight();
-				this.sliderHeight = this.maxHeight;
-				this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
+				this.setGCodeValues();
 			} finally {
 				this.loading = false;
 			}
@@ -494,7 +523,8 @@ export default {
 			let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
 			let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
 			let globalContainerHeight = parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
-			this.$refs.primarycontainer.style.height = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop) + 'px';
+			let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
+			this.$refs.primarycontainer.style.height =(viewerHeight >= 300 ? viewerHeight : 300 )  +  'px';
 			if (Object.keys(viewer).length !== 0) {
 				viewer.resize();
 			}
@@ -522,9 +552,7 @@ export default {
 				viewer.gcodeProcessor.setLiveTracking(true);
 				viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 				await viewer.processFile(blob);
-				this.maxHeight = viewer.getMaxHeight();
-				this.sliderHeight = this.maxHeight;
-				this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
+				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
 			} finally {
 				this.loading = false;
@@ -551,6 +579,7 @@ export default {
 				viewer.setCursorVisiblity(this.showCursor);
 				viewer.toggleTravels(this.showTravelLines);
 				this.maxHeight = viewer.getMaxHeight();
+				this.minHeight = viewer.getMinHeight();
 				this.sliderHeight = this.maxHeight;
 				this.sliderBottomHeight = 0;
 				this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
@@ -580,16 +609,20 @@ export default {
 				this.$refs.fileInput.click();
 			}
 		},
+		setGCodeValues() {
+				this.maxHeight = viewer.getMaxHeight();
+				this.minHeight = viewer.getMinHeight();
+				this.sliderHeight = this.maxHeight;
+				this.loading = false;
+				this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
+		},
 		async fileSelected(e) {
 			const reader = new FileReader();
 			reader.addEventListener('load', async event => {
 				const blob = event.target.result;
 				// Do something with result
 				await viewer.processFile(blob);
-				this.maxHeight = viewer.getMaxHeight();
-				this.sliderHeight = this.maxHeight;
-				this.loading = false;
-				this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
+				this.setGCodeValues();
 			});
 			this.loading = true;
 			reader.readAsText(e.target.files[0]);
@@ -601,6 +634,7 @@ export default {
 				viewer.resize();
 			});
 		},
+
 		displayMaxFileFeedRate() {
 			if (this.maxFileFeedRate > 0) return `(${this.maxFileFeedRate / 60})`;
 		},
@@ -636,6 +670,7 @@ export default {
 		},
 		showCursor: function (newValue) {
 			viewer.setCursorVisiblity(newValue);
+			localStorage.setItem('showCursor', newValue);
 		},
 		showTravelLines: newVal => {
 			viewer.toggleTravels(newVal);
@@ -705,6 +740,7 @@ export default {
 			if (!newValue) {
 				viewer.setZClipPlane(this.maxHeight, 0);
 			}
+			localStorage.setItem('liveZTracking', newValue);
 		},
 		selectedFile: function () {
 			this.showObjectSelection = false;
@@ -746,6 +782,11 @@ export default {
 		},
 		$route: function () {
 			this.resize();
+		},
+		loading: function (to) {
+			if (!to) {
+				this.loadingProgress = 0;
+			}
 		},
 	},
 };

@@ -74,7 +74,7 @@
   };
 </script>
 
-<style>
+<style scoped>
   .menuable__content__active {
     z-index: 50 !important;
   }
