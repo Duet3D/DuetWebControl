@@ -1,10 +1,10 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 3.3
+Version 3.3-rc3
 ===========
 
-Upgrade notes:
+Upgrade notes since version 3.2:
 - Saved G-codes from the inputs are no longer saved on the Duet to avoid excessive SD card wear
 - This will be the last DWC version that remains compatible with old-style status responses
 
@@ -19,6 +19,8 @@ Bug fixes:
 - Overflow confirmation of Accelerometer plugin did not display translated message
 - Fixed selection problem on the Accelerometer page
 - Fixed issue where global variables could be hidden on the OM browser after a reconnect
+- Reset prompt after expansion board update was shown even if the mainboard was updated
+- Layer chart was not immediately cleared when a new print was started
 
 Version 3.3-rc2
 ==============

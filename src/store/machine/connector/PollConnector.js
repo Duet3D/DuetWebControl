@@ -970,9 +970,11 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Reset the layers when a new print is started
-		if (this.lastLayer == -1) {
+		let doUpdate = false;
+		if (this.lastLayer === -1) {
 			this.lastLayer = 0;
 			this.layers = [];
+			doUpdate = true;
 		}
 
 		if (this.printFileSize === 0 && jobKey.file) {
@@ -1036,7 +1038,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		this.lastLayer = jobKey.layer;
-		return false;
+		return doUpdate;
 	}
 
 	async doUpdate() {
