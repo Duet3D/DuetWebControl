@@ -13,6 +13,7 @@ Compatible versions:
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:
+- Job progress indicator now uses job.rawExtrusion instead of move.extruders[].rawPosition if possible
 - Changed caption of Third-Party Plugins to Machine-Specific Plugins
 
 Bug fixes:
@@ -21,6 +22,7 @@ Bug fixes:
 - Fixed issue where global variables could be hidden on the OM browser after a reconnect
 - Reset prompt after expansion board update was shown even if the mainboard was updated
 - Layer chart was not immediately cleared when a new print was started
+- Cache for simulated files was not properly cleared
 
 Version 3.3-rc2
 ==============
