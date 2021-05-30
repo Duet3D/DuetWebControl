@@ -44,14 +44,20 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 		actions: {
 			...mapConnectorActions(connector, [
 				'disconnect', 'getFileList', 'getFileInfo',
-				'uninstallPlugin', 'installSbcPlugin', 'uninstallSbcPlugin', 'setSbcPluginData', 'startSbcPlugin', 'stopSbcPlugin'
+				'uninstallPlugin', 'installSbcPlugin', 'uninstallSbcPlugin', 'setSbcPluginData', 'startSbcPlugin', 'stopSbcPlugin',
+				'installSystemPackage', 'uninstallSystemPackage'
 			]),
 
 			// Reconnect after a connection error
 			async reconnect({ state, commit, dispatch }) {
 				if (!state.isReconnecting) {
-					// Clear the global variables again
-					dispatch('update', { global: null });
+					// Clear the global variables again and set the state to disconnected
+					dispatch('update', {
+						global: null,
+						state: {
+							status: StatusType.disconnected
+						}
+					});
 				}
 
 				commit('setReconnecting', true);

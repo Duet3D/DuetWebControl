@@ -25,8 +25,8 @@
 				</v-card-text>
 
 				<v-list class="py-0" :disabled="uiFrozen || loading">
-					<v-list-item-group v-model="selectedFileIndex" color="primary">
-						<v-list-item v-for="file in files" :key="file" @click="loadFile(file)">
+					<v-list-item-group :value="selectedFile" color="primary">
+						<v-list-item v-for="file in files" :key="file" :value="file" @click="loadFile(file)">
 							{{ file }}
 						</v-list-item>
 					</v-list-item-group>
@@ -85,7 +85,7 @@
 			</v-card>
 		</v-col>
 
-		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog> 
+		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" :prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
 	</v-row>
 </template>
 
@@ -105,11 +105,7 @@ import { transform } from './fft.js'
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
-		selectedFileIndex: {
-			get() { return this.files.indexOf(this.selectedFile); },
-			set(value) { this.selectedFile = (value < 0) ? null : this.files[value]; }
-		}
+		...mapGetters(['isConnected', 'uiFrozen'])
 	},
 	data() {
 		return {

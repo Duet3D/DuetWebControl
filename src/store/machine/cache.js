@@ -116,17 +116,19 @@ export default function(connector, pluginCacheFields) {
 			addLastSentCode: (state, code) => state.lastSentCodes.push(code),
 			removeLastSentCode: (state, code) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
 
-			setFileInfo: (state, { filename, fileInfo }) => state.fileInfos[filename] = fileInfo,
+			setFileInfo(state, { filename, fileInfo }) {
+				state.fileInfos[filename] = fileInfo;
+			},
 			clearFileInfo(state, fileOrDirectory) {
 				if (fileOrDirectory) {
 					if (state.fileInfos[fileOrDirectory] !== undefined) {
 						// Delete specific item
-						delete state.fileInfos[fileOrDirectory];
+						Vue.delete(state.fileInfos, fileOrDirectory);
 					} else {
 						// Delete directory items
 						for (let filename in state.fileInfos) {
 							if (Path.startsWith(filename, fileOrDirectory)) {
-								delete state.fileInfos[filename];
+								Vue.delete(state.fileInfos, filename);
 							}
 						}
 					}

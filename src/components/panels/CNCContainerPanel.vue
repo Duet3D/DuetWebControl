@@ -6,8 +6,8 @@
 
 <template>
 	<div>
-		<v-row dense align="stretch">
-			<v-col cols="3" order="1" sm="4" md="2" lg="2" order-lg="1">
+		<v-row align="stretch" dense>
+			<v-col cols="3" lg="2" md="2" order="1" order-lg="1" sm="4">
 				<v-card class="justify-center fill-height">
 					<v-card-title>
 						<strong>Status</strong>
@@ -17,43 +17,136 @@
 					</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="12" order="4" sm="12" md="4"  order-md="2" lg="4">
-				<cnc-axes-position class="fill-height" :machinePosition="true"></cnc-axes-position>
+			<v-col cols="12" lg="4" md="4" order="4" order-md="2" sm="12">
+				<cnc-axes-position :machinePosition="true" class="fill-height"></cnc-axes-position>
 			</v-col>
-			<v-col cols="5" order="2" sm="4" md="3" lg="3" order-lg="3">
+			<v-col cols="5" lg="3" md="3" order="2" order-lg="3" sm="4">
 				<v-card class="fill-height">
-					<v-card-title><strong>Requested Speed</strong></v-card-title>
-					<v-card-text>
-						{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}
-					</v-card-text>
+					<v-card-title>
+						<strong>Requested Speed</strong>
+					</v-card-title>
+					<v-card-text>{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="4" order="2" sm="4" md="3" lg="3" order-lg="4">
+			<v-col cols="4" lg="3" md="3" order="2" order-lg="4" sm="4">
 				<v-card class="fill-height" order="5">
-					<v-card-title><strong>Top Speed</strong></v-card-title>
-					<v-card-text>
-						{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
-					</v-card-text>
+					<v-card-title>
+						<strong>Top Speed</strong>
+					</v-card-title>
+					<v-card-text>{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}</v-card-text>
 				</v-card>
 			</v-col>
-			<v-col cols="12" order="6">
-				<cnc-axes-position class="fill-height" :machinePosition="false"></cnc-axes-position>
+			<v-col cols="12" order="6" v-if="sensorsPresent">
+				<v-card class="fill-height">
+					<v-card-title class="py-2" no-gutters>
+						<v-col class="category-header" tag="strong">{{ $t('panel.status.sensors') }}</v-col>
+					</v-card-title>
+					<v-card-text>
+						<v-row  align-content="top" class="flex-nowrap" no-gutters>
+							<v-col>
+								<v-row align-content="center" justify="center" no-gutters>
+									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].vIn.current > 0">
+										<strong>{{ $t('panel.status.vIn') }}</strong>
+										<v-tooltip bottom>
+											<template #activator="{ on }">
+												<span class="text-no-wrap" v-on="on">{{ $display(boards[0].vIn.current, 1, 'V') }}</span>
+											</template>
+											{{ $t('panel.status.minMax', [$display(boards[0].vIn.min, 1, 'V'), $display(boards[0].vIn.max, 1, 'V')]) }}
+										</v-tooltip>
+									</v-col>
+
+									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].v12.current > 0">
+										<strong>{{ $t('panel.status.v12') }}</strong>
+										<v-tooltip bottom>
+											<template #activator="{ on }">
+												<span class="text-no-wrap" v-on="on">{{ $display(boards[0].v12.current, 1, 'V') }}</span>
+											</template>
+											{{ $t('panel.status.minMax', [$display(boards[0].v12.min, 1, 'V'), $display(boards[0].v12.max, 1, 'V')]) }}
+										</v-tooltip>
+									</v-col>
+
+									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].mcuTemp.current > -273">
+										<strong class="text-no-wrap">{{ $t('panel.status.mcuTemp') }}</strong>
+										<v-tooltip bottom>
+											<template #activator="{ on }">
+												<span class="text-no-wrap" v-on="on">{{ $display(boards[0].mcuTemp.current, 1, '°C') }}</span>
+											</template>
+											{{ $t('panel.status.minMax', [$display(boards[0].mcuTemp.min, 1, '°C'), $display(boards[0].mcuTemp.max, 1, '°C')]) }}
+										</v-tooltip>
+									</v-col>
+
+									<v-col class="d-flex flex-column align-center" v-if="fanRPM.length">
+										<strong>{{ $t('panel.status.fanRPM') }}</strong>
+
+										<div class="d-flex flex-row">
+											<template v-for="(item, index) in fanRPM">
+												<template v-if="index !== 0">,</template>
+												<span :key="index" :title="item.name" class="mx-0">{{ item.rpm }}</span>
+											</template>
+										</div>
+									</v-col>
+
+									<v-col class="d-flex flex-column align-center" v-if="probesPresent">
+										<strong>{{ $tc('panel.status.probe', sensors.probes.length) }}</strong>
+										<div class="d-flex-inline">
+											<span :class="probeSpanClasses(probe, index)" :key="index" class="pa-1 probe-span" v-for="(probe, index) in probes">{{ formatProbeValue(probe.value) }}</span>
+										</div>
+									</v-col>
+								</v-row>
+							</v-col>
+						</v-row>
+					</v-card-text>
+				</v-card>
+			</v-col>			
+			<v-col cols="12" order="7">
+				<cnc-axes-position :machinePosition="false" class="fill-height"></cnc-axes-position>
 			</v-col>
+
 		</v-row>
 	</div>
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import {mapState} from 'vuex';
+import {ProbeType} from '../../store/machine/modelEnums.js';
 export default {
 	computed: {
 		...mapState('machine/model', {
-			move: state => state.move,
-			machineMode: state => state.state.machineMode,
-			status: state => state.state.status,
+			move: (state) => state.move,
+			machineMode: (state) => state.state.machineMode,
+			status: (state) => state.state.status,
+			sensors: (state) => state.sensors,
+			boards: (state) => state.boards,
+			fans: (state) => state.fans,
 		}),
 		visibleAxes() {
-			return this.move.axes.filter(axis => axis.visible);
+			return this.move.axes.filter((axis) => axis.visible);
+		},
+		fanRPM() {
+			return this.fans
+				.filter((fan) => fan && fan.rpm >= 0)
+				.map(
+					(fan, index) => ({
+						name: fan.name || this.$t('panel.fan.fan', [index]),
+						rpm: fan.rpm,
+					}),
+					this
+				);
+		},
+		probesPresent() {
+			return this.sensors.probes.some((probe) => probe && probe.type !== ProbeType.none);
+		},
+		probes() {
+			return this.sensors.probes.filter((probe) => probe !== null && probe.type !== ProbeType.none);
+		},
+		sensorsPresent() {
+			return (
+				(this.boards.length && this.boards[0].vIn.current > 0) ||
+				(this.boards.length && this.boards[0].v12.current > 0) ||
+				(this.boards.length && this.boards[0].mcuTemp.current > -273) ||
+				this.fanRPM.length !== 0 ||
+				this.probesPresent
+			);
 		},
 	},
 	methods: {

@@ -63,10 +63,13 @@ export default {
 				details = this.$t('jobProgress.layer', [this.job.layer, this.job.file.numLayers]);
 			}
 			if (this.extruders.length > 0) {
-				if (details !== '') { details += ', '; }
-				const totalRawExtruded = this.extruders
-											.map(extruder => extruder.rawPosition)
-											.reduce((a, b) => a + b);
+				if (details !== '') {
+					details += ', ';
+				}
+				const totalRawExtruded = (this.job.rawExtrusion !== null) ? this.job.rawExtrusion :
+											this.extruders
+												.map(extruder => extruder.rawPosition)
+												.reduce((a, b) => a + b);
 				details += this.$t('jobProgress.filament', [this.$display(totalRawExtruded, 1, 'mm')]);
 				if (this.job.file.filament.length > 0) {
 					const needed = this.job.file.filament.reduce((a, b) => a + b);

@@ -361,4 +361,12 @@ export default class RestConnector extends BaseConnector {
 	async stopSbcPlugin(plugin) {
 		await this.request('POST', 'machine/stopPlugin', null, '', plugin);
 	}
+
+	async installSystemPackage({ filename, blob, cancellationToken = null, onProgress }) {
+		await this.request('PUT', 'machine/systemPackage', null, '', blob, onProgress, cancellationToken, filename);
+	}
+
+	async uninstallSystemPackage(pkg) {
+		await this.request('DELETE', 'machine/systemPackage', null, '', pkg);
+	}
 }

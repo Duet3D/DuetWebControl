@@ -217,6 +217,17 @@ class BaseConnector {
 	// plugin: Name of the plugin
 	async stopSbcPlugin(plugin) { throw new NotImplementedError('stopSbcPlugin'); }
 
+	// Install a system package file on the SBC (deb files on DuetPi)
+	// filename: Name of the package file
+	// content: ZIP file content
+	// cancellationToken: Object which is populated with a 'cancel' method
+	// onProgress: Function called when data is being transferred with three parameters (loaded, total, retry)
+	async installSystemPackage({ filename, blob, cancellationToken = null, onProgress }) { throw new NotImplementedError('installSystemPackage'); }
+
+	// Uninstall a system package file from the SBC
+	// package: Name of the package
+	async uninstallSystemPackage(pkg) { throw new NotImplementedError('uninstallSystemPackage'); }
+
 	/* eslint-enable no-unused-vars */
 }
 

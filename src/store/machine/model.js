@@ -386,12 +386,16 @@ export class MachineModelModule {
 			}
 
 			// Update global variables
-			if (payload.global) {
-				for (let key in payload.global) {
-					if (state.global[key]) {
-						state.global[key] = payload.global[key];
-					} else {
-						Vue.set(state.global, key, payload.global[key]);
+			if (payload.global !== undefined) {
+				if (payload.global === null) {
+					state.global = {};
+				} else {
+					for (let key in payload.global) {
+						if (state.global[key]) {
+							state.global[key] = payload.global[key];
+						} else {
+							Vue.set(state.global, key, payload.global[key]);
+						}
 					}
 				}
 				delete payload.global;

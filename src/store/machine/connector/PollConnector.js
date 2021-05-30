@@ -970,13 +970,19 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Reset the layers when a new print is started
-		if (this.lastLayer == -1) {
+		if (this.lastLayer === -1) {
 			this.lastLayer = 0;
 			this.layers = [];
+			return true;
 		}
 
 		if (this.printFileSize === 0 && jobKey.file) {
 			this.printFileSize = jobKey.file.size;
+		}
+
+		// Don't continue from here unless the layer number is known
+		if (jobKey.layer === null) {
+			return false;
 		}
 
 		const numChangedLayers = Math.abs(jobKey.layer - this.lastLayer);

@@ -36,7 +36,11 @@ export default {
 	computed: {
 		...mapState(['isLocal']),
 		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
+		...mapGetters('machine', ['connector']),
 		...mapGetters(['isConnected', 'uiFrozen']),
+		connectorType() {
+			return this.connector ? this.connector.type : null;
+		},
 		caption() {
 			if (this.extracting) {
 				return this.$t('generic.extracting');
@@ -57,7 +61,7 @@ export default {
 				case 'filaments': return '.zip';
 				case 'firmware': return '.zip,.bin,.uf2';
 				case 'menu': return '*';
-				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml';
+				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml' + (this.connectorType === 'rest' ? ',.deb' : '');
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
 			}
 			return undefined;
@@ -112,7 +116,7 @@ export default {
 		uploadPrint: Boolean
 	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'upload']),
+		...mapActions('machine', ['sendCode', 'upload', 'installSystemPackage']),
 		chooseFile() {
 			if (!this.isBusy) {
 				this.$refs.fileInput.click();
@@ -260,6 +264,17 @@ export default {
 					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(this.directories.web, content.name);
 						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
+					} else if (this.connectorType === 'rest' && /\.deb$/.test(content.name)) {
+						// TODO improve this
+						try {
+							await this.installSystemPackage({
+								filename: content.name,
+								blob: content
+							});
+							alert(`Installation of ${content.name} succesful`);
+						} catch (e) {
+							alert(`Installation of ${content.name} failed: ${e}`);
+						}
 					} else {
 						const firmwareFileName = this.getFirmwareName(content.name);
 						const bootloaderFileName = this.getBinaryName('bootloaderFileName', content.name);
@@ -392,7 +407,7 @@ export default {
 			}
 
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
-			this.confirmReset = (modules.indexOf(0) === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
+			this.confirmReset = (modules.indexOf('0') === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
 		},
 		async reset() {
 			this.confirmReset = false;

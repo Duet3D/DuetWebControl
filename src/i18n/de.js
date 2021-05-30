@@ -243,7 +243,7 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: 'Voraussetzungen',
 			version: 'Version {0}',
-			noPluginSupport: 'Drittanbieterplugins sind nicht erlaubt',
+			noPluginSupport: 'Maschinenspezifische Plugins sind nicht erlaubt',
 			rootSupport: 'Unterstützung für Super-User-Plugins',
 			invalidManifest: 'Ungültiges Pluginmanifest',
 			permissions: 'Erforderliche Berechtigungen',
@@ -356,6 +356,7 @@ export default {
 			offline: 'abgeschaltet'
 		},
 		status: {
+			disconnected: 'Getrennt',
 			starting: 'Starte',
 			updating: 'Aktualisiere',
 			off: 'Aus',
@@ -952,7 +953,7 @@ export default {
 		},
 		plugins: {
 			generalCaption: 'Eingebaute Plugins',
-			machineCaption: 'Plugins von Drittanbietern',
+			machineCaption: 'Maschinenspezifische Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Autor',
