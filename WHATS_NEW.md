@@ -1,15 +1,26 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 3.3-rc3
-===========
+Version 3.3.0
+=============
 
 Upgrade notes since version 3.2:
 - Saved G-codes from the inputs are no longer saved on the Duet to avoid excessive SD card wear
 - This will be the last DWC version that remains compatible with old-style status responses
 
 Compatible versions:
-- DuetSoftwareFramework 3.3
+- DuetSoftwareFramework 3.3.0
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Layers chart was only cleared when the layer variable was set
+- Plugin upgrades were not working in standalone mode
+
+Version 3.3-rc3
+===============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-rc3
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:
@@ -25,7 +36,7 @@ Bug fixes:
 - Cache for simulated files was not properly cleared
 
 Version 3.3-rc2
-==============
+===============
 
 Compatible versions:
 - DuetSoftwareFramework 3.3-rc2
@@ -39,7 +50,7 @@ Bug fixes:
 - Added new `Disconnected` state to indicate when DWC is not connected to RRF
 
 Version 3.3-rc1
-==============
+===============
 
 Compatible versions:
 - DuetSoftwareFramework 3.3-rc1

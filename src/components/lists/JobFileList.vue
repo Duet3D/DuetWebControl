@@ -287,7 +287,7 @@ export default {
 		},
 		lastJobFile(to) {
 			if (Path.equals(this.directory, Path.extractDirectory(to))) {
-				// Refresh the filelist after a short moment so DSF can update the simulation time first
+				// Refresh the filelist after a short moment so DSF and RRF can update the simulation time first
 				setTimeout(this.$refs.filelist.refresh.bind(this), 2000);
 			}
 		}
