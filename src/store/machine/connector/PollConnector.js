@@ -219,7 +219,15 @@ export default class PollConnector extends BaseConnector {
 	async loadPlugins() {
 		try {
 			const plugins = await this.download({ filename: Path.dwcPluginsFile });
-			if (!(plugins instanceof Array)) {
+			if ((plugins instanceof Object) && !(plugins instanceof Array)) {
+				for (let id in plugins) {
+					if (!plugins[id].dwcFiles) {
+						plugins[id].dwcFiles = [];
+					}
+					if (!plugins[id].sdFiles) {
+						plugins[id].sdFiles = [];
+					}
+				}
 				this.plugins = plugins;
 				await this.dispatch('update', { plugins });
 			}
@@ -959,7 +967,7 @@ export default class PollConnector extends BaseConnector {
 
 	updateLayersModel(jobKey, axes, extruders, analogSensors) {
 		// Are we printing?
-		if (jobKey.duration === null || jobKey.layer === null) {
+		if (jobKey.duration === null) {
 			if (this.lastLayer !== -1) {
 				this.lastLayer = -1;
 				this.lastDuration = this.lastFilePosition = this.lastHeight = 0;
@@ -970,13 +978,19 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Reset the layers when a new print is started
-		if (this.lastLayer == -1) {
+		if (this.lastLayer === -1) {
 			this.lastLayer = 0;
 			this.layers = [];
+			return true;
 		}
 
 		if (this.printFileSize === 0 && jobKey.file) {
 			this.printFileSize = jobKey.file.size;
+		}
+
+		// Don't continue from here unless the layer number is known
+		if (jobKey.layer === null) {
+			return false;
 		}
 
 		const numChangedLayers = Math.abs(jobKey.layer - this.lastLayer);
@@ -1251,7 +1265,7 @@ export default class PollConnector extends BaseConnector {
 
 		// Uninstall the previous version if required
 		if (this.plugins[plugin.id]) {
-			await this.uninstallPlugin(plugin.id, true);
+			await this.uninstallPlugin(plugin, true);
 		}
 
 		// Clear potential files
@@ -1311,7 +1325,7 @@ export default class PollConnector extends BaseConnector {
 		if (!forUpgrade) {
 			// Make sure uninstalling this plugin does not break any dependencies
 			for (let id in this.plugins) {
-				if (id !== plugin && this.plugins[id].dwcDependencies.indexOf(plugin) !== -1) {
+				if (id !== plugin.id && this.plugins[id].dwcDependencies.indexOf(plugin.id) !== -1) {
 					throw new Error(`Cannot uninstall plugin because plugin ${id} depends on it`);
 				}
 			}

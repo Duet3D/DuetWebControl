@@ -1,27 +1,42 @@
 Summary of important changes in recent versions
 ===============================================
 
-Version 3.3
-===========
+Version 3.3.0
+=============
 
-Upgrade notes:
+Upgrade notes since version 3.2:
 - Saved G-codes from the inputs are no longer saved on the Duet to avoid excessive SD card wear
 - This will be the last DWC version that remains compatible with old-style status responses
 
 Compatible versions:
-- DuetSoftwareFramework 3.3
+- DuetSoftwareFramework 3.3.0
+- RepRapFirmware 2 or newer (1.2x may work but untested)
+
+Bug fixes:
+- Layers chart was only cleared when the layer variable was set
+- Plugin upgrades were not working in standalone mode
+
+Version 3.3-rc3
+===============
+
+Compatible versions:
+- DuetSoftwareFramework 3.3-rc3
 - RepRapFirmware 2 or newer (1.2x may work but untested)
 
 Changed behaviour:
+- Job progress indicator now uses job.rawExtrusion instead of move.extruders[].rawPosition if possible
 - Changed caption of Third-Party Plugins to Machine-Specific Plugins
 
 Bug fixes:
 - Overflow confirmation of Accelerometer plugin did not display translated message
 - Fixed selection problem on the Accelerometer page
 - Fixed issue where global variables could be hidden on the OM browser after a reconnect
+- Reset prompt after expansion board update was shown even if the mainboard was updated
+- Layer chart was not immediately cleared when a new print was started
+- Cache for simulated files was not properly cleared
 
 Version 3.3-rc2
-==============
+===============
 
 Compatible versions:
 - DuetSoftwareFramework 3.3-rc2
@@ -35,7 +50,7 @@ Bug fixes:
 - Added new `Disconnected` state to indicate when DWC is not connected to RRF
 
 Version 3.3-rc1
-==============
+===============
 
 Compatible versions:
 - DuetSoftwareFramework 3.3-rc1
