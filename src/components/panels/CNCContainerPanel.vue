@@ -42,7 +42,7 @@
 						<v-col class="category-header" tag="strong">{{ $t('panel.status.sensors') }}</v-col>
 					</v-card-title>
 					<v-card-text>
-						<v-row  align-content="top" class="flex-nowrap" no-gutters>
+						<v-row class="flex-nowrap" no-gutters>
 							<v-col>
 								<v-row align-content="center" justify="center" no-gutters>
 									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].vIn.current > 0">
@@ -97,18 +97,17 @@
 						</v-row>
 					</v-card-text>
 				</v-card>
-			</v-col>			
+			</v-col>
 			<v-col cols="12" order="7">
 				<cnc-axes-position :machinePosition="false" class="fill-height"></cnc-axes-position>
 			</v-col>
-
 		</v-row>
 	</div>
 </template>
 
 <script>
 import {mapState} from 'vuex';
-import {ProbeType} from '../../store/machine/modelEnums.js';
+import {ProbeType, isPrinting} from '../../store/machine/modelEnums.js';
 export default {
 	computed: {
 		...mapState('machine/model', {
@@ -140,19 +139,35 @@ export default {
 			return this.sensors.probes.filter((probe) => probe !== null && probe.type !== ProbeType.none);
 		},
 		sensorsPresent() {
-			return (
-				(this.boards.length && this.boards[0].vIn.current > 0) ||
-				(this.boards.length && this.boards[0].v12.current > 0) ||
-				(this.boards.length && this.boards[0].mcuTemp.current > -273) ||
-				this.fanRPM.length !== 0 ||
-				this.probesPresent
-			);
+			return (this.boards.length && this.boards[0].vIn.current > 0) || (this.boards.length && this.boards[0].v12.current > 0) || (this.boards.length && this.boards[0].mcuTemp.current > -273) || this.fanRPM.length !== 0 || this.probesPresent;
 		},
 	},
 	methods: {
 		displayAxisPosition(axis) {
 			const position = this.displayToolPosition ? axis.userPosition : axis.machinePosition;
 			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, 1);
+		},
+		formatProbeValue(values) {
+			if (values.length === 1) {
+				return values[0];
+			}
+			return `${values[0]} (${values.slice(1).join(', ')})`;
+		},
+		probeSpanClasses(probe, index) {
+			let result = [];
+			if (index && this.sensors.probes.length > 1) {
+				result.push('ml-2');
+			}
+			if (!isPrinting(this.stats) && probe.value !== null) {
+				if (probe.value >= probe.threshold) {
+					result.push('red');
+					result.push(this.darkTheme ? 'darken-3' : 'lighten-4');
+				} else if (probe.value > probe.threshold * 0.9) {
+					result.push('orange');
+					result.push(this.darkTheme ? 'darken-2' : 'lighten-4');
+				}
+			}
+			return result;
 		},
 	},
 };

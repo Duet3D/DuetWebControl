@@ -57,7 +57,6 @@ export default {
 	computed: {
 		...mapState('machine/model', {
 			move: state => state.move,
-			machineMode: state => state.state.machineMode,
 			status: state => state.state.status,
 		}),
 		visibleAxes() {
