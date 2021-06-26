@@ -36,7 +36,7 @@
 
 						<v-card>
 							<v-list>
-								<template v-show="move.compensation">
+								<div v-show="move.compensation">
 									<v-list-item>
 										<v-spacer></v-spacer>
 										{{ $t('panel.movement.compensationInUse', [move.compensation.type]) }}
@@ -44,7 +44,7 @@
 									</v-list-item>
 
 									<v-divider></v-divider>
-								</template>
+								</div>
 
 								<v-list-item @click="sendCode('G32')">
 									<v-icon class="mr-1">mdi-format-vertical-align-center</v-icon>
@@ -129,7 +129,7 @@
 
 			<v-row dense>
 				<v-col>
-					<v-btn color="warning" @click="gotoWorkspaceZero" tile block class="move-btn">GOTO Work XYZ Zero</v-btn>
+					<v-btn color="warning" @click="gotoWorkspaceZero" tile block class="move-btn">{{$t('panel.movement.workzero')}}</v-btn>
 				</v-col>
 			</v-row>
 		</v-card-text>
@@ -156,6 +156,7 @@
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 import { KinematicsName } from '../../store/machine/modelEnums.js';
+import { combine  } from '../../utils/path'
 
 export default {
 	computed: {
@@ -163,6 +164,7 @@ export default {
 		...mapState('machine/model', {
 			move: state => state.move,
 			workspaceNumber: state => state.move.workplaceNumber,
+			systemDir : state => state.directories.system
 		}),
 		...mapState('machine/settings', ['moveFeedrate']),
 		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
@@ -226,10 +228,8 @@ export default {
 			await this.sendCode(`G10 L20 P${this.currentWorkspace}`);
 		},
 		async gotoWorkspaceZero() {
-			let code = `G0`;
-			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0 F${this.moveFeedrate}`));
-			console.log(code);
-			await this.sendCode(code);
+			var gotoZeroPath = combine(this.systemDir, 'workzero.g');
+			await this.sendCode({code : `M98 P"${gotoZeroPath}"`});
 		},
 		async updateWorkspaceCoordinate() {
 			let code;
@@ -255,7 +255,6 @@ export default {
 			this.moveStepDialog.shown = false;
 		},
 		workspaceNumber: function (to) {
-			console.log(`workplace number change ${to}`);
 			this.currentWorkspace = to + 1;
 		},
 	},

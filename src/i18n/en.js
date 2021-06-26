@@ -642,7 +642,8 @@ export default {
 			runMesh: 'Run Mesh Compensation (G29)',
 			loadMesh: 'Load Saved Height Map from SD Card (G29 S1)',
 			axesNotHomed: 'The following axis is not homed:|The following axes are not homed:',
-			noAxes: 'No Axes'
+			noAxes: 'No Axes',
+			workzero: 'Go To Zero'
 		},
 		settingsAbout: {
 			caption: 'About',

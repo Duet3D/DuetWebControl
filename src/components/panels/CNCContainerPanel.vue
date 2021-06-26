@@ -92,6 +92,14 @@
 											<span :class="probeSpanClasses(probe, index)" :key="index" class="pa-1 probe-span" v-for="(probe, index) in probes">{{ formatProbeValue(probe.value) }}</span>
 										</div>
 									</v-col>
+
+									<v-col class="d-flex flex-column align-center" v-for="(analog, index) in analogs" :key="index" >
+										<strong>{{analog.name}}</strong>
+										<div class="d-flex-inline">
+											<span class="pa-1 probe-span" >{{ analog.lastReading }}</span>
+										</div>
+									</v-col>
+
 								</v-row>
 							</v-col>
 						</v-row>
@@ -107,7 +115,7 @@
 
 <script>
 import {mapState} from 'vuex';
-import {ProbeType, isPrinting} from '../../store/machine/modelEnums.js';
+import {ProbeType, isPrinting, AnalogSensorType} from '../../store/machine/modelEnums.js';
 export default {
 	computed: {
 		...mapState('machine/model', {
@@ -140,6 +148,12 @@ export default {
 		},
 		sensorsPresent() {
 			return (this.boards.length && this.boards[0].vIn.current > 0) || (this.boards.length && this.boards[0].v12.current > 0) || (this.boards.length && this.boards[0].mcuTemp.current > -273) || this.fanRPM.length !== 0 || this.probesPresent;
+		},
+		analogsPresent() {
+			return this.sensors.analog.some((analog) => analog && analog.type !== AnalogSensorType.unknown && analog.type !== null);
+		},
+		analogs() {
+			return this.sensors.analog.filter((analog) => analog !== null && analog.name !== null && analog.name !== '' && analog.type !== AnalogSensorType.unknown && analog.type !== null);
 		},
 	},
 	methods: {
