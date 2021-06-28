@@ -198,10 +198,7 @@ export default class PollConnector extends BaseConnector {
 		super('poll', hostname);
 		this.password = password;
 		this.boardType = responseData.boardType;
-		this.requestBase = `${location.protocol}//${hostname + process.env.BASE_URL}`;
-		if (!this.requestBase.endsWith('/')) {
-			this.requestBase += '/';
-		}
+		this.requestBase = (hostname === location.host) ? `${location.protocol}//${hostname}${process.env.BASE_URL}` : `http://${hostname}/`;
 		this.sessionTimeout = responseData.sessionTimeout;
 		this.apiLevel = responseData.apiLevel || 0;
 	}

@@ -51,10 +51,7 @@ export default class RestConnector extends BaseConnector {
 	constructor(hostname, password, socket, model) {
 		super('rest', hostname);
 		this.password = password;
-		this.requestBase = `${location.protocol}//${hostname + process.env.BASE_URL}`;
-		if (!this.requestBase.endsWith('/')) {
-			this.requestBase += '/';
-		}
+		this.requestBase = `${location.protocol}//${(hostname === location.host) ? hostname + process.env.BASE_URL : hostname + '/'}`;
 		this.socket = socket;
 		this.model = model;
 	}
