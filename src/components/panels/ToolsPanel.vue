@@ -40,18 +40,22 @@ table.extra tr > td:first-child {
 			<v-menu v-model="dropdownShown" left offset-y :close-on-content-click="false">
 				<template #activator="{ on }">
 					<a v-on="on" href="javascript:void(0)">
-						<v-icon small>mdi-menu-down</v-icon> {{ $t('panel.tools.controlAll') }}
+						<v-icon small>mdi-menu-down</v-icon> {{ $t('panel.tools.controlHeaters') }}
 					</a>
 				</template>
 
 				<v-card>
-					<v-layout justify-center column class="pt-2 px-2">
+					<v-layout justify-center column class="pt-2 pb-3 px-2">
 						<v-btn block color="primary" class="mb-3 pa-2" :disabled="!canTurnEverythingOff" @click="turnEverythingOff">
 							<v-icon class="mr-1">mdi-power-standby</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
-						<tool-input ref="allActive" :label="$t('panel.tools.allActiveTemperatures')" all active></tool-input>
-						<tool-input :label="$t('panel.tools.allStandbyTemperatures')" all standby></tool-input>
+						<tool-input ref="allActive" :label="$t('panel.tools.setActiveTemperatures')" all active :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
+						<tool-input :label="$t('panel.tools.setStandbyTemperatures')" all standby :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
+
+						<v-switch v-show="hasTools" v-model="controlTools" hide-details class="mx-1 mt-0" :label="$t('panel.tools.setToolTemperatures')"></v-switch>
+						<v-switch v-show="hasBeds" v-model="controlBeds" hide-details class="mx-1" :label="$t('panel.tools.setBedTemperatures')"></v-switch>
+						<v-switch v-show="hasChambers" v-model="controlChambers" hide-details class="mx-1" :label="$t('panel.tools.setChamberTemperatures')"></v-switch>
 					</v-layout>
 				</v-card>
 			</v-menu>
@@ -108,18 +112,34 @@ table.extra tr > td:first-child {
 
 								<template v-if="!toolHeater && getSpindle(tool)">
 									<!-- Spindle Name -->
-									<th>
-										<!-- unused -->
-									</th>
+									<td>
+										<v-row dense v-if="state.currentTool == tool.number">
+											<v-col>
+												<code-btn :code="`M4`" no-wait small>
+													<v-icon>mdi-rotate-left</v-icon>
+												</code-btn>
+												<code-btn :code="`M3`" no-wait small>
+													<v-icon>mdi-rotate-right</v-icon>
+												</code-btn>
+											</v-col>
+										</v-row>
+										<v-row dense v-if="state.currentTool == tool.number">
+											<v-col>
+												<code-btn :code="`M5`" no-wait small>
+													<v-icon>mdi-stop</v-icon>
+												</code-btn>
+											</v-col>
+										</v-row>
+									</td>
 
 									<!-- Current RPM -->
 									<td class="text-center">
-										{{ $display(getSpindle(tool).current, 0, $t('generic.rpm')) }}
+										{{ $display(getSpindleSpeed(tool), 0, $t('generic.rpm')) }}
 									</td>
 
 									<!-- Active RPM -->
 									<td>
-										<tool-input :spindle="getSpindle(tool)" :spindle-index="getSpindleIndex(tool)" active></tool-input>
+										<tool-input :tool="tool" :spindle="getSpindle(tool)" :spindle-index="getSpindleIndex(tool)" active></tool-input>
 									</td>
 
 									<!-- Standby RPM -->
@@ -216,7 +236,7 @@ table.extra tr > td:first-child {
 									<!-- Heater standby -->
 									<td class="pl-1 pr-2">
 										<tool-input :bed="bedHeater" :bed-index="bedIndex" standby></tool-input>
-									</td>	
+									</td>
 								</tr>
 							</template>
 						</template>
@@ -266,7 +286,7 @@ table.extra tr > td:first-child {
 									<!-- Heater standby -->
 									<td class="pl-1 pr-2">
 										<tool-input :chamber="chamberHeater" :chamber-index="chamberIndex" standby></tool-input>
-									</td>	
+									</td>
 								</tr>
 							</template>
 						</template>
@@ -315,7 +335,7 @@ table.extra tr > td:first-child {
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
-import { AnalogSensorType, HeaterState } from '../../store/machine/modelEnums.js'
+import { AnalogSensorType, HeaterState, SpindleState } from '../../store/machine/modelEnums.js'
 import { getHeaterColor, getExtraColor } from '../../utils/colors.js'
 import { DisconnectedError } from '../../utils/errors.js'
 
@@ -333,6 +353,15 @@ export default {
 						this.heat.heaters[bedHeater] && this.heat.heaters[bedHeater].state !== HeaterState.off, this) ||
 					this.heat.chamberHeaters.some(chamberHeater => chamberHeater >= 0 && chamberHeater < this.heat.heaters.length &&
 						this.heat.heaters[chamberHeater] && this.heat.heaters[chamberHeater].state !== HeaterState.off, this)));
+		},
+		hasTools() {
+			return this.tools.some(tool => tool !== null);
+		},
+		hasBeds() {
+			return this.bedHeaters.some(bed => bed !== null);
+		},
+		hasChambers() {
+			return this.chamberHeaters.some(chamber => chamber !== null);
 		},
 		visibleTools() {
 			return this.tools.filter(tool => tool !== null);
@@ -379,6 +408,9 @@ export default {
 		return {
 			dropdownShown: false,
 			turningEverythingOff: false,
+			controlTools: true,
+			controlBeds: false,
+			controlChambers: false,
 
 			currentPage: 'tools',
 			waitingForCode: false,
@@ -466,7 +498,7 @@ export default {
 					return this.$display(sensor.lastReading, 1, matches[2]);
 				}
 			}
-			const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? '%RH' : 'C';
+			const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? '%RH' : '°C';
 			return this.$display(sensor.lastReading, 1, unit);
 		},
 
@@ -513,7 +545,7 @@ export default {
 			code += 'M702';
 			this.sendCode(code);
 		},
-		
+
 		getToolHeaters(tool) {
 			const toolHeaters = tool.heaters
 				.filter(heaterIndex => heaterIndex >= 0 && heaterIndex < this.heat.heaters.length && this.heat.heaters[heaterIndex], this)
@@ -548,10 +580,16 @@ export default {
 		},
 
 		getSpindle(tool) {
-			return this.spindles.find(spindle => spindle.tool === tool.number);
+			let spindle = this.spindles.find(spindle => spindle.tool === tool.number);
+			return spindle ? spindle : this.spindles[tool.spindle];
 		},
 		getSpindleIndex(tool) {
-			return this.spindles.findIndex(spindle => spindle.tool === tool.number);
+			let spindleIndex = this.spindles.findIndex(spindle => spindle.tool === tool.number);
+			return spindleIndex && spindleIndex > -1 ? spindleIndex : tool.spindle;
+		},
+		getSpindleSpeed(tool) {
+			let spindle = this.getSpindle(tool);
+			return spindle ? (spindle.state === SpindleState.reverse) ? -spindle.current : spindle.current : 0;
 		},
 
 		// Beds

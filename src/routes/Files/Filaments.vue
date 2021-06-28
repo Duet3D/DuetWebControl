@@ -17,7 +17,7 @@ export default {
 		registerRoute(this, {
 			Files: {
 				Filaments: {
-					icon: 'mdi-radiobox-marked',
+					icon: 'mdi-database',
 					caption: 'menu.files.filaments',
 					path: '/Files/Filaments'
 				}

@@ -6,7 +6,7 @@
 			</v-card-title>
 
 			<v-card-text>
-				{{ $t('dialog.filament.prompt') }}
+				{{ $t(filaments.length > 0 ? 'dialog.filament.prompt' : 'dialog.filament.noFilaments') }}
 
 				<v-progress-linear indeterminate v-if="loading"></v-progress-linear>
 				<v-list v-if="!loading">
@@ -63,10 +63,7 @@ export default {
 			this.loading = true
 			try {
 				const response = await this.getFileList(this.filamentsDirectory);
-				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).filter(function(filament) {
-					// Exclude filaments that are already loaded (RRF does not allow loading the same filament into multiple tools)
-					return !this.extruders.some(extruder => extruder.filament === filament);
-				}, this);
+				this.filaments = response.filter(item => item.isDirectory).map(item => item.name);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);

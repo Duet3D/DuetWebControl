@@ -7,6 +7,7 @@ import en from './en.js'
 import de from './de.js'
 import es from './es.js'
 import fr from './fr.js'
+import pt_br from './pt_br.js'
 import ru from './ru.js'
 import tr from './tr.js'
 import zh_cn from './zh_cn.js'
@@ -18,6 +19,7 @@ const messages = {
 	de,
 	es,
 	fr,
+	pt_br,
 	ru,
 	tr,
 	zh_cn
@@ -51,11 +53,18 @@ if (process.env.NODE_ENV !== 'production') {
 		}
 	}
 
-	for (let key in messages) {
-		if (key !== 'en') {
-			compareTranslations(en, messages[key], key);
+	for (let i = 0; i < navigator.languages.length; i++) {
+		const lang = navigator.languages[i].replace('-', '_');
+		if (lang !== 'en' && messages[lang] !== undefined) {
+			compareTranslations(en, messages[lang], lang);
 		}
 	}
+
+//	for (let key in messages) {
+//		if (key !== 'en') {
+//			compareTranslations(en, messages[key], key);
+//		}
+//	}
 }
 /* eslint-enable */
 

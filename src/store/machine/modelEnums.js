@@ -88,6 +88,7 @@ export const HeaterMonitorCondition = {
 }
 
 export const HeaterState = {
+	disconnected: 'disconnected',
 	off: 'off',
 	standby: 'standby',
 	active: 'active',
@@ -171,6 +172,14 @@ export const MessageType = {
 	error: 2
 }
 
+export const MoveShapingType = {
+	none: 'none',
+	ZVD: 'ZVD',
+	ZVDD: 'ZVDD',
+	EI2: 'EI2',
+	DAA: 'DAA'
+}
+
 export const NetworkInterfaceType = {
 	lan: 'lan',
 	wifi: 'wifi'
@@ -203,6 +212,13 @@ export const StatusType = {
 	busy: 'busy',
 	changingTool: 'changingTool',
 	idle: 'idle'
+}
+
+export const SpindleState = {
+	unconfigured: 'unconfigured',
+	stopped: 'stopped',
+	forward: 'forward',
+	reverse: 'reverse'
 }
 
 export const ToolState = {

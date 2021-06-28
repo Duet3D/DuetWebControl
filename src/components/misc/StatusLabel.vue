@@ -32,6 +32,7 @@ export default {
 		},
 		statusClass() {
 			switch (this.state.status) {
+				case StatusType.disconnected: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
 				case StatusType.starting: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
 				case StatusType.updating: return this.darkTheme ? 'blue darken-3' : 'blue lighten-3';
 				case StatusType.off: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
@@ -42,7 +43,7 @@ export default {
 				case StatusType.processing: return 'green white--text';
 				case StatusType.simulating: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
 				case StatusType.busy: return this.darkTheme ? 'amber darken-2 white--text' : 'amber white--text';
-				case StatusType.changingTool: return this.darkTheme ? 'light-blue darken-2' : 'light-blue';
+				case StatusType.changingTool: return this.darkTheme ? 'grey darken-3' : 'blue lighten-5';
 				case StatusType.idle: return this.darkTheme ? 'light-green darken-3' : 'light-green lighten-4';
 				default: return 'red white--text';
 			}

@@ -18,6 +18,7 @@ import {
 	MessageType,
 	NetworkInterfaceType,
 	ProbeType,
+	SpindleState,
 	ToolState
 } from './modelEnums.js'
 import { PluginManifest } from '../../plugins/manifest.js'
@@ -117,9 +118,9 @@ export class BuildObject {
 
 export class Endstop {
 	constructor(initData) { quickPatch(this, initData); }
+	highEnd = false
 	triggered = false
 	type = EndstopType.unknown
-	probeNumber = null			// *** missing in RRF
 }
 
 export class Extruder {
@@ -141,7 +142,7 @@ export class Extruder {
 	}
 	position = 0
 	pressureAdvance = 0
-	rawPosition = 0
+	rawPosition = 0			// *** deprecated as of v3.3, to be replaced with job.rawExtrusion
 	speed = 100
 	stepsPerMm = 420
 }
@@ -354,10 +355,12 @@ export class DeltaTower {
 
 export class HangprinterKinematics extends Kinematics {
 	constructor(initData) { super(initData); }
-	anchorA = [0, -2000, -100]
-	anchorB = [2000, 1000, -100]
-	anchorC = [-2000, 1000, -100]
-	anchorDz = 3000
+	anchors = [
+		[0, -2000, -100],
+		[2000, 1000, -100],
+		[-2000, 1000, -100],
+		[0, 0, 3000]
+	]
 	printRadius = 1500
 }
 
@@ -371,6 +374,7 @@ export class Layer {
 	filament = []
 	fractionPrinted = 0
 	height = 0
+	temperatures = []
 }
 
 export class MeshDeviation {
@@ -396,6 +400,12 @@ export class MessageBox {
 	timeout = 0
 }
 
+export class MoveQueueItem {
+	constructor(initData) { quickPatch(this, initData); }
+	gracePeriod = 0
+	length = 0
+}
+
 export class NetworkInterface {
 	constructor(initData) { quickPatch(this, initData); }
 	actualIP = null
@@ -405,9 +415,13 @@ export class NetworkInterface {
 	subnet = null
 	type = NetworkInterfaceType.wifi
 
+	// *** missing in DSF:
+	state = null				// one of [null, 'disabled', 'enabled', 'starting1', 'starting2', 'changingMode', 'establishingLink', 'obtainingIP', 'connected', 'active']
+
 	// *** missing in RRF:
-	activeProtocols = []		// one or more of ['http', 'ftp', 'telnet']
+	activeProtocols = []		// one or more of ['http', 'https', 'ftp', 'sftp', 'ssh', 'telnet']
 	configuredIP = null
+	dnsServer = null
 	numReconnects = null
 	signal = null				// only WiFi (dBm)
 	speed = null				// null if unknown and 0 if no link
@@ -444,9 +458,9 @@ export class ParsedThumbnail {
 
 export class Plugin extends PluginManifest {
 	constructor(initData) { super(initData); }
+	dsfFiles = []
 	dwcFiles = []
-	sbcFiles = []
-	rrfFiles = []
+	sdFiles = []
 	pid = -1
 }
 
@@ -473,6 +487,7 @@ export class RestorePoint {
 	constructor(initData) { quickPatch(this, initData); }
 	coords = []
 	extruderPos = 0
+	fanPwm = 0
 	feedRate = 50
 	ioBits = 0
 	laserPwm = null
@@ -483,11 +498,12 @@ export class RestorePoint {
 export class Spindle {
 	constructor(initData) { quickPatch(this, initData); }
 	active = 0					// RPM
+	configured = false
 	current = 0					// RPM
 	frequency = 0				// Hz
 	min = 60					// RPM
 	max = 10000					// RPM
-	tool = -1
+	state = SpindleState.stopped
 }
 
 export class Tool {
@@ -510,6 +526,8 @@ export class Tool {
 		unretractSpeed: 0,
 		zHop: 0
 	}
+	spindle = -1
+	spindleRpm = 0
 	standby = []
 	state = ToolState.off
 }
@@ -625,14 +643,13 @@ export function fixMachineItems(state, mergeData) {
 		if (mergeData.move.kinematics && mergeData.move.kinematics.towers) {
 			fixItems(state.move.kinematics.towers, DeltaTower);
 		}
+		if (mergeData.move.queue) {
+			fixItems(state.move.queue, MoveQueueItem);
+		}
 	}
 
 	if (mergeData.network && mergeData.network.interfaces) {
 		fixItems(state.network.interfaces, NetworkInterface);
-	}
-
-	if (mergeData.plugins) {
-		fixItems(state.plugins, Plugin);
 	}
 
 	if (mergeData.sensors) {

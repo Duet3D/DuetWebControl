@@ -1,9 +1,12 @@
 'use strict'
 
+import Vue from 'vue'
+
 import {
 	InputChannelName,
 	LogLevel,
 	MachineMode,
+	MoveShapingType,
 	KinematicsName,
 	StatusType,
 	isPrinting
@@ -42,6 +45,7 @@ export class MachineModel {
 		web: Path.web
 	}
 	fans = []
+	global = {}
 	heat = {
 		bedHeaters: [],
 		chamberHeaters: [],
@@ -68,7 +72,6 @@ export class MachineModel {
 		duration: null,
 		file: new ParsedFileInfo(),
 		filePosition: null,
-		firstLayerDuration: null,
 		lastDuration: null,
 		lastFileName: null,
 		lastFileAborted: false,					// *** missing in RRF
@@ -77,11 +80,13 @@ export class MachineModel {
 		layer: null,
 		layerTime: null,
 		layers: [],								// *** missing in RRF
-		// ^-- this could be stored in a file that the web interface downloads from the board or using a dedicate request (Duet 2)
+		pauseDuration: null,
+		rawExtrusion: null,
 		timesLeft: {
 			filament: null,
 			file: null,
-			layer: null
+			layer: null,						// *** deprecated as of v3.3
+			slicer: null
 		},
 		warmUpDuration: null
 	}
@@ -131,12 +136,10 @@ export class MachineModel {
 			file: null,
 			meshDeviation: null,
 			probeGrid: {
-				xMin: 0.0,
-				xMax: 0.0,
-				xSpacing: 0.0,
-				yMin: 0.0,
-				yMax: 0.0,
-				ySpacing: 0.0,
+				axes: ['X', 'Y'],
+				maxs: [-1, -1],
+				mins: [0, 0],
+				spacings: [0, 0],
 				radius: 0.0
 			},
 			skew: {
@@ -154,22 +157,24 @@ export class MachineModel {
 			requestedSpeed: 0,
 			topSpeed: 0
 		},
-		daa: {
-			enabled: false,
-			minimumAcceleration: 10,
-			period: 0
-		},
 		extruders: [],
 		idle: {
 			factor: 0.3,
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
+		queue: [],
 		printingAcceleration: 10000,
-		speedFactor: 100,
+		shaping: {
+			damping: 0.2,
+			frequency:40,
+			minimumAcceleration:10,
+			type: MoveShapingType.none
+		},
+		speedFactor: 1.0,
 		travelAcceleration: 10000,
 		virtualEPos: 0,
-		workspaceNumber: 1
+		workplaceNumber: 1
 	}
 	network = {
 		corsSite: null,
@@ -177,7 +182,7 @@ export class MachineModel {
 		interfaces: [],
 		name: 'My Duet'
 	}
-	plugins = []
+	plugins = {}
 	scanner = {
 		progress: 0.0,
 		status: 'D'
@@ -196,6 +201,8 @@ export class MachineModel {
 		currentTool: -1,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
+		dsfPluginSupport: true,					// *** missing in RRF
+		dsfRootPluginSupport: false,			// *** missing in RRF
 		gpOut: [],
 		laserPwm: null,
 		logFile: null,
@@ -204,6 +211,7 @@ export class MachineModel {
 		machineMode: MachineMode.fff,
 		msUpTime: 0,
 		nextTool: -1,
+		pluginsStarted: false,					// *** missing in RRF
 		powerFailScript: '',
 		previousTool: -1,
 		restorePoints: [],
@@ -213,7 +221,6 @@ export class MachineModel {
 	}
 	tools = []
 	userSessions = []							// *** missing in RRF
-	userVariables = []							// *** missing in RRF (but reserved)
 	volumes = []
 }
 
@@ -280,14 +287,18 @@ export const DefaultMachineModel = new MachineModel({
 			active: [0],
 			standby: [0],
 			heaters: [1],
-			extruders: [0]
+			extruders: [0],
+			spindle: -1,
+			spindleRpm: 0,
 		}),
 		new Tool({
 			number: 1,
 			active: [0],
 			standby: [0],
 			heaters: [2],
-			extruders: [1]
+			extruders: [1],
+			spindle: -1,
+			spindleRpm: 0,
 		})
 	]
 })
@@ -374,16 +385,50 @@ export class MachineModelModule {
 				}
 			}
 
+			// Update global variables
+			if (payload.global !== undefined) {
+				if (payload.global === null) {
+					state.global = {};
+				} else {
+					for (let key in payload.global) {
+						if (state.global[key]) {
+							state.global[key] = payload.global[key];
+						} else {
+							Vue.set(state.global, key, payload.global[key]);
+						}
+					}
+				}
+				delete payload.global;
+			}
+
+			// Update plugins
+			if (payload.plugins !== undefined) {
+				if (payload.plugins === null) {
+					state.plugins = {};
+				} else {
+					for (let key in payload.plugins) {
+						if (!payload.plugins[key]) {
+							Vue.delete(state.plugins, key);
+						} else if (!state.plugins[key]) {
+							Vue.set(state.plugins, key, payload.plugins[key]);
+						} else {
+							patch(state.plugins[key], payload.plugins[key]);
+						}
+					}
+				}
+				delete payload.plugins;
+			}
+
 			// Apply new data
 			patch(state, payload, true);
 			fixMachineItems(state, payload);
 		},
 
 		addPlugin(state, plugin) {
-			state.plugins.push(plugin);
+			Vue.set(state.plugins, plugin.id, plugin);
 		},
 		removePlugin(state, plugin) {
-			state.plugins = state.plugins.filter(item => item.name !== plugin.name);
+			Vue.delete(state.plugins, plugin.id);
 		}
 	}
 }

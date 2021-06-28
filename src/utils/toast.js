@@ -75,14 +75,16 @@ export function makeNotification(type, title, message, timeout) {
 	item.timeout = timeout;
 	item.domElement = toast;
 	item.hide = function() {
-		if (toast) {
+		if (openNotifications.indexOf(item) !== -1) {
 			iziToast.hide({}, toast);
+			openNotifications = openNotifications.filter(notification => notification !== item);
 		}
-		openNotifications = openNotifications.filter(notification => notification !== item);
 	};
 	item.resetTimeout = function() {
-		iziToast.progress(options, toast).reset();
-		setTimeout(iziToast.progress(options, toast).start, 100);
+		if (openNotifications.indexOf(item) !== -1) {
+			iziToast.progress(options, toast).reset();
+			setTimeout(iziToast.progress(options, toast).start, 100);
+		}
 	};
 
 	openNotifications.push(item);

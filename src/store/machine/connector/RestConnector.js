@@ -15,7 +15,7 @@ import { strToTime } from '../../../utils/time.js'
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const socket = new WebSocket(`${socketProtocol}//${hostname}/machine`);
+		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine`);
 		const model = await new Promise(function(resolve, reject) {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
@@ -47,7 +47,6 @@ export default class RestConnector extends BaseConnector {
 
 	model = {}
 	fileTransfers = []
-	layers = []
 
 	constructor(hostname, password, socket, model) {
 		super('rest', hostname);
@@ -58,9 +57,6 @@ export default class RestConnector extends BaseConnector {
 		}
 		this.socket = socket;
 		this.model = model;
-		if (model.job && model.job.layers) {
-			this.layers = model.job.layers;
-		}
 	}
 
 	requests = []
@@ -86,7 +82,7 @@ export default class RestConnector extends BaseConnector {
 		if (onProgress) {
 			xhr.onprogress = function(e) {
 				if (e.loaded && e.total) {
-					onProgress(e.loaded, e.total);
+					onProgress(e.loaded, e.total, 0);
 				}
 			}
 			xhr.upload.onprogress = xhr.onprogress;
@@ -155,13 +151,10 @@ export default class RestConnector extends BaseConnector {
 		await new Promise(function(resolve, reject) {
 			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${that.hostname}/machine`);
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine`);
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
-				if (that.model.job && that.model.job.layers) {
-					that.layers = that.model.job.layers;
-				}
 				that.socket = socket;
 
 				// Check if DSF has been updated
@@ -232,16 +225,6 @@ export default class RestConnector extends BaseConnector {
 
 		// Process model updates
 		const data = JSON.parse(e.data);
-
-		// Deal with layers
-		if (data.job && data.job.layers !== undefined) {
-			if (data.job.layers.length === 0) {
-				this.layers = [];
-			} else {
-				data.job.layers.forEach(layer => this.layers.push(layer), this);
-			}
-			data.job.layers = this.layers;
-		}
 
 		// Update model and acknowledge receipt
 		await this.dispatch('update', data);
@@ -354,12 +337,12 @@ export default class RestConnector extends BaseConnector {
 	async installPlugin({ zipFilename, zipBlob, plugin, start }) {
 		await this.installSbcPlugin({ zipFilename, zipBlob });
 		if (start) {
-			await this.startSbcPlugin(plugin.name);
+			await this.startSbcPlugin(plugin.id);
 		}
 	}
 
 	async uninstallPlugin(plugin) {
-		await this.uninstallSbcPlugin(plugin.name);
+		await this.uninstallSbcPlugin(plugin.id);
 	}
 
 	async installSbcPlugin({ zipFilename, zipBlob, cancellationToken = null, onProgress }) {
@@ -380,5 +363,13 @@ export default class RestConnector extends BaseConnector {
 
 	async stopSbcPlugin(plugin) {
 		await this.request('POST', 'machine/stopPlugin', null, '', plugin);
+	}
+
+	async installSystemPackage({ filename, blob, cancellationToken = null, onProgress }) {
+		await this.request('PUT', 'machine/systemPackage', null, '', blob, onProgress, cancellationToken, filename);
+	}
+
+	async uninstallSystemPackage(pkg) {
+		await this.request('DELETE', 'machine/systemPackage', null, '', pkg);
 	}
 }

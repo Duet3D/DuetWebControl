@@ -17,22 +17,22 @@
 					</v-row>
 					<v-row v-else>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['X'])" v-model.number="minX" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', [xAxis])" v-model.number="minX" required hide-details></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['X'])" v-model.number="maxX" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', [xAxis])" v-model.number="maxX" required hide-details></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', ['Y'])" v-model.number="minY" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.startCoordinate', [yAxis])" v-model.number="minY" required hide-details></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', ['Y'])" v-model.number="maxY" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.endCoordinate', [yAxis])" v-model.number="maxY" required hide-details></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['X'])" v-model.number="spacingX" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', [xAxis])" v-model.number="spacingX" required hide-details></v-text-field>
 						</v-col>
 						<v-col cols="12" sm="6">
-							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', ['Y'])" v-model.number="spacingY" required hide-details></v-text-field>
+							<v-text-field type="number" :label="$t('dialog.meshEdit.spacingDirection', [yAxis])" v-model.number="spacingY" required hide-details></v-text-field>
 						</v-col>
 					</v-row>
 				</v-card-text>
@@ -66,6 +66,8 @@ export default {
 	},
 	data() {
 		return {
+			xAxis: 'X',
+			yAxis: 'Y',
 			maxX: 200,
 			maxY: 200,
 			minX: 0,
@@ -101,13 +103,15 @@ export default {
 	watch: {
 		shown(to) {
 			if (to) {
-				this.maxX = this.probeGrid.xMax;
-				this.maxY = this.probeGrid.yMax;
-				this.minX = this.probeGrid.xMin;
-				this.minY = this.probeGrid.yMin;
+				this.xAxis = (this.probeGrid.axes.length > 0) ? this.probeGrid.axes[0] : 'X';
+				this.yAxis = (this.probeGrid.axes.length > 1) ? this.probeGrid.axes[1] : 'Y';
+				this.maxX = (this.probeGrid.maxs.length > 0) ? this.probeGrid.maxs[0] : 0;
+				this.maxY = (this.probeGrid.maxs.length > 1) ? this.probeGrid.maxs[1] : 0;
+				this.minX = (this.probeGrid.mins.length > 0) ? this.probeGrid.mins[0] : 0;
+				this.minY = (this.probeGrid.mins.length > 1) ? this.probeGrid.mins[1] : 0;
 				this.radius = this.probeGrid.radius;
-				this.spacingX = this.probeGrid.xSpacing;
-				this.spacingY = this.probeGrid.ySpacing;
+				this.spacingX = (this.probeGrid.spacings.length > 0) ? this.probeGrid.spacings[0] : 0;
+				this.spacingY = (this.probeGrid.spacings.length > 1) ? this.probeGrid.spacings[1] : 0;
 			}
 		}
 	}

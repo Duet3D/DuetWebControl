@@ -19,14 +19,17 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat', 'tools']),
+		...mapState('machine/model', ['heat', 'state', 'tools']),
 		...mapState('machine/settings', ['spindleRPM', 'temperatures']),
 		...mapState('settings', ['disableAutoComplete']),
 		items() {
 			if (this.disableAutoComplete) {
 				return [];
 			}
-			
+
+			if (this.spindle) {
+				return this.spindleRPM;
+			}
 			const key = this.active ? 'active' : 'standby';
 			if (this.tool || this.all) {
 				return this.temperatures.tool[key];
@@ -36,9 +39,6 @@ export default {
 			}
 			if (this.chamber) {
 				return this.temperatures.chamber;
-			}
-			if (this.spindle) {
-				return this.spindleRPM;
 			}
 
 			console.warn('[tool-input] Failed to retrieve temperature presets');
@@ -74,6 +74,10 @@ export default {
 		label: String,
 
 		all: Boolean,
+		controlTools: Boolean,
+		controlBeds: Boolean,
+		controlChambers: Boolean,
+
 		active: Boolean,
 		standby: Boolean,
 
@@ -105,10 +109,16 @@ export default {
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
-						if (this.inputValue >= 0) {
-							await this.sendCode(`M3 P${this.spindleIndex} S${this.inputValue}`);
+						if (this.state.currentTool == this.tool.number) {
+							// Use M3/M4 for backwards-compatbility if this spindle is selected
+							if (this.inputValue >= 0) {
+								await this.sendCode(`M3 S${this.inputValue}`);
+							} else {
+								await this.sendCode(`M4 S${-this.inputValue}`);
+							}
 						} else {
-							await this.sendCode(`M4 P${this.spindleIndex} S${-this.inputValue}`);
+							// Fall back to M568 if this spindle isn't selected
+							await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
 						}
 					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {
@@ -125,25 +135,32 @@ export default {
 						} else if (this.all) {
 							// Set all temps
 							let code = '';
-							this.tools.forEach(function(tool) {
-								if (tool.heaters.length) {
-									const temps = tool.heaters.map(() => this.inputValue, this).join(':');
-									code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
-								}
-							}, this);
-							this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
-								if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
-									code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
-								}
-							}, this);
-							this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
-								if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
-									code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
-								}
-							}, this);
-							await this.sendCode(code);
+							if (this.controlTools) {
+								this.tools.forEach(function(tool) {
+									if (tool && tool.heaters.length) {
+										const temps = tool.heaters.map(() => this.inputValue, this).join(':');
+										code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
+									}
+								}, this);
+							}
+							if (this.controlBeds) {
+								this.heat.bedHeaters.forEach(function(bedHeater, bedIndex) {
+									if (bedHeater >= 0 && bedHeater <= this.heat.heaters.length) {
+										code += `M140 P${bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
+									}
+								}, this);
+							}
+							if (this.controlChambers) {
+								this.heat.chamberHeaters.forEach(function(chamberHeater, chamberIndex) {
+									if (chamberHeater >= 0 && chamberHeater <= this.heat.heaters.length) {
+										code += `M141 P${chamberIndex} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
+									}
+								}, this);
+							}
+							if (code !== '') {
+								await this.sendCode(code);
+							}
 							this.actualValue = parseFloat(this.inputValue);
-							console.log(this.actualValue);
 						} else {
 							console.warn('[tool-input] Invalid target for tool-input');
 						}
@@ -182,7 +199,10 @@ export default {
 	},
 	mounted() {
 		this.inputElement = this.$el.querySelector('input');
-		if (this.tool) {
+		if (this.spindle) {
+			this.actualValue = this.tool.spindleRpm;
+			this.inputValue = this.tool.spindleRpm.toString();
+		} else if (this.tool) {
 			if (this.tool[this.active ? 'active' : 'standby'].length > 0) {
 				this.actualValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex];
 				this.inputValue = this.tool[this.active ? 'active' : 'standby'][this.toolHeaterIndex].toString();
@@ -193,9 +213,6 @@ export default {
 		} else if (this.chamber) {
 			this.actualValue = this.chamber[this.active ? 'active' : 'standby'];
 			this.inputValue = this.chamber[this.active ? 'active' : 'standby'].toString();
-		} else if (this.spindle) {
-			this.actualValue = this.spindle.active;
-			this.inputValue = this.spindle.active.toString();
 		}
 	},
 	watch: {
@@ -249,7 +266,7 @@ export default {
 				}
 			}
 		},
-		'spindle.active'(to) {
+		'tool.spindleRpm'(to) {
 			if (this.active && this.isNumber(to) && this.actualValue != to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {

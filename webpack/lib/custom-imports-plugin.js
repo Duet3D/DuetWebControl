@@ -23,8 +23,8 @@ class CustomImportPlugin {
 			return `${modSource}
 
 function jsonpScriptSrc(chunkId) {
-	if (window.pluginBeingLoaded && window.pluginBeingLoaded.dwcWebpackChunk === chunkId) {
-		return window.pluginBaseURL + window.pluginBeingLoaded.name + '/' + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.dwcWebpackChunk) !== -1 && /\\.js$/.test(file));
+	if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {
+		return window.pluginBaseURL + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.js$/.test(file));
 	}
 	return webpackJsonpScriptSrc(chunkId);
 }
@@ -41,11 +41,11 @@ function jsonpScriptSrc(chunkId) {
 				"CustomImportsPlugin: CSS template bootstrap source doesn't have fullref variable"
 			);
 
-			const modSource = source.replace('&& cssChunks[chunkId])', '&& (cssChunks[chunkId] || (window.pluginBeingLoaded && window.pluginBeingLoaded.dwcWebpackChunk === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.dwcWebpackChunk) !== -1 && /\\.css$/.test(file)))))');
+			const modSource = source.replace('&& cssChunks[chunkId])', '&& (cssChunks[chunkId] || (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file)))))');
 			return modSource.replace(`var fullhref = ${mainTemplate.requireFn}.p + href;`, `
 var fullhref;
-if (window.pluginBeingLoaded && window.pluginBeingLoaded.dwcWebpackChunk === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.dwcWebpackChunk) !== -1 && /\\.css$/.test(file))) {
-	fullhref = window.pluginBaseURL + window.pluginBeingLoaded.name + '/' + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.dwcWebpackChunk) !== -1 && /\\.css$/.test(file));
+if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file))) {
+	fullhref = window.pluginBaseURL + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file));
 } else {
 	fullhref = ${mainTemplate.requireFn}.p + href;
 }

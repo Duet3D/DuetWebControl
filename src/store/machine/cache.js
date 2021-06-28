@@ -11,6 +11,7 @@ export default function(connector, pluginCacheFields) {
 	return {
 		namespaced: true,
 		state: {
+			lastSentCodes: ['M0', 'M1', 'M84'],
 			fileInfos: {},
 			sorting: {
 				events: {
@@ -112,17 +113,22 @@ export default function(connector, pluginCacheFields) {
 		mutations: {
 			load: (state, content) => patch(state, content),
 
-			setFileInfo: (state, { filename, fileInfo }) => state.fileInfos[filename] = fileInfo,
+			addLastSentCode: (state, code) => state.lastSentCodes.push(code),
+			removeLastSentCode: (state, code) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
+
+			setFileInfo(state, { filename, fileInfo }) {
+				state.fileInfos[filename] = fileInfo;
+			},
 			clearFileInfo(state, fileOrDirectory) {
 				if (fileOrDirectory) {
 					if (state.fileInfos[fileOrDirectory] !== undefined) {
 						// Delete specific item
-						delete state.fileInfos[fileOrDirectory];
+						Vue.delete(state.fileInfos, fileOrDirectory);
 					} else {
 						// Delete directory items
 						for (let filename in state.fileInfos) {
 							if (Path.startsWith(filename, fileOrDirectory)) {
-								delete state.fileInfos[filename];
+								Vue.delete(state.fileInfos, filename);
 							}
 						}
 					}

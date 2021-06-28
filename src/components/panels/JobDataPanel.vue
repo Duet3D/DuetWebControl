@@ -4,7 +4,7 @@
 			<v-icon small class="mr-1">mdi-dots-horizontal</v-icon> {{ $t('panel.jobData.caption') }}
 		</v-card-title>
 
-		<v-card-text class="text-center pb-1">
+		<v-card-text class="text-center pb-2">
 			<v-row dense>
 				<v-col class="d-flex flex-column">
 					<strong>

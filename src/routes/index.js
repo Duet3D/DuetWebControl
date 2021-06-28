@@ -6,7 +6,6 @@ import VueRouter from 'vue-router'
 import Dashboard from './Control/Dashboard.vue'
 import Console from './Control/Console.vue'
 
-import Display from './Files/Display.vue'
 import Filaments from './Files/Filaments.vue'
 import Jobs from './Files/Jobs.vue'
 import Macros from './Files/Macros.vue'
@@ -133,7 +132,7 @@ function registerRouteInternal(menu, component, route) {
 				menu[keys[0]] = routeObj;
 			}
 			Routes.push(routeObj);
-			router.addRoutes([routeObj]);
+			router.addRoute(routeObj);
 			return;
 		} else {
 			// Go one level deeper
@@ -156,7 +155,7 @@ export const MachineSettingTabs = Vue.observable([])
 // component: Component to register
 // caption: Caption of the tab
 // translated: Whether the caption is already translated
-export function registerSettingTab(general, name, component, caption, translated) {
+export function registerSettingTab(general, name, component, caption, translated = false) {
 	const tab = {
 		component: name,
 		translated
@@ -183,7 +182,6 @@ Vue.use(Dashboard)
 Vue.use(Console)
 
 // Files
-Vue.use(Display)
 Vue.use(Filaments)
 Vue.use(Jobs)
 Vue.use(Macros)
@@ -198,11 +196,11 @@ Vue.use(General)
 Vue.use(Machine)
 
 // 404 page
-router.addRoutes([
+router.addRoute(
 	{
 		path: '*',
 		component: Page404
 	}
-])
+)
 
 export default router

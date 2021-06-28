@@ -88,6 +88,10 @@ export default {
 			title: 'M999 an die Maschine senden um sie zurückzusetzen'
 		},
 		upload: {
+			firmware: {
+				caption: 'Firmwareaktualisierung Hochladen',
+				title: 'Eine oder mehrere Firmwareaktualisierungen hochladen  (Drag&Drop wird ebenfalls unterstützt)'
+			},
 			gcodes: {
 				caption: 'G-Code-Datei(en) Hochladen',
 				title: 'Eine oder mehr G-Code-Dateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
@@ -184,7 +188,8 @@ export default {
 		filament: {
 			titleChange: 'Filament ändern',
 			titleLoad: 'Filament laden',
-			prompt: 'Bitte wählen Sie ein Filament:'
+			prompt: 'Bitte wählen Sie ein Filament:',
+			noFilaments: 'Keine Filamente verfügbar'
 		},
 		fileEdit: {
 			gcodeReference: 'G-Code-Referenz',
@@ -226,6 +231,39 @@ export default {
 			title: 'Neue Datei',
 			prompt: 'Bitte geben Sie einen Dateinamen ein:'
 		},
+		pluginInstallation: {
+			installation: 'Plugininstallation',
+			prompt: 'Das folgende Plugin wird installiert:',
+			by: 'von {0}',
+			license: 'Lizenz: {0}',
+			homepage: 'Webseite:',
+			contents: 'Dieses Paket stellt Softwarekomponenten bereit für',
+			dsf: 'Duet Software Framework',
+			dwc: 'Duet Web Control',
+			rrf: 'RepRapFirmware',
+			prerequisites: 'Voraussetzungen',
+			version: 'Version {0}',
+			noPluginSupport: 'Maschinenspezifische Plugins sind nicht erlaubt',
+			rootSupport: 'Unterstützung für Super-User-Plugins',
+			invalidManifest: 'Ungültiges Pluginmanifest',
+			permissions: 'Erforderliche Berechtigungen',
+			dwcWarning: 'Dieses Plugin stellt Komponenten für die Weboberfläche bereit. Es können im Browser keine Berechtigungsprüfungen durchgeführt werden, daher könnte es Ihr System manipulieren und Sicherheitsrisikos erzeugen, die in physischem Schaden resultieren könnten.',
+			rootWarning: 'Dieses Plugin erfordert Super-User-Berechtigungen, was bedeuetet, dass es den angeschlossenen SBC rekonfigurieren und potentielle Schadsoftware installieren darf. Dies könnte zu physischem Schaden Ihres Aufbaus fuehren.',
+			sbcPermissions: 'Das Plugin auf dem SBC möchte',
+			noSpecialPermissions: 'Dieses Plugin erfordert keine speziellen Berechtigungen.',
+			ready: 'Installation bereit',
+			readyMessage: 'Das Plugin ist jetzt bereit für die Installation. Bitte stellen Sie sicher, dass Sie dem Autor des Plugins vertrauen bevor Sie diesen finalen Schritt bestätigen.',
+			readyDisclaimer: 'Bevor Sie fortfahren können müssen Sie akzeptieren, dass Duet3D Ltd nicht für eventuelle Schäden, die aus der Installation dieses Drittanbieterplugins resultieren könnten, verantwortlich gemacht werden kann.',
+			checkboxDisclaimer: 'Ich akzeptiere das Risio, Installation fortsetzen',
+			progress: 'Installationsfortschritt',
+			progressText: 'Bitte warten Sie während das Plugin installiert wird...',
+			installationSuccess: 'Installation abgeschlossen!',
+			installationFailed: 'Installation fehlgeschlagen!',
+			cancel: 'Abbrechen',
+			back: 'Zurück',
+			next: 'Weiter',
+			finish: 'Abschließen'
+		},
 		renameFile: {
 			title: 'Datei oder Verzeichnis umbennenen',
 			prompt: 'Bitte geben Sie einen neuen Namen ein:'
@@ -255,6 +293,7 @@ export default {
 	directory: {
 		menu: 'Menüverzeichnis',
 		filaments: 'Filamentverzeichnis',
+		firmware: 'Firmwareverzeichnis',
 		gcodes: 'G-Code-Verzeichnis',
 		macros: 'Makroverzeichnis',
 		system: 'Systemverzeichnis',
@@ -317,6 +356,7 @@ export default {
 			offline: 'abgeschaltet'
 		},
 		status: {
+			disconnected: 'Getrennt',
 			starting: 'Starte',
 			updating: 'Aktualisiere',
 			off: 'Aus',
@@ -389,6 +429,10 @@ export default {
 		},
 		filament: {
 			noFilaments: 'Keine Filamente'
+		},
+		firmware: {
+			installFile: 'Firmwaredatei installieren',
+			noFiles: 'Keine Firmwaredateien'
 		},
 		macro: {
 			caption: 'Makros',
@@ -485,6 +529,14 @@ export default {
 			errorTitleMacros: 'Konnte Filamentmakros nicht anlegen',
 			successTitle: 'Filament erstellt',
 			successMessage: 'Successfully created filament {0}'
+		},
+		plugins: {
+			started: 'Plugin gestartet',
+			startError: 'Konnte Plugin nicht starten',
+			stopped: 'Plugin gestopt',
+			stopError: 'Konnte Plugin icht stoppen',
+			uninstalled: 'Plugin deinstalliert',
+			uninstallError: 'Konnte Plugin nicht deinstallieren'
 		},
 		rename: {
 			success: '{0} wurde erfolgreich nach {1} umbenannt',
@@ -694,10 +746,13 @@ export default {
 		},
 		tools: {
 			caption: 'Werkzeuge',
-			controlAll: 'Alle Steuern',
+			controlHeaters: 'Heizer Steuern',
 			turnEverythingOff: 'Alle Abschalten',
-			allActiveTemperatures: 'Alle aktiven Temperaturen setzen',
-			allStandbyTemperatures: 'Alle Standbytemperaturen setzen',
+			setActiveTemperatures: 'Aktiven Temperaturen setzen',
+			setStandbyTemperatures: 'Standbytemperaturen setzen',
+			setToolTemperatures: 'Werkzeugtemperaturen setzen',
+			setBedTemperatures: 'Betttemperaturen setzen',
+			setChamberTemperatures: 'Kammertemperaturen setzen',
 			tool: 'Werkzeug {0}',
 			loadFilament: 'Filament laden',
 			changeFilament: 'Filament wechseln',
@@ -723,7 +778,61 @@ export default {
 			alt: '(webcam bild)'
 		}
 	},
+	pluginPermissions: {
+		commandExecution: 'Generische DSF-Befehle ausführen (z.B. G/M/T-Codes)',
+		codeInterceptionRead: 'G/M/T-Codes abfangen',
+		codeInterceptionReadWrite: 'G/M/T-codes abfangen und manipulieren',
+		managePlugins: 'Drittanbieterplugins installieren, laden, entladen und deinstallieren',
+		manageUserSessions: 'Benutzersitzungen verwalten',
+		objectModelRead: 'Objektmodell lesen',
+		objectModelReadWrite: 'Objektmodell lesen und schreiben',
+		registerHttpEndpoints: 'HTTP-Endpunkte erzeugen',
+		readFilaments: 'Dateien aus dem Filamentverzeichnis lesen',
+		writeFilaments: 'Dateien im Filamentverzeichnis schreiben',
+		readFirmware: 'Dateien aus dem Firmwareverzeichnis lesen',
+		writeFirmware: 'Dateien im Firmwareverzeichnis schreiben',
+		readGCodes: 'Dateien aus dem G-Code-Verzeichnis lesen',
+		writeGCodes: 'Dateien im G-Code-Verzeichnis schreiben',
+		readMacros: 'Dateien aus dem Makroverzeichnis lesen',
+		writeMacros: 'Dateien im Makroverzeichnis schreiben',
+		readMenu: 'Dateien aus dem Menüverzeichnis lesen',
+		writeMenu: 'Dateien im Menüverzeichnis schreiben',
+		readSystem: 'Dateien aus dem Systemverzeichnis lesen',
+		writeSystem: 'Dateien im Systemverzeichnis schreiben',
+		readWeb: 'Dateien aus dem Webverzeichnis lesen',
+		writeWeb: 'Dateien im Webverzeichnis schreiben',
+		fileSystemAccess: 'Auf Dateien außherhalb der virtuellen SD-Karte zugreifen',
+		launchProcesses: 'Neue Prozesse starten',
+		networkAccess: 'Über das Netzwerk kommunizieren',
+		superUser: 'Als root-Benutzer laufen (potentiell gefährlich)'
+	},
 	plugins: {
+		accelerometer: {
+			name: 'Beschleunigungsmesser',
+			listTitle: 'CSV-Dateien',
+			none: 'Keine Dateien',
+			chartCaption: 'Beschleunigungsproben',
+			noData: 'Keine Proben geladen',
+			analysis: 'Frequenzanalyse',
+			samplingRate: 'Abtastrate (in Hz)',
+			start: 'Start',
+			end: 'Ende',
+			wideBand: 'Breitbandanalyse',
+			analyze: 'Analysieren',
+			back: 'Zurück',
+			overflowPrompt: {
+				title: 'Überlaufe erkannt',
+				prompt: 'Diese Datei hat bereichtet, dass es zu Überlaufen gekommen ist. Sind Sie sicher, dass Sie fortfahren möchten?'
+			},
+			loadError: 'Konnte CSV-Datei nicht laden',
+			parseError: 'Konnte CSV-Datei nicht parsen',
+			frequency: 'Frequenz (in Hz)',
+			amplitudes: 'Amplituden',
+			samples: 'Proben',
+			accelerations: 'Beschleunigungen (in g)',
+			sampleTooltip: 'Probe #{0}',
+			frequencyTooltip: '{0} ± {1} Hz'
+		},
 		autoUpdate: {
 			menuCaption: 'Aktualisierung'
 		},
@@ -843,13 +952,13 @@ export default {
 			caption: 'Allgemein'
 		},
 		plugins: {
-			caption: 'Plugins',
+			generalCaption: 'Eingebaute Plugins',
+			machineCaption: 'Maschinenspezifische Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Autor',
 				version: 'Version',
 				license: 'Lizenz',
-				components: 'Komponenten',
 				dependencies: 'Abhängigkeiten',
 				status: 'Status'
 			},

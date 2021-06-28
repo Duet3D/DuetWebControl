@@ -4,7 +4,7 @@
 			<v-icon small class="mr-1">mdi-clock</v-icon> {{ $t('panel.jobEstimations.caption') }}
 		</v-card-title>
 
-		<v-card-text class="text-center pb-1">
+		<v-card-text class="text-center pb-2">
 			<v-row dense>
 				<v-col class="d-flex flex-column">
 					<strong>
@@ -24,7 +24,7 @@
 					</span>
 				</v-col>
 
-				<v-col class="d-flex flex-column">
+				<v-col v-if="job.timesLeft.layer !== null" class="d-flex flex-column">
 					<strong>
 						{{ $t('panel.jobEstimations.layer') }}
 					</strong>
@@ -33,12 +33,12 @@
 					</span>
 				</v-col>
 
-				<v-col v-if="job.file.printTime && !isSimulating" class="d-flex flex-column">
+				<v-col v-if="slicerTimeLeft !== null" class="d-flex flex-column">
 					<strong>
 						{{ $t('panel.jobEstimations.slicer') }}
 					</strong>
 					<span>
-						{{ $displayTime(isPrinting ? Math.max(0, job.file.printTime - job.duration) : job.file.printTime) }}
+						{{ $displayTime(slicerTimeLeft) }}
 					</span>
 				</v-col>
 
@@ -71,6 +71,15 @@ export default {
 		isPrinting() {
 			return isPrinting(this.status);
 		},
+		slicerTimeLeft() {
+			if (this.job.timesLeft.slicer !== null) {
+				return this.job.timesLeft.slicer;
+			}
+			if (this.job.file.printTime != null) {
+				return this.isPrinting ? Math.max(0, this.job.file.printTime - this.job.duration) : this.job.file.printTime;
+			}
+			return null;
+		}
 	},
 	data() {
 		return {

@@ -1,8 +1,27 @@
 <template>
 	<v-breadcrumbs :items="pathItems" divider=">">
-		<template #item="props">
-			<v-breadcrumbs-item href="javascript:void(0)" :disabled="props.item.disabled" @click="changeDirectory(props.item.href)" @dragover="dragOver(props.item.href, $event)" @drop.prevent="dragDrop(props.item.href, $event)">
-				{{ props.item.text }}
+		<template #item="{ item }">
+			<v-menu v-if="item.showDropdown" offset-y>
+				<template #activator="{ on, attrs }">
+					<v-breadcrumbs-item href="javascript:void(0)" v-bind="attrs" v-on="on" @dragover="dragOver(item.href, $event)" @drop.prevent="dragDrop(item.href, $event)">
+						{{ item.text }}
+						<v-icon class="ml-1">mdi-menu-down</v-icon>
+					</v-breadcrumbs-item>
+				</template>
+				<v-list>
+					<v-list-item v-if="firmwareDirectoryDiffers" @click="changeDirectory(directories.firmware)">
+						<v-icon class="mr-3">mdi-update</v-icon> {{ $t('directory.firmware') }}
+					</v-list-item>
+					<v-list-item v-if="hasDirectDisplay" @click="changeDirectory(directories.menu)">
+						<v-icon class="mr-3">mdi-format-list-numbered</v-icon> {{ $t('directory.menu') }}
+					</v-list-item>
+					<v-list-item @click="changeDirectory(directories.system)">
+						<v-icon class="mr-3">mdi-cog</v-icon> {{ $t('directory.system') }}
+					</v-list-item>
+				</v-list>
+			</v-menu>
+			<v-breadcrumbs-item v-else href="javascript:void(0)" :disabled="item.disabled" @click="changeDirectory(item.href)" @dragover="dragOver(item.href, $event)" @drop.prevent="dragDrop(item.href, $event)">
+				{{ item.text }}
 			</v-breadcrumbs-item>
 		</template>
 	</v-breadcrumbs>
@@ -23,10 +42,10 @@ export default {
 		}
 	},
 	computed: {
-		...mapState('machine/model', ['directories']),
+		...mapState('machine/model', ['boards', 'directories']),
 		pathItems() {
 			const pathItems = this.value.split('/').filter(item => item !== '');
-			let rootCaption = (pathItems.length === 0) ? this.$t('generic.noValue') : pathItems[0];
+			let rootCaption = (pathItems.length === 0) ? this.$t('generic.noValue') : pathItems[0], showDropdown = false;
 			if (pathItems.length > 1) {
 				if (Path.startsWith(this.value, this.directories.gCodes)) {
 					pathItems.shift();
@@ -44,28 +63,38 @@ export default {
 					pathItems.shift();
 					pathItems[0] = this.directories.menu;
 					rootCaption = this.$t('directory.menu');
+					showDropdown = true;
 				} else if (Path.startsWith(this.value, Path.system)) {
 					pathItems.shift();
 					pathItems[0] = Path.system;
 					rootCaption = this.$t('directory.system');
+					showDropdown = true;
 				} else if (Path.startsWith(this.value, this.directories.system)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.system;
 					rootCaption = this.$t('directory.system');
+					showDropdown = true;
+				} else if (Path.startsWith(this.value, this.directories.firmware)) {
+					pathItems.shift();
+					pathItems[0] = this.directories.firmware;
+					rootCaption = this.$t('directory.firmware');
+					showDropdown = true;
 				} else if (Path.startsWith(this.value, this.directories.web)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.web;
 					rootCaption = this.$t('directory.web');
 				}
 			}
+			showDropdown &= (pathItems.length === 1) && (this.hasDirectDisplay || this.firmwareDirectoryDiffers);
 
 			let items = [], path = '';
 			pathItems.forEach(function(item, index) {
 				path = Path.combine(path, item);
 				if (index === 0) {
 					items.push({
+						showDropdown,
 						text: item.startsWith('0:') ? rootCaption : this.$t('generic.sdCard', [/^(\d+)/.exec(item)[1]]),
-						disabled: index === pathItems.length - 1,
+						disabled: !showDropdown && (index === pathItems.length - 1),
 						href: path
 					});
 				} else {
@@ -77,6 +106,12 @@ export default {
 				}
 			}, this);
 			return items;
+		},
+		firmwareDirectoryDiffers() {
+			return !Path.equals(this.directories.firmware, this.directories.system);
+		},
+		hasDirectDisplay() {
+			return (this.boards.length > 0) && (this.boards[0].directDisplay !== null);
 		}
 	},
 	methods: {

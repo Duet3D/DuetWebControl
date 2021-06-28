@@ -24,8 +24,8 @@ button {
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="plugin in plugins" :key="plugin.name">
-						<td>{{ plugin.name }}</td>
+					<tr v-for="plugin in plugins" :key="plugin.id">
+						<td :title="plugin.id">{{ plugin.name }}</td>
 						<td>{{ plugin.author }}</td>
 						<td>{{ plugin.version }}</td>
 						<td>{{ plugin.license }}</td>
@@ -61,12 +61,13 @@ import { mapState, mapActions } from 'vuex'
 
 import Plugins from '../../plugins'
 import { registerSettingTab } from '../../routes'
+import { makeNotification } from '../../utils/toast.js'
 
 export default {
 	install() {
 		if (Plugins.length > 0) {
 			// Register a settings tab on the General settings page
-			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.caption');
+			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.generalCaption');
 		}
 	},
 
@@ -85,42 +86,45 @@ export default {
 		...mapActions(['loadDwcPlugin', 'unloadDwcPlugin']),
 		...mapActions('machine', ['startSbcPlugin', 'stopSbcPlugin']),
 		isPluginBusy(plugin) {
-			return this.busyPlugins.indexOf(plugin.name) !== -1;
+			return this.busyPlugins.indexOf(plugin.id) !== -1;
 		},
 		getPluginDependencies(plugin) {
 			return `DWC ${plugin.dwcVersion}`;
 		},
 		getPluginStatus(plugin) {
-			if (this.loadedDwcPlugins.indexOf(plugin.name) !== -1) {
-				return this.$t((this.enabledPlugins.indexOf(plugin.name) !== -1) ? 'tabs.plugins.started' : 'tabs.plugins.deactivated');
+			if (this.loadedDwcPlugins.indexOf(plugin.id) !== -1) {
+				const enabled = (this.enabledPlugins.indexOf(plugin.id) !== -1) || (this.enabledPlugins.indexOf(plugin.name) !== -1);
+				return this.$t(enabled ? 'tabs.plugins.started' : 'tabs.plugins.deactivated');
 			}
 			return this.$t('tabs.plugins.stopped');
 		},
 		isPluginStarted(plugin) {
-			return this.loadedDwcPlugins.indexOf(plugin.name) !== -1;
+			return this.loadedDwcPlugins.indexOf(plugin.id) !== -1;
 		},
 		canStopPlugin(plugin) {
-			return this.enabledPlugins.indexOf(plugin.name) !== -1;
+			return (this.enabledPlugins.indexOf(plugin.id) !== -1) || (this.enabledPlugins.indexOf(plugin.name) !== -1);
 		},
 		async startPlugin(plugin) {
-			this.busyPlugins.push(plugin.name);
+			this.busyPlugins.push(plugin.id);
 			try {
 				try {
 					// Load DWC resources
-					await this.loadDwcPlugin({ name: plugin.name, saveSettings: true });
+					await this.loadDwcPlugin({ id: plugin.id, saveSettings: true });
 
 					// Display a message
-					alert('Plugin has been started');
+					makeNotification('success', this.$t('notification.plugins.started'));
 				} catch (e) {
 					alert(e);
 					throw e;
 				}
 			} finally {
-				this.busyPlugins = this.busyPlugins.filter(item => item != plugin.name);
+				this.busyPlugins = this.busyPlugins.filter(item => item != plugin.id);
 			}
 		},
 		async stopPlugin(plugin) {
-			await this.unloadDwcPlugin(plugin.name);
+			if (!await this.unloadDwcPlugin(plugin.id)) {
+				await this.unloadDwcPlugin(plugin.name);
+			}
 			this.dwcPluginsUnloaded = true;
 		}
 	}

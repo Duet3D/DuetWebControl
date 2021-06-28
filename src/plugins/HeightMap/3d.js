@@ -9,7 +9,7 @@ const pointTolerance = 2.0
 const smallIndicatorRadius = 0.01, mediumIndicatorRadius = 0.02, bigIndicatorRadius = 0.05
 
 // Draw scale+legend next to the 3D control
-export function drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ) {
+export function drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ, xLabel, yLabel) {
 	// Clear background
 	const context = canvas.getContext('2d');
 	context.rect(0, 0, canvas.width, canvas.height);
@@ -61,9 +61,9 @@ export function drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ) {
 		context.fillText(i18n.t('plugins.heightmap.axes'), canvas.width / 2, scaleHeight + 109);
 		context.font = 'bold ' + context.font;
 		context.fillStyle = 'rgb(255,0,0)';
-		context.fillText('X', canvas.width / 3, scaleHeight + 129);
+		context.fillText(xLabel, canvas.width / 3, scaleHeight + 129);
 		context.fillStyle = 'rgb(0,255,0)';
-		context.fillText('Y', canvas.width / 2, scaleHeight + 129);
+		context.fillText(yLabel, canvas.width / 2, scaleHeight + 129);
 		context.fillStyle = 'rgb(0,0,255)';
 		context.fillText('Z', 2 * canvas.width / 3, scaleHeight + 129);
 	}
