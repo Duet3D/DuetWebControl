@@ -19,7 +19,7 @@
             </v-card>
         </div>
         <div class="heater-container">
-            <v-card>
+            <v-card v-show="heat.heaters.length > 0">
                 <v-card-text>
                     <strong>Temperatures</strong>
                     <!-- Tools -->
