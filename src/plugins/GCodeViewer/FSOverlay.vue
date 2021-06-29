@@ -117,7 +117,7 @@ export default {
 	},
 	methods: {
 		displayAxisPosition(axis) {
-			const position = axis.machinePosition;
+			const position = axis.userPosition;
 			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, 1);
 		},
 		getHeaterInfo(heaterIdx) {
