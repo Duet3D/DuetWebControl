@@ -659,7 +659,7 @@ export default {
 			handler(newValue) {
 				var newPosition = newValue.axes.map(item => ({
 					axes: item.letter,
-					position: item.machinePosition,
+					position: item.userPosition,
 				}));
 				viewer.updateToolPosition(newPosition);
 				if (this.liveZTracking) {
