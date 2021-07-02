@@ -72,10 +72,18 @@
 							></v-select>
 						</v-col>
 						<v-col>
-							<v-text-field
-								:value="recorder.param.orientationAccel"
-								label="Orientation Accelerometer"
-							></v-text-field>
+							<v-select
+								:items="recorderMenus.orientationAccel"
+								:value="recorder.param.orientationAccelZ"
+								label="Orientation Z"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-select
+								:items="recorderMenus.orientationAccel"
+								:value="recorder.param.orientationAccelX"
+								label="Orientation X"
+							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
@@ -235,9 +243,10 @@ export default {
 				spiFreq:[ 500000, 1000000, 2000000 ],
 				csPin: [ "int1.out", "int2.out", "int3.out", "spi1" ],
 				intPin: ["int1.in", "int2.in", "int3.in" ],
-				accel: [ 0, 1, 2 ],
-				axis: [ 'x', 'y', 'z' ],
-				tool: [ 'tool1', 'tool2', 'tool3' ],
+				accel: [ 0, 1, 2 ], // machine move.printingAcceleration
+				orientationAccel: [ 0, 1, 2, 3, 4, 6 ],
+				axis: [ 'x', 'y', 'z' ], // machine->move->axis->*->letter,homed
+				tool: [ 'tool1', 'tool2', 'tool3' ], // machine->tools
 			},
 			recording: false,
 			recorder: {
@@ -249,13 +258,15 @@ export default {
 					spiFreq: 2000000,
 					csPin: null,
 					intPin: null,
-					orientationAccel: "horizontal",
-					maxAccel: 1,
-					maxSpeed: 1,
-					minPosition: 0,
-					maxPosition: 0,
-					startPosition: 0,
-					stopPosition: 0,
+					orientationAccelZ: 2,
+					orientationAccelX: 0,
+
+					maxAccel: 1, // prefill machine->move->axis->AXIS->acceleration or machine->move->printingAcceleration
+					maxSpeed: 1, // prefill machine->move->axis->AXIS->speed
+					minPosition: 0, // prefill machine->move->axis->AXIS->min
+					maxPosition: 0, // prefill machine->move->axis->AXIS->max
+					startPosition: 0, // prefill maxPosition * 4 / 10
+					stopPosition: 0, // prefill maxPosition * 6 / 10
 				}
 			},
 
