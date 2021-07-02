@@ -35,6 +35,88 @@
 		</v-col>
 
 		<v-col>
+			<v-card tile>
+				<v-card-text>
+					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> Record Profile
+				</v-card-text>
+				<v-card-text>
+					<v-row>
+						<v-col>
+							<v-select
+								:items="recorderMenus.accel"
+								label="Accelerometer Id"
+								:value="recorder.param.accel"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-select
+								:items="recorderMenus.axis"
+								:value="recorder.param.axis"
+								label="Axis"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-select
+								:items="recorderMenus.tool"
+								:value="recorder.param.tool"
+								label="Tool"
+							></v-select>
+						</v-col>
+						<v-col>filename</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-text-field
+								:value="recorder.param.maxAccel"
+								label="Max Acceleration"
+							>1</v-text-field>
+						</v-col>
+						<v-col>
+							<v-text-field
+								:value="recorder.param.maxSpeed"
+								label="Max Speed"
+							></v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-text-field
+								:value="recorder.param.maxPosition"
+								label="Max Position"
+							></v-text-field>
+						</v-col>
+						<v-col>
+							<v-text-field
+								:value="recorder.param.startPosition"
+								label="Start Position"
+							></v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-card-text
+								label="Movement Command"
+								>M955 xxxx<br>M956 xxx<br>movement...
+							</v-card-text>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-card-text>
+								current status
+							</v-card-text>
+						</v-col>
+						<v-col>
+							<v-btn v-show="!recording" color="primary" @click="startRecording">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> start recording
+							</v-btn>
+							<v-btn v-show="recording" color="primary" @click="stopRecording">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> stop recording
+							</v-btn>
+						</v-col>
+					</v-row>
+				</v-card-text>
+			</v-card>
 			<v-card class="d-flex flex-column flex-grow-1">
 				<v-card-title class="pt-2 pb-0">
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.accelerometer.chartCaption') }}
@@ -119,6 +201,27 @@ export default {
 			resolveOverflowPromise: null,
 			displaySamples: true,
 
+			recorderMenus: {
+				accel: [ 0, 1, 2 ],
+				axis: [ 'x', 'y', 'z' ],
+				tool: [ 'tool1', 'tool2', 'tool3' ],
+			},
+			recording: false,
+			recorder: {
+				filename: null,
+				accel: null,
+				tool: null,
+				axis: null,
+				param: {
+					maxAccel: 1,
+					maxSpeed: 1,
+					minPosition: 0,
+					maxPosition: 0,
+					startPosition: 0,
+					stopPosition: 0,
+				}
+			},
+
 			start: 0,
 			dragStart: null,
 			end: 0,
@@ -190,6 +293,14 @@ export default {
 				'#8549ba'
 			];
 			return colors[index % colors.length];
+		},
+		async startRecording() {
+			console.log("starting recording");
+			this.recording = true;
+		},
+		async stopRecording() {
+			console.log("stopping recording");
+			this.recording = false;
 		},
 		async loadFile(file) {
 			let csvFile;
