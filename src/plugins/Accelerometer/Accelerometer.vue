@@ -37,9 +37,32 @@
 		<v-col>
 			<v-card tile>
 				<v-card-text>
-					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> Record Profile
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> Record Profile
 				</v-card-text>
 				<v-card-text>
+					<v-row>
+						<v-col>
+							<v-select
+								:items="recorderMenus.spiFreq"
+								label="SPI Frequency"
+								:value="recorder.param.spiFreq"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-select
+								:items="recorderMenus.csPin"
+								label="Chip Select Pin"
+								:value="recorder.param.csPin"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-select
+								:items="recorderMenus.intPin"
+								label="Interrupt Pin"
+								:value="recorder.param.intPin"
+							></v-select>
+						</v-col>
+					</v-row>
 					<v-row>
 						<v-col>
 							<v-select
@@ -49,11 +72,10 @@
 							></v-select>
 						</v-col>
 						<v-col>
-							<v-select
-								:items="recorderMenus.axis"
-								:value="recorder.param.axis"
-								label="Axis"
-							></v-select>
+							<v-text-field
+								:value="recorder.param.orientationAccel"
+								label="Orientation Accelerometer"
+							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-select
@@ -62,14 +84,21 @@
 								label="Tool"
 							></v-select>
 						</v-col>
-						<v-col>filename</v-col>
+						<v-col>filename (auto-generated)</v-col>
 					</v-row>
 					<v-row>
+						<v-col>
+							<v-select
+								:items="recorderMenus.axis"
+								:value="recorder.param.axis"
+								label="Axis"
+							></v-select>
+						</v-col>
 						<v-col>
 							<v-text-field
 								:value="recorder.param.maxAccel"
 								label="Max Acceleration"
-							>1</v-text-field>
+							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
@@ -94,16 +123,17 @@
 					</v-row>
 					<v-row>
 						<v-col>
-							<v-card-text
-								label="Movement Command"
-								>M955 xxxx<br>M956 xxx<br>movement...
+							<v-card-text label="Movement Command">
+								M955 Pxx.yyAccelId InnOrientation SnnSamplerateHz RnnResolution C"aaaCS+bbbInt" QnnnSPIFreqHz<br>
+								M956 Pxx.yyAccelId SnnNumberOfSamples [X][Y][Z] Aphase[0now|1move|2deceleration] F"filename.csv"<br>
+								movement...
 							</v-card-text>
 						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-card-text>
-								current status
+								status: recording ac-/deceleration profile for NAME-Axis
 							</v-card-text>
 						</v-col>
 						<v-col>
@@ -202,6 +232,9 @@ export default {
 			displaySamples: true,
 
 			recorderMenus: {
+				spiFreq:[ 500000, 1000000, 2000000 ],
+				csPin: [ "int1.out", "int2.out", "int3.out", "spi1" ],
+				intPin: ["int1.in", "int2.in", "int3.in" ],
 				accel: [ 0, 1, 2 ],
 				axis: [ 'x', 'y', 'z' ],
 				tool: [ 'tool1', 'tool2', 'tool3' ],
@@ -213,6 +246,10 @@ export default {
 				tool: null,
 				axis: null,
 				param: {
+					spiFreq: 2000000,
+					csPin: null,
+					intPin: null,
+					orientationAccel: "horizontal",
 					maxAccel: 1,
 					maxSpeed: 1,
 					minPosition: 0,
