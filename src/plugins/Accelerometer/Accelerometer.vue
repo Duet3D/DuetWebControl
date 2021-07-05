@@ -134,12 +134,19 @@
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
 							></v-text-field>
 						</v-col>
+						<v-col>
+							<v-text-field
+								label="Stop Position"
+								v-model.number="recorder.param.stopPosition"
+								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
+							></v-text-field>
+						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-card-text label="Movement Command">
-								M955 Pxx.yyAccelId InnOrientation SnnSamplerateHz RnnResolution C"aaaCS+bbbInt" QnnnSPIFreqHz<br>
-								M956 Pxx.yyAccelId SnnNumberOfSamples [X][Y][Z] Aphase[0now|1move|2deceleration] F"filename.csv"<br>
+								{{ this.initCommand }}<br>
+								{{ this.testCommand }}<br>
 								movement...
 							</v-card-text>
 						</v-col>
@@ -151,10 +158,10 @@
 							</v-card-text>
 						</v-col>
 						<v-col>
-							<v-btn v-show="!recording" color="primary" @click="startRecording">
+							<v-btn v-if="state !== AccelStates.RUNNING" color="primary" @click="startRecording">
 								<v-icon class="mr-2">mdi-arrow-right</v-icon> start recording
 							</v-btn>
-							<v-btn v-show="recording" color="primary" @click="stopRecording">
+							<v-btn v-else-if="state === AccelStates.RUNNING" color="primary" @click="stopRecording">
 								<v-icon class="mr-2">mdi-arrow-right</v-icon> stop recording
 							</v-btn>
 						</v-col>
@@ -227,11 +234,14 @@ import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 
 import { transform } from './fft.js'
+import { AccelStates } from './AccelerometerEnums.js'
+
 
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen'])
+		...mapState('machine', ['model']),
+		...mapGetters(['isConnected', 'uiFrozen']),
 	},
 	data() {
 		return {
@@ -247,28 +257,35 @@ export default {
 
 			recorderMenus: {
 				spiFreq:[ 500000, 1000000, 2000000 ],
-				csPin: [ "int1.out", "int2.out", "int3.out", "spi1" ],
-				intPin: ["int1.in", "int2.in", "int3.in" ],
-				accel: [ 0, 1, 2 ], // machine move.printingAcceleration
-				orientationAccel: [ 0, 1, 2, 3, 4, 6 ],
-				axis: [ 'x', 'y', 'z' ], // machine->move->axis->*->letter,homed
-				tool: [ 'tool1', 'tool2', 'tool3' ], // machine->tools
+				orientationAccel: [ 0, 1, 2, 3, 4, 5, 6 ],
+				csPin: [ "io1.out", "io2.out", "io3.out", "spi.cs1", "spi.cs2", "spi.cs3" ],
+				intPin: ["io1.in", "io2.in", "io3.in" ],
+				accel: [ 0, 1, 2, 3, 4 ],
+				axis: [], // machine->move->axis->*->letter,homed
+				tool: [], // machine->tools
 			},
-			recording: false,
+			AccelStates: AccelStates,
+			state: AccelStates.INIT,
+			initCommand: null,
+			testCommand: null,
 			recorder: {
 				filename: null,
 				tool: null,
 				axis: null,
 				accel: null,
 				param: {
+					// spi specific paramters
 					spiFreq: 2000000,
 					csPin: null,
 					intPin: null,
 					orientationAccelZ: 2,
 					orientationAccelX: 0,
 
-					maxAccel: 1, // prefill machine->move->axis->AXIS->acceleration or machine->move->printingAcceleration
-					maxSpeed: 1, // prefill machine->move->axis->AXIS->speed
+					timeout: 5000, // measurement timeout in milliseconds
+
+					// axis specific parameters (watch if calibration axis changed if so, update these fields)
+					maxAccel: 0, // prefill machine->move->axis->AXIS->acceleration or machine->move->printingAcceleration
+					maxSpeed: 0, // prefill machine->move->axis->AXIS->speed
 					minPosition: 0, // prefill machine->move->axis->AXIS->min
 					maxPosition: 0, // prefill machine->move->axis->AXIS->max
 					startPosition: 0, // prefill maxPosition * 4 / 10
@@ -293,7 +310,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['download', 'getFileList']),
+		...mapActions('machine', ['download', 'getFileList', 'sendCode']),
 		async refresh() {
 			if (!this.isConnected) {
 				this.ready = false;
@@ -321,6 +338,29 @@ export default {
 			if (this.files.indexOf(this.selectedFile) === -1) {
 				this.selectedFile = null;
 			}
+
+			try {
+				this.recorderMenus.axis = [];
+				this.model.move.axes.forEach(item => this.recorderMenus.axis.push(item.letter));
+				this.recorder.axis = this.recorderMenus.axis[0];
+
+				this.recorderMenus.tool = [];
+				this.model.tools.forEach(item => this.recorderMenus.tool.push(item.name));
+				this.recorder.tool = this.recorderMenus.tool[0];
+
+				this.recorder.param.maxAccel = this.model.move.printingAcceleration;
+
+				this.recorder.param.minPosition = this.model.move.axes[0].min;
+				this.recorder.param.maxPosition = this.model.move.axes[0].max;
+
+				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
+				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
+			} finally {
+				console.warn("failed to init default values");
+			}
+
+			this.state = AccelStates.HALTED;
+
 		},
 		filesOrDirectoriesChanged({ machine, files }) {
 			if (machine === this.selectedMachine) {
@@ -350,11 +390,12 @@ export default {
 		},
 		async startRecording() {
 			console.log("starting recording");
-			this.recording = true;
+			this.state = AccelStates.RUNNING;
+			await this.sendCode(this.initCommand);
 		},
 		async stopRecording() {
 			console.log("stopping recording");
-			this.recording = false;
+			this.state = AccelStates.HALTED;
 		},
 		async loadFile(file) {
 			let csvFile;
@@ -700,6 +741,14 @@ export default {
 			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.samples' : 'plugins.accelerometer.frequency');
 			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.accelerations' : 'plugins.accelerometer.amplitudes');
 			this.chart.update();
+		},
+		recorder: {
+			handler () {
+				// build configure and test command
+				this.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
+				this.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"acc-${this.recorder.axis}.csv"`;
+			},
+			deep: true,
 		}
 	}
 }
