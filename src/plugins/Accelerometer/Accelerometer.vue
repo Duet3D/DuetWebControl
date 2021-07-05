@@ -45,21 +45,21 @@
 							<v-select
 								:items="recorderMenus.spiFreq"
 								label="SPI Frequency"
-								:value="recorder.param.spiFreq"
+								v-model="recorder.param.spiFreq"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.csPin"
 								label="Chip Select Pin"
-								:value="recorder.param.csPin"
+								v-model="recorder.param.csPin"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.intPin"
 								label="Interrupt Pin"
-								:value="recorder.param.intPin"
+								v-model="recorder.param.intPin"
 							></v-select>
 						</v-col>
 					</v-row>
@@ -68,28 +68,30 @@
 							<v-select
 								:items="recorderMenus.accel"
 								label="Accelerometer Id"
-								:value="recorder.param.accel"
+								v-model="recorder.accel"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.orientationAccel"
-								:value="recorder.param.orientationAccelZ"
+								v-model="recorder.param.orientationAccelZ"
 								label="Orientation Z"
+								type="number"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
-								:items="recorderMenus.orientationAccel"
-								:value="recorder.param.orientationAccelX"
 								label="Orientation X"
+								:items="recorderMenus.orientationAccel"
+								v-model.number="recorder.param.orientationAccelX"
+								type="number"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
-								:items="recorderMenus.tool"
-								:value="recorder.param.tool"
 								label="Tool"
+								:items="recorderMenus.tool"
+								v-model="recorder.tool"
 							></v-select>
 						</v-col>
 						<v-col>filename (auto-generated)</v-col>
@@ -97,35 +99,39 @@
 					<v-row>
 						<v-col>
 							<v-select
-								:items="recorderMenus.axis"
-								:value="recorder.param.axis"
 								label="Axis"
+								:items="recorderMenus.axis"
+								v-model="recorder.axis"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-text-field
-								:value="recorder.param.maxAccel"
 								label="Max Acceleration"
+								v-model.number="recorder.param.maxAccel"
+								type="number"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
-								:value="recorder.param.maxSpeed"
 								label="Max Speed"
+								v-model.number="recorder.param.maxSpeed"
+								type="number"
 							></v-text-field>
 						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-text-field
-								:value="recorder.param.maxPosition"
 								label="Max Position"
+								v-model="recorder.param.maxPosition"
+								type="number"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
-								:value="recorder.param.startPosition"
 								label="Start Position"
+								v-model.number="recorder.param.startPosition"
+								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
 							></v-text-field>
 						</v-col>
 					</v-row>
@@ -251,9 +257,9 @@ export default {
 			recording: false,
 			recorder: {
 				filename: null,
-				accel: null,
 				tool: null,
 				axis: null,
+				accel: null,
 				param: {
 					spiFreq: 2000000,
 					csPin: null,
