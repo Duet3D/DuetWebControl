@@ -123,7 +123,7 @@
 						<v-col>
 							<v-text-field
 								label="Max Position"
-								v-model="recorder.param.maxPosition"
+								v-model.number="recorder.param.maxPosition"
 								type="number"
 							></v-text-field>
 						</v-col>
