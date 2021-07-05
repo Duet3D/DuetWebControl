@@ -1,9 +1,16 @@
 'use strict'
 
-import { registerSettingTab } from '../../routes'
-//import { registerPluginData, PluginDataType } from '../../store'
+import { registerRoute } from '../../routes'
 
 import Accelerometer from './Accelerometer.vue'
 
-// Register a route via Machine Settings -> Accelerometer
-registerSettingTab(false, 'Accelerometer', Accelerometer, 'plugins.accelerometer.name');
+// Register a route via Settings -> Object Model
+registerRoute(Accelerometer, {
+	Settings: {
+		Accelerometer: {
+			icon: 'mdi-file-tree',
+			caption: 'plugins.Accelerometer.menuCaption',
+			path: '/Accelerometer'
+		}
+	}
+});
