@@ -284,7 +284,7 @@ export default {
 					timeout: 5000, // measurement timeout in milliseconds
 
 					// axis specific parameters (watch if calibration axis changed if so, update these fields)
-					maxAccel: 0, // prefill machine->move->axis->AXIS->acceleration or machine->move->printingAcceleration
+					maxAccel: 0, // prefill machine->move->axis->AXIS->acceleration
 					maxSpeed: 0, // prefill machine->move->axis->AXIS->speed
 					minPosition: 0, // prefill machine->move->axis->AXIS->min
 					maxPosition: 0, // prefill machine->move->axis->AXIS->max
@@ -338,29 +338,6 @@ export default {
 			if (this.files.indexOf(this.selectedFile) === -1) {
 				this.selectedFile = null;
 			}
-
-			try {
-				this.recorderMenus.axis = [];
-				this.model.move.axes.forEach(item => this.recorderMenus.axis.push(item.letter));
-				this.recorder.axis = this.recorderMenus.axis[0];
-
-				this.recorderMenus.tool = [];
-				this.model.tools.forEach(item => this.recorderMenus.tool.push(item.name));
-				this.recorder.tool = this.recorderMenus.tool[0];
-
-				this.recorder.param.maxAccel = this.model.move.printingAcceleration;
-
-				this.recorder.param.minPosition = this.model.move.axes[0].min;
-				this.recorder.param.maxPosition = this.model.move.axes[0].max;
-
-				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
-				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
-			} finally {
-				console.warn("failed to init default values");
-			}
-
-			this.state = AccelStates.HALTED;
-
 		},
 		filesOrDirectoriesChanged({ machine, files }) {
 			if (machine === this.selectedMachine) {
@@ -647,6 +624,8 @@ export default {
 		this.alertType = 'info';
 		this.alertMessage = this.$t('plugins.accelerometer.noData');
 
+		this.state = AccelStates.HALTED;
+
 		// Reload the file list
 		this.refresh();
 
@@ -749,6 +728,50 @@ export default {
 				this.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"acc-${this.recorder.axis}.csv"`;
 			},
 			deep: true,
+		},
+		'model.move.axes': {
+			handler() {
+				if (this.model.move.axes.length == 0) {
+					this.recorder.axis = null;
+					return;
+				}
+
+				this.recorderMenus.axis = [];
+				this.model.move.axes.forEach(item => this.recorderMenus.axis.push(item.letter));
+				this.recorder.axis = this.recorderMenus.axis[0];
+
+				this.recorder.param.maxAccel = this.model.move.axes[0].acceleration;
+				this.recorder.param.minPosition = this.model.move.axes[0].min;
+				this.recorder.param.maxPosition = this.model.move.axes[0].max;
+
+				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
+				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
+			}
+		},
+		'model.tools': {
+			handler() {
+				if (this.model.tools.length == 0) {
+					this.recorder.tool = null;
+					return;
+				}
+
+				this.model.tools.forEach(item => this.recorderMenus.tool.push(item.name));
+				this.recorder.tool = this.recorderMenus.tool[0];
+			}
+		},
+		'recorder.axis': {
+			handler() {
+				let index = this.model.move.axes.findIndex(item => item.letter === this.recorder.axis);
+				if (index < 0)
+					return;
+
+				this.recorder.param.maxAccel = this.model.move.axes[index].acceleration;
+				this.recorder.param.minPosition = this.model.move.axes[index].min;
+				this.recorder.param.maxPosition = this.model.move.axes[index].max;
+
+				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
+				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
+			}
 		}
 	}
 }
