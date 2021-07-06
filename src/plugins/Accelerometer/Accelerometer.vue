@@ -95,7 +95,7 @@
 							></v-select>
 						</v-col>
 						<v-col>
-							filename (auto-generated):<br>
+							{{ $t('plugins.accelerometer.filename') }}:<br>
 							input-shaping-{{ recorder.axis }}.csv
 						</v-col>
 					</v-row>
