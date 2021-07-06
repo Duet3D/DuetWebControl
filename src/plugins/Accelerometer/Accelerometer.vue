@@ -89,7 +89,7 @@
 						</v-col>
 						<v-col>
 							<v-select
-								:items="recorderMenus.tool"
+								:items="recorderMenusTools"
 								v-model="recorder.tool"
 								:label="$t('plugins.accelerometer.tool')"
 							></v-select>
@@ -99,7 +99,7 @@
 					<v-row>
 						<v-col>
 							<v-select
-								:items="recorderMenus.axis"
+								:items="recorderMenusAxis"
 								v-model="recorder.axis"
 								:label="$t('plugins.accelerometer.axis')"
 							></v-select>
@@ -242,6 +242,26 @@ export default {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
 		...mapGetters(['isConnected', 'uiFrozen']),
+		'recorderMenusAxis': function () {
+			if (this.model.move.axes.length == 0) {
+				return [];
+			}
+
+			let axis = [];
+			this.model.move.axes.forEach(item => axis.push(item.letter));
+
+			return axis;
+		},
+		'recorderMenusTools': function() {
+			if (this.model.tools.length == 0) {
+				return [];
+			}
+
+			let tools = [];
+			this.model.tools.forEach(item => tools.push(item.name));
+
+			return tools;
+		}
 	},
 	data() {
 		return {
@@ -261,8 +281,6 @@ export default {
 				csPin: [ "io1.out", "io2.out", "io3.out", "spi.cs1", "spi.cs2", "spi.cs3" ],
 				intPin: ["io1.in", "io2.in", "io3.in" ],
 				accel: [ 0, 1, 2, 3, 4 ],
-				axis: [], // machine->move->axis->*->letter,homed
-				tool: [], // machine->tools
 			},
 			AccelStates: AccelStates,
 			state: AccelStates.INIT,
@@ -624,8 +642,6 @@ export default {
 		this.alertType = 'info';
 		this.alertMessage = this.$t('plugins.accelerometer.noData');
 
-		this.state = AccelStates.HALTED;
-
 		// Reload the file list
 		this.refresh();
 
@@ -724,43 +740,17 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
+				this.recorder.filename = `input-shaping-${this.recorder.axis}.csv`;
 				this.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
-				this.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"acc-${this.recorder.axis}.csv"`;
+				this.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"${this.recorder.filename}"`;
 			},
 			deep: true,
 		},
-		'model.move.axes': {
-			handler() {
-				if (this.model.move.axes.length == 0) {
-					this.recorder.axis = null;
-					return;
-				}
-
-				this.recorderMenus.axis = [];
-				this.model.move.axes.forEach(item => this.recorderMenus.axis.push(item.letter));
-				this.recorder.axis = this.recorderMenus.axis[0];
-
-				this.recorder.param.maxAccel = this.model.move.axes[0].acceleration;
-				this.recorder.param.minPosition = this.model.move.axes[0].min;
-				this.recorder.param.maxPosition = this.model.move.axes[0].max;
-
-				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
-				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
-			}
-		},
-		'model.tools': {
-			handler() {
-				if (this.model.tools.length == 0) {
-					this.recorder.tool = null;
-					return;
-				}
-
-				this.model.tools.forEach(item => this.recorderMenus.tool.push(item.name));
-				this.recorder.tool = this.recorderMenus.tool[0];
-			}
-		},
 		'recorder.axis': {
 			handler() {
+				if (this.model.move.axes.length <= 0)
+					return;
+
 				let index = this.model.move.axes.findIndex(item => item.letter === this.recorder.axis);
 				if (index < 0)
 					return;
@@ -772,6 +762,20 @@ export default {
 				this.recorder.param.startPosition = this.recorder.param.maxPosition * 4 / 10;
 				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
 			}
+		},
+		'recorderMenusAxis': function() {
+			console.log("set default axis");
+			if (this.recorderMenusAxis.length <= 0)
+				return;
+
+			this.recorder.axis = this.recorderMenusAxis[0];
+		},
+		'recorderMenusTools': function() {
+			console.log("set default tools");
+			if (this.recorderMenusTools.length <= 0)
+				return;
+
+			this.recorder.tool = this.recorderMenusTools[0];
 		}
 	}
 }
