@@ -44,21 +44,21 @@
 						<v-col>
 							<v-select
 								:items="recorderMenus.spiFreq"
-								label="SPI Frequency"
+								:label="$t('plugins.accelerometer.spiFrequency')"
 								v-model="recorder.param.spiFreq"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.csPin"
-								label="Chip Select Pin"
+								:label="$t('plugins.accelerometer.csPin')"
 								v-model="recorder.param.csPin"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.intPin"
-								label="Interrupt Pin"
+								:label="$t('plugins.accelerometer.intPin')"
 								v-model="recorder.param.intPin"
 							></v-select>
 						</v-col>
@@ -67,7 +67,7 @@
 						<v-col>
 							<v-select
 								:items="recorderMenus.accel"
-								label="Accelerometer Id"
+								:label="$t('plugins.accelerometer.accelerometerId')"
 								v-model="recorder.accel"
 							></v-select>
 						</v-col>
@@ -75,70 +75,70 @@
 							<v-select
 								:items="recorderMenus.orientationAccel"
 								v-model="recorder.param.orientationAccelZ"
-								label="Orientation Z"
+								:label="$t('plugins.accelerometer.orientationZ')"
 								type="number"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
-								label="Orientation X"
 								:items="recorderMenus.orientationAccel"
 								v-model.number="recorder.param.orientationAccelX"
+								:label="$t('plugins.accelerometer.orientationX')"
 								type="number"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
-								label="Tool"
 								:items="recorderMenus.tool"
 								v-model="recorder.tool"
+								:label="$t('plugins.accelerometer.tool')"
 							></v-select>
 						</v-col>
-						<v-col>filename (auto-generated)</v-col>
+						<v-col>filename: input-shaping-{{ recorder.axis }}.csv (auto-generated)</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-select
-								label="Axis"
 								:items="recorderMenus.axis"
 								v-model="recorder.axis"
+								:label="$t('plugins.accelerometer.axis')"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-text-field
-								label="Max Acceleration"
 								v-model.number="recorder.param.maxAccel"
 								type="number"
+								:label="$t('plugins.accelerometer.maxAcceleration')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
-								label="Max Speed"
 								v-model.number="recorder.param.maxSpeed"
 								type="number"
+								:label="$t('plugins.accelerometer.maxSpeed')"
 							></v-text-field>
 						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-text-field
-								label="Max Position"
 								v-model.number="recorder.param.maxPosition"
 								type="number"
+								:label="$t('plugins.accelerometer.maxPosition')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
-								label="Start Position"
 								v-model.number="recorder.param.startPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
+								:label="$t('plugins.accelerometer.startPosition')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
-								label="Stop Position"
 								v-model.number="recorder.param.stopPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
+								:label="$t('plugins.accelerometer.stopPosition')"
 							></v-text-field>
 						</v-col>
 					</v-row>
@@ -154,7 +154,7 @@
 					<v-row>
 						<v-col>
 							<v-card-text>
-								status: recording ac-/deceleration profile for NAME-Axis
+								status: recording acceleration / deceleration profile for {{ recorder.axis }}-Axis
 							</v-card-text>
 						</v-col>
 						<v-col>
