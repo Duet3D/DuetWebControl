@@ -7,4 +7,12 @@ export const AccelStates = {
   RUNNING: 3,
   HALTED: 4,
   ANALYZING: 5
-}
+};
+
+export const AccelAlgorithm = {
+  NONE: "none",
+  ZVD: "zvd",
+  ZVDD: "zvdd",
+  EI2: "ei2",
+  EI3: "ei3"
+};
