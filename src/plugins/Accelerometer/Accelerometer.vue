@@ -148,8 +148,8 @@
 					<v-row>
 						<v-col>
 							<v-card-text label="Movement Command">
-								{{ this.initCommand }}<br>
-								{{ this.testCommand }}<br>
+								{{ this.recorder.initCommand }}<br>
+								{{ this.recorder.testCommand }}<br>
 								movement...
 							</v-card-text>
 						</v-col>
@@ -237,7 +237,7 @@ import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 
 import { transform } from './fft.js'
-import { AccelStates } from './AccelerometerEnums.js'
+import { AccelStates, AccelAlgorithm } from './AccelerometerEnums.js'
 
 
 export default {
@@ -286,10 +286,17 @@ export default {
 				accel: [ 0, 1, 2, 3, 4 ],
 			},
 			AccelStates: AccelStates,
-			state: AccelStates.INIT,
-			initCommand: null,
-			testCommand: null,
+			AccelAlgorithm: AccelAlgorithm,
+			inputShapingCommand: null,
 			recorder: {
+				state: AccelStates.INIT,
+
+				initCommand: null,
+				testCommand: null,
+
+				iteration: 0,
+				algorithm: AccelAlgorithm.NONE,
+
 				filename: null,
 				tool: null,
 				axis: null,
@@ -388,12 +395,26 @@ export default {
 		},
 		async startRecording() {
 			console.log("starting recording");
-			this.state = AccelStates.RUNNING;
-			await this.sendCode(this.initCommand);
+			this.recorder.state = AccelStates.RUNNING;
+			let result = await this.sendCode(this.recorder.initCommand);
+			console.log("initCommand: ", result);
+
+			return;
+
+			// 
+			// start recording command
+			//await this.sendCode(this.recorder.testCommand);
+			// do movement command
+			// start timeout
+			// download recorder file
+			//await this.loadFile(this.recorder.filename);
+			// analyze file
+			//await this.analyze();
+			// display results
 		},
 		async stopRecording() {
 			console.log("stopping recording");
-			this.state = AccelStates.HALTED;
+			this.recorder.state = AccelStates.HALTED;
 		},
 		async loadFile(file) {
 			let csvFile;
@@ -743,9 +764,10 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.filename = `input-shaping-${this.recorder.axis}.csv`;
-				this.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
-				this.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"${this.recorder.filename}"`;
+				this.recorder.filename = `input-shaping-${this.recorder.axis}-${this.recorder.iteration}-${this.recorder.algorithm}.csv`;
+
+				this.recorder.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
+				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"${this.recorder.filename}"`;
 			},
 			deep: true,
 		},
