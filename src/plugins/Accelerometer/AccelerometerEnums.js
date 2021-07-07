@@ -11,6 +11,7 @@ export const AccelStates = {
 
 export const AccelAlgorithm = {
   NONE: "none",
+  CUSTOM: "custom",
   ZVD: "zvd",
   ZVDD: "zvdd",
   EI2: "ei2",
