@@ -866,6 +866,7 @@ export default {
 			stopPosition: 'Stop Position',
 			algorithm: 'Algorithm',
 			damping: 'Damping',
+			configureAccelerometer: 'Configure Accelerometer',
 			recordProfile: 'Record Profile',
 			inputShapingConfiguration: 'Input Shaping Configuration',
 			configure: 'Configure'
