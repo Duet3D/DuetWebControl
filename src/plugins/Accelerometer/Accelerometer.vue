@@ -149,6 +149,7 @@
 							</v-card-text>
 							<v-card-text label="Movement Command">
 								{{ this.recorder.initCommand }}<br>
+								{{ this.recorder.moveCommand }}<br>
 								{{ this.recorder.testCommand }}<br>
 								movement...
 							</v-card-text>
@@ -346,6 +347,7 @@ export default {
 				state: AccelStates.INIT,
 
 				initCommand: null,
+				moveCommand: null,
 				testCommand: null,
 
 				iteration: 0,
@@ -462,7 +464,8 @@ export default {
 		async recordProfile() {
 			this.recorder.state = AccelStates.RUNNING;
 			await this.configureAccelerometer();
-			let result = await this.sendCode(this.recorder.testCommand);
+			let result = await this.sendCode(this.recorder.moveCommand + this.recorder.testCommand);
+			this.loadFile(this.filename).then(this.refresh);
 			this.recorder.state = AccelStates.HALTED;
 			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
 		},
@@ -825,6 +828,7 @@ export default {
 			handler () {
 				// build configure and test command
 				this.recorder.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
+				this.recorder.moveCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} G4 S2 G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} A1 F"${this.recorderFilename}"`;
 			},
 			deep: true,
