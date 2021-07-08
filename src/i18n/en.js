@@ -848,6 +848,11 @@ export default {
 			maxPosition: 'Max Position',
 			startPosition: 'Start Position',
 			stopPosition: 'Stop Position',
+			algorithm: 'Algorithm',
+			damping: 'Damping',
+			recordProfile: 'Record Profile',
+			inputShapingConfiguration: 'Input Shaping Configuration',
+			configure: 'Configure'
 		},
 		autoUpdate: {
 			menuCaption: 'Update'
