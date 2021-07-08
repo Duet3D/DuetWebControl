@@ -36,8 +36,8 @@
 
 		<v-col>
 			<v-card tile>
-				<v-card-text>
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> Record Profile
+				<v-card-text class="pt-2 pb-0">
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.accelerometer.recordProfile') }}
 				</v-card-text>
 				<v-card-text>
 					<v-row>
@@ -94,10 +94,6 @@
 								:label="$t('plugins.accelerometer.tool')"
 							></v-select>
 						</v-col>
-						<v-col>
-							{{ $t('plugins.accelerometer.filename') }}:<br>
-							input-shaping-{{ recorder.axis }}.csv
-						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
@@ -147,25 +143,19 @@
 					</v-row>
 					<v-row>
 						<v-col>
+							<v-card-text class="">
+							{{ $t('plugins.accelerometer.filename') }}:<br>
+							<span class="font-weight-bold"> {{ this.recorderFilename }}</span>
+							</v-card-text>
 							<v-card-text label="Movement Command">
 								{{ this.recorder.initCommand }}<br>
 								{{ this.recorder.testCommand }}<br>
 								movement...
 							</v-card-text>
 						</v-col>
-					</v-row>
-					<v-row>
 						<v-col>
-							<v-card-text>
-								status: recording acceleration / deceleration profile for {{ recorder.axis }}-Axis
-							</v-card-text>
-						</v-col>
-						<v-col>
-							<v-btn v-if="state !== AccelStates.RUNNING" color="primary" @click="startRecording">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> start recording
-							</v-btn>
-							<v-btn v-else-if="state === AccelStates.RUNNING" color="primary" @click="stopRecording">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> stop recording
+							<v-btn v-if="recorder.state !== AccelStates.RUNNING" color="primary" @click="recordProfile">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.recordProfile') }}
 							</v-btn>
 						</v-col>
 					</v-row>
@@ -219,6 +209,58 @@
 					</v-row>
 				</v-card-text>
 			</v-card>
+
+			<v-card tile>
+				<v-card-text class="mt-5">
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.accelerometer.inputShapingConfiguration') }}
+				</v-card-text>
+
+				<v-card-text>
+					<v-row>
+						<v-col>
+							<v-select
+								:items="Object.values(AccelAlgorithm)"
+								v-model="inputshaping.algorithm"
+								:label="$t('plugins.accelerometer.algorithm')"
+							></v-select>
+						</v-col>
+						<v-col>
+							<v-text-field
+								v-model.number="inputshaping.frequency"
+								type="number"
+								:label="$t('plugins.accelerometer.frequency')"
+							></v-text-field>
+						</v-col>
+						<v-col>
+							<v-text-field
+								v-model.number="inputshaping.damping"
+								type="number"
+								:label="$t('plugins.accelerometer.damping')"
+							></v-text-field>
+						</v-col>
+						<v-col>
+							<v-text-field
+								v-model.number="inputshaping.minAcceleration"
+								type="number"
+								:label="$t('plugins.accelerometer.minAcceleration')"
+							></v-text-field>
+						</v-col>
+					</v-row>
+				</v-card-text>
+
+				<v-card-text>
+					<v-row>
+						<v-col>
+							{{ inputshapingCommand }}
+						</v-col>
+						<v-col>
+							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureInputShaping">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.configure') }}
+							</v-btn>
+						</v-col>
+					</v-row>
+				</v-card-text>
+			</v-card>
 		</v-col>
 
 		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" :prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
@@ -264,6 +306,16 @@ export default {
 			this.model.tools.forEach(item => tools.push(item.name));
 
 			return tools;
+		},
+		'recorderFilename': function() {
+				return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputshaping.algorithm}.csv`;
+		},
+		'inputshapingCommand': function() {
+
+			if (this.inputshaping.algorithm === this.AccelAlgorithm.NONE)
+				return `M593 P"${this.inputshaping.algorithm}"`;
+
+			return `M593 P"${this.inputshaping.algorithm}" F${this.inputshaping.frequency} S${this.inputshaping.damping} L${this.inputshaping.minAcceleration}`;
 		}
 	},
 	data() {
@@ -287,7 +339,6 @@ export default {
 			},
 			AccelStates: AccelStates,
 			AccelAlgorithm: AccelAlgorithm,
-			inputShapingCommand: null,
 			recorder: {
 				state: AccelStates.INIT,
 
@@ -297,7 +348,6 @@ export default {
 				iteration: 0,
 				algorithm: AccelAlgorithm.NONE,
 
-				filename: null,
 				tool: null,
 				axis: null,
 				accel: null,
@@ -319,6 +369,13 @@ export default {
 					startPosition: 0, // prefill maxPosition * 4 / 10
 					stopPosition: 0, // prefill maxPosition * 6 / 10
 				}
+			},
+			inputshaping: {
+				algorithm: AccelAlgorithm.NONE,
+				frequency: 0, // in Hz
+				damping: 0.1,
+				minAcceleration: 10, // in mm/s^2
+				command: null
 			},
 
 			start: 0,
@@ -393,28 +450,28 @@ export default {
 			];
 			return colors[index % colors.length];
 		},
-		async startRecording() {
-			console.log("starting recording");
+		async configureAccelerometer() {
 			this.recorder.state = AccelStates.RUNNING;
 			let result = await this.sendCode(this.recorder.initCommand);
-			console.log("initCommand: ", result);
+			this.recorder.state = AccelStates.HALTED;
+			console.log("configure accelerometer: ", this.recorder.initCommand, "result: ", result);
+		},
+		async recordProfile() {
+			this.recorder.state = AccelStates.RUNNING;
+			await this.configureAccelerometer();
+			let result = await this.sendCode(this.recorder.testCommand);
+			this.recorder.state = AccelStates.HALTED;
+			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
+		},
+		async configureInputShaping() {
+			this.recorder.iteration = this.recorder.iteration + 1;
+
+			this.recorder.state = AccelStates.RUNNING;
+			let result = await this.sendCode(this.inputshapingCommand);
+			this.recorder.state = AccelStates.HALTED;
+			console.log("configure input shaping: ", this.inputshapingCommand, "result: ", result);
 
 			return;
-
-			// 
-			// start recording command
-			//await this.sendCode(this.recorder.testCommand);
-			// do movement command
-			// start timeout
-			// download recorder file
-			//await this.loadFile(this.recorder.filename);
-			// analyze file
-			//await this.analyze();
-			// display results
-		},
-		async stopRecording() {
-			console.log("stopping recording");
-			this.recorder.state = AccelStates.HALTED;
 		},
 		async loadFile(file) {
 			let csvFile;
@@ -764,10 +821,8 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.filename = `input-shaping-${this.recorder.axis}-${this.recorder.iteration}-${this.recorder.algorithm}.csv`;
-
 				this.recorder.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
-				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} ${this.recorder.axis} Aphase[0now|1move|2deceleration] F"${this.recorder.filename}"`;
+				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} A1 F"${this.recorderFilename}"`;
 			},
 			deep: true,
 		},
@@ -801,7 +856,7 @@ export default {
 				return;
 
 			this.recorder.tool = this.recorderMenusTools[0];
-		}
+		},
 	}
 }
 </script>
