@@ -154,7 +154,10 @@
 							</v-card-text>
 						</v-col>
 						<v-col>
-							<v-btn v-if="recorder.state !== AccelStates.RUNNING" color="primary" @click="recordProfile">
+							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureAccelerometer">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.configureAccelerometer') }}
+							</v-btn>
+							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="recordProfile">
 								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.recordProfile') }}
 							</v-btn>
 						</v-col>
