@@ -336,9 +336,12 @@ export default {
 			recorderMenus: {
 				spiFreq:[ 500000, 1000000, 2000000 ],
 				orientationAccel: [ 0, 1, 2, 3, 4, 5, 6 ],
-				csPin: [ "io1.out", "io2.out", "io3.out", "spi.cs1", "spi.cs2", "spi.cs3" ],
-				intPin: ["io1.in", "io2.in", "io3.in" ],
-				accel: [ 0, 1, 2, 3, 4 ],
+				csPin: [
+					"io1.out", "io2.out", "io3.out", "io4.out", "io5.out", "io6.out", "io7.out", "io8.out",
+					"spi.cs1", "spi.cs2", "spi.cs3", "spi.cs4", "spi.cs5", "spi.cs6", "spi.cs7", "spi.cs8"
+				],
+				intPin: [ "io1.in", "io2.in", "io3.in", "io4.in", "io5.in", "io6.in", "io7.in", "io8.in" ],
+				accel: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ],
 			},
 			AccelStates: AccelStates,
 			MoveShapingType: MoveShapingType,
