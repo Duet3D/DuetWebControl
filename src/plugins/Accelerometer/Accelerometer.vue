@@ -223,7 +223,7 @@
 					<v-row>
 						<v-col>
 							<v-select
-								:items="Object.values(AccelAlgorithm)"
+								:items="Object.values(MoveShapingType)"
 								v-model="inputshaping.algorithm"
 								:label="$t('plugins.accelerometer.algorithm')"
 							></v-select>
@@ -281,9 +281,10 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import CSV from '../../utils/csv.js'
 import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
+import { MoveShapingType } from '../../store/machine/modelEnums.js'
 
 import { transform } from './fft.js'
-import { AccelStates, AccelAlgorithm } from './AccelerometerEnums.js'
+import { AccelStates } from './AccelerometerEnums.js'
 
 
 export default {
@@ -316,7 +317,7 @@ export default {
 		},
 		'inputshapingCommand': function() {
 
-			if (this.inputshaping.algorithm === this.AccelAlgorithm.NONE)
+			if (this.inputshaping.algorithm === this.MoveShapingType.none)
 				return `M593 P"${this.inputshaping.algorithm}"`;
 
 			return `M593 P"${this.inputshaping.algorithm}" F${this.inputshaping.frequency} S${this.inputshaping.damping} L${this.inputshaping.minAcceleration}`;
@@ -342,7 +343,7 @@ export default {
 				accel: [ 0, 1, 2, 3, 4 ],
 			},
 			AccelStates: AccelStates,
-			AccelAlgorithm: AccelAlgorithm,
+			MoveShapingType: MoveShapingType,
 			recorder: {
 				state: AccelStates.INIT,
 
@@ -351,7 +352,6 @@ export default {
 				testCommand: null,
 
 				iteration: 0,
-				algorithm: AccelAlgorithm.NONE,
 
 				tool: null,
 				axis: null,
@@ -376,7 +376,7 @@ export default {
 				}
 			},
 			inputshaping: {
-				algorithm: AccelAlgorithm.NONE,
+				algorithm: MoveShapingType.none,
 				frequency: 0, // in Hz
 				damping: 0.1,
 				minAcceleration: 10, // in mm/s^2
