@@ -151,7 +151,6 @@
 								{{ this.recorder.initCommand }}<br>
 								{{ this.recorder.moveCommand }}<br>
 								{{ this.recorder.testCommand }}<br>
-								movement...
 							</v-card-text>
 						</v-col>
 						<v-col>
