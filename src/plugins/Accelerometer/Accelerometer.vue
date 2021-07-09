@@ -89,7 +89,7 @@
 						</v-col>
 						<v-col>
 							<v-select
-								:items="recorderMenusTools"
+								:items="recorderMenuTools"
 								v-model="recorder.tool"
 								:label="$t('plugins.accelerometer.tool')"
 							></v-select>
@@ -98,7 +98,7 @@
 					<v-row>
 						<v-col>
 							<v-select
-								:items="recorderMenusAxis"
+								:items="recorderMenuAxis"
 								v-model="recorder.axis"
 								:label="$t('plugins.accelerometer.axis')"
 							></v-select>
@@ -292,7 +292,7 @@ export default {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
 		...mapGetters(['isConnected', 'uiFrozen']),
-		'recorderMenusAxis': function () {
+		recorderMenuAxis() {
 			if (this.model.move.axes.length == 0) {
 				return [];
 			}
@@ -302,7 +302,7 @@ export default {
 
 			return axis;
 		},
-		'recorderMenusTools': function() {
+		recorderMenuTools() {
 			if (this.model.tools.length == 0) {
 				return [];
 			}
@@ -312,11 +312,10 @@ export default {
 
 			return tools;
 		},
-		'recorderFilename': function() {
+		recorderFilename() {
 				return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputshaping.algorithm}.csv`;
 		},
-		'inputshapingCommand': function() {
-
+		inputshapingCommand() {
 			if (this.inputshaping.algorithm === this.MoveShapingType.none)
 				return `M593 P"${this.inputshaping.algorithm}"`;
 
@@ -850,19 +849,19 @@ export default {
 				this.recorder.param.stopPosition = this.recorder.param.maxPosition * 6 / 10;
 			}
 		},
-		'recorderMenusAxis': function() {
+		recorderMenuAxis() {
 			console.log("set default axis");
-			if (this.recorderMenusAxis.length <= 0)
+			if (this.recorderMenuAxis.length <= 0)
 				return;
 
-			this.recorder.axis = this.recorderMenusAxis[0];
+			this.recorder.axis = this.recorderMenuAxis[0];
 		},
-		'recorderMenusTools': function() {
+		recorderMenuTools() {
 			console.log("set default tools");
-			if (this.recorderMenusTools.length <= 0)
+			if (this.recorderMenuTools.length <= 0)
 				return;
 
-			this.recorder.tool = this.recorderMenusTools[0];
+			this.recorder.tool = this.recorderMenuTools[0];
 		},
 	}
 }
