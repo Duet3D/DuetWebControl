@@ -114,6 +114,7 @@ export default class {
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
     this.orbitCamera.maxZ = 100000000;
+    this.orbitCamera.lowerRadiusLimit = 10;
     this.updateCameraInertiaProperties()
     //    this.orbitCamera.wheelDeltaPercentage = 0.02;
     //    this.orbitCamera.pinchDeltaPercentage = 0.02;
