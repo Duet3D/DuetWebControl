@@ -1,6 +1,12 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.4-b1
+==============
+
+New features:
+- Added preliminary Polish translations (thanks Chri55)
+
 Version 3.3.0
 =============
 
