@@ -33,6 +33,7 @@ export default class {
     this.travels = [];
     this.sps;
     this.maxHeight = 0;
+    this.minHeight = 0;
     this.lineCount = 0;
     this.renderMode = '';
     this.extruderCount = 5;
@@ -152,6 +153,10 @@ export default class {
 
   getMaxHeight() {
     return this.maxHeight;
+  }
+
+  getMinHeight() {
+    return this.minHeight;
   }
 
   setRenderQualitySettings(numberOfLines, renderQuality) {
@@ -314,11 +319,11 @@ export default class {
         this.processLine(line, filePosition);
         // this.processLineV2(line, filePosition);
 
-        if (this.loadingProgressCallback) {
-          this.loadingProgressCallback(filePosition / line.length);
-        }
       }
       if (Date.now() - this.timeStamp > 10) {
+        if (this.loadingProgressCallback) {
+          this.loadingProgressCallback(filePosition / file.length);
+        }
         await this.pauseProcessing();
       }
     }
@@ -355,7 +360,7 @@ export default class {
         case 'G0':
         case 'G1':
           {
-            tokens = tokenString.split(/(?=[GXYZEF])/);
+            tokens = tokenString.split(/(?=[GXYZEFUVAB])/);
             var line = new gcodeLine();
             line.gcodeLineNumber = lineNumber;
             line.start = this.currentPosition.clone();
@@ -370,14 +375,19 @@ export default class {
                   break;
                 case 'Z':
                   this.currentPosition.y = this.absolute ? Number(token.substring(1)) : this.currentPosition.y + Number(token.substring(1));
+                  if (this.currentPosition.y < this.minHeight) {
+                    this.minHeight = this.currentPosition.y;
+                  }
                   if (this.spreadLines) {
                     this.currentPosition.y *= this.spreadLineAmount;
                   }
-                  // this.maxHeight = this.currentPosition.y;
                   break;
                 case 'E':
-                  line.extruding = true;
-                  this.maxHeight = this.currentPosition.y; //trying to get the max height of the model.
+                  //Do not count retractions as extrusions
+                  if (Number(token.substring(1)) > 0) {
+                    line.extruding = true;
+                    this.maxHeight = this.currentPosition.y; //trying to get the max height of the model.
+                  }
                   break;
                 case 'F':
                   this.currentFeedRate = Number(token.substring(1));
@@ -450,6 +460,7 @@ export default class {
         case 'G2':
         case 'G3': {
           tokens = tokenString.split(/(?=[GXYZIJFRE])/);
+          let extruding = tokenString.indexOf('E') > 0;
           let cw = tokens.filter(t => t === "G2");
           let arcResult = doArc(tokens, this.currentPosition, !this.absolute, 1);
           let curPt = this.currentPosition.clone();
@@ -458,6 +469,7 @@ export default class {
             line.gcodeLineNumber = this.gcodeLineNumber;
             line.start = curPt.clone();
             line.end = new Vector3(point.x, point.y, point.z);
+            line.extruding = extruding;
             line.color = this.currentColor.clone();
             if (this.debug) {
               line.color = cw ? new Color4(0, 1, 1, 1) : new Color4(1, 1, 0, 1)
@@ -476,7 +488,22 @@ export default class {
         } break;
         case 'G28':
           //Home
-          this.currentPosition = new Vector3(0, 0, 0);
+          tokens = tokenString.split(/(?=[GXYZ])/);
+          if (tokens.length == 1) {
+            this.currentPosition = new Vector3(0, 0, 0);
+          }
+          else {
+            if (tokens.some(t => t.trim() === 'X')) {
+              this.currentPosition.x = 0;
+            }
+            if (tokens.some(t => t.trim() === 'Y')) {
+              this.currentPosition.z = 0;
+            }
+            if (tokens.some(t => t.trim() === 'Z')) {
+              this.currentPosition.y = 0;
+            }
+
+          }
           break;
         case 'G90':
           this.absolute = true;
@@ -598,7 +625,7 @@ export default class {
     lineMesh.material = new StandardMaterial("m", scene);
     lineMesh.material.backFaceCulling = true;
     lineMesh.material.forceDepthWrite = true;
-    lineMesh.alphaIndex =  meshIndex;
+    lineMesh.alphaIndex = meshIndex;
     lineMesh.renderingGroupId = 2;
 
 
