@@ -823,9 +823,9 @@ export default {
 		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
-		accelerometer: {
+		inputShaping: {
 			menuCaption: 'Input Shaping',
-			name: 'Accelerometer',
+			name: 'Input Shaping',
 			listTitle: 'CSV Files',
 			none: 'No Files',
 			chartCaption: 'Acceleration Samples',
