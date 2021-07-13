@@ -660,7 +660,8 @@ export default {
 			binaryFileSizes: 'Use binary file sizes',
 			binaryFileSizesTitle: 'File sizes are displayed with a basis of 1024 (IEC) instead of 1000 (SI)',
 			disableAutoComplete: 'Disable auto-completion',
-			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
+			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs',
+			dashboardModeTitle : 'Dashboard Mode'
 		},
 		settingsCommunication: {
 			caption: 'Communication',

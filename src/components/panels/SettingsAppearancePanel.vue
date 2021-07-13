@@ -17,7 +17,7 @@
 				</template>
 				{{ $t('panel.settingsAppearance.disableAutoCompleteTitle') }}
 			</v-tooltip>
-			<v-select class="mt-3" :items="dashboardModes" item-text="value" item-value="value" label="Dashboard Mode" v-model="dashboardMode"></v-select>
+			<v-select :items="dashboardModes" :label="$t('panel.settingsAppearance.dashboardModeTitle')" class="mt-3" item-text="value" item-value="value" v-model="dashboardMode"></v-select>
 		</v-card-text>
 	</v-card>
 </template>
@@ -72,6 +72,9 @@ export default {
 		},
 		dashboardMode: {
 			get() {
+				if (!this.settings.dashboardMode) {
+					return DashboardMode.default;
+				}
 				return this.settings.dashboardMode;
 			},
 			set(value) {
