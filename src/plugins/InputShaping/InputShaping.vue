@@ -12,7 +12,7 @@
 <template>
 	<v-row class="pa-3">
 		<v-col cols="auto">
-			<v-card tile>
+			<v-card tile class="mt-2">
 				<v-card-title class="pt-2 pb-1">
 					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.inputShaping.listTitle') }}
 					<v-spacer></v-spacer>
@@ -35,83 +35,17 @@
 		</v-col>
 
 		<v-col>
-			<v-card tile>
-				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.accelerometerConfiguration') }}
-				</v-card-text>
-				<v-card-text>
-					<v-row>
-						<v-col>
-							<v-select
-								:items="recorderMenus.spiFreq"
-								:label="$t('plugins.inputShaping.spiFrequency')"
-								v-model="recorder.param.spiFreq"
-							></v-select>
-						</v-col>
-						<v-col>
-							<v-select
-								:items="recorderMenus.csPin"
-								:label="$t('plugins.inputShaping.csPin')"
-								v-model="recorder.param.csPin"
-							></v-select>
-						</v-col>
-						<v-col>
-							<v-select
-								:items="recorderMenus.intPin"
-								:label="$t('plugins.inputShaping.intPin')"
-								v-model="recorder.param.intPin"
-							></v-select>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col>
-							<v-select
-								:items="recorderMenus.accel"
-								:label="$t('plugins.inputShaping.accelerometerId')"
-								v-model="recorder.accel"
-							></v-select>
-						</v-col>
-						<v-col>
-							<v-select
-								:items="recorderMenus.orientationAccel"
-								v-model="recorder.param.orientationAccelZ"
-								:label="$t('plugins.inputShaping.orientationZ')"
-								type="number"
-							></v-select>
-						</v-col>
-						<v-col>
-							<v-select
-								:items="recorderMenus.orientationAccel"
-								v-model.number="recorder.param.orientationAccelX"
-								:label="$t('plugins.inputShaping.orientationX')"
-								type="number"
-							></v-select>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col>
-						</v-col>
-						<v-col>
-							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureAccelerometer">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.configure') }}
-							</v-btn>
-						</v-col>
-					</v-row>
-				</v-card-text>
-			</v-card>
-
-			<v-card tile>
+			<v-card tile class="mt-2">
 				<v-card-text class="pt-2 pb-0">
 					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
 				</v-card-text>
 				<v-card-text>
 					<v-row>
 						<v-col>
-							<v-select
-								:items="recorderMenuTools"
-								v-model="recorder.tool"
-								:label="$t('plugins.inputShaping.tool')"
-							></v-select>
+							<v-text-field
+								:label="$t('plugins.inputShaping.accelerometerId')"
+								v-model="recorder.accel"
+							></v-text-field>
 						</v-col>
 					</v-row>
 					<v-row>
@@ -122,29 +56,8 @@
 								:label="$t('plugins.inputShaping.axis')"
 							></v-select>
 						</v-col>
-						<v-col>
-							<v-text-field
-								v-model.number="recorder.param.maxAccel"
-								type="number"
-								:label="$t('plugins.inputShaping.maxAcceleration')"
-							></v-text-field>
-						</v-col>
-						<v-col>
-							<v-text-field
-								v-model.number="recorder.param.maxSpeed"
-								type="number"
-								:label="$t('plugins.inputShaping.maxSpeed')"
-							></v-text-field>
-						</v-col>
 					</v-row>
 					<v-row>
-						<v-col>
-							<v-text-field
-								v-model.number="recorder.param.maxPosition"
-								type="number"
-								:label="$t('plugins.inputShaping.maxPosition')"
-							></v-text-field>
-						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="recorder.param.startPosition"
@@ -162,12 +75,18 @@
 					</v-row>
 					<v-row>
 						<v-col>
+							<v-card-text>
+								{{ $t('plugins.inputShaping.maxAcceleration') }}: {{ recorder.param.maxAccel }}<br>
+								{{ $t('plugins.inputShaping.maxSpeed') }}: {{ recorder.param.maxSpeed }}<br>
+								{{ $t('plugins.inputShaping.maxPosition') }}: {{ recorder.param.maxPosition }}
+							</v-card-text>
+						</v-col>
+						<v-col>
 							<v-card-text class="">
 							{{ $t('plugins.inputShaping.filename') }}:<br>
 							<span class="font-weight-bold"> {{ this.recorderFilename }}</span>
 							</v-card-text>
 							<v-card-text label="Movement Command">
-								{{ this.recorder.initCommand }}<br>
 								{{ this.recorder.moveCommand }}<br>
 								{{ this.recorder.testCommand }}<br>
 							</v-card-text>
@@ -181,7 +100,7 @@
 				</v-card-text>
 			</v-card>
 
-			<v-card class="d-flex flex-column flex-grow-1">
+			<v-card class="d-flex flex-column flex-grow-1 mt-2">
 				<v-card-title class="pt-2 pb-0">
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
 				</v-card-title>
@@ -230,9 +149,9 @@
 				</v-card-text>
 			</v-card>
 
-			<v-card tile>
+			<v-card tile class="mt-2">
 				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
+					<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
 				</v-card-text>
 
 				<v-card-text>
@@ -350,22 +269,11 @@ export default {
 			resolveOverflowPromise: null,
 			displaySamples: true,
 
-			recorderMenus: {
-				spiFreq:[ 500000, 1000000, 2000000 ],
-				orientationAccel: [ 0, 1, 2, 3, 4, 5, 6 ],
-				csPin: [
-					"io1.out", "io2.out", "io3.out", "io4.out", "io5.out", "io6.out", "io7.out", "io8.out",
-					"spi.cs1", "spi.cs2", "spi.cs3", "spi.cs4", "spi.cs5", "spi.cs6", "spi.cs7", "spi.cs8"
-				],
-				intPin: [ "io1.in", "io2.in", "io3.in", "io4.in", "io5.in", "io6.in", "io7.in", "io8.in" ],
-				accel: [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ],
-			},
 			AccelStates: AccelStates,
 			MoveShapingType: MoveShapingType,
 			recorder: {
 				state: AccelStates.INIT,
 
-				initCommand: null,
 				moveCommand: null,
 				testCommand: null,
 
@@ -473,27 +381,15 @@ export default {
 			];
 			return colors[index % colors.length];
 		},
-		async configureAccelerometer() {
-			let result = null;
-
-			this.recorder.state = AccelStates.RUNNING;
-			try {
-				result = await this.sendCode(this.recorder.initCommand);
-			} finally {
-				console.error("Accelerometer configuration failed.");
-			}
-			this.recorder.state = AccelStates.HALTED;
-			console.log("configure accelerometer: ", this.recorder.initCommand, "result: ", result);
-		},
 		async recordProfile() {
 			this.recorder.state = AccelStates.RUNNING;
 			let result = null;
 
 			try {
-				result = await this.sendCode(this.recorder.moveCommand + this.recorder.testCommand);
+				result = await this.sendCode(this.recorder.moveCommand + ' ' + this.recorder.testCommand);
 				this.loadFile(this.filename).then(this.refresh);
-			} finally {
-				console.error("Recording Profile failed.");
+			} catch(e) {
+				console.error("Recording Profile failed: ", e);
 			}
 			this.recorder.state = AccelStates.HALTED;
 			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
@@ -506,10 +402,9 @@ export default {
 			this.recorder.state = AccelStates.RUNNING;
 			try {
 				result = await this.sendCode(this.inputshapingCommand);
-			} finally {
-				console.error("Input Shaping configuration failed.");
+			} catch(e) {
+				console.error("Input Shaping configuration failed: ", e);
 			}
-
 			this.recorder.state = AccelStates.HALTED;
 			console.log("configure input shaping: ", this.inputshapingCommand, "result: ", result);
 
@@ -863,9 +758,8 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.initCommand = `M955 P${this.recorder.accel} I${this.recorder.param.orientationAccelZ}${this.recorder.param.orientationAccelX} S100 R10 C"${this.recorder.param.csPin}+${this.recorder.param.intPin}" Q${this.recorder.param.spiFreq}`;
 				this.recorder.moveCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} G4 S2 G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
-				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} A1 F"${this.recorderFilename}"`;
+				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}"`;
 			},
 			deep: true,
 		},
