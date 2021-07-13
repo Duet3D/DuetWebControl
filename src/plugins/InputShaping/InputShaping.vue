@@ -454,24 +454,42 @@ export default {
 			return colors[index % colors.length];
 		},
 		async configureAccelerometer() {
+			let result = null;
+
 			this.recorder.state = AccelStates.RUNNING;
-			let result = await this.sendCode(this.recorder.initCommand);
+			try {
+				result = await this.sendCode(this.recorder.initCommand);
+			} finally {
+				console.error("Accelerometer configuration failed.");
+			}
 			this.recorder.state = AccelStates.HALTED;
 			console.log("configure accelerometer: ", this.recorder.initCommand, "result: ", result);
 		},
 		async recordProfile() {
 			this.recorder.state = AccelStates.RUNNING;
-			await this.configureAccelerometer();
-			let result = await this.sendCode(this.recorder.moveCommand + this.recorder.testCommand);
-			this.loadFile(this.filename).then(this.refresh);
+			let result = null;
+
+			try {
+				result = await this.sendCode(this.recorder.moveCommand + this.recorder.testCommand);
+				this.loadFile(this.filename).then(this.refresh);
+			} finally {
+				console.error("Recording Profile failed.");
+			}
 			this.recorder.state = AccelStates.HALTED;
 			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
 		},
 		async configureInputShaping() {
+			let result = null;
+
 			this.recorder.iteration = this.recorder.iteration + 1;
 
 			this.recorder.state = AccelStates.RUNNING;
-			let result = await this.sendCode(this.inputshapingCommand);
+			try {
+				result = await this.sendCode(this.inputshapingCommand);
+			} finally {
+				console.error("Input Shaping configuration failed.");
+			}
+
 			this.recorder.state = AccelStates.HALTED;
 			console.log("configure input shaping: ", this.inputshapingCommand, "result: ", result);
 
