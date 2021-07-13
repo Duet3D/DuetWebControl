@@ -1,11 +1,7 @@
 <template>
 	<div>
-		<template v-if="isFFForUnset">
-			<fff-dashboard-panel></fff-dashboard-panel>
-		</template>
-		<template v-else>
-			<cnc-dashboard-panel></cnc-dashboard-panel>
-		</template>
+		<fff-dashboard-panel v-if="isFFForUnset"></fff-dashboard-panel>
+		<cnc-dashboard-panel v-else></cnc-dashboard-panel>
 	</div>
 </template>
 
