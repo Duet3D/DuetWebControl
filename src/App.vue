@@ -104,7 +104,7 @@ textarea {
 		<v-main id="content">
 			<v-scroll-y-transition>
 				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid class="py-0">
-						<fff-container-panel v-if="isFFForUnset()"></fff-container-panel>
+						<fff-container-panel v-if="isFFForUnset"></fff-container-panel>
 						<cnc-container-panel v-else></cnc-container-panel>
 				</v-container>
 			</v-scroll-y-transition>
@@ -136,7 +136,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Menu, Routes } from './routes'
 import { isPrinting } from './store/machine/modelEnums.js'
-import { MachineMode } from './store/machine/modelEnums.js';
+import { MachineMode, DashboardMode } from './store/machine/modelEnums.js';
 
 export default {
 	computed: {
@@ -154,6 +154,7 @@ export default {
 			machineMode: state => state.machine.model.state.machineMode,
 			injectedComponents: state => state.uiInjection.injectedComponents
 		}),
+		...mapState('settings',['dashboardMode']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
 		categories() {
@@ -179,7 +180,13 @@ export default {
 				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
 			}
 			return this.darkTheme ? 'green darken-5' : 'green lighten-4';
-		}
+		},
+		isFFForUnset() {
+			if (this.dashboardMode === DashboardMode.default) {
+				return !this.machineMode || this.machineMode === MachineMode.fff;
+			}
+			return this.dashboardMode === DashboardMode.fff;
+		},
 	},
 	data() {
 		return {
@@ -208,9 +215,6 @@ export default {
 			if (document.title !== title) {
 				document.title = title;
 			}
-		},
-		isFFForUnset() {
-			return !this.machineMode || this.machineMode === MachineMode.fff;
 		},
 	},
 	mounted() {
