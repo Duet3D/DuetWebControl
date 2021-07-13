@@ -374,7 +374,7 @@ export default {
 			idle: '空闲',
 			unknown: '未知'
 		},
-		rpm: '转速',
+		rpm: '转速RPM',
 		sdCard: 'SD卡{0}',
 		mounted: '已装载',
 		notMounted: '没有装载',
@@ -389,7 +389,7 @@ export default {
 			placeholder: '发送代码……'
 		},
 		addTemperature: '新的温度值',
-		addRPM: '新的预设值'
+		addRPM: '新的转速值'
 	},
 	jobProgress: {
 		simulating: '正在模拟{0}，已完成{1}',
@@ -451,7 +451,6 @@ export default {
 			generatedBy: '生成软件',
 			noJobs: '没有任务文件',
 			start: '开始任务文件',
-
 			simulate: '模拟文件'
 		},
 		system: {
@@ -567,7 +566,7 @@ export default {
 			current: '当前偏移：{0}'
 		},
 		extrude: {
-			caption: '挤出控制',
+			caption: '挤出机控制',
 			mix: '混合',
 			mixRatio: '混合比例：',
 			amount: '进给长度{0}：',
@@ -576,7 +575,7 @@ export default {
 			extrude: '挤出'
 		},
 		extrusionFactors: {
-			caption: '挤出系数',
+			caption: '挤出机系数',
 			changeVisibility: '改变可见性',
 			extruder: '挤出机{0}',
 			noExtruders: '没有挤出机'
@@ -746,7 +745,7 @@ export default {
 			probe: 'Z轴探针|Z轴探针',
 			noStatus: '没有状态'
 		},
-		tools: {// 注释：3.3b2dev更新部分内容
+		tools: {
 			caption: '工具',
 			controlHeaters: '控制加热器',
 			turnEverythingOff: '关闭所有',
