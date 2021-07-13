@@ -14,13 +14,13 @@
 		<v-col cols="auto">
 			<v-card tile>
 				<v-card-title class="pt-2 pb-1">
-					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.accelerometer.listTitle') }}
+					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.inputShaping.listTitle') }}
 					<v-spacer></v-spacer>
 					<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
 				</v-card-title>
 				<v-card-text class="pa-0" v-show="files.length === 0">
 					<v-alert :value="true" type="info" class="mb-0">
-						{{ $t('plugins.accelerometer.none') }}
+						{{ $t('plugins.inputShaping.none') }}
 					</v-alert>
 				</v-card-text>
 
@@ -37,28 +37,28 @@
 		<v-col>
 			<v-card tile>
 				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.accelerometer.recordProfile') }}
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
 				</v-card-text>
 				<v-card-text>
 					<v-row>
 						<v-col>
 							<v-select
 								:items="recorderMenus.spiFreq"
-								:label="$t('plugins.accelerometer.spiFrequency')"
+								:label="$t('plugins.inputShaping.spiFrequency')"
 								v-model="recorder.param.spiFreq"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.csPin"
-								:label="$t('plugins.accelerometer.csPin')"
+								:label="$t('plugins.inputShaping.csPin')"
 								v-model="recorder.param.csPin"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-select
 								:items="recorderMenus.intPin"
-								:label="$t('plugins.accelerometer.intPin')"
+								:label="$t('plugins.inputShaping.intPin')"
 								v-model="recorder.param.intPin"
 							></v-select>
 						</v-col>
@@ -67,7 +67,7 @@
 						<v-col>
 							<v-select
 								:items="recorderMenus.accel"
-								:label="$t('plugins.accelerometer.accelerometerId')"
+								:label="$t('plugins.inputShaping.accelerometerId')"
 								v-model="recorder.accel"
 							></v-select>
 						</v-col>
@@ -75,7 +75,7 @@
 							<v-select
 								:items="recorderMenus.orientationAccel"
 								v-model="recorder.param.orientationAccelZ"
-								:label="$t('plugins.accelerometer.orientationZ')"
+								:label="$t('plugins.inputShaping.orientationZ')"
 								type="number"
 							></v-select>
 						</v-col>
@@ -83,7 +83,7 @@
 							<v-select
 								:items="recorderMenus.orientationAccel"
 								v-model.number="recorder.param.orientationAccelX"
-								:label="$t('plugins.accelerometer.orientationX')"
+								:label="$t('plugins.inputShaping.orientationX')"
 								type="number"
 							></v-select>
 						</v-col>
@@ -91,7 +91,7 @@
 							<v-select
 								:items="recorderMenuTools"
 								v-model="recorder.tool"
-								:label="$t('plugins.accelerometer.tool')"
+								:label="$t('plugins.inputShaping.tool')"
 							></v-select>
 						</v-col>
 					</v-row>
@@ -100,21 +100,21 @@
 							<v-select
 								:items="recorderMenuAxis"
 								v-model="recorder.axis"
-								:label="$t('plugins.accelerometer.axis')"
+								:label="$t('plugins.inputShaping.axis')"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="recorder.param.maxAccel"
 								type="number"
-								:label="$t('plugins.accelerometer.maxAcceleration')"
+								:label="$t('plugins.inputShaping.maxAcceleration')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="recorder.param.maxSpeed"
 								type="number"
-								:label="$t('plugins.accelerometer.maxSpeed')"
+								:label="$t('plugins.inputShaping.maxSpeed')"
 							></v-text-field>
 						</v-col>
 					</v-row>
@@ -123,28 +123,28 @@
 							<v-text-field
 								v-model.number="recorder.param.maxPosition"
 								type="number"
-								:label="$t('plugins.accelerometer.maxPosition')"
+								:label="$t('plugins.inputShaping.maxPosition')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="recorder.param.startPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
-								:label="$t('plugins.accelerometer.startPosition')"
+								:label="$t('plugins.inputShaping.startPosition')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="recorder.param.stopPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
-								:label="$t('plugins.accelerometer.stopPosition')"
+								:label="$t('plugins.inputShaping.stopPosition')"
 							></v-text-field>
 						</v-col>
 					</v-row>
 					<v-row>
 						<v-col>
 							<v-card-text class="">
-							{{ $t('plugins.accelerometer.filename') }}:<br>
+							{{ $t('plugins.inputShaping.filename') }}:<br>
 							<span class="font-weight-bold"> {{ this.recorderFilename }}</span>
 							</v-card-text>
 							<v-card-text label="Movement Command">
@@ -154,11 +154,8 @@
 							</v-card-text>
 						</v-col>
 						<v-col>
-							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureAccelerometer">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.configureAccelerometer') }}
-							</v-btn>
 							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="recordProfile">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.recordProfile') }}
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
 							</v-btn>
 						</v-col>
 					</v-row>
@@ -166,7 +163,7 @@
 			</v-card>
 			<v-card class="d-flex flex-column flex-grow-1">
 				<v-card-title class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.accelerometer.chartCaption') }}
+					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
 				</v-card-title>
 
 				<v-card-text v-show="selectedFile !== null" class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
@@ -184,29 +181,29 @@
 
 			<v-card class="mt-5" v-show="selectedFile !== null">
 				<v-card-title>
-					<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.accelerometer.analysis') }}
+					<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 				</v-card-title>
 
 				<v-card-text>
 					<v-row>
 						<v-col>
-							<v-text-field v-model="samplingRate" :label="$t('plugins.accelerometer.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
+							<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
 						</v-col>
 						<v-col>
-							<v-slider v-model="start" :max="end - 1" :label="$t('plugins.accelerometer.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
+							<v-slider v-model="start" :max="end - 1" :label="$t('plugins.inputShaping.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
 						</v-col>
 						<v-col>
-							<v-slider v-model="end" :min="start + 1" :max="samples.length - 1" :label="$t('plugins.accelerometer.end')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
+							<v-slider v-model="end" :min="start + 1" :max="samples.length - 1" :label="$t('plugins.inputShaping.end')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
 						</v-col>
 						<v-col cols="auto">
-							<v-checkbox v-model="wideBand" :label="$t('plugins.accelerometer.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
+							<v-checkbox v-model="wideBand" :label="$t('plugins.inputShaping.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
 						</v-col>
 						<v-col cols="auto">
 							<v-btn v-show="displaySamples" color="primary" :disabled="!samplingRateValidated || !datasetVisible || !displaySamples" @click="analyze">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.analyze') }}
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.analyze') }}
 							</v-btn>
 							<v-btn v-show="!displaySamples" color="success" @click="showSamples">
-								<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.accelerometer.back') }}
+								<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.back') }}
 							</v-btn>
 						</v-col>
 					</v-row>
@@ -215,7 +212,7 @@
 
 			<v-card tile>
 				<v-card-text class="mt-5">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.accelerometer.inputShapingConfiguration') }}
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
 				</v-card-text>
 
 				<v-card-text>
@@ -224,28 +221,28 @@
 							<v-select
 								:items="Object.values(MoveShapingType)"
 								v-model="inputshaping.algorithm"
-								:label="$t('plugins.accelerometer.algorithm')"
+								:label="$t('plugins.inputShaping.algorithm')"
 							></v-select>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="inputshaping.frequency"
 								type="number"
-								:label="$t('plugins.accelerometer.frequency')"
+								:label="$t('plugins.inputShaping.frequency')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="inputshaping.damping"
 								type="number"
-								:label="$t('plugins.accelerometer.damping')"
+								:label="$t('plugins.inputShaping.damping')"
 							></v-text-field>
 						</v-col>
 						<v-col>
 							<v-text-field
 								v-model.number="inputshaping.minAcceleration"
 								type="number"
-								:label="$t('plugins.accelerometer.minAcceleration')"
+								:label="$t('plugins.inputShaping.minAcceleration')"
 							></v-text-field>
 						</v-col>
 					</v-row>
@@ -258,7 +255,7 @@
 						</v-col>
 						<v-col>
 							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureInputShaping">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.accelerometer.configure') }}
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.configure') }}
 							</v-btn>
 						</v-col>
 					</v-row>
@@ -266,7 +263,7 @@
 			</v-card>
 		</v-col>
 
-		<confirm-dialog :title="$t('plugins.accelerometer.overflowPrompt.title')" :prompt="$t('plugins.accelerometer.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
+		<confirm-dialog :title="$t('plugins.inputShaping.overflowPrompt.title')" :prompt="$t('plugins.inputShaping.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
 	</v-row>
 </template>
 
@@ -283,7 +280,7 @@ import Path from '../../utils/path.js'
 import { MoveShapingType } from '../../store/machine/modelEnums.js'
 
 import { transform } from './fft.js'
-import { AccelStates } from './AccelerometerEnums.js'
+import { AccelStates } from './InputShapingEnums.js'
 
 
 export default {
@@ -504,7 +501,7 @@ export default {
 				}
 			} catch (e) {
 				this.alertType = 'error';
-				this.alertMessage = this.$t('plugins.accelerometer.loadError');
+				this.alertMessage = this.$t('plugins.inputShaping.loadError');
 				console.warn(e);
 				return;
 			}
@@ -513,7 +510,7 @@ export default {
 			this.axes = [];
 			this.accelerations = [];
 			this.alertType = 'info';
-			this.alertMessage = this.$t('plugins.accelerometer.noData');
+			this.alertMessage = this.$t('plugins.inputShaping.noData');
 			this.chart.data.datasets = [];
 			this.selectedFile = null;
 
@@ -598,7 +595,7 @@ export default {
 				this.datasetVisible = datasetVisible;
 			} catch (e) {
 				this.alertType = 'error';
-				this.alertMessage = this.$t('plugins.accelerometer.parseError');
+				this.alertMessage = this.$t('plugins.inputShaping.parseError');
 				console.warn(e);
 				return;
 			}
@@ -705,10 +702,10 @@ export default {
 			this.sampleDatasets = this.chart.data.datasets;
 			this.chart.data.labels = frequencies;
 			this.chart.data.datasets = newDatasets;
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.accelerometer.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.accelerometer.amplitudes');
+			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
+			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
 			const that = this;
-			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.accelerometer.frequencyTooltip', [(items[0].index * resolution + resolution / 2).toFixed(1), (resolution / 2).toFixed(1)]);
+			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.inputShaping.frequencyTooltip', [(items[0].index * resolution + resolution / 2).toFixed(1), (resolution / 2).toFixed(1)]);
 			this.chart.config.options.scales.xAxes[0].ticks.min = 0;
 			this.chart.config.options.scales.xAxes[0].ticks.max = numFreqs * resolution;
 			this.chart.update();
@@ -717,10 +714,10 @@ export default {
 		showSamples() {
 			this.chart.data.labels = this.sampleLabels;
 			this.chart.data.datasets = this.sampleDatasets;
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.accelerometer.samples');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.accelerometer.accelerations');
+			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.samples');
+			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
 			const that = this;
-			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.accelerometer.sampleTooltip', [items[0].index]);
+			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
 			this.applyStartEnd();
 			this.displaySamples = true;
 		}
@@ -728,7 +725,7 @@ export default {
 	mounted() {
 		// Set up initial message
 		this.alertType = 'info';
-		this.alertMessage = this.$t('plugins.accelerometer.noData');
+		this.alertMessage = this.$t('plugins.inputShaping.noData');
 
 		// Reload the file list
 		this.refresh();
@@ -741,7 +738,7 @@ export default {
 				mode: 'index',
 				intersect: false,
 				callbacks: {
-					title: items => that.$t('plugins.accelerometer.sampleTooltip', [items[0].index])
+					title: items => that.$t('plugins.inputShaping.sampleTooltip', [items[0].index])
 				}
 			},
 			hover: {
@@ -754,7 +751,7 @@ export default {
 						display: true,
 						scaleLabel: {
 							display: true,
-							labelString: this.$t('plugins.accelerometer.samples')
+							labelString: this.$t('plugins.inputShaping.samples')
 						},
 
 						gridLines: {
@@ -779,7 +776,7 @@ export default {
 						display: true,
 						scaleLabel: {
 							display: true,
-							labelString: this.$t('plugins.accelerometer.accelerations')
+							labelString: this.$t('plugins.inputShaping.accelerations')
 						},
 
 						gridLines: {
@@ -821,8 +818,8 @@ export default {
 	watch: {
 		language() {
 			// TODO update chart
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.samples' : 'plugins.accelerometer.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.accelerations' : 'plugins.accelerometer.amplitudes');
+			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.samples' : 'plugins.inputShaping.frequency');
+			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.accelerations' : 'plugins.inputShaping.amplitudes');
 			this.chart.update();
 		},
 		recorder: {
