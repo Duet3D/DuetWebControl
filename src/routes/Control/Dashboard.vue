@@ -1,52 +1,31 @@
 <template>
-	<v-row>
-		<v-col xs="12" sm="8" md="8" lg="9" xl="9">
-			<movement-panel class="mb-3"></movement-panel>
-
-			<v-row v-if="isFFForUnset" class="my-3">
-				<v-col sm="12" :md="(atxPower !== null) ? 9 : 12" :lg="(atxPower !== null) ? 9 : 12" :xl="(atxPower !== null) ? 10 : 12">
-					<extrude-panel></extrude-panel>
-				</v-col>
-
-				<v-col v-if="atxPower !== null" md="3" lg="3" xl="2" align-self="center">
-					<atx-panel></atx-panel>
-				</v-col>
-			</v-row>
-
-			<v-row class="my-3">
-				<v-col sm="12" :md="(!isFFForUnset && atxPower !== null) ? 9 : 12" :lg="(!isFFForUnset && atxPower !== null) ? 9 : 12" :xl="(!isFFForUnset && atxPower !== null) ? 10 : 12">
-					<fan-panel></fan-panel>
-				</v-col>
-
-				<v-col v-if="!isFFForUnset && atxPower !== null" md="3" lg="3" xl="2" align-self="center">
-					<atx-panel></atx-panel>
-				</v-col>
-			</v-row>
-		</v-col>
-
-		<v-col class="hidden-xs-only" sm="4" md="4" lg="3" xl="3">
-			<macro-list></macro-list>
-		</v-col>
-	</v-row>
+	<div>
+		<fff-dashboard-panel v-if="isFFForUnset"></fff-dashboard-panel>
+		<cnc-dashboard-panel v-else></cnc-dashboard-panel>
+	</div>
 </template>
 
 <script>
-'use strict'
+'use strict';
 
-import { mapState } from 'vuex'
+import {mapState} from 'vuex';
 
-import { registerRoute } from '..'
-import { MachineMode } from '../../store/machine/modelEnums.js'
+import {registerRoute} from '..';
+import {MachineMode, DashboardMode} from '../../store/machine/modelEnums.js';
 
 export default {
 	computed: {
 		...mapState('machine/model', {
-			atxPower: state => state.state.atxPower,
-			machineMode: state => state.state.machineMode
+			atxPower: (state) => state.state.atxPower,
+			machineMode: (state) => state.state.machineMode,
 		}),
+		...mapState('settings', ['dashboardMode']),
 		isFFForUnset() {
-			return !this.machineMode || (this.machineMode === MachineMode.fff);
-		}
+			if (this.dashboardMode === DashboardMode.default) {
+				return !this.machineMode || this.machineMode === MachineMode.fff;
+			}
+			return this.dashboardMode === DashboardMode.fff;
+		},
 	},
 	install() {
 		// Register a route via Control -> Dashboard
@@ -55,10 +34,10 @@ export default {
 				Dashboard: {
 					icon: 'mdi-view-dashboard',
 					caption: 'menu.control.dashboard',
-					path: '/'
-				}
-			}
+					path: '/',
+				},
+			},
 		});
-	}
-}
+	},
+};
 </script>

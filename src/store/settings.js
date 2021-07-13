@@ -37,7 +37,9 @@ export default {
 		},
 
 		enabledPlugins: ['Height Map'],
-		plugins: {}										// Third-party values
+		plugins: {},										// Third-party values
+		dashboardMode : 'default',
+
 	},
 	actions: {
 		async applyDefaults({ state, dispatch }) {
