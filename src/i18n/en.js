@@ -809,8 +809,9 @@ export default {
 		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
-		accelerometer: {
-			name: 'Accelerometer',
+		inputShaping: {
+			menuCaption: 'Input Shaping',
+			name: 'Input Shaping',
 			listTitle: 'CSV Files',
 			none: 'No Files',
 			chartCaption: 'Acceleration Samples',
@@ -833,7 +834,28 @@ export default {
 			samples: 'Samples',
 			accelerations: 'Accelerations (in g)',
 			sampleTooltip: 'Sample #{0}',
-			frequencyTooltip: '{0} ± {1} Hz'
+			frequencyTooltip: '{0} ± {1} Hz',
+			spiFrequency: 'SPI Frequency',
+			csPin: 'Chip Select Pin',
+			intPin: 'Interrupt Pin',
+			accelerometerId: 'Accelerometer ID',
+			orientationX: 'Orientation X',
+			orientationZ: 'Orientation Z',
+			tool: 'Tool',
+			axis: 'Axis',
+			filename: 'Filename (auto-generated)',
+			minAcceleration: 'Min Acceleration',
+			maxAcceleration: 'Max Acceleration',
+			maxSpeed: 'Max Speed',
+			maxPosition: 'Max Position',
+			startPosition: 'Start Position',
+			stopPosition: 'Stop Position',
+			algorithm: 'Algorithm',
+			damping: 'Damping',
+			accelerometerConfiguration: 'Accelerometer Configuration',
+			recordProfile: 'Record Profile',
+			inputShapingConfiguration: 'Input Shaping Configuration',
+			configure: 'Configure'
 		},
 		autoUpdate: {
 			menuCaption: 'Update'

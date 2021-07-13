@@ -809,7 +809,7 @@ export default {
 		superUser: 'Als root-Benutzer laufen (potentiell gefährlich)'
 	},
 	plugins: {
-		accelerometer: {
+		inputShaping: {
 			name: 'Beschleunigungsmesser',
 			listTitle: 'CSV-Dateien',
 			none: 'Keine Dateien',

@@ -66,13 +66,13 @@ export function injectComponent(name, component) {
 
 export default [
 	new DwcPlugin({
-		id: 'Accelerometer',
-		name: 'Accelerometer',
+		id: 'InputShaping',
+		name: 'InputShaping',
 		author: 'Duet3D Ltd',
 		version,
 		loadDwcResources: () => import(
-			/* webpackChunkName: "Accelerometer" */
-			'./Accelerometer/index.js'
+			/* webpackChunkName: "InputShaping" */
+			'./InputShaping/index.js'
 		)
 	}),
 	new DwcPlugin({
