@@ -175,7 +175,7 @@ export default {
 			}
 			if (obj !== null && obj instanceof Object) {
 				return Object.keys(obj)
-					.filter(key => (path.length > 0) || (obj[key] !== null))
+					.filter(key => !key.startsWith('_') && ((path.length > 0) || (obj[key] !== null)))
 					.map(function(key) {
 						const itemPath = path.slice(0);
 						itemPath.push(key);

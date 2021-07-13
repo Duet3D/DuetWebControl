@@ -1,8 +1,27 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.4-b2
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.4-b2
+- RepRapFirmware 3 or newer
+
+New features:
+- Greatly improved performance for object model updates
+- Plugins may now register custom i18n data
+
+Changed behaviour:
+- Old-style `rr_status` requests are no longer supported
+- Built-In/Third-Party Plugins are now called Integrated/External Plugins
+
 Version 3.4-b1
 ==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.4-b1
+- RepRapFirmware 2 or newer (1.2x may work but untested)
 
 New features:
 - Added preliminary Polish translations (thanks Chri55)

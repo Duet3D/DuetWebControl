@@ -303,6 +303,7 @@ export default {
 		notImplemented: '{0} ist nicht implementiert',
 		invalidPassword: 'Ungültiges Passwort!',
 		noFreeSession: 'Keine weiteren freien Sitzungen!',
+		badVersion: 'Inkompatible Firmwareversion',
 		connect: 'Konnte nicht zu {0} verbinden',
 		disconnect: 'Konnte die Verbindung zu {0} nicht sauber trennen',
 		disconnected: 'Konnte die Aktion nicht beenden weil die Verbindung getrennt worden ist',
@@ -364,6 +365,7 @@ export default {
 			pausing: 'Pausiere',
 			paused: 'Pausiert',
             resuming: 'Wiederaufnahme',
+			cancelling: 'Abbrechen',
 			printing: 'Drucke',
 			processing: 'Verarbeite',
 			simulating: 'Simuliere',
@@ -916,6 +918,7 @@ export default {
 			},
 			
 			renderFailed: 'Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC',
+			showFSOverlay : 'Overlay bei Vollbild anzeigen'
 		},
 		heightmap: {
 			menuCaption: 'Höhenkarte',
@@ -952,8 +955,8 @@ export default {
 			caption: 'Allgemein'
 		},
 		plugins: {
-			generalCaption: 'Eingebaute Plugins',
-			machineCaption: 'Maschinenspezifische Plugins',
+			generalCaption: 'Integrierte Plugins',
+			machineCaption: 'Externe Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Autor',

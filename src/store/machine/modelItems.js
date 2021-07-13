@@ -101,7 +101,10 @@ export class Board {
 }
 
 export class Build {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+		overloadPushMethod(this.objects, new BuildObject());
+		quickPatch(this, initData);
+	}
 	currentObject = -1
 	m486Names = false
 	m486Numbers = false
@@ -331,7 +334,11 @@ export class CoreKinematics extends ZLeadscrewKinematics {
 }
 
 export class DeltaKinematics extends Kinematics {
-	constructor(initData) { super(initData); }
+	constructor(initData) {
+		super({});
+		overloadPushMethod(this.towers, new DeltaTower());
+		quickPatch(initData);
+	}
 	deltaRadius = 105.6
 	homedHeight = 240
 	printRadius = 80
@@ -429,6 +436,7 @@ export class NetworkInterface {
 
 export class ParsedFileInfo {
 	constructor(initData) {
+		overloadPushMethod(this.thumbnails, new ParsedThumbnail());
 		quickPatch(this, initData);
 		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
 			// approximate the number of layers if it isn't given
@@ -541,12 +549,6 @@ export class UserSession {		// *** missing in RRF
 	sessionType = 'local'
 }
 
-export class UserVariable {		// *** missing in RRF but reserved
-	constructor(initData) { quickPatch(this, initData); }
-	name = ''
-	value = null
-}
-
 export class Volume {
 	constructor(initData) { quickPatch(this, initData); }
 	capacity = null				// in Bytes
@@ -558,161 +560,69 @@ export class Volume {
 	speed = null				// in Bytes/s
 }
 
-function fixObject(item, preset) {
-	let fixed = false;
-	if (item !== null) {
-		for (let key in preset) {
-			if (item[key] === undefined) {
-				Vue.set(item, key, preset[key]);
-				fixed = true;
-			} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
-				fixed |= fixObject(item[key], preset[key]);
-			}
+export function fixObject(item, preset) {
+	for (let key in preset) {
+		if (item[key] === undefined) {
+			Vue.set(item, key, preset[key]);
+		} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
+			fixObject(item[key], preset[key]);
 		}
 	}
-	return fixed;
 }
 
-function fixItems(items, ClassType) {
-	let preset = new ClassType();
-	if (items !== null && items !== undefined) {
-		items.forEach(function(item) {
-			if (item !== null) {
-				for (let key in preset) {
-					if (item[key] === undefined) {
-						Vue.set(item, key, preset[key]);
-						if (preset[key] instanceof Object) {
-							preset = new ClassType();
-						}
-					} else if (preset[key] instanceof Object) {
-						if (fixObject(item[key], preset[key])) {
-							preset = new ClassType();
-						}
-					}
+function overloadPushMethod(array, preset) {
+	const originalPushMethod = Object.getPrototypeOf(array).push;
+	array.push = function(item) {
+		if (item !== null) {
+			fixObject(item, preset);
+		}
+		originalPushMethod.call(array, Vue.observable(item));
+	};
+}
+
+export function overloadModelPush(model) {
+	overloadPushMethod(model.boards, new Board());
+	overloadPushMethod(model.fans, new Fan());
+	overloadPushMethod(model.heat.heaters, new Heater());
+	overloadPushMethod(model.httpEndpoints, new HttpEndpoint());
+	overloadPushMethod(model.inputs, new InputChannel());
+	overloadPushMethod(model.job.layers, new Layer());
+	overloadPushMethod(model.move.axes, new Axis());
+	overloadPushMethod(model.move.extruders, new Extruder());
+	overloadPushMethod(model.move.queue, new MoveQueueItem());
+	overloadPushMethod(model.network.interfaces, new NetworkInterface());
+	overloadPushMethod(model.sensors.analog, new AnalogSensor());
+	overloadPushMethod(model.sensors.endstops, new Endstop());
+	// Filament monitors need special treatment due to variable item types
+	overloadPushMethod(model.sensors.gpIn, new GpInputPort());
+	overloadPushMethod(model.sensors.probes, new Probe());
+	overloadPushMethod(model.spindles, new Spindle());
+	overloadPushMethod(model.state.gpOut, new GpOutputPort());
+	overloadPushMethod(model.state.restorePoints, new RestorePoint());
+	overloadPushMethod(model.tools, new Tool());
+	overloadPushMethod(model.userSessions, new UserSession());
+	overloadPushMethod(model.volumes, new Volume());
+}
+
+export function fixObjectModel(state, mergeData) {
+	if (mergeData.sensors && mergeData.sensors.filamentMonitors) {
+		state.sensors.filamentMonitors.forEach(function(filamentSensor) {
+			if (filamentSensor) {
+				switch (filamentSensor.type) {
+					case FilamentMonitorType.laser:
+						fixObject(filamentSensor, new LaserFilamentMonitor());
+						break;
+					case FilamentMonitorType.pulsed:
+						fixObject(filamentSensor, new PulsedFilamentMonitor());
+						break;
+					case FilamentMonitorType.rotatingMagnet:
+						fixObject(filamentSensor, new RotatingMagnetFilamentMonitor());
+						break;
+					default:
+						fixObject(filamentSensor, new FilamentMonitor());
+						break;
 				}
 			}
 		});
-	}
-}
-
-// TODO: Eventually this could be combined with the 'merge' function
-// But getting everything the way it's supposed to work took longer than expected anyway...
-export function fixMachineItems(state, mergeData) {
-	if (mergeData.boards) {
-		fixItems(state.boards, Board)
-	}
-
-	if (mergeData.fans) {
-		fixItems(state.fans, Fan)
-	}
-
-	if (mergeData.heat && mergeData.heat.heaters) {
-		fixItems(state.heat.heaters, Heater);
-	}
-
-	if (mergeData.httpEndpoints) {
-		fixItems(state.httpEndpoints, HttpEndpoint);
-	}
-
-	if (mergeData.inputs) {
-		fixItems(state.inputs, InputChannel);
-	}
-
-	if (mergeData.job && mergeData.job.build) {
-		fixObject(state.job.build, new Build());
-		if (mergeData.job.build && mergeData.job.build.objects) {
-			fixItems(state.job.build.objects, BuildObject);
-		}
-		if (mergeData.job.file && mergeData.job.file.thumbnails) {
-			fixItems(state.job.file.thumbnails, ParsedThumbnail);
-		}
-	}
-
-	// Layers are not verified for performance reasons
-
-	if (mergeData.move) {
-		if (mergeData.move.axes) {
-			fixItems(state.move.axes, Axis);
-		}
-		if (mergeData.move.compensation && mergeData.move.compensation.meshDeviation) {
-			fixObject(state.move.compensation.meshDeviation, new MeshDeviation());
-		}
-		if (mergeData.move.extruders) {
-			fixItems(state.move.extruders, Extruder);
-		}
-		if (mergeData.move.kinematics && mergeData.move.kinematics.towers) {
-			fixItems(state.move.kinematics.towers, DeltaTower);
-		}
-		if (mergeData.move.queue) {
-			fixItems(state.move.queue, MoveQueueItem);
-		}
-	}
-
-	if (mergeData.network && mergeData.network.interfaces) {
-		fixItems(state.network.interfaces, NetworkInterface);
-	}
-
-	if (mergeData.sensors) {
-		if (mergeData.sensors.analog) {
-			fixItems(state.sensors.analog, AnalogSensor);
-		}
-		if (mergeData.sensors.endstops) {
-			fixItems(state.sensors.endstops, Endstop);
-		}
-		if (mergeData.sensors.filamentMonitors) {
-			state.sensors.filamentMonitors.forEach(function(filamentSensor) {
-				if (filamentSensor) {
-					switch (filamentSensor.type) {
-						case FilamentMonitorType.laser:
-							fixObject(filamentSensor, new LaserFilamentMonitor());
-							break;
-						case FilamentMonitorType.pulsed:
-							fixObject(filamentSensor, new PulsedFilamentMonitor());
-							break;
-						case FilamentMonitorType.rotatingMagnet:
-							fixObject(filamentSensor, new RotatingMagnetFilamentMonitor());
-							break;
-						default:
-							fixObject(filamentSensor, new FilamentMonitor());
-							break;
-					}
-				}
-			});
-		}
-		if (mergeData.sensors.gpIn) {
-			fixItems(state.sensors.gpIn, GpInputPort);
-		}
-		if (mergeData.sensors.probes) {
-			fixItems(state.sensors.probes, Probe);
-		}
-	}
-
-	if (mergeData.spindles) {
-		fixItems(state.spindles, Spindle);
-	}
-
-	if (mergeData.state) {
-		if (mergeData.state.gpOut) {
-			fixItems(state.state.gpOut, GpOutputPort);
-		}
-		if (mergeData.state.restorePoints) {
-			fixItems(state.state.restorePoints, RestorePoint);
-		}
-	}
-
-	if (mergeData.tools) {
-		fixItems(state.tools, Tool);
-	}
-
-	if (mergeData.userSessions) {
-		fixItems(state.userSessions, UserSession);
-	}
-
-	if (mergeData.userVariables) {
-		fixItems(state.userVariables, UserVariable);
-	}
-
-	if (mergeData.volumes) {
-		fixItems(state.volumes, Volume);
 	}
 }

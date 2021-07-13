@@ -15,7 +15,7 @@ import zh_cn from './zh_cn.js'
 
 Vue.use(VueI18n)
 
-const messages = {
+const messages = Vue.observable({
 	en,
 	de,
 	es,
@@ -25,7 +25,7 @@ const messages = {
 	ru,
 	tr,
 	zh_cn
-}
+})
 
 /* eslint-disable */
 if (process.env.NODE_ENV !== 'production') {
@@ -69,6 +69,17 @@ if (process.env.NODE_ENV !== 'production') {
 //	}
 }
 /* eslint-enable */
+
+// Register custom localization data namespaced via plugins.{plugin} = {data}
+export function registerPluginLocalization(plugin, language, data) {
+	if (messages[language] === undefined) {
+		throw new Error('Unsupported language');
+	}
+	if (messages[language].plugins[plugin] !== undefined) {
+		throw new Error('Plugin i18n for the given plugin already exists');
+	}
+	Vue.set(messages[language].plugins, plugin, data);
+}
 
 export default new VueI18n({
 	locale: 'en',

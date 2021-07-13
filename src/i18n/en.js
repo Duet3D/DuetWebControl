@@ -303,6 +303,7 @@ export default {
 		notImplemented: '{0} is not implemented',
 		invalidPassword: 'Invalid password!',
 		noFreeSession: 'No more free sessions!',
+		badVersion: 'Incompatible firmware version',
 		connect: 'Failed to connect to {0}',
 		disconnect: 'Could not disconnect cleanly from {0}',
 		disconnected: 'Could not complete action because the connection has been terminated',
@@ -364,6 +365,7 @@ export default {
 			pausing: 'Pausing',
 			paused: 'Paused',
 			resuming: 'Resuming',
+			cancelling: 'Cancelling',
 			printing: 'Printing',
 			processing: 'Processing',
 			simulating: 'Simulating',
@@ -952,8 +954,8 @@ export default {
 			caption: 'General'
 		},
 		plugins: {
-			generalCaption: 'Built-in Plugins',
-			machineCaption: 'Machine-Specific Plugins',
+			generalCaption: 'Integrated Plugins',
+			machineCaption: 'External Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Author',

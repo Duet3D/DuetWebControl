@@ -19,10 +19,13 @@ import {
 	Heater,
 	InputChannel,
 	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics, ScaraKinematics,
+	MeshDeviation,
 	ParsedFileInfo,
 	Probe,
 	Tool,
-	fixMachineItems
+	fixObject,
+	fixObjectModel,
+	overloadModelPush
 } from './modelItems.js'
 
 import Path from '../../utils/path.js'
@@ -134,7 +137,13 @@ export class MachineModel {
 		compensation: {
 			fadeHeight: null,
 			file: null,
-			meshDeviation: null,
+			liveGrid: null,
+			_internalMeshDeviation: null,
+			get meshDeviation() { return this._internalMeshDeviation; },
+			set meshDeviation(value) {
+				fixObject(value, new MeshDeviation());
+				this._internalMeshDeviation = value;
+			},
 			probeGrid: {
 				axes: ['X', 'Y'],
 				maxs: [-1, -1],
@@ -307,13 +316,15 @@ export const DefaultMachineModel = new MachineModel({
 export class MachineModelModule {
 	constructor(connector) {
 		if (connector) {
-			this.state = new MachineModel({
+			this.state = Vue.observable(new MachineModel({
 				network: {
 					hostname: connector.hostname,
 					name: `(${connector.hostname})`
 				}
-			});
+			}));
+			overloadModelPush(this.state);
 		} else {
+			// Default machine model is static, no need to deal with list changes
 			this.state = DefaultMachineModel;
 		}
 	}
@@ -421,7 +432,7 @@ export class MachineModelModule {
 
 			// Apply new data
 			patch(state, payload, true);
-			fixMachineItems(state, payload);
+			fixObjectModel(state, payload);
 		},
 
 		addPlugin(state, plugin) {
