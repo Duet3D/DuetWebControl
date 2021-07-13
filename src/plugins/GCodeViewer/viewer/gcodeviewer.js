@@ -29,6 +29,7 @@ export default class {
     this.fileData;
     this.gcodeProcessor = new gcodeProcessor();
     this.maxHeight = 0;
+    this.minHeight = 0;
     this.sceneBackgroundColor = '#000000';
     this.canvas = canvas;
     this.scene = {};
@@ -73,6 +74,10 @@ export default class {
   getMaxHeight() {
     return this.maxHeight;
   }
+  getMinHeight() {
+    return this.minHeight;
+  }  
+  
   setCameraType(arcRotate) {
     if (arcRotate) {
       this.scene.activeCamera = this.orbitCamera;
@@ -108,6 +113,8 @@ export default class {
     this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
+    this.orbitCamera.maxZ = 100000000;
+    this.orbitCamera.lowerRadiusLimit = 10;
     this.updateCameraInertiaProperties()
     //    this.orbitCamera.wheelDeltaPercentage = 0.02;
     //    this.orbitCamera.pinchDeltaPercentage = 0.02;
@@ -245,6 +252,7 @@ export default class {
 
     this.gcodeProcessor.createScene(this.scene);
     this.maxHeight = this.gcodeProcessor.getMaxHeight();
+    this.minHeight = this.gcodeProcessor.getMinHeight();
     this.toggleTravels(this.travelVisible);
     this.setCursorVisiblity(this.toolCursorVisible);
   }
