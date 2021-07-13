@@ -37,7 +37,7 @@
 		<v-col>
 			<v-card tile>
 				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.accelerometerConfiguration') }}
 				</v-card-text>
 				<v-card-text>
 					<v-row>
@@ -87,6 +87,25 @@
 								type="number"
 							></v-select>
 						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+						</v-col>
+						<v-col>
+							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureAccelerometer">
+								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.configure') }}
+							</v-btn>
+						</v-col>
+					</v-row>
+				</v-card-text>
+			</v-card>
+
+			<v-card tile>
+				<v-card-text class="pt-2 pb-0">
+					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
+				</v-card-text>
+				<v-card-text>
+					<v-row>
 						<v-col>
 							<v-select
 								:items="recorderMenuTools"
@@ -161,6 +180,7 @@
 					</v-row>
 				</v-card-text>
 			</v-card>
+
 			<v-card class="d-flex flex-column flex-grow-1">
 				<v-card-title class="pt-2 pb-0">
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
@@ -211,7 +231,7 @@
 			</v-card>
 
 			<v-card tile>
-				<v-card-text class="mt-5">
+				<v-card-text class="pt-2 pb-0">
 					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
 				</v-card-text>
 
