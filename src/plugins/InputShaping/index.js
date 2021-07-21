@@ -7,7 +7,7 @@ import InputShaping from './InputShaping.vue'
 registerRoute(InputShaping, {
 	Settings: {
 		InputShaping: {
-			icon: 'mdi-motion-play-outline',
+			icon: 'mdi-chart-timeline-variant',
 			caption: 'plugins.inputShaping.menuCaption',
 			path: '/InputShaping'
 		}
