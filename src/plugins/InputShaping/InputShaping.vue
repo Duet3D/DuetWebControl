@@ -292,7 +292,7 @@ export default {
 
 					// axis specific parameters (watch if calibration axis changed if so, update these fields)
 					maxAccel: 0, // prefill machine->move->axis->AXIS->acceleration
-					maxSpeed: 0, // prefill machine->move->axis->AXIS->speed
+					maxSpeed: 0, // prefill machine->move->axis->AXIS->speed (in mm/s)
 					minPosition: 0, // prefill machine->move->axis->AXIS->min
 					maxPosition: 0, // prefill machine->move->axis->AXIS->max
 					startPosition: 0, // prefill maxPosition * 4 / 10
@@ -756,7 +756,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.maxSpeed * 60} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
