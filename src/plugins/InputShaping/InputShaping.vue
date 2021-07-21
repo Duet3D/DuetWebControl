@@ -756,7 +756,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.maxSpeed * 60} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
@@ -769,6 +769,7 @@ export default {
 				if (index < 0)
 					return;
 
+				this.recorder.param.maxSpeed = this.model.move.axes[index].speed;
 				this.recorder.param.maxAccel = this.model.move.axes[index].acceleration;
 				this.recorder.param.minPosition = this.model.move.axes[index].min;
 				this.recorder.param.maxPosition = this.model.move.axes[index].max;
