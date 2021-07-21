@@ -87,7 +87,6 @@
 							<span class="font-weight-bold"> {{ this.recorderFilename }}</span>
 							</v-card-text>
 							<v-card-text label="Movement Command">
-								{{ this.recorder.moveCommand }}<br>
 								{{ this.recorder.testCommand }}<br>
 							</v-card-text>
 						</v-col>
@@ -274,7 +273,6 @@ export default {
 			recorder: {
 				state: AccelStates.INIT,
 
-				moveCommand: null,
 				testCommand: null,
 
 				iteration: 0,
@@ -386,7 +384,7 @@ export default {
 			let result = null;
 
 			try {
-				result = await this.sendCode(this.recorder.moveCommand + ' ' + this.recorder.testCommand);
+				result = await this.sendCode(this.recorder.testCommand);
 				this.loadFile(this.filename).then(this.refresh);
 			} catch(e) {
 				console.error("Recording Profile failed: ", e);
@@ -758,8 +756,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.moveCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} G4 S2 G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
-				this.recorder.testCommand = `M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}"`;
+				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
