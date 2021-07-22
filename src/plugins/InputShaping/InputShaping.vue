@@ -755,7 +755,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A2 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
