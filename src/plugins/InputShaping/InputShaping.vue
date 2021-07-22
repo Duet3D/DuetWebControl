@@ -10,199 +10,204 @@
 </style>
 
 <template>
-	<v-row class="pa-3">
-		<v-col cols="auto">
-			<v-card tile class="mt-2">
-				<v-card-title class="pt-2 pb-1">
-					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.inputShaping.listTitle') }}
-					<v-spacer></v-spacer>
-					<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
-				</v-card-title>
-				<v-card-text class="pa-0" v-show="files.length === 0">
-					<v-alert :value="true" type="info" class="mb-0">
-						{{ $t('plugins.inputShaping.none') }}
-					</v-alert>
-				</v-card-text>
+	<div>
+		<v-tabs v-model="selectedTab">
+			<v-tab href="#recordProfile">
+				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
+			</v-tab>
+			<v-tab href="#analysis">
+				<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.analysis') }}
+			</v-tab>
+			<v-tab href="#inputShaping">
+				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
+			</v-tab>
+		</v-tabs>
 
-				<v-list class="py-0" :disabled="uiFrozen || loading">
-					<v-list-item-group :value="selectedFile" color="primary">
-						<v-list-item v-for="file in files" :key="file" :value="file" @click="loadFile(file)">
-							{{ file }}
-						</v-list-item>
-					</v-list-item-group>
-				</v-list>
-			</v-card>
-		</v-col>
-
-		<v-col>
-			<v-card tile class="mt-2">
-				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
-				</v-card-text>
-				<v-card-text>
-					<v-row>
-						<v-col>
-							<v-text-field
+		<v-tabs-items v-model="selectedTab">
+			<!-- Record Profile -->
+			<v-tab-item value="recordProfile" class="pa-3">
+				<v-row>
+					<v-col>
+						<v-text-field
 								:label="$t('plugins.inputShaping.accelerometerId')"
 								v-model="recorder.accel"
-							></v-text-field>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col>
-							<v-select
+								></v-text-field>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						<v-select
 								:items="recorderMenuAxis"
 								v-model="recorder.axis"
 								:label="$t('plugins.inputShaping.axis')"
-							></v-select>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col>
-							<v-text-field
+								></v-select>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						<v-text-field
 								v-model.number="recorder.param.startPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
 								:label="$t('plugins.inputShaping.startPosition')"
-							></v-text-field>
-						</v-col>
-						<v-col>
-							<v-text-field
+								></v-text-field>
+					</v-col>
+					<v-col>
+						<v-text-field
 								v-model.number="recorder.param.stopPosition"
 								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
 								:label="$t('plugins.inputShaping.stopPosition')"
-							></v-text-field>
-						</v-col>
-					</v-row>
-					<v-row>
-						<v-col>
+								></v-text-field>
+					</v-col>
+				</v-row>
+				<v-row>
+					<v-col>
+						{{ $t('plugins.inputShaping.maxAcceleration', [recorder.param.maxAccel]) }}<br>
+						{{ $t('plugins.inputShaping.maxSpeed', [recorder.param.maxSpeed]) }}<br>
+						{{ $t('plugins.inputShaping.minPosition', [recorder.param.minPosition]) }}<br>
+						{{ $t('plugins.inputShaping.maxPosition', [recorder.param.maxPosition]) }}
+					</v-col>
+					<v-col>
+						{{ $t('plugins.inputShaping.filename') }}:<br>
+						<span class="font-weight-bold"> {{ this.recorderFilename }}</span><br><br>
+						Movement command: {{ this.recorder.testCommand }}
+					</v-col>
+					<v-col>
+						<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="recordProfile">
+							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
+						</v-btn>
+					</v-col>
+				</v-row>
+			</v-tab-item>
+
+			<!-- Profile Analysis -->
+			<v-tab-item value="analysis" eager class="py-3">
+				<v-row>
+					<!-- CSV File List -->
+					<v-col cols="auto">
+						<v-card tile class="mt-2">
+							<v-card-title class="pt-2 pb-1">
+								<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ $t('plugins.inputShaping.listTitle') }}
+								<v-spacer></v-spacer>
+								<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
+							</v-card-title>
+							<v-card-text class="pa-0" v-show="files.length === 0">
+								<v-alert :value="true" type="info" class="mb-0">
+									{{ $t('plugins.inputShaping.none') }}
+								</v-alert>
+							</v-card-text>
+
+							<v-list class="py-0" :disabled="uiFrozen || loading">
+								<v-list-item-group :value="selectedFile" color="primary" mandatory>
+									<v-list-item v-for="file in files" :key="file" :value="file" @click="loadFile(file)">
+										{{ file }}
+									</v-list-item>
+								</v-list-item-group>
+							</v-list>
+						</v-card>
+					</v-col>
+
+					<!-- Analysis Panel -->
+					<v-col>
+						<v-card class="d-flex flex-column flex-grow-1 mt-2">
+							<v-card-title class="pt-2 pb-0">
+								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
+							</v-card-title>
+
+							<v-card-text v-show="selectedFile !== null" class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+								<canvas ref="chart"></canvas>
+							</v-card-text>
+
+							<v-spacer v-show="selectedFile !== null && alertMessage !== null"></v-spacer>
+
+							<v-card-text class="pa-0" v-show="alertMessage !== null">
+								<v-alert :value="true" :type="alertType" class="mb-0">
+									{{ alertMessage  }}
+								</v-alert>
+							</v-card-text>
+						</v-card>
+
+						<v-card class="mt-5" v-show="selectedFile !== null">
+							<v-card-title>
+								<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.inputShaping.analysis') }}
+							</v-card-title>
+
 							<v-card-text>
-								{{ $t('plugins.inputShaping.maxAcceleration') }}: {{ recorder.param.maxAccel }}<br>
-								{{ $t('plugins.inputShaping.maxSpeed') }}: {{ recorder.param.maxSpeed }}<br>
-								{{ $t('plugins.inputShaping.maxPosition') }}: {{ recorder.param.maxPosition }}
+								<v-row>
+									<v-col>
+										<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
+									</v-col>
+									<v-col>
+										<v-slider v-model="start" :max="end - 1" :label="$t('plugins.inputShaping.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
+									</v-col>
+									<v-col>
+										<v-slider v-model="end" :min="start + 1" :max="samples.length - 1" :label="$t('plugins.inputShaping.end')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
+									</v-col>
+									<v-col cols="auto">
+										<v-checkbox v-model="wideBand" :label="$t('plugins.inputShaping.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
+									</v-col>
+									<v-col cols="auto">
+										<v-btn v-show="displaySamples" color="primary" :disabled="!samplingRateValidated || !datasetVisible || !displaySamples" @click="analyze">
+											<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.analyze') }}
+										</v-btn>
+										<v-btn v-show="!displaySamples" color="success" @click="showSamples">
+											<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.back') }}
+										</v-btn>
+									</v-col>
+								</v-row>
 							</v-card-text>
-						</v-col>
-						<v-col>
-							<v-card-text class="">
-							{{ $t('plugins.inputShaping.filename') }}:<br>
-							<span class="font-weight-bold"> {{ this.recorderFilename }}</span>
-							</v-card-text>
-							<v-card-text label="Movement Command">
-								{{ this.recorder.testCommand }}<br>
-							</v-card-text>
-						</v-col>
-						<v-col>
-							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="recordProfile">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.recordProfile') }}
-							</v-btn>
-						</v-col>
-					</v-row>
-				</v-card-text>
-			</v-card>
+						</v-card>
+					</v-col>
+				</v-row>
+			</v-tab-item>
 
-			<v-card class="d-flex flex-column flex-grow-1 mt-2">
-				<v-card-title class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
-				</v-card-title>
-
-				<v-card-text v-show="selectedFile !== null" class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-					<canvas ref="chart"></canvas>
-				</v-card-text>
-
-				<v-spacer v-show="selectedFile !== null && alertMessage !== null"></v-spacer>
-
-				<v-card-text class="pa-0" v-show="alertMessage !== null">
-					<v-alert :value="true" :type="alertType" class="mb-0">
-						{{ alertMessage  }}
-					</v-alert>
-				</v-card-text>
-			</v-card>
-
-			<v-card class="mt-5" v-show="selectedFile !== null">
-				<v-card-title>
-					<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.inputShaping.analysis') }}
-				</v-card-title>
-
-				<v-card-text>
-					<v-row>
-						<v-col>
-							<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
-						</v-col>
-						<v-col>
-							<v-slider v-model="start" :max="end - 1" :label="$t('plugins.inputShaping.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
-						</v-col>
-						<v-col>
-							<v-slider v-model="end" :min="start + 1" :max="samples.length - 1" :label="$t('plugins.inputShaping.end')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
-						</v-col>
-						<v-col cols="auto">
-							<v-checkbox v-model="wideBand" :label="$t('plugins.inputShaping.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
-						</v-col>
-						<v-col cols="auto">
-							<v-btn v-show="displaySamples" color="primary" :disabled="!samplingRateValidated || !datasetVisible || !displaySamples" @click="analyze">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.analyze') }}
-							</v-btn>
-							<v-btn v-show="!displaySamples" color="success" @click="showSamples">
-								<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.back') }}
-							</v-btn>
-						</v-col>
-					</v-row>
-				</v-card-text>
-			</v-card>
-
-			<v-card tile class="mt-2">
-				<v-card-text class="pt-2 pb-0">
-					<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.inputShapingConfiguration') }}
-				</v-card-text>
-
-				<v-card-text>
-					<v-row>
-						<v-col>
-							<v-select
+			<!-- Input Shaping Configuration -->
+			<v-tab-item value="inputShaping" class="pa-3">
+				<v-row>
+					<v-col>
+						<v-select
 								:items="Object.values(MoveShapingType)"
-								v-model="inputshaping.algorithm"
+								v-model="inputShaping.algorithm"
 								:label="$t('plugins.inputShaping.algorithm')"
-							></v-select>
-						</v-col>
-						<v-col>
-							<v-text-field
-								v-model.number="inputshaping.frequency"
+								></v-select>
+					</v-col>
+					<v-col>
+						<v-text-field
+								v-model.number="inputShaping.frequency"
 								type="number"
 								:label="$t('plugins.inputShaping.frequency')"
-							></v-text-field>
-						</v-col>
-						<v-col>
-							<v-text-field
-								v-model.number="inputshaping.damping"
+								></v-text-field>
+					</v-col>
+					<v-col>
+						<v-text-field
+								v-model.number="inputShaping.damping"
 								type="number"
 								:label="$t('plugins.inputShaping.damping')"
-							></v-text-field>
-						</v-col>
-						<v-col>
-							<v-text-field
-								v-model.number="inputshaping.minAcceleration"
+								></v-text-field>
+					</v-col>
+					<v-col>
+						<v-text-field
+								v-model.number="inputShaping.minAcceleration"
 								type="number"
 								:label="$t('plugins.inputShaping.minAcceleration')"
-							></v-text-field>
-						</v-col>
-					</v-row>
-				</v-card-text>
+								></v-text-field>
+					</v-col>
+				</v-row>
 
-				<v-card-text>
-					<v-row>
-						<v-col>
-							{{ inputshapingCommand }}
-						</v-col>
-						<v-col>
-							<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureInputShaping">
-								<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.configure') }}
-							</v-btn>
-						</v-col>
-					</v-row>
-				</v-card-text>
-			</v-card>
-		</v-col>
+				<v-row>
+					<v-col>
+						{{ inputShapingCommand }}
+					</v-col>
+					<v-col>
+						<v-btn :disabled="recorder.state === AccelStates.RUNNING" color="primary" @click="configureInputShaping">
+							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.configure') }}
+						</v-btn>
+					</v-col>
+				</v-row>
+			</v-tab-item>
+		</v-tabs-items>
 
 		<confirm-dialog :title="$t('plugins.inputShaping.overflowPrompt.title')" :prompt="$t('plugins.inputShaping.overflowPrompt.prompt')" :shown.sync="showOverflowConfirmation" @cancel="resolveOverflowPromise(false)" @confirmed="resolveOverflowPromise(true)"></confirm-dialog>
-	</v-row>
+	</div>
 </template>
 
 <script>
@@ -227,39 +232,24 @@ export default {
 		...mapState('machine', ['model']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		recorderMenuAxis() {
-			if (this.model.move.axes.length == 0) {
-				return [];
-			}
-
-			let axis = [];
-			this.model.move.axes.forEach(item => axis.push(item.letter));
-
-			return axis;
+			return this.model.move.axes.map(axis => axis.letter);
 		},
 		recorderFilename() {
-				return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputshaping.algorithm}.csv`;
+			return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputShaping.algorithm}.csv`;
 		},
-		inputshapingCommand() {
-			if (this.inputshaping.algorithm === this.MoveShapingType.none)
-				return `M593 P"${this.inputshaping.algorithm}"`;
+		inputShapingCommand() {
+			if (this.inputShaping.algorithm === this.MoveShapingType.none)
+				return `M593 P"${this.inputShaping.algorithm}"`;
 
-			return `M593 P"${this.inputshaping.algorithm}" F${this.inputshaping.frequency} S${this.inputshaping.damping} L${this.inputshaping.minAcceleration}`;
+			return `M593 P"${this.inputShaping.algorithm}" F${this.inputShaping.frequency} S${this.inputShaping.damping} L${this.inputShaping.minAcceleration}`;
 		}
 	},
 	data() {
 		return {
-			files: [],
-			selectedFile: null,
+			selectedTab: 'recordProfile',
 
-			loading: false,
-			alertType: 'error',
-			alertMessage: null,
-			showOverflowConfirmation: false,
-			resolveOverflowPromise: null,
-			displaySamples: true,
-
+			// Record Profile
 			AccelStates: AccelStates,
-			MoveShapingType: MoveShapingType,
 			recorder: {
 				state: AccelStates.INIT,
 
@@ -270,31 +260,28 @@ export default {
 				axis: null,
 				accel: null,
 				param: {
-					// spi specific paramters
-					spiFreq: 2000000,
-					csPin: null,
-					intPin: null,
-					orientationAccelZ: 2,
-					orientationAccelX: 0,
-
-					timeout: 5000, // measurement timeout in milliseconds
+					numSamples: 1000,			// number of samples to collect by M956
 
 					// axis specific parameters (watch if calibration axis changed if so, update these fields)
-					maxAccel: 0, // prefill machine->move->axis->AXIS->acceleration
-					maxSpeed: 0, // prefill machine->move->axis->AXIS->speed (in mm/s)
-					minPosition: 0, // prefill machine->move->axis->AXIS->min
-					maxPosition: 0, // prefill machine->move->axis->AXIS->max
-					startPosition: 0, // prefill maxPosition * 4 / 10
-					stopPosition: 0, // prefill maxPosition * 6 / 10
+					maxAccel: 0,				// prefill machine->move->axis->AXIS->acceleration
+					maxSpeed: 0,				// prefill machine->move->axis->AXIS->speed (in mm/s)
+					minPosition: 0,				// prefill machine->move->axis->AXIS->min
+					maxPosition: 0,				// prefill machine->move->axis->AXIS->max
+					startPosition: 0,			// prefill maxPosition * 4 / 10
+					stopPosition: 0				// prefill maxPosition * 6 / 10
 				}
 			},
-			inputshaping: {
-				algorithm: MoveShapingType.none,
-				frequency: 0, // in Hz
-				damping: 0.1,
-				minAcceleration: 10, // in mm/s^2
-				command: null
-			},
+
+			// Frequency Analysis
+			files: [],
+			selectedFile: null,
+
+			loading: false,
+			alertType: 'error',
+			alertMessage: null,
+			showOverflowConfirmation: false,
+			resolveOverflowPromise: null,
+			displaySamples: true,
 
 			start: 0,
 			dragStart: null,
@@ -309,11 +296,38 @@ export default {
 				}
 			],
 			samplingRateValidated: true,
-			wideBand: false
+			wideBand: false,
+
+			// Input Shaping
+			MoveShapingType: MoveShapingType,
+			inputShaping: {
+				algorithm: MoveShapingType.none,
+				frequency: 0, // in Hz
+				damping: 0.1,
+				minAcceleration: 10, // in mm/s^2
+				command: null
+			}
 		}
 	},
 	methods: {
 		...mapActions('machine', ['download', 'getFileList', 'sendCode']),
+
+		// Record Profile
+		async recordProfile() {
+			this.recorder.state = AccelStates.RUNNING;
+			let result = null;
+
+			try {
+				result = await this.sendCode(this.recorder.testCommand);
+				this.loadFile(this.filename).then(this.refresh);
+			} catch(e) {
+				console.error("Recording Profile failed: ", e);
+			}
+			this.recorder.state = AccelStates.HALTED;
+			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
+		},
+
+		// Frequency Analysis
 		async refresh() {
 			if (!this.isConnected) {
 				this.ready = false;
@@ -367,35 +381,6 @@ export default {
 				'#8549ba'
 			];
 			return colors[index % colors.length];
-		},
-		async recordProfile() {
-			this.recorder.state = AccelStates.RUNNING;
-			let result = null;
-
-			try {
-				result = await this.sendCode(this.recorder.testCommand);
-				this.loadFile(this.filename).then(this.refresh);
-			} catch(e) {
-				console.error("Recording Profile failed: ", e);
-			}
-			this.recorder.state = AccelStates.HALTED;
-			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
-		},
-		async configureInputShaping() {
-			let result = null;
-
-			this.recorder.iteration = this.recorder.iteration + 1;
-
-			this.recorder.state = AccelStates.RUNNING;
-			try {
-				result = await this.sendCode(this.inputshapingCommand);
-			} catch(e) {
-				console.error("Input Shaping configuration failed: ", e);
-			}
-			this.recorder.state = AccelStates.HALTED;
-			console.log("configure input shaping: ", this.inputshapingCommand, "result: ", result);
-
-			return;
 		},
 		async loadFile(file) {
 			let csvFile;
@@ -640,6 +625,24 @@ export default {
 			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
 			this.applyStartEnd();
 			this.displaySamples = true;
+		},
+
+		// Input Shaping Configuration
+		async configureInputShaping() {
+			let result = null;
+
+			this.recorder.iteration = this.recorder.iteration + 1;
+
+			this.recorder.state = AccelStates.RUNNING;
+			try {
+				result = await this.sendCode(this.inputShapingCommand);
+			} catch(e) {
+				console.error("Input Shaping configuration failed: ", e);
+			}
+			this.recorder.state = AccelStates.HALTED;
+			console.log("configure input shaping: ", this.inputShapingCommand, "result: ", result);
+
+			return;
 		}
 	},
 	mounted() {
@@ -745,7 +748,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.timeout} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A0 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
