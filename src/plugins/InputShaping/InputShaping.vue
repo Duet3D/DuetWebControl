@@ -42,6 +42,13 @@
 								:label="$t('plugins.inputShaping.axis')"
 								></v-select>
 					</v-col>
+					<v-col>
+						<v-text-field
+								v-model.number="recorder.param.numSamples"
+								type="number" :min="1" :max="65535"
+								:label="$t('plugins.inputShaping.numSamples')"
+								></v-text-field>
+					</v-col>
 				</v-row>
 				<v-row>
 					<v-col>

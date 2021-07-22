@@ -854,6 +854,7 @@ export default {
 			accelerometerConfiguration: 'Accelerometer Configuration',
 			recordProfile: 'Record Profile',
 			inputShapingConfiguration: 'Input Shaping Configuration',
+			numSamples: 'Number of Samples',
 			configure: 'Configure'
 		},
 		autoUpdate: {
