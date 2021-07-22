@@ -381,7 +381,7 @@ export default {
 	},
 	input: {
 		code: {
-			send: 'Wyślij'
+			send: 'Wyślij',
 			placeholder: 'Wyślij kod...'
 		},
 		addTemperature: 'Nowa wartość temperatury',
@@ -645,7 +645,7 @@ export default {
 			caption: 'Na temat',
 			developedBy: 'Interfejs Web stworzony przez:',
 			for: 'dla',
-			licensedUnder: Licencjonowane na prawach'
+			licensedUnder: 'Licencjonowane na prawach'
 		},
 		settingsAppearance: {
 			caption: 'Wygląd',
