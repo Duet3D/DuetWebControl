@@ -236,16 +236,6 @@ export default {
 
 			return axis;
 		},
-		recorderMenuTools() {
-			if (this.model.tools.length == 0) {
-				return [];
-			}
-
-			let tools = [];
-			this.model.tools.forEach(item => tools.push(item.name));
-
-			return tools;
-		},
 		recorderFilename() {
 				return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputshaping.algorithm}.csv`;
 		},
@@ -277,7 +267,6 @@ export default {
 
 				iteration: 0,
 
-				tool: null,
 				axis: null,
 				accel: null,
 				param: {
@@ -784,13 +773,6 @@ export default {
 				return;
 
 			this.recorder.axis = this.recorderMenuAxis[0];
-		},
-		recorderMenuTools() {
-			console.log("set default tools");
-			if (this.recorderMenuTools.length <= 0)
-				return;
-
-			this.recorder.tool = this.recorderMenuTools[0];
 		},
 	}
 }
