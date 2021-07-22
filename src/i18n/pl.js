@@ -1,17 +1,17 @@
 export default {
 	language: 'Polski',
 	'$vuetify': {
-		badge: 'znak',
+		badge: 'Znak',
 		close: 'Zamknij',
 		dataIterator: {
 			noResultsText: 'Nie znaleziono zapisów',
 			loadingText: 'Wczytywanie...',
 		},
 		dataTable: {
-			itemsPerPageText: 'rzędy na stronę:',
+			itemsPerPageText: 'Wiersze na stronę:',
 			ariaLabel: {
 				sortDescending: 'Sortowane malejąco.',
-				sortAscending: 'sortowane rosnąco.',
+				sortAscending: 'Sortowane rosnąco.',
 				sortNone: 'Nie sortowane.',
 				activateNone: 'Aktywuj aby usunąć sortowanie .',
 				activateDescending: 'Aktywuj aby sortować malejąco.',
@@ -89,19 +89,19 @@ export default {
 		},
 		upload: {
 			gcodes: {
-				caption: 'Załaduj pliki z G-kodem',
-				title: 'Wczytaj jeden lub więcej plików z G-Kodem (przeciągnij i upuść jest również obsługiwane)'
+				caption: 'Załaduj pliki z G-code',
+				title: 'Wczytaj jeden lub więcej plików z G-code (przeciągnij i upuść jest również obsługiwane)'
 			},
 			start: {
 				caption: 'Wgraj i rozpocznij',
-				title: 'Załaduj i uruchom jeden lub więcej plików G-kod (przeciągnij i upuść jest również obsługiwane)'
+				title: 'Załaduj i uruchom jeden lub więcej plików G-code (przeciągnij i upuść jest również obsługiwane)'
 			},
 			firmware: {
-				caption: 'Wczytaj pliki mikro-oprogramowania',
+				caption: 'Wczytaj pliki oprogramowania sprzętowego',
 				title: 'Wczytaj jeden lub więcej plików z filamentem (przeciągnij i upuść jest również obsługiwane)'
 			},
 			macros: {
-				caption: 'Wczytaj plik(i) Makro',
+				caption: 'Wczytaj pliki Makro',
 				title: 'Wczytaj jeden lub więcej plików makro (przeciągnij i upuść jest również obsługiwane)'
 			},
 			filaments: {
@@ -114,7 +114,7 @@ export default {
 			},
 			system: {
 				caption: 'Wczytaj pliki systemu',
-				title: 'wczytaj jeden lub więcej plików systemowych (przeciągnij i upuść jest również obsługiwane)'
+				title: 'Wczytaj jeden lub więcej plików systemowych (przeciągnij i upuść jest również obsługiwane)'
 			},
 			web: {
 				caption: 'Wczytaj pliki sieciowe',
@@ -128,18 +128,18 @@ export default {
 	},
 	chart: {
 		layer: {
-			caption: 'Diagram warstw',
+			caption: 'Wykres warstw',
 			layerTime: 'Czas nakładania warstw',
-			showLastLayers: 'Pokaż ostatnie {0} wastw',
+			showLastLayers: 'Pokaż ostatnie {0} warstw',
 			showAllLayers: 'Pokaż wszystkie warstwy',
 			layer: 'Warstwa {0}',
 			layerDuration: 'Czas nakładania warstwy: {0}',
 			layerHeight: 'Wysokość warstwy: {0}',
 			filamentUsage: 'Zużycie filamentu: {0}',
-			fractionPrinted: 'Postęp/Progres: {0}'
+			fractionPrinted: 'Postęp: {0}'
 		},
 		temperature: {
-			caption: 'Diagram temperatury',
+			caption: 'Wykres temperatury',
 			heater: 'Grzałka {0}',
 			sensor: 'Czujnik {0}',
 			noData: 'Brak danych'
@@ -147,16 +147,16 @@ export default {
 	},
 	dialog: {
 		changeMoveStep: {
-			title: 'Zmień wielkość przesuwu',
-			prompt: 'Proszę wprowadzić nową wartość przesunięcia na jedno kliknięcie:'
+			title: 'Zmień wielkość posuwu',
+			prompt: 'Proszę wprowadzić nową wartość przesunięcia na jeden przycisk:'
 		},
 		configUpdated: {
 			title: 'Zresetować panel?',
-			prompt: 'Czy chcesz zrestartować tablicę aby wgrać zaktualizowaną konfigurację?'
+			prompt: 'Czy chcesz zrestartować panel aby wgrać zaktualizowaną konfigurację?'
 		},
 		connect: {
 			title: 'Połącz z urządzeniem',
-			prompt: 'Proszę podać nazwę oraz hasło urządzenia z która chcesz się połączyć:',
+			prompt: 'Proszę podać nazwę oraz hasło urządzenia z którym chcesz się połączyć:',
 			hostPlaceholder: 'Nazwa hosta',
 			hostRequired: 'Nazwa hosta jest wymagana',
 			passwordPlaceholderOptional: 'Hasło (opcjonalnie)',
@@ -172,7 +172,7 @@ export default {
 			standBy: 'Proszę czekać...'
 		},
 		editExtrusionAmount: {
-			title: 'Edytuj ilość ekstrudowaną',
+			title: 'Edytuj ilość ekstruzji',
 			prompt: 'Proszę podać nową wartość dla jednego kliknięcia:'
 		},
 		editExtrusionFeedrate: {
@@ -239,9 +239,9 @@ export default {
 			dsf: 'Duet Software Framework',
 			dwc: 'Duet Web Control',
 			rrf: 'RepRapFirmware',
-			prerequisites: 'Prerequisites',
+			prerequisites: 'Warunki',
 			version: 'Wersja {0}',
-			noPluginSupport: 'Dedykowane wtyczki dla urzędzania są niedozwolone',
+			noPluginSupport: 'Dedykowane wtyczki dla urzędzenia są niedozwolone',
 			rootSupport: 'Wsparcie dla wtyczki administratora',
 			invalidManifest: 'Invalid plugin manifest',
 			permissions: 'Wymaga zezwolenia',
@@ -249,7 +249,7 @@ export default {
 			rootWarning: 'Ta wtyczka wymaga pozwolenia administratora, co oznacza, że może dojść do edycji przyłączonego SBC oraz instalacji potencjalnie złośliwego oprogramowania. To może spowodować trwałe uszkodzenia w jednostce ',
 			sbcPermissions: 'Wtyczka działająca na SBC wymaga',
 			noSpecialPermissions: 'Ta wtyczka nie wymaga dodatkowych zezwoleń.',
-			ready: 'Installation ready',
+			ready: 'Gotowe do instalacji',
 			readyMessage: 'Wtyczka jest gotowa do zainstalowania. Proszę się upewnić czy ufasz autorowi tej wtyczki zanim zatwierdzisz ten krok.',
 			readyDisclaimer: 'Zanim będziesz mógł kontynuować musisz zaakceptować, że Duet 3D Ltd nie ponosi odpowiedzialności za potencjalne szkody wynikające z instalacji tej wtyczki.',
 			checkboxDisclaimer: 'Akceptuję ryzyko instalacji tej wtyczki',
@@ -259,7 +259,7 @@ export default {
 			installationFailed: 'Instalacja nie powiodła się!',
 			cancel: 'Anuluj',
 			back: 'Wróć',
-			next: 'Next',
+			next: 'Dalej',
 			finish: 'Zakończ'
 		},
 		renameFile: {
@@ -291,8 +291,8 @@ export default {
 	directory: {
 		menu: 'Katalog menu',
 		filaments: 'Katalog filamentów',
-		firmware: 'atalog oprogramowania sprzętowego',
-		gcodes: 'Katalog G-Kodów',
+		firmware: 'Katalog oprogramowania sprzętowego',
+		gcodes: 'Katalog G-code',
 		macros: 'Katalog makr',
 		system: 'Katalog systemowy',
 		web: 'Katalog WWW'
@@ -300,7 +300,7 @@ export default {
 	error: {
 		notImplemented: '{0} nie zostało wprowadzone',
 		invalidPassword: 'Nieprawidłowe hasło!',
-		noFreeSession: 'Brak darmowych sesji!',
+		noFreeSession: 'Brak dostępnych sesji!',
 		connect: 'Nie można połączyć się z {0}',
 		disconnect: 'Nie możliwe było uzyskanie bezpiecznego rozłączenia od {0}',
 		disconnected: 'Nie można było ukończyć działania, ponieważ sesja wygasła ',
@@ -315,8 +315,8 @@ export default {
 		uploadStartWrongFileCount: 'Tylko pojedynczy plik może być wczytany i uruchomiony',
 		uploadNoSingleZIP: 'Tylko jeden plik ZIP może być wysłany w jednym czasie',
 		uploadNoFiles: 'Ten ZIP nie zawiera żadnych przydatnych plików',
-		codeResponse: 'Could not run code because a bad response has been received ',
-		codeBuffer: 'Could run code because the buffer space has been exhausted',
+		codeResponse: 'Uruchomienie G-code nie powiodło się, ponieważ otrzymano nieprawidłową reakcję',
+		codeBuffer: 'Nie można było uruchomić G-code, ponieważ przestrzeń buforowa została wyczerpana',
 		enterValidNumber: 'Proszę wpisać poprawną liczbę',
 		turnOffEverythingFailed: 'Nie udało się wyłączyć wszystkiego',
 		filelistRequestFailed: 'Nie udało się otrzymać listy plików',
@@ -327,7 +327,7 @@ export default {
 	events: {
 		connected: 'Połączono do {0}',
 		connectionLost: 'Nie Udało się utrzymać połączenia z {0}',
-		emergencyStop: 'Awaryjne zatrzymanie, próba ponownego połączeia...',
+		emergencyStop: 'Awaryjne zatrzymanie, próba ponownego połączenia...',
 		reconnecting: 'Połączenie zakłócone, ponowiona próba połączenia...',
 		reconnected: 'Połączono ponownie',
 		disconnected: 'Rozłączono z {0}'
@@ -381,7 +381,7 @@ export default {
 	},
 	input: {
 		code: {
-			send: 'wysłać',
+			send: 'Wyślij'
 			placeholder: 'Wyślij kod...'
 		},
 		addTemperature: 'Nowa wartość temperatury',
@@ -410,7 +410,7 @@ export default {
 			delete: 'Kasuj',
 			downloadZIP: 'Pobierz jako ZIP',
 			noFiles: 'Brak plików oraz folderów',
-			driveUnmounted: 'Drive is unmounted',
+			driveUnmounted: 'Dysk jest wymontowany',
 			goUp: 'Idź w górę'
 		},
 		menu: {
@@ -419,8 +419,8 @@ export default {
 		eventLog: {
 			date: 'Data',
 			type: 'Typ',
-			message: 'Event',
-			noEvents: 'No Events',
+			message: 'Zdarzenie',
+			noEvents: 'Brak zdarzeń',
 			clear: 'Wyczyść',
 			downloadText: 'Pobierz jako tekst',
 			downloadCSV: 'Pobierz jako CSV'
@@ -430,7 +430,7 @@ export default {
 		},
 		firmware: {
 			installFile: 'Zainstaluj plik oprogramowania sprzętowego',
-			noFiles: 'Brak plików z mikro oprogramowaniem'
+			noFiles: 'Brak plików z oprogramowaniem sprzętowym'
 		},
 		macro: {
 			caption: 'Makra',
@@ -443,7 +443,7 @@ export default {
 			layerHeight: 'Wysokość warstwy',
 			filament: 'Zużycie filamentu',
 			printTime: 'Czas druku',
-			simulatedTime: 'Symulowany czas',
+			simulatedTime: 'Estymowany czas',
 			generatedBy: 'Wygenerowany przez:',
 			noJobs: 'Brak zadań',
 			start: 'Plik startowy',
@@ -479,8 +479,8 @@ export default {
 		},
 		settings: {
 			caption: 'Ustawienia',
-			general: 'Ogólny',
-			machine: 'Specyfika urządzenia'
+			general: 'Ogólne',
+			machine: 'Specyf. urządz.'
 		}
 	},
 	notification: {
@@ -501,15 +501,15 @@ export default {
 			successMultiple: 'Pomyślnie usunięto {0} pozycje'
 		},
 		deleteFilament: {
-			errorTitle: 'Usunięcie filament(u/ów) nie powiodło się',
+			errorTitle: 'Usunięcie filamentów nie powiodło się',
 			errorStillLoaded: 'Przynajmniej jeden z filamentów jest wciąż włożony. Proszę go wyciągnąć przed kontynuacją',
-			errorSubDirectories: 'The filament {0} contains sub-directories. Please delete them manually and try again. '
+			errorSubDirectories: 'Ten filament {0} zawiera podfoldery. Proszę usunąć je ręcznie i spróbować ponownie. '
 		},
 		download: {
 			title: 'Pobieranie{0} @ {1}, {2}% Zakończone',
 			message: 'Proszę czekać, plik jest pobierany...',
 			success: 'Pobieranie {0} Ukończenie po {1}',
-			error: 'Pobieranie nieudane {0}'
+			error: 'Nieudane pobieranie {0}'
 		},
 		message: 'Wiadomość',
 		mount: {
@@ -546,14 +546,14 @@ export default {
 		responseTooLong: 'Za długi czas odpowiedzi, pokaż konsolę',
 		upload: {
 			title: 'Aktualizowanie{0} @ {1}, {2}% Ukończono',
-			message: 'Prosze czekać, plik jest wysyłany...',
+			message: 'Proszę czekać, plik jest wysyłany...',
 			success: 'Wysłanie {0} sukces po {1}',
 			error: 'Nieudane wysłanie {0}'
 		}
 	},
 	panel: {
 		atx: {
-			caption: 'zasilanie ATX ',
+			caption: 'Zasilanie ATX ',
 			on: 'On',
 			off: 'Off'
 		},
@@ -567,12 +567,12 @@ export default {
 			mixRatio: 'Mix Ratio:',
 			amount: 'Podaj ilość w {0}:',
 			feedrate: 'Szybkość podawania w {0}:',
-			retract: 'Retrakcja',
-			extrude: 'Ekstrudowanie'
+			retract: 'Retrakuj',
+			extrude: 'Ekstruduj'
 		},
 		extrusionFactors: {
 			caption: 'Czynniki ekstrudowania',
-			changeVisibility: 'Change Visibility',
+			changeVisibility: 'Wyświetlane elementy',
 			extruder: 'Ekstruder {0}',
 			noExtruders: 'Brak ekstrudera'
 		},
@@ -580,14 +580,14 @@ export default {
 			caption: 'Kontrola wentylatorów',
 			selection: 'Wybór wentylatora:',
 			toolFan: 'Narzędzie wentylatora',
-			fan: 'wentylator {0}'
+			fan: 'Wentylator {0}'
 		},
 		fans: {
 			caption: 'Wentylatory',
-			changeVisibility: 'Change Visibility',
+			changeVisibility: 'Wyświetlane elementy',
 			toolFan: 'Narzędzie wentylatora',
 			fan: 'Wentylator {0}',
-			noFans: 'brak wentylatora'
+			noFans: 'Brak wentylatora'
 		},
 		jobControl: {
 			caption: 'Kontrola pracy',
@@ -606,46 +606,46 @@ export default {
 			autoSleep: 'Uaktywnij auto-uśpienie'
 		},
 		jobData: {
-			caption: 'Zabrano dane',
+			caption: 'Zebrane dane',
 			warmUpDuration: 'Czas nagrzewania',
-			currentLayerTime: 'aktualny czas nakładania warstwy',
+			currentLayerTime: 'Aktualny czas nakładania warstwy',
 			lastLayerTime: 'Czas nakładania ostatniej warstwy',
-			jobDuration: 'czas trwania pracy'
+			jobDuration: 'Czas trwania pracy'
 		},
 		jobEstimations: {
-			caption: 'Estimations based on',
-			filament: 'zużycie filamentu',
+			caption: 'Szacowane na podstawie',
+			filament: 'Zużycie filamentu',
 			file: 'Postęp pliku',
-			layer: 'czas nakładania warstwy',
+			layer: 'Czas nakładania warstwy',
 			slicer: 'Slicer',
-			simulation: 'symulacja'
+			simulation: 'Symulacja'
 		},
 		jobInfo: {
-			caption: 'informacja o pracy',
+			caption: 'Informacja o pracy',
 			height: 'Wysokość:',
-			layerHeight: 'wysokość warstwy:',
+			layerHeight: 'Wysokość warstwy:',
 			filament: 'Zużycie filamentu:',
-			generatedBy: 'wygenerowane przez:'
+			generatedBy: 'Wygenerowane przez:'
 		},
 		movement: {
-			caption: 'ruch urządzenia',
-			compensation: 'kompensacja i kalibracja',
+			caption: 'Ruch urządzenia',
+			compensation: 'Kompensacja i kalibracja',
 			runBed: 'True Bed Levelling(G32)',
 			runDelta: 'Delta Calibration (G32)',
-			compensationInUse: 'kompensacja w użyciu: {0}',
-			disableBedCompensation: 'dezaktywuj kompensacją stołu roboczego (M561)',
+			compensationInUse: 'Kompensacja w użyciu: {0}',
+			disableBedCompensation: 'Dezaktywuj kompensacją stołu roboczego (M561)',
 			disableMeshCompensation: 'Dezaktywuj kompensację siatki mesh (G29 S2)',
-			editMesh: 'określ obszar dla kompensacji siatki mesh (M557)',
-			runMesh: 'uruchom kompensację siatki mesh (G29)',
+			editMesh: 'Określ obszar dla kompensacji siatki mesh (M557)',
+			runMesh: 'Uruchom kompensację siatki mesh (G29)',
 			loadMesh: 'Wczytaj zapisaną na karcie SD mapę wysokości  (G29 S1)',
-			axesNotHomed: 'Dana oś nie jest zbazowana:|dane ossie nie są zbazowane:',
-			noAxes: 'brak osi'
+			axesNotHomed: 'Dana oś nie jest zbazowana:|dane osie nie są zbazowane:',
+			noAxes: 'Brak osi'
 		},
 		settingsAbout: {
-			caption: 'na temat',
+			caption: 'Na temat',
 			developedBy: 'Interfejs Web stworzony przez:',
 			for: 'dla',
-			licensedUnder: 'licencjonowane na prawach'
+			licensedUnder: Licencjonowane na prawach'
 		},
 		settingsAppearance: {
 			caption: 'Wygląd',
@@ -653,30 +653,30 @@ export default {
 			language: 'Język',
 			binaryFileSizes: 'Zastosuj binarny rozmiar plików',
 			binaryFileSizesTitle: 'Rozmiary plików są wyświetlane z podstawą 1024 (IEC) zamiast 1000 (SI)',
-			disableAutoComplete: 'dezaktywuj autouzupełnianie',
+			disableAutoComplete: 'Dezaktywuj auto-uzupełnianie',
 			disableAutoCompleteTitle: 'Nie pokazuj listy autouzupełniania podczas pisania kodu oraz wartości temperatury'
 		},
 		settingsCommunication: {
 			caption: 'Komunikacja',
 			pingInterval: 'PING interval when idle (ms)',
-			updateDelay: 'odśwież opóźnienie (ms)',
-			ajaxRetries: 'maksymalna liczba prób AJAX',
-			updateInterval: 'aktualizuj interwał ({0})',
+			updateDelay: 'Odśwież opóźnienie (ms)',
+			ajaxRetries: 'Maksymalna liczba prób AJAX',
+			updateInterval: 'Aktualizuj interwał ({0})',
 			extendedUpdateEvery: 'Extended status update interval',
 			fileTransferRetryThreshold: 'Retry threshold for file transfers({0})',
-			crcUploads: 'Użyj sum kontrolnych CRC32 abysprawdzić aktualizacje',
-			unavailable: 'brak dostępnych ustawień'
+			crcUploads: 'Użyj sum kontrolnych CRC32 aby sprawdzić aktualizacje',
+			unavailable: 'Brak dostępnych ustawień'
 		},
 		settingsElectronics: {
 			caption: 'Elektronika',
 			diagnostics: 'Diagnoza',
-			board: 'Tablica: {0}',
+			board: 'Płyta główna: {0}',
 			firmware: 'Oprogramowanie sprzętowe: {0} ({1})',
 			dwsFirmware: 'Wersja serwera Duet WiFi: {0}',
 			updateNote: 'Notatka: Możesz zainstalować aktualizację na stronie systemu.'
 		},
 		settingsEndstops: {
-			caption: 'krańcówka',
+			caption: 'Krańcówka',
 			index: 'Katalog',
 			triggered: 'Wywołany'
 		},
@@ -684,9 +684,9 @@ export default {
 			caption: 'Ogólne',
 			factoryReset: 'Powróć do ustawień fabrycznych',
 			settingsStorageLocal: 'Zapisz ustawienia w lokalnej pamięci',
-			settingsSaveDelay: 'Update delay for settings changes({0})',
+			settingsSaveDelay: 'Opóźnienie aktualizacji dla zmian ustawień ({0})',
 			cacheStorageLocal: 'Zapisz pamięć podręczną na dysku lokalnym',
-			cacheSaveDelay: 'Update delay for cache changes ({0})'
+			cacheSaveDelay: 'Opóźnienie aktualizacji dla zmian w pamięci podręcznej ({0})'
 		},
 		settingsListItems: {
 			caption: 'Pokaż pozycje',
@@ -698,7 +698,7 @@ export default {
 		settingsMachine: {
 			caption: 'Specyfika urządzenia',
 			babystepAmount: ' Babystep amount({0})',
-			moveFeedrate: 'Feedrate for move buttons({0})'
+			moveFeedrate: 'Wartość posuwu na klik({0})'
 		},
 		settingsNotifications: {
 			caption: 'Powiadomienia',
@@ -728,9 +728,9 @@ export default {
 			toolPosition: 'Pozycja narzędzia',
 			machinePosition: 'Pozycja urządzenia',
 			extruders: 'Sterowniki ekstruderów',
-			extruderDrive: 'Sterownik {0}',
+			extruderDrive: 'Pozycja {0}',
 			speeds: 'Prędkości',
-			requestedSpeed: 'Żadana prędkość',
+			requestedSpeed: 'Żądana prędkość',
 			topSpeed: 'Prędkość maksymalna',
 			sensors: 'Czujniki',
 			mcuTemp: 'Temperatura MCU',
@@ -763,7 +763,7 @@ export default {
 			extra: {
 				caption: 'Dodatkowy',
 				sensor: 'Czujnik',
-				sensorIndex: 'czujnik {0}',
+				sensorIndex: 'Czujnik {0}',
 				value: 'Wartość',
 				showInChart: 'Pokaż na wykresie',
 				noItems: 'Brak dodatkowych czujników'
@@ -772,24 +772,24 @@ export default {
 		},
 		webcam: {
 			caption: 'Podgląd obrazu z kamery',
-			alt: '(obraz z kamery)'
+			alt: '(Obraz z kamery)'
 		}
 	},
 	pluginPermissions: {
 		commandExecution: 'Wykonaj ogólne komendy DSF (np. G/M/T-codes)',
 		codeInterceptionRead: 'Przechwyć G/M/T-codes',
 		codeInterceptionReadWrite: 'Przechwyć G/M/T-kody i przetwórz je.',
-		managePlugins: ' Instaluj, wczytaj, wyładuj, i odinstaluj wtyczkę firm zewnętrzych',
+		managePlugins: ' Instaluj, wczytaj, wyładuj, i odinstaluj wtyczkę zewnętrzną',
 		manageUserSessions: 'Zarządzaj sesjami użytkownika',
-		objectModelRead: 'Odczytaj z modelu obiektu?',
+		objectModelRead: 'Odczytaj z modelu obiektu',
 		objectModelReadWrite: 'Odczytuj i zapisuj na modelu',
 		registerHttpEndpoints: 'Stwórz nowy docelowy adres HTTP ',
 		readFilaments: 'Odczytaj pliki z katalogu filamentów',
 		writeFilaments: 'Zapisz pliki w katalogu filamentów',
 		readFirmware: 'Odczytaj pliki z katalogu oprogramowania sprzętowego',
 		writeFirmware: 'Zapisz pliki w katalogu oprogramowania sprzętowego',
-		readGCodes: 'Odczytaj pliki z katalogu G-Kodów',
-		writeGCodes: 'Zapisz pliki w katalogu G-Kodów',
+		readGCodes: 'Odczytaj pliki z katalogu G-code',
+		writeGCodes: 'Zapisz pliki w katalogu G-code',
 		readMacros: 'Odczytaj pliki z katalogu makr',
 		writeMacros: 'Zapisz pliki w katalogu makr',
 		readMenu: 'Odczytaj pliki z katalogu menu',
@@ -809,91 +809,91 @@ export default {
 			listTitle: 'Pliki CSV',
 			none: 'Brak pliku',
 			chartCaption: 'Próba przyspieszenia',
-			noData: 'brak wczytanych prób',
-			analysis: 'analiza częstotliwości',
-			samplingRate: 'próbkowanie (in Hz)',
+			noData: 'Brak wczytanych prób',
+			analysis: 'Analiza częstotliwości',
+			samplingRate: 'Próbkowanie (in Hz)',
 			start: 'Start',
 			end: 'Koniec',
 			wideBand: 'Analiza szeroko-pasmowa',
-			analyze: 'analizuj',
-			back: 'back',
+			analyze: 'Analizuj',
+			back: 'Back',
 			overflowPrompt: {
-				title: 'wykryto przelanie ',
+				title: 'Wykryto przelanie ',
 				prompt: 'Plik CSV wykrył przelanie. Czy na pewno chcesz kontynuować?'
 			},
 			loadError: 'Nie Udało się wczytać pliku CSV',
 			parseError: 'Nie udało się przetworzyć pliku CSV',
-			frequency: 'częstotliwość (w Hz)',
-			amplitudes: 'amplituda',
+			frequency: 'Częstotliwość (w Hz)',
+			amplitudes: 'Amplituda',
 			samples: 'próba',
 			accelerations: 'Przyspieszenie (w G)',
-			sampleTooltip: 'próba #{0}',
+			sampleTooltip: 'Próba #{0}',
 			frequencyTooltip: '{0} ± {1} Hz'
 		},
 		autoUpdate: {
 			menuCaption: 'Aktualizacja'
 		},
 		gcodeViewer: {
-			caption: 'Podgląd G-kod',
-			view3D: 'obraz 3D',
+			caption: 'Podgląd G-code',
+			view3D: 'Podgląd 3D',
 			fullscreen: 'Pełny ekran',
 			showConfiguration: 'Wyświetl opcje podglądu',
 			resetCamera: {
 				caption : 'Resetuj kamerę',
-				title: 'resetuj kamerę do pozycji wyjściowej'
+				title: 'Resetuj kamerę do pozycji wyjściowej'
 			},
-			cancelLoad: 'Anuluj wczytytwanie pliku',
+			cancelLoad: 'Anuluj wczytywanie pliku',
 			reloadView: {
 				caption : 'Wczytaj ponownie podgląd',
-				title : 'Wczytaj ponownie G-kod, jest to stosowane w momencie zmiany ustawień koloru, szybkości podawania koloru itd.'
+				title : 'Wczytaj ponownie G-code, jest to stosowane w momencie zmiany ustawień koloru, szybkości podawania koloru itp.'
 			},
 			loadCurrentJob:  {
-				caption :'wczytaj aktualne zadanie', 
+				caption :'Wczytaj aktualne zadanie', 
 				title : 'Wczytaj aktualny wydruk lub symulację'
 			},
 			unloadGCode:  {
-				caption: 'Wypakuj G-kod',
+				caption: 'Wypakuj G-code',
 				title : ' Usuń wczytany kod z podglądu'
 			},
 			loadLocalGCode: {
-				caption : 'Wczytaj lokalny G-kod',
+				caption : 'Wczytaj lokalny G-code',
 				title : ' Wczytaj plik z lokalnego dysku do podglądu'
 			},
-			showCursor: 'pokaż kursor',
-			showTravels: 'pokaż ścieżkę',
+			showCursor: 'Pokaż kursor',
+			showTravels: 'Pokaż ścieżkę',
 			renderQuality: {
 				caption : 'Jakość renderowania',
-				title : 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become vailable'
+				title : 'Dostosuj jakość wyświetlania obrazu. Im wyższa jakość tym więcej dostępnych jest punktów oraz trybów renderowania.'
 			},
 			sbc: 'SBC',
 			low: 'Niska',
-			medium: 'średnia',			
+			medium: 'Średnia',			
 			high: 'Wysoka',
 			ultra: 'Ultra',
 			max: 'Maksymalna',
-			forceLineRendering: 'Force Line Rendering',
+			forceLineRendering: 'Wymuś renderowanie liniowe',
 			transparency: 'Transparentność',
-			showSolid: 'Show Solid',
-			spreadLines: 'Spread Lines-Rozrzuć linie',
+			showSolid: 'Pokaż bryłę',
+			spreadLines: 'Rozrzuć linie',
 			extruders: {
 				caption:  'Ekstrudery',
 				title : 'Ustaw kolory renderowania ekstrudera'
 			},
-			tool: 'Tool {0}',
+			tool: 'Narzędzie {0}',
 			resetColor: 'Resetuj kolor narzędzia | Resetuj kolory narzędzia',
 			renderMode : {
 				caption : 'Tryb renderowania | Tryby renderowania',
-				title : 'Tryb renderowania na podglądzie umożliwia ustawienie koloru ekstrudera lub prędkości przesuwu  linii kolorujących'
+				title : 'Tryb renderowania na podglądzie umożliwia ustawienie koloru ekstrudera lub prędkości posuwu  linii kolorujących'
 			},
 			color: 'Kolor',
-			feedrate: 'Prędkość przesuwu',
-			minFeedrate: 'Minimalna prędkość przesuwu (mm/s)',
-			maxFeedrate: 'Maksymalna prędkość przesuwu (mm/s)',
+			feedrate: 'Prędkość posuwu',
+			minFeedrate: 'Minimalna prędkość posuwu (mm/s)',
+			maxFeedrate: 'Maksymalna prędkość posuwu (mm/s)',
 			minFeedrateColor: 'Minimalna prędkość dawkowania koloru',
 			maxFeedrateColor: 'Maksymalna prędkość dawkowania koloru',
 			progress: {
 				caption : 'Postęp',
-				title: 'Określ wydrukowane kolory w celu śledzenia postępu'
+				title: 'Określ drukowany kolor w celu śledzenia postępu'
 			},
 			topClipping: 'Górny wycinek',
 			bottomClipping:'Dolny wycinek',
@@ -927,11 +927,11 @@ export default {
 			radius: 'Promień próbkowania: {0}',
 			area: 'Obszar próbkowania: {0}',
 			maxDeviations: 'Maksymalne odchylenie: {0} / {1}',
-			meanError: 'Mean error: {0}',
-			rmsError: 'RMS error: {0}',
-			display: 'Wyświetl',
+			meanError: 'Uśredniony błąd: {0}',
+			rmsError: 'Błąd RMS: {0}',
+			display: 'Wyświetlanie',
 			colorScheme: 'Schemat koloru:',
-			terrain: 'Teren',
+			terrain: 'Powierzchnia',
 			heat: 'Ciepło',
 			invertZ: 'Odwróć współrzędne Z',
 			topView: 'Widok z góry',
@@ -954,18 +954,18 @@ export default {
 				name: 'Nazwa',
 				author: 'Autor',
 				version: 'Wersja',
-				license: 'licencja',
+				license: 'Licencja',
 				dependencies: 'Dependencies',
 				status: 'Status'
 			},
-			optional: 'opcjonalne',
+			optional: 'Opcjonalne',
 			start: 'Start',
-			partiallyStarted: 'częściowo rozpoczęte',
-			started: 'Rozpoczęte',
+			partiallyStarted: 'Częściowo rozpoczęte',
+			started: 'Aktywne',
 			stop: 'Stop',
-			deactivated: 'dezaktywowane',
-			stopped: 'zatrzymane',
-			uninstall: 'odinstaluj',
+			deactivated: 'Dezaktywowane',
+			stopped: 'Zatrzymane',
+			uninstall: 'Odinstaluj',
 			noPlugins: 'Brak wtyczek',
 			refreshNote: 'Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC'
 		}
