@@ -842,7 +842,7 @@ export default {
 			tool: 'Tool',
 			axis: 'Axis',
 			filename: 'Filename (auto-generated)',
-			minAcceleration: 'Min Acceleration',
+			minAcceleration: 'Min Acceleration (in mm/s²)',
 			maxAcceleration: 'Max Acceleration: {0} mm/s²',
 			maxSpeed: 'Max Speed: {0} mm/min',
 			minPosition: 'Min Position: {0} mm',
