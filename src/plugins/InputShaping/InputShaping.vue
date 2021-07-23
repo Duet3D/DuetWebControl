@@ -386,6 +386,13 @@ export default {
 				return;
 			}
 
+			let notHomed = this.model.move.axes.find(axes => axes.homed == false);
+			console.log("not homed?", typeof notHomed, notHomed);
+			if (notHomed) {
+				console.error("not all axes are homed.");
+				return;
+			}
+
 			this.recorder.state = AccelStates.RUNNING;
 			let result = null;
 
