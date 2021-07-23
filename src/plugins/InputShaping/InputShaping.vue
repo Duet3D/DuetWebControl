@@ -177,36 +177,42 @@
 
 			<!-- Input Shaping Configuration -->
 			<v-tab-item value="inputShaping" class="pa-3">
-				<v-row>
-					<v-col>
-						<v-select
+				<v-form ref="formInputShaping" @submit.prevent="submit">
+					<v-row>
+						<v-col>
+							<v-select
 								:items="Object.values(MoveShapingType)"
 								v-model="inputShaping.algorithm"
 								:label="$t('plugins.inputShaping.algorithm')"
+								:rules="rules.inputShaping.algorithm"
 								></v-select>
-					</v-col>
-					<v-col>
-						<v-text-field
+						</v-col>
+						<v-col>
+							<v-text-field
 								v-model.number="inputShaping.frequency"
 								type="number"
 								:label="$t('plugins.inputShaping.frequency')"
+								:rules="rules.inputShaping.frequency"
 								></v-text-field>
-					</v-col>
-					<v-col>
-						<v-text-field
+						</v-col>
+						<v-col>
+							<v-text-field
 								v-model.number="inputShaping.damping"
 								type="number"
 								:label="$t('plugins.inputShaping.damping')"
+								:rules="rules.inputShaping.damping"
 								></v-text-field>
-					</v-col>
-					<v-col>
-						<v-text-field
+						</v-col>
+						<v-col>
+							<v-text-field
 								v-model.number="inputShaping.minAcceleration"
 								type="number"
 								:label="$t('plugins.inputShaping.minAcceleration')"
+								:rules="rules.inputShaping.minAcceleration"
 								></v-text-field>
-					</v-col>
-				</v-row>
+						</v-col>
+					</v-row>
+				</v-form>
 
 				<v-row>
 					<v-col>
@@ -290,6 +296,21 @@ export default {
 						v => (v <= this.recorder.param.maxPosition) || 'Must be smaller than or equal to ${{ this.recorder.param.maxPosition }}',
 						v => (v > this.recorder.param.startPosition) || 'Must be greater than ${{ this.recorder.param.startPosition }}'
 					],
+				},
+				inputShaping: {
+					algorithm: [
+						v => Object.values(this.MoveShapingType).find(val => val === v) && true || 'Please select a valid algorithm'
+					],
+					frequency: [
+						v => v > 0 || 'Please choose a frequency greater than 0',
+					],
+					damping: [
+						v => v > 0 || 'Please choose a damping value bigger than 0',
+						v => v < 1 || 'Please choose a damping value smaller than 1',
+					],
+					minAcceleration: [
+						v => typeof v === "number" || 'Please enter a valid acceleration',
+					]
 				}
 			},
 
@@ -680,6 +701,11 @@ export default {
 
 		// Input Shaping Configuration
 		async configureInputShaping() {
+			let valid = this.$refs.formInputShaping.validate();
+			if (!valid) {
+				console.error("invalid values in input shaping form.");
+				return;
+			}
 			let result = null;
 
 			this.recorder.iteration = this.recorder.iteration + 1;
