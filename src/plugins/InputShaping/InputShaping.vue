@@ -245,7 +245,7 @@ import { MoveShapingType } from '../../store/machine/modelEnums.js'
 
 import { transform } from './fft.js'
 import { AccelStates } from './InputShapingEnums.js'
-
+import { makeNotification } from '../../utils/toast.js'
 
 export default {
 	computed: {
@@ -272,44 +272,44 @@ export default {
 			rules: {
 				recorder: {
 					accel: [
-						v => /^\d+(?:\.\d+)?$/.test(v) || 'Must be valid Accelelerometer ID'
+						v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),
 					],
 					axis: [
-						v => (this.model.move.axes.find(axis => axis.letter === v) && true) || 'Must be a valid axis',
+						v => (this.model.move.axes.find(axis => axis.letter === v) && true) || this.$t('plugins.inputShaping.validAxis'),
 					],
 					numSamples: [
-						v => /\d+/.test(v) || 'Must be valid integer',
-						v => v > 0 || 'Must be greater than 0',
-						v => v <= 65535 || 'Must be number less then or equal to 65535',
+						v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
+						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
+						v => v <= 65535 || this.$t('plugins.inputShaping.smallerThanOrEqualTo', [ 655535 ]),
 					],
 					startPosition: [
-						v => /\d+/.test(v) || 'Must be valid integer',
-						v => (typeof v === "number" && this.recorder.axis ? true : false) || 'Please select an axis first',
-						v => (v >= this.recorder.param.minPosition) || 'Must be bigger than ${{ this.recorder.param.minPosition }}',
-						v => (v <= this.recorder.param.maxPosition) || 'Must be smaller than or equal to ${{ this.recorder.param.maxPosition }}',
-						v => (v < this.recorder.param.stopPosition) || 'Must be smaller than ${{ this.recorder.param.stopPosition }}',
+						v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
+						v => (typeof v === "number" && this.recorder.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
+						v => (v >= this.recorder.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.recorder.param.minPosition ]),
+						v => (v < this.recorder.param.stopPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.recorder.param.stopPosition ]),
+						v => (v <= this.recorder.param.maxPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.recorder.param.maxPosition ]),
 					],
 					stopPosition: [
-						v => /\d+/.test(v) || 'Must be valid integer',
-						v => (typeof v === "number" && this.recorder.axis ? true : false) || 'Please select an axis first',
-						v => (v >= this.recorder.param.minPosition) || 'Must be bigger than ${{ this.recorder.param.minPosition }}',
-						v => (v <= this.recorder.param.maxPosition) || 'Must be smaller than or equal to ${{ this.recorder.param.maxPosition }}',
-						v => (v > this.recorder.param.startPosition) || 'Must be greater than ${{ this.recorder.param.startPosition }}'
+						v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
+						v => (typeof v === "number" && this.recorder.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
+						v => (v >= this.recorder.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.recorder.param.minPosition ]),
+						v => (v > this.recorder.param.startPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.recorder.param.startPosition ]),
+						v => (v <= this.recorder.param.maxPosition) || this.$t('plugins.inputShaping.smallerThanOrEqualTo', [ this.recorder.param.maxPosition ]),
 					],
 				},
 				inputShaping: {
 					algorithm: [
-						v => Object.values(this.MoveShapingType).find(val => val === v) && true || 'Please select a valid algorithm'
+						v => Object.values(this.MoveShapingType).find(val => val === v) && true || this.$t('plugins.inputShaping.validAlgorithm'),
 					],
 					frequency: [
-						v => v > 0 || 'Please choose a frequency greater than 0',
+						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
 					],
 					damping: [
-						v => v > 0 || 'Please choose a damping value bigger than 0',
-						v => v < 1 || 'Please choose a damping value smaller than 1',
+						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
+						v => v < 1 || this.$t('plugins.inputShaping.smallerThan', [ 1 ]),
 					],
 					minAcceleration: [
-						v => typeof v === "number" || 'Please enter a valid acceleration',
+						v => typeof v === "number" || this.$t('plugins.inputShaping.validAcceleration'),
 					]
 				}
 			},
@@ -383,13 +383,16 @@ export default {
 			let valid = this.$refs.formRecordProfile.validate();
 			if (!valid) {
 				console.error("invalid values in record profile form.");
+				makeNotification("error", this.$t('plugins.inputShaping.name'),
+					this.$t('plugins.inputShaping.parametersNotValid'), 2000);
 				return;
 			}
 
-			let notHomed = this.model.move.axes.find(axes => axes.homed == false);
-			console.log("not homed?", typeof notHomed, notHomed);
-			if (notHomed) {
-				console.error("not all axes are homed.");
+			let axis = this.model.move.axes.find(axis => axis.letter === this.recorder.axis);
+			if (axis.homed === false) {
+				makeNotification("error", this.$t('plugins.inputShaping.name'),
+					this.$t('plugins.inputShaping.axisNotHomed'), 2000);
+				console.error("axis not homed.");
 				return;
 			}
 
@@ -398,7 +401,11 @@ export default {
 
 			try {
 				result = await this.sendCode(this.recorder.testCommand);
-				this.loadFile(this.filename).then(this.refresh);
+				if (result) {
+					console.error(typeof result, result);
+					throw new Error('Failed to run acceleration profile.');
+				}
+				this.loadFile(this.recorderFilename).then(this.refresh);
 			} catch(e) {
 				console.error("Recording Profile failed: ", e);
 			}
@@ -832,7 +839,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A2 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `M204 P10000 T10000 G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A2 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
 			},
 			deep: true,
 		},
@@ -855,10 +862,10 @@ export default {
 			}
 		},
 		recorderMenuAxis() {
-			console.log("set default axis");
 			if (this.recorderMenuAxis.length <= 0)
 				return;
 
+			console.log("set default axis");
 			this.recorder.axis = this.recorderMenuAxis[0];
 		},
 	}

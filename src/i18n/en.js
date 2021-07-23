@@ -871,7 +871,18 @@ export default {
 			recordProfile: 'Record Profile',
 			inputShapingConfiguration: 'Input Shaping Configuration',
 			numSamples: 'Number of Samples',
-			configure: 'Configure'
+			configure: 'Configure',
+			validInteger: 'Must be a valid Integer',
+			greaterThan: 'Must be greater than {0}',
+			smallerThan: 'Must be smaller than {0}',
+			smallerThanOrEqualTo: 'Must be smaller than or equal to {0}',
+			axisFirst: 'Select an axis first',
+			validAxis: 'Select a valid axis',
+			validAccelerationId: 'Select a valid Accelerometer ID',
+			validAlgorithm: 'Select a valid Algorithm',
+			validAcceleration: 'Select a Acceleration',
+			parametersNotValid: 'One or more parameters are not valid.',
+			axisNotHomed: 'The axis for calibration is not homed. Please home first.'
 		},
 		autoUpdate: {
 			menuCaption: 'Update'
