@@ -26,46 +26,54 @@
 		<v-tabs-items v-model="selectedTab">
 			<!-- Record Profile -->
 			<v-tab-item value="recordProfile" class="pa-3">
-				<v-row>
-					<v-col>
-						<v-text-field
-								:label="$t('plugins.inputShaping.accelerometerId')"
-								v-model="recorder.accel"
-								></v-text-field>
-					</v-col>
-				</v-row>
-				<v-row>
-					<v-col>
-						<v-select
-								:items="recorderMenuAxis"
-								v-model="recorder.axis"
-								:label="$t('plugins.inputShaping.axis')"
-								></v-select>
-					</v-col>
-					<v-col>
-						<v-text-field
-								v-model.number="recorder.param.numSamples"
-								type="number" :min="1" :max="65535"
-								:label="$t('plugins.inputShaping.numSamples')"
-								></v-text-field>
-					</v-col>
-				</v-row>
-				<v-row>
-					<v-col>
-						<v-text-field
-								v-model.number="recorder.param.startPosition"
-								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
-								:label="$t('plugins.inputShaping.startPosition')"
-								></v-text-field>
-					</v-col>
-					<v-col>
-						<v-text-field
-								v-model.number="recorder.param.stopPosition"
-								type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
-								:label="$t('plugins.inputShaping.stopPosition')"
-								></v-text-field>
-					</v-col>
-				</v-row>
+				<v-form ref="formRecordProfile" @submit.prevent="submit">
+					<v-row>
+						<v-col>
+							<v-text-field
+									:label="$t('plugins.inputShaping.accelerometerId')"
+									v-model="recorder.accel"
+									:rules="rules.recorder.accel"
+									required
+									></v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-select
+									:items="recorderMenuAxis"
+									v-model="recorder.axis"
+									:label="$t('plugins.inputShaping.axis')"
+									:rules="rules.recorder.axis"
+									></v-select>
+						</v-col>
+						<v-col>
+							<v-text-field
+									v-model.number="recorder.param.numSamples"
+									type="number" :min="1" :max="65535"
+									:label="$t('plugins.inputShaping.numSamples')"
+									:rules="rules.recorder.numSamples"
+									></v-text-field>
+						</v-col>
+					</v-row>
+					<v-row>
+						<v-col>
+							<v-text-field
+									v-model.number="recorder.param.startPosition"
+									type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
+									:label="$t('plugins.inputShaping.startPosition')"
+									:rules="rules.recorder.startPosition"
+									></v-text-field>
+						</v-col>
+						<v-col>
+							<v-text-field
+									v-model.number="recorder.param.stopPosition"
+									type="number" :min="recorder.param.minPosition" :max="recorder.param.maxPosition"
+									:label="$t('plugins.inputShaping.stopPosition')"
+									:rules="rules.recorder.stopPosition"
+									></v-text-field>
+						</v-col>
+					</v-row>
+				</v-form>
 				<v-row>
 					<v-col>
 						{{ $t('plugins.inputShaping.maxAcceleration', [recorder.param.maxAccel]) }}<br>
@@ -255,6 +263,36 @@ export default {
 		return {
 			selectedTab: 'recordProfile',
 
+			rules: {
+				recorder: {
+					accel: [
+						v => /^\d+(?:\.\d+)?$/.test(v) || 'Must be valid Accelelerometer ID'
+					],
+					axis: [
+						v => (this.model.move.axes.find(axis => axis.letter === v) && true) || 'Must be a valid axis',
+					],
+					numSamples: [
+						v => /\d+/.test(v) || 'Must be valid integer',
+						v => v > 0 || 'Must be greater than 0',
+						v => v <= 65535 || 'Must be number less then or equal to 65535',
+					],
+					startPosition: [
+						v => /\d+/.test(v) || 'Must be valid integer',
+						v => (typeof v === "number" && this.recorder.axis ? true : false) || 'Please select an axis first',
+						v => (v >= this.recorder.param.minPosition) || 'Must be bigger than ${{ this.recorder.param.minPosition }}',
+						v => (v <= this.recorder.param.maxPosition) || 'Must be smaller than or equal to ${{ this.recorder.param.maxPosition }}',
+						v => (v < this.recorder.param.stopPosition) || 'Must be smaller than ${{ this.recorder.param.stopPosition }}',
+					],
+					stopPosition: [
+						v => /\d+/.test(v) || 'Must be valid integer',
+						v => (typeof v === "number" && this.recorder.axis ? true : false) || 'Please select an axis first',
+						v => (v >= this.recorder.param.minPosition) || 'Must be bigger than ${{ this.recorder.param.minPosition }}',
+						v => (v <= this.recorder.param.maxPosition) || 'Must be smaller than or equal to ${{ this.recorder.param.maxPosition }}',
+						v => (v > this.recorder.param.startPosition) || 'Must be greater than ${{ this.recorder.param.startPosition }}'
+					],
+				}
+			},
+
 			// Record Profile
 			AccelStates: AccelStates,
 			recorder: {
@@ -321,6 +359,12 @@ export default {
 
 		// Record Profile
 		async recordProfile() {
+			let valid = this.$refs.formRecordProfile.validate();
+			if (!valid) {
+				console.error("invalid values in record profile form.");
+				return;
+			}
+
 			this.recorder.state = AccelStates.RUNNING;
 			let result = null;
 
