@@ -263,6 +263,11 @@ export default {
 				return `M593 P"${this.inputShaping.algorithm}"`;
 
 			return `M593 P"${this.inputShaping.algorithm}" F${this.inputShaping.frequency} S${this.inputShaping.damping} L${this.inputShaping.minAcceleration}`;
+		},
+		machineStatus() {
+			console.log("machine status", this.model.state.status, "recorder status", this.recorder.state);
+
+			return this.model.state.status;
 		}
 	},
 	data() {
@@ -317,7 +322,8 @@ export default {
 			// Record Profile
 			AccelStates: AccelStates,
 			recorder: {
-				state: AccelStates.INIT,
+				state: AccelStates.IDLE,
+				debounceTimer: null,
 
 				testCommand: null,
 
@@ -382,9 +388,9 @@ export default {
 		async recordProfile() {
 			let valid = this.$refs.formRecordProfile.validate();
 			if (!valid) {
-				console.error("invalid values in record profile form.");
 				makeNotification("error", this.$t('plugins.inputShaping.name'),
 					this.$t('plugins.inputShaping.parametersNotValid'), 2000);
+				console.error("invalid values in record profile form.");
 				return;
 			}
 
@@ -396,7 +402,22 @@ export default {
 				return;
 			}
 
-			this.recorder.state = AccelStates.RUNNING;
+			if (this.model.state.status !== "idle") {
+				makeNotification("error", this.$t('plugins.inputShaping.name'),
+					this.$t('plugins.inputShaping.printerBusy'), 2000);
+				console.error("printer is busy.");
+				return;
+			}
+
+
+			if (this.recorder.state != this.AccelStates.IDLE) {
+				console.log("recorder is not idle.", this.recorder.state);
+				return;
+			}
+
+			this.recorder.state = this.AccelStates.RUNNING;
+			console.log("starting to record profile.");
+
 			let result = null;
 
 			try {
@@ -405,11 +426,11 @@ export default {
 					console.error(typeof result, result);
 					throw new Error('Failed to run acceleration profile.');
 				}
-				this.loadFile(this.recorderFilename).then(this.refresh);
 			} catch(e) {
 				console.error("Recording Profile failed: ", e);
+				this.recorder.state = this.AccelStates.IDLE;
+				return;
 			}
-			this.recorder.state = AccelStates.HALTED;
 			console.log("record profile: ", this.recorder.testCommand, "result: ", result);
 		},
 
@@ -434,6 +455,8 @@ export default {
 					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'));
 				files.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
 				this.files = files.map(file => file.name);
+			} catch (e) {
+				console.error("Loading files failed.", e);
 			} finally {
 				this.loading = false;
 			}
@@ -555,7 +578,7 @@ export default {
 								maxValue = value;
 							}
 							dataset.data.push(value);
-							if (dataset.data.length > numSamples) { 
+							if (dataset.data.length > numSamples) {
 								numSamples = dataset.data.length;
 								this.chart.data.labels.push(dataset.data.length);
 							}
@@ -724,13 +747,12 @@ export default {
 
 			this.recorder.iteration = this.recorder.iteration + 1;
 
-			this.recorder.state = AccelStates.RUNNING;
 			try {
 				result = await this.sendCode(this.inputShapingCommand);
 			} catch(e) {
-				console.error("Input Shaping configuration failed: ", e);
+				console.error("Input Shaping configuration failed: ", e, this.inputShapingCommand);
+				return;
 			}
-			this.recorder.state = AccelStates.HALTED;
 			console.log("configure input shaping: ", this.inputShapingCommand, "result: ", result);
 
 			return;
@@ -839,7 +861,7 @@ export default {
 		recorder: {
 			handler () {
 				// build configure and test command
-				this.recorder.testCommand = `M204 P10000 T10000 G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A2 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition}`;
+				this.recorder.testCommand = `M204 P10000 T10000 G1 ${this.recorder.axis}${this.recorder.param.startPosition} F${this.recorder.param.maxSpeed} G4 S2 M956 P${this.recorder.accel} S${this.recorder.param.numSamples} A2 F"${this.recorderFilename}" G1 ${this.recorder.axis}${this.recorder.param.stopPosition} M400`;
 			},
 			deep: true,
 		},
@@ -867,6 +889,36 @@ export default {
 
 			console.log("set default axis");
 			this.recorder.axis = this.recorderMenuAxis[0];
+		},
+		machineStatus: {
+			handler() {
+				if (this.recorder.debounceTimer)
+					clearTimeout(this.recorder.debounceTimer);
+
+				if (this.model.state.status !== "idle") {
+						return;
+				}
+
+				this.recorder.debounceTimer = setTimeout(function (that) {
+					console.log("handle machine status", that.model.state.status, "recorder status", that.recorder.state);
+
+					that.recorder.debounceTimer = null;
+
+					if (that.recorder.state === that.AccelStates.IDLE) {
+						console.log("recorder is already idle.");
+						return;
+					}
+
+					if (that.model.state.status !== "idle") {
+						return;
+					}
+
+					that.recorder.state = that.AccelStates.IDLE;
+
+					// update analysis tab with newly generated file
+					that.loadFile(that.recorderFilename).then(that.refresh);
+				}, 2000, this);
+			}
 		},
 	}
 }
