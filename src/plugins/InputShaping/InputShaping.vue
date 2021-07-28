@@ -672,6 +672,10 @@ export default {
 			const numPoints = this.end - this.start, resolution = this.samplingRate / numPoints;
 			const numFreqs = Math.floor(Math.min(numPoints / 2, (this.wideBand ? (this.samplingRate / 2) : 200) / resolution));
 
+			let findFreq = {
+				amplitude: 0,
+				frequency: 0,
+			};
 			// Perform frequency analysis for visible datasets
 			const newDatasets = [];
 			for (let i = 0; i < this.chart.data.datasets.length; i++) {
@@ -686,7 +690,13 @@ export default {
 					const amplitudes = new Array(numFreqs);
 					for (let k = 1; k <= numFreqs; k++) {
 						amplitudes[k - 1] = (Math.sqrt(real[k] * real[k] + imag[k] * imag[k]) / numPoints).toFixed(5);
+						if (findFreq.amplitude < amplitudes[k - 1]) {
+							findFreq.amplitude = amplitudes[k - 1];
+							findFreq.frequency = k;
+							console.log("findFreq", findFreq.frequency, findFreq.amplitude);
+						}
 					}
+
 
 					// Add new dataset
 					const dataset = {
@@ -700,6 +710,11 @@ export default {
 						label: this.chart.data.datasets[i].label
 					};
 					newDatasets.push(dataset);
+				}
+
+				if (findFreq.amplitude > 0) {
+					this.inputShaping.frequency = findFreq.frequency;
+					console.log("Setting inputshaping frequency to", findFreq.frequency);
 				}
 			}
 
