@@ -521,8 +521,6 @@ export default {
 			}
 
 			// Clean up
-			this.axes = [];
-			this.accelerations = [];
 			this.alertType = 'info';
 			this.alertMessage = this.$t('plugins.inputShaping.noData');
 			this.chart.data.datasets = [];
