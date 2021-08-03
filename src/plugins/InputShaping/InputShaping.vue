@@ -389,7 +389,7 @@ export default {
 			let valid = this.$refs.formRecordProfile.validate();
 			if (!valid) {
 				makeNotification("error", this.$t('plugins.inputShaping.name'),
-					this.$t('plugins.inputShaping.parametersNotValid'), 2000);
+					this.$t('plugins.inputShaping.parametersNotValid'));
 				console.error("invalid values in record profile form.");
 				return;
 			}
@@ -397,18 +397,17 @@ export default {
 			let axis = this.model.move.axes.find(axis => axis.letter === this.recorder.axis);
 			if (axis.homed === false) {
 				makeNotification("error", this.$t('plugins.inputShaping.name'),
-					this.$t('plugins.inputShaping.axisNotHomed'), 2000);
+					this.$t('plugins.inputShaping.axisNotHomed'));
 				console.error("axis not homed.");
 				return;
 			}
 
 			if (this.model.state.status !== "idle") {
 				makeNotification("error", this.$t('plugins.inputShaping.name'),
-					this.$t('plugins.inputShaping.printerBusy'), 2000);
+					this.$t('plugins.inputShaping.printerBusy'));
 				console.error("printer is busy.");
 				return;
 			}
-
 
 			if (this.recorder.state != this.AccelStates.IDLE) {
 				console.log("recorder is not idle.", this.recorder.state);
