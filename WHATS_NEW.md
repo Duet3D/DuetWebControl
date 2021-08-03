@@ -11,6 +11,7 @@ Compatible versions:
 New features:
 - Greatly improved performance for object model updates
 - Plugins may now register custom i18n data
+- Added controls from DWC-CNC fork
 
 Changed behaviour:
 - Old-style `rr_status` requests are no longer supported
