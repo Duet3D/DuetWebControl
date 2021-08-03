@@ -9,7 +9,7 @@
 				<v-icon class="mr-1">{{ isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon> {{ pauseResumeText }}
 			</code-btn>
 
-			<code-btn v-if="isPaused" color="error" block code="M0 H1">
+			<code-btn v-if="isPaused" color="error" block code="M0">
 				<v-icon class="mr-1">mdi-stop</v-icon> {{ cancelText }}
 			</code-btn>
 

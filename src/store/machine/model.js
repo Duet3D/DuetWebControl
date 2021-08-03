@@ -141,7 +141,9 @@ export class MachineModel {
 			_internalMeshDeviation: null,
 			get meshDeviation() { return this._internalMeshDeviation; },
 			set meshDeviation(value) {
-				fixObject(value, new MeshDeviation());
+				if (value !== null) {
+					fixObject(value, new MeshDeviation());
+				}
 				this._internalMeshDeviation = value;
 			},
 			probeGrid: {
