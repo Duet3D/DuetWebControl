@@ -25,27 +25,20 @@
 <script>
 'use strict';
 
-import {mapState, mapMutations} from 'vuex';
-import {DashboardMode} from '../../store/machine/modelEnums.js';
+import { mapState, mapMutations } from 'vuex'
+
+import { DashboardMode } from '../../store/settings.js'
 
 export default {
 	computed: {
 		...mapState(['settings']),
 		darkTheme: {
-			get() {
-				return this.settings.darkTheme;
-			},
-			set(value) {
-				this.update({darkTheme: value});
-			},
+			get() { return this.settings.darkTheme; },
+			set(value) { this.update({ darkTheme: value }); }
 		},
 		language: {
-			get() {
-				return this.settings.language;
-			},
-			set(value) {
-				this.update({language: value});
-			},
+			get() { return this.settings.language; },
+			set(value) { this.update({language: value}); }
 		},
 		languages() {
 			const result = [];
@@ -55,20 +48,12 @@ export default {
 			return result;
 		},
 		useBinaryPrefix: {
-			get() {
-				return this.settings.useBinaryPrefix;
-			},
-			set(value) {
-				this.update({useBinaryPrefix: value});
-			},
+			get() { return this.settings.useBinaryPrefix; },
+			set(value) { this.update({useBinaryPrefix: value}); }
 		},
 		disableAutoComplete: {
-			get() {
-				return this.settings.disableAutoComplete;
-			},
-			set(value) {
-				this.update({disableAutoComplete: value});
-			},
+			get() { return this.settings.disableAutoComplete; },
+			set(value) { this.update({disableAutoComplete: value}); }
 		},
 		dashboardMode: {
 			get() {
@@ -78,12 +63,12 @@ export default {
 				return this.settings.dashboardMode;
 			},
 			set(value) {
-				this.update({dashboardMode: value});
+				this.update({ dashboardMode: value });
 			},
 		},
 		dashboardModes() {
 			return Object.keys(DashboardMode).map((key) => {
-				return {key: key, value: DashboardMode[key]};
+				return { key, value: DashboardMode[key] };
 			});
 		},
 	},

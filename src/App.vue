@@ -136,7 +136,8 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { Menu, Routes } from './routes'
 import { isPrinting } from './store/machine/modelEnums.js'
-import { MachineMode, DashboardMode } from './store/machine/modelEnums.js';
+import { MachineMode } from './store/machine/modelEnums.js';
+import { DashboardMode } from './store/settings.js'
 
 export default {
 	computed: {

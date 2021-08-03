@@ -176,8 +176,8 @@ export class MachineModel {
 		printingAcceleration: 10000,
 		shaping: {
 			damping: 0.2,
-			frequency:40,
-			minimumAcceleration:10,
+			frequency: 40,
+			minAcceleration: 10,
 			type: MoveShapingType.none
 		},
 		speedFactor: 1.0,

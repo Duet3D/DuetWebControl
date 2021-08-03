@@ -240,9 +240,3 @@ export function isPrinting(status) {
 			status === StatusType.processing ||
 			status === StatusType.simulating);
 }
-
-export const DashboardMode = {
-	default : 'Default',
-	fff : 'FFF',
-	cnc : 'CNC'
-}

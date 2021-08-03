@@ -659,7 +659,8 @@ export default {
 			binaryFileSizes: 'Benutze binäre Dateigrößen',
 			binaryFileSizesTitle: 'Dateigrößen werden mit einer Basis von 1024 (IEC) statt 1000 (SI) angezeigt',
 			disableAutoComplete: 'Autovervollständigung deaktivieren',
-			disableAutoCompleteTitle: 'Keine Autovervollständigung bei der Eingabe von Codes oder Temperaturen anzeigen'
+			disableAutoCompleteTitle: 'Keine Autovervollständigung bei der Eingabe von Codes oder Temperaturen anzeigen',
+			dashboardModeTitle: 'Übersichtsmodus'
 		},
 		settingsCommunication: {
 			caption: 'Kommunikation',
