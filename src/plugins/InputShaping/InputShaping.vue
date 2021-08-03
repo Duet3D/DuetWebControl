@@ -420,7 +420,7 @@ export default {
 			let result = null;
 
 			try {
-				result = await this.sendCode(this.recorder.testCommand);
+				result = await this.sendCode({ code: this.recorder.testCommand, fromInput: true, log: true });
 				if (result) {
 					console.error(typeof result, result);
 					throw new Error('Failed to run acceleration profile.');
@@ -760,7 +760,7 @@ export default {
 			this.recorder.iteration = this.recorder.iteration + 1;
 
 			try {
-				result = await this.sendCode(this.inputShapingCommand);
+				result = await this.sendCode({ code: this.inputShapingCommand, fromInput: true, log: true });
 			} catch(e) {
 				console.error("Input Shaping configuration failed: ", e, this.inputShapingCommand);
 				return;
