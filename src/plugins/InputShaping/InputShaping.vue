@@ -149,7 +149,7 @@
 							<v-card-text>
 								<v-row>
 									<v-col>
-										<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="400" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
+										<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="300" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
 									</v-col>
 									<v-col>
 										<v-slider v-model="start" :max="end - 1" :label="$t('plugins.inputShaping.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
@@ -364,7 +364,7 @@ export default {
 			samplingRateRules: [
 				function(value) {
 					value = parseFloat(value);
-					return value >= 400 && value <= 6000;
+					return value >= 300 && value <= 6000;
 				}
 			],
 			samplingRateValidated: true,
