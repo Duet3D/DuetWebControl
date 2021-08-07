@@ -729,6 +729,17 @@ export default {
 		speedFactor: {
 			caption: 'Speed Factor'
 		},
+		spindle: {
+			spindle : 'Spindle',
+			active : 'Active',
+			direction : 'Direction',
+			currentRPM : 'Current RPM',
+			setRPM : 'Set RPM',
+			on : 'On',
+			off : 'Off',
+			forward : 'forward',
+			reverse : 'reverse'
+		},		
 		status: {
 			caption: 'Status',
 			mode: 'Mode: {0}',
