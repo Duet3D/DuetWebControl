@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@babylonjs/core": "^4.2.0",
+    "@babylonjs/gui": "^4.2.0",
     "@babylonjs/materials": "^4.2.0",
     "chart.js": "^2.9.4",
     "chartjs-adapter-date-fns": "^1.0.0",

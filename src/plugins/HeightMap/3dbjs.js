@@ -9,17 +9,11 @@ import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { PointerEventTypes, StandardMaterial, Material, Orientation, PointLight, Quaternion, Space, Mesh } from '@babylonjs/core';
 import { HemisphericLight } from '@babylonjs/core';
 import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
-import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture'
+import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui'
 
 import Axes from '../../plugins/GCodeViewer/viewer/axes'
-import { _ } from 'core-js';
-import { Color } from 'three';
-
-
 
 export default class {
-
-
 
     constructor(canvas) {
         this.gridSize = 25;
@@ -42,6 +36,7 @@ export default class {
         this.observableControls;
 
         this.bedRendered;
+        this.advancedTexture;
 
         this.labelCallback = () => { };
 
@@ -185,7 +180,6 @@ export default class {
             }
         }
 
-        console.log(bedPoints);
         let points = [];
         let color = [];
         for (let y = 0; y < bedPoints.length; y++) {
@@ -213,9 +207,9 @@ export default class {
         let mid = new Color4(1, 1, 0, 1);
         let high = new Color4(1, 0, 0, 1);
         if (z < 0) {
-            return Color4.Lerp(low, mid, Scalar.RangeToPercent(z, this.minZ, 0))
+            return Color4.Lerp(low, mid, Scalar.RangeToPercent(z, -0.25, 0)) //this.minZ
         } else {
-            return Color4.Lerp(mid, high, Scalar.RangeToPercent(z, 0, this.maxZ))
+            return Color4.Lerp(mid, high, Scalar.RangeToPercent(z, 0, 0.25))
         }
     }
 
@@ -272,15 +266,40 @@ export default class {
 
         this.bedMesh.isPickable = false;
 
+        if (this.advancedTexture) {
+            this.advancedTexture.dispose();
+        }
+        this.axesLabelMeshes.forEach(m => m.dispose());
 
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         //build axes labels
         if (!this.isDelta) {
             this.axesLabelMeshes.forEach(mesh => mesh.dispose());
+            this.axesLabelMeshes = [];
             for (let x = this.buildVolume.x.min; x <= this.buildVolume.x.max; x += this.gridSize) {
-                let label = this.makeTextPlane(x, new Color3(1, 1, 1), 50);
-                label.position = new Vector3(x, 0, this.buildVolume.y.min - 10);
-                this.axesLabelMeshes.push(label);
+                let anchor = new Mesh("anchor", this.scene);
+                anchor.position = new Vector3(x, 0, this.buildVolume.y.min - 1);
+                let block = new TextBlock("textBlock", `${x}`);
+                block.color = 'Gray';
+                this.advancedTexture.addControl(block);
+                block.linkWithMesh(anchor);
+                this.axesLabelMeshes.push(anchor);
+                this.axesLabelMeshes.push(block);
             }
+
+            for (let y = this.buildVolume.y.min; y <= this.buildVolume.y.max; y += this.gridSize) {
+                let anchor = new Mesh("anchor", this.scene);
+                anchor.position = new Vector3(this.buildVolume.x.min, 0, y - 1);
+                let block = new TextBlock("textBlock", `${y}`);
+                block.color = 'Gray';
+                this.advancedTexture.addControl(block);
+                block.linkWithMesh(anchor);
+                this.axesLabelMeshes.push(anchor);
+                this.axesLabelMeshes.push(block);
+
+            }
+
+
         }
         this.bedRendered = true;
     }
@@ -353,18 +372,6 @@ export default class {
                 this.labelCallback();
             }
         }
-    }
-
-    makeTextPlane(text, color, size) {
-        var dynamicTexture = new DynamicTexture('DynamicTexture', 50, this.scene, true);
-        dynamicTexture.hasAlpha = true;
-        dynamicTexture.drawText(text, 5, 40, 'bold 36px Arial', color, 'transparent', true);
-        var plane = Mesh.CreatePlane('TextPlane', size, this.scene, true);
-        plane.material = new StandardMaterial('TextPlaneMaterial', this.scene);
-        plane.material.backFaceCulling = false;
-        plane.material.specularColor = new Color3(0, 0, 0);
-        plane.material.diffuseTexture = dynamicTexture;
-        return plane;
     }
 
     dispose() {
