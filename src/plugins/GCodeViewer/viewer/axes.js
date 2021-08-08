@@ -81,4 +81,10 @@ export default class {
     this.axesMesh.setEnabled(this.visible);
     this.axesMesh.getChildren().forEach((mesh) => this.registerClipIgnore(mesh));
   }
+
+  dispose(){
+    if(this.axesMesh){
+      this.axesMesh.dispose(false,true);
+    }
+  }
 }
