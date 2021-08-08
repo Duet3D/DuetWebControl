@@ -4,19 +4,25 @@ import { Scene } from '@babylonjs/core/scene'
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector';
+import { Scalar } from '@babylonjs/core/Maths/math.scalar';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import { PointerEventTypes, StandardMaterial, Material, Orientation, PointLight, Quaternion, Space, Mesh, Scalar } from '@babylonjs/core';
+import { PointerEventTypes, StandardMaterial, Material, Orientation, PointLight, Quaternion, Space, Mesh } from '@babylonjs/core';
 import { HemisphericLight } from '@babylonjs/core';
 import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
+import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture'
 
 import Axes from '../../plugins/GCodeViewer/viewer/axes'
 import { _ } from 'core-js';
+import { Color } from 'three';
 
 
 
 export default class {
 
+
+
     constructor(canvas) {
+        this.gridSize = 25;
         this.canvas = canvas;
         this.engine;
         this.scene;
@@ -57,7 +63,7 @@ export default class {
             },
         };
 
-
+        this.axesLabelMeshes = [];
     }
 
     init() {
@@ -179,11 +185,7 @@ export default class {
             }
         }
 
-        console.log(this.minZ);
-        console.log(this.maxZ);
-        
-        let low = new Color3(0,0,1,1);
-        let high = new Color3(1,0,0,1);
+        console.log(bedPoints);
         let points = [];
         let color = [];
         for (let y = 0; y < bedPoints.length; y++) {
@@ -191,7 +193,7 @@ export default class {
             for (let x = 0; x < bedPoints[y].length; x++) {
                 let pt = new Vector3(bedPoints[y][x][0], bedPoints[y][x][2] * 100, bedPoints[y][x][1])
                 xpts.push(pt);
-                color.push(Color4.Lerp(low ,high , Scalar.RangeToPercent( bedPoints[y][x][2],this.minZ, this.maxZ) ));
+                color.push(this.getColor(bedPoints[y][x][2]));
 
                 this.createHeightPoint(pt, {
                     x: bedPoints[y][x][0],
@@ -204,6 +206,17 @@ export default class {
         this.ribbonMesh = MeshBuilder.CreateRibbon("ribbon", { pathArray: points, colors: color, sideOrientation: Mesh.DoubleSide }, this.scene);
         this.ribbonMesh.material = this.ribbonMaterial;
         this.ribbonMesh.isPickable = false;
+    }
+
+    getColor(z) {
+        let low = new Color4(0, 1, 0, 1);
+        let mid = new Color4(1, 1, 0, 1);
+        let high = new Color4(1, 0, 0, 1);
+        if (z < 0) {
+            return Color4.Lerp(low, mid, Scalar.RangeToPercent(z, this.minZ, 0))
+        } else {
+            return Color4.Lerp(mid, high, Scalar.RangeToPercent(z, 0, this.maxZ))
+        }
     }
 
     resetCamera() {
@@ -238,7 +251,8 @@ export default class {
 
         this.gridMaterial = this.buildGridMaterial();
         this.axes = new Axes(this.scene);
-        this.axes.render();
+        this.axes.render(new Vector3(-10, 0, -10));
+
 
         let bedCenter = this.getCenter();
         let bedSize = this.getSize();
@@ -257,6 +271,17 @@ export default class {
         }
 
         this.bedMesh.isPickable = false;
+
+
+        //build axes labels
+        if (!this.isDelta) {
+            this.axesLabelMeshes.forEach(mesh => mesh.dispose());
+            for (let x = this.buildVolume.x.min; x <= this.buildVolume.x.max; x += this.gridSize) {
+                let label = this.makeTextPlane(x, new Color3(1, 1, 1), 50);
+                label.position = new Vector3(x, 0, this.buildVolume.y.min - 10);
+                this.axesLabelMeshes.push(label);
+            }
+        }
         this.bedRendered = true;
     }
 
@@ -281,10 +306,10 @@ export default class {
         gridMaterial.lineColor = Color3.FromHexString("#FFFFFF");
         gridMaterial.gridRatio = 1;
         gridMaterial.opacity = 0.8;
-        gridMaterial.majorUnitFrequency = 25;
+        gridMaterial.majorUnitFrequency = this.gridSize;
         gridMaterial.minorUnitVisibility = 0.25;
         let bedSize = this.getSize();
-        gridMaterial.gridOffset = new Vector3(17.5, 0, 0);
+        gridMaterial.gridOffset = new Vector3(0, 0, 0);
         gridMaterial.backFaceCulling = false;
         return gridMaterial;
     }
@@ -330,8 +355,17 @@ export default class {
         }
     }
 
-
-
+    makeTextPlane(text, color, size) {
+        var dynamicTexture = new DynamicTexture('DynamicTexture', 50, this.scene, true);
+        dynamicTexture.hasAlpha = true;
+        dynamicTexture.drawText(text, 5, 40, 'bold 36px Arial', color, 'transparent', true);
+        var plane = Mesh.CreatePlane('TextPlane', size, this.scene, true);
+        plane.material = new StandardMaterial('TextPlaneMaterial', this.scene);
+        plane.material.backFaceCulling = false;
+        plane.material.specularColor = new Color3(0, 0, 0);
+        plane.material.diffuseTexture = dynamicTexture;
+        return plane;
+    }
 
     dispose() {
         if (this.axes) {
