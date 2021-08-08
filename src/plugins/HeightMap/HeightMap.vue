@@ -99,7 +99,15 @@ h1 {
 							<v-btn class="flex-grow-1" value="heat">{{ $t('plugins.heightmap.heat') }}</v-btn>
 						</v-btn-toggle>
 					</div>
-
+					
+					<!-- deviation coloring -->
+					<div class="d-flex flex-column mt-1">
+						{{ $t('plugins.heightmap.range') }}
+						<v-btn-toggle class="mt-1" v-model="deviationColoring">
+							<v-btn class="flex-grow-1" value="fixed">{{ $t('plugins.heightmap.fixed') }}</v-btn>
+							<v-btn class="flex-grow-1" value="deviation">{{ $t('plugins.heightmap.deviation') }}</v-btn>
+						</v-btn-toggle>
+					</div>
 					<v-switch :disabled="uiFrozen || loading || !ready" :label="$t('plugins.heightmap.invertZ')" v-model="invertZ"></v-switch>
 
 					<v-btn :disabled="uiFrozen || loading || !ready" :elevation="1" @click="topView" class="ml-0 mt-3">
@@ -133,7 +141,6 @@ import Events from '../../utils/events.js';
 import Path from '../../utils/path.js';
 
 let heightMapViewer;
-const maxVisualizationZ = 0.25;
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
@@ -154,6 +161,14 @@ export default {
 			set(value) {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', value);
 			},
+		},
+		deviationColoring : {
+			get(){
+				return this.pluginCache.deviationColoring;
+			},
+			set(value){
+				setPluginData('HeightMap', PluginDataType.machineCache,'deviationColoring', value);
+			}
 		},
 		invertZ: {
 			get() {
@@ -232,7 +247,7 @@ export default {
 			if (heightMapViewer) {
 				heightMapViewer.resize();
 				// Redraw the legend and return the canvas size
-				heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
+				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			}
 
 			return {width, height};
@@ -329,8 +344,8 @@ export default {
 			this.area = probeRadius ? probeRadius * probeRadius * Math.PI : Math.abs((xMax - xMin) * (yMax - yMin));
 			this.rmsError = Math.sqrt(this.rmsError * this.numPoints - this.meanError * this.meanError) / this.numPoints;
 			this.meanError = this.meanError / this.numPoints;
-			heightMapViewer.renderHeightMap(points, this.invertZ, this.colorScheme);
-			heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
+			heightMapViewer.renderHeightMap(points, this.invertZ, this.colorScheme, this.deviationColoring);
+			heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 		},
 		canvasMouseMove(e) {
 			this.tooltip.x = e.clientX;
@@ -513,7 +528,12 @@ export default {
 	},
 	watch: {
 		colorScheme() {
-			if(this.heightmapPoints){
+			if (this.heightmapPoints) {
+				this.showHeightMap(this.heightmapPoints, this.probeRadius);
+			}
+		},
+		deviationColoring() {
+			if (this.heightmapPoints) {
 				this.showHeightMap(this.heightmapPoints, this.probeRadius);
 			}
 		},
@@ -549,7 +569,7 @@ export default {
 		},
 		language() {
 			if (heightMapViewer) {
-				heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);
+				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme);
 			}
 		},
 		axes: {

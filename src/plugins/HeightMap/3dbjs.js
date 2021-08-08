@@ -147,7 +147,7 @@ export default class {
     }
 
     createHeightPoint(vec, metadata) {
-        let sphere = MeshBuilder.CreateSphere("sphere", { diameter: 10, segments: 8 }, this.scene);
+        let sphere = MeshBuilder.CreateSphere("sphere", { diameter: 5, segments: 8 }, this.scene);
         sphere.position = vec;
         sphere.material = this.sphereMaterial;
         sphere.metadata = metadata;
@@ -156,7 +156,7 @@ export default class {
         this.heightPointMeshes.push(sphere);
     }
 
-    renderHeightMap(bedPoints, invertZ, colorScheme = "terrain") {
+    renderHeightMap(bedPoints, invertZ, colorScheme = "terrain", deviationColor  = 'fixed') {
         this.clearHeightMapData();
 
         this.minZ = 999999999;
@@ -173,6 +173,13 @@ export default class {
                     this.minZ = z;
                 }
             }
+        }
+
+        if (deviationColor === 'deviation') {
+            this.maxVisualizationZ = Math.abs(this.maxZ) > Math.abs(this.minZ) ? Math.abs(this.maxZ) : Math.abs(this.minZ);
+        }
+        else {
+            this.maxVisualizationZ = 0.25;
         }
 
         let points = [];
@@ -201,16 +208,16 @@ export default class {
 
 
     getColor(z, colorScheme) {
-         // Terrain color scheme (i.e. from blue to red, asymmetric)
+        // Terrain color scheme (i.e. from blue to red, asymmetric)
         if (colorScheme === 'terrain') {
             z = Math.max(Math.min(z, this.maxVisualizationZ), -this.maxVisualizationZ);
             const hue = 240 - ((z + this.maxVisualizationZ) / this.maxVisualizationZ) * 120;
-            return new Color3.FromHexString(this.hslToHex(hue,100,45)); 
+            return new Color3.FromHexString(this.hslToHex(hue, 100, 45));
         }
 
         // Default color scheme (i.e. the worse the redder, symmetric)
-        const hue = 120 - Math.min(Math.abs(z), this.maxVisualizationZ) /this.maxVisualizationZ * 120;
-        return new Color3.FromHexString(this.hslToHex(hue,100,45)); 
+        const hue = 120 - Math.min(Math.abs(z), this.maxVisualizationZ) / this.maxVisualizationZ * 120;
+        return new Color3.FromHexString(this.hslToHex(hue, 100, 45));
     }
 
     hslToHex(h, s, l) {
@@ -256,13 +263,26 @@ export default class {
             this.axes.dispose();
         }
 
-        this.gridMaterial = this.buildGridMaterial();
-        this.axes = new Axes(this.scene);
-        this.axes.render(new Vector3(-10, 0, -10));
+
+        if (this.advancedTexture) {
+            this.advancedTexture.dispose();
+        }
+
+        this.axesLabelMeshes.forEach(m => m.dispose());
+        this.axesLabelMeshes = [];
 
 
         let bedCenter = this.getCenter();
         let bedSize = this.getSize();
+
+        this.gridMaterial = this.buildGridMaterial();
+        this.axes = new Axes(this.scene);
+
+        console.log(bedSize);
+        this.axes.render(new Vector3(this.buildVolume.x.min - 10, 0, this.buildVolume.y.min - 10));
+
+
+
         if (this.isDelta) {
             let radius = Math.abs(this.buildVolume.x.max - this.buildVolume.x.min) / 2;
             this.bedMesh = MeshBuilder.CreateDisc('BuildPlate', { radius: radius, sideOrientation: Mesh.DoubleSide }, this.scene);
@@ -278,11 +298,6 @@ export default class {
         }
 
         this.bedMesh.isPickable = false;
-
-        if (this.advancedTexture) {
-            this.advancedTexture.dispose();
-        }
-        this.axesLabelMeshes.forEach(m => m.dispose());
 
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         //build axes labels
@@ -386,7 +401,7 @@ export default class {
     }
 
     // Draw scale+legend next to the 3D control
-    drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ, xLabel, yLabel) {
+    drawLegend(canvas, colorScheme, invertZ, xLabel, yLabel) {
         // Clear background
         const context = canvas.getContext('2d');
         context.rect(0, 0, canvas.width, canvas.height);
@@ -398,7 +413,7 @@ export default class {
         context.textAlign = 'center';
         context.fillStyle = 'white';
         context.fillText(i18n.t('plugins.heightmap.scale'), canvas.width / 2, 21);
-        context.fillText(`${invertZ ? -maxVisualizationZ : maxVisualizationZ} mm`, canvas.width / 2, 44);
+        context.fillText(`${invertZ ? -this.maxVisualizationZ : this.maxVisualizationZ} mm`, canvas.width / 2, 44);
         context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orLess' : 'plugins.heightmap.orMore'), canvas.width / 2, 60);
 
         // Make scale gradient
@@ -426,7 +441,7 @@ export default class {
         // Put annotation below gradient
         context.fillStyle = 'white';
         if (colorScheme === 'terrain') {
-            context.fillText(`${invertZ ? maxVisualizationZ : -maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
+            context.fillText(`${invertZ ? this.maxVisualizationZ : -this.maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
             context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orMore' : 'plugins.heightmap.orLess'), canvas.width / 2, scaleHeight + 98);
             scaleHeight += 16;
         } else {
@@ -445,18 +460,6 @@ export default class {
             context.fillText('Z', 2 * canvas.width / 3, scaleHeight + 129);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 
     dispose() {
         if (this.axes) {

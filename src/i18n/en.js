@@ -943,6 +943,9 @@ export default {
 			heat: 'Heat',
 			invertZ: 'Invert Z coordinates',
 			topView: 'Top view',
+			range : 'Range',
+			fixed : 'Fixed',
+			deviation : 'Deviation'
 		},
 		objectModelBrowser: {
 			menuCaption: 'Object Model'
