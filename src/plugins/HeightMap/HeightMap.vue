@@ -48,7 +48,6 @@ h1 {
 				<v-card-text class="pa-0" v-show="files.length === 0">
 					<v-alert :value="true" class="mb-0" type="info">{{ $t('plugins.heightmap.none') }}</v-alert>
 				</v-card-text>
-
 				<v-list :disabled="uiFrozen || !ready || loading" class="py-0">
 					<v-list-item-group :value="files.indexOf(selectedFile)" color="primary">
 						<v-list-item :key="file" @click="selectedFile = file" v-for="file in files">{{ file }}</v-list-item>
@@ -65,7 +64,7 @@ h1 {
 
 				<div class="canvas-container">
 					<!-- v-show="ready" -->
-					<canvas ref="canvas" @mousemove="canvasMouseMove"></canvas>
+					<canvas @mousemove="canvasMouseMove" ref="canvas"></canvas>
 					<canvas class="legend" ref="legend" width="80"></canvas>
 				</div>
 			</div>
@@ -134,7 +133,7 @@ import Events from '../../utils/events.js';
 import Path from '../../utils/path.js';
 
 let heightMapViewer;
-
+const maxVisualizationZ = 0.25;
 export default {
 	computed: {
 		...mapState(['selectedMachine']),
@@ -230,13 +229,13 @@ export default {
 			this.$refs.canvas.width = width;
 			this.$refs.canvas.height = height;
 
-			if(heightMapViewer){
+			if (heightMapViewer) {
 				heightMapViewer.resize();
+				// Redraw the legend and return the canvas size
+				heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			}
 
-			// Redraw the legend and return the canvas size
-			//			drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
-			return {width, height};			
+			return {width, height};
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
@@ -280,24 +279,12 @@ export default {
 				}
 				points.push(xpoints);
 			}
-			// Display height map and redraw legend
-			heightMapViewer.renderHeightMap(points);
 
+			this.heightmapPoints = points;
+			// Display height map and redraw legend
+			this.showHeightMap(points, radius);
 		},
 		showHeightMap(points, probeRadius) {
-			// Clean up first
-			if (this.three.meshGeometry) {
-				this.three.scene.remove(this.three.meshPlane);
-				this.three.meshIndicators.forEach(function (indicator) {
-					this.remove(indicator);
-				}, this.three.scene);
-
-				this.three.meshGeometry = null;
-				this.three.meshPlane = null;
-				this.three.meshIndicators = null;
-				this.three.lastIntersection = null;
-			}
-
 			// Generate stats
 			let xMin, xMax, yMin, yMax;
 
@@ -308,55 +295,49 @@ export default {
 			this.meanError = 0;
 			this.rmsError = 0;
 
-			for (let i = 0; i < points.length; i++) {
-				const z = points[i][2];
-				if (!isNaN(z)) {
-					const x = points[i][0];
-					const y = points[i][1];
-					if (xMin === undefined || xMin > x) {
-						xMin = x;
-					}
-					if (xMax === undefined || xMax < x) {
-						xMax = x;
-					}
-					if (yMin === undefined || yMin > y) {
-						yMin = y;
-					}
-					if (yMax === undefined || yMax < y) {
-						yMax = y;
-					}
+			for (let i = 0; i < points.length; i++)
+				for (let j = 0; j < points[i].length; j++) {
+					const z = points[i][j][2];
+					if (!isNaN(z)) {
+						const x = points[i][j][0];
+						const y = points[i][j][1];
+						if (xMin === undefined || xMin > x) {
+							xMin = x;
+						}
+						if (xMax === undefined || xMax < x) {
+							xMax = x;
+						}
+						if (yMin === undefined || yMin > y) {
+							yMin = y;
+						}
+						if (yMax === undefined || yMax < y) {
+							yMax = y;
+						}
 
-					this.numPoints++;
-					this.meanError += z;
-					this.rmsError += z * z;
-					if (this.minDiff === undefined || this.minDiff > z) {
-						this.minDiff = z;
-					}
-					if (this.maxDiff === undefined || this.maxDiff < z) {
-						this.maxDiff = z;
+						this.numPoints++;
+						this.meanError += z;
+						this.rmsError += z * z;
+						if (this.minDiff === undefined || this.minDiff > z) {
+							this.minDiff = z;
+						}
+						if (this.maxDiff === undefined || this.maxDiff < z) {
+							this.maxDiff = z;
+						}
 					}
 				}
-			}
 
 			this.area = probeRadius ? probeRadius * probeRadius * Math.PI : Math.abs((xMax - xMin) * (yMax - yMin));
 			this.rmsError = Math.sqrt(this.rmsError * this.numPoints - this.meanError * this.meanError) / this.numPoints;
 			this.meanError = this.meanError / this.numPoints;
-		},
-		render() {
-			if (this.three.renderer) {
-				requestAnimationFrame(this.render);
-				this.three.renderer.render(this.three.scene, this.three.camera);
-			}
+			heightMapViewer.renderHeightMap(points, this.invertZ, this.colorScheme);
+			heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 		},
 		canvasMouseMove(e) {
 			this.tooltip.x = e.clientX;
 			this.tooltip.y = e.clientY;
 		},
 		topView() {
-			this.three.camera.position.set(0, 0, 1.5);
-			this.three.camera.rotation.set(0, 0, 0);
-			this.three.camera.updateProjectionMatrix();
-			this.three.orbitControls.update();
+			heightMapViewer.topView();
 		},
 
 		async refresh() {
@@ -390,6 +371,7 @@ export default {
 					this.selectedFile = null;
 				}
 			}
+			this.loading = false;
 		},
 		async getHeightMap() {
 			if (this.loading) {
@@ -417,6 +399,7 @@ export default {
 				this.errorMessage = e.message;
 			}
 			this.loading = false;
+			this.ready = true;
 		},
 
 		async testMesh() {
@@ -425,10 +408,6 @@ export default {
 			this.showCSV(csvData);
 		},
 		async testBedCompensation(numPoints) {
-			if (!this.three.scene) {
-				await this.init();
-			}
-
 			let testPoints;
 			switch (numPoints) {
 				case 3:
@@ -472,7 +451,6 @@ export default {
 				}
 			}
 		},
-
 		buildBed() {
 			if (this.axes) {
 				for (var axesIdx in this.axes) {
@@ -484,6 +462,7 @@ export default {
 					}
 				}
 				heightMapViewer.renderBed();
+				heightMapViewer.resetCamera();
 			}
 		},
 	},
@@ -525,6 +504,7 @@ export default {
 
 		// Trigger resize event once more to avoid rendering glitches
 		setTimeout(this.resize.bind(this), 250);
+		this.ready = true;
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes
@@ -532,8 +512,10 @@ export default {
 		heightMapViewer.destroy();
 	},
 	watch: {
-		colorScheme(to) {
-			console.log(to);
+		colorScheme() {
+			if(this.heightmapPoints){
+				this.showHeightMap(this.heightmapPoints, this.probeRadius);
+			}
 		},
 		files() {
 			this.$nextTick(this.resize);
@@ -566,7 +548,9 @@ export default {
 			this.refresh();
 		},
 		language() {
-			//drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);
+			if (heightMapViewer) {
+				heightMapViewer.drawLegend(this.$refs.legend, maxVisualizationZ, this.colorScheme);
+			}
 		},
 		axes: {
 			deep: true,

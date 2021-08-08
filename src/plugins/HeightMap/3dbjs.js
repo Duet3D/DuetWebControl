@@ -1,17 +1,20 @@
-/* eslint-disable */
+
 import { Engine } from '@babylonjs/core/Engines/engine'
 import { Scene } from '@babylonjs/core/scene'
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color';
 import { ArcRotateCamera } from '@babylonjs/core/Cameras/arcRotateCamera';
-import { Vector3 } from '@babylonjs/core/Maths/math.vector';
-import { Scalar } from '@babylonjs/core/Maths/math.scalar';
+import { Vector3, Quaternion } from '@babylonjs/core/Maths/math.vector';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
-import { PointerEventTypes, StandardMaterial, Material, Orientation, PointLight, Quaternion, Space, Mesh } from '@babylonjs/core';
-import { HemisphericLight } from '@babylonjs/core';
+import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
 import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui'
-
+import { Space } from '@babylonjs/core/Maths/math.axis';
+import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
+import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
+import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import Axes from '../../plugins/GCodeViewer/viewer/axes'
+
+import i18n from '../../i18n'
 
 export default class {
 
@@ -42,6 +45,10 @@ export default class {
 
         this.minZ = 0;
         this.maxZ = 0;
+        this.maxVisualizationZ = 0.25;
+
+        this.colorSet = "terrain";
+
 
         this.buildVolume = {
             x: {
@@ -64,8 +71,8 @@ export default class {
     init() {
         return new Promise((resolve) => {
             //Init BabylonJS Engine
-            this.engine = new Engine(this.canvas, true, { doNotHandleContextLost: true });
-            this.engine.enableOfflineSupport = false;
+            this.engine = new Engine(this.canvas, true);
+
 
             //Create BJS Scene
             this.scene = new Scene(this.engine);
@@ -74,7 +81,7 @@ export default class {
             //Setup camera control
             this.orbitCamera = new ArcRotateCamera('Camera', 0, 0, 250, new Vector3(0, 0, 0), this.scene);
             this.orbitCamera.invertRotation = false;
-            this.orbitCamera.attachControl(this.canvas, false);
+            this.orbitCamera.attachControl(this.canvas, true);
             this.orbitCamera.maxZ = 1000000;
             this.orbitCamera.lowerRadiusLimit = 10;
 
@@ -88,13 +95,14 @@ export default class {
             this.orbitCamera.angularSensibilityX = 200;
             this.orbitCamera.angularSensibilityY = 200;
             this.orbitCamera.panningSensibility = 2;
-            this.orbitCamera.wheelPrecision = 0.25;
+            this.orbitCamera.wheelPrecision = 0.1;
 
 
             this.ribbonMaterial = new StandardMaterial("ribbonMaterial", this.scene);
             this.ribbonMaterial.diffuseColor = new Color3(1, 1, 1);
             this.ribbonMaterial.specularColor = new Color3(0, 0, 0);
             this.ribbonMaterial.emissiveColor = new Color3(1, 1, 1);
+            this.ribbonMaterial.ambientColor = new Color3(1, 1, 1);
             this.ribbonMaterial.backFaceCulling = false;
 
             this.sphereMaterial = new StandardMaterial("sphereMaterial", this.scene);
@@ -109,21 +117,19 @@ export default class {
             this.highlightMaterial.specularColor = new Color3(0, 0, 1);
             this.highlightMaterial.emissiveColor = new Color3(0, 1, 1);
 
+            //this.light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
+            //this.light2 = new HemisphericLight("light1", new Vector3(0, -1, 0), this.scene);
+            this.light1 = new PointLight('light1', new Vector3(0, 1, -1), this.scene);
+            this.light1.diffuse = new Color3(1, 1, 1);
+            this.light1.specular = new Color3(1, 1, 1);
 
-
-            //      this.light1 = new PointLight('light1', new Vector3(0, 1, -1), this.scene);
-            //       this.light1.diffuse = new Color3(1, 1, 1);
-            //      this.light1.specular = new Color3(1, 1, 1);
-
-            this.light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
-            this.light2 = new HemisphericLight("light1", new Vector3(0, -1, 0), this.scene);
 
             //build the render loop
             this.engine.runRenderLoop(() => {
-
-                this.light1.position = this.scene.cameras[0].position;
-                if (this.bedRendered)
+                if (this.bedRendered) {
                     this.scene.render();
+                    this.light1.position = this.scene.cameras[0].position;
+                }
             })
 
             this.buildObservables();
@@ -133,23 +139,12 @@ export default class {
 
     }
 
-    /* wavy mess
-      let points = [];
-           for(let x = 0; x < bedPoints.length; x+=0.2){
-               for(let y = 0; y < 100; y+=0.2){
-                   pts.push(new Vector3(x,Math.sin(x) * Math.cos(y) * 2,y));
-               }
-               points.push(pts);
-           }
-      */
-
     clearHeightMapData() {
         if (this.ribbonMesh) {
             this.ribbonMesh.dispose(false, false);
         }
         this.heightPointMeshes.forEach(p => p.dispose());
     }
-
 
     createHeightPoint(vec, metadata) {
         let sphere = MeshBuilder.CreateSphere("sphere", { diameter: 10, segments: 8 }, this.scene);
@@ -161,7 +156,7 @@ export default class {
         this.heightPointMeshes.push(sphere);
     }
 
-    renderHeightMap(bedPoints) {
+    renderHeightMap(bedPoints, invertZ, colorScheme = "terrain") {
         this.clearHeightMapData();
 
         this.minZ = 999999999;
@@ -185,9 +180,10 @@ export default class {
         for (let y = 0; y < bedPoints.length; y++) {
             let xpts = [];
             for (let x = 0; x < bedPoints[y].length; x++) {
-                let pt = new Vector3(bedPoints[y][x][0], bedPoints[y][x][2] * 100, bedPoints[y][x][1])
+                let zVal = invertZ ? -bedPoints[y][x][2] : bedPoints[y][x][2];
+                let pt = new Vector3(bedPoints[y][x][0], zVal * 100, bedPoints[y][x][1])
                 xpts.push(pt);
-                color.push(this.getColor(bedPoints[y][x][2]));
+                color.push(this.getColor(zVal, colorScheme));
 
                 this.createHeightPoint(pt, {
                     x: bedPoints[y][x][0],
@@ -202,22 +198,35 @@ export default class {
         this.ribbonMesh.isPickable = false;
     }
 
-    getColor(z) {
-        let low = new Color4(0, 1, 0, 1);
-        let mid = new Color4(1, 1, 0, 1);
-        let high = new Color4(1, 0, 0, 1);
-        if (z < 0) {
-            return Color4.Lerp(low, mid, Scalar.RangeToPercent(z, -0.25, 0)) //this.minZ
-        } else {
-            return Color4.Lerp(mid, high, Scalar.RangeToPercent(z, 0, 0.25))
+
+
+    getColor(z, colorScheme) {
+         // Terrain color scheme (i.e. from blue to red, asymmetric)
+        if (colorScheme === 'terrain') {
+            z = Math.max(Math.min(z, this.maxVisualizationZ), -this.maxVisualizationZ);
+            const hue = 240 - ((z + this.maxVisualizationZ) / this.maxVisualizationZ) * 120;
+            return new Color3.FromHexString(this.hslToHex(hue,100,45)); 
         }
+
+        // Default color scheme (i.e. the worse the redder, symmetric)
+        const hue = 120 - Math.min(Math.abs(z), this.maxVisualizationZ) /this.maxVisualizationZ * 120;
+        return new Color3.FromHexString(this.hslToHex(hue,100,45)); 
+    }
+
+    hslToHex(h, s, l) {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
     }
 
     resetCamera() {
         var bedCenter = this.getCenter();
         var bedSize = this.getSize();
-        this.scene.activeCamera.alpha = 0;
-        this.scene.activeCamera.beta = 0;
         if (this.isDelta) {
             this.scene.activeCamera.radius = bedCenter.x;
             this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
@@ -229,15 +238,19 @@ export default class {
         }
     }
 
-    renderBed() {
+    topView() {
+        this.scene.activeCamera.radius = this.buildVolume.z.max * 1.25;
+        this.scene.activeCamera.alpha = - Math.PI / 2;
+        this.scene.activeCamera.beta = 0;
+    }
 
+    renderBed() {
         if (this.gridMaterial) {
             this.gridMaterial.dispose();
         }
         if (this.bedMesh) {
             this.bedMesh.dispose(false, false);
         }
-        this.resetCamera();
 
         if (this.axes) {
             this.axes.dispose();
@@ -279,30 +292,27 @@ export default class {
             for (let x = this.buildVolume.x.min; x <= this.buildVolume.x.max; x += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
                 anchor.position = new Vector3(x, 0, this.buildVolume.y.min - 1);
-                let block = new TextBlock("textBlock", `${x}`);
-                block.color = 'Gray';
-                this.advancedTexture.addControl(block);
-                block.linkWithMesh(anchor);
-                this.axesLabelMeshes.push(anchor);
-                this.axesLabelMeshes.push(block);
+                this.buildAxesLabel(anchor, `${x}`);
             }
 
             for (let y = this.buildVolume.y.min; y <= this.buildVolume.y.max; y += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
                 anchor.position = new Vector3(this.buildVolume.x.min, 0, y - 1);
-                let block = new TextBlock("textBlock", `${y}`);
-                block.color = 'Gray';
-                this.advancedTexture.addControl(block);
-                block.linkWithMesh(anchor);
                 this.axesLabelMeshes.push(anchor);
-                this.axesLabelMeshes.push(block);
-
+                this.buildAxesLabel(anchor, `${y}`);
             }
-
-
         }
         this.bedRendered = true;
     }
+
+    buildAxesLabel(anchor, text) {
+        let block = new TextBlock("textBlock", text);
+        block.color = 'Gray';
+        this.advancedTexture.addControl(block);
+        block.linkWithMesh(anchor);
+        this.axesLabelMeshes.push(block);
+    }
+
 
     getCenter() {
         return {
@@ -327,14 +337,15 @@ export default class {
         gridMaterial.opacity = 0.8;
         gridMaterial.majorUnitFrequency = this.gridSize;
         gridMaterial.minorUnitVisibility = 0.25;
-        let bedSize = this.getSize();
-        gridMaterial.gridOffset = new Vector3(0, 0, 0);
+        let bedCenter = this.getCenter();
+        gridMaterial.gridOffset = new Vector3(bedCenter.x % 25, bedCenter.y % 25);
         gridMaterial.backFaceCulling = false;
         return gridMaterial;
     }
 
     resize() {
         this.engine.resize();
+        this.renderBed();
     }
 
     buildObservables() {
@@ -374,6 +385,79 @@ export default class {
         }
     }
 
+    // Draw scale+legend next to the 3D control
+    drawLegend(canvas, maxVisualizationZ, colorScheme, invertZ, xLabel, yLabel) {
+        // Clear background
+        const context = canvas.getContext('2d');
+        context.rect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = 'black';
+        context.fill();
+
+        // Put annotations above gradient
+        context.font = '14px Roboto,sans-serif';
+        context.textAlign = 'center';
+        context.fillStyle = 'white';
+        context.fillText(i18n.t('plugins.heightmap.scale'), canvas.width / 2, 21);
+        context.fillText(`${invertZ ? -maxVisualizationZ : maxVisualizationZ} mm`, canvas.width / 2, 44);
+        context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orLess' : 'plugins.heightmap.orMore'), canvas.width / 2, 60);
+
+        // Make scale gradient
+        const showAxes = canvas.height > 180;
+        let scaleHeight = showAxes ? (canvas.height - 139) : (canvas.height - 96);
+        if (colorScheme === 'terrain') {
+            scaleHeight -= 16;
+        }
+
+        const gradient = context.createLinearGradient(0, 66, 0, 66 + scaleHeight);
+        if (colorScheme === 'terrain') {
+            gradient.addColorStop(0.0, 'hsl(0,100%,45%)');
+            gradient.addColorStop(0.25, 'hsl(60,100%,45%)');
+            gradient.addColorStop(0.5, 'hsl(120,100%,45%)');
+            gradient.addColorStop(0.75, 'hsl(180,100%,45%)');
+            gradient.addColorStop(1.0, 'hsl(240,100%,45%)');
+        } else {
+            gradient.addColorStop(0.0, 'hsl(0,100%,45%)');
+            gradient.addColorStop(0.5, 'hsl(60,100%,45%)');
+            gradient.addColorStop(1.0, 'hsl(120,100%,45%)');
+        }
+        context.fillStyle = gradient;
+        context.fillRect(canvas.width / 2 - 12, 66, 24, scaleHeight);
+
+        // Put annotation below gradient
+        context.fillStyle = 'white';
+        if (colorScheme === 'terrain') {
+            context.fillText(`${invertZ ? maxVisualizationZ : -maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
+            context.fillText(i18n.t(invertZ ? 'plugins.heightmap.orMore' : 'plugins.heightmap.orLess'), canvas.width / 2, scaleHeight + 98);
+            scaleHeight += 16;
+        } else {
+            context.fillText('0.00 mm', canvas.width / 2, scaleHeight + 82);
+        }
+
+        // Add axes
+        if (showAxes) {
+            context.fillText(i18n.t('plugins.heightmap.axes'), canvas.width / 2, scaleHeight + 109);
+            context.font = 'bold ' + context.font;
+            context.fillStyle = 'rgb(255,0,0)';
+            context.fillText(xLabel, canvas.width / 3, scaleHeight + 129);
+            context.fillStyle = 'rgb(0,255,0)';
+            context.fillText(yLabel, canvas.width / 2, scaleHeight + 129);
+            context.fillStyle = 'rgb(0,0,255)';
+            context.fillText('Z', 2 * canvas.width / 3, scaleHeight + 129);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
     dispose() {
         if (this.axes) {
             this.axes.dispose();
@@ -388,5 +472,4 @@ export default class {
             this.engine.dispose();
         }
     }
-
 }
