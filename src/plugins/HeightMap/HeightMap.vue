@@ -99,7 +99,7 @@ h1 {
 							<v-btn class="flex-grow-1" value="heat">{{ $t('plugins.heightmap.heat') }}</v-btn>
 						</v-btn-toggle>
 					</div>
-					
+
 					<!-- deviation coloring -->
 					<div class="d-flex flex-column mt-1">
 						{{ $t('plugins.heightmap.range') }}
@@ -139,7 +139,7 @@ import {setPluginData, PluginDataType} from '../../store';
 import CSV from '../../utils/csv.js';
 import Events from '../../utils/events.js';
 import Path from '../../utils/path.js';
-
+import {KinematicsName} from '../../store/machine/modelEnums';
 let heightMapViewer;
 export default {
 	computed: {
@@ -152,6 +152,7 @@ export default {
 			heightmapFile: (state) => state.move.compensation.file,
 			systemDirectory: (state) => state.directories.system,
 			axes: (state) => state.move.axes,
+			kinematicsName: (state) => state.move.kinematics.name,
 		}),
 		...mapState('settings', ['language']),
 		colorScheme: {
@@ -162,13 +163,13 @@ export default {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', value);
 			},
 		},
-		deviationColoring : {
-			get(){
+		deviationColoring: {
+			get() {
 				return this.pluginCache.deviationColoring;
 			},
-			set(value){
-				setPluginData('HeightMap', PluginDataType.machineCache,'deviationColoring', value);
-			}
+			set(value) {
+				setPluginData('HeightMap', PluginDataType.machineCache, 'deviationColoring', value);
+			},
 		},
 		invertZ: {
 			get() {
@@ -177,6 +178,9 @@ export default {
 			set(value) {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', value);
 			},
+		},
+		isDelta() {
+			return this.kinematicsName === KinematicsName.delta || this.kinematicsName === KinematicsName.rotaryDelta;
 		},
 	},
 	data() {
@@ -495,6 +499,10 @@ export default {
 		}
 
 		heightMapViewer = new HeightMapViewer(this.$refs.canvas);
+
+		if (this.isDelta) {
+			heightMapViewer.isDelta = this.isDelta;
+		}
 		await heightMapViewer.init();
 		this.buildBed();
 
@@ -577,6 +585,14 @@ export default {
 			handler() {
 				this.buildBed();
 			},
+		},
+		isDelta(to) {
+			if (heightMapViewer) {
+				heightMapViewer.isDelta = to;
+				if (this.heightmapPoints) {
+					this.showHeightMap(this.heightmapPoints, this.probeRadius);
+				}
+			}
 		},
 	},
 };

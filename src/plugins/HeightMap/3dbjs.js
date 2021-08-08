@@ -278,7 +278,6 @@ export default class {
         this.gridMaterial = this.buildGridMaterial();
         this.axes = new Axes(this.scene);
 
-        console.log(bedSize);
         this.axes.render(new Vector3(this.buildVolume.x.min - 10, 0, this.buildVolume.y.min - 10));
 
 
@@ -301,22 +300,23 @@ export default class {
 
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
         //build axes labels
-        if (!this.isDelta) {
             this.axesLabelMeshes.forEach(mesh => mesh.dispose());
             this.axesLabelMeshes = [];
-            for (let x = this.buildVolume.x.min; x <= this.buildVolume.x.max; x += this.gridSize) {
+            let xOff = this.buildVolume.x.min %25;
+            for (let x = this.buildVolume.x.min - xOff; x <= this.buildVolume.x.max; x += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
                 anchor.position = new Vector3(x, 0, this.buildVolume.y.min - 1);
                 this.buildAxesLabel(anchor, `${x}`);
             }
 
-            for (let y = this.buildVolume.y.min; y <= this.buildVolume.y.max; y += this.gridSize) {
+            let yOff = this.buildVolume.y.min % 25;
+
+            for (let y = this.buildVolume.y.min - yOff; y <= this.buildVolume.y.max; y += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
-                anchor.position = new Vector3(this.buildVolume.x.min, 0, y - 1);
+                anchor.position = new Vector3(this.buildVolume.x.min - 1, 0, y);
                 this.axesLabelMeshes.push(anchor);
                 this.buildAxesLabel(anchor, `${y}`);
             }
-        }
         this.bedRendered = true;
     }
 
