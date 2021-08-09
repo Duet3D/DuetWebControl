@@ -922,8 +922,8 @@ export default {
 					that.recorder.state = that.AccelStates.IDLE;
 
 					// update analysis tab with newly generated file
-					that.loadFile(that.recorderFilename).then(that.refresh);
-				}, 2000, this);
+					that.loadFile(that.recorderFilename).then(function() { that.selectedTab = 'analysis'; }).then(that.refresh).then(that.analyze);
+				}, 5000, this);
 			}
 		},
 	}
