@@ -49,6 +49,7 @@ export default class {
 
         this.colorSet = "terrain";
 
+        this.updateScene = false;
 
         this.buildVolume = {
             x: {
@@ -117,26 +118,23 @@ export default class {
             this.highlightMaterial.specularColor = new Color3(0, 0, 1);
             this.highlightMaterial.emissiveColor = new Color3(0, 1, 1);
 
-            //this.light1 = new HemisphericLight("light1", new Vector3(0, 1, 0), this.scene);
-            //this.light2 = new HemisphericLight("light1", new Vector3(0, -1, 0), this.scene);
             this.light1 = new PointLight('light1', new Vector3(0, 1, -1), this.scene);
             this.light1.diffuse = new Color3(1, 1, 1);
             this.light1.specular = new Color3(1, 1, 1);
 
-
-            //build the render loop
-            this.engine.runRenderLoop(() => {
-                if (this.bedRendered) {
-                    this.scene.render();
-                    this.light1.position = this.scene.cameras[0].position;
-                }
-            })
-
             this.buildObservables();
 
+            this.scene.render();
             resolve();
         });
 
+        
+
+    }
+
+    renderScene(){
+        this.light1.position = this.scene.cameras[0].position;
+        this.scene.render();
     }
 
     clearHeightMapData() {
@@ -144,6 +142,7 @@ export default class {
             this.ribbonMesh.dispose(false, false);
         }
         this.heightPointMeshes.forEach(p => p.dispose());
+        this.scene.render();
     }
 
     createHeightPoint(vec, metadata) {
@@ -203,6 +202,7 @@ export default class {
         this.ribbonMesh = MeshBuilder.CreateRibbon("ribbon", { pathArray: points, colors: color, sideOrientation: Mesh.DoubleSide }, this.scene);
         this.ribbonMesh.material = this.ribbonMaterial;
         this.ribbonMesh.isPickable = false;
+        this.renderScene();
     }
 
 
@@ -243,20 +243,26 @@ export default class {
             this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
             this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
         }
+        this.renderScene();
     }
 
     topView() {
-        this.scene.activeCamera.radius = this.buildVolume.z.max * 1.25;
+        let center = this.getCenter();
+        let bedSize = this.getSize();
+        this.scene.activeCamera.setPosition(new Vector3(center.x, bedSize.y * 1.5, center.y));
+        this.scene.activeCamera.setTarget(new Vector3(0, 0, 0));
         this.scene.activeCamera.alpha = - Math.PI / 2;
         this.scene.activeCamera.beta = 0;
+        this.renderScene();
     }
 
     renderBed() {
+
         if (this.gridMaterial) {
             this.gridMaterial.dispose();
         }
         if (this.bedMesh) {
-            this.bedMesh.dispose(false, false);
+            this.bedMesh.dispose(false, true);
         }
 
         if (this.axes) {
@@ -305,7 +311,7 @@ export default class {
             let xOff = this.buildVolume.x.min %25;
             for (let x = this.buildVolume.x.min - xOff; x <= this.buildVolume.x.max; x += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
-                anchor.position = new Vector3(x, 0, this.buildVolume.y.min - 1);
+                anchor.position = new Vector3(x, 0, this.buildVolume.y.min);
                 this.buildAxesLabel(anchor, `${x}`);
             }
 
@@ -313,11 +319,13 @@ export default class {
 
             for (let y = this.buildVolume.y.min - yOff; y <= this.buildVolume.y.max; y += this.gridSize) {
                 let anchor = new Mesh("anchor", this.scene);
-                anchor.position = new Vector3(this.buildVolume.x.min - 1, 0, y);
+                anchor.position = new Vector3(this.buildVolume.x.min, 0, y);
                 this.axesLabelMeshes.push(anchor);
                 this.buildAxesLabel(anchor, `${y}`);
             }
         this.bedRendered = true;
+        this.renderScene();
+        
     }
 
     buildAxesLabel(anchor, text) {
@@ -361,6 +369,7 @@ export default class {
     resize() {
         this.engine.resize();
         this.renderBed();
+        this.renderScene();
     }
 
     buildObservables() {
@@ -372,9 +381,11 @@ export default class {
             let pickInfo = pointerInfo.pickInfo;
             switch (pointerInfo.type) {
                 case PointerEventTypes.POINTERMOVE: {
-
                     this.handlePointerMove(pickInfo);
-                }
+                }break;
+                case PointerEventTypes.POINTERWHEEL: {
+                    this.renderScene();
+                }break;
             }
         });
     }
@@ -398,6 +409,7 @@ export default class {
                 this.labelCallback();
             }
         }
+        this.renderScene();
     }
 
     // Draw scale+legend next to the 3D control
