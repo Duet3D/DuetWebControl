@@ -125,7 +125,7 @@
 					<v-col>
 						<v-card class="d-flex flex-column flex-grow-1 mt-2">
 							<v-card-title class="pt-2 pb-0">
-								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}
+								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}: {{ selectedFile }}
 							</v-card-title>
 
 							<v-card-text v-show="selectedFile !== null" class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
