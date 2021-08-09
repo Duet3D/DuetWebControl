@@ -1,21 +1,9 @@
 {
-  "id": "InputShapingPlugin",
+  "id": "InputShaping",
   "name": "Input Shaping Plugin",
   "author": "Christian Hammacher, Michael Szafranek",
   "version": "0.1.0",
   "license": "LGPL-3.0-or-later",
-  "homepage": null,
-  "dwcVersion": "3.4",
-  "dwcDependencies": [],
-  "sbcRequired": false,
-  "sbcDsfVersion": null,
-  "sbcExecutable": null,
-  "sbcExecutableArguments": null,
-  "sbcExtraExecutables": [],
-  "sbcOutputRedirected": true,
-  "sbcPermissions": [],
-  "sbcPackageDependencies": [],
-  "sbcPluginDependencies": [],
-  "rrfVersion": "3.4",
-  "data": {}
+  "homepage": "https://github.com/mfs12/DuetWebControl/tree/inputshaping-accel-plugin/src/plugins/InputShaping",
+  "dwcVersion": "3.4.0-b2"
 }
