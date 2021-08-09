@@ -152,7 +152,7 @@ export default class {
     this.axes.registerClipIgnore = (mesh) => {
       this.registerClipIgnore(mesh);
     };
-    this.axes.render(50);
+    this.axes.render();
 
     this.resetCamera();
   }

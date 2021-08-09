@@ -146,7 +146,7 @@ export default class {
     }
 
     createHeightPoint(vec, metadata) {
-        let sphere = MeshBuilder.CreateSphere("sphere", { diameter: 5, segments: 8 }, this.scene);
+        let sphere = MeshBuilder.CreateSphere("sphere", { diameter: 8, segments: 8 }, this.scene);
         sphere.position = vec;
         sphere.material = this.sphereMaterial;
         sphere.metadata = metadata;
