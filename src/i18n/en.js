@@ -730,6 +730,7 @@ export default {
 			caption: 'Speed Factor'
 		},
 		spindle: {
+			title : 'Spindles',
 			spindle : 'Spindle',
 			active : 'Active',
 			direction : 'Direction',

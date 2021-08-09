@@ -1,7 +1,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon>mdi-45hammer-screwdriver</v-icon>Spindles
+			<v-icon>mdi-45hammer-screwdriver</v-icon>{{$t('panel.spindle.title')}}
 		</v-card-title>
 		<v-card-text>
 			<v-simple-table>
@@ -105,7 +105,7 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		getName(index) {
-			return `Spindle ${index}`;
+			return `${this.$t('panel.spindle.spindle')} ${index}`;
 		},
 		spindleIsConfigured(index) {
 			return this.spindles[index].state !== SpindleState.unconfigured;
