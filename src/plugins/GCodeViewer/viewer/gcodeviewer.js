@@ -113,7 +113,7 @@ export default class {
     this.orbitCamera = new ArcRotateCamera('Camera', Math.PI / 2, 2.356194, 250, new Vector3(bedCenter.x, -2, bedCenter.y), this.scene);
     this.orbitCamera.invertRotation = false;
     this.orbitCamera.attachControl(this.canvas, false);
-    this.orbitCamera.maxZ = 100000000;
+    this.orbitCamera.maxZ = 100000;
     this.orbitCamera.lowerRadiusLimit = 10;
     this.updateCameraInertiaProperties()
     //    this.orbitCamera.wheelDeltaPercentage = 0.02;

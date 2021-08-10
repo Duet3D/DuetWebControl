@@ -1,3 +1,4 @@
+'use strict'
 
 import { Engine } from '@babylonjs/core/Engines/engine'
 import { Scene } from '@babylonjs/core/scene'
@@ -83,7 +84,7 @@ export default class {
             this.orbitCamera = new ArcRotateCamera('Camera', 0, 0, 250, new Vector3(0, 0, 0), this.scene);
             this.orbitCamera.invertRotation = false;
             this.orbitCamera.attachControl(this.canvas, true);
-            this.orbitCamera.maxZ = 1000000;
+            this.orbitCamera.maxZ = 100000;
             this.orbitCamera.lowerRadiusLimit = 10;
 
             //Motion Settings
@@ -304,7 +305,7 @@ export default class {
 
         this.bedMesh.isPickable = false;
 
-        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
         //build axes labels
             this.axesLabelMeshes.forEach(mesh => mesh.dispose());
             this.axesLabelMeshes = [];
