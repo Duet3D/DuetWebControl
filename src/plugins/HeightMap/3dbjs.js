@@ -380,6 +380,7 @@ export default class {
         this.observableControls = this.scene.onPointerObservable.add((pointerInfo) => {
             let pickInfo = pointerInfo.pickInfo;
             switch (pointerInfo.type) {
+                case PointerEventTypes.POINTERPICK:
                 case PointerEventTypes.POINTERMOVE: {
                     this.handlePointerMove(pickInfo);
                 }break;
