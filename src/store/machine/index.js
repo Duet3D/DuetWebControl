@@ -72,7 +72,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			},
 
 			// Send a code and log the result (if applicable)
-			// Parameter can be either a string or an object { code, (fromInput = false, log = true) }
+			// Payload can be either a string or an object { code, (fromInput = false, log = true) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
 				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
