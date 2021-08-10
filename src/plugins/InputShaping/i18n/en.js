@@ -50,7 +50,7 @@ export default {
 	smallerThanOrEqualTo: 'Must be smaller than or equal to {0}',
 	startPosition: 'Start Position (in mm)',
 	stopPosition: 'Stop Position (in mm)',
-	validAcceleration: 'Select a Acceleration',
+	validAcceleration: 'Select a valid Acceleration',
 	validAccelerationId: 'Select a valid Accelerometer ID',
 	validAlgorithm: 'Select a valid Algorithm',
 	validAxis: 'Select a valid axis',
