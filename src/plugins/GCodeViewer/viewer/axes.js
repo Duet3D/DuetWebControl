@@ -19,6 +19,7 @@ export default class {
     this.scene = scene;
     this.registerClipIgnore = () => { };
     this.axesMesh;
+    this.axesMeshPosition;
     this.size = 50;
     this.debug = false;
   }
@@ -48,9 +49,12 @@ export default class {
     this.render();
   }
 
-  render() {
+  render(position) {
     if (this.debug) return;
     if (this.axesMesh && !this.axesMesh.isDisposed()) {
+      if (position) {
+        this.axesMesh.position = position;
+      }
       return;
     }
 
@@ -71,7 +75,7 @@ export default class {
     yChar.position = new Vector3(0, 0.05 * this.size, 0.9 * this.size);
     yChar.parent = this.axesMesh;
 
-    var axisZ = Mesh.CreateLines('axisY', [Vector3.Zero(), new Vector3(0, this.size, 0), new Vector3(-0.05 * this.size, this.size * 0.95, 0), new Vector3(0, this.size, 0), new Vector3(0.05 * this.size, this.size * 0.95, 0)], this.scene);    axisZ.color = new Color3(0, 0, 1);
+    var axisZ = Mesh.CreateLines('axisY', [Vector3.Zero(), new Vector3(0, this.size, 0), new Vector3(-0.05 * this.size, this.size * 0.95, 0), new Vector3(0, this.size, 0), new Vector3(0.05 * this.size, this.size * 0.95, 0)], this.scene); axisZ.color = new Color3(0, 0, 1);
     axisZ.parent = this.axesMesh;
     var zChar = this.makeTextPlane('Z', 'blue', this.size / 10);
     zChar.position = new Vector3(0, 0.9 * this.size, -0.05 * this.size);
@@ -80,5 +84,14 @@ export default class {
 
     this.axesMesh.setEnabled(this.visible);
     this.axesMesh.getChildren().forEach((mesh) => this.registerClipIgnore(mesh));
+    if (position) {
+      this.axesMesh.position = position;
+    }
+  }
+
+  dispose() {
+    if (this.axesMesh) {
+      this.axesMesh.dispose(false, true);
+    }
   }
 }
