@@ -182,6 +182,11 @@ export default {
 		isDelta() {
 			return this.kinematicsName === KinematicsName.delta || this.kinematicsName === KinematicsName.rotaryDelta;
 		},
+		bedAxesValues() {
+			return this.axes.map((d) => {
+				return { letter: d.letter, min: d.min, max: d.max };
+			});
+		},
 	},
 	data() {
 		return {
@@ -580,7 +585,7 @@ export default {
 				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme);
 			}
 		},
-		axes: {
+		bedAxesValues: {
 			deep: true,
 			handler() {
 				this.buildBed();
