@@ -174,10 +174,10 @@ export const MessageType = {
 
 export const MoveShapingType = {
 	none: 'none',
-	ZVD: 'ZVD',
-	ZVDD: 'ZVDD',
-	EI2: 'EI2',
-	EI3: 'EI3'
+	zvd: 'zvd',
+	zvdd: 'zvdd',
+	ei2: 'ei2',
+	ei3: 'ei3'
 }
 
 export const NetworkInterfaceType = {
