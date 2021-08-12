@@ -153,6 +153,14 @@ export const LogLevel = {
 	off: 'off'
 }
 
+export const InputShapingType = {
+	none: 'none',
+	ZVD: 'zvd',
+	ZVDD: 'zvdd',
+	EI2: 'ei2',
+	EI3: 'ei3'
+}
+
 export const MachineMode = {
 	fff: 'FFF',
 	cnc: 'CNC',
@@ -170,14 +178,6 @@ export const MessageType = {
 	success: 0,
 	warning: 1,
 	error: 2
-}
-
-export const MoveShapingType = {
-	none: 'none',
-	ZVD: 'ZVD',
-	ZVDD: 'ZVDD',
-	EI2: 'EI2',
-	DAA: 'DAA'
 }
 
 export const NetworkInterfaceType = {
