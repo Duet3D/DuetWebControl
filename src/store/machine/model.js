@@ -6,7 +6,7 @@ import {
 	InputChannelName,
 	LogLevel,
 	MachineMode,
-	MoveShapingType,
+	InputShapingType,
 	KinematicsName,
 	StatusType,
 	isPrinting
@@ -180,7 +180,7 @@ export class MachineModel {
 			damping: 0.2,
 			frequency: 40,
 			minAcceleration: 10,
-			type: MoveShapingType.none
+			type: InputShapingType.none
 		},
 		speedFactor: 1.0,
 		travelAcceleration: 10000,
