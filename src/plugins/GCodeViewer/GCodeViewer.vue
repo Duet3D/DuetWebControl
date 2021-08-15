@@ -294,14 +294,23 @@
 			</v-navigation-drawer>
 			<div class="scrubber" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row>
-					<v-col cols="10">
+					<v-col class="text-caption text-center" cols="2">{{scrubPosition}} / {{scrubFileSize}}</v-col>
+					<v-col cols="7">
 						<v-slider :max="scrubFileSize" min="0" v-model="scrubPosition "></v-slider>
 					</v-col>
-					<v-col @click="scrubPlaying = !scrubPlaying" cols="2">
-						<v-btn small>
+					<v-col @click="scrubPlaying = !scrubPlaying" cols="1">
+						<v-btn>
 							<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
 							<v-icon v-else>mdi-play</v-icon>
 						</v-btn>
+					</v-col>
+					<v-col cols="2">
+						<v-btn-toggle dense mandatory rounded v-model="scrubSpeed">
+							<v-btn :value="1">1x</v-btn>
+							<v-btn :value="2">2x</v-btn>
+							<v-btn :value="5">5x</v-btn>
+							<v-btn :value="10">10x</v-btn>
+						</v-btn-toggle>
 					</v-col>
 				</v-row>
 			</div>
@@ -389,6 +398,7 @@ export default {
 			scrubPlaying: false,
 			scrubInterval: null,
 			colorDebounce: null,
+			scrubSpeed: 1,
 		};
 	},
 	computed: {
@@ -751,7 +761,7 @@ export default {
 				viewer.gcodeProcessor.updateFilePosition(this.scrubPosition - 30000);
 				this.scrubInterval = setInterval(() => {
 					if (this.scrubPlaying) {
-						this.scrubPosition += 1000;
+						this.scrubPosition += 100 * this.scrubSpeed;
 						viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
 					}
 				}, 200);
