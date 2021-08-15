@@ -294,9 +294,8 @@
 			</v-navigation-drawer>
 			<div class="scrubber" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row>
-					<v-col class="text-caption text-center" cols="2">{{scrubPosition}} / {{scrubFileSize}}</v-col>
-					<v-col cols="7">
-						<v-slider :max="scrubFileSize" min="0" v-model="scrubPosition "></v-slider>
+					<v-col cols="9">
+						<v-slider :hint="scrubPosition + '/' + scrubFileSize" persistent-hint dense :max="scrubFileSize" min="0" v-model="scrubPosition "></v-slider>
 					</v-col>
 					<v-col @click="scrubPlaying = !scrubPlaying" cols="1">
 						<v-btn>
@@ -347,7 +346,7 @@ import {KinematicsName} from '../../store/machine/modelEnums';
 import {isPrinting} from '../../store/machine/modelEnums.js';
 import {setPluginData, PluginDataType} from '../../store';
 
-let viewer = null;
+let viewer;
 
 export default {
 	data: function () {
@@ -586,12 +585,12 @@ export default {
 			let globalContainerHeight = parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
 			let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
 			this.$refs.primarycontainer.style.height = (viewerHeight >= 300 ? viewerHeight : 300) + 'px';
-			if (Object.keys(viewer).length !== 0) {
+			if (viewer) {
 				viewer.resize();
 			}
 		},
 		reset() {
-			if (Object.keys(viewer).length !== 0) {
+			if (viewer) {
 				viewer.resetCamera();
 			}
 		},
