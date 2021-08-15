@@ -13,7 +13,7 @@ import { Space } from '@babylonjs/core/Maths/math.axis';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import Axes from '../../plugins/GCodeViewer/viewer/axes'
+import { Axes } from '@sindarius/gcodeviewer'
 
 import i18n from '../../i18n'
 
