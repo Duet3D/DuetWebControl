@@ -65,7 +65,7 @@
 }
 
 .button-container-drawer {
-	left: 355px;
+	left: 355px !important;
 }
 .emergency-button-placement {
 	position: absolute;
@@ -92,12 +92,12 @@
 
 .scrubber {
 	position: absolute;
-	width: 50%;
-	left: 0px;
-	margin-left: 25%;
+	left: 5%;
+	right:5%;
 	bottom: 5px;
 	z-index: 19 !important;
 }
+
 
 /* Transitions lag when trying to show loading progress */
 .disable-transition {
@@ -292,23 +292,24 @@
 					</v-expansion-panel>
 				</v-expansion-panels>
 			</v-navigation-drawer>
-			<div class="scrubber" v-show="!visualizingCurrentJob && scrubFileSize > 0">
-				<v-row>
-					<v-col cols="9">
-						<v-slider :hint="scrubPosition + '/' + scrubFileSize" persistent-hint dense :max="scrubFileSize" min="0" v-model="scrubPosition "></v-slider>
+			<div :class="{ 'button-container-drawer': drawer }"  class="scrubber"  v-show="!visualizingCurrentJob && scrubFileSize > 0">
+				<v-row class="scrubber-row">
+					<v-col cols="11" md="9">
+						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition "></v-slider>
 					</v-col>
-					<v-col @click="scrubPlaying = !scrubPlaying" cols="1">
-						<v-btn>
+					<v-col cols="1">
+						<v-btn @click="scrubPlaying = !scrubPlaying">
 							<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
 							<v-icon v-else>mdi-play</v-icon>
 						</v-btn>
 					</v-col>
-					<v-col cols="2">
+					<v-col cols="12" md="2">
 						<v-btn-toggle dense mandatory rounded v-model="scrubSpeed">
 							<v-btn :value="1">1x</v-btn>
 							<v-btn :value="2">2x</v-btn>
 							<v-btn :value="5">5x</v-btn>
 							<v-btn :value="10">10x</v-btn>
+							<v-btn :value="20">20x</v-btn>
 						</v-btn-toggle>
 					</v-col>
 				</v-row>
