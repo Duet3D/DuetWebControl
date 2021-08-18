@@ -885,9 +885,9 @@ export default {
 				this.recorder.param.minPosition = this.model.move.axes[index].min;
 				this.recorder.param.maxPosition = this.model.move.axes[index].max;
 
-				this.recorder.param.startPosition = this.recorder.param.minPosition + 10;
+				this.recorder.param.startPosition = Math.floor(this.recorder.param.minPosition + 10);
 				this.recorder.param.stopPosition =
-					this.recorder.param.minPosition + (this.recorder.param.maxPosition - this.recorder.param.minPosition) * 2 / 3;
+					Math.floor(this.recorder.param.minPosition + (this.recorder.param.maxPosition - this.recorder.param.minPosition) * 2 / 3);
 			}
 		},
 		recorderMenuAxis() {
