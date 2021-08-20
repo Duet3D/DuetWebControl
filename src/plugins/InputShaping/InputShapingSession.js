@@ -21,9 +21,9 @@ let axis = {
 export class Record {
 	constructor(name, config) {
 		this.name = name;
-		this.config = config;
-		this.samplingRate = null;
 		this.samples = null;
+		this.samplingRate = null;
+		this.config = config;
 		this.overflows = null;
 		this.frequencies = [];
 		this.axis = [];
@@ -151,6 +151,8 @@ export class Record {
 export class Session {
 	constructor(name) {
 		this.name = name;
+		this.samples = null;
+		this.samplingRate = null;
 		this.records = [];
 	}
 
@@ -170,6 +172,18 @@ export class Session {
 		let index = this.records.findIndex(e => e.name === record.name);
 		if (index >= 0)
 			return;
+
+		if (this.session.samples == null)
+			this.session.samples = record.samples;
+
+		if (this.session.samplingRate == null)
+			this.session.samplingRate = record.samplingRate;
+
+		if (this.session.samples != record.samples)
+			throw new Error("session does not match record's number of samples");
+
+		if (this.session.samplingRate != record.samplingRate)
+			throw new Error("session does not match record's sampling rate");
 
 		this.records.push(record);
 	}
