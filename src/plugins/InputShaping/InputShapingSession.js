@@ -168,27 +168,27 @@ export class Session {
 		return this.id;
 	}
 
-	add(record) {
+	addRecord(record) {
 		let index = this.records.findIndex(e => e.name === record.name);
 		if (index >= 0)
 			return;
 
-		if (this.session.samples == null)
-			this.session.samples = record.samples;
+		if (this.samples == null)
+			this.samples = record.samples;
 
-		if (this.session.samplingRate == null)
-			this.session.samplingRate = record.samplingRate;
+		if (this.samplingRate == null)
+			this.samplingRate = record.samplingRate;
 
-		if (this.session.samples != record.samples)
+		if (this.samples != record.samples)
 			throw new Error("session does not match record's number of samples");
 
-		if (this.session.samplingRate != record.samplingRate)
+		if (this.samplingRate != record.samplingRate)
 			throw new Error("session does not match record's sampling rate");
 
 		this.records.push(record);
 	}
 
-	remove(recordName) {
+	removeRecord(recordName) {
 		let index = this.records.findIndex(e => e.name === recordName);
 		if (index < 0)
 			return;
@@ -196,11 +196,11 @@ export class Session {
 		delete this.records[index];
 	}
 
-	get(recordName) {
+	getRecord(recordName) {
 		return this.records.find(e => e.name === recordName);
 	}
 
-	getAll() {
+	getAllRecords() {
 		return this.records;
 	}
 }
