@@ -125,7 +125,15 @@
 					<v-col>
 						<v-card class="d-flex flex-column flex-grow-1 mt-2">
 							<v-card-title class="pt-2 pb-0">
-								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}: {{ selectedFile }}
+								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
+
+								<v-list class="py-0" :disabled="uiFrozen || loading">
+									<v-list-item-group :value="recordList" color="primary" mandatory>
+										<v-list-item v-for="name in recordList" :key="name" :value="name" @click="removeSession(name)">
+											{{ name }}
+										</v-list-item>
+									</v-list-item-group>
+								</v-list>
 							</v-card-title>
 
 							<v-spacer v-show="selectedFile !== null && alertMessage !== null"></v-spacer>
@@ -349,6 +357,7 @@ export default {
 			selectedFile: null,
 			currentRec: null,
 			session: null,
+			recordList: [],
 
 			loading: false,
 			alertType: 'error',
@@ -494,9 +503,16 @@ export default {
 		},
 		addSession(record) {
 			this.session.addRecord(record);
+
+			this.recordList.push(record.name);
 		},
-		removeSession(record) {
-			this.session.removeRecord(record);
+		removeSession(recordName) {
+			let index = this.session.removeRecord(recordName);
+
+			this.recordList.splice(index, 1);
+			this.updateChart();
+
+			console.log("removed", recordName, "index", index);
 		},
 		async loadFile(file) {
 			let csvFile;
@@ -609,28 +625,27 @@ export default {
 
 					this.chart.data.datasets.push(dataset);
 				});
-
-				console.log("number of datasets complete", this.chart.data.datasets.length);
-				console.log("number of labels complete", this.chart.data.labels.length);
-
-				console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
-
-				this.chart.update();
-
-				// Check if any dataset is visible
-				let datasetVisible = false;
-				for (let i = 0; i < this.chart.data.datasets.length; i++) {
-					if (this.chart.isDatasetVisible(i)) {
-						datasetVisible = true;
-						break;
-					}
-				}
-				this.datasetVisible = datasetVisible;
-
-				this.currentRec = rec;
-				this.displaySamples = true;
-				console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 			});
+
+			console.log("number of datasets complete", this.chart.data.datasets.length);
+			console.log("number of labels complete", this.chart.data.labels.length);
+
+			console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+
+			this.chart.update();
+
+			// Check if any dataset is visible
+			let datasetVisible = false;
+			for (let i = 0; i < this.chart.data.datasets.length; i++) {
+				if (this.chart.isDatasetVisible(i)) {
+					datasetVisible = true;
+					break;
+				}
+			}
+			this.datasetVisible = datasetVisible;
+
+			this.displaySamples = true;
+			console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 		},
 		applyDarkTheme(active) {
 			const ticksColor = active ? '#FFF' : '#666';

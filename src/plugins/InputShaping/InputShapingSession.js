@@ -191,9 +191,11 @@ export class Session {
 	removeRecord(recordName) {
 		let index = this.records.findIndex(e => e.name === recordName);
 		if (index < 0)
-			return;
+			return -1;
 
-		delete this.records[index];
+		this.records.splice(index, 1);
+		console.log("deleted", index);
+		return index;
 	}
 
 	getRecord(recordName) {
