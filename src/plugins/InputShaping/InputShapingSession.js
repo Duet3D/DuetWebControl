@@ -149,10 +149,13 @@ export class Record {
 }
 
 export class Session {
-	constructor() {
+	constructor(name) {
 		this.name = name;
-		this.id = null; // hash of test
 		this.records = [];
+	}
+
+	setName(name) {
+		this.name = name;
 	}
 
 	getName() {
@@ -164,17 +167,23 @@ export class Session {
 	}
 
 	add(record) {
+		let index = this.records.findIndex(e => e.name === record.name);
+		if (index >= 0)
+			return;
+
 		this.records.push(record);
 	}
 
 	remove(recordName) {
-		// TODO
-		return recordName;
+		let index = this.records.findIndex(e => e.name === recordName);
+		if (index < 0)
+			return;
+
+		delete this.records[index];
 	}
 
 	get(recordName) {
-		// TODO
-		return recordName;
+		return this.records.find(e => e.name === recordName);
 	}
 
 	getAll() {
