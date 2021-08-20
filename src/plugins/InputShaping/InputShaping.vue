@@ -128,10 +128,6 @@
 								<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}: {{ selectedFile }}
 							</v-card-title>
 
-							<v-card-text v-show="selectedFile !== null" class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-								<canvas ref="chart"></canvas>
-							</v-card-text>
-
 							<v-spacer v-show="selectedFile !== null && alertMessage !== null"></v-spacer>
 
 							<v-card-text class="pa-0" v-show="alertMessage !== null">
@@ -139,6 +135,11 @@
 									{{ alertMessage  }}
 								</v-alert>
 							</v-card-text>
+
+							<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+								<canvas ref="chart"></canvas>
+							</v-card-text>
+
 						</v-card>
 
 						<v-card class="mt-5" v-show="selectedFile !== null">
@@ -243,7 +244,7 @@ import Path from '../../utils/path.js'
 import { InputShapingType } from '../../store/machine/modelEnums.js'
 
 import { AccelStates } from './InputShapingEnums.js'
-import { Record } from './InputShapingSession.js'
+import { Record, Session } from './InputShapingSession.js'
 import { makeNotification } from '../../utils/toast.js'
 
 export default {
@@ -347,6 +348,7 @@ export default {
 			files: [],
 			selectedFile: null,
 			currentRec: null,
+			session: null,
 
 			loading: false,
 			alertType: 'error',
@@ -490,6 +492,12 @@ export default {
 			];
 			return colors[index % colors.length];
 		},
+		addSession(record) {
+			this.session.addRecord(record);
+		},
+		removeSession(record) {
+			this.session.removeRecord(record);
+		},
 		async loadFile(file) {
 			let csvFile;
 
@@ -526,7 +534,7 @@ export default {
 			this.selectedFile = null;
 			this.currentRec = null;
 
-			let rec = new Record("testing");
+			let rec = new Record(file);
 
 			try {
 				rec.parse(csvFile);
@@ -542,24 +550,61 @@ export default {
 					}
 				}
 				this.alertMessage = null;
+			} catch (e) {
+				this.alertType = 'error';
+				this.alertMessage = this.$t('plugins.inputShaping.parseError');
+				console.warn(e);
+				return;
+			}
 
-				let labels = new Array(rec.samples);
-				for (let i = 0; i < labels.length; i++) {
-					labels[i] = i;
-				}
-				this.chart.data.labels = labels;
-				console.log("labels", this.chart.data.labels);
+			try {
+				this.addSession(rec);
+			} catch (e) {
+				this.alertType = 'error';
+				this.alertMessage = 'sessionAddRecordError ' + e.message;
+				console.warn(e);
+				return;
+			}
 
-				rec.axis.forEach((axis, index) => {
+			try {
+				this.updateChart();
+			} catch (e) {
+				this.alertType = 'error';
+				this.alertMessage = 'updateChartError ' + e.message;
+				console.warn(e);
+				return;
+			}
+
+		},
+		updateChart() {
+
+			// chart update code works on record
+			let labels = new Array(this.session.samples);
+			for (let i = 0; i < labels.length; i++) {
+				labels[i] = i;
+			}
+			this.chart.data.labels = labels;
+			console.log("labels", this.chart.data.labels);
+
+			// Render the chart and apply sample rate
+			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
+			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.samples;
+			this.samplingRate = this.session.samplingRate;
+
+			this.chart.data.datasets = [];
+
+			this.session.getAllRecords().forEach((rec, recIndex) => {
+
+				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
-						borderColor: this.getLineColor(index),
-						backgroundColor: this.getLineColor(index),
+						borderColor: this.getLineColor(index + recIndex * arr.length),
+						backgroundColor: this.getLineColor(index + recIndex * arr.length),
 						pointBorderWidth: 0.25,
 						pointRadius: 2,
 						borderWidth: 1.25,
 						data: axis.acceleration,
 						fill: false,
-						label: axis.name
+						label: rec.name + ' ' + axis.name
 					};
 
 					this.chart.data.datasets.push(dataset);
@@ -567,11 +612,6 @@ export default {
 
 				console.log("number of datasets complete", this.chart.data.datasets.length);
 				console.log("number of labels complete", this.chart.data.labels.length);
-
-				// Render the chart and apply sample rate
-				this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-				this.end = this.chart.config.options.scales.xAxes[0].ticks.max = rec.samples;
-				this.samplingRate = rec.samplingRate;
 
 				console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 
@@ -586,18 +626,11 @@ export default {
 					}
 				}
 				this.datasetVisible = datasetVisible;
-			} catch (e) {
-				this.alertType = 'error';
-				this.alertMessage = this.$t('plugins.inputShaping.parseError');
-				console.warn(e);
-				return;
-			}
 
-			// File now selected
-			this.selectedFile = file;
-			this.currentRec = rec;
-			this.displaySamples = true;
-			console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+				this.currentRec = rec;
+				this.displaySamples = true;
+				console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+			});
 		},
 		applyDarkTheme(active) {
 			const ticksColor = active ? '#FFF' : '#666';
@@ -676,7 +709,7 @@ export default {
 						borderWidth: 1.25,
 						data: axe.amplitudes,
 						fill: false,
-						label: axe.name
+						label: this.currentRec.name + ' ' + axe.name
 					};
 
 					this.chart.data.datasets.push(dataset);
@@ -734,6 +767,8 @@ export default {
 		// Set up initial message
 		this.alertType = 'info';
 		this.alertMessage = this.$t('plugins.inputShaping.noData');
+
+		this.session = new Session("initial session");
 
 		// Reload the file list
 		this.refresh();
