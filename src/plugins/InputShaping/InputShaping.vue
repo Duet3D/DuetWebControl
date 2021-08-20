@@ -238,13 +238,12 @@ import Chart from 'chart.js'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import CSV from '../../utils/csv.js'
 import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
 import { InputShapingType } from '../../store/machine/modelEnums.js'
 
-import { transform } from './fft.js'
 import { AccelStates } from './InputShapingEnums.js'
+import { Record } from './InputShapingSession.js'
 import { makeNotification } from '../../utils/toast.js'
 
 export default {
@@ -347,6 +346,7 @@ export default {
 			// Frequency Analysis
 			files: [],
 			selectedFile: null,
+			currentRec: null,
 
 			loading: false,
 			alertType: 'error',
@@ -524,23 +524,16 @@ export default {
 			this.alertMessage = this.$t('plugins.inputShaping.noData');
 			this.chart.data.datasets = [];
 			this.selectedFile = null;
+			this.currentRec = null;
+
+			let rec = new Record("testing");
 
 			try {
-				// Load the CSV
-				const csv = new CSV(csvFile);
-				if (csv.headers.length < 2 || csv.headers[0] !== 'Sample' || csv.content.length < 2) {
-					throw new Error('Invalid CSV format');
-				}
-
-				// Extract details
-				const details = /Rate (\d+) overflows (\d)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
-				if (!details) {
-					throw new Error('Failed to read rate and overflows');
-				}
-				const samplingRate = parseFloat(details[1]), overflows = parseFloat(details[2]);
+				rec.parse(csvFile);
+				rec.analyze();
 
 				// Show confirmation prompt if there are overflows
-				if (overflows > 0) {
+				if (rec.overflows > 0) {
 					this.showOverflowConfirmation = true;
 					const that = this;
 					if (!await new Promise(resolve => that.resolveOverflowPromise = resolve)) {
@@ -550,50 +543,39 @@ export default {
 				}
 				this.alertMessage = null;
 
-				// Add the samples
-				let minValue = 0, maxValue = 0, numSamples = 0;
-				this.chart.data.labels = [];
-				this.chart.data.datasets = [];
-				for (let axis = 1; axis < csv.headers.length; axis++) {
+				let labels = new Array(rec.samples);
+				for (let i = 0; i < labels.length; i++) {
+					labels[i] = i;
+				}
+				this.chart.data.labels = labels;
+				console.log("labels", this.chart.data.labels);
+
+				rec.axis.forEach((axis, index) => {
 					const dataset = {
-						borderColor: this.getLineColor(axis - 1),
-						backgroundColor: this.getLineColor(axis - 1),
+						borderColor: this.getLineColor(index),
+						backgroundColor: this.getLineColor(index),
 						pointBorderWidth: 0.25,
 						pointRadius: 2,
 						borderWidth: 1.25,
-						data: [],
+						data: axis.acceleration,
 						fill: false,
-						label: csv.headers[axis]
+						label: axis.name
 					};
-					for (let sample = 0; sample < csv.content.length - 1; sample++) {
-						if (csv.content[sample].length === csv.headers.length) {
-							const value = parseFloat(csv.content[sample][axis]);
-							if (value < minValue) {
-								minValue = value;
-							}
-							if (value > maxValue) {
-								maxValue = value;
-							}
-							dataset.data.push(value);
-							if (dataset.data.length > numSamples) {
-								numSamples = dataset.data.length;
-								this.chart.data.labels.push(dataset.data.length);
-							}
-						}
-					}
+
 					this.chart.data.datasets.push(dataset);
-				}
-				this.samples = csv.content
-					.filter((value, index) => index > 0)
-					.map(axisSamples => axisSamples
-						.filter((value, index) => index > 0)
-						.map(value => parseFloat(value)));
+				});
+
+				console.log("number of datasets complete", this.chart.data.datasets.length);
+				console.log("number of labels complete", this.chart.data.labels.length);
 
 				// Render the chart and apply sample rate
 				this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-				this.end = this.chart.config.options.scales.xAxes[0].ticks.max = numSamples;
+				this.end = this.chart.config.options.scales.xAxes[0].ticks.max = rec.samples;
+				this.samplingRate = rec.samplingRate;
+
+				console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+
 				this.chart.update();
-				this.samplingRate = samplingRate;
 
 				// Check if any dataset is visible
 				let datasetVisible = false;
@@ -613,7 +595,9 @@ export default {
 
 			// File now selected
 			this.selectedFile = file;
+			this.currentRec = rec;
 			this.displaySamples = true;
+			console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 		},
 		applyDarkTheme(active) {
 			const ticksColor = active ? '#FFF' : '#666';
@@ -660,79 +644,61 @@ export default {
 			}).bind(this), 100);
 		},
 		applyStartEnd() {
+			/*
 			if (this.chart) {
 				this.chart.config.options.scales.xAxes[0].ticks.min = this.start;
 				this.chart.config.options.scales.xAxes[0].ticks.max = this.end;
 				this.chart.update();
 			}
+			*/
+			console.log("start", this.start, "end", this.end);
 		},
 		analyze() {
-			// Compute how many frequencies may be displayed
-			const numPoints = this.end - this.start, resolution = this.samplingRate / numPoints;
-			const numFreqs = Math.floor(Math.min(numPoints / 2, (this.wideBand ? (this.samplingRate / 2) : 200) / resolution));
+			console.log("show amplitudes");
 
-			// Generate frequencies
-			const frequencies = new Array(numFreqs);
-			for (let i = 0; i < numFreqs; i++) {
-				frequencies[i] = Math.round(i * resolution + resolution / 2);
+			if (!this.currentRec) {
+				console.error("no valid record selected");
+				return;
 			}
 
-			let amplitude = 0;
+			this.chart.data.labels = this.currentRec.frequencies;
+			console.log("labels", this.chart.data.labels);
 
-			// Perform frequency analysis for visible datasets
-			const newDatasets = [];
-			for (let i = 0; i < this.chart.data.datasets.length; i++) {
-				if (this.chart.isDatasetVisible(i) && this.chart.data.datasets[i].label.length === 1) {
-					// Perform FFT of the selected area
-					const real = this.samples.map(axisSamples => axisSamples[i]).slice(this.start, this.end)
-					const imag = new Array(numPoints);
-					imag.fill(0);
-					transform(real, imag);
+			try {
+				this.chart.data.datasets = [];
 
-					// Compute the amplitudes
-					const amplitudes = new Array(numFreqs);
-					for (let k = 1; k <= numFreqs; k++) {
-						amplitudes[k - 1] = (Math.sqrt(real[k] * real[k] + imag[k] * imag[k]) / numPoints).toFixed(5);
-						if (amplitude < amplitudes[k - 1]) {
-							amplitude = amplitudes[k - 1];
-							this.inputShaping.frequency = frequencies[k - 1];
-
-							console.log("Setting inputshaping frequency to", this.inputShaping.frequency, "at amplitude", amplitude);
-						}
-					}
-
-					// Add new dataset
+				this.currentRec.axis.forEach((axe, index) => {
 					const dataset = {
-						borderColor: this.getLineColor(i),
-						backgroundColor: this.getLineColor(i),
+						borderColor: this.getLineColor(index),
+						backgroundColor: this.getLineColor(index),
 						pointBorderWidth: 0.25,
 						pointRadius: 2,
 						borderWidth: 1.25,
-						data: amplitudes,
+						data: axe.amplitudes,
 						fill: false,
-						label: this.chart.data.datasets[i].label
+						label: axe.name
 					};
-					newDatasets.push(dataset);
-				}
 
-			}
+					this.chart.data.datasets.push(dataset);
+				});
 
-			// Remove obsolete datasets, rewrite the legends, and update the chart
-			this.sampleLabels = this.chart.data.labels;
-			this.sampleDatasets = this.chart.data.datasets;
-			this.chart.data.labels = frequencies;
-			this.chart.data.datasets = newDatasets;
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
-			const that = this;
-			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.inputShaping.frequencyTooltip', [(items[0].index * resolution + resolution / 2).toFixed(1), (resolution / 2).toFixed(1)]);
-			this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-			this.chart.config.options.scales.xAxes[0].ticks.max = numFreqs * resolution;
+			console.log("number of datasets complete", this.chart.data.datasets.length);
+			console.log("number of labels complete", this.chart.data.labels.length);
+
+			// Render the chart and apply sample rate
+			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
+			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.currentRec.frequencies.length;
+
 			this.chart.update();
-			this.displaySamples = false;
+			} catch (e) {
+				this.alertType = 'error';
+				this.alertMessage = this.$t('plugins.inputShaping.parseError');
+				console.warn(e);
+				return;
+			}
 		},
 		showSamples() {
-			this.chart.data.labels = this.sampleLabels;
+			//this.chart.data.labels = this.sampleLabels;
 			this.chart.data.datasets = this.sampleDatasets;
 			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.samples');
 			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
