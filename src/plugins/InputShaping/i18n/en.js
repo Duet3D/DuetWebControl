@@ -23,7 +23,7 @@ export default {
 	samples: 'Samples',
 	accelerations: 'Accelerations (in g)',
 	sampleTooltip: 'Sample #{0}',
-	frequencyTooltip: '{0} ± {1} Hz',
+	frequencyTooltip: '{0} Hz',
 	accelerometerConfiguration: 'Accelerometer Configuration',
 	accelerometerId: 'Accelerometer ID',
 	algorithm: 'Algorithm',
