@@ -129,14 +129,14 @@
 
 								<v-list class="py-0" :disabled="uiFrozen || loading">
 									<v-list-item-group :value="recordList" color="primary" mandatory>
-										<v-list-item v-for="name in recordList" :key="name" :value="name" @click="removeSession(name)">
+										<v-list-item v-for="name in recordList" :key="name" :value="name" @click="sessionRemove(name)">
 											{{ name }}
 										</v-list-item>
 									</v-list-item-group>
 								</v-list>
 							</v-card-title>
 
-							<v-spacer v-show="selectedFile !== null && alertMessage !== null"></v-spacer>
+							<v-spacer></v-spacer>
 
 							<v-card-text class="pa-0" v-show="alertMessage !== null">
 								<v-alert :value="true" :type="alertType" class="mb-0">
@@ -144,13 +144,15 @@
 								</v-alert>
 							</v-card-text>
 
+							<v-spacer></v-spacer>
+
 							<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
 								<canvas ref="chart"></canvas>
 							</v-card-text>
 
 						</v-card>
 
-						<v-card class="mt-5" v-show="selectedFile !== null">
+						<v-card class="mt-5" v-show="true">
 							<v-card-title>
 								<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 							</v-card-title>
@@ -158,22 +160,16 @@
 							<v-card-text>
 								<v-row>
 									<v-col>
-										<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" :rules="samplingRateRules" :min="300" :max="6000" hide-details :disabled="!displaySamples" @update:error="samplingRateValidated = !$event"></v-text-field>
-									</v-col>
-									<v-col>
-										<v-slider v-model="start" :max="end - 1" :label="$t('plugins.inputShaping.start')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
-									</v-col>
-									<v-col>
-										<v-slider v-model="end" :min="start + 1" :max="samples.length - 1" :label="$t('plugins.inputShaping.end')" thumb-label="always" class="pt-7" hide-details :disabled="!displaySamples" @input="applyStartEnd"></v-slider>
+										<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" hide-details :disabled="!displaySamples"></v-text-field>
 									</v-col>
 									<v-col cols="auto">
 										<v-checkbox v-model="wideBand" :label="$t('plugins.inputShaping.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
 									</v-col>
 									<v-col cols="auto">
-										<v-btn v-show="displaySamples" color="primary" :disabled="!samplingRateValidated || !datasetVisible || !displaySamples" @click="analyze">
+										<v-btn v-show="true" color="primary" @click="updateChartFft">
 											<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.analyze') }}
 										</v-btn>
-										<v-btn v-show="!displaySamples" color="success" @click="showSamples">
+										<v-btn v-show="true" color="success" @click="updateChart">
 											<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.back') }}
 										</v-btn>
 									</v-col>
@@ -355,7 +351,6 @@ export default {
 			// Frequency Analysis
 			files: [],
 			selectedFile: null,
-			currentRec: null,
 			session: null,
 			recordList: [],
 
@@ -369,7 +364,6 @@ export default {
 			start: 0,
 			dragStart: null,
 			end: 0,
-			datasetVisible: true,
 			samples: [],
 			samplingRate: 1000,
 			samplingRateRules: [
@@ -378,7 +372,6 @@ export default {
 					return value >= 300 && value <= 6000;
 				}
 			],
-			samplingRateValidated: true,
 			wideBand: false,
 
 			// Input Shaping
@@ -501,26 +494,24 @@ export default {
 			];
 			return colors[index % colors.length];
 		},
-		addSession(record) {
-			this.session.addRecord(record);
+		sessionAdd(record) {
+			if (!this.session.addRecord(record)) {
+				return;	// already in list
+			}
 
 			this.recordList.push(record.name);
 		},
-		removeSession(recordName) {
+		sessionRemove(recordName) {
 			let index = this.session.removeRecord(recordName);
 
-			this.recordList.splice(index, 1);
-			this.updateChart();
+			if (index < 0) {
+				return; // not found in list
+			}
 
-			console.log("removed", recordName, "index", index);
+			this.recordList.splice(index, 1);
 		},
 		async loadFile(file) {
 			let csvFile;
-
-			// Restore previous view if needed
-			if (!this.displaySamples) {
-				this.showSamples();
-			}
 
 			// Download the selected file
 			this.loading = true;
@@ -548,7 +539,6 @@ export default {
 			this.alertMessage = this.$t('plugins.inputShaping.noData');
 			this.chart.data.datasets = [];
 			this.selectedFile = null;
-			this.currentRec = null;
 
 			let rec = new Record(file);
 
@@ -574,7 +564,7 @@ export default {
 			}
 
 			try {
-				this.addSession(rec);
+				this.sessionAdd(rec);
 			} catch (e) {
 				this.alertType = 'error';
 				this.alertMessage = 'sessionAddRecordError ' + e.message;
@@ -600,7 +590,9 @@ export default {
 				labels[i] = i;
 			}
 			this.chart.data.labels = labels;
-			console.log("labels", this.chart.data.labels);
+			console.log("Acc labels", this.chart.data.labels);
+
+			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
 
 			// Render the chart and apply sample rate
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
@@ -627,25 +619,50 @@ export default {
 				});
 			});
 
+			this.chart.update();
+
+			console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+		},
+		updateChartFft() {
+
+			console.log("updateChartFft");
+
+			this.chart.data.labels = this.session.frequencies;
+			console.log("FFT labels", this.chart.data.labels);
+
+			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.frequencyTooltip', [this.session.frequencies[items[0].index].toFixed(2)]);
+
+			this.chart.data.datasets = [];
+
+			this.session.getAllRecords().forEach((rec, recIndex) => {
+
+				rec.axis.forEach((axis, index, arr) => {
+					const dataset = {
+						borderColor: this.getLineColor(index + recIndex * arr.length),
+						backgroundColor: this.getLineColor(index + recIndex * arr.length),
+						pointBorderWidth: 0.25,
+						pointRadius: 2,
+						borderWidth: 1.25,
+						data: axis.amplitudes,
+						fill: false,
+						label: rec.name + ' ' + axis.name
+					};
+
+					if (recIndex == 0)
+						console.log("name", rec.name, "acc", axis.acceleration, "amp", axis.amplitudes);
+
+					this.chart.data.datasets.push(dataset);
+				});
+			});
+
 			console.log("number of datasets complete", this.chart.data.datasets.length);
 			console.log("number of labels complete", this.chart.data.labels.length);
 
-			console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+			// Render the chart and apply sample rate
+			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
+			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.frequencies.length;
 
 			this.chart.update();
-
-			// Check if any dataset is visible
-			let datasetVisible = false;
-			for (let i = 0; i < this.chart.data.datasets.length; i++) {
-				if (this.chart.isDatasetVisible(i)) {
-					datasetVisible = true;
-					break;
-				}
-			}
-			this.datasetVisible = datasetVisible;
-
-			this.displaySamples = true;
-			console.log("done start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 		},
 		applyDarkTheme(active) {
 			const ticksColor = active ? '#FFF' : '#666';
@@ -691,71 +708,6 @@ export default {
 				this.datasetVisible = datasetVisible;
 			}).bind(this), 100);
 		},
-		applyStartEnd() {
-			/*
-			if (this.chart) {
-				this.chart.config.options.scales.xAxes[0].ticks.min = this.start;
-				this.chart.config.options.scales.xAxes[0].ticks.max = this.end;
-				this.chart.update();
-			}
-			*/
-			console.log("start", this.start, "end", this.end);
-		},
-		analyze() {
-			console.log("show amplitudes");
-
-			if (!this.currentRec) {
-				console.error("no valid record selected");
-				return;
-			}
-
-			this.chart.data.labels = this.currentRec.frequencies;
-			console.log("labels", this.chart.data.labels);
-
-			try {
-				this.chart.data.datasets = [];
-
-				this.currentRec.axis.forEach((axe, index) => {
-					const dataset = {
-						borderColor: this.getLineColor(index),
-						backgroundColor: this.getLineColor(index),
-						pointBorderWidth: 0.25,
-						pointRadius: 2,
-						borderWidth: 1.25,
-						data: axe.amplitudes,
-						fill: false,
-						label: this.currentRec.name + ' ' + axe.name
-					};
-
-					this.chart.data.datasets.push(dataset);
-				});
-
-			console.log("number of datasets complete", this.chart.data.datasets.length);
-			console.log("number of labels complete", this.chart.data.labels.length);
-
-			// Render the chart and apply sample rate
-			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.currentRec.frequencies.length;
-
-			this.chart.update();
-			} catch (e) {
-				this.alertType = 'error';
-				this.alertMessage = this.$t('plugins.inputShaping.parseError');
-				console.warn(e);
-				return;
-			}
-		},
-		showSamples() {
-			//this.chart.data.labels = this.sampleLabels;
-			this.chart.data.datasets = this.sampleDatasets;
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.samples');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
-			const that = this;
-			this.chart.options.tooltips.callbacks.title = items => that.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
-			this.applyStartEnd();
-			this.displaySamples = true;
-		},
-
 		// Input Shaping Configuration
 		async configureInputShaping() {
 			let valid = this.$refs.formInputShaping.validate();
@@ -939,7 +891,7 @@ export default {
 					that.recorder.state = that.AccelStates.IDLE;
 
 					// update analysis tab with newly generated file
-					that.loadFile(that.recorderFilename).then(function() { that.selectedTab = 'analysis'; }).then(that.refresh).then(that.analyze);
+					that.loadFile(that.recorderFilename).then(function() { that.selectedTab = 'analysis'; }).then(that.refresh).then(that.updateChartFft);
 				}, 5000, this);
 			}
 		},
