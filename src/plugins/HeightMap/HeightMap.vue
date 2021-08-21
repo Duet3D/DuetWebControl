@@ -28,6 +28,7 @@ h1 {
 
 .canvas-container > canvas {
 	position: absolute;
+
 }
 
 .no-cursor {
@@ -529,6 +530,9 @@ export default {
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+
+		//Kill the wheel on the canvas
+		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches
 		setTimeout(this.resize.bind(this), 250);
