@@ -153,6 +153,7 @@ export class Session {
 		this.name = name;
 		this.samples = null;
 		this.samplingRate = null;
+		this.frequencies = null;
 		this.records = [];
 	}
 
@@ -178,6 +179,9 @@ export class Session {
 
 		if (this.samplingRate == null)
 			this.samplingRate = record.samplingRate;
+
+		if (this.frequencies == null)
+			this.frequencies = record.frequencies;
 
 		if (this.samples != record.samples)
 			throw new Error("session does not match record's number of samples");
