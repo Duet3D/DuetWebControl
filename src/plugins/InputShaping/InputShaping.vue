@@ -632,12 +632,14 @@ export default {
 
 			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.frequencyTooltip', [this.session.frequencies[items[0].index].toFixed(2)]);
 
-			this.chart.data.datasets = [];
+			let old = this.chart.data.datasets;
+			let datasets = [];
 
 			this.session.getAllRecords().forEach((rec, recIndex) => {
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
+						hidden: (typeof old[index].hidden === "boolean") ? old[index].hidden : false,
 						borderColor: this.getLineColor(index + recIndex * arr.length),
 						backgroundColor: this.getLineColor(index + recIndex * arr.length),
 						pointBorderWidth: 0.25,
@@ -651,8 +653,10 @@ export default {
 					if (recIndex == 0)
 						console.log("name", rec.name, "acc", axis.acceleration, "amp", axis.amplitudes);
 
-					this.chart.data.datasets.push(dataset);
+					datasets.push(dataset);
 				});
+
+				this.chart.data.datasets = datasets;
 			});
 
 			console.log("number of datasets complete", this.chart.data.datasets.length);
