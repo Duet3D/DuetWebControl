@@ -24,6 +24,12 @@ import {
 import { PluginManifest } from '../../plugins/manifest.js'
 import { quickPatch } from '../../utils/patch.js'
 
+export class Accelerometer {
+	constructor(initData) { quickPatch(this, initData); }
+	points = 0
+	runs = 0
+}
+
 export class AnalogSensor {
 	constructor(initData) { quickPatch(this, initData); }
 	lastReading = null
@@ -64,6 +70,14 @@ export class BeepRequest {
 
 export class Board {
 	constructor(initData) { quickPatch(this, initData); }
+	#accelerometer = null
+	get accelerometer() { return this.#accelerometer; }
+	set accelerometer(value) {
+		if (value !== null) {
+			fixObject(value, new Accelerometer());
+		}
+		this.#accelerometer = value;
+	}
 	bootloaderFileName = null
 	canAddress = null
 	directDisplay = {
