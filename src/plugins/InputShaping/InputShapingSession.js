@@ -23,6 +23,7 @@ export class Record {
 		this.name = name;
 		this.samples = null;
 		this.samplingRate = null;
+		this.wideband = false;
 		this.config = config;
 		this.overflows = null;
 		this.frequencies = [];
@@ -31,7 +32,6 @@ export class Record {
 
 	parse(file) {
 
-		console.log("parsing:", file);
 		try {
 			// Load the CSV
 			const csv = new CSV(file);
@@ -86,11 +86,12 @@ export class Record {
 		return this.axis;
 	}
 
-	analyze() {
-		console.log("analyze", this, this.axis);
+	analyze(wideband = false) {
 		if (!this.axis || this.axis.length < 1) {
 			throw new Error("No data available.");
 		}
+
+		this.wideband = wideband;
 
 		// Compute how many frequencies may be displayed
 		const numPoints = this.samples;
@@ -100,7 +101,7 @@ export class Record {
 		// Generate frequencies
 		const frequencies = new Array(numFreqs);
 		for (let i = 0; i < numFreqs; i++) {
-			frequencies[i] = Math.round(i * resolution + resolution / 2);
+			frequencies[i] = parseFloat((i * resolution + resolution / 2).toFixed(2));
 		}
 
 		this.frequencies = frequencies;
@@ -112,8 +113,6 @@ export class Record {
 			imag.fill(0);
 			transform(real, imag);
 
-			console.log("frequency analysis", real, imag);
-
 			// Compute the amplitudes
 			if (numFreqs >= real.length) {
 				throw new RangeError("invalid array lengths on axis ${this.axis[i].name}");
@@ -123,7 +122,6 @@ export class Record {
 			for (let k = 0; k < numFreqs; k++) {
 				this.axis[i].amplitudes[k] = (Math.sqrt(real[k + 1] * real[k + 1] + imag[k + 1] * imag[k + 1]) / numPoints);
 			}
-			console.log("frequency analysis done", this.axis[i].amplitudes);
 		}
 
 		return this.axis;
@@ -170,9 +168,9 @@ export class Session {
 	}
 
 	addRecord(record) {
-		let index = this.records.findIndex(e => e.name === record.name);
-		if (index >= 0)
-			return;
+		let found = this.records.find(e => e.name === record.name);
+		if (found)
+			return false;
 
 		if (this.samples == null)
 			this.samples = record.samples;
@@ -190,6 +188,8 @@ export class Session {
 			throw new Error("session does not match record's sampling rate");
 
 		this.records.push(record);
+
+		return true;
 	}
 
 	removeRecord(recordName) {
@@ -199,6 +199,13 @@ export class Session {
 
 		this.records.splice(index, 1);
 		console.log("deleted", index);
+
+		if (this.records.length == 0) {
+			this.name = "unknown";
+			this.samples = null;
+			this.samplingRate = null;
+			this.frequencies = null;
+		}
 		return index;
 	}
 
