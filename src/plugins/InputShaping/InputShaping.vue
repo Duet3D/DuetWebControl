@@ -599,12 +599,19 @@ export default {
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.samples;
 			this.samplingRate = this.session.samplingRate;
 
-			this.chart.data.datasets = [];
+			let old = this.chart.data.datasets;
+
+			let hidden = new Array(old.length);
+			for (let i; i < hidden.length; i++)
+				hidden[i] = (typeof old[i].hidden === "boolean") ? old[i].hidden : false;
+
+			let datasets = [];
 
 			this.session.getAllRecords().forEach((rec, recIndex) => {
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
+						hidden: (index < hidden.length) ? hidden[index] : false,
 						borderColor: this.getLineColor(index + recIndex * arr.length),
 						backgroundColor: this.getLineColor(index + recIndex * arr.length),
 						pointBorderWidth: 0.25,
@@ -615,8 +622,9 @@ export default {
 						label: rec.name + ' ' + axis.name
 					};
 
-					this.chart.data.datasets.push(dataset);
+					datasets.push(dataset);
 				});
+				this.chart.data.datasets = datasets;
 			});
 
 			this.chart.update();
@@ -632,14 +640,12 @@ export default {
 
 			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.frequencyTooltip', [this.session.frequencies[items[0].index].toFixed(2)]);
 
-			let old = this.chart.data.datasets;
 			let datasets = [];
 
 			this.session.getAllRecords().forEach((rec, recIndex) => {
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
-						hidden: (typeof old[index].hidden === "boolean") ? old[index].hidden : false,
 						borderColor: this.getLineColor(index + recIndex * arr.length),
 						backgroundColor: this.getLineColor(index + recIndex * arr.length),
 						pointBorderWidth: 0.25,
