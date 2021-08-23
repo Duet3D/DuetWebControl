@@ -321,7 +321,8 @@ export default {
 						v => Object.values(this.InputShapingType).find(val => val === v) && true || this.$t('plugins.inputShaping.validAlgorithm'),
 					],
 					frequency: [
-						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
+						v => v > 5 || this.$t('plugins.inputShaping.greaterThan', [ 5 ]),
+						v => v <= 1000 || this.$t('plugins.inputShaping.smallerThanOrEqualTo', [ 1000 ]),
 					],
 					damping: [
 						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
