@@ -184,8 +184,8 @@ export class Session {
 		if (this.samples != record.samples)
 			throw new Error("session does not match record's number of samples");
 
-		if (this.samplingRate != record.samplingRate)
-			throw new Error("session does not match record's sampling rate");
+		if (Math.abs(this.samplingRate - record.samplingRate) / this.samplingRate > 0.01)
+			throw new Error("session and record's sampling rate differ more than 1%.");
 
 		this.records.push(record);
 
