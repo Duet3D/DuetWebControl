@@ -229,6 +229,13 @@
 						</v-btn>
 					</v-col>
 				</v-row>
+				<v-row v-if="inputShapingConfig !== null">
+					Current Configuration:
+					Algorithm: "{{ inputShapingConfig.type }}",
+					Frequency (in Hz): {{ inputShapingConfig.frequency }},
+					Damping: {{ inputShapingConfig.damping }},
+					minAcceleration: {{ inputShapingConfig.minAcceleration }}
+				</v-row>
 			</v-tab-item>
 		</v-tabs-items>
 
@@ -267,6 +274,9 @@ export default {
 				return `M593 P"${this.inputShaping.algorithm}"`;
 
 			return `M593 P"${this.inputShaping.algorithm}" F${this.inputShaping.frequency} S${this.inputShaping.damping} L${this.inputShaping.minAcceleration}`;
+		},
+		inputShapingConfig() {
+			return this.model.move.shaping;
 		},
 		machineStatus() {
 			console.log("machine status", this.model.state.status, "recorder status", this.recorder.state);
