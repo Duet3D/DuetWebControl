@@ -40,6 +40,8 @@ export class Record {
 			}
 
 			// Extract details
+			this.samples = csv.content.length - 1;
+
 			const details = /Rate (\d+) overflows (\d)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
 			if (!details) {
 				console.error("details missing");
@@ -47,14 +49,14 @@ export class Record {
 			}
 			this.samplingRate = parseFloat(details[1]);
 			this.overflows = parseFloat(details[2]);
-			console.log(`samplingRate ${this.samplingRate} overflows ${this.overflows}`);
 
-			this.samples = csv.content.length - 1;
-			console.log("samples", this.samples);
+			console.log(`samples ${this.samples} samplingRate ${this.samplingRate} overflows ${this.overflows}`);
 
 			this.axis = [];
 			for (let col = 1; col < csv.headers.length; col++) {
+
 				console.log("filling axis", col);
+
 				let axis = {
 					name: csv.headers[col],
 					acceleration: [],
@@ -66,9 +68,6 @@ export class Record {
 					if (csv.content[row].length === csv.headers.length) {
 
 						const value = parseFloat(csv.content[row][col]);
-						if (value > 2.0) {
-							console.log("col", col, "row", row, "value", value);
-						}
 
 						axis.acceleration.push(value);
 					}
@@ -80,7 +79,7 @@ export class Record {
 
 		} catch (e) {
 			console.error(e);
-			throw new Error("Failed parsing: ${file}.");
+			throw new Error(`Failed parsing: ${file}.`);
 		}
 
 		return this.axis;
