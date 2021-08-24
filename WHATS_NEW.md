@@ -1,6 +1,19 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.4-b3
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.4-b3
+- RepRapFirmware 3 or newer
+
+Changed behaviour:
+- Heightmap plugin is now based on BabylonJS (removes dependency to ThreeJS)
+
+Bug fixes:
+- When the sys directory was set without 0: at the start, the path was truncated on the System Files page
+
 Version 3.4-b2
 ==============
 
