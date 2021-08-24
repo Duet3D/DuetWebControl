@@ -55,6 +55,8 @@ export class Axis {
 	}
 	min = 0
 	minProbed = false
+	percentCurrent = 100
+	percentStstCurrent = null
 	speed = 100
 	stepsPerMm = 80
 	userPosition = null
@@ -157,6 +159,8 @@ export class Extruder {
 		b: 0,
 		upperLimit: 0.2
 	}
+	percentCurrent = 100
+	percentStstCurrent = null
 	position = 0
 	pressureAdvance = 0
 	rawPosition = 0			// *** deprecated as of v3.3, to be replaced with job.rawExtrusion
