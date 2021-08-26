@@ -44,7 +44,12 @@ export default {
 	computed: {
 		...mapState('machine/model', ['boards', 'directories']),
 		pathItems() {
-			const pathItems = this.value.split('/').filter(item => item !== '');
+			let pathItems = this.value.split('/');
+			if (pathItems[0] === '') {
+				pathItems[0] = '0:';
+			}
+			pathItems = pathItems.filter(item => item !== '');
+
 			let rootCaption = (pathItems.length === 0) ? this.$t('generic.noValue') : pathItems[0], showDropdown = false;
 			if (pathItems.length > 1) {
 				if (Path.startsWith(this.value, this.directories.gCodes)) {
