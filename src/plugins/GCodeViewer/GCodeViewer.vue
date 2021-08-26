@@ -616,6 +616,7 @@ export default {
 				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
 			} finally {
+				viewer.gcodeProcessor.updateFilePosition(0);
 				this.loading = false;
 			}
 		},
@@ -651,6 +652,7 @@ export default {
 			this.sliderBottomHeight = 0;
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
 			this.scrubFileSize = viewer.fileSize;
+			
 
 			try {
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects);
