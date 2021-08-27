@@ -957,7 +957,8 @@ export default {
 			topView: 'Top view',
 			range : 'Range',
 			fixed : 'Fixed',
-			deviation : 'Deviation'
+			deviation : 'Deviation',
+			resetView : 'Reset View'
 		},
 		objectModelBrowser: {
 			menuCaption: 'Object Model'
