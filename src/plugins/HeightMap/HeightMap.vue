@@ -115,6 +115,10 @@ h1 {
 						<v-icon class="mr-1" small>mdi-format-vertical-align-bottom</v-icon>
 						{{ $t('plugins.heightmap.topView') }}
 					</v-btn>
+					<v-btn :disabled="uiFrozen || loading || !ready" :elevation="1" @click="resetView" class="ml-0 mt-3">
+						<v-icon class="mr-1" small>mdi-camera</v-icon>
+						{{ $t('plugins.heightmap.resetView') }}
+					</v-btn>
 				</v-card-text>
 			</v-card>
 		</v-col>
@@ -364,7 +368,9 @@ export default {
 		topView() {
 			heightMapViewer.topView();
 		},
-
+		resetView(){
+			heightMapViewer.resetCamera();
+		},
 		async refresh() {
 			if (!this.isConnected) {
 				this.ready = false;
