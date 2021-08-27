@@ -93,11 +93,10 @@
 .scrubber {
 	position: absolute;
 	left: 5%;
-	right:5%;
+	right: 5%;
 	bottom: 5px;
 	z-index: 19 !important;
 }
-
 
 /* Transitions lag when trying to show loading progress */
 .disable-transition {
@@ -292,7 +291,7 @@
 					</v-expansion-panel>
 				</v-expansion-panels>
 			</v-navigation-drawer>
-			<div :class="{ 'button-container-drawer': drawer }"  class="scrubber"  v-show="!visualizingCurrentJob && scrubFileSize > 0">
+			<div :class="{ 'button-container-drawer': drawer }" class="scrubber" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row class="scrubber-row">
 					<v-col cols="11" md="9">
 						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition "></v-slider>
@@ -617,22 +616,12 @@ export default {
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
 			} finally {
 				viewer.gcodeProcessor.updateFilePosition(0);
+				viewer.gcodeProcessor.forceRedraw();
 				this.loading = false;
 			}
 		},
 		resetExtruderColors() {
 			this.toolColors = ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'];
-
-			//TODOJER
-			/*
-			this.extruderColors = this.toolColors;			
-			viewer.gcodeProcessor.updateTool()
-			viewer.saveExtruderColors(this.extruderColors);
-			this.extruderColors.forEach((v, i) => {
-				this.$set(this.extruderColors, i, v);
-			});
-			this.extruderColors = viewer.getExtruderColors();
-			*/
 		},
 		async reloadviewer() {
 			if (this.loading) {
@@ -652,13 +641,15 @@ export default {
 			this.sliderBottomHeight = 0;
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
 			this.scrubFileSize = viewer.fileSize;
-			
+			viewer.gcodeProcessor.forceRedraw();
 
 			try {
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects);
 			} catch {
 				//console.warn("No objects");
 			}
+
+
 		},
 		clearScene() {
 			this.selectedFile = '';
