@@ -5,7 +5,7 @@ import Vue from 'vue';
 
 import { registerRoute } from '../../routes';
 import { registerPluginContextMenuItem, ContextMenuType } from '../index.js';
-import {  registerPluginData, PluginDataType} from '../../store';
+import { registerPluginData, PluginDataType } from '../../store';
 import Gauge from './Gauge/gauge.vue';
 import ColorPicker from './ColorPicker.vue';
 import FSOverlay from './FSOverlay.vue'
@@ -27,3 +27,4 @@ registerRoute(GCodeViewer, {
 
 registerPluginContextMenuItem(() => i18n.t('plugins.gcodeViewer.view3D'), '/Job/GCodeViewer', 'mdi-rotate-3d', 'view-3d-model', ContextMenuType.JobFileList);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF']);
+registerPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering', false);

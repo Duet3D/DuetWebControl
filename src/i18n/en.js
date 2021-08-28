@@ -931,7 +931,8 @@ export default {
 				title : 'Enabled if objects could be detected in the current print'
 			},
 			renderFailed: 'Previous render failed. Setting render quality to SBC',
-			showFSOverlay : 'Show Full Screen Overlay'
+			showFSOverlay : 'Show Full Screen Overlay',
+			useHQRendering : 'High Quality Render (Round)'
 		},
 		heightmap: {
 			menuCaption: 'Height Map',

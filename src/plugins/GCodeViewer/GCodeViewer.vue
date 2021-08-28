@@ -176,7 +176,8 @@
 								<v-btn :disabled="loading" :value="5" block>{{$t('plugins.gcodeViewer.ultra')}}</v-btn>
 								<v-btn :disabled="loading" :value="6" block>{{$t('plugins.gcodeViewer.max')}}</v-btn>
 							</v-btn-toggle>
-							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" class="mt-4" v-model="forceWireMode"></v-checkbox>
+							<v-checkbox :label="$t('plugins.gcodeViewer.useHQRendering')" class="mt-4" v-model="useHQRendering" />
+							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" v-model="forceWireMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.transparency')" v-model="vertexAlpha"></v-checkbox>
 						</v-expansion-panel-content>
 					</v-expansion-panel>
@@ -444,6 +445,14 @@ export default {
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', value);
 			},
 		},
+		useHQRendering: {
+			get() {
+				return this.pluginCache.useHQRendering;
+			},
+			set(value) {
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering', value);
+			},
+		},
 	},
 	mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
@@ -496,6 +505,7 @@ export default {
 		this.renderQuality = viewer.renderQuality;
 		this.backgroundColor = viewer.getBackgroundColor();
 		this.progressColor = viewer.getProgressColor();
+		viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 		viewer.gcodeProcessor.loadingProgressCallback = (progress, message) => {
 			this.loadingProgress = Math.ceil(progress * 100);
 			this.loadingMessage = message ?? '';
@@ -611,6 +621,7 @@ export default {
 				this.loading = true;
 				viewer.gcodeProcessor.setLiveTracking(true);
 				viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
+				viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 				await viewer.processFile(blob);
 				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
@@ -630,7 +641,7 @@ export default {
 			this.loading = true;
 			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
-
+			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 			await viewer.reload();
 			this.loading = false;
 			viewer.setCursorVisiblity(this.showCursor);
@@ -648,8 +659,6 @@ export default {
 			} catch {
 				//console.warn("No objects");
 			}
-
-
 		},
 		clearScene() {
 			this.selectedFile = '';
@@ -832,6 +841,9 @@ export default {
 		'forceWireMode': function (newValue) {
 			viewer.gcodeProcessor.updateForceWireMode(newValue);
 			this.reloadviewer();
+		},
+		'useHQRendering': function (to) {
+			viewer.gcodeProcessor.useHighQualityExtrusion(to);
 		},
 		'colorMode': function (to) {
 			viewer.gcodeProcessor.setColorMode(to);
