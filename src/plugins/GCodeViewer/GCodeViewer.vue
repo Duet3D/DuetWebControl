@@ -179,6 +179,7 @@
 							<v-checkbox :label="$t('plugins.gcodeViewer.useHQRendering')" class="mt-4" v-model="useHQRendering" />
 							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" v-model="forceWireMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.transparency')" v-model="vertexAlpha"></v-checkbox>
+							<v-checkbox :label="$t('plugins.gcodeViewer.useSpecular')" v-model="specular"></v-checkbox>
 						</v-expansion-panel-content>
 					</v-expansion-panel>
 					<v-expansion-panel @click="scrollIntoView">
@@ -453,6 +454,14 @@ export default {
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering', value);
 			},
 		},
+		specular: {
+			get(){
+				return this.pluginCache.useSpecular;
+			},
+			set(value){
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useSpecular', value);
+			}
+		}
 	},
 	mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
@@ -486,6 +495,7 @@ export default {
 		this.bedRenderMode = viewer.bed.renderMode;
 		this.bedColor = viewer.bed.getBedColor();
 		this.showAxes = viewer.axes.visible;
+		viewer.gcodeProcessor.useSpecularColor(this.specular);
 
 		this.colorMode = viewer.gcodeProcessor.colorMode;
 		this.minFeedColor = viewer.gcodeProcessor.minFeedColorString;
@@ -866,6 +876,9 @@ export default {
 				this.loadingProgress = 0;
 			}
 		},
+		'specular': function(to){
+			viewer.gcodeProcessor.useSpecularColor(to);
+		}
 	},
 };
 </script>
