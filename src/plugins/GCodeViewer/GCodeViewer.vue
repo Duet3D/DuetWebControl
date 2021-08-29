@@ -213,6 +213,7 @@
 								<v-btn-toggle block class="btn-toggle d-flex" exclusive v-model="colorMode">
 									<v-btn :disabled="loading" :value="0" block>{{$t("plugins.gcodeViewer.color")}}</v-btn>
 									<v-btn :disabled="loading" :value="1" block>{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>
+									<v-btn :disabled="loading" :value="2" block>{{$t('plugins.gcodeViewer.feature')}}</v-btn>
 								</v-btn-toggle>
 								<h4>{{$t('plugins.gcodeViewer.minFeedrate')}}</h4>
 								<slider :max="500" :min="5" v-model="minColorRate"></slider>
@@ -797,11 +798,11 @@ export default {
 		},
 		'sliderHeight': function (newValue) {
 			if (this.sliderBottomHeight > newValue) this.sliderBottomHeight = newValue - 1;
-			viewer.setZClipPlane(newValue, this.sliderBottomHeight);
+			viewer.setZClipPlane(newValue + 1, this.sliderBottomHeight);
 		},
 		'sliderBottomHeight': function (newValue) {
 			if (this.sliderHeight < newValue) this.sliderHeight = newValue + 1;
-			viewer.setZClipPlane(this.sliderHeight, newValue);
+			viewer.setZClipPlane(this.sliderHeight, newValue - 1);
 		},
 		'vertexAlpha': function (newValue) {
 			viewer.gcodeProcessor.setAlpha(newValue);

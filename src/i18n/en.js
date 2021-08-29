@@ -933,7 +933,8 @@ export default {
 			renderFailed: 'Previous render failed. Setting render quality to SBC',
 			showFSOverlay: 'Show Full Screen Overlay',
 			useHQRendering: 'High Quality Render (Round)',
-			useSpecular: "Use Specular Highlight"
+			useSpecular: "Use Specular Highlight",
+			feature: "Feature"
 		},
 		heightmap: {
 			menuCaption: 'Height Map',
