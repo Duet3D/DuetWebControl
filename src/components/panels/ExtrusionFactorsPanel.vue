@@ -11,7 +11,7 @@
 				</template>
 
 				<v-list>
-					<v-list-item v-for="(extruder, index) in move.extruders" :key="index" @click="toggleExtruderVisibility(index)">
+					<v-list-item v-for="(extruder, index) in move.extruders" :key="index" @click.stop="toggleExtruderVisibility(index)">
 						<v-icon class="mr-1">
 							{{ (displayedExtruders.indexOf(index) !== -1) ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank' }}
 						</v-icon>
@@ -22,16 +22,16 @@
 		</v-card-title>
 		
 		<v-card-text v-if="visibleExtruders.length" class="d-flex flex-column pb-0">
-			<div v-for="extruder in visibleExtruders" :key="extruder" class="d-flex flex-column pt-2">
+			<div v-for="(extruder, index) in visibleExtruders" :key="index" class="d-flex flex-column pt-2">
 				<div class="d-inline-flex">
-					{{ $t('panel.extrusionFactors.extruder', [extruder]) }}
+					{{ $t('panel.extrusionFactors.extruder', [index]) }}
 					<v-spacer></v-spacer>
-					<a v-show="move.extruders[extruder].factor !== 1.0" href="javascript:void(0)" :disabled="uiFrozen" @click.prevent="setExtrusionFactor(extruder, 100)" class="subtitle-2">
+					<a v-show="extruder.factor !== 1.0" href="javascript:void(0)" :disabled="uiFrozen" @click.prevent="setExtrusionFactor(index, 100)" class="subtitle-2">
 						<v-icon small class="mr-1">mdi-backup-restore</v-icon> {{ $t('generic.reset') }}
 					</a>
 				</div>
 
-				<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(extruder, $event)" :max="getMax(extruder)" :step="1" :disabled="uiFrozen"></slider>
+				<slider :value="getExtrusionFactor(extruder)" @input="setExtrusionFactor(index, $event)" :max="getMax(extruder)" :step="1" :disabled="uiFrozen"></slider>
 			</div>
 		</v-card-text>
 
@@ -52,18 +52,18 @@ export default {
 		...mapState('machine/model', ['move']),
 		...mapState('machine/settings', ['displayedExtruders']),
 		visibleExtruders() {
-			return this.displayedExtruders.filter(drive => drive < this.move.extruders.length, this);
+			return this.move.extruders.filter((extruder, index) => this.displayedExtruders.indexOf(index) !== -1, this);
 		}
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		...mapMutations('machine/settings', ['toggleExtruderVisibility']),
-		getMax(extruder) { return Math.max(150, this.move.extruders[extruder].factor * 100 + 50); },
+		getMax(extruder) { return Math.max(150, extruder.factor * 100 + 50); },
 		getExtrusionFactor(extruder) {
-			return Math.round(this.move.extruders[extruder].factor * 100);
+			return Math.round(extruder.factor * 100);
 		},
-		setExtrusionFactor(extruder, value) {
-			this.sendCode(`M221 D${extruder} S${value}`);
+		setExtrusionFactor(extruderIndex, value) {
+			this.sendCode(`M221 D${extruderIndex} S${value}`);
 		}
 	}
 }
