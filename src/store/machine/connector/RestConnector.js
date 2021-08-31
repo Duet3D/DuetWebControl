@@ -185,7 +185,7 @@ export default class RestConnector extends BaseConnector {
 		await new Promise(function(resolve, reject) {
 			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${this.hostname}${process.env.BASE_URL}machine${(this.sessionKey ? `?sessionKey=${this.sessionKey}` : '')}`);
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : '')}`);
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
