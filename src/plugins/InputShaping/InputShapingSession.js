@@ -30,6 +30,22 @@ export class Record {
 		this.axis = [];
 	}
 
+	stringify() {
+		return JSON.stringify(this);
+	}
+
+	load(record) {
+		this.name = record.name;
+		this.samples = record.samples;
+		this.samplingRate = record.samplingRate;
+		this.wideband = record.wideband;
+		this.config = record.config;
+		this.frequencies = record.frequencies;
+		this.axis = record.axis;
+
+		return this;
+	}
+
 	parse(file) {
 
 		try {
@@ -152,6 +168,29 @@ export class Session {
 		this.samplingRate = null;
 		this.frequencies = null;
 		this.records = [];
+	}
+
+	stringify() {
+		return JSON.stringify(this);
+	}
+
+	parse(data) {
+		let session = JSON.parse(data);
+
+		this.name = session.name;
+		this.samples = session.samples;
+		this.samplingRate = session.samplingRate;
+		this.frequencies = session.frequencies;
+
+		let records = session.records.forEach(function (obj) {
+			let record = new Record("temp");
+
+			record.load(obj);
+			return record;
+		});
+		this.records = records;
+
+		return this;
 	}
 
 	setName(name) {
