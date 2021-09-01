@@ -181,7 +181,7 @@
 					<v-row>
 						<v-col>
 							<v-select
-								:items="Object.values(MoveShapingType)"
+								:items="Object.values(InputShapingType)"
 								v-model="inputShaping.algorithm"
 								:label="$t('plugins.inputShaping.algorithm')"
 								:rules="rules.inputShaping.algorithm"
@@ -241,7 +241,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 import CSV from '../../utils/csv.js'
 import Events from '../../utils/events.js'
 import Path from '../../utils/path.js'
-import { MoveShapingType } from '../../store/machine/modelEnums.js'
+import { InputShapingType } from '../../store/machine/modelEnums.js'
 
 import { transform } from './fft.js'
 import { AccelStates } from './InputShapingEnums.js'
@@ -259,7 +259,7 @@ export default {
 			return `input-shaping-${this.recorder.iteration}-${this.recorder.axis}-${this.inputShaping.algorithm}.csv`;
 		},
 		inputShapingCommand() {
-			if (this.inputShaping.algorithm === this.MoveShapingType.none)
+			if (this.inputShaping.algorithm === this.InputShapingType.none)
 				return `M593 P"${this.inputShaping.algorithm}"`;
 
 			return `M593 P"${this.inputShaping.algorithm}" F${this.inputShaping.frequency} S${this.inputShaping.damping} L${this.inputShaping.minAcceleration}`;
@@ -304,7 +304,7 @@ export default {
 				},
 				inputShaping: {
 					algorithm: [
-						v => Object.values(this.MoveShapingType).find(val => val === v) && true || this.$t('plugins.inputShaping.validAlgorithm'),
+						v => Object.values(this.InputShapingType).find(val => val === v) && true || this.$t('plugins.inputShaping.validAlgorithm'),
 					],
 					frequency: [
 						v => v > 0 || this.$t('plugins.inputShaping.greaterThan', [ 0 ]),
@@ -371,9 +371,9 @@ export default {
 			wideBand: false,
 
 			// Input Shaping
-			MoveShapingType: MoveShapingType,
+			InputShapingType: InputShapingType,
 			inputShaping: {
-				algorithm: MoveShapingType.none,
+				algorithm: InputShapingType.none,
 				frequency: 0, // in Hz
 				damping: 0.1,
 				minAcceleration: 10, // in mm/s^2
