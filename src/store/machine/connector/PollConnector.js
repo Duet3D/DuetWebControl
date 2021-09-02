@@ -106,7 +106,7 @@ export default class PollConnector extends BaseConnector {
 					} else {
 						resolve(xhr.response);
 					}
-				} else if (xhr.status === 401) {
+				} else if (xhr.status === 401 || xhr.status === 403) {
 					// User might have closed another tab or the firmware restarted, which can cause
 					// the current session to be terminated. Try to send another rr_connect request
 					// with the last-known password and retry the pending request if that succeeds
@@ -130,6 +130,7 @@ export default class PollConnector extends BaseConnector {
 					if (retry < maxRetries) {
 						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
 						if (retry === 0) {
+							that.lastSeqs.reply++;	// increase the seq number to resolve potentially blocking codes
 							that.getGCodeReply()
 								.then(function() {
 									// Retry the original request when the code reply has been received
@@ -597,6 +598,7 @@ export default class PollConnector extends BaseConnector {
 
 	async getGCodeReply() {
 		const response = await this.request('GET', 'rr_reply', this.requestTimeout, 'text');
+		console.log(this.lastSeqs.reply + ' -> ' + response);
 		const reply = response.trim();
 		if (this.pendingCodes.length > 0) {
 			// Resolve pending code promises

@@ -43,7 +43,7 @@ class BaseConnector {
 					} catch (e) {
 						reject(e);
 					}
-				} else if (xhr.status === 401) {
+				} else if (xhr.status === 401 || xhr.status === 403) {
 					reject(new InvalidPasswordError());
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError());

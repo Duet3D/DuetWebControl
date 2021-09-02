@@ -27,7 +27,7 @@ export default function(connector, pluginSettingFields) {
 			// UI
 			babystepAmount: 0.05,						// mm
 			displayedExtraTemperatures: [],
-			displayedExtruders: [0, 1],
+			displayedExtruders: [0, 1, 2, 3, 4, 5],
 			displayedFans: [-1, 0, 1, 2],
 			moveSteps: {								// mm
 				X: [100, 50, 10, 1, 0.1],
