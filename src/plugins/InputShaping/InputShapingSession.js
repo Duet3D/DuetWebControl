@@ -3,21 +3,6 @@
 import CSV from '../../utils/csv.js'
 import { transform } from './fft.js';
 
-/*
-let	config = {
-		algorithm: null,
-		frequency: null,
-		damping: null,
-		minAcceleration: null
-};
-
-let axis = {
-	name: null,
-	acceleration: [],
-	amplitudes: []
-}
-*/
-
 export class Record {
 	constructor(name, config) {
 		this.name = name;
