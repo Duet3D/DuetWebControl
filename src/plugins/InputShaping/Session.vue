@@ -40,10 +40,24 @@
 				</v-col>
 			</v-row>
 		</v-form>
+
 		<test-command
 			v-model="test.testCommand"
 			v-bind:value="session.id"
 		></test-command>
+
+		<algorithm v-for="(algo, index) in algorithms"
+				v-bind:key="index"
+				v-model="algorithms[index]"
+				v-on:update="updateAlgorithm(index, change)"
+				v-on:remove="algorithms.splice(index, 1)"
+		></algorithm>
+
+		<form v-on:submit.prevent="addAlgorithm">
+			<v-btn color="primary" @click="addAlgorithm">
+					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.addAlgorithm') }}
+			</v-btn>
+		</form>
 	</div>
 </template>
 
@@ -54,7 +68,7 @@
 //import { mapState, mapActions } from 'vuex';
 
 //import { AccelStates } from './InputShapingEnums.js';
-import { Session } from './InputShapingSession.js';
+import { Algorithm, Session } from './InputShapingSession.js';
 //import { makeNotification } from '../../utils/toast.js';
 
 export default {
@@ -62,6 +76,7 @@ export default {
 	data() {
 		return {
 			session: new Session(),
+			algorithms: [ new Algorithm() ],
 			test: {
 				testCommand: null,
 
@@ -84,6 +99,10 @@ export default {
 	computed: {
 	},
 	methods: {
+		addAlgorithm() {
+			this.algorithms.push(new Algorithm());
+		},
+
 	},
 	watch: {
 	},
