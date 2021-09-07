@@ -8,6 +8,11 @@
 		<v-form ref="formInputShaping" v-on:submit.prevent="">
 			<v-row>
 				<v-col>
+					<v-btn @click="$emit('remove')">
+							<v-icon>mdi-close</v-icon>
+					</v-btn>
+				</v-col>
+				<v-col>
 					<v-select
 						:items="Object.values(InputShapingType)"
 						v-model="value.type"
