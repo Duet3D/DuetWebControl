@@ -123,7 +123,7 @@ textarea {
 		<file-transfer-dialog></file-transfer-dialog>
 		<messagebox-dialog></messagebox-dialog>
 		<plugin-install-dialog></plugin-install-dialog>
-
+		
 		<component v-for="component in injectedComponentNames" :is="component" :key="component"></component>
 	</v-app>
 </template>

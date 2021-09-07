@@ -1,51 +1,13 @@
 <style>
-.vue-codemirror {
-	display: flex;
-	flex-direction: column;
-	flex-grow: 1;
-}
-.CodeMirror {
-	display: flex;
-	flex-grow: 1;
-}
-.CodeMirror-sizer {
+.cm-editor {
 	width: 100%;
-}
-.CodeMirror-scroll {
-	display: flex;
-	flex-grow: 1;
-	height: unset;
-	width: 100%;
-}
-
-.edit-textarea {
-	align-items: stretch !important;
-}
-.edit-textarea > div > div {
-	align-items: stretch;
-	flex-grow: 1;
-	padding-left: 0 !important;
-}
-.edit-textarea > div > div > div {
-	align-items: stretch !important;
-}
-.edit-textarea textarea {
-	display: flex;
-	flex-grow: 1;
-	font-family: monospace;
-	padding-left: 12px !important;
-	margin-top: 0 !important;
-	resize: none;
-	-moz-tab-size: 4;
-	-o-tab-size: 4;
-	tab-size: 4;
 }
 </style>
 
 <template>
 	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay persistent no-click-animation transition="dialog-bottom-transition">
 		<v-card class="d-flex flex-column">
-			<v-app-bar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
+			<v-toolbar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
 				<v-btn icon dark @click="close(false)">
 					<v-icon>mdi-close</v-icon>
 				</v-btn>
@@ -62,17 +24,9 @@
 				<v-btn dark text @click="save">
 					<v-icon class="mr-1">mdi-floppy</v-icon> {{ $t('dialog.fileEdit.save') }}
 				</v-btn>
-			</v-app-bar>
+			</v-toolbar>
 
-			<codemirror v-if="useEditor"
-						ref="cmEditor" :options="cmOptions"
-						v-model="innerValue" @changes="valueChanged = true"
-						@keydown.esc.prevent.stop="close(false)"></codemirror>
-			<v-textarea v-else
-						ref="textarea" hide-details solo :rows="null" class="edit-textarea"
-						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
+			<div ref="editor" class="d-flex flex-grow-1"></div>
 		</v-card>
 	</v-dialog>
 </template>
@@ -80,22 +34,29 @@
 <script>
 'use strict'
 
-import { codemirror } from 'vue-codemirror'
-import 'codemirror/addon/selection/active-line.js'
-import 'codemirror/lib/codemirror.css'
-import 'codemirror/theme/blackboard.css'
+import { defaultKeymap, indentMore } from '@codemirror/commands'
+import { history, historyKeymap } from '@codemirror/history'
+import { defaultHighlightStyle } from '@codemirror/highlight'
+import { highlightActiveLineGutter, lineNumbers } from '@codemirror/gutter'
+import { indentOnInput } from '@codemirror/language'
+import { highlightSelectionMatches, searchKeymap } from '@codemirror/search'
+import { EditorState } from '@codemirror/state'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { EditorView, drawSelection, keymap, highlightActiveLine, highlightSpecialChars } from '@codemirror/view'
 
 import { mapState, mapActions } from 'vuex'
 
-import './gcode-mode.js'
 import Path from '../../../utils/path.js'
+import gcodeMode from './gcode-mode.js'
 
-const maxEditorFileSize = 8388608			// 8 MiB
+const insertTabSpaces = ({ state, dispatch }) => {
+    if (state.selection.ranges.some(r => !r.empty))
+        return indentMore({ state, dispatch });
+    dispatch(state.update(state.replaceSelection("  "), { scrollIntoView: true, userEvent: "input" }));
+    return true;
+};
 
 export default {
-	components: {
-		codemirror
-	},
 	props: {
 		shown: {
 			type: Boolean,
@@ -114,15 +75,6 @@ export default {
 			menuDirectory: state => state.directories.menu
 		}),
 		...mapState('settings', ['darkTheme']),
-		cmOptions() {
-			return {
-				mode: 'application/x-gcode',
-				theme: this.darkTheme ? 'blackboard' : 'default',
-				indentWithTabs: true,
-				lineNumbers: true,
-				styleActiveLine: true
-			}
-		},
 		isGCode() {
 			if (Path.startsWith(this.filename, this.macrosDirectory)) {
 				return true;
@@ -132,22 +84,81 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
-		},
-		isTouchDevice() {
-			return ('ontouchstart' in window) ||
-				(navigator.maxTouchPoints > 0) ||
-				(navigator.msMaxTouchPoints > 0); 
 		}
 	},
 	data() {
 		return {
-			innerValue: '',
 			valueChanged: false,
-			useEditor: false
+			view: null
 		}
 	},
 	methods: {
 		...mapActions('machine', ['upload']),
+		createState(textContent) {
+			if (this.view) {
+				this.view.destroy();
+				this.view = null;
+			}
+
+			if (this.darkTheme) {
+				this.view = new EditorView({
+					state: EditorState.create({
+						doc: textContent,
+						extensions: [
+							defaultHighlightStyle,
+							drawSelection(),
+							gcodeMode,
+							highlightActiveLine(),
+							highlightActiveLineGutter(),
+							highlightSelectionMatches(),
+							highlightSpecialChars(),
+							history(),
+							indentOnInput(),
+							keymap.of([
+								...defaultKeymap,
+								...historyKeymap,
+								...searchKeymap,
+								{ key: 'Tab', run: insertTabSpaces },
+								{ key: 'Escape', run: () => this.close(false) }
+							]),
+							lineNumbers(),
+							oneDark,
+							EditorView.updateListener.of(v => this.valueChanged = v.docChanged)
+						],
+						tabSize: 2
+					}),
+					parent: this.$refs.editor
+				});
+			} else {
+				this.view = new EditorView({
+					state: EditorState.create({
+						doc: textContent,
+						extensions: [
+							defaultHighlightStyle,
+							drawSelection(),
+							gcodeMode,
+							highlightActiveLine(),
+							highlightActiveLineGutter(),
+							highlightSelectionMatches(),
+							highlightSpecialChars(),
+							history(),
+							indentOnInput(),
+							keymap.of([
+								...defaultKeymap,
+								...historyKeymap,
+								...searchKeymap,
+								{ key: 'Tab', run: insertTabSpaces },
+								{ key: 'Escape', run: () => this.close(false) }
+							]),
+							lineNumbers(),
+							EditorView.updateListener.of(v => this.valueChanged = v.docChanged)
+						],
+						tabSize: 2
+					}),
+					parent: this.$refs.editor
+				});
+			}
+		},
 		close(fileSaved) {
 			if (this.valueChanged && !fileSaved && !confirm(this.$t('dialog.fileEdit.confirmClose'))) {
 				return;
@@ -158,7 +169,7 @@ export default {
 			this.$root.$emit('dialog-closing')
 		},
 		async save() {
-			const content = new Blob([this.innerValue]);
+			const content = new Blob();
 			this.close(true);
 
 			try {
@@ -174,32 +185,17 @@ export default {
 				e.preventDefault();
 				e.returnValue = '';
 			}
-		},
-		onTextareaTab(e) {
-			const originalSelectionStart = e.target.selectionStart;
-			const textStart = e.target.value.slice(0, originalSelectionStart), textEnd = e.target.value.slice(originalSelectionStart);
-			this.innerValue = `${textStart}\t${textEnd}`;
-			e.target.value = this.innerValue;
-			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + 1;
 		}
 	},
 	watch: {
 		shown(to) {
-			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isTouchDevice;
-			this.innerValue = this.value || '';
-			this.$nextTick(() => this.valueChanged = false);
-
 			if (to) {
 				// Scroll to the top again to avoid glitches
 				setTimeout(() => {
-					if (this.$refs.cmEditor) {
-						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
-						this.$refs.cmEditor.cminstance.focus();
-					} else {
-						this.$refs.textarea.scrollTo(0, 0);
-						this.$refs.textarea.focus();
-					}
+					this.createState(this.value);
+
+					//this.view.scrollPosIntoView(0);
+					this.view.focus();
 				}, 250);
 
 				// Add notification for users in case changes have not been saved yet
@@ -209,12 +205,14 @@ export default {
 				window.removeEventListener('beforeunload', this.onBeforeLeave);
 
 				// Remove focus again to close the OSK
-				if (this.$refs.cmEditor) {
-					this.$refs.cmEditor.cminstance.getTextArea().blur();
-				} else {
-					this.$refs.textarea.blur();
-				}
+				//if (document.activeElement) {
+				//document.activeElement.blur();
+				//}
 			}
+		},
+		value(to) {
+			// Assign new content
+			this.createState(to);
 		}
 	}
 }
