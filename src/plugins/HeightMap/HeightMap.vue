@@ -28,6 +28,7 @@ h1 {
 
 .canvas-container > canvas {
 	position: absolute;
+
 }
 
 .no-cursor {
