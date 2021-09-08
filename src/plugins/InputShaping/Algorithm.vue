@@ -5,7 +5,7 @@
 	<div>
 		Algorithm Component
 
-		<v-form ref="formInputShaping" v-on:submit.prevent="">
+		<v-form ref="formInputShaping" @submit.prevent="submit">
 			<v-row>
 				<v-col>
 					<v-btn @click="$emit('remove')">
@@ -17,8 +17,8 @@
 						:items="Object.values(InputShapingType)"
 						v-model="value.type"
 						v-on:input="$emit('input', value)"
-						:label="$t('plugins.inputShaping.algorithm')"
-						:rules="rules.algorithm"
+						:label="$t('plugins.inputShaping.type')"
+						:rules="rules.type"
 						></v-select>
 				</v-col>
 				<v-col>
@@ -67,7 +67,7 @@ export default {
 		return {
 			InputShapingType: InputShapingType,
 			rules: {
-				algorithm: [ true ],
+				type: [ true ],
 				frequency: [ true ],
 				damping: [ true ],
 				minAcceleration: [ true ],
