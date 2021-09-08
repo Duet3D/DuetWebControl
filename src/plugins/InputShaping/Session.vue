@@ -5,10 +5,10 @@
 	<div>
 		Session Component
 
-		<v-row v-if="session">
+		<v-row v-if="value">
 			<v-col>
-				name: {{ session.name }} id: {{ session.id }} date: {{ session.date }}<br>
-				test: {{ test.testCommand }}
+				name: {{ value.name }} id: {{ value.id }} date: {{ value.date }}<br>
+				test: {{ value.test.testCommand }}
 			</v-col>
 		</v-row>
 		<v-form ref="formSession" @submit.prevent="submit">
@@ -16,7 +16,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.id')"
-						v-model="session.id"
+						v-model="value.id"
+						v-on:input="$emit('input', value)"
 						required
 					></v-text-field>
 				</v-col>
@@ -25,7 +26,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.name')"
-						v-model="session.name"
+						v-model="value.name"
+						v-on:input="$emit('input', value)"
 						required
 					></v-text-field>
 				</v-col>
@@ -34,7 +36,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.date')"
-						v-model="session.date"
+						v-model="value.date"
+						v-on:input="$emit('input', value)"
 						required
 					></v-text-field>
 				</v-col>
@@ -42,15 +45,16 @@
 		</v-form>
 
 		<test-command
-			v-model="test.testCommand"
-			v-bind:value="session.id"
+			v-model="value.test"
+			v-bind:id="value.id"
+			v-on:test-command="console.log($event)"
 		></test-command>
 
-		<algorithm v-for="(algo, index) in algorithms"
+		<algorithm v-for="(algo, index) in value.algorithms"
 				v-bind:key="index"
-				v-model="algorithms[index]"
+				v-model="value.algorithms[index]"
 				v-on:update="updateAlgorithm(index, change)"
-				v-on:remove="algorithms.splice(index, 1)"
+				v-on:remove="removeAlgorithm(index)"
 		></algorithm>
 
 		<form v-on:submit.prevent="addAlgorithm">
@@ -68,40 +72,24 @@
 //import { mapState, mapActions } from 'vuex';
 
 //import { AccelStates } from './InputShapingEnums.js';
-import { Algorithm, Session } from './InputShapingSession.js';
+import { Algorithm } from './InputShapingSession.js';
 //import { makeNotification } from '../../utils/toast.js';
 
 export default {
-	props: [ ],
+	props: [ 'value' ],
 	data() {
 		return {
-			session: new Session(),
-			algorithms: [ new Algorithm() ],
-			test: {
-				testCommand: null,
-
-				axis: null,
-				accel: null,
-				param: {
-					numSamples: 1000,			// number of samples to collect by M956
-
-					// axis specific parameters (watch if calibration axis changed if so, update these fields)
-					maxAccel: 0,				// prefill machine->move->axis->AXIS->acceleration
-					maxSpeed: 0,				// prefill machine->move->axis->AXIS->speed (in mm/s)
-					minPosition: 0,				// prefill machine->move->axis->AXIS->min
-					maxPosition: 0,				// prefill machine->move->axis->AXIS->max
-					startPosition: 0,			// prefill maxPosition * 4 / 10
-					stopPosition: 0				// prefill maxPosition * 6 / 10
-				}
-			}
 		};
 	},
 	computed: {
 	},
 	methods: {
 		addAlgorithm() {
-			this.algorithms.push(new Algorithm());
+			this.value.algorithms.push(new Algorithm());
 		},
+		removeAlgorithm(index) {
+			this.value.algorithms.splice(index, 1);
+		}
 
 	},
 	watch: {
