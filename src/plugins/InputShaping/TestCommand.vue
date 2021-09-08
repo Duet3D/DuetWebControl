@@ -11,7 +11,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.accelerometerId')"
-						v-model="accel"
+						v-model="test.accel"
+						v-on:input="$emit('input', test)"
 						:rules="rules.accel"
 						required
 					></v-text-field>
@@ -21,14 +22,16 @@
 				<v-col>
 					<v-select
 						:items="recorderMenuAxis"
-						v-model="axis"
+						v-model="test.axis"
+						v-on:input="$emit('input', test)"
 						:label="$t('plugins.inputShaping.axis')"
 						:rules="rules.axis"
 					></v-select>
 				</v-col>
 				<v-col>
 					<v-text-field
-						v-model.number="param.numSamples"
+						v-model.number="test.param.numSamples"
+						v-on:input="$emit('input', test)"
 						type="number" :min="1" :max="65535"
 						:label="$t('plugins.inputShaping.numSamples')"
 						:rules="rules.numSamples"
@@ -38,16 +41,18 @@
 			<v-row>
 				<v-col>
 					<v-text-field
-						v-model.number="param.startPosition"
-						type="number" :min="param.minPosition" :max="param.maxPosition"
+						v-model.number="test.param.startPosition"
+						v-on:input="$emit('input', test)"
+						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.startPosition')"
 						:rules="rules.startPosition"
 					></v-text-field>
 				</v-col>
 				<v-col>
 					<v-text-field
-						v-model.number="param.stopPosition"
-						type="number" :min="param.minPosition" :max="param.maxPosition"
+						v-model.number="test.param.stopPosition"
+						v-on:input="$emit('input', test)"
+						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.stopPosition')"
 						:rules="rules.stopPosition"
 					></v-text-field>
@@ -62,13 +67,14 @@
 
 import { mapState } from 'vuex';
 
-//import { Record } from './InputShapingSession.js';
-//import { makeNotification } from '../../utils/toast.js';
+import { Test } from './InputShapingSession.js';
 
 export default {
 	props: [ 'value', 'id' ],
+
 	data() {
 		return {
+			test: this.value ? this.value : new Test(),
 			rules: {
 				accel: [
 					v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),
@@ -83,30 +89,25 @@ export default {
 				],
 				startPosition: [
 					v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
-					v => (typeof v === "number" && this.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
-					v => (v >= this.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.param.minPosition ]),
-					v => (v < this.param.stopPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.param.stopPosition ]),
-					v => (v <= this.param.maxPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.param.maxPosition ]),
+					v => (typeof v === "number" && this.test.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
+					v => (v >= this.test.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.test.param.minPosition ]),
+					v => (v < this.test.param.stopPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.test.param.stopPosition ]),
+					v => (v <= this.test.param.maxPosition) || this.$t('plugins.inputShaping.smallerThan', [ this.test.param.maxPosition ]),
 				],
 				stopPosition: [
 					v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
-					v => (typeof v === "number" && this.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
-					v => (v >= this.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.param.minPosition ]),
-					v => (v > this.param.startPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.param.startPosition ]),
-					v => (v <= this.param.maxPosition) || this.$t('plugins.inputShaping.smallerThanOrEqualTo', [ this.param.maxPosition ]),
+					v => (typeof v === "number" && this.test.axis ? true : false) || this.$t('plugins.inputShaping.axisFirst'),
+					v => (v >= this.test.param.minPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.test.param.minPosition ]),
+					v => (v > this.test.param.startPosition) || this.$t('plugins.inputShaping.greaterThan', [ this.test.param.startPosition ]),
+					v => (v <= this.test.param.maxPosition) || this.$t('plugins.inputShaping.smallerThanOrEqualTo', [ this.test.param.maxPosition ]),
 				],
-			},
-			accel: 0,
-			axis: null,
-			param: {
-				numSamples: 1000,
-				startPosition: 0,
-				stopPosition: 0,
 			},
 		};
 	},
+
 	methods: {
 	},
+
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
@@ -114,32 +115,38 @@ export default {
 			return this.model.move.axes.map(axis => axis.letter);
 		},
 		recorderFilename() {
-			return `is-${this.id}-${this.iteration}-${this.axis}.csv`;
+			return `is-${this.id}-${this.test.axis}.csv`;
 		},
-		testCommand: function() {
-			let command = `M204 P10000 T10000 G1 ${this.axis}${this.param.startPosition} F${this.param.maxSpeed} G4 S2 G1 ${this.axis}${this.param.stopPosition} M400 M956 P${this.accel} S${this.param.numSamples} A2 F"${this.recorderFilename}"`;
-			this.$emit('input', command);
-			console.log("emitted", command);
+		testCommand() {
+			let command = `M204 P10000 T10000 G1 ${this.test.axis}${this.test.param.startPosition} F${this.test.param.maxSpeed} G4 S2 G1 ${this.test.axis}${this.test.param.stopPosition} M400 M956 P${this.test.accel} S${this.test.param.numSamples} A2 F"${this.test.recorderFilename}"`;
 			return command;
 		}
 	},
 	watch: {
-		axis() {
+		'test.axis': {
+			handler: function() {
 				if (this.model.move.axes.length <= 0)
 					return;
 
-				let index = this.model.move.axes.findIndex(item => item.letter === this.axis);
+				let index = this.model.move.axes.findIndex(item => item.letter === this.test.axis);
 				if (index < 0)
 					return;
 
-				this.param.maxSpeed = this.model.move.axes[index].speed;
-				this.param.maxAccel = this.model.move.axes[index].acceleration;
-				this.param.minPosition = this.model.move.axes[index].min;
-				this.param.maxPosition = this.model.move.axes[index].max;
+				this.test.param.maxSpeed = this.model.move.axes[index].speed;
+				this.test.param.maxAccel = this.model.move.axes[index].acceleration;
+				this.test.param.minPosition = this.model.move.axes[index].min;
+				this.test.param.maxPosition = this.model.move.axes[index].max;
 
-				this.param.startPosition = Math.floor(this.param.minPosition + 10);
-				this.param.stopPosition = Math.floor(this.param.minPosition + (this.param.maxPosition - this.param.minPosition) * 2 / 3);
-			}
+				this.test.param.startPosition = Math.floor(this.test.param.minPosition + 10);
+				this.test.param.stopPosition = Math.floor(this.test.param.minPosition + (this.test.param.maxPosition - this.test.param.minPosition) * 2 / 3);
+
+				console.log("axis changed", this.test);
+			},
+		},
+		'testCommand': function(value) {
+			console.log("watch testCommand", value);
+			this.test.testCommand = value;
+		}
 	},
 	mounted() {
 	}
