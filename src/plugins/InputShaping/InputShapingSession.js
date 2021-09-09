@@ -28,10 +28,12 @@ export class Algorithm {
 }
 
 export class Test {
-	constructor(accel = 0, axis = 'X', param = {
-							numSamples: 1000,
-							minPosition: 0, maxPosition: 0,
-							startPosition: 0, stopPosition: 0 }) {
+	constructor(accel = 0, axis = 'X',
+							param = {
+								numSamples: 1000,
+								minPosition: 0, maxPosition: 0,
+								startPosition: 0, stopPosition: 0
+							}) {
 
 		this.accel = accel;
 		this.axis = axis;
