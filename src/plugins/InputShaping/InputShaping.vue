@@ -35,15 +35,14 @@
 				<session v-model="session"></session>
 			</v-tab-item>
 
-			<!-- recording -->
+			<!-- Recording -->
 			<v-tab-item value="recording" class="pa-3">
 				<recorder v-model="session"></recorder>
 			</v-tab-item>
 
 			<!-- Profile Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				// TODO add chart here
-				<!--<chart></chart>-->
+				<chart v-model="session"></chart>
 			</v-tab-item>
 		</v-tabs-items>
 
