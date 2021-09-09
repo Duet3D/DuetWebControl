@@ -106,6 +106,19 @@ export default {
 	},
 
 	methods: {
+		updateParams(index) {
+			if (index < 0 || index >= this.model.move.axes.length) {
+				console.error("invalid axis index.", index);
+				return;
+			}
+			this.test.param.maxSpeed = this.model.move.axes[index].speed;
+			this.test.param.maxAccel = this.model.move.axes[index].acceleration;
+			this.test.param.minPosition = this.model.move.axes[index].min;
+			this.test.param.maxPosition = this.model.move.axes[index].max;
+
+			this.test.param.startPosition = Math.floor(this.test.param.minPosition + 10);
+			this.test.param.stopPosition = Math.floor(this.test.param.minPosition + (this.test.param.maxPosition - this.test.param.minPosition) * 2 / 3);
+		}
 	},
 
 	computed: {
@@ -118,8 +131,7 @@ export default {
 			return `is-${this.id}-${this.test.axis}.csv`;
 		},
 		testCommand() {
-			let command = `M204 P10000 T10000 G1 ${this.test.axis}${this.test.param.startPosition} F${this.test.param.maxSpeed} G4 S2 G1 ${this.test.axis}${this.test.param.stopPosition} M400 M956 P${this.test.accel} S${this.test.param.numSamples} A2 F"${this.test.recorderFilename}"`;
-			return command;
+			return this.test.getGCode();
 		}
 	},
 	watch: {
@@ -132,23 +144,20 @@ export default {
 				if (index < 0)
 					return;
 
-				this.test.param.maxSpeed = this.model.move.axes[index].speed;
-				this.test.param.maxAccel = this.model.move.axes[index].acceleration;
-				this.test.param.minPosition = this.model.move.axes[index].min;
-				this.test.param.maxPosition = this.model.move.axes[index].max;
-
-				this.test.param.startPosition = Math.floor(this.test.param.minPosition + 10);
-				this.test.param.stopPosition = Math.floor(this.test.param.minPosition + (this.test.param.maxPosition - this.test.param.minPosition) * 2 / 3);
+				this.updateParams(index);
 
 				console.log("axis changed", this.test);
 			},
 		},
-		'testCommand': function(value) {
-			console.log("watch testCommand", value);
-			this.test.testCommand = value;
+		'recorderFilename': function(value) {
+			console.log("watch recorderFilename", value);
+			this.test.filename = value;
 		}
 	},
 	mounted() {
+		this.test.axis = this.model.move.axes[0].letter;
+		this.updateParams(0);
+		this.test.filename = this.recorderFilename;
 	}
 }
 </script>
