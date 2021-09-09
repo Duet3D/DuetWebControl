@@ -6,6 +6,8 @@ import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 export class Algorithm {
 	constructor(type, frequency = 7, damping = 0, minAcceleration = 0) {
+		this.id = Math.random().toString(16).substr(2, 8);
+
 		this.type = type;
 		this.frequency = frequency;
 		this.damping = damping;
@@ -39,12 +41,19 @@ export class Test {
 	}
 
 	getGCode() {
+		return `M204 P10000 T10000 G1 ${this.axis}${this.param.startPosition} F${this.param.maxSpeed} G4 S2 G1 ${this.axis}${this.param.stopPosition} M400 M956 P${this.accel} S${this.param.numSamples} A2 F"${this.filename}"`;
 	}
 }
 
 export class Record {
-	constructor(name, config) {
+	constructor(name = null, config = null, date = Date.now()) {
+		this.id = Math.random().toString(16).substr(2, 8);
+
 		this.name = name;
+		if (!this.name)
+			this.name = this.id;
+
+		this.date = date;
 		this.samples = null;
 		this.samplingRate = null;
 		this.wideband = false;
@@ -59,7 +68,9 @@ export class Record {
 	}
 
 	load(record) {
+		this.id = record.id;
 		this.name = record.name;
+		this.date = record.date;
 		this.samples = record.samples;
 		this.samplingRate = record.samplingRate;
 		this.wideband = record.wideband;
@@ -186,11 +197,22 @@ export class Record {
 }
 
 export class Session {
-	constructor(name) {
+	constructor(name = null, date = Date.now()) {
+		this.id = Math.random().toString(16).substr(2, 8);
+
 		this.name = name;
+		if (!this.name)
+			this.name = this.id;
+
+		this.date = date;
 		this.samples = null;
 		this.samplingRate = null;
+
 		this.frequencies = null;
+
+		this.test = new Test();
+
+		this.algorithms = [];
 		this.records = [];
 	}
 
@@ -201,12 +223,14 @@ export class Session {
 	parse(data) {
 		let session = JSON.parse(data);
 
+		this.id = session.id;
 		this.name = session.name;
 		this.samples = session.samples;
 		this.samplingRate = session.samplingRate;
 		this.frequencies = session.frequencies;
 
 		let records = session.records.forEach(function (obj) {
+
 			let record = new Record("temp");
 
 			record.load(obj);
