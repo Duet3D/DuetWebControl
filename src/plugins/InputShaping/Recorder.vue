@@ -117,8 +117,8 @@ export default {
 			}
 
 			console.log("starting tests");
-			//this.session.algorithms.forEach(algo => { TODO await is not possible in foreach loop! why?!
-			let algo = this.session.algorithms[0];
+			for (let i = 0; i < this.session.algorithms.length; i++) {
+				let algo = this.session.algorithms[i];
 
 				console.log("configuring algo", algo);
 
@@ -175,7 +175,7 @@ export default {
 				}
 
 				this.state = this.RecorderStates.PARSING;
-				let rec = new Record("TODO give each record a individual name", algo);
+				let rec = new Record(this.session.id + '-' + algo.type + '-' + JSON.stringify(i), algo);
 
 				try {
 					rec.parse(file);
@@ -188,7 +188,7 @@ export default {
 					return;
 				}
 
-			/*
+			/* TODO
 				this.state = this.RecorderStates.DELETING;
 				resp = this.deleteFile(this.session.test.filename);
 
@@ -202,7 +202,7 @@ export default {
 				this.state = this.RecorderStates.STORING;
 				this.session.records.push(rec);
 				this.state = this.RecorderStates.IDLE;
-			//});
+			}
 		},
 
 		async waitForMachineIdle() {
