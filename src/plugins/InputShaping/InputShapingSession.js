@@ -2,6 +2,45 @@
 
 import CSV from '../../utils/csv.js'
 import { transform } from './fft.js';
+import { InputShapingType } from '../../store/machine/modelEnums.js';
+
+export class Algorithm {
+	constructor(type, frequency = 7, damping = 0, minAcceleration = 0) {
+		this.type = type;
+		this.frequency = frequency;
+		this.damping = damping;
+		this.minAcceleration = minAcceleration;
+	}
+
+	validate() {
+		// TODO add some basic validation
+		return true;
+	}
+
+	getMCode() {
+			if (this.type === InputShapingType.none)
+				return `M593 P"${this.type}"`;
+
+			return `M593 P"${this.type}" F${this.frequency} S${this.damping} L${this.minAcceleration}`;
+	}
+}
+
+export class Test {
+	constructor(accel = 0, axis = 'X', param = {
+							numSamples: 1000,
+							minPosition: 0, maxPosition: 0,
+							startPosition: 0, stopPosition: 0 }) {
+
+		this.accel = accel;
+		this.axis = axis;
+		this.filename = null;
+		this.testCommand = null;
+		this.param = param;
+	}
+
+	getGCode() {
+	}
+}
 
 export class Record {
 	constructor(name, config) {
