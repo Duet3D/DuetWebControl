@@ -3,40 +3,38 @@
 
 <template>
 	<div>
-		Recorder Component
+		<v-row>
+			<v-col>Recorder Component</v-col>
+		</v-row>
 
-		<ul style="display: none;">
-			<li>recording</li>
-			<ul>
-				<li>id</li>
-				<li>name</li>
-				<li>date</li>
-				<li>algorithm config</li>
-				<li>data</li>
-			</ul>
-		</ul>
+		<v-row>
+			<v-card-text class="pa-0" v-show="alertMessage !== null">
+				<v-alert :value="true" :type="alertType" class="mb-0">
+					{{ alertMessage  }}
+				</v-alert>
+			</v-card-text>
+		</v-row>
 
-		<ul>
-			<li>iterate over algorithm entries</li>
-			<ul>
-				<li>start test</li>
-				<li>wait for test to finish</li>
-				<li>download test results</li>
-				<li>create a new record</li>
-				<li>add algorithm data</li>
-				<li>add recorded data</li>
-				<li>create fft of recorded data</li>
-			</ul>
-		</ul>
+		<v-row>
+			<v-col>
+				Recorder State: {{ currentState }}
+			</v-col>
+		</v-row>
+		<v-row>
+			<v-col>
+				Progress: {{ current }} / {{ session.algorithms.length }}
+			</v-col>
+		</v-row>
 
-		State: {{ currentState }}
-		<form v-on:submit.prevent="runTests">
-			<!--<v-btn :disabled="state !== RecorderStates.IDLE" color="primary" @click="runTests">-->
-			<v-btn color="primary" @click="runTests">
-					<v-icon class="mr-2">mdi-play</v-icon> {{ $t('plugins.inputShaping.run') }}
-			</v-btn>
-		</form>
-
+		<v-row>
+			<v-col>
+				<form v-on:submit.prevent="runTests">
+					<v-btn :disabled="state !== RecorderStates.IDLE" color="primary" @click="runTests">
+						<v-icon class="mr-2">mdi-play</v-icon> {{ $t('plugins.inputShaping.run') }}
+					</v-btn>
+				</form>
+			</v-col>
+		</v-row>
 	</div>
 </template>
 
@@ -70,7 +68,12 @@ export default {
 
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
+
 			lastRun: 0,
+			current: 0,
+
+			alertType: null,
+			alertMessage: null,
 
 			debounceTimer: null,
 			filename: null,
@@ -98,7 +101,7 @@ export default {
 		...mapActions('machine', [ 'download', 'sendCode' ]),
 
 		async runTests() {
-			console.log("TODO run tests");
+			console.log("run tests");
 			// open session
 			// get algorithms to iterate
 			//   get test command
@@ -112,101 +115,85 @@ export default {
 			console.log("run tests", this.session);
 
 			if (this.session.algorithms.length < 1) {
-				console.log("missing algorithm configurations")
+				console.log("missing algorithm configurations");
+				this.alertType = 'error';
+				this.alertMessage = this.$t('plugins.inputShaping.missingAlgorithmConfiguration');
+
 				return;
 			}
+
+			this.alertMessage = null;
 
 			console.log("starting tests");
 			for (let i = 0; i < this.session.algorithms.length; i++) {
 				let algo = this.session.algorithms[i];
 
+				this.current = i;
+
 				console.log("configuring algo", algo);
 
-				this.state = this.RecorderStates.CONFIGURING;
-				let resp = await this.configureAlgorithm(algo);
-
-				console.log(resp);
-				if (resp) {
-					console.error("Error:", resp);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-
-				resp = await this.homeAllAxis();
-
-				console.log(resp);
-				if (resp) {
-					console.error("Error:", resp);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-
-				console.log("run test command", this.session.test);
-
-				this.state = this.RecorderStates.RECORDING;
-				resp = await this.runTestCommand(this.session.test);
-				console.log(resp);
-
-				if (resp) {
-					console.error("Error:", resp);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-
-				resp = await this.waitForMachineIdle();
-				console.log(resp);
-
-				if (!resp) {
-					console.error("Error: machine not idle", resp);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-
-				console.log("Path", Path);
-				this.state = this.RecorderStates.DOWNLOADING;
-
-				let file = await this.loadFile(Path.combine(Path.accelerometer, this.session.test.filename));
-				console.log(file);
-
-				if (!file) {
-					console.error("Error:", file);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-
-				this.state = this.RecorderStates.PARSING;
-				let rec = new Record(this.session.id + '-' + algo.type + '-' + JSON.stringify(i), algo);
-
 				try {
+					this.state = this.RecorderStates.CONFIGURING;
+					let resp = await this.configureAlgorithm(algo);
+					console.log(resp);
+
+					console.log("home all axis - start");
+					resp = await this.homeAllAxis();
+
+					console.log("run test command", this.session.test);
+
+					this.state = this.RecorderStates.RECORDING;
+					resp = await this.runTestCommand(this.session.test);
+					console.log(resp);
+
+					console.log("home all axis - end");
+					resp = await this.homeAllAxis();
+
+					resp = await this.waitForMachineIdle();
+					console.log(resp);
+
+					this.state = this.RecorderStates.DOWNLOADING;
+					let file = await this.loadFile(Path.combine(Path.accelerometer, this.session.test.filename));
+					this.state = this.RecorderStates.PARSING;
+					let rec = new Record(this.session.id + '-' + algo.id + '-' + algo.type + '-' + JSON.stringify(i), algo);
+
 					rec.parse(file);
 					rec.analyze();
+
+					/* TODO
+						this.state = this.RecorderStates.DELETING;
+						resp = this.deleteFile(this.session.test.filename);
+
+						if (resp) {
+							console.error("Error:", resp);
+							this.state = this.RecorderStates.IDLE;
+							return;
+						}
+					*/
+
+					this.state = this.RecorderStates.STORING;
+					this.session.addRecord(rec);
+					this.state = this.RecorderStates.IDLE;
+
 				} catch (error) {
-					this.alertType = 'error';
-					this.alertMessage = this.$t('plugins.inputShaping.parseError');
+
 					console.error("Error:", error);
+
+					this.alertType = 'error';
+					this.alertMessage = this.$t('plugins.inputShaping.Error') + error;
+
 					this.state = this.RecorderStates.IDLE;
+
 					return;
 				}
 
-			/* TODO
-				this.state = this.RecorderStates.DELETING;
-				resp = this.deleteFile(this.session.test.filename);
-
-				if (resp) {
-					console.error("Error:", resp);
-					this.state = this.RecorderStates.IDLE;
-					return;
-				}
-			*/
-
-				this.state = this.RecorderStates.STORING;
-				this.session.records.push(rec);
-				this.state = this.RecorderStates.IDLE;
 			}
+
+			this.current += 1;
 		},
 
 		async waitForMachineIdle() {
-			let period = 10000;
+			let period = 15000;
 
 			let promise = new Promise((resolve, reject) => {
 				if (this.debounceTimer)
@@ -220,14 +207,14 @@ export default {
 					if (that.machineStatus !== "idle") {
 						// re-launch when not idle
 						//that.debounceTimer.refresh();
-						reject(false);
+						reject("printer not idle");
 						return;
 					}
 
 					// disable timer
 					that.debounceTimer = null;
 
-					resolve(true);
+					resolve("idle");
 				}, period, this);
 			});
 
@@ -245,10 +232,11 @@ export default {
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
-					throw new Error('Failed to run acceleration profile.');
+					throw new Error('Failed to configure inputshaping.');
 				}
 			} catch(e) {
-				console.error("Recording Profile failed: ", e);
+				console.error("Failed to send code: ", e);
+				throw new Error('Failed to send code.');
 			}
 
 			return;
@@ -264,10 +252,11 @@ export default {
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
-					throw new Error('Failed to run acceleration profile.');
+					throw new Error('Failed to home all axis.');
 				}
 			} catch(e) {
 				console.error("Recording Profile failed: ", e);
+				throw new Error('Failed to home all axis.');
 			}
 
 			return;
@@ -275,39 +264,24 @@ export default {
 
 		async runTestCommand(test) {
 
-			/*
-			if (this.model.state.status !== "idle") {
-				makeNotification("error", this.$t('plugins.inputShaping.name'),
-					this.$t('plugins.inputShaping.printerBusy'));
-				console.error("printer is busy.");
-				return;
-			}
-
-			if (this.state != this.RecorderStates.IDLE) {
-				makeNotification("error", this.$t('plugins.inputShaping.name'),
-					this.$t('plugins.inputShaping.recorderNotIdle'));
-				console.log("recorder is not idle.", this.state);
-				return;
-			}
-			*/
-
-			console.log("starting to record profile.");
+			console.log("executing test command.");
 
 			let result = null;
 
 			try {
 				result = await this.sendCode({ code: test.getGCode(), fromInput: true, log: true });
 				if (result) {
-					console.error(typeof result, result);
-					throw new Error('Failed to run acceleration profile.');
+					console.error(result);
+					throw new Error('Failed to run test command.');
 				}
 			} catch(e) {
 				makeNotification("error", this.$t('plugins.inputShaping.name'),
 					this.$t('plugins.inputShaping.recordingFailed'));
 				console.error("Recording Profile failed: ", e);
-				return;
+				throw new Error('Failed to run test command.');
 			}
-			console.log("test command run: ", test.getGCode(), "result: ", result);
+
+			return;
 		},
 
 		async loadFile(filename) {
@@ -324,7 +298,7 @@ export default {
 					});
 			} catch (e) {
 				console.warn(e);
-				return false;
+				throw new Error("Failed to download file.");
 			}
 
 			return csvFile;
