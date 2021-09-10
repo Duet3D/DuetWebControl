@@ -41,7 +41,6 @@
 <script>
 'use strict';
 
-//import { mapState, mapGetters, mapActions } from 'vuex';
 import { mapState, mapActions } from 'vuex';
 
 import { Record } from './InputShapingSession.js';
@@ -149,8 +148,12 @@ export default {
 					console.log("home all axis - end");
 					resp = await this.homeAllAxis();
 
-					resp = await this.waitForMachineIdle();
-					console.log(resp);
+					try {
+						resp = await this.waitForMachineIdle();
+						console.log(resp);
+					} catch (e) {
+						console.warn("Waiting for machine to get idle:", e);
+					}
 
 					this.state = this.RecorderStates.DOWNLOADING;
 					let file = await this.loadFile(Path.combine(Path.accelerometer, this.session.test.filename));
@@ -193,33 +196,47 @@ export default {
 		},
 
 		async waitForMachineIdle() {
-			let period = 15000;
+			let period = 1000;
+			let res;
+			let start = this.accelerometerRuns;
 
-			let promise = new Promise((resolve, reject) => {
+			console.log("start accelerometerRuns", start);
+
+			for (let i = 0; i < 120; i++) {
 				if (this.debounceTimer)
 					clearTimeout(this.debounceTimer);
 
-				this.debounceTimer = setTimeout(function (that) {
-				console.log(
-					"handle machine status", that.model.state.status,
-					"recorder status", that.state);
+				let promise = new Promise((resolve, reject) => {
 
-					if (that.machineStatus !== "idle") {
-						// re-launch when not idle
-						//that.debounceTimer.refresh();
-						reject("printer not idle");
-						return;
-					}
+					setTimeout(function (that) {
+						console.log(
+							"handle machine status", that.model.state.status,
+							"accelerometerRuns", that.accelerometerRuns,
+							"recorder status", that.state);
 
-					// disable timer
-					that.debounceTimer = null;
+						if (start >= that.accelerometerRuns) {
+							reject("printer not idle");
+							return;
+						}
 
-					resolve("idle");
-				}, period, this);
-			});
+						resolve("idle");
+					}, period, this);
+				});
 
-			// wait until machine is idle again
-			return await promise;
+				try {
+					// wait until machine is idle again
+					res = await promise;
+				} catch (error) {
+					if (error !== "printer not idle")
+						throw error;
+
+					continue;
+				}
+				// idle, leave for loop
+				break;
+			}
+
+			return res;
 		},
 
 		async configureAlgorithm(algorithm) {
@@ -307,16 +324,6 @@ export default {
 	mounted() {
 	},
 	watch: {
-		machineStatus: {
-			handler() {
-				console.log(this.debounceTimer);
-
-				/*
-				if (this.debounceTimer)
-					this.debounceTimer.refresh();
-				*/
-			}
-		}
 	},
 }
 </script>
