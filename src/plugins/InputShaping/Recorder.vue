@@ -90,12 +90,12 @@ export default {
 				return this.model.boards[0].accelerometer.points;
 		},
 		currentState() {
-			return JSON.stringify(this.state);
+			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
 		},
 		machineStatus() {
 			console.log("machine status", this.model.state.status, "recorder status", this.state);
 			return this.model.state.status;
-		}
+		},
 	},
 	methods: {
 		...mapActions('machine', [ 'download', 'sendCode' ]),
@@ -180,7 +180,7 @@ export default {
 					console.error("Error:", error);
 
 					this.alertType = 'error';
-					this.alertMessage = this.$t('plugins.inputShaping.Error') + error;
+					this.alertMessage = this.$t('plugins.inputShaping.Error') + ': ' + error;
 
 					this.state = this.RecorderStates.IDLE;
 
@@ -245,7 +245,7 @@ export default {
 		async homeAllAxis() {
 			let code = "G28 M400";
 
-			console.log("configuring Alogorithm", code);
+			console.log("homing all axis", code);
 
 			try {
 				let result = await this.sendCode({ code: code, fromInput: true, log: true });
@@ -305,7 +305,6 @@ export default {
 		},
 	},
 	mounted() {
-		console.log(Path);
 	},
 	watch: {
 		machineStatus: {
