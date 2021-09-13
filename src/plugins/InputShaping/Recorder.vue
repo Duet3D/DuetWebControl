@@ -68,7 +68,10 @@ export default {
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
 
-			lastRun: 0,
+			lastRun: null,
+			writingDoneResolve: null,
+			writingDoneRejct: null,
+			timeout: null,
 			current: 0,
 
 			alertType: null,
@@ -92,12 +95,11 @@ export default {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
 		},
 		machineStatus() {
-			console.log("machine status", this.model.state.status, "recorder status", this.state);
 			return this.model.state.status;
 		},
 	},
 	methods: {
-		...mapActions('machine', [ 'download', 'sendCode' ]),
+		...mapActions('machine', [ 'delete', 'download', 'sendCode' ]),
 
 		async runTests() {
 			console.log("run tests");
@@ -131,6 +133,8 @@ export default {
 
 				console.log("configuring algo", algo);
 
+				this.lastRun = this.accelerometerRuns;
+
 				try {
 					this.state = this.RecorderStates.CONFIGURING;
 					let resp = await this.configureAlgorithm(algo);
@@ -143,17 +147,12 @@ export default {
 
 					this.state = this.RecorderStates.RECORDING;
 					resp = await this.runTestCommand(this.session.test);
-					console.log(resp);
 
 					console.log("home all axis - end");
 					resp = await this.homeAllAxis();
 
-					try {
-						resp = await this.waitForMachineIdle();
-						console.log(resp);
-					} catch (e) {
-						console.warn("Waiting for machine to get idle:", e);
-					}
+					resp = await this.waitForMachineIdle();
+					console.log(resp);
 
 					this.state = this.RecorderStates.DOWNLOADING;
 					let file = await this.loadFile(Path.combine(Path.accelerometer, this.session.test.filename));
@@ -163,16 +162,8 @@ export default {
 					rec.parse(file);
 					rec.analyze();
 
-					/* TODO
-						this.state = this.RecorderStates.DELETING;
-						resp = this.deleteFile(this.session.test.filename);
-
-						if (resp) {
-							console.error("Error:", resp);
-							this.state = this.RecorderStates.IDLE;
-							return;
-						}
-					*/
+					this.state = this.RecorderStates.DELETING;
+					resp = await this.delete(Path.combine(Path.accelerometer, this.session.test.filename));
 
 					this.state = this.RecorderStates.STORING;
 					this.session.addRecord(rec);
@@ -180,7 +171,7 @@ export default {
 
 				} catch (error) {
 
-					console.error("Error:", error);
+					console.error(error);
 
 					this.alertType = 'error';
 					this.alertMessage = this.$t('plugins.inputShaping.Error') + ': ' + error;
@@ -196,47 +187,34 @@ export default {
 		},
 
 		async waitForMachineIdle() {
-			let period = 1000;
-			let res;
-			let start = this.accelerometerRuns;
+			let timeout = 5 * 60000; // wait up to 5 minutes to finish
 
-			console.log("start accelerometerRuns", start);
+			console.log("start accelerometerRuns", this.lastRun);
+			console.log(
+				"handle machine status", this.model.state.status,
+				"last accelerometerRuns", this.lastRun,
+				"recorder status", this.state);
 
-			for (let i = 0; i < 120; i++) {
-				if (this.debounceTimer)
-					clearTimeout(this.debounceTimer);
 
-				let promise = new Promise((resolve, reject) => {
+			let writing = new Promise((resolve, reject) => {
+				this.writingDoneResolve = resolve;
+				this.writingDoneReject = reject;
 
-					setTimeout(function (that) {
-						console.log(
-							"handle machine status", that.model.state.status,
-							"accelerometerRuns", that.accelerometerRuns,
-							"recorder status", that.state);
+				this.timeout = setTimeout(function (reject) {
 
-						if (start >= that.accelerometerRuns) {
-							reject("printer not idle");
-							return;
-						}
+					console.log("waitForMachineIdle timeout");
+					reject(new Error("timout"));
 
-						resolve("idle");
-					}, period, this);
-				});
+				}, timeout, reject);
+			});
 
-				try {
-					// wait until machine is idle again
-					res = await promise;
-				} catch (error) {
-					if (error !== "printer not idle")
-						throw error;
-
-					continue;
-				}
-				// idle, leave for loop
-				break;
+			try {
+				// wait until machine is idle again
+				await writing;
+			} catch (error) {
+				console.error(error);
+				throw error;
 			}
-
-			return res;
 		},
 
 		async configureAlgorithm(algorithm) {
@@ -324,6 +302,44 @@ export default {
 	mounted() {
 	},
 	watch: {
-	},
+		accelerometerRuns() {
+
+			console.log("watch accelerometer", this.accelerometerRuns);
+
+			if (this.state !== this.RecorderStates.RECORDING) {
+				console.warn("invalid recorder state");
+				return;
+			}
+
+			if (this.lastRun >= this.accelerometerRuns) {
+				console.warn("new value too small", this.lastRun, this.accelerometerRuns);
+				return;
+			}
+
+			if (this.accelerometerPoints !== this.session.test.param.numSamples) {
+				// wrong number of samples recorded
+				console.warn("invalid number of samples", this.accelerometerPoints, this.session.test.param.numSamples);
+				this.writingDoneReject(new Error('invalid number of samples recorded'));
+				return;
+			}
+
+			if (this.timeout)
+				clearTimeout(this.timeout);
+
+			console.log("writingDoneResolve", this.writingDoneResolve);
+			this.writingDoneResolve('done');
+		},
+		machineStatus(value) {
+			console.log("machineState", value);
+			let timeout = 5000;
+
+			if (this.debounceTimer)
+				clearTimeout(this.debounceTimer);
+
+			this.debounceTimer = setTimeout(function () {
+				console.log("machine is idle");
+			}, timeout);
+		}
+	}
 }
 </script>
