@@ -6,7 +6,7 @@ export default {
 	analysis: 'Frequency Analysis',
 	axis: 'Axis',
 	axisFirst: 'Select an axis first',
-	chartCaption: 'Acceleration Samples',
+	chartCaption: 'Acceleration Records',
 	damping: 'Damping',
 	date: "Date",
 	error: "Error",
