@@ -138,7 +138,7 @@ export default {
 					console.error(error);
 
 					this.alertType = 'error';
-					this.alertMessage = this.$t('plugins.inputShaping.Error') + ': ' + error;
+					this.alertMessage = this.$t('plugins.inputShaping.error') + ': ' + error;
 
 					this.state = this.RecorderStates.IDLE;
 
@@ -189,7 +189,7 @@ export default {
 					console.error(error);
 
 					this.alertType = 'error';
-					this.alertMessage = this.$t('plugins.inputShaping.Error') + ': ' + error;
+					this.alertMessage = this.$t('plugins.inputShaping.error') + ': ' + error;
 
 					this.state = this.RecorderStates.IDLE;
 
