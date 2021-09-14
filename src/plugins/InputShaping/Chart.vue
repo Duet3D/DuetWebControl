@@ -32,12 +32,14 @@
 
 					{{ checkedAxis }}
 					<v-container fluid>
-						<v-checkbox
-							v-for="axis in this.model.move.axes"
-							:key="axis.letter" :value=axis.letter :label="axis.letter"
-							v-model="checkedAxis"
-							hide-details
-						></v-checkbox>
+						<v-row>
+							<v-checkbox
+								v-for="axis in this.model.move.axes"
+								:key="axis.letter" :value=axis.letter :label="axis.letter"
+								v-model="checkedAxis"
+								hide-details
+							></v-checkbox>
+						</v-row>
 					</v-container>
 
 				</v-col>
@@ -126,16 +128,16 @@ export default {
 			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.accelerations' : 'plugins.inputShaping.amplitudes');
 			this.chart.update();
 		},
+		checkedAxis() {
+			this.updateVisibility();
+		},
 		'session.records': {
 			handler() {
+				this.updateChartFft();
 			}
 		}
 	},
 	methods: {
-		toggleAxis(event, data) {
-			console.log(event, data);
-			console.log(this.checkedAxis);
-		},
 		getLineColor(index) {
 			const colors = [
 				'#4dc9f6',
@@ -154,6 +156,15 @@ export default {
 			console.log("deleting", name);
 			this.session.removeRecord(name);
 			this.updateChart();
+		},
+		updateVisibility() {
+			this.chart.data.datasets.forEach(dataset => {
+				let res = false;
+				console.log(dataset.label, res = this.checkedAxis.find(elem => elem == dataset.label.slice(-1)));
+				dataset.hidden = res ? false : true;
+				console.log(dataset.label, res, dataset.hidden);
+			});
+			this.chart.update();
 		},
 		testChart() {
 
