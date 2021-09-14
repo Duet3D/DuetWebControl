@@ -46,10 +46,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex';
 
-import Events from '../../utils/events.js';
-
 import { Session } from './InputShapingSession.js';
-//import { makeNotification } from '../../utils/toast.js';
 
 export default {
 
@@ -95,13 +92,8 @@ export default {
 		// Set up initial message
 		this.alertType = 'info';
 		this.alertMessage = this.$t('plugins.inputShaping.noData');
-
-		// Keep track of file changes
-		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
-		// No longer keep track of file changes
-		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
 	}
