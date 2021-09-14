@@ -149,15 +149,8 @@ export default {
 				console.log("axis changed", this.test);
 			},
 		},
-		'recorderFilename': function(value) {
-			console.log("watch recorderFilename", value);
-			this.test.filename = value;
-		}
 	},
 	mounted() {
-		this.test.axis = this.model.move.axes[0].letter;
-		this.updateParams(0);
-		this.test.filename = this.recorderFilename;
 	}
 }
 </script>

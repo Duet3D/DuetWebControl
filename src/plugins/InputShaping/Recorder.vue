@@ -146,7 +146,9 @@ export default {
 					console.log("run test command", this.session.test);
 
 					this.state = this.RecorderStates.RECORDING;
-					resp = await this.runTestCommand(this.session.test);
+					let filename = `is-${algo.id}-${algo.type}-${this.session.test.axis}-${this.current}.csv`;
+					console.log(filename);
+					resp = await this.runTestCommand(this.session.test, filename);
 
 					console.log("home all axis - end");
 					resp = await this.homeAllAxis();
@@ -155,7 +157,7 @@ export default {
 					console.log(resp);
 
 					this.state = this.RecorderStates.DOWNLOADING;
-					let file = await this.loadFile(Path.combine(Path.accelerometer, this.session.test.filename));
+					let file = await this.loadFile(Path.combine(Path.accelerometer, filename));
 					this.state = this.RecorderStates.PARSING;
 					let rec = new Record(this.session.id + '-' + algo.id + '-' + algo.type + '-' + JSON.stringify(i), algo);
 
@@ -163,7 +165,7 @@ export default {
 					rec.analyze();
 
 					this.state = this.RecorderStates.DELETING;
-					resp = await this.delete(Path.combine(Path.accelerometer, this.session.test.filename));
+					resp = await this.delete(Path.combine(Path.accelerometer, filename));
 
 					this.state = this.RecorderStates.STORING;
 					this.session.addRecord(rec);
@@ -257,14 +259,14 @@ export default {
 			return;
 		},
 
-		async runTestCommand(test) {
+		async runTestCommand(test, filename) {
 
-			console.log("executing test command.");
+			console.log("executing test command.", test.getGCode(filename));
 
 			let result = null;
 
 			try {
-				result = await this.sendCode({ code: test.getGCode(), fromInput: true, log: true });
+				result = await this.sendCode({ code: test.getGCode(filename), fromInput: true, log: true });
 				if (result) {
 					console.error(result);
 					throw new Error('Failed to run test command.');
