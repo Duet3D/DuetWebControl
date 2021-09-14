@@ -344,17 +344,6 @@ export default {
 			console.log("writingDoneResolve", this.writingDoneResolve);
 			this.writingDoneResolve('done');
 		},
-		machineStatus(value) {
-			console.log("machineState", value);
-			let timeout = 5000;
-
-			if (this.debounceTimer)
-				clearTimeout(this.debounceTimer);
-
-			this.debounceTimer = setTimeout(function () {
-				console.log("machine is idle");
-			}, timeout);
-		}
 	}
 }
 </script>
