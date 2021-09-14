@@ -21,7 +21,7 @@
 
 					<v-list class="py-0">
 						<v-list-item-group :value="session.records" color="primary" mandatory>
-							<v-list-item v-for="record in session.records" :key="record.id" :value="record.name" @click="deleteRecord(name)">
+							<v-list-item v-for="record in session.records" :key="record.id" :value="record.name" @click="deleteRecord(record.name)">
 								{{ record.name }}
 							</v-list-item>
 						</v-list-item-group>
@@ -150,7 +150,8 @@ export default {
 			];
 			return colors[index % colors.length];
 		},
-		deleteRecord() {
+		deleteRecord(name) {
+			console.log("deleting", name);
 			this.session.removeRecord(name);
 			this.updateChart();
 		},
