@@ -51,12 +51,13 @@ export const RecorderStates = {
   ERROR: -1,
 	UNKNOWN: 0,
   IDLE: 1,
-	CONFIGURING: 2,
-	RECORDING: 3,
-	DOWNLOADING: 4,
-	PARSING: 5,
-	DELETING: 6,
-	STORING: 7
+	HOMING: 2,
+	CONFIGURING: 3,
+	RECORDING: 4,
+	DOWNLOADING: 5,
+	PARSING: 6,
+	DELETING: 7,
+	STORING: 8
 };
 
 export default {
@@ -126,6 +127,24 @@ export default {
 			this.alertMessage = null;
 
 			console.log("starting tests");
+
+			this.current = 0;
+
+			console.log("home all axis - start");
+			try {
+				await this.homeAllAxis();
+			} catch (error) {
+
+					console.error(error);
+
+					this.alertType = 'error';
+					this.alertMessage = this.$t('plugins.inputShaping.Error') + ': ' + error;
+
+					this.state = this.RecorderStates.IDLE;
+
+					return;
+			}
+
 			for (let i = 0; i < this.session.algorithms.length; i++) {
 				let algo = this.session.algorithms[i];
 
@@ -140,18 +159,12 @@ export default {
 					let resp = await this.configureAlgorithm(algo);
 					console.log(resp);
 
-					console.log("home all axis - start");
-					resp = await this.homeAllAxis();
-
 					console.log("run test command", this.session.test);
 
 					this.state = this.RecorderStates.RECORDING;
 					let filename = `is-${algo.id}-${algo.type}-${this.session.test.axis}-${this.current}.csv`;
 					console.log(filename);
 					resp = await this.runTestCommand(this.session.test, filename);
-
-					console.log("home all axis - end");
-					resp = await this.homeAllAxis();
 
 					resp = await this.waitForMachineIdle();
 					console.log(resp);
