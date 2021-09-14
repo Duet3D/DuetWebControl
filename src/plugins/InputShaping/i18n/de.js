@@ -23,7 +23,7 @@ export default {
 	samples: 'Proben',
 	accelerations: 'Beschleunigungen (in g)',
 	sampleTooltip: 'Probe #{0}',
-	frequencyTooltip: '{0} ± {1} Hz',
+	frequencyTooltip: '{0} Hz',
 	accelerometerConfiguration: 'Beschleunigungssensor Konfiguration',
 	accelerometerId: 'Beschleunigungssensor ID',
 	algorithm: 'Algorithmus',
