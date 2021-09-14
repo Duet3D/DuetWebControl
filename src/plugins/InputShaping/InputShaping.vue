@@ -1,12 +1,4 @@
 <style scoped>
-.content {
-	position: relative;
-	min-height: 480px;
-}
-
-.content > canvas {
-	position: absolute;
-}
 </style>
 
 <template>

@@ -1,4 +1,13 @@
 <style scoped>
+.content {
+	position: relative;
+	min-height: 480px;
+}
+
+.content > canvas {
+	position: absolute;
+	height: auto;
+}
 </style>
 
 <template>
@@ -45,7 +54,7 @@
 			<v-spacer></v-spacer>
 
 			<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-				<canvas ref="chart" style="height: 400px;"></canvas>
+				<canvas ref="chart"></canvas>
 			</v-card-text>
 		</v-card>
 
