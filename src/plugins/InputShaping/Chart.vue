@@ -22,10 +22,12 @@
 					{{ session.test }}
 
 					<v-data-table
+						v-model="recordList"
 						class="py-0"
 						:headers="recordTable"
 						:items="session.records"
 						:items-per-page="20"
+						show-select
 					></v-data-table>
 
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.filter') }}:
@@ -149,7 +151,7 @@ export default {
 		checkedAxis() {
 			this.updateVisibility();
 		},
-		'session.records': {
+		'recordList': {
 			handler() {
 				this.updateChartFft();
 			}
@@ -239,7 +241,7 @@ export default {
 
 			this.chart.data.datasets = [];
 
-			this.session.records.forEach((rec, recIndex) => {
+			this.recordList.forEach((rec, recIndex) => {
 
 				console.log("updating chart for", recIndex, rec);
 
@@ -286,7 +288,7 @@ export default {
 
 			this.chart.data.datasets = [];
 
-			this.session.records.forEach((rec, recIndex) => {
+			this.recordList.forEach((rec, recIndex) => {
 
 				console.log("updating chartfft for", recIndex, rec);
 
