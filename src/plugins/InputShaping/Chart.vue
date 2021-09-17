@@ -125,7 +125,7 @@ export default {
 			],
 
 			wideBand: false,
-			recordList: [],
+			recordList: this.value.records,
 			checkedAxis: [],
 
 			// obsolete?
