@@ -275,6 +275,8 @@ export default {
 
 			this.chart.update();
 
+			this.updateVisibility();
+
 			console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
 		},
 		updateChartFft() {
@@ -323,6 +325,7 @@ export default {
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.frequencies.length;
 
 			this.chart.update();
+			this.updateVisibility();
 		},
 		redraw() {
 			this.chart.update();
