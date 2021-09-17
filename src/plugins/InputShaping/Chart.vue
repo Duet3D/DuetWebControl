@@ -19,15 +19,15 @@
 				<v-col>
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
 
-					<v-list class="py-0">
-						<v-list-item-group :value="session.records" color="primary" mandatory>
-							<v-list-item v-for="record in session.records" :key="record.id" :value="record.name" @click="deleteRecord(record.name)">
-								{{ record.name }}
-							</v-list-item>
-						</v-list-item-group>
-					</v-list>
-				</v-col>
-				<v-col>
+					{{ session.test }}
+
+					<v-data-table
+						class="py-0"
+						:headers="recordTable"
+						:items="session.records"
+						:items-per-page="20"
+					></v-data-table>
+
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.filter') }}:
 
 					{{ checkedAxis }}
@@ -103,6 +103,24 @@ export default {
 	data() {
 		return {
 			session: this.value,
+
+			recordTable: [
+				{
+					text: 'name',
+					align: 'start',
+					sortable: true,
+					value: 'name',
+				},
+				{ text: 'id', value: 'id' },
+				{ text: 'date', value: 'date' },
+				{ text: 'samples', value: 'samples' },
+				{ text: 'samplingRate', value: 'samplingRate' },
+				{ text: 'overflows', value: 'overflows' },
+				{ text: 'config.type', value: 'config.type' },
+				{ text: 'config.frequency', value: 'config.frequency' },
+				{ text: 'config.damping', value: 'config.damping' },
+				{ text: 'config.minAcceleration', value: 'config.minAcceleration' },
+			],
 
 			wideBand: false,
 			recordList: [],
