@@ -30,7 +30,7 @@
 						v-on:input="$emit('input', test)"
 						:label="$t('plugins.inputShaping.axis')"
 						:rules="rules.axis"
-						require
+						required
 					></v-select>
 				</v-col>
 				<v-col>
@@ -40,7 +40,7 @@
 						type="number" :min="1" :max="65535"
 						:label="$t('plugins.inputShaping.numSamples')"
 						:rules="rules.numSamples"
-						require
+						required
 					></v-text-field>
 				</v-col>
 			</v-row>
@@ -52,7 +52,7 @@
 						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.startPosition')"
 						:rules="rules.startPosition"
-						require
+						required
 					></v-text-field>
 				</v-col>
 				<v-col>
@@ -62,7 +62,7 @@
 						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.stopPosition')"
 						:rules="rules.stopPosition"
-						require
+						required
 					></v-text-field>
 				</v-col>
 			</v-row>

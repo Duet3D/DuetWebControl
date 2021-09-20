@@ -19,6 +19,7 @@
 						v-on:input="$emit('input', value)"
 						:label="$t('plugins.inputShaping.type')"
 						:rules="rules.type"
+						required
 						></v-select>
 				</v-col>
 				<v-col>
@@ -28,6 +29,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.frequency')"
 						:rules="rules.frequency"
+						required
 						></v-text-field>
 				</v-col>
 				<v-col>
@@ -37,6 +39,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.damping')"
 						:rules="rules.damping"
+						required
 						></v-text-field>
 				</v-col>
 				<v-col>
@@ -46,6 +49,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.minAcceleration')"
 						:rules="rules.minAcceleration"
+						required
 						></v-text-field>
 				</v-col>
 			</v-row>
