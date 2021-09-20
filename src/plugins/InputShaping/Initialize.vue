@@ -27,7 +27,7 @@
 			<v-btn color="primary" @click="loadSession">
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
 			</v-btn>
-			<v-btn color="warning" @click="deleteSession">
+			<v-btn color="warning" @click="deleteSession" :disabled="sessionSelected.length == 0">
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
 			</v-btn>
 		</v-row>
