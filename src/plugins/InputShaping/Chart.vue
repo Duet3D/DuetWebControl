@@ -94,8 +94,6 @@ export default {
 	props: [ 'value' ],
 	data() {
 		return {
-			session: this.value,
-
 			recordTable: [
 				{
 					text: 'name',
@@ -130,6 +128,9 @@ export default {
 		...mapState('settings', ['darkTheme']),
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen']),
+		session() {
+			return this.value;
+		}
 	},
 	watch: {
 		language() {
