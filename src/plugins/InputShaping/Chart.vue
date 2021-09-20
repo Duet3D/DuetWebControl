@@ -50,31 +50,33 @@
 
 				<v-container>
 					<v-row>
-						<v-col :justify="left" md="1">
-						<v-btn v-show="true" color="primary" @click="updateChartFft">
-							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
-						</v-btn>
+						<v-col>
+							<v-card-text>
+								<v-btn v-show="true" color="primary" @click="updateChartFft">
+									<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
+								</v-btn>
+							</v-card-text>
 						</v-col>
-						<v-col :justify="left" md="1">
-						<v-btn v-show="true" color="success" @click="updateChart">
-							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
-						</v-btn>
+						<v-col>
+							<v-card-text>
+								<v-btn v-show="true" color="success" @click="updateChart">
+									<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
+								</v-btn>
+							</v-card-text>
 						</v-col>
-						<v-col :justify="right" md="1">
-
+						<v-col>
 							<v-icon class="">mdi-chart-timeline-variant</v-icon>
 								{{ $t('plugins.inputShaping.filter') }}:
 						</v-col>
-						<v-col
-							v-for="axis in this.model.move.axes"
-							:key="axis.letter"
-							md="1"
-							justify="left">
+						<v-col>
+						<v-row>
 							<v-checkbox
+								v-for="axis in this.model.move.axes"
 								:key="axis.letter" :value=axis.letter :label="axis.letter"
 								v-model="checkedAxis"
 								hide-details
 							></v-checkbox>
+						</v-row>
 						</v-col>
 					</v-row>
 				</v-container>
