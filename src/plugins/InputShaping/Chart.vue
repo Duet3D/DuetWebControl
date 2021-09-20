@@ -97,6 +97,7 @@ export default {
 	props: [ 'value' ],
 	data() {
 		return {
+			recordList: [],
 			recordTable: [
 				{
 					text: 'name',
@@ -116,7 +117,6 @@ export default {
 			],
 
 			wideBand: false,
-			recordList: this.value.records,
 			checkedAxis: [],
 
 			// obsolete?
@@ -148,6 +148,11 @@ export default {
 		'recordList': {
 			handler() {
 				this.updateChartFft();
+			}
+		},
+		'session.records': {
+			handler(value) {
+				this.recordList = value;
 			}
 		}
 	},
