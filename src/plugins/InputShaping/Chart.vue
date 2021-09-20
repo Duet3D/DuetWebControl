@@ -37,7 +37,9 @@
 						show-select
 					></v-data-table>
 
-					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.filter') }}:
+					<v-btn v-show="true" color="failure" @click="deleteRecordList">
+						Delete
+					</v-btn>
 
 					{{ checkedAxis }}
 					<v-container fluid>
@@ -183,6 +185,9 @@ export default {
 			console.log("deleting", name);
 			this.session.removeRecord(name);
 			this.updateChart();
+		},
+		deleteRecordList() {
+			this.recordList.forEach(rec => this.deleteRecord(rec.name));
 		},
 		updateVisibility() {
 			this.chart.data.datasets.forEach(dataset => {
