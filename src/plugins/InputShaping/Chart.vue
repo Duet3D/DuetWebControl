@@ -13,92 +13,72 @@
 <template>
 	<v-row>
 		<v-col>
-		Chart Component
-		<v-card class="d-flex flex-column flex-grow-1 mt-2">
-			<v-card-title class="pt-2 pb-0">
-				<v-col>
-					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
+			Chart Component
+			<v-card class="d-flex flex-column flex-grow-1 mt-2">
+				<v-card-title class="pt-2 pb-0">
+					<v-col>
+						<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
 
 
-					<v-card>
-						<v-card-text>
-							Accelerometer: {{ session.test.accel }} Axes: {{ session.test.axis }}
-							Samples: {{ session.test.param.numSamples }}
-							Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
-						</v-card-text>
-					</v-card>
+						<v-card>
+							<v-card-text>
+								Accelerometer: {{ session.test.accel }} Axes: {{ session.test.axis }}
+								Samples: {{ session.test.param.numSamples }}
+								Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
+							</v-card-text>
+						</v-card>
 
-					<v-data-table
-						v-model="recordList"
-						class="py-0"
-						:headers="recordTable"
-						:items="session.records"
-						:items-per-page="20"
-						show-select
-					></v-data-table>
+						<v-data-table
+							v-model="recordList"
+							class="py-0"
+							:headers="recordTable"
+							:items="session.records"
+							:items-per-page="20"
+							show-select
+						></v-data-table>
 
-					<v-btn v-show="true" color="failure" @click="deleteRecordList">
-						Delete
-					</v-btn>
+						<v-btn v-show="true" color="failure" @click="deleteRecordList">
+							Delete
+						</v-btn>
 
-					<v-container fluid>
-						<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon>
-							{{ $t('plugins.inputShaping.filter') }}:
-						<v-row>
+					</v-col>
+				</v-card-title>
+				<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+					<canvas ref="chart"></canvas>
+				</v-card-text>
+
+				<v-container>
+					<v-row>
+						<v-col :justify="left" md="1">
+						<v-btn v-show="true" color="primary" @click="updateChartFft">
+							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
+						</v-btn>
+						</v-col>
+						<v-col :justify="left" md="1">
+						<v-btn v-show="true" color="success" @click="updateChart">
+							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
+						</v-btn>
+						</v-col>
+						<v-col :justify="right" md="1">
+
+							<v-icon class="">mdi-chart-timeline-variant</v-icon>
+								{{ $t('plugins.inputShaping.filter') }}:
+						</v-col>
+						<v-col
+							v-for="axis in this.model.move.axes"
+							:key="axis.letter"
+							md="1"
+							justify="left">
 							<v-checkbox
-								v-for="axis in this.model.move.axes"
 								:key="axis.letter" :value=axis.letter :label="axis.letter"
 								v-model="checkedAxis"
 								hide-details
 							></v-checkbox>
-						</v-row>
-					</v-container>
+						</v-col>
+					</v-row>
+				</v-container>
 
-				</v-col>
-			</v-card-title>
-
-			<v-spacer></v-spacer>
-
-			<v-card-text class="pa-0" v-show="alertMessage !== null">
-				<v-alert :value="true" :type="alertType" class="mb-0">
-					{{ alertMessage  }}
-				</v-alert>
-			</v-card-text>
-
-			<v-spacer></v-spacer>
-
-			<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-				<canvas ref="chart"></canvas>
-			</v-card-text>
-		</v-card>
-
-		<v-card class="mt-5" v-show="true">
-			<v-card-title>
-				<v-icon class="mr-2">mdi-calculator</v-icon> {{ $t('plugins.inputShaping.analysis') }}
-			</v-card-title>
-
-			<v-card-text>
-				<v-row>
-					<v-col>
-						<v-text-field v-model="samplingRate" :label="$t('plugins.inputShaping.samplingRate')" type="number" hide-details :disabled="!displaySamples"></v-text-field>
-					</v-col>
-					<v-col cols="auto">
-						<v-checkbox v-model="wideBand" :label="$t('plugins.inputShaping.wideBand')" hide-details :disabled="!displaySamples" class="mt-2"></v-checkbox>
-					</v-col>
-					<v-col cols="auto">
-						<v-btn v-show="true" color="primary" @click="updateChartFft">
-							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
-						</v-btn>
-						<v-btn v-show="true" color="success" @click="updateChart">
-							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
-						</v-btn>
-						<v-btn v-show="true" color="success" @click="testChart">
-							TestChart
-						</v-btn>
-					</v-col>
-				</v-row>
-			</v-card-text>
-		</v-card>
+			</v-card>
 		</v-col>
 	</v-row>
 </template>
