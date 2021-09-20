@@ -4,9 +4,13 @@
 <template>
 	<div>
 		Test Command Component:<br>
-		test: {{ testCommand }}
+		test: {{ testCommand }}<br><br>
 
-		<v-form ref="formTestCommand" @submit.prevent="submit">
+		<div v-show="disabled">
+			TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED. Delete all records or start a new session
+		</div>
+
+		<v-form ref="formTestCommand" @submit.prevent="submit" :disabled="disabled">
 			<v-row>
 				<v-col>
 					<v-text-field
@@ -26,6 +30,7 @@
 						v-on:input="$emit('input', test)"
 						:label="$t('plugins.inputShaping.axis')"
 						:rules="rules.axis"
+						required
 					></v-select>
 				</v-col>
 				<v-col>
@@ -35,6 +40,7 @@
 						type="number" :min="1" :max="65535"
 						:label="$t('plugins.inputShaping.numSamples')"
 						:rules="rules.numSamples"
+						required
 					></v-text-field>
 				</v-col>
 			</v-row>
@@ -46,6 +52,7 @@
 						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.startPosition')"
 						:rules="rules.startPosition"
+						required
 					></v-text-field>
 				</v-col>
 				<v-col>
@@ -55,6 +62,7 @@
 						type="number" :min="test.param.minPosition" :max="test.param.maxPosition"
 						:label="$t('plugins.inputShaping.stopPosition')"
 						:rules="rules.stopPosition"
+						required
 					></v-text-field>
 				</v-col>
 			</v-row>
@@ -70,7 +78,7 @@ import { mapState } from 'vuex';
 import { Test } from './InputShapingSession.js';
 
 export default {
-	props: [ 'value', 'id' ],
+	props: [ 'value', 'id', 'disabled' ],
 
 	data() {
 		return {
