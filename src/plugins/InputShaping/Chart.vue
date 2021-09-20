@@ -19,7 +19,14 @@
 				<v-col>
 					<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
 
-					{{ session.test }}
+
+					<v-card>
+						<v-card-text>
+							Accelerometer: {{ session.test.accel }} Axes: {{ session.test.axis }}
+							Samples: {{ session.test.param.numSamples }}
+							Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
+						</v-card-text>
+					</v-card>
 
 					<v-data-table
 						v-model="recordList"
