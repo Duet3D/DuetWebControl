@@ -70,11 +70,7 @@
 
 'use strict';
 
-//import { mapState, mapActions } from 'vuex';
-
-//import { AccelStates } from './InputShapingEnums.js';
 import { Algorithm } from './InputShapingSession.js';
-//import { makeNotification } from '../../utils/toast.js';
 
 export default {
 	props: [ 'value' ],
