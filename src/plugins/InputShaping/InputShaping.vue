@@ -10,31 +10,39 @@
 		</v-row>
 
 		<v-tabs v-model="selectedTab">
-			<v-tab href="#setupSession">
-				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.setupSession') }}
+			<v-tab href="#initialize">
+				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.initialize') }}
 			</v-tab>
-			<v-tab href="#recording">
-				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.recordProfiles') }}
+			<v-tab href="#configure" :disabled="session ? false : true">
+				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.configure') }}
 			</v-tab>
-			<v-tab href="#analysis">
+			<v-tab href="#recording" :disabled="session ? false : true">
+				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.record') }}
+			</v-tab>
+			<v-tab href="#analysis" :disabled="session ? false : true">
 				<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 			</v-tab>
 		</v-tabs>
 
 		<v-tabs-items v-model="selectedTab">
 			<!-- Setup session -->
-			<v-tab-item value="setupSession" class="pa-3">
-				<session v-model="session"></session>
+			<v-tab-item value="initialize" class="pa-3">
+				<initialize v-model="session"></initialize>
+			</v-tab-item>
+
+			<!-- Configure session -->
+			<v-tab-item value="configure" class="pa-3">
+				<session v-if="session" v-model="session"></session>
 			</v-tab-item>
 
 			<!-- Recording -->
 			<v-tab-item value="recording" class="pa-3">
-				<recorder v-model="session"></recorder>
+				<recorder v-if="session" v-model="session"></recorder>
 			</v-tab-item>
 
 			<!-- Profile Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				<chart v-model="session"></chart>
+				<chart v-if="session" v-model="session"></chart>
 			</v-tab-item>
 		</v-tabs-items>
 
@@ -46,8 +54,6 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex';
 
-import { Session } from './InputShapingSession.js';
-
 export default {
 
 	computed: {
@@ -58,12 +64,12 @@ export default {
 
 	data() {
 		return {
-			selectedTab: 'setupSession',
+			selectedTab: 'initialize',
 
 			rules: {
 			},
 
-			session: new Session(),
+			session: null,
 		}
 	},
 

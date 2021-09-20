@@ -37,43 +37,46 @@
 							show-select
 						></v-data-table>
 
-						<v-btn v-show="true" color="failure" @click="deleteRecordList">
-							Delete
+						<v-btn v-show="true" :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+							{{ $t('plugins.inputShaping.delete') }}
 						</v-btn>
 
 					</v-col>
 				</v-card-title>
+
 				<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
 					<canvas ref="chart"></canvas>
 				</v-card-text>
 
 				<v-container>
 					<v-row>
-						<v-col :justify="left" md="1">
-						<v-btn v-show="true" color="primary" @click="updateChartFft">
-							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
-						</v-btn>
+						<v-col>
+							<v-card-text>
+								<v-btn v-show="true" color="primary" @click="updateChartFft">
+									<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
+								</v-btn>
+							</v-card-text>
 						</v-col>
-						<v-col :justify="left" md="1">
-						<v-btn v-show="true" color="success" @click="updateChart">
-							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
-						</v-btn>
+						<v-col>
+							<v-card-text>
+								<v-btn v-show="true" color="success" @click="updateChart">
+									<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
+								</v-btn>
+							</v-card-text>
 						</v-col>
-						<v-col :justify="right" md="1">
-
+						<v-col>
 							<v-icon class="">mdi-chart-timeline-variant</v-icon>
 								{{ $t('plugins.inputShaping.filter') }}:
 						</v-col>
-						<v-col
-							v-for="axis in this.model.move.axes"
-							:key="axis.letter"
-							md="1"
-							justify="left">
+						<v-col>
+						<v-row>
 							<v-checkbox
+								v-for="axis in this.model.move.axes"
 								:key="axis.letter" :value=axis.letter :label="axis.letter"
 								v-model="checkedAxis"
 								hide-details
 							></v-checkbox>
+						</v-row>
 						</v-col>
 					</v-row>
 				</v-container>
@@ -94,8 +97,7 @@ export default {
 	props: [ 'value' ],
 	data() {
 		return {
-			session: this.value,
-
+			recordList: [],
 			recordTable: [
 				{
 					text: 'name',
@@ -115,7 +117,6 @@ export default {
 			],
 
 			wideBand: false,
-			recordList: this.value.records,
 			checkedAxis: [],
 
 			// obsolete?
@@ -130,6 +131,9 @@ export default {
 		...mapState('settings', ['darkTheme']),
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen']),
+		session() {
+			return this.value;
+		}
 	},
 	watch: {
 		language() {
@@ -144,6 +148,11 @@ export default {
 		'recordList': {
 			handler() {
 				this.updateChartFft();
+			}
+		},
+		'session.records': {
+			handler(value) {
+				this.recordList = value;
 			}
 		}
 	},
