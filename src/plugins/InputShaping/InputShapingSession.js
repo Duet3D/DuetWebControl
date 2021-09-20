@@ -257,7 +257,7 @@ export class Session {
 	}
 
 	addRecord(record) {
-		let found = this.records.find(e => e.name === record.name);
+		let found = this.records.find(e => e.id === record.id);
 		if (found)
 			return false;
 
