@@ -13,13 +13,13 @@
 			<v-tab href="#initialize">
 				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.initialize') }}
 			</v-tab>
-			<v-tab href="#configure">
+			<v-tab href="#configure" :disabled="session ? false : true">
 				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.configure') }}
 			</v-tab>
-			<v-tab href="#recording">
-				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.recordProfiles') }}
+			<v-tab href="#recording" :disabled="session ? false : true">
+				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.record') }}
 			</v-tab>
-			<v-tab href="#analysis">
+			<v-tab href="#analysis" :disabled="session ? false : true">
 				<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 			</v-tab>
 		</v-tabs>
@@ -54,8 +54,6 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex';
 
-import { Session } from './InputShapingSession.js';
-
 export default {
 
 	computed: {
@@ -71,7 +69,7 @@ export default {
 			rules: {
 			},
 
-			session: new Session(),
+			session: null,
 		}
 	},
 
