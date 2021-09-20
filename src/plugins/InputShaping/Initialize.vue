@@ -46,7 +46,7 @@ export default {
 	data() {
 		return {
 			sessions: [],
-			sessionSelected: [ this.value ],
+			sessionSelected: [],
 			sessionTableHeaders: [
           {
             text: 'Id', value: 'id', align: 'start', sortable: true
@@ -75,7 +75,9 @@ export default {
 	watch: {
 		sessionSelected: function(value) {
 			if (value.length > 0)
-				this.$emit('input', value[0])
+				this.$emit('input', value[0]);
+			else
+				this.$emit('input', null);
 		}
 	},
 	mounted() {
