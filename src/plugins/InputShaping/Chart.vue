@@ -37,12 +37,13 @@
 							show-select
 						></v-data-table>
 
-						<v-btn v-show="true" color="failure" @click="deleteRecordList">
-							Delete
+						<v-btn v-show="true" :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+							{{ $t('plugins.inputShaping.delete') }}
 						</v-btn>
 
 					</v-col>
 				</v-card-title>
+
 				<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
 					<canvas ref="chart"></canvas>
 				</v-card-text>
