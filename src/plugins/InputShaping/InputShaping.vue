@@ -10,8 +10,11 @@
 		</v-row>
 
 		<v-tabs v-model="selectedTab">
-			<v-tab href="#setupSession">
-				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.setupSession') }}
+			<v-tab href="#initialize">
+				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.initialize') }}
+			</v-tab>
+			<v-tab href="#configure">
+				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.configure') }}
 			</v-tab>
 			<v-tab href="#recording">
 				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.recordProfiles') }}
@@ -23,7 +26,12 @@
 
 		<v-tabs-items v-model="selectedTab">
 			<!-- Setup session -->
-			<v-tab-item value="setupSession" class="pa-3">
+			<v-tab-item value="initialize" class="pa-3">
+				<initialize v-model="session"></initialize>
+			</v-tab-item>
+
+			<!-- Configure session -->
+			<v-tab-item value="configure" class="pa-3">
 				<session v-model="session"></session>
 			</v-tab-item>
 
@@ -58,7 +66,7 @@ export default {
 
 	data() {
 		return {
-			selectedTab: 'setupSession',
+			selectedTab: 'initialize',
 
 			rules: {
 			},
