@@ -64,8 +64,6 @@ export default {
 	props: [ 'value' ],
 	data() {
 		return {
-			session: this.value,
-
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
 
@@ -98,6 +96,9 @@ export default {
 		machineStatus() {
 			return this.model.state.status;
 		},
+		session() {
+			return this.value;
+		}
 	},
 	methods: {
 		...mapActions('machine', [ 'delete', 'download', 'sendCode' ]),
