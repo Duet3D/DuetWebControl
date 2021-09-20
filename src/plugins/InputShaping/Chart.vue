@@ -41,8 +41,9 @@
 						Delete
 					</v-btn>
 
-					{{ checkedAxis }}
 					<v-container fluid>
+						<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon>
+							{{ $t('plugins.inputShaping.filter') }}:
 						<v-row>
 							<v-checkbox
 								v-for="axis in this.model.move.axes"
