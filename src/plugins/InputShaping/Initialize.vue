@@ -24,7 +24,7 @@
 			<v-btn color="primary" @click="newSession">
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.new') }}
 			</v-btn>
-			<v-btn color="primary" @click="loadSession">
+			<v-btn color="primary" @click="loadSession" v-if="false">
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
 			</v-btn>
 			<v-btn color="warning" @click="deleteSession" :disabled="sessionSelected.length == 0">
