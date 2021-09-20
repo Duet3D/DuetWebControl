@@ -48,6 +48,7 @@
 			v-model="value.test"
 			v-bind:id="value.id"
 			v-on:test-command="console.log($event)"
+			:disabled="value.records.length > 0"
 		></test-command>
 
 		<algorithm v-for="(algo, index) in value.algorithms"
