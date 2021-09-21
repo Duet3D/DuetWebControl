@@ -598,7 +598,6 @@ export default class PollConnector extends BaseConnector {
 
 	async getGCodeReply() {
 		const response = await this.request('GET', 'rr_reply', this.requestTimeout, 'text');
-		console.log(this.lastSeqs.reply + ' -> ' + response);
 		const reply = response.trim();
 		if (this.pendingCodes.length > 0) {
 			// Resolve pending code promises

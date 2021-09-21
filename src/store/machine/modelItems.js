@@ -313,6 +313,7 @@ export class InputChannel {
 	feedRate = 50
 	inMacro = false
 	lineNumber = 0
+	macroRestartable = false
 	name = null
 	stackDepth = 0
 	state = InputChannelState.idle

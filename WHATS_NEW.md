@@ -16,6 +16,7 @@ Changed behaviour:
 
 Bug fixes:
 - Order of displayed extruders depended on toggle order
+- Auto-completion drop-down list could overlap the code input
 
 Version 3.4-b3
 ==============

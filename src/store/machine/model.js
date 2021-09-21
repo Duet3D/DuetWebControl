@@ -218,8 +218,9 @@ export class MachineModel {
 		laserPwm: null,
 		logFile: null,
 		logLevel: LogLevel.off,
-		messageBox: null,
 		machineMode: MachineMode.fff,
+		macroRestarted: false,
+		messageBox: null,
 		msUpTime: 0,
 		nextTool: -1,
 		pluginsStarted: false,					// *** missing in RRF
