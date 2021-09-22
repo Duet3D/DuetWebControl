@@ -73,7 +73,16 @@ export default {
 			console.log("TODO load session from storage");
 		},
 		deleteSession() {
-			console.log("TODO delete selected session from list and internal storage")
+			if (this.sessionSelected.length < 0)
+				return;
+
+			console.log("deleting", this.sessionSelected[0].id);
+			let index = this.sessions.findIndex((elem) => elem.id === this.sessionSelected[0].id);
+
+			if (index < 0)
+				return;
+
+			this.sessions.splice(index, 1);
 		}
 	},
 	watch: {
