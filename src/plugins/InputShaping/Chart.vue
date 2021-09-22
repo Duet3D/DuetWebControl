@@ -33,7 +33,7 @@
 			</v-row>
 
 			<v-row>
-				<v-btn v-show="true" :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+				<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
 					{{ $t('plugins.inputShaping.delete') }}
 				</v-btn>
 			</v-row>
@@ -47,10 +47,10 @@
 			<v-row>
 				<v-col>
 					<v-btn-toggle>
-						<v-btn v-show="true" color="primary" @click="updateChartFft">
+						<v-btn color="primary" @click="updateChartFft">
 							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
 						</v-btn>
-						<v-btn v-show="true" color="success" @click="updateChart">
+						<v-btn color="success" @click="updateChart">
 							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
 						</v-btn>
 					</v-btn-toggle>
