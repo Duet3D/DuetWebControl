@@ -3,11 +3,9 @@
 
 <template>
 	<div>
-		Algorithm Component
-
 		<v-form ref="formInputShaping" @submit.prevent="submit">
 			<v-row>
-				<v-col>
+				<v-col class="ma-2">
 					<v-btn @click="$emit('remove')">
 							<v-icon>mdi-close</v-icon>
 					</v-btn>

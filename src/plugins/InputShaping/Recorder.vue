@@ -4,10 +4,6 @@
 <template>
 	<div>
 		<v-row>
-			<v-col>Recorder Component</v-col>
-		</v-row>
-
-		<v-row>
 			<v-card-text class="pa-0" v-show="alertMessage !== null">
 				<v-alert :value="true" :type="alertType" class="mb-0">
 					{{ alertMessage  }}

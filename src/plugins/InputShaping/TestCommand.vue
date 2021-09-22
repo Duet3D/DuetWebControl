@@ -2,13 +2,12 @@
 </style>
 
 <template>
-	<div>
-		Test Command Component:<br>
-		test: {{ testCommand }}<br><br>
-
-		<div v-show="disabled">
-			TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED. Delete all records or start a new session
-		</div>
+	<v-col>
+		<v-card-text class="pa-0" v-show="disabled">
+			<v-alert :type="'warning'">
+				TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED. Delete all records or start a new session
+			</v-alert>
+		</v-card-text>
 
 		<v-form ref="formTestCommand" @submit.prevent="submit" :disabled="disabled">
 			<v-row>
@@ -67,7 +66,7 @@
 				</v-col>
 			</v-row>
 		</v-form>
-	</div>
+	</v-col>
 </template>
 
 <script>

@@ -24,11 +24,11 @@
 			<v-btn color="primary" @click="newSession">
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.new') }}
 			</v-btn>
-			<v-btn color="primary" @click="loadSession" v-if="false">
-					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
+			<v-btn color="primary" @click="loadSession" v-show="false">
+					<v-icon class="mr-2">mdi-file-upload-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
 			</v-btn>
 			<v-btn color="warning" @click="deleteSession" :disabled="sessionSelected.length == 0">
-					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
+					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
 			</v-btn>
 		</v-row>
 
