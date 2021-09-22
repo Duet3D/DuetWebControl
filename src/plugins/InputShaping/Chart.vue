@@ -34,7 +34,7 @@
 
 			<v-row>
 				<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
-					{{ $t('plugins.inputShaping.delete') }}
+					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
 				</v-btn>
 			</v-row>
 		</v-row>
@@ -48,10 +48,10 @@
 				<v-col>
 					<v-btn-toggle>
 						<v-btn color="primary" @click="updateChartFft">
-							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
+							<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
 						</v-btn>
 						<v-btn color="success" @click="updateChart">
-							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
+							<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
 						</v-btn>
 					</v-btn-toggle>
 				</v-col>
