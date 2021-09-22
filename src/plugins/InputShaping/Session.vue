@@ -2,15 +2,7 @@
 </style>
 
 <template>
-	<div>
-		Session Component
-
-		<v-row v-if="value">
-			<v-col>
-				name: {{ value.name }} id: {{ value.id }} date: {{ value.date }}<br>
-				test: {{ value.test.testCommand }}
-			</v-col>
-		</v-row>
+	<v-col>
 		<v-form ref="formSession" @submit.prevent="submit">
 			<v-row>
 				<v-col>
@@ -63,7 +55,7 @@
 					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.addAlgorithm') }}
 			</v-btn>
 		</form>
-	</div>
+	</v-col>
 </template>
 
 <script>

@@ -3,9 +3,10 @@
 
 <template>
 	<div>
-		<v-row v-if="session">
+		<v-row v-if="session && false">
 			<v-col>
-				Session: name: {{ session.name }} id: {{ session.id }} date: {{ session.date }}
+				Session: name: {{ session.name }} id: {{ session.id }} date: {{ session.date }}<br>
+				test: {{ session.test.getGCode() }}
 			</v-col>
 		</v-row>
 

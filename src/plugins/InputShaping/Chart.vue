@@ -11,79 +11,66 @@
 </style>
 
 <template>
-	<v-row>
-		<v-col>
-			Chart Component
-			<v-card class="d-flex flex-column flex-grow-1 mt-2">
-				<v-card-title class="pt-2 pb-0">
-					<v-col>
-						<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.chartCaption') }}:
+	<v-col>
+		<v-row class="ma-2">
+			<v-row class="pa-2">
+				Accelerometer ID: {{ session.test.accel }} Axes: {{ session.test.axis }}
+				Samples: {{ session.test.param.numSamples }}
+				Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
+			</v-row>
 
+			<v-row>
+				<v-data-table
+					v-model="recordList"
+					class="py-0"
+					:headers="recordTable"
+					:items="session.records"
+					:items-per-page="20"
+					show-select
+				></v-data-table>
+			</v-row>
 
-						<v-card>
-							<v-card-text>
-								Accelerometer: {{ session.test.accel }} Axes: {{ session.test.axis }}
-								Samples: {{ session.test.param.numSamples }}
-								Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
-							</v-card-text>
-						</v-card>
+			<v-row>
+				<v-btn v-show="true" :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+					{{ $t('plugins.inputShaping.delete') }}
+				</v-btn>
+			</v-row>
+		</v-row>
 
-						<v-data-table
-							v-model="recordList"
-							class="py-0"
-							:headers="recordTable"
-							:items="session.records"
-							:items-per-page="20"
-							show-select
-						></v-data-table>
+		<v-row class="ma-2">
+			<v-row class="content ma-2" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+				<canvas ref="chart"></canvas>
+			</v-row>
 
-						<v-btn v-show="true" :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
-							{{ $t('plugins.inputShaping.delete') }}
+			<v-row>
+				<v-col>
+					<v-btn-toggle>
+						<v-btn v-show="true" color="primary" @click="updateChartFft">
+							<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
 						</v-btn>
-
-					</v-col>
-				</v-card-title>
-
-				<v-card-text class="content flex-grow-1 px-2 py-0" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-					<canvas ref="chart"></canvas>
-				</v-card-text>
-
-				<v-container>
+						<v-btn v-show="true" color="success" @click="updateChart">
+							<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
+						</v-btn>
+					</v-btn-toggle>
+				</v-col>
+				<v-col>
+					<v-icon class="">mdi-filter-outline</v-icon>
+						{{ $t('plugins.inputShaping.filter') }}:
+				</v-col>
+				<v-col>
 					<v-row>
-						<v-col>
-							<v-card-text>
-								<v-btn v-show="true" color="primary" @click="updateChartFft">
-									<v-icon class="mr-2">mdi-arrow-right</v-icon> {{ $t('plugins.inputShaping.fft') }}
-								</v-btn>
-							</v-card-text>
-						</v-col>
-						<v-col>
-							<v-card-text>
-								<v-btn v-show="true" color="success" @click="updateChart">
-									<v-icon class="mr-2">mdi-arrow-left</v-icon> {{ $t('plugins.inputShaping.time') }}
-								</v-btn>
-							</v-card-text>
-						</v-col>
-						<v-col>
-							<v-icon class="">mdi-chart-timeline-variant</v-icon>
-								{{ $t('plugins.inputShaping.filter') }}:
-						</v-col>
-						<v-col>
-						<v-row>
-							<v-checkbox
-								v-for="axis in this.model.move.axes"
-								:key="axis.letter" :value=axis.letter :label="axis.letter"
-								v-model="checkedAxis"
-								hide-details
-							></v-checkbox>
-						</v-row>
-						</v-col>
+						<v-checkbox
+							v-for="axis in this.model.move.axes"
+							:key="axis.letter" :value=axis.letter :label="axis.letter"
+							v-model="checkedAxis"
+							hide-details
+						></v-checkbox>
 					</v-row>
-				</v-container>
+				</v-col>
+			</v-row>
+		</v-row>
 
-			</v-card>
-		</v-col>
-	</v-row>
+	</v-col>
 </template>
 
 <script>
