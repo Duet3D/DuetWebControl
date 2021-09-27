@@ -538,6 +538,7 @@ export class Tool {
 	axes = []					// may hold sub-arrays of drives per axis
 	extruders = []
 	fans = []
+	feedForward = []
 	filamentExtruder = -1
 	heaters = []
 	mix = []

@@ -208,6 +208,7 @@ export class MachineModel {
 	spindles = []
 	state = {
 		atxPower: null,
+		atxPowerPort: null,
 		beep: null,
 		currentTool: -1,
 		displayMessage: '',
