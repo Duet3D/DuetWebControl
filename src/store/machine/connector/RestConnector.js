@@ -24,7 +24,7 @@ export default class RestConnector extends BaseConnector {
 			});
 			sessionKey = response.sessionKey;
 		} catch (e) {
-			if (!(e instanceof FileNotFoundError)) {
+			if ((process.env.NODE_ENV !== 'development' || !(e instanceof NetworkError)) && !(e instanceof FileNotFoundError)) {
 				// Versions older than 3.4-b4 do not support passwords
 				throw e;
 			}
