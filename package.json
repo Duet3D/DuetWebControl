@@ -1,7 +1,7 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.4.0-b3",
-  "pkgVersion": "3.4-b3",
+  "version": "3.4.0-b4",
+  "pkgVersion": "3.4-b4",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -16,6 +16,7 @@
     "@babylonjs/core": "^4.2.0",
     "@babylonjs/gui": "^4.2.0",
     "@babylonjs/materials": "^4.2.0",
+    "@sindarius/gcodeviewer": "^2.1.9",
     "chart.js": "^2.9.4",
     "chartjs-adapter-date-fns": "^1.0.0",
     "compare-versions": "^3.6.0",

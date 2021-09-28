@@ -313,6 +313,7 @@ export class InputChannel {
 	feedRate = 50
 	inMacro = false
 	lineNumber = 0
+	macroRestartable = false
 	name = null
 	stackDepth = 0
 	state = InputChannelState.idle
@@ -537,6 +538,7 @@ export class Tool {
 	axes = []					// may hold sub-arrays of drives per axis
 	extruders = []
 	fans = []
+	feedForward = []
 	filamentExtruder = -1
 	heaters = []
 	mix = []

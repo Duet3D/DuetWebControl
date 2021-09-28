@@ -1,6 +1,23 @@
 Summary of important changes in recent versions
 ===============================================
 
+Version 3.4-b4
+==============
+
+Compatible versions:
+- DuetSoftwareFramework 3.4-b3
+- RepRapFirmware 3 or newer
+
+New features:
+- Added support for password protection to SBC connections
+
+Changed behaviour:
+- Increased default number of extrusion factor sliders from two to six
+
+Bug fixes:
+- Order of displayed extruders depended on toggle order
+- Auto-completion drop-down list could overlap the code input
+
 Version 3.4-b3
 ==============
 

@@ -13,7 +13,8 @@ import { Space } from '@babylonjs/core/Maths/math.axis';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import Axes from '../../plugins/GCodeViewer/viewer/axes'
+import { Axes } from '@sindarius/gcodeviewer'
+import "@babylonjs/core/Culling"
 
 import i18n from '../../i18n'
 
@@ -129,11 +130,11 @@ export default class {
             resolve();
         });
 
-        
+
 
     }
 
-    renderScene(){
+    renderScene() {
         this.light1.position = this.scene.cameras[0].position;
         this.scene.render();
     }
@@ -156,7 +157,7 @@ export default class {
         this.heightPointMeshes.push(sphere);
     }
 
-    renderHeightMap(bedPoints, invertZ, colorScheme = "terrain", deviationColor  = 'fixed') {
+    renderHeightMap(bedPoints, invertZ, colorScheme = "terrain", deviationColor = 'fixed') {
         this.clearHeightMapData();
 
         this.minZ = 999999999;
@@ -237,12 +238,12 @@ export default class {
         var bedSize = this.getSize();
         if (this.isDelta) {
             this.scene.activeCamera.radius = bedCenter.x;
-            this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
-            this.scene.activeCamera.position = new Vector3(-bedSize.x, bedSize.z, -bedSize.x);
+            this.scene.activeCamera.setTarget(new Vector3(bedCenter.x, -2, bedCenter.y));
+            this.scene.activeCamera.setPosition(new Vector3(bedCenter.x, this.buildVolume.z.max , this.buildVolume.y.min - bedSize.y / 2));
         } else {
             this.scene.activeCamera.radius = 250;
-            this.scene.activeCamera.target = new Vector3(bedCenter.x, -2, bedCenter.y);
-            this.scene.activeCamera.position = new Vector3(-bedSize.x / 2, bedSize.z, -bedSize.y / 2);
+            this.scene.activeCamera.setTarget(new Vector3(bedCenter.x, -2, bedCenter.y));
+            this.scene.activeCamera.setPosition(new Vector3(bedCenter.x, this.buildVolume.z.max , this.buildVolume.y.min - bedSize.y / 2));
         }
         this.renderScene();
     }
@@ -251,7 +252,7 @@ export default class {
         let center = this.getCenter();
         let bedSize = this.getSize();
         this.scene.activeCamera.setPosition(new Vector3(center.x, bedSize.y * 1.5, center.y));
-        this.scene.activeCamera.setTarget(new Vector3(0, 0, 0));
+        this.scene.activeCamera.setTarget(new Vector3(center.x, 0, center.y));
         this.scene.activeCamera.alpha = - Math.PI / 2;
         this.scene.activeCamera.beta = 0;
         this.renderScene();
@@ -307,26 +308,26 @@ export default class {
 
         this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene);
         //build axes labels
-            this.axesLabelMeshes.forEach(mesh => mesh.dispose());
-            this.axesLabelMeshes = [];
-            let xOff = this.buildVolume.x.min %25;
-            for (let x = this.buildVolume.x.min - xOff; x <= this.buildVolume.x.max; x += this.gridSize) {
-                let anchor = new Mesh("anchor", this.scene);
-                anchor.position = new Vector3(x, 0, this.buildVolume.y.min);
-                this.buildAxesLabel(anchor, `${x}`);
-            }
+        this.axesLabelMeshes.forEach(mesh => mesh.dispose());
+        this.axesLabelMeshes = [];
+        let xOff = this.buildVolume.x.min % 25;
+        for (let x = this.buildVolume.x.min - xOff; x <= this.buildVolume.x.max; x += this.gridSize) {
+            let anchor = new Mesh("anchor", this.scene);
+            anchor.position = new Vector3(x, 0, this.buildVolume.y.min);
+            this.buildAxesLabel(anchor, `${x}`);
+        }
 
-            let yOff = this.buildVolume.y.min % 25;
+        let yOff = this.buildVolume.y.min % 25;
 
-            for (let y = this.buildVolume.y.min - yOff; y <= this.buildVolume.y.max; y += this.gridSize) {
-                let anchor = new Mesh("anchor", this.scene);
-                anchor.position = new Vector3(this.buildVolume.x.min, 0, y);
-                this.axesLabelMeshes.push(anchor);
-                this.buildAxesLabel(anchor, `${y}`);
-            }
+        for (let y = this.buildVolume.y.min - yOff; y <= this.buildVolume.y.max; y += this.gridSize) {
+            let anchor = new Mesh("anchor", this.scene);
+            anchor.position = new Vector3(this.buildVolume.x.min, 0, y);
+            this.axesLabelMeshes.push(anchor);
+            this.buildAxesLabel(anchor, `${y}`);
+        }
         this.bedRendered = true;
         this.renderScene();
-        
+
     }
 
     buildAxesLabel(anchor, text) {
@@ -339,11 +340,20 @@ export default class {
 
 
     getCenter() {
-        return {
-            x: (this.buildVolume.x.max + this.buildVolume.x.min) / 2,
-            y: (this.buildVolume.y.max + this.buildVolume.y.min) / 2,
-            z: (this.buildVolume.z.max + this.buildVolume.z.min) / 2,
-        };
+        try {
+            return {
+                x: (this.buildVolume.x.max + this.buildVolume.x.min) / 2,
+                y: (this.buildVolume.y.max + this.buildVolume.y.min) / 2,
+                z: (this.buildVolume.z.max + this.buildVolume.z.min) / 2,
+            };
+        }
+        catch {
+            return {
+                x: 0,
+                y: 0,
+                z: 0,
+            }
+        }
     }
     getSize() {
         return {
@@ -384,10 +394,10 @@ export default class {
                 case PointerEventTypes.POINTERPICK:
                 case PointerEventTypes.POINTERMOVE: {
                     this.handlePointerMove(pickInfo);
-                }break;
+                } break;
                 case PointerEventTypes.POINTERWHEEL: {
                     this.renderScene();
-                }break;
+                } break;
             }
         });
     }

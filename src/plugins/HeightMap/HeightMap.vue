@@ -28,6 +28,7 @@ h1 {
 
 .canvas-container > canvas {
 	position: absolute;
+
 }
 
 .no-cursor {
@@ -113,6 +114,10 @@ h1 {
 					<v-btn :disabled="uiFrozen || loading || !ready" :elevation="1" @click="topView" class="ml-0 mt-3">
 						<v-icon class="mr-1" small>mdi-format-vertical-align-bottom</v-icon>
 						{{ $t('plugins.heightmap.topView') }}
+					</v-btn>
+					<v-btn :disabled="uiFrozen || loading || !ready" :elevation="1" @click="resetView" class="ml-0 mt-3">
+						<v-icon class="mr-1" small>mdi-camera</v-icon>
+						{{ $t('plugins.heightmap.resetView') }}
 					</v-btn>
 				</v-card-text>
 			</v-card>
@@ -363,7 +368,9 @@ export default {
 		topView() {
 			heightMapViewer.topView();
 		},
-
+		resetView(){
+			heightMapViewer.resetCamera();
+		},
 		async refresh() {
 			if (!this.isConnected) {
 				this.ready = false;
@@ -529,6 +536,9 @@ export default {
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+
+		//Kill the wheel on the canvas
+		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches
 		setTimeout(this.resize.bind(this), 250);

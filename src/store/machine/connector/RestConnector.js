@@ -15,7 +15,23 @@ import { strToTime } from '../../../utils/time.js'
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine`);
+
+		// Attempt to get a session key first
+		let sessionKey = null;
+		try {
+			const response = await BaseConnector.request('GET', `${location.protocol}//${hostname}${process.env.BASE_URL}machine/connect`, {
+				password
+			});
+			sessionKey = response.sessionKey;
+		} catch (e) {
+			if ((process.env.NODE_ENV !== 'development' || !(e instanceof NetworkError)) && !(e instanceof FileNotFoundError)) {
+				// Versions older than 3.4-b4 do not support passwords
+				throw e;
+			}
+		}
+
+		// Create a WebSocket connection to receive object model updates
+		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine${(sessionKey ? `?sessionKey=${sessionKey}` : '')}`);
 		const model = await new Promise(function(resolve, reject) {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
@@ -42,18 +58,20 @@ export default class RestConnector extends BaseConnector {
 				}
 			};
 		});
-		return new RestConnector(hostname, password, socket, model);
+		return new RestConnector(hostname, password, socket, model, sessionKey);
 	}
 
 	model = {}
 	fileTransfers = []
+	sessionKey = null
 
-	constructor(hostname, password, socket, model) {
+	constructor(hostname, password, socket, model, sessionKey) {
 		super('rest', hostname);
 		this.password = password;
 		this.requestBase = `${location.protocol}//${(hostname === location.host) ? hostname + process.env.BASE_URL : hostname + '/'}`;
 		this.socket = socket;
 		this.model = model;
+		this.sessionKey = sessionKey;
 	}
 
 	requests = []
@@ -75,6 +93,9 @@ export default class RestConnector extends BaseConnector {
 			xhr.setRequestHeader('Content-Type', 'application/json');
 		} else {
 			xhr.responseType = responseType;
+		}
+		if (this.sessionKey !== null) {
+			xhr.setRequestHeader('X-Session-Key', this.sessionKey);
 		}
 		if (onProgress) {
 			xhr.onprogress = function(e) {
@@ -108,7 +129,7 @@ export default class RestConnector extends BaseConnector {
 					} else {
 						resolve(xhr.response);
 					}
-				} else if (xhr.status === 401) {
+				} else if (xhr.status === 401 || xhr.status === 403) {
 					reject(new InvalidPasswordError());
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
@@ -143,12 +164,28 @@ export default class RestConnector extends BaseConnector {
 		// Cancel pending requests
 		this.cancelRequests();
 
+		// Attempt to get a session key again
+		if (this.sessionKey !== null) {
+			this.sessionKey = null;
+			try {
+				const response = await this.request('GET', `machine/connect`, {
+					password: this.password
+				});
+				this.sessionKey = response.sessionKey;
+			} catch (e) {
+				if (!(e instanceof FileNotFoundError)) {
+					// Versions older than 3.4-b4 do not support passwords
+					throw e;
+				}
+			}
+		}
+
 		// Attempt to reconnect
 		const that = this;
 		await new Promise(function(resolve, reject) {
 			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine`);
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : '')}`);
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
@@ -233,13 +270,14 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	onClose(e) {
-		this.cancelRequests();
 		if (this.pingTask) {
 			clearTimeout(this.pingTask);
 			this.pingTask = undefined;
 		}
 
 		if (this.socket) {
+			this.cancelRequests();
+
 			this.socket = null;
 			this.dispatch('onConnectionError', new NetworkError(e.reason));
 		}
@@ -254,6 +292,11 @@ export default class RestConnector extends BaseConnector {
 
 			this.socket.close();
 			this.socket = null;
+		}
+
+		if (this.sessionKey) {
+			await this.request('GET', 'machine/disconnect');
+			this.sessionKey = null;
 		}
 	}
 
