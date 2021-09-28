@@ -282,7 +282,7 @@ export default {
 					throw new Error('Failed to run test command.');
 				}
 			} catch(e) {
-				makeNotification("error", this.$t('plugins.inputShaping.name'),
+				makeNotification("error", this.$t('plugins.inputShaping.pluginName'),
 					this.$t('plugins.inputShaping.recordingFailed'));
 				console.error("Recording Profile failed: ", e);
 				throw new Error('Failed to run test command.');
