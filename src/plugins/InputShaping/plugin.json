@@ -2,7 +2,7 @@
   "id": "InputShaping",
   "name": "Input Shaping Plugin",
   "author": "Christian Hammacher, Michael Szafranek",
-  "version": "0.2.0-pre2",
+  "version": "0.2.0-pre3",
   "license": "LGPL-3.0-or-later",
   "homepage": "https://github.com/mfs12/DuetWebControl/tree/inputshaping-accel-plugin/src/plugins/InputShaping",
   "dwcVersion": "3.4.0-b4"
