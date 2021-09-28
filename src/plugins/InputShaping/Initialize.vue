@@ -3,36 +3,40 @@
 
 <template>
 	<div>
-		Initialize Session Component
-
 		<v-row v-if="value">
 			<v-col>
 				name: {{ value.name }} id: {{ value.id }} date: {{ value.date }}<br>
 			</v-col>
 		</v-row>
 
-		<v-data-table
-			v-model="sessionSelected"
-			:headers="sessionTableHeaders"
-			:items="sessions"
-			:single-select="true"
-			item-key="id"
-			show-select
-		></v-data-table>
-
 		<v-row>
-			<v-btn color="primary" @click="newSession">
-					<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.new') }}
-			</v-btn>
-			<v-btn color="primary" @click="loadSession" v-show="false">
-					<v-icon class="mr-2">mdi-file-upload-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
-			</v-btn>
-			<v-btn color="warning" @click="deleteSession" :disabled="sessionSelected.length == 0">
-					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
-			</v-btn>
+			<v-col>
+				<v-row>
+					<v-data-table
+						v-model="sessionSelected"
+						:headers="sessionTableHeaders"
+						:items="sessions"
+						:single-select="true"
+						item-key="id"
+						show-select
+					></v-data-table>
+				</v-row>
+
+				<v-row>
+					<v-btn color="primary" @click="newSession">
+							<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.new') }}
+					</v-btn>
+					<v-btn color="primary" @click="loadSession" v-if="false">
+							<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.load') }}
+					</v-btn>
+					<v-btn color="warning" @click="deleteSession" :disabled="sessionSelected.length == 0">
+							<v-icon class="mr-2">mdi-plus-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
+					</v-btn>
+				</v-row>
+			</v-col>
 		</v-row>
 
-	</div>
+		</div>
 </template>
 
 <script>
@@ -69,7 +73,16 @@ export default {
 			console.log("TODO load session from storage");
 		},
 		deleteSession() {
-			console.log("TODO delete selected session from list and internal storage")
+			if (this.sessionSelected.length < 0)
+				return;
+
+			console.log("deleting", this.sessionSelected[0].id);
+			let index = this.sessions.findIndex((elem) => elem.id === this.sessionSelected[0].id);
+
+			if (index < 0)
+				return;
+
+			this.sessions.splice(index, 1);
 		}
 	},
 	watch: {
