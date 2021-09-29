@@ -60,6 +60,8 @@ export default {
 	props: [ 'session' ],
 	data() {
 		return {
+			verbose: false,
+
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
 
@@ -238,7 +240,7 @@ export default {
 			console.log("configuring Alogorithm", code);
 
 			try {
-				let result = await this.sendCode({ code: code, fromInput: true, log: true });
+				let result = await this.sendCode({ code: code, fromInput: this.verbose, log: true });
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
@@ -258,7 +260,7 @@ export default {
 			console.log("homing all axis", code);
 
 			try {
-				let result = await this.sendCode({ code: code, fromInput: true, log: true });
+				let result = await this.sendCode({ code: code, fromInput: this.verbose, log: true });
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
@@ -279,7 +281,7 @@ export default {
 			let result = null;
 
 			try {
-				result = await this.sendCode({ code: test.getGCode(filename), fromInput: true, log: true });
+				result = await this.sendCode({ code: test.getGCode(filename), fromInput: this.verbose, log: true });
 				if (result) {
 					console.error(result);
 					throw new Error('Failed to run test command.');
