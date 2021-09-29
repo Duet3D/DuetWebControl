@@ -28,13 +28,14 @@ export class Algorithm {
 }
 
 export class Test {
-	constructor(accel = 0, axis = null,
+	constructor(board = 0, accel = 0, axis = null,
 							param = {
 								numSamples: 1000,
 								minPosition: 0, maxPosition: 0,
 								startPosition: 0, stopPosition: 0
 							}) {
 
+		this.board = board;
 		this.accel = accel;
 		this.axis = axis;
 		this.testCommand = null;
@@ -42,7 +43,14 @@ export class Test {
 	}
 
 	getGCode(filename) {
-		let command = `M204 P10000 T10000 G1 ${this.axis}${this.param.startPosition} F${this.param.maxSpeed} G4 S2 G1 ${this.axis}${this.param.stopPosition} M400 M956 P${this.accel} S${this.param.numSamples} A2 F"${filename}"`;
+		let address;
+
+		if (this.board > 0) {
+			address = `${this.board}.${this.accel}`;
+		} else {
+			address = `${this.accel}`;
+		}
+		let command = `M204 P10000 T10000 G1 ${this.axis}${this.param.startPosition} F${this.param.maxSpeed} G4 S2 G1 ${this.axis}${this.param.stopPosition} M400 M956 P${address} S${this.param.numSamples} A2 F"${filename}"`;
 		console.log("Test command", command);
 		return command;
 	}
