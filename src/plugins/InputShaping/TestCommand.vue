@@ -13,6 +13,15 @@
 			<v-row>
 				<v-col>
 					<v-text-field
+						:label="$t('plugins.inputShaping.boardId')"
+						v-model="test.board"
+						v-on:input="$emit('input', test)"
+						:rules="rules.board"
+						required
+					></v-text-field>
+				</v-col>
+				<v-col>
+					<v-text-field
 						:label="$t('plugins.inputShaping.accelerometerId')"
 						v-model="test.accel"
 						v-on:input="$emit('input', test)"
@@ -80,6 +89,9 @@ export default {
 	data() {
 		return {
 			rules: {
+				board: [
+					v => /^\d+$/.test(v) || this.$t('plugins.inputShaping.validBoardId'),
+				],
 				accel: [
 					v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),
 				],
