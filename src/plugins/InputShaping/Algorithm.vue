@@ -6,9 +6,11 @@
 		<v-form ref="formInputShaping" @submit.prevent="submit">
 			<v-row>
 				<v-col class="ma-2">
-					<v-btn @click="$emit('remove')">
-							<v-icon>mdi-close</v-icon>
+					<v-btn @click="$emit('remove')"
+						:disabled="disabled"
+						><v-icon>mdi-close</v-icon>
 					</v-btn>
+					Editing disabled, delete record first.
 				</v-col>
 				<v-col>
 					<v-select
@@ -17,6 +19,7 @@
 						v-on:input="$emit('input', algorithm)"
 						:label="$t('plugins.inputShaping.type')"
 						:rules="rules.type"
+						:disabled="disabled"
 						required
 						></v-select>
 				</v-col>
@@ -27,7 +30,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.frequency')"
 						:rules="rules.frequency"
-						:disabled="algorithm.type === this.InputShapingType.none"
+						:disabled="algorithm.type === this.InputShapingType.none || disabled"
 						required
 						></v-text-field>
 				</v-col>
@@ -38,7 +41,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.damping')"
 						:rules="rules.damping"
-						:disabled="algorithm.type === this.InputShapingType.none"
+						:disabled="algorithm.type === this.InputShapingType.none || disabled"
 						required
 						></v-text-field>
 				</v-col>
@@ -49,7 +52,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.minAcceleration')"
 						:rules="rules.minAcceleration"
-						:disabled="algorithm.type === this.InputShapingType.none"
+						:disabled="algorithm.type === this.InputShapingType.none || disabled"
 						required
 						></v-text-field>
 				</v-col>
@@ -66,7 +69,7 @@ import { InputShapingType } from '../../store/machine/modelEnums.js';
 import { mapState } from 'vuex';
 
 export default {
-	props: [ 'algorithm' ],
+	props: [ 'algorithm', 'disabled' ],
 	data() {
 		return {
 			InputShapingType: InputShapingType,

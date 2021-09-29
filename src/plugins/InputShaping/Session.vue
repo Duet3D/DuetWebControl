@@ -46,6 +46,7 @@
 		<algorithm v-for="(algo, index) in session.algorithms"
 				v-bind:key="index"
 				:algorithm="session.algorithms[index]"
+				:disabled="session.records.findIndex(rec => rec.config === algo) >= 0"
 				v-on:update="updateAlgorithm(index, change)"
 				v-on:remove="removeAlgorithm(index)"
 		></algorithm>
