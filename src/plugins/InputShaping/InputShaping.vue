@@ -14,13 +14,13 @@
 			<v-tab href="#initialize">
 				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.initialize') }}
 			</v-tab>
-			<v-tab href="#configure" :disabled="session ? false : true">
+			<v-tab href="#configure" :disabled="!session">
 				<v-icon class="mr-1">mdi-motion-play-outline</v-icon> {{ $t('plugins.inputShaping.configure') }}
 			</v-tab>
-			<v-tab href="#recording" :disabled="session ? false : true">
+			<v-tab href="#recording" :disabled="!session || !session.algorithms.length">
 				<v-icon class="mr-1">mdi-tune</v-icon> {{ $t('plugins.inputShaping.record') }}
 			</v-tab>
-			<v-tab href="#analysis" :disabled="session ? false : true">
+			<v-tab href="#analysis" :disabled="!session || !session.records.length">
 				<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 			</v-tab>
 		</v-tabs>
@@ -38,12 +38,12 @@
 
 			<!-- Recording -->
 			<v-tab-item value="recording" class="pa-3">
-				<recorder v-if="session" :session="session"></recorder>
+				<recorder v-if="session && !!session.algorithms.length" :session="session"></recorder>
 			</v-tab-item>
 
 			<!-- Profile Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				<chart v-if="session" :session="session"></chart>
+				<chart v-if="session && !!session.records.length" :session="session"></chart>
 			</v-tab-item>
 		</v-tabs-items>
 
