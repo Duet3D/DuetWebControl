@@ -8,8 +8,10 @@
 				<v-col class="ma-2">
 					<v-btn @click="$emit('remove')"
 						:disabled="disabled"
-						><v-icon>mdi-close</v-icon>
+						><v-icon>mdi-trash-can-outline</v-icon>
 					</v-btn>
+				</v-col>
+				<v-col v-show="disabled">
 					Editing disabled, delete record first.
 				</v-col>
 				<v-col>
