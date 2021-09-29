@@ -27,6 +27,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.frequency')"
 						:rules="rules.frequency"
+						:disabled="algorithm.type === this.InputShapingType.none"
 						required
 						></v-text-field>
 				</v-col>
@@ -37,6 +38,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.damping')"
 						:rules="rules.damping"
+						:disabled="algorithm.type === this.InputShapingType.none"
 						required
 						></v-text-field>
 				</v-col>
@@ -47,6 +49,7 @@
 						type="number"
 						:label="$t('plugins.inputShaping.minAcceleration')"
 						:rules="rules.minAcceleration"
+						:disabled="algorithm.type === this.InputShapingType.none"
 						required
 						></v-text-field>
 				</v-col>
@@ -66,6 +69,7 @@ export default {
 	props: [ 'algorithm' ],
 	data() {
 		return {
+			InputShapingType: InputShapingType,
 			rules: {
 				type: [ v => (this.inputShapingTypes.indexOf(v) >= 0) || this.$t('plugins.inputShaping.validType') ],
 				frequency: [ v => v > 7 && v < 1000 || this.$t('plugins.inputShaping.validFrequency', [8, 1000]) ],
