@@ -57,9 +57,11 @@ export const RecorderStates = {
 };
 
 export default {
-	props: [ 'value' ],
+	props: [ 'session' ],
 	data() {
 		return {
+			verbose: false,
+
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
 
@@ -80,11 +82,17 @@ export default {
 	},
 	computed: {
 		...mapState('machine', ['model']),
+		allAxisHomed() {
+			return this.model.move.axes.find(axes => axes.homed === false) ? false : true;
+		},
+		accelerometerBoardIndex() {
+			return this.model.boards.findIndex(elem => elem.canAddress === this.session.test.board);
+		},
 		accelerometerRuns() {
-				return this.model.boards[0].accelerometer.runs;
+				return this.model.boards[this.accelerometerBoardIndex].accelerometer.runs;
 		},
 		accelerometerPoints() {
-				return this.model.boards[0].accelerometer.points;
+				return this.model.boards[this.accelerometerBoardIndex].accelerometer.points;
 		},
 		currentState() {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
@@ -92,9 +100,6 @@ export default {
 		machineStatus() {
 			return this.model.state.status;
 		},
-		session() {
-			return this.value;
-		}
 	},
 	methods: {
 		...mapActions('machine', [ 'delete', 'download', 'sendCode' ]),
@@ -127,10 +132,12 @@ export default {
 
 			this.current = 0;
 
-			console.log("home all axis - start");
-			try {
-				await this.homeAllAxis();
-			} catch (error) {
+			if (!this.allAxisHomed) {
+				console.log("home all axis");
+
+				try {
+					await this.homeAllAxis();
+				} catch (error) {
 
 					console.error(error);
 
@@ -140,6 +147,7 @@ export default {
 					this.state = this.RecorderStates.IDLE;
 
 					return;
+				}
 			}
 
 			for (let i = 0; i < this.session.algorithms.length; i++) {
@@ -235,7 +243,7 @@ export default {
 			console.log("configuring Alogorithm", code);
 
 			try {
-				let result = await this.sendCode({ code: code, fromInput: true, log: true });
+				let result = await this.sendCode({ code: code, fromInput: this.verbose, log: true });
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
@@ -255,7 +263,7 @@ export default {
 			console.log("homing all axis", code);
 
 			try {
-				let result = await this.sendCode({ code: code, fromInput: true, log: true });
+				let result = await this.sendCode({ code: code, fromInput: this.verbose, log: true });
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
@@ -276,7 +284,7 @@ export default {
 			let result = null;
 
 			try {
-				result = await this.sendCode({ code: test.getGCode(filename), fromInput: true, log: true });
+				result = await this.sendCode({ code: test.getGCode(filename), fromInput: this.verbose, log: true });
 				if (result) {
 					console.error(result);
 					throw new Error('Failed to run test command.');

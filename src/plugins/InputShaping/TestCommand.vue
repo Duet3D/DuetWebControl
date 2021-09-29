@@ -12,11 +12,31 @@
 		<v-form ref="formTestCommand" @submit.prevent="submit" :disabled="disabled">
 			<v-row>
 				<v-col>
+					<v-select
+						:label="$t('plugins.inputShaping.boardId')"
+						:items="boardAddresses"
+						v-model="test.board"
+						v-on:input="$emit('input', test)"
+						:rules="rules.board"
+						required
+					></v-select>
+				</v-col>
+				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.accelerometerId')"
 						v-model="test.accel"
 						v-on:input="$emit('input', test)"
 						:rules="rules.accel"
+						required
+					></v-text-field>
+				</v-col>
+				<v-col>
+					<v-text-field
+						v-model.number="test.param.numSamples"
+						v-on:input="$emit('input', test)"
+						type="number" :min="1" :max="65535"
+						:label="$t('plugins.inputShaping.numSamples')"
+						:rules="rules.numSamples"
 						required
 					></v-text-field>
 				</v-col>
@@ -32,18 +52,6 @@
 						required
 					></v-select>
 				</v-col>
-				<v-col>
-					<v-text-field
-						v-model.number="test.param.numSamples"
-						v-on:input="$emit('input', test)"
-						type="number" :min="1" :max="65535"
-						:label="$t('plugins.inputShaping.numSamples')"
-						:rules="rules.numSamples"
-						required
-					></v-text-field>
-				</v-col>
-			</v-row>
-			<v-row>
 				<v-col>
 					<v-text-field
 						v-model.number="test.param.startPosition"
@@ -74,20 +82,20 @@
 
 import { mapState } from 'vuex';
 
-import { Test } from './InputShapingSession.js';
-
 export default {
-	props: [ 'value', 'id', 'disabled' ],
+	props: [ 'test', 'id', 'disabled' ],
 
 	data() {
 		return {
-			test: this.value ? this.value : new Test(),
 			rules: {
+				board: [
+					v => /^\d+$/.test(v) && this.boardAddresses.indexOf(v) >= 0 || this.$t('plugins.inputShaping.validBoardId'),
+				],
 				accel: [
 					v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),
 				],
 				axis: [
-					v => (this.model.move.axes.find(axis => axis.letter === v) && true) || this.$t('plugins.inputShaping.validAxis'),
+					v => (this.recorderMenuAxis.indexOf(v) >= 0 && true) || this.$t('plugins.inputShaping.validAxis'),
 				],
 				numSamples: [
 					v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
@@ -131,11 +139,11 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
+		boardAddresses() {
+			return this.model.boards.map(axis => axis.canAddress);
+		},
 		recorderMenuAxis() {
 			return this.model.move.axes.map(axis => axis.letter);
-		},
-		recorderFilename() {
-			return `is-${this.id}-${this.test.axis}.csv`;
 		},
 		testCommand() {
 			return this.test.getGCode();
