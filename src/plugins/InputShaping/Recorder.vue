@@ -85,11 +85,14 @@ export default {
 		allAxisHomed() {
 			return this.model.move.axes.find(axes => axes.homed === false) ? false : true;
 		},
+		accelerometerBoardIndex() {
+			return this.model.boards.findIndex(elem => elem.canAddress === this.session.test.board);
+		},
 		accelerometerRuns() {
-				return this.model.boards[0].accelerometer.runs;
+				return this.model.boards[this.accelerometerBoardIndex].accelerometer.runs;
 		},
 		accelerometerPoints() {
-				return this.model.boards[0].accelerometer.points;
+				return this.model.boards[this.accelerometerBoardIndex].accelerometer.points;
 		},
 		currentState() {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
