@@ -12,7 +12,7 @@
 				</v-col>
 				<v-col>
 					<v-select
-						:items="Object.values(InputShapingType)"
+						:items="inputShapingTypes"
 						v-model="algorithm.type"
 						v-on:input="$emit('input', algorithm)"
 						:label="$t('plugins.inputShaping.type')"
@@ -60,21 +60,27 @@
 'use strict';
 
 import { InputShapingType } from '../../store/machine/modelEnums.js';
+import { mapState } from 'vuex';
 
 export default {
 	props: [ 'algorithm' ],
 	data() {
 		return {
-			InputShapingType: InputShapingType,
 			rules: {
-				type: [ true ],
-				frequency: [ true ],
-				damping: [ true ],
-				minAcceleration: [ true ],
+				type: [ v => (this.inputShapingTypes.indexOf(v) >= 0) || this.$t('plugins.inputShaping.validType') ],
+				frequency: [ v => v > 7 && v < 1000 || this.$t('plugins.inputShaping.validFrequency', [8, 1000]) ],
+				damping: [  v => v > 0 && v < 1 || this.$t('plugins.inputShaping.validDamping', [ 0, 1 ]) ],
+				minAcceleration: [ v => v >= 0 && v <= this.maxAcceleration || this.$t('plugins.inputShaping.validAcceleration', [ 0, this.maxAcceleration ]) ],
 			}
 		};
 	},
 	computed: {
+		...mapState('machine/model', {
+			maxAcceleration: model => model.move.printingAcceleration,
+		}),
+		inputShapingTypes() {
+			return Object.values(InputShapingType);
+		},
 	},
 	methods: {
 	},

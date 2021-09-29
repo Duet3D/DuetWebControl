@@ -5,7 +5,7 @@ import { transform } from './fft.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 export class Algorithm {
-	constructor(type, frequency = 7, damping = 0.1, minAcceleration = 0) {
+	constructor(type, frequency = 8, damping = 0.1, minAcceleration = 0) {
 		this.id = Math.random().toString(16).substr(2, 8);
 
 		this.type = type;
