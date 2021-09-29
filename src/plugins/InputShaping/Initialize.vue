@@ -83,6 +83,7 @@ export default {
 				return;
 
 			this.sessions.splice(index, 1);
+			this.sessionSelected.splice(0, 1);
 		}
 	},
 	watch: {
