@@ -12,13 +12,14 @@
 		<v-form ref="formTestCommand" @submit.prevent="submit" :disabled="disabled">
 			<v-row>
 				<v-col>
-					<v-text-field
+					<v-select
 						:label="$t('plugins.inputShaping.boardId')"
+						:items="boardAddresses"
 						v-model="test.board"
 						v-on:input="$emit('input', test)"
 						:rules="rules.board"
 						required
-					></v-text-field>
+					></v-select>
 				</v-col>
 				<v-col>
 					<v-text-field
@@ -140,6 +141,9 @@ export default {
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
+		boardAddresses() {
+			return this.model.boards.map(axis => axis.canAddress);
+		},
 		recorderMenuAxis() {
 			return this.model.move.axes.map(axis => axis.letter);
 		},
