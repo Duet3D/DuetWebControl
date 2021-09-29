@@ -74,14 +74,11 @@
 
 import { mapState } from 'vuex';
 
-import { Test } from './InputShapingSession.js';
-
 export default {
-	props: [ 'value', 'id', 'disabled' ],
+	props: [ 'test', 'id', 'disabled' ],
 
 	data() {
 		return {
-			test: this.value ? this.value : new Test(),
 			rules: {
 				accel: [
 					v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),

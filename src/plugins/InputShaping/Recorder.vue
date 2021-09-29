@@ -57,7 +57,7 @@ export const RecorderStates = {
 };
 
 export default {
-	props: [ 'value' ],
+	props: [ 'session' ],
 	data() {
 		return {
 			RecorderStates: RecorderStates,
@@ -80,6 +80,9 @@ export default {
 	},
 	computed: {
 		...mapState('machine', ['model']),
+		allAxisHomed() {
+			return this.model.move.axes.find(axes => axes.homed === false) ? false : true;
+		},
 		accelerometerRuns() {
 				return this.model.boards[0].accelerometer.runs;
 		},
@@ -92,9 +95,6 @@ export default {
 		machineStatus() {
 			return this.model.state.status;
 		},
-		session() {
-			return this.value;
-		}
 	},
 	methods: {
 		...mapActions('machine', [ 'delete', 'download', 'sendCode' ]),
@@ -127,10 +127,12 @@ export default {
 
 			this.current = 0;
 
-			console.log("home all axis - start");
-			try {
-				await this.homeAllAxis();
-			} catch (error) {
+			if (!this.allAxisHomed) {
+				console.log("home all axis");
+
+				try {
+					await this.homeAllAxis();
+				} catch (error) {
 
 					console.error(error);
 
@@ -140,6 +142,7 @@ export default {
 					this.state = this.RecorderStates.IDLE;
 
 					return;
+				}
 			}
 
 			for (let i = 0; i < this.session.algorithms.length; i++) {

@@ -8,8 +8,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.id')"
-						v-model="value.id"
-						v-on:input="$emit('input', value)"
+						v-model="session.id"
+						v-on:input="$emit('input', session)"
 						required
 					></v-text-field>
 				</v-col>
@@ -18,8 +18,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.name')"
-						v-model="value.name"
-						v-on:input="$emit('input', value)"
+						v-model="session.name"
+						v-on:input="$emit('input', session)"
 						required
 					></v-text-field>
 				</v-col>
@@ -28,8 +28,8 @@
 				<v-col>
 					<v-text-field
 						:label="$t('plugins.inputShaping.date')"
-						v-model="value.date"
-						v-on:input="$emit('input', value)"
+						v-model="session.date"
+						v-on:input="$emit('input', session)"
 						required
 					></v-text-field>
 				</v-col>
@@ -37,15 +37,15 @@
 		</v-form>
 
 		<test-command
-			v-model="value.test"
-			v-bind:id="value.id"
+			:test="session.test"
+			v-bind:id="session.id"
 			v-on:test-command="console.log($event)"
-			:disabled="value.records.length > 0"
+			:disabled="session.records.length > 0"
 		></test-command>
 
-		<algorithm v-for="(algo, index) in value.algorithms"
+		<algorithm v-for="(algo, index) in session.algorithms"
 				v-bind:key="index"
-				v-model="value.algorithms[index]"
+				:algorithm="session.algorithms[index]"
 				v-on:update="updateAlgorithm(index, change)"
 				v-on:remove="removeAlgorithm(index)"
 		></algorithm>
@@ -65,7 +65,7 @@
 import { Algorithm } from './InputShapingSession.js';
 
 export default {
-	props: [ 'value' ],
+	props: [ 'session' ],
 	data() {
 		return {
 		};
@@ -74,10 +74,10 @@ export default {
 	},
 	methods: {
 		addAlgorithm() {
-			this.value.algorithms.push(new Algorithm());
+			this.session.algorithms.push(new Algorithm());
 		},
 		removeAlgorithm(index) {
-			this.value.algorithms.splice(index, 1);
+			this.session.algorithms.splice(index, 1);
 		}
 
 	},

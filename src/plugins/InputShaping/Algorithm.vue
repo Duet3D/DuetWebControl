@@ -13,8 +13,8 @@
 				<v-col>
 					<v-select
 						:items="Object.values(InputShapingType)"
-						v-model="value.type"
-						v-on:input="$emit('input', value)"
+						v-model="algorithm.type"
+						v-on:input="$emit('input', algorithm)"
 						:label="$t('plugins.inputShaping.type')"
 						:rules="rules.type"
 						required
@@ -22,8 +22,8 @@
 				</v-col>
 				<v-col>
 					<v-text-field
-						v-model.number="value.frequency"
-						v-on:input="$emit('input', value)"
+						v-model.number="algorithm.frequency"
+						v-on:input="$emit('input', algorithm)"
 						type="number"
 						:label="$t('plugins.inputShaping.frequency')"
 						:rules="rules.frequency"
@@ -32,8 +32,8 @@
 				</v-col>
 				<v-col>
 					<v-text-field
-						v-model.number="value.damping"
-						v-on:input="$emit('input', value)"
+						v-model.number="algorithm.damping"
+						v-on:input="$emit('input', algorithm)"
 						type="number"
 						:label="$t('plugins.inputShaping.damping')"
 						:rules="rules.damping"
@@ -42,8 +42,8 @@
 				</v-col>
 				<v-col>
 					<v-text-field
-						v-model.number="value.minAcceleration"
-						v-on:input="$emit('input', value)"
+						v-model.number="algorithm.minAcceleration"
+						v-on:input="$emit('input', algorithm)"
 						type="number"
 						:label="$t('plugins.inputShaping.minAcceleration')"
 						:rules="rules.minAcceleration"
@@ -62,9 +62,7 @@
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 export default {
-	props: [
-		'value'
-	],
+	props: [ 'algorithm' ],
 	data() {
 		return {
 			InputShapingType: InputShapingType,

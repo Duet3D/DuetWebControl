@@ -33,17 +33,17 @@
 
 			<!-- Configure session -->
 			<v-tab-item value="configure" class="pa-3">
-				<session v-if="session" v-model="session"></session>
+				<session v-if="session" :session="session"></session>
 			</v-tab-item>
 
 			<!-- Recording -->
 			<v-tab-item value="recording" class="pa-3">
-				<recorder v-if="session" v-model="session"></recorder>
+				<recorder v-if="session" :session="session"></recorder>
 			</v-tab-item>
 
 			<!-- Profile Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				<chart v-if="session" v-model="session"></chart>
+				<chart v-if="session" :session="session"></chart>
 			</v-tab-item>
 		</v-tabs-items>
 

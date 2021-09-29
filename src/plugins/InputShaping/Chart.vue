@@ -83,7 +83,7 @@ import Chart from 'chart.js';
 import { mapState, mapGetters } from 'vuex';
 
 export default {
-	props: [ 'value' ],
+	props: [ 'session' ],
 	data() {
 		return {
 			recordList: [],
@@ -120,9 +120,6 @@ export default {
 		...mapState('settings', ['darkTheme']),
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen']),
-		session() {
-			return this.value;
-		}
 	},
 	watch: {
 		language() {
@@ -143,6 +140,9 @@ export default {
 			handler(value) {
 				this.recordList = value;
 			}
+		},
+		session() {
+			this.updateChart();
 		}
 	},
 	methods: {
