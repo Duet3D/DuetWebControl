@@ -30,18 +30,6 @@
 						required
 					></v-text-field>
 				</v-col>
-			</v-row>
-			<v-row>
-				<v-col>
-					<v-select
-						:items="recorderMenuAxis"
-						v-model="test.axis"
-						v-on:input="$emit('input', test)"
-						:label="$t('plugins.inputShaping.axis')"
-						:rules="rules.axis"
-						required
-					></v-select>
-				</v-col>
 				<v-col>
 					<v-text-field
 						v-model.number="test.param.numSamples"
@@ -54,6 +42,16 @@
 				</v-col>
 			</v-row>
 			<v-row>
+				<v-col>
+					<v-select
+						:items="recorderMenuAxis"
+						v-model="test.axis"
+						v-on:input="$emit('input', test)"
+						:label="$t('plugins.inputShaping.axis')"
+						:rules="rules.axis"
+						required
+					></v-select>
+				</v-col>
 				<v-col>
 					<v-text-field
 						v-model.number="test.param.startPosition"
@@ -91,13 +89,13 @@ export default {
 		return {
 			rules: {
 				board: [
-					v => /^\d+$/.test(v) || this.$t('plugins.inputShaping.validBoardId'),
+					v => /^\d+$/.test(v) && this.boardAddresses.indexOf(v) >= 0 || this.$t('plugins.inputShaping.validBoardId'),
 				],
 				accel: [
 					v => /^\d+(?:\.\d+)?$/.test(v) || this.$t('plugins.inputShaping.validAccelerationId'),
 				],
 				axis: [
-					v => (this.model.move.axes.find(axis => axis.letter === v) && true) || this.$t('plugins.inputShaping.validAxis'),
+					v => (this.recorderMenuAxis.indexOf(v) >= 0 && true) || this.$t('plugins.inputShaping.validAxis'),
 				],
 				numSamples: [
 					v => /\d+/.test(v) || this.$t('plugins.inputShaping.validInteger'),
@@ -146,9 +144,6 @@ export default {
 		},
 		recorderMenuAxis() {
 			return this.model.move.axes.map(axis => axis.letter);
-		},
-		recorderFilename() {
-			return `is-${this.id}-${this.test.axis}.csv`;
 		},
 		testCommand() {
 			return this.test.getGCode();
