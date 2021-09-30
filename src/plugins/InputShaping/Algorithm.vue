@@ -11,9 +11,6 @@
 						><v-icon>mdi-trash-can-outline</v-icon>
 					</v-btn>
 				</v-col>
-				<v-col v-show="disabled">
-					Editing disabled, delete record first.
-				</v-col>
 				<v-col>
 					<v-select
 						:items="inputShapingTypes"

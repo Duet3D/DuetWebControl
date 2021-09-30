@@ -68,7 +68,7 @@ export class Record {
 		this.samples = null;
 		this.samplingRate = null;
 		this.wideband = false;
-		this.config = config;
+		this.config = JSON.parse(JSON.stringify(config));
 		this.overflows = null;
 		this.frequencies = [];
 		this.axis = [];
