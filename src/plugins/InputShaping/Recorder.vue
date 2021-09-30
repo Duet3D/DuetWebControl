@@ -98,9 +98,6 @@ export default {
 		currentState() {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
 		},
-		machineStatus() {
-			return this.model.state.status;
-		},
 	},
 	methods: {
 		...mapActions('machine', [ 'delete', 'download', 'sendCode' ]),
