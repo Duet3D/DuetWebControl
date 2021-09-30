@@ -5,7 +5,9 @@
 	<v-col>
 		<v-card-text class="pa-0" v-show="disabled">
 			<v-alert :type="'warning'">
-				TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED. Delete all records or start a new session
+				TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED.<br>
+				Delete all records or start a new session<br>
+				Algorithms can still be added or changed
 			</v-alert>
 		</v-card-text>
 
