@@ -13,7 +13,7 @@
 </style>
 
 <template>
-	<v-col>
+	<div>
 		<v-row class="pa-2">
 			Accelerometer ID: {{ session.test.accel }} Samples: {{ session.test.param.numSamples }}<br>
 			Axes: {{ session.test.axis }} Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
@@ -31,28 +31,21 @@
 		</v-row>
 
 		<v-row>
-			<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
-				<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
-			</v-btn>
-		</v-row>
-
-		<v-row class="content ma-2 pt-4" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-			<canvas ref="chart"></canvas>
-		</v-row>
-
-		<v-row>
 			<v-col>
-				<v-btn-toggle>
+				<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
+				</v-btn>
+			</v-col>
+			<v-col>
 					<v-btn color="primary" @click="updateChartFft">
 						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
 					</v-btn>
 					<v-btn color="success" @click="updateChart">
 						<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
 					</v-btn>
-				</v-btn-toggle>
 			</v-col>
 			<v-col>
-				<v-icon class="">mdi-filter-outline</v-icon>
+				<v-icon class="mr-2">mdi-filter-outline</v-icon>
 					{{ $t('plugins.inputShaping.filter') }}:
 			</v-col>
 			<v-col>
@@ -67,7 +60,11 @@
 			</v-col>
 		</v-row>
 
-	</v-col>
+		<v-row class="content ma-2 pt-4" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+			<canvas ref="chart"></canvas>
+		</v-row>
+
+	</div>
 </template>
 
 <script>

@@ -2,7 +2,7 @@
 </style>
 
 <template>
-	<v-col>
+	<div>
 		<v-card-text class="pa-0" v-show="disabled">
 			<v-alert :type="'warning'">
 				TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED.<br>
@@ -76,7 +76,7 @@
 				</v-col>
 			</v-row>
 		</v-form>
-	</v-col>
+	</div>
 </template>
 
 <script>
