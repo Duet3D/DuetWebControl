@@ -14,62 +14,57 @@
 
 <template>
 	<v-col>
-		<v-row class="ma-2">
-			<v-row class="pa-2">
-				Accelerometer ID: {{ session.test.accel }} Axes: {{ session.test.axis }}
-				Samples: {{ session.test.param.numSamples }}
-				Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
-			</v-row>
-
-			<v-row>
-				<v-data-table
-					v-model="recordList"
-					class="py-0"
-					:headers="recordTable"
-					:items="session.records"
-					:items-per-page="20"
-					show-select
-				></v-data-table>
-			</v-row>
-
-			<v-row>
-				<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
-					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
-				</v-btn>
-			</v-row>
+		<v-row class="pa-2">
+			Accelerometer ID: {{ session.test.accel }} Samples: {{ session.test.param.numSamples }}<br>
+			Axes: {{ session.test.axis }} Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
 		</v-row>
 
-		<v-row class="ma-2">
-			<v-row class="content ma-2" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
-				<canvas ref="chart"></canvas>
-			</v-row>
+		<v-row>
+			<v-data-table
+				v-model="recordList"
+				class="py-0"
+				:headers="recordTable"
+				:items="session.records"
+				:items-per-page="20"
+				show-select
+			></v-data-table>
+		</v-row>
 
-			<v-row>
-				<v-col>
-					<v-btn-toggle>
-						<v-btn color="primary" @click="updateChartFft">
-							<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
-						</v-btn>
-						<v-btn color="success" @click="updateChart">
-							<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
-						</v-btn>
-					</v-btn-toggle>
-				</v-col>
-				<v-col>
-					<v-icon class="">mdi-filter-outline</v-icon>
-						{{ $t('plugins.inputShaping.filter') }}:
-				</v-col>
-				<v-col>
-					<v-row>
-						<v-checkbox
-							v-for="axis in this.model.move.axes"
-							:key="axis.letter" :value=axis.letter :label="axis.letter"
-							v-model="checkedAxis"
-							hide-details
-						></v-checkbox>
-					</v-row>
-				</v-col>
-			</v-row>
+		<v-row>
+			<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
+				<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
+			</v-btn>
+		</v-row>
+
+		<v-row class="content ma-2 pt-4" @mousedown.passive="mouseDown" @mouseup.passive="mouseUp">
+			<canvas ref="chart"></canvas>
+		</v-row>
+
+		<v-row>
+			<v-col>
+				<v-btn-toggle>
+					<v-btn color="primary" @click="updateChartFft">
+						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
+					</v-btn>
+					<v-btn color="success" @click="updateChart">
+						<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
+					</v-btn>
+				</v-btn-toggle>
+			</v-col>
+			<v-col>
+				<v-icon class="">mdi-filter-outline</v-icon>
+					{{ $t('plugins.inputShaping.filter') }}:
+			</v-col>
+			<v-col>
+				<v-row>
+					<v-checkbox
+						v-for="axis in this.model.move.axes"
+						:key="axis.letter" :value=axis.letter :label="axis.letter"
+						v-model="checkedAxis"
+						hide-details
+					></v-checkbox>
+				</v-row>
+			</v-col>
 		</v-row>
 
 	</v-col>
@@ -94,7 +89,6 @@ export default {
 					sortable: true,
 					value: 'name',
 				},
-				{ text: 'id', value: 'id' },
 				{ text: 'date', value: 'date' },
 				{ text: 'samples', value: 'samples' },
 				{ text: 'samplingRate', value: 'samplingRate' },
