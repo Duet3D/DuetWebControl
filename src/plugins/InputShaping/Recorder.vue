@@ -75,7 +75,6 @@ export default {
 			alertMessage: null,
 
 			debounceTimer: null,
-			filename: null,
 			record: null,
 		}
 
@@ -177,7 +176,7 @@ export default {
 					this.state = this.RecorderStates.DOWNLOADING;
 					let file = await this.loadFile(Path.combine(Path.accelerometer, filename));
 					this.state = this.RecorderStates.PARSING;
-					let rec = new Record(this.session.id + '-' + algo.id + '-' + algo.type + '-' + JSON.stringify(i), algo);
+					let rec = new Record(JSON.stringify(i) + '-' + algo.type + '-' + this.session.id, algo);
 
 					rec.parse(file);
 					rec.analyze();
@@ -349,6 +348,9 @@ export default {
 			console.log("writingDoneResolve", this.writingDoneResolve);
 			this.writingDoneResolve('done');
 		},
+		session() {
+			this.current = 0;
+		}
 	}
 }
 </script>
