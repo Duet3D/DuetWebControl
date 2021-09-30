@@ -198,7 +198,6 @@ export default {
 
 					return;
 				}
-
 			}
 
 			this.current += 1;
@@ -245,11 +244,11 @@ export default {
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
-					throw new Error('Failed to configure inputshaping.');
+					throw new Error('failed to configure inputshaping. ' + result);
 				}
 			} catch(e) {
 				console.error("Failed to send code: ", e);
-				throw new Error('Failed to send code.');
+				throw e;
 			}
 
 			return;
@@ -265,11 +264,11 @@ export default {
 				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
-					throw new Error('Failed to home all axis.');
+					throw new Error('Failed to home all axis. ' + result);
 				}
 			} catch(e) {
 				console.error("Recording Profile failed: ", e);
-				throw new Error('Failed to home all axis.');
+				throw e;
 			}
 
 			return;
@@ -285,13 +284,13 @@ export default {
 				result = await this.sendCode({ code: test.getGCode(filename), fromInput: this.verbose, log: true });
 				if (result) {
 					console.error(result);
-					throw new Error('Failed to run test command.');
+					throw new Error('Failed to run test command. ' + result);
 				}
 			} catch(e) {
 				makeNotification("error", this.$t('plugins.inputShaping.pluginName'),
 					this.$t('plugins.inputShaping.recordingFailed'));
 				console.error("Recording Profile failed: ", e);
-				throw new Error('Failed to run test command.');
+				throw e;
 			}
 
 			return;
@@ -310,7 +309,7 @@ export default {
 						showError: false
 					});
 			} catch (e) {
-				console.warn(e);
+				console.error(e);
 				throw new Error("Failed to download file.");
 			}
 
