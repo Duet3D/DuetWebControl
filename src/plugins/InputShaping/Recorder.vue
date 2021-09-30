@@ -85,6 +85,8 @@ export default {
 			return this.model.move.axes.find(axes => axes.homed === false) ? false : true;
 		},
 		accelerometerBoardIndex() {
+			if (!this.session.test.board)
+				return 0;
 			return this.model.boards.findIndex(elem => elem.canAddress === this.session.test.board);
 		},
 		accelerometerRuns() {
