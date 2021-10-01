@@ -91,57 +91,49 @@ export function registerRoute(component, route) {
 
 function registerRouteInternal(menu, component, route) {
 	const keys = Object.keys(route);
-	if (keys.length === 1) {
-		const subRoute = route[keys[0]];
-		if (subRoute.path !== undefined) {
-			// This is the route we've been looking for
-			if (Routes.indexOf(subRoute) >= 0) {
-				return;
-			}
+	const subRoute = route[keys[0]];
 
-			const routeObj = {
-				...subRoute,
-				component
-			};
-
-			// Prepare the actual route object
-			if (routeObj.caption instanceof Function) {
-				delete routeObj.caption;
-				Object.defineProperty(routeObj, 'caption', {
-					get: subRoute.caption
-				});
-			}
-
-			if (routeObj.condition === undefined) {
-				routeObj.condition = true;
-			} else {
-				routeObj.condition = undefined;
-				Object.defineProperty(routeObj, 'condition', {
-					get: subRoute.condition
-				});
-			}
-
-			if (routeObj.translated === undefined) {
-				routeObj.translated = false;
-			}
-
-			// Register the new route
-			if (menu.pages !== undefined) {
-				menu.pages.push(routeObj);
-			} else {
-				menu[keys[0]] = routeObj;
-			}
-			Routes.push(routeObj);
-			router.addRoute(routeObj);
+	if (subRoute.path !== undefined) {
+		// This is the route we've been looking for
+		if (Routes.indexOf(subRoute) >= 0) {
 			return;
-		} else {
-			// Go one level deeper
-			const subCategory = menu[keys[0]];
-			if (subCategory !== undefined) {
-				registerRouteInternal(subCategory, component, subRoute);
-				return;
-			}
 		}
+
+		const routeObj = {
+			...subRoute,
+			component
+		};
+
+		// Prepare the actual route object
+		if (routeObj.caption instanceof Function) {
+			delete routeObj.caption;
+			Object.defineProperty(routeObj, 'caption', {
+				get: subRoute.caption
+			});
+		}
+
+		if (routeObj.condition === undefined) {
+			routeObj.condition = true;
+		} else {
+			routeObj.condition = undefined;
+			Object.defineProperty(routeObj, 'condition', {
+				get: subRoute.condition
+			});
+		}
+
+		if (routeObj.translated === undefined) {
+			routeObj.translated = false;
+		}
+
+		// Register the new route
+		if (menu.pages !== undefined) {
+			menu.pages.push(routeObj);
+		} else {
+			menu[keys[0]] = routeObj;
+		}
+		Routes.push(routeObj);
+		router.addRoute(routeObj);
+		return;
 	}
 	throw new Error('Invalid route argument');
 }
