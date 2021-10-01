@@ -93,49 +93,51 @@ function registerRouteInternal(menu, component, route) {
 	const keys = Object.keys(route);
 	const subRoute = route[keys[0]];
 
-	if (subRoute.path !== undefined) {
-		// This is the route we've been looking for
-		if (Routes.indexOf(subRoute) >= 0) {
-			return;
-		}
+	// Error if no path!
+	if (subRoute.path === undefined) {
+		throw new Error('Invalid route argument');
+	}
 
-		const routeObj = {
-			...subRoute,
-			component
-		};
-
-		// Prepare the actual route object
-		if (routeObj.caption instanceof Function) {
-			delete routeObj.caption;
-			Object.defineProperty(routeObj, 'caption', {
-				get: subRoute.caption
-			});
-		}
-
-		if (routeObj.condition === undefined) {
-			routeObj.condition = true;
-		} else {
-			routeObj.condition = undefined;
-			Object.defineProperty(routeObj, 'condition', {
-				get: subRoute.condition
-			});
-		}
-
-		if (routeObj.translated === undefined) {
-			routeObj.translated = false;
-		}
-
-		// Register the new route
-		if (menu.pages !== undefined) {
-			menu.pages.push(routeObj);
-		} else {
-			menu[keys[0]] = routeObj;
-		}
-		Routes.push(routeObj);
-		router.addRoute(routeObj);
+	// This is the route we've been looking for
+	if (Routes.indexOf(subRoute) >= 0) {
 		return;
 	}
-	throw new Error('Invalid route argument');
+
+	const routeObj = {
+		...subRoute,
+		component
+	};
+
+	// Prepare the actual route object
+	if (routeObj.caption instanceof Function) {
+		delete routeObj.caption;
+		Object.defineProperty(routeObj, 'caption', {
+			get: subRoute.caption
+		});
+	}
+
+	if (routeObj.condition === undefined) {
+		routeObj.condition = true;
+	} else {
+		routeObj.condition = undefined;
+		Object.defineProperty(routeObj, 'condition', {
+			get: subRoute.condition
+		});
+	}
+
+	if (routeObj.translated === undefined) {
+		routeObj.translated = false;
+	}
+
+	// Register the new route
+	if (menu.pages !== undefined) {
+		menu.pages.push(routeObj);
+	} else {
+		menu[keys[0]] = routeObj;
+	}
+	Routes.push(routeObj);
+	router.addRoute(routeObj);
+
 }
 
 export const GeneralSettingTabs = Vue.observable([])
