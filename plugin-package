@@ -1,0 +1,159 @@
+#!/usr/bin/bash
+
+#set -x
+
+DBG=1
+
+function err() {
+  echo "Error:" $@ >&2
+}
+
+function warn() {
+  echo "Warning:" $@ >&2
+}
+
+function info() {
+  echo "Info:" $@ >&1
+}
+
+function dbg() {
+  if test $DBG -eq 0; then
+    return
+  fi
+
+  echo "Dbg:" $@ >&1
+}
+
+if test $# -ne 4; then
+  err "invalid number of arguments"
+  info ""
+  info "launch this script in your DuetWebControl folder"
+  info ""
+  info "$0 RELEASE_FOLDER PLUGIN_NAME PLUGIN_VERSION MANIFEST_FILE"
+  info ""
+  info "RELEASE_FOLDER - folder to collect releases"
+  info "PLUGIN_NAME - name of the plugin"
+  info "PLUGIN_VERSION - version of the plugin"
+  info "MANIFEST_FILE - path to plugin's manifest file"
+
+  exit 1
+fi
+
+folder=$(realpath $1)
+name=$2
+version=$3
+manifest=$(realpath $4)
+
+if test -z "${folder}"; then
+  err "Please provide a release folder"
+  exit 1
+fi
+
+if test -z "${name}"; then
+  err "Please provide the plugin name"
+  exit 1
+fi
+
+if test -z "${version}"; then
+  err "Please provide the plugin version"
+  exit 1
+fi
+
+if test -z "${manifest}"; then
+  err "Please provide the manifest file"
+  exit 1
+fi
+
+packagename="$name-$version.zip"
+fullpath="$folder/$name-$version"
+
+if test -d "$fullpath"; then
+  err "package folder already exists: $fullpath"
+  info "please delete it first to rebuild it"
+  exit 1
+fi
+
+if test -f "$folder/$packagename"; then
+  err "package already exists: $folder/$packagename"
+  info "please delete it first to rebuild it"
+  exit 1
+fi
+
+if ! mkdir -p "$fullpath"; then
+  err "failed to create $fullpath"
+  exit 1
+fi
+
+if ! test -d "dist"; then
+  err "dist folder could not be found"
+  info "did you run 'npm run build'?"
+  exit 1
+fi
+
+function copy_files() {
+  local name=$1
+  local source=$2
+  local dest=$3
+
+  if ! cd $source; then
+    err "failed to enter $source"
+    return 1
+  fi
+
+  local files=$(find ./ -name "$name*")
+
+  for file in $files; do
+    if ! install -D -T "$file" "$dest/$file"; then
+      err "failed to copy: $file"
+      return 1
+    fi
+  done
+}
+
+function copy_manifest() {
+  local manifest=$1
+  local dest=$2
+
+  if ! install "$manifest" "$dest"; then
+    err "failed to copy: $manifest"
+    return 1
+  fi
+}
+
+function create_package() {
+  local name=$1
+  local folder=$2
+
+  if ! cd $folder; then
+    err "failed to enter $folder"
+    return 1
+  fi
+
+  if ! zip -r "../$name" "."; then
+    err "failed to create package"
+    return 1
+  fi
+}
+
+if ! copy_files $name "dist" "$fullpath"; then
+  err "failed to copy files"
+  exit 1
+fi
+
+if ! copy_manifest $manifest "$fullpath"; then
+  err "failed to copy manifest"
+  exit 1
+fi
+
+if ! create_package "$packagename" "$fullpath"; then
+  err "failed to create package $packagename"
+  exit 1
+fi
+
+fullpackage=$(realpath "$folder/$packagename")
+if ! test -f "$fullpackage"; then
+  err "file doesn't exist: $fullpackage"
+  exit 1
+fi
+
+info "Your plugin package was created: $fullpackage"
