@@ -82,7 +82,10 @@ export default {
 	computed: {
 		...mapState('machine', ['model']),
 		allAxisHomed() {
-			return this.model.move.axes.find(axes => axes.homed === false) ? false : true;
+			let axisNotHomed = this.model.move.axes.filter(axes => axes.homed === false);
+
+			console.log("axis not homed: ", axisNotHomed.map(axes => axes.letter));
+			return axisNotHomed.length > 0 ? false : true;
 		},
 		accelerometerBoardIndex() {
 			if (!this.session.test.board)
