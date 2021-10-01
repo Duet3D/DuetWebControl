@@ -44,7 +44,47 @@ export default {
 		dashboardMode : DashboardMode.default,
 
 		enabledPlugins: ['Height Map'],
-		plugins: {},										// Third-party values
+		plugins: {},							         // Third-party values
+
+		mainMenu: [                                      // Menu, initial configuration:
+			{                                            //   Strings in 'pages' arrays are the keys of
+				name: 'Control',                         //   the default system pages that are replaced
+				icon: 'mdi-tune',                        //   when the components register themselves
+				caption: 'menu.control.caption',
+				pages: [
+					'control-dashboard',
+					'control-console',
+					'job-status'
+				]
+			},
+			{
+				name: 'Files',
+				icon: 'mdi-sd',
+				caption: 'menu.files.caption',
+				pages: [
+					'files-jobs',
+					'files-system'
+				]
+			},
+			{
+				name: 'Plugins',
+				icon: 'mdi-puzzle',
+				caption: 'menu.plugins.caption',
+				pages: []
+			},
+			{
+				name: 'Settings',
+				icon: 'mdi-wrench',
+				caption: 'menu.settings.caption',
+				pages: [
+					'settings-general',
+					'settings-machine'
+				]
+			}
+		]
+	},
+	getters: {
+		mainMenuConfig: state => state.mainMenu
 	},
 	actions: {
 		async applyDefaults({ state, dispatch }) {
