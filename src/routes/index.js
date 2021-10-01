@@ -3,6 +3,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
+import store from '../store';
+
 import Dashboard from './Control/Dashboard.vue'
 import Console from './Control/Console.vue'
 
@@ -19,33 +21,10 @@ import Machine from './Settings/Machine.vue'
 
 import Page404 from './Page404.vue'
 
-export const Menu = Vue.observable({
-	Control: {
-		icon: 'mdi-tune',
-		caption: 'menu.control.caption',
-		pages: []
-	},
-	Job: {
-		icon: 'mdi-printer',
-		caption: 'menu.job.caption',
-		pages: []
-	},
-	Files: {
-		icon: 'mdi-sd',
-		caption: 'menu.files.caption',
-		pages: []
-	},
-	Plugins: {
-		icon: 'mdi-puzzle',
-		caption: 'menu.plugins.caption',
-		pages: []
-	},
-	Settings: {
-		icon: 'mdi-wrench',
-		caption: 'menu.settings.caption',
-		pages: []
-	}
-})
+
+// menu starts with a safe clone out of the settings state...
+let cachedMenuJsonString = JSON.stringify(store.getters['settings/mainMenuConfig']);
+export const Menu = Vue.observable(JSON.parse(cachedMenuJsonString))
 
 export const Routes = []
 
@@ -55,56 +34,40 @@ const router = new VueRouter({
 	mode: 'history',
 	base: process.env.BASE_URL,
 	routes: Routes
-})
+});
 
-// Register a new menu category
-// name: Name of the category
-// icon: Icon of the category
-// caption: Caption to show in the menu
-// translated: Whether the caption is already translated
-export function registerCategory(name, icon, caption, translated = false) {
-	if (Menu[name] === undefined) {
-		const category = {
-			icon,
-			pages: [],
-			translated
-		};
+// when a system component registers, keep the deets so we can re-inject after the settings update
+const keyedMenuItems = [];
 
-		if (caption instanceof Function) {
-			Object.defineProperty(category, 'caption', {
-				get: caption
-			});
-		} else {
-			category.caption = caption;
-		}
-
-		Vue.set(Menu, name, category);
-	}
-}
 
 // Register a new route and menu item
 // component: Component to register
 // route: Route element { Category: { Name: { icon, caption [, translated = false ], path [, condition = true] } }
 export function registerRoute(component, route) {
-	registerRouteInternal(Menu, component, route);
+	registerRouteInternal(component, route);
 }
 
-function registerRouteInternal(menu, component, route) {
-	const keys = Object.keys(route);
-	const subRoute = route[keys[0]];
+function registerRouteInternal(component, route) {
+	let routeConfig = route;
+	let namedMenuGroup = null;
+	if (!route.key) {
+		namedMenuGroup = Object.keys(route)[0];
+		let tmp = route[namedMenuGroup];
+		routeConfig = tmp[Object.keys(tmp)[0]];
+	}
 
-	// Error if no path!
-	if (subRoute.path === undefined) {
+	// explode if there's no path...
+	if (routeConfig.path === undefined) {
 		throw new Error('Invalid route argument');
 	}
 
 	// This is the route we've been looking for
-	if (Routes.indexOf(subRoute) >= 0) {
+	if (Routes.indexOf(routeConfig) >= 0) {
 		return;
 	}
 
 	const routeObj = {
-		...subRoute,
+		...routeConfig,
 		component
 	};
 
@@ -112,7 +75,7 @@ function registerRouteInternal(menu, component, route) {
 	if (routeObj.caption instanceof Function) {
 		delete routeObj.caption;
 		Object.defineProperty(routeObj, 'caption', {
-			get: subRoute.caption
+			get: routeConfig.caption
 		});
 	}
 
@@ -121,7 +84,7 @@ function registerRouteInternal(menu, component, route) {
 	} else {
 		routeObj.condition = undefined;
 		Object.defineProperty(routeObj, 'condition', {
-			get: subRoute.condition
+			get: routeConfig.condition
 		});
 	}
 
@@ -129,16 +92,54 @@ function registerRouteInternal(menu, component, route) {
 		routeObj.translated = false;
 	}
 
-	// Register the new route
-	if (menu.pages !== undefined) {
-		menu.pages.push(routeObj);
-	} else {
-		menu[keys[0]] = routeObj;
+	injectIntoMenu({ routeObj, routeConfig, namedMenuGroup });
+
+	if (route.key) {
+		// system/internal components have keys, so we can reload them when config is updated
+		keyedMenuItems.push({ routeObj, routeConfig });
 	}
+
 	Routes.push(routeObj);
 	router.addRoute(routeObj);
-
 }
+
+/**
+ * Main menu starts out by default as categories, this will seek through the menu
+ * and place the items under the named groups.
+ *
+ * The configuration however can be changed, where string placeholders are replaced
+ * by actual components when/if they turn up. So in the configuration, place the
+ * path for what will be a plugin's path, and when it's injected into the menu,
+ * this will fine that string and set th menu item.
+ */
+function injectIntoMenu({ routeObj, routeConfig, namedMenuGroup }) {
+	let placed = false;
+	// place into the menu
+	Menu.forEach((item, k) => {
+		if (typeof item === 'string' && (item === routeConfig.key || item === routeConfig.path)) {
+			// replace a string placeholder of top-level button/item (no submenu)
+			Menu[k] = routeObj;
+			placed = true;
+
+		} else if (item.pages) {
+			// place into a submenu
+			let idx = -1;
+			if (routeConfig.key) idx = (item.pages || []).indexOf(routeConfig.key);
+			if (idx < 0) idx = (item.pages || []).indexOf(routeConfig.path);
+			if (idx > -1) {
+				item.pages[idx] = routeObj;
+				placed = true;
+			}
+		}
+	});
+
+	if (!placed && namedMenuGroup) {
+		// backwards compatibility for existing plugins to inject
+		let group = Menu.find(item => item.name === namedMenuGroup);
+		if (group) group.pages.push(routeObj);
+	}
+}
+
 
 export const GeneralSettingTabs = Vue.observable([])
 export const MachineSettingTabs = Vue.observable([])
@@ -170,6 +171,38 @@ export function registerSettingTab(general, name, component, caption, translated
 		MachineSettingTabs.push(tab);
 	}
 }
+
+// Menu config updates, so we need to reset the menu and load
+// it back in as if it was configured that way originally...
+store.subscribe((mutation) => {
+	if (mutation.type === 'settings/load' && mutation.payload.mainMenuConfig && mutation.payload.mainMenuConfig.length) {
+		let tmpString = JSON.stringify(mutation.payload.mainMenuConfig);
+
+		if (tmpString === cachedMenuJsonString) {
+			// nothing changed in the menu, abort updates...
+			return;
+		}
+
+		// quick clear-out of the menu
+		for (const item of Menu) {
+			if (item.pages) {
+				while (item.pages.length > 0) item.pages.pop();
+			}
+		}
+		while (Menu.length > 0) {
+			Menu.pop();
+		}
+
+		// set the new configuration...
+		cachedMenuJsonString = tmpString;
+		let newStart = JSON.parse(tmpString);
+		newStart.forEach(item => Menu.push(item));
+
+		// re-attach the system components
+		keyedMenuItems.forEach(c => injectIntoMenu(c));
+	}
+});
+
 
 // Control
 Vue.use(Dashboard)
