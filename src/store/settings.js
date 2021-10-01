@@ -53,8 +53,16 @@ export default {
 				caption: 'menu.control.caption',
 				pages: [
 					'control-dashboard',
-					'control-console',
-					'job-status'
+					'control-console'
+				]
+			},
+			{
+				name: 'Job',
+				icon: 'mdi-printer',
+				caption: 'menu.job.caption',
+				pages: [
+					'job-status',
+					'job-webcam'
 				]
 			},
 			{
@@ -63,6 +71,8 @@ export default {
 				caption: 'menu.files.caption',
 				pages: [
 					'files-jobs',
+					'files-macros',
+					'files-filaments',
 					'files-system'
 				]
 			},
