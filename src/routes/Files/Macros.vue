@@ -15,13 +15,10 @@ export default {
 	install() {
 		// Register a route via Files -> Macros
 		registerRoute(this, {
-			Files: {
-				Macros: {
-					icon: 'mdi-polymer',
-					caption: 'menu.files.macros',
-					path: '/Files/Macros'
-				}
-			}
+      key: 'files-macros',
+      icon: 'mdi-polymer',
+      caption: 'menu.files.macros',
+      path: '/Files/Macros'
 		});
 	}
 }

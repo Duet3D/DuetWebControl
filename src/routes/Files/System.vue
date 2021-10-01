@@ -15,13 +15,10 @@ export default {
 	install() {
 		// Register a route via Files -> System
 		registerRoute(this, {
-			Files: {
-				System: {
-					icon: 'mdi-cog',
-					caption: 'menu.files.system',
-					path: '/Files/System'
-				}
-			}
+      key: 'files-system',
+      icon: 'mdi-cog',
+      caption: 'menu.files.system',
+      path: '/Files/System'
 		});
 	}
 }

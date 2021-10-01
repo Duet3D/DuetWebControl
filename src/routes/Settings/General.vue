@@ -21,13 +21,10 @@ export default {
 	install() {
 		// Register a route via Settings -> General
 		registerRoute(this, {
-			Settings: {
-				General: {
-					icon: 'mdi-tune',
-					caption: 'menu.settings.general',
-					path: '/Settings/General'
-				}
-			}
+      key: 'settings-general',
+      icon: 'mdi-tune',
+      caption: 'menu.settings.general',
+      path: '/Settings/General'
 		});
 	},
 	data() {

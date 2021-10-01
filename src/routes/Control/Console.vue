@@ -20,13 +20,10 @@ export default {
 	install() {
 		// Register a route via Control -> Console
 		registerRoute(this, {
-			Control: {
-				Console: {
-					icon: 'mdi-code-tags',
-					caption: 'menu.control.console',
-					path: '/Console'
-				}
-			}
+      key: 'control-console',
+      icon: 'mdi-code-tags',
+      caption: 'menu.control.console',
+      path: '/Console'
 		});
 	},
 	methods: mapMutations(['hideCodeReplyNotifications', 'showCodeReplyNotifications']),

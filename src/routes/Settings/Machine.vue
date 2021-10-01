@@ -21,13 +21,10 @@ export default {
 	install() {
 		// Register a route via Settings -> Machine
 		registerRoute(this, {
-			Settings: {
-				Machine: {
-					icon: 'mdi-cogs',
-					caption: 'menu.settings.machine',
-					path: '/Settings/Machine'
-				}
-			}
+      key: 'settings-machine',
+      icon: 'mdi-cogs',
+      caption: 'menu.settings.machine',
+      path: '/Settings/Machine'
 		});
 	},
 	data() {

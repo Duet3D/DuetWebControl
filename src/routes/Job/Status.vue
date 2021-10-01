@@ -87,13 +87,10 @@ export default {
 	install() {
 		// Register a route via Job -> Status
 		registerRoute(this, {
-			Job: {
-				Status: {
-					icon: 'mdi-information',
-					caption: 'menu.job.status',
-					path: '/Job/Status'
-				}
-			}
+      key: 'job-status',
+      icon: 'mdi-information',
+      caption: 'menu.job.status',
+      path: '/Job/Status'
 		});
 	}
 }

@@ -15,13 +15,10 @@ export default {
 	install() {
 		// Register a route via Files -> Filaments
 		registerRoute(this, {
-			Files: {
-				Filaments: {
-					icon: 'mdi-database',
-					caption: 'menu.files.filaments',
-					path: '/Files/Filaments'
-				}
-			}
+      key: 'files-filaments',
+      icon: 'mdi-database',
+      caption: 'menu.files.filaments',
+      path: '/Files/Filaments'
 		});
 	}
 }
