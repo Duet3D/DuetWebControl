@@ -63,18 +63,47 @@ textarea {
 			</div>
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
-				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
-					<template #activator>
-						<v-list-item-title class="mr-0">{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
-					</template>
+        <template  v-for="(item, index) in menuItems">
 
-					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
-						<v-list-item-icon>
-							<v-icon>{{ page.icon }}</v-icon>
-						</v-list-item-icon>
-						<v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
-					</v-list-item>
-				</v-list-group>
+          <!-- button path/gcode -->
+          <div class="pa-1" :key="`btn-${index}`">
+            <v-btn v-if="item.button && (item.path || item.gcode)" :color="item.color || ''" block v-ripple @click.prevent="processItemClick(item)">
+              <v-icon>{{ item.icon }}</v-icon>
+              {{ item.translated ? item.caption : $t(item.caption) }}
+            </v-btn>
+          </div>
+
+          <!-- list item -->
+          <v-list-item v-if="!item.button && (item.path || item.gcode)" :key="`btnItem-${index}`" :color="item.color || ''" block v-ripple @click.prevent="processItemClick(item)">
+            <v-list-item-icon><v-icon>{{ item.icon }}</v-icon></v-list-item-icon>
+            <v-list-item-title>{{ item.translated ? item.caption : $t(item.caption) }}</v-list-item-title>
+          </v-list-item>
+
+          <!-- submenu -->
+          <v-list-group v-if="hasPopulatedSubmenu(item)" :key="`sub-${index}`" :prepend-icon="item.icon" no-action :value="isExpanded(item)">
+            <template #activator>
+              <v-list-item-title class="mr-0">{{ item.translated ? item.caption : $t(item.caption) }}</v-list-item-title>
+            </template>
+
+            <template v-for="(page, pageIndex) in getPages(item)">
+              <!-- button -->
+              <div v-if="page.button" style="margin-left: 2em" class="pa-1" :key="`btn-${index}-${pageIndex}`">
+                <v-btn :color="page.color || ''" block v-ripple @click.prevent="processItemClick(page)">
+                  <v-icon>{{ page.icon }}</v-icon>
+                  {{ page.translated ? page.caption : $t(page.caption) }}
+                </v-btn>
+              </div>
+
+              <!-- list item -->
+              <v-list-item v-if="!page.button" :key="`${index}-${pageIndex}`" v-ripple @click.prevent="processItemClick(page)">
+                <v-list-item-icon>
+                  <v-icon>{{ page.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
+              </v-list-item>
+            </template>
+          </v-list-group>
+        </template>
 			</v-list>
 		</v-navigation-drawer>
 
@@ -158,8 +187,8 @@ export default {
 		...mapState('settings',['dashboardMode']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
-		categories() {
-			return Object.keys(Menu).map(key => Menu[key]).filter(item => item.condition || item.pages.some(page => page.condition));
+    menuItems() {
+			return Menu;
 		},
 		currentPageCondition() {
 			const currentRoute = this.$route;
@@ -200,9 +229,13 @@ export default {
 	methods: {
 		...mapActions(['connect', 'disconnectAll']),
 		...mapActions('settings', ['load']),
+    ...mapActions('machine', ['sendCode']),
 		getPages(category) {
-			return category.pages.filter(page => page.condition);
+			return category.pages.filter(page => page.condition || page.button);
 		},
+    hasPopulatedSubmenu(item) {
+      return (item.pages || []).some(page => page.condition);
+    },
 		isExpanded(category) {
 			if (this.$vuetify.breakpoint.xsOnly) {
 				const route = this.$route;
@@ -217,6 +250,13 @@ export default {
 				document.title = title;
 			}
 		},
+    processItemClick(item) {
+      if (item.gcode) {
+        this.sendCode(item.gcode);
+      } else if (item.path) {
+        this.$router.push(item.path);
+      }
+    }
 	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
