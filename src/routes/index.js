@@ -122,7 +122,6 @@ export function registerSettingTab(general, name, component, caption, translated
 	}
 }
 
-
 // Control
 Vue.use(Dashboard)
 Vue.use(Console)
