@@ -44,72 +44,9 @@ export default {
 		dashboardMode : DashboardMode.default,
 
 		enabledPlugins: ['Height Map'],
-		plugins: {},							         // Third-party values
-
-		mainMenu: [                                      // Menu, initial configuration:
-			{                                            //   Strings in 'pages' arrays are the keys of
-				name: 'Control',                         //   the default system pages that are replaced
-				icon: 'mdi-tune',                        //   when the components register themselves
-				caption: 'menu.control.caption',
-				pages: [
-					'control-dashboard',
-					'control-console'
-				]
-			},
-			{
-				name: 'Job',
-				icon: 'mdi-printer',
-				caption: 'menu.job.caption',
-				pages: [
-					'job-status',
-					'job-webcam'
-				]
-			},
-			{
-				name: 'Files',
-				icon: 'mdi-sd',
-				caption: 'menu.files.caption',
-				pages: [
-					'files-jobs',
-					'files-macros',
-					'files-filaments',
-					'files-system'
-				]
-			},
-			{
-				name: 'Plugins',
-				icon: 'mdi-puzzle',
-				caption: 'menu.plugins.caption',
-				pages: []
-			},
-			{
-				name: 'Settings',
-				icon: 'mdi-wrench',
-				caption: 'menu.settings.caption',
-				pages: [
-					'settings-general',
-					'settings-machine'
-				]
-			}
-		]
-	},
-	getters: {
-		mainMenuConfig: state => state.mainMenu
+		plugins: {} 							        // Third-party values
 	},
 	actions: {
-		async applyDefaults({ state, dispatch }) {
-			// Load settings that are enabled by default
-			if (state.enabledPlugins) {
-				for (let i = 0; i < state.enabledPlugins.length; i++) {
-					try {
-						await dispatch('loadDwcPlugin', { id: state.enabledPlugins[i], saveSettings: false }, { root: true });
-					} catch (e) {
-						console.warn(`Failed to load built-in plugin ${state.enabledPlugins[i]}`);
-						console.warn(e);
-					}
-				}
-			}
-		},
 		async load({ rootState, rootGetters, commit, dispatch }) {
 			// First attempt to load the last hostname from the local storage if the are running on localhost
 			if (rootState.isLocal) {

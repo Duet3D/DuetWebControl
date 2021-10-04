@@ -8,6 +8,7 @@ import i18n from '../i18n'
 import Root from '../main.js'
 import observer from './observer.js'
 import settings from './settings.js'
+import mainMenu from './mainMenu.js'
 import Plugins, { checkVersion, loadDwcResources } from '../plugins'
 import { InvalidPasswordError } from '../utils/errors.js'
 import Events from '../utils/events.js'
@@ -71,6 +72,8 @@ const store = new Vuex.Store({
 
 				await dispatch('machine/settings/load');
 				await dispatch('machine/cache/load');
+				await dispatch('mainMenu/load');
+
 				if (state.isLocal) {
 					commit('settings/setLastHostname', hostname);
 				}
@@ -254,7 +257,8 @@ const store = new Vuex.Store({
 			}
 		},
 		settings,
-		uiInjection
+		uiInjection,
+		mainMenu
 	},
 	plugins: [
 		connector.installStore,

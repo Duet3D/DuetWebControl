@@ -63,7 +63,7 @@ textarea {
 			</div>
 
 			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
-        <template  v-for="(item, index) in menuItems">
+        <template  v-for="(item, index) in mainMenu">
 
           <!-- button path/gcode -->
           <div class="pa-1" :key="`btn-${index}`">
@@ -163,7 +163,7 @@ textarea {
 import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { Menu, Routes } from './routes'
+import { Routes } from './routes'
 import { isPrinting } from './store/machine/modelEnums.js'
 import { MachineMode } from './store/machine/modelEnums.js';
 import { DashboardMode } from './store/settings.js'
@@ -187,9 +187,7 @@ export default {
 		...mapState('settings',['dashboardMode']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
-    menuItems() {
-			return Menu;
-		},
+		...mapGetters('mainMenu', ['mainMenu']),
 		currentPageCondition() {
 			const currentRoute = this.$route;
 			let checkRoute = function(route, isChild) {
