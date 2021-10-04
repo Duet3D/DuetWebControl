@@ -138,7 +138,6 @@ export default {
 			}
 
 			freshConfig.forEach(item => {
-				console.log(item);
 				state.mainMenu.push(item)
 			});
 		}
