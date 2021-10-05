@@ -27,7 +27,11 @@
 				:items="session.records"
 				:items-per-page="20"
 				show-select
-			></v-data-table>
+			>
+				<template v-slot:item.date="{ item }">
+						{{ timestampToString(item.date) }}
+				</template>
+			</v-data-table>
 		</v-row>
 
 		<v-row>
@@ -150,6 +154,11 @@ export default {
 				'#8549ba'
 			];
 			return colors[index % colors.length];
+		},
+		timestampToString(value) {
+			let date = new Date(value);
+
+			return date.toLocaleString();
 		},
 		deleteRecord(name) {
 			console.log("deleting", name);
