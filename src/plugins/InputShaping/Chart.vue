@@ -28,6 +28,15 @@
 				:items-per-page="20"
 				show-select
 			>
+				<template v-slot:item.axis[0].integral="{ item }">
+						{{ item.axis[0].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[1].integral="{ item }">
+						{{ item.axis[1].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[2].integral="{ item }">
+						{{ item.axis[2].integral.toFixed(4) }}
+				</template>
 				<template v-slot:item.date="{ item }">
 						{{ timestampToString(item.date) }}
 				</template>
