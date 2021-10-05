@@ -137,6 +137,7 @@ export default {
 				console.log("home all axis");
 
 				try {
+					this.state = this.RecorderStates.HOMING;
 					await this.homeAllAxis();
 				} catch (error) {
 
