@@ -7,7 +7,7 @@
 			<v-alert :type="'warning'">
 				TEST CAN NOT BE EDITED WHEN RECORDS WERE RECORDED.<br>
 				Delete all records or start a new session<br>
-				Algorithms can still be added or changed
+				Algorithms can be added and only changed if no records is linked to it.
 			</v-alert>
 		</v-card-text>
 
