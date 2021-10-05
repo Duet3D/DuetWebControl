@@ -137,6 +137,7 @@ export default {
 				console.log("home all axis");
 
 				try {
+					this.state = this.RecorderStates.HOMING;
 					await this.homeAllAxis();
 				} catch (error) {
 
@@ -159,6 +160,11 @@ export default {
 				console.log("configuring algo", algo);
 
 				this.lastRun = this.accelerometerRuns;
+
+				if (this.session.records.findIndex(rec => rec.config === algo) >= 0) {
+					console.log("found record for algorithm configuration, skipping");
+					continue;
+				}
 
 				try {
 					this.state = this.RecorderStates.CONFIGURING;

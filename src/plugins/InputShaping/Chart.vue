@@ -27,7 +27,20 @@
 				:items="session.records"
 				:items-per-page="20"
 				show-select
-			></v-data-table>
+			>
+				<template v-slot:item.axis[0].integral="{ item }">
+						{{ item.axis[0].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[1].integral="{ item }">
+						{{ item.axis[1].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[2].integral="{ item }">
+						{{ item.axis[2].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.date="{ item }">
+						{{ timestampToString(item.date) }}
+				</template>
+			</v-data-table>
 		</v-row>
 
 		<v-row>
@@ -86,14 +99,17 @@ export default {
 					sortable: true,
 					value: 'name',
 				},
+				{ text: 'type', value: 'config.type' },
+				{ text: 'frequency', value: 'config.frequency' },
+				{ text: 'damping', value: 'config.damping' },
+				{ text: 'minAcceleration', value: 'config.minAcceleration' },
+				{ text: 'x.integral', value: 'axis[0].integral' },
+				{ text: 'y.integral', value: 'axis[1].integral' },
+				{ text: 'z.integral', value: 'axis[2].integral' },
+				{ text: 'config', value: 'config.id' },
 				{ text: 'date', value: 'date' },
 				{ text: 'samples', value: 'samples' },
 				{ text: 'samplingRate', value: 'samplingRate' },
-				{ text: 'overflows', value: 'overflows' },
-				{ text: 'config.type', value: 'config.type' },
-				{ text: 'config.frequency', value: 'config.frequency' },
-				{ text: 'config.damping', value: 'config.damping' },
-				{ text: 'config.minAcceleration', value: 'config.minAcceleration' },
 			],
 
 			wideBand: false,
@@ -150,6 +166,11 @@ export default {
 				'#8549ba'
 			];
 			return colors[index % colors.length];
+		},
+		timestampToString(value) {
+			let date = new Date(value);
+
+			return date.toLocaleString();
 		},
 		deleteRecord(name) {
 			console.log("deleting", name);

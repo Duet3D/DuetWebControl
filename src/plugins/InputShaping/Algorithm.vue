@@ -1,15 +1,27 @@
 <style scoped>
+#deleteButton {
+	width: auto;
+	flex: initial;
+}
 </style>
 
 <template>
 	<div>
 		<v-form ref="formInputShaping" @submit.prevent="submit">
 			<v-row>
-				<v-col class="ma-2">
+				<v-col class="ma-2" id="deleteButton">
 					<v-btn @click="$emit('remove')"
 						:disabled="disabled"
 						><v-icon>mdi-trash-can-outline</v-icon>
 					</v-btn>
+				</v-col>
+				<v-col>
+					<v-text-field
+						v-model.number="algorithm.id"
+						:label="$t('plugins.inputShaping.id')"
+						:disabled="true"
+						required
+						></v-text-field>
 				</v-col>
 				<v-col>
 					<v-select
