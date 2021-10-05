@@ -122,6 +122,7 @@ export class Record {
 				let axis = {
 					name: csv.headers[col],
 					acceleration: [],
+					integral: 0,
 					amplitudes: []
 				};
 
@@ -179,9 +180,11 @@ export class Record {
 				throw new RangeError("invalid array lengths on axis ${this.axis[i].name}");
 			}
 
+			this.axis[i].integral = 0;
 			this.axis[i].amplitudes = new Array(numFreqs);
 			for (let k = 0; k < numFreqs; k++) {
 				this.axis[i].amplitudes[k] = (Math.sqrt(real[k + 1] * real[k + 1] + imag[k + 1] * imag[k + 1]) / numPoints);
+				this.axis[i].integral += this.axis[i].amplitudes[k];
 			}
 		}
 
