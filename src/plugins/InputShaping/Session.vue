@@ -26,6 +26,16 @@
 			</v-row>
 		</v-form>
 
+		<v-card-text class="pa-0" v-show="session.records.length > 0">
+			<v-alert :type="'warning'">
+				TEST can not be edited when records were recorded.<br>
+				To edit a test delete all records or start a new session.<br><br>
+				ALGORITHMS can still be added.<br>
+				ALGORITHM can only be changed if no records is linked to it.<br>
+				To edit an algortihm delete the appropriate record.
+			</v-alert>
+		</v-card-text>
+
 		<test-command
 			:test="session.test"
 			v-bind:id="session.id"
