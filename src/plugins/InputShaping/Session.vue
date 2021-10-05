@@ -9,7 +9,7 @@
 					<v-text-field
 						:label="$t('plugins.inputShaping.id')"
 						v-model="session.id"
-						v-on:input="$emit('input', session)"
+						:disabled="true"
 						required
 					></v-text-field>
 				</v-col>
@@ -19,16 +19,6 @@
 					<v-text-field
 						:label="$t('plugins.inputShaping.name')"
 						v-model="session.name"
-						v-on:input="$emit('input', session)"
-						required
-					></v-text-field>
-				</v-col>
-			</v-row>
-			<v-row>
-				<v-col>
-					<v-text-field
-						:label="$t('plugins.inputShaping.date')"
-						v-model="session.date"
 						v-on:input="$emit('input', session)"
 						required
 					></v-text-field>
