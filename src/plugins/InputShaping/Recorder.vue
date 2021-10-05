@@ -161,6 +161,11 @@ export default {
 
 				this.lastRun = this.accelerometerRuns;
 
+				if (this.session.records.findIndex(rec => rec.config === algo) >= 0) {
+					console.log("found record for algorithm configuration, skipping");
+					continue;
+				}
+
 				try {
 					this.state = this.RecorderStates.CONFIGURING;
 					let resp = await this.configureAlgorithm(algo);
