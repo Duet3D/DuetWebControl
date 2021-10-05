@@ -16,6 +16,14 @@
 					</v-btn>
 				</v-col>
 				<v-col>
+					<v-text-field
+						v-model.number="algorithm.id"
+						:label="$t('plugins.inputShaping.id')"
+						:disabled="true"
+						required
+						></v-text-field>
+				</v-col>
+				<v-col>
 					<v-select
 						:items="inputShapingTypes"
 						v-model="algorithm.type"

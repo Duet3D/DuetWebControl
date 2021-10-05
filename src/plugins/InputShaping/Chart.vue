@@ -106,6 +106,7 @@ export default {
 				{ text: 'x.integral', value: 'axis[0].integral' },
 				{ text: 'y.integral', value: 'axis[1].integral' },
 				{ text: 'z.integral', value: 'axis[2].integral' },
+				{ text: 'config', value: 'config.id' },
 				{ text: 'date', value: 'date' },
 				{ text: 'samples', value: 'samples' },
 				{ text: 'samplingRate', value: 'samplingRate' },
