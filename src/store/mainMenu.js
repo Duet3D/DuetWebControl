@@ -6,55 +6,76 @@ import Path from "@/utils/path";
 // after the config file has been fetched from the server
 const keyedMenuItems = [];
 
+// list of the default menu groups, that will be inflated into the full config
+const defaultMenuConfig = [
+	'default-control-group',
+	'default-job-group',
+	'default-files-group',
+	'default-plugins-group',
+	'default-settings-group'
+];
+
+// The default group menus, that are "inflated" into the menu config above by key
+// This is so user-configured menus can also create default group by using the group's key
+const defaultGroupConfigs = {
+	'default-control-group': {
+		name: 'Control',
+		icon: 'mdi-tune',
+		caption: 'menu.control.caption',
+		pages: 'control-dashboard, control-console'
+	},
+	'default-job-group': {
+		name: 'Job',
+		icon: 'mdi-printer',
+		caption: 'menu.job.caption',
+		pages: 'job-status, job-webcam'
+	},
+	'default-files-group': {
+		name: 'Files',
+		icon: 'mdi-sd',
+		caption: 'menu.files.caption',
+		pages: 'files-jobs, files-macros, files-filaments, files-system'
+	},
+	'default-plugins-group': {
+		name: 'Plugins',
+		icon: 'mdi-puzzle',
+		caption: 'menu.plugins.caption',
+		pages: ''
+	},
+	'default-settings-group': {
+		name: 'Settings',
+		icon: 'mdi-wrench',
+		caption: 'menu.settings.caption',
+		pages: 'settings-general, settings-machine'
+	}
+}
+
+
+// Given a menu, replace the group string keys with the configuration of that group.
+// This drives the default menu above, but is also how users can configure a default group
+// Without having to know ahead of time what is in the menu.
+function inflateMenuGroups(menuArray) {
+	if (!menuArray || !menuArray.length) return;
+
+	menuArray.forEach((item, idx) => {
+		if (typeof item === 'string' && defaultGroupConfigs[item]) {
+			// found one, replicate and inflate the pages string to an array
+			let tmp = {...defaultGroupConfigs[item]};
+			tmp.pages = tmp.pages.split(',').map(p => p.trim()).filter(p => !!p.length);
+
+			menuArray[idx] = tmp;
+		}
+	});
+	return menuArray;
+}
+
+
+
 export default {
 	namespaced: true,
 	state: {
-		mainMenu: [                                      // Menu, initial configuration:
-			{                                            //   Strings in 'pages' arrays are the keys of
-				name: 'Control',                         //   the default system pages that are replaced
-				icon: 'mdi-tune',                        //   when the components register themselves
-				caption: 'menu.control.caption',
-				pages: [
-					'control-dashboard',
-					'control-console'
-				]
-			},
-			{
-				name: 'Job',
-				icon: 'mdi-printer',
-				caption: 'menu.job.caption',
-				pages: [
-					'job-status',
-					'job-webcam'
-				]
-			},
-			{
-				name: 'Files',
-				icon: 'mdi-sd',
-				caption: 'menu.files.caption',
-				pages: [
-					'files-jobs',
-					'files-macros',
-					'files-filaments',
-					'files-system'
-				]
-			},
-			{
-				name: 'Plugins',
-				icon: 'mdi-puzzle',
-				caption: 'menu.plugins.caption',
-				pages: []
-			},
-			{
-				name: 'Settings',
-				icon: 'mdi-wrench',
-				caption: 'menu.settings.caption',
-				pages: [
-					'settings-general',
-					'settings-machine'
-				]
-			}
-		]
+		// from the configuration above, inflate the default state...
+		mainMenu: inflateMenuGroups(defaultMenuConfig),
 	},
 
 	getters: {
@@ -71,13 +92,15 @@ export default {
 					showError: false
 				}, {root: true});
 
-				if (!(configContents || []).length) return;
+				if (!configContents) return;
 
-				commit('resetMenu', configContents);
+				let menu = configContents.mainMenu || [];
+				if (menu.length) {
+					commit('resetMenu', menu);
 
-				// re-attach the system components
-				keyedMenuItems.forEach(c => commit('setMenuItem', c));
-
+					// re-attach the system components
+					keyedMenuItems.forEach(c => commit('setMenuItem', c));
+				}
 			} catch (e) {
 				// dissolve the error, file not being there or loading is fine...
 			}
@@ -94,7 +117,12 @@ export default {
 		 * path for what will be a plugin's path, and when it's injected into the menu,
 		 * this will fine that string and set th menu item.
 		*/
-		setMenuItem (state, { routeObj, routeConfig, namedMenuGroup }) {
+		setMenuItem (state, { routeObj, routeConfig, menuGroup }) {
+			if (!menuGroup && routeConfig.menuGroup) {
+				// if a user config has named the menu group in their config
+				menuGroup = routeConfig.menuGroup;
+			}
+
 			if (routeConfig.key) {
 				keyedMenuItems.push({ routeObj, routeConfig });
 			}
@@ -119,10 +147,14 @@ export default {
 				}
 			});
 
-			if (!placed && namedMenuGroup) {
+			if (!placed && menuGroup) {
 				// backwards compatibility for existing plugins to inject
-				let group = state.mainMenu.find(item => item.name === namedMenuGroup);
-				if (group) group.pages.push(routeObj);
+				let group = state.mainMenu.find(item => item.name === menuGroup);
+				if (group) {
+					if (!group.pages.find(p => p.path === routeConfig.path)) {
+						group.pages.push(routeObj);
+					}
+				}
 			}
 		},
 
@@ -140,6 +172,8 @@ export default {
 			freshConfig.forEach(item => {
 				state.mainMenu.push(item)
 			});
+
+			inflateMenuGroups(state.mainMenu);
 		}
 	}
 }
