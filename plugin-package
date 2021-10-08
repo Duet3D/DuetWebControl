@@ -135,7 +135,7 @@ function create_package() {
   fi
 }
 
-if ! copy_files $name "dist" "$fullpath"; then
+if ! copy_files $name "dist" "$fullpath/dwc"; then
   err "failed to copy files"
   exit 1
 fi
