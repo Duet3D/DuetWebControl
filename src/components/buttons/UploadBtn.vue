@@ -322,7 +322,12 @@ export default {
 					await this.upload({ filename: files[0].filename, content: files[0], showSuccess: !zipName });
 				} else {
 					const filelist = [];
-					files.forEach((file) => filelist.push({ filename: file.filename, content: file }));
+					for (let i = 0; i < files.length; i++) {
+						filelist.push({
+							filename: files[i].filename,
+							content: files[i]
+						});
+					}
 					await this.upload({ files: filelist, showSuccess: !zipName, closeProgressOnSuccess: askForUpdate });
 				}
 				this.$emit('uploadComplete', files);

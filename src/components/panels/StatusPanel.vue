@@ -136,7 +136,7 @@ a:not(:hover) {
 
 					<v-col>
 						<v-row align-content="center" justify="center" no-gutters>
-							<v-col v-if="boards.length && boards[0].vIn.current > 0" class="d-flex flex-column align-center">
+							<v-col v-if="boards.length && boards[0].vIn && boards[0].vIn.current > 0" class="d-flex flex-column align-center">
 								<strong>
 									{{ $t('panel.status.vIn') }}
 								</strong>
@@ -151,7 +151,7 @@ a:not(:hover) {
 								</v-tooltip>
 							</v-col>
 
-							<v-col v-if="boards.length && boards[0].v12.current > 0" class="d-flex flex-column align-center">
+							<v-col v-if="boards.length && boards[0].v12 && boards[0].v12.current > 0" class="d-flex flex-column align-center">
 								<strong>
 									{{ $t('panel.status.v12') }}
 								</strong>
@@ -166,7 +166,7 @@ a:not(:hover) {
 								</v-tooltip>
 							</v-col>
 
-							<v-col v-if="boards.length && boards[0].mcuTemp.current > -273" class="d-flex flex-column align-center">
+							<v-col v-if="boards.length && boards[0].mcuTemp && boards[0].mcuTemp.current > -273" class="d-flex flex-column align-center">
 								<strong class="text-no-wrap">
 									{{ $t('panel.status.mcuTemp') }}
 								</strong>
@@ -256,9 +256,9 @@ export default {
 			return this.sensors.probes.filter(probe => probe !== null && probe.type !== ProbeType.none);
 		},
 		sensorsPresent() {
-			return ((this.boards.length && this.boards[0].vIn.current > 0) ||
-					(this.boards.length && this.boards[0].v12.current > 0) ||
-					(this.boards.length && this.boards[0].mcuTemp.current > -273) ||
+			return ((this.boards.length && this.boards[0].vIn && this.boards[0].vIn.current > 0) ||
+					(this.boards.length && this.boards[0].v12 && this.boards[0].v12.current > 0) ||
+					(this.boards.length && this.boards[0].mcuTemp && this.boards[0].mcuTemp.current > -273) ||
 					(this.fanRPM.length !== 0) ||
 					(this.probesPresent));
 		},

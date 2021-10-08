@@ -25,7 +25,7 @@
 				</v-card-text>
 
 				<v-list class="py-0" :disabled="uiFrozen || loading">
-					<v-list-item-group :value="selectedFile" color="primary">
+					<v-list-item-group mandatory :value="selectedFile" color="primary">
 						<v-list-item v-for="file in files" :key="file" :value="file" @click="loadFile(file)">
 							{{ file }}
 						</v-list-item>

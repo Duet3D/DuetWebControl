@@ -95,24 +95,33 @@ export class Board {
 	iapFileNameSD = null		// *** requires SD support
 	maxHeaters = 0
 	maxMotors = 0
-	mcuTemp = {
-		current: -273.1,
-		min: -273.1,
-		max: -273.1
+	#mcuTemp = null
+	get mcuTemp() { return this.#mcuTemp; }
+	set mcuTemp(value) {
+		if (value !== null) {
+			fixObject(value, new MinMaxCurrent());
+		}
+		this.#mcuTemp = value;
 	}
 	name = ''
 	shortName = ''
 	state = BoardState.unknown
 	supportsDirectDisplay = false
-	v12 = {
-		current: 0,
-		min: 0,
-		max: 0
+	#v12 = null
+	get v12() { return this.#v12; }
+	set v12(value) {
+		if (value !== null) {
+			fixObject(value, new MinMaxCurrent());
+		}
+		this.#v12 = value;
 	}
-	vIn = {
-		current: 0,
-		min: 0,
-		max: 0
+	#vIn = null
+	get vIn() { return this.#vIn; }
+	set vIn(value) {
+		if (value !== null) {
+			fixObject(value, new MinMaxCurrent());
+		}
+		this.#vIn = value;
 	}
 }
 
@@ -284,7 +293,6 @@ export class Heater {
 		timeConstant: 140
 	}
 	monitors = []
-	name = null
 	sensor = -1
 	standby = 0
 	state = null
@@ -423,6 +431,12 @@ export class MessageBox {
 	seq = -1
 	title = ''
 	timeout = 0
+}
+
+export class MinMaxCurrent {
+	current = 0
+	max = 0
+	min = 0
 }
 
 export class MoveQueueItem {
