@@ -50,6 +50,8 @@ table.extra tr > td:first-child {
 							<v-icon class="mr-1">mdi-power-standby</v-icon> {{ $t('panel.tools.turnEverythingOff') }}
 						</v-btn>
 
+						<v-divider class="mb-2"></v-divider>
+
 						<tool-input ref="allActive" :label="$t('panel.tools.setActiveTemperatures')" all active :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
 						<tool-input :label="$t('panel.tools.setStandbyTemperatures')" all standby :control-tools="controlTools" :control-beds="controlBeds" :control-chambers="controlChambers"></tool-input>
 

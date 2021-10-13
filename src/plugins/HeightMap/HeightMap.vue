@@ -50,8 +50,10 @@ h1 {
 					<v-alert :value="true" class="mb-0" type="info">{{ $t('plugins.heightmap.none') }}</v-alert>
 				</v-card-text>
 				<v-list :disabled="uiFrozen || !ready || loading" class="py-0">
-					<v-list-item-group :value="files.indexOf(selectedFile)" color="primary">
-						<v-list-item :key="file" @click="selectedFile = file" v-for="file in files">{{ file }}</v-list-item>
+					<v-list-item-group mandatory :value="files.indexOf(selectedFile)" color="primary">
+						<v-list-item :key="file" @click="selectedFile = file" v-for="file in files">
+							{{ file }}
+						</v-list-item>
 					</v-list-item-group>
 				</v-list>
 			</v-card>
@@ -537,7 +539,7 @@ export default {
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 
-		//Kill the wheel on the canvas
+		// Kill the wheel on the canvas
 		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches

@@ -334,6 +334,11 @@ export default {
 						that.hasSdFiles = true;
 					}
 				});
+
+				if (!this.hasSdFiles && !this.hasDwcFiles && !this.hasDsfFiles) {
+					console.warn('Plugin has no files to install');
+					this.pluginManifestValid = false;
+				}
 			} catch (e) {
 				console.warn(e);
 				this.pluginManifest = {};

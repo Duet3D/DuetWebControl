@@ -237,7 +237,7 @@ export default {
 			} else if (this.$refs.fileTable) {
 				if (this.$refs.fileTable.rows.length > num + 1) {
 					this.$refs.fileTable.rows[num + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-				} else {
+				} else if (this.$refs.fileTable.rows.length > 0) {
 					this.$refs.fileTable.rows[this.$refs.fileTable.rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
 				}
 			}

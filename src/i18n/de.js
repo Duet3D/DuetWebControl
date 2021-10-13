@@ -644,7 +644,8 @@ export default {
 			runMesh: 'Gitterkompensation durchführen (G29)',
 			loadMesh: 'Gespeicherte Höhenkarte laden (G29 S1)',
 			axesNotHomed: 'Die folgende Achse ist nicht referenziert:|Die folgenden Achsen sind nicht referenziert:',
-			noAxes: 'Keine Achsen'
+			noAxes: 'Keine Achsen',
+			workzero: 'Gehe zum Nullpunkt'
 		},
 		settingsAbout: {
 			caption: 'Über',
@@ -727,6 +728,18 @@ export default {
 		},
 		speedFactor: {
 			caption: 'Geschwindigkeitsfaktor'
+		},
+		spindle: {
+			title: 'Spindeln',
+			spindle: 'Spindel',
+			active: 'Aktiv',
+			direction: 'Richtung',
+			currentRPM: 'Aktuelle RPM',
+			setRPM: 'RPM setzen',
+			on: 'An',
+			off: 'Aus',
+			forward: 'Vorwärts',
+			reverse: 'Rückwärts'
 		},
 		status: {
 			caption: 'Status',
@@ -851,6 +864,9 @@ export default {
 			high: 'Hoch',
 			ultra: 'Ultra',
 			max: 'Max',
+			useHQRendering: 'HQ-Rendering (rund)',
+			useSpecular: 'Spiegelndes Highlighting',
+			feature: 'Feature',
 			forceLineRendering: 'Liniendarstellung erzwingen',
 			transparency: 'Transparenz',
 			showSolid: 'Körper anzeigen',
@@ -891,7 +907,6 @@ export default {
 				caption : 'Objektauswahl anzeigen',
 				title : 'Aktiviert falls Objekte im aktuellen Druck erkannt worden sind'
 			},
-			
 			renderFailed: 'Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC',
 			showFSOverlay : 'Overlay bei Vollbild anzeigen'
 		},
@@ -903,11 +918,14 @@ export default {
 			orMore: 'o. mehr',
 			orLess: 'o. weniger',
 			axes: 'Achsen:',
+			range: 'Bereich',
+			fixed: 'Fixiert',
 			statistics: 'Statistiken',
 			numPoints: 'Anzahl der Punkte: {0}',
 			notAvailable: 'Höhenkarte nicht verfügbar',
 			radius: 'Messradius: {0}',
 			area: 'Messfläche: {0}',
+			deviation: 'Abweichung',
 			maxDeviations: 'Maximale Abweichungen: {0} / {1}',
 			meanError: 'Gemittelter Fehler: {0}',
 			rmsError: 'Standardabweichung: {0}',
@@ -916,7 +934,8 @@ export default {
 			invertZ: 'Z-Koordinaten invertieren',
 			colorScheme: 'Farbschema:',
 			terrain: 'Terrain',
-			heat: 'Hitze'
+			heat: 'Hitze',
+			resetView: 'Ansicht zurücksetzen'
 		},
 		objectModelBrowser: {
 			menuCaption: 'Objektmodell'
