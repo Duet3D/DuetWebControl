@@ -81,6 +81,7 @@ export default {
 	},
 	computed: {
 		...mapState('machine', ['model']),
+		...mapState('machine/model', ['move']),
 		allAxisHomed() {
 			let axisNotHomed = this.model.move.axes.filter(axes => axes.homed === false);
 
@@ -186,11 +187,14 @@ export default {
 					this.state = this.RecorderStates.PARSING;
 					let rec = new Record(JSON.stringify(i) + '-' + algo.type + '-' + this.session.id, algo);
 
+					rec.addParameter(this.move.shaping.amplitudes, this.move.shaping.durations);
 					rec.parse(file);
 					rec.analyze();
 
-					this.state = this.RecorderStates.DELETING;
-					resp = await this.delete(Path.combine(Path.accelerometer, filename));
+					if (this.cleanupFiles) {
+						this.state = this.RecorderStates.DELETING;
+						resp = await this.delete(Path.combine(Path.accelerometer, filename));
+					}
 
 					this.state = this.RecorderStates.STORING;
 					this.session.addRecord(rec);
