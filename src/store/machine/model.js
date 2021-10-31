@@ -181,7 +181,9 @@ export class MachineModel {
 			centre: [0, 0]
 		},
 		shaping: {
+			amplitudes: [],
 			damping: 0.2,
+			durations: [],
 			frequency: 40,
 			minAcceleration: 10,
 			type: InputShapingType.none
