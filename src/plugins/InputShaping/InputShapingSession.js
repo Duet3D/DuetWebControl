@@ -8,10 +8,10 @@ export class Algorithm {
 	constructor(type, frequency = 8, damping = 0.1, minAcceleration = 0) {
 		this.id = Math.random().toString(16).substr(2, 8);
 
-		this.type = type;
-		this.frequency = frequency;
 		this.damping = damping;
+		this.frequency = frequency;
 		this.minAcceleration = minAcceleration;
+		this.type = type;
 	}
 
 	validate() {
@@ -72,6 +72,10 @@ export class Record {
 		this.overflows = null;
 		this.frequencies = [];
 		this.axis = [];
+		this.parameter = {
+			amplitudes: [],
+			durations: []
+		}
 	}
 
 	stringify() {
@@ -92,6 +96,16 @@ export class Record {
 		return this;
 	}
 
+	addParameter(amplitudes, durations) {
+		if (!amplitudes || !durations) {
+			throw new Error("invalid parameter");
+		}
+
+		// create copies of parameter lists
+		this.parameter.amplitudes = amplitudes.map(e => e);
+		this.parameter.durations = durations.map(e => e);
+	}
+
 	parse(file) {
 
 		try {
@@ -104,7 +118,7 @@ export class Record {
 			// Extract details
 			this.samples = csv.content.length - 1;
 
-			const details = /Rate (\d+) overflows (\d)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
+			const details = /Rate (\d+),? overflows (\d+)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
 			if (!details) {
 				console.error("details missing");
 				throw new Error('Failed to read rate and overflows');
@@ -116,8 +130,6 @@ export class Record {
 
 			this.axis = [];
 			for (let col = 1; col < csv.headers.length; col++) {
-
-				console.log("filling axis", col);
 
 				let axis = {
 					name: csv.headers[col],
@@ -186,6 +198,14 @@ export class Record {
 				this.axis[i].amplitudes[k] = (Math.sqrt(real[k + 1] * real[k + 1] + imag[k + 1] * imag[k + 1]) / numPoints);
 				this.axis[i].integral += this.axis[i].amplitudes[k];
 			}
+
+			// find the top frequencies and their amplitudes
+			this.axis[i].maxAmplitudes =
+				this.axis[i].amplitudes.map((elem, idx) => {
+					return { freq: this.frequencies[idx], amp: elem };
+				}).sort((first, second) => {
+					return first.amp < second.amp;
+				}).slice(0, 5);
 		}
 
 		return this.axis;
@@ -205,6 +225,13 @@ export class Record {
 	getAmplitudes(index) {
 		if (index >= 0 && index < this.axis.length)
 			return this.axis[index].amplitudes;
+
+		return null;
+	}
+
+	getMaxAmplitudes(index) {
+		if (index >= 0 && index < this.axis.length)
+			return this.axis[index].maxAmplitudes;
 
 		return null;
 	}
