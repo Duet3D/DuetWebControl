@@ -102,8 +102,8 @@ export class Record {
 		}
 
 		// create copies of parameter lists
-		this.parameter.amplitudes = amplitudes.map(e => e);
-		this.parameter.durations = durations.map(e => e);
+		this.parameter.amplitudes = amplitudes.slice();
+		this.parameter.durations = durations.slice();
 	}
 
 	parse(file) {
@@ -182,7 +182,7 @@ export class Record {
 
 		// Perform frequency analysis for visible datasets
 		for (let i = 0; i < this.axis.length; i++) {
-			const real = this.axis[i].acceleration.map(e => e);
+			const real = this.axis[i].acceleration.slice();
 			const imag = new Array(real.length);
 			imag.fill(0);
 			transform(real, imag);
