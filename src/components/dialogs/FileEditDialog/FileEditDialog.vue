@@ -81,7 +81,12 @@
 'use strict'
 
 import { codemirror } from 'vue-codemirror'
+import 'codemirror/addon/dialog/dialog.js'
+import 'codemirror/addon/dialog/dialog.css'
 import 'codemirror/addon/selection/active-line.js'
+import 'codemirror/addon/search/search.js'
+import 'codemirror/addon/search/searchcursor.js'
+import 'codemirror/addon/search/jump-to-line.js'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/blackboard.css'
 

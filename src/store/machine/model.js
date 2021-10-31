@@ -174,10 +174,16 @@ export class MachineModel {
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
-		queue: [],
 		printingAcceleration: 10000,
+		queue: [],
+		rotation: {
+			angle: 0,
+			centre: [0, 0]
+		},
 		shaping: {
+			amplitudes: [],
 			damping: 0.2,
+			durations: [],
 			frequency: 40,
 			minAcceleration: 10,
 			type: InputShapingType.none
