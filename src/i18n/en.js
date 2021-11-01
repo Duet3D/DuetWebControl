@@ -285,7 +285,8 @@ export default {
 			title: 'Install updates?',
 			prompt: 'You have uploaded at least one firmware update. Would you like to install them now?',
 			resetTitle: 'Reset firmware?',
-			resetPrompt: 'You have just installed expansion board updates. Do you want to reboot the main controller to restore the previous configuration?'
+			resetPrompt: 'You have just installed expansion board updates. Do you want to reboot the main controller to restore the previous configuration?',
+			sbcWarning: 'Uou are operating your machine in SBC mode. Please upgrade the firmware using DWC only if advised by the firmware developers.'
 		},
 		inputRequired: 'Please enter a value',
 		numberRequired: 'Please enter a valid number'

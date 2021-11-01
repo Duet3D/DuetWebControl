@@ -285,7 +285,8 @@ export default {
 			title: 'Updates installieren?',
 			prompt: 'Sie haben gerade mindestens ein Firmwareupdate hochgeladen. Möchten Sie diese jetzt installieren?',
 			resetTitle: 'Firmware zurücksetzen?',
-			resetPrompt: 'Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?'
+			resetPrompt: 'Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?',
+			sbcwarning: 'Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde.'
 		},
 		inputRequired: 'Bitte Wert eingeben',
 		numberRequired: 'Bitte gültige Zahl eingeben'

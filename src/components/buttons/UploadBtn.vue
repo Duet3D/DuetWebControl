@@ -12,7 +12,7 @@
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<confirm-dialog :shown.sync="confirmUpdate" :title="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
+		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate"></firmware-update-dialog>
 		<confirm-dialog :shown.sync="confirmReset" :title="$t('dialog.update.resetTitle')" :prompt="$t('dialog.update.resetPrompt')" @confirmed="reset"></confirm-dialog>
 	</div>
 </template>

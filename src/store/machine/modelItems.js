@@ -214,6 +214,7 @@ export class LaserFilamentMonitor extends FilamentMonitor {
 		totalDistance: 0
 	}
 	configured = {
+		allMoves: false,
 		percentMax: 160,
 		percentMin: 60,
 		sampleDistance: 3.0
@@ -253,6 +254,7 @@ export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
 		totalDistance: 0
 	}
 	configured = {
+		allMoves: false,
 		mmPerRev: 28.8,
 		percentMax: 160,
 		percentMin: 60,
