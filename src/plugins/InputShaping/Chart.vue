@@ -14,41 +14,11 @@
 
 <template>
 	<div>
-		<v-row class="pa-2">
-			Accelerometer ID: {{ session.test.accel }} Samples: {{ session.test.param.numSamples }}<br>
-			Axes: {{ session.test.axis }} Start: {{ session.test.param.startPosition }} Stop: {{ session.test.param.stopPosition }}
+		<v-row>
+			Chart component
 		</v-row>
 
 		<v-row>
-			<v-data-table
-				v-model="recordList"
-				class="py-0"
-				:headers="recordTable"
-				:items="session.records"
-				:items-per-page="20"
-				show-select
-			>
-				<template v-slot:item.axis[0].integral="{ item }">
-						{{ item.axis[0].integral.toFixed(4) }}
-				</template>
-				<template v-slot:item.axis[1].integral="{ item }">
-						{{ item.axis[1].integral.toFixed(4) }}
-				</template>
-				<template v-slot:item.axis[2].integral="{ item }">
-						{{ item.axis[2].integral.toFixed(4) }}
-				</template>
-				<template v-slot:item.date="{ item }">
-						{{ timestampToString(item.date) }}
-				</template>
-			</v-data-table>
-		</v-row>
-
-		<v-row>
-			<v-col>
-				<v-btn :disabled="recordList.length == 0"  color="warning" @click="deleteRecordList">
-					<v-icon class="mr-2">mdi-trash-can-outline</v-icon> {{ $t('plugins.inputShaping.delete') }}
-				</v-btn>
-			</v-col>
 			<v-col>
 					<v-btn color="primary" @click="updateChartFft">
 						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
@@ -64,8 +34,8 @@
 			<v-col>
 				<v-row>
 					<v-checkbox
-						v-for="axis in this.model.move.axes"
-						:key="axis.letter" :value=axis.letter :label="axis.letter"
+						v-for="axis in axisList"
+						:key="axis" :value=axis :label="axis"
 						v-model="checkedAxis"
 						hide-details
 					></v-checkbox>
@@ -88,33 +58,11 @@ import Chart from 'chart.js';
 import { mapState, mapGetters } from 'vuex';
 
 export default {
-	props: [ 'session' ],
+	props: [ 'records' ],
 	data() {
 		return {
-			recordList: [],
-			recordTable: [
-				{
-					text: 'name',
-					align: 'start',
-					sortable: true,
-					value: 'name',
-				},
-				{ text: 'type', value: 'config.type' },
-				{ text: 'frequency', value: 'config.frequency' },
-				{ text: 'damping', value: 'config.damping' },
-				{ text: 'minAcceleration', value: 'config.minAcceleration' },
-				{ text: 'x.integral', value: 'axis[0].integral' },
-				{ text: 'y.integral', value: 'axis[1].integral' },
-				{ text: 'z.integral', value: 'axis[2].integral' },
-				{ text: 'config', value: 'config.id' },
-				{ text: 'date', value: 'date' },
-				{ text: 'overflows', value: 'overflows' },
-				{ text: 'samples', value: 'samples' },
-				{ text: 'samplingRate', value: 'samplingRate' },
-			],
-
-			wideBand: false,
 			checkedAxis: [],
+			axisList: [ 'X', 'Y', 'Z'],
 
 			// obsolete?
 			loading: false,
@@ -139,17 +87,7 @@ export default {
 		checkedAxis() {
 			this.updateVisibility();
 		},
-		'recordList': {
-			handler() {
-				this.updateChartFft();
-			}
-		},
-		'session.records': {
-			handler(value) {
-				this.recordList = value;
-			}
-		},
-		session() {
+		records() {
 			this.updateChart();
 		}
 	},
@@ -167,19 +105,6 @@ export default {
 				'#8549ba'
 			];
 			return colors[index % colors.length];
-		},
-		timestampToString(value) {
-			let date = new Date(value);
-
-			return date.toLocaleString();
-		},
-		deleteRecord(name) {
-			console.log("deleting", name);
-			this.session.removeRecord(name);
-			this.updateChart();
-		},
-		deleteRecordList() {
-			this.recordList.forEach(rec => this.deleteRecord(rec.name));
 		},
 		updateVisibility() {
 			this.chart.data.datasets.forEach(dataset => {
@@ -235,23 +160,27 @@ export default {
 
 		updateChart() {
 
+			let labels = [];
+
+			if (this.records.length > 0) {
 			// chart update code works on record
-			let labels = new Array(this.session.test.param.numSamples);
-			for (let i = 0; i < labels.length; i++) {
-				labels[i] = i;
+				let samples = this.records[0].samples;
+				for (let i = 0; i < samples; i++) {
+					labels.push(i);
+				}
 			}
+
 			this.chart.data.labels = labels;
 			console.log("Acc labels", this.chart.data.labels);
 
 			this.chart.data.datasets = [];
 
-			this.recordList.forEach((rec, recIndex) => {
+			this.records.forEach((rec, recIndex) => {
 
 				console.log("updating chart for", recIndex, rec);
 
-				// TODO is there a better source as sampling rate than a record
 				if (recIndex === 0)
-					this.samplingRate = rec.samplingRate;
+					this.samplingRate = this.records.samplingRate;
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
@@ -275,26 +204,32 @@ export default {
 
 			// Render the chart and apply sample rate
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.test.param.numSamples;
+			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.records.samples;
 
 			this.chart.update();
 
 			this.updateVisibility();
 
-			console.log("start", this.start, "end", this.end, "sampling rate", this.samplingRate);
+			console.log("start", this.start, "end", this.end, "sampling rate", this.records.samplingRate);
 		},
 		updateChartFft() {
 
 			console.log("updateChartFft");
+			let labels = [];
 
-			this.chart.data.labels = this.session.frequencies;
+			if (this.records.length > 0) {
+			// chart update code works on record
+				labels = this.records[0].frequencies;
+			}
+
+			this.chart.data.labels = labels;
 			console.log("FFT labels", this.chart.data.labels);
 
-			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.frequencyTooltip', [this.session.frequencies[items[0].index].toFixed(2)]);
+			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.frequencyTooltip', [labels[items[0].index].toFixed(2)]);
 
 			this.chart.data.datasets = [];
 
-			this.recordList.forEach((rec, recIndex) => {
+			this.records.forEach((rec, recIndex) => {
 
 				console.log("updating chartfft for", recIndex, rec);
 
@@ -326,7 +261,7 @@ export default {
 
 			// Render the chart and apply sample rate
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
-			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.session.frequencies.length;
+			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = labels.length;
 
 			this.chart.update();
 			this.updateVisibility();
@@ -381,8 +316,10 @@ export default {
 	},
 	mounted() {
 
+		console.log("mounted records", this.records);
+
 		// initially select all axis
-		this.checkedAxis = this.model.move.axes.map(e => e.letter);
+		this.checkedAxis = this.axisList.slice();
 
 		// Prepare chart
 		const that = this;
@@ -460,6 +397,7 @@ export default {
 				datasets: []
 			}
 		});
+
 		this.applyDarkTheme(this.darkTheme);
 
 	}
