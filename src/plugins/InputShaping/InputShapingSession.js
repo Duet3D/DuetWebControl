@@ -5,8 +5,12 @@ import { transform } from './fft.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 export class Algorithm {
-	constructor(type, frequency = 8, damping = 0.1, minAcceleration = 0) {
+	constructor(type, name=null, frequency = 8, damping = 0.1, minAcceleration = 0) {
 		this.id = Math.random().toString(16).substr(2, 8);
+
+		this.name = name;
+		if (!name)
+			this.name = this.id;
 
 		this.damping = damping;
 		this.frequency = frequency;
@@ -65,10 +69,11 @@ export class Record {
 			this.name = this.id;
 
 		this.date = date;
+		this.config = config;
+
 		this.samples = null;
 		this.samplingRate = null;
 		this.wideband = false;
-		this.config = config;
 		this.overflows = null;
 		this.frequencies = [];
 		this.axis = [];
@@ -96,7 +101,7 @@ export class Record {
 		return this;
 	}
 
-	addParameter(amplitudes, durations) {
+	addAlgorithmParameter(amplitudes, durations) {
 		if (!amplitudes || !durations) {
 			throw new Error("invalid parameter");
 		}
@@ -106,7 +111,29 @@ export class Record {
 		this.parameter.durations = durations.slice();
 	}
 
-	parse(file) {
+	setName(name) {
+		this.name = name;
+	}
+
+	addParameters(samples, samplingRate, overflows, frequencies) {
+		this.samples = samples;
+		this.samplingRate = samplingRate;
+		this.overflows = overflows;
+		this.frequencies = frequencies;
+	}
+
+	addAxis(name, data) {
+		console.log("TODO add axis", axis);
+		let axis = {
+			name: name,
+			acceleration: data,
+			integral: 0,
+			amplitudes: []
+		};
+		this.axis.push(axis);
+	}
+
+	parseCSV(file) {
 
 		try {
 			// Load the CSV
