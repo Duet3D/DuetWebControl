@@ -44,6 +44,8 @@
 				</v-col>
 		</v-row>
 
+		<chart v-bind:records="null"></chart>
+
 	</div>
 </template>
 
