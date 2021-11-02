@@ -94,10 +94,20 @@ export default {
 			return this.model.boards.findIndex(elem => elem.canAddress === this.session.test.board);
 		},
 		accelerometerRuns() {
+			try {
 				return this.model.boards[this.accelerometerBoardIndex].accelerometer.runs;
+			} catch (e) {
+				console.warn("no valid accelerometer runs.", e);
+			}
+			return 0;
 		},
 		accelerometerPoints() {
+			try {
 				return this.model.boards[this.accelerometerBoardIndex].accelerometer.points;
+			} catch (e) {
+				console.warn("no valid accelerometer points.", e);
+			}
+			return 0;
 		},
 		currentState() {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
