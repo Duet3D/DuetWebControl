@@ -46,7 +46,7 @@
 
 			<!-- Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				<chart v-if="session && !!session.records.length" :session="session"></chart>
+				<analysis v-if="session && !!session.records.length" :session="session"></analysis>
 			</v-tab-item>
 
 			<!-- Recommend -->
