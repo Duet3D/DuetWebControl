@@ -109,7 +109,7 @@ export default {
 		updateVisibility() {
 			this.chart.data.datasets.forEach(dataset => {
 				let res = false;
-				console.log(dataset.label, res = this.checkedAxis.find(elem => elem == dataset.label.slice(-1)));
+				res = this.checkedAxis.find(elem => elem == dataset.label.slice(-1));
 				dataset.hidden = res ? false : true;
 				console.log(dataset.label, res, dataset.hidden);
 			});
