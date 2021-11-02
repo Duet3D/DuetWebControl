@@ -24,6 +24,14 @@
 						></v-text-field>
 				</v-col>
 				<v-col>
+					<v-text-field
+						v-model.number="algorithm.name"
+						:label="$t('plugins.inputShaping.name')"
+						:disabled="disabled"
+						required
+						></v-text-field>
+				</v-col>
+				<v-col>
 					<v-select
 						:items="inputShapingTypes"
 						v-model="algorithm.type"
