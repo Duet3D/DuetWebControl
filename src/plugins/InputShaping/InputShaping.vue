@@ -49,9 +49,13 @@
 				<analysis v-if="session && !!session.records.length" :session="session"></analysis>
 			</v-tab-item>
 
-			<!-- Recommend -->
+			<!-- Recommendation -->
 			<v-tab-item value="recommendation" eager class="pa-3">
-				<recommendation v-if="session && !!session.records.length" v-model="algorithm" :records="session.records"></recommendation>
+				<recommendation v-if="session && !!session.records.length"
+					:algorithm="algorithm"
+					v-on:input="addAlgorithmToSession($event)"
+					:records="session.records"></recommendation>
+				<!--<recommendation v-model="algorithm" :records="testRecords"></recommendation>-->
 			</v-tab-item>
 		</v-tabs-items>
 
@@ -103,6 +107,14 @@ export default {
 
 			this.recordList.splice(index, 1);
 		},
+		addAlgorithmToSession(algorithm) {
+			console.log("algorithm was emitted", algorithm);
+
+			if (!this.session)
+				return;
+
+			this.session.addAlgorithm(algorithm);
+		}
 	},
 
 	mounted() {
