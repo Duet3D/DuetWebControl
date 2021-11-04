@@ -107,13 +107,15 @@ export default {
 
 			this.recordList.splice(index, 1);
 		},
-		addAlgorithmToSession(algorithm) {
-			console.log("algorithm was emitted", algorithm);
+		addAlgorithmToSession(algorithms) {
+			console.log("algorithms were emitted", algorithms);
 
 			if (!this.session)
 				return;
 
-			this.session.addAlgorithm(algorithm);
+			algorithms.forEach(algorithm => {
+				this.session.addAlgorithm(algorithm);
+			});
 		}
 	},
 
