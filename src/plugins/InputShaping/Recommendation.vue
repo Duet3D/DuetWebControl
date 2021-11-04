@@ -106,7 +106,6 @@
 </template>
 
 <script>
-/* eslint no-unused-vars: "warn" */
 'use strict';
 
 import { mapState, mapActions } from 'vuex';
