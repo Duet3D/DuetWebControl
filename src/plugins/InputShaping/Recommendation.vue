@@ -102,20 +102,6 @@
 
 		<chart v-bind:records="recordList"></chart>
 
-		<v-row>
-			<algorithm v-for="(score, index) in scores"
-					v-bind:key="index"
-					:algorithm="score.algo"
-					v-on:update="updateAlgorithm(index, change)"
-					v-on:remove="deleteScore(index)"
-			></algorithm>
-
-			<div v-for="(score) in scores" v-bind:key="score.id">
-				{{ score.algo }} {{ score.score }}
-			</div>
-		</v-row>
-
-
 	</div>
 </template>
 
@@ -223,11 +209,11 @@ export default {
 			console.log("run recommendation");
 
 			let types = [
-				//this.InputShapingType.MZV,
+				this.InputShapingType.MZV,
 				this.InputShapingType.ZVD,
-				//this.InputShapingType.ZVDD,
-				//this.InputShapingType.ZVDDD,
-				//this.InputShapingType.EI2,
+				this.InputShapingType.ZVDD,
+				this.InputShapingType.ZVDDD,
+				this.InputShapingType.EI2,
 				this.InputShapingType.EI3,
 			];
 
