@@ -43,6 +43,11 @@
 		</v-row>
 
 		<v-row>
+			<v-col>
+				Recommender State: {{ state }}
+			</v-col>
+		</v-row>
+		<v-row>
 				<v-col class="ma-2" id="runAndRecommend">
 					<v-btn
 						@click="runRecommendation(record)"
@@ -126,8 +131,8 @@ import { makeNotification } from '../../utils/toast.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 const states = {
-	IDLE: 0,
-	RUNNING: 1,
+	IDLE: 'IDLE',
+	PROCESSING: 'PROCESSING',
 }
 
 export default {
@@ -229,6 +234,7 @@ export default {
 			let scores = [];
 			let recommendations = [];
 
+			this.state = this.states.PROCESSING;
 			try {
 				// test all available algorithms
 				for (let iType = 0; iType < types.length; iType++) {
@@ -301,9 +307,12 @@ export default {
 					}
 				}
 			} catch (error) {
+				this.state = this.states.IDLE;
 				console.error(error);
 				throw error;
 			}
+
+			this.state = this.states.IDLE;
 
 			this.scores = scores;
 			this.recommendations = recommendations;
