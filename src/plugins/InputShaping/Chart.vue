@@ -14,9 +14,6 @@
 
 <template>
 	<div>
-		<v-row>
-			Chart component
-		</v-row>
 
 		<v-row>
 			<v-col>
