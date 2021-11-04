@@ -197,8 +197,8 @@ export default {
 					this.state = this.RecorderStates.PARSING;
 					let rec = new Record(JSON.stringify(i) + '-' + algo.type + '-' + this.session.id, algo);
 
-					rec.addParameter(this.move.shaping.amplitudes, this.move.shaping.durations);
-					rec.parse(file);
+					rec.addAlgorithmParameter(this.move.shaping.amplitudes, this.move.shaping.durations);
+					rec.parseCSV(file);
 					rec.analyze();
 
 					if (this.cleanupFiles) {
