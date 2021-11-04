@@ -4,6 +4,9 @@ import CSV from '../../utils/csv.js'
 import { transform } from './fft.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
+const SHAPING_FREQ_MIN = 10;
+const SHAPING_FREQ_MAX = 120;
+
 export class Algorithm {
 	constructor(type, name=null, frequency = 8, damping = 0.1, minAcceleration = 0) {
 		this.id = Math.random().toString(16).substr(2, 8);
@@ -232,6 +235,8 @@ export class Record {
 					return { freq: this.frequencies[idx], amp: elem };
 				}).sort((first, second) => {
 					return first.amp < second.amp;
+				}).filter(elem => {
+					return elem.freq > SHAPING_FREQ_MIN && elem.freq < SHAPING_FREQ_MAX;
 				}).slice(0, 5);
 		}
 
@@ -369,5 +374,21 @@ export class Session {
 
 	getAllRecords() {
 		return this.records;
+	}
+
+	addAlgorithm(algorithm) {
+		let index = this.algorithms.findIndex(elem => elem === algorithm);
+		if (index >= 0)
+			return;
+
+		this.algorithms.push(algorithm);
+	}
+
+	removeAlgorithm(algorithm) {
+		let index = this.algorithms.findIndex(elem => elem === algorithm);
+		if (index < 0)
+			return;
+
+		this.algorithms.splice(index, 1);
 	}
 }
