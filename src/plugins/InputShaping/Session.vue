@@ -75,10 +75,10 @@ export default {
 	},
 	methods: {
 		addAlgorithm() {
-			this.session.algorithms.push(new Algorithm());
+			this.session.addAlgorithm(new Algorithm());
 		},
 		removeAlgorithm(index) {
-			this.session.algorithms.splice(index, 1);
+			this.session.removeAlgorithm(this.session.algorithms[index]);
 		}
 
 	},
