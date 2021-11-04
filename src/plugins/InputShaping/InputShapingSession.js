@@ -79,6 +79,7 @@ export class Record {
 		this.wideband = false;
 		this.overflows = null;
 		this.frequencies = [];
+		this.allIntegral = 0;
 		this.axis = [];
 		this.parameter = {
 			amplitudes: [],
@@ -99,6 +100,7 @@ export class Record {
 		this.wideband = record.wideband;
 		this.config = record.config;
 		this.frequencies = record.frequencies;
+		this.allIntegral = record.allIntegral;
 		this.axis = record.axis;
 
 		return this;
@@ -209,7 +211,7 @@ export class Record {
 		}
 
 		this.frequencies = frequencies;
-
+		this.allIntegral = 0;
 		// Perform frequency analysis for visible datasets
 		for (let i = 0; i < this.axis.length; i++) {
 			const real = this.axis[i].acceleration.slice();
@@ -228,6 +230,8 @@ export class Record {
 				this.axis[i].amplitudes[k] = (Math.sqrt(real[k + 1] * real[k + 1] + imag[k + 1] * imag[k + 1]) / numPoints);
 				this.axis[i].integral += this.axis[i].amplitudes[k];
 			}
+
+			this.allIntegral += this.axis[i].integral;
 
 			// find the top frequencies and their amplitudes
 			this.axis[i].maxAmplitudes =
