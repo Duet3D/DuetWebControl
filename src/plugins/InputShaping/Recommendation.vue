@@ -113,7 +113,6 @@ import { mapState, mapActions } from 'vuex';
 
 import recommend from './recommend.js';
 import { Algorithm, Record } from './InputShapingSession.js'
-import { makeNotification } from '../../utils/toast.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
 const states = {
