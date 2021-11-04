@@ -23,6 +23,14 @@
 		</v-row>
 
 		<v-row>
+			<v-checkbox
+				class="pa-0 ml-2"
+				v-model="cleanupFiles"
+				:label="$t('plugins.inputShaping.cleanupFiles')"
+			></v-checkbox>
+		</v-row>
+
+		<v-row>
 			<v-col>
 				<form v-on:submit.prevent="runTests">
 					<v-btn :disabled="state !== RecorderStates.IDLE" color="primary" @click="runTests">
@@ -31,6 +39,7 @@
 				</form>
 			</v-col>
 		</v-row>
+
 	</div>
 </template>
 
@@ -61,6 +70,7 @@ export default {
 	data() {
 		return {
 			verbose: false,
+			cleanupFiles: true,
 
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
