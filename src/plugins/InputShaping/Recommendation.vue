@@ -19,32 +19,64 @@
 				v-model="selectedRecords"
 				class="py-0"
 				:headers="recordTable"
-				:items="records"
+				:items="recordList"
 				:items-per-page="20"
 				:single-select="true"
 				show-select
 				>
+				<template v-slot:item.axis="{ item }">
+						{{ (item.axis[0].integral + item.axis[1].integral + item.axis[2].integral).toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[0].integral="{ item }">
+						{{ item.axis[0].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[1].integral="{ item }">
+						{{ item.axis[1].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[2].integral="{ item }">
+						{{ item.axis[2].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.date="{ item }">
+						{{ timestampToString(item.date) }}
+				</template>
 			</v-data-table>
 		</v-row>
 
 		<v-row>
-			Result frequency, damping
-		</v-row>
-
-		<v-row>
 				<v-col class="ma-2" id="runAndRecommend">
-					<v-btn @click="runRecommendation(record)"
+					<v-btn
+						@click="runRecommendation(record)"
 						:disabled="state != states.IDLE || isRunButtonDisabled"
-						><v-icon>mdi-play</v-icon>
+						><v-icon>mdi-hand-extended</v-icon>  {{ $t('plugins.inputShaping.runRecommendation') }}
 					</v-btn>
-					<v-btn @click="$emit('input', algorithm)"
-						:disabled="false"
-						><v-icon>mdi-plus-outline</v-icon>
+					<v-btn
+						@click="emitAlgorithm"
+						:disabled="!record || records.find(elem => record === elem)"
+						><v-icon>mdi-plus-outline</v-icon>  {{ $t('plugins.inputShaping.addToTest') }}
+					</v-btn>
+					<v-btn
+						@click="deleteRecommendation(record)"
+						:disabled="!record || records.find(elem => record === elem)"
+						><v-icon>mdi-trash-can-outline</v-icon>  {{ $t('plugins.inputShaping.delete') }}
 					</v-btn>
 				</v-col>
 		</v-row>
 
-		<chart v-bind:records="null"></chart>
+		<chart v-bind:records="recordList"></chart>
+
+		<v-row>
+			<algorithm v-for="(score, index) in scores"
+					v-bind:key="index"
+					:algorithm="score.algo"
+					v-on:update="updateAlgorithm(index, change)"
+					v-on:remove="deleteScore(index)"
+			></algorithm>
+
+			<div v-for="(score) in scores" v-bind:key="score.id">
+				{{ score.algo }} {{ score.score }}
+			</div>
+		</v-row>
+
 
 	</div>
 </template>
@@ -56,7 +88,7 @@
 import { mapState, mapActions } from 'vuex';
 
 import recommend from './recommend.js';
-import { Algorithm } from './InputShapingSession.js'
+import { Algorithm, Record } from './InputShapingSession.js'
 import { makeNotification } from '../../utils/toast.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
@@ -66,7 +98,7 @@ const states = {
 }
 
 export default {
-	props: [ 'algorithm', 'records' ],
+	props: [ 'records' ],
 	data() {
 		return {
 			verbose: false,
@@ -88,13 +120,20 @@ export default {
 					value: 'name',
 				},
 				{ text: 'type', value: 'config.type' },
-				{ text: 'config', value: 'config.id' },
+				{ text: 'id', value: 'config.id' },
+				{ text: 'frequency', value: 'config.frequency' },
+				{ text: 'damping', value: 'config.damping' },
 				{ text: 'date', value: 'date' },
+				{ text: 'integral', value: 'axis' },
+				{ text: 'x.integral', value: 'axis[0].integral' },
+				{ text: 'y.integral', value: 'axis[1].integral' },
+				{ text: 'z.integral', value: 'axis[2].integral' },
 				{ text: 'samples', value: 'samples' },
 				{ text: 'samplingRate', value: 'samplingRate' },
 			],
 
-			selectedRecords: null,
+			selectedRecords: [],
+			recommendations: [],
 		}
 
 	},
@@ -114,11 +153,30 @@ export default {
 				return this.selectedRecords[0];
 
 			return null;
-		}
+		},
+		recordList() {
+			try {
+				return this.records.concat(this.recommendations);
+			} catch (e) {
+				console.warn("no valid records found");
+			}
+
+			return this.records;
+		},
 	},
 	methods: {
 		...mapActions('machine', [ 'sendCode' ]),
 
+		timestampToString(value) {
+			let date = new Date(value);
+
+			return date.toLocaleString();
+		},
+		emitAlgorithm() {
+			if (!this.record || !this.record.config)
+				return;
+			this.$emit('input', this.record.config);
+		},
 		async runRecommendation(record) {
 			console.log("run recommendation");
 
@@ -132,24 +190,25 @@ export default {
 			];
 
 			let scores = [];
+			let recommendations = [];
 
 			try {
 				// test all available algorithms
 				for (let iType = 0; iType < types.length; iType++) {
+					let type = types[iType];
+					let samplingRate = record.samplingRate;
+
 					// test all max amplitudes at there specific frequency
-					for (let iAxis = 0; iAxis < record.axis.length; iAxis++) {
+					for (let iAxis = 0; iAxis < record.axis.length ? 1 : 0; iAxis++) {
 
-						let type = types[iType];
-						let axis = record.axis[iAxis];
 						let freq = record.axis[iAxis].maxAmplitudes[0].freq;
-						let samplingRate = record.samplingRate;
 
-						let algo = new Algorithm(type, freq, 0.1, 0);
+						let algo = new Algorithm(type, "recommended", freq, 0.1, 0);
 
-						//   configure algorihtm is part of recorder
+						// configure algorihtm is part of recorder
 						this.configureAlgorithm(algo);
 
-						// TODO improve waiting for object model
+						// improve waiting for object model
 						await new Promise((resolve) => {
 							setTimeout(function() {
 								console.log("waiting finished");
@@ -157,11 +216,17 @@ export default {
 							}, 500);
 						});
 
-						//   store shaping parameters
+						// store shaping parameters
 						let params = {
 							amplitudes: this.move.shaping.amplitudes.slice(),
 							durations: this.move.shaping.amplitudes.slice(),
 						}
+
+						console.log("do recommendation for",
+							record.axis[iAxis].name,
+							record.axis[iAxis].maxAmplitudes[0],
+							params
+						);
 
 
 						let recordShaped = recommend.analyze(
@@ -173,10 +238,29 @@ export default {
 							params.durations
 						);
 
+						console.log("creating new records");
+						let rec = new Record(record.name + "+" + algo.type, algo);
+
 						//   calculate score of path, i.e. max peak, integral of psd or fft
 						let score = recommend.calculateScore(recordShaped);
 
-						scores.push({ algo, score })
+						scores.push({ algo, score });
+
+						let samples = 0;
+						try {
+							samples = record.axis[0].acceleration.length;
+						} catch (e) {
+							samples = 0;
+						}
+						rec.addParameters(samples, samplingRate, 0, []);
+						rec.addAxis('X', recordShaped.x);
+						rec.addAxis('Y', recordShaped.y);
+						rec.addAxis('Z', recordShaped.z);
+
+						rec.analyze();
+
+						recommendations.push(rec);
+						console.log("added", rec);
 					}
 				}
 			} catch (error) {
@@ -184,11 +268,22 @@ export default {
 				throw error;
 			}
 
-			console.log("scores", scores);
+			this.scores = scores;
+			this.recommendations = recommendations;
+
+			console.log("scores", this.scores, "recommendations", this.recommendations);
 			console.log("reference",
 				recommend.sumAndMax(record.axis[0].acceleration),
 				recommend.sumAndMax(record.axis[1].acceleration),
 				recommend.sumAndMax(record.axis[2].acceleration));
+		},
+
+		async deleteRecommendation(record) {
+			let index = this.recommendations.findIndex(elem => elem.id === record.id);
+			if (index < 0)
+				return;
+
+			this.recommendations.splice(index, 1);
 		},
 
 		async configureAlgorithm(algorithm) {
@@ -198,7 +293,6 @@ export default {
 
 			try {
 				let result = await this.sendCode({ code: code, fromInput: this.verbose, log: true });
-				console.log(result);
 				if (result) {
 					console.error(typeof result, result);
 					throw new Error('failed to configure inputshaping. ' + result);
@@ -211,6 +305,9 @@ export default {
 			return;
 		},
 
+		deleteScore(index) {
+			this.scores.slice(index, 1);
+		},
 	},
 	mounted() {
 	},
