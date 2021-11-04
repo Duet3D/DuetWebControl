@@ -25,7 +25,7 @@
 				show-select
 				>
 				<template v-slot:item.axis="{ item }">
-						{{ (item.axis[0].integral + item.axis[1].integral + item.axis[2].integral).toFixed(4) }}
+						{{ (item.allIntegral).toFixed(4) }}
 				</template>
 				<template v-slot:item.axis[0].integral="{ item }">
 						{{ item.axis[0].integral.toFixed(4) }}
@@ -159,7 +159,7 @@ export default {
 				{ text: 'frequency', value: 'config.frequency' },
 				{ text: 'damping', value: 'config.damping' },
 				{ text: 'date', value: 'date' },
-				{ text: 'integral', value: 'axis' },
+				{ text: 'integral', value: 'allIntegral' },
 				{ text: 'x.integral', value: 'axis[0].integral' },
 				{ text: 'y.integral', value: 'axis[1].integral' },
 				{ text: 'z.integral', value: 'axis[2].integral' },
