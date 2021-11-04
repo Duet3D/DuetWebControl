@@ -19,7 +19,7 @@
 				v-model="selectedRecords"
 				class="py-0"
 				:headers="recordTable"
-				:items="recordList"
+				:items="records"
 				:items-per-page="20"
 				:single-select="true"
 				show-select
@@ -46,17 +46,50 @@
 				<v-col class="ma-2" id="runAndRecommend">
 					<v-btn
 						@click="runRecommendation(record)"
-						:disabled="state != states.IDLE || isRunButtonDisabled"
+						:disabled="isRunButtonDisabled"
 						><v-icon>mdi-hand-extended</v-icon>  {{ $t('plugins.inputShaping.runRecommendation') }}
 					</v-btn>
+				</v-col>
+		</v-row>
+
+		<v-row>
+			<v-data-table
+				v-model="selectedRecommendations"
+				class="py-0"
+				:headers="recordTable"
+				:items="recommendations"
+				:items-per-page="20"
+				:single-select="false"
+				show-select
+				>
+				<template v-slot:item.allIntegral="{ item }">
+						{{ (item.allIntegral).toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[0].integral="{ item }">
+						{{ item.axis[0].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[1].integral="{ item }">
+						{{ item.axis[1].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.axis[2].integral="{ item }">
+						{{ item.axis[2].integral.toFixed(4) }}
+				</template>
+				<template v-slot:item.date="{ item }">
+						{{ timestampToString(item.date) }}
+				</template>
+			</v-data-table>
+		</v-row>
+
+		<v-row>
+				<v-col class="ma-2" id="runAndRecommend">
 					<v-btn
-						@click="emitAlgorithm"
-						:disabled="!record || records.find(elem => record === elem)"
+						@click="emitAlgorithms"
+						:disabled="!selectedRecommendations.length"
 						><v-icon>mdi-plus-outline</v-icon>  {{ $t('plugins.inputShaping.addToTest') }}
 					</v-btn>
 					<v-btn
-						@click="deleteRecommendation(record)"
-						:disabled="!record || records.find(elem => record === elem)"
+						@click="deleteRecommendation()"
+						:disabled="!selectedRecommendations.length"
 						><v-icon>mdi-trash-can-outline</v-icon>  {{ $t('plugins.inputShaping.delete') }}
 					</v-btn>
 				</v-col>
@@ -107,6 +140,8 @@ export default {
 			states: states,
 			state: states.IDLE,
 
+			scores: [],
+
 			alert: {
 				message: "please choose a record",
 				type: "info",
@@ -133,6 +168,7 @@ export default {
 			],
 
 			selectedRecords: [],
+			selectedRecommendations: [],
 			recommendations: [],
 		}
 
@@ -140,7 +176,8 @@ export default {
 	computed: {
 		...mapState('machine/model', ['move']),
 		isRunButtonDisabled() {
-			if (!this.record ||
+			if (this.state !== this.states.IDLE ||
+					!this.record ||
 					!this.record.config ||
 					!this.record.config.type
 					!== !this.InputShapingType.none)
@@ -156,12 +193,12 @@ export default {
 		},
 		recordList() {
 			try {
-				return this.records.concat(this.recommendations);
+				return this.selectedRecords.concat(this.selectedRecommendations);
 			} catch (e) {
 				console.warn("no valid records found");
 			}
 
-			return this.records;
+			return [];
 		},
 	},
 	methods: {
@@ -172,10 +209,10 @@ export default {
 
 			return date.toLocaleString();
 		},
-		emitAlgorithm() {
+		emitAlgorithms() {
 			if (!this.record || !this.record.config)
 				return;
-			this.$emit('input', this.record.config);
+			this.$emit('input', this.selectedRecommendations.map(elem => elem.config));
 		},
 		async runRecommendation(record) {
 			console.log("run recommendation");
@@ -203,7 +240,7 @@ export default {
 
 						let freq = record.axis[iAxis].maxAmplitudes[0].freq;
 
-						let algo = new Algorithm(type, "recommended", freq, 0.1, 0);
+						let algo = new Algorithm(type, record.name + "+" + type, freq, 0.1, 0);
 
 						// configure algorihtm is part of recorder
 						this.configureAlgorithm(algo);
@@ -278,12 +315,16 @@ export default {
 				recommend.sumAndMax(record.axis[2].acceleration));
 		},
 
-		async deleteRecommendation(record) {
-			let index = this.recommendations.findIndex(elem => elem.id === record.id);
-			if (index < 0)
-				return;
+		async deleteRecommendation() {
+			this.selectedRecommendations.forEach(record => {
+				let index = this.recommendations.findIndex(elem => elem === record);
+				if (index < 0)
+					return;
 
-			this.recommendations.splice(index, 1);
+				this.recommendations.splice(index, 1);
+			});
+
+			this.selectedRecommendations = [];
 		},
 
 		async configureAlgorithm(algorithm) {
