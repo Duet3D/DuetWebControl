@@ -90,7 +90,7 @@
 					<v-btn
 						@click="emitAlgorithms"
 						:disabled="!selectedRecommendations.length"
-						><v-icon>mdi-plus-outline</v-icon>  {{ $t('plugins.inputShaping.addToTest') }}
+						><v-icon>mdi-plus-outline</v-icon>  {{ $t('plugins.inputShaping.addAlgorithmToSession') }}
 					</v-btn>
 					<v-btn
 						@click="deleteRecommendation()"
