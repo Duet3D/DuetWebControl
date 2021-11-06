@@ -266,7 +266,7 @@ export default {
 				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			}
 
-			return {width, height};
+			return { width, height };
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
