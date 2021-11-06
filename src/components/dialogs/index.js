@@ -2,6 +2,7 @@
 
 import Vue from 'vue'
 
+import ConfigUpdatedDialog from './ConfigUpdatedDialog.vue'
 import ConfirmDialog from './ConfirmDialog.vue'
 import ConnectDialog from './ConnectDialog.vue'
 import ConnectionDialog from './ConnectionDialog.vue'
@@ -17,6 +18,7 @@ import PluginInstallDialog from './PluginInstallDialog.vue'
 import ResetHeaterFaultDialog from './ResetHeaterFaultDialog.vue'
 import FileTransferDialog from './FileTransferDialog.vue'
 
+Vue.component('config-updated-dialog', ConfigUpdatedDialog)
 Vue.component('confirm-dialog', ConfirmDialog)
 Vue.component('connect-dialog', ConnectDialog)
 Vue.component('connection-dialog', ConnectionDialog)

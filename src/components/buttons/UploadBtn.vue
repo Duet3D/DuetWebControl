@@ -13,7 +13,7 @@
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
 		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate"></firmware-update-dialog>
-		<confirm-dialog :shown.sync="confirmReset" :title="$t('dialog.update.resetTitle')" :prompt="$t('dialog.update.resetPrompt')" @confirmed="reset"></confirm-dialog>
+		<config-updated-dialog :shown.sync="confirmReset"></config-updated-dialog>
 	</div>
 </template>
 
@@ -413,10 +413,6 @@ export default {
 
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
 			this.confirmReset = (modules.indexOf('0') === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
-		},
-		async reset() {
-			this.confirmReset = false;
-			await this.sendCode('M999');
 		},
 		dragOver(e) {
 			e.preventDefault();

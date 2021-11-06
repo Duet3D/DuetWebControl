@@ -333,6 +333,14 @@ export class InputChannel {
 export class Kinematics {
 	constructor(initData) { quickPatch(this, initData); }
 	name = KinematicsName.unknown
+	#segmentation = null
+	get segmentation() { return this.#segmentation; }
+	set segmentation(value) {
+		if (value !== null) {
+			fixObject(value, new MoveSegmentation());
+		}
+		this.#segmentation = value;
+	}
 }
 
 export class ZLeadscrewKinematics extends Kinematics {
@@ -445,6 +453,11 @@ export class MoveQueueItem {
 	constructor(initData) { quickPatch(this, initData); }
 	gracePeriod = 0
 	length = 0
+}
+
+export class MoveSegmentation {
+	segmentsPerSec = 0
+	minSegmentLength = 0
 }
 
 export class NetworkInterface {

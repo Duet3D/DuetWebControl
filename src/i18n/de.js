@@ -153,8 +153,10 @@ export default {
 			prompt: 'Bitte geben Sie einen neuen Wert für den angeklickten Bewegungsbutton ein:'
 		},
 		configUpdated: {
-			title: 'Board neu starten?',
-			prompt: 'Möchten Sie das Board neu starten um die aktualisierte Konfiguration zu übernehmen?'
+			title: 'Neue Konfiguration übernehmen?',
+			prompt: 'Möchten Sie das Mainboard neu starten oder die Konfigurationsdatei erneut ausführen? Sofern sich IO-Zuweisungen oder Motorzuordnungen geändert haben wird ein Neustart empfohlen.',
+			reset: 'Mainboard neustarten',
+			runConfig: 'Konfigurationsdatei ausführen'
 		},
 		connect: {
 			title: 'Zu Maschine verbinden',
