@@ -1,4 +1,4 @@
-// 注释：用于3.3RC版本，2021-5-11 加速度计部分测试翻译，没有相关设备
+// 注释：从3.3RC版本升级到3.4cm6，截止更新到Commits on Aug 26, 2021
 // 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
@@ -98,7 +98,7 @@ export default {
 				caption: '上传并开始',
 				title: '上传和开始一个或多个G-Code文件（支持拖放）'
 			},
-			firmware: {//3.3新增
+			firmware: {
 				caption: '上传固件文件',
 				title: '上传和开始一个或多个固件文件（支持拖放）'	 
 			},
@@ -245,7 +245,7 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: '依赖',
 			version: '版本{0}',
-			noPluginSupport: '不允许使用机器专用插件',//3.3rc2之后修改，其他位置“第三方”未修改
+			noPluginSupport: '不允许使用外部插件',//3.4cm6再次修改，其他位置翻译 第三方
 			rootSupport: '支持超级用户插件',
 			invalidManifest: '无效插件清单',
 			permissions: '需要权限',
@@ -305,6 +305,7 @@ export default {
 		notImplemented: '{0}没有实施',
 		invalidPassword: '无效的密码！',
 		noFreeSession: '没有更多的空闲会话！',
+		badVersion: '不兼容的固件版本',//3.4cm6新增
 		connect: '无法连接到{0}',
 		disconnect: '无法与{0}彻底断开连接',
 		disconnected: '无法完成操作，因为连接已终止',
@@ -366,6 +367,7 @@ export default {
 			pausing: '正在暂停',
 			paused: '已暂停',
 			resuming: '正在恢复',
+			cancelling: '正在取消',//3.4cm6新增
 			printing: '正在打印',
 			processing: '正在处理',
 			simulating: '正在模拟',
@@ -429,7 +431,7 @@ export default {
 			downloadText: '下载为文本文件',
 			downloadCSV: '下载为CSV格式'
 		},
-		filament: {//3.3
+		filament: {
 			noFilaments: '没有细丝配置文件'
 		},
 		firmware: {
@@ -643,7 +645,8 @@ export default {
 			runMesh: '运行网格补偿(G29)',
 			loadMesh: '从SD卡加载已保存的高度图(G29 S1)',
 			axesNotHomed: '以下轴未归位：|以下轴未归位：',
-			noAxes: '没有轴'
+			noAxes: '没有轴',
+			workzero: '归零'//3.4cm6新增
 		},
 		settingsAbout: {
 			caption: '关于',
@@ -658,12 +661,13 @@ export default {
 			binaryFileSizes: '使用二进制文件大小',
 			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基准显示',
 			disableAutoComplete: '禁用自动完成',
-			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表'
+			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表',
+			dashboardModeTitle : '控制面板模式'//3.4cm6新增
 		},
 		settingsCommunication: {
 			caption: '通讯',
 			pingInterval: '空闲时的PING间隔（ms）',
-			updateDelay: '更新延迟（ms）',									
+			updateDelay: '更新延迟（ms）',
 			ajaxRetries: '最大AJAX重试次数',
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
@@ -725,6 +729,18 @@ export default {
 		},
 		speedFactor: {
 			caption: '速度系数'
+		},
+		spindle: {//3.4cm6新增 整个大括号内容
+			title : '主轴',
+			spindle : '主轴',
+			active : '工作',
+			direction : '方向',
+			currentRPM : '当前转数',
+			setRPM : '设定转数',
+			on : '开',
+			off : '关',
+			forward : '正转',
+			reverse : '反转'
 		},
 		status: {
 			caption: '状态',
@@ -833,7 +849,7 @@ export default {
 			accelerations: '加速度（g）',
 			sampleTooltip: '样本 #{0}',
 			frequencyTooltip: '{0} ± {1} Hz'
-		},//3.3end
+		},
 		autoUpdate: {
 			menuCaption: '更新'
 		},
@@ -851,11 +867,11 @@ export default {
 				caption : '重新加载预览',
 				title : '重新载入当前G-Code文件，当更改模型颜色、进给率颜色等设置时，需要重新加载当前G-Code文件。'
 			},
-			loadCurrentJob:  { 
-				caption :'载入当前任务',  
+			loadCurrentJob: { 
+				caption :'载入当前任务',
 				title : '载入当前正在打印或者正在模拟的任务'
 			},
-			unloadGCode:  { 
+			unloadGCode: { 
 				caption: '卸载G-Code文件',
 				title : '从查看器移除已加载的G-Code文件'
 			},
@@ -880,7 +896,7 @@ export default {
 			showSolid: '显示实心',
 			spreadLines: '展开线条',
 			extruders: {
-				caption:  '挤出机',
+				caption: '挤出机',
 				title : '设置挤出机渲染颜色'
 			},
 			tool: '工具{0}',
@@ -905,7 +921,7 @@ export default {
 			liveZTracking: '实时Z追踪',
 			settings: '设置',
 			background: '背景',
-			bedRenderMode:  '热床渲染模式',
+			bedRenderMode: '热床渲染模式',
 			bed: '热床',
 			volume: '体积',
 			showAxes: '显示轴',
@@ -916,6 +932,7 @@ export default {
 				title : '如果可以在当前打印中检测到对象则启用'
 			},
 			renderFailed: '上一次渲染失败，将渲染质量设置为单板机（SBC）。',
+			showFSOverlay : '全屏显示'//3.4cm6新增，待修正
 		},
 		heightmap: {
 			menuCaption: '高度图',
@@ -939,6 +956,10 @@ export default {
 			heat: '热力',
 			invertZ: '翻转Z轴坐标',
 			topView: '顶视图',
+			range : '范围',//3.4cm6新增
+			fixed : '固定',//3.4cm6新增，待确认
+			deviation : '偏差',//3.4cm6新增
+			resetView : '重置视图'//3.4cm6新增
 		},
 		objectModelBrowser: {
 			menuCaption: '对象模型'
@@ -952,8 +973,8 @@ export default {
 			caption: '常规'
 		},
 		plugins: {
-			generalCaption: '内置插件',
-			machineCaption: '机器专用插件',//3.3rc2之后修改									 
+			generalCaption: '集成插件',//3.4cm6修改文本
+			machineCaption: '外部插件',//3.4cm6修改文本
 			headers: {
 				name: '名称',
 				author: '作者',
