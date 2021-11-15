@@ -289,9 +289,9 @@ export default {
 			title: '安装更新？',
 			prompt: '你已上传至少一个固件更新。你想现在安装吗？',
 			resetTitle: '要重置固件吗？',
-			resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？'
+			resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？',
 			sbcWarning: '你正在单板机（SBC）模式下操作机器，请仅在固件开发人员建议的情况下使用 DWC 升级固件。'//3.4-dev新增
-			},
+        },
 		inputRequired: '请输入一个值',
 		numberRequired: '请输入有效的数值'
 	},

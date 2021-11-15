@@ -9,7 +9,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build-plugin": "scripts/build-plugin",
+    "build-plugin": "node scripts/build-plugin.js",
     "report": "vue-cli-service build --report",
     "lint": "vue-cli-service lint"
   },
