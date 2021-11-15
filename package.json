@@ -9,6 +9,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "build-plugin": "scripts/build-plugin",
     "report": "vue-cli-service build --report",
     "lint": "vue-cli-service lint"
   },
@@ -44,6 +45,7 @@
     "@vue/cli-plugin-eslint": "^4.5.15",
     "@vue/cli-plugin-pwa": "^4.5.15",
     "@vue/cli-service": "^4.5.15",
+    "archiver": "^5.3.0",
     "babel-eslint": "^10.1.0",
     "babel-plugin-prismjs": "^2.0.1",
     "babel-plugin-transform-builtin-extend": "^1.1.2",

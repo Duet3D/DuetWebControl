@@ -115,5 +115,6 @@ export default [
 			'./OnScreenKeyboard/index.js'
 		)
 	}),
+	// #DWC_PLUGIN# <- this marker is used by the plugin build script, leave it here
 	// Add your own plugins here during development...
 ]
