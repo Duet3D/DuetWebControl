@@ -82,7 +82,7 @@ export default {
 	watch: {
 		language() {
 			if (this.domain === this.domains.TIME) {
-				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.samples');
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.timeAxis');
 				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
 			} else {
 				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
@@ -349,7 +349,7 @@ export default {
 						display: true,
 						scaleLabel: {
 							display: true,
-							labelString: this.$t('plugins.inputShaping.samples')
+							labelString: this.$t('plugins.inputShaping.timeAxis')
 						},
 
 						gridLines: {
