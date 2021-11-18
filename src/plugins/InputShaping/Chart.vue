@@ -83,13 +83,7 @@ export default {
 	},
 	watch: {
 		language() {
-			if (this.domain === this.domains.TIME) {
-				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.timeAxis');
-				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
-			} else {
-				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
-				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
-			}
+			this.updateAxisNames();
 
 			this.chart.update();
 		},
@@ -131,6 +125,15 @@ export default {
 				dataset.hidden = res ? false : true;
 				console.log(dataset.label, res, dataset.hidden);
 			});
+		},
+		updateAxisNames() {
+			if (this.domain === this.domains.TIME) {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.timeAxis');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
+			} else {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
+			}
 		},
 		testChart() {
 
@@ -183,11 +186,14 @@ export default {
 
 			let labels = [];
 
+			this.updateAxisNames()
+
 			if (this.records.length > 0) {
 			// chart update code works on record
 				let samples = this.records[0].samples;
+				this.samplingRate = this.records[0].samplingRate;
 				for (let i = 0; i < samples; i++) {
-					labels.push(i);
+					labels.push((i / this.samplingRate).toFixed(2));
 				}
 			}
 
@@ -199,9 +205,6 @@ export default {
 			this.records.forEach((rec, recIndex) => {
 
 				console.log("updating chart for", recIndex, rec);
-
-				if (recIndex === 0)
-					this.samplingRate = this.records.samplingRate;
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
@@ -238,6 +241,8 @@ export default {
 			this.domain = this.domains.FREQUENCY;
 
 			let labels = [];
+
+			this.updateAxisNames()
 
 			if (this.records.length > 0) {
 			// chart update code works on record
