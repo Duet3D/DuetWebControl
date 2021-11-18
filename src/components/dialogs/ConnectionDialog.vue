@@ -1,5 +1,5 @@
 <template>
-	<v-dialog :value="shown" persistent width="480">
+	<v-dialog :value="shown" :persistent="!(displayReset && isConnected)" width="480">
 		<v-card color="primary" dark>
 			<v-card-title class="subtitle-1">
 				{{ message }}

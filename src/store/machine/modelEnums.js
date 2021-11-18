@@ -155,8 +155,10 @@ export const LogLevel = {
 
 export const InputShapingType = {
 	none: 'none',
+	MZV: 'mzv',
 	ZVD: 'zvd',
 	ZVDD: 'zvdd',
+	ZVDDD: 'zvddd',
 	EI2: 'ei2',
 	EI3: 'ei3'
 }

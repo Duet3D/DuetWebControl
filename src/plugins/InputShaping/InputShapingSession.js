@@ -4,14 +4,21 @@ import CSV from '../../utils/csv.js'
 import { transform } from './fft.js';
 import { InputShapingType } from '../../store/machine/modelEnums.js';
 
+const SHAPING_FREQ_MIN = 10;
+const SHAPING_FREQ_MAX = 120;
+
 export class Algorithm {
-	constructor(type, frequency = 8, damping = 0.1, minAcceleration = 0) {
+	constructor(type, name=null, frequency = 8, damping = 0.1, minAcceleration = 0) {
 		this.id = Math.random().toString(16).substr(2, 8);
 
-		this.type = type;
-		this.frequency = frequency;
+		this.name = name;
+		if (!name)
+			this.name = this.id;
+
 		this.damping = damping;
+		this.frequency = frequency;
 		this.minAcceleration = minAcceleration;
+		this.type = type;
 	}
 
 	validate() {
@@ -65,13 +72,19 @@ export class Record {
 			this.name = this.id;
 
 		this.date = date;
+		this.config = config;
+
 		this.samples = null;
 		this.samplingRate = null;
 		this.wideband = false;
-		this.config = config;
 		this.overflows = null;
 		this.frequencies = [];
+		this.allIntegral = 0;
 		this.axis = [];
+		this.parameter = {
+			amplitudes: [],
+			durations: []
+		}
 	}
 
 	stringify() {
@@ -87,12 +100,45 @@ export class Record {
 		this.wideband = record.wideband;
 		this.config = record.config;
 		this.frequencies = record.frequencies;
+		this.allIntegral = record.allIntegral;
 		this.axis = record.axis;
 
 		return this;
 	}
 
-	parse(file) {
+	addAlgorithmParameter(amplitudes, durations) {
+		if (!amplitudes || !durations) {
+			throw new Error("invalid parameter");
+		}
+
+		// create copies of parameter lists
+		this.parameter.amplitudes = amplitudes.slice();
+		this.parameter.durations = durations.slice();
+	}
+
+	setName(name) {
+		this.name = name;
+	}
+
+	addParameters(samples, samplingRate, overflows, frequencies) {
+		this.samples = samples;
+		this.samplingRate = samplingRate;
+		this.overflows = overflows;
+		this.frequencies = frequencies;
+	}
+
+	addAxis(name, data) {
+		console.log("TODO add axis", axis);
+		let axis = {
+			name: name,
+			acceleration: data,
+			integral: 0,
+			amplitudes: []
+		};
+		this.axis.push(axis);
+	}
+
+	parseCSV(file) {
 
 		try {
 			// Load the CSV
@@ -104,7 +150,7 @@ export class Record {
 			// Extract details
 			this.samples = csv.content.length - 1;
 
-			const details = /Rate (\d+) overflows (\d)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
+			const details = /Rate (\d+),? overflows (\d+)/.exec(csv.content[csv.content.length - 1].reduce((a, b) => a + b));
 			if (!details) {
 				console.error("details missing");
 				throw new Error('Failed to read rate and overflows');
@@ -116,8 +162,6 @@ export class Record {
 
 			this.axis = [];
 			for (let col = 1; col < csv.headers.length; col++) {
-
-				console.log("filling axis", col);
 
 				let axis = {
 					name: csv.headers[col],
@@ -167,10 +211,10 @@ export class Record {
 		}
 
 		this.frequencies = frequencies;
-
+		this.allIntegral = 0;
 		// Perform frequency analysis for visible datasets
 		for (let i = 0; i < this.axis.length; i++) {
-			const real = this.axis[i].acceleration.map(e => e);
+			const real = this.axis[i].acceleration.slice();
 			const imag = new Array(real.length);
 			imag.fill(0);
 			transform(real, imag);
@@ -186,6 +230,18 @@ export class Record {
 				this.axis[i].amplitudes[k] = (Math.sqrt(real[k + 1] * real[k + 1] + imag[k + 1] * imag[k + 1]) / numPoints);
 				this.axis[i].integral += this.axis[i].amplitudes[k];
 			}
+
+			this.allIntegral += this.axis[i].integral;
+
+			// find the top frequencies and their amplitudes
+			this.axis[i].maxAmplitudes =
+				this.axis[i].amplitudes.map((elem, idx) => {
+					return { freq: this.frequencies[idx], amp: elem };
+				}).sort((first, second) => {
+					return first.amp < second.amp;
+				}).filter(elem => {
+					return elem.freq > SHAPING_FREQ_MIN && elem.freq < SHAPING_FREQ_MAX;
+				}).slice(0, 5);
 		}
 
 		return this.axis;
@@ -205,6 +261,13 @@ export class Record {
 	getAmplitudes(index) {
 		if (index >= 0 && index < this.axis.length)
 			return this.axis[index].amplitudes;
+
+		return null;
+	}
+
+	getMaxAmplitudes(index) {
+		if (index >= 0 && index < this.axis.length)
+			return this.axis[index].maxAmplitudes;
 
 		return null;
 	}
@@ -315,5 +378,21 @@ export class Session {
 
 	getAllRecords() {
 		return this.records;
+	}
+
+	addAlgorithm(algorithm) {
+		let index = this.algorithms.findIndex(elem => elem === algorithm);
+		if (index >= 0)
+			return;
+
+		this.algorithms.push(algorithm);
+	}
+
+	removeAlgorithm(algorithm) {
+		let index = this.algorithms.findIndex(elem => elem === algorithm);
+		if (index < 0)
+			return;
+
+		this.algorithms.splice(index, 1);
 	}
 }

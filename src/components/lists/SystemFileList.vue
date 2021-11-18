@@ -65,7 +65,7 @@
 
 		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
-		<confirm-dialog :shown.sync="showResetPrompt" :title="$t('dialog.configUpdated.title')" :prompt="$t('dialog.configUpdated.prompt')" @confirmed="resetBoard"></confirm-dialog>
+		<config-updated-dialog :shown.sync="showResetPrompt"></config-updated-dialog>
 	</div>
 </template>
 
@@ -161,13 +161,6 @@ export default {
 			if (!isPrinting(this.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
 				// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been edited
 				this.showResetPrompt = true;
-			}
-		},
-		async resetBoard() {
-			try {
-				await this.sendCode({ code: 'M999', log: false });
-			} catch (e) {
-				// this is expected
 			}
 		},
 		async installFile() {

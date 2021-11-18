@@ -23,6 +23,9 @@
 			<v-tab href="#analysis" :disabled="!session || !session.records.length">
 				<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t('plugins.inputShaping.analysis') }}
 			</v-tab>
+			<v-tab href="#recommendation" :disabled="!session || !session.records.length">
+				<v-icon class="mr-1">mdi-hand-extended</v-icon> {{ $t('plugins.inputShaping.recommend') }}
+			</v-tab>
 		</v-tabs>
 
 		<v-tabs-items v-model="selectedTab">
@@ -41,9 +44,18 @@
 				<recorder v-if="session && !!session.algorithms.length" :session="session"></recorder>
 			</v-tab-item>
 
-			<!-- Profile Analysis -->
+			<!-- Analysis -->
 			<v-tab-item value="analysis" eager class="pa-3">
-				<chart v-if="session && !!session.records.length" :session="session"></chart>
+				<analysis v-if="session && !!session.records.length" :session="session"></analysis>
+			</v-tab-item>
+
+			<!-- Recommendation -->
+			<v-tab-item value="recommendation" eager class="pa-3">
+				<recommendation v-if="session && !!session.records.length"
+					:algorithm="algorithm"
+					v-on:input="addAlgorithmToSession($event)"
+					:records="session.records"></recommendation>
+				<!--<recommendation v-model="algorithm" :records="testRecords"></recommendation>-->
 			</v-tab-item>
 		</v-tabs-items>
 
@@ -66,6 +78,8 @@ export default {
 	data() {
 		return {
 			selectedTab: 'initialize',
+
+			algorithm: null,
 
 			rules: {
 			},
@@ -93,6 +107,16 @@ export default {
 
 			this.recordList.splice(index, 1);
 		},
+		addAlgorithmToSession(algorithms) {
+			console.log("algorithms were emitted", algorithms);
+
+			if (!this.session)
+				return;
+
+			algorithms.forEach(algorithm => {
+				this.session.addAlgorithm(algorithm);
+			});
+		}
 	},
 
 	mounted() {

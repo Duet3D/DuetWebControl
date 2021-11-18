@@ -153,8 +153,10 @@ export default {
 			prompt: 'Please enter a new value for the clicked move button:'
 		},
 		configUpdated: {
-			title: 'Reset board?',
-			prompt: 'Would you like to restart your board to apply the updated configuration?'
+			title: 'Apply new configuration?',
+			prompt: 'Would you like to restart the mainboard or execute the configuration file again? It is advised to reset the mainboard if you removed IO ports or changed driver allocations.',
+			reset: 'Restart Mainboard',
+			runConfig: 'Run Config File'
 		},
 		connect: {
 			title: 'Connect to Machine',
@@ -285,7 +287,8 @@ export default {
 			title: 'Install updates?',
 			prompt: 'You have uploaded at least one firmware update. Would you like to install them now?',
 			resetTitle: 'Reset firmware?',
-			resetPrompt: 'You have just installed expansion board updates. Do you want to reboot the main controller to restore the previous configuration?'
+			resetPrompt: 'You have just installed expansion board updates. Do you want to reboot the main controller to restore the previous configuration?',
+			sbcWarning: 'You are operating your machine in SBC mode. Please upgrade the firmware using DWC only if advised by the firmware developers.'
 		},
 		inputRequired: 'Please enter a value',
 		numberRequired: 'Please enter a valid number'

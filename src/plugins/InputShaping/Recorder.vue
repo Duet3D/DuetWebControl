@@ -23,6 +23,14 @@
 		</v-row>
 
 		<v-row>
+			<v-checkbox
+				class="pa-0 ml-2"
+				v-model="cleanupFiles"
+				:label="$t('plugins.inputShaping.cleanupFiles')"
+			></v-checkbox>
+		</v-row>
+
+		<v-row>
 			<v-col>
 				<form v-on:submit.prevent="runTests">
 					<v-btn :disabled="state !== RecorderStates.IDLE" color="primary" @click="runTests">
@@ -31,6 +39,7 @@
 				</form>
 			</v-col>
 		</v-row>
+
 	</div>
 </template>
 
@@ -61,6 +70,7 @@ export default {
 	data() {
 		return {
 			verbose: false,
+			cleanupFiles: true,
 
 			RecorderStates: RecorderStates,
 			state: RecorderStates.IDLE,
@@ -81,6 +91,7 @@ export default {
 	},
 	computed: {
 		...mapState('machine', ['model']),
+		...mapState('machine/model', ['move']),
 		allAxisHomed() {
 			let axisNotHomed = this.model.move.axes.filter(axes => axes.homed === false);
 
@@ -93,10 +104,20 @@ export default {
 			return this.model.boards.findIndex(elem => elem.canAddress === this.session.test.board);
 		},
 		accelerometerRuns() {
+			try {
 				return this.model.boards[this.accelerometerBoardIndex].accelerometer.runs;
+			} catch (e) {
+				console.warn("no valid accelerometer runs.", e);
+			}
+			return 0;
 		},
 		accelerometerPoints() {
+			try {
 				return this.model.boards[this.accelerometerBoardIndex].accelerometer.points;
+			} catch (e) {
+				console.warn("no valid accelerometer points.", e);
+			}
+			return 0;
 		},
 		currentState() {
 			return Object.keys(this.RecorderStates).find(key => this.RecorderStates[key] === this.state);
@@ -186,11 +207,14 @@ export default {
 					this.state = this.RecorderStates.PARSING;
 					let rec = new Record(JSON.stringify(i) + '-' + algo.type + '-' + this.session.id, algo);
 
-					rec.parse(file);
+					rec.addAlgorithmParameter(this.move.shaping.amplitudes, this.move.shaping.durations);
+					rec.parseCSV(file);
 					rec.analyze();
 
-					this.state = this.RecorderStates.DELETING;
-					resp = await this.delete(Path.combine(Path.accelerometer, filename));
+					if (this.cleanupFiles) {
+						this.state = this.RecorderStates.DELETING;
+						resp = await this.delete(Path.combine(Path.accelerometer, filename));
+					}
 
 					this.state = this.RecorderStates.STORING;
 					this.session.addRecord(rec);

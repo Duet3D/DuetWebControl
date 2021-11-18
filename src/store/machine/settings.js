@@ -37,7 +37,7 @@ export default function(connector, pluginSettingFields) {
 			},
 			moveFeedrate: 6000,							// mm/min
 			extruderAmounts: [100, 50, 20, 10, 5, 1],	// mm
-			extruderFeedrates: [60, 30, 15, 5, 1],		// mm/s
+			extruderFeedrates: [50, 10, 5, 2, 1],		// mm/s
 			temperatures: {
 				tool: {
 					active: [250, 235, 220, 205, 195, 160, 120, 100, 0],

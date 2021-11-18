@@ -153,8 +153,10 @@ export default {
 			prompt: 'Bitte geben Sie einen neuen Wert für den angeklickten Bewegungsbutton ein:'
 		},
 		configUpdated: {
-			title: 'Board neu starten?',
-			prompt: 'Möchten Sie das Board neu starten um die aktualisierte Konfiguration zu übernehmen?'
+			title: 'Neue Konfiguration übernehmen?',
+			prompt: 'Möchten Sie das Mainboard neu starten oder die Konfigurationsdatei erneut ausführen? Sofern sich IO-Zuweisungen oder Motorzuordnungen geändert haben wird ein Neustart empfohlen.',
+			reset: 'Mainboard neustarten',
+			runConfig: 'Konfigurationsdatei ausführen'
 		},
 		connect: {
 			title: 'Zu Maschine verbinden',
@@ -285,7 +287,8 @@ export default {
 			title: 'Updates installieren?',
 			prompt: 'Sie haben gerade mindestens ein Firmwareupdate hochgeladen. Möchten Sie diese jetzt installieren?',
 			resetTitle: 'Firmware zurücksetzen?',
-			resetPrompt: 'Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?'
+			resetPrompt: 'Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?',
+			sbcwarning: 'Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde.'
 		},
 		inputRequired: 'Bitte Wert eingeben',
 		numberRequired: 'Bitte gültige Zahl eingeben'
