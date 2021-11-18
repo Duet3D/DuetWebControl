@@ -71,6 +71,7 @@ export default {
 				{ text: 'z.integral', value: 'axis[2].integral' },
 				{ text: 'config', value: 'config.id' },
 				{ text: 'date', value: 'date' },
+				{ text: 'overflows', value: 'overflows' },
 				{ text: 'samples', value: 'samples' },
 				{ text: 'samplingRate', value: 'samplingRate' },
 			],
@@ -91,19 +92,12 @@ export default {
 		...mapGetters(['uiFrozen']),
 	},
 	watch: {
-		language() {
-			// TODO update chart
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.samples' : 'plugins.inputShaping.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.accelerations' : 'plugins.inputShaping.amplitudes');
-			this.chart.update();
-		},
 		'session.records': {
 			handler(value) {
 				this.recordList = value;
 			}
 		},
 		session() {
-			this.updateChart();
 		}
 	},
 	methods: {
@@ -115,7 +109,6 @@ export default {
 		deleteRecord(name) {
 			console.log("deleting", name);
 			this.session.removeRecord(name);
-			this.updateChart();
 		},
 		deleteRecordList() {
 			this.recordList.forEach(rec => this.deleteRecord(rec.name));

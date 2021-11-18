@@ -17,12 +17,14 @@
 
 		<v-row>
 			<v-col>
+				<v-btn-toggle>
 					<v-btn color="primary" @click="updateChartFft">
 						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
 					</v-btn>
 					<v-btn color="success" @click="updateChart">
 						<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
 					</v-btn>
+				</v-btn-toggle>
 			</v-col>
 			<v-col>
 				<v-icon class="mr-2">mdi-filter-outline</v-icon>
@@ -54,6 +56,11 @@ import Chart from 'chart.js';
 
 import { mapState, mapGetters } from 'vuex';
 
+const domains = {
+	TIME: 0,
+	FREQUENCY: 1,
+}
+
 export default {
 	props: [ 'records' ],
 	data() {
@@ -65,27 +72,37 @@ export default {
 			loading: false,
 			alertType: 'error',
 			alertMessage: null,
-			displaySamples: false,
 			samplingRate: null,
+
+			domains: domains,
+			domain: domains.TIME,
 		}
 	},
 	computed: {
-		...mapState('settings', ['darkTheme']),
+		...mapState('settings', ['darkTheme', 'language']),
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen']),
 	},
 	watch: {
 		language() {
-			// TODO update chart
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.samples' : 'plugins.inputShaping.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.accelerations' : 'plugins.inputShaping.amplitudes');
+			this.updateAxisNames();
+
 			this.chart.update();
 		},
 		checkedAxis() {
 			this.updateVisibility();
+			this.chart.update();
 		},
 		records() {
-			this.updateChart();
+
+			if (this.domain === this.domains.TIME) {
+				console.log("time domain", this.domain);
+				this.updateChart();
+			}
+			else {
+				console.log("freq domain", this.domain);
+				this.updateChartFft();
+			}
 		}
 	},
 	methods: {
@@ -110,7 +127,15 @@ export default {
 				dataset.hidden = res ? false : true;
 				console.log(dataset.label, res, dataset.hidden);
 			});
-			this.chart.update();
+		},
+		updateAxisNames() {
+			if (this.domain === this.domains.TIME) {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.timeAxis');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
+			} else {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
+			}
 		},
 		testChart() {
 
@@ -152,18 +177,25 @@ export default {
 
 			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
 
+			this.updateVisibility();
+
 			this.chart.update();
 		},
 
 		updateChart() {
 
+			this.domain = this.domains.TIME;
+
 			let labels = [];
+
+			this.updateAxisNames()
 
 			if (this.records.length > 0) {
 			// chart update code works on record
 				let samples = this.records[0].samples;
+				this.samplingRate = this.records[0].samplingRate;
 				for (let i = 0; i < samples; i++) {
-					labels.push(i);
+					labels.push((i / this.samplingRate).toFixed(2));
 				}
 			}
 
@@ -175,9 +207,6 @@ export default {
 			this.records.forEach((rec, recIndex) => {
 
 				console.log("updating chart for", recIndex, rec);
-
-				if (recIndex === 0)
-					this.samplingRate = this.records.samplingRate;
 
 				rec.axis.forEach((axis, index, arr) => {
 					const dataset = {
@@ -203,16 +232,19 @@ export default {
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.records.samples;
 
-			this.chart.update();
-
 			this.updateVisibility();
+
+			this.chart.update();
 
 			console.log("start", this.start, "end", this.end, "sampling rate", this.records.samplingRate);
 		},
 		updateChartFft() {
 
-			console.log("updateChartFft");
+			this.domain = this.domains.FREQUENCY;
+
 			let labels = [];
+
+			this.updateAxisNames()
 
 			if (this.records.length > 0) {
 			// chart update code works on record
@@ -260,8 +292,9 @@ export default {
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = labels.length;
 
-			this.chart.update();
 			this.updateVisibility();
+
+			this.chart.update();
 		},
 		redraw() {
 			this.chart.update();
@@ -281,7 +314,7 @@ export default {
 			this.chart.update();
 		},
 		mouseDown(e) {
-			if (this.displaySamples) {
+			if (this.domain) {
 				const activePoints = this.chart.getElementsAtEventForMode(e, 'nearest', { intersect: false });
 				this.dragStart = (activePoints && activePoints.length > 0) ? activePoints[0]._index : null;
 			}
@@ -339,7 +372,7 @@ export default {
 						display: true,
 						scaleLabel: {
 							display: true,
-							labelString: this.$t('plugins.inputShaping.samples')
+							labelString: this.$t('plugins.inputShaping.timeAxis')
 						},
 
 						gridLines: {
@@ -396,7 +429,6 @@ export default {
 		});
 
 		this.applyDarkTheme(this.darkTheme);
-
 	}
 }
 </script>
