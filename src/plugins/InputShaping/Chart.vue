@@ -54,6 +54,11 @@ import Chart from 'chart.js';
 
 import { mapState, mapGetters } from 'vuex';
 
+const domains = {
+	TIME: 0,
+	FREQUENCY: 1,
+}
+
 export default {
 	props: [ 'records' ],
 	data() {
@@ -67,15 +72,12 @@ export default {
 			alertMessage: null,
 			samplingRate: null,
 
-			domains: {
-				TIME: 0,
-				FREQUENCY: 1,
-			},
-			domain: this.domains.TIME,
+			domains: domains,
+			domain: domains.TIME,
 		}
 	},
 	computed: {
-		...mapState('settings', ['darkTheme']),
+		...mapState('settings', ['darkTheme', 'language']),
 		...mapState('machine', ['model']),
 		...mapGetters(['uiFrozen']),
 	},
@@ -93,9 +95,18 @@ export default {
 		},
 		checkedAxis() {
 			this.updateVisibility();
+			this.chart.update();
 		},
 		records() {
-			this.updateChart();
+
+			if (this.domain === this.domains.TIME) {
+				console.log("time domain", this.domain);
+				this.updateChart();
+			}
+			else {
+				console.log("freq domain", this.domain);
+				this.updateChartFft();
+			}
 		}
 	},
 	methods: {
@@ -120,7 +131,6 @@ export default {
 				dataset.hidden = res ? false : true;
 				console.log(dataset.label, res, dataset.hidden);
 			});
-			this.chart.update();
 		},
 		testChart() {
 
@@ -162,10 +172,14 @@ export default {
 
 			this.chart.options.tooltips.callbacks.title = items => this.$t('plugins.inputShaping.sampleTooltip', [items[0].index]);
 
+			this.updateVisibility();
+
 			this.chart.update();
 		},
 
 		updateChart() {
+
+			this.domain = this.domains.TIME;
 
 			let labels = [];
 
@@ -213,15 +227,16 @@ export default {
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = this.records.samples;
 
-			this.chart.update();
-
 			this.updateVisibility();
+
+			this.chart.update();
 
 			console.log("start", this.start, "end", this.end, "sampling rate", this.records.samplingRate);
 		},
 		updateChartFft() {
 
-			console.log("updateChartFft");
+			this.domain = this.domains.FREQUENCY;
+
 			let labels = [];
 
 			if (this.records.length > 0) {
@@ -270,8 +285,9 @@ export default {
 			this.start = this.chart.config.options.scales.xAxes[0].ticks.min = 0;
 			this.end = this.chart.config.options.scales.xAxes[0].ticks.max = labels.length;
 
-			this.chart.update();
 			this.updateVisibility();
+
+			this.chart.update();
 		},
 		redraw() {
 			this.chart.update();
