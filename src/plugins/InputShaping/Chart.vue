@@ -65,8 +65,13 @@ export default {
 			loading: false,
 			alertType: 'error',
 			alertMessage: null,
-			displaySamples: false,
 			samplingRate: null,
+
+			domains: {
+				TIME: 0,
+				FREQUENCY: 1,
+			},
+			domain: this.domains.TIME,
 		}
 	},
 	computed: {
@@ -76,9 +81,14 @@ export default {
 	},
 	watch: {
 		language() {
-			// TODO update chart
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.samples' : 'plugins.inputShaping.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.inputShaping.accelerations' : 'plugins.inputShaping.amplitudes');
+			if (this.domain === this.domains.TIME) {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.samples');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.accelerations');
+			} else {
+				this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.frequency');
+				this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t('plugins.inputShaping.amplitudes');
+			}
+
 			this.chart.update();
 		},
 		checkedAxis() {
@@ -281,7 +291,7 @@ export default {
 			this.chart.update();
 		},
 		mouseDown(e) {
-			if (this.displaySamples) {
+			if (this.domain) {
 				const activePoints = this.chart.getElementsAtEventForMode(e, 'nearest', { intersect: false });
 				this.dragStart = (activePoints && activePoints.length > 0) ? activePoints[0]._index : null;
 			}
@@ -396,7 +406,6 @@ export default {
 		});
 
 		this.applyDarkTheme(this.darkTheme);
-
 	}
 }
 </script>
