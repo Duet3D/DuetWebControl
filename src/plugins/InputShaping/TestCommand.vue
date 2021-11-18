@@ -122,17 +122,32 @@ export default {
 			}
 			this.test.param.maxSpeed = this.model.move.axes[index].speed;
 			this.test.param.maxAccel = this.model.move.axes[index].acceleration;
-			this.test.param.minPosition = this.model.move.axes[index].min;
-			this.test.param.maxPosition = this.model.move.axes[index].max;
+			this.test.param.minPosition = this.model.move.axes[index].min + this.getToolOffset(index);
+			this.test.param.maxPosition = this.model.move.axes[index].max + this.getToolOffset(index);
 
 			this.test.param.startPosition = Math.floor(this.test.param.minPosition + 10);
 			this.test.param.stopPosition = Math.floor(this.test.param.minPosition + (this.test.param.maxPosition - this.test.param.minPosition) * 2 / 3);
-		}
+		},
+		getToolOffset(axisIndex) {
+
+			if (axisIndex < 0 || axisIndex >= this.model.move.axes.length) {
+				console.warn("invalid axis index");
+				return 0;
+			}
+
+			if (this.state.currentTool < 0) {
+				console.log("no active tool found");
+				return 0;
+			}
+
+			return this.tools[this.state.currentTool].offsets[axisIndex];
+		},
 	},
 
 	computed: {
 		...mapState(['selectedMachine']),
 		...mapState('machine', ['model']),
+		...mapState('machine/model', ['state', 'tools']),
 		boardAddresses() {
 			return this.model.boards.map(axis => axis.canAddress);
 		},
