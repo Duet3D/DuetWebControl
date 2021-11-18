@@ -17,12 +17,12 @@
 
 		<v-row>
 			<v-col>
-				<v-btn-toggle>
-					<v-btn color="primary" @click="updateChartFft">
-						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
-					</v-btn>
-					<v-btn color="success" @click="updateChart">
+				<v-btn-toggle v-model="domain">
+					<v-btn color="success">
 						<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
+					</v-btn>
+					<v-btn color="primary">
+						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
 					</v-btn>
 				</v-btn-toggle>
 			</v-col>
@@ -89,6 +89,13 @@ export default {
 
 			this.chart.update();
 		},
+		domain() {
+			if (this.domain === this.domains.TIME) {
+				this.updateChart();
+			} else {
+				this.updateChartFft();
+			}
+		},
 		checkedAxis() {
 			this.updateVisibility();
 			this.chart.update();
@@ -98,8 +105,7 @@ export default {
 			if (this.domain === this.domains.TIME) {
 				console.log("time domain", this.domain);
 				this.updateChart();
-			}
-			else {
+			} else {
 				console.log("freq domain", this.domain);
 				this.updateChartFft();
 			}
@@ -184,8 +190,6 @@ export default {
 
 		updateChart() {
 
-			this.domain = this.domains.TIME;
-
 			let labels = [];
 
 			this.updateAxisNames()
@@ -239,8 +243,6 @@ export default {
 			console.log("start", this.start, "end", this.end, "sampling rate", this.records.samplingRate);
 		},
 		updateChartFft() {
-
-			this.domain = this.domains.FREQUENCY;
 
 			let labels = [];
 
