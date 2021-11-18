@@ -17,12 +17,14 @@
 
 		<v-row>
 			<v-col>
+				<v-btn-toggle>
 					<v-btn color="primary" @click="updateChartFft">
 						<v-icon class="mr-2">mdi-chart-histogram</v-icon> {{ $t('plugins.inputShaping.fft') }}
 					</v-btn>
 					<v-btn color="success" @click="updateChart">
 						<v-icon class="mr-2">mdi-chart-line</v-icon> {{ $t('plugins.inputShaping.time') }}
 					</v-btn>
+				</v-btn-toggle>
 			</v-col>
 			<v-col>
 				<v-icon class="mr-2">mdi-filter-outline</v-icon>
