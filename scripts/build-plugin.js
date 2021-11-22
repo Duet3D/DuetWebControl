@@ -160,7 +160,7 @@ service
 			} else {
 				archive.pipe(fs.createWriteStream(distDir + `/${pluginManifest.id}-${pluginManifest.version}.zip`));
 			}
-			archive.on('warning', function(err) {
+			archive.on('warning', function (err) {
 				if (err.code === 'ENOENT') {
 					warn(err);
 				} else {
@@ -168,11 +168,11 @@ service
 					process.exit(1);
 				}
 			});
-			archive.on('error', function(err) {
+			archive.on('error', function (err) {
 				error(err);
 				process.exit(1);
 			});
-			archive.on('end', function() {
+			archive.on('end', function () {
 				done(`Plugin ZIP file written to dist/${pluginManifest.id}-${pluginManifest.version}.zip`);
 			});
 
@@ -211,15 +211,15 @@ service
 
 			// Add optional assets to plugin ZIP
 			if (fs.existsSync(pluginDir + '/dsf/')) {
-				archive.directory(plugindir + '/dsf', 'dsf');
+				archive.directory(pluginDir + '/dsf', 'dsf');
 				filesAdded = true;
 			}
 			if (fs.existsSync(pluginDir + '/dwc/')) {
-				archive.directory(plugindir + '/dwc', 'dwc');
+				archive.directory(pluginDir + '/dwc', 'dwc');
 				filesAdded = true;
 			}
 			if (fs.existsSync(pluginDir + '/sd/')) {
-				archive.directory(plugindir + '/sd', 'sd');
+				archive.directory(pluginDir + '/sd', 'sd');
 				filesAdded = true;
 			}
 
