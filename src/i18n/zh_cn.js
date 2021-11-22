@@ -466,6 +466,7 @@ export default {
 	menu: {
 		control: {
 			caption: '机器控制',
+            status: '状态',
 			dashboard: '仪表板',
 			console: '控制台'
 		},
@@ -979,8 +980,8 @@ export default {
 			caption: '常规'
 		},
 		plugins: {
-			generalCaption: '集成插件',//3.4-dev修改文本
-			machineCaption: '外部插件',//3.4-dev修改文本
+			integratedPlugins: '集成插件',//3.4-dev修改文本
+			externalPlugins: '外部插件',//3.4-dev修改文本
 			headers: {
 				name: '名称',
 				author: '作者',

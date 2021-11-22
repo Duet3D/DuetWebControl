@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-row>
+			<v-row :dense="$vuetify.breakpoint.mobile">
 				<v-col cols="12" lg="6">
 					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001" :label="$t('panel.settingsMachine.babystepAmount', ['mm'])" hide-details></v-text-field>
 				</v-col>

@@ -34,7 +34,7 @@ const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '
 
 export default {
 	computed: {
-		...mapState(['isLocal']),
+		...mapState(['isLocal', 'selectedMachine']),
 		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
 		...mapGetters('machine', ['connector']),
 		...mapGetters(['isConnected', 'uiFrozen']),
@@ -63,6 +63,8 @@ export default {
 				case 'menu': return '*';
 				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml' + (this.connectorType === 'rest' ? ',.deb' : '');
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
+				case 'plugin': return '.zip';
+				case 'update': return '.zip,.bin,.uf2';
 			}
 			return undefined;
 		},
@@ -74,12 +76,14 @@ export default {
 			switch (this.target) {
 				case 'gcodes': return this.directories.gCodes;
 				case 'start': return this.directories.gCodes;
-				case 'firmware': return this.directories.firmware;
+                case 'firmware': return this.directories.firmware;
 				case 'macros': return this.directories.macros;
 				case 'filaments': return this.directories.filaments;
 				case 'menu': return this.directories.menu;
 				case 'system': return this.directories.system;
 				case 'web': return this.directories.web;
+				// plugin is not applicable
+                case 'update': return this.directories.firmware;
 			}
 			return undefined;
 		},
@@ -109,6 +113,7 @@ export default {
 	extends: VBtn,
 	props: {
 		directory: String,
+        machine: String,
 		target: {
 			type: String,
 			required: true
@@ -172,8 +177,8 @@ export default {
 				return;
 			}
 
-			// Cannot start more than one file via Upload & Start
-			if (this.target === 'start' && files.length !== 1) {
+			// Cannot start more than one file via Upload & Start or Install Plugin
+			if ((this.target === 'start' || this.target === 'plugin') && files.length !== 1) {
 				this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
 				return;
 			}
@@ -194,7 +199,7 @@ export default {
 							await zip.loadAsync(files[0], { checkCRC32: true });
 
 							// Check if this is a plugin
-							if ((this.target === 'start' || this.target === 'system')) {
+							if (this.target === 'start' || this.target === 'system' || this.target === 'update' || this.target === 'plugin') {
 								let isPlugin = false;
 								zip.forEach(function(file) {
 									if (file === 'plugin.json') {
@@ -207,6 +212,7 @@ export default {
 									notification.hide();
 
 									this.$root.$emit(Events.installPlugin, {
+										machine: this.machine || this.selectedMachine,
 										zipFilename: files[0].name,
 										zipBlob: files[0],
 										zipFile: zip,
@@ -214,6 +220,10 @@ export default {
 									});
 									return;
 								}
+								else if (this.target === 'plugin') {
+                                    // Don't proceed if this is no plugin file
+									return;
+                                }
 							}
 
 							// Get a list of files to unpack
@@ -249,6 +259,11 @@ export default {
 				}
 			}
 
+            if (this.target === 'plugin') {
+                // Don't proceed if this is no plugin file
+                return;
+            }
+
 			// Check what types of files we have and where they need to go
 			this.updates.webInterface = false;
 			this.updates.firmwareBoards = [];
@@ -258,7 +273,7 @@ export default {
 
 			for (let i = 0; i < files.length; i++) {
 				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
-				if (this.target === 'system' || this.target === 'firmware') {
+                if (this.target === 'firmware' || this.target === 'system' || this.target === 'update') {
 					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {

@@ -301,13 +301,14 @@ export default {
 		this.$root.$off(this.installPluginHook);
 	},
 	methods: {
-		...mapActions('machine', ['installPlugin']),
-		async installPluginHook({ zipFilename, zipBlob, zipFile, start }) {
+		...mapActions('machine', ['installPlugin']),	// TODO improve this for multi-machine support
+		async installPluginHook({ machine, zipFilename, zipBlob, zipFile, start }) {
 			if (process.env.NODE_ENV === 'development') {
 				alert('Third-party plugins are not supported in dev mode');
 				return;
 			}
 
+			this.machine = machine;
 			this.zipFilename = zipFilename;
 			this.zipBlob = zipBlob;
 			this.zipFile = zipFile;

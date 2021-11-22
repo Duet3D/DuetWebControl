@@ -152,11 +152,11 @@
 
 
 <script>
-'use strict';
+'use strict'
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
-import { KinematicsName } from '../../store/machine/modelEnums.js';
-import { combine  } from '../../utils/path'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { KinematicsName } from '../../store/machine/modelEnums.js'
+import { combine } from '../../utils/path'
 
 export default {
 	computed: {

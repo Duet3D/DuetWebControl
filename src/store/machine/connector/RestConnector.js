@@ -197,15 +197,26 @@ export default class RestConnector extends BaseConnector {
 				}
 				resolve();
 			}
-			socket.onerror = socket.onclose = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
-					// DCS unavailable or incompatible DCS version
-					reject(new LoginError(e.reason));
-				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
-					reject(new NetworkError(e.reason));
-				}
-			}
+
+            socket.onerror = function(e) {
+                if (e.code === 1001 || e.code == 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accomodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+                socket.close();
+            };
+            socket.onclose = function(e) {
+                if (e.code === 1001 || e.code == 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accomodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+            };
 		});
 
 		// Apply new socket and machine model

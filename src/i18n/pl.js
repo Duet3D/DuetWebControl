@@ -457,6 +457,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Zarządzaj',
+            status: 'Status',
 			dashboard: 'Panel roboczy',
 			console: 'Konsola'
 		},
@@ -948,8 +949,8 @@ export default {
 			caption: 'Ogólne'
 		},
 		plugins: {
-			generalCaption: 'Wbudowane wtyczki',
-			machineCaption: ' Dedykowane wtyczki',
+			integratedPlugins: 'Wbudowane wtyczki',
+			externalPlugins: ' Dedykowane wtyczki',
 			headers: {
 				name: 'Nazwa',
 				author: 'Autor',

@@ -1,5 +1,5 @@
 <template>
-	<v-row>
+	<v-row :dense="$vuetify.breakpoint.mobile">
 		<v-col>
 			<webcam-panel></webcam-panel>
 		</v-col>

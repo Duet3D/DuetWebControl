@@ -401,6 +401,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Control de maquina',
+            status: 'Stado',
 			dashboard: 'Cuadro de Mando',
 			console: 'Consola',
 			heightmap: 'Mapa de Altura'

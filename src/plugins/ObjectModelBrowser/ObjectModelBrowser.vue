@@ -19,9 +19,16 @@
 
 		<v-col ref="rightContainer" v-show="active.length !== 0" cols="6">
 			<v-row class="my-1">
-				<v-col class="pt-4">
-					Selected node: {{ (active.length > 0) ? active[0] : 'None' }}
-				</v-col>
+                <v-col class="pt-4">
+                    Selected node:
+                    <template v-if="active.length > 0">
+                        <input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly @click="$event.target.select()" />
+                        <v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
+                    </template>
+                    <template v-else>
+                        None
+                    </template>
+                </v-col>
 				<v-col cols="auto">
 					<v-btn color="info" :disabled="uiFrozen" :elevation="1" @click="refresh">
 						<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
@@ -96,16 +103,12 @@ export default {
 					}
 				}
 
-				console.log('>> searching');
 				const members = this.apiFile.documentElement.getElementsByTagName('member');
 				for (let i = 0; i < propertyNames.length; i++) {
 					const propertyName = propertyNames[i];
-					console.log(propertyName);
-
 					for (let k = 0; k < members.length; k++) {
 						const node = members[k], tagName = node.getAttribute('name');
 						if (tagName.startsWith('P:') && tagName.toLowerCase().endsWith(propertyName)) {
-							console.log(node);
 							return node;
 						}
 					}
@@ -215,6 +218,11 @@ export default {
 			}
 			return 'value';
 		},
+		copy() {
+			this.$refs.activeInput.focus();
+			this.$refs.activeInput.select();
+			document.execCommand('copy');
+		},
 		refresh() {
 			this.modelTree = this.makeModelTree(this.model, []);
 		},
@@ -230,7 +238,15 @@ export default {
 	watch: {
 		active(to) {
 			if (to.length > 0) {
-				this.$nextTick(this.onScroll);
+				this.$nextTick(() => {
+					this.onScroll();
+					if (this.$refs.activeInput) {
+						this.$refs.activeInput.style.width = '0px';
+						this.$nextTick(() => {
+							this.$refs.activeInput.style.width = `${this.$refs.activeInput.scrollWidth + 8}px`;
+						});
+                    }
+				});
 			}
 		}
 	}

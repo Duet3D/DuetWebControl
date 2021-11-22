@@ -120,9 +120,13 @@ export default {
 				caption: 'Upload Web Files',
 				title: 'Upload one or more web files (drag&drop is supported as well)'
 			},
+			plugin: {
+				caption: 'Install Plugin',
+				title: 'Upload and start a plugin (drag&drop is supported as well)'
+            },
 			update: {
-				caption: 'Upload Update',
-				title: 'Upload an update package (drag&drop is supported as well)'
+				caption: 'Install Update',
+				title: 'Upload and install an update (drag&drop is supported as well)'
 			}
 		}
 	},
@@ -464,7 +468,8 @@ export default {
 	},
 	menu: {
 		control: {
-			caption: 'Control',
+            caption: 'Control',
+            status: 'Status',
 			dashboard: 'Dashboard',
 			console: 'Console'
 		},
@@ -978,8 +983,8 @@ export default {
 			caption: 'General'
 		},
 		plugins: {
-			generalCaption: 'Integrated Plugins',
-			machineCaption: 'External Plugins',
+			integratedPlugins: 'Integrated Plugins',
+			externalPlugins: 'External Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Author',

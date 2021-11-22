@@ -399,6 +399,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Contrôle de la Machine',
+            status: 'Status',
 			dashboard: 'Tableau de Bord',
 			console: 'Console',
 			heightmap: 'Carte de Hauteur'

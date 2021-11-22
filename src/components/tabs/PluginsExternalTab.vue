@@ -65,21 +65,18 @@ button {
 
 import { mapState, mapActions } from 'vuex'
 
-import Plugins from '../../plugins'
-import { registerSettingTab } from '../../routes'
 import { makeNotification } from '../../utils/toast.js'
 
 export default {
-	install() {
-		if (Plugins.length > 0 && process.env.NODE_ENV !== 'development') {
-			// Register a settings tab on the Machine settings page
-			registerSettingTab(false, 'settings-machine-plugins-tab', this, 'tabs.plugins.machineCaption', false);
-		}
-	},
-
+    props: {
+        machine: {
+            type: Object,
+			required: true
+        }
+    },
 	computed: {
 		...mapState(['loadedDwcPlugins']),
-		...mapState('machine/model', ['plugins', 'state']),
+		...mapState('machine/model', ['plugins', 'state']),		// TODO improve this for multi-machine support
 		...mapState('machine/settings', ['enabledPlugins']),
 		noPlugins() {
 			return Object.keys(this.plugins).length === 0;
