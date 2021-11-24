@@ -54,7 +54,7 @@ export default {
 		},
 		webcamUpdateInterval: {
 			get() { return this.settings.webcam.updateInterval; },
-			set(value) { if (this.isNumber(value) && value >= 250) { this.update({ webcam: { updateInterval: value } }); } }
+			set(value) { if (this.isNumber(value) && (value <= 0 || value >= 250)) { this.update({ webcam: { updateInterval: value } }); } }
 		},
 		webcamLiveURL: {
 			get() { return this.settings.webcam.liveUrl; },

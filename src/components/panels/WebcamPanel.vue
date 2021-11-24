@@ -64,7 +64,7 @@ img {
 			{{ $t('panel.webcam.caption') }}
 		</v-card-title>
 
-		<v-card-text class="pt-0 img-container">
+		<v-card-text class="pa-0 img-container">
 			<v-responsive v-if="webcam.embedded" :aspect-ratio="16/9">
 				<iframe :src="webcam.url"></iframe>
 			</v-responsive>
@@ -113,13 +113,15 @@ export default {
 	methods: {
 		updateWebcam() {
 			let url = this.webcam.url;
-			if (this.webcam.useFix) {
-				url += "_" + Math.random();
-			} else {
-				if (url.indexOf("?") === -1) {
-					url += "?dummy=" + Math.random();
+			if (this.webcam.updateInterval > 0) {
+				if (this.webcam.useFix) {
+					url += "_" + Math.random();
 				} else {
-					url += "&dummy=" + Math.random();
+					if (url.indexOf("?") === -1) {
+						url += "?dummy=" + Math.random();
+					} else {
+						url += "&dummy=" + Math.random();
+					}
 				}
 			}
 			this.url = url;
@@ -128,8 +130,19 @@ export default {
 	mounted() {
 		if (!this.webcam.embedded) {
 			this.updateWebcam();
-			if (this.webcam.updateInterval) {
+			if (this.webcam.updateInterval > 0) {
 				this.updateTimer = setInterval(this.updateWebcam, this.webcam.updateInterval);
+			}
+		}
+	},
+	watch: {
+		webcam: {
+			deep: true,
+			handler() {
+				if (this.webcam.updateInterval === 0) {
+					// For persistent images we need to apply updates independently from the update loop
+					this.updateWebcam();
+				}
 			}
 		}
 	},
