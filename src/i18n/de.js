@@ -828,6 +828,7 @@ export default {
 		fileSystemAccess: 'Auf Dateien außherhalb der virtuellen SD-Karte zugreifen',
 		launchProcesses: 'Neue Prozesse starten',
 		networkAccess: 'Über das Netzwerk kommunizieren',
+		webcamAccess: 'Auf Webcams zugreifen',
 		superUser: 'Als root-Benutzer laufen (potentiell gefährlich)'
 	},
 	plugins: {

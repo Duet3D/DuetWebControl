@@ -177,12 +177,18 @@ service
 			});
 
 			// Add plugin JSON
-			if (pluginManifest.version === 'auto' || pluginManifest.dwcVersion === 'auto') {
+			if (pluginManifest.version === 'auto' ||
+				pluginManifest.dwcVersion === 'auto' ||
+				pluginManifest.dsfVersion === 'auto'
+			) {
 				if (pluginManifest.version === 'auto') {
 					pluginManifest.version = dwcManifest.version;
 				}
 				if (pluginManifest.dwcVersion === 'auto') {
 					pluginManifest.dwcVersion = dwcManifest.version;
+				}
+				if (pluginManifest.dsfVersion === 'auto') {
+					pluginManifest.dsfVersion = dwcManifest.pkgVersion;
 				}
 				archive.append(JSON.stringify(pluginManifest, null, 2), { name: 'plugin.json' });
 			} else {

@@ -828,6 +828,7 @@ export default {
 		fileSystemAccess: 'Access files outside the virtual SD directory',
 		launchProcesses: 'Launch new processes',
 		networkAccess: 'Communicate over the network',
+		webcamAccess: 'Access webcam devices',
 		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
