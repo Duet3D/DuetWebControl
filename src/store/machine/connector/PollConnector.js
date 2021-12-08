@@ -473,52 +473,72 @@ export default class PollConnector extends BaseConnector {
 			return false;
 		}
 
-		const numChangedLayers = Math.abs(jobKey.layer - this.lastLayer);
-		if (numChangedLayers > 0 && jobKey.layer > 0 && this.lastLayer > 0) {
-			// Compute average stats per changed layer
-			const printDuration = jobKey.duration - (jobKey.warmUpDuration !== null ? jobKey.warmUpDuration : 0);
-			const avgLayerDuration = (printDuration - this.lastDuration) / numChangedLayers;
-			const totalFilamentUsage = [], avgFilamentUsage = [];
-			const bytesPrinted = (jobKey.filePosition !== null) ? (jobKey.filePosition - this.lastFilePosition) : 0;
-			const avgFractionPrinted = (this.printFileSize > 0) ? bytesPrinted / (this.printFileSize * numChangedLayers) : 0;
-			for (let i = 0; i < extruders.length; i++) {
-				if (extruders[i] != null) {
-					const lastFilamentUsage = (i < this.lastFilamentUsage.length) ? this.lastFilamentUsage[i] : 0;
-					totalFilamentUsage.push(extruders[i].rawPosition);
-					avgFilamentUsage.push((extruders[i].rawPosition - lastFilamentUsage) / numChangedLayers);
-				}
-			}
-			let currentHeight = 0.0;
-			if (this.zAxisIndex !== -1 && this.zAxisIndex < axes.length && axes[this.zAxisIndex] !== null) {
-				currentHeight = axes[this.zAxisIndex].userPosition;
-			}
-			const avgHeight = Math.abs(currentHeight - this.lastHeight) / numChangedLayers;
+		if (jobKey.layer > 0 && jobKey.layer !== this.lastLayer) {
+            // Compute layer usage stats first
+            const numChangedLayers = (jobKey.layer > this.lastLayer) ? Math.abs(jobKey.layer - this.lastLayer) : 1;
+            const printDuration = jobKey.duration - (jobKey.warmUpDuration !== null ? jobKey.warmUpDuration : 0);
+            const avgLayerDuration = (printDuration - this.lastDuration) / numChangedLayers;
+            const totalFilamentUsage = [], avgFilamentUsage = [];
+            const bytesPrinted = (jobKey.filePosition !== null) ? (jobKey.filePosition - this.lastFilePosition) : 0;
+            const avgFractionPrinted = (this.printFileSize > 0) ? bytesPrinted / (this.printFileSize * numChangedLayers) : 0;
+            for (let i = 0; i < extruders.length; i++) {
+                if (extruders[i] != null) {
+                    const lastFilamentUsage = (i < this.lastFilamentUsage.length) ? this.lastFilamentUsage[i] : 0;
+                    totalFilamentUsage.push(extruders[i].rawPosition);
+                    avgFilamentUsage.push((extruders[i].rawPosition - lastFilamentUsage) / numChangedLayers);
+                }
+            }
 
-			// Add missing layers
-			for (let i = this.layers.length; i < jobKey.layer - 1; i++) {
-				const newLayer = new Layer();
-				analogSensors.forEach(function(sensor) {
-					if (sensor != null) {
-						newLayer.temperatures.push(sensor.lastReading);
-					}
-				});
-				newLayer.height = avgHeight;
-				this.layers.push(newLayer);
-			}
+            // Get layer height
+            let currentHeight = 0.0;
+            if (this.zAxisIndex !== -1 && this.zAxisIndex < axes.length && axes[this.zAxisIndex] !== null) {
+                currentHeight = axes[this.zAxisIndex].userPosition;
+            }
+            const avgLayerHeight = Math.abs(currentHeight - this.lastHeight) / Math.abs(jobKey.layer - this.lastLayer);
 
-			// Merge data
-			for (let i = Math.min(this.lastLayer, jobKey.layer); i < Math.max(this.lastLayer, jobKey.layer); i++) {
-				const layer = this.layers[i - 1];
-				layer.duration += avgLayerDuration;
-				for (let k = 0; k < avgFilamentUsage.length; k++) {
-					if (k >= layer.filament.length) {
-						layer.filament.push(avgFilamentUsage[k]);
-					} else {
-						layer.filament[k] += avgFilamentUsage[k];
-					}
-				}
-				layer.fractionPrinted += avgFractionPrinted;
-			}
+            if (jobKey.layer > this.lastLayer) {
+                // Add new layers
+                for (let i = this.layers.length; i < jobKey.layer - 1; i++) {
+                    const newLayer = new Layer();
+                    newLayer.duration = avgLayerDuration;
+                    avgFilamentUsage.forEach(function (filamentUsage) {
+                        newLayer.filament.push(filamentUsage);
+                    });
+                    newLayer.fractionPrinted = avgFractionPrinted;
+                    newLayer.height = avgLayerHeight;
+                    analogSensors.forEach(function (sensor) {
+                        if (sensor != null) {
+                            newLayer.temperatures.push(sensor.lastReading);
+                        }
+                    });
+                    this.layers.push(newLayer);
+                }
+            } else if (jobKey.layer < this.lastLayer) {
+                // Layer count went down (probably printing sequentially), update the last layer
+                let lastLayer;
+                if (this.layers.length < this.lastLayer) {
+                    lastLayer = new Layer();
+                    lastLayer.height = avgLayerHeight;
+                    analogSensors.forEach(function (sensor) {
+                        if (sensor != null) {
+                            lastLayer.temperatures.push(sensor.lastReading);
+                        }
+                    });
+                    this.layers.push(lastLayer);
+                } else {
+                    lastLayer = this.layers[this.lastLayer - 1];
+                }
+
+                lastLayer.duration += avgLayerDuration;
+                for (let i = 0; i < avgFilamentUsage.length; i++) {
+                    if (i >= lastLayer.filament.length) {
+                        lastLayer.filament.push(avgFilamentUsage[i]);
+                    } else {
+                        lastLayer.filament[i] += avgFilamentUsage[i];
+                    }
+                }
+                lastLayer.fractionPrinted += avgFractionPrinted;
+            }
 
 			// Record values for the next layer change
 			this.lastDuration = printDuration;
@@ -528,8 +548,6 @@ export default class PollConnector extends BaseConnector {
 			this.lastLayer = jobKey.layer;
 			return true;
 		}
-
-		this.lastLayer = jobKey.layer;
 		return false;
 	}
 

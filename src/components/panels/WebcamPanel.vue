@@ -69,7 +69,7 @@ img {
 				<iframe :src="webcam.url"></iframe>
 			</v-responsive>
 
-			<a v-else :href="webcam.liveUrl"><img :alt="$t('panel.webcam.alt')" :src="url" :class="imgClasses"></a>
+			<a v-else :href="webcam.liveUrl ? webcam.liveUrl : 'javascript:void(0)'"><img :alt="$t('panel.webcam.alt')" :src="url" :class="imgClasses"></a>
 
 		</v-card-text>
 	</v-card>
@@ -78,11 +78,12 @@ img {
 <script>
 'use strict'
 
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
 export default {
 	computed: {
 		...mapState('settings', ['webcam']),
+		...mapGetters('machine', ['connector']),
 		imgClasses() {
 			const classes = [];
 
@@ -112,7 +113,7 @@ export default {
 	},
 	methods: {
 		updateWebcam() {
-			let url = this.webcam.url;
+			let url = this.webcam.url.replace('[HOSTNAME]', this.connector ? this.connector.hostname : location.hostname);
 			if (this.webcam.updateInterval > 0) {
 				if (this.webcam.useFix) {
 					url += "_" + Math.random();
