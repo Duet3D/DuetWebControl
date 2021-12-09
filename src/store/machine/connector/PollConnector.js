@@ -13,9 +13,9 @@ import {
 	DirectoryNotFoundError, FileNotFoundError, DriveUnmountedError,
 	LoginError, BadVersionError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
-} from '../../../utils/errors.js'
-import Path from '../../../utils/path.js'
-import { strToTime, timeToStr } from '../../../utils/time.js'
+} from '@/utils/errors'
+import Path from '@/utils/path.js'
+import { strToTime, timeToStr } from '@/utils/time'
 
 const keysToIgnore = ['httpEndpoints', 'messages', 'plugins', 'userSessions', 'userVariables']
 const keysToQuery = Object.keys(DefaultMachineModel).filter(key => keysToIgnore.indexOf(key) === -1);
@@ -406,7 +406,7 @@ export default class PollConnector extends BaseConnector {
 			}
 			this.lastUptime = response.result.state.upTime;
 
-			// Finally check if there is a new G-code reply available
+			// Finally, check if there is a new G-code reply available
 			const fetchGCodeReply = (this.lastSeqs.reply !== seqs.reply);
 			this.lastSeqs = seqs;
 			if (fetchGCodeReply) {
