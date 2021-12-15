@@ -8,9 +8,9 @@ import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError,
 	LoginError, InvalidPasswordError
-} from '../../../utils/errors.js'
+} from '@/utils/errors'
 
-import { strToTime } from '../../../utils/time.js'
+import { strToTime } from '@/utils/time'
 
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
@@ -62,7 +62,6 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	model = {}
-	fileTransfers = []
 	sessionKey = null
 
 	constructor(hostname, password, socket, model, sessionKey) {
@@ -237,7 +236,7 @@ export default class RestConnector extends BaseConnector {
 		this.socket.onerror = this.onClose.bind(this);
 		this.socket.onclose = this.onClose.bind(this);
 
-		// Update model and acknowledge receival
+		// Update model and acknowledge receipt
 		await this.dispatch('update', this.model);
 		this.socket.send('OK\n');
 	}
