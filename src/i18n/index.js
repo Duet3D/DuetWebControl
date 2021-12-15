@@ -12,6 +12,7 @@ import pt_br from './pt_br.js'
 import ru from './ru.js'
 import tr from './tr.js'
 import zh_cn from './zh_cn.js'
+import ja from './ja.js'
 
 Vue.use(VueI18n)
 
@@ -24,7 +25,8 @@ const messages = Vue.observable({
 	pt_br,
 	ru,
 	tr,
-	zh_cn
+	zh_cn,
+	ja
 })
 
 /* eslint-disable */
