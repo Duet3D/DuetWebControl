@@ -2,13 +2,10 @@
 #title:not(:hover) {
 	color: inherit;
 }
-#title {
-	margin-right: 20px;
-}
 
 .empty-table-fix td {
-	padding-left: 0px !important;
-	padding-right: 0px !important;
+	padding-left: 0 !important;
+	padding-right: 0 !important;
 }
 
 .global-control.theme--light {
@@ -25,12 +22,12 @@
 }
 
 input[type='number'] {
-    -moz-appearance: textfield;
+	-moz-appearance: textfield;
 }
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
+	-webkit-appearance: none;
 }
 
 a:not(:hover) {
@@ -39,6 +36,10 @@ a:not(:hover) {
 
 textarea {
 	line-height: 1.25rem !important;
+}
+
+.v-speed-dial--fixed {
+	z-index: 5;
 }
 
 .theme--dark textarea {
@@ -56,21 +57,21 @@ textarea {
 
 <template>
 	<v-app>
-		<v-navigation-drawer v-model="drawer" clipped fixed app width="300">
+		<v-navigation-drawer v-model="drawer" clipped fixed app width="275">
 			<div class="pa-2 hidden-sm-and-up">
 				<connect-btn v-if="isLocal" class="mb-3" block></connect-btn>
 				<emergency-btn block></emergency-btn>
 			</div>
 
-			<v-list class="pt-0" :expand="$vuetify.breakpoint.mdAndUp">
-				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
+			<v-list class="pt-0 hidden-md-and-down" dense>
+				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="true">
 					<template #activator>
 						<v-list-item-title class="mr-0">{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
 					</template>
 
 					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
 						<v-list-item-icon>
-							<v-icon>{{ page.icon }}</v-icon>
+							<v-icon v-text="page.icon"></v-icon>
 						</v-list-item-icon>
 						<v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
 					</v-list-item>
@@ -79,13 +80,13 @@ textarea {
 		</v-navigation-drawer>
 
 		<v-app-bar ref="appToolbar" app clipped-left>
-			<v-app-bar-nav-icon @click.stop="drawer = !drawer">
+			<v-app-bar-nav-icon class="hidden-sm-only" @click.stop="drawer = !drawer">
 				<v-icon>mdi-menu</v-icon>
 			</v-app-bar-nav-icon>
-			<v-toolbar-title>
+			<v-toolbar-title class="px-1">
 				<a href="javascript:void(0)" id="title">{{ name }}</a>
 			</v-toolbar-title>
-			<connect-btn v-if="isLocal" class="hidden-xs-only"></connect-btn>
+			<connect-btn v-if="isLocal" class="hidden-xs-only ml-3"></connect-btn>
 
 			<v-spacer></v-spacer>
 
@@ -95,21 +96,15 @@ textarea {
 
 			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"></upload-btn>
 			<emergency-btn class="hidden-xs-only"></emergency-btn>
-
-			<v-btn icon class="hidden-md-and-up ml-3" :class="toggleGlobalContainerColor" @click="hideGlobalContainer = !hideGlobalContainer">
-				<v-icon>mdi-aspect-ratio</v-icon>
-			</v-btn>
 		</v-app-bar>
 
 		<v-main id="content">
-			<v-scroll-y-transition>
-				<v-container v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp" id="global-container" fluid>
-						<fff-container-panel v-if="isFFForUnset"></fff-container-panel>
-						<cnc-container-panel v-else></cnc-container-panel>
-				</v-container>
-			</v-scroll-y-transition>
+			<v-container class="hidden-sm-and-down" id="global-container" fluid>
+				<fff-container-panel v-if="isFFForUnset"></fff-container-panel>
+				<cnc-container-panel v-else></cnc-container-panel>
+			</v-container>
 
-			<v-divider v-show="!hideGlobalContainer || $vuetify.breakpoint.mdAndUp"></v-divider>
+			<v-divider class="hidden-sm-and-down"></v-divider>
 
 			<v-container fluid>
 				<keep-alive>
@@ -117,6 +112,22 @@ textarea {
 				</keep-alive>
 			</v-container>
 		</v-main>
+
+		<v-bottom-navigation app v-if="$vuetify.breakpoint.mobile">
+			<v-menu v-for="(category, index) in categories" :key="index" top offset-y>
+				<template #activator="{ on }">
+					<v-btn v-on="on">
+						{{ category.translated ? category.caption : $t(category.caption) }}
+						<v-icon v-text="category.icon" class="mb-1"></v-icon>
+					</v-btn>
+				</template>
+
+				<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" :to="page.path" @click.prevent="" class="global-control">
+					<v-icon v-text="page.icon" class="mr-2"></v-icon>
+					{{ page.translated ? page.caption : $t(page.caption) }}
+				</v-list-item>
+			</v-menu>
+		</v-bottom-navigation>
 
 		<connect-dialog></connect-dialog>
 		<connection-dialog></connection-dialog>
@@ -131,6 +142,7 @@ textarea {
 <script>
 'use strict'
 
+import Vue from 'vue'
 import Piecon from 'piecon'
 import { mapState, mapGetters, mapActions } from 'vuex'
 
@@ -143,7 +155,6 @@ export default {
 	computed: {
 		...mapState({
 			isLocal: state => state.isLocal,
-			globalShowConnectDialog: state => state.showConnectDialog,
 
 			boards: state => state.machine.model.boards,
 			menuDirectory: state => state.machine.model.directories.menu,
@@ -170,17 +181,12 @@ export default {
 					if (curPath.endsWith(route.path))
 						flag = (curPath.substring(0, curPath.length-route.path.length) + route.path === curPath && route.condition)
 				}
-				if (!flag && route.children != undefined)
+				if (!flag && route.children !== undefined) {
 					flag = route.children.some(child => checkRoute(child, true));
+				}
 				return flag;
 			};
 			return Routes.some(route => checkRoute(route));
-		},
-		toggleGlobalContainerColor() {
-			if (this.hideGlobalContainer) {
-				return this.darkTheme ? 'red darken-5' : 'red lighten-4';
-			}
-			return this.darkTheme ? 'green darken-5' : 'green lighten-4';
 		},
 		isFFForUnset() {
 			if (this.dashboardMode === DashboardMode.default) {
@@ -192,8 +198,6 @@ export default {
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
-			hideGlobalContainer: false,
-			wasXs: this.$vuetify.breakpoint.xsOnly,
 			injectedComponentNames: []
 		}
 	},
@@ -202,13 +206,6 @@ export default {
 		...mapActions('settings', ['load']),
 		getPages(category) {
 			return category.pages.filter(page => page.condition);
-		},
-		isExpanded(category) {
-			if (this.$vuetify.breakpoint.xsOnly) {
-				const route = this.$route;
-				return category.pages.some(page => page.path === route.path);
-			}
-			return true;
 		},
 		updateTitle() {
 			const jobProgress = this.jobProgress;
@@ -231,6 +228,7 @@ export default {
 		this.load();
 
 		// Validate navigation
+		Vue.prototype.$vuetify = this.$vuetify;
 		this.$router.beforeEach((to, from, next) => {
 			if (Routes.some(route => route.path === to.path && !route.condition)) {
 				next('/');

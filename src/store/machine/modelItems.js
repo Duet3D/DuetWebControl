@@ -21,8 +21,8 @@ import {
 	SpindleState,
 	ToolState
 } from './modelEnums.js'
-import { PluginManifest } from '../../plugins/manifest.js'
-import { quickPatch } from '../../utils/patch.js'
+import { PluginManifest } from '@/plugins/manifest'
+import { quickPatch } from '@/utils/patch'
 
 export class Accelerometer {
 	constructor(initData) { quickPatch(this, initData); }
@@ -273,15 +273,21 @@ export class GpOutputPort {
 }
 
 export class Heater {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+        overloadPushMethod(this.monitors, new HeaterMonitor());
+        quickPatch(this, initData);
+    }
 	active = 0
 	current = -273.15
 	max = 285
 	min = -10
 	model = {
+        coolingExp: 1.35,
+        coolingRate: 0.56,
 		deadTime: 5.5,
 		enabled: false,
-		gain: 340,
+        fanCoolingRate: 0.56,
+        heatingRate: 2.43,
 		inverted: false,
 		maxPwm: 1,
 		pid: {
@@ -291,8 +297,7 @@ export class Heater {
 			p: 0.0,
 			used: true
 		},
-		standardVoltage: 0,
-		timeConstant: 140
+		standardVoltage: 0
 	}
 	monitors = []
 	sensor = -1

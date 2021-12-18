@@ -120,8 +120,12 @@ export default {
 				caption: 'Webdatei(en) hochladen',
                 title: 'Eine oder mehr Webdateien hochladen (Drag&Drop wird ebenfalls unterstützt)'
 			},
+			plugin: {
+				caption: 'Plugin installieren',
+				title: 'Ein Plugin hochladen und starten (Drag&Drop wird ebenfalls unterstützt)'
+			},
 			update: {
-				caption: 'Update(s) hochladen',
+				caption: 'Update(s) installieren',
                 title: 'Ein oder mehr Updates hochladen und installieren (Drag&Drop wird ebenfalls unterstützt)'
 			}
 		}
@@ -245,7 +249,7 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: 'Voraussetzungen',
 			version: 'Version {0}',
-			noPluginSupport: 'Maschinenspezifische Plugins sind nicht erlaubt',
+			noPluginSupport: 'Externe Plugins sind nicht erlaubt',
 			rootSupport: 'Unterstützung für Super-User-Plugins',
 			invalidManifest: 'Ungültiges Pluginmanifest',
 			permissions: 'Erforderliche Berechtigungen',
@@ -288,7 +292,7 @@ export default {
 			prompt: 'Sie haben gerade mindestens ein Firmwareupdate hochgeladen. Möchten Sie diese jetzt installieren?',
 			resetTitle: 'Firmware zurücksetzen?',
 			resetPrompt: 'Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?',
-			sbcwarning: 'Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde.'
+			sbcWarning: 'Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde.'
 		},
 		inputRequired: 'Bitte Wert eingeben',
 		numberRequired: 'Bitte gültige Zahl eingeben'
@@ -465,6 +469,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Steuerung',
+            status: 'Status',
 			dashboard: 'Übersicht',
 			console: 'Konsole'
 		},
@@ -823,6 +828,7 @@ export default {
 		fileSystemAccess: 'Auf Dateien außherhalb der virtuellen SD-Karte zugreifen',
 		launchProcesses: 'Neue Prozesse starten',
 		networkAccess: 'Über das Netzwerk kommunizieren',
+		webcamAccess: 'Auf Webcams zugreifen',
 		superUser: 'Als root-Benutzer laufen (potentiell gefährlich)'
 	},
 	plugins: {
@@ -952,8 +958,8 @@ export default {
 			caption: 'Allgemein'
 		},
 		plugins: {
-			generalCaption: 'Integrierte Plugins',
-			machineCaption: 'Externe Plugins',
+			integratedPlugins: 'Integrierte Plugins',
+			externalPlugins: 'Externe Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Autor',

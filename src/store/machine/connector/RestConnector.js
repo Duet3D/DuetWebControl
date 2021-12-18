@@ -8,9 +8,9 @@ import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError,
 	LoginError, InvalidPasswordError
-} from '../../../utils/errors.js'
+} from '@/utils/errors'
 
-import { strToTime } from '../../../utils/time.js'
+import { strToTime } from '@/utils/time'
 
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
@@ -39,21 +39,21 @@ export default class RestConnector extends BaseConnector {
 				resolve(model);
 			};
 			socket.onerror = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
+				if (e.code === 1001 || e.code === 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
 				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					// TODO accommodate InvalidPasswordError and NoFreeSessionError here
 					reject(new NetworkError(e.reason));
 				}
 				socket.close();
 			};
 			socket.onclose = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
+				if (e.code === 1001 || e.code === 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
 				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					// TODO accommodate InvalidPasswordError and NoFreeSessionError here
 					reject(new NetworkError(e.reason));
 				}
 			};
@@ -62,7 +62,6 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	model = {}
-	fileTransfers = []
 	sessionKey = null
 
 	constructor(hostname, password, socket, model, sessionKey) {
@@ -197,15 +196,26 @@ export default class RestConnector extends BaseConnector {
 				}
 				resolve();
 			}
-			socket.onerror = socket.onclose = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
-					// DCS unavailable or incompatible DCS version
-					reject(new LoginError(e.reason));
-				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
-					reject(new NetworkError(e.reason));
-				}
-			}
+
+            socket.onerror = function(e) {
+                if (e.code === 1001 || e.code === 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accommodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+                socket.close();
+            };
+            socket.onclose = function(e) {
+                if (e.code === 1001 || e.code === 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accommodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+            };
 		});
 
 		// Apply new socket and machine model
@@ -226,7 +236,7 @@ export default class RestConnector extends BaseConnector {
 		this.socket.onerror = this.onClose.bind(this);
 		this.socket.onclose = this.onClose.bind(this);
 
-		// Update model and acknowledge receival
+		// Update model and acknowledge receipt
 		await this.dispatch('update', this.model);
 		this.socket.send('OK\n');
 	}
@@ -234,7 +244,7 @@ export default class RestConnector extends BaseConnector {
 	doPing() {
 		// Although the WebSocket standard is supposed to provide PING frames,
 		// there is no way to send them since a WebSocket instance does not provide a method for that.
-		// Hence we rely on our own optional PING-PONG implementation
+		// Hence, we rely on our own optional PING-PONG implementation
 		this.socket.send('PING\n');
 		this.pingTask = undefined;
 	}

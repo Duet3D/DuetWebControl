@@ -202,6 +202,7 @@ export const ProbeType = {
 }
 
 export const StatusType = {
+    disconnected: 'disconnected',
 	starting: 'starting',
 	updating: 'updating',
 	off: 'off',

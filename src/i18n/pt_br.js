@@ -417,6 +417,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Controlar',
+            status: 'Status',
 			dashboard: 'Dashboard',
 			console: 'Console'
 		},

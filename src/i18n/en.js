@@ -120,9 +120,13 @@ export default {
 				caption: 'Upload Web Files',
 				title: 'Upload one or more web files (drag&drop is supported as well)'
 			},
+			plugin: {
+				caption: 'Install Plugin',
+				title: 'Upload and start a plugin (drag&drop is supported as well)'
+            },
 			update: {
-				caption: 'Upload Update',
-				title: 'Upload an update package (drag&drop is supported as well)'
+				caption: 'Install Update',
+				title: 'Upload and install an update (drag&drop is supported as well)'
 			}
 		}
 	},
@@ -245,7 +249,7 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: 'Prerequisites',
 			version: 'Version {0}',
-			noPluginSupport: 'Machine-Specific Plugins not allowed',
+			noPluginSupport: 'External Plugins not allowed',
 			rootSupport: 'Support for Super-User Plugins',
 			invalidManifest: 'Invalid plugin manifest',
 			permissions: 'Required Permissions',
@@ -464,7 +468,8 @@ export default {
 	},
 	menu: {
 		control: {
-			caption: 'Control',
+            caption: 'Control',
+            status: 'Status',
 			dashboard: 'Dashboard',
 			console: 'Console'
 		},
@@ -823,6 +828,7 @@ export default {
 		fileSystemAccess: 'Access files outside the virtual SD directory',
 		launchProcesses: 'Launch new processes',
 		networkAccess: 'Communicate over the network',
+		webcamAccess: 'Access webcam devices',
 		superUser: 'Run as root user (potentially dangerous)'
 	},
 	plugins: {
@@ -952,8 +958,8 @@ export default {
 			caption: 'General'
 		},
 		plugins: {
-			generalCaption: 'Integrated Plugins',
-			machineCaption: 'External Plugins',
+			integratedPlugins: 'Integrated Plugins',
+			externalPlugins: 'External Plugins',
 			headers: {
 				name: 'Name',
 				author: 'Author',

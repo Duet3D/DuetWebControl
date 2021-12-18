@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-row>
+			<v-row :dense="$vuetify.breakpoint.mobile">
 				<template v-if="connectorType === 'rest'">
 					<v-col cols="6">
 						<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>

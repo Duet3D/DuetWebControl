@@ -1,4 +1,4 @@
-// 注释：用于3.3RC版本，2021-5-11 加速度计部分测试翻译，没有相关设备
+// 注释：从3.3RC版本升级到3.4-dev，截止更新到Commits on Nov 6, 2021
 // 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
@@ -98,7 +98,7 @@ export default {
 				caption: '上传并开始',
 				title: '上传和开始一个或多个G-Code文件（支持拖放）'
 			},
-			firmware: {//3.3新增
+			firmware: {
 				caption: '上传固件文件',
 				title: '上传和开始一个或多个固件文件（支持拖放）'	 
 			},
@@ -154,9 +154,11 @@ export default {
 			title: '改变移动距离',
 			prompt: '请为点击的移动按钮输入新值：'
 		},
-		configUpdated: {
-			title: '重启主板？',
-			prompt: '你是否要重新启动主板，并应用更新后的配置？'
+		configUpdated: {//3.4-dev更新和新增 大括号内
+			title: '应用新配置？',
+			prompt: '你是要重启主板还是再次执行配置文件？如果你移除了IO端口或更改了驱动器分配，建议重置主板。',//3.4-dev 待修正
+			reset: '重启主板',
+			runConfig: '运行配置文件'//3.4-dev 待修正
 		},
 		connect: {
 			title: '连接到机器',
@@ -245,13 +247,13 @@ export default {
 			rrf: 'RepRapFirmware',
 			prerequisites: '依赖',
 			version: '版本{0}',
-			noPluginSupport: '不允许使用机器专用插件',//3.3rc2之后修改，其他位置“第三方”未修改
+			noPluginSupport: '不允许使用外部插件',//3.4-dev再次修改，其他位置翻译 第三方
 			rootSupport: '支持超级用户插件',
 			invalidManifest: '无效插件清单',
 			permissions: '需要权限',
 			dwcWarning: '该插件包含Web界面的组件。 无法在浏览器会话中强制执行权限检查，因此它可能会操纵你的系统并造成安全隐患，可能会导致物理损坏。',
-			rootWarning: '此插件需要超级用户权限，这意味着它可以重新配置连接的单板机（例如：树莓派）并安装潜在的恶意软件。 这可能会导致设置的物理损坏。',
-			sbcPermissions: '在单板机上运行的插件想要',
+			rootWarning: '此插件需要超级用户权限，这意味着它可以重新配置连接的单板机（SBC，例如：树莓派）并安装潜在的恶意软件。 这可能会导致设置的物理损坏。',
+			sbcPermissions: '在单板机（SBC）上运行的插件想要',
 			noSpecialPermissions: '该插件不需要任何特殊权限。',
 			ready: '准备安装',
 			readyMessage: '这个插件即将准备安装，执行最后一步操作之前，请确认你信任插件作者。',
@@ -287,8 +289,9 @@ export default {
 			title: '安装更新？',
 			prompt: '你已上传至少一个固件更新。你想现在安装吗？',
 			resetTitle: '要重置固件吗？',
-			resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？'
-		},
+			resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？',
+			sbcWarning: '你正在单板机（SBC）模式下操作机器，请仅在固件开发人员建议的情况下使用 DWC 升级固件。'//3.4-dev新增
+        },
 		inputRequired: '请输入一个值',
 		numberRequired: '请输入有效的数值'
 	},
@@ -305,6 +308,7 @@ export default {
 		notImplemented: '{0}没有实施',
 		invalidPassword: '无效的密码！',
 		noFreeSession: '没有更多的空闲会话！',
+		badVersion: '不兼容的固件版本',//3.4-dev新增
 		connect: '无法连接到{0}',
 		disconnect: '无法与{0}彻底断开连接',
 		disconnected: '无法完成操作，因为连接已终止',
@@ -366,6 +370,7 @@ export default {
 			pausing: '正在暂停',
 			paused: '已暂停',
 			resuming: '正在恢复',
+			cancelling: '正在取消',//3.4-dev新增
 			printing: '正在打印',
 			processing: '正在处理',
 			simulating: '正在模拟',
@@ -429,7 +434,7 @@ export default {
 			downloadText: '下载为文本文件',
 			downloadCSV: '下载为CSV格式'
 		},
-		filament: {//3.3
+		filament: {
 			noFilaments: '没有细丝配置文件'
 		},
 		firmware: {
@@ -461,6 +466,7 @@ export default {
 	menu: {
 		control: {
 			caption: '机器控制',
+            status: '状态',
 			dashboard: '仪表板',
 			console: '控制台'
 		},
@@ -643,7 +649,8 @@ export default {
 			runMesh: '运行网格补偿(G29)',
 			loadMesh: '从SD卡加载已保存的高度图(G29 S1)',
 			axesNotHomed: '以下轴未归位：|以下轴未归位：',
-			noAxes: '没有轴'
+			noAxes: '没有轴',
+			workzero: '归零'//3.4-dev新增
 		},
 		settingsAbout: {
 			caption: '关于',
@@ -658,12 +665,13 @@ export default {
 			binaryFileSizes: '使用二进制文件大小',
 			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基准显示',
 			disableAutoComplete: '禁用自动完成',
-			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表'
+			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表',
+			dashboardModeTitle: '控制面板模式'//3.4-dev新增
 		},
 		settingsCommunication: {
 			caption: '通讯',
 			pingInterval: '空闲时的PING间隔（ms）',
-			updateDelay: '更新延迟（ms）',									
+			updateDelay: '更新延迟（ms）',
 			ajaxRetries: '最大AJAX重试次数',
 			updateInterval: '更新间隔（{0}）',
 			extendedUpdateEvery: '扩展状态更新间隔',
@@ -725,6 +733,18 @@ export default {
 		},
 		speedFactor: {
 			caption: '速度系数'
+		},
+		spindle: {//3.4-dev新增 整个大括号内容
+			title: '主轴',
+			spindle: '主轴',
+			active: '工作',
+			direction: '方向',
+			currentRPM: '当前转数',
+			setRPM: '设定转数',
+			on: '开',
+			off: '关',
+			forward: '正转',
+			reverse: '反转'
 		},
 		status: {
 			caption: '状态',
@@ -833,7 +853,7 @@ export default {
 			accelerations: '加速度（g）',
 			sampleTooltip: '样本 #{0}',
 			frequencyTooltip: '{0} ± {1} Hz'
-		},//3.3end
+		},
 		autoUpdate: {
 			menuCaption: '更新'
 		},
@@ -843,33 +863,33 @@ export default {
 			fullscreen: '全屏',
 			showConfiguration: '显示查看器配置',
 			resetCamera: {
-				caption : '重置视图',
+				caption: '重置视图',
 				title: '重置视图到初始位置'
 			},
 			cancelLoad: '取消文件载入',
-			reloadView: { 
-				caption : '重新加载预览',
-				title : '重新载入当前G-Code文件，当更改模型颜色、进给率颜色等设置时，需要重新加载当前G-Code文件。'
+			reloadView: {
+				caption: '重新加载预览',
+				title: '重新载入当前G-Code文件，当更改模型颜色、进给率颜色等设置时，需要重新加载当前G-Code文件。'
 			},
-			loadCurrentJob:  { 
-				caption :'载入当前任务',  
-				title : '载入当前正在打印或者正在模拟的任务'
+			loadCurrentJob: { 
+				caption: '载入当前任务',
+				title: '载入当前正在打印或者正在模拟的任务'
 			},
-			unloadGCode:  { 
+			unloadGCode: { 
 				caption: '卸载G-Code文件',
 				title : '从查看器移除已加载的G-Code文件'
 			},
 			loadLocalGCode: { 
-				caption : '载入本地G-Code文件',
+				caption: '载入本地G-Code文件',
 				title : '从本地驱动器载入一个文件到查看器'
 			},
 			showCursor: '显示光标',
 			showTravels: '显示路径',
 			renderQuality: {
-				caption : '渲染质量',
-				title : '调整查看器的可视化质量。等级越高，可用的顶点和渲染模式越多。'
+				caption: '渲染质量',
+				title: '调整查看器的可视化质量。等级越高，可用的顶点和渲染模式越多。'
 			},
-			sbc: '单板机',
+			sbc: '单板机（SBC）',
 			low: '低',
 			medium: '中',			
 			high: '高',
@@ -880,8 +900,8 @@ export default {
 			showSolid: '显示实心',
 			spreadLines: '展开线条',
 			extruders: {
-				caption:  '挤出机',
-				title : '设置挤出机渲染颜色'
+				caption: '挤出机',
+				title: '设置挤出机渲染颜色'
 			},
 			tool: '工具{0}',
 			resetColor: '重置工具颜色|重置工具颜色',
@@ -896,26 +916,30 @@ export default {
 			minFeedrateColor: '最小进给速度颜色',
 			maxFeedrateColor: '最大进给速度颜色',
 			progress: {
-				caption : '进度',
+				caption: '进度',
 				title: '设置已打印部分颜色以追踪打印进度'
 			},
 			topClipping: '顶部剪裁',
-			bottomClipping:'底部剪裁',
+			bottomClipping: '底部剪裁',
 			progressColor: '进度颜色',
 			liveZTracking: '实时Z追踪',
 			settings: '设置',
 			background: '背景',
-			bedRenderMode:  '热床渲染模式',
+			bedRenderMode: '热床渲染模式',
 			bed: '热床',
 			volume: '体积',
 			showAxes: '显示轴',
 			showObjectLabels: '显示对象标签',
 			cameraInertia: '视图惯性',
 			showObjectSelection: {
-				caption : '显示对象选择',
-				title : '如果可以在当前打印中检测到对象则启用'
+				caption: '显示对象选择',
+				title: '如果可以在当前打印中检测到对象则启用'
 			},
 			renderFailed: '上一次渲染失败，将渲染质量设置为单板机（SBC）。',
+			showFSOverlay : '全屏显示',//3.4-dev新增，待修正
+			useHQRendering: '高质量渲染',//3.4-dev新增
+			useSpecular: "使用高光",//3.4-dev新增
+			feature: "材质"//3.4-dev新增
 		},
 		heightmap: {
 			menuCaption: '高度图',
@@ -939,6 +963,10 @@ export default {
 			heat: '热力',
 			invertZ: '翻转Z轴坐标',
 			topView: '顶视图',
+			range : '范围',//3.4-dev新增
+			fixed : '固定',//3.4-dev新增，待确认
+			deviation : '偏差',//3.4-dev新增
+			resetView : '重置视图'//3.4-dev新增
 		},
 		objectModelBrowser: {
 			menuCaption: '对象模型'
@@ -952,8 +980,8 @@ export default {
 			caption: '常规'
 		},
 		plugins: {
-			generalCaption: '内置插件',
-			machineCaption: '机器专用插件',//3.3rc2之后修改									 
+			integratedPlugins: '集成插件',//3.4-dev修改文本
+			externalPlugins: '外部插件',//3.4-dev修改文本
 			headers: {
 				name: '名称',
 				author: '作者',

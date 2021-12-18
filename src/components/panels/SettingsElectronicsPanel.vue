@@ -22,8 +22,8 @@
 				<template v-if="firstInterface.firmwareVersion && firstInterface.type === 'wifi'">
 					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(firstInterface.firmwareVersion)]) }} <br>
 				</template>
-				<br>
-				{{ $t('panel.settingsElectronics.updateNote') }}
+
+				<upload-btn v-if="connectorType !== 'rest'" target="update" color="primary" class="mt-5 d-flex justify-center"></upload-btn>
 			</template>
 			<template v-else>
 				(not connected)
@@ -40,17 +40,21 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 export default {
 	computed: {
 		...mapGetters(['isConnected']),
+		...mapGetters('machine', ['connector']),
 		...mapState('machine/model', {
 			dsfVersion: state => state.state.dsfVersion,
 			mainboard: state => (state.boards.length > 0) ? state.boards[0] : {},
 			firstInterface: state => (state.network.interfaces.length > 0) ? state.network.interfaces[0] : {}
-		})
+		}),
+        connectorType() {
+            return this.connector ? this.connector.type : null;
+        }
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		async diagnostics() {
 			await this.sendCode('M122');
-			this.$router.push('/Console');
+			await this.$router.push('/Console');
 		}
 	}
 }

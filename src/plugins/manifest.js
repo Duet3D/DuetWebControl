@@ -92,5 +92,6 @@ export const SbcPermission = {
 	fileSystemAccess: 'fileSystemAccess',						// Access files outside the virtual SD directory (as DSF user)
 	launchProcesses: 'launchProcesses',							// Launch new processes
 	networkAccess: 'networkAccess',								// Communicate over the network
+	webcamAccess: 'webcamAccess',								// Access webcam devices
 	superUser: 'superUser'										// Launch process as root user (potentially dangerous)
 }

@@ -1,5 +1,5 @@
 <template>
-	<v-row>
+	<v-row :dense="$vuetify.breakpoint.mobile">
 		<v-col cols="12" sm="6" md="4" lg="4" xl="4">
 			<status-panel></status-panel>
 		</v-col>
@@ -15,13 +15,13 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+'use strict'
+
+import { mapGetters } from 'vuex'
+
 export default {
 	computed: {
-		...mapGetters('machine', ['hasTemperaturesToDisplay']),
-	},
-};
+		...mapGetters('machine', ['hasTemperaturesToDisplay'])
+	}
+}
 </script>
-
-<style>
-</style>

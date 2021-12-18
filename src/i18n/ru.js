@@ -399,6 +399,7 @@
 	menu: {
 		control: {
 			caption: 'Управление',
+            status: 'Статус',
 			dashboard: 'Инструменты',
 			console: 'Консоль',
 			heightmap: 'Карта высот'

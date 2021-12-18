@@ -9,7 +9,7 @@
 </style>
 
 <template>
-	<v-card v-show="canControlFans">
+	<v-card>
 		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">mdi-fan</v-icon> {{ $t('panel.fan.caption') }}
 		</v-card-title>
@@ -52,9 +52,6 @@ export default {
 		...mapState('machine/model', ['fans']),
 		...mapGetters(['uiFrozen']),
 		...mapGetters('machine/model', ['currentTool']),
-		canControlFans() {
-			return !this.uiFrozen && ((this.currentTool && this.currentTool.fans.length > 0) || (this.fans.some(fan => fan && !fan.thermostatic.control)));
-		},
 		fanValue: {
 			get() {
 				// Even though RRF allows multiple fans to be assigned to a tool,

@@ -399,6 +399,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Makine Kontrolü',
+            status: 'Durum',
 			dashboard: 'Gösterge Paneli',
 			console: 'Konsol',
 			heightmap: 'Yükseklik Haritası'

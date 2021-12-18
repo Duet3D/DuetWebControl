@@ -13,6 +13,7 @@ import {
 } from './modelEnums.js'
 import {
 	Axis,
+    BeepRequest,
 	Board,
 	Extruder,
 	Fan,
@@ -28,8 +29,8 @@ import {
 	overloadModelPush
 } from './modelItems.js'
 
-import Path from '../../utils/path.js'
-import { patch, quickPatch } from '../../utils/patch.js'
+import Path from '@/utils/path.js'
+import { patch, quickPatch } from '@/utils/patch'
 
 // Internal object model as provided by RepRapFirmware and DSF
 // This must be kept in sync for things to work properly...
@@ -64,7 +65,7 @@ export class MachineModel {
 		new InputChannel({ name: InputChannelName.usb }),
 		new InputChannel({ name: InputChannelName.aux }),
 		new InputChannel({ name: InputChannelName.trigger }),
-		new InputChannel({ name: InputChannelName.codeQueue }),
+		new InputChannel({ name: InputChannelName.queue }),
 		new InputChannel({ name: InputChannelName.lcd }),
 		new InputChannel({ name: InputChannelName.sbc }),
 		new InputChannel({ name: InputChannelName.daemon }),
@@ -215,7 +216,14 @@ export class MachineModel {
 	state = {
 		atxPower: null,
 		atxPowerPort: null,
-		beep: null,
+        _internalBeep: null,
+        get beep() { return this._internalBeep; },
+        set beep(value) {
+            if (value !== null) {
+                fixObject(value, new BeepRequest());
+            }
+            this._internalBeep = value;
+        },
 		currentTool: -1,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF

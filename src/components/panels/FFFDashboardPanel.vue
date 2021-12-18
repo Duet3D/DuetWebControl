@@ -1,6 +1,6 @@
 <template>
-	<v-row>
-		<v-col xs="12" sm="8" md="8" lg="9" xl="9">
+	<v-row :dense="$vuetify.breakpoint.mobile">
+		<v-col cols="12" sm="8" md="8" lg="9" xl="9">
 			<movement-panel class="mb-2"></movement-panel>
 
 			<v-row v-if="isFFForUnset">
@@ -14,11 +14,11 @@
 			</v-row>
 
 			<v-row>
-				<v-col sm="12" :md="(!isFFForUnset && atxPower !== null) ? 9 : 12" :lg="(!isFFForUnset && atxPower !== null) ? 9 : 12" :xl="(!isFFForUnset && atxPower !== null) ? 10 : 12">
+				<v-col sm="12" :md="showATXPanel ? 9 : 12" :lg="showATXPanel ? 9 : 12" :xl="showATXPanel ? 10 : 12">
 					<fan-panel></fan-panel>
 				</v-col>
 
-				<v-col v-if="!isFFForUnset && atxPower !== null" md="3" lg="3" xl="2" align-self="center">
+				<v-col v-if="showATXPanel" md="3" lg="3" xl="2" align-self="center">
 					<atx-panel></atx-panel>
 				</v-col>
 			</v-row>
@@ -31,19 +31,29 @@
 </template>
 
 <script>
+'use strict'
 
-import { mapState } from 'vuex'
+import { mapState, mapGetters } from 'vuex'
 
-import { MachineMode } from '../../store/machine/modelEnums.js'
+import { MachineMode } from '@/store/machine/modelEnums'
 
 export default {
 	computed: {
 		...mapState('machine/model', {
+			fans: state => state.state.fans,
 			atxPower: state => state.state.atxPower,
 			machineMode: state => state.state.machineMode
 		}),
+		...mapGetters(['uiFrozen']),
+		...mapGetters('machine/model', ['currentTool']),
 		isFFForUnset() {
 			return !this.machineMode || (this.machineMode === MachineMode.fff);
+		},
+		showATXPanel() {
+			return !this.isFFForUnset && this.atxPower !== null;
+		},
+		showFansPanel() {
+			return (this.currentTool && this.currentTool.fans.length > 0) || this.fans.some(fan => fan && !fan.thermostatic.control);
 		}
 	}
 }

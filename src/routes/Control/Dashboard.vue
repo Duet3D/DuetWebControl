@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="mb-3">
 		<fff-dashboard-panel v-if="isFFForUnset"></fff-dashboard-panel>
 		<cnc-dashboard-panel v-else></cnc-dashboard-panel>
 	</div>
@@ -15,6 +15,19 @@ import { DashboardMode } from '../../store/settings.js'
 import { MachineMode } from '../../store/machine/modelEnums.js'
 
 export default {
+    install() {
+        // Register a route via Control -> Dashboard
+        registerRoute(this, {
+            Control: {
+                Dashboard: {
+                    icon: 'mdi-view-dashboard',
+                    caption: 'menu.control.dashboard',
+                    path: '/'
+                }
+            }
+        });
+    },
+
 	computed: {
 		...mapState('machine/model', {
 			atxPower: state => state.state.atxPower,
@@ -28,17 +41,5 @@ export default {
 			return this.dashboardMode === DashboardMode.fff;
 		},
 	},
-	install() {
-		// Register a route via Control -> Dashboard
-		registerRoute(this, {
-			Control: {
-				Dashboard: {
-					icon: 'mdi-view-dashboard',
-					caption: 'menu.control.dashboard',
-					path: '/'
-				}
-			}
-		});
-	}
 };
 </script>

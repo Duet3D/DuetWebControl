@@ -72,6 +72,6 @@ export default {
 	fileDownloadError: 'fileDownloadError',
 
 	// Request plugin to be installed (shows plugin wizard)
-	// Payload: { zipFilename, zipBlob, zipFile, start }
+	// Payload: { machine, zipFilename, zipBlob, zipFile, start }
 	installPlugin: 'installPlugin'
 }

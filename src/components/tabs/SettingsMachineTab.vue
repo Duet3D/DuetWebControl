@@ -1,7 +1,7 @@
 <template>
-	<v-row class="pa-3">
+	<v-row class="pa-3" :dense="$vuetify.breakpoint.mobile">
 		<v-col cols="12" md="4">
-			<v-row>
+			<v-row :dense="$vuetify.breakpoint.mobile">
 				<v-col cols="12" md="12">
 					<settings-electronics-panel></settings-electronics-panel>
 				</v-col>
