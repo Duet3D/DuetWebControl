@@ -55,7 +55,7 @@
 										</v-tooltip>
 									</v-col>
 
-									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].v12 !== null && boards[0].v12.current > 0">
+									<v-col class="d-flex flex-column align-center" v-if="boards.length && boards[0].v12 && boards[0].v12.current > 0">
 										<strong>{{ $t('panel.status.v12') }}</strong>
 										<v-tooltip bottom>
 											<template #activator="{ on }">
