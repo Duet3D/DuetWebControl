@@ -641,7 +641,7 @@ export default {
 				console.warn(e);
 				this.$makeNotification('error', this.$t('notification.compress.errorTitle'), e.message);
 			}
-			notification.hide();
+			notification.close();
 		},
 
 		filesOrDirectoriesChanged({ machine, files }) {

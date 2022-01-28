@@ -11,20 +11,20 @@ import { Plugin } from './modelItems.js'
 import settings from './settings.js'
 
 import { version } from '../../../package.json'
-import Root from '../../main.js'
-import i18n from '../../i18n'
-import Plugins, { checkVersion, loadDwcResources } from '../../plugins'
-import beep from '../../utils/beep.js'
-import { displayTime } from '../../utils/display.js'
-import Events from '../../utils/events.js'
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
-import { log, logCode } from '../../utils/logging.js'
-import Path from '../../utils/path.js'
-import { makeFileTransferNotification, showMessage } from '../../utils/toast.js'
+import Root from '@/main.js'
+import i18n from '@/i18n'
+import Plugins, { checkVersion, loadDwcResources } from '@/plugins'
+import beep from '@/utils/beep.js'
+import { displayTime } from '@/utils/display'
+import Events from '@/utils/events.js'
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '@/utils/errors'
+import { log, logCode } from '@/utils/logging'
+import Path from '@/utils/path.js'
+import { makeFileTransferNotification, showMessage } from '@/utils/notifications'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export default function(connector, pluginCacheFields, pluginSettingFields) {
+export default function(connector, pluginCacheFields = {}, pluginSettingFields = {}) {
 	return {
 		namespaced: true,
 		state: {
@@ -240,7 +240,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					}
 				} finally {
 					if (notification) {
-						notification.hide();
+						notification.close();
 					}
 					context.commit('clearFilesBeingChanged');
 					if (!payload.filename) {
@@ -420,7 +420,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					}
 				} finally {
 					if (notification) {
-						notification.hide();
+						notification.close();
 					}
 					if (!payload.filename) {
 						context.commit('setMultiFileTransfer', false);
@@ -474,13 +474,12 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				}
 
 				// Is a new message supposed to be shown?
-				if (state.model.state.displayMessage &&
-					state.model.state.displayMessage != lastDisplayMessage) {
+				if (state.model.state.displayMessage !== lastDisplayMessage) {
 					showMessage(state.model.state.displayMessage);
 				}
 
 				// Has the firmware halted?
-				if (lastStatus != state.model.state.status && state.model.state.status === StatusType.halted) {
+				if (lastStatus !== state.model.state.status && state.model.state.status === StatusType.halted) {
 					log('warning', i18n.t('events.emergencyStop'));
 				}
 
@@ -639,9 +638,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			unregister: () => connector.unregister(),
 
 			setAutoSleep: (state, value) => state.autoSleep = value,
-			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
-			setHighVerbosity() { if (connector) { connector.verbose = true; } },
-			setNormalVerbosity() { if (connector) { connector.verbose = false; } }
+			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting
 		},
 		modules: {
 			cache: cache(connector, pluginCacheFields),

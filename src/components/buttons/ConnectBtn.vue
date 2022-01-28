@@ -15,7 +15,7 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
 	computed: {
-		...mapState(['isConnecting', 'isDisconnecting', 'isLocal']),
+		...mapState(['isConnecting', 'isDisconnecting']),
 		...mapState('machine', ['isReconnecting']),
 		...mapGetters(['isConnected']),
 		isBusy() { return this.isConnecting || this.isReconnecting || this.isDisconnecting },
@@ -46,7 +46,7 @@ export default {
 			if (this.isConnected) {
 				// Disconnect from the current machine
 				await this.disconnect();
-			} else if (this.isLocal) {
+			} else if (process.env.NODE_ENV === 'development') {
 				// Ask user for hostname before connecting
 				this.showConnectDialog();
 			} else {

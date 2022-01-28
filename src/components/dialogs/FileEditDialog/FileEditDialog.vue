@@ -124,6 +124,7 @@ export default {
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
 				indentWithTabs: true,
+				inputStyle: 'textarea',
 				lineNumbers: true,
 				styleActiveLine: true
 			}
@@ -137,11 +138,6 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
-		},
-		isTouchDevice() {
-			return ('ontouchstart' in window) ||
-				(navigator.maxTouchPoints > 0) ||
-				(navigator.msMaxTouchPoints > 0); 
 		}
 	},
 	data() {
@@ -182,16 +178,35 @@ export default {
 		},
 		onTextareaTab(e) {
 			const originalSelectionStart = e.target.selectionStart;
+			let spacesInserted = 1;
 			const textStart = e.target.value.slice(0, originalSelectionStart), textEnd = e.target.value.slice(originalSelectionStart);
-			this.innerValue = `${textStart}\t${textEnd}`;
+			if (textStart.endsWith(' ')) {
+				let numSpaces = 0;
+				for (let i = textStart.length - 1; i >= 0; i--) {
+					if (textStart[i] === ' ') {
+						numSpaces++;
+					} else {
+						break;
+					}
+				}
+
+				spacesInserted = 4 - numSpaces % 4;
+				let spaces = '';
+				for (let i = 0; i < spacesInserted; i++) {
+					spaces += ' ';
+				}
+				this.innerValue = textStart + spaces + textEnd;
+			} else {
+				this.innerValue = textStart + '\t' + textEnd;
+			}
 			e.target.value = this.innerValue;
-			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + 1;
+			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + spacesInserted;
 		}
 	},
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isTouchDevice;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 

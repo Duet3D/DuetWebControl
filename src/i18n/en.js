@@ -396,7 +396,8 @@ export default {
 			placeholder: 'Send code...'
 		},
 		addTemperature: 'Value of new temperature',
-		addRPM: 'Value of new preset'
+		addRPM: 'Value of new preset',
+        set: 'Set'
 	},
 	jobProgress: {
 		simulating: 'Simulating {0}, {1} complete',
@@ -646,364 +647,371 @@ export default {
 			runBed: 'True Bed Levelling (G32)',
 			runDelta: 'Delta Calibration (G32)',
 			compensationInUse: 'Compensation in use: {0}',
-			disableBedCompensation: 'Disable Bed Compensation (M561)',
-			disableMeshCompensation: 'Disable Mesh Compensation (G29 S2)',
-			editMesh: 'Define Area for Mesh Compensation (M557)',
-			runMesh: 'Run Mesh Compensation (G29)',
-			loadMesh: 'Load Saved Height Map from SD Card (G29 S1)',
-			axesNotHomed: 'The following axis is not homed:|The following axes are not homed:',
-			noAxes: 'No Axes',
-			workzero: 'Go To Zero'
-		},
-		settingsAbout: {
-			caption: 'About',
-			developedBy: 'Web Interface developed by',
-			for: 'for',
-			licensedUnder: 'Licensed under the terms of the'
-		},
-		settingsAppearance: {
-			caption: 'Appearance',
-			darkTheme: 'Dark theme',
-			language: 'Language',
-			binaryFileSizes: 'Use binary file sizes',
-			binaryFileSizesTitle: 'File sizes are displayed with a basis of 1024 (IEC) instead of 1000 (SI)',
-			disableAutoComplete: 'Disable auto-completion',
-			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs',
-			dashboardModeTitle: 'Dashboard Mode'
-		},
-		settingsCommunication: {
-			caption: 'Communication',
-			pingInterval: 'PING interval when idle (ms)',
-			updateDelay: 'Update delay (ms)',
-			ajaxRetries: 'Number of maximum AJAX retries',
-			updateInterval: 'Update interval ({0})',
-			extendedUpdateEvery: 'Extended status update interval',
-			fileTransferRetryThreshold: 'Retry threshold for file transfers ({0})',
-			crcUploads: 'Use CRC32 checksums for uploads',
-			unavailable: 'No settings available'
-		},
-		settingsElectronics: {
-			caption: 'Electronics',
-			diagnostics: 'Diagnostics',
-			board: 'Board: {0}',
-			firmware: 'Firmware: {0} ({1})',
-			dwsFirmware: 'Duet WiFi Server Version: {0}',
-			updateNote: 'Note: You can install updates on the System page.'
-		},
-		settingsEndstops: {
-			caption: 'Endstops',
-			index: 'Index',
-			triggered: 'Triggered'
-		},
-		settingsGeneral: {
-			caption: 'General',
-			factoryReset: 'Revert to factory defaults',
-			settingsStorageLocal: 'Save settings in local storage',
-			settingsSaveDelay: 'Update delay for settings changes ({0})',
-			cacheStorageLocal: 'Save cache in local storage',
-			cacheSaveDelay: 'Update delay for cache changes ({0})'
-		},
-		settingsListItems: {
-			caption: 'List Items',
-			toolTemperatures: 'Tool Temperatures',
-			bedTemperatures: 'Bed Temperatures',
-			chamberTemperatures: 'Chamber Temperatures',
-			spindleRPM: 'Spindle RPM'
-		},
-		settingsMachine: {
-			caption: 'Machine-Specific',
-			babystepAmount: 'Babystep amount ({0})',
-			moveFeedrate: 'Feedrate for move buttons ({0})'
-		},
-		settingsNotifications: {
-			caption: 'Notifications',
-			notificationErrorsPersistent: 'Do not close error messages automatically',
-			notificationTimeout: 'Default notification timeout ({0})'
-		},
-		settingsWebcam: {
-			caption: 'Webcam',
-			webcamURL: 'Webcam URL (optional)',
-			webcamUpdateInterval: 'Webcam update interval ({0})',
-			webcamLiveURL: 'URL to open when Webcam image is clicked (optional)',
-			webcamFix: 'Do not append extra HTTP qualifier when reloading images',
-			webcamEmbedded: 'Embed webcam image in an iframe',
-			webcamRotation: 'Rotate webcam image',
-			webcamFlip: 'Flip webcam image',
-			flipNone: 'None',
-			flipX: 'Flip X',
-			flipY: 'Flip Y',
-			flipBoth: 'Flip both'
-		},
-		speedFactor: {
-			caption: 'Speed Factor'
-		},
-		spindle: {
-			title: 'Spindles',
-			spindle: 'Spindle',
-			active: 'Active',
-			direction: 'Direction',
-			currentRPM: 'Current RPM',
-			setRPM: 'Set RPM',
-			on: 'On',
-			off: 'Off',
-			forward: 'forward',
-			reverse: 'reverse'
-		},
-		status: {
-			caption: 'Status',
-			mode: 'Mode: {0}',
-			toolPosition: 'Tool Position',
-			machinePosition: 'Machine Position',
-			extruders: 'Extruder Drives',
-			extruderDrive: 'Drive {0}',
-			speeds: 'Speeds',
-			requestedSpeed: 'Requested Speed',
-			topSpeed: 'Top Speed',
-			sensors: 'Sensors',
-			mcuTemp: 'MCU Temperature',
-			minMax: 'Minimum: {0}, Maximum {1}',
-			vIn: 'Vin',
-			v12: 'V12',
-			fanRPM: 'Fan RPM',
-			probe: 'Z-Probe|Z-Probes',
-			noStatus: 'No Status'
-		},
-		tools: {
-			caption: 'Tools',
-			controlHeaters: 'Control Heaters',
-			turnEverythingOff: 'Turn Everything Off',
-			setActiveTemperatures: 'Set active temperatures',
-			setStandbyTemperatures: 'Set standby temperatures',
-			setToolTemperatures: 'Set tool temperatures',
-			setBedTemperatures: 'Set bed temperatures',
-			setChamberTemperatures: 'Set chamber temperatures',
-			tool: 'Tool {0}',
-			loadFilament: 'Load Filament',
-			changeFilament: 'Change Filament',
-			unloadFilament: 'Unload Filament',
-			heater: 'Heater {0}',
-			current: 'Current',
-			active: 'Active',
-			standby: 'Standby',
-			bed: 'Bed {0}',
-			chamber: 'Chamber {0}',
-			extra: {
-				caption: 'Extra',
-				sensor: 'Sensor',
-				sensorIndex: 'Sensor {0}',
-				value: 'Value',
-				showInChart: 'Show in Chart',
-				noItems: 'No Extra Sensors'
-			},
-			noTools: 'No Tools'
-		},
-		webcam: {
-			caption: 'Webcam Surveillance',
-			alt: '(webcam image)'
-		}
-	},
-	pluginPermissions: {
-		commandExecution: 'Execute generic DSF commands (e.g. G/M/T-codes)',
-		codeInterceptionRead: 'Intercept G/M/T-codes',
-		codeInterceptionReadWrite: 'Intercept G/M/T-codes codes and manipulate them',
-		managePlugins: 'Install, load, unload, and uninstall third-party plugins',
-		manageUserSessions: 'Manage user sessions',
-		objectModelRead: 'Read from the object model',
-		objectModelReadWrite: 'Read from and write to the object model',
-		registerHttpEndpoints: 'Create new HTTP endpoints',
-		readFilaments: 'Read files from the filaments directory',
-		writeFilaments: 'Write files to the filaments directory',
-		readFirmware: 'Read files from the firmware directory',
-		writeFirmware: 'Write files to the firmware directory',
-		readGCodes: 'Read files from the G-codes directory',
-		writeGCodes: 'Write files to the G-codes directory',
-		readMacros: 'Read files from the macros directory',
-		writeMacros: 'Write files to the macros directory',
-		readMenu: 'Read files from the menu directory',
-		writeMenu: 'Write files to the menu directory',
-		readSystem: 'Read files from the system directory',
-		writeSystem: 'Write files to the system directory',
-		readWeb: 'Read files from the web directory',
-		writeWeb: 'Write files to the web directory',
-		fileSystemAccess: 'Access files outside the virtual SD directory',
-		launchProcesses: 'Launch new processes',
-		networkAccess: 'Communicate over the network',
-		webcamAccess: 'Access webcam devices',
-		superUser: 'Run as root user (potentially dangerous)'
-	},
-	plugins: {
-		accelerometer: {
-			name: 'Accelerometer',
-			listTitle: 'CSV Files',
-			none: 'No Files',
-			chartCaption: 'Acceleration Samples',
-			noData: 'No Samples Loaded',
-			analysis: 'Frequency Analysis',
-			samplingRate: 'Sampling Rate (in Hz)',
-			start: 'Start',
-			end: 'End',
-			wideBand: 'Wide-band analysis',
-			analyze: 'Analyze',
-			back: 'Back',
-			overflowPrompt: {
-				title: 'Overflows detected',
-				prompt: 'This CSV file has reported overflows. Are you sure you wish to continue?'
-			},
-			loadError: 'Failed to load CSV file',
-			parseError: 'Failed to parse CSV file',
-			frequency: 'Frequency (in Hz)',
-			amplitudes: 'Amplitudes',
-			samples: 'Samples',
-			accelerations: 'Accelerations (in g)',
-			sampleTooltip: 'Sample #{0}',
-			frequencyTooltip: '{0} ± {1} Hz'
-		},
-		autoUpdate: {
-			menuCaption: 'Update'
-		},
-		gcodeViewer: {
-			caption: 'G-Code Viewer',
-			view3D: 'View 3D',
-			fullscreen: 'Full Screen',
-			showConfiguration: 'Show Viewer Configuration',
-			resetCamera: {
-				caption: 'Reset Camera',
-				title: 'Reset camera to home position'
-			},
-			cancelLoad: 'Cancel File Loading',
-			reloadView: {
-				caption: 'Reload View',
-				title: 'Reload the current gcode, this is used when changing settings like color, feedrate color, etc.'
-			},
-			loadCurrentJob: {
-				caption: 'Load Current Job',
-				title: 'Load the current printing or simulating job'
-			},
-			unloadGCode: {
-				caption: 'Unload GCode',
-				title: 'Remove the loaded gcode from the viewer'
-			},
-			loadLocalGCode: {
-				caption: 'Load Local GCode',
-				title: 'Load a file from your local drive into the viewer'
-			},
-			showCursor: 'Show Cursor',
-			showTravels: 'Show Travels',
-			renderQuality: {
-				caption: 'Render Quality',
-				title: 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available'
-			},
-			sbc: 'SBC',
-			low: 'Low',
-			medium: 'Medium',
-			high: 'High',
-			ultra: 'Ultra',
-			max: 'Max',
-			forceLineRendering: 'Force Line Rendering',
-			transparency: 'Transparency',
-			showSolid: 'Show Solid',
-			spreadLines: 'Spread Lines',
-			extruders: {
-				caption: 'Extruders',
-				title: 'Sets the color used for rendering an extruder'
-			},
-			tool: 'Tool {0}',
-			resetColor: 'Reset Tool Color | Reset Tool Colors',
-			renderMode: {
-				caption: 'Render Mode | Render Modes',
-				title: 'Render mode allows you to set extruder color or feedrate line coloring in the viewer'
-			},
-			color: 'Color',
-			feedrate: 'Feedrate',
-			minFeedrate: 'Minimum Feedrate (mm/s)',
-			maxFeedrate: 'Maximum Feedrate (mm/s)',
-			minFeedrateColor: 'Minimum Feedrate Color',
-			maxFeedrateColor: 'Maximum Feedrate Color',
-			progress: {
-				caption: 'Progress',
-				title: 'Set the printed color for progress tracking'
-			},
-			topClipping: 'Top Clipping',
-			bottomClipping: 'Bottom Clipping',
-			progressColor: 'Progress Color',
-			liveZTracking: 'Live Z Tracking',
-			settings: 'Settings',
-			background: 'Background',
-			bedRenderMode: 'Bed Render Mode',
-			bed: 'Bed',
-			volume: 'Volume',
-			showAxes: 'Show Axes',
-			showObjectLabels: 'Show Object Labels',
-			cameraInertia: 'Camera Inertia',
-			showObjectSelection: {
-				caption: 'Show Object Selection',
-				title: 'Enabled if objects could be detected in the current print'
-			},
-			renderFailed: 'Previous render failed. Setting render quality to SBC',
-			showFSOverlay: 'Show Full Screen Overlay',
-			useHQRendering: 'High Quality Render (Round)',
-			useSpecular: "Use Specular Highlight",
-			feature: "Feature"
-		},
-		heightmap: {
-			menuCaption: 'Height Map',
-			listTitle: 'Height Maps',
-			none: 'None',
-			scale: 'Scale:',
-			orMore: 'or more',
-			orLess: 'or less',
-			axes: 'Axes:',
-			notAvailable: 'height map not available',
-			statistics: 'Statistics',
-			numPoints: 'Number of points: {0}',
-			radius: 'Probing radius: {0}',
-			area: 'Probe area: {0}',
-			maxDeviations: 'Maximum deviations: {0} / {1}',
-			meanError: 'Mean error: {0}',
-			rmsError: 'RMS error: {0}',
-			display: 'Display',
-			colorScheme: 'Color scheme:',
-			terrain: 'Terrain',
-			heat: 'Heat',
-			invertZ: 'Invert Z coordinates',
-			topView: 'Top view',
-			range: 'Range',
-			fixed: 'Fixed',
-			deviation: 'Deviation',
-			resetView: 'Reset View'
-		},
-		objectModelBrowser: {
-			menuCaption: 'Object Model'
-		}
-	},
-	tabs: {
-		generalSettings: {
-			caption: 'General'
-		},
-		machineSettings: {
-			caption: 'General'
-		},
-		plugins: {
-			integratedPlugins: 'Integrated Plugins',
-			externalPlugins: 'External Plugins',
-			headers: {
-				name: 'Name',
-				author: 'Author',
-				version: 'Version',
-				license: 'License',
-				dependencies: 'Dependencies',
-				status: 'Status'
-			},
-			optional: 'optional',
-			start: 'Start',
-			partiallyStarted: 'partially started',
-			started: 'started',
-			stop: 'Stop',
-			deactivated: 'deactivated',
-			stopped: 'stopped',
-			uninstall: 'Uninstall',
-			noPlugins: 'No Plugins',
-			refreshNote: 'Refresh the page to finish unloading some DWC plugins'
-		}
-	}
+            compensationType: {
+                none: 'None',
+                mesh: 'Mesh'
+            },
+            disableBedCompensation: 'Disable Bed Compensation (M561)',
+            disableMeshCompensation: 'Disable Mesh Compensation (G29 S2)',
+            editMesh: 'Define Area for Mesh Compensation (M557)',
+            runMesh: 'Run Mesh Compensation (G29)',
+            loadMesh: 'Load Saved Height Map from SD Card (G29 S1)',
+            axesNotHomed: 'The following axis is not homed:|The following axes are not homed:',
+            noAxes: 'No Axes',
+            workzero: 'Go To Zero'
+        },
+        settingsAbout: {
+            caption: 'About',
+            developedBy: 'Web Interface developed by',
+            for: 'for',
+            licensedUnder: 'Licensed under the terms of the'
+        },
+        settingsAppearance: {
+            caption: 'Appearance',
+            darkTheme: 'Dark theme',
+            language: 'Language',
+            binaryFileSizes: 'Use binary file sizes',
+            binaryFileSizesTitle: 'File sizes are displayed with a basis of 1024 (IEC) instead of 1000 (SI)',
+            disableAutoComplete: 'Disable auto-completion',
+            disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs',
+            dashboardModeTitle: 'Dashboard Mode',
+            bottomNavigation: 'Show bottom navigation on tablet devices',
+            numericInputs: 'Show numeric input fields instead of sliders'
+        },
+        settingsCommunication: {
+            caption: 'Communication',
+            pingInterval: 'PING interval when idle (ms)',
+            updateDelay: 'Update delay (ms)',
+            ajaxRetries: 'Number of maximum AJAX retries',
+            updateInterval: 'Update interval ({0})',
+            extendedUpdateEvery: 'Extended status update interval',
+            fileTransferRetryThreshold: 'Retry threshold for file transfers ({0})',
+            crcUploads: 'Use CRC32 checksums for uploads',
+            unavailable: 'No settings available'
+        },
+        settingsElectronics: {
+            caption: 'Electronics',
+            diagnostics: 'Diagnostics',
+            board: 'Board: {0}',
+            firmware: 'Firmware: {0} ({1})',
+            dwsFirmware: 'Duet WiFi Server Version: {0}',
+            updateNote: 'Note: You can install updates on the System page.'
+        },
+        settingsEndstops: {
+            caption: 'Endstops',
+            index: 'Index',
+            triggered: 'Triggered'
+        },
+        settingsGeneral: {
+            caption: 'General',
+            factoryReset: 'Revert to factory defaults',
+            settingsStorageLocal: 'Save settings in local storage',
+            settingsSaveDelay: 'Update delay for settings changes ({0})',
+            cacheStorageLocal: 'Save cache in local storage',
+            cacheSaveDelay: 'Update delay for cache changes ({0})',
+            ignoreFileTimestamps: 'Ignore file timestamps on upload'
+        },
+        settingsListItems: {
+            caption: 'List Items',
+            toolTemperatures: 'Tool Temperatures',
+            bedTemperatures: 'Bed Temperatures',
+            chamberTemperatures: 'Chamber Temperatures',
+            spindleRPM: 'Spindle RPM'
+        },
+        settingsMachine: {
+            caption: 'Machine-Specific',
+            babystepAmount: 'Babystep amount ({0})',
+            moveFeedrate: 'Feedrate for move buttons ({0})'
+        },
+        settingsNotifications: {
+            caption: 'Notifications',
+            notificationErrorsPersistent: 'Do not close error messages automatically',
+            notificationTimeout: 'Default notification timeout ({0})'
+        },
+        settingsWebcam: {
+            caption: 'Webcam',
+            webcamURL: 'Webcam URL (optional)',
+            webcamUpdateInterval: 'Webcam update interval ({0})',
+            webcamLiveURL: 'URL to open when Webcam image is clicked (optional)',
+            webcamFix: 'Do not append extra HTTP qualifier when reloading images',
+            webcamEmbedded: 'Embed webcam image in an iframe',
+            webcamRotation: 'Rotate webcam image',
+            webcamFlip: 'Flip webcam image',
+            flipNone: 'None',
+            flipX: 'Flip X',
+            flipY: 'Flip Y',
+            flipBoth: 'Flip both'
+        },
+        speedFactor: {
+            caption: 'Speed Factor'
+        },
+        spindle: {
+            title: 'Spindles',
+            spindle: 'Spindle',
+            active: 'Active',
+            direction: 'Direction',
+            currentRPM: 'Current RPM',
+            setRPM: 'Set RPM',
+            on: 'On',
+            off: 'Off',
+            forward: 'forward',
+            reverse: 'reverse'
+        },
+        status: {
+            caption: 'Status',
+            mode: 'Mode: {0}',
+            toolPosition: 'Tool Position',
+            machinePosition: 'Machine Position',
+            extruders: 'Extruder Drives',
+            extruderDrive: 'Drive {0}',
+            speeds: 'Speeds',
+            requestedSpeed: 'Requested Speed',
+            topSpeed: 'Top Speed',
+            sensors: 'Sensors',
+            mcuTemp: 'MCU Temperature',
+            minMax: 'Minimum: {0}, Maximum {1}',
+            vIn: 'Vin',
+            v12: 'V12',
+            fanRPM: 'Fan RPM',
+            probe: 'Z-Probe|Z-Probes',
+            noStatus: 'No Status'
+        },
+        tools: {
+            caption: 'Tools',
+            controlHeaters: 'Control Heaters',
+            turnEverythingOff: 'Turn Everything Off',
+            setActiveTemperatures: 'Set active temperatures',
+            setStandbyTemperatures: 'Set standby temperatures',
+            setToolTemperatures: 'Set tool temperatures',
+            setBedTemperatures: 'Set bed temperatures',
+            setChamberTemperatures: 'Set chamber temperatures',
+            tool: 'Tool {0}',
+            loadFilament: 'Load Filament',
+            changeFilament: 'Change Filament',
+            unloadFilament: 'Unload Filament',
+            heater: 'Heater {0}',
+            current: 'Current',
+            active: 'Active',
+            standby: 'Standby',
+            bed: 'Bed {0}',
+            chamber: 'Chamber {0}',
+            extra: {
+                caption: 'Extra',
+                sensor: 'Sensor',
+                sensorIndex: 'Sensor {0}',
+                value: 'Value',
+                showInChart: 'Show in Chart',
+                noItems: 'No Extra Sensors'
+            },
+            noTools: 'No Tools'
+        },
+        webcam: {
+            caption: 'Webcam Surveillance',
+            alt: '(webcam image)'
+        }
+    },
+    pluginPermissions: {
+        commandExecution: 'Execute generic DSF commands (e.g. G/M/T-codes)',
+        codeInterceptionRead: 'Intercept G/M/T-codes',
+        codeInterceptionReadWrite: 'Intercept G/M/T-codes codes and manipulate them',
+        managePlugins: 'Install, load, unload, and uninstall third-party plugins',
+        manageUserSessions: 'Manage user sessions',
+        objectModelRead: 'Read from the object model',
+        objectModelReadWrite: 'Read from and write to the object model',
+        registerHttpEndpoints: 'Create new HTTP endpoints',
+        readFilaments: 'Read files from the filaments directory',
+        writeFilaments: 'Write files to the filaments directory',
+        readFirmware: 'Read files from the firmware directory',
+        writeFirmware: 'Write files to the firmware directory',
+        readGCodes: 'Read files from the G-codes directory',
+        writeGCodes: 'Write files to the G-codes directory',
+        readMacros: 'Read files from the macros directory',
+        writeMacros: 'Write files to the macros directory',
+        readMenu: 'Read files from the menu directory',
+        writeMenu: 'Write files to the menu directory',
+        readSystem: 'Read files from the system directory',
+        writeSystem: 'Write files to the system directory',
+        readWeb: 'Read files from the web directory',
+        writeWeb: 'Write files to the web directory',
+        fileSystemAccess: 'Access files outside the virtual SD directory',
+        launchProcesses: 'Launch new processes',
+        networkAccess: 'Communicate over the network',
+        webcamAccess: 'Access webcam devices',
+        superUser: 'Run as root user (potentially dangerous)'
+    },
+    plugins: {
+        accelerometer: {
+            name: 'Accelerometer',
+            listTitle: 'CSV Files',
+            none: 'No Files',
+            chartCaption: 'Acceleration Samples',
+            noData: 'No Samples Loaded',
+            analysis: 'Frequency Analysis',
+            samplingRate: 'Sampling Rate (in Hz)',
+            start: 'Start',
+            end: 'End',
+            wideBand: 'Wide-band analysis',
+            analyze: 'Analyze',
+            back: 'Back',
+            overflowPrompt: {
+                title: 'Overflows detected',
+                prompt: 'This CSV file has reported overflows. Are you sure you wish to continue?'
+            },
+            loadError: 'Failed to load CSV file',
+            parseError: 'Failed to parse CSV file',
+            frequency: 'Frequency (in Hz)',
+            amplitudes: 'Amplitudes',
+            samples: 'Samples',
+            accelerations: 'Accelerations (in g)',
+            sampleTooltip: 'Sample #{0}',
+            frequencyTooltip: '{0} ± {1} Hz'
+        },
+        autoUpdate: {
+            menuCaption: 'Update'
+        },
+        gcodeViewer: {
+            caption: 'G-Code Viewer',
+            view3D: 'View 3D',
+            fullscreen: 'Full Screen',
+            showConfiguration: 'Show Viewer Configuration',
+            resetCamera: {
+                caption: 'Reset Camera',
+                title: 'Reset camera to home position'
+            },
+            cancelLoad: 'Cancel File Loading',
+            reloadView: {
+                caption: 'Reload View',
+                title: 'Reload the current gcode, this is used when changing settings like color, feedrate color, etc.'
+            },
+            loadCurrentJob: {
+                caption: 'Load Current Job',
+                title: 'Load the current printing or simulating job'
+            },
+            unloadGCode: {
+                caption: 'Unload GCode',
+                title: 'Remove the loaded gcode from the viewer'
+            },
+            loadLocalGCode: {
+                caption: 'Load Local GCode',
+                title: 'Load a file from your local drive into the viewer'
+            },
+            showCursor: 'Show Cursor',
+            showTravels: 'Show Travels',
+            renderQuality: {
+                caption: 'Render Quality',
+                title: 'Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available'
+            },
+            sbc: 'SBC',
+            low: 'Low',
+            medium: 'Medium',
+            high: 'High',
+            ultra: 'Ultra',
+            max: 'Max',
+            forceLineRendering: 'Force Line Rendering',
+            transparency: 'Transparency',
+            showSolid: 'Show Solid',
+            spreadLines: 'Spread Lines',
+            extruders: {
+                caption: 'Extruders',
+                title: 'Sets the color used for rendering an extruder'
+            },
+            tool: 'Tool {0}',
+            resetColor: 'Reset Tool Color | Reset Tool Colors',
+            renderMode: {
+                caption: 'Render Mode | Render Modes',
+                title: 'Render mode allows you to set extruder color or feedrate line coloring in the viewer'
+            },
+            color: 'Color',
+            feedrate: 'Feedrate',
+            minFeedrate: 'Minimum Feedrate (mm/s)',
+            maxFeedrate: 'Maximum Feedrate (mm/s)',
+            minFeedrateColor: 'Minimum Feedrate Color',
+            maxFeedrateColor: 'Maximum Feedrate Color',
+            progress: {
+                caption: 'Progress',
+                title: 'Set the printed color for progress tracking'
+            },
+            topClipping: 'Top Clipping',
+            bottomClipping: 'Bottom Clipping',
+            progressColor: 'Progress Color',
+            liveZTracking: 'Live Z Tracking',
+            settings: 'Settings',
+            background: 'Background',
+            bedRenderMode: 'Bed Render Mode',
+            bed: 'Bed',
+            volume: 'Volume',
+            showAxes: 'Show Axes',
+            showObjectLabels: 'Show Object Labels',
+            cameraInertia: 'Camera Inertia',
+            showObjectSelection: {
+                caption: 'Show Object Selection',
+                title: 'Enabled if objects could be detected in the current print'
+            },
+            renderFailed: 'Previous render failed. Setting render quality to SBC',
+            showFSOverlay: 'Show Full Screen Overlay',
+            useHQRendering: 'High Quality Render (Round)',
+            useSpecular: "Use Specular Highlight",
+            feature: "Feature"
+        },
+        heightmap: {
+            menuCaption: 'Height Map',
+            listTitle: 'Height Maps',
+            none: 'None',
+            scale: 'Scale:',
+            orMore: 'or more',
+            orLess: 'or less',
+            axes: 'Axes:',
+            notAvailable: 'height map not available',
+            statistics: 'Statistics',
+            numPoints: 'Number of points: {0}',
+            radius: 'Probing radius: {0}',
+            area: 'Probe area: {0}',
+            maxDeviations: 'Maximum deviations: {0} / {1}',
+            meanError: 'Mean error: {0}',
+            rmsError: 'RMS error: {0}',
+            display: 'Display',
+            colorScheme: 'Color scheme:',
+            terrain: 'Terrain',
+            heat: 'Heat',
+            invertZ: 'Invert Z coordinates',
+            topView: 'Top view',
+            range: 'Range',
+            fixed: 'Fixed',
+            deviation: 'Deviation',
+            resetView: 'Reset View'
+        },
+        objectModelBrowser: {
+            menuCaption: 'Object Model'
+        }
+    },
+    tabs: {
+        generalSettings: {
+            caption: 'General'
+        },
+        machineSettings: {
+            caption: 'General'
+        },
+        plugins: {
+            integratedPlugins: 'Integrated Plugins',
+            externalPlugins: 'External Plugins',
+            headers: {
+                name: 'Name',
+                author: 'Author',
+                version: 'Version',
+                license: 'License',
+                dependencies: 'Dependencies',
+                status: 'Status'
+            },
+            optional: 'optional',
+            start: 'Start',
+            partiallyStarted: 'partially started',
+            started: 'started',
+            stop: 'Stop',
+            deactivated: 'deactivated',
+            stopped: 'stopped',
+            uninstall: 'Uninstall',
+            noPlugins: 'No Plugins',
+            refreshNote: 'Refresh the page to finish unloading some DWC plugins'
+        }
+    }
 }

@@ -29,6 +29,8 @@
 
 import { mapActions } from 'vuex'
 
+const countdownSeconds = 5
+
 export default {
 	props: {
 		shown: {
@@ -42,7 +44,7 @@ export default {
 	},
 	data() {
 		return {
-			counter: 10,
+			counter: countdownSeconds,
 			timer: null
 		}
 	},
@@ -67,7 +69,7 @@ export default {
 		shown(to) {
 			if (to) {
 				if (!this.timer) {
-					this.counter = 10;
+					this.counter = countdownSeconds;
 					this.countDown();
 				}
 			} else if (this.timer) {

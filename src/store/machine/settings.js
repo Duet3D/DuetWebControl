@@ -4,10 +4,10 @@ import Vue from 'vue'
 
 import { resetSettingsTimer } from '../observer.js'
 
-import { FileNotFoundError } from '../../utils/errors.js'
-import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
-import patch from '../../utils/patch.js'
-import Path from '../../utils/path.js'
+import { FileNotFoundError } from '@/utils/errors.js'
+import { setLocalSetting, getLocalSetting, removeLocalSetting } from '@/utils/localStorage.js'
+import patch from '@/utils/patch.js'
+import Path from '@/utils/path.js'
 
 export default function(connector, pluginSettingFields) {
 	return {

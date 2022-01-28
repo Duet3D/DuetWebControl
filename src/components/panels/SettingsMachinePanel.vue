@@ -26,7 +26,6 @@ export default {
 	computed: {
 		...mapState('machine', ['settings']),
 		...mapState('machine/model', ['boards']),
-		...mapState(['isLocal']),
 		babystepAmount: {
 			get() { return this.settings.babystepAmount; },
 			set(value) { if (this.isNumber(value) && value > 0) { this.update({ babystepAmount: value }); } }

@@ -1,6 +1,6 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.4.0-b7",
+  "version": "3.4.0-b7+1",
   "pkgVersion": "3.4-b7",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
@@ -21,14 +21,11 @@
     "chart.js": "^2.9.4",
     "chartjs-adapter-date-fns": "^1.0.0",
     "compare-versions": "^3.6.0",
-    "d3": "^7.0.0",
     "date-fns": "^2.17.0",
     "file-saver": "^2.0.5",
-    "izitoast": "^1.4.0",
     "jszip": "^3.6.0",
     "piecon": "^0.5.0",
     "register-service-worker": "^1.7.2",
-    "roboto-fontface": "*",
     "simple-keyboard": "^3.3.13",
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.12",
@@ -58,7 +55,7 @@
     "vue-cli-plugin-vuetify": "^2.1.0",
     "vue-template-compiler": "^2.6.12",
     "vuetify-loader": "^1.7.2",
-    "zip-webpack-plugin": "^3.0.0"
+    "zip-webpack-plugin": "^4.0.1"
   },
   "eslintConfig": {
     "root": true,

@@ -21,17 +21,25 @@ export default {
 	state: {
 		language: 'en',
 		lastHostname: location.host,
+
 		darkTheme: false,
 		useBinaryPrefix: true,
 		disableAutoComplete: false,
+        dashboardMode : DashboardMode.default,
+        bottomNavigation: true,
+        numericInputs: false,
+
 		settingsStorageLocal: false,
 		settingsSaveDelay: 2000,						// ms - how long to wait before settings updates are saved
 		cacheStorageLocal: localStorageSupported,
 		cacheSaveDelay: 4000,							// ms - how long to wait before cache updates are saved
-		notifications: {
+        ignoreFileTimestamps: false,
+
+        notifications: {
 			errorsPersistent: true,
 			timeout: 5000								// ms
 		},
+
 		webcam: {
 			url: '',
 			updateInterval: 5000,						// ms
@@ -41,10 +49,9 @@ export default {
 			rotation: 0,
 			flip: 'none'
 		},
-		dashboardMode : DashboardMode.default,
 
 		enabledPlugins: ['Height Map'],
-		plugins: {},										// Third-party values
+		plugins: {}									    // Third-party values
 	},
 	actions: {
 		async applyDefaults({ state, dispatch }) {
@@ -60,9 +67,9 @@ export default {
 				}
 			}
 		},
-		async load({ rootState, rootGetters, commit, dispatch }) {
-			// First attempt to load the last hostname from the local storage if the are running on localhost
-			if (rootState.isLocal) {
+		async load({ rootGetters, commit, dispatch }) {
+			// First attempt to load the last hostname from the local storage if running in dev mode
+			if (process.env.NODE_ENV !== 'production') {
 				const lastHostname = getLocalSetting('lastHostname');
 				if (lastHostname) {
 					commit('load', { lastHostname });
@@ -142,7 +149,7 @@ export default {
 		},
 
 		load(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
+			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
 			if (payload.plugins) {

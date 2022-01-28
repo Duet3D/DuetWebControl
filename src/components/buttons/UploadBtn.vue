@@ -25,17 +25,18 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { NetworkInterfaceType, StatusType } from '../../store/machine/modelEnums.js'
-import { DisconnectedError } from '../../utils/errors.js'
-import Events from '../../utils/events.js'
-import Path from '../../utils/path.js'
+import { NetworkInterfaceType, StatusType } from '@/store/machine/modelEnums'
+import { DisconnectedError } from '@/utils/errors'
+import Events from '@/utils/events.js'
+import Path from '@/utils/path.js'
 
 const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 
 export default {
 	computed: {
-		...mapState(['isLocal', 'selectedMachine']),
+		...mapState(['selectedMachine']),
 		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
+		...mapState('settings', ['ignoreFileTimestamps']),
 		...mapGetters('machine', ['connector']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		connectorType() {
@@ -209,7 +210,7 @@ export default {
 
 								if (isPlugin) {
 									this.extracting = false;
-									notification.hide();
+									notification.close();
 
 									this.$root.$emit(Events.installPlugin, {
 										machine: this.machine || this.selectedMachine,
@@ -249,7 +250,7 @@ export default {
 							/*await*/ this.doUpload(zipFiles, files[0].name, new Date());
 						} finally {
 							this.extracting = false;
-							notification.hide();
+							notification.close();
 						}
 						return;
 					} catch (e) {
@@ -330,6 +331,10 @@ export default {
 			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 
 			// Start uploading
+			if (this.ignoreFileTimestamps) {
+				files.forEach(file => file.lastModified = new Date());
+			}
+
 			this.uploading = true;
 			try
 			{
@@ -362,14 +367,14 @@ export default {
 			if (askForUpdate) {
 				// Ask user to perform an update
 				this.confirmUpdate = true;
-			} else if (!this.isLocal && this.updates.webInterface) {
+			} else if (this.selectedMachine === location.host && this.updates.webInterface) {
 				// Reload the web interface immediately if it was the only update
 				location.reload(true);
 			}
 
 			if (zipName) {
 				const secondsPassed = Math.round((new Date() - startTime) / 1000);
-				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
+				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]), null);
 			}
 		},
 		async startUpdate() {
@@ -450,7 +455,7 @@ export default {
 	},
 	watch: {
 		isConnected(to) {
-			if (to && !this.isLocal && this.updates.codeSent && this.updates.webInterface) {
+			if (to && this.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
 				// Reload the web interface when the connection could be established again
 				location.reload(true);
 			}

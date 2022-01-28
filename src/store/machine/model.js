@@ -3,13 +3,14 @@
 import Vue from 'vue'
 
 import {
-	InputChannelName,
-	LogLevel,
-	MachineMode,
-	InputShapingType,
-	KinematicsName,
-	StatusType,
-	isPrinting
+    CompensationType,
+    InputChannelName,
+    LogLevel,
+    MachineMode,
+    InputShapingType,
+    KinematicsName,
+    StatusType,
+    isPrinting
 } from './modelEnums.js'
 import {
 	Axis,
@@ -34,6 +35,7 @@ import { patch, quickPatch } from '@/utils/patch'
 
 // Internal object model as provided by RepRapFirmware and DSF
 // This must be kept in sync for things to work properly...
+// TODO Replace this with new TypeScript module
 export class MachineModel {
 	constructor(initData) { quickPatch(this, initData); }
 
@@ -160,7 +162,7 @@ export class MachineModel {
 				tanXZ: 0,
 				tanYZ: 0
 			},
-			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
+			type: CompensationType.none
 		},
 		currentMove: {
 			acceleration: 0,
@@ -175,6 +177,8 @@ export class MachineModel {
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
+        limitAxes: true,
+        noMovesBeforeHoming: true,
 		printingAcceleration: 10000,
 		queue: [],
 		rotation: {
@@ -225,6 +229,7 @@ export class MachineModel {
             this._internalBeep = value;
         },
 		currentTool: -1,
+        deferredPowerDown: null,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
 		dsfPluginSupport: true,					// *** missing in RRF
@@ -243,6 +248,7 @@ export class MachineModel {
 		previousTool: -1,
 		restorePoints: [],
 		status: null,
+        thisInput: null,
 		time: null,
 		upTime: -1
 	}

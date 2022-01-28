@@ -23,7 +23,7 @@ export default {
 				Console: {
 					icon: 'mdi-list-status',
 					caption: 'menu.control.status',
-					condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.mobile,
+					condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.smAndDown,
 					path: '/Status'
 				}
 			}

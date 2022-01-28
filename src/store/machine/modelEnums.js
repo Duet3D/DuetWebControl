@@ -36,7 +36,6 @@ export const Compatibility = {
 	nanoDlp: 'NanoDLP'
 }
 
-// This is currently unused because RRF <= 2 supports 'n Point' compensation
 export const CompensationType = {
 	none: 'none',
 	mesh: 'mesh'

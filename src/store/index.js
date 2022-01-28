@@ -9,9 +9,9 @@ import Root from '../main.js'
 import observer from './observer.js'
 import settings from './settings.js'
 import Plugins, { checkVersion, loadDwcResources } from '../plugins'
-import { InvalidPasswordError } from '../utils/errors.js'
+import { InvalidPasswordError } from '@/utils/errors'
 import Events from '../utils/events.js'
-import { logGlobal } from '../utils/logging.js'
+import { logGlobal } from '@/utils/logging'
 
 import machine, { defaultMachine } from './machine'
 import connector from './machine/connector'
@@ -19,23 +19,20 @@ import uiInjection from './uiInjection.js'
 
 Vue.use(Vuex)
 
-const defaultUsername = '', defaultPassword = 'reprap'
+const defaultUsername = '', defaultPassword = 'reprap', defaultMachineModule = machine(null)
 
 const machines = {
-	[defaultMachine]: machine(null)
+	[defaultMachine]: defaultMachineModule
 }
 
 const pluginCacheFields = {}, pluginSettingFields = {}
-
-const isLocal = (location.hostname === 'localhost') || (location.hostname === '127.0.0.1') || (location.hostname === '[::1]')
 
 const store = new Vuex.Store({
 	state: {
 		isConnecting: false,
 		connectingProgress: -1,
 		isDisconnecting: false,
-		isLocal,
-		connectDialogShown: isLocal,
+		connectDialogShown: process.env.NODE_ENV === 'development',
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
 		loadedDwcPlugins: [],
@@ -71,7 +68,7 @@ const store = new Vuex.Store({
 
 				await dispatch('machine/settings/load');
 				await dispatch('machine/cache/load');
-				if (state.isLocal) {
+				if (state.settings.lastHostname !== location.host || hostname !== location.host) {
 					commit('settings/setLastHostname', hostname);
 				}
 			} catch (e) {
@@ -82,7 +79,7 @@ const store = new Vuex.Store({
 
 				if (isPasswordError) {
 					commit('askForPassword');
-				} else if (!state.isLocal && hostname === location.host) {
+				} else if (process.env.NODE_ENV !== 'production' && hostname === location.host) {
 					setTimeout(() => dispatch('connect', { hostname, username, password, retrying: true }), 1000);
 					return;
 				}
@@ -133,12 +130,12 @@ const store = new Vuex.Store({
 		},
 
 		// Called when a machine cannot stay connected
-		async onConnectionError({ state, dispatch, commit }, { hostname, error }) {
+		async onConnectionError({ dispatch, commit }, { hostname, error }) {
 			if (error instanceof InvalidPasswordError) {
 				logGlobal('error', i18n.t('events.connectionLost', [hostname]), error.message);
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 				commit('askForPassword');
-			} else if (state.isLocal) {
+			} else if (process.env.NODE_ENV !== 'production') {
 				logGlobal('error', i18n.t('events.connectionLost', [hostname]), error.message);
 				await dispatch('disconnect', { hostname, doDisconnect: false });
 			} else {
@@ -246,11 +243,12 @@ const store = new Vuex.Store({
 	},
 	modules: {
 		// machine will provide the currently selected machine
+        machine: defaultMachineModule,
 		machines: {
 			namespaced: true,
 			modules: {
-				[defaultMachine]: machines[defaultMachine] 				// This represents the factory defaults
-				// ... other machines are added as sub-modules to this object
+				[defaultMachine]: defaultMachineModule				// This represents the factory defaults
+				// ... other machines are added as submodules to this object
 			}
 		},
 		settings,
@@ -263,8 +261,12 @@ const store = new Vuex.Store({
 	strict: process.env.NODE_ENV !== 'production'
 })
 
-// This has to be registered dynamically, else unregisterModule will not work cleanly
-store.registerModule('machine', machines[defaultMachine])
+// Allow default 'machine' module to be unregistered and re-registered.
+// By doing so, Vuex auto-completion works correctly in WebStorm and possibly VS Code
+store._modules.root._children.machine.runtime = true
+for (const submodule in store._modules.root._children.machine._children) {
+    store._modules.root._children.machine._children[submodule].runtime = true
+}
 
 // Debug function to replicate different machine states
 if (process.env.NODE_ENV !== 'production') {

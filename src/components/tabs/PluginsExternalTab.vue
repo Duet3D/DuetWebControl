@@ -65,7 +65,7 @@ button {
 
 import { mapState, mapActions } from 'vuex'
 
-import { makeNotification } from '../../utils/toast.js'
+import { makeNotification } from '../../utils/notifications.js'
 
 export default {
     props: {

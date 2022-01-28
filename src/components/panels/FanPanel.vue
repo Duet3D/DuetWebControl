@@ -35,7 +35,7 @@
 				</v-col>
 
 				<v-col cols="12" sm="auto" order="0" order-sm="1" class="flex-sm-grow-1">
-					<slider v-model="fanValue" :disabled="uiFrozen"></slider>
+					<percentage-input v-model="fanValue" :disabled="uiFrozen"></percentage-input>
 				</v-col>
 			</v-row>
 		</v-card-text>
