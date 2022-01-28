@@ -25,9 +25,9 @@ import {
 	ParsedFileInfo,
 	Probe,
 	Tool,
-	fixObject,
 	fixObjectModel,
-	overloadModelPush
+	overloadModelPush,
+    overloadProperty
 } from './modelItems.js'
 
 import Path from '@/utils/path.js'
@@ -37,7 +37,11 @@ import { patch, quickPatch } from '@/utils/patch'
 // This must be kept in sync for things to work properly...
 // TODO Replace this with new TypeScript module
 export class MachineModel {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+        overloadProperty(this.move.compensation, 'meshDeviation', value => new MeshDeviation(value));
+        overloadProperty(this.state, 'beep', value => new BeepRequest(value));
+        quickPatch(this, initData);
+    }
 
 	boards = []
 	directories = {
@@ -141,14 +145,7 @@ export class MachineModel {
 			fadeHeight: null,
 			file: null,
 			liveGrid: null,
-			_internalMeshDeviation: null,
-			get meshDeviation() { return this._internalMeshDeviation; },
-			set meshDeviation(value) {
-				if (value !== null) {
-					fixObject(value, new MeshDeviation());
-				}
-				this._internalMeshDeviation = value;
-			},
+            meshDeviation: null,
 			probeGrid: {
 				axes: ['X', 'Y'],
 				maxs: [-1, -1],
@@ -220,14 +217,7 @@ export class MachineModel {
 	state = {
 		atxPower: null,
 		atxPowerPort: null,
-        _internalBeep: null,
-        get beep() { return this._internalBeep; },
-        set beep(value) {
-            if (value !== null) {
-                fixObject(value, new BeepRequest());
-            }
-            this._internalBeep = value;
-        },
+        beep: null,
 		currentTool: -1,
         deferredPowerDown: null,
 		displayMessage: '',

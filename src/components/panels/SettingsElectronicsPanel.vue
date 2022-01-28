@@ -23,7 +23,7 @@
 					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(firstInterface.firmwareVersion)]) }} <br>
 				</template>
 
-				<upload-btn v-if="connectorType !== 'rest'" target="update" color="primary" class="mt-5 d-flex justify-center"></upload-btn>
+				<upload-btn v-if="connectorType !== 'rest' || !isDuetFirmware" target="update" color="primary" class="mt-3 d-flex justify-center"></upload-btn>
 			</template>
 			<template v-else>
 				(not connected)
@@ -42,6 +42,7 @@ export default {
 		...mapGetters(['isConnected']),
 		...mapGetters('machine', ['connector']),
 		...mapState('machine/model', {
+			isDuetFirmware: state => (state.boards.length > 0) ? state.boards[0].firmwareFileName.startsWith('Duet') : true,
 			dsfVersion: state => state.state.dsfVersion,
 			mainboard: state => (state.boards.length > 0) ? state.boards[0] : {},
 			firstInterface: state => (state.network.interfaces.length > 0) ? state.network.interfaces[0] : {}

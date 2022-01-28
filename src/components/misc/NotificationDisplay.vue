@@ -108,10 +108,20 @@ export default {
 		}
 	},
 	watch: {
-		fileTransferNotification(to) {
+		fileTransferNotification(to, from) {
+			if (to === from) {
+				// For some reason Vue sometimes triggers this even when nothing has changed
+				return;
+			}
+
 			if (to && this.progressTimer !== null) {
 				clearInterval(this.progressTimer);
 				this.progressTimer = null;
+			}
+
+			if (!to && this.notification && this.notification.timeout > 0) {
+				this.progressTimerValue = 0;
+				this.progressTimer = setInterval(this.updateProgress, 100);
 			}
 		},
 		notification(to, from) {
