@@ -145,12 +145,11 @@ export default {
 		isCompensationEnabled() { return this.move.compensation.type.toLowerCase() !== 'none' },
 		visibleAxes() { return this.move.axes.filter(axis => axis.visible); },
 		isDelta() {
-			return ((this.move.kinematics.name === KinematicsName.delta) ||
-					(this.move.kinematics.name === KinematicsName.rotaryDelta));
+			return (this.move.kinematics.name === KinematicsName.delta ||
+					this.move.kinematics.name === KinematicsName.rotaryDelta);
 		},
 		canHome() {
 			return !this.uiFrozen && (
-				this.state.status !== StatusType.off &&
 				this.state.status !== StatusType.pausing &&
 				this.state.status !== StatusType.processing &&
 				this.state.status !== StatusType.resuming

@@ -57,9 +57,11 @@ textarea {
 
 <template>
 	<v-app>
-		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app width="275">
+		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app width="275" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
 			<div class="mb-3 hidden-sm-and-up">
-				<connect-btn v-if="showConnectButton" class="ma-2" block></connect-btn>
+				<div class="ma-2">
+					<connect-btn v-if="showConnectButton" block></connect-btn>
+				</div>
 				<upload-btn target="start" :elevation="1" class="ma-2" block></upload-btn>
 			</div>
 
@@ -165,6 +167,7 @@ export default {
 			webcam: state => state.settings.webcam,
 			machineMode: state => state.machine.model.state.machineMode,
 			bottomNavigation: state => state.settings.bottomNavigation,
+			iconMenu: state => state.settings.iconMenu,
 
 			injectedComponents: state => state.uiInjection.injectedComponents
 		}),
@@ -172,7 +175,9 @@ export default {
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),
 		...mapGetters('machine/model', ['jobProgress']),
 		categories() {
-			return Object.keys(Menu).map(key => Menu[key]).filter(item => item.condition || item.pages.some(page => page.condition));
+			return Object.keys(Menu)
+				.map(key => Menu[key])
+				.filter(item => item.condition || item.pages.some(page => page.condition));
 		},
 		currentPageCondition() {
 			const currentRoute = this.$route;

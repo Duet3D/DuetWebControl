@@ -23,7 +23,7 @@ export const fileTransferNotifications = Vue.observable([])
  * @param pushToEnd Push this notification to the end of the notification list (low priority), defaults to false
  * @return {{close(): void, timeDisplayed: number, resetTimeout(): void, type, title, message, timeout: (number)}|*} Notification object
  */
-export function makeNotification(type, title, message, timeout = null, route = null, icon = null, pushToEnd = false) {
+export function makeNotification(type, title, message = null, timeout = null, route = null, icon = null, pushToEnd = false) {
 	if (timeout === null) {
 		timeout = (type === 'error' && store.state.settings.notifications.errorsPersistent) ? 0 : store.state.settings.notifications.timeout;
 	}

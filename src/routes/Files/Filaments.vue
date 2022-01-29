@@ -10,6 +10,8 @@
 'use strict'
 
 import { registerRoute } from '..'
+import store from '@/store'
+import { MachineMode } from "@/store/machine/modelEnums";
 
 export default {
 	install() {
@@ -19,7 +21,8 @@ export default {
 				Filaments: {
 					icon: 'mdi-database',
 					caption: 'menu.files.filaments',
-					path: '/Files/Filaments'
+					path: '/Files/Filaments',
+					condition: () => !store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff
 				}
 			}
 		});

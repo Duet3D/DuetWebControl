@@ -11,6 +11,9 @@
 	top: 0;
 	border-radius: 4px;
 }
+.pointer {
+	cursor: pointer;
+}
 </style>
 <template>
 	<v-fade-transition>
@@ -38,7 +41,9 @@
 				</v-btn>
 			</template>
 		</v-snackbar>
-		<v-snackbar v-else-if="notification !== null" :value="true" :style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :timeout="-1" :color="notification.type" @click.native="clicked">
+		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="notification.type"
+					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :class="{ pointer: !!notification.route }"
+					@click.native="clicked">
 			<v-progress-linear v-show="notification.timeout > 0" :color="progressColor" :value="notificationProgress" class="progress-bar"></v-progress-linear>
 
 			<div class="d-flex" :class="{ 'mt-1' : notification.timeout > 0}">

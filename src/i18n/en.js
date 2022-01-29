@@ -676,7 +676,8 @@ export default {
             disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs',
             dashboardModeTitle: 'Dashboard Mode',
             bottomNavigation: 'Show bottom navigation on tablet devices',
-            numericInputs: 'Show numeric input fields instead of sliders'
+            numericInputs: 'Show numeric input fields instead of sliders',
+			iconMenu: 'Use compact icon menu'
         },
         settingsCommunication: {
             caption: 'Communication',
@@ -721,7 +722,8 @@ export default {
         settingsMachine: {
             caption: 'Machine-Specific',
             babystepAmount: 'Babystep amount ({0})',
-            moveFeedrate: 'Feedrate for move buttons ({0})'
+            moveFeedrate: 'Feedrate for move buttons ({0})',
+			toolChangeMacros: 'Tool change macros'
         },
         settingsNotifications: {
             caption: 'Notifications',

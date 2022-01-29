@@ -225,9 +225,6 @@ const store = new Vuex.Store({
 			this.unregisterModule('machine');
 			this.registerModule('machine', machines[selectedMachine]);
 			state.selectedMachine = selectedMachine;
-
-			// Allow access to the machine's data store for debugging...
-			window.machineStore = state.machine;
 		},
 
 		dwcPluginLoaded(state, pluginName) {

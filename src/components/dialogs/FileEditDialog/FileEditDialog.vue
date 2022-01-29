@@ -216,7 +216,7 @@ export default {
 					if (this.$refs.cmEditor) {
 						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 						this.$refs.cmEditor.cminstance.focus();
-					} else {
+					} else if (this.$refs.textarea) {
 						this.$refs.textarea.scrollTo(0, 0);
 						this.$refs.textarea.focus();
 					}

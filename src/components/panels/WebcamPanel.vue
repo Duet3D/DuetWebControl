@@ -64,7 +64,7 @@ img {
 			{{ $t('panel.webcam.caption') }}
 		</v-card-title>
 
-		<v-card-text class="pa-0 img-container">
+		<v-card-text v-if="active" class="pa-0 img-container">
 			<v-responsive v-if="webcam.embedded" :aspect-ratio="16/9">
 				<iframe :src="webcam.url"></iframe>
 			</v-responsive>
@@ -107,9 +107,16 @@ export default {
 	},
 	data() {
 		return {
+			active: true,
 			updateTimer: null,
 			url: ''
 		}
+	},
+	activated() {
+		this.active = true;
+	},
+	deactivated() {
+		this.active = false;
 	},
 	methods: {
 		updateWebcam() {
@@ -141,7 +148,7 @@ export default {
 			deep: true,
 			handler() {
 				if (this.webcam.updateInterval === 0) {
-					// For persistent images we need to apply updates independently from the update loop
+					// For persistent images we need to apply updates independently of the update loop
 					this.updateWebcam();
 				}
 			}

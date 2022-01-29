@@ -348,6 +348,7 @@ import { DisconnectedError } from '@/utils/errors'
 export default {
 	computed: {
 		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapGetters('machine/settings', ['toolChangeParameter']),
 		...mapState('machine/model', ['heat', 'move', 'sensors', 'state', 'spindles', 'tools']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme']),
@@ -517,10 +518,10 @@ export default {
 			try {
 				if (this.state.currentTool === tool.number) {
 					// Deselect current tool
-					this.sendCode('T-1');
+					this.sendCode('T-1' + this.toolChangeParameter);
 				} else {
 					// Select new tool
-					this.sendCode(`T${tool.number}`);
+					this.sendCode(`T${tool.number}${this.toolChangeParameter}`);
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {

@@ -676,8 +676,9 @@ export default {
             disableAutoCompleteTitle: 'Keine Autovervollständigung bei der Eingabe von Codes oder Temperaturen anzeigen',
             dashboardModeTitle: 'Übersichtsmodus',
             bottomNavigation: 'Untere Navigationsleiste auf Tablets anzeigen',
-            numericInputs: 'Numerische Eingaben statt Schiebern anzeigen'
-        },
+            numericInputs: 'Numerische Eingaben statt Schiebern anzeigen',
+			iconMenu: 'Kompaktes Symbolmenü benutzen'
+		},
         settingsCommunication: {
             caption: 'Kommunikation',
             pingInterval: 'PING-Intervall im Leerlauf ({0})',
@@ -721,8 +722,9 @@ export default {
         settingsMachine: {
             caption: 'Maschinenspezifisch',
             babystepAmount: 'Schrittgröße für Babystepping ({0})',
-            moveFeedrate: 'Vorschubrate für Bewegungen ({0})'
-        },
+            moveFeedrate: 'Vorschubrate für Bewegungen ({0})',
+			toolChangeMacros: 'Makros bei Werkzeugwechsel'
+		},
         settingsNotifications: {
             caption: 'Benachrichtigungen',
             notificationErrorsPersistent: 'Fehlermeldungen nicht automatisch schließen',

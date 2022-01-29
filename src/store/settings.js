@@ -28,6 +28,7 @@ export default {
         dashboardMode : DashboardMode.default,
         bottomNavigation: true,
         numericInputs: false,
+		iconMenu: false,
 
 		settingsStorageLocal: false,
 		settingsSaveDelay: 2000,						// ms - how long to wait before settings updates are saved
