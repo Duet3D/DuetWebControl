@@ -10,7 +10,7 @@
 			<v-card-text>
 				{{ $t('dialog.update.prompt') }}
 
-				<v-alert :value="!!dsfVersion" type="warning" class="mt-3">
+				<v-alert :value="!!dsfVersion && isDuetFirmware" type="warning" class="mt-3">
 					{{ $t('dialog.update.sbcWarning') }}
 				</v-alert>
 			</v-card-text>
@@ -37,7 +37,10 @@ export default {
 		}
 	},
 	computed: {
-		...mapState('machine/model', { dsfVersion: state => state.state.dsfVersion }),
+		...mapState('machine/model', {
+			isDuetFirmware: state => (state.boards.length > 0) ? state.boards[0].firmwareFileName.startsWith('Duet') : true,
+			dsfVersion: state => state.state.dsfVersion
+		}),
 		internalShown: {
 			get() { return this.shown; },
 			set(value) {

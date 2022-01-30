@@ -90,9 +90,6 @@ class BaseConnector {
 	// Connector type
 	type = 'unknown'
 
-	// High verbosity mode
-	verbose = false
-
 	// Constructor of this class
 	constructor(type, hostname) {
 		this.type = type;

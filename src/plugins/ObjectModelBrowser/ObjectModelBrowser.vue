@@ -10,11 +10,11 @@
 				</template>
 			</v-treeview>
 
-			<center>
+			<div class="d-flex justify-center">
 				<v-btn v-show="active.length === 0" color="info" class="mt-3" :disabled="uiFrozen" :elevation="1" @click="refresh">
 					<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 				</v-btn>
-			</center>
+			</div>
 		</v-col>
 
 		<v-col ref="rightContainer" v-show="active.length !== 0" cols="6">
@@ -178,7 +178,6 @@ export default {
 			}
 			if (obj !== null && obj instanceof Object) {
 				return Object.keys(obj)
-					.filter(key => !key.startsWith('_') && ((path.length > 0) || (obj[key] !== null)))
 					.map(function(key) {
 						const itemPath = path.slice(0);
 						itemPath.push(key);

@@ -47,11 +47,13 @@ h1 {
 					<v-icon @click="refresh" class="ml-2">mdi-refresh</v-icon>
 				</v-card-title>
 				<v-card-text class="pa-0" v-show="files.length === 0">
-					<v-alert :value="true" class="mb-0" type="info">{{ $t('plugins.heightmap.none') }}</v-alert>
+					<v-alert :value="true" class="mb-0" type="info">
+						{{ $t('plugins.heightmap.none') }}
+					</v-alert>
 				</v-card-text>
 				<v-list :disabled="uiFrozen || !ready || loading" class="py-0">
 					<v-list-item-group mandatory :value="files.indexOf(selectedFile)" color="primary">
-						<v-list-item :key="file" @click="selectedFile = file" v-for="file in files">
+						<v-list-item v-for="file in files" :key="file" @click="selectedFile = file">
 							{{ file }}
 						</v-list-item>
 					</v-list-item-group>
@@ -390,7 +392,10 @@ export default {
 			this.loading = true;
 			try {
 				const files = await this.getFileList(this.systemDirectory);
-				this.files = files.filter((file) => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv')).map((file) => file.name);
+				this.files = files
+					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'))
+					.map(file => file.name)
+					.sort();
 			} finally {
 				this.loading = false;
 			}

@@ -9,7 +9,7 @@
 		</v-card-title>
 
 		<v-card-text class="py-0">
-			<slider v-model="speedFactor" :min="speedFactorMin" :max="speedFactorMax" :disabled="uiFrozen"></slider>
+			<percentage-input v-model="speedFactor" :min="speedFactorMin" :max="speedFactorMax" :disabled="uiFrozen"></percentage-input>
 		</v-card-text>
 	</v-card>
 </template>

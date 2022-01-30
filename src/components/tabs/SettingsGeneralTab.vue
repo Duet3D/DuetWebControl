@@ -1,5 +1,5 @@
 <template>
-	<v-row class="pa-3">
+	<v-row class="pa-3" :dense="$vuetify.breakpoint.mobile">
 		<v-col cols="12" md="4" lg="4">
 			<v-row :dense="$vuetify.breakpoint.mobile">
 				<v-col cols="12" sm="12">
@@ -8,9 +8,6 @@
 				<v-col cols="12" sm="6" md="12">
 					<settings-apperance-panel></settings-apperance-panel>
 				</v-col>
-				<v-col cols="12" sm="6" md="12">
-					<settings-notifications-panel></settings-notifications-panel>
-				</v-col>
 			</v-row>
 		</v-col>
 
@@ -18,6 +15,9 @@
 			<v-row :dense="$vuetify.breakpoint.mobile">
 				<v-col cols="12">
 					<settings-general-panel></settings-general-panel>
+				</v-col>
+				<v-col cols="12">
+					<settings-notifications-panel></settings-notifications-panel>
 				</v-col>
 				<v-col cols="12">
 					<settings-webcam-panel></settings-webcam-panel>
@@ -30,7 +30,7 @@
 <script>
 'use strict'
 
-import { registerSettingTab } from '../../routes'
+import { registerSettingTab } from '@/routes'
 
 export default {
 	install() {

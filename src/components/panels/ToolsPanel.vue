@@ -67,11 +67,13 @@ table.extra tr > td:first-child {
 			<template v-if="currentPage === 'tools'">
 				<table class="tools" v-show="canShowTools">
 					<thead>
-						<th class="pl-2">{{ $t('panel.tools.tool', ['']) }}</th>
-						<th class="px-1">{{ $t('panel.tools.heater', ['']) }}</th>
-						<th class="px-1">{{ $t('panel.tools.current', ['']) }}</th>
-						<th class="px-1">{{ $t('panel.tools.active') }}</th>
-						<th class="pr-2">{{ $t('panel.tools.standby') }}</th>
+						<tr>
+							<th class="pl-2">{{ $t('panel.tools.tool', ['']) }}</th>
+							<th class="px-1">{{ $t('panel.tools.heater', ['']) }}</th>
+							<th class="px-1">{{ $t('panel.tools.current', ['']) }}</th>
+							<th class="px-1">{{ $t('panel.tools.active') }}</th>
+							<th class="pr-2">{{ $t('panel.tools.standby') }}</th>
+						</tr>
 					</thead>
 					<tbody>
 						<!-- Tools -->
@@ -115,19 +117,19 @@ table.extra tr > td:first-child {
 								<template v-if="!toolHeater && getSpindle(tool)">
 									<!-- Spindle Name -->
 									<td>
-										<v-row dense v-if="state.currentTool == tool.number">
+										<v-row dense v-if="state.currentTool === tool.number">
 											<v-col>
-												<code-btn :code="`M4`" no-wait small>
+												<code-btn code="M4" no-wait small>
 													<v-icon>mdi-rotate-left</v-icon>
 												</code-btn>
-												<code-btn :code="`M3`" no-wait small>
+												<code-btn code="M3" no-wait small>
 													<v-icon>mdi-rotate-right</v-icon>
 												</code-btn>
 											</v-col>
 										</v-row>
-										<v-row dense v-if="state.currentTool == tool.number">
+										<v-row dense v-if="state.currentTool === tool.number">
 											<v-col>
-												<code-btn :code="`M5`" no-wait small>
+												<code-btn code="M5" no-wait small>
 													<v-icon>mdi-stop</v-icon>
 												</code-btn>
 											</v-col>
@@ -304,11 +306,13 @@ table.extra tr > td:first-child {
 			</template>
 
 			<template v-else-if="currentPage === 'extra'">
-				<table class="extra ml-2 mr-2" v-show="extraSensors.length">
+				<table class="extra ml-2 mr-2" v-show="extraSensors.length !== 0">
 					<thead>
-						<th class="hidden-sm-and-down"></th>
-						<th>{{ $t('panel.tools.extra.sensor') }}</th>
-						<th>{{ $t('panel.tools.extra.value') }}</th>
+						<tr>
+							<th class="hidden-sm-and-down"></th>
+							<th>{{ $t('panel.tools.extra.sensor') }}</th>
+							<th>{{ $t('panel.tools.extra.value') }}</th>
+						</tr>
 					</thead>
 					<tbody>
 						<tr v-for="extraItem in extraSensors" :key="`extra-${extraItem.index}`">
@@ -337,13 +341,14 @@ table.extra tr > td:first-child {
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
-import { AnalogSensorType, HeaterState, SpindleState } from '../../store/machine/modelEnums.js'
-import { getHeaterColor, getExtraColor } from '../../utils/colors.js'
-import { DisconnectedError } from '../../utils/errors.js'
+import { AnalogSensorType, HeaterState, SpindleState } from '@/store/machine/modelEnums'
+import { getHeaterColor, getExtraColor } from '@/utils/colors'
+import { DisconnectedError } from '@/utils/errors'
 
 export default {
 	computed: {
 		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapGetters('machine/settings', ['toolChangeParameter']),
 		...mapState('machine/model', ['heat', 'move', 'sensors', 'state', 'spindles', 'tools']),
 		...mapState('machine/settings', ['displayedExtraTemperatures']),
 		...mapState('settings', ['darkTheme']),
@@ -443,8 +448,7 @@ export default {
 			let code = '';
 			this.tools.forEach(function(tool) {
 				if (tool && tool.heaters.length) {
-					const temps = tool.heaters.map(() => '-273.15').join(':');
-					code += `G10 P${tool.number} R${temps} S${temps}\n`;
+					code += `M568 P${tool.number} A0\n`;
 				}
 			});
 			this.heat.bedHeaters.forEach(function(bedHeater, index) {
@@ -514,10 +518,10 @@ export default {
 			try {
 				if (this.state.currentTool === tool.number) {
 					// Deselect current tool
-					this.sendCode('T-1');
+					this.sendCode('T-1' + this.toolChangeParameter);
 				} else {
 					// Select new tool
-					this.sendCode(`T${tool.number}`);
+					this.sendCode(`T${tool.number}${this.toolChangeParameter}`);
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
@@ -559,19 +563,17 @@ export default {
 				return;
 			}
 
-			let offTemps;
 			switch (heater.state) {
 				case HeaterState.off:		// Off -> Active
-					this.sendCode(`T${tool.number}`);
+					this.sendCode(`M568 P${tool.number} A2`);
 					break;
 
 				case HeaterState.standby:	// Standby -> Off
-					offTemps = tool.active.map(() => '-273.15').join(':');
-					this.sendCode(`G10 P${tool.number} S${offTemps} R${offTemps}`);
+					this.sendCode(`M568 P${tool.number} A0`);
 					break;
 
 				case HeaterState.active:	// Active -> Standby
-					this.sendCode('T-1');
+					this.sendCode(`M568 P${tool.number} A1`);
 					break;
 
 				case HeaterState.fault:		// Fault -> Ask for reset

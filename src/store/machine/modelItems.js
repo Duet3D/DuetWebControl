@@ -71,15 +71,14 @@ export class BeepRequest {
 }
 
 export class Board {
-	constructor(initData) { quickPatch(this, initData); }
-	#accelerometer = null
-	get accelerometer() { return this.#accelerometer; }
-	set accelerometer(value) {
-		if (value !== null) {
-			fixObject(value, new Accelerometer());
-		}
-		this.#accelerometer = value;
-	}
+	constructor(initData) {
+        overloadProperty(this, 'accelerometer', value => new Accelerometer(value));
+        overloadProperty(this, 'mcuTemp', value => new MinMaxCurrent(value));
+        overloadProperty(this, 'v12', value => new MinMaxCurrent(value));
+        overloadProperty(this, 'vIn', value => new MinMaxCurrent(value));
+        quickPatch(this, initData);
+    }
+	accelerometer = null
 	bootloaderFileName = null
 	canAddress = null
 	directDisplay = {
@@ -95,39 +94,18 @@ export class Board {
 	iapFileNameSD = null		// *** requires SD support
 	maxHeaters = 0
 	maxMotors = 0
-	#mcuTemp = null
-	get mcuTemp() { return this.#mcuTemp; }
-	set mcuTemp(value) {
-		if (value !== null) {
-			fixObject(value, new MinMaxCurrent());
-		}
-		this.#mcuTemp = value;
-	}
+    mcuTemp = null
 	name = ''
 	shortName = ''
 	state = BoardState.unknown
 	supportsDirectDisplay = false
-	#v12 = null
-	get v12() { return this.#v12; }
-	set v12(value) {
-		if (value !== null) {
-			fixObject(value, new MinMaxCurrent());
-		}
-		this.#v12 = value;
-	}
-	#vIn = null
-	get vIn() { return this.#vIn; }
-	set vIn(value) {
-		if (value !== null) {
-			fixObject(value, new MinMaxCurrent());
-		}
-		this.#vIn = value;
-	}
+	v12 = null
+	vIn = null
 }
 
 export class Build {
 	constructor(initData) {
-		overloadPushMethod(this.objects, new BuildObject());
+		overloadPushMethod(this.objects, value => new BuildObject(value));
 		quickPatch(this, initData);
 	}
 	currentObject = -1
@@ -274,7 +252,7 @@ export class GpOutputPort {
 
 export class Heater {
 	constructor(initData) {
-        overloadPushMethod(this.monitors, new HeaterMonitor());
+        overloadPushMethod(this.monitors, value => new HeaterMonitor(value));
         quickPatch(this, initData);
     }
 	active = 0
@@ -336,16 +314,12 @@ export class InputChannel {
 }
 
 export class Kinematics {
-	constructor(initData) { quickPatch(this, initData); }
+    constructor(initData) {
+        overloadProperty(this, 'segmentation', value => new MoveSegmentation(value));
+        quickPatch(this, initData);
+    }
 	name = KinematicsName.unknown
-	#segmentation = null
-	get segmentation() { return this.#segmentation; }
-	set segmentation(value) {
-		if (value !== null) {
-			fixObject(value, new MoveSegmentation());
-		}
-		this.#segmentation = value;
-	}
+	segmentation = null
 }
 
 export class ZLeadscrewKinematics extends Kinematics {
@@ -377,7 +351,7 @@ export class CoreKinematics extends ZLeadscrewKinematics {
 export class DeltaKinematics extends Kinematics {
 	constructor(initData) {
 		super({});
-		overloadPushMethod(this.towers, new DeltaTower());
+		overloadPushMethod(this.towers, value => new DeltaTower(value));
 		quickPatch(initData);
 	}
 	deltaRadius = 105.6
@@ -449,6 +423,7 @@ export class MessageBox {
 }
 
 export class MinMaxCurrent {
+    constructor(initData) { quickPatch(this, initData); }
 	current = 0
 	max = 0
 	min = 0
@@ -461,6 +436,7 @@ export class MoveQueueItem {
 }
 
 export class MoveSegmentation {
+    constructor(initData) { quickPatch(this, initData); }
 	segmentsPerSec = 0
 	minSegmentLength = 0
 }
@@ -488,7 +464,7 @@ export class NetworkInterface {
 
 export class ParsedFileInfo {
 	constructor(initData) {
-		overloadPushMethod(this.thumbnails, new ParsedThumbnail());
+		overloadPushMethod(this.thumbnails, value => new ParsedThumbnail(value));
 		quickPatch(this, initData);
 		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
 			// approximate the number of layers if it isn't given
@@ -613,66 +589,67 @@ export class Volume {
 	speed = null				// in Bytes/s
 }
 
-export function fixObject(item, preset) {
-	for (let key in preset) {
-		if (item[key] === undefined) {
-			Vue.set(item, key, preset[key]);
-		} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
-			fixObject(item[key], preset[key]);
-		}
-	}
-}
-
-function overloadPushMethod(array, preset) {
+function overloadPushMethod(array, presetFn) {
 	const originalPushMethod = Object.getPrototypeOf(array).push;
 	array.push = function(item) {
-		if (item !== null) {
-			fixObject(item, preset);
-		}
-		originalPushMethod.call(array, Vue.observable(item));
+        originalPushMethod.call(array, (item !== null) ? Vue.observable(presetFn(item)) : null);
 	};
 }
 
+export function overloadProperty(object, property, presetFn) {
+    const propertyDescriptor = Object.getOwnPropertyDescriptor(object, property);
+    let storedValue = Vue.observable((propertyDescriptor.get !== undefined) ? propertyDescriptor.get() : propertyDescriptor.value);
+    Object.defineProperty(object, property, {
+        enumerable: true,
+        get() { return storedValue; },
+        set(value) {
+            if (value !== storedValue) {
+                storedValue = (value !== null) ? presetFn(value) : null;
+            }
+        }
+    });
+}
+
 export function overloadModelPush(model) {
-	overloadPushMethod(model.boards, new Board());
-	overloadPushMethod(model.fans, new Fan());
-	overloadPushMethod(model.heat.heaters, new Heater());
-	overloadPushMethod(model.httpEndpoints, new HttpEndpoint());
-	overloadPushMethod(model.inputs, new InputChannel());
-	overloadPushMethod(model.job.layers, new Layer());
-	overloadPushMethod(model.move.axes, new Axis());
-	overloadPushMethod(model.move.extruders, new Extruder());
-	overloadPushMethod(model.move.queue, new MoveQueueItem());
-	overloadPushMethod(model.network.interfaces, new NetworkInterface());
-	overloadPushMethod(model.sensors.analog, new AnalogSensor());
-	overloadPushMethod(model.sensors.endstops, new Endstop());
+	overloadPushMethod(model.boards, value => new Board(value));
+	overloadPushMethod(model.fans, value => new Fan(value));
+	overloadPushMethod(model.heat.heaters, value => new Heater(value));
+	overloadPushMethod(model.httpEndpoints, value => new HttpEndpoint(value));
+	overloadPushMethod(model.inputs, value => new InputChannel(value));
+	overloadPushMethod(model.job.layers, value => new Layer(value));
+	overloadPushMethod(model.move.axes, value => new Axis(value));
+	overloadPushMethod(model.move.extruders, value => new Extruder(value));
+	overloadPushMethod(model.move.queue, value => new MoveQueueItem(value));
+	overloadPushMethod(model.network.interfaces, value => new NetworkInterface(value));
+	overloadPushMethod(model.sensors.analog, value => new AnalogSensor(value));
+	overloadPushMethod(model.sensors.endstops, value => new Endstop(value));
 	// Filament monitors need special treatment due to variable item types
-	overloadPushMethod(model.sensors.gpIn, new GpInputPort());
-	overloadPushMethod(model.sensors.probes, new Probe());
-	overloadPushMethod(model.spindles, new Spindle());
-	overloadPushMethod(model.state.gpOut, new GpOutputPort());
-	overloadPushMethod(model.state.restorePoints, new RestorePoint());
-	overloadPushMethod(model.tools, new Tool());
-	overloadPushMethod(model.userSessions, new UserSession());
-	overloadPushMethod(model.volumes, new Volume());
+	overloadPushMethod(model.sensors.gpIn, value => new GpInputPort(value));
+	overloadPushMethod(model.sensors.probes, value => new Probe(value));
+	overloadPushMethod(model.spindles, value => new Spindle(value));
+	overloadPushMethod(model.state.gpOut, value => new GpOutputPort(value));
+	overloadPushMethod(model.state.restorePoints, value => new RestorePoint(value));
+	overloadPushMethod(model.tools, value => new Tool(value));
+	overloadPushMethod(model.userSessions, value => new UserSession(value));
+	overloadPushMethod(model.volumes, value => new Volume(value));
 }
 
 export function fixObjectModel(state, mergeData) {
 	if (mergeData.sensors && mergeData.sensors.filamentMonitors) {
-		state.sensors.filamentMonitors.forEach(function(filamentSensor) {
-			if (filamentSensor) {
+		state.sensors.filamentMonitors.forEach(function(filamentSensor, index) {
+			if (filamentSensor !== null) {
 				switch (filamentSensor.type) {
 					case FilamentMonitorType.laser:
-						fixObject(filamentSensor, new LaserFilamentMonitor());
+                        state.sensors.filamentMonitors[index] = new LaserFilamentMonitor(filamentSensor);
 						break;
 					case FilamentMonitorType.pulsed:
-						fixObject(filamentSensor, new PulsedFilamentMonitor());
+                        state.sensors.filamentMonitors[index] = new PulsedFilamentMonitor(filamentSensor);
 						break;
 					case FilamentMonitorType.rotatingMagnet:
-						fixObject(filamentSensor, new RotatingMagnetFilamentMonitor());
+                        state.sensors.filamentMonitors[index] = new RotatingMagnetFilamentMonitor(filamentSensor);
 						break;
 					default:
-						fixObject(filamentSensor, new FilamentMonitor());
+                        state.sensors.filamentMonitors[index] = new FilamentMonitor(filamentSensor);
 						break;
 				}
 			}

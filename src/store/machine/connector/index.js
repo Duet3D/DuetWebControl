@@ -26,8 +26,7 @@ export default {
 		let lastError = new LoginError();
 		for (let i = 0; i < connectors.length; i++) {
 			try {
-				const connectorInstance = await connectors[i].connect(hostname, user, password);
-				return connectorInstance;
+				return await connectors[i].connect(hostname, user, password);
 			} catch (e) {
 				lastError = e;
 				if (e instanceof LoginError) {

@@ -10,7 +10,7 @@
 'use strict'
 
 import { registerRoute } from '..'
-import store from '../../store'
+import store from '@/store'
 
 export default {
 	install() {

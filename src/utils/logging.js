@@ -2,11 +2,11 @@
 
 import Vue from 'vue'
 
-import { makeNotification } from './toast.js'
+import { makeNotification } from './notifications.js'
 
 import i18n from '../i18n'
 import store from '../store'
-import { defaultMachine } from '../store/machine'
+import { defaultMachine } from '@/store/machine'
 
 export function log(type, title, message, hostname = store.state.selectedMachine) {
 	makeNotification(type, title, message);
@@ -42,7 +42,7 @@ export function logCode(code = '', reply, hostname = store.state.selectedMachine
 			message = responseLines.slice(1).join('<br>');
 		}
 
-		makeNotification(type, title, message);
+		makeNotification(type, title, message, null, '/Console');
 	}
 	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: reply });
 }

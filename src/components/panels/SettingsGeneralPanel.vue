@@ -22,6 +22,9 @@
 				<v-col cols="12" sm="6">
 					<v-text-field v-model.number="cacheSaveDelay" type="number" step="any" min="0" :label="$t('panel.settingsGeneral.cacheSaveDelay', ['ms'])" hide-details></v-text-field>
 				</v-col>
+				<v-col cols="12" sm="6">
+					<v-switch v-model="ignoreFileTimestamps" :label="$t('panel.settingsGeneral.ignoreFileTimestamps')" hide-details></v-switch>
+				</v-col>
 			</v-row>
 		</v-card-text>
 
@@ -60,6 +63,10 @@ export default {
 		cacheSaveDelay: {
 			get() { return this.settings.cacheSaveDelay; },
 			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ cacheSaveDelay: value }); } }
+		},
+		ignoreFileTimestamps: {
+			get() { return this.settings.ignoreFileTimestamps; },
+			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ ignoreFileTimestamps: value }); } }
 		}
 	},
 	data() {

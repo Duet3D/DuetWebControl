@@ -18,6 +18,9 @@
 				{{ $t('panel.settingsAppearance.disableAutoCompleteTitle') }}
 			</v-tooltip>
 			<v-select :items="dashboardModes" :label="$t('panel.settingsAppearance.dashboardModeTitle')" class="mt-3" hide-details item-text="value" item-value="value" v-model="dashboardMode"></v-select>
+			<v-switch :label="$t('panel.settingsAppearance.bottomNavigation')" hide-details v-model="bottomNavigation"></v-switch>
+			<v-switch :label="$t('panel.settingsAppearance.numericInputs')" hide-details v-model="numericInputs"></v-switch>
+			<v-switch :label="$t('panel.settingsAppearance.iconMenu')" hide-details v-model="iconMenu"></v-switch>
 		</v-card-text>
 	</v-card>
 </template>
@@ -70,6 +73,18 @@ export default {
 			return Object.keys(DashboardMode).map((key) => {
 				return { key, value: DashboardMode[key] };
 			});
+		},
+		bottomNavigation: {
+			get() { return this.settings.bottomNavigation; },
+			set(value) { this.update({ bottomNavigation: value }); }
+		},
+		numericInputs: {
+			get() { return this.settings.numericInputs; },
+			set(value) { this.update({ numericInputs: value }); }
+		},
+		iconMenu: {
+			get() { return this.settings.iconMenu; },
+			set(value) { this.update({ iconMenu: value }); }
 		},
 	},
 	methods: mapMutations('settings', ['update']),

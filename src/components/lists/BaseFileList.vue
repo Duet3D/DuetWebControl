@@ -41,12 +41,12 @@ td {
 			</template>
 
 			<template #item="props">
-				<tr :active="props.isSelected" @keydown.space.prevent="props.select(!props.isSelected)"
+				<tr :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0"
+					@keydown.space.prevent="props.select(!props.isSelected)"
 					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd"
 					@click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
 					@contextmenu.stop.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"
-					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)"
-					:data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0">
+					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)">
 
 					<td v-for="header in props.headers" :key="header.value" :class="{ 'pr-0': header.value === 'data-table-select' }">
 						<template v-if="header.value === 'data-table-select'">
@@ -125,10 +125,10 @@ import Vue from 'vue'
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
-import { defaultMachine } from '../../store/machine'
-import { DisconnectedError, OperationCancelledError } from '../../utils/errors.js'
-import Events from '../../utils/events.js'
-import Path from '../../utils/path.js'
+import { defaultMachine } from '@/store/machine'
+import { DisconnectedError, OperationCancelledError } from '@/utils/errors.js'
+import Events from '@/utils/events.js'
+import Path from '@/utils/path.js'
 
 const maxEditFileSize = 33554432;		// 32 MiB
 
@@ -169,6 +169,10 @@ export default {
 		...mapState('machine', ['isReconnecting']),
 		...mapState('machine/cache', ['sorting']),
 		...mapState('machine/model', ['volumes']),
+		isMounted() {
+			const volume = Path.getVolume(this.innerDirectory);
+			return (volume >= 0) && (volume < this.volumes.length) && this.volumes[volume].mounted;
+		},
 		defaultHeaders() {
 			return [
 				{
@@ -200,11 +204,7 @@ export default {
 			return (this.innerValue.length > 0) && (this.innerValue[0].size < maxEditFileSize);
 		},
 		noItemsText() {
-			if (this.selectedMachine === defaultMachine) {
-				return this.noFilesText;
-			}
-			const volume = Path.getVolume(this.innerDirectory);
-			return (volume >= 0 && volume < this.volumes.length && this.volumes[volume].mounted) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
+			return (this.innerFilelistLoaded || this.isMounted || this.selectedMachine === defaultMachine) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
 		},
 		internalSortBy: {
 			get() { return this.sorting[this.sortTable].column; },
@@ -221,10 +221,10 @@ export default {
 	},
 	data() {
 		return {
-			wasMounted: false,
 			initialDirectory: this.directory,
 			innerDirectory: this.directory,
 			innerFilelist: [],
+			innerFilelistLoaded: false,
 			innerLoading: false,
 			innerDoingFileOperation: false,
 			innerValue: [],
@@ -295,10 +295,15 @@ export default {
 			return items;
 		},
 		async refresh() {
-			await this.loadDirectory(this.innerDirectory);
+			await this.$nextTick(() => this.loadDirectory(this.innerDirectory));
 		},
 		async loadDirectory(directory) {
-			if (!this.isConnected) {
+			// Make sure the requested volume is actually available
+			const volume = Path.getVolume(this.directory)
+			if (!this.isConnected || (volume >= 0 && volume < this.volumes.length && !this.volumes[volume].mounted)) {
+				this.innerDirectory = (volume === Path.getVolume(this.initialDirectory)) ? this.initialDirectory : `${volume}:`;
+				this.innerFilelist = [];
+				this.innerFilelistLoaded = false;
 				return;
 			}
 
@@ -308,16 +313,9 @@ export default {
 				return;
 			}
 
-			// Make sure the current volume is actually available
-			const volume = Path.getVolume(this.innerDirectory);
-			if (volume < 0 || volume >= this.volumes.length || !this.volumes[volume].mounted) {
-				this.innerDirectory = (volume === 0) ? this.initialDirectory : `${volume}:`;
-				this.innerFilelist = [];
-				return;
-			}
-
 			// Load file list
 			this.innerLoading = true;
+			this.innerFilelistLoaded = false;
 			try {
 				const files = await this.getFileList(directory);
 
@@ -334,13 +332,14 @@ export default {
 
 				// Check if another directory was requested while files were being loaded
 				if (directory !== this.innerDirectory) {
-					this.innerLoading = false;
+					this.innerLoading = false
 					this.loadDirectory(this.innerDirectory);
 					return;
 				}
 
 				// Assign new file list
 				this.innerFilelist = files;
+				this.innerFilelistLoaded = true;
 				this.innerValue = [];
 				this.$nextTick(function() {
 					this.$emit('directoryLoaded', directory);
@@ -466,7 +465,7 @@ export default {
 					row.remove();
 				}
 			}, this);
-			tableClone.style.backgroundColor = this.$vuetify.theme.isDark ? '#424242' : '#FFFFFF';
+			tableClone.style.backgroundColor = this.$vuetify.theme.dark ? '#424242' : '#FFFFFF';
 			tableClone.style.opacity = 0.7;
 			tableClone.style.position = 'absolute';
 			tableClone.style.pointerEvents = 'none';
@@ -641,7 +640,7 @@ export default {
 				console.warn(e);
 				this.$makeNotification('error', this.$t('notification.compress.errorTitle'), e.message);
 			}
-			notification.hide();
+			notification.close();
 		},
 
 		filesOrDirectoriesChanged({ machine, files }) {
@@ -654,8 +653,6 @@ export default {
 	mounted() {
 		// Perform initial load
 		if (this.isConnected) {
-			const volume = Path.getVolume(this.innerDirectory);
-			this.wasMounted = (volume >= 0) && (volume < this.volumes.length) && this.volumes[volume].mounted;
 			this.refresh();
 		}
 
@@ -686,28 +683,13 @@ export default {
 			this.editDialog.shown = false;
 			this.renameDialog.shown = false;
 		},
-		volumes: {
-			deep: true,
-			handler() {
-				if (this.isConnected) {
-					const volume = Path.getVolume(this.directory);
-					if (volume >= 0 && volume < this.volumes.length) {
-						const mounted = this.volumes[volume].mounted;
-						if (this.wasMounted !== mounted) {
-							this.wasMounted = mounted;
-							this.refresh();
-						}
-					} else {
-						this.wasMounted = false;
-						this.refresh();
-					}
-				}
+		isMounted(to) {
+			if (!to || !this.innerFilelistLoaded) {
+				this.refresh();
 			}
 		},
 		directory(to) {
-			if (to !== this.innerDirectory) {
-				this.loadDirectory(to);
-			}
+			this.loadDirectory(to);
 		},
 		innerDirectory(to) {
 			if (this.directory !== to) {

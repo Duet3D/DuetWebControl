@@ -250,10 +250,15 @@ export default class PollConnector extends BaseConnector {
 
 		switch (response.err) {
 			case 0:
+				this.justConnected = true;
 				this.boardType = response.boardType;
 				this.sessionTimeout = response.sessionTimeout;
 				this.requestTimeout = response.sessionTimeout / (this.settings.ajaxRetries + 1);
 				this.apiLevel = response.apiLevel || 0;
+				if (response.apiLevel > 0) {
+					// Don't hide the connection dialog while the full model is being loaded...
+					BaseConnector.setConnectingProgress(0);
+				}
 				this.scheduleUpdate();
 				break;
 			case 1:

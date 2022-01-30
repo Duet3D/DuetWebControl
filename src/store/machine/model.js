@@ -3,13 +3,14 @@
 import Vue from 'vue'
 
 import {
-	InputChannelName,
-	LogLevel,
-	MachineMode,
-	InputShapingType,
-	KinematicsName,
-	StatusType,
-	isPrinting
+    CompensationType,
+    InputChannelName,
+    LogLevel,
+    MachineMode,
+    InputShapingType,
+    KinematicsName,
+    StatusType,
+    isPrinting
 } from './modelEnums.js'
 import {
 	Axis,
@@ -24,9 +25,9 @@ import {
 	ParsedFileInfo,
 	Probe,
 	Tool,
-	fixObject,
 	fixObjectModel,
-	overloadModelPush
+	overloadModelPush,
+    overloadProperty
 } from './modelItems.js'
 
 import Path from '@/utils/path.js'
@@ -34,8 +35,13 @@ import { patch, quickPatch } from '@/utils/patch'
 
 // Internal object model as provided by RepRapFirmware and DSF
 // This must be kept in sync for things to work properly...
+// TODO Replace this with new TypeScript module
 export class MachineModel {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+        overloadProperty(this.move.compensation, 'meshDeviation', value => new MeshDeviation(value));
+        overloadProperty(this.state, 'beep', value => new BeepRequest(value));
+        quickPatch(this, initData);
+    }
 
 	boards = []
 	directories = {
@@ -139,14 +145,7 @@ export class MachineModel {
 			fadeHeight: null,
 			file: null,
 			liveGrid: null,
-			_internalMeshDeviation: null,
-			get meshDeviation() { return this._internalMeshDeviation; },
-			set meshDeviation(value) {
-				if (value !== null) {
-					fixObject(value, new MeshDeviation());
-				}
-				this._internalMeshDeviation = value;
-			},
+            meshDeviation: null,
 			probeGrid: {
 				axes: ['X', 'Y'],
 				maxs: [-1, -1],
@@ -160,7 +159,7 @@ export class MachineModel {
 				tanXZ: 0,
 				tanYZ: 0
 			},
-			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
+			type: CompensationType.none
 		},
 		currentMove: {
 			acceleration: 0,
@@ -175,6 +174,8 @@ export class MachineModel {
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
+        limitAxes: true,
+        noMovesBeforeHoming: true,
 		printingAcceleration: 10000,
 		queue: [],
 		rotation: {
@@ -216,15 +217,9 @@ export class MachineModel {
 	state = {
 		atxPower: null,
 		atxPowerPort: null,
-        _internalBeep: null,
-        get beep() { return this._internalBeep; },
-        set beep(value) {
-            if (value !== null) {
-                fixObject(value, new BeepRequest());
-            }
-            this._internalBeep = value;
-        },
+        beep: null,
 		currentTool: -1,
+        deferredPowerDown: null,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
 		dsfPluginSupport: true,					// *** missing in RRF
@@ -243,6 +238,7 @@ export class MachineModel {
 		previousTool: -1,
 		restorePoints: [],
 		status: null,
+        thisInput: null,
 		time: null,
 		upTime: -1
 	}

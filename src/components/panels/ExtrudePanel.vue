@@ -59,42 +59,47 @@
 'use strict'
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { StatusType } from "@/store/machine/modelEnums";
 
 export default {
 	computed: {
 		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['heat', 'sensors']),
+		...mapState('machine/model', ['heat', 'sensors', 'state']),
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
-			if (this.currentTool && this.currentTool.extruders.length > 0) {
-				return !this.currentTool.heaters.some(heaterNumber => {
-					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
-						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
-						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
-							const sensor = this.sensors.analog[heaterSensor];
-							return !sensor || sensor.lastReading < this.heat.coldExtrudeTemperature;
+			return (this.state.status !== StatusType.off &&
+					this.state.status !== StatusType.pausing &&
+					this.state.status !== StatusType.processing &&
+					this.state.status !== StatusType.resuming &&
+					this.currentTool && this.currentTool.extruders.length > 0 &&
+					!this.currentTool.heaters.some(heaterNumber => {
+						if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
+							const heaterSensor = this.heat.heaters[heaterNumber].sensor;
+							if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
+								const sensor = this.sensors.analog[heaterSensor];
+								return !sensor || sensor.lastReading < this.heat.coldExtrudeTemperature;
+							}
 						}
-					}
-					return true;
-				}, this);
-			}
-			return false;
+						return true;
+					}, this));
 		},
 		canRetract() {
-			if (this.currentTool && this.currentTool.extruders.length > 0) {
-				return !this.currentTool.heaters.some(heaterNumber => {
-					if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
-						const heaterSensor = this.heat.heaters[heaterNumber].sensor;
-						if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
-							const sensor = this.sensors.analog[heaterSensor];
-							return !sensor || sensor.lastReading < this.heat.coldRetractTemperature;
+			return (this.state.status !== StatusType.off &&
+					this.state.status !== StatusType.pausing &&
+					this.state.status !== StatusType.processing &&
+					this.state.status !== StatusType.resuming &&
+					this.currentTool && this.currentTool.extruders.length > 0 &&
+					!this.currentTool.heaters.some(heaterNumber => {
+						if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
+							const heaterSensor = this.heat.heaters[heaterNumber].sensor;
+							if (heaterSensor >= 0 && heaterSensor < this.sensors.analog.length) {
+								const sensor = this.sensors.analog[heaterSensor];
+								return !sensor || sensor.lastReading < this.heat.coldRetractTemperature;
+							}
 						}
-					}
-					return true;
-				}, this);
-			}
-			return false;
+						return true;
+					}, this));
 		},
 		mix: {
 			get() { return this.mixValue; },
