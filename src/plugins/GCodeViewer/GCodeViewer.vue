@@ -215,6 +215,7 @@
 									<v-btn :disabled="loading" :value="1" block>{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>
 									<v-btn :disabled="loading" :value="2" block>{{$t('plugins.gcodeViewer.feature')}}</v-btn>
 								</v-btn-toggle>
+								<v-checkbox class="mt-3" v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"></v-checkbox>
 								<h4>{{$t('plugins.gcodeViewer.minFeedrate')}}</h4>
 								<slider :max="500" :min="5" v-model="minColorRate"></slider>
 								<h4>{{$t('plugins.gcodeViewer.maxFeedrate')}}</h4>
@@ -401,6 +402,7 @@ export default {
 			scrubInterval: null,
 			colorDebounce: null,
 			scrubSpeed: 1,
+			g1AsExtrusion: false
 		};
 	},
 	computed: {
@@ -505,6 +507,8 @@ export default {
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
 		this.showCursor = localStorage.getItem('showCursor') === 'true';
+		console.log(viewer.gcodeProcessor);
+		this.g1AsExtrusion = viewer.gcodeProcessor.g1AsExtrusion;
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
@@ -650,9 +654,7 @@ export default {
 				return;
 			}
 			this.loading = true;
-			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
-			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
-			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			this.preLoadSettings();		
 			await viewer.reload();
 			this.loading = false;
 			viewer.setCursorVisiblity(this.showCursor);
@@ -660,7 +662,6 @@ export default {
 			this.maxHeight = viewer.getMaxHeight();
 			this.minHeight = viewer.getMinHeight();
 			this.sliderHeight = this.maxHeight;
-			this.sliderBottomHeight = 0;
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
 			this.scrubFileSize = viewer.fileSize;
 			viewer.gcodeProcessor.forceRedraw();
@@ -696,10 +697,23 @@ export default {
 			this.sliderHeight = this.maxHeight;
 			this.loading = false;
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
+			this.sliderBottomHeight = this.minHeight < 0 ? this.minHeight : 0;
+		},
+		preLoadSettings(){
+			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
+			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
+			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			if(this.g1AsExtrusion){
+				console.log("this.g1AsExtrusions")
+				viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
+				viewer.gcodeProcessor.g1AsExtrusion = this.g1AsExtrusion;
+			}
+			
 		},
 		async fileSelected(e) {
 			const reader = new FileReader();
 			reader.addEventListener('load', async (event) => {
+				this.preLoadSettings();
 				const blob = event.target.result;
 				// Do something with result
 				await viewer.processFile(blob);
@@ -856,9 +870,9 @@ export default {
 		'useHQRendering': function (to) {
 			viewer.gcodeProcessor.useHighQualityExtrusion(to);
 		},
-		'colorMode': function (to) {
+		'colorMode': async function (to) {
 			viewer.gcodeProcessor.setColorMode(to);
-			this.reloadviewer();
+			await this.reloadviewer();
 		},
 		'minColorRate': function (to) {
 			viewer.gcodeProcessor.updateColorRate(to * 60, this.maxColorRate * 60);
@@ -879,7 +893,12 @@ export default {
 		},
 		'specular': function(to){
 			viewer.gcodeProcessor.useSpecularColor(to);
+		},
+		'g1AsExtrusion': async function(to){
+			viewer.gcodeProcessor.g1AsExtrusion = to;
+			await this.reloadviewer();		
 		}
+
 	},
 };
 </script>

@@ -913,6 +913,7 @@ export default {
 				caption: 'Render Mode | Render Modes',
 				title: 'Render mode allows you to set extruder color or feedrate line coloring in the viewer'
 			},
+			g1AsExtrusion: 'Render G1 (CNC)',
 			color: 'Color',
 			feedrate: 'Feedrate',
 			minFeedrate: 'Minimum Feedrate (mm/s)',
