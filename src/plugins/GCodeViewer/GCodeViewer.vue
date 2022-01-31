@@ -94,7 +94,15 @@
 	position: absolute;
 	left: 5%;
 	right: 5%;
-	bottom: 5px;
+	bottom: 15px;
+	z-index: 19 !important;
+}
+
+.scrubber-sm{
+	position: absolute;
+	left: 5%;
+	right: 5%;
+	bottom: 70px;
 	z-index: 19 !important;
 }
 
@@ -217,9 +225,9 @@
 								</v-btn-toggle>
 								<v-checkbox class="mt-3" v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"></v-checkbox>
 								<h4>{{$t('plugins.gcodeViewer.minFeedrate')}}</h4>
-								<slider :max="500" :min="5" v-model="minColorRate"></slider>
+								<v-slider :max="500" :min="5" v-model="minColorRate" thumb-label></v-slider>
 								<h4>{{$t('plugins.gcodeViewer.maxFeedrate')}}</h4>
-								<slider :max="500" :min="5" v-model="maxColorRate"></slider>
+								<v-slider :max="500" :min="5" v-model="maxColorRate" thumb-label></v-slider>
 							</v-card>
 							<v-card>
 								<v-card-title>
@@ -295,16 +303,23 @@
 					</v-expansion-panel>
 				</v-expansion-panels>
 			</v-navigation-drawer>
-			<div :class="{ 'button-container-drawer': drawer }" class="scrubber" v-show="!visualizingCurrentJob && scrubFileSize > 0">
+			<div :class="[{ 'button-container-drawer': drawer }, $vuetify.breakpoint.mdAndDown  ? 'scrubber-sm' : 'scrubber']" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row class="scrubber-row">
-					<v-col cols="11" md="9">
+					<v-col cols="9" md="6">
 						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition "></v-slider>
 					</v-col>
-					<v-col cols="1">
-						<v-btn @click="scrubPlaying = !scrubPlaying">
-							<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
-							<v-icon v-else>mdi-play</v-icon>
-						</v-btn>
+					<v-col cols="3">
+						<v-row dense>
+							<v-col cols="12">
+								<v-btn @click="scrubPlaying = !scrubPlaying">
+									<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
+									<v-icon v-else>mdi-play</v-icon>
+								</v-btn>
+									<v-btn @click="fastForward">
+									<v-icon>mdi-fast-forward</v-icon>
+								</v-btn>
+							</v-col>
+						</v-row>
 					</v-col>
 					<v-col cols="12" md="2">
 						<v-btn-toggle dense mandatory rounded v-model="scrubSpeed">
@@ -402,7 +417,8 @@ export default {
 			scrubInterval: null,
 			colorDebounce: null,
 			scrubSpeed: 1,
-			g1AsExtrusion: false
+			g1AsExtrusion: false,
+			resizeDebounce: null
 		};
 	},
 	computed: {
@@ -507,7 +523,6 @@ export default {
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
 		this.showCursor = localStorage.getItem('showCursor') === 'true';
-		console.log(viewer.gcodeProcessor);
 		this.g1AsExtrusion = viewer.gcodeProcessor.g1AsExtrusion;
 
 		if (viewer.lastLoadFailed()) {
@@ -534,7 +549,7 @@ export default {
 					type: 'text',
 				});
 				this.loading = true;
-
+				this.preLoadSettings();
 				await viewer.processFile(blob);
 				viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 				this.setGCodeValues();
@@ -603,16 +618,22 @@ export default {
 			viewer.bed.setBedColor(value);
 		},
 		resize() {
-			let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
-			let globalContainer = getComputedStyle(document.getElementById('global-container'));
-			let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
-			let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
-			let globalContainerHeight = parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
-			let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
-			this.$refs.primarycontainer.style.height = (viewerHeight >= 300 ? viewerHeight : 300) + 'px';
-			if (viewer) {
-				viewer.resize();
+
+			if(this.resizeDebounce){
+				clearTimeout(this.resizeDebounce);
 			}
+			this.resizeDebounce = setTimeout(() => {
+				let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
+				let globalContainer =  getComputedStyle(document.getElementById('global-container'));
+				let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
+				let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
+				let globalContainerHeight = this.$vuetify.breakpoint.smAndDown ? 0 : parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
+				let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
+				this.$refs.primarycontainer.style.height = (viewerHeight >= 300 ? viewerHeight : 300) + 'px';
+				if (viewer) {
+					viewer.resize();
+				}
+			}, 500);
 		},
 		reset() {
 			if (viewer) {
@@ -637,6 +658,7 @@ export default {
 				viewer.gcodeProcessor.setLiveTracking(true);
 				viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 				viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+				this.preLoadSettings();
 				await viewer.processFile(blob);
 				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
@@ -665,6 +687,7 @@ export default {
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
 			this.scrubFileSize = viewer.fileSize;
 			viewer.gcodeProcessor.forceRedraw();
+			viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
 
 			try {
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects);
@@ -704,9 +727,10 @@ export default {
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 			if(this.g1AsExtrusion){
-				console.log("this.g1AsExtrusions")
-				viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
-				viewer.gcodeProcessor.g1AsExtrusion = this.g1AsExtrusion;
+				this.renderQuality = 5;
+				viewer.updateRenderQuality(5);
+				viewer.gcodeProcessor.g1AsExtrusion = true;
+				viewer.gcodeProcessor.updateForceWireMode(true);
 			}
 			
 		},
@@ -742,6 +766,10 @@ export default {
 				event.target.scrollIntoView(true);
 			}, 250);
 		},
+		fastForward(){
+			this.scrubPlaying = false;
+			this.scrubPosition = this.scrubFileSize;
+		}
 	},
 	activated() {
 		viewer.pause = false;
