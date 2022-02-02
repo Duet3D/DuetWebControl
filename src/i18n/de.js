@@ -913,6 +913,7 @@ export default {
             useHQRendering: 'HQ-Rendering (rund)',
             useSpecular: 'Spiegelndes Highlighting',
             feature: 'Feature',
+			g1AsExtrusion: 'G1 darstellen (CNC)',
             forceLineRendering: 'Liniendarstellung erzwingen',
             transparency: 'Transparenz',
             showSolid: 'Körper anzeigen',
