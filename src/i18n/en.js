@@ -954,7 +954,8 @@ export default {
             showFSOverlay: 'Show Full Screen Overlay',
             useHQRendering: 'High Quality Render (Round)',
             useSpecular: "Use Specular Highlight",
-            feature: "Feature"
+            feature: "Feature",
+			g1AsExtrusion: 'Render G1 (CNC)',
         },
         heightmap: {
             menuCaption: 'Height Map',
