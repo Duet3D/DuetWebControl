@@ -149,6 +149,7 @@ export default {
 						if (layer.height) { result.push(that.$t('chart.layer.layerHeight', [displayZ(layer.height)])); }
 						if (layer.filament) { result.push(that.$t('chart.layer.filamentUsage', [display(layer.filament, 1, 'mm')])); }
 						if (layer.fractionPrinted) { result.push(that.$t('chart.layer.fractionPrinted', [display(layer.fractionPrinted * 100, 1, '%')])); }
+						if (layer.temperatures) { result.push(that.$t('chart.layer.temperatures', [layer.temperatures.map(temp => display(temp, 1, 'C')).join(', ')])); }
 						return result;
 					}
 				}

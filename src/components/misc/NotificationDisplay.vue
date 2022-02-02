@@ -27,10 +27,10 @@
 
 				<div class="d-block">
 					<strong>
-						{{ $t(`notification.upload.title`, [fileTransferNotification.filename, $displaySpeed(fileTransferNotification.speed), Math.round(fileTransferNotification.progress)]) }}
+						{{ $t(`notification.${fileTransferNotification.type}.title`, [fileTransferNotification.filename, $displaySpeed(fileTransferNotification.speed), Math.round(fileTransferNotification.progress)]) }}
 					</strong>
 					<p class="mb-0">
-						{{ $t(`notification.upload.message`) }}
+						{{ $t(`notification.${fileTransferNotification.type}.message`) }}
 					</p>
 				</div>
 			</div>
@@ -104,8 +104,15 @@ export default {
 				this.notification.close();
 			}
 		},
+		cancel() {
+			if (this.fileTransferNotification) {
+				this.fileTransferNotification.cancel();
+			}
+		},
 		close() {
-			this.notification.close();
+			if (this.notification) {
+				this.notification.close();
+			}
 			if (this.progressTimer !== null) {
 				clearInterval(this.progressTimer);
 				this.progressTimer = null;

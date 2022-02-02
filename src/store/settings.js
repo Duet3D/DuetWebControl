@@ -4,11 +4,11 @@ import Vue from 'vue'
 
 import { resetSettingsTimer } from './observer.js'
 
-import i18n from '../i18n'
+import i18n from '@/i18n'
 
-import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
-import patch from '../utils/patch.js'
-import Path from '../utils/path.js'
+import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '@/utils/localStorage.js'
+import patch from '@/utils/patch.js'
+import Path from '@/utils/path.js'
 
 export const DashboardMode = {
 	default: 'Default',
@@ -31,9 +31,9 @@ export default {
 		iconMenu: false,
 
 		settingsStorageLocal: false,
-		settingsSaveDelay: 2000,						// ms - how long to wait before settings updates are saved
+		settingsSaveDelay: 500,							// ms - how long to wait before settings updates are saved
 		cacheStorageLocal: localStorageSupported,
-		cacheSaveDelay: 4000,							// ms - how long to wait before cache updates are saved
+		cacheSaveDelay: 1000,							// ms - how long to wait before cache updates are saved
         ignoreFileTimestamps: false,
 
         notifications: {
@@ -150,6 +150,8 @@ export default {
 		},
 
 		load(state, payload) {
+			const updateSettingsTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 2000);
+			const updateCacheTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 4000);
 			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
@@ -158,9 +160,15 @@ export default {
 				delete payload.plugins;
 			}
 			patch(state, payload, true);
+			if (updateSettingsTime) {
+				state.settingsSaveDelay = 500;
+			}
+			if (updateCacheTime) {
+				state.cacheSaveDelay = 1000;
+			}
 		},
 		update(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
+			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
 			if (payload.plugins) {

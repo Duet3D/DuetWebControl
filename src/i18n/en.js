@@ -142,7 +142,8 @@ export default {
 			layerDuration: 'Duration: {0}',
 			layerHeight: 'Layer Height: {0}',
 			filamentUsage: 'Filament Usage: {0}',
-			fractionPrinted: 'File Progress: {0}'
+			fractionPrinted: 'File Progress: {0}',
+			temperatures: 'Temperatures: {0}'
 		},
 		temperature: {
 			caption: 'Temperature Chart',

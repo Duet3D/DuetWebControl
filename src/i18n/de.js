@@ -142,7 +142,8 @@ export default {
             layerDuration: 'Dauer: {0}',
             layerHeight: 'Schichtdicke: {0}',
             filamentUsage: 'Filamentverbrauch: {0}',
-            fractionPrinted: 'Dateifortschritt: {0}'
+            fractionPrinted: 'Dateifortschritt: {0}',
+			temperatures: 'Temperaturen: {0}'
         },
         temperature: {
             caption: 'Temperaturdiagramm',

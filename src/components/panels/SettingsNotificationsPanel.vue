@@ -6,10 +6,10 @@
 
 		<v-card-text>
 			<v-row>
-				<v-col>
+				<v-col cols="6" xs="12">
 					<v-switch class="mt-0 mb-3" v-model="notificationErrorsPersistent" :label="$t('panel.settingsNotifications.notificationErrorsPersistent')" hide-details></v-switch>
 				</v-col>
-				<v-col>
+				<v-col cols="6" xs="12">
 					<v-text-field v-model.number="notificationTimeout" type="number" step="any" min="0" :label="$t('panel.settingsNotifications.notificationTimeout', ['ms'])" hide-details></v-text-field>
 				</v-col>
 			</v-row>

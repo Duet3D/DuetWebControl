@@ -1,6 +1,6 @@
 'use strict'
 
-import { LoginError } from '../../../utils/errors.js'
+import { LoginError } from '@/utils/errors.js'
 
 import BaseConnector from './BaseConnector.js'
 import PollConnector from './PollConnector.js'
