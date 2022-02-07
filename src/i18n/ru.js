@@ -534,8 +534,7 @@
 			resumeSimulation: 'Продолжить симуляцию',
 			repeatJob: 'Запустить снова',
 			repeatPrint: 'Печатать снова',
-			repeatSimulation: 'Симулировать снова',
-			autoSleep: 'Включить авто сон'
+			repeatSimulation: 'Симулировать снова'
 		},
 		jobData: {
 			caption: 'Собранные данные',

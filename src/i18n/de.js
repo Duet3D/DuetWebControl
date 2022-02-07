@@ -613,12 +613,12 @@ export default {
             pausePrint: 'Druck pausieren',
             pauseSimulation: 'Simulation pausieren',
             resumeJob: 'Auftrag wiederaufnehmen',
-            resumePrint: 'Druck wiederaufnehmennt',
+            resumePrint: 'Druck wiederaufnehmen',
             resumeSimulation: 'Simulation wiederaufnehmen',
             repeatJob: 'Nochmal starten',
             repeatPrint: 'Nochmal drucken',
             repeatSimulation: 'Nochmal simulieren',
-            autoSleep: 'Auto-Schlaf aktivieren'
+            showPreview: 'Vorschau zeigen'
         },
         jobData: {
             caption: 'Gesammelte Daten',

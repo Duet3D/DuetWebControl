@@ -60,22 +60,26 @@ textarea {
 		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app width="275" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
-					<connect-btn v-if="showConnectButton" block></connect-btn>
+					<connect-btn v-if="showConnectButton" block/>
 				</div>
-				<upload-btn target="start" :elevation="1" class="ma-2" block></upload-btn>
+				<upload-btn target="start" :elevation="1" class="ma-2" block/>
 			</div>
 
 			<v-list class="pt-0" :dense="!$vuetify.breakpoint.smAndDown" :expand="!$vuetify.breakpoint.smAndDown">
 				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
 					<template #activator>
-						<v-list-item-title class="mr-0">{{ category.translated ? category.caption : $t(category.caption) }}</v-list-item-title>
+						<v-list-item-title class="mr-0">
+							{{ category.translated ? category.caption : $t(category.caption) }}
+						</v-list-item-title>
 					</template>
 
 					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
 						<v-list-item-icon>
 							<v-icon v-text="page.icon"></v-icon>
 						</v-list-item-icon>
-						<v-list-item-title>{{ page.translated ? page.caption : $t(page.caption) }}</v-list-item-title>
+						<v-list-item-title>
+							{{ page.translated ? page.caption : $t(page.caption) }}
+						</v-list-item-title>
 					</v-list-item>
 				</v-list-group>
 			</v-list>
@@ -88,58 +92,58 @@ textarea {
 			<v-toolbar-title class="px-1">
 				<a href="javascript:void(0)" id="title">{{ name }}</a>
 			</v-toolbar-title>
-			<connect-btn v-if="showConnectButton" class="hidden-xs-only ml-3"></connect-btn>
+			<connect-btn v-if="showConnectButton" class="hidden-xs-only ml-3"/>
 
-			<v-spacer></v-spacer>
+			<v-spacer/>
 
-			<code-input class="mx-3 hidden-sm-and-down"></code-input>
+			<code-input class="mx-3 hidden-sm-and-down"/>
 
-			<v-spacer></v-spacer>
+			<v-spacer/>
 
-			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"></upload-btn>
-			<emergency-btn class="hidden-xs-only"></emergency-btn>
+			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"/>
+			<emergency-btn class="hidden-xs-only"/>
 		</v-app-bar>
 
 		<v-main id="content">
 			<v-container class="hidden-sm-and-down" id="global-container" fluid>
-				<fff-container-panel v-if="isFFForUnset"></fff-container-panel>
-				<cnc-container-panel v-else></cnc-container-panel>
+				<fff-container-panel v-if="isFFForUnset"/>
+				<cnc-container-panel v-else/>
 			</v-container>
 
-			<v-divider class="hidden-sm-and-down"></v-divider>
+			<v-divider class="hidden-sm-and-down"/>
 
 			<v-container fluid>
 				<keep-alive>
-					<router-view></router-view>
+					<router-view/>
 				</keep-alive>
 			</v-container>
 		</v-main>
 
-		<notification-display></notification-display>
+		<notification-display/>
 
 		<v-bottom-navigation v-if="showBottomNavigation" app>
 			<v-menu v-for="(category, index) in categories" :key="index" top offset-y>
 				<template #activator="{ on }">
 					<v-btn v-on="on">
 						{{ category.translated ? category.caption : $t(category.caption) }}
-						<v-icon v-text="category.icon" class="mb-1"></v-icon>
+						<v-icon v-text="category.icon" class="mb-1"/>
 					</v-btn>
 				</template>
 
 				<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" :to="page.path" @click.prevent="" class="global-control">
-					<v-icon v-text="page.icon" class="mr-2"></v-icon>
+					<v-icon v-text="page.icon" class="mr-2"/>
 					{{ page.translated ? page.caption : $t(page.caption) }}
 				</v-list-item>
 			</v-menu>
 		</v-bottom-navigation>
 
-		<connect-dialog></connect-dialog>
-		<connection-dialog></connection-dialog>
-		<file-transfer-dialog></file-transfer-dialog>
-		<messagebox-dialog></messagebox-dialog>
-		<plugin-install-dialog></plugin-install-dialog>
+		<connect-dialog/>
+		<connection-dialog/>
+		<file-transfer-dialog/>
+		<messagebox-dialog/>
+		<plugin-install-dialog/>
 
-		<component v-for="component in injectedComponentNames" :is="component" :key="component"></component>
+		<component v-for="component in injectedComponentNames" :is="component" :key="component"/>
 	</v-app>
 </template>
 

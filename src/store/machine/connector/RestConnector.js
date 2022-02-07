@@ -2,7 +2,7 @@
 'use strict'
 
 import BaseConnector from './BaseConnector.js'
-import { ParsedFileInfo } from '../modelItems.js'
+import { GCodeFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -379,9 +379,12 @@ export default class RestConnector extends BaseConnector {
 		}
 	}
 
-	async getFileInfo(filename) {
-		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
-		return new ParsedFileInfo(response);
+	async getFileInfo(payload) {
+		const filename = (payload instanceof Object) ? payload.filename : payload;
+		const readThumbnailContent  = (payload instanceof Object) ? !!payload.readThumbnailContent : false;
+
+		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), { readThumbnailContent }, 'json', null, null, null, filename);
+		return new GCodeFileInfo(response);
 	}
 
 	async installPlugin({ zipFilename, zipBlob, plugin, start }) {

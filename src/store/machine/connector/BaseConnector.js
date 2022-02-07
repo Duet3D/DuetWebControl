@@ -4,7 +4,7 @@ import {
 	NotImplementedError,
 	NetworkError, TimeoutError, OperationCancelledError, OperationFailedError,
 	FileNotFoundError, InvalidPasswordError
-} from '../../../utils/errors.js'
+} from '@/utils/errors.js'
 
 export const defaultRequestTimeout = 4000;				// ms
 
@@ -175,7 +175,8 @@ class BaseConnector {
 
 	// Get G-code file info and return an instance of FileInfo
 	// filename: Filename to parse
-	async getFileInfo(filename) { throw new NotImplementedError('getFileInfo'); }
+	// readThumbnailContent: Whether thumbnail content shall be parsed
+	async getFileInfo({ filename, readThumbnailContent }) { throw new NotImplementedError('getFileInfo'); }
 
 	// Install a plugin ZIP file
 	// zipFilename: Name of the ZIP file

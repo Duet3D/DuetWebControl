@@ -462,18 +462,13 @@ export class NetworkInterface {
 	speed = null				// null if unknown and 0 if no link
 }
 
-export class ParsedFileInfo {
+export class GCodeFileInfo {
 	constructor(initData) {
-		overloadPushMethod(this.thumbnails, value => new ParsedThumbnail(value));
+		overloadPushMethod(this.thumbnails, value => new ThumbnailInfo(value));
 		quickPatch(this, initData);
-		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
-			// approximate the number of layers if it isn't given
-			this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
-		}
 	}
 	filament = []
 	fileName = null
-	firstLayerHeight = 0
 	generatedBy = null
 	height = 0
 	lastModified = null
@@ -485,11 +480,13 @@ export class ParsedFileInfo {
 	thumbnails = []
 }
 
-export class ParsedThumbnail {
+export class ThumbnailInfo {
 	constructor(initData) { quickPatch(this, initData); }
-	EncodedImage = null
-	Height = 0
-	Width = 0
+	data = null
+	height = 0
+	offset = 0
+	size = 0
+	width = 0
 }
 
 export class Plugin extends PluginManifest {

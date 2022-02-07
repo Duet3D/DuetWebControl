@@ -6,7 +6,7 @@ import { mapConnectorActions } from './connector'
 
 import cache from './cache.js'
 import model from './model.js'
-import { MessageType, StatusType, isPrinting } from './modelEnums.js'
+import { MessageType, StatusType } from './modelEnums.js'
 import { Plugin } from './modelItems.js'
 import settings from './settings.js'
 
@@ -28,7 +28,6 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 	return {
 		namespaced: true,
 		state: {
-			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false,
 			filesBeingChanged: [],
@@ -430,7 +429,7 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, commit, dispatch }, payload) {
+			async update({ state, commit }, payload) {
 				const lastBeepFrequency = state.model.state.beep ? state.model.state.beep.frequency : null;
 				const lastBeepDuration = state.model.state.beep ? state.model.state.beep.duration : null;
 				const lastDisplayMessage = state.model.state.displayMessage;
@@ -481,15 +480,6 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 				// Has the firmware halted?
 				if (lastStatus !== state.model.state.status && state.model.state.status === StatusType.halted) {
 					log('warning', i18n.t('events.emergencyStop'));
-				}
-
-				// Have we just finished a job? Send M1 if auto-sleep is enabled
-				if (isPrinting(lastStatus) && !isPrinting(state.model.state.status) && state.autoSleep) {
-					try {
-						await dispatch('sendCode', 'M1');
-					} catch (e) {
-						logCode('M1', e.message, connector.hostname);
-					}
 				}
 			},
 
@@ -637,7 +627,6 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 
 			unregister: () => connector.unregister(),
 
-			setAutoSleep: (state, value) => state.autoSleep = value,
 			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting
 		},
 		modules: {

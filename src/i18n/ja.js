@@ -615,8 +615,7 @@ export default {
 			resumeSimulation: 'シミュレーション再開',
 			repeatJob: '再スタート',
 			repeatPrint: '再プリント',
-			repeatSimulation: '再シミュレーション',
-			autoSleep: 'End G-Code有効'
+			repeatSimulation: '再シミュレーション'
 		},
 		jobData: {
 			caption: '取得データ',

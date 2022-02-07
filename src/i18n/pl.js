@@ -603,8 +603,7 @@ export default {
 			resumeSimulation: 'Wznów symulację',
 			repeatJob: 'Rozpocznij ponownie',
 			repeatPrint: 'Drukuj ponownie',
-			repeatSimulation: 'Symuluj ponownie',
-			autoSleep: 'Uaktywnij auto-uśpienie'
+			repeatSimulation: 'Symuluj ponownie'
 		},
 		jobData: {
 			caption: 'Zebrane dane',

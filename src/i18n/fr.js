@@ -534,8 +534,7 @@ export default {
 			resumeSimulation: 'Reprendre Simulation',
 			repeatJob: 'Recommencer',
 			repeatPrint: 'Réimprimer',
-			repeatSimulation: 'Simuler à Nouveau',
-			autoSleep: 'Activer Veille Automatique'
+			repeatSimulation: 'Simuler à Nouveau'
 		},
 		jobData: {
 			caption: 'Données Collectés',

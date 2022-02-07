@@ -18,7 +18,7 @@
 <template>
 	<v-fade-transition>
 		<v-snackbar v-if="fileTransferNotification !== null" :value="true" :style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :timeout="-1" color="info">
-			<v-progress-linear :color="progressColor" :indeterminate="fileTransferNotification.progress === 0" striped :value="fileTransferNotification.progress" class="progress-bar"></v-progress-linear>
+			<v-progress-linear :color="progressColor" :indeterminate="fileTransferNotification.progress === 0" striped :value="fileTransferNotification.progress" class="progress-bar"/>
 
 			<div class="d-flex mt-1">
 				<v-icon class="mr-4">
@@ -44,10 +44,10 @@
 		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="notification.type"
 					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :class="{ pointer: !!notification.route }"
 					@click.native="clicked">
-			<v-progress-linear v-show="notification.timeout > 0" :color="progressColor" :value="notificationProgress" class="progress-bar"></v-progress-linear>
+			<v-progress-linear v-show="notification.timeout > 0" :color="progressColor" :value="notificationProgress" class="progress-bar"/>
 
 			<div class="d-flex" :class="{ 'mt-1' : notification.timeout > 0}">
-				<v-icon v-if="notification.icon !== ''" class="mr-4" v-text="notification.icon"></v-icon>
+				<v-icon v-if="notification.icon !== ''" class="mr-4" v-text="notification.icon"/>
 
 				<div class="d-block">
 					<strong v-if="notification.title" v-html="notification.title.replace(/\n/g, '<br>')"></strong>

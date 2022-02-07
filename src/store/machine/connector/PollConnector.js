@@ -6,7 +6,7 @@ import crc32 from 'turbo-crc32/crc32'
 import BaseConnector, { defaultRequestTimeout } from './BaseConnector.js'
 import { DefaultMachineModel } from '../model.js'
 import { StatusType, isPaused, isPrinting } from '../modelEnums.js'
-import { Layer, Message, ParsedFileInfo } from '../modelItems.js'
+import { Layer, Message, GCodeFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -292,6 +292,7 @@ export default class PollConnector extends BaseConnector {
 	lastStatus = null
 	lastUptime = 0
 	layers = []
+	thumbnailsFile = null
 	webDirectory = Path.web
 
 	pendingCodes = []
@@ -419,13 +420,28 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		// See if we need to record more layer stats
-		if (jobKey && this.updateLayersModel(jobKey, axes, extruders, analogSensors)) {
-			await this.dispatch('update', {
-				job: {
-					layers: this.layers
-				}
-			});
+		if (jobKey) {
+			// See if we need to record more layer stats
+			if (this.updateLayersModel(jobKey, axes, extruders, analogSensors)) {
+				await this.dispatch('update', {
+					job: {
+						layers: this.layers
+					}
+				});
+			}
+
+			// Check for updated thumbnails
+			if (jobKey.file && jobKey.file.fileName && jobKey.file.thumbnails && this.thumbnailsFile !== jobKey.file.fileName) {
+				await this.getThumbnails(jobKey.file);
+				await this.dispatch('update', {
+					job: {
+						file: {
+							thumbnails: jobKey.file.thumbnails
+						}
+					}
+				});
+				this.thumbnailsFile = jobKey.file.fileName;
+			}
 		}
 
 		// Schedule the next status update
@@ -733,14 +749,43 @@ export default class PollConnector extends BaseConnector {
 		}));
 	}
 
-	async getFileInfo(filename) {
+	async getFileInfo(payload) {
+		const filename = (payload instanceof Object) ? payload.filename : payload;
+		const readThumbnailContent  = (payload instanceof Object) ? !!payload.readThumbnailContent : false;
+
 		const response = await this.request('GET', 'rr_fileinfo', filename ? { name: filename } : {}, 'json', null, null, this.sessionTimeout, null, filename);
 		if (response.err) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
 
+		if (!response.thumbnails) { response.thumbnails = []; }
+		if (readThumbnailContent) { await this.getThumbnails(response); }
+
 		delete response.err;
-		return new ParsedFileInfo(response);
+		return new GCodeFileInfo(response);
+	}
+
+	async getThumbnails(fileinfo) {
+		for (let thumbnail of fileinfo.thumbnails.filter(thumbnail => thumbnail.offset > 0)) {
+			try {
+				let offset = thumbnail.offset, thumbnailData = '';
+				do {
+					const response = await this.request('GET', 'rr_thumbnail', {
+						name: fileinfo.fileName,
+						offset
+					});
+					if (response.err !== 0) {
+						throw new OperationFailedError(`err ${response.err}`);
+					}
+					offset = response.next;
+					thumbnailData += response.data;
+				} while (offset !== 0);
+				thumbnail.data = thumbnailData;
+			} catch (e) {
+				console.warn(e);
+				thumbnail.data = null;
+			}
+		}
 	}
 
 	async installPlugin({ zipFile, plugin }) {

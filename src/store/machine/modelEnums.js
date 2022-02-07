@@ -223,6 +223,11 @@ export const SpindleState = {
 	reverse: 'reverse'
 }
 
+export const ThumbnailFormat = {
+	qoi: 'qoi',
+	png: 'png'
+}
+
 export const ToolState = {
 	off: 'off',
 	active: 'active',

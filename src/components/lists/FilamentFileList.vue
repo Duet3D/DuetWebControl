@@ -69,8 +69,8 @@ import saveAs from 'file-saver'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { DisconnectedError, FileNotFoundError, OperationCancelledError } from '../../utils/errors.js'
-import Path from '../../utils/path.js'
+import { DisconnectedError, FileNotFoundError, OperationCancelledError } from '@/utils/errors.js'
+import Path from '@/utils/path.js'
 
 export default {
 	computed: {
@@ -116,8 +116,8 @@ export default {
 			}
 			this.doingFileOperation = false;
 		},
-		refresh() {
-			this.$refs.filelist.refresh();
+		async refresh() {
+			await this.$refs.filelist.refresh();
 		},
 		async downloadFilament() {
 			const filament = this.selection[0].name;
@@ -167,7 +167,7 @@ export default {
 				return;
 			}
 
-			this.$refs.filelist.rename(this.selection[0]);
+			await this.$refs.filelist.rename(this.selection[0]);
 		},
 		async remove(items) {
 			if (!items || !(items instanceof Array)) {

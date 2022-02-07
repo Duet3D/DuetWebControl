@@ -1,10 +1,24 @@
+<style scoped>
+.list-icon {
+	display: flex;
+	flex-shrink: 0;
+	align-content: center;
+	justify-content: center;
+	width: 48px;
+}
+
+.icon-menu {
+	min-width: 0 !important;
+}
+</style>
+
 <template>
 	<div>
 		<v-toolbar>
-			<sd-card-btn v-if="volumes.length > 1" v-model="volume" class="hidden-sm-and-down"></sd-card-btn>
-			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
+			<sd-card-btn v-if="volumes.length > 1" v-model="volume" class="hidden-sm-and-down"/>
+			<directory-breadcrumbs v-model="directory"/>
 
-			<v-spacer></v-spacer>
+			<v-spacer/>
 
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewDirectory = true">
 				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
@@ -12,11 +26,37 @@
 			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading || fileinfoProgress !== -1" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="gcodes" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="gcodes" color="primary"/>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :headers="headers" :directory.sync="directory" :filelist.sync="filelist" :loading.sync="loading" sort-table="jobs" @directoryLoaded="directoryLoaded" @fileClicked="fileClicked" no-files-text="list.jobs.noJobs">
-			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100"></v-progress-linear>
+			<v-progress-linear slot="progress" :indeterminate="fileinfoProgress === -1" :value="(fileinfoProgress / filelist.length) * 100"/>
+
+			<template #folder="{ item }">
+				<div :class="{ 'list-icon mr-2': hasThumbnails, 'mr-1': !hasThumbnails }">
+					<v-icon> mdi-folder</v-icon>
+				</div>
+				{{ item.name }}
+			</template>
+			<template #file="{ item }">
+				<div :class="{ 'list-icon mr-2': hasThumbnails, 'mr-1': !hasThumbnails }">
+					<v-icon v-if="!item.thumbnails || item.thumbnails.length === 0">
+						{{ (item.thumbnails instanceof Array) ? 'mdi-file' : 'mdi-asterisk' }}
+					</v-icon>
+					<v-menu v-else right offset-x open-on-hover open-on-focus close-on-content-click :min-width="16">
+						<template #activator="{ on, attrs }">
+							<div v-bind="attrs" v-on="on" @click.stop="" tabindex="0">
+								<thumbnail-img :thumbnail="getSmallThumbnail(item.thumbnails)" icon/>
+							</div>
+						</template>
+
+						<v-card class="d-flex">
+							<thumbnail-img :thumbnail="getBigThumbnail(item.thumbnails)"/>
+						</v-card>
+					</v-menu>
+				</div>
+				{{ item.name }}
+			</template>
 
 			<template #context-menu>
 				<v-list-item v-show="isFile && !isPrinting" @click="start">
@@ -52,8 +92,8 @@
 			</upload-btn>
 		</v-speed-dial>
 
-		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
-		<confirm-dialog :shown.sync="startJobDialog.shown" :title="startJobDialog.title" :prompt="startJobDialog.prompt" @confirmed="start(startJobDialog.item)"></confirm-dialog>
+		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"/>
+		<confirm-dialog :shown.sync="startJobDialog.shown" :title="startJobDialog.title" :prompt="startJobDialog.prompt" @confirmed="start(startJobDialog.item)"/>
 	</div>
 </template>
 
@@ -62,10 +102,10 @@
 
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
-import i18n from '../../i18n'
-import { isPrinting } from '../../store/machine/modelEnums.js'
-import { DisconnectedError, InvalidPasswordError } from '../../utils/errors.js'
-import Path from '../../utils/path.js'
+import i18n from '@/i18n'
+import { isPrinting } from '@/store/machine/modelEnums.js'
+import { DisconnectedError, InvalidPasswordError } from '@/utils/errors.js'
+import Path from '@/utils/path.js'
 
 export default {
 	computed: {
@@ -82,6 +122,8 @@ export default {
 		headers() {
 			return [
 				{
+					class: 'pl-0',
+					cellClass: 'pl-0',
 					text: i18n.t('list.baseFileList.fileName'),
 					value: 'name'
 				},
@@ -147,6 +189,7 @@ export default {
 		return {
 			directory: Path.gCodes,
 			selection: [],
+			hasThumbnails: false,
 			filelist: [],
 			loadingValue: false,
 			fileinfoDirectory: undefined,
@@ -164,11 +207,33 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode', 'getFileInfo']),
 		...mapMutations('machine/cache', ['clearFileInfo', 'setFileInfo']),
+		getBigThumbnail(thumbnails) {
+			let biggestThumbnail = null;
+			for (const thumbnail of thumbnails) {
+				if (thumbnail.data !== null && (!biggestThumbnail || thumbnail.height > biggestThumbnail.height)) {
+					biggestThumbnail = thumbnail;
+				}
+			}
+			return biggestThumbnail;
+		},
+		getSmallThumbnail(thumbnails) {
+			let smallestThumbnail = null;
+			for (const thumbnail of thumbnails) {
+				if (thumbnail.data !== null && (!smallestThumbnail || Math.abs(48 - thumbnail.height) < Math.abs(48 - smallestThumbnail.height))) {
+					smallestThumbnail = thumbnail;
+				}
+			}
+			return smallestThumbnail;
+		},
 		refresh() {
 			this.clearFileInfo(this.directory);
 			this.$refs.filelist.refresh();
 		},
 		async requestFileInfo(directory, fileIndex, fileCount) {
+			if (fileIndex === 0) {
+				this.hasThumbnails = false;
+			}
+
 			if (this.fileinfoDirectory === directory) {
 				if (this.isConnected && fileIndex < fileCount) {
 					// Update progress
@@ -185,7 +250,7 @@ export default {
 								// Get the fileinfo either from our cache or from the Duet
 								let fileInfo = this.fileInfos[filename];
 								if (!fileInfo) {
-									fileInfo = await this.getFileInfo(filename);
+									fileInfo = await this.getFileInfo({ filename, readThumbnailContent: true });
 									this.setFileInfo({ filename, fileInfo });
 								}
 
@@ -198,13 +263,17 @@ export default {
 								}
 
 								// Set file info
-								gotFileInfo = true
+								gotFileInfo = true;
 								file.height = fileInfo.height;
 								file.layerHeight = fileInfo.layerHeight;
 								file.filament = fileInfo.filament;
 								file.generatedBy = fileInfo.generatedBy;
 								file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
 								file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
+								file.thumbnails = fileInfo.thumbnails ? fileInfo.thumbnails : [];
+								if (fileInfo.thumbnails && fileInfo.thumbnails.length !== 0) {
+									this.hasThumbnails = true;
+								}
 							}
 						} catch (e) {
 							// Deal with the error. If the connection has been terminated, the next call will invalidate everything
@@ -222,6 +291,7 @@ export default {
 							file.generatedBy = null;
 							file.printTime = null;
 							file.simulatedTime = null;
+							file.thumbnails = null;
 						}
 					}
 
@@ -234,7 +304,7 @@ export default {
 				}
 			}
 		},
-		directoryLoaded(directory) {
+		async directoryLoaded(directory) {
 			if (this.fileinfoDirectory !== directory) {
 				this.fileinfoDirectory = directory;
 				this.filelist.forEach(function(item) {
@@ -245,10 +315,11 @@ export default {
 						item.generatedBy = null;
 						item.printTime = null;
 						item.simulatedTime = null;
+						item.thumbnails = null;
 					}
 				});
 
-				this.requestFileInfo(directory, 0, this.filelist.length);
+				await this.requestFileInfo(directory, 0, this.filelist.length);
 			}
 		},
 		fileClicked(item) {

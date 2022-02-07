@@ -618,7 +618,7 @@ export default {
 			repeatJob: 'Start Again',
 			repeatPrint: 'Print Again',
 			repeatSimulation: 'Simulate Again',
-			autoSleep: 'Enable Auto-Sleep'
+			showPreview: 'Show Preview'
 		},
 		jobData: {
 			caption: 'Collected Data',

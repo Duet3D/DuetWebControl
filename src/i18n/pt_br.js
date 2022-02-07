@@ -555,8 +555,7 @@ export default {
 			resumeSimulation: 'Retornar Simulação',
 			repeatJob: 'Iniciar Novamente',
 			repeatPrint: 'Imprimir Novamenten',
-			repeatSimulation: 'Simular Novamente',
-			autoSleep: 'Ativar suspensão automática'
+			repeatSimulation: 'Simular Novamente'
 		},
 		jobData: {
 			caption: 'Dados coletados',

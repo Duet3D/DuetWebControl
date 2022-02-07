@@ -612,8 +612,7 @@ export default {
 			resumeSimulation: '恢复模拟',
 			repeatJob: '重新开始',
 			repeatPrint: '重新打印',
-			repeatSimulation: '重新模拟',
-			autoSleep: '启用自动休眠'
+			repeatSimulation: '重新模拟'
 		},
 		jobData: {
 			caption: '采集数据',

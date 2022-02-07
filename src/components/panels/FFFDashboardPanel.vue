@@ -40,7 +40,7 @@ import { MachineMode } from '@/store/machine/modelEnums'
 export default {
 	computed: {
 		...mapState('machine/model', {
-			fans: state => state.state.fans,
+			fans: state => state.fans,
 			atxPower: state => state.state.atxPower,
 			machineMode: state => state.state.machineMode
 		}),

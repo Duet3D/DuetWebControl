@@ -14,7 +14,7 @@ import {
 } from './modelEnums.js'
 import {
 	Axis,
-    BeepRequest,
+	BeepRequest,
 	Board,
 	Extruder,
 	Fan,
@@ -22,12 +22,12 @@ import {
 	InputChannel,
 	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics, ScaraKinematics,
 	MeshDeviation,
-	ParsedFileInfo,
+	GCodeFileInfo,
 	Probe,
 	Tool,
 	fixObjectModel,
 	overloadModelPush,
-    overloadProperty
+	overloadProperty, Build
 } from './modelItems.js'
 
 import Path from '@/utils/path.js'
@@ -38,7 +38,8 @@ import { patch, quickPatch } from '@/utils/patch'
 // TODO Replace this with new TypeScript module
 export class MachineModel {
 	constructor(initData) {
-        overloadProperty(this.move.compensation, 'meshDeviation', value => new MeshDeviation(value));
+		overloadProperty(this.job, 'build', value => new Build(value));
+		overloadProperty(this.move.compensation, 'meshDeviation', value => new MeshDeviation(value));
         overloadProperty(this.state, 'beep', value => new BeepRequest(value));
         quickPatch(this, initData);
     }
@@ -80,7 +81,7 @@ export class MachineModel {
 	job = {
 		build: null,
 		duration: null,
-		file: new ParsedFileInfo(),
+		file: new GCodeFileInfo(),
 		filePosition: null,
 		lastDuration: null,
 		lastFileName: null,

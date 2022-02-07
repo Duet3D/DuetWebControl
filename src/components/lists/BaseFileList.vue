@@ -20,7 +20,7 @@ td {
 <template>
 	<div>
 		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll"
-			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select 
+			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select
 			:loading="loading || innerLoading"
 			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort
 			disable-pagination hide-default-footer :mobile-breakpoint="0"
@@ -48,14 +48,16 @@ td {
 					@contextmenu.stop.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"
 					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)">
 
-					<td v-for="header in props.headers" :key="header.value" :class="{ 'pr-0': header.value === 'data-table-select' }">
+					<td v-for="header in props.headers" :key="header.value" :class="header.cellClass">
 						<template v-if="header.value === 'data-table-select'">
 							<v-simple-checkbox :value="props.isSelected" @touchstart.stop="" @touchend.stop="" @input="props.select($event)" class="mt-n1" tabindex="-1"></v-simple-checkbox>
 						</template>
 						<template v-else-if="header.value === 'name'">
 							<div class="d-inline-flex align-center">
-								<slot :name="`${props.item.isDirectory ? 'folder' : 'file'}.${props.item.name}`">
-									<v-icon class="mr-1">{{ props.item.isDirectory ? folderIcon : fileIcon }}</v-icon> {{ props.item.name }}
+								<slot :name="`${props.item.isDirectory ? 'folder' : 'file'}.${props.item.name}`" :item="props.item">
+									<slot :name="props.item.isDirectory ? 'folder' : 'file'" :item="props.item">
+										<v-icon class="mr-1">{{ props.item.isDirectory ? folderIcon : fileIcon }}</v-icon> {{ props.item.name }}
+									</slot>
 								</slot>
 							</div>
 						</template>
@@ -176,6 +178,8 @@ export default {
 		defaultHeaders() {
 			return [
 				{
+					class: 'pl-0',
+					cellClass: 'pl-0',
 					text: i18n.t('list.baseFileList.fileName'),
 					value: 'name'
 				},
