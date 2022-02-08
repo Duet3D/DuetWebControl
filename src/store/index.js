@@ -79,7 +79,7 @@ const store = new Vuex.Store({
 
 				if (isPasswordError) {
 					commit('askForPassword');
-				} else if (process.env.NODE_ENV !== 'production' && hostname === location.host) {
+				} else if (process.env.NODE_ENV === 'production' && hostname === location.host) {
 					setTimeout(() => dispatch('connect', { hostname, username, password, retrying: true }), 1000);
 					return;
 				}
