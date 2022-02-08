@@ -25,11 +25,10 @@
 				</template>
 
 				<v-card>
-					<v-carousel height="auto" hide-delimiters :show-arrows="thumbnails.length > 1" show-arrows-on-hover>
-						<v-carousel-item v-for="thumbnail in thumbnails" :key="`${thumbnail.format}-${thumbnail.width}x${thumbnail.height}`">
+					<v-carousel height="auto" hide-delimiters :show-arrows="validThumbnails.length > 1" show-arrows-on-hover>
+						<v-carousel-item v-for="thumbnail in validThumbnails" :key="`${thumbnail.format}-${thumbnail.width}x${thumbnail.height}`">
 							<div class="d-flex fill-height align-center">
 								<thumbnail-img :thumbnail="thumbnail" class="mx-auto"/>
-
 							</div>
 						</v-carousel-item>
 					</v-carousel>
@@ -94,6 +93,9 @@ export default {
 				return this.$t('panel.jobControl.repeatPrint');
 			}
 			return this.$t('panel.jobControl.repeatJob');
+		},
+		validThumbnails() {
+			return this.thumbnails.filter(thumbnail => !!thumbnail.data);
 		}
 	},
 	data() {
