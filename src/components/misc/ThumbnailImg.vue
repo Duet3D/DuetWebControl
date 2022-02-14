@@ -35,7 +35,11 @@ export default {
 			if (!this.thumbnail || !this.thumbnail.data) {
 				this.imgData = this.thumbnailData = '';
 			} else if (this.thumbnailData !== this.thumbnail.data) {
-				if (this.thumbnail.format === ThumbnailFormat.qoi) {
+				if (this.thumbnail.format === ThumbnailFormat.jpeg) {
+					this.imgData = 'data:image/jpeg;base64,' + this.thumbnail.data;
+				} else if (this.thumbnail.format === ThumbnailFormat.png) {
+					this.imgData = 'data:image/png;base64,' + this.thumbnail.data;
+				} else if (this.thumbnail.format === ThumbnailFormat.qoi) {
 					// Decode base64 input
 					const base64Response = await fetch('data:application/octet-stream;base64,' + this.thumbnail.data);
 					const buffer = await base64Response.arrayBuffer();
@@ -54,8 +58,6 @@ export default {
 
 					// Save base64-encoded content
 					this.imgData = canvas.toDataURL('image/png');
-				} else if (this.thumbnail.format === ThumbnailFormat.png) {
-					this.imgData = 'data:image/png;base64,' + this.thumbnail.data;
 				}
 				this.thumbnailData = this.thumbnail.data;
 			}

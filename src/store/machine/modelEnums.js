@@ -224,6 +224,7 @@ export const SpindleState = {
 }
 
 export const ThumbnailFormat = {
+	jpeg: 'jpeg',
 	qoi: 'qoi',
 	png: 'png'
 }
