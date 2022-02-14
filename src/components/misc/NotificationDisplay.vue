@@ -93,9 +93,15 @@ export default {
 	},
 	methods: {
 		updateProgress() {
-			this.notification.timeDisplayed += 100;
-			if (this.notificationProgress === 100) {
-				this.notification.close();
+			if (this.notification && this.notification.timeout > 0) {
+				this.notification.timeDisplayed += 100;
+				if (this.notificationProgress === 100) {
+					this.notification.close();
+				}
+			} else {
+				clearInterval(this.progressTimer);
+				this.progressTimer = null;
+				this.progressTimerValue = null;
 			}
 		},
 		clicked() {
