@@ -13,7 +13,7 @@
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
 		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate"></firmware-update-dialog>
-		<config-updated-dialog :shown.sync="confirmReset"></config-updated-dialog>
+		<config-updated-dialog :shown.sync="confirmFirmwareReset"></config-updated-dialog>
 	</div>
 </template>
 
@@ -25,7 +25,7 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { NetworkInterfaceType, StatusType } from '@/store/machine/modelEnums'
+import { isPrinting, NetworkInterfaceType, StatusType } from '@/store/machine/modelEnums'
 import { DisconnectedError } from '@/utils/errors'
 import Events from '@/utils/events.js'
 import Path from '@/utils/path.js'
@@ -90,6 +90,10 @@ export default {
 		},
 		isBusy() {
 			return this.extracting || this.uploading;
+		},
+		confirmFirmwareReset: {
+			get() { return !this.confirmUpdate && this.confirmReset; },
+			set(value) { this.confirmReset = value; }
 		}
 	},
 	data() {
@@ -372,12 +376,27 @@ export default {
 				location.reload(true);
 			}
 
+			// Deal with config files
+			const configFile = Path.combine(this.directories.system, Path.configFile);
+			for (let file of files) {
+				const fullName = Path.combine(this.destinationDirectory, file.filename);
+				if (!isPrinting(this.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
+					// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been replaced
+					this.confirmReset = true;
+					break;
+				}
+			}
+
+			// Show success after uploading a ZIP
 			if (zipName) {
 				const secondsPassed = Math.round((new Date() - startTime) / 1000);
 				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]), null);
 			}
 		},
 		async startUpdate() {
+			// Don't show a reset confirmation while updating
+			this.confirmReset = false;
+
 			// Update expansion boards
 			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
 				const boardToUpdate = this.updates.firmwareBoards[i];

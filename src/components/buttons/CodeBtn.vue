@@ -17,6 +17,7 @@ export default {
 	},
 	data() {
 		return {
+			pendingCodes: [],
 			waitingForCode: false
 		}
 	},
@@ -26,6 +27,7 @@ export default {
 			type: String,
 			required: true
 		},
+		disabled: Boolean,
 		log: {
 			type: Boolean,
 			default: true
@@ -38,10 +40,34 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		async click() {
-			if (!this.waitingForCode) {
-				this.waitingForCode = !this.noWait;
+			if (this.noWait) {
+				// Make a queue of click events and process code by code
+				this.pendingCodes.push(this.code);
+				if (this.pendingCodes.length === 1) {
+					do {
+						try {
+							await this.sendCode({
+								code: this.pendingCodes[0],
+								log: this.log,
+								showSuccess: false
+							});
+							this.pendingCodes.shift();
+						} catch (e) {
+							// Stop processing pending codes on error
+							this.pendingCodes = [];
+							break;
+						}
+					} while (this.pendingCodes.length !== 0);
+				}
+			} else {
+				// Wait for the code to complete
+				this.waitingForCode = true;
 				try {
-					await this.sendCode({ code: this.code, log: this.log, showSuccess: !this.noWait });
+					await this.sendCode({
+						code: this.code,
+						log: this.log,
+						showSuccess: true
+					});
 				} catch (e) {
 					// handled before we get here
 				}

@@ -20,7 +20,7 @@
 			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1" @click="refresh">
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 			</v-btn>
-			<upload-btn ref="mainUpload" class="hidden-sm-and-down" :elevation="1" :directory="directory" :target="uploadTarget" color="primary" @uploadComplete="uploadComplete"></upload-btn>
+			<upload-btn ref="mainUpload" class="hidden-sm-and-down" :elevation="1" :directory="directory" :target="uploadTarget" color="primary"></upload-btn>
 		</v-toolbar>
 		
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="sys" @fileClicked="fileClicked" @fileEdited="fileEdited" :noFilesText="noFilesText">
@@ -206,17 +206,6 @@ export default {
 			document.body.appendChild(form);
 			form.submit();
 			document.body.removeChild(form);
-		},
-		uploadComplete(files) {
-			const configFile = Path.combine(this.systemDirectory, Path.configFile);
-			for (let i = 0; i < files.length; i++) {
-				const fullName = Path.combine(this.directory, files[i].name);
-				if (!isPrinting(this.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardsFile)) {
-					// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been replaced
-					this.showResetPrompt = true;
-					break;
-				}
-			}
 		}
 	},
 	mounted() {
