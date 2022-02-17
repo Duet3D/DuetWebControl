@@ -99,7 +99,7 @@
 
 					<!-- Permissions -->
 					<v-window-item>
-						<v-alert v-show="hasDwcFiles" dense outlined type="warning" icon="mdi-alert-outline" class="subtitle-2 mb-0">
+						<v-alert v-show="hasDwcFiles" dense outlined type="warning" icon="mdi-alert-outline" class="subtitle-2 mb-3">
 							{{ $t('dialog.pluginInstallation.dwcWarning') }}
 						</v-alert>
 

@@ -836,10 +836,11 @@ export default {
         writeSystem: 'Dateien im Systemverzeichnis schreiben',
         readWeb: 'Dateien aus dem Webverzeichnis lesen',
         writeWeb: 'Dateien im Webverzeichnis schreiben',
-        fileSystemAccess: 'Auf Dateien außherhalb der virtuellen SD-Karte zugreifen',
+        fileSystemAccess: 'Auf Dateien außerhalb der virtuellen SD-Karte zugreifen',
         launchProcesses: 'Neue Prozesse starten',
         networkAccess: 'Über das Netzwerk kommunizieren',
-        webcamAccess: 'Auf Webcams zugreifen',
+		webcamAccess: 'Auf Webcams zugreifen',
+		gpioAccess: 'Auf GPIO-Geräte zugreifen',
         superUser: 'Als root-Benutzer laufen (potentiell gefährlich)'
     },
     plugins: {

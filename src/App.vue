@@ -38,10 +38,6 @@ textarea {
 	line-height: 1.25rem !important;
 }
 
-.v-speed-dial--fixed {
-	z-index: 5;
-}
-
 .theme--dark textarea {
 	caret-color: #FFF;
 }
@@ -50,14 +46,14 @@ textarea {
 	color: #FFF !important;
 }
 
-.v-card__title {
-	font-size: 1rem;
+.v-speed-dial--fixed {
+	z-index: 5;
 }
 </style>
 
 <template>
 	<v-app>
-		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app width="275" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
+		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
 					<connect-btn v-if="showConnectButton" block/>

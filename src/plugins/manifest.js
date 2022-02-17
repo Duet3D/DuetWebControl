@@ -24,6 +24,7 @@ export class PluginManifest {
 	sbcOutputRedirected = true						// Defines if messages from stdout/stderr are output as generic messages
 	sbcPermissions = []								// Permissions on the SBC. See also PluginPermissions
 	sbcPackageDependencies = []						// List of packages this plugin depends on (apt packages in the case of DuetPi)
+	sbcPythonDependencies = []						// List of Python packages this plugin depends on (pip)
 	sbcPluginDependencies = []						// List of SBC plugins this plugin depends on. Circular dependencies are not supported
 
 	rrfVersion = null								// Required RRF version
@@ -93,5 +94,6 @@ export const SbcPermission = {
 	launchProcesses: 'launchProcesses',							// Launch new processes
 	networkAccess: 'networkAccess',								// Communicate over the network
 	webcamAccess: 'webcamAccess',								// Access webcam devices
+	gpioAccess: 'gpioAccess',									// Access GPIO pins (includes I2C and SPI devices)
 	superUser: 'superUser'										// Launch process as root user (potentially dangerous)
 }

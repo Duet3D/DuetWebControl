@@ -840,7 +840,8 @@ export default {
         launchProcesses: 'Launch new processes',
         networkAccess: 'Communicate over the network',
         webcamAccess: 'Access webcam devices',
-        superUser: 'Run as root user (potentially dangerous)'
+		gpioAccess: 'Access GPIO devices',
+		superUser: 'Run as root user (potentially dangerous)'
     },
     plugins: {
         accelerometer: {
