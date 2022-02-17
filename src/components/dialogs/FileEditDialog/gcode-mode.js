@@ -1,4 +1,4 @@
-// CodeMirror mode for conditional G-code, see https://duet3d.dozuki.com/Wiki/GCode_Meta_Commands
+// CodeMirror mode for conditional G-code, see https://docs.duet3d.com/en/User_manual/Reference/Gcode_meta_commands
 // based on the Pascal mode by Marijn Haverbeke and others
 // Distributed under an MIT license: https://codemirror.net/LICENSE
 "use strict";

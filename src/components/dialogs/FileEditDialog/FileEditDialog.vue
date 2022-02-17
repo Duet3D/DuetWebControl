@@ -53,10 +53,10 @@
 
 				<v-spacer></v-spacer>
 
-				<v-btn v-if="isGCode" dark text href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
+				<v-btn v-if="isGCode" dark text href="https://docs.duet3d.com/en/User_manual/Reference/Gcodes" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.gcodeReference') }}
 				</v-btn>
-				<v-btn v-if="isMenu" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
+				<v-btn v-if="isMenu" dark text href="https://docs.duet3d.com/en/User_manual/Connecting_hardware/Display_12864_menu" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.menuReference') }}
 				</v-btn>
 				<v-btn dark text @click="save">
