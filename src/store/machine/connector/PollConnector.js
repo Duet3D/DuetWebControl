@@ -16,6 +16,7 @@ import {
 } from '@/utils/errors'
 import Path from '@/utils/path.js'
 import { strToTime, timeToStr } from '@/utils/time'
+import { closeNotifications } from "@/utils/notifications";
 
 const keysToIgnore = ['httpEndpoints', 'messages', 'plugins', 'userSessions', 'userVariables']
 const keysToQuery = Object.keys(DefaultMachineModel).filter(key => keysToIgnore.indexOf(key) === -1);
@@ -251,6 +252,7 @@ export default class PollConnector extends BaseConnector {
 		switch (response.err) {
 			case 0:
 				this.justConnected = true;
+				closeNotifications(true);
 				this.boardType = response.boardType;
 				this.sessionTimeout = response.sessionTimeout;
 				this.requestTimeout = response.sessionTimeout / (this.settings.ajaxRetries + 1);
@@ -401,8 +403,13 @@ export default class PollConnector extends BaseConnector {
 			// Check if the firmware has rebooted
 			if (response.result.state.upTime < this.lastUptime) {
 				this.justConnected = true;
+
+				// Resolve pending codes
 				this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
 				this.pendingCodes = [];
+
+				// Dismiss pending notifications
+				closeNotifications(true);
 
 				// Send the rr_connect request and datetime again after a firmware reset
 				await this.request('GET', 'rr_connect', {

@@ -44,7 +44,7 @@
 		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="notification.type"
 					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :class="{ pointer: !!notification.route }"
 					@click.native="clicked">
-			<v-progress-linear v-show="notification.timeout > 0" :color="progressColor" :value="notificationProgress" class="progress-bar"/>
+			<v-progress-linear v-show="notificationProgress !== null" :color="progressColor" :indeterminate="notification.progress === 0" :value="notificationProgress" class="progress-bar"/>
 
 			<div class="d-flex" :class="{ 'mt-1' : notification.timeout > 0}">
 				<v-icon v-if="notification.icon !== ''" class="mr-4" v-text="notification.icon"/>
@@ -80,7 +80,9 @@ export default {
 			return (this.notifications.length > 0) ? this.notifications[0] : null;
 		},
 		notificationProgress() {
-			return (this.notification && this.notification.timeout > 0) ? Math.min(this.notification.timeDisplayed / this.notification.timeout, 1) * 100 : 0;
+			return (this.notification && this.notification.timeout > 0)
+				? Math.min(this.notification.timeDisplayed / this.notification.timeout, 1) * 100
+					: this.notification.progress;
 		}
 	},
 	data() {

@@ -201,6 +201,7 @@ export default {
 					this.extracting = true;
 					try {
 						try {
+							notification.progress = 0;
 							await zip.loadAsync(files[0], { checkCRC32: true });
 
 							// Check if this is a plugin
@@ -250,8 +251,9 @@ export default {
 								const name = zipFiles[i];
 								zipFiles[i] = await zip.file(name).async('blob');
 								zipFiles[i].name = name;
+								notification.progress = Math.round(((i + 1) / zipFiles.length) * 100);
 							}
-							/*await*/ this.doUpload(zipFiles, files[0].name, new Date());
+							this.doUpload(zipFiles, files[0].name, new Date());
 						} finally {
 							this.extracting = false;
 							notification.close();

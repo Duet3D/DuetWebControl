@@ -56,7 +56,7 @@ textarea {
 		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
-					<connect-btn v-if="showConnectButton" block/>
+					<connect-btn v-if="showConnectButton" class="mb-2" block/>
 				</div>
 				<upload-btn target="start" :elevation="1" class="ma-2" block/>
 			</div>
@@ -97,7 +97,7 @@ textarea {
 			<v-spacer/>
 
 			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"/>
-			<emergency-btn class="hidden-xs-only"/>
+			<emergency-btn/>
 		</v-app-bar>
 
 		<v-main id="content">

@@ -34,7 +34,7 @@ import Chart from 'chart.js'
 
 import { mapState } from 'vuex'
 
-import { display, displayZ, displayTime } from '../../utils/display.js'
+import { display, displayZ, displayTime } from '@/utils/display'
 
 let layers
 

@@ -30,6 +30,12 @@ export class Accelerometer {
 	runs = 0
 }
 
+export class ClosedLoop {
+	constructor(initData) { quickPatch(this, initData); }
+	points = 0
+	runs = 0
+}
+
 export class AnalogSensor {
 	constructor(initData) { quickPatch(this, initData); }
 	lastReading = null
@@ -73,7 +79,8 @@ export class BeepRequest {
 export class Board {
 	constructor(initData) {
         overloadProperty(this, 'accelerometer', value => new Accelerometer(value));
-        overloadProperty(this, 'mcuTemp', value => new MinMaxCurrent(value));
+		overloadProperty(this, 'closedLoop', value => new ClosedLoop(value));
+		overloadProperty(this, 'mcuTemp', value => new MinMaxCurrent(value));
         overloadProperty(this, 'v12', value => new MinMaxCurrent(value));
         overloadProperty(this, 'vIn', value => new MinMaxCurrent(value));
         quickPatch(this, initData);
@@ -81,6 +88,7 @@ export class Board {
 	accelerometer = null
 	bootloaderFileName = null
 	canAddress = null
+	closedLoop = null
 	directDisplay = {
 		pulsesPerClick: 0,
 		spiFreq: 0,

@@ -18,7 +18,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="-index"  :class="getMoveCellClass(index - 1)">
-								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}\nG90\nM121`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block tile class="move-btn">
+								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}\nG90\nM121`" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
 									<v-icon>mdi-chevron-left</v-icon> {{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
 								</code-btn>
 							</v-col>
@@ -36,7 +36,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
-								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}\nG90\nM121`" no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block tile class="move-btn">
+								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}\nG90\nM121`" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }} <v-icon>mdi-chevron-right</v-icon>
 								</code-btn>
 							</v-col>
@@ -63,6 +63,7 @@
 'use strict'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
+import { MessageBoxMode } from "@/store/machine/modelEnums";
 
 export default {
 	computed: {
@@ -86,6 +87,9 @@ export default {
 	},
 	methods: {
 		...mapActions('machine', ['sendCode']),
+		canMove(axis) {
+			return (axis.homed || !this.move.noMovesBeforeHoming) && this.canHome;
+		},
 		displayAxisPosition(axis) {
 			let position = NaN;
 			if (this.displayToolPosition) {
@@ -99,22 +103,26 @@ export default {
 		},
 		getMoveCellClass(index) {
 			let classes = '';
-			if (index === 0 || index === this.numAxsSteps - 1) {
-				classes += 'hidden-md-and-down';
+			if (index === 0 || index === 5) {
+				classes += 'hidden-lg-and-down';
 			}
-			if (index > 1 && index < 5 && index % 2 === 1) {
-				classes += 'hidden-sm-and-down';
+			if (index > 1 && index < 4 && index % 2 === 1) {
+				classes += 'hidden-md-and-down';
 			}
 			return classes;
 		},
 		showSign: (value) => (value > 0) ? `+${value}` : value,
-		ok() {
+		async ok() {
 			this.shown = false;
-			this.sendCode('M292');
+			if (this.messageBox && (this.messageBox.mode === MessageBoxMode.okOnly || this.messageBox.mode === MessageBoxMode.okCancel)) {
+				await this.sendCode('M292');
+			}
 		},
-		cancel() {
+		async cancel() {
 			this.shown = false;
-			this.sendCode('M292 P1');
+			if (this.messageBox && (this.messageBox.mode === MessageBoxMode.okOnly || this.messageBox.mode === MessageBoxMode.okCancel)) {
+				await this.sendCode('M292 P1');
+			}
 		}
 	},
 	watch: {

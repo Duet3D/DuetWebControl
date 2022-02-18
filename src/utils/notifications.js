@@ -9,6 +9,9 @@ import { extractFileName } from '@/utils/path'
 // List of regular notifications
 export const notifications = Vue.observable([])
 
+// Notiofication for the persistent message if applicable
+let messageNotification = null
+
 // List of file transfer notifications
 export const fileTransferNotifications = Vue.observable([])
 
@@ -69,6 +72,7 @@ export function makeNotification(type, title, message = null, timeout = null, ro
         resetTimeout() {
             item.timeDisplayed = 0;
         },
+		progress: null,
         close() {
             const index = notifications.indexOf(item);
             if (index !== -1) {
@@ -83,6 +87,19 @@ export function makeNotification(type, title, message = null, timeout = null, ro
         notifications.unshift(item);
     }
 	return item;
+}
+
+/**
+ * Close all pending regular notifications
+ * @param includingMessage Whether the message notification (if present) shall be closed as well
+ */
+export function closeNotifications(includingMessage = false) {
+	for (let i = notifications.length - 1; i >= 0; i--) {
+		const notification = notifications[i];
+		if (includingMessage || notification !== messageNotification) {
+			notification.close();
+		}
+	}
 }
 
 /**
@@ -124,8 +141,6 @@ export function makeFileTransferNotification(type, destination, cancellationToke
     fileTransferNotifications.push(item);
     return item;
 }
-
-let messageNotification = null
 
 /**
  * Show a persistent message

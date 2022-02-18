@@ -178,6 +178,7 @@ export default {
 			}
 			if (obj !== null && obj instanceof Object) {
 				return Object.keys(obj)
+					.sort()
 					.map(function(key) {
 						const itemPath = path.slice(0);
 						itemPath.push(key);

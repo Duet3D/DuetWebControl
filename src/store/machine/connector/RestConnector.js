@@ -11,6 +11,7 @@ import {
 } from '@/utils/errors'
 
 import { strToTime } from '@/utils/time'
+import { closeNotifications } from "@/utils/notifications";
 
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
@@ -194,6 +195,9 @@ export default class RestConnector extends BaseConnector {
 				if (lastDsfVersion !== that.model.state.dsfVersion) {
 					location.reload(true);
 				}
+
+				// Dismiss pending notifications and resolve the connection attempt
+				closeNotifications(true);
 				resolve();
 			}
 
@@ -269,9 +273,9 @@ export default class RestConnector extends BaseConnector {
 
 		// Process model updates
 		const data = JSON.parse(e.data);
-
-		// Update model and acknowledge receipt
 		await this.dispatch('update', data);
+
+		// Acknowledge receipt
 		if (this.settings.updateDelay > 0) {
 			setTimeout(() => this.socket.send('OK\n'), this.settings.updateDelay);
 		} else {
