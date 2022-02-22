@@ -231,7 +231,7 @@ export default {
 				// Remove focus again to close the OSK
 				if (this.$refs.cmEditor) {
 					this.$refs.cmEditor.cminstance.getTextArea().blur();
-				} else {
+				} else if (this.$refs.textarea) {
 					this.$refs.textarea.blur();
 				}
 			}

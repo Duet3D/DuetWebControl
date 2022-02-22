@@ -64,13 +64,14 @@ img {
 			{{ $t('panel.webcam.caption') }}
 		</v-card-title>
 
-		<v-card-text v-if="active" class="pa-0 img-container">
+		<v-card-text class="pa-0 img-container">
 			<v-responsive v-if="webcam.embedded" :aspect-ratio="16/9">
 				<iframe :src="webcam.url"></iframe>
 			</v-responsive>
 
-			<a v-else :href="webcam.liveUrl ? webcam.liveUrl : 'javascript:void(0)'"><img :alt="$t('panel.webcam.alt')" :src="url" :class="imgClasses"></a>
-
+			<a v-else :href="webcam.liveUrl ? webcam.liveUrl : 'javascript:void(0)'">
+				<img :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="imgClasses">
+			</a>
 		</v-card-text>
 	</v-card>
 </template>

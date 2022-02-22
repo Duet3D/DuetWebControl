@@ -102,6 +102,7 @@ export default class PollConnector extends BaseConnector {
 								resolve(JSON.parse(xhr.responseText));
 							}
 						} catch (e) {
+							console.warn(`Failed to parse response from request ${method} ${url}:\n${xhr.responseText}`);
 							reject(e);
 						}
 					} else {
@@ -781,9 +782,16 @@ export default class PollConnector extends BaseConnector {
 						name: fileinfo.fileName,
 						offset
 					});
+
 					if (response.err !== 0) {
 						throw new OperationFailedError(`err ${response.err}`);
 					}
+
+					const base64Regex = /^[A-Za-z0-9+/=]+$/;
+					if (!base64Regex.test(response.data)) {
+						throw new OperationFailedError('invalid base64 content');
+					}
+
 					offset = response.next;
 					thumbnailData += response.data;
 				} while (offset !== 0);

@@ -163,20 +163,18 @@ export default class RestConnector extends BaseConnector {
 	async reconnect() {
 		// Cancel pending requests
 		this.cancelRequests();
+		this.sessionKey = null;
 
 		// Attempt to get a session key again
-		if (this.sessionKey !== null) {
-			this.sessionKey = null;
-			try {
-				const response = await this.request('GET', `machine/connect`, {
-					password: this.password
-				});
-				this.sessionKey = response.sessionKey;
-			} catch (e) {
-				if (!(e instanceof FileNotFoundError)) {
-					// Versions older than 3.4-b4 do not support passwords
-					throw e;
-				}
+		try {
+			const response = await this.request('GET', `machine/connect`, {
+				password: this.password
+			});
+			this.sessionKey = response.sessionKey;
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				// Versions older than 3.4-b4 do not support passwords
+				throw e;
 			}
 		}
 
