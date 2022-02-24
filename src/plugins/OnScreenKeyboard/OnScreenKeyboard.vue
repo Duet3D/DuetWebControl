@@ -60,21 +60,23 @@ export default {
 	},
 	methods: {
 		inputFocused(e) {
-			if (e.target != this.input && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+			if (e.target !== this.input && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
 				this.input = e.target;
 				this.$nextTick(function() {
 					// Create a new keyboard instance
-					this.keyboard = new Keyboard({
-						mergeDisplay: true,
-						display: {
-							'{enter}': 'enter'
-						},
-						onChange: this.updateValue,
-						onKeyPress: this.onKeyPress,
-						newLineOnEnter: e.target instanceof HTMLTextAreaElement,
-						tabCharOnTab: e.target instanceof HTMLTextAreaElement,
-						theme: this.darkTheme ? 'hg-theme-default dark' : 'hg-theme-default'
-					});
+					if (!this.keyboard) {
+						this.keyboard = new Keyboard({
+							mergeDisplay: true,
+							display: {
+								'{enter}': 'enter'
+							},
+							onChange: this.updateValue,
+							onKeyPress: this.onKeyPress,
+							newLineOnEnter: e.target instanceof HTMLTextAreaElement,
+							tabCharOnTab: e.target instanceof HTMLTextAreaElement,
+							theme: this.darkTheme ? 'hg-theme-default dark' : 'hg-theme-default'
+						});
+					}
 					this.keyboard.setInput(e.target.value);
 
 					if (e.target.type === 'number') {
@@ -99,7 +101,7 @@ export default {
 			}
 		},
 		globalClick() {
-			if (document.activeElement != this.input) {
+			if (document.activeElement !== this.input) {
 				// Hide the keyboard when a user clicks/taps outside the keyboard and selected input
 				this.hide();
 			}
