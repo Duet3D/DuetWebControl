@@ -269,7 +269,11 @@ export default {
 			cancel: 'Cancel',
 			back: 'Back',
 			next: 'Next',
-			finish: 'Finish'
+			finish: 'Finish',
+			reloadPrompt: {
+				title: 'Reload DWC?',
+				prompt: 'You have just updated an active DWC plugin. In order to use the new version, the web interface must be reloaded. Do you want to do this now?'
+			}
 		},
 		renameFile: {
 			title: 'Rename File or Directory',
@@ -979,7 +983,7 @@ export default {
             terrain: 'Terrain',
             heat: 'Heat',
             invertZ: 'Invert Z coordinates',
-            topView: 'Top view',
+            topView: 'Top View',
             range: 'Range',
             fixed: 'Fixed',
             deviation: 'Deviation',

@@ -789,6 +789,7 @@ export default class PollConnector extends BaseConnector {
 
 					const base64Regex = /^[A-Za-z0-9+/=]+$/;
 					if (!base64Regex.test(response.data)) {
+						console.log(response.data);
 						throw new OperationFailedError('invalid base64 content');
 					}
 

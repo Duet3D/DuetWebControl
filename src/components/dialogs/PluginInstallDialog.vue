@@ -20,7 +20,7 @@
 								</template>
 								<template v-if="pluginManifest.homepage">
 									{{ $t('dialog.pluginInstallation.homepage') }}
-									<a :href="pluginManifest.homepage" target="_blank">{{ hompageDomain }}</a><br>
+									<a :href="pluginManifest.homepage" target="_blank">{{ homepageDomain }}</a><br>
 								</template>
 							</v-card-text>
 						</v-card>
@@ -143,7 +143,7 @@
 					{{ $t('dialog.pluginInstallation.cancel') }}
 				</v-btn>
 				<v-spacer></v-spacer>
-				<v-btn v-show="isFinished" color="blue darken-1" text @click="shown = false">
+				<v-btn v-show="isFinished" color="blue darken-1" text @click="finish">
 					{{ $t('dialog.pluginInstallation.finish') }}
 				</v-btn>
 				<v-spacer></v-spacer>
@@ -155,6 +155,8 @@
 				</v-btn>
 			</v-card-actions>
 		</v-card>
+
+		<confirm-dialog :title="$t('dialog.pluginInstallation.reloadPrompt.title')" :prompt="$t('dialog.pluginInstallation.reloadPrompt.prompt')" :shown.sync="showReloadPrompt" @confirmed="reload"/>
 	</v-dialog>
 </template>
 
@@ -164,13 +166,13 @@
 import { mapState, mapActions } from 'vuex'
 
 import { version } from '../../../package.json'
-import Plugins, { checkVersion } from '../../plugins'
-import { PluginManifest, SbcPermission } from '../../plugins/manifest.js'
-import Events from '../../utils/events.js'
+import Plugins, { checkVersion } from '@/plugins'
+import { PluginManifest, SbcPermission } from '@/plugins/manifest'
+import Events from '@/utils/events.js'
 
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
+		...mapState(['loadedDwcPlugins', 'selectedMachine']),
 		...mapState('machine/model', ['boards', 'state']),
 		title() {
 			switch (this.currentPage) {
@@ -208,7 +210,7 @@ export default {
 			return this.currentPage === 4;
 		},
 
-		hompageDomain() {
+		homepageDomain() {
 			if (this.pluginManifest.homepage) {
 				const regex = /(?:http[s]?:\/\/)?(\w+\.\w+(\.\w+)?)/i;
 				const matches = regex.exec(this.pluginManifest.homepage);
@@ -291,7 +293,9 @@ export default {
 			hasDwcFiles: false,
 			hasSdFiles: false,
 			pluginManifest: {},
-			pluginManifestValid: false
+			pluginManifestValid: false,
+
+			showReloadPrompt: false
 		}
 	},
 	mounted() {
@@ -371,6 +375,13 @@ export default {
 					this.isFinished = true;
 				}
 			}
+		},
+		finish() {
+			this.shown = false;
+			this.showReloadPrompt = this.hasDwcFiles && this.loadedDwcPlugins.includes(this.pluginManifest.id);
+		},
+		reload() {
+			location.reload(true);
 		}
 	},
 	watch: {

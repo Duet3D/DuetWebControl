@@ -63,7 +63,7 @@ export default {
         },
         emergencyStop: {
             caption: 'NOT-AUS',
-            title: 'Erzwingt einen sofortingen Softwarereset (M112+M999)'
+            title: 'Erzwingt einen sofortigen Softwarereset (M112+M999)'
         },
         home: {
             caption: 'Referenziere {0}',
@@ -200,7 +200,7 @@ export default {
         },
         fileEdit: {
             gcodeReference: 'G-Code-Referenz',
-            menuReference: 'Menüreference',
+            menuReference: 'Menüreferenz',
             save: 'Speichern',
             confirmClose: 'Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.'
         },
@@ -261,7 +261,7 @@ export default {
             ready: 'Installation bereit',
             readyMessage: 'Das Plugin ist jetzt bereit für die Installation. Bitte stellen Sie sicher, dass Sie dem Autor des Plugins vertrauen bevor Sie diesen finalen Schritt bestätigen.',
             readyDisclaimer: 'Bevor Sie fortfahren können müssen Sie akzeptieren, dass Duet3D Ltd nicht für eventuelle Schäden, die aus der Installation dieses Drittanbieterplugins resultieren könnten, verantwortlich gemacht werden kann.',
-            checkboxDisclaimer: 'Ich akzeptiere das Risio, Installation fortsetzen',
+            checkboxDisclaimer: 'Ich akzeptiere das Risiko, Installation fortsetzen',
             progress: 'Installationsfortschritt',
             progressText: 'Bitte warten Sie während das Plugin installiert wird...',
             installationSuccess: 'Installation abgeschlossen!',
@@ -269,10 +269,14 @@ export default {
             cancel: 'Abbrechen',
             back: 'Zurück',
             next: 'Weiter',
-            finish: 'Abschließen'
+            finish: 'Abschließen',
+			reloadPrompt: {
+				title: 'DWC neu laden?',
+				prompt: 'Sie haben gerade ein aktives DWC-Plugin aktualisiert. Um die neue Version nutzen zu können muss die Weboberfläche neu geladen werden. Möchten Sie dies jetzt tun?'
+			}
         },
         renameFile: {
-            title: 'Datei oder Verzeichnis umbennenen',
+            title: 'Datei oder Verzeichnis umbenennen',
             prompt: 'Bitte geben Sie einen neuen Namen ein:'
         },
         resetHeaterFault: {
@@ -545,8 +549,8 @@ export default {
         plugins: {
             started: 'Plugin gestartet',
             startError: 'Konnte Plugin nicht starten',
-            stopped: 'Plugin gestopt',
-            stopError: 'Konnte Plugin icht stoppen',
+            stopped: 'Plugin gestoppt',
+            stopError: 'Konnte Plugin nicht stoppen',
             uninstalled: 'Plugin deinstalliert',
             uninstallError: 'Konnte Plugin nicht deinstallieren'
         },
@@ -729,7 +733,7 @@ export default {
         settingsNotifications: {
             caption: 'Benachrichtigungen',
             notificationErrorsPersistent: 'Fehlermeldungen nicht automatisch schließen',
-            notificationTimeout: 'Standardmäßige Benachrichtungsdauer ({0})'
+            notificationTimeout: 'Standardmäßige Benachrichtigungsdauer ({0})'
         },
         settingsWebcam: {
             caption: 'Webcam',
@@ -859,7 +863,7 @@ export default {
             back: 'Zurück',
             overflowPrompt: {
                 title: 'Überlaufe erkannt',
-                prompt: 'Diese Datei hat bereichtet, dass es zu Überlaufen gekommen ist. Sind Sie sicher, dass Sie fortfahren möchten?'
+                prompt: 'Diese Datei hat berichtet, dass es zu Überlaufen gekommen ist. Sind Sie sicher, dass Sie fortfahren möchten?'
             },
             loadError: 'Konnte CSV-Datei nicht laden',
             parseError: 'Konnte CSV-Datei nicht parsen',

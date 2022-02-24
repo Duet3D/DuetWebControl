@@ -40,7 +40,7 @@
 			</template>
 			<template #file="{ item }">
 				<div :class="{ 'list-icon mr-2': hasThumbnails, 'mr-1': !hasThumbnails }">
-					<v-icon v-if="!item.thumbnails || item.thumbnails.length === 0">
+					<v-icon v-if="!(item.thumbnails instanceof Array) || !getSmallThumbnail(item.thumbnails)">
 						{{ (item.thumbnails instanceof Array) ? 'mdi-file' : 'mdi-asterisk' }}
 					</v-icon>
 					<v-menu v-else right offset-x open-on-hover open-on-focus close-on-content-click :min-width="16">

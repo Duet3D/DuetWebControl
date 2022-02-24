@@ -49,6 +49,10 @@ textarea {
 .v-speed-dial--fixed {
 	z-index: 5;
 }
+
+.v-btn {
+	text-transform: unset !important;
+}
 </style>
 
 <template>
