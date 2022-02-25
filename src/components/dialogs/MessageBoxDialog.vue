@@ -9,7 +9,7 @@
 
 			<v-card-text>
 				<!-- Main message -->
-				<center :class="{ 'mb-6': displayedAxes.length }" v-html="messageBox ? messageBox.message : $t('generic.noValue')"></center>
+				<div class="text-center" :class="{ 'mb-6': displayedAxes.length }" v-html="messageBox ? messageBox.message : $t('generic.noValue')"></div>
 
 				<!-- Jog control -->
 				<!-- TODO Replace the following and the content in MovementPanel with an own component -->
@@ -17,8 +17,8 @@
 					<!-- Decreasing movements -->
 					<v-col>
 						<v-row no-gutters>
-							<v-col v-for="index in numMoveSteps" :key="-index"  :class="getMoveCellClass(index - 1)">
-								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}\nG90\nM121`" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
+							<v-col v-for="index in numMoveSteps" :key="index"  :class="getMoveCellClass(index - 1)">
+								<code-btn :code="getMoveCode(axis, index - 1, true)" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
 									<v-icon>mdi-chevron-left</v-icon> {{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
 								</code-btn>
 							</v-col>
@@ -36,7 +36,7 @@
 					<v-col>
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
-								<code-btn :code="`M120\nG91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}\nG90\nM121`" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
+								<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)" no-wait block tile class="move-btn">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }} <v-icon>mdi-chevron-right</v-icon>
 								</code-btn>
 							</v-col>
@@ -88,7 +88,7 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		canMove(axis) {
-			return (axis.homed || !this.move.noMovesBeforeHoming) && this.canHome;
+			return axis.homed || !this.move.noMovesBeforeHoming;
 		},
 		displayAxisPosition(axis) {
 			let position = NaN;
@@ -110,6 +110,9 @@ export default {
 				classes += 'hidden-md-and-down';
 			}
 			return classes;
+		},
+		getMoveCode(axis, index, decrementing) {
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter.toUpperCase()}${decrementing ? '-' : ''}${this.moveSteps(axis.letter)[index]} F${this.moveFeedrate}\nM121`;
 		},
 		showSign: (value) => (value > 0) ? `+${value}` : value,
 		async ok() {

@@ -78,18 +78,24 @@ export default {
 			}
 
 			const result = [];
-			for (let i = 5; i >= 1; i--) {
-				const lowerValue = this.value - this.step * i;
-				if (lowerValue >= this.min) {
-					result.push(lowerValue);
+			if (isNumber(this.min) && isNumber(this.max)) {
+				for (let value = this.min; value <= this.max; value += this.step) {
+					result.push(value);
 				}
-			}
-			for (let i = 1; i <= 5; i++) {
-				const higherValue = this.value + this.step * i;
-				if (higherValue > this.max) {
-					break;
+			} else {
+				for (let i = 5; i >= 1; i--) {
+					const lowerValue = this.value - this.step * i;
+					if (lowerValue >= this.min) {
+						result.push(lowerValue);
+					}
 				}
-				result.push(higherValue);
+				for (let i = 1; i <= 5; i++) {
+					const higherValue = this.value + this.step * i;
+					if (higherValue > this.max) {
+						break;
+					}
+					result.push(higherValue);
+				}
 			}
 			return result;
 		}
