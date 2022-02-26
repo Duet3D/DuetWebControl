@@ -271,7 +271,10 @@ export default {
 			cancel: '取消',
 			back: '上一步',
 			next: '下一步',
-			finish: '结束'
+			finish: '结束',
+			reloadPrompt: {
+				title: '重新载入DWC界面?',
+				prompt: '您刚刚更新了一个已启动的DWC插件。为了使用新版本，必须重新加载Web界面。你现在想这样做吗？'			
 		},
 		renameFile: {
 			title: '重命名文件或者目录',
