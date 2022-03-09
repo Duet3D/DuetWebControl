@@ -66,8 +66,17 @@ const store = new Vuex.Store({
 				commit('setSelectedMachine', hostname);
 				logGlobal('success', i18n.t('events.connected', [hostname]));
 
-				await dispatch('machine/settings/load');
-				await dispatch('machine/cache/load');
+				try {
+					await dispatch('machine/settings/load');
+				} catch (e) {
+					console.warn('Failed to load settings: ' + e);
+				}
+				try {
+					await dispatch('machine/cache/load');
+				} catch (e) {
+					console.warn('Failed to load cache: ' + e);
+				}
+
 				if (state.settings.lastHostname !== location.host || hostname !== location.host) {
 					commit('settings/setLastHostname', hostname);
 				}
