@@ -317,10 +317,10 @@ export default class RestConnector extends BaseConnector {
 		super.unregister();
 	}
 
-	async sendCode(code) {
+	async sendCode({ code, noWait }) {
 		let reply;
 		try {
-			const response = await this.request('POST', 'machine/code', null, 'text', code);
+			const response = await this.request('POST', 'machine/code', noWait ? { async: true } : null, 'text', code);
 			reply = response.trim();
 		} catch (e) {
 			reply = 'Error: ' + e.message;

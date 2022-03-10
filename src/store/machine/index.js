@@ -71,13 +71,14 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 			},
 
 			// Send a code and log the result (if applicable)
-			// Payload can be either a string or an object { code, (fromInput = false, log = true) }
+			// Payload can be either a string or an object { code, (fromInput = false, log = true, noWait = false) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
 				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
+				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
 				try {
-					const reply = await connector.sendCode(code);
+					const reply = await connector.sendCode({ code, noWait });
 					if (doLog && (fromInput || reply !== '')) {
 						logCode(code, reply, connector.hostname, fromInput);
 					}

@@ -140,8 +140,9 @@ class BaseConnector {
 
 	// Send a G-/M-/T-code to the machine
 	// code: Code to send
+	// noWait: Don't wait for the code to finish
 	// Returns the code reply when finished
-	async sendCode(code) { throw new NotImplementedError('sendCode'); }
+	async sendCode({ code, noWait }) { throw new NotImplementedError('sendCode'); }
 
 	// Upload a file
 	// filename: Destination of the file

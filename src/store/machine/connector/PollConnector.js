@@ -597,7 +597,7 @@ export default class PollConnector extends BaseConnector {
 		}
 	}
 
-	async sendCode(code) {
+	async sendCode({ code, noWait }) {
 		// Scan actual content of the requested code
 		let inBraces = false, inQuotes = false, strippedCode = '';
 		for (let i = 0; i < code.length; i++) {
@@ -621,7 +621,7 @@ export default class PollConnector extends BaseConnector {
 
 		// Check if a response can be expected
 		let result = '';
-		if (strippedCode !== '' && strippedCode.toUpperCase().indexOf('M997') === -1 && strippedCode.toUpperCase().indexOf('M999') === -1) {
+		if (!noWait && strippedCode !== '' && strippedCode.toUpperCase().indexOf('M997') === -1 && strippedCode.toUpperCase().indexOf('M999') === -1) {
 			const pendingCodes = this.pendingCodes, seq = this.lastSeqs.reply;
 			result = new Promise((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
 		}
