@@ -1,4 +1,4 @@
-// 注释：从3.3RC版本升级到3.4-dev，截止更新到Commits on Nov 6, 2021
+// 注释：v3.4-dev，截止更新到Commits on Feb 17, 2022
 // 注释：https://github.com/ningjiazun
 export default {
 	language: '简体中文',
@@ -122,12 +122,16 @@ export default {
 				caption: '上传Web文件',
 				title: '上传一个或多个Web文件（支持拖放）'
 			},
+			plugin: {
+				caption: '安装插件',
+				title: '上传冰启动插件（支持拖放）'
+            },
 			update: {
 				caption: '上传更新',
 				title: '上传更新包（支持拖放）'
 			}
 		}
-	},
+ 	},  
 	chart: {
 		layer: {
 			caption: '层图表',
@@ -141,6 +145,7 @@ export default {
 			layerHeight: '层高度：{0}',
 			filamentUsage: '细丝用量：{0}',
 			fractionPrinted: '文件进度：{0}'
+			temperatures: '温度：{0}'
 		},
 		temperature: {
 			caption: '温度图表',
@@ -266,7 +271,10 @@ export default {
 			cancel: '取消',
 			back: '上一步',
 			next: '下一步',
-			finish: '结束'
+			finish: '结束',
+			reloadPrompt: {
+				title: '重新载入DWC界面?',
+				prompt: '您刚刚更新了一个已启动的DWC插件。为了使用新版本，必须重新加载Web界面。你现在想这样做吗？'			
 		},
 		renameFile: {
 			title: '重命名文件或者目录',
@@ -395,6 +403,7 @@ export default {
 		},
 		addTemperature: '新的温度值',
 		addRPM: '新的转速值'
+        set: '设置'	//3.4待修正
 	},
 	jobProgress: {
 		simulating: '正在模拟{0}，已完成{1}',
@@ -613,6 +622,7 @@ export default {
 			repeatJob: '重新开始',
 			repeatPrint: '重新打印',
 			repeatSimulation: '重新模拟'
+			showPreview: '显示预览'
 		},
 		jobData: {
 			caption: '采集数据',
@@ -642,6 +652,10 @@ export default {
 			runBed: '真正的床铺平整(G32)',
 			runDelta: 'Delta校准(G32)',
 			compensationInUse: '使用补偿: {0}',
+            compensationType: {
+                none: '没有',//待修正
+                mesh: '网格'
+            },		  
 			disableBedCompensation: '禁用床补偿(M561)',
 			disableMeshCompensation: '禁用网格补偿(G29 S2)',
 			editMesh: '定义网格补偿区域(M557)',
@@ -666,6 +680,9 @@ export default {
 			disableAutoComplete: '禁用自动完成',
 			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表',
 			dashboardModeTitle: '控制面板模式'//3.4-dev新增
+            bottomNavigation: '在平板设备上显示底部导航',
+            numericInputs: '显示数字输入字段而不是滑块',
+			iconMenu: '使用简洁的图标菜单'							
 		},
 		settingsCommunication: {
 			caption: '通讯',
@@ -733,7 +750,7 @@ export default {
 		speedFactor: {
 			caption: '速度系数'
 		},
-		spindle: {//3.4-dev新增 整个大括号内容
+		spindle: {
 			title: '主轴',
 			spindle: '主轴',
 			active: '工作',
@@ -824,8 +841,9 @@ export default {
 		fileSystemAccess: '访问虚拟SD目录之外的文件',
 		launchProcesses: '启动新进程',
 		networkAccess: '通过网络通讯',
+        webcamAccess: '访问网络摄像头设备',
+		gpioAccess: '访问GPIO设备',
 		superUser: '以root用户身份运行（潜在危险）'
-	},
 	plugins: {
 		accelerometer: {
 			name: '加速度计',
@@ -935,10 +953,11 @@ export default {
 				title: '如果可以在当前打印中检测到对象则启用'
 			},
 			renderFailed: '上一次渲染失败，将渲染质量设置为单板机（SBC）。',
-			showFSOverlay : '全屏显示',//3.4-dev新增，待修正
-			useHQRendering: '高质量渲染',//3.4-dev新增
-			useSpecular: "使用高光",//3.4-dev新增
-			feature: "材质"//3.4-dev新增
+			showFSOverlay : '显示全屏覆盖',//3.4-dev新增，待修正
+			useHQRendering: '高质量渲染',
+			useSpecular: "使用高光",
+			feature: "材质"
+			g1AsExtrusion: '渲染 G1 (CNC)',
 		},
 		heightmap: {
 			menuCaption: '高度图',
