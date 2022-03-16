@@ -641,20 +641,22 @@ export function overloadModelPush(model) {
 
 export function fixObjectModel(state, mergeData) {
 	if (mergeData.sensors && mergeData.sensors.filamentMonitors) {
-		state.sensors.filamentMonitors.forEach(function(filamentSensor, index) {
-			if (filamentSensor !== null) {
-				switch (filamentSensor.type) {
+		// Recreate the filament monitor instances if their type has been changed
+		mergeData.sensors.filamentMonitors.forEach(function(filamentMonitor, index) {
+			const existingFilamentMonitor = state.sensors.filamentMonitors[index];
+			if (filamentMonitor !== null && filamentMonitor.type && (existingFilamentMonitor === null || existingFilamentMonitor.type !== filamentMonitor.type)) {
+				switch (filamentMonitor.type) {
 					case FilamentMonitorType.laser:
-                        state.sensors.filamentMonitors[index] = new LaserFilamentMonitor(filamentSensor);
+                        Vue.set(state.sensors.filamentMonitors, index, new LaserFilamentMonitor(filamentMonitor));
 						break;
 					case FilamentMonitorType.pulsed:
-                        state.sensors.filamentMonitors[index] = new PulsedFilamentMonitor(filamentSensor);
+                        Vue.set(state.sensors.filamentMonitors, index, new PulsedFilamentMonitor(filamentMonitor));
 						break;
 					case FilamentMonitorType.rotatingMagnet:
-                        state.sensors.filamentMonitors[index] = new RotatingMagnetFilamentMonitor(filamentSensor);
+                        Vue.set(state.sensors.filamentMonitors, index, new RotatingMagnetFilamentMonitor(filamentMonitor));
 						break;
 					default:
-                        state.sensors.filamentMonitors[index] = new FilamentMonitor(filamentSensor);
+                        Vue.set(state.sensors.filamentMonitors, index, new FilamentMonitor(filamentMonitor));
 						break;
 				}
 			}

@@ -66,7 +66,7 @@ export default {
 		},
 		ignoreFileTimestamps: {
 			get() { return this.settings.ignoreFileTimestamps; },
-			set(value) { if (this.isNumber(value) && value >= 0) { this.update({ ignoreFileTimestamps: value }); } }
+			set(value) { this.update({ ignoreFileTimestamps: value }); }
 		}
 	},
 	data() {
