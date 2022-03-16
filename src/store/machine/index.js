@@ -6,29 +6,28 @@ import { mapConnectorActions } from './connector'
 
 import cache from './cache.js'
 import model from './model.js'
-import { MessageType, StatusType, isPrinting } from './modelEnums.js'
+import { MessageType, StatusType } from './modelEnums.js'
 import { Plugin } from './modelItems.js'
 import settings from './settings.js'
 
 import { version } from '../../../package.json'
-import Root from '../../main.js'
-import i18n from '../../i18n'
-import Plugins, { checkVersion, loadDwcResources } from '../../plugins'
-import beep from '../../utils/beep.js'
-import { displayTime } from '../../utils/display.js'
-import Events from '../../utils/events.js'
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '../../utils/errors.js'
-import { log, logCode } from '../../utils/logging.js'
-import Path from '../../utils/path.js'
-import { makeFileTransferNotification, showMessage } from '../../utils/toast.js'
+import Root from '@/main.js'
+import i18n from '@/i18n'
+import Plugins, { checkVersion, loadDwcResources } from '@/plugins'
+import beep from '@/utils/beep.js'
+import { displayTime } from '@/utils/display'
+import Events from '@/utils/events.js'
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError } from '@/utils/errors'
+import { log, logCode } from '@/utils/logging'
+import Path from '@/utils/path.js'
+import { makeFileTransferNotification, showMessage } from '@/utils/notifications'
 
 export const defaultMachine = '[default]'			// must not be a valid hostname
 
-export default function(connector, pluginCacheFields, pluginSettingFields) {
+export default function(connector, pluginCacheFields = {}, pluginSettingFields = {}) {
 	return {
 		namespaced: true,
 		state: {
-			autoSleep: false,
 			events: [],								// provides machine events in the form of { date, type, title, message }
 			isReconnecting: false,
 			filesBeingChanged: [],
@@ -72,13 +71,14 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			},
 
 			// Send a code and log the result (if applicable)
-			// Parameter can be either a string or an object { code, (fromInput = false, log = true) }
+			// Payload can be either a string or an object { code, (fromInput = false, log = true, noWait = false) }
 			async sendCode(context, payload) {
 				const code = (payload instanceof Object) ? payload.code : payload;
 				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
+				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
 				try {
-					const reply = await connector.sendCode(code);
+					const reply = await connector.sendCode({ code, noWait });
 					if (doLog && (fromInput || reply !== '')) {
 						logCode(code, reply, connector.hostname, fromInput);
 					}
@@ -240,7 +240,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					}
 				} finally {
 					if (notification) {
-						notification.hide();
+						notification.close();
 					}
 					context.commit('clearFilesBeingChanged');
 					if (!payload.filename) {
@@ -420,7 +420,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 					}
 				} finally {
 					if (notification) {
-						notification.hide();
+						notification.close();
 					}
 					if (!payload.filename) {
 						context.commit('setMultiFileTransfer', false);
@@ -430,7 +430,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 			},
 
 			// Update machine mode. Reserved for the machine connector!
-			async update({ state, commit, dispatch }, payload) {
+			async update({ state, commit }, payload) {
 				const lastBeepFrequency = state.model.state.beep ? state.model.state.beep.frequency : null;
 				const lastBeepDuration = state.model.state.beep ? state.model.state.beep.duration : null;
 				const lastDisplayMessage = state.model.state.displayMessage;
@@ -474,23 +474,13 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 				}
 
 				// Is a new message supposed to be shown?
-				if (state.model.state.displayMessage &&
-					state.model.state.displayMessage != lastDisplayMessage) {
+				if (state.model.state.displayMessage !== lastDisplayMessage) {
 					showMessage(state.model.state.displayMessage);
 				}
 
 				// Has the firmware halted?
-				if (lastStatus != state.model.state.status && state.model.state.status === StatusType.halted) {
+				if (lastStatus !== state.model.state.status && state.model.state.status === StatusType.halted) {
 					log('warning', i18n.t('events.emergencyStop'));
-				}
-
-				// Have we just finished a job? Send M1 if auto-sleep is enabled
-				if (isPrinting(lastStatus) && !isPrinting(state.model.state.status) && state.autoSleep) {
-					try {
-						await dispatch('sendCode', 'M1');
-					} catch (e) {
-						logCode('M1', e.message, connector.hostname);
-					}
 				}
 			},
 
@@ -638,10 +628,7 @@ export default function(connector, pluginCacheFields, pluginSettingFields) {
 
 			unregister: () => connector.unregister(),
 
-			setAutoSleep: (state, value) => state.autoSleep = value,
-			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting,
-			setHighVerbosity() { if (connector) { connector.verbose = true; } },
-			setNormalVerbosity() { if (connector) { connector.verbose = false; } }
+			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting
 		},
 		modules: {
 			cache: cache(connector, pluginCacheFields),

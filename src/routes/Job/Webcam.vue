@@ -1,5 +1,5 @@
 <template>
-	<v-row>
+	<v-row :dense="$vuetify.breakpoint.mobile">
 		<v-col>
 			<webcam-panel></webcam-panel>
 		</v-col>
@@ -10,7 +10,7 @@
 'use strict'
 
 import { registerRoute } from '..'
-import store from '../../store'
+import store from '@/store'
 
 export default {
 	install() {

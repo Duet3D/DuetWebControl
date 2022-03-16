@@ -12,8 +12,8 @@
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<confirm-dialog :shown.sync="confirmUpdate" :title="$t('dialog.update.title')" :prompt="$t('dialog.update.prompt')" @confirmed="startUpdate"></confirm-dialog>
-		<confirm-dialog :shown.sync="confirmReset" :title="$t('dialog.update.resetTitle')" :prompt="$t('dialog.update.resetPrompt')" @confirmed="reset"></confirm-dialog>
+		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate"></firmware-update-dialog>
+		<config-updated-dialog :shown.sync="confirmFirmwareReset"></config-updated-dialog>
 	</div>
 </template>
 
@@ -25,17 +25,18 @@ import { VBtn } from 'vuetify/lib'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { NetworkInterfaceType, StatusType } from '../../store/machine/modelEnums.js'
-import { DisconnectedError } from '../../utils/errors.js'
-import Events from '../../utils/events.js'
-import Path from '../../utils/path.js'
+import { isPrinting, NetworkInterfaceType, StatusType } from '@/store/machine/modelEnums'
+import { DisconnectedError } from '@/utils/errors'
+import Events from '@/utils/events.js'
+import Path from '@/utils/path.js'
 
 const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 
 export default {
 	computed: {
-		...mapState(['isLocal']),
+		...mapState(['selectedMachine']),
 		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
+		...mapState('settings', ['ignoreFileTimestamps']),
 		...mapGetters('machine', ['connector']),
 		...mapGetters(['isConnected', 'uiFrozen']),
 		connectorType() {
@@ -63,6 +64,8 @@ export default {
 				case 'menu': return '*';
 				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml' + (this.connectorType === 'rest' ? ',.deb' : '');
 				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
+				case 'plugin': return '.zip';
+				case 'update': return '.zip,.bin,.uf2';
 			}
 			return undefined;
 		},
@@ -74,17 +77,23 @@ export default {
 			switch (this.target) {
 				case 'gcodes': return this.directories.gCodes;
 				case 'start': return this.directories.gCodes;
-				case 'firmware': return this.directories.firmware;
+                case 'firmware': return this.directories.firmware;
 				case 'macros': return this.directories.macros;
 				case 'filaments': return this.directories.filaments;
 				case 'menu': return this.directories.menu;
 				case 'system': return this.directories.system;
 				case 'web': return this.directories.web;
+				// plugin is not applicable
+                case 'update': return this.directories.firmware;
 			}
 			return undefined;
 		},
 		isBusy() {
 			return this.extracting || this.uploading;
+		},
+		confirmFirmwareReset: {
+			get() { return !this.confirmUpdate && this.confirmReset; },
+			set(value) { this.confirmReset = value; }
 		}
 	},
 	data() {
@@ -109,6 +118,7 @@ export default {
 	extends: VBtn,
 	props: {
 		directory: String,
+        machine: String,
 		target: {
 			type: String,
 			required: true
@@ -172,8 +182,8 @@ export default {
 				return;
 			}
 
-			// Cannot start more than one file via Upload & Start
-			if (this.target === 'start' && files.length !== 1) {
+			// Cannot start more than one file via Upload & Start or Install Plugin
+			if ((this.target === 'start' || this.target === 'plugin') && files.length !== 1) {
 				this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
 				return;
 			}
@@ -191,10 +201,11 @@ export default {
 					this.extracting = true;
 					try {
 						try {
+							notification.progress = 0;
 							await zip.loadAsync(files[0], { checkCRC32: true });
 
 							// Check if this is a plugin
-							if ((this.target === 'start' || this.target === 'system')) {
+							if (this.target === 'start' || this.target === 'system' || this.target === 'update' || this.target === 'plugin') {
 								let isPlugin = false;
 								zip.forEach(function(file) {
 									if (file === 'plugin.json') {
@@ -204,9 +215,10 @@ export default {
 
 								if (isPlugin) {
 									this.extracting = false;
-									notification.hide();
+									notification.close();
 
 									this.$root.$emit(Events.installPlugin, {
+										machine: this.machine || this.selectedMachine,
 										zipFilename: files[0].name,
 										zipBlob: files[0],
 										zipFile: zip,
@@ -214,6 +226,10 @@ export default {
 									});
 									return;
 								}
+								else if (this.target === 'plugin') {
+                                    // Don't proceed if this is no plugin file
+									return;
+                                }
 							}
 
 							// Get a list of files to unpack
@@ -235,11 +251,12 @@ export default {
 								const name = zipFiles[i];
 								zipFiles[i] = await zip.file(name).async('blob');
 								zipFiles[i].name = name;
+								notification.progress = Math.round(((i + 1) / zipFiles.length) * 100);
 							}
-							/*await*/ this.doUpload(zipFiles, files[0].name, new Date());
+							this.doUpload(zipFiles, files[0].name, new Date());
 						} finally {
 							this.extracting = false;
-							notification.hide();
+							notification.close();
 						}
 						return;
 					} catch (e) {
@@ -248,6 +265,11 @@ export default {
 					}
 				}
 			}
+
+            if (this.target === 'plugin') {
+                // Don't proceed if this is no plugin file
+                return;
+            }
 
 			// Check what types of files we have and where they need to go
 			this.updates.webInterface = false;
@@ -258,7 +280,7 @@ export default {
 
 			for (let i = 0; i < files.length; i++) {
 				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
-				if (this.target === 'system' || this.target === 'firmware') {
+                if (this.target === 'firmware' || this.target === 'system' || this.target === 'update') {
 					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine('0:/', content.name);
 					} else if (this.isWebFile(content.name)) {
@@ -322,7 +344,12 @@ export default {
 					await this.upload({ filename: files[0].filename, content: files[0], showSuccess: !zipName });
 				} else {
 					const filelist = [];
-					files.forEach((file) => filelist.push({ filename: file.filename, content: file }));
+					for (let i = 0; i < files.length; i++) {
+						filelist.push({
+							filename: files[i].filename,
+							content: files[i]
+						});
+					}
 					await this.upload({ files: filelist, showSuccess: !zipName, closeProgressOnSuccess: askForUpdate });
 				}
 				this.$emit('uploadComplete', files);
@@ -342,17 +369,32 @@ export default {
 			if (askForUpdate) {
 				// Ask user to perform an update
 				this.confirmUpdate = true;
-			} else if (!this.isLocal && this.updates.webInterface) {
+			} else if (this.selectedMachine === location.host && this.updates.webInterface) {
 				// Reload the web interface immediately if it was the only update
 				location.reload(true);
 			}
 
+			// Deal with config files
+			const configFile = Path.combine(this.directories.system, Path.configFile);
+			for (let file of files) {
+				const fullName = Path.combine(this.destinationDirectory, file.filename);
+				if (!isPrinting(this.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
+					// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been replaced
+					this.confirmReset = true;
+					break;
+				}
+			}
+
+			// Show success after uploading a ZIP
 			if (zipName) {
 				const secondsPassed = Math.round((new Date() - startTime) / 1000);
-				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]));
+				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]), null);
 			}
 		},
 		async startUpdate() {
+			// Don't show a reset confirmation while updating
+			this.confirmReset = false;
+
 			// Update expansion boards
 			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
 				const boardToUpdate = this.updates.firmwareBoards[i];
@@ -409,10 +451,6 @@ export default {
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
 			this.confirmReset = (modules.indexOf('0') === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
 		},
-		async reset() {
-			this.confirmReset = false;
-			await this.sendCode('M999');
-		},
 		dragOver(e) {
 			e.preventDefault();
 			e.stopPropagation();
@@ -434,7 +472,7 @@ export default {
 	},
 	watch: {
 		isConnected(to) {
-			if (to && !this.isLocal && this.updates.codeSent && this.updates.webInterface) {
+			if (to && this.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
 				// Reload the web interface when the connection could be established again
 				location.reload(true);
 			}

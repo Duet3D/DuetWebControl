@@ -1,9 +1,3 @@
-<style scoped>
-.tool-input {
-	min-width: 5rem;
-}
-</style>
-
 <template>
 	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :menu-props="{ maxHeight: '50%' }"
 				:value="inputValue" :search-input="inputValue" @update:search-input="change" @keyup.enter="apply" @blur="blur"
@@ -109,23 +103,13 @@ export default {
 				try {
 					if (this.spindle) {
 						// Set Spindle RPM
-						if (this.state.currentTool == this.tool.number) {
-							// Use M3/M4 for backwards-compatbility if this spindle is selected
-							if (this.inputValue >= 0) {
-								await this.sendCode(`M3 S${this.inputValue}`);
-							} else {
-								await this.sendCode(`M4 S${-this.inputValue}`);
-							}
-						} else {
-							// Fall back to M568 if this spindle isn't selected
-							await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
-						}
+						await this.sendCode(`M568 P${this.tool.number} F${this.inputValue}`);
 					} else if (this.inputValue >= -273.15 && this.inputValue <= 1999) {
 						if (this.tool) {
 							// Set tool temps
 							const currentTemps = this.tool[this.active ? 'active' : 'standby'];
 							const newTemps = currentTemps.map((temp, i) => (i === this.toolHeaterIndex) ? this.inputValue : temp, this).join(':');
-							await this.sendCode(`G10 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
+							await this.sendCode(`M568 P${this.tool.number} ${this.active ? 'S' : 'R'}${newTemps}`);
 						} else if (this.bed) {
 							// Set bed temp
 							await this.sendCode(`M140 P${this.bedIndex} ${this.active ? 'S' : 'R'}${this.inputValue}`);
@@ -139,7 +123,7 @@ export default {
 								this.tools.forEach(function(tool) {
 									if (tool && tool.heaters.length) {
 										const temps = tool.heaters.map(() => this.inputValue, this).join(':');
-										code += `G10 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
+										code += `M568 P${tool.number} ${this.active ? 'S' : 'R'}${temps}\n`;
 									}
 								}, this);
 							}

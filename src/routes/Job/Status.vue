@@ -6,11 +6,11 @@
 
 <template>
 	<div class="d-flex flex-column">
-		<job-progress class="mb-3"></job-progress>
+		<job-progress></job-progress>
 
-		<v-row>
+		<v-row class="mt-0" :dense="$vuetify.breakpoint.mobile">
 			<v-col order="1" order-md="1" cols="12" sm="6" md="3" xl="2">
-				<v-row align="center">
+				<v-row align="center" :dense="$vuetify.breakpoint.mobile">
 					<v-col cols="12">
 						<job-control-panel></job-control-panel>
 					</v-col>
@@ -52,7 +52,7 @@
 			</v-col>
 
 			<v-col order="2" order-md="3" cols="12" sm="6" md="4" xl="3">
-				<v-row>
+				<v-row :dense="$vuetify.breakpoint.mobile">
 					<v-col cols="12" class="hidden-md-and-up">
 						<job-estimations-panel></job-estimations-panel>
 					</v-col>

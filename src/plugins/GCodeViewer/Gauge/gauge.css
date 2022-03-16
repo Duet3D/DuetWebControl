@@ -1,0 +1,49 @@
+.text-dark {
+    fill : #fff;
+}
+.text-light {
+    fill : #000;
+}
+
+.text-stroke-dark {
+    stroke : #000;
+}
+.text-stroke-light {
+    stroke : #fff;
+}
+
+.gauge-off {
+    fill:black;
+}
+
+.gauge-active {
+    fill:#FF8C00;
+    animation: pulse 5s infinite;
+}
+
+.gauge-activeattemp {
+    fill: #FF8C00;
+    fill-opacity: 0.8;
+}
+
+.gauge-cooling {
+    fill: #008CFF;
+    animation: pulse 4s infinite;
+}
+
+.gauge-fault {
+    fill:#FF0000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        fill-opacity: 0;
+     }
+    50%{
+        fill-opacity:0.8;
+    }
+    100%{
+        fill-opacity:0;
+    }
+}

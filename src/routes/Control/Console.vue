@@ -1,5 +1,5 @@
 <template>
-	<v-row>
+	<v-row :dense="$vuetify.breakpoint.mobile">
 		<v-col cols="12" class="pt-1">
 			<code-input solo></code-input>
 		</v-col>

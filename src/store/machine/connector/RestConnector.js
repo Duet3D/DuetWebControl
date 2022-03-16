@@ -2,20 +2,37 @@
 'use strict'
 
 import BaseConnector from './BaseConnector.js'
-import { ParsedFileInfo } from '../modelItems.js'
+import { GCodeFileInfo } from '../modelItems.js'
 
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError,
 	LoginError, InvalidPasswordError
-} from '../../../utils/errors.js'
+} from '@/utils/errors'
 
-import { strToTime } from '../../../utils/time.js'
+import { strToTime } from '@/utils/time'
+import { closeNotifications } from "@/utils/notifications";
 
 export default class RestConnector extends BaseConnector {
 	static async connect(hostname, username, password) {
 		const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine`);
+
+		// Attempt to get a session key first
+		let sessionKey = null;
+		try {
+			const response = await BaseConnector.request('GET', `${location.protocol}//${hostname}${process.env.BASE_URL}machine/connect`, {
+				password
+			});
+			sessionKey = response.sessionKey;
+		} catch (e) {
+			if ((process.env.NODE_ENV !== 'development' || !(e instanceof NetworkError)) && !(e instanceof FileNotFoundError)) {
+				// Versions older than 3.4-b4 do not support passwords
+				throw e;
+			}
+		}
+
+		// Create a WebSocket connection to receive object model updates
+		const socket = new WebSocket(`${socketProtocol}//${hostname}${process.env.BASE_URL}machine${(sessionKey ? `?sessionKey=${sessionKey}` : '')}`);
 		const model = await new Promise(function(resolve, reject) {
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
@@ -23,37 +40,38 @@ export default class RestConnector extends BaseConnector {
 				resolve(model);
 			};
 			socket.onerror = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
+				if (e.code === 1001 || e.code === 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
 				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					// TODO accommodate InvalidPasswordError and NoFreeSessionError here
 					reject(new NetworkError(e.reason));
 				}
 				socket.close();
 			};
 			socket.onclose = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
+				if (e.code === 1001 || e.code === 1011) {
 					// DCS unavailable or incompatible DCS version
 					reject(new LoginError(e.reason));
 				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
+					// TODO accommodate InvalidPasswordError and NoFreeSessionError here
 					reject(new NetworkError(e.reason));
 				}
 			};
 		});
-		return new RestConnector(hostname, password, socket, model);
+		return new RestConnector(hostname, password, socket, model, sessionKey);
 	}
 
 	model = {}
-	fileTransfers = []
+	sessionKey = null
 
-	constructor(hostname, password, socket, model) {
+	constructor(hostname, password, socket, model, sessionKey) {
 		super('rest', hostname);
 		this.password = password;
 		this.requestBase = `${location.protocol}//${(hostname === location.host) ? hostname + process.env.BASE_URL : hostname + '/'}`;
 		this.socket = socket;
 		this.model = model;
+		this.sessionKey = sessionKey;
 	}
 
 	requests = []
@@ -75,6 +93,9 @@ export default class RestConnector extends BaseConnector {
 			xhr.setRequestHeader('Content-Type', 'application/json');
 		} else {
 			xhr.responseType = responseType;
+		}
+		if (this.sessionKey !== null) {
+			xhr.setRequestHeader('X-Session-Key', this.sessionKey);
 		}
 		if (onProgress) {
 			xhr.onprogress = function(e) {
@@ -108,7 +129,7 @@ export default class RestConnector extends BaseConnector {
 					} else {
 						resolve(xhr.response);
 					}
-				} else if (xhr.status === 401) {
+				} else if (xhr.status === 401 || xhr.status === 403) {
 					reject(new InvalidPasswordError());
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
@@ -142,13 +163,27 @@ export default class RestConnector extends BaseConnector {
 	async reconnect() {
 		// Cancel pending requests
 		this.cancelRequests();
+		this.sessionKey = null;
+
+		// Attempt to get a session key again
+		try {
+			const response = await this.request('GET', `machine/connect`, {
+				password: this.password
+			});
+			this.sessionKey = response.sessionKey;
+		} catch (e) {
+			if (!(e instanceof FileNotFoundError)) {
+				// Versions older than 3.4-b4 do not support passwords
+				throw e;
+			}
+		}
 
 		// Attempt to reconnect
 		const that = this;
 		await new Promise(function(resolve, reject) {
 			const lastDsfVersion = that.model.state.dsfVersion;
 			const socketProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine`);
+			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : '')}`);
 			socket.onmessage = function(e) {
 				// Successfully connected, the first message is the full object model
 				that.model = JSON.parse(e.data);
@@ -158,17 +193,31 @@ export default class RestConnector extends BaseConnector {
 				if (lastDsfVersion !== that.model.state.dsfVersion) {
 					location.reload(true);
 				}
+
+				// Dismiss pending notifications and resolve the connection attempt
+				closeNotifications(true);
 				resolve();
 			}
-			socket.onerror = socket.onclose = function(e) {
-				if (e.code === 1001 || e.code == 1011) {
-					// DCS unavailable or incompatible DCS version
-					reject(new LoginError(e.reason));
-				} else {
-					// TODO accomodate InvalidPasswordError and NoFreeSessionError here
-					reject(new NetworkError(e.reason));
-				}
-			}
+
+            socket.onerror = function(e) {
+                if (e.code === 1001 || e.code === 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accommodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+                socket.close();
+            };
+            socket.onclose = function(e) {
+                if (e.code === 1001 || e.code === 1011) {
+                    // DCS unavailable or incompatible DCS version
+                    reject(new LoginError(e.reason));
+                } else {
+                    // TODO accommodate InvalidPasswordError and NoFreeSessionError here
+                    reject(new NetworkError(e.reason));
+                }
+            };
 		});
 
 		// Apply new socket and machine model
@@ -189,7 +238,7 @@ export default class RestConnector extends BaseConnector {
 		this.socket.onerror = this.onClose.bind(this);
 		this.socket.onclose = this.onClose.bind(this);
 
-		// Update model and acknowledge receival
+		// Update model and acknowledge receipt
 		await this.dispatch('update', this.model);
 		this.socket.send('OK\n');
 	}
@@ -197,7 +246,7 @@ export default class RestConnector extends BaseConnector {
 	doPing() {
 		// Although the WebSocket standard is supposed to provide PING frames,
 		// there is no way to send them since a WebSocket instance does not provide a method for that.
-		// Hence we rely on our own optional PING-PONG implementation
+		// Hence, we rely on our own optional PING-PONG implementation
 		this.socket.send('PING\n');
 		this.pingTask = undefined;
 	}
@@ -222,9 +271,9 @@ export default class RestConnector extends BaseConnector {
 
 		// Process model updates
 		const data = JSON.parse(e.data);
-
-		// Update model and acknowledge receipt
 		await this.dispatch('update', data);
+
+		// Acknowledge receipt
 		if (this.settings.updateDelay > 0) {
 			setTimeout(() => this.socket.send('OK\n'), this.settings.updateDelay);
 		} else {
@@ -233,13 +282,14 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	onClose(e) {
-		this.cancelRequests();
 		if (this.pingTask) {
 			clearTimeout(this.pingTask);
 			this.pingTask = undefined;
 		}
 
 		if (this.socket) {
+			this.cancelRequests();
+
 			this.socket = null;
 			this.dispatch('onConnectionError', new NetworkError(e.reason));
 		}
@@ -255,6 +305,11 @@ export default class RestConnector extends BaseConnector {
 			this.socket.close();
 			this.socket = null;
 		}
+
+		if (this.sessionKey) {
+			await this.request('GET', 'machine/disconnect');
+			this.sessionKey = null;
+		}
 	}
 
 	unregister() {
@@ -262,10 +317,10 @@ export default class RestConnector extends BaseConnector {
 		super.unregister();
 	}
 
-	async sendCode(code) {
+	async sendCode({ code, noWait }) {
 		let reply;
 		try {
-			const response = await this.request('POST', 'machine/code', null, 'text', code);
+			const response = await this.request('POST', 'machine/code', noWait ? { async: true } : null, 'text', code);
 			reply = response.trim();
 		} catch (e) {
 			reply = 'Error: ' + e.message;
@@ -275,6 +330,7 @@ export default class RestConnector extends BaseConnector {
 
 	async upload({ filename, content, cancellationToken = null, onProgress }) {
 		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
+		// TODO add timestamp support
 		await this.request('PUT', 'machine/file/' + encodeURIComponent(filename), null, '', payload, onProgress, cancellationToken, filename);
 	}
 
@@ -326,9 +382,12 @@ export default class RestConnector extends BaseConnector {
 		}
 	}
 
-	async getFileInfo(filename) {
-		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), null, 'json', null, null, null, filename);
-		return new ParsedFileInfo(response);
+	async getFileInfo(payload) {
+		const filename = (payload instanceof Object) ? payload.filename : payload;
+		const readThumbnailContent  = (payload instanceof Object) ? !!payload.readThumbnailContent : false;
+
+		const response = await this.request('GET', 'machine/fileinfo/' + encodeURIComponent(filename), { readThumbnailContent }, 'json', null, null, null, filename);
+		return new GCodeFileInfo(response);
 	}
 
 	async installPlugin({ zipFilename, zipBlob, plugin, start }) {

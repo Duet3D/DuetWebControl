@@ -4,10 +4,16 @@ import Vue from 'vue'
 
 import { resetSettingsTimer } from '../observer.js'
 
-import { FileNotFoundError } from '../../utils/errors.js'
-import { setLocalSetting, getLocalSetting, removeLocalSetting } from '../../utils/localStorage.js'
-import patch from '../../utils/patch.js'
-import Path from '../../utils/path.js'
+import { FileNotFoundError } from '@/utils/errors.js'
+import { setLocalSetting, getLocalSetting, removeLocalSetting } from '@/utils/localStorage.js'
+import patch from '@/utils/patch.js'
+import Path from '@/utils/path.js'
+
+export const ToolChangeMacro = {
+	free: 'free',
+	pre: 'pre',
+	post: 'post'
+}
 
 export default function(connector, pluginSettingFields) {
 	return {
@@ -19,6 +25,7 @@ export default function(connector, pluginSettingFields) {
 			extendedUpdateEvery: 20,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 			crcUploads: true,
+			ignoreFileTimestamps: false,
 
 			// REST Connector
 			pingInterval: 2000,							// ms
@@ -27,7 +34,7 @@ export default function(connector, pluginSettingFields) {
 			// UI
 			babystepAmount: 0.05,						// mm
 			displayedExtraTemperatures: [],
-			displayedExtruders: [0, 1],
+			displayedExtruders: [0, 1, 2, 3, 4, 5],
 			displayedFans: [-1, 0, 1, 2],
 			moveSteps: {								// mm
 				X: [100, 50, 10, 1, 0.1],
@@ -36,8 +43,9 @@ export default function(connector, pluginSettingFields) {
 				default: [100, 50, 10, 1, 0.1]
 			},
 			moveFeedrate: 6000,							// mm/min
+			toolChangeMacros: [ToolChangeMacro.free, ToolChangeMacro.pre, ToolChangeMacro.post],
 			extruderAmounts: [100, 50, 20, 10, 5, 1],	// mm
-			extruderFeedrates: [60, 30, 15, 5, 1],		// mm/s
+			extruderFeedrates: [50, 10, 5, 2, 1],		// mm/s
 			temperatures: {
 				tool: {
 					active: [250, 235, 220, 205, 195, 160, 120, 100, 0],
@@ -58,7 +66,20 @@ export default function(connector, pluginSettingFields) {
 			moveSteps: state => function(axis) {
 				return (state.moveSteps[axis] !== undefined) ? state.moveSteps[axis] : state.moveSteps.default;
 			},
-			numMoveSteps: state => state.moveSteps.default.length
+			numMoveSteps: state => state.moveSteps.default.length,
+			toolChangeParameter(state) {
+				let pParam = 0;
+				if (state.toolChangeMacros.includes(ToolChangeMacro.free)) {
+					pParam |= 1;
+				}
+				if (state.toolChangeMacros.includes(ToolChangeMacro.pre)) {
+					pParam |= 2;
+				}
+				if (state.toolChangeMacros.includes(ToolChangeMacro.post)) {
+					pParam |= 4;
+				}
+				return (pParam === 7) ? '' : ` P${pParam}`;
+			}
 		},
 		actions: {
 			async save({ state, rootState, dispatch }) {

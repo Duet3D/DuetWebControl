@@ -3,6 +3,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 
+import Status from './Control/Status.vue'
 import Dashboard from './Control/Dashboard.vue'
 import Console from './Control/Console.vue'
 
@@ -11,11 +12,12 @@ import Jobs from './Files/Jobs.vue'
 import Macros from './Files/Macros.vue'
 import System from './Files/System.vue'
 
-import Status from './Job/Status.vue'
+import JobStatus from './Job/Status.vue'
 import Webcam from './Job/Webcam.vue'
 
 import General from './Settings/General.vue'
 import Machine from './Settings/Machine.vue'
+import Plugins from './Settings/Plugins.vue'
 
 import Page404 from './Page404.vue'
 
@@ -114,7 +116,7 @@ function registerRouteInternal(menu, component, route) {
 
 			if (routeObj.condition === undefined) {
 				routeObj.condition = true;
-			} else {
+			} else if (routeObj.condition instanceof Function) {
 				routeObj.condition = undefined;
 				Object.defineProperty(routeObj, 'condition', {
 					get: subRoute.condition
@@ -178,6 +180,7 @@ export function registerSettingTab(general, name, component, caption, translated
 }
 
 // Control
+Vue.use(Status)
 Vue.use(Dashboard)
 Vue.use(Console)
 
@@ -188,19 +191,20 @@ Vue.use(Macros)
 Vue.use(System)
 
 // Job
-Vue.use(Status)
+Vue.use(JobStatus)
 Vue.use(Webcam)
 
 // Settings
 Vue.use(General)
 Vue.use(Machine)
+Vue.use(Plugins)
 
 // 404 page
 router.addRoute(
-	{
-		path: '*',
-		component: Page404
-	}
+    {
+        path: '*',
+        component: Page404
+    }
 )
 
 export default router

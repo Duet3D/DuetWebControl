@@ -4,28 +4,42 @@ import Vue from 'vue'
 
 import { resetSettingsTimer } from './observer.js'
 
-import i18n from '../i18n'
+import i18n from '@/i18n'
 
-import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '../utils/localStorage.js'
-import patch from '../utils/patch.js'
-import Path from '../utils/path.js'
+import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from '@/utils/localStorage.js'
+import patch from '@/utils/patch.js'
+import Path from '@/utils/path.js'
+
+export const DashboardMode = {
+	default: 'Default',
+	fff: 'FFF',
+	cnc: 'CNC'
+}
 
 export default {
 	namespaced: true,
 	state: {
 		language: 'en',
 		lastHostname: location.host,
+
 		darkTheme: false,
 		useBinaryPrefix: true,
 		disableAutoComplete: false,
+        dashboardMode : DashboardMode.default,
+        bottomNavigation: true,
+        numericInputs: false,
+		iconMenu: false,
+
 		settingsStorageLocal: false,
-		settingsSaveDelay: 2000,						// ms - how long to wait before settings updates are saved
+		settingsSaveDelay: 500,							// ms - how long to wait before settings updates are saved
 		cacheStorageLocal: localStorageSupported,
-		cacheSaveDelay: 4000,							// ms - how long to wait before cache updates are saved
-		notifications: {
+		cacheSaveDelay: 1000,							// ms - how long to wait before cache updates are saved
+
+        notifications: {
 			errorsPersistent: true,
 			timeout: 5000								// ms
 		},
+
 		webcam: {
 			url: '',
 			updateInterval: 5000,						// ms
@@ -37,7 +51,7 @@ export default {
 		},
 
 		enabledPlugins: ['Height Map'],
-		plugins: {}										// Third-party values
+		plugins: {}									    // Third-party values
 	},
 	actions: {
 		async applyDefaults({ state, dispatch }) {
@@ -53,9 +67,9 @@ export default {
 				}
 			}
 		},
-		async load({ rootState, rootGetters, commit, dispatch }) {
-			// First attempt to load the last hostname from the local storage if the are running on localhost
-			if (rootState.isLocal) {
+		async load({ rootGetters, commit, dispatch }) {
+			// First attempt to load the last hostname from the local storage if running in dev mode
+			if (process.env.NODE_ENV !== 'production') {
 				const lastHostname = getLocalSetting('lastHostname');
 				if (lastHostname) {
 					commit('load', { lastHostname });
@@ -135,7 +149,9 @@ export default {
 		},
 
 		load(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
+			const updateSettingsTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 2000);
+			const updateCacheTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 4000);
+			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
 			if (payload.plugins) {
@@ -143,9 +159,15 @@ export default {
 				delete payload.plugins;
 			}
 			patch(state, payload, true);
+			if (updateSettingsTime) {
+				state.settingsSaveDelay = 500;
+			}
+			if (updateCacheTime) {
+				state.cacheSaveDelay = 1000;
+			}
 		},
 		update(state, payload) {
-			if (payload.language && i18n.locale != payload.language) {
+			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
 			if (payload.plugins) {

@@ -19,3 +19,4 @@ registerRoute(HeightMap, {
 // Register a new cached property
 registerPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', 'terrain');
 registerPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', false);
+registerPluginData('HeightMap', PluginDataType.machineCache, 'deviationColoring', 'fixed');

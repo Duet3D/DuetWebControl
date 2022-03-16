@@ -40,10 +40,10 @@ import Chart from 'chart.js'
 import dateFnsLocale from 'date-fns/locale/en-US'
 import { mapState, mapGetters } from 'vuex'
 
-import i18n from '../../i18n'
-import { defaultMachine } from '../../store/machine'
-import Events from '../../utils/events.js'
-import { getRealHeaterColor } from '../../utils/colors.js'
+import i18n from '@/i18n'
+import { defaultMachine } from '@/store/machine'
+import Events from '@/utils/events.js'
+import { getRealHeaterColor } from '@/utils/colors.js'
 
 const sampleInterval = 1000			// ms
 const defaultMaxTemperature = 300	// degC
@@ -136,8 +136,7 @@ export default {
 			this.chart.update();
 		},
 		applyDarkTheme(active) {
-			const legendColor = active ? '#FFF' : 'rgba(0,0,0,0.87)';
-			this.chart.config.options.legend.labels.fontColor = legendColor;
+			this.chart.config.options.legend.labels.fontColor = active ? '#FFF' : 'rgba(0,0,0,0.87)';
 
 			const ticksColor = active ? '#FFF' : '#666';
 			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksColor;

@@ -80,6 +80,12 @@ export class NoFreeSessionError extends LoginError {
 	}
 }
 
+export class BadVersionError extends LoginError {
+	constructor() {
+		super(i18n.t('error.badVersion'));
+	}
+}
+
 // Code Errors
 
 export class CodeError extends Error {}

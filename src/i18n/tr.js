@@ -399,6 +399,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Makine Kontrolü',
+            status: 'Durum',
 			dashboard: 'Gösterge Paneli',
 			console: 'Konsol',
 			heightmap: 'Yükseklik Haritası'
@@ -533,8 +534,7 @@ export default {
 			resumeSimulation: 'Simülasyonu Sürdür',
 			repeatJob: 'Tekrar başla',
 			repeatPrint: 'Tekrar Yazdır',
-			repeatSimulation: 'Tekrar Simüle Et',
-			autoSleep: 'Otomatik Uyku modunu etkinleştir'
+			repeatSimulation: 'Tekrar Simüle Et'
 		},
 		jobData: {
 			caption: 'Toplanan veri',

@@ -21,8 +21,20 @@ import {
 	SpindleState,
 	ToolState
 } from './modelEnums.js'
-import { PluginManifest } from '../../plugins/manifest.js'
-import { quickPatch } from '../../utils/patch.js'
+import { PluginManifest } from '@/plugins/manifest'
+import { quickPatch } from '@/utils/patch'
+
+export class Accelerometer {
+	constructor(initData) { quickPatch(this, initData); }
+	points = 0
+	runs = 0
+}
+
+export class ClosedLoop {
+	constructor(initData) { quickPatch(this, initData); }
+	points = 0
+	runs = 0
+}
 
 export class AnalogSensor {
 	constructor(initData) { quickPatch(this, initData); }
@@ -49,6 +61,8 @@ export class Axis {
 	}
 	min = 0
 	minProbed = false
+	percentCurrent = 100
+	percentStstCurrent = null
 	speed = 100
 	stepsPerMm = 80
 	userPosition = null
@@ -63,9 +77,18 @@ export class BeepRequest {
 }
 
 export class Board {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+        overloadProperty(this, 'accelerometer', value => new Accelerometer(value));
+		overloadProperty(this, 'closedLoop', value => new ClosedLoop(value));
+		overloadProperty(this, 'mcuTemp', value => new MinMaxCurrent(value));
+        overloadProperty(this, 'v12', value => new MinMaxCurrent(value));
+        overloadProperty(this, 'vIn', value => new MinMaxCurrent(value));
+        quickPatch(this, initData);
+    }
+	accelerometer = null
 	bootloaderFileName = null
 	canAddress = null
+	closedLoop = null
 	directDisplay = {
 		pulsesPerClick: 0,
 		spiFreq: 0,
@@ -79,29 +102,20 @@ export class Board {
 	iapFileNameSD = null		// *** requires SD support
 	maxHeaters = 0
 	maxMotors = 0
-	mcuTemp = {
-		current: -273.1,
-		min: -273.1,
-		max: -273.1
-	}
+    mcuTemp = null
 	name = ''
 	shortName = ''
 	state = BoardState.unknown
 	supportsDirectDisplay = false
-	v12 = {
-		current: 0,
-		min: 0,
-		max: 0
-	}
-	vIn = {
-		current: 0,
-		min: 0,
-		max: 0
-	}
+	v12 = null
+	vIn = null
 }
 
 export class Build {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+		overloadPushMethod(this.objects, value => new BuildObject(value));
+		quickPatch(this, initData);
+	}
 	currentObject = -1
 	m486Names = false
 	m486Numbers = false
@@ -140,6 +154,8 @@ export class Extruder {
 		b: 0,
 		upperLimit: 0.2
 	}
+	percentCurrent = 100
+	percentStstCurrent = null
 	position = 0
 	pressureAdvance = 0
 	rawPosition = 0			// *** deprecated as of v3.3, to be replaced with job.rawExtrusion
@@ -167,7 +183,6 @@ export class Fan {
 export class FilamentMonitor {
 	constructor(initData) { quickPatch(this, initData); }
 	enabled = false
-	filamentPresent = null
 	status = FilamentMonitorStatus.noDataReceived
 	type = FilamentMonitorType.unknown
 }
@@ -185,6 +200,7 @@ export class LaserFilamentMonitor extends FilamentMonitor {
 		totalDistance: 0
 	}
 	configured = {
+		allMoves: false,
 		percentMax: 160,
 		percentMin: 60,
 		sampleDistance: 3.0
@@ -224,6 +240,7 @@ export class RotatingMagnetFilamentMonitor extends FilamentMonitor {
 		totalDistance: 0
 	}
 	configured = {
+		allMoves: false,
 		mmPerRev: 28.8,
 		percentMax: 160,
 		percentMin: 60,
@@ -242,15 +259,21 @@ export class GpOutputPort {
 }
 
 export class Heater {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+        overloadPushMethod(this.monitors, value => new HeaterMonitor(value));
+        quickPatch(this, initData);
+    }
 	active = 0
 	current = -273.15
 	max = 285
 	min = -10
 	model = {
+        coolingExp: 1.35,
+        coolingRate: 0.56,
 		deadTime: 5.5,
 		enabled: false,
-		gain: 340,
+        fanCoolingRate: 0.56,
+        heatingRate: 2.43,
 		inverted: false,
 		maxPwm: 1,
 		pid: {
@@ -260,11 +283,9 @@ export class Heater {
 			p: 0.0,
 			used: true
 		},
-		standardVoltage: 0,
-		timeConstant: 140
+		standardVoltage: 0
 	}
 	monitors = []
-	name = null
 	sensor = -1
 	standby = 0
 	state = null
@@ -293,6 +314,7 @@ export class InputChannel {
 	feedRate = 50
 	inMacro = false
 	lineNumber = 0
+	macroRestartable = false
 	name = null
 	stackDepth = 0
 	state = InputChannelState.idle
@@ -300,8 +322,12 @@ export class InputChannel {
 }
 
 export class Kinematics {
-	constructor(initData) { quickPatch(this, initData); }
+    constructor(initData) {
+        overloadProperty(this, 'segmentation', value => new MoveSegmentation(value));
+        quickPatch(this, initData);
+    }
 	name = KinematicsName.unknown
+	segmentation = null
 }
 
 export class ZLeadscrewKinematics extends Kinematics {
@@ -331,7 +357,11 @@ export class CoreKinematics extends ZLeadscrewKinematics {
 }
 
 export class DeltaKinematics extends Kinematics {
-	constructor(initData) { super(initData); }
+	constructor(initData) {
+		super({});
+		overloadPushMethod(this.towers, value => new DeltaTower(value));
+		quickPatch(initData);
+	}
 	deltaRadius = 105.6
 	homedHeight = 240
 	printRadius = 80
@@ -400,10 +430,23 @@ export class MessageBox {
 	timeout = 0
 }
 
+export class MinMaxCurrent {
+    constructor(initData) { quickPatch(this, initData); }
+	current = 0
+	max = 0
+	min = 0
+}
+
 export class MoveQueueItem {
 	constructor(initData) { quickPatch(this, initData); }
 	gracePeriod = 0
 	length = 0
+}
+
+export class MoveSegmentation {
+    constructor(initData) { quickPatch(this, initData); }
+	segmentsPerSec = 0
+	minSegmentLength = 0
 }
 
 export class NetworkInterface {
@@ -427,17 +470,13 @@ export class NetworkInterface {
 	speed = null				// null if unknown and 0 if no link
 }
 
-export class ParsedFileInfo {
+export class GCodeFileInfo {
 	constructor(initData) {
+		overloadPushMethod(this.thumbnails, value => new ThumbnailInfo(value));
 		quickPatch(this, initData);
-		if (!this.numLayers && initData && initData.height && initData.firstLayerHeight && initData.layerHeight) {
-			// approximate the number of layers if it isn't given
-			this.numLayers = Math.round((initData.height - initData.firstLayerHeight) / initData.layerHeight) + 1
-		}
 	}
 	filament = []
 	fileName = null
-	firstLayerHeight = 0
 	generatedBy = null
 	height = 0
 	lastModified = null
@@ -449,11 +488,13 @@ export class ParsedFileInfo {
 	thumbnails = []
 }
 
-export class ParsedThumbnail {
+export class ThumbnailInfo {
 	constructor(initData) { quickPatch(this, initData); }
-	EncodedImage = null
-	Height = 0
-	Width = 0
+	data = null
+	height = 0
+	offset = 0
+	size = 0
+	width = 0
 }
 
 export class Plugin extends PluginManifest {
@@ -512,6 +553,7 @@ export class Tool {
 	axes = []					// may hold sub-arrays of drives per axis
 	extruders = []
 	fans = []
+	feedForward = []
 	filamentExtruder = -1
 	heaters = []
 	mix = []
@@ -541,12 +583,6 @@ export class UserSession {		// *** missing in RRF
 	sessionType = 'local'
 }
 
-export class UserVariable {		// *** missing in RRF but reserved
-	constructor(initData) { quickPatch(this, initData); }
-	name = ''
-	value = null
-}
-
 export class Volume {
 	constructor(initData) { quickPatch(this, initData); }
 	capacity = null				// in Bytes
@@ -558,161 +594,72 @@ export class Volume {
 	speed = null				// in Bytes/s
 }
 
-function fixObject(item, preset) {
-	let fixed = false;
-	if (item !== null) {
-		for (let key in preset) {
-			if (item[key] === undefined) {
-				Vue.set(item, key, preset[key]);
-				fixed = true;
-			} else if (!(item[key] instanceof Array) && item[key] instanceof Object) {
-				fixed |= fixObject(item[key], preset[key]);
-			}
-		}
-	}
-	return fixed;
+function overloadPushMethod(array, presetFn) {
+	const originalPushMethod = Object.getPrototypeOf(array).push;
+	array.push = function(item) {
+        originalPushMethod.call(array, (item !== null) ? Vue.observable(presetFn(item)) : null);
+	};
 }
 
-function fixItems(items, ClassType) {
-	let preset = new ClassType();
-	if (items !== null && items !== undefined) {
-		items.forEach(function(item) {
-			if (item !== null) {
-				for (let key in preset) {
-					if (item[key] === undefined) {
-						Vue.set(item, key, preset[key]);
-						if (preset[key] instanceof Object) {
-							preset = new ClassType();
-						}
-					} else if (preset[key] instanceof Object) {
-						if (fixObject(item[key], preset[key])) {
-							preset = new ClassType();
-						}
-					}
+export function overloadProperty(object, property, presetFn) {
+    const propertyDescriptor = Object.getOwnPropertyDescriptor(object, property);
+    let storedValue = Vue.observable((propertyDescriptor.get !== undefined) ? propertyDescriptor.get() : propertyDescriptor.value);
+    Object.defineProperty(object, property, {
+        enumerable: true,
+        get() { return storedValue; },
+        set(value) {
+            if (value !== storedValue) {
+                storedValue = (value !== null) ? presetFn(value) : null;
+            }
+        }
+    });
+}
+
+export function overloadModelPush(model) {
+	overloadPushMethod(model.boards, value => new Board(value));
+	overloadPushMethod(model.fans, value => new Fan(value));
+	overloadPushMethod(model.heat.heaters, value => new Heater(value));
+	overloadPushMethod(model.httpEndpoints, value => new HttpEndpoint(value));
+	overloadPushMethod(model.inputs, value => new InputChannel(value));
+	overloadPushMethod(model.job.layers, value => new Layer(value));
+	overloadPushMethod(model.move.axes, value => new Axis(value));
+	overloadPushMethod(model.move.extruders, value => new Extruder(value));
+	overloadPushMethod(model.move.queue, value => new MoveQueueItem(value));
+	overloadPushMethod(model.network.interfaces, value => new NetworkInterface(value));
+	overloadPushMethod(model.sensors.analog, value => new AnalogSensor(value));
+	overloadPushMethod(model.sensors.endstops, value => new Endstop(value));
+	// Filament monitors need special treatment due to variable item types
+	overloadPushMethod(model.sensors.gpIn, value => new GpInputPort(value));
+	overloadPushMethod(model.sensors.probes, value => new Probe(value));
+	overloadPushMethod(model.spindles, value => new Spindle(value));
+	overloadPushMethod(model.state.gpOut, value => new GpOutputPort(value));
+	overloadPushMethod(model.state.restorePoints, value => new RestorePoint(value));
+	overloadPushMethod(model.tools, value => new Tool(value));
+	overloadPushMethod(model.userSessions, value => new UserSession(value));
+	overloadPushMethod(model.volumes, value => new Volume(value));
+}
+
+export function fixObjectModel(state, mergeData) {
+	if (mergeData.sensors && mergeData.sensors.filamentMonitors) {
+		// Recreate the filament monitor instances if their type has been changed
+		mergeData.sensors.filamentMonitors.forEach(function(filamentMonitor, index) {
+			const existingFilamentMonitor = state.sensors.filamentMonitors[index];
+			if (filamentMonitor !== null && filamentMonitor.type && (existingFilamentMonitor === null || existingFilamentMonitor.type !== filamentMonitor.type)) {
+				switch (filamentMonitor.type) {
+					case FilamentMonitorType.laser:
+                        Vue.set(state.sensors.filamentMonitors, index, new LaserFilamentMonitor(filamentMonitor));
+						break;
+					case FilamentMonitorType.pulsed:
+                        Vue.set(state.sensors.filamentMonitors, index, new PulsedFilamentMonitor(filamentMonitor));
+						break;
+					case FilamentMonitorType.rotatingMagnet:
+                        Vue.set(state.sensors.filamentMonitors, index, new RotatingMagnetFilamentMonitor(filamentMonitor));
+						break;
+					default:
+                        Vue.set(state.sensors.filamentMonitors, index, new FilamentMonitor(filamentMonitor));
+						break;
 				}
 			}
 		});
-	}
-}
-
-// TODO: Eventually this could be combined with the 'merge' function
-// But getting everything the way it's supposed to work took longer than expected anyway...
-export function fixMachineItems(state, mergeData) {
-	if (mergeData.boards) {
-		fixItems(state.boards, Board)
-	}
-
-	if (mergeData.fans) {
-		fixItems(state.fans, Fan)
-	}
-
-	if (mergeData.heat && mergeData.heat.heaters) {
-		fixItems(state.heat.heaters, Heater);
-	}
-
-	if (mergeData.httpEndpoints) {
-		fixItems(state.httpEndpoints, HttpEndpoint);
-	}
-
-	if (mergeData.inputs) {
-		fixItems(state.inputs, InputChannel);
-	}
-
-	if (mergeData.job && mergeData.job.build) {
-		fixObject(state.job.build, new Build());
-		if (mergeData.job.build && mergeData.job.build.objects) {
-			fixItems(state.job.build.objects, BuildObject);
-		}
-		if (mergeData.job.file && mergeData.job.file.thumbnails) {
-			fixItems(state.job.file.thumbnails, ParsedThumbnail);
-		}
-	}
-
-	// Layers are not verified for performance reasons
-
-	if (mergeData.move) {
-		if (mergeData.move.axes) {
-			fixItems(state.move.axes, Axis);
-		}
-		if (mergeData.move.compensation && mergeData.move.compensation.meshDeviation) {
-			fixObject(state.move.compensation.meshDeviation, new MeshDeviation());
-		}
-		if (mergeData.move.extruders) {
-			fixItems(state.move.extruders, Extruder);
-		}
-		if (mergeData.move.kinematics && mergeData.move.kinematics.towers) {
-			fixItems(state.move.kinematics.towers, DeltaTower);
-		}
-		if (mergeData.move.queue) {
-			fixItems(state.move.queue, MoveQueueItem);
-		}
-	}
-
-	if (mergeData.network && mergeData.network.interfaces) {
-		fixItems(state.network.interfaces, NetworkInterface);
-	}
-
-	if (mergeData.sensors) {
-		if (mergeData.sensors.analog) {
-			fixItems(state.sensors.analog, AnalogSensor);
-		}
-		if (mergeData.sensors.endstops) {
-			fixItems(state.sensors.endstops, Endstop);
-		}
-		if (mergeData.sensors.filamentMonitors) {
-			state.sensors.filamentMonitors.forEach(function(filamentSensor) {
-				if (filamentSensor) {
-					switch (filamentSensor.type) {
-						case FilamentMonitorType.laser:
-							fixObject(filamentSensor, new LaserFilamentMonitor());
-							break;
-						case FilamentMonitorType.pulsed:
-							fixObject(filamentSensor, new PulsedFilamentMonitor());
-							break;
-						case FilamentMonitorType.rotatingMagnet:
-							fixObject(filamentSensor, new RotatingMagnetFilamentMonitor());
-							break;
-						default:
-							fixObject(filamentSensor, new FilamentMonitor());
-							break;
-					}
-				}
-			});
-		}
-		if (mergeData.sensors.gpIn) {
-			fixItems(state.sensors.gpIn, GpInputPort);
-		}
-		if (mergeData.sensors.probes) {
-			fixItems(state.sensors.probes, Probe);
-		}
-	}
-
-	if (mergeData.spindles) {
-		fixItems(state.spindles, Spindle);
-	}
-
-	if (mergeData.state) {
-		if (mergeData.state.gpOut) {
-			fixItems(state.state.gpOut, GpOutputPort);
-		}
-		if (mergeData.state.restorePoints) {
-			fixItems(state.state.restorePoints, RestorePoint);
-		}
-	}
-
-	if (mergeData.tools) {
-		fixItems(state.tools, Tool);
-	}
-
-	if (mergeData.userSessions) {
-		fixItems(state.userSessions, UserSession);
-	}
-
-	if (mergeData.userVariables) {
-		fixItems(state.userVariables, UserVariable);
-	}
-
-	if (mergeData.volumes) {
-		fixItems(state.volumes, Volume);
 	}
 }

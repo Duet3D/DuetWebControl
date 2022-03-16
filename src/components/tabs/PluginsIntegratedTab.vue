@@ -60,17 +60,9 @@ button {
 import { mapState, mapActions } from 'vuex'
 
 import Plugins from '../../plugins'
-import { registerSettingTab } from '../../routes'
-import { makeNotification } from '../../utils/toast.js'
+import { makeNotification } from '../../utils/notifications.js'
 
 export default {
-	install() {
-		if (Plugins.length > 0) {
-			// Register a settings tab on the General settings page
-			registerSettingTab(true, 'settings-general-plugins-tab', this, 'tabs.plugins.generalCaption');
-		}
-	},
-
 	computed: {
 		...mapState(['loadedDwcPlugins']),
 		...mapState('settings', ['enabledPlugins']),

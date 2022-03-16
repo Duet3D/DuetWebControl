@@ -1,7 +1,7 @@
 'use strict'
 
 import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
+import Vuetify from 'vuetify/lib/framework'
 import '@mdi/font/css/materialdesignicons.css'
 import './components'
 

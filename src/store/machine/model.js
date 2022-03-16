@@ -3,35 +3,46 @@
 import Vue from 'vue'
 
 import {
-	InputChannelName,
-	LogLevel,
-	MachineMode,
-	MoveShapingType,
-	KinematicsName,
-	StatusType,
-	isPrinting
+    CompensationType,
+    InputChannelName,
+    LogLevel,
+    MachineMode,
+    InputShapingType,
+    KinematicsName,
+    StatusType,
+    isPrinting
 } from './modelEnums.js'
 import {
 	Axis,
+	BeepRequest,
 	Board,
 	Extruder,
 	Fan,
 	Heater,
 	InputChannel,
 	Kinematics, CoreKinematics, DeltaKinematics, HangprinterKinematics, ScaraKinematics,
-	ParsedFileInfo,
+	MeshDeviation,
+	GCodeFileInfo,
 	Probe,
 	Tool,
-	fixMachineItems
+	fixObjectModel,
+	overloadModelPush,
+	overloadProperty, Build
 } from './modelItems.js'
 
-import Path from '../../utils/path.js'
-import { patch, quickPatch } from '../../utils/patch.js'
+import Path from '@/utils/path.js'
+import { patch, quickPatch } from '@/utils/patch'
 
 // Internal object model as provided by RepRapFirmware and DSF
 // This must be kept in sync for things to work properly...
+// TODO Replace this with new TypeScript module
 export class MachineModel {
-	constructor(initData) { quickPatch(this, initData); }
+	constructor(initData) {
+		overloadProperty(this.job, 'build', value => new Build(value));
+		overloadProperty(this.move.compensation, 'meshDeviation', value => new MeshDeviation(value));
+        overloadProperty(this.state, 'beep', value => new BeepRequest(value));
+        quickPatch(this, initData);
+    }
 
 	boards = []
 	directories = {
@@ -61,7 +72,7 @@ export class MachineModel {
 		new InputChannel({ name: InputChannelName.usb }),
 		new InputChannel({ name: InputChannelName.aux }),
 		new InputChannel({ name: InputChannelName.trigger }),
-		new InputChannel({ name: InputChannelName.codeQueue }),
+		new InputChannel({ name: InputChannelName.queue }),
 		new InputChannel({ name: InputChannelName.lcd }),
 		new InputChannel({ name: InputChannelName.sbc }),
 		new InputChannel({ name: InputChannelName.daemon }),
@@ -70,7 +81,7 @@ export class MachineModel {
 	job = {
 		build: null,
 		duration: null,
-		file: new ParsedFileInfo(),
+		file: new GCodeFileInfo(),
 		filePosition: null,
 		lastDuration: null,
 		lastFileName: null,
@@ -134,7 +145,8 @@ export class MachineModel {
 		compensation: {
 			fadeHeight: null,
 			file: null,
-			meshDeviation: null,
+			liveGrid: null,
+            meshDeviation: null,
 			probeGrid: {
 				axes: ['X', 'Y'],
 				maxs: [-1, -1],
@@ -148,7 +160,7 @@ export class MachineModel {
 				tanXZ: 0,
 				tanYZ: 0
 			},
-			type: 'none'			// *** no enum yet because RRF <= 2 supports 'n Point' compensation
+			type: CompensationType.none
 		},
 		currentMove: {
 			acceleration: 0,
@@ -163,13 +175,21 @@ export class MachineModel {
 			timeout: 30.0
 		},
 		kinematics: new Kinematics(),
-		queue: [],
+        limitAxes: true,
+        noMovesBeforeHoming: true,
 		printingAcceleration: 10000,
+		queue: [],
+		rotation: {
+			angle: 0,
+			centre: [0, 0]
+		},
 		shaping: {
+			amplitudes: [],
 			damping: 0.2,
-			frequency:40,
-			minimumAcceleration:10,
-			type: MoveShapingType.none
+			durations: [],
+			frequency: 40,
+			minAcceleration: 10,
+			type: InputShapingType.none
 		},
 		speedFactor: 1.0,
 		travelAcceleration: 10000,
@@ -197,8 +217,10 @@ export class MachineModel {
 	spindles = []
 	state = {
 		atxPower: null,
-		beep: null,
+		atxPowerPort: null,
+        beep: null,
 		currentTool: -1,
+        deferredPowerDown: null,
 		displayMessage: '',
 		dsfVersion: null,						// *** missing in RRF
 		dsfPluginSupport: true,					// *** missing in RRF
@@ -207,8 +229,9 @@ export class MachineModel {
 		laserPwm: null,
 		logFile: null,
 		logLevel: LogLevel.off,
-		messageBox: null,
 		machineMode: MachineMode.fff,
+		macroRestarted: false,
+		messageBox: null,
 		msUpTime: 0,
 		nextTool: -1,
 		pluginsStarted: false,					// *** missing in RRF
@@ -216,6 +239,7 @@ export class MachineModel {
 		previousTool: -1,
 		restorePoints: [],
 		status: null,
+        thisInput: null,
 		time: null,
 		upTime: -1
 	}
@@ -307,13 +331,15 @@ export const DefaultMachineModel = new MachineModel({
 export class MachineModelModule {
 	constructor(connector) {
 		if (connector) {
-			this.state = new MachineModel({
+			this.state = Vue.observable(new MachineModel({
 				network: {
 					hostname: connector.hostname,
 					name: `(${connector.hostname})`
 				}
-			});
+			}));
+			overloadModelPush(this.state);
 		} else {
+			// Default machine model is static, no need to deal with list changes
 			this.state = DefaultMachineModel;
 		}
 	}
@@ -340,8 +366,7 @@ export class MachineModelModule {
 		jobProgress(state, getters) {
 			if (isPrinting(state.state.status)) {
 				if (state.state.status !== StatusType.simulating) {
-					let totalRawExtruded = state.move.extruders
-						.map(extruder => extruder && extruder.rawPosition);
+					let totalRawExtruded = state.move.extruders.map(extruder => extruder && extruder.rawPosition);
 					totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
 					if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
 						return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
@@ -421,7 +446,7 @@ export class MachineModelModule {
 
 			// Apply new data
 			patch(state, payload, true);
-			fixMachineItems(state, payload);
+			fixObjectModel(state, payload);
 		},
 
 		addPlugin(state, plugin) {

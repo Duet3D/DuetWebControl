@@ -26,6 +26,7 @@ export default {
 			type: String,
 			required: true
 		},
+		disabled: Boolean,
 		log: {
 			type: Boolean,
 			default: true
@@ -38,14 +39,28 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		async click() {
-			if (!this.waitingForCode) {
-				this.waitingForCode = !this.noWait;
-				try {
-					await this.sendCode({ code: this.code, log: this.log, showSuccess: !this.noWait });
-				} catch (e) {
-					// handled before we get here
+			try {
+				if (this.noWait) {
+					// Run the requested code but don't wait for a result
+					await this.sendCode({
+						code: this.code,
+						log: this.log,
+						noWait: true
+					});
+				} else {
+					// Wait for the code to complete and block while doing so
+					this.waitingForCode = true;
+					try {
+						await this.sendCode({
+							code: this.code,
+							log: this.log
+						});
+					} finally {
+						this.waitingForCode = false;
+					}
 				}
-				this.waitingForCode = false;
+			} catch (e) {
+				// handled before we get here
 			}
 		}
 	}

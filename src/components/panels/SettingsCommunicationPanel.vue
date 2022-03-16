@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-row>
+			<v-row :dense="$vuetify.breakpoint.mobile">
 				<template v-if="connectorType === 'rest'">
 					<v-col cols="6">
 						<v-text-field v-model.number="pingInterval" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.pingInterval', ['ms'])" hide-details></v-text-field>
@@ -28,7 +28,10 @@
 						<v-text-field v-model.number="fileTransferRetryThreshold" type="number" step="1" min="1" :label="$t('panel.settingsCommunication.fileTransferRetryThreshold', ['KiB'])" hide-details></v-text-field>
 					</v-col>
 					<v-col cols="12">
-						<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" hide-details></v-switch>
+						<v-switch v-model="crcUploads" :label="$t('panel.settingsCommunication.crcUploads')" hide-details class="mt-0"></v-switch>
+					</v-col>
+					<v-col cols="12">
+						<v-switch v-model="ignoreFileTimestamps" :label="$t('panel.settingsGeneral.ignoreFileTimestamps')" class="mt-0" hide-details></v-switch>
 					</v-col>
 				</template>
 				<v-col v-else>
@@ -50,6 +53,10 @@ export default {
 		...mapGetters('machine', ['connector']),
 		connectorType() {
 			return this.connector ? this.connector.type : null;
+		},
+		ignoreFileTimestamps: {
+			get() { return this.settings.ignoreFileTimestamps; },
+			set(value) { this.update({ ignoreFileTimestamps: value }); }
 		},
 		pingInterval: {
 			get() { return this.settings.pingInterval; },

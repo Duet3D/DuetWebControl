@@ -9,8 +9,7 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
 						:search-input.sync="code" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						@click="click" :items="displayedCodes" hide-selected :menu-props="{ maxHeight: '50%' }" @keyup.down="showItems = true"
-						append-icon="">
+						@click="click" :items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon="">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -142,9 +141,9 @@ export default {
 				this.doingCode = true;
 				try {
 					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!inQuotes && !reply.startsWith('Error: ') && !reply.startsWith('Warning: ') &&
-						bareCode.indexOf('M587') === -1 && bareCode.indexOf('M589') === -1 &&
-						!this.disableAutoComplete && this.lastSentCodes.indexOf(codeToSend.trim()) === -1) {
+					if (!inQuotes && !this.disableAutoComplete &&
+						!reply.startsWith('Error: ') && !reply.startsWith('Warning: ') &&
+						bareCode.indexOf('M587') === -1 && bareCode.indexOf('M589') === -1) {
 						// Automatically remember successful codes
 						this.addLastSentCode(codeToSend.trim());
 					}

@@ -7,23 +7,27 @@ import en from './en.js'
 import de from './de.js'
 import es from './es.js'
 import fr from './fr.js'
+import pl from './pl.js'
 import pt_br from './pt_br.js'
 import ru from './ru.js'
 import tr from './tr.js'
 import zh_cn from './zh_cn.js'
+import ja from './ja.js'
 
 Vue.use(VueI18n)
 
-const messages = {
+const messages = Vue.observable({
 	en,
 	de,
 	es,
 	fr,
+	pl,
 	pt_br,
 	ru,
 	tr,
-	zh_cn
-}
+	zh_cn,
+	ja
+})
 
 /* eslint-disable */
 if (process.env.NODE_ENV !== 'production') {
@@ -67,6 +71,17 @@ if (process.env.NODE_ENV !== 'production') {
 //	}
 }
 /* eslint-enable */
+
+// Register custom localization data namespaced via plugins.{plugin} = {data}
+export function registerPluginLocalization(plugin, language, data) {
+	if (messages[language] === undefined) {
+		throw new Error('Unsupported language');
+	}
+	if (messages[language].plugins[plugin] !== undefined) {
+		throw new Error('Plugin i18n for the given plugin already exists');
+	}
+	Vue.set(messages[language].plugins, plugin, data);
+}
 
 export default new VueI18n({
 	locale: 'en',

@@ -53,10 +53,10 @@
 
 				<v-spacer></v-spacer>
 
-				<v-btn v-if="isGCode" dark text href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
+				<v-btn v-if="isGCode" class="hidden-xs-only" dark text href="https://duet3d.dozuki.com/Wiki/Gcode" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.gcodeReference') }}
 				</v-btn>
-				<v-btn v-if="isMenu" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
+				<v-btn v-if="isMenu" class="hidden-xs-only" dark text href="https://duet3d.dozuki.com/Wiki/Duet_2_Maestro_12864_display_menu_system" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.menuReference') }}
 				</v-btn>
 				<v-btn dark text @click="save">
@@ -81,7 +81,12 @@
 'use strict'
 
 import { codemirror } from 'vue-codemirror'
+import 'codemirror/addon/dialog/dialog.js'
+import 'codemirror/addon/dialog/dialog.css'
 import 'codemirror/addon/selection/active-line.js'
+import 'codemirror/addon/search/search.js'
+import 'codemirror/addon/search/searchcursor.js'
+import 'codemirror/addon/search/jump-to-line.js'
 import 'codemirror/lib/codemirror.css'
 import 'codemirror/theme/blackboard.css'
 
@@ -119,6 +124,7 @@ export default {
 				mode: 'application/x-gcode',
 				theme: this.darkTheme ? 'blackboard' : 'default',
 				indentWithTabs: true,
+				inputStyle: 'textarea',
 				lineNumbers: true,
 				styleActiveLine: true
 			}
@@ -132,11 +138,6 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
-		},
-		isTouchDevice() {
-			return ('ontouchstart' in window) ||
-				(navigator.maxTouchPoints > 0) ||
-				(navigator.msMaxTouchPoints > 0); 
 		}
 	},
 	data() {
@@ -177,16 +178,35 @@ export default {
 		},
 		onTextareaTab(e) {
 			const originalSelectionStart = e.target.selectionStart;
+			let spacesInserted = 1;
 			const textStart = e.target.value.slice(0, originalSelectionStart), textEnd = e.target.value.slice(originalSelectionStart);
-			this.innerValue = `${textStart}\t${textEnd}`;
+			if (textStart.endsWith(' ')) {
+				let numSpaces = 0;
+				for (let i = textStart.length - 1; i >= 0; i--) {
+					if (textStart[i] === ' ') {
+						numSpaces++;
+					} else {
+						break;
+					}
+				}
+
+				spacesInserted = 4 - numSpaces % 4;
+				let spaces = '';
+				for (let i = 0; i < spacesInserted; i++) {
+					spaces += ' ';
+				}
+				this.innerValue = textStart + spaces + textEnd;
+			} else {
+				this.innerValue = textStart + '\t' + textEnd;
+			}
 			e.target.value = this.innerValue;
-			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + 1;
+			e.target.selectionEnd = e.target.selectionStart = originalSelectionStart + spacesInserted;
 		}
 	},
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isTouchDevice;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 
@@ -196,7 +216,7 @@ export default {
 					if (this.$refs.cmEditor) {
 						this.$refs.cmEditor.cminstance.scrollTo(0, 0)
 						this.$refs.cmEditor.cminstance.focus();
-					} else {
+					} else if (this.$refs.textarea) {
 						this.$refs.textarea.scrollTo(0, 0);
 						this.$refs.textarea.focus();
 					}
@@ -211,7 +231,7 @@ export default {
 				// Remove focus again to close the OSK
 				if (this.$refs.cmEditor) {
 					this.$refs.cmEditor.cminstance.getTextArea().blur();
-				} else {
+				} else if (this.$refs.textarea) {
 					this.$refs.textarea.blur();
 				}
 			}

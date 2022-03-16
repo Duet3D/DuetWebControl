@@ -36,7 +36,6 @@ export const Compatibility = {
 	nanoDlp: 'NanoDLP'
 }
 
-// This is currently unused because RRF <= 2 supports 'n Point' compensation
 export const CompensationType = {
 	none: 'none',
 	mesh: 'mesh'
@@ -153,6 +152,16 @@ export const LogLevel = {
 	off: 'off'
 }
 
+export const InputShapingType = {
+	none: 'none',
+	MZV: 'mzv',
+	ZVD: 'zvd',
+	ZVDD: 'zvdd',
+	ZVDDD: 'zvddd',
+	EI2: 'ei2',
+	EI3: 'ei3'
+}
+
 export const MachineMode = {
 	fff: 'FFF',
 	cnc: 'CNC',
@@ -170,14 +179,6 @@ export const MessageType = {
 	success: 0,
 	warning: 1,
 	error: 2
-}
-
-export const MoveShapingType = {
-	none: 'none',
-	ZVD: 'ZVD',
-	ZVDD: 'ZVDD',
-	EI2: 'EI2',
-	DAA: 'DAA'
 }
 
 export const NetworkInterfaceType = {
@@ -200,6 +201,7 @@ export const ProbeType = {
 }
 
 export const StatusType = {
+    disconnected: 'disconnected',
 	starting: 'starting',
 	updating: 'updating',
 	off: 'off',
@@ -219,6 +221,12 @@ export const SpindleState = {
 	stopped: 'stopped',
 	forward: 'forward',
 	reverse: 'reverse'
+}
+
+export const ThumbnailFormat = {
+	jpeg: 'jpeg',
+	qoi: 'qoi',
+	png: 'png'
 }
 
 export const ToolState = {

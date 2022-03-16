@@ -3,12 +3,14 @@
 import Vue from 'vue'
 
 import SettingsGeneralTab from './SettingsGeneralTab.vue'
-import SettingsGeneralPluginsTab from './SettingsGeneralPluginsTab.vue'
 import SettingsMachineTab from './SettingsMachineTab.vue'
-import SettingsMachinePluginsTab from './SettingsMachinePluginsTab.vue'
+
+import PluginsExternalTab from './PluginsExternalTab.vue'
+import PluginsIntegratedTab from './PluginsIntegratedTab.vue'
 
 Vue.use(SettingsGeneralTab)
-Vue.use(SettingsGeneralPluginsTab)
 Vue.use(SettingsMachineTab)
-Vue.use(SettingsMachinePluginsTab)
+
+Vue.component('plugins-external-tab', PluginsExternalTab);
+Vue.component('plugins-integrated-tab', PluginsIntegratedTab);
 

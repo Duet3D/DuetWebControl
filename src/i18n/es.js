@@ -401,6 +401,7 @@ export default {
 	menu: {
 		control: {
 			caption: 'Control de maquina',
+            status: 'Stado',
 			dashboard: 'Cuadro de Mando',
 			console: 'Consola',
 			heightmap: 'Mapa de Altura'
@@ -535,8 +536,7 @@ export default {
 			resumeSimulation: 'Reanudar Simulación',
 			repeatJob: 'Iniciar de nuevo',
 			repeatPrint: 'Imprimir de nuevo',
-			repeatSimulation: 'Simular de nuevo',
-			autoSleep: 'Habilitar suspensión automática'
+			repeatSimulation: 'Simular de nuevo'
 		},
 		jobData: {
 			caption: 'Informacion (histórico)',

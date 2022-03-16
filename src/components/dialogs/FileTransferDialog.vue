@@ -41,7 +41,7 @@ td {
 							</td>
 							<td class="py-1" width="35%">
 								<v-progress-linear v-show="file.startTime !== null || file.progress > 0" :color="getProgressColor(file)" height="1.25em"
-									:value="file.progress * 100" :indeterminate="!file.speed" rounded striped>
+									:value="file.progress * 100" :indeterminate="file.progress < 1 && !file.speed" rounded striped>
 									<template #default="{ value }">
 										<span class="white--text">{{ value.toFixed(0) }} %</span>
 									</template>
@@ -237,7 +237,7 @@ export default {
 			} else if (this.$refs.fileTable) {
 				if (this.$refs.fileTable.rows.length > num + 1) {
 					this.$refs.fileTable.rows[num + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-				} else {
+				} else if (this.$refs.fileTable.rows.length > 0) {
 					this.$refs.fileTable.rows[this.$refs.fileTable.rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
 				}
 			}
