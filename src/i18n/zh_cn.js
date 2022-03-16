@@ -100,7 +100,7 @@ export default {
 			},
 			firmware: {
 				caption: '上传固件文件',
-				title: '上传和开始一个或多个固件文件（支持拖放）'	 
+				title: '上传和开始一个或多个固件文件（支持拖放）'
 			},
 			macros: {
 				caption: '上传宏文件',
@@ -125,13 +125,13 @@ export default {
 			plugin: {
 				caption: '安装插件',
 				title: '上传冰启动插件（支持拖放）'
-            },
+			},
 			update: {
 				caption: '上传更新',
 				title: '上传更新包（支持拖放）'
 			}
 		}
- 	},  
+	},
 	chart: {
 		layer: {
 			caption: '层图表',
@@ -144,7 +144,7 @@ export default {
 			layerDuration: '持续时间：{0}',
 			layerHeight: '层高度：{0}',
 			filamentUsage: '细丝用量：{0}',
-			fractionPrinted: '文件进度：{0}'
+			fractionPrinted: '文件进度：{0}',
 			temperatures: '温度：{0}'
 		},
 		temperature: {
@@ -274,34 +274,35 @@ export default {
 			finish: '结束',
 			reloadPrompt: {
 				title: '重新载入DWC界面?',
-				prompt: '您刚刚更新了一个已启动的DWC插件。为了使用新版本，必须重新加载Web界面。你现在想这样做吗？'			
+				prompt: '您刚刚更新了一个已启动的DWC插件。为了使用新版本，必须重新加载Web界面。你现在想这样做吗？'
+			},
+			renameFile: {
+				title: '重命名文件或者目录',
+				prompt: '请输入一个新的名称：'
+			},
+			resetHeaterFault: {
+				title: '重置加热器故障',
+				prompt: '加热器{0}发生故障。强烈建议你立即关闭机器，在继续使用之前请检查接线。 如果确认这不是硬件问题，你可以重置加热器故障，【自担风险】！请注意这是【不推荐】的，可能会导致进一步的问题。 你想如何处理？',
+				resetFault: '重置故障'
+			},
+			runMacro: {
+				title: '运行{0}',
+				prompt: '你想要运行宏{0}吗？'
+			},
+			startJob: {
+				title: '开始{0}',
+				prompt: '你想要开始任务{0}吗？'
+			},
+			update: {
+				title: '安装更新？',
+				prompt: '你已上传至少一个固件更新。你想现在安装吗？',
+				resetTitle: '要重置固件吗？',
+				resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？',
+				sbcWarning: '你正在单板机（SBC）模式下操作机器，请仅在固件开发人员建议的情况下使用 DWC 升级固件。'//3.4-dev新增
+			},
+			inputRequired: '请输入一个值',
+			numberRequired: '请输入有效的数值'
 		},
-		renameFile: {
-			title: '重命名文件或者目录',
-			prompt: '请输入一个新的名称：'
-		},
-		resetHeaterFault: {
-			title: '重置加热器故障',
-			prompt: '加热器{0}发生故障。强烈建议你立即关闭机器，在继续使用之前请检查接线。 如果确认这不是硬件问题，你可以重置加热器故障，【自担风险】！请注意这是【不推荐】的，可能会导致进一步的问题。 你想如何处理？',
-			resetFault: '重置故障'
-		},
-		runMacro: {
-			title: '运行{0}',
-			prompt: '你想要运行宏{0}吗？'
-		},
-		startJob: {
-			title: '开始{0}',
-			prompt: '你想要开始任务{0}吗？'
-		},
-		update: {
-			title: '安装更新？',
-			prompt: '你已上传至少一个固件更新。你想现在安装吗？',
-			resetTitle: '要重置固件吗？',
-			resetPrompt: '你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？',
-			sbcWarning: '你正在单板机（SBC）模式下操作机器，请仅在固件开发人员建议的情况下使用 DWC 升级固件。'//3.4-dev新增
-        },
-		inputRequired: '请输入一个值',
-		numberRequired: '请输入有效的数值'
 	},
 	directory: {
 		menu: '菜单目录 /menu',
@@ -402,8 +403,8 @@ export default {
 			placeholder: '发送代码……'
 		},
 		addTemperature: '新的温度值',
-		addRPM: '新的转速值'
-        set: '设置'	//3.4待修正
+		addRPM: '新的转速值',
+		set: '设置'	//3.4待修正
 	},
 	jobProgress: {
 		simulating: '正在模拟{0}，已完成{1}',
@@ -475,7 +476,7 @@ export default {
 	menu: {
 		control: {
 			caption: '机器控制',
-            status: '状态',
+			status: '状态',
 			dashboard: '仪表板',
 			console: '控制台'
 		},
@@ -621,7 +622,7 @@ export default {
 			resumeSimulation: '恢复模拟',
 			repeatJob: '重新开始',
 			repeatPrint: '重新打印',
-			repeatSimulation: '重新模拟'
+			repeatSimulation: '重新模拟',
 			showPreview: '显示预览'
 		},
 		jobData: {
@@ -652,10 +653,10 @@ export default {
 			runBed: '真正的床铺平整(G32)',
 			runDelta: 'Delta校准(G32)',
 			compensationInUse: '使用补偿: {0}',
-            compensationType: {
-                none: '没有',//待修正
-                mesh: '网格'
-            },		  
+			compensationType: {
+				none: '没有',//待修正
+				mesh: '网格'
+			},
 			disableBedCompensation: '禁用床补偿(M561)',
 			disableMeshCompensation: '禁用网格补偿(G29 S2)',
 			editMesh: '定义网格补偿区域(M557)',
@@ -679,10 +680,10 @@ export default {
 			binaryFileSizesTitle: '文件大小以1024（IEC）而不是1000（SI）为基准显示',
 			disableAutoComplete: '禁用自动完成',
 			disableAutoCompleteTitle: '输入代码或温度时不显示自动完成列表',
-			dashboardModeTitle: '控制面板模式'//3.4-dev新增
-            bottomNavigation: '在平板设备上显示底部导航',
-            numericInputs: '显示数字输入字段而不是滑块',
-			iconMenu: '使用简洁的图标菜单'							
+			dashboardModeTitle: '控制面板模式',
+			bottomNavigation: '在平板设备上显示底部导航',
+			numericInputs: '显示数字输入字段而不是滑块',
+			iconMenu: '使用简洁的图标菜单'
 		},
 		settingsCommunication: {
 			caption: '通讯',
@@ -841,9 +842,10 @@ export default {
 		fileSystemAccess: '访问虚拟SD目录之外的文件',
 		launchProcesses: '启动新进程',
 		networkAccess: '通过网络通讯',
-        webcamAccess: '访问网络摄像头设备',
+		webcamAccess: '访问网络摄像头设备',
 		gpioAccess: '访问GPIO设备',
 		superUser: '以root用户身份运行（潜在危险）'
+	},
 	plugins: {
 		accelerometer: {
 			name: '加速度计',
@@ -888,15 +890,15 @@ export default {
 				caption: '重新加载预览',
 				title: '重新载入当前G-Code文件，当更改模型颜色、进给率颜色等设置时，需要重新加载当前G-Code文件。'
 			},
-			loadCurrentJob: { 
+			loadCurrentJob: {
 				caption: '载入当前任务',
 				title: '载入当前正在打印或者正在模拟的任务'
 			},
-			unloadGCode: { 
+			unloadGCode: {
 				caption: '卸载G-Code文件',
 				title : '从查看器移除已加载的G-Code文件'
 			},
-			loadLocalGCode: { 
+			loadLocalGCode: {
 				caption: '载入本地G-Code文件',
 				title : '从本地驱动器载入一个文件到查看器'
 			},
@@ -908,7 +910,7 @@ export default {
 			},
 			sbc: '单板机（SBC）',
 			low: '低',
-			medium: '中',			
+			medium: '中',
 			high: '高',
 			ultra: '超高',
 			max: '最高',
@@ -956,8 +958,8 @@ export default {
 			showFSOverlay : '显示全屏覆盖',//3.4-dev新增，待修正
 			useHQRendering: '高质量渲染',
 			useSpecular: "使用高光",
-			feature: "材质"
-			g1AsExtrusion: '渲染 G1 (CNC)',
+			feature: "材质",
+			g1AsExtrusion: '渲染 G1 (CNC)'
 		},
 		heightmap: {
 			menuCaption: '高度图',
