@@ -337,10 +337,6 @@ export default {
 			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 
 			// Start uploading
-			if (this.ignoreFileTimestamps) {
-				files.forEach(file => file.lastModified = new Date());
-			}
-
 			this.uploading = true;
 			try
 			{

@@ -666,7 +666,7 @@ export default class PollConnector extends BaseConnector {
 		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
 		const params = {
 			name: filename,
-			time: timeToStr(content.lastModified ? new Date(content.lastModified) : new Date())
+			time: timeToStr((!this.settings.ignoreFileTimestamps && content.lastModified) ? new Date(content.lastModified) : new Date())
 		};
 
 		// Check if the CRC32 checksum is required

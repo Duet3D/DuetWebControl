@@ -34,7 +34,6 @@ export default {
 		settingsSaveDelay: 500,							// ms - how long to wait before settings updates are saved
 		cacheStorageLocal: localStorageSupported,
 		cacheSaveDelay: 1000,							// ms - how long to wait before cache updates are saved
-        ignoreFileTimestamps: false,
 
         notifications: {
 			errorsPersistent: true,

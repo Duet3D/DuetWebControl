@@ -25,6 +25,7 @@ export default function(connector, pluginSettingFields) {
 			extendedUpdateEvery: 20,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 			crcUploads: true,
+			ignoreFileTimestamps: false,
 
 			// REST Connector
 			pingInterval: 2000,							// ms
