@@ -116,6 +116,10 @@ export default {
 				caption: 'Envoyer Fichiers Web',
 				title: 'Envoyer un ou plusieurs fichiers web (le glisser/déposer est supporté)'
 			},
+			plugin: {
+				caption: 'Installer Plugin',
+				title: 'Envoyer et démarrer un plugin (le glisser/déposer est supporté)'
+            },
 			update: {
 				caption: 'Envoyer Mise à Jour',
 				title: 'Envoyer un paquet de mise à jour (le glisser/déposer est supporté)'
@@ -534,7 +538,8 @@ export default {
 			resumeSimulation: 'Reprendre Simulation',
 			repeatJob: 'Recommencer',
 			repeatPrint: 'Réimprimer',
-			repeatSimulation: 'Simuler à Nouveau'
+			repeatSimulation: 'Simuler à Nouveau',
+			showPreview: 'Voir Aperçu'
 		},
 		jobData: {
 			caption: 'Données Collectés',
@@ -564,6 +569,10 @@ export default {
 			runBed: 'Vrai Nivellement du Lit (G32)',
 			runDelta: 'Delta Calibration (G32)',
 			compensationInUse: 'Compensation en utilisation: {0}',
+			compensationType: {
+                none: 'Aucun',
+                mesh: 'Mesh'
+            },
 			disableBedCompensation: 'Désactiver Compensation du Lit (M561)',
 			disableMeshCompensation: 'Désactiver Mesh Compensation (G29 S2)',
 			editMesh: 'Définir Zone pour la Mesh Compensation (M557)',
@@ -584,12 +593,18 @@ export default {
 			language: 'Langage',
 			binaryFileSizes: 'Utiliser des tailles de fichiers binaires',
 			binaryFileSizesTitle: 'Les tailles de fichier sont affichées avec une base de 1024 (IEC) au lieu de 1000 (SI)',
-			disableAutoComplete: 'Disable auto-complete',
-			disableAutoCompleteTitle: 'Do not show auto-complete list when typing in code or temperature inputs'
+			disableAutoComplete: 'Désactiver l\'auto-complétion',
+			disableAutoCompleteTitle: 'Ne pas afficher la liste d\'auto-complétion lors de la saisie de code ou de températures.',
+			dashboardModeTitle: 'Mode Tableau de bord',
+			bottomNavigation: 'Afficher la navigation en bas de page sur les tablettes',
+            numericInputs: 'Afficher les champs de saisie numérique au lieu des curseurs',
+			iconMenu: 'Utiliser le menu d\'icônes compactes'
+		
 		},
 		settingsCommunication: {
 			caption: 'Communication',
 			pingInterval: 'Intervalle PING au repos ({0})',
+			updateDelay: 'Délai de mise à jour (ms)',
 			ajaxRetries: 'Nombre maximal de tentatives AJAX',
 			updateInterval: 'Intervalle de mise à jour ({0})',
 			extendedUpdateEvery: 'Intervalle de mise à jour du statut étendu',
@@ -702,6 +717,36 @@ export default {
 			alt: '(webcam image)'
 		}
 	},
+	pluginPermissions: {
+        commandExecution: 'Exécution de commandes DSF génériques (e.g. G/M/T-codes)',
+        codeInterceptionRead: 'Intercepter les codes G/M/T',
+        codeInterceptionReadWrite: 'Intercepter les codes G/M/T et les manipuler',
+        managePlugins: 'Installer, charger, décharger et désinstaller des plugins tiers',
+        manageUserSessions: 'Gérer les sessions des utilisateurs',
+        objectModelRead: 'Lecture du modèle d\'objet',
+        objectModelReadWrite: 'Lecture et écriture dans le modèle d\'objet',
+        registerHttpEndpoints: 'Créer de nouveaux points de terminaison HTTP',
+        readFilaments: 'Lire les fichiers du répertoire filaments',
+        writeFilaments: 'Ecrire des fichiers dans le répertoire filaments',
+        readFirmware: 'Lire les fichiers du répertoire firmware',
+        writeFirmware: 'Ecrire des fichiers dans le répertoire firmware',
+        readGCodes: 'Lire les fichiers du répertoire G-codes',
+        writeGCodes: 'Ecrire des fichiers dans le répertoire G-codes',
+        readMacros: 'Lire les fichiers du répertoire macros',
+        writeMacros: 'Ecrire des fichiers dans le répertoire macros',
+        readMenu: 'Lire les fichiers du répertoire du menu',
+        writeMenu: 'Ecrire des fichiers dans le répertoire du menu',
+        readSystem: 'Lire les fichiers du répertoire système',
+        writeSystem: 'Ecrire des fichiers dans le répertoire système',
+        readWeb: 'Lire les fichiers du répertoire web',
+        writeWeb: 'Ecrire des fichiers dans le répertoire web',
+        fileSystemAccess: 'Accéder aux fichiers en dehors du répertoire SD virtuel',
+        launchProcesses: 'Lancer de nouveaux processus',
+        networkAccess: 'Communiquer sur le réseau',
+        webcamAccess: 'Accéder aux webcams',
+		gpioAccess: 'Accéder aux GPIO',
+		superUser: 'Exécuter en tant qu\'utilisateur root (potentiellement dangereux)'
+    },
 	plugins: {
 		heightmap: {
 			scale: 'Échelle:',
@@ -721,5 +766,35 @@ export default {
 			heat: 'Chaleur',
 			reload: 'Recharger Carte de Hauteur'
 		}
-	}
+	},
+    tabs: {
+        generalSettings: {
+            caption: 'Géneral'
+        },
+        machineSettings: {
+            caption: 'Géneral'
+        },
+        plugins: {
+            integratedPlugins: 'Plugins intégrés',
+            externalPlugins: 'Plugins externes',
+            headers: {
+                name: 'Nom',
+                author: 'Auteur',
+                version: 'Version',
+                license: 'Licence',
+                dependencies: 'Dépendances',
+                status: 'Status'
+            },
+            optional: 'optionnel',
+            start: 'Start',
+            partiallyStarted: 'partiellement démarré',
+            started: 'démarré',
+            stop: 'Stop',
+            deactivated: 'désactivé',
+            stopped: 'arrêté',
+            uninstall: 'Désinstaller',
+            noPlugins: 'Aucun plugin',
+            refreshNote: 'Rafraîchissez la page pour terminer le déchargement de certains plugins DWC.'
+        }
+    }
 }
