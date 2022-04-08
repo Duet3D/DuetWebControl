@@ -682,7 +682,14 @@ export default {
             dashboardModeTitle: 'Dashboard Mode',
             bottomNavigation: 'Show bottom navigation on tablet devices',
             numericInputs: 'Show numeric input fields instead of sliders',
-			iconMenu: 'Use compact icon menu'
+			iconMenu: 'Use compact icon menu',
+			decimalPlaces: 'Number of decimal points in coordinate display',
+			displayUnitsTitle: 'Display coordinate unit of measure',
+            unitInches: 'inches',
+            unitInch: 'in',
+            unitMm: 'mm',
+			unitInchSpeed: 'ipm',
+			unitMmSpeed: 'mm/s'
         },
         settingsCommunication: {
             caption: 'Communication',

@@ -4,6 +4,7 @@ const ZipPlugin = require('zip-webpack-plugin')
 
 module.exports = {
 	configureWebpack: {
+		devtool: 'source-map',
 		externals: {
 			moment: 'moment'
 		},
