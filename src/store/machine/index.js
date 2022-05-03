@@ -278,10 +278,10 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 
 			// Download one or more files. Payload can be either:
 			// {
-			//   filename: Name of the file to upload,
-			//   type = 'json': Type of the response,
-			//   showProgress = true: Show upload progress in a notification,
-			//   showSuccess = true: Show a sucess message when done,
+			//   filename: Name of the file to upload
+			//   type = 'json': Type of the response
+			//   showProgress = true: Show upload progress in a notification
+			//   showSuccess = true: Show a success message when done
 			//   showError = true: Show an error message on error
 			// }
 			// or

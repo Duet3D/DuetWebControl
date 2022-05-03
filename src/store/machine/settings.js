@@ -267,12 +267,30 @@ export default function(connector, pluginSettingFields) {
 					state.plugins = payload.plugins;
 					delete payload.plugins;
 				}
+				if (payload.moveSteps !== undefined) {
+					for (let axis in payload.moveSteps) {
+						const axisMoveSteps = payload.moveSteps[axis];
+						if (axisMoveSteps instanceof Array && axisMoveSteps.length === state.moveSteps.default.length) {
+							Vue.set(state.moveSteps, axis, axisMoveSteps);
+						}
+					}
+					delete payload.moveSteps;
+				}
 				patch(state, payload, true);
 			},
 			update(state, payload) {
 				if (payload.plugins !== undefined) {
 					state.plugins = payload.plugins;
 					delete payload.plugins;
+				}
+				if (payload.moveSteps !== undefined) {
+					for (let axis in payload.moveSteps) {
+						const axisMoveSteps = payload.moveSteps[axis];
+						if (axisMoveSteps instanceof Array && axisMoveSteps.length === state.moveSteps.default.length) {
+							Vue.set(state.moveSteps, axis, axisMoveSteps);
+						}
+					}
+					delete payload.moveSteps;
 				}
 				patch(state, payload, true);
 			},

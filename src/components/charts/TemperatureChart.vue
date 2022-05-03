@@ -136,9 +136,8 @@ export default {
 			this.chart.update();
 		},
 		applyDarkTheme(active) {
-			this.chart.config.options.legend.labels.fontColor = active ? '#FFF' : 'rgba(0,0,0,0.87)';
-
 			const ticksColor = active ? '#FFF' : '#666';
+			this.chart.config.options.legend.labels.fontColor = ticksColor;
 			this.chart.config.options.scales.xAxes[0].ticks.major.fontColor = ticksColor;
 			this.chart.config.options.scales.xAxes[0].ticks.minor.fontColor = ticksColor;
 			this.chart.config.options.scales.yAxes[0].ticks.major.fontColor = ticksColor;
@@ -181,18 +180,15 @@ export default {
 							}
 						},
 						gridLines: {
-							color: 'rgba(0,0,0,0.2)',
 							display: true
 						},
 						ticks: {
 							min: new Date() - maxSampleTime,
 							max: new Date(),
 							minor: {
-								fontColor: 'rgba(0,0,0,0.87)',
 								fontFamily: 'Roboto,sans-serif'
 							},
 							major: {
-								fontColor: 'rgba(0,0,0,0.87)',
 								fontFamily: 'Roboto,sans-serif'
 							}
 						},
@@ -208,17 +204,13 @@ export default {
 				yAxes: [
 					{
 						gridLines: {
-							color: 'rgba(0,0,0,0.2)',
-							zeroLineColor: 'rgba(0,0,0,0.2)',
 							display: true
 						},
 						ticks: {
 							minor: {
-								fontColor: '#666',
 								fontFamily: 'Roboto,sans-serif'
 							},
 							major: {
-								fontColor: '#666',
 								fontFamily: 'Roboto,sans-serif'
 							},
 							min: 0,

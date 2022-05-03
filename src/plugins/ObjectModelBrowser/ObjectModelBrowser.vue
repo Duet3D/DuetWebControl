@@ -22,7 +22,9 @@
                 <v-col class="pt-4">
                     Selected node:
                     <template v-if="active.length > 0">
-                        <input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly @click="$event.target.select()" />
+						<v-input hide-details>
+							<input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly @click="$event.target.select()" />
+						</v-input>
                         <v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
                     </template>
                     <template v-else>

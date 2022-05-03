@@ -159,7 +159,8 @@ export const InputShapingType = {
 	ZVDD: 'zvdd',
 	ZVDDD: 'zvddd',
 	EI2: 'ei2',
-	EI3: 'ei3'
+	EI3: 'ei3',
+	custom: 'custom'
 }
 
 export const MachineMode = {
@@ -209,6 +210,7 @@ export const StatusType = {
 	pausing: 'pausing',
 	paused: 'paused',
 	resuming: 'resuming',
+	cancelling: 'cancelling',
 	processing: 'processing',
 	simulating: 'simulating',
 	busy: 'busy',
@@ -238,12 +240,14 @@ export const ToolState = {
 export function isPaused(status) {
 	return (status === StatusType.pausing ||
 			status === StatusType.paused ||
+			status === StatusType.cancelling ||
 			status === StatusType.resuming);
 }
 
 export function isPrinting(status) {
 	return (status === StatusType.pausing ||
 			status === StatusType.paused ||
+			status === StatusType.cancelling ||
 			status === StatusType.resuming ||
 			status === StatusType.processing ||
 			status === StatusType.simulating);

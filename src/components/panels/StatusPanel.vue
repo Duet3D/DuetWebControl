@@ -67,7 +67,7 @@ a:not(:hover) {
 
 			<!-- Extruders -->
 			<template v-if="move.extruders.length">
-				<v-divider v-show="move.axes.length" class="my-2"></v-divider>
+				<v-divider v-show="visibleAxes.length" class="my-2"></v-divider>
 
 				<v-row align-content="center" no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
