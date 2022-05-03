@@ -46,7 +46,7 @@ a:not(:hover) {
 				<v-row no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
 						<a href="javascript:void(0)" @click="displayToolPosition = !displayToolPosition">
-							{{ $t(displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') }}
+							{{ topTitle }}
 						</a>
 					</v-col>
 
@@ -108,7 +108,7 @@ a:not(:hover) {
 							{{ $t('panel.status.requestedSpeed') }}
 						</strong>
 						<span>
-							{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}
+							{{ displaySpeed(move.currentMove.requestedSpeed) }}
 						</span>
 					</v-col>
 
@@ -117,7 +117,7 @@ a:not(:hover) {
 							{{ $t('panel.status.topSpeed') }}
 						</strong>
 						<span>
-							{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}
+							{{ displaySpeed(move.currentMove.topSpeed) }}
 						</span>
 					</v-col>
 						</v-row>
@@ -228,10 +228,11 @@ a:not(:hover) {
 import { mapState, mapGetters } from 'vuex'
 
 import { ProbeType, isPrinting } from '../../store/machine/modelEnums.js'
+import { UnitOfMeasure } from '../../store/settings.js'
 
 export default {
 	computed: {
-		...mapState('settings', ['darkTheme']),
+		...mapState('settings', ['darkTheme', 'displayUnits', 'decimalPlaces']),
 		...mapState('machine/model', {
 			boards: state => state.boards,
 			fans: state => state.fans,
@@ -262,6 +263,12 @@ export default {
 					(this.fanRPM.length !== 0) ||
 					(this.probesPresent));
 		},
+		topTitle() {
+			// place the current unit of measure next to the title
+			let suffix = this.$t((this.displayUnits == UnitOfMeasure.imperial) ? 'panel.settingsAppearance.unitInch' : 'panel.settingsAppearance.unitMm');
+			return this.$t(this.displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') + 
+						' ('  + suffix + ')';
+		},
 		visibleAxes() {
 			return this.move.axes.filter(axis => axis.visible);
 		}
@@ -272,9 +279,16 @@ export default {
 		}
 	},
 	methods: {
-		displayAxisPosition(axis) {
-			const position = this.displayToolPosition ? axis.userPosition : axis.machinePosition;
-			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
+        displayAxisPosition(axis) {
+            const position = (this.displayToolPosition ? axis.userPosition : axis.machinePosition) /
+							((this.displayUnits == UnitOfMeasure.imperial) ? 25.4 : 1);
+			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, this.decimalPlaces);
+        },
+		displaySpeed(speed) {
+			if(this.displayUnits == UnitOfMeasure.imperial) {
+				return this.$display(speed*60/25.4, 1, this.$t('panel.settingsAppearance.unitInchSpeed'));	// to ipm
+			}
+			return this.$display(speed, 1,  this.$t('panel.settingsAppearance.unitMmSpeed'));
 		},
 		isFilamentSensorPresent(extruderIndex) {
 			return (extruderIndex < this.sensors.filamentMonitors.length) &&

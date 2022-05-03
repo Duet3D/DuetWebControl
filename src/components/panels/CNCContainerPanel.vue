@@ -9,7 +9,7 @@
 		<v-row align="stretch" dense>
 			<v-col cols="3" lg="2" md="2" order="1" order-lg="1" sm="4">
 				<v-card class="justify-center fill-height">
-					<v-card-title>
+					<v-card-title class="py-2">
 						<strong>Status</strong>
 					</v-card-title>
 					<v-card-text>
@@ -22,18 +22,18 @@
 			</v-col>
 			<v-col cols="5" lg="3" md="3" order="2" order-lg="3" sm="4">
 				<v-card class="fill-height">
-					<v-card-title>
+					<v-card-title class="py-2">
 						<strong>Requested Speed</strong>
 					</v-card-title>
-					<v-card-text>{{ $display(move.currentMove.requestedSpeed, 0, 'mm/s') }}</v-card-text>
+					<v-card-text>{{ displaySpeed(move.currentMove.requestedSpeed) }}</v-card-text>
 				</v-card>
 			</v-col>
 			<v-col cols="4" lg="3" md="3" order="2" order-lg="4" sm="4">
 				<v-card class="fill-height" order="5">
-					<v-card-title>
+					<v-card-title class="py-2">
 						<strong>Top Speed</strong>
 					</v-card-title>
-					<v-card-text>{{ $display(move.currentMove.topSpeed, 0, 'mm/s') }}</v-card-text>
+					<v-card-text>{{ displaySpeed(move.currentMove.topSpeed) }}</v-card-text>
 				</v-card>
 			</v-col>
 			<v-col cols="12" order="6" v-if="sensorsPresent">
@@ -116,8 +116,10 @@
 <script>
 import {mapState} from 'vuex';
 import {ProbeType, isPrinting, AnalogSensorType} from '../../store/machine/modelEnums.js';
+import { UnitOfMeasure } from '../../store/settings.js';
 export default {
 	computed: {
+		...mapState('settings', ['displayUnits']),
 		...mapState('machine/model', {
 			move: (state) => state.move,
 			machineMode: (state) => state.state.machineMode,
@@ -157,9 +159,11 @@ export default {
 		},
 	},
 	methods: {
-		displayAxisPosition(axis) {
-			const position = this.displayToolPosition ? axis.userPosition : axis.machinePosition;
-			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, 1);
+		displaySpeed(speed) {
+			if(this.displayUnits == UnitOfMeasure.imperial) {
+				return this.$display(speed*60/25.4, 1, this.$t('panel.settingsAppearance.unitInchSpeed'));	// to ipm
+			}
+			return this.$display(speed, 1,  this.$t('panel.settingsAppearance.unitMmSpeed'));
 		},
 		formatProbeValue(values) {
 			if (values.length === 1) {
