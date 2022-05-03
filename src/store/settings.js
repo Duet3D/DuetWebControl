@@ -16,6 +16,11 @@ export const DashboardMode = {
 	cnc: 'CNC'
 }
 
+export const UnitOfMeasure = {
+	metric: 'mm',
+	imperial: 'inch'
+}
+
 export default {
 	namespaced: true,
 	state: {
@@ -25,10 +30,12 @@ export default {
 		darkTheme: false,
 		useBinaryPrefix: true,
 		disableAutoComplete: false,
-        dashboardMode : DashboardMode.default,
+        dashboardMode: DashboardMode.default,
         bottomNavigation: true,
         numericInputs: false,
 		iconMenu: false,
+		displayUnits: UnitOfMeasure.metric,
+		decimalPlaces: 1,
 
 		settingsStorageLocal: false,
 		settingsSaveDelay: 500,							// ms - how long to wait before settings updates are saved
