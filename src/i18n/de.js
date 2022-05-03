@@ -682,7 +682,14 @@ export default {
             dashboardModeTitle: 'Übersichtsmodus',
             bottomNavigation: 'Untere Navigationsleiste auf Tablets anzeigen',
             numericInputs: 'Numerische Eingaben statt Schiebern anzeigen',
-			iconMenu: 'Kompaktes Symbolmenü benutzen'
+			iconMenu: 'Kompaktes Symbolmenü benutzen',
+			decimalPlaces: 'Anzahl der Nachkommastellen in der Koordinatenanzeige',
+			displayUnitsTitle: 'Maßeinheit für Koordinatenanzeige',
+			unitInches: 'Inch',
+			unitInch: 'in',
+			unitMm: 'mm',
+			unitInchSpeed: 'ipm',
+			unitMmSpeed: 'mm/s'
 		},
         settingsCommunication: {
             caption: 'Kommunikation',

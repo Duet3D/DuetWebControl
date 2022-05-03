@@ -46,7 +46,7 @@ a:not(:hover) {
 				<v-row no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
 						<a href="javascript:void(0)" @click="displayToolPosition = !displayToolPosition">
-							{{ topTitle }}
+							{{ $t(displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') }}
 						</a>
 					</v-col>
 
@@ -263,12 +263,6 @@ export default {
 					(this.fanRPM.length !== 0) ||
 					(this.probesPresent));
 		},
-		topTitle() {
-			// place the current unit of measure next to the title
-			let suffix = this.$t((this.displayUnits == UnitOfMeasure.imperial) ? 'panel.settingsAppearance.unitInch' : 'panel.settingsAppearance.unitMm');
-			return this.$t(this.displayToolPosition ? 'panel.status.toolPosition' : 'panel.status.machinePosition') + 
-						' ('  + suffix + ')';
-		},
 		visibleAxes() {
 			return this.move.axes.filter(axis => axis.visible);
 		}
@@ -281,11 +275,11 @@ export default {
 	methods: {
         displayAxisPosition(axis) {
             const position = (this.displayToolPosition ? axis.userPosition : axis.machinePosition) /
-							((this.displayUnits == UnitOfMeasure.imperial) ? 25.4 : 1);
+							((this.displayUnits === UnitOfMeasure.imperial) ? 25.4 : 1);
 			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, this.decimalPlaces);
         },
 		displaySpeed(speed) {
-			if(this.displayUnits == UnitOfMeasure.imperial) {
+			if(this.displayUnits === UnitOfMeasure.imperial) {
 				return this.$display(speed*60/25.4, 1, this.$t('panel.settingsAppearance.unitInchSpeed'));	// to ipm
 			}
 			return this.$display(speed, 1,  this.$t('panel.settingsAppearance.unitMmSpeed'));
