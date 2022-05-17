@@ -2,7 +2,7 @@
 	<v-row dense>
 		<v-col cols="12" class="d-flex">
 			<span>{{ printStatus }}</span>
-			<v-spacer></v-spacer>
+			<v-spacer/>
 			<span>{{ printDetails }}</span>
 		</v-col>
 

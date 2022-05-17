@@ -368,7 +368,7 @@ export class MachineModelModule {
 				if (state.state.status !== StatusType.simulating) {
 					let totalRawExtruded = state.move.extruders.map(extruder => extruder && extruder.rawPosition);
 					totalRawExtruded = (totalRawExtruded.length === 0) ? 0 : totalRawExtruded.reduce((a, b) => a + b);
-					if (state.state.status === StatusType.simulating && state.job.file.filament.length > 0 && totalRawExtruded > 0) {
+					if (state.job.file.filament.length > 0 && totalRawExtruded > 0) {
 						return Math.min(totalRawExtruded / state.job.file.filament.reduce((a, b) => a + b), 1);
 					}
 				}
@@ -391,7 +391,6 @@ export class MachineModelModule {
 						state.move.kinematics = new CoreKinematics();
 						break;
 					case KinematicsName.delta:
-					case KinematicsName.rotaryDelta:
 						state.move.kinematics = new DeltaKinematics();
 						break;
 					case KinematicsName.hangprinter:
@@ -401,6 +400,7 @@ export class MachineModelModule {
 					case KinematicsName.scara:
 						state.move.kinematics = new ScaraKinematics();
 						break;
+					case KinematicsName.rotaryDelta:
 					default:
 						if (process.env.NODE_ENV !== 'production') {
 							console.warn(`Using fallback kinematics because the requested one is unsupported: ${payload.move.kinematics.name}`);

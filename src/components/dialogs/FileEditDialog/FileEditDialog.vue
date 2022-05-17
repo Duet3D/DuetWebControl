@@ -138,6 +138,18 @@ export default {
 		},
 		isMenu() {
 			return Path.startsWith(this.filename, this.menuDirectory);
+		},
+		isIOS() {
+			return [
+					'iPad Simulator',
+					'iPhone Simulator',
+					'iPod Simulator',
+					'iPad',
+					'iPhone',
+					'iPod'
+				].includes(navigator.platform)
+				// iPad on iOS 13 detection
+				|| (navigator.userAgent.includes("Mac") && "ontouchend" in document)
 		}
 	},
 	data() {
@@ -206,7 +218,7 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isIOS;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 

@@ -497,8 +497,8 @@ export default class PollConnector extends BaseConnector {
 			this.printFileSize = jobKey.file.size;
 		}
 
-		// Don't continue from here unless the layer number is known
-		if (jobKey.layer === null) {
+		// Don't continue from here unless the layer number is known and valid
+		if (jobKey.layer === null || jobKey.layer < 0) {
 			return false;
 		}
 
