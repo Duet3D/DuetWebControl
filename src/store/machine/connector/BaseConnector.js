@@ -28,7 +28,6 @@ class BaseConnector {
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
 		xhr.responseType = 'text';
-		xhr.setRequestHeader('Content-Type', 'application/json');
 		xhr.timeout = defaultRequestTimeout;
 
 		return new Promise((resolve, reject) => {

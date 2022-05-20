@@ -69,12 +69,7 @@ export default class PollConnector extends BaseConnector {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
-		if (responseType === 'json') {
-			xhr.responseType = 'text';
-			xhr.setRequestHeader('Content-Type', 'application/json');
-		} else {
-			xhr.responseType = responseType;
-		}
+		xhr.responseType = (responseType === 'json') ? 'text' : responseType;
 		if (onProgress) {
 			xhr.onprogress = function(e) {
 				if (e.loaded && e.total) {

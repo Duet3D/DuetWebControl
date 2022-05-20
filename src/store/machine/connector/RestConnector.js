@@ -88,12 +88,7 @@ export default class RestConnector extends BaseConnector {
 
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
-		if (responseType === 'json') {
-			xhr.responseType = 'text';
-			xhr.setRequestHeader('Content-Type', 'application/json');
-		} else {
-			xhr.responseType = responseType;
-		}
+        xhr.responseType = (responseType === 'json') ? 'text' : responseType;
 		if (this.sessionKey !== null) {
 			xhr.setRequestHeader('X-Session-Key', this.sessionKey);
 		}

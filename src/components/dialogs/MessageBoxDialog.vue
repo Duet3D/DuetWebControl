@@ -123,7 +123,7 @@ export default {
 		},
 		async cancel() {
 			this.shown = false;
-			if (this.messageBox && (this.messageBox.mode === MessageBoxMode.okOnly || this.messageBox.mode === MessageBoxMode.okCancel)) {
+			if (this.messageBox && (this.messageBox.mode === MessageBoxMode.okCancel)) {
 				await this.sendCode('M292 P1');
 			}
 		}
