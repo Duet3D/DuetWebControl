@@ -84,7 +84,7 @@
 .heater-container {
 	position: absolute;
 	right: 20px;
-	top: 80px;
+	top: 20%;
 	width:200px;
 	text-align: center;
 	font-size: large;
