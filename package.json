@@ -1,6 +1,6 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.4.1-rc2",
+  "version": "3.4.1",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -80,6 +80,7 @@
   },
   "browserslist": [
     "> 1%",
-    "last 2 versions"
+    "last 2 versions",
+    "iOS >= 9"
   ]
 }

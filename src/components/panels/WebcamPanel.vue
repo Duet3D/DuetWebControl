@@ -66,11 +66,11 @@ img {
 
 		<v-card-text class="pa-0 img-container">
 			<v-responsive v-if="webcam.embedded" :aspect-ratio="16/9">
-				<iframe :src="webcam.url"></iframe>
+				<iframe :src="webcam.url" :class="classList"></iframe>
 			</v-responsive>
 
 			<a v-else :href="webcam.liveUrl ? webcam.liveUrl : 'javascript:void(0)'">
-				<img :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="imgClasses">
+				<img :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="classList">
 			</a>
 		</v-card-text>
 	</v-card>
@@ -85,25 +85,25 @@ export default {
 	computed: {
 		...mapState('settings', ['webcam']),
 		...mapGetters('machine', ['connector']),
-		imgClasses() {
-			const classes = [];
+		classList() {
+			const result = [];
 
 			if (this.webcam.flip === 'x' || this.webcam.flip === 'both') {
-				classes.push('flip-x');
+				result.push('flip-x');
 			}
 			if (this.webcam.flip === 'y' || this.webcam.flip === 'both') {
-				classes.push('flip-y');
+				result.push('flip-y');
 			}
 
 			if (this.webcam.rotation === 90) {
-				classes.push('rotate-90');
+				result.push('rotate-90');
 			} else if (this.webcam.rotation === 180) {
-				classes.push('rotate-180');
+				result.push('rotate-180');
 			} else if (this.webcam.rotation === 270) {
-				classes.push('rotate-270');
+				result.push('rotate-270');
 			}
 
-			return classes;
+			return result;
 		}
 	},
 	data() {

@@ -22,10 +22,10 @@
 					<v-switch v-model="webcamEmbedded" :label="$t('panel.settingsWebcam.webcamEmbedded')" hide-details></v-switch>
 				</v-col>
 				<v-col cols="12" md="6">
-					<v-select v-model="webcamRotation" :items="rotationItems" :label="$t('panel.settingsWebcam.webcamRotation')" :disabled="webcamEmbedded" hide-details></v-select>
+					<v-select v-model="webcamRotation" :items="rotationItems" :label="$t('panel.settingsWebcam.webcamRotation')" hide-details></v-select>
 				</v-col>
 				<v-col cols="12" md="6">
-					<v-select v-model="webcamFlip" :items="flipItems" :label="$t('panel.settingsWebcam.webcamFlip')" :disabled="webcamEmbedded" hide-details></v-select>
+					<v-select v-model="webcamFlip" :items="flipItems" :label="$t('panel.settingsWebcam.webcamFlip')" hide-details></v-select>
 				</v-col>
 			</v-row>
 		</v-card-text>
