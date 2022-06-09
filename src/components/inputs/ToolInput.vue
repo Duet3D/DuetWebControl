@@ -1,8 +1,10 @@
 <template>
-	<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :menu-props="{ maxHeight: '50%' }"
-				:value="inputValue" :search-input="inputValue" @update:search-input="change" @keyup.enter="apply" @blur="blur"
-				:loading="applying" :disabled="uiFrozen || !isValid" :items="items" hide-selected>
-	</v-combobox>
+	<v-form submit.prevent="apply">
+		<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label" :menu-props="{ maxHeight: '50%' }"
+					:value="inputValue" :search-input="inputValue" @update:search-input="change" @blur="blur" @keydown.enter.prevent="apply"
+					:loading="applying" :disabled="uiFrozen || !isValid" :items="items" hide-selected>
+		</v-combobox>
+	</v-form>
 </template>
 
 <script>
@@ -90,7 +92,7 @@ export default {
 	methods: {
 		...mapActions('machine', ['sendCode']),
 		async apply() {
-			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
+			this.$nextTick(() => this.$refs.input.isMenuActive = false);			// FIXME There must be a better solution than this
 
 			const value = parseFloat(this.inputValue);
 			if (!this.isNumber(value)) {
@@ -243,7 +245,7 @@ export default {
 			}
 		},
 		'chamber.standby'(to) {
-			if (this.standby && this.isNumber(to) && this.actualValue != to) {
+			if (this.standby && this.isNumber(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
@@ -251,7 +253,7 @@ export default {
 			}
 		},
 		'tool.spindleRpm'(to) {
-			if (this.active && this.isNumber(to) && this.actualValue != to) {
+			if (this.active && this.isNumber(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
