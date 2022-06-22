@@ -11,6 +11,7 @@ export class PluginManifest {
 	version = '1.0.0'								// Version of the plugin
 	license = 'LGPL-3.0-or-later'					// License of the plugin. Should follow the SPDX format (see https://spdx.org/licenses/)
 	homepage = null									// Link to the plugin homepage or source code repository
+    tags = []                                       // List of user-defined tags for searching
 
 	dwcVersion = version 							// Major/minor compatible DWC version. Mandatory for DWC plugins
 	dwcDependencies = []							// List of DWC plugins this plugin depends on. Circular dependencies are not supported
