@@ -23,8 +23,8 @@
                 <v-card-text>
                     <strong>Temperatures</strong>
                     <!-- Tools -->
-                    <template v-for="(tool, toolIdx) in tools">
-                        <v-row dense v-for="(heaterIdx, idx) in tool.heaters" :key="'Tool ' + toolIdx * 10 + idx" align="center" justify="center">
+                    <template v-for="tool in tools.filter(tool => !!tool)">
+                        <v-row dense v-for="(heaterIdx, idx) in tool.heaters" :key="'Tool ' + tool.number * 10 + idx" align="center" justify="center">
                             <template v-if="heaterIdx >= 0">
                                 <v-col cols="12" :data="(heater = getHeaterInfo(heaterIdx))">
                                     <template v-if="heater">
@@ -34,7 +34,7 @@
                                             :min="0"
                                             :curval="heater.current"
                                             :settemp="tool.active[0]"
-                                            :label="getToolLabel(tool, toolIdx)"
+                                            :label="getToolLabel(tool, tool.number)"
                                             tool-type="t"
                                             :tool-number="tool.number"
                                             :state="heater.state"

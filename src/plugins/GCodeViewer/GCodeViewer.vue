@@ -482,9 +482,9 @@ export default {
 			}
 		}
 	},
-	mounted() {
+	async mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
-		viewer.init();
+		await viewer.init();
 
 		viewer.buildObjects.objectCallback = this.objectSelectionCallback;
 		viewer.buildObjects.labelCallback = (label) => {
