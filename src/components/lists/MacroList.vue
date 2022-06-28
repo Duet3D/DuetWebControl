@@ -51,7 +51,7 @@ import { mapState, mapGetters, mapActions } from 'vuex'
 
 import { DisconnectedError } from '../../utils/errors.js'
 import Events from '../../utils/events.js'
-import Path from '../../utils/path.js'
+import Path, { escapeFilename } from '../../utils/path.js'
 
 export default {
 	computed: {
@@ -122,7 +122,7 @@ export default {
 			} else if (!item.executing) {
 				item.executing = true;
 				try {
-					await this.sendCode(`M98 P"${filename}"`);
+					await this.sendCode(`M98 P"${escapeFilename(filename)}"`);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);

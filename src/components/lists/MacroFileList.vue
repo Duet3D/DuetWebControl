@@ -61,7 +61,7 @@
 
 import { mapGetters, mapState, mapActions } from 'vuex'
 
-import Path from '../../utils/path.js'
+import Path, { escapeFilename } from '../../utils/path.js'
 
 export default {
 	computed: {
@@ -99,7 +99,7 @@ export default {
 			this.runMacroDialog.shown = true;
 		},
 		runFile(filename) {
-			this.sendCode(`M98 P"${Path.combine(this.directory, filename)}"`);
+			this.sendCode(`M98 P"${escapeFilename(Path.combine(this.directory, filename))}"`);
 		}
 	},
 	mounted() {

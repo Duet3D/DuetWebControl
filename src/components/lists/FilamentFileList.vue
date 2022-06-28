@@ -25,7 +25,7 @@
 				<v-list-item v-show="filamentSelected" @click="rename">
 					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t('list.baseFileList.rename') }}
 				</v-list-item>
-				<v-list-item @click="remove">
+				<v-list-item v-show="filamentSelected" @click="remove">
 					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('list.baseFileList.delete') }}
 				</v-list-item>
 			</template>

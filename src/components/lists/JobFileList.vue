@@ -105,7 +105,7 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 import i18n from '@/i18n'
 import { isPrinting } from '@/store/machine/modelEnums.js'
 import { DisconnectedError, InvalidPasswordError } from '@/utils/errors.js'
-import Path from '@/utils/path.js'
+import Path, { escapeFilename } from '@/utils/path.js'
 
 export default {
 	computed: {
@@ -331,10 +331,10 @@ export default {
 			}
 		},
 		start(item) {
-			this.sendCode(`M32 "${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+			this.sendCode(`M32 "${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
 		},
 		simulate(item) {
-			this.sendCode(`M37 P"${Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name)}"`);
+			this.sendCode(`M37 P"${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
 		},
 		contextMenuAction(menuItem){
 			let path = Path.combine(this.directory, this.selection[0].name);
