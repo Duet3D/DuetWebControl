@@ -9,7 +9,7 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
 						:search-input.sync="code" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						@click="click" :items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon="">
+						@click="click" :items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon="" maxlength="255">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>

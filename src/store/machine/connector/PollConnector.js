@@ -14,7 +14,7 @@ import {
 	LoginError, BadVersionError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from '@/utils/errors'
-import Path from '@/utils/path.js'
+import Path from '@/utils/path'
 import { strToTime, timeToStr } from '@/utils/time'
 import { closeNotifications } from "@/utils/notifications";
 
@@ -630,6 +630,10 @@ export default class PollConnector extends BaseConnector {
 			}
 			if (response.buff === 0) {
 				throw new CodeBufferError();
+			}
+			if (response.err !== undefined && response.err !== 0) {
+				console.warn(`Received error ${response.err} from rr_gcode`);
+				throw new CodeResponseError();
 			}
 		} catch (e) {
 			this.pendingCodes = this.pendingCodes.filter(code => code !== result);

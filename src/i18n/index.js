@@ -3,16 +3,16 @@
 import Vue from 'vue'
 import VueI18n from 'vue-i18n'
 
-import en from './en.js'
-import de from './de.js'
-import es from './es.js'
-import fr from './fr.js'
-import pl from './pl.js'
-import pt_br from './pt_br.js'
-import ru from './ru.js'
-import tr from './tr.js'
-import zh_cn from './zh_cn.js'
-import ja from './ja.js'
+import en from './en.json'
+import de from './de.json'
+import es from './es.json'
+import fr from './fr.json'
+import pl from './pl.json'
+import pt_br from './pt_br.json'
+import ru from './ru.json'
+import tr from './tr.json'
+import zh_cn from './zh_cn.json'
+import ja from './ja.json'
 
 Vue.use(VueI18n)
 

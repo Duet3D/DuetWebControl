@@ -1,6 +1,6 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.4.2-b1",
+  "version": "3.4.2-rc1",
   "repository": "github:chrishamm/DuetWebControl",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -67,7 +67,8 @@
       "eslint:recommended"
     ],
     "rules": {
-      "no-console": "off"
+      "no-console": "off",
+      "no-mixed-spaces-and-tabs": "off"
     },
     "parserOptions": {
       "parser": "babel-eslint"
@@ -79,8 +80,14 @@
     }
   },
   "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "iOS >= 9"
+    ">= 0.5%",
+    "last 3 major versions",
+    "not dead",
+    "Chrome >= 60",
+    "Firefox >= 60",
+    "Firefox ESR",
+    "iOS >= 9",
+    "Safari >= 12",
+    "not Explorer <= 11"
   ]
 }

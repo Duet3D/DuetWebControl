@@ -11,7 +11,8 @@
 			</v-treeview>
 
 			<div class="d-flex justify-center">
-				<v-btn v-show="active.length === 0" color="info" class="mt-3" :disabled="uiFrozen" :elevation="1" @click="refresh">
+				<v-btn v-show="active.length === 0" color="info" class="mt-3" :disabled="uiFrozen" :elevation="1"
+					   @click="refresh">
 					<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
 				</v-btn>
 			</div>
@@ -19,18 +20,17 @@
 
 		<v-col ref="rightContainer" v-show="active.length !== 0" cols="6">
 			<v-row class="my-1">
-                <v-col class="pt-4">
-                    Selected node:
-                    <template v-if="active.length > 0">
-						<v-input hide-details>
-							<input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly @click="$event.target.select()" />
-						</v-input>
-                        <v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
-                    </template>
-                    <template v-else>
-                        None
-                    </template>
-                </v-col>
+				<v-col class="pt-4">
+					Selected node:
+					<template v-if="active.length > 0">
+						<input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly
+							   @click="$event.target.select()" />
+						<v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
+					</template>
+					<template v-else>
+						None
+					</template>
+				</v-col>
 				<v-col cols="auto">
 					<v-btn color="info" :disabled="uiFrozen" :elevation="1" @click="refresh">
 						<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}

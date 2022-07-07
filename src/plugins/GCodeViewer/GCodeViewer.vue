@@ -217,7 +217,7 @@
 						</v-expansion-panel-header>
 						<v-expansion-panel-content>
 							<v-card>
-								<h4>{{$tc('plugins.gcodeViewer.renderMode'.caption, 2)}}</h4>
+								<h4>{{$tc('plugins.gcodeViewer.renderMode.caption', 2)}}</h4>
 								<v-btn-toggle block class="btn-toggle d-flex" exclusive v-model="colorMode">
 									<v-btn :disabled="loading" :value="0" block>{{$t("plugins.gcodeViewer.color")}}</v-btn>
 									<v-btn :disabled="loading" :value="1" block>{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>
