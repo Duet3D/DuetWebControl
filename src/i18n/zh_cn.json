@@ -295,7 +295,7 @@
       "prompt": "你已上传至少一个固件更新。你想现在安装吗？",
       "resetTitle": "要重置固件吗？",
       "resetPrompt": "你刚刚安装了扩展板更新。是否要重新启动主控制器并恢复以前的配置？",
-      "sbcWarning": "您正在单板机（SBC）模式下操作机器。 请在固件开发人员建议的情况下使用 DWC 升级固件。"//3.4.1之后新增
+      "sbcWarning": "您正在单板机（SBC）模式下操作机器。 请在固件开发人员建议的情况下使用 DWC 升级固件。"
     },
     "inputRequired": "请输入一个值",
     "numberRequired": "请输入有效的数值"
@@ -680,13 +680,13 @@
       "bottomNavigation": "在平板设备上显示底部导航",
       "numericInputs": "显示数字输入字段而不是滑块",
       "iconMenu": "使用简洁的图标菜单",
-      "decimalPlaces": "坐标显示的小数位数",//3.4.1之后更新内容开始
+      "decimalPlaces": "坐标显示的小数位数",
       "displayUnitsTitle": "坐标显示的单位",
       "unitInches": "英寸",
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"	//3.4.1之后更新内容结束
+      "unitMmSpeed": "mm/s"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -719,7 +719,7 @@
       "settingsSaveDelay": "设置更改的更新延迟（{0}）",
       "cacheStorageLocal": "将缓存保存在本地存储中",
       "cacheSaveDelay": "缓存更改的更新延迟（{0}）",
-      "ignoreFileTimestamps": "上传时忽略文件时间戳"//3.4.1之后更新内容
+      "ignoreFileTimestamps": "上传时忽略文件时间戳"
     },
     "settingsListItems": {
       "caption": "列表项目",
@@ -731,8 +731,8 @@
     "settingsMachine": {
       "caption": "机器特性",
       "babystepAmount": "Z轴微步调整的距离（{0}）",
-      "moveFeedrate": "移动按钮的运行速度（{0}）",//待修正
-      "toolChangeMacros": "工具更换宏"//3.4.1之后更新内容
+      "moveFeedrate": "移动按钮的运行速度（{0}）",
+      "toolChangeMacros": "工具更换宏"
     },
     "settingsNotifications": {
       "caption": "通知",
@@ -1028,4 +1028,3 @@
     }
   }
 }
-//更新到3.4.2RC：修正官方自动转换文件丢失的部分翻译 2022-7-20
