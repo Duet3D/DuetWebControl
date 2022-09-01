@@ -12,7 +12,7 @@
 			<v-list class="pt-0" dense>
 				<v-list-item v-if="!isRootDirectory" @click="goUp">
 					<v-list-item-avatar :size="32">
-						<v-icon small class="list-icon mr-1 grey lighten-1 white--text">mdi-arrow-up</v-icon>
+						<v-icon small class="list-icon grey lighten-1 white--text">mdi-arrow-up</v-icon>
 					</v-list-item-avatar>
 
 					<v-list-item-content>
@@ -22,7 +22,7 @@
 
 				<v-list-item v-for="item in filelist" :key="item.name" @click="itemClick(item)">
 					<v-list-item-avatar :size="32">
-						<v-icon small class="mr-1" :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
+						<v-icon small :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
 							{{ item.isDirectory ? 'mdi-folder' : 'mdi-file' }}
 						</v-icon>
 					</v-list-item-avatar>
