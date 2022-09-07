@@ -24,7 +24,7 @@ export default {
 			itemsPerPageAll: 'Todos',
 			nextPage: 'Página siguiente',
 			prevPage: 'Página anterior',
-			firstPage: 'Primer página',
+			firstPage: 'Primera página',
 			lastPage: 'Última página',
 			pageText: '{0}-{1} de {2}',
 		},
@@ -33,10 +33,10 @@ export default {
 		},
 		noDataText: 'No hay datos disponibles',
 		carousel: {
-			prev: 'Visual anterior',
-			next: 'Visual siguiente',
+			prev: 'Imagen anterior',
+			next: 'Imagen siguiente',
 			ariaLabel: {
-				delimiter: 'Carousel slide {0} of {1}',
+				delimiter: 'Diapositiva del carrusel {0} de {1}',
 			},
 		},
 		calendar: {
@@ -146,7 +146,7 @@ export default {
 		changeMoveStep: {
 			
 			title: 'Cambiar Numero de Pasos',
-			prompt: 'Por favor, introduce el nuevo valor para el boton:'
+			prompt: 'Por favor, introduce el nuevo valor para el botón:'
 		},
 		configUpdated: {
 			title: '¿Reiniciar Placa?',
@@ -400,15 +400,15 @@ export default {
 	},
 	menu: {
 		control: {
-			caption: 'Control de maquina',
-            status: 'Stado',
+			caption: 'Control de máquina',
+            status: 'Estado',
 			dashboard: 'Cuadro de Mando',
 			console: 'Consola',
 			heightmap: 'Mapa de Altura'
 		},
 		job: {
 			caption: 'Trabajo actual',
-			status: 'Stado',
+			status: 'Estado',
 			webcam: 'Webcam',
 			visualizer: 'Visualizador'
 		},
@@ -487,9 +487,9 @@ export default {
 	},
 	panel: {
 		atx: {
-			caption: 'ATX Power',
-			on: 'On',
-			off: 'Off'
+			caption: 'Potencia ATX',
+			on: 'Encendido',
+			off: 'Apagado'
 		},
 		babystepping: {
 			caption: 'Z Babystepping',
@@ -576,13 +576,13 @@ export default {
 		},
 		settingsAbout: {
 			caption: 'Acerca de',
-			developedBy: 'Interface Web creada por',
+			developedBy: 'Interfaz Web creada por',
 			for: 'para',
 			licensedUnder: 'Licencia bajo terminos de'
 		},
 		settingsAppearance: {
 			caption: 'Apariencia',
-			darkTheme: 'Thema Oscuro',
+			darkTheme: 'Tema Oscuro',
 			language: 'Idioma',
 			binaryFileSizes: 'Usar tamaños de archivo binarios',
 			binaryFileSizesTitle: 'Los tamaños de archivo se muestran en base de 1024 (IEC) en lugar de 1000 (SI)',
@@ -605,12 +605,12 @@ export default {
 			diagnostics: 'Diagnosis',
 			board: 'Placa: {0}',
 			firmware: 'Firmware: {0} ({1})',
-			dwsFirmware: 'Duet Versión Servidor WIFI: {0}',
+			dwsFirmware: 'Versión Duet Servidor WIFI: {0}',
 			updateNote: 'Nota: puede instalar actualizaciones desde la página: Sistema.'
 		},
 		settingsEndstops: {
 			caption: 'Finales de Carrera',
-			index: 'Indice',
+			index: 'Índice',
 			triggered: 'Activado'
 		},
 		settingsGeneral: {
@@ -653,7 +653,7 @@ export default {
 			flipBoth: 'Voltear ambos'
 		},
 		speedFactor: {
-			caption: 'Factor Velocidad'
+			caption: 'Factor de Velocidad'
 		},
 		status: {
 			caption: 'Estado',
