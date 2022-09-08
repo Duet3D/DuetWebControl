@@ -11,6 +11,7 @@ import pl from './pl.json'
 import pt_br from './pt_br.json'
 import ru from './ru.json'
 import tr from './tr.json'
+import uk from './uk.json'
 import zh_cn from './zh_cn.json'
 import ja from './ja.json'
 
@@ -25,6 +26,7 @@ const messages = Vue.observable({
 	pt_br,
 	ru,
 	tr,
+	uk,
 	zh_cn,
 	ja
 })
