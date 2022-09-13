@@ -264,7 +264,7 @@
       "progressText": "Espere mientras se instala el complemento...",
       "installationSuccess": "¡Instalación completa!",
       "installationFailed": "¡Instalación fallida!",
-      "cancel": "Cancelar",      
+      "cancel": "Cancelar",
       "back": "Atrás",
       "next": "Siguiente",
       "finish": "Finalizar",
@@ -506,7 +506,9 @@
       "errorTitle": "Fallo al comprimir archivos"
     },
     "decompress": {
-      "message": "Espere mientras se descomprimen sus archivos..."
+      "title": "Descomprimiendo archivos...",
+      "message": "Espere mientras se descomprimen sus archivos...",
+      "errorTitle": "Error al descomprimir archivos"
     },
     "delete": {
       "errorTitle": "Fallo al eliminar {0}",
@@ -540,6 +542,14 @@
       "errorTitleMacros": "Fallo al crear Macro de filamento",
       "successTitle": "Filamento creado",
       "successMessage": "Filamento {0} creado con éxito"
+    },
+    "plugins": {
+      "started": "Se ha iniciado el complemento",
+      "startError": "No se pudo iniciar el complemento",
+      "stopped": "Se ha detenido el complemento",
+      "stopError": "No se pudo iniciar el complemento",
+      "uninstalled": "El complemento ha sido desinstalado",
+      "uninstallError": "No se pudo desinstalar el complemento"
     },
     "rename": {
       "success": "Renombrado {0} de {1} con éxito",
@@ -608,7 +618,8 @@
       "resumeSimulation": "Reanudar Simulación",
       "repeatJob": "Iniciar de nuevo",
       "repeatPrint": "Imprimir de nuevo",
-      "repeatSimulation": "Simular de nuevo"
+      "repeatSimulation": "Simular de nuevo",
+      "showPreview": "Mostrar vista previa"
     },
     "jobData": {
       "caption": "Informacion (histórico)",
@@ -638,13 +649,18 @@
       "runBed": "Compensación de Cama real (G32)",
       "runDelta": "Calibración Delta (G32)",
       "compensationInUse": "Valor de compensación: {0}",
+      "compensationType": {
+        "mesh": "Malla",
+        "none": "Ninguna"
+      },
       "disableBedCompensation": "Deshabilitar compensación de Cama (M561)",
       "disableMeshCompensation": "Deshabilitar compensacion de Malla (G29 S2)",
       "editMesh": "Definir Área de Malla de Compensación (M557)",
       "runMesh": "Ejecutar compensación de Malla (G29)",
       "loadMesh": "Cargar Mapa de compensación de altura guardado en tarjeta SD (G29 S1)",
       "axesNotHomed": "El siguiente eje no está ajustado: | Los siguientes ejes no están ajustados:",
-      "noAxes": "No hay ejes"
+      "noAxes": "No hay ejes",
+      "workzero": "Ir a cero"
     },
     "settingsAbout": {
       "caption": "Acerca de",
@@ -659,11 +675,23 @@
       "binaryFileSizes": "Usar tamaños de archivo binarios",
       "binaryFileSizesTitle": "Los tamaños de archivo se muestran en base de 1023 (IEC) en lugar de 1000 (SI)",
       "disableAutoComplete": "Desactivar autocompletar",
-      "disableAutoCompleteTitle": "No mostrar desplegable para autocompletar al escribir entradas de código o temperatura"
+      "disableAutoCompleteTitle": "No mostrar desplegable para autocompletar al escribir entradas de código o temperatura",
+      "dashboardModeTitle": "Modo de tablero",
+      "bottomNavigation": "Mostrar navegación inferior en tabletas",
+      "numericInputs": "Mostrar campos de entrada numéricos en lugar de controles deslizantes",
+      "iconMenu": "Usar menú de iconos compactos",
+      "decimalPlaces": "Número de puntos decimales en la visualización de coordenadas",
+      "displayUnitsTitle": "Unidad de medida para visualización de coordenadas",
+      "unitInches": "pulgadas",
+      "unitInch": "in",
+      "unitMm": "mm",
+      "unitInchSpeed": "ipm",
+      "unitMmSpeed": "mm/s"
     },
     "settingsCommunication": {
       "caption": "Comunicación",
       "pingInterval": "Intervalo PING cuando está inactivo (ms)",
+      "updateDelay": "Retardo de actualización (ms)",
       "ajaxRetries": "Número máximo de reintentos AJAX",
       "updateInterval": "Intervalo de actualización ({0})",
       "extendedUpdateEvery": "Intervalo de actualización de estado extendido",
@@ -690,7 +718,8 @@
       "settingsStorageLocal": "Guardar configuración en almacenamiento local",
       "settingsSaveDelay": "Retraso actualización para cambios de configuración ({0})",
       "cacheStorageLocal": "Guardar caché en almacenamiento local",
-      "cacheSaveDelay": "Retraso actualización para cambios de caché ({0})"
+      "cacheSaveDelay": "Retraso actualización para cambios de caché ({0})",
+      "ignoreFileTimestamps": "Ignorar las marcas de tiempo del archivo al cargar"
     },
     "settingsListItems": {
       "caption": "Lista de Elementos",
@@ -702,7 +731,8 @@
     "settingsMachine": {
       "caption": "Especificaciones de la Máquina",
       "babystepAmount": "Cantidad de Babystep ({0})",
-      "moveFeedrate": "Avance para botones de movimiento ({0})"
+      "moveFeedrate": "Avance para botones de movimiento ({0})",
+      "toolChangeMacros": "Macros de cambio de herramienta"
     },
     "settingsNotifications": {
       "caption": "Notificaciones",
@@ -726,6 +756,18 @@
     "speedFactor": {
       "caption": "Factor de Velocidad"
     },
+    "spindle": {
+      "title": "Husillos",
+      "spindle": "Huso",
+      "active": "Activo",
+      "direction": "Dirección",
+      "currentRPM": "RPM actuales",
+      "setRPM": "Establecer RPM",
+      "on": "Encendido",
+      "off": "Apagado",
+      "forward": "Hacia delante",
+      "reverse": "al revés"
+    },
     "status": {
       "caption": "Estado",
       "mode": "Modo: {0}",
@@ -740,13 +782,20 @@
       "mcuTemp": "Temperatura de Placa",
       "minMax": "Minimo: {0}, Máximo {1}",
       "vIn": "Vin",
+      "v12": "V12",
       "fanRPM": "Ventilador RPM",
       "probe": "Sensor-Z|Sensores-Z",
       "noStatus": "Sin Estado"
     },
     "tools": {
       "caption": "Herramientas",
+      "controlHeaters": "Calentadores de control",
       "turnEverythingOff": "Apagar Todo",
+      "setActiveTemperatures": "Establecer temperaturas activas",
+      "setStandbyTemperatures": "Establecer temperaturas de espera",
+      "setToolTemperatures": "Establecer las temperaturas de la herramienta",
+      "setBedTemperatures": "Establecer la temperatura de la cama",
+      "setChamberTemperatures": "Establecer las temperaturas de la cámara",
       "tool": "Herramienta {0}",
       "loadFilament": "Cargar Filamento",
       "changeFilament": "Cambiar Filamento",
@@ -772,6 +821,36 @@
       "alt": "(imagen de la Webcam)"
     }
   },
+  "pluginPermissions": {
+    "commandExecution": "Ejecutar comandos DSF genéricos (por ejemplo, G/M/T-codes)",
+    "codeInterceptionRead": "Interceptar G/M/T-codes",
+    "codeInterceptionReadWrite": "Interceptar códigos G/M/T-codes y manipularlos",
+    "managePlugins": "Instalar, cargar, descargar y desinstalar complementos de terceros",
+    "manageUserSessions": "Administrar sesiones de usuario",
+    "objectModelRead": "Leer del modelo de objetos",
+    "objectModelReadWrite": "Leer y escribir en el modelo de objetos",
+    "registerHttpEndpoints": "Crear nuevos puntos finales HTTP",
+    "readFilaments": "Leer archivos del directorio de filamentos",
+    "writeFilaments": "Escribir archivos en el directorio de filamentos",
+    "readFirmware": "Leer archivos del directorio de firmware",
+    "writeFirmware": "Escribir archivos en el directorio de firmware",
+    "readGCodes": "Leer archivos del directorio de G-codes",
+    "writeGCodes": "Escribir archivos en el directorio de G-codes",
+    "readMacros": "Leer archivos del directorio de macros",
+    "writeMacros": "Escribir archivos en el directorio de macros",
+    "readMenu": "Leer archivos del directorio del menú",
+    "writeMenu": "Escribir archivos en el directorio del menú",
+    "readSystem": "Leer archivos del directorio del sistema",
+    "writeSystem": "Escribir archivos en el directorio del sistema",
+    "readWeb": "Leer archivos del directorio web",
+    "writeWeb": "Escribir archivos en el directorio web",
+    "fileSystemAccess": "Acceder a archivos fuera del directorio SD virtual",
+    "launchProcesses": "Lanzar nuevos procesos",
+    "networkAccess": "Comunicarse por la red",
+    "webcamAccess": "Acceder a dispositivos de cámara web",
+    "gpioAccess": "Acceder a dispositivos GPIO",
+    "superUser": "Ejecutar como usuario root (potencialmente peligroso)"
+  },
   "plugins": {
     "heightmap": {
       "scale": "Escalar:",
@@ -789,6 +868,35 @@
       "colorScheme": "Esquema de color:",
       "terrain": "Superficie",
       "heat": "Calor"
+    },
+    "accelerometer": {
+      "name": "Acelerómetro",
+      "listTitle": "Archivos CSV",
+      "none": "Sin archivos",
+      "chartCaption": "Muestras de aceleración",
+      "noData": "No hay muestras cargadas",
+      "analysis": "Análisis de frecuencia",
+      "samplingRate": "Tasa de muestreo (en Hz)",
+      "start": "Empezar",
+      "end": "Finalizar",
+      "wideBand": "Análisis de banda ancha",
+      "analyze": "Analizar",
+      "back": "Atrás",
+      "overflowPrompt": {
+        "title": "Desbordamientos detectados",
+        "prompt": "Este archivo CSV ha informado de desbordamientos. ¿Seguro que desea continuar?"
+      },
+      "loadError": "Error al cargar el archivo CSV",
+      "parseError": "Error al analizar el archivo CSV",
+      "frequency": "Frecuencia (en Hz)",
+      "amplitudes": "Amplitudes",
+      "samples": "Muestras",
+      "accelerations": "Aceleraciones (en g)",
+      "sampleTooltip": "Muestra #{0}",
+      "frequencyTooltip": "{0} ± {1} Hz"
+    },
+    "autoUpdate": {
+      "menuCaption": "Actualizar"
     }
   }
 }
