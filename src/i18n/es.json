@@ -63,13 +63,13 @@
     },
     "emergencyStop": {
       "caption": "Parada de Emergencia",
-      "title": "Reinicio inmediato del software (M112+M999)"
+      "title": "Forzar un reinicio inmediato del software (M112+M999)"
     },
     "home": {
       "caption": "Home {0}",
       "captionAll": "Home Todos",
       "title": "Home del eje {0} (G28 {0})",
-      "titleAll": "Home de Todos los Ejes (G28)"
+      "titleAll": "Home de todos los ejes (G28)"
     },
     "newDirectory": {
       "caption": "Nuevo Directorio"
@@ -119,6 +119,14 @@
       "update": {
         "caption": "Subir Actualización",
         "title": "Subir Actualización (se permite arrastrar y soltar)"
+      },
+      "firmware": {
+        "caption": "Actualizar Archivos de Firmware",
+        "title": "Subir uno o más archivos de firmware (se permite arrastrar y soltar)"
+      },
+      "plugin": {
+        "caption": "Instalar complemento",
+        "title": "Subir e iniciar un complemento (se permite arrastrar y soltar)"
       }
     }
   },
@@ -132,17 +140,19 @@
       "layerDuration": "Duración: {0}",
       "layerHeight": "Altura de Capa: {0}",
       "filamentUsage": "Filamento Usado: {0}",
-      "fractionPrinted": "Progreso de Archivo: {0}"
+      "fractionPrinted": "Progreso de Archivo: {0}",
+      "temperatures": "Temperaturas: {0}"
     },
     "temperature": {
       "caption": "Grafico de Temperaturas",
       "heater": "Heater {0}",
+      "sensor": "Sensor {0}",
       "noData": "Sin Datos"
     }
   },
   "dialog": {
     "changeMoveStep": {
-      "title": "Cambiar Numero de Pasos",
+      "title": "Cambiar número de pasos",
       "prompt": "Por favor, introduce el nuevo valor para el botón:"
     },
     "configUpdated": {
@@ -169,15 +179,15 @@
       "standBy": "Por favor, mantengase a la espera..."
     },
     "editExtrusionAmount": {
-      "title": "Editar la Cantidad de Extrusión",
+      "title": "Editar la cantidad de extrusión",
       "prompt": "Por favor, introduzca el nuevo valor para el boton:"
     },
     "editExtrusionFeedrate": {
-      "title": "Editar la Velocidad de Avance de Extrusión",
+      "title": "Editar la velocidad de avance de extrusión",
       "prompt": "Por favor, introduzca el nuevo valor para el boton:"
     },
     "factoryReset": {
-      "title": "¿Reestablecer Ajustes de Fábrica?",
+      "title": "¿Reestablecer ajustes de fábrica?",
       "prompt": "¿Está seguro de que desea realizar un restablecimiento de fábrica? Todas las configuraciones guardadas se perderán."
     },
     "filament": {
@@ -193,23 +203,23 @@
     },
     "meshEdit": {
       "title": "Establecer Parámetros de Malla",
-      "radius": "Radio de Sonda",
+      "radius": "Radio de la Sonda",
       "spacing": "Espaciado",
-      "startCoordinate": "Coordenada de inicio en {0} dirección",
-      "endCoordinate": "Coordenada de fin en {0} dirección",
-      "spacingDirection": "Espaciado en {0} dirección"
+      "startCoordinate": "Coordenada de inicio en dirección {0}",
+      "endCoordinate": "Coordenada de fin en dirección {0}",
+      "spacingDirection": "Espaciado en dirección {0}"
     },
     "newDirectory": {
       "title": "Nuevo Directorio",
-      "prompt": "Por favor, introduzca el nombre del Nuevo Directorio:"
+      "prompt": "Por favor, introduzca el nombre del nuevo directorio:"
     },
     "newFilament": {
       "title": "Nuevo Filamento",
-      "prompt": "Por favor, introduzca el nombre del Nuevo Filamento:"
+      "prompt": "Por favor, introduzca el nombre del nuevo filamento:"
     },
     "newFile": {
       "title": "Nuevo Archivo",
-      "prompt": "Por favor, introduzca el nombre del Nuevo Archivo:"
+      "prompt": "Por favor, introduzca el nombre del nuevo archivo:"
     },
     "renameFile": {
       "title": "Renombrar Archivo o Directorio",
@@ -217,7 +227,7 @@
     },
     "resetHeaterFault": {
       "title": "Resetear Fallos de Heater",
-      "prompt": "Se ha producido un fallo en el Heater{0}. Se recomienda encarecidamente apagar la máquina y comprobar la instalación antes de continuar. Si está absolutamente seguro de que no es un problema físico, puede restablecer el fallo de Heater BAJO SU RESPONSABILIDAD. Tenga en cuenta que esto NO SE RECOMIENDA y puede generar más problemas. ¿Cómo quieres proceder?",
+      "prompt": "Se ha producido un fallo en el heater {0}. Se recomienda encarecidamente apagar la máquina y comprobar la instalación antes de continuar. Si está absolutamente seguro de que no es un problema físico, puede restablecer el fallo de Heater BAJO SU RESPONSABILIDAD. Tenga en cuenta que esto NO SE RECOMIENDA y puede generar más problemas. ¿Cómo quieres proceder?",
       "resetFault": "Resetear Fallo"
     },
     "runMacro": {
@@ -245,9 +255,9 @@
   },
   "error": {
     "notImplemented": "{0} no está implementado.",
-    "invalidPassword": "¡Contraseña Incorrecta!",
+    "invalidPassword": "¡Contraseña incorrecta!",
     "noFreeSession": "¡No más sesiones libres!",
-    "connect": "Fallo al conectar con: {0}",
+    "connect": "Fallo al conectar con {0}",
     "disconnect": "No se pudo desconectar limpiamente de {0}",
     "disconnected": "No se pudo completar la acción porque la conexión ha finalizado",
     "cancelled": "La operación ha sido cancelada",
@@ -326,7 +336,7 @@
   "input": {
     "code": {
       "send": "Enviar",
-      "placeholder": "Enviar Código..."
+      "placeholder": "Enviar código..."
     },
     "addTemperature": "Nuevo valor de temperatura",
     "addRPM": "Nuevo valor predefinido"
@@ -391,7 +401,7 @@
     },
     "system": {
       "noFiles": "Sin Archivos de Sistema",
-      "configToolNote": "Editar desde Herramienta de Configuración"
+      "configToolNote": "Editar desde herramienta de configuración"
     }
   },
   "menu": {
@@ -487,11 +497,11 @@
       "current": "Offset Actual: {0}"
     },
     "extrude": {
-      "caption": "Control de Extrusion ",
+      "caption": "Control de Extrusión ",
       "mix": "Mix",
       "mixRatio": "Mix Ratio:",
       "amount": "Cantidad de material en {0}:",
-      "feedrate": "Velocidad de Avance en{0}:",
+      "feedrate": "Velocidad de avance en {0}:",
       "retract": "Retracción",
       "extrude": "Extrusión"
     },
@@ -559,7 +569,7 @@
       "compensationInUse": "Valor de compensación: {0}",
       "disableBedCompensation": "Deshabilitar compensación de Cama (M561)",
       "disableMeshCompensation": "Deshabilitar compensacion de Malla (G29 S2)",
-      "editMesh": "Definir Area de Malla de Compensación (M557)",
+      "editMesh": "Definir Área de Malla de Compensación (M557)",
       "runMesh": "Ejecutar compensación de Malla (G29)",
       "loadMesh": "Cargar Mapa de compensación de altura guardado en tarjeta SD (G29 S1)",
       "axesNotHomed": "El siguiente eje no está ajustado: | Los siguientes ejes no están ajustados:",
@@ -587,11 +597,11 @@
       "updateInterval": "Intervalo de actualización ({0})",
       "extendedUpdateEvery": "Intervalo de actualización de estado extendido",
       "fileTransferRetryThreshold": "Máximo número de intentos para transferencia de archivos ({0})",
-      "crcUploads": "Usar CRC31 checksums para las subidas",
+      "crcUploads": "Usar CRC32 checksums para las subidas",
       "unavailable": "No hay configuraciones disponibles"
     },
     "settingsElectronics": {
-      "caption": "Electronica",
+      "caption": "Electróonica",
       "diagnostics": "Diagnósticos",
       "board": "Placa: {0}",
       "firmware": "Firmware: {0} ({1})",
@@ -656,7 +666,7 @@
       "requestedSpeed": "Velocidad solicitada",
       "topSpeed": "Velocidad Máxima",
       "sensors": "Sensores",
-      "mcuTemp": "Temperatura Placa",
+      "mcuTemp": "Temperatura de Placa",
       "minMax": "Minimo: {0}, Máximo {1}",
       "vIn": "Vin",
       "fanRPM": "Ventilador RPM",
@@ -692,7 +702,7 @@
     }
   },
   "plugins": {
-    "heightmap": {
+      "heightmap": {
       "scale": "Escalar:",
       "orMore": "o aumentar",
       "orLess": "o disminuir",
