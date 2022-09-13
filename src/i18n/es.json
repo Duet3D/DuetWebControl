@@ -96,6 +96,10 @@
         "caption": "Subir e Iniciar",
         "title": "Subir e Iniciar impresión de uno o más archivos G-Code (se permite arrastrar y soltar)"
       },
+      "firmware": {
+        "caption": "Actualizar Archivos de Firmware",
+        "title": "Subir uno o más archivos de firmware (se permite arrastrar y soltar)"
+      },
       "macros": {
         "caption": "Subir Archivo(s) Macro",
         "title": "Subir uno o más archivos Macro (se permite arrastrar y soltar)"
@@ -116,17 +120,13 @@
         "caption": "Subir Archivo(s) Web",
         "title": "Subir uno o más archivos Web (se permite arrastrar y soltar)"
       },
-      "update": {
-        "caption": "Subir Actualización",
-        "title": "Subir Actualización (se permite arrastrar y soltar)"
-      },
-      "firmware": {
-        "caption": "Actualizar Archivos de Firmware",
-        "title": "Subir uno o más archivos de firmware (se permite arrastrar y soltar)"
-      },
       "plugin": {
-        "caption": "Instalar complemento",
+        "caption": "Instalar Complemento",
         "title": "Subir e iniciar un complemento (se permite arrastrar y soltar)"
+      },
+      "update": {
+        "caption": "Instalar Actualización",
+        "title": "Subir Actualización (se permite arrastrar y soltar)"
       }
     }
   },
@@ -193,13 +193,28 @@
     "filament": {
       "titleChange": "Cambiar Filamento",
       "titleLoad": "Cargar Filamento",
-      "prompt": "Por favor, elija un filamento:"
+      "prompt": "Por favor, elija un filamento:",
+      "noFilaments": "No hay filamentos disponibles"
     },
     "fileEdit": {
       "gcodeReference": "Referencia G-Code",
       "menuReference": "Referencia Menu",
       "save": "Guardar",
       "confirmClose": "El archivo ha sido cambiado. Si continúa, se perderán dichos cambios."
+    },
+    "fileTransfer": {
+      "uploadingTitle": "Cargando archivo {0} de {1}, {2}% completado",
+      "uploadDoneTitle": "¡Subidas completas!",
+      "uploadFailedTitle": "¡Error en las subidas!",
+      "downloadingTitle": "Descargando el archivo {0} de {1}, {2}% completado",
+      "downloadDoneTitle": "Descargas Completas",
+      "downloadFailedTitle": "¡Descargas fallidas!",
+      "filename": "Nombre del archivo",
+      "size": "Tamaño",
+      "progress": "Progreso",
+      "currentSpeed": "Velocidad actual: {0}",
+      "cancelUploads": "Cancelar subidas",
+      "cancelDownloads": "Cancelar descargas"
     },
     "meshEdit": {
       "title": "Establecer Parámetros de Malla",
@@ -221,6 +236,43 @@
       "title": "Nuevo Archivo",
       "prompt": "Por favor, introduzca el nombre del nuevo archivo:"
     },
+    "pluginInstallation": {
+      "installation": "Instalación del complemento",
+      "prompt": "Se instalará el siguiente complemento:",
+      "by": "por {0}",
+      "license": "Licencia: {0}",
+      "homepage": "Página principal:",
+      "contents": "Este paquete proporciona componentes de software para",
+      "dsf": "Duet Software Framework",
+      "dwc": "Duet Web Control",
+      "rrf": "RepRapFirmware",
+      "prerequisites": "Requisitos previos",
+      "version": "Versión {0}",
+      "noPluginSupport": "Complementos externos no permitidos",
+      "rootSupport": "Compatibilidad con complementos de superusuario",
+      "invalidManifest": "Manifiesto de complemento no válido",
+      "permissions": "Permisos requeridos",
+      "dwcWarning": "Este complemento contiene componentes para la interfaz web. No se pueden aplicar verificaciones de permisos en las sesiones del navegador, por lo que puede manipular su sistema y crear riesgos de seguridad que podrían provocar daños físicos en su configuración.",
+      "rootWarning": "Este complemento requiere permisos de superusuario, lo que significa que puede reconfigurar el SBC adjunto e instalar software potencialmente malicioso. Esto podría provocar daños físicos en su configuración.",
+      "sbcPermissions": "El complemento que se ejecuta en el SBC quiere",
+      "noSpecialPermissions": "Este complemento no requiere ningún permiso especial.",
+      "ready": "Listo para la instalación",
+      "readyMessage": "El complemento ahora está listo para ser instalado. Asegúrese de confiar en el autor del complemento antes de confirmar este paso final.",
+      "readyDisclaimer": "Antes de continuar, debe aceptar que Duet3D Ltd no se hace responsable de los daños potenciales que resulten de la instalación de este complemento de terceros.",
+      "checkboxDisclaimer": "Acepto los riesgos, instale este complemento",
+      "progress": "Progreso de instalación",
+      "progressText": "Espere mientras se instala el complemento...",
+      "installationSuccess": "¡Instalación completa!",
+      "installationFailed": "¡Instalación fallida!",
+      "cancel": "Cancelar",      
+      "back": "Atrás",
+      "next": "Siguiente",
+      "finish": "Finalizar",
+      "reloadPrompt": {
+        "title": "¿Recargar DWC?",
+        "prompt": "Acaba de actualizar un complemento DWC activo. Para utilizar la nueva versión, se debe volver a cargar la interfaz web. ¿Quieres hacer esto ahora?"
+      }
+    },
     "renameFile": {
       "title": "Renombrar Archivo o Directorio",
       "prompt": "Por favor, introduzca el nuevo nombre:"
@@ -240,7 +292,10 @@
     },
     "update": {
       "title": "¿Instalar Actualización/es?",
-      "prompt": "Has subido al menos una actualización de firmware. ¿Desea instalarla/s ahora?"
+      "prompt": "Has subido al menos una actualización de firmware. ¿Desea instalarla/s ahora?",
+      "resetTitle": "¿Restablecer firmware?",
+      "resetPrompt": "Acaba de instalar actualizaciones de tarjetas de expansión. ¿Desea reiniciar el controlador principal para restaurar la configuración anterior?",
+      "sbcWarning": "Está operando su máquina en modo SBC. Actualice el firmware utilizando DWC solo si lo recomiendan los desarrolladores de firmware."
     },
     "inputRequired": "Por favor, introduzca un valor",
     "numberRequired": "Por favor, introduzca un número válido"
@@ -248,6 +303,7 @@
   "directory": {
     "menu": "Directorio de Menu",
     "filaments": "Directorio de Filamentos",
+    "firmware": "Directorio de firmware",
     "gcodes": "Directorio de G-Codes",
     "macros": "Directorio de Macros",
     "system": "Directorio de Sistema",
@@ -257,6 +313,7 @@
     "notImplemented": "{0} no está implementado.",
     "invalidPassword": "¡Contraseña incorrecta!",
     "noFreeSession": "¡No más sesiones libres!",
+    "badVersion": "Versión de firmware incompatible",
     "connect": "Fallo al conectar con {0}",
     "disconnect": "No se pudo desconectar limpiamente de {0}",
     "disconnected": "No se pudo completar la acción porque la conexión ha finalizado",
@@ -310,12 +367,15 @@
       "offline": "desconectado"
     },
     "status": {
+      "disconnected": "Desconectado",
+      "starting": "Comenzando",
       "updating": "Actualizando",
       "off": "Off",
       "halted": "Detenido",
       "pausing": "Pausando",
       "paused": "Pausado",
       "resuming": "Reanudando",
+      "cancelling": "Cancelado",
       "printing": "Imprimiendo",
       "processing": "Procesando",
       "simulating": "Simulando",
@@ -339,7 +399,8 @@
       "placeholder": "Enviar código..."
     },
     "addTemperature": "Nuevo valor de temperatura",
-    "addRPM": "Nuevo valor predefinido"
+    "addRPM": "Nuevo valor predefinido",
+    "set": "Establecer"
   },
   "jobProgress": {
     "simulating": "Simulando {0}, {1} completado",
@@ -381,6 +442,10 @@
     },
     "filament": {
       "noFilaments": "No hay filamentos"
+    },
+    "firmware": {
+      "installFile": "Instalar archivo de firmware",
+      "noFiles": "Sin archivos de firmware"
     },
     "macro": {
       "caption": "Macros",
@@ -425,6 +490,9 @@
       "system": "Sistema",
       "web": "Web"
     },
+    "plugins": {
+      "caption": "Complementos"
+    },
     "settings": {
       "caption": "Configuración",
       "general": "General",
@@ -436,6 +504,9 @@
       "title": "Comprimiendo archivos ...",
       "message": "Espere mientras se comprimen los archivos...",
       "errorTitle": "Fallo al comprimir archivos"
+    },
+    "decompress": {
+      "message": "Espere mientras se descomprimen sus archivos..."
     },
     "delete": {
       "errorTitle": "Fallo al eliminar {0}",
@@ -702,7 +773,7 @@
     }
   },
   "plugins": {
-      "heightmap": {
+    "heightmap": {
       "scale": "Escalar:",
       "orMore": "o aumentar",
       "orLess": "o disminuir",
