@@ -967,25 +967,64 @@
       "g1AsExtrusion": "Procesamiento G1 (CNC)"
     },
     "heightmap": {
-      
-      
-      
-      
+      "menuCaption": "Mapa de altura",
+      "listTitle": "Mapas de altura",
+      "none": "Ninguna",
       "scale": "Escalar:",
       "orMore": "o aumentar",
       "orLess": "o disminuir",
       "axes": "Ejes:",
       "notAvailable": "mapa de altura no disponible",
+      "statistics": "Estadísticas",
       "numPoints": "Número de puntos: {0}",
       "radius": "Radio de prueba: {0}",
       "area": "Area de prueba: {0}",
       "maxDeviations": "Desviación Máxima: {0} / {1}",
       "meanError": "Error medio: {0}",
       "rmsError": "Error RMS: {0}",
-      "topView": "Vista superior",
+      "display": "Monitor",
       "colorScheme": "Esquema de color:",
       "terrain": "Superficie",
-      "heat": "Calor"
+      "heat": "Calor",
+      "invertZ": "Invertir coordenadas Z",
+      "topView": "Vista superior",
+      "range": "Rango",
+      "fixed": "Fijado",
+      "deviation": "Desviación",
+      "resetView": "Reestablecer vista",
+    },
+    "objectModelBrowser": {
+      "menuCaption": "Modelo de objetos"
+    }
+  },
+  "tabs": {
+    "generalSettings": {
+      "caption": "General"
+    },
+    "machineSettings": {
+      "caption": "General"
+    },
+    "plugins": {
+      "integratedPlugins": "Complementos integrados",
+      "externalPlugins": "Complementos externos",
+      "headers": {
+        "name": "Nombre",
+        "author": "Autor",
+        "version": "Versión",
+        "license": "Licencia",
+        "dependencies": "Dependencias",
+        "status": "Estado"
+      },
+      "optional": "opcional",
+      "start": "Empezar",
+      "partiallyStarted": "parcialmente iniciado",
+      "started": "empezado",
+      "stop": "Parar",
+      "deactivated": "desactivado",
+      "stopped": "detenido",
+      "uninstall": "Desinstalar",
+      "noPlugins": "Sin complementos",
+      "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC"
     }
   }
 }
