@@ -852,23 +852,6 @@
     "superUser": "Ejecutar como usuario root (potencialmente peligroso)"
   },
   "plugins": {
-    "heightmap": {
-      "scale": "Escalar:",
-      "orMore": "o aumentar",
-      "orLess": "o disminuir",
-      "axes": "Ejes:",
-      "notAvailable": "mapa de altura no disponible",
-      "numPoints": "Número de puntos: {0}",
-      "radius": "Radio de prueba: {0}",
-      "area": "Area de prueba: {0}",
-      "maxDeviations": "Desviación Máxima: {0} / {1}",
-      "meanError": "Error medio: {0}",
-      "rmsError": "Error RMS: {0}",
-      "topView": "Vista superior",
-      "colorScheme": "Esquema de color:",
-      "terrain": "Superficie",
-      "heat": "Calor"
-    },
     "accelerometer": {
       "name": "Acelerómetro",
       "listTitle": "Archivos CSV",
@@ -897,6 +880,112 @@
     },
     "autoUpdate": {
       "menuCaption": "Actualizar"
-    }
+    },
+    "gcodeViewer": {
+      "caption": "Visor de G-Code",
+      "view3D": "Ver 3D",
+      "fullscreen": "Pantalla completa",
+      "showConfiguration": "Mostrar configuración del visor",
+      "resetCamera": {
+        "caption": "Restablecer cámara",
+        "title": "Restablecer la cámara a la posición de inicio"
+      },
+      "cancelLoad": "Cancelar carga de archivos",
+      "reloadView": {
+        "caption": "Recargar vista",
+        "title": "Vuelva a cargar el G-Code actual, esto se usa cuando se cambia la configuración como el color, el color de la velocidad de avance, etc."
+      },
+      "loadCurrentJob": {
+        "caption": "Cargar trabajo actual",
+        "title": "Cargue el trabajo de impresión o simulación actual"
+      },
+      "unloadGCode": {
+        "caption": "Descargar G-Code",
+        "title": "Eliminar el G-Code cargado del visor"
+      },
+      "loadLocalGCode": {
+        "caption": "Cargar G-Code local",
+        "title": "Cargue un archivo desde su unidad local en el visor"
+      },
+      "showCursor": "Mostrar cursores",
+      "showTravels": "Mostrar viajes",
+      "renderQuality": {
+        "caption": "Calidad de renderizado",
+        "title": "Ajusta la calidad de visualización del visor. Cuanto más alto sea el nivel, más vértices y modos de renderizado estarán disponibles."
+      },
+      "sbc": "SBC",
+      "low": "Bajo",
+      "medium": "Medio",
+      "high": "Alto",
+      "ultra": "Ultra",
+      "max": "Máx.",
+      "forceLineRendering": "Representación de línea de fuerza",
+      "transparency": "Transparencia",
+      "showSolid": "Mostrar Sólido",
+      "spreadLines": "Líneas de propagación",
+      "extruders": {
+        "caption": "Extrusores",
+        "title": "Establece el color utilizado para renderizar un extrusor"
+      },
+      "tool": "Herramienta {0}",
+      "resetColor": "Restablecer color de la herramienta | Restablecer colores de herramientas",
+      "renderMode": {
+        "caption": "Modo de renderizado | Modos de renderizado",
+        "title": "El modo de renderizado le permite establecer el color de la extrusora o el color de la línea de velocidad de avance en el visor"
+      },
+      "color": "Color",
+      "feedrate": "Velocidad de avance",
+      "minFeedrate": "Avance mínimo (mm/s)",
+      "maxFeedrate": "Avance máximo (mm/s)",
+      "minFeedrateColor": "Color de avance mínimo",
+      "maxFeedrateColor": "Color de avance máximo",
+      "progress": {
+        "caption": "Progreso",
+        "title": "Establecer el color impreso para el seguimiento del progreso"
+      },
+      "topClipping": "Recorte superior",
+      "bottomClipping": "Recorte inferior",
+      "progressColor": "Color de progreso",
+      "liveZTracking": "Seguimiento Z en vivo",
+      "settings": "Ajustes",
+      "background": "Fondo",
+      "bedRenderMode": "Modo de renderizado de cama",
+      "bed": "Cama",
+      "volume": "Volumen",
+      "showAxes": "Mostrar ejes",
+      "showObjectLabels": "Mostrar etiquetas de objetos",
+      "cameraInertia": "Inercia de la cámara",
+      "showObjectSelection": {
+        "caption": "Mostrar selección de objetos",
+        "title": "Habilitado si se pueden detectar objetos en la impresión actual"
+      },
+      "renderFailed": "El procesamiento anterior falló. Configuración de la calidad de renderizado en SBC",
+      "showFSOverlay": "Mostrar superposición de pantalla completa",
+      "useHQRendering": "Renderizado de alta calidad (redondo)",
+      "useSpecular": "Usar resaltado especular",
+      "feature": "Característica",
+      "g1AsExtrusion": "Procesamiento G1 (CNC)"
+    },
+    "heightmap": {
+      
+      
+      
+      
+      "scale": "Escalar:",
+      "orMore": "o aumentar",
+      "orLess": "o disminuir",
+      "axes": "Ejes:",
+      "notAvailable": "mapa de altura no disponible",
+      "numPoints": "Número de puntos: {0}",
+      "radius": "Radio de prueba: {0}",
+      "area": "Area de prueba: {0}",
+      "maxDeviations": "Desviación Máxima: {0} / {1}",
+      "meanError": "Error medio: {0}",
+      "rmsError": "Error RMS: {0}",
+      "topView": "Vista superior",
+      "colorScheme": "Esquema de color:",
+      "terrain": "Superficie",
+      "heat": "Calor"
+    },
   }
 }
