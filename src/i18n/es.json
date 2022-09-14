@@ -991,7 +991,7 @@
       "range": "Rango",
       "fixed": "Fijado",
       "deviation": "Desviación",
-      "resetView": "Reestablecer vista",
+      "resetView": "Reestablecer vista"
     },
     "objectModelBrowser": {
       "menuCaption": "Modelo de objetos"

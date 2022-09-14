@@ -42,7 +42,7 @@ module.exports = {
 			const { terserOptions } = args[0]
 			terserOptions.keep_classnames = true;
 			terserOptions.keep_fnames = true;
-			return args
+			return args;
 		});
 		config.optimization.set('splitChunks', {
 			chunks: 'all',
