@@ -25,7 +25,6 @@
 							{{ $t('panel.fan.toolFan') }}
 						</v-btn>
 
-
 						<template v-for="(fan, index) in fans">
 							<v-btn v-if="fan && fan.thermostatic.heaters.length === 0" :key="index" :value="index" :disabled="uiFrozen">
 								{{ fan.name ? fan.name : $t('panel.fan.fan', [index]) }}
@@ -35,7 +34,7 @@
 				</v-col>
 
 				<v-col cols="12" sm="auto" order="0" order-sm="1" class="flex-sm-grow-1">
-					<percentage-input v-model="fanValue" :disabled="uiFrozen"></percentage-input>
+					<percentage-input v-model="fanValue" :max="maxFanValue" :disabled="uiFrozen"></percentage-input>
 				</v-col>
 			</v-row>
 		</v-card-text>
@@ -69,6 +68,12 @@ export default {
 					this.sendCode(`M106 P${this.fan} S${value.toFixed(2)}`);
 				}
 			}
+		},
+		maxFanValue() {
+			const fan = (this.fan === -1)
+				? ((this.currentTool && this.currentTool.fans.length > 0) ? this.currentTool.fans[0] : -1)
+				: this.fan;
+			return (fan >= 0 && fan < this.fans.length && this.fans[fan]) ? Math.round(this.fans[fan].max) : 1;
 		}
 	},
 	data() {
