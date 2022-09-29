@@ -200,7 +200,8 @@
       "gcodeReference": "G-Code-Referenz",
       "menuReference": "Menüreferenz",
       "save": "Speichern",
-      "confirmClose": "Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren."
+      "confirmClose": "Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.",
+      "confirmSaveEmpty": "Es scheint so als wäre die Datei, die sie speichern möchten, leer. Sind sie sicher, dass sie fortfahren möchten?"
     },
     "fileTransfer": {
       "uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",
