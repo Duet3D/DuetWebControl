@@ -165,7 +165,7 @@
 
 import { mapState, mapActions } from 'vuex'
 
-import { version } from '../../../package.json'
+import packageInfo from '../../../package.json'
 import Plugins, { checkVersion } from '@/plugins'
 import { PluginManifest, SbcPermission } from '@/plugins/manifest'
 import Events from '@/utils/events.js'
@@ -252,7 +252,7 @@ export default {
 			return !this.pluginManifest.sbcRequired;
 		},
 		dwcVersion() {
-			return version;
+			return packageInfo.version;
 		},
 		checkDwcVersion() {
 			if (this.pluginManifest.dwcVersion) {

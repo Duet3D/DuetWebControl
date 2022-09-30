@@ -19,12 +19,12 @@
 <script>
 'use strict'
 
-import { version } from '../../../package.json'
+import packageInfo from '../../../package.json'
 
 export default {
 	data() {
 		return {
-			version
+			version: packageInfo.version
 		}
 	}
 }

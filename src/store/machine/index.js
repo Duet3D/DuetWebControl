@@ -10,7 +10,7 @@ import { MessageType, StatusType } from './modelEnums.js'
 import { Plugin } from './modelItems.js'
 import settings from './settings.js'
 
-import { version } from '../../../package.json'
+import packageInfo from '../../../package.json'
 import Root from '@/main.js'
 import i18n from '@/i18n'
 import Plugins, { checkVersion, loadDwcResources } from '@/plugins'
@@ -513,8 +513,8 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 				}
 
 				// Is the plugin compatible to the running DWC version?
-				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-					throw new Error(`Plugin ${plugin.id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
+					throw new Error(`Plugin ${plugin.id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
 				}
 
 				// Install the plugin
@@ -580,8 +580,8 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 				}
 
 				// Is the plugin compatible to the running DWC version?
-				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, version)) {
-					throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${version})`);
+				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
+					throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
 				}
 
 				// Load plugin dependencies in DWC

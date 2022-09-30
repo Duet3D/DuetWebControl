@@ -1,4 +1,4 @@
-const CustomImportsPlugin = require('./webpack/lib/custom-imports-plugin.js')
+//const CustomImportsPlugin = require('./webpack/lib/custom-imports-plugin.js')
 const CompressionPlugin = require('compression-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 
@@ -14,13 +14,12 @@ module.exports = {
 			flagIncludedChunks: false,
 			mergeDuplicateChunks: false,
 			moduleIds: 'named',
-			occurrenceOrder: false,
 			removeAvailableModules: false,
 			usedExports: false
 		},
 		performance: { hints: false },
 		plugins: (process.env.NODE_ENV === 'production') ? [
-			new CustomImportsPlugin(),
+			//new CustomImportsPlugin(),
 			new CompressionPlugin({
 				minRatio: Infinity
 			}),

@@ -1,6 +1,6 @@
 'use strict'
 
-import { version } from '../../package.json'
+import packageInfo from '../../package.json'
 import { Dictionary, quickPatch } from '../utils/patch.js'
 
 export class PluginManifest {
@@ -13,7 +13,7 @@ export class PluginManifest {
 	homepage = null									// Link to the plugin homepage or source code repository
     tags = []                                       // List of user-defined tags for searching
 
-	dwcVersion = version 							// Major/minor compatible DWC version. Mandatory for DWC plugins
+	dwcVersion = packageInfo.version 				// Major/minor compatible DWC version. Mandatory for DWC plugins
 	dwcDependencies = []							// List of DWC plugins this plugin depends on. Circular dependencies are not supported
 
 	sbcRequired = false								// Set to true if a SBC is absolutely required for this plugin

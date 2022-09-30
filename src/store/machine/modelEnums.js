@@ -170,10 +170,14 @@ export const MachineMode = {
 }
 
 export const MessageBoxMode = {
-	noButtons: 0,		// non-blocking
-	closeOnly: 1,		// non-blocking
-	okOnly: 2,			// blocking
-	okCancel: 3			// blocking, requires M292 (P1) to continue
+	noButtons: 0,
+	closeOnly: 1,
+	okOnly: 2,
+	okCancel: 3,
+	multipleChoice: 4,
+	intInput: 5,
+	floatInput: 6,
+	stringInput: 7
 }
 
 export const MessageType = {

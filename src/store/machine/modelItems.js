@@ -109,6 +109,7 @@ export class Board {
 	supportsDirectDisplay = false
 	v12 = null
 	vIn = null
+	wifiFirmwareFileName = null
 }
 
 export class Build {
@@ -144,6 +145,7 @@ export class Extruder {
 	driver = null
 	factor = 1.0
 	filament = ''
+	filamentDiameter = 1.75
 	jerk = 15
 	microstepping = {
 		interpolated: false,
@@ -158,7 +160,7 @@ export class Extruder {
 	percentStstCurrent = null
 	position = 0
 	pressureAdvance = 0
-	rawPosition = 0			// *** deprecated as of v3.3, to be replaced with job.rawExtrusion
+	rawPosition = 0
 	speed = 100
 	stepsPerMm = 420
 }
@@ -174,9 +176,10 @@ export class Fan {
 	requestedValue = 0
 	rpm = -1
 	thermostatic = {
-		heaters: [],
+		heaters: [],				// *** deprecated as of v3.5, replaced by sensors
 		highTemperature: null,
-		lowTemperature: null
+		lowTemperature: null,
+		sensors: []
 	}
 }
 
@@ -266,6 +269,9 @@ export class Heater {
 	active = 0
 	current = -273.15
 	max = 285
+	maxBadReadings = 3
+    maxHeatingFaultTime = 5
+    maxTempExcursion = 15
 	min = -10
 	model = {
         coolingExp: 1.35,
@@ -315,7 +321,9 @@ export class InputChannel {
 	inMacro = false
 	lineNumber = 0
 	macroRestartable = false
+	motionSystem = 0
 	name = null
+	selectedPlane = 0
 	stackDepth = 0
 	state = InputChannelState.idle
 	volumetric = false
@@ -422,12 +430,17 @@ export class Message {
 
 export class MessageBox {
 	constructor(initData) { quickPatch(this, initData); }
-	axisControls = 0
-	mode = MessageBoxMode.okOnly
+	axisControls = null
+	cancelButton = false
+	choices = null
+	default = null
+	max = null
 	message = ''
+	min = null
+	mode = MessageBoxMode.okOnly
 	seq = -1
-	title = ''
 	timeout = 0
+	title = ''
 }
 
 export class MinMaxCurrent {
@@ -542,8 +555,11 @@ export class Spindle {
 	configured = false
 	current = 0					// RPM
 	frequency = 0				// Hz
-	min = 60					// RPM
+	idlePwm = 0
 	max = 10000					// RPM
+	maxPwm = 1
+	min = 60					// RPM
+	minPwm = 0
 	state = SpindleState.stopped
 }
 

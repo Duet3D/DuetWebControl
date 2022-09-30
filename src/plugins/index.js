@@ -1,7 +1,6 @@
 'use strict'
 
-// eslint-disable-next-line no-unused-vars
-import { version } from '../../package.json'
+import packageInfo from '../../package.json'
 import store from '@/store'
 import { Plugin } from '@/store/machine/modelItems.js'
 
@@ -69,7 +68,7 @@ export default [
 		id: 'Accelerometer',
 		name: 'Accelerometer',
 		author: 'Duet3D Ltd',
-		version,
+		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "Accelerometer" */
 			'./Accelerometer/index.js'
@@ -79,7 +78,7 @@ export default [
 		id: 'HeightMap',
 		name: 'Height Map',
 		author: 'Duet3D Ltd',
-		version,
+		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "HeightMap" */
 			'./HeightMap/index.js'
@@ -89,7 +88,7 @@ export default [
 		id: 'GCodeViewer',
 		name: 'G-Code Viewer',
 		author: 'Juan Rosario',
-		version,
+		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "GCodeViewer" */
 			'./GCodeViewer/index.js'
@@ -99,7 +98,7 @@ export default [
 		id: 'ObjectModelBrowser',
 		name: 'Object Model Browser',
 		author: 'Duet3D Ltd',
-		version,
+		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "ObjectModelBrowser" */
 			'./ObjectModelBrowser/index.js'
@@ -109,7 +108,7 @@ export default [
 		id: 'OnScreenKeyboard',
 		name: 'On-Screen Keyboard',
 		author: 'Duet3D Ltd',
-		version,
+		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "OnScreenKeyboard" */
 			'./OnScreenKeyboard/index.js'

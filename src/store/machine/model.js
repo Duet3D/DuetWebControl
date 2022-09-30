@@ -27,7 +27,7 @@ import {
 	Tool,
 	fixObjectModel,
 	overloadModelPush,
-	overloadProperty, Build
+	overloadProperty, Build, MessageBox
 } from './modelItems.js'
 
 import Path from '@/utils/path.js'
@@ -442,6 +442,15 @@ export class MachineModelModule {
 					}
 				}
 				delete payload.plugins;
+			}
+
+			// Apply message box default manually, its type can vary
+			if (payload.state && payload.state.messageBox && payload.state.messageBox.default !== undefined) {
+				if (!state.state.messageBox) {
+					state.state.messageBox = new MessageBox();
+				}
+				state.state.messageBox.default = payload.state.messageBox.default;
+				delete payload.state.messageBox.default;
 			}
 
 			// Apply new data
