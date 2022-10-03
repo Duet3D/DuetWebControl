@@ -964,7 +964,13 @@
       "useHQRendering": "High Quality Render (Round)",
       "useSpecular": "Use Specular Highlight",
       "feature": "Feature",
-      "g1AsExtrusion": "Render G1 (CNC)"
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "objectDialog": {
+        "cancelTitle": "Cancel Object",
+        "resumeTitle": "Resume Object",
+        "cancelPrompt": "Are you sure you want to cancel this object? It can be resumed by selecting it again.",
+        "resumePrompt": "Are you sure you want to resume this object?"
+      }
     },
     "heightmap": {
       "menuCaption": "Height Map",

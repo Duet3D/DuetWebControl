@@ -337,16 +337,19 @@
 			<v-card>
 				<v-card-title class="headline">
 					<v-icon class="mr-2">{{ objectDialogData.info.cancelled ? 'mdi-reload' : 'mdi-cancel' }}</v-icon>
-					{{ objectDialogData.info.cancelled ? 'Resume' : 'Cancel' }} Object
+					{{ objectDialogData.info.cancelled ? $t('plugins.gcodeViewer.objectDialog.resumeTitle') : $t('plugins.gcodeViewer.objectDialog.cancelTitle') }}
 				</v-card-title>
-				<v-card-text>{{ objectDialogData.info.name }}</v-card-text>
+				<v-card-text>
+					<p class="text-h4 text--primary">{{ objectDialogData.info.name }}</p>
+					<div class="text--primary">{{ objectDialogData.info.cancelled ? $t('plugins.gcodeViewer.objectDialog.resumePrompt') : $t('plugins.gcodeViewer.objectDialog.cancelPrompt') }}</div>
+				</v-card-text>
 				<v-card-actions>
 					<v-row no-gutters>
 						<v-col cols="6">
-							<v-btn @click="objectDialogCancelObject" block color="primary">Ok</v-btn>
+							<v-btn @click="objectDialogCancelObject" block color="primary">{{$t('generic.yes')}}</v-btn>
 						</v-col>
 						<v-col cols="6">
-							<v-btn @click="objectDialogData.showDialog = false" block color="error">Cancel</v-btn>
+							<v-btn @click="objectDialogData.showDialog = false" block color="error">{{$t('generic.no')}}</v-btn>
 						</v-col>
 					</v-row>
 				</v-card-actions>
