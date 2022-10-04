@@ -33,7 +33,6 @@ export function loadDwcResources(plugin, connector) {
 	} else if (process.env.mode !== 'development') {
 		// Import external webpack module
 		window.pluginBeingLoaded = plugin;
-		window.pluginBaseURL = connector.requestBase;
 
 		/* eslint-disable no-undef */
 		return __webpack_require__.e(plugin.id).then(__webpack_require__.bind(null, `./src/plugins/${plugin.id}/index.js`));

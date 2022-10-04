@@ -1,4 +1,4 @@
-//const CustomImportsPlugin = require('./webpack/lib/custom-imports-plugin.js')
+const CustomImportsPlugin = require('./webpack/lib/custom-imports-plugin.js')
 const CompressionPlugin = require('compression-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 
@@ -19,8 +19,9 @@ module.exports = {
 		},
 		performance: { hints: false },
 		plugins: (process.env.NODE_ENV === 'production') ? [
-			//new CustomImportsPlugin(),
+			new CustomImportsPlugin(),
 			new CompressionPlugin({
+				exclude: /\.zip$/,
 				minRatio: Infinity
 			}),
 			...((process.env.NOZIP) ? [] : [
@@ -46,8 +47,8 @@ module.exports = {
 		config.optimization.set('splitChunks', {
 			chunks: 'all',
 			cacheGroups: {
-				default: false,
-				vendors: false
+				defaultVendors: false,
+				default: false
 			}
 		});
 		config.plugins.delete('prefetch');
@@ -57,7 +58,10 @@ module.exports = {
 		name: 'Duet Web Control',
 		themeColor: '#2196f3',
 		appleMobileWebAppCapable: 'yes',
-		appleMobileWebAppStatusBarStyle: 'black'
+		appleMobileWebAppStatusBarStyle: 'black',
+		workboxOptions: {
+			maximumFileSizeToCacheInBytes: 20000000		// 20MB
+		}
 	},
 	transpileDependencies: [
 		'vuetify'

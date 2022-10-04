@@ -1,61 +1,76 @@
 const assert = require('assert');
+const Compilation = require('webpack/lib/Compilation');
+const RuntimeGlobals = require('webpack/lib/RuntimeGlobals');
+
 const pluginName = 'CustomImportsPlugin';
 
-/**
- * This plugin modifies the webpack bootstrap code in order to support variable
- * chunk names / assets. It is inspired by the JsonpScriptSrcPlugin by jchip
- * from https://github.com/webpack/webpack/issues/8115. Thanks for that!
- */
-
 class CustomImportPlugin {
-	constructor() {}
-
-	_applyMainTemplate(mainTemplate) {
-		// tapable/lib/Hook.js
-		// use stage 1 to ensure this executes after webpack/lib/web/JsonpMainTemplatePlugin.js
-		mainTemplate.hooks.localVars.tap({ name: pluginName, stage: 1 }, (source, chunk, hash) => {
-			assert(
-				source.includes("function jsonpScriptSrc"),
-				"CustomImportsPlugin: main template bootstrap source doesn't have function jsonpScriptSrc"
-			);
-
-			const modSource = source.replace("function jsonpScriptSrc", "function webpackJsonpScriptSrc");
-			return `${modSource}
-
-function jsonpScriptSrc(chunkId) {
-	if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {
-		return window.pluginBaseURL + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.js$/.test(file));
-	}
-	return webpackJsonpScriptSrc(chunkId);
-}
-`;
-		});
-
-		// use stage 1 to ensure this executes after mini-css-extract-plugin
-		mainTemplate.hooks.requireEnsure.tap({ name: pluginName, stage: 1 }, (source, chunk, hash) => {
-			assert(
-				source.includes('&& cssChunks[chunkId])'),
-				"CustomImportsPlugin: CSS template bootstrap source doesn't have cssChunks check");
-			assert(
-				source.includes(`var fullhref = ${mainTemplate.requireFn}.p + href;`),
-				"CustomImportsPlugin: CSS template bootstrap source doesn't have fullref variable"
-			);
-
-			const modSource = source.replace('&& cssChunks[chunkId])', '&& (cssChunks[chunkId] || (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file)))))');
-			return modSource.replace(`var fullhref = ${mainTemplate.requireFn}.p + href;`, `
-var fullhref;
-if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file))) {
-	fullhref = window.pluginBaseURL + window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file));
-} else {
-	fullhref = ${mainTemplate.requireFn}.p + href;
-}
-`);
-		});
-	}
+	constructor() { }
 
 	apply(compiler) {
-		compiler.hooks.thisCompilation.tap(pluginName, (compilation) => {
-			this._applyMainTemplate(compilation.mainTemplate);
+		compiler.hooks.compilation.tap(pluginName, compilation => {
+			const basicFn = compilation.runtimeTemplate.basicFunction;
+			compilation.runtimeTemplate.basicFunction = (args, body) => {
+				// Patch generation of RuntimeGlobals.getChunkScriptFilename, RuntimeGlobals.getChunkCssFilename, and mini-css loader calls.
+				// There may be a nicer way to achieve this in Webpack 5 using hooks but I really have no clue how.
+				if (args === "chunkId" && body instanceof Array && body.length > 0 && body[0].includes("// return url for filenames")) {
+					// Adjust it for CSS chunks
+					if (body.some(line => line.includes('"css/"'))) {
+						return basicFn.call(compilation.runtimeTemplate, args, [
+							"if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
+							"\treturn window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file));",
+							"}"
+						].concat(body));
+					}
+
+					// Adjust it for JS chunks
+					if (body.some(line => line.includes('"js/"'))) {
+						return basicFn.call(compilation.runtimeTemplate, args, [
+							"if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
+							"\treturn window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.js$/.test(file));",
+							"}"
+						].concat(body));
+					}
+				} else if (args === "chunkId, promises" && body instanceof Array && body.some(line => line.includes("cssChunks[chunkId])"))) {
+					// Adjust mini-css loader check
+					const newBody = [];
+					for (const line of body) {
+						if (line.includes("cssChunks[chunkId])")) {
+							newBody.push(line.replace('&& cssChunks[chunkId])', '&& (cssChunks[chunkId] || (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file)))))'));
+						} else {
+							newBody.push(line);
+						}
+					}
+					return basicFn.call(compilation.runtimeTemplate, args, newBody);
+				}
+				return basicFn.call(compilation.runtimeTemplate, args, body);
+			};
+
+			compilation.hooks.processAssets.tap(
+				{
+					name: pluginName,
+					stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONS
+				},
+				(assets) => {
+					for (const [pathname, asset] of Object.entries(assets)) {
+						if (pathname.startsWith("js/app")) {
+							const source = asset.source();
+							assert(
+								source.includes("if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {"),
+								"Resulting app chunk does not contain custom imports patch"
+							);
+							assert(
+								source.includes(`${RuntimeGlobals.getChunkScriptFilename}`),
+								"Resulting app chunk does not contain getChunkScriptFilename function"
+							);
+							assert(
+								source.includes('&& (cssChunks[chunkId] ||'),
+								"Resulting app chunk does not contain patched miniCss loader check"
+							);
+						}
+					}
+				}
+			);
 		});
 	}
 }

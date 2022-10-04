@@ -256,7 +256,7 @@ export default {
 		},
 		checkDwcVersion() {
 			if (this.pluginManifest.dwcVersion) {
-				return checkVersion(version, this.pluginManifest.dwcVersion);
+				return checkVersion(packageInfo.version, this.pluginManifest.dwcVersion);
 			}
 			return true;
 		},
