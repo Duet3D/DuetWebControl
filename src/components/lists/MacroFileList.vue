@@ -61,7 +61,7 @@
 
 import { mapGetters, mapState, mapActions } from 'vuex'
 
-import Path, { escapeFilename } from '../../utils/path.js'
+import Path, { escapeFilename } from '@/utils/path'
 
 export default {
 	computed: {

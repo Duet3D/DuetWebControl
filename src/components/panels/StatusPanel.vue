@@ -225,10 +225,11 @@ a:not(:hover) {
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { ProbeType } from '@duet3d/objectmodel';
+import { mapState, mapGetters } from 'vuex';
 
-import { ProbeType, isPrinting } from '../../store/machine/modelEnums.js'
-import { UnitOfMeasure } from '../../store/settings.js'
+import { UnitOfMeasure } from '@/store/settings';
+import { isPrinting } from '@/utils/enums';
 
 export default {
 	computed: {

@@ -114,9 +114,14 @@
 </template>
 
 <script>
-import {mapState} from 'vuex';
-import {ProbeType, isPrinting, AnalogSensorType} from '../../store/machine/modelEnums.js';
-import { UnitOfMeasure } from '../../store/settings.js';
+'use strict'
+
+import { ProbeType, AnalogSensorType } from '@duet3d/objectmodel';
+import { mapState } from 'vuex';
+
+import { UnitOfMeasure } from '@/store/settings';
+import { isPrinting } from '@/utils/enums';
+
 export default {
 	computed: {
 		...mapState('settings', ['displayUnits']),

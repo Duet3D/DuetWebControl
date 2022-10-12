@@ -74,7 +74,7 @@ td {
 import Vue from 'vue'
 import { mapState } from 'vuex'
 
-import Events from '../../utils/events.js'
+import Events from '@/utils/events'
 
 export default {
 	computed: {

@@ -100,12 +100,12 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 
-import i18n from '@/i18n'
-import { isPrinting } from '@/store/machine/modelEnums.js'
-import { DisconnectedError, InvalidPasswordError } from '@/utils/errors.js'
-import Path, { escapeFilename } from '@/utils/path.js'
+import i18n from '@/i18n';
+import Path, { escapeFilename } from '@/utils/path';
+import { isPrinting } from '@/utils/enums';
+import { DisconnectedError, InvalidPasswordError } from '@/utils/errors';
 
 export default {
 	computed: {

@@ -42,7 +42,7 @@
 					</span>
 				</v-col>
 
-				<v-col v-if="job.file.simulatedTime && !isSimulating" class="d-flex flex-column">
+				<v-col v-if="job.file && job.file.simulatedTime && !isSimulating" class="d-flex flex-column">
 					<strong>
 						{{ $t('panel.jobEstimations.simulation') }}
 					</strong>
@@ -58,9 +58,10 @@
 <script>
 'use strict'
 
-import { mapState } from 'vuex'
+import { MachineStatus } from '@duet3d/objectmodel';
+import { mapState } from 'vuex';
 
-import { isPrinting, StatusType } from '../../store/machine/modelEnums.js'
+import { isPrinting } from '@/utils/enums';
 
 export default {
 	computed: {
@@ -75,7 +76,7 @@ export default {
 			if (this.job.timesLeft.slicer !== null) {
 				return this.job.timesLeft.slicer;
 			}
-			if (this.job.file.printTime != null) {
+			if (this.job.file && this.job.file.printTime != null) {
 				return this.isPrinting ? Math.max(0, this.job.file.printTime - this.job.duration) : this.job.file.printTime;
 			}
 			return null;
@@ -87,11 +88,11 @@ export default {
 		}
 	},
 	mounted() {
-		this.isSimulating = (this.status === StatusType.simulating);
+		this.isSimulating = (this.status === MachineStatus.simulating);
 	},
 	watch: {
 		status(to) {
-			if (to === StatusType.simulating) {
+			if (to === MachineStatus.simulating) {
 				this.isSimulating = true;
 			} else if (!this.isPrinting) {
 				this.isSimulating = false;

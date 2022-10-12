@@ -7,8 +7,8 @@
 
 import { mapGetters, mapActions } from 'vuex'
 
-import Path from '../../utils/path.js'
-import { DisconnectedError } from '../../utils/errors.js'
+import { DisconnectedError } from '@/utils/errors'
+import Path from '@/utils/path'
 
 export default {
 	props: {

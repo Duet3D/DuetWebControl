@@ -30,7 +30,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { DisconnectedError } from '../../utils/errors.js'
+import { DisconnectedError } from '@/utils/errors'
 
 export default {
 	props: {

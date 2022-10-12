@@ -1,5 +1,7 @@
 'use strict'
 
+// This file is now obsolete - it will be removed from v3.6
+
 import Vue from 'vue'
 
 export class Dictionary {

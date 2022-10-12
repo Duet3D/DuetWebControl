@@ -63,9 +63,9 @@ button {
 <script>
 'use strict'
 
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex';
 
-import { makeNotification } from '../../utils/notifications.js'
+import { makeNotification } from '@/utils/notifications';
 
 export default {
     props: {

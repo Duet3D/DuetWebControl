@@ -85,9 +85,8 @@
 <script>
 'use strict'
 
+import { MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
 import { mapState, mapGetters, mapActions } from 'vuex'
-import { MessageBox } from "@/store/machine/modelItems";
-import { MessageBoxMode } from "@/store/machine/modelEnums";
 import { isNumber } from '@/utils/numbers';
 import patch from '@/utils/patch';
 

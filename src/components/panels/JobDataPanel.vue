@@ -49,9 +49,9 @@
 <script>
 'use strict'
 
-import { mapState } from 'vuex'
+import { mapState } from 'vuex';
 
-import { isPrinting } from '../../store/machine/modelEnums.js'
+import { isPrinting } from '@/utils/enums';
 
 export default {
 	computed: {

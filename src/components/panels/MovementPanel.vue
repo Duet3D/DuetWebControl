@@ -132,9 +132,8 @@
 <script>
 'use strict'
 
+import { KinematicsName, MachineStatus } from '@duet3d/objectmodel';
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-
-import { KinematicsName, StatusType } from '@/store/machine/modelEnums'
 
 export default {
 	computed: {
@@ -150,9 +149,9 @@ export default {
 		},
 		canHome() {
 			return !this.uiFrozen && (
-				this.state.status !== StatusType.pausing &&
-				this.state.status !== StatusType.processing &&
-				this.state.status !== StatusType.resuming
+				this.state.status !== MachineStatus.pausing &&
+				this.state.status !== MachineStatus.processing &&
+				this.state.status !== MachineStatus.resuming
 			);
 		},
 		unhomedAxes() { return this.move.axes.filter(axis => axis.visible && !axis.homed); }

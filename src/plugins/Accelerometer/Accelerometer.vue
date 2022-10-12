@@ -92,15 +92,14 @@
 <script>
 'use strict'
 
-import Chart from 'chart.js'
+import Chart from 'chart.js';
+import { mapState, mapGetters, mapActions } from 'vuex';
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import CSV from '@/utils/csv';
+import Events from '@/utils/events';
+import Path from '@/utils/path';
 
-import CSV from '../../utils/csv.js'
-import Events from '../../utils/events.js'
-import Path from '../../utils/path.js'
-
-import { transform } from './fft.js'
+import { transform } from './fft';
 
 export default {
 	computed: {

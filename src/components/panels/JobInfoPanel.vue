@@ -15,16 +15,16 @@ p:last-child {
 
 		<v-card-text class="d-flex flex-column pt-0">
 			<p>
-				<strong>{{ $t('panel.jobInfo.height') }}</strong> {{ (jobFile.height > 0) ? $displayZ(jobFile.height) : $t('generic.noValue') }}
+				<strong>{{ $t('panel.jobInfo.height') }}</strong> {{ (jobFile?.height > 0) ? $displayZ(jobFile.height) : $t('generic.noValue') }}
 			</p>
 			<p v-if="isFFF">
-				<strong>{{ $t('panel.jobInfo.layerHeight') }}</strong> {{ $displayZ(jobFile.layerHeight) }}
+				<strong>{{ $t('panel.jobInfo.layerHeight') }}</strong> {{ jobFile ? $displayZ(jobFile.layerHeight) : $t('generic.noValue') }}
 			</p>
 			<p v-if="isFFF">
-				<strong>{{ $t('panel.jobInfo.filament') }}</strong> {{ $displayZ(jobFile.filament, 'mm') }}
+				<strong>{{ $t('panel.jobInfo.filament') }}</strong> {{ jobFile ? $displayZ(jobFile.filament, 'mm') : $t('generic.noValue') }}
 			</p>
 			<p>
-				<strong>{{ $t('panel.jobInfo.generatedBy') }}</strong> {{ $display(jobFile.generatedBy) }}
+				<strong>{{ $t('panel.jobInfo.generatedBy') }}</strong> {{ jobFile ? $display(jobFile?.generatedBy) : $t('generic.noValue') }}
 			</p>
 		</v-card-text>
 	</v-card>
@@ -34,9 +34,8 @@ p:last-child {
 <script>
 'use strict'
 
-import { mapState } from 'vuex'
-
-import { MachineMode } from '../../store/machine/modelEnums.js'
+import { MachineMode } from '@duet3d/objectmodel';
+import { mapState } from 'vuex';
 
 export default {
 	computed: {

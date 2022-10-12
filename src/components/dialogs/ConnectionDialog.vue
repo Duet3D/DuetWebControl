@@ -20,9 +20,8 @@
 <script>
 'use strict'
 
+import { MachineStatus } from '@duet3d/objectmodel'
 import { mapState, mapGetters } from 'vuex'
-
-import { StatusType } from '@/store/machine/modelEnums'
 
 export default {
 	computed: {
@@ -36,7 +35,7 @@ export default {
 			if (this.isConnecting || this.connectingProgress >= 0) {
 				return this.$t('dialog.connection.connecting');
 			}
-			if (this.status === StatusType.updating) {
+			if (this.status === MachineStatus.updating) {
 				return this.$t('dialog.connection.updating');
 			}
 			if (this.isReconnecting) {
@@ -49,7 +48,7 @@ export default {
 		},
 		shown() {
 			return (this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting ||
-					this.status === StatusType.halted || this.status === StatusType.updating);
+					this.status === MachineStatus.halted || this.status === MachineStatus.updating);
 		}
 	},
 	data() {
@@ -66,7 +65,7 @@ export default {
 	},
 	watch: {
 		status(to) {
-			if (to === StatusType.halted) {
+			if (to === MachineStatus.halted) {
 				this.haltedTimer = setTimeout(this.showResetButton.bind(this), 4000);
 			} else {
 				if (this.haltedTimer) {

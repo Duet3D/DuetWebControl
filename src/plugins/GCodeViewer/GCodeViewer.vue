@@ -358,12 +358,13 @@
 <script>
 'use strict';
 
+import { KinematicsName } from '@duet3d/objectmodel';
 import gcodeViewer from '@sindarius/gcodeviewer';
-import {mapActions, mapState} from 'vuex';
-import Path from '../../utils/path.js';
-import {KinematicsName} from '../../store/machine/modelEnums';
-import {isPrinting} from '../../store/machine/modelEnums.js';
-import {setPluginData, PluginDataType} from '../../store';
+import { mapActions, mapState } from 'vuex';
+
+import { setPluginData, PluginDataType } from '@/store';
+import { isPrinting } from '@/utils/enums';
+import Path from '@/utils/path';
 
 let viewer;
 

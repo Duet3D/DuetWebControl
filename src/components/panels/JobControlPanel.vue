@@ -41,9 +41,10 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters } from 'vuex'
+import { MachineMode, MachineStatus } from '@duet3d/objectmodel';
+import { mapState, mapGetters } from 'vuex';
 
-import { MachineMode, StatusType, isPaused, isPrinting } from '@/store/machine/modelEnums'
+import { isPaused, isPrinting } from '@/utils/enums';
 
 export default {
 	computed: {
@@ -52,10 +53,10 @@ export default {
 			lastFileSimulated: state => state.job.lastFileSimulated,
 			machineMode: state => state.state.machineMode,
 			status: state => state.state.status,
-			thumbnails: state => state.job.file.thumbnails
+			thumbnails: state => state.job.file?.thumbnails || []
 		}),
 		...mapGetters(['uiFrozen']),
-		isPausing() { return this.status === StatusType.pausing; },
+		isPausing() { return this.status === MachineStatus.pausing; },
 		isPaused() { return isPaused(this.status); },
 		isPrinting() { return isPrinting(this.status); },
 		pauseResumeText() {
@@ -104,11 +105,11 @@ export default {
 		}
 	},
 	mounted() {
-		this.isSimulating = (this.status === StatusType.simulating);
+		this.isSimulating = (this.status === MachineStatus.simulating);
 	},
 	watch: {
 		status(to) {
-			if (to === StatusType.simulating) {
+			if (to === MachineStatus.simulating) {
 				this.isSimulating = true;
 			} else if (!this.isPrinting) {
 				this.isSimulating = false;

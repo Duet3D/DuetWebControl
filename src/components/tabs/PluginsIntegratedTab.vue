@@ -57,10 +57,10 @@ button {
 <script>
 'use strict'
 
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from 'vuex';
 
-import Plugins from '../../plugins'
-import { makeNotification } from '../../utils/notifications.js'
+import Plugins from '@/plugins';
+import { makeNotification } from '@/utils/notifications';
 
 export default {
 	computed: {

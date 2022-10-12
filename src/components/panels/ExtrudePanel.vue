@@ -56,10 +56,8 @@
 </template>
 
 <script>
-'use strict'
-
+import { MachineStatus } from "@duet3d/objectmodel";
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-import { StatusType } from "@/store/machine/modelEnums";
 
 export default {
 	computed: {
@@ -68,10 +66,10 @@ export default {
 		...mapGetters('machine/model', ['currentTool']),
 		...mapState('machine/settings', ['extruderAmounts', 'extruderFeedrates']),
 		canExtrude() {
-			return (this.state.status !== StatusType.off &&
-					this.state.status !== StatusType.pausing &&
-					this.state.status !== StatusType.processing &&
-					this.state.status !== StatusType.resuming &&
+			return (this.state.status !== MachineStatus.off &&
+					this.state.status !== MachineStatus.pausing &&
+					this.state.status !== MachineStatus.processing &&
+					this.state.status !== MachineStatus.resuming &&
 					this.currentTool && this.currentTool.extruders.length > 0 &&
 					!this.currentTool.heaters.some(heaterNumber => {
 						if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {
@@ -85,10 +83,10 @@ export default {
 					}, this));
 		},
 		canRetract() {
-			return (this.state.status !== StatusType.off &&
-					this.state.status !== StatusType.pausing &&
-					this.state.status !== StatusType.processing &&
-					this.state.status !== StatusType.resuming &&
+			return (this.state.status !== MachineStatus.off &&
+					this.state.status !== MachineStatus.pausing &&
+					this.state.status !== MachineStatus.processing &&
+					this.state.status !== MachineStatus.resuming &&
 					this.currentTool && this.currentTool.extruders.length > 0 &&
 					!this.currentTool.heaters.some(heaterNumber => {
 						if (heaterNumber >= 0 && heaterNumber < this.heat.heaters.length) {

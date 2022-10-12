@@ -9,9 +9,9 @@
 <script>
 'use strict'
 
+import { MachineMode } from "@duet3d/objectmodel";
 import { registerRoute } from '..'
 import store from '@/store'
-import { MachineMode } from "@/store/machine/modelEnums";
 
 export default {
 	install() {

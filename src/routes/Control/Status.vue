@@ -8,12 +8,12 @@
 <script>
 'use strict'
 
+import { MachineMode } from '@duet3d/objectmodel';
 import Vue from 'vue'
 import { mapState } from 'vuex'
 
 import { registerRoute } from '@/routes'
 import { DashboardMode } from '@/store/settings'
-import { MachineMode } from '@/store/machine/modelEnums'
 
 export default {
 	install() {

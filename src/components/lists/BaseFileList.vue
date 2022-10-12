@@ -128,9 +128,9 @@ import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 import i18n from '../../i18n'
 import { defaultMachine } from '@/store/machine'
-import { DisconnectedError, OperationCancelledError } from '@/utils/errors.js'
-import Events from '@/utils/events.js'
-import Path from '@/utils/path.js'
+import { DisconnectedError, OperationCancelledError } from '@/utils/errors'
+import Events from '@/utils/events'
+import Path from '@/utils/path'
 
 const maxEditFileSize = 33554432;		// 32 MiB
 

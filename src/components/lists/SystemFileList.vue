@@ -74,7 +74,7 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { isPrinting } from '@/store/machine/modelEnums'
+import { isPrinting } from '@/utils/enums'
 import Path from '@/utils/path'
 
 export default {

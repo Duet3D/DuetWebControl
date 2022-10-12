@@ -13,9 +13,8 @@ span {
 <script>
 'use strict'
 
+import { MachineMode, MachineStatus } from '@duet3d/objectmodel'
 import { mapState } from 'vuex'
-
-import { MachineMode, StatusType } from '../../store/machine/modelEnums.js'
 
 export default {
 	computed: {
@@ -25,26 +24,26 @@ export default {
 			let type = this.state.status;
 			if (!this.state.status) {
 				type = 'unknown';
-			} else if (this.state.status === StatusType.processing && this.state.machineMode === MachineMode.fff) {
+			} else if (this.state.status === MachineStatus.processing && this.state.machineMode === MachineMode.fff) {
 				type = 'printing';
 			}
 			return this.$t(`generic.status.${type}`);
 		},
 		statusClass() {
 			switch (this.state.status) {
-				case StatusType.disconnected: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
-				case StatusType.starting: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
-				case StatusType.updating: return this.darkTheme ? 'blue darken-3' : 'blue lighten-3';
-				case StatusType.off: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
-				case StatusType.halted: return 'red white--text';
-				case StatusType.pausing: return this.darkTheme ? 'yellow darken-3' : 'orange accent-2';
-				case StatusType.paused: return this.darkTheme ? 'orange darken-2' : 'yellow lighten-1';
-				case StatusType.resuming: return this.darkTheme ? 'yellow darken-3' : 'orange accent-2';
-				case StatusType.processing: return 'green white--text';
-				case StatusType.simulating: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
-				case StatusType.busy: return this.darkTheme ? 'amber darken-2 white--text' : 'amber white--text';
-				case StatusType.changingTool: return this.darkTheme ? 'grey darken-3' : 'blue lighten-5';
-				case StatusType.idle: return this.darkTheme ? 'light-green darken-3' : 'light-green lighten-4';
+				case MachineStatus.disconnected: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
+				case MachineStatus.starting: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
+				case MachineStatus.updating: return this.darkTheme ? 'blue darken-3' : 'blue lighten-3';
+				case MachineStatus.off: return this.darkTheme ? 'red darken-2 white--text' : 'red darken-1 white--text';
+				case MachineStatus.halted: return 'red white--text';
+				case MachineStatus.pausing: return this.darkTheme ? 'yellow darken-3' : 'orange accent-2';
+				case MachineStatus.paused: return this.darkTheme ? 'orange darken-2' : 'yellow lighten-1';
+				case MachineStatus.resuming: return this.darkTheme ? 'yellow darken-3' : 'orange accent-2';
+				case MachineStatus.processing: return 'green white--text';
+				case MachineStatus.simulating: return this.darkTheme ? 'light-blue darken-3' : 'light-blue accent-1';
+				case MachineStatus.busy: return this.darkTheme ? 'amber darken-2 white--text' : 'amber white--text';
+				case MachineStatus.changingTool: return this.darkTheme ? 'grey darken-3' : 'blue lighten-5';
+				case MachineStatus.idle: return this.darkTheme ? 'light-green darken-3' : 'light-green lighten-4';
 				default: return 'red white--text';
 			}
 		}

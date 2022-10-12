@@ -101,10 +101,10 @@
 </style>
 
 <script>
-import { mapState } from 'vuex';
-//import { isPrinting } from '../../store/machine/modelEnums.js';
+'use strict'
 
-('use strict');
+import { mapState } from 'vuex';
+
 export default {
 	data: function () {
 		return {};

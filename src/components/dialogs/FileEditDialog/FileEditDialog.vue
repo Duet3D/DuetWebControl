@@ -92,8 +92,9 @@ import 'codemirror/theme/blackboard.css'
 
 import { mapState, mapActions } from 'vuex'
 
+import Path from '@/utils/path'
+
 import './gcode-mode.js'
-import Path from '../../../utils/path.js'
 
 const maxEditorFileSize = 8388608			// 8 MiB
 

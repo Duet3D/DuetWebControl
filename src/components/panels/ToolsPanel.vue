@@ -339,11 +339,11 @@ table.extra tr > td:first-child {
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { AnalogSensorType, HeaterState, SpindleState } from '@duet3d/objectmodel';
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 
-import { AnalogSensorType, HeaterState, SpindleState } from '@/store/machine/modelEnums'
-import { getHeaterColor, getExtraColor } from '@/utils/colors'
-import { DisconnectedError } from '@/utils/errors'
+import { getHeaterColor, getExtraColor } from '@/utils/colors';
+import { DisconnectedError } from '@/utils/errors';
 
 export default {
 	computed: {

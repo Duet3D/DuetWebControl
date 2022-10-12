@@ -78,8 +78,10 @@ td {
 </style>
 
 <script>
-import {mapActions, mapState} from 'vuex';
-import {SpindleState} from '../../store/machine/modelEnums.js';
+"use strict"
+
+import { SpindleState } from '@duet3d/objectmodel';
+import { mapActions, mapState } from 'vuex';
 import Vue from 'vue';
 
 export default {

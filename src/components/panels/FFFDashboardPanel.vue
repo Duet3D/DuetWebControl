@@ -33,9 +33,8 @@
 <script>
 'use strict'
 
+import { MachineMode } from '@duet3d/objectmodel';
 import { mapState, mapGetters } from 'vuex'
-
-import { MachineMode } from '@/store/machine/modelEnums'
 
 export default {
 	computed: {

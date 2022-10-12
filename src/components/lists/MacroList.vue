@@ -49,9 +49,9 @@
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { DisconnectedError } from '../../utils/errors.js'
-import Events from '../../utils/events.js'
-import Path, { escapeFilename } from '../../utils/path.js'
+import Path, { escapeFilename } from '@/utils/path'
+import { DisconnectedError } from '@/utils/errors'
+import Events from '@/utils/events'
 
 export default {
 	computed: {

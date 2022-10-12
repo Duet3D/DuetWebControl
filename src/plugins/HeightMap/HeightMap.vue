@@ -142,13 +142,16 @@ h1 {
 <script>
 'use strict';
 
-import {mapState, mapGetters, mapActions} from 'vuex';
+import { KinematicsName } from '@duet3d/objectmodel';
+import { mapState, mapGetters, mapActions } from 'vuex';
+
+import { setPluginData, PluginDataType } from '@/store';
+import CSV from '@/utils/csv';
+import Events from '@/utils/events';
+import Path from '@/utils/path';
+
 import HeightMapViewer from './3dbjs';
-import {setPluginData, PluginDataType} from '../../store';
-import CSV from '../../utils/csv.js';
-import Events from '../../utils/events.js';
-import Path from '../../utils/path.js';
-import {KinematicsName} from '../../store/machine/modelEnums';
+
 let heightMapViewer;
 export default {
 	computed: {

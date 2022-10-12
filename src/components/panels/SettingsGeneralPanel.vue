@@ -32,9 +32,9 @@
 <script>
 'use strict'
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex';
 
-import { localStorageSupported } from '../../utils/localStorage.js'
+import { localStorageSupported } from '@/utils/localStorage';
 
 export default {
 	computed: {

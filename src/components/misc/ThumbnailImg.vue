@@ -12,9 +12,8 @@
 <script>
 'use strict'
 
+import { ThumbnailFormat } from "@duet3d/objectmodel";
 import QOI from 'qoijs'
-
-import { ThumbnailFormat } from "@/store/machine/modelEnums";
 
 export default {
 	props: {

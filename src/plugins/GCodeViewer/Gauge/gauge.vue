@@ -14,7 +14,7 @@
 <script>
 'use strict';
 
-import Gauge from './gauge.js';
+import Gauge from './gauge';
 
 export default {
 	props: {

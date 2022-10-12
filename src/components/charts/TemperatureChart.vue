@@ -42,8 +42,8 @@ import { mapState, mapGetters } from 'vuex'
 
 import i18n from '@/i18n'
 import { defaultMachine } from '@/store/machine'
-import Events from '@/utils/events.js'
-import { getRealHeaterColor } from '@/utils/colors.js'
+import Events from '@/utils/events'
+import { getRealHeaterColor } from '@/utils/colors'
 
 const sampleInterval = 1000			// ms
 const defaultMaxTemperature = 300	// degC

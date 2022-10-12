@@ -163,12 +163,12 @@
 <script>
 'use strict'
 
-import { mapState, mapActions } from 'vuex'
+import { PluginManifest, SbcPermission } from '@duet3d/objectmodel';
+import { mapState, mapActions } from 'vuex';
 
 import packageInfo from '../../../package.json'
 import Plugins, { checkVersion } from '@/plugins'
-import { PluginManifest, SbcPermission } from '@/plugins/manifest'
-import Events from '@/utils/events.js'
+import Events from '@/utils/events'
 
 export default {
 	computed: {

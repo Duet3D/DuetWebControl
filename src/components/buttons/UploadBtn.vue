@@ -20,15 +20,15 @@
 <script>
 'use strict'
 
+import { NetworkInterfaceType, MachineStatus } from '@duet3d/objectmodel'
 import JSZip from 'jszip'
 import { VBtn } from 'vuetify/lib'
-
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { isPrinting, NetworkInterfaceType, StatusType } from '@/store/machine/modelEnums'
+import { isPrinting } from '@/utils/enums'
 import { DisconnectedError } from '@/utils/errors'
-import Events from '@/utils/events.js'
-import Path from '@/utils/path.js'
+import Events from '@/utils/events'
+import Path from '@/utils/path'
 
 const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
 
@@ -409,7 +409,7 @@ export default {
 							if (!this.isConnected) {
 								return;
 							}
-						} while (this.state.status === StatusType.updating);
+						} while (this.state.status === MachineStatus.updating);
 
 					} catch (e) {
 						if (!(e instanceof DisconnectedError)) {

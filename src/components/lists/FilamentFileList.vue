@@ -69,8 +69,8 @@ import saveAs from 'file-saver'
 
 import { mapState, mapGetters, mapActions } from 'vuex'
 
-import { DisconnectedError, FileNotFoundError, OperationCancelledError } from '@/utils/errors.js'
-import Path from '@/utils/path.js'
+import { DisconnectedError, FileNotFoundError, OperationCancelledError } from '@/utils/errors'
+import Path from '@/utils/path'
 
 export default {
 	computed: {

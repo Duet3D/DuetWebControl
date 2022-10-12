@@ -1,11 +1,12 @@
 'use strict'
 
-import i18n from '../../i18n'
 import Vue from 'vue';
 
-import { registerRoute } from '../../routes';
-import { registerPluginContextMenuItem, ContextMenuType } from '../index.js';
-import { registerPluginData, PluginDataType } from '../../store';
+import i18n from '@/i18n';
+import { registerPluginContextMenuItem, ContextMenuType } from '@/plugins';
+import { registerRoute } from '@/routes';
+import { registerPluginData, PluginDataType } from '@/store';
+
 import Gauge from './Gauge/gauge.vue';
 import ColorPicker from './ColorPicker.vue';
 import FSOverlay from './FSOverlay.vue'

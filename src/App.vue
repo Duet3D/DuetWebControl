@@ -1,60 +1,3 @@
-<style>
-#title:not(:hover) {
-	color: inherit;
-}
-
-.empty-table-fix td {
-	padding-left: 0 !important;
-	padding-right: 0 !important;
-}
-
-.global-control.theme--light {
-	background-color: #F5F5F5 !important;
-}
-#global-container .v-card.theme--light {
-	background-color: #F5F5F5 !important;
-}
-.global-control.theme--dark {
-	background-color: #515151 !important;
-}
-#global-container .v-card.theme--dark {
-	background-color: #515151 !important;
-}
-
-input[type='number'] {
-	-moz-appearance: textfield;
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-}
-
-a:not(:hover) {
-	text-decoration: none;
-}
-
-textarea {
-	line-height: 1.25rem !important;
-}
-
-.theme--dark textarea {
-	caret-color: #FFF;
-}
-
-.v-item-group.theme--dark .v-btn__content {
-	color: #FFF !important;
-}
-
-.v-speed-dial--fixed {
-	z-index: 5;
-}
-
-.v-btn {
-	text-transform: unset !important;
-}
-</style>
-
 <template>
 	<v-app>
 		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
@@ -148,16 +91,14 @@ textarea {
 </template>
 
 <script>
-'use strict'
+import { MachineMode, MachineStatus } from '@duet3d/objectmodel';
+import Piecon from 'piecon';
+import Vue from 'vue';
+import { mapState, mapGetters, mapActions } from 'vuex';
 
-import Vue from 'vue'
-import Piecon from 'piecon'
-import { mapState, mapGetters, mapActions } from 'vuex'
-
-import { Menu, Routes } from './routes'
-import { isPrinting, StatusType } from './store/machine/modelEnums.js'
-import { MachineMode } from './store/machine/modelEnums.js';
-import { DashboardMode } from './store/settings.js'
+import { Menu, Routes } from '@/routes';
+import { DashboardMode } from '@/store/settings';
+import { isPrinting } from '@/utils/enums';
 
 export default {
 	computed: {
@@ -230,7 +171,7 @@ export default {
 			return category.pages.filter(page => page.condition);
 		},
 		updateTitle() {
-			if (this.status === StatusType.disconnected) {
+			if (this.status === MachineStatus.disconnected) {
 				document.title = `(${this.name})`;
 			} else {
 				const jobProgress = this.jobProgress;
@@ -281,7 +222,7 @@ export default {
 			this.$vuetify.theme.dark = to;
 		},
 		status(to, from) {
-			if (to === StatusType.disconnected || from === StatusType.disconnected) {
+			if (to === MachineStatus.disconnected || from === MachineStatus.disconnected) {
 				this.updateTitle();
 			}
 

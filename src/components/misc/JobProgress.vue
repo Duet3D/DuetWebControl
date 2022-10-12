@@ -15,10 +15,11 @@
 <script>
 'use strict'
 
+import { MachineMode, MachineStatus } from '@duet3d/objectmodel'
 import { mapState, mapGetters } from 'vuex'
 
-import { MachineMode, isPrinting, StatusType } from '../../store/machine/modelEnums.js'
-import { extractFileName } from '../../utils/path.js'
+import { isPrinting } from '@/utils/enums'
+import { extractFileName } from '@/utils/path'
 
 export default {
 	computed: {
@@ -91,11 +92,11 @@ export default {
 		}
 	},
 	mounted() {
-		this.isSimulating = (this.status === StatusType.simulating);
+		this.isSimulating = (this.status === MachineStatus.simulating);
 	},
 	watch: {
 		status(to) {
-			if (to === StatusType.simulating) {
+			if (to === MachineStatus.simulating) {
 				this.isSimulating = true;
 			} else if (!isPrinting(to)) {
 				this.isSimulating = false;

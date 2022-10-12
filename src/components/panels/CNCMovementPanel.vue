@@ -154,9 +154,10 @@
 <script>
 'use strict'
 
+import { KinematicsName } from '@duet3d/objectmodel';
 import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-import { KinematicsName } from '../../store/machine/modelEnums.js'
-import { combine } from '../../utils/path'
+
+import { combine } from '@/utils/path'
 
 export default {
 	computed: {
