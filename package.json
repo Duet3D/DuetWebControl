@@ -9,11 +9,11 @@
     "report": "vue-cli-service build --report"
   },
   "dependencies": {
-    "@babylonjs/core": "^5.8.0",
-    "@babylonjs/gui": "^5.8.0",
-    "@babylonjs/materials": "^5.8.0",
+    "@babylonjs/core": "^5.28.0",
+    "@babylonjs/gui": "^5.28.0",
+    "@babylonjs/materials": "^5.28.0",
     "@duet3d/objectmodel": "^3.5.0-b1",
-    "@sindarius/gcodeviewer": "^3.1.2",
+    "@sindarius/gcodeviewer": "^3.1.4",
     "chart.js": "^2.9.4",
     "chartjs-adapter-date-fns": "^1.0.0",
     "compare-versions": "^5.0.1",

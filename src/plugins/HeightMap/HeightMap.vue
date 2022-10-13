@@ -76,12 +76,12 @@ h1 {
 		</v-col>
 
 		<v-col class="d-flex flex-column" cols="12" lg="auto" order="2" sm="6">
-			<v-card class="d-flex flex-column flex-grow-1" tile>
+			<v-card class="d-flex flex-column flex-grow-0" tile>
 				<v-card-title class="pt-2 pb-1">
 					<v-icon class="mr-2">mdi-information</v-icon>
 					{{ $t('plugins.heightmap.statistics') }}
 				</v-card-title>
-				<v-card-text class="d-flex flex-column flex-grow-1 justify-space-between pt-2">
+				<v-card-text class="d-flex flex-column flex-grow-0 justify-space-between pt-2">
 					<span>{{ $t('plugins.heightmap.numPoints', [$display(numPoints, 0)]) }}</span>
 					<span v-if="radius > 0">{{ $t('plugins.heightmap.radius', [$display(radius, 0, 'mm')]) }}</span>
 					<span>{{ $t('plugins.heightmap.area', [$display(area / 100, 1, 'cm²')]) }}</span>

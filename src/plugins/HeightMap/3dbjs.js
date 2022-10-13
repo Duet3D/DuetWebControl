@@ -312,14 +312,14 @@ export default class {
     if (this.isDelta) {
       let radius = Math.abs(this.buildVolume.x.max - this.buildVolume.x.min) / 2;
       this.bedMesh = MeshBuilder.CreateDisc('BuildPlate', { radius: radius, sideOrientation: Mesh.DoubleSide }, this.scene);
-      this.bedMesh.rotationQuaternion = new Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
+      this.bedMesh.rotationQuaternion = Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
       this.bedMesh.material = this.gridMaterial;
     } else {
       let width = bedSize.x;
       let depth = bedSize.y;
       this.bedMesh = MeshBuilder.CreatePlane('BuildPlate', { width: width, height: depth, sideOrientation: Mesh.DoubleSide }, this.scene);
       this.bedMesh.material = this.gridMaterial;
-      this.bedMesh.rotationQuaternion = new Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
+      this.bedMesh.rotationQuaternion = Quaternion.RotationAxis(new Vector3(1, 0, 0), Math.PI / 2);
       this.bedMesh.translate(new Vector3(bedCenter.x, 0, bedCenter.y), 1, Space.WORLD);
     }
 
