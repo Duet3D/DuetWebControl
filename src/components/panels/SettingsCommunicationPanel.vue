@@ -13,6 +13,9 @@
 					<v-col cols="6">
 						<v-text-field v-model.number="updateDelay" type="number" step="1" min="0" :label="$t('panel.settingsCommunication.updateDelay', ['ms'])" hide-details></v-text-field>
 					</v-col>
+					<v-col cols="12">
+						<v-switch v-model="ignoreFileTimestamps" :label="$t('panel.settingsGeneral.ignoreFileTimestamps')" class="mt-0" hide-details></v-switch>
+					</v-col>
 				</template>
 				<template v-else-if="connectorType === 'poll'">
 					<v-col cols="6">
