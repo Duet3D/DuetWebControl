@@ -12,7 +12,6 @@
 				<div class="text-center" :class="{ 'mb-6': displayedAxes.length }" v-html="messageBox.message"></div>
 
 				<!-- Jog control -->
-				<!-- TODO Replace the following and the content in MovementPanel with an own component -->
 				<v-row v-for="axis in displayedAxes" :key="axis.letter" dense>
 					<!-- Decreasing movements -->
 					<v-col>
@@ -66,15 +65,15 @@
 						{{ choice }}
 					</v-btn>
 					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text :elevation="1" @click="cancel">
-						{{ $t('generic.cancel') }}
+						{{ $t("generic.cancel") }}
 					</v-btn>
 				</template>
 				<template v-else>
 					<v-btn color="blue darken-1" text @click="ok" :disabled="!canConfirm">
-						{{ $t(isPersistent ? 'generic.ok' : 'generic.close') }}
+						{{ $t(isPersistent ? "generic.ok" : "generic.close") }}
 					</v-btn>
 					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text @click="cancel">
-						{{ $t('generic.cancel') }}
+						{{ $t("generic.cancel") }}
 					</v-btn>
 				</template>
 			</v-card-actions>
@@ -82,24 +81,18 @@
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
-import { mapState, mapGetters, mapActions } from 'vuex'
-import { isNumber } from '@/utils/numbers';
-import patch from '@/utils/patch';
+import store from "@/store";
+import { isNumber } from "@/utils/numbers";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('machine', ['isReconnecting']),
-		...mapState('machine/model', {
-			currentMessageBox: state => state.state.messageBox,
-			move: state => state.move
-		}),
-		...mapState('machine/settings', ['moveFeedrate']),
-		...mapGetters('machine/settings', ['moveSteps', 'numMoveSteps']),
-		canConfirm() {
+		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
+		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
+		canConfirm(): boolean {
 			if (this.needsNumberInput) {
 				let canConfirm;
 				if (this.messageBox.mode === MessageBoxMode.intInput) {
@@ -116,26 +109,26 @@ export default {
 
 			return true;
 		},
-		displayedAxes() {
-			const axisControls = this.messageBox ? this.messageBox.axisControls : 0;
-			return this.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
+		displayedAxes(): Array<Axis> {
+			const axisControls = (this.messageBox && this.messageBox.axisControls !== null) ? this.messageBox.axisControls : 0;
+			return store.state.machine.model.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
 		},
-		hasButtons() {
+		hasButtons(): boolean {
 			return this.messageBox.mode !== MessageBoxMode.noButtons;
 		},
-		isMultipleChoice() {
+		isMultipleChoice(): boolean {
 			return this.messageBox.mode === MessageBoxMode.multipleChoice;
 		},
-		isPersistent() {
+		isPersistent(): boolean {
 			return this.messageBox.mode >= MessageBoxMode.okOnly;
 		},
-		needsIntInput() {
+		needsIntInput(): boolean {
 			return this.messageBox.mode === MessageBoxMode.intInput;
 		},
-		needsNumberInput() {
+		needsNumberInput(): boolean {
 			return (this.messageBox.mode === MessageBoxMode.intInput) || (this.messageBox.mode === MessageBoxMode.floatInput);
 		},
-		needsStringInput() {
+		needsStringInput(): boolean {
 			return this.messageBox.mode === MessageBoxMode.stringInput;
 		}
 	},
@@ -144,59 +137,53 @@ export default {
 			messageBox: new MessageBox(),
 			numberInput: 0,
 			shown: false,
-			stringInput: ''
+			stringInput: ""
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
-		canMove(axis) {
-			return axis.homed || !this.move.noMovesBeforeHoming;
+		canMove(axis: Axis): boolean {
+			return axis.homed || !store.state.machine.model.move.noMovesBeforeHoming;
 		},
-		displayAxisPosition(axis) {
-			let position = NaN;
-			if (this.displayToolPosition) {
-				if (axis.drives.length > 0) {
-					position = this.move.drives[axis.drives[0]].position;
-				}
-			} else {
-				position = axis.machinePosition;
+		displayAxisPosition(axis: Axis): string {
+			if (axis.userPosition === null) {
+				return this.$t("generic.noValue");
 			}
-			return (axis.letter === 'Z') ? this.$displayZ(position, false) : this.$display(position, 1);
+			return (axis.letter === AxisLetter.Z) ? this.$displayZ(axis.userPosition, false) : this.$display(axis.userPosition, 1);
 		},
-		getMoveCellClass(index) {
-			let classes = '';
+		getMoveCellClass(index: number): string {
+			let classes = "";
 			if (index === 0 || index === 5) {
-				classes += 'hidden-lg-and-down';
+				classes += "hidden-lg-and-down";
 			}
 			if (index > 1 && index < 4 && index % 2 === 1) {
-				classes += 'hidden-md-and-down';
+				classes += "hidden-md-and-down";
 			}
 			return classes;
 		},
-		getMoveCode(axis, index, decrementing) {
-			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter.toUpperCase()}${decrementing ? '-' : ''}${this.moveSteps(axis.letter)[index]} F${this.moveFeedrate}\nM121`;
+		getMoveCode(axis: Axis, index: number, decrementing: boolean): string {
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter.toUpperCase()}${decrementing ? '-' : ''}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
 		},
-		showSign: (value) => (value > 0) ? `+${value}` : value,
+		showSign: (value: number): string => (value > 0) ? `+${value}` : value.toString(),
 		async ok() {
 			this.shown = false;
 			if (this.messageBox.mode === MessageBoxMode.okOnly || this.messageBox.mode === MessageBoxMode.okCancel) {
-				await this.sendCode(`M292 S${this.messageBox.seq}`);
+				await store.dispatch("machine/sendCode", `M292 S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.intInput || this.messageBox.mode === MessageBoxMode.floatInput) {
-				await this.sendCode(`M292 R{${this.numberInput}} S${this.messageBox.seq}`);
+				await store.dispatch("machine/sendCode", `M292 R{${this.numberInput}} S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.stringInput) {
-				await this.sendCode(`M292 R{"${this.stringInput.replace(/"/g, '""').replace(/'/g, "''")}"} S${this.messageBox.seq}`);
+				await store.dispatch("machine/sendCode", `M292 R{"${this.stringInput.replace(/"/g, '""').replace(/'/g, "''")}"} S${this.messageBox.seq}`);
 			}
 		},
-		async accept(choice) {
+		async accept(choice: number) {
 			this.shown = false;
 			if (this.messageBox.mode >= MessageBoxMode.multipleChoice) {
-				await this.sendCode(`M292 R{${choice}} S${this.messageBox.seq}`);
+				await store.dispatch("machine/sendCode", `M292 R{${choice}} S${this.messageBox.seq}`);
 			}
 		},
 		async cancel() {
 			this.shown = false;
 			if (this.messageBox.cancelButton) {
-				await this.sendCode(`M292 P1 S${this.messageBox.seq}`);
+				await store.dispatch("machine/sendCode", `M292 P1 S${this.messageBox.seq}`);
 			}
 		}
 	},
@@ -212,8 +199,7 @@ export default {
 				if (to && to.mode !== null) {
 					this.numberInput = to.default || 0;
 					this.stringInput = to.default || '';
-					this.messageBox.default = to.default;
-					patch(this.messageBox, to);
+					this.messageBox.update(to);
 					this.shown = true;
 				} else {
 					this.shown = false;
@@ -221,5 +207,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

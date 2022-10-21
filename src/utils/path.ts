@@ -13,7 +13,7 @@ export function combine(...args: any[]) {
 				result = arg;
 			}
 		} else {
-			if (result !== '') {
+			if (result !== "") {
 				result += '/';
 			}
 			if (arg.endsWith('/')) {

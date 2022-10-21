@@ -1,25 +1,17 @@
 <template>
-	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :elevation="1" :loading="waitingForCode" @click="click" @contextmenu="$emit('contextmenu', $event)">
+	<v-btn v-bind="$props" :disabled="$props.disabled || uiFrozen" :elevation="1" :loading="waitingForCode"
+		   @click="click" @contextmenu="$emit('contextmenu', $event)">
 		<slot></slot>
 	</v-btn>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
+import { VBtn } from "vuetify/lib";
 
-import { VBtn } from 'vuetify/lib'
+import store from "@/store";
 
-import { mapGetters, mapActions } from 'vuex'
-
-export default {
-	computed: {
-		...mapGetters(['uiFrozen'])
-	},
-	data() {
-		return {
-			waitingForCode: false
-		}
-	},
+export default Vue.extend({
 	extends: VBtn,
 	props: {
 		code: {
@@ -36,13 +28,20 @@ export default {
 			default: false
 		}
 	},
+	computed: {
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; }
+	},
+	data() {
+		return {
+			waitingForCode: false
+		}
+	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
 		async click() {
 			try {
 				if (this.noWait) {
 					// Run the requested code but don't wait for a result
-					await this.sendCode({
+					await store.dispatch("machine/sendCode", {
 						code: this.code,
 						log: this.log,
 						noWait: true
@@ -51,7 +50,7 @@ export default {
 					// Wait for the code to complete and block while doing so
 					this.waitingForCode = true;
 					try {
-						await this.sendCode({
+						await store.dispatch("machine/sendCode", {
 							code: this.code,
 							log: this.log
 						});
@@ -64,5 +63,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

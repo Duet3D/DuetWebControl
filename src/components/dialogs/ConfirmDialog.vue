@@ -12,7 +12,7 @@
 			</v-card-text>
 
 			<v-card-actions>
-				<v-spacer></v-spacer>
+				<v-spacer />
 				<v-btn color="blue darken-1" text @click="dismissed">{{ $t('generic.no') }}</v-btn>
 				<v-btn color="blue darken-1" text @click="confirmed">{{ $t('generic.yes') }}</v-btn>
 			</v-card-actions>
@@ -20,10 +20,10 @@
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-export default {
+export default Vue.extend({
 	props: {
 		title: {
 			type: String,
@@ -40,8 +40,8 @@ export default {
 	},
 	computed: {
 		internalShown: {
-			get() { return this.shown; },
-			set(value) {
+			get(): boolean { return this.shown; },
+			set(value: boolean) {
 				if (value) {
 					this.confirmed();
 				} else {
@@ -52,13 +52,13 @@ export default {
 	},
 	methods: {
 		confirmed() {
-			this.$emit('confirmed');
-			this.$emit('update:shown', false);
+			this.$emit("confirmed");
+			this.$emit("update:shown", false);
 		},
 		dismissed() {
-			this.$emit('dismissed');
-			this.$emit('update:shown', false);
+			this.$emit("dismissed");
+			this.$emit("update:shown", false);
 		}
 	}
-}
+});
 </script>

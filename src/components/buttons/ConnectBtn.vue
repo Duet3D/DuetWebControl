@@ -1,42 +1,34 @@
 <template>
 	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked">
-		<v-icon v-show="!isBusy">{{ buttonIcon }}</v-icon>
-		<v-progress-circular size="20" v-show="isBusy" indeterminate></v-progress-circular>
-		<span class="ml-2">{{ caption }}</span>
+		<v-icon v-show="!isBusy" v-text="buttonIcon" />
+		<v-progress-circular size="20" v-show="isBusy" indeterminate />
+		<span class="ml-2" v-text="caption"></span>
 	</v-btn>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { VBtn } from 'vuetify/lib'
+import store from "@/store";
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
-
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['isConnecting', 'isDisconnecting']),
-		...mapState('machine', ['isReconnecting']),
-		...mapGetters(['isConnected']),
-		isBusy() { return this.isConnecting || this.isReconnecting || this.isDisconnecting },
-		buttonColor() {
-			return this.isBusy ? 'warning'
-				: (this.isConnected ? 'success' : 'primary');
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		isBusy(): boolean { return store.state.isConnecting || store.state.machine.isReconnecting || store.state.isDisconnecting },
+		buttonColor(): string {
+			return this.isBusy ? "warning" : (this.isConnected ? "success" : "primary");
 		},
-		buttonIcon() {
-			return this.isConnected ? 'mdi-close-circle-outline' : 'mdi-power';
+		buttonIcon(): string {
+			return this.isConnected ? "mdi-close-circle-outline" : "mdi-power";
 		},
-		caption() {
-			return this.$t((this.isConnecting || this.isReconnecting) ? 'button.connect.connecting'
-				: this.isDisconnecting ? 'button.connect.disconnecting'
-					: this.isConnected ? 'button.connect.disconnect'
-						: 'button.connect.connect');
+		caption(): string {
+			return this.$t((store.state.isConnecting || store.state.machine.isReconnecting) ? "button.connect.connecting"
+				: store.state.isDisconnecting ? "button.connect.disconnecting"
+					: this.isConnected ? "button.connect.disconnect"
+						: "button.connect.connect");
 		}
 	},
-	extends: VBtn,
 	methods: {
-		...mapActions(['connect', 'disconnect']),
-		...mapMutations(['showConnectDialog']),
 		async clicked() {
 			if (this.isBusy) {
 				// Cannot disable this button because that messes up the color
@@ -45,15 +37,15 @@ export default {
 
 			if (this.isConnected) {
 				// Disconnect from the current machine
-				await this.disconnect();
-			} else if (process.env.NODE_ENV === 'development') {
+				await store.dispatch("disconnect");
+			} else if (process.env.NODE_ENV === "development") {
 				// Ask user for hostname before connecting
-				this.showConnectDialog();
+				store.commit("showConnectDialog");
 			} else {
 				// Connect to the host this is running on
-				await this.connect();
+				await store.dispatch("connect");
 			}
 		}
 	}
-}
+});
 </script>

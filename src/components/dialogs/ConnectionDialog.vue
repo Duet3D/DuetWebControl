@@ -6,10 +6,12 @@
 			</v-card-title>
 
 			<v-card-text>
-				<v-progress-linear :indeterminate="connectingProgress < 0" :value="connectingProgress" color="white" class="mb-0"></v-progress-linear>
+				<v-progress-linear :indeterminate="connectingProgress < 0" :value="connectingProgress" color="white"
+								   class="mb-0" />
 				<div class="d-flex">
-					<code-btn v-show="displayReset && isConnected" class="mx-auto mt-5" code="M999" :log="false" color="warning" :title="$t('button.reset.title')">
-						<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.reset.caption') }}
+					<code-btn v-show="displayReset && isConnected" class="mx-auto mt-5" code="M999" :log="false"
+							  color="warning" :title="$t('button.reset.title')">
+						<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t("button.reset.caption") }}
 					</code-btn>
 				</div>
 			</v-card-text>
@@ -17,44 +19,41 @@
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
+import { MachineStatus } from "@duet3d/objectmodel";
 
-import { MachineStatus } from '@duet3d/objectmodel'
-import { mapState, mapGetters } from 'vuex'
+import store from "@/store";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['connectingProgress', 'isConnecting', 'isDisconnecting']),
-		...mapGetters(['isConnected']),
-		...mapState('machine', ['isReconnecting']),
-		...mapState('machine/model', {
-			status: state => state.state.status
-		}),
-		message() {
-			if (this.isConnecting || this.connectingProgress >= 0) {
-				return this.$t('dialog.connection.connecting');
+		connectingProgress(): number { return store.state.connectingProgress; },
+		isConnected(): boolean { return store.getters["isConnected"]; },
+
+		message(): string {
+			if (store.state.isConnecting || this.connectingProgress >= 0) {
+				return this.$t("dialog.connection.connecting");
 			}
-			if (this.status === MachineStatus.updating) {
-				return this.$t('dialog.connection.updating');
+			if (store.state.machine.model.state.status === MachineStatus.updating) {
+				return this.$t("dialog.connection.updating");
 			}
-			if (this.isReconnecting) {
-				return this.$t('dialog.connection.reconnecting');
+			if (store.state.machine.isReconnecting) {
+				return this.$t("dialog.connection.reconnecting");
 			}
-			if (this.isDisconnecting) {
-				return this.$t('dialog.connection.disconnecting');
+			if (store.state.isDisconnecting) {
+				return this.$t("dialog.connection.disconnecting");
 			}
-			return this.$t('dialog.connection.standBy');
+			return this.$t("dialog.connection.standBy");
 		},
-		shown() {
-			return (this.isConnecting || this.connectingProgress >= 0 || this.isReconnecting || this.isDisconnecting ||
-					this.status === MachineStatus.halted || this.status === MachineStatus.updating);
+		shown(): boolean {
+			return (store.state.isConnecting || this.connectingProgress >= 0 || store.state.machine.isReconnecting || store.state.isDisconnecting ||
+				store.state.machine.model.state.status === MachineStatus.halted || store.state.machine.model.state.status === MachineStatus.updating);
 		}
 	},
 	data() {
 		return {
 			displayReset: false,
-			haltedTimer: null
+			haltedTimer: null as NodeJS.Timeout | null
 		}
 	},
 	methods: {
@@ -76,5 +75,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

@@ -1,20 +1,23 @@
 import { Module } from "vuex";
-import { InternalRootState, RootState } from ".";
+
+import { ContextMenuType } from "@/plugins";
+
+import { InternalRootState } from ".";
+import Vue from "vue";
 
 interface ContextMenuItem {
 	/**
-	 * Type of this context menu item
+	 * Target of this context menu item
 	 */
-	contextMenuType: "jobFileList";
+	contextMenuType: ContextMenuType,
 
 	/**
-	 * Icon of the menu item
+	 * Icon of this menu item
 	 */
 	icon: string;
 
 	/**
-	 * Optional function returning the menu item caption.
-	 * If this function is preset, caption is ignored
+	 * Caption of this menu item
 	 */
 	name: string | (() => string);
 
@@ -24,9 +27,21 @@ interface ContextMenuItem {
 	path?: string;
 
 	/**
-	 * Function to call when the item is triggered
+	 * Global event to trigger on click
 	 */
 	action: string;
+}
+
+export interface injectedComponent {
+	/**
+	 * Name of the injected component
+	 */
+	name: string;
+
+	/**
+	 * Component definition
+	 */
+	component: Vue;
 }
 
 export interface UiInjectionState {
@@ -43,7 +58,7 @@ export interface UiInjectionState {
 	/**
 	 * List of components to render on the main app component
 	 */
-	injectedComponents: Array<string>;
+	injectedComponents: Array<injectedComponent>;
 }
 
 export default {
@@ -61,9 +76,8 @@ export default {
 			}
 
 			if (payload.name instanceof Function) {
-				const captionFn = payload.name;
 				Object.defineProperty(payload, "name", {
-					get: captionFn
+					get: payload.name
 				});
 			}
 			state.contextMenuItems[payload.contextMenuType].push(payload);

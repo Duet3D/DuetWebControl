@@ -3,57 +3,77 @@
 		<v-card>
 			<v-form ref="form" @submit.prevent="submit">
 				<v-card-title class="headline">
-					{{ $t('dialog.connect.title') }}
+					{{ $t("dialog.connect.title") }}
 				</v-card-title>
 
 				<v-card-text>
-					{{ $t('dialog.connect.prompt') }}
+					{{ $t("dialog.connect.prompt") }}
 
-					<v-text-field v-show="!passwordRequired" v-model="hostname" :autofocus="!passwordRequired" :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="[v => !!v || $t('dialog.connect.hostRequired')]" required></v-text-field>
-					<v-text-field type="password" :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')" v-model="password" :autofocus="passwordRequired" :rules="[v => !!v || !passwordRequired || $t('dialog.connect.passwordRequired')]" :required="passwordRequired"></v-text-field>
+					<v-text-field v-show="!passwordRequired" v-model="hostname" :autofocus="!passwordRequired"
+								  :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="hostnameRules" required />
+					<v-text-field type="password"
+								  :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')"
+								  v-model="password" :autofocus="passwordRequired" :rules="passwordRules"
+								  :required="passwordRequired" />
 				</v-card-text>
 
 				<v-card-actions>
 					<v-spacer></v-spacer>
-					<v-btn v-show="!passwordRequired" color="blue darken-1" text @click="hideConnectDialog">{{ $t('generic.cancel') }}</v-btn>
-					<v-btn color="blue darken-1" text type="submit">{{ $t('dialog.connect.connect') }}</v-btn>
+					<v-btn v-show="!passwordRequired" color="blue darken-1" text @click="close">
+						{{ $t("generic.cancel") }}
+					</v-btn>
+					<v-btn color="blue darken-1" text type="submit">
+						{{ $t("dialog.connect.connect") }}
+					</v-btn>
 				</v-card-actions>
 			</v-form>
 		</v-card>
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapActions, mapMutations } from 'vuex'
+import store from "@/store";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['connectDialogShown', 'passwordRequired']),
-		...mapState('settings', ['lastHostname'])
+		connectDialogShown(): boolean { return store.state.connectDialogShown; },
+		lastHostname(): string { return store.state.settings.lastHostname; },
+		passwordRequired(): boolean { return store.state.passwordRequired; }
 	},
 	data() {
 		return {
-			shown: false,
 			hostname: location.host,
-			password: ''
+			hostnameRules: [
+				(value: string): string | boolean => value ? true : this.$t("dialog.connect.hostRequired")
+			],
+			password: "",
+			passwordRules: [
+				(value: string): string | boolean => (!value && store.state.passwordRequired) ? this.$t("dialog.connect.passwordRequired") : true
+			],
+			shown: false
 		}
 	},
 	methods: {
-		...mapActions(['connect']),
-		...mapMutations(['showConnectDialog', 'hideConnectDialog']),
 		async submit() {
-			if (this.shown && this.$refs.form.validate()) {
-				this.hideConnectDialog();
+			if (this.shown && (this.$refs.form as HTMLFormElement).validate()) {
+				this.close();
+
 				try {
-					await this.connect({ hostname: this.hostname, password: this.password });
-					this.password = '';
+					await store.dispatch("connect", {
+						hostname: this.hostname,
+						password: this.password
+					});
+					this.password = "";
 				} catch (e) {
 					console.warn(e);
-					this.showConnectDialog();
+					store.commit("showConnectDialog");
 				}
 			}
+		},
+		close() {
+			store.commit("hideConnectDialog");
 		}
 	},
 	mounted() {
@@ -62,10 +82,7 @@ export default {
 	},
 	watch: {
 		connectDialogShown(to) { this.shown = to; },
-		lastHostname(to) {
-			// Update the hostname
-			this.hostname = to;
-		}
+		lastHostname(to) { this.hostname = to; }
 	}
-}
+});
 </script>

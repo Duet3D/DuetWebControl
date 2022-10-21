@@ -1,46 +1,25 @@
 <template>
 	<div class="mb-3">
-		<fff-container-panel v-if="isFFForUnset"></fff-container-panel>
-		<cnc-container-panel v-else></cnc-container-panel>
+		<fff-container-panel v-if="isFFForUnset" />
+		<cnc-container-panel v-else />
 	</div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { MachineMode } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { MachineMode } from '@duet3d/objectmodel';
-import Vue from 'vue'
-import { mapState } from 'vuex'
+import store from "@/store";
+import { DashboardMode } from "@/store/settings";
 
-import { registerRoute } from '@/routes'
-import { DashboardMode } from '@/store/settings'
-
-export default {
-	install() {
-		// Register a route via Control -> Status
-		registerRoute(this, {
-			Control: {
-				Console: {
-					icon: 'mdi-list-status',
-					caption: 'menu.control.status',
-					condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.smAndDown,
-					path: '/Status'
-				}
-			}
-		});
-	},
-
+export default Vue.extend({
 	computed: {
-		...mapState('machine/model', {
-			machineMode: state => state.state.machineMode
-		}),
-		...mapState('settings', ['dashboardMode']),
 		isFFForUnset() {
-			if (this.dashboardMode === DashboardMode.default) {
-				return !this.machineMode || this.machineMode === MachineMode.fff;
+			if (store.state.settings.dashboardMode === DashboardMode.default) {
+				return !store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff;
 			}
-			return this.dashboardMode === DashboardMode.fff;
+			return store.state.settings.dashboardMode === DashboardMode.fff;
 		}
 	}
-}
+});
 </script>

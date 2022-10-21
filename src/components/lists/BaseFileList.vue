@@ -6,6 +6,7 @@ td {
 .loading-cursor {
 	cursor: wait;
 }
+
 .loading-cursor td {
 	cursor: wait;
 }
@@ -19,16 +20,16 @@ td {
 
 <template>
 	<div>
-		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll"
-			:items="innerFilelist" item-key="name" :headers="headers || defaultHeaders" show-select
-			:loading="loading || innerLoading"
-			:custom-sort="sort" :sort-by.sync="internalSortBy" :sort-desc.sync="internalSortDesc" must-sort
-			disable-pagination hide-default-footer :mobile-breakpoint="0"
-			class="base-file-list elevation-3" :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
+		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll" :items="innerFilelist"
+					  item-key="name" :headers="headers || defaultHeaders" show-select
+					  :loading="loading || innerLoading" :custom-sort="sort" :sort-by.sync="internalSortBy"
+					  :sort-desc.sync="internalSortDesc" must-sort disable-pagination hide-default-footer
+					  :mobile-breakpoint="0" class="base-file-list elevation-3"
+					  :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
 
 			<template #progress>
 				<slot name="progress">
-					<v-progress-linear indeterminate></v-progress-linear>
+					<v-progress-linear indeterminate />
 				</slot>
 			</template>
 
@@ -43,39 +44,43 @@ td {
 			<template #item="props">
 				<tr :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0"
 					@keydown.space.prevent="props.select(!props.isSelected)"
-					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd"
-					@click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
-					@contextmenu.stop.prevent="onItemContextmenu(props, $event)" @keydown.escape.prevent="contextMenu.shown = false"
-					@dragstart="onItemDragStart(props.item, $event)" @dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)">
+					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)"
+					@keydown.enter.prevent="onItemClick(props)"
+					@contextmenu.stop.prevent="onItemContextmenu(props, $event)"
+					@keydown.escape.prevent="contextMenu.shown = false" @dragstart="onItemDragStart(props.item, $event)"
+					@dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)">
 
 					<td v-for="header in props.headers" :key="header.value" :class="header.cellClass">
 						<template v-if="header.value === 'data-table-select'">
-							<v-simple-checkbox :value="props.isSelected" @touchstart.stop="" @touchend.stop="" @input="props.select($event)" class="mt-n1" tabindex="-1"></v-simple-checkbox>
+							<v-simple-checkbox :value="props.isSelected" @touchstart.stop="" @touchend.stop=""
+											   @input="props.select($event)" class="mt-n1" tabindex="-1" />
 						</template>
 						<template v-else-if="header.value === 'name'">
 							<div class="d-inline-flex align-center">
-								<slot :name="`${props.item.isDirectory ? 'folder' : 'file'}.${props.item.name}`" :item="props.item">
+								<slot :name="`${props.item.isDirectory ? 'folder' : 'file'}.${props.item.name}`"
+									  :item="props.item">
 									<slot :name="props.item.isDirectory ? 'folder' : 'file'" :item="props.item">
-										<v-icon class="mr-1">{{ props.item.isDirectory ? folderIcon : fileIcon }}</v-icon> {{ props.item.name }}
+										<v-icon class="mr-1">{{ props.item.isDirectory ? folderIcon : fileIcon }}</v-icon>
+										{{ props.item.name }}
 									</slot>
 								</slot>
 							</div>
 						</template>
 						<template v-else-if="header.unit === 'bytes'">
-							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : '' }}
+							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : "" }}
 						</template>
 						<template v-else-if="header.unit === 'date'">
-							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t('generic.noValue') }}
+							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t("generic.noValue") }}
 						</template>
 						<template v-else-if="header.unit === 'filaments'">
 							<v-tooltip bottom :disabled="!props.item[header.value] || props.item[header.value].length <= 1">
 								<template #activator="{ on }">
 									<span v-on="on">
-										{{ displayLoadingValue(props.item, header.value, 1, 'mm') }}
+										{{ displayLoadingValue(props.item, header.value, 1, "mm") }}
 									</span>
 								</template>
 
-								{{ $display(props.item[header.value], 1, 'mm') }}
+								{{ $display(props.item[header.value], 1, "mm") }}
 							</v-tooltip>
 						</template>
 						<template v-else-if="header.unit === 'time'">
@@ -94,63 +99,82 @@ td {
 				<slot name="context-menu"></slot>
 
 				<v-list-item v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
-					<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $tc('list.baseFileList.download', innerValue.length) }}
+					<v-icon class="mr-1">mdi-cloud-download</v-icon>
+					{{ $tc("list.baseFileList.download", innerValue.length) }}
 				</v-list-item>
-				<v-list-item v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile" @click="edit(innerValue[0])">
-					<v-icon class="mr-1">mdi-file-document-edit</v-icon> {{ $t('list.baseFileList.edit') }}
+				<v-list-item v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile"
+							 @click="edit(innerValue[0])">
+					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
+					{{ $t("list.baseFileList.edit") }}
 				</v-list-item>
 				<v-list-item v-show="!noRename && innerValue.length === 1" @click="rename">
-					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t('list.baseFileList.rename') }}
+					<v-icon class="mr-1">mdi-rename-box</v-icon>
+					{{ $t("list.baseFileList.rename") }}
 				</v-list-item>
 				<v-list-item v-show="!noDelete" @click="remove">
-					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t('list.baseFileList.delete') }}
+					<v-icon class="mr-1">mdi-delete</v-icon>
+					{{ $t("list.baseFileList.delete") }}
 				</v-list-item>
 				<v-list-item v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
-					<v-icon class="mr-1">mdi-package-down</v-icon> {{ $t('list.baseFileList.downloadZIP') }}
+					<v-icon class="mr-1">mdi-package-down</v-icon>
+					{{ $t("list.baseFileList.downloadZIP") }}
 				</v-list-item>
 			</v-list>
 		</v-menu>
 
-		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content" @editComplete="$emit('fileEdited', $event)"></file-edit-dialog>
-		<input-dialog :shown.sync="renameDialog.shown" :title="$t('dialog.renameFile.title')" :prompt="$t('dialog.renameFile.prompt')" :preset="renameDialog.item && renameDialog.item.name" @confirmed="renameCallback"></input-dialog>
+		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content"
+						  @editComplete="$emit('fileEdited', $event)"></file-edit-dialog>
+		<input-dialog :shown.sync="renameDialog.shown" :title="$t('dialog.renameFile.title')"
+					  :prompt="$t('dialog.renameFile.prompt')" :preset="renameDialog.item && renameDialog.item.name"
+					  @confirmed="renameCallback"></input-dialog>
 	</div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import JSZip from "jszip";
+import saveAs from "file-saver";
+import Vue, { PropType } from "vue";
+import { DataItemProps, DataTableHeader } from "vuetify";
+import { VDataTable } from "vuetify/lib";
 
-import JSZip from 'jszip'
-import saveAs from 'file-saver'
-import { VDataTable } from 'vuetify/lib'
+import i18n from "@/i18n";
+import store from "@/store";
+import { defaultMachine, FileTransferItem } from "@/store/machine";
+import { DisconnectedError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
+import Events from "@/utils/events";
+import Path from "@/utils/path";
+import { FileListItem } from "@/store/machine/connector/BaseConnector";
+import { LogType } from "@/utils/logging";
+import { MessageType } from "@duet3d/objectmodel";
 
-import Vue from 'vue'
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+/**
+ * Maximum permitted size of files to edit (defaults to 32MiB)
+ */
+const maxEditFileSize = 33554432;
 
-import i18n from '../../i18n'
-import { defaultMachine } from '@/store/machine'
-import { DisconnectedError, OperationCancelledError } from '@/utils/errors'
-import Events from '@/utils/events'
-import Path from '@/utils/path'
+interface ExtraFileListItemOptions {
+	filaments?: Array<number>;
+}
 
-const maxEditFileSize = 33554432;		// 32 MiB
+type BaseFileListItem = FileListItem & ExtraFileListItemOptions;
 
-export default {
+export default Vue.extend({
 	props: {
-		headers: Array,
+		headers: Array as PropType<Array<DataTableHeader>>,
 		sortTable: String,
 		directory: {
 			type: String,
 			required: true
 		},
-		filelist: Array,
-		value: Array,
+		filelist: Array as PropType<Array<BaseFileListItem>>,
+		value: Array as PropType<Array<BaseFileListItem>>,
 		fileIcon: {
 			type: String,
-			default: 'mdi-file'
+			default: "mdi-file"
 		},
 		folderIcon: {
 			type: String,
-			default: 'mdi-folder'
+			default: "mdi-folder"
 		},
 		loading: Boolean,
 		doingFileOperation: Boolean,
@@ -160,66 +184,70 @@ export default {
 		noFilesText:
 		{
 			type: String,
-			default: ''
+			default: ""
 		},
 		noRename: Boolean,
 		noDelete: Boolean
 	},
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected']),
-		...mapState('machine', ['isReconnecting']),
-		...mapState('machine/cache', ['sorting']),
-		...mapState('machine/model', ['volumes']),
-		isMounted() {
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		isMounted(): boolean {
 			const volume = Path.getVolume(this.innerDirectory);
-			return (volume >= 0) && (volume < this.volumes.length) && this.volumes[volume].mounted;
+			return (volume >= 0) && (volume < store.state.machine.model.volumes.length) && store.state.machine.model.volumes[volume].mounted;
 		},
-		defaultHeaders() {
+		defaultHeaders(): Array<DataTableHeader & { unit?: string }> {
 			return [
 				{
-					class: 'pl-0',
-					cellClass: 'pl-0',
-					text: i18n.t('list.baseFileList.fileName'),
-					value: 'name'
+					class: "pl-0",
+					cellClass: "pl-0",
+					text: i18n.t("list.baseFileList.fileName"),
+					value: "name"
 				},
 				{
-					text: i18n.t('list.baseFileList.size'),
-					value: 'size',
-					unit: 'bytes'
+					text: i18n.t("list.baseFileList.size"),
+					value: "size",
+					unit: "bytes"
 				},
 				{
-					text: i18n.t('list.baseFileList.lastModified'),
-					value: 'lastModified',
-					unit: 'date'
+					text: i18n.t("list.baseFileList.lastModified"),
+					value: "lastModified",
+					unit: "date"
 				}
 			];
 		},
-		isLoading() {
+		isLoading(): boolean {
 			return this.loading || this.innerLoading || this.doingFileOperation || this.innerDoingFileOperation;
 		},
-		foldersSelected() {
+		foldersSelected(): boolean {
 			return this.innerValue.some(item => item.isDirectory)
 		},
-		filesSelected() {
+		filesSelected(): boolean {
 			return this.innerValue.some(item => !item.isDirectory)
 		},
-		canEditFile() {
+		canEditFile(): boolean {
 			return (this.innerValue.length > 0) && (this.innerValue[0].size < maxEditFileSize);
 		},
-		noItemsText() {
-			return (this.innerFilelistLoaded || this.isMounted || this.selectedMachine === defaultMachine) ? this.noFilesText : 'list.baseFileList.driveUnmounted';
+		noItemsText(): string {
+			return (this.innerFilelistLoaded || this.isMounted || this.selectedMachine === defaultMachine) ? this.noFilesText : "list.baseFileList.driveUnmounted";
 		},
 		internalSortBy: {
-			get() { return this.sorting[this.sortTable].column; },
-			set(value) {
-				this.setSorting({ table: this.sortTable, column: value, descending: this.internalSortDesc });
+			get(): string { return store.state.machine.cache.sorting[this.sortTable].column; },
+			set(value: string) {
+				store.commit("machine/cache/setSorting", {
+					table: this.sortTable,
+					column: value,
+					descending: this.internalSortDesc
+				});
 			}
 		},
 		internalSortDesc: {
-			get() { return this.sorting[this.sortTable].descending; },
-			set(value) {
-				this.setSorting({ table: this.sortTable, column: this.internalSortBy, descending: value });
+			get(): boolean { return store.state.machine.cache.sorting[this.sortTable].descending; },
+			set(value: boolean) {
+				store.commit("machine/cache/setSorting", {
+					table: this.sortTable,
+					column: this.internalSortBy,
+					descending: value
+				});
 			}
 		}
 	},
@@ -227,66 +255,61 @@ export default {
 		return {
 			initialDirectory: this.directory,
 			innerDirectory: this.directory,
-			innerFilelist: [],
+			innerFilelist: new Array<BaseFileListItem>,
 			innerFilelistLoaded: false,
 			innerLoading: false,
 			innerDoingFileOperation: false,
-			innerValue: [],
-			prevSelection: [],
+			innerValue: new Array<BaseFileListItem>,
+			prevSelection: new Array<BaseFileListItem>,
 			contextMenu: {
 				shown: false,
-				touchTimer: undefined,
+				touchTimer: null as NodeJS.Timeout | null,
 				x: 0,
 				y: 0
 			},
 			editDialog: {
 				shown: false,
-				filename: '',
-				content: ''
+				filename: "",
+				content: ""
 			},
 			renameDialog: {
 				shown: false,
-				directory: '',
-				item: null
+				directory: "",
+				item: null as BaseFileListItem | null
 			}
 		}
 	},
 	extends: VDataTable,
 	methods: {
-		...mapActions('machine', {
-			machineDownload: 'download',
-			machineMove: 'move',
-			machineDelete: 'delete',
-			getFileList: 'getFileList'
-		}),
-		...mapMutations('machine/cache', ['setSorting']),
 		toggleAll() {
 			this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
 		},
-		sort(items, sortBy, sortDesc) {
-			sortBy = sortBy.length ? sortBy[0] : 'name';
-			sortDesc = sortDesc[0];
-
+		sort(items: Array<BaseFileListItem>, sortBy: keyof BaseFileListItem = "name", sortDesc: boolean) {
 			// Sort by index
-			items.sort(function(a, b) {
-				if (a[sortBy] === b[sortBy]) {
+			items.sort((a, b) => {
+				const first = a[sortBy], second = b[sortBy];
+				if (first === second) {
 					return 0;
 				}
-				if (a[sortBy] === null || a[sortBy] === undefined) {
+				if (first === null || first === undefined) {
 					return -1;
 				}
-				if (b[sortBy] === null || b[sortBy] === undefined) {
+				if (second === null || second === undefined) {
 					return 1;
 				}
-				if (a[sortBy].constructor === String && b[sortBy].constructor === String) {
-					return a[sortBy].localeCompare(b[sortBy], undefined, { sensivity: 'base' });
+				if (typeof first === "number" && typeof second === "number") {
+					return first - second;
 				}
-				if (a[sortBy] instanceof Array && b[sortBy] instanceof Array) {
-					const reducedA = a[sortBy].length ? a.filament.reduce((a, b) => a + b) : 0;
-					const reducedB = b[sortBy].length ? b.filament.reduce((a, b) => a + b) : 0;
-					return reducedA - reducedB;
+				if (typeof first === "string" && typeof second === "string") {
+					return first.localeCompare(second, undefined, { sensitivity: "base" });
 				}
-				return a[sortBy] - b[sortBy];
+				if (first instanceof Array && second instanceof Array) {
+					const firstSum = first.length ? first.reduce((a: number, b: number) => a + b) : 0;
+					const secondSum = second.length ? second.reduce((a: number, b: number) => a + b) : 0;
+					return firstSum - secondSum;
+				}
+				console.warn(`[base-file-list] Invalid sort key type ${sortBy} (${typeof first})`);
+				return 0;
 			});
 
 			// Deal with descending order
@@ -298,20 +321,20 @@ export default {
 			items.sort((a, b) => (a.isDirectory === b.isDirectory) ? 0 : (a.isDirectory ? -1 : 1));
 			return items;
 		},
-		async refresh() {
-			await this.$nextTick(() => this.loadDirectory(this.innerDirectory));
+		refresh() {
+			this.$nextTick(() => this.loadDirectory(this.innerDirectory));
 		},
-		async loadDirectory(directory) {
+		async loadDirectory(directory: string) {
 			// Make sure the requested volume is actually available
 			const volume = Path.getVolume(this.directory)
-			if (!this.isConnected || (volume >= 0 && volume < this.volumes.length && !this.volumes[volume].mounted)) {
+			if (!this.isConnected || ((volume >= 0) && (volume < store.state.machine.model.volumes.length) && !store.state.machine.model.volumes[volume].mounted)) {
 				this.innerDirectory = (volume === Path.getVolume(this.initialDirectory)) ? this.initialDirectory : `${volume}:`;
 				this.innerFilelist = [];
 				this.innerFilelistLoaded = false;
 				return;
 			}
 
-			// Update our path even if we're still busy loading
+			// Update our path even if we"re still busy loading
 			this.innerDirectory = directory;
 			if (this.innerLoading) {
 				return;
@@ -321,17 +344,17 @@ export default {
 			this.innerLoading = true;
 			this.innerFilelistLoaded = false;
 			try {
-				const files = await this.getFileList(directory);
+				const files: Array<BaseFileListItem> = await store.dispatch("machine/getFileList", directory);
 
 				// Create missing props if required
 				if (this.headers) {
-					files.forEach(function(item) {
-						this.headers.forEach(function(header) {
-							if (item[header.value] === undefined) {
-								Vue.set(item, header.value, undefined);
+					for (const file of files) {
+						for (const header of this.headers) {
+							if (!(header.value in file)) {
+								Vue.set(file, header.value, undefined);
 							}
-						});
-					}, this);
+						}
+					}
 				}
 
 				// Check if another directory was requested while files were being loaded
@@ -345,67 +368,73 @@ export default {
 				this.innerFilelist = files;
 				this.innerFilelistLoaded = true;
 				this.innerValue = [];
-				this.$nextTick(function() {
-					this.$emit('directoryLoaded', directory);
+				this.$nextTick(function () {
+					this.$emit("directoryLoaded", directory);
 				});
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$makeNotification('error', this.$t('error.filelistRequestFailed'), e.message);
+					this.$makeNotification(LogType.error, this.$t("error.filelistRequestFailed"), getErrorMessage(e));
 				}
 			}
 			this.innerLoading = false;
 		},
-		displayLoadingValue(item, prop, precision, unit = '') {
+		displayLoadingValue(item: BaseFileListItem, prop: keyof BaseFileListItem, precision?: number, unit = "") {
 			if (item.isDirectory) {
-				return '';
-			}
-			if (!item[prop]) {
-				return this.$t((item[prop] === undefined) ? 'generic.loading' : 'generic.noValue');
+				return "";
 			}
 
-			let displayValue;
-			if (item[prop] instanceof Array) {
-				if (!item[prop].length) {
-					return this.$t('generic.noValue');
+			const itemValue = item[prop];
+			if (itemValue === undefined) {
+				return this.$t("generic.loading");
+			}
+			if (itemValue === null) {
+				return this.$t("generic.noValue");
+			}
+
+			let displayValue: string | number | bigint | boolean | Date;
+			if (itemValue instanceof Array) {
+				if (itemValue.length === 0) {
+					return this.$t("generic.noValue");
 				}
-				displayValue = item[prop].reduce((a, b) => a + b);
+				displayValue = itemValue.reduce((a, b) => a + b);
 			} else {
-				displayValue = item[prop];
+				displayValue = itemValue;
 			}
 
-			if (precision !== undefined) {
+			if (typeof displayValue === "number" && precision !== undefined) {
 				displayValue = displayValue.toFixed(precision);
 			}
 			return `${displayValue} ${unit}`;
 		},
-		displayTimeValue(item, prop) {
+		displayTimeValue(item: BaseFileListItem, prop: keyof BaseFileListItem) {
 			if (item.isDirectory) {
-				return '';
+				return "";
 			}
-			return (item[prop] !== null) ? this.$displayTime(item[prop]) : this.$t('generic.noValue');
+			const itemValue = item[prop];
+			return (typeof itemValue === "number") ? this.$displayTime(itemValue) : this.$t("generic.noValue");
 		},
-		onItemTouchStart(props, e) {
+		onItemTouchStart(props: DataItemProps, e: TouchEvent) {
 			const that = this;
-			this.contextMenu.touchTimer = setTimeout(function() {
-				that.contextMenu.touchTimer = undefined;
-				that.onItemContextmenu(props, { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY });
+			this.contextMenu.touchTimer = setTimeout(function () {
+				that.contextMenu.touchTimer = null;
+				that.onItemContextmenu(props, new MouseEvent("contextmenu", { clientX: e.targetTouches[0].clientX, clientY: e.targetTouches[0].clientY }));
 			}, 1000);
 		},
 		onItemTouchEnd() {
 			if (this.contextMenu.touchTimer) {
 				clearTimeout(this.contextMenu.touchTimer);
-				this.contextMenu.touchTimer = undefined;
+				this.contextMenu.touchTimer = null;
 			}
 		},
-		onItemClick(props) {
+		onItemClick(props: DataItemProps) {
 			if (props.item.isDirectory) {
 				this.loadDirectory(Path.combine(this.innerDirectory, props.item.name));
 			} else {
-				this.$emit('fileClicked', props.item);
+				this.$emit("fileClicked", props.item);
 			}
 		},
-		onItemContextmenu(props, e) {
+		onItemContextmenu(props: DataItemProps, e: MouseEvent) {
 			if (this.contextMenu.shown) {
 				return;
 			}
@@ -426,8 +455,8 @@ export default {
 				this.contextMenu.shown = true;
 			});
 		},
-		onItemDragStart(item, e) {
-			if (this.noDragDrop || this.contextMenu.touchTimer || this.contextMenu.shown) {
+		onItemDragStart(item: BaseFileListItem, e: DragEvent) {
+			if (this.noDragDrop || this.contextMenu.touchTimer || this.contextMenu.shown || e.dataTransfer === null) {
 				return;
 			}
 
@@ -435,24 +464,24 @@ export default {
 			if (itemsToDrag.indexOf(item) === -1) {
 				itemsToDrag.push(item);
 			}
-			e.dataTransfer.setData('application/json', JSON.stringify({
-				type: 'dwcFiles',
+			e.dataTransfer.setData("application/json", JSON.stringify({
+				type: "dwcFiles",
 				directory: this.innerDirectory,
 				items: itemsToDrag
 			}));
-			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.effectAllowed = "move";
 
-			const table = this.$el.querySelector('table'), firstRow = table.tBodies[0].rows[0];
-			const tableClone = table.cloneNode(true), itemFilename = (item.isDirectory ? '*' : '') + item.name;
+			const table = this.$el.querySelector("table") as HTMLTableElement, firstRow = table.tBodies[0].rows[0];
+			const tableClone = table.cloneNode(true) as HTMLTableElement, itemFilename = (item.isDirectory ? "*" : "") + item.name;
 			let offsetY = 0, countingOffset = true;
 
-			tableClone.tHead.remove();
-			Array.from(tableClone.tBodies[0].rows).forEach(function(row) {
+			tableClone.tHead?.remove();
+			Array.from(tableClone.tBodies[0].rows).forEach(function (row) {
 				const filename = row.dataset.filename;
-				if (itemsToDrag.some(item => (item.isDirectory ? '*' : '') + item.name === filename)) {
-					Array.from(row.children).forEach(function(td, index) {
-						if (td.tagName === 'TD') {
-							td.style.width = `${firstRow.children[index].offsetWidth}px`;
+				if (itemsToDrag.some(item => (item.isDirectory ? "*" : "") + item.name === filename)) {
+					Array.from(row.children).forEach((td, index) => {
+						if (td.tagName === "TD") {
+							(td as HTMLTableCellElement).style.width = `${(firstRow.children[index] as HTMLTableCellElement).offsetWidth}px`;
 						} else {
 							td.remove();
 						}
@@ -469,27 +498,29 @@ export default {
 					row.remove();
 				}
 			}, this);
-			tableClone.style.backgroundColor = this.$vuetify.theme.dark ? '#424242' : '#FFFFFF';
-			tableClone.style.opacity = 0.7;
-			tableClone.style.position = 'absolute';
-			tableClone.style.pointerEvents = 'none';
-			Array.from(tableClone.querySelectorAll('[class^="v-ripple"]')).forEach(function(item) {
-				item.classList = Array.from(item.classList).filter(c => !c.startsWith('v-ripple'));
+			tableClone.style.backgroundColor = this.$vuetify.theme.dark ? "#424242" : "#FFFFFF";
+			tableClone.style.opacity = "0.7";
+			tableClone.style.position = "absolute";
+			tableClone.style.pointerEvents = "none";
+			Array.from(tableClone.querySelectorAll("[class^='v-ripple']")).forEach((item) => {
+				Array.from(item.classList)
+					.filter(c => c.startsWith("v-ripple"))
+					.forEach(c => item.classList.remove(c));
 			});
-			table.parentNode.append(tableClone);
+			table.parentNode?.append(tableClone);
 
 			const x = e.clientX - table.getClientRects()[0].left;
-			const y = e.clientY - e.target.closest('tr').getClientRects()[0].top + offsetY;
+			const y = e.clientY - table.closest("tr")!.getClientRects()[0].top + offsetY;
 			e.dataTransfer.setDragImage(tableClone, x, y);
 
 			setTimeout(() => tableClone.remove(), 0);
 		},
-		onItemDragOver(item, e) {
-			if (!this.noDragDrop && item.isDirectory) {
-				const jsonData = e.dataTransfer.getData('application/json');
+		onItemDragOver(item: BaseFileListItem, e: DragEvent) {
+			if (!this.noDragDrop && item.isDirectory && e.dataTransfer !== null) {
+				const jsonData = e.dataTransfer.getData("application/json");
 				if (jsonData) {
 					const data = JSON.parse(jsonData);
-					if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
+					if (data.type === "dwcFiles" && !data.items.some((dataItem: BaseFileListItem) => dataItem.isDirectory && dataItem.name === item.name)) {
 						e.preventDefault();
 						e.stopPropagation();
 					}
@@ -500,29 +531,36 @@ export default {
 				}
 			}
 		},
-		async onItemDragDrop(item, e) {
-			const jsonData = e.dataTransfer.getData('application/json');
+		async onItemDragDrop(item: BaseFileListItem, e: DragEvent) {
+			if (e.dataTransfer === null) {
+				return;
+			}
+
+			const jsonData = e.dataTransfer.getData("application/json");
 			if (jsonData) {
 				const data = JSON.parse(jsonData);
-				if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
+				if (data.type === "dwcFiles" && !data.items.some((dataItem: BaseFileListItem) => dataItem.isDirectory && dataItem.name === item.name)) {
 					const directory = this.innerDirectory;
 					for (let i = 0; i < data.items.length; i++) {
 						const from = Path.combine(data.directory, data.items[i].name);
 						const to = Path.combine(directory, item.name, data.items[i].name);
 						try {
-							await this.machineMove({ from, to });
+							await store.dispatch("machine/move", { from, to });
 						} catch (e) {
-							this.$makeNotification('error', `Failed to move ${data.items[i].name} to ${directory}`, e.message);
+							this.$makeNotification(LogType.error, `Failed to move ${data.items[i].name} to ${directory}`, getErrorMessage(e));
 							break;
 						}
 					}
 				}
 			}
 		},
-		async download(item) {
+		async download(item: BaseFileListItem) {
 			try {
 				const filename = (item && item.name) ? item.name : this.innerValue[0].name;
-				const blob = await this.machineDownload({ filename: Path.combine(this.innerDirectory, filename), type: 'blob' });
+				const blob: Blob = await store.dispatch("machine/download", {
+					filename: Path.combine(this.innerDirectory, filename),
+					type: "blob"
+				});
 				saveAs(blob, filename);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
@@ -531,10 +569,14 @@ export default {
 				}
 			}
 		},
-		async edit(item) {
+		async edit(item: BaseFileListItem) {
 			try {
 				const filename = Path.combine(this.innerDirectory, item.name);
-				const response = await this.machineDownload({ filename, type: 'text', showSuccess: false });
+				const response: string = await store.dispatch("machine/download", {
+					filename,
+					type: "text",
+					showSuccess: false
+				});
 				this.editDialog.filename = filename;
 				this.editDialog.content = response;
 				this.editDialog.shown = true;
@@ -545,41 +587,32 @@ export default {
 				}
 			}
 		},
-		async rename(item) {
+		rename(item: BaseFileListItem) {
 			this.renameDialog.directory = this.innerDirectory;
 			this.renameDialog.item = (item && item.name) ? item : this.innerValue[0];
 			this.renameDialog.shown = true;
 		},
-		async renameCallback(newFilename) {
-			const oldFilename = this.renameDialog.item.name;
+		async renameCallback(newFilename: string) {
+			const oldFilename = this.renameDialog.item!.name;
 			if (this.innerDoingFileOperation) {
 				return;
 			}
 
 			this.innerDoingFileOperation = true;
 			try {
-				await this.machineMove({
+				await store.dispatch("machine/move", {
 					from: Path.combine(this.renameDialog.directory, oldFilename),
 					to: Path.combine(this.renameDialog.directory, newFilename)
 				});
-
-				this.innerFilelist.some(function(file) {
-					if (file.isDirectory === this.isDirectory && file.name === this.name) {
-						file.name = newFilename;
-						return true;
-					}
-					return false;
-				}, this.renameDialog.item);
-
-				this.$makeNotification('success', this.$t('notification.rename.success', [oldFilename, newFilename]));
+				this.$makeNotification(LogType.success, this.$t("notification.rename.success", [oldFilename, newFilename]));
 			} catch (e) {
 				console.warn(e);
-				this.$log('error', this.$t('notification.rename.error', [oldFilename, newFilename]), e.message);
+				this.$log(LogType.error, this.$t("notification.rename.error", [oldFilename, newFilename]), getErrorMessage(e));
 			}
 			this.innerDoingFileOperation = false;
 		},
-		async remove(items) {
-			if (!items || !(items instanceof Array)) {
+		async remove(items?: Array<BaseFileListItem>) {
+			if (!items) {
 				items = this.innerValue.slice();
 			}
 
@@ -592,36 +625,34 @@ export default {
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const item = items[i];
-					await this.machineDelete(Path.combine(directory, item.name));
+					await store.dispatch("machine/delete", Path.combine(directory, item.name));
 
 					deletedItems.push(items[i]);
 					this.innerFilelist = this.innerFilelist.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 					this.innerValue = this.innerValue.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 				} catch (e) {
-					this.$makeNotification('error', this.$t('notification.delete.errorTitle', [items[i].name]), items[i].isDirectory ? this.$t('notification.delete.errorMessageDirectory') : e.message);
+					this.$makeNotification(LogType.error, this.$t("notification.delete.errorTitle", [items[i].name]), items[i].isDirectory ? this.$t("notification.delete.errorMessageDirectory") : getErrorMessage(e));
 				}
 			}
 
 			if (deletedItems.length) {
-				this.$log('success', (deletedItems.length > 1) ? this.$t('notification.delete.successMultiple', [deletedItems.length]) : this.$t('notification.delete.success', [deletedItems[0].name]));
+				this.$log(MessageType.success, (deletedItems.length > 1) ? this.$t("notification.delete.successMultiple", [deletedItems.length]) : this.$t("notification.delete.success", [deletedItems[0].name]));
 			}
 			this.innerDoingFileOperation = false;
 		},
-		async downloadZIP(items) {
-			if (!items || !(items instanceof Array)) { items = this.innerValue.slice(); }
-
-			// Download the selected files
-			const files = [];
-			for (let i = 0; i < items.length; i++) {
-				files.push({
-					filename: Path.combine(this.directory, items[i].name),
-					type: 'blob'
-				});
+		async downloadZIP(items?: Array<BaseFileListItem>) {
+			if (!items || !(items instanceof Array)) {
+				items = this.innerValue.slice();
 			}
 
-			let downloadedFiles;
+			// Download the selected files
+			let downloadedFiles: Array<FileTransferItem>;
 			try {
-				downloadedFiles = await this.machineDownload({ files, closeProgressOnSuccess: true });
+				downloadedFiles = await store.dispatch("machine/download", {
+					files: items.map(item => Path.combine(this.directory, item.name)),
+					type: "blob",
+					closeProgressOnSuccess: true
+				});
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 					// should be handled before we get here
@@ -631,23 +662,23 @@ export default {
 			}
 
 			// Compress downloaded files and save the new archive
-			const notification = this.$makeNotification('info', this.$t('notification.compress.title'), this.$t('notification.compress.message'), 0);
+			const notification = this.$makeNotification(LogType.info, this.$t("notification.compress.title"), this.$t("notification.compress.message"), 0);
 			try {
 				const zip = new JSZip();
-				downloadedFiles.forEach(function(file) {
+				for(const file of downloadedFiles) {
 					zip.file(Path.extractFileName(file.filename), file.content);
-				});
+				}
 
-				const zipBlob = await zip.generateAsync({ type: 'blob' });
-				saveAs(zipBlob, 'download.zip');
+				const zipBlob = await zip.generateAsync({ type: "blob" });
+				saveAs(zipBlob, "download.zip");
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification('error', this.$t('notification.compress.errorTitle'), e.message);
+				this.$makeNotification(LogType.error, this.$t("notification.compress.errorTitle"), getErrorMessage(e));
 			}
 			notification.close();
 		},
 
-		filesOrDirectoriesChanged({ machine, files }) {
+		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: Array<string> }) {
 			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
 				// File or directory has been changed in the current directory
 				this.refresh();
@@ -697,30 +728,30 @@ export default {
 		},
 		innerDirectory(to) {
 			if (this.directory !== to) {
-				this.$emit('update:directory', to);
+				this.$emit("update:directory", to);
 			}
 		},
 		innerFilelist(to) {
 			if (this.filelist !== to) {
-				this.$emit('update:filelist', to);
+				this.$emit("update:filelist", to);
 			}
 		},
 		innerLoading(to) {
 			if (this.loading !== to) {
-				this.$emit('update:loading', to);
+				this.$emit("update:loading", to);
 			}
 		},
 		innerValue(to) {
 			if (this.value !== to) {
-				this.$emit('input', to);
+				this.$emit("input", to);
 			}
 		},
-		'contextMenu.shown'(to) {
+		"contextMenu.shown"(to) {
 			if (!to) {
 				// Restore previously selected items
 				this.innerValue = this.prevSelection;
 			}
 		}
 	}
-}
+});
 </script>

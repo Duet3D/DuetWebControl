@@ -152,11 +152,22 @@ export default initCollection(DwcPlugin, [
 
 // NOTE: The following functions will be moved from this file in v3.6...
 
-export const ContextMenuType = {
-	JobFileList: "jobFileList"
+/**
+ * Types of supported context menus
+ */
+export enum ContextMenuType {
+	JobFileList = "jobFileList"
 }
 
-export function registerPluginContextMenuItem(name: string | (() => string), path: string | undefined, icon: string, action: string, contextMenuType: "jobFileList") {
+/**
+ * Register a new context menu item from a plugin
+ * @param name Caption of the context menu item
+ * @param path Optional route path to go to on click
+ * @param icon Icon of the context menu item
+ * @param action Global event to trigger on click
+ * @param contextMenuType Target of the context menu item
+ */
+export function registerPluginContextMenuItem(name: string | (() => string), path: string | undefined, icon: string, action: string, contextMenuType: ContextMenuType) {
 	store.commit("uiInjection/registerPluginContextMenuItem", {
 		name,
 		path,
@@ -166,6 +177,12 @@ export function registerPluginContextMenuItem(name: string | (() => string), pat
 	});
 }
 
+/**
+ * Register a component to be rendered on the main app component.
+ * This can be useful for plugins that need to generate content independently from the current route and/or tab
+ * @param name Name of the component
+ * @param component Component class
+ */
 export function injectComponent(name: string, component: Vue) {
 	store.commit("uiInjection/injectComponent", { name, component });
 }

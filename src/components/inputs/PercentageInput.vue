@@ -34,16 +34,23 @@
 	</v-row>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState } from 'vuex'
+import store from "@/store";
 import { isNumber } from "@/utils/numbers";
 
-const debounceTime = 500
-const changeTime = 300, changeInterval = 150
+/**
+ * Time needed before the slider value is actually applied (in ms)
+ */
+const debounceTime = 500;
 
-export default {
+/**
+ * How long to wait before auto-incrementing the selected value (in ms) and the interval of successive increments (in ms)
+ */
+const changeTime = 300, changeInterval = 150;
+
+export default Vue.extend({
 	props: {
 		value: {
 			type: Number,
@@ -64,16 +71,15 @@ export default {
 		disabled: Boolean
 	},
 	computed: {
-		...mapState('settings', ['numericInputs']),
-		canApply() {
+		numericInputs(): boolean { return store.state.settings.numericInputs; },
+		canApply(): boolean {
 			if (this.disabled || this.innerValue === Math.round(this.value) || this.debounceTimer || this.decreaseTimer || this.increaseTimer) {
 				return false;
 			}
-			const inputValue = parseFloat(this.innerValue);
-			return isNumber(inputValue) && inputValue >= this.min && inputValue <= this.max;
+			return isNumber(this.innerValue) && this.innerValue >= this.min && this.innerValue <= this.max;
 		},
-		items() {
-			if (this.disableAutoComplete || !this.step) {
+		items(): Array<number> {
+			if (store.state.settings.disableAutoComplete || !this.step) {
 				return [];
 			}
 
@@ -103,23 +109,23 @@ export default {
 	data() {
 		return {
 			innerValue: this.value,
-			debounceTimer: undefined,
-			decreaseTimer: undefined,
-			increaseTimer: undefined
+			debounceTimer: null as NodeJS.Timeout | null,
+			decreaseTimer: null as NodeJS.Timeout | null,
+			increaseTimer: null as NodeJS.Timeout | null
 		}
 	},
 	methods: {
 		apply() {
-			this.$refs.input.isMenuActive = false;			// FIXME There must be a better solution than this
+			(this.$refs.input as any).isMenuActive = false;			// FIXME There must be a better solution than this
 			if (this.canApply) {
-				this.$emit('input', this.innerValue);
+				this.$emit("input", this.innerValue);
 			}
 		},
-		updateValue(val) {
-			this.innerValue = parseFloat(val);
+		updateValue(value: string) {
+			this.innerValue = parseFloat(value);
 		},
 
-		applyStep(diff) {
+		applyStep(diff: number) {
 			if (this.debounceTimer) {
 				clearTimeout(this.debounceTimer);
 			}
@@ -127,23 +133,23 @@ export default {
 			this.debounceTimer = setTimeout(this.debounce, debounceTime);
 		},
 		debounce() {
-			this.$emit('input', this.innerValue);
-			this.debounceTimer = undefined;
+			this.$emit("input", this.innerValue);
+			this.debounceTimer = null;
 		},
-		mouseDown(increment) {
+		mouseDown(increment: boolean) {
 			if (increment) {
 				this.increaseTimer = setTimeout(this.increase, changeTime);
 			} else {
 				this.decreaseTimer = setTimeout(this.decrease, changeTime);
 			}
 		},
-		mouseUp(increment) {
-			if (increment && this.increaseTimer) {
+		mouseUp(increment: boolean) {
+			if (increment && this.increaseTimer !== null) {
 				clearTimeout(this.increaseTimer);
-				this.increaseTimer = undefined;
-			} else if (this.decreaseTimer) {
+				this.increaseTimer = null;
+			} else if (this.decreaseTimer !== null) {
 				clearTimeout(this.decreaseTimer);
-				this.decreaseTimer = undefined;
+				this.decreaseTimer = null;
 			}
 		},
 
@@ -157,12 +163,12 @@ export default {
 		}
 	},
 	watch: {
-		value(to) {
+		value(to: number) {
 			const newValue = Math.round(to);
 			if (this.innerValue !== newValue) {
 				this.innerValue = newValue;
 			}
 		}
 	}
-}
+});
 </script>

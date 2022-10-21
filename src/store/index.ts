@@ -12,7 +12,7 @@ import { logGlobal, LogType } from "@/utils/logging";
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
-import uiInjection from "./uiInjection";
+import uiInjection, { UiInjectionState } from "./uiInjection";
 import { connect } from "./machine/connector";
 
 Vue.use(Vuex);
@@ -70,6 +70,7 @@ export interface RootState extends InternalRootState {
 	machine: MachineModuleState;
 	machines: Record<string, MachineModuleState>;
 	settings: SettingsState;
+	uiInjection: UiInjectionState;
 }
 
 const store = new Vuex.Store<InternalRootState>({

@@ -1,8 +1,10 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy" :title="$t(`button.upload['${target}'].title`)" :color="innerColor" @dragover="dragOver" @dragleave="dragLeave" @drop.prevent.stop="dragDrop">
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy"
+			   :title="title" :color="innerColor" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave"
+			   @drop.prevent.stop="dragDrop">
 			<template #loader>
-				<v-progress-circular indeterminate :size="23" :width="2" class="mr-2"></v-progress-circular>
+				<v-progress-circular indeterminate :size="23" :width="2" class="mr-2" />
 				{{ caption }}
 			</template>
 
@@ -12,88 +14,153 @@
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate"></firmware-update-dialog>
-		<config-updated-dialog :shown.sync="confirmFirmwareReset"></config-updated-dialog>
+		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate" />
+		<config-updated-dialog :shown.sync="confirmFirmwareReset" />
 	</div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { NetworkInterfaceType, MachineStatus, Board, MessageType } from "@duet3d/objectmodel";
+import JSZip from "jszip";
+import Vue, { PropType } from "vue";
 
-import { NetworkInterfaceType, MachineStatus } from '@duet3d/objectmodel'
-import JSZip from 'jszip'
-import { VBtn } from 'vuetify/lib'
-import { mapState, mapGetters, mapActions } from 'vuex'
+import store from "@/store";
+import { isPrinting } from "@/utils/enums";
+import { getErrorMessage, DisconnectedError } from "@/utils/errors";
+import Events from "@/utils/events";
+import { LogType } from "@/utils/logging";
+import Path, { escapeFilename } from "@/utils/path";
 
-import { isPrinting } from '@/utils/enums'
-import { DisconnectedError } from '@/utils/errors'
-import Events from '@/utils/events'
-import Path from '@/utils/path'
+const webExtensions: Array<string> = [".htm", ".html", ".ico", ".xml", ".css", ".map", ".js", ".ttf", ".eot", ".svg", ".woff", ".woff2", ".jpeg", ".jpg", ".png"];
 
-const webExtensions = ['.htm', '.html', '.ico', '.xml', '.css', '.map', '.js', '.ttf', '.eot', '.svg', '.woff', '.woff2', '.jpeg', '.jpg', '.png']
+/**
+ * Types of uploads
+ */
+export enum UploadType {
+	/**
+	 * Upload to /gcodes
+	 */
+	gcodes = "gcodes",
 
-export default {
-	computed: {
-		...mapState(['selectedMachine']),
-		...mapState('machine/model', ['boards', 'directories', 'network', 'state']),
-		...mapState('settings', ['ignoreFileTimestamps']),
-		...mapGetters('machine', ['connector']),
-		...mapGetters(['isConnected', 'uiFrozen']),
-		connectorType() {
-			return this.connector ? this.connector.type : null;
+	/**
+	 * Upload & start (to /gcodes)
+	 */
+	start = "start",
+
+	/**
+	 * Upload to /macros
+	 */
+	macros = "macros",
+
+	/**
+	 * Upload to /filaments
+	 */
+	filaments = "filaments",
+
+	/**
+	 * Upload to /firmware (used to be /sys)
+	 */
+	firmware = "firmware",
+
+	/**
+	 * Upload to /menu
+	 */
+	menu = "menu",
+
+	/**
+	 * Upload to /sys
+	 */
+	system = "system",
+
+	/**
+	 * Upload to /www
+	 */
+	web = "web",
+
+	/**
+	 * Upload for plugin installation
+	 */
+	plugin = "plugin",
+
+	/**
+	 * Upload for general updates (firmware, web interface)
+	 */
+	update = "update"
+};
+
+export default Vue.extend({
+	props: {
+		color: String,
+		directory: String,
+		machine: String,
+		target: {
+			type: String as PropType<UploadType>,
+			required: true
 		},
-		caption() {
+		uploadPrint: Boolean
+	},
+	computed: {
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		caption(): string {
 			if (this.extracting) {
-				return this.$t('generic.extracting');
+				return this.$t("generic.extracting");
 			}
 			if (this.uploading) {
-				return this.$t('generic.uploading');
+				return this.$t("generic.uploading");
 			}
-			return this.$t(`button.upload['${this.target}'].caption`);
+			return this.$t(`button.upload.${this.target}.caption`);
 		},
-		canUpload() {
+		title(): string {
+			return this.$t(`button.upload.${this.target}.title`);
+		},
+		canUpload(): boolean {
 			return this.isConnected && !this.uiFrozen;
 		},
-		accept() {
+		accept(): string | undefined {
 			switch (this.target) {
-				case 'gcodes': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap';
-				case 'start': return '.g,.gcode,.gc,.gco,.nc,.ngc,.tap,.zip';
-				case 'macros': return '*';
-				case 'filaments': return '.zip';
-				case 'firmware': return '.zip,.bin,.uf2';
-				case 'menu': return '*';
-				case 'system': return '.zip,.bin,.uf2,.json,.g,.csv,.xml' + (this.connectorType === 'rest' ? ',.deb' : '');
-				case 'web': return '.zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz';
-				case 'plugin': return '.zip';
-				case 'update': return '.zip,.bin,.uf2';
+				case UploadType.gcodes: return ".g,.gcode,.gc,.gco,.nc,.ngc,.tap";
+				case UploadType.start: return ".g,.gcode,.gc,.gco,.nc,.ngc,.tap,.zip";
+				case UploadType.macros: return "*";
+				case UploadType.filaments: return ".zip";
+				case UploadType.firmware: return ".zip,.bin,.uf2";
+				case UploadType.menu: return "*";
+				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.state.dsfVersion !== null) ? ",.deb" : "");
+				case UploadType.web: return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
+				case UploadType.plugin: return ".zip";
+				case UploadType.update: return ".zip,.bin,.uf2";
+				default:
+					const _exhaustiveCheck: never = this.target;
+					return undefined;
 			}
-			return undefined;
 		},
-		destinationDirectory() {
+		destinationDirectory(): string | undefined {
 			if (this.directory) {
 				return this.directory;
 			}
 
 			switch (this.target) {
-				case 'gcodes': return this.directories.gCodes;
-				case 'start': return this.directories.gCodes;
-                case 'firmware': return this.directories.firmware;
-				case 'macros': return this.directories.macros;
-				case 'filaments': return this.directories.filaments;
-				case 'menu': return this.directories.menu;
-				case 'system': return this.directories.system;
-				case 'web': return this.directories.web;
-				// plugin is not applicable
-                case 'update': return this.directories.firmware;
+				case UploadType.gcodes: return store.state.machine.model.directories.gCodes;
+				case UploadType.start: return store.state.machine.model.directories.gCodes;
+				case UploadType.firmware: return store.state.machine.model.directories.firmware;
+				case UploadType.macros: return store.state.machine.model.directories.macros;
+				case UploadType.filaments: return store.state.machine.model.directories.filaments;
+				case UploadType.menu: return store.state.machine.model.directories.menu;
+				case UploadType.system: return store.state.machine.model.directories.system;
+				case UploadType.web: return store.state.machine.model.directories.web;
+				case UploadType.plugin: return undefined;	// not applicable
+				case UploadType.update: return store.state.machine.model.directories.firmware;
+				default:
+					const _exhaustiveCheck: never = this.target;
+					return undefined;
 			}
-			return undefined;
 		},
-		isBusy() {
+		isBusy(): boolean {
 			return this.extracting || this.uploading;
 		},
 		confirmFirmwareReset: {
-			get() { return !this.confirmUpdate && this.confirmReset; },
-			set(value) { this.confirmReset = value; }
+			get(): boolean { return !this.confirmUpdate && this.confirmReset; },
+			set(value: boolean): void { this.confirmReset = value; }
 		}
 	},
 	data() {
@@ -105,7 +172,7 @@ export default {
 			confirmUpdate: false,
 			updates: {
 				webInterface: false,
-				firmwareBoards: [],
+				firmwareBoards: new Array<number>(),
 				wifiServer: false,
 				wifiServerSpiffs: false,
 				panelDue: false,
@@ -115,100 +182,93 @@ export default {
 			confirmReset: false
 		}
 	},
-	extends: VBtn,
-	props: {
-		directory: String,
-        machine: String,
-		target: {
-			type: String,
-			required: true
-		},
-		uploadPrint: Boolean
-	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'upload', 'installSystemPackage']),
 		chooseFile() {
-			if (!this.isBusy) {
-				this.$refs.fileInput.click();
+			if (!this.isBusy && this.$refs.fileInput !== null) {
+				(this.$refs.fileInput as HTMLInputElement).click();
 			}
 		},
-		async fileSelected(e) {
-			await this.doUpload(e.target.files);
-			e.target.value = '';
+		async fileSelected(e: Event) {
+			if (e.target !== null) {
+				const inputElement = e.target as HTMLInputElement;
+				if (inputElement.files) {
+					try {
+						await this.doUpload(inputElement.files);
+					} finally {
+						inputElement.value = "";
+					}
+				}
+			}
 		},
-		isWebFile(filename) {
+		isWebFile(filename: string): boolean {
 			if (webExtensions.some(extension => filename.toLowerCase().endsWith(extension)) ||
-				filename === 'manifest.json' || filename === 'manifest.json.gz' || filename === 'robots.txt') {
+				filename === "manifest.json" || filename === "manifest.json.gz" || filename === "robots.txt") {
 				return true;
 			}
 
 			const matches = /(\.[^.]+).gz$/i.exec(filename);
-			if (matches && webExtensions.indexOf(matches[1].toLowerCase()) !== -1) {
-				return true;
-			}
-
-			return false;
+			return (matches !== null) && webExtensions.includes(matches[1].toLowerCase());
 		},
-		getFirmwareName(fileName) {
-			let result = null;
-			this.boards.forEach((board, index) => {
-				if (board && board.firmwareFileName && (board.canAddress || index === 0)) {
-					const binRegEx = new RegExp(board.firmwareFileName.replace(/\.bin$/, '(.*)\\.bin'), 'i');
-					const uf2RegEx = new RegExp(board.firmwareFileName.replace(/\.uf2$/, '(.*)\\.uf2'), 'i');
+		getFirmwareName(fileName: string): string | null {
+			let result: string | null = null;
+			for (const board of store.state.machine.model.boards) {
+				if (board && board.firmwareFileName) {
+					const binRegEx = new RegExp(board.firmwareFileName.replace(/\.bin$/, "(.*)\\.bin"), "i");
+					const uf2RegEx = new RegExp(board.firmwareFileName.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
 					if (binRegEx.test(fileName) || uf2RegEx.test(fileName)) {
 						result = board.firmwareFileName;
 						this.updates.firmwareBoards.push(board.canAddress || 0);
 					}
 				}
-			}, this);
+			}
 			return result;
 		},
-		getBinaryName(key, fileName) {
-			let result = null;
-			this.boards.forEach(board => {
+		getBinaryName<T extends Extract<keyof Board, string>>(key: T, fileName: string): string | null {
+			for (const board of store.state.machine.model.boards) {
 				if (board && board[key]) {
-					const binRegEx = new RegExp(board[key].replace(/\.bin$/, '(.*)\\.bin'), 'i');
-					const uf2RegEx = new RegExp(board[key].replace(/\.uf2$/, '(.*)\\.uf2'), 'i');
+					const boardValue = board[key] as string;
+					const binRegEx = new RegExp(boardValue.replace(/\.bin$/, "(.*)\\.bin"), "i");
+					const uf2RegEx = new RegExp(boardValue.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
 					if (binRegEx.test(fileName) || uf2RegEx.test(fileName)) {
-						result = board[key];
+						return boardValue;
 					}
 				}
-			});
-			return result;
+			}
+			return null;
 		},
-		async doUpload(files, zipName, startTime) {
+		async doUpload(files: FileList | Array<File>, zipName?: string, startTime?: Date): Promise<void> {
 			if (files.length === 0) {
 				// Skip empty upload requests
 				return;
 			}
 
 			// Cannot start more than one file via Upload & Start or Install Plugin
-			if ((this.target === 'start' || this.target === 'plugin') && files.length !== 1) {
-				this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadStartWrongFileCount'));
+			if ((this.target === UploadType.start || this.target === UploadType.plugin) && files.length !== 1) {
+				this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadStartWrongFileCount"));
 				return;
 			}
 
 			// Check if a ZIP file may be extracted
 			if (!zipName) {
-				if (files.length > 1 && files[0].name.toLowerCase().endsWith('.zip')) {
-					this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoSingleZIP'));
+				if (files.length > 1 && files[0].name.toLowerCase().endsWith(".zip")) {
+					this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoSingleZIP"));
 					return;
 				}
 
-				if (files[0].name.toLowerCase().endsWith('.zip')) {
-					const zip = new JSZip(), zipFiles = [], target = this.target;
-					const notification = this.$makeNotification('info', this.$t('notification.decompress.title'), this.$t('notification.decompress.message'), 0);
+				if (files[0].name.toLowerCase().endsWith(".zip")) {
+					const zip = new JSZip(), zipFiles: Array<string> = [], target = this.target;
+					const notification = this.$makeNotification(LogType.info, this.$t("notification.decompress.title"), this.$t("notification.decompress.message"), 0);
 					this.extracting = true;
 					try {
 						try {
 							notification.progress = 0;
 							await zip.loadAsync(files[0], { checkCRC32: true });
 
-							// Check if this is a plugin
-							if (this.target === 'start' || this.target === 'system' || this.target === 'update' || this.target === 'plugin') {
+							// Check if this is a plugin (permitted on Upload&Start, Files -> System, Settings -> Machine, Plugins)
+							if ([UploadType.start, UploadType.system, UploadType.update, UploadType.plugin].includes(this.target)) {
 								let isPlugin = false;
-								zip.forEach(function(file) {
-									if (file === 'plugin.json') {
+								zip.forEach(function (file) {
+									if (file === "plugin.json") {
 										isPlugin = true;
 									}
 								});
@@ -218,58 +278,61 @@ export default {
 									notification.close();
 
 									this.$root.$emit(Events.installPlugin, {
-										machine: this.machine || this.selectedMachine,
+										machine: this.machine || store.state.selectedMachine,
 										zipFilename: files[0].name,
 										zipBlob: files[0],
 										zipFile: zip,
-										start: this.target === 'start'
+										start: this.target === UploadType.start
 									});
 									return;
 								}
-								else if (this.target === 'plugin') {
-                                    // Don't proceed if this is no plugin file
+								else if (this.target === UploadType.plugin) {
+									// Don"t proceed if this is no plugin file
 									return;
-                                }
+								}
 							}
 
 							// Get a list of files to unpack
-							zip.forEach(function(file) {
-								if (!file.endsWith('/') && (file.split('/').length === 2 || target !== 'filaments')) {
-									zipFiles.push(file);
-								}
-							});
+							if (this.target !== UploadType.filaments) {
+								zip.forEach(function (file) {
+									if (!file.endsWith('/') && (file.split('/').length === 2)) {
+										zipFiles.push(file);
+									}
+								});
+							}
 
 							// Could we get anything useful?
 							if (zipFiles.length === 0) {
 								this.extracting = false;
-								this.$makeNotification('error', this.$t(`button.upload['${this.target}'].caption`), this.$t('error.uploadNoFiles'));
+								this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoFiles"));
 								return;
 							}
 
 							// Extract everything and start the upload
-							for (let i = 0; i < zipFiles.length; i++) {
-								const name = zipFiles[i];
-								zipFiles[i] = await zip.file(name).async('blob');
-								zipFiles[i].name = name;
-								notification.progress = Math.round(((i + 1) / zipFiles.length) * 100);
+							const extractedFiles: Array<File> = [];
+							let filesExtracted = 0;
+							for (const name of zipFiles) {
+								const blob = await zip.file(name)!.async("blob");
+								extractedFiles.push(new File([blob], name));
+								notification.progress = Math.round((++filesExtracted / zipFiles.length) * 100);
 							}
-							this.doUpload(zipFiles, files[0].name, new Date());
+							this.doUpload(extractedFiles, files[0].name, new Date());
 						} finally {
 							this.extracting = false;
 							notification.close();
 						}
 						return;
 					} catch (e) {
-						this.$makeNotification('error', this.$t('notification.decompress.errorTitle'), e.message);
+						this.$makeNotification(LogType.error, this.$t("notification.decompress.errorTitle"), getErrorMessage(e));
 						throw e;
 					}
 				}
 			}
 
-            if (this.target === 'plugin') {
-                // Don't proceed if this is no plugin file
-                return;
-            }
+			if (this.target === UploadType.plugin) {
+				// Don"t proceed if this is no plugin file
+				return;
+			}
 
 			// Check what types of files we have and where they need to go
 			this.updates.webInterface = false;
@@ -280,105 +343,112 @@ export default {
 
 			for (let i = 0; i < files.length; i++) {
 				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
-                if (this.target === 'firmware' || this.target === 'system' || this.target === 'update') {
+				if ([UploadType.firmware, UploadType.system, UploadType.update].includes(this.target)) {
 					if (Path.isSdPath('/' + content.name)) {
-						filename = Path.combine('0:/', content.name);
+						filename = Path.combine("0:/", content.name);
 					} else if (this.isWebFile(content.name)) {
-						filename = Path.combine(this.directories.web, content.name);
-						this.updates.webInterface |= /index.html(\.gz)?/i.test(content.name);
-					} else if (this.connectorType === 'rest' && /\.deb$/.test(content.name)) {
+						filename = Path.combine(store.state.machine.model.directories.web, content.name);
+						this.updates.webInterface = this.updates.webInterface || /index.html(\.gz)?/i.test(content.name);
+					} else if (store.state.machine.model.state.dsfVersion !== null && /\.deb$/.test(content.name)) {
 						// TODO improve this
 						try {
-							await this.installSystemPackage({
+							await store.dispatch("machine/installSystemPackage", {
 								filename: content.name,
 								blob: content
 							});
 							alert(`Installation of ${content.name} succesful`);
 						} catch (e) {
-							alert(`Installation of ${content.name} failed: ${e}`);
+							alert(`Installation of ${content.name} failed: ${getErrorMessage(e)}`);
 						}
 					} else {
 						const firmwareFileName = this.getFirmwareName(content.name);
-						const bootloaderFileName = this.getBinaryName('bootloaderFileName', content.name);
-						const iapFileNameSBC = this.getBinaryName('iapFileNameSBC', content.name);
-						const iapFileNameSD = this.getBinaryName('iapFileNameSD', content.name);
+						const bootloaderFileName = this.getBinaryName("bootloaderFileName", content.name);
+						const iapFileNameSBC = this.getBinaryName("iapFileNameSBC", content.name);
+						const iapFileNameSD = this.getBinaryName("iapFileNameSD", content.name);
 
 						if (firmwareFileName) {
-							filename = Path.combine(this.directories.firmware, firmwareFileName);
+							filename = Path.combine(store.state.machine.model.directories.firmware, firmwareFileName);
 						} else if (bootloaderFileName) {
-							filename = Path.combine(this.directories.firmware, bootloaderFileName);
-						} else if (this.state.dsfVersion && iapFileNameSBC) {
-							filename = Path.combine(this.directories.firmware, iapFileNameSBC);
+							filename = Path.combine(store.state.machine.model.directories.firmware, bootloaderFileName);
+						} else if (store.state.machine.model.state.dsfVersion && iapFileNameSBC) {
+							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSBC);
 						} else if (iapFileNameSD) {
-							filename = Path.combine(this.directories.firmware, iapFileNameSD);
-						} else if (!this.state.dsfVersion && this.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
+							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSD);
+						} else if (!store.state.machine.model.state.dsfVersion && store.state.machine.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
 							if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
-								filename = Path.combine(this.directories.firmware, 'DuetWiFiServer.bin');
+								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWiFiServer.bin");
 								this.updates.wifiServer = true;
 							} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
-								filename = Path.combine(this.directories.firmware, 'DuetWebControl.bin');
+								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWebControl.bin");
 								this.updates.wifiServerSpiffs = true;
-							} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
-								filename = Path.combine(this.directories.firmware, content.name);
-								if (content.name === 'PanelDueFirmware.bin') {
+							} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
+								filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
+								if (content.name === "PanelDueFirmware.bin") {
 									this.updates.panelDue = true;
 								}
 							}
-						} else if (content.name.endsWith('.bin') || content.name.endsWith('.uf2')) {
-							filename = Path.combine(this.directories.firmware, content.name);
-							if (content.name === 'PanelDueFirmware.bin') {
+						} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
+							filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
+							if (content.name === "PanelDueFirmware.bin") {
 								this.updates.panelDue = true;
 							}
 						}
 					}
 				}
-				content.filename = filename;
+				content = new File([content], filename);
 			}
 			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 
 			// Start uploading
 			this.uploading = true;
-			try
-			{
+			try {
 				if (files.length === 1) {
-					await this.upload({ filename: files[0].filename, content: files[0], showSuccess: !zipName });
+					await store.dispatch("machine/upload", {
+						filename: files[0].name,
+						content: files[0],
+						showSuccess: !zipName
+					});
 				} else {
 					const filelist = [];
 					for (let i = 0; i < files.length; i++) {
 						filelist.push({
-							filename: files[i].filename,
+							filename: files[i].name,
 							content: files[i]
 						});
 					}
-					await this.upload({ files: filelist, showSuccess: !zipName, closeProgressOnSuccess: askForUpdate });
+					await store.dispatch("machine/upload", {
+						files: filelist,
+						showSuccess: !zipName,
+						closeProgressOnSuccess: askForUpdate
+					});
 				}
-				this.$emit('uploadComplete', files);
+				this.$emit("uploadComplete", files);
 			} catch (e) {
 				this.uploading = false;
-				this.$emit('uploadFailed', { files, error: e });
+				this.$emit("uploadFailed", { files, error: e });
 				return;
 			}
 			this.uploading = false;
 
 			// Deal with Upload & Start
-			if (this.target === 'start') {
-				await this.sendCode(`M32 "${files[0].filename}"`);
+			if (this.target === UploadType.start) {
+				await store.dispatch("machine/sendCode", `M32 "${escapeFilename(files[0].name)}"`);
 			}
 
 			// Deal with updates
 			if (askForUpdate) {
 				// Ask user to perform an update
 				this.confirmUpdate = true;
-			} else if (this.selectedMachine === location.host && this.updates.webInterface) {
+			} else if (store.state.selectedMachine === location.host && this.updates.webInterface) {
 				// Reload the web interface immediately if it was the only update
-				location.reload(true);
+				location.reload();
 			}
 
 			// Deal with config files
-			const configFile = Path.combine(this.directories.system, Path.configFile);
+			const configFile = Path.combine(store.state.machine.model.directories.system, Path.configFile);
 			for (let file of files) {
-				const fullName = Path.combine(this.destinationDirectory, file.filename);
-				if (!isPrinting(this.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
+				const fullName = Path.combine(this.destinationDirectory, file.name);
+				if (!isPrinting(store.state.machine.model.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
 					// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been replaced
 					this.confirmReset = true;
 					break;
@@ -387,12 +457,12 @@ export default {
 
 			// Show success after uploading a ZIP
 			if (zipName) {
-				const secondsPassed = Math.round((new Date() - startTime) / 1000);
-				this.$makeNotification('success', this.$t('notification.upload.success', [zipName, this.$displayTime(secondsPassed)]), null);
+				const secondsPassed = startTime ? Math.round(((new Date()).getTime() - startTime.getTime()) / 1000) : 0;
+				this.$makeNotification(LogType.success, this.$t("notification.upload.success", [zipName, this.$displayTime(secondsPassed)]), null);
 			}
 		},
 		async startUpdate() {
-			// Don't show a reset confirmation while updating
+			// Don"t show a reset confirmation while updating
 			this.confirmReset = false;
 
 			// Update expansion boards
@@ -400,83 +470,79 @@ export default {
 				const boardToUpdate = this.updates.firmwareBoards[i];
 				if (boardToUpdate > 0) {
 					try {
-						await this.sendCode(`M997 B${boardToUpdate}`);
+						await store.dispatch("machine/sendCode", `M997 B${boardToUpdate}`);
 						do {
-							// Wait in 2-second intervals until the status is no longer 'Updating'
+							// Wait in 2-second intervals until the status is no longer "Updating"
 							await new Promise(resolve => setTimeout(resolve, 2000));
 
 							// Stop if the connection has been interrupted
 							if (!this.isConnected) {
 								return;
 							}
-						} while (this.state.status === MachineStatus.updating);
+						} while (store.state.machine.model.state.status === MachineStatus.updating);
 
 					} catch (e) {
 						if (!(e instanceof DisconnectedError)) {
 							console.warn(e);
-							this.$log('error', this.$t('generic.error'), e.message);
+							this.$log(MessageType.error, this.$t("generic.error"), getErrorMessage(e));
 						}
 					}
 				}
 			}
 
 			// Update other modules if applicable
-			const modules = [];
-			if (this.updates.firmwareBoards.indexOf(0) >= 0) {
-				modules.push('0');
+			const modules: Array<number> = [];
+			if (this.updates.firmwareBoards.includes(0)) {
+				modules.push(0);
 			}
 			if (this.updates.wifiServer) {
-				modules.push('1');
+				modules.push(1);
 			}
 			if (this.updates.wifiServerSpiffs) {
-				modules.push('2');
+				modules.push(2);
 			}
 			// module 3 means put wifi server into bootloader mode, not supported here
 			if (this.updates.panelDue) {
-				modules.push('4');
+				modules.push(4);
 			}
 
 			if (modules.length > 0) {
 				this.updates.codeSent = true;
 				try {
-					await this.sendCode(`M997 S${modules.join(':')}`);
+					await store.dispatch("machine/sendCode", `M997 S${modules.join(':')}`);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
-						this.$log('error', this.$t('generic.error'), e.message);
+						this.$log(MessageType.error, this.$t("generic.error"), getErrorMessage(e));
 					}
 				}
 			}
 
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
-			this.confirmReset = (modules.indexOf('0') === -1) && (this.updates.firmwareBoards.findIndex(board => board > 0) !== -1);
+			this.confirmReset = !modules.includes(0) && this.updates.firmwareBoards.some(board => board > 0);
 		},
-		dragOver(e) {
-			e.preventDefault();
-			e.stopPropagation();
+		dragOver(e: DragEvent) {
 			if (!this.isBusy) {
-				this.innerColor = 'success';
+				this.innerColor = "success";
 			}
 		},
-		dragLeave(e) {
-			e.preventDefault();
-			e.stopPropagation();
+		dragLeave(e: DragEvent) {
 			this.innerColor = this.color;
 		},
-		async dragDrop(e) {
+		async dragDrop(e: DragEvent) {
 			this.innerColor = this.color;
-			if (!this.isBusy && e.dataTransfer.files.length) {
+			if (!this.isBusy && e.dataTransfer && e.dataTransfer.files.length) {
 				await this.doUpload(e.dataTransfer.files);
 			}
 		}
 	},
 	watch: {
 		isConnected(to) {
-			if (to && this.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
+			if (to && store.state.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
 				// Reload the web interface when the connection could be established again
-				location.reload(true);
+				location.reload();
 			}
 		}
 	}
-}
+});
 </script>

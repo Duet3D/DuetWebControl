@@ -2,35 +2,46 @@
 	<v-dialog v-model="shown" max-width="480px" :persistent="isPersistent" no-click-animation>
 		<v-card>
 			<v-card-title>
-				<span class="headline">{{ title }}</span>
+				<span class="headline">
+					{{ title }}
+				</span>
 			</v-card-title>
 
 			<v-card-text>
 				<v-window v-model="currentPage">
 					<!-- Plugin Installation -->
 					<v-window-item>
-						{{ $t('dialog.pluginInstallation.prompt') }}
+						{{ $t("dialog.pluginInstallation.prompt") }}
 
 						<v-card outlined class="my-3">
 							<v-card-text>
-								{{ `${pluginManifest.name || $t('generic.noValue')} ${pluginManifest.version || ''}` }}<br>
-								{{ $t('dialog.pluginInstallation.by', [pluginManifest.author || $t('generic.noValue')]) }}<br>
+								{{ `${pluginManifest.name || $t("generic.noValue")} ${pluginManifest.version || ""}` }}<br>
+								{{ $t("dialog.pluginInstallation.by", [pluginManifest.author || $t("generic.noValue")]) }}<br>
 								<template v-if="pluginManifest.license">
-									{{ $t('dialog.pluginInstallation.license', [pluginManifest.license]) }}<br>
+									{{ $t("dialog.pluginInstallation.license", [pluginManifest.license]) }}<br>
 								</template>
 								<template v-if="pluginManifest.homepage">
-									{{ $t('dialog.pluginInstallation.homepage') }}
-									<a :href="pluginManifest.homepage" target="_blank">{{ homepageDomain }}</a><br>
+									{{ $t("dialog.pluginInstallation.homepage") }}
+									<a :href="pluginManifest.homepage" target="_blank">
+										{{ homepageDomain }}
+									</a>
+									<br>
 								</template>
 							</v-card-text>
 						</v-card>
 
 						<template v-if="hasDsfFiles || hasDwcFiles || hasSdFiles">
-							{{ $t('dialog.pluginInstallation.contents') }}
+							{{ $t("dialog.pluginInstallation.contents") }}
 							<ul class="mt-1">
-								<li v-show="hasDsfFiles">{{ $t('dialog.pluginInstallation.dsf') }}</li>
-								<li v-show="hasDwcFiles">{{ $t('dialog.pluginInstallation.dwc') }}</li>
-								<li v-show="hasSdFiles">{{ $t('dialog.pluginInstallation.rrf') }}</li>
+								<li v-show="hasDsfFiles">
+									{{ $t("dialog.pluginInstallation.dsf") }}
+								</li>
+								<li v-show="hasDwcFiles">
+									{{ $t("dialog.pluginInstallation.dwc") }}
+								</li>
+								<li v-show="hasSdFiles">
+									{{ $t("dialog.pluginInstallation.rrf") }}
+								</li>
 							</ul>
 						</template>
 					</v-window-item>
@@ -41,40 +52,41 @@
 							<div v-if="hasSdFiles">
 								<h3 class="mt-3">
 									<v-icon :class="checkRrfVersion ? 'success--text' : 'error--text'">
-										{{ checkRrfVersion ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}
+										{{ checkRrfVersion ? "mdi-check-circle-outline" : "mdi-close-circle-outline" }}
 									</v-icon>
-									{{ $t('dialog.pluginInstallation.rrf') }}
+									{{ $t("dialog.pluginInstallation.rrf") }}
 								</h3>
 								<span class="ml-8 subtitle-2">
-									{{ $t('dialog.pluginInstallation.version', [rrfVersion]) }}
+									{{ $t("dialog.pluginInstallation.version", [rrfVersion]) }}
 								</span>
 							</div>
 
 							<div v-if="hasDwcFiles" :class="hasSdFiles ? 'pt-3' : ''">
 								<h3>
 									<v-icon :class="checkDwcVersion ? 'success--text' : 'error--text'">
-										{{ checkDwcVersion ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}
+										{{ checkDwcVersion ? "mdi-check-circle-outline" : "mdi-close-circle-outline" }}
 									</v-icon>
-									{{ $t('dialog.pluginInstallation.dwc') }}
+									{{ $t("dialog.pluginInstallation.dwc") }}
 								</h3>
 								<span class="ml-8 subtitle-2">
-									{{ $t('dialog.pluginInstallation.version', [dwcVersion]) }}
+									{{ $t("dialog.pluginInstallation.version", [dwcVersion]) }}
 								</span>
 							</div>
 
-							<div v-if="showDsfVersion" :class="(pluginManifest.rrfVersion || pluginManifest.dwcVersion) ? 'pt-3' : ''">
+							<div v-if="showDsfVersion"
+								 :class="(pluginManifest.rrfVersion || pluginManifest.dwcVersion) ? 'pt-3' : ''">
 								<h3>
 									<v-icon :class="checkDsfVersion ? 'success--text' : 'error--text'">
-										{{ checkDsfVersion ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}
+										{{ checkDsfVersion ? "mdi-check-circle-outline" : "mdi-close-circle-outline" }}
 									</v-icon>
-									{{ $t('dialog.pluginInstallation.dsf') }}
+									{{ $t("dialog.pluginInstallation.dsf") }}
 								</h3>
 								<span class="ml-8 subtitle-2">
-									{{ $t('dialog.pluginInstallation.version', [dsfVersion]) }}
+									{{ $t("dialog.pluginInstallation.version", [dsfVersion]) }}
 								</span>
 							</div>
 
-							<div v-if="!pluginsSupported" class="pt-3"> 
+							<div v-if="!pluginsSupported" class="pt-3">
 								<h3>
 									<v-icon class="error--text">mdi-close-circle-outline</v-icon>
 									{{ $t('dialog.pluginInstallation.noPluginSupport') }}
@@ -83,31 +95,33 @@
 							<div v-else-if="requiresRoot" class="pt-3">
 								<h3>
 									<v-icon :class="checkRoot ? 'success--text' : 'error--text'">
-										{{ checkRoot ? 'mdi-check-circle-outline' : 'mdi-close-circle-outline' }}
+										{{ checkRoot ? "mdi-check-circle-outline" : "mdi-close-circle-outline" }}
 									</v-icon>
-									{{ $t('dialog.pluginInstallation.rootSupport') }}
+									{{ $t("dialog.pluginInstallation.rootSupport") }}
 								</h3>
 							</div>
 						</template>
 						<div v-else class="pt-3">
 							<h3>
 								<v-icon class="error--text">mdi-close-circle-outline</v-icon>
-								{{ $t('dialog.pluginInstallation.invalidManifest') }}
+								{{ $t("dialog.pluginInstallation.invalidManifest") }}
 							</h3>
 						</div>
 					</v-window-item>
 
 					<!-- Permissions -->
 					<v-window-item>
-						<v-alert v-show="hasDwcFiles" dense outlined type="warning" icon="mdi-alert-outline" class="subtitle-2 mb-3">
-							{{ $t('dialog.pluginInstallation.dwcWarning') }}
+						<v-alert v-show="hasDwcFiles" dense outlined type="warning" icon="mdi-alert-outline"
+								 class="subtitle-2 mb-3">
+							{{ $t("dialog.pluginInstallation.dwcWarning") }}
 						</v-alert>
 
-						<v-alert v-if="requiresRoot" dense outlined type="error" icon="mdi-alert-circle-outline" class="subtitle-2 mb-0" :class="hasDwcFiles ? 'mt-3' : ''">
-							{{ $t('dialog.pluginInstallation.rootWarning') }}
+						<v-alert v-if="requiresRoot" dense outlined type="error" icon="mdi-alert-circle-outline"
+								 class="subtitle-2 mb-0" :class="hasDwcFiles ? 'mt-3' : ''">
+							{{ $t("dialog.pluginInstallation.rootWarning") }}
 						</v-alert>
-						<template v-else-if="permissions.length > 0">
-							{{ $t('dialog.pluginInstallation.sbcPermissions') }}
+						<template v-else-if="permissions.size > 0">
+							{{ $t("dialog.pluginInstallation.sbcPermissions") }}
 							<ul class="mt-1">
 								<li v-for="permission in permissions" :key="permission">
 									{{ $t(`pluginPermissions.${permission}`) }}
@@ -115,102 +129,120 @@
 							</ul>
 						</template>
 						<template v-else-if="!hasDwcFiles">
-							{{ $t('dialog.pluginInstallation.noSpecialPermissions') }}
+							{{ $t("dialog.pluginInstallation.noSpecialPermissions") }}
 						</template>
 					</v-window-item>
 
 					<!-- Ready To Install -->
 					<v-window-item>
-						{{ $t('dialog.pluginInstallation.readyMessage') }}
+						{{ $t("dialog.pluginInstallation.readyMessage") }}
 						<br><br>
-						{{ $t('dialog.pluginInstallation.readyDisclaimer') }}
+						{{ $t("dialog.pluginInstallation.readyDisclaimer") }}
 						<div class="pl-2 pb-2">
-							<v-checkbox v-model="disclaimerAccepted" :label="$t('dialog.pluginInstallation.checkboxDisclaimer')" class="subtitle-2" hide-details></v-checkbox>
+							<v-checkbox v-model="disclaimerAccepted"
+										:label="$t('dialog.pluginInstallation.checkboxDisclaimer')" class="subtitle-2"
+										hide-details />
 						</div>
 					</v-window-item>
 
 					<!-- Installation Progress -->
 					<v-window-item>
-						<span v-show="!isFinished">{{ $t('dialog.pluginInstallation.progressText') }}</span>
-						<span v-show="isFinished && installationError" class="error--text">{{ installationError }}</span>
-						<v-progress-linear v-show="!isFinished" indeterminate color="primary" class="mt-3"></v-progress-linear>
+						<span v-show="!isFinished">
+							{{ $t("dialog.pluginInstallation.progressText") }}
+						</span>
+						<span v-show="isFinished && installationError" class="error--text">
+							{{ installationError }}
+						</span>
+						<v-progress-linear v-show="!isFinished" indeterminate color="primary" class="mt-3" />
 					</v-window-item>
 				</v-window>
 			</v-card-text>
 
 			<v-card-actions>
 				<v-btn v-show="canCancel" color="blue darken-1" text @click="shown = false">
-					{{ $t('dialog.pluginInstallation.cancel') }}
+					{{ $t("dialog.pluginInstallation.cancel") }}
 				</v-btn>
 				<v-spacer></v-spacer>
 				<v-btn v-show="isFinished" color="blue darken-1" text @click="finish">
-					{{ $t('dialog.pluginInstallation.finish') }}
+					{{ $t("dialog.pluginInstallation.finish") }}
 				</v-btn>
 				<v-spacer></v-spacer>
 				<v-btn v-show="currentPage > 0 && currentPage < 4" color="blue darken-1" text @click="currentPage--">
-					{{ $t('dialog.pluginInstallation.back') }}
+					{{ $t("dialog.pluginInstallation.back") }}
 				</v-btn>
 				<v-btn v-show="currentPage < 4" color="blue darken-1" text :disabled="!canNext" @click="next">
-					{{ $t('dialog.pluginInstallation.next') }}
+					{{ $t("dialog.pluginInstallation.next") }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>
 
-		<confirm-dialog :title="$t('dialog.pluginInstallation.reloadPrompt.title')" :prompt="$t('dialog.pluginInstallation.reloadPrompt.prompt')" :shown.sync="showReloadPrompt" @confirmed="reload"/>
+		<confirm-dialog :title="$t('dialog.pluginInstallation.reloadPrompt.title')"
+						:prompt="$t('dialog.pluginInstallation.reloadPrompt.prompt')" :shown.sync="showReloadPrompt"
+						@confirmed="reload" />
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { initObject, PluginManifest, SbcPermission } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { PluginManifest, SbcPermission } from '@duet3d/objectmodel';
-import { mapState, mapActions } from 'vuex';
+import packageInfo from "../../../package.json";
+import Plugins, { checkManifest, checkVersion } from "@/plugins";
+import store from "@/store";
+import Events from "@/utils/events";
+import { getErrorMessage } from "@/utils/errors";
+import JSZip from "jszip";
 
-import packageInfo from '../../../package.json'
-import Plugins, { checkVersion } from '@/plugins'
-import Events from '@/utils/events'
+enum Page {
+	start,
+	prerequisites,
+	permissions,
+	ready,
+	finish
+}
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['loadedDwcPlugins', 'selectedMachine']),
-		...mapState('machine/model', ['boards', 'state']),
-		title() {
-			switch (this.currentPage) {
-				case 0: return this.$t('dialog.pluginInstallation.installation');
-				case 1: return this.$t('dialog.pluginInstallation.prerequisites');
-				case 2: return this.$t('dialog.pluginInstallation.permissions');
-				case 3: return this.$t('dialog.pluginInstallation.ready');
-				case 4:
+		title(): string {
+			const page = this.currentPage as Page;
+			switch (page) {
+				case Page.start: return this.$t("dialog.pluginInstallation.installation");
+				case Page.prerequisites: return this.$t("dialog.pluginInstallation.prerequisites");
+				case Page.permissions: return this.$t("dialog.pluginInstallation.permissions");
+				case Page.ready: return this.$t("dialog.pluginInstallation.ready");
+				case Page.finish:
 					if (this.isFinished) {
 						if (this.installationError) {
-							return this.$t('dialog.pluginInstallation.installationFailed');
+							return this.$t("dialog.pluginInstallation.installationFailed");
 						}
-						return this.$t('dialog.pluginInstallation.installationSuccess');
+						return this.$t("dialog.pluginInstallation.installationSuccess");
 					}
-					return this.$t('dialog.pluginInstallation.progress');
-				default: return this.$t('generic.noValue');
+					return this.$t("dialog.pluginInstallation.progress");
+				default:
+					const _exhaustiveCheck: never = page;
+					return this.$t("generic.noValue");
 			}
 		},
-		canNext() {
+		canNext(): boolean {
 			switch (this.currentPage) {
-				case 0: return true;
-				case 1: return this.pluginManifestValid && this.checkRrfVersion && this.checkDsfVersion && this.checkDwcVersion && this.checkRoot;
-				case 2: return true;
-				case 3: return this.disclaimerAccepted;
+				case Page.start: return true;
+				case Page.prerequisites: return this.pluginManifestValid && this.checkRrfVersion && this.checkDsfVersion && this.checkDwcVersion && this.checkRoot;
+				case Page.permissions: return true;
+				case Page.ready: return this.disclaimerAccepted;
 				default: return false;
 			}
 		},
-		canCancel() {
-			return this.currentPage < 4;
+		canCancel(): boolean {
+			return this.currentPage < Page.finish;
 		},
-		canClose() {
-			return this.currentPage === 4;
+		canClose(): boolean {
+			return this.currentPage === Page.finish;
 		},
-		isPersistent() {
-			return this.currentPage === 4;
+		isPersistent(): boolean {
+			return this.currentPage === Page.finish;
 		},
 
-		homepageDomain() {
+		homepageDomain(): string {
 			if (this.pluginManifest.homepage) {
 				const regex = /(?:http[s]?:\/\/)?(\w+\.\w+(\.\w+)?)/i;
 				const matches = regex.exec(this.pluginManifest.homepage);
@@ -218,81 +250,81 @@ export default {
 					return matches[1];
 				}
 			}
-			return '';
+			return "";
 		},
 
-		rrfVersion() {
-			if (this.boards.length > 0 && this.boards[0].firmwareVersion) {
-				return this.boards[0].firmwareVersion;
+		rrfVersion(): string {
+			if (store.state.machine.model.boards.length > 0 && store.state.machine.model.boards[0].firmwareVersion) {
+				return store.state.machine.model.boards[0].firmwareVersion;
 			}
-			return this.$t('generic.noValue');
+			return this.$t("generic.noValue");
 		},
-		checkRrfVersion() {
+		checkRrfVersion(): boolean {
 			if (this.pluginManifest.rrfVersion) {
-				if (this.boards.length > 0 && this.boards[0].firmwareVersion) {
-					return checkVersion(this.boards[0].firmwareVersion, this.pluginManifest.rrfVersion);
+				if (store.state.machine.model.boards.length > 0 && store.state.machine.model.boards[0].firmwareVersion) {
+					return checkVersion(store.state.machine.model.boards[0].firmwareVersion, this.pluginManifest.rrfVersion);
 				}
 				return false;
 			}
 			return true;
 		},
-		dsfVersion() {
-			return this.state.dsfVersion || this.$t('generic.noValue');
+		dsfVersion(): string {
+			return store.state.machine.model.state.dsfVersion || this.$t("generic.noValue");
 		},
-		showDsfVersion() {
+		showDsfVersion(): boolean {
 			return this.pluginManifest.sbcRequired && this.hasDsfFiles;
 		},
-		checkDsfVersion() {
+		checkDsfVersion(): boolean {
 			if (this.pluginManifest.sbcDsfVersion) {
-				if (this.state.dsfVersion && this.state.dsfPluginSupport) {
-					return checkVersion(this.state.dsfVersion, this.pluginManifest.sbcDsfVersion);
+				if (store.state.machine.model.state.dsfVersion && store.state.machine.model.state.dsfPluginSupport) {
+					return checkVersion(store.state.machine.model.state.dsfVersion, this.pluginManifest.sbcDsfVersion);
 				}
 				return false;
 			}
 			return !this.pluginManifest.sbcRequired;
 		},
-		dwcVersion() {
+		dwcVersion(): string {
 			return packageInfo.version;
 		},
-		checkDwcVersion() {
+		checkDwcVersion(): boolean {
 			if (this.pluginManifest.dwcVersion) {
 				return checkVersion(packageInfo.version, this.pluginManifest.dwcVersion);
 			}
 			return true;
 		},
-		pluginsSupported() {
-			if (this.state.dsfVersion) {
-				return this.state.dsfPluginSupport;
+		pluginsSupported(): boolean {
+			if (store.state.machine.model.state.dsfVersion) {
+				return store.state.machine.model.state.dsfPluginSupport;
 			}
 			return true;
 		},
-		requiresRoot() {
-			return this.permissions.indexOf(SbcPermission.superUser) !== -1;
+		requiresRoot(): boolean {
+			return this.permissions.has(SbcPermission.superUser);
 		},
-		checkRoot() {
-			return !this.requiresRoot || this.state.dsfRootPluginSupport;
+		checkRoot(): boolean {
+			return !this.requiresRoot || store.state.machine.model.state.dsfRootPluginSupport;
 		},
 
-		permissions() {
-			return this.pluginManifest.sbcPermissions || [];
+		permissions(): Set<SbcPermission> {
+			return this.pluginManifest.sbcPermissions || new Set<SbcPermission>();
 		}
 	},
 	data() {
 		return {
 			shown: false,
-			currentPage: 0,
+			currentPage: Page.start,
 			disclaimerAccepted: false,
 			isFinished: false,
 			installationError: null,
 			startWhenFinished: false,
 
 			zipFilename: '',
-			zipBlob: null,
-			zipFile: null,
+			zipBlob: null as File | null,
+			zipFile: null as JSZip | null,
 			hasDsfFiles: false,
 			hasDwcFiles: false,
 			hasSdFiles: false,
-			pluginManifest: {},
+			pluginManifest: {} as PluginManifest,
 			pluginManifestValid: false,
 
 			showReloadPrompt: false
@@ -302,17 +334,15 @@ export default {
 		this.$root.$on(Events.installPlugin, this.installPluginHook);
 	},
 	beforeDestroy() {
-		this.$root.$off(this.installPluginHook);
+		this.$root.$off(this.installPluginHook as any);
 	},
 	methods: {
-		...mapActions('machine', ['installPlugin']),	// TODO improve this for multi-machine support
-		async installPluginHook({ machine, zipFilename, zipBlob, zipFile, start }) {
-			if (process.env.NODE_ENV === 'development') {
-				alert('Third-party plugins are not supported in dev mode');
+		async installPluginHook({ zipFilename, zipBlob, zipFile, start }: { zipFilename: string, zipBlob: File, zipFile: JSZip, start: boolean }) {
+			if (process.env.NODE_ENV === "development") {
+				alert("Third-party plugins are not supported in dev mode");
 				return;
 			}
 
-			this.machine = machine;
 			this.zipFilename = zipFilename;
 			this.zipBlob = zipBlob;
 			this.zipFile = zipFile;
@@ -320,22 +350,22 @@ export default {
 			this.isFinished = false;
 
 			try {
-				const manifestJson = JSON.parse(await zipFile.file('plugin.json').async('string'));
-				this.pluginManifest = new PluginManifest(manifestJson);
-				this.pluginManifestValid = this.pluginManifest.check();
+				const manifestJson = JSON.parse(await zipFile.file("plugin.json")!.async("string"));
+				this.pluginManifest = initObject(PluginManifest, manifestJson);
+				this.pluginManifestValid = checkManifest(this.pluginManifest);
 				if (this.pluginManifestValid && Plugins.some(plugin => plugin.id === this.pluginManifest.id, this)) {
-					console.warn('Plugin identifier already reserved by built-in plugin');
+					console.warn("Plugin identifier already reserved by built-in plugin");
 					this.pluginManifestValid = false;
 				}
 
 				this.hasSdFiles = this.hasDwcFiles = this.hasDsfFiles = false;
 				const that = this;
-				zipFile.forEach(function(file) {
-					if (file.startsWith('dsf/')) {
+				zipFile.forEach(function (file) {
+					if (file.startsWith("dsf/")) {
 						that.hasDsfFiles = true;
-					} else if (file.startsWith('dwc/')) {
+					} else if (file.startsWith("dwc/")) {
 						that.hasDwcFiles = true;
-					} else if (file.startsWith('sd/')) {
+					} else if (file.startsWith("sd/")) {
 						that.hasSdFiles = true;
 					}
 				});
@@ -346,7 +376,6 @@ export default {
 				}
 			} catch (e) {
 				console.warn(e);
-				this.pluginManifest = {};
 				this.pluginManifestValid = false;
 			}
 
@@ -361,15 +390,15 @@ export default {
 				this.isFinished = false;
 				try {
 					try {
-						await this.installPlugin({
+						await store.dispatch("machine/installPlugin", {
 							zipFilename: this.zipFilename,
 							zipBlob: this.zipBlob,
 							zipFile: this.zipFile,
 							start: this.startWhenFinished
 						});
 					} catch (e) {
-						this.installationError = e.reason || e;
 						console.warn(e);
+						this.installationError = getErrorMessage(e);
 					}
 				} finally {
 					this.isFinished = true;
@@ -378,10 +407,10 @@ export default {
 		},
 		finish() {
 			this.shown = false;
-			this.showReloadPrompt = this.hasDwcFiles && this.loadedDwcPlugins.includes(this.pluginManifest.id);
+			this.showReloadPrompt = this.hasDwcFiles && store.state.loadedDwcPlugins.includes(this.pluginManifest.id);
 		},
 		reload() {
-			location.reload(true);
+			location.reload();
 		}
 	},
 	watch: {
@@ -390,5 +419,5 @@ export default {
 			this.shown = false;
 		}
 	}
-}
+});
 </script>

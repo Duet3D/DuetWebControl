@@ -2,36 +2,39 @@
 	<v-dialog v-model="shown" max-width="360">
 		<v-card>
 			<v-card-title class="headline">
-				<v-icon class="mr-1">mdi-alert</v-icon> {{ $t('dialog.resetHeaterFault.title') }}
+				<v-icon class="mr-1">mdi-alert</v-icon> {{ $t("dialog.resetHeaterFault.title") }}
 			</v-card-title>
 
 			<v-card-text>
-				{{ $t('dialog.resetHeaterFault.prompt', [this.heater]) }}
+				{{ $t("dialog.resetHeaterFault.prompt", [heater]) }}
 			</v-card-text>
 
 			<v-card-actions>
-				<v-spacer></v-spacer>
+				<v-spacer />
 
 				<v-btn color="blue darken-1" text :disabled="!!counter" @click="resetFault">
-					{{ $t('dialog.resetHeaterFault.resetFault') + (counter ? ` (${counter})` : '') }}
+					{{ $t("dialog.resetHeaterFault.resetFault") + (counter ? ` (${counter})` : "") }}
 				</v-btn>
 
 				<v-btn color="blue darken-1" text @click="hide">
-					{{ $t('generic.cancel') }}
+					{{ $t("generic.cancel") }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapActions } from 'vuex'
+import store from "@/store";
 
-const countdownSeconds = 5
+/**
+ * How long to wait before a user can reset a heater fault (in s)
+ */
+const countdownSeconds = 5;
 
-export default {
+export default Vue.extend({
 	props: {
 		shown: {
 			type: Boolean,
@@ -45,20 +48,19 @@ export default {
 	data() {
 		return {
 			counter: countdownSeconds,
-			timer: null
+			timer: null as NodeJS.Timeout | null
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
 		async resetFault() {
 			try {
-				await this.sendCode(`M562 P${this.heater}`);
+				await store.dispatch("machine/sendCode", `M562 P${this.heater}`);
 			} finally {
 				this.hide();
 			}
 		},
 		hide() {
-			this.$emit('update:shown', false);
+			this.$emit("update:shown", false);
 		},
 		countDown() {
 			this.counter--;
@@ -78,5 +80,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

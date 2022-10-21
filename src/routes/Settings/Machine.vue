@@ -13,28 +13,16 @@
 </template>
 
 <script>
-'use strict'
+import Vue from "vue";
 
-import { registerRoute, MachineSettingTabs } from '..'
+import { MachineSettingTabs } from "..";
 
-export default {
-	install() {
-		// Register a route via Settings -> Machine
-		registerRoute(this, {
-			Settings: {
-				Machine: {
-					icon: 'mdi-cogs',
-					caption: 'menu.settings.machine',
-					path: '/Settings/Machine'
-				}
-			}
-		});
-	},
+export default Vue.extend({
 	data() {
 		return {
 			tab: 'machine-tab-0',
 			tabs: MachineSettingTabs
 		}
 	}
-}
+});
 </script>

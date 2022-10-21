@@ -150,9 +150,9 @@ export default function(connector: BaseConnector | null): MachineModule {
 	return {
 		namespaced: true,
 		state: {
-			events: [],
+			events: new Array<MachineEvent>(),
 			isReconnecting: false,
-			filesBeingChanged: [],
+			filesBeingChanged: new Array<string>(),
 			transferringFiles: false
 		},
 		getters: {
@@ -952,7 +952,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * Clear all logged events
 			 * @param state Vuex state
 			 */
-			clearLog: state => state.events = [],
+			clearLog: (state) => state.events = [],
 
 			/**
 			 * Log a custom event

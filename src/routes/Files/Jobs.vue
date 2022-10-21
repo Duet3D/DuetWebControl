@@ -1,28 +1,13 @@
 <template>
 	<v-row>
 		<v-col>
-			<job-file-list></job-file-list>
+			<job-file-list />
 		</v-col>
 	</v-row>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { registerRoute } from '..'
-
-export default {
-	install() {
-		// Register a route via Files -> Jobs
-		registerRoute(this, {
-			Files: {
-				Jobs: {
-					icon: 'mdi-play',
-					caption: 'menu.files.jobs',
-					path: '/Files/Jobs'
-				}
-			}
-		});
-	}
-}
+export default Vue.extend({});
 </script>

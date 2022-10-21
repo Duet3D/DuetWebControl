@@ -127,16 +127,16 @@ export function makeNotification(type: NotificationType, title: string, message:
 
     if (icon === null) {
         switch (type) {
-            case "info":
+            case LogType.info:
                 icon = "mdi-information-outline";
                 break;
-            case "success":
+            case LogType.success:
                 icon = "mdi-check";
                 break;
-            case "warning":
+            case LogType.warning:
                 icon = "mdi-alert-circle-outline";
                 break;
-            case "error":
+            case LogType.error:
                 icon = "mdi-close-circle-outline";
                 break;
             default:

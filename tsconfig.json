@@ -14,7 +14,13 @@
     "sourceMap": true,
     "baseUrl": ".",
     "types": [
+      "vue-router",
+      "vuetify",
       "webpack-env"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/vuetify/types"
     ],
     "paths": {
       "@/*": [
@@ -28,6 +34,9 @@
       "scripthost"
     ],
     "resolveJsonModule": true
+  },
+  "vueCompilerOptions": {
+    "target": 2.7
   },
   "include": [
     "src/**/*.ts",

@@ -66,7 +66,12 @@ export function logCode(code: string | null, reply: string, hostname = store.sta
 
 		makeNotification(type, title, message, null, "/Console");
 	}
-	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title: code, message: reply });
+	store.commit(`machines/${hostname}/log`, {
+		date: new Date(),
+		type,
+		title: code,
+		message: reply
+	});
 }
 
 /**

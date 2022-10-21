@@ -7,9 +7,11 @@
 <template>
 	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
 		<v-col>
-			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen" :placeholder="$t('input.code.placeholder')"
-						:search-input.sync="code" :loading="doingCode" @keyup.enter="send" @change="change" @blur="wasFocused = showItems = false"
-						@click="click" :items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon="" maxlength="255">
+			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen"
+						:placeholder="$t('input.code.placeholder')" :search-input.sync="code" :loading="doingCode"
+						@keyup.enter="send" @change="change" @blur="wasFocused = showItems = false" @click="click"
+						:items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon=""
+						maxlength="255">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
@@ -22,29 +24,27 @@
 
 		<v-col class="ml-2 flex-shrink-1" cols="auto">
 			<v-btn color="info" :disabled="uiFrozen" :loading="doingCode" @click="send">
-				<v-icon class="mr-2">mdi-send</v-icon> {{ $t('input.code.send') }} 
+				<v-icon class="mr-2">mdi-send</v-icon> {{ $t("input.code.send") }}
 			</v-btn>
 		</v-col>
 	</v-row>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import store from "@/store";
 
-const conditionalKeywords = ['abort', 'echo', 'if', 'elif', 'else', 'while', 'break', 'var', 'set'];
+const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "var", "set"];
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapGetters(['uiFrozen']),
-		...mapState('machine/cache', ['lastSentCodes']),
-		...mapState('settings', ['disableAutoComplete']),
-		displayedCodes() {
-			if (this.showItems && !this.disableAutoComplete) {
-				const currentCode = this.code ? this.code.toLowerCase() : '';
-				return this.lastSentCodes
-					.filter(code => (currentCode === '') || (code.toLowerCase().indexOf(currentCode) !== -1))
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		displayedCodes(): Array<{ text: string, value: string }> {
+			if (this.showItems && !store.state.settings.disableAutoComplete) {
+				const currentCode = ((this.code instanceof Object) ? this.code.value : this.code).toLowerCase();
+				return store.state.machine.cache.lastSentCodes
+					.filter(code => (currentCode === "") || (code.toLowerCase().includes(currentCode)))
 					.map(code => ({ text: code, value: code }))
 					.reverse();
 			}
@@ -53,7 +53,7 @@ export default {
 	},
 	data() {
 		return {
-			code: '',
+			code: "" as string | { value: string },
 			wasFocused: false,
 			showItems: false,
 			sendPending: false,
@@ -65,8 +65,6 @@ export default {
 		solo: Boolean
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
-		...mapMutations('machine/cache', ['addLastSentCode', 'removeLastSentCode']),
 		click() {
 			if (this.wasFocused) {
 				this.showItems = !this.showItems;
@@ -74,18 +72,19 @@ export default {
 				this.wasFocused = true;
 			}
 		},
-		change(value) {
-			if (value && !(value instanceof String)) {
-				this.code = value.value;
-			}
+		removeLastSentCode(code: string) {
+			store.commit("machine/cache/removeLastSentCode", code);
 		},
-		hasUnprecedentedParameters: (code) => !code || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(code),
+		change(value: string | { value: string }) {
+			this.code = value;
+		},
+		hasUnprecedentedParameters: (code: string) => !code || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(code),
 		async send() {
 			this.showItems = false;
 
-			const code = (!this.code || this.code.constructor === String) ? this.code : this.code.value;
-			if (code && code.trim() !== '' && !this.doingCode) {
-				let codeToSend = '', bareCode = '', inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
+			const code = (this.code instanceof Object) ? this.code.value : this.code;
+			if (code && code.trim() !== "" && !this.doingCode) {
+				let codeToSend = '', bareCode = "", inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
 				if (!this.hasUnprecedentedParameters(codeToSend) &&
 					!conditionalKeywords.some(keyword => code.trim().startsWith(keyword))) {
 					// Convert code to upper-case and remove comments
@@ -140,12 +139,16 @@ export default {
 				// Send the code and wait for completion
 				this.doingCode = true;
 				try {
-					const reply = await this.sendCode({ code: codeToSend, fromInput: true });
-					if (!inQuotes && !this.disableAutoComplete &&
-						!reply.startsWith('Error: ') && !reply.startsWith('Warning: ') &&
-						bareCode.indexOf('M587') === -1 && bareCode.indexOf('M589') === -1) {
+					const reply = await store.dispatch("machine/sendCode", {
+						code: codeToSend,
+						fromInput: true
+					});
+
+					if (!inQuotes && !store.state.settings.disableAutoComplete &&
+						!reply.startsWith("Error: ") && !reply.startsWith("Warning: ") &&
+						bareCode.indexOf("M587") === -1 && bareCode.indexOf("M589") === -1) {
 						// Automatically remember successful codes
-						this.addLastSentCode(codeToSend.trim());
+						store.commit("machine/cache/addLastSentCode", codeToSend.trim());
 					}
 				} catch {
 					// handled before we get here
@@ -163,9 +166,9 @@ export default {
 		uiFrozen(to) {
 			if (to) {
 				// Clear input when the UI is frozen
-				this.code = '';
+				this.code = "";
 			}
 		}
 	}
-}
+});
 </script>

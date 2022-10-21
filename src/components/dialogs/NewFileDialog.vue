@@ -1,18 +1,18 @@
 <template>
 	<div>
-		<input-dialog :shown.sync="showFilenameDialog" :title="$t('dialog.newFile.title')" :prompt="$t('dialog.newFile.prompt')" @cancelled="cancelled" @confirmed="showEditor"></input-dialog>
-		<file-edit-dialog :shown.sync="showEditorDialog" :filename="filename"></file-edit-dialog>
+		<input-dialog :shown.sync="showFilenameDialog" :title="$t('dialog.newFile.title')"
+					  :prompt="$t('dialog.newFile.prompt')" @cancelled="cancelled" @confirmed="showEditor" />
+		<file-edit-dialog :shown.sync="showEditorDialog" :filename="filename" />
 	</div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapGetters, mapActions } from 'vuex'
+import store from "@/store";
+import Path from "@/utils/path";
 
-import Path from '@/utils/path'
-
-export default {
+export default Vue.extend({
 	props: {
 		shown: {
 			type: Boolean,
@@ -23,38 +23,39 @@ export default {
 			required: true
 		}
 	},
-	computed: mapGetters(['isConnected']),
+	computed: {
+		isConnected(): boolean { return store.getters["isConnected"]; }
+	},
 	data() {
 		return {
 			showFilenameDialog: this.shown,
 
-			filename: '',
-			content: '',
+			filename: "",
+			content: "",
 			showEditorDialog: false
 		}
 	},
 	methods: {
-		...mapActions('machine', ['upload']),
 		cancelled() {
-			this.$emit('update:shown', false);
+			this.$emit("update:shown", false);
 		},
-		showEditor(filename) {
+		showEditor(filename: string) {
 			this.filename = Path.combine(this.directory, filename);
-			this.content = '';
+			this.content = "";
 			this.showEditorDialog = true;
 		}
 	},
 	watch: {
 		isConnected(to) {
 			if (!to) {
-				this.showFilename = false;
+				this.showFilenameDialog = false;
 				this.showEditorDialog = false;
-				this.$emit('update:shown', false);
+				this.$emit("update:shown", false);
 			}
 		},
 		showEditorDialog(to) {
 			if (this.shown !== to) {
-				this.$emit('update:shown', to);
+				this.$emit("update:shown", to);
 			}
 		},
 		shown(to) {
@@ -66,5 +67,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

@@ -1,28 +1,13 @@
 <template>
 	<v-row>
 		<v-col>
-			<macro-file-list></macro-file-list>
+			<macro-file-list />
 		</v-col>
 	</v-row>
 </template>
 
 <script>
-'use strict'
+import Vue from "vue";
 
-import { registerRoute } from '..'
-
-export default {
-	install() {
-		// Register a route via Files -> Macros
-		registerRoute(this, {
-			Files: {
-				Macros: {
-					icon: 'mdi-polymer',
-					caption: 'menu.files.macros',
-					path: '/Files/Macros'
-				}
-			}
-		});
-	}
-}
+export default Vue.extend({});
 </script>

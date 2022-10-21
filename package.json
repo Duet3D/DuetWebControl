@@ -2,6 +2,9 @@
   "name": "duetwebcontrol",
   "version": "3.5.0-alpha1",
   "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
+  "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
+  "license": "GPL-3.0",
+  "repository": "github:Duet3D/DuetWebControl",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -36,6 +39,8 @@
   },
   "devDependencies": {
     "@mdi/font": "^7.0.96",
+    "@types/chart.js": "^2.9.37",
+    "@types/file-saver": "^2.0.5",
     "@vue/cli-plugin-babel": "^5.0.8",
     "@vue/cli-plugin-pwa": "^5.0.8",
     "@vue/cli-plugin-typescript": "^5.0.0",
@@ -58,8 +63,5 @@
     "last 2 versions",
     "not dead",
     "not ie 11"
-  ],
-  "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
-  "license": "GPL-3.0",
-  "repository": "github:chrishamm/DuetWebControl"
+  ]
 }

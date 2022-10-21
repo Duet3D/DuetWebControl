@@ -1,22 +1,26 @@
 <template>
 	<v-app>
-		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
+		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app
+							 :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu"
+							 :mini-variant="iconMenu">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
-					<connect-btn v-if="showConnectButton" class="mb-2" block/>
+					<connect-btn v-if="showConnectButton" class="mb-2" block />
 				</div>
-				<upload-btn target="start" :elevation="1" class="ma-2" block/>
+				<upload-btn target="start" :elevation="1" class="ma-2" block />
 			</div>
 
 			<v-list class="pt-0" :dense="!$vuetify.breakpoint.smAndDown" :expand="!$vuetify.breakpoint.smAndDown">
-				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon" no-action :value="isExpanded(category)">
+				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon"
+							  no-action :value="isExpanded(category)">
 					<template #activator>
 						<v-list-item-title class="mr-0">
 							{{ category.translated ? category.caption : $t(category.caption) }}
 						</v-list-item-title>
 					</template>
 
-					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple :to="page.path" @click.prevent="">
+					<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" v-ripple
+								 :to="page.path" @click.prevent="">
 						<v-list-item-icon>
 							<v-icon v-text="page.icon"></v-icon>
 						</v-list-item-icon>
@@ -33,149 +37,133 @@
 				<v-icon>mdi-menu</v-icon>
 			</v-app-bar-nav-icon>
 			<v-toolbar-title class="px-1">
-				<a href="javascript:void(0)" id="title">{{ name }}</a>
+				<a href="javascript:void(0)" id="title">
+					{{ model.network.name }}
+				</a>
 			</v-toolbar-title>
-			<connect-btn v-if="showConnectButton" class="hidden-xs-only ml-3"/>
+			<connect-btn v-if="showConnectButton" class="hidden-xs-only ml-3" />
 
-			<v-spacer/>
+			<v-spacer />
 
-			<code-input class="mx-3 hidden-sm-and-down"/>
+			<code-input class="mx-3 hidden-sm-and-down" />
 
-			<v-spacer/>
+			<v-spacer />
 
-			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down"/>
-			<emergency-btn/>
+			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down" />
+			<emergency-btn />
 		</v-app-bar>
 
 		<v-main id="content">
 			<v-container class="hidden-sm-and-down" id="global-container" fluid>
-				<fff-container-panel v-if="isFFForUnset"/>
-				<cnc-container-panel v-else/>
+				<fff-container-panel v-if="isFFForUnset" />
+				<cnc-container-panel v-else />
 			</v-container>
 
-			<v-divider class="hidden-sm-and-down"/>
+			<v-divider class="hidden-sm-and-down" />
 
 			<v-container fluid>
 				<keep-alive>
-					<router-view/>
+					<router-view />
 				</keep-alive>
 			</v-container>
 		</v-main>
 
-		<notification-display/>
+		<notification-display />
 
 		<v-bottom-navigation v-if="showBottomNavigation" app>
 			<v-menu v-for="(category, index) in categories" :key="index" top offset-y>
 				<template #activator="{ on }">
 					<v-btn v-on="on">
 						{{ category.translated ? category.caption : $t(category.caption) }}
-						<v-icon v-text="category.icon" class="mb-1"/>
+						<v-icon v-text="category.icon" class="mb-1" />
 					</v-btn>
 				</template>
 
-				<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`" :to="page.path" @click.prevent="" class="global-control">
-					<v-icon v-text="page.icon" class="mr-2"/>
+				<v-list-item v-for="(page, pageIndex) in getPages(category)" :key="`${index}-${pageIndex}`"
+							 :to="page.path" @click.prevent="" class="global-control">
+					<v-icon v-text="page.icon" class="mr-2" />
 					{{ page.translated ? page.caption : $t(page.caption) }}
 				</v-list-item>
 			</v-menu>
 		</v-bottom-navigation>
 
-		<connect-dialog/>
-		<connection-dialog/>
-		<file-transfer-dialog/>
-		<messagebox-dialog/>
-		<plugin-install-dialog/>
+		<connect-dialog />
+		<connection-dialog />
+		<file-transfer-dialog />
+		<messagebox-dialog />
+		<plugin-install-dialog />
 
-		<component v-for="component in injectedComponentNames" :is="component" :key="component"/>
+		<component v-for="component in injectedComponentNames" :is="component" :key="component" />
 	</v-app>
 </template>
 
-<script>
-import { MachineMode, MachineStatus } from '@duet3d/objectmodel';
-import Piecon from 'piecon';
-import Vue from 'vue';
-import { mapState, mapGetters, mapActions } from 'vuex';
+<script lang="ts">
+import ObjectModel, { MachineMode, MachineStatus } from "@duet3d/objectmodel";
+import Piecon from "piecon";
+import Vue from "vue";
 
-import { Menu, Routes } from '@/routes';
-import { DashboardMode } from '@/store/settings';
-import { isPrinting } from '@/utils/enums';
+import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
+import store from "@/store";
+import { DashboardMode } from "@/store/settings";
+import { isPrinting } from "@/utils/enums";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState({
-			boards: state => state.machine.model.boards,
-			menuDirectory: state => state.machine.model.directories.menu,
-			name: state => state.machine.model.network.name,
-			status: state => state.machine.model.state.status,
-
-			darkTheme: state => state.settings.darkTheme,
-			webcam: state => state.settings.webcam,
-			machineMode: state => state.machine.model.state.machineMode,
-			bottomNavigation: state => state.settings.bottomNavigation,
-			iconMenu: state => state.settings.iconMenu,
-
-			injectedComponents: state => state.uiInjection.injectedComponents
-		}),
-		...mapState('settings',['dashboardMode']),
-		...mapGetters('machine', ['hasTemperaturesToDisplay']),
-		...mapGetters('machine/model', ['jobProgress']),
-		categories() {
+		iconMenu(): boolean { return store.state.settings.iconMenu; },
+		jobProgress(): number { return store.getters["machine/jobProgress"]; },
+		model(): ObjectModel { return store.state.machine.model; },
+		categories(): Array<MenuCategory> {
 			return Object.keys(Menu)
 				.map(key => Menu[key])
-				.filter(item => item.condition || item.pages.some(page => page.condition));
+				.filter(item => item.pages.some(page => page.condition));
 		},
-		currentPageCondition() {
+		currentPageCondition(): boolean {
 			const currentRoute = this.$route;
-			let checkRoute = function(route, isChild) {
+			let checkRoute = (route: MenuItem, isChild = false) => {
 				let flag = (route.path === currentRoute.path && route.condition);
 				if (!flag && isChild) {
-					let curPath = currentRoute.path.replace(/\/$/, '');
+					let curPath = currentRoute.path.replace(/\/$/, "");
 					if (curPath.endsWith(route.path))
-						flag = (curPath.substring(0, curPath.length-route.path.length) + route.path === curPath && route.condition)
-				}
-				if (!flag && route.children !== undefined) {
-					flag = route.children.some(child => checkRoute(child, true));
+						flag = (curPath.substring(0, curPath.length - route.path.length) + route.path === curPath && route.condition)
 				}
 				return flag;
 			};
-			return Routes.some(route => checkRoute(route));
+			return Routes.some(route => checkRoute(route as MenuItem));
 		},
-		isFFForUnset() {
-			if (this.dashboardMode === DashboardMode.default) {
-				return !this.machineMode || this.machineMode === MachineMode.fff;
+		isFFForUnset(): boolean {
+			if (store.state.settings.dashboardMode === DashboardMode.default) {
+				return !this.model.state.machineMode || this.model.state.machineMode === MachineMode.fff;
 			}
-			return this.dashboardMode === DashboardMode.fff;
+			return store.state.settings.dashboardMode === DashboardMode.fff;
 		},
-		showBottomNavigation() {
-			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && this.bottomNavigation;
+		showBottomNavigation(): boolean {
+			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && store.state.settings.bottomNavigation;
 		}
 	},
 	data() {
 		return {
 			drawer: this.$vuetify.breakpoint.lgAndUp,
-			injectedComponentNames: [],
-			showConnectButton: process.env.NODE_ENV === 'development'
-		}
+			injectedComponentNames: new Array<string>(),
+			showConnectButton: process.env.NODE_ENV === "development"
+		};
 	},
 	methods: {
-		...mapActions(['connect', 'disconnectAll']),
-		...mapActions('settings', ['load']),
-		isExpanded(category) {
+		isExpanded(category: MenuCategory): boolean {
 			if (this.$vuetify.breakpoint.smAndDown) {
 				const route = this.$route;
 				return category.pages.some(page => page.path === route.path);
 			}
 			return true;
 		},
-		getPages(category) {
+		getPages(category: MenuCategory): Array<MenuItem> {
 			return category.pages.filter(page => page.condition);
 		},
-		updateTitle() {
-			if (this.status === MachineStatus.disconnected) {
-				document.title = `(${this.name})`;
+		updateTitle(): void {
+			if (this.model.state.status === MachineStatus.disconnected) {
+				document.title = `(${this.model.network.name})`;
 			} else {
 				const jobProgress = this.jobProgress;
-				const title = ((jobProgress > 0 && isPrinting(this.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
+				const title = ((jobProgress > 0 && isPrinting(this.model.state.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.model.network.name;
 				if (document.title !== title) {
 					document.title = title;
 				}
@@ -184,21 +172,21 @@ export default {
 	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
-		window.addEventListener('unload', this.disconnectAll);
+		window.addEventListener("unload", () => store.dispatch("disconnectAll"));
 
 		// Connect if running on a board
-		if (process.env.NODE_ENV === 'production') {
-			this.connect();
+		if (process.env.NODE_ENV === "production") {
+			store.dispatch("connect");
 		}
 
 		// Attempt to load the settings
-		this.load();
+		store.dispatch("settings/load");
 
 		// Validate navigation
 		Vue.prototype.$vuetify = this.$vuetify;
 		this.$router.beforeEach((to, from, next) => {
-			if (Routes.some(route => route.path === to.path && !route.condition)) {
-				next('/');
+			if (Routes.some(route => route.path === to.path && !(route as MenuItem).condition)) {
+				next("/");
 			} else {
 				next();
 			}
@@ -206,16 +194,16 @@ export default {
 
 		// Set up Piecon
 		Piecon.setOptions({
-			color: '#00f',			// Pie chart color
-			background: '#bbb',		// Empty pie chart color
-			shadow: '#fff',			// Outer ring color
+			color: "#00f",			// Pie chart color
+			background: "#bbb",		// Empty pie chart color
+			shadow: "#fff",			// Outer ring color
 			fallback: false			// Toggles displaying percentage in the title bar (possible values - true, false, 'force')
 		});
 	},
 	watch: {
 		currentPageCondition(to) {
 			if (!to) {
-				this.$router.push('/');
+				this.$router.push("/");
 			}
 		},
 		darkTheme(to) {
@@ -230,8 +218,8 @@ export default {
 			if (printing !== isPrinting(from)) {
 				if (printing) {
 					// Go to Job Status when a print starts
-					if (this.$router.currentRoute.path !== '/Job/Status') {
-						this.$router.push('/Job/Status');
+					if (this.$router.currentRoute.path !== "/Job/Status") {
+						this.$router.push("/Job/Status");
 					}
 				} else {
 					// Remove the Piecon again when the print has finished
@@ -241,19 +229,19 @@ export default {
 		},
 		name() { this.updateTitle(); },
 		jobProgress(to, from) {
-			if (isPrinting(this.status) && Math.round(to * 100) !== Math.round(from * 100)) {
+			if (isPrinting(this.model.state.status) && Math.round(to * 100) !== Math.round(from * 100)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();
 		},
 		injectedComponents() {
-			this.injectedComponents.forEach(function(item) {
+			for (const item of store.state.uiInjection.injectedComponents) {
 				if (this.injectedComponentNames.indexOf(item.name) === -1) {
-					this.$options.components[item.name] = item.component;
+					(this.$options as any).components[item.name] = item.component;
 					this.injectedComponentNames.push(item.name);
 				}
-			}, this);
+			}
 		}
 	}
-}
+});
 </script>

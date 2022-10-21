@@ -1,16 +1,17 @@
 <template>
-	<input-dialog :shown.sync="innerShown" :title="title || $t('dialog.newDirectory.title')" :prompt="prompt || $t('dialog.newDirectory.prompt')" @confirmed="createDirectory"></input-dialog>
+	<input-dialog :shown.sync="innerShown" :title="title || $t('dialog.newDirectory.title')"
+				  :prompt="prompt || $t('dialog.newDirectory.prompt')" @confirmed="createDirectory" />
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapGetters, mapActions } from 'vuex'
+import store from "@/store";
+import { DisconnectedError, getErrorMessage } from "@/utils/errors";
+import { LogType } from "@/utils/logging";
+import Path from "@/utils/path";
 
-import { DisconnectedError } from '@/utils/errors'
-import Path from '@/utils/path'
-
-export default {
+export default Vue.extend({
 	props: {
 		shown: {
 			type: Boolean,
@@ -31,30 +32,31 @@ export default {
 			default: true
 		}
 	},
-	computed: mapGetters(['isConnected']),
+	computed: {
+		isConnected(): boolean { return store.getters["isConnected"]; }
+	},
 	data() {
 		return {
 			innerShown: this.shown
 		}
 	},
 	methods: {
-		...mapActions('machine', ['makeDirectory']),
-		async createDirectory(directory) {
+		async createDirectory(directory: string) {
 			const currentDirectory = this.directory;
 			try {
 				const path = Path.combine(currentDirectory, directory);
-				await this.makeDirectory(path);
+				await store.dispatch("machine/makeDirectory", path);
 
-				this.$emit('directoryCreated', path);
+				this.$emit("directoryCreated", path);
 				if (this.showSuccess) {
-					this.$makeNotification('success', this.$t('notification.newDirectory.successTitle'), this.$t('notification.newDirectory.successMessage', [directory]));
+					this.$makeNotification(LogType.success, this.$t("notification.newDirectory.successTitle"), this.$t("notification.newDirectory.successMessage", [directory]));
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$emit('directoryCreationFailed', e);
+					this.$emit("directoryCreationFailed", e);
 					if (this.showError) {
-						this.$makeNotification('error', this.$t('notification.newDirectory.errorTitle'), e.message);
+						this.$makeNotification(LogType.error, this.$t("notification.newDirectory.errorTitle"), getErrorMessage(e));
 					}
 				}
 			}
@@ -68,7 +70,7 @@ export default {
 		},
 		innerShown(to) {
 			if (this.shown !== to) {
-				this.$emit('update:shown', to);
+				this.$emit("update:shown", to);
 			}
 		},
 		shown(to) {
@@ -77,5 +79,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

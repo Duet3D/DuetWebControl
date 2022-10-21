@@ -20,18 +20,20 @@ td {
 	<v-dialog :value="shown" max-width="720px" persistent scrollable no-click-animation>
 		<v-card>
 			<v-card-title>
-				<span class="headline">{{ title }}</span>
+				<span class="headline">
+					{{ title }}
+				</span>
 			</v-card-title>
 
 			<v-card-text>
 				<table ref="fileTable" class="mt-3">
 					<thead>
-						<th>{{ $t('dialog.fileTransfer.filename') }}</th>
-						<th class="px-3">{{ $t('dialog.fileTransfer.size') }}</th>
-						<th>{{ $t('dialog.fileTransfer.progress') }}</th>
+						<th>{{ $t("dialog.fileTransfer.filename") }}</th>
+						<th class="px-3">{{ $t("dialog.fileTransfer.size") }}</th>
+						<th>{{ $t("dialog.fileTransfer.progress") }}</th>
 					</thead>
 					<tbody>
-						<tr v-for="file in files" :key="file.name">
+						<tr v-for="file in files" :key="file.filename">
 							<td width="50%">
 								<v-icon small class="mr-1">{{ getFileIcon(file) }}</v-icon>
 								{{ file.filename.substring(fileNameOffset) }}
@@ -53,44 +55,43 @@ td {
 			</v-card-text>
 
 			<v-card-actions>
-				<span v-show="currentSpeed > 0" class="ml-3 text--secondary text-button">
-					{{ $t('dialog.fileTransfer.currentSpeed', [$displaySpeed(currentSpeed || 0)]) }}
+				<span v-show="currentSpeed" class="ml-3 text--secondary text-button">
+					{{ $t("dialog.fileTransfer.currentSpeed", [$displaySpeed(currentSpeed || 0)]) }}
 				</span>
-				<v-spacer></v-spacer>
+				<v-spacer />
 				<v-btn v-show="canCancel" color="blue darken-1" text @click="cancel">
-					{{ $t(isUploading ? 'dialog.fileTransfer.cancelUploads' : 'dialog.fileTransfer.cancelDownloads') }}
+					{{ $t(isUploading ? "dialog.fileTransfer.cancelUploads" : "dialog.fileTransfer.cancelDownloads") }}
 				</v-btn>
 				<v-btn v-show="transfersFinished" ref="closeButton" color="blue darken-1" text @click="close">
-					{{ $t('generic.close') }}
+					{{ $t("generic.close") }}
 				</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue"
 
-import Vue from 'vue'
-import { mapState } from 'vuex'
+import store from "@/store";
+import Events from "@/utils/events"
+import { FileTransferItem } from "@/store/machine";
+import { CancellationToken } from "@/store/machine/connector/BaseConnector";
 
-import Events from '@/utils/events'
-
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['selectedMachine']),
-		shown() {
-			return this.filesBeingTransferred[this.selectedMachine] !== undefined;
+		shown(): boolean {
+			return this.filesBeingTransferred[store.state.selectedMachine] !== undefined;
 		},
-		isUploading() {
-			return Boolean(this.isMachineUploading[this.selectedMachine]);
+		isUploading(): boolean {
+			return this.isMachineUploading[store.state.selectedMachine];
 		},
-		title() {
+		title(): string {
 			if (this.transfersFinished) {
 				if (this.files.findIndex(file => file.error) !== -1) {
-					return this.$t(this.isUploading ? 'dialog.fileTransfer.uploadFailedTitle' : 'dialog.fileTransfer.downloadFailedTitle');
+					return this.$t(this.isUploading ? "dialog.fileTransfer.uploadFailedTitle" : "dialog.fileTransfer.downloadFailedTitle");
 				}
-				return this.$t(this.isUploading ? 'dialog.fileTransfer.uploadDoneTitle' : 'dialog.fileTransfer.downloadDoneTitle');
+				return this.$t(this.isUploading ? "dialog.fileTransfer.uploadDoneTitle" : "dialog.fileTransfer.downloadDoneTitle");
 			}
 			
 			let fileBeingTransferred = 1, totalProgress = 0;
@@ -103,92 +104,96 @@ export default {
 				}
 			}
 
-			const translation = this.isUploading ? 'dialog.fileTransfer.uploadingTitle' : 'dialog.fileTransfer.downloadingTitle';
+			const translation = this.isUploading ? "dialog.fileTransfer.uploadingTitle" : "dialog.fileTransfer.downloadingTitle";
 			return this.$t(translation, [fileBeingTransferred, this.files.length, (totalProgress * 100).toFixed(1)]);
 		},
-		fileNameOffset() {
-			return this.fileNameOffsets[this.selectedMachine] || 0;
+		fileNameOffset(): number {
+			return this.fileNameOffsets[store.state.selectedMachine] || 0;
 		},
-		currentSpeed() {
-			if (this.files.findIndex(file => file.error) === -1) {
+		currentSpeed(): number | null {
+			if (!this.files.some(file => file.error)) {
 				for (let i = 0; i < this.files.length; i++) {
-					if (this.files[i].progress < 1 && this.files[i].speed > 0) {
+					if (this.files[i].progress < 1 && this.files[i].speed) {
 						return this.files[i].speed;
 					}
 				}
 			}
 			return null;
 		},
-		canCancel() {
-			return !this.transfersFinished && this.cancellationTokens[this.selectedMachine] !== undefined;
+		canCancel(): boolean {
+			return !this.transfersFinished && store.state.selectedMachine in this.cancellationTokens[store.state.selectedMachine];
 		},
-		files() {
-			return this.filesBeingTransferred[this.selectedMachine] || [];
+		files(): Array<FileTransferItem> {
+			return this.filesBeingTransferred[store.state.selectedMachine] || [];
 		},
-		transfersFinished() {
-			if (this.files.findIndex(file => file.error) !== -1) {
+		transfersFinished(): boolean {
+			if (this.files.some(file => file.error)) {
 				return true;
 			}
-			return this.files.findIndex(file => (file.startTime !== null && !file.progress) || file.progress < 1) === -1;
+			return !this.files.some(file => (file.startTime !== null && !file.progress) || file.progress < 1);
 		}
 	},
 	data() {
 		return {
-			isMachineUploading: {},
-			cancellationTokens: {},
-			closeProgressOnSuccess: {},
-			filesBeingTransferred: {},
-			fileNameOffsets: {}
+			isMachineUploading: {} as Record<string, boolean>,
+			cancellationTokens: {} as Record<string, CancellationToken>,
+			closeProgressOnSuccess: {} as Record<string, boolean>,
+			filesBeingTransferred: {} as Record<string, Array<FileTransferItem>>,
+			fileNameOffsets: {} as Record<string, number>,
+			retries: {} as Record<string, number>
 		}
 	},
 	mounted() {
-		this.$root.$on(Events.multipleFilesUploading, this.multiUploadStarting);
-		this.$root.$on(Events.fileUploaded, this.fileComplete.bind(this));
-		this.$root.$on(Events.multipleFilesDownloading, this.multiDownloadStarting);
-		this.$root.$on(Events.fileDownloaded, this.fileComplete.bind(this));
+		this.$root
+			.$on(Events.multipleFilesUploading, this.multiUploadStarting)
+			.$on(Events.multipleFilesDownloading, this.multiDownloadStarting)
+			.$on(Events.fileUploaded, this.fileComplete.bind(this))
+			.$on(Events.fileDownloaded, this.fileComplete.bind(this));
 	},
 	beforeDestroy() {
-		this.$root.$off(this.multiFileTransferStarting);
-		this.$root.$off(this.fileComplete);
+		this.$root
+			.$off(this.multiUploadStarting as any)
+			.$off(this.multiDownloadStarting as any)
+			.$off(this.fileComplete as any);
 	},
 	methods: {
-		getSize(file) {
+		getSize(file: FileTransferItem) {
 			if (file.size || (file.content && file.content.size)) {
 				return this.$displaySize(file.size || file.content.size);
 			}
-			return '';
+			return "";
 		},
-		getFileIcon(file) {
+		getFileIcon(file: FileTransferItem) {
 			if (file.error) {
-				return 'mdi-alert-circle';
+				return "mdi-alert-circle";
 			}
 			if (file.progress === 1) {
-				return 'mdi-check';
+				return "mdi-check";
 			}
 			if (file.startTime !== null) {
-				return 'mdi-cloud-upload';
+				return "mdi-cloud-upload";
 			}
-			return 'mdi-asterisk';
+			return "mdi-asterisk";
 		},
-		getProgressColor(file) {
+		getProgressColor(file: FileTransferItem) {
 			if (file.error) {
-				return 'error';
+				return "error";
 			}
 			if (file.progress === 1) {
-				return 'success';
+				return "success";
 			}
-			return (file.retry > 0) ? 'warning' : 'info';
+			return (file.retry > 0) ? "warning" : "info";
 		},
 		cancel() {
-			this.cancellationTokens[this.selectedMachine].cancel();
-			this.cancellationTokens[this.selectedMachine] = undefined;
+			this.cancellationTokens[store.state.selectedMachine].cancel();
+			delete this.cancellationTokens[store.state.selectedMachine];
 		},
 		close() {
-			this.closeProgressOnSuccess[this.selectedMachine] = undefined;
-			this.cancellationTokens[this.selectedMachine] = undefined;
-			this.filesBeingTransferred[this.selectedMachine] = undefined;
+			delete this.closeProgressOnSuccess[store.state.selectedMachine];
+			delete this.cancellationTokens[store.state.selectedMachine];
+			delete this.filesBeingTransferred[store.state.selectedMachine];
 		},
-		multiUploadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken }) {
+		multiUploadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken } : { machine: string, files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
 				Vue.set(this.isMachineUploading, machine, true);
 				Vue.set(this.closeProgressOnSuccess, machine, closeProgressOnSuccess);
@@ -197,7 +202,7 @@ export default {
 				this.setFileNameOffsets(machine, files);
 			}
 		},
-		multiDownloadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken }) {
+		multiDownloadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken } : { machine: string, files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
 				Vue.set(this.isMachineUploading, machine, false);
 				Vue.set(this.closeProgressOnSuccess, machine, closeProgressOnSuccess);
@@ -207,7 +212,7 @@ export default {
 				this.setFileNameOffsets(machine, files);
 			}
 		},
-		setFileNameOffsets(machine, files) {
+		setFileNameOffsets(machine: string, files: Array<FileTransferItem>) {
 			Vue.set(this.fileNameOffsets, machine, 0);
 			if (files.length > 1) {
 				let offset = 0;
@@ -224,24 +229,25 @@ export default {
 						}
 					}
 
-					if (nextChar === '/') {
+					if (nextChar === "/") {
 						this.fileNameOffsets[machine] = offset + 1;
 					}
 					offset++;
 				} while (offset > 0);
 			}
 		},
-		fileComplete({ machine, num, count }) {
-			if (this.selectedMachine === machine && num + 1 === count && this.closeProgressOnSuccess[machine]) {
+		fileComplete({ machine, num, count } : { machine: string, num: number, count: number }) {
+			if (store.state.selectedMachine === machine && num + 1 === count && this.closeProgressOnSuccess[machine]) {
 				this.close();
 			} else if (this.$refs.fileTable) {
-				if (this.$refs.fileTable.rows.length > num + 1) {
-					this.$refs.fileTable.rows[num + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-				} else if (this.$refs.fileTable.rows.length > 0) {
-					this.$refs.fileTable.rows[this.$refs.fileTable.rows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+				const fileTable = this.$refs.fileTable as HTMLTableElement;
+				if (fileTable.rows.length > num + 1) {
+					fileTable.rows[num + 1].scrollIntoView({ behavior: "smooth", block: "center" });
+				} else if (fileTable.rows.length > 0) {
+					fileTable.rows[fileTable.rows.length - 1].scrollIntoView({ behavior: "smooth", block: "center" });
 				}
 			}
 		}
 	}
-}
+});
 </script>

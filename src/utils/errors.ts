@@ -1,4 +1,13 @@
-import i18n from '../i18n';
+import i18n from "../i18n";
+
+/**
+ * Get the message from a thrown error
+ * @param e Error item
+ * @returns Error message
+ */
+export function getErrorMessage(e: any) {
+	return e ? (e.message ?? e.toString()) : i18n.t("generic.noValue");
+}
 
 // Generic Errors
 
