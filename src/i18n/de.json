@@ -661,7 +661,9 @@
       "loadMesh": "Gespeicherte Höhenkarte laden (G29 S1)",
       "axesNotHomed": "Die folgende Achse ist nicht referenziert:|Die folgenden Achsen sind nicht referenziert:",
       "noAxes": "Keine Achsen",
-      "workzero": "Gehe zum Nullpunkt"
+      "workzero": "Gehe zum Nullpunkt",
+      "set": "Setze {0}",
+      "setWorkXYZ": "Setze Arbeits-XYZ"
     },
     "settingsAbout": {
       "caption": "Über",
@@ -706,7 +708,9 @@
       "board": "Board: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Version von Duet WiFi Server: {0}",
-      "updateNote": "Hinweis: Sie können Aktualisierungen auf der System-Seite installieren."
+      "updateNote": "Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.",
+      "notConnected": "(nicht verbunden)",
+      "dsfVersion": "DSF Version: {0}"
     },
     "settingsEndstops": {
       "caption": "Endlagenschalter",

@@ -2,7 +2,8 @@
 .v-btn-toggle {
 	display: flex;
 }
-.v-btn-toggle > button {
+
+.v-btn-toggle>button {
 	display: flex;
 	flex: 1 1 auto;
 }
@@ -15,11 +16,11 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<v-btn-toggle :value="state.atxPower" @change="togglePower" mandatory>
-				<v-btn text :value="true" :disabled="uiFrozen" :loading="sendingCode" @click="togglePower(true)">
+			<v-btn-toggle :value="atxPower" @change="toggleAtxPower" mandatory>
+				<v-btn text :value="true" :disabled="uiFrozen" :loading="sendingCode" @click="toggleAtxPower(true)">
 					{{ $t('panel.atx.on') }}
 				</v-btn>
-				<v-btn text :value="false" :disabled="uiFrozen" :loading="sendingCode" @click="togglePower(false)">
+				<v-btn text :value="false" :disabled="uiFrozen" :loading="sendingCode" @click="toggleAtxPower(false)">
 					{{ $t('panel.atx.off') }}
 				</v-btn>
 			</v-btn-toggle>
@@ -27,15 +28,15 @@
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import store from "@/store";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', ['state'])
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		atxPower(): boolean | null { return store.state.machine.model.state.atxPower; }
 	},
 	data() {
 		return {
@@ -43,12 +44,11 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
-		async togglePower(state) {
+		async toggleAtxPower(value: boolean) {
 			if (!this.sendingCode) {
 				this.sendingCode = true;
 				try {
-					await this.sendCode(state ? 'M80' : 'M81');
+					await store.dispatch("machine/sendCode", value ? "M80" : "M81");
 				} catch (e) {
 					// handled before we get here
 				}
@@ -56,5 +56,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

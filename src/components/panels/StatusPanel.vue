@@ -108,7 +108,7 @@ a:not(:hover) {
 							{{ $t('panel.status.requestedSpeed') }}
 						</strong>
 						<span>
-							{{ displaySpeed(move.currentMove.requestedSpeed) }}
+							{{ displayTransferSpeed(move.currentMove.requestedSpeed) }}
 						</span>
 					</v-col>
 
@@ -117,7 +117,7 @@ a:not(:hover) {
 							{{ $t('panel.status.topSpeed') }}
 						</strong>
 						<span>
-							{{ displaySpeed(move.currentMove.topSpeed) }}
+							{{ displayTransferSpeed(move.currentMove.topSpeed) }}
 						</span>
 					</v-col>
 						</v-row>
@@ -274,17 +274,6 @@ export default {
 		}
 	},
 	methods: {
-        displayAxisPosition(axis) {
-            const position = (this.displayToolPosition ? axis.userPosition : axis.machinePosition) /
-							((this.displayUnits === UnitOfMeasure.imperial) ? 25.4 : 1);
-			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, this.decimalPlaces);
-        },
-		displaySpeed(speed) {
-			if(this.displayUnits === UnitOfMeasure.imperial) {
-				return this.$display(speed*60/25.4, 1, this.$t('panel.settingsAppearance.unitInchSpeed'));	// to ipm
-			}
-			return this.$display(speed, 1,  this.$t('panel.settingsAppearance.unitMmSpeed'));
-		},
 		isFilamentSensorPresent(extruderIndex) {
 			return (extruderIndex < this.sensors.filamentMonitors.length) &&
 					this.sensors.filamentMonitors[extruderIndex] &&

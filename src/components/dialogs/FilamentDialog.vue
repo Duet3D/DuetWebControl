@@ -95,7 +95,7 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		shown(to) {
+		shown(to: boolean) {
 			if (to) {
 				// Load filaments when this dialog is shown
 				this.loadFilaments();

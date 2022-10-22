@@ -1,30 +1,39 @@
 <template>
 	<v-card outlined>
 		<v-tabs>
-			<v-tab>{{ $t('panel.settingsListItems.toolTemperatures') }}</v-tab>
-			<v-tab>{{ $t('panel.settingsListItems.bedTemperatures') }}</v-tab>
-			<v-tab>{{ $t('panel.settingsListItems.chamberTemperatures') }}</v-tab>
-			<v-tab>{{ $t('panel.settingsListItems.spindleRPM') }}</v-tab>
+			<!-- Tab Titles-->
+			<v-tab>
+				{{ $t("panel.settingsListItems.toolTemperatures") }}
+			</v-tab>
+			<v-tab>
+				{{ $t("panel.settingsListItems.bedTemperatures") }}
+			</v-tab>
+			<v-tab>
+				{{ $t("panel.settingsListItems.chamberTemperatures") }}
+			</v-tab>
+			<v-tab>
+				{{ $t("panel.settingsListItems.spindleRPM") }}
+			</v-tab>
+
+			<!-- Tab Contents-->
 			<v-tab-item class="pa-3">
-				<list-editor itemKey="tool" temperature></list-editor>
+				<list-editor itemKey="tool" temperature />
 			</v-tab-item>
 			<v-tab-item class="pa-3">
-				<list-editor itemKey="bed" temperature></list-editor>
+				<list-editor itemKey="bed" temperature />
 			</v-tab-item>
 			<v-tab-item class="pa-3">
-				<list-editor itemKey="chamber" temperature></list-editor>
+				<list-editor itemKey="chamber" temperature />
 			</v-tab-item>
 			<v-tab-item class="pa-3">
-				<list-editor itemKey="spindleRPM"></list-editor>
+				<list-editor itemKey="spindleRPM" />
 			</v-tab-item>
 		</v-tabs>
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-export default {
-	// required for v-tabs to work properly
-}
+export default Vue.extend({});
 </script>

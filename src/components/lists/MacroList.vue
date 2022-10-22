@@ -1,8 +1,8 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t('list.macro.caption') }}
-			<v-spacer></v-spacer>
+			<v-icon small class="mr-1">mdi-polymer</v-icon> {{ $t("list.macro.caption") }}
+			<v-spacer />
 			<span v-show="isConnected" class="subtitle-2">{{ currentDirectory }}</span>
 		</v-card-title>
 
@@ -16,14 +16,14 @@
 					</v-list-item-avatar>
 
 					<v-list-item-content>
-						<v-list-item-title>{{ $t('list.baseFileList.goUp') }}</v-list-item-title>
+						<v-list-item-title>{{ $t("list.baseFileList.goUp") }}</v-list-item-title>
 					</v-list-item-content>
 				</v-list-item>
 
 				<v-list-item v-for="item in filelist" :key="item.name" @click="itemClick(item)">
 					<v-list-item-avatar :size="32">
 						<v-icon small :class="item.isDirectory ? 'grey lighten-1 white--text' : 'blue white--text'">
-							{{ item.isDirectory ? 'mdi-folder' : 'mdi-file' }}
+							{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
 						</v-icon>
 					</v-list-item-avatar>
 
@@ -39,71 +39,78 @@
 		</v-card-text>
 
 		<v-alert :value="!filelist.length" type="info">
-			{{ $t('list.macro.noMacros') }}
+			{{ $t("list.macro.noMacros") }}
 		</v-alert>
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { Volume } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import store from "@/store";
+import { FileListItem } from "@/store/machine/connector/BaseConnector";
+import { DisconnectedError, getErrorMessage } from "@/utils/errors";
+import Events from "@/utils/events";
+import { LogType } from "@/utils/logging";
+import Path, { escapeFilename } from "@/utils/path";
 
-import Path, { escapeFilename } from '@/utils/path'
-import { DisconnectedError } from '@/utils/errors'
-import Events from '@/utils/events'
+interface MacroItemProperties {
+	displayName: string;
+	executing: boolean;
+}
 
-export default {
+type MacroItem = FileListItem & MacroItemProperties;
+
+export default Vue.extend({
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/model', {
-			macrosDirectory: state => state.directories.macros,
-			volumes: state => state.volumes
-		}),
-		currentDirectory() {
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		selectedMachine(): string { return store.state.selectedMachine; },
+		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
+		volumes(): Array<Volume> { return store.state.machine.model.volumes; },
+		currentDirectory(): string {
 			if (Path.startsWith(this.directory, this.macrosDirectory)) {
 				let subDirectory = this.directory.substring(this.macrosDirectory.length);
 				if (subDirectory.length === 0 || subDirectory[0] === '/') {
-					return this.$t('list.macro.root') + (subDirectory === '/' ? '' : subDirectory);
+					return this.$t("list.macro.root") + (subDirectory === '/' ? "" : subDirectory);
 				}
-				return this.$t('list.macro.root') + '/' + subDirectory;
+				return this.$t("list.macro.root") + '/' + subDirectory;
 			}
 			return this.directory;
 		},
-		isRootDirectory() { return Path.equals(this.directory, this.macrosDirectory); }
+		isRootDirectory(): boolean { return Path.equals(this.directory, this.macrosDirectory); }
 	},
-	data () {
+	data() {
 		return {
 			loading: false,
 			wasMounted: false,
 			directory: Path.macros,
-			filelist: []
+			filelist: new Array<MacroItem>
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode', 'getFileList']),
-		async loadDirectory(directory) {
+		async loadDirectory(directory: string) {
 			if (this.loading) {
 				return;
 			}
 
 			this.loading = true;
 			try {
-				const files = await this.getFileList(directory);
-				files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensivity: 'base' }));
+				const files: Array<MacroItem> = await store.dispatch("machine/getFileList", directory);
+				files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 				files.sort((a, b) => (a.isDirectory === b.isDirectory) ? 0 : (a.isDirectory ? -1 : 1));
-				files.forEach(function(item) {
+				for (const item of files) {
 					item.displayName = Path.stripMacroFilename(item.name);
 					item.executing = false;
-				});
+				}
 
 				this.directory = directory;
 				this.filelist = files;
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$log('error', this.$t('error.filelistRequestFailed'), e.message);
+					this.$log(LogType.error, this.$t("error.filelistRequestFailed"), getErrorMessage(e));
 				}
 			}
 			this.loading = false;
@@ -111,7 +118,7 @@ export default {
 		async refresh() {
 			await this.loadDirectory(this.directory);
 		},
-		async itemClick(item) {
+		async itemClick(item: MacroItem) {
 			if (this.uiFrozen) {
 				return;
 			}
@@ -122,7 +129,7 @@ export default {
 			} else if (!item.executing) {
 				item.executing = true;
 				try {
-					await this.sendCode(`M98 P"${escapeFilename(filename)}"`);
+					await store.dispatch("machine/sendCode", `M98 P"${escapeFilename(filename)}"`);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
@@ -135,7 +142,7 @@ export default {
 			await this.loadDirectory(Path.extractDirectory(this.directory));
 		},
 
-		filesOrDirectoriesChanged({ machine, files }) {
+		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: Array<string> }) {
 			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
 				// File or directory has been changed in the current directory
 				this.refresh();
@@ -201,5 +208,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

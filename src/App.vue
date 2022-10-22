@@ -106,6 +106,8 @@ import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
 import store from "@/store";
 import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
+import { Route, NavigationGuardNext } from "vue-router";
+import model from "./store/machine/model";
 
 export default Vue.extend({
 	computed: {
@@ -184,7 +186,7 @@ export default Vue.extend({
 
 		// Validate navigation
 		Vue.prototype.$vuetify = this.$vuetify;
-		this.$router.beforeEach((to, from, next) => {
+		this.$router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
 			if (Routes.some(route => route.path === to.path && !(route as MenuItem).condition)) {
 				next("/");
 			} else {
@@ -201,15 +203,15 @@ export default Vue.extend({
 		});
 	},
 	watch: {
-		currentPageCondition(to) {
+		currentPageCondition(to: boolean) {
 			if (!to) {
 				this.$router.push("/");
 			}
 		},
-		darkTheme(to) {
+		darkTheme(to: boolean) {
 			this.$vuetify.theme.dark = to;
 		},
-		status(to, from) {
+		status(to: MachineStatus, from: MachineStatus) {
 			if (to === MachineStatus.disconnected || from === MachineStatus.disconnected) {
 				this.updateTitle();
 			}
@@ -228,7 +230,7 @@ export default Vue.extend({
 			}
 		},
 		name() { this.updateTitle(); },
-		jobProgress(to, from) {
+		jobProgress(to: number, from: number) {
 			if (isPrinting(this.model.state.status) && Math.round(to * 100) !== Math.round(from * 100)) {
 				Piecon.setProgress(to * 100);
 			}

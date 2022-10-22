@@ -102,7 +102,7 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		shown(to) {
+		shown(to: boolean) {
 			if (to) {
 				this.xAxis = (this.probeGrid.axes.length > 0) ? this.probeGrid.axes[0] : "X";
 				this.yAxis = (this.probeGrid.axes.length > 1) ? this.probeGrid.axes[1] : "Y";

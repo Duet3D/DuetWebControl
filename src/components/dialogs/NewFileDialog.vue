@@ -46,19 +46,19 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		isConnected(to) {
+		isConnected(to: boolean) {
 			if (!to) {
 				this.showFilenameDialog = false;
 				this.showEditorDialog = false;
 				this.$emit("update:shown", false);
 			}
 		},
-		showEditorDialog(to) {
+		showEditorDialog(to: boolean) {
 			if (this.shown !== to) {
 				this.$emit("update:shown", to);
 			}
 		},
-		shown(to) {
+		shown(to: boolean) {
 			if (to) {
 				this.showFilenameDialog = true;
 			} else {

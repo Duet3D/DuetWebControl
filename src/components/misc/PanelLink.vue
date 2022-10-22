@@ -13,12 +13,12 @@ span {
 	</span>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-export default {
+export default Vue.extend({
 	props: {
 		active: Boolean
 	}
-}
+});
 </script>

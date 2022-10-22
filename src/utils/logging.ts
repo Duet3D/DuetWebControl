@@ -1,11 +1,10 @@
-import { Message, MessageType } from "@duet3d/objectmodel";
-import i18n from "@/i18n";
 import Vue from "vue";
 
+import i18n from "@/i18n";
 import store from "@/store";
 import { defaultMachine } from "@/store/machine";
 
-import { makeNotification, NotificationType } from "./notifications";
+import { makeNotification } from "./notifications";
 
 /**
  * Possible logging types

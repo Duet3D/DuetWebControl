@@ -1,18 +1,22 @@
-import { MachineMode } from "@duet3d/objectmodel";
+import { Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import i18n from "@/i18n";
 import store from "@/store";
+import { UnitOfMeasure } from "@/store/settings";
 
 /**
  * Display a numeric value with a given precision and an optional unit.
  * @param value Value(s) to display
- * @param precision Number precision
+ * @param precision Optional number precision
  * @param unit Optional unit to append
  * @returns Formatted string
  */
-export function display(value: number | Array<number> | string, precision: number, unit?: string) {
+export function display(value: number | Array<number> | string | null | undefined, precision?: number, unit?: string) {
 	if (typeof value === "number") {
+		if (isNaN(value)) {
+			return i18n.t("generic.noValue");
+		}
 		return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : "");
 	}
 	if (value instanceof Array && value.length > 0) {
@@ -23,12 +27,27 @@ export function display(value: number | Array<number> | string, precision: numbe
 }
 
 /**
+ * Display an axis position
+ * @param axis Axis position to display
+ * @returns Formatted axis position
+ */
+export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
+	let position = machinePosition ? axis.userPosition : axis.machinePosition;
+	if (position === null) {
+		return i18n.t("generic.noValue");
+	}
+
+	position = position / ((store.state.settings.displayUnits === UnitOfMeasure.imperial) ? 25.4 : 1);
+	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, store.state.settings.decimalPlaces);
+}
+
+/**
  * Display a Z height (typically higher precision than other values)
  * @param value Z height value
  * @param showUnit Append the currently configured distance unit
  * @returns Formatted string
  */
-export function displayZ(value: number | Array<number> | string, showUnit = true) {
+export function displayZ(value: number | Array<number> | string | null | undefined, showUnit = true) {
 	return display(value, (store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? "mm" : undefined);
 }
 
@@ -37,7 +56,11 @@ export function displayZ(value: number | Array<number> | string, showUnit = true
  * @param bytes Size to format
  * @returns Formatted string
  */
-export function displaySize(bytes: number) {
+export function displaySize(bytes: number | null | undefined) {
+	if (typeof bytes !== "number") {
+		return i18n.t("generic.noValue");
+	}
+
 	if (store.state.settings.useBinaryPrefix) {
 		if (bytes > 1073741824) {	// GiB
 			return (bytes / 1073741824).toFixed(1) + " GiB";
@@ -63,11 +86,27 @@ export function displaySize(bytes: number) {
 }
 
 /**
+ * Display a move speed
+ * @param speed Speed in mm/s
+ * @returns Formatted move speed in mm/s or ipm
+ */
+export function displayMoveSpeed(speed: number | null | undefined) {
+	if (typeof speed === "number" && store.state.settings.displayUnits === UnitOfMeasure.imperial) {
+		return display(speed * 60 / 25.4, 1, i18n.t("panel.settingsAppearance.unitInchSpeed"));
+	}
+	return display(speed, 1, i18n.t("panel.settingsAppearance.unitMmSpeed"));
+}
+
+/**
  * Display a transfer speed with proper units
  * @param bytesPerSecond Speed to format
  * @returns Formatted string
  */
-export function displaySpeed(bytesPerSecond: number) {
+export function displayTransferSpeed(bytesPerSecond: number | null | undefined) {
+	if (typeof bytesPerSecond !== "number") {
+		return i18n.t("generic.noValue");
+	}
+
 	if (store.state.settings.useBinaryPrefix) {
 		if (bytesPerSecond > 1073741824) {		// GiB
 			return (bytesPerSecond / 1073741824).toFixed(2) + " GiB/s";
@@ -98,8 +137,8 @@ export function displaySpeed(bytesPerSecond: number) {
  * @param showTrailingZeroes Show trailing zeroes (defaults to false)
  * @returns Formatted string
  */
-export function displayTime(value: number, showTrailingZeroes = false) {
-	if (value === null || isNaN(value)) {
+export function displayTime(value: number | null | undefined, showTrailingZeroes = false) {
+	if (typeof value !== "number" || isNaN(value)) {
 		return i18n.t('generic.noValue');
 	}
 
@@ -130,7 +169,9 @@ export function displayTime(value: number, showTrailingZeroes = false) {
 
 // Register display extensions
 Vue.prototype.$display = display;
+Vue.prototype.$displayAxisPosition = displayAxisPosition;
 Vue.prototype.$displayZ = displayZ;
 Vue.prototype.$displaySize = displaySize;
-Vue.prototype.$displaySpeed = displaySpeed;
+Vue.prototype.$displayMoveSpeed = displayMoveSpeed;
+Vue.prototype.$displayTransferSpeed = displayTransferSpeed;
 Vue.prototype.$displayTime = displayTime;

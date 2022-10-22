@@ -1,21 +1,25 @@
 <template>
 	<v-card outlined>
 		<v-card-title class="pb-0">
-			{{ $t('panel.settingsMachine.caption') }}
+			{{ $t("panel.settingsMachine.caption") }}
 		</v-card-title>
 
 		<v-card-text>
 			<v-row :dense="$vuetify.breakpoint.mobile">
 				<v-col cols="12" lg="6">
-					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001" :label="$t('panel.settingsMachine.babystepAmount', ['mm'])" hide-details></v-text-field>
+					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001"
+								  :label="$t('panel.settingsMachine.babystepAmount', ['mm'])" hide-details />
 				</v-col>
 				<v-col cols="12" lg="6">
-					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001" :label="$t('panel.settingsMachine.moveFeedrate', ['mm/min'])" hide-details></v-text-field>
+					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001"
+								  :label="$t('panel.settingsMachine.moveFeedrate', ['mm/min'])" hide-details />
 				</v-col>
 				<v-col cols="12">
-					<v-autocomplete v-model="toolChangeMacros" :items="toolChangeMacroList" chips clearable :label="$t('panel.settingsMachine.toolChangeMacros')" multiple hide-details>
+					<v-autocomplete v-model="toolChangeMacros" :items="toolChangeMacroList" chips clearable
+									:label="$t('panel.settingsMachine.toolChangeMacros')" multiple hide-details>
 						<template #selection="{ attrs, item, select, selected }">
-							<v-chip v-bind="attrs" :input-value="selected" close @click="select" @click:close="removeToolChangeMacro(item)">
+							<v-chip v-bind="attrs" :input-value="selected" close @click="select"
+									@click:close="removeToolChangeMacro(item.value)">
 								{{ item.text }}
 							</v-chip>
 						</template>
@@ -26,27 +30,25 @@
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapMutations } from 'vuex'
-import { ToolChangeMacro } from "@/store/machine/settings";
+import store from "@/store";
+import { MachineSettingsState, ToolChangeMacro } from "@/store/machine/settings";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('machine', ['settings']),
-		...mapState('machine/model', ['boards']),
 		babystepAmount: {
-			get() { return this.settings.babystepAmount; },
-			set(value) { if (this.isNumber(value) && value > 0) { this.update({ babystepAmount: value }); } }
+			get(): number { return store.state.machine.settings.babystepAmount; },
+			set(value: number) { if (isFinite(value) && value > 0) { this.update({ babystepAmount: value }); } }
 		},
 		moveFeedrate: {
-			get() { return this.settings.moveFeedrate; },
-			set(value) { if (this.isNumber(value) && value > 0) { this.update({ moveFeedrate: value }); } }
+			get(): number { return store.state.machine.settings.moveFeedrate; },
+			set(value: number) { if (isFinite(value) && value > 0) { this.update({ moveFeedrate: value }); } }
 		},
 		toolChangeMacros: {
-			get() { return this.settings.toolChangeMacros; },
-			set(value) { this.update({ toolChangeMacros: value }); }
+			get(): Array<ToolChangeMacro> { return store.state.machine.settings.toolChangeMacros; },
+			set(value: Array<ToolChangeMacro>) { this.update({ toolChangeMacros: value }); }
 		}
 	},
 	data() {
@@ -68,10 +70,12 @@ export default {
 		}
 	},
 	methods: {
-		...mapMutations('machine/settings', ['update']),
-		removeToolChangeMacro(item) {
-			this.toolChangeMacros = this.toolChangeMacros.filter(macro => macro !== item.value);
+		update(data: Partial<MachineSettingsState>) {
+			store.commit("machine/settings/update", data);
+		},
+		removeToolChangeMacro(item: ToolChangeMacro) {
+			this.toolChangeMacros = this.toolChangeMacros.filter(macro => macro !== item);
 		}
 	}
-}
+});
 </script>

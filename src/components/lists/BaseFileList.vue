@@ -156,11 +156,22 @@ interface ExtraFileListItemOptions {
 	filaments?: Array<number>;
 }
 
-type BaseFileListItem = FileListItem & ExtraFileListItemOptions;
+export type BaseFileListHeader = DataTableHeader & { precision?: number, unit?: string };
+export type BaseFileListItem = FileListItem & ExtraFileListItemOptions;
+
+export interface BaseFileListDataTransfer {
+	type: string;
+	directory: string;
+	items: Array<BaseFileListItem>;
+}
+
+export function isBaseFileListDataTransfer(data: any): data is BaseFileListDataTransfer {
+	return (data.type === "dwcFiles" && typeof data.directory === "string" && data.items instanceof Array);
+}
 
 export default Vue.extend({
 	props: {
-		headers: Array as PropType<Array<DataTableHeader>>,
+		headers: Array as PropType<Array<BaseFileListHeader>>,
 		sortTable: String,
 		directory: {
 			type: String,
@@ -195,7 +206,7 @@ export default Vue.extend({
 			const volume = Path.getVolume(this.innerDirectory);
 			return (volume >= 0) && (volume < store.state.machine.model.volumes.length) && store.state.machine.model.volumes[volume].mounted;
 		},
-		defaultHeaders(): Array<DataTableHeader & { unit?: string }> {
+		defaultHeaders(): Array<BaseFileListHeader> {
 			return [
 				{
 					class: "pl-0",
@@ -284,10 +295,10 @@ export default Vue.extend({
 		toggleAll() {
 			this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
 		},
-		sort(items: Array<BaseFileListItem>, sortBy: keyof BaseFileListItem = "name", sortDesc: boolean) {
+		sort(items: Array<BaseFileListItem>, sortBy: Array<keyof BaseFileListItem> = ["name"], sortDesc: Array<boolean>) {
 			// Sort by index
 			items.sort((a, b) => {
-				const first = a[sortBy], second = b[sortBy];
+				const first = a[sortBy[0]], second = b[sortBy[0]];
 				if (first === second) {
 					return 0;
 				}
@@ -308,12 +319,15 @@ export default Vue.extend({
 					const secondSum = second.length ? second.reduce((a: number, b: number) => a + b) : 0;
 					return firstSum - secondSum;
 				}
+				if (first instanceof Date && second instanceof Date) {
+					return first.getTime() - second.getTime();
+				}
 				console.warn(`[base-file-list] Invalid sort key type ${sortBy} (${typeof first})`);
 				return 0;
 			});
 
 			// Deal with descending order
-			if (sortDesc) {
+			if (sortDesc[0]) {
 				items.reverse();
 			}
 
@@ -468,7 +482,7 @@ export default Vue.extend({
 				type: "dwcFiles",
 				directory: this.innerDirectory,
 				items: itemsToDrag
-			}));
+			} as BaseFileListDataTransfer));
 			e.dataTransfer.effectAllowed = "move";
 
 			const table = this.$el.querySelector("table") as HTMLTableElement, firstRow = table.tBodies[0].rows[0];
@@ -520,7 +534,7 @@ export default Vue.extend({
 				const jsonData = e.dataTransfer.getData("application/json");
 				if (jsonData) {
 					const data = JSON.parse(jsonData);
-					if (data.type === "dwcFiles" && !data.items.some((dataItem: BaseFileListItem) => dataItem.isDirectory && dataItem.name === item.name)) {
+					if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
 						e.preventDefault();
 						e.stopPropagation();
 					}
@@ -539,15 +553,15 @@ export default Vue.extend({
 			const jsonData = e.dataTransfer.getData("application/json");
 			if (jsonData) {
 				const data = JSON.parse(jsonData);
-				if (data.type === "dwcFiles" && !data.items.some((dataItem: BaseFileListItem) => dataItem.isDirectory && dataItem.name === item.name)) {
+				if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
 					const directory = this.innerDirectory;
-					for (let i = 0; i < data.items.length; i++) {
-						const from = Path.combine(data.directory, data.items[i].name);
-						const to = Path.combine(directory, item.name, data.items[i].name);
+					for (const item of data.items) {
+						const from = Path.combine(data.directory, item.name);
+						const to = Path.combine(directory, item.name, item.name);
 						try {
 							await store.dispatch("machine/move", { from, to });
 						} catch (e) {
-							this.$makeNotification(LogType.error, `Failed to move ${data.items[i].name} to ${directory}`, getErrorMessage(e));
+							this.$makeNotification(LogType.error, `Failed to move ${item.name} to ${directory}`, getErrorMessage(e));
 							break;
 						}
 					}

@@ -63,7 +63,7 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		status(to) {
+		status(to: MachineStatus) {
 			if (to === MachineStatus.halted) {
 				this.haltedTimer = setTimeout(this.showResetButton.bind(this), 4000);
 			} else {

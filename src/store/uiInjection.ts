@@ -5,7 +5,7 @@ import { ContextMenuType } from "@/plugins";
 import { InternalRootState } from ".";
 import Vue from "vue";
 
-interface ContextMenuItem {
+export interface ContextMenuItem {
 	/**
 	 * Target of this context menu item
 	 */

@@ -9,7 +9,7 @@
 
 			<v-card-text>
 				<!-- Main message -->
-				<div class="text-center" :class="{ 'mb-6': displayedAxes.length }" v-html="messageBox.message"></div>
+				<div class="text-center" :class="{ 'mb-6': displayedAxes.length > 0 }" v-html="messageBox.message"></div>
 
 				<!-- Jog control -->
 				<v-row v-for="axis in displayedAxes" :key="axis.letter" dense>
@@ -161,7 +161,7 @@ export default Vue.extend({
 			return classes;
 		},
 		getMoveCode(axis: Axis, index: number, decrementing: boolean): string {
-			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter.toUpperCase()}${decrementing ? '-' : ''}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
 		},
 		showSign: (value: number): string => (value > 0) ? `+${value}` : value.toString(),
 		async ok() {
@@ -188,17 +188,17 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		isReconnecting(to) {
+		isReconnecting(to: boolean) {
 			if (to) {
 				this.shown = false;
 			}
 		},
 		currentMessageBox: {
 			deep: true,
-			handler(to) {
+			handler(to: MessageBox | null) {
 				if (to && to.mode !== null) {
-					this.numberInput = to.default || 0;
-					this.stringInput = to.default || '';
+					this.numberInput = (typeof to.default === "number") ? to.default : 0;
+					this.stringInput = (typeof to.default === "string") ? to.default : "";
 					this.messageBox.update(to);
 					this.shown = true;
 				} else {

@@ -167,7 +167,7 @@ export default Vue.extend({
 		this.updateChart();
 	},
 	watch: {
-		darkTheme(to) {
+		darkTheme(to: boolean) {
 			this.applyDarkTheme(to);
 		},
 		language() {

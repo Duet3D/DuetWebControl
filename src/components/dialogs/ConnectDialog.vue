@@ -81,8 +81,8 @@ export default Vue.extend({
 		this.shown = this.connectDialogShown;
 	},
 	watch: {
-		connectDialogShown(to) { this.shown = to; },
-		lastHostname(to) { this.hostname = to; }
+		connectDialogShown(to: boolean) { this.shown = to; },
+		lastHostname(to: string) { this.hostname = to; }
 	}
 });
 </script>

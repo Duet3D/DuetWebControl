@@ -56,7 +56,7 @@ export interface Notification {
     /**
      * How long this notification has been displayed (in ms)
      */
-    timeDisplayed: 0;
+    timeDisplayed: number;
 
     /**
      * Reset the timeout of this notification
@@ -69,7 +69,7 @@ export interface Notification {
     filename?: string;
 
     /**
-     * Optional progress value
+     * Optional progress value (0..100)
      */
     progress: number | null;
     
@@ -163,9 +163,7 @@ export function makeNotification(type: NotificationType, title: string, message:
         route,
         icon,
         timeDisplayed: 0,
-        resetTimeout() {
-            item.timeDisplayed = 0;
-        },
+        resetTimeout() { item.timeDisplayed = 0; },
 		progress: null,
         close() {
             const index = notifications.indexOf(item);

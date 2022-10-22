@@ -2,88 +2,81 @@
 	<v-row dense>
 		<v-col cols="12" class="d-flex">
 			<span>{{ printStatus }}</span>
-			<v-spacer/>
+			<v-spacer />
 			<span>{{ printDetails }}</span>
 		</v-col>
 
 		<v-col cols="12">
-			<v-progress-linear :value="jobProgress * 100" class="my-1"></v-progress-linear>
+			<v-progress-linear :value="jobProgress * 100" class="my-1" />
 		</v-col>
 	</v-row>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { MachineMode, MachineStatus } from '@duet3d/objectmodel'
-import { mapState, mapGetters } from 'vuex'
+import store from "@/store";
+import { isPrinting } from "@/utils/enums";
+import { extractFileName } from "@/utils/path";
 
-import { isPrinting } from '@/utils/enums'
-import { extractFileName } from '@/utils/path'
-
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('machine/model', {
-			extruders: state => state.move.extruders,
-			job: state => state.job,
-			machineMode: state => state.state.machineMode,
-			status: state => state.state.status
-		}),
-		...mapGetters('machine/model', ['jobProgress']),
-		printStatus() {
-			if (isPrinting(this.status)) {
+		jobProgress(): number { return store.getters["machine/model/jobProgress"]; },
+		printStatus(): string {
+			if (isPrinting(store.state.machine.model.state.status)) {
 				if (this.printFile) {
-					const progress = this.$display(this.jobProgress * 100, 1, '%');
+					const progress = this.$display(this.jobProgress * 100, 1, "%");
 					if (this.isSimulating) {
-						return this.$t('jobProgress.simulating', [this.printFile, progress]);
+						return this.$t("jobProgress.simulating", [this.printFile, progress]);
 					}
-					if (this.machineMode === MachineMode.fff) {
-						return this.$t('jobProgress.printing', [this.printFile, progress]);
+					if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+						return this.$t("jobProgress.printing", [this.printFile, progress]);
 					}
-					return this.$t('jobProgress.processing', [this.printFile, progress]);
+					return this.$t("jobProgress.processing", [this.printFile, progress]);
 				}
-				return this.$t('generic.loading');
+				return this.$t("generic.loading");
 			} else if (this.lastPrintFile) {
-				if (this.job.lastFileSimulated) {
-					return this.$t('jobProgress.simulated', [this.lastPrintFile]);
+				if (store.state.machine.model.job.lastFileSimulated) {
+					return this.$t("jobProgress.simulated", [this.lastPrintFile]);
 				}
-				if (this.machineMode === MachineMode.fff) {
-					return this.$t('jobProgress.printed', [this.lastPrintFile]);
+				if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+					return this.$t("jobProgress.printed", [this.lastPrintFile]);
 				}
-				return this.$t('jobProgress.processed', [this.lastPrintFile]);
+				return this.$t("jobProgress.processed", [this.lastPrintFile]);
 			}
-			return this.$t('jobProgress.noJob');
+			return this.$t("jobProgress.noJob");
 		},
-		printDetails() {
-			if (!isPrinting(this.status)) {
-				return '';
+		printDetails(): string {
+			if (!isPrinting(store.state.machine.model.state.status)) {
+				return "";
 			}
 
-			let details = '';
-			if (this.job.layer !== null && this.job.file.numLayers) {
-				details = this.$t('jobProgress.layer', [this.job.layer, this.job.file.numLayers]);
+			let details = "";
+			if (store.state.machine.model.job.layer !== null && store.state.machine.model.job.file?.numLayers) {
+				details = this.$t("jobProgress.layer", [store.state.machine.model.job.layer, store.state.machine.model.job.file.numLayers]);
 			}
-			if (this.extruders.length > 0) {
-				if (details !== '') {
-					details += ', ';
+			if (store.state.machine.model.move.extruders.length > 0) {
+				if (details !== "") {
+					details += ", ";
 				}
-				const totalRawExtruded = (this.job.rawExtrusion !== null) ? this.job.rawExtrusion :
-											this.extruders
+				const totalRawExtruded = (store.state.machine.model.job.rawExtrusion !== null) ? store.state.machine.model.job.rawExtrusion :
+											store.state.machine.model.move.extruders
 												.map(extruder => extruder.rawPosition)
 												.reduce((a, b) => a + b);
-				details += this.$t('jobProgress.filament', [this.$display(totalRawExtruded, 1, 'mm')]);
-				if (this.job.file.filament.length > 0) {
-					const needed = this.job.file.filament.reduce((a, b) => a + b);
-					details += ' (' + this.$t('jobProgress.filamentRemaining', [this.$display(Math.max(needed - totalRawExtruded, 0), 1, 'mm')]) + ')';
+				details += this.$t("jobProgress.filament", [this.$display(totalRawExtruded, 1, "mm")]);
+				if (store.state.machine.model.job.file !== null && store.state.machine.model.job.file.filament.length > 0) {
+					const needed = store.state.machine.model.job.file.filament.reduce((a, b) => a + b);
+					details += " (" + this.$t("jobProgress.filamentRemaining", [this.$display(Math.max(needed - totalRawExtruded, 0), 1, "mm")]) + ")";
 				}
 			}
 			return details;
 		},
 		printFile() {
-			return (this.job.file.fileName !== null) ? extractFileName(this.job.file.fileName) : null;
+			return (store.state.machine.model.job.file?.fileName) ? extractFileName(store.state.machine.model.job.file.fileName) : null;
 		},
 		lastPrintFile() {
-			return (this.job.lastFileName !== null) ? extractFileName(this.job.lastFileName) : null;
+			return (store.state.machine.model.job.lastFileName !== null) ? extractFileName(store.state.machine.model.job.lastFileName) : null;
 		}
 	},
 	data() {
@@ -92,10 +85,10 @@ export default {
 		}
 	},
 	mounted() {
-		this.isSimulating = (this.status === MachineStatus.simulating);
+		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
 	},
 	watch: {
-		status(to) {
+		status(to: MachineStatus) {
 			if (to === MachineStatus.simulating) {
 				this.isSimulating = true;
 			} else if (!isPrinting(to)) {
@@ -103,5 +96,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

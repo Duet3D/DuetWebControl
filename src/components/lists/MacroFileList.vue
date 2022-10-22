@@ -1,31 +1,35 @@
 <template>
 	<div class="component">
 		<v-toolbar>
-			<directory-breadcrumbs v-model="directory"></directory-breadcrumbs>
+			<directory-breadcrumbs v-model="directory" />
 
-			<v-spacer></v-spacer>
+			<v-spacer />
 
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewFile = true">
-				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t('button.newFile.caption') }}
+				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t("button.newFile.caption") }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewDirectory = true">
-				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t('button.newDirectory.caption') }}
+				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t("button.newDirectory.caption") }}
 			</v-btn>
-			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1" @click="refresh">
-				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t('button.refresh.caption') }}
+			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1"
+				   @click="refresh">
+				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t("button.refresh.caption") }}
 			</v-btn>
-			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="macros" color="primary"></upload-btn>
+			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="macros"
+						color="primary"></upload-btn>
 		</v-toolbar>
-		
-		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading" sort-table="macros" @fileClicked="fileClicked" no-files-text="list.macro.noMacros">
+
+		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading"
+						sort-table="macros" @fileClicked="fileClicked" no-files-text="list.macro.noMacros">
 			<template #context-menu>
 				<v-list-item v-show="isFile" @click="runFile(selection[0].name)">
-					<v-icon class="mr-1">mdi-play</v-icon> {{ $t('list.macro.run') }}
+					<v-icon class="mr-1">mdi-play</v-icon> {{ $t("list.macro.run") }}
 				</v-list-item>
 			</template>
 		</base-file-list>
 
-		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition" class="hidden-md-and-up">
+		<v-speed-dial v-model="fab" bottom right fixed direction="top" transition="scale-transition"
+					  class="hidden-md-and-up">
 			<template #activator>
 				<v-btn v-model="fab" dark color="primary" fab>
 					<v-icon v-if="fab">mdi-close</v-icon>
@@ -50,36 +54,36 @@
 			</upload-btn>
 		</v-speed-dial>
 
-		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory"></new-directory-dialog>
-		<new-file-dialog :shown.sync="showNewFile" :directory="directory"></new-file-dialog>
-		<confirm-dialog :shown.sync="runMacroDialog.shown" :title="runMacroDialog.title" :prompt="runMacroDialog.prompt" @confirmed="runFile(runMacroDialog.filename)"></confirm-dialog>
+		<new-directory-dialog :shown.sync="showNewDirectory" :directory="directory" />
+		<new-file-dialog :shown.sync="showNewFile" :directory="directory" />
+		<confirm-dialog :shown.sync="runMacroDialog.shown" :title="runMacroDialog.title" :prompt="runMacroDialog.prompt"
+						@confirmed="runFile(runMacroDialog.filename)" />
 	</div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapGetters, mapState, mapActions } from 'vuex'
+import store from "@/store";
+import Path, { escapeFilename } from "@/utils/path"
 
-import Path, { escapeFilename } from '@/utils/path'
+import { BaseFileListItem } from "./BaseFileList.vue";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', {
-			macrosDirectory: state => state.directories.macros
-		}),
-		isFile() { return (this.selection.length === 1) && !this.selection[0].isDirectory; }
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
+		isFile(): boolean { return (this.selection.length === 1) && !this.selection[0].isDirectory; }
 	},
 	data() {
 		return {
 			directory: Path.macros,
 			loading: false,
-			selection: [],
+			selection: new Array<BaseFileListItem>,
 			runMacroDialog: {
-				title: '',
-				prompt: '',
-				filename: '',
+				title: "",
+				prompt: "",
+				filename: "",
 				shown: false
 			},
 			showNewDirectory: false,
@@ -88,30 +92,28 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
 		refresh() {
-			this.$refs.filelist.refresh();
+			(this.$refs.filelist as any).refresh();
 		},
-		fileClicked(item) {
-			this.runMacroDialog.title = this.$t('dialog.runMacro.title', [item.name]);
-			this.runMacroDialog.prompt = this.$t('dialog.runMacro.prompt', [item.name]);
+		fileClicked(item: BaseFileListItem) {
+			this.runMacroDialog.title = this.$t("dialog.runMacro.title", [item.name]);
+			this.runMacroDialog.prompt = this.$t("dialog.runMacro.prompt", [item.name]);
 			this.runMacroDialog.filename = item.name;
 			this.runMacroDialog.shown = true;
 		},
-		runFile(filename) {
-			this.sendCode(`M98 P"${escapeFilename(Path.combine(this.directory, filename))}"`);
+		async runFile(filename: string) {
+			await store.dispatch("machine/sendCode", `M98 P"${escapeFilename(Path.combine(this.directory, filename))}"`);
 		}
 	},
 	mounted() {
 		this.directory = this.macrosDirectory;
 	},
 	watch: {
-		macrosDirectory(to, from) {
+		macrosDirectory(to: string, from: string) {
 			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		}
 	}
-}
+});
 </script>
-

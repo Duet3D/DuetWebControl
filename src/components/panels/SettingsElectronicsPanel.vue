@@ -1,62 +1,64 @@
 <template>
 	<v-card outlined>
 		<v-card-title>
-			{{ $t('panel.settingsElectronics.caption') }}
-			<v-spacer></v-spacer>
+			{{ $t("panel.settingsElectronics.caption") }}
+
+			<v-spacer />
+
 			<a v-show="isConnected" href="javascript:void(0)" @click="diagnostics">
-				<v-icon small>mdi-lifebuoy</v-icon> {{ $t('panel.settingsElectronics.diagnostics') }}
+				<v-icon small>mdi-lifebuoy</v-icon>
+				{{ $t('panel.settingsElectronics.diagnostics') }}
 			</a>
 		</v-card-title>
 
 		<v-card-text class="pt-0">
 			<template v-if="isConnected">
-				<template v-if="mainboard.name">
-					{{ $t('panel.settingsElectronics.board', [mainboard.name + (mainboard.shortName ? ` (${mainboard.shortName})` : '')]) }} <br>
+				<template v-if="mainboard !== null">
+					{{ $t("panel.settingsElectronics.board", [mainboard.name + (mainboard.shortName ? ` (${mainboard.shortName})` : "")]) }}
+					<br>
+					{{ $t("panel.settingsElectronics.firmware", [$display(mainboard.firmwareName) + " " + $display(mainboard.firmwareVersion), $display(mainboard.firmwareDate)]) }}
+					<br>
 				</template>
-				<template v-if="dsfVersion">
-					{{ `DSF Version: ${dsfVersion}` }} <br>
+				<template v-if="dsfVersion !== null">
+					{{ $t("panel.settingsElectronics.dsfVersion", [dsfVersion]) }}
+					<br>
 				</template>
-				<template v-if="mainboard.firmwareName">
-					{{ $t('panel.settingsElectronics.firmware', [mainboard.firmwareName + ' ' + $display(mainboard.firmwareVersion), $display(mainboard.firmwareDate)]) }} <br>
-				</template>
-				<template v-if="firstInterface.firmwareVersion && firstInterface.type === 'wifi'">
-					{{ $t('panel.settingsElectronics.dwsFirmware', [$display(firstInterface.firmwareVersion)]) }} <br>
+				<template v-if="wifiVersion !== null">
+					{{ $t("panel.settingsElectronics.dwsFirmware", [wifiVersion]) }}
+					<br>
 				</template>
 
-				<upload-btn v-if="connectorType !== 'rest' || !isDuetFirmware" target="update" color="primary" class="mt-3 d-flex justify-center"></upload-btn>
+				<upload-btn v-if="!isRestConnector || !isDuetFirmware" target="update" color="primary"
+							class="mt-3 d-flex justify-center" />
 			</template>
 			<template v-else>
-				(not connected)
+				{{ $t("panel.settingsElectronics.notConnected") }}
 			</template>
 		</v-card-text>
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapGetters, mapActions } from 'vuex'
+import store from "@/store";
+import RestConnector from "@/store/machine/connector/RestConnector";
+import { Board, NetworkInterfaceType } from "@duet3d/objectmodel";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapGetters(['isConnected']),
-		...mapGetters('machine', ['connector']),
-		...mapState('machine/model', {
-			isDuetFirmware: state => (state.boards.length > 0 && state.boards[0].firmwareFileName) ? state.boards[0].firmwareFileName.startsWith('Duet') : true,
-			dsfVersion: state => state.state.dsfVersion,
-			mainboard: state => (state.boards.length > 0) ? state.boards[0] : {},
-			firstInterface: state => (state.network.interfaces.length > 0) ? state.network.interfaces[0] : {}
-		}),
-        connectorType() {
-            return this.connector ? this.connector.type : null;
-        }
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		isRestConnector(): boolean { return store.getters["machine/connector"] instanceof RestConnector; },
+		mainboard(): Board | null { return store.state.machine.model.boards.find(board => !board.canAddress) ?? null; },
+		isDuetFirmware(): boolean { return (this.mainboard !== null) ? this.mainboard.firmwareFileName.startsWith("Duet") : true; },
+		dsfVersion(): string | null { return store.state.machine.model.state.dsfVersion; },
+		wifiVersion(): string | null { return store.state.machine.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null; },
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
 		async diagnostics() {
-			await this.sendCode('M122');
-			await this.$router.push('/Console');
+			await store.dispatch("machine/sendCode", "M122");
+			await this.$router.push("/Console");
 		}
 	}
-}
+});
 </script>

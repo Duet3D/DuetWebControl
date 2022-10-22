@@ -1,108 +1,129 @@
 <template>
 	<v-card outlined>
-		<v-card-title>{{ $t('panel.settingsAppearance.caption') }}</v-card-title>
+		<v-card-title>
+			{{ $t("panel.settingsAppearance.caption") }}
+		</v-card-title>
 
 		<v-card-text class="d-flex flex-column">
-			<v-switch :label="$t('panel.settingsAppearance.darkTheme')" class="mt-0 mb-3" hide-details v-model="darkTheme"></v-switch>
-			<v-select :items="languages" :label="$t('panel.settingsAppearance.language')" :return-object="false" hide-details item-text="language" item-value="code" v-model="language"></v-select>
+			<v-switch :label="$t('panel.settingsAppearance.darkTheme')" class="mt-0 mb-3" hide-details
+					  v-model="darkTheme" />
+			<v-select :items="languages" :label="$t('panel.settingsAppearance.language')" :return-object="false"
+					  hide-details item-text="language" item-value="code" v-model="language" />
 			<v-tooltip bottom>
 				<template #activator="{ on }">
-					<v-switch :label="$t('panel.settingsAppearance.binaryFileSizes')" hide-details v-model="useBinaryPrefix" v-on="on"></v-switch>
+					<v-switch :label="$t('panel.settingsAppearance.binaryFileSizes')" hide-details
+							  v-model="useBinaryPrefix" v-on="on" />
 				</template>
-				{{ $t('panel.settingsAppearance.binaryFileSizesTitle') }}
+				{{ $t("panel.settingsAppearance.binaryFileSizesTitle") }}
 			</v-tooltip>
 			<v-tooltip bottom>
 				<template #activator="{ on }">
-					<v-switch :label="$t('panel.settingsAppearance.disableAutoComplete')" hide-details v-model="disableAutoComplete" v-on="on"></v-switch>
+					<v-switch :label="$t('panel.settingsAppearance.disableAutoComplete')" hide-details
+							  v-model="disableAutoComplete" v-on="on" />
 				</template>
-				{{ $t('panel.settingsAppearance.disableAutoCompleteTitle') }}
+				{{ $t("panel.settingsAppearance.disableAutoCompleteTitle") }}
 			</v-tooltip>
-			<v-select :items="dashboardModes" :label="$t('panel.settingsAppearance.dashboardModeTitle')" class="mt-3" hide-details item-text="value" item-value="value" v-model="dashboardMode"></v-select>
-			<v-switch :label="$t('panel.settingsAppearance.bottomNavigation')" hide-details v-model="bottomNavigation"></v-switch>
-			<v-switch :label="$t('panel.settingsAppearance.numericInputs')" hide-details v-model="numericInputs"></v-switch>
-			<v-switch :label="$t('panel.settingsAppearance.iconMenu')" hide-details v-model="iconMenu"></v-switch>
-			<v-select :items="[0, 1, 2, 3, 4]" v-model.number="decimalPlaces" :label="$t('panel.settingsAppearance.decimalPlaces')" hide-details class="mt-3"></v-select>
-			<v-select :items="unitsOfMeasure" v-model="displayUnits" :label="$t('panel.settingsAppearance.displayUnitsTitle')" class="mt-3" hide-details item-text="value" item-value="value"></v-select>
+			<v-select :items="dashboardModes" :label="$t('panel.settingsAppearance.dashboardModeTitle')" class="mt-3"
+					  hide-details item-text="value" item-value="value" v-model="dashboardMode" />
+			<v-switch :label="$t('panel.settingsAppearance.bottomNavigation')" hide-details
+					  v-model="bottomNavigation" />
+			<v-switch :label="$t('panel.settingsAppearance.numericInputs')" hide-details v-model="numericInputs" />
+			<v-switch :label="$t('panel.settingsAppearance.iconMenu')" hide-details v-model="iconMenu" />
+			<v-select :items="[0, 1, 2, 3, 4]" v-model.number="decimalPlaces"
+					  :label="$t('panel.settingsAppearance.decimalPlaces')" hide-details class="mt-3" />
+			<v-select :items="unitsOfMeasure" v-model="displayUnits"
+					  :label="$t('panel.settingsAppearance.displayUnitsTitle')" class="mt-3" hide-details
+					  item-text="value" item-value="value" />
 		</v-card-text>
 	</v-card>
 </template>
 
-<script>
-'use strict';
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapMutations } from 'vuex'
+import store from "@/store";
+import { DashboardMode, SettingsState, UnitOfMeasure } from "@/store/settings";
 
-import { DashboardMode } from '@/store/settings'
-import { UnitOfMeasure } from '../../store/settings';
-
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState(['settings']),
 		darkTheme: {
-			get() { return this.settings.darkTheme; },
-			set(value) { this.update({ darkTheme: value }); }
+			get(): boolean { return store.state.settings.darkTheme; },
+			set(value: boolean) { this.update({ darkTheme: value }); }
 		},
 		decimalPlaces: {
-			get() { return this.settings.decimalPlaces; },
-			set(value) { this.update({ decimalPlaces: value }); }
+			get(): number { return store.state.settings.decimalPlaces; },
+			set(value: number) { this.update({ decimalPlaces: value }); }
 		},
 		displayUnits: {
-			get() { return this.settings.displayUnits; },
-			set(value) { this.update({ displayUnits: value }); }
+			get(): UnitOfMeasure { return store.state.settings.displayUnits; },
+			set(value: UnitOfMeasure) { this.update({ displayUnits: value }); }
 		},
 		language: {
-			get() { return this.settings.language; },
-			set(value) { this.update({ language: value }); }
+			get(): string { return store.state.settings.language; },
+			set(value: string) { this.update({ language: value }); }
 		},
 		languages() {
-			const result = [];
+			const result: Array<{ code: string, language: string }> = [];
 			for (let key in this.$i18n.messages) {
-				result.push({code: key, language: this.$i18n.messages[key].language});
+				result.push({
+					code: key,
+					language: this.$i18n.messages[key].language as string
+				});
 			}
 			return result;
 		},
 		useBinaryPrefix: {
-			get() { return this.settings.useBinaryPrefix; },
-			set(value) { this.update({ useBinaryPrefix: value }); }
+			get(): boolean { return store.state.settings.useBinaryPrefix; },
+			set(value: boolean) { this.update({ useBinaryPrefix: value }); }
 		},
 		disableAutoComplete: {
-			get() { return this.settings.disableAutoComplete; },
-			set(value) { this.update({ disableAutoComplete: value }); }
+			get(): boolean { return store.state.settings.disableAutoComplete; },
+			set(value: boolean) { this.update({ disableAutoComplete: value }); }
 		},
 		dashboardMode: {
-			get() {
-				if (!this.settings.dashboardMode) {
+			get(): DashboardMode {
+				if (!store.state.settings.dashboardMode) {
 					return DashboardMode.default;
 				}
-				return this.settings.dashboardMode;
+				return store.state.settings.dashboardMode;
 			},
-			set(value) {
+			set(value: DashboardMode) {
 				this.update({ dashboardMode: value });
 			},
 		},
 		dashboardModes() {
-			return Object.keys(DashboardMode).map((key) => {
-				return { key, value: DashboardMode[key] };
+			return Object.entries(DashboardMode).map(([key, value]) => {
+				return {
+					key,
+					value
+				};
 			});
 		},
 		unitsOfMeasure() {
-			return Object.keys(UnitOfMeasure).map((key) => {
-				return { key, value: UnitOfMeasure[key] };
+			return Object.entries(UnitOfMeasure).map(([key, value]) => {
+				return {
+					key,
+					value
+				};
 			});
 		},
 		bottomNavigation: {
-			get() { return this.settings.bottomNavigation; },
-			set(value) { this.update({ bottomNavigation: value }); }
+			get(): boolean { return store.state.settings.bottomNavigation; },
+			set(value: boolean) { this.update({ bottomNavigation: value }); }
 		},
 		numericInputs: {
-			get() { return this.settings.numericInputs; },
-			set(value) { this.update({ numericInputs: value }); }
+			get(): boolean { return store.state.settings.numericInputs; },
+			set(value: boolean) { this.update({ numericInputs: value }); }
 		},
 		iconMenu: {
-			get() { return this.settings.iconMenu; },
-			set(value) { this.update({ iconMenu: value }); }
+			get(): boolean { return store.state.settings.iconMenu; },
+			set(value: boolean) { this.update({ iconMenu: value }); }
 		},
 	},
-	methods: mapMutations('settings', ['update']),
-};
+	methods: {
+		update(data: Partial<SettingsState>) {
+			store.commit("settings/update", data);
+		}
+	}
+});;
 </script>

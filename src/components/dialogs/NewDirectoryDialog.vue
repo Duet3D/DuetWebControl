@@ -63,17 +63,17 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		isConnected(to) {
+		isConnected(to: boolean) {
 			if (!to) {
 				this.innerShown = false;
 			}
 		},
-		innerShown(to) {
+		innerShown(to: boolean) {
 			if (this.shown !== to) {
 				this.$emit("update:shown", to);
 			}
 		},
-		shown(to) {
+		shown(to: boolean) {
 			if (this.innerShown !== to) {
 				this.innerShown = to;
 			}

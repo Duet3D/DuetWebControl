@@ -41,7 +41,7 @@ export interface SettingsState {
 	/**
 	 * Defines if the dark theme is enabled
 	 */
-	darkTheme: false;
+	darkTheme: boolean;
 
 	/**
 	 * Use binary units (KiB) instead of SI units (KB)

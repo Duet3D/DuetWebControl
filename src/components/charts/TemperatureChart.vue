@@ -352,10 +352,10 @@ export default Vue.extend({
 		instances = instances.filter(instance => instance !== this, this);
 	},
 	watch: {
-		darkTheme(to) {
+		darkTheme(to: boolean) {
 			this.applyDarkTheme(to);
 		},
-		selectedMachine(machine) {
+		selectedMachine(machine: string) {
 			// Each chart instance is fixed to the currently selected machine
 			// Reassign the corresponding dataset whenever the selected machine changes
 			this.chart.config.data = {

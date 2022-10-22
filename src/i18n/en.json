@@ -661,13 +661,13 @@
       "loadMesh": "Load Saved Height Map from SD Card (G29 S1)",
       "axesNotHomed": "The following axis is not homed:|The following axes are not homed:",
       "noAxes": "No Axes",
-      "workzero": "Go To Zero"
+      "set": "Set {0}",
+      "workzero": "Go To Zero",
+      "setWorkXYZ": "Set Work XYZ"
     },
     "settingsAbout": {
-      "caption": "About",
-      "developedBy": "Web Interface developed by",
-      "for": "for",
-      "licensedUnder": "Licensed under the terms of the"
+      "credits": "Web interface developed by {author} for {Duet3D}.",
+      "license": "Licensed under the terms of the {gpl}."
     },
     "settingsAppearance": {
       "caption": "Appearance",
@@ -695,7 +695,6 @@
       "updateDelay": "Update delay (ms)",
       "ajaxRetries": "Number of maximum AJAX retries",
       "updateInterval": "Update interval ({0})",
-      "extendedUpdateEvery": "Extended status update interval",
       "fileTransferRetryThreshold": "Retry threshold for file transfers ({0})",
       "crcUploads": "Use CRC32 checksums for uploads",
       "unavailable": "No settings available"
@@ -706,7 +705,9 @@
       "board": "Board: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Duet WiFi Server Version: {0}",
-      "updateNote": "Note: You can install updates on the System page."
+      "updateNote": "Note: You can install updates on the System page.",
+      "notConnected": "(not connected)",
+      "dsfVersion": "DSF Version: {0}"
     },
     "settingsEndstops": {
       "caption": "Endstops",

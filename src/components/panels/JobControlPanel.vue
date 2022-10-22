@@ -1,34 +1,42 @@
 <template>
 	<v-card>
 		<v-card-title class="pb-1">
-			<v-icon small class="mr-1">mdi-wrench</v-icon> {{ $t('panel.jobControl.caption') }}
+			<v-icon small class="mr-1">mdi-wrench</v-icon>
+			{{ $t("panel.jobControl.caption") }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting || isPausing" :code="isPaused ? 'M24' : 'M25'" tabindex="0">
-				<v-icon class="mr-1">{{ isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon> {{ pauseResumeText }}
+			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting || isPausing"
+					  :code="isPaused ? 'M24' : 'M25'" tabindex="0">
+				<v-icon class="mr-1">{{ isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon>
+				{{ pauseResumeText }}
 			</code-btn>
 
 			<code-btn v-if="isPaused" color="error" block code="M0">
-				<v-icon class="mr-1">mdi-stop</v-icon> {{ cancelText }}
+				<v-icon class="mr-1">mdi-stop</v-icon>
+				{{ cancelText }}
 			</code-btn>
 
 			<code-btn v-if="!isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
-				<v-icon class="mr-1">mdi-restart</v-icon> {{ processAnotherText }}
+				<v-icon class="mr-1">mdi-restart</v-icon>
+				{{ processAnotherText }}
 			</code-btn>
 
 			<v-menu v-if="thumbnails.some(thumbnail => thumbnail.data !== null)" open-on-click offset-y>
 				<template #activator="{ attrs, on }">
 					<v-btn color="info" block :disabled="uiFrozen" class="mt-3" v-bind="attrs" v-on="on">
-						<v-icon class="mr-1">mdi-image</v-icon> {{ $t('panel.jobControl.showPreview' )}}
+						<v-icon class="mr-1">mdi-image</v-icon>
+						{{ $t("panel.jobControl.showPreview" )}}
 					</v-btn>
 				</template>
 
 				<v-card>
-					<v-carousel height="auto" hide-delimiters :show-arrows="validThumbnails.length > 1" show-arrows-on-hover>
-						<v-carousel-item v-for="thumbnail in validThumbnails" :key="`${thumbnail.format}-${thumbnail.width}x${thumbnail.height}`">
+					<v-carousel height="auto" hide-delimiters :show-arrows="validThumbnails.length > 1"
+								show-arrows-on-hover>
+						<v-carousel-item v-for="thumbnail in validThumbnails"
+										 :key="`${thumbnail.format}-${thumbnail.width}x${thumbnail.height}`">
 							<div class="d-flex fill-height align-center">
-								<thumbnail-img :thumbnail="thumbnail" class="mx-auto"/>
+								<thumbnail-img :thumbnail="thumbnail" class="mx-auto" />
 							</div>
 						</v-carousel-item>
 					</v-carousel>
@@ -38,64 +46,62 @@
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { MachineMode, MachineStatus, ThumbnailInfo } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { MachineMode, MachineStatus } from '@duet3d/objectmodel';
-import { mapState, mapGetters } from 'vuex';
+import store from "@/store";
+import { isPaused, isPrinting } from "@/utils/enums";
+import { escapeFilename } from "@/utils/path";
 
-import { isPaused, isPrinting } from '@/utils/enums';
-
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('machine/model', {
-			lastFileName: state => state.job.lastFileName,
-			lastFileSimulated: state => state.job.lastFileSimulated,
-			machineMode: state => state.state.machineMode,
-			status: state => state.state.status,
-			thumbnails: state => state.job.file?.thumbnails || []
-		}),
-		...mapGetters(['uiFrozen']),
-		isPausing() { return this.status === MachineStatus.pausing; },
-		isPaused() { return isPaused(this.status); },
-		isPrinting() { return isPrinting(this.status); },
-		pauseResumeText() {
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		isPausing(): boolean { return store.state.machine.model.state.status === MachineStatus.pausing; },
+		isPaused(): boolean { return isPaused(store.state.machine.model.state.status); },
+		isPrinting(): boolean { return isPrinting(store.state.machine.model.state.status); },
+		pauseResumeText(): string {
 			if (this.isSimulating) {
-				return this.$t(this.isPaused ? 'panel.jobControl.resumeSimulation' : 'panel.jobControl.pauseSimulation');
+				return this.$t(this.isPaused ? "panel.jobControl.resumeSimulation" : "panel.jobControl.pauseSimulation");
 			}
-			if (this.machineMode === MachineMode.fff) {
-				return this.$t(this.isPaused ? 'panel.jobControl.resumePrint' : 'panel.jobControl.pausePrint');
+			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+				return this.$t(this.isPaused ? "panel.jobControl.resumePrint" : "panel.jobControl.pausePrint");
 			}
-			return this.$t(this.isPaused ? 'panel.jobControl.resumeJob' : 'panel.jobControl.pauseJob');
+			return this.$t(this.isPaused ? "panel.jobControl.resumeJob" : "panel.jobControl.pauseJob");
 		},
-		cancelText() {
+		cancelText(): string {
 			if (this.isSimulating) {
-				return this.$t('panel.jobControl.cancelSimulation');
+				return this.$t("panel.jobControl.cancelSimulation");
 			}
-			if (this.machineMode === MachineMode.fff) {
-				return this.$t('panel.jobControl.cancelPrint');
+			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+				return this.$t("panel.jobControl.cancelPrint");
 			}
-			return this.$t('panel.jobControl.cancelJob');
+			return this.$t("panel.jobControl.cancelJob");
 		},
 		processAnotherCode() {
-			if (this.lastFileName) {
-				if (this.lastFileSimulated) {
-					return `M37 P"${this.lastFileName}"`;
+			if (store.state.machine.model.job.lastFileName) {
+				if (store.state.machine.model.job.lastFileSimulated) {
+					return `M37 P"${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
 				}
-				return `M32 "${this.lastFileName}"`;
+				return `M32 "${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
 			}
-			return '';
+			return "";
 		},
 		processAnotherText() {
-			if (this.lastFileSimulated) {
+			if (store.state.machine.model.job.lastFileSimulated) {
 				return this.$t('panel.jobControl.repeatSimulation');
 			}
-			if (this.machineMode === MachineMode.fff) {
+			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
 				return this.$t('panel.jobControl.repeatPrint');
 			}
 			return this.$t('panel.jobControl.repeatJob');
 		},
-		validThumbnails() {
+		thumbnails(): Array<ThumbnailInfo> {
+			const thumbnails = (store.state.machine.model.job.file !== null) ? store.state.machine.model.job.file.thumbnails.slice() : [];
+			thumbnails.sort((a, b) => (b.width * b.height) - (a.width * a.height));		// return biggest thumbnails first
+			return thumbnails;
+		},
+		validThumbnails(): Array<ThumbnailInfo> {
 			return this.thumbnails.filter(thumbnail => !!thumbnail.data);
 		}
 	},
@@ -105,16 +111,16 @@ export default {
 		}
 	},
 	mounted() {
-		this.isSimulating = (this.status === MachineStatus.simulating);
+		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
 	},
 	watch: {
-		status(to) {
-			if (to === MachineStatus.simulating) {
-				this.isSimulating = true;
-			} else if (!this.isPrinting) {
+		isPrinting(to) {
+			if (to) {
+				this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+			} else {
 				this.isSimulating = false;
 			}
 		}
 	}
-}
+});
 </script>

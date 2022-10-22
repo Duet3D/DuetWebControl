@@ -3,38 +3,52 @@
 		<template #item="{ item }">
 			<v-menu v-if="item.showDropdown" offset-y>
 				<template #activator="{ on, attrs }">
-					<v-breadcrumbs-item href="javascript:void(0)" v-bind="attrs" v-on="on" @dragover="dragOver(item.href, $event)" @drop.prevent="dragDrop(item.href, $event)">
+					<v-breadcrumbs-item href="javascript:void(0)" v-bind="attrs" v-on="on"
+										@dragover="dragOver(item.href, $event)"
+										@drop.prevent="dragDrop(item.href, $event)">
 						{{ item.text }}
 						<v-icon class="ml-1">mdi-menu-down</v-icon>
 					</v-breadcrumbs-item>
 				</template>
 				<v-list>
 					<v-list-item v-if="firmwareDirectoryDiffers" @click="changeDirectory(directories.firmware)">
-						<v-icon class="mr-3">mdi-update</v-icon> {{ $t('directory.firmware') }}
+						<v-icon class="mr-3">mdi-update</v-icon> {{ $t("directory.firmware") }}
 					</v-list-item>
 					<v-list-item v-if="hasDirectDisplay" @click="changeDirectory(directories.menu)">
-						<v-icon class="mr-3">mdi-format-list-numbered</v-icon> {{ $t('directory.menu') }}
+						<v-icon class="mr-3">mdi-format-list-numbered</v-icon> {{ $t("directory.menu") }}
 					</v-list-item>
 					<v-list-item @click="changeDirectory(directories.system)">
-						<v-icon class="mr-3">mdi-cog</v-icon> {{ $t('directory.system') }}
+						<v-icon class="mr-3">mdi-cog</v-icon> {{ $t("directory.system") }}
 					</v-list-item>
 				</v-list>
 			</v-menu>
-			<v-breadcrumbs-item v-else href="javascript:void(0)" :disabled="item.disabled" @click="changeDirectory(item.href)" @dragover="dragOver(item.href, $event)" @drop.prevent="dragDrop(item.href, $event)">
+			<v-breadcrumbs-item v-else href="javascript:void(0)" :disabled="item.disabled"
+								@click="changeDirectory(item.href)" @dragover="dragOver(item.href, $event)"
+								@drop.prevent="dragDrop(item.href, $event)">
 				{{ item.text }}
 			</v-breadcrumbs-item>
 		</template>
 	</v-breadcrumbs>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { Directories } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { mapState, mapActions } from 'vuex'
+import { isBaseFileListDataTransfer } from "@/components/lists/BaseFileList.vue";
+import store from "@/store";
+import { getErrorMessage } from "@/utils/errors";
+import { LogType } from "@/utils/logging";
+import Path from "@/utils/path";
 
-import Path from '@/utils/path'
+interface BreadcrumbItem {
+	showDropdown: boolean;
+	text: string;
+	disabled: boolean;
+	href: string;
+}
 
-export default {
+export default Vue.extend({
 	props: {
 		value: {
 			type: String,
@@ -42,93 +56,98 @@ export default {
 		}
 	},
 	computed: {
-		...mapState('machine/model', ['boards', 'directories']),
-		pathItems() {
+		directories(): Directories { return store.state.machine.model.directories; },
+		pathItems(): Array<BreadcrumbItem> {
 			let pathItems = this.value.split('/');
-			if (pathItems[0] === '') {
-				pathItems[0] = '0:';
+			if (pathItems[0] === "") {
+				pathItems[0] = "0:";
 			}
 			pathItems = pathItems.filter(item => item !== '');
 
-			let rootCaption = (pathItems.length === 0) ? this.$t('generic.noValue') : pathItems[0], showDropdown = false;
+			let rootCaption = (pathItems.length === 0) ? this.$t("generic.noValue") : pathItems[0], showDropdown = false;
 			if (pathItems.length > 1) {
 				if (Path.startsWith(this.value, this.directories.gCodes)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.gCodes;
-					rootCaption = this.$t('directory.gcodes');
+					rootCaption = this.$t("directory.gcodes");
 				} else if (Path.startsWith(this.value, this.directories.macros)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.macros;
-					rootCaption = this.$t('directory.macros');
+					rootCaption = this.$t("directory.macros");
 				} else if (Path.startsWith(this.value, this.directories.filaments)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.filaments;
-					rootCaption = this.$t('directory.filaments');
+					rootCaption = this.$t("directory.filaments");
 				} else if (Path.startsWith(this.value, this.directories.menu)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.menu;
-					rootCaption = this.$t('directory.menu');
+					rootCaption = this.$t("directory.menu");
 					showDropdown = true;
 				} else if (Path.startsWith(this.value, Path.system)) {
 					pathItems.shift();
 					pathItems[0] = Path.system;
-					rootCaption = this.$t('directory.system');
+					rootCaption = this.$t("directory.system");
 					showDropdown = true;
 				} else if (Path.startsWith(this.value, this.directories.system)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.system;
-					rootCaption = this.$t('directory.system');
+					rootCaption = this.$t("directory.system");
 					showDropdown = true;
 				} else if (Path.startsWith(this.value, this.directories.firmware)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.firmware;
-					rootCaption = this.$t('directory.firmware');
+					rootCaption = this.$t("directory.firmware");
 					showDropdown = true;
 				} else if (Path.startsWith(this.value, this.directories.web)) {
 					pathItems.shift();
 					pathItems[0] = this.directories.web;
-					rootCaption = this.$t('directory.web');
+					rootCaption = this.$t("directory.web");
 				}
 			}
-			showDropdown &= (pathItems.length === 1) && (this.hasDirectDisplay || this.firmwareDirectoryDiffers);
+			showDropdown = showDropdown && (pathItems.length === 1) && (this.hasDirectDisplay || this.firmwareDirectoryDiffers);
 
-			let items = [], path = '';
-			pathItems.forEach(function(item, index) {
+			let items: Array<BreadcrumbItem> = [], path = "", index = 0;
+			for (const item of pathItems) {
 				path = Path.combine(path, item);
 				if (index === 0) {
 					items.push({
 						showDropdown,
-						text: item.startsWith('0:') ? rootCaption : this.$t('generic.sdCard', [/^(\d+)/.exec(item)[1]]),
+						text: item.startsWith("0:") ? rootCaption : this.$t("generic.sdCard", [/^(\d+)/.exec(item)![1]]),
 						disabled: !showDropdown && (index === pathItems.length - 1),
 						href: path
 					});
 				} else {
 					items.push({
+						showDropdown: false,
 						text: item,
 						disabled: index === pathItems.length - 1,
 						href: path
 					});
 				}
-			}, this);
+				index++;
+			}
 			return items;
 		},
-		firmwareDirectoryDiffers() {
+		firmwareDirectoryDiffers(): boolean {
 			return !Path.equals(this.directories.firmware, this.directories.system);
 		},
-		hasDirectDisplay() {
-			return (this.boards.length > 0) && (this.boards[0].directDisplay !== null);
+		hasDirectDisplay(): boolean {
+			return (store.state.machine.model.boards.length > 0) && (store.state.machine.model.boards[0].directDisplay !== null);
 		}
 	},
 	methods: {
-		...mapActions('machine', ['move']),
-		changeDirectory(directory) {
-			this.$emit('input', directory);
+		changeDirectory(directory: string) {
+			this.$emit("input", directory);
 		},
-		dragOver(directory, e) {
-			const jsonData = e.dataTransfer.getData('application/json');
+		dragOver(directory: string, e: DragEvent) {
+			if (e.dataTransfer === null) {
+				return;
+			}
+
+			const jsonData = e.dataTransfer.getData("application/json");
 			if (jsonData) {
 				const data = JSON.parse(jsonData);
-				if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && directory === Path.combine(data.directory, dataItem.name))) {
+				if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && directory === Path.combine(data.directory, dataItem.name))) {
 					e.preventDefault();
 					e.stopPropagation();
 				}
@@ -138,19 +157,23 @@ export default {
 				e.stopPropagation();
 			}
 		},
-		async dragDrop(directory, e) {
-			const jsonData = e.dataTransfer.getData('application/json');
+		async dragDrop(directory: string, e: DragEvent) {
+			if (e.dataTransfer === null) {
+				return;
+			}
+
+			const jsonData = e.dataTransfer.getData("application/json");
 			if (jsonData) {
 				const data = JSON.parse(jsonData);
-				if (data.type === 'dwcFiles' && !data.items.some(dataItem => dataItem.isDirectory && directory === Path.combine(data.directory, dataItem.name))) {
+				if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && directory === Path.combine(data.directory, dataItem.name))) {
 					const data = JSON.parse(jsonData);
 					for (let i = 0; i < data.items.length; i++) {
 						const from = Path.combine(data.directory, data.items[i].name);
 						const to = Path.combine(directory, data.items[i].name);
 						try {
-							await this.move({ from, to });
+							await store.dispatch("machine/move", { from, to });
 						} catch (e) {
-							this.$log('error', this.$t('error.move', [data.items[i].name, directory]), e.message);
+							this.$log(LogType.error, this.$t("error.move", [data.items[i].name, directory]), getErrorMessage(e));
 							break;
 						}
 					}
@@ -158,5 +181,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>
