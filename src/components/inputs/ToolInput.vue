@@ -13,7 +13,6 @@ import { Heater, Spindle, Tool } from "@duet3d/objectmodel";
 import Vue, { PropType } from "vue";
 
 import store from "@/store";
-import { isNumber } from "@/utils/numbers";
 import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
@@ -95,7 +94,7 @@ export default Vue.extend({
 			this.$nextTick(() => (this.$refs.input as any).isMenuActive = false);			// FIXME There must be a better solution than this
 
 			const value = parseFloat(this.inputValue);
-			if (!isNumber(value)) {
+			if (!isFinite(value)) {
 				this.$makeNotification(LogType.warning, this.$t("error.enterValidNumber"));
 				return;
 			}
@@ -216,58 +215,58 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		"tool.active"(to) {
+		"tool.active"(to: Array<number>) {
 			const val = (to instanceof Array && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < to.length) ? to[this.toolHeaterIndex] : to;
-			if (this.active && isNumber(val) && this.actualValue !== val) {
+			if (this.active && typeof val === "number" && isFinite(val) && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = val.toString();
 				}
 			}
 		},
-		"tool.standby"(to) {
+		"tool.standby"(to: Array<number>) {
 			const val = (to instanceof Array && this.toolHeaterIndex >= 0 && this.toolHeaterIndex < to.length) ? to[this.toolHeaterIndex] : to;
-			if (this.standby && isNumber(val) && this.actualValue !== val) {
+			if (this.standby && typeof val === "number" && isFinite(val) && this.actualValue !== val) {
 				this.actualValue = val;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = val.toString();
 				}
 			}
 		},
-		"bed.active"(to) {
-			if (this.active && isNumber(to) && this.actualValue !== to) {
+		"bed.active"(to: number) {
+			if (this.active && isFinite(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
 				}
 			}
 		},
-		"bed.standby"(to) {
-			if (this.standby && isNumber(to) && this.actualValue !== to) {
+		"bed.standby"(to: number) {
+			if (this.standby && isFinite(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
 				}
 			}
 		},
-		"chamber.active"(to) {
-			if (this.active && isNumber(to) && this.actualValue !== to) {
+		"chamber.active"(to: number) {
+			if (this.active && isFinite(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
 				}
 			}
 		},
-		"chamber.standby"(to) {
-			if (this.standby && isNumber(to) && this.actualValue !== to) {
+		"chamber.standby"(to: number) {
+			if (this.standby && isFinite(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();
 				}
 			}
 		},
-		"tool.spindleRpm"(to) {
-			if (this.active && isNumber(to) && this.actualValue !== to) {
+		"tool.spindleRpm"(to: number) {
+			if (this.active && isFinite(to) && this.actualValue !== to) {
 				this.actualValue = to;
 				if (document.activeElement !== this.inputElement) {
 					this.inputValue = to.toString();

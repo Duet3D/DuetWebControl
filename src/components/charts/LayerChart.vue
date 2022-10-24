@@ -13,7 +13,8 @@
 	<v-card class="d-flex flex-column flex-grow-1">
 		<v-card-title>
 			<span>
-				<v-icon small class="mr-1">mdi-vector-polyline</v-icon> {{ $t("chart.layer.caption") }}
+				<v-icon small class="mr-1">mdi-vector-polyline</v-icon>
+				{{ $t("chart.layer.caption") }}
 			</span>
 			<v-spacer />
 			<a v-show="layers.length > 30" href="javascript:void(0)" @click.prevent="showAllLayers = !showAllLayers">

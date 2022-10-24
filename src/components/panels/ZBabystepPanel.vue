@@ -24,17 +24,20 @@
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import { AxisLetter } from "@duet3d/objectmodel";
+import Vue from "vue";
 
-import { mapState } from 'vuex'
+import store from "@/store";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('machine/model', {
-			babystepping: state => (state.move.axes.length >= 3) ? state.move.axes[2].babystep : 0
-		}),
-		...mapState('machine/settings', ['babystepAmount'])
+		babystepping(): number {
+			return store.state.machine.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.babystep ?? 0;
+		},
+		babystepAmount(): number {
+			return store.state.machine.settings.babystepAmount;
+		}
 	}
-}
+});
 </script>

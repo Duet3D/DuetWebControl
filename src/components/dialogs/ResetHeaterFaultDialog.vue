@@ -68,7 +68,7 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		shown(to) {
+		shown(to: boolean) {
 			if (to) {
 				if (!this.timer) {
 					this.counter = countdownSeconds;

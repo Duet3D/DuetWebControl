@@ -236,12 +236,12 @@ export default class {
     if (colorScheme === 'terrain') {
       z = Math.max(Math.min(z, this.maxVisualizationZ), -this.maxVisualizationZ);
       const hue = 240 - ((z + this.maxVisualizationZ) / this.maxVisualizationZ) * 120;
-      return new Color3.FromHexString(this.hslToHex(hue, 100, 45));
+      return Color3.FromHexString(this.hslToHex(hue, 100, 45));
     }
 
     // Default color scheme (i.e. the worse the redder, symmetric)
     const hue = 120 - (Math.min(Math.abs(z), this.maxVisualizationZ) / this.maxVisualizationZ) * 120;
-    return new Color3.FromHexString(this.hslToHex(hue, 100, 45));
+    return Color3.FromHexString(this.hslToHex(hue, 100, 45));
   }
 
   hslToHex(h, s, l) {

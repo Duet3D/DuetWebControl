@@ -667,9 +667,8 @@
     },
     "settingsAbout": {
       "caption": "Über",
-      "developedBy": "Weboberfläche entwickelt von",
-      "for": "für",
-      "licensedUnder": "Lizensiert unter den Bedingungen der"
+      "credits": "Weboberfläche entwickelt von {author} für {Duet3D}.",
+      "license": "Lizensiert unter den Bedingungen der {gpl}."
     },
     "settingsAppearance": {
       "caption": "Aussehen",

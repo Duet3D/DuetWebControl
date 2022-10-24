@@ -6,7 +6,7 @@ import i18n from "../i18n";
  * @returns Error message
  */
 export function getErrorMessage(e: any) {
-	return e ? (e.message ?? e.toString()) : i18n.t("generic.noValue");
+	return e ? (e.reason ?? (e.message ?? e.toString())) : i18n.t("generic.noValue");
 }
 
 // Generic Errors

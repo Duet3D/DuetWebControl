@@ -35,6 +35,7 @@ import store from "@/store";
 
 import { FileListItem } from "@/store/machine/connector/BaseConnector";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors"
+import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
 	props: {
@@ -66,7 +67,7 @@ export default Vue.extend({
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$log("error", this.$t("error.filamentsLoadFailed"), getErrorMessage(e));
+					this.$log(LogType.error, this.$t("error.filamentsLoadFailed"), getErrorMessage(e));
 				}
 				this.hide();
 			}

@@ -17,19 +17,21 @@
 <template>
 	<v-card class="d-flex flex-column flex-grow-1">
 		<v-card-title class="pt-2 pb-0">
-			<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon> {{ $t("chart.temperature.caption") }}
+			<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon>
+			{{ $t("chart.temperature.caption") }}
 		</v-card-title>
 
 		<v-card-text v-show="hasTemperaturesToDisplay" class="content flex-grow-1 px-2 py-0">
 			<canvas ref="chart"></canvas>
 		</v-card-text>
-
-		<v-spacer v-show="!hasTemperaturesToDisplay"></v-spacer>
-		<v-card-text class="pa-0" v-show="!hasTemperaturesToDisplay">
-			<v-alert :value="true" type="info" class="mb-0">
-				{{ $t("chart.temperature.noData") }}
-			</v-alert>
-		</v-card-text>
+		<template v-if="!hasTemperaturesToDisplay">
+			<v-spacer />
+			<v-card-text class="pa-0">
+				<v-alert :value="true" type="info" class="mb-0">
+					{{ $t("chart.temperature.noData") }}
+				</v-alert>
+			</v-card-text>
+		</template>
 	</v-card>
 </template>
 
@@ -182,8 +184,8 @@ let storeSubscribed = false, instances: Array<{ update: () => void }> = []
 export default Vue.extend({
 	computed: {
 		isConnected(): boolean { return store.getters["isConnected"]; },
-		hasTemperaturesToDisplay(): boolean { return store.getters["machine/model/hasTemperaturesToDisplay"] },
-		maxHeaterTemperature(): number | null { return store.getters["machine/model/maxHeaterTEmperature"] }
+		hasTemperaturesToDisplay(): boolean { return store.getters["machine/hasTemperaturesToDisplay"] },
+		maxHeaterTemperature(): number | null { return store.getters["machine/model/maxHeaterTemperature"] }
 	},
 	data() {
 		return {

@@ -61,7 +61,7 @@ img {
 <template>
 	<v-card>
 		<v-card-title>
-			{{ $t('panel.webcam.caption') }}
+			{{ $t("panel.webcam.caption") }}
 		</v-card-title>
 
 		<v-card-text class="pa-0 img-container">
@@ -76,31 +76,31 @@ img {
 	</v-card>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState, mapGetters } from 'vuex'
+import store from "@/store";
+import { SettingsState, WebcamFlip } from "@/store/settings";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState('settings', ['webcam']),
-		...mapGetters('machine', ['connector']),
+		webcam(): SettingsState["webcam"] { return store.state.settings.webcam; },
 		classList() {
 			const result = [];
 
-			if (this.webcam.flip === 'x' || this.webcam.flip === 'both') {
-				result.push('flip-x');
+			if (this.webcam.flip === WebcamFlip.X || this.webcam.flip === WebcamFlip.Both) {
+				result.push("flip-x");
 			}
-			if (this.webcam.flip === 'y' || this.webcam.flip === 'both') {
-				result.push('flip-y');
+			if (this.webcam.flip === WebcamFlip.Y || this.webcam.flip === WebcamFlip.Both) {
+				result.push("flip-y");
 			}
 
 			if (this.webcam.rotation === 90) {
-				result.push('rotate-90');
+				result.push("rotate-90");
 			} else if (this.webcam.rotation === 180) {
-				result.push('rotate-180');
+				result.push("rotate-180");
 			} else if (this.webcam.rotation === 270) {
-				result.push('rotate-270');
+				result.push("rotate-270");
 			}
 
 			return result;
@@ -109,8 +109,8 @@ export default {
 	data() {
 		return {
 			active: true,
-			updateTimer: null,
-			url: ''
+			updateTimer: null as NodeJS.Timer | null,
+			url: ""
 		}
 	},
 	activated() {
@@ -121,7 +121,7 @@ export default {
 	},
 	methods: {
 		updateWebcam() {
-			let url = this.webcam.url.replace('[HOSTNAME]', this.connector ? this.connector.hostname : location.hostname);
+			let url = this.webcam.url.replace("[HOSTNAME]", store.getters["machine/connector"] ? store.getters["machine/connector"].hostname : location.hostname);
 			if (this.webcam.updateInterval > 0) {
 				if (this.webcam.useFix) {
 					url += "_" + Math.random();
@@ -160,5 +160,5 @@ export default {
 			clearInterval(this.updateTimer);
 		}
 	}
-}
+});
 </script>

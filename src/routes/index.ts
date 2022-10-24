@@ -308,7 +308,7 @@ export const MachineSettingTabs = Vue.observable<Array<TabItem>>([]);
  * @param caption Caption of the tab
  * @param translated Whether the caption is already translated (defaults to false)
  */
-export function registerSettingTab(general: boolean, name: string, component: Vue, caption: string | (() => string), translated = false) {
+export function registerSettingTab(general: boolean, name: string, component: Component, caption: string | (() => string), translated = false) {
 	const tab: TabItem = {
 		caption: caption as string,
 		component: name,
@@ -321,7 +321,7 @@ export function registerSettingTab(general: boolean, name: string, component: Vu
 		});
 	}
 
-	Vue.component(name, component);
+	Vue.component(name, component as any);
 	if (general) {
 		GeneralSettingTabs.push(tab);
 	} else {

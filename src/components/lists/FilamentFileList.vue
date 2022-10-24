@@ -236,7 +236,7 @@ export default Vue.extend({
 		this.directory = this.filamentsDirectory;
 	},
 	watch: {
-		filamentsDirectory(to, from) {
+		filamentsDirectory(to: string, from: string) {
 			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}

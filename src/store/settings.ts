@@ -214,7 +214,10 @@ export default {
 			if (state.enabledPlugins) {
 				for (let i = 0; i < state.enabledPlugins.length; i++) {
 					try {
-						await dispatch("loadDwcPlugin", { id: state.enabledPlugins[i], saveSettings: false }, { root: true });
+						await dispatch("loadDwcPlugin", {
+							id: state.enabledPlugins[i],
+							saveSettings: false
+						}, { root: true });
 					} catch (e) {
 						console.warn(`Failed to load built-in plugin ${state.enabledPlugins[i]}`, e);
 					}
@@ -238,7 +241,10 @@ export default {
 				if (mainSettings.enabledPlugins) {
 					for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
 						try {
-							await dispatch("loadDwcPlugin", { id: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
+							await dispatch("loadDwcPlugin", {
+								id: mainSettings.enabledPlugins[i],
+								saveSettings: false
+							}, { root: true });
 						} catch (e) {
 							console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`, e);
 						}
@@ -286,7 +292,12 @@ export default {
 			// Check if there is a factory defaults file
 			try {
 				const defaults = await dispatch("machine/download", { filename: Path.dwcFactoryDefaults, showProgress: false, showSuccess: false, showError: false }, { root: true });
-				await dispatch("machine/upload", { filename: Path.dwcSettingsFile, content: new Blob([defaults]), showProgress: false, showSuccess: false }, { root: true });
+				await dispatch("machine/upload", {
+					filename: Path.dwcSettingsFile,
+					content: new Blob([defaults]),
+					showProgress: false,
+					showSuccess: false
+				}, { root: true });
 			} catch (e) {
 				// handled before we get here
 			}

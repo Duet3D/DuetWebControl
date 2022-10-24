@@ -260,7 +260,7 @@ export default Vue.extend({
 			this.showMeshEditDialog = false;
 			this.moveStepDialog.shown = false;
 		},
-		workplaceNumber(to) {
+		workplaceNumber(to: number) {
 			this.currentWorkplace = to;
 		}
 	},

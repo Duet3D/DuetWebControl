@@ -23,6 +23,7 @@ import Vue from "vue";
 
 import store from "@/store";
 import { getErrorMessage } from "@/utils/errors";
+import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
 	props: {
@@ -76,10 +77,10 @@ export default Vue.extend({
 
 			// Deal with the result
 			if (success) {
-				this.$log("success", this.$t("notification.mount.successTitle"), response);
+				this.$log(LogType.success, this.$t("notification.mount.successTitle"), response);
 				this.$emit("input", index);
 			} else {
-				this.$log("error", this.$t("notification.mount.errorTitle"), response);
+				this.$log(LogType.error, this.$t("notification.mount.errorTitle"), response);
 			}
 		}
 	}

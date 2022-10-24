@@ -88,11 +88,11 @@
 							   :class="{ 'animate-progress': animateProgress }" />
 
 			<div class="d-flex" :class="{ 'mt-1' : (notification.timeout !== null) && (notification.timeout > 0)}">
-				<v-icon v-if="notification.icon !== ''" class="mr-4" v-text="notification.icon" />
+				<v-icon v-if="notification.icon !== null" class="mr-4" v-text="notification.icon" />
 
 				<div class="d-block">
-					<strong v-if="notification.title" v-html="notification.title.replace(/\n/g, '<br>')"></strong>
-					<p v-if="notification.message" class="mb-0" v-html="notification.message.replace(/\n/g, '<br>')"></p>
+					<strong v-if="notification.title !== null" v-html="notification.title?.replace(/\n/g, '<br>')"></strong>
+					<p v-if="notification.message !== null" class="mb-0" v-html="notification.message?.replace(/\n/g, '<br>')"></p>
 				</div>
 			</div>
 

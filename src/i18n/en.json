@@ -666,6 +666,7 @@
       "setWorkXYZ": "Set Work XYZ"
     },
     "settingsAbout": {
+      "caption": "About",
       "credits": "Web interface developed by {author} for {Duet3D}.",
       "license": "Licensed under the terms of the {gpl}."
     },

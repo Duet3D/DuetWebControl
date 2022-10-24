@@ -10,7 +10,10 @@
             "reAttach": true,
             "name": "Firefox debugging",
             "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
+            "webRoot": "${workspaceFolder}",
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*"
+            ]
         }
     ]
 }

@@ -114,7 +114,7 @@ export default Vue.extend({
 		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
 	},
 	watch: {
-		isPrinting(to) {
+		isPrinting(to: boolean) {
 			if (to) {
 				this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
 			} else {

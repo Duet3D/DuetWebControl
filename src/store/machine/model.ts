@@ -150,7 +150,7 @@ export default function(connector: BaseConnector | null) : MachineModel {
 			update(state, data) {
 				typedState.update(data);
 
-				// FIXME This solution isn't great but Vue.observable messes up our fully-typed ObjectModel class too much...
+				// FIXME This solution isn't great but Vue.observable messes up our fully-typed ObjectModel class...
 				// It may be necessary to upgrade to Vue 3 sooner than expected, because it does not suffer from the same limitations as Vue 2
 				for (const key in data) {
 					if (key === "plugins") {

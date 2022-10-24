@@ -165,12 +165,12 @@ export default Vue.extend({
 		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
-		macrosDirectory(to, from) {
+		macrosDirectory(to: string, from: string) {
 			if (Path.equals(this.directory, from) || !Path.startsWith(this.directory, to)) {
 				this.directory = to;
 			}
 		},
-		isConnected(to) {
+		isConnected(to: boolean) {
 			if (to) {
 				this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
 				this.refresh();

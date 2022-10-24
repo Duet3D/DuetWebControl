@@ -407,11 +407,11 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				}
 				state.moveSteps[axis][index] = value;
 			},
-			toggleExtraVisibility(state, extraHeater) {
-				if (state.displayedExtraTemperatures.indexOf(extraHeater) === -1) {
-					state.displayedExtraTemperatures.push(extraHeater);
+			toggleExtraVisibility(state, sensor) {
+				if (state.displayedExtraTemperatures.indexOf(sensor) === -1) {
+					state.displayedExtraTemperatures.push(sensor);
 				} else {
-					state.displayedExtraTemperatures = state.displayedExtraTemperatures.filter(heater => heater !== extraHeater);
+					state.displayedExtraTemperatures = state.displayedExtraTemperatures.filter(heater => heater !== sensor);
 				}
 			},
 			toggleExtruderVisibility(state, extruder) {

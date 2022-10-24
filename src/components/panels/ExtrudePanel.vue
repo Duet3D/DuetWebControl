@@ -1,4 +1,4 @@
-<)template>
+<template>
 	<v-card>
 		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">mdi-opacity</v-icon> {{ $t("panel.extrude.caption") }}
@@ -198,7 +198,7 @@ export default Vue.extend({
 		this.feedrate = store.state.machine.settings.extruderFeedrates[3];
 	},
 	watch: {
-		currentTool(to) {
+		currentTool(to: Tool | null) {
 			if (!to || to.extruders.length <= 1) {
 				// Switch back to mixing mode if the selection panel is hidden
 				this.mix = ["mix"];

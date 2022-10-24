@@ -713,7 +713,7 @@ export default Vue.extend({
 		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
-		isConnected(to) {
+		isConnected(to: boolean) {
 			if (to) {
 				this.refresh();
 			} else {
@@ -732,35 +732,35 @@ export default Vue.extend({
 			this.editDialog.shown = false;
 			this.renameDialog.shown = false;
 		},
-		isMounted(to) {
+		isMounted(to: boolean) {
 			if (!to || !this.innerFilelistLoaded) {
 				this.refresh();
 			}
 		},
-		directory(to) {
+		directory(to: string) {
 			this.loadDirectory(to);
 		},
-		innerDirectory(to) {
+		innerDirectory(to: string) {
 			if (this.directory !== to) {
 				this.$emit("update:directory", to);
 			}
 		},
-		innerFilelist(to) {
+		innerFilelist(to: Array<BaseFileListItem>) {
 			if (this.filelist !== to) {
 				this.$emit("update:filelist", to);
 			}
 		},
-		innerLoading(to) {
+		innerLoading(to: boolean) {
 			if (this.loading !== to) {
 				this.$emit("update:loading", to);
 			}
 		},
-		innerValue(to) {
+		innerValue(to: Array<BaseFileListItem>) {
 			if (this.value !== to) {
 				this.$emit("input", to);
 			}
 		},
-		"contextMenu.shown"(to) {
+		"contextMenu.shown"(to: boolean) {
 			if (!to) {
 				// Restore previously selected items
 				this.innerValue = this.prevSelection;

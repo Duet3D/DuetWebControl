@@ -158,12 +158,12 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		code(to) {
-			if (to && to.length >= 2) {
+		code(to: string | { value: string }) {
+			if (typeof to === "string" && to.length >= 2) {
 				this.showItems = true;
 			}
 		},
-		uiFrozen(to) {
+		uiFrozen(to: boolean) {
 			if (to) {
 				// Clear input when the UI is frozen
 				this.code = "";
