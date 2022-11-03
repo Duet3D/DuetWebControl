@@ -235,12 +235,12 @@ export function registerCategory(name: string, icon: string, caption: string | (
  * @param component Component to register
  * @param route Route element
  */
-export function registerRoute(component: Component, route: { [category: string]: { [name: string]: MenuItem & { caption: string | (() => string) } } }) {
+export function registerRoute(component: Component, route: { [category: string]: { [name: string]: Omit<MenuItem, "component"> & { caption: string | (() => string)  } } }) {
 	const category = Object.keys(route)[0], menuCategory = Menu[category], routeCategory = route[category];
 	const name = Object.keys(routeCategory)[0], menuItem = route[category][name];
 
 	// Make a new route item
-	const routeObj = {
+	const routeObj: MenuItem = {
 		...menuItem,
 		component
 	};

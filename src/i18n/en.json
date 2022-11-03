@@ -997,7 +997,12 @@
       "resetView": "Reset View"
     },
     "objectModelBrowser": {
-      "menuCaption": "Object Model"
+      "menuCaption": "Object Model",
+      "selectedNode": "Selected node:",
+      "none": "None",
+      "documentationNotAvailable": "Documentation is not available (/www/DuetAPI.xml not found)",
+      "summary": "Summary",
+      "remarks": "Remarks"
     }
   },
   "tabs": {

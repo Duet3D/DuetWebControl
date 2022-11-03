@@ -1,4 +1,5 @@
-import { initCollection, Plugin, PluginManifest, SbcPermission } from "@duet3d/objectmodel";
+import { initCollection, PluginManifest, SbcPermission } from "@duet3d/objectmodel";
+import { Component } from "vue";
 
 import packageInfo from "../../package.json";
 import store from "@/store";
@@ -133,7 +134,7 @@ export default initCollection(DwcPlugin, [
 		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "ObjectModelBrowser" */
-			"./ObjectModelBrowser/index.js"
+			"./ObjectModelBrowser/index"
 		)
 	},
 	{
@@ -143,7 +144,7 @@ export default initCollection(DwcPlugin, [
 		version: packageInfo.version,
 		loadDwcResources: () => import(
 			/* webpackChunkName: "OnScreenKeyboard" */
-			"./OnScreenKeyboard/index.js"
+			"./OnScreenKeyboard/index"
 		)
 	},
 	// #DWC_PLUGIN# <- this marker is used by the plugin build script, leave it here
@@ -181,8 +182,8 @@ export function registerPluginContextMenuItem(name: string | (() => string), pat
  * Register a component to be rendered on the main app component.
  * This can be useful for plugins that need to generate content independently from the current route and/or tab
  * @param name Name of the component
- * @param component Component class
+ * @param component Component type
  */
-export function injectComponent(name: string, component: Vue) {
+export function injectComponent(name: string, component: Component) {
 	store.commit("uiInjection/injectComponent", { name, component });
 }

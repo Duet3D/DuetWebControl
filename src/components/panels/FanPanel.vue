@@ -27,7 +27,7 @@
 						</v-btn>
 
 						<template v-for="(fan, index) in fans">
-							<v-btn v-if="fan && fan.thermostatic.heaters.length === 0" :key="index" :value="index" :disabled="uiFrozen">
+							<v-btn v-if="fan && fan.thermostatic.sensors.length === 0" :key="index" :value="index" :disabled="uiFrozen">
 								{{ fan.name ? fan.name : $t("panel.fan.fan", [index]) }}
 							</v-btn>
 						</template>
@@ -88,14 +88,14 @@ export default Vue.extend({
 			if (this.fan === -1) {
 				if (!this.currentTool) {
 					// Tool no longer selected, try to change to the first available fan
-					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.heaters.length === 0);
+					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.sensors.length === 0);
 				}
-			} else if (this.fan >= this.fans.length || ((this.fan !== -1) && (this.fans[this.fan] !== null) && (this.fans[this.fan]!.thermostatic.heaters.length > 0))) {
+			} else if (this.fan >= this.fans.length || ((this.fan !== -1) && (this.fans[this.fan] !== null) && (this.fans[this.fan]!.thermostatic.sensors.length > 0))) {
 				// Selected fan is no longer controllable, try to change to another one
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {
-					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.heaters.length === 0);
+					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.sensors.length === 0);
 				}
 			}
 		}

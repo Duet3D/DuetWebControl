@@ -200,7 +200,8 @@
       "gcodeReference": "G-Code参考",
       "menuReference": "菜单参考",
       "save": "保存",
-      "confirmClose": "文件已修改。如果继续，你的修改将丢失。"
+      "confirmClose": "文件已修改。如果继续，你的修改将丢失。",
+      "confirmSaveEmpty": "您要保存的文件似乎是空的。您确定要继续吗？"
     },
     "fileTransfer": {
       "uploadingTitle": "正在上传文件第{0}个，共{1}个，已完成{2}%",
@@ -660,13 +661,14 @@
       "loadMesh": "从SD卡加载已保存的高度图(G29 S1)",
       "axesNotHomed": "以下轴未归位：|以下轴未归位：",
       "noAxes": "没有轴",
-      "workzero": "归零"
+      "workzero": "归零",
+      "set": "设置{0}",
+      "setWorkXYZ": "设置工作 XYZ"
     },
     "settingsAbout": {
       "caption": "关于",
-      "developedBy": "Web界面开发：",
-      "for": " 适用于：",
-      "licensedUnder": "中文翻译：宁甲尊  许可条款："
+      "credits": "{author} 为 {Duet3D} 开发的 Web 界面。",
+      "license": "根据 {gpl} 的条款获得许可。"
     },
     "settingsAppearance": {
       "caption": "外观",
@@ -694,7 +696,6 @@
       "updateDelay": "更新延迟（ms）",
       "ajaxRetries": "最大AJAX重试次数",
       "updateInterval": "更新间隔（{0}）",
-      "extendedUpdateEvery": "扩展状态更新间隔",
       "fileTransferRetryThreshold": "文件传输的重试阈值（{0}）",
       "crcUploads": "使用CRC32校验和进行上传",
       "unavailable": "没有可用的设置"
@@ -705,7 +706,9 @@
       "board": "主板：{0}",
       "firmware": "固件：{0} ({1})",
       "dwsFirmware": "Duet WiFi Server版本：{0}",
-      "updateNote": "注意：你可以在“系统”页面上安装更新。"
+      "updateNote": "注意：你可以在“系统”页面上安装更新。",
+      "dsfVersion": "DSF 版本：{0}",
+      "notConnected": "（未连接）"
     },
     "settingsEndstops": {
       "caption": "限位开关",
@@ -994,7 +997,12 @@
       "resetView": "重置视图"
     },
     "objectModelBrowser": {
-      "menuCaption": "对象模型"
+      "menuCaption": "对象模型",
+      "documentationNotAvailable": "文档不可用（/www/DuetAPI.xml 未找到）",
+      "none": "没有任何",
+      "remarks": "评论",
+      "selectedNode": "选定节点：",
+      "summary": "概括"
     }
   },
   "tabs": {

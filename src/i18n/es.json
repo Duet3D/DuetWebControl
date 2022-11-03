@@ -200,7 +200,8 @@
       "gcodeReference": "Referencia G-Code",
       "menuReference": "Referencia Menu",
       "save": "Guardar",
-      "confirmClose": "El archivo ha sido cambiado. Si continúa, se perderán dichos cambios."
+      "confirmClose": "El archivo ha sido cambiado. Si continúa, se perderán dichos cambios.",
+      "confirmSaveEmpty": "Parece que el archivo que desea guardar está vacío. ¿Seguro que desea continuar?"
     },
     "fileTransfer": {
       "uploadingTitle": "Cargando archivo {0} de {1}, {2}% completado",
@@ -660,13 +661,14 @@
       "loadMesh": "Cargar Mapa de compensación de altura guardado en tarjeta SD (G29 S1)",
       "axesNotHomed": "El siguiente eje no está ajustado: | Los siguientes ejes no están ajustados:",
       "noAxes": "No hay ejes",
-      "workzero": "Ir a cero"
+      "workzero": "Ir a cero",
+      "set": "Establecer {0}",
+      "setWorkXYZ": "Establecer trabajo XYZ"
     },
     "settingsAbout": {
       "caption": "Acerca de",
-      "developedBy": "Interfaz Web creada por",
-      "for": "para",
-      "licensedUnder": "Licencia bajo terminos de"
+      "credits": "Interfaz web desarrollada por {author} para {Duet3D}.",
+      "license": "Con licencia según los términos de {gpl}."
     },
     "settingsAppearance": {
       "caption": "Apariencia",
@@ -694,7 +696,6 @@
       "updateDelay": "Retardo de actualización (ms)",
       "ajaxRetries": "Número máximo de reintentos AJAX",
       "updateInterval": "Intervalo de actualización ({0})",
-      "extendedUpdateEvery": "Intervalo de actualización de estado extendido",
       "fileTransferRetryThreshold": "Máximo número de intentos para transferencia de archivos ({0})",
       "crcUploads": "Usar CRC32 checksums para las subidas",
       "unavailable": "No hay configuraciones disponibles"
@@ -705,7 +706,9 @@
       "board": "Placa: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Versión Duet Servidor WIFI: {0}",
-      "updateNote": "Nota: puede instalar actualizaciones desde la página: Sistema."
+      "updateNote": "Nota: puede instalar actualizaciones desde la página: Sistema.",
+      "dsfVersion": "Versión DSF: {0}",
+      "notConnected": "(no conectado)"
     },
     "settingsEndstops": {
       "caption": "Finales de Carrera",
@@ -994,7 +997,12 @@
       "resetView": "Reestablecer vista"
     },
     "objectModelBrowser": {
-      "menuCaption": "Modelo de objetos"
+      "menuCaption": "Modelo de objetos",
+      "documentationNotAvailable": "La documentación no está disponible (/www/DuetAPI.xml no encontrado)",
+      "none": "Ninguna",
+      "remarks": "Observaciones",
+      "selectedNode": "Nodo seleccionado:",
+      "summary": "Resumen"
     }
   },
   "tabs": {

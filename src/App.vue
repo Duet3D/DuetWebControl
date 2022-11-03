@@ -100,7 +100,7 @@
 <script lang="ts">
 import ObjectModel, { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 import Piecon from "piecon";
-import Vue from "vue";
+import Vue, { Component } from "vue";
 import { Route, NavigationGuardNext } from "vue-router";
 
 import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
@@ -114,6 +114,7 @@ export default Vue.extend({
 	computed: {
 		iconMenu(): boolean { return store.state.settings.iconMenu; },
 		jobProgress(): number { return store.getters["machine/jobProgress"]; },
+		injectedComponents(): Array<{ name: string, component: Component }> { return store.state.uiInjection.injectedComponents; },
 		model(): ObjectModel { return store.state.machine.model; },
 		categories(): Array<MenuCategory> {
 			return Object.keys(Menu)
@@ -238,8 +239,8 @@ export default Vue.extend({
 			this.updateTitle();
 		},
 		injectedComponents() {
-			for (const item of store.state.uiInjection.injectedComponents) {
-				if (this.injectedComponentNames.indexOf(item.name) === -1) {
+			for (const item of this.injectedComponents) {
+				if (!this.injectedComponentNames.includes(item.name)) {
 					(this.$options as any).components[item.name] = item.component;
 					this.injectedComponentNames.push(item.name);
 				}

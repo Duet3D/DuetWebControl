@@ -8,7 +8,7 @@
 
 			<v-menu offset-y right auto>
 				<template #activator="{ on }">
-					<a v-show="!uiFrozen && fans.some(fan => (fan !== null) && (fan.thermostatic.heaters.length === 0))"
+					<a v-show="!uiFrozen && fans.some(fan => (fan !== null) && (fan.thermostatic.sensors.length === 0))"
 					   v-on="on" href="javascript:void(0)" class="subtitle-2">
 						{{ $t("panel.fans.changeVisibility") }}
 					</a>
@@ -23,7 +23,7 @@
 					</v-list-item>
 
 					<template v-for="(fan, index) in fans">
-						<v-list-item v-if="(fan !== null) && (fan.thermostatic.heaters.length === 0)" :key="index"
+						<v-list-item v-if="(fan !== null) && (fan.thermostatic.sensors.length === 0)" :key="index"
 									 @click="toggleFanVisibility(index)">
 							<v-icon class="mr-1">
 								{{ displayedFans.includes(index) ? "mdi-checkbox-marked" : "mdi-checkbox-blank" }}
@@ -43,7 +43,7 @@
 			</div>
 
 			<template v-for="(fan, index) in fans">
-				<div v-if="displayedFans.includes(index) && (fan !== null) && (fan.thermostatic.heaters.length === 0)"
+				<div v-if="displayedFans.includes(index) && (fan !== null) && (fan.thermostatic.sensors.length === 0)"
 					 :key="index" class="d-flex flex-column pt-2">
 					{{ (fan.name ? fan.name : $t("panel.fans.fan", [index])) }}
 					<percentage-input :value="fan.requestedValue * 100" @input="setFanValue(index, $event)"
@@ -71,11 +71,11 @@ export default Vue.extend({
 		displayedFans(): Array<number> { return store.state.machine.settings.displayedFans; },
 		fans(): Array<Fan | null> { return store.state.machine.model.fans; },
 		hasVisibleFans(): boolean {
-			if (this.fans.some((fan, index) => this.displayedFans.includes(index) && (fan !== null) && (fan.thermostatic.heaters.length === 0))) {
+			if (this.fans.some((fan, index) => this.displayedFans.includes(index) && (fan !== null) && (fan.thermostatic.sensors.length === 0))) {
 				return true;
 			}
 			return (this.displayedFans.includes(-1) && (this.toolFan >= 0) && (this.toolFan < this.fans.length) &&
-				(this.fans[this.toolFan] !== null) && (this.fans[this.toolFan]!.thermostatic.heaters.length === 0));
+				(this.fans[this.toolFan] !== null) && (this.fans[this.toolFan]!.thermostatic.sensors.length === 0));
 		},
 		toolFan(): number {
 			if ((this.currentTool !== null) && (this.currentTool.fans.length > 0)) {
@@ -95,7 +95,7 @@ export default Vue.extend({
 			if (fanIndex <= -1) {
 				return (this.currentTool !== null) && (this.currentTool.fans.length > 0);
 			}
-			return (fanIndex < this.fans.length) && (this.fans[fanIndex] !== null) && (this.fans[fanIndex]!.thermostatic.heaters.length === 0);
+			return (fanIndex < this.fans.length) && (this.fans[fanIndex] !== null) && (this.fans[fanIndex]!.thermostatic.sensors.length === 0);
 		},
 		getFanValue(fanIndex: number) {
 			if (fanIndex <= -1) {

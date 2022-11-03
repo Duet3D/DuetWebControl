@@ -119,6 +119,14 @@
       "update": {
         "caption": "Upload de Atualização",
         "title": "Upload de um pacote de atualização (arrastar e soltar também é suportado)"
+      },
+      "firmware": {
+        "caption": "Carregar arquivos de firmware",
+        "title": "Carregue um ou mais arquivos de firmware (arraste"
+      },
+      "plugin": {
+        "caption": "Instalar plugin",
+        "title": "Carregue e inicie um plugin (arraste"
       }
     }
   },
@@ -132,7 +140,8 @@
       "layerDuration": "Duração: {0}",
       "layerHeight": "Altura da Camada: {0}",
       "filamentUsage": "Uso de Filamento: {0}",
-      "fractionPrinted": "Progresso do Arquivo: {0}"
+      "fractionPrinted": "Progresso do Arquivo: {0}",
+      "temperatures": "Temperaturas: {0}"
     },
     "temperature": {
       "caption": "Gráfico de Temperatura",
@@ -148,7 +157,9 @@
     },
     "configUpdated": {
       "title": "Reiniciar placa?",
-      "prompt": "Gostaria de reiniciar a sua placa para aplicar as configurações atualizadas?"
+      "prompt": "Gostaria de reiniciar a sua placa para aplicar as configurações atualizadas?",
+      "reset": "Reiniciar placa-mãe",
+      "runConfig": "Executar arquivo de configuração"
     },
     "connect": {
       "title": "Conectar à Máquina",
@@ -182,13 +193,15 @@
     "filament": {
       "titleChange": "Trocar Filamento",
       "titleLoad": "Carregar Filamento",
-      "prompt": "Escolha um filamento:"
+      "prompt": "Escolha um filamento:",
+      "noFilaments": "Nenhum filamento disponível"
     },
     "fileEdit": {
       "gcodeReference": "Referência do G-Code ",
       "menuReference": "Referência do Menu",
       "save": "Salvar",
-      "confirmClose": "O arquivo foi alterado. Se você continuar, suas alterações serão perdidas."
+      "confirmClose": "O arquivo foi alterado. Se você continuar, suas alterações serão perdidas.",
+      "confirmSaveEmpty": "Parece que o arquivo que você deseja salvar está vazio. Tem certeza de que deseja prosseguir?"
     },
     "fileTransfer": {
       "uploadingTitle": "Fazendo Uploading do arquivo {0} de {1}, {2}% completo",
@@ -245,10 +258,48 @@
       "title": "Instalar atualizações?",
       "prompt": "Você fez upload pelo menos de uma atualização de firmware. Você gostaria de instalá-la agora?",
       "resetTitle": "Redefinir firmware?",
-      "resetPrompt": "Você acabou de instalar atualizações da placa de expansão. Você deseja reiniciar o controlador principal para restaurar a configuração anterior?"
+      "resetPrompt": "Você acabou de instalar atualizações da placa de expansão. Você deseja reiniciar o controlador principal para restaurar a configuração anterior?",
+      "sbcWarning": "Você está operando sua máquina no modo SBC. \nAtualize o firmware usando o DWC somente se recomendado pelos desenvolvedores do firmware."
     },
     "inputRequired": "Por favor, insira um valor",
-    "numberRequired": "Por favor, insira um número válido"
+    "numberRequired": "Por favor, insira um número válido",
+    "pluginInstallation": {
+      "back": "De volta",
+      "by": "por {0}",
+      "cancel": "Cancelar",
+      "checkboxDisclaimer": "Eu aceito os riscos, instale este plugin",
+      "contents": "Este pacote fornece componentes de software para",
+      "dsf": "Estrutura do software Duet",
+      "dwc": "Controle Web Dueto",
+      "dwcWarning": "Este plugin contém componentes para a interface web. \nNenhuma verificação de permissão pode ser aplicada em sessões do navegador para que possa manipular seu sistema e criar riscos de segurança que podem resultar em danos físicos à sua configuração.",
+      "finish": "Terminar",
+      "homepage": "Pagina inicial:",
+      "installation": "Instalação do plug-in",
+      "installationFailed": "Instalação falhada!",
+      "installationSuccess": "Instalação completa!",
+      "invalidManifest": "Manifesto de plug-in inválido",
+      "license": "Licença: {0}",
+      "next": "Próximo",
+      "noPluginSupport": "Plugins externos não permitidos",
+      "noSpecialPermissions": "Este plugin não requer nenhuma permissão especial.",
+      "permissions": "Permissões necessárias",
+      "prerequisites": "Pré-requisitos",
+      "progress": "Progresso de instalação",
+      "progressText": "Aguarde enquanto o plugin está sendo instalado...",
+      "prompt": "O seguinte plugin será instalado:",
+      "ready": "Pronto para instalação",
+      "readyDisclaimer": "Antes de continuar, você deve aceitar que a Duet3D Ltd não pode ser responsabilizada por possíveis danos resultantes da instalação deste plug-in de terceiros.",
+      "readyMessage": "O plugin está pronto para ser instalado. \nCertifique-se de confiar no autor do plug-in antes de confirmar esta etapa final.",
+      "reloadPrompt": {
+        "prompt": "Você acabou de atualizar um plugin DWC ativo. \nPara usar a nova versão, a interface web deve ser recarregada. \nVocê quer fazer isso agora?",
+        "title": "Recarregar o DWC?"
+      },
+      "rootSupport": "Suporte para plug-ins de superusuário",
+      "rootWarning": "Este plugin requer permissões de superusuário, o que significa que ele pode reconfigurar o SBC anexado e instalar software potencialmente malicioso. \nIsso pode resultar em danos físicos à sua configuração.",
+      "rrf": "RepRapFirmware",
+      "sbcPermissions": "O plugin rodando no SBC quer",
+      "version": "Versão {0}"
+    }
   },
   "directory": {
     "menu": "Diretório de Menu",
@@ -256,7 +307,8 @@
     "gcodes": "Diretório de G-Codes",
     "macros": "Diretório de Macros",
     "system": "Diretório do Sistema",
-    "web": "Diretório WWW"
+    "web": "Diretório WWW",
+    "firmware": "Diretório de firmware"
   },
   "error": {
     "notImplemented": "{0} não está implementado",
@@ -283,7 +335,8 @@
     "filelistRequestFailed": "Falha ao obter lista de arquivos",
     "fileinfoRequestFailed": "Falha ao obter informações do arquivo para {0}",
     "filamentsLoadFailed": "Falha ao carregar filamentos",
-    "move": "Falha ao mover {0} para {1}"
+    "move": "Falha ao mover {0} para {1}",
+    "badVersion": "Versão de firmware incompatível"
   },
   "events": {
     "connected": "Conectado a {0}",
@@ -328,7 +381,9 @@
       "busy": "Ocupado",
       "changingTool": "Trocando Ferramenta",
       "idle": "Ociosa",
-      "unknown": "Desconhecido"
+      "unknown": "Desconhecido",
+      "cancelling": "Cancelando",
+      "disconnected": "Desconectado"
     },
     "rpm": "RPM",
     "sdCard": "SD Card {0}",
@@ -345,7 +400,8 @@
       "placeholder": "Enviar código..."
     },
     "addTemperature": "Valor da nova temperatura",
-    "addRPM": "Valor da nova predefinição"
+    "addRPM": "Valor da nova predefinição",
+    "set": "Definir"
   },
   "jobProgress": {
     "simulating": "Simulando {0}, {1} completo",
@@ -408,6 +464,10 @@
     "system": {
       "noFiles": "Sem Arquivos de Sistema",
       "configToolNote": "editar pelo config tool"
+    },
+    "firmware": {
+      "installFile": "Instalar arquivo de firmware",
+      "noFiles": "Nenhum arquivo de firmware"
     }
   },
   "menu": {
@@ -498,6 +558,14 @@
       "message": "Aguarde enquanto o arquivo está sendo carregado ...",
       "success": "Upload de {0} bem-sucedido após {1}",
       "error": "Falha ao carregar {0}"
+    },
+    "plugins": {
+      "startError": "Falha ao iniciar o plug-in",
+      "started": "O plug-in foi iniciado",
+      "stopError": "Falha ao iniciar o plug-in",
+      "stopped": "O plug-in foi interrompido",
+      "uninstallError": "Falha ao desinstalar o plug-in",
+      "uninstalled": "O plug-in foi desinstalado"
     }
   },
   "panel": {
@@ -551,7 +619,8 @@
       "resumeSimulation": "Retornar Simulação",
       "repeatJob": "Iniciar Novamente",
       "repeatPrint": "Imprimir Novamenten",
-      "repeatSimulation": "Simular Novamente"
+      "repeatSimulation": "Simular Novamente",
+      "showPreview": "Mostrar visualização"
     },
     "jobData": {
       "caption": "Dados coletados",
@@ -587,13 +656,19 @@
       "runMesh": "Executar Compensação de Malha (G29)",
       "loadMesh": "Carregar Mapa de Altura Salvo no Cartão SD (G29 S1)",
       "axesNotHomed": "O eixo a seguir não está na posição inicial:|Os eixos a seguir não estão na posição inicial:",
-      "noAxes": "No Axes"
+      "noAxes": "No Axes",
+      "set": "Definir {0}",
+      "setWorkXYZ": "Definir Trabalho XYZ",
+      "compensationType": {
+        "mesh": "Malha",
+        "none": "Nenhum"
+      },
+      "workzero": "Ir para zero"
     },
     "settingsAbout": {
       "caption": "Sobre",
-      "developedBy": "Interface da Web desenvolvida por",
-      "for": "para",
-      "licensedUnder": "Licenciado nos termos de"
+      "credits": "Interface web desenvolvida por {author} para {Duet3D}.",
+      "license": "Licenciado sob os termos do {gpl}."
     },
     "settingsAppearance": {
       "caption": "Aparência",
@@ -602,7 +677,18 @@
       "binaryFileSizes": "Use tamanhos de arquivo binários",
       "binaryFileSizesTitle": "Os tamanhos dos arquivos são exibidos com base em 1024 (IEC) em vez de 1000 (SI)",
       "disableAutoComplete": "Desativar preenchimento automático",
-      "disableAutoCompleteTitle": "Não mostrar a lista de autocompletar ao digitar o código ou as entradas de temperatura"
+      "disableAutoCompleteTitle": "Não mostrar a lista de autocompletar ao digitar o código ou as entradas de temperatura",
+      "bottomNavigation": "Mostrar navegação inferior em tablets",
+      "dashboardModeTitle": "Modo de painel",
+      "decimalPlaces": "Número de pontos decimais na exibição de coordenadas",
+      "displayUnitsTitle": "Unidade de medida para exibição de coordenadas",
+      "iconMenu": "Use o menu de ícones compactos",
+      "numericInputs": "Mostrar campos de entrada numéricos em vez de controles deslizantes",
+      "unitInch": "dentro",
+      "unitInchSpeed": "ipm",
+      "unitInches": "polegadas",
+      "unitMm": "milímetros",
+      "unitMmSpeed": "mm/s"
     },
     "settingsCommunication": {
       "caption": "Comunicação",
@@ -610,7 +696,6 @@
       "updateDelay": "Atraso na atualização (ms)",
       "ajaxRetries": "Número máximo de novas tentativas AJAX",
       "updateInterval": "Intervalo de atualização ({0})",
-      "extendedUpdateEvery": "Intervalo de atualização de status estendido",
       "fileTransferRetryThreshold": "Limite de novas tentativas para transferências de arquivos ({0})",
       "crcUploads": "Utilizar CRC32 checksums para uploads",
       "unavailable": "Nenhuma configuração disponível"
@@ -621,7 +706,9 @@
       "board": "Placa: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Versão do Duet WiFi Server: {0}",
-      "updateNote": "Nota: Você pode instalar atualizações na página Sistema."
+      "updateNote": "Nota: Você pode instalar atualizações na página Sistema.",
+      "dsfVersion": "Versão DSF: {0}",
+      "notConnected": "(não conectado)"
     },
     "settingsEndstops": {
       "caption": "Endstops",
@@ -634,7 +721,8 @@
       "settingsStorageLocal": "Salvar configurações no armazenamento local",
       "settingsSaveDelay": "Atualizar atraso para alterações nas configurações ({0})",
       "cacheStorageLocal": "Salvar cache no armazenamento local",
-      "cacheSaveDelay": "Atualizar atraso para alterações de cache ({0})"
+      "cacheSaveDelay": "Atualizar atraso para alterações de cache ({0})",
+      "ignoreFileTimestamps": "Ignorar carimbos de data/hora do arquivo no upload"
     },
     "settingsListItems": {
       "caption": "Lista de Itens",
@@ -646,7 +734,8 @@
     "settingsMachine": {
       "caption": "Especificação da Máquina",
       "babystepAmount": "Valor do babystep ({0})",
-      "moveFeedrate": "Velocidade de avanço para botões de movimento ({0})"
+      "moveFeedrate": "Velocidade de avanço para botões de movimento ({0})",
+      "toolChangeMacros": "Macros de mudança de ferramenta"
     },
     "settingsNotifications": {
       "caption": "Notificações",
@@ -710,11 +799,29 @@
         "showInChart": "Mostrar no Gráfico",
         "noItems": "Sem Sensores Extra"
       },
-      "noTools": "Sem Ferramentas"
+      "noTools": "Sem Ferramentas",
+      "controlHeaters": "Aquecedores de controle",
+      "setActiveTemperatures": "Definir temperaturas ativas",
+      "setBedTemperatures": "Definir temperaturas da cama",
+      "setChamberTemperatures": "Definir temperaturas da câmara",
+      "setStandbyTemperatures": "Definir temperaturas de espera",
+      "setToolTemperatures": "Definir temperaturas da ferramenta"
     },
     "webcam": {
       "caption": "Vigilância por webcam",
       "alt": "(imagem da webcam)"
+    },
+    "spindle": {
+      "active": "Ativo",
+      "currentRPM": "RPM atual",
+      "direction": "Direção",
+      "forward": "frente",
+      "off": "Desligado",
+      "on": "Sobre",
+      "reverse": "marcha ré",
+      "setRPM": "Definir RPM",
+      "spindle": "Fuso",
+      "title": "Fusos"
     }
   },
   "plugins": {
@@ -799,7 +906,12 @@
         "caption": "Mostrar Seleção de Objeto",
         "title": "Ativado se objetos pudessem ser detectados na impressão atual"
       },
-      "renderFailed": "A renderização anterior falhou. Configurando a qualidade de renderização para SBC"
+      "renderFailed": "A renderização anterior falhou. Configurando a qualidade de renderização para SBC",
+      "feature": "Característica",
+      "g1AsExtrusion": "Renderizar G1 (CNC)",
+      "showFSOverlay": "Mostrar sobreposição de tela inteira",
+      "useHQRendering": "Renderização de alta qualidade (redondo)",
+      "useSpecular": "Usar destaque especular"
     },
     "heightmap": {
       "menuCaption": "Mapa de Altura",
@@ -822,10 +934,45 @@
       "terrain": "Terreno",
       "heat": "Calor",
       "invertZ": "Inverter coordenadas Z",
-      "topView": "Vista Superior"
+      "topView": "Vista Superior",
+      "deviation": "Desvio",
+      "fixed": "Fixo",
+      "range": "Variar",
+      "resetView": "Redefinir vista"
     },
     "objectModelBrowser": {
-      "menuCaption": "Modelo de Objeto"
+      "menuCaption": "Modelo de Objeto",
+      "documentationNotAvailable": "A documentação não está disponível (/www/DuetAPI.xml não encontrado)",
+      "none": "Nenhum",
+      "remarks": "Observações",
+      "selectedNode": "Nó selecionado:",
+      "summary": "Resumo"
+    },
+    "accelerometer": {
+      "accelerations": "Aceleração (em g)",
+      "amplitudes": "Amplitudes",
+      "analysis": "Análise de frequência",
+      "analyze": "Analisar",
+      "back": "De volta",
+      "chartCaption": "Amostras de aceleração",
+      "end": "Fim",
+      "frequency": "Frequência (em Hz)",
+      "frequencyTooltip": "{0} ± {1}Hz",
+      "listTitle": "Arquivos CSV",
+      "loadError": "Falha ao carregar o arquivo CSV",
+      "name": "Acelerômetro",
+      "noData": "Nenhuma amostra carregada",
+      "none": "Nenhum arquivo",
+      "overflowPrompt": {
+        "prompt": "Este arquivo CSV relatou estouros. \nTem certeza que deseja continuar?",
+        "title": "Estouros detectados"
+      },
+      "parseError": "Falha ao analisar o arquivo CSV",
+      "sampleTooltip": "Amostra",
+      "samples": "Amostras",
+      "samplingRate": "Taxa de amostragem (em Hz)",
+      "start": "Começar",
+      "wideBand": "Análise de banda larga"
     }
   },
   "tabs": {
@@ -853,7 +1000,39 @@
       "stopped": "parado",
       "uninstall": "Desinstalar",
       "noPlugins": "Sem Plugins",
-      "refreshNote": "Atualize a página para terminar de descarregar alguns plug-ins DWC"
+      "refreshNote": "Atualize a página para terminar de descarregar alguns plug-ins DWC",
+      "externalPlugins": "Plug-ins externos",
+      "integratedPlugins": "Plug-ins integrados"
     }
+  },
+  "pluginPermissions": {
+    "codeInterceptionRead": "Interceptar códigos G/M/T",
+    "codeInterceptionReadWrite": "Interceptar códigos de códigos G/M/T e manipulá-los",
+    "commandExecution": "Execute comandos DSF genéricos (por exemplo, códigos G/M/T)",
+    "fileSystemAccess": "Acesse arquivos fora do diretório SD virtual",
+    "gpioAccess": "Acessar dispositivos GPIO",
+    "launchProcesses": "Lançar novos processos",
+    "managePlugins": "Instalar, carregar, descarregar e desinstalar plugins de terceiros",
+    "manageUserSessions": "Gerenciar sessões de usuário",
+    "networkAccess": "Comunique-se pela rede",
+    "objectModelRead": "Ler do modelo de objeto",
+    "objectModelReadWrite": "Ler e gravar no modelo de objeto",
+    "readFilaments": "Ler arquivos do diretório de filamentos",
+    "readFirmware": "Ler arquivos do diretório do firmware",
+    "readGCodes": "Ler arquivos do diretório G-codes",
+    "readMacros": "Ler arquivos do diretório de macros",
+    "readMenu": "Ler arquivos do diretório do menu",
+    "readSystem": "Ler arquivos do diretório do sistema",
+    "readWeb": "Ler arquivos do diretório da web",
+    "registerHttpEndpoints": "Criar novos endpoints HTTP",
+    "superUser": "Executar como usuário root (potencialmente perigoso)",
+    "webcamAccess": "Acessar dispositivos de webcam",
+    "writeFilaments": "Gravar arquivos no diretório de filamentos",
+    "writeFirmware": "Gravar arquivos no diretório do firmware",
+    "writeGCodes": "Gravar arquivos no diretório de códigos G",
+    "writeMacros": "Gravar arquivos no diretório de macros",
+    "writeMenu": "Gravar arquivos no diretório do menu",
+    "writeSystem": "Gravar arquivos no diretório do sistema",
+    "writeWeb": "Gravar arquivos no diretório da web"
   }
 }

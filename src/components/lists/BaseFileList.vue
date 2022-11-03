@@ -67,7 +67,7 @@ td {
 							</div>
 						</template>
 						<template v-else-if="header.unit === 'bytes'">
-							{{ (props.item[header.value] !== null) ? $displaySize(props.item[header.value]) : "" }}
+							{{ (props.item[header.value] !== null && !props.item.isDirectory) ? $displaySize(props.item[header.value]) : "" }}
 						</template>
 						<template v-else-if="header.unit === 'date'">
 							{{ props.item.lastModified ? props.item.lastModified.toLocaleString() : $t("generic.noValue") }}
@@ -123,10 +123,10 @@ td {
 		</v-menu>
 
 		<file-edit-dialog :shown.sync="editDialog.shown" :filename="editDialog.filename" v-model="editDialog.content"
-						  @editComplete="$emit('fileEdited', $event)"></file-edit-dialog>
+						  @editComplete="$emit('fileEdited', $event)" />
 		<input-dialog :shown.sync="renameDialog.shown" :title="$t('dialog.renameFile.title')"
 					  :prompt="$t('dialog.renameFile.prompt')" :preset="renameDialog.item && renameDialog.item.name"
-					  @confirmed="renameCallback"></input-dialog>
+					  @confirmed="renameCallback" />
 	</div>
 </template>
 
@@ -169,7 +169,7 @@ export function isBaseFileListDataTransfer(data: any): data is BaseFileListDataT
 	return (data.type === "dwcFiles" && typeof data.directory === "string" && data.items instanceof Array);
 }
 
-export default Vue.extend({
+export default VDataTable.extend({
 	props: {
 		headers: Array as PropType<Array<BaseFileListHeader>>,
 		sortTable: String,
@@ -239,7 +239,7 @@ export default Vue.extend({
 			return (this.innerValue.length > 0) && (this.innerValue[0].size < maxEditFileSize);
 		},
 		noItemsText(): string {
-			return (this.innerFilelistLoaded || this.isMounted || this.selectedMachine === defaultMachine) ? this.noFilesText : "list.baseFileList.driveUnmounted";
+			return (this.innerFilelistLoaded || this.isMounted || store.state.selectedMachine === defaultMachine) ? this.noFilesText : "list.baseFileList.driveUnmounted";
 		},
 		internalSortBy: {
 			get(): string { return store.state.machine.cache.sorting[this.sortTable].column; },
@@ -266,12 +266,12 @@ export default Vue.extend({
 		return {
 			initialDirectory: this.directory,
 			innerDirectory: this.directory,
-			innerFilelist: new Array<BaseFileListItem>,
+			innerFilelist: new Array<BaseFileListItem>(),
 			innerFilelistLoaded: false,
 			innerLoading: false,
 			innerDoingFileOperation: false,
-			innerValue: new Array<BaseFileListItem>,
-			prevSelection: new Array<BaseFileListItem>,
+			innerValue: new Array<BaseFileListItem>(),
+			prevSelection: new Array<BaseFileListItem>(),
 			contextMenu: {
 				shown: false,
 				touchTimer: null as NodeJS.Timeout | null,
@@ -290,7 +290,6 @@ export default Vue.extend({
 			}
 		}
 	},
-	extends: VDataTable,
 	methods: {
 		toggleAll() {
 			this.innerValue = this.innerValue.length ? [] : this.innerFilelist.slice();
@@ -470,7 +469,7 @@ export default Vue.extend({
 			});
 		},
 		onItemDragStart(item: BaseFileListItem, e: DragEvent) {
-			if (this.noDragDrop || this.contextMenu.touchTimer || this.contextMenu.shown || e.dataTransfer === null) {
+			if (this.noDragDrop || this.contextMenu.touchTimer || this.contextMenu.shown || e.target === null || e.dataTransfer === null) {
 				return;
 			}
 
@@ -513,8 +512,9 @@ export default Vue.extend({
 				}
 			}, this);
 			tableClone.style.backgroundColor = this.$vuetify.theme.dark ? "#424242" : "#FFFFFF";
-			tableClone.style.opacity = "0.7";
 			tableClone.style.position = "absolute";
+			tableClone.style.top = "-1000px";
+			tableClone.style.left = "0px";
 			tableClone.style.pointerEvents = "none";
 			Array.from(tableClone.querySelectorAll("[class^='v-ripple']")).forEach((item) => {
 				Array.from(item.classList)
@@ -524,7 +524,7 @@ export default Vue.extend({
 			table.parentNode?.append(tableClone);
 
 			const x = e.clientX - table.getClientRects()[0].left;
-			const y = e.clientY - table.closest("tr")!.getClientRects()[0].top + offsetY;
+			const y = e.clientY - (e.target as HTMLTableRowElement).getClientRects()[0].top + offsetY;
 			e.dataTransfer.setDragImage(tableClone, x, y);
 
 			setTimeout(() => tableClone.remove(), 0);
@@ -555,13 +555,13 @@ export default Vue.extend({
 				const data = JSON.parse(jsonData);
 				if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
 					const directory = this.innerDirectory;
-					for (const item of data.items) {
-						const from = Path.combine(data.directory, item.name);
-						const to = Path.combine(directory, item.name, item.name);
+					for (const dragItem of data.items) {
+						const from = Path.combine(data.directory, dragItem.name);
+						const to = Path.combine(directory, item.name, dragItem.name);
 						try {
 							await store.dispatch("machine/move", { from, to });
 						} catch (e) {
-							this.$makeNotification(LogType.error, `Failed to move ${item.name} to ${directory}`, getErrorMessage(e));
+							this.$makeNotification(LogType.error, `Failed to move ${dragItem.name} to ${directory}`, getErrorMessage(e));
 							break;
 						}
 					}
@@ -693,7 +693,7 @@ export default Vue.extend({
 		},
 
 		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: Array<string> }) {
-			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
+			if (machine === store.state.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
 				// File or directory has been changed in the current directory
 				this.refresh();
 			}

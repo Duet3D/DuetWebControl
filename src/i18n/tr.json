@@ -119,6 +119,14 @@
       "update": {
         "caption": "Güncelleme Yükleyin",
         "title": "Paketi Yükleyin ve Güncelleyin (Sürükle&Bırak desteklenmektedir)"
+      },
+      "firmware": {
+        "caption": "Bellenim Dosyalarını Yükle",
+        "title": "Bir veya daha fazla üretici yazılımı dosyası yükleyin (sürükle"
+      },
+      "plugin": {
+        "caption": "Eklenti kur",
+        "title": "Bir eklenti yükleyin ve başlatın (sürükle"
       }
     }
   },
@@ -132,12 +140,14 @@
       "layerDuration": "Süre: {0}",
       "layerHeight": "Katman Yüksekliği: {0}",
       "filamentUsage": "Filament Kullanımı: {0}",
-      "fractionPrinted": "Dosya İlerlemesi: {0}"
+      "fractionPrinted": "Dosya İlerlemesi: {0}",
+      "temperatures": "Sıcaklıklar: {0}"
     },
     "temperature": {
       "caption": "Sıcaklık çizelgesi",
       "heater": "Isıtıcı {0}",
-      "noData": "Veri Yok"
+      "noData": "Veri Yok",
+      "sensor": "Sensör {0}"
     }
   },
   "dialog": {
@@ -147,7 +157,9 @@
     },
     "configUpdated": {
       "title": "Yeniden başlat?",
-      "prompt": "Güncellenmiş yapılandırmayı uygulamak için cihazı yeniden başlatmak ister misiniz?"
+      "prompt": "Güncellenmiş yapılandırmayı uygulamak için cihazı yeniden başlatmak ister misiniz?",
+      "reset": "Anakartı Yeniden Başlat",
+      "runConfig": "Yapılandırma Dosyasını Çalıştır"
     },
     "connect": {
       "title": "Cihaza Bağlan",
@@ -181,13 +193,15 @@
     "filament": {
       "titleChange": "Filament Değiştir",
       "titleLoad": "Filament Yükle",
-      "prompt": "Lütfen filamenti seçin:"
+      "prompt": "Lütfen filamenti seçin:",
+      "noFilaments": "Filament yok"
     },
     "fileEdit": {
       "gcodeReference": "G-Code Referansı",
       "menuReference": "Menü Referansı",
       "save": "Kaydet",
-      "confirmClose": "Dosya değiştirildi. Devam edersen, değişikliklerin kaybolacak."
+      "confirmClose": "Dosya değiştirildi. Devam edersen, değişikliklerin kaybolacak.",
+      "confirmSaveEmpty": "Kaydetmek istediğiniz dosya boş görünüyor. Devam etmek istediğinizden emin misiniz?"
     },
     "meshEdit": {
       "title": "Kafes Parametrelerini Ayarla",
@@ -228,10 +242,64 @@
     },
     "update": {
       "title": "Güncellemeleri yükle?",
-      "prompt": "En az bir ürün yazılımı güncellemesi yüklediniz. Onları şimdi yüklemek ister misiniz?"
+      "prompt": "En az bir ürün yazılımı güncellemesi yüklediniz. Onları şimdi yüklemek ister misiniz?",
+      "resetPrompt": "Genişletme kartı güncellemelerini yeni yüklediniz. \nÖnceki yapılandırmayı geri yüklemek için ana denetleyiciyi yeniden başlatmak istiyor musunuz?",
+      "resetTitle": "Ürün yazılımı sıfırlansın mı?",
+      "sbcWarning": "Makinenizi SBC modunda çalıştırıyorsunuz. \nLütfen donanım yazılımını yalnızca donanım yazılımı geliştiricileri tarafından tavsiye edilirse DWC kullanarak yükseltin."
     },
     "inputRequired": "Lütfen bir değer girin",
-    "numberRequired": "Lütfen geçerli bir sayı girin"
+    "numberRequired": "Lütfen geçerli bir sayı girin",
+    "fileTransfer": {
+      "cancelDownloads": "İndirmeleri İptal Et",
+      "cancelUploads": "Yüklemeleri İptal Et",
+      "currentSpeed": "Mevcut Hız: {0}",
+      "downloadDoneTitle": "İndirmeler Tamamlandı",
+      "downloadFailedTitle": "İndirmeler Başarısız!",
+      "downloadingTitle": "{1} dosyadan {0} dosyası indiriliyor, %{2} tamamlandı",
+      "filename": "Dosya adı",
+      "progress": "İlerlemek",
+      "size": "Boyut",
+      "uploadDoneTitle": "Yüklemeler Tamamlandı!",
+      "uploadFailedTitle": "Yüklemeler Başarısız!",
+      "uploadingTitle": "{1} / {1} Dosyası {0} yükleniyor, % {2} tamamlandı"
+    },
+    "pluginInstallation": {
+      "back": "Geri",
+      "by": "{0} tarafından",
+      "cancel": "İptal",
+      "checkboxDisclaimer": "Riskleri kabul ediyorum, bu eklentiyi kurun",
+      "contents": "Bu paket, aşağıdakiler için yazılım bileşenleri sağlar:",
+      "dsf": "Düet Yazılım Çerçevesi",
+      "dwc": "Düet Web Kontrolü",
+      "dwcWarning": "Bu eklenti, web arayüzü için bileşenler içerir. \nTarayıcı oturumlarında izin denetimi uygulanamaz, bu nedenle sisteminizi manipüle edebilir ve kurulumunuzun fiziksel olarak zarar görmesine neden olabilecek güvenlik tehlikeleri oluşturabilir.",
+      "finish": "Bitiş",
+      "homepage": "Ana Sayfa:",
+      "installation": "Eklenti Kurulumu",
+      "installationFailed": "Yükleme başarısız!",
+      "installationSuccess": "Kurulum tamamlandı!",
+      "invalidManifest": "Geçersiz eklenti bildirimi",
+      "license": "Lisans: {0}",
+      "next": "Sonraki",
+      "noPluginSupport": "Harici Eklentilere izin verilmiyor",
+      "noSpecialPermissions": "Bu eklenti herhangi bir özel izin gerektirmez.",
+      "permissions": "Gerekli İzinler",
+      "prerequisites": "Önkoşullar",
+      "progress": "Kurulum İlerlemesi",
+      "progressText": "Eklenti kurulurken lütfen bekleyin...",
+      "prompt": "Aşağıdaki eklenti yüklenecek:",
+      "ready": "Kurulum Hazır",
+      "readyDisclaimer": "Devam etmeden önce, bu üçüncü taraf eklentisinin kurulumundan kaynaklanan olası hasarlardan Duet3D Ltd'nin sorumlu tutulamayacağını kabul etmelisiniz.",
+      "readyMessage": "Eklenti artık kurulmaya hazırdır. \nLütfen bu son adımı onaylamadan önce eklenti yazarına güvendiğinizden emin olun.",
+      "reloadPrompt": {
+        "prompt": "Az önce aktif bir DWC eklentisini güncellediniz. \nYeni sürümü kullanmak için web arayüzünün yeniden yüklenmesi gerekir. \nBunu şimdi yapmak istiyor musun?",
+        "title": "DWC yeniden yüklensin mi?"
+      },
+      "rootSupport": "Süper Kullanıcı Eklentileri Desteği",
+      "rootWarning": "Bu eklenti, süper kullanıcı izinleri gerektirir; bu, ekli SBC'yi yeniden yapılandırabileceği ve potansiyel olarak kötü amaçlı yazılım yükleyebileceği anlamına gelir. \nBu, kurulumunuzun fiziksel olarak zarar görmesine neden olabilir.",
+      "rrf": "RepRapFirmware",
+      "sbcPermissions": "SBC'de çalışan eklenti,",
+      "version": "Sürüm {0}"
+    }
   },
   "directory": {
     "filaments": "Filament Dizini",
@@ -239,7 +307,8 @@
     "macros": "Makro Dizini",
     "menu": "Menü Dizini",
     "system": "Sistem Dizini",
-    "web": "WWW Dizini"
+    "web": "WWW Dizini",
+    "firmware": "Bellenim Dizini"
   },
   "error": {
     "notImplemented": "{0} uygulanmadı",
@@ -266,7 +335,8 @@
     "filelistRequestFailed": "Dosya listesi alınamadı",
     "fileinfoRequestFailed": "{0} için dosya bilgisi alınamadı",
     "filamentsLoadFailed": "Filamentler yüklenemedi",
-    "move": "{0}, {1} klasörüne taşınamadı"
+    "move": "{0}, {1} klasörüne taşınamadı",
+    "badVersion": "Uyumsuz donanım yazılımı sürümü"
   },
   "events": {
     "connected": "{0} ağına bağlandı",
@@ -310,7 +380,10 @@
       "busy": "Meşgul",
       "changingTool": "Takım Değiştiriliyor",
       "idle": "Boşta",
-      "unknown": "Bilinmiyor"
+      "unknown": "Bilinmiyor",
+      "cancelling": "İptal",
+      "disconnected": "Bağlantı kesildi",
+      "starting": "Başlangıç"
     },
     "rpm": "Devir",
     "sdCard": "SD Kart {0}",
@@ -327,7 +400,8 @@
       "placeholder": "Kodu gönder..."
     },
     "addTemperature": "Yeni sıcaklık değeri",
-    "addRPM": "Yeni hazır ayarın değeri"
+    "addRPM": "Yeni hazır ayarın değeri",
+    "set": "Ayarlamak"
   },
   "jobProgress": {
     "simulating": "{0}, {1} simülasyonu tamamlandı",
@@ -390,6 +464,10 @@
     "system": {
       "noFiles": "Sistem Dosyası Yok",
       "configToolNote": "yapılandırma aracı ile düzenle"
+    },
+    "firmware": {
+      "installFile": "Bellenim Dosyasını Yükle",
+      "noFiles": "Bellenim Dosyası Yok"
     }
   },
   "menu": {
@@ -417,6 +495,9 @@
       "caption": "Ayarlar",
       "general": "Genel",
       "machine": "Tanımlı Ayarlar"
+    },
+    "plugins": {
+      "caption": "Eklentiler"
     }
   },
   "notification": {
@@ -472,6 +553,19 @@
       "message": "Dosya yüklenirken lütfen bekleyin...",
       "success": "{0} yüklendi, başarılı {1}",
       "error": "{0} yüklenemedi"
+    },
+    "decompress": {
+      "errorTitle": "Dosyaların sıkıştırması açılamadı",
+      "message": "Dosyalarınız açılırken lütfen bekleyin...",
+      "title": "Dosyaların sıkıştırılması..."
+    },
+    "plugins": {
+      "startError": "Eklenti başlatılamadı",
+      "started": "Eklenti başlatıldı",
+      "stopError": "Eklenti başlatılamadı",
+      "stopped": "Eklenti durduruldu",
+      "uninstallError": "Eklenti kaldırılamadı",
+      "uninstalled": "Eklenti kaldırıldı"
     }
   },
   "panel": {
@@ -525,7 +619,8 @@
       "resumeSimulation": "Simülasyonu Sürdür",
       "repeatJob": "Tekrar başla",
       "repeatPrint": "Tekrar Yazdır",
-      "repeatSimulation": "Tekrar Simüle Et"
+      "repeatSimulation": "Tekrar Simüle Et",
+      "showPreview": "Önizlemeyi Göster"
     },
     "jobData": {
       "caption": "Toplanan veri",
@@ -561,13 +656,19 @@
       "runMesh": "Ağ Kompanzasyonunu Çalıştır (G29)",
       "loadMesh": "SD Karttan Kaydedilen Yükseklik Haritasını Yükle (G29 S1)",
       "axesNotHomed": "Aşağıdaki eksen referansta değil: | Aşağıdaki eksenler referansta değil:",
-      "noAxes": "Eksen Yok"
+      "noAxes": "Eksen Yok",
+      "set": "{0} ayarla",
+      "setWorkXYZ": "Çalışmayı Ayarla XYZ",
+      "compensationType": {
+        "mesh": "ağ",
+        "none": "Hiçbiri"
+      },
+      "workzero": "Sıfıra Git"
     },
     "settingsAbout": {
       "caption": "Hakkında",
-      "developedBy": "Web arayüzünü geliştiren",
-      "for": "/",
-      "licensedUnder": "Şartları uyarınca lisanslıdır."
+      "credits": "{Duet3D} için {yazar} tarafından geliştirilen web arayüzü.",
+      "license": "{gpl} koşulları altında lisanslanmıştır."
     },
     "settingsAppearance": {
       "caption": "Görünüm",
@@ -576,17 +677,28 @@
       "binaryFileSizes": "Bimary dosya boyutlarını kullan",
       "binaryFileSizesTitle": "Dosya boyutları 1000 (SI) yerine 1024 (IEC) temelinde görüntülenir",
       "disableAutoComplete": "Otomatik tamamlamayı devre dışı bırak",
-      "disableAutoCompleteTitle": "Kod veya sıcaklık girişlerini yazarken otomatik tamamlama listesini gösterme"
+      "disableAutoCompleteTitle": "Kod veya sıcaklık girişlerini yazarken otomatik tamamlama listesini gösterme",
+      "bottomNavigation": "Tablet cihazlarda alt gezinmeyi göster",
+      "dashboardModeTitle": "Pano Modu",
+      "decimalPlaces": "Koordinat ekranındaki ondalık nokta sayısı",
+      "displayUnitsTitle": "Koordinat gösterimi için ölçü birimi",
+      "iconMenu": "Kompakt simge menüsünü kullan",
+      "numericInputs": "Kaydırıcılar yerine sayısal giriş alanlarını göster",
+      "unitInch": "içinde",
+      "unitInchSpeed": "ipm",
+      "unitInches": "inç",
+      "unitMm": "mm",
+      "unitMmSpeed": "mm/sn"
     },
     "settingsCommunication": {
       "caption": "İletişim",
       "pingInterval": "Boşta kaldığında PING aralığı (ms)",
       "ajaxRetries": "Maksimum AJAX yeniden deneme sayısı",
       "updateInterval": "Güncelleme aralığı ({0})",
-      "extendedUpdateEvery": "Genişletilmiş durum güncelleme aralığı",
       "fileTransferRetryThreshold": "Dosya aktarımları için yeniden deneme eşiği ({0})",
       "crcUploads": "Yüklemeler için CRC32 sağlama toplamlarını kullanın",
-      "unavailable": "Kullanılabilir ayar yok"
+      "unavailable": "Kullanılabilir ayar yok",
+      "updateDelay": "Güncelleme gecikmesi (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronik",
@@ -594,7 +706,9 @@
       "board": "Kart: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Duet WiFi Server Sürümü: {0}",
-      "updateNote": "Not: Güncellemeleri Sistem sayfasına yükleyebilirsiniz."
+      "updateNote": "Not: Güncellemeleri Sistem sayfasına yükleyebilirsiniz.",
+      "dsfVersion": "DSF Sürümü: {0}",
+      "notConnected": "(bağlı değil)"
     },
     "settingsEndstops": {
       "caption": "Endstops",
@@ -607,7 +721,8 @@
       "settingsStorageLocal": "Ayarları yerel depolama alanına kaydedin",
       "settingsSaveDelay": "Ayar değişiklikleri için güncelleme gecikmesi ({0})",
       "cacheStorageLocal": "Önbelleği yerel depolama alanına kaydet",
-      "cacheSaveDelay": "Önbellek değişiklikleri için güncelleme gecikmesi ({0})"
+      "cacheSaveDelay": "Önbellek değişiklikleri için güncelleme gecikmesi ({0})",
+      "ignoreFileTimestamps": "Yükleme sırasında dosya zaman damgalarını yoksay"
     },
     "settingsListItems": {
       "caption": "Liste Öğeleri",
@@ -619,7 +734,8 @@
     "settingsMachine": {
       "caption": "Cihaza özel",
       "babystepAmount": "Mikro adım miktarı ({0})",
-      "moveFeedrate": "Hareket butonları için ilerleme hızı ({0})"
+      "moveFeedrate": "Hareket butonları için ilerleme hızı ({0})",
+      "toolChangeMacros": "Takım değiştirme makroları"
     },
     "settingsNotifications": {
       "caption": "Bildirimler",
@@ -683,11 +799,29 @@
         "showInChart": "Grafikte Göster",
         "noItems": "Ekstra Isıtıcı Yok"
       },
-      "noTools": "Takım Yok"
+      "noTools": "Takım Yok",
+      "controlHeaters": "Kontrol Isıtıcıları",
+      "setActiveTemperatures": "Aktif sıcaklıkları ayarla",
+      "setBedTemperatures": "Yatak sıcaklıklarını ayarla",
+      "setChamberTemperatures": "Oda sıcaklıklarını ayarlayın",
+      "setStandbyTemperatures": "Bekleme sıcaklıklarını ayarla",
+      "setToolTemperatures": "Takım sıcaklıklarını ayarlayın"
     },
     "webcam": {
       "caption": "Web Kamerası Gözetimi",
       "alt": "(web kamerası görüntüsü)"
+    },
+    "spindle": {
+      "active": "Aktif",
+      "currentRPM": "Mevcut RPM",
+      "direction": "Yön",
+      "forward": "ileri",
+      "off": "Kapalı",
+      "on": "Açık",
+      "reverse": "tersi",
+      "setRPM": "RPM'yi ayarla",
+      "spindle": "mil",
+      "title": "iğler"
     }
   },
   "plugins": {
@@ -706,7 +840,199 @@
       "topView": "Üstten görünüm",
       "colorScheme": "Renk şeması:",
       "terrain": "Arazi",
-      "heat": "Sıcaklık"
+      "heat": "Sıcaklık",
+      "deviation": "Sapma",
+      "display": "Görüntülemek",
+      "fixed": "Sabit",
+      "invertZ": "Z koordinatlarını ters çevir",
+      "listTitle": "Yükseklik Haritaları",
+      "menuCaption": "Yükseklik Haritası",
+      "none": "Hiçbiri",
+      "range": "Menzil",
+      "resetView": "Görünümü SIFIRLAMAK",
+      "statistics": "İstatistik"
+    },
+    "objectModelBrowser": {
+      "documentationNotAvailable": "Belgeler mevcut değil (/www/DuetAPI.xml bulunamadı)",
+      "none": "Hiçbiri",
+      "remarks": "Notlar",
+      "selectedNode": "Seçilen düğüm:",
+      "summary": "Özet",
+      "menuCaption": "Nesne Modeli"
+    },
+    "accelerometer": {
+      "accelerations": "Hızlanmalar (g cinsinden)",
+      "amplitudes": "genlikler",
+      "analysis": "Frekans Analizi",
+      "analyze": "analiz et",
+      "back": "Geri",
+      "chartCaption": "Hızlanma Örnekleri",
+      "end": "Son",
+      "frequency": "Frekans (Hz olarak)",
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "listTitle": "CSV Dosyaları",
+      "loadError": "CSV dosyası yüklenemedi",
+      "name": "ivmeölçer",
+      "noData": "Yüklenen Örnek Yok",
+      "none": "Dosya yok",
+      "overflowPrompt": {
+        "prompt": "Bu CSV dosyasında taşmalar bildirildi. \nDevam etmek istediğinizden emin misiniz?",
+        "title": "Taşma tespit edildi"
+      },
+      "parseError": "CSV dosyası ayrıştırılamadı",
+      "sampleTooltip": "Örneklem",
+      "samples": "örnekler",
+      "samplingRate": "Örnekleme Hızı (Hz olarak)",
+      "start": "Başlama",
+      "wideBand": "Geniş bant analizi"
+    },
+    "autoUpdate": {
+      "menuCaption": "Güncelleme"
+    },
+    "gcodeViewer": {
+      "background": "Arka fon",
+      "bed": "Yatak",
+      "bedRenderMode": "Yatak Oluşturma Modu",
+      "bottomClipping": "Alt Kırpma",
+      "cameraInertia": "Kamera Atalet",
+      "cancelLoad": "Dosya Yüklemeyi İptal Et",
+      "caption": "G Kodu Görüntüleyici",
+      "color": "Renk",
+      "extruders": {
+        "caption": "Ekstrüderler",
+        "title": "Bir ekstrüder oluşturmak için kullanılan rengi ayarlar"
+      },
+      "feature": "Özellik",
+      "feedrate": "İlerleme hızı",
+      "forceLineRendering": "Çizgi Oluşturmayı Zorla",
+      "fullscreen": "Tam ekran",
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "high": "Yüksek",
+      "liveZTracking": "Canlı Z Takibi",
+      "loadCurrentJob": {
+        "caption": "Mevcut İşi Yükle",
+        "title": "Geçerli yazdırma veya simülasyon işini yükleyin"
+      },
+      "loadLocalGCode": {
+        "caption": "Yerel GCode'u Yükle",
+        "title": "Yerel sürücünüzden görüntüleyiciye bir dosya yükleyin"
+      },
+      "low": "Düşük",
+      "max": "Maks.",
+      "maxFeedrate": "Maksimum İlerleme Hızı (mm/s)",
+      "maxFeedrateColor": "Maksimum İlerleme Hızı Renk",
+      "medium": "Orta",
+      "minFeedrate": "Minimum İlerleme Hızı (mm/sn)",
+      "minFeedrateColor": "Minimum İlerleme Hızı Rengi",
+      "progress": {
+        "caption": "İlerlemek",
+        "title": "İlerleme takibi için yazdırılan rengi ayarlayın"
+      },
+      "progressColor": "İlerleme Rengi",
+      "reloadView": {
+        "caption": "Görünümü Yeniden Yükle",
+        "title": "Geçerli gcode'u yeniden yükleyin; bu, renk, besleme hızı rengi vb. gibi ayarları değiştirirken kullanılır."
+      },
+      "renderFailed": "Önceki oluşturma başarısız oldu. \nOluşturma kalitesini SBC olarak ayarlama",
+      "renderMode": {
+        "caption": "İşleme Modu | \nİşleme Modları",
+        "title": "Oluşturma modu, görüntüleyicide ekstrüder rengini veya besleme hızı çizgi rengini ayarlamanıza olanak tanır"
+      },
+      "renderQuality": {
+        "caption": "Render kalitesi",
+        "title": "İzleyicinin görselleştirme kalitesini ayarlayın. \nSeviye ne kadar yüksek olursa, o kadar fazla köşe ve işleme modu kullanılabilir hale gelir"
+      },
+      "resetCamera": {
+        "caption": "Kamerayı Sıfırla",
+        "title": "Kamerayı ana konuma sıfırlayın"
+      },
+      "resetColor": "Araç Rengini Sıfırla | \nAraç Renklerini Sıfırla",
+      "sbc": "SBC",
+      "settings": "Ayarlar",
+      "showAxes": "Eksenleri Göster",
+      "showConfiguration": "Görüntüleyici Yapılandırmasını Göster",
+      "showCursor": "İmleci Göster",
+      "showFSOverlay": "Tam Ekran Yer Paylaşımını Göster",
+      "showObjectLabels": "Nesne Etiketlerini Göster",
+      "showObjectSelection": {
+        "caption": "Nesne Seçimini Göster",
+        "title": "Geçerli baskıda nesneler algılanabiliyorsa etkinleştirilir"
+      },
+      "showSolid": "Katı Göster",
+      "showTravels": "Seyahatleri Göster",
+      "spreadLines": "Yayılma Çizgileri",
+      "tool": "Araç {0}",
+      "topClipping": "Üst Kırpma",
+      "transparency": "şeffaflık",
+      "ultra": "Ultra",
+      "unloadGCode": {
+        "caption": "GCode'u kaldır",
+        "title": "Yüklenen gcode'u görüntüleyiciden kaldırın"
+      },
+      "useHQRendering": "Yüksek Kaliteli Render (Yuvarlak)",
+      "useSpecular": "Aynasal Vurguyu Kullan",
+      "view3D": "3D görüntüle",
+      "volume": "Ses"
+    }
+  },
+  "pluginPermissions": {
+    "codeInterceptionRead": "G/M/T kodlarını durdur",
+    "codeInterceptionReadWrite": "G/M/T kodlarını ele geçirin ve bunları manipüle edin",
+    "commandExecution": "Genel DSF komutlarını yürütün (ör. G/M/T kodları)",
+    "fileSystemAccess": "Sanal SD dizini dışındaki dosyalara erişin",
+    "gpioAccess": "GPIO cihazlarına erişin",
+    "launchProcesses": "Yeni süreçleri başlat",
+    "managePlugins": "Üçüncü taraf eklentileri yükleyin, yükleyin, kaldırın ve kaldırın",
+    "manageUserSessions": "Kullanıcı oturumlarını yönet",
+    "networkAccess": "Ağ üzerinden iletişim kurun",
+    "objectModelRead": "Nesne modelinden oku",
+    "objectModelReadWrite": "Nesne modelinden okuma ve yazma",
+    "readFilaments": "Filamentler dizinindeki dosyaları okuyun",
+    "readFirmware": "Firmware dizinindeki dosyaları okuyun",
+    "readGCodes": "G kodları dizinindeki dosyaları okuyun",
+    "readMacros": "Makrolar dizinindeki dosyaları okuyun",
+    "readMenu": "Menü dizininden dosyaları okuyun",
+    "readSystem": "Sistem dizininden dosyaları okuyun",
+    "readWeb": "Web dizinindeki dosyaları okuyun",
+    "registerHttpEndpoints": "Yeni HTTP uç noktaları oluşturun",
+    "superUser": "Kök kullanıcı olarak çalıştırın (potansiyel olarak tehlikeli)",
+    "webcamAccess": "Web kamerası cihazlarına erişin",
+    "writeFilaments": "Dosyaları filamentler dizinine yazın",
+    "writeFirmware": "Dosyaları üretici yazılımı dizinine yazın",
+    "writeGCodes": "Dosyaları G kodları dizinine yazın",
+    "writeMacros": "Dosyaları makrolar dizinine yazın",
+    "writeMenu": "Dosyaları menü dizinine yazın",
+    "writeSystem": "Dosyaları sistem dizinine yazın",
+    "writeWeb": "Dosyaları web dizinine yazın"
+  },
+  "tabs": {
+    "generalSettings": {
+      "caption": "Genel"
+    },
+    "machineSettings": {
+      "caption": "Genel"
+    },
+    "plugins": {
+      "deactivated": "devre dışı",
+      "externalPlugins": "Harici Eklentiler",
+      "headers": {
+        "author": "Yazar",
+        "dependencies": "bağımlılıklar",
+        "license": "Lisans",
+        "name": "İsim",
+        "status": "Durum",
+        "version": "Sürüm"
+      },
+      "integratedPlugins": "Entegre Eklentiler",
+      "noPlugins": "Eklenti Yok",
+      "optional": "isteğe bağlı",
+      "partiallyStarted": "kısmen başladı",
+      "refreshNote": "Bazı DWC eklentilerini boşaltmayı tamamlamak için sayfayı yenileyin",
+      "start": "Başlama",
+      "started": "başladı",
+      "stop": "Durmak",
+      "stopped": "durdu",
+      "uninstall": "Kaldır"
     }
   }
 }

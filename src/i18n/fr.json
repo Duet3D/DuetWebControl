@@ -123,6 +123,10 @@
       "update": {
         "caption": "Envoyer Mise à Jour",
         "title": "Envoyer un paquet de mise à jour (le glisser/déposer est supporté)"
+      },
+      "firmware": {
+        "caption": "Télécharger les fichiers du micrologiciel",
+        "title": "Téléchargez un ou plusieurs fichiers de firmware (faites glisser"
       }
     }
   },
@@ -136,12 +140,14 @@
       "layerDuration": "Durée: {0}",
       "layerHeight": "Hauteur de Couche: {0}",
       "filamentUsage": "Utilisation de Filament: {0}",
-      "fractionPrinted": "Progrès du Fichier: {0}"
+      "fractionPrinted": "Progrès du Fichier: {0}",
+      "temperatures": "Températures : {0}"
     },
     "temperature": {
       "caption": "Graphique de Température",
       "heater": "Chauffage {0}",
-      "noData": "Aucune donnée"
+      "noData": "Aucune donnée",
+      "sensor": "Capteur {0}"
     }
   },
   "dialog": {
@@ -151,7 +157,9 @@
     },
     "configUpdated": {
       "title": "Redémarrer la Carte?",
-      "prompt": "Voulez-vous redémarrer la carte pour appliquer la mise à jour de la configuration?"
+      "prompt": "Voulez-vous redémarrer la carte pour appliquer la mise à jour de la configuration?",
+      "reset": "Redémarrer la carte mère",
+      "runConfig": "Exécuter le fichier de configuration"
     },
     "connect": {
       "title": "Connecter à la Machine",
@@ -185,13 +193,15 @@
     "filament": {
       "titleChange": "Changer Filament",
       "titleLoad": "Charger Filament",
-      "prompt": "Merci de choisir un filament:"
+      "prompt": "Merci de choisir un filament:",
+      "noFilaments": "Aucun filament disponible"
     },
     "fileEdit": {
       "gcodeReference": "Références G-Code",
       "menuReference": "Référence Menu",
       "save": "Sauvegarder",
-      "confirmClose": "Le fichier a été modifié. Si vous continuez, vos modifications seront perdues."
+      "confirmClose": "Le fichier a été modifié. Si vous continuez, vos modifications seront perdues.",
+      "confirmSaveEmpty": "Il semble que le fichier que vous souhaitez enregistrer est vide. Êtes-vous sûr de vouloir continuer?"
     },
     "meshEdit": {
       "title": "Définir Paramètres de Maillage",
@@ -232,10 +242,64 @@
     },
     "update": {
       "title": "Installer Mise à Jour?",
-      "prompt": "Vous avez envoyer au moins une mise à jour logiciel. Voulez-vous les installer maintenant?"
+      "prompt": "Vous avez envoyer au moins une mise à jour logiciel. Voulez-vous les installer maintenant?",
+      "resetPrompt": "Vous venez d'installer les mises à jour de la carte d'extension. \nVoulez-vous redémarrer le contrôleur principal pour restaurer la configuration précédente ?",
+      "resetTitle": "Réinitialiser le micrologiciel ?",
+      "sbcWarning": "Vous utilisez votre machine en mode SBC. \nVeuillez mettre à niveau le micrologiciel à l'aide de DWC uniquement si cela est conseillé par les développeurs du micrologiciel."
     },
     "inputRequired": "Merci d'entrer une nouvelle valeur",
-    "numberRequired": "Merci d'entrer un nombre valide"
+    "numberRequired": "Merci d'entrer un nombre valide",
+    "fileTransfer": {
+      "cancelDownloads": "Annuler les téléchargements",
+      "cancelUploads": "Annuler les téléchargements",
+      "currentSpeed": "Vitesse actuelle : {0}",
+      "downloadDoneTitle": "Téléchargements terminés",
+      "downloadFailedTitle": "Les téléchargements ont échoué !",
+      "downloadingTitle": "Téléchargement du fichier {0} sur {1}, {2} % terminé",
+      "filename": "Nom de fichier",
+      "progress": "Progrès",
+      "size": "Taille",
+      "uploadDoneTitle": "Téléchargements terminés !",
+      "uploadFailedTitle": "Les téléchargements ont échoué !",
+      "uploadingTitle": "Téléchargement du fichier {0} sur {1}, {2} % terminé"
+    },
+    "pluginInstallation": {
+      "back": "Retour",
+      "by": "par {0}",
+      "cancel": "Annuler",
+      "checkboxDisclaimer": "J'accepte les risques, installez ce plugin",
+      "contents": "Ce package fournit des composants logiciels pour",
+      "dsf": "Cadre logiciel Duet",
+      "dwc": "Contrôle Web du duo",
+      "dwcWarning": "Ce plugin contient des composants pour l'interface Web. \nAucune vérification des autorisations ne peut être appliquée dans les sessions du navigateur, ce qui peut manipuler votre système et créer des risques de sécurité susceptibles d'endommager physiquement votre configuration.",
+      "finish": "Finir",
+      "homepage": "Page d'accueil :",
+      "installation": "Installation du plug-in",
+      "installationFailed": "L'installation a échoué!",
+      "installationSuccess": "Installation complète!",
+      "invalidManifest": "Manifeste de plug-in non valide",
+      "license": "Licence : {0}",
+      "next": "Prochain",
+      "noPluginSupport": "Plugins externes non autorisés",
+      "noSpecialPermissions": "Ce plugin ne nécessite aucune autorisation spéciale.",
+      "permissions": "Autorisations requises",
+      "prerequisites": "Conditions préalables",
+      "progress": "Progression de l'installation",
+      "progressText": "Veuillez patienter pendant l'installation du plugin...",
+      "prompt": "Le plugin suivant sera installé :",
+      "ready": "Installation prête",
+      "readyDisclaimer": "Avant de pouvoir continuer, vous devez accepter que Duet3D Ltd ne peut être tenu responsable des dommages potentiels résultant de l'installation de ce plugin tiers.",
+      "readyMessage": "Le plugin est maintenant prêt à être installé. \nAssurez-vous de faire confiance à l'auteur du plugin avant de confirmer cette dernière étape.",
+      "reloadPrompt": {
+        "prompt": "Vous venez de mettre à jour un plugin DWC actif. \nPour utiliser la nouvelle version, l'interface web doit être rechargée. \nVoulez-vous le faire maintenant ?",
+        "title": "Recharger DWC ?"
+      },
+      "rootSupport": "Prise en charge des plugins super-utilisateur",
+      "rootWarning": "Ce plugin nécessite des autorisations de super-utilisateur, ce qui signifie qu'il peut reconfigurer le SBC attaché et installer des logiciels potentiellement malveillants. \nCela pourrait entraîner des dommages physiques de votre configuration.",
+      "rrf": "Micrologiciel RepRap",
+      "sbcPermissions": "Le plugin s'exécutant sur le SBC veut",
+      "version": "Édition {0}"
+    }
   },
   "directory": {
     "menu": "Répertoire Menu",
@@ -243,7 +307,8 @@
     "gcodes": "Répertoire G-Codes",
     "macros": "Répertoire Macros",
     "system": "Répertoire Systeme",
-    "web": "Répertoire WWW"
+    "web": "Répertoire WWW",
+    "firmware": "Répertoire du micrologiciel"
   },
   "error": {
     "notImplemented": "{0} n'est pas implémenté",
@@ -270,7 +335,8 @@
     "filelistRequestFailed": "Impossible d'obtenir la liste des fichiers",
     "fileinfoRequestFailed": "Impossible d'obtenir les informations du fichier pour {0}",
     "filamentsLoadFailed": "Impossible de charger le filament",
-    "move": "Impossible de déplacer {0} à {1}"
+    "move": "Impossible de déplacer {0} à {1}",
+    "badVersion": "Version de micrologiciel incompatible"
   },
   "events": {
     "connected": "Connecté à {0}",
@@ -314,7 +380,10 @@
       "busy": "Occupé",
       "changingTool": "Changement d'Outil",
       "idle": "Au repos",
-      "unknown": "Inconnu"
+      "unknown": "Inconnu",
+      "cancelling": "Annulation",
+      "disconnected": "Débranché",
+      "starting": "Départ"
     },
     "rpm": "TPM",
     "sdCard": "Carte SD {0}",
@@ -331,7 +400,8 @@
       "placeholder": "Envoyer Code..."
     },
     "addTemperature": "Valeur de la nouvelle température",
-    "addRPM": "Valeur du nouveau preset"
+    "addRPM": "Valeur du nouveau preset",
+    "set": "Régler"
   },
   "jobProgress": {
     "simulating": "Simulation {0}, {1} complète",
@@ -394,6 +464,10 @@
     "system": {
       "noFiles": "Aucun Fichiers Système",
       "configToolNote": "éditer via l'outil de configuration"
+    },
+    "firmware": {
+      "installFile": "Installer le fichier du micrologiciel",
+      "noFiles": "Aucun fichier de micrologiciel"
     }
   },
   "menu": {
@@ -421,6 +495,9 @@
       "caption": "Paramètres",
       "general": "Général",
       "machine": "Spécifique à la Machine"
+    },
+    "plugins": {
+      "caption": "Plugins"
     }
   },
   "notification": {
@@ -476,6 +553,19 @@
       "message": "Veuillez patienter pendant que le fichier est envoyé...",
       "success": "Envoi de {0} réussi après {1}",
       "error": "Échec de l'envoi de {0}"
+    },
+    "decompress": {
+      "errorTitle": "Impossible de décompresser les fichiers",
+      "message": "Veuillez patienter pendant la décompression de vos fichiers...",
+      "title": "Décompression des fichiers..."
+    },
+    "plugins": {
+      "startError": "Échec du démarrage du plug-in",
+      "started": "Le plugin a été démarré",
+      "stopError": "Échec du démarrage du plug-in",
+      "stopped": "Le plug-in a été arrêté",
+      "uninstallError": "Impossible de désinstaller le plug-in",
+      "uninstalled": "Le plugin a été désinstallé"
     }
   },
   "panel": {
@@ -570,13 +660,15 @@
       "runMesh": "Lancer Mesh Compensation (G29)",
       "loadMesh": "Charger la Carte de Hauteur Sauvegardée (G29 S1)",
       "axesNotHomed": "L'axe suivant  n'a pas été à son origine:|Les axes suivants n'ont pas été à leur origine:",
-      "noAxes": "Pas d'axes"
+      "noAxes": "Pas d'axes",
+      "set": "Définir {0}",
+      "setWorkXYZ": "Définir le travail XYZ",
+      "workzero": "Aller à zéro"
     },
     "settingsAbout": {
       "caption": "À propos",
-      "developedBy": "Interface web dévelopée par",
-      "for": "pour",
-      "licensedUnder": "Sous licence selon les termes de la"
+      "credits": "Interface Web développée par {author} pour {Duet3D}.",
+      "license": "Sous licence selon les termes de la {gpl}."
     },
     "settingsAppearance": {
       "caption": "Apparence",
@@ -589,7 +681,14 @@
       "dashboardModeTitle": "Mode Tableau de bord",
       "bottomNavigation": "Afficher la navigation en bas de page sur les tablettes",
       "numericInputs": "Afficher les champs de saisie numérique au lieu des curseurs",
-      "iconMenu": "Utiliser le menu d'icônes compactes"
+      "iconMenu": "Utiliser le menu d'icônes compactes",
+      "decimalPlaces": "Nombre de décimales dans l'affichage des coordonnées",
+      "displayUnitsTitle": "Unité de mesure pour l'affichage des coordonnées",
+      "unitInch": "dans",
+      "unitInchSpeed": "ipm",
+      "unitInches": "pouces",
+      "unitMm": "millimètre",
+      "unitMmSpeed": "mm/s"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -597,7 +696,6 @@
       "updateDelay": "Délai de mise à jour (ms)",
       "ajaxRetries": "Nombre maximal de tentatives AJAX",
       "updateInterval": "Intervalle de mise à jour ({0})",
-      "extendedUpdateEvery": "Intervalle de mise à jour du statut étendu",
       "fileTransferRetryThreshold": "Limite d'essais pour le transfert de fichiers ({0})",
       "crcUploads": "Utiliser les sommes de contrôle CRC32 pour les téléchargements",
       "unavailable": "Aucun réglage disponible."
@@ -608,7 +706,9 @@
       "board": "Circuit: {0}",
       "firmware": "Firmware: {0} ({1})",
       "dwsFirmware": "Duet WiFi Server Version: {0}",
-      "updateNote": "Remarque: Vous pouvez installer les mises à jour sur la page Système."
+      "updateNote": "Remarque: Vous pouvez installer les mises à jour sur la page Système.",
+      "dsfVersion": "Version DSF : {0}",
+      "notConnected": "(pas connecté)"
     },
     "settingsEndstops": {
       "caption": "Interrupteur de position",
@@ -621,7 +721,8 @@
       "settingsStorageLocal": "Sauvegarder les paramètres dans le stockage local",
       "settingsSaveDelay": "Délai de mise à jour pour les modifications de paramètres ({0})",
       "cacheStorageLocal": "Sauvegarder le cache dans le stockage local",
-      "cacheSaveDelay": "Délai de mise à jour pour les modifications du cache ({0})"
+      "cacheSaveDelay": "Délai de mise à jour pour les modifications du cache ({0})",
+      "ignoreFileTimestamps": "Ignorer les horodatages des fichiers lors du téléchargement"
     },
     "settingsListItems": {
       "caption": "Liste des Éléments",
@@ -633,7 +734,8 @@
     "settingsMachine": {
       "caption": "Machine-Spécifique",
       "babystepAmount": "Montant Babystep ({0})",
-      "moveFeedrate": "Vitesse pour les boutons de mouvement ({0})"
+      "moveFeedrate": "Vitesse pour les boutons de mouvement ({0})",
+      "toolChangeMacros": "Macros de changement d'outil"
     },
     "settingsNotifications": {
       "caption": "Notifications",
@@ -697,11 +799,29 @@
         "showInChart": "Afficher dans le Graphique",
         "noItems": "Pas de Capteur supplémentaire"
       },
-      "noTools": "Pas d'Outils"
+      "noTools": "Pas d'Outils",
+      "controlHeaters": "Réchauffeurs de contrôle",
+      "setActiveTemperatures": "Régler les températures actives",
+      "setBedTemperatures": "Régler les températures du lit",
+      "setChamberTemperatures": "Régler les températures de la chambre",
+      "setStandbyTemperatures": "Régler les températures de veille",
+      "setToolTemperatures": "Régler les températures de l'outil"
     },
     "webcam": {
       "caption": "Surveillance Webcam",
       "alt": "(webcam image)"
+    },
+    "spindle": {
+      "active": "Actif",
+      "currentRPM": "RPM actuel",
+      "direction": "Direction",
+      "forward": "vers l'avant",
+      "off": "À l'arrêt",
+      "on": "Sur",
+      "reverse": "inverse",
+      "setRPM": "Définir le régime",
+      "spindle": "Broche",
+      "title": "Broches"
     }
   },
   "pluginPermissions": {
@@ -750,7 +870,139 @@
       "topView": "Vue du dessus",
       "colorScheme": "Schéma couleur:",
       "terrain": "Terrain",
-      "heat": "Chaleur"
+      "heat": "Chaleur",
+      "deviation": "Déviation",
+      "display": "Affichage",
+      "fixed": "Fixé",
+      "invertZ": "Inverser les coordonnées Z",
+      "listTitle": "Cartes de hauteur",
+      "menuCaption": "Carte de hauteur",
+      "none": "Aucun",
+      "range": "Intervalle",
+      "resetView": "Réinitialiser la vue",
+      "statistics": "Statistiques"
+    },
+    "objectModelBrowser": {
+      "documentationNotAvailable": "La documentation n'est pas disponible (/www/DuetAPI.xml introuvable)",
+      "none": "Aucun",
+      "remarks": "Remarques",
+      "selectedNode": "Nœud sélectionné :",
+      "summary": "Sommaire",
+      "menuCaption": "Modèle d'objet"
+    },
+    "accelerometer": {
+      "accelerations": "Accélérations (en g)",
+      "amplitudes": "Amplitudes",
+      "analysis": "Analyse de fréquence",
+      "analyze": "Analyser",
+      "back": "Retour",
+      "chartCaption": "Échantillons d'accélération",
+      "end": "Fin",
+      "frequency": "Fréquence (en Hz)",
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "listTitle": "Fichiers CSV",
+      "loadError": "Échec du chargement du fichier CSV",
+      "name": "Accéléromètre",
+      "noData": "Aucun échantillon chargé",
+      "none": "Aucun fichier",
+      "overflowPrompt": {
+        "prompt": "Ce fichier CSV a signalé des débordements. \nÊtes-vous sûr de vouloir continuer?",
+        "title": "Débordements détectés"
+      },
+      "parseError": "Échec de l'analyse du fichier CSV",
+      "sampleTooltip": "Goûter",
+      "samples": "Échantillons",
+      "samplingRate": "Taux d'échantillonnage (en Hz)",
+      "start": "Commencer",
+      "wideBand": "Analyse large bande"
+    },
+    "autoUpdate": {
+      "menuCaption": "Mise à jour"
+    },
+    "gcodeViewer": {
+      "background": "Arrière plan",
+      "bed": "Lit",
+      "bedRenderMode": "Mode de rendu du lit",
+      "bottomClipping": "Découpage du bas",
+      "cameraInertia": "Inertie de la caméra",
+      "cancelLoad": "Annuler le chargement du fichier",
+      "caption": "Visionneuse de code G",
+      "color": "Couleur",
+      "extruders": {
+        "caption": "Extrudeuses",
+        "title": "Définit la couleur utilisée pour le rendu d'une extrudeuse"
+      },
+      "feature": "Caractéristique",
+      "feedrate": "Vitesse d'avance",
+      "forceLineRendering": "Rendu de la ligne de force",
+      "fullscreen": "Plein écran",
+      "g1AsExtrusion": "Rendu G1 (CNC)",
+      "high": "Haute",
+      "liveZTracking": "Suivi Z en direct",
+      "loadCurrentJob": {
+        "caption": "Charger le travail en cours",
+        "title": "Charger le travail d'impression ou de simulation en cours"
+      },
+      "loadLocalGCode": {
+        "caption": "Charger le GCode local",
+        "title": "Chargez un fichier de votre disque local dans la visionneuse"
+      },
+      "low": "Bas",
+      "max": "Max",
+      "maxFeedrate": "Vitesse d'avance maximale (mm/s)",
+      "maxFeedrateColor": "Vitesse d'avance maximale Couleur",
+      "medium": "Moyen",
+      "minFeedrate": "Vitesse d'avance minimale (mm/s)",
+      "minFeedrateColor": "Couleur de la vitesse d'avance minimale",
+      "progress": {
+        "caption": "Progrès",
+        "title": "Définir la couleur d'impression pour le suivi de la progression"
+      },
+      "progressColor": "Couleur de progression",
+      "reloadView": {
+        "caption": "Recharger la vue",
+        "title": "Rechargez le gcode actuel, ceci est utilisé lors de la modification de paramètres tels que la couleur, la couleur de la vitesse d'avance, etc."
+      },
+      "renderFailed": "Le rendu précédent a échoué. \nDéfinition de la qualité de rendu sur SBC",
+      "renderMode": {
+        "caption": "Mode de rendu | \nModes de rendu",
+        "title": "Le mode de rendu vous permet de définir la couleur de l'extrudeuse ou la coloration de la ligne de vitesse d'avance dans la visionneuse"
+      },
+      "renderQuality": {
+        "caption": "Qualité de rendu",
+        "title": "Ajustez la qualité de visualisation de la visionneuse. \nPlus le niveau est élevé, plus de sommets et de modes de rendu sont disponibles"
+      },
+      "resetCamera": {
+        "caption": "Réinitialiser la caméra",
+        "title": "Réinitialiser la caméra à la position initiale"
+      },
+      "resetColor": "Réinitialiser la couleur de l'outil | \nRéinitialiser les couleurs de l'outil",
+      "sbc": "CCS",
+      "settings": "Réglages",
+      "showAxes": "Afficher les haches",
+      "showConfiguration": "Afficher la configuration de la visionneuse",
+      "showCursor": "Afficher le curseur",
+      "showFSOverlay": "Afficher la superposition plein écran",
+      "showObjectLabels": "Afficher les étiquettes d'objet",
+      "showObjectSelection": {
+        "caption": "Afficher la sélection d'objets",
+        "title": "Activé si des objets ont pu être détectés dans l'impression en cours"
+      },
+      "showSolid": "Afficher solide",
+      "showTravels": "Afficher les voyages",
+      "spreadLines": "Lignes de propagation",
+      "tool": "Outil {0}",
+      "topClipping": "Coupure supérieure",
+      "transparency": "Transparence",
+      "ultra": "Ultra",
+      "unloadGCode": {
+        "caption": "Décharger GCode",
+        "title": "Supprimer le gcode chargé de la visionneuse"
+      },
+      "useHQRendering": "Rendu de haute qualité (rond)",
+      "useSpecular": "Utiliser la surbrillance spéculaire",
+      "view3D": "Voir 3D",
+      "volume": "Le volume"
     }
   },
   "tabs": {

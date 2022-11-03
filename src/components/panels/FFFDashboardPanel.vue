@@ -49,7 +49,7 @@ export default Vue.extend({
 		},
 		showFansPanel(): boolean {
 			return ((this.currentTool !== null) && (this.currentTool.fans.length > 0)) ||
-				store.state.machine.model.fans.some(fan => (fan !== null) && (fan.thermostatic.heaters.length === 0));
+				store.state.machine.model.fans.some(fan => (fan !== null) && (fan.thermostatic.sensors.length === 0));
 		}
 	}
 });

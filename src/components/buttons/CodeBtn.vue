@@ -6,13 +6,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
 import { VBtn } from "vuetify/lib";
 
 import store from "@/store";
 
-export default Vue.extend({
-	extends: VBtn,
+export default VBtn.extend({
 	props: {
 		code: {
 			type: String,

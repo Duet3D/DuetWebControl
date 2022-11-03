@@ -123,6 +123,10 @@
       "update": {
         "caption": "Załaduj aktualizację",
         "title": "Załaduj paczkę aktualizacji(przeciągnij i upuść jest również obsługiwane)"
+      },
+      "plugin": {
+        "caption": "Zainstaluj wtyczkę",
+        "title": "Prześlij i uruchom wtyczkę (przeciągnij"
       }
     }
   },
@@ -136,7 +140,8 @@
       "layerDuration": "Czas nakładania warstwy: {0}",
       "layerHeight": "Wysokość warstwy: {0}",
       "filamentUsage": "Zużycie filamentu: {0}",
-      "fractionPrinted": "Postęp: {0}"
+      "fractionPrinted": "Postęp: {0}",
+      "temperatures": "Temperatury: {0}"
     },
     "temperature": {
       "caption": "Wykres temperatury",
@@ -152,7 +157,9 @@
     },
     "configUpdated": {
       "title": "Zresetować panel?",
-      "prompt": "Czy chcesz zrestartować panel aby wgrać zaktualizowaną konfigurację?"
+      "prompt": "Czy chcesz zrestartować panel aby wgrać zaktualizowaną konfigurację?",
+      "reset": "Uruchom ponownie płytę główną",
+      "runConfig": "Uruchom plik konfiguracyjny"
     },
     "connect": {
       "title": "Połącz z urządzeniem",
@@ -193,7 +200,8 @@
       "gcodeReference": "G-Code Reference",
       "menuReference": "Menu Reference",
       "save": "Zapisz",
-      "confirmClose": "Plik był modyfikowany. Jeżeli kontynuujesz zmiany zostaną utracone."
+      "confirmClose": "Plik był modyfikowany. Jeżeli kontynuujesz zmiany zostaną utracone.",
+      "confirmSaveEmpty": "Wygląda na to, że plik, który chcesz zapisać, jest pusty. Jesteś pewien, że chcesz kontynuować?"
     },
     "fileTransfer": {
       "uploadingTitle": "Wgrywanie pliku {0} z z{1}, {2}% ukończono",
@@ -260,7 +268,11 @@
       "cancel": "Anuluj",
       "back": "Wróć",
       "next": "Dalej",
-      "finish": "Zakończ"
+      "finish": "Zakończ",
+      "reloadPrompt": {
+        "prompt": "Właśnie zaktualizowałeś aktywną wtyczkę DWC. \nAby korzystać z nowej wersji, należy ponownie załadować interfejs sieciowy. \nCzy chcesz to zrobić teraz?",
+        "title": "Załadować ponownie DWC?"
+      }
     },
     "renameFile": {
       "title": "Zmień nazwę pliku lub katalogu",
@@ -283,7 +295,8 @@
       "title": "Czy zainstalować aktualizację?",
       "prompt": "Wczytałeś co najmniej jedno oprogramowanie sprzętowe. Czy chcesz zainstalować je teraz?",
       "resetTitle": "Zresetować oprogramowanie sprzętowe?",
-      "resetPrompt": "Właśnie zainstalowałeś aktualizację rozszerzeń. Czy chcesz ponownie uruchomić główny sterownik aby przywrócić wcześniejszą konfigurację?"
+      "resetPrompt": "Właśnie zainstalowałeś aktualizację rozszerzeń. Czy chcesz ponownie uruchomić główny sterownik aby przywrócić wcześniejszą konfigurację?",
+      "sbcWarning": "Używasz maszyny w trybie SBC. \nUaktualnij oprogramowanie układowe za pomocą DWC tylko wtedy, gdy jest to zalecane przez twórców oprogramowania układowego."
     },
     "inputRequired": "Proszę podać wartość",
     "numberRequired": "Proszę wpisać odpowiednią liczbę"
@@ -322,7 +335,8 @@
     "filelistRequestFailed": "Nie udało się otrzymać listy plików",
     "fileinfoRequestFailed": "Nie udało się uzyskać informacji o pliku dla {0}",
     "filamentsLoadFailed": "Nieudana próba wczytania filamentu",
-    "move": "Niepowodzenie w przemieszczeniu {0} do {1}"
+    "move": "Niepowodzenie w przemieszczeniu {0} do {1}",
+    "badVersion": "Niezgodna wersja oprogramowania układowego"
   },
   "events": {
     "connected": "Połączono do {0}",
@@ -368,7 +382,8 @@
       "busy": "Zajęty",
       "changingTool": "Zmiana narzędzia",
       "idle": "Idle",
-      "unknown": "Nieznany"
+      "unknown": "Nieznany",
+      "cancelling": "Anulowanie"
     },
     "rpm": "RPM",
     "sdCard": "Karta SD {0}",
@@ -385,7 +400,8 @@
       "placeholder": "Wyślij kod..."
     },
     "addTemperature": "Nowa wartość temperatury",
-    "addRPM": "Wartość nowego ustawienia"
+    "addRPM": "Wartość nowego ustawienia",
+    "set": "Ustawić"
   },
   "jobProgress": {
     "simulating": "Symulowanie {0}, {1} zakończono",
@@ -603,7 +619,8 @@
       "resumeSimulation": "Wznów symulację",
       "repeatJob": "Rozpocznij ponownie",
       "repeatPrint": "Drukuj ponownie",
-      "repeatSimulation": "Symuluj ponownie"
+      "repeatSimulation": "Symuluj ponownie",
+      "showPreview": "Pokaż zapowiedzi"
     },
     "jobData": {
       "caption": "Zebrane dane",
@@ -639,13 +656,19 @@
       "runMesh": "Uruchom kompensację siatki mesh (G29)",
       "loadMesh": "Wczytaj zapisaną na karcie SD mapę wysokości  (G29 S1)",
       "axesNotHomed": "Dana oś nie jest zbazowana:|dane osie nie są zbazowane:",
-      "noAxes": "Brak osi"
+      "noAxes": "Brak osi",
+      "set": "Ustaw {0}",
+      "setWorkXYZ": "Ustaw pracę XYZ",
+      "compensationType": {
+        "mesh": "Siatka",
+        "none": "Nic"
+      },
+      "workzero": "Idź do zera"
     },
     "settingsAbout": {
       "caption": "Na temat",
-      "developedBy": "Interfejs Web stworzony przez:",
-      "for": "dla",
-      "licensedUnder": "Licencjonowane na prawach"
+      "credits": "Interfejs sieciowy opracowany przez {autora} dla {Duet3D}.",
+      "license": "Licencjonowany na warunkach {gpl}."
     },
     "settingsAppearance": {
       "caption": "Wygląd",
@@ -654,7 +677,18 @@
       "binaryFileSizes": "Zastosuj binarny rozmiar plików",
       "binaryFileSizesTitle": "Rozmiary plików są wyświetlane z podstawą 1024 (IEC) zamiast 1000 (SI)",
       "disableAutoComplete": "Dezaktywuj auto-uzupełnianie",
-      "disableAutoCompleteTitle": "Nie pokazuj listy autouzupełniania podczas pisania kodu oraz wartości temperatury"
+      "disableAutoCompleteTitle": "Nie pokazuj listy autouzupełniania podczas pisania kodu oraz wartości temperatury",
+      "bottomNavigation": "Pokaż dolną nawigację na tabletach",
+      "dashboardModeTitle": "Tryb deski rozdzielczej",
+      "decimalPlaces": "Liczba miejsc dziesiętnych na wyświetlaczu współrzędnych",
+      "displayUnitsTitle": "Jednostka miary dla wyświetlania współrzędnych",
+      "iconMenu": "Użyj kompaktowego menu ikon",
+      "numericInputs": "Pokaż numeryczne pola wprowadzania zamiast suwaków",
+      "unitInch": "w",
+      "unitInchSpeed": "IPM",
+      "unitInches": "cale",
+      "unitMm": "mm",
+      "unitMmSpeed": "mm/s"
     },
     "settingsCommunication": {
       "caption": "Komunikacja",
@@ -662,7 +696,6 @@
       "updateDelay": "Odśwież opóźnienie (ms)",
       "ajaxRetries": "Maksymalna liczba prób AJAX",
       "updateInterval": "Aktualizuj interwał ({0})",
-      "extendedUpdateEvery": "Extended status update interval",
       "fileTransferRetryThreshold": "Retry threshold for file transfers({0})",
       "crcUploads": "Użyj sum kontrolnych CRC32 aby sprawdzić aktualizacje",
       "unavailable": "Brak dostępnych ustawień"
@@ -673,7 +706,9 @@
       "board": "Płyta główna: {0}",
       "firmware": "Oprogramowanie sprzętowe: {0} ({1})",
       "dwsFirmware": "Wersja serwera Duet WiFi: {0}",
-      "updateNote": "Notatka: Możesz zainstalować aktualizację na stronie systemu."
+      "updateNote": "Notatka: Możesz zainstalować aktualizację na stronie systemu.",
+      "dsfVersion": "Wersja DSF: {0}",
+      "notConnected": "(nie połączony)"
     },
     "settingsEndstops": {
       "caption": "Krańcówka",
@@ -686,7 +721,8 @@
       "settingsStorageLocal": "Zapisz ustawienia w lokalnej pamięci",
       "settingsSaveDelay": "Opóźnienie aktualizacji dla zmian ustawień ({0})",
       "cacheStorageLocal": "Zapisz pamięć podręczną na dysku lokalnym",
-      "cacheSaveDelay": "Opóźnienie aktualizacji dla zmian w pamięci podręcznej ({0})"
+      "cacheSaveDelay": "Opóźnienie aktualizacji dla zmian w pamięci podręcznej ({0})",
+      "ignoreFileTimestamps": "Ignoruj ​​sygnatury czasowe plików podczas przesyłania"
     },
     "settingsListItems": {
       "caption": "Pokaż pozycje",
@@ -698,7 +734,8 @@
     "settingsMachine": {
       "caption": "Specyfika urządzenia",
       "babystepAmount": " Babystep amount({0})",
-      "moveFeedrate": "Wartość posuwu na klik({0})"
+      "moveFeedrate": "Wartość posuwu na klik({0})",
+      "toolChangeMacros": "Makra wymiany narzędzi"
     },
     "settingsNotifications": {
       "caption": "Powiadomienia",
@@ -773,6 +810,18 @@
     "webcam": {
       "caption": "Podgląd obrazu z kamery",
       "alt": "(Obraz z kamery)"
+    },
+    "spindle": {
+      "active": "Aktywny",
+      "currentRPM": "Bieżące obroty",
+      "direction": "Kierunek",
+      "forward": "Naprzód",
+      "off": "Wyłączony",
+      "on": "Na ",
+      "reverse": "odwrócić",
+      "setRPM": "Ustaw obroty",
+      "spindle": "Wrzeciono",
+      "title": "Wrzeciona"
     }
   },
   "pluginPermissions": {
@@ -801,7 +850,9 @@
     "fileSystemAccess": "Access files outside the virtual SD directory",
     "launchProcesses": "Uruchom nowy proces",
     "networkAccess": "Komunikuj się poprzez sieć",
-    "superUser": "Uruchom jako administrator (możliwe niebezpieczeństwo)"
+    "superUser": "Uruchom jako administrator (możliwe niebezpieczeństwo)",
+    "gpioAccess": "Dostęp do urządzeń GPIO",
+    "webcamAccess": "Uzyskaj dostęp do urządzeń z kamerą internetową"
   },
   "plugins": {
     "accelerometer": {
@@ -911,7 +962,12 @@
         "caption": "Wyświetl wybór obiektów",
         "title": "Możliwy tylko gdy obiekt może być wykryty w bieżącym druku"
       },
-      "renderFailed": "Poprzednie renderowanie nie powiodło się. Ustalenie jakości renderowania na SBC"
+      "renderFailed": "Poprzednie renderowanie nie powiodło się. Ustalenie jakości renderowania na SBC",
+      "feature": "Funkcja",
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "showFSOverlay": "Pokaż nakładkę pełnoekranową",
+      "useHQRendering": "Renderowanie wysokiej jakości (okrągłe)",
+      "useSpecular": "Użyj podświetlenia zwierciadlanego"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",
@@ -934,10 +990,19 @@
       "terrain": "Powierzchnia",
       "heat": "Ciepło",
       "invertZ": "Odwróć współrzędne Z",
-      "topView": "Widok z góry"
+      "topView": "Widok z góry",
+      "deviation": "Odchylenie",
+      "fixed": "Naprawił",
+      "range": "Zasięg",
+      "resetView": "Resetuj widok"
     },
     "objectModelBrowser": {
-      "menuCaption": "Model przedmiotu"
+      "menuCaption": "Model przedmiotu",
+      "documentationNotAvailable": "Dokumentacja jest niedostępna (nie znaleziono /www/DuetAPI.xml)",
+      "none": "Nic",
+      "remarks": "Uwagi",
+      "selectedNode": "Wybrany węzeł:",
+      "summary": "Streszczenie"
     }
   },
   "tabs": {

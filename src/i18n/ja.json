@@ -140,7 +140,8 @@
       "layerDuration": "レイヤー時間: {0}",
       "layerHeight": "レイヤー高さ: {0}",
       "filamentUsage": "フィラメント使用量: {0}",
-      "fractionPrinted": "進捗: {0}"
+      "fractionPrinted": "進捗: {0}",
+      "temperatures": "気温: {0}"
     },
     "temperature": {
       "caption": "温度チャート",
@@ -199,7 +200,8 @@
       "gcodeReference": "G-Codeリファレンス",
       "menuReference": "メニューリファレンス",
       "save": "保存",
-      "confirmClose": "ファイルが変更されています。先に進むと、変更内容が失われます"
+      "confirmClose": "ファイルが変更されています。先に進むと、変更内容が失われます",
+      "confirmSaveEmpty": "保存しようとしているファイルが空のようです。続行してもよろしいですか？"
     },
     "fileTransfer": {
       "uploadingTitle": "ファイルアップロード中 {0} / {1}, {2}% 完了",
@@ -266,7 +268,11 @@
       "cancel": "キャンセル",
       "back": "戻る",
       "next": "次へ",
-      "finish": "終了"
+      "finish": "終了",
+      "reloadPrompt": {
+        "prompt": "アクティブな DWC プラグインを更新しました。\n新しいバージョンを使用するには、Web インターフェイスをリロードする必要があります。\n今すぐこれを実行しますか?",
+        "title": "DWC をリロードしますか?"
+      }
     },
     "renameFile": {
       "title": "ファイルまたはディレクトリの名前を変更する",
@@ -329,7 +335,8 @@
     "filelistRequestFailed": "ファイルのリストの取得に失敗しました",
     "fileinfoRequestFailed": "{0}のファイルの情報取得に失敗しました",
     "filamentsLoadFailed": "フィラメントの読み込みに失敗しました",
-    "move": "{0} から {1}への移動に失敗しました"
+    "move": "{0} から {1}への移動に失敗しました",
+    "badVersion": "互換性のないファームウェア バージョン"
   },
   "events": {
     "connected": "{0}へ接続",
@@ -384,7 +391,8 @@
     "extracting": "展開中",
     "uploading": "アップロード中",
     "active": "有効",
-    "standby": "スタンバイ"
+    "standby": "スタンバイ",
+    "cancel": "キャンセル"
   },
   "input": {
     "code": {
@@ -392,7 +400,8 @@
       "placeholder": "コード送信..."
     },
     "addTemperature": "新しい温度の値",
-    "addRPM": "新しいプリセットの値"
+    "addRPM": "新しいプリセットの値",
+    "set": "設定"
   },
   "jobProgress": {
     "simulating": "{0} シミュレーション中, {1} 完了",
@@ -610,7 +619,8 @@
       "resumeSimulation": "シミュレーション再開",
       "repeatJob": "再スタート",
       "repeatPrint": "再プリント",
-      "repeatSimulation": "再シミュレーション"
+      "repeatSimulation": "再シミュレーション",
+      "showPreview": "ショープレビュー"
     },
     "jobData": {
       "caption": "取得データ",
@@ -647,13 +657,18 @@
       "loadMesh": "SDカードからハイトマップをロード(G29 S1)",
       "axesNotHomed": "以下の軸はホームにありません:|以下の軸はホームにありません:",
       "noAxes": "No Axes",
-      "workzero": "原点へ移動"
+      "workzero": "原点へ移動",
+      "set": "{0} を設定",
+      "setWorkXYZ": "ワーク XYZ を設定",
+      "compensationType": {
+        "mesh": "メッシュ",
+        "none": "なし"
+      }
     },
     "settingsAbout": {
       "caption": "About",
-      "developedBy": "Webインターフェースの開発者:",
-      "for": "for",
-      "licensedUnder": "以下でライセンスされています:"
+      "credits": "{author} が {Duet3D} 用に開発した Web インターフェイス。",
+      "license": "{gpl} の条件に基づいてライセンスされています。"
     },
     "settingsAppearance": {
       "caption": "外観",
@@ -663,7 +678,17 @@
       "binaryFileSizesTitle": "ファイルサイズは、1000(SI)ではなく1024(IEC)を基準に表示されます",
       "disableAutoComplete": "自動補完を無効にする",
       "disableAutoCompleteTitle": "コードまたは温度入力時にオートコンプリートリストを表示しない",
-      "dashboardModeTitle": "Dashboard Mode"
+      "dashboardModeTitle": "Dashboard Mode",
+      "bottomNavigation": "タブレット デバイスでボトム ナビゲーションを表示する",
+      "decimalPlaces": "座標表示の小数点以下の桁数",
+      "displayUnitsTitle": "座標表示の計測単位",
+      "iconMenu": "コンパクト アイコン メニューを使用する",
+      "numericInputs": "スライダーの代わりに数値入力フィールドを表示する",
+      "unitInch": "の",
+      "unitInchSpeed": "ipm",
+      "unitInches": "インチ",
+      "unitMm": "んん",
+      "unitMmSpeed": "mm/秒"
     },
     "settingsCommunication": {
       "caption": "通信",
@@ -671,7 +696,6 @@
       "updateDelay": "更新ディレイ (ms)",
       "ajaxRetries": "AJAXの最大再試行回数",
       "updateInterval": "Updateインターバル({0})",
-      "extendedUpdateEvery": "Extendedステータス更新間隔",
       "fileTransferRetryThreshold": "ファイル転送の再試行しきい値 ({0})",
       "crcUploads": "アップロードにCRC32チェックサムを使用",
       "unavailable": "利用可能な設定がありません"
@@ -682,7 +706,9 @@
       "board": "ボード: {0}",
       "firmware": "ファームウェア: {0} ({1})",
       "dwsFirmware": "Duet WiFi Server Version: {0}",
-      "updateNote": "Note: システムページからアップデートのインストールができます。"
+      "updateNote": "Note: システムページからアップデートのインストールができます。",
+      "dsfVersion": "DSF バージョン: {0}",
+      "notConnected": "（接続されていません）"
     },
     "settingsEndstops": {
       "caption": "エンドストップ",
@@ -695,7 +721,8 @@
       "settingsStorageLocal": "ローカルストレージに設定を保存",
       "settingsSaveDelay": "設定変更時の更新ディレイ ({0})",
       "cacheStorageLocal": "ローカルストレージにキャッシュを保存",
-      "cacheSaveDelay": "キャッシュ変更時の更新ディレイ ({0})"
+      "cacheSaveDelay": "キャッシュ変更時の更新ディレイ ({0})",
+      "ignoreFileTimestamps": "アップロード時にファイルのタイムスタンプを無視する"
     },
     "settingsListItems": {
       "caption": "リスト項目",
@@ -707,7 +734,8 @@
     "settingsMachine": {
       "caption": "機械固有",
       "babystepAmount": "ベイビーステップ量 ({0})",
-      "moveFeedrate": "移動ボタンの送り速度 ({0})"
+      "moveFeedrate": "移動ボタンの送り速度 ({0})",
+      "toolChangeMacros": "工具交換マクロ"
     },
     "settingsNotifications": {
       "caption": "通知",
@@ -788,7 +816,8 @@
         "showInChart": "チャートにて表示",
         "noItems": "No Extra Sensors"
       },
-      "noTools": "工具なし"
+      "noTools": "工具なし",
+      "controlHeaters": "コントロールヒーター"
     },
     "webcam": {
       "caption": "ウェブカメラ監視",
@@ -822,7 +851,8 @@
     "launchProcesses": "新しいプロセスの立ち上げ",
     "networkAccess": "ネットワークで通信",
     "webcamAccess": "ウェブカメラデバイスにアクセスする",
-    "superUser": "ルートユーザーで実行（危険な可能性あり）"
+    "superUser": "ルートユーザーで実行（危険な可能性あり）",
+    "gpioAccess": "GPIO デバイスへのアクセス"
   },
   "plugins": {
     "accelerometer": {
@@ -936,7 +966,8 @@
       "showFSOverlay": "Show Full Screen Overlay",
       "useHQRendering": "高画質レンダリング",
       "useSpecular": "Use Specular Highlight",
-      "feature": "Feature"
+      "feature": "Feature",
+      "g1AsExtrusion": "G1 をレンダリング (CNC)"
     },
     "heightmap": {
       "menuCaption": "ハイトマップ",
@@ -966,7 +997,12 @@
       "resetView": "ビューをリセット"
     },
     "objectModelBrowser": {
-      "menuCaption": "Object Model"
+      "menuCaption": "Object Model",
+      "documentationNotAvailable": "ドキュメントは利用できません (/www/DuetAPI.xml が見つかりません)",
+      "none": "なし",
+      "remarks": "備考",
+      "selectedNode": "選択したノード:",
+      "summary": "概要"
     }
   },
   "tabs": {

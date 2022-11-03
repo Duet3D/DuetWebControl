@@ -696,7 +696,6 @@
       "updateDelay": "Aktualisierungsverzögerung ({0})",
       "ajaxRetries": "Maximale Anzahl an wiederholten AJAX-Versuchen",
       "updateInterval": "Aktualisierungsintervall ({0})",
-      "extendedUpdateEvery": "Erweitertes Statusupdateintervall",
       "fileTransferRetryThreshold": "Grenzwert für erneute Versuche von Dateiübertragungen ({0})",
       "crcUploads": "CRC32-Prüfsummen für Uploads verwenden",
       "unavailable": "Keine Einstellungen verfügbar"
@@ -998,7 +997,12 @@
       "resetView": "Ansicht zurücksetzen"
     },
     "objectModelBrowser": {
-      "menuCaption": "Objektmodell"
+      "menuCaption": "Objektmodell",
+      "selectedNode": "Ausgewählter Knoten:",
+      "documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
+      "none": "Keiner",
+      "remarks": "Anmerkungen",
+      "summary": "Zusammenfassung"
     }
   },
   "tabs": {

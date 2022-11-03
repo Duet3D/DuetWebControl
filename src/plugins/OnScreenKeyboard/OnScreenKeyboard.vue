@@ -33,33 +33,31 @@
 	<div ref="keyboard" v-if="input" class="simple-keyboard" @click.stop.prevent=""></div>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Keyboard from "simple-keyboard";
+import "simple-keyboard/build/css/index.css";
+import Vue from "vue";
 
-import { mapState } from 'vuex'
+import store from "@/store";
 
-import Keyboard from 'simple-keyboard'
-import 'simple-keyboard/build/css/index.css'
-
-export default {
-	computed: mapState('settings', ['darkTheme']),
+export default Vue.extend({
 	data() {
 		return {
-			input: null,
-			keyboard: null
+			input: null as HTMLInputElement | HTMLTextAreaElement | null,
+			keyboard: null as any
 		}
 	},
 	mounted() {
 		window.disableCodeMirror = true;
-		window.addEventListener('focusin', this.inputFocused);
-		window.addEventListener('click', this.globalClick);
+		window.addEventListener("focusin", this.inputFocused);
+		window.addEventListener("click", this.globalClick);
 	},
 	beforeDestroy() {
-		window.removeEventListener('focusin', this.inputFocused);
-		window.removeEventListener('click', this.globalClick);
+		window.removeEventListener("focusin", this.inputFocused);
+		window.removeEventListener("click", this.globalClick);
 	},
 	methods: {
-		inputFocused(e) {
+		inputFocused(e: Event) {
 			if (e.target !== this.input && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
 				this.input = e.target;
 				this.$nextTick(function() {
@@ -68,18 +66,18 @@ export default {
 						this.keyboard = new Keyboard({
 							mergeDisplay: true,
 							display: {
-								'{enter}': 'enter'
+								"{enter}": "enter"
 							},
 							onChange: this.updateValue,
 							onKeyPress: this.onKeyPress,
 							newLineOnEnter: e.target instanceof HTMLTextAreaElement,
 							tabCharOnTab: e.target instanceof HTMLTextAreaElement,
-							theme: this.darkTheme ? 'hg-theme-default dark' : 'hg-theme-default'
+							theme: store.state.settings.darkTheme ? "hg-theme-default dark" : "hg-theme-default"
 						});
 					}
-					this.keyboard.setInput(e.target.value);
+					this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);
 
-					if (e.target.type === 'number') {
+					if (e.target instanceof HTMLInputElement && e.target.type === "number") {
 						// Show numpad for numeric inputs and clear previous input
 						this.keyboard.setOptions({
 							layout: {
@@ -91,11 +89,11 @@ export default {
 								]
 							}
 						});
-						this.keyboard.setInput('');
+						this.keyboard.setInput("");
 					}
 
 					// Add some space at the bottom so the keyboard does not cover inputs 
-					document.body.style.marginBottom = `${this.$refs.keyboard.offsetHeight}px`;
+					document.body.style.marginBottom = `${(this.$refs.keyboard as HTMLElement).offsetHeight}px`;
 					window.oskOpen = true;
 				});
 			}
@@ -109,51 +107,51 @@ export default {
 		hide() {
 			this.input = null;
 			this.keyboard = null;
-			document.body.style.marginBottom = '0px';
+			document.body.style.marginBottom = "0px";
 			window.oskOpen = false;
 		},
-		onInput(e) {
-			this.keyboard.setInput(e.target.value);
+		onInput(e: Event) {
+			this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);
 		},
-		updateValue(value) {
+		updateValue(value: string) {
 			if (this.input != null) {
 				this.input.value = value;
-				const ie = new Event('input', {
+				const ie = new Event("input", {
 					bubbles: true,
 					cancelable: true,
 				});
 				this.input.dispatchEvent(ie);
-				const ce = new Event('change', {
+				const ce = new Event("change", {
 					bubbles: true,
 					cancelable: true,
 				});
 				this.input.dispatchEvent(ce);
 			}
 		},
-		onKeyPress(button) {
-			if (button === '{shift}' || button === '{lock}') {
+		onKeyPress(button: string) {
+			if (button === "{shift}" || button === "{lock}") {
 				// Deal with shift/caps lock
 				const currentLayout = this.keyboard.options.layoutName;
 				this.keyboard.setOptions({
-					layoutName: (currentLayout === 'default') ? 'shift' : 'default'
+					layoutName: (currentLayout === "default") ? "shift" : "default"
 				});
-			} else if (button === '{enter}' && this.input instanceof HTMLInputElement) {
+			} else if (button === "{enter}" && this.input instanceof HTMLInputElement) {
 				// Emulate keydown, keypress, keyup in the right order
-				const kde = new KeyboardEvent('keydown', {
+				const kde = new KeyboardEvent("keydown", {
 					bubbles: true,
 					cancelable: true,
 					keyCode: 13
 				});
 				this.input.dispatchEvent(kde);
 
-				const kpe = new KeyboardEvent('keypress', {
+				const kpe = new KeyboardEvent("keypress", {
 					bubbles: true,
 					cancelable: true,
 					keyCode: 13
 				});
 				this.input.dispatchEvent(kpe);
 
-				const kue = new KeyboardEvent('keyup', {
+				const kue = new KeyboardEvent("keyup", {
 					bubbles: true,
 					cancelable: true,
 					keyCode: 13
@@ -165,5 +163,5 @@ export default {
 			}
 		}
 	}
-}
+});
 </script>

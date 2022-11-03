@@ -3,7 +3,7 @@ import { Module } from "vuex";
 import { ContextMenuType } from "@/plugins";
 
 import { InternalRootState } from ".";
-import Vue from "vue";
+import { Component } from "vue";
 
 export interface ContextMenuItem {
 	/**
@@ -41,7 +41,7 @@ export interface injectedComponent {
 	/**
 	 * Component definition
 	 */
-	component: Vue;
+	component: Component;
 }
 
 export interface UiInjectionState {
