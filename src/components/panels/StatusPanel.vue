@@ -146,6 +146,52 @@ a:not(:hover) {
 
 					<v-col>
 						<v-row align-content="center" justify="center" no-gutters>
+							<template v-if="mainboard !== null">
+								<v-col v-if="mainboard.vIn !== null" class="d-flex flex-column align-center">
+									<strong>
+										{{ $t('panel.status.vIn') }}
+									</strong>
+									<v-tooltip bottom>
+										<template #activator="{ on }">
+											<span v-on="on" class="text-no-wrap">
+												{{ $display(mainboard.vIn.current, 1, 'V') }}
+											</span>
+										</template>
+
+										{{ $t('panel.status.minMax', [$display(mainboard.vIn.min, 1, 'V'), $display(mainboard.vIn.max, 1, 'V')]) }}
+									</v-tooltip>
+								</v-col>
+
+								<v-col v-if="mainboard.v12 !== null" class="d-flex flex-column align-center">
+									<strong>
+										{{ $t('panel.status.v12') }}
+									</strong>
+									<v-tooltip bottom>
+										<template #activator="{ on }">
+											<span v-on="on" class="text-no-wrap">
+												{{ $display(mainboard.v12.current, 1, 'V') }}
+											</span>
+										</template>
+
+										{{ $t('panel.status.minMax', [$display(mainboard.v12.min, 1, 'V'), $display(mainboard.v12.max, 1, 'V')]) }}
+									</v-tooltip>
+								</v-col>
+
+								<v-col v-if="mainboard.mcuTemp !== null" class="d-flex flex-column align-center">
+									<strong class="text-no-wrap">
+										{{ $t('panel.status.mcuTemp') }}
+									</strong>
+									<v-tooltip bottom>
+										<template #activator="{ on }">
+											<span v-on="on" class="text-no-wrap">
+												{{ $display(mainboard.mcuTemp.current, 1, '°C') }}
+											</span>
+										</template>
+
+										{{ $t('panel.status.minMax', [$display(mainboard.mcuTemp.min, 1, '°C'), $display(mainboard.mcuTemp.max, 1, '°C')]) }}
+									</v-tooltip>
+								</v-col>
+							</template>
 
 							<v-col v-if="fanRPM.length > 0" class="d-flex flex-column align-center">
 								<strong>

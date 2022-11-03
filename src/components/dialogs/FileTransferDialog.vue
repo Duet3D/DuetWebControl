@@ -43,7 +43,7 @@ td {
 							</td>
 							<td class="py-1" width="35%">
 								<v-progress-linear v-show="file.startTime !== null || file.progress > 0" :color="getProgressColor(file)" height="1.25em"
-									:value="file.progress * 100" :indeterminate="file.progress < 1 && !file.speed" rounded striped>
+									:value="file.progress * 100" :indeterminate="file.progress < 1 && !file.speed && !file.error" rounded striped>
 									<template #default="{ value }">
 										<span class="white--text">{{ value.toFixed(0) }} %</span>
 									</template>
@@ -55,8 +55,8 @@ td {
 			</v-card-text>
 
 			<v-card-actions>
-				<span v-show="currentSpeed" class="ml-3 text--secondary text-button">
-					{{ $t("dialog.fileTransfer.currentSpeed", [$displayTransferSpeed(currentSpeed || 0)]) }}
+				<span v-show="canCancel" class="ml-3 text--secondary text-button">
+					{{ $t("dialog.fileTransfer.currentSpeed", [$displayTransferSpeed(currentSpeed)]) }}
 				</span>
 				<v-spacer />
 				<v-btn v-show="canCancel" color="blue darken-1" text @click="cancel">
@@ -121,7 +121,7 @@ export default Vue.extend({
 			return null;
 		},
 		canCancel(): boolean {
-			return !this.transfersFinished && store.state.selectedMachine in this.cancellationTokens[store.state.selectedMachine];
+			return !this.transfersFinished && (this.cancellationTokens[store.state.selectedMachine] !== undefined);
 		},
 		files(): Array<FileTransferItem> {
 			return this.filesBeingTransferred[store.state.selectedMachine] || [];
@@ -130,7 +130,7 @@ export default Vue.extend({
 			if (this.files.some(file => file.error)) {
 				return true;
 			}
-			return !this.files.some(file => (file.startTime !== null && !file.progress) || file.progress < 1);
+			return !this.files.some(file => (file.startTime === null) || (file.progress === null) || (file.progress < 1));
 		}
 	},
 	data() {
@@ -186,12 +186,12 @@ export default Vue.extend({
 		},
 		cancel() {
 			this.cancellationTokens[store.state.selectedMachine].cancel();
-			delete this.cancellationTokens[store.state.selectedMachine];
+			Vue.delete(this.cancellationTokens, store.state.selectedMachine);
 		},
 		close() {
-			delete this.closeProgressOnSuccess[store.state.selectedMachine];
-			delete this.cancellationTokens[store.state.selectedMachine];
-			delete this.filesBeingTransferred[store.state.selectedMachine];
+			Vue.delete(this.closeProgressOnSuccess, store.state.selectedMachine);
+			Vue.delete(this.cancellationTokens, store.state.selectedMachine);
+			Vue.delete(this.filesBeingTransferred, store.state.selectedMachine);
 		},
 		multiUploadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken } : { machine: string, files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {

@@ -77,6 +77,7 @@ import saveAs from "file-saver";
 import JSZip from "jszip";
 import Vue from "vue";
 
+import { UploadType } from "@/components/buttons/UploadBtn.vue";
 import store from "@/store";
 import { DisconnectedError, FileNotFoundError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
 import Path from "@/utils/path";

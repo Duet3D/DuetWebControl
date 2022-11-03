@@ -293,17 +293,17 @@ export default Vue.extend({
 							}
 
 							// Get a list of files to unpack
-							if (this.target !== UploadType.filaments) {
-								zip.forEach(function (file) {
-									if (!file.endsWith('/') && (file.split('/').length === 2)) {
-										zipFiles.push(file);
-									}
-								});
-							}
+							zip.forEach(function (file) {
+								if (!file.endsWith('/') && (target !== UploadType.filaments || file.split('/').length === 2)) {
+									zipFiles.push(file);
+								}
+							});
 
 							// Could we get anything useful?
 							if (zipFiles.length === 0) {
 								this.extracting = false;
+								notification.close();
+
 								this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoFiles"));
 								return;
 							}
@@ -395,7 +395,11 @@ export default Vue.extend({
 						}
 					}
 				}
-				content = new File([content], filename);
+
+				Object.defineProperty(content, "name", {
+					writable: true,
+					value: filename
+				});
 			}
 			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 

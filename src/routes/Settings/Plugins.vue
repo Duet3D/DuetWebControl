@@ -1,7 +1,7 @@
 <template>
     <div>
         <v-tabs v-model="tab" class="elevation-2 mt-3">
-            <v-tabs-slider></v-tabs-slider>
+            <v-tabs-slider />
 
             <v-tab href="#integrated-plugins">
                 {{ $t('tabs.plugins.integratedPlugins') }}
@@ -11,13 +11,13 @@
             </v-tab>
             <upload-btn ref="mainUpload" v-show="connectedMachines.indexOf(tab) !== -1"
                         class="align-self-center ml-auto mr-2 hidden-sm-and-down" :elevation="1" color="primary"
-                        :machine="tab" target="plugin"></upload-btn>
+                        :machine="tab" target="plugin" />
 
             <v-tab-item value="integrated-plugins">
-                <plugins-integrated-tab></plugins-integrated-tab>
+                <plugins-integrated-tab />
             </v-tab-item>
             <v-tab-item v-for="(machine, index) in connectedMachines" :key="index" :value="machine">
-                <plugins-external-tab :machine="machines[machine]"></plugins-external-tab>
+                <plugins-external-tab :machine="machines[machine]" />
             </v-tab-item>
         </v-tabs>
 

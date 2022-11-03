@@ -103,7 +103,7 @@
 
 										<div class="d-flex flex-row">
 											<template v-for="(item, index) in fanRPM">
-												<template v-if="index !== 0">,</template>
+												<template v-if="index !== 0">, </template>
 												<span :key="index" :title="item.name" class="mx-0">{{ item.rpm }}</span>
 											</template>
 										</div>

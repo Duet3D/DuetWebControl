@@ -105,6 +105,7 @@
 import { ThumbnailInfo, Volume } from "@duet3d/objectmodel";
 import Vue from "vue";
 
+import { UploadType } from "@/components/buttons/UploadBtn.vue";
 import i18n from "@/i18n";
 import store from "@/store";
 import { ContextMenuItem } from "@/store/uiInjection";

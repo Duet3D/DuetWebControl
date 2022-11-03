@@ -23,7 +23,7 @@
 				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t("button.refresh.caption") }}
 			</v-btn>
 			<upload-btn ref="mainUpload" class="hidden-sm-and-down" :elevation="1" :directory="directory"
-						:target="uploadTarget" color="primary"></upload-btn>
+						:target="uploadTarget" color="primary" />
 		</v-toolbar>
 
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory" :loading.sync="loading"

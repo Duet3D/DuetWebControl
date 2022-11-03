@@ -1,6 +1,6 @@
 import Vue from "vue";
 
-import { registerSettingTab } from "@/routes"
+import { registerSettingTab } from "@/routes";
 
 import SettingsGeneralTab from "./SettingsGeneralTab.vue";
 import SettingsMachineTab from "./SettingsMachineTab.vue";

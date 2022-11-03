@@ -86,6 +86,8 @@
 			<v-progress-linear v-if="animateProgress" ref="progressBar" :color="progressColor"
 							   :indeterminate="notification.progress === 0" :value="100" class="progress-bar"
 							   :class="{ 'animate-progress': animateProgress }" />
+			<v-progress-linear v-else-if="notification.progress !== null" :color="progressColor"
+							   :indeterminate="notification.progress === 0" :value="notification.progress" class="progress-bar" />
 
 			<div class="d-flex" :class="{ 'mt-1' : (notification.timeout !== null) && (notification.timeout > 0)}">
 				<v-icon v-if="notification.icon !== null" class="mr-4" v-text="notification.icon" />
@@ -98,7 +100,7 @@
 
 			<template #action="{ attrs }">
 				<v-btn v-bind="attrs" color="white" text @click.stop="close">
-					{{ $t("generic.close") }}
+					{{ notification.cancel ? $t("generic.cancel") : $t("generic.close") }}
 				</v-btn>
 			</template>
 		</v-snackbar>
@@ -146,7 +148,9 @@ export default Vue.extend({
 			}
 		},
 		close() {
-			if (this.notification) {
+			if (this.notification?.cancel) {
+				this.notification.cancel();
+			} else if (this.notification?.close) {
 				this.notification.close();
 			}
 		}

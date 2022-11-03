@@ -25,15 +25,6 @@
 					</span>
 				</v-col>
 
-				<v-col v-if="timesLeft.layer !== null" class="d-flex flex-column">
-					<strong>
-						{{ $t("panel.jobEstimations.layer") }}
-					</strong>
-					<span>
-						{{ $displayTime(timesLeft.layer) }}
-					</span>
-				</v-col>
-
 				<v-col v-if="slicerTimeLeft !== null" class="d-flex flex-column">
 					<strong>
 						{{ $t("panel.jobEstimations.slicer") }}

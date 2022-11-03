@@ -13,6 +13,12 @@
             "webRoot": "${workspaceFolder}",
             "skipFiles": [
                 "${workspaceFolder}/node_modules/**/*"
+            ],
+            "pathMappings": [
+                {
+                    "url": "webpack://duetwebcontrol/src",
+                    "path": "${workspaceFolder}/src"
+                }
             ]
         }
     ]

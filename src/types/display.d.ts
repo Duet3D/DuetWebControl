@@ -46,7 +46,7 @@ declare module 'vue/types/vue' {
          * @param bytesPerSecond Speed to format
          * @returns Formatted string
          */
-        $displayTransferSpeed(bytesPerSecond: number): string;
+        $displayTransferSpeed(bytesPerSecond: number | null | undefined): string;
 
         /**
          * Display remaining time

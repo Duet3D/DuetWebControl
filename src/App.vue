@@ -101,12 +101,13 @@
 import ObjectModel, { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 import Piecon from "piecon";
 import Vue from "vue";
+import { Route, NavigationGuardNext } from "vue-router";
 
 import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
 import store from "@/store";
 import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
-import { Route, NavigationGuardNext } from "vue-router";
+
 import model from "./store/machine/model";
 
 export default Vue.extend({

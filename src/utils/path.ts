@@ -108,7 +108,7 @@ export function filesAffectDirectory(files: Array<string>, directory: string) {
 /**
  * Get the volume from a given path
  * @param path Path
- * @returns Volume
+ * @returns Volume number
  */
 export function getVolume(path: string) {
 	if (path) {
@@ -154,8 +154,8 @@ export function startsWith(path: string, value: string) {
 export function isGCodePath(path: string, gcodesDir: string) {
 	path = path.toLowerCase();
 	return (startsWith(path, gcodesDir) ||
-			path.endsWith('.g') || path.endsWith('.gcode') || path.endsWith('.gc') || path.endsWith('.gco') ||
-			path.endsWith('.nc') || path.endsWith('.ngc') || path.endsWith('.tap'));
+			path.endsWith(".g") || path.endsWith(".gcode") || path.endsWith(".gc") || path.endsWith(".gco") ||
+			path.endsWith(".nc") || path.endsWith(".ngc") || path.endsWith(".tap"));
 }
 
 /**
@@ -211,31 +211,31 @@ export function escapeFilename(filename: string) {
  * It exposes the functions above as well
  */
 const pathObj = {
-	filaments: '0:/filaments',
-	firmware: '0:/sys',
-	gCodes: '0:/gcodes',
-	macros: '0:/macros',
-	menu: '0:/menu',
-	scans: '0:/scans',
-	system: '0:/sys',
-	web: '0:/www',
+	filaments: "0:/filaments",
+	firmware: "0:/sys",
+	gCodes: "0:/gcodes",
+	macros: "0:/macros",
+	menu: "0:/menu",
+	scans: "0:/scans",
+	system: "0:/sys",
+	web: "0:/www",
 
-	dwcCacheFile: '0:/sys/dwc-cache.json',
-	legacyDwcCacheFile: '0:/sys/dwc-cache.json',
-	dwcSettingsFile: '0:/sys/dwc-settings.json',
-	legacyDwcSettingsFile: '0:/sys/dwc2-settings.json',
-	dwcFactoryDefaults: '0:/sys/dwc-defaults.json',
-	legacyDwcFactoryDefaults: '0:/sys/dwc2-defaults.json',
-	dwcPluginsFile: '0:/sys/dwc-plugins.json',
+	dwcCacheFile: "0:/sys/dwc-cache.json",
+	legacyDwcCacheFile: "0:/sys/dwc-cache.json",
+	dwcSettingsFile: "0:/sys/dwc-settings.json",
+	legacyDwcSettingsFile: "0:/sys/dwc2-settings.json",
+	dwcFactoryDefaults: "0:/sys/dwc-defaults.json",
+	legacyDwcFactoryDefaults: "0:/sys/dwc2-defaults.json",
+	dwcPluginsFile: "0:/sys/dwc-plugins.json",
 
-	boardFile: '0:/sys/board.txt',
-	configFile: 'config.g',
-	configBackupFile: 'config.g.bak',
-	filamentsFile: 'filaments.csv',
-	heightmapFile: 'heightmap.csv',
+	boardFile: "0:/sys/board.txt",
+	configFile: "config.g",
+	configBackupFile: "config.g.bak",
+	filamentsFile: "filaments.csv",
+	heightmapFile: "heightmap.csv",
 
-	accelerometer: '0:/sys/accelerometer',
-	closedLoop: '0:/sys/closed-loop',
+	accelerometer: "0:/sys/accelerometer",
+	closedLoop: "0:/sys/closed-loop",
 
 	combine,
 	equals,
