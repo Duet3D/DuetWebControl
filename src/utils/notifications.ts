@@ -145,7 +145,7 @@ export function makeNotification(type: NotificationType, title: string, message:
         }
     }
 
-	// If there is already an equal notification, reset its time and don"t display a new one
+	// If there is already an equal notification, reset its time and don't display a new one
 	const equalNotification = notifications.find(item => item.type === type && item.title === title && item.message === message && item.timeout === timeout && item.route === route);
 	if (equalNotification) {
 		if (timeout > 0) {

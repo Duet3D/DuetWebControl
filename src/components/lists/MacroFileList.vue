@@ -6,14 +6,17 @@
 			<v-spacer />
 
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewFile = true">
-				<v-icon class="mr-1">mdi-file-plus</v-icon> {{ $t("button.newFile.caption") }}
+				<v-icon class="mr-1">mdi-file-plus</v-icon>
+				{{ $t("button.newFile.caption") }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down mr-3" :disabled="uiFrozen" :elevation="1" @click="showNewDirectory = true">
-				<v-icon class="mr-1">mdi-folder-plus</v-icon> {{ $t("button.newDirectory.caption") }}
+				<v-icon class="mr-1">mdi-folder-plus</v-icon>
+				{{ $t("button.newDirectory.caption") }}
 			</v-btn>
 			<v-btn class="hidden-sm-and-down mr-3" color="info" :loading="loading" :disabled="uiFrozen" :elevation="1"
 				   @click="refresh">
-				<v-icon class="mr-1">mdi-refresh</v-icon> {{ $t("button.refresh.caption") }}
+				<v-icon class="mr-1">mdi-refresh</v-icon>
+				{{ $t("button.refresh.caption") }}
 			</v-btn>
 			<upload-btn class="hidden-sm-and-down" :elevation="1" :directory="directory" target="macros"
 						color="primary" />
@@ -23,7 +26,8 @@
 						sort-table="macros" @fileClicked="fileClicked" no-files-text="list.macro.noMacros">
 			<template #context-menu>
 				<v-list-item v-show="isFile" @click="runFile(selection[0].name)">
-					<v-icon class="mr-1">mdi-play</v-icon> {{ $t("list.macro.run") }}
+					<v-icon class="mr-1">mdi-play</v-icon>
+					{{ $t("list.macro.run") }}
 				</v-list-item>
 			</template>
 		</base-file-list>

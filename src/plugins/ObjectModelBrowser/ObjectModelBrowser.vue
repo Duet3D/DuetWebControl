@@ -70,7 +70,7 @@ import ObjectModel from "@duet3d/objectmodel";
 import { getErrorMessage } from "@/utils/errors";
 
 // List of regexs to resolve properties in the XML documentation.
-// It"s a shame the C# XML compiler doesn"t include the property types...
+// It"s a shame the C# XML compiler doesn't include the property types...
 const propertyAdjustments = [
 	{ pattern: /(\[\d+\])+$/g, substitute: "" },
 	{ pattern: /s\[\d+\]/g, substitute: "" },

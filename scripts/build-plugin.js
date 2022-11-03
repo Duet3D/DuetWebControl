@@ -229,7 +229,7 @@ service
 				filesAdded = true;
 			}
 
-			// Make sure the ZIP isn"t empty
+			// Make sure the ZIP isn't empty
 			if (!filesAdded) {
 				error("No files could be added to the plugin ZIP file");
 				process.exit(1);

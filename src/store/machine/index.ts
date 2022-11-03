@@ -97,7 +97,7 @@ export interface FileTransferItem {
 	type?: XMLHttpRequestResponseType;
 
 	/**
-	 * Time at which the transfer was started or null if it hasn"t started yet
+	 * Time at which the transfer was started or null if it hasn't started yet
 	 */
 	startTime: Date | null;
 
@@ -177,6 +177,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async disconnect(): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("disconnect is not available in default machine module"); }
+
 				await connector.disconnect();
 			},
 
@@ -188,22 +189,24 @@ export default function(connector: BaseConnector | null): MachineModule {
 
 				if (!state.isReconnecting) {
 					// Clear the global variables again and set the state to disconnected
-					dispatch("update", {
+					await dispatch("update", {
 						global: null,
 						state: {
 							status: MachineStatus.disconnected
 						}
 					});
+
+					// Now trying to reconnect...
+					commit("setReconnecting", true);
 				}
 
-				commit("setReconnecting", true);
 				try {
 					await connector.reconnect();
+
 					commit("setReconnecting", false);
 					log(LogType.success, i18n.t("events.reconnected"));
 				} catch (e) {
-					console.warn(e);
-					dispatch("onConnectionError", e);
+					await dispatch("onConnectionError", e);
 				}
 			},
 
@@ -610,6 +613,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async getFileList(context, directory: string): Promise<Array<FileListItem>> {
 				if (connector === null) { throw new OperationFailedError("getFileList is not available in default machine module"); }
+
 				return connector.getFileList(directory);
 			},
 
@@ -622,6 +626,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async getFileInfo(context, { filename, readThumbnailContent }): Promise<GCodeFileInfo> {
 				if (connector === null) { throw new OperationFailedError("getFileInfo is not available in default machine module"); }
+
 				return connector.getFileInfo(filename, readThumbnailContent);
 			},
 
@@ -673,6 +678,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async uninstallPlugin(context, plugin): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("uninstallPlugin is not available in default machine module"); }
+
 				await connector.uninstallPlugin(plugin);
 			},
 
@@ -688,6 +694,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async setSbcPluginData(context, { plugin, key, value }): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("setSbcPluginData is not available in default machine module"); }
+
 				await connector.setSbcPluginData(plugin, key, value);
 			},
 
@@ -698,6 +705,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async startSbcPlugin(context, plugin): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("startSbcPlugin is not available in default machine module"); }
+
 				await connector.startSbcPlugin(plugin);
 			},
 
@@ -708,6 +716,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async stopSbcPlugin(context, plugin): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("stopSbcPlugin is not available in default machine module"); }
+
 				await connector.stopSbcPlugin(plugin);
 			},
 
@@ -723,6 +732,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async installSystemPackage(context, { filename, packageData, cancellationToken, onProgress }): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("installSystemPackage is not available in default machine module"); }
+
 				await connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
 			},
 
@@ -734,6 +744,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async uninstallSystemPackage(context, pkg): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("uninstallSystemPackage is not available in default machine module"); }
+
 				await connector.uninstallSystemPackage(pkg);
 			},
 
@@ -746,15 +757,14 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async loadDwcPlugin({ rootState, state, dispatch, commit }, { id, saveSettings }) {
 				if (connector === null) { throw new OperationFailedError("loadDwcPlugin is not available in default machine module"); }
-				const machineState = state as MachineModuleState;
 
-				// Don"t load a DWC plugin twice
-				if (rootState.loadedDwcPlugins.indexOf(id) !== -1) {
+				// Don't load a DWC plugin twice
+				if (rootState.loadedDwcPlugins.includes(id)) {
 					return;
 				}
 
 				// Get the plugin
-				const plugin = machineState.model.plugins.get(id);
+				const machineState = state as MachineModuleState, plugin = machineState.model.plugins.get(id);
 				if (!plugin) {
 					if (saveSettings) {
 						throw new Error(`Plugin ${id} not found`);
@@ -903,18 +913,18 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async onConnectionError({ state, dispatch }, error) {
 				if (connector === null) { throw new OperationFailedError("onConnectionError is not available in default machine module"); }
-				const machineState = state as MachineModuleState;
 				console.warn(error);
 
-				if (state.isReconnecting && !(error instanceof InvalidPasswordError)) {
-					// Retry after a short moment
-					setTimeout(() => dispatch("reconnect", 2000));
-				} else if (!state.isReconnecting && (machineState.model.state.status === MachineStatus.updating || machineState.model.state.status === MachineStatus.halted)) {
-					// Try to reconnect
+				const machineState = state as MachineModuleState;
+				if (!machineState.isReconnecting && [MachineStatus.updating, MachineStatus.halted].includes(machineState.model.state.status)) {
+					// Try to reconnect instantly once if the machine is updating or performing an emergency stop
 					if (machineState.model.state.status !== MachineStatus.updating) {
 						log(LogType.warning, i18n.t("events.reconnecting"));
 					}
 					await dispatch("reconnect");
+				} else if (machineState.isReconnecting && !(error instanceof InvalidPasswordError)) {
+					// Retry after a short moment
+					setTimeout(() => dispatch("reconnect"), 2000);
 				} else {
 					// Notify the root store about this event
 					await dispatch("onConnectionError", { hostname: connector.hostname, error }, { root: true });

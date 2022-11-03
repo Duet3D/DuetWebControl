@@ -231,7 +231,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param payload.saveSettings Save settings (including enabled plugins) on successful load
 		 */
 		async loadDwcPlugin({ state, dispatch, commit }, { id, saveSettings }) {
-			// Don"t load a DWC plugin twice
+			// Don't load a DWC plugin twice
 			if (state.loadedDwcPlugins.includes(id)) {
 				return;
 			}

@@ -287,7 +287,7 @@ export default Vue.extend({
 									return;
 								}
 								else if (this.target === UploadType.plugin) {
-									// Don"t proceed if this is no plugin file
+									// Don't proceed if this is no plugin file
 									return;
 								}
 							}
@@ -330,7 +330,7 @@ export default Vue.extend({
 			}
 
 			if (this.target === UploadType.plugin) {
-				// Don"t proceed if this is no plugin file
+				// Don't proceed if this is no plugin file
 				return;
 			}
 
@@ -466,7 +466,7 @@ export default Vue.extend({
 			}
 		},
 		async startUpdate() {
-			// Don"t show a reset confirmation while updating
+			// Don't show a reset confirmation while updating
 			this.confirmReset = false;
 
 			// Update expansion boards
