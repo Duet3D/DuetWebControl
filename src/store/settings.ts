@@ -172,7 +172,7 @@ export interface SettingsState {
 export default {
 	namespaced: true,
 	state: {
-		language: "en",
+		language: navigator.language.substring(0, 2),
 		lastHostname: location.host,
 
 		darkTheme: false,
