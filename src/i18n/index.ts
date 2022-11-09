@@ -6,11 +6,11 @@ import de from "./de.json";
 import es from "./es.json";
 import fr from "./fr.json";
 import pl from "./pl.json";
-import pt_br from "./pt_br.json";
+import pt_br from "./pt.json";
 import ru from "./ru.json";
 import tr from "./tr.json";
 import uk from "./uk.json";
-import zh_cn from "./zh_cn.json";
+import zh_cn from "./zh.json";
 import ja from "./ja.json";
 
 Vue.use(VueI18n);
@@ -24,11 +24,11 @@ const messages: LocaleMessages & Record<string, { plugins: Record<string, object
 	es,
 	fr,
 	pl,
-	pt_br,
+	pt,
 	ru,
 	tr,
 	uk,
-	zh_cn,
+	zh,
 	ja
 });
 
@@ -52,7 +52,7 @@ export function registerPluginLocalization(plugin: string, language: string, dat
  * Initialize i18n engine
  */
 export default new VueI18n({
-	locale: "en",
+	locale: navigator.language.substring(0, 2),
 	fallbackLocale: "en",
 	messages
 });
