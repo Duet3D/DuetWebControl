@@ -581,12 +581,12 @@ export default Vue.extend({
 				}
 			}
 			this.model.heat.bedHeaters.forEach((bedHeater, index) => {
-				if (bedHeater >= -1 && bedHeater < this.model.heat.heaters.length) {
+				if (bedHeater >= 0 && bedHeater < this.model.heat.heaters.length) {
 					code += `M140 P${index} S-273.15\n`;
 				}
 			}, this);
 			this.model.heat.chamberHeaters.forEach((chamberHeater, index) => {
-				if (chamberHeater >= -1 && chamberHeater < this.model.heat.heaters.length) {
+				if (chamberHeater >= 0 && chamberHeater < this.model.heat.heaters.length) {
 					code += `M141 P${index} S-273.15\n`;
 				}
 			}, this);
