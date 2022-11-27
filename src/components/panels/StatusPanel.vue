@@ -120,6 +120,18 @@ a:not(:hover) {
 								</span>
 							</v-col>
 
+							<v-col v-if="isFinite(model.move.currentMove.extrusionRate)"
+								   class="d-flex flex-column align-center">
+								<strong>
+									<a href="javascript:void(0)" @click="displayVolumetricFlow = !displayVolumetricFlow">
+										{{ displayVolumetricFlow ? $t("panel.status.volumetricFlowRate") : $t("panel.status.extrusionRate") }}
+									</a>
+								</strong>
+								<span>
+									{{ displayVolumetricFlow ? $display(volumetricFlowRate, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.requestedSpeed) }}
+								</span>
+							</v-col>
+
 							<v-col v-if="isFinite(model.move.currentMove.topSpeed)"
 								   class="d-flex flex-column align-center">
 								<strong>
@@ -249,6 +261,32 @@ export default Vue.extend({
 		model(): ObjectModel {
 			return store.state.machine.model;
 		},
+		volumetricFlowRate(): number {
+			if (this.model.state.currentTool >= 0 && this.model.state.currentTool < this.model.tools.length) {
+				const selectedTool = this.model.tools[this.model.state.currentTool];
+				if (selectedTool !== null) {
+					// Get the average extruder diameter x mix ratio
+					let numExtruders = 0, filamentArea = 0;
+					for (let i = 0; i < selectedTool.extruders.length; i++) {
+						const extruderIndex = selectedTool.extruders[i];
+						if (extruderIndex >= 0 && extruderIndex < this.model.move.extruders.length) {
+							const extruder = this.model.move.extruders[extruderIndex];
+							if (extruder !== null) {
+								filamentArea += selectedTool.mix[i] * (Math.PI * Math.pow((extruder.filamentDiameter / 2), 2));
+								numExtruders++;
+							}
+						}
+					}
+
+					// Compute volumetric flow
+					if (numExtruders > 0) {
+						filamentArea /= numExtruders;
+						return filamentArea * this.model.move.currentMove.extrusionRate;
+					}
+				}
+			}
+			return NaN;
+		},
 		fanRPM(): Array<{ name: string, rpm: number }> {
 			return store.state.machine.model.fans
 				.filter(fan => (fan !== null) && (fan.rpm >= 0))
@@ -276,7 +314,8 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			displayToolPosition: true
+			displayToolPosition: true,
+			displayVolumetricFlow: false
 		}
 	},
 	methods: {

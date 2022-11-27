@@ -155,6 +155,11 @@ export interface MachineSettingsState {
 	}
 
 	/**
+	 * Provide only a single input field for controlling multiple beds
+	 */
+	singleBedControl: boolean;
+
+	/**
 	 * Spindle RPM presets
 	 */
 	spindleRPM: Array<number>;
@@ -223,6 +228,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				},
 				chamber: [90, 80, 70, 60, 50, 40, 0]
 			},
+			singleBedControl: false,
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
 
 			enabledPlugins: [],
@@ -336,7 +342,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 						}
 					}
 
-					// If that fails, try to get the DWC2 defaults
+					// If that fails, try to get the DWC defaults
 					if (!settings) {
 						try {
 							settings = await dispatch(`machines/${connector.hostname}/download`, {

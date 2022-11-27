@@ -3,8 +3,7 @@
 		<v-combobox ref="input" type="number" min="-273" max="1999" step="any" class="tool-input" :label="label"
 					:menu-props="{ maxHeight: '50%' }" :value="inputValue" :search-input="inputValue"
 					@update:search-input="change" @blur="blur" @keydown.enter.prevent="apply" :loading="applying"
-					:disabled="uiFrozen || !isValid" :items="items" hide-selected>
-		</v-combobox>
+					:disabled="uiFrozen || !isValid" :items="items" hide-selected />
 	</v-form>
 </template>
 

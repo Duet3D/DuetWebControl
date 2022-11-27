@@ -25,6 +25,9 @@
 						</template>
 					</v-autocomplete>
 				</v-col>
+				<v-col cols="12">
+					<v-switch :label="$t('panel.settingsAppearance.singleBedControl')" hide-details v-model="singleBedControl" />
+				</v-col>
 			</v-row>
 		</v-card-text>
 	</v-card>
@@ -49,6 +52,10 @@ export default Vue.extend({
 		toolChangeMacros: {
 			get(): Array<ToolChangeMacro> { return store.state.machine.settings.toolChangeMacros; },
 			set(value: Array<ToolChangeMacro>) { this.update({ toolChangeMacros: value }); }
+		},
+		singleBedControl: {
+			get(): boolean { return store.state.machine.settings.singleBedControl; },
+			set(value: boolean) { this.update({ singleBedControl: value }); }
 		}
 	},
 	data() {

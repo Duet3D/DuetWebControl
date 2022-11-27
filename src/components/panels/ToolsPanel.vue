@@ -231,7 +231,79 @@ table.extra tr > td:first-child {
 						</template>
 
 						<!-- Beds -->
-						<template v-for="(bedHeater, bedIndex) in bedHeaters">
+						<template v-if="singleBedControl && firstBedHeater !== null">
+							<!-- Divider -->
+							<tr v-if="validTools.length > 0">
+								<td colspan="5">
+									<v-divider />
+								</td>
+							</tr>
+
+							<!-- Single Bed Control-->
+							<tr>
+								<!-- Bed name -->
+								<th class="pl-2">
+									<v-menu bottom offset-y>
+										<template #activator="{ on, attrs }">
+											<a href="javascript:void(0)" v-bind="attrs" v-on="on">
+												{{ (selectedBed === null) ? $t("panel.tools.beds") : $t("panel.tools.bed", [""]) }}
+												<v-icon dense class="ms-n1">mdi-menu-down</v-icon>
+											</a>
+										</template>
+										<v-list>
+											<v-list-item @click="selectedBed = null; selectedBedIndex = -1">
+												<v-list-item-title>
+													{{ $t("panel.tools.allBeds") }}
+												</v-list-item-title>
+											</v-list-item>
+
+											<template v-for="(bedHeater, bedIndex) in bedHeaters">
+												<v-list-item v-if="bedHeater !== null" :key="bedIndex"
+															 @click="selectedBed = bedHeater; selectedBedIndex = bedIndex">
+													<v-list-item-title>
+														{{ $t("panel.tools.bed", [bedIndex]) }}
+													</v-list-item-title>
+												</v-list-item>
+											</template>
+										</v-list>
+									</v-menu>
+								</th>
+
+								<!-- Heater name -->
+								<th v-if="selectedBed !== null">
+									<a href="javascript:void(0)" @click="bedHeaterClick(selectedBed, selectedBedIndex)"
+									   :class="getHeaterColor(model.heat.bedHeaters[selectedBedIndex])">
+										{{ getHeaterName(selectedBed, model.heat.bedHeaters[selectedBedIndex]) }}
+									</a>
+									<br>
+									<span class="font-weight-regular caption">
+										{{ $t(`generic.heaterStates.${selectedBed.state}`) }}
+									</span>
+								</th>
+								<th v-else>
+									<a href="javascript:void(0)" class="font-weight-regular" @click="allBedHeaterClick">
+										{{ $t(`generic.heaterStates.${firstBedHeater.state}`) }}
+									</a>
+								</th>
+
+								<!-- Heater value -->
+								<td>
+									{{ getHeaterValue(firstBedHeater) }}
+								</td>
+
+								<!-- Heater active -->
+								<td class="pl-2 pr-1">
+									<tool-input all control-beds active />
+								</td>
+
+								<!-- Heater standby -->
+								<td class="pl-1 pr-2">
+									<tool-input all control-beds standby />
+								</td>
+							</tr>
+						</template>
+						<template v-else v-for="(bedHeater, bedIndex) in bedHeaters">
+							<!-- Individual Bed Control-->
 							<template v-if="bedHeater !== null">
 								<!-- Divider -->
 								<tr v-if="validTools.length > 0" :key="`div-bed-${bedIndex}`">
@@ -431,6 +503,31 @@ export default Vue.extend({
 		hasOneBed(): boolean {
 			return this.bedHeaters.filter(bed => (bed !== null)).length === 1;
 		},
+		firstBedHeater(): Heater | null {
+			for (const bedHeater of this.model.heat.bedHeaters) {
+				if (bedHeater >= 0 && bedHeater < this.model.heat.heaters.length) {
+					const heater = this.model.heat.heaters[bedHeater];
+					if (heater !== null) {
+						return heater;
+					}
+				}
+			}
+			return null;
+		},
+		firstBedHeaterIndex(): number {
+			for (const bedHeater of this.model.heat.bedHeaters) {
+				if (bedHeater >= 0 && bedHeater < this.model.heat.heaters.length) {
+					const heater = this.model.heat.heaters[bedHeater];
+					if (heater !== null) {
+						return bedHeater;
+					}
+				}
+			}
+			return -1;
+		},
+		singleBedControl(): boolean {
+			return store.state.machine.settings.singleBedControl;
+		},
 		chamberHeaters(): Array<Heater | null> {
 			const heaters = this.model.heat.heaters;
 			return this.model.heat.chamberHeaters.map(heaterIndex => (heaterIndex >= 0 && heaterIndex < heaters.length && heaters[heaterIndex]) ? heaters[heaterIndex] : null);
@@ -455,6 +552,9 @@ export default Vue.extend({
 				tool: null as Tool | null,
 				dialogShown: false
 			},
+
+			selectedBed: null as Heater | null,
+			selectedBedIndex: -1,
 
 			resetHeaterFault: false,
 			faultyHeater: -1
@@ -622,8 +722,52 @@ export default Vue.extend({
 		},
 
 		// Beds
-		async bedHeaterClick(bedHeater: Heater, bedIndex: number) {
+		async allBedHeaterClick() {
 			if (!this.isConnected) {
+				return;
+			}
+
+			// Get valid bed indices
+			const bedIndices: Array<number> = [];
+			for (let bedIndex = 0; bedIndex < this.model.heat.bedHeaters.length; bedIndex++) {
+				const heaterIndex = this.model.heat.bedHeaters[bedIndex];
+				if (heaterIndex >= 0 && heaterIndex < this.model.heat.heaters.length) {
+					const bedHeater = this.model.heat.heaters[heaterIndex];
+					if (bedHeater !== null) {
+						bedIndices.push(bedIndex);
+
+						// Since there is no dedicate facility for resetting heater faults, check all bed heaters here
+						if (bedHeater.state === HeaterState.fault) {
+							this.faultyHeater = heaterIndex;
+							this.resetHeaterFault = true;
+							return;
+						}
+					}
+				}
+			}
+
+			// Control beds depending on the state of the first heater
+			const firstBedHeater = this.firstBedHeater;
+			if (firstBedHeater !== null) {
+				switch (firstBedHeater.state) {
+					case HeaterState.off:		// Off -> Active
+						await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M140 P${bedIndex} S${firstBedHeater.active}`).join('\n'));
+						break;
+
+					case HeaterState.standby:	// Standby -> Off
+						await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M140 P${bedIndex} S-273.15`).join('\n'));
+						break;
+
+					case HeaterState.active:	// Active -> Standby
+						await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M144 P${bedIndex}\n`).join('\n'));
+						break;
+
+					// Faults are handled before we get here
+				}
+			}
+		},
+		async bedHeaterClick(bedHeater: Heater | null, bedIndex: number) {
+			if (!this.isConnected || !bedHeater) {
 				return;
 			}
 

@@ -55,7 +55,7 @@ td {
 			</v-card-text>
 
 			<v-card-actions>
-				<span v-show="canCancel" class="ml-3 text--secondary text-button">
+				<span v-show="(currentSpeed !== null) && (currentSpeed > 0)" class="ml-3 text--secondary text-button">
 					{{ $t("dialog.fileTransfer.currentSpeed", [$displayTransferSpeed(currentSpeed)]) }}
 				</span>
 				<v-spacer />

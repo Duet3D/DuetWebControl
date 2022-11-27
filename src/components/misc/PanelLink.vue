@@ -5,7 +5,7 @@ span {
 </style>
 
 <template>
-	<a v-if="active" href="javascript:void(0)" @click="$emit('click', $event)">
+	<a v-if="!active" href="javascript:void(0)" @click="$emit('click', $event)">
 		<slot></slot>
 	</a>
 	<span v-else>

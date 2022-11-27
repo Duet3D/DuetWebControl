@@ -688,7 +688,8 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Single bed control"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -788,7 +789,9 @@
       "v12": "V12",
       "fanRPM": "Fan RPM",
       "probe": "Z-Probe|Z-Probes",
-      "noStatus": "No Status"
+      "noStatus": "No Status",
+      "extrusionRate": "Extrusion Rate",
+      "volumetricFlowRate": "Volumetric Flow Rate"
     },
     "tools": {
       "caption": "Tools",
@@ -817,7 +820,9 @@
         "showInChart": "Show in Chart",
         "noItems": "No Extra Sensors"
       },
-      "noTools": "No Tools"
+      "noTools": "No Tools",
+      "allBeds": "All Beds",
+      "beds": "Beds"
     },
     "webcam": {
       "caption": "Webcam Surveillance",
@@ -1034,5 +1039,6 @@
       "noPlugins": "No Plugins",
       "refreshNote": "Refresh the page to finish unloading some DWC plugins"
     }
-  }
+  },
+  "extrusionRate": "Extrusion Speed"
 }
