@@ -73,7 +73,7 @@ export default Vue.extend({
 		shown(to: boolean) {
 			if (to) {
 				// Apply preset
-				this.input = this.preset.toString();
+				this.input = this.preset ? this.preset.toString() : "";
 			}
 		}
 	}

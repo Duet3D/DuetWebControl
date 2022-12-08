@@ -75,7 +75,7 @@ export default Vue.extend({
 			const fan = (this.fan === -1)
 				? ((this.currentTool && this.currentTool.fans.length > 0) ? this.currentTool.fans[0] : -1)
 				: this.fan;
-			return (fan >= 0) && (fan < this.fans.length) && (this.fans[fan] !== null) ? Math.round(this.fans[fan]!.max) : 1;
+			return (fan >= 0) && (fan < this.fans.length) && (this.fans[fan] !== null) ? Math.round(this.fans[fan]!.max * 100) : 100;
 		}
 	},
 	data() {

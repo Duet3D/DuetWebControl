@@ -166,9 +166,9 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 		],
 		translated: false
 	},
-	Plugins: {
-		icon: "mdi-puzzle",
-		caption: "menu.plugins.caption",
+	Settings: {
+		icon: "mdi-wrench",
+		caption: "menu.settings.caption",
 		pages: [
 			{
 				icon: "mdi-tune",
@@ -191,9 +191,9 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 		],
 		translated: false
 	},
-	Settings: {
-		icon: "mdi-wrench",
-		caption: "menu.settings.caption",
+	Plugins: {
+		icon: "mdi-puzzle",
+		caption: "menu.plugins.caption",
 		pages: [],
 		translated: false
 	}

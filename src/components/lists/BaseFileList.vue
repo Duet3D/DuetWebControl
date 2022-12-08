@@ -111,11 +111,11 @@ td {
 					<v-icon class="mr-1">mdi-rename-box</v-icon>
 					{{ $t("list.baseFileList.rename") }}
 				</v-list-item>
-				<v-list-item v-show="!noDelete" @click="remove">
+				<v-list-item v-show="!noDelete" @click="remove()">
 					<v-icon class="mr-1">mdi-delete</v-icon>
 					{{ $t("list.baseFileList.delete") }}
 				</v-list-item>
-				<v-list-item v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP">
+				<v-list-item v-show="!foldersSelected && innerValue.length > 1" @click="downloadZIP()">
 					<v-icon class="mr-1">mdi-package-down</v-icon>
 					{{ $t("list.baseFileList.downloadZIP") }}
 				</v-list-item>

@@ -26,13 +26,13 @@
 						:no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop
 						:no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
 			<template #context-menu>
-				<v-list-item v-show="filamentSelected" @click="downloadFilament">
+				<v-list-item v-show="filamentSelected" @click="downloadFilament()">
 					<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $t("list.baseFileList.downloadZIP") }}
 				</v-list-item>
 				<v-list-item v-show="filamentSelected" @click="rename">
 					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t("list.baseFileList.rename") }}
 				</v-list-item>
-				<v-list-item v-show="filamentSelected" @click="remove">
+				<v-list-item v-show="filamentSelected" @click="remove()">
 					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t("list.baseFileList.delete") }}
 				</v-list-item>
 			</template>
