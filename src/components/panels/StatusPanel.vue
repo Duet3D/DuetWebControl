@@ -128,7 +128,7 @@ a:not(:hover) {
 									</a>
 								</strong>
 								<span>
-									{{ displayVolumetricFlow ? $display(volumetricFlowRate, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.requestedSpeed) }}
+									{{ displayVolumetricFlow ? $display(volumetricFlowRate, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.extrusionRate) }}
 								</span>
 							</v-col>
 

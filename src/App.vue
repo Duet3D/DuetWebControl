@@ -38,7 +38,7 @@
 			</v-app-bar-nav-icon>
 			<v-toolbar-title class="px-1">
 				<a href="javascript:void(0)" id="title">
-					{{ model.network.name }}
+					{{ name }}
 				</a>
 			</v-toolbar-title>
 			<connect-btn v-if="showConnectButton" class="hidden-xs-only ml-3" />
@@ -112,6 +112,8 @@ import model from "./store/machine/model";
 
 export default Vue.extend({
 	computed: {
+		name(): string { return store.state.machine.model.network.name; },
+		status(): MachineStatus { return store.state.machine.model.state.status; },
 		iconMenu(): boolean { return store.state.settings.iconMenu; },
 		jobProgress(): number { return store.getters["machine/jobProgress"]; },
 		injectedComponents(): Array<{ name: string, component: Component }> { return store.state.uiInjection.injectedComponents; },
@@ -134,6 +136,7 @@ export default Vue.extend({
 			};
 			return Routes.some(route => checkRoute(route as MenuItem));
 		},
+		darkTheme(): boolean { return store.state.settings.darkTheme; },
 		isFFForUnset(): boolean {
 			if (store.state.settings.dashboardMode === DashboardMode.default) {
 				return !this.model.state.machineMode || this.model.state.machineMode === MachineMode.fff;
@@ -163,11 +166,11 @@ export default Vue.extend({
 			return category.pages.filter(page => page.condition);
 		},
 		updateTitle(): void {
-			if (this.model.state.status === MachineStatus.disconnected) {
-				document.title = `(${this.model.network.name})`;
+			if (this.status === MachineStatus.disconnected) {
+				document.title = `(${this.name})`;
 			} else {
 				const jobProgress = this.jobProgress;
-				const title = ((jobProgress > 0 && isPrinting(this.model.state.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.model.network.name;
+				const title = ((jobProgress > 0 && isPrinting(this.status)) ? `(${(jobProgress * 100).toFixed(1)}%) ` : '') + this.name;
 				if (document.title !== title) {
 					document.title = title;
 				}
