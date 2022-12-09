@@ -1,5 +1,6 @@
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
+const webpack = require('webpack');
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
@@ -22,6 +23,11 @@ module.exports = {
 			new CompressionPlugin({
 				exclude: /\.zip$/,
 				minRatio: Infinity
+			}),
+			// Work around for Buffer is undefined:
+			// https://github.com/webpack/changelog-v5/issues/10
+			new webpack.ProvidePlugin({
+				Buffer: ['buffer', 'Buffer'],
 			}),
 			...((process.env.NOZIP) ? [] : [
 				new ZipPlugin({

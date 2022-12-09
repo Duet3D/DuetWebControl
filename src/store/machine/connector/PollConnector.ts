@@ -1,6 +1,6 @@
 import ObjectModel, { AxisLetter, GCodeFileInfo, initObject, Job, Layer, MachineStatus, Message, Plugin, PluginManifest } from "@duet3d/objectmodel";
 import JSZip from "jszip";
-import { crc32 } from "turbo-crc32/crc32";
+import crc32 from "turbo-crc32/crc32";
 
 import { isPaused, isPrinting } from "@/utils/enums";
 import {
@@ -13,7 +13,7 @@ import { closeNotifications } from "@/utils/notifications";
 import Path from "@/utils/path";
 import { strToTime, timeToStr } from "@/utils/time";
 
-import BaseConnector, { CancellationToken, defaultRequestTimeout, FileListItem, OnProgressCallback } from "./BaseConnector";
+import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
 import { DefaultModel } from "../model";
 import { MachineModule } from "..";
 
