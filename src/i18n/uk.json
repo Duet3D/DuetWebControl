@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Не закривати автоматично повідомлення про помилки",
       "notificationTimeout": "Таймаут повідомлень за замовчуванням ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Поведінка",
+      "behaviourJobStart": "Не переключайтеся автоматично на панель стану під час запуску завдання"
+    },
     "settingsWebcam": {
       "caption": "Веб-камера",
       "webcamURL": "URL веб-камери (необов'язково)",

@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Fehlermeldungen nicht automatisch schließen",
       "notificationTimeout": "Standardmäßige Benachrichtigungsdauer ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Verhalten",
+      "behaviourJobStart": "Beim Jobstart nicht automatisch zum Statusbereich wechseln"
+    },
     "settingsWebcam": {
       "caption": "Webcam",
       "webcamURL": "Webcam-URL (optional)",

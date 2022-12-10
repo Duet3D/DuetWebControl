@@ -22,6 +22,9 @@
 				<v-col cols="12">
 					<settings-webcam-panel />
 				</v-col>
+				<v-col cols="12">
+					<settings-behaviour-panel />
+				</v-col>
 			</v-row>
 		</v-col>
 	</v-row>

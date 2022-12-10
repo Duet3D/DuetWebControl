@@ -145,6 +145,9 @@ export default Vue.extend({
 		},
 		showBottomNavigation(): boolean {
 			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && store.state.settings.bottomNavigation;
+		},
+		doNotSwitchToStatusPanelOnJobStart(): boolean {
+			return store.state.settings.behaviour.jobStart; 
 		}
 	},
 	data() {
@@ -225,7 +228,7 @@ export default Vue.extend({
 			if (printing !== isPrinting(from)) {
 				if (printing) {
 					// Go to Job Status when a print starts
-					if (this.$router.currentRoute.path !== "/Job/Status") {
+					if (this.$router.currentRoute.path !== "/Job/Status" && !this.doNotSwitchToStatusPanelOnJobStart) {
 						this.$router.push("/Job/Status");
 					}
 				} else {

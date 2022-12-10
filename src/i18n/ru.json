@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Не закрывать сообщения об ошибках автоматически",
       "notificationTimeout": "Тайм-аут уведомления ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Поведение",
+      "behaviourJobStart": "Не переключаться автоматически на панель состояния при запуске задания"
+    },
     "settingsWebcam": {
       "caption": "Камера",
       "webcamURL": "URL камеры (опционально)",

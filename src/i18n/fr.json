@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Ne pas fermer les messages d'erreur automatiquement",
       "notificationTimeout": "Délais d'affichage des notifications par défaut ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Comportement",
+      "behaviourJobStart": "Ne pas basculer automatiquement vers le panneau d'état au démarrage du travail"
+    },
     "settingsWebcam": {
       "caption": "Webcam",
       "webcamURL": "Webcam URL (optionnel)",

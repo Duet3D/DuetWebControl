@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Não fechar mensagens de erro automaticamente",
       "notificationTimeout": "Tempo de espera pré-determinado para notificações ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Comportamento",
+      "behaviourJobStart": "Não alterne automaticamente para o Painel de status no início do trabalho"
+    },
     "settingsWebcam": {
       "caption": "Webcam",
       "webcamURL": "URL da Webcam (opcional)",

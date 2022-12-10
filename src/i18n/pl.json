@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Nie zamykaj komunikatów o błędach automatycznie",
       "notificationTimeout": "Domyślny limit czasu powiadomień ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Zachowanie",
+      "behaviourJobStart": "Nie przełączaj się automatycznie do Panelu stanu podczas uruchamiania zadania"
+    },
     "settingsWebcam": {
       "caption": "Kamera",
       "webcamURL": "URL obrazu video (opcjonalnie)",
