@@ -743,6 +743,10 @@
       "notificationErrorsPersistent": "Do not close error messages automatically",
       "notificationTimeout": "Default notification timeout ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Behaviour",
+      "behaviourJobStart": "Do not auto switch to Status Panel on job start"
+    },
     "settingsWebcam": {
       "caption": "Webcam",
       "webcamURL": "Webcam URL (optional)",

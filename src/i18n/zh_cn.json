@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "不要自动关闭错误消息",
       "notificationTimeout": "默认通知超时（{0}）"
     },
+    "settingsBehaviour": {
+      "caption": "行为",
+      "behaviourJobStart": "不要在作业开始时自动切换到状态面板"
+    },
     "settingsWebcam": {
       "caption": "网络摄像头",
       "webcamURL": "网络摄像头网址（可选）",

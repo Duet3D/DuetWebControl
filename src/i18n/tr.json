@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "Hata mesajlarını otomatik olarak kapatma",
       "notificationTimeout": "Varsayılan bildirim zaman aşımı ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "Davranış",
+      "behaviourJobStart": "İş başlangıcında Durum Paneline otomatik geçiş yapma"
+    },
     "settingsWebcam": {
       "caption": "Web kamerası",
       "webcamURL": "Web kamerası URL (opsiyonel)",

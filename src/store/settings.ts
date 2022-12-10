@@ -119,6 +119,16 @@ export interface SettingsState {
 	},
 
 	/**
+	 * UI Behaviour settings
+	 */
+	 behaviour: {
+		/**
+		 * Stop auto switch to Status Panel On Job Start
+		 */
+		 jobStart: boolean;
+	},
+
+	/**
 	 * Webcam settings
 	 */
 	webcam: {
@@ -193,6 +203,10 @@ export default {
 		notifications: {
 			errorsPersistent: true,
 			timeout: 5000
+		},
+
+		behaviour: {
+			 jobStart: false
 		},
 
 		webcam: {

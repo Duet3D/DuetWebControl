@@ -742,6 +742,10 @@
       "notificationErrorsPersistent": "エラーメッセージを自動的に閉じない",
       "notificationTimeout": "通知タイムアウトのデフォルト値 ({0})"
     },
+    "settingsBehaviour": {
+      "caption": "行動",
+      "behaviourJobStart": "ジョブの開始時にステータス パネルに自動切り替えしない"
+    },
     "settingsWebcam": {
       "caption": "ウェブカメラ",
       "webcamURL": "ウェブカメラ URL (optional)",
