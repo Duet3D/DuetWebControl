@@ -237,7 +237,7 @@ export default Vue.extend({
 		},
 		name() { this.updateTitle(); },
 		jobProgress(to: number, from: number) {
-			if (isPrinting(this.model.state.status) && Math.round(to * 100) !== Math.round(from * 100)) {
+			if (isPrinting(this.status) && Math.round(to * 100) !== Math.round(from * 100)) {
 				Piecon.setProgress(to * 100);
 			}
 			this.updateTitle();
