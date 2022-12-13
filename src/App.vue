@@ -108,14 +108,12 @@ import store from "@/store";
 import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
 
-import model from "./store/machine/model";
-
 export default Vue.extend({
 	computed: {
 		name(): string { return store.state.machine.model.network.name; },
 		status(): MachineStatus { return store.state.machine.model.state.status; },
 		iconMenu(): boolean { return store.state.settings.iconMenu; },
-		jobProgress(): number { return store.getters["machine/jobProgress"]; },
+		jobProgress(): number { return store.getters["machine/model/jobProgress"]; },
 		injectedComponents(): Array<{ name: string, component: Component }> { return store.state.uiInjection.injectedComponents; },
 		model(): ObjectModel { return store.state.machine.model; },
 		categories(): Array<MenuCategory> {
