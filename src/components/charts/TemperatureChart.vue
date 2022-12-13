@@ -183,9 +183,10 @@ let storeSubscribed = false, instances: Array<{ update: () => void }> = []
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
+		darkTheme(): boolean { return store.state.settings.darkTheme; },
+		selectedMachine(): string { return store.state.selectedMachine; },
 		hasTemperaturesToDisplay(): boolean { return store.getters["machine/hasTemperaturesToDisplay"] },
-		maxHeaterTemperature(): number | null { return store.getters["machine/model/maxHeaterTemperature"] }
+		maxHeaterTemperature(): number | null { return store.getters["machine/model/maxHeaterTemperature"] },
 	},
 	data() {
 		return {
@@ -218,8 +219,8 @@ export default Vue.extend({
 	},
 	mounted() {
 		// Create the dataset if necessary
-		if (!tempSamples[store.state.selectedMachine]) {
-			tempSamples[store.state.selectedMachine] = {
+		if (!tempSamples[this.selectedMachine]) {
+			tempSamples[this.selectedMachine] = {
 				times: [],
 				temps: []
 			};
@@ -297,11 +298,11 @@ export default Vue.extend({
 				}
 			},
 			data: {
-				labels: tempSamples[store.state.selectedMachine].times,
-				datasets: tempSamples[store.state.selectedMachine].temps
+				labels: tempSamples[this.selectedMachine].times,
+				datasets: tempSamples[this.selectedMachine].temps
 			}
 		});
-		this.applyDarkTheme(store.state.settings.darkTheme);
+		this.applyDarkTheme(this.darkTheme);
 
 		// Keep track of updates
 		instances.push(this);
