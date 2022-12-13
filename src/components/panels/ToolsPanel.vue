@@ -650,7 +650,7 @@ export default Vue.extend({
 					await store.dispatch("machine/sendCode", "T-1" + this.toolChangeParameter);
 				} else {
 					// Select new tool
-					await store.dispatch("macine/sendCode", `T${tool.number}${this.toolChangeParameter}`);
+					await store.dispatch("machine/sendCode", `T${tool.number}${this.toolChangeParameter}`);
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
