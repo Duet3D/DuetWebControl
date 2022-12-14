@@ -90,7 +90,7 @@
 		<connect-dialog />
 		<connection-dialog />
 		<file-transfer-dialog />
-		<messagebox-dialog />
+		<message-box-dialog />
 		<plugin-install-dialog />
 
 		<component v-for="component in injectedComponentNames" :is="component" :key="component" />

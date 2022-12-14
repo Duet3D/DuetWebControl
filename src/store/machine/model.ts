@@ -93,11 +93,13 @@ const secondState = new ObjectModel();
 export default function(connector: BaseConnector | null) : MachineModel {
 	// If a connector is given, just update the hostname and name
 	const typedState = !connector ? DefaultModel : new ObjectModel();
-	const state = Vue.observable(!connector ? DefaultModel : new ObjectModel());
 	if (connector !== null) {
-		typedState.network.hostname = state.network.hostname = connector.hostname;
-		typedState.network.name = state.network.name = `(${connector.hostname})`;
+		typedState.network.hostname = connector.hostname;
+		typedState.network.name = `(${connector.hostname})`;
 	}
+
+	const state = Vue.observable(JSON.parse(JSON.stringify(!connector ? DefaultModel : new ObjectModel())));
+	state.plugins.get = (key: string) => (state.plugins as any)[key];
 
 	// Generate the Vuex module
 	return {
@@ -154,7 +156,8 @@ export default function(connector: BaseConnector | null) : MachineModel {
 				// It may be necessary to upgrade to Vue 3 sooner than expected, because it does not suffer from the same limitations as Vue 2
 				for (const key in data) {
 					if (key === "plugins") {
-						state.plugins.update(typedState.plugins);
+						Vue.set(state, "plugins", JSON.parse(JSON.stringify(typedState.plugins)));
+						state.plugins.get = (key) => (state.plugins as any)[key];
 					} else {
 						patch((state as any)[key], (typedState as any)[key]);
 					}

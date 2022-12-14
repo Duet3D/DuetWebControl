@@ -25,7 +25,7 @@ Vue.component("file-edit-dialog", FileEditDialog);
 Vue.component("firmware-update-dialog", FirmwareUpdateDialog);
 Vue.component("input-dialog", InputDialog);
 Vue.component("mesh-edit-dialog", MeshEditDialog);
-Vue.component("messagebox-dialog", MessageBoxDialog);
+Vue.component("message-box-dialog", MessageBoxDialog);
 Vue.component("new-file-dialog", NewFileDialog);
 Vue.component("new-directory-dialog", NewDirectoryDialog);
 Vue.component("plugin-install-dialog", PluginInstallDialog);

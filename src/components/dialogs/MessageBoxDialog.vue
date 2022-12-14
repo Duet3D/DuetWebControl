@@ -92,6 +92,8 @@ export default Vue.extend({
 	computed: {
 		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
 		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
+		isReconnecting(): boolean { return store.state.machine.isReconnecting; },
+		currentMessageBox(): MessageBox | null { return store.state.machine.model.state.messageBox; },
 		canConfirm(): boolean {
 			if (this.needsNumberInput) {
 				let canConfirm;
@@ -199,7 +201,7 @@ export default Vue.extend({
 				if (to && to.mode !== null) {
 					this.numberInput = (typeof to.default === "number") ? to.default : 0;
 					this.stringInput = (typeof to.default === "string") ? to.default : "";
-					this.messageBox.update(to);
+					this.messageBox.update(JSON.parse(JSON.stringify(to)));		// FIXME remove this after upgrading to Vue 3
 					this.shown = true;
 				} else {
 					this.shown = false;

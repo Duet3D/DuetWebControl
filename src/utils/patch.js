@@ -89,7 +89,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 					console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source. Value: ${JSON.stringify(b[key])}`);
 				}
 			} else if (b[key] === null) {
-				a[key] = null;
+				Vue.set(a, key, null);
 			} else {
 				if (typeof a[key] === 'boolean' && typeof b[key] === 'number') {
 					// RRF may report bools as ints so convert them if necessary
