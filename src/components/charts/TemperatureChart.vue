@@ -138,7 +138,7 @@ const tempSamples: Record<string, TempSampleData> = {
 };
 
 /**
- * 
+ * Push sensor data of a given machine to the dataset
  * @param machine Machine to add samples to
  * @param index Index of the sensor
  * @param extra If it is an extra sensor

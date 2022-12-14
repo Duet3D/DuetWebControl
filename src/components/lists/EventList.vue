@@ -145,7 +145,11 @@ export default Vue.extend({
 				return "light-blue accent-1";
 			}
 		},
-		formatMessage(message: string) {
+		formatMessage(message: string | null) {
+			if (message === null) {
+				return "";
+			}
+
 			let result = message.replace(/Error:/g, "<strong>Error:</strong>").replace(/Warning:/g, "<strong>Warning:</strong>");
 			if (message.startsWith('{') && message.endsWith('}')) {
 				try {
