@@ -66,7 +66,7 @@
 
 				<div class="d-block">
 					<strong>
-						{{ $t(`notification.${fileTransferNotification.type}.title`, [fileTransferNotification.filename, $displayTransferSpeed(fileTransferNotification.speed), Math.round(fileTransferNotification.progress)]) }}
+						{{ $t(`notification.${fileTransferNotification.type}.title`, [fileTransferNotification.filename, $displayTransferSpeed(fileTransferNotification.speed), Math.round(fileTransferNotification.progress || 0)]) }}
 					</strong>
 					<p class="mb-0">
 						{{ $t(`notification.${fileTransferNotification.type}.message`) }}
