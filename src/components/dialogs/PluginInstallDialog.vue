@@ -338,11 +338,6 @@ export default Vue.extend({
 	},
 	methods: {
 		async installPluginHook({ zipFilename, zipBlob, zipFile, start }: { zipFilename: string, zipBlob: File, zipFile: JSZip, start: boolean }) {
-			if (process.env.NODE_ENV === "development") {
-				alert("Third-party plugins are not supported in dev mode");
-				return;
-			}
-
 			this.zipFilename = zipFilename;
 			this.zipBlob = zipBlob;
 			this.zipFile = zipFile;
