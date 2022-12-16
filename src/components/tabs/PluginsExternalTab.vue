@@ -37,8 +37,8 @@ button {
 					</tr>
 				</thead>
 				<tbody>
-					<tr v-for="[pluginId, plugin] in plugins" :key="pluginId">
-						<td :title="pluginId">
+					<tr v-for="plugin in plugins" :key="plugin.id">
+						<td :title="plugin.id">
 							{{ plugin.name }}
 						</td>
 						<td>
@@ -100,11 +100,11 @@ import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
 	computed: {
-		plugins(): Map<string, Plugin> {
-			return store.state.machine.model.plugins as Map<string, Plugin>;
+		plugins(): Array<Plugin> {
+			return Array.from(store.state.machine.model.plugins.values()) as Array<Plugin>;
 		},
 		noPlugins(): boolean {
-			return Object.keys(this.plugins).length === 0;
+			return store.state.machine.model.plugins.size == 0;
 		}
 	},
 	data() {

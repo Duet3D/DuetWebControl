@@ -280,6 +280,11 @@ interface TabItem {
 	caption: string;
 
 	/**
+	 * Optional tab icon
+	 */
+	icon?: string;
+
+	/**
 	 * Name of the Vue component
 	 */
 	component: string;
@@ -307,10 +312,12 @@ export const MachineSettingTabs = Vue.observable<Array<TabItem>>([]);
  * @param component Component to register
  * @param caption Caption of the tab
  * @param translated Whether the caption is already translated (defaults to false)
+ * @param icon Optional icon for the tab caption
  */
-export function registerSettingTab(general: boolean, name: string, component: Component, caption: string | (() => string), translated = false) {
+export function registerSettingTab(general: boolean, name: string, component: Component, caption: string | (() => string), translated = false, icon?: string) {
 	const tab: TabItem = {
 		caption: caption as string,
+		icon,
 		component: name,
 		translated
 	}

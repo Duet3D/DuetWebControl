@@ -80,7 +80,7 @@
 				</v-btn>
 			</template>
 		</v-snackbar>
-		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="notification.type"
+		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="(notification !== null) ? notification.type : 'info'"
 					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }"
 					:class="{ pointer: !!notification.route }" @click.native="clicked">
 			<v-progress-linear v-if="animateProgress" ref="progressBar" :color="progressColor"
@@ -93,8 +93,8 @@
 				<v-icon v-if="notification.icon !== null" class="mr-4" v-text="notification.icon" />
 
 				<div class="d-block">
-					<strong v-if="notification.title !== null" v-html="notification.title?.replace(/\n/g, '<br>')"></strong>
-					<p v-if="notification.message !== null" class="mb-0" v-html="notification.message?.replace(/\n/g, '<br>')"></p>
+					<strong v-if="notification.title !== null" v-html="notificationTitle"></strong>
+					<p v-if="notification.message !== null" class="mb-0" v-html="notificationMessage"></p>
 				</div>
 			</div>
 
@@ -125,6 +125,18 @@ export default Vue.extend({
 		},
 		notification(): Notification | null {
 			return (this.notifications.length > 0) ? this.notifications[0] : null;
+		},
+		notificationTitle(): string {
+			if (this.notification !== null && this.notification.title !== null) {
+				return this.notification.title.replace(/\n/g, "<br>");
+			}
+			return "";
+		},
+		notificationMessage(): string {
+			if (this.notification !== null && this.notification.message !== null) {
+				return this.notification.message.replace(/\n/g, "<br>");
+			}
+			return "";
 		}
 	},
 	data() {

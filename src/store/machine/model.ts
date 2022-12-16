@@ -1,4 +1,4 @@
-import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 import type { Module } from "vuex";
 
@@ -90,7 +90,7 @@ const secondState = new ObjectModel();
  * @param connector Connector used by the machine module instance
  * @returns Machine model module
  */
-export default function(connector: BaseConnector | null) : MachineModel {
+export default function (connector: BaseConnector | null): MachineModel {
 	// If a connector is given, just update the hostname and name
 	const typedState = !connector ? DefaultModel : new ObjectModel();
 	if (connector !== null) {
@@ -98,8 +98,11 @@ export default function(connector: BaseConnector | null) : MachineModel {
 		typedState.network.name = `(${connector.hostname})`;
 	}
 
-	const state = Vue.observable(JSON.parse(JSON.stringify(!connector ? DefaultModel : new ObjectModel())));
-	state.plugins.get = (key: string) => (state.plugins as any)[key];
+	const state = JSON.parse(JSON.stringify(!connector ? DefaultModel : new ObjectModel()));
+	state.plugins = new Map<string, Plugin>();
+	for (const [key, value] of typedState.plugins) {
+		state.plugins.set(key, JSON.parse(JSON.stringify(value)));
+	}
 
 	// Generate the Vuex module
 	return {
@@ -156,13 +159,16 @@ export default function(connector: BaseConnector | null) : MachineModel {
 				// It may be necessary to upgrade to Vue 3 sooner than expected, because it does not suffer from the same limitations as Vue 2
 				for (const key in data) {
 					if (key === "plugins") {
-						Vue.set(state, "plugins", JSON.parse(JSON.stringify(typedState.plugins)));
-						state.plugins.get = (key) => (state.plugins as any)[key];
+						const clonedPlugins = new Map<string, Plugin>();
+						for (const [key, value] of typedState.plugins) {
+							clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
+						}
+						Vue.set(state, "plugins", clonedPlugins);
 					} else {
 						patch((state as any)[key], (typedState as any)[key]);
 					}
 				}
-			} 
+			}
 		}
 	};
 }

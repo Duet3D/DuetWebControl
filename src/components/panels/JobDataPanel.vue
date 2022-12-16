@@ -12,7 +12,7 @@
 						{{ $t("panel.jobData.warmUpDuration") }}
 					</strong>
 					<span>
-						{{ $displayTime(job.warmUpDuration) }}
+						{{ $displayTime(warmUpDuration) }}
 					</span>
 				</v-col>
 
@@ -21,7 +21,7 @@
 						{{ $t("panel.jobData.currentLayerTime") }}
 					</strong>
 					<span>
-						{{ $displayTime(job.layerTime) }}
+						{{ $displayTime(layerTime) }}
 					</span>
 				</v-col>
 
@@ -30,7 +30,7 @@
 						{{ $t("panel.jobData.lastLayerTime") }}
 					</strong>
 					<span>
-						{{ $displayTime(job.layers.length ? job.layers[job.layers.length - 1].duration : null) }}
+						{{ $displayTime(lastLayerTime) }}
 					</span>
 				</v-col>
 
@@ -47,25 +47,29 @@
 	</v-card>
 </template>
 
-<script>
-"use strict"
+<script lang="ts">
+import Vue from "vue";
 
-import { mapState } from "vuex";
-
+import store from "@/store";
 import { isPrinting } from "@/utils/enums";
 
-export default {
+export default Vue.extend({
 	computed: {
-		...mapState("machine/model", ["job", "state"]),
-		lastLayerTime() {
-			if (!this.job.layers.length) {
-				return undefined;
-			}
-			return this.job.layers[this.job.layers.length - 1].time;
+		warmUpDuration(): number | null {
+			return isPrinting(store.state.machine.model.state.status) ? store.state.machine.model.job.warmUpDuration : store.state.machine.model.job.lastWarmUpDuration;
 		},
-		jobDuration() {
-			return isPrinting(this.state.status) ? this.job.duration : this.job.lastDuration;
+		layerTime(): number | null {
+			return store.state.machine.model.job.layerTime;
+		},
+		lastLayerTime(): number | null {
+			if (store.state.machine.model.job.layers.length === 0) {
+				return null;
+			}
+			return store.state.machine.model.job.layers[store.state.machine.model.job.layers.length - 1].duration;
+		},
+		jobDuration(): number | null {
+			return isPrinting(store.state.machine.model.state.status) ? store.state.machine.model.job.duration : store.state.machine.model.job.lastDuration;
 		}
 	}
-}
+});
 </script>

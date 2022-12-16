@@ -324,6 +324,11 @@ export default class PollConnector extends BaseConnector {
 					if (!plugins[id].sdFiles) {
 						plugins[id].sdFiles = [];
 					}
+
+					if (plugins[id].sbcPermissions instanceof Object) {
+						// Fix format of stored SBC permissions (not applicable in standalone mode anyway)
+						plugins[id].sbcPermissions = [];
+					}
 				}
 
 				this.plugins = plugins;

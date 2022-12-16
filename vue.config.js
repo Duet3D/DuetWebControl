@@ -19,15 +19,15 @@ module.exports = {
 			hints: false
 		},
 		plugins: (process.env.NODE_ENV === "production") ? [
-			new CustomImportsPlugin(),
-			new CompressionPlugin({
-				exclude: /\.zip$/,
-				minRatio: Infinity
-			}),
 			// Work around for Buffer is undefined:
 			// https://github.com/webpack/changelog-v5/issues/10
 			new webpack.ProvidePlugin({
 				Buffer: ['buffer', 'Buffer'],
+			}),
+			new CustomImportsPlugin(),
+			new CompressionPlugin({
+				exclude: /\.zip$/,
+				minRatio: Infinity
 			}),
 			...((process.env.NOZIP) ? [] : [
 				new ZipPlugin({
@@ -40,7 +40,11 @@ module.exports = {
 					exclude: [/\.gz$/, /\.zip$/, /DummyPlugin/]
 				})
 			])
-		] : []
+		] : [
+			new webpack.ProvidePlugin({
+				Buffer: ['buffer', 'Buffer'],
+			})
+		]
 	},
 	chainWebpack: config => {
 		config.optimization.minimizer("terser").tap(args => {

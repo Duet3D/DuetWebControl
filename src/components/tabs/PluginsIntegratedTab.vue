@@ -27,9 +27,6 @@ button {
 							{{ $t("tabs.plugins.headers.license") }}
 						</th>
 						<th class="text-left">
-							{{ $t("tabs.plugins.headers.dependencies") }}
-						</th>
-						<th class="text-left">
 							{{ $t("tabs.plugins.headers.status") }}
 						</th>
 						<th width="1%" class="no-wrap"></th>
@@ -48,9 +45,6 @@ button {
 						</td>
 						<td>
 							{{ plugin.license }}
-						</td>
-						<td>
-							{{ getPluginDependencies(plugin) }}
 						</td>
 						<td>
 							{{ getPluginStatus(plugin) }}
@@ -104,9 +98,6 @@ export default Vue.extend({
 	methods: {
 		isPluginBusy(plugin: PluginManifest) {
 			return this.busyPlugins.includes(plugin.id);
-		},
-		getPluginDependencies(plugin: PluginManifest) {
-			return `DWC ${plugin.dwcVersion}`;
 		},
 		getPluginStatus(plugin: PluginManifest) {
 			if (store.state.loadedDwcPlugins.indexOf(plugin.id) !== -1) {
