@@ -5,7 +5,7 @@ import packageInfo from "../../package.json";
 import i18n from "@/i18n";
 import Root from "@/main";
 import Plugins, { checkVersion, loadDwcResources } from "@/plugins";
-import { InvalidPasswordError } from "@/utils/errors";
+import { getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { logGlobal, LogType } from "@/utils/logging";
 
