@@ -13,7 +13,7 @@ import Root from "@/main";
 import Plugins, { checkManifest, checkVersion, loadDwcResources } from "@/plugins";
 import beep from "@/utils/beep";
 import { displayTime } from "@/utils/display";
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError, OperationFailedError, FileNotFoundError } from "@/utils/errors";
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { log, logCode, LogType } from "@/utils/logging";
 import { makeFileTransferNotification, Notification, showMessage, FileTransferType } from "@/utils/notifications";
@@ -235,7 +235,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				} catch (e) {
 					if (!(e instanceof DisconnectedError) && doLog) {
 						const type = (e instanceof CodeBufferError) ? LogType.warning : LogType.error;
-						log(type, code, e as string, connector.hostname);
+						log(type, code, getErrorMessage(e), connector.hostname);
 					}
 					throw e;
 				}
@@ -386,7 +386,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 							// Show an error if requested
 							if (showError && !(e instanceof OperationCancelledError)) {
 								console.warn(e);
-								log(LogType.error, i18n.t("notification.upload.error", [Path.extractFileName(filename)]), e as string, connector.hostname);
+								log(LogType.error, i18n.t("notification.upload.error", [Path.extractFileName(filename)]), getErrorMessage(e), connector.hostname);
 							}
 
 							// Rethrow the error so the caller is notified
@@ -587,7 +587,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 							// Show an error if requested
 							if (showError && !(e instanceof OperationCancelledError)) {
 								console.warn(e);
-								log(LogType.error, i18n.t("notification.download.error", [Path.extractFileName(filename)]), e as string, connector.hostname);
+								log(LogType.error, i18n.t("notification.download.error", [Path.extractFileName(filename)]), getErrorMessage(e), connector.hostname);
 							}
 
 							// Rethrow the error so the caller is notified

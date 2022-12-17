@@ -138,7 +138,7 @@ const store = new Vuex.Store<InternalRootState>({
 			} catch (e) {
 				const isPasswordError = e instanceof InvalidPasswordError;
 				if (!isPasswordError || password !== defaultPassword) {
-					logGlobal(isPasswordError ? LogType.warning : LogType.error, i18n.t("error.connect", [hostname]), e as string);
+					logGlobal(isPasswordError ? LogType.warning : LogType.error, i18n.t("error.connect", [hostname]), getErrorMessage(e));
 				}
 
 				if (isPasswordError) {
@@ -176,7 +176,7 @@ const store = new Vuex.Store<InternalRootState>({
 					logGlobal(LogType.success, i18n.t("events.disconnected", [hostname]));
 					// Disconnecting must always work - even if it does not always happen cleanly
 				} catch (e) {
-					logGlobal(LogType.warning, i18n.t("error.disconnect", [hostname]), e as string);
+					logGlobal(LogType.warning, i18n.t("error.disconnect", [hostname]), getErrorMessage(e));
 					console.warn(e);
 				}
 				commit("setDisconnecting", false);
