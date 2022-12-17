@@ -1,7 +1,9 @@
 "use strict"
 
+const { execSync } = require("child_process");
 const fs = require("fs");
 const archiver = require("archiver");
+const Service = require("@vue/cli-service/lib/Service");
 const { done, warn, error } = require("@vue/cli-shared-utils")
 
 // Check if the plugin directory is valid
@@ -104,6 +106,33 @@ if (pluginDir.startsWith(dwcPluginDir)) {
 		return 1;
 	}
 
+	// Compile index.ts if it is present. Webpack requires an index.js, else the plugin cannot be loaded
+	if (fs.existsSync(dwcPluginDir + "/" + pluginManifest.id + "/index.ts")) {
+		try {
+			// Unfortunately it is not possible to compile single files with a project config yet, so we must build everything
+			fs.writeFileSync("plugin-tsconfig.json", '{"extends": "./tsconfig.json", "compilerOptions": { "outDir": "tsOut"} }');
+		} catch (e) {
+			error("Failed to create plugin-specific tsconfig");
+			return 1;
+		}
+
+		try {
+			execSync("npx tsc --project plugin-tsconfig.json");
+		} catch (e) {
+			error(`Failed to compile index.ts (error code ${e.status}):\n${e.stdout.toString()}`);
+			return 1;
+		}
+
+		try {
+			fs.renameSync(`tsOut/src/plugins/${pluginManifest.id}/index.js`, `${dwcPluginDir}/${pluginManifest.id}/index.js`);
+			fs.rmSync("tsOut", { recursive: true, force: true });
+			fs.rmSync("plugin-tsconfig.json");
+		} catch (e) {
+			error("Failed to move compiled index.js into place");
+			return 1;
+		}
+	}
+
 	// Backup and adjust src/plugins/index.ts
 	try {
 		fs.copyFileSync(dwcPluginDir + "/index.ts", dwcPluginDir + "/index.ts.bak", fs.constants.COPYFILE_EXCL);
@@ -146,7 +175,6 @@ if (pluginDir.startsWith(dwcPluginDir)) {
 
 // Build DWC without ZIP bundles
 process.env.NOZIP = true;
-const Service = require("@vue/cli-service/lib/Service")
 const service = new Service(process.env.VUE_CLI_CONTEXT || process.cwd());
 service
 	.run("build", {}, ["build"])
