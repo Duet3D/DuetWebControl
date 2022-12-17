@@ -82,8 +82,6 @@ export const DefaultModel = initObject(ObjectModel, {
  */
 export type MachineModel = Module<ObjectModel, RootState>;
 
-const secondState = new ObjectModel();
-
 /**
  * Generate a Vuex machine model module from a connector instance.
  * If no connector is passed, the default object model is returned 
@@ -99,6 +97,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 	}
 
 	const state = JSON.parse(JSON.stringify(!connector ? DefaultModel : new ObjectModel()));
+	state.global = new Map<string, any>();
 	state.plugins = new Map<string, Plugin>();
 	for (const [key, value] of typedState.plugins) {
 		state.plugins.set(key, JSON.parse(JSON.stringify(value)));
@@ -176,7 +175,13 @@ export default function (connector: BaseConnector | null): MachineModel {
 				// FIXME This solution isn't great but Vue.observable messes up our fully-typed ObjectModel class...
 				// It may be necessary to upgrade to Vue 3 sooner than expected, because it does not suffer from the same limitations as Vue 2
 				for (const key in data) {
-					if (key === "plugins") {
+					if (key === "global") {
+						const clonedVariables = new Map<string, any>();
+						for (const [key, value] of typedState.global) {
+							clonedVariables.set(key, value);
+						}
+						Vue.set(state, "global", clonedVariables);
+					} else if (key === "plugins") {
 						const clonedPlugins = new Map<string, Plugin>();
 						for (const [key, value] of typedState.plugins) {
 							clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));

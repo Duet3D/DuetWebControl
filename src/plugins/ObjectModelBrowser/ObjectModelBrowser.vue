@@ -26,7 +26,7 @@
 				<v-col class="pt-4">
 					{{ $t("plugins.objectModelBrowser.selectedNode" )}}
 					<template v-if="active.length > 0">
-						<input ref="activeInput" type="text" :value="active[0]" class="text-center" readonly @click="selectInput">
+						<input ref="activeInput" type="text" :value="active[0]" class="text-center" :class="darkTheme ? 'white--text' : ''" readonly @click="selectInput">
 						<v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
 					</template>
 					<template v-else>
@@ -62,15 +62,14 @@
 </template>
 
 <script lang="ts">
+import ObjectModel from "@duet3d/objectmodel";
+import { getErrorMessage } from "@/utils/errors";
 import Vue from "vue";
 
 import store from "@/store";
 
-import ObjectModel from "@duet3d/objectmodel";
-import { getErrorMessage } from "@/utils/errors";
-
 // List of regexs to resolve properties in the XML documentation.
-// It"s a shame the C# XML compiler doesn't include the property types...
+// It's a shame the C# XML compiler doesn't include the property types...
 const propertyAdjustments = [
 	{ pattern: /(\[\d+\])+$/g, substitute: "" },
 	{ pattern: /s\[\d+\]/g, substitute: "" },
@@ -102,6 +101,7 @@ export default Vue.extend({
 	computed: {
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		model(): ObjectModel { return store.state.machine.model; },
+		darkTheme(): boolean { return store.state.settings.darkTheme; },
 		apiDocumentation(): Element | null {
 			if (this.apiFile !== null && this.active.length > 0) {
 				let selectedNode = this.active[0].toLowerCase();
@@ -190,12 +190,23 @@ export default Vue.extend({
 						children: that.makeModelTree(item, itemPath)
 					}
 				});
-			}
-			if (obj !== null && obj instanceof Object) {
+			} else if (obj instanceof Map) {
+				return Array.from(obj.keys())
+					.sort()
+					.map((key) => {
+						const itemPath = path.slice(0);
+						itemPath.push(key);
+
+						return {
+							id: itemPath.join('.'),
+							getLabel: () => this.getItemLabel(key, obj.get(key)),
+							type: this.getItemType(obj.get(key)),
+							children: this.makeModelTree(obj.get(key), itemPath)
+						};
+					}, this);
+			} else if (obj instanceof Object) {
 				return Object.keys(obj)
 					.sort()
-					// FIXME The following line can be removed again once upgraded to Vue 3
-					.filter((key) => (path.length !== 1) || (path[0] !== "plugins") || !["itemConstructor", "nullDeletesKeys"].includes(key))
 					.map((key) => {
 						const itemPath = path.slice(0);
 						itemPath.push(key);
