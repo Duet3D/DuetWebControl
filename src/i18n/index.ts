@@ -6,11 +6,11 @@ import de from "./de.json";
 import es from "./es.json";
 import fr from "./fr.json";
 import pl from "./pl.json";
-import pt_br from "./pt.json";
+import pt from "./pt.json";
 import ru from "./ru.json";
 import tr from "./tr.json";
 import uk from "./uk.json";
-import zh_cn from "./zh.json";
+import zh from "./zh.json";
 import ja from "./ja.json";
 
 Vue.use(VueI18n);
