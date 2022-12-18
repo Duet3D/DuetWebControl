@@ -259,6 +259,22 @@ export default {
 					break;
 			}
 
+
+			let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
+				let globalContainer =  getComputedStyle(document.getElementById('global-container'));
+				let primaryContainer = getComputedStyle(this.$refs.container);
+				let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
+				let globalContainerHeight = this.$vuetify.breakpoint.smAndDown ? 0 : parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
+				let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
+
+			if(height > viewerHeight) {
+				height = viewerHeight;
+			}
+
+			if(height < 400)
+				height = 400;
+
+			
 			this.$refs.container.style.height = `${height}px`;
 			this.$refs.legend.style.left = `${width}px`;
 			this.$refs.legend.height = height;
@@ -551,8 +567,9 @@ export default {
 		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches
-		setTimeout(this.resize.bind(this), 250);
+		setTimeout(this.resize.bind(this), 1000);
 		this.ready = true;
+
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes
