@@ -508,9 +508,9 @@ export default function(connector: BaseConnector | null): MachineModule {
 
 					for (const file of payload.files) {
 						files.push({
-							filename: file.filename,
+							filename: file,
 							content: null,
-							type: file.type || "blob",
+							type: payload.type || "blob",
 							startTime: null,
 							retry: 0,
 							progress: 0,
