@@ -227,8 +227,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
 				try {
 					const reply = await connector.sendCode(code, noWait);
-					if (doLog && (fromInput || reply !== "")) {
-						logCode(code, reply as string, connector.hostname);
+					if (doLog && (fromInput || reply)) {
+						logCode(code, reply || "", connector.hostname);
 					}
 					Root.$emit(Events.codeExecuted, { machine: connector.hostname, code, reply });
 					return reply;
