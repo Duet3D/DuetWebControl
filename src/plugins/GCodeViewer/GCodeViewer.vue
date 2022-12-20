@@ -913,6 +913,7 @@ export default {
 		},
 		'filePosition': function (newValue) {
 			if (this.visualizingCurrentJob) {
+				this.currentLine = newValue;
 				viewer.gcodeProcessor.updateFilePosition(newValue);
 			}
 		},
