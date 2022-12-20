@@ -7,6 +7,30 @@
 	height: 100%;
 }
 
+.babylon-canvas-codeview {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 70%;
+	height: 100%;
+}
+
+.codeview {
+	position: absolute;
+	top: 0;
+	left: 70%;
+	width: 30%;
+	height: 100%;
+}
+
+.codeview-sm {
+	position: absolute;
+	top: 0;
+	left: 70%;
+	width: 30%;
+	height: 90%;
+}
+
 .btn-toggle {
 	flex-direction: column;
 }
@@ -15,7 +39,7 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-	background-color: green;
+	/*background-color: green;*/
 }
 
 .v-input--checkbox {
@@ -34,7 +58,7 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: yellow;
+	/*background-color: yellow;*/
 }
 
 .full-screen {
@@ -97,11 +121,28 @@
 	bottom: 15px;
 	z-index: 19 !important;
 }
+.scrubber-codeview {
+	position: absolute;
+	left: 5%;
+	right: 35%;
+	bottom: 15px;
+	z-index: 19 !important;
+}
+
 
 .scrubber-sm{
 	position: absolute;
 	left: 5%;
 	right: 5%;
+	bottom: 70px;
+	z-index: 19 !important;
+}
+
+
+.scrubber-sm-codeview{
+	position: absolute;
+	left: 5%;
+	right: 35%;
 	bottom: 70px;
 	z-index: 19 !important;
 }
@@ -120,7 +161,8 @@
 					<v-icon>mdi-flash</v-icon>
 				</code-btn>
 			</div>
-			<canvas :title="hoverLabel" class="babylon-canvas" ref="viewerCanvas"></canvas>
+			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline.sync="currentLine" ></code-stream>
+			<canvas :title="hoverLabel" :class="viewerClass" ref="viewerCanvas"></canvas>
 			<fs-overlay v-show="fullscreen && showOverlay"></fs-overlay>
 			<div class="loading-progress">
 				<v-progress-linear :value="loadingProgress" class="disable-transition" height="15" rounded v-show="loading">{{loadingProgress}}% {{loadingMessage}}</v-progress-linear>
@@ -168,6 +210,7 @@
 					<v-switch :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeViewer.showObjectSelection.title')" class="mt-4" v-model="showObjectSelection"></v-switch>
 					<v-switch :label="$t('plugins.gcodeViewer.showCursor')" v-model="showCursor"></v-switch>
 					<v-switch :label="$t('plugins.gcodeViewer.showTravels')" v-model="showTravelLines"></v-switch>
+					<v-switch :label="$t('plugins.gcodeViewer.viewGCode')" v-model="viewGCode"></v-switch>
 				</v-card>
 				<v-expansion-panels>
 					<v-expansion-panel @click="scrollIntoView">
@@ -303,12 +346,12 @@
 					</v-expansion-panel>
 				</v-expansion-panels>
 			</v-navigation-drawer>
-			<div :class="[{ 'button-container-drawer': drawer }, $vuetify.breakpoint.mdAndDown  ? 'scrubber-sm' : 'scrubber']" v-show="!visualizingCurrentJob && scrubFileSize > 0">
+			<div :class="[{ 'button-container-drawer': drawer }, scrubberClass]" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row class="scrubber-row">
-					<v-col cols="9" md="6">
+					<v-col cols="10" md="6">
 						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition "></v-slider>
 					</v-col>
-					<v-col cols="3">
+					<v-col cols="2">
 						<v-row dense>
 							<v-col cols="12">
 								<v-btn @click="scrubPlaying = !scrubPlaying">
@@ -375,7 +418,7 @@ export default {
 			backgroundColor: '#000000FF',
 			progressColor: '#FFFFFFFF',
 			viewerHeight: '400px',
-			testValue: 'Test',
+			testValue: '',
 			loading: false,
 			testData: '',
 			showCursor: false,
@@ -418,8 +461,10 @@ export default {
 			scrubInterval: null,
 			colorDebounce: null,
 			scrubSpeed: 1,
-			g1AsExtrusion: false,
-			resizeDebounce: null
+			resizeDebounce: null,
+			codeView: false,
+			fileData: "",
+			currentLine: 0
 		};
 	},
 	computed: {
@@ -481,11 +526,57 @@ export default {
 			set(value){
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useSpecular', value);
 			}
+		},
+		g1AsExtrusion: {
+			get(){
+				return this.pluginCache.g1AsExtrusion;
+			},
+			set(value){
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'g1AsExtrusion', value);
+			}
+		},
+		viewGCode: {
+			get() {
+				return this.pluginCache.viewGCode;
+			},
+			set(value) {
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', value);
+				if(value){
+ 					console.log('gcode visible');
+					this.fileData = viewer.fileData;
+				} else{ 
+					this.fileData = ""
+				}
+				this.resize();
+			},
+		},
+		viewerClass() {
+			this.$nextTick(() => {
+				this.resize();
+			});
+			return this.viewGCode ? 'babylon-canvas-codeview' : 'babylon-canvas';
+		},
+		scrubberClass() {
+			if( this.$vuetify.breakpoint.mdAndDown)
+			{
+				//scrubber-sm
+				return this.viewGCode ? 'scrubber-sm-codeview' : 'scrubber-sm';
+
+			}
+			else{
+				//scrubber
+				return this.viewGCode? 'scrubber-codeview' : 'scrubber';
+			}
+		},
+		codeViewClass() {
+			return this.$vuetify.breakpoint.mdAndDown ? 'codeview-sm' : 'codeview'
 		}
 	},
 	async mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
+		viewer.fileData = "";
 		await viewer.init();
+
 
 		viewer.buildObjects.objectCallback = this.objectSelectionCallback;
 		viewer.buildObjects.labelCallback = (label) => {
@@ -524,7 +615,6 @@ export default {
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
 		this.showCursor = localStorage.getItem('showCursor') === 'true';
-		this.g1AsExtrusion = viewer.gcodeProcessor.g1AsExtrusion;
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
@@ -552,6 +642,9 @@ export default {
 				this.loading = true;
 				this.preLoadSettings();
 				await viewer.processFile(blob);
+				if(this.viewGCode){
+					this.fileData = viewer.fileData;
+				}
 				viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 				this.setGCodeValues();
 			} finally {
@@ -572,6 +665,10 @@ export default {
 			var key = e.key || e.keyCode;
 			if (key === 'Escape' || key === 'Esc' || key === 27) {
 				this.fullscreen = false;
+				this.$nextTick(() => {
+					viewer.resize();
+				});
+
 			}
 		});
 
@@ -661,6 +758,9 @@ export default {
 				viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 				this.preLoadSettings();
 				await viewer.processFile(blob);
+				if(this.viewGCode){
+					this.fileData = viewer.fileData;
+				}
 				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
 			} finally {
@@ -682,11 +782,7 @@ export default {
 			this.loading = false;
 			viewer.setCursorVisiblity(this.showCursor);
 			viewer.toggleTravels(this.showTravelLines);
-			this.maxHeight = viewer.getMaxHeight();
-			this.minHeight = viewer.getMinHeight();
-			this.sliderHeight = this.maxHeight;
-			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
-			this.scrubFileSize = viewer.fileSize;
+			this.setGCodeValues();
 			viewer.gcodeProcessor.forceRedraw();
 			viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
 
@@ -716,8 +812,14 @@ export default {
 			}
 		},
 		setGCodeValues() {
-			this.maxHeight = viewer.getMaxHeight();
-			this.minHeight = viewer.getMinHeight();
+			if(!this.g1AsExtrusion){
+				this.maxHeight = viewer.getMaxHeight();
+				this.minHeight = viewer.getMinHeight();
+			}
+			else{
+				this.maxHeight = 100000;
+				this.minHeight = -100000;
+			}
 			this.sliderHeight = this.maxHeight;
 			this.loading = false;
 			this.maxFileFeedRate = viewer.gcodeProcessor.maxFeedRate;
@@ -732,6 +834,7 @@ export default {
 				viewer.updateRenderQuality(5);
 				viewer.gcodeProcessor.g1AsExtrusion = true;
 				viewer.gcodeProcessor.updateForceWireMode(true);
+				viewer.setZClipPlane(10000000,-10000000);
 			}
 			
 		},
@@ -742,6 +845,9 @@ export default {
 				const blob = event.target.result;
 				// Do something with result
 				await viewer.processFile(blob);
+				if(this.viewGCode){
+					this.fileData = viewer.fileData;
+				}
 				this.scrubFileSize = viewer.fileSize;
 				this.setGCodeValues();
 			});
@@ -770,6 +876,9 @@ export default {
 		fastForward(){
 			this.scrubPlaying = false;
 			this.scrubPosition = this.scrubFileSize;
+		},
+		updatePosition(){
+
 		}
 	},
 	activated() {
@@ -810,6 +919,8 @@ export default {
 		'scrubPosition': function (newValue) {
 			if (!this.visualizingCurrentJob) {
 				viewer.gcodeProcessor.updateFilePosition(newValue);
+				viewer.simulateToolPosition()
+				this.currentLine = newValue;
 			}
 		},
 		'scrubPlaying': function (newValue) {
@@ -819,6 +930,7 @@ export default {
 					if (this.scrubPlaying) {
 						this.scrubPosition += 100 * this.scrubSpeed;
 						viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
+						this.currentLine = this.scrubPosition;
 					}
 				}, 200);
 			} else {
@@ -841,11 +953,15 @@ export default {
 		},
 		'sliderHeight': function (newValue) {
 			if (this.sliderBottomHeight > newValue) this.sliderBottomHeight = newValue - 1;
-			viewer.setZClipPlane(newValue + 1, this.sliderBottomHeight);
+			if(!this.g1AsExtrusion){
+				viewer.setZClipPlane(newValue + 1, this.sliderBottomHeight);
+			}
 		},
 		'sliderBottomHeight': function (newValue) {
 			if (this.sliderHeight < newValue) this.sliderHeight = newValue + 1;
-			viewer.setZClipPlane(this.sliderHeight, newValue - 1);
+			if(!this.g1AsExtrusion){
+				viewer.setZClipPlane(this.sliderHeight, newValue - 1);
+			}
 		},
 		'vertexAlpha': function (newValue) {
 			viewer.gcodeProcessor.setAlpha(newValue);
@@ -926,7 +1042,15 @@ export default {
 		'g1AsExtrusion': async function(to){
 			viewer.gcodeProcessor.g1AsExtrusion = to;
 			await this.reloadviewer();		
-		}
+		},
+		'currentLine': function (to) {
+			if (!this.visualizingCurrentJob) {
+				this.scrubPosition = to;
+				viewer.gcodeProcessor.updateFilePosition(to);
+
+
+			}
+		},
 
 	},
 };
