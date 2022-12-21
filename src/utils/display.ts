@@ -32,7 +32,7 @@ export function display(value: number | Array<number> | string | null | undefine
  * @returns Formatted axis position
  */
 export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
-	let position = machinePosition ? axis.userPosition : axis.machinePosition;
+	let position = machinePosition ? axis.machinePosition : axis.userPosition;
 	if (position === null) {
 		return i18n.t("generic.noValue");
 	}

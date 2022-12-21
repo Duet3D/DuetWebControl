@@ -78,6 +78,8 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 						//console.log(`[patch] ${fullPath}/${i} (${typeof b[i]})`);
 					}
 				}
+			} else if (b[i] instanceof Object) {
+				a.push(JSON.parse(JSON.stringify(b[i])));
 			} else {
 				a.push(b[i]);
 			}
@@ -104,6 +106,8 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 					patch(a[key], b[key] ? b[key] : [], skipNonexistentFields, fullPath + '/' + key);
 				} else if (a[key] instanceof Object) {
 					patch(a[key], b[key], skipNonexistentFields && !(a[key] instanceof Dictionary), fullPath + '/' + key);
+				} else if (a[key] === null && b[key] instanceof Object) {
+					Vue.set(a, key, JSON.parse(JSON.stringify(b[key])));
 				} else if (a[key] !== b[key]) {
 					Vue.set(a, key, b[key]);
 					//console.log(`[patch] ${fullPath}/${key} (${typeof b[key]})`);

@@ -5,13 +5,14 @@
 </style>
 
 <template>
-	<v-row class="component flex-shrink-1" :class="{ 'mt-2' : solo, 'grow' : grow }" no-gutters align="center">
+	<v-row class="component flex-shrink-1" :class="{ 'mt-2': solo, 'grow': grow }" no-gutters align="center">
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen"
-						:placeholder="$t('input.code.placeholder')" :search-input.sync="code" :loading="doingCode"
-						@keyup.enter="send" @change="change" @blur="wasFocused = showItems = false" @click="click"
-						:items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon=""
-						maxlength="255">
+						:placeholder="$t('input.code.placeholder')"
+						:search-input="(code instanceof Object) ? code.value : code"
+						@update:search-input="code = $event" :loading="doingCode" @keyup.enter="send" @change="change"
+						@blur="wasFocused = showItems = false" @click="click" :items="displayedCodes" hide-selected
+						@keyup.down="showItems = true" append-icon="" maxlength="255">
 				<template #item="{ item }">
 					<code>{{ item.text }}</code>
 					<v-spacer></v-spacer>
