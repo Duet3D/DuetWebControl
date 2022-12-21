@@ -976,7 +976,8 @@
       "useHQRendering": "High Quality Render (Round)",
       "useSpecular": "Use Specular Highlight",
       "feature": "Feature",
-      "g1AsExtrusion": "Render G1 (CNC)"
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "viewGCode": "View G-Code"
     },
     "heightmap": {
       "menuCaption": "Height Map",
