@@ -83,7 +83,7 @@
 
 .heater-container {
 	position: absolute;
-	right: 20px;
+	right: -100px;
 	top: 20%;
 	width:200px;
 	text-align: center;

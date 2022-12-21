@@ -5,6 +5,7 @@
 	left: 0;
 	width: 100%;
 	height: 100%;
+	background-color: black;
 }
 
 .babylon-canvas-codeview {
@@ -13,6 +14,7 @@
 	left: 0;
 	width: 70%;
 	height: 100%;
+	background-color: black;
 }
 
 .codeview {
@@ -97,6 +99,14 @@
 	right: 16px;
 	z-index: 999;
 }
+
+.emergency-button-placement-codeview {
+	position: absolute;
+	top: 14px;
+	right: 30%;
+	z-index: 999;
+}
+
 .viewer-box >>> #scene-explorer-host {
 	position: absolute !important;
 	left: calc(100% - 605px);
@@ -151,19 +161,25 @@
 .disable-transition {
 	transition: none !important;
 }
+
+.fsoverlay {
+	position: absolute;
+	pointer-events: none;
+	background-color: transparent;
+}
 </style>
 
 <template>
 	<div class="primary-container mt-2" ref="primarycontainer" v-resize="resize">
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
-			<div class="emergency-button-placement" v-show="fullscreen">
+			<div :class="emergencyButtonClass" v-show="fullscreen">
 				<code-btn :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')" color="error">
 					<v-icon>mdi-flash</v-icon>
 				</code-btn>
 			</div>
 			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline.sync="currentLine" ></code-stream>
 			<canvas :title="hoverLabel" :class="viewerClass" ref="viewerCanvas"></canvas>
-			<fs-overlay v-show="fullscreen && showOverlay"></fs-overlay>
+			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay"></fs-overlay>
 			<div class="loading-progress">
 				<v-progress-linear :value="loadingProgress" class="disable-transition" height="15" rounded v-show="loading">{{loadingProgress}}% {{loadingMessage}}</v-progress-linear>
 			</div>
@@ -570,7 +586,10 @@ export default {
 		},
 		codeViewClass() {
 			return this.$vuetify.breakpoint.mdAndDown ? 'codeview-sm' : 'codeview'
-		}
+		},
+		emergencyButtonClass() {
+			return this.viewGCode ? 'emergency-button-placement-codeview' : 'emergency-button-placement'
+		},
 	},
 	async mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
