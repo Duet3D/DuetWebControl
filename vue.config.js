@@ -37,7 +37,7 @@ module.exports = {
 				}),
 				new ZipPlugin({
 					filename: "DuetWebControl-SBC.zip",
-					exclude: [/\.gz$/, /\.zip$/, /DummyPlugin/]
+					exclude: [/DummyPlugin/, /\.gz$/, /\.zip$/]
 				})
 			])
 		] : [
