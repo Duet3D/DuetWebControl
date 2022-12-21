@@ -664,6 +664,7 @@ export default {
 				if(this.viewGCode){
 					this.fileData = viewer.fileData;
 				}
+				this.scrubFileSize = viewer.fileSize;
 				viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 				this.setGCodeValues();
 			} finally {
