@@ -8,12 +8,13 @@ import { Vector3, Quaternion } from '@babylonjs/core/Maths/math.vector';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder';
 import { PointLight } from '@babylonjs/core/Lights/pointLight';
 import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
-import { AdvancedDynamicTexture, TextBlock } from '@babylonjs/gui';
+import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
+import { TextBlock } from '@babylonjs/gui/2D/controls/textBlock';
 import { Space } from '@babylonjs/core/Maths/math.axis';
 import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
-import { Axes } from '@sindarius/gcodeviewer';
+import  Axes from './axes.js';
 import '@babylonjs/core/Culling';
 
 import i18n from '../../i18n';
