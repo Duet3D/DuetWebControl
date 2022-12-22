@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "Acerca de",
       "credits": "Interfaz web desarrollada por {author} para {Duet3D}.",
-      "license": "Con licencia según los términos de {gpl}."
+      "license": "Con licencia según los términos de {gpl}.",
+      "buildDateTime": "Basado en {0}"
     },
     "settingsAppearance": {
       "caption": "Apariencia",
@@ -688,7 +689,8 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Control de cama individual"
     },
     "settingsCommunication": {
       "caption": "Comunicación",
@@ -792,7 +794,9 @@
       "v12": "V12",
       "fanRPM": "Ventilador RPM",
       "probe": "Sensor-Z|Sensores-Z",
-      "noStatus": "Sin Estado"
+      "noStatus": "Sin Estado",
+      "extrusionRate": "Tasa de extrusión",
+      "volumetricFlowRate": "Tasa de flujo volumétrico"
     },
     "tools": {
       "caption": "Herramientas",
@@ -821,7 +825,9 @@
         "showInChart": "Mostrar en gráfico",
         "noItems": "No hay más Sensors"
       },
-      "noTools": "Sin Herramientas"
+      "noTools": "Sin Herramientas",
+      "allBeds": "Todas las camas",
+      "beds": "Camas"
     },
     "webcam": {
       "caption": "Vigilancia por webcam",
@@ -971,7 +977,8 @@
       "useHQRendering": "Renderizado de alta calidad (redondo)",
       "useSpecular": "Usar resaltado especular",
       "feature": "Característica",
-      "g1AsExtrusion": "Procesamiento G1 (CNC)"
+      "g1AsExtrusion": "Procesamiento G1 (CNC)",
+      "viewGCode": "Ver código G"
     },
     "heightmap": {
       "menuCaption": "Mapa de altura",
@@ -1038,5 +1045,6 @@
       "noPlugins": "Sin complementos",
       "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC"
     }
-  }
+  },
+  "extrusionRate": "Velocidad de extrusión"
 }

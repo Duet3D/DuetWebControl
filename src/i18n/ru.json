@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "О системе",
       "credits": "Веб-интерфейс разработан {автор} для {Duet3D}.",
-      "license": "Лицензировано в соответствии с условиями {gpl}."
+      "license": "Лицензировано в соответствии с условиями {gpl}.",
+      "buildDateTime": "Создан на {0}"
     },
     "settingsAppearance": {
       "caption": "Внешний вид",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "дюймов в минуту",
       "unitInches": "дюймы",
       "unitMm": "мм",
-      "unitMmSpeed": "мм/с"
+      "unitMmSpeed": "мм/с",
+      "singleBedControl": "Управление односпальной кроватью"
     },
     "settingsCommunication": {
       "caption": "Коммуникация",
@@ -780,7 +782,9 @@
       "v12": "V12",
       "fanRPM": "Скорость вентилятора",
       "probe": "Z-датчик",
-      "noStatus": "Нет статуса"
+      "noStatus": "Нет статуса",
+      "extrusionRate": "Скорость экструзии",
+      "volumetricFlowRate": "Объемный расход"
     },
     "tools": {
       "caption": "Контроль нагрева",
@@ -809,7 +813,9 @@
       "setBedTemperatures": "Установить температуру кровати",
       "setChamberTemperatures": "Установка температуры камеры",
       "setStandbyTemperatures": "Установите температуру в режиме ожидания",
-      "setToolTemperatures": "Установка температуры инструмента"
+      "setToolTemperatures": "Установка температуры инструмента",
+      "allBeds": "Все кровати",
+      "beds": "Кровати"
     },
     "webcam": {
       "caption": "Обзор камеры",
@@ -976,7 +982,8 @@
       "useHQRendering": "Высококачественный рендеринг (круглый)",
       "useSpecular": "Использовать зеркальное выделение",
       "view3D": "Просмотр 3D",
-      "volume": "Объем"
+      "volume": "Объем",
+      "viewGCode": "Просмотр G-кода"
     }
   },
   "pluginPermissions": {
@@ -1038,5 +1045,6 @@
       "stopped": "остановился",
       "uninstall": "Удалить"
     }
-  }
+  },
+  "extrusionRate": "Скорость экструзии"
 }

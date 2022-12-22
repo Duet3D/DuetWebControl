@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "Про систему",
       "credits": "Веб-інтерфейс, розроблений {author} для {Duet3D}.",
-      "license": "Ліцензовано згідно з умовами {gpl}."
+      "license": "Ліцензовано згідно з умовами {gpl}.",
+      "buildDateTime": "Створено на {0}"
     },
     "settingsAppearance": {
       "caption": "Зовнішній вигляд",
@@ -688,7 +689,8 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Контроль односпального ліжка"
     },
     "settingsCommunication": {
       "caption": "Комунікація",
@@ -792,7 +794,9 @@
       "v12": "V12",
       "fanRPM": "Швидкість вентилятора",
       "probe": "Z-датчик|Z-датчики",
-      "noStatus": "Без статусу"
+      "noStatus": "Без статусу",
+      "extrusionRate": "Швидкість екструзії",
+      "volumetricFlowRate": "Об'ємна швидкість потоку"
     },
     "tools": {
       "caption": "Інструменти",
@@ -821,7 +825,9 @@
         "showInChart": "Показувати на діаграмі",
         "noItems": "Додаткові датчики відсутні"
       },
-      "noTools": "Немає пристроїв"
+      "noTools": "Немає пристроїв",
+      "allBeds": "Всі ліжка",
+      "beds": "Ліжка"
     },
     "webcam": {
       "caption": "Веб-камера спостереження",
@@ -971,7 +977,8 @@
       "useHQRendering": "Високоякісна візуалізація",
       "useSpecular": "Specular Highlight",
       "feature": "Feature",
-      "g1AsExtrusion": "Рендер G1 (CNC)"
+      "g1AsExtrusion": "Рендер G1 (CNC)",
+      "viewGCode": "Переглянути G-код"
     },
     "heightmap": {
       "menuCaption": "Карта висот",
@@ -1038,5 +1045,6 @@
       "noPlugins": "Немає плагінів",
       "refreshNote": "Оновіть сторінку, щоб завершити вивантаження деяких DWC плагінів"
     }
-  }
+  },
+  "extrusionRate": "Швидкість екструзії"
 }

@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "关于",
       "credits": "{author} 为 {Duet3D} 开发的 Web 界面。",
-      "license": "根据 {gpl} 的条款获得许可。"
+      "license": "根据 {gpl} 的条款获得许可。",
+      "buildDateTime": "基于 {0}"
     },
     "settingsAppearance": {
       "caption": "外观",
@@ -688,7 +689,8 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "单床控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -792,7 +794,9 @@
       "v12": "V12",
       "fanRPM": "风扇转速",
       "probe": "Z轴探针|Z轴探针",
-      "noStatus": "没有状态"
+      "noStatus": "没有状态",
+      "extrusionRate": "挤压率",
+      "volumetricFlowRate": "体积流量"
     },
     "tools": {
       "caption": "工具",
@@ -821,7 +825,9 @@
         "showInChart": "在图表中显示",
         "noItems": "没有附加的传感器"
       },
-      "noTools": "没有工具"
+      "noTools": "没有工具",
+      "allBeds": "所有床位",
+      "beds": "床"
     },
     "webcam": {
       "caption": "网络摄像头监控",
@@ -971,7 +977,8 @@
       "useHQRendering": "高质量渲染",
       "useSpecular": "使用高光",
       "feature": "材质",
-      "g1AsExtrusion": "渲染 G1 (CNC)"
+      "g1AsExtrusion": "渲染 G1 (CNC)",
+      "viewGCode": "查看 G 代码"
     },
     "heightmap": {
       "menuCaption": "高度图",
@@ -1038,5 +1045,6 @@
       "noPlugins": "没有插件",
       "refreshNote": "某些DWC插件卸载完成后需要刷新页面"
     }
-  }
+  },
+  "extrusionRate": "挤出速度"
 }

@@ -666,6 +666,7 @@
       "setWorkXYZ": "Setze Arbeits-XYZ"
     },
     "settingsAbout": {
+      "buildDateTime": "Gebaut am {0}",
       "caption": "Über",
       "credits": "Weboberfläche entwickelt von {author} für {Duet3D}.",
       "license": "Lizensiert unter den Bedingungen der {gpl}."
@@ -688,7 +689,8 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Einzelbettsteuerung"
     },
     "settingsCommunication": {
       "caption": "Kommunikation",
@@ -792,7 +794,9 @@
       "minMax": "Minimum: {0}, Maximum {1}",
       "fanRPM": "Lüfter-RPM",
       "probe": "Z-Sonde|Z-Sonden",
-      "noStatus": "Kein Status"
+      "noStatus": "Kein Status",
+      "extrusionRate": "Extrusionsrate",
+      "volumetricFlowRate": "Volumenstrom"
     },
     "tools": {
       "caption": "Werkzeuge",
@@ -821,7 +825,9 @@
         "showInChart": "Im Temperaturdiagramm anzeigen",
         "noItems": "Keine zusätzlichen Sensoren"
       },
-      "noTools": "Keine Werkzeuge"
+      "noTools": "Keine Werkzeuge",
+      "allBeds": "Alle Betten",
+      "beds": "Betten"
     },
     "webcam": {
       "caption": "Webcamüberwachung",
@@ -971,7 +977,8 @@
         "title": "Aktiviert falls Objekte im aktuellen Druck erkannt worden sind"
       },
       "renderFailed": "Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC",
-      "showFSOverlay": "Overlay bei Vollbild anzeigen"
+      "showFSOverlay": "Overlay bei Vollbild anzeigen",
+      "viewGCode": "G-Code anzeigen"
     },
     "heightmap": {
       "menuCaption": "Höhenkarte",
@@ -1038,5 +1045,6 @@
       "noPlugins": "Keine Plugins",
       "refreshNote": "Laden Sie die Seite neu um einige DWC-Plugins zu entladen"
     }
-  }
+  },
+  "extrusionRate": "Extrusionsgeschwindigkeit"
 }

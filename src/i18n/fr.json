@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "À propos",
       "credits": "Interface Web développée par {author} pour {Duet3D}.",
-      "license": "Sous licence selon les termes de la {gpl}."
+      "license": "Sous licence selon les termes de la {gpl}.",
+      "buildDateTime": "Construit sur {0}"
     },
     "settingsAppearance": {
       "caption": "Apparence",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "ipm",
       "unitInches": "pouces",
       "unitMm": "millimètre",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Commande lit simple"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -780,7 +782,9 @@
       "v12": "V12",
       "fanRPM": "TPM Ventilateur",
       "probe": "Sonde-Z|Sondes-Z",
-      "noStatus": "Pas de Statut"
+      "noStatus": "Pas de Statut",
+      "extrusionRate": "Taux d'extrusion",
+      "volumetricFlowRate": "Débit volumétrique"
     },
     "tools": {
       "caption": "Outils",
@@ -809,7 +813,9 @@
       "setBedTemperatures": "Régler les températures du lit",
       "setChamberTemperatures": "Régler les températures de la chambre",
       "setStandbyTemperatures": "Régler les températures de veille",
-      "setToolTemperatures": "Régler les températures de l'outil"
+      "setToolTemperatures": "Régler les températures de l'outil",
+      "allBeds": "Tous les lits",
+      "beds": "Des lits"
     },
     "webcam": {
       "caption": "Surveillance Webcam",
@@ -1006,7 +1012,8 @@
       "useHQRendering": "Rendu de haute qualité (rond)",
       "useSpecular": "Utiliser la surbrillance spéculaire",
       "view3D": "Voir 3D",
-      "volume": "Le volume"
+      "volume": "Le volume",
+      "viewGCode": "Afficher le code G"
     }
   },
   "tabs": {
@@ -1038,5 +1045,6 @@
       "noPlugins": "Aucun plugin",
       "refreshNote": "Rafraîchissez la page pour terminer le déchargement de certains plugins DWC."
     }
-  }
+  },
+  "extrusionRate": "Vitesse d'extrusion"
 }

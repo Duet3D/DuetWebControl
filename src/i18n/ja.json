@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "About",
       "credits": "{author} が {Duet3D} 用に開発した Web インターフェイス。",
-      "license": "{gpl} の条件に基づいてライセンスされています。"
+      "license": "{gpl} の条件に基づいてライセンスされています。",
+      "buildDateTime": "{0}上に構築"
     },
     "settingsAppearance": {
       "caption": "外観",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "ipm",
       "unitInches": "インチ",
       "unitMm": "んん",
-      "unitMmSpeed": "mm/秒"
+      "unitMmSpeed": "mm/秒",
+      "singleBedControl": "シングルベッドコントロール"
     },
     "settingsCommunication": {
       "caption": "通信",
@@ -792,7 +794,9 @@
       "v12": "V12",
       "fanRPM": "ファン RPM",
       "probe": "Zプローブ|Zプローブ",
-      "noStatus": "No Status"
+      "noStatus": "No Status",
+      "extrusionRate": "押出率",
+      "volumetricFlowRate": "体積流量"
     },
     "tools": {
       "caption": "工具",
@@ -821,7 +825,9 @@
         "noItems": "No Extra Sensors"
       },
       "noTools": "工具なし",
-      "controlHeaters": "コントロールヒーター"
+      "controlHeaters": "コントロールヒーター",
+      "allBeds": "すべてのベッド",
+      "beds": "ベッド"
     },
     "webcam": {
       "caption": "ウェブカメラ監視",
@@ -971,7 +977,8 @@
       "useHQRendering": "高画質レンダリング",
       "useSpecular": "Use Specular Highlight",
       "feature": "Feature",
-      "g1AsExtrusion": "G1 をレンダリング (CNC)"
+      "g1AsExtrusion": "G1 をレンダリング (CNC)",
+      "viewGCode": "Gコードを見る"
     },
     "heightmap": {
       "menuCaption": "ハイトマップ",
@@ -1038,5 +1045,6 @@
       "noPlugins": "プラグインなし",
       "refreshNote": "DWCプラグインのアンロードを終了するため、ページを更新します"
     }
-  }
+  },
+  "extrusionRate": "押出速度"
 }

@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "Na temat",
       "credits": "Interfejs sieciowy opracowany przez {autora} dla {Duet3D}.",
-      "license": "Licencjonowany na warunkach {gpl}."
+      "license": "Licencjonowany na warunkach {gpl}.",
+      "buildDateTime": "zbudowany na {0}"
     },
     "settingsAppearance": {
       "caption": "Wygląd",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "IPM",
       "unitInches": "cale",
       "unitMm": "mm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Sterowanie pojedynczym łóżkiem"
     },
     "settingsCommunication": {
       "caption": "Komunikacja",
@@ -780,7 +782,9 @@
       "v12": "V12",
       "fanRPM": "Obroty wentylatora",
       "probe": "Z-Probe|Z-Probes",
-      "noStatus": "Brak statusu"
+      "noStatus": "Brak statusu",
+      "extrusionRate": "Szybkość wytłaczania",
+      "volumetricFlowRate": "Objętościowe natężenie przepływu"
     },
     "tools": {
       "caption": "Narzędzia",
@@ -809,7 +813,9 @@
         "showInChart": "Pokaż na wykresie",
         "noItems": "Brak dodatkowych czujników"
       },
-      "noTools": "Brak narzędzi"
+      "noTools": "Brak narzędzi",
+      "allBeds": "Wszystkie łóżka",
+      "beds": "Łóżka"
     },
     "webcam": {
       "caption": "Podgląd obrazu z kamery",
@@ -971,7 +977,8 @@
       "g1AsExtrusion": "Render G1 (CNC)",
       "showFSOverlay": "Pokaż nakładkę pełnoekranową",
       "useHQRendering": "Renderowanie wysokiej jakości (okrągłe)",
-      "useSpecular": "Użyj podświetlenia zwierciadlanego"
+      "useSpecular": "Użyj podświetlenia zwierciadlanego",
+      "viewGCode": "Wyświetl kod G"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",
@@ -1038,5 +1045,6 @@
       "noPlugins": "Brak wtyczek",
       "refreshNote": "Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC"
     }
-  }
+  },
+  "extrusionRate": "Szybkość wytłaczania"
 }

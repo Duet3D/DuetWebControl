@@ -18,32 +18,33 @@ module.exports = {
 		performance: {
 			hints: false
 		},
-		plugins: (process.env.NODE_ENV === "production") ? [
+		plugins: [
+			new webpack.EnvironmentPlugin({
+				"BUILD_DATETIME": (new Date()).toISOString().replace('T', ' ').substring(0, 19)
+			}),
 			// Work around for Buffer is undefined:
 			// https://github.com/webpack/changelog-v5/issues/10
 			new webpack.ProvidePlugin({
 				Buffer: ['buffer', 'Buffer'],
 			}),
-			new CustomImportsPlugin(),
-			new CompressionPlugin({
-				exclude: /\.zip$/,
-				minRatio: Infinity
-			}),
-			...((process.env.NOZIP) ? [] : [
-				new ZipPlugin({
-					filename: "DuetWebControl-SD.zip",
-					include: [/\.gz$/, /\.woff$/, /\.woff2$/],
-					exclude: [/DummyPlugin/, "robots.txt"]
+			...((process.env.NODE_ENV === "production") ? [
+				new CustomImportsPlugin(),
+				new CompressionPlugin({
+					exclude: /\.zip$/,
+					minRatio: Infinity
 				}),
-				new ZipPlugin({
-					filename: "DuetWebControl-SBC.zip",
-					exclude: [/DummyPlugin/, /\.gz$/, /\.zip$/]
-				})
-			])
-		] : [
-			new webpack.ProvidePlugin({
-				Buffer: ['buffer', 'Buffer'],
-			})
+				...((process.env.NOZIP) ? [] : [
+					new ZipPlugin({
+						filename: "DuetWebControl-SD.zip",
+						include: [/\.gz$/, /\.woff$/, /\.woff2$/],
+						exclude: [/DummyPlugin/, "robots.txt"]
+					}),
+					new ZipPlugin({
+						filename: "DuetWebControl-SBC.zip",
+						exclude: [/DummyPlugin/, /\.gz$/, /\.zip$/]
+					})
+				])
+			] : [])
 		]
 	},
 	chainWebpack: config => {

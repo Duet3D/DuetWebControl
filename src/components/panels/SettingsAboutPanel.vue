@@ -1,7 +1,7 @@
 <template>
 	<v-card outlined>
 		<v-card-title>
-			<span>
+			<span :title="$t('panel.settingsAbout.buildDateTime', [buildDateTime])">
 				Duet Web Control {{ version }}
 			</span>
 			<v-spacer />
@@ -45,6 +45,7 @@ import packageInfo from "../../../package.json";
 export default Vue.extend({
 	data() {
 		return {
+			buildDateTime: process.env.BUILD_DATETIME,
 			version: packageInfo.version
 		}
 	}

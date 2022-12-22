@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "Hakkında",
       "credits": "{Duet3D} için {yazar} tarafından geliştirilen web arayüzü.",
-      "license": "{gpl} koşulları altında lisanslanmıştır."
+      "license": "{gpl} koşulları altında lisanslanmıştır.",
+      "buildDateTime": "{0} üzerine inşa edildi"
     },
     "settingsAppearance": {
       "caption": "Görünüm",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "ipm",
       "unitInches": "inç",
       "unitMm": "mm",
-      "unitMmSpeed": "mm/sn"
+      "unitMmSpeed": "mm/sn",
+      "singleBedControl": "Tek kişilik yatak kontrolü"
     },
     "settingsCommunication": {
       "caption": "İletişim",
@@ -780,7 +782,9 @@
       "v12": "V12",
       "fanRPM": "Fan RPM",
       "probe": "Z-Probu|Z-Probları",
-      "noStatus": "Durum yok"
+      "noStatus": "Durum yok",
+      "extrusionRate": "Ekstrüzyon Oranı",
+      "volumetricFlowRate": "Hacimsel akış hızı"
     },
     "tools": {
       "caption": "Takımlar",
@@ -809,7 +813,9 @@
       "setBedTemperatures": "Yatak sıcaklıklarını ayarla",
       "setChamberTemperatures": "Oda sıcaklıklarını ayarlayın",
       "setStandbyTemperatures": "Bekleme sıcaklıklarını ayarla",
-      "setToolTemperatures": "Takım sıcaklıklarını ayarlayın"
+      "setToolTemperatures": "Takım sıcaklıklarını ayarlayın",
+      "allBeds": "Tüm Yataklar",
+      "beds": "yataklar"
     },
     "webcam": {
       "caption": "Web Kamerası Gözetimi",
@@ -976,7 +982,8 @@
       "useHQRendering": "Yüksek Kaliteli Render (Yuvarlak)",
       "useSpecular": "Aynasal Vurguyu Kullan",
       "view3D": "3D görüntüle",
-      "volume": "Ses"
+      "volume": "Ses",
+      "viewGCode": "G Kodunu Görüntüle"
     }
   },
   "pluginPermissions": {
@@ -1038,5 +1045,6 @@
       "stopped": "durdu",
       "uninstall": "Kaldır"
     }
-  }
+  },
+  "extrusionRate": "Ekstrüzyon Hızı"
 }

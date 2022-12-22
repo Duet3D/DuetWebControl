@@ -668,7 +668,8 @@
     "settingsAbout": {
       "caption": "Sobre",
       "credits": "Interface web desenvolvida por {author} para {Duet3D}.",
-      "license": "Licenciado sob os termos do {gpl}."
+      "license": "Licenciado sob os termos do {gpl}.",
+      "buildDateTime": "Construído em {0}"
     },
     "settingsAppearance": {
       "caption": "Aparência",
@@ -688,7 +689,8 @@
       "unitInchSpeed": "ipm",
       "unitInches": "polegadas",
       "unitMm": "milímetros",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Controle de cama de solteiro"
     },
     "settingsCommunication": {
       "caption": "Comunicação",
@@ -780,7 +782,9 @@
       "v12": "V12",
       "fanRPM": "RPM do Cooler",
       "probe": "Z-Probe|Z-Probes",
-      "noStatus": "Sem Status"
+      "noStatus": "Sem Status",
+      "extrusionRate": "Taxa de extrusão",
+      "volumetricFlowRate": "Vazão Volumétrica"
     },
     "tools": {
       "caption": "Ferramentas",
@@ -809,7 +813,9 @@
       "setBedTemperatures": "Definir temperaturas da cama",
       "setChamberTemperatures": "Definir temperaturas da câmara",
       "setStandbyTemperatures": "Definir temperaturas de espera",
-      "setToolTemperatures": "Definir temperaturas da ferramenta"
+      "setToolTemperatures": "Definir temperaturas da ferramenta",
+      "allBeds": "Todas as camas",
+      "beds": "Camas"
     },
     "webcam": {
       "caption": "Vigilância por webcam",
@@ -915,7 +921,8 @@
       "g1AsExtrusion": "Renderizar G1 (CNC)",
       "showFSOverlay": "Mostrar sobreposição de tela inteira",
       "useHQRendering": "Renderização de alta qualidade (redondo)",
-      "useSpecular": "Usar destaque especular"
+      "useSpecular": "Usar destaque especular",
+      "viewGCode": "Ver Código G"
     },
     "heightmap": {
       "menuCaption": "Mapa de Altura",
@@ -1038,5 +1045,6 @@
     "writeMenu": "Gravar arquivos no diretório do menu",
     "writeSystem": "Gravar arquivos no diretório do sistema",
     "writeWeb": "Gravar arquivos no diretório da web"
-  }
+  },
+  "extrusionRate": "Velocidade de extrusão"
 }
