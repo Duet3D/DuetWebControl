@@ -76,15 +76,15 @@ export default Vue.extend({
 		removeLastSentCode(code: string) {
 			store.commit("machine/cache/removeLastSentCode", code);
 		},
-		change(value: string | { value: string }) {
-			this.code = value;
+		change(value: string | { value: string } | null) {
+			this.code = (value !== null) ? value : "";
 		},
 		hasUnprecedentedParameters: (code: string) => !code || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(code),
 		async send() {
 			this.showItems = false;
 
 			const code = (this.code instanceof Object) ? this.code.value : this.code;
-			if (code && code.trim() !== "" && !this.doingCode) {
+			if (code.trim() !== "" && !this.doingCode) {
 				let codeToSend = '', bareCode = "", inQuotes = false, inExpression = false, inWhiteSpace = false, inComment = false;
 				if (!this.hasUnprecedentedParameters(codeToSend) &&
 					!conditionalKeywords.some(keyword => code.trim().startsWith(keyword))) {
