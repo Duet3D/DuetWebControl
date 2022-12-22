@@ -87,7 +87,7 @@ export default Vue.extend({
 			if ((this.toolFan >= 0) && (this.toolFan < this.fans.length) && (this.fans[this.toolFan] !== null)) {
 				return this.fans[this.toolFan]!.requestedValue;
 			}
-			return -1;
+			return 0;
 		}
 	},
 	methods: {
