@@ -90,8 +90,8 @@ export default Vue.extend({
 					// Tool no longer selected, try to change to the first available fan
 					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.sensors.length === 0);
 				}
-			} else if (this.fan >= this.fans.length || ((this.fan !== -1) && (this.fans[this.fan] !== null) && (this.fans[this.fan]!.thermostatic.sensors.length > 0))) {
-				// Selected fan is no longer controllable, try to change to another one
+			} else if ((this.fan < 0) || (this.fan >= this.fans.length) || (this.fans[this.fan] === null) || (this.fans[this.fan]!.thermostatic.sensors.length > 0)) {
+				// Previously elected fan is no longer controllable, try to change to another one
 				if (this.currentTool) {
 					this.fan = -1;
 				} else {

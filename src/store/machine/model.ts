@@ -109,7 +109,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 		state,
 		getters: {
 			currentTool(state) {
-				if (state.state.currentTool >= 0) {
+				if (state.state.currentTool >= 0 && state.state.currentTool < state.tools.length) {
 					return state.tools[state.state.currentTool];
 				}
 				return null;
