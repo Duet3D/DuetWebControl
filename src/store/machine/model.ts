@@ -129,7 +129,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 				}
 				return maxTemp;
 			},
-			obProgress(state, getters) {
+			jobProgress(state, getters) {
 				if (isPrinting(state.state.status)) {
 					if (state.state.status !== MachineStatus.simulating && state.move.extruders.length > 0 && state.job.file !== null && state.job.file.filament.length > 0) {
 						// Get the total amount of filament extruded (according to the slicer)
