@@ -93,6 +93,13 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 		caption: "menu.control.caption",
 		pages: [
 			{
+				icon: "mdi-list-status",
+				caption: "menu.control.status",
+				condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.smAndDown,
+				path: "/Status",
+				component: Status
+			},
+			{
 				icon: "mdi-view-dashboard",
 				caption: "menu.control.dashboard",
 				path: "/",
@@ -103,13 +110,6 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 				caption: "menu.control.console",
 				path: "/Console",
 				component: Console
-			},
-			{
-				icon: "mdi-list-status",
-				caption: "menu.control.status",
-				condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.smAndDown,
-				path: "/Status",
-				component: Status
 			}
 		],
 		translated: false

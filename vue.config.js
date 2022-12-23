@@ -20,7 +20,7 @@ module.exports = {
 		},
 		plugins: [
 			new webpack.EnvironmentPlugin({
-				"BUILD_DATETIME": (new Date()).toISOString().replace('T', ' ').substring(0, 19)
+				"BUILD_DATETIME": (new Date()).toString()
 			}),
 			// Work around for Buffer is undefined:
 			// https://github.com/webpack/changelog-v5/issues/10
