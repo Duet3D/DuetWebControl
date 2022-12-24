@@ -168,7 +168,7 @@ export default Vue.extend({
 		showSign: (value: number): string => (value > 0) ? `+${value}` : value.toString(),
 		async ok() {
 			this.shown = false;
-			if (this.messageBox.mode === MessageBoxMode.okOnly || this.messageBox.mode === MessageBoxMode.okCancel) {
+			if ([MessageBoxMode.closeOnly, MessageBoxMode.okCancel, MessageBoxMode.okCancel].includes(this.messageBox.mode)) {
 				await store.dispatch("machine/sendCode", `M292 S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.intInput || this.messageBox.mode === MessageBoxMode.floatInput) {
 				await store.dispatch("machine/sendCode", `M292 R{${this.numberInput}} S${this.messageBox.seq}`);
