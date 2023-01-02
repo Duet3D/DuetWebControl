@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-import ObjectModel from "@duet3d/objectmodel";
+import ObjectModel, { DriverId, isDriverId } from "@duet3d/objectmodel";
 import { getErrorMessage } from "@/utils/errors";
 import Vue from "vue";
 
@@ -204,7 +204,7 @@ export default Vue.extend({
 							children: this.makeModelTree(obj.get(key), itemPath)
 						};
 					}, this);
-			} else if (obj instanceof Object) {
+			} else if (!isDriverId(obj) && (obj instanceof Object)) {
 				return Object.keys(obj)
 					.sort()
 					.map((key) => {
@@ -229,6 +229,12 @@ export default Vue.extend({
 				if (typeof value === "string" && (value || value === "")) {
 					return `${name} = "${value}"`;
 				}
+				if (isDriverId(value)) {
+					// FIXME: No longer needed once upgraded to Vue 3
+					const driverId = new DriverId();
+					driverId.update(value);
+					return `${name} = "${driverId.toString()}"`;
+				}
 				if (value instanceof Object) {
 					return name;
 				}
@@ -241,7 +247,7 @@ export default Vue.extend({
 			if (obj instanceof Array) {
 				return "array";
 			}
-			if (obj !== null && obj instanceof Object) {
+			if (obj !== null && !isDriverId(obj) && obj instanceof Object) {
 				return "object";
 			}
 			return "value";
