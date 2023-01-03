@@ -35,7 +35,7 @@
 
 			<template #folder="{ item }">
 				<div :class="{ 'list-icon mr-2': hasThumbnails, 'mr-1': !hasThumbnails }">
-					<v-icon> mdi-folder</v-icon>
+					<v-icon>mdi-folder</v-icon>
 				</div>
 				{{ item.name }}
 			</template>

@@ -490,11 +490,11 @@ export default Vue.extend({
 		extraSensors(): Array<{ sensor: AnalogSensor, index: number }> {
 			const heaters = this.model.heat.heaters;
 			return this.model.sensors.analog
-				.filter((sensor, index) => (sensor !== null) && !heaters.some(heater => (heater !== null) && (heater.sensor === index)))
 				.map((sensor, index) => ({
 					sensor,
 					index
-				})) as Array<{ sensor: AnalogSensor, index: number }>;
+				}))
+				.filter(({ sensor, index }) => (sensor !== null) && !heaters.some(heater => (heater !== null) && (heater.sensor === index))) as Array<{ sensor: AnalogSensor, index: number }>;
 		},
 		bedHeaters(): Array<Heater | null> {
 			const heaters = this.model.heat.heaters;

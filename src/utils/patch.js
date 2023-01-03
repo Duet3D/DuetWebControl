@@ -98,7 +98,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 					b[key] = Boolean(b[key]);
 				}
 
-				if (a[key] !== undefined && a[key] !== null && typeof a[key] !== typeof b[key]) {
+				if (a[key] !== undefined && a[key] !== null && typeof a[key] !== typeof b[key] && key !== 'default') {
 					if (process.env.NODE_ENV !== 'production') {
 						console.warn(`[patch] Skipped merge of ${fullPath}/${key} due to incompatible types ${typeof a[key]} vs ${typeof b[key]}. Value: ${JSON.stringify(b[key])}`);
 					}

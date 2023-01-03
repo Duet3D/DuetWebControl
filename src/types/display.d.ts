@@ -1,7 +1,8 @@
-import { Axis } from '@duet3d/objectmodel';
-import Vue from 'vue';
+import Vue from "vue";
 
-declare module 'vue/types/vue' {
+import { Axis } from "@duet3d/objectmodel";
+
+declare module "vue/types/vue" {
     interface Vue {
         /**
          * Display a numeric value with a given precision and an optional unit.

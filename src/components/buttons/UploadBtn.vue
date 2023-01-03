@@ -488,7 +488,7 @@ export default Vue.extend({
 					} catch (e) {
 						if (!(e instanceof DisconnectedError)) {
 							console.warn(e);
-							this.$log(MessageType.error, this.$t("generic.error"), getErrorMessage(e));
+							this.$log(LogType.error, this.$t("generic.error"), getErrorMessage(e));
 						}
 					}
 				}
@@ -517,7 +517,7 @@ export default Vue.extend({
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
-						this.$log(MessageType.error, this.$t("generic.error"), getErrorMessage(e));
+						this.$log(LogType.error, this.$t("generic.error"), getErrorMessage(e));
 					}
 				}
 			}

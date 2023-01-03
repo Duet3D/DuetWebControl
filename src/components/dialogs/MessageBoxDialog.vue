@@ -168,7 +168,7 @@ export default Vue.extend({
 		showSign: (value: number): string => (value > 0) ? `+${value}` : value.toString(),
 		async ok() {
 			this.shown = false;
-			if ([MessageBoxMode.closeOnly, MessageBoxMode.okCancel, MessageBoxMode.okCancel].includes(this.messageBox.mode)) {
+			if ([MessageBoxMode.closeOnly, MessageBoxMode.okOnly, MessageBoxMode.okCancel].includes(this.messageBox.mode)) {
 				await store.dispatch("machine/sendCode", `M292 S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.intInput || this.messageBox.mode === MessageBoxMode.floatInput) {
 				await store.dispatch("machine/sendCode", `M292 R{${this.numberInput}} S${this.messageBox.seq}`);
@@ -201,7 +201,7 @@ export default Vue.extend({
 				if (to && to.mode !== null) {
 					this.numberInput = (typeof to.default === "number") ? to.default : 0;
 					this.stringInput = (typeof to.default === "string") ? to.default : "";
-					this.messageBox.update(JSON.parse(JSON.stringify(to)));		// FIXME remove this after upgrading to Vue 3
+					this.messageBox = JSON.parse(JSON.stringify(to));		// FIXME remove this after upgrading to Vue 3
 					this.shown = true;
 				} else {
 					this.shown = false;

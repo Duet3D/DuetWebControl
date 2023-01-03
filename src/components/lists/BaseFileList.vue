@@ -145,7 +145,6 @@ import Events from "@/utils/events";
 import Path from "@/utils/path";
 import { FileListItem } from "@/store/machine/connector/BaseConnector";
 import { LogType } from "@/utils/logging";
-import { MessageType } from "@duet3d/objectmodel";
 
 /**
  * Maximum permitted size of files to edit (defaults to 32MiB)
@@ -650,7 +649,7 @@ export default VDataTable.extend({
 			}
 
 			if (deletedItems.length) {
-				this.$log(MessageType.success, (deletedItems.length > 1) ? this.$t("notification.delete.successMultiple", [deletedItems.length]) : this.$t("notification.delete.success", [deletedItems[0].name]));
+				this.$log(LogType.success, (deletedItems.length > 1) ? this.$t("notification.delete.successMultiple", [deletedItems.length]) : this.$t("notification.delete.success", [deletedItems[0].name]));
 			}
 			this.innerDoingFileOperation = false;
 		},

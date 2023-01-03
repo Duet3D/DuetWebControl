@@ -1,5 +1,6 @@
 import Vue from "vue";
 
+import { CancellationToken } from "@/store/machine/connector/BaseConnector";
 import type { NotificationType, Notification } from "@/utils/notifications";
 
 declare module "vue/types/vue" {
