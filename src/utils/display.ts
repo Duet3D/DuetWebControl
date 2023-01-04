@@ -1,4 +1,4 @@
-import { Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
+import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import i18n from "@/i18n";
@@ -49,6 +49,22 @@ export function displayAxisPosition(axis: Axis, machinePosition: boolean = false
  */
 export function displayZ(value: number | Array<number> | string | null | undefined, showUnit = true) {
 	return display(value, (store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? "mm" : undefined);
+}
+
+/**
+ * Display a sensor value with optional unit from square brackets in the name
+ * @param sensor Sensor
+ * @returns 
+ */
+export function displaySensorValue(sensor: AnalogSensor) {
+    if (sensor.name) {
+        const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
+        if (matches) {
+            return display(sensor.lastReading, 1, matches[2]);
+        }
+    }
+    const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? "%RH" : "°C";
+    return display(sensor.lastReading, 1, unit);
 }
 
 /**

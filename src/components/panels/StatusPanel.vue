@@ -120,18 +120,6 @@ a:not(:hover) {
 								</span>
 							</v-col>
 
-							<v-col v-if="isFinite(model.move.currentMove.extrusionRate)"
-								   class="d-flex flex-column align-center">
-								<strong>
-									<a href="javascript:void(0)" @click="displayVolumetricFlow = !displayVolumetricFlow">
-										{{ displayVolumetricFlow ? $t("panel.status.volumetricFlowRate") : $t("panel.status.extrusionRate") }}
-									</a>
-								</strong>
-								<span>
-									{{ displayVolumetricFlow ? $display(volumetricFlowRate, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.extrusionRate) }}
-								</span>
-							</v-col>
-
 							<v-col v-if="isFinite(model.move.currentMove.topSpeed)"
 								   class="d-flex flex-column align-center">
 								<strong>
@@ -139,6 +127,18 @@ a:not(:hover) {
 								</strong>
 								<span>
 									{{ $displayMoveSpeed(model.move.currentMove.topSpeed) }}
+								</span>
+							</v-col>
+							
+							<v-col v-if="isFinite(model.move.currentMove.extrusionRate) && isFFForUnset"
+								   class="d-flex flex-column align-center">
+								<strong>
+									<a href="javascript:void(0)" @click="displayVolumetricFlow = !displayVolumetricFlow">
+										{{ displayVolumetricFlow ? $t("panel.status.volumetricFlow") : $t("panel.status.extrusionRate") }}
+									</a>
+								</strong>
+								<span>
+									{{ displayVolumetricFlow ? $display(volumetricFlow, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.extrusionRate) }}
 								</span>
 							</v-col>
 						</v-row>
@@ -247,11 +247,12 @@ a:not(:hover) {
 </template>
 
 <script lang="ts">
-import ObjectModel, { Axis, Board, Probe, ProbeType } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, Board, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import store from "@/store";
 import { isPrinting } from "@/utils/enums";
+import { DashboardMode } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
@@ -261,7 +262,13 @@ export default Vue.extend({
 		model(): ObjectModel {
 			return store.state.machine.model;
 		},
-		volumetricFlowRate(): number {
+		isFFForUnset(): boolean {
+			if (store.state.settings.dashboardMode === DashboardMode.default) {
+				return !this.model.state.machineMode || this.model.state.machineMode === MachineMode.fff;
+			}
+			return store.state.settings.dashboardMode === DashboardMode.fff;
+		},
+		volumetricFlow(): number {
 			if (this.model.state.currentTool >= 0 && this.model.state.currentTool < this.model.tools.length) {
 				const selectedTool = this.model.tools[this.model.state.currentTool];
 				if (selectedTool !== null) {
@@ -315,7 +322,7 @@ export default Vue.extend({
 	data() {
 		return {
 			displayToolPosition: true,
-			displayVolumetricFlow: false
+			displayVolumetricFlow: true
 		}
 	},
 	methods: {

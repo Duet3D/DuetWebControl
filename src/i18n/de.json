@@ -796,7 +796,7 @@
       "probe": "Z-Sonde|Z-Sonden",
       "noStatus": "Kein Status",
       "extrusionRate": "Extrusionsrate",
-      "volumetricFlowRate": "Volumenstrom"
+      "volumetricFlow": "Volumenstrom"
     },
     "tools": {
       "caption": "Werkzeuge",

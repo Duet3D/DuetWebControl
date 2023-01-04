@@ -784,7 +784,7 @@
       "probe": "Z-Probe|Z-Probes",
       "noStatus": "Sem Status",
       "extrusionRate": "Taxa de extrusão",
-      "volumetricFlowRate": "Vazão Volumétrica"
+      "volumetricFlow": "Vazão Volumétrica"
     },
     "tools": {
       "caption": "Ferramentas",

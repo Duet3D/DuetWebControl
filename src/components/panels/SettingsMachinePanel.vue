@@ -26,7 +26,13 @@
 					</v-autocomplete>
 				</v-col>
 				<v-col cols="12">
+					<v-switch :label="$t('panel.settingsAppearance.groupTools')" hide-details v-model="groupTools" />
+				</v-col>
+				<v-col cols="6">
 					<v-switch :label="$t('panel.settingsAppearance.singleBedControl')" hide-details v-model="singleBedControl" />
+				</v-col>
+				<v-col cols="6">
+					<v-switch :label="$t('panel.settingsAppearance.singleChamberControl')" hide-details v-model="singleChamberControl" />
 				</v-col>
 			</v-row>
 		</v-card-text>
@@ -53,9 +59,17 @@ export default Vue.extend({
 			get(): Array<ToolChangeMacro> { return store.state.machine.settings.toolChangeMacros; },
 			set(value: Array<ToolChangeMacro>) { this.update({ toolChangeMacros: value }); }
 		},
+		groupTools: {
+			get(): boolean { return store.state.machine.settings.groupTools; },
+			set(value: boolean) { this.update({ groupTools: value }); }
+		},
 		singleBedControl: {
 			get(): boolean { return store.state.machine.settings.singleBedControl; },
 			set(value: boolean) { this.update({ singleBedControl: value }); }
+		},
+		singleChamberControl: {
+			get(): boolean { return store.state.machine.settings.singleChamberControl; },
+			set(value: boolean) { this.update({ singleChamberControl: value }); }
 		}
 	},
 	data() {

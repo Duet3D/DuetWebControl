@@ -784,7 +784,7 @@
       "probe": "Z-Probe|Z-Probes",
       "noStatus": "Brak statusu",
       "extrusionRate": "Szybkość wytłaczania",
-      "volumetricFlowRate": "Objętościowe natężenie przepływu"
+      "volumetricFlow": "Objętościowe natężenie przepływu"
     },
     "tools": {
       "caption": "Narzędzia",

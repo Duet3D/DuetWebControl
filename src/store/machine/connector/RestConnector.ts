@@ -4,7 +4,7 @@ import JSZip from "jszip";
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError,
-	LoginError, InvalidPasswordError
+	LoginError, InvalidPasswordError, getErrorMessage
 } from "@/utils/errors";
 import { closeNotifications } from "@/utils/notifications";
 import { strToTime } from "@/utils/time";
@@ -416,7 +416,7 @@ export default class RestConnector extends BaseConnector {
 			const response = await this.request("POST", "machine/code", noWait ? { async: true } : null, "text", code);
 			reply = response.trim();
 		} catch (e) {
-			reply = "Error: " + e;
+			reply = "Error: " + getErrorMessage(e);
 		}
 		return reply;
 	}

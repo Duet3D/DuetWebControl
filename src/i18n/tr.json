@@ -784,7 +784,7 @@
       "probe": "Z-Probu|Z-Probları",
       "noStatus": "Durum yok",
       "extrusionRate": "Ekstrüzyon Oranı",
-      "volumetricFlowRate": "Hacimsel akış hızı"
+      "volumetricFlow": "Hacimsel akış hızı"
     },
     "tools": {
       "caption": "Takımlar",

@@ -690,7 +690,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "Single bed control"
+      "singleBedControl": "Single bed control",
+      "groupTools": "Group identical tools",
+      "singleChamberControl": "Single chamber control"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -796,7 +798,7 @@
       "probe": "Z-Probe|Z-Probes",
       "noStatus": "No Status",
       "extrusionRate": "Extrusion Rate",
-      "volumetricFlowRate": "Volumetric Flow Rate"
+      "volumetricFlow": "Volumetric Flow"
     },
     "tools": {
       "caption": "Tools",
@@ -827,7 +829,9 @@
       },
       "noTools": "No Tools",
       "allBeds": "All Beds",
-      "beds": "Beds"
+      "beds": "Beds",
+      "chambers": "Chambers",
+      "allChambers": "All Chambers"
     },
     "webcam": {
       "caption": "Webcam Surveillance",

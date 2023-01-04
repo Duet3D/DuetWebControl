@@ -124,12 +124,12 @@ const store = new Vuex.Store<InternalRootState>({
 				try {
 					await dispatch("machine/settings/load");
 				} catch (e) {
-					console.warn("Failed to load settings: " + e);
+					console.warn("Failed to load settings: " + getErrorMessage(e));
 				}
 				try {
 					await dispatch("machine/cache/load");
 				} catch (e) {
-					console.warn("Failed to load cache: " + e);
+					console.warn("Failed to load cache: " + getErrorMessage(e));
 				}
 
 				if ((state as RootState).settings.lastHostname !== location.host || hostname !== location.host) {

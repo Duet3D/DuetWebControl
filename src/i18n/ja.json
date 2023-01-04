@@ -796,7 +796,7 @@
       "probe": "Zプローブ|Zプローブ",
       "noStatus": "No Status",
       "extrusionRate": "押出率",
-      "volumetricFlowRate": "体積流量"
+      "volumetricFlow": "体積流量"
     },
     "tools": {
       "caption": "工具",

@@ -22,7 +22,7 @@ import SettingsBehaviourPanel from "./SettingsBehaviourPanel.vue";
 import SettingsWebcamPanel from "./SettingsWebcamPanel.vue";
 import SpeedFactorPanel from "./SpeedFactorPanel.vue";
 import StatusPanel from "./StatusPanel.vue";
-import ToolsPanel from "./ToolsPanel.vue";
+import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
 import WebcamPanel from "./WebcamPanel.vue";
 import ZBabystepPanel from "./ZBabystepPanel.vue";
 import FFFContainerPanel from "./FFFContainerPanel.vue";

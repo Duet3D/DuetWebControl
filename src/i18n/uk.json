@@ -796,7 +796,7 @@
       "probe": "Z-датчик|Z-датчики",
       "noStatus": "Без статусу",
       "extrusionRate": "Швидкість екструзії",
-      "volumetricFlowRate": "Об'ємна швидкість потоку"
+      "volumetricFlow": "Об'ємна швидкість потоку"
     },
     "tools": {
       "caption": "Інструменти",

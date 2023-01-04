@@ -81,13 +81,14 @@ export default Vue.extend({
 				// Select tool first
 				code = `T${this.tool.number}\n`;
 			}
+
 			if (this.tool.filamentExtruder >= 0 && this.tool.filamentExtruder < store.state.machine.model.move.extruders.length &&
 				store.state.machine.model.move.extruders[this.tool.filamentExtruder].filament) {
-				// Unload current filament
+				// Unload current filament, normally this should not be necessary
 				code += "M702\n";
 			}
+
 			// Run load sequence and configure current tool for it
-			// TODO Make M703 configurable
 			code += `M701 S"${filament}"\nM703`;
 			await store.dispatch("machine/sendCode", code);
 		},

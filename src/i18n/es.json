@@ -796,7 +796,7 @@
       "probe": "Sensor-Z|Sensores-Z",
       "noStatus": "Sin Estado",
       "extrusionRate": "Tasa de extrusión",
-      "volumetricFlowRate": "Tasa de flujo volumétrico"
+      "volumetricFlow": "Tasa de flujo volumétrico"
     },
     "tools": {
       "caption": "Herramientas",

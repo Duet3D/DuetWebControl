@@ -796,7 +796,7 @@
       "probe": "Z轴探针|Z轴探针",
       "noStatus": "没有状态",
       "extrusionRate": "挤压率",
-      "volumetricFlowRate": "体积流量"
+      "volumetricFlow": "体积流量"
     },
     "tools": {
       "caption": "工具",

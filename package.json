@@ -32,6 +32,7 @@
     "turbo-crc32": "^1.0.1",
     "vue": "^2.6.12",
     "vue-codemirror": "^4.0.6",
+    "vue-fragment": "^1.6.0",
     "vue-i18n": "^8.22.4",
     "vue-router": "^3.5.1",
     "vuetify": "^2.4.4",

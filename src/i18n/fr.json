@@ -784,7 +784,7 @@
       "probe": "Sonde-Z|Sondes-Z",
       "noStatus": "Pas de Statut",
       "extrusionRate": "Taux d'extrusion",
-      "volumetricFlowRate": "Débit volumétrique"
+      "volumetricFlow": "Débit volumétrique"
     },
     "tools": {
       "caption": "Outils",

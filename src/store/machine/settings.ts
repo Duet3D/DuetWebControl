@@ -155,9 +155,19 @@ export interface MachineSettingsState {
 	}
 
 	/**
+	 * Group identical tools as a single item
+	 */
+	groupTools: boolean;
+
+	/**
 	 * Provide only a single input field for controlling multiple beds
 	 */
 	singleBedControl: boolean;
+
+	/**
+	 * Provide only a single input field for controlling multiple beds
+	 */
+	singleChamberControl: boolean;
 
 	/**
 	 * Spindle RPM presets
@@ -228,7 +238,9 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				},
 				chamber: [90, 80, 70, 60, 50, 40, 0]
 			},
+			groupTools: true,
 			singleBedControl: false,
+			singleChamberControl: false,
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
 
 			enabledPlugins: [],

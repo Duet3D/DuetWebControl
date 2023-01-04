@@ -784,7 +784,7 @@
       "probe": "Z-датчик",
       "noStatus": "Нет статуса",
       "extrusionRate": "Скорость экструзии",
-      "volumetricFlowRate": "Объемный расход"
+      "volumetricFlow": "Объемный расход"
     },
     "tools": {
       "caption": "Контроль нагрева",
