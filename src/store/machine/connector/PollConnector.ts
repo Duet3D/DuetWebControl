@@ -313,7 +313,7 @@ export default class PollConnector extends BaseConnector {
 	/**
 	 * Load enumeration of installed DWC plugins
 	 */
-	async loadDwcPlugins() {
+	async loadDwcPluginList() {
 		try {
 			const plugins = await this.download(Path.dwcPluginsFile);
 			if ((plugins instanceof Object) && !(plugins instanceof Array)) {

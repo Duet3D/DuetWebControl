@@ -30,6 +30,17 @@ export function log(type: LogType, title: string, message: string | null = null,
 }
 
 /**
+ * Log an arbitrary machine-related message
+ * @param type Message type
+ * @param title Title of the message
+ * @param message Actual message
+ * @param hostname Hostname to log this message to
+ */
+export function logToConsole(type: LogType, title: string, message: string | null = null, hostname = store.state.selectedMachine) {
+	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
+}
+
+/**
  * Log a code reply from a given machine
  * @param code G/M/T-code
  * @param reply Code reply

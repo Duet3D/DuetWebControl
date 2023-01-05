@@ -730,16 +730,16 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.cancellationToken Optional cancellation token that may be triggered to cancel this operation
 			 * @param payload.onProgress Optional callback for progress reports
 			 */
-			async installSystemPackage(context, { filename, packageData, cancellationToken, onProgress }): Promise<void> {
+			async installSystemPackage(_, { filename, packageData, cancellationToken, onProgress }): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("installSystemPackage is not available in default machine module"); }
 
-				const notification = makeFileTransferNotification(FileTransferType.install, filename, cancellationToken);
+				const notification = makeFileTransferNotification(FileTransferType.systemPackageInstall, filename, cancellationToken);
 				try {
 					try {
 						await connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
-						makeNotification(LogType.success, i18n.t("notification.install.success", [filename]));
+						makeNotification(LogType.success, i18n.t("notification.systemPackageInstall.success", [filename]));
 					} catch (e) {
-						makeNotification(LogType.error, i18n.t("notification.install.error", [filename]), getErrorMessage(e));
+						makeNotification(LogType.error, i18n.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 						throw e;
 					}
 				} finally {
@@ -777,13 +777,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				// Get the plugin
 				const machineState = state as MachineModuleState, plugin = machineState.model.plugins.get(id);
 				if (!plugin) {
-					if (saveSettings) {
-						throw new Error(`Plugin ${id} not found`);
-					}
-
-					// Fail silently if the config is being loaded
-					console.warn(`Plugin ${id} not found`);
-					return;
+					throw new Error(`Plugin ${id} not found`);
 				}
 
 				// Check if there are any resources to load and if it is actually possible

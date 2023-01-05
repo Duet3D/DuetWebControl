@@ -226,16 +226,7 @@ export default {
 		async applyDefaults({ state, dispatch }) {
 			// Load settings that are enabled by default
 			if (state.enabledPlugins) {
-				for (let i = 0; i < state.enabledPlugins.length; i++) {
-					try {
-						await dispatch("loadDwcPlugin", {
-							id: state.enabledPlugins[i],
-							saveSettings: false
-						}, { root: true });
-					} catch (e) {
-						console.warn(`Failed to load built-in plugin ${state.enabledPlugins[i]}`, e);
-					}
-				}
+				/*await*/ dispatch("loadDwcPlugins", state.enabledPlugins);
 			}
 		},
 		async load({ rootGetters, commit, dispatch }) {

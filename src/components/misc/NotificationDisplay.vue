@@ -129,7 +129,7 @@ export default Vue.extend({
 				switch (fileTransferType) {
 					case FileTransferType.upload: return "mdi-cloud-upload";
 					case FileTransferType.download: return "mdi-cloud-download";
-					case FileTransferType.install: return "mdi-cog-sync";
+					case FileTransferType.systemPackageInstall: return "mdi-cog-sync";
 					default:
 						const _exhaustiveCheck: never = fileTransferType;
 						break;
@@ -179,16 +179,14 @@ export default Vue.extend({
 			} else if (this.notification?.close) {
 				this.notification.close();
 			}
-		}
-	},
-	watch: {
-		notification(to: Notification, from: Notification) {
+		},
+		notificationChanged(to: Notification | null, from: Notification | null) {
 			if (to === from) {
 				// For some reason Vue sometimes triggers this even when nothing has changed
 				return;
 			}
 
-			if (from) {
+			if (from !== null) {
 				if (this.whenShown !== null) {
 					from.timeDisplayed = (new Date()).getTime() - this.whenShown.getTime();
 				}
@@ -199,7 +197,7 @@ export default Vue.extend({
 				}
 			}
 
-			if (to) {
+			if (to !== null) {
 				this.whenShown = new Date();
 				if (to.timeout !== null && to.timeout > 0) {
 					// Reset animations if needed
@@ -234,6 +232,21 @@ export default Vue.extend({
 				}
 			}
 		}
+	},
+	watch: {
+		notification(to: Notification | null, from: Notification | null) {
+			this.notificationChanged(to, from);
+		},
+		fileTransferNotification(to: Notification | null) {
+			if (this.notification !== null) {
+				if (to !== null) {
+					this.notificationChanged(null, this.notification);
+				} else {
+					this.notificationChanged(this.notification, null);
+				}
+			}
+		}
+
 	}
 });
 </script>

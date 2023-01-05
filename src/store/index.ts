@@ -7,13 +7,16 @@ import Root from "@/main";
 import Plugins, { checkVersion, loadDwcResources } from "@/plugins";
 import { getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import Events from "@/utils/events";
-import { logGlobal, LogType } from "@/utils/logging";
+import { log, logGlobal, logToConsole, LogType } from "@/utils/logging";
 
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
 import uiInjection, { UiInjectionState } from "./uiInjection";
 import { connect } from "./machine/connector";
+import { makeFileTransferNotification, FileTransferType, makeNotification } from "@/utils/notifications";
+import { CancellationToken } from "./machine/connector/BaseConnector";
+import plugins from "@/plugins";
 
 Vue.use(Vuex);
 
@@ -56,6 +59,11 @@ export interface InternalRootState {
 	selectedMachine: string;
 
 	/**
+	 * Indicates if the configured DWC plugins are being loaded
+	 */
+	loadingDwcPlugins: boolean;
+
+	/**
 	 * List of loaded DWC plugins
 	 */
 	loadedDwcPlugins: Array<string>;
@@ -81,6 +89,7 @@ const store = new Vuex.Store<InternalRootState>({
 		connectDialogShown: process.env.NODE_ENV === "development",
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
+		loadingDwcPlugins: false,
 		loadedDwcPlugins: [],
 		hideCodeReplyNotifications: false
 	},
@@ -286,6 +295,61 @@ const store = new Vuex.Store<InternalRootState>({
 				return true;
 			}
 			return false;
+		},
+
+		/**
+		 * Load a list of DWC plugins and report progress as content is being loaded
+		 * @param context Action context
+		 * @param pluginList List of plugin IDs to load
+		 */
+		async loadDwcPlugins({ commit, dispatch }, pluginList: Array<string>) {
+			if (pluginList.length > 0) {
+				let operationCancelled = false;
+				const cancellationToken: CancellationToken = {
+					cancel() {
+						operationCancelled = true;
+					}
+				}
+
+				commit("setDwcPluginsLoading", true);
+				const notification = makeNotification(LogType.primary, i18n.t("notification.pluginLoad.title"), i18n.t("notification.pluginLoad.message"), 0, null, "mdi-connection");
+				let loadedPlugins = 0;
+				for (let i = 0; i < pluginList.length; i++) {
+					try {
+						if (plugins.some(plugin => plugin.id === pluginList[i])) {
+							await dispatch("loadDwcPlugin", {
+								id: pluginList[i],
+								saveSettings: false
+							});
+						} else {
+							await dispatch("machine/loadDwcPlugin", {
+								id: pluginList[i],
+								saveSettings: false
+							});
+						}
+						loadedPlugins++;
+
+						if (operationCancelled) {
+							break;
+						}
+					} catch (e) {
+						logToConsole(LogType.warning, `Failed to load DWC plugin ${pluginList[i]}`, getErrorMessage(e));
+						commit("settings/disableDwcPlugin", pluginList[i]);
+						commit("machine/settings/disableDwcPlugin", pluginList[i]);
+					}
+					notification.progress = ((i + 1) / pluginList.length) * 100;
+				}
+				notification.close();
+				commit("setDwcPluginsLoading", false);
+
+				if (loadedPlugins != pluginList.length && !operationCancelled) {
+					if (loadedPlugins === 0) {
+						makeNotification(LogType.error, "Failed to load plugins", "Could not load DWC plugins, see Console", null, "/Console");
+					} else {
+						makeNotification(LogType.warning, "Failed to load some plugins", "Could not load some DWC plugins, see Console", null, "/Console");
+					}
+				}
+			}
 		}
 	},
 	mutations: {
@@ -375,6 +439,13 @@ const store = new Vuex.Store<InternalRootState>({
 			store.unregisterModule("machine");
 			store.registerModule("machine", machines[hostname]);
 			state.selectedMachine = hostname;
+		},
+
+		/**
+		 * Flag if the configured DWC plugins are being loaded
+		 */
+		setDwcPluginsLoading(state, loading) {
+			state.loadingDwcPlugins = loading;
 		},
 
 		/**

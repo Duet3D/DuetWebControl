@@ -528,7 +528,7 @@
       "success": "Download of {0} successful after {1}",
       "error": "Failed to download {0}"
     },
-    "install": {
+    "systemPackageInstall": {
       "title": "Installing file {0}",
       "message": "Please stand by while the file is being installed...",
       "success": "Installation of {0} successful",
@@ -538,6 +538,10 @@
     "mount": {
       "successTitle": "SD card mounted",
       "errorTitle": "Failed to mount SD card"
+    },
+    "pluginLoad": {
+      "title": "Loading plugins...",
+      "message": "Please stand by while plugins are being loaded..."
     },
     "newDirectory": {
       "errorTitle": "Failed to create directory",

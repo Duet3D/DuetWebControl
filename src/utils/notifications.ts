@@ -12,7 +12,7 @@ import { LogType } from "./logging";
 export enum FileTransferType {
     upload = "upload",
     download = "download",
-    install = "install"
+    systemPackageInstall = "systemPackageInstall"
 }
 
 /**

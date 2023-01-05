@@ -51,11 +51,12 @@ button {
 						</td>
 						<td class="no-wrap">
 							<v-btn v-if="!isPluginStarted(plugin)" color="success" @click="startPlugin(plugin)"
-								   :loading="isPluginBusy(plugin)">
+								   :loading="isPluginBusy(plugin)" :disabled="loadingDwcPlugins">
 								<v-icon class="mr-1">mdi-play</v-icon>
 								{{ $t("tabs.plugins.start") }}
 							</v-btn>
-							<v-btn v-else color="warning" @click="stopPlugin(plugin)" :disabled="!canStopPlugin(plugin)"
+							<v-btn v-else color="warning" @click="stopPlugin(plugin)"
+								   :disabled="!canStopPlugin(plugin) || loadingDwcPlugins"
 								   :loading="isPluginBusy(plugin)">
 								<v-icon class="mr-1">mdi-stop</v-icon>
 								{{ $t("tabs.plugins.stop") }}
@@ -87,7 +88,8 @@ import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
 	computed: {
-		plugins: () => Plugins
+		plugins: () => Plugins,
+		loadingDwcPlugins(): boolean { return store.state.loadingDwcPlugins; }
 	},
 	data() {
 		return {
@@ -100,7 +102,7 @@ export default Vue.extend({
 			return this.busyPlugins.includes(plugin.id);
 		},
 		getPluginStatus(plugin: PluginManifest) {
-			if (store.state.loadedDwcPlugins.indexOf(plugin.id) !== -1) {
+			if (store.state.loadedDwcPlugins.includes(plugin.id)) {
 				const enabled = store.state.settings.enabledPlugins.includes(plugin.id) || store.state.settings.enabledPlugins.includes(plugin.name);
 				return this.$t(enabled ? "tabs.plugins.started" : "tabs.plugins.deactivated");
 			}

@@ -298,7 +298,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				}
 
 				// Load the list of installed DWC plugins
-				await connector.loadDwcPlugins();
+				await connector.loadDwcPluginList();
 
 				// Load the settings
 				let mainSettings, machineSettings;
@@ -379,36 +379,24 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 					}
 				}
 
-				// Load main settings
+				// Load main and machine-specific settings
 				if (mainSettings) {
 					commit("settings/load", mainSettings, { root: true });
-
-					if (mainSettings.enabledPlugins) {
-						for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
-							try {
-								await dispatch("loadDwcPlugin", { id: mainSettings.enabledPlugins[i], saveSettings: false }, { root: true });
-							} catch (e) {
-								console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`);
-								console.warn(e);
-							}
-						}
-					}
 				}
 
-				// Load machine-specific settings
 				if (machineSettings) {
 					commit("load", machineSettings);
+				}
 
-					if (machineSettings.enabledPlugins) {
-						for (let i = 0; i < machineSettings.enabledPlugins.length; i++) {
-							try {
-								await dispatch(`machines/${connector.hostname}/loadDwcPlugin`, { id: machineSettings.enabledPlugins[i], saveSettings: false }, { root: true });
-							} catch (e) {
-								console.warn(`Failed to load third-party plugin ${machineSettings.enabledPlugins[i]}`);
-								console.warn(e);
-							}
-						}
+				// Load DWC plugins
+				if (mainSettings && mainSettings.enabledPlugins) {
+					if (machineSettings && machineSettings.enabledPlugins) {
+						/*await*/ dispatch("loadDwcPlugins", [...mainSettings.enabledPlugins, ...machineSettings.enabledPlugins], { root: true });
+					} else {
+						/*await*/ dispatch("loadDwcPlugins", mainSettings.enabledPlugins, { root: true });
 					}
+				} else if (machineSettings && machineSettings.enabledPlugins) {
+					/*await*/ dispatch("loadDwcPlugins", machineSettings.enabledPlugins, { root: true });
 				}
 			}
 		},
