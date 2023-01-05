@@ -566,6 +566,12 @@
       "message": "Bitte warten während die Datei hochgeladen wird...",
       "success": "Datei {0} erfolgreich nach {1} hochgeladen",
       "error": "Konnte {0} nicht hochladen"
+    },
+    "install": {
+      "error": "{0} konnte nicht installiert werden",
+      "message": "Bitte warten Sie, während die Datei installiert wird...",
+      "success": "Installation von {0} erfolgreich",
+      "title": "Datei {0} wird installiert"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "Einzelbettsteuerung"
+      "singleBedControl": "Einzelbettsteuerung",
+      "groupTools": "Identische Werkzeuge gruppieren",
+      "singleChamberControl": "Einkammersteuerung"
     },
     "settingsCommunication": {
       "caption": "Kommunikation",
@@ -827,7 +835,9 @@
       },
       "noTools": "Keine Werkzeuge",
       "allBeds": "Alle Betten",
-      "beds": "Betten"
+      "beds": "Betten",
+      "allChambers": "Alle Kammern",
+      "chambers": "Kammern"
     },
     "webcam": {
       "caption": "Webcamüberwachung",

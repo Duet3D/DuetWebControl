@@ -566,6 +566,12 @@
       "stopped": "Le plug-in a été arrêté",
       "uninstallError": "Impossible de désinstaller le plug-in",
       "uninstalled": "Le plugin a été désinstallé"
+    },
+    "install": {
+      "error": "Échec de l'installation de {0}",
+      "message": "Veuillez patienter pendant l'installation du fichier...",
+      "success": "Installation de {0} réussie",
+      "title": "Installation du fichier {0}"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitInches": "pouces",
       "unitMm": "millimètre",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "Commande lit simple"
+      "singleBedControl": "Commande lit simple",
+      "groupTools": "Regrouper les outils identiques",
+      "singleChamberControl": "Commande à chambre unique"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -815,7 +823,9 @@
       "setStandbyTemperatures": "Régler les températures de veille",
       "setToolTemperatures": "Régler les températures de l'outil",
       "allBeds": "Tous les lits",
-      "beds": "Des lits"
+      "beds": "Des lits",
+      "allChambers": "Toutes les chambres",
+      "chambers": "Chambres"
     },
     "webcam": {
       "caption": "Surveillance Webcam",

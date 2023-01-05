@@ -566,6 +566,12 @@
       "message": "ファイルがアップロードされるまでお待ちください...",
       "success": "{1}にて{0}のアップロードに成功",
       "error": "{0}のアップロードに失敗しました"
+    },
+    "install": {
+      "error": "{0} のインストールに失敗しました",
+      "message": "ファイルをインストールしています。しばらくお待ちください...",
+      "success": "{0} のインストールが成功しました",
+      "title": "ファイル {0} をインストールしています"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitInches": "インチ",
       "unitMm": "んん",
       "unitMmSpeed": "mm/秒",
-      "singleBedControl": "シングルベッドコントロール"
+      "singleBedControl": "シングルベッドコントロール",
+      "groupTools": "同一のツールをグループ化する",
+      "singleChamberControl": "シングルチャンバー制御"
     },
     "settingsCommunication": {
       "caption": "通信",
@@ -827,7 +835,9 @@
       "noTools": "工具なし",
       "controlHeaters": "コントロールヒーター",
       "allBeds": "すべてのベッド",
-      "beds": "ベッド"
+      "beds": "ベッド",
+      "allChambers": "すべての商工会議所",
+      "chambers": "チャンバー"
     },
     "webcam": {
       "caption": "ウェブカメラ監視",

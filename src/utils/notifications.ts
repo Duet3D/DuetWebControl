@@ -11,7 +11,8 @@ import { LogType } from "./logging";
  */
 export enum FileTransferType {
     upload = "upload",
-    download = "download"
+    download = "download",
+    install = "install"
 }
 
 /**

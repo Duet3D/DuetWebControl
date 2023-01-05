@@ -255,6 +255,14 @@ export default Vue.extend({
 					return;
 				}
 
+				if (store.state.machine.model.state.dsfVersion !== null && files[0].name.toLowerCase() === "dsf-update.zip") {
+					await store.dispatch("machine/installSystemPackage", {
+						filename: files[0].name,
+						packageData: files[0]
+					});
+					return;
+				}
+
 				if (files[0].name.toLowerCase().endsWith(".zip")) {
 					const zip = new JSZip(), zipFiles: Array<string> = [], target = this.target;
 					const notification = this.$makeNotification(LogType.info, this.$t("notification.decompress.title"), this.$t("notification.decompress.message"), 0);
@@ -341,6 +349,7 @@ export default Vue.extend({
 			this.updates.wifiServerSpiffs = false;
 			this.updates.panelDue = false;
 
+			let skipUpload = false;
 			for (let i = 0; i < files.length; i++) {
 				let content = files[i], filename = Path.combine(this.destinationDirectory, content.name);
 				if ([UploadType.firmware, UploadType.system, UploadType.update].includes(this.target)) {
@@ -350,16 +359,11 @@ export default Vue.extend({
 						filename = Path.combine(store.state.machine.model.directories.web, content.name);
 						this.updates.webInterface = this.updates.webInterface || /index.html(\.gz)?/i.test(content.name);
 					} else if (store.state.machine.model.state.dsfVersion !== null && /\.deb$/.test(content.name)) {
-						// TODO improve this
-						try {
-							await store.dispatch("machine/installSystemPackage", {
-								filename: content.name,
-								blob: content
-							});
-							alert(`Installation of ${content.name} succesful`);
-						} catch (e) {
-							alert(`Installation of ${content.name} failed: ${getErrorMessage(e)}`);
-						}
+						await store.dispatch("machine/installSystemPackage", {
+							filename: content.name,
+							packageData: content
+						});
+						skipUpload = true;
 					} else {
 						const firmwareFileName = this.getFirmwareName(content.name);
 						const bootloaderFileName = this.getBinaryName("bootloaderFileName", content.name);
@@ -404,6 +408,10 @@ export default Vue.extend({
 			const askForUpdate = (this.updates.firmwareBoards.length > 0) || this.updates.wifiServer || this.updates.wifiServerSpiffs || this.updates.panelDue;
 
 			// Start uploading
+			if (skipUpload) {
+				return;
+			}
+
 			this.uploading = true;
 			try {
 				if (files.length === 1) {

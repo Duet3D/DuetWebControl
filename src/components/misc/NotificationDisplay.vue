@@ -61,7 +61,7 @@
 
 			<div class="d-flex mt-1">
 				<v-icon class="mr-4">
-					{{ `mdi-cloud-${fileTransferNotification.type}` }}
+					{{ fileTransferIcon }}
 				</v-icon>
 
 				<div class="d-block">
@@ -110,7 +110,7 @@
 <script lang="ts">
 import Vue from "vue";
 
-import { notifications, fileTransferNotifications, Notification } from "@/utils/notifications";
+import { notifications, fileTransferNotifications, FileTransferType, Notification } from "@/utils/notifications";
 
 export default Vue.extend({
 	computed: {
@@ -122,6 +122,20 @@ export default Vue.extend({
 		},
 		fileTransferNotification(): Notification | null {
 			return (this.fileTransferNotifications.length > 0) ? this.fileTransferNotifications[0] : null;
+		},
+		fileTransferIcon(): string {
+			if (this.fileTransferNotification !== null) {
+				const fileTransferType = this.fileTransferNotification.type as FileTransferType;
+				switch (fileTransferType) {
+					case FileTransferType.upload: return "mdi-cloud-upload";
+					case FileTransferType.download: return "mdi-cloud-download";
+					case FileTransferType.install: return "mdi-cog-sync";
+					default:
+						const _exhaustiveCheck: never = fileTransferType;
+						break;
+				}
+			}
+			return "";
 		},
 		notification(): Notification | null {
 			return (this.notifications.length > 0) ? this.notifications[0] : null;

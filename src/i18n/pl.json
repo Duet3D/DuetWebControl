@@ -566,6 +566,12 @@
       "message": "Proszę czekać, plik jest wysyłany...",
       "success": "Wysłanie {0} sukces po {1}",
       "error": "Nieudane wysłanie {0}"
+    },
+    "install": {
+      "error": "Nie udało się zainstalować {0}",
+      "message": "Proszę czekać podczas instalowania pliku...",
+      "success": "Instalacja {0} powiodła się",
+      "title": "Instalowanie pliku {0}"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitInches": "cale",
       "unitMm": "mm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "Sterowanie pojedynczym łóżkiem"
+      "singleBedControl": "Sterowanie pojedynczym łóżkiem",
+      "groupTools": "Pogrupuj identyczne narzędzia",
+      "singleChamberControl": "Sterowanie jednokomorowe"
     },
     "settingsCommunication": {
       "caption": "Komunikacja",
@@ -815,7 +823,9 @@
       },
       "noTools": "Brak narzędzi",
       "allBeds": "Wszystkie łóżka",
-      "beds": "Łóżka"
+      "beds": "Łóżka",
+      "allChambers": "Wszystkie izby",
+      "chambers": "Kancelaria"
     },
     "webcam": {
       "caption": "Podgląd obrazu z kamery",

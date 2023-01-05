@@ -566,6 +566,12 @@
       "message": "Espere mientras se sube el archivo ...",
       "success": "Subido con éxito de {0} después de {1}",
       "error": "Fallo al subir {0}"
+    },
+    "install": {
+      "error": "Error al instalar {0}",
+      "message": "Espere mientras se instala el archivo...",
+      "success": "Instalación de {0} exitosa",
+      "title": "Instalando el archivo {0}"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "Control de cama individual"
+      "singleBedControl": "Control de cama individual",
+      "groupTools": "Agrupar herramientas idénticas",
+      "singleChamberControl": "Control de cámara única"
     },
     "settingsCommunication": {
       "caption": "Comunicación",
@@ -827,7 +835,9 @@
       },
       "noTools": "Sin Herramientas",
       "allBeds": "Todas las camas",
-      "beds": "Camas"
+      "beds": "Camas",
+      "allChambers": "Todas las Cámaras",
+      "chambers": "Cámaras"
     },
     "webcam": {
       "caption": "Vigilancia por webcam",

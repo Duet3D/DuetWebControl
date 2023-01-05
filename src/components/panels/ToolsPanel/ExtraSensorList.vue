@@ -7,17 +7,16 @@ table {
 table td,
 table th {
 	text-align: center;
-	width: 25%;
-}
-
-table tr > th:first-child,
-table tr > td:first-child {
-	width: 50%;
 }
 </style>
 
 <template>
     <table v-if="extraSensors.length > 0" class="ml-2 mr-2">
+        <colgroup>
+            <col style="width: 50%;">
+            <col style="width: 25%;">
+            <col style="width: 25%;">
+        </colgroup>
         <thead>
             <tr>
                 <th class="hidden-sm-and-down"></th>

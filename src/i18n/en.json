@@ -528,6 +528,12 @@
       "success": "Download of {0} successful after {1}",
       "error": "Failed to download {0}"
     },
+    "install": {
+      "title": "Installing file {0}",
+      "message": "Please stand by while the file is being installed...",
+      "success": "Installation of {0} successful",
+      "error": "Failed to install {0}"
+    },
     "message": "Message",
     "mount": {
       "successTitle": "SD card mounted",

@@ -566,6 +566,12 @@
       "stopped": "Eklenti durduruldu",
       "uninstallError": "Eklenti kaldırılamadı",
       "uninstalled": "Eklenti kaldırıldı"
+    },
+    "install": {
+      "error": "{0} yüklenemedi",
+      "message": "Dosya yüklenirken lütfen bekleyin...",
+      "success": "{0} kurulumu başarılı",
+      "title": "{0} dosyası yükleniyor"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitInches": "inç",
       "unitMm": "mm",
       "unitMmSpeed": "mm/sn",
-      "singleBedControl": "Tek kişilik yatak kontrolü"
+      "singleBedControl": "Tek kişilik yatak kontrolü",
+      "groupTools": "Grup özdeş araçlar",
+      "singleChamberControl": "Tek bölmeli kontrol"
     },
     "settingsCommunication": {
       "caption": "İletişim",
@@ -815,7 +823,9 @@
       "setStandbyTemperatures": "Bekleme sıcaklıklarını ayarla",
       "setToolTemperatures": "Takım sıcaklıklarını ayarlayın",
       "allBeds": "Tüm Yataklar",
-      "beds": "yataklar"
+      "beds": "yataklar",
+      "allChambers": "Tüm Odalar",
+      "chambers": "Odalar"
     },
     "webcam": {
       "caption": "Web Kamerası Gözetimi",

@@ -16,7 +16,7 @@ import { displayTime } from "@/utils/display";
 import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { log, logCode, LogType } from "@/utils/logging";
-import { makeFileTransferNotification, Notification, showMessage, FileTransferType } from "@/utils/notifications";
+import { makeFileTransferNotification, Notification, showMessage, FileTransferType, makeNotification } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 import { RootState } from "..";
@@ -733,7 +733,18 @@ export default function(connector: BaseConnector | null): MachineModule {
 			async installSystemPackage(context, { filename, packageData, cancellationToken, onProgress }): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("installSystemPackage is not available in default machine module"); }
 
-				await connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
+				const notification = makeFileTransferNotification(FileTransferType.install, filename, cancellationToken);
+				try {
+					try {
+						await connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
+						makeNotification(LogType.success, i18n.t("notification.install.success", [filename]));
+					} catch (e) {
+						makeNotification(LogType.error, i18n.t("notification.install.error", [filename]), getErrorMessage(e));
+						throw e;
+					}
+				} finally {
+					notification.close();
+				}
 			},
 
 			/**

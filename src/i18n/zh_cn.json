@@ -566,6 +566,12 @@
       "message": "文件已经开始上传，请等待……",
       "success": "已成功上传{0}，总计{1}",
       "error": "上传{0}失败"
+    },
+    "install": {
+      "error": "安装 {0} 失败",
+      "message": "正在安装文件，请稍候...",
+      "success": "{0} 安装成功",
+      "title": "安装文件 {0}"
     }
   },
   "panel": {
@@ -690,7 +696,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "单床控制"
+      "singleBedControl": "单床控制",
+      "groupTools": "分组相同的工具",
+      "singleChamberControl": "单室控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -827,7 +835,9 @@
       },
       "noTools": "没有工具",
       "allBeds": "所有床位",
-      "beds": "床"
+      "beds": "床",
+      "allChambers": "所有商会",
+      "chambers": "钱伯斯"
     },
     "webcam": {
       "caption": "网络摄像头监控",
