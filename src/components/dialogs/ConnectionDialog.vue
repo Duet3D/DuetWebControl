@@ -1,5 +1,5 @@
 <template>
-	<v-dialog :value="shown" :persistent="!(displayReset && isConnected)" width="480">
+	<v-dialog :value="shown" :persistent="isPersistent" width="480">
 		<v-card color="primary" dark>
 			<v-card-title class="subtitle-1">
 				{{ message }}
@@ -29,7 +29,13 @@ export default Vue.extend({
 	computed: {
 		connectingProgress(): number { return store.state.connectingProgress; },
 		isConnected(): boolean { return store.getters["isConnected"]; },
-
+		isPersistent(): boolean {
+			if (!(this.displayReset && this.isConnected)) {
+				// If the connection is gone, allow this dialog only to be dismissed if running as PWA
+				return !window.matchMedia("(display-mode: standalone)").matches;
+			}
+			return false;
+		},
 		message(): string {
 			if (store.state.isConnecting || this.connectingProgress >= 0) {
 				return this.$t("dialog.connection.connecting");
