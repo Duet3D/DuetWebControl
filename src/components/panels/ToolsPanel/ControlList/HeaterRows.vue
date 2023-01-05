@@ -86,7 +86,7 @@
                         </a>
                         <br>
                         <span class="font-weight-regular caption">
-                            {{ $t(`generic.heaterStates.${ heater.state }`) }}
+                            {{ $t(`generic.heaterStates.${ heater.state}`) }}
                         </span>
                     </th>
 

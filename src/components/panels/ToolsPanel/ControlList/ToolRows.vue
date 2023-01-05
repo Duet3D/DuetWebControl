@@ -116,7 +116,7 @@
                             <template v-if="toolHeater.state !== null">
                                 <br>
                                 <span class="font-weight-regular caption">
-                                    {{ $t(`generic.heaterStates.${toolHeater.state }`) }}
+                                    {{ $t(`generic.heaterStates.${toolHeater.state}`) }}
                                 </span>
                             </template>
                         </template>

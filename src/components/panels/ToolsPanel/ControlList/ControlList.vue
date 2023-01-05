@@ -44,7 +44,7 @@ table.tools th {
         </thead>
         <tbody>
             <!-- Tools -->
-            <tool-rows @reset-heater-fault="resetHeaterFault" />
+            <tool-rows @resetHeaterFault="resetHeaterFault" />
 
             <!-- Divider -->
             <tr v-if="hasTools && hasBeds">
@@ -54,7 +54,7 @@ table.tools th {
             </tr>
 
             <!-- Beds -->
-            <heater-rows type="bed" @reset-heater-fault="resetHeaterFault" />
+            <heater-rows type="bed" @resetHeaterFault="resetHeaterFault" />
 
             <!-- Divider -->
             <tr v-if="(hasTools || hasBeds) && hasChambers">
@@ -64,7 +64,7 @@ table.tools th {
             </tr>
 
             <!-- Chambers -->
-            <heater-rows type="chamber" @reset-heater-fault="resetHeaterFault" />
+            <heater-rows type="chamber" @resetHeaterFault="resetHeaterFault" />
         </tbody>
 
         <!-- Heater faults-->
