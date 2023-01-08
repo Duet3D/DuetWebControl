@@ -306,7 +306,7 @@ export default Vue.extend({
 		},
 
 		permissions(): Set<SbcPermission> {
-			return this.pluginManifest.sbcPermissions || new Set<SbcPermission>();
+			return new Set<SbcPermission>(this.pluginManifest.sbcPermissions || []);
 		}
 	},
 	data() {
