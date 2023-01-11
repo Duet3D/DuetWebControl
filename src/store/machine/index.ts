@@ -781,7 +781,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				}
 
 				// Check if there are any resources to load and if it is actually possible
-				if (!plugin.dwcFiles.some(file => file.indexOf(plugin.id) !== -1 && /\.js$/.test(file)) || process.env.NODE_ENV === "development") {
+				if (!plugin.dwcFiles.some(file => file.indexOf(plugin.id) !== -1 && /\.js$/.test(file))) {
 					return;
 				}
 
@@ -826,7 +826,11 @@ export default function(connector: BaseConnector | null): MachineModule {
 				}
 
 				// Load the required web module
-				await loadDwcResources(plugin);
+				if (process.env.NODE_ENV === "production") {
+					await loadDwcResources(plugin);
+				} else {
+					console.warn(`Cannot load DWC chunks of plugin ${plugin.id}. External JavaScript chunks are only supported in production mode`);
+				}
 
 				// DWC plugin has been loaded
 				commit("dwcPluginLoaded", plugin.id, { root: true });

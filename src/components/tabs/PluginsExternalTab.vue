@@ -140,11 +140,13 @@ export default Vue.extend({
 				if (plugin.pid > 0 && (!plugin.dwcVersion || store.state.machine.settings.enabledPlugins.includes(plugin.id))) {
 					return this.$t("tabs.plugins.started");
 				}
-				if (plugin.pid < 0 && plugin.dwcVersion && store.state.machine.settings.enabledPlugins.includes(plugin.id)) {
-					return this.$t("tabs.plugins.partiallyStarted");
-				}
-				if (plugin.dwcVersion && store.state.loadedDwcPlugins.includes(plugin.id)) {
-					return this.$t("tabs.plugins.deactivated");
+				if (plugin.dwcVersion) {
+					if ((plugin.pid >= 0) != store.state.machine.settings.enabledPlugins.includes(plugin.id)) {
+						return this.$t("tabs.plugins.partiallyStarted");
+					}
+					if (store.state.loadedDwcPlugins.includes(plugin.id)) {
+						return this.$t("tabs.plugins.deactivated");
+					}
 				}
 			} else if (plugin.dwcVersion && store.state.loadedDwcPlugins.includes(plugin.id)) {
 				return store.state.machine.settings.enabledPlugins.includes(plugin.id) ? this.$t("tabs.plugins.started") : this.$t("tabs.plugins.deactivated");
