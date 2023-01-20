@@ -1,22 +1,22 @@
 import Vue from "vue";
 import Vuex, { Module, Store } from "vuex";
 
-import packageInfo from "../../package.json";
 import i18n from "@/i18n";
 import Root from "@/main";
 import Plugins, { checkVersion, loadDwcResources } from "@/plugins";
 import { getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import Events from "@/utils/events";
-import { log, logGlobal, logToConsole, LogType } from "@/utils/logging";
+import { logGlobal, logToConsole, LogType } from "@/utils/logging";
+import { makeNotification } from "@/utils/notifications";
 
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
+import { connect } from "./machine/connector";
+import { CancellationToken } from "./machine/connector/BaseConnector";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
 import uiInjection, { UiInjectionState } from "./uiInjection";
-import { connect } from "./machine/connector";
-import { makeFileTransferNotification, FileTransferType, makeNotification } from "@/utils/notifications";
-import { CancellationToken } from "./machine/connector/BaseConnector";
-import plugins from "@/plugins";
+
+import packageInfo from "../../package.json";
 
 Vue.use(Vuex);
 
@@ -36,7 +36,7 @@ export interface InternalRootState {
 	/**
 	 * Percentage for reporting the connection progress (0..100)
 	 */
-	connectingProgress: -1;
+	connectingProgress: number;
 
 	/**
 	 * Indicates if a connection is being terminated
@@ -218,7 +218,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param payload.hostname Hostname of the affected machine
 		 * @param payload.error Error causing the connection loss
 		 */
-		async onConnectionError({ dispatch, commit }, { hostname, error }) {
+		async onConnectionError({ dispatch, commit }, { hostname, error }: { hostname: string, error: Error }) {
 			if (error instanceof InvalidPasswordError) {
 				logGlobal(LogType.error, i18n.t("events.connectionLost", [hostname]), error.message);
 				await dispatch("disconnect", { hostname, doDisconnect: false });
@@ -239,7 +239,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param payload.id Plugin identifier
 		 * @param payload.saveSettings Save settings (including enabled plugins) on successful load
 		 */
-		async loadDwcPlugin({ state, dispatch, commit }, { id, saveSettings }) {
+		async loadDwcPlugin({ state, dispatch, commit }, { id, saveSettings }: { id: string, saveSettings: boolean }) {
 			// Don't load a DWC plugin twice
 			if (state.loadedDwcPlugins.includes(id)) {
 				return;
@@ -288,7 +288,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param context Action context
 		 * @param plugin Plugin identifier
 		 */
-		async unloadDwcPlugin({ state, dispatch, commit }, plugin) {
+		async unloadDwcPlugin({ state, dispatch, commit }, plugin: string) {
 			commit("settings/disableDwcPlugin", plugin);
 			if ((state as RootState).settings.enabledPlugins.includes(plugin)) {
 				await dispatch("settings/save");
@@ -316,7 +316,7 @@ const store = new Vuex.Store<InternalRootState>({
 				let loadedPlugins = 0;
 				for (let i = 0; i < pluginList.length; i++) {
 					try {
-						if (plugins.some(plugin => plugin.id === pluginList[i])) {
+						if (Plugins.some(plugin => plugin.id === pluginList[i])) {
 							await dispatch("loadDwcPlugin", {
 								id: pluginList[i],
 								saveSettings: false
@@ -382,14 +382,14 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param state Vuex state
 		 * @param connecting If a machine is being connected to
 		 */
-		setConnecting: (state, connecting) => state.isConnecting = connecting,
+		setConnecting: (state, connecting: boolean) => state.isConnecting = connecting,
 
 		/**
 		 * Update the progress of the current connection attempt
 		 * @param state Vuex state
 		 * @param progress Current progress in per cent (0..100)
 		 */
-		setConnectingProgress: (state, progress) => state.connectingProgress = progress,
+		setConnectingProgress: (state, progress: number) => state.connectingProgress = progress,
 
 		/**
 		 * Add a new machine module to the Vuex store (via machines)
@@ -398,7 +398,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param payload.hostname Hostname of the machine to add
 		 * @param payload.module Machine module (Vuex)
 		 */
-		addMachine(state, { hostname, module }) {
+		addMachine(_, { hostname, module }: { hostname: string, module: MachineModule }) {
 			machines[hostname] = module;
 			store.registerModule(["machines", hostname], module);
 			Root.$emit(Events.machineAdded, hostname);
@@ -409,14 +409,14 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param state Vuex state
 		 * @param disconnecting If a machine is being disconnected from
 		 */
-		setDisconnecting: (state, disconnecting) => state.isDisconnecting = disconnecting,
+		setDisconnecting: (state, disconnecting: boolean) => state.isDisconnecting = disconnecting,
 
 		/**
 		 * Remove an existing machine from the Vuex store (from machines)
 		 * @param state Vuex state
 		 * @param hostname Hostname of the machine to remove
 		 */
-		removeMachine(state, hostname) {
+		removeMachine(_, hostname: string) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error("Invalid hostname");
 			}
@@ -431,7 +431,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param state Vuex state
 		 * @param hostname Hostname of the machine to select
 		 */
-		setSelectedMachine(state, hostname) {
+		setSelectedMachine(state, hostname: string) {
 			if (!hostname) {
 				throw new Error("Invalid hostname");
 			}
@@ -444,7 +444,7 @@ const store = new Vuex.Store<InternalRootState>({
 		/**
 		 * Flag if the configured DWC plugins are being loaded
 		 */
-		setDwcPluginsLoading(state, loading) {
+		setDwcPluginsLoading(state, loading: boolean) {
 			state.loadingDwcPlugins = loading;
 		},
 
@@ -453,7 +453,7 @@ const store = new Vuex.Store<InternalRootState>({
 		 * @param state Vuex state
 		 * @param plugin Plugin identifier of the loaded plugin
 		 */
-		dwcPluginLoaded(state, plugin) {
+		dwcPluginLoaded(state, plugin: string) {
 			state.loadedDwcPlugins.push(plugin);
 		},
 

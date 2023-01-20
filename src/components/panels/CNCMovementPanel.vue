@@ -83,7 +83,7 @@
 				</v-col>
 				<v-col cols="12" order="3" md="2" order-md="3">
 					<v-btn @click="setWorkplaceZero" block class="move-btn">
-						{{ $t("panel.movement.setWorkXYZ")}}
+						{{ $t("panel.movement.setWorkXYZ") }}
 					</v-btn>
 				</v-col>
 			</v-row>
@@ -93,7 +93,7 @@
 				<v-col cols="2" order="1" sm="4" md="1" order-md="1">
 					<v-row dense>
 						<v-col>
-							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled=" uiFrozen"
+							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen"
 									  :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`"
 									  class="move-btn">
 								{{ $t("button.home.caption", [axis.letter]) }}
@@ -105,10 +105,10 @@
 				<!-- Decreasing movements -->
 				<v-col cols="6" order="3" md="5" order-md="2">
 					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="-index" :class="getMoveCellClass(index - 1)">
-							<code-btn :code="`M120\nG91\nG1 ${axis.letter}${-moveSteps(axis.letter)[index - 1]} F${moveFeedrate}\nG90\nM121`"
-									  no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block
-									  tile class="move-btn">
+						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1)">
+							<code-btn :code="getMoveCode(axis, index - 1, true)" no-wait
+									  @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block tile
+									  class="move-btn">
 								<v-icon>mdi-chevron-left</v-icon>
 								{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
 							</code-btn>
@@ -121,8 +121,7 @@
 					<v-row dense>
 						<v-col v-for="index in numMoveSteps" :key="index"
 							   :class="getMoveCellClass(numMoveSteps - index)">
-							<code-btn :code="`M120\nG91\nG1 ${axis.letter}${moveSteps(axis.letter)[numMoveSteps - index]} F${moveFeedrate}\nG90\nM121`"
-									  no-wait
+							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait
 									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
 									  tile class="move-btn">
 								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
@@ -212,6 +211,9 @@ export default Vue.extend({
 				classes += "hidden-md-and-down";
 			}
 			return classes;
+		},
+		getMoveCode(axis: Axis, index: number, decrementing: boolean) {
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
 		},
 		showSign: (value: number) => (value > 0 ? `+${value}` : value),
 		showMoveStepDialog(axis: AxisLetter, index: number) {

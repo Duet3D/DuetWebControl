@@ -151,7 +151,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 			}
 		},
 		mutations: {
-			addPlugin(state, plugin) {
+			addPlugin(state, plugin: Plugin) {
 				typedState.plugins.set(plugin.id, plugin);
 
 				const clonedPlugins = new Map<string, Plugin>();
@@ -160,7 +160,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 				}
 				Vue.set(state, "plugins", clonedPlugins);
 			},
-			removePlugin(state, plugin) {
+			removePlugin(state, plugin: Plugin) {
 				typedState.plugins.delete(plugin.id);
 
 				const clonedPlugins = new Map<string, Plugin>();
@@ -169,7 +169,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 				}
 				Vue.set(state, "plugins", clonedPlugins);
 			},
-			update(state, data) {
+			update(state, data: any) {
 				typedState.update(data);
 
 				// FIXME This solution isn't great but Vue.observable messes up our fully-typed ObjectModel class...

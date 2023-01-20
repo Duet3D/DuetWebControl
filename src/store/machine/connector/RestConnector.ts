@@ -123,7 +123,7 @@ export default class RestConnector extends BaseConnector {
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {TimeoutError} A timeout has occurred
 	 */
-	async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
+	override async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
 		let internalURL = this.requestBase + path;
 		if (params) {
 			let hadParam = false;

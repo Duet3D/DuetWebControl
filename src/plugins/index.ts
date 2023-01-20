@@ -98,16 +98,6 @@ export function loadDwcResources(plugin: PluginManifest) {
  */
 export default initCollection(DwcPlugin, [
 	{
-		id: "Accelerometer",
-		name: "Accelerometer",
-		author: "Duet3D Ltd",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "Accelerometer" */
-			"./Accelerometer/index.js"
-		)
-	},
-	{
 		id: "HeightMap",
 		name: "Height Map",
 		author: "Duet3D Ltd",
@@ -115,6 +105,16 @@ export default initCollection(DwcPlugin, [
 		loadDwcResources: () => import(
 			/* webpackChunkName: "HeightMap" */
 			"./HeightMap/index.js"
+		)
+	},
+	{
+		id: "InputShaping",
+		name: "Input Shaping",
+		author: "Duet3D Ltd",
+		version: packageInfo.version,
+		loadDwcResources: () => import(
+			/* webpackChunkName: "InputShaping" */
+			"./InputShaping/index.js"
 		)
 	},
 	{

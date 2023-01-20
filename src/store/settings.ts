@@ -312,12 +312,12 @@ export default {
 		}
 	},
 	mutations: {
-		setLastHostname(state, hostname) {
+		setLastHostname(state, hostname: string) {
 			state.lastHostname = hostname;
 			setLocalSetting("lastHostname", hostname);
 		},
 
-		load(state, payload) {
+		load(state, payload: any) {
 			const updateSettingsTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 2000);
 			const updateCacheTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 4000);
 			if (payload.language && i18n.locale !== payload.language) {
@@ -335,7 +335,7 @@ export default {
 				state.cacheSaveDelay = 1000;
 			}
 		},
-		update(state, payload) {
+		update(state, payload: any) {
 			if (payload.language && i18n.locale !== payload.language) {
 				i18n.locale = payload.language;
 			}
@@ -346,18 +346,18 @@ export default {
 			patch(state, payload, true);
 		},
 
-		dwcPluginLoaded(state, plugin) {
+		dwcPluginLoaded(state, plugin: string) {
 			if (!state.enabledPlugins.includes(plugin)) {
 				state.enabledPlugins.push(plugin);
 			}
 		},
-		disableDwcPlugin(state, plugin) {
+		disableDwcPlugin(state, plugin: string) {
 			if (state.enabledPlugins.includes(plugin)) {
 				state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
 			}
 		},
 
-		registerPluginData(state, { plugin, key, defaultValue }) {
+		registerPluginData(state, { plugin, key, defaultValue }: { plugin: string, key: string, defaultValue: any }) {
 			if (state.plugins[plugin] === undefined) {
 				Vue.set(state.plugins, plugin, { key: defaultValue });
 			}
@@ -365,7 +365,7 @@ export default {
 				state.plugins[plugin][key] = defaultValue;
 			}
 		},
-		setPluginData(state, { plugin, key, value }) {
+		setPluginData(state, { plugin, key, value }: { plugin: string, key: string, value: any }) {
 			if (state.plugins[plugin] === undefined) {
 				state.plugins[plugin] = { key: value };
 			} else {

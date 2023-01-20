@@ -199,9 +199,9 @@ export function closeNotifications(includingMessage = false) {
  * Show a new file transfer notification
  * @param type Upload target type
  * @param filename Filename of the transfer
- * @param cancellationToken Cancellation token used to cancel the upload if necessary
+ * @param cancellationToken Optional cancellation token cancel the upload if necessary
  */
-export function makeFileTransferNotification(type: NotificationType, filename: string, cancellationToken: CancellationToken) {
+export function makeFileTransferNotification(type: NotificationType, filename: string, cancellationToken?: CancellationToken) {
     const item: Notification = {
         type,
         title: null,

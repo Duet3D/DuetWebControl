@@ -123,7 +123,7 @@ abstract class BaseConnector {
 	 * Actual timeout for HTTP requests.
 	 * This is computed from the session timeout and then number of maximum retries
 	 */
-	protected requestTimeout = defaultRequestTimeout;
+	requestTimeout = defaultRequestTimeout;
 
 	/**
 	 * Constructor of this class
@@ -133,6 +133,30 @@ abstract class BaseConnector {
 	constructor(host: string, pass: string) {
 		this.hostname = host;
 		this.password = pass;
+	}
+
+	/**
+	 * Make an arbitrary HTTP request to the machine
+	 * @param method HTTP method
+	 * @param path Path to request
+	 * @param params Optional record of URL-encoded parameters
+	 * @param responseType Optional type of the received data (defaults to JSON)
+	 * @param body Optional body content to send as part of this request
+	 * @param timeout Optional request timeout
+	 * @param filename Optional filename for file/directory requests
+	 * @param cancellationToken Optional cancellation token that may be triggered to cancel this operation
+	 * @param onProgress Optional callback for progress reports
+	 * @param retry Current retry number (only used internally)
+	 * @returns Promise to be resolved when the request finishes
+	 * @throws {InvalidPasswordError} Invalid password
+	 * @throws {FileNotFoundError} File not found
+	 * @throws {OperationFailedError} HTTP operation failed
+	 * @throws {OperationCancelledError} Operation has been cancelled
+	 * @throws {NetworkError} Failed to establish a connection
+	 * @throws {TimeoutError} A timeout has occurred
+	 */
+	request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
+		throw new NotImplementedError("uninstallSystemPackage");
 	}
 
 	/**

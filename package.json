@@ -1,6 +1,6 @@
 {
   "name": "duetwebcontrol",
-  "version": "3.5.0-b1",
+  "version": "3.5.0-beta.2",
   "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
   "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
   "license": "GPL-3.0",
@@ -15,6 +15,7 @@
     "@babylonjs/core": "^5.34.0",
     "@babylonjs/gui": "^5.34.0",
     "@babylonjs/materials": "^5.34.0",
+    "@duet3d/motionanalysis": "^3.4.0-b6",
     "@duet3d/objectmodel": "^3.5.0-beta.13",
     "@sindarius/gcodeviewer": "^3.1.13",
     "chart.js": "^2.9.4",

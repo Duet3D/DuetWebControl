@@ -1,13 +1,13 @@
 import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import JSZip from "jszip";
 import Vue from "vue";
 import { Module } from "vuex";
 
-import BaseConnector, { CancellationToken, FileListItem } from "./connector/BaseConnector";
 import cache, { MachineCacheState } from "./cache";
+import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
 import model from "./model";
 import settings, { MachineSettingsState } from "./settings";
 
-import packageInfo from "../../../package.json";
 import i18n from "@/i18n";
 import Root from "@/main";
 import Plugins, { checkManifest, checkVersion, loadDwcResources } from "@/plugins";
@@ -20,6 +20,7 @@ import { makeFileTransferNotification, Notification, showMessage, FileTransferTy
 import Path from "@/utils/path";
 
 import { RootState } from "..";
+import packageInfo from "../../../package.json";
 
 /**
  * Virtual hostname for the default module holding UI defaults.
@@ -211,6 +212,33 @@ export default function(connector: BaseConnector | null): MachineModule {
 			},
 
 			/**
+			 * Make an arbitrary HTTP request to the machine
+			 * @param payload HTTP request parameters
+			 * @param payload.method HTTP method
+			 * @param payload.path Path to request
+			 * @param payload.params Optional record of URL-encoded parameters
+			 * @param payload.responseType Optional type of the received data (defaults to JSON)
+			 * @param payload.body Optional body content to send as part of this request
+			 * @param payload.timeout Optional request timeout
+			 * @param payload.filename Optional filename for file/directory requests
+			 * @param payload.cancellationToken Optional cancellation token that may be triggered to cancel this operation
+			 * @param payload.onProgress Optional callback for progress reports
+			 * @param payload.retry Current retry number (only used internally)
+			 * @returns Promise to be resolved when the request finishes
+			 * @throws {InvalidPasswordError} Invalid password
+			 * @throws {FileNotFoundError} File not found
+			 * @throws {OperationFailedError} HTTP operation failed
+			 * @throws {OperationCancelledError} Operation has been cancelled
+			 * @throws {NetworkError} Failed to establish a connection
+			 * @throws {TimeoutError} A timeout has occurred
+			 */
+			request(_, payload: { method: string, path: string, params?: Record<string, string | number | boolean> | null, responseType?: XMLHttpRequestResponseType, body?: any, timeout?: number, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry?: number }): Promise<any> {
+				if (connector === null) { throw new OperationFailedError("request is not available in default machine module"); }
+
+				return connector.request(payload.method, payload.path, payload.params ?? null, payload.responseType ?? "json", payload.body ?? null, payload.timeout ?? connector.requestTimeout, payload.filename, payload.cancellationToken, payload.onProgress, payload.retry ?? 0);
+			},
+
+			/**
 			 * Send a code and log the result (if applicable)
 			 * @param payload Can be either a string (code to send) or an object
 			 * @param payload.code Code to send
@@ -218,13 +246,13 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.log Log the code result (defaults to true)
 			 * @param payload.noWait Do not wait for the code to complete (defaults to false)
 			 */
-			async sendCode(_, payload) {
+			async sendCode(_, payload: string | { code: string, fromInput?: boolean, log?: boolean, noWait?: boolean }) {
 				if (connector === null) { throw new OperationFailedError("sendCode is not available in default machine module"); }
 
 				const code = (payload instanceof Object) ? payload.code : payload;
-				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? Boolean(payload.fromInput) : false;
-				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
-				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
+				const fromInput = (payload instanceof Object && payload.fromInput !== undefined) ? payload.fromInput : false;
+				const doLog = (payload instanceof Object && payload.log !== undefined) ? payload.log : true;
+				const noWait = (payload instanceof Object && payload.noWait !== undefined) ? payload.noWait : false;
 				try {
 					const reply = await connector.sendCode(code, noWait);
 					if (doLog && (fromInput || reply)) {
@@ -253,7 +281,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.showError Show notification upon error (defaults to true)
 			 * @param payload.closeProgressOnSuccess Automatically close the progress indicator when finished (defaults to false)
 			 */
-			async upload({ commit, state }, payload) {
+			async upload({ commit, state }, payload: { filename?: string, content?: any, files?: Array<{ filename: string, content: any }>, showProgress?: boolean, showSuccess?: boolean, showError?: boolean, closeProgressOnSuccess?: boolean }) {
 				if (connector === null) { throw new OperationFailedError("upload is not available in default machine module"); }
 
 				const files = Vue.observable(new Array<FileTransferItem>()), cancellationToken: CancellationToken = { cancel() {} };
@@ -264,7 +292,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 
 				// Prepare the arguments and tell listeners that an upload is about to start
 				let notification: Notification | null = null;
-				if (payload.filename) {
+				if (typeof payload.filename === "string") {
 					files.push({
 						filename: payload.filename,
 						content: payload.content,
@@ -289,7 +317,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 						showError,
 						cancellationToken
 					});
-				} else {
+				} else if (payload.files instanceof Array) {
 					if (state.transferringFiles) {
 						throw new Error("Cannot perform two multi-file transfers at the same time");
 					}
@@ -414,7 +442,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param filename Filename to delete
 			 */
-			async delete(context, filename) {
+			async delete(_, filename: string) {
 				if (connector === null) { throw new OperationFailedError("delete is not available in default machine module"); }
 
 				await connector.delete(filename);
@@ -430,8 +458,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.to New filename of the file or directory
 			 * @param payload.force Overwrite existing files (defaults to false)
 			 */
-			async move(context, { from, to, force = false }) {
-				if (connector === null) { throw new OperationFailedError("delete is not available in default machine module"); }
+			async move(_, { from, to, force = false }: { from: string, to: string, force?: boolean }) {
+				if (connector === null) { throw new OperationFailedError("move is not available in default machine module"); }
 
 				await connector.move(from, to, force);
 				Root.$emit(Events.fileOrDirectoryMoved, { machine: connector.hostname, from, to, force });
@@ -443,7 +471,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param directory Directory path to create 
 			 */
-			async makeDirectory(context, directory) {
+			async makeDirectory(_, directory: string) {
 				if (connector === null) { throw new OperationFailedError("delete is not available in default machine module"); }
 
 				await connector.makeDirectory(directory);
@@ -464,14 +492,14 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.closeProgressOnSuccess Automatically close the progress indicator when finished (defaults to false)
 			 * @returns File transfer item if a single file was requested, else the files list plus content property
 			 */
-			async download(context, payload): Promise<FileTransferItem | Array<FileTransferItem>> {
+			async download({ state, commit }, payload: { filename?: string, type?: XMLHttpRequestResponseType, files?: Array<string>, showProgress?: boolean, showSuccess?: boolean, showError?: boolean, closeProgressOnSuccess?: boolean }): Promise<FileTransferItem | Array<FileTransferItem>> {
 				if (connector === null) { throw new OperationFailedError("download is not available in default machine module"); }
 
 				const files = Vue.observable(new Array<FileTransferItem>), cancellationToken: CancellationToken = { cancel() { } };
-				const showProgress = (payload.showProgress !== undefined) ? Boolean(payload.showProgress) : true;
-				const showSuccess = (payload.showSuccess !== undefined) ? Boolean(payload.showSuccess) : true;
-				const showError = (payload.showError !== undefined) ? Boolean(payload.showError) : true;
-				const closeProgressOnSuccess = (payload.closeProgressOnSuccess !== undefined) ? Boolean(payload.closeProgressOnSuccess) : false;
+				const showProgress = (payload.showProgress !== undefined) ? payload.showProgress : true;
+				const showSuccess = (payload.showSuccess !== undefined) ? payload.showSuccess : true;
+				const showError = (payload.showError !== undefined) ? payload.showError : true;
+				const closeProgressOnSuccess = (payload.closeProgressOnSuccess !== undefined) ? payload.closeProgressOnSuccess : false;
 
 				// Prepare the arguments and tell listeners that an upload is about to start
 				let notification: Notification | null = null;
@@ -500,11 +528,11 @@ export default function(connector: BaseConnector | null): MachineModule {
 						showError,
 						cancellationToken
 					});
-				} else {
-					if (context.state.transferringFiles) {
+				} else if (payload.files instanceof Array) {
+					if (state.transferringFiles) {
 						throw new Error("Cannot perform two multi-file transfers at the same time");
 					}
-					context.commit("setMultiFileTransfer", true);
+					commit("setMultiFileTransfer", true);
 
 					for (const file of payload.files) {
 						files.push({
@@ -600,7 +628,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 						notification.close();
 					}
 					if (!payload.filename) {
-						context.commit("setMultiFileTransfer", false);
+						commit("setMultiFileTransfer", false);
 					}
 				}
 				return payload.filename ? files[0] : files;
@@ -611,7 +639,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param directory Directory to query
 			 */
-			async getFileList(context, directory: string): Promise<Array<FileListItem>> {
+			async getFileList(_, directory: string): Promise<Array<FileListItem>> {
 				if (connector === null) { throw new OperationFailedError("getFileList is not available in default machine module"); }
 
 				return connector.getFileList(directory);
@@ -624,7 +652,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.filename Path of the file to parse
 			 * @param payload.readThumbnailContent Retrieve thumbnail contents (defaults to false)
 			 */
-			async getFileInfo(context, { filename, readThumbnailContent }): Promise<GCodeFileInfo> {
+			async getFileInfo(_, { filename, readThumbnailContent }: { filename: string, readThumbnailContent?: boolean }): Promise<GCodeFileInfo> {
 				if (connector === null) { throw new OperationFailedError("getFileInfo is not available in default machine module"); }
 
 				return connector.getFileInfo(filename, readThumbnailContent);
@@ -639,11 +667,11 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.zipFile ZIP container to extract (if applicable)
 			 * @param payload.start Whether to start the plugin upon installation
 			 */
-			async installPlugin({ dispatch }, { zipFilename, zipBlob, zipFile, start }) {
+			async installPlugin({ dispatch }, { zipFilename, zipBlob, zipFile, start } : { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean }) {
 				if (connector === null) { throw new OperationFailedError("installPlugin is not available in default machine module"); }
 
 				// Check the required DWC version
-				const manifestJson = JSON.parse(await zipFile.file("plugin.json").async("string"));
+				const manifestJson = JSON.parse(await zipFile.file("plugin.json")!.async("string"));
 				const plugin = initObject(Plugin, manifestJson);
 
 				// Check plugin manifest
@@ -676,7 +704,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param plugin Plugin instance to uninstall
 			 */
-			async uninstallPlugin(context, plugin): Promise<void> {
+			async uninstallPlugin(_, plugin: Plugin): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("uninstallPlugin is not available in default machine module"); }
 
 				await connector.uninstallPlugin(plugin);
@@ -692,7 +720,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.key Existing key of the plugin data to set
 			 * @param payload.value Custom value to set
 			 */
-			async setSbcPluginData(context, { plugin, key, value }): Promise<void> {
+			async setSbcPluginData(_, { plugin, key, value } : { plugin: string, key: string, value: any }): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("setSbcPluginData is not available in default machine module"); }
 
 				await connector.setSbcPluginData(plugin, key, value);
@@ -703,7 +731,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param plugin Identifier of the plugin
 			 */
-			async startSbcPlugin(context, plugin): Promise<void> {
+			async startSbcPlugin(_, plugin: string): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("startSbcPlugin is not available in default machine module"); }
 
 				await connector.startSbcPlugin(plugin);
@@ -714,7 +742,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param plugin Identifier of the plugin
 			 */
-			async stopSbcPlugin(context, plugin): Promise<void> {
+			async stopSbcPlugin(_, plugin: string): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("stopSbcPlugin is not available in default machine module"); }
 
 				await connector.stopSbcPlugin(plugin);
@@ -730,7 +758,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.cancellationToken Optional cancellation token that may be triggered to cancel this operation
 			 * @param payload.onProgress Optional callback for progress reports
 			 */
-			async installSystemPackage(_, { filename, packageData, cancellationToken, onProgress }): Promise<void> {
+			async installSystemPackage(_, { filename, packageData, cancellationToken, onProgress } : { filename: string, packageData: Blob, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback}): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("installSystemPackage is not available in default machine module"); }
 
 				const notification = makeFileTransferNotification(FileTransferType.systemPackageInstall, filename, cancellationToken);
@@ -753,7 +781,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param pkg Name of the package to uninstall
 			 */
-			async uninstallSystemPackage(context, pkg): Promise<void> {
+			async uninstallSystemPackage(_, pkg: string): Promise<void> {
 				if (connector === null) { throw new OperationFailedError("uninstallSystemPackage is not available in default machine module"); }
 
 				await connector.uninstallSystemPackage(pkg);
@@ -766,7 +794,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.id Plugin identifier
 			 * @param payload.saveSettings Save settings (including enabled plugins) when the plugin has been successfully loaded
 			 */
-			async loadDwcPlugin({ rootState, state, dispatch, commit }, { id, saveSettings }) {
+			async loadDwcPlugin({ rootState, state, dispatch, commit }, { id, saveSettings }: { id: string, saveSettings: boolean }) {
 				if (connector === null) { throw new OperationFailedError("loadDwcPlugin is not available in default machine module"); }
 
 				// Don't load a DWC plugin twice
@@ -844,17 +872,17 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param plugin Identifier of the plugin to unload
 			 */
-			async unloadDwcPlugin({ dispatch, commit }, plugin) {
+			async unloadDwcPlugin({ dispatch, commit }, plugin: string) {
 				commit("settings/disableDwcPlugin", plugin);
 				await dispatch("settings/save");
 			},
 
 			/**
-			 * Update the machine"s object model. This must be used by connectors only!
+			 * Update the machine's object model. This must be used by connectors only!
 			 * @param context Action context
 			 * @param payload Updated model data
 			 */
-			async update({ state, commit }, payload) {
+			async update({ state, commit }, payload: any) {
 				const machineState = state as MachineModuleState;
 
 				const lastBeepFrequency = machineState.model.state.beep ? machineState.model.state.beep.frequency : null;
@@ -920,7 +948,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param error Error causing the connection to be interrupted
 			 */
-			async onConnectionError({ state, dispatch }, error) {
+			async onConnectionError({ state, dispatch }, error: Error) {
 				if (connector === null) { throw new OperationFailedError("onConnectionError is not available in default machine module"); }
 				console.warn(error);
 
@@ -946,7 +974,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param state Vuex state
 			 * @param filename Name of the file being modified
 			 */
-			addFileBeingChanged(state, filename) {
+			addFileBeingChanged(state, filename: string) {
 				state.filesBeingChanged.push(filename);
 			},
 
@@ -963,7 +991,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param state Vuex state
 			 * @param transferring Whether multiple files are being transferred
 			 */
-			setMultiFileTransfer(state, transferring) {
+			setMultiFileTransfer(state, transferring: boolean) {
 				state.transferringFiles = transferring;
 			},
 
@@ -990,7 +1018,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param state Vuex state
 			 * @param reconnecting Whether the machine is attempting to reconnect
 			 */
-			setReconnecting: (state, reconnecting) => state.isReconnecting = reconnecting
+			setReconnecting: (state, reconnecting: boolean) => state.isReconnecting = reconnecting
 		},
 		modules: {
 			cache: cache(connector),

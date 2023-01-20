@@ -151,18 +151,18 @@ export default function(connector: BaseConnector | null): MachineCacheModule {
 			}
 		},
 		mutations: {
-			load: (state, content) => patch(state, content),
+			load: (state, content: any) => patch(state, content),
 
-			addLastSentCode(state, code) {
+			addLastSentCode(state, code: string) {
                 state.lastSentCodes = state.lastSentCodes.filter(item => item !== code);
                 state.lastSentCodes.push(code);
             },
-			removeLastSentCode: (state, code) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
+			removeLastSentCode: (state, code: string) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
 
-			setFileInfo(state, { filename, fileInfo }) {
+			setFileInfo(state, { filename, fileInfo }: { filename: string, fileInfo: GCodeFileInfo }) {
 				state.fileInfos[filename] = fileInfo;
 			},
-			clearFileInfo(state, fileOrDirectory) {
+			clearFileInfo(state, fileOrDirectory?: string) {
 				if (fileOrDirectory) {
 					if (state.fileInfos[fileOrDirectory] !== undefined) {
 						// Delete specific item
@@ -181,12 +181,12 @@ export default function(connector: BaseConnector | null): MachineCacheModule {
 				}
 			},
 
-			setSorting(state, { table, column, descending }) {
+			setSorting(state, { table, column, descending }: { table: string, column: string, descending: boolean }) {
 				state.sorting[table].column = column;
 				state.sorting[table].descending = descending;
 			},
 
-			registerPluginData(state, { plugin, key, defaultValue }) {
+			registerPluginData(state, { plugin, key, defaultValue }: { plugin: string, key: string, defaultValue: any }) {
 				if (connector === null) {
 					if (!(plugin in defaultPluginCacheFields)) {
 						defaultPluginCacheFields[plugin] = {}
@@ -201,7 +201,7 @@ export default function(connector: BaseConnector | null): MachineCacheModule {
 					Vue.set(state.plugins[plugin], key, defaultValue)
 				}
 			},
-			setPluginData(state, { plugin, key, value }) {
+			setPluginData(state, { plugin, key, value }: { plugin: string, key: string, value: any }) {
 				if (state.plugins[plugin] === undefined) {
 					Vue.set(state.plugins, plugin, { key: value });
 				}
