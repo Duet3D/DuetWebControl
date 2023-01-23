@@ -172,7 +172,7 @@ export default {
 			this.$root.$emit('dialog-closing')
 		},
 		async save() {
-			if (!this.innerValue === 0 && !confirm(this.$t('dialog.fileEdit.confirmSaveEmpty'))) {
+			if (!this.innerValue.length && !confirm(this.$t('dialog.fileEdit.confirmSaveEmpty'))) {
 				return;
 			}
 
