@@ -18,7 +18,7 @@
 				</v-card>
 			</v-col>
 			<v-col cols="12" lg="4" md="4" order="4" order-md="2" sm="12">
-				<cnc-axes-position :machinePosition="true" class="fill-height" />
+				<cnc-axes-position machinePosition class="fill-height" />
 			</v-col>
 			<v-col cols="5" lg="3" md="3" order="2" order-lg="3" sm="4">
 				<v-card class="fill-height">

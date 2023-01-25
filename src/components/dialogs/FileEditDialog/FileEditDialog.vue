@@ -51,7 +51,7 @@
 				</v-btn>
 				<v-toolbar-title>{{ filename }}</v-toolbar-title>
 
-				<v-spacer></v-spacer>
+				<v-spacer />
 
 				<v-btn v-if="isGCode" class="hidden-xs-only" dark text href="https://docs.duet3d.com/en/User_manual/Reference/Gcodes" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon> {{ $t('dialog.fileEdit.gcodeReference') }}
@@ -67,12 +67,12 @@
 			<codemirror v-if="useEditor"
 						ref="cmEditor" :options="cmOptions"
 						v-model="innerValue" @changes="valueChanged = true"
-						@keydown.esc.prevent.stop="close(false)"></codemirror>
+						@keydown.esc.prevent.stop="close(false)" />
 			<v-textarea v-else
 						ref="textarea" hide-details solo :rows="null" class="edit-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
+						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)" />
 		</v-card>
 	</v-dialog>
 </template>
@@ -223,8 +223,8 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isIOS;
 			this.innerValue = this.value || '';
+			this.useEditor = (this.innerValue.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isIOS;
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {

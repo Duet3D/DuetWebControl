@@ -34,7 +34,7 @@
 						{{ axis.letter }}
 					</div>
 					<div>
-						{{ $displayAxisPosition(axis) }}
+						{{ $displayAxisPosition(axis, machinePosition) }}
 					</div>
 				</v-col>
 			</v-row>

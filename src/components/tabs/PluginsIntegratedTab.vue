@@ -103,7 +103,7 @@ export default Vue.extend({
 		},
 		getPluginStatus(plugin: PluginManifest) {
 			if (store.state.loadedDwcPlugins.includes(plugin.id)) {
-				const enabled = store.state.settings.enabledPlugins.includes(plugin.id) || store.state.settings.enabledPlugins.includes(plugin.name);
+				const enabled = store.state.settings.enabledPlugins.includes(plugin.id) || store.state.machine.settings.enabledPlugins.includes(plugin.name);
 				return this.$t(enabled ? "tabs.plugins.started" : "tabs.plugins.deactivated");
 			}
 			return this.$t("tabs.plugins.stopped");
@@ -112,7 +112,7 @@ export default Vue.extend({
 			return store.state.loadedDwcPlugins.includes(plugin.id);
 		},
 		canStopPlugin(plugin: PluginManifest) {
-			return store.state.settings.enabledPlugins.includes(plugin.id) || store.state.settings.enabledPlugins.includes(plugin.name);
+			return store.state.settings.enabledPlugins.includes(plugin.id) || store.state.machine.settings.enabledPlugins.includes(plugin.name);
 		},
 		async startPlugin(plugin: PluginManifest) {
 			this.busyPlugins.push(plugin.id);
