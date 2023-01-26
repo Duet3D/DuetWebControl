@@ -444,6 +444,21 @@ export class MachineModelModule {
 				delete payload.plugins;
 			}
 
+			// Check for i18n actions
+			if (payload.state instanceof Object) {
+				if (typeof payload.state.displayMessage === "string") {
+					payload.state.displayMessage = translateResponse(payload.state.displayMessage);
+				}
+				if (payload.state.messageBox instanceof Object) {
+					if (typeof payload.state.messageBox.message === "string") {
+						payload.state.messageBox.message = translateResponse(payload.state.messageBox.message);
+					}
+					if (typeof payload.state.messageBox.title === "string") {
+						payload.state.messageBox.title = translateResponse(payload.state.messageBox.title);
+					}
+				}
+			}
+
 			// Apply new data
 			patch(state, payload, true);
 			fixObjectModel(state, payload);

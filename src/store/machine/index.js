@@ -12,7 +12,7 @@ import settings from './settings.js'
 
 import { version } from '../../../package.json'
 import Root from '@/main.js'
-import i18n from '@/i18n'
+import i18n, { translateResponse } from '@/i18n'
 import Plugins, { checkVersion, loadDwcResources } from '@/plugins'
 import beep from '@/utils/beep.js'
 import { displayTime } from '@/utils/display'
@@ -78,7 +78,11 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
 				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
 				try {
-					const reply = await connector.sendCode({ code, noWait });
+					reply = await connector.sendCode({ code, noWait });
+					if (typeof reply === "string") {
+						reply = translateResponse(reply);
+					}
+
 					if (doLog && (fromInput || reply !== '')) {
 						logCode(code, reply, connector.hostname, fromInput);
 					}
@@ -456,6 +460,8 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 								reply = message.content;
 								break;
 						}
+						reply = translateResponse(reply);
+
 						logCode(null, reply, connector.hostname);
 						Root.$emit(Events.codeExecuted, { machine: connector.hostname, code: null, reply });
 					});
