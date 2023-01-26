@@ -2,11 +2,12 @@ import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, init
 import Vue from "vue";
 import type { Module } from "vuex";
 
+import { translateResponse } from "@/i18n";
 import { isPrinting } from "@/utils/enums";
+import patch from "@/utils/patch";
 
 import { RootState } from "..";
 import BaseConnector from "./connector/BaseConnector";
-import patch from "@/utils/patch";
 
 /**
  * Default object model used to display initial values.
@@ -170,6 +171,22 @@ export default function (connector: BaseConnector | null): MachineModel {
 				Vue.set(state, "plugins", clonedPlugins);
 			},
 			update(state, data: any) {
+				// Check for i18n actions
+				if (data.state instanceof Object) {
+					if (typeof data.state.displayMessage === "string") {
+						data.state.displayMessage = translateResponse(data.state.displayMessage);
+					}
+					if (data.state.messageBox instanceof Object) {
+						if (typeof data.state.messageBox.message === "string") {
+							data.state.messageBox.message = translateResponse(data.state.messageBox.message);
+						}
+						if (typeof data.state.messageBox.title === "string") {
+							data.state.messageBox.title = translateResponse(data.state.messageBox.title);
+						}
+					}
+				}
+
+				// Update typed state
 				typedState.update(data);
 
 				// FIXME This solution isn't great but Vue.observable messes up our fully-typed ObjectModel class...

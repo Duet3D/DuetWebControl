@@ -1059,6 +1059,5 @@
       "noPlugins": "No Plugins",
       "refreshNote": "Refresh the page to finish unloading some DWC plugins"
     }
-  },
-  "extrusionRate": "Extrusion Speed"
+  }
 }

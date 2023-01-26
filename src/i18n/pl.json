@@ -567,7 +567,12 @@
       "success": "Wysłanie {0} sukces po {1}",
       "error": "Nieudane wysłanie {0}"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Proszę czekać podczas ładowania wtyczek...",
+      "title": "Ładowanie wtyczek..."
+    },
+    "systemPackageInstall": {
       "error": "Nie udało się zainstalować {0}",
       "message": "Proszę czekać podczas instalowania pliku...",
       "success": "Instalacja {0} powiodła się",
@@ -1055,6 +1060,5 @@
       "noPlugins": "Brak wtyczek",
       "refreshNote": "Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC"
     }
-  },
-  "extrusionRate": "Szybkość wytłaczania"
+  }
 }

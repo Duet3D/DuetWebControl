@@ -567,7 +567,12 @@
       "success": "Datei {0} erfolgreich nach {1} hochgeladen",
       "error": "Konnte {0} nicht hochladen"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Bitte warten Sie, während Plugins geladen werden...",
+      "title": "Plugins werden geladen..."
+    },
+    "systemPackageInstall": {
       "error": "{0} konnte nicht installiert werden",
       "message": "Bitte warten Sie, während die Datei installiert wird...",
       "success": "Installation von {0} erfolgreich",
@@ -1055,6 +1060,5 @@
       "noPlugins": "Keine Plugins",
       "refreshNote": "Laden Sie die Seite neu um einige DWC-Plugins zu entladen"
     }
-  },
-  "extrusionRate": "Extrusionsgeschwindigkeit"
+  }
 }

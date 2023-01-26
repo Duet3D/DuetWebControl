@@ -8,7 +8,7 @@ import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } fr
 import model from "./model";
 import settings, { MachineSettingsState } from "./settings";
 
-import i18n from "@/i18n";
+import i18n, { translateResponse } from "@/i18n";
 import Root from "@/main";
 import Plugins, { checkManifest, checkVersion, loadDwcResources } from "@/plugins";
 import beep from "@/utils/beep";
@@ -254,7 +254,11 @@ export default function(connector: BaseConnector | null): MachineModule {
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? payload.log : true;
 				const noWait = (payload instanceof Object && payload.noWait !== undefined) ? payload.noWait : false;
 				try {
-					const reply = await connector.sendCode(code, noWait);
+					let reply = await connector.sendCode(code, noWait);
+					if (typeof reply === "string") {
+						reply = translateResponse(reply);
+					}
+
 					if (doLog && (fromInput || reply)) {
 						logCode(code, reply || "", connector.hostname);
 					}
@@ -910,7 +914,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 								reply = message.content;
 								break;
 						}
-						logCode(null, reply, connector ? connector.hostname : defaultMachine);
+						logCode(null, translateResponse(reply), connector ? connector.hostname : defaultMachine);
 						Root.$emit(Events.codeExecuted, {
 							machine: connector ? connector.hostname : defaultMachine,
 							code: null,

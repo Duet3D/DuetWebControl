@@ -567,7 +567,12 @@
       "uninstallError": "Impossible de désinstaller le plug-in",
       "uninstalled": "Le plugin a été désinstallé"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Veuillez patienter pendant le chargement des plugins...",
+      "title": "Chargement des plugins..."
+    },
+    "systemPackageInstall": {
       "error": "Échec de l'installation de {0}",
       "message": "Veuillez patienter pendant l'installation du fichier...",
       "success": "Installation de {0} réussie",
@@ -1055,6 +1060,5 @@
       "noPlugins": "Aucun plugin",
       "refreshNote": "Rafraîchissez la page pour terminer le déchargement de certains plugins DWC."
     }
-  },
-  "extrusionRate": "Vitesse d'extrusion"
+  }
 }

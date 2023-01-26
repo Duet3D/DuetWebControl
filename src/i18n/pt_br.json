@@ -567,7 +567,12 @@
       "uninstallError": "Falha ao desinstalar o plug-in",
       "uninstalled": "O plug-in foi desinstalado"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Aguarde enquanto os plugins estão sendo carregados...",
+      "title": "Carregando plug-ins..."
+    },
+    "systemPackageInstall": {
       "error": "Falha ao instalar {0}",
       "message": "Aguarde enquanto o arquivo está sendo instalado...",
       "success": "Instalação de {0} bem-sucedida",
@@ -1055,6 +1060,5 @@
     "writeMenu": "Gravar arquivos no diretório do menu",
     "writeSystem": "Gravar arquivos no diretório do sistema",
     "writeWeb": "Gravar arquivos no diretório da web"
-  },
-  "extrusionRate": "Velocidade de extrusão"
+  }
 }

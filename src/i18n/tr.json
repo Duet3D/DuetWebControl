@@ -567,7 +567,12 @@
       "uninstallError": "Eklenti kaldırılamadı",
       "uninstalled": "Eklenti kaldırıldı"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Eklentiler yüklenirken lütfen bekleyin...",
+      "title": "Eklentiler yükleniyor..."
+    },
+    "systemPackageInstall": {
       "error": "{0} yüklenemedi",
       "message": "Dosya yüklenirken lütfen bekleyin...",
       "success": "{0} kurulumu başarılı",
@@ -1055,6 +1060,5 @@
       "stopped": "durdu",
       "uninstall": "Kaldır"
     }
-  },
-  "extrusionRate": "Ekstrüzyon Hızı"
+  }
 }

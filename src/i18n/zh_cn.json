@@ -567,7 +567,12 @@
       "success": "已成功上传{0}，总计{1}",
       "error": "上传{0}失败"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "正在加载插件，请稍候...",
+      "title": "加载插件..."
+    },
+    "systemPackageInstall": {
       "error": "安装 {0} 失败",
       "message": "正在安装文件，请稍候...",
       "success": "{0} 安装成功",
@@ -1055,6 +1060,5 @@
       "noPlugins": "没有插件",
       "refreshNote": "某些DWC插件卸载完成后需要刷新页面"
     }
-  },
-  "extrusionRate": "挤出速度"
+  }
 }

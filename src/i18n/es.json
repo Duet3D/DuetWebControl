@@ -567,7 +567,12 @@
       "success": "Subido con éxito de {0} después de {1}",
       "error": "Fallo al subir {0}"
     },
-    "install": {
+    "install": {},
+    "pluginLoad": {
+      "message": "Espere mientras se cargan los complementos...",
+      "title": "Cargando complementos..."
+    },
+    "systemPackageInstall": {
       "error": "Error al instalar {0}",
       "message": "Espere mientras se instala el archivo...",
       "success": "Instalación de {0} exitosa",
@@ -1055,6 +1060,5 @@
       "noPlugins": "Sin complementos",
       "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC"
     }
-  },
-  "extrusionRate": "Velocidad de extrusión"
+  }
 }
