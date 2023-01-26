@@ -630,7 +630,9 @@
       "repeatJob": "Запустити ще раз",
       "repeatPrint": "Роздрукувати ще раз",
       "repeatSimulation": "Симулювати ще раз",
-      "showPreview": "Попередній перегляд"
+      "showPreview": "Попередній перегляд",
+      "printNow": "Роздрукувати зараз",
+      "startJob": "Розпочати роботу"
     },
     "jobData": {
       "caption": "Зібрані дані",

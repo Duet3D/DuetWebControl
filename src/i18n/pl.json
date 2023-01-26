@@ -631,7 +631,9 @@
       "repeatJob": "Rozpocznij ponownie",
       "repeatPrint": "Drukuj ponownie",
       "repeatSimulation": "Symuluj ponownie",
-      "showPreview": "Pokaż zapowiedzi"
+      "showPreview": "Pokaż zapowiedzi",
+      "printNow": "Drukuj teraz",
+      "startJob": "Rozpocznij pracę"
     },
     "jobData": {
       "caption": "Zebrane dane",

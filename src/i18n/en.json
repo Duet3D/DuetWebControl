@@ -630,7 +630,9 @@
       "repeatJob": "Start Again",
       "repeatPrint": "Print Again",
       "repeatSimulation": "Simulate Again",
-      "showPreview": "Show Preview"
+      "showPreview": "Show Preview",
+      "printNow": "Print Now",
+      "startJob": "Start Job"
     },
     "jobData": {
       "caption": "Collected Data",

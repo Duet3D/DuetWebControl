@@ -23,6 +23,7 @@ import { extractFileName } from "@/utils/path";
 export default Vue.extend({
 	computed: {
 		jobProgress(): number { return store.getters["machine/model/jobProgress"]; },
+		status(): MachineStatus { return store.state.machine.model.state.status; },
 		printStatus(): string {
 			if (isPrinting(store.state.machine.model.state.status)) {
 				if (this.printFile) {

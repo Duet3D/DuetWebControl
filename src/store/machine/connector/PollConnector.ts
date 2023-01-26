@@ -350,6 +350,7 @@ export default class PollConnector extends BaseConnector {
 		this.lastJobFile = null;
 		this.lastSeqs = {};
 		this.lastStatus = null;
+		this.wasSimulating = false;
 		// don't reset lastUpTime in order to be able to detect resets
 
 		// Attempt to reconnect
@@ -418,6 +419,11 @@ export default class PollConnector extends BaseConnector {
 	lastStatus: MachineStatus | null = null;
 
 	/**
+	 * Indicates if a simulation was being done
+	 */
+	wasSimulating: boolean = false;
+
+	/**
 	 * Last-known uptime
 	 */
 	lastUptime = 0
@@ -483,7 +489,7 @@ export default class PollConnector extends BaseConnector {
 			// Query live values
 			const response = await this.request("GET", "rr_model", { flags: "d99fn" });
 			jobKey = response.result.job as Job;
-			status = response.result.state as MachineStatus;
+			status = response.result.state.status as MachineStatus;
 
 			// Remove seqs key, it is only maintained by the connector
 			const seqs = response.result.seqs;
@@ -492,7 +498,13 @@ export default class PollConnector extends BaseConnector {
 			// Update fields that are not part of RRF yet
 			if (!isPrinting(status) && this.lastStatus !== null && isPrinting(this.lastStatus)) {
 				response.result.job.lastFileCancelled = isPaused(this.lastStatus);
-				response.result.job.lastFileSimulated = (this.lastStatus === MachineStatus.simulating);
+				response.result.job.lastFileSimulated = this.wasSimulating;
+			}
+
+			if (status === MachineStatus.simulating) {
+				this.wasSimulating = true;
+			} else if (!isPrinting(status)) {
+				this.wasSimulating = false;
 			}
 
 			// Apply new values

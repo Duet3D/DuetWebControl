@@ -631,7 +631,9 @@
       "repeatJob": "Iniciar de nuevo",
       "repeatPrint": "Imprimir de nuevo",
       "repeatSimulation": "Simular de nuevo",
-      "showPreview": "Mostrar vista previa"
+      "showPreview": "Mostrar vista previa",
+      "printNow": "Imprimir ahora",
+      "startJob": "Iniciar trabajo"
     },
     "jobData": {
       "caption": "Informacion (histórico)",

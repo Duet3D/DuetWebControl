@@ -631,7 +631,9 @@
       "repeatJob": "重新开始",
       "repeatPrint": "重新打印",
       "repeatSimulation": "重新模拟",
-      "showPreview": "显示预览"
+      "showPreview": "显示预览",
+      "printNow": "立即打印",
+      "startJob": "开始工作"
     },
     "jobData": {
       "caption": "采集数据",

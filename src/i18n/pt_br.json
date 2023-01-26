@@ -631,7 +631,9 @@
       "repeatJob": "Iniciar Novamente",
       "repeatPrint": "Imprimir Novamenten",
       "repeatSimulation": "Simular Novamente",
-      "showPreview": "Mostrar visualização"
+      "showPreview": "Mostrar visualização",
+      "printNow": "Imprimir agora",
+      "startJob": "Iniciar trabalho"
     },
     "jobData": {
       "caption": "Dados coletados",

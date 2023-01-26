@@ -631,7 +631,9 @@
       "repeatJob": "再スタート",
       "repeatPrint": "再プリント",
       "repeatSimulation": "再シミュレーション",
-      "showPreview": "ショープレビュー"
+      "showPreview": "ショープレビュー",
+      "printNow": "今すぐ印刷",
+      "startJob": "ジョブを開始"
     },
     "jobData": {
       "caption": "取得データ",

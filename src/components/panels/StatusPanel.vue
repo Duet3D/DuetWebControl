@@ -1,4 +1,8 @@
 <style scoped>
+.axis-span {
+	border-radius: 5px;
+}
+
 strong {
 	align-self: center;
 	text-align: center;
@@ -59,9 +63,9 @@ a:not(:hover) {
 						<v-row align-content="center" no-gutters>
 							<v-col v-for="(axis, index) in visibleAxes" :key="index"
 								   class="d-flex flex-column align-center">
-								<strong>
+								<span class="axis-span font-weight-bold" :class="axisSpanClasses(index)">
 									{{ axis.letter }}
-								</strong>
+								</span>
 								<span>
 									{{ $displayAxisPosition(axis, !displayToolPosition) }}
 								</span>
@@ -326,6 +330,12 @@ export default Vue.extend({
 		}
 	},
 	methods: {
+		axisSpanClasses(axisIndex: number) {
+			if (axisIndex >= 0 && axisIndex < store.state.machine.model.sensors.endstops.length && store.state.machine.model.sensors.endstops[axisIndex]?.triggered) {
+				return this.darkTheme ? "light-green darken-3" : "light-green lighten-4";
+			}
+			return null;
+		},
 		isFilamentSensorPresent(extruderIndex: number) {
 			return (extruderIndex >= 0) && (extruderIndex < this.model.sensors.filamentMonitors.length) &&
 				(this.model.sensors.filamentMonitors[extruderIndex] !== null) && this.model.sensors.filamentMonitors[extruderIndex]!.enabled &&

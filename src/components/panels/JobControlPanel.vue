@@ -18,7 +18,7 @@
 			</code-btn>
 
 			<code-btn v-if="!isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
-				<v-icon class="mr-1">mdi-restart</v-icon>
+				<v-icon class="mr-1">{{ processAnotherIcon }}</v-icon>
 				{{ processAnotherText }}
 			</code-btn>
 
@@ -79,17 +79,26 @@ export default Vue.extend({
 			return this.$t("panel.jobControl.cancelJob");
 		},
 		processAnotherCode() {
-			if (store.state.machine.model.job.lastFileName) {
-				if (store.state.machine.model.job.lastFileSimulated) {
+			if (store.state.machine.model.job.lastFileName !== null) {
+				if (store.state.machine.model.job.lastFileSimulated && (store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled)) {
 					return `M37 P"${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
 				}
 				return `M32 "${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
 			}
 			return "";
 		},
+		processAnotherIcon() {
+			if (store.state.machine.model.job.lastFileSimulated && !(store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled)) {
+				return (!store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff) ? "mdi-printer" : "mdi-play";
+			}
+			return "mdi-restart";
+		},
 		processAnotherText() {
 			if (store.state.machine.model.job.lastFileSimulated) {
-				return this.$t('panel.jobControl.repeatSimulation');
+				if (store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled) {
+					return this.$t('panel.jobControl.repeatSimulation');
+				}
+				return (!store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff) ? this.$t('panel.jobControl.printNow') : this.$t("panel.jobControl.startJob");
 			}
 			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
 				return this.$t('panel.jobControl.repeatPrint');

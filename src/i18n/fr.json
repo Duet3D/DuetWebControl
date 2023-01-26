@@ -631,7 +631,9 @@
       "repeatJob": "Recommencer",
       "repeatPrint": "Réimprimer",
       "repeatSimulation": "Simuler à Nouveau",
-      "showPreview": "Voir Aperçu"
+      "showPreview": "Voir Aperçu",
+      "printNow": "Imprimer maintenant",
+      "startJob": "Commencer le travail"
     },
     "jobData": {
       "caption": "Données Collectés",

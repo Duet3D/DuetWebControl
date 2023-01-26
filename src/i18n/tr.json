@@ -631,7 +631,9 @@
       "repeatJob": "Tekrar başla",
       "repeatPrint": "Tekrar Yazdır",
       "repeatSimulation": "Tekrar Simüle Et",
-      "showPreview": "Önizlemeyi Göster"
+      "showPreview": "Önizlemeyi Göster",
+      "printNow": "Şimdi Yazdır",
+      "startJob": "İşe Başla"
     },
     "jobData": {
       "caption": "Toplanan veri",

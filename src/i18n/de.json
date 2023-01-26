@@ -631,7 +631,9 @@
       "repeatJob": "Nochmal starten",
       "repeatPrint": "Nochmal drucken",
       "repeatSimulation": "Nochmal simulieren",
-      "showPreview": "Vorschau zeigen"
+      "showPreview": "Vorschau zeigen",
+      "printNow": "Jetzt drucken",
+      "startJob": "Auftrag starten"
     },
     "jobData": {
       "caption": "Gesammelte Daten",
