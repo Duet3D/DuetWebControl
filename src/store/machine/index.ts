@@ -914,7 +914,9 @@ export default function(connector: BaseConnector | null): MachineModule {
 								reply = message.content;
 								break;
 						}
-						logCode(null, translateResponse(reply), connector ? connector.hostname : defaultMachine);
+						reply = translateResponse(reply);
+
+						logCode(null, reply, connector ? connector.hostname : defaultMachine);
 						Root.$emit(Events.codeExecuted, {
 							machine: connector ? connector.hostname : defaultMachine,
 							code: null,
