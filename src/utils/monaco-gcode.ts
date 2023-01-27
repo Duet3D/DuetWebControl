@@ -8,15 +8,15 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 	keywords: ["abort", "echo", "if", "elif", "while", "set"],
 	noArgKeywords: ["else", "break", "continue"],
 	varKeywords: ["global",  "var"],
-	symbols:  /[=><!~?:&|+\-*#\/\^%()]+/,
-	operators: ['*', '/', '+', '-', "==", "!=", '=', "<=", '<', ">=", ">>>", ">>", '>', '!', "&&", '&', "||", '|', '^', '?', ':', '(', ')'],
+	symbols:  /[=><!~?:&|+\-*#\/\^%]+/,
+	operators: ['*', '/', '+', '-', "==", "!=", '=', "<=", '<', ">=", ">>>", ">>", '>', '!', "&&", '&', "||", '|', '^', '?', ':'],
 	includeLF: true,
 	tokenizer: {
 		root: [
 			// keywords
 			[/[a-z_$][\w$]*/, {
 				cases: {
-					"@keywords": { token: "keyword", next: "@expression" },
+					"@keywords": { token: "keyword", next: "@lineExpression" },
 					"@noArgKeywords": { token: "keyword" },
 					"@varKeywords": { token: "keyword", next: "varName" }
 				}
@@ -116,6 +116,13 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 
 			// EOL
 			[/\n/, "", "@popall"],
+		],
+		lineExpression: [
+			// comments
+			[/;.*/, "comment"],
+
+			// line expressions are basically expressions
+			{ include: "expression" }
 		],
 		curlyBracket: [
 			// curly brackets contain expressions
