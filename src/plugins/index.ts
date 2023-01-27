@@ -117,16 +117,16 @@ export default initCollection(DwcPlugin, [
 			"./InputShaping/index.js"
 		)
 	},
-	{
+	/*{
 		id: "GCodeViewer",
 		name: "G-Code Viewer",
 		author: "Juan Rosario",
 		version: packageInfo.version,
 		loadDwcResources: () => import(
-			/* webpackChunkName: "GCodeViewer" */
+			/* webpackChunkName: "GCodeViewer" *
 			"./GCodeViewer/index.js"
 		)
-	},
+	},*/
 	{
 		id: "ObjectModelBrowser",
 		name: "Object Model Browser",

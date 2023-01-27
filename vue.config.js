@@ -1,6 +1,7 @@
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
-const webpack = require('webpack');
+const path = require("path");
+const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
@@ -13,19 +14,28 @@ module.exports = {
 			mergeDuplicateChunks: false,
 			moduleIds: "named",
 			removeAvailableModules: false,
+			splitChunks: {
+				cacheGroups: {
+					monacoEditor: {
+						test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+						name: "monaco-editor",
+						chunks: "all"
+					}
+				}
+			},
 			usedExports: false
 		},
 		performance: {
 			hints: false
 		},
 		plugins: [
-			new webpack.EnvironmentPlugin({
+			new EnvironmentPlugin({
 				"BUILD_DATETIME": (new Date()).toString()
 			}),
 			// Work around for Buffer is undefined:
 			// https://github.com/webpack/changelog-v5/issues/10
-			new webpack.ProvidePlugin({
-				Buffer: ['buffer', 'Buffer'],
+			new ProvidePlugin({
+				Buffer: ["buffer", "Buffer"],
 			}),
 			...((process.env.NODE_ENV === "production") ? [
 				new CustomImportsPlugin(),
@@ -45,7 +55,10 @@ module.exports = {
 					})
 				])
 			] : [])
-		]
+		],
+		resolve: {
+			extensions: [".ts", ".js"]
+		}
 	},
 	chainWebpack: config => {
 		config.optimization.minimizer("terser").tap(args => {

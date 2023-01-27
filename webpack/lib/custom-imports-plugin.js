@@ -17,7 +17,7 @@ class CustomImportPlugin {
 					// Adjust it for CSS chunks
 					if (body.some(line => line.includes('"css/"'))) {
 						return basicFn.call(compilation.runtimeTemplate, args, [
-							"if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
+							"if (typeof window !== 'undefined' && window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
 							"\treturn window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file));",
 							"}"
 						].concat(body));
@@ -26,7 +26,7 @@ class CustomImportPlugin {
 					// Adjust it for JS chunks
 					if (body.some(line => line.includes('"js/"'))) {
 						return basicFn.call(compilation.runtimeTemplate, args, [
-							"if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
+							"if (typeof window !== 'undefined' && window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {",
 							"\treturn window.pluginBeingLoaded.dwcFiles.find(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.js$/.test(file));",
 							"}"
 						].concat(body));
@@ -36,7 +36,7 @@ class CustomImportPlugin {
 					const newBody = [];
 					for (const line of body) {
 						if (line.includes("cssChunks[chunkId])")) {
-							newBody.push(line.replace('&& cssChunks[chunkId])', '&& (cssChunks[chunkId] || (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file)))))'));
+							newBody.push(line.replace("&& cssChunks[chunkId])", "&& (cssChunks[chunkId] || (typeof window !== 'undefined' && window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId && window.pluginBeingLoaded.dwcFiles.some(file => file.indexOf(window.pluginBeingLoaded.id) !== -1 && /\\.css$/.test(file)))))"));
 						} else {
 							newBody.push(line);
 						}
@@ -56,7 +56,7 @@ class CustomImportPlugin {
 						if (pathname.startsWith("js/app")) {
 							const source = asset.source();
 							assert(
-								source.includes("if (window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {"),
+								source.includes("if (typeof window !== 'undefined' && window.pluginBeingLoaded && window.pluginBeingLoaded.id === chunkId) {"),
 								"Resulting app chunk does not contain custom imports patch"
 							);
 							assert(
@@ -64,7 +64,7 @@ class CustomImportPlugin {
 								"Resulting app chunk does not contain getChunkScriptFilename function"
 							);
 							assert(
-								source.includes('&& (cssChunks[chunkId] ||'),
+								source.includes("&& (cssChunks[chunkId] ||"),
 								"Resulting app chunk does not contain patched miniCss loader check"
 							);
 						}
