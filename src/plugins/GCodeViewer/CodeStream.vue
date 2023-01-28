@@ -1,5 +1,5 @@
 <template>
-    <codemirror v-show="shown" v-model="innerDocument" :options="cmOptions" @cursorActivity="cursorChange" ref="view"></codemirror>
+   <div ref="editor" class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange"></div>
 </template>
 
 <style scoped></style>
@@ -10,85 +10,86 @@
 }
 </style>
 
-<script lang="js">
+<script lang="ts">
+import { mapState } from 'vuex';
+import Vue from 'vue';
+import * as monaco from 'monaco-editor';
+import store from '@/store';
+import { PositionNormalTextureVertex } from '@babylonjs/core/Maths/math.vertexFormat';
 
-import { mapState } from 'vuex'
-import { codemirror } from 'vue-codemirror'
-import 'codemirror/addon/dialog/dialog.js'
-import 'codemirror/addon/dialog/dialog.css'
-import 'codemirror/addon/selection/active-line.js'
-import 'codemirror/addon/search/search.js'
-import 'codemirror/addon/search/searchcursor.js'
-import 'codemirror/addon/search/jump-to-line.js'
-import 'codemirror/lib/codemirror.css'
-import 'codemirror/theme/blackboard.css'
-
-export default {
-    components: {
-        codemirror
-    },
-    props: {
-        shown: {
-            type:Boolean,
-            required: true
-        },
-        currentline: {
-            type: Number,
-            required: true
-        },
-        document: {
-            type: String,
-            required: true
-        },
-        isSimulating: {
-            type: Boolean,
-            default: true
-        }
-    },
+export default Vue.extend({
+   props: {
+      shown: {
+         type: Boolean,
+         required: true
+      },
+      currentline: {
+         type: Number,
+         required: true
+      },
+      document: {
+         type: String,
+         required: true
+      },
+      isSimulating: {
+         type: Boolean,
+         default: true
+      }
+   },
    data: function () {
       return {
-         view: undefined,
-         innerDocument: ''
+         innerDocument: ' ',
+         editor: null as monaco.editor.IStandaloneCodeEditor | null
       };
    },
    computed: {
-    ...mapState('settings', ['darkTheme']),
-    cmOptions() {
-			return {
-				mode: 'application/x-gcode',
-				theme: this.darkTheme ? 'blackboard' : 'default',
-				indentWithTabs: true,
-				inputStyle: 'textarea',
-				lineNumbers: true,
-				styleActiveLine: true,
-                readOnly: true
-			}
-		},
+      darkTheme() {
+         return store.state.settings.darkTheme;
+      }
    },
    mounted() {
-
+      this.$nextTick(() => {
+         this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
+            automaticLayout: true,
+            language: 'gcode',
+            scrollBeyondLastLine: false,
+            theme: store.state.settings.darkTheme ? 'vs-dark' : 'vs',
+            value: this.innerDocument,
+            readOnly: true,
+            minimap: {
+               enabled: false
+            }
+         });
+         this.editor.focus();
+      });
    },
    methods: {
-      mouseUp() {
-
-      },
-      cursorChange(e){
-        if(this.isSimulating) return;
-        var pos = e.doc.indexFromPos(e.doc.getCursor());
-        this.$emit('update:currentline', pos);
-        
+      cursorChange(e: any) {
+         if (this.isSimulating) return;
+         const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 1);
+         const position = this.editor?.getModel()?.getOffsetAt(currentPosition) ?? 0;
+         this.$emit('update:currentline', position);
       }
    },
    watch: {
       currentline(to) {
-        if(!this.shown) return;
-        let codemirror = this.$refs.view.codemirror;
-        codemirror.doc.setCursor(codemirror.doc.posFromIndex(to));
+         if (!this.shown || !this.editor) return;
+         const currentPosition = this.editor.getPosition() ?? new monaco.Position(1, 1);
+         const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 1);
+         const direction = Math.sign(position.lineNumber - currentPosition?.lineNumber);
+         let newpos = new monaco.Position(position.lineNumber ?? 0, 1);
+         if (newpos) {
+            this.editor.setPosition(newpos);
+            this.editor.revealLine(newpos.lineNumber + 5 * direction);
+         }
       },
-      document(to){
-        console.log('update')
-        this.innerDocument = to;
+      document(to) {
+         console.log('update');
+         this.innerDocument = to;
+         if (this.editor) {
+            this.editor.setValue(this.innerDocument);
+         }
       }
    }
-};
+});
 </script>
