@@ -11,11 +11,9 @@
 </style>
 
 <script lang="ts">
-import { mapState } from 'vuex';
 import Vue from 'vue';
 import * as monaco from 'monaco-editor';
 import store from '@/store';
-import { PositionNormalTextureVertex } from '@babylonjs/core/Maths/math.vertexFormat';
 
 export default Vue.extend({
    props: {
@@ -64,7 +62,7 @@ export default Vue.extend({
       });
    },
    methods: {
-      cursorChange(e: any) {
+       cursorChange(e: any) {
          if (this.isSimulating) return;
          const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 1);
          const position = this.editor?.getModel()?.getOffsetAt(currentPosition) ?? 0;
@@ -72,19 +70,18 @@ export default Vue.extend({
       }
    },
    watch: {
-      currentline(to) {
+       currentline(to) {
          if (!this.shown || !this.editor) return;
          const currentPosition = this.editor.getPosition() ?? new monaco.Position(1, 1);
          const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 1);
          const direction = Math.sign(position.lineNumber - currentPosition?.lineNumber);
-         let newpos = new monaco.Position(position.lineNumber ?? 0, 1);
+         let newpos = new monaco.Position(position.lineNumber, 1);
          if (newpos) {
             this.editor.setPosition(newpos);
             this.editor.revealLine(newpos.lineNumber + 5 * direction);
          }
       },
       document(to) {
-         console.log('update');
          this.innerDocument = to;
          if (this.editor) {
             this.editor.setValue(this.innerDocument);
