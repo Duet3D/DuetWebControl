@@ -54,6 +54,8 @@ export default Vue.extend({
             theme: store.state.settings.darkTheme ? 'vs-dark' : 'vs',
             value: this.innerDocument,
             readOnly: true,
+            occurrencesHighlight: false,
+            matchBrackets: 'never',
             minimap: {
                enabled: false
             }
@@ -62,7 +64,7 @@ export default Vue.extend({
       });
    },
    methods: {
-       cursorChange(e: any) {
+      cursorChange(e: any) {
          if (this.isSimulating) return;
          const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 1);
          const position = this.editor?.getModel()?.getOffsetAt(currentPosition) ?? 0;
@@ -70,10 +72,11 @@ export default Vue.extend({
       }
    },
    watch: {
-       currentline(to) {
+      currentline(to) {
          if (!this.shown || !this.editor) return;
          const currentPosition = this.editor.getPosition() ?? new monaco.Position(1, 1);
          const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 1);
+         if (currentPosition.equals(position)) return;
          const direction = Math.sign(position.lineNumber - currentPosition?.lineNumber);
          let newpos = new monaco.Position(position.lineNumber, 1);
          if (newpos) {
