@@ -1,4 +1,4 @@
-import * as monaco from "monaco-editor";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 monaco.languages.register({ id: "gcode" });
 monaco.languages.setMonarchTokensProvider("gcode", {

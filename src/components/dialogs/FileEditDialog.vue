@@ -76,10 +76,13 @@
 </template>
 
 <script lang="ts">
-import * as monaco from "monaco-editor";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import Vue from "vue";
 
 import store from "@/store";
+import "@/utils/monaco-editor";
+import "@/utils/monaco-gcode";
 import Path from "@/utils/path";
 
 export default Vue.extend({

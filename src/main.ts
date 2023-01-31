@@ -10,7 +10,6 @@ import router from "./routes";
 import "./components";
 import "./plugins";
 import "./registerServiceWorker";
-import "./utils/monaco-editor";
 
 import App from "./App.vue";
 

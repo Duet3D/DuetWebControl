@@ -1,4 +1,4 @@
-import "./monaco-gcode";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 // Provide Monaco workers
 self.MonacoEnvironment = {
