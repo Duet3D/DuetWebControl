@@ -336,7 +336,8 @@
     "fileinfoRequestFailed": "{0}のファイルの情報取得に失敗しました",
     "filamentsLoadFailed": "フィラメントの読み込みに失敗しました",
     "move": "{0} から {1}への移動に失敗しました",
-    "badVersion": "互換性のないファームウェア バージョン"
+    "badVersion": "互換性のないファームウェア バージョン",
+    "startupError": "起動ファイル {0} 行 {1} のエラー: {2}"
   },
   "events": {
     "connected": "{0}へ接続",

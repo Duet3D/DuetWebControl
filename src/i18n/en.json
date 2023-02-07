@@ -336,7 +336,8 @@
     "filelistRequestFailed": "Failed to get file list",
     "fileinfoRequestFailed": "Failed to get file info for {0}",
     "filamentsLoadFailed": "Failed to load filaments",
-    "move": "Failed to move {0} to {1}"
+    "move": "Failed to move {0} to {1}",
+    "startupError": "Error in start-up file {0} line {1}: {2}"
   },
   "events": {
     "connected": "Connected to {0}",

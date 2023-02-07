@@ -18,7 +18,7 @@ export enum LogType {
 }
 
 /**
- * Log an arbitrary machine-related message
+ * Log an arbitrary machine-related message, i.e. display a notification and log to the console
  * @param type Message type
  * @param title Title of the message
  * @param message Actual message
@@ -30,7 +30,7 @@ export function log(type: LogType, title: string, message: string | null = null,
 }
 
 /**
- * Log an arbitrary machine-related message
+ * Log an arbitrary machine-related message to the console only
  * @param type Message type
  * @param title Title of the message
  * @param message Actual message

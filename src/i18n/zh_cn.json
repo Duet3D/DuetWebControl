@@ -336,7 +336,8 @@
     "filelistRequestFailed": "无法获取文件列表",
     "fileinfoRequestFailed": "无法获取文件{0}的信息",
     "filamentsLoadFailed": "无法加载细丝",
-    "move": "从{0}移动到{1}失败"
+    "move": "从{0}移动到{1}失败",
+    "startupError": "启动文件 {0} 第 {1} 行中的错误：{2}"
   },
   "events": {
     "connected": "已连接到{0}",

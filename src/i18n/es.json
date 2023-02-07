@@ -336,7 +336,8 @@
     "filelistRequestFailed": "Error al obtener la lista de archivos",
     "fileinfoRequestFailed": "Error al obtener información del archivo para {0}",
     "filamentsLoadFailed": "Error al cargar filamentos",
-    "move": "Error al mover {0} a {1}"
+    "move": "Error al mover {0} a {1}",
+    "startupError": "Error en el archivo de inicio {0} línea {1}: {2}"
   },
   "events": {
     "connected": "Conectado a {0}",

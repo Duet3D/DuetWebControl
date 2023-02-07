@@ -336,7 +336,8 @@
     "filelistRequestFailed": "Konnte Dateilist nicht abfragen",
     "fileinfoRequestFailed": "Konnte Dateiinfo für {0} nicht abfragen",
     "filamentsLoadFailed": "Konnte Filamente nicht laden",
-    "move": "Konnte Datei {0} nicht nach {1} verschieben"
+    "move": "Konnte Datei {0} nicht nach {1} verschieben",
+    "startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
   },
   "events": {
     "connected": "Verbindung zu {0} hergestellt",

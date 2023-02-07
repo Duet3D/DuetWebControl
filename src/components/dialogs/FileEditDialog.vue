@@ -85,6 +85,8 @@ import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
 import Path from "@/utils/path";
 
+const bigFileLimit = 33554432;	// 32 MiB
+
 export default Vue.extend({
 	props: {
 		shown: {
@@ -224,9 +226,12 @@ export default Vue.extend({
 				// Create Monaco editor if necessary
 				if (this.useEditor) {
 					this.$nextTick(() => {
+						const isBigFile = this.innerValue.length > bigFileLimit;
 						this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
 							automaticLayout: true,
+							matchBrackets: isBigFile ? "near" : "always",
 							language: this.language,
+							occurrencesHighlight: !isBigFile,
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
 							value: this.innerValue

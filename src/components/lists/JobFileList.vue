@@ -105,7 +105,6 @@
 import { ThumbnailInfo, Volume } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import { UploadType } from "@/components/buttons/UploadBtn.vue";
 import i18n from "@/i18n";
 import store from "@/store";
 import { ContextMenuItem } from "@/store/uiInjection";
@@ -136,18 +135,6 @@ export default Vue.extend({
 		gcodesDirectory(): string { return store.state.machine.model.directories.gCodes; },
 		lastJobFile(): string | null { return store.state.machine.model.job.lastFileName; },
 		volumes(): Array<Volume> { return store.state.machine.model.volumes; },
-		/*
-		...mapState("machine/cache", ["fileInfos"]),
-		...mapState("machine/model", {
-			gCodesDirectory: state => state.directories.gCodes,
-			lastJobFile: state => state.job.lastFileName,
-			status: state => state.state.status,
-			volumes: state => state.volumes
-		}),
-		...mapState("settings", ["language"]),
-		...mapState("uiInjection", ["contextMenuItems"]),
-		...mapGetters(["isConnected", "uiFrozen"]),
-		*/
 		headers(): Array<BaseFileListHeader> {
 			return [
 				{

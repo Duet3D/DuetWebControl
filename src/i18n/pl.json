@@ -336,7 +336,8 @@
     "fileinfoRequestFailed": "Nie udało się uzyskać informacji o pliku dla {0}",
     "filamentsLoadFailed": "Nieudana próba wczytania filamentu",
     "move": "Niepowodzenie w przemieszczeniu {0} do {1}",
-    "badVersion": "Niezgodna wersja oprogramowania układowego"
+    "badVersion": "Niezgodna wersja oprogramowania układowego",
+    "startupError": "Błąd w pliku startowym {0} wiersz {1}: {2}"
   },
   "events": {
     "connected": "Połączono do {0}",

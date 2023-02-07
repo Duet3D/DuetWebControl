@@ -1,4 +1,4 @@
-import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import ObjectModel, { DefaultHostname, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import Vue from "vue";
 import { Module } from "vuex";
@@ -193,6 +193,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 					await dispatch("update", {
 						global: null,
 						state: {
+							startupError: null,
 							status: MachineStatus.disconnected
 						}
 					});
@@ -888,11 +889,10 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			async update({ state, commit }, payload: any) {
 				const machineState = state as MachineModuleState;
-
 				const lastBeepFrequency = machineState.model.state.beep ? machineState.model.state.beep.frequency : null;
 				const lastBeepDuration = machineState.model.state.beep ? machineState.model.state.beep.duration : null;
-				const lastDisplayMessage = machineState.model.state.displayMessage;
-				const lastStatus = machineState.model.state.status;
+				const lastDisplayMessage = machineState.model.state.displayMessage, lastStatus = machineState.model.state.status;
+				const lastStartupError = machineState.model.state.startupError ? JSON.stringify(machineState.model.state.startupError) : null;
 
 				// Check if the job has finished and if so, clear the file cache
 				if (payload.job && payload.job.lastFileName && payload.job.lastFileName !== machineState.model.job.lastFileName) {
@@ -929,7 +929,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				// Merge updates into the object model
 				commit("model/update", payload);
 				Root.$emit(Events.machineModelUpdated, connector ? connector.hostname : defaultMachine);
-				
+
 				// Is a new beep requested?
 				if (machineState.model.state.beep &&
 					lastBeepDuration !== machineState.model.state.beep.duration &&
@@ -942,9 +942,16 @@ export default function(connector: BaseConnector | null): MachineModule {
 					showMessage(machineState.model.state.displayMessage);
 				}
 
+				// Is there a startup error to report?
+				const startupError = machineState.model.state.startupError;
+				if (startupError !== null && lastStartupError !== JSON.stringify(startupError)) {
+					const errorMessage = i18n.t("error.startupError", [startupError.file, startupError.line, startupError.message])
+					log(LogType.error, errorMessage, undefined, connector?.hostname ?? DefaultHostname);
+				}
+
 				// Has the firmware halted?
 				if (lastStatus !== machineState.model.state.status && machineState.model.state.status === MachineStatus.halted) {
-					log(LogType.warning, i18n.t("events.emergencyStop"));
+					log(LogType.warning, i18n.t("events.emergencyStop"), undefined, connector?.hostname ?? DefaultHostname);
 				}
 			},
 

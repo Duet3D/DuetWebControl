@@ -336,7 +336,8 @@
     "fileinfoRequestFailed": "{0} için dosya bilgisi alınamadı",
     "filamentsLoadFailed": "Filamentler yüklenemedi",
     "move": "{0}, {1} klasörüne taşınamadı",
-    "badVersion": "Uyumsuz donanım yazılımı sürümü"
+    "badVersion": "Uyumsuz donanım yazılımı sürümü",
+    "startupError": "Başlangıç ​​dosyası {0} satırında {1} hata: {2}"
   },
   "events": {
     "connected": "{0} ağına bağlandı",

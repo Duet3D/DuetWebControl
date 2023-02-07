@@ -336,7 +336,8 @@
     "fileinfoRequestFailed": "Falha ao obter informações do arquivo para {0}",
     "filamentsLoadFailed": "Falha ao carregar filamentos",
     "move": "Falha ao mover {0} para {1}",
-    "badVersion": "Versão de firmware incompatível"
+    "badVersion": "Versão de firmware incompatível",
+    "startupError": "Erro no arquivo de inicialização {0} linha {1}: {2}"
   },
   "events": {
     "connected": "Conectado a {0}",

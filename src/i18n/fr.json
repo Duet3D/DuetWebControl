@@ -336,7 +336,8 @@
     "fileinfoRequestFailed": "Impossible d'obtenir les informations du fichier pour {0}",
     "filamentsLoadFailed": "Impossible de charger le filament",
     "move": "Impossible de déplacer {0} à {1}",
-    "badVersion": "Version de micrologiciel incompatible"
+    "badVersion": "Version de micrologiciel incompatible",
+    "startupError": "Erreur dans le fichier de démarrage {0} ligne {1} : {2}"
   },
   "events": {
     "connected": "Connecté à {0}",
