@@ -200,7 +200,8 @@
       "gcodeReference": "G-Code参考",
       "menuReference": "菜单参考",
       "save": "保存",
-      "confirmClose": "文件已修改。如果继续，你的修改将丢失。"
+      "confirmClose": "文件已修改。如果继续，你的修改将丢失。",
+      "confirmSaveEmpty": "您要保存的文件似乎是空的。 您确定要继续吗？"
     },
     "fileTransfer": {
       "uploadingTitle": "正在上传文件第{0}个，共{1}个，已完成{2}%",
@@ -335,7 +336,8 @@
     "filelistRequestFailed": "无法获取文件列表",
     "fileinfoRequestFailed": "无法获取文件{0}的信息",
     "filamentsLoadFailed": "无法加载细丝",
-    "move": "从{0}移动到{1}失败"
+    "move": "从{0}移动到{1}失败",
+    "startupError": "开始{0}文件错误，位于行 {1}: {2}"//3.5beta2
   },
   "events": {
     "connected": "已连接到{0}",
@@ -527,10 +529,20 @@
       "success": "已成功下载{0}，总计{1}",
       "error": "下载{0}失败"
     },
+    "systemPackageInstall": {
+      "title": "正在安装文件{0}",
+      "message": "正在安装文件，请等待……",
+      "success": "安装{0}成功",
+      "error": "安装{0}失败"
+    },
     "message": "消息",
     "mount": {
       "successTitle": "SD卡已装载",
       "errorTitle": "装载SD卡失败"
+    },
+    "pluginLoad": {
+      "title": "正在载入插件...",
+      "message": "正在加载插件，请等待……"
     },
     "newDirectory": {
       "errorTitle": "创建目录失败",
@@ -619,7 +631,9 @@
       "repeatJob": "重新开始",
       "repeatPrint": "重新打印",
       "repeatSimulation": "重新模拟",
-      "showPreview": "显示预览"
+      "showPreview": "显示预览",
+      "printNow": "立即打印",//3.5beta2
+      "startJob": "开始任务"//3.5beta2
     },
     "jobData": {
       "caption": "采集数据",
@@ -660,13 +674,15 @@
       "loadMesh": "从SD卡加载已保存的高度图(G29 S1)",
       "axesNotHomed": "以下轴未归位：|以下轴未归位：",
       "noAxes": "没有轴",
-      "workzero": "归零"
+      "set": "设置{0}",
+      "workzero": "归零",
+      "setWorkXYZ": "设置工作XYZ"
     },
     "settingsAbout": {
+      "buildDateTime": "创建于{0}",
       "caption": "关于",
-      "developedBy": "Web界面开发：",
-      "for": " 适用于：",
-      "licensedUnder": "中文翻译：宁甲尊  许可条款："
+      "credits": "Web界面开发： {author} 来自{Duet3D}  中文翻译：宁甲尊",
+      "license": "根据以下{gpl}条款获得许可。"
     },
     "settingsAppearance": {
       "caption": "外观",
@@ -686,7 +702,10 @@
       "unitInch": "in",
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
-      "unitMmSpeed": "mm/s"
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "单个热床控制",
+      "groupTools": "分组相同的工具",
+      "singleChamberControl": "单个加热室控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -694,7 +713,6 @@
       "updateDelay": "更新延迟（ms）",
       "ajaxRetries": "最大AJAX重试次数",
       "updateInterval": "更新间隔（{0}）",
-      "extendedUpdateEvery": "扩展状态更新间隔",
       "fileTransferRetryThreshold": "文件传输的重试阈值（{0}）",
       "crcUploads": "使用CRC32校验和进行上传",
       "unavailable": "没有可用的设置"
@@ -705,7 +723,9 @@
       "board": "主板：{0}",
       "firmware": "固件：{0} ({1})",
       "dwsFirmware": "Duet WiFi Server版本：{0}",
-      "updateNote": "注意：你可以在“系统”页面上安装更新。"
+      "updateNote": "注意：你可以在“系统”页面上安装更新。",
+      "notConnected": "（未连接）",
+      "dsfVersion": "DSF版本： {0}"
     },
     "settingsEndstops": {
       "caption": "限位开关",
@@ -738,6 +758,10 @@
       "caption": "通知",
       "notificationErrorsPersistent": "不要自动关闭错误消息",
       "notificationTimeout": "默认通知超时（{0}）"
+    },
+    "settingsBehaviour": {
+      "caption": "行为",
+      "behaviourJobStart": "不要在打印开始时自动切换到状态面板"
     },
     "settingsWebcam": {
       "caption": "网络摄像头",
@@ -785,7 +809,9 @@
       "v12": "V12",
       "fanRPM": "风扇转速",
       "probe": "Z轴探针|Z轴探针",
-      "noStatus": "没有状态"
+      "noStatus": "没有状态",
+      "extrusionRate": "挤出量",//3.5beta2
+      "volumetricFlow": "体积量"//3.5beta2
     },
     "tools": {
       "caption": "工具",
@@ -814,7 +840,11 @@
         "showInChart": "在图表中显示",
         "noItems": "没有附加的传感器"
       },
-      "noTools": "没有工具"
+      "noTools": "没有工具",
+      "allBeds": "所有热床",
+      "beds": "热床",
+      "chambers": "加热室",
+      "allChambers": "所有加热室"
     },
     "webcam": {
       "caption": "网络摄像头监控",
@@ -964,7 +994,8 @@
       "useHQRendering": "高质量渲染",
       "useSpecular": "使用高光",
       "feature": "材质",
-      "g1AsExtrusion": "渲染 G1 (CNC)"
+      "g1AsExtrusion": "渲染 G1 (CNC)",
+      "viewGCode": "显示 G-Code"
     },
     "heightmap": {
       "menuCaption": "高度图",
@@ -994,7 +1025,12 @@
       "resetView": "重置视图"
     },
     "objectModelBrowser": {
-      "menuCaption": "对象模型"
+      "menuCaption": "对象模型",
+      "selectedNode": "选定节点：",
+      "none": "没有",
+      "documentationNotAvailable": "文档不可用（没有找到/www/DuetAPI.xml）",
+      "summary": "摘要",
+      "remarks": "评论"
     }
   },
   "tabs": {
@@ -1028,3 +1064,4 @@
     }
   }
 }
+//Commits on Feb 7, 2023
