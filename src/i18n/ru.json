@@ -832,8 +832,8 @@
       "setToolTemperatures": "Установка температуры инструмента",
       "allBeds": "Все столы",
       "beds": "Столы",
-      "allChambers": "Все камеры",
-      "chambers": "Чемберс"
+      "allChambers": "Все термокамеры",
+      "chambers": "Термокамеры"
     },
     "webcam": {
       "caption": "Обзор камеры",
