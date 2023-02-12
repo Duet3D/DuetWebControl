@@ -402,7 +402,7 @@
     },
     "addTemperature": "Новое значение температуры",
     "addRPM": "Новое значение RPM",
-    "set": "Установлен"
+    "set": "Задать"
   },
   "jobProgress": {
     "simulating": "Симуляция {0}, {1} завершена",
@@ -645,11 +645,11 @@
     },
     "jobEstimations": {
       "caption": "Расчеты на основе",
-      "filament": "Использование филамента",
-      "file": "Финиш через",
-      "layer": "Время слоя",
-      "slicer": "Слайсер",
-      "simulation": "Симуляция"
+      "filament": "использования филамента",
+      "file": "размера файла",
+      "layer": "времени слоя",
+      "slicer": "слайсера",
+      "simulation": "симуляции"
     },
     "jobInfo": {
       "caption": "Инфо о задании",
@@ -697,16 +697,16 @@
       "dashboardModeTitle": "Режим панели",
       "decimalPlaces": "Количество десятичных знаков в отображении координат",
       "displayUnitsTitle": "Единица измерения для отображения координат",
-      "iconMenu": "Используйте компактное меню значков",
+      "iconMenu": "Использовать компактное меню значков",
       "numericInputs": "Показывать поля числового ввода вместо ползунков",
       "unitInch": "в",
       "unitInchSpeed": "дюймов в минуту",
       "unitInches": "дюймы",
       "unitMm": "мм",
       "unitMmSpeed": "мм/с",
-      "singleBedControl": "Управление односпальной кроватью",
+      "singleBedControl": "Общее управление столами",
       "groupTools": "Сгруппировать одинаковые инструменты",
-      "singleChamberControl": "Однокамерный контроль"
+      "singleChamberControl": "Общее управление термокамерами"
     },
     "settingsCommunication": {
       "caption": "Коммуникация",
@@ -714,7 +714,7 @@
       "ajaxRetries": "Максимальное количество AJAX повторов",
       "updateInterval": "Интервал обновления({0})",
       "fileTransferRetryThreshold": "Порог повтора для передачи файлов ({0})",
-      "crcUploads": "Для загрузки используйте контрольные суммы CRC32",
+      "crcUploads": "Для загрузки использовать контрольные суммы CRC32",
       "unavailable": "Нет доступных настроек",
       "updateDelay": "Задержка обновления (мс)"
     },
@@ -740,7 +740,7 @@
       "settingsSaveDelay": "Интервал обновления изменения настроек ({0})",
       "cacheStorageLocal": "Сохранять кэш в локальном хранилище",
       "cacheSaveDelay": "Интервал обновления изменения кэша ({0})",
-      "ignoreFileTimestamps": "Игнорировать временные метки файла при загрузке"
+      "ignoreFileTimestamps": "Игнорировать метки времени файла при загрузке"
     },
     "settingsListItems": {
       "caption": "Настройка пресетов",
@@ -791,7 +791,7 @@
       "speeds": "Скорости",
       "requestedSpeed": "Заданная скорость",
       "topSpeed": "Макс. скорость",
-      "sensors": "Сенсоры",
+      "sensors": "Датчики",
       "mcuTemp": "Темп. MCU",
       "minMax": "Мин.: {0}, Макс.: {1}",
       "vIn": "Vin",
@@ -817,21 +817,21 @@
       "chamber": "Термокамера {0}",
       "extra": {
         "caption": "Доп.",
-        "sensor": "Сенсор",
-        "sensorIndex": "Сенсор {0}",
+        "sensor": "Датчик",
+        "sensorIndex": "Датчик {0}",
         "value": "Значение",
         "showInChart": "Показывать график",
-        "noItems": "Нет Сенсор нагревателей"
+        "noItems": "Нет датчика нагревателей"
       },
       "noTools": "Нет устройств",
       "controlHeaters": "Регулирующие нагреватели",
       "setActiveTemperatures": "Установить активные температуры",
-      "setBedTemperatures": "Установить температуру кровати",
+      "setBedTemperatures": "Установить температуру стола",
       "setChamberTemperatures": "Установка температуры камеры",
-      "setStandbyTemperatures": "Установите температуру в режиме ожидания",
+      "setStandbyTemperatures": "Установить температуру в режиме ожидания",
       "setToolTemperatures": "Установка температуры инструмента",
-      "allBeds": "Все кровати",
-      "beds": "Кровати",
+      "allBeds": "Все столы",
+      "beds": "Столы",
       "allChambers": "Все камеры",
       "chambers": "Чемберс"
     },
@@ -919,8 +919,8 @@
     },
     "gcodeViewer": {
       "background": "Фон",
-      "bed": "Кровать",
-      "bedRenderMode": "Режим визуализации кровати",
+      "bed": "Стол",
+      "bedRenderMode": "Режим визуализации стола",
       "bottomClipping": "Нижняя обрезка",
       "cameraInertia": "Инерция камеры",
       "cancelLoad": "Отменить загрузку файла",
