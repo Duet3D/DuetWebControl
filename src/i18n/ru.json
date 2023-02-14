@@ -1,4 +1,5 @@
 ﻿{
+{
   "language": "Русский",
   "$vuetify": {
     "badge": "знак",
@@ -388,8 +389,8 @@
     },
     "rpm": "RPM",
     "sdCard": "SD карта {0}",
-    "mounted": "смонтировано",
-    "notMounted": "не смонтировано",
+    "mounted": "подключена",
+    "notMounted": "не подключена",
     "extracting": "Извлечение",
     "uploading": "Загрузка",
     "active": "Активно",
@@ -526,8 +527,8 @@
     },
     "message": "Сообщение",
     "mount": {
-      "successTitle": "SD карта примонтирована",
-      "errorTitle": "Ошибка монтирования SD карты"
+      "successTitle": "SD карта подключена",
+      "errorTitle": "Ошибка подключения SD карты"
     },
     "newDirectory": {
       "errorTitle": "Ошибка создания папки",
@@ -644,7 +645,7 @@
       "jobDuration": "Продолжительность работы"
     },
     "jobEstimations": {
-      "caption": "Расчеты на основе",
+      "caption": "Расчетное время печати на основе",
       "filament": "использования филамента",
       "file": "размера файла",
       "layer": "времени слоя",
@@ -677,7 +678,7 @@
         "mesh": "Сетка",
         "none": "Никто"
       },
-      "workzero": "Перейти к нулю"
+      "workzero": "Парковка"
     },
     "settingsAbout": {
       "caption": "О системе",
@@ -704,9 +705,9 @@
       "unitInches": "дюймы",
       "unitMm": "мм",
       "unitMmSpeed": "мм/с",
-      "singleBedControl": "Общее управление столами",
+      "singleBedControl": "Раздельное управление столами",
       "groupTools": "Сгруппировать одинаковые инструменты",
-      "singleChamberControl": "Общее управление термокамерами"
+      "singleChamberControl": "Раздельное управление термокамерами"
     },
     "settingsCommunication": {
       "caption": "Коммуникация",
