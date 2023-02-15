@@ -675,7 +675,7 @@
       "setWorkXYZ": "Установить работу XYZ",
       "compensationType": {
         "mesh": "Сетка",
-        "none": "Никто"
+        "none": "Нет"
       },
       "workzero": "Парковка"
     },
