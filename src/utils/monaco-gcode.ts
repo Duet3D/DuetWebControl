@@ -45,7 +45,8 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 			[/T/, "keyword", "normalGcodeWithT"],
 
 			// parameter letters
-			[/[A-Z]/, "keyword"],
+			[/'?[A-Z]/, "keyword"],
+			[/'[a-z]/, "keyword"],
 
 			// expressions
 			[/{/, "operator", "@curlyBracket"],
