@@ -528,7 +528,7 @@
       "message": "文件已经开始下载，请等待……",
       "success": "已成功下载{0}，总计{1}",
       "error": "下载{0}失败"
-    }, 
+    },
     "systemPackageInstall": {
       "title": "正在安装文件{0}",
       "message": "正在安装文件，请等待……",
@@ -577,17 +577,6 @@
       "message": "文件已经开始上传，请等待……",
       "success": "已成功上传{0}，总计{1}",
       "error": "上传{0}失败"
-    },
-    "install": {},
-    "pluginLoad": {
-      "message": "正在加载插件，请稍候...",
-      "title": "加载插件..."
-    },
-    "systemPackageInstall": {
-      "error": "安装 {0} 失败",
-      "message": "正在安装文件，请稍候...",
-      "success": "{0} 安装成功",
-      "title": "安装文件 {0}"
     }
   },
   "panel": {
@@ -875,8 +864,8 @@
     "writeFilaments": "将文件写入细丝目录",
     "readFirmware": "从固件目录读取文件",
     "writeFirmware": "将文件写入固件目录",
-    "readGCodes": "从G-code目录中读取文件",
-    "writeGCodes": "将文件写入G-code目录",
+    "readGCodes": "从G-Code目录中读取文件",
+    "writeGCodes": "将文件写入G-Code目录",
     "readMacros": "从宏目录中读取文件",
     "writeMacros": "将文件写入宏目录",
     "readMenu": "从菜单目录中读取文件",
@@ -1005,7 +994,8 @@
       "useHQRendering": "高质量渲染",
       "useSpecular": "使用高光",
       "feature": "材质",
-      "g1AsExtrusion": "渲染 G1 (CNC)"
+      "g1AsExtrusion": "渲染 G1 (CNC)",
+      "viewGCode": "预览G-Code"
     },
     "heightmap": {
       "menuCaption": "高度图",
