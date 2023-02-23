@@ -528,11 +528,21 @@
       "message": "文件已经开始下载，请等待……",
       "success": "已成功下载{0}，总计{1}",
       "error": "下载{0}失败"
+    }, 
+    "systemPackageInstall": {
+      "title": "正在安装文件{0}",
+      "message": "正在安装文件，请等待……",
+      "success": "安装{0}成功",
+      "error": "安装{0}失败"
     },
     "message": "消息",
     "mount": {
       "successTitle": "SD卡已装载",
       "errorTitle": "装载SD卡失败"
+    },
+    "pluginLoad": {
+      "title": "正在载入插件...",
+      "message": "正在加载插件，请等待……"
     },
     "newDirectory": {
       "errorTitle": "创建目录失败",
@@ -675,15 +685,15 @@
       "loadMesh": "从SD卡加载已保存的高度图(G29 S1)",
       "axesNotHomed": "以下轴未归位：|以下轴未归位：",
       "noAxes": "没有轴",
-      "workzero": "归零",
       "set": "设置{0}",
+      "workzero": "归零",
       "setWorkXYZ": "设置工作 XYZ"
     },
     "settingsAbout": {
+      "buildDateTime": "创建于{0}",
       "caption": "关于",
-      "credits": "{author} 为 {Duet3D} 开发的 Web 界面。",
-      "license": "根据 {gpl} 的条款获得许可。",
-      "buildDateTime": "基于 {0}"
+      "credits": "Web界面开发： {author} 来自{Duet3D}  中文翻译：宁甲尊",
+      "license": "根据以下{gpl}条款获得许可。"
     },
     "settingsAppearance": {
       "caption": "外观",
@@ -704,9 +714,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "单床控制",
+      "singleBedControl": "单个热床控制",
       "groupTools": "分组相同的工具",
-      "singleChamberControl": "单室控制"
+      "singleChamberControl": "单个加热室控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -811,8 +821,8 @@
       "fanRPM": "风扇转速",
       "probe": "Z轴探针|Z轴探针",
       "noStatus": "没有状态",
-      "extrusionRate": "挤压率",
-      "volumetricFlow": "体积流量"
+      "extrusionRate": "挤出量",//3.5beta2
+      "volumetricFlow": "体积流量"//3.5beta2
     },
     "tools": {
       "caption": "工具",
@@ -844,8 +854,8 @@
       "noTools": "没有工具",
       "allBeds": "所有床位",
       "beds": "床",
-      "allChambers": "所有商会",
-      "chambers": "钱伯斯"
+      "allChambers": "所有加热室",
+      "chambers": "加热室"
     },
     "webcam": {
       "caption": "网络摄像头监控",
@@ -995,8 +1005,7 @@
       "useHQRendering": "高质量渲染",
       "useSpecular": "使用高光",
       "feature": "材质",
-      "g1AsExtrusion": "渲染 G1 (CNC)",
-      "viewGCode": "查看 G 代码"
+      "g1AsExtrusion": "渲染 G1 (CNC)"
     },
     "heightmap": {
       "menuCaption": "高度图",
@@ -1027,11 +1036,11 @@
     },
     "objectModelBrowser": {
       "menuCaption": "对象模型",
-      "documentationNotAvailable": "文档不可用（/www/DuetAPI.xml 未找到）",
-      "none": "没有任何",
-      "remarks": "评论",
       "selectedNode": "选定节点：",
-      "summary": "概括"
+      "none": "没有",
+      "documentationNotAvailable": "文档不可用（/www/DuetAPI.xml 未找到）",
+      "summary": "摘要",
+      "remarks": "评论"
     }
   },
   "tabs": {
@@ -1065,3 +1074,4 @@
     }
   }
 }
+//Commits on Feb 7, 2023
