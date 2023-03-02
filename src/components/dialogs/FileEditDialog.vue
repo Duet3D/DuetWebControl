@@ -232,6 +232,7 @@ export default Vue.extend({
 							matchBrackets: isBigFile ? "near" : "always",
 							language: this.language,
 							occurrencesHighlight: !isBigFile,
+							rulers: [255],
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
 							value: this.innerValue

@@ -168,7 +168,7 @@
 									{{ move.tool ? (move.tool.name || `T${move.tool.number}`) : 'None' }}
 								</td>
 								<td class="px-0">
-									{{ getAccelerometerId(move.accelerometer) }}
+									{{ move.accelerometer }}
 								</td>
 								<td>
 									{{ move.axis }}
@@ -216,7 +216,7 @@
 <script>
 'use strict'
 
-import { Axis, KinematicsName, StatusType } from '@duet3d/objectmodel';
+import { Axis, KinematicsName, MachineStatus } from '@duet3d/objectmodel';
 import { mapActions, mapState } from 'vuex';
 
 import { OperationCancelledError } from '@/utils/errors';
@@ -273,10 +273,7 @@ export default {
 		accelerometers() {
 			return this.boards
 				.filter(board => board.accelerometer !== null)
-				.map(board => ({
-					text: board.canAddress ? `${board.canAddress}.0` : '0',
-					value: board.accelerometer
-				}));
+				.map(board => board.canAddress ? `${board.canAddress}.0` : '0');
 		},
 		hasExternalAccelerometers() {
 			return this.boards.some(board => (board.canAddress !== 0) && !!board.accelerometer);
@@ -361,7 +358,7 @@ export default {
 				.map(axis => ({
 					state: MoveState.idle,
 					tool: null,
-					accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0].value : null,
+					accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0] : null,
 					axis: axis.letter,
 					start: Math.round((axis.min + axis.max) / 2 - (axis.max - axis.min) / 4),
 					end: Math.round((axis.min + axis.max) / 2 + (axis.max - axis.min) / 4),
@@ -372,7 +369,7 @@ export default {
 			this.moves.push({
 				state: MoveState.idle,
 				tool: null,
-				accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0].value : null,
+				accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0] : null,
 				axis: 'X',
 				start: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 - (xAxis.max - xAxis.min) / 4) : null,
 				end: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 + (xAxis.max - xAxis.min) / 4) : null
@@ -465,39 +462,45 @@ export default {
 				val => val <= this.getMax(move, start)
 			];
 		},
-		getAccelerometerId(accelerometer) {
-			if (!accelerometer) {
-				return null;
-			}
-			const item = this.accelerometers.find(item => item.value === accelerometer);
-			return item ? item.text : null;
-		},
 		async doCode(code) {
 			const reply = await this.sendCode(code);
 			if (reply.indexOf('Error') === 0) {
 				throw new Error(`Code ${code} failed: ${reply}`);
 			}
 		},
-		getMoveFilename(move, accelerometerId) {
+		getMoveFilename(move) {
 			let filename = this.run.toString();
 			if (move.tool) {
 				filename += '-T' + move.tool.number;
 			}
-			filename += `-${move.axis.replace(/\+/g, '')}${move.start}-${move.end}-${accelerometerId}-${this.move.shaping.type}`;
+			filename += `-${move.axis.replace(/\+/g, '')}${move.start}-${move.end}-${move.accelerometer}-${this.move.shaping.type}`;
 			if (this.move.shaping.type !== 'none' && this.move.shaping.type !== 'custom') {
 				filename += `-${this.move.shaping.frequency}Hz`;
 			}
 			filename += '.csv';
 			return filename;
 		},
-		async waitForAccelerometerRun(accelerometer) {
+		async waitForAccelerometerRun(accelerometerId) {
 			if (this.cancelled) {
 				throw new OperationCancelledError();
 			}
 
+			// Get board ID from accelerometer
+			const matches = /(\d+)(\.\d+)?/.exec(accelerometerId);
+			if (!matches) {
+				throw new Error("Failed to get accelerometer board ID");
+			}
+
+			// Get board
+			const board = this.boards.find(board => board.canAddress === parseInt(matches[1]));
+			if (!board) {
+				throw new Error("Failed to get accelerometer board");
+			}
+
+			// Wait for accelerometer runs to change
 			let resolve, reject;
 			const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
-			const unwatch = this.$watch(() => accelerometer.runs || this.cancelled, () => {
+			const unwatch = this.$watch(() => board.accelerometer.runs || this.cancelled, () => {
 				if (this.cancelled) {
 					reject();
 				} else {
@@ -548,11 +551,10 @@ export default {
 
 				// Start sampling and move on to the end position
 				const endMoveParameters = move.axis.split('+').map(axis => `${axis}${move.end}`).reduce((a, b) => a + ' ' + b);
-				const accelerometerId = this.getAccelerometerId(move.accelerometer);
 				if (this.recordWholeMove) {
-					await this.doCode(`M400 M956 P${accelerometerId} S1000 A0 F"${this.getMoveFilename(move, accelerometerId)}" G1 ${endMoveParameters} F${this.maxSpeed}`);
+					await this.doCode(`M400 M956 P${move.accelerometer} S1000 A0 F"${this.getMoveFilename(move)}" G1 ${endMoveParameters} F${this.maxSpeed}`);
 				} else {
-					await this.doCode(`G1 ${endMoveParameters} F${this.maxSpeed} M400 M956 P${accelerometerId} S1000 A0 F"${this.getMoveFilename(move, accelerometerId)}"`);
+					await this.doCode(`G1 ${endMoveParameters} F${this.maxSpeed} M400 M956 P${move.accelerometer} S1000 A0 F"${this.getMoveFilename(move)}"`);
 				}
 				await this.waitForAccelerometerRun(move.accelerometer);
 
@@ -637,7 +639,7 @@ export default {
 			}
 		},
 		'state.status'(to) {
-			if ((to === StatusType.disconnected || to === StatusType.off) && this.currentPage === 'collection') {
+			if ((to === MachineStatus.disconnected || to === MachineStatus.off) && this.currentPage === 'collection') {
 				this.cancelled = true;
 			}
 		}
