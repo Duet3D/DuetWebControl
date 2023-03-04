@@ -227,6 +227,8 @@ export function registerCategory(name: string, icon: string, caption: string | (
 		}
 
 		Vue.set(Menu, name, category);
+		//return on next tick to ensure dom/component is updated before plugin attempts to register new routes uner the new category
+		Vue.nextTick(() => {return;});
 	}
 }
 
