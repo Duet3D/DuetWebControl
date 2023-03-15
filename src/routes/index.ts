@@ -211,7 +211,7 @@ export const Routes: Array<RouteConfig> = [];
  * @param caption Caption to show in the menu
  * @param translated Whether the caption is already translated
  */
-export function registerCategory(name: string, icon: string, caption: string | (() => string), translated = false) {
+export async function registerCategory(name: string, icon: string, caption: string | (() => string), translated = false) {
 	if (Menu[name] === undefined) {
 		const category: MenuCategory = {
 			caption: caption as string,
@@ -227,6 +227,7 @@ export function registerCategory(name: string, icon: string, caption: string | (
 		}
 
 		Vue.set(Menu, name, category);
+		await Vue.nextTick();			// wait for the DOM to be updated so that more routes can be added safely
 	}
 }
 
