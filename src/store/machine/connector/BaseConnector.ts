@@ -268,8 +268,9 @@ abstract class BaseConnector {
 	/**
 	 * Delete a file or directory
 	 * @param filename Path of the file or directory to delete
+	 * @param recursive Delete directories recursively (optional)
 	 */
-	abstract delete(filename: string): Promise<void>;
+	abstract delete(filename: string, recursive?: boolean): Promise<void>;
 
 	/**
 	 * Move a file or directory

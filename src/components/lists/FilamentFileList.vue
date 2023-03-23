@@ -23,7 +23,7 @@
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory"
 						:folder-icon="isRootDirectory ? 'mdi-radiobox-marked' : 'mdi-folder'" :loading.sync="loading"
 						:doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked"
-						:no-delete="isRootDirectory" :no-rename="filamentSelected" no-drag-drop
+						:no-delete="filamentSelected" :no-rename="filamentSelected" no-drag-drop
 						:no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
 			<template #context-menu>
 				<v-list-item v-show="filamentSelected" @click="downloadFilament()">
@@ -31,9 +31,6 @@
 				</v-list-item>
 				<v-list-item v-show="filamentSelected" @click="rename">
 					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t("list.baseFileList.rename") }}
-				</v-list-item>
-				<v-list-item v-show="filamentSelected" @click="remove()">
-					<v-icon class="mr-1">mdi-delete</v-icon> {{ $t("list.baseFileList.delete") }}
 				</v-list-item>
 			</template>
 		</base-file-list>
@@ -184,50 +181,6 @@ export default Vue.extend({
 			}
 
 			await (this.$refs.filelist as any).rename(this.selection[0]);
-		},
-		async remove(items?: Array<BaseFileListItem>) {
-			if (!items) {
-				items = this.selection.slice();
-			}
-
-			if (items.some(item => item.isDirectory && store.state.machine.model.move.extruders.some(extruder => extruder.filament === item.name))) {
-				this.$makeNotification(LogType.error, this.$t("notification.deleteFilament.errorTitle"), this.$t("notification.deleteFilament.errorStillLoaded"));
-				return;
-			}
-
-			if (this.doingFileOperation) {
-				return;
-			}
-
-			this.doingFileOperation = true;
-			for(const item of items) {
-				try {
-					if (item.isDirectory) {
-						// Get files from the filament directory
-						const files: Array<FileListItem> = await store.dispatch("machine/getFileList", Path.combine(Path.filaments, item.name));
-						if (files.some(file => file.isDirectory)) {
-							this.$makeNotification(LogType.error, this.$t("notification.deleteFilament.errorTitle"), this.$t("notification.deleteFilament.errorSubDirectories", [item.name]));
-							break;
-						}
-
-						// Delete each file from the directory
-						for (const file of files) {
-							await store.dispatch("machine/delete", Path.combine(Path.filaments, item.name, file.name));
-						}
-					}
-
-					// Delete the item
-					await store.dispatch("machine/delete", Path.combine(Path.filaments, item.name));
-					await this.refresh();
-				} catch (e) {
-					if (!(e instanceof DisconnectedError)) {
-						console.warn(e);
-						this.$makeNotification(LogType.error, this.$t('notification.deleteFilament.errorTitle'), getErrorMessage(e));
-					}
-					break;
-				}
-			}
-			this.doingFileOperation = false;
 		},
 		fileClicked(item: BaseFileListItem) {
 			(this.$refs.filelist as any).edit(item);

@@ -638,13 +638,16 @@ export default VDataTable.extend({
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const item = items[i];
-					await store.dispatch("machine/delete", Path.combine(directory, item.name));
+					await store.dispatch("machine/delete", {
+						filename: Path.combine(directory, item.name),
+						recursive: item.isDirectory ? true : undefined
+					});
 
 					deletedItems.push(items[i]);
 					this.innerFilelist = this.innerFilelist.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 					this.innerValue = this.innerValue.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 				} catch (e) {
-					this.$makeNotification(LogType.error, this.$t("notification.delete.errorTitle", [items[i].name]), items[i].isDirectory ? this.$t("notification.delete.errorMessageDirectory") : getErrorMessage(e));
+					this.$makeNotification(LogType.error, this.$t("notification.delete.errorTitle", [items[i].name]), getErrorMessage(e));
 				}
 			}
 

@@ -430,9 +430,8 @@ export default class RestConnector extends BaseConnector {
 	 */
 	async upload(filename: string, content: string | Blob | File, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<void> {
 		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
-		// TODO add timestamp support
 		if (!this.settings?.ignoreFileTimestamps && content instanceof File) {
-			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), { lastModified: content.lastModified}, "", payload, 0, filename, cancellationToken, onProgress);
+			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), { lastModified: content.lastModified }, "", payload, 0, filename, cancellationToken, onProgress);
 		} else {
 			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), null, "", payload, 0, filename, cancellationToken, onProgress);
 		}
@@ -441,9 +440,10 @@ export default class RestConnector extends BaseConnector {
 	/**
 	 * Delete a file or directory
 	 * @param filename Path of the file or directory to delete
+	 * @param recursive Delete directories recursively
 	 */
-	async delete(filename: string): Promise<void> {
-		await this.request("DELETE", "machine/file/" + encodeURIComponent(filename), null, "json", undefined, undefined, filename);
+	async delete(filename: string, recursive?: boolean): Promise<void> {
+		await this.request("DELETE", "machine/file/" + encodeURIComponent(filename), (recursive !== undefined) ? { recursive: recursive ? "true" : "false" } : null, "json", undefined, undefined, filename);
 	}
 
 	/**

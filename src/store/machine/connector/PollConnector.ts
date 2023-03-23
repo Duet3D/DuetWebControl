@@ -861,9 +861,10 @@ export default class PollConnector extends BaseConnector {
 	/**
 	 * Delete a file or directory
 	 * @param filename Path of the file or directory to delete
+	 * @param recursive Delete directories recursively
 	 */
-	async delete(filename: string): Promise<void> {
-		const response = await this.request("GET", "rr_delete", { name: filename }, "json", null, this.requestTimeout, filename);
+	async delete(filename: string, recursive?: boolean): Promise<void> {
+		const response = await this.request("GET", "rr_delete", (recursive !== undefined) ? { name: filename, recursive: recursive ? "yes" : "no" } : { name: filename }, "json", null, this.requestTimeout, filename);
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}

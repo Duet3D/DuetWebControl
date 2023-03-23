@@ -445,14 +445,36 @@ export default function(connector: BaseConnector | null): MachineModule {
 			/**
 			 * Delete a file or directory
 			 * @param context Action context
-			 * @param filename Filename to delete
+			 * @param payload Filename to delete or an object
+			 * @param payload.filename Filename to delete
+			 * @param payload.recursive Delete directories recursively (optional)
 			 */
-			async delete(_, filename: string) {
+			async delete(_, payload: string | { filename: string, recursive?: boolean }) {
 				if (connector === null) { throw new OperationFailedError("delete is not available in default machine module"); }
 
-				await connector.delete(filename);
-				Root.$emit(Events.fileOrDirectoryDeleted, { machine: connector.hostname, filename });
-				Root.$emit(Events.filesOrDirectoriesChanged, { machine: connector.hostname, files: [filename] });
+				if (payload instanceof Object) {
+					await connector.delete(payload.filename, payload.recursive);
+					Root.$emit(Events.fileOrDirectoryDeleted, {
+						machine: connector.hostname,
+						filename: payload.filename
+					});
+					Root.$emit(Events.filesOrDirectoriesChanged, {
+						machine: connector.hostname,
+						files: [payload.filename],
+						recursive: payload.recursive
+					});
+				} else {
+					await connector.delete(payload);
+					Root.$emit(Events.fileOrDirectoryDeleted, {
+						machine: connector.hostname,
+						filename: payload,
+						recursive: false
+					});
+					Root.$emit(Events.filesOrDirectoriesChanged, {
+						machine: connector.hostname,
+						files: [payload]
+					});
+				}
 			},
 
 			/**
