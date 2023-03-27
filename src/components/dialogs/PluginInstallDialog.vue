@@ -304,7 +304,6 @@ export default Vue.extend({
 		checkRoot(): boolean {
 			return !this.requiresRoot || store.state.machine.model.state.dsfRootPluginSupport;
 		},
-
 		permissions(): Set<SbcPermission> {
 			return this.pluginManifest.sbcPermissions || new Set<SbcPermission>();
 		}
