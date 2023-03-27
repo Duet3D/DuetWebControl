@@ -92,6 +92,7 @@
 		<file-transfer-dialog />
 		<message-box-dialog />
 		<plugin-install-dialog />
+		<incompatible-versions-dialog />
 
 		<component v-for="component in injectedComponentNames" :is="component" :key="component" />
 	</v-app>

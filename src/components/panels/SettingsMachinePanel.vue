@@ -10,6 +10,9 @@
 					<v-text-field v-model.number="babystepAmount" type="number" step="any" min="0.001"
 								  :label="$t('panel.settingsMachine.babystepAmount', ['mm'])" hide-details />
 				</v-col>
+				<v-col cols="12">
+					<v-switch :label="$t('panel.settingsMachine.checkVersions')" hide-details v-model="checkVersions" />
+				</v-col>
 				<v-col cols="12" lg="6">
 					<v-text-field v-model.number="moveFeedrate" type="number" step="any" min="0.001"
 								  :label="$t('panel.settingsMachine.moveFeedrate', ['mm/min'])" hide-details />
@@ -50,6 +53,10 @@ export default Vue.extend({
 		babystepAmount: {
 			get(): number { return store.state.machine.settings.babystepAmount; },
 			set(value: number) { if (isFinite(value) && value > 0) { this.update({ babystepAmount: value }); } }
+		},
+		checkVersions: {
+			get(): boolean { return store.state.machine.settings.checkVersions; },
+			set(value: boolean) { this.update({ checkVersions: value }); }
 		},
 		moveFeedrate: {
 			get(): number { return store.state.machine.settings.moveFeedrate; },

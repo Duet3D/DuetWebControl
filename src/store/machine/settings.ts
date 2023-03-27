@@ -75,6 +75,11 @@ export interface MachineSettingsState {
 	babystepAmount: number;
 
 	/**
+	 * Check if the DWC/DSF/RRF versions are compatible
+	 */
+	checkVersions: boolean;
+
+	/**
 	 * List of displayed extra temperature sensors to show
 	 */
 	displayedExtraTemperatures: Array<number>;
@@ -214,6 +219,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 
 			// UI
 			babystepAmount: 0.05,
+			checkVersions: true,
 			displayedExtraTemperatures: [],
 			displayedExtruders: [0, 1, 2, 3, 4, 5],
 			displayedFans: [-1, 0, 1, 2],

@@ -299,7 +299,12 @@
       "sbcWarning": "You are operating your machine in SBC mode. Please upgrade the firmware using DWC only if advised by the firmware developers."
     },
     "inputRequired": "Please enter a value",
-    "numberRequired": "Please enter a valid number"
+    "numberRequired": "Please enter a valid number",
+    "incompatibleVersions": {
+      "title": "Incompatible Software Versions",
+      "prompt": "The installed software versions do not match. Please operate your setup only at equal versions to avoid potential incompatibilities.",
+      "upgradeNotice": "Please check out the {docs} on how to upgrade your Duet software components."
+    }
   },
   "directory": {
     "menu": "Menu Directory",
@@ -752,7 +757,8 @@
       "caption": "Machine-Specific",
       "babystepAmount": "Babystep amount ({0})",
       "moveFeedrate": "Feedrate for move buttons ({0})",
-      "toolChangeMacros": "Tool change macros"
+      "toolChangeMacros": "Tool change macros",
+      "checkVersions": "Check software versions and display notification on incompatibility"
     },
     "settingsNotifications": {
       "caption": "Notifications",

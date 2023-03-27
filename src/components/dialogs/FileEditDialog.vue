@@ -85,7 +85,7 @@ import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
 import Path from "@/utils/path";
 
-const bigFileLimit = 33554432;	// 32 MiB
+const bigFileThreshold = 33554432;		// 32 MiB
 
 export default Vue.extend({
 	props: {
@@ -166,13 +166,6 @@ export default Vue.extend({
 				// TODO Optionally ask user to save file somewhere else
 			}
 		},
-		manageEditor(enable: boolean) {
-			if (enable) {
-
-			} else {
-				this.editor?.dispose();
-			}
-		},
 		onBeforeLeave(e: Event) {
 			if (this.valueChanged) {
 				// Cancel the event. Chrome also requires returnValue to be set
@@ -226,11 +219,12 @@ export default Vue.extend({
 				// Create Monaco editor if necessary
 				if (this.useEditor) {
 					this.$nextTick(() => {
-						const isBigFile = this.innerValue.length > bigFileLimit;
+						const isBigFile = this.innerValue.length > bigFileThreshold;
 						this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
 							automaticLayout: true,
 							matchBrackets: isBigFile ? "near" : "always",
 							language: this.language,
+							lineNumbersMinChars: isBigFile ? 10 : 5,
 							occurrencesHighlight: !isBigFile,
 							rulers: [255],
 							scrollBeyondLastLine: false,
