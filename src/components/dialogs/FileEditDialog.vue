@@ -85,6 +85,7 @@ import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
 import Path from "@/utils/path";
 
+const mediumFileThreshold = 4194304;	// 4 MiB
 const bigFileThreshold = 33554432;		// 32 MiB
 
 export default Vue.extend({
@@ -219,12 +220,12 @@ export default Vue.extend({
 				// Create Monaco editor if necessary
 				if (this.useEditor) {
 					this.$nextTick(() => {
-						const isBigFile = this.innerValue.length > bigFileThreshold;
+						const isBigFile = this.innerValue.length > bigFileThreshold, isMediumFile = this.innerValue.length > mediumFileThreshold;
 						this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
 							automaticLayout: true,
 							matchBrackets: isBigFile ? "near" : "always",
 							language: this.language,
-							lineNumbersMinChars: isBigFile ? 10 : 5,
+							lineNumbersMinChars: isMediumFile ? 10 : 5,
 							occurrencesHighlight: !isBigFile,
 							rulers: [255],
 							scrollBeyondLastLine: false,
