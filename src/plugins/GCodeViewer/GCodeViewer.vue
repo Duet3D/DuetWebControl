@@ -356,6 +356,8 @@
 									<v-checkbox :label="$t('plugins.gcodeViewer.showAxes')" v-model="showAxes"></v-checkbox>
 									<v-checkbox :label="$t('plugins.gcodeViewer.showObjectLabels')" v-model="showObjectLabels"></v-checkbox>
 									<v-switch :label="$t('plugins.gcodeViewer.cameraInertia')" v-model="cameraInertia"></v-switch>
+									<v-switch :label="$t('plugins.gcodeViewer.zBelt')" v-model="zBelt"></v-switch>
+									<v-text-field type="number"  :label="$t('plugins.gcodeViewer.zBeltAngle')" v-model="zBeltAngle"></v-text-field>
 								</v-card-text>
 							</v-card>
 						</v-expansion-panel-content>
@@ -480,7 +482,7 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			currentLine: 0
+			currentLine: 0,
 		};
 	},
 	computed: {
@@ -558,13 +560,29 @@ export default {
 			set(value) {
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', value);
 				if(value){
- 					console.log('gcode visible');
 					this.fileData = viewer.fileData;
 				} else{ 
 					this.fileData = ""
 				}
 				this.resize();
 			},
+		},
+		zBelt: {
+			get() {
+				return this.pluginCache.zBelt;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBelt', value);
+
+			}
+		},
+		zBeltAngle: {
+			get() {
+				return this.pluginCache.zBeltAngle;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBeltAngle', value);
+			}
 		},
 		viewerClass() {
 			this.$nextTick(() => {
@@ -798,11 +816,15 @@ export default {
 			}
 			this.loading = true;
 			this.preLoadSettings();		
-			await viewer.reload();
+
+			if (viewer.fileData.length > 0) {
+				await viewer.reload();
+			}
 			this.loading = false;
 			viewer.setCursorVisiblity(this.showCursor);
 			viewer.toggleTravels(this.showTravelLines);
 			this.setGCodeValues();
+			
 			viewer.gcodeProcessor.forceRedraw();
 			viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
 
@@ -849,6 +871,7 @@ export default {
 			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
 				viewer.updateRenderQuality(5);
@@ -1071,6 +1094,17 @@ export default {
 
 
 			}
+		},
+		'zBelt': function (to) { 
+			viewer.setZBelt(to, this.zBeltAngle);
+			//viewer.gcodeProcessor.forceRedraw();	
+		},
+		'zBeltAngle': function (to) { 
+			if (to < 0 || to > 90) {
+				this.zBeltAngle = 45;
+			}
+			viewer.setZBelt(this.zBelt, to);
+			//viewer.gcodeProcessor.forceRedraw();
 		},
 
 	},

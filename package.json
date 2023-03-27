@@ -17,7 +17,7 @@
       "@babylonjs/materials": "^5.34.0",
       "@duet3d/motionanalysis": "^3.5.0-beta.1",
       "@duet3d/objectmodel": "^3.5.0-beta.24",
-      "@sindarius/gcodeviewer": "^3.2.0",
+      "@sindarius/gcodeviewer": "^3.3.2",
       "chart.js": "^2.9.4",
       "chartjs-adapter-date-fns": "^1.0.0",
       "compare-versions": "^5.0.1",

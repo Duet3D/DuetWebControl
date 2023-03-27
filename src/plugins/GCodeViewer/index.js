@@ -34,3 +34,5 @@ registerPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering',
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'useSpecular', true);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'g1AsExtrusion', false);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', false);
+registerPluginData('GCodeViewer', PluginDataType.machineCache, 'zBelt', false);
+registerPluginData('GCodeViewer', PluginDataType.machineCache, 'zBeltAngle', 45);
