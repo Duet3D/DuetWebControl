@@ -179,7 +179,7 @@
 			</div>
 			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline.sync="currentLine" ></code-stream>
 			<canvas :title="hoverLabel" :class="viewerClass" ref="viewerCanvas"></canvas>
-			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay"></fs-overlay>
+			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay" :viewgcode="viewGCode"></fs-overlay>
 			<div class="loading-progress">
 				<v-progress-linear :value="loadingProgress" class="disable-transition" height="15" rounded v-show="loading">{{loadingProgress}}% {{loadingMessage}}</v-progress-linear>
 			</div>
@@ -482,7 +482,7 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			currentLine: 0,
+			currentLine: 0
 		};
 	},
 	computed: {
