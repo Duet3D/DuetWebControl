@@ -117,6 +117,9 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 					"@default": ""
 				}
 			}],
+			
+			// comments
+			[/;.*/, "comment"],
 
 			// EOL
 			[/\n/, "", "@popall"],
