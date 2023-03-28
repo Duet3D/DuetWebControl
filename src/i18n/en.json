@@ -1003,7 +1003,8 @@
          "g1AsExtrusion": "Render G1 (CNC)",
          "viewGCode": "View G-Code",
          "zBelt": " Z Belt",
-         "zBeltAngle": "Z Belt Gantry Angle"
+         "zBeltAngle": "Z Belt Gantry Angle",
+         "showWorkplace": "Show Workplace"
       },
       "heightmap": {
          "menuCaption": "Height Map",

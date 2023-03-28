@@ -36,3 +36,4 @@ registerPluginData('GCodeViewer', PluginDataType.machineCache, 'g1AsExtrusion', 
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', false);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'zBelt', false);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'zBeltAngle', 45);
+registerPluginData('GCodeViewer', PluginDataType.machineCache, 'showWorkplace', true);

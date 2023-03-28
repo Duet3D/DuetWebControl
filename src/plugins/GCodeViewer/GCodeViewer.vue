@@ -355,6 +355,7 @@
 									<v-checkbox :label="$t('plugins.gcodeViewer.showFSOverlay')" v-model="showOverlay"></v-checkbox>
 									<v-checkbox :label="$t('plugins.gcodeViewer.showAxes')" v-model="showAxes"></v-checkbox>
 									<v-checkbox :label="$t('plugins.gcodeViewer.showObjectLabels')" v-model="showObjectLabels"></v-checkbox>
+									<v-checkbox :label="$t('plugins.gcodeViewer.showWorkplace')" v-model="showWorkplace"></v-checkbox>
 									<v-switch :label="$t('plugins.gcodeViewer.cameraInertia')" v-model="cameraInertia"></v-switch>
 									<v-switch :label="$t('plugins.gcodeViewer.zBelt')" v-model="zBelt"></v-switch>
 									<v-text-field type="number"  :label="$t('plugins.gcodeViewer.zBeltAngle')" v-model="zBeltAngle"></v-text-field>
@@ -624,6 +625,14 @@ export default {
 		},
 		currentWorkplace() {
 			return this.move.workplaceNumber;
+		},
+		showWorkplace: {
+				get() {
+				return this.pluginCache.showWorkplace;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'showWorkplace', value);
+			}
 		}
 	},
 	async mounted() {
@@ -961,7 +970,7 @@ export default {
 						
 					}
 				}
-				viewer.setWorkplaceVisiblity(true);
+				viewer.setWorkplaceVisiblity(this.showWorkplace);
 		}
 	},
 	activated() {
@@ -1155,8 +1164,10 @@ export default {
 		'currentWorkplace': function (to) {
 			console.log(to)
 			viewer.gcodeProcessor.currentWorkplace = to;
+		},
+		showWorkplace() {
+			this.updateWorkplaces();
 		}
-
 	},
 };
 </script>
