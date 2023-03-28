@@ -101,5 +101,6 @@ export function logGlobal(type: LogType, title: string, message: string | null =
 
 // Register extensions
 Vue.prototype.$log = log;
+Vue.prototype.$logToConsole = logToConsole;
 Vue.prototype.$logCode = logCode;
 Vue.prototype.$logGlobal = logGlobal;

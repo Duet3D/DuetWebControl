@@ -70,7 +70,7 @@ export default Vue.extend({
 
 					this.shown = versionMismatch;
 					if (versionMismatch) {
-						this.$log(LogType.warning, this.$t("dialog.incompatibleVersions.title"), this.$t("dialog.incompatibleVersions.prompt"));
+						this.$logToConsole(LogType.warning, this.$t("dialog.incompatibleVersions.title"), this.$t("dialog.incompatibleVersions.prompt"));
 					}
 				} catch (e) {
 					console.warn("Failed to check software versions", e);
