@@ -148,8 +148,8 @@ export function startsWith(path: string, value: string) {
 /**
  * Check if the path is either a G-code file or if G-code files lie in it
  * @param path Path
- * @param gcodesDir  
- * @returns 
+ * @param gcodesDir Path to G-code files
+ * @returns True if is a G-code job file
  */
 export function isGCodePath(path: string, gcodesDir: string) {
 	path = path.toLowerCase();

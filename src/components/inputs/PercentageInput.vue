@@ -7,14 +7,16 @@
 <template>
 	<v-row dense align="center">
 		<v-col cols="auto">
-			<v-btn large icon :disabled="disabled || innerValue <= min" @click="applyStep(-step)" @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)" @touchstart="mouseDown(false)" @touchend="mouseUp(false)" class="ml-0">
+			<v-btn large icon :disabled="disabled || innerValue <= min" @click="applyStep(-step)"
+				   @mousedown="mouseDown(false)" @mouseup="mouseUp(false)" @mouseleave="mouseUp(false)"
+				   @touchstart="mouseDown(false)" @touchend="mouseUp(false)" class="ml-0">
 				<v-icon>mdi-minus</v-icon>
 			</v-btn>
 		</v-col>
 
 		<v-col v-if="numericInputs" class="d-flex align-center">
-			<v-combobox ref="input" type="number" :min="min" :max="max" step="any" :disabled="disabled" class="mx-2 mt-2" append-outer-icon="mdi-percent"
-						:items="items" hide-selected :menu-props="{ maxHeight: '50%' }"
+			<v-combobox ref="input" type="number" :min="min" :max="max" step="any" :disabled="disabled" class="mx-2 mt-2"
+						append-outer-icon="mdi-percent" :items="items" hide-selected :menu-props="{ maxHeight: '50%' }"
 						:value="innerValue" @update:search-input="updateValue" @keyup.enter="apply">
 			</v-combobox>
 			<v-btn class="mr-1" color="primary" :disabled="!canApply" @click="apply">
@@ -23,11 +25,14 @@
 			</v-btn>
 		</v-col>
 		<v-col v-else>
-			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled" hide-details thumb-label="always" class="slider"></v-slider>
+			<v-slider :value="innerValue" @change="$emit('input', $event)" :min="min" :max="max" :disabled="disabled"
+					  hide-details thumb-label="always" class="slider"></v-slider>
 		</v-col>
 
 		<v-col cols="auto">
-			<v-btn large icon :disabled="disabled || innerValue >= max" @click="applyStep(step)" @mousedown="mouseDown(true)" @mouseup="mouseUp(true)" @mouseleave="mouseUp(true)" @touchstart="mouseDown(true)" @touchend="mouseUp(true)" class="mr-0">
+			<v-btn large icon :disabled="disabled || innerValue >= max" @click="applyStep(step)"
+				   @mousedown="mouseDown(true)" @mouseup="mouseUp(true)" @mouseleave="mouseUp(true)"
+				   @touchstart="mouseDown(true)" @touchend="mouseUp(true)" class="mr-0">
 				<v-icon>mdi-plus</v-icon>
 			</v-btn>
 		</v-col>

@@ -259,7 +259,7 @@ export default Vue.extend({
 
 					// Try to get file info for the next file
 					const file = this.filelist[fileIndex];
-					if (!file.isDirectory) {
+					if (file && !file.isDirectory) {
 						let gotFileInfo = false;
 						try {
 							// Check if it is possible to parse this file

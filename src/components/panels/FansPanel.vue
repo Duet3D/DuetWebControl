@@ -85,7 +85,7 @@ export default Vue.extend({
 		},
 		toolFanValue(): number {
 			if ((this.toolFan >= 0) && (this.toolFan < this.fans.length) && (this.fans[this.toolFan] !== null)) {
-				return this.fans[this.toolFan]!.requestedValue;
+				return this.fans[this.toolFan]!.requestedValue * 100;
 			}
 			return 0;
 		}
@@ -104,7 +104,7 @@ export default Vue.extend({
 			return (fanIndex >= 0) && (fanIndex < this.fans.length) && (this.fans[fanIndex] !== null) ? Math.round(this.fans[fanIndex]!.requestedValue * 100) : 0;
 		},
 		async setFanValue(fanIndex: number, value: number) {
-			if (fanIndex === -1) {
+			if (fanIndex <= -1) {
 				await store.dispatch("machine/sendCode", `M106 S${value / 100}`);
 			} else {
 				await store.dispatch("machine/sendCode", `M106 P${fanIndex} S${value / 100}`);

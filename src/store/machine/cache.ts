@@ -170,7 +170,7 @@ export default function(connector: BaseConnector | null): MachineCacheModule {
 					} else {
 						// Delete directory items
 						for (let filename in state.fileInfos) {
-							if (Path.startsWith(filename, fileOrDirectory)) {
+							if (Path.equals(fileOrDirectory, Path.extractDirectory(filename))) {
 								Vue.delete(state.fileInfos, filename);
 							}
 						}
