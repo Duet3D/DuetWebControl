@@ -426,6 +426,7 @@ import { mapActions, mapState } from 'vuex';
 import { setPluginData, PluginDataType } from '@/store';
 import { isPrinting } from '@/utils/enums';
 import Path from '@/utils/path';
+import { Vector3 } from '@babylonjs/core/Maths/math';
 
 let viewer;
 
@@ -482,7 +483,7 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			currentLine: 0
+			currentLine: 0,
 		};
 	},
 	computed: {
@@ -608,6 +609,22 @@ export default {
 		emergencyButtonClass() {
 			return this.viewGCode ? 'emergency-button-placement-codeview' : 'emergency-button-placement'
 		},
+		workplaceOffsets() { 
+			let offsets = [];
+			try {
+				for (let idx = 0; idx < this.move.axes.length; idx++){
+					let axis = this.move.axes[idx];
+					offsets.push(...axis.workplaceOffsets)
+				}
+			}
+			catch  {
+				
+			}
+			return offsets;
+		},
+		currentWorkplace() {
+			return this.move.workplaceNumber;
+		}
 	},
 	async mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
@@ -697,6 +714,7 @@ export default {
 			for (let idx = 0; idx < this.toolColors.length; idx++) {
 				viewer.gcodeProcessor.addTool(this.toolColors[idx], 0.4); //hard code the nozzle size for now.
 			}
+			this.updateWorkplaces();
 		});
 
 		window.addEventListener('keyup', (e) => {
@@ -821,6 +839,7 @@ export default {
 				await viewer.reload();
 			}
 			this.loading = false;
+			
 			viewer.setCursorVisiblity(this.showCursor);
 			viewer.toggleTravels(this.showTravelLines);
 			this.setGCodeValues();
@@ -871,15 +890,15 @@ export default {
 			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
 			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
 				viewer.updateRenderQuality(5);
 				viewer.gcodeProcessor.g1AsExtrusion = true;
-				viewer.gcodeProcessor.updateForceWireMode(true);
+				//viewer.gcodeProcessor.updateForceWireMode(true);
 				viewer.setZClipPlane(10000000,-10000000);
 			}
-			
 		},
 		async fileSelected(e) {
 			const reader = new FileReader();
@@ -922,6 +941,27 @@ export default {
 		},
 		updatePosition(){
 
+		},
+		updateWorkplaces() {
+				let axesLetterIdx = {};
+				for (var axesIdx in this.move.axes) {
+					let axes = this.move.axes[axesIdx];
+					axesLetterIdx[axes.letter] = Number(axesIdx);
+				}
+				//Reload the workplace offsets
+				viewer.gcodeProcessor.workplaceOffsets = [];
+				for (let idx = 0; idx < 9; idx++) {
+					try {
+						let x = this.move.axes[axesLetterIdx['X']].workplaceOffsets[idx];
+						let y = this.move.axes[axesLetterIdx['Y']].workplaceOffsets[idx]
+						let z = this.move.axes[axesLetterIdx['Z']].workplaceOffsets[idx]
+						viewer.gcodeProcessor.workplaceOffsets.push(new Vector3(x, y, z));
+					}
+					catch{
+						
+					}
+				}
+				viewer.setWorkplaceVisiblity(true);
 		}
 	},
 	activated() {
@@ -936,7 +976,7 @@ export default {
 			handler(newValue) {
 				var newPosition = newValue.axes.map((item) => ({
 					axes: item.letter,
-					position: item.userPosition,
+					position: item.userPosition + item.workplaceOffsets[this.currentWorkplace],
 				}));
 				viewer.updateToolPosition(newPosition);
 			},
@@ -1106,6 +1146,16 @@ export default {
 			viewer.setZBelt(this.zBelt, to);
 			//viewer.gcodeProcessor.forceRedraw();
 		},
+		'workplaceOffsets': {
+			handler() { 
+				this.updateWorkplaces();
+			},
+			deep: true
+		},
+		'currentWorkplace': function (to) {
+			console.log(to)
+			viewer.gcodeProcessor.currentWorkplace = to;
+		}
 
 	},
 };
