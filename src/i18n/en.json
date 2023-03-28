@@ -304,6 +304,10 @@
       "title": "Incompatible software versions",
       "prompt": "The installed software versions do not match. Please operate your setup only at equal versions to avoid potential incompatibilities and unexpected errors.",
       "upgradeNotice": "Please check out the {docs} on how to upgrade your Duet software components."
+    },
+    "duplicateFilament": {
+      "prompt": "Please enter a name for the filament copy:",
+      "title": "Duplicate Filament"
     }
   },
   "directory": {
@@ -448,7 +452,8 @@
       "downloadCSV": "Download as CSV"
     },
     "filament": {
-      "noFilaments": "No Filaments"
+      "noFilaments": "No Filaments",
+      "duplicate": "Duplicate"
     },
     "firmware": {
       "installFile": "Install Firmware File",

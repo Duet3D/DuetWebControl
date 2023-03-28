@@ -23,14 +23,14 @@
 		<base-file-list ref="filelist" v-model="selection" :directory.sync="directory"
 						:folder-icon="isRootDirectory ? 'mdi-radiobox-marked' : 'mdi-folder'" :loading.sync="loading"
 						:doingFileOperation="doingFileOperation" sort-table="filaments" @fileClicked="fileClicked"
-						:no-delete="filamentSelected" :no-rename="filamentSelected" no-drag-drop
+						:no-delete="filamentLoaded" :no-rename="filamentLoaded" no-drag-drop
 						:no-files-text="isRootDirectory ? 'list.filament.noFilaments' : 'list.baseFileList.noFiles'">
 			<template #context-menu>
-				<v-list-item v-show="filamentSelected" @click="downloadFilament()">
+				<v-list-item v-show="filamentSelected" @click="download()">
 					<v-icon class="mr-1">mdi-cloud-download</v-icon> {{ $t("list.baseFileList.downloadZIP") }}
 				</v-list-item>
-				<v-list-item v-show="filamentSelected" @click="rename">
-					<v-icon class="mr-1">mdi-rename-box</v-icon> {{ $t("list.baseFileList.rename") }}
+				<v-list-item v-show="filamentSelected" @click="duplicate()">
+					<v-icon class="mr-1">mdi-content-duplicate</v-icon> {{ $t("list.filament.duplicate") }}
 				</v-list-item>
 			</template>
 		</base-file-list>
@@ -61,10 +61,13 @@
 			</upload-btn>
 		</v-speed-dial>
 
-		<new-directory-dialog :shown.sync="showNewFilament" :directory="directory"
-							  :title="$t('dialog.newFilament.title')" :prompt="$t('dialog.newFilament.prompt')"
+		<new-directory-dialog :shown.sync="showNewFilament" :directory="directory" :title="$t('dialog.newFilament.title')"
+							  :prompt="$t('dialog.newFilament.prompt')" :showSuccess="false" :showError="false"
+							  @directoryCreationFailed="directoryCreationFailed" @directoryCreated="createFilamentFiles" />
+		<new-directory-dialog :shown.sync="showDuplicateFilament" :directory="directory"
+							  :title="$t('dialog.duplicateFilament.title')" :prompt="$t('dialog.duplicateFilament.prompt')"
 							  :showSuccess="false" :showError="false" @directoryCreationFailed="directoryCreationFailed"
-							  @directoryCreated="createFilamentFiles" />
+							  @directoryCreated="duplicateFilamentFiles" />
 		<new-file-dialog :shown.sync="showNewFile" :directory="directory" />
 	</div>
 </template>
@@ -74,14 +77,12 @@ import saveAs from "file-saver";
 import JSZip from "jszip";
 import Vue from "vue";
 
-import { UploadType } from "@/components/buttons/UploadBtn.vue";
 import store from "@/store";
 import { DisconnectedError, FileNotFoundError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
 import Path from "@/utils/path";
 import { LogType } from "@/utils/logging";
 
 import { BaseFileListItem } from "./BaseFileList.vue";
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
 
 export default Vue.extend({
 	computed: {
@@ -91,6 +92,9 @@ export default Vue.extend({
 		},
 		filamentsDirectory(): string {
 			return store.state.machine.model.directories.filaments;
+		},
+		filamentLoaded(): boolean {
+			return this.isRootDirectory && this.selection.some(item => store.state.machine.model.move.extruders.some(extruder => extruder.filament === item.name));
 		},
 		filamentSelected(): boolean {
 			return Path.equals(this.directory, this.filamentsDirectory) && (this.selection.length === 1) && this.selection[0].isDirectory;
@@ -104,6 +108,8 @@ export default Vue.extend({
 			doingFileOperation: false,
 			showNewFile: false,
 			showNewFilament: false,
+			showDuplicateFilament: false,
+			filamentToDuplicate: null as string | null,
 			fab: false
 		}
 	},
@@ -132,7 +138,7 @@ export default Vue.extend({
 		async refresh() {
 			await (this.$refs.filelist as any).refresh();
 		},
-		async downloadFilament() {
+		async download() {
 			const filament = this.selection[0].name;
 
 			// Download the files first
@@ -170,17 +176,53 @@ export default Vue.extend({
 				saveAs(zipBlob, `${filament}.zip`);
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification(LogType.error, this.$t("notification.compress.errorTitle", ["load.g"]), getErrorMessage(e));
+				this.$makeNotification(LogType.error, this.$t("notification.compress.errorTitle"), getErrorMessage(e));
 			}
 		},
-		async rename() {
-			const filament = this.selection[0].name;
-			if (store.state.machine.model.move.extruders.some(extruder => extruder.filament === filament)) {
-				this.$makeNotification(LogType.error, this.$t("notification.renameFilament.errorTitle"), this.$t("notification.renameFilament.errorStillLoaded"));
+		duplicate() {
+			this.filamentToDuplicate = this.selection[0].name;
+			this.showDuplicateFilament = true;
+		},
+		async duplicateFilamentFiles(path: string) {
+			if (this.doingFileOperation) {
 				return;
 			}
 
-			await (this.$refs.filelist as any).rename(this.selection[0]);
+			this.doingFileOperation = true;
+			try {
+				// Download the files first
+				let loadG, unloadG;
+				try {
+					loadG = await store.dispatch("machine/download", { filename: Path.combine(Path.filaments, this.filamentToDuplicate, "load.g"), type: "blob", showSuccess: false, showError: false });
+					unloadG = await store.dispatch("machine/download", { filename: Path.combine(Path.filaments, this.filamentToDuplicate, "unload.g"), type: "blob", showSuccess: false, showError: false });
+				} catch (e) {
+					if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
+						this.$makeNotification(LogType.error, this.$t("notification.download.error", [!loadG ? "load.g" : "unload.g"]), getErrorMessage(e));
+					}
+					return;
+				}
+
+				let configG;
+				try {
+					configG = await store.dispatch("machine/download", { filename: Path.combine(Path.filaments, this.filamentToDuplicate, "config.g"), type: "blob", showSuccess: false, showError: false });
+				} catch (e) {
+					// config.g may not exist
+					if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError) && !(e instanceof FileNotFoundError)) {
+						this.$makeNotification(LogType.error, this.$t("notification.download.error", ["config.g"]), getErrorMessage(e));
+					}
+				}
+
+				// Upload them
+				const emptyFile = new Blob();
+				await store.dispatch("machine/upload", { filename: Path.combine(path, "load.g"), content: loadG ?? emptyFile, showSuccess: false });
+				await store.dispatch("machine/upload", { filename: Path.combine(path, "config.g"), content: configG ?? emptyFile, showSuccess: false });
+				await store.dispatch("machine/upload", { filename: Path.combine(path, "unload.g"), content: unloadG ?? emptyFile, showSuccess: false });
+				this.$makeNotification(LogType.success, this.$t("notification.newFilament.successTitle"), this.$t("notification.newFilament.successMessage", [Path.extractFileName(path)]));
+			} catch (e) {
+				console.warn(e);
+				this.$makeNotification(LogType.error, this.$t("notification.newFilament.errorTitleMacros"), getErrorMessage(e));
+			}
+			this.doingFileOperation = false;
 		},
 		fileClicked(item: BaseFileListItem) {
 			(this.$refs.filelist as any).edit(item);
