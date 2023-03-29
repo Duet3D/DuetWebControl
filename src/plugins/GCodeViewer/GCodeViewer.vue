@@ -179,7 +179,7 @@
 			</div>
 			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline.sync="currentLine" ></code-stream>
 			<canvas :title="hoverLabel" :class="viewerClass" ref="viewerCanvas"></canvas>
-			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay"></fs-overlay>
+			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay" :viewgcode="viewGCode"></fs-overlay>
 			<div class="loading-progress">
 				<v-progress-linear :value="loadingProgress" class="disable-transition" height="15" rounded v-show="loading">{{loadingProgress}}% {{loadingMessage}}</v-progress-linear>
 			</div>
@@ -355,7 +355,10 @@
 									<v-checkbox :label="$t('plugins.gcodeViewer.showFSOverlay')" v-model="showOverlay"></v-checkbox>
 									<v-checkbox :label="$t('plugins.gcodeViewer.showAxes')" v-model="showAxes"></v-checkbox>
 									<v-checkbox :label="$t('plugins.gcodeViewer.showObjectLabels')" v-model="showObjectLabels"></v-checkbox>
+									<v-checkbox :label="$t('plugins.gcodeViewer.showWorkplace')" v-model="showWorkplace"></v-checkbox>
 									<v-switch :label="$t('plugins.gcodeViewer.cameraInertia')" v-model="cameraInertia"></v-switch>
+									<v-switch :label="$t('plugins.gcodeViewer.zBelt')" v-model="zBelt"></v-switch>
+									<v-text-field type="number"  :label="$t('plugins.gcodeViewer.zBeltAngle')" v-model="zBeltAngle"></v-text-field>
 								</v-card-text>
 							</v-card>
 						</v-expansion-panel-content>
@@ -424,6 +427,7 @@ import { mapActions, mapState } from 'vuex';
 import { setPluginData, PluginDataType } from '@/store';
 import { isPrinting } from '@/utils/enums';
 import Path from '@/utils/path';
+import { Vector3 } from '@babylonjs/core/Maths/math';
 
 let viewer;
 
@@ -480,7 +484,7 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			currentLine: 0
+			currentLine: 0,
 		};
 	},
 	computed: {
@@ -558,13 +562,29 @@ export default {
 			set(value) {
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', value);
 				if(value){
- 					console.log('gcode visible');
 					this.fileData = viewer.fileData;
 				} else{ 
 					this.fileData = ""
 				}
 				this.resize();
 			},
+		},
+		zBelt: {
+			get() {
+				return this.pluginCache.zBelt;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBelt', value);
+
+			}
+		},
+		zBeltAngle: {
+			get() {
+				return this.pluginCache.zBeltAngle;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBeltAngle', value);
+			}
 		},
 		viewerClass() {
 			this.$nextTick(() => {
@@ -590,6 +610,30 @@ export default {
 		emergencyButtonClass() {
 			return this.viewGCode ? 'emergency-button-placement-codeview' : 'emergency-button-placement'
 		},
+		workplaceOffsets() { 
+			let offsets = [];
+			try {
+				for (let idx = 0; idx < this.move.axes.length; idx++){
+					let axis = this.move.axes[idx];
+					offsets.push(...axis.workplaceOffsets)
+				}
+			}
+			catch  {
+				
+			}
+			return offsets;
+		},
+		currentWorkplace() {
+			return this.move.workplaceNumber;
+		},
+		showWorkplace: {
+				get() {
+				return this.pluginCache.showWorkplace;
+			},
+			set(value) { 
+				setPluginData('GCodeViewer', PluginDataType.machineCache, 'showWorkplace', value);
+			}
+		}
 	},
 	async mounted() {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
@@ -679,6 +723,7 @@ export default {
 			for (let idx = 0; idx < this.toolColors.length; idx++) {
 				viewer.gcodeProcessor.addTool(this.toolColors[idx], 0.4); //hard code the nozzle size for now.
 			}
+			this.updateWorkplaces();
 		});
 
 		window.addEventListener('keyup', (e) => {
@@ -798,11 +843,16 @@ export default {
 			}
 			this.loading = true;
 			this.preLoadSettings();		
-			await viewer.reload();
+
+			if (viewer.fileData.length > 0) {
+				await viewer.reload();
+			}
 			this.loading = false;
+			
 			viewer.setCursorVisiblity(this.showCursor);
 			viewer.toggleTravels(this.showTravelLines);
 			this.setGCodeValues();
+			
 			viewer.gcodeProcessor.forceRedraw();
 			viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
 
@@ -849,14 +899,15 @@ export default {
 			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
+			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
 				viewer.updateRenderQuality(5);
 				viewer.gcodeProcessor.g1AsExtrusion = true;
-				viewer.gcodeProcessor.updateForceWireMode(true);
+				//viewer.gcodeProcessor.updateForceWireMode(true);
 				viewer.setZClipPlane(10000000,-10000000);
 			}
-			
 		},
 		async fileSelected(e) {
 			const reader = new FileReader();
@@ -899,6 +950,27 @@ export default {
 		},
 		updatePosition(){
 
+		},
+		updateWorkplaces() {
+				let axesLetterIdx = {};
+				for (var axesIdx in this.move.axes) {
+					let axes = this.move.axes[axesIdx];
+					axesLetterIdx[axes.letter] = Number(axesIdx);
+				}
+				//Reload the workplace offsets
+				viewer.gcodeProcessor.workplaceOffsets = [];
+				for (let idx = 0; idx < 9; idx++) {
+					try {
+						let x = this.move.axes[axesLetterIdx['X']].workplaceOffsets[idx];
+						let y = this.move.axes[axesLetterIdx['Y']].workplaceOffsets[idx]
+						let z = this.move.axes[axesLetterIdx['Z']].workplaceOffsets[idx]
+						viewer.gcodeProcessor.workplaceOffsets.push(new Vector3(x, y, z));
+					}
+					catch{
+						
+					}
+				}
+				viewer.setWorkplaceVisiblity(this.showWorkplace);
 		}
 	},
 	activated() {
@@ -913,7 +985,7 @@ export default {
 			handler(newValue) {
 				var newPosition = newValue.axes.map((item) => ({
 					axes: item.letter,
-					position: item.userPosition,
+					position: item.userPosition + item.workplaceOffsets[this.currentWorkplace],
 				}));
 				viewer.updateToolPosition(newPosition);
 			},
@@ -1072,7 +1144,30 @@ export default {
 
 			}
 		},
-
+		'zBelt': function (to) { 
+			viewer.setZBelt(to, this.zBeltAngle);
+			//viewer.gcodeProcessor.forceRedraw();	
+		},
+		'zBeltAngle': function (to) { 
+			if (to < 0 || to > 90) {
+				this.zBeltAngle = 45;
+			}
+			viewer.setZBelt(this.zBelt, to);
+			//viewer.gcodeProcessor.forceRedraw();
+		},
+		'workplaceOffsets': {
+			handler() { 
+				this.updateWorkplaces();
+			},
+			deep: true
+		},
+		'currentWorkplace': function (to) {
+			console.log(to)
+			viewer.gcodeProcessor.currentWorkplace = to;
+		},
+		showWorkplace() {
+			this.updateWorkplaces();
+		}
 	},
 };
 </script>
