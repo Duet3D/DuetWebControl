@@ -253,6 +253,9 @@ function isToolBusy(tool: Tool) {
 function getToolIcon(tool: Tool) {
     if (tool !== null) {
         if (tool.extruders.length > 0) {
+            if (store.state.machine.model.heat.heaters.some((heater, heaterIndex) => (heater !== null) && (heater.state === HeaterState.fault) && tool.heaters.includes(heaterIndex))) {
+                return "mdi-printer-3d-nozzle-alert";
+            }
             return "mdi-printer-3d-nozzle";
         }
         if (tool.spindle >= 0) {

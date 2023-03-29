@@ -588,6 +588,10 @@
       "message": "Proszę czekać podczas instalowania pliku...",
       "success": "Instalacja {0} powiodła się",
       "title": "Instalowanie pliku {0}"
+    },
+    "freeSpaceWarning": {
+      "message": "Na pierwszym tomie zostało niewiele miejsca. \nUsuń niektóre pliki, aby uniknąć problemów podczas przesyłania plików.",
+      "title": "Dysk prawie pełny"
     }
   },
   "panel": {
@@ -1007,7 +1011,10 @@
       "showFSOverlay": "Pokaż nakładkę pełnoekranową",
       "useHQRendering": "Renderowanie wysokiej jakości (okrągłe)",
       "useSpecular": "Użyj podświetlenia zwierciadlanego",
-      "viewGCode": "Wyświetl kod G"
+      "viewGCode": "Wyświetl kod G",
+      "zBeltAngle": "Kąt gantry pasa Z",
+      "showWorkplace": "Pokaż miejsce pracy",
+      "zBelt": "Pas Z"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",

@@ -588,6 +588,10 @@
       "message": "Espere mientras se instala el archivo...",
       "success": "Instalación de {0} exitosa",
       "title": "Instalando el archivo {0}"
+    },
+    "freeSpaceWarning": {
+      "message": "Apenas queda espacio en el primer volumen. \nElimine algunos archivos para evitar problemas durante la carga de archivos.",
+      "title": "Disco casi lleno"
     }
   },
   "panel": {
@@ -1007,7 +1011,10 @@
       "useSpecular": "Usar resaltado especular",
       "feature": "Característica",
       "g1AsExtrusion": "Procesamiento G1 (CNC)",
-      "viewGCode": "Ver código G"
+      "viewGCode": "Ver código G",
+      "zBeltAngle": "Ángulo de pórtico de la correa Z",
+      "showWorkplace": "Mostrar lugar de trabajo",
+      "zBelt": "Cinturón Z"
     },
     "heightmap": {
       "menuCaption": "Mapa de altura",

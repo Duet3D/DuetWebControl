@@ -85,12 +85,12 @@ import { MachineSettingsState } from "@/store/machine/settings";
 
 export default Vue.extend({
 	props: {
-		itemKey: String as PropType<keyof MachineSettingsState["temperatures"]>,
+		itemKey: String as PropType<keyof MachineSettingsState["temperatures"] | "spindleRPM">,
 		temperature: Boolean
 	},
 	computed: {
 		items(): Array<number> | { active: Array<number>, standby: Array<number> } {
-			return store.state.machine.settings.temperatures[this.itemKey];
+			return (this.itemKey === "spindleRPM") ? store.state.machine.settings.spindleRPM : store.state.machine.settings.temperatures[this.itemKey];
 		},
 		unit(): string { return this.temperature ? "°C" : "RPM"; },
 
@@ -170,22 +170,36 @@ export default Vue.extend({
 		},
 		remove(index: number) {
 			if (this.items instanceof Array) {
-				store.commit("machine/settings/update", {
-					temperatures: {
-						[this.itemKey]: this.items.filter((_, i) => i !== index)
-					}
-				});
+				if (this.itemKey === "spindleRPM") {
+					store.commit("machine/settings/update", {
+						spindleRPM: this.items.filter((_, i) => i !== index)
+					});
+				} else {
+					store.commit("machine/settings/update", {
+						temperatures: {
+							[this.itemKey]: this.items.filter((_, i) => i !== index)
+						}
+					});
+				}
 			}
 		},
 		add() {
 			if (this.items instanceof Array && this.canAdd) {
-				const updateData = {
-					temperatures: {
-						[this.itemKey]: this.items.slice()
-					}
+				let updateData;
+				if (this.itemKey === "spindleRPM") {
+					updateData = {
+						spindleRPM: this.items.slice()
+					};
+					updateData.spindleRPM.sort((a, b) => b - a);
+				} else {
+					updateData = {
+						temperatures: {
+							[this.itemKey]: this.items.slice()
+						}
+					};
+					updateData.temperatures[this.itemKey].push(this.value);
+					updateData.temperatures[this.itemKey].sort((a, b) => b - a);
 				}
-				updateData.temperatures[this.itemKey].push(this.value);
-				updateData.temperatures[this.itemKey].sort((a, b) => b - a);
 				store.commit("machine/settings/update", updateData);
 			}
 		}

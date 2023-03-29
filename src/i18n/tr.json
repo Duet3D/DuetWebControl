@@ -588,6 +588,10 @@
       "message": "Dosya yüklenirken lütfen bekleyin...",
       "success": "{0} kurulumu başarılı",
       "title": "{0} dosyası yükleniyor"
+    },
+    "freeSpaceWarning": {
+      "message": "İlk ciltte neredeyse hiç boşluk kalmadı. \nDosya yüklemeleri sırasında sorun yaşamamak için bazı dosyaları silin.",
+      "title": "Disk neredeyse dolu"
     }
   },
   "panel": {
@@ -1012,7 +1016,10 @@
       "useSpecular": "Aynasal Vurguyu Kullan",
       "view3D": "3D görüntüle",
       "volume": "Ses",
-      "viewGCode": "G Kodunu Görüntüle"
+      "viewGCode": "G Kodunu Görüntüle",
+      "zBeltAngle": "Z Kayışı Portal Açısı",
+      "showWorkplace": "İşyerini Göster",
+      "zBelt": "Z Kayışı"
     }
   },
   "pluginPermissions": {

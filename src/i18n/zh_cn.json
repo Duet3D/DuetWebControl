@@ -588,6 +588,10 @@
       "message": "正在安装文件，请稍候...",
       "success": "{0} 安装成功",
       "title": "安装文件 {0}"
+    },
+    "freeSpaceWarning": {
+      "message": "第一卷上几乎没有剩余空间。\n删除一些文件以避免文件上传过程中出现问题。",
+      "title": "磁盘快满了"
     }
   },
   "panel": {
@@ -1007,7 +1011,10 @@
       "useSpecular": "使用高光",
       "feature": "材质",
       "g1AsExtrusion": "渲染 G1 (CNC)",
-      "viewGCode": "查看 G 代码"
+      "viewGCode": "查看 G 代码",
+      "zBeltAngle": "Z 带龙门角度",
+      "showWorkplace": "显示职场",
+      "zBelt": "Z带"
     },
     "heightmap": {
       "menuCaption": "高度图",

@@ -19,16 +19,16 @@ Vue.component('fs-overlay', FSOverlay);
 Vue.component('code-stream', CodeStream);
 
 registerRoute(GCodeViewer, {
-  Job: {
-    GCodeViewer: {
-      icon: 'mdi-rotate-3d',
-      caption: 'plugins.gcodeViewer.caption',
-      path: '/Job/GCodeViewer',
-    },
-  },
+	Job: {
+		GCodeViewer: {
+			icon: 'mdi-rotate-3d',
+			caption: 'plugins.gcodeViewer.caption',
+			path: '/Plugins/GCodeViewer',
+		},
+	},
 });
 
-registerPluginContextMenuItem(() => i18n.t('plugins.gcodeViewer.view3D'), '/Job/GCodeViewer', 'mdi-rotate-3d', 'view-3d-model', ContextMenuType.JobFileList);
+registerPluginContextMenuItem(() => i18n.t('plugins.gcodeViewer.view3D'), '/Plugins/GCodeViewer', 'mdi-rotate-3d', 'view-3d-model', ContextMenuType.JobFileList);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF']);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering', false);
 registerPluginData('GCodeViewer', PluginDataType.machineCache, 'useSpecular', true);

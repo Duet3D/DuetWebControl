@@ -588,6 +588,10 @@
       "message": "Veuillez patienter pendant l'installation du fichier...",
       "success": "Installation de {0} réussie",
       "title": "Installation du fichier {0}"
+    },
+    "freeSpaceWarning": {
+      "message": "Il ne reste presque plus de place sur le premier tome. \nSupprimez certains fichiers pour éviter les problèmes lors des téléchargements de fichiers.",
+      "title": "Disque presque plein"
     }
   },
   "panel": {
@@ -1042,7 +1046,10 @@
       "useSpecular": "Utiliser la surbrillance spéculaire",
       "view3D": "Voir 3D",
       "volume": "Le volume",
-      "viewGCode": "Afficher le code G"
+      "viewGCode": "Afficher le code G",
+      "zBeltAngle": "Angle de portique de ceinture Z",
+      "showWorkplace": "Afficher le lieu de travail",
+      "zBelt": "Ceinture Z"
     }
   },
   "tabs": {

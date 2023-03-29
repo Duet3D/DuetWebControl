@@ -11,7 +11,7 @@ registerRoute(InputShaping, {
 			icon: 'mdi-transition',
 			caption: 'Input Shaping',
 			translated: true,
-			path: '/InputShaping'
+			path: '/Plugins/InputShaping'
 		}
 	}
 });

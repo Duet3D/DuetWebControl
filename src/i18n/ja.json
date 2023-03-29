@@ -588,6 +588,10 @@
       "message": "ファイルをインストールしています。しばらくお待ちください...",
       "success": "{0} のインストールが成功しました",
       "title": "ファイル {0} をインストールしています"
+    },
+    "freeSpaceWarning": {
+      "message": "最初のボリュームにはほとんどスペースが残っていません。\nファイルのアップロード中の問題を回避するために、いくつかのファイルを削除します。",
+      "title": "ディスクがほぼいっぱいです"
     }
   },
   "panel": {
@@ -1007,7 +1011,10 @@
       "useSpecular": "Use Specular Highlight",
       "feature": "Feature",
       "g1AsExtrusion": "G1 をレンダリング (CNC)",
-      "viewGCode": "Gコードを見る"
+      "viewGCode": "Gコードを見る",
+      "zBeltAngle": "Z ベルト ガントリー角度",
+      "showWorkplace": "職場を表示",
+      "zBelt": "Zベルト"
     },
     "heightmap": {
       "menuCaption": "ハイトマップ",

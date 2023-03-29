@@ -13,17 +13,19 @@
                             </a>
                         </template>
                         <v-list>
-                            <v-list-item @click="selectedHeater = null; selectedHeaterIndex = -1">
+                            <v-list-item @click="selectHeater(-1, null, -1)">
                                 <v-list-item-title>
-                                    <v-icon small v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+                                    <v-icon small
+                                            v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
                                     {{ (props.type === "bed") ? $t("panel.tools.allBeds") : $t("panel.tools.allChambers") }}
                                 </v-list-item-title>
                             </v-list-item>
 
-                            <template v-for="{ heater, index } in heaterItems">
-                                <v-list-item v-if="heater !== null" :key="index" @click="selectHeater(heater, index)">
+                            <template v-for="{ heater, heaterIndex, index } in heaterItems">
+                                <v-list-item v-if="heater !== null" :key="index" @click="selectHeater(index, heater, heaterIndex)">
                                     <v-list-item-title>
-                                        <v-icon class="mr-1" v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+                                        <v-icon class="mr-1"
+                                                v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
                                         {{ (props.type === "bed") ? $t("panel.tools.bed", [index]) : $t("panel.tools.chamber", [index]) }}
                                     </v-list-item-title>
                                 </v-list-item>
@@ -34,9 +36,9 @@
 
                 <!-- Heater name -->
                 <th v-if="selectedHeater !== null">
-                    <a href="javascript:void(0)" @click="heaterClick(selectedHeater, selectedHeaterIndex)"
-                       :class="getHeaterColor(heaterIndices[selectedHeaterIndex])">
-                        {{ getHeaterName(selectedHeater, heaterIndices[selectedHeaterIndex]) }}
+                    <a href="javascript:void(0)" @click="heaterClick(selectedIndex, selectedHeater)"
+                       :class="getHeaterColor(selectedHeaterIndex)">
+                        {{ getHeaterName(selectedHeater, selectedHeaterIndex) }}
                     </a>
                     <br>
                     <span class="font-weight-regular caption">
@@ -45,7 +47,7 @@
                 </th>
                 <th v-else>
                     <a href="javascript:void(0)" class="font-weight-regular" @click="allBedHeaterClick">
-                        {{ $t(`generic.heaterStates.${ firstHeater.state}`) }}
+                        {{ $t(`generic.heaterStates.${firstHeater.state}`) }}
                     </a>
                 </th>
 
@@ -65,14 +67,14 @@
                 </td>
             </tr>
         </template>
-        <template v-else v-for="{ heater, index } in heaterItems">
+        <template v-else v-for="{ index, heater, heaterIndex } in heaterItems">
             <!-- Individual Heater Control-->
             <template v-if="heater !== null">
                 <!-- Heater -->
-                <tr :key="`heater - ${ index } -0`">
+                <tr :key="index">
                     <!-- Heater item name -->
                     <th class="pl-2">
-                        <a href="javascript:void(0)" @click="heaterClick(heater, index)">
+                        <a href="javascript:void(0)" @click="heaterClick(index, heater)">
                             <v-icon small v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
                             {{ (props.type === "bed") ? $t("panel.tools.bed", [(heaterItems.length === 1) ? "" : index]) : $t("panel.tools.chamber", [(heaterItems.length === 1) ? "" : index]) }}
                         </a>
@@ -80,13 +82,13 @@
 
                     <!-- Heater name -->
                     <th>
-                        <a href="javascript:void(0)" @click="heaterClick(heater, index)"
-                           :class="getHeaterColor(heaterIndices[index])">
-                            {{ getHeaterName(heater, heaterIndices[index]) }}
+                        <a href="javascript:void(0)" @click="heaterClick(index, heater)"
+                           :class="getHeaterColor(heaterIndex)">
+                            {{ getHeaterName(heater, heaterIndex) }}
                         </a>
                         <br>
                         <span class="font-weight-regular caption">
-                            {{ $t(`generic.heaterStates.${ heater.state}`) }}
+                            {{ $t(`generic.heaterStates.${heater.state}`) }}
                         </span>
                     </th>
 
@@ -133,12 +135,20 @@ const uiFrozen = computed<boolean>(() => store.getters["uiFrozen"]);
 const singleControl = computed(() => (props.type === "bed") ? store.state.machine.settings.singleBedControl : store.state.machine.settings.singleChamberControl);
 
 // Heater abstraction
-const heaterIndices = computed(() => (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters);
-const heaterItems = computed<Array<{ heater: Heater, index: number }>>(() => {
-    const heaterList: Array<{ heater: Heater, index: number }> = [];
-    for (const index of heaterIndices.value) {
-        if ((index >= 0) && (index < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[index] !== null)) {
-            heaterList.push({ heater: store.state.machine.model.heat.heaters[index]!, index });
+const heaterItems = computed(() => {
+    const heaterIndices = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const heaterList: Array<{ index: number, heater: Heater, heaterIndex: number }> = [];
+    for (let index = 0; index < heaterIndices.length; index++) {
+        const heaterIndex = heaterIndices[index];
+        if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+            const heater = store.state.machine.model.heat.heaters[heaterIndex];
+            if (heater !== null) {
+                heaterList.push({
+                    index,
+                    heater,
+                    heaterIndex
+                });
+            }
         }
     }
     return heaterList;
@@ -146,11 +156,12 @@ const heaterItems = computed<Array<{ heater: Heater, index: number }>>(() => {
 const firstHeater = computed(() => (heaterItems.value.length > 0) ? heaterItems.value[0].heater : null);
 
 // Single heater control
-const selectedHeater = ref<Heater | null>(null), selectedHeaterIndex = ref(-1);
+const selectedIndex = ref(-1), selectedHeater = ref<Heater | null>(null), selectedHeaterIndex = ref(-1);
 
-function selectHeater(heater: Heater, index: number) {
+function selectHeater(index: number, heater: Heater | null, heaterIndex: number) {
+    selectedIndex.value = index;
     selectedHeater.value = heater;
-    selectedHeaterIndex.value = index;
+    selectedHeaterIndex.value = heaterIndex;
 }
 
 const singleHeaterCaption = computed(() => {
@@ -228,7 +239,7 @@ function getHeaterValue(heater: Heater | null) {
     return i18n.t("generic.noValue");
 }
 
-async function heaterClick(heater: Heater | null, index: number) {
+async function heaterClick(index: number, heater: Heater | null) {
     if (uiFrozen.value || !heater) {
         return;
     }

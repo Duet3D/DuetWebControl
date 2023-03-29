@@ -588,6 +588,10 @@
       "message": "Aguarde enquanto o arquivo está sendo instalado...",
       "success": "Instalação de {0} bem-sucedida",
       "title": "Instalando arquivo {0}"
+    },
+    "freeSpaceWarning": {
+      "message": "Quase não sobra espaço no primeiro volume. \nExclua alguns arquivos para evitar problemas durante o upload de arquivos.",
+      "title": "disco quase cheio"
     }
   },
   "panel": {
@@ -951,7 +955,10 @@
       "showFSOverlay": "Mostrar sobreposição de tela inteira",
       "useHQRendering": "Renderização de alta qualidade (redondo)",
       "useSpecular": "Usar destaque especular",
-      "viewGCode": "Ver Código G"
+      "viewGCode": "Ver Código G",
+      "zBeltAngle": "Ângulo do pórtico da correia Z",
+      "showWorkplace": "Mostrar local de trabalho",
+      "zBelt": "Cinto Z"
     },
     "heightmap": {
       "menuCaption": "Mapa de Altura",

@@ -2,6 +2,7 @@
 .v-btn-toggle {
 	display: flex;
 }
+
 .v-btn-toggle > button {
 	display: flex;
 	flex: 1 1 auto;
@@ -27,7 +28,8 @@
 						</v-btn>
 
 						<template v-for="(fan, index) in fans">
-							<v-btn v-if="fan && fan.thermostatic.sensors.length === 0" :key="index" :value="index" :disabled="uiFrozen">
+							<v-btn v-if="fan && fan.thermostatic.sensors.length === 0" :key="index" :value="index"
+								   :disabled="uiFrozen">
 								{{ fan.name ? fan.name : $t("panel.fan.fan", [index]) }}
 							</v-btn>
 						</template>
@@ -88,14 +90,17 @@ export default Vue.extend({
 			if (this.fan === -1) {
 				if (!this.currentTool) {
 					// Tool no longer selected, try to change to the first available fan
-					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.sensors.length === 0);
+					this.fan = this.fans.findIndex(fan => (fan !== null) && (fan.thermostatic.sensors.length === 0));
 				}
-			} else if ((this.fan < 0) || (this.fan >= this.fans.length) || (this.fans[this.fan] === null) || (this.fans[this.fan]!.thermostatic.sensors.length > 0)) {
-				// Previously elected fan is no longer controllable, try to change to another one
-				if (this.currentTool) {
-					this.fan = -1;
-				} else {
-					this.fan = this.fans.findIndex(fan => fan && fan.thermostatic.sensors.length === 0);
+			} else {
+				const fan = (this.fan >= 0 && this.fan < this.fans.length) ? this.fans[this.fan] : null;
+				if (fan === null || fan.thermostatic.sensors.length > 0) {
+					// Previously elected fan is no longer controllable, try to change to another one
+					if (this.currentTool) {
+						this.fan = -1;
+					} else {
+						this.fan = this.fans.findIndex(fan => (fan !== null) && (fan.thermostatic.sensors.length === 0));
+					}
 				}
 			}
 		}

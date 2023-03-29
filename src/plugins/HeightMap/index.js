@@ -7,11 +7,11 @@ import HeightMap from './HeightMap.vue'
 
 // Register a route via Control -> Height Map
 registerRoute(HeightMap, {
-	Control: {
+	Plugins: {
 		HeightMap: {
 			icon: 'mdi-grid',
 			caption: 'plugins.heightmap.menuCaption',
-			path: '/HeightMap'
+			path: '/Plugins/HeightMap'
 		}
 	}
 });

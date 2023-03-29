@@ -11,48 +11,104 @@
 			</a>
 		</v-card-title>
 
-		<v-card-text class="pt-0">
-			<template v-if="isConnected">
-				<template v-if="mainboard !== null">
-					{{ $t("panel.settingsElectronics.board", [mainboard.name + (mainboard.shortName ? ` (${mainboard.shortName})` : "")]) }}
-					<br>
-					{{ $t("panel.settingsElectronics.firmware", [$display(mainboard.firmwareName) + " " + $display(mainboard.firmwareVersion), $display(mainboard.firmwareDate)]) }}
-					<br>
-				</template>
-				<template v-if="dsfVersion !== null">
-					{{ $t("panel.settingsElectronics.dsfVersion", [dsfVersion]) }}
-					<br>
-				</template>
-				<template v-if="wifiVersion !== null">
-					{{ $t("panel.settingsElectronics.dwsFirmware", [wifiVersion]) }}
-					<br>
-				</template>
+		<v-simple-table v-if="isConnected">
+			<thead>
+				<th>
+					{{ "Product" }}
+				</th>
+				<th>
+					{{ "Short Name" }}
+				</th>
+				<th>
+					{{ "Version" }}
+				</th>
+			</thead>
+			<tbody>
+				<!-- Boards -->
+				<tr v-for="(board, index) in boards" :key="index">
+					<td>
+						{{ board.name }}
+					</td>
+					<td>
+						{{ board.shortName }}
+					</td>
+					<td :title="$t('panel.settingsAbout.buildDateTime', [board.firmwareDate])">
+						{{ board.firmwareVersion }}
+					</td>
+				</tr>
 
+				<!-- WiFi Server-->
+				<tr v-if="wifiVersion !== null">
+					<td>
+						Duet WiFi Server
+					</td>
+					<td>
+						<!-- n/a -->
+					</td>
+					<td>
+						{{ wifiVersion }}
+					</td>
+				</tr>
+
+				<!-- DSF-->
+				<tr v-if="dsfVersion !== null"> <!-- TODO add build date here when dsf key is added -->
+					<td>
+						Duet Software Framework
+					</td>
+					<td>
+						DSF
+					</td>
+					<td>
+						{{ dsfVersion }}
+					</td>
+				</tr>
+
+				<!-- DWC -->
+				<tr>
+					<td>
+						Duet Web Control
+					</td>
+					<td>
+						DWC
+					</td>
+					<td :title="$t('panel.settingsAbout.buildDateTime', [buildDateTime])">
+						{{ dsfVersion }}
+					</td>
+				</tr>
+			</tbody>
+			<tfoot>
 				<upload-btn v-if="!isRestConnector || !isDuetFirmware" target="update" color="primary"
 							class="mt-3 d-flex justify-center" />
-			</template>
-			<template v-else>
-				{{ $t("panel.settingsElectronics.notConnected") }}
-			</template>
+			</tfoot>
+		</v-simple-table>
+		<v-card-text v-else>
+			{{ $t("panel.settingsElectronics.notConnected") }}
 		</v-card-text>
 	</v-card>
 </template>
 
 <script lang="ts">
+import { Board, NetworkInterfaceType } from "@duet3d/objectmodel";
 import Vue from "vue";
 
+import packageInfo from "../../../package.json";
 import store from "@/store";
 import RestConnector from "@/store/machine/connector/RestConnector";
-import { Board, NetworkInterfaceType } from "@duet3d/objectmodel";
 
 export default Vue.extend({
 	computed: {
 		isConnected(): boolean { return store.getters["isConnected"]; },
 		isRestConnector(): boolean { return store.getters["machine/connector"] instanceof RestConnector; },
-		mainboard(): Board | null { return store.state.machine.model.boards.find(board => !board.canAddress) ?? null; },
-		isDuetFirmware(): boolean { return (this.mainboard !== null) ? this.mainboard.firmwareFileName.startsWith("Duet") : true; },
+		boards(): Array<Board> { return store.state.machine.model.boards.filter(board => board !== null); },
+		isDuetFirmware(): boolean { return this.boards.some(board => !board.canAddress && board.firmwareFileName.startsWith("Duet")); },
 		dsfVersion(): string | null { return store.state.machine.model.state.dsfVersion; },
 		wifiVersion(): string | null { return store.state.machine.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null; },
+	},
+	data() {
+		return {
+			buildDateTime: process.env.BUILD_DATETIME,
+			dwcVersion: packageInfo.version
+		}
 	},
 	methods: {
 		async diagnostics() {

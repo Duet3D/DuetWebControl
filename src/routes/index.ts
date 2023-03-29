@@ -185,7 +185,7 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 			{
 				icon: "mdi-power-plug",
 				caption: "menu.plugins.caption",
-				path: "/Plugins",
+				path: "/Settings/Plugins",
 				component: Plugins
 			}
 		],

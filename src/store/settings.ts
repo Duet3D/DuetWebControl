@@ -219,7 +219,10 @@ export default {
 			flip: "none"
 		},
 
-		enabledPlugins: ["Height Map"],
+		enabledPlugins: [
+			"HeightMap",
+			"ObjectModelBrowser"
+		],
 		plugins: {}
 	},
 	actions: {

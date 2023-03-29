@@ -212,14 +212,14 @@ export default Vue.extend({
 					this.$nextTick(() => {
 						if (this.$refs.progressBar) {
 							// Apply custom CSS animation duration to progress bar
-							const progressDiv = this.$refs.progressBar.$el.querySelector(".v-progress-linear__determinate") as HTMLDivElement | undefined;
+							const progressDiv = (this.$refs.progressBar as Vue).$el.querySelector(".v-progress-linear__determinate") as HTMLDivElement | undefined;
 							if (progressDiv) {
 								progressDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
 								progressDiv.style["animationDuration"] = `${to.timeout}ms`;
 							}
 
 							// Apply custom CSS animation duration to progress bar background
-							const progressBgDiv = this.$refs.progressBar.$el.querySelector(".v-progress-linear__background") as HTMLDivElement | undefined;
+							const progressBgDiv = (this.$refs.progressBar as Vue).$el.querySelector(".v-progress-linear__background") as HTMLDivElement | undefined;
 							if (progressBgDiv) {
 								progressBgDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
 								progressBgDiv.style["animationDuration"] = `${to.timeout}ms`;
