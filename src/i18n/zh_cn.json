@@ -299,7 +299,16 @@
       "sbcWarning": "您正在单板机（SBC）模式下操作机器。 请在固件开发人员建议的情况下使用 DWC 升级固件。"
     },
     "inputRequired": "请输入一个值",
-    "numberRequired": "请输入有效的数值"
+    "numberRequired": "请输入有效的数值",
+    "duplicateFilament": {
+      "prompt": "请输入灯丝副本的名称：",
+      "title": "重复灯丝"
+    },
+    "incompatibleVersions": {
+      "prompt": "安装的软件版本不匹配。\n请仅在相同版本上运行您的设置，以避免潜在的不兼容和意外错误。",
+      "title": "不兼容的软件版本",
+      "upgradeNotice": "请查看有关如何升级 Duet 软件组件的{docs}。"
+    }
   },
   "directory": {
     "menu": "菜单目录 /menu",
@@ -443,7 +452,8 @@
       "downloadCSV": "下载为CSV格式"
     },
     "filament": {
-      "noFilaments": "没有细丝配置文件"
+      "noFilaments": "没有细丝配置文件",
+      "duplicate": "复制"
     },
     "firmware": {
       "installFile": "安装固件文件",
@@ -753,7 +763,8 @@
       "caption": "机器特性",
       "babystepAmount": "Z轴微步调整的距离（{0}）",
       "moveFeedrate": "移动按钮的运行速度（{0}）",
-      "toolChangeMacros": "工具更换宏"
+      "toolChangeMacros": "工具更换宏",
+      "checkVersions": "检查软件版本并显示不兼容通知"
     },
     "settingsNotifications": {
       "caption": "通知",

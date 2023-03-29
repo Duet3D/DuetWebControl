@@ -299,6 +299,15 @@
       "rrf": "RepRapFirmware",
       "sbcPermissions": "O plugin rodando no SBC quer",
       "version": "Versão {0}"
+    },
+    "duplicateFilament": {
+      "prompt": "Digite um nome para a cópia do filamento:",
+      "title": "Filamento Duplicado"
+    },
+    "incompatibleVersions": {
+      "prompt": "As versões de software instaladas não correspondem. \nPor favor, opere sua configuração apenas em versões iguais para evitar possíveis incompatibilidades e erros inesperados.",
+      "title": "Versões de software incompatíveis",
+      "upgradeNotice": "Confira os {docs} sobre como atualizar seus componentes de software Duet."
     }
   },
   "directory": {
@@ -443,7 +452,8 @@
       "downloadCSV": "Baixar como CSV"
     },
     "filament": {
-      "noFilaments": "Sem Filamentos"
+      "noFilaments": "Sem Filamentos",
+      "duplicate": "Duplicado"
     },
     "macro": {
       "caption": "Macros",
@@ -753,7 +763,8 @@
       "caption": "Especificação da Máquina",
       "babystepAmount": "Valor do babystep ({0})",
       "moveFeedrate": "Velocidade de avanço para botões de movimento ({0})",
-      "toolChangeMacros": "Macros de mudança de ferramenta"
+      "toolChangeMacros": "Macros de mudança de ferramenta",
+      "checkVersions": "Verifique as versões do software e exiba a notificação de incompatibilidade"
     },
     "settingsNotifications": {
       "caption": "Notificações",

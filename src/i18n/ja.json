@@ -299,7 +299,16 @@
       "sbcWarning": "SBCモードで動作しています。DWCによるファームウェアのバージョンアップは、ファームウェアの開発元からアドバイスがあった場合のみ行ってください。"
     },
     "inputRequired": "値を入力してください",
-    "numberRequired": "有効な番号を入力してください"
+    "numberRequired": "有効な番号を入力してください",
+    "duplicateFilament": {
+      "prompt": "フィラメント コピーの名前を入力してください:",
+      "title": "フィラメントの複製"
+    },
+    "incompatibleVersions": {
+      "prompt": "インストールされているソフトウェアのバージョンが一致しません。\n潜在的な非互換性や予期しないエラーを回避するために、同じバージョンでのみセットアップを操作してください。",
+      "title": "互換性のないソフトウェア バージョン",
+      "upgradeNotice": "Duet ソフトウェア コンポーネントをアップグレードする方法については、{docs} をご覧ください。"
+    }
   },
   "directory": {
     "menu": "Menu ディレクトリ",
@@ -443,7 +452,8 @@
       "downloadCSV": "CSVとして保存"
     },
     "filament": {
-      "noFilaments": "フィラメントなし"
+      "noFilaments": "フィラメントなし",
+      "duplicate": "複製"
     },
     "firmware": {
       "installFile": "ファームウェアファイルのインストール",
@@ -753,7 +763,8 @@
       "caption": "機械固有",
       "babystepAmount": "ベイビーステップ量 ({0})",
       "moveFeedrate": "移動ボタンの送り速度 ({0})",
-      "toolChangeMacros": "工具交換マクロ"
+      "toolChangeMacros": "工具交換マクロ",
+      "checkVersions": "ソフトウェアのバージョンを確認し、非互換性に関する通知を表示する"
     },
     "settingsNotifications": {
       "caption": "通知",

@@ -27,6 +27,9 @@ export default new Vue({
 	router,
 	store,
 	vuetify: new Vuetify({
+		theme: {
+			dark: (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || false
+		},
 		icons: {
 			iconfont: "mdiSvg",
 		},

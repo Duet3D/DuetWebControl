@@ -299,7 +299,16 @@
       "sbcWarning": "Está operando su máquina en modo SBC. Actualice el firmware utilizando DWC solo si lo recomiendan los desarrolladores de firmware."
     },
     "inputRequired": "Por favor, introduzca un valor",
-    "numberRequired": "Por favor, introduzca un número válido"
+    "numberRequired": "Por favor, introduzca un número válido",
+    "duplicateFilament": {
+      "prompt": "Introduzca un nombre para la copia del filamento:",
+      "title": "Filamento Duplicado"
+    },
+    "incompatibleVersions": {
+      "prompt": "Las versiones de software instaladas no coinciden. \nOpere su configuración solo en versiones iguales para evitar posibles incompatibilidades y errores inesperados.",
+      "title": "Versiones de software incompatibles",
+      "upgradeNotice": "Consulte los {docs} sobre cómo actualizar los componentes del software Duet."
+    }
   },
   "directory": {
     "menu": "Directorio de Menu",
@@ -443,7 +452,8 @@
       "downloadCSV": "Descargar como CSV"
     },
     "filament": {
-      "noFilaments": "No hay filamentos"
+      "noFilaments": "No hay filamentos",
+      "duplicate": "Duplicar"
     },
     "firmware": {
       "installFile": "Instalar archivo de firmware",
@@ -753,7 +763,8 @@
       "caption": "Especificaciones de la Máquina",
       "babystepAmount": "Cantidad de Babystep ({0})",
       "moveFeedrate": "Avance para botones de movimiento ({0})",
-      "toolChangeMacros": "Macros de cambio de herramienta"
+      "toolChangeMacros": "Macros de cambio de herramienta",
+      "checkVersions": "Verifique las versiones de software y muestre una notificación de incompatibilidad"
     },
     "settingsNotifications": {
       "caption": "Notificaciones",

@@ -299,7 +299,16 @@
       "sbcWarning": "Używasz maszyny w trybie SBC. \nUaktualnij oprogramowanie układowe za pomocą DWC tylko wtedy, gdy jest to zalecane przez twórców oprogramowania układowego."
     },
     "inputRequired": "Proszę podać wartość",
-    "numberRequired": "Proszę wpisać odpowiednią liczbę"
+    "numberRequired": "Proszę wpisać odpowiednią liczbę",
+    "duplicateFilament": {
+      "prompt": "Podaj nazwę kopii filamentu:",
+      "title": "Duplikat włókna"
+    },
+    "incompatibleVersions": {
+      "prompt": "Zainstalowane wersje oprogramowania nie są zgodne. \nAby uniknąć potencjalnych niezgodności i nieoczekiwanych błędów, używaj swojej konfiguracji tylko w równych wersjach.",
+      "title": "Niekompatybilne wersje oprogramowania",
+      "upgradeNotice": "Sprawdź {docs}, jak zaktualizować składniki oprogramowania Duet."
+    }
   },
   "directory": {
     "menu": "Katalog menu",
@@ -443,7 +452,8 @@
       "downloadCSV": "Pobierz jako CSV"
     },
     "filament": {
-      "noFilaments": "Brak filamentu"
+      "noFilaments": "Brak filamentu",
+      "duplicate": "Duplikować"
     },
     "firmware": {
       "installFile": "Zainstaluj plik oprogramowania sprzętowego",
@@ -753,7 +763,8 @@
       "caption": "Specyfika urządzenia",
       "babystepAmount": " Babystep amount({0})",
       "moveFeedrate": "Wartość posuwu na klik({0})",
-      "toolChangeMacros": "Makra wymiany narzędzi"
+      "toolChangeMacros": "Makra wymiany narzędzi",
+      "checkVersions": "Sprawdź wersje oprogramowania i wyświetl powiadomienie o niezgodności"
     },
     "settingsNotifications": {
       "caption": "Powiadomienia",

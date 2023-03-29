@@ -299,7 +299,16 @@
       "sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde."
     },
     "inputRequired": "Bitte Wert eingeben",
-    "numberRequired": "Bitte gültige Zahl eingeben"
+    "numberRequired": "Bitte gültige Zahl eingeben",
+    "duplicateFilament": {
+      "title": "Filament duplizieren",
+      "prompt": "Bitte geben Sie einen Namen für die Filamentkopie ein:"
+    },
+    "incompatibleVersions": {
+      "prompt": "Die installierten Softwareversionen stimmen nicht überein. Bitte betreiben Sie den Aufbau nur mit gleichen Softwareversionen, um potentielle Inkompatibilitäten oder unerwartete Fehler zu vermeiden.",
+      "title": "Inkompatible Softwareversionen",
+      "upgradeNotice": "Bitte sehen Sie sich die {docs} an, um zu erfahren, wie Sie Ihre Duet-Softwarekomponenten aktualisieren."
+    }
   },
   "directory": {
     "menu": "Menüverzeichnis",
@@ -443,7 +452,8 @@
       "downloadCSV": "Als CSV herunterladen"
     },
     "filament": {
-      "noFilaments": "Keine Filamente"
+      "noFilaments": "Keine Filamente",
+      "duplicate": "Duplizieren"
     },
     "firmware": {
       "installFile": "Firmwaredatei installieren",
@@ -753,7 +763,8 @@
       "caption": "Maschinenspezifisch",
       "babystepAmount": "Schrittgröße für Babystepping ({0})",
       "moveFeedrate": "Vorschubrate für Bewegungen ({0})",
-      "toolChangeMacros": "Makros bei Werkzeugwechsel"
+      "toolChangeMacros": "Makros bei Werkzeugwechsel",
+      "checkVersions": "Softwareversionen überprüfen und Benachrichtigung bei Inkompatibilität anzeigen"
     },
     "settingsNotifications": {
       "caption": "Benachrichtigungen",

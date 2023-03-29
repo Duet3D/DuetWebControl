@@ -299,6 +299,15 @@
       "rrf": "Micrologiciel RepRap",
       "sbcPermissions": "Le plugin s'exécutant sur le SBC veut",
       "version": "Édition {0}"
+    },
+    "duplicateFilament": {
+      "prompt": "Veuillez saisir un nom pour la copie du filament :",
+      "title": "Filament en double"
+    },
+    "incompatibleVersions": {
+      "prompt": "Les versions logicielles installées ne correspondent pas. \nVeuillez utiliser votre configuration uniquement avec des versions égales pour éviter les incompatibilités potentielles et les erreurs inattendues.",
+      "title": "Versions logicielles incompatibles",
+      "upgradeNotice": "Veuillez consulter la {docs} pour savoir comment mettre à niveau vos composants logiciels Duet."
     }
   },
   "directory": {
@@ -443,7 +452,8 @@
       "downloadCSV": "Télécharger en CSV"
     },
     "filament": {
-      "noFilaments": "Aucun Filaments"
+      "noFilaments": "Aucun Filaments",
+      "duplicate": "Dupliquer"
     },
     "macro": {
       "caption": "Macros",
@@ -753,7 +763,8 @@
       "caption": "Machine-Spécifique",
       "babystepAmount": "Montant Babystep ({0})",
       "moveFeedrate": "Vitesse pour les boutons de mouvement ({0})",
-      "toolChangeMacros": "Macros de changement d'outil"
+      "toolChangeMacros": "Macros de changement d'outil",
+      "checkVersions": "Vérifiez les versions du logiciel et affichez une notification en cas d'incompatibilité"
     },
     "settingsNotifications": {
       "caption": "Notifications",

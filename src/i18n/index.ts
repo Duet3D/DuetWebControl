@@ -33,6 +33,29 @@ const messages: LocaleMessages & Record<string, { plugins: Record<string, object
 });
 
 /**
+ * Get the currently configured browser locale that is also part of the i18n messages
+ */
+export function getBrowserLocale(): string {
+	// See if there is an absolute match
+	for (const locale in messages) {
+		if (locale === navigator.language) {
+			return locale;
+		}
+	}
+
+	// Check if there is a loose match
+	const code = navigator.language.substring(0, 2);
+	for (const locale in messages) {
+		if (locale === code) {
+			return locale;
+		}
+	}
+
+	// Fall back to English
+	return "en";
+}
+
+/**
  * Register custom i18n data namespaced via plugins.{plugin} = {data}
  * @param plugin Plugin identifier
  * @param language Language of the i18n data to add
@@ -52,7 +75,7 @@ export function registerPluginLocalization(plugin: string, language: string, dat
  * Initialize i18n engine
  */
 const i18n = new VueI18n({
-	locale: "en",
+	locale: getBrowserLocale(),
 	fallbackLocale: "en",
 	messages
 });

@@ -299,6 +299,15 @@
       "rrf": "RepRapFirmware",
       "sbcPermissions": "SBC'de çalışan eklenti,",
       "version": "Sürüm {0}"
+    },
+    "duplicateFilament": {
+      "prompt": "Lütfen filaman kopyası için bir ad girin:",
+      "title": "Yinelenen Filament"
+    },
+    "incompatibleVersions": {
+      "prompt": "Yüklü yazılım sürümleri eşleşmiyor. \nOlası uyumsuzlukları ve beklenmeyen hataları önlemek için lütfen kurulumunuzu yalnızca eşit sürümlerde çalıştırın.",
+      "title": "Uyumsuz yazılım sürümleri",
+      "upgradeNotice": "Lütfen Duet yazılım bileşenlerinizi nasıl yükselteceğinizle ilgili {docs}'a bakın."
     }
   },
   "directory": {
@@ -440,7 +449,8 @@
       "downloadCSV": "CSV Olarak İndir"
     },
     "filament": {
-      "noFilaments": "Filament yok"
+      "noFilaments": "Filament yok",
+      "duplicate": "Kopyalamak"
     },
     "macro": {
       "caption": "Makrolar",
@@ -753,7 +763,8 @@
       "caption": "Cihaza özel",
       "babystepAmount": "Mikro adım miktarı ({0})",
       "moveFeedrate": "Hareket butonları için ilerleme hızı ({0})",
-      "toolChangeMacros": "Takım değiştirme makroları"
+      "toolChangeMacros": "Takım değiştirme makroları",
+      "checkVersions": "Yazılım sürümlerini kontrol edin ve uyumsuzlukla ilgili bildirimi görüntüleyin"
     },
     "settingsNotifications": {
       "caption": "Bildirimler",

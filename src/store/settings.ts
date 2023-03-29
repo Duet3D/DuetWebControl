@@ -1,4 +1,4 @@
-import i18n from "@/i18n";
+import i18n, { getBrowserLocale } from "@/i18n";
 import Vue from "vue";
 import { Module } from "vuex";
 
@@ -182,10 +182,10 @@ export interface SettingsState {
 export default {
 	namespaced: true,
 	state: {
-		language: "en",
+		language: getBrowserLocale(),
 		lastHostname: location.host,
 
-		darkTheme: false,
+		darkTheme: (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || false,
 		useBinaryPrefix: true,
 		disableAutoComplete: false,
 		dashboardMode: DashboardMode.default,
