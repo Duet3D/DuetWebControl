@@ -1,7 +1,7 @@
 <template>
-    <div class="container">
+    <div ref="overlay" class="container">
         <!--  Print Progress -->
-        <div class="axes-container">
+        <div :class="viewgcode ? 'axes-container-viewgcode' : 'axes-container'">
             <v-card class="axes">
                 <v-card-text>
                     <strong>Tool Position</strong>
@@ -18,7 +18,7 @@
                 </v-card-text>
             </v-card>
         </div>
-        <div class="heater-container">
+        <div :class="viewgcode ? 'heater-container-viewgcode' : 'heater-container'">
             <v-card v-show="heat.heaters.length > 0">
                 <v-card-text>
                     <strong>Temperatures</strong>
@@ -73,17 +73,38 @@
 
 <style scoped>
 .container {
+    position: fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:100%;
 	z-index: 50;
 }
 
 .axes-container {
-	position: absolute;
+	position: fixed;
 	left: 50%;
 }
 
+.axes-container-viewgcode {
+	position: fixed;
+	right: 50% 
+}
+
 .heater-container {
-	position: absolute;
-	right: -100px;
+	position: fixed;
+	right: 0%;
+	top: 20%;
+	width:200px;
+	text-align: center;
+	font-size: large;
+}
+
+.heater-container-viewgcode {
+    position: fixed;
+	right: 30.5%;
 	top: 20%;
 	width:200px;
 	text-align: center;
@@ -108,7 +129,17 @@ import { mapState } from 'vuex';
 export default {
 	data: function () {
 		return {};
-	},
+    },
+    props: {
+        viewgcode: {
+            type: Boolean,
+            default: false
+        }  
+    },
+    mounted() {
+        this.$window
+     },
+    beforeDestroy(){},
 	computed: {
 		...mapState('machine/model', ['file', 'move', 'heat', 'tools']),
 		visibleAxes() {
@@ -132,8 +163,8 @@ export default {
 		},
 		getChamberLabel(chamberIdx) {
 			return this.heat.chamberHeaters.length <= 2 ? 'Chamber' : 'Chamber ' + chamberIdx;
-		},
-	},
+        },
+    },
 };
 </script>
 
