@@ -46,7 +46,7 @@
                     </span>
                 </th>
                 <th v-else>
-                    <a href="javascript:void(0)" class="font-weight-regular" @click="allBedHeaterClick">
+                    <a href="javascript:void(0)" class="font-weight-regular" @click="allHeatersClick">
                         {{ $t(`generic.heaterStates.${firstHeater.state}`) }}
                     </a>
                 </th>
@@ -171,19 +171,20 @@ const singleHeaterCaption = computed(() => {
     return (props.type === "bed") ? i18n.t("panel.tools.bed", [""]) : i18n.t("panel.tools.chamber", [""]);
 });
 
-async function allBedHeaterClick() {
+async function allHeatersClick() {
     if (uiFrozen.value) {
         return;
     }
 
-    // Get valid bed indices
-    const bedIndices: Array<number> = [];
-    for (let bedIndex = 0; bedIndex < store.state.machine.model.heat.bedHeaters.length; bedIndex++) {
-        const heaterIndex = store.state.machine.model.heat.bedHeaters[bedIndex];
+    // Get valid indices
+    const heaters = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const indices: Array<number> = [];
+    for (let index = 0; index < heaters.length; index++) {
+        const heaterIndex = heaters[index];
         if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
             const bedHeater = store.state.machine.model.heat.heaters[heaterIndex];
             if (bedHeater !== null) {
-                bedIndices.push(bedIndex);
+                indices.push(index);
 
                 // Since there is no dedicate facility for resetting heater faults, check all bed heaters here
                 if (bedHeater.state === HeaterState.fault) {
@@ -194,22 +195,38 @@ async function allBedHeaterClick() {
         }
     }
 
-    // Control beds depending on the state of the first heater
+    // Control heaters depending on the state of the first heater
     if (firstHeater.value !== null) {
-        switch (firstHeater.value.state) {
-            case HeaterState.off:		// Off -> Active
-                await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M140 P${bedIndex} S${firstHeater.value!.active}`).join('\n'));
-                break;
+        if (props.type === "bed") {
+            switch (firstHeater.value.state) {
+                case HeaterState.off:		// Off -> Active
+                    await store.dispatch("machine/sendCode", indices.map(index => `M140 P${index} S${firstHeater.value!.active}`).join('\n'));
+                    break;
 
-            case HeaterState.standby:	// Standby -> Off
-                await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M140 P${bedIndex} S-273.15`).join('\n'));
-                break;
+                case HeaterState.standby:	// Standby -> Off
+                    await store.dispatch("machine/sendCode", indices.map(index => `M140 P${index} S-273.15`).join('\n'));
+                    break;
 
-            case HeaterState.active:	// Active -> Standby
-                await store.dispatch("machine/sendCode", bedIndices.map(bedIndex => `M144 P${bedIndex}\n`).join('\n'));
-                break;
+                case HeaterState.active:	// Active -> Standby
+                    await store.dispatch("machine/sendCode", indices.map(index => `M144 P${index}\n`).join('\n'));
+                    break;
 
-            // Faults are handled before we get here
+                // Faults are handled before we get here
+            }
+        } else {
+            switch (firstHeater.value.state) {
+                case HeaterState.off:		// Off -> Active
+                    await store.dispatch("machine/sendCode", indices.map(index => `M141 P${index} S${firstHeater.value!.active}`).join('\n'));
+                    break;
+
+                // Standby mode for chambers is not officially supported yet (there is no code for standby control)
+
+                default:	// Active -> Off
+                    await store.dispatch("machine/sendCode", indices.map(index => `M141 P${index} S-273.15`).join('\n'));
+                    break;
+
+                // Faults are handled before we get here
+            }
         }
     }
 }
@@ -268,7 +285,7 @@ async function heaterClick(index: number, heater: Heater | null) {
                 await store.dispatch("machine/sendCode", `M141 P${index} S${heater.active}`);
                 break;
 
-            // Standby mode for chambers is not officially supported yet (there"s no code for standby control)
+            // Standby mode for chambers is not officially supported yet (there is no code for standby control)
 
             case HeaterState.fault:		// Fault -> Ask for reset
                 emit("resetHeaterFault", store.state.machine.model.heat.heaters.indexOf(heater));

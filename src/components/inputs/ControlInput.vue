@@ -102,7 +102,7 @@ export default Vue.extend({
 					if (this.index >= 0 && this.index < store.state.machine.model.heat.bedHeaters.length) {
 						const heaterIndex = store.state.machine.model.heat.bedHeaters[this.index];
 						if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
-							return store.state.machine.model.heat.heaters[this.index]![activeOrStandby];
+							return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
 						}
 					}
 					break;
@@ -111,7 +111,7 @@ export default Vue.extend({
 					if (this.index >= 0 && this.index < store.state.machine.model.heat.chamberHeaters.length) {
 						const heaterIndex = store.state.machine.model.heat.chamberHeaters[this.index];
 						if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
-							return store.state.machine.model.heat.heaters[this.index]![activeOrStandby];
+							return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
 						}
 					}
 					break;
