@@ -982,6 +982,7 @@ export default {
 		fastForward() {
 			viewer.stopSimulation();
 			this.scrubPlaying = false;
+			this.scrubPosition = this.scrubFileSize;
 			viewer.gcodeProcessor.updateFilePosition(this.scrubFileSize);
 			
 		},
