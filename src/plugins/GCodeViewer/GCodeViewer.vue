@@ -177,7 +177,7 @@
 					<v-icon>mdi-flash</v-icon>
 				</code-btn>
 			</div>
-			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline.sync="currentLine" ></code-stream>
+			<code-stream :shown="viewGCode" :is-simulating="scrubPlaying" :document="fileData" :class="codeViewClass" :currentline="scrubPosition" @changed="scrubPositionChanged"></code-stream>
 			<canvas :title="hoverLabel" :class="viewerClass" ref="viewerCanvas"></canvas>
 			<fs-overlay :class="[viewerClass, 'fsoverlay']" v-show="fullscreen && showOverlay" :viewgcode="viewGCode"></fs-overlay>
 			<div class="loading-progress">
@@ -368,12 +368,12 @@
 			<div :class="[{ 'button-container-drawer': drawer }, scrubberClass]" v-show="!visualizingCurrentJob && scrubFileSize > 0">
 				<v-row class="scrubber-row">
 					<v-col cols="10" md="6">
-						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition "></v-slider>
+						<v-slider :hint="scrubPosition + '/' + scrubFileSize" :max="scrubFileSize" dense min="0" persistent-hint v-model="scrubPosition " @start="scrubStart" @end="scrubEnd" @change="scrubPositionChanged"></v-slider>
 					</v-col>
 					<v-col cols="2">
 						<v-row dense>
 							<v-col cols="12">
-								<v-btn @click="scrubPlaying = !scrubPlaying">
+								<v-btn @click="simulatePlay">
 									<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
 									<v-icon v-else>mdi-play</v-icon>
 								</v-btn>
@@ -390,6 +390,7 @@
 							<v-btn :value="5">5x</v-btn>
 							<v-btn :value="10">10x</v-btn>
 							<v-btn :value="20">20x</v-btn>
+							<v-btn :value="100">100x</v-btn>
 						</v-btn-toggle>
 					</v-col>
 				</v-row>
@@ -479,12 +480,11 @@ export default {
 			scrubFileSize: 0,
 			scrubPlaying: false,
 			scrubInterval: null,
-			colorDebounce: null,
 			scrubSpeed: 1,
+			colorDebounce: null,
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			currentLine: 0,
 		};
 	},
 	computed: {
@@ -640,7 +640,7 @@ export default {
 		viewer.fileData = "";
 		await viewer.init();
 
-
+		viewer.simulationMultiplier = 1;
 		viewer.buildObjects.objectCallback = this.objectSelectionCallback;
 		viewer.buildObjects.labelCallback = (label) => {
 			if (this.showObjectSelection) {
@@ -693,6 +693,12 @@ export default {
 		viewer.gcodeProcessor.loadingProgressCallback = (progress, message) => {
 			this.loadingProgress = Math.ceil(progress * 100);
 			this.loadingMessage = message ?? '';
+		};
+		viewer.simulationUpdatePosition = (position) => {
+			this.scrubPosition = position;
+		};
+		viewer.simulationStopped = () => {
+			this.scrubPlaying = false;
 		};
 		this.viewModelEvent = async (path) => {
 			this.selectedFile = path;
@@ -752,6 +758,33 @@ export default {
 			machineDownload: 'download',
 			sendCode: 'sendCode',
 		}),
+
+		simulatePlay() {
+			if (this.scrubPlaying) {
+				viewer.stopSimulation();
+			}
+			else {
+				viewer.startSimulation();
+			}
+			this.scrubPlaying = viewer.simulation;
+		},
+		scrubPositionChanged(value) {
+			let viewerState = viewer.simulation;
+			viewer.simulation = false;
+
+			this.$nextTick(() => {
+				this.scrubPosition = value;
+				viewer.gcodeProcessor.updateFilePosition(value);
+				viewer.simulateToolPosition();
+				viewer.simulation = viewerState;
+			});
+		},
+		scrubStart() {
+			viewer.simulation = false;
+		},
+		scrubEnd(val) {
+			viewer.simulation = this.scrubPlaying;
+		},
 		updateColor(index, value) {
 			this.toolColors[index] = value;
 			viewer.gcodeProcessor.updateTool(value, 0.4, index);
@@ -804,6 +837,7 @@ export default {
 			}
 		},
 		async loadRunningJob() {
+			viewer.simulation = false;
 			if (this.selectedFile != this.job.file.fileName) {
 				this.selectedFile = '';
 				viewer.gcodeProcessor.setLiveTracking(false);
@@ -826,6 +860,7 @@ export default {
 				if(this.viewGCode){
 					this.fileData = viewer.fileData;
 				}
+				this.scrubFileSize = viewer.fileSize;;
 				this.setGCodeValues();
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects); //file is loaded lets load the final heights
 			} finally {
@@ -944,9 +979,11 @@ export default {
 				event.target.scrollIntoView(true);
 			}, 250);
 		},
-		fastForward(){
+		fastForward() {
+			viewer.stopSimulation();
 			this.scrubPlaying = false;
-			this.scrubPosition = this.scrubFileSize;
+			viewer.gcodeProcessor.updateFilePosition(this.scrubFileSize);
+			
 		},
 		updatePosition(){
 
@@ -1005,33 +1042,12 @@ export default {
 		},
 		'filePosition': function (newValue) {
 			if (this.visualizingCurrentJob) {
-				this.currentLine = newValue;
-				viewer.gcodeProcessor.updateFilePosition(newValue);
+				this.scrubPosition = newValue;
+				viewer.gcodeProcessor.updateFilePosition(newValue + 1);
 			}
 		},
-		'scrubPosition': function (newValue) {
-			if (!this.visualizingCurrentJob) {
-				viewer.gcodeProcessor.updateFilePosition(newValue);
-				viewer.simulateToolPosition()
-				this.currentLine = newValue;
-			}
-		},
-		'scrubPlaying': function (newValue) {
-			if (newValue) {
-				viewer.gcodeProcessor.updateFilePosition(this.scrubPosition - 30000);
-				this.scrubInterval = setInterval(() => {
-					if (this.scrubPlaying) {
-						this.scrubPosition += 100 * this.scrubSpeed;
-						viewer.gcodeProcessor.updateFilePosition(this.scrubPosition);
-						this.currentLine = this.scrubPosition;
-					}
-				}, 200);
-			} else {
-				if (this.scrubInterval) {
-					clearInterval(this.scrubInterval);
-				}
-				this.scrubInterval = null;
-			}
+		scrubSpeed(to) {
+			viewer.simulationMultiplier = to;
 		},
 		'nthRow': function (newValue) {
 			viewer.gcodeProcessor.everyNthRow = newValue;
@@ -1079,8 +1095,8 @@ export default {
 		},
 		'isJobRunning': function (newValue) {
 			//Need to add a check for paused...
+			viewer.gcodeProcessor.setliveTracking(newValue);
 			if (!newValue) {
-				viewer.gcodeProcessor.setLiveTracking(false);
 				viewer.gcodeProcessor.doFinalPass();
 			}
 		},
@@ -1135,14 +1151,6 @@ export default {
 		'g1AsExtrusion': async function(to){
 			viewer.gcodeProcessor.g1AsExtrusion = to;
 			await this.reloadviewer();		
-		},
-		'currentLine': function (to) {
-			if (!this.visualizingCurrentJob) {
-				this.scrubPosition = to;
-				viewer.gcodeProcessor.updateFilePosition(to);
-
-
-			}
 		},
 		'zBelt': function (to) { 
 			viewer.setZBelt(to, this.zBeltAngle);
