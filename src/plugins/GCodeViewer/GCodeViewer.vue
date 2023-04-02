@@ -695,7 +695,7 @@ export default {
 			this.loadingMessage = message ?? '';
 		};
 		viewer.simulationUpdatePosition = (position) => {
-			this.scrubPosition = position;
+			this.scrubPosition = position - 2;
 		};
 		viewer.simulationStopped = () => {
 			this.scrubPlaying = false;
