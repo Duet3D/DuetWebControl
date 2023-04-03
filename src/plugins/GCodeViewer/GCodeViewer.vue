@@ -918,8 +918,8 @@ export default {
 		},
 		setGCodeValues() {
 			if(!this.g1AsExtrusion){
-				this.maxHeight = viewer.getMaxHeight();
-				this.minHeight = viewer.getMinHeight();
+				this.maxHeight =  this.zBelt ? 500 : viewer.getMaxHeight();
+				this.minHeight =  viewer.getMinHeight();
 			}
 			else{
 				this.maxHeight = 100000;
