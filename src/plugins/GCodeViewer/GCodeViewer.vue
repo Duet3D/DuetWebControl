@@ -245,6 +245,7 @@
 							</v-btn-toggle>
 							<v-checkbox :label="$t('plugins.gcodeViewer.useHQRendering')" class="mt-4" v-model="useHQRendering" />
 							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" v-model="forceWireMode"></v-checkbox>
+							<v-checkbox :label="$t('plugins.gcodeViewer.perimeterOnly')" v-model="perimeterOnly"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.transparency')" v-model="vertexAlpha"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.useSpecular')" v-model="specular"></v-checkbox>
 						</v-expansion-panel-content>
@@ -485,6 +486,7 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
+			perimeterOnly: false
 		};
 	},
 	computed: {
@@ -934,6 +936,7 @@ export default {
 			viewer.gcodeProcessor.updateForceWireMode(this.forceWireMode);
 			viewer.gcodeProcessor.setLiveTracking(this.visualizingCurrentJob);
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
+			viewer.gcodeProcessor.perimeterOnly = this.perimeterOnly;
 			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
 			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
