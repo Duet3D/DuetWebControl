@@ -1,5 +1,5 @@
 <template>
-   <div ref="editor" class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange"></div>
+   <div ref="editor" class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange"></div>
 </template>
 
 <style scoped></style>
@@ -66,19 +66,21 @@ export default Vue.extend({
    methods: {
       cursorChange(e: any) {
          if (this.isSimulating) return;
-         const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 1);
-         const position = this.editor?.getModel()?.getOffsetAt(currentPosition) ?? 0;
-         this.$emit('update:currentline', position);
+         const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 9999);
+         const newPosition = new monaco.Position(currentPosition.lineNumber, 9999);
+         const position = this.editor?.getModel()?.getOffsetAt(newPosition) ?? 0;
+         this.$emit('changed', position);
       }
    },
    watch: {
       currentline(to) {
          if (!this.shown || !this.editor) return;
-         const currentPosition = this.editor.getPosition() ?? new monaco.Position(1, 1);
-         const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 1);
+         to = to
+         const currentPosition = this.editor.getPosition() ?? new monaco.Position(1,9999);
+         const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 9999);
          if (currentPosition.equals(position)) return;
          const direction = Math.sign(position.lineNumber - currentPosition?.lineNumber);
-         let newpos = new monaco.Position(position.lineNumber, 1);
+         let newpos = new monaco.Position(position.lineNumber, 9999);
          if (newpos) {
             this.editor.setPosition(newpos);
             this.editor.revealLine(newpos.lineNumber + 5 * direction);
