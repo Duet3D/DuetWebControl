@@ -83,6 +83,8 @@ import Vue from "vue";
 import store from "@/store";
 import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
+import "@/utils/monaco-menu";
+import "@/utils/monaco-STM32";
 import Path from "@/utils/path";
 
 const mediumFileThreshold = 4194304;	// 4 MiB
@@ -111,6 +113,12 @@ export default Vue.extend({
 			}
 			if (/\.json/i.test(this.filename)) {
 				return "json";
+			}
+			if (Path.startsWith(this.filename, this.menuDirectory) ) {
+				return "menu";
+			}
+			if (/board.txt/i.test(this.filename)) {
+				return "STM32";
 			}
 			return "";
 		},
