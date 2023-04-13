@@ -40,6 +40,9 @@
 								<v-list-item-subtitle class="no-overflow">
 									{{ profile.subtitle }}
 								</v-list-item-subtitle>
+								<v-list-item-subtitle v-if="profile.secondSubtitle" class="no-overflow">
+									{{ profile.secondSubtitle }}
+								</v-list-item-subtitle>
 							</v-list-item-content>
 							<v-list-item-icon v-if="canDelete" class="align-self-center" @click.stop.prevent="deleteProfile(profile)">
 								<v-icon>
@@ -65,6 +68,9 @@
 								</v-list-item-title>
 								<v-list-item-subtitle class="no-overflow">
 									{{ profile.subtitle }}
+								</v-list-item-subtitle>
+								<v-list-item-subtitle v-if="profile.secondSubtitle" class="no-overflow">
+									{{ profile.secondSubtitle }}
 								</v-list-item-subtitle>
 							</v-list-item-content>
 						</template>
@@ -149,7 +155,7 @@ export default {
 			// Convert files into profile groups with files
 			const profiles = [], uncategorized = [];
 			for (let filename of this.files) {
-				const matches = /^(\d+)-([a-zA-SU-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)-?(\d+\.?\d*)?(Hz)?\.csv/.exec(filename);
+				const matches = /^(\d+)-([a-zA-SU-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)-?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
 				if (matches) {
 					const title = `Profile #${matches[1]}`;
 					let run = profiles.find(profile => profile.title === title);
@@ -164,13 +170,15 @@ export default {
 					}
 
 					const shaperTitle = (matches[6] === 'none') ? 'No Shaping' : ((matches[6] === 'custom') ? 'Custom' : `${matches[6].toUpperCase()} @ ${matches[7]}Hz`);
+					const dampingFactor = isNaN(matches[9]) ? null : `Damping Factor ${matches[9]}`;
 					run.files.push({
 						title: `${matches[2].split('').reduce((a, b) => `${a}+${b}`)} ${matches[3]}-${matches[4]}, accelerometer ${matches[5]}, ${shaperTitle}`,
 						filename,
-						shaperTitle
+						shaperTitle,
+						dampingFactor
 					});
 				} else {
-					const toolMatches = /^(\d+)-T(\d+)-([a-zA-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)[-]?(\d+\.?\d*)?(Hz)?\.csv/.exec(filename);
+					const toolMatches = /^(\d+)-T(\d+)-([a-zA-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)[-]?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
 					if (toolMatches) {
 						const title = `Profile #${toolMatches[1]}`;
 						let run = profiles.find(profile => profile.title === title);
@@ -185,10 +193,12 @@ export default {
 						}
 
 						const shaperTitle = (toolMatches[7] === 'none') ? 'No Shaping' : ((toolMatches[7] === 'custom') ? 'Custom' : `${toolMatches[7].toUpperCase()} @ ${toolMatches[8]}Hz`);
+						const dampingFactor = isNaN(matches[10]) ? null : `Damping Factor ${matches[10]}`;
 						run.files.push({
 							title: `T${toolMatches[2]}, ${toolMatches[3].split('').reduce((a, b) => `${a}+${b}`)} ${toolMatches[4]}-${toolMatches[5]}, accelerometer ${toolMatches[6]}, ${shaperTitle}`,
 							filename,
-							shaperTitle
+							shaperTitle,
+							dampingFactor
 						});
 					} else {
 						const filenameMatch = /(.+)\.csv$/.exec(filename);
@@ -214,8 +224,10 @@ export default {
 						}
 					}
 					profile.subtitle = `${allEqual ? shaperTitles[0] : 'Multiple configs'}, ${profile.files.length} moves`;
+					profile.secondSubtitle = profile.files[0].dampingFactor;
 				} else {
 					profile.subtitle = `${profile.files.length} moves`;
+					profile.secondSubtitle = null;
 				}
 			}
 
@@ -225,6 +237,7 @@ export default {
 					icon: 'mdi-file-multiple',
 					title: 'Uncategorized',
 					subtitle: `${uncategorized.length} files`,
+					secondSubtitle: null,
 					files: uncategorized
 				});
 			}

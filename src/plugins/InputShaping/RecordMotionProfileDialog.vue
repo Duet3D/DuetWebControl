@@ -475,7 +475,7 @@ export default {
 			}
 			filename += `-${move.axis.replace(/\+/g, '')}${move.start}-${move.end}-${move.accelerometer}-${this.move.shaping.type}`;
 			if (this.move.shaping.type !== 'none' && this.move.shaping.type !== 'custom') {
-				filename += `-${this.move.shaping.frequency}Hz`;
+				filename += `-${this.move.shaping.frequency}Hz-${this.move.shaping.damping}`;
 			}
 			filename += '.csv';
 			return filename;
