@@ -763,7 +763,7 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Send the code to RRF
-		const response = await this.request("GET", "rr_gcode", { gcode: code });
+		const seq = this.lastSeqs.reply, response = await this.request("GET", "rr_gcode", { gcode: code });
 		if (!(response instanceof Object)) {
 			console.warn(`Received bad response for rr_gcode: ${JSON.stringify(response)}`);
 			throw new CodeResponseError();
@@ -777,8 +777,8 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Check if a response can be expected
-		if (!noWait && strippedCode !== "" && strippedCode.toUpperCase().indexOf("M997") === -1 && strippedCode.toUpperCase().indexOf("M999") === -1) {
-			const pendingCodes = this.pendingCodes, seq = this.lastSeqs.reply;
+		if (!noWait && seq === this.lastSeqs.reply && strippedCode !== "" && strippedCode.toUpperCase().indexOf("M997") === -1 && strippedCode.toUpperCase().indexOf("M999") === -1) {
+			const pendingCodes = this.pendingCodes;
 			return new Promise<string>((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
 		}
 	}
