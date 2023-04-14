@@ -1,3 +1,10 @@
+<style scoped>
+th {
+	padding: 0 16px;
+	text-align: left;
+}
+</style>
+
 <template>
 	<v-card outlined>
 		<v-card-title>
@@ -43,7 +50,7 @@
 						Duet WiFi Server
 					</td>
 					<td>
-						<!-- n/a -->
+						{{ $t("generic.noValue") }}
 					</td>
 					<td>
 						{{ wifiVersion }}
@@ -72,18 +79,16 @@
 						DWC
 					</td>
 					<td :title="$t('panel.settingsAbout.buildDateTime', [buildDateTime])">
-						{{ dsfVersion }}
+						{{ dwcVersion }}
 					</td>
 				</tr>
 			</tbody>
-			<tfoot>
-				<upload-btn v-if="!isRestConnector || !isDuetFirmware" target="update" color="primary"
-							class="mt-3 d-flex justify-center" />
-			</tfoot>
 		</v-simple-table>
 		<v-card-text v-else>
 			{{ $t("panel.settingsElectronics.notConnected") }}
 		</v-card-text>
+
+		<upload-btn v-if="!isRestConnector || !isDuetFirmware" class="my-3 d-flex justify-center" target="update" color="primary" />
 	</v-card>
 </template>
 

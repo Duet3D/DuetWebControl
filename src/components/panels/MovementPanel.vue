@@ -45,12 +45,8 @@
 							<v-icon class="mr-1">mdi-format-vertical-align-center</v-icon>
 							{{ isDelta ? $t("panel.movement.runDelta") : $t("panel.movement.runBed") }}
 						</v-list-item>
-						<v-list-item :disabled="!isCompensationEnabled" @click="sendCode('M561')">
-							<v-icon class="mr-1">mdi-border-none</v-icon>
-							{{ $t("panel.movement.disableBedCompensation") }}
-						</v-list-item>
 
-						<v-divider></v-divider>
+						<v-divider />
 
 						<v-list-item :disabled="!canHome" @click="sendCode('G29')">
 							<v-icon class="mr-1">mdi-grid</v-icon>
