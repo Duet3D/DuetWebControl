@@ -1015,7 +1015,8 @@
          "zBelt": "Z Belt",
          "zBeltAngle": "Z Belt Gantry Angle",
          "showWorkplace": "Show Workplace",
-         "perimeterOnly": "Perimeter Only"
+         "perimeterOnly": "Perimeter Only",
+         "progressMode": "Progress Mode"
       },
       "heightmap": {
          "menuCaption": "Height Map",

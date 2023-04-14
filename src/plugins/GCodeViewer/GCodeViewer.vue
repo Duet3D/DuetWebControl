@@ -246,6 +246,7 @@
 							<v-checkbox :label="$t('plugins.gcodeViewer.useHQRendering')" class="mt-4" v-model="useHQRendering" />
 							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" v-model="forceWireMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.perimeterOnly')" v-model="perimeterOnly"></v-checkbox>
+							<v-checkbox :label="$t('plugins.gcodeViewer.progressMode')" v-model="progressMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.transparency')" v-model="vertexAlpha"></v-checkbox>
 							<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"></v-slider>
 							<v-checkbox :label="$t('plugins.gcodeViewer.useSpecular')" v-model="specular"></v-checkbox>
@@ -489,7 +490,8 @@ export default {
 			fileData: "",
 			perimeterOnly: false,
 			transparencyPercent: 50,
-			transparencyDebounce: null
+			transparencyDebounce: null,
+			progressMode: false
 		};
 	},
 	computed: {
@@ -941,6 +943,7 @@ export default {
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 			viewer.gcodeProcessor.perimeterOnly = this.perimeterOnly;
 			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
+			viewer.gcodeProcessor.progressMode = this.progressMode;
 			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
@@ -1198,6 +1201,9 @@ export default {
 		transparencyPercent(to) {
 			viewer.gcodeProcessor.setTransparencyValue(to / 100);
 			viewer.gcodeProcessor.forceRedraw();
+		},
+		async progressMode() {
+			await this.reloadviewer()
 		}
 	},
 };
