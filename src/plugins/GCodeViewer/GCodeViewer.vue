@@ -1111,7 +1111,7 @@ export default {
 		},
 		'isJobRunning': function (newValue) {
 			//Need to add a check for paused...
-			viewer.gcodeProcessor.setliveTracking(newValue);
+			viewer.gcodeProcessor.setLiveTracking(newValue);
 			if (!newValue) {
 				viewer.gcodeProcessor.doFinalPass();
 			}
