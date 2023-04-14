@@ -246,7 +246,9 @@
 							<v-checkbox :label="$t('plugins.gcodeViewer.useHQRendering')" class="mt-4" v-model="useHQRendering" />
 							<v-checkbox :label="$t('plugins.gcodeViewer.forceLineRendering')" v-model="forceWireMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.perimeterOnly')" v-model="perimeterOnly"></v-checkbox>
+							<v-checkbox :label="$t('plugins.gcodeViewer.progressMode')" v-model="progressMode"></v-checkbox>
 							<v-checkbox :label="$t('plugins.gcodeViewer.transparency')" v-model="vertexAlpha"></v-checkbox>
+							<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"></v-slider>
 							<v-checkbox :label="$t('plugins.gcodeViewer.useSpecular')" v-model="specular"></v-checkbox>
 						</v-expansion-panel-content>
 					</v-expansion-panel>
@@ -486,7 +488,10 @@ export default {
 			resizeDebounce: null,
 			codeView: false,
 			fileData: "",
-			perimeterOnly: false
+			perimeterOnly: false,
+			transparencyPercent: 50,
+			transparencyDebounce: null,
+			progressMode: false
 		};
 	},
 	computed: {
@@ -641,7 +646,7 @@ export default {
 		viewer = new gcodeViewer(this.$refs.viewerCanvas);
 		viewer.fileData = "";
 		await viewer.init();
-
+	
 		viewer.simulationMultiplier = 1;
 		viewer.buildObjects.objectCallback = this.objectSelectionCallback;
 		viewer.buildObjects.labelCallback = (label) => {
@@ -727,10 +732,7 @@ export default {
 		this.$root.$on('view-3d-model', this.viewModelEvent);
 
 		this.$nextTick(() => {
-			viewer.gcodeProcessor.resetTools();
-			for (let idx = 0; idx < this.toolColors.length; idx++) {
-				viewer.gcodeProcessor.addTool(this.toolColors[idx], 0.4); //hard code the nozzle size for now.
-			}
+			this.updateTools();
 			this.updateWorkplaces();
 		});
 
@@ -795,7 +797,8 @@ export default {
 			}
 			this.colorDebounce = setTimeout(() => {
 				setPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', this.toolColors);
-			}, 1000);
+				viewer.gcodeProcessor.forceRedraw();
+			}, 200);
 		},
 		updateBackground(value) {
 			this.backgroundColor = value;
@@ -873,6 +876,8 @@ export default {
 		},
 		resetExtruderColors() {
 			this.toolColors = ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'];
+			this.updateTools();
+			viewer.gcodeProcessor.forceRedraw();
 		},
 		async reloadviewer() {
 			if (this.loading) {
@@ -938,6 +943,7 @@ export default {
 			viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 			viewer.gcodeProcessor.perimeterOnly = this.perimeterOnly;
 			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
+			viewer.gcodeProcessor.progressMode = this.progressMode;
 			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
@@ -1012,7 +1018,13 @@ export default {
 					}
 				}
 				viewer.setWorkplaceVisiblity(this.showWorkplace);
-		}
+		},
+		updateTools() {
+			viewer.gcodeProcessor.resetTools();
+			for (let idx = 0; idx < this.toolColors.length; idx++) {
+				viewer.gcodeProcessor.addTool(this.toolColors[idx], 0.4); //hard code the nozzle size for now.
+			}
+		},		
 	},
 	activated() {
 		viewer.pause = false;
@@ -1099,7 +1111,7 @@ export default {
 		},
 		'isJobRunning': function (newValue) {
 			//Need to add a check for paused...
-			viewer.gcodeProcessor.setliveTracking(newValue);
+			viewer.gcodeProcessor.setLiveTracking(newValue);
 			if (!newValue) {
 				viewer.gcodeProcessor.doFinalPass();
 			}
@@ -1179,6 +1191,19 @@ export default {
 		},
 		showWorkplace() {
 			this.updateWorkplaces();
+		},
+		'toolColors': {
+			handler() {
+				this.updateTools();
+			},
+			deep: true
+		},
+		transparencyPercent(to) {
+			viewer.gcodeProcessor.setTransparencyValue(to / 100);
+			viewer.gcodeProcessor.forceRedraw();
+		},
+		async progressMode() {
+			await this.reloadviewer()
 		}
 	},
 };
