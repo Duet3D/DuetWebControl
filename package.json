@@ -29,7 +29,7 @@
       "piecon": "^0.5.0",
       "qoijs": "^1.0.0",
       "register-service-worker": "^1.7.2",
-      "semver": "^7.3.8",
+      "semver": "7.4",
       "simple-keyboard": "^3.4.167",
       "turbo-crc32": "^1.0.1",
       "vue": "^2.6.12",

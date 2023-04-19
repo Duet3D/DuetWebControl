@@ -117,7 +117,7 @@ export default Vue.extend({
 			if (Path.startsWith(this.filename, this.menuDirectory) ) {
 				return "menu";
 			}
-			if (/board.txt/i.test(this.filename)) {
+			if (Path.equals(this.filename, Path.boardFile)) {
 				return "STM32";
 			}
 			return "";
@@ -125,17 +125,8 @@ export default Vue.extend({
 		isMenu(): boolean {
 			return Path.startsWith(this.filename, this.menuDirectory);
 		},
-		isIOS(): boolean {
-			return [
-				"iPad Simulator",
-				"iPhone Simulator",
-				"iPod Simulator",
-				"iPad",
-				"iPhone",
-				"iPod"
-			].includes(navigator.platform)
-				// iPad on iOS 13 detection
-				|| (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+		isMobile(): boolean {
+			return /(Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone)/i.test(navigator.userAgent);
 		}
 	},
 	data() {
@@ -221,7 +212,7 @@ export default Vue.extend({
 		shown(to) {
 			// Update textarea
 			this.innerValue = this.value || "";
-			this.useEditor = !window.disableCodeMirror && !this.isIOS;
+			this.useEditor = !window.disableCodeMirror && !this.isMobile;
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
