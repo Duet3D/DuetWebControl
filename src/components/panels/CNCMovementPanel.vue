@@ -254,7 +254,7 @@ export default Vue.extend({
 		},
 	},
 	mounted() {
-		this.currentWorkplace = this.workplaceNumber;
+		this.currentWorkplace = this.workplaceNumber + 1;
 	},
 	watch: {
 		isConnected() {
@@ -263,7 +263,7 @@ export default Vue.extend({
 			this.moveStepDialog.shown = false;
 		},
 		workplaceNumber(to: number) {
-			this.currentWorkplace = to;
+			this.currentWorkplace = to + 1;
 		}
 	},
 });
