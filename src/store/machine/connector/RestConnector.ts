@@ -341,7 +341,7 @@ export default class RestConnector extends BaseConnector {
 		// Attempt to reconnect
 		const that = this;
 		await new Promise<void>((resolve, reject) => {
-			const lastDsfVersion = that.model.state.dsfVersion;
+			const lastDsfVersion = that.model.sbc?.dsf.version;
 			const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : "")}`);
 			socket.onmessage = (e) => {
@@ -350,7 +350,7 @@ export default class RestConnector extends BaseConnector {
 				that.socket = socket;
 
 				// Check if DSF has been updated
-				if (lastDsfVersion !== that.model.state.dsfVersion) {
+				if (lastDsfVersion !== that.model.sbc?.dsf.version) {
 					location.reload();
 				}
 

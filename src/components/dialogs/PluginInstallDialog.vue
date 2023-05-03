@@ -269,15 +269,15 @@ export default Vue.extend({
 			return true;
 		},
 		dsfVersion(): string {
-			return store.state.machine.model.state.dsfVersion || this.$t("generic.noValue");
+			return store.state.machine.model.sbc?.dsf.version ?? this.$t("generic.noValue");
 		},
 		showDsfVersion(): boolean {
 			return this.pluginManifest.sbcRequired && this.hasDsfFiles;
 		},
 		checkDsfVersion(): boolean {
 			if (this.pluginManifest.sbcDsfVersion) {
-				if (store.state.machine.model.state.dsfVersion && store.state.machine.model.state.dsfPluginSupport) {
-					return checkVersion(store.state.machine.model.state.dsfVersion, this.pluginManifest.sbcDsfVersion);
+				if (store.state.machine.model.sbc && store.state.machine.model.sbc.dsf.pluginSupport) {
+					return checkVersion(store.state.machine.model.sbc.dsf.version, this.pluginManifest.sbcDsfVersion);
 				}
 				return false;
 			}
@@ -293,8 +293,8 @@ export default Vue.extend({
 			return true;
 		},
 		pluginsSupported(): boolean {
-			if (store.state.machine.model.state.dsfVersion) {
-				return store.state.machine.model.state.dsfPluginSupport;
+			if (store.state.machine.model.sbc) {
+				return store.state.machine.model.sbc.dsf.pluginSupport;
 			}
 			return true;
 		},
@@ -302,7 +302,7 @@ export default Vue.extend({
 			return this.permissions.has(SbcPermission.superUser);
 		},
 		checkRoot(): boolean {
-			return !this.requiresRoot || store.state.machine.model.state.dsfRootPluginSupport;
+			return !this.requiresRoot || !!store.state.machine.model.sbc?.dsf.rootPluginSupport;
 		},
 		permissions(): Set<SbcPermission> {
 			return this.pluginManifest.sbcPermissions || new Set<SbcPermission>();

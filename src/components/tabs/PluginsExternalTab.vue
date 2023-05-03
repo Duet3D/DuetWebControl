@@ -136,7 +136,7 @@ export default Vue.extend({
 			return (result.length > 0) ? result.join(", ") : this.$t("generic.noValue");
 		},
 		getPluginStatus(plugin: Plugin) {
-			if (store.state.machine.model.state.dsfVersion && plugin.sbcExecutable) {
+			if (store.state.machine.model.sbc && plugin.sbcExecutable) {
 				if (plugin.pid > 0 && (!plugin.dwcVersion || store.state.machine.settings.enabledPlugins.includes(plugin.id))) {
 					return this.$t("tabs.plugins.started");
 				}

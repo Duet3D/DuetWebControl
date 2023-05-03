@@ -45,7 +45,7 @@ export default Vue.extend({
 			return (store.state.machine.model.boards.length > 0 && store.state.machine.model.boards[0].firmwareFileName) ? store.state.machine.model.boards[0].firmwareFileName.startsWith("Duet") : true;
 		},
 		dsfVersion(): string | null {
-			return store.state.machine.model.state.dsfVersion;
+			return store.state.machine.model.sbc?.dsf.version ?? null;
 		},
 		internalShown: {
 			get(): boolean { return this.shown; },

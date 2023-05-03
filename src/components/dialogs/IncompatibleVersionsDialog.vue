@@ -36,7 +36,7 @@ import { LogType } from "@/utils/logging";
 export default Vue.extend({
 	computed: {
 		isConnecting(): boolean { return store.state.isConnecting || store.state.machine.isReconnecting; },
-		upgradeDocs(): string { return (store.state.machine.model.state.dsfVersion !== null) ? "https://docs.duet3d.com/en/User_manual/Machine_configuration/SBC_setup" : "https://docs.duet3d.com/en/User_manual/RepRapFirmware/Updating_firmware" }
+		upgradeDocs(): string { return (store.state.machine.model.sbc !== null) ? "https://docs.duet3d.com/en/User_manual/Machine_configuration/SBC_setup" : "https://docs.duet3d.com/en/User_manual/RepRapFirmware/Updating_firmware" }
 	},
 	data() {
 		return {
@@ -53,20 +53,20 @@ export default Vue.extend({
 						// Check expansion board firmware versions
 						for (const board of store.state.machine.model.boards) {
 							if (board.canAddress && board.firmwareVersion && semver.compare(mainboardVersion, board.firmwareVersion) !== 0) {
-								console.warn(`Expansion board #${board.canAddress} version mismatch (MB ${mainboardVersion} != EXP ${board.firmwareVersion}`);
+								console.warn(`Expansion board #${board.canAddress} version mismatch (MB ${mainboardVersion} != EXP ${board.firmwareVersion})`);
 								versionMismatch = true;
 							}
 						}
 
 						// Check DSF version
-						if (!versionMismatch && store.state.machine.model.state.dsfVersion !== null && semver.compare(mainboardVersion, store.state.machine.model.state.dsfVersion) !== 0) {
-							console.warn(`DSF version mismatch (MB ${mainboardVersion} != DSF ${store.state.machine.model.state.dsfVersion}`);
+						if (!versionMismatch && store.state.machine.model.sbc !== null && semver.compare(mainboardVersion, store.state.machine.model.sbc.dsf.version) !== 0) {
+							console.warn(`DSF version mismatch (MB ${mainboardVersion} != DSF ${store.state.machine.model.sbc.dsf.version})`);
 							versionMismatch = true;
 						}
 
 						// Check DWC version
 						if (!versionMismatch && semver.compare(mainboardVersion, packageInfo.version) !== 0) {
-							console.warn(`DWC version mismatch (MB ${mainboardVersion} != DWC ${packageInfo.version}`);
+							console.warn(`DWC version mismatch (MB ${mainboardVersion} != DWC ${packageInfo.version})`);
 							versionMismatch = true;
 						}
 					}

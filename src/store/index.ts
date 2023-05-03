@@ -76,6 +76,11 @@ export interface InternalRootState {
 
 export interface RootState extends InternalRootState {
 	machine: MachineModuleState;
+	/**
+	 * Do not attempt to reference this any more, it will be removed in v3.6.
+	 * There are better solutions for multi-machine management
+	 * @deprecated
+	 */
 	machines: Record<string, MachineModuleState>;
 	settings: SettingsState;
 	uiInjection: UiInjectionState;

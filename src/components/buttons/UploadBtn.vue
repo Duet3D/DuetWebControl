@@ -125,7 +125,7 @@ export default Vue.extend({
 				case UploadType.filaments: return ".zip";
 				case UploadType.firmware: return ".zip,.bin,.uf2";
 				case UploadType.menu: return "*";
-				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.state.dsfVersion !== null) ? ",.deb" : "");
+				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.sbc !== null) ? ",.deb" : "");
 				case UploadType.web: return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
 				case UploadType.plugin: return ".zip";
 				case UploadType.update: return ".zip,.bin,.uf2";
@@ -255,7 +255,7 @@ export default Vue.extend({
 					return;
 				}
 
-				if (store.state.machine.model.state.dsfVersion !== null && files[0].name.toLowerCase() === "dsf-update.zip") {
+				if (store.state.machine.model.sbc !== null && files[0].name.toLowerCase() === "dsf-update.zip") {
 					await store.dispatch("machine/installSystemPackage", {
 						filename: files[0].name,
 						packageData: files[0]
@@ -358,7 +358,7 @@ export default Vue.extend({
 					} else if (this.isWebFile(content.name)) {
 						filename = Path.combine(store.state.machine.model.directories.web, content.name);
 						this.updates.webInterface = this.updates.webInterface || /index.html(\.gz)?/i.test(content.name);
-					} else if (store.state.machine.model.state.dsfVersion !== null && /\.deb$/.test(content.name)) {
+					} else if (store.state.machine.model.sbc !== null && /\.deb$/.test(content.name)) {
 						await store.dispatch("machine/installSystemPackage", {
 							filename: content.name,
 							packageData: content
@@ -374,11 +374,11 @@ export default Vue.extend({
 							filename = Path.combine(store.state.machine.model.directories.firmware, firmwareFileName);
 						} else if (bootloaderFileName) {
 							filename = Path.combine(store.state.machine.model.directories.firmware, bootloaderFileName);
-						} else if (store.state.machine.model.state.dsfVersion && iapFileNameSBC) {
+						} else if (store.state.machine.model.sbc && iapFileNameSBC) {
 							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSBC);
 						} else if (iapFileNameSD) {
 							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSD);
-						} else if (!store.state.machine.model.state.dsfVersion && store.state.machine.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
+						} else if (!store.state.machine.model.sbc && store.state.machine.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
 							if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
 								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWiFiServer.bin");
 								this.updates.wifiServer = true;

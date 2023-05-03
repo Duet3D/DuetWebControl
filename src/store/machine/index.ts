@@ -847,8 +847,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 
 				// Check if the corresponding SBC plugin has been loaded (if applicable)
 				if (plugin.sbcRequired) {
-					if (!machineState.model.state.dsfVersion ||
-						(plugin.sbcDsfVersion && !checkVersion(plugin.sbcDsfVersion, machineState.model.state.dsfVersion)))
+					if (!machineState.model.sbc ||
+						(plugin.sbcDsfVersion && !checkVersion(plugin.sbcDsfVersion, machineState.model.sbc.dsf.version)))
 					{
 						throw new Error(`Plugin ${id} cannot be loaded because the current machine does not have an SBC attached`);
 					}

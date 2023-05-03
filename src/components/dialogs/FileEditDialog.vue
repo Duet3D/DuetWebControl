@@ -38,8 +38,8 @@
 </style>
 
 <template>
-	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay persistent
-			  no-click-animation transition="dialog-bottom-transition">
+	<v-dialog :value="shown" @input="$emit('update:shown', $event)" fullscreen hide-overlay persistent no-click-animation
+			  transition="dialog-bottom-transition">
 		<v-card class="d-flex flex-column">
 			<v-app-bar flat dark color="primary" class="flex-grow-0 flex-shrink-1">
 				<v-btn icon dark @click="close(false)">
@@ -67,8 +67,8 @@
 			</v-app-bar>
 
 			<div ref="editor" class="editor-monaco"></div>
-			<v-textarea v-if="!useEditor" ref="textarea" hide-details solo :rows="null" class="editor-textarea" autocomplete="off"
-						autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
+			<v-textarea v-if="!useEditor" ref="textarea" hide-details solo :rows="null" class="editor-textarea"
+						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
 						@input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
 						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)" />
 		</v-card>
@@ -114,7 +114,7 @@ export default Vue.extend({
 			if (/\.json/i.test(this.filename)) {
 				return "json";
 			}
-			if (Path.startsWith(this.filename, this.menuDirectory) ) {
+			if (Path.startsWith(this.filename, this.menuDirectory)) {
 				return "menu";
 			}
 			if (Path.equals(this.filename, Path.boardFile)) {

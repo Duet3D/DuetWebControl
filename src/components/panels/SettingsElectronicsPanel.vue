@@ -106,7 +106,7 @@ export default Vue.extend({
 		isRestConnector(): boolean { return store.getters["machine/connector"] instanceof RestConnector; },
 		boards(): Array<Board> { return store.state.machine.model.boards.filter(board => board !== null); },
 		isDuetFirmware(): boolean { return this.boards.some(board => !board.canAddress && board.firmwareFileName.startsWith("Duet")); },
-		dsfVersion(): string | null { return store.state.machine.model.state.dsfVersion; },
+		dsfVersion(): string | null { return store.state.machine.model.sbc?.dsf.version ?? null; },
 		wifiVersion(): string | null { return store.state.machine.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null; },
 	},
 	data() {

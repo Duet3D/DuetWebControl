@@ -20,7 +20,7 @@ import { MachineModule } from "..";
 /**
  * Keys in the object model to skip when performing a query
  */
-const keysToIgnore: Array<keyof ObjectModel> = ["httpEndpoints", "messages", "plugins", "userSessions"];
+const keysToIgnore: Array<keyof ObjectModel> = ["messages", "plugins", "sbc", "userSessions"];
 
 /**
  * Actual object model keys to query

@@ -1,4 +1,4 @@
-import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, SBC, Sensors, State, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 import type { Module } from "vuex";
 
@@ -204,6 +204,12 @@ export default function (connector: BaseConnector | null): MachineModel {
 							clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
 						}
 						Vue.set(state, "plugins", clonedPlugins);
+					} else if (key === "sbc" && (data.sbc === null) !== (state.sbc === null)) {
+						if (data.sbc === null) {
+							Vue.set(state, "sbc", null);
+						} else {
+							Vue.set(state, "sbc", data.sbc);
+						}
 					} else {
 						patch((state as any)[key], (typedState as any)[key]);
 					}
