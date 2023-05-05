@@ -35,6 +35,7 @@ interface ConnectResponse {
 	isEmulated?: boolean;
 	apiLevel?: number;
 	sessionTimeout: number;
+	sessionKey?: number;
 }
 
 /**
@@ -63,7 +64,8 @@ export default class PollConnector extends BaseConnector {
 	static override async connect(hostname: string, username: string, password: string): Promise<BaseConnector> {
 		const response = await BaseConnector.request("GET", `${location.protocol}//${hostname}${process.env.BASE_URL}rr_connect`, {
 			password,
-			time: timeToStr(new Date())
+			time: timeToStr(new Date()),
+			sessionKey: "yes"
 		}) as ConnectResponse;
 
 		switch (response.err) {
@@ -99,6 +101,11 @@ export default class PollConnector extends BaseConnector {
 	 * API level of the remote HTTP server
 	 */
 	apiLevel = 0;
+
+	/**
+	 * Optional session key in case the remote server supports it
+	 */
+	sessionKey: number | null = null;
 
 	/**
 	 * List of HTTP requests being executed
@@ -138,6 +145,9 @@ export default class PollConnector extends BaseConnector {
 		const xhr = new XMLHttpRequest();
 		xhr.open(method, internalURL);
 		xhr.responseType = (responseType === "json") ? "text" : responseType;
+		if (this.sessionKey !== null) {
+			xhr.setRequestHeader("X-Session-Key", this.sessionKey.toString());
+		}
 		if (onProgress) {
 			xhr.onprogress = function (e) {
 				if (e.loaded && e.total) {
@@ -178,10 +188,12 @@ export default class PollConnector extends BaseConnector {
 					BaseConnector
 						.request("GET", `${that.requestBase}rr_connect`, {
 							password: that.password,
-							time: timeToStr(new Date())
+							time: timeToStr(new Date()),
+							sessionKey: "yes"
 						})
-						.then(function (result) {
+						.then(function (result: ConnectResponse | null) {
 							if (result instanceof Object && result.err === 0) {
+								that.sessionKey = result.sessionKey ?? null;
 								that.request(method, path, params, responseType, body, timeout, filename, cancellationToken, onProgress)
 									.then(result => resolve(result))
 									.catch(error => reject(error));
@@ -272,6 +284,7 @@ export default class PollConnector extends BaseConnector {
 		super(hostname, password);
 		this.requestBase = (hostname === location.host) ? `${location.protocol}//${hostname}${process.env.BASE_URL}` : `http://${hostname}/`;
 		this.sessionTimeout = responseData.sessionTimeout;
+		this.sessionKey = responseData.sessionKey ?? null;
 		this.apiLevel = responseData.apiLevel || 0;
 	}
 
@@ -356,7 +369,8 @@ export default class PollConnector extends BaseConnector {
 		// Attempt to reconnect
 		const response = await BaseConnector.request("GET", `${location.protocol}//${this.hostname}${process.env.BASE_URL}rr_connect`, {
 			password: this.password,
-			time: timeToStr(new Date())
+			time: timeToStr(new Date()),
+			sessionKey: "yes"
 		}) as ConnectResponse;
 
 		switch (response.err) {
@@ -364,6 +378,7 @@ export default class PollConnector extends BaseConnector {
 				this.justConnected = true;
 				closeNotifications(true);
 				this.sessionTimeout = response.sessionTimeout;
+				this.sessionKey = response.sessionKey ?? null;
 				this.requestTimeout = response.sessionTimeout / ((this.settings !== null) ? this.settings.ajaxRetries + 1 : 1);
 				this.apiLevel = response.apiLevel || 0;
 				if (this.apiLevel > 0) {

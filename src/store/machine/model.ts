@@ -204,12 +204,8 @@ export default function (connector: BaseConnector | null): MachineModel {
 							clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
 						}
 						Vue.set(state, "plugins", clonedPlugins);
-					} else if (key === "sbc" && (data.sbc === null) !== (state.sbc === null)) {
-						if (data.sbc === null) {
-							Vue.set(state, "sbc", null);
-						} else {
-							Vue.set(state, "sbc", data.sbc);
-						}
+					} else if (key === "sbc" && state.sbc === null) {
+						Vue.set(state, "sbc", data.sbc);
 					} else {
 						patch((state as any)[key], (typedState as any)[key]);
 					}
