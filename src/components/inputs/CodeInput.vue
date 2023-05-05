@@ -9,7 +9,7 @@
 		<v-col>
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen"
 						:placeholder="$t('input.code.placeholder')"
-						:search-input="(code instanceof Object) ? code.value : code"
+						:search-input="(code instanceof Object) ? code.value : (code ?? '')"
 						@update:search-input="code = $event" :loading="doingCode" @keyup.enter="send" @change="change"
 						@blur="wasFocused = showItems = false" @click="click" :items="displayedCodes" hide-selected
 						@keyup.down="showItems = true" append-icon="" maxlength="255">
@@ -36,16 +36,16 @@ import Vue from "vue";
 
 import store from "@/store";
 
-const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "var", "set"];
+const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
 
 export default Vue.extend({
 	computed: {
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		displayedCodes(): Array<{ text: string, value: string }> {
 			if (this.showItems && !store.state.settings.disableAutoComplete) {
-				const currentCode = ((this.code instanceof Object) ? this.code.value : this.code).toLowerCase();
+				const currentCode = ((this.code instanceof Object) ? this.code.value : (this.code ?? "")).toLowerCase();
 				return store.state.machine.cache.lastSentCodes
-					.filter(code => (currentCode === "") || (code.toLowerCase().includes(currentCode)))
+					.filter(code => (currentCode === "") || code.toLowerCase().includes(currentCode))
 					.map(code => ({ text: code, value: code }))
 					.reverse();
 			}
