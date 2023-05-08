@@ -229,7 +229,8 @@ export default Vue.extend({
 							rulers: [255],
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
-							value: this.innerValue
+							value: this.innerValue,
+							wordBasedSuggestions: false
 						});
 						this.editor.focus();
 					});
