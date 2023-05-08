@@ -30,7 +30,8 @@ import {
 	overloadProperty, Build
 } from './modelItems.js'
 
-import Path from '@/utils/path.js'
+import { translateResponse } from '@/i18n'
+import Path from '@/utils/path'
 import { patch, quickPatch } from '@/utils/patch'
 
 // Internal object model as provided by RepRapFirmware and DSF

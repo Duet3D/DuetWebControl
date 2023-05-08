@@ -78,7 +78,7 @@ export default function(connector, pluginCacheFields = {}, pluginSettingFields =
 				const doLog = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.log) : true;
 				const noWait = (payload instanceof Object && payload.log !== undefined) ? Boolean(payload.noWait) : false;
 				try {
-					reply = await connector.sendCode({ code, noWait });
+					let reply = await connector.sendCode({ code, noWait });
 					if (typeof reply === "string") {
 						reply = translateResponse(reply);
 					}
