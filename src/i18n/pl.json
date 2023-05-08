@@ -201,7 +201,8 @@
       "menuReference": "Menu Reference",
       "save": "Zapisz",
       "confirmClose": "Plik był modyfikowany. Jeżeli kontynuujesz zmiany zostaną utracone.",
-      "confirmSaveEmpty": "Wygląda na to, że plik, który chcesz zapisać, jest pusty. Jesteś pewien, że chcesz kontynuować?"
+      "confirmSaveEmpty": "Wygląda na to, że plik, który chcesz zapisać, jest pusty. Jesteś pewien, że chcesz kontynuować?",
+      "indentComments": "Komentarze wcięcia"
     },
     "fileTransfer": {
       "uploadingTitle": "Wgrywanie pliku {0} z z{1}, {2}% ukończono",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Wersja serwera Duet WiFi: {0}",
       "updateNote": "Notatka: Możesz zainstalować aktualizację na stronie systemu.",
       "dsfVersion": "Wersja DSF: {0}",
-      "notConnected": "(nie połączony)"
+      "notConnected": "(nie połączony)",
+      "dwcVersion": "Wersja DWC: {0}"
     },
     "settingsEndstops": {
       "caption": "Krańcówka",
@@ -1014,7 +1016,9 @@
       "viewGCode": "Wyświetl kod G",
       "zBeltAngle": "Kąt gantry pasa Z",
       "showWorkplace": "Pokaż miejsce pracy",
-      "zBelt": "Pas Z"
+      "zBelt": "Pas Z",
+      "perimeterOnly": "Tylko obwód",
+      "progressMode": "Tryb postępu"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",

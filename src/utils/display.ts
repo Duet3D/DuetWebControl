@@ -183,6 +183,46 @@ export function displayTime(value: number | null | undefined, showTrailingZeroes
 	return timeLeft.join(' ');
 }
 
+/**
+ * Indent  comments in a G-code file
+ * @param content File content
+ * @returns Indented file content
+ */
+export function indent(content: string): string {
+    const lines = content.split('\n');
+
+    // Find out how long the maximum command is
+    let maxCommandLength = 0;
+    for (const line of lines) {
+		const commentIndex = line.indexOf(';');
+		if (commentIndex > 0) {
+			const commandLength = line.substring(0, commentIndex).trimEnd().length;
+			if (commandLength > maxCommandLength) {
+				maxCommandLength = commandLength;
+			}
+        }
+    }
+
+    // Align line comments
+    let newResult = "";
+    for (const line of lines) {
+        const commentIndex = line.indexOf(';');
+        if (commentIndex <= 0) {
+            newResult += line + '\n';
+		} else {
+            const command = line.substring(0, commentIndex).trimEnd(), comment = line.substring(commentIndex);
+
+            let indentation = "";
+            for (let i = command.length; i < maxCommandLength + 1; i++) {
+                indentation += ' ';
+            }
+
+            newResult += command + indentation + comment + '\n';
+        }
+    }
+    return newResult.trim();
+}
+
 // Register display extensions
 Vue.prototype.$display = display;
 Vue.prototype.$displayAxisPosition = displayAxisPosition;

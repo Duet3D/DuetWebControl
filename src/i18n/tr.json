@@ -201,7 +201,8 @@
       "menuReference": "Menü Referansı",
       "save": "Kaydet",
       "confirmClose": "Dosya değiştirildi. Devam edersen, değişikliklerin kaybolacak.",
-      "confirmSaveEmpty": "Kaydetmek istediğiniz dosya boş görünüyor. Devam etmek istediğinizden emin misiniz?"
+      "confirmSaveEmpty": "Kaydetmek istediğiniz dosya boş görünüyor. Devam etmek istediğinizden emin misiniz?",
+      "indentComments": "Girinti Yorumları"
     },
     "meshEdit": {
       "title": "Kafes Parametrelerini Ayarla",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Duet WiFi Server Sürümü: {0}",
       "updateNote": "Not: Güncellemeleri Sistem sayfasına yükleyebilirsiniz.",
       "dsfVersion": "DSF Sürümü: {0}",
-      "notConnected": "(bağlı değil)"
+      "notConnected": "(bağlı değil)",
+      "dwcVersion": "DWC Sürümü: {0}"
     },
     "settingsEndstops": {
       "caption": "Endstops",
@@ -1019,7 +1021,9 @@
       "viewGCode": "G Kodunu Görüntüle",
       "zBeltAngle": "Z Kayışı Portal Açısı",
       "showWorkplace": "İşyerini Göster",
-      "zBelt": "Z Kayışı"
+      "zBelt": "Z Kayışı",
+      "perimeterOnly": "Yalnızca Çevre",
+      "progressMode": "İlerleme Modu"
     }
   },
   "pluginPermissions": {

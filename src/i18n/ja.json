@@ -201,7 +201,8 @@
       "menuReference": "メニューリファレンス",
       "save": "保存",
       "confirmClose": "ファイルが変更されています。先に進むと、変更内容が失われます",
-      "confirmSaveEmpty": "保存しようとしているファイルが空のようです。続行してもよろしいですか？"
+      "confirmSaveEmpty": "保存しようとしているファイルが空のようです。続行してもよろしいですか？",
+      "indentComments": "コメントのインデント"
     },
     "fileTransfer": {
       "uploadingTitle": "ファイルアップロード中 {0} / {1}, {2}% 完了",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Duet WiFi Server Version: {0}",
       "updateNote": "Note: システムページからアップデートのインストールができます。",
       "dsfVersion": "DSF バージョン: {0}",
-      "notConnected": "（接続されていません）"
+      "notConnected": "（接続されていません）",
+      "dwcVersion": "DWC バージョン: {0}"
     },
     "settingsEndstops": {
       "caption": "エンドストップ",
@@ -1014,7 +1016,9 @@
       "viewGCode": "Gコードを見る",
       "zBeltAngle": "Z ベルト ガントリー角度",
       "showWorkplace": "職場を表示",
-      "zBelt": "Zベルト"
+      "zBelt": "Zベルト",
+      "perimeterOnly": "周囲のみ",
+      "progressMode": "プログレスモード"
     },
     "heightmap": {
       "menuCaption": "ハイトマップ",

@@ -201,7 +201,8 @@
       "menuReference": "Menüreferenz",
       "save": "Speichern",
       "confirmClose": "Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.",
-      "confirmSaveEmpty": "Es scheint so als wäre die Datei, die sie speichern möchten, leer. Sind sie sicher, dass sie fortfahren möchten?"
+      "confirmSaveEmpty": "Es scheint so als wäre die Datei, die sie speichern möchten, leer. Sind sie sicher, dass sie fortfahren möchten?",
+      "indentComments": "Kommentare einrücken"
     },
     "fileTransfer": {
       "uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Version von Duet WiFi Server: {0}",
       "updateNote": "Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.",
       "notConnected": "(nicht verbunden)",
-      "dsfVersion": "DSF Version: {0}"
+      "dsfVersion": "DSF Version: {0}",
+      "dwcVersion": "DWC-Version: {0}"
     },
     "settingsEndstops": {
       "caption": "Endlagenschalter",
@@ -1014,7 +1016,9 @@
       "viewGCode": "G-Code anzeigen",
       "showWorkplace": "Arbeitsfläche anzeigen",
       "zBelt": "Z-Riemen",
-      "zBeltAngle": "Winkel des Z-Riemens"
+      "zBeltAngle": "Winkel des Z-Riemens",
+      "progressMode": "Fortschrittsmodus",
+      "perimeterOnly": "Nur Ränder"
     },
     "heightmap": {
       "menuCaption": "Höhenkarte",

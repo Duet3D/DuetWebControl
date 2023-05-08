@@ -201,7 +201,8 @@
       "menuReference": "Referência do Menu",
       "save": "Salvar",
       "confirmClose": "O arquivo foi alterado. Se você continuar, suas alterações serão perdidas.",
-      "confirmSaveEmpty": "Parece que o arquivo que você deseja salvar está vazio. Tem certeza de que deseja prosseguir?"
+      "confirmSaveEmpty": "Parece que o arquivo que você deseja salvar está vazio. Tem certeza de que deseja prosseguir?",
+      "indentComments": "Comentários de recuo"
     },
     "fileTransfer": {
       "uploadingTitle": "Fazendo Uploading do arquivo {0} de {1}, {2}% completo",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Versão do Duet WiFi Server: {0}",
       "updateNote": "Nota: Você pode instalar atualizações na página Sistema.",
       "dsfVersion": "Versão DSF: {0}",
-      "notConnected": "(não conectado)"
+      "notConnected": "(não conectado)",
+      "dwcVersion": "Versão DWC: {0}"
     },
     "settingsEndstops": {
       "caption": "Endstops",
@@ -958,7 +960,9 @@
       "viewGCode": "Ver Código G",
       "zBeltAngle": "Ângulo do pórtico da correia Z",
       "showWorkplace": "Mostrar local de trabalho",
-      "zBelt": "Cinto Z"
+      "zBelt": "Cinto Z",
+      "perimeterOnly": "Somente Perímetro",
+      "progressMode": "Modo de Progresso"
     },
     "heightmap": {
       "menuCaption": "Mapa de Altura",

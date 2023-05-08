@@ -201,7 +201,8 @@
       "menuReference": "Référence Menu",
       "save": "Sauvegarder",
       "confirmClose": "Le fichier a été modifié. Si vous continuez, vos modifications seront perdues.",
-      "confirmSaveEmpty": "Il semble que le fichier que vous souhaitez enregistrer est vide. Êtes-vous sûr de vouloir continuer?"
+      "confirmSaveEmpty": "Il semble que le fichier que vous souhaitez enregistrer est vide. Êtes-vous sûr de vouloir continuer?",
+      "indentComments": "Indenter les commentaires"
     },
     "meshEdit": {
       "title": "Définir Paramètres de Maillage",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Duet WiFi Server Version: {0}",
       "updateNote": "Remarque: Vous pouvez installer les mises à jour sur la page Système.",
       "dsfVersion": "Version DSF : {0}",
-      "notConnected": "(pas connecté)"
+      "notConnected": "(pas connecté)",
+      "dwcVersion": "Version DWC : {0}"
     },
     "settingsEndstops": {
       "caption": "Interrupteur de position",
@@ -1049,7 +1051,9 @@
       "viewGCode": "Afficher le code G",
       "zBeltAngle": "Angle de portique de ceinture Z",
       "showWorkplace": "Afficher le lieu de travail",
-      "zBelt": "Ceinture Z"
+      "zBelt": "Ceinture Z",
+      "perimeterOnly": "Périmètre uniquement",
+      "progressMode": "Mode Progression"
     }
   },
   "tabs": {

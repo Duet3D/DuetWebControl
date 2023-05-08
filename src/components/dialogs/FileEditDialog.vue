@@ -54,6 +54,10 @@
 					<v-icon class="mr-1">mdi-help</v-icon>
 					{{ $t("dialog.fileEdit.gcodeReference") }}
 				</v-btn>
+				<v-btn v-if="language === 'gcode' && !isMediumFile" class="hidden-xs-only" dark text @click="indentComments">
+					<v-icon class="mr-1">mdi-format-indent-increase</v-icon>
+					{{ $t("dialog.fileEdit.indentComments") }}
+				</v-btn>
 				<v-btn v-if="isMenu" class="hidden-xs-only" dark text
 					   href="https://docs.duet3d.com/en/User_manual/Connecting_hardware/Display_12864_menu#menu-files"
 					   target="_blank">
@@ -81,6 +85,7 @@ import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import Vue from "vue";
 
 import store from "@/store";
+import { indent } from "@/utils/display";
 import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
 import "@/utils/monaco-menu";
@@ -127,6 +132,12 @@ export default Vue.extend({
 		},
 		isMobile(): boolean {
 			return /(Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone)/i.test(navigator.userAgent);
+		},
+		isMediumFile(): boolean {
+			return this.innerValue.length > mediumFileThreshold;
+		},
+		isBigFile(): boolean {
+			return this.innerValue.length > bigFileThreshold;
 		}
 	},
 	data() {
@@ -146,6 +157,21 @@ export default Vue.extend({
 			this.$emit("input", "");
 			this.$emit("update:shown", false);
 			this.$root.$emit("dialog-closing")
+		},
+		indentComments() {
+			if (this.editor !== null) {
+				const indentedFile = indent(this.editor.getValue());
+				if (this.editor.getValue() !== indentedFile) {
+					const fullRange = this.editor.getModel()!.getFullModelRange();
+					this.editor.executeEdits(null, [{
+						text: indentedFile,
+						range: fullRange
+					}]);
+					this.editor.pushUndoStop();
+				}
+			} else {
+				this.innerValue = indent(this.innerValue);
+			}
 		},
 		async save() {
 			if (this.editor !== null) {
@@ -219,13 +245,12 @@ export default Vue.extend({
 				// Create Monaco editor if necessary
 				if (this.useEditor) {
 					this.$nextTick(() => {
-						const isBigFile = this.innerValue.length > bigFileThreshold, isMediumFile = this.innerValue.length > mediumFileThreshold;
 						this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
 							automaticLayout: true,
-							matchBrackets: isBigFile ? "near" : "always",
+							matchBrackets: this.isBigFile ? "near" : "always",
 							language: this.language,
-							lineNumbersMinChars: isMediumFile ? 10 : 5,
-							occurrencesHighlight: !isBigFile,
+							lineNumbersMinChars: this.isMediumFile ? 10 : 5,
+							occurrencesHighlight: !this.isBigFile,
 							rulers: [255],
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",

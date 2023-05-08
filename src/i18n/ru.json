@@ -201,7 +201,8 @@
       "menuReference": "Информация о меню",
       "save": "Save",
       "confirmClose": "Файл был изменен. Если вы продолжите, ваши изменения будут потеряны.",
-      "confirmSaveEmpty": "Похоже, что файл, который вы хотите сохранить, пуст. Вы уверены, что хотите продолжить?"
+      "confirmSaveEmpty": "Похоже, что файл, который вы хотите сохранить, пуст. Вы уверены, что хотите продолжить?",
+      "indentComments": "Отступ комментариев"
     },
     "meshEdit": {
       "title": "Set Mesh Parameters",
@@ -740,7 +741,8 @@
       "dwsFirmware": "Версия сервера Duet WiFi: {0}",
       "updateNote": "Вы можете установить обновления в Менеджере файлов - Система.",
       "dsfVersion": "Версия DSF: {0}",
-      "notConnected": "(Не подключен)"
+      "notConnected": "(Не подключен)",
+      "dwcVersion": "Версия DWC: {0}"
     },
     "settingsEndstops": {
       "caption": "Конечный выключатель",
@@ -1019,7 +1021,9 @@
       "viewGCode": "Просмотр G-кода",
       "zBeltAngle": "Угол Z-портала",
       "showWorkplace": "Показать рабочее место",
-      "zBelt": "Z пояс"
+      "zBelt": "Z пояс",
+      "perimeterOnly": "Только периметр",
+      "progressMode": "Режим прогресса"
     }
   },
   "pluginPermissions": {
