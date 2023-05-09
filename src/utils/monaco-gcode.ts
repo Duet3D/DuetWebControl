@@ -40,7 +40,7 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 		],
 		gcode: [
 			// next G/M/T-code
-			[/G[01](?=\D)/, "keyword", "moveGcode"],
+			[/G[0123](?=\D)/, "keyword", "moveGcode"],
 			[/(G|M)\d+(\.\d*)?/, "keyword", "normalGcode"],
 			[/T/, "keyword", "normalGcodeWithT"],
 
