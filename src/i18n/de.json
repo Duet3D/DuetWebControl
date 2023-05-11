@@ -521,7 +521,8 @@
     "decompress": {
       "title": "Entpacke Dateien...",
       "message": "Bitte warten während Ihre Dateien entpackt werden...",
-      "errorTitle": "Konnte Dateien nicht entpacken"
+      "errorTitle": "Konnte Dateien nicht entpacken",
+      "standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht untersützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren."
     },
     "delete": {
       "errorTitle": "Konnte {0} nicht löschen",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "Webcam",
-      "webcamURL": "Webcam-URL (optional)",
+      "webcamURL": "Webcam-URL",
       "webcamUpdateInterval": "Aktualisierungsintervall der Webcam ({0})",
       "webcamLiveURL": "URL, die geöffnet werden soll, wenn auf das Webcam-Bild geklickt wird (optional)",
       "webcamFix": "Keinen extra HTTP-Qualifizierer beim Neuladen der Bilder anhängen",
@@ -793,7 +794,8 @@
       "flipNone": "Keine",
       "flipX": "X spiegeln",
       "flipY": "Y spiegeln",
-      "flipBoth": "Beide spiegeln"
+      "flipBoth": "Beide spiegeln",
+      "enable": "Webcam aktivieren"
     },
     "speedFactor": {
       "caption": "Geschwindigkeitsfaktor"

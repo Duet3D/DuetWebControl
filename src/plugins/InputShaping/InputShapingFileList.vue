@@ -170,7 +170,7 @@ export default {
 					}
 
 					const shaperTitle = (matches[6] === 'none') ? 'No Shaping' : ((matches[6] === 'custom') ? 'Custom' : `${matches[6].toUpperCase()} @ ${matches[7]}Hz`);
-					const dampingFactor = isNaN(matches[9]) ? null : `Damping Factor ${matches[9]}`;
+					const dampingFactor = isNaN(matches[10]) ? null : `Damping Factor ${matches[10]}`;
 					run.files.push({
 						title: `${matches[2].split('').reduce((a, b) => `${a}+${b}`)} ${matches[3]}-${matches[4]}, accelerometer ${matches[5]}, ${shaperTitle}`,
 						filename,
@@ -193,7 +193,7 @@ export default {
 						}
 
 						const shaperTitle = (toolMatches[7] === 'none') ? 'No Shaping' : ((toolMatches[7] === 'custom') ? 'Custom' : `${toolMatches[7].toUpperCase()} @ ${toolMatches[8]}Hz`);
-						const dampingFactor = isNaN(matches[10]) ? null : `Damping Factor ${matches[10]}`;
+						const dampingFactor = isNaN(toolMatches[11]) ? null : `Damping Factor ${toolMatches[11]}`;
 						run.files.push({
 							title: `T${toolMatches[2]}, ${toolMatches[3].split('').reduce((a, b) => `${a}+${b}`)} ${toolMatches[4]}-${toolMatches[5]}, accelerometer ${toolMatches[6]}, ${shaperTitle}`,
 							filename,

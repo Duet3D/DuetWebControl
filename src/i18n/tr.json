@@ -569,7 +569,8 @@
     "decompress": {
       "errorTitle": "Dosyaların sıkıştırması açılamadı",
       "message": "Dosyalarınız açılırken lütfen bekleyin...",
-      "title": "Dosyaların sıkıştırılması..."
+      "title": "Dosyaların sıkıştırılması...",
+      "standaloneUpdateInSbcModeError": "SBC modunda bağımsız bir DWC paketi yüklemeye çalışıyorsunuz. \nBu desteklenmiyor. \nLütfen sisteminizi güncellemek için apt update/upgrade kullanın."
     },
     "plugins": {
       "startError": "Eklenti başlatılamadı",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "Web kamerası",
-      "webcamURL": "Web kamerası URL (opsiyonel)",
+      "webcamURL": "Web kamerası URL",
       "webcamUpdateInterval": "Web kamerası güncelleme aralığı ({0})",
       "webcamLiveURL": "Web kamerası görüntüsü tıklandığında açılacak URL (isteğe bağlı)",
       "webcamFix": "Görüntüleri yeniden yüklerken fazladan HTTP niteleyicisi eklemeyin",
@@ -793,7 +794,8 @@
       "flipNone": "Yok",
       "flipX": "Çevir X",
       "flipY": "Çevir Y",
-      "flipBoth": "İkisini de çevir"
+      "flipBoth": "İkisini de çevir",
+      "enable": "Web Kamerasını Etkinleştir"
     },
     "speedFactor": {
       "caption": "Hız Faktörü"

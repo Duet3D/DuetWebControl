@@ -133,6 +133,11 @@ export interface SettingsState {
 	 */
 	webcam: {
 		/**
+		 * Whether webcam support is enabled
+		 */
+		enabled: boolean;
+
+		/**
 		 * URL to use for the webcam image
 		 */
 		url: string;
@@ -210,6 +215,7 @@ export default {
 		},
 
 		webcam: {
+			enabled: false,
 			url: "",
 			updateInterval: 5000,
 			liveUrl: "",
@@ -226,10 +232,15 @@ export default {
 		plugins: {}
 	},
 	actions: {
-		async applyDefaults({ state, dispatch }) {
+		async applyDefaults({ rootState, state, dispatch }) {
 			// Load settings that are enabled by default
 			if (state.enabledPlugins) {
 				/*await*/ dispatch("loadDwcPlugins", state.enabledPlugins);
+			}
+
+			// Apply different webcam defaults in SBC mode
+			if (rootState.machine.model.sbc !== null) {
+				this.commit("applySbcWebcamDefaults");
 			}
 		},
 		async load({ rootGetters, commit, dispatch }) {
@@ -315,6 +326,10 @@ export default {
 		}
 	},
 	mutations: {
+		applySbcWebcamDefaults(state) {
+			state.webcam.url = "http://[HOSTNAME]:8081/0/stream";
+			state.webcam.updateInterval = 0;
+		},
 		setLastHostname(state, hostname: string) {
 			state.lastHostname = hostname;
 			setLocalSetting("lastHostname", hostname);
@@ -329,6 +344,9 @@ export default {
 			if (payload.plugins) {
 				state.plugins = payload.plugins;
 				delete payload.plugins;
+			}
+			if (payload.webcam && payload.webcam.enabled === undefined) {
+				payload.webcam.enabled = !!payload.webcam.url;
 			}
 			patch(state, payload, true);
 			if (updateSettingsTime) {

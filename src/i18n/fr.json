@@ -569,7 +569,8 @@
     "decompress": {
       "errorTitle": "Impossible de décompresser les fichiers",
       "message": "Veuillez patienter pendant la décompression de vos fichiers...",
-      "title": "Décompression des fichiers..."
+      "title": "Décompression des fichiers...",
+      "standaloneUpdateInSbcModeError": "Vous essayez de télécharger un bundle DWC autonome en mode SBC. \nCeci n'est PAS pris en charge. \nVeuillez utiliser apt update/upgrade pour mettre à jour votre système."
     },
     "plugins": {
       "startError": "Échec du démarrage du plug-in",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "Webcam",
-      "webcamURL": "Webcam URL (optionnel)",
+      "webcamURL": "Webcam URL",
       "webcamUpdateInterval": ">Intervale de màj de la Webcam ({0})",
       "webcamLiveURL": "URL à ouvrir lorsque l'image de la webcam est cliquée (facultatif)",
       "webcamFix": "Ne pas ajouter de qualificatif HTTP supplémentaire lors du rechargement d'images",
@@ -793,7 +794,8 @@
       "flipNone": "Aucun",
       "flipX": "Retourner X",
       "flipY": "Retourner Y",
-      "flipBoth": "Retourner les deux"
+      "flipBoth": "Retourner les deux",
+      "enable": "Activer la webcam"
     },
     "speedFactor": {
       "caption": "Facteur de Vitesse"

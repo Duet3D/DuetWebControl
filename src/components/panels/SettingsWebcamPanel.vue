@@ -6,6 +6,9 @@
 
 		<v-card-text>
 			<v-row :dense="$vuetify.breakpoint.mobile">
+				<v-col cols="12">
+					<v-switch v-model="webcamEnabled" :label="$t('panel.settingsWebcam.enable')" hide-details />
+				</v-col>
 				<v-col cols="12" md="6">
 					<v-text-field v-model="webcamURL" :label="$t('panel.settingsWebcam.webcamURL')" hide-details />
 				</v-col>
@@ -45,6 +48,10 @@ import { SettingsState, WebcamFlip } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
+		webcamEnabled: {
+			get(): boolean { return store.state.settings.webcam.enabled; },
+			set(value: boolean) { this.update({ enabled: value }) }
+		},
 		webcamURL: {
 			get(): string { return store.state.settings.webcam.url; },
 			set(value: string) { this.update({ url: value }); }

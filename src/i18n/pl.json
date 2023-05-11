@@ -521,7 +521,8 @@
     "decompress": {
       "title": "Dekompresowanie plików...",
       "message": "Proszę czekać, trwa dekompresja twoich plików...",
-      "errorTitle": "Dekompresja plików nie powiodła się."
+      "errorTitle": "Dekompresja plików nie powiodła się.",
+      "standaloneUpdateInSbcModeError": "Próbujesz przesłać samodzielny pakiet DWC w trybie SBC. \nTo NIE jest obsługiwane. \nUżyj apt update/upgrade, aby zaktualizować swój system."
     },
     "delete": {
       "errorTitle": "Usuwanie nie powiodło się {0}",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "Kamera",
-      "webcamURL": "URL obrazu video (opcjonalnie)",
+      "webcamURL": "URL obrazu video",
       "webcamUpdateInterval": "Interwał aktualizacji obrazu video({0})",
       "webcamLiveURL": "URL to open when Webcam image is clicked (optional)",
       "webcamFix": "Do not append extra HTTP qualifier when reloading images",
@@ -793,7 +794,8 @@
       "flipNone": "None",
       "flipX": "Przerzuć oś X",
       "flipY": "Przerzuć oś Y",
-      "flipBoth": "Przerzuć obie osie"
+      "flipBoth": "Przerzuć obie osie",
+      "enable": "Włącz kamerę internetową"
     },
     "speedFactor": {
       "caption": "parametry prędkości"

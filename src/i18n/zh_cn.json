@@ -521,7 +521,8 @@
     "decompress": {
       "title": "正在解压缩文件……",
       "message": "文件已经开始解压缩，请等待……",
-      "errorTitle": "解压缩文件失败"
+      "errorTitle": "解压缩文件失败",
+      "standaloneUpdateInSbcModeError": "您正在尝试在 SBC 模式下上传独立的 DWC 包。\n这是不支持的。\n请使用 apt update/upgrade 来更新您的系统。"
     },
     "delete": {
       "errorTitle": "删除{0}失败",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "网络摄像头",
-      "webcamURL": "网络摄像头网址（可选）",
+      "webcamURL": "网络摄像头网址",
       "webcamUpdateInterval": "网络摄像头更新间隔（{0}）",
       "webcamLiveURL": "点击网络摄像头图像时打开的网址（可选）",
       "webcamFix": "重新加载图像时，请勿附加HTTP限定符",
@@ -793,7 +794,8 @@
       "flipNone": "没有",
       "flipX": "翻转X",
       "flipY": "翻转Y",
-      "flipBoth": "翻转两者"
+      "flipBoth": "翻转两者",
+      "enable": "启用网络摄像头"
     },
     "speedFactor": {
       "caption": "速度系数"

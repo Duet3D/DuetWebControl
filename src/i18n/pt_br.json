@@ -521,7 +521,8 @@
     "decompress": {
       "title": "Descompactando arquivos ...",
       "message": "Aguarde enquanto seus arquivos estão sendo descompactados ...",
-      "errorTitle": "Falha ao descompactar arquivos"
+      "errorTitle": "Falha ao descompactar arquivos",
+      "standaloneUpdateInSbcModeError": "Você está tentando carregar um pacote DWC independente no modo SBC. \nIsso NÃO é suportado. \nUse o apt update/upgrade para atualizar seu sistema."
     },
     "delete": {
       "errorTitle": "Falha ao excluir {0}",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "Webcam",
-      "webcamURL": "URL da Webcam (opcional)",
+      "webcamURL": "URL da Webcam",
       "webcamUpdateInterval": "Intervalo de atualização da webcam ({0})",
       "webcamLiveURL": "URL para abrir quando a imagem da webcam é clicada (opcional)",
       "webcamFix": "Não acrescente qualificador HTTP extra ao recarregar imagens",
@@ -793,7 +794,8 @@
       "flipNone": "Nenhum",
       "flipX": "Espelhar em X",
       "flipY": "Espelhar em Y",
-      "flipBoth": "Espelhar em ambos"
+      "flipBoth": "Espelhar em ambos",
+      "enable": "Ativar webcam"
     },
     "speedFactor": {
       "caption": "Fator de velocidade"

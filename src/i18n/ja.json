@@ -521,7 +521,8 @@
     "decompress": {
       "title": "ファイルの解凍中...",
       "message": "ファイルが解凍されるまで、しばらくお待ちください...",
-      "errorTitle": "ファイルの解凍に失敗しました"
+      "errorTitle": "ファイルの解凍に失敗しました",
+      "standaloneUpdateInSbcModeError": "スタンドアロン DWC バンドルを SBC モードでアップロードしようとしています。\nこれはサポートされていません。 \napt update/upgrade を使用してシステムを更新してください。"
     },
     "delete": {
       "errorTitle": "{0}の削除に失敗しました",
@@ -783,7 +784,7 @@
     },
     "settingsWebcam": {
       "caption": "ウェブカメラ",
-      "webcamURL": "ウェブカメラ URL (optional)",
+      "webcamURL": "ウェブカメラ URL",
       "webcamUpdateInterval": "ウェブカメラの更新間隔 ({0})",
       "webcamLiveURL": "ウェブカメラ画像がクリックされたときに開くURL (optional)",
       "webcamFix": "画像をリロードする際に、HTTP修飾子を追加しないようにする",
@@ -793,7 +794,8 @@
       "flipNone": "None",
       "flipX": "X反転",
       "flipY": "Y反転",
-      "flipBoth": "XY両方反転"
+      "flipBoth": "XY両方反転",
+      "enable": "ウェブカメラを有効にする"
     },
     "speedFactor": {
       "caption": "スピード ファクター"

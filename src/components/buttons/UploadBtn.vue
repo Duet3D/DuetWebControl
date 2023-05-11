@@ -282,9 +282,6 @@ export default Vue.extend({
 								});
 
 								if (isPlugin) {
-									this.extracting = false;
-									notification.close();
-
 									this.$root.$emit(Events.installPlugin, {
 										machine: this.machine || store.state.selectedMachine,
 										zipFilename: files[0].name,
@@ -309,10 +306,13 @@ export default Vue.extend({
 
 							// Could we get anything useful?
 							if (zipFiles.length === 0) {
-								this.extracting = false;
-								notification.close();
-
 								this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoFiles"));
+								return;
+							}
+
+							// Do NOT allow index.html.gz to be uploaded in SBC mode (wrong package)
+							if (store.state.machine.model.sbc !== null && zipFiles.some(file => file === "index.html.gz")) {
+								this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("notification.decompress.standaloneUpdateInSbcModeError"));
 								return;
 							}
 

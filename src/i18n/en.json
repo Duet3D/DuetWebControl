@@ -521,7 +521,8 @@
     "decompress": {
       "title": "Decompressing files...",
       "message": "Please stand by while your files are being decompressed...",
-      "errorTitle": "Failed to decompress files"
+      "errorTitle": "Failed to decompress files",
+      "standaloneUpdateInSbcModeError": "You are trying to upload a standalone DWC bundle in SBC mode. This is NOT supported. Please use apt update/upgrade to update your system."
     },
     "delete": {
       "errorTitle": "Failed to delete {0}",
@@ -782,7 +783,7 @@
     },
     "settingsWebcam": {
       "caption": "Webcam",
-      "webcamURL": "Webcam URL (optional)",
+      "webcamURL": "Webcam URL",
       "webcamUpdateInterval": "Webcam update interval ({0})",
       "webcamLiveURL": "URL to open when Webcam image is clicked (optional)",
       "webcamFix": "Do not append extra HTTP qualifier when reloading images",
@@ -792,7 +793,8 @@
       "flipNone": "None",
       "flipX": "Flip X",
       "flipY": "Flip Y",
-      "flipBoth": "Flip both"
+      "flipBoth": "Flip both",
+      "enable": "Enable Webcam"
     },
     "speedFactor": {
       "caption": "Speed Factor"

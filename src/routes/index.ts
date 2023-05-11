@@ -128,7 +128,7 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 				icon: "mdi-webcam",
 				caption: "menu.job.webcam",
 				path: "/Job/Webcam",
-				condition: () => store.state.settings.webcam.url !== "",
+				condition: () => store.state.settings.webcam.enabled,
 				component: Webcam
 			}
 		],
