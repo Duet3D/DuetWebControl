@@ -1,7 +1,13 @@
 <style scoped>
+.filelist {
+	overflow-y: scroll;
+	max-height: 480px;
+}
+
 .no-overflow {
 	text-overflow: clip
 }
+
 .no-wrap {
 	flex-wrap: nowrap;
 	white-space: nowrap;
@@ -12,7 +18,7 @@
 	<v-card flat class="d-flex flex-column">
 		<v-card-title class="pt-2 pb-1 no-wrap">
 			<v-icon class="mr-2">mdi-format-list-bulleted</v-icon> {{ title }}
-			<v-spacer/>
+			<v-spacer />
 			<v-icon class="ml-2" :disabled="uiFrozen" @click="$emit('refresh')">mdi-refresh</v-icon>
 		</v-card-title>
 
@@ -21,13 +27,15 @@
 				No Profiles
 			</v-alert>
 		</v-card-text>
-		<v-progress-linear :active="progress !== progressMax" :value="(progress / progressMax) * 100"/>
+		<v-progress-linear :active="progress !== progressMax" :value="(progress / progressMax) * 100" />
 
 		<template v-if="profiles.length > 0">
 			<template v-if="!individualFiles">
-				<v-list class="py-0" :disabled="uiFrozen || progress !== progressMax" dense>
+				<v-list class="filelist py-0" :disabled="uiFrozen || progress !== progressMax" dense>
 					<v-list-item-group color="primary" v-model="selection">
-						<v-list-item v-for="(profile, index) in profiles" :key="index" :value="profile.files.map(item => item.filename)" two-line v-ripple>
+						<v-list-item v-for="(profile, index) in profiles" :key="index"
+									 :value="profile.files.map(item => item.filename)" :title="profile.lastModified"
+									 two-line v-ripple>
 							<v-list-item-icon class="align-self-center">
 								<v-icon>
 									{{ profile.icon }}
@@ -44,7 +52,8 @@
 									{{ profile.secondSubtitle }}
 								</v-list-item-subtitle>
 							</v-list-item-content>
-							<v-list-item-icon v-if="canDelete" class="align-self-center" @click.stop.prevent="deleteProfile(profile)">
+							<v-list-item-icon v-if="canDelete" class="align-self-center"
+											  @click.stop.prevent="deleteProfile(profile)">
 								<v-icon>
 									mdi-delete
 								</v-icon>
@@ -54,8 +63,8 @@
 				</v-list>
 			</template>
 			<template v-else>
-				<v-list class="py-0" :disabled="uiFrozen || progress !== progressMax" dense>
-					<v-list-group v-for="(profile, index) in profiles" :key="index">
+				<v-list class="py-0 filelist" :disabled="uiFrozen || progress !== progressMax" dense>
+					<v-list-group v-for="(profile, index) in profiles" :key="index" :title="profile.lastModified">
 						<template #activator>
 							<v-list-item-icon class="align-self-center">
 								<v-icon>
@@ -76,7 +85,8 @@
 						</template>
 
 						<v-list-item-group v-model="selection">
-							<v-list-item v-for="(file, fileIndex) in profile.files" :key="fileIndex" :value="[file.filename]" v-ripple>
+							<v-list-item v-for="(file, fileIndex) in profile.files" :key="fileIndex"
+										 :title="file.lastModified" :value="[file.filename]" v-ripple>
 								<v-list-item-icon>
 									<v-icon>mdi-file</v-icon>
 								</v-list-item-icon>
@@ -100,18 +110,23 @@
 			</v-alert>
 		</template>
 
-		<v-spacer/>
+		<v-spacer />
 
-		<v-checkbox v-show="!individualFiles && estimateEffect" :input-value="showOriginalValues" @change="$emit('update:showOriginalValues', $event)" label="Show original values" hide-details class="ma-3 mb-0"/>
-		<v-checkbox v-show="!individualFiles" v-model="estimateEffect" label="Estimate shaper effect" hide-details class="ma-3 mb-0"/>
+		<v-checkbox v-show="!individualFiles && estimateEffect" :input-value="showOriginalValues"
+					@change="$emit('update:showOriginalValues', $event)" label="Show original values" hide-details
+					class="ma-3 mb-0" />
+		<v-checkbox v-show="!individualFiles" v-model="estimateEffect" label="Estimate shaper effect" hide-details
+					class="ma-3 mb-0" />
 		<div :class="individualFiles ? 'd-flex' : 'd-none'" class="justify-space-between ma-3 mb-0">
-			<v-checkbox :value="showSamples" @change="setShowSamples($event)" label="Show samples" hide-details class="mt-0"/>
-			<v-btn v-show="showSamples" color="primary" small :disabled="selection.length === 0" @click="showSamples = false">
+			<v-checkbox :value="showSamples" @change="setShowSamples($event)" label="Show samples" hide-details
+						class="mt-0" />
+			<v-btn v-show="showSamples" color="primary" small :disabled="selection.length === 0"
+				   @click="showSamples = false">
 				<v-icon class="mr-1" small>mdi-poll</v-icon>
 				Analyze
 			</v-btn>
 		</div>
-		<v-checkbox v-model="individualFiles" label="Display individual files" hide-details class="ma-3"/>
+		<v-checkbox v-model="individualFiles" label="Display individual files" hide-details class="ma-3" />
 	</v-card>
 </template>
 
@@ -131,6 +146,10 @@ export default {
 			type: String
 		},
 		files: {
+			required: true,
+			type: Array
+		},
+		filesLastModified: {
 			required: true,
 			type: Array
 		},
@@ -154,7 +173,8 @@ export default {
 		profiles() {
 			// Convert files into profile groups with files
 			const profiles = [], uncategorized = [];
-			for (let filename of this.files) {
+			for (let i = 0; i < this.files.length; i++) {
+				const filename = this.files[i], lastModified = this.filesLastModified[i].toLocaleString();
 				const matches = /^(\d+)-([a-zA-SU-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)-?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
 				if (matches) {
 					const title = `Profile #${matches[1]}`;
@@ -164,7 +184,8 @@ export default {
 							icon: 'mdi-run',
 							title,
 							subtitle: '',
-							files: []
+							files: [],
+							lastModified
 						};
 						profiles.push(run);
 					}
@@ -175,7 +196,8 @@ export default {
 						title: `${matches[2].split('').reduce((a, b) => `${a}+${b}`)} ${matches[3]}-${matches[4]}, accelerometer ${matches[5]}, ${shaperTitle}`,
 						filename,
 						shaperTitle,
-						dampingFactor
+						dampingFactor,
+						lastModified
 					});
 				} else {
 					const toolMatches = /^(\d+)-T(\d+)-([a-zA-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)[-]?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
@@ -187,7 +209,8 @@ export default {
 								icon: 'mdi-run',
 								title,
 								subtitle: '',
-								files: []
+								files: [],
+								lastModified
 							};
 							profiles.push(run);
 						}
@@ -198,14 +221,16 @@ export default {
 							title: `T${toolMatches[2]}, ${toolMatches[3].split('').reduce((a, b) => `${a}+${b}`)} ${toolMatches[4]}-${toolMatches[5]}, accelerometer ${toolMatches[6]}, ${shaperTitle}`,
 							filename,
 							shaperTitle,
-							dampingFactor
+							dampingFactor,
+							lastModified
 						});
 					} else {
 						const filenameMatch = /(.+)\.csv$/.exec(filename);
 						if (filenameMatch) {
 							uncategorized.push({
 								title: filenameMatch[1],
-								filename
+								filename,
+								lastModified
 							});
 						}
 					}

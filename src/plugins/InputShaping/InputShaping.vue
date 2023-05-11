@@ -32,7 +32,8 @@ th {
 						Comparison
 					</v-tab>-->
 
-					<v-btn color="success" class="align-self-center ml-auto mr-2 hidden-sm-and-down" :disabled="uiFrozen" @click="showDataCollection = true">
+					<v-btn color="success" class="align-self-center ml-auto mr-2 hidden-sm-and-down" :disabled="uiFrozen"
+						   @click="showDataCollection = true">
 						<v-icon class="mr-1">mdi-record</v-icon>
 						Record Motion Profile
 					</v-btn>
@@ -46,10 +47,10 @@ th {
 								Input Shaping is not configured. Record a new Motion Profile to set it up
 							</v-alert>
 							<div v-show="isInputShapingEnabled" class="content flex-grow-1 pa-2">
-								<input-shaping-chart    :frequencies="currentFrequencies" :ringing-frequency="frequency"
-														:input-shapers="inputShapers" :input-shaper-frequency="frequency" :input-shaper-damping="damping"
-														:custom-amplitudes="customAmplitudes" :custom-durations="customDurations"
-								/>
+								<input-shaping-chart :frequencies="currentFrequencies" :ringing-frequency="frequency"
+													 :input-shapers="inputShapers" :input-shaper-frequency="frequency"
+													 :input-shaper-damping="damping" :custom-amplitudes="customAmplitudes"
+													 :custom-durations="customDurations" />
 							</div>
 						</div>
 					</v-tab-item>
@@ -57,36 +58,49 @@ th {
 					<!-- File Analysis -->
 					<v-tab-item value="analysis">
 						<div class="d-flex flex-column">
-							<v-progress-linear :active="loadingFiles" indeterminate/>
+							<v-progress-linear :active="loadingFiles" indeterminate />
 							<v-alert :value="files.length === 0 && !filesError" type="info" class="mb-0">
-								No Motion Profiles found. Record a new Motion Profile or <a href="javascript:void(0)" class="white--text text-decoration-underline" @click="refresh">refresh</a> the file list
+								No Motion Profiles found. Record a new Motion Profile or <a href="javascript:void(0)"
+								   class="white--text text-decoration-underline" @click="refresh">refresh</a> the file list
 							</v-alert>
 							<v-alert :value="filesError" type="error" class="mb-0">
 								{{ filesError }}
 							</v-alert>
 							<v-row v-show="files.length > 0" class="content pa-2">
 								<v-col cols="auto" class="d-flex pa-0">
-									<input-shaping-file-list    title="Motion Profiles" can-delete :files="files" @refresh="refresh"
-																:selectedFiles.sync="filesToAnalyze" :frequencies.sync="fileFrequenciesToAnalyze" v-model="fileDataToAnalyze"
-																:sample-start-index.sync="sampleStartIndex" :sample-end-index.sync="sampleEndIndex" :had-overflow.sync="hadOverflow"
-																:estimate-shaper-effect.sync="estimateShaperEffect" :show-original-values.sync="showOriginalValues"
-									/>
+									<input-shaping-file-list title="Motion Profiles" can-delete :files="files"
+															 :files-last-modified="filesLastModified" @refresh="refresh"
+															 :selectedFiles.sync="filesToAnalyze"
+															 :frequencies.sync="fileFrequenciesToAnalyze"
+															 v-model="fileDataToAnalyze"
+															 :sample-start-index.sync="sampleStartIndex"
+															 :sample-end-index.sync="sampleEndIndex"
+															 :had-overflow.sync="hadOverflow"
+															 :estimate-shaper-effect.sync="estimateShaperEffect"
+															 :show-original-values.sync="showOriginalValues" />
 								</v-col>
-								<v-col :class="!!filesToAnalyze.length ? 'd-none' : 'd-flex'" class="align-center justify-center">
+								<v-col :class="!!filesToAnalyze.length ? 'd-none' : 'd-flex'"
+									   class="align-center justify-center">
 									Please select a Motion Profile
 								</v-col>
-								<v-col v-show="!!filesToAnalyze.length" :class="!!filesToAnalyze.length ? 'd-flex' : 'd-none'" class="flex-column pa-0">
+								<v-col v-show="!!filesToAnalyze.length"
+									   :class="!!filesToAnalyze.length ? 'd-flex' : 'd-none'" class="flex-column pa-0">
 									<v-alert :value="hadOverflow" type="warning" class="mb-0">
 										The selected motion profile contains overflows. It may not be accurate.
 									</v-alert>
 
 									<v-card outlined class="d-block fill-height pa-2">
-										<input-shaping-chart    can-show-samples :sample-start-index.sync="sampleStartIndex" :sample-end-index.sync="sampleEndIndex"
-																:frequencies="fileFrequenciesToAnalyze" :value="fileDataToAnalyze" :ringing-frequency="frequency"
-																:input-shapers="inputShapers" :input-shaper-frequency="frequency" :input-shaper-damping="damping"
-																:custom-amplitudes="customAmplitudes" :custom-durations="customDurations"
-																:estimate-shaper-effect="estimateShaperEffect" :show-values="showOriginalValues"
-										/>
+										<input-shaping-chart can-show-samples :sample-start-index.sync="sampleStartIndex"
+															 :sample-end-index.sync="sampleEndIndex"
+															 :frequencies="fileFrequenciesToAnalyze"
+															 :value="fileDataToAnalyze" :ringing-frequency="frequency"
+															 :input-shapers="inputShapers"
+															 :input-shaper-frequency="frequency"
+															 :input-shaper-damping="damping"
+															 :custom-amplitudes="customAmplitudes"
+															 :custom-durations="customDurations"
+															 :estimate-shaper-effect="estimateShaperEffect"
+															 :show-values="showOriginalValues" />
 									</v-card>
 								</v-col>
 							</v-row>
@@ -103,17 +117,19 @@ th {
 					Input Shapers
 				</v-card-title>
 				<v-card-text class="d-flex flex-column">
-					<input-shaper-checkbox v-model="inputShapers" value="none" :current="shaping.type" class="mt-0"/>
-					<input-shaper-checkbox v-model="inputShapers" value="mzv" :current="shaping.type"/>
-					<input-shaper-checkbox v-model="inputShapers" value="zvd" :current="shaping.type"/>
-					<input-shaper-checkbox v-model="inputShapers" value="zvdd" :current="shaping.type"/>
-					<input-shaper-checkbox v-model="inputShapers" value="zvddd" :current="shaping.type"/>
-					<input-shaper-checkbox v-model="inputShapers" value="ei2" :current="shaping.type"/>
-					<input-shaper-checkbox v-model="inputShapers" value="ei3" :current="shaping.type"/>
+					<input-shaper-checkbox v-model="inputShapers" value="none" :current="shaping.type" class="mt-0" />
+					<input-shaper-checkbox v-model="inputShapers" value="mzv" :current="shaping.type" />
+					<input-shaper-checkbox v-model="inputShapers" value="zvd" :current="shaping.type" />
+					<input-shaper-checkbox v-model="inputShapers" value="zvdd" :current="shaping.type" />
+					<input-shaper-checkbox v-model="inputShapers" value="zvddd" :current="shaping.type" />
+					<input-shaper-checkbox v-model="inputShapers" value="ei2" :current="shaping.type" />
+					<input-shaper-checkbox v-model="inputShapers" value="ei3" :current="shaping.type" />
 					<input-shaper-checkbox v-model="inputShapers" value="custom" :current="shaping.type">
-						<v-menu v-model="customMenu" offset-y left :close-on-content-click="false" :max-width="380" ref="customMenu">
+						<v-menu v-model="customMenu" offset-y left :close-on-content-click="false" :max-width="380"
+								ref="customMenu">
 							<template #activator="{ on, attrs }">
-								<v-chip v-show="!uiFrozen" small :color="shaping.type === 'custom' ? 'success' : 'info'" v-bind="attrs" v-on="on">edit</v-chip>
+								<v-chip v-show="!uiFrozen" small :color="shaping.type === 'custom' ? 'success' : 'info'"
+										v-bind="attrs" v-on="on">edit</v-chip>
 							</template>
 
 							<v-card>
@@ -121,43 +137,52 @@ th {
 									Custom Shaper Configuration
 								</v-card-title>
 								<v-card-text class="pb-2">
-									<v-select v-model="numCustomCoefficients" label="Number of Impulses" :items="[0, 1,2,3,4]" hide-details/>
+									<v-select v-model="numCustomCoefficients" label="Number of Impulses"
+											  :items="[0, 1, 2, 3, 4]" hide-details />
 								</v-card-text>
 
 								<v-simple-table v-show="numCustomCoefficients > 0">
 									<thead>
-									<tr>
-										<th class="text-center">Impulse</th>
-										<th>Amplitude</th>
-										<th>Duration (in ms)</th>
-									</tr>
+										<tr>
+											<th class="text-center">Impulse</th>
+											<th>Amplitude</th>
+											<th>Duration (in ms)</th>
+										</tr>
 									</thead>
 									<tbody>
-									<tr v-for="(_, index) in customAmplitudes" :key="index">
-										<td class="text-center">
-											{{ index + 1 }}
-										</td>
-										<td>
-											<v-text-field type="number" min="0" step="0.001" :value="customAmplitudes[index]" @input="setCustomAmplitude(index, $event)" class="pt-0 mb-1" hide-details/>
-										</td>
-										<td>
-											<v-text-field type="number" min="0" step="0.1" :value="customDurations[index] * 1000" @input="setCustomDuration(index, $event)" class="pt-0 mb-1" hide-details/>
-										</td>
-									</tr>
+										<tr v-for="(_, index) in customAmplitudes" :key="index">
+											<td class="text-center">
+												{{ index + 1 }}
+											</td>
+											<td>
+												<v-text-field type="number" min="0" step="0.001"
+															  :value="customAmplitudes[index]"
+															  @input="setCustomAmplitude(index, $event)" class="pt-0 mb-1"
+															  hide-details />
+											</td>
+											<td>
+												<v-text-field type="number" min="0" step="0.1"
+															  :value="customDurations[index] * 1000"
+															  @input="setCustomDuration(index, $event)" class="pt-0 mb-1"
+															  hide-details />
+											</td>
+										</tr>
 									</tbody>
 								</v-simple-table>
-								<v-divider v-show="numCustomCoefficients > 0"/>
+								<v-divider v-show="numCustomCoefficients > 0" />
 
 								<v-card-text v-show="!!customShaperCode" class="pb-0">
-									<label >Resulting configuration code:</label>
+									<label>Resulting configuration code:</label>
 									<div class="d-flex">
-										<input ref="customShaperCode" type="text" :value="customShaperCode" class="flex-grow-1" readonly @click="$event.target.select()" />
+										<input ref="customShaperCode" type="text" :value="customShaperCode"
+											   class="flex-grow-1" readonly @click="$event.target.select()" />
 										<v-icon small class="ml-1" @click="copy">mdi-content-copy</v-icon>
 									</div>
 								</v-card-text>
 
 								<v-card-actions class="justify-center">
-									<v-btn text :disabled="!canConfigureCustom" :loading="configuringCustomShaper" color="primary" @click="configureCustomShaper">
+									<v-btn text :disabled="!canConfigureCustom" :loading="configuringCustomShaper"
+										   color="primary" @click="configureCustomShaper">
 										<v-icon class="mr-1">mdi-check</v-icon>
 										Apply
 									</v-btn>
@@ -166,9 +191,11 @@ th {
 						</v-menu>
 					</input-shaper-checkbox>
 
-					<v-divider class="mt-3"/>
+					<v-divider class="mt-3" />
 
-					<v-text-field type="number" min="10" step="1" max="1000" v-model.number="frequency" :disabled="uiFrozen" label="Shaper centre frequency" class="mt-3" hide-details @keydown.enter.prevent="setFrequency">
+					<v-text-field type="number" min="10" step="1" max="1000" v-model.number="frequency" :disabled="uiFrozen"
+								  label="Shaper centre frequency" class="mt-3" hide-details
+								  @keydown.enter.prevent="setFrequency">
 						<template #append>
 							Hz
 						</template>
@@ -177,7 +204,9 @@ th {
 						</template>
 					</v-text-field>
 
-					<v-text-field type="number" min="0.01" step="0.01" max="0.99" v-model.number="damping" :disabled="uiFrozen" label="Damping factor" class="mt-3" hide-details @keydown.enter.prevent="setDamping">
+					<v-text-field type="number" min="0.01" step="0.01" max="0.99" v-model.number="damping"
+								  :disabled="uiFrozen" label="Damping factor" class="mt-3" hide-details
+								  @keydown.enter.prevent="setDamping">
 						<template #append-outer>
 							<v-icon class="ml-1" :disabled="!canSetDamping" @click="setDamping">mdi-check</v-icon>
 						</template>
@@ -186,7 +215,7 @@ th {
 			</v-card>
 		</v-col>
 
-		<record-motion-profile-dialog :last-run="lastRun" :shown.sync="showDataCollection" @finished="recordingFinished"/>
+		<record-motion-profile-dialog :last-run="lastRun" :shown.sync="showDataCollection" @finished="recordingFinished" />
 	</v-row>
 </template>
 
@@ -282,6 +311,7 @@ export default {
 			damping: 0.1,
 
 			files: [],
+			filesLastModified: [],
 			loadingFiles: false,
 			filesError: null,
 
@@ -345,6 +375,7 @@ export default {
 		async refresh() {
 			if (!this.isConnected) {
 				this.files = [];
+				this.filesLastModified = [];
 				this.loadingFiles = false;
 				this.errorMessage = null;
 				return;
@@ -360,6 +391,7 @@ export default {
 				const files = (await this.getFileList(Path.accelerometer)).filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'));
 				files.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
 				this.files = files.map(file => file.name);
+				this.filesLastModified = files.map(file => file.lastModified);
 			} finally {
 				this.loadingFiles = false;
 			}
