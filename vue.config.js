@@ -1,7 +1,8 @@
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
-const path = require("path");
+const fs = require("fs"), path = require("path");
 const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
+const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
@@ -39,6 +40,25 @@ module.exports = {
 			}),
 			...((process.env.NODE_ENV === "production") ? [
 				new CustomImportsPlugin(),
+				new EventHooksPlugin({
+					beforeCompile() {
+						const apiDocs = path.resolve(__dirname, "./DuetAPI.xml")
+						if (fs.existsSync(apiDocs)) {
+							fs.copyFileSync(apiDocs, path.resolve(__dirname, "./public/DuetAPI.xml"));
+						} else {
+							const dsfApiDocs = path.resolve(__dirname, "../DuetSoftwareFramework/src/DuetAPI/DuetAPI.xml");
+							if (fs.existsSync(dsfApiDocs)) {
+								fs.copyFileSync(dsfApiDocs, path.resolve(__dirname, "./public/DuetAPI.xml"));
+							}
+						}
+					},
+					afterEmit() {
+						const apiDocs = path.resolve(__dirname, "./public/DuetAPI.xml");
+						if(fs.existsSync(apiDocs)) {
+							fs.unlinkSync(apiDocs);
+						}
+					}
+				}),
 				new CompressionPlugin({
 					exclude: /\.zip$/,
 					minRatio: Infinity
@@ -47,11 +67,11 @@ module.exports = {
 					new ZipPlugin({
 						filename: "DuetWebControl-SD.zip",
 						include: [/\.gz$/, /\.woff$/, /\.woff2$/],
-						exclude: [/DummyPlugin/, "robots.txt"]
+						exclude: ["robots.txt"]
 					}),
 					new ZipPlugin({
 						filename: "DuetWebControl-SBC.zip",
-						exclude: [/DummyPlugin/, /\.gz$/, /\.zip$/]
+						exclude: [/\.gz$/, /\.zip$/]
 					})
 				])
 			] : [])
