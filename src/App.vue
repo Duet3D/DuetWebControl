@@ -2,7 +2,7 @@
 	<v-app>
 		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app
 							 :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu"
-							 :mini-variant="iconMenu">
+							 :mini-variant="iconMenu" :style="`padding-bottom: ${bottomMargin}px`">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
 					<connect-btn v-if="showConnectButton" class="mb-2" block />
@@ -53,7 +53,7 @@
 			<emergency-btn />
 		</v-app-bar>
 
-		<v-main id="content">
+		<v-main id="content" :style="`margin-bottom: ${bottomMargin}px`">
 			<v-container class="hidden-sm-and-down" id="global-container" fluid>
 				<fff-container-panel v-if="isFFForUnset" />
 				<cnc-container-panel v-else />
@@ -149,6 +149,9 @@ export default Vue.extend({
 		},
 		doNotSwitchToStatusPanelOnJobStart(): boolean {
 			return store.state.settings.behaviour.jobStart; 
+		},
+		bottomMargin(): number {
+			return store.state.bottomMargin;
 		}
 	},
 	data() {

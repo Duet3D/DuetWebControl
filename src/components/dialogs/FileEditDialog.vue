@@ -70,11 +70,13 @@
 				</v-btn>
 			</v-app-bar>
 
-			<div ref="editor" class="editor-monaco"></div>
-			<v-textarea v-if="!useEditor" ref="textarea" hide-details solo :rows="null" class="editor-textarea"
+			<div v-if="useMonacoEditor" ref="monacoEditor" class="editor-monaco"></div>
+			<v-textarea v-else ref="textarea" hide-details solo :rows="null" class="editor-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
 						@input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
 						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)" />
+
+			<div :style="`height: ${bottomMargin}px`"></div>
 		</v-card>
 	</v-dialog>
 </template>
@@ -112,6 +114,7 @@ export default Vue.extend({
 		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
 		menuDirectory(): string { return store.state.machine.model.directories.menu; },
 		darkTheme(): boolean { return store.state.settings.darkTheme; },
+		useMonacoEditor(): boolean { return !store.state.oskEnabled && !this.isMobile; },
 		language(): string {
 			if (Path.startsWith(this.filename, this.macrosDirectory) || /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)$/i.test(this.filename)) {
 				return "gcode";
@@ -138,14 +141,16 @@ export default Vue.extend({
 		},
 		isBigFile(): boolean {
 			return this.innerValue.length > bigFileThreshold;
+		},
+		bottomMargin(): number {
+			return store.state.bottomMargin;
 		}
 	},
 	data() {
 		return {
-			editor: null as monaco.editor.IStandaloneCodeEditor | null,
+			monacoEditor: null as monaco.editor.IStandaloneCodeEditor | null,
 			innerValue: "",
-			valueChanged: false,
-			useEditor: false
+			valueChanged: false
 		}
 	},
 	methods: {
@@ -159,23 +164,23 @@ export default Vue.extend({
 			this.$root.$emit("dialog-closing")
 		},
 		indentComments() {
-			if (this.editor !== null) {
-				const indentedFile = indent(this.editor.getValue());
-				if (this.editor.getValue() !== indentedFile) {
-					const fullRange = this.editor.getModel()!.getFullModelRange();
-					this.editor.executeEdits(null, [{
+			if (this.monacoEditor !== null) {
+				const indentedFile = indent(this.monacoEditor.getValue());
+				if (this.monacoEditor.getValue() !== indentedFile) {
+					const fullRange = this.monacoEditor.getModel()!.getFullModelRange();
+					this.monacoEditor.executeEdits(null, [{
 						text: indentedFile,
 						range: fullRange
 					}]);
-					this.editor.pushUndoStop();
+					this.monacoEditor.pushUndoStop();
 				}
 			} else {
 				this.innerValue = indent(this.innerValue);
 			}
 		},
 		async save() {
-			if (this.editor !== null) {
-				this.innerValue = this.editor.getValue();
+			if (this.monacoEditor !== null) {
+				this.innerValue = this.monacoEditor.getValue();
 			}
 
 			if (!this.innerValue.length && !confirm(this.$t("dialog.fileEdit.confirmSaveEmpty"))) {
@@ -229,23 +234,22 @@ export default Vue.extend({
 		}
 	},
 	beforeDestroy() {
-		if (this.editor !== null) {
-			this.editor.dispose();
-			this.editor = null;
+		if (this.monacoEditor !== null) {
+			this.monacoEditor.dispose();
+			this.monacoEditor = null;
 		}
 	},
 	watch: {
 		shown(to) {
 			// Update textarea
 			this.innerValue = this.value || "";
-			this.useEditor = !window.disableCodeMirror && !this.isMobile;
 			this.$nextTick(() => this.valueChanged = false);
 
 			if (to) {
 				// Create Monaco editor if necessary
-				if (this.useEditor) {
+				if (this.useMonacoEditor) {
 					this.$nextTick(() => {
-						this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
+						this.monacoEditor = monaco.editor.create(this.$refs.monacoEditor as HTMLElement, {
 							automaticLayout: true,
 							matchBrackets: this.isBigFile ? "near" : "always",
 							language: this.language,
@@ -257,7 +261,7 @@ export default Vue.extend({
 							value: this.innerValue,
 							wordBasedSuggestions: false
 						});
-						this.editor.focus();
+						this.monacoEditor.focus();
 					});
 				}
 
@@ -268,9 +272,9 @@ export default Vue.extend({
 				window.removeEventListener("beforeunload", this.onBeforeLeave);
 
 				// Clean up again
-				if (this.editor !== null) {
-					this.editor.dispose();
-					this.editor = null;
+				if (this.monacoEditor !== null) {
+					this.monacoEditor.dispose();
+					this.monacoEditor = null;
 				} else if (this.$refs.textarea !== null) {
 					(this.$refs.textarea as HTMLTextAreaElement).blur();
 				}

@@ -216,7 +216,7 @@ export default Vue.extend({
 			}
 		},
 		blur() {
-			if (window.oskOpen) {
+			if (store.state.bottomMargin > 0) {
 				if (!this.blurTimer) {
 					// Do not update the input value before a potentially installed on-screen keyboard is hidden.
 					// This work-around is necessary because the input field loses focus every time a button is pressed

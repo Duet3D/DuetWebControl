@@ -48,7 +48,7 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		window.disableCodeMirror = true;
+		store.commit("oskEnabled");
 		window.addEventListener("focusin", this.inputFocused);
 		window.addEventListener("click", this.globalClick);
 	},
@@ -93,8 +93,7 @@ export default Vue.extend({
 					}
 
 					// Add some space at the bottom so the keyboard does not cover inputs 
-					document.body.style.marginBottom = `${(this.$refs.keyboard as HTMLElement).offsetHeight}px`;
-					window.oskOpen = true;
+					store.commit("setBottomMargin", (this.$refs.keyboard as HTMLElement).offsetHeight);
 				});
 			}
 		},
@@ -107,8 +106,7 @@ export default Vue.extend({
 		hide() {
 			this.input = null;
 			this.keyboard = null;
-			document.body.style.marginBottom = "0px";
-			window.oskOpen = false;
+			store.commit("setBottomMargin", 0);
 		},
 		onInput(e: Event) {
 			this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);
@@ -135,31 +133,36 @@ export default Vue.extend({
 				this.keyboard.setOptions({
 					layoutName: (currentLayout === "default") ? "shift" : "default"
 				});
-			} else if (button === "{enter}" && this.input instanceof HTMLInputElement) {
-				// Emulate keydown, keypress, keyup in the right order
-				const kde = new KeyboardEvent("keydown", {
-					bubbles: true,
-					cancelable: true,
-					keyCode: 13
-				});
-				this.input.dispatchEvent(kde);
+			} else if (button === "{enter}") {
+				if (this.input instanceof HTMLInputElement) {
+					// Emulate keydown, keypress, keyup in the right order
+					const kde = new KeyboardEvent("keydown", {
+						bubbles: true,
+						cancelable: true,
+						keyCode: 13
+					});
+					this.input.dispatchEvent(kde);
 
-				const kpe = new KeyboardEvent("keypress", {
-					bubbles: true,
-					cancelable: true,
-					keyCode: 13
-				});
-				this.input.dispatchEvent(kpe);
+					const kpe = new KeyboardEvent("keypress", {
+						bubbles: true,
+						cancelable: true,
+						keyCode: 13
+					});
+					this.input.dispatchEvent(kpe);
 
-				const kue = new KeyboardEvent("keyup", {
-					bubbles: true,
-					cancelable: true,
-					keyCode: 13
-				});
-				this.input.dispatchEvent(kue);
+					const kue = new KeyboardEvent("keyup", {
+						bubbles: true,
+						cancelable: true,
+						keyCode: 13
+					});
+					this.input.dispatchEvent(kue);
 
-				// Wait a moment before closing the keyboard, else bad touch events may be invoked
-				setTimeout(this.hide.bind(this), 500);
+					// Wait a moment before closing the keyboard, else bad touch events may be invoked
+					setTimeout(this.hide.bind(this), 500);
+				} else if (this.input instanceof HTMLTextAreaElement) {
+					// Focus textarea again to keep the cursor visible
+					this.input.focus();
+				}
 			}
 		}
 	}

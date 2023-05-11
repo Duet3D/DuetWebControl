@@ -72,6 +72,16 @@ export interface InternalRootState {
 	 * Whether code replies may not be shown as notifications (usually true when the Console page is open)
 	 */
 	hideCodeReplyNotifications: boolean;
+
+	/**
+	 * Whether an OSK plugin is active
+	 */
+	oskEnabled: boolean;
+
+	/**
+	 * Bottom margin to add for the on-screen keyboard
+	 */
+	bottomMargin: number;
 }
 
 export interface RootState extends InternalRootState {
@@ -96,7 +106,9 @@ const store = new Vuex.Store<InternalRootState>({
 		selectedMachine: defaultMachine,
 		loadingDwcPlugins: false,
 		loadedDwcPlugins: [],
-		hideCodeReplyNotifications: false
+		hideCodeReplyNotifications: false,
+		oskEnabled: false,
+		bottomMargin: 0
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -476,6 +488,23 @@ const store = new Vuex.Store<InternalRootState>({
 		 */
 		showCodeReplyNotifications(state) {
 			state.hideCodeReplyNotifications = false;
+		},
+
+		/**
+		 * Called by OSK plugins to announce OSK functionality
+		 * @param state Vuex state
+		 */
+		oskEnabled(state) {
+			state.oskEnabled = true;
+		},
+
+		/**
+		 * Set the new bottom margin (reserved for OSK plugins)
+		 * @param state Vuex state
+		 * @param value New bottom margin in px
+		 */
+		setBottomMargin(state, value: number) {
+			state.bottomMargin = value;
 		}
 	},
 	modules: {
