@@ -57,7 +57,7 @@ textarea {
 
 <template>
 	<v-app>
-		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu">
+		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu" :mini-variant="iconMenu" :style="`padding-bottom: ${bottomMargin}px`">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
 					<connect-btn v-if="showConnectButton" class="mb-2" block/>
@@ -104,7 +104,7 @@ textarea {
 			<emergency-btn/>
 		</v-app-bar>
 
-		<v-main id="content">
+		<v-main id="content" :style="`margin-bottom: ${bottomMargin}px`">
 			<v-container class="hidden-sm-and-down" id="global-container" fluid>
 				<fff-container-panel v-if="isFFForUnset"/>
 				<cnc-container-panel v-else/>
@@ -173,7 +173,8 @@ export default {
 			bottomNavigation: state => state.settings.bottomNavigation,
 			iconMenu: state => state.settings.iconMenu,
 
-			injectedComponents: state => state.uiInjection.injectedComponents
+			injectedComponents: state => state.uiInjection.injectedComponents,
+			bottomMargin: state => state.bottomMargin
 		}),
 		...mapState('settings',['dashboardMode']),
 		...mapGetters('machine', ['hasTemperaturesToDisplay']),

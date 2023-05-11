@@ -36,7 +36,9 @@ const store = new Vuex.Store({
 		passwordRequired: false,
 		selectedMachine: defaultMachine,
 		loadedDwcPlugins: [],
-		hideCodeReplyNotifications: false
+		hideCodeReplyNotifications: false,
+		oskEnabled: false,
+		bottomMargin: 0
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -245,6 +247,13 @@ const store = new Vuex.Store({
 		},
 		showCodeReplyNotifications(state) {
 			state.hideCodeReplyNotifications = false;
+		},
+
+		oskEnabled(state) {
+			state.oskEnabled = true;
+		},
+		setBottomMargin(state, value) {
+			state.bottomMargin = value;
 		}
 	},
 	modules: {

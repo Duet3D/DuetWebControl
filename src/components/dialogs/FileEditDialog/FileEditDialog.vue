@@ -72,7 +72,9 @@
 						ref="textarea" hide-details solo :rows="null" class="edit-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
 						:value="innerValue" @input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
-						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)"></v-textarea>
+						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)" />
+
+			<div :style="`height: ${bottomMargin}px`"></div>
 		</v-card>
 	</v-dialog>
 </template>
@@ -113,6 +115,7 @@ export default {
 		value: String
 	},
 	computed: {
+		...mapState(["oskEnabled", "bottomMargin"]),
 		...mapState('machine/model', {
 			gCodesDirectory: state => state.directories.gCodes,
 			macrosDirectory: state => state.directories.macros,
@@ -222,7 +225,7 @@ export default {
 	watch: {
 		shown(to) {
 			// Update textarea
-			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !window.disableCodeMirror && !this.isIOS;
+			this.useEditor = (!this.value || this.value.length < maxEditorFileSize) && this.isGCode && !this.oskEnabled && !this.isIOS;
 			this.innerValue = this.value || '';
 			this.$nextTick(() => this.valueChanged = false);
 
