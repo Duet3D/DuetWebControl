@@ -1,0 +1,1090 @@
+{
+  "$vuetify": {
+    "badge": "Kenteken",
+    "calendar": {
+      "moreEvents": "{0} meer"
+    },
+    "carousel": {
+      "ariaLabel": {
+        "delimiter": "Carrouseldia {0} van {1}"
+      },
+      "next": "Volgende visueel",
+      "prev": "Vorige visueel"
+    },
+    "close": "Dichtbij",
+    "dataFooter": {
+      "firstPage": "Eerste pagina",
+      "itemsPerPageAll": "Alle",
+      "itemsPerPageText": "Artikelen per pagina:",
+      "lastPage": "Laatste pagina",
+      "nextPage": "Volgende bladzijde",
+      "pageText": "{0}-{1} van {2}",
+      "prevPage": "Vorige bladzijde"
+    },
+    "dataIterator": {
+      "loadingText": "Artikelen laden...",
+      "noResultsText": "Geen overeenkomende records gevonden"
+    },
+    "dataTable": {
+      "ariaLabel": {
+        "activateAscending": "Activeer om oplopend te sorteren.",
+        "activateDescending": "Activeer om aflopend te sorteren.",
+        "activateNone": "Activeer om sorteren te verwijderen.",
+        "sortAscending": "Oplopend gesorteerd.",
+        "sortDescending": "Aflopend gesorteerd.",
+        "sortNone": "Niet gesorteerd."
+      },
+      "itemsPerPageText": "Rijen per pagina:",
+      "sortBy": "Sorteer op"
+    },
+    "datePicker": {
+      "itemsSelected": "{0} geselecteerd"
+    },
+    "fileInput": {
+      "counter": "{0} bestanden",
+      "counterSize": "{0} bestanden ({1} in totaal)"
+    },
+    "noDataText": "Geen gegevens beschikbaar",
+    "timePicker": {
+      "am": "BEN",
+      "pm": "P.M"
+    }
+  },
+  "button": {
+    "add": {
+      "caption": "Toevoegen"
+    },
+    "connect": {
+      "connect": "Aansluiten",
+      "connecting": "Verbinden...",
+      "disconnect": "Loskoppelen",
+      "disconnecting": "Verbinding verbreken..."
+    },
+    "emergencyStop": {
+      "caption": "Noodstop",
+      "title": "Een onmiddellijke softwarereset afdwingen (M112 M999)"
+    },
+    "home": {
+      "caption": "Thuis {0}",
+      "captionAll": "Thuis Alles",
+      "title": "Startpunt van de {0}-as (G28 {0})",
+      "titleAll": "Home alle assen (G28)"
+    },
+    "newDirectory": {
+      "caption": "Nieuwe map"
+    },
+    "newFilament": {
+      "caption": "Nieuwe gloeidraad"
+    },
+    "newFile": {
+      "caption": "Nieuw bestand"
+    },
+    "refresh": {
+      "caption": "Vernieuwen"
+    },
+    "reset": {
+      "caption": "Machine resetten",
+      "title": "Stuur M999 naar de machine om deze te resetten"
+    },
+    "upload": {
+      "filaments": {
+        "caption": "Upload filamentconfiguraties",
+        "title": "Upload een of meer filamentconfiguraties (drag"
+      },
+      "firmware": {
+        "caption": "Firmwarebestanden uploaden",
+        "title": "Upload een of meer firmwarebestanden (drag"
+      },
+      "gcodes": {
+        "caption": "G-codebestand(en) uploaden",
+        "title": "Upload een of meer G-Code-bestanden (drag"
+      },
+      "macros": {
+        "caption": "Macrobestand(en) uploaden",
+        "title": "Upload een of meer macrobestanden (drag"
+      },
+      "menu": {
+        "caption": "Menubestanden uploaden",
+        "title": "Upload een of meer menubestanden (drag"
+      },
+      "plugin": {
+        "caption": "Installeer plugin",
+        "title": "Upload en start een plug-in (drag"
+      },
+      "start": {
+        "caption": "Uploaden",
+        "title": "Uploaden"
+      },
+      "system": {
+        "caption": "Systeembestanden uploaden",
+        "title": "Upload een of meer systeembestanden (drag"
+      },
+      "update": {
+        "caption": "Installeer update",
+        "title": "Upload en installeer een update (slepen"
+      },
+      "web": {
+        "caption": "Upload webbestanden",
+        "title": "Upload een of meer webbestanden (drag"
+      }
+    }
+  },
+  "chart": {
+    "layer": {
+      "caption": "Laagkaart",
+      "filamentUsage": "Filamentgebruik: {0}",
+      "fractionPrinted": "Bestandsvoortgang: {0}",
+      "layer": "Laag {0}",
+      "layerDuration": "Duur: {0}",
+      "layerHeight": "Laaghoogte: {0}",
+      "layerTime": "Laag tijd",
+      "showAllLayers": "Toon alle lagen",
+      "showLastLayers": "Laat laatste {0} lagen zien",
+      "temperatures": "Temperaturen: {0}"
+    },
+    "temperature": {
+      "caption": "Temperatuur grafiek",
+      "heater": "Verwarming {0}",
+      "noData": "Geen gegevens",
+      "sensor": "Sensor {0}"
+    }
+  },
+  "dialog": {
+    "changeMoveStep": {
+      "prompt": "Voer een nieuwe waarde in voor de knop Verplaatsen waarop is geklikt:",
+      "title": "Wijzig de verplaatsingsstap"
+    },
+    "configUpdated": {
+      "prompt": "Wilt u het moederbord opnieuw opstarten of het configuratiebestand opnieuw uitvoeren? \nHet wordt aangeraden om het moederbord te resetten als u IO-poorten hebt verwijderd of drivertoewijzingen hebt gewijzigd.",
+      "reset": "Start het moederbord opnieuw op",
+      "runConfig": "Voer het configuratiebestand uit",
+      "title": "Nieuwe configuratie toepassen?"
+    },
+    "connect": {
+      "connect": "Aansluiten",
+      "hostPlaceholder": "Hostnaam",
+      "hostRequired": "Hostnaam is vereist",
+      "passwordPlaceholder": "Wachtwoord",
+      "passwordPlaceholderOptional": "Wachtwoord (optioneel)",
+      "passwordRequired": "Een wachtwoord is verplicht",
+      "prompt": "Voer de hostnaam en het wachtwoord in van de machine waarmee u verbinding wilt maken:",
+      "title": "Maak verbinding met automaat"
+    },
+    "connection": {
+      "connecting": "Verbinden...",
+      "disconnecting": "Verbinding verbreken...",
+      "reconnecting": "Verbinding verbroken, poging om opnieuw verbinding te maken...",
+      "standBy": "Blijf alsjeblieft staan...",
+      "updating": "Even geduld terwijl updates worden geïnstalleerd..."
+    },
+    "duplicateFilament": {
+      "prompt": "Voer een naam in voor de filamentkopie:",
+      "title": "Dubbele gloeidraad"
+    },
+    "editExtrusionAmount": {
+      "prompt": "Voer een nieuw bedrag in voor de aangeklikte knop:",
+      "title": "Extrusiehoeveelheid bewerken"
+    },
+    "editExtrusionFeedrate": {
+      "prompt": "Voer een nieuwe voedingssnelheid in voor de aangeklikte knop:",
+      "title": "Bewerk extrusievoedingssnelheid"
+    },
+    "factoryReset": {
+      "prompt": "Weet u zeker dat u een fabrieksreset wilt uitvoeren? \nAlle opgeslagen instellingen gaan verloren.",
+      "title": "Fabrieksreset uitvoeren?"
+    },
+    "filament": {
+      "noFilaments": "Geen Filamenten beschikbaar",
+      "prompt": "Kies een filament:",
+      "titleChange": "Vervang de gloeidraad",
+      "titleLoad": "Laad gloeidraad"
+    },
+    "fileEdit": {
+      "confirmClose": "Het bestand is gewijzigd. \nAls u doorgaat, gaan uw wijzigingen verloren.",
+      "confirmSaveEmpty": "Het lijkt erop dat het bestand dat u wilt opslaan leeg is. \nWeet je zeker dat je door wilt gaan?",
+      "gcodeReference": "G-Code-referentie",
+      "indentComments": "Opmerkingen inspringen",
+      "menuReference": "Menureferentie",
+      "save": "Redden"
+    },
+    "fileTransfer": {
+      "cancelDownloads": "Downloads annuleren",
+      "cancelUploads": "Annuleer uploads",
+      "currentSpeed": "Huidige snelheid: {0}",
+      "downloadDoneTitle": "Downloaden voltooid",
+      "downloadFailedTitle": "Downloaden mislukt!",
+      "downloadingTitle": "Bestand {0} van {1} downloaden, {2}% voltooid",
+      "filename": "Bestandsnaam",
+      "progress": "Voortgang",
+      "size": "Maat",
+      "uploadDoneTitle": "Uploaden voltooid!",
+      "uploadFailedTitle": "Uploaden mislukt!",
+      "uploadingTitle": "Bestand uploaden {0} van {1}, {2}% voltooid"
+    },
+    "incompatibleVersions": {
+      "prompt": "De geïnstalleerde softwareversies komen niet overeen. \nGebruik uw installatie alleen met gelijke versies om mogelijke onverenigbaarheden en onverwachte fouten te voorkomen.",
+      "title": "Incompatibele softwareversies",
+      "upgradeNotice": "Bekijk de {docs} over het upgraden van uw Duet-softwarecomponenten."
+    },
+    "inputRequired": "Voer alstublieft een waarde in",
+    "meshEdit": {
+      "endCoordinate": "Eindcoördinaat in {0} richting",
+      "radius": "Sonde straal",
+      "spacing": "Spatiëring",
+      "spacingDirection": "Afstand in {0} richting",
+      "startCoordinate": "Start coördinaat in {0} richting",
+      "title": "Stel mesh-parameters in"
+    },
+    "newDirectory": {
+      "prompt": "Voer een nieuwe mapnaam in:",
+      "title": "Nieuwe map"
+    },
+    "newFilament": {
+      "prompt": "Voer een naam in voor het nieuwe filament:",
+      "title": "Nieuwe gloeidraad"
+    },
+    "newFile": {
+      "prompt": "Voer een nieuwe bestandsnaam in:",
+      "title": "Nieuw bestand"
+    },
+    "numberRequired": "Gelieve een geldig nummer invoeren",
+    "pluginInstallation": {
+      "back": "Rug",
+      "by": "door {0}",
+      "cancel": "Annuleren",
+      "checkboxDisclaimer": "Ik accepteer de risico's, installeer deze plug-in",
+      "contents": "Dit pakket bevat softwarecomponenten voor",
+      "dsf": "Duet-softwareframework",
+      "dwc": "Duet webcontrole",
+      "dwcWarning": "Deze plug-in bevat componenten voor de webinterface. \nEr kunnen geen toestemmingscontroles worden afgedwongen in browsersessies, dus het kan uw systeem manipuleren en beveiligingsrisico's creëren die kunnen leiden tot fysieke schade aan uw installatie.",
+      "finish": "Finish",
+      "homepage": "Startpagina:",
+      "installation": "Installatie van plug-ins",
+      "installationFailed": "Installatie mislukt!",
+      "installationSuccess": "Installatie voltooid!",
+      "invalidManifest": "Ongeldig plug-inmanifest",
+      "license": "Licentie: {0}",
+      "next": "Volgende",
+      "noPluginSupport": "Externe plug-ins niet toegestaan",
+      "noSpecialPermissions": "Deze plug-in vereist geen speciale machtigingen.",
+      "permissions": "Vereiste machtigingen",
+      "prerequisites": "Vereisten",
+      "progress": "Installatie voortgang",
+      "progressText": "Even geduld terwijl de plug-in wordt geïnstalleerd...",
+      "prompt": "De volgende plug-in wordt geïnstalleerd:",
+      "ready": "Installatie gereed",
+      "readyDisclaimer": "Voordat u verder kunt gaan, moet u accepteren dat Duet3D Ltd niet verantwoordelijk kan worden gehouden voor mogelijke schade als gevolg van de installatie van deze plug-in van derden.",
+      "readyMessage": "De plug-in is nu klaar om geïnstalleerd te worden. \nZorg ervoor dat u de auteur van de plug-in vertrouwt voordat u deze laatste stap bevestigt.",
+      "reloadPrompt": {
+        "prompt": "U hebt zojuist een actieve DWC-plug-in bijgewerkt. \nOm de nieuwe versie te gebruiken, moet de webinterface opnieuw worden geladen. \nWil je dit nu doen?",
+        "title": "DWC opnieuw laden?"
+      },
+      "rootSupport": "Ondersteuning voor Super-User-plug-ins",
+      "rootWarning": "Deze plug-in vereist machtigingen van supergebruikers, wat betekent dat het de bijgevoegde SBC opnieuw kan configureren en mogelijk schadelijke software kan installeren. \nDit kan leiden tot fysieke schade aan uw installatie.",
+      "rrf": "RepRapFirmware",
+      "sbcPermissions": "De plug-in die op de SBC draait, wil dat",
+      "version": "Versie {0}"
+    },
+    "renameFile": {
+      "prompt": "Voer een nieuwe naam in:",
+      "title": "Hernoem bestand of map"
+    },
+    "resetHeaterFault": {
+      "prompt": "Er is een verwarmingsfout opgetreden op verwarmingselement {0}. \nHet wordt sterk aangeraden om uw machine nu uit te schakelen en uw bedrading te controleren voordat u verder gaat. \nAls u er absoluut zeker van bent dat dit geen fysiek probleem is, kunt u de storing van de verwarming OP EIGEN RISICO resetten. \nHoud er rekening mee dat dit NIET AANBEVOLEN wordt en tot verdere problemen kan leiden. \nHoe wilt u doorgaan?",
+      "resetFault": "Fout resetten",
+      "title": "Verwarmingsfout resetten"
+    },
+    "runMacro": {
+      "prompt": "Wil je {0} uitvoeren?",
+      "title": "Ren {0}"
+    },
+    "startJob": {
+      "prompt": "Wil je {0} starten?",
+      "title": "Begin {0}"
+    },
+    "update": {
+      "prompt": "U heeft ten minste één firmware-update geüpload. \nWil je ze nu installeren?",
+      "resetPrompt": "U hebt zojuist uitbreidingskaartupdates geïnstalleerd. \nWilt u de hoofdcontroller opnieuw opstarten om de vorige configuratie te herstellen?",
+      "resetTitle": "Firmware resetten?",
+      "sbcWarning": "U bedient uw machine in de SBC-modus. \nUpgrade de firmware alleen met behulp van DWC als dit wordt geadviseerd door de firmware-ontwikkelaars.",
+      "title": "Installeer updates?"
+    }
+  },
+  "directory": {
+    "filaments": "Filamenten Directory",
+    "firmware": "Firmware-directory",
+    "gcodes": "G-codes Directory",
+    "macros": "Macro's Directory",
+    "menu": "Menulijst",
+    "system": "Systeemmap",
+    "web": "WWW-gids"
+  },
+  "error": {
+    "badVersion": "Incompatibele firmwareversie",
+    "cancelled": "Operatie is geannuleerd",
+    "codeBuffer": "Kan code uitvoeren omdat de bufferruimte is uitgeput",
+    "codeResponse": "Kan code niet uitvoeren omdat er een slechte reactie is ontvangen",
+    "connect": "Kan geen verbinding maken met {0}",
+    "directoryNotFound": "Directory {0} niet gevonden",
+    "disconnect": "Kan de verbinding met {0} niet netjes verbreken",
+    "disconnected": "Kan actie niet voltooien omdat de verbinding is verbroken",
+    "driveUnmounted": "Doelschijf is ontkoppeld",
+    "enterValidNumber": "Gelieve een geldig nummer invoeren",
+    "filamentsLoadFailed": "Kan filamenten niet laden",
+    "fileNotFound": "Bestand {0} niet gevonden",
+    "fileinfoRequestFailed": "Kan bestandsinformatie voor {0} niet ophalen",
+    "filelistRequestFailed": "Kan de bestandslijst niet ophalen",
+    "invalidHeightmap": "Ongeldige hoogtekaart",
+    "invalidPassword": "Ongeldig wachtwoord!",
+    "move": "Verplaatsen van {0} naar {1} is mislukt",
+    "network": "Netwerkfout",
+    "noFreeSession": "Geen gratis sessies meer!",
+    "notImplemented": "{0} is niet geïmplementeerd",
+    "operationFailed": "Bewerking mislukt (reden: {0})",
+    "startupError": "Fout in opstartbestand {0} regel {1}: {2}",
+    "timeout": "Er is een time-out opgetreden voor het HTTP-verzoek",
+    "turnOffEverythingFailed": "Het is niet gelukt om alles uit te schakelen",
+    "uploadNoFiles": "Deze ZIP bevat geen bruikbare bestanden",
+    "uploadNoSingleZIP": "Er kan slechts één ZIP-bestand tegelijk worden geüpload",
+    "uploadStartWrongFileCount": "Er kan slechts één bestand worden geüpload"
+  },
+  "events": {
+    "connected": "Verbonden met {0}",
+    "connectionLost": "Kan verbinding met {0} niet behouden",
+    "disconnected": "Losgekoppeld van {0}",
+    "emergencyStop": "Noodstop, poging om opnieuw verbinding te maken...",
+    "reconnected": "Verbinding gemaakt",
+    "reconnecting": "Verbinding verbroken, poging om opnieuw verbinding te maken..."
+  },
+  "generic": {
+    "active": "Actief",
+    "cancel": "Annuleren",
+    "close": "Dichtbij",
+    "error": "Fout",
+    "extracting": "Extraheren",
+    "heaterStates": {
+      "active": "actief",
+      "fault": "schuld",
+      "off": "uit",
+      "offline": "offline",
+      "standby": "stand-by",
+      "tuning": "afstemmen"
+    },
+    "info": "Info",
+    "loading": "bezig met laden",
+    "mounted": "gemonteerd",
+    "no": "Nee",
+    "noValue": "n.v.t",
+    "notMounted": "niet gemonteerd",
+    "ok": "OK",
+    "reset": "Resetten",
+    "rpm": "RPM",
+    "sdCard": "SD-kaart {0}",
+    "standby": "Stand-by",
+    "status": {
+      "busy": "Druk bezig",
+      "cancelling": "Annuleren",
+      "changingTool": "Veranderend hulpmiddel",
+      "disconnected": "Losgekoppeld",
+      "halted": "Gestopt",
+      "idle": "Inactief",
+      "off": "Uit",
+      "paused": "Gepauzeerd",
+      "pausing": "Pauzeren",
+      "printing": "Afdrukken",
+      "processing": "Verwerken",
+      "resuming": "Hervatten",
+      "simulating": "simuleren",
+      "starting": "Beginnend",
+      "unknown": "Onbekend",
+      "updating": "Bijwerken"
+    },
+    "success": "Succes",
+    "uploading": "Uploaden",
+    "warning": "Waarschuwing",
+    "yes": "Ja"
+  },
+  "input": {
+    "addRPM": "Waarde van nieuwe preset",
+    "addTemperature": "Waarde van nieuwe temperatuur",
+    "code": {
+      "placeholder": "Code verzenden...",
+      "send": "Versturen"
+    },
+    "set": "Set"
+  },
+  "jobProgress": {
+    "filament": "Filamentgebruik: {0}",
+    "filamentRemaining": "{0} resterend",
+    "layer": "Laag {0} van {1}",
+    "noJob": "Geen taak actief.",
+    "printed": "Gedrukt {0}, 100% compleet",
+    "printing": "Afdrukken {0}, {1} voltooid",
+    "processed": "Verwerkt {0}, 100% voltooid",
+    "processing": "Verwerking {0}, {1} voltooid",
+    "simulated": "Gesimuleerd {0}, 100% voltooid",
+    "simulating": "Simulatie van {0}, {1} voltooid"
+  },
+  "language": "Engels",
+  "list": {
+    "baseFileList": {
+      "delete": "Verwijderen",
+      "download": "Download bestand",
+      "downloadZIP": "Download als zip",
+      "driveUnmounted": "Aandrijving is ontkoppeld",
+      "edit": "Bestand bewerken",
+      "fileName": "Bestandsnaam",
+      "goUp": "Omhoog gaan",
+      "lastModified": "Laatst gewijzigd",
+      "noFiles": "Geen bestanden of mappen",
+      "rename": "Hernoemen",
+      "size": "Maat"
+    },
+    "eventLog": {
+      "clear": "Duidelijk",
+      "date": "Datum",
+      "downloadCSV": "Downloaden als CSV",
+      "downloadText": "Downloaden als tekst",
+      "message": "Evenement",
+      "noEvents": "Geen evenementen",
+      "type": "Type"
+    },
+    "filament": {
+      "duplicate": "Duplicaat",
+      "noFilaments": "Geen filamenten"
+    },
+    "firmware": {
+      "installFile": "Firmwarebestand installeren",
+      "noFiles": "Geen firmwarebestanden"
+    },
+    "jobs": {
+      "filament": "Filament gebruik",
+      "generatedBy": "Gegenereerd door",
+      "height": "Objecthoogte",
+      "layerHeight": "Laag Hoogte",
+      "noJobs": "Geen banen",
+      "printTime": "Tijd afdrukken",
+      "simulate": "Bestand simuleren",
+      "simulatedTime": "Gesimuleerde tijd",
+      "start": "Start bestand"
+    },
+    "macro": {
+      "caption": "Macro's",
+      "noMacros": "Geen macro's",
+      "root": "Wortel",
+      "run": "Macro uitvoeren"
+    },
+    "menu": {
+      "noFiles": "Geen weergavebestanden"
+    },
+    "system": {
+      "configToolNote": "bewerken via configuratietool",
+      "noFiles": "Geen systeembestanden"
+    }
+  },
+  "menu": {
+    "control": {
+      "caption": "Controle",
+      "console": "Troosten",
+      "dashboard": "Dashboard",
+      "status": "Toestand"
+    },
+    "files": {
+      "caption": "Bestanden",
+      "filaments": "Filamenten",
+      "jobs": "Banen",
+      "macros": "Macro's",
+      "menu": "Weergave",
+      "system": "Systeem",
+      "web": "Web"
+    },
+    "job": {
+      "caption": "Functie",
+      "status": "Toestand",
+      "webcam": "Webcam"
+    },
+    "plugins": {
+      "caption": "Plug-ins"
+    },
+    "settings": {
+      "caption": "Instellingen",
+      "general": "Algemeen",
+      "machine": "Machinespecifiek"
+    }
+  },
+  "notification": {
+    "compress": {
+      "errorTitle": "Kan bestanden niet comprimeren",
+      "message": "Wacht even terwijl uw bestanden worden gecomprimeerd...",
+      "title": "Bestanden comprimeren..."
+    },
+    "decompress": {
+      "errorTitle": "Kan bestanden niet uitpakken",
+      "message": "Wacht even terwijl uw bestanden worden uitgepakt...",
+      "standaloneUpdateInSbcModeError": "U probeert een zelfstandige DWC-bundel te uploaden in SBC-modus. \nDit wordt NIET ondersteund. \nGebruik apt update/upgrade om uw systeem bij te werken.",
+      "title": "Bestanden decomprimeren..."
+    },
+    "delete": {
+      "errorMessageDirectory": "Zorg ervoor dat deze map leeg is",
+      "errorTitle": "Kan {0} niet verwijderen",
+      "success": "{0} succesvol verwijderd",
+      "successMultiple": "{0} items succesvol verwijderd"
+    },
+    "deleteFilament": {
+      "errorStillLoaded": "Minstens één van de geselecteerde filamenten is nog geladen. \nGelieve ze uit te laden voordat u verder gaat",
+      "errorSubDirectories": "Het filament {0} bevat submappen. \nVerwijder ze handmatig en probeer het opnieuw.",
+      "errorTitle": "Kan filament(en) niet verwijderen"
+    },
+    "download": {
+      "error": "Kan {0} niet downloaden",
+      "message": "Wacht even terwijl het bestand wordt gedownload...",
+      "success": "Download van {0} geslaagd na {1}",
+      "title": "{0} @ {1} downloaden, {2}% voltooid"
+    },
+    "freeSpaceWarning": {
+      "message": "Er is nauwelijks ruimte over op het eerste deel. \nVerwijder enkele bestanden om problemen tijdens het uploaden van bestanden te voorkomen.",
+      "title": "Schijf bijna vol"
+    },
+    "message": "Bericht",
+    "mount": {
+      "errorTitle": "Kan de SD-kaart niet koppelen",
+      "successTitle": "SD-kaart gemonteerd"
+    },
+    "newDirectory": {
+      "errorTitle": "Kan map niet maken",
+      "successMessage": "Directory {0} gemaakt",
+      "successTitle": "Directory gemaakt"
+    },
+    "newFilament": {
+      "errorTitle": "Het maken van filament is mislukt",
+      "errorTitleMacros": "Het maken van filamentmacro's is mislukt",
+      "successMessage": "Filament {0} gemaakt",
+      "successTitle": "Filament gemaakt"
+    },
+    "pluginLoad": {
+      "message": "Even geduld terwijl de plug-ins worden geladen...",
+      "title": "Plug-ins laden..."
+    },
+    "plugins": {
+      "startError": "Kan de plug-in niet starten",
+      "started": "De plug-in is gestart",
+      "stopError": "Kan de plug-in niet starten",
+      "stopped": "Plug-in is gestopt",
+      "uninstallError": "Kan plug-in niet verwijderen",
+      "uninstalled": "De plug-in is verwijderd"
+    },
+    "rename": {
+      "error": "Hernoemen van {0} naar {1} is mislukt",
+      "success": "De naam van {0} is succesvol gewijzigd in {1}"
+    },
+    "renameFilament": {
+      "errorStillLoaded": "Dit filament is nog geladen. \nGelieve deze uit te laden voordat u verder gaat",
+      "errorTitle": "Hernoemen van filament is mislukt"
+    },
+    "responseTooLong": "Reactie te lang, zie Console",
+    "systemPackageInstall": {
+      "error": "Kan {0} niet installeren",
+      "message": "Wacht even terwijl het bestand wordt geïnstalleerd...",
+      "success": "Installatie van {0} geslaagd",
+      "title": "Bestand {0} installeren"
+    },
+    "upload": {
+      "error": "Kan {0} niet uploaden",
+      "message": "Wacht even terwijl het bestand wordt geüpload...",
+      "success": "Upload van {0} geslaagd na {1}",
+      "title": "Uploaden van {0} @ {1}, {2}% voltooid"
+    }
+  },
+  "panel": {
+    "atx": {
+      "caption": "ATX-kracht",
+      "off": "Uit",
+      "on": "Op"
+    },
+    "babystepping": {
+      "caption": "Z Babystepping",
+      "current": "Huidige offset: {0}"
+    },
+    "extrude": {
+      "amount": "Voerhoeveelheid in {0}:",
+      "caption": "Extrusie controle",
+      "extrude": "Extruderen",
+      "feedrate": "Voedingssnelheid in {0}:",
+      "mix": "Mengen",
+      "mixRatio": "Mengverhouding:",
+      "retract": "Intrekken"
+    },
+    "extrusionFactors": {
+      "caption": "Extrusiefactoren",
+      "changeVisibility": "Zichtbaarheid wijzigen",
+      "extruder": "Extruder {0}",
+      "noExtruders": "Geen extruders"
+    },
+    "fan": {
+      "caption": "Ventilatorregeling",
+      "fan": "Ventilator {0}",
+      "selection": "Ventilator selectie:",
+      "toolFan": "Gereedschap ventilator"
+    },
+    "fans": {
+      "caption": "Fans",
+      "changeVisibility": "Zichtbaarheid wijzigen",
+      "fan": "Ventilator {0}",
+      "noFans": "Geen fans",
+      "toolFan": "Gereedschap ventilator"
+    },
+    "jobControl": {
+      "cancelJob": "Taak annuleren",
+      "cancelPrint": "Afdrukken annuleren",
+      "cancelSimulation": "Simulatie annuleren",
+      "caption": "Taakcontrole",
+      "pauseJob": "Pauzeer taak",
+      "pausePrint": "Pauzeer afdrukken",
+      "pauseSimulation": "Pauzeer de simulatie",
+      "printNow": "Nu afdrukken",
+      "repeatJob": "Opnieuw beginnen",
+      "repeatPrint": "Opnieuw afdrukken",
+      "repeatSimulation": "Simuleer opnieuw",
+      "resumeJob": "Taak hervatten",
+      "resumePrint": "Afdrukken hervatten",
+      "resumeSimulation": "Simulatie hervatten",
+      "showPreview": "Toon voorbeeld",
+      "startJob": "Start baan"
+    },
+    "jobData": {
+      "caption": "Verzamelde gegevens",
+      "currentLayerTime": "Huidige laagtijd",
+      "jobDuration": "Taakduur",
+      "lastLayerTime": "Laatste laagtijd",
+      "warmUpDuration": "Opwarmingstijd"
+    },
+    "jobEstimations": {
+      "caption": "Schattingen op basis van",
+      "filament": "Filament gebruik",
+      "file": "Bestandsvoortgang",
+      "layer": "Laag tijd",
+      "simulation": "Simulatie",
+      "slicer": "Snijmachine"
+    },
+    "jobInfo": {
+      "caption": "Job informatie",
+      "filament": "Gloeidraadgebruik:",
+      "generatedBy": "Gegenereerd door:",
+      "height": "Hoogte:",
+      "layerHeight": "Laaghoogte:"
+    },
+    "movement": {
+      "axesNotHomed": "De volgende as is niet gehomed:|De volgende assen zijn niet gehomed:",
+      "caption": "Machinebeweging",
+      "compensation": "Een vergoeding",
+      "compensationInUse": "Compensatie in gebruik: {0}",
+      "compensationType": {
+        "mesh": "gaas",
+        "none": "Geen"
+      },
+      "disableBedCompensation": "Bedcompensatie uitschakelen (M561)",
+      "disableMeshCompensation": "Mesh-compensatie uitschakelen (G29 S2)",
+      "editMesh": "Gebied voor netcompensatie definiëren (M557)",
+      "loadMesh": "Laad opgeslagen hoogtekaart vanaf SD-kaart (G29 S1)",
+      "noAxes": "Geen assen",
+      "runBed": "Echte bednivellering (G32)",
+      "runDelta": "Deltakalibratie (G32)",
+      "runMesh": "Voer mesh-compensatie uit (G29)",
+      "set": "Stel {0} in",
+      "setWorkXYZ": "Stel Werk XYZ in",
+      "workzero": "Ga naar nul"
+    },
+    "settingsAbout": {
+      "buildDateTime": "Gebouwd op {0}",
+      "caption": "Over",
+      "credits": "Webinterface ontwikkeld door {author} voor {Duet3D}.",
+      "license": "Gelicentieerd onder de voorwaarden van de {gpl}."
+    },
+    "settingsAppearance": {
+      "binaryFileSizes": "Gebruik binaire bestandsgroottes",
+      "binaryFileSizesTitle": "Bestandsgroottes worden weergegeven op basis van 1024 (IEC) in plaats van 1000 (SI)",
+      "bottomNavigation": "Toon onderste navigatie op tablets",
+      "caption": "Verschijning",
+      "darkTheme": "Donker thema",
+      "dashboardModeTitle": "Dashboard-modus",
+      "decimalPlaces": "Aantal decimalen in de coördinatenweergave",
+      "disableAutoComplete": "Schakel automatisch aanvullen uit",
+      "disableAutoCompleteTitle": "Lijst voor automatisch aanvullen niet weergeven bij het typen van code of temperatuurinvoer",
+      "displayUnitsTitle": "Maateenheid voor weergave van coördinaten",
+      "groupTools": "Groepeer identieke gereedschappen",
+      "iconMenu": "Gebruik een compact pictogrammenu",
+      "language": "Taal",
+      "numericInputs": "Toon numerieke invoervelden in plaats van schuifregelaars",
+      "singleBedControl": "Controle van een eenpersoonsbed",
+      "singleChamberControl": "Eenkamercontrole",
+      "unitInch": "in",
+      "unitInchSpeed": "ipm",
+      "unitInches": "inches",
+      "unitMm": "mm",
+      "unitMmSpeed": "mm/sec"
+    },
+    "settingsBehaviour": {
+      "behaviourJobStart": "Schakel niet automatisch over naar Statuspaneel bij het starten van de taak",
+      "caption": "Gedrag"
+    },
+    "settingsCommunication": {
+      "ajaxRetries": "Aantal maximale AJAX-pogingen",
+      "caption": "Communicatie",
+      "crcUploads": "Gebruik CRC32-controlesommen voor uploads",
+      "fileTransferRetryThreshold": "Drempel voor opnieuw proberen voor bestandsoverdrachten ({0})",
+      "pingInterval": "PING-interval bij inactiviteit (ms)",
+      "unavailable": "Geen instellingen beschikbaar",
+      "updateDelay": "Updatevertraging (ms)",
+      "updateInterval": "Update-interval ({0})"
+    },
+    "settingsElectronics": {
+      "board": "{0}",
+      "caption": "Elektronica",
+      "diagnostics": "Diagnostiek",
+      "dsfVersion": "DSF-versie: {0}",
+      "dwcVersion": "DWC-versie: {0}",
+      "dwsFirmware": "Duet wifi-serverversie: {0}",
+      "firmware": "Firmware: {0} ({1})",
+      "notConnected": "(niet verbonden)",
+      "updateNote": "Opmerking: u kunt updates installeren op de systeempagina."
+    },
+    "settingsEndstops": {
+      "caption": "Eindstops",
+      "index": "Inhoudsopgave",
+      "triggered": "Veroorzaakt"
+    },
+    "settingsGeneral": {
+      "cacheSaveDelay": "Updatevertraging voor cachewijzigingen ({0})",
+      "cacheStorageLocal": "Bewaar cache in lokale opslag",
+      "caption": "Algemeen",
+      "factoryReset": "Terug naar fabrieksinstellingen",
+      "ignoreFileTimestamps": "Negeer bestandstijdstempels bij het uploaden",
+      "settingsSaveDelay": "Updatevertraging voor gewijzigde instellingen ({0})",
+      "settingsStorageLocal": "Bewaar instellingen in lokale opslag"
+    },
+    "settingsListItems": {
+      "bedTemperatures": "Bedtemperaturen",
+      "caption": "Lijstitems",
+      "chamberTemperatures": "Kamer Temperaturen",
+      "spindleRPM": "Spindel RPM",
+      "toolTemperatures": "Gereedschapstemperaturen"
+    },
+    "settingsMachine": {
+      "babystepAmount": "Hoeveelheid babystep ({0})",
+      "caption": "Machinespecifiek",
+      "checkVersions": "Controleer softwareversies en toon melding over incompatibiliteit",
+      "moveFeedrate": "Voedingssnelheid voor verplaatsingsknoppen ({0})",
+      "toolChangeMacros": "Gereedschapswisselmacro's"
+    },
+    "settingsNotifications": {
+      "caption": "Meldingen",
+      "notificationErrorsPersistent": "Sluit foutmeldingen niet automatisch af",
+      "notificationTimeout": "Standaard time-out voor meldingen ({0})"
+    },
+    "settingsWebcam": {
+      "caption": "Webcam",
+      "enable": "Webcam inschakelen",
+      "flipBoth": "Draai beide om",
+      "flipNone": "Geen",
+      "flipX": "Flip X",
+      "flipY": "Flip Y",
+      "webcamEmbedded": "Sluit de webcamafbeelding in een iframe in",
+      "webcamFix": "Voeg geen extra HTTP-kwalificatie toe bij het opnieuw laden van afbeeldingen",
+      "webcamFlip": "Draai het webcambeeld om",
+      "webcamLiveURL": "URL om te openen wanneer op webcamafbeelding wordt geklikt (optioneel)",
+      "webcamRotation": "Roteer webcambeeld",
+      "webcamURL": "Webcam-URL",
+      "webcamUpdateInterval": "Update-interval webcam ({0})"
+    },
+    "speedFactor": {
+      "caption": "Snelheidsfactor"
+    },
+    "spindle": {
+      "active": "Actief",
+      "currentRPM": "Huidig ​​toerental",
+      "direction": "Richting",
+      "forward": "vooruit",
+      "off": "Uit",
+      "on": "Op",
+      "reverse": "achteruit",
+      "setRPM": "Stel het toerental in",
+      "spindle": "Spil",
+      "title": "Spindels"
+    },
+    "status": {
+      "caption": "Toestand",
+      "extruderDrive": "Rijd {0}",
+      "extruders": "Extruder-aandrijvingen",
+      "extrusionRate": "Extrusiesnelheid",
+      "fanRPM": "Ventilator RPM",
+      "machinePosition": "Machinepositie",
+      "mcuTemp": "MCU-temperatuur",
+      "minMax": "Minimaal: {0}, maximaal {1}",
+      "mode": "Modus: {0}",
+      "noStatus": "Geen status",
+      "probe": "Z-sonde|Z-sondes",
+      "requestedSpeed": "gevraagde snelheid",
+      "sensors": "Sensoren",
+      "speeds": "Snelheden",
+      "toolPosition": "Gereedschapspositie",
+      "topSpeed": "Top snelheid",
+      "v12": "V12",
+      "vIn": "Vin",
+      "volumetricFlow": "Volumestroom"
+    },
+    "tools": {
+      "active": "Actief",
+      "allBeds": "Alle bedden",
+      "allChambers": "Alle kamers",
+      "bed": "Bed {0}",
+      "beds": "Bedden",
+      "caption": "Hulpmiddelen",
+      "chamber": "Kamer {0}",
+      "chambers": "Kamers",
+      "changeFilament": "Vervang de gloeidraad",
+      "controlHeaters": "Controle verwarmingen",
+      "current": "Huidig",
+      "extra": {
+        "caption": "Extra",
+        "noItems": "Geen extra sensoren",
+        "sensor": "Sensor",
+        "sensorIndex": "Sensor {0}",
+        "showInChart": "Toon in grafiek",
+        "value": "Waarde"
+      },
+      "heater": "Verwarming {0}",
+      "loadFilament": "Laad gloeidraad",
+      "noTools": "Geen gereedschap",
+      "setActiveTemperatures": "Stel actieve temperaturen in",
+      "setBedTemperatures": "Bedtemperaturen instellen",
+      "setChamberTemperatures": "Kamertemperaturen instellen",
+      "setStandbyTemperatures": "Standby-temperaturen instellen",
+      "setToolTemperatures": "Gereedschapstemperaturen instellen",
+      "standby": "Stand-by",
+      "tool": "Hulpmiddel {0}",
+      "turnEverythingOff": "Schakel alles uit",
+      "unloadFilament": "Filament ontladen"
+    },
+    "webcam": {
+      "alt": "(webcambeeld)",
+      "caption": "Webcambewaking"
+    }
+  },
+  "pluginPermissions": {
+    "codeInterceptionRead": "G/M/T-codes onderscheppen",
+    "codeInterceptionReadWrite": "G/M/T-codes onderscheppen en manipuleren",
+    "commandExecution": "Voer generieke DSF-commando's uit (bijv. G/M/T-codes)",
+    "fileSystemAccess": "Toegang tot bestanden buiten de virtuele SD-directory",
+    "gpioAccess": "Toegang tot GPIO-apparaten",
+    "launchProcesses": "Start nieuwe processen",
+    "managePlugins": "Plug-ins van derden installeren, laden, verwijderen en verwijderen",
+    "manageUserSessions": "Gebruikerssessies beheren",
+    "networkAccess": "Communiceer via het netwerk",
+    "objectModelRead": "Lees uit het objectmodel",
+    "objectModelReadWrite": "Lees van en schrijf naar het objectmodel",
+    "readFilaments": "Lees bestanden uit de filamenten-directory",
+    "readFirmware": "Lees bestanden uit de firmwaredirectory",
+    "readGCodes": "Lees bestanden uit de G-codes directory",
+    "readMacros": "Lees bestanden uit de map macro's",
+    "readMenu": "Lees bestanden uit de menudirectory",
+    "readSystem": "Lees bestanden uit de systeemdirectory",
+    "readWeb": "Lees bestanden uit de webdirectory",
+    "registerHttpEndpoints": "Maak nieuwe HTTP-eindpunten",
+    "superUser": "Uitvoeren als rootgebruiker (potentieel gevaarlijk)",
+    "webcamAccess": "Toegang tot webcamapparaten",
+    "writeFilaments": "Schrijf bestanden naar de map filamenten",
+    "writeFirmware": "Schrijf bestanden naar de firmware-directory",
+    "writeGCodes": "Schrijf bestanden naar de G-codes directory",
+    "writeMacros": "Schrijf bestanden naar de map macro's",
+    "writeMenu": "Schrijf bestanden naar de menudirectory",
+    "writeSystem": "Schrijf bestanden naar de systeemdirectory",
+    "writeWeb": "Schrijf bestanden naar de webdirectory"
+  },
+  "plugins": {
+    "accelerometer": {
+      "accelerations": "Versnellingen (in g)",
+      "amplitudes": "Amplitudes",
+      "analysis": "Frequentie Analyse",
+      "analyze": "Analyseren",
+      "back": "Rug",
+      "chartCaption": "Versnellingsmonsters",
+      "end": "Einde",
+      "frequency": "Frequentie (in Hz)",
+      "frequencyTooltip": "{0} ± {1}Hz",
+      "listTitle": "CSV-bestanden",
+      "loadError": "Kan CSV-bestand niet laden",
+      "name": "Versnellingsmeter",
+      "noData": "Geen monsters geladen",
+      "none": "Geen bestanden",
+      "overflowPrompt": {
+        "prompt": "Dit CSV-bestand heeft overflows gemeld. \nWeet u zeker dat u wilt doorgaan?",
+        "title": "Overstorten gedetecteerd"
+      },
+      "parseError": "Kan CSV-bestand niet parseren",
+      "sampleTooltip": "Steekproef",
+      "samples": "Monsters",
+      "samplingRate": "Bemonsteringsfrequentie (in Hz)",
+      "start": "Begin",
+      "wideBand": "Breedbandanalyse"
+    },
+    "autoUpdate": {
+      "menuCaption": "Update"
+    },
+    "gcodeViewer": {
+      "background": "Achtergrond",
+      "bed": "Bed",
+      "bedRenderMode": "Bed Render-modus",
+      "bottomClipping": "Bodem knippen",
+      "cameraInertia": "Camera-inertie",
+      "cancelLoad": "Annuleer het laden van bestanden",
+      "caption": "G-code-viewer",
+      "color": "Kleur",
+      "extruders": {
+        "caption": "Extruders",
+        "title": "Stelt de kleur in die wordt gebruikt voor het renderen van een extruder"
+      },
+      "feature": "Functie",
+      "feedrate": "Voedingssnelheid",
+      "forceLineRendering": "Forceer lijnweergave",
+      "fullscreen": "Volledig scherm",
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "high": "Hoog",
+      "liveZTracking": "Live Z-tracking",
+      "loadCurrentJob": {
+        "caption": "Laad huidige taak",
+        "title": "Laad de huidige afdruk- of simulatietaak"
+      },
+      "loadLocalGCode": {
+        "caption": "Laad lokale GCode",
+        "title": "Laad een bestand van uw lokale schijf in de viewer"
+      },
+      "low": "Laag",
+      "max": "Max",
+      "maxFeedrate": "Maximale voedingssnelheid (mm/s)",
+      "maxFeedrateColor": "Maximale voedingssnelheid kleur",
+      "medium": "Medium",
+      "minFeedrate": "Minimale voedingssnelheid (mm/s)",
+      "minFeedrateColor": "Minimale voedingssnelheid kleur",
+      "perimeterOnly": "Alleen omtrek",
+      "progress": {
+        "caption": "Voortgang",
+        "title": "Stel de afgedrukte kleur in voor voortgangsregistratie"
+      },
+      "progressColor": "Voortgangskleur",
+      "progressMode": "Voortgangsmodus",
+      "reloadView": {
+        "caption": "Weergave opnieuw laden",
+        "title": "Laad de huidige gcode opnieuw, dit wordt gebruikt bij het wijzigen van instellingen zoals kleur, feedrate-kleur, enz."
+      },
+      "renderFailed": "Vorige render is mislukt. \nRenderkwaliteit instellen op SBC",
+      "renderMode": {
+        "caption": "Rendermodus | \nRender-modi",
+        "title": "Met de rendermodus kunt u de kleur van de extruder of lijnkleuring in de viewer instellen"
+      },
+      "renderQuality": {
+        "caption": "Geef kwaliteit weer",
+        "title": "Pas de visualisatiekwaliteit van de kijker aan. \nHoe hoger het niveau, hoe meer hoekpunten en weergavemodi beschikbaar komen"
+      },
+      "resetCamera": {
+        "caption": "Camera resetten",
+        "title": "Reset de camera naar de uitgangspositie"
+      },
+      "resetColor": "Gereedschapskleur resetten | \nGereedschapskleuren resetten",
+      "sbc": "SBC",
+      "settings": "Instellingen",
+      "showAxes": "Assen tonen",
+      "showConfiguration": "Viewer-configuratie weergeven",
+      "showCursor": "Cursor tonen",
+      "showFSOverlay": "Overlay op volledig scherm weergeven",
+      "showObjectLabels": "Toon objectlabels",
+      "showObjectSelection": {
+        "caption": "Toon objectselectie",
+        "title": "Ingeschakeld als er objecten konden worden gedetecteerd in de huidige afdruk"
+      },
+      "showSolid": "Solide tonen",
+      "showTravels": "Toon reizen",
+      "showWorkplace": "Werkplek tonen",
+      "spreadLines": "Verspreid lijnen",
+      "tool": "Hulpmiddel {0}",
+      "topClipping": "Top knippen",
+      "transparency": "Transparantie",
+      "ultra": "Ultra",
+      "unloadGCode": {
+        "caption": "Laad GCode uit",
+        "title": "Verwijder de geladen gcode uit de viewer"
+      },
+      "useHQRendering": "Render van hoge kwaliteit (rond)",
+      "useSpecular": "Gebruik Specular Highlight",
+      "view3D": "3D bekijken",
+      "viewGCode": "G-Code bekijken",
+      "volume": "Volume",
+      "zBelt": "Z-riem",
+      "zBeltAngle": "Z-riem portaalhoek"
+    },
+    "heightmap": {
+      "area": "Sondegebied: {0}",
+      "axes": "Assen:",
+      "colorScheme": "Kleurenschema:",
+      "deviation": "Afwijking",
+      "display": "Weergave",
+      "fixed": "Vast",
+      "heat": "Warmte",
+      "invertZ": "Z-coördinaten omkeren",
+      "listTitle": "Hoogte kaarten",
+      "maxDeviations": "Maximale afwijkingen: {0} / {1}",
+      "meanError": "Gemiddelde fout: {0}",
+      "menuCaption": "Hoogte kaart",
+      "none": "Geen",
+      "notAvailable": "hoogtekaart niet beschikbaar",
+      "numPoints": "Aantal punten: {0}",
+      "orLess": "of minder",
+      "orMore": "of meer",
+      "radius": "Tastradius: {0}",
+      "range": "Bereik",
+      "resetView": "Weergave resetten",
+      "rmsError": "RMS-fout: {0}",
+      "scale": "Schaal:",
+      "statistics": "Statistieken",
+      "terrain": "Terrein",
+      "topView": "Bovenaanzicht"
+    },
+    "objectModelBrowser": {
+      "documentationNotAvailable": "Documentatie is niet beschikbaar (/www/DuetAPI.xml niet gevonden)",
+      "menuCaption": "Objectmodel",
+      "none": "Geen",
+      "remarks": "Opmerkingen",
+      "selectedNode": "Geselecteerd knooppunt:",
+      "summary": "Samenvatting"
+    }
+  },
+  "tabs": {
+    "generalSettings": {
+      "caption": "Algemeen"
+    },
+    "machineSettings": {
+      "caption": "Algemeen"
+    },
+    "plugins": {
+      "deactivated": "gedeactiveerd",
+      "externalPlugins": "Externe plug-ins",
+      "headers": {
+        "author": "Auteur",
+        "dependencies": "afhankelijkheden",
+        "license": "Licentie",
+        "name": "Naam",
+        "status": "Toestand",
+        "version": "Versie"
+      },
+      "integratedPlugins": "Geïntegreerde plug-ins",
+      "noPlugins": "Geen plug-ins",
+      "optional": "optioneel",
+      "partiallyStarted": "gedeeltelijk begonnen",
+      "refreshNote": "Vernieuw de pagina om het uitladen van enkele DWC-plug-ins te voltooien",
+      "start": "Begin",
+      "started": "begonnen",
+      "stop": "Stop",
+      "stopped": "gestopt",
+      "uninstall": "Verwijderen"
+    }
+  }
+}

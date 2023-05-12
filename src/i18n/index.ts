@@ -1,17 +1,18 @@
 import Vue from "vue";
 import VueI18n, { LocaleMessages } from "vue-i18n";
 
-import en from "./en.json";
 import de from "./de.json";
+import en from "./en.json";
 import es from "./es.json";
 import fr from "./fr.json";
+import ja from "./ja.json";
+import nl from "./nl.json";
 import pl from "./pl.json";
 import pt_br from "./pt_br.json";
 import ru from "./ru.json";
 import tr from "./tr.json";
 import uk from "./uk.json";
 import zh_cn from "./zh_cn.json";
-import ja from "./ja.json";
 
 Vue.use(VueI18n);
 
@@ -19,17 +20,18 @@ Vue.use(VueI18n);
  * Supported i18n messages
  */
 const messages: LocaleMessages & Record<string, { plugins: Record<string, object> }> = Vue.observable({
-	en,
 	de,
+	en,
 	es,
 	fr,
+	ja,
+	nl,
 	pl,
 	pt_br,
 	ru,
 	tr,
 	uk,
-	zh_cn,
-	ja
+	zh_cn
 });
 
 /**
