@@ -85,7 +85,7 @@ export default function(connector, pluginCacheFields) {
 					commit('load', cache);
 				}
 			},
-			save({ state, rootState, dispatch }) {
+			save({ state, rootState, commit, dispatch }) {
 				if (!connector) {
 					return;
 				}
