@@ -26,11 +26,18 @@ export function getLocalSetting(key: string, defaultValue?: any): any {
  * Attempt to save a value in local storage
  * @param key Key to save
  * @param value Value to save
+ * @returns True on success, false otherwise
  */
 export function setLocalSetting(key: string, value: any) {
 	if (localStorageSupported) {
-		localStorage.setItem(key, JSON.stringify(value));
+		try {
+			localStorage.setItem(key, JSON.stringify(value));
+			return true;
+		} catch (e) {
+			console.warn("Failed to save value in local storage, it may be full", e);
+		}
 	}
+	return false;
 }
 
 /**
