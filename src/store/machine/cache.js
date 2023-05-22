@@ -91,7 +91,11 @@ export default function(connector, pluginCacheFields) {
 				}
 
 				if (rootState.settings.cacheStorageLocal) {
-					setLocalSetting(`cache/${connector.hostname}`, state);
+					// If localStorage is full and the cache cannot be saved, clear file infos and try again
+					if (!setLocalSetting(`cache/${connector.hostname}`, state)) {
+						commit('clearFileInfo');
+						setLocalSetting(`cache/${connector.hostname}`, state);
+					}
 				} else {
 					removeLocalSetting(`cache/${connector.hostname}`);
 

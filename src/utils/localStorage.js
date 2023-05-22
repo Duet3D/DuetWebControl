@@ -17,8 +17,14 @@ export function getLocalSetting(key, defaultValue) {
 
 export function setLocalSetting(key, value) {
 	if (localStorageSupported) {
-		localStorage.setItem(key, JSON.stringify(value));
+		try {
+			localStorage.setItem(key, JSON.stringify(value));
+			return true;
+		} catch (e) {
+			console.warn("Failed to save value in local storage, it may be full", e);
+		}
 	}
+	return false;
 }
 
 export function removeLocalSetting(key) {
