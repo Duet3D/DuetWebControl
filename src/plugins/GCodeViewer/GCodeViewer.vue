@@ -403,18 +403,13 @@
 			<v-card>
 				<v-card-title class="headline">
 					<v-icon class="mr-2">{{ objectDialogData.info.cancelled ? 'mdi-reload' : 'mdi-cancel' }}</v-icon>
-					{{ objectDialogData.info.cancelled ? 'Resume' : 'Cancel' }} Object
+					{{ objectDialogData.info.cancelled ? $t('plugins.gcodeViewer.resumeObj') : $t('plugins.gcodeViewer.cancelObj') }}
 				</v-card-title>
 				<v-card-text>{{ objectDialogData.info.name }}</v-card-text>
 				<v-card-actions>
-					<v-row no-gutters>
-						<v-col cols="6">
-							<v-btn @click="objectDialogCancelObject" block color="primary">Ok</v-btn>
-						</v-col>
-						<v-col cols="6">
-							<v-btn @click="objectDialogData.showDialog = false" block color="error">Cancel</v-btn>
-						</v-col>
-					</v-row>
+							<v-btn width="130" @click="objectDialogCancelObject"  color="primary">{{ objectDialogData.info.cancelled ? $t('plugins.gcodeViewer.resumeObj') : $t('plugins.gcodeViewer.cancelObj') }}</v-btn>
+							<v-spacer/>
+							<v-btn width="130" @click="objectDialogData.showDialog = false"  color="error">{{ $t('generic.close') }}</v-btn>
 				</v-card-actions>
 			</v-card>
 		</v-dialog>
@@ -1186,7 +1181,6 @@ export default {
 			deep: true
 		},
 		'currentWorkplace': function (to) {
-			console.log(to)
 			viewer.gcodeProcessor.currentWorkplace = to;
 		},
 		showWorkplace() {
