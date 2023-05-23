@@ -204,7 +204,7 @@ th {
 						</template>
 					</v-text-field>
 
-					<v-text-field type="number" min="0.01" step="0.01" max="0.99" v-model.number="damping"
+					<v-text-field type="number" min="0" step="0.01" max="0.99" v-model.number="damping"
 								  :disabled="uiFrozen" label="Damping factor" class="mt-3" hide-details
 								  @keydown.enter.prevent="setDamping">
 						<template #append-outer>
