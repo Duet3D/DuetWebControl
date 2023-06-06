@@ -6,13 +6,13 @@
 		</v-card-title>
 
 		<v-card-text class="pt-0">
-			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting || isPausing"
+			<code-btn color="warning" block :disabled="uiFrozen || !isPrinting || isPausing || isCancelling"
 					  :code="isPaused ? 'M24' : 'M25'" tabindex="0">
 				<v-icon class="mr-1">{{ isPaused ? 'mdi-play' : 'mdi-pause' }}</v-icon>
 				{{ pauseResumeText }}
 			</code-btn>
 
-			<code-btn v-if="isPaused" color="error" block code="M0">
+			<code-btn v-if="isPaused" :disabled="isCancelling" color="error" block code="M0">
 				<v-icon class="mr-1">mdi-stop</v-icon>
 				{{ cancelText }}
 			</code-btn>
@@ -59,6 +59,7 @@ export default Vue.extend({
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		isPausing(): boolean { return store.state.machine.model.state.status === MachineStatus.pausing; },
 		isPaused(): boolean { return isPaused(store.state.machine.model.state.status); },
+		isCancelling(): boolean { return store.state.machine.model.state.status === MachineStatus.cancelling; },
 		isPrinting(): boolean { return isPrinting(store.state.machine.model.state.status); },
 		pauseResumeText(): string {
 			if (this.isSimulating) {

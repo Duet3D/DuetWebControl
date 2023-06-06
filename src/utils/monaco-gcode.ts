@@ -25,7 +25,7 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 			// G/M/T-codes
 			[/G[01](?=\D)/, "keyword", "moveGcode"],
 			[/(G|M)\d+(\.\d+)?/, "keyword", "normalGcode"],
-			[/T\d+/, "keyword", "normalGcodeWithT"],
+			[/T[-]?\d+/, "keyword", "normalGcodeWithT"],
 
 			// numbers
 			[/\d*\.\d+([eE][\-+]?\d+)?/, "number.float"],
