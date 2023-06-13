@@ -532,7 +532,6 @@ export class RestorePoint {
 	feedRate = 50
 	ioBits = 0
 	laserPwm = null
-	spindleSpeeds = []
 	toolNumber = -1
 }
 
