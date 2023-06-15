@@ -63,7 +63,9 @@ export default Vue.extend({
 			this.loading = true
 			try {
 				const response: Array<FileListItem> = await store.dispatch("machine/getFileList", store.state.machine.model.directories.filaments);
-				this.filaments = response.filter(item => item.isDirectory).map(item => item.name).sort();
+				const filaments = response.filter(item => item.isDirectory).map(item => item.name);
+				filaments.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+				this.filaments = filaments;
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
