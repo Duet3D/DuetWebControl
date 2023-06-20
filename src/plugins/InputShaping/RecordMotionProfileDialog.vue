@@ -492,7 +492,7 @@ export default {
 			}
 
 			// Get board
-			const board = this.boards.find(board => board.canAddress === parseInt(matches[1]));
+			const boardId = parseInt(matches[1]), board = this.boards.find(board => (!board.canAddress && !boardId) || board.canAddress === boardId);
 			if (!board) {
 				throw new Error("Failed to get accelerometer board");
 			}
