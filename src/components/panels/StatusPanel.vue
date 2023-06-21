@@ -24,6 +24,7 @@ a:not(:hover) {
 
 .probe-span {
 	border-radius: 5px;
+	white-space: nowrap;
 }
 
 .probe-span:not(:last-child) {
