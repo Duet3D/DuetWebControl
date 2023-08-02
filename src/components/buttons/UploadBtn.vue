@@ -478,21 +478,14 @@ export default Vue.extend({
 			this.confirmReset = false;
 
 			// Update expansion boards
+			store.commit("machine/setBoardsBeingUpdated", this.updates.firmwareBoards);
 			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
 				const boardToUpdate = this.updates.firmwareBoards[i];
 				if (boardToUpdate > 0) {
+					store.commit("machine/setBoardBeingUpdated", boardToUpdate);
 					try {
 						await store.dispatch("machine/sendCode", `M997 B${boardToUpdate}`);
-						do {
-							// Wait in 2-second intervals until the status is no longer "Updating"
-							await new Promise(resolve => setTimeout(resolve, 2000));
-
-							// Stop if the connection has been interrupted
-							if (!this.isConnected) {
-								return;
-							}
-						} while (store.state.machine.model.state.status === MachineStatus.updating);
-
+						await this.waitForUpdate();
 					} catch (e) {
 						if (!(e instanceof DisconnectedError)) {
 							console.warn(e);
@@ -519,9 +512,11 @@ export default Vue.extend({
 			}
 
 			if (modules.length > 0) {
+				store.commit("machine/setBoardBeingUpdated", 0);
 				this.updates.codeSent = true;
 				try {
 					await store.dispatch("machine/sendCode", `M997 S${modules.join(':')}`);
+					await this.waitForUpdate();
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
@@ -530,8 +525,23 @@ export default Vue.extend({
 				}
 			}
 
+			// Update complete
+			store.commit("machine/setBoardBeingUpdated", -1);
+			store.commit("machine/setBoardsBeingUpdated", []);
+
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
 			this.confirmReset = !modules.includes(0) && this.updates.firmwareBoards.some(board => board > 0);
+		},
+		async waitForUpdate() {
+			do {
+				// Wait in 2-second intervals until the status is no longer "Updating"
+				await new Promise(resolve => setTimeout(resolve, 2000));
+
+				// Stop if the connection has been interrupted
+				if (!this.isConnected) {
+					return;
+				}
+			} while (store.state.machine.model.state.status === MachineStatus.updating);
 		},
 		dragOver(e: DragEvent) {
 			if (!this.isBusy) {

@@ -176,7 +176,8 @@
       "disconnecting": "Bağlantı Kesiliyor...",
       "updating": "Güncellemeler yüklenirken lütfen bekleyin...",
       "reconnecting": "Bağlantı kesildi, yeniden bağlanmaya çalışılıyor...",
-      "standBy": "Lütfen bekleyin..."
+      "standBy": "Lütfen bekleyin...",
+      "boardUpdateMessage": "Aşağıdaki pano güncelleniyor:|Aşağıdaki panolar güncelleniyor:"
     },
     "editExtrusionAmount": {
       "title": "Ekstrüzyon miktarını düzenle",

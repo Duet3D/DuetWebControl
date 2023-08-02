@@ -58,6 +58,16 @@ export interface MachineEvent {
  */
 export interface MachineState {
 	/**
+	 * CAN address of the current board being updated
+	 */
+	boardBeingUpdated: number;
+
+	/**
+	 * List of CAN addresses of the boards being updated
+	 */
+	boardsBeingUpdated: Array<number>;
+
+	/**
 	 * List of recorded events (items for the G-code console)
 	 */
 	 events: Array<MachineEvent>;
@@ -151,6 +161,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 	return {
 		namespaced: true,
 		state: {
+			boardBeingUpdated: -1,
+			boardsBeingUpdated: new Array<number>(),
 			events: new Array<MachineEvent>(),
 			isReconnecting: false,
 			filesBeingChanged: new Array<string>(),
@@ -1019,6 +1031,24 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 */
 			clearFilesBeingChanged(state) {
 				state.filesBeingChanged = [];
+			},
+
+			/**
+			 * Set the CAN address of the current board being updated
+			 * @param state Vuex state
+			 * @param board Current board being updated
+			 */
+			setBoardBeingUpdated(state, board: number) {
+				state.boardBeingUpdated = board;
+			},
+
+			/**
+			 * Set the list of board CAN addresses being updated
+			 * @param state Vuex state
+			 * @param boards List of board indices being updated
+			 */
+			setBoardsBeingUpdated(state, boards: Array<number>) {
+				state.boardsBeingUpdated = boards;
 			},
 
 			/**

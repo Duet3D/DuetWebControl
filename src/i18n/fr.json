@@ -176,7 +176,8 @@
       "disconnecting": "Déconnexion...",
       "updating": "Veuillez patienter pendant l'installation des mises à jour....",
       "reconnecting": "Connexion perdue, tentative de reconnexion...",
-      "standBy": "Merci de patienter..."
+      "standBy": "Merci de patienter...",
+      "boardUpdateMessage": "Le tableau suivant est en cours de mise à jour :|Les tableaux suivants sont en cours de mise à jour :"
     },
     "editExtrusionAmount": {
       "title": "Modifier quantiter d'extrusion",

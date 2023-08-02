@@ -176,7 +176,8 @@
       "disconnecting": "正在断开连接……",
       "updating": "正在安装更新，请稍候……",
       "reconnecting": "连接丢失，尝试重新连接……",
-      "standBy": "请等待……"
+      "standBy": "请等待……",
+      "boardUpdateMessage": "以下板块正在更新：|以下板块正在更新："
     },
     "editExtrusionAmount": {
       "title": "编辑挤出机进给长度",

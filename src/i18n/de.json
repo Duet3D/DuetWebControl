@@ -176,7 +176,8 @@
       "disconnecting": "Trenne...",
       "updating": "Bitte warten Sie während Updates installiert werden...",
       "reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
-      "standBy": "Bitte warten..."
+      "standBy": "Bitte warten...",
+      "boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:"
     },
     "editExtrusionAmount": {
       "title": "Extrusionsmenge bearbeiten",

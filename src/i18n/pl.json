@@ -176,7 +176,8 @@
       "disconnecting": "Rozłączanie...",
       "updating": "Proszę czekać aż aktualizacje zostaną zainstalowane...",
       "reconnecting": "Utracono połączenie, ponowna próba łączenia...",
-      "standBy": "Proszę czekać..."
+      "standBy": "Proszę czekać...",
+      "boardUpdateMessage": "Następująca tablica jest aktualizowana:|Następujące tablice są aktualizowane:"
     },
     "editExtrusionAmount": {
       "title": "Edytuj ilość ekstruzji",

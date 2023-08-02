@@ -20,7 +20,7 @@ import { MachineModule } from "..";
 /**
  * Keys in the object model to skip when performing a query
  */
-const keysToIgnore: Array<keyof ObjectModel> = ["messages", "plugins", "sbc", "userSessions"];
+const keysToIgnore: Array<keyof ObjectModel> = ["messages", "plugins", "sbc"];
 
 /**
  * Actual object model keys to query
@@ -487,7 +487,12 @@ export default class PollConnector extends BaseConnector {
 						}
 					} while (next !== 0);
 
-					await this.updateModel({ [key]: keyResult });
+					try {
+						await this.updateModel({ [key]: keyResult });
+					} catch (e) {
+						console.warn(e);
+					}
+
 					BaseConnector.setConnectingProgress((keyIndex++ / keysToQuery.length) * 100);
 
 					if (key === "job") {
@@ -522,8 +527,12 @@ export default class PollConnector extends BaseConnector {
 				this.wasSimulating = false;
 			}
 
-			// Apply new values
-			await this.updateModel(response.result);
+			// Try to apply new values
+			try {
+				await this.updateModel(response.result);
+			} catch (e) {
+				console.warn(e);
+			}
 
 			// Check if any of the non-live fields have changed and query them if so
 			for (let key of keysToQuery) {
@@ -543,7 +552,11 @@ export default class PollConnector extends BaseConnector {
 						}
 					} while (next !== 0);
 
-					await this.updateModel({ [key]: keyResult });
+					try {
+						await this.updateModel({ [key]: keyResult });
+					} catch (e) {
+						console.warn(e);
+					}
 
 					if (key === "job") {
 						jobKey = keyResult;

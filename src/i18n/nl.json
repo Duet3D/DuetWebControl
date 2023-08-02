@@ -175,7 +175,8 @@
       "disconnecting": "Verbinding verbreken...",
       "reconnecting": "Verbinding verbroken, poging om opnieuw verbinding te maken...",
       "standBy": "Blijf alsjeblieft staan...",
-      "updating": "Even geduld terwijl updates worden geïnstalleerd..."
+      "updating": "Even geduld terwijl updates worden geïnstalleerd...",
+      "boardUpdateMessage": "Het volgende bord wordt bijgewerkt:|De volgende borden worden bijgewerkt:"
     },
     "duplicateFilament": {
       "prompt": "Voer een naam in voor de filamentkopie:",

@@ -176,7 +176,8 @@
       "disconnecting": "Desconectando...",
       "updating": "Por favor, espere mientras se intalan las actualizaciones...",
       "reconnecting": "Conexión perdida, intentando volver a conectar...",
-      "standBy": "Por favor, mantengase a la espera..."
+      "standBy": "Por favor, mantengase a la espera...",
+      "boardUpdateMessage": "Se está actualizando el siguiente tablero:|Se están actualizando los siguientes tableros:"
     },
     "editExtrusionAmount": {
       "title": "Editar la cantidad de extrusión",

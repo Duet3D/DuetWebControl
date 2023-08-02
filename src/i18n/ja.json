@@ -176,7 +176,8 @@
       "disconnecting": "切断中...",
       "updating": "アップデートがインストールされるまでお待ちください...",
       "reconnecting": "接続が失われました、再接続を試みています...",
-      "standBy": "お待ちください..."
+      "standBy": "お待ちください...",
+      "boardUpdateMessage": "次のボードが更新中です:|次のボードが更新中です:"
     },
     "editExtrusionAmount": {
       "title": "押出し量の変更",
