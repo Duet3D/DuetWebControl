@@ -48,6 +48,7 @@ export default Vue.extend({
 	data() {
 		return {
 			counter: countdownSeconds,
+			resetHeaters: new Array<number>(),
 			timer: null as NodeJS.Timeout | null
 		}
 	},
@@ -55,6 +56,7 @@ export default Vue.extend({
 		async resetFault() {
 			try {
 				await store.dispatch("machine/sendCode", `M562 P${this.heater}`);
+				this.resetHeaters.push(this.heater);
 			} finally {
 				this.hide();
 			}
@@ -70,7 +72,7 @@ export default Vue.extend({
 	watch: {
 		shown(to: boolean) {
 			if (to) {
-				if (!this.timer) {
+				if (!this.timer && !this.resetHeaters.includes(this.heater)) {
 					this.counter = countdownSeconds;
 					this.countDown();
 				}

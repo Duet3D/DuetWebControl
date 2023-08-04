@@ -142,8 +142,8 @@ export default Vue.extend({
 			await this.loadDirectory(Path.extractDirectory(this.directory));
 		},
 
-		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: Array<string> }) {
-			if (machine === this.selectedMachine && Path.filesAffectDirectory(files, this.directory)) {
+		filesOrDirectoriesChanged({ machine, files, volume }: { machine: string, files?: Array<string>, volume?: number }) {
+			if (machine === store.state.selectedMachine && ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory)))) {
 				// File or directory has been changed in the current directory
 				this.refresh();
 			}

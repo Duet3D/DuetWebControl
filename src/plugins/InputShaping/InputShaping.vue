@@ -396,8 +396,8 @@ export default {
 				this.loadingFiles = false;
 			}
 		},
-		filesOrDirectoriesChanged({ machine, files }) {
-			if (machine === this.selectedMachine) {
+		filesOrDirectoriesChanged({ machine, files, volume }) {
+			if (machine === this.selectedMachine && files !== undefined) {
 				if (this.filesToAnalyze.some(fileToAnalyze => files.includes(Path.combine(Path.accelerometer, fileToAnalyze)))) {
 					// Current file being analyzed has bene changed, invalidate it
 					this.filesToAnalyze = [];

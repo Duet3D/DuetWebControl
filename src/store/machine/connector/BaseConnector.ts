@@ -202,6 +202,7 @@ abstract class BaseConnector {
 	 */
 	protected commit<K extends keyof MachineModule["mutations"]>(mutation: K, payload: any) {
 		if (this.module) {
+			store.commit(`machines/${this.hostname}/${mutation}`, payload);
 		}
 	}
 

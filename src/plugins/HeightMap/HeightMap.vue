@@ -497,8 +497,8 @@ export default {
 			this.showHeightMap(testPoints);
 		},
 
-		filesOrDirectoriesChanged({machine, files}) {
-			if (machine === this.selectedMachine) {
+		filesOrDirectoriesChanged({ machine, files, volume }) {
+			if (machine === this.selectedMachine && files !== undefined) {
 				if (this.selectedFile && files.indexOf(Path.combine(this.systemDirectory, this.selectedFile)) >= 0) {
 					// Current heightmap has been changed, reload it and then refresh the list
 					this.getHeightMap(this.selectedFile).then(this.refresh);

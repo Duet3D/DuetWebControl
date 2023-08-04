@@ -21,7 +21,7 @@ enum GlobalEvent {
 	codeExecuted = "codeExecuted",
 
 	// Files or directories have been changed
-	// Payload: { machine, files: [ file1, ... ] }
+	// Payload: { machine, files?: [ file1, ... ], volume? }
 	filesOrDirectoriesChanged = "filesOrDirectoriesChanged",
 
 	// Single file is being uploaded

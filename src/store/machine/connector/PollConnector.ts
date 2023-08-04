@@ -2,6 +2,7 @@ import ObjectModel, { AxisLetter, GCodeFileInfo, initObject, Job, Layer, Machine
 import JSZip from "jszip";
 import crc32 from "turbo-crc32/crc32";
 
+import Root from "@/main";
 import { isPaused, isPrinting } from "@/utils/enums";
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -9,6 +10,7 @@ import {
 	LoginError, BadVersionError, InvalidPasswordError, NoFreeSessionError,
 	CodeResponseError, CodeBufferError
 } from "@/utils/errors";
+import Events from "@/utils/events";
 import { closeNotifications } from "@/utils/notifications";
 import Path from "@/utils/path";
 import { strToTime, timeToStr } from "@/utils/time";
@@ -429,6 +431,11 @@ export default class PollConnector extends BaseConnector {
 	lastSeqs: Record<string, number> = {}
 
 	/**
+	 * Collection of the last volume sequence numbers
+	 */
+	lastVolSeqs: Array<number> = []
+
+	/**
 	 * Last-known machine status
 	 */
 	lastStatus: MachineStatus | null = null;
@@ -462,9 +469,13 @@ export default class PollConnector extends BaseConnector {
 			this.justConnected = false;
 
 			// Query the seqs field and the G-code reply initially if applicable
-			this.lastSeqs = (await this.request("GET", "rr_model", { key: "seqs" })).result;
+			const seqs = (await this.request("GET", "rr_model", { key: "seqs" })).result;
+			this.lastSeqs = seqs;
 			if (this.lastSeqs.reply > 0) {
 				await this.getGCodeReply();
+			}
+			if (seqs.volChanges instanceof Array) {
+				this.lastVolSeqs = seqs.volChanges;
 			}
 
 			// Query the full object model initially
@@ -564,7 +575,18 @@ export default class PollConnector extends BaseConnector {
 				}
 			}
 
-			// TODO add support for seqs.volChanges[]
+			// Reload file lists automatically when files are changed on the SD card
+			if (seqs.volChanges instanceof Array) {
+				for (let i = 0; i < Math.min(seqs.volChanges.length, this.lastVolSeqs.length); i++) {
+					if (seqs.volChanges[i] !== this.lastVolSeqs[i]) {
+						Root.$emit(Events.filesOrDirectoriesChanged, {
+							machine: this.hostname,
+							volume: i
+						});
+					}
+				}
+				this.lastVolSeqs = seqs.volChanges;
+			}
 
 			// Check if the firmware has rebooted
 			if (response.result.state.upTime < this.lastUptime) {
