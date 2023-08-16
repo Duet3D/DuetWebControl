@@ -1,3 +1,4 @@
+const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
 const fs = require("fs"), path = require("path");
@@ -39,6 +40,7 @@ module.exports = {
 				Buffer: ["buffer", "Buffer"],
 			}),
 			...((process.env.NODE_ENV === "production") ? [
+				new AutoImportsPlugin(),
 				new CustomImportsPlugin(),
 				new EventHooksPlugin({
 					beforeCompile() {

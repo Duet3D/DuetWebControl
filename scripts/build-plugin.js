@@ -77,7 +77,7 @@ if (!pluginManifest.dwcVersion) {
 if (pluginDir.startsWith(dwcPluginDir)) {
 	// Check whether the plugin IDs match
 	if (pluginManifest.id !== param) {
-		error("Plugin id must match the paramter");
+		error("Plugin id must match the parameter");
 		return 1;
 	}
 } else {
@@ -98,8 +98,9 @@ if (pluginDir.startsWith(dwcPluginDir)) {
 		return 1;
 	}
 
-	// Copy src files into DWC
+	// Copy manifest and src files into DWC
 	try {
+		fs.cpSync(pluginDir + "/plugin.json", dwcPluginDir + "/" + pluginManifest.id + "/plugin.json");
 		fs.cpSync(srcDirectory, dwcPluginDir + "/" + pluginManifest.id, { recursive: true });
 	} catch {
 		error("Failed to copy src files");
@@ -131,45 +132,6 @@ if (pluginDir.startsWith(dwcPluginDir)) {
 			error("Failed to move compiled index.js into place");
 			return 1;
 		}
-	}
-
-	// Backup and adjust src/plugins/index.ts
-	try {
-		fs.copyFileSync(dwcPluginDir + "/index.ts", dwcPluginDir + "/index.ts.bak", fs.constants.COPYFILE_EXCL);
-	} catch {
-		// may happen if the .bak file is still present
-	}
-
-	try {
-		const indexFile = fs.readFileSync(dwcPluginDir + "/index.ts.bak", { encoding: "utf8" }).split("\n");
-		let adjustedIndexFile = "", markerFound = false;
-		for (const line of indexFile) {
-			if (line.indexOf("#DWC_PLUGIN#") !== -1) {
-				adjustedIndexFile += "	{\n";
-				adjustedIndexFile += `		id: ${JSON.stringify(pluginManifest.id)},\n`
-				adjustedIndexFile += `		name: ${JSON.stringify(pluginManifest.name)},\n`,
-				adjustedIndexFile += `		author: ${JSON.stringify(pluginManifest.author)},\n`
-				adjustedIndexFile += `		version: ${JSON.stringify(pluginManifest.version)},\n`,
-				adjustedIndexFile += "		loadDwcResources: () => import(\n";
-				adjustedIndexFile += `			/* webpackChunkName: ${JSON.stringify(pluginManifest.id)} */\n`;
-				adjustedIndexFile += `			"./${pluginManifest.id}/index.js"\n`;
-				adjustedIndexFile += "		)\n";
-				adjustedIndexFile += "	},\n";
-				markerFound = true;
-			} else {
-				adjustedIndexFile += line + "\n";
-			}
-		}
-
-		if (markerFound) {
-			fs.writeFileSync(dwcPluginDir + "/index.ts", adjustedIndexFile);
-		} else {
-			error("Error: Failed to find marker in src/plugins/index.ts");
-			return 1;
-		}
-	} catch (e) {
-		error("Failed to adjust src/plugins/index.ts");
-		return 1;
 	}
 }
 
@@ -269,10 +231,6 @@ service
 			if (!pluginDir.startsWith(dwcPluginDir)) {
 				// Remove plugin source files again
 				fs.rmSync(dwcPluginDir + "/" + pluginManifest.id, { recursive: true, force: true });
-
-				// Restore src/plugins/index.ts
-				fs.copyFileSync(dwcPluginDir + "/index.ts.bak", dwcPluginDir + "/index.ts");
-				fs.rmSync(dwcPluginDir + "/index.ts.bak");
 			}
 		}
 	})

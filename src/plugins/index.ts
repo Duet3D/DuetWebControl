@@ -1,9 +1,10 @@
-import { initCollection, PluginManifest, SbcPermission } from "@duet3d/objectmodel";
+import { PluginManifest, SbcPermission } from "@duet3d/objectmodel";
 import { Component } from "vue";
 
-import packageInfo from "../../package.json";
 import store from "@/store";
 import { NotImplementedError } from "@/utils/errors";
+
+import PluginImports from "./imports";
 
 /**
  * This interface is meant only built-in DWC plugins and for dev purposes.
@@ -93,63 +94,7 @@ export function loadDwcResources(plugin: PluginManifest) {
 	}
 }
 
-/**
- * List of built-in plugins
- */
-export default initCollection(DwcPlugin, [
-	{
-		id: "HeightMap",
-		name: "Height Map",
-		author: "Duet3D Ltd",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "HeightMap" */
-			"./HeightMap/index.js"
-		)
-	},
-	{
-		id: "InputShaping",
-		name: "Input Shaping",
-		author: "Duet3D Ltd",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "InputShaping" */
-			"./InputShaping/index.js"
-		)
-	},
-	{
-		id: "GCodeViewer",
-		name: "G-Code Viewer",
-		author: "Juan Rosario",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "GCodeViewer" */
-			"./GCodeViewer/index.js"
-		)
-	},
-	{
-		id: "ObjectModelBrowser",
-		name: "Object Model Browser",
-		author: "Duet3D Ltd",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "ObjectModelBrowser" */
-			"./ObjectModelBrowser/index"
-		)
-	},
-	{
-		id: "OnScreenKeyboard",
-		name: "On-Screen Keyboard",
-		author: "Duet3D Ltd",
-		version: packageInfo.version,
-		loadDwcResources: () => import(
-			/* webpackChunkName: "OnScreenKeyboard" */
-			"./OnScreenKeyboard/index"
-		)
-	},
-	// #DWC_PLUGIN# <- this marker is used by the plugin build script, leave it here
-	// Add your own plugins here during development...
-]);
+export default PluginImports
 
 // NOTE: The following functions will be moved from this file in v3.6...
 
