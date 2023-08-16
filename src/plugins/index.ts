@@ -2,20 +2,9 @@ import { PluginManifest, SbcPermission } from "@duet3d/objectmodel";
 import { Component } from "vue";
 
 import store from "@/store";
-import { NotImplementedError } from "@/utils/errors";
 
 import PluginImports from "./imports";
-
-/**
- * This interface is meant only built-in DWC plugins and for dev purposes.
- * Use a standard PluginManifest instance if you want to redistribute your own third-party plugin!
- */
-export class DwcPlugin extends PluginManifest {
-	/**
-	 * Method to load DWC resources
-	 */
-	loadDwcResources: Function = () => Promise.reject(new NotImplementedError("loadDwcResources"));
-}
+import { DwcPlugin } from "./DwcPlugin";
 
 /**
  * Check if the given plugin manifest is valid
