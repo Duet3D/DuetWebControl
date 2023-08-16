@@ -15,7 +15,7 @@ class AutoImportsPlugin {
                 " * DO NOT MODIFY THIS FILE! IT IS AUTO-GENERATED ON COMPILATION!\n" +
                 "*/\n" +
                 "import { initCollection } from \"@duet3d/objectmodel\";\n" +
-                "import { DwcPlugin } from \"./index\";\n" +
+                "import DwcPlugin from \"./DwcPlugin\";\n" +
                 "\n" +
                 "export default initCollection(DwcPlugin, [\n";
 

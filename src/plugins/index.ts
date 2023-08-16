@@ -4,7 +4,7 @@ import { Component } from "vue";
 import store from "@/store";
 
 import PluginImports from "./imports";
-import { DwcPlugin } from "./DwcPlugin";
+import DwcPlugin from "./DwcPlugin";
 
 /**
  * Check if the given plugin manifest is valid

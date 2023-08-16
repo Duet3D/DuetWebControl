@@ -31,6 +31,7 @@ module.exports = {
 			hints: false
 		},
 		plugins: [
+			new AutoImportsPlugin(),
 			new EnvironmentPlugin({
 				"BUILD_DATETIME": (new Date()).toString()
 			}),
@@ -40,7 +41,6 @@ module.exports = {
 				Buffer: ["buffer", "Buffer"],
 			}),
 			...((process.env.NODE_ENV === "production") ? [
-				new AutoImportsPlugin(),
 				new CustomImportsPlugin(),
 				new EventHooksPlugin({
 					beforeCompile() {

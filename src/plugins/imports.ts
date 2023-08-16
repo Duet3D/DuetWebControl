@@ -2,7 +2,7 @@
  * DO NOT MODIFY THIS FILE! IT IS AUTO-GENERATED ON COMPILATION!
 */
 import { initCollection } from "@duet3d/objectmodel";
-import { DwcPlugin } from "./index";
+import DwcPlugin from "./DwcPlugin";
 
 export default initCollection(DwcPlugin, [
 	{
@@ -33,6 +33,16 @@ export default initCollection(DwcPlugin, [
         loadDwcResources: () => import(
             /* webpackChunkName: "InputShaping" */
             "./InputShaping/index"
+        )
+    },
+	{
+        id: "JobQueue",
+        name: "Job Queue",
+        author: "Duet3D Ltd",
+        version: "1.1.0",
+        loadDwcResources: () => import(
+            /* webpackChunkName: "JobQueue" */
+            "./JobQueue/src/index"
         )
     },
 	{
