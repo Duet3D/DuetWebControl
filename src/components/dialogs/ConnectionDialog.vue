@@ -45,6 +45,7 @@ export default Vue.extend({
 		connectingProgress(): number { return store.state.connectingProgress; },
 		boardBeingUpdated(): number { return store.state.machine.boardBeingUpdated; },
 		boardsBeingUpdated(): Array<number> { return store.state.machine.boardsBeingUpdated; },
+		status(): MachineStatus { return store.state.machine.model.state.status; },
 		isConnected(): boolean { return store.getters["isConnected"]; },
 		isPersistent(): boolean {
 			if (!(this.displayReset && this.isConnected)) {

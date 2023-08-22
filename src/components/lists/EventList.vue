@@ -167,7 +167,7 @@ export default Vue.extend({
 		downloadText() {
 			let textContent = "";
 			for (const e of store.state.machine.events) {
-				const title = e.title.replace(/\n/g, "\r\n");
+				const title = e.title?.replace(/\n/g, "\r\n") ?? "";
 				const message = e.message ? e.message.replace(/\n/g, "\r\n") : "";
 				textContent += `${e.date.toLocaleString()}: ${message ? (title + ": " + message) : title}\r\n`;
 			}
@@ -178,7 +178,7 @@ export default Vue.extend({
 		downloadCSV() {
 			var csvContent = '"date","time","title","message"\r\n';
 			for (const e of store.state.machine.events) {
-				const title = e.title.replace(/"/g, '""').replace(/\n/g, "\r\n");
+				const title = e.title?.replace(/\n/g, "\r\n") ?? "";
 				const message = e.message ? e.message.replace(/"/g, '""').replace(/\n/g, "\r\n") : "";
 				csvContent += `"${e.date.toLocaleDateString()}","${e.date.toLocaleTimeString()}","${title}","${message}"\r\n`;
 			}
