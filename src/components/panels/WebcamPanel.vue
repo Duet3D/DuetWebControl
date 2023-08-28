@@ -109,7 +109,7 @@ export default Vue.extend({
 	data() {
 		return {
 			active: true,
-			updateTimer: null as NodeJS.Timer | null,
+			updateTimer: null as ReturnType<typeof setInterval> | null,
 			url: ""
 		}
 	},
@@ -156,7 +156,7 @@ export default Vue.extend({
 		}
 	},
 	beforeDestroy() {
-		if (this.updateTimer) {
+		if (this.updateTimer !== null) {
 			clearInterval(this.updateTimer);
 		}
 	}

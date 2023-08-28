@@ -36,16 +36,6 @@ export default initCollection(DwcPlugin, [
         )
     },
 	{
-        id: "JobQueue",
-        name: "Job Queue",
-        author: "Duet3D Ltd",
-        version: "1.1.0",
-        loadDwcResources: () => import(
-            /* webpackChunkName: "JobQueue" */
-            "./JobQueue/src/index"
-        )
-    },
-	{
         id: "ObjectModelBrowser",
         name: "Object Model Browser",
         author: "Duet3D Ltd",

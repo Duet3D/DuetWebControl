@@ -22,7 +22,7 @@ class AutoImportsPlugin {
             // Generate list of imports
             const files = fs.readdirSync("src/plugins", { withFileTypes: true });
             for (const file of files) {
-                if (!file.isDirectory()) {
+                if (!file.isDirectory() || fs.existsSync(`src/plugins/${file.name}/blacklist`)) {
                     continue;
                 }
 
@@ -39,10 +39,12 @@ class AutoImportsPlugin {
                 let entryFile = null;
                 if (fs.existsSync(`src/plugins/${file.name}/index.js`) || fs.existsSync(`src/plugins/${file.name}/index.ts`)) {
                     entryFile = `./${file.name}/index`;
+                } else if (fs.existsSync(`src/plugins/${file.name}/dwc-src/index.js`) || fs.existsSync(`src/plugins/${file.name}/dwc-src/index.ts`)) {
+                    entryFile = `./${file.name}/dwc-src/index`;
                 } else if (fs.existsSync(`src/plugins/${file.name}/src/index.js`) || fs.existsSync(`src/plugins/${file.name}/src/index.ts`)) {
                     entryFile = `./${file.name}/src/index`;
                 }
-                assert(entryFile !== null, `Missing entry point (index.js, index.ts, src/index.js, src/index.ts) in plugin ${file.name}`);
+                assert(entryFile !== null, `Missing entry point (index.js, index.ts, dwc-src/index.js, dwc-src/index.ts, src/index.js, src/index.ts) in plugin ${file.name}`);
 
                 // Generate plugin entry
                 importsFile += "	{\n";
@@ -64,7 +66,7 @@ class AutoImportsPlugin {
             const fd = fs.openSync("src/plugins/imports.ts", "w");
             fs.writeFileSync(fd, importsFile);
             fs.closeSync(fd);
-		});
+        });
 	}
 }
 

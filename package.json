@@ -44,7 +44,7 @@
       "@vue/cli-plugin-pwa": "^5.0.8",
       "@vue/cli-plugin-typescript": "^5.0.0",
       "@vue/cli-service": "^5.0.8",
-      "archiver": "^5.3.0",
+      "archiver": "^6.0.0",
       "babel-plugin-prismjs": "^2.0.1",
       "babel-plugin-transform-builtin-extend": "^1.1.2",
       "compression-webpack-plugin": "^10.0.0",
