@@ -205,6 +205,7 @@ export default VDataTable.extend({
 			const volume = Path.getVolume(this.innerDirectory);
 			return (volume >= 0) && (volume < store.state.machine.model.volumes.length) && store.state.machine.model.volumes[volume].mounted;
 		},
+		transferringFiles(): boolean { return store.state.machine.transferringFiles; },
 		defaultHeaders(): Array<BaseFileListHeader> {
 			return [
 				{
@@ -269,6 +270,7 @@ export default VDataTable.extend({
 			innerFilelistLoaded: false,
 			innerLoading: false,
 			innerDoingFileOperation: false,
+			refreshAfterTransfer: false,
 			innerValue: new Array<BaseFileListItem>(),
 			prevSelection: new Array<BaseFileListItem>(),
 			contextMenu: {
@@ -697,7 +699,11 @@ export default VDataTable.extend({
 		filesOrDirectoriesChanged({ machine, files, volume }: { machine: string, files?: Array<string>, volume?: number }) {
 			if (machine === store.state.selectedMachine && ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory)))) {
 				// File or directory has been changed in the current directory
-				this.refresh();
+				if (store.state.machine.transferringFiles) {
+					this.refreshAfterTransfer = true;
+				} else {
+					this.refresh();
+				}
 			}
 		}
 	},
@@ -730,12 +736,19 @@ export default VDataTable.extend({
 			// TODO store current directory per selected machine
 			this.innerDirectory = this.initialDirectory;
 			this.innerFilelist = [];
+			this.refreshAfterTransfer = false;
 
 			this.editDialog.shown = false;
 			this.renameDialog.shown = false;
 		},
 		isMounted(to: boolean) {
 			if (!to || !this.innerFilelistLoaded) {
+				this.refresh();
+			}
+		},
+		transferringFiles(to: boolean) {
+			if (!to && this.refreshAfterTransfer) {
+				this.refreshAfterTransfer = false;
 				this.refresh();
 			}
 		},

@@ -468,12 +468,12 @@ export default function(connector: BaseConnector | null): MachineModule {
 					await connector.delete(payload.filename, payload.recursive);
 					Root.$emit(Events.fileOrDirectoryDeleted, {
 						machine: connector.hostname,
-						filename: payload.filename
+						filename: payload.filename,
+						recursive: payload.recursive
 					});
 					Root.$emit(Events.filesOrDirectoriesChanged, {
 						machine: connector.hostname,
 						files: [payload.filename],
-						recursive: payload.recursive
 					});
 				} else {
 					await connector.delete(payload);
@@ -706,7 +706,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.zipFile ZIP container to extract (if applicable)
 			 * @param payload.start Whether to start the plugin upon installation
 			 */
-			async installPlugin({ dispatch }, { zipFilename, zipBlob, zipFile, start } : { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean }) {
+			async installPlugin({ commit, dispatch }, { zipFilename, zipBlob, zipFile, start } : { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean }) {
 				if (connector === null) { throw new OperationFailedError("installPlugin is not available in default machine module"); }
 
 				// Check the required DWC version
@@ -723,14 +723,22 @@ export default function(connector: BaseConnector | null): MachineModule {
 					throw new Error(`Plugin ${plugin.id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
 				}
 
-				// Install the plugin
-				await connector.installPlugin(
-					zipFilename,
-					zipBlob,
-					zipFile,
-					plugin,
-					start
-				);
+				try {
+					// About to upload multiple files, avoid unnecessary refreshes
+					commit("setMultiFileTransfer", true);
+
+					// Install the plugin
+					await connector.installPlugin(
+						zipFilename,
+						zipBlob,
+						zipFile,
+						plugin,
+						start
+					);
+				} finally {
+					// Done
+					commit("setMultiFileTransfer", false);
+				}
 
 				// Start it if required and show a message
 				if (start) {
