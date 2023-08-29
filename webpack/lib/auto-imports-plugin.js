@@ -8,7 +8,7 @@ class AutoImportsPlugin {
 	constructor() { }
 
 	apply(compiler) {
-        compiler.hooks.beforeRun.tap(pluginName, compilation => {
+        compiler.hooks.initialize.tap(pluginName, compilation => {
             // Generate file that auto-imports existing plugins
             let importsFile =
                 "/**\n" +
