@@ -39,10 +39,17 @@ class AutoImportsPlugin {
                 let entryFile = null;
                 if (fs.existsSync(`src/plugins/${file.name}/index.js`) || fs.existsSync(`src/plugins/${file.name}/index.ts`)) {
                     entryFile = `./${file.name}/index`;
-                } else if (fs.existsSync(`src/plugins/${file.name}/dwc-src/index.js`) || fs.existsSync(`src/plugins/${file.name}/dwc-src/index.ts`)) {
-                    entryFile = `./${file.name}/dwc-src/index`;
-                } else if (fs.existsSync(`src/plugins/${file.name}/src/index.js`) || fs.existsSync(`src/plugins/${file.name}/src/index.ts`)) {
-                    entryFile = `./${file.name}/src/index`;
+                } else {
+                    if (process.env.NODE_ENV === "production") {
+                        // Skip third-party plugins when building core DWC
+                        continue;
+                    }
+
+                    if (fs.existsSync(`src/plugins/${file.name}/dwc-src/index.js`) || fs.existsSync(`src/plugins/${file.name}/dwc-src/index.ts`)) {
+                        entryFile = `./${file.name}/dwc-src/index`;
+                    } else if (fs.existsSync(`src/plugins/${file.name}/src/index.js`) || fs.existsSync(`src/plugins/${file.name}/src/index.ts`)) {
+                        entryFile = `./${file.name}/src/index`;
+                    }
                 }
                 assert(entryFile !== null, `Missing entry point (index.js, index.ts, dwc-src/index.js, dwc-src/index.ts, src/index.js, src/index.ts) in plugin ${file.name}`);
 

@@ -866,15 +866,6 @@ export default function(connector: BaseConnector | null): MachineModule {
 					}
 				}
 
-				// Check if the RRF dependency could be fulfilled (if applicable)
-				if (plugin.rrfVersion) {
-					if (machineState.model.boards.length === 0 ||
-						!checkVersion(plugin.rrfVersion, machineState.model.boards[0].firmwareVersion))
-					{
-						throw new Error(`Plugin ${id} could not fulfill RepRapFirmware version dependency (requires ${plugin.rrfVersion})`);
-					}
-				}
-
 				// Is the plugin compatible to the running DWC version?
 				if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
 					throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);

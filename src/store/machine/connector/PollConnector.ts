@@ -1172,7 +1172,12 @@ export default class PollConnector extends BaseConnector {
 		// Delete SD files
 		for (let i = 0; i < plugin.sdFiles.length; i++) {
 			try {
-				await this.delete(`0:/${plugin.sdFiles[i]}`);
+				if (plugin.sdFiles[i].endsWith("/daemon.g")) {
+					// daemon.g may be still open at the time it is uninstalled
+					await this.move(`0:/${plugin.sdFiles[i]}`, `0:/${plugin.sdFiles[i]}.bak`, true);
+				} else {
+					await this.delete(`0:/${plugin.sdFiles[i]}`);
+				}
 			} catch (e) {
 				if (e instanceof OperationFailedError) {
 					console.warn(e);
