@@ -182,6 +182,10 @@ export const useMachineStore = defineStore("machine", {
 				const connectorInstance = await BaseConnector.connect(hostname, username, password);
 				Events.emit("connected");
 
+				// Load the list of installed DWC plugins
+				await this.connector.loadDwcPluginList();
+
+				// Load settings
 				const settingsStore = useSettingsStore();
 				try {
 					await settingsStore.load();
@@ -189,6 +193,7 @@ export const useMachineStore = defineStore("machine", {
 					console.warn("Failed to load settings: " + getErrorMessage(e));
 				}
 
+				// Load cache
 				try {
 					const cacheStore = useCacheStore();
 					await cacheStore.load();
@@ -196,8 +201,9 @@ export const useMachineStore = defineStore("machine", {
 					console.warn("Failed to load cache: " + getErrorMessage(e));
 				}
 
+				// Update last hostname
 				if (settingsStore.lastHostname !== location.host || hostname !== location.host) {
-					settingsStore.lastHostname = hostname;
+					settingsStore.setLastHostname(hostname);
 				}
 			} catch (e) {
 				if (e instanceof InvalidPasswordError) {

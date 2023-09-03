@@ -1,14 +1,19 @@
 import { GCodeFileInfo } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
+import Vue from "vue";
 
 import { FileNotFoundError } from "@/utils/errors";
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
+import { useSettingsStore } from "./settings";
+import { useMachineStore } from "./machine";
 
 /**
  * Default cache fields defined by third-party plugins
  */
 export const defaultPluginCacheFields: Record<string, any> = {};
+
+type SortingTable = "events" | "filaments" | "jobs" | "macros" | "menu" | "sys";
 
 export const useCacheStore = defineStore("cache", {
 	state: () => ({
@@ -50,7 +55,7 @@ export const useCacheStore = defineStore("cache", {
 				column: "name",
 				descending: false
 			}
-		},
+		} as Record<SortingTable, { column: string, descending: boolean }>,
 
 		/**
 		 * Custom plugin cache fields
@@ -58,22 +63,18 @@ export const useCacheStore = defineStore("cache", {
 		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>
 	}),
 	actions: {
-		async load({ rootState, commit, dispatch }) {
-			if (!connector) {
-				return;
-			}
+		async load() {
+			const settingsStore = useSettingsStore(), machineStore = useMachineStore();
 
 			let cache;
-			if (rootState.settings.cacheStorageLocal) {
-				cache = getLocalSetting(`cache/${connector.hostname}`);
+			if (settingsStore.cacheStorageLocal) {
+				cache = getLocalSetting("cache");
+				if (!cache) {
+					cache = getLocalSetting(`cache/${machineStore.connector?.hostname ?? location.hostname}`);
+				}
 			} else {
 				try {
-					cache = await dispatch(`machines/${connector.hostname}/download`, {
-						filename: Path.dwcCacheFile,
-						showProgress: false,
-						showSuccess: false,
-						showError: false
-					});
+					cache = await machineStore.download([{ filename: Path.dwcCacheFile }], false, false, false);
 				} catch (e) {
 					if (!(e instanceof FileNotFoundError)) {
 						throw e;
@@ -82,13 +83,8 @@ export const useCacheStore = defineStore("cache", {
 
 				if (!cache) {
 					try {
-						cache = await dispatch(`machines/${connector.hostname}/download`, {
-							filename: Path.legacyDwcCacheFile,
-							showProgress: false,
-							showSuccess: false,
-							showError: false
-						});
-						await dispatch(`machines/${connector.hostname}/delete`, Path.legacyDwcCacheFile);
+						cache = await machineStore.download([{ filename: Path.legacyDwcCacheFile }], false, false, false);
+						await machineStore.delete(Path.legacyDwcCacheFile);
 					} catch (e) {
 						if (!(e instanceof FileNotFoundError)) {
 							throw e;
@@ -98,91 +94,86 @@ export const useCacheStore = defineStore("cache", {
 			}
 
 			if (cache) {
-				commit("load", cache);
+				this.$patch(cache);
 			}
 		},
-		save({ state, rootState, commit, dispatch }) {
-			if (!connector) {
-				return;
-			}
-
-			if (rootState.settings.cacheStorageLocal) {
+		async save() {
+			const settingsStore = useSettingsStore(), machineStore = useMachineStore();
+			if (settingsStore.cacheStorageLocal) {
 				// If localStorage is full and the cache cannot be saved, clear file infos and try again
-				if (!setLocalSetting(`cache/${connector.hostname}`, state)) {
-					commit('clearFileInfo');
-					setLocalSetting(`cache/${connector.hostname}`, state);
+				if (!setLocalSetting("cache", this.$state)) {
+					this.clearFileInfo();
+					setLocalSetting("cache", this.$state);
 				}
 			} else {
-				removeLocalSetting(`cache/${connector.hostname}`);
+				removeLocalSetting("cache");
 
 				try {
-					const content = new Blob([JSON.stringify(state)]);
-					dispatch(`machines/${connector.hostname}/upload`, {
-						filename: Path.dwcCacheFile,
-						content,
-						showProgress: false,
-						showSuccess: false,
-						showError: false
-					});
+					const content = new Blob([JSON.stringify(this.$state)]);
+					await machineStore.upload([{ filename: Path.dwcCacheFile, content }], false, false, false);
 				} catch (e) {
-					// handled before we get here
+					// logged before we get here
 				}
 			}
 		},
 
-		addLastSentCode(state, code: string) {
-			state.lastSentCodes = state.lastSentCodes.filter(item => item !== code);
-			state.lastSentCodes.push(code);
+		addLastSentCode(code: string) {
+			if (!this.lastSentCodes.includes(code)) {
+				this.lastSentCodes.push(code);
+			}
 		},
-		removeLastSentCode: (state, code: string) => state.lastSentCodes = state.lastSentCodes.filter(item => item !== code),
+		removeLastSentCode(code: string) {
+			this.lastSentCodes = this.lastSentCodes.filter(item => item !== code);
+		},
 
-		setFileInfo(state, { filename, fileInfo }: { filename: string, fileInfo: GCodeFileInfo }) {
-			state.fileInfos[filename] = fileInfo;
+		setFileInfo(filename: string, fileInfo: GCodeFileInfo) {
+			this.fileInfos[filename] = fileInfo;
 		},
-		clearFileInfo(state, fileOrDirectory?: string) {
+		clearFileInfo(fileOrDirectory?: string) {
 			if (fileOrDirectory) {
-				if (state.fileInfos[fileOrDirectory] !== undefined) {
+				if (this.fileInfos[fileOrDirectory] !== undefined) {
 					// Delete specific item
-					Vue.delete(state.fileInfos, fileOrDirectory);
+					Vue.delete(this.fileInfos, fileOrDirectory);
 				} else {
 					// Delete directory items
-					for (let filename in state.fileInfos) {
+					for (let filename in this.fileInfos) {
 						if (Path.equals(fileOrDirectory, Path.extractDirectory(filename))) {
-							Vue.delete(state.fileInfos, filename);
+							Vue.delete(this.fileInfos, filename);
 						}
 					}
 				}
 			} else {
 				// Reset everything
-				state.fileInfos = {};
+				this.fileInfos = {};
 			}
 		},
 
-		setSorting(state, { table, column, descending }: { table: string, column: string, descending: boolean }) {
-			state.sorting[table].column = column;
-			state.sorting[table].descending = descending;
+		setSorting(table: SortingTable, column: string, descending: boolean) {
+			this.sorting[table].column = column;
+			this.sorting[table].descending = descending;
 		},
 
-		registerPluginData(state, { plugin, key, defaultValue }: { plugin: string, key: string, defaultValue: any }) {
-			if (connector === null) {
+		registerPluginData(plugin: string, key: string, defaultValue: any) {
+			const machineStore = useMachineStore();
+			if (!machineStore.isConnected) {
 				if (!(plugin in defaultPluginCacheFields)) {
-					defaultPluginCacheFields[plugin] = {}
+					defaultPluginCacheFields[plugin] = {};
 				}
 				defaultPluginCacheFields[plugin][key] = defaultValue;
 			}
 
-			if (state.plugins[plugin] === undefined) {
-				Vue.set(state.plugins, plugin, {});
+			if (this.plugins[plugin] === undefined) {
+				Vue.set(this.plugins, plugin, {});
 			}
-			if (!(key in state.plugins[plugin])) {
-				Vue.set(state.plugins[plugin], key, defaultValue)
+			if (!(key in this.plugins[plugin])) {
+				Vue.set(this.plugins[plugin], key, defaultValue)
 			}
 		},
-		setPluginData(state, { plugin, key, value }: { plugin: string, key: string, value: any }) {
-			if (state.plugins[plugin] === undefined) {
-				Vue.set(state.plugins, plugin, { key: value });
+		setPluginData(plugin: string, key: string, value: any) {
+			if (this.plugins[plugin] === undefined) {
+				Vue.set(this.plugins, plugin, { key: value });
 			}
-			Vue.set(state.plugins[plugin], key, value)
+			Vue.set(this.plugins[plugin], key, value)
 		}
 	}
 });

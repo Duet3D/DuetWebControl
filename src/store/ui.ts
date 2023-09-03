@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { Component } from "vue";
 import { useMachineStore } from "./machine";
+import { useSettingsStore } from "./settings";
 
 /**
  * Types of supported context menus
@@ -106,10 +107,10 @@ export const useUiStore = defineStore("ui", {
 		 * Indicates if there are any sensor values that can be displayed
 		 */
 		hasTemperaturesToDisplay: () => {
-			const machineStore = useMachineStore();
+			const machineStore = useMachineStore(), settingsStore = useSettingsStore();
 			machineStore.model.sensors.analog.some((sensor, sensorIndex) => {
 				return (machineStore.model.heat.heaters.some(heater => heater && heater.sensor === sensorIndex) ||
-						machineStore.settings.displayedExtraTemperatures.indexOf(sensorIndex) !== -1)
+						settingsStore.displayedExtraTemperatures.indexOf(sensorIndex) !== -1)
 			});
 		}
 	},

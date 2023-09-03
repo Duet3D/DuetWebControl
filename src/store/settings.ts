@@ -1,11 +1,16 @@
+import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
+import Vue from "vue";
 
 import i18n, { getBrowserLocale } from "@/i18n";
+import { FileNotFoundError } from "@/utils/errors";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import patch from "@/utils/patch";
 import Path from "@/utils/path";
 
+import { DefaultPluginSettings } from "./defaults";
 import { resetSettingsTimer } from "./observer";
+import { useMachineStore } from "./machine";
 
 export enum DashboardMode {
 	default = "Default",
@@ -34,6 +39,19 @@ export enum WebcamFlip {
 export const useSettingsStore = defineStore("settings", {
 	state: () => ({
 		//#region General Settings
+		/**
+		 * List of enabled plugins
+		 */
+		enabledPlugins: [
+			"HeightMap",
+			"ObjectModelBrowser"
+		],
+
+		/**
+		 * Custom plugin settings
+		 */
+		plugins: Object.assign({}, DefaultPluginSettings) as Record<string, any>,
+
 		/**
 		 * Configured language
 		 */
@@ -178,19 +196,6 @@ export const useSettingsStore = defineStore("settings", {
 			 */
 			flip: "none"
 		},
-
-		/**
-		 * List of enabled plugins
-		 */
-		enabledPlugins: [
-			"HeightMap",
-			"ObjectModelBrowser"
-		],
-
-		/**
-		 * Custom plugin setting fields
-		 */
-		plugins: {} as Record<string, any>,
 		//#endregion
 
 		//#region Poll Connector
@@ -267,7 +272,7 @@ export const useSettingsStore = defineStore("settings", {
 			Y: [100, 50, 10, 1, 0.1],
 			Z: [50, 25, 5, 0.5, 0.05],
 			default: [100, 50, 10, 1, 0.1]
-		},
+		} as Record<string, Array<number>>,
 
 		/**
 		 * Feedrate to use for move buttons (in mm/min)
@@ -347,19 +352,9 @@ export const useSettingsStore = defineStore("settings", {
 		/**
 		 * Spindle RPM presets
 		 */
-		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
-
-		/**
-		 * List of enabled DWC plugin identifiers (only applicable in standalone mode)
-		 */
-		enabledPlugins: [] as Array<string>,
-
-		/**
-		 * Custom settings defined by third-party plugins
-		 */
-		plugins: Object.assign({}, defaultPluginSettingFields) as Record<string, any>
+		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
 		//#endregion
-	}),
+	}) as Record<string, any> & { main?: never, machine?: never },
 	getters: {
 		toolChangeParameter: (state) => {
 			let pParam = 0;
@@ -377,157 +372,81 @@ export const useSettingsStore = defineStore("settings", {
 	},
 	actions: {
 		async applyDefaults() {
-			// Load settings that are enabled by default
-			if (this.enabledPlugins) {
-				/*await*/ this.loadDwcPlugins();
-			}
+			const machineStore = useMachineStore();
+
+			// Load settings and plugins that are enabled by default
+			this.$reset();
+			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
 
 			// Apply different webcam defaults in SBC mode
-			const machineStore = useMachineStore();
-			if (machineStore.sbc !== null) {
+			if (machineStore.model.sbc !== null) {
 				this.applySbcWebcamDefaults();
 			}
 		},
-		async load({ rootGetters, commit, dispatch }) {
+		async load() {
 			// First attempt to load the last hostname from the local storage if running in dev mode
 			if (process.env.NODE_ENV !== "production") {
-				const lastHostname = getLocalSetting("lastHostname");
-				if (lastHostname) {
-					commit("load", { lastHostname });
-				}
+				this.lastHostname = getLocalSetting("lastHostname");
 			}
 
-			const mainSettings = getLocalSetting("settings");
-			if (mainSettings) {
-				// Load the global settings from the local storage
-				commit("load", mainSettings);
+			// Wrapper that effectively loads the given settings
+			const that = this, machineStore = useMachineStore();
+			async function loadSettings(settingsToLoad: any) {
+				let settings: any = {};
+				if (settingsToLoad.main instanceof Object) {
+					// Upgrade defaults if coming from an old version
+					if (settingsToLoad.main.ignoreFileTimestamps === undefined && settingsToLoad.main.settingsSaveDelay === 2000) {
+						settingsToLoad.main.settingsSaveDelay = 500;
+					}
+					if (settingsToLoad.main.ignoreFileTimestamps === undefined && settingsToLoad.main.settingsSaveDelay === 4000) {
+						settingsToLoad.main.cacheSaveDelay = 1000;
+					}
+					if (settingsToLoad.main.webcam && settingsToLoad.main.webcam.enabled === undefined) {
+						settingsToLoad.main.webcam.enabled = !!settingsToLoad.main.webcam.url;
+					}
 
-				if (mainSettings.enabledPlugins) {
-					for (let i = 0; i < mainSettings.enabledPlugins.length; i++) {
-						try {
-							await dispatch("loadDwcPlugin", {
-								id: mainSettings.enabledPlugins[i],
-								saveSettings: false
-							}, { root: true });
-						} catch (e) {
-							console.warn(`Failed to load built-in plugin ${mainSettings.enabledPlugins[i]}`, e);
+					// Merge general settings
+					Object.assign(settings, settingsToLoad.main);
+
+					// Merge machine-specific settings if possible
+					if (settingsToLoad.machine instanceof Object) {
+						if (settings.enabledPlugins instanceof Array && settingsToLoad.machine.enabledPlugins instanceof Array) {
+							settings.enabledPlugins.push(...settingsToLoad.machine.enabledPlugins);
+							delete settingsToLoad.machine.enabledPlugins;
 						}
+						// TODO test if plugins record is patched and not overwritten
+						Object.assign(settings, settingsToLoad.machine);
 					}
-				}
-			} else if (rootGetters.isConnected) {
-				// Otherwise try to load the settings from the selected board
-				await dispatch("machine/settings/load", undefined, { root: true });
-			}
-
-
-
-			if (!connector) {
-				return;
-			}
-
-			// Load the list of installed DWC plugins
-			await connector.loadDwcPluginList();
-
-			// Load the settings
-			let mainSettings, machineSettings;
-			if (rootState.settings.settingsStorageLocal) {
-				// Load them from the local storage
-				machineSettings = getLocalSetting(`settings/${connector.hostname}`);
-			} else {
-				let settings;
-
-				// Try to get the saved DWC settings
-				try {
-					settings = await dispatch(`machines/${connector.hostname}/download`, {
-						filename: Path.dwcSettingsFile,
-						showProgress: false,
-						showSuccess: false,
-						showError: false
-					}, { root: true });
-				} catch (e) {
-					if (!(e instanceof FileNotFoundError)) {
-						throw e;
-					}
-				}
-
-				// If that fails, try to get the DWC defaults
-				if (!settings) {
-					try {
-						settings = await dispatch(`machines/${connector.hostname}/download`, {
-							filename: Path.dwcFactoryDefaults,
-							showProgress: false,
-							showSuccess: false,
-							showError: false
-						}, { root: true });
-					} catch (e) {
-						if (!(e instanceof FileNotFoundError)) {
-							throw e;
-						}
-					}
-				}
-
-				// If that fails, try to get the DWC settings
-				if (!settings) {
-					try {
-						settings = await dispatch(`machines/${connector.hostname}/download`, {
-							filename: Path.legacyDwcSettingsFile,
-							showProgress: false,
-							showSuccess: false,
-							showError: false
-						}, { root: true });
-					} catch (e) {
-						if (!(e instanceof FileNotFoundError)) {
-							throw e;
-						}
-					}
-				}
-
-				// If that fails, try to get the DWC defaults
-				if (!settings) {
-					try {
-						settings = await dispatch(`machines/${connector.hostname}/download`, {
-							filename: Path.legacyDwcFactoryDefaults,
-							showProgress: false,
-							showSuccess: false,
-							showError: false
-						}, { root: true });
-					} catch (e) {
-						if (e instanceof FileNotFoundError) {
-							await dispatch("settings/applyDefaults", null, { root: true });
-						} else {
-							throw e;
-						}
-					}
-				}
-
-				// Load them if applicable
-				if (settings) {
-					mainSettings = settings.main;
-					machineSettings = settings.machine;
-				}
-			}
-
-			// Load main and machine-specific settings
-			if (mainSettings) {
-				commit("settings/load", mainSettings, { root: true });
-			}
-
-			if (machineSettings) {
-				commit("load", machineSettings);
-			}
-
-			// Load DWC plugins
-			if (mainSettings && mainSettings.enabledPlugins) {
-				if (machineSettings && machineSettings.enabledPlugins) {
-						/*await*/ dispatch("loadDwcPlugins", [...mainSettings.enabledPlugins, ...machineSettings.enabledPlugins], { root: true });
+				} else if (settingsToLoad.machine instanceof Object) {
+					// Merge only machine-specific settings
+					Object.assign(settings, settingsToLoad.machine);
 				} else {
-						/*await*/ dispatch("loadDwcPlugins", mainSettings.enabledPlugins, { root: true });
+					// New format
+					settings = settingsToLoad;
 				}
-			} else if (machineSettings && machineSettings.enabledPlugins) {
-					/*await*/ dispatch("loadDwcPlugins", machineSettings.enabledPlugins, { root: true });
+
+				// Load settings
+				that.$patch(settings);
+				await machineStore.loadDwcPlugins(that.enabledPlugins);
+			}
+
+			// Try to load settings from local storage
+			const localSettings = getLocalSetting("settings"), settings: any = {};
+			if (localSettings instanceof Object) {
+				loadSettings(localSettings);
+			} else if (machineStore.isConnected) {
+				try {
+					const remoteSettings = await machineStore.download([{ filename: Path.dwcSettingsFile }], false, false, false);
+					loadSettings(remoteSettings);
+				} catch (e) {
+					if (e instanceof FileNotFoundError) {
+						const factoryDefaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
+						loadSettings(factoryDefaults);
+					}
+				}
 			}
 		},
-		async save({ state, rootGetters, dispatch }) {
+		async save() {
 			resetSettingsTimer();
 
 			// See if we need to save everything in the local storage
@@ -571,7 +490,7 @@ export const useSettingsStore = defineStore("settings", {
 				}
 			}
 		},
-		async reset({ rootState, dispatch }) {
+		async reset() {
 			// Delete settings
 			removeLocalSetting("settings");
 			removeLocalSetting(`machines/${rootState.selectedMachine}`);
@@ -606,35 +525,16 @@ export const useSettingsStore = defineStore("settings", {
 			location.reload();
 		},
 
-		applySbcWebcamDefaults(state) {
-			state.webcam.url = "http://[HOSTNAME]:8081/0/stream";
-			state.webcam.updateInterval = 0;
+		applySbcWebcamDefaults() {
+			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
+			this.webcam.updateInterval = 0;
 		},
-		setLastHostname(state, hostname: string) {
-			state.lastHostname = hostname;
+		setLastHostname(hostname: string) {
+			this.lastHostname = hostname;
 			setLocalSetting("lastHostname", hostname);
 		},
 
 		load(payload: any) {
-			const updateSettingsTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 2000);
-			const updateCacheTime = (payload.ignoreFileTimestamps === undefined) && (payload.settingsSaveDelay === 4000);
-			if (payload.language && i18n.locale !== payload.language) {
-				i18n.locale = payload.language;
-			}
-			if (payload.plugins) {
-				state.plugins = payload.plugins;
-				delete payload.plugins;
-			}
-			if (payload.webcam && payload.webcam.enabled === undefined) {
-				payload.webcam.enabled = !!payload.webcam.url;
-			}
-			patch(state, payload, true);
-			if (updateSettingsTime) {
-				state.settingsSaveDelay = 500;
-			}
-			if (updateCacheTime) {
-				state.cacheSaveDelay = 1000;
-			}
 		},
 		update(state, payload: any) {
 			if (payload.language && i18n.locale !== payload.language) {
@@ -647,65 +547,59 @@ export const useSettingsStore = defineStore("settings", {
 			patch(state, payload, true);
 		},
 
-		dwcPluginLoaded(state, plugin: string) {
-			if (!state.enabledPlugins.includes(plugin)) {
-				state.enabledPlugins.push(plugin);
+		dwcPluginLoaded(plugin: string) {
+			if (!this.enabledPlugins.includes(plugin)) {
+				this.enabledPlugins.push(plugin);
 			}
 		},
-		disableDwcPlugin(state, plugin: string) {
-			if (state.enabledPlugins.includes(plugin)) {
-				state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
-			}
-		},
-
-		registerPluginData(state, { plugin, key, defaultValue }: { plugin: string, key: string, defaultValue: any }) {
-			if (state.plugins[plugin] === undefined) {
-				Vue.set(state.plugins, plugin, { key: defaultValue });
-			}
-			if (!(key in state.plugins[plugin])) {
-				state.plugins[plugin][key] = defaultValue;
-			}
-		},
-		setPluginData(state, { plugin, key, value }: { plugin: string, key: string, value: any }) {
-			if (state.plugins[plugin] === undefined) {
-				state.plugins[plugin] = { key: value };
-			} else {
-				state.plugins[plugin][key] = value;
+		disableDwcPlugin(plugin: string) {
+			if (this.enabledPlugins.includes(plugin)) {
+				this.enabledPlugins = this.enabledPlugins.filter(item => item !== plugin);
 			}
 		},
 
+		registerPluginData(plugin: string, key: string, defaultValue: any) {
+			if (this.plugins[plugin] === undefined) {
+				Vue.set(this.plugins, plugin, { key: defaultValue });
+			}
+			if (!(key in this.plugins[plugin])) {
+				this.plugins[plugin][key] = defaultValue;
+			}
+		},
+		setPluginData(plugin: string, key: string, value: any) {
+			if (this.plugins[plugin] === undefined) {
+				this.plugins[plugin] = { key: value };
+			} else {
+				this.plugins[plugin][key] = value;
+			}
+		},
 
-		setExtrusionAmount(state, { index, value }) {
-			state.extruderAmounts[index] = value;
-		},
-		setExtrusionFeedrate(state, { index, value }) {
-			state.extruderFeedrates[index] = value;
-		},
-		setMoveStep(state, { axis, index, value }) {
-			if (state.moveSteps[axis] === undefined) {
-				state.moveSteps[axis] = state.moveSteps.default.slice();
+
+		setMoveStep(axis: AxisLetter, index: number, value: number) {
+			if (this.moveSteps[axis] === undefined) {
+				this.moveSteps[axis] = this.moveSteps.default.slice();
 			}
-			state.moveSteps[axis][index] = value;
+			this.moveSteps[axis][index] = value;
 		},
-		toggleExtraVisibility(state, sensor) {
-			if (state.displayedExtraTemperatures.indexOf(sensor) === -1) {
-				state.displayedExtraTemperatures.push(sensor);
+		toggleExtraVisibility(sensor: number) {
+			if (this.displayedExtraTemperatures.indexOf(sensor) === -1) {
+				this.displayedExtraTemperatures.push(sensor);
 			} else {
-				state.displayedExtraTemperatures = state.displayedExtraTemperatures.filter(heater => heater !== sensor);
+				this.displayedExtraTemperatures = this.displayedExtraTemperatures.filter(heater => heater !== sensor);
 			}
 		},
-		toggleExtruderVisibility(state, extruder) {
-			if (state.displayedExtruders.indexOf(extruder) === -1) {
-				state.displayedExtruders.push(extruder);
+		toggleExtruderVisibility(extruder: number) {
+			if (this.displayedExtruders.indexOf(extruder) === -1) {
+				this.displayedExtruders.push(extruder);
 			} else {
-				state.displayedExtruders = state.displayedExtruders.filter(item => item !== extruder);
+				this.displayedExtruders = this.displayedExtruders.filter(item => item !== extruder);
 			}
 		},
-		toggleFanVisibility(state, fan) {
-			if (state.displayedFans.indexOf(fan) === -1) {
-				state.displayedFans.push(fan);
+		toggleFanVisibility(fan: number) {
+			if (this.displayedFans.indexOf(fan) === -1) {
+				this.displayedFans.push(fan);
 			} else {
-				state.displayedFans = state.displayedFans.filter(item => item !== fan);
+				this.displayedFans = state.displayedFans.filter(item => item !== fan);
 			}
 		},
 		load(state, payload) {
