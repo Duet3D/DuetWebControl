@@ -1,11 +1,7 @@
 import ObjectModel, { GCodeFileInfo, Plugin, PluginManifest } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 
-import store from "@/store";
 import { NotImplementedError, NetworkError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError, InvalidPasswordError } from "@/utils/errors";
-
-import { MachineModule } from "..";
-import { MachineSettingsState } from "../settings";
 
 /**
  * Default timeout for HTTP requests (in ms)
@@ -97,14 +93,6 @@ abstract class BaseConnector {
 	}
 
 	/**
-	 * Update the current connection progress
-	 * @param progress Current progress in per cent (0..100)
-	 */
-	protected static setConnectingProgress(progress: number) {
-		store.commit("setConnectingProgress", progress);
-	}
-
-	/**
 	 * Hostname of the remote machine
 	 */
 	hostname: string;
@@ -160,72 +148,6 @@ abstract class BaseConnector {
 	}
 
 	/**
-	 * Returns the object model of the corresponding module or null if the module is not available
-	 */
-	protected get model(): ObjectModel {
-		if (!this.module) {
-			throw Error("Machine module has not been registered yet, cannot retrieve object model");
-		}
-		return this.module.modules!.model.state;
-	}
-
-	/**
-	 * Update the machine's object model
-	 */
-	protected async updateModel(data: any) {
-		await store.dispatch(`machines/${this.hostname}/update`, data);
-	}
-
-	/**
-	 * Called to flag a connection error
-	 * @param error Error data
-	 */
-	protected async onConnectionError(error: any) {
-		await store.dispatch(`machines/${this.hostname}/onConnectionError`, error);
-	}
-
-	/**
-	 * Dispatch an action on the corresponding machine module
-	 * @param action Action to invoke
-	 * @param payload Payload for the corresponding action
-	 */
-	protected async dispatch<K extends keyof MachineModule["actions"]>(action: K, payload: any): Promise<any> {
-		if (this.module) {
-			await store.dispatch(`machines/${this.hostname}/${action}`, payload);
-		}
-	}
-
-	/**
-	 * Invoke a mutation on the corresponding machine module
-	 * @param mutation Mutation to invoke
-	 * @param payload Payload for the corresponding mutation
-	 */
-	protected commit<K extends keyof MachineModule["mutations"]>(mutation: K, payload: any) {
-		if (this.module) {
-			store.commit(`machines/${this.hostname}/${mutation}`, payload);
-		}
-	}
-
-	/**
-	 * Machine module to update while a session is beng maintained
-	 */
-	protected module: MachineModule | null = null;
-
-	/**
-	 * Settings of the current machine. This value is only available when the machine is fully registered
-	 */
-	protected settings: MachineSettingsState | null = null;
-
-	/**
-	 * Register the final machine module with this connector instance
-	 * @param module Machine module
-	 */
-	register(module: MachineModule) {
-		this.module = module;
-		this.settings = module.modules!["settings"].state as MachineSettingsState;
-	}
-
-	/**
 	 * Load enumeration of installed DWC plugins.
 	 * This does not require an implementation in SBC mode
 	 */
@@ -235,14 +157,6 @@ abstract class BaseConnector {
 	 * Reconnect after a connection error
 	 */
 	abstract reconnect(): Promise<void>;
-
-	/**
-	 * Unregister the machine moduel again from this connector instance
-	 */
-	unregister() {
-		this.module = null;
-		this.settings = null;
-	}
 
 	/**
 	 * Disconnect gracefully from the machine
@@ -318,22 +232,6 @@ abstract class BaseConnector {
 	 * @param start Whether to start the plugin upon installation
 	 */
 	abstract installPlugin(zipFilename: string, zipBlob: Blob, zipFile: JSZip, pluginManifest: PluginManifest, start: boolean): Promise<void>;
-
-	/**
-	 * Add a plugin to the object model
-	 * @param plugin Plugin data to add to the object model
-	 */
-	protected addPlugin(plugin: Plugin) {
-		store.commit(`machines/${this.hostname}/model/addPlugin`, plugin);
-	}
-
-	/**
-	 * Remove a plugin from the object model
-	 * @param plugin Plugin to remove from the object model
-	 */
-	protected removePlugin(plugin: Plugin) {
-		store.commit(`machines/${this.hostname}/model/removePlugin`, plugin);
-	}
 
 	/**
 	 * Uninstall a third-party plugin

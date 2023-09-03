@@ -108,7 +108,7 @@ import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
 import store from "@/store";
 import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
-import { LogType } from "./utils/logging";
+import { LogType } from "@/utils/logging";
 
 export default Vue.extend({
 	computed: {

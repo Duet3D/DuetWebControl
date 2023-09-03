@@ -158,7 +158,11 @@ export default Vue.extend({
 		isConnected(): boolean { return store.getters["isConnected"]; },
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
+			moveSteps: state => function(axis: AxisLetter) {
+				return (state.moveSteps[axis] !== undefined) ? state.moveSteps[axis] : state.moveSteps.default;
+			},
 		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
+		numMoveSteps: (state) => state.moveSteps.default.length,
 		isCompensationEnabled(): boolean { return store.state.machine.model.move.compensation.type !== MoveCompensationType.none; },
 		compensationType(): MoveCompensationType { return store.state.machine.model.move.compensation.type; },
 		visibleAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible); },

@@ -3,6 +3,7 @@ import JSZip from "jszip";
 import crc32 from "turbo-crc32/crc32";
 
 import Root from "@/main";
+import { useMachineStore } from "@/store/machine";
 import { isPaused, isPrinting } from "@/utils/enums";
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
@@ -16,8 +17,7 @@ import Path from "@/utils/path";
 import { strToTime, timeToStr } from "@/utils/time";
 
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
-import { DefaultModel } from "../model";
-import { MachineModule } from "..";
+import { DefaultObjectModel } from "../defaults";
 
 /**
  * Keys in the object model to skip when performing a query
@@ -27,7 +27,7 @@ const keysToIgnore: Array<keyof ObjectModel> = ["messages", "plugins", "sbc"];
 /**
  * Actual object model keys to query
  */
-const keysToQuery = Object.keys(DefaultModel).filter(key => keysToIgnore.indexOf(key as keyof ObjectModel) === -1);
+const keysToQuery = Object.keys(DefaultObjectModel).filter(key => keysToIgnore.indexOf(key as keyof ObjectModel) === -1);
 
 /**
  * JSON response for rr_connect requests
@@ -1132,6 +1132,25 @@ export default class PollConnector extends BaseConnector {
 		// Install the plugin manifest
 		this.addPlugin(plugin);
 	}
+
+		addPlugin(state, plugin: Plugin) {
+			typedState.plugins.set(plugin.id, plugin);
+
+			const clonedPlugins = new Map<string, Plugin>();
+			for (const [key, value] of typedState.plugins) {
+				clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
+			}
+			Vue.set(state, "plugins", clonedPlugins);
+		},
+		removePlugin(state, plugin: Plugin) {
+			typedState.plugins.delete(plugin.id);
+
+			const clonedPlugins = new Map<string, Plugin>();
+			for (const [key, value] of typedState.plugins) {
+				clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
+			}
+			Vue.set(state, "plugins", clonedPlugins);
+		},
 
 	/**
 	 * Uninstall a third-party plugin

@@ -1,10 +1,20 @@
 import { PluginManifest, SbcPermission } from "@duet3d/objectmodel";
-import { Component } from "vue";
+import { reactive } from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import Events from "@/utils/events";
+import packageInfo from "../../package.json";
 
-import PluginImports from "./imports";
 import DwcPlugin from "./DwcPlugin";
+import PluginImports from "./imports";
+import { CancellationToken } from "@/store/connector/BaseConnector";
+
+/**
+ * What DWC plugins are loaded?
+ * FIXME Can be a Set when upgraded to Vue 3
+ */
+export const loadedDwcPlugins = reactive<Array<string>>([]);
 
 /**
  * Check if the given plugin manifest is valid
@@ -67,10 +77,95 @@ export function checkVersion(actual: string, required: string) {
 }
 
 /**
+ * Load a DWC plugin
+ * @param id Plugin identifier
+ */
+export async function loadDwcPlugin(id: string) {
+	// Don't attempt to load a DWC plugin twice
+	if (loadedDwcPlugins.includes(id)) {
+		return;
+	}
+
+	// Get the plugin manifest and check preconditions
+	let plugin: PluginManifest | null = PluginImports.find(item => item.id === id) ?? null;
+	if (plugin === null) {
+		const externalPlugin = useMachineStore().model.plugins.get(id) ?? null;
+		if (externalPlugin === null) {
+			const error = new Error(`Built-in plugin ${id} not found`);
+			Events.emit("dwcPluginLoadError", { id, error });
+			throw ;
+		}
+
+		// Check if there are any resources to load and if it is actually possible
+		if (!externalPlugin.dwcFiles.some(file => file.indexOf(id) !== -1 && /\.js$/.test(file))) {
+			return;
+		}
+
+		// Is the plugin compatible to the running DWC version?
+		if (externalPlugin.dwcVersion && !checkVersion(externalPlugin.dwcVersion, packageInfo.version)) {
+			const error = new Error(`Plugin ${id} requires incompatible DWC version (need ${externalPlugin.dwcVersion}, got ${packageInfo.version})`);
+			Events.emit("dwcPluginLoadError", { id, error });
+			throw error;
+		}
+
+		// Check if the corresponding SBC plugin has been loaded (if applicable)
+		if (externalPlugin.sbcRequired) {
+			const machineStore = useMachineStore();
+			if (!machineStore.model.sbc || (externalPlugin.sbcDsfVersion && !checkVersion(externalPlugin.sbcDsfVersion, machineStore.model.sbc.dsf.version))) {
+				const error = new Error(`Plugin ${id} cannot be loaded because the current machine does not have an SBC attached`);
+				Events.emit("dwcPluginLoadError", { id, error });
+				throw error;
+			}
+		}
+
+		plugin = externalPlugin;
+	}
+
+	// ** SBC and RRF dependencies are not checked when loading DWC plugins **
+
+	// Is the plugin compatible to the running DWC version?
+	if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
+		const error = new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
+		Events.emit("dwcPluginLoadError", { id: plugin.id, error });
+		throw error;
+	}
+
+	// Load DWC plugin dependencies first
+	for (const dependency of plugin.dwcDependencies) {
+		if (loadedDwcPlugins.includes(dependency)) {
+			// Dependency already loaded
+			continue;
+		}
+
+		let dependentPlugin: PluginManifest | null = PluginImports.find(item => item.id === dependency) ?? null;
+		if (dependentPlugin === null) {
+			dependentPlugin = useMachineStore().model.plugins.get(dependency) ?? null;
+			if (dependentPlugin === null) {
+				const error = new Error(`Failed to find DWC plugin dependency ${dependency} for plugin ${plugin.id}`);
+				Events.emit("dwcPluginLoadError", { id: dependency, error });
+				throw error;
+			}
+		}
+		await loadDwcPlugin(dependentPlugin.id);
+	}
+
+	// Try to load the required CSS and JS chunks
+	try {
+		await loadDwcResources(plugin);
+	} catch (e) {
+		Events.emit("dwcPluginLoadError", { id: plugin.id, error: e });
+		throw e;
+	}
+
+	// DWC plugin has been loaded
+	Events.emit("dwcPluginLoaded", plugin.id);
+}
+
+/**
  * Load DWC resouces for a given plugin
  * @param plugin Plugin to load
  */
-export function loadDwcResources(plugin: PluginManifest) {
+export async function loadDwcResources(plugin: PluginManifest) {
 	if (plugin instanceof DwcPlugin) {
 		// Import built-in module from DWC
 		return plugin.loadDwcResources();
@@ -83,41 +178,16 @@ export function loadDwcResources(plugin: PluginManifest) {
 	}
 }
 
+/**
+ * Unload a DWC plugin again (this does NOT unload active JS code!)
+ * @param plugin Plugin identifier
+ */
+export async function unloadDwcPlugin(plugin: string) {
+	const settingsStore = useSettingsStore();
+	const enabledIndex = settingsStore.enabledPlugins.findIndex(id => id === plugin);
+	if (enabledIndex !== -1) {
+		settingsStore.enabledPlugins.splice(enabledIndex, 1);
+	}
+}
+
 export default PluginImports
-
-// NOTE: The following functions will be moved from this file in v3.6...
-
-/**
- * Types of supported context menus
- */
-export enum ContextMenuType {
-	JobFileList = "jobFileList"
-}
-
-/**
- * Register a new context menu item from a plugin
- * @param name Caption of the context menu item
- * @param path Optional route path to go to on click
- * @param icon Icon of the context menu item
- * @param action Global event to trigger on click
- * @param contextMenuType Target of the context menu item
- */
-export function registerPluginContextMenuItem(name: string | (() => string), path: string | undefined, icon: string, action: string, contextMenuType: ContextMenuType) {
-	store.commit("uiInjection/registerPluginContextMenuItem", {
-		name,
-		path,
-		icon,
-		action,
-		contextMenuType
-	});
-}
-
-/**
- * Register a component to be rendered on the main app component.
- * This can be useful for plugins that need to generate content independently from the current route and/or tab
- * @param name Name of the component
- * @param component Component type
- */
-export function injectComponent(name: string, component: Component) {
-	store.commit("uiInjection/injectComponent", { name, component });
-}

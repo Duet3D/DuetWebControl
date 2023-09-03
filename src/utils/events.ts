@@ -1,76 +1,188 @@
-// Enumeration of the available global events
-//
-// All these event types are emitted on the Vue root instance.
-// These events are restricted to cases where Vuex cannot be used
-// or where subscription hooks to the Vuex store would be required.
-enum GlobalEvent {
-	// Machine has been added
-	// Payload: machine
-	machineAdded = "machineAdded",
+import ObjectModel, { MessageType } from "@duet3d/objectmodel";
+import type JSZip from "jszip";
+import mitt from "mitt";
 
-	// Machine has been removed
-	// Payload: machine
-	machineRemoved = "machineRemoved",
+import type { CancellationToken } from "@/store/connector/BaseConnector";
+import FileTransferItem from "./FileTransferItem";
+import { StoreState } from "pinia";
 
-	// Machine model has been updated
-	// Payload: machine
-	machineModelUpdated = "machineModelUpdated",
+type Events = {
+	/**
+	 * Attempting to connect to a machine
+	 * Payload: hostname
+	 */
+	connecting: string;
 
-	// G/M/T-code has been executed
-	// Payload: { machine, code, reply }
-	codeExecuted = "codeExecuted",
+	/**
+	 * Password is invalid
+	 */
+	invalidPassword: { hostname: string, username: string, password: string };
 
-	// Files or directories have been changed
-	// Payload: { machine, files?: [ file1, ... ], volume? }
-	filesOrDirectoriesChanged = "filesOrDirectoriesChanged",
+	/**
+	 * Failed to connect to the machine
+	 */
+	connectError: { hostname: string, error: any };
 
-	// Single file is being uploaded
-	// Payload: { machine, filename, content, showProgress, showSuccess, showError, cancellationToken }
-	fileUploading = "fileUploading",
+	/**
+	 * Connector has established a connection
+	 */
+	connected: void;
 
-	// Multiple files are being uploaded
-	// Payload: { machine, files: [{ filename, content, startTime, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken }
-	multipleFilesUploading = "multipleFilesUploading",
+	/**
+	 * Connection is fully established and the object model is populated
+	 */
+	fullyConnected: void;
 
-	// File has been uploaded
-	// Payload: { machine, filename, content, num, count }
-	fileUploaded = "fileUploaded",
+	/**
+	 * Cache has been loaded
+	 */
+	cacheLoaded: void;
 
-	// File could not be uploaded
-	// Payload: { machine, filename, content, error }
-	fileUploadError = "fileUploadError",
+	/**
+	 * Settings have been loaded
+	 */
+	settingsLoaded: void;
 
-	// File or directory has been moved
-	// Payload: { machine, from, to, force }
-	fileOrDirectoryMoved = "fileOrDirectoryMoved",
+	/**
+	 * Cannot maintain connection to the machine due to a given error
+	 */
+	connectionError: { hostname: string, error: any };
 
-	// Directory has been created
-	// Payload: { machine, directory }
-	directoryCreated = "directoryCreated",
+	/**
+	 * Connection has been established again after it was lost
+	 */
+	reconnected: void;
 
-	// File has been deleted
-	// Payload: { machine, file }
-	fileOrDirectoryDeleted = "fileOrDirectoryDeleted",
+	/**
+	 * Connection to the machine is about to be terminated
+	 * Payload: hostname
+	 */
+	disconnecting: { hostname: string, graceful: boolean };
 
-	// Single file is being downloaded
-	// Payload: { machine, filename, type, showProgress, showSuccess, showError, cancellationToken }
-	fileDownloading = "fileDownloading",
+	/**
+	 * Failed to disconnect from the machine
+	 */
+	disconnectError: { hostname: string, error: any };
 
-	// Multiple files are being downloaded
-	// Payload: { machine, files: [{ filename, type, startTime, size, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken }
-	multipleFilesDownloading = "multipleFilesDownloading",
+	/**
+	 * Connection to the machine has been terminated
+	 * Payload: hostname
+	 */
+	disconnected: { hostname: string, graceful: boolean };
 
-	// File has been downloaded
-	// Payload: { machine, filename, response, type, showProgress, showSuccess, showError, num, count }
-	fileDownloaded = "fileDownloaded",
+	/**
+	 * Object model has been updated
+	 */
+	modelUpdated: StoreState<ObjectModel>;
 
-	// File could not be downloaded
-	// Payload: { machine, filename, type, error }
-	fileDownloadError = "fileDownloadError",
+	/**
+	 * Code has been executed
+	 */
+	codeExecuted: { code: string, reply: string | null };
 
-	// Request plugin to be installed (shows plugin wizard)
-	// Payload: { machine, zipFilename, zipBlob, zipFile, start }
-	installPlugin = "installPlugin"
+	/**
+	 * Generic message has been received
+	 */
+	message: { type: MessageType, content: string };
+
+	/**
+	 * File or directory has been changed. If files is not present, the volume reporting the change is given
+	 * Either files or volume is given
+	 */
+	filesOrDirectoriesChanged: { files?: Array<string>, volume?: number };
+
+	/**
+	 * File upload has started
+	 */
+	fileUploading: { filename: string, content: any, showProgress: boolean, showSuccess: boolean, showError: boolean, cancellationToken: CancellationToken };
+
+	/**
+	 * Multiple file uploads have started
+	 */
+	multipleFilesUploading: { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken };
+
+	/**
+	 * File has been uploaded
+	 * num is the index of the file and count the number of total files to upload
+	 */
+	fileUploaded: { filename: string, content: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
+
+	/**
+	 * File upload failed
+	 */
+	fileUploadError: { filename: string, content: any, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
+	
+
+	/**
+	 * File or directory has been moved
+	 */
+	fileOrDirectoryMoved: { from: string, to: string, force: boolean };
+
+	/**
+	 * Directory has been created
+	 * Payload: directory
+	 */
+	directoryCreated: string;
+
+	/**
+	 * File has been deleted
+	 */
+	fileOrDirectoryDeleted: { filename: string, recursive?: boolean };
+
+	/**
+	 * File download has started
+	 */
+	fileDownloading: { filename: string, type?: XMLHttpRequestResponseType, showProgress: boolean, showSuccess: boolean, showError: boolean, cancellationToken: CancellationToken };
+
+	/*
+	 * Multiple files are being downloaded
+	 */
+	multipleFilesDownloading: { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken };
+
+	/**
+	 * File has been downloaded
+	 */
+	fileDownloaded: { filename: string, response: any, type?: XMLHttpRequestResponseType, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean }
+
+	/**
+	 * File could not be downloaded
+	 */
+	fileDownloadError: { filename: string, type?: string, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
+
+	/**
+	 * Request plugin to be installed
+	 * start indicates if the plugin is supposed to be started upon installation
+	 */
+	installPlugin: { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean };
+
+	/**
+	 * Starting to load DWC plugins
+	 * Payload: Plugin identifiers to load
+	 */
+	dwcPluginsLoading: Array<string>;
+
+	/**
+	 * DWC plugin has been loaded
+	 * Payload: Plugin identifier
+	 */
+	dwcPluginLoaded: string;
+
+	/**
+	 * DWC plugin could not be loaded
+	 */
+	dwcPluginLoadError: { id: string, error: any };
+
+	/**
+	 * Finished loading DWC plugins (check actually loaded plugins for potential errors)
+	 * Payload: Plugin identifers to load (not necessarily loaded)
+	 */
+	dwcPluginsLoaded: Array<string>;
+
+	/**
+	 * DWC plugin has been unloaded
+	 * Payload: Plugin identifier
+	 */
+	dwcPluginUnloaded: string;
 }
 
-export default GlobalEvent
+export default mitt<Events>();
