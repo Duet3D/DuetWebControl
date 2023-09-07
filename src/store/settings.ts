@@ -9,7 +9,6 @@ import patch from "@/utils/patch";
 import Path from "@/utils/path";
 
 import { DefaultPluginSettings } from "./defaults";
-import { resetSettingsTimer } from "./observer";
 import { useMachineStore } from "./machine";
 
 export enum DashboardMode {
@@ -371,17 +370,19 @@ export const useSettingsStore = defineStore("settings", {
 		}
 	},
 	actions: {
-		async applyDefaults() {
+		/*async*/ applyDefaults() {
 			const machineStore = useMachineStore();
 
-			// Load settings and plugins that are enabled by default
+			// Revert to DWC defaults
 			this.$reset();
-			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
 
 			// Apply different webcam defaults in SBC mode
 			if (machineStore.model.sbc !== null) {
 				this.applySbcWebcamDefaults();
 			}
+
+			// Load plugins that are enabled by default
+			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
 		},
 		async load() {
 			// First attempt to load the last hostname from the local storage if running in dev mode
@@ -391,7 +392,7 @@ export const useSettingsStore = defineStore("settings", {
 
 			// Wrapper that effectively loads the given settings
 			const that = this, machineStore = useMachineStore();
-			async function loadSettings(settingsToLoad: any) {
+			async function applySettings(settingsToLoad: any) {
 				let settings: any = {};
 				if (settingsToLoad.main instanceof Object) {
 					// Upgrade defaults if coming from an old version
@@ -431,27 +432,25 @@ export const useSettingsStore = defineStore("settings", {
 			}
 
 			// Try to load settings from local storage
-			const localSettings = getLocalSetting("settings"), settings: any = {};
+			const localSettings = getLocalSetting("settings");
 			if (localSettings instanceof Object) {
-				loadSettings(localSettings);
+				applySettings(localSettings);
 			} else if (machineStore.isConnected) {
 				try {
 					const remoteSettings = await machineStore.download([{ filename: Path.dwcSettingsFile }], false, false, false);
-					loadSettings(remoteSettings);
+					applySettings(remoteSettings);
 				} catch (e) {
 					if (e instanceof FileNotFoundError) {
 						const factoryDefaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
-						loadSettings(factoryDefaults);
+						applySettings(factoryDefaults);
 					}
 				}
 			}
 		},
 		async save() {
-			resetSettingsTimer();
-
 			// See if we need to save everything in the local storage
-			if (state.settingsStorageLocal) {
-				setLocalSetting("settings", state);
+			if (this.settingsStorageLocal) {
+				setLocalSetting("settings", this.$state);
 			} else {
 				// If not, remove the local settings again
 				removeLocalSetting("settings");

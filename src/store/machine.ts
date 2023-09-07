@@ -9,10 +9,8 @@ import { DefaultObjectModel, DefaultUsername, DefaultPassword } from "./defaults
 import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
-import Root from "@/main";
-import Plugins, { checkManifest, checkVersion, loadDwcPlugin, loadDwcResources } from "@/plugins";
+import { checkManifest, checkVersion, loadDwcPlugin, loadDwcResources } from "@/plugins";
 import beep from "@/utils/beep";
-import { displayTime } from "@/utils/display";
 import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import { isPrinting } from "@/utils/enums";
 import Events from "@/utils/events";
