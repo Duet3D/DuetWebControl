@@ -44,7 +44,7 @@ export const useSettingsStore = defineStore("settings", {
 		enabledPlugins: [
 			"HeightMap",
 			"ObjectModelBrowser"
-		],
+		] as Array<string>,
 
 		/**
 		 * Custom plugin settings
@@ -384,6 +384,11 @@ export const useSettingsStore = defineStore("settings", {
 			// Load plugins that are enabled by default
 			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
 		},
+		applySbcWebcamDefaults() {
+			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
+			this.webcam.updateInterval = 0;
+		},
+
 		async load() {
 			// First attempt to load the last hostname from the local storage if running in dev mode
 			if (process.env.NODE_ENV !== "production") {
@@ -427,7 +432,22 @@ export const useSettingsStore = defineStore("settings", {
 				}
 
 				// Load settings
-				that.$patch(settings);
+				if (settingsToLoad.plugins instanceof Object) {
+					that.plugins = settingsToLoad.plugins;
+					delete settingsToLoad.plugins;
+				}
+				if (settingsToLoad.moveSteps instanceof Object) {
+					for (let axis in settingsToLoad.moveSteps) {
+						const axisMoveSteps = settingsToLoad.moveSteps[axis];
+						if (axisMoveSteps instanceof Array && axisMoveSteps.length === that.moveSteps.default.length) {
+							Vue.set(that.moveSteps, axis, axisMoveSteps);
+						}
+					}
+					delete settingsToLoad.moveSteps;
+				}
+				patch(that, settingsToLoad, true);
+
+				// Load plugins
 				await machineStore.loadDwcPlugins(that.enabledPlugins);
 			}
 
@@ -441,8 +461,14 @@ export const useSettingsStore = defineStore("settings", {
 					applySettings(remoteSettings);
 				} catch (e) {
 					if (e instanceof FileNotFoundError) {
-						const factoryDefaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
-						applySettings(factoryDefaults);
+						try {
+							const factoryDefaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
+							applySettings(factoryDefaults);
+						} catch (e) {
+							if (!(e instanceof FileNotFoundError)) {
+								throw e;
+							}
+						}
 					}
 				}
 			}
@@ -456,66 +482,41 @@ export const useSettingsStore = defineStore("settings", {
 				removeLocalSetting("settings");
 
 				// And try to save everything on the selected board
-				if (rootGetters.isConnected) {
-					await dispatch("machine/settings/save", undefined, { root: true });
-				}
-			}
-
-
-
-			const machineStore = useMachineStore();
-			if (!machineStore.connector) {
-				return;
-			}
-
-			resetSettingsTimer(connector.hostname);
-
-			if (rootState.settings.settingsStorageLocal) {
-				setLocalSetting(`settings/${connector.hostname}`, state);
-			} else {
-				removeLocalSetting(`settings/${connector.hostname}`);
-
-				try {
-					const content = new Blob([JSON.stringify({ main: rootState.settings, machine: state })]);
-					await dispatch(`machines/${connector.hostname}/upload`, {
-						filename: Path.dwcSettingsFile,
-						content,
-						showProgress: false,
-						showSuccess: false,
-						showError: false
-					}, { root: true });
-				} catch (e) {
-					// handled before we get here
+				const machineStore = useMachineStore();
+				if (machineStore.isConnected) {
+					try {
+						const content = new Blob([JSON.stringify(this.$state)]);
+						await machineStore.upload([{ filename: Path.dwcSettingsFile, content }], false, false, false);
+					} catch (e) {
+						// handled before we get here
+					}
 				}
 			}
 		},
 		async reset() {
+			const machineStore = useMachineStore();
+
 			// Delete settings
 			removeLocalSetting("settings");
-			removeLocalSetting(`machines/${rootState.selectedMachine}`);
+			removeLocalSetting(`machines/${location.hostname}`);
 			try {
-				await dispatch("machine/delete", Path.dwcSettingsFile, { root: true });
+				await machineStore.delete(Path.dwcSettingsFile);
 			} catch (e) {
 				console.warn(e);
 			}
 
 			// Delete cache
-			removeLocalSetting(`cache/${rootState.selectedMachine}`);
+			removeLocalSetting(`cache/${location.hostname}`);
 			try {
-				await dispatch("machine/delete", Path.dwcCacheFile, { root: true });
+				await machineStore.delete(Path.dwcCacheFile);
 			} catch (e) {
 				console.warn(e);
 			}
 
 			// Check if there is a factory defaults file
 			try {
-				const defaults = await dispatch("machine/download", { filename: Path.dwcFactoryDefaults, showProgress: false, showSuccess: false, showError: false }, { root: true });
-				await dispatch("machine/upload", {
-					filename: Path.dwcSettingsFile,
-					content: new Blob([defaults]),
-					showProgress: false,
-					showSuccess: false
-				}, { root: true });
+				const defaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
+				await machineStore.upload([{ filename: Path.dwcSettingsFile, content: new Blob([defaults]) }, false, false);
 			} catch (e) {
 				// handled before we get here
 			}
@@ -524,55 +525,14 @@ export const useSettingsStore = defineStore("settings", {
 			location.reload();
 		},
 
-		applySbcWebcamDefaults() {
-			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
-			this.webcam.updateInterval = 0;
-		},
 		setLastHostname(hostname: string) {
 			this.lastHostname = hostname;
 			setLocalSetting("lastHostname", hostname);
 		},
-
-		load(payload: any) {
+		setLocale(locale: string) {
+			i18n.locale = locale;
+			this.locale = locale;
 		},
-		update(state, payload: any) {
-			if (payload.language && i18n.locale !== payload.language) {
-				i18n.locale = payload.language;
-			}
-			if (payload.plugins) {
-				state.plugins = payload.plugins;
-				delete payload.plugins;
-			}
-			patch(state, payload, true);
-		},
-
-		dwcPluginLoaded(plugin: string) {
-			if (!this.enabledPlugins.includes(plugin)) {
-				this.enabledPlugins.push(plugin);
-			}
-		},
-		disableDwcPlugin(plugin: string) {
-			if (this.enabledPlugins.includes(plugin)) {
-				this.enabledPlugins = this.enabledPlugins.filter(item => item !== plugin);
-			}
-		},
-
-		registerPluginData(plugin: string, key: string, defaultValue: any) {
-			if (this.plugins[plugin] === undefined) {
-				Vue.set(this.plugins, plugin, { key: defaultValue });
-			}
-			if (!(key in this.plugins[plugin])) {
-				this.plugins[plugin][key] = defaultValue;
-			}
-		},
-		setPluginData(plugin: string, key: string, value: any) {
-			if (this.plugins[plugin] === undefined) {
-				this.plugins[plugin] = { key: value };
-			} else {
-				this.plugins[plugin][key] = value;
-			}
-		},
-
 
 		setMoveStep(axis: AxisLetter, index: number, value: number) {
 			if (this.moveSteps[axis] === undefined) {
@@ -598,71 +558,40 @@ export const useSettingsStore = defineStore("settings", {
 			if (this.displayedFans.indexOf(fan) === -1) {
 				this.displayedFans.push(fan);
 			} else {
-				this.displayedFans = state.displayedFans.filter(item => item !== fan);
+				this.displayedFans = this.displayedFans.filter(item => item !== fan);
 			}
-		},
-		load(state, payload) {
-			if (payload.plugins !== undefined) {
-				state.plugins = payload.plugins;
-				delete payload.plugins;
-			}
-			if (payload.moveSteps !== undefined) {
-				for (let axis in payload.moveSteps) {
-					const axisMoveSteps = payload.moveSteps[axis];
-					if (axisMoveSteps instanceof Array && axisMoveSteps.length === state.moveSteps.default.length) {
-						Vue.set(state.moveSteps, axis, axisMoveSteps);
-					}
-				}
-				delete payload.moveSteps;
-			}
-			patch(state, payload, true);
-		},
-		update(state, payload) {
-			if (payload.plugins !== undefined) {
-				state.plugins = payload.plugins;
-				delete payload.plugins;
-			}
-			if (payload.moveSteps !== undefined) {
-				for (let axis in payload.moveSteps) {
-					const axisMoveSteps = payload.moveSteps[axis];
-					if (axisMoveSteps instanceof Array && axisMoveSteps.length === state.moveSteps.default.length) {
-						Vue.set(state.moveSteps, axis, axisMoveSteps);
-					}
-				}
-				delete payload.moveSteps;
-			}
-			patch(state, payload, true);
 		},
 
-		dwcPluginLoaded(state, plugin) {
-			if (state.enabledPlugins.indexOf(plugin) === -1) {
-				state.enabledPlugins.push(plugin);
+		dwcPluginLoaded(plugin: string) {
+			if (this.enabledPlugins.indexOf(plugin) === -1) {
+				this.enabledPlugins.push(plugin);
 			}
 		},
-		disableDwcPlugin(state, plugin) {
-			state.enabledPlugins = state.enabledPlugins.filter(item => item !== plugin);
+		disableDwcPlugin(plugin: string) {
+			this.enabledPlugins = this.enabledPlugins.filter(item => item !== plugin);
 		},
 
-		registerPluginData(state, { plugin, key, defaultValue }) {
-			if (connector === null) {
-				if (!(plugin in defaultPluginSettingFields)) {
-					defaultPluginSettingFields[plugin] = {}
+		registerPluginData(plugin: string, key: string, defaultValue: any) {
+			const machineStore = useMachineStore();
+			if (!machineStore.isConnected) {
+				if (!(plugin in DefaultPluginSettings)) {
+					DefaultPluginSettings[plugin] = {}
 				}
-				defaultPluginSettingFields[plugin][key] = defaultValue;
+				DefaultPluginSettings[plugin][key] = defaultValue;
 			}
 
-			if (state.plugins[plugin] === undefined) {
-				Vue.set(state.plugins, plugin, { key: defaultValue });
+			if (!(plugin in this.plugins)) {
+				Vue.set(this.plugins, plugin, { key: defaultValue });
 			}
-			if (!(key in state.plugins[plugin])) {
-				state.plugins[plugin][key] = defaultValue;
+			if (!(key in this.plugins[plugin])) {
+				this.plugins[plugin][key] = defaultValue;
 			}
 		},
-		setPluginData(state, { plugin, key, value }) {
-			if (state.plugins[plugin] === undefined) {
-				state.plugins[plugin] = { key: value };
+		setPluginData(plugin: string, key: string, value: any) {
+			if (this.plugins[plugin] === undefined) {
+				Vue.set(this.plugins, plugin, { key: value });
 			} else {
-				state.plugins[plugin][key] = value;
+				this.plugins[plugin][key] = value;
 			}
 		}
 	}

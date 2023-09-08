@@ -1,7 +1,6 @@
-import ObjectModel, { DefaultHostname, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
-import JSZip, { filter } from "jszip";
+import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import JSZip from "jszip";
 import { _DeepPartial, defineStore } from "pinia";
-import Vue from "vue";
 
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
 import { useCacheStore } from "./cache";
@@ -9,9 +8,9 @@ import { DefaultObjectModel, DefaultUsername, DefaultPassword } from "./defaults
 import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
-import { checkManifest, checkVersion, loadDwcPlugin, loadDwcResources } from "@/plugins";
+import { checkManifest, checkVersion, loadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationCancelledError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import { isPrinting } from "@/utils/enums";
 import Events from "@/utils/events";
 import FileTransferItem from "@/utils/FileTransferItem";
@@ -167,7 +166,7 @@ export const useMachineStore = defineStore("machine", {
 			if (!hostname) {
 				throw new Error("Invalid hostname");
 			}
-			if (this.isConnected) {
+			if (this.connector !== null) {
 				throw new Error(`Already connected`);
 			}
 			if (this.isConnecting && !retrying) {
@@ -177,7 +176,7 @@ export const useMachineStore = defineStore("machine", {
 			this.isConnecting = true;
 			Events.emit("connecting", hostname);
 			try {
-				const connectorInstance = await BaseConnector.connect(hostname, username, password);
+				this.connector = await BaseConnector.connect(hostname, username, password);
 				Events.emit("connected");
 
 				// Load the list of installed DWC plugins
@@ -224,19 +223,19 @@ export const useMachineStore = defineStore("machine", {
 		 * @param gracefully Optionally flag if the connector should send a disconnect request (defaults to true)
 		 */
 		async disconnect(gracefully: boolean) {
-			if (!this.isConnected) {
+			if (this.connector === null) {
 				throw new Error(`Already disconnected`);
 			}
 			if (this.isDisconnecting) {
 				throw new Error("Already disconnecting");
 			}
 
-			const hostname = this.connector!.hostname;
+			const hostname = this.connector.hostname;
 			Events.emit("disconnecting", { hostname, graceful: gracefully })
 			if (gracefully) {
 				this.isDisconnecting = true;
 				try {
-					await this.connector!.disconnect();
+					await this.connector.disconnect();
 					Events.emit("disconnected", { hostname, graceful: true })
 				} catch (e) {
 					// Disconnecting must always work - even if it does not always happen cleanly
@@ -310,6 +309,7 @@ export const useMachineStore = defineStore("machine", {
 			if (this.connector === null) {
 				throw new OperationFailedError("request is not available in default machine module");
 			}
+
 			return this.connector.request(method, path, params, responseType, body, (timeout === undefined) ? this.connector.requestTimeout : 0, filename, cancellationToken, onProgress, retry);
 		},
 
@@ -356,7 +356,7 @@ export const useMachineStore = defineStore("machine", {
 		 * @param showError Show notification upon error
 		 * @param closeProgressOnSuccess Automatically close the progress indicator when finished
 		 */
-		async upload(files: Array<{ filename: string, content: any }>, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false) {
+		async upload(files: Array<{ filename: string, content: any }> | { filename: string, content: any }, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false): files extends Object ? any : Array<any> {
 			if (this.connector === null) {
 				throw new OperationFailedError("upload is not available in default machine module");
 			}
@@ -960,7 +960,6 @@ export function setPluginData(plugin: string, dataType: PluginDataType, key: str
 			break;
 		case PluginDataType.setting:
 			useSettingsStore().setPluginData(plugin, key, value);
-			store.commit("machine/cache/setPluginData", { plugin, key, value });
 			break;
 		default:
 			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
