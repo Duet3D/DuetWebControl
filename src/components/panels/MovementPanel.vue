@@ -81,7 +81,8 @@
 				<template v-if="!isDelta">
 					<v-col v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex">
 						<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="!canHome"
-								  :title="$t('button.home.title', [axis.letter])" :code="getHomeCode(axis)" block tile>
+								  :title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
+								  :code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" block tile>
 							{{ $t("button.home.caption", [axis.letter]) }}
 						</code-btn>
 					</v-col>
@@ -92,7 +93,8 @@
 				<!-- Regular home buttons -->
 				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 hidden-sm-and-down">
 					<code-btn :color="axis.homed ? 'primary' : 'warning'" :disabled="!canHome"
-							  :title="$t('button.home.title', [axis.letter])" :code="getHomeCode(axis)" class="ml-0">
+							  :title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
+							  :code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" class="ml-0">
 						{{ $t("button.home.caption", [axis.letter]) }}
 					</code-btn>
 				</v-col>
@@ -114,12 +116,10 @@
 				<!-- Increasing movements -->
 				<v-col>
 					<v-row no-gutters>
-						<v-col v-for="index in numMoveSteps" :key="index"
-							   :class="getMoveCellClass(numMoveSteps - index)">
+						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
-									  no-wait
-									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
-									  tile class="move-btn">
+									  no-wait @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)"
+									  block tile class="move-btn">
 								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
 								<v-icon>mdi-chevron-right</v-icon>
 							</code-btn>
@@ -188,9 +188,6 @@ export default Vue.extend({
 		},
 		canMove(axis: Axis) {
 			return (axis.homed || !store.state.machine.model.move.noMovesBeforeHoming) && this.canHome;
-		},
-		getHomeCode(axis: Axis) {
-			return `G28 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}`;
 		},
 		getMoveCellClass(index: number) {
 			let classes = "";

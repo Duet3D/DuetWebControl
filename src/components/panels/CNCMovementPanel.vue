@@ -94,8 +94,8 @@
 					<v-row dense>
 						<v-col>
 							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen"
-									  :title="$t('button.home.title', [axis.letter])" :code="`G28 ${axis.letter}`"
-									  class="move-btn">
+									  :title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
+									  :code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" class="move-btn">
 								{{ $t("button.home.caption", [axis.letter]) }}
 							</code-btn>
 						</v-col>
@@ -119,8 +119,7 @@
 				<!-- Increasing movements -->
 				<v-col cols="6" order="4" md="5" order-md="3">
 					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="index"
-							   :class="getMoveCellClass(numMoveSteps - index)">
+						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
 							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait
 									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
 									  tile class="move-btn">
