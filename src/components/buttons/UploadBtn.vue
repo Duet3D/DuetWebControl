@@ -250,7 +250,7 @@ export default Vue.extend({
 
 			// Check if a ZIP file may be extracted
 			if (!zipName) {
-				if (files.length > 1 && files[0].name.toLowerCase().endsWith(".zip")) {
+				if (files.length > 1 && Array.from(files).some(file => file.name.toLowerCase().endsWith(".zip"))) {
 					this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoSingleZIP"));
 					return;
 				}
