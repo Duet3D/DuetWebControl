@@ -1,9 +1,9 @@
-import ObjectModel, { MessageType } from "@duet3d/objectmodel";
+import ObjectModel, { MessageType, Plugin } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import mitt from "mitt";
 
 import type { CancellationToken } from "@/store/connector/BaseConnector";
-import FileTransferItem from "./FileTransferItem";
+import { FileTransferItem } from "@/store/machine";
 import { StoreState } from "pinia";
 
 type Events = {
@@ -29,14 +29,14 @@ type Events = {
 	connected: void;
 
 	/**
-	 * Connection is fully established and the object model is populated
-	 */
-	fullyConnected: void;
-
-	/**
 	 * Cache has been loaded
 	 */
 	cacheLoaded: void;
+
+	/**
+	 * Cache has been saved
+	 */
+	cacheSaved: void;
 
 	/**
 	 * Settings have been loaded
@@ -44,9 +44,20 @@ type Events = {
 	settingsLoaded: void;
 
 	/**
-	 * Cannot maintain connection to the machine due to a given error
+	 * Settings have been saved
 	 */
-	connectionError: { hostname: string, error: any };
+	settingsSaved: void;
+
+	/**
+	 * Connection is fully established and the object model is populated
+	 */
+	fullyConnected: void;
+
+	/**
+	 * Cannot maintain connection to the machine due to a given error
+	 * Payload: Error reason
+	 */
+	connectionError: any;
 
 	/**
 	 * Connection has been established again after it was lost
@@ -150,10 +161,15 @@ type Events = {
 	fileDownloadError: { filename: string, type?: string, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
 
 	/**
-	 * Request plugin to be installed
+	 * Plugin has been installed
 	 * start indicates if the plugin is supposed to be started upon installation
 	 */
-	installPlugin: { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean };
+	pluginInstalled: { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean };
+
+	/**
+	 * Plugin has been uninstalled
+	 */
+	pluginUninstalled: Plugin;
 
 	/**
 	 * Starting to load DWC plugins

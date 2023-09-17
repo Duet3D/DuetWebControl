@@ -139,11 +139,11 @@ import { VDataTable } from "vuetify/lib";
 
 import i18n from "@/i18n";
 import store from "@/store";
-import { defaultMachine, FileTransferItem } from "@/store/machine";
+import { FileTransferItem } from "@/store/machine";
 import { DisconnectedError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
+import { FileListItem } from "@/store/connector/BaseConnector";
 import { LogType } from "@/utils/logging";
 
 /**

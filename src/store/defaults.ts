@@ -1,4 +1,5 @@
-import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
+import packageInfo from "../../package.json";
 
 /**
  * Default username for connection attempts
@@ -56,7 +57,8 @@ export const DefaultObjectModel = initObject(ObjectModel, {
 		])
 	}),
 	network: initObject(Network, {
-		name: 'Duet Web Control'
+		hostname: (process.env.NODE_ENV === "production") ? location.hostname : undefined,
+		name: (process.env.NODE_ENV === "production") ? `(${location.hostname})` : packageInfo.prettyName
 	}),
 	sensors: initObject(Sensors, {
 		probes: initCollection(Probe, [
@@ -78,21 +80,6 @@ export const DefaultObjectModel = initObject(ObjectModel, {
 		}
 	])
 });
-
-export function MakeDefaultModel() {
-	const typedState = !connector ? DefaultModel : new ObjectModel();
-	if (connector !== null) {
-		typedState.network.hostname = connector.hostname;
-		typedState.network.name = `(${connector.hostname})`;
-	}
-
-	const state = JSON.parse(JSON.stringify(!connector ? DefaultModel : new ObjectModel()));
-	state.global = new Map<string, any>();
-	state.plugins = new Map<string, Plugin>();
-	for (const [key, value] of typedState.plugins) {
-		state.plugins.set(key, JSON.parse(JSON.stringify(value)));
-	}
-}
 
 /**
  * Default general settings defined by third-party plugins

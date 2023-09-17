@@ -13,12 +13,66 @@ import beep from "@/utils/beep";
 import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import { isPrinting } from "@/utils/enums";
 import Events from "@/utils/events";
-import FileTransferItem from "@/utils/FileTransferItem";
 import { log, logCode, LogType } from "@/utils/logging";
 import { makeFileTransferNotification, Notification, showMessage, FileTransferType, makeNotification } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 import packageInfo from "../../package.json";
+
+/**
+ * Item type for downloads
+ */
+type DownloadItem = { filename: string, type?: XMLHttpRequestResponseType };
+
+/**
+ * Element representing a file transfer
+ */
+export interface FileTransferItem {
+	/**
+	 * Filename of the element being transferred
+	 */
+	filename: string;
+
+	/**
+	 * Transferred content
+	 */
+	content: any;
+
+	/**
+	 * Expected respones type (if this is a download)
+	 */
+	type?: XMLHttpRequestResponseType;
+
+	/**
+	 * Time at which the transfer was started or null if it hasn't started yet
+	 */
+	startTime: Date | null;
+
+	/**
+	 * How many times this upload has been restarted
+	 */
+	retry: number;
+
+	/**
+	 * Current progress
+	 */
+	progress: number;
+
+	/**
+	 * Speed (in bytes/sec)
+	 */
+	speed: number | null;
+
+	/**
+	 * Size of the item to transfer or null if unknown
+	 */
+	size: number | null;
+
+	/**
+	 * If present this holds the error causing the transfer to fail
+	 */
+	error?: any;
+}
 
 export const useMachineStore = defineStore("machine", {
 	state: () => ({
@@ -202,6 +256,9 @@ export const useMachineStore = defineStore("machine", {
 				if (settingsStore.lastHostname !== location.host || hostname !== location.host) {
 					settingsStore.setLastHostname(hostname);
 				}
+
+				// Done
+				Events.emit("fullyConnected");
 			} catch (e) {
 				if (e instanceof InvalidPasswordError) {
 					Events.emit("invalidPassword", { hostname, username, password });
@@ -247,9 +304,31 @@ export const useMachineStore = defineStore("machine", {
 
 			this.connector = null;
 			this.model = initObject(ObjectModel, DefaultObjectModel);
+			this.model.network.hostname = hostname;
+			this.model.network.name = `(${hostname})`;
 
 			if (!gracefully) {
 				Events.emit("disconnected", { hostname, graceful: false })
+			}
+		},
+
+		/**
+		 * Called by the connector to indicate that the connection has been lost
+		 * @param error Error causing the connection loss
+		 */
+		async handleConnectionError(error: any) {
+			if (this.connector === null) {
+				throw new OperationFailedError("handleConnectionError is not available in default machine module");
+			}
+
+			Events.emit("connectionError", error);
+			if (error instanceof InvalidPasswordError) {
+				await this.disconnect(false);
+				Events.emit("invalidPassword", { hostname: this.connector.hostname, username: DefaultUsername, password: DefaultPassword });
+			} else if (process.env.NODE_ENV !== "production") {
+				await this.disconnect(false);
+			} else {
+				await this.reconnect();
 			}
 		},
 
@@ -261,8 +340,8 @@ export const useMachineStore = defineStore("machine", {
 				throw new OperationFailedError("reconnect is not available in default machine module");
 			}
 
+			// Update the object model
 			if (!this.isReconnecting) {
-				// Clear the global variables again and set the state to disconnected
 				this.updateModel({
 					global: null,
 					state: {
@@ -270,18 +349,17 @@ export const useMachineStore = defineStore("machine", {
 						status: MachineStatus.disconnected
 					}
 				});
-
-				// Now trying to reconnect...
 				this.isReconnecting = true;
 			}
 
+			// Try to reconnect
 			try {
 				await this.connector.reconnect();
 
 				this.isReconnecting = false;
 				Events.emit("reconnected");
 			} catch (e) {
-				Events.emit("connectionError", { hostname: this.connector.hostname, error: e });
+				Events.emit("connectionError", e);
 			}
 		},
 
@@ -310,7 +388,7 @@ export const useMachineStore = defineStore("machine", {
 				throw new OperationFailedError("request is not available in default machine module");
 			}
 
-			return this.connector.request(method, path, params, responseType, body, (timeout === undefined) ? this.connector.requestTimeout : 0, filename, cancellationToken, onProgress, retry);
+			return this.connector.request(method, path, params, responseType, body, timeout, filename, cancellationToken, onProgress, retry);
 		},
 
 		/**
@@ -350,24 +428,27 @@ export const useMachineStore = defineStore("machine", {
 
 		/**
 		 * Upload one or more files
-		 * @param files List of files to upload
+		 * @param fileOrFiles List of files to upload
 		 * @param showProgress Display upload progress
 		 * @param showSuccess Show notification upon successful uploads (for single uploads)
 		 * @param showError Show notification upon error
 		 * @param closeProgressOnSuccess Automatically close the progress indicator when finished
 		 */
-		async upload(files: Array<{ filename: string, content: any }> | { filename: string, content: any }, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false): files extends Object ? any : Array<any> {
+		async upload(fileOrFiles: Array<{ filename: string, content: any }> | { filename: string, content: any }, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false) {
 			if (this.connector === null) {
 				throw new OperationFailedError("upload is not available in default machine module");
 			}
-			if (files.length > 0 && this.changingMultipleFiles) {
+			if (!(fileOrFiles instanceof Array)) {
+				fileOrFiles = [fileOrFiles];
+			}
+			if (fileOrFiles.length > 0 && this.changingMultipleFiles) {
 				throw new Error("Cannot perform two multi-file transfers at the same time");
 			}
 
 			// Set up file transfer items
 			const cancellationToken: CancellationToken = { cancel() {} };
 			const fileTransfers: Array<FileTransferItem> = [];
-			for (const file of files) {
+			for (const file of fileOrFiles) {
 				fileTransfers.push({
 					filename: file.filename,
 					content: file.content,
@@ -383,18 +464,18 @@ export const useMachineStore = defineStore("machine", {
 
 			// Prepare the arguments and tell listeners that an upload is about to start
 			let notification: Notification | null = null;
-			if (files.length === 1) {
+			if (fileOrFiles.length === 1) {
 				if (showProgress) {
-					notification = makeFileTransferNotification(FileTransferType.upload, files[0].filename, cancellationToken);
+					notification = makeFileTransferNotification(FileTransferType.upload, fileOrFiles[0].filename, cancellationToken);
 				}
 				
-				Events.emit("fileUploading", { filename: files[0].filename, content: files[0].content, showProgress, showSuccess, showError, cancellationToken });
-			} else if (files.length > 1) {
+				Events.emit("fileUploading", { filename: fileOrFiles[0].filename, content: fileOrFiles[0].content, showProgress, showSuccess, showError, cancellationToken });
+			} else if (fileOrFiles.length > 1) {
 				if (this.changingMultipleFiles) {
 					throw new Error("Cannot perform two multi-file transfers at the same time");
 				}
 				this.changingMultipleFiles = true;
-				for (const file of files) {
+				for (const file of fileOrFiles) {
 					this.filesBeingChanged.push(file.filename);
 				}
 
@@ -403,7 +484,7 @@ export const useMachineStore = defineStore("machine", {
 
 			// Upload the file(s)
 			try {
-				for (let i = 0; i < files.length; i++) {
+				for (let i = 0; i < fileOrFiles.length; i++) {
 					const item = fileTransfers[i], filename = item.filename, content = item.content, startTime = new Date();
 					try {
 						// Check if config.g needs to be backed up
@@ -514,16 +595,29 @@ export const useMachineStore = defineStore("machine", {
 
 		/**
 		 * Download one or more files
-		 * @param files List of files to download (type defaults to JSON)
-		 * @param showProgress Display upload progress
-		 * @param showSuccess Show notification upon successful uploads (for single uploads)
+		 * @param fileOrFiles File or list of files to download (type defaults to JSON)
+		 * @param showProgress Display download progress
+		 * @param showSuccess Show notification upon successful downloads (for single downloads)
 		 * @param showError Show notification upon error
 		 * @param closeProgressOnSuccess Automatically close the progress indicator when finished
 		 * @returns Response if a single file was requested, else an array of responses
 		 */
-		async download(files: Array<{ filename: string, type?: XMLHttpRequestResponseType }>, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false): Promise<any> {
+		async download<T extends Array<DownloadItem> | DownloadItem | string>(fileOrFiles: T, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false): Promise<T extends Array<DownloadItem> ? Array<any> : any> {
 			if (this.connector === null) {
 				throw new OperationFailedError("download is not available in default machine module");
+			}
+			if (fileOrFiles instanceof Array && fileOrFiles.length > 0 && this.changingMultipleFiles) {
+				throw new Error("Cannot perform two multi-file transfers at the same time");
+			}
+
+			// Prepare list of files to transfer
+			let files: Array<DownloadItem>;
+			if (typeof fileOrFiles === "string") {
+				files = [{ filename: fileOrFiles }];
+			} else if (!(fileOrFiles instanceof Array)) {
+				files = [fileOrFiles];
+			} else {
+				files = fileOrFiles;
 			}
 
 			// Set up file transfer items
@@ -544,7 +638,7 @@ export const useMachineStore = defineStore("machine", {
 				this.filesBeingChanged.push(file.filename);
 			}
 
-			// Prepare the arguments and tell listeners that an upload is about to start
+			// Prepare the arguments and tell listeners that a download is about to start
 			let notification: Notification | null = null;
 			if (files.length === 1) {
 				if (showProgress) {
@@ -587,7 +681,7 @@ export const useMachineStore = defineStore("machine", {
 						);
 						item.progress = 1;
 
-						// File has been uploaded successfully, emit an event
+						// File has been downloaded successfully, emit an event
 						Events.emit("fileDownloaded", { filename, response, type, startTime, num: i, count: fileTransfers.length, showProgress, showSuccess, showError });
 
 						// Return the response if a single file was requested, else save it
@@ -614,7 +708,7 @@ export const useMachineStore = defineStore("machine", {
 					this.changingMultipleFiles = false;
 				}
 			}
-			return fileTransfers.map(item => item.content);
+			return (files.length === 1) ? fileTransfers[0].content : fileTransfers.map(item => item.content);
 		},
 
 		/**
@@ -685,6 +779,9 @@ export const useMachineStore = defineStore("machine", {
 				this.changingMultipleFiles = false;
 			}
 
+			// Raise an event
+			Events.emit("pluginInstalled", { zipFilename, zipBlob, zipFile, start });
+
 			// Start it if required and show a message
 			if (start && plugin.dwcFiles.length > 0) {
 				await loadDwcPlugin(plugin.id);
@@ -713,6 +810,9 @@ export const useMachineStore = defineStore("machine", {
 				// Done
 				this.changingMultipleFiles = false;
 			}
+
+			// Raise an event
+			Events.emit("pluginUninstalled", plugin);
 		},
 
 		/**

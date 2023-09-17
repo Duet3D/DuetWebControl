@@ -108,12 +108,6 @@ abstract class BaseConnector {
 	protected requestBase: string = "";
 
 	/**
-	 * Actual timeout for HTTP requests.
-	 * This is computed from the session timeout and then number of maximum retries
-	 */
-	requestTimeout = defaultRequestTimeout;
-
-	/**
 	 * Constructor of this class
 	 * @param host Hostname of the remote machine
 	 * @param pass Optional password used for authentification
@@ -122,6 +116,11 @@ abstract class BaseConnector {
 		this.hostname = host;
 		this.password = pass;
 	}
+
+	/**
+	 * Called when the first connection has been established and the settings + cache have been loaded
+	 */
+	abstract postConnect(): void;
 
 	/**
 	 * Make an arbitrary HTTP request to the machine
@@ -143,7 +142,7 @@ abstract class BaseConnector {
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {TimeoutError} A timeout has occurred
 	 */
-	request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
+	request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout?: number, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
 		throw new NotImplementedError("uninstallSystemPackage");
 	}
 

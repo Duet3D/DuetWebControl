@@ -1,5 +1,6 @@
 {
    "name": "duetwebcontrol",
+   "prettyName": "Duet Web Control",
    "version": "3.5.0-rc.1",
    "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
    "homepage": "https://forum.duet3d.com/category/27/duet-web-control",

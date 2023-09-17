@@ -2,8 +2,9 @@ import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 import Vue from "vue";
 
-import i18n, { getBrowserLocale } from "@/i18n";
+import i18n, { getBrowserLocale as getBrowserLocale } from "@/i18n";
 import { FileNotFoundError } from "@/utils/errors";
+import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import patch from "@/utils/patch";
 import Path from "@/utils/path";
@@ -31,7 +32,7 @@ export enum ToolChangeMacro {
 export enum WebcamFlip {
 	None = "none",
 	X = "x",
-	Y  = "y",
+	Y = "y",
 	Both = "both"
 }
 
@@ -44,7 +45,7 @@ export const useSettingsStore = defineStore("settings", {
 		enabledPlugins: [
 			"HeightMap",
 			"ObjectModelBrowser"
-		] as Array<string>,
+		],
 
 		/**
 		 * Custom plugin settings
@@ -52,9 +53,9 @@ export const useSettingsStore = defineStore("settings", {
 		plugins: Object.assign({}, DefaultPluginSettings) as Record<string, any>,
 
 		/**
-		 * Configured language
+		 * Configured locale
 		 */
-		language: getBrowserLocale(),
+		locale: getBrowserLocale(),
 
 		/**
 		 * Last hostname (only used in dev mode)
@@ -353,7 +354,7 @@ export const useSettingsStore = defineStore("settings", {
 		 */
 		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
 		//#endregion
-	}) as Record<string, any> & { main?: never, machine?: never },
+	}), //as Record<string, any> & { main?: never, machine?: never },
 	getters: {
 		toolChangeParameter: (state) => {
 			let pParam = 0;
@@ -412,7 +413,7 @@ export const useSettingsStore = defineStore("settings", {
 					}
 
 					// Merge general settings
-					Object.assign(settings, settingsToLoad.main);
+					patch(settings, settingsToLoad.main);
 
 					// Merge machine-specific settings if possible
 					if (settingsToLoad.machine instanceof Object) {
@@ -420,12 +421,11 @@ export const useSettingsStore = defineStore("settings", {
 							settings.enabledPlugins.push(...settingsToLoad.machine.enabledPlugins);
 							delete settingsToLoad.machine.enabledPlugins;
 						}
-						// TODO test if plugins record is patched and not overwritten
-						Object.assign(settings, settingsToLoad.machine);
+						patch(settings, settingsToLoad.machine);
 					}
 				} else if (settingsToLoad.machine instanceof Object) {
 					// Merge only machine-specific settings
-					Object.assign(settings, settingsToLoad.machine);
+					patch(settings, settingsToLoad.machine);
 				} else {
 					// New format
 					settings = settingsToLoad;
@@ -449,6 +449,9 @@ export const useSettingsStore = defineStore("settings", {
 
 				// Load plugins
 				await machineStore.loadDwcPlugins(that.enabledPlugins);
+
+				// Done
+				Events.emit("settingsLoaded");
 			}
 
 			// Try to load settings from local storage
@@ -492,6 +495,7 @@ export const useSettingsStore = defineStore("settings", {
 					}
 				}
 			}
+			Events.emit("settingsSaved");
 		},
 		async reset() {
 			const machineStore = useMachineStore();
@@ -515,8 +519,8 @@ export const useSettingsStore = defineStore("settings", {
 
 			// Check if there is a factory defaults file
 			try {
-				const defaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
-				await machineStore.upload([{ filename: Path.dwcSettingsFile, content: new Blob([defaults]) }, false, false);
+				const defaults = await machineStore.download({ filename: Path.dwcFactoryDefaults, type: "blob" }, false, false, false);
+				await machineStore.upload({ filename: Path.dwcSettingsFile, content: new Blob([defaults]) }, false, false);
 			} catch (e) {
 				// handled before we get here
 			}

@@ -54,7 +54,6 @@ export default Vue.extend({
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$emit("directoryCreationFailed", e);
 					if (this.showError) {
 						this.$makeNotification(LogType.error, this.$t("notification.newDirectory.errorTitle"), getErrorMessage(e));
 					}

@@ -1,8 +1,7 @@
-import ObjectModel, { AxisLetter, GCodeFileInfo, initObject, Job, Layer, MachineStatus, Message, Plugin, PluginManifest } from "@duet3d/objectmodel";
+import ObjectModel, { AxisLetter, GCodeFileInfo, Job, Layer, MachineStatus, Message, Plugin, PluginManifest, initObject } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import crc32 from "turbo-crc32/crc32";
 
-import Root from "@/main";
 import { useMachineStore } from "@/store/machine";
 import { isPaused, isPrinting } from "@/utils/enums";
 import {
@@ -12,12 +11,12 @@ import {
 	CodeResponseError, CodeBufferError
 } from "@/utils/errors";
 import Events from "@/utils/events";
-import { closeNotifications } from "@/utils/notifications";
 import Path from "@/utils/path";
 import { strToTime, timeToStr } from "@/utils/time";
 
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
 import { DefaultObjectModel } from "../defaults";
+import { useSettingsStore } from "../settings";
 
 /**
  * Keys in the object model to skip when performing a query
@@ -70,6 +69,7 @@ export default class PollConnector extends BaseConnector {
 			sessionKey: "yes"
 		}) as ConnectResponse;
 
+		const machineStore = useMachineStore();
 		switch (response.err) {
 			case 0:
 				if (response.isEmulated) {
@@ -77,7 +77,7 @@ export default class PollConnector extends BaseConnector {
 				}
 				if (response.apiLevel !== undefined && response.apiLevel > 0) {
 					// Don't hide the connection dialog while the full model is being loaded...
-					BaseConnector.setConnectingProgress(0);
+					machineStore.connectingProgress = 0;
 				} else {
 					// rr_status requests are no longer supported
 					throw new BadVersionError();
@@ -93,6 +93,11 @@ export default class PollConnector extends BaseConnector {
 	 * Maximum time between HTTP requests before the session times out (in ms)
 	 */
 	sessionTimeout = 8000;
+
+	/**
+	 * Indicates if the connection maintained by this particular instance is live
+	 */
+	isConnected = true;
 
 	/**
 	 * Indicates if a connection was just established
@@ -134,7 +139,7 @@ export default class PollConnector extends BaseConnector {
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {TimeoutError} A timeout has occurred
 	 */
-	override async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
+	override async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout?: number, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
 		let internalURL = this.requestBase + path;
 		if (params !== null) {
 			let hadParam = false;
@@ -144,7 +149,7 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		const xhr = new XMLHttpRequest();
+		const xhr = new XMLHttpRequest(), settingsStore = useSettingsStore();
 		xhr.open(method, internalURL);
 		xhr.responseType = (responseType === "json") ? "text" : responseType;
 		if (this.sessionKey !== null) {
@@ -158,13 +163,13 @@ export default class PollConnector extends BaseConnector {
 			}
 			xhr.upload.onprogress = xhr.onprogress;
 		}
-		xhr.timeout = timeout;
+		xhr.timeout = timeout ?? this.sessionTimeout / (settingsStore.ajaxRetries + 1);
 		if (cancellationToken) {
 			cancellationToken.cancel = () => xhr.abort();
 		}
 		this.requests.push(xhr);
 
-		const maxRetries = this.settings!.ajaxRetries, that = this;
+		const maxRetries = settingsStore.ajaxRetries, that = this;
 		return new Promise((resolve, reject) => {
 			xhr.onload = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
@@ -238,7 +243,7 @@ export default class PollConnector extends BaseConnector {
 			};
 			xhr.onabort = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
-				reject(that.updateLoopTimer ? new OperationCancelledError() : new DisconnectedError());
+				reject(that.isConnected ? new OperationCancelledError() : new DisconnectedError());
 			}
 			xhr.onerror = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
@@ -291,33 +296,15 @@ export default class PollConnector extends BaseConnector {
 	}
 
 	/**
-	 * Timer used to query the object model
+	 * Called when the first connection has been established and the settings + cache have been loaded
 	 */
-	updateLoopTimer: NodeJS.Timeout | null = null
-
-	/**
-	 * Schedule the next object model update
-	 */
-	scheduleUpdate() {
-		if (this.updateLoopTimer === null) {
-			this.updateLoopTimer = setTimeout(this.doUpdate.bind(this), this.settings!.updateInterval);
-		}
-	}
-
-	/**
-	 * Register the final machine module with this connector instance
-	 * @param module Machine module
-	 */
-	register(module: MachineModule) {
-		super.register(module);
-		this.requestTimeout = this.sessionTimeout / (this.settings!.ajaxRetries + 1)
-
+	postConnect() {
 		// Ideally we should be using a ServiceWorker here which would allow us to send push
 		// notifications even while DWC is running in the background. However, we cannot do
 		// this because ServiceWorkers require secured HTTP connections, which are no option
 		// for standard end-users. That is also the reason why they are disabled in the build
 		// script, which by default is used for improved caching
-		this.scheduleUpdate();
+		this.doUpdate();
 	}
 
 	/**
@@ -345,9 +332,10 @@ export default class PollConnector extends BaseConnector {
 						plugins[id].sbcPermissions = [];
 					}
 				}
-
 				this.plugins = plugins;
-				await this.updateModel({ plugins });
+
+				const machineStore = useMachineStore();
+				machineStore.model.update({ plugins });
 			}
 		} catch (e) {
 			if (!(e instanceof FileNotFoundError)) {
@@ -361,6 +349,7 @@ export default class PollConnector extends BaseConnector {
 	 */
 	async reconnect() {
 		// Cancel pending requests and reset the sequence numbers
+		this.isConnected = false;
 		this.cancelRequests();
 		this.lastJobFile = null;
 		this.lastSeqs = {};
@@ -374,20 +363,19 @@ export default class PollConnector extends BaseConnector {
 			time: timeToStr(new Date()),
 			sessionKey: "yes"
 		}) as ConnectResponse;
-
+		
+		const machineStore = useMachineStore();
 		switch (response.err) {
 			case 0:
 				this.justConnected = true;
-				closeNotifications(true);
 				this.sessionTimeout = response.sessionTimeout;
 				this.sessionKey = response.sessionKey ?? null;
-				this.requestTimeout = response.sessionTimeout / ((this.settings !== null) ? this.settings.ajaxRetries + 1 : 1);
 				this.apiLevel = response.apiLevel || 0;
 				if (this.apiLevel > 0) {
 					// Don't hide the connection dialog while the full model is being loaded...
-					BaseConnector.setConnectingProgress(0);
+					machineStore.connectingProgress = 0;
 				}
-				this.scheduleUpdate();
+				this.doUpdate();
 				break;
 			case 1:
 				// Bad password
@@ -406,18 +394,13 @@ export default class PollConnector extends BaseConnector {
 	 */
 	async disconnect() {
 		await this.request("GET", "rr_disconnect");
-	}
 
-	/**
-	 * Unregister the machine moduel again from this connector instance
-	 */
-	unregister() {
-		this.cancelRequests();
-		if (this.updateLoopTimer) {
-			clearTimeout(this.updateLoopTimer);
-			this.updateLoopTimer = null;
+		this.isConnected = false;
+		if (this.cancelUpdateDelay !== null) {
+			this.cancelUpdateDelay(new DisconnectedError());
+			this.cancelUpdateDelay = null;
 		}
-		super.unregister();
+		this.cancelRequests();
 	}
 
 	/**
@@ -460,188 +443,202 @@ export default class PollConnector extends BaseConnector {
 	 */
 	pendingCodes: Array<PendingCode> = []
 
+
 	/**
-	 * Method to be called repeatedly to maintain the underlying session
+	 * Optional method to cancel the currnet update loop
 	 */
-	async updateLoop() {
-		let jobKey: Job | null = null, status: MachineStatus | null = null;
-		if (this.justConnected) {
-			this.justConnected = false;
+	cancelUpdateDelay: ((reason?: any) => void) | null = null;
 
-			// Query the seqs field and the G-code reply initially if applicable
-			const seqs = (await this.request("GET", "rr_model", { key: "seqs" })).result;
-			this.lastSeqs = seqs;
-			if (this.lastSeqs.reply > 0) {
-				await this.getGCodeReply();
-			}
-			if (seqs.volChanges instanceof Array) {
-				this.lastVolSeqs = seqs.volChanges;
-			}
+	/*
+	 * Method to maintin the current session
+	 */
+	async doUpdate() {
+		const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+		try {
+			do {
+				let jobKey: Job | null = null, status: MachineStatus | null = null;
+				if (this.justConnected) {
+					this.justConnected = false;
 
-			// Query the full object model initially
-			try {
-				let keyIndex = 1;
-				for (let i = 0; i < keysToQuery.length; i++) {
-					const key = keysToQuery[i];
-					let keyResult = null, next = 0;
-					do {
-						const keyResponse = await this.request("GET", "rr_model", {
-							key,
-							flags: (next === 0) ? "d99vn" : `d99vna${next}`
-						});
+					// Query the seqs field and the G-code reply initially if applicable
+					const seqs = (await this.request("GET", "rr_model", { key: "seqs" })).result;
+					this.lastSeqs = seqs;
+					if (this.lastSeqs.reply > 0) {
+						await this.getGCodeReply();
+					}
+					if (seqs.volChanges instanceof Array) {
+						this.lastVolSeqs = seqs.volChanges;
+					}
 
-						next = keyResponse.next ? keyResponse.next : 0;
-						if (keyResult === null || !(keyResult instanceof Array)) {
-							keyResult = keyResponse.result;
-						} else {
-							keyResult = keyResult.concat(keyResponse.result);
-						}
-					} while (next !== 0);
-
+					// Query the full object model initially
 					try {
-						await this.updateModel({ [key]: keyResult });
+						let keyIndex = 1;
+						for (let i = 0; i < keysToQuery.length; i++) {
+							const key = keysToQuery[i];
+							let keyResult = null, next = 0;
+							do {
+								const keyResponse = await this.request("GET", "rr_model", {
+									key,
+									flags: (next === 0) ? "d99vn" : `d99vna${next}`
+								});
+
+								next = keyResponse.next ? keyResponse.next : 0;
+								if (keyResult === null || !(keyResult instanceof Array)) {
+									keyResult = keyResponse.result;
+								} else {
+									keyResult = keyResult.concat(keyResponse.result);
+								}
+							} while (next !== 0);
+
+							try {
+								await machineStore.updateModel({ [key]: keyResult });
+							} catch (e) {
+								console.warn(e);
+							}
+
+							machineStore.connectingProgress = (keyIndex++ / keysToQuery.length) * 100;
+
+							if (key === "job") {
+								jobKey = keyResult;
+							} else if (key === "state") {
+								status = keyResult.status;
+								this.lastUptime = keyResult.upTime;
+							}
+						}
+					} finally {
+						machineStore.connectingProgress = -1;
+					}
+				} else {
+					// Query live values
+					const response = await this.request("GET", "rr_model", { flags: "d99fn" });
+					jobKey = response.result.job as Job;
+					status = response.result.state.status as MachineStatus;
+
+					// Remove seqs key, it is only maintained by the connector
+					const seqs = response.result.seqs;
+					delete response.result.seqs;
+
+					// Update fields that are not part of RRF yet
+					if (!isPrinting(status) && this.lastStatus !== null && isPrinting(this.lastStatus)) {
+						response.result.job.lastFileCancelled = isPaused(this.lastStatus);
+						response.result.job.lastFileSimulated = this.wasSimulating;
+					}
+
+					if (status === MachineStatus.simulating) {
+						this.wasSimulating = true;
+					} else if (!isPrinting(status)) {
+						this.wasSimulating = false;
+					}
+
+					// Try to apply new values
+					try {
+						await machineStore.updateModel(response.result);
 					} catch (e) {
 						console.warn(e);
 					}
 
-					BaseConnector.setConnectingProgress((keyIndex++ / keysToQuery.length) * 100);
+					// Check if any of the non-live fields have changed and query them if so
+					for (let key of keysToQuery) {
+						if (this.lastSeqs[key] !== seqs[key]) {
+							let keyResult = null, next = 0;
+							do {
+								const keyResponse = await this.request("GET", "rr_model", {
+									key,
+									flags: (next === 0) ? "d99vn" : `d99vna${next}`
+								});
 
-					if (key === "job") {
-						jobKey = keyResult;
-					} else if (key === "state") {
-						status = keyResult.status;
-						this.lastUptime = keyResult.upTime;
-					}
-				}
-			} finally {
-				BaseConnector.setConnectingProgress(-1);
-			}
-		} else {
-			// Query live values
-			const response = await this.request("GET", "rr_model", { flags: "d99fn" });
-			jobKey = response.result.job as Job;
-			status = response.result.state.status as MachineStatus;
+								next = keyResponse.next ? keyResponse.next : 0;
+								if (keyResult === null || !(keyResult instanceof Array)) {
+									keyResult = keyResponse.result;
+								} else {
+									keyResult = keyResult.concat(keyResponse.result);
+								}
+							} while (next !== 0);
 
-			// Remove seqs key, it is only maintained by the connector
-			const seqs = response.result.seqs;
-			delete response.result.seqs;
+							try {
+								await machineStore.updateModel({ [key]: keyResult });
+							} catch (e) {
+								console.warn(e);
+							}
 
-			// Update fields that are not part of RRF yet
-			if (!isPrinting(status) && this.lastStatus !== null && isPrinting(this.lastStatus)) {
-				response.result.job.lastFileCancelled = isPaused(this.lastStatus);
-				response.result.job.lastFileSimulated = this.wasSimulating;
-			}
-
-			if (status === MachineStatus.simulating) {
-				this.wasSimulating = true;
-			} else if (!isPrinting(status)) {
-				this.wasSimulating = false;
-			}
-
-			// Try to apply new values
-			try {
-				await this.updateModel(response.result);
-			} catch (e) {
-				console.warn(e);
-			}
-
-			// Check if any of the non-live fields have changed and query them if so
-			for (let key of keysToQuery) {
-				if (this.lastSeqs[key] !== seqs[key]) {
-					let keyResult = null, next = 0;
-					do {
-						const keyResponse = await this.request("GET", "rr_model", {
-							key,
-							flags: (next === 0) ? "d99vn" : `d99vna${next}`
-						});
-
-						next = keyResponse.next ? keyResponse.next : 0;
-						if (keyResult === null || !(keyResult instanceof Array)) {
-							keyResult = keyResponse.result;
-						} else {
-							keyResult = keyResult.concat(keyResponse.result);
-						}
-					} while (next !== 0);
-
-					try {
-						await this.updateModel({ [key]: keyResult });
-					} catch (e) {
-						console.warn(e);
-					}
-
-					if (key === "job") {
-						jobKey = keyResult;
-					}
-				}
-			}
-
-			// Reload file lists automatically when files are changed on the SD card
-			if (seqs.volChanges instanceof Array) {
-				for (let i = 0; i < Math.min(seqs.volChanges.length, this.lastVolSeqs.length); i++) {
-					if (seqs.volChanges[i] !== this.lastVolSeqs[i]) {
-						Root.$emit(Events.filesOrDirectoriesChanged, {
-							machine: this.hostname,
-							volume: i
-						});
-					}
-				}
-				this.lastVolSeqs = seqs.volChanges;
-			}
-
-			// Check if the firmware has rebooted
-			if (response.result.state.upTime < this.lastUptime) {
-				this.justConnected = true;
-
-				// Resolve pending codes
-				this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
-				this.pendingCodes = [];
-
-				// Dismiss pending notifications
-				closeNotifications(true);
-
-				// Send the rr_connect request and datetime again after a firmware reset
-				await this.request("GET", "rr_connect", {
-					password: this.password,
-					time: timeToStr(new Date())
-				});
-			}
-			this.lastUptime = response.result.state.upTime;
-
-			// Finally, check if there is a new G-code reply available
-			const fetchGCodeReply = (this.lastSeqs.reply !== seqs.reply);
-			this.lastSeqs = seqs;
-			if (fetchGCodeReply) {
-				await this.getGCodeReply();
-			}
-		}
-
-		if (jobKey) {
-			// See if we need to record more layer stats
-			if (this.updateLayersModel()) {
-				await this.updateModel({
-					job: {
-						layers: this.layers
-					}
-				});
-			}
-
-			// Check for updated thumbnails
-			if (jobKey.file && jobKey.file.fileName && jobKey.file.thumbnails && this.lastJobFile !== jobKey.file.fileName) {
-				await this.getThumbnails(jobKey.file);
-				await this.updateModel({
-					job: {
-						file: {
-							thumbnails: jobKey.file.thumbnails
+							if (key === "job") {
+								jobKey = keyResult;
+							}
 						}
 					}
+
+					// Reload file lists automatically when files are changed on the SD card
+					if (seqs.volChanges instanceof Array) {
+						for (let i = 0; i < Math.min(seqs.volChanges.length, this.lastVolSeqs.length); i++) {
+							if (seqs.volChanges[i] !== this.lastVolSeqs[i]) {
+								Events.emit("filesOrDirectoriesChanged", { volume: i });
+							}
+						}
+						this.lastVolSeqs = seqs.volChanges;
+					}
+
+					// Check if the firmware has rebooted
+					if (response.result.state.upTime < this.lastUptime) {
+						this.justConnected = true;
+
+						// Resolve pending codes
+						this.pendingCodes.forEach(code => code.reject(new OperationCancelledError()));
+						this.pendingCodes = [];
+
+						// Send the rr_connect request and datetime again after a firmware reset
+						await this.request("GET", "rr_connect", {
+							password: this.password,
+							time: timeToStr(new Date())
+						});
+					}
+					this.lastUptime = response.result.state.upTime;
+
+					// Finally, check if there is a new G-code reply available
+					const fetchGCodeReply = (this.lastSeqs.reply !== seqs.reply);
+					this.lastSeqs = seqs;
+					if (fetchGCodeReply) {
+						await this.getGCodeReply();
+					}
+				}
+
+				if (jobKey) {
+					// See if we need to record more layer stats
+					if (this.updateLayersModel()) {
+						await machineStore.updateModel({
+							job: {
+								layers: this.layers
+							}
+						});
+					}
+
+					// Check for updated thumbnails
+					if (jobKey.file && jobKey.file.fileName && jobKey.file.thumbnails && this.lastJobFile !== jobKey.file.fileName) {
+						await this.getThumbnails(jobKey.file);
+						await machineStore.updateModel({
+							job: {
+								file: {
+									thumbnails: jobKey.file.thumbnails
+								}
+							}
+						});
+						this.lastJobFile = jobKey.file.fileName;
+					}
+				}
+				this.lastStatus = status;
+
+				// Wait for the next model update
+				await new Promise((resolve, reject) => {
+					this.cancelUpdateDelay = reject;
+					setTimeout(resolve, settingsStore.updateInterval);
 				});
-				this.lastJobFile = jobKey.file.fileName;
+				this.cancelUpdateDelay = null;
+			} while (this.isConnected);
+		} catch (e) {
+			if (!(e instanceof DisconnectedError)) {
+				this.isConnected = false;
+				machineStore.handleConnectionError(e);
 			}
 		}
-
-		// Schedule the next status update
-		this.lastStatus = status;
-		this.scheduleUpdate();
 	}
 
 	/**
@@ -675,7 +672,8 @@ export default class PollConnector extends BaseConnector {
 	 */
 	updateLayersModel() {
 		// Are we printing?
-		if (this.model.job.duration === null || this.model.job.file === null) {
+		const machineStore = useMachineStore();
+		if (machineStore.model.job.duration === null || machineStore.model.job.file === null) {
 			if (this.lastLayer !== -1) {
 				this.lastLayer = -1;
 				this.lastDuration = this.lastFilePosition = this.lastHeight = 0;
@@ -692,19 +690,19 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Don't continue from here unless the layer number is known and valid
-		if (this.model.job.layer === null || this.model.job.layer < 0) {
+		if (machineStore.model.job.layer === null || machineStore.model.job.layer < 0) {
 			return false;
 		}
 
-		if (this.model.job.layer > 0 && this.model.job.layer !== this.lastLayer) {
+		if (machineStore.model.job.layer > 0 && machineStore.model.job.layer !== this.lastLayer) {
 			// Compute layer usage stats first
-			const numChangedLayers = (this.model.job.layer > this.lastLayer) ? Math.abs(this.model.job.layer - this.lastLayer) : 1;
-			const printDuration = this.model.job.duration - (this.model.job.warmUpDuration !== null ? this.model.job.warmUpDuration : 0);
+			const numChangedLayers = (machineStore.model.job.layer > this.lastLayer) ? Math.abs(machineStore.model.job.layer - this.lastLayer) : 1;
+			const printDuration = machineStore.model.job.duration - (machineStore.model.job.warmUpDuration !== null ? machineStore.model.job.warmUpDuration : 0);
 			const avgLayerDuration = (printDuration - this.lastDuration) / numChangedLayers;
 			const totalFilamentUsage: Array<number> = [], avgFilamentUsage: Array<number> = [];
-			const bytesPrinted = (this.model.job.filePosition !== null) ? (this.model.job.filePosition as number - this.lastFilePosition) : 0;
-			const avgFractionPrinted = (this.model.job.file.size > 0) ? bytesPrinted / (this.model.job.file.size as number * numChangedLayers) : 0;
-			this.model.move.extruders.forEach((extruder, index) => {
+			const bytesPrinted = (machineStore.model.job.filePosition !== null) ? (machineStore.model.job.filePosition as number - this.lastFilePosition) : 0;
+			const avgFractionPrinted = (machineStore.model.job.file.size > 0) ? bytesPrinted / (machineStore.model.job.file.size as number * numChangedLayers) : 0;
+			machineStore.model.move.extruders.forEach((extruder, index) => {
 				if (extruder !== null) {
 					const lastFilamentUsage = (index < this.lastFilamentUsage.length) ? this.lastFilamentUsage[index] : 0;
 					totalFilamentUsage.push(extruder.rawPosition);
@@ -713,12 +711,12 @@ export default class PollConnector extends BaseConnector {
 			});
 
 			// Get layer height
-			const currentHeight = this.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.userPosition ?? 0;
-			const avgLayerHeight = Math.abs(currentHeight - this.lastHeight) / Math.abs(this.model.job.layer - this.lastLayer);
+			const currentHeight = machineStore.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.userPosition ?? 0;
+			const avgLayerHeight = Math.abs(currentHeight - this.lastHeight) / Math.abs(machineStore.model.job.layer - this.lastLayer);
 
-			if (this.model.job.layer > this.lastLayer) {
+			if (machineStore.model.job.layer > this.lastLayer) {
 				// Add new layers
-				for (let i = this.layers.length; i < this.model.job.layer - 1; i++) {
+				for (let i = this.layers.length; i < machineStore.model.job.layer - 1; i++) {
 					const newLayer = new Layer();
 					newLayer.duration = avgLayerDuration;
 					avgFilamentUsage.forEach(function (filamentUsage) {
@@ -726,20 +724,20 @@ export default class PollConnector extends BaseConnector {
 					});
 					newLayer.fractionPrinted = avgFractionPrinted;
 					newLayer.height = avgLayerHeight;
-					for (const sensor of this.model.sensors.analog) {
+					for (const sensor of machineStore.model.sensors.analog) {
 						if (sensor != null) {
 							newLayer.temperatures.push(sensor.lastReading ?? -273.15);
 						}
 					}
 					this.layers.push(newLayer);
 				}
-			} else if (this.model.job.layer < this.lastLayer) {
+			} else if (machineStore.model.job.layer < this.lastLayer) {
 				// Layer count went down (probably printing sequentially), update the last layer
 				let lastLayer;
 				if (this.layers.length < this.lastLayer) {
 					lastLayer = new Layer();
 					lastLayer.height = avgLayerHeight;
-					for (const sensor of this.model.sensors.analog) {
+					for (const sensor of machineStore.model.sensors.analog) {
 						if (sensor != null) {
 							lastLayer.temperatures.push(sensor.lastReading ?? -273.15);
 						}
@@ -763,25 +761,12 @@ export default class PollConnector extends BaseConnector {
 			// Record values for the next layer change
 			this.lastDuration = printDuration;
 			this.lastFilamentUsage = totalFilamentUsage;
-			this.lastFilePosition = (this.model.job.filePosition != null) ? this.model.job.filePosition as number : 0;
+			this.lastFilePosition = (machineStore.model.job.filePosition != null) ? machineStore.model.job.filePosition as number : 0;
 			this.lastHeight = currentHeight;
-			this.lastLayer = this.model.job.layer;
+			this.lastLayer = machineStore.model.job.layer;
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * Called to update run the next object model query
-	 */
-	async doUpdate() {
-		this.updateLoopTimer = null;
-		try {
-			// Request object model updates
-			await this.updateLoop();
-		} catch (e) {
-			await this.onConnectionError(e);
-		}
 	}
 
 	/**
@@ -850,7 +835,8 @@ export default class PollConnector extends BaseConnector {
 			this.pendingCodes = this.pendingCodes.filter(code => (seq !== null) && (code.seq >= seq));
 		} else if (reply !== "") {
 			// Forward generic messages to the machine module
-			this.updateModel({ messages: [initObject(Message, { content: reply })] });
+			const machineStore = useMachineStore();
+			machineStore.updateModel({ messages: [initObject(Message, { content: reply })] });
 		}
 	}
 
@@ -862,19 +848,15 @@ export default class PollConnector extends BaseConnector {
 	 * @param onProgress Optional callback for progress reports
 	 */
 	async upload(filename: string, content: string | Blob | File, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<void> {
-		if (!this.settings) {
-			throw new OperationFailedError("Settings not available")
-		}
-
 		// Create upload options
-		const payload = (content instanceof Blob) ? content : new Blob([content]);
+		const payload = (content instanceof Blob) ? content : new Blob([content]), settingsStore = useSettingsStore();
 		const params: Record<string, any> = {
 			name: filename,
-			time: timeToStr((!this.settings.ignoreFileTimestamps && content instanceof File) ? new Date(content.lastModified) : new Date())
+			time: timeToStr((!settingsStore.ignoreFileTimestamps && content instanceof File) ? new Date(content.lastModified) : new Date())
 		};
 
 		// Check if the CRC32 checksum is required
-		if (this.settings.crcUploads) {
+		if (settingsStore.crcUploads) {
 			const checksum = await new Promise<number>((resolve, reject) => {
 				const fileReader = new FileReader();
 				fileReader.onload = (e) => {
@@ -893,14 +875,14 @@ export default class PollConnector extends BaseConnector {
 
 		// Perform actual upload in the background. It might fail due to CRC errors, so keep retrying
 		let response: any;
-		for (let retry = 0; retry < this.settings.ajaxRetries; retry++) {
+		for (let retry = 0; retry < settingsStore.ajaxRetries; retry++) {
 			response = await this.request("POST", "rr_upload", params, "json", payload, 0, filename, cancellationToken, onProgress, retry);
 			if (response.err === 0) {
 				// Upload successful
 				return;
 			}
 
-			if (payload.size > this.settings.fileTransferRetryThreshold) {
+			if (payload.size > settingsStore.fileTransferRetryThreshold) {
 				// Don't retry if the payload is too big
 				break;
 			}
@@ -914,7 +896,7 @@ export default class PollConnector extends BaseConnector {
 	 * @param recursive Delete directories recursively
 	 */
 	async delete(filename: string, recursive?: boolean): Promise<void> {
-		const response = await this.request("GET", "rr_delete", (recursive !== undefined) ? { name: filename, recursive: recursive ? "yes" : "no" } : { name: filename }, "json", null, this.requestTimeout, filename);
+		const response = await this.request("GET", "rr_delete", (recursive !== undefined) ? { name: filename, recursive: recursive ? "yes" : "no" } : { name: filename }, "json", null, undefined, filename);
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
@@ -931,7 +913,7 @@ export default class PollConnector extends BaseConnector {
 			old: from,
 			new: to,
 			deleteexisting: force ? "yes" : "no"
-		}, "json", null, this.requestTimeout, from);
+		}, "json", null, undefined, from);
 
 		if (response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
@@ -1080,7 +1062,7 @@ export default class PollConnector extends BaseConnector {
 		plugin.pid = -1;
 
 		// Install the files
-		const numFiles = Object.keys(zipFile.files).length;
+		const numFiles = Object.keys(zipFile.files).length, machineStore = useMachineStore();
 		let filesUploaded = 0;
 		for (let file in zipFile.files) {
 			if (file.endsWith('/')) {
@@ -1090,7 +1072,7 @@ export default class PollConnector extends BaseConnector {
 			let targetFilename = null;
 			if (file.startsWith("dwc/")) {
 				const filename = file.substring(4);
-				targetFilename = Path.combine(this.model.directories.web , filename);
+				targetFilename = Path.combine(machineStore.model.directories.web , filename);
 				plugin.dwcFiles.push(filename);
 			} else if (file.startsWith("sd/")) {
 				const filename = file.substring(3);
@@ -1111,7 +1093,7 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 
-		// Update the plugins file
+		// Update the object model and plugins file
 		try {
 			const plugins = await this.download(Path.dwcPluginsFile);
 			if (!(plugins instanceof Array)) {
@@ -1123,34 +1105,13 @@ export default class PollConnector extends BaseConnector {
 			}
 		}
 		this.plugins[plugin.id] = plugin;
+		machineStore.updateModel({ plugins: this.plugins });
 		await this.upload(Path.dwcPluginsFile, JSON.stringify(this.plugins));
 
 		if (onProgress !== undefined) {
 			onProgress(numFiles + 1, numFiles + 1, 0);
 		}
-
-		// Install the plugin manifest
-		this.addPlugin(plugin);
 	}
-
-		addPlugin(state, plugin: Plugin) {
-			typedState.plugins.set(plugin.id, plugin);
-
-			const clonedPlugins = new Map<string, Plugin>();
-			for (const [key, value] of typedState.plugins) {
-				clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
-			}
-			Vue.set(state, "plugins", clonedPlugins);
-		},
-		removePlugin(state, plugin: Plugin) {
-			typedState.plugins.delete(plugin.id);
-
-			const clonedPlugins = new Map<string, Plugin>();
-			for (const [key, value] of typedState.plugins) {
-				clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
-			}
-			Vue.set(state, "plugins", clonedPlugins);
-		},
 
 	/**
 	 * Uninstall a third-party plugin
@@ -1158,11 +1119,6 @@ export default class PollConnector extends BaseConnector {
 	 * @param forUpgrade Uninstall this plugin only temporarily because it is being updated
 	 */
 	async uninstallPlugin(plugin: Plugin, forUpgrade?: boolean) {
-		const model: ObjectModel | undefined = this.module?.modules?.model.state;
-		if (!model) {
-			throw new Error("Object model is not available");
-		}
-
 		// Make sure uninstalling this plugin does not break any dependencies
 		if (!forUpgrade) {
 			for (let id in this.plugins) {
@@ -1173,12 +1129,15 @@ export default class PollConnector extends BaseConnector {
 		}
 
 		// Uninstall the plugin manifest
-		this.removePlugin(plugin);
+		delete this.plugins[plugin.id];
+
+		const machineStore = useMachineStore();
+		machineStore.updateModel({ plugins: this.plugins });
 
 		// Delete DWC files
 		for (const dwcFile of plugin.dwcFiles) {
 			try {
-				await this.delete(Path.combine(model.directories.web, dwcFile));
+				await this.delete(Path.combine(machineStore.model.directories.web, dwcFile));
 			} catch (e) {
 				if (e instanceof OperationFailedError) {
 					console.warn(e);

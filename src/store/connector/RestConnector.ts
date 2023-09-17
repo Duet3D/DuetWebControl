@@ -1,4 +1,4 @@
-import ObjectModel, { GCodeFileInfo, initObject, Plugin, PluginManifest } from "@duet3d/objectmodel";
+import ObjectModel, { GCodeFileInfo, Plugin, PluginManifest, initObject } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 
 import {
@@ -10,7 +10,8 @@ import { closeNotifications } from "@/utils/notifications";
 import { strToTime } from "@/utils/time";
 
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
-import { MachineModule } from "..";
+import { useSettingsStore } from "../settings";
+import { useMachineStore } from "../machine";
 
 /**
  * Class for communication between DWC and DSF
@@ -123,7 +124,7 @@ export default class RestConnector extends BaseConnector {
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {TimeoutError} A timeout has occurred
 	 */
-	override async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout = this.requestTimeout, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
+	override async request(method: string, path: string, params: Record<string, string | number | boolean> | null = null, responseType: XMLHttpRequestResponseType = "json", body: any = null, timeout?: number, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry = 0): Promise<any> {
 		let internalURL = this.requestBase + path;
 		if (params) {
 			let hadParam = false;
@@ -147,7 +148,7 @@ export default class RestConnector extends BaseConnector {
 			}
 			xhr.upload.onprogress = xhr.onprogress;
 		}
-		xhr.timeout = 0;
+		xhr.timeout = timeout ?? 0;
 		if (cancellationToken) {
 			cancellationToken.cancel = () => xhr.abort();
 		}
@@ -204,11 +205,9 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	/**
-	 * Register the final machine module with this connector instance
-	 * @param module Machine module
+	 * Called when the first connection has been established and the settings + cache have been loaded
 	 */
-	register(module: MachineModule) {
-		super.register(module);
+	postConnect() {
 		this.startSocket();
 	}
 
@@ -217,7 +216,8 @@ export default class RestConnector extends BaseConnector {
 	 */
 	async startSocket() {
 		// Send PING in predefined intervals to detect disconnects from the client side
-		this.pingTask = setTimeout(this.doPing.bind(this), this.settings!.pingInterval);
+		const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+		this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
 
 		// Set up socket events
 		this.socket!.onmessage = this.onMessage.bind(this);
@@ -225,7 +225,7 @@ export default class RestConnector extends BaseConnector {
 		this.socket!.onclose = this.onClose.bind(this);
 
 		// Update model and acknowledge receipt
-		await this.updateModel(this.initialModel);
+		await machineStore.updateModel(this.initialModel);
 		this.socket!.send("OK\n");
 	}
 
@@ -241,9 +241,11 @@ export default class RestConnector extends BaseConnector {
 		// Although the WebSocket standard is supposed to provide PING frames,
 		// there is no way to send them since a WebSocket instance does not provide a method for that.
 		// Hence, we rely on our own optional PING-PONG implementation
-		if (this.socket !== null && this.settings !== null) {
+		if (this.socket !== null) {
 			this.socket.send("PING\n");
-			this.pingTask = setTimeout(this.doPing.bind(this), this.settings.pingInterval);
+
+			const settingsStore = useSettingsStore();
+			this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
 		}
 	}
 
@@ -256,13 +258,14 @@ export default class RestConnector extends BaseConnector {
 		if (this.socket == null) {
 			return;
 		}
+		const machineStore = useMachineStore(), settingsStore = useSettingsStore();
 
 		// Use PING/PONG messages to detect connection interrupts
 		if (this.pingTask) {
 			// We've just received something, reset the ping task
 			clearTimeout(this.pingTask);
 		}
-		this.pingTask = setTimeout(this.doPing.bind(this), this.settings!.pingInterval);
+		this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
 
 		// It's just a PONG reply, ignore this
 		if (e.data === "PONG\n") {
@@ -271,11 +274,11 @@ export default class RestConnector extends BaseConnector {
 
 		// Process model updates
 		const data = JSON.parse(e.data);
-		await this.updateModel(data);
+		await machineStore.updateModel(data);
 
 		// Acknowledge receipt
-		if (this.settings!.updateDelay > 0) {
-			setTimeout(() => this.socket?.send("OK\n"), this.settings!.updateDelay);
+		if (settingsStore.updateDelay > 0) {
+			setTimeout(() => this.socket?.send("OK\n"), settingsStore.updateDelay);
 		} else {
 			this.socket.send("OK\n");
 		}
@@ -293,9 +296,10 @@ export default class RestConnector extends BaseConnector {
 
 		if (this.socket) {
 			this.cancelRequests();
-
 			this.socket = null;
-			this.onConnectionError(new NetworkError());
+			
+			const machineStore = useMachineStore();
+			machineStore.handleConnectionError(new NetworkError());
 		}
 	}
 
@@ -311,9 +315,10 @@ export default class RestConnector extends BaseConnector {
 
 		if (this.socket) {
 			this.cancelRequests();
-
 			this.socket = null;
-			this.onConnectionError(new NetworkError(e.reason));
+
+			const machineStore = useMachineStore();
+			machineStore.handleConnectionError(new NetworkError(e.reason));
 		}
 	}
 
@@ -339,18 +344,18 @@ export default class RestConnector extends BaseConnector {
 		}
 
 		// Attempt to reconnect
-		const that = this;
+		const machineStore = useMachineStore();
 		await new Promise<void>((resolve, reject) => {
-			const lastDsfVersion = that.model.sbc?.dsf.version;
+			const lastDsfVersion = machineStore.model.sbc?.dsf.version;
 			const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : "")}`);
+			const socket = new WebSocket(`${socketProtocol}//${this.hostname}${process.env.BASE_URL}machine${(this.sessionKey ? `?sessionKey=${this.sessionKey}` : "")}`);
 			socket.onmessage = (e) => {
 				// Successfully connected, the first message is the full object model
-				that.initialModel = JSON.parse(e.data);
-				that.socket = socket;
+				this.initialModel = JSON.parse(e.data);
+				this.socket = socket;
 
 				// Check if DSF has been updated
-				if (lastDsfVersion !== that.model.sbc?.dsf.version) {
+				if (lastDsfVersion !== machineStore.model.sbc?.dsf.version) {
 					location.reload();
 				}
 
@@ -373,7 +378,7 @@ export default class RestConnector extends BaseConnector {
 		});
 
 		// Apply new socket and machine model
-		await that.startSocket();
+		await this.startSocket();
 	}
 
 	/**
@@ -394,14 +399,8 @@ export default class RestConnector extends BaseConnector {
 			await this.request("GET", "machine/disconnect");
 			this.sessionKey = null;
 		}
-	}
 
-	/**
-	 * Unregister the machine moduel again from this connector instance
-	 */
-	unregister() {
 		this.cancelRequests();
-		super.unregister();
 	}
 
 	/**
@@ -429,8 +428,8 @@ export default class RestConnector extends BaseConnector {
 	 * @param onProgress Optional callback for progress reports
 	 */
 	async upload(filename: string, content: string | Blob | File, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<void> {
-		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
-		if (!this.settings?.ignoreFileTimestamps && content instanceof File) {
+		const payload = (content instanceof(Blob)) ? content : new Blob([content]), settingsStore = useSettingsStore();
+		if (!settingsStore.ignoreFileTimestamps && content instanceof File) {
 			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), { lastModified: content.lastModified }, "", payload, 0, filename, cancellationToken, onProgress);
 		} else {
 			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), null, "", payload, 0, filename, cancellationToken, onProgress);

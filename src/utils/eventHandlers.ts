@@ -1,13 +1,11 @@
 import i18n from "@/i18n";
-import { useMachineStore } from "@/store/machine";
 
 import { InvalidPasswordError, OperationCancelledError, getErrorMessage } from "./errors";
 import Events from "./events";
 import Path from "./path";
 import { LogType, logGlobal, logToConsole } from "./logging";
-import { DefaultPassword, DefaultUsername } from "@/store/defaults";
 import { displayTime } from "./display";
-import { Notification, makeNotification } from "./notifications";
+import { Notification, closeNotifications, makeNotification } from "./notifications";
 import { loadedDwcPlugins } from "@/plugins";
 
 Events.on("connected", (hostname) => {
@@ -19,21 +17,17 @@ Events.on("connectError", ({ hostname, error }) => {
 });
 
 Events.on("connectionError", async ({ hostname, error }) => {
-    const machineStore = useMachineStore();
     if (error instanceof InvalidPasswordError) {
         logGlobal(LogType.error, i18n.t("events.connectionLost", [hostname]), error.message);
-        await machineStore.disconnect(false);
-        Events.emit("invalidPassword", { hostname, username: DefaultUsername, password: DefaultPassword });
     } else if (process.env.NODE_ENV !== "production") {
         logGlobal(LogType.error, i18n.t("events.connectionLost", [hostname]), error.message);
-        await machineStore.disconnect(false);
     } else {
         logGlobal(LogType.warning, i18n.t("events.reconnecting", [hostname]), error.message);
-        await machineStore.reconnect();
     }
 });
 
 Events.on("reconnected", () => {
+    closeNotifications(true);
     logGlobal(LogType.success, i18n.t("events.reconnected"));
 });
 
