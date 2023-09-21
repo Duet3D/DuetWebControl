@@ -97,6 +97,9 @@ export default class RestConnector extends BaseConnector {
 		this.socket = socket;
 		this.initialModel = model;
 		this.sessionKey = sessionKey;
+
+		useMachineStore().updateModel(model);
+		this.startSocket();
 	}
 
 	/**
@@ -409,15 +412,15 @@ export default class RestConnector extends BaseConnector {
 	 * @param noWait Whether the call may return as soon as the code has been enqueued for execution
 	 * @returns Code reply unless noWait is true
 	 */
-	 async sendCode(code: string, noWait: boolean): Promise<string | void> {
-		let reply;
+	async sendCode<B extends boolean>(code: string, noWait: B): Promise<B extends true ? void : string> {
+		let reply: string;
 		try {
 			const response = await this.request("POST", "machine/code", noWait ? { async: true } : null, "text", code);
 			reply = response.trim();
 		} catch (e) {
 			reply = "Error: " + getErrorMessage(e);
 		}
-		return reply;
+		return (noWait ? undefined : reply) as B extends true ? void : string;
 	}
 
 	/**

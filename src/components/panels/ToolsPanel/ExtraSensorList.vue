@@ -31,9 +31,9 @@ table th {
         <tbody>
             <tr v-for="extraSensor in extraSensors" :key="`extra-${extraSensor.index}`">
                 <td class="hidden-sm-and-down">
-                    <v-switch class="ml-3" :input-value="displayedExtraTemperatures.indexOf(extraSensor.index) !== -1"
-                              @change="toggleExtraVisibility(extraSensor.index)"
-                              :label="$t('panel.tools.extra.showInChart')" :disabled="uiFrozen" />
+                    <v-switch class="ml-3" :input-value="settingsStore.displayedExtraTemperatures.indexOf(extraSensor.index) !== -1"
+                              @change="settingsStore.toggleExtraVisibility(extraSensor.index)"
+                              :label="$t('panel.tools.extra.showInChart')" :disabled="uiStore.uiFrozen" />
                 </td>
                 <th class="py-2" :class="getExtraColor(extraSensor.index)">
                     {{ formatExtraName(extraSensor) }}
@@ -54,9 +54,13 @@ import { AnalogSensor, AnalogSensorType } from "@duet3d/objectmodel";
 import { computed } from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 import { getExtraColor } from "@/utils/colors";
 import { displaySensorValue } from "@/utils/display";
+
+const machineStore = useMachineStore(), settingsStore = useSettingsStore(), uiStore = useUiStore();
 
 interface ExtraSensor {
     sensor: AnalogSensor;
@@ -64,22 +68,14 @@ interface ExtraSensor {
 }
 
 const extraSensors = computed<Array<ExtraSensor>>(() => {
-    const heaters = store.state.machine.model.heat.heaters;
-    return store.state.machine.model.sensors.analog
+    const heaters = machineStore.model.heat.heaters;
+    return machineStore.model.sensors.analog
         .map((sensor, index) => ({
             sensor,
             index
         }))
         .filter(({ sensor, index }) => (sensor !== null) && !heaters.some(heater => (heater !== null) && (heater.sensor === index))) as Array<ExtraSensor>;
 });
-
-const displayedExtraTemperatures = computed(() => store.state.machine.settings.displayedExtraTemperatures);
-
-function toggleExtraVisibility(sensor: number) {
-    store.commit("machine/settings/toggleExtraVisibility", sensor);
-}
-
-const uiFrozen = computed<boolean>(() => store.getters["uiFrozen"]);
 
 function formatExtraName(sensor: { sensor: AnalogSensor, index: number }) {
     if (sensor.sensor.name) {

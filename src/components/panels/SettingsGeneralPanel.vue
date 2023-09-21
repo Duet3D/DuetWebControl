@@ -38,36 +38,18 @@
 </template>
 
 <script lang="ts">
+import { mapState, mapWritableState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-import { SettingsState } from "@/store/settings";
 import { localStorageSupported } from "@/utils/localStorage";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		supportsLocalStorage() { return localStorageSupported; },
-		darkTheme: {
-			get(): boolean { return store.state.settings.darkTheme; },
-			set(value: boolean) { this.update({ darkTheme: value }); }
-		},
-		settingsStorageLocal: {
-			get(): boolean { return store.state.settings.settingsStorageLocal; },
-			set(value: boolean) { this.update({ settingsStorageLocal: value }); }
-		},
-		settingsSaveDelay: {
-			get(): number { return store.state.settings.settingsSaveDelay; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ settingsSaveDelay: value }); } }
-		},
-		cacheStorageLocal: {
-			get(): boolean { return store.state.settings.cacheStorageLocal; },
-			set(value: boolean) { this.update({ cacheStorageLocal: value }); }
-		},
-		cacheSaveDelay: {
-			get(): number { return store.state.settings.cacheSaveDelay; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ cacheSaveDelay: value }); } }
-		}
+		...mapState(useUiStore, ["uiFrozen"]),
+		...mapWritableState(useSettingsStore, ["darkTheme", "settingsStorageLocal", "settingsSaveDelay", "cacheStorageLocal", "cacheSaveDelay"]),
+		supportsLocalStorage() { return localStorageSupported; }
 	},
 	data() {
 		return {
@@ -75,11 +57,8 @@ export default Vue.extend({
 		};
 	},
 	methods: {
-		reset() {
-			store.commit("settings/reset");
-		},
-		update(data: Partial<SettingsState>) {
-			store.commit("settings/update", data);
+		async reset() {
+			await useSettingsStore().reset();
 		}
 	}
 });

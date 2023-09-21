@@ -134,10 +134,11 @@
 'use strict'
 
 import { analyzeAccelerometerData } from '@duet3d/motionanalysis';
-import { mapActions, mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
 
 import Path from "@/utils/path";
 import CSV from "@/utils/csv";
+import { useMachineStore } from '@/store/machine';
 
 export default {
 	props: {
@@ -169,7 +170,7 @@ export default {
 		hadOverflow: Boolean
 	},
 	computed: {
-		...mapGetters(['uiFrozen']),
+		...mapState(useUiStore, ["uiFrozen"]),
 		profiles() {
 			// Convert files into profile groups with files
 			const profiles = [], uncategorized = [];
@@ -280,7 +281,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['delete', 'download']),
+		...mapActions(useMachineStore, ['delete', 'download']),
 		async deleteProfile(profile) {
 			this.progress = 0;
 			this.progressMax = profile.files.length;
@@ -312,13 +313,7 @@ export default {
 		},
 		async getSamples(filename) {
 			// Download the selected file
-			const csvFile = await this.download({
-				filename: Path.combine(Path.accelerometer, filename),
-				type: 'text',
-				showProgress: false,
-				showSuccess: false,
-				showError: false
-			});
+			const csvFile = await this.download({ filename: Path.combine(Path.accelerometer, filename), type: 'text' }, false, false, false);
 
 			// Load the CSV
 			const csv = new CSV(csvFile);

@@ -1,9 +1,9 @@
 'use strict'
 
 import { registerRoute } from '../../routes'
-import { registerPluginData, PluginDataType } from '../../store'
 
 import HeightMap from './HeightMap.vue'
+import { useCacheStore } from '@/store/cache';
 
 // Register a route via Control -> Height Map
 registerRoute(HeightMap, {
@@ -16,7 +16,7 @@ registerRoute(HeightMap, {
 	}
 });
 
-// Register a new cached property
-registerPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', 'terrain');
-registerPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', false);
-registerPluginData('HeightMap', PluginDataType.machineCache, 'deviationColoring', 'fixed');
+// Register properties in the cache
+useCacheStore().registerPluginData("HeightMap", "colorScheme", "terrain");
+useCacheStore().registerPluginData("HeightMap", "invertZ", false);
+useCacheStore().registerPluginData("HeightMap", "deviationColoring", "fixed");

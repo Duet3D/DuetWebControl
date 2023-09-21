@@ -62,14 +62,20 @@
 import { Fan, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		currentTool(): Tool | null { return store.getters["machine/model/currentTool"]; },
-		displayedFans(): Array<number> { return store.state.machine.settings.displayedFans; },
-		fans(): Array<Fan | null> { return store.state.machine.model.fans; },
+		uiFrozen(): boolean {
+			return useUiStore().uiFrozen;
+		},
+		currentTool(): Tool | null {
+			return useMachineStore().currentTool;
+		},
+		displayedFans(): Array<number> { return useSettingsStore().displayedFans; },
+		fans(): Array<Fan | null> { return useMachineStore().model.fans; },
 		hasVisibleFans(): boolean {
 			if (this.fans.some((fan, index) => this.displayedFans.includes(index) && (fan !== null) && (fan.thermostatic.sensors.length === 0))) {
 				return true;
@@ -105,13 +111,13 @@ export default Vue.extend({
 		},
 		async setFanValue(fanIndex: number, value: number) {
 			if (fanIndex <= -1) {
-				await store.dispatch("machine/sendCode", `M106 S${value / 100}`);
+				await useMachineStore().sendCode(`M106 S${value / 100}`);
 			} else {
-				await store.dispatch("machine/sendCode", `M106 P${fanIndex} S${value / 100}`);
+				await useMachineStore().sendCode(`M106 P${fanIndex} S${value / 100}`);
 			}
 		},
 		toggleFanVisibility(fanIndex: number) {
-			store.commit("machine/settings/toggleFanVisibility", fanIndex);
+			useSettingsStore().toggleFanVisibility(fanIndex);
 		}
 	}
 });

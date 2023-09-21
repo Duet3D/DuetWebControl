@@ -19,11 +19,12 @@
 
 <script lang="ts">
 import { Volume } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
 import { getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	props: {
@@ -32,10 +33,10 @@ export default Vue.extend({
 			required: true
 		}
 	},
-	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		volumes(): Array<Volume> { return store.state.machine.model.volumes; }
-	},
+	computed: mapState(useMachineStore, {
+		isConnected: state => state.isConnected,
+		volumes: state => state.model.volumes
+	}),
 	data() {
 		return {
 			mounting: false
@@ -64,10 +65,8 @@ export default Vue.extend({
 			let success = true, response;
 			this.mounting = true;
 			try {
-				response = await store.dispatch("machine/sendCode", {
-					code: `M21 P${index}`,
-					log: false
-				});
+				const machineStore = useMachineStore();
+				response = await machineStore.sendCode(`M21 P${index}`, false, false);
 				success = response.indexOf("Error") === -1;
 			} catch (e) {
 				response = getErrorMessage(e);

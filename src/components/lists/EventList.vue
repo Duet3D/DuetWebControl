@@ -77,9 +77,17 @@ import Vue from "vue";
 import { DataTableHeader } from "vuetify";
 
 import i18n from "@/i18n";
-import store from "@/store";
-import { MachineEvent } from "@/store/machine";
-import { LogType } from "@/utils/logging";
+import { useCacheStore } from "@/store/cache";
+import Events from "@/utils/events";
+import { LogMessageType, LogType } from "@/utils/logging";
+import { useSettingsStore } from "@/store/settings";
+
+interface Message {
+	date: Date;
+	type: LogMessageType;
+	title: string;
+	message: string | null;
+}
 
 export default Vue.extend({
 	computed: {
@@ -105,31 +113,23 @@ export default Vue.extend({
 			]
 		},
 		sortBy: {
-			get(): string { return store.state.machine.cache.sorting.events.column; },
-			set(value: string) {
-				store.commit("machine/cache/setSorting", {
-					table: "events",
-					column: value,
-					descending: this.sortDesc
-				});
-			}
+			get(): string { return useCacheStore().sorting["events"].column; },
+			set(value: string) { useCacheStore().sorting["events"].column = value; }
 		},
 		sortDesc: {
-			get() { return store.state.machine.cache.sorting.events.descending; },
-			set(value) {
-				store.commit("machine/cache/setSorting", {
-					table: "events",
-					column: this.sortBy,
-					descending: value
-				});
-			}
-		},
-		events(): Array<MachineEvent> { return store.state.machine.events; }
+			get(): boolean { return useCacheStore().sorting["events"].descending; },
+			set(value: boolean) { useCacheStore().sorting["events"].descending = value; }
+		}
+	},
+	data() {
+		return {
+			events: new Array<Message>()
+		}
 	},
 	methods: {
 		getHeaderText: (header: { text: string | (() => string) }) => (header.text instanceof (Function)) ? header.text() : header.text,
 		getClassByEvent(type: LogType) {
-			if (store.state.settings.darkTheme) {
+			if (useSettingsStore().darkTheme) {
 				switch (type) {
 					case LogType.success: return "green darken-1";
 					case LogType.warning: return "amber darken-1";
@@ -162,11 +162,11 @@ export default Vue.extend({
 			return result;
 		},
 		clearLog() {
-			store.commit("machine/clearLog");
+			this.events.splice(0);
 		},
 		downloadText() {
 			let textContent = "";
-			for (const e of store.state.machine.events) {
+			for (const e of this.events) {
 				const title = e.title?.replace(/\n/g, "\r\n") ?? "";
 				const message = e.message ? e.message.replace(/\n/g, "\r\n") : "";
 				textContent += `${e.date.toLocaleString()}: ${message ? (title + ": " + message) : title}\r\n`;
@@ -177,7 +177,7 @@ export default Vue.extend({
 		},
 		downloadCSV() {
 			var csvContent = '"date","time","title","message"\r\n';
-			for (const e of store.state.machine.events) {
+			for (const e of this.events) {
 				const title = e.title?.replace(/\n/g, "\r\n") ?? "";
 				const message = e.message ? e.message.replace(/"/g, '""').replace(/\n/g, "\r\n") : "";
 				csvContent += `"${e.date.toLocaleDateString()}","${e.date.toLocaleTimeString()}","${title}","${message}"\r\n`;
@@ -186,7 +186,7 @@ export default Vue.extend({
 			const file = new File([csvContent], "console.csv", { type: "text/csv;charset=utf-8" });
 			saveAs(file);
 		},
-		sort(items: Array<MachineEvent>, sortBy: Array<keyof MachineEvent>, sortDesc: Array<boolean>) {
+		sort(items: Array<Message>, sortBy: Array<keyof Message>, sortDesc: Array<boolean>) {
 			// FIXME This method should not be needed but it appears like Vuetify's default
 			// sort algorithm only takes into account times but not dates
 
@@ -205,11 +205,20 @@ export default Vue.extend({
 			});
 
 			// Deal with descending order
-			if (sortDesc[0]) {
+			if (sortDesc.length > 0 && sortDesc[0]) {
 				items.reverse();
 			}
 			return items;
+		},
+		logMessage({ type, title, message } : { type: LogMessageType, title: string, message: string | null }) {
+			this.events.push({ date: new Date(), type, title, message });
 		}
+	},
+	mounted() {
+		Events.on("logMessage", this.logMessage);
+	},
+	beforeDestroy() {
+		Events.off("logMessage", this.logMessage);
 	}
 });
 </script>

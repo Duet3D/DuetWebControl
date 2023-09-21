@@ -6,10 +6,7 @@ import { MachineStatus } from "@duet3d/objectmodel";
  * @returns If the machine is paused
  */
 export function isPaused(status: MachineStatus) {
-	return (status === MachineStatus.pausing ||
-			status === MachineStatus.paused ||
-			status === MachineStatus.cancelling ||
-			status === MachineStatus.resuming);
+	return [MachineStatus.pausing, MachineStatus.paused, MachineStatus.cancelling, MachineStatus.resuming].includes(status);
 }
 
 /**
@@ -18,10 +15,5 @@ export function isPaused(status: MachineStatus) {
  * @returns If the machine is printing
  */
 export function isPrinting(status: MachineStatus) {
-	return (status === MachineStatus.pausing ||
-			status === MachineStatus.paused ||
-			status === MachineStatus.cancelling ||
-			status === MachineStatus.resuming ||
-			status === MachineStatus.processing ||
-			status === MachineStatus.simulating);
+	return [MachineStatus.pausing, MachineStatus.paused, MachineStatus.cancelling, MachineStatus.resuming, MachineStatus.processing, MachineStatus.simulating].includes(status);
 }

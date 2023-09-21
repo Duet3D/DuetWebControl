@@ -19,11 +19,11 @@ p:last-child {
 				<strong>{{ $t("panel.jobInfo.height") }}</strong>
 				{{ $displayZ(jobFile?.height) }}
 			</p>
-			<p v-if="isFFForUnset">
+			<p v-if="isFFF">
 				<strong>{{ $t("panel.jobInfo.layerHeight") }}</strong>
 				{{ $displayZ(jobFile?.layerHeight) }}
 			</p>
-			<p v-if="isFFForUnset">
+			<p v-if="isFFF">
 				<strong>{{ $t("panel.jobInfo.filament") }}</strong>
 				{{ $displayZ(jobFile?.filament) }}
 			</p>
@@ -36,15 +36,18 @@ p:last-child {
 </template>
 
 <script lang="ts">
-import { GCodeFileInfo, MachineMode } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	computed: {
-		jobFile(): GCodeFileInfo | null { return store.state.machine.model.job.file; },
-		isFFForUnset(): boolean { return !store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff; }
+		...mapState(useMachineStore, {
+			jobFile: state => state.model.job.file
+		}),
+		...mapState(useUiStore, ["isFFF"])
 	}
 });
 </script>

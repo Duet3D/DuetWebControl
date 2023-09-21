@@ -40,16 +40,16 @@ a:not(:hover) {
 
 			<v-spacer />
 
-			<status-label v-if="model.state.status" />
+			<status-label v-if="status" />
 
 			<v-spacer />
 
-			<span v-if="model.state.machineMode">
-				{{ $t("panel.status.mode", [model.state.machineMode.toUpperCase()]) }}
+			<span v-if="machineMode">
+				{{ $t("panel.status.mode", [machineMode.toUpperCase()]) }}
 			</span>
 		</v-card-title>
 
-		<v-card-text v-if="sensorsPresent || (visibleAxes.length + model.move.extruders.length > 0)"
+		<v-card-text v-if="sensorsPresent || (visibleAxes.length + extruders.length > 0)"
 					 class="px-0 pt-0 pb-2 content text-xs-center">
 			<!-- Axis Positions -->
 			<template v-if="visibleAxes.length > 0">
@@ -77,7 +77,7 @@ a:not(:hover) {
 			</template>
 
 			<!-- Extruders -->
-			<template v-if="model.move.extruders.length > 0">
+			<template v-if="extruders.length > 0">
 				<v-divider v-if="visibleAxes.length > 0" class="my-2" />
 
 				<v-row align-content="center" no-gutters class="flex-nowrap">
@@ -87,7 +87,7 @@ a:not(:hover) {
 
 					<v-col>
 						<v-row align-content="center" no-gutters>
-							<v-col v-for="(extruder, index) in model.move.extruders" :key="index"
+							<v-col v-for="(extruder, index) in extruders" :key="index"
 								   class="d-flex flex-column align-center">
 								<strong>
 									{{ $t("panel.status.extruderDrive", [index]) }}
@@ -105,8 +105,8 @@ a:not(:hover) {
 			</template>
 
 			<!-- Speeds -->
-			<template v-if="isFinite(model.move.currentMove.requestedSpeed) || isFinite(model.move.currentMove.topSpeed)">
-				<v-divider v-if="visibleAxes.length + model.move.extruders.length > 0" class="my-2" />
+			<template v-if="isFinite(requestedSpeed) || isFinite(topSpeed)">
+				<v-divider v-if="visibleAxes.length + extruders.length > 0" class="my-2" />
 
 				<v-row align-content="center" no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
@@ -115,27 +115,27 @@ a:not(:hover) {
 
 					<v-col>
 						<v-row align-content="center" no-gutters>
-							<v-col v-if="isFinite(model.move.currentMove.requestedSpeed)"
+							<v-col v-if="isFinite(requestedSpeed)"
 								   class="d-flex flex-column align-center">
 								<strong>
 									{{ $t("panel.status.requestedSpeed") }}
 								</strong>
 								<span>
-									{{ $displayMoveSpeed(model.move.currentMove.requestedSpeed) }}
+									{{ $displayMoveSpeed(requestedSpeed) }}
 								</span>
 							</v-col>
 
-							<v-col v-if="isFinite(model.move.currentMove.topSpeed)"
+							<v-col v-if="isFinite(topSpeed)"
 								   class="d-flex flex-column align-center">
 								<strong>
 									{{ $t("panel.status.topSpeed") }}
 								</strong>
 								<span>
-									{{ $displayMoveSpeed(model.move.currentMove.topSpeed) }}
+									{{ $displayMoveSpeed(topSpeed) }}
 								</span>
 							</v-col>
 							
-							<v-col v-if="isFinite(model.move.currentMove.extrusionRate) && isFFForUnset"
+							<v-col v-if="isFinite(extrusionRate) && isFFF"
 								   class="d-flex flex-column align-center">
 								<strong>
 									<a href="javascript:void(0)" @click="displayVolumetricFlow = !displayVolumetricFlow">
@@ -143,7 +143,7 @@ a:not(:hover) {
 									</a>
 								</strong>
 								<span>
-									{{ displayVolumetricFlow ? $display(volumetricFlow, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.extrusionRate) }}
+									{{ displayVolumetricFlow ? $display(volumetricFlow, 1, "mm³/s") : $displayMoveSpeed(extrusionRate) }}
 								</span>
 							</v-col>
 						</v-row>
@@ -153,7 +153,7 @@ a:not(:hover) {
 
 			<!-- Sensors -->
 			<template v-if="sensorsPresent">
-				<v-divider v-if="(model.move.axes.length + model.move.extruders.length > 0) || isFinite(model.move.currentMove.requestedSpeed) || isFinite(model.move.currentMove.topSpeed)"
+				<v-divider v-if="(axes.length + extruders.length > 0) || isFinite(requestedSpeed) || isFinite(topSpeed)"
 						   class="my-2" />
 
 				<v-row align-content="center" no-gutters class="flex-nowrap">
@@ -252,37 +252,46 @@ a:not(:hover) {
 </template>
 
 <script lang="ts">
-import ObjectModel, { Axis, Board, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
+import { Axis, Board, FilamentMonitorEnableMode, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 import { isPrinting } from "@/utils/enums";
-import { DashboardMode } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean {
-			return store.getters["isConnected"];
-		},
-		model(): ObjectModel {
-			return store.state.machine.model;
-		},
-		isFFForUnset(): boolean {
-			if (store.state.settings.dashboardMode === DashboardMode.default) {
-				return !this.model.state.machineMode || this.model.state.machineMode === MachineMode.fff;
-			}
-			return store.state.settings.dashboardMode === DashboardMode.fff;
-		},
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			axes: state => state.model.move.axes,
+			boards: state => state.model.boards,
+			currentTool: state => state.model.state.currentTool,
+			endstops: state => state.model.sensors.endstops,
+			extruders: state => state.model.move.extruders,
+			extrusionRate: state => state.model.move.currentMove.extrusionRate,
+			fans: state => state.model.fans,
+			filamentMonitors: state => state.model.sensors.filamentMonitors,
+			machineMode: state => state.model.state.machineMode,
+			probes: state => state.model.sensors.probes,
+			requestedSpeed: state => state.model.move.currentMove.requestedSpeed,
+			status: state => state.model.state.status,
+			tools: state => state.model.tools,
+			topSpeed: state => state.model.move.currentMove.topSpeed
+		}),
+		...mapState(useSettingsStore, ["darkTheme", "dashboardMode",]),
+		...mapState(useUiStore, ["isFFF"]),
 		volumetricFlow(): number {
-			if (this.model.state.currentTool >= 0 && this.model.state.currentTool < this.model.tools.length) {
-				const selectedTool = this.model.tools[this.model.state.currentTool];
+			if (this.currentTool >= 0 && this.currentTool < this.tools.length) {
+				const selectedTool = this.tools[this.currentTool];
 				if (selectedTool !== null) {
 					// Get the average extruder diameter x mix ratio
 					let numExtruders = 0, filamentArea = 0;
 					for (let i = 0; i < selectedTool.extruders.length; i++) {
 						const extruderIndex = selectedTool.extruders[i];
-						if (extruderIndex >= 0 && extruderIndex < this.model.move.extruders.length) {
-							const extruder = this.model.move.extruders[extruderIndex];
+						if (extruderIndex >= 0 && extruderIndex < this.extruders.length) {
+							const extruder = this.extruders[extruderIndex];
 							if (extruder !== null) {
 								filamentArea += selectedTool.mix[i] * (Math.PI * Math.pow((extruder.filamentDiameter / 2), 2));
 								numExtruders++;
@@ -293,14 +302,14 @@ export default Vue.extend({
 					// Compute volumetric flow
 					if (numExtruders > 0) {
 						filamentArea /= numExtruders;
-						return filamentArea * this.model.move.currentMove.extrusionRate;
+						return filamentArea * this.extrusionRate;
 					}
 				}
 			}
 			return NaN;
 		},
 		fanRPM(): Array<{ name: string, rpm: number }> {
-			return store.state.machine.model.fans
+			return this.fans
 				.filter(fan => (fan !== null) && (fan.rpm >= 0))
 				.map((fan, index) => ({
 					name: fan!.name || this.$t("panel.fan.fan", [index]),
@@ -308,20 +317,17 @@ export default Vue.extend({
 				}), this);
 		},
 		validProbes(): Array<Probe> {
-			return store.state.machine.model.sensors.probes.filter((probe) => (probe !== null) && (probe.type !== ProbeType.none)) as Array<Probe>;
+			return this.probes.filter(probe => (probe !== null) && (probe.type !== ProbeType.none)) as Array<Probe>;
 		},
 		mainboard(): Board | null {
-			return this.model.boards.find(board => !board.canAddress) ?? null;
+			return this.boards.find(board => !board.canAddress) ?? null;
 		},
 		sensorsPresent(): boolean {
 			return ((this.mainboard !== null) && ((this.mainboard.vIn !== null) || (this.mainboard.v12 !== null) || (this.mainboard.mcuTemp !== null))) ||
-				(this.fanRPM.length > 0) || (this.validProbes.length > 0);
+					(this.fanRPM.length > 0) || (this.validProbes.length > 0);
 		},
 		visibleAxes(): Array<Axis> {
-			return this.model.move.axes.filter(axis => axis.visible);
-		},
-		darkTheme(): boolean {
-			return store.state.settings.darkTheme;
+			return this.axes.filter(axis => axis.visible);
 		}
 	},
 	data() {
@@ -332,18 +338,26 @@ export default Vue.extend({
 	},
 	methods: {
 		axisSpanClasses(axisIndex: number) {
-			if (axisIndex >= 0 && axisIndex < store.state.machine.model.sensors.endstops.length && store.state.machine.model.sensors.endstops[axisIndex]?.triggered) {
+			if (axisIndex >= 0 && axisIndex < this.endstops.length && this.endstops[axisIndex]?.triggered) {
 				return this.darkTheme ? "light-green darken-3" : "light-green lighten-4";
 			}
 			return null;
 		},
 		isFilamentSensorPresent(extruderIndex: number) {
-			return (extruderIndex >= 0) && (extruderIndex < this.model.sensors.filamentMonitors.length) &&
-				(this.model.sensors.filamentMonitors[extruderIndex] !== null) && this.model.sensors.filamentMonitors[extruderIndex]!.enabled &&
-				(typeof (this.model.sensors.filamentMonitors[extruderIndex] as any).filamentPresent === "boolean");
+			if (extruderIndex >= 0 && extruderIndex < this.filamentMonitors.length) {
+				const filamentMonitor = this.filamentMonitors[extruderIndex];
+				if (filamentMonitor !== null) {
+					return (filamentMonitor.enableMode !== FilamentMonitorEnableMode.disabled) && typeof (filamentMonitor as any)["filamentPresent"] === "boolean";
+				}
+			}
+			return false;
 		},
 		isFilamentPresent(extruderIndex: number) {
-			return (this.model.sensors.filamentMonitors[extruderIndex] as any).filamentPresent;
+			if (extruderIndex >= 0 && extruderIndex < this.filamentMonitors.length) {
+				const filamentMonitor = this.filamentMonitors[extruderIndex];
+				return (filamentMonitor !== null) && (this.filamentMonitors[extruderIndex] as any).filamentPresent;
+			}
+			return false;
 		},
 		formatProbeValues(values: Array<number>) {
 			if (values.length === 1) {
@@ -359,7 +373,7 @@ export default Vue.extend({
 			if (!isFirstItem) {
 				result.push("ml-2");
 			}
-			if (!isPrinting(this.model.state.status) && probe.value.length > 0) {
+			if (!isPrinting(this.status) && probe.value.length > 0) {
 				if (probe.value[0] >= probe.threshold) {
 					result.push("red");
 					result.push(this.darkTheme ? "darken-3" : "lighten-4");

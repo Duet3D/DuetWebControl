@@ -194,7 +194,7 @@ export const useSettingsStore = defineStore("settings", {
 			/**
 			 * Defines an optional flip of the webcam image
 			 */
-			flip: "none"
+			flip: "none" as WebcamFlip
 		},
 		//#endregion
 

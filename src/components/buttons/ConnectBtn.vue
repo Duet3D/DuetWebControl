@@ -7,14 +7,19 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		isBusy(): boolean { return store.state.isConnecting || store.state.machine.isReconnecting || store.state.isDisconnecting },
+		...mapState(useMachineStore, ["isConnected"]),
+		isBusy(): boolean {
+			const machineStore = useMachineStore();
+			return machineStore.isConnecting || machineStore.isReconnecting || machineStore.isDisconnecting
+		},
 		buttonColor(): string {
 			return this.isBusy ? "warning" : (this.isConnected ? "success" : "primary");
 		},
@@ -22,8 +27,9 @@ export default Vue.extend({
 			return this.isConnected ? "mdi-close-circle-outline" : "mdi-power";
 		},
 		caption(): string {
-			return this.$t((store.state.isConnecting || store.state.machine.isReconnecting) ? "button.connect.connecting"
-				: store.state.isDisconnecting ? "button.connect.disconnecting"
+			const machineStore = useMachineStore();
+			return this.$t((machineStore.isConnecting || machineStore.isReconnecting) ? "button.connect.connecting"
+				: machineStore.isDisconnecting ? "button.connect.disconnecting"
 					: this.isConnected ? "button.connect.disconnect"
 						: "button.connect.connect");
 		}
@@ -37,13 +43,16 @@ export default Vue.extend({
 
 			if (this.isConnected) {
 				// Disconnect from the current machine
-				await store.dispatch("disconnect");
+				const machineStore = useMachineStore();
+				await machineStore.disconnect();
 			} else if (process.env.NODE_ENV === "development") {
 				// Ask user for hostname before connecting
-				store.commit("showConnectDialog");
+				const uiStore = useUiStore();
+				uiStore.showConnectDialog = true;
 			} else {
 				// Connect to the host this is running on
-				await store.dispatch("connect");
+				const machineStore = useMachineStore();
+				await machineStore.connect();
 			}
 		}
 	}

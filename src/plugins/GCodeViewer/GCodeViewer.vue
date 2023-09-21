@@ -417,16 +417,17 @@
 </template>
 
 <script>
-'use strict';
+"use strict";
 
-import { KinematicsName } from '@duet3d/objectmodel';
-import gcodeViewer from '@sindarius/gcodeviewer';
-import { mapActions, mapState } from 'vuex';
+import { Vector3 } from "@babylonjs/core/Maths/math";
+import { KinematicsName } from "@duet3d/objectmodel";
+import { mapActions, mapState } from "pinia";
+import gcodeViewer from "@sindarius/gcodeviewer";
 
-import { setPluginData, PluginDataType } from '@/store';
-import { isPrinting } from '@/utils/enums';
-import Path from '@/utils/path';
-import { Vector3 } from '@babylonjs/core/Maths/math';
+import { useCacheStore } from "@/store/cache";
+import { useMachineStore } from "@/store/machine";
+import { isPrinting } from "@/utils/enums";
+import Path from "@/utils/path";
 
 let viewer;
 
@@ -434,15 +435,15 @@ export default {
 	data: function () {
 		return {
 			drawer: false,
-			backgroundColor: '#000000FF',
-			progressColor: '#FFFFFFFF',
-			viewerHeight: '400px',
-			testValue: '',
+			backgroundColor: "#000000FF",
+			progressColor: "#FFFFFFFF",
+			viewerHeight: "400px",
+			testValue: "",
 			loading: false,
-			testData: '',
+			testData: "",
 			showCursor: false,
 			showTravelLines: false,
-			selectedFile: '',
+			selectedFile: "",
 			nthRow: 1,
 			renderQuality: 1,
 			debugVisible: false,
@@ -457,21 +458,21 @@ export default {
 				showDialog: false,
 				info: {},
 			},
-			hoverLabel: '',
+			hoverLabel: "",
 			bedRenderMode: 0,
 			showAxes: true,
 			showObjectLabels: true,
 			fullscreen: false,
-			bedColor: '',
+			bedColor: "",
 			colorMode: 0,
 			minColorRate: 20,
 			maxColorRate: 60,
 			maxFileFeedRate: 0,
-			minFeedColor: '#0000FF',
-			maxFeedColor: '#FF0000',
+			minFeedColor: "#0000FF",
+			maxFeedColor: "#FF0000",
 			cameraInertia: true,
 			loadingProgress: 0,
-			loadingMessage: '',
+			loadingMessage: "",
 			showOverlay: true,
 			//File scrubber
 			scrubPosition: 0,
@@ -490,9 +491,13 @@ export default {
 		};
 	},
 	computed: {
-		...mapState('machine/model', ['job', 'move', 'state']),
-		...mapState('machine/cache', {
-			pluginCache: (state) => state.plugins.GCodeViewer,
+		...mapState(useMachineStore, {
+			job: state => state.model.job,
+			move: state => state.model.move,
+			state: state => state.model.state
+		}),
+		...mapState(useCacheStore, {
+			pluginCache: state => state.plugins.GCodeViewer
 		}),
 		isJobRunning: (state) => isPrinting(state.state.status),
 		visualizingCurrentJob: function (state) {
@@ -519,9 +524,9 @@ export default {
 			}
 		},
 		jobSelectionLabel() {
-			var selectionLabel = this.$t('plugins.gcodeViewer.showObjectSelection.caption');
+			var selectionLabel = this.$t("plugins.gcodeViewer.showObjectSelection.caption");
 			if (this.canCancelObject && this.job.build.objects) {
-				selectionLabel += ' (' + this.job.build.objects.length + ')';
+				selectionLabel += " (" + this.job.build.objects.length + ")";
 			}
 			return selectionLabel;
 		},
@@ -530,15 +535,15 @@ export default {
 				return this.pluginCache.toolColors;
 			},
 			set(value) {
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', value);
-			},
+				this.pluginCache.toolColors = value;
+			}
 		},
 		useHQRendering: {
 			get() {
 				return this.pluginCache.useHQRendering;
 			},
 			set(value) {
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useHQRendering', value);
+				this.pluginCache.useHQRendering = value;
 			},
 		},
 		specular: {
@@ -546,7 +551,7 @@ export default {
 				return this.pluginCache.useSpecular;
 			},
 			set(value){
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'useSpecular', value);
+				this.pluginCache.useSpecular = value;
 			}
 		},
 		g1AsExtrusion: {
@@ -554,7 +559,7 @@ export default {
 				return this.pluginCache.g1AsExtrusion;
 			},
 			set(value){
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'g1AsExtrusion', value);
+				this.pluginCache.g1AsExtrusion = value;
 			}
 		},
 		viewGCode: {
@@ -562,12 +567,8 @@ export default {
 				return this.pluginCache.viewGCode;
 			},
 			set(value) {
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'viewGCode', value);
-				if(value){
-					this.fileData = viewer.fileData;
-				} else{ 
-					this.fileData = ""
-				}
+				this.pluginCache.viewGCode = value;
+				this.fileData = value ? viewer.fileData : "";
 				this.resize();
 			},
 		},
@@ -576,8 +577,7 @@ export default {
 				return this.pluginCache.zBelt;
 			},
 			set(value) { 
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBelt', value);
-
+				this.pluginCache.zBelt = value;
 			}
 		},
 		zBeltAngle: {
@@ -585,32 +585,32 @@ export default {
 				return this.pluginCache.zBeltAngle;
 			},
 			set(value) { 
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'zBeltAngle', value);
+				this.pluginCache.zBeltAngle = value;
 			}
 		},
 		viewerClass() {
 			this.$nextTick(() => {
 				this.resize();
 			});
-			return this.viewGCode ? 'babylon-canvas-codeview' : 'babylon-canvas';
+			return this.viewGCode ? "babylon-canvas-codeview" : "babylon-canvas";
 		},
 		scrubberClass() {
 			if( this.$vuetify.breakpoint.mdAndDown)
 			{
 				//scrubber-sm
-				return this.viewGCode ? 'scrubber-sm-codeview' : 'scrubber-sm';
+				return this.viewGCode ? "scrubber-sm-codeview" : "scrubber-sm";
 
 			}
 			else{
 				//scrubber
-				return this.viewGCode? 'scrubber-codeview' : 'scrubber';
+				return this.viewGCode? "scrubber-codeview" : "scrubber";
 			}
 		},
 		codeViewClass() {
-			return this.$vuetify.breakpoint.mdAndDown ? 'codeview-sm' : 'codeview'
+			return this.$vuetify.breakpoint.mdAndDown ? "codeview-sm" : "codeview"
 		},
 		emergencyButtonClass() {
-			return this.viewGCode ? 'emergency-button-placement-codeview' : 'emergency-button-placement'
+			return this.viewGCode ? "emergency-button-placement-codeview" : "emergency-button-placement"
 		},
 		workplaceOffsets() { 
 			let offsets = [];
@@ -633,7 +633,7 @@ export default {
 				return this.pluginCache.showWorkplace;
 			},
 			set(value) { 
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'showWorkplace', value);
+				setPluginData("GCodeViewer", PluginDataType.machineCache, "showWorkplace", value);
 			}
 		}
 	},
@@ -648,7 +648,7 @@ export default {
 			if (this.showObjectSelection) {
 				this.hoverLabel = label;
 			} else {
-				this.hoverLabel = '';
+				this.hoverLabel = "";
 			}
 		};
 		this.showObjectLabels = viewer.buildObjects.showLabel;
@@ -656,7 +656,7 @@ export default {
 		if (this.move.axes) {
 			for (var axesIdx in this.move.axes) {
 				let axes = this.move.axes[axesIdx];
-				if ('XYZ'.includes(axes.letter)) {
+				if ("XYZ".includes(axes.letter)) {
 					var letter = axes.letter.toLowerCase();
 					viewer.bed.buildVolume[letter].min = axes.min;
 					viewer.bed.buildVolume[letter].max = axes.max;
@@ -679,12 +679,12 @@ export default {
 		this.minColorRate = viewer.gcodeProcessor.minColorRate / 60;
 		this.maxColorRate = viewer.gcodeProcessor.maxColorRate / 60;
 		this.forceWireMode = viewer.gcodeProcessor.forceWireMode;
-		this.showCursor = localStorage.getItem('showCursor') === 'true';
+		this.showCursor = localStorage.getItem("showCursor") === "true";
 
 		if (viewer.lastLoadFailed()) {
 			this.renderQuality = 1;
 			viewer.updateRenderQuality(1);
-			this.$makeNotification('warning', 'GCode Viewer', this.$t('plugins.gcodeViewer.renderFailed'), 5000);
+			this.$makeNotification("warning", "GCode Viewer", this.$t("plugins.gcodeViewer.renderFailed"), 5000);
 			viewer.clearLoadFlag();
 		}
 		viewer.setCursorVisiblity(this.showCursor);
@@ -694,7 +694,7 @@ export default {
 		viewer.gcodeProcessor.useHighQualityExtrusion(this.useHQRendering);
 		viewer.gcodeProcessor.loadingProgressCallback = (progress, message) => {
 			this.loadingProgress = Math.ceil(progress * 100);
-			this.loadingMessage = message ?? '';
+			this.loadingMessage = message ?? "";
 		};
 		viewer.simulationUpdatePosition = (position) => {
 			this.scrubPosition = position - 2;
@@ -708,7 +708,7 @@ export default {
 			try {
 				let blob = await this.machineDownload({
 					filename: Path.combine(path),
-					type: 'text',
+					type: "text",
 				});
 				this.loading = true;
 				this.preLoadSettings();
@@ -724,16 +724,16 @@ export default {
 			}
 		};
 
-		this.$root.$on('view-3d-model', this.viewModelEvent);
+		this.$root.$on("view-3d-model", this.viewModelEvent);
 
 		this.$nextTick(() => {
 			this.updateTools();
 			this.updateWorkplaces();
 		});
 
-		window.addEventListener('keyup', (e) => {
+		window.addEventListener("keyup", (e) => {
 			var key = e.key || e.keyCode;
-			if (key === 'Escape' || key === 'Esc' || key === 27) {
+			if (key === "Escape" || key === "Esc" || key === 27) {
 				this.fullscreen = false;
 				this.$nextTick(() => {
 					viewer.resize();
@@ -743,19 +743,19 @@ export default {
 		});
 
 		//watch for resizing events
-		window.addEventListener('resize', () => {
+		window.addEventListener("resize", () => {
 			this.$nextTick(() => {
 				this.resize();
 			});
 		});
 	},
 	beforeDestroy() {
-		this.$root.$off('view-3d-model', this.viewModelEvent);
+		this.$root.$off("view-3d-model", this.viewModelEvent);
 	},
 	methods: {
-		...mapActions('machine', {
-			machineDownload: 'download',
-			sendCode: 'sendCode',
+		...mapActions(useMachineStore, {
+			machineDownload: "download",
+			sendCode: "sendCode"
 		}),
 
 		simulatePlay() {
@@ -791,7 +791,7 @@ export default {
 				clearTimeout(this.colorDebounce);
 			}
 			this.colorDebounce = setTimeout(() => {
-				setPluginData('GCodeViewer', PluginDataType.machineCache, 'toolColors', this.toolColors);
+				setPluginData("GCodeViewer", PluginDataType.machineCache, "toolColors", this.toolColors);
 				viewer.gcodeProcessor.forceRedraw();
 			}, 200);
 		},
@@ -819,13 +819,13 @@ export default {
 				clearTimeout(this.resizeDebounce);
 			}
 			this.resizeDebounce = setTimeout(() => {
-				let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
-				let globalContainer =  getComputedStyle(document.getElementById('global-container'));
+				let contentArea = getComputedStyle(document.getElementsByClassName("v-toolbar__content")[0]);
+				let globalContainer =  getComputedStyle(document.getElementById("global-container"));
 				let primaryContainer = getComputedStyle(this.$refs.primarycontainer);
 				let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
 				let globalContainerHeight = this.$vuetify.breakpoint.smAndDown ? 0 : parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
 				let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
-				this.$refs.primarycontainer.style.height = (viewerHeight >= 300 ? viewerHeight : 300) + 'px';
+				this.$refs.primarycontainer.style.height = (viewerHeight >= 300 ? viewerHeight : 300) + "px";
 				if (viewer) {
 					viewer.resize();
 				}
@@ -839,7 +839,7 @@ export default {
 		async loadRunningJob() {
 			viewer.simulation = false;
 			if (this.selectedFile != this.job.file.fileName) {
-				this.selectedFile = '';
+				this.selectedFile = "";
 				viewer.gcodeProcessor.setLiveTracking(false);
 				viewer.clearScene(true);
 			}
@@ -848,7 +848,7 @@ export default {
 			try {
 				let blob = await this.machineDownload({
 					filename: this.job.file.fileName,
-					type: 'text',
+					type: "text",
 				});
 
 				this.loading = true;
@@ -870,7 +870,7 @@ export default {
 			}
 		},
 		resetExtruderColors() {
-			this.toolColors = ['#00FFFF', '#FF00FF', '#FFFF00', '#000000', '#FFFFFF'];
+			this.toolColors = ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"];
 			this.updateTools();
 			viewer.gcodeProcessor.forceRedraw();
 		},
@@ -900,7 +900,7 @@ export default {
 			}
 		},
 		clearScene() {
-			this.selectedFile = '';
+			this.selectedFile = "";
 			viewer.clearScene(true);
 		},
 		objectSelectionCallback(selectedObject) {
@@ -909,7 +909,7 @@ export default {
 		},
 		async objectDialogCancelObject() {
 			this.objectDialogData.showDialog = false;
-			let action = this.objectDialogData.info.cancelled ? 'U' : 'P';
+			let action = this.objectDialogData.info.cancelled ? "U" : "P";
 			await this.sendCode(`M486 ${action}${this.objectDialogData.info.index}`);
 			this.objectDialogData.info = {};
 		},
@@ -950,7 +950,7 @@ export default {
 		},
 		async fileSelected(e) {
 			const reader = new FileReader();
-			reader.addEventListener('load', async (event) => {
+			reader.addEventListener("load", async (event) => {
 				this.preLoadSettings();
 				const blob = event.target.result;
 				// Do something with result
@@ -963,7 +963,7 @@ export default {
 			});
 			this.loading = true;
 			reader.readAsText(e.target.files[0]);
-			e.target.value = '';
+			e.target.value = "";
 		},
 		toggleFullScreen() {
 			this.fullscreen = !this.fullscreen;
@@ -1003,9 +1003,9 @@ export default {
 				viewer.gcodeProcessor.workplaceOffsets = [];
 				for (let idx = 0; idx < 9; idx++) {
 					try {
-						let x = this.move.axes[axesLetterIdx['X']].workplaceOffsets[idx];
-						let y = this.move.axes[axesLetterIdx['Y']].workplaceOffsets[idx]
-						let z = this.move.axes[axesLetterIdx['Z']].workplaceOffsets[idx]
+						let x = this.move.axes[axesLetterIdx["X"]].workplaceOffsets[idx];
+						let y = this.move.axes[axesLetterIdx["Y"]].workplaceOffsets[idx]
+						let z = this.move.axes[axesLetterIdx["Z"]].workplaceOffsets[idx]
 						viewer.gcodeProcessor.workplaceOffsets.push(new Vector3(x, y, z));
 					}
 					catch{
@@ -1029,7 +1029,7 @@ export default {
 		viewer.pause = true;
 	},
 	watch: {
-		'move': {
+		"move": {
 			handler(newValue) {
 				var newPosition = newValue.axes.map((item) => ({
 					axes: item.letter,
@@ -1039,19 +1039,19 @@ export default {
 			},
 			deep: true,
 		},
-		'showCursor': function (newValue) {
+		"showCursor": function (newValue) {
 			viewer.setCursorVisiblity(newValue);
-			localStorage.setItem('showCursor', newValue);
+			localStorage.setItem("showCursor", newValue);
 		},
-		'showTravelLines': (newVal) => {
+		"showTravelLines": (newVal) => {
 			viewer.toggleTravels(newVal);
 		},
-		'visualizingCurrentJob': function (newValue) {
+		"visualizingCurrentJob": function (newValue) {
 			if (newValue == false) {
 				viewer.gcodeProcessor.doFinalPass();
 			}
 		},
-		'filePosition': function (newValue) {
+		"filePosition": function (newValue) {
 			if (this.visualizingCurrentJob) {
 				this.scrubPosition = newValue;
 				viewer.gcodeProcessor.updateFilePosition(newValue + 1);
@@ -1060,10 +1060,10 @@ export default {
 		scrubSpeed(to) {
 			viewer.simulationMultiplier = to;
 		},
-		'nthRow': function (newValue) {
+		"nthRow": function (newValue) {
 			viewer.gcodeProcessor.everyNthRow = newValue;
 		},
-		'renderQuality': function (newValue) {
+		"renderQuality": function (newValue) {
 			if (viewer.renderQuality !== newValue) {
 				viewer.updateRenderQuality(newValue);
 				if (!this.loading) {
@@ -1071,23 +1071,23 @@ export default {
 				}
 			}
 		},
-		'sliderHeight': function (newValue) {
+		"sliderHeight": function (newValue) {
 			if (this.sliderBottomHeight > newValue) this.sliderBottomHeight = newValue - 1;
 			if(!this.g1AsExtrusion){
 				viewer.setZClipPlane(newValue + 1, this.sliderBottomHeight);
 			}
 		},
-		'sliderBottomHeight': function (newValue) {
+		"sliderBottomHeight": function (newValue) {
 			if (this.sliderHeight < newValue) this.sliderHeight = newValue + 1;
 			if(!this.g1AsExtrusion){
 				viewer.setZClipPlane(this.sliderHeight, newValue - 1);
 			}
 		},
-		'vertexAlpha': function (newValue) {
+		"vertexAlpha": function (newValue) {
 			viewer.gcodeProcessor.setAlpha(newValue);
 			this.reloadviewer();
 		},
-		'job.build.objects': {
+		"job.build.objects": {
 			deep: true,
 			handler(newValue) {
 				if (viewer && viewer.buildObjects) {
@@ -1095,98 +1095,98 @@ export default {
 				}
 			},
 		},
-		'showObjectSelection': function (newValue) {
+		"showObjectSelection": function (newValue) {
 			if (this.canCancelObject) {
 				viewer.buildObjects.loadObjectBoundaries(this.job.build.objects);
 				viewer.buildObjects.showObjectSelection(newValue);
 			} else {
 				this.showObjectSelection = false;
-				this.hoverLabel = '';
+				this.hoverLabel = "";
 			}
 		},
-		'isJobRunning': function (newValue) {
+		"isJobRunning": function (newValue) {
 			//Need to add a check for paused...
 			viewer.gcodeProcessor.setLiveTracking(newValue);
 			if (!newValue) {
 				viewer.gcodeProcessor.doFinalPass();
 			}
 		},
-		'selectedFile': function () {
+		"selectedFile": function () {
 			this.showObjectSelection = false;
 			viewer.gcodeProcessor.updateFilePosition(0);
 		},
-		'bedRenderMode': function (newValue) {
+		"bedRenderMode": function (newValue) {
 			viewer.bed.setRenderMode(newValue);
 		},
-		'isDelta': function (newValue) {
+		"isDelta": function (newValue) {
 			viewer.bed.setDelta(newValue);
 			viewer.resetCamera();
 		},
-		'showAxes': function (newValue) {
+		"showAxes": function (newValue) {
 			viewer.axes.show(newValue);
 		},
-		'showObjectLabels': function (newValue) {
+		"showObjectLabels": function (newValue) {
 			viewer.buildObjects.showLabels(newValue);
 		},
-		'forceWireMode': function (newValue) {
+		"forceWireMode": function (newValue) {
 			viewer.gcodeProcessor.updateForceWireMode(newValue);
 			this.reloadviewer();
 		},
-		'useHQRendering': function (to) {
+		"useHQRendering": function (to) {
 			viewer.gcodeProcessor.useHighQualityExtrusion(to);
 		},
-		'colorMode': async function (to) {
+		"colorMode": async function (to) {
 			viewer.gcodeProcessor.setColorMode(to);
 			await this.reloadviewer();
 		},
-		'minColorRate': function (to) {
+		"minColorRate": function (to) {
 			viewer.gcodeProcessor.updateColorRate(to * 60, this.maxColorRate * 60);
 		},
-		'maxColorRate': function (to) {
+		"maxColorRate": function (to) {
 			viewer.gcodeProcessor.updateColorRate(this.minColorRate * 60, to * 60);
 		},
-		'cameraInertia': function (to) {
+		"cameraInertia": function (to) {
 			viewer.setCameraInertia(to);
 		},
-		'$route': function () {
+		"$route": function () {
 			this.resize();
 		},
-		'loading': function (to) {
+		"loading": function (to) {
 			if (!to) {
 				this.loadingProgress = 0;
 			}
 		},
-		'specular': function(to){
+		"specular": function(to){
 			viewer.gcodeProcessor.useSpecularColor(to);
 		},
-		'g1AsExtrusion': async function(to){
+		"g1AsExtrusion": async function(to){
 			viewer.gcodeProcessor.g1AsExtrusion = to;
 			await this.reloadviewer();		
 		},
-		'zBelt': function (to) { 
+		"zBelt": function (to) { 
 			viewer.setZBelt(to, this.zBeltAngle);
 			//viewer.gcodeProcessor.forceRedraw();	
 		},
-		'zBeltAngle': function (to) { 
+		"zBeltAngle": function (to) { 
 			if (to < 0 || to > 90) {
 				this.zBeltAngle = 45;
 			}
 			viewer.setZBelt(this.zBelt, to);
 			//viewer.gcodeProcessor.forceRedraw();
 		},
-		'workplaceOffsets': {
+		"workplaceOffsets": {
 			handler() { 
 				this.updateWorkplaces();
 			},
 			deep: true
 		},
-		'currentWorkplace': function (to) {
+		"currentWorkplace": function (to) {
 			viewer.gcodeProcessor.currentWorkplace = to;
 		},
 		showWorkplace() {
 			this.updateWorkplaces();
 		},
-		'toolColors': {
+		"toolColors": {
 			handler() {
 				this.updateTools();
 			},

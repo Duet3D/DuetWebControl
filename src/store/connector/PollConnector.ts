@@ -775,8 +775,7 @@ export default class PollConnector extends BaseConnector {
 	 * @param noWait Whether the call may return as soon as the code has been enqueued for execution
 	 * @returns Code reply unless noWait is true
 	 */
-	async sendCode(code: string, noWait: boolean): Promise<string | void> {
-		// Scan actual content of the requested code
+	async sendCode<B extends boolean>(code: string, noWait: B): Promise<B extends true ? void : string> {
 		let inBraces = false, inQuotes = false, strippedCode = "";
 		for (let i = 0; i < code.length; i++) {
 			if (inQuotes) {
@@ -814,8 +813,9 @@ export default class PollConnector extends BaseConnector {
 		// Check if a response can be expected
 		if (!noWait && seq === this.lastSeqs.reply && strippedCode !== "" && strippedCode.toUpperCase().indexOf("M997") === -1 && strippedCode.toUpperCase().indexOf("M999") === -1) {
 			const pendingCodes = this.pendingCodes;
-			return new Promise<string>((resolve, reject) => pendingCodes.push({ seq, resolve, reject }));
+			return new Promise<string>((resolve, reject) => pendingCodes.push({ seq, resolve, reject })) as Promise<B extends true ? void : string>;
 		}
+		return (noWait ? undefined : "") as B extends true ? void : string;
 	}
 
 	/**

@@ -34,13 +34,15 @@
 </template>
 
 <script lang="ts">
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
+import { mapState } from "pinia";
 import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
 import Vue from "vue";
 
-import store from "@/store";
-
 export default Vue.extend({
+	computed: mapState(useSettingsStore, ["darkTheme"]),
 	data() {
 		return {
 			input: null as HTMLInputElement | HTMLTextAreaElement | null,
@@ -48,11 +50,12 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		store.commit("oskEnabled");
+		useUiStore().oskEnabled = true;
 		window.addEventListener("focusin", this.inputFocused);
 		window.addEventListener("click", this.globalClick);
 	},
 	beforeDestroy() {
+		useUiStore().oskEnabled = false;
 		window.removeEventListener("focusin", this.inputFocused);
 		window.removeEventListener("click", this.globalClick);
 	},
@@ -72,7 +75,7 @@ export default Vue.extend({
 							onKeyPress: this.onKeyPress,
 							newLineOnEnter: e.target instanceof HTMLTextAreaElement,
 							tabCharOnTab: e.target instanceof HTMLTextAreaElement,
-							theme: store.state.settings.darkTheme ? "hg-theme-default dark" : "hg-theme-default"
+							theme: this.darkTheme ? "hg-theme-default dark" : "hg-theme-default"
 						});
 					}
 					this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);
@@ -93,7 +96,7 @@ export default Vue.extend({
 					}
 
 					// Add some space at the bottom so the keyboard does not cover inputs 
-					store.commit("setBottomMargin", (this.$refs.keyboard as HTMLElement).offsetHeight);
+					useUiStore().bottomMargin = (this.$refs.keyboard as HTMLElement).offsetHeight;
 				});
 			}
 		},
@@ -106,7 +109,7 @@ export default Vue.extend({
 		hide() {
 			this.input = null;
 			this.keyboard = null;
-			store.commit("setBottomMargin", 0);
+			useUiStore().bottomMargin = 0;
 		},
 		onInput(e: Event) {
 			this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);

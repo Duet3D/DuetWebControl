@@ -83,17 +83,31 @@
 
 <script lang="ts">
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 import { isNumber } from "@/utils/numbers";
+import { display, displayZ } from "@/utils/display";
 
 export default Vue.extend({
 	computed: {
-		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
-		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
-		isReconnecting(): boolean { return store.state.machine.isReconnecting; },
-		currentMessageBox(): MessageBox | null { return store.state.machine.model.state.messageBox; },
+		...mapState(useMachineStore, {
+			currentMessageBox: state => state.model.state.messageBox,
+			displayedAxes: state => {
+				const axisControls = (state.model.state.messageBox && state.model.state.messageBox.axisControls !== null) ? state.model.state.messageBox.axisControls : 0;
+				return state.model.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
+			},
+			isReconnecting: state => state.isReconnecting
+		}),
+		...mapState(useSettingsStore, {
+			numMoveSteps: (state) => state.moveSteps.default.length
+		}),
+		moveSteps(): (axisLetter: AxisLetter) => Array<number> {
+			const settingsStore = useSettingsStore();
+			return (axisLetter: AxisLetter) => settingsStore.moveSteps[axisLetter];
+		},
 		canConfirm(): boolean {
 			if (this.needsNumberInput) {
 				let canConfirm;
@@ -110,10 +124,6 @@ export default Vue.extend({
 			}
 
 			return true;
-		},
-		displayedAxes(): Array<Axis> {
-			const axisControls = (this.messageBox && this.messageBox.axisControls !== null) ? this.messageBox.axisControls : 0;
-			return store.state.machine.model.move.axes.filter((axis, index) => axis.visible && ((axisControls & (1 << index)) !== 0));
 		},
 		hasButtons(): boolean {
 			return this.messageBox.mode !== MessageBoxMode.noButtons;
@@ -144,13 +154,14 @@ export default Vue.extend({
 	},
 	methods: {
 		canMove(axis: Axis): boolean {
-			return axis.homed || !store.state.machine.model.move.noMovesBeforeHoming;
+			const machineStore = useMachineStore();
+			return axis.homed || !machineStore.model.move.noMovesBeforeHoming;
 		},
 		displayAxisPosition(axis: Axis): string {
 			if (axis.userPosition === null) {
 				return this.$t("generic.noValue");
 			}
-			return (axis.letter === AxisLetter.Z) ? this.$displayZ(axis.userPosition, false) : this.$display(axis.userPosition, 1);
+			return (axis.letter === AxisLetter.Z) ? displayZ(axis.userPosition, false) : display(axis.userPosition, 1);
 		},
 		getMoveCellClass(index: number): string {
 			let classes = "";
@@ -163,29 +174,36 @@ export default Vue.extend({
 			return classes;
 		},
 		getMoveCode(axis: Axis, index: number, decrementing: boolean): string {
-			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
+			const settingsStore = useSettingsStore();
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${settingsStore.moveFeedrate}\nM121`;
 		},
 		showSign: (value: number): string => (value > 0) ? `+${value}` : value.toString(),
 		async ok() {
 			this.shown = false;
+
+			const machineStore = useMachineStore();
 			if ([MessageBoxMode.closeOnly, MessageBoxMode.okOnly, MessageBoxMode.okCancel].includes(this.messageBox.mode)) {
-				await store.dispatch("machine/sendCode", `M292 S${this.messageBox.seq}`);
+				await machineStore.sendCode(`M292 S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.intInput || this.messageBox.mode === MessageBoxMode.floatInput) {
-				await store.dispatch("machine/sendCode", `M292 R{${this.numberInput}} S${this.messageBox.seq}`);
+				await machineStore.sendCode(`M292 R{${this.numberInput}} S${this.messageBox.seq}`);
 			} else if (this.messageBox.mode === MessageBoxMode.stringInput) {
-				await store.dispatch("machine/sendCode", `M292 R{"${this.stringInput.replace(/"/g, '""').replace(/'/g, "''")}"} S${this.messageBox.seq}`);
+				await machineStore.sendCode(`M292 R{"${this.stringInput.replace(/"/g, '""').replace(/'/g, "''")}"} S${this.messageBox.seq}`);
 			}
 		},
 		async accept(choice: number) {
 			this.shown = false;
+
 			if (this.messageBox.mode >= MessageBoxMode.multipleChoice) {
-				await store.dispatch("machine/sendCode", `M292 R{${choice}} S${this.messageBox.seq}`);
+				const machineStore = useMachineStore();
+				await machineStore.sendCode(`M292 R{${choice}} S${this.messageBox.seq}`);
 			}
 		},
 		async cancel() {
 			this.shown = false;
+
 			if (this.messageBox.cancelButton) {
-				await store.dispatch("machine/sendCode", `M292 P1 S${this.messageBox.seq}`);
+				const machineStore = useMachineStore();
+				await machineStore.sendCode(`M292 P1 S${this.messageBox.seq}`);
 			}
 		}
 	},

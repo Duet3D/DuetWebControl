@@ -16,7 +16,10 @@
 <script>
 'use strict'
 
-import { mapActions, mapGetters, mapState } from 'vuex'
+import { mapActions, mapState } from 'pinia';
+
+import { useMachineStore } from '@/store/machine';
+import { useUiStore } from '@/store/ui';
 
 export default {
 	props: {
@@ -36,10 +39,10 @@ export default {
 		event: 'change'
 	},
 	computed: {
-		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', {
-			shapingFrequency: state => state.move.shaping.frequency,
-			shapingType: state => state.move.shaping.type
+		...mapState(useUiStore, ["uiFrozen"]),
+		...mapState(useMachineStore, {
+			shapingFrequency: state => state.model.move.shaping.frequency,
+			shapingType: state => state.model.move.shaping.type
 		}),
 		label() {
 			if (this.value === 'none') {
@@ -55,7 +58,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
+		...mapActions(useMachineStore, ['sendCode']),
 		change(e) {
 			if (this.value !== 'none') {
 				this.$emit('change', e);

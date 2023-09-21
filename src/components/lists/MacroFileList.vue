@@ -66,17 +66,22 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
 import Path, { escapeFilename } from "@/utils/path"
 
 import { BaseFileListItem } from "./BaseFileList.vue";
+import { useUiStore } from "@/store/ui";
+import { useMachineStore } from "@/store/machine";
+import { StartupError } from "@duet3d/objectmodel";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
+		...mapState(useUiStore, ["uiFrozen"]),
+		...mapState(useMachineStore, {
+			macrosDirectory: state => state.model.directories.macros
+		}),
 		isFile(): boolean { return (this.selection.length === 1) && !this.selection[0].isDirectory; }
 	},
 	data() {
@@ -106,7 +111,8 @@ export default Vue.extend({
 			this.runMacroDialog.shown = true;
 		},
 		async runFile(filename: string) {
-			await store.dispatch("machine/sendCode", `M98 P"${escapeFilename(Path.combine(this.directory, filename))}"`);
+			const machineStore = useMachineStore();
+			await machineStore.sendCode(`M98 P"${escapeFilename(Path.combine(this.directory, filename))}"`);
 		}
 	},
 	mounted() {

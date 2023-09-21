@@ -9,9 +9,10 @@ import router from "./routes";
 
 import "./components";
 import "./plugins";
-import "./registerServiceWorker";
 import "./store/observer";
+import "./utils/eventHandlers";
 
+import "./registerServiceWorker";
 import App from "./App.vue";
 
 // Enable compatibilty mode for array updates for @duet3d/objectmodel library

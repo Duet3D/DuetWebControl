@@ -117,9 +117,11 @@ import { Heater, HeaterState } from "@duet3d/objectmodel";
 import { computed, PropType, ref } from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
 import { getHeaterColor } from "@/utils/colors";
 import { displaySensorValue } from "@/utils/display";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 const props = defineProps({
     type: String as PropType<"bed" | "chamber">
@@ -129,19 +131,19 @@ const emit = defineEmits<{
     (e: "resetHeaterFault", heater: number): void
 }>();
 
-const uiFrozen = computed<boolean>(() => store.getters["uiFrozen"]);
+const machineStore = useMachineStore(), settingsStore = useSettingsStore(), uiStore = useUiStore();
 
 // Settings
-const singleControl = computed(() => (props.type === "bed") ? store.state.machine.settings.singleBedControl : store.state.machine.settings.singleChamberControl);
+const singleControl = computed(() => (props.type === "bed") ? settingsStore.singleBedControl : settingsStore.singleChamberControl);
 
 // Heater abstraction
 const heaterItems = computed(() => {
-    const heaterIndices = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const heaterIndices = (props.type === "bed") ? machineStore.model.heat.bedHeaters : machineStore.model.heat.chamberHeaters;
     const heaterList: Array<{ index: number, heater: Heater, heaterIndex: number }> = [];
     for (let index = 0; index < heaterIndices.length; index++) {
         const heaterIndex = heaterIndices[index];
-        if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-            const heater = store.state.machine.model.heat.heaters[heaterIndex];
+        if (heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length) {
+            const heater = machineStore.model.heat.heaters[heaterIndex] as Heater;
             if (heater !== null) {
                 heaterList.push({
                     index,
@@ -165,24 +167,24 @@ function selectHeater(index: number, heater: Heater | null, heaterIndex: number)
 }
 
 const singleHeaterCaption = computed(() => {
-    if (selectedHeater === null) {
+    if (selectedHeater.value === null) {
         return (props.type === "bed") ? i18n.t("panel.tools.beds") : i18n.t("panel.tools.chambers");
     }
     return (props.type === "bed") ? i18n.t("panel.tools.bed", [""]) : i18n.t("panel.tools.chamber", [""]);
 });
 
 async function allHeatersClick() {
-    if (uiFrozen.value) {
+    if (uiStore.uiFrozen) {
         return;
     }
 
     // Get valid indices
-    const heaters = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const heaters = (props.type === "bed") ? machineStore.model.heat.bedHeaters : machineStore.model.heat.chamberHeaters;
     const indices: Array<number> = [];
     for (let index = 0; index < heaters.length; index++) {
         const heaterIndex = heaters[index];
-        if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-            const bedHeater = store.state.machine.model.heat.heaters[heaterIndex];
+        if (heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length) {
+            const bedHeater = machineStore.model.heat.heaters[heaterIndex];
             if (bedHeater !== null) {
                 indices.push(index);
 
@@ -200,15 +202,15 @@ async function allHeatersClick() {
         if (props.type === "bed") {
             switch (firstHeater.value.state) {
                 case HeaterState.off:		// Off -> Active
-                    await store.dispatch("machine/sendCode", indices.map(index => `M140 P${index} S${firstHeater.value!.active}`).join('\n'));
+                    await machineStore.sendCode(indices.map(index => `M140 P${index} S${firstHeater.value!.active}`).join('\n'));
                     break;
 
                 case HeaterState.standby:	// Standby -> Off
-                    await store.dispatch("machine/sendCode", indices.map(index => `M140 P${index} S-273.15`).join('\n'));
+                    await machineStore.sendCode(indices.map(index => `M140 P${index} S-273.15`).join('\n'));
                     break;
 
                 case HeaterState.active:	// Active -> Standby
-                    await store.dispatch("machine/sendCode", indices.map(index => `M144 P${index}\n`).join('\n'));
+                    await machineStore.sendCode(indices.map(index => `M144 P${index}\n`).join('\n'));
                     break;
 
                 // Faults are handled before we get here
@@ -216,13 +218,13 @@ async function allHeatersClick() {
         } else {
             switch (firstHeater.value.state) {
                 case HeaterState.off:		// Off -> Active
-                    await store.dispatch("machine/sendCode", indices.map(index => `M141 P${index} S${firstHeater.value!.active}`).join('\n'));
+                    await machineStore.sendCode(indices.map(index => `M141 P${index} S${firstHeater.value!.active}`).join('\n'));
                     break;
 
                 // Standby mode for chambers is not officially supported yet (there is no code for standby control)
 
                 default:	// Active -> Off
-                    await store.dispatch("machine/sendCode", indices.map(index => `M141 P${index} S-273.15`).join('\n'));
+                    await machineStore.sendCode(indices.map(index => `M141 P${index} S-273.15`).join('\n'));
                     break;
 
                 // Faults are handled before we get here
@@ -233,8 +235,8 @@ async function allHeatersClick() {
 
 // Individual heater control
 function getHeaterName(heater: Heater | null, heaterIndex: number) {
-    if ((heater !== null) && (heater.sensor >= 0) && (heater.sensor < store.state.machine.model.sensors.analog.length)) {
-        const sensor = store.state.machine.model.sensors.analog[heater.sensor];
+    if ((heater !== null) && (heater.sensor >= 0) && (heater.sensor < machineStore.model.sensors.analog.length)) {
+        const sensor = machineStore.model.sensors.analog[heater.sensor];
         if ((sensor !== null) && sensor.name) {
             const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
             if (matches) {
@@ -247,8 +249,8 @@ function getHeaterName(heater: Heater | null, heaterIndex: number) {
 }
 
 function getHeaterValue(heater: Heater | null) {
-    if ((heater !== null) && (heater.sensor >= 0) && (heater.sensor < store.state.machine.model.sensors.analog.length)) {
-        const sensor = store.state.machine.model.sensors.analog[heater.sensor];
+    if ((heater !== null) && (heater.sensor >= 0) && (heater.sensor < machineStore.model.sensors.analog.length)) {
+        const sensor = machineStore.model.sensors.analog[heater.sensor];
         if (sensor !== null) {
             return displaySensorValue(sensor);
         }
@@ -257,42 +259,42 @@ function getHeaterValue(heater: Heater | null) {
 }
 
 async function heaterClick(index: number, heater: Heater | null) {
-    if (uiFrozen.value || !heater) {
+    if (uiStore.uiFrozen || !heater) {
         return;
     }
 
     if (props.type === "bed") {
         switch (heater.state) {
             case HeaterState.off:		// Off -> Active
-                await store.dispatch("machine/sendCode", `M140 P${index} S${heater.active}`);
+                await machineStore.sendCode(`M140 P${index} S${heater.active}`);
                 break;
 
             case HeaterState.standby:	// Standby -> Off
-                await store.dispatch("machine/sendCode", `M140 P${index} S-273.15`);
+                await machineStore.sendCode(`M140 P${index} S-273.15`);
                 break;
 
             case HeaterState.active:	// Active -> Standby
-                await store.dispatch("machine/sendCode", `M144 P${index}`);
+                await machineStore.sendCode(`M144 P${index}`);
                 break;
 
             case HeaterState.fault:		// Fault -> Ask for reset
-                emit("resetHeaterFault", store.state.machine.model.heat.heaters.indexOf(heater));
+                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater));
                 break;
         }
     } else {
         switch (heater.state) {
             case HeaterState.off:		// Off -> Active
-                await store.dispatch("machine/sendCode", `M141 P${index} S${heater.active}`);
+                await machineStore.sendCode(`M141 P${index} S${heater.active}`);
                 break;
 
             // Standby mode for chambers is not officially supported yet (there is no code for standby control)
 
             case HeaterState.fault:		// Fault -> Ask for reset
-                emit("resetHeaterFault", store.state.machine.model.heat.heaters.indexOf(heater));
+                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater));
                 break;
 
             default:	// Active -> Off
-                await store.dispatch("machine/sendCode", `M141 P${index} S-273.15`);
+                await machineStore.sendCode(`M141 P${index} S-273.15`);
                 break;
         }
     }

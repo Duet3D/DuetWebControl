@@ -1,7 +1,9 @@
 import { defineStore } from "pinia";
 import { Component } from "vue";
+
 import { useMachineStore } from "./machine";
-import { useSettingsStore } from "./settings";
+import { DashboardMode, useSettingsStore } from "./settings";
+import { MachineMode } from "@duet3d/objectmodel";
 
 /**
  * Types of supported context menus
@@ -65,7 +67,7 @@ export const useUiStore = defineStore("ui", {
 		/**
 		 * Defines if the connect dialog is shown
 		 */
-		connectDialogShown: process.env.NODE_ENV === "development",
+		showConnectDialog: process.env.NODE_ENV === "development",
 
 		/**
 		 * Additional context menu items
@@ -74,7 +76,7 @@ export const useUiStore = defineStore("ui", {
 			/**
 			 * Extra context menu items for the job file list
 			 */
-			jobFileList: [] as Array<ContextMenuItem>
+			jobFileList: new Array<ContextMenuItem>()
 		},
 
 		/**
@@ -85,7 +87,7 @@ export const useUiStore = defineStore("ui", {
 		/**
 		 * Injected components to render in the App component
 		 */
-		injectedComponents: [] as Array<Component>,
+		injectedComponents: new Array<InjectedComponent>(),
 
 		/**
 		 * Defines if the OSK functionality is enabled
@@ -94,11 +96,20 @@ export const useUiStore = defineStore("ui", {
 	}),
 	getters: {
 		/**
+		 * Indicates if the UI is supposed to display FFF controls
+		 * @returns True if the machine is supposed to display FFF controls
+		 */
+		isFFF(): boolean {
+			const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+			return (settingsStore.dashboardMode === DashboardMode.default) ? (machineStore.model.state.machineMode === MachineMode.fff) : (settingsStore.dashboardMode === DashboardMode.fff);
+		},
+
+		/**
 		 * Indicates if the UI is supposed to be frozen
 		 * @param state Store state
 		 * @returns True if the UI is supposed to be frozen
 		 */
-		frozen: () => {
+		uiFrozen: () => {
 			const machineStore = useMachineStore();
 			return machineStore.isConnecting || machineStore.isDisconnecting || !machineStore.isConnected
 		},
@@ -136,8 +147,8 @@ export const useUiStore = defineStore("ui", {
 		 * Inject a component in the App component
 		 * @param component Component to inject
 		 */
-		injectComponent(component: InjectedComponent) {
-			this.injectedComponents.push(component);
+		injectComponent(name: string, component: Component) {
+			this.injectedComponents.push({ name, component: component as any });
 		}
 	}
 });

@@ -31,7 +31,7 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	props: {
@@ -42,10 +42,12 @@ export default Vue.extend({
 	},
 	computed: {
 		isDuetFirmware(): boolean {
-			return (store.state.machine.model.boards.length > 0 && store.state.machine.model.boards[0].firmwareFileName) ? store.state.machine.model.boards[0].firmwareFileName.startsWith("Duet") : true;
+			const machineStore = useMachineStore();
+			return (machineStore.model.boards.length > 0 && machineStore.model.boards[0].firmwareFileName) ? machineStore.model.boards[0].firmwareFileName.startsWith("Duet") : true;
 		},
 		dsfVersion(): string | null {
-			return store.state.machine.model.sbc?.dsf.version ?? null;
+			const machineStore = useMachineStore();
+			return machineStore.model.sbc?.dsf.version ?? null;
 		},
 		internalShown: {
 			get(): boolean { return this.shown; },

@@ -18,19 +18,13 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
-import { SettingsState } from "@/store/settings";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
 		behaviourJobStart: {
-			get(): boolean { return store.state.settings.behaviour.jobStart; },
-			set(value: boolean) { this.update({ jobStart: value }); }
-		},
-	},
-	methods: {
-		update(data: Partial<SettingsState["behaviour"]>) {
-			store.commit("settings/update", { behaviour: data });
+			get(): boolean { return useSettingsStore().behaviour.jobStart; },
+			set(value: boolean) { useSettingsStore().behaviour.jobStart = value; }
 		}
 	}
 });

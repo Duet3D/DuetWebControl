@@ -14,21 +14,24 @@ span {
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
 		statusText(): string {
-			let type: string = store.state.machine.model.state.status;
-			if (!store.state.machine.model.state.status) {
+			const machineStore = useMachineStore();
+			let type: string = machineStore.model.state.status;
+			if (!machineStore.model.state.status) {
 				type = "unknown";
-			} else if (store.state.machine.model.state.status === MachineStatus.processing && store.state.machine.model.state.machineMode === MachineMode.fff) {
+			} else if (machineStore.model.state.status === MachineStatus.processing && machineStore.model.state.machineMode === MachineMode.fff) {
 				type = "printing";
 			}
 			return this.$t(`generic.status.${type}`);
 		},
 		statusClass() {
-			const darkTheme = store.state.settings.darkTheme, status = store.state.machine.model.state.status;
+			const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+			const darkTheme = settingsStore.darkTheme, status = machineStore.model.state.status;
 			switch (status) {
 				case MachineStatus.disconnected: return darkTheme ? "red darken-2 white--text" : "red darken-1 white--text";
 				case MachineStatus.starting: return darkTheme ? "light-blue darken-3" : "light-blue accent-1";

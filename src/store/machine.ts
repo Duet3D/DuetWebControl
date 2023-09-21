@@ -1,7 +1,8 @@
 import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
-import { _DeepPartial, defineStore } from "pinia";
+import { defineStore } from "pinia";
 
+import { connect } from "./connector";
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
 import { useCacheStore } from "./cache";
 import { DefaultObjectModel, DefaultUsername, DefaultPassword } from "./defaults";
@@ -10,10 +11,10 @@ import { useSettingsStore } from "./settings";
 import i18n, { translateResponse } from "@/i18n";
 import { checkManifest, checkVersion, loadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import { isPrinting } from "@/utils/enums";
+import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
-import { log, logCode, LogType } from "@/utils/logging";
+import { log, logCode } from "@/utils/logging";
 import { makeFileTransferNotification, Notification, showMessage, FileTransferType, makeNotification } from "@/utils/notifications";
 import Path from "@/utils/path";
 
@@ -230,7 +231,7 @@ export const useMachineStore = defineStore("machine", {
 			this.isConnecting = true;
 			Events.emit("connecting", hostname);
 			try {
-				this.connector = await BaseConnector.connect(hostname, username, password);
+				this.connector = await connect(hostname, username, password);
 				Events.emit("connected");
 
 				// Load the list of installed DWC plugins
@@ -277,9 +278,9 @@ export const useMachineStore = defineStore("machine", {
 
 		/**
 		 * Disconnect from a connected machine
-		 * @param gracefully Optionally flag if the connector should send a disconnect request (defaults to true)
+		 * @param gracefully Optionally flag if the connector should send a disconnect request
 		 */
-		async disconnect(gracefully: boolean) {
+		async disconnect(gracefully: boolean = true) {
 			if (this.connector === null) {
 				throw new Error(`Already disconnected`);
 			}
@@ -394,33 +395,32 @@ export const useMachineStore = defineStore("machine", {
 		/**
 		 * Send a code and log the result (if applicable)
 		 * @param code Code to send
-		 * @param fromInput Optional value indicating if the code originates from a code input (defaults to false)
-		 * @param logReply Log the code reply (defaults to true)
-		 * @param noWait Do not wait for the code to complete (defaults to false)
+		 * @param fromInput Optional value indicating if the code originates from a code input
+		 * @param logReply Log the code reply
+		 * @param noWait Do not wait for the code to complete
+		 * @returns Code reply unless noWait is true
 		 */
-		async sendCode(code: string, fromInput: boolean = false, logReply: boolean = true, noWait: boolean = false) {
+		async sendCode<B extends boolean | undefined = false>(code: string, fromInput: boolean = false, logReply: boolean = true, noWait?: B): Promise<B extends true ? void : string> {
 			if (this.connector === null) {
 				throw new OperationFailedError("sendCode is not available in default machine module");
 			}
 
 			try {
-				let reply = await this.connector.sendCode(code, noWait);
+				let reply: string | void = await this.connector.sendCode(code, noWait ?? false);
 				if (typeof reply === "string") {
 					reply = translateResponse(reply);
+					Events.emit("codeExecuted", { code, reply });
 				}
 
 				if (logReply && (fromInput || reply)) {
-					logCode(code, reply || "", this.connector.hostname);
+					logCode(code, reply ?? "");
 				}
 
-				if (typeof reply === "string") {
-					Events.emit("codeExecuted", { code, reply });
-				}
-				return reply;
+				return reply as B extends true ? void : string;
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && log) {
-					const type = (e instanceof CodeBufferError) ? LogType.warning : LogType.error;
-					log(type, code, getErrorMessage(e), this.connector.hostname);
+					const type = (e instanceof CodeBufferError) ? "warning" : "error";
+					log(type, code, getErrorMessage(e));
 				}
 				throw e;
 			}
@@ -873,9 +873,9 @@ export const useMachineStore = defineStore("machine", {
 			try {
 				try {
 					await this.connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
-					makeNotification(LogType.success, i18n.t("notification.systemPackageInstall.success", [filename]));
+					makeNotification("success", i18n.t("notification.systemPackageInstall.success", [filename]));
 				} catch (e) {
-					makeNotification(LogType.error, i18n.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
+					makeNotification("error", i18n.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 					throw e;
 				}
 			} finally {
@@ -902,13 +902,6 @@ export const useMachineStore = defineStore("machine", {
 		 */
 		async loadDwcPlugins(pluginList: Array<string>) {
 			if (pluginList.length > 0) {
-				let operationCancelled = false;
-				const cancellationToken: CancellationToken = {
-					cancel() {
-						operationCancelled = true;
-					}
-				}
-
 				Events.emit("dwcPluginsLoading", pluginList);
 				for (let i = 0; i < pluginList.length; i++) {
 					try {
@@ -916,10 +909,6 @@ export const useMachineStore = defineStore("machine", {
 					} catch (e) {
 						// Event is raised before we get here
 						console.warn(e);
-					}
-
-					if (operationCancelled) {
-						break;
 					}
 				}
 				Events.emit("dwcPluginsLoaded", pluginList);
@@ -1000,68 +989,13 @@ export const useMachineStore = defineStore("machine", {
 			const startupError = this.model.state.startupError;
 			if (startupError !== null && lastStartupError !== JSON.stringify(startupError)) {
 				const errorMessage = i18n.t("error.startupError", [startupError.file, startupError.line, startupError.message])
-				log(LogType.error, errorMessage, undefined);
+				log("error", errorMessage, undefined);
 			}
 
 			// Has the firmware halted?
 			if (lastStatus !== this.model.state.status && this.model.state.status === MachineStatus.halted) {
-				log(LogType.warning, i18n.t("events.emergencyStop"), undefined);
+				log("warning", i18n.t("events.emergencyStop"), undefined);
 			}
 		}
 	}
 });
-
-/**
- * Types of custom plugin data
- */
-export enum PluginDataType {
-	/**
-	 * Custom cache content
-	 */
-	cache,
-
-	/**
-	 * Custom setting
-	 */
-	setting
-}
-
-/**
- * Register custom plugin data
- * @param plugin Plugin identifier
- * @param dataType Type of the data to register
- * @param key Key to use
- * @param defaultValue Default value on initalization
- */
-export function registerPluginData(plugin: string, dataType: PluginDataType, key: string, defaultValue: any) {
-	switch (dataType) {
-		case PluginDataType.cache:
-			useCacheStore().registerPluginData(plugin, key, defaultValue);
-			break;
-		case PluginDataType.setting:
-			useSettingsStore().registerPluginData(plugin, key, defaultValue);
-			break;
-		default:
-			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
-	}
-}
-
-/**
- * Set custom plugin data
- * @param plugin Plugin identifier
- * @param dataType Type of the data
- * @param key Key to use
- * @param value New value
- */
-export function setPluginData(plugin: string, dataType: PluginDataType, key: string, value: any) {
-	switch (dataType) {
-		case PluginDataType.cache:
-			useCacheStore().setPluginData(plugin, key, value);
-			break;
-		case PluginDataType.setting:
-			useSettingsStore().setPluginData(plugin, key, value);
-			break;
-		default:
-			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
-	}
-}

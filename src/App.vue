@@ -55,7 +55,7 @@
 
 		<v-main id="content" :style="`margin-bottom: ${bottomMargin}px`">
 			<v-container class="hidden-sm-and-down" id="global-container" fluid>
-				<fff-container-panel v-if="isFFForUnset" />
+				<fff-container-panel v-if="isFFF" />
 				<cnc-container-panel v-else />
 			</v-container>
 
@@ -99,26 +99,30 @@
 </template>
 
 <script lang="ts">
-import ObjectModel, { MachineMode, MachineStatus } from "@duet3d/objectmodel";
+import { MachineStatus } from "@duet3d/objectmodel";
 import Piecon from "piecon";
-import Vue, { Component } from "vue";
+import { mapState } from "pinia";
+import Vue from "vue";
 import { Route, NavigationGuardNext } from "vue-router";
 
 import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
-import store from "@/store";
-import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
 import { LogType } from "@/utils/logging";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	computed: {
-		name(): string { return store.state.machine.model.network.name; },
-		isConnecting(): boolean { return store.state.isConnecting || store.state.machine.isReconnecting; },
-		status(): MachineStatus { return store.state.machine.model.state.status; },
-		iconMenu(): boolean { return store.state.settings.iconMenu; },
-		jobProgress(): number { return store.getters["machine/model/jobProgress"]; },
-		injectedComponents(): Array<{ name: string, component: Component }> { return store.state.uiInjection.injectedComponents; },
-		model(): ObjectModel { return store.state.machine.model; },
+		...mapState(useMachineStore, {
+			name: state => state.model.network.name,
+			isConnecting: state => state.isConnecting || state.isReconnecting,
+			machineMode: state => state.model.state.machineMode,
+			jobProgress: state => state.jobProgress,
+			status: state => state.model.state.status,
+		}),
+		...mapState(useSettingsStore, ["bottomNavigation", "darkTheme", "dashboardMode", "iconMenu"]),
+		...mapState(useUiStore, ["bottomMargin", "injectedComponents", "isFFF"]),
 		categories(): Array<MenuCategory> {
 			return Object.keys(Menu)
 				.map(key => Menu[key])
@@ -137,21 +141,8 @@ export default Vue.extend({
 			};
 			return Routes.some(route => checkRoute(route as MenuItem));
 		},
-		darkTheme(): boolean { return store.state.settings.darkTheme; },
-		isFFForUnset(): boolean {
-			if (store.state.settings.dashboardMode === DashboardMode.default) {
-				return !this.model.state.machineMode || this.model.state.machineMode === MachineMode.fff;
-			}
-			return store.state.settings.dashboardMode === DashboardMode.fff;
-		},
 		showBottomNavigation(): boolean {
-			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && store.state.settings.bottomNavigation;
-		},
-		doNotSwitchToStatusPanelOnJobStart(): boolean {
-			return store.state.settings.behaviour.jobStart; 
-		},
-		bottomMargin(): number {
-			return store.state.bottomMargin;
+			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && this.bottomNavigation;
 		}
 	},
 	data() {
@@ -186,15 +177,22 @@ export default Vue.extend({
 	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
-		window.addEventListener("unload", () => store.dispatch("disconnectAll"));
+		window.addEventListener("unload", () => {
+			const machineStore = useMachineStore();
+			if (machineStore.isConnected) {
+				machineStore.disconnect();
+			}
+		});
 
 		// Connect if running on a board
+		const machineStore = useMachineStore();
 		if (process.env.NODE_ENV === "production") {
-			store.dispatch("connect");
+			machineStore.connect();
 		}
 
 		// Attempt to load the settings
-		store.dispatch("settings/load");
+		const settingsStore = useSettingsStore();
+		settingsStore.load();
 
 		// Validate navigation
 		Vue.prototype.$vuetify = this.$vuetify;
@@ -224,8 +222,9 @@ export default Vue.extend({
 			this.$vuetify.theme.dark = to;
 		},
 		isConnecting(to: boolean) {
-			if (!to && store.state.machine.model.volumes.length > 0) {
-				const firstVolume = store.state.machine.model.volumes[0];
+			const machineStore = useMachineStore();
+			if (!to && machineStore.model.volumes.length > 0) {
+				const firstVolume = machineStore.model.volumes[0];
 				if (firstVolume.capacity !== null && firstVolume.freeSpace !== null &&
 					firstVolume.capacity > 268435456 && (firstVolume.freeSpace as number) / (firstVolume.capacity as number) < 0.05)		// 256 MiB
 				{
@@ -243,7 +242,8 @@ export default Vue.extend({
 			if (printing !== isPrinting(from)) {
 				if (printing) {
 					// Go to Job Status when a print starts
-					if (this.$router.currentRoute.path !== "/Job/Status" && !this.doNotSwitchToStatusPanelOnJobStart) {
+					const settingsStore = useSettingsStore();
+					if (this.$router.currentRoute.path !== "/Job/Status" && !settingsStore.behaviour.jobStart) {
 						this.$router.push("/Job/Status");
 					}
 				} else {

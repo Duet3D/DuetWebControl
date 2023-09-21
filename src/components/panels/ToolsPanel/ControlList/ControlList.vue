@@ -78,22 +78,17 @@ table.tools th {
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 
 import HeaterRows from "./HeaterRows.vue";
 import ToolRows from "./ToolRows.vue";
 
+const machineStore = useMachineStore();
+
 // General appearance
-const hasTools = computed(() => store.state.machine.model.tools.some(tool => tool !== null));
-const hasBeds = computed(() => store.state.machine.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) && (bedHeater < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[bedHeater] !== null)));
-const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) && (chamberHeater < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[chamberHeater] !== null)));
-
-// Bed control
-const bedHeaters = computed(() => store.state.machine.model.heat.bedHeaters);
-const singleBedControl = computed<boolean>(() => store.state.machine.settings.singleBedControl);
-
-// Chamber control
-const chamberHeaters = computed(() => store.state.machine.model.heat.chamberHeaters);
+const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
+const hasBeds = computed(() => machineStore.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) && (bedHeater < machineStore.model.heat.heaters.length) && (machineStore.model.heat.heaters[bedHeater] !== null)));
+const hasChambers = computed(() => machineStore.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) && (chamberHeater < machineStore.model.heat.heaters.length) && (machineStore.model.heat.heaters[chamberHeater] !== null)));
 
 // Heater fault management
 const resettingHeaterFault = ref(false), faultyHeaterToReset = ref(-1);

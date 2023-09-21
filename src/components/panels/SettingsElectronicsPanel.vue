@@ -93,21 +93,24 @@ th {
 </template>
 
 <script lang="ts">
-import { Board, NetworkInterfaceType } from "@duet3d/objectmodel";
+import { NetworkInterfaceType } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
 import packageInfo from "../../../package.json";
-import store from "@/store";
-import RestConnector from "@/store/machine/connector/RestConnector";
+import { useMachineStore } from "@/store/machine";
+import RestConnector from "@/store/connector/RestConnector";
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		isRestConnector(): boolean { return store.getters["machine/connector"] instanceof RestConnector; },
-		boards(): Array<Board> { return store.state.machine.model.boards.filter(board => board !== null); },
-		isDuetFirmware(): boolean { return this.boards.some(board => !board.canAddress && board.firmwareFileName.startsWith("Duet")); },
-		dsfVersion(): string | null { return store.state.machine.model.sbc?.dsf.version ?? null; },
-		wifiVersion(): string | null { return store.state.machine.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null; },
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			isRestConnector: state => state.connector instanceof RestConnector,
+			boards: state => state.model.boards,
+			isDuetFirmware: state => state.model.boards.some(board => !board.canAddress && board.firmwareFileName.startsWith("Duet")),
+			dsfVersion: state => state.model.sbc?.dsf.version ?? null,
+            wifiVersion: state => state.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null
+		}),
 	},
 	data() {
 		return {
@@ -117,7 +120,7 @@ export default Vue.extend({
 	},
 	methods: {
 		async diagnostics() {
-			await store.dispatch("machine/sendCode", "M122");
+			await useMachineStore().sendCode("M122");
 			await this.$router.push("/Console");
 		}
 	}

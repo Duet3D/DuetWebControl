@@ -216,8 +216,8 @@
 <script>
 'use strict'
 
-import { Axis, KinematicsName, MachineStatus } from '@duet3d/objectmodel';
-import { mapActions, mapState } from 'vuex';
+import { Axis, AxisLetter, KinematicsName, MachineStatus } from '@duet3d/objectmodel';
+import { mapActions, mapState } from 'pinia';
 
 import { OperationCancelledError } from '@/utils/errors';
 
@@ -240,10 +240,15 @@ export default {
 		}
 	},
 	computed: {
-		...mapState('machine/model', ['boards', 'move', 'tools', 'state']),
-		xAxis() { return this.move.axes.find(axis => axis.letter === 'X') || new Axis(); },
-		yAxis() { return this.move.axes.find(axis => axis.letter === 'Y') || new Axis(); },
-		zAxis() { return this.move.axes.find(axis => axis.letter === 'Z') || new Axis(); },
+		...mapState(useMachineStore, {
+			boards: state => state.model.boards,
+			move: state => state.model.move,
+			tools: state => state.model.tools,
+			state: state => state.model.state,
+			xAxis: state => state.model.move.axes.find(axis => axis.letter === AxisLetter.X) || new Axis(),
+			yAxis: state => state.model.move.axes.find(axis => axis.letter === AxisLetter.Y) || new Axis(),
+			zAxis: state => state.model.move.axes.find(axis => axis.letter === AxisLetter.Z) || new Axis()
+		}),
 		shownInternal: {
 			get() { return this.shown },
 			set(value) { this.$emit('update:shown', value); }
@@ -338,7 +343,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
+		...mapActions(useMachineStore, ['sendCode']),
 		refreshCenters() {
 			if (this.currentPage === 'collection') {
 				return;

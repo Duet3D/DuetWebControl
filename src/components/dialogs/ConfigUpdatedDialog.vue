@@ -25,7 +25,7 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	props: {
@@ -40,11 +40,15 @@ export default Vue.extend({
 		},
 		async reset() {
 			this.$emit("update:shown", false);
-			await store.dispatch("machine/sendCode", "M999");
+
+			const machineStore = useMachineStore();
+			await machineStore.sendCode("M999");
 		},
 		async runConfig() {
 			this.$emit("update:shown", false);
-			await store.dispatch("machine/sendCode", "M98 P\"config.g\"");
+
+			const machineStore = useMachineStore();
+			await machineStore.sendCode("M98 P\"config.g\"");
 		}
 	}
 });

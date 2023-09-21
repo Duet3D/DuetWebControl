@@ -140,39 +140,42 @@ h1 {
 </template>
 
 <script>
-'use strict';
+"use strict";
 
-import { KinematicsName } from '@duet3d/objectmodel';
-import { mapState, mapGetters, mapActions } from 'vuex';
+import { KinematicsName } from "@duet3d/objectmodel";
+import { mapState, mapActions } from "pinia";
 
-import { setPluginData, PluginDataType } from '@/store';
-import CSV from '@/utils/csv';
-import Events from '@/utils/events';
-import Path from '@/utils/path';
+import CSV from "@/utils/csv";
+import Events from "@/utils/events";
+import Path from "@/utils/path";
 
-import HeightMapViewer from './3dbjs';
+import HeightMapViewer from "./3dbjs";
+import { useUiStore } from "@/store/ui";
+import { useCacheStore } from "@/store/cache";
+import { useSettingsStore } from "@/store/settings";
+import { useMachineStore } from "@/store/machine";
 
 let heightMapViewer;
 export default {
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/cache', {
-			pluginCache: (state) => state.plugins.HeightMap,
+		...mapState(useCacheStore, {
+			pluginCache: state => state.plugins.HeightMap
 		}),
-		...mapState('machine/model', {
-			heightmapFile: (state) => state.move.compensation.file,
-			systemDirectory: (state) => state.directories.system,
-			axes: (state) => state.move.axes,
-			kinematicsName: (state) => state.move.kinematics.name,
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			heightmapFile: state => state.model.move.compensation.file,
+			systemDirectory: state => state.model.directories.system,
+			axes: state => state.model.move.axes,
+			kinematicsName: state => state.model.move.kinematics.name
 		}),
-		...mapState('settings', ['language']),
+		...mapState(useSettingsStore, ["locale"]),
+		...mapState(useUiStore, ["uiFrozen"]),
 		colorScheme: {
 			get() {
 				return this.pluginCache.colorScheme;
 			},
 			set(value) {
-				setPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', value);
+				this.pluginCache.colorScheme = value;
 			},
 		},
 		deviationColoring: {
@@ -180,7 +183,7 @@ export default {
 				return this.pluginCache.deviationColoring;
 			},
 			set(value) {
-				setPluginData('HeightMap', PluginDataType.machineCache, 'deviationColoring', value);
+				this.pluginCache.deviationColoring = value;
 			},
 		},
 		invertZ: {
@@ -188,7 +191,7 @@ export default {
 				return this.pluginCache.invertZ;
 			},
 			set(value) {
-				setPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', value);
+				this.pluginCache.invertZ = value;
 			},
 		},
 		isDelta() {
@@ -220,8 +223,8 @@ export default {
 				y: undefined,
 				shown: false,
 			},
-			xLabel: 'X',
-			yLabel: 'Y',
+			xLabel: "X",
+			yLabel: "Y",
 			numPoints: undefined, // points excluding NaN
 			area: undefined,
 			radius: undefined,
@@ -235,7 +238,7 @@ export default {
 		};
 	},
 	methods: {
-		...mapActions('machine', ['download', 'getFileList']),
+		...mapActions(useMachineStore, ["download", "getFileList"]),
 		resize() {
 			if (!this.isActive) {
 				return;
@@ -245,13 +248,13 @@ export default {
 			const width = Math.max(this.$refs.container.offsetWidth - 80, 0);
 			let height;
 			switch (this.$vuetify.breakpoint.name) {
-				case 'xs':
+				case "xs":
 					height = width;
 					break;
-				case 'sm':
+				case "sm":
 					height = (width * 3) / 4;
 					break;
-				case 'xl':
+				case "xl":
 					height = (width * 10) / 16;
 					break;
 				default:
@@ -260,8 +263,8 @@ export default {
 			}
 
 
-			let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
-				let globalContainer =  getComputedStyle(document.getElementById('global-container'));
+			let contentArea = getComputedStyle(document.getElementsByClassName("v-toolbar__content")[0]);
+				let globalContainer =  getComputedStyle(document.getElementById("global-container"));
 				let primaryContainer = getComputedStyle(this.$refs.container);
 				let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
 				let globalContainerHeight = this.$vuetify.breakpoint.smAndDown ? 0 : parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
@@ -291,34 +294,34 @@ export default {
 		},
 		showCSV(csvData) {
 			// Load the CSV. The first line is a comment that can be removed
-			const csv = new CSV(csvData.substring(csvData.indexOf('\n') + 1));
-			this.xLabel = csv.get('axis0') || 'X';
-			this.yLabel = csv.get('axis1') || 'Y';
-			let radius = parseFloat(csv.get('radius'));
+			const csv = new CSV(csvData.substring(csvData.indexOf("\n") + 1));
+			this.xLabel = csv.get("axis0") || "X";
+			this.yLabel = csv.get("axis1") || "Y";
+			let radius = parseFloat(csv.get("radius"));
 			if (radius <= 0) {
 				radius = undefined;
 			}
-			let xMin = parseFloat(csv.get('min0'));
+			let xMin = parseFloat(csv.get("min0"));
 			if (isNaN(xMin)) {
-				xMin = parseFloat(csv.get('xmin'));
+				xMin = parseFloat(csv.get("xmin"));
 			}
-			let yMin = parseFloat(csv.get('min1'));
+			let yMin = parseFloat(csv.get("min1"));
 			if (isNaN(yMin)) {
-				yMin = parseFloat(csv.get('ymin'));
+				yMin = parseFloat(csv.get("ymin"));
 			}
-			let xSpacing = parseFloat(csv.get('spacing0'));
+			let xSpacing = parseFloat(csv.get("spacing0"));
 			if (isNaN(xSpacing)) {
-				xSpacing = parseFloat(csv.get('xspacing'));
+				xSpacing = parseFloat(csv.get("xspacing"));
 			}
 			if (isNaN(xSpacing)) {
-				xSpacing = parseFloat(csv.get('spacing'));
+				xSpacing = parseFloat(csv.get("spacing"));
 			}
-			let ySpacing = parseFloat(csv.get('spacing1'));
+			let ySpacing = parseFloat(csv.get("spacing1"));
 			if (isNaN(ySpacing)) {
-				ySpacing = parseFloat(csv.get('yspacing'));
+				ySpacing = parseFloat(csv.get("yspacing"));
 			}
 			if (isNaN(ySpacing)) {
-				ySpacing = parseFloat(csv.get('spacing'));
+				ySpacing = parseFloat(csv.get("spacing"));
 			}
 
 			// Convert each point to a vector
@@ -327,7 +330,7 @@ export default {
 				const xpoints = [];
 				for (let x = 0; x < csv.content[y].length; x++) {
 					const value = csv.content[y][x].trim();
-					xpoints.push([xMin + x * xSpacing, yMin + (y - 1) * ySpacing, value === '0' ? NaN : parseFloat(value)]);
+					xpoints.push([xMin + x * xSpacing, yMin + (y - 1) * ySpacing, value === "0" ? NaN : parseFloat(value)]);
 				}
 				points.push(xpoints);
 			}
@@ -404,7 +407,7 @@ export default {
 			}
 
 			if (this.loading) {
-				// Don't do multiple actions at once
+				// Don"t do multiple actions at once
 				return;
 			}
 
@@ -412,7 +415,7 @@ export default {
 			try {
 				const files = await this.getFileList(this.systemDirectory);
 				this.files = files
-					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'))
+					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith(".csv"))
 					.map(file => file.name)
 					.sort();
 			} finally {
@@ -432,7 +435,7 @@ export default {
 		},
 		async getHeightMap() {
 			if (this.loading) {
-				// Don't attempt to load more than one file at once...
+				// Don"t attempt to load more than one file at once...
 				return;
 			}
 
@@ -440,13 +443,7 @@ export default {
 			this.loading = true;
 			try {
 				if (this.selectedFile) {
-					const heightmap = await this.download({
-						filename: Path.combine(this.systemDirectory, this.selectedFile),
-						type: 'text',
-						showProgress: false,
-						showSuccess: false,
-						showError: false,
-					});
+					const heightmap = await this.download({ filename: Path.combine(this.systemDirectory, this.selectedFile), type: "text" }, false, false, false);
 					this.showCSV(heightmap);
 				} else {
 					this.errorMessage = null;
@@ -461,7 +458,7 @@ export default {
 
 		async testMesh() {
 			const csvData =
-				'RepRapFirmware height map file v1\nxmin,xmax,ymin,ymax,radius,spacing,xnum,ynum\n-140.00,140.10,-140.00,140.10,150.00,20.00,15,15\n0,0,0,0,0,-0.139,-0.188,-0.139,-0.202,-0.224,0,0,0,0,0\n0,0,0,-0.058,-0.066,-0.109,-0.141,-0.129,-0.186,-0.198,-0.191,-0.176,0,0,0\n0,0,0.013,-0.008,-0.053,-0.071,-0.087,-0.113,-0.162,-0.190,-0.199,-0.267,-0.237,0,0\n0,0.124,0.076,0.025,-0.026,-0.054,-0.078,-0.137,-0.127,-0.165,-0.201,-0.189,-0.227,-0.226,0\n0,0.198,0.120,0.047,0.089,-0.074,-0.097,-0.153,-0.188,-0.477,-0.190,-0.199,-0.237,-0.211,0\n0.312,0.229,0.198,0.098,0.097,0.004,-0.089,-0.516,-0.150,-0.209,-0.197,-0.183,-0.216,-0.296,-0.250\n0.287,0.263,0.292,0.100,0.190,0.015,-0.102,-0.039,-0.125,-0.149,-0.137,-0.198,-0.188,-0.220,-0.192\n0.378,0.289,0.328,0.172,0.133,0.078,-0.086,0.134,-0.100,-0.150,-0.176,-0.234,-0.187,-0.199,-0.221\n0.360,0.291,0.260,0.185,0.111,0.108,0.024,0.073,-0.024,-0.116,-0.187,-0.252,-0.201,-0.215,-0.187\n0.447,0.397,0.336,0.276,0.180,0.164,0.073,-0.050,-0.049,-0.109,-0.151,-0.172,-0.211,-0.175,-0.161\n0,0.337,0.289,0.227,0.179,0.127,0.086,0.034,-0.039,-0.060,-0.113,-0.108,-0.171,-0.153,0\n0,0.478,0.397,0.374,0.270,0.141,0.085,0.074,0.037,-0.048,-0.080,-0.187,-0.126,-0.175,0\n0,0,0.373,0.364,0.265,0.161,0.139,0.212,0.040,0.046,-0.008,-0.149,-0.115,0,0\n0,0,0,0.346,0.295,0.273,0.148,0.136,0.084,0.024,-0.055,-0.078,0,0,0\n0,0,0,0,0,0.240,0.178,0.084,0.090,0.004,0,0,0,0,0';
+				"RepRapFirmware height map file v1\nxmin,xmax,ymin,ymax,radius,spacing,xnum,ynum\n-140.00,140.10,-140.00,140.10,150.00,20.00,15,15\n0,0,0,0,0,-0.139,-0.188,-0.139,-0.202,-0.224,0,0,0,0,0\n0,0,0,-0.058,-0.066,-0.109,-0.141,-0.129,-0.186,-0.198,-0.191,-0.176,0,0,0\n0,0,0.013,-0.008,-0.053,-0.071,-0.087,-0.113,-0.162,-0.190,-0.199,-0.267,-0.237,0,0\n0,0.124,0.076,0.025,-0.026,-0.054,-0.078,-0.137,-0.127,-0.165,-0.201,-0.189,-0.227,-0.226,0\n0,0.198,0.120,0.047,0.089,-0.074,-0.097,-0.153,-0.188,-0.477,-0.190,-0.199,-0.237,-0.211,0\n0.312,0.229,0.198,0.098,0.097,0.004,-0.089,-0.516,-0.150,-0.209,-0.197,-0.183,-0.216,-0.296,-0.250\n0.287,0.263,0.292,0.100,0.190,0.015,-0.102,-0.039,-0.125,-0.149,-0.137,-0.198,-0.188,-0.220,-0.192\n0.378,0.289,0.328,0.172,0.133,0.078,-0.086,0.134,-0.100,-0.150,-0.176,-0.234,-0.187,-0.199,-0.221\n0.360,0.291,0.260,0.185,0.111,0.108,0.024,0.073,-0.024,-0.116,-0.187,-0.252,-0.201,-0.215,-0.187\n0.447,0.397,0.336,0.276,0.180,0.164,0.073,-0.050,-0.049,-0.109,-0.151,-0.172,-0.211,-0.175,-0.161\n0,0.337,0.289,0.227,0.179,0.127,0.086,0.034,-0.039,-0.060,-0.113,-0.108,-0.171,-0.153,0\n0,0.478,0.397,0.374,0.270,0.141,0.085,0.074,0.037,-0.048,-0.080,-0.187,-0.126,-0.175,0\n0,0,0.373,0.364,0.265,0.161,0.139,0.212,0.040,0.046,-0.008,-0.149,-0.115,0,0\n0,0,0,0.346,0.295,0.273,0.148,0.136,0.084,0.024,-0.055,-0.078,0,0,0\n0,0,0,0,0,0.240,0.178,0.084,0.090,0.004,0,0,0,0,0";
 			this.showCSV(csvData);
 		},
 		async testBedCompensation(numPoints) {
@@ -492,17 +489,17 @@ export default {
 					];
 					break;
 				default:
-					throw new Error('Bad number of probe points, only one of 3/4/5 is supported');
+					throw new Error("Bad number of probe points, only one of 3/4/5 is supported");
 			}
 			this.showHeightMap(testPoints);
 		},
 
-		filesOrDirectoriesChanged({ machine, files, volume }) {
-			if (machine === this.selectedMachine && files !== undefined) {
+		filesOrDirectoriesChanged({ files, volume }) {
+			if (files !== undefined) {
 				if (this.selectedFile && files.indexOf(Path.combine(this.systemDirectory, this.selectedFile)) >= 0) {
 					// Current heightmap has been changed, reload it and then refresh the list
 					this.getHeightMap(this.selectedFile).then(this.refresh);
-				} else if (files.some((file) => file.endsWith('.csv')) && Path.filesAffectDirectory(files, this.systemDirectory)) {
+				} else if (files.some((file) => file.endsWith(".csv")) && Path.filesAffectDirectory(files, this.systemDirectory)) {
 					// CSV file or directory has been changed
 					this.refresh();
 				}
@@ -512,7 +509,7 @@ export default {
 			if (this.axes) {
 				for (var axesIdx in this.axes) {
 					let axes = this.axes[axesIdx];
-					if ('XYZ'.includes(axes.letter)) {
+					if ("XYZ".includes(axes.letter)) {
 						var letter = axes.letter.toLowerCase();
 						heightMapViewer.buildVolume[letter].min = axes.min;
 						heightMapViewer.buildVolume[letter].max = axes.max;
@@ -564,7 +561,7 @@ export default {
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 
 		// Kill the wheel on the canvas
-		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
+		this.$refs.canvas.addEventListener("wheel", evt => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches
 		setTimeout(this.resize.bind(this), 1000);
@@ -617,7 +614,7 @@ export default {
 		systemDirectory() {
 			this.refresh();
 		},
-		language() {
+		locale() {
 			if (heightMapViewer) {
 				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme);
 			}

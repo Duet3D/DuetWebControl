@@ -11,9 +11,11 @@
 </style>
 
 <script lang="ts">
-import Vue from 'vue';
-import * as monaco from 'monaco-editor';
-import store from '@/store';
+import * as monaco from "monaco-editor";
+import { mapState } from "pinia";
+import Vue from "vue";
+
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
    props: {
@@ -40,18 +42,14 @@ export default Vue.extend({
          editor: null as monaco.editor.IStandaloneCodeEditor | null
       };
    },
-   computed: {
-      darkTheme() {
-         return store.state.settings.darkTheme;
-      }
-   },
+   computed: mapState(useSettingsStore, ["darkTheme"]),
    mounted() {
       this.$nextTick(() => {
          this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
             automaticLayout: true,
             language: 'gcode',
             scrollBeyondLastLine: false,
-            theme: store.state.settings.darkTheme ? 'vs-dark' : 'vs',
+            theme: this.darkTheme ? 'vs-dark' : 'vs',
             value: this.innerDocument,
             readOnly: true,
             occurrencesHighlight: false,

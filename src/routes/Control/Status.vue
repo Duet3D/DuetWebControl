@@ -1,25 +1,17 @@
 <template>
 	<div class="mb-3">
-		<fff-container-panel v-if="isFFForUnset" />
+		<fff-container-panel v-if="isFFF" />
 		<cnc-container-panel v-else />
 	</div>
 </template>
 
 <script lang="ts">
-import { MachineMode } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
-import { DashboardMode } from "@/store/settings";
+import { mapState } from "pinia";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
-	computed: {
-		isFFForUnset() {
-			if (store.state.settings.dashboardMode === DashboardMode.default) {
-				return !store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff;
-			}
-			return store.state.settings.dashboardMode === DashboardMode.fff;
-		}
-	}
+	computed: mapState(useUiStore, ["isFFF"])
 });
 </script>

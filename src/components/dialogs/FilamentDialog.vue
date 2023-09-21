@@ -28,14 +28,12 @@
 </template>
 
 <script lang="ts">
-import { Tool } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors"
-import { LogType } from "@/utils/logging";
+import { LogType, log } from "@/utils/logging";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	props: {
@@ -44,9 +42,6 @@ export default Vue.extend({
 			required: true
 		},
 		tool: Object
-	},
-	computed: {
-		currentTool(): Tool { return store.getters["machine/model/currentTool"]; }
 	},
 	data() {
 		return {
@@ -59,17 +54,18 @@ export default Vue.extend({
 			if (this.loading) {
 				return;
 			}
+			const machineStore = useMachineStore();
 
 			this.loading = true
 			try {
-				const response: Array<FileListItem> = await store.dispatch("machine/getFileList", store.state.machine.model.directories.filaments);
+				const response = await machineStore.getFileList(machineStore.model.directories.filaments);
 				const filaments = response.filter(item => item.isDirectory).map(item => item.name);
 				filaments.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 				this.filaments = filaments;
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$log(LogType.error, this.$t("error.filamentsLoadFailed"), getErrorMessage(e));
+					log(LogType.error, this.$t("error.filamentsLoadFailed"), getErrorMessage(e));
 				}
 				this.hide();
 			}
@@ -78,21 +74,22 @@ export default Vue.extend({
 		async filamentClick(filament: string) {
 			this.hide();
 
+			const machineStore = useMachineStore();
 			let code = "";
-			if (this.currentTool !== this.tool) {
+			if (machineStore.currentTool !== this.tool) {
 				// Select tool first
 				code = `T${this.tool.number}\n`;
 			}
 
-			if (this.tool.filamentExtruder >= 0 && this.tool.filamentExtruder < store.state.machine.model.move.extruders.length &&
-				store.state.machine.model.move.extruders[this.tool.filamentExtruder].filament) {
+			if (this.tool.filamentExtruder >= 0 && this.tool.filamentExtruder < machineStore.model.move.extruders.length &&
+				machineStore.model.move.extruders[this.tool.filamentExtruder].filament) {
 				// Unload current filament, normally this should not be necessary
 				code += "M702\n";
 			}
 
 			// Run load sequence and configure current tool for it
 			code += `M701 S"${filament}"\nM703`;
-			await store.dispatch("machine/sendCode", code);
+			await machineStore.sendCode(code);
 		},
 		hide() {
 			this.$emit("update:shown", false);

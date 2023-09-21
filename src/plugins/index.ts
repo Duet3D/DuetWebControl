@@ -8,7 +8,6 @@ import packageInfo from "../../package.json";
 
 import DwcPlugin from "./DwcPlugin";
 import PluginImports from "./imports";
-import { CancellationToken } from "@/store/connector/BaseConnector";
 
 /**
  * What DWC plugins are loaded?
@@ -93,7 +92,7 @@ export async function loadDwcPlugin(id: string) {
 		if (externalPlugin === null) {
 			const error = new Error(`Built-in plugin ${id} not found`);
 			Events.emit("dwcPluginLoadError", { id, error });
-			throw ;
+			throw error;
 		}
 
 		// Check if there are any resources to load and if it is actually possible

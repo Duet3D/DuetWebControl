@@ -20,24 +20,25 @@
 </template>
 
 <script lang="ts">
+import { mapActions, mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		...mapState(useUiStore, ["uiFrozen"]),
 		speedFactor: {
-			get(): number { return (store.state.machine.model.move.speedFactor !== null) ? (store.state.machine.model.move.speedFactor * 100) : 100; },
+			get(): number {
+				const machineStore = useMachineStore();
+				return (machineStore.model.move.speedFactor !== null) ? (machineStore.model.move.speedFactor * 100) : 100;
+			},
 			set(value: number) { this.sendCode(`M220 S${value}`); }
 		},
 		speedFactorMin(): number { return Math.max(1, Math.min(100, this.speedFactor - 50)); },
 		speedFactorMax(): number { return Math.max(150, this.speedFactor + 50); }
 	},
-	methods: {
-		async sendCode(code: string) {
-			await store.dispatch("machine/sendCode", code);
-		}
-	}
+	methods: mapActions(useMachineStore, ["sendCode"])
 });
 </script>

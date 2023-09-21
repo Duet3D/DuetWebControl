@@ -7,8 +7,10 @@
 
 import Chart from 'chart.js'
 import { getInputShaperDamping, getInputShaperFactors } from '@duet3d/motionanalysis'
+import { mapState } from 'pinia'
 import { InputShapingType } from "@duet3d/objectmodel";
-import { mapState } from 'vuex'
+
+import { useSettingsStore } from '@/store/settings';
 
 import './RangePlugin'
 import './VLinePlugin'
@@ -35,7 +37,7 @@ export default {
 		estimateShaperEffect: Boolean       // show estimated shaper effect
 	},
 	computed: {
-		...mapState('settings', ['darkTheme']),
+		...mapState(useSettingsStore, ['darkTheme']),
 		showReduction() { return ((this.amplitudes && this.durations) || (!!this.inputShapers && this.inputShapers.length > 0)) && !this.estimateShaperEffect; },
 		resolution() { return (this.frequencies && this.frequencies.length > 2) ? (this.frequencies[1] - this.frequencies[0]) : 0; },
 		lineAtPoint() {

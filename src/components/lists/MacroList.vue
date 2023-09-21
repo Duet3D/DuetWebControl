@@ -45,15 +45,17 @@
 </template>
 
 <script lang="ts">
-import { Volume } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
+import { FileListItem } from "@/store/connector/BaseConnector";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { LogType } from "@/utils/logging";
 import Path, { escapeFilename } from "@/utils/path";
+import pathObj from "@/utils/path";
 
 interface MacroItemProperties {
 	displayName: string;
@@ -64,11 +66,12 @@ type MacroItem = FileListItem & MacroItemProperties;
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		selectedMachine(): string { return store.state.selectedMachine; },
-		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
-		volumes(): Array<Volume> { return store.state.machine.model.volumes; },
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			macrosDirectory: state => state.model.directories.macros,
+			volumes: state => state.model.volumes
+		}),
+		...mapState(useUiStore, ["uiFrozen"]),
 		currentDirectory(): string {
 			if (Path.startsWith(this.directory, this.macrosDirectory)) {
 				let subDirectory = this.directory.substring(this.macrosDirectory.length);
@@ -94,16 +97,17 @@ export default Vue.extend({
 			if (this.loading) {
 				return;
 			}
+			const machineStore = useMachineStore();
 
 			this.loading = true;
 			try {
-				const files: Array<MacroItem> = await store.dispatch("machine/getFileList", directory);
+				const files: Array<MacroItem> = (await machineStore.getFileList(directory)).map(item => ({
+					...item,
+					displayName: Path.stripMacroFilename(item.name),
+					executing: false
+				}));
 				files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 				files.sort((a, b) => (a.isDirectory === b.isDirectory) ? 0 : (a.isDirectory ? -1 : 1));
-				for (const item of files) {
-					item.displayName = Path.stripMacroFilename(item.name);
-					item.executing = false;
-				}
 
 				this.directory = directory;
 				this.filelist = files;
@@ -129,7 +133,8 @@ export default Vue.extend({
 			} else if (!item.executing) {
 				item.executing = true;
 				try {
-					await store.dispatch("machine/sendCode", `M98 P"${escapeFilename(filename)}"`);
+					const machineStore = useMachineStore();
+					await machineStore.sendCode(`M98 P"${escapeFilename(filename)}"`);
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
@@ -142,8 +147,8 @@ export default Vue.extend({
 			await this.loadDirectory(Path.extractDirectory(this.directory));
 		},
 
-		filesOrDirectoriesChanged({ machine, files, volume }: { machine: string, files?: Array<string>, volume?: number }) {
-			if (machine === store.state.selectedMachine && ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory)))) {
+		filesOrDirectoriesChanged({ files, volume }: { files?: Array<string>, volume?: number }) {
+			if ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory))) {
 				// File or directory has been changed in the current directory
 				this.refresh();
 			}
@@ -158,11 +163,11 @@ export default Vue.extend({
 		}
 
 		// Keep track of file changes
-		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+		Events.on("filesOrDirectoriesChanged", this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes
-		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+		Events.off("filesOrDirectoriesChanged", this.filesOrDirectoriesChanged);
 	},
 	watch: {
 		macrosDirectory(to: string, from: string) {
@@ -172,16 +177,6 @@ export default Vue.extend({
 		},
 		isConnected(to: boolean) {
 			if (to) {
-				this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
-				this.refresh();
-			} else {
-				this.directory = Path.macros;
-				this.filelist = [];
-			}
-		},
-		selectedMachine() {
-			// TODO store current directory per selected machine
-			if (this.isConnected) {
 				this.wasMounted = (this.volumes.length > 0) && this.volumes[0].mounted;
 				this.refresh();
 			} else {

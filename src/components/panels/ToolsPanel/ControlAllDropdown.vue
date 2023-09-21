@@ -40,17 +40,20 @@ import { HeaterState } from "@duet3d/objectmodel";
 import { computed, ref } from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import { log, LogType } from "@/utils/logging";
+
+const machineStore = useMachineStore(), uiStore = useUiStore();
 
 const dropdownShown = ref(false);
 
 // Turn everything off
 const canTurnEverythingOff = computed(() => {
-    const heaters = store.state.machine.model.heat.heaters, tools = store.state.machine.model.tools;
-    const bedHeaters = store.state.machine.model.heat.bedHeaters, chamberHeaters = store.state.machine.model.heat.chamberHeaters;
-    return (!store.getters["uiFrozen"] &&
+    const heaters = machineStore.model.heat.heaters, tools = machineStore.model.tools;
+    const bedHeaters = machineStore.model.heat.bedHeaters, chamberHeaters = machineStore.model.heat.chamberHeaters;
+    return (!uiStore.uiFrozen &&
         tools.some((tool) => (tool !== null) &&
             tool.heaters.some(toolHeater => (toolHeater >= 0) && (toolHeater < heaters.length) &&
                 (heaters[toolHeater] !== null) && (heaters[toolHeater]!.state !== HeaterState.off)
@@ -67,25 +70,25 @@ const canTurnEverythingOff = computed(() => {
 const turningEverythingOff = ref(false);
 async function turnEverythingOff() {
     let code = "";
-    for (const tool of store.state.machine.model.tools) {
+    for (const tool of machineStore.model.tools) {
         if ((tool !== null) && (tool.heaters.length > 0)) {
             code += `M568 P${tool.number} A0\n`;
         }
     }
-    store.state.machine.model.heat.bedHeaters.forEach((bedHeater, index) => {
-        if (bedHeater >= 0 && bedHeater < store.state.machine.model.heat.heaters.length) {
+    machineStore.model.heat.bedHeaters.forEach((bedHeater, index) => {
+        if (bedHeater >= 0 && bedHeater < machineStore.model.heat.heaters.length) {
             code += `M140 P${index} S-273.15\n`;
         }
     });
-    store.state.machine.model.heat.chamberHeaters.forEach((chamberHeater, index) => {
-        if (chamberHeater >= 0 && chamberHeater < store.state.machine.model.heat.heaters.length) {
+    machineStore.model.heat.chamberHeaters.forEach((chamberHeater, index) => {
+        if (chamberHeater >= 0 && chamberHeater < machineStore.model.heat.heaters.length) {
             code += `M141 P${index} S-273.15\n`;
         }
     });
 
     turningEverythingOff.value = true;
     try {
-        await store.dispatch("machine/sendCode", code);
+        await machineStore.sendCode(code);
     } catch (e) {
         if (!(e instanceof DisconnectedError)) {
             log(LogType.error, i18n.t("error.turnOffEverythingFailed"), getErrorMessage(e));
@@ -96,18 +99,18 @@ async function turnEverythingOff() {
 
 
 // Temperature control for Tools / Beds / Chambers
-const hasTools = computed(() => store.state.machine.model.tools.some(tool => tool !== null));
+const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
 const controlTools = ref(true);
 
-const hasBeds = computed(() => store.state.machine.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) &&
-    (bedHeater < store.state.machine.model.heat.heaters.length) &&
-    (store.state.machine.model.heat.heaters[bedHeater] !== null)
+const hasBeds = computed(() => machineStore.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) &&
+    (bedHeater < machineStore.model.heat.heaters.length) &&
+    (machineStore.model.heat.heaters[bedHeater] !== null)
 ));
 const controlBeds = ref(false);
 
-const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) &&
-    (chamberHeater < store.state.machine.model.heat.heaters.length) &&
-    (store.state.machine.model.heat.heaters[chamberHeater] !== null)
+const hasChambers = computed(() => machineStore.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) &&
+    (chamberHeater < machineStore.model.heat.heaters.length) &&
+    (machineStore.model.heat.heaters[chamberHeater] !== null)
 ));
 const controlChambers = ref(false);
 </script>

@@ -1,11 +1,17 @@
+import i18n from "@/i18n";
+import { useUiStore } from "@/store/ui";
 import Vue from "vue";
 
-import i18n from "@/i18n";
-
+import Events from "./events";
 import { makeNotification } from "./notifications";
 
 /**
- * Possible logging types
+ * Types of log messages
+ */
+export type LogMessageType = "success" | "info" | "primary" | "warning" | "error";
+
+/**
+ * Types of log messages (as enum)
  */
 export enum LogType {
 	success = "success",
@@ -16,35 +22,23 @@ export enum LogType {
 }
 
 /**
- * Log an arbitrary machine-related message, i.e. display a notification and log to the console
+ * Log an arbitrary message, i.e. display a notification and log to the console
  * @param type Message type
  * @param title Title of the message
- * @param message Actual message
- * @param hostname Hostname to log this message to
+ * @param message Optional message content
  */
-export function log(type: LogType, title: string, message: string | null = null, hostname = store.state.selectedMachine) {
+export function log(type: LogMessageType, title: string, message: string | null = null) {
 	makeNotification(type, title, message);
-	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
+	logToConsole(type, title, message);
 }
 
 /**
- * Log an arbitrary machine-related message to the console only
- * @param type Message type
- * @param title Title of the message
- * @param message Actual message
- * @param hostname Hostname to log this message to
- */
-export function logToConsole(type: LogType, title: string, message: string | null = null, hostname = store.state.selectedMachine) {
-	store.commit(`machines/${hostname}/log`, { date: new Date(), type, title, message });
-}
-
-/**
- * Log a code reply from a given machine
+ * Log a code reply
  * @param code G/M/T-code
  * @param reply Code reply
  * @param hostname Hostname of the machine that produced the reply
  */
-export function logCode(code: string | null, reply: string, hostname = store.state.selectedMachine) {
+export function logCode(code: string | null, reply: string) {
 	if (!code && !reply) {
 		// Make sure there is something to log...
 		return;
@@ -61,8 +55,8 @@ export function logCode(code: string | null, reply: string, hostname = store.sta
 	}
 
 	// Log it
-	const responseLines = toLog.split('\n')
-	if (hostname === store.state.selectedMachine && !store.state.hideCodeReplyNotifications) {
+	const responseLines = toLog.split('\n'), uiStore = useUiStore();
+	if (!uiStore.hideCodeReplyNotifications) {
 		let title = code || "", message = responseLines.join("<br>");
 		if (responseLines.length > 3 || toLog.length > 128) {
 			title = (!code) ? i18n.t("notification.responseTooLong") : code;
@@ -74,31 +68,20 @@ export function logCode(code: string | null, reply: string, hostname = store.sta
 
 		makeNotification(type, title, message, null, "/Console");
 	}
-	store.commit(`machines/${hostname}/log`, {
-		date: new Date(),
-		type,
-		title: code,
-		message: reply
-	});
+	logToConsole(type, code ?? "", reply);
 }
 
 /**
- * Log a global message that is logged by all connected machines
+ * Log an arbitrary message to the console only
  * @param type Message type
- * @param title Message title
- * @param message Message content
+ * @param title Title of the message
+ * @param message Optional message content
  */
-export function logGlobal(type: LogType, title: string, message: string | null = null) {
-	if (store.state.selectedMachine !== defaultMachine) {
-		log(type, title, message);
-	} else {
-		makeNotification(type, title, message);
-	}
-	store.commit(`machines/${defaultMachine}/log`, { date: new Date(), type, title, message });
+export function logToConsole(type: LogMessageType, title: string, message: string | null = null) {
+	Events.emit("logMessage", { type, title, message });
 }
 
 // Register extensions
 Vue.prototype.$log = log;
 Vue.prototype.$logToConsole = logToConsole;
 Vue.prototype.$logCode = logCode;
-Vue.prototype.$logGlobal = logGlobal;

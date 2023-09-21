@@ -14,34 +14,41 @@
 
 <script lang="ts">
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 import { isPrinting } from "@/utils/enums";
 import { extractFileName } from "@/utils/path";
 
 export default Vue.extend({
 	computed: {
-		jobProgress(): number { return store.getters["machine/model/jobProgress"]; },
-		status(): MachineStatus { return store.state.machine.model.state.status; },
+		...mapState(useMachineStore, {
+			extruders: state => state.model.move.extruders,
+			jobProgress: state => state.jobProgress,
+			job: state => state.model.job,
+			machineMode: state => state.model.state.machineMode,
+			lastFileSimulated: state => state.model.job.lastFileSimulated,
+			status: state => state.model.state.status,
+		}),
 		printStatus(): string {
-			if (isPrinting(store.state.machine.model.state.status)) {
+			if (isPrinting(this.status)) {
 				if (this.printFile) {
 					const progress = this.$display(this.jobProgress * 100, 1, "%");
 					if (this.isSimulating) {
 						return this.$t("jobProgress.simulating", [this.printFile, progress]);
 					}
-					if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+					if (this.machineMode === MachineMode.fff) {
 						return this.$t("jobProgress.printing", [this.printFile, progress]);
 					}
 					return this.$t("jobProgress.processing", [this.printFile, progress]);
 				}
 				return this.$t("generic.loading");
 			} else if (this.lastPrintFile) {
-				if (store.state.machine.model.job.lastFileSimulated) {
+				if (this.lastFileSimulated) {
 					return this.$t("jobProgress.simulated", [this.lastPrintFile]);
 				}
-				if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+				if (this.machineMode === MachineMode.fff) {
 					return this.$t("jobProgress.printed", [this.lastPrintFile]);
 				}
 				return this.$t("jobProgress.processed", [this.lastPrintFile]);
@@ -49,35 +56,35 @@ export default Vue.extend({
 			return this.$t("jobProgress.noJob");
 		},
 		printDetails(): string {
-			if (!isPrinting(store.state.machine.model.state.status)) {
+			if (!isPrinting(this.status)) {
 				return "";
 			}
 
 			let details = "";
-			if (store.state.machine.model.job.layer !== null && store.state.machine.model.job.file?.numLayers) {
-				details = this.$t("jobProgress.layer", [store.state.machine.model.job.layer, store.state.machine.model.job.file.numLayers]);
+			if (this.job.layer !== null && this.job.file?.numLayers) {
+				details = this.$t("jobProgress.layer", [this.job.layer, this.job.file.numLayers]);
 			}
-			if (store.state.machine.model.move.extruders.length > 0) {
+			if (this.extruders.length > 0) {
 				if (details !== "") {
 					details += ", ";
 				}
-				const totalRawExtruded = (store.state.machine.model.job.rawExtrusion !== null) ? store.state.machine.model.job.rawExtrusion :
-											store.state.machine.model.move.extruders
+				const totalRawExtruded = (this.job.rawExtrusion !== null) ? this.job.rawExtrusion :
+											this.extruders
 												.map(extruder => extruder.rawPosition)
 												.reduce((a, b) => a + b);
 				details += this.$t("jobProgress.filament", [this.$display(totalRawExtruded, 1, "mm")]);
-				if (store.state.machine.model.job.file !== null && store.state.machine.model.job.file.filament.length > 0) {
-					const needed = store.state.machine.model.job.file.filament.reduce((a, b) => a + b);
+				if (this.job.file !== null && this.job.file.filament.length > 0) {
+					const needed = this.job.file.filament.reduce((a, b) => a + b);
 					details += " (" + this.$t("jobProgress.filamentRemaining", [this.$display(Math.max(needed - totalRawExtruded, 0), 1, "mm")]) + ")";
 				}
 			}
 			return details;
 		},
 		printFile() {
-			return (store.state.machine.model.job.file?.fileName) ? extractFileName(store.state.machine.model.job.file.fileName) : null;
+			return (this.job.file?.fileName) ? extractFileName(this.job.file.fileName) : null;
 		},
 		lastPrintFile() {
-			return (store.state.machine.model.job.lastFileName !== null) ? extractFileName(store.state.machine.model.job.lastFileName) : null;
+			return (this.job.lastFileName !== null) ? extractFileName(this.job.lastFileName) : null;
 		}
 	},
 	data() {
@@ -86,7 +93,7 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+		this.isSimulating = (this.status === MachineStatus.simulating);
 	},
 	watch: {
 		status(to: MachineStatus) {

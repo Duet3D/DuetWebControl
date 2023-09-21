@@ -12,14 +12,14 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	activated() {
-		store.commit("hideCodeReplyNotifications");
+		useUiStore().hideCodeReplyNotifications = true;
 	},
 	deactivated() {
-		store.commit("showCodeReplyNotifications");
+		useUiStore().hideCodeReplyNotifications = false;
 	}
 });
 </script>

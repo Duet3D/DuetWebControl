@@ -35,18 +35,23 @@
 </template>
 
 <script lang="ts">
+import { MachineStatus, State } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
-import { MachineStatus } from "@duet3d/objectmodel";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
 	computed: {
-		connectingProgress(): number { return store.state.connectingProgress; },
-		boardBeingUpdated(): number { return store.state.machine.boardBeingUpdated; },
-		boardsBeingUpdated(): Array<number> { return store.state.machine.boardsBeingUpdated; },
-		status(): MachineStatus { return store.state.machine.model.state.status; },
-		isConnected(): boolean { return store.getters["isConnected"]; },
+		...mapState(useMachineStore, {
+			boardBeingUpdated: state => state.boardBeingUpdated,
+			boardsBeingUpdated: state => state.boardsBeingUpdated,
+			connectingProgress: state => state.connectingProgress,
+			isConnected: state => state.isConnected,
+			status: state => state.model.state.status,
+			isUpdating: state => state.model.state.status === MachineStatus.updating
+		}),
 		isPersistent(): boolean {
 			if (!(this.displayReset && this.isConnected)) {
 				// If the connection is gone, allow this dialog only to be dismissed if running as PWA
@@ -54,25 +59,26 @@ export default Vue.extend({
 			}
 			return false;
 		},
-		isUpdating(): boolean { return store.state.machine.model.state.status === MachineStatus.updating; },
 		message(): string {
-			if (store.state.isConnecting || this.connectingProgress >= 0) {
+			const machineStore = useMachineStore();
+			if (machineStore.isConnecting || this.connectingProgress >= 0) {
 				return this.$t("dialog.connection.connecting");
 			}
 			if (this.isUpdating) {
 				return this.$t("dialog.connection.updating");
 			}
-			if (store.state.machine.isReconnecting) {
+			if (machineStore.isReconnecting) {
 				return this.$t("dialog.connection.reconnecting");
 			}
-			if (store.state.isDisconnecting) {
+			if (machineStore.isDisconnecting) {
 				return this.$t("dialog.connection.disconnecting");
 			}
 			return this.$t("dialog.connection.standBy");
 		},
 		shown(): boolean {
-			return (store.state.isConnecting || this.connectingProgress >= 0 || store.state.machine.isReconnecting || store.state.isDisconnecting ||
-				store.state.machine.model.state.status === MachineStatus.halted || store.state.machine.model.state.status === MachineStatus.updating);
+			const machineStore = useMachineStore();
+			return (machineStore.isConnecting || this.connectingProgress >= 0 || machineStore.isReconnecting || machineStore.isDisconnecting ||
+				machineStore.model.state.status === MachineStatus.halted || machineStore.model.state.status === MachineStatus.updating);
 		}
 	},
 	data() {
@@ -90,7 +96,8 @@ export default Vue.extend({
 			return this.updatedBoards.includes(canAddress) ? "mdi-check" : "mdi-asterisk";
 		},
 		getBoardName(canAddress: number) {
-			const board = store.state.machine.model.boards.find(board => board.canAddress === canAddress);
+			const machineStore = useMachineStore();
+			const board = machineStore.model.boards.find(board => board.canAddress === canAddress);
 			if (board) {
 				return canAddress ? `${board.name ?? "Expansion Board"} (#${canAddress})` : board.name;
 			}

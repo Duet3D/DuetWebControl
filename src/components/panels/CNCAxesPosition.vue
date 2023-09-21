@@ -42,24 +42,15 @@
 	</v-card>
 </template>
 
-<script lang="ts">
-import { Axis } from "@duet3d/objectmodel";
-import Vue from "vue";
+<script setup lang="ts">
+import { useMachineStore } from "@/store/machine";
+import { computed } from "vue";
 
-import store from "@/store";
+const props = defineProps<{
+	machinePosition: boolean
+}>();
 
-export default Vue.extend({
-	props: {
-		machinePosition: {
-			type: Boolean,
-			required: true
-		}
-	},
-	computed: {
-		visibleAxes(): Array<Axis> {
-			return store.state.machine.model.move.axes.filter(axis => axis.visible);
-		}
-	}
-});
+const machineStore = useMachineStore();
+
+const visibleAxes = computed(() => machineStore.model.move.axes.filter(axis => axis.visible));
 </script>
-

@@ -4,12 +4,14 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
 import Path from "@/utils/path";
+import { useMachineStore } from "@/store/machine";
+import { makeNotification } from "@/utils/notifications";
 
 export default Vue.extend({
 	props: {
@@ -32,9 +34,7 @@ export default Vue.extend({
 			default: true
 		}
 	},
-	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; }
-	},
+	computed: mapState(useMachineStore, ["isConnected"]),
 	data() {
 		return {
 			innerShown: this.shown
@@ -44,18 +44,18 @@ export default Vue.extend({
 		async createDirectory(directory: string) {
 			const currentDirectory = this.directory;
 			try {
-				const path = Path.combine(currentDirectory, directory);
-				await store.dispatch("machine/makeDirectory", path);
+				const path = Path.combine(currentDirectory, directory), machineStore = useMachineStore();
+				await machineStore.makeDirectory(path);
 
 				this.$emit("directoryCreated", path);
 				if (this.showSuccess) {
-					this.$makeNotification(LogType.success, this.$t("notification.newDirectory.successTitle"), this.$t("notification.newDirectory.successMessage", [directory]));
+					makeNotification(LogType.success, this.$t("notification.newDirectory.successTitle"), this.$t("notification.newDirectory.successMessage", [directory]));
 				}
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
 					if (this.showError) {
-						this.$makeNotification(LogType.error, this.$t("notification.newDirectory.errorTitle"), getErrorMessage(e));
+						makeNotification(LogType.error, this.$t("notification.newDirectory.errorTitle"), getErrorMessage(e));
 					}
 				}
 			}

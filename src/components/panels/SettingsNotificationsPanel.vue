@@ -22,23 +22,17 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
-import { SettingsState } from "@/store/settings";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
 		notificationErrorsPersistent: {
-			get(): boolean { return store.state.settings.notifications.errorsPersistent; },
-			set(value: boolean) { this.update({ errorsPersistent: value }); }
+			get(): boolean { return useSettingsStore().notifications.errorsPersistent; },
+			set(value: boolean) { useSettingsStore().notifications.errorsPersistent = value; }
 		},
 		notificationTimeout: {
-			get(): number { return store.state.settings.notifications.timeout; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ timeout: value }); } }
-		}
-	},
-	methods: {
-		update(data: Partial<SettingsState["notifications"]>) {
-			store.commit("settings/update", { notifications: data });
+			get(): number { return useSettingsStore().notifications.timeout; },
+			set(value: number) { if (isFinite(value) && value >= 0) { useSettingsStore().notifications.timeout = value; } }
 		}
 	}
 });

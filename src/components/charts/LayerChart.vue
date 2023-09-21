@@ -30,17 +30,19 @@
 
 <script lang="ts">
 import Chart, { MajorTickOptions, NestedTickOptions } from "chart.js";
-import { Layer, ModelCollection } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
 import { display, displayZ, displayTime } from "@/utils/display";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		darkTheme(): boolean { return store.state.settings.darkTheme; },
-		language(): string { return store.state.settings.language; },
-		layers(): ModelCollection<Layer> { return store.state.machine.model.job.layers; }
+		...mapState(useMachineStore, {
+			layers: state => state.model.job.layers
+		}),
+		...mapState(useSettingsStore, ["darkTheme"])
 	},
 	data() {
 		return {

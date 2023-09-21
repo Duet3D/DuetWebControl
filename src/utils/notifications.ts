@@ -1,10 +1,10 @@
 import Vue from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
 import { extractFileName } from "@/utils/path";
-import { CancellationToken, OnProgressCallback } from "@/store/machine/connector/BaseConnector";
-import { LogType } from "./logging";
+import { CancellationToken, OnProgressCallback } from "@/store/connector/BaseConnector";
+import { LogMessageType } from "./logging";
+import { useSettingsStore } from "@/store/settings";
 
 /**
  * Possible file transfer types
@@ -18,7 +18,7 @@ export enum FileTransferType {
 /**
  * Possible notification types
  */
-export type NotificationType = LogType | FileTransferType;
+export type NotificationType = LogMessageType | FileTransferType;
 
 /**
  * Notification item
@@ -122,22 +122,23 @@ export const fileTransferNotifications = Vue.observable(new Array<Notification>(
  * @returns Notification instance
  */
 export function makeNotification(type: NotificationType, title: string, message: string | null = null, timeout: number | null  = null, route: string | null = null, icon: string | null = null, pushToEnd: boolean = false): Notification {
-	if (timeout === null) {
-		timeout = (type === "error" && store.state.settings.notifications.errorsPersistent) ? 0 : store.state.settings.notifications.timeout;
+    if (timeout === null) {
+        const settingsStore = useSettingsStore();
+		timeout = (type === "error" && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
 	}
 
     if (icon === null) {
         switch (type) {
-            case LogType.info:
+            case "info":
                 icon = "mdi-information-outline";
                 break;
-            case LogType.success:
+            case "success":
                 icon = "mdi-check";
                 break;
-            case LogType.warning:
+            case "warning":
                 icon = "mdi-alert-circle-outline";
                 break;
-            case LogType.error:
+            case "error":
                 icon = "mdi-close-circle-outline";
                 break;
             default:
@@ -256,7 +257,7 @@ export function showMessage(message: string | null): Notification | null {
     }
 
     if (messageNotification === null) {
-        messageNotification = makeNotification(LogType.info, i18n.t("notification.message"), message, 0, null, null, true);
+        messageNotification = makeNotification("info", i18n.t("notification.message"), message, 0, null, null, true);
         const closeFn = messageNotification.close;
         messageNotification.close = function () {
             messageNotification = null;

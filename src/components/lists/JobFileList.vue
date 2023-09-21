@@ -103,17 +103,19 @@
 
 <script lang="ts">
 import { ThumbnailInfo, Volume } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
-import { ContextMenuItem } from "@/store/uiInjection";
+import { ContextMenuItem, useUiStore } from "@/store/ui";
 import { isPrinting } from "@/utils/enums";
 import { DisconnectedError, getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
 import Path, { escapeFilename } from "@/utils/path";
 
 import { BaseFileListHeader, BaseFileListItem } from "./BaseFileList.vue";
+import { useMachineStore } from "@/store/machine";
+import { useCacheStore } from "@/store/cache";
 
 interface JobListItemProperties {
 	height?: number | null;
@@ -129,12 +131,17 @@ type JobListItem = BaseFileListItem & JobListItemProperties;
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		contextMenuItems(): Array<ContextMenuItem> { return store.state.uiInjection.contextMenuItems.jobFileList; },
-		gcodesDirectory(): string { return store.state.machine.model.directories.gCodes; },
-		lastJobFile(): string | null { return store.state.machine.model.job.lastFileName; },
-		volumes(): Array<Volume> { return store.state.machine.model.volumes; },
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			isPrinting: state => isPrinting(state.model.state.status),
+			gcodesDirectory: state => state.model.directories.gCodes,
+			lastJobFile: state => state.model.job.lastFileName,
+			volumes: state => state.model.volumes
+		}),
+		...mapState(useUiStore, {
+			uiFrozen: state => state.uiFrozen,
+			contextMenuItems: state => state.contextMenuItems.jobFileList
+		}),
 		headers(): Array<BaseFileListHeader> {
 			return [
 				{
@@ -189,9 +196,6 @@ export default Vue.extend({
 		isFile(): boolean {
 			return (this.selection.length === 1) && !this.selection[0].isDirectory;
 		},
-		isPrinting(): boolean {
-			return isPrinting(store.state.machine.model.state.status);
-		},
 		loading: {
 			get(): boolean { return this.loadingValue || this.fileinfoProgress !== -1; },
 			set(value: boolean) { this.loadingValue = value; }
@@ -221,10 +225,6 @@ export default Vue.extend({
 		}
 	},
 	methods: {
-		/*
-		...mapActions("machine", ["sendCode", "getFileInfo"]),
-		...mapMutations("machine/cache", ["clearFileInfo", "setFileInfo"]),
-		*/
 		getBigThumbnail(thumbnails: Array<ThumbnailInfo>) {
 			let biggestThumbnail = null;
 			for (const thumbnail of thumbnails) {
@@ -244,7 +244,7 @@ export default Vue.extend({
 			return smallestThumbnail;
 		},
 		refresh() {
-			store.commit("machine/cache/clearFileInfo", this.directory);
+			useCacheStore().clearFileInfo(this.directory);
 			(this.$refs.filelist as any).refresh();
 		},
 		async requestFileInfo(directory: string, fileIndex: number, fileCount: number) {
@@ -266,10 +266,11 @@ export default Vue.extend({
 							const filename = Path.combine(directory, file.name);
 							if (Path.isGCodePath(file.name, this.gcodesDirectory)) {
 								// Get the fileinfo either from our cache or from the Duet
-								let fileInfo = store.state.machine.cache.fileInfos[filename];
+								const cacheStore = useCacheStore(), machineStore = useMachineStore();
+								let fileInfo = cacheStore.fileInfos[filename];
 								if (!fileInfo) {
-									fileInfo = await store.dispatch("machine/getFileInfo", { filename, readThumbnailContent: true });
-									store.commit("machine/cache/setFileInfo", { filename, fileInfo });
+									fileInfo = await machineStore.getFileInfo(filename, true);
+									cacheStore.setFileInfo(filename, fileInfo);
 								}
 
 								// Start again if the number of files has changed
@@ -350,11 +351,13 @@ export default Vue.extend({
 		},
 		async start(item: JobListItem | null) {
 			if (item !== null) {
-				await store.dispatch("machine/sendCode", `M32 "${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
+				const machineStore = useMachineStore();
+				await machineStore.sendCode(`M32 "${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
 			}
 		},
 		async simulate(item: JobListItem) {
-			await store.dispatch("machine/sendCode", `M37 P"${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
+			const machineStore = useMachineStore();
+			await machineStore.sendCode(`M37 P"${escapeFilename(Path.combine(this.directory, (item && item.name) ? item.name : this.selection[0].name))}"`);
 		},
 		async contextMenuAction(menuItem: ContextMenuItem) {
 			let path = Path.combine(this.directory, this.selection[0].name);

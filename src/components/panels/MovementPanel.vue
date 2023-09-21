@@ -9,7 +9,7 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<code-btn v-show="visibleAxes.length" color="primary" small code="G28" :disabled="!canHome"
+			<code-btn v-show="visibleAxes.length > 0" color="primary" small code="G28" :disabled="!canHome"
 					  :title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down">
 				{{ $t("button.home.captionAll") }}
 			</code-btn>
@@ -149,31 +149,40 @@
 
 <script lang="ts">
 import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";
+import { mapActions, mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
-		moveSteps: state => function (axis: AxisLetter) {
-			return (state.moveSteps[axis] !== undefined) ? state.moveSteps[axis] : state.moveSteps.default;
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			isCompensationEnabled: state => state.model.move.compensation.type !== MoveCompensationType.none,
+			compensationType: state => state.model.move.compensation.type,
+			visibleAxes: state => state.model.move.axes.filter(axis => axis.visible),
+			isDelta: state => [KinematicsName.delta, KinematicsName.rotaryDelta].includes(state.model.move.kinematics.name),
+			unhomedAxes: state => state.model.move.axes.filter(axis => axis.visible && !axis.homed)
+		}),
+		...mapState(useUiStore, {
+			uiFrozen: state => state.uiFrozen
+		}),
+		...mapState(useSettingsStore, {
+			numMoveSteps: (state) => state.moveSteps.default.length
+		}),
+		moveSteps(): (axisLetter: AxisLetter) => Array<number> {
+			const settingsStore = useSettingsStore();
+			return (axisLetter: AxisLetter) => settingsStore.moveSteps[axisLetter];
 		},
-		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
-		numMoveSteps: (state) => state.moveSteps.default.length,
-		isCompensationEnabled(): boolean { return store.state.machine.model.move.compensation.type !== MoveCompensationType.none; },
-		compensationType(): MoveCompensationType { return store.state.machine.model.move.compensation.type; },
-		visibleAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible); },
-		isDelta(): boolean { return [KinematicsName.delta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
 		canHome(): boolean {
+			const machineStore = useMachineStore();
 			return !this.uiFrozen && (
-				store.state.machine.model.state.status !== MachineStatus.pausing &&
-				store.state.machine.model.state.status !== MachineStatus.processing &&
-				store.state.machine.model.state.status !== MachineStatus.resuming);
-		},
-		unhomedAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible && !axis.homed); }
+				machineStore.model.state.status !== MachineStatus.pausing &&
+				machineStore.model.state.status !== MachineStatus.processing &&
+				machineStore.model.state.status !== MachineStatus.resuming);
+		}
 	},
 	data() {
 		return {
@@ -187,11 +196,10 @@ export default Vue.extend({
 		}
 	},
 	methods: {
-		async sendCode(code: string) {
-			await store.dispatch("machine/sendCode", code);
-		},
+		...mapActions(useMachineStore, ["sendCode"]),
 		canMove(axis: Axis) {
-			return (axis.homed || !store.state.machine.model.move.noMovesBeforeHoming) && this.canHome;
+			const machineStore = useMachineStore();
+			return (axis.homed || !machineStore.model.move.noMovesBeforeHoming) && this.canHome;
 		},
 		getMoveCellClass(index: number) {
 			let classes = "";
@@ -204,7 +212,8 @@ export default Vue.extend({
 			return classes;
 		},
 		getMoveCode(axis: Axis, index: number, decrementing: boolean) {
-			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${store.state.machine.settings.moveFeedrate}\nM121`;
+			const settingsStore = useSettingsStore();
+			return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${this.moveSteps(axis.letter)[index]} F${settingsStore.moveFeedrate}\nM121`;
 		},
 		showSign: (value: number) => (value > 0) ? `+${value}` : value,
 		showMoveStepDialog(axis: AxisLetter, index: number) {
@@ -214,11 +223,8 @@ export default Vue.extend({
 			this.moveStepDialog.shown = true;
 		},
 		moveStepDialogConfirmed(value: number) {
-			store.commit("machine/settings/setMoveStep", {
-				axis: this.moveStepDialog.axis,
-				index: this.moveStepDialog.index,
-				value
-			});
+			const settingsStore = useSettingsStore();
+			settingsStore.moveSteps[this.moveStepDialog.axis][this.moveStepDialog.index] = value;
 		}
 	},
 	watch: {

@@ -32,24 +32,29 @@
 </template>
 
 <script lang="ts">
+import { useCacheStore } from "@/store/cache";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 import Vue from "vue";
-
-import store from "@/store";
 
 const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		displayedCodes(): Array<{ text: string, value: string }> {
-			if (this.showItems && !store.state.settings.disableAutoComplete) {
+			const settingsStore = useSettingsStore();
+			if (this.showItems && !settingsStore.disableAutoComplete) {
 				const currentCode = ((this.code instanceof Object) ? this.code.value : (this.code ?? "")).toLowerCase();
-				return store.state.machine.cache.lastSentCodes
+				return useCacheStore().lastSentCodes
 					.filter(code => (currentCode === "") || code.toLowerCase().includes(currentCode))
 					.map(code => ({ text: code, value: code }))
 					.reverse();
 			}
 			return [];
+		},
+		uiFrozen(): boolean {
+			return useUiStore().uiFrozen;
 		}
 	},
 	data() {
@@ -74,7 +79,7 @@ export default Vue.extend({
 			}
 		},
 		removeLastSentCode(code: string) {
-			store.commit("machine/cache/removeLastSentCode", code);
+			useCacheStore().removeLastSentCode(code);
 		},
 		change(value: string | { value: string } | null) {
 			this.code = (value !== null) ? value : "";
@@ -140,16 +145,14 @@ export default Vue.extend({
 				// Send the code and wait for completion
 				this.doingCode = true;
 				try {
-					const reply = await store.dispatch("machine/sendCode", {
-						code: codeToSend,
-						fromInput: true
-					});
+					const machineStore = useMachineStore(), settingsStore = useSettingsStore();
+					const reply = await machineStore.sendCode(codeToSend, true);
 
-					if (!inQuotes && !store.state.settings.disableAutoComplete &&
+					if (!inQuotes && !settingsStore.disableAutoComplete &&
 						!reply.startsWith("Error: ") && !reply.startsWith("Warning: ") &&
 						bareCode.indexOf("M587") === -1 && bareCode.indexOf("M589") === -1) {
 						// Automatically remember successful codes
-						store.commit("machine/cache/addLastSentCode", codeToSend.trim());
+						useCacheStore().addLastSentCode(codeToSend.trim());
 					}
 				} catch {
 					// handled before we get here

@@ -55,16 +55,20 @@
 import { Extruder } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		uiFrozen(): boolean {
+			return useUiStore().uiFrozen;
+		},
 		displayedExtruders(): Array<number> {
-			return store.state.machine.settings.displayedExtruders;
+			return useSettingsStore().displayedExtruders;
 		},
 		extruders(): Array<Extruder> {
-			return store.state.machine.model.move.extruders;
+			return useMachineStore().model.move.extruders;
 		},
 		hasVisibleExtruders(): boolean {
 			return this.extruders.some((_, index) => this.displayedExtruders.includes(index));
@@ -76,10 +80,10 @@ export default Vue.extend({
 			return Math.round(extruder.factor * 100);
 		},
 		async setExtrusionFactor(extruderIndex: number, value: number) {
-			await store.dispatch("machine/sendCode", `M221 D${extruderIndex} S${value}`);
+			await useMachineStore().sendCode(`M221 D${extruderIndex} S${value}`);
 		},
 		toggleExtruderVisibility(extruderIndex: number) {
-			store.commit("machine/settings/toggleExtruderVisibility", extruderIndex);
+			useSettingsStore().toggleExtruderVisibility(extruderIndex);
 		}
 	}
 });

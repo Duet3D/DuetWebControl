@@ -38,12 +38,14 @@
 <script lang="ts">
 import Chart, { ChartDataSets, MajorTickOptions, NestedTickOptions } from "chart.js";
 import dateFnsLocale from "date-fns/locale/en-US";
+import { mapState } from "pinia";
 import { AnalogSensor } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import i18n from "@/i18n";
-import store from "@/store";
-import { defaultMachine } from "@/store/machine";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 import { getRealHeaterColor } from "@/utils/colors";
 import Events from "@/utils/events";
 
@@ -120,34 +122,22 @@ function makeDataset(index: number, extra: boolean, label: string, numSamples: n
 }
 
 /**
- * Temperature samples to save per connected machine
- */
-interface TempSampleData {
-	times: Array<number>,
-	temps: TempChartDataset[]
-}
-
-/**
  * Collection of machines vs. collected temp samples
  */
-const tempSamples: Record<string, TempSampleData> = {
-	[defaultMachine]: {
-		times: [],
-		temps: []
-	}
+const tempSamples = {
+	times: new Array<number>(),
+	temps: new Array<TempChartDataset>()
 };
 
 /**
  * Push sensor data of a given machine to the dataset
- * @param machine Machine to add samples to
  * @param index Index of the sensor
  * @param extra If it is an extra sensor
  * @param sensor Sensor item
  */
-function pushSeriesData(machine: string, index: number, extra: boolean, sensor: AnalogSensor) {
+function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 	// Get series from dataset
-	const machineData = tempSamples[machine];
-	let dataset = machineData.temps.find((item) => {
+	let dataset = tempSamples.temps.find((item) => {
 		if (item.index === index && item.extra === extra) {
 			return item;
 		}
@@ -170,8 +160,8 @@ function pushSeriesData(machine: string, index: number, extra: boolean, sensor: 
 			dataset.label = name;
 			dataset.locale = i18n.locale;
 		} else {
-			dataset = makeDataset(index, extra, name, tempSamples[machine].times.length);
-			machineData.temps.push(dataset);
+			dataset = makeDataset(index, extra, name, tempSamples.times.length);
+			tempSamples.temps.push(dataset);
 		}
 	}
 
@@ -179,14 +169,47 @@ function pushSeriesData(machine: string, index: number, extra: boolean, sensor: 
 	dataset.data!.push((sensor.lastReading !== null) ? sensor.lastReading : NaN);
 }
 
+/**
+ * Record a new set of temperatures
+ */
+function recordData() {
+	const machineStore = useMachineStore(), now = (new Date()).getTime();
+	if (tempSamples.times.length === 0 || now - tempSamples.times[tempSamples.times.length - 1] > sampleInterval) {
+		// Record sensor temperatures
+		machineStore.model.sensors.analog.forEach((sensor, sensorIndex) => {
+			if (sensor !== null) {
+				const heaterIndex = machineStore.model.heat.heaters.findIndex(heater => (heater !== null) && (heater.sensor === sensorIndex));
+				if (heaterIndex !== -1) {
+					pushSeriesData(heaterIndex, false, sensor);
+				} else {
+					pushSeriesData(sensorIndex, true, sensor);
+				}
+			}
+		});
+
+		// Record time and deal wih expired temperature samples
+		while (tempSamples.times.length && now - tempSamples.times[0] > maxSampleTime) {
+			tempSamples.times.shift();
+			tempSamples.temps.forEach(data => data.data!.shift());
+		}
+		tempSamples.times.push(now);
+
+		// Deal with visibility and tell chart instances to update
+		const settingsStore = useSettingsStore();
+		tempSamples.temps.forEach((dataset) => {
+			dataset.showLine = !dataset.extra || (settingsStore.displayedExtraTemperatures.includes(dataset.index));
+		});
+		instances.forEach(instance => instance.update());
+	}
+}
+
 let storeSubscribed = false, instances: Array<{ update: () => void }> = []
 
 export default Vue.extend({
 	computed: {
-		darkTheme(): boolean { return store.state.settings.darkTheme; },
-		selectedMachine(): string { return store.state.selectedMachine; },
-		hasTemperaturesToDisplay(): boolean { return store.getters["machine/hasTemperaturesToDisplay"] },
-		maxHeaterTemperature(): number | null { return store.getters["machine/model/maxHeaterTemperature"] },
+		...mapState(useMachineStore, ["isConnected", "maxHeaterTemperature"]),
+		...mapState(useSettingsStore, ["darkTheme"]),
+		...mapState(useUiStore, ["hasTemperaturesToDisplay"])
 	},
 	data() {
 		return {
@@ -195,12 +218,6 @@ export default Vue.extend({
 		}
 	},
 	methods: {
-		update() {
-			this.chart.config.options!.scales!.yAxes![0].ticks!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
-			this.chart.config.options!.scales!.xAxes![0].ticks!.min = (new Date()).getTime() - maxSampleTime;
-			this.chart.config.options!.scales!.xAxes![0].ticks!.max = (new Date()).getTime();
-			this.chart.update();
-		},
 		applyDarkTheme(active: boolean) {
 			const ticksColor = active ? "#FFF" : "#666";
 			this.chart.config.options!.legend!.labels!.fontColor = ticksColor;
@@ -215,17 +232,15 @@ export default Vue.extend({
 			this.chart.config.options!.scales!.yAxes![0].gridLines!.zeroLineColor = gridLineColor;
 
 			this.chart.update();
+		},
+		update() {
+			this.chart.config.options!.scales!.yAxes![0].ticks!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
+			this.chart.config.options!.scales!.xAxes![0].ticks!.min = (new Date()).getTime() - maxSampleTime;
+			this.chart.config.options!.scales!.xAxes![0].ticks!.max = (new Date()).getTime();
+			this.chart.update();
 		}
 	},
 	mounted() {
-		// Create the dataset if necessary
-		if (!tempSamples[this.selectedMachine]) {
-			tempSamples[this.selectedMachine] = {
-				times: [],
-				temps: []
-			};
-		}
-
 		// Create the chart
 		this.chart = new Chart(this.$refs.chart as HTMLCanvasElement, {
 			type: "line",
@@ -298,8 +313,8 @@ export default Vue.extend({
 				}
 			},
 			data: {
-				labels: tempSamples[this.selectedMachine].times,
-				datasets: tempSamples[this.selectedMachine].temps
+				labels: tempSamples.times,
+				datasets: tempSamples.temps
 			}
 		});
 		this.applyDarkTheme(this.darkTheme);
@@ -307,46 +322,7 @@ export default Vue.extend({
 		// Keep track of updates
 		instances.push(this);
 		if (!storeSubscribed) {
-			this.$root.$on(Events.machineAdded, (hostname: string) => {
-				tempSamples[hostname] = {
-					times: [],
-					temps: []
-				};
-			});
-			this.$root.$on(Events.machineRemoved, (hostname: string) => {
-				delete tempSamples[hostname];
-			});
-
-			this.$root.$on(Events.machineModelUpdated, (hostname: string) => {
-				const dataset = tempSamples[hostname], now = (new Date()).getTime();
-				if (dataset.times.length === 0 || now - dataset.times[dataset.times.length - 1] > sampleInterval) {
-					// Record sensor temperatures
-					store.state.machines[hostname].model.sensors.analog.forEach((sensor, sensorIndex) => {
-						if (sensor !== null) {
-							const heaterIndex = store.state.machines[hostname].model.heat.heaters.findIndex(heater => (heater !== null) && (heater.sensor === sensorIndex));
-							if (heaterIndex !== -1) {
-								pushSeriesData(hostname, heaterIndex, false, sensor);
-							} else {
-								pushSeriesData(hostname, sensorIndex, true, sensor);
-							}
-						}
-					});
-
-					// Record time and deal wih expired temperature samples
-					while (dataset.times.length && now - dataset.times[0] > maxSampleTime) {
-						dataset.times.shift();
-						dataset.temps.forEach(data => data.data!.shift());
-					}
-					dataset.times.push(now);
-
-					// Deal with visibility and tell chart instances to update
-					dataset.temps.forEach((dataset) => {
-						dataset.showLine = !dataset.extra || (store.state.machines[hostname].settings.displayedExtraTemperatures.includes(dataset.index));
-					}, this);
-					instances.forEach(instance => instance.update());
-				}
-			});
-
+			Events.on("modelUpdated", recordData);
 			storeSubscribed = true;
 		}
 	},
@@ -358,13 +334,9 @@ export default Vue.extend({
 		darkTheme(to: boolean) {
 			this.applyDarkTheme(to);
 		},
-		selectedMachine(machine: string) {
-			// Each chart instance is fixed to the currently selected machine
-			// Reassign the corresponding dataset whenever the selected machine changes
-			this.chart.config.data = {
-				labels: tempSamples[machine].times,
-				datasets: tempSamples[machine].temps
-			};
+		isConnected() {
+			tempSamples.times.splice(0);
+			tempSamples.temps.splice(0);
 			this.update();
 		}
 	}

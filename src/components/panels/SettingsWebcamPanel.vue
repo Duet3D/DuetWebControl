@@ -43,42 +43,41 @@
 <script lang="ts">
 import Vue from "vue";
 
-import store from "@/store";
-import { SettingsState, WebcamFlip } from "@/store/settings";
+import { useSettingsStore, WebcamFlip } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
 		webcamEnabled: {
-			get(): boolean { return store.state.settings.webcam.enabled; },
-			set(value: boolean) { this.update({ enabled: value }) }
+			get(): boolean { return useSettingsStore().webcam.enabled; },
+			set(value: boolean) { useSettingsStore().webcam.enabled = value }
 		},
 		webcamURL: {
-			get(): string { return store.state.settings.webcam.url; },
-			set(value: string) { this.update({ url: value }); }
+			get(): string { return useSettingsStore().webcam.url; },
+			set(value: string) { useSettingsStore().webcam.url = value; }
 		},
 		webcamUpdateInterval: {
-			get(): number { return store.state.settings.webcam.updateInterval; },
-			set(value: number) { if (isFinite(value) && (value <= 0 || value >= 250)) { this.update({ updateInterval: value }); } }
+			get(): number { return useSettingsStore().webcam.updateInterval; },
+			set(value: number) { if (isFinite(value) && (value <= 0 || value >= 250)) { useSettingsStore().webcam.updateInterval = value; } }
 		},
 		webcamLiveURL: {
-			get(): string { return store.state.settings.webcam.liveUrl; },
-			set(value: string) { this.update({ liveUrl: value }); }
+			get(): string { return useSettingsStore().webcam.liveUrl; },
+			set(value: string) { useSettingsStore().webcam.liveUrl = value; }
 		},
 		webcamFix: {
-			get(): boolean { return store.state.settings.webcam.useFix; },
-			set(value: boolean) { this.update({ useFix: value }); }
+			get(): boolean { return useSettingsStore().webcam.useFix; },
+			set(value: boolean) { useSettingsStore().webcam.useFix = value; }
 		},
 		webcamEmbedded: {
-			get(): boolean { return store.state.settings.webcam.embedded; },
-			set(value: boolean) { this.update({ embedded: value }); }
+			get(): boolean { return useSettingsStore().webcam.embedded; },
+			set(value: boolean) { useSettingsStore().webcam.embedded = value; }
 		},
 		webcamRotation: {
-			get(): number { return store.state.settings.webcam.rotation; },
-			set(value: number) { this.update({ rotation: value }); }
+			get(): number { return useSettingsStore().webcam.rotation; },
+			set(value: number) { useSettingsStore().webcam.rotation = value; }
 		},
 		webcamFlip: {
-			get(): WebcamFlip { return store.state.settings.webcam.flip; },
-			set(value: WebcamFlip) { this.update({ flip: value }); }
+			get(): WebcamFlip { return useSettingsStore().webcam.flip; },
+			set(value: WebcamFlip) { useSettingsStore().webcam.flip = value; }
 		}
 	},
 	data() {
@@ -96,11 +95,6 @@ export default Vue.extend({
 				{ text: this.$t("panel.settingsWebcam.flipBoth"), value: WebcamFlip.Both }
 			]
 		};
-	},
-	methods: {
-		update(data: Partial<SettingsState["webcam"]>) {
-			store.commit("settings/update", { webcam: data });
-		}
 	}
 });
 </script>

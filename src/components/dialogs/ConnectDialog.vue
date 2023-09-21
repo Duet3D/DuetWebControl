@@ -32,15 +32,18 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		connectDialogShown(): boolean { return store.state.connectDialogShown; },
-		lastHostname(): string { return store.state.settings.lastHostname; },
-		passwordRequired(): boolean { return store.state.passwordRequired; }
+		...mapState(useMachineStore, ["passwordRequired"]),
+		...mapState(useSettingsStore, ["lastHostname"]),
+		...mapState(useUiStore, ["showConnectDialog"])
 	},
 	data() {
 		return {
@@ -50,7 +53,7 @@ export default Vue.extend({
 			],
 			password: "",
 			passwordRules: [
-				(value: string): string | boolean => (!value && store.state.passwordRequired) ? this.$t("dialog.connect.passwordRequired") : true
+				(value: string): string | boolean => (!value && useMachineStore().passwordRequired) ? this.$t("dialog.connect.passwordRequired") : true
 			],
 			shown: false
 		}
@@ -61,27 +64,24 @@ export default Vue.extend({
 				this.close();
 
 				try {
-					await store.dispatch("connect", {
-						hostname: this.hostname,
-						password: this.password
-					});
+					await useMachineStore().connect(this.hostname, undefined, this.password);
 					this.password = "";
 				} catch (e) {
 					console.warn(e);
-					store.commit("showConnectDialog");
+					useUiStore().showConnectDialog = true;
 				}
 			}
 		},
 		close() {
-			store.commit("hideConnectDialog");
+			useUiStore().showConnectDialog = false;
 		}
 	},
 	mounted() {
 		this.hostname = this.passwordRequired ? location.host : this.lastHostname;
-		this.shown = this.connectDialogShown;
+		this.shown = this.showConnectDialog;
 	},
 	watch: {
-		connectDialogShown(to: boolean) { this.shown = to; },
+		showConnectDialog(to: boolean) { this.shown = to; },
 		lastHostname(to: string) { this.hostname = to; }
 	}
 });

@@ -80,17 +80,18 @@
 <script lang="ts">
 import Vue, { PropType } from "vue";
 
-import store from "@/store";
-import { MachineSettingsState } from "@/store/machine/settings";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	props: {
-		itemKey: String as PropType<keyof MachineSettingsState["temperatures"] | "spindleRPM">,
+		itemKey: String as PropType<"tool" | "bed" | "chamber" | "spindleRPM">,
 		temperature: Boolean
 	},
 	computed: {
 		items(): Array<number> | { active: Array<number>, standby: Array<number> } {
-			return (this.itemKey === "spindleRPM") ? store.state.machine.settings.spindleRPM : store.state.machine.settings.temperatures[this.itemKey];
+			const settingsStore = useSettingsStore();
+			return (this.itemKey === "spindleRPM") ? settingsStore.spindleRPM : settingsStore.temperatures[this.itemKey];
 		},
 		unit(): string { return this.temperature ? "°C" : "RPM"; },
 
@@ -106,101 +107,64 @@ export default Vue.extend({
 		}
 	},
 	methods: {
-		removeActive(index: number) {
-			if (this.items instanceof Array) {
-				return;
-			}
-
-			store.commit("machine/settings/update", {
-				temperatures: {
-					[this.itemKey]: {
-						active: this.items.active.filter((_, i) => i !== index)
-					}
-				}
-			});
-		},
 		addActive() {
-			if (this.items instanceof Array) {
+			if (this.itemKey === "chamber" || this.itemKey === "spindleRPM" || this.items instanceof Array) {
 				return;
 			}
 
 			if (this.canAddActive) {
-				const updateData = {
-					temperatures: {
-						[this.itemKey]: {
-							active: this.items.active.slice()
-						}
-					}
-				}
-				updateData.temperatures[this.itemKey].active.push(this.activeValue);
-				updateData.temperatures[this.itemKey].active.sort((a, b) => b - a);
-				store.commit("machine/settings/update", updateData);
+				const settingsStore = useSettingsStore();
+				settingsStore.temperatures[this.itemKey].active.push(this.activeValue);
+				settingsStore.temperatures[this.itemKey].active.sort((a, b) => b - a);
 			}
 		},
-		removeStandby(index: number) {
-			if (this.items instanceof Array) {
+		removeActive(index: number) {
+			if (this.itemKey === "chamber" || this.itemKey === "spindleRPM" || this.items instanceof Array) {
 				return;
 			}
 
-			store.commit("machine/settings/update", {
-				temperatures: {
-					[this.itemKey]: {
-						standby: this.items.standby.filter((_, i) => i !== index)
-					}
-				}
-			});
+			const settingsStore = useSettingsStore();
+			settingsStore.temperatures[this.itemKey].active = this.items.active.filter((_, i) => i !== index);
 		},
 		addStandby() {
-			if (this.items instanceof Array) {
+			if (this.itemKey === "chamber" || this.itemKey === "spindleRPM" || this.items instanceof Array) {
 				return;
 			}
 
 			if (this.canAddStandby) {
-				const updateData = {
-					temperatures: {
-						[this.itemKey]: {
-							standby: this.items.standby.slice()
-						}
-					}
-				}
-				updateData.temperatures[this.itemKey].standby.push(this.standbyValue);
-				updateData.temperatures[this.itemKey].standby.sort((a, b) => b - a);
-				store.commit("machine/settings/update", updateData);
+				const settingsStore = useSettingsStore();
+				settingsStore.temperatures[this.itemKey].standby.push(this.activeValue);
+				settingsStore.temperatures[this.itemKey].standby.sort((a, b) => b - a);
 			}
+		},
+		removeStandby(index: number) {
+			if (this.itemKey === "chamber" || this.itemKey === "spindleRPM" || this.items instanceof Array) {
+				return;
+			}
+
+			const settingsStore = useSettingsStore();
+			settingsStore.temperatures[this.itemKey].standby.splice(index, 1);
 		},
 		remove(index: number) {
 			if (this.items instanceof Array) {
+				const settingsStore = useSettingsStore();
 				if (this.itemKey === "spindleRPM") {
-					store.commit("machine/settings/update", {
-						spindleRPM: this.items.filter((_, i) => i !== index)
-					});
-				} else {
-					store.commit("machine/settings/update", {
-						temperatures: {
-							[this.itemKey]: this.items.filter((_, i) => i !== index)
-						}
-					});
+					settingsStore.spindleRPM.splice(index, 1);
+				} else if (this.itemKey === "chamber") {
+					settingsStore.temperatures[this.itemKey].splice(1);
 				}
 			}
 		},
 		add() {
 			if (this.items instanceof Array && this.canAdd) {
-				let updateData;
+				const settingsStore = useSettingsStore();
 				if (this.itemKey === "spindleRPM") {
-					updateData = {
-						spindleRPM: this.items.slice()
-					};
-					updateData.spindleRPM.sort((a, b) => b - a);
-				} else {
-					updateData = {
-						temperatures: {
-							[this.itemKey]: this.items.slice()
-						}
-					};
-					updateData.temperatures[this.itemKey].push(this.value);
-					updateData.temperatures[this.itemKey].sort((a, b) => b - a);
+					settingsStore.spindleRPM.push(this.value);
+					settingsStore.spindleRPM.sort((a, b) => b - a);
+				} else if (this.itemKey === "chamber") {
+					settingsStore.temperatures.chamber.push(this.value);
+					settingsStore.temperatures.chamber.sort((a, b) => b - a);
 				}
-				store.commit("machine/settings/update", updateData);
 			}
 		}
 	}

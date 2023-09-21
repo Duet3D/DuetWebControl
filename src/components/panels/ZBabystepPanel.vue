@@ -1,7 +1,8 @@
 <template>
 	<v-card>
 		<v-card-title>
-			<v-icon small class="mr-1">mdi-format-vertical-align-center</v-icon> {{ $t('panel.babystepping.caption') }}
+			<v-icon small class="mr-1">mdi-format-vertical-align-center</v-icon>
+			{{ $t('panel.babystepping.caption') }}
 		</v-card-title>
 
 		<v-card-text class="pt-0">
@@ -26,18 +27,18 @@
 
 <script lang="ts">
 import { AxisLetter } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useSettingsStore } from "@/store/settings";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	computed: {
-		babystepping(): number {
-			return store.state.machine.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.babystep ?? 0;
-		},
-		babystepAmount(): number {
-			return store.state.machine.settings.babystepAmount;
-		}
+		...mapState(useMachineStore, {
+			babystepping: state => state.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.babystep ?? 0
+		}),
+		...mapState(useSettingsStore, ["babystepAmount"])
 	}
 });
 </script>

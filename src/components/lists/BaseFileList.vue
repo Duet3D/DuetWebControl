@@ -133,18 +133,21 @@ td {
 <script lang="ts">
 import JSZip from "jszip";
 import saveAs from "file-saver";
+import { mapState } from "pinia";
 import Vue, { PropType } from "vue";
 import { DataItemProps, DataTableHeader } from "vuetify";
 import { VDataTable } from "vuetify/lib";
 
 import i18n from "@/i18n";
-import store from "@/store";
-import { FileTransferItem } from "@/store/machine";
+import { SortingTable, useCacheStore } from "@/store/cache";
+import { FileListItem } from "@/store/connector/BaseConnector";
+import { FileTransferItem, useMachineStore } from "@/store/machine";
 import { DisconnectedError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
-import { FileListItem } from "@/store/connector/BaseConnector";
-import { LogType } from "@/utils/logging";
+import { LogType, log } from "@/utils/logging";
+import { makeNotification } from "@/utils/notifications";
+import { displayTime } from "@/utils/display";
 
 /**
  * Maximum permitted size of files to edit (defaults to 32MiB)
@@ -171,7 +174,7 @@ export function isBaseFileListDataTransfer(data: any): data is BaseFileListDataT
 export default VDataTable.extend({
 	props: {
 		headers: Array as PropType<Array<BaseFileListHeader>>,
-		sortTable: String,
+		sortTable: String as PropType<SortingTable>,
 		directory: {
 			type: String,
 			required: true
@@ -200,12 +203,11 @@ export default VDataTable.extend({
 		noDelete: Boolean
 	},
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
+		...mapState(useMachineStore, ["isConnected", "changingMultipleFiles"]),
 		isMounted(): boolean {
-			const volume = Path.getVolume(this.innerDirectory);
-			return (volume >= 0) && (volume < store.state.machine.model.volumes.length) && store.state.machine.model.volumes[volume].mounted;
+			const volume = Path.getVolume(this.innerDirectory), machineStore = useMachineStore();
+			return (volume >= 0) && (volume < machineStore.model.volumes.length) && machineStore.model.volumes[volume].mounted;
 		},
-		transferringFiles(): boolean { return store.state.machine.transferringFiles; },
 		defaultHeaders(): Array<BaseFileListHeader> {
 			return [
 				{
@@ -239,27 +241,15 @@ export default VDataTable.extend({
 			return (this.innerValue.length > 0) && (this.innerValue[0].size < maxEditFileSize);
 		},
 		noItemsText(): string {
-			return (this.innerFilelistLoaded || this.isMounted || store.state.selectedMachine === defaultMachine) ? this.noFilesText : "list.baseFileList.driveUnmounted";
+			return (this.innerFilelistLoaded || this.isMounted || !this.isConnected) ? this.noFilesText : "list.baseFileList.driveUnmounted";
 		},
 		internalSortBy: {
-			get(): string { return store.state.machine.cache.sorting[this.sortTable].column; },
-			set(value: string) {
-				store.commit("machine/cache/setSorting", {
-					table: this.sortTable,
-					column: value,
-					descending: this.internalSortDesc
-				});
-			}
+			get(): string { return useCacheStore().sorting[this.sortTable].column; },
+			set(value: string) { useCacheStore().sorting[this.sortTable].column = value; }
 		},
 		internalSortDesc: {
-			get(): boolean { return store.state.machine.cache.sorting[this.sortTable].descending; },
-			set(value: boolean) {
-				store.commit("machine/cache/setSorting", {
-					table: this.sortTable,
-					column: this.internalSortBy,
-					descending: value
-				});
-			}
+			get(): boolean { return useCacheStore().sorting[this.sortTable].descending; },
+			set(value: boolean) { useCacheStore().sorting[this.sortTable].descending = value; }
 		}
 	},
 	data() {
@@ -340,8 +330,8 @@ export default VDataTable.extend({
 		},
 		async loadDirectory(directory: string) {
 			// Make sure the requested volume is actually available
-			const volume = Path.getVolume(this.directory)
-			if (!this.isConnected || ((volume >= 0) && (volume < store.state.machine.model.volumes.length) && !store.state.machine.model.volumes[volume].mounted)) {
+			const volume = Path.getVolume(this.directory), machineStore = useMachineStore();
+			if (!this.isConnected || ((volume >= 0) && (volume < machineStore.model.volumes.length) && !machineStore.model.volumes[volume].mounted)) {
 				this.innerDirectory = (volume === Path.getVolume(this.initialDirectory)) ? this.initialDirectory : `${volume}:`;
 				this.innerFilelist = [];
 				this.innerFilelistLoaded = false;
@@ -358,7 +348,7 @@ export default VDataTable.extend({
 			this.innerLoading = true;
 			this.innerFilelistLoaded = false;
 			try {
-				const files: Array<BaseFileListItem> = await store.dispatch("machine/getFileList", directory);
+				const files = await machineStore.getFileList(directory);
 
 				// Create missing props if required
 				if (this.headers) {
@@ -388,7 +378,7 @@ export default VDataTable.extend({
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					this.$makeNotification(LogType.error, this.$t("error.filelistRequestFailed"), getErrorMessage(e));
+					makeNotification(LogType.error, this.$t("error.filelistRequestFailed"), getErrorMessage(e));
 				}
 			}
 			this.innerLoading = false;
@@ -426,7 +416,7 @@ export default VDataTable.extend({
 				return "";
 			}
 			const itemValue = item[prop];
-			return (typeof itemValue === "number") ? this.$displayTime(itemValue) : this.$t("generic.noValue");
+			return (typeof itemValue === "number") ? displayTime(itemValue) : this.$t("generic.noValue");
 		},
 		onItemTouchStart(props: DataItemProps, e: TouchEvent) {
 			const that = this;
@@ -555,14 +545,13 @@ export default VDataTable.extend({
 			if (jsonData) {
 				const data = JSON.parse(jsonData);
 				if (isBaseFileListDataTransfer(data) && !data.items.some(dataItem => dataItem.isDirectory && dataItem.name === item.name)) {
-					const directory = this.innerDirectory;
+					const directory = this.innerDirectory, machineStore = useMachineStore();
 					for (const dragItem of data.items) {
-						const from = Path.combine(data.directory, dragItem.name);
-						const to = Path.combine(directory, item.name, dragItem.name);
+						const from = Path.combine(data.directory, dragItem.name), to = Path.combine(directory, item.name, dragItem.name);
 						try {
-							await store.dispatch("machine/move", { from, to });
+							await machineStore.move(from, to);
 						} catch (e) {
-							this.$makeNotification(LogType.error, `Failed to move ${dragItem.name} to ${directory}`, getErrorMessage(e));
+							makeNotification(LogType.error, `Failed to move ${dragItem.name} to ${directory}`, getErrorMessage(e));
 							break;
 						}
 					}
@@ -571,12 +560,9 @@ export default VDataTable.extend({
 		},
 		async download(item: BaseFileListItem) {
 			try {
-				const filename = (item && item.name) ? item.name : this.innerValue[0].name;
-				const blob: Blob = await store.dispatch("machine/download", {
-					filename: Path.combine(this.innerDirectory, filename),
-					type: "blob"
-				});
-				saveAs(blob, filename);
+				const filename = (item && item.name) ? item.name : this.innerValue[0].name, machineStore = useMachineStore();
+				const data: Blob = await machineStore.download({ filename: Path.combine(this.innerDirectory, filename), type: "blob" });
+				saveAs(data, filename);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 					// should be handled before we get here
@@ -586,12 +572,8 @@ export default VDataTable.extend({
 		},
 		async edit(item: BaseFileListItem) {
 			try {
-				const filename = Path.combine(this.innerDirectory, item.name);
-				const response: string = await store.dispatch("machine/download", {
-					filename,
-					type: "text",
-					showSuccess: false
-				});
+				const filename = Path.combine(this.innerDirectory, item.name), machineStore = useMachineStore();
+				const response: string = await machineStore.download({ filename, type: "text" }, true, false);
 				this.editDialog.filename = filename;
 				this.editDialog.content = response;
 				this.editDialog.shown = true;
@@ -615,14 +597,12 @@ export default VDataTable.extend({
 
 			this.innerDoingFileOperation = true;
 			try {
-				await store.dispatch("machine/move", {
-					from: Path.combine(this.renameDialog.directory, oldFilename),
-					to: Path.combine(this.renameDialog.directory, newFilename)
-				});
-				this.$makeNotification(LogType.success, this.$t("notification.rename.success", [oldFilename, newFilename]));
+				const machineStore = useMachineStore();
+				await machineStore.move(Path.combine(this.renameDialog.directory, oldFilename), Path.combine(this.renameDialog.directory, newFilename));
+				makeNotification(LogType.success, this.$t("notification.rename.success", [oldFilename, newFilename]));
 			} catch (e) {
 				console.warn(e);
-				this.$log(LogType.error, this.$t("notification.rename.error", [oldFilename, newFilename]), getErrorMessage(e));
+				log(LogType.error, this.$t("notification.rename.error", [oldFilename, newFilename]), getErrorMessage(e));
 			}
 			this.innerDoingFileOperation = false;
 		},
@@ -636,25 +616,22 @@ export default VDataTable.extend({
 			}
 
 			this.innerDoingFileOperation = true;
-			const deletedItems = [], directory = this.directory;
+			const deletedItems = [], directory = this.directory, machineStore = useMachineStore();
 			for (let i = 0; i < items.length; i++) {
 				try {
 					const item = items[i];
-					await store.dispatch("machine/delete", {
-						filename: Path.combine(directory, item.name),
-						recursive: item.isDirectory ? true : undefined
-					});
+					await machineStore.delete(Path.combine(directory, item.name), item.isDirectory ? true : undefined);
 
 					deletedItems.push(items[i]);
 					this.innerFilelist = this.innerFilelist.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 					this.innerValue = this.innerValue.filter(file => file.isDirectory !== item.isDirectory || file.name !== item.name);
 				} catch (e) {
-					this.$makeNotification(LogType.error, this.$t("notification.delete.errorTitle", [items[i].name]), getErrorMessage(e));
+					makeNotification(LogType.error, this.$t("notification.delete.errorTitle", [items[i].name]), getErrorMessage(e));
 				}
 			}
 
 			if (deletedItems.length) {
-				this.$log(LogType.success, (deletedItems.length > 1) ? this.$t("notification.delete.successMultiple", [deletedItems.length]) : this.$t("notification.delete.success", [deletedItems[0].name]));
+				log(LogType.success, (deletedItems.length > 1) ? this.$t("notification.delete.successMultiple", [deletedItems.length]) : this.$t("notification.delete.success", [deletedItems[0].name]));
 			}
 			this.innerDoingFileOperation = false;
 		},
@@ -666,11 +643,8 @@ export default VDataTable.extend({
 			// Download the selected files
 			let downloadedFiles: Array<FileTransferItem>;
 			try {
-				downloadedFiles = await store.dispatch("machine/download", {
-					files: items.map(item => Path.combine(this.directory, item.name)),
-					type: "blob",
-					closeProgressOnSuccess: true
-				});
+				const machineStore = useMachineStore();
+				downloadedFiles = await machineStore.download(items.map(item => ({ filename: Path.combine(this.directory, item.name), type: "blob" })), true, true, true, true);
 			} catch (e) {
 				if (!(e instanceof DisconnectedError) && !(e instanceof OperationCancelledError)) {
 					// should be handled before we get here
@@ -680,7 +654,7 @@ export default VDataTable.extend({
 			}
 
 			// Compress downloaded files and save the new archive
-			const notification = this.$makeNotification(LogType.info, this.$t("notification.compress.title"), this.$t("notification.compress.message"), 0);
+			const notification = makeNotification(LogType.info, this.$t("notification.compress.title"), this.$t("notification.compress.message"), 0);
 			try {
 				const zip = new JSZip();
 				for(const file of downloadedFiles) {
@@ -691,15 +665,15 @@ export default VDataTable.extend({
 				saveAs(zipBlob, "download.zip");
 			} catch (e) {
 				console.warn(e);
-				this.$makeNotification(LogType.error, this.$t("notification.compress.errorTitle"), getErrorMessage(e));
+				makeNotification(LogType.error, this.$t("notification.compress.errorTitle"), getErrorMessage(e));
 			}
 			notification.close();
 		},
 
-		filesOrDirectoriesChanged({ machine, files, volume }: { machine: string, files?: Array<string>, volume?: number }) {
-			if (machine === store.state.selectedMachine && ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory)))) {
+		filesOrDirectoriesChanged({ files, volume }: { files?: Array<string>, volume?: number }) {
+			if ((files !== undefined && Path.filesAffectDirectory(files, this.directory)) || (volume === Path.getVolume(this.directory))) {
 				// File or directory has been changed in the current directory
-				if (store.state.machine.transferringFiles) {
+				if (this.changingMultipleFiles) {
 					this.refreshAfterTransfer = true;
 				} else {
 					this.refresh();
@@ -714,11 +688,11 @@ export default VDataTable.extend({
 		}
 
 		// Keep track of file changes
-		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+		Events.on("filesOrDirectoriesChanged", this.filesOrDirectoriesChanged);
 	},
 	beforeDestroy() {
 		// No longer keep track of file changes
-		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
+		Events.off("filesOrDirectoriesChanged", this.filesOrDirectoriesChanged);
 	},
 	watch: {
 		isConnected(to: boolean) {
@@ -731,15 +705,6 @@ export default VDataTable.extend({
 				this.editDialog.shown = false;
 				this.renameDialog.shown = false;
 			}
-		},
-		selectedMachine() {
-			// TODO store current directory per selected machine
-			this.innerDirectory = this.initialDirectory;
-			this.innerFilelist = [];
-			this.refreshAfterTransfer = false;
-
-			this.editDialog.shown = false;
-			this.renameDialog.shown = false;
 		},
 		isMounted(to: boolean) {
 			if (!to || !this.innerFilelistLoaded) {

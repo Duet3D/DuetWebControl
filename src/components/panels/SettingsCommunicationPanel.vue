@@ -48,50 +48,19 @@
 </template>
 
 <script lang="ts">
+import { mapWritableState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-import { MachineSettingsState } from "@/store/machine/settings";
-import RestConnector from "@/store/machine/connector/RestConnector";
-import PollConnector from "@/store/machine/connector/PollConnector";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import RestConnector from "@/store/connector/RestConnector";
+import PollConnector from "@/store/connector/PollConnector";
 
 export default Vue.extend({
 	computed: {
-		isRestConnector(): boolean { return store.getters["machine/connector"] instanceof RestConnector; },
-		isPollConnector(): boolean { return store.getters["machine/connector"] instanceof PollConnector; },
-		ignoreFileTimestamps: {
-			get(): boolean { return store.state.machine.settings.ignoreFileTimestamps; },
-			set(value: boolean) { this.update({ ignoreFileTimestamps: value }); }
-		},
-		pingInterval: {
-			get(): number { return store.state.machine.settings.pingInterval; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ pingInterval: value }); } }
-		},
-		updateDelay: {
-			get(): number { return store.state.machine.settings.updateDelay; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ updateDelay: value }); } }
-		},
-		ajaxRetries: {
-			get(): number { return store.state.machine.settings.ajaxRetries; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ ajaxRetries: value }); } }
-		},
-		updateInterval: {
-			get(): number { return store.state.machine.settings.updateInterval; },
-			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ updateInterval: value }); } }
-		},
-		fileTransferRetryThreshold: {
-			get(): number { return Math.round(store.state.machine.settings.fileTransferRetryThreshold / 1024); },
-			set(value: number) { if (isFinite(value) && value > 0) { this.update({ fileTransferRetryThreshold: Math.round(value * 1024) }); } }
-		},
-		crcUploads: {
-			get(): boolean { return store.state.machine.settings.crcUploads; },
-			set(value: boolean) { this.update({ crcUploads: value }); }
-		}
-	},
-	methods: {
-		update(data: Partial<MachineSettingsState>) {
-			store.commit("machine/settings/update", data);
-		}
+		...mapWritableState(useSettingsStore, ["ignoreFileTimestamps", "pingInterval", "updateDelay", "ajaxRetries", "updateInterval", "fileTransferRetryThreshold", "crcUploads"]),
+		isRestConnector(): boolean { return useMachineStore().connector instanceof RestConnector; },
+		isPollConnector(): boolean { return useMachineStore().connector instanceof PollConnector; }
 	}
 });
 </script>

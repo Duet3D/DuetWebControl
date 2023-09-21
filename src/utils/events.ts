@@ -5,6 +5,7 @@ import mitt from "mitt";
 import type { CancellationToken } from "@/store/connector/BaseConnector";
 import { FileTransferItem } from "@/store/machine";
 import { StoreState } from "pinia";
+import { LogMessageType } from "./logging";
 
 type Events = {
 	/**
@@ -92,9 +93,14 @@ type Events = {
 	codeExecuted: { code: string, reply: string | null };
 
 	/**
-	 * Generic message has been received
+	 * Generic message has been received from the machine
 	 */
 	message: { type: MessageType, content: string };
+
+	/**
+	 * Message is supposed to be written to the console
+	 */
+	logMessage: { type: LogMessageType, title: string, message: string | null };
 
 	/**
 	 * File or directory has been changed. If files is not present, the volume reporting the change is given
@@ -123,7 +129,6 @@ type Events = {
 	 */
 	fileUploadError: { filename: string, content: any, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
 	
-
 	/**
 	 * File or directory has been moved
 	 */
@@ -159,6 +164,12 @@ type Events = {
 	 * File could not be downloaded
 	 */
 	fileDownloadError: { filename: string, type?: string, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
+
+	/**
+	 * Plugin is supposed to be installed (shows plugi wizard)
+	 * start indicates if the plugin is supposed to be started upon installation
+	 */
+	installPlugin: { zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean };
 
 	/**
 	 * Plugin has been installed
@@ -201,4 +212,10 @@ type Events = {
 	dwcPluginUnloaded: string;
 }
 
-export default mitt<Events>();
+const emitter = mitt<Events>();
+
+if (process.env.NODE_ENV === "development") {
+	emitter.on('*', (type, event) => console.debug(type, event));
+}
+
+export default emitter;

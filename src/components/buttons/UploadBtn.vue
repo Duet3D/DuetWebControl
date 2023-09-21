@@ -22,9 +22,11 @@
 <script lang="ts">
 import { NetworkInterfaceType, MachineStatus, Board, MessageType } from "@duet3d/objectmodel";
 import JSZip from "jszip";
+import { mapState } from "pinia";
 import Vue, { PropType } from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import { isPrinting } from "@/utils/enums";
 import { getErrorMessage, DisconnectedError } from "@/utils/errors";
 import Events from "@/utils/events";
@@ -100,8 +102,8 @@ export default Vue.extend({
 		uploadPrint: Boolean
 	},
 	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; },
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		...mapState(useMachineStore, ["isConnected"]),
+		...mapState(useUiStore, ["uiFrozen"]),
 		caption(): string {
 			if (this.extracting) {
 				return this.$t("generic.extracting");
@@ -118,6 +120,7 @@ export default Vue.extend({
 			return this.isConnected && !this.uiFrozen;
 		},
 		accept(): string | undefined {
+			const machineStore = useMachineStore();
 			switch (this.target) {
 				case UploadType.gcodes: return ".g,.gcode,.gc,.gco,.nc,.ngc,.tap";
 				case UploadType.start: return ".g,.gcode,.gc,.gco,.nc,.ngc,.tap,.zip";
@@ -125,7 +128,7 @@ export default Vue.extend({
 				case UploadType.filaments: return ".zip";
 				case UploadType.firmware: return ".zip,.bin,.uf2";
 				case UploadType.menu: return "*";
-				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.sbc !== null) ? ",.deb" : "");
+				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((machineStore.model.sbc !== null) ? ",.deb" : "");
 				case UploadType.web: return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
 				case UploadType.plugin: return ".zip";
 				case UploadType.update: return ".zip,.bin,.uf2";
@@ -139,17 +142,18 @@ export default Vue.extend({
 				return this.directory;
 			}
 
+			const machineStore = useMachineStore();
 			switch (this.target) {
-				case UploadType.gcodes: return store.state.machine.model.directories.gCodes;
-				case UploadType.start: return store.state.machine.model.directories.gCodes;
-				case UploadType.firmware: return store.state.machine.model.directories.firmware;
-				case UploadType.macros: return store.state.machine.model.directories.macros;
-				case UploadType.filaments: return store.state.machine.model.directories.filaments;
-				case UploadType.menu: return store.state.machine.model.directories.menu;
-				case UploadType.system: return store.state.machine.model.directories.system;
-				case UploadType.web: return store.state.machine.model.directories.web;
+				case UploadType.gcodes: return machineStore.model.directories.gCodes;
+				case UploadType.start: return machineStore.model.directories.gCodes;
+				case UploadType.firmware: return machineStore.model.directories.firmware;
+				case UploadType.macros: return machineStore.model.directories.macros;
+				case UploadType.filaments: return machineStore.model.directories.filaments;
+				case UploadType.menu: return machineStore.model.directories.menu;
+				case UploadType.system: return machineStore.model.directories.system;
+				case UploadType.web: return machineStore.model.directories.web;
 				case UploadType.plugin: return undefined;	// not applicable
-				case UploadType.update: return store.state.machine.model.directories.firmware;
+				case UploadType.update: return machineStore.model.directories.firmware;
 				default:
 					const _exhaustiveCheck: never = this.target;
 					return undefined;
@@ -211,7 +215,8 @@ export default Vue.extend({
 		},
 		getFirmwareName(fileName: string): string | null {
 			let result: string | null = null;
-			for (const board of store.state.machine.model.boards) {
+			const machineStore = useMachineStore();
+			for (const board of machineStore.model.boards) {
 				if (board && board.firmwareFileName) {
 					const binRegEx = new RegExp(board.firmwareFileName.replace(/\.bin$/, "(.*)\\.bin"), "i");
 					const uf2RegEx = new RegExp(board.firmwareFileName.replace(/\.uf2$/, "(.*)\\.uf2"), "i");
@@ -224,7 +229,8 @@ export default Vue.extend({
 			return result;
 		},
 		getBinaryName<T extends Extract<keyof Board, string>>(key: T, fileName: string): string | null {
-			for (const board of store.state.machine.model.boards) {
+			const machineStore = useMachineStore();
+			for (const board of machineStore.model.boards) {
 				if (board && board[key]) {
 					const boardValue = board[key] as string;
 					const binRegEx = new RegExp(boardValue.replace(/\.bin$/, "(.*)\\.bin"), "i");
@@ -249,17 +255,15 @@ export default Vue.extend({
 			}
 
 			// Check if a ZIP file may be extracted
+			const machineStore = useMachineStore();
 			if (!zipName) {
 				if (files.length > 1 && Array.from(files).some(file => file.name.toLowerCase().endsWith(".zip"))) {
 					this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("error.uploadNoSingleZIP"));
 					return;
 				}
 
-				if (store.state.machine.model.sbc !== null && files[0].name.toLowerCase() === "dsf-update.zip") {
-					await store.dispatch("machine/installSystemPackage", {
-						filename: files[0].name,
-						packageData: files[0]
-					});
+				if (machineStore.model.sbc !== null && files[0].name.toLowerCase() === "dsf-update.zip") {
+					await machineStore.installSystemPackage(files[0].name, files[0]);
 					return;
 				}
 
@@ -282,8 +286,7 @@ export default Vue.extend({
 								});
 
 								if (isPlugin) {
-									this.$root.$emit(Events.installPlugin, {
-										machine: this.machine || store.state.selectedMachine,
+									Events.emit("installPlugin", {
 										zipFilename: files[0].name,
 										zipBlob: files[0],
 										zipFile: zip,
@@ -311,7 +314,7 @@ export default Vue.extend({
 							}
 
 							// Do NOT allow index.html.gz to be uploaded in SBC mode (wrong package)
-							if (store.state.machine.model.sbc !== null && zipFiles.some(file => file === "index.html.gz")) {
+							if (machineStore.model.sbc !== null && zipFiles.some(file => file === "index.html.gz")) {
 								this.$makeNotification(LogType.error, this.$t(`button.upload.${this.target}.caption`), this.$t("notification.decompress.standaloneUpdateInSbcModeError"));
 								return;
 							}
@@ -356,13 +359,10 @@ export default Vue.extend({
 					if (Path.isSdPath('/' + content.name)) {
 						filename = Path.combine("0:/", content.name);
 					} else if (this.isWebFile(content.name)) {
-						filename = Path.combine(store.state.machine.model.directories.web, content.name);
+						filename = Path.combine(machineStore.model.directories.web, content.name);
 						this.updates.webInterface = this.updates.webInterface || /index.html(\.gz)?/i.test(content.name);
-					} else if (store.state.machine.model.sbc !== null && /\.deb$/.test(content.name)) {
-						await store.dispatch("machine/installSystemPackage", {
-							filename: content.name,
-							packageData: content
-						});
+					} else if (machineStore.model.sbc !== null && /\.deb$/.test(content.name)) {
+						await machineStore.installSystemPackage(content.name, content);
 						skipUpload = true;
 					} else {
 						const firmwareFileName = this.getFirmwareName(content.name);
@@ -371,28 +371,28 @@ export default Vue.extend({
 						const iapFileNameSD = this.getBinaryName("iapFileNameSD", content.name);
 
 						if (firmwareFileName) {
-							filename = Path.combine(store.state.machine.model.directories.firmware, firmwareFileName);
+							filename = Path.combine(machineStore.model.directories.firmware, firmwareFileName);
 						} else if (bootloaderFileName) {
-							filename = Path.combine(store.state.machine.model.directories.firmware, bootloaderFileName);
-						} else if (store.state.machine.model.sbc && iapFileNameSBC) {
-							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSBC);
+							filename = Path.combine(machineStore.model.directories.firmware, bootloaderFileName);
+						} else if (machineStore.model.sbc && iapFileNameSBC) {
+							filename = Path.combine(machineStore.model.directories.firmware, iapFileNameSBC);
 						} else if (iapFileNameSD) {
-							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSD);
-						} else if (!store.state.machine.model.sbc && store.state.machine.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
+							filename = Path.combine(machineStore.model.directories.firmware, iapFileNameSD);
+						} else if (!machineStore.model.sbc && machineStore.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
 							if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
-								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWiFiServer.bin");
+								filename = Path.combine(machineStore.model.directories.firmware, "DuetWiFiServer.bin");
 								this.updates.wifiServer = true;
 							} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
-								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWebControl.bin");
+								filename = Path.combine(machineStore.model.directories.firmware, "DuetWebControl.bin");
 								this.updates.wifiServerSpiffs = true;
 							} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
-								filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
+								filename = Path.combine(machineStore.model.directories.firmware, content.name);
 								if (content.name === "PanelDueFirmware.bin") {
 									this.updates.panelDue = true;
 								}
 							}
 						} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
-							filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
+							filename = Path.combine(machineStore.model.directories.firmware, content.name);
 							if (content.name === "PanelDueFirmware.bin") {
 								this.updates.panelDue = true;
 							}
@@ -415,11 +415,7 @@ export default Vue.extend({
 			this.uploading = true;
 			try {
 				if (files.length === 1) {
-					await store.dispatch("machine/upload", {
-						filename: files[0].name,
-						content: files[0],
-						showSuccess: !zipName
-					});
+					await machineStore.upload({ filename: files[0].name, content: files[0] }, false, !zipName);
 				} else {
 					const filelist = [];
 					for (let i = 0; i < files.length; i++) {
@@ -428,11 +424,7 @@ export default Vue.extend({
 							content: files[i]
 						});
 					}
-					await store.dispatch("machine/upload", {
-						files: filelist,
-						showSuccess: !zipName,
-						closeProgressOnSuccess: askForUpdate
-					});
+					await machineStore.upload(filelist, false, !zipName, true, askForUpdate);
 				}
 				this.$emit("uploadComplete", files);
 			} catch (e) {
@@ -444,23 +436,23 @@ export default Vue.extend({
 
 			// Deal with Upload & Start
 			if (this.target === UploadType.start) {
-				await store.dispatch("machine/sendCode", `M32 "${escapeFilename(files[0].name)}"`);
+				await machineStore.sendCode(`M32 "${escapeFilename(files[0].name)}"`);
 			}
 
 			// Deal with updates
 			if (askForUpdate) {
 				// Ask user to perform an update
 				this.confirmUpdate = true;
-			} else if (store.state.selectedMachine === location.host && this.updates.webInterface) {
+			} else if (process.env.NODE_ENV === "production" && this.updates.webInterface) {
 				// Reload the web interface immediately if it was the only update
 				location.reload();
 			}
 
 			// Deal with config files
-			const configFile = Path.combine(store.state.machine.model.directories.system, Path.configFile);
+			const configFile = Path.combine(machineStore.model.directories.system, Path.configFile);
 			for (let file of files) {
 				const fullName = Path.combine(this.destinationDirectory, file.name);
-				if (!isPrinting(store.state.machine.model.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
+				if (!isPrinting(machineStore.model.state.status) && (fullName === Path.configFile || fullName === configFile || fullName === Path.boardFile)) {
 					// Ask for firmware reset when config.g or 0:/sys/board.txt (RRF on LPC) has been replaced
 					this.confirmReset = true;
 					break;
@@ -478,13 +470,14 @@ export default Vue.extend({
 			this.confirmReset = false;
 
 			// Update expansion boards
-			store.commit("machine/setBoardsBeingUpdated", this.updates.firmwareBoards);
+			const machineStore = useMachineStore();
+			machineStore.boardsBeingUpdated = this.updates.firmwareBoards;
 			for (let i = 0; i < this.updates.firmwareBoards.length; i++) {
 				const boardToUpdate = this.updates.firmwareBoards[i];
 				if (boardToUpdate > 0) {
-					store.commit("machine/setBoardBeingUpdated", boardToUpdate);
+					machineStore.boardBeingUpdated = boardToUpdate;
 					try {
-						await store.dispatch("machine/sendCode", `M997 B${boardToUpdate}`);
+						await machineStore.sendCode(`M997 B${boardToUpdate}`);
 						await this.waitForUpdate();
 					} catch (e) {
 						if (!(e instanceof DisconnectedError)) {
@@ -512,10 +505,10 @@ export default Vue.extend({
 			}
 
 			if (modules.length > 0) {
-				store.commit("machine/setBoardBeingUpdated", 0);
+				machineStore.boardBeingUpdated = 0;
 				this.updates.codeSent = true;
 				try {
-					await store.dispatch("machine/sendCode", `M997 S${modules.join(':')}`);
+					await machineStore.sendCode(`M997 S${modules.join(':')}`);
 					await this.waitForUpdate();
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
@@ -526,13 +519,14 @@ export default Vue.extend({
 			}
 
 			// Update complete
-			store.commit("machine/setBoardBeingUpdated", -1);
-			store.commit("machine/setBoardsBeingUpdated", []);
+			machineStore.boardBeingUpdated = -1;
+			machineStore.boardsBeingUpdated.splice(0);
 
 			// Ask for a firmware reset if expansion boards but not the main board have been updated
 			this.confirmReset = !modules.includes(0) && this.updates.firmwareBoards.some(board => board > 0);
 		},
 		async waitForUpdate() {
+			const machineStore = useMachineStore();
 			do {
 				// Wait in 2-second intervals until the status is no longer "Updating"
 				await new Promise(resolve => setTimeout(resolve, 2000));
@@ -541,7 +535,7 @@ export default Vue.extend({
 				if (!this.isConnected) {
 					return;
 				}
-			} while (store.state.machine.model.state.status === MachineStatus.updating);
+			} while (machineStore.model.state.status === MachineStatus.updating);
 		},
 		dragOver(e: DragEvent) {
 			if (!this.isBusy) {
@@ -560,7 +554,7 @@ export default Vue.extend({
 	},
 	watch: {
 		isConnected(to: boolean) {
-			if (to && store.state.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
+			if (to && this.updates.codeSent && this.updates.webInterface) {
 				// Reload the web interface when the connection could be established again
 				location.reload();
 			}

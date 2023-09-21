@@ -13,7 +13,7 @@ import { useMachineStore } from "./machine";
  */
 export const defaultPluginCacheFields: Record<string, any> = {};
 
-type SortingTable = "events" | "filaments" | "jobs" | "macros" | "menu" | "sys";
+export type SortingTable = "events" | "filaments" | "jobs" | "macros" | "menu" | "sys";
 
 export const useCacheStore = defineStore("cache", {
 	state: () => ({
@@ -146,11 +146,6 @@ export const useCacheStore = defineStore("cache", {
 				// Reset everything
 				this.fileInfos = {};
 			}
-		},
-
-		setSorting(table: SortingTable, column: string, descending: boolean) {
-			this.sorting[table].column = column;
-			this.sorting[table].descending = descending;
 		},
 
 		registerPluginData(plugin: string, key: string, defaultValue: any) {

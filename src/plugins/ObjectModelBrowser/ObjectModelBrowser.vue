@@ -63,10 +63,13 @@
 
 <script lang="ts">
 import ObjectModel, { DriverId, isDriverId } from "@duet3d/objectmodel";
-import { getErrorMessage } from "@/utils/errors";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
+import { useMachineStore } from "@/store/machine";
 
 // List of regexs to resolve properties in the XML documentation.
 // It's a shame the C# XML compiler doesn't include the property types...
@@ -99,9 +102,9 @@ interface ModelTreeItem {
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		model(): ObjectModel { return store.state.machine.model; },
-		darkTheme(): boolean { return store.state.settings.darkTheme; },
+		...mapState(useMachineStore, ["model"]),
+		...mapState(useSettingsStore, ["darkTheme"]),
+		...mapState(useUiStore, ["uiFrozen"]),
 		apiDocumentation(): Element | null {
 			if (this.apiFile !== null && this.active.length > 0) {
 				let selectedNode = this.active[0].toLowerCase();
@@ -151,19 +154,14 @@ export default Vue.extend({
 			active: new Array<string>(),
 			modelTree: new Array<ModelTreeItem>,
 			apiFile: null as Document | null,
-			apiFileError: null,
+			apiFileError: null as string | null,
 			documentationFloating: false
 		}
 	},
 	async activated() {
 		if (this.apiFile === null) {
 			try {
-				const apiFileContent = await store.dispatch("machine/download", {
-					filename: "0:/www/DuetAPI.xml",
-					type: "text",
-					showError: false,
-					showSuccess: false
-				});
+				const apiFileContent = await useMachineStore().download({ filename: "0:/www/DuetAPI.xml", type: "text" }, false, false);
 
 				const parser = new DOMParser();
 				this.apiFile = parser.parseFromString(apiFileContent, "application/xml");

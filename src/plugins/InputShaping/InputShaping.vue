@@ -223,9 +223,11 @@ th {
 'use strict'
 
 import { InputShapingType } from '@duet3d/objectmodel';
+import { mapState, mapActions } from 'pinia';
 import Vue from 'vue';
-import { mapState, mapGetters, mapActions } from 'vuex';
 
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import Events from '@/utils/events';
 import Path from '@/utils/path';
 
@@ -242,11 +244,11 @@ export default {
 		InputShapingFileList
 	},
 	computed: {
-		...mapState('machine/model', {
-			shaping: state => state.move.shaping
+		...mapState(useMachineStore, {
+			isConnected: state => state.isConnected,
+			shaping: state => state.model.move.shaping
 		}),
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
+		...mapState(useUiStore, ["uiFrozen"]),
 
 		isInputShapingEnabled() { return this.shaping.type !== InputShapingType.none; },
 		currentFrequencies() { return Array.from({ length: 81 }, (_, index) => index + 10); },
@@ -326,7 +328,7 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['getFileList', 'sendCode']),
+		...mapActions(useMachineStore, ['getFileList', 'sendCode']),
 
 		// Recorder
 		recordingFinished() {
@@ -396,8 +398,8 @@ export default {
 				this.loadingFiles = false;
 			}
 		},
-		filesOrDirectoriesChanged({ machine, files, volume }) {
-			if (machine === this.selectedMachine && files !== undefined) {
+		filesOrDirectoriesChanged({ files, volume }) {
+			if (files !== undefined) {
 				if (this.filesToAnalyze.some(fileToAnalyze => files.includes(Path.combine(Path.accelerometer, fileToAnalyze)))) {
 					// Current file being analyzed has bene changed, invalidate it
 					this.filesToAnalyze = [];
@@ -473,9 +475,6 @@ export default {
 					this.$refs.customMenu.updateDimensions();
 				}
 			});
-		},
-		selectedMachine() {
-			this.refresh();
 		}
 	}
 }

@@ -6,9 +6,11 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import { VBtn } from "vuetify/lib";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
 export default VBtn.extend({
 	props: {
@@ -27,7 +29,7 @@ export default VBtn.extend({
 		}
 	},
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; }
+		...mapState(useUiStore, ["uiFrozen"])
 	},
 	data() {
 		return {
@@ -37,21 +39,15 @@ export default VBtn.extend({
 	methods: {
 		async click() {
 			try {
+				const machineStore = useMachineStore();
 				if (this.noWait) {
 					// Run the requested code but don't wait for a result
-					await store.dispatch("machine/sendCode", {
-						code: this.code,
-						log: this.log,
-						noWait: true
-					});
+					await machineStore.sendCode(this.code, false, this.log, true);
 				} else {
 					// Wait for the code to complete and block while doing so
 					this.waitingForCode = true;
 					try {
-						await store.dispatch("machine/sendCode", {
-							code: this.code,
-							log: this.log
-						});
+						await machineStore.sendCode(this.code, false, this.log);
 					} finally {
 						this.waitingForCode = false;
 					}

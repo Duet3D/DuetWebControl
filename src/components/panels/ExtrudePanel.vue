@@ -68,41 +68,45 @@
 import { MachineStatus, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		currentTool(): Tool | null { return store.getters["machine/model/currentTool"]; },
+		uiFrozen(): boolean { return useUiStore().uiFrozen; },
+		currentTool(): Tool | null { return useMachineStore().currentTool; },
 		canExtrude(): boolean {
-			return (store.state.machine.model.state.status !== MachineStatus.off &&
-					store.state.machine.model.state.status !== MachineStatus.pausing &&
-					store.state.machine.model.state.status !== MachineStatus.processing &&
-					store.state.machine.model.state.status !== MachineStatus.resuming &&
+			const machineStore = useMachineStore();
+			return (machineStore.model.state.status !== MachineStatus.off &&
+					machineStore.model.state.status !== MachineStatus.pausing &&
+					machineStore.model.state.status !== MachineStatus.processing &&
+					machineStore.model.state.status !== MachineStatus.resuming &&
 					(this.currentTool !== null) && (this.currentTool.extruders.length > 0) &&
 					!this.currentTool.heaters.some(heaterNumber => {
-						if (heaterNumber >= 0 && heaterNumber < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterNumber] !== null) {
-							const heaterSensor = store.state.machine.model.heat.heaters[heaterNumber]!.sensor;
-							if (heaterSensor >= 0 && heaterSensor < store.state.machine.model.sensors.analog.length) {
-								const sensor = store.state.machine.model.sensors.analog[heaterSensor];
-								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < store.state.machine.model.heat.coldExtrudeTemperature));
+						if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
+							const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
+							if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
+								const sensor = machineStore.model.sensors.analog[heaterSensor];
+								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldExtrudeTemperature));
 							}
 						}
 						return true;
 					}, this));
 		},
 		canRetract(): boolean {
-			return (store.state.machine.model.state.status !== MachineStatus.off &&
-					store.state.machine.model.state.status !== MachineStatus.pausing &&
-					store.state.machine.model.state.status !== MachineStatus.processing &&
-					store.state.machine.model.state.status !== MachineStatus.resuming &&
+			const machineStore = useMachineStore();
+			return (machineStore.model.state.status !== MachineStatus.off &&
+					machineStore.model.state.status !== MachineStatus.pausing &&
+					machineStore.model.state.status !== MachineStatus.processing &&
+					machineStore.model.state.status !== MachineStatus.resuming &&
 					(this.currentTool !== null) && this.currentTool.extruders.length > 0 &&
 					!this.currentTool.heaters.some(heaterNumber => {
-						if (heaterNumber >= 0 && heaterNumber < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterNumber] !== null) {
-							const heaterSensor = store.state.machine.model.heat.heaters[heaterNumber]!.sensor;
-							if (heaterSensor >= 0 && heaterSensor < store.state.machine.model.sensors.analog.length) {
-								const sensor = store.state.machine.model.sensors.analog[heaterSensor];
-								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < store.state.machine.model.heat.coldRetractTemperature));
+						if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
+							const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
+							if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
+								const sensor = machineStore.model.sensors.analog[heaterSensor];
+								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldRetractTemperature));
 							}
 						}
 						return true;
@@ -129,8 +133,8 @@ export default Vue.extend({
 				}
 			}
 		},
-		extruderAmounts() { return store.state.machine.settings.extruderAmounts; },
-		extruderFeedrates() { return store.state.machine.settings.extruderFeedrates; }
+		extruderAmounts() { return useSettingsStore().extruderAmounts; },
+		extruderFeedrates() { return useSettingsStore().extruderFeedrates; }
 	},
 	data() {
 		return {
@@ -168,7 +172,7 @@ export default Vue.extend({
 			this.busy = true;
 			try {
 				const amount = amounts.map(amount => extrude ? amount : -amount).join(":");
-				await store.dispatch("machine/sendCode", `M120\nM83\nG1 E${amount} F${this.feedrate * 60}\nM121`);
+				await useMachineStore().sendCode(`M120\nM83\nG1 E${amount} F${this.feedrate * 60}\nM121`);
 			} catch (e) {
 				// handled before we get here
 			}
@@ -180,7 +184,7 @@ export default Vue.extend({
 			this.editAmountDialog.shown = true;
 		},
 		setAmount(value: number) {
-			store.commit("machine/settings/setExtrusionAmount", { index: this.editAmountDialog.index, value });
+			useSettingsStore().extruderAmounts[this.editAmountDialog.index] = value;
 			this.amount = value;
 		},
 		editFeedrate(index: number) {
@@ -189,13 +193,14 @@ export default Vue.extend({
 			this.editFeedrateDialog.shown = true;
 		},
 		setFeedrate(value: number) {
-			store.commit("machine/settings/setExtrusionFeedrate", { index: this.editFeedrateDialog.index, value });
+			useSettingsStore().extruderFeedrates[this.editFeedrateDialog.index] = value;
 			this.feedrate = value;
 		}
 	},
 	mounted() {
-		this.amount = store.state.machine.settings.extruderAmounts[3];
-		this.feedrate = store.state.machine.settings.extruderFeedrates[3];
+		const settingsStore = useSettingsStore();
+		this.amount = settingsStore.extruderAmounts[3];
+		this.feedrate = settingsStore.extruderFeedrates[3];
 	},
 	watch: {
 		currentTool(to: Tool | null) {

@@ -7,9 +7,10 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 import Path from "@/utils/path";
 
 export default Vue.extend({
@@ -23,9 +24,7 @@ export default Vue.extend({
 			required: true
 		}
 	},
-	computed: {
-		isConnected(): boolean { return store.getters["isConnected"]; }
-	},
+	computed: mapState(useMachineStore, ["isConnected"]),
 	data() {
 		return {
 			showFilenameDialog: this.shown,

@@ -152,15 +152,16 @@ import Vue from "vue";
 
 import { ProbeType, AnalogSensorType, Board, CurrentMove, Probe, AnalogSensor } from "@duet3d/objectmodel";
 
-import store from "@/store";
 import { isPrinting } from "@/utils/enums";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		currentMove(): CurrentMove { return store.state.machine.model.move.currentMove; },
-		mainboard(): Board | undefined { return store.state.machine.model.boards.find(board => !board.canAddress); },
+		currentMove(): CurrentMove { return useMachineStore().model.move.currentMove; },
+		mainboard(): Board | undefined { return useMachineStore().model.boards.find(board => !board.canAddress); },
 		fanRPM(): Array<{ name: string, rpm: number }> {
-			return store.state.machine.model.fans
+			return useMachineStore().model.fans
 				.filter((fan) => (fan !== null) && fan.rpm >= 0)
 				.map(
 					(fan, index) => ({
@@ -170,11 +171,11 @@ export default Vue.extend({
 					this
 				);
 		},
-		probesPresent() { return store.state.machine.model.sensors.probes.some((probe) => probe && probe.type !== ProbeType.none); },
-		probes(): Array<Probe | null> { return store.state.machine.model.sensors.probes; },
+		probesPresent() { return useMachineStore().model.sensors.probes.some((probe) => probe && probe.type !== ProbeType.none); },
+		probes(): Array<Probe | null> { return useMachineStore().model.sensors.probes; },
 		sensorsPresent(): boolean { return (this.mainboard && ((this.mainboard.vIn !== null) || (this.mainboard.v12 !== null) || (this.mainboard.mcuTemp !== null))) || this.fanRPM.length > 0 || this.probesPresent; },
 		analogSensors(): Array<AnalogSensor> {
-			return store.state.machine.model.sensors.analog.filter((sensor) => (sensor !== null) && sensor.name && (sensor.type !== AnalogSensorType.unknown)) as Array<AnalogSensor>;
+			return useMachineStore().model.sensors.analog.filter((sensor) => (sensor !== null) && sensor.name && (sensor.type !== AnalogSensorType.unknown)) as Array<AnalogSensor>;
 		}
 	},
 	methods: {
@@ -185,17 +186,18 @@ export default Vue.extend({
 			return `${values[0]} (${values.slice(1).join(", ")})`;
 		},
 		probeSpanClasses(probe: Probe, index: number) {
+			const machineStore = useMachineStore(), settingsStore = useSettingsStore();
 			let result: Array<string> = [];
-			if (index && store.state.machine.model.sensors.probes.length > 1) {
+			if (index && machineStore.model.sensors.probes.length > 1) {
 				result.push("ml-2");
 			}
-			if (!isPrinting(store.state.machine.model.state.status) && probe.value.length > 0) {
+			if (!isPrinting(machineStore.model.state.status) && probe.value.length > 0) {
 				if (probe.value[0] >= probe.threshold) {
 					result.push("red");
-					result.push(store.state.settings.darkTheme ? "darken-3" : "lighten-4");
+					result.push(settingsStore.darkTheme ? "darken-3" : "lighten-4");
 				} else if (probe.value[0] > probe.threshold * 0.9) {
 					result.push("orange");
-					result.push(store.state.settings.darkTheme ? "darken-2" : "lighten-4");
+					result.push(settingsStore.darkTheme ? "darken-2" : "lighten-4");
 				}
 			}
 			return result;

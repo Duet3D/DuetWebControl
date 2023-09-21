@@ -8,7 +8,7 @@
 			<v-switch :label="$t('panel.settingsAppearance.darkTheme')" class="mt-0 mb-3" hide-details
 					  v-model="darkTheme" />
 			<v-select :items="languages" :label="$t('panel.settingsAppearance.language')" :return-object="false"
-					  hide-details item-text="language" item-value="code" v-model="language" />
+					  hide-details item-text="language" item-value="code" v-model="locale" />
 			<v-tooltip bottom>
 				<template #activator="{ on }">
 					<v-switch :label="$t('panel.settingsAppearance.binaryFileSizes')" hide-details
@@ -39,29 +39,14 @@
 </template>
 
 <script lang="ts">
+import { mapWritableState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-import { DashboardMode, SettingsState, UnitOfMeasure } from "@/store/settings";
+import { DashboardMode, UnitOfMeasure, useSettingsStore } from "@/store/settings";
 
 export default Vue.extend({
 	computed: {
-		darkTheme: {
-			get(): boolean { return store.state.settings.darkTheme; },
-			set(value: boolean) { this.update({ darkTheme: value }); }
-		},
-		decimalPlaces: {
-			get(): number { return store.state.settings.decimalPlaces; },
-			set(value: number) { this.update({ decimalPlaces: value }); }
-		},
-		displayUnits: {
-			get(): UnitOfMeasure { return store.state.settings.displayUnits; },
-			set(value: UnitOfMeasure) { this.update({ displayUnits: value }); }
-		},
-		language: {
-			get(): string { return store.state.settings.language; },
-			set(value: string) { this.update({ language: value }); }
-		},
+		...mapWritableState(useSettingsStore, ["darkTheme", "decimalPlaces", "displayUnits", "locale", "useBinaryPrefix", "disableAutoComplete", "bottomNavigation", "iconMenu", "numericInputs"]),
 		languages() {
 			const result: Array<{ code: string, language: string }> = [];
 			for (let key in this.$i18n.messages) {
@@ -72,24 +57,12 @@ export default Vue.extend({
 			}
 			return result;
 		},
-		useBinaryPrefix: {
-			get(): boolean { return store.state.settings.useBinaryPrefix; },
-			set(value: boolean) { this.update({ useBinaryPrefix: value }); }
-		},
-		disableAutoComplete: {
-			get(): boolean { return store.state.settings.disableAutoComplete; },
-			set(value: boolean) { this.update({ disableAutoComplete: value }); }
-		},
 		dashboardMode: {
 			get(): DashboardMode {
-				if (!store.state.settings.dashboardMode) {
-					return DashboardMode.default;
-				}
-				return store.state.settings.dashboardMode;
+				const settingsStore = useSettingsStore();
+				return settingsStore.dashboardMode ?? DashboardMode.default;
 			},
-			set(value: DashboardMode) {
-				this.update({ dashboardMode: value });
-			},
+			set(value: DashboardMode) { useSettingsStore().dashboardMode = value; }
 		},
 		dashboardModes() {
 			return Object.entries(DashboardMode).map(([key, value]) => {
@@ -106,24 +79,7 @@ export default Vue.extend({
 					value
 				};
 			});
-		},
-		bottomNavigation: {
-			get(): boolean { return store.state.settings.bottomNavigation; },
-			set(value: boolean) { this.update({ bottomNavigation: value }); }
-		},
-		numericInputs: {
-			get(): boolean { return store.state.settings.numericInputs; },
-			set(value: boolean) { this.update({ numericInputs: value }); }
-		},
-		iconMenu: {
-			get(): boolean { return store.state.settings.iconMenu; },
-			set(value: boolean) { this.update({ iconMenu: value }); }
-		},
-	},
-	methods: {
-		update(data: Partial<SettingsState>) {
-			store.commit("settings/update", data);
 		}
 	}
-});;
+});
 </script>

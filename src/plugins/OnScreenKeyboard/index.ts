@@ -1,4 +1,4 @@
-import { injectComponent } from "..";
+import { useUiStore } from "@/store/ui";
 import OnScreenKeyboard from "./OnScreenKeyboard.vue"
 
-injectComponent("on-screen-keyboard", OnScreenKeyboard);
+useUiStore().injectComponent("on-screen-keyboard", OnScreenKeyboard);

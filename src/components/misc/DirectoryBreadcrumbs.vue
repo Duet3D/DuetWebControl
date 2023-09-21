@@ -33,13 +33,14 @@
 
 <script lang="ts">
 import { Directories } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
 import Vue from "vue";
 
 import { isBaseFileListDataTransfer } from "@/components/lists/BaseFileList.vue";
-import store from "@/store";
 import { getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
 import Path from "@/utils/path";
+import { useMachineStore } from "@/store/machine";
 
 interface BreadcrumbItem {
 	showDropdown: boolean;
@@ -56,7 +57,10 @@ export default Vue.extend({
 		}
 	},
 	computed: {
-		directories(): Directories { return store.state.machine.model.directories; },
+		...mapState(useMachineStore, {
+			boards: state => state.model.boards,
+			directories: state => state.model.directories
+		}),
 		pathItems(): Array<BreadcrumbItem> {
 			let pathItems = this.value.split('/');
 			if (pathItems[0] === "") {
@@ -132,7 +136,7 @@ export default Vue.extend({
 			return !Path.equals(this.directories.firmware, this.directories.system);
 		},
 		hasDirectDisplay(): boolean {
-			return (store.state.machine.model.boards.length > 0) && (store.state.machine.model.boards[0].directDisplay !== null);
+			return (this.boards.length > 0) && (this.boards[0].directDisplay !== null);
 		}
 	},
 	methods: {
@@ -171,7 +175,8 @@ export default Vue.extend({
 						const from = Path.combine(data.directory, data.items[i].name);
 						const to = Path.combine(directory, data.items[i].name);
 						try {
-							await store.dispatch("machine/move", { from, to });
+							const machineStore = useMachineStore();
+							machineStore.move(from, to);
 						} catch (e) {
 							this.$log(LogType.error, this.$t("error.move", [data.items[i].name, directory]), getErrorMessage(e));
 							break;

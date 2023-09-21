@@ -77,34 +77,38 @@ img {
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
-import { SettingsState, WebcamFlip } from "@/store/settings";
+import { WebcamFlip, useSettingsStore } from "@/store/settings";
+import { useMachineStore } from "@/store/machine";
 
 export default Vue.extend({
 	computed: {
-		webcam(): SettingsState["webcam"] { return store.state.settings.webcam; },
-		classList() {
-			const result = [];
+		...mapState(useMachineStore, ["connector"]),
+		...mapState(useSettingsStore, {
+			webcam: state => state.webcam,
+			classList: state => {
+				const result = [];
 
-			if (this.webcam.flip === WebcamFlip.X || this.webcam.flip === WebcamFlip.Both) {
-				result.push("flip-x");
-			}
-			if (this.webcam.flip === WebcamFlip.Y || this.webcam.flip === WebcamFlip.Both) {
-				result.push("flip-y");
-			}
+				if (state.webcam.flip === WebcamFlip.X || state.webcam.flip === WebcamFlip.Both) {
+					result.push("flip-x");
+				}
+				if (state.webcam.flip === WebcamFlip.Y || state.webcam.flip === WebcamFlip.Both) {
+					result.push("flip-y");
+				}
 
-			if (this.webcam.rotation === 90) {
-				result.push("rotate-90");
-			} else if (this.webcam.rotation === 180) {
-				result.push("rotate-180");
-			} else if (this.webcam.rotation === 270) {
-				result.push("rotate-270");
-			}
+				if (state.webcam.rotation === 90) {
+					result.push("rotate-90");
+				} else if (state.webcam.rotation === 180) {
+					result.push("rotate-180");
+				} else if (state.webcam.rotation === 270) {
+					result.push("rotate-270");
+				}
 
-			return result;
-		}
+				return result;
+			}
+		}),
 	},
 	data() {
 		return {
@@ -121,7 +125,7 @@ export default Vue.extend({
 	},
 	methods: {
 		updateWebcam() {
-			let url = this.webcam.url.replace("[HOSTNAME]", store.getters["machine/connector"] ? store.getters["machine/connector"].hostname : location.hostname);
+			let url = this.webcam.url.replace("[HOSTNAME]", this.connector ? this.connector.hostname : location.hostname);
 			if (this.webcam.updateInterval > 0) {
 				if (this.webcam.useFix) {
 					url += "_" + Math.random();

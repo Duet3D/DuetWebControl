@@ -51,25 +51,27 @@
 import { MachineStatus, TimesLeft } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
 import { isPrinting } from "@/utils/enums";
 
 export default Vue.extend({
 	computed: {
-		isPrinting(): boolean { return isPrinting(store.state.machine.model.state.status); },
-		timesLeft(): TimesLeft { return store.state.machine.model.job.timesLeft; },
+		isPrinting(): boolean { return isPrinting(useMachineStore().model.state.status); },
+		timesLeft(): TimesLeft { return useMachineStore().model.job.timesLeft; },
 		slicerTimeLeft(): number | null {
-			if (store.state.machine.model.job.timesLeft.slicer !== null) {
-				return store.state.machine.model.job.timesLeft.slicer;
+			const machineStore = useMachineStore();
+			if (machineStore.model.job.timesLeft.slicer !== null) {
+				return machineStore.model.job.timesLeft.slicer;
 			}
-			if (store.state.machine.model.job.file !== null && store.state.machine.model.job.duration !== null && store.state.machine.model.job.file.printTime != null) {
-				return this.isPrinting ? Math.max(0, (store.state.machine.model.job.file.printTime as number) - store.state.machine.model.job.duration) : store.state.machine.model.job.file.printTime as number;
+			if (machineStore.model.job.file !== null && machineStore.model.job.duration !== null && machineStore.model.job.file.printTime != null) {
+				return this.isPrinting ? Math.max(0, (machineStore.model.job.file.printTime as number) - machineStore.model.job.duration) : machineStore.model.job.file.printTime as number;
 			}
 			return null;
 		},
 		simulationTime(): number | null {
-			if (!this.isSimulating && store.state.machine.model.job.file !== null && store.state.machine.model.job.file.simulatedTime !== null && store.state.machine.model.job.duration != null) {
-				return this.isPrinting ? Math.max(0, (store.state.machine.model.job.file.simulatedTime as number) - store.state.machine.model.job.duration) : store.state.machine.model.job.file.simulatedTime as number;
+			const machineStore = useMachineStore();
+			if (!this.isSimulating && machineStore.model.job.file !== null && machineStore.model.job.file.simulatedTime !== null && machineStore.model.job.duration != null) {
+				return this.isPrinting ? Math.max(0, (machineStore.model.job.file.simulatedTime as number) - machineStore.model.job.duration) : machineStore.model.job.file.simulatedTime as number;
 			}
 			return null;
 		}
@@ -80,12 +82,12 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+		this.isSimulating = (useMachineStore().model.state.status === MachineStatus.simulating);
 	},
 	watch: {
 		isPrinting(to: boolean) {
 			if (to) {
-				this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+				this.isSimulating = (useMachineStore().model.state.status === MachineStatus.simulating);
 			} else {
 				this.isSimulating = false;
 			}

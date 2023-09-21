@@ -1,5 +1,5 @@
-import Vue from "vue";
 import "chartjs-adapter-date-fns";
+import Vue from "vue";
 
 import LayerChart from "./LayerChart.vue";
 import TemperatureChart from "./TemperatureChart.vue";

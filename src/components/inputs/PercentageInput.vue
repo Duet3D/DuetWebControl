@@ -40,9 +40,10 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useSettingsStore } from "@/store/settings";
 import { isNumber } from "@/utils/numbers";
 
 /**
@@ -76,7 +77,7 @@ export default Vue.extend({
 		disabled: Boolean
 	},
 	computed: {
-		numericInputs(): boolean { return store.state.settings.numericInputs; },
+		...mapState(useSettingsStore, ["numericInputs"]),
 		canApply(): boolean {
 			if (this.disabled || this.innerValue === Math.round(this.value) || this.debounceTimer || this.decreaseTimer || this.increaseTimer) {
 				return false;
@@ -84,7 +85,8 @@ export default Vue.extend({
 			return isNumber(this.innerValue) && this.innerValue >= this.min && this.innerValue <= this.max;
 		},
 		items(): Array<number> {
-			if (store.state.settings.disableAutoComplete || !this.step) {
+			const settingsStore = useSettingsStore();
+			if (settingsStore.disableAutoComplete || !this.step) {
 				return [];
 			}
 

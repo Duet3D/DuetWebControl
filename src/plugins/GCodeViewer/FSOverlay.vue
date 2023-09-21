@@ -124,7 +124,8 @@
 <script>
 'use strict'
 
-import { mapState } from 'vuex';
+import { useMachineStore } from "@/store/machine";
+import { mapState } from "pinia";
 
 export default {
 	data: function () {
@@ -140,8 +141,13 @@ export default {
         this.$window
      },
     beforeDestroy(){},
-	computed: {
-		...mapState('machine/model', ['file', 'move', 'heat', 'tools']),
+    computed: {
+        ...mapState(useMachineStore, {
+            file: state => state.model.job.file,
+            move: state => state.model.move,
+            heat: state => state.model.heat,
+            tools: state => state.model.tools
+        }),
 		visibleAxes() {
 			return this.move.axes.filter(axis => axis.visible);
 		},

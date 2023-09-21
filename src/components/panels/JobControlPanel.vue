@@ -50,22 +50,23 @@
 import { MachineMode, MachineStatus, ThumbnailInfo } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import { isPaused, isPrinting } from "@/utils/enums";
 import { escapeFilename } from "@/utils/path";
 
 export default Vue.extend({
 	computed: {
-		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
-		isPausing(): boolean { return store.state.machine.model.state.status === MachineStatus.pausing; },
-		isPaused(): boolean { return isPaused(store.state.machine.model.state.status); },
-		isCancelling(): boolean { return store.state.machine.model.state.status === MachineStatus.cancelling; },
-		isPrinting(): boolean { return isPrinting(store.state.machine.model.state.status); },
+		uiFrozen(): boolean { return useUiStore().uiFrozen; },
+		isPausing(): boolean { return useMachineStore().model.state.status === MachineStatus.pausing; },
+		isPaused(): boolean { return isPaused(useMachineStore().model.state.status); },
+		isCancelling(): boolean { return useMachineStore().model.state.status === MachineStatus.cancelling; },
+		isPrinting(): boolean { return isPrinting(useMachineStore().model.state.status); },
 		pauseResumeText(): string {
 			if (this.isSimulating) {
 				return this.$t(this.isPaused ? "panel.jobControl.resumeSimulation" : "panel.jobControl.pauseSimulation");
 			}
-			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+			if (useMachineStore().model.state.machineMode === MachineMode.fff) {
 				return this.$t(this.isPaused ? "panel.jobControl.resumePrint" : "panel.jobControl.pausePrint");
 			}
 			return this.$t(this.isPaused ? "panel.jobControl.resumeJob" : "panel.jobControl.pauseJob");
@@ -74,40 +75,44 @@ export default Vue.extend({
 			if (this.isSimulating) {
 				return this.$t("panel.jobControl.cancelSimulation");
 			}
-			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+			if (useMachineStore().model.state.machineMode === MachineMode.fff) {
 				return this.$t("panel.jobControl.cancelPrint");
 			}
 			return this.$t("panel.jobControl.cancelJob");
 		},
 		processAnotherCode() {
-			if (store.state.machine.model.job.lastFileName !== null) {
-				if (store.state.machine.model.job.lastFileSimulated && (store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled)) {
-					return `M37 P"${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
+			const machineStore = useMachineStore();
+			if (machineStore.model.job.lastFileName !== null) {
+				if (machineStore.model.job.lastFileSimulated && (machineStore.model.job.lastFileAborted || machineStore.model.job.lastFileCancelled)) {
+					return `M37 P"${escapeFilename(machineStore.model.job.lastFileName)}"`;
 				}
-				return `M32 "${escapeFilename(store.state.machine.model.job.lastFileName)}"`;
+				return `M32 "${escapeFilename(machineStore.model.job.lastFileName)}"`;
 			}
 			return "";
 		},
 		processAnotherIcon() {
-			if (store.state.machine.model.job.lastFileSimulated && !(store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled)) {
-				return (!store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff) ? "mdi-printer" : "mdi-play";
+			const machineStore = useMachineStore();
+			if (machineStore.model.job.lastFileSimulated && !(machineStore.model.job.lastFileAborted || machineStore.model.job.lastFileCancelled)) {
+				return (!machineStore.model.state.machineMode || machineStore.model.state.machineMode === MachineMode.fff) ? "mdi-printer" : "mdi-play";
 			}
 			return "mdi-restart";
 		},
 		processAnotherText() {
-			if (store.state.machine.model.job.lastFileSimulated) {
-				if (store.state.machine.model.job.lastFileAborted || store.state.machine.model.job.lastFileCancelled) {
+			const machineStore = useMachineStore();
+			if (machineStore.model.job.lastFileSimulated) {
+				if (machineStore.model.job.lastFileAborted || machineStore.model.job.lastFileCancelled) {
 					return this.$t('panel.jobControl.repeatSimulation');
 				}
-				return (!store.state.machine.model.state.machineMode || store.state.machine.model.state.machineMode === MachineMode.fff) ? this.$t('panel.jobControl.printNow') : this.$t("panel.jobControl.startJob");
+				return (!machineStore.model.state.machineMode || machineStore.model.state.machineMode === MachineMode.fff) ? this.$t('panel.jobControl.printNow') : this.$t("panel.jobControl.startJob");
 			}
-			if (store.state.machine.model.state.machineMode === MachineMode.fff) {
+			if (machineStore.model.state.machineMode === MachineMode.fff) {
 				return this.$t('panel.jobControl.repeatPrint');
 			}
 			return this.$t('panel.jobControl.repeatJob');
 		},
 		thumbnails(): Array<ThumbnailInfo> {
-			const thumbnails = (store.state.machine.model.job.file !== null) ? store.state.machine.model.job.file.thumbnails.slice() : [];
+			const machineStore = useMachineStore();
+			const thumbnails = (machineStore.model.job.file !== null) ? machineStore.model.job.file.thumbnails.slice() : [];
 			thumbnails.sort((a, b) => (b.width * b.height) - (a.width * a.height));		// return biggest thumbnails first
 			return thumbnails;
 		},
@@ -121,12 +126,12 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+		this.isSimulating = (useMachineStore().model.state.status === MachineStatus.simulating);
 	},
 	watch: {
 		isPrinting(to: boolean) {
 			if (to) {
-				this.isSimulating = (store.state.machine.model.state.status === MachineStatus.simulating);
+				this.isSimulating = (useMachineStore().model.state.status === MachineStatus.simulating);
 			} else {
 				this.isSimulating = false;
 			}

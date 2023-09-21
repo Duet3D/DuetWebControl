@@ -57,15 +57,14 @@
 import Vue from "vue";
 import { KinematicsName, ProbeGrid } from "@duet3d/objectmodel";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { mapState } from "pinia";
 
 export default Vue.extend({
-	computed: {
-		probeGrid(): ProbeGrid { return store.state.machine.model.move.compensation.probeGrid; },
-		isDelta(): boolean {
-			return [KinematicsName.delta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name);
-		}
-	},
+	computed: mapState(useMachineStore, {
+		probeGrid: state => state.model.move.compensation.probeGrid,
+		isDelta: state => [KinematicsName.delta, KinematicsName.rotaryDelta].includes(state.model.move.kinematics.name)
+	}),
 	data() {
 		return {
 			xAxis: "X",
@@ -90,10 +89,11 @@ export default Vue.extend({
 			if ((this.$refs.form as HTMLFormElement).validate()) {
 				this.hide();
 
+				const machineStore = useMachineStore();
 				if (this.isDelta) {
-					await store.dispatch("machine/sendCode", `M557 R${this.radius} S${this.spacingX}`);
+					await machineStore.sendCode(`M557 R${this.radius} S${this.spacingX}`);
 				} else {
-					await store.dispatch("machine/sendCode", `M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);
+					await machineStore.sendCode(`M557 X${this.minX}:${this.maxX} Y${this.minY}:${this.maxY} S${this.spacingX}:${this.spacingY}`);
 				}
 			}
 		},

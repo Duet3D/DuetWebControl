@@ -73,18 +73,15 @@ td {
 <script lang="ts">
 import Vue from "vue"
 
-import store from "@/store";
 import Events from "@/utils/events"
 import { FileTransferItem } from "@/store/machine";
-import { CancellationToken } from "@/store/machine/connector/BaseConnector";
+import { CancellationToken } from "@/store/connector/BaseConnector";
+import { displaySize, displayTransferSpeed } from "@/utils/display";
 
 export default Vue.extend({
 	computed: {
 		shown(): boolean {
-			return this.filesBeingTransferred[store.state.selectedMachine] !== undefined;
-		},
-		isUploading(): boolean {
-			return this.isMachineUploading[store.state.selectedMachine];
+			return this.files.length > 0;
 		},
 		title(): string {
 			if (this.transfersFinished) {
@@ -107,9 +104,6 @@ export default Vue.extend({
 			const translation = this.isUploading ? "dialog.fileTransfer.uploadingTitle" : "dialog.fileTransfer.downloadingTitle";
 			return this.$t(translation, [fileBeingTransferred, this.files.length, (totalProgress * 100).toFixed(1)]);
 		},
-		fileNameOffset(): number {
-			return this.fileNameOffsets[store.state.selectedMachine] || 0;
-		},
 		currentSpeed(): number | null {
 			if (!this.files.some(file => file.error)) {
 				for (let i = 0; i < this.files.length; i++) {
@@ -121,10 +115,7 @@ export default Vue.extend({
 			return null;
 		},
 		canCancel(): boolean {
-			return !this.transfersFinished && (this.cancellationTokens[store.state.selectedMachine] !== undefined);
-		},
-		files(): Array<FileTransferItem> {
-			return this.filesBeingTransferred[store.state.selectedMachine] || [];
+			return !this.transfersFinished && (this.cancellationToken !== null);
 		},
 		transfersFinished(): boolean {
 			if (this.files.some(file => file.error)) {
@@ -135,31 +126,30 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			isMachineUploading: {} as Record<string, boolean>,
-			cancellationTokens: {} as Record<string, CancellationToken>,
-			closeProgressOnSuccess: {} as Record<string, boolean>,
-			filesBeingTransferred: {} as Record<string, Array<FileTransferItem>>,
-			fileNameOffsets: {} as Record<string, number>,
-			retries: {} as Record<string, number>
+			isUploading: false,
+			cancellationToken: null as CancellationToken | null,
+			closeProgressOnSuccess: false,
+			files: new Array<FileTransferItem>(),
+			fileNameOffset: 0,
+			retry: 0
 		}
 	},
 	mounted() {
-		this.$root
-			.$on(Events.multipleFilesUploading, this.multiUploadStarting)
-			.$on(Events.multipleFilesDownloading, this.multiDownloadStarting)
-			.$on(Events.fileUploaded, this.fileComplete.bind(this))
-			.$on(Events.fileDownloaded, this.fileComplete.bind(this));
+		Events.on("multipleFilesDownloading", this.multiDownloadStarting);
+		Events.on("multipleFilesUploading", this.multiUploadStarting);
+		Events.on("fileUploaded", this.fileComplete);
+		Events.on("fileDownloaded", this.fileComplete);
 	},
 	beforeDestroy() {
-		this.$root
-			.$off(this.multiUploadStarting as any)
-			.$off(this.multiDownloadStarting as any)
-			.$off(this.fileComplete as any);
+		Events.off("multipleFilesDownloading", this.multiDownloadStarting);
+		Events.off("multipleFilesUploading", this.multiDownloadStarting);
+		Events.off("fileUploaded", this.fileComplete);
+		Events.off("fileDownloaded", this.fileComplete);
 	},
 	methods: {
 		getSize(file: FileTransferItem) {
 			if (file.size || (file.content && file.content.size)) {
-				return this.$displaySize(file.size || file.content.size);
+				return displaySize(file.size || file.content.size);
 			}
 			return "";
 		},
@@ -185,35 +175,38 @@ export default Vue.extend({
 			return (file.retry > 0) ? "warning" : "info";
 		},
 		cancel() {
-			this.cancellationTokens[store.state.selectedMachine].cancel();
-			Vue.delete(this.cancellationTokens, store.state.selectedMachine);
+			if (this.cancellationToken !== null) {
+				this.cancellationToken.cancel();
+				this.cancellationToken = null;
+			}
 		},
 		close() {
-			Vue.delete(this.closeProgressOnSuccess, store.state.selectedMachine);
-			Vue.delete(this.cancellationTokens, store.state.selectedMachine);
-			Vue.delete(this.filesBeingTransferred, store.state.selectedMachine);
+			this.closeProgressOnSuccess = false;
+			this.cancellationToken = null;
+			this.files = [];
+			this.fileNameOffset = 0;
 		},
-		multiUploadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken } : { machine: string, files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
+		multiUploadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken } : { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
-				Vue.set(this.isMachineUploading, machine, true);
-				Vue.set(this.closeProgressOnSuccess, machine, closeProgressOnSuccess);
-				Vue.set(this.cancellationTokens, machine, cancellationToken);
-				Vue.set(this.filesBeingTransferred, machine, files);
-				this.setFileNameOffsets(machine, files);
+				this.isUploading = true;
+				this.closeProgressOnSuccess = closeProgressOnSuccess;
+				this.cancellationToken = cancellationToken;
+				this.retry = 0;
+				this.setFiles(files);
 			}
 		},
-		multiDownloadStarting({ machine, files, showProgress, closeProgressOnSuccess, cancellationToken } : { machine: string, files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
+		multiDownloadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken } : { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
-				Vue.set(this.isMachineUploading, machine, false);
-				Vue.set(this.closeProgressOnSuccess, machine, closeProgressOnSuccess);
-				Vue.set(this.cancellationTokens, machine, cancellationToken);
-				Vue.set(this.filesBeingTransferred, machine, files);
-				Vue.set(this.retries, machine, []);
-				this.setFileNameOffsets(machine, files);
+				this.isUploading = false;
+				this.closeProgressOnSuccess = closeProgressOnSuccess;
+				this.cancellationToken = cancellationToken;
+				this.retry = 0;
+				this.setFiles(files);
 			}
 		},
-		setFileNameOffsets(machine: string, files: Array<FileTransferItem>) {
-			Vue.set(this.fileNameOffsets, machine, 0);
+		setFiles(files: Array<FileTransferItem>) {
+			this.files = files;
+			this.fileNameOffset = 0;
 			if (files.length > 1) {
 				let offset = 0;
 				do {
@@ -230,14 +223,14 @@ export default Vue.extend({
 					}
 
 					if (nextChar === "/") {
-						this.fileNameOffsets[machine] = offset + 1;
+						this.fileNameOffset = offset + 1;
 					}
 					offset++;
 				} while (offset > 0);
 			}
 		},
-		fileComplete({ machine, num, count } : { machine: string, num: number, count: number }) {
-			if (store.state.selectedMachine === machine && num + 1 === count && this.closeProgressOnSuccess[machine]) {
+		fileComplete({ num, count } : { num: number, count: number }) {
+			if (num + 1 === count && this.closeProgressOnSuccess) {
 				this.close();
 			} else if (this.$refs.fileTable) {
 				const fileTable = this.$refs.fileTable as HTMLTableElement;

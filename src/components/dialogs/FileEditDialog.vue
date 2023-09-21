@@ -84,15 +84,18 @@
 <script lang="ts">
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import "monaco-editor/esm/vs/language/json/monaco.contribution";
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 import { indent } from "@/utils/display";
 import "@/utils/monaco-editor";
 import "@/utils/monaco-gcode";
 import "@/utils/monaco-menu";
 import "@/utils/monaco-STM32";
 import Path from "@/utils/path";
+import { useUiStore } from "@/store/ui";
 
 const mediumFileThreshold = 4194304;	// 4 MiB
 const bigFileThreshold = 33554432;		// 32 MiB
@@ -110,11 +113,15 @@ export default Vue.extend({
 		value: String
 	},
 	computed: {
-		gCodesDirectory(): string { return store.state.machine.model.directories.gCodes; },
-		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
-		menuDirectory(): string { return store.state.machine.model.directories.menu; },
-		darkTheme(): boolean { return store.state.settings.darkTheme; },
-		useMonacoEditor(): boolean { return !store.state.oskEnabled && !this.isMobile; },
+		...mapState(useMachineStore, {
+			gCodesDirectory: state => state.model.directories.gCodes,
+			macrosDirectory: state => state.model.directories.macros,
+			menuDirectory: state => state.model.directories.menu,
+		}),
+		...mapState(useSettingsStore, ["darkTheme"]),
+		...mapState(useUiStore, ["bottomMargin", "oskEnabled"]),
+
+		useMonacoEditor(): boolean { return !this.oskEnabled && !this.isMobile; },
 		language(): string {
 			if (Path.startsWith(this.filename, this.macrosDirectory) || /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)$/i.test(this.filename)) {
 				return "gcode";
@@ -141,9 +148,6 @@ export default Vue.extend({
 		},
 		isBigFile(): boolean {
 			return this.innerValue.length > bigFileThreshold;
-		},
-		bottomMargin(): number {
-			return store.state.bottomMargin;
 		}
 	},
 	data() {
@@ -190,8 +194,9 @@ export default Vue.extend({
 			const content = new Blob([this.innerValue]);
 			this.close(true);
 
+			const machineStore = useMachineStore();
 			try {
-				await store.dispatch("machine/upload", { filename: this.filename, content });
+				await machineStore.upload({ filename: this.filename, content });
 				this.$emit("editComplete", this.filename);
 			} catch (e) {
 				// TODO Optionally ask user to save file somewhere else
@@ -257,7 +262,7 @@ export default Vue.extend({
 							occurrencesHighlight: !this.isBigFile,
 							rulers: [255],
 							scrollBeyondLastLine: false,
-							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
+							theme: this.darkTheme ? "vs-dark" : "vs",
 							value: this.innerValue,
 							wordBasedSuggestions: false
 						});

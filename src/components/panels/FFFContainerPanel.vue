@@ -15,13 +15,12 @@
 </template>
 
 <script lang="ts">
+import { mapState } from "pinia";
 import Vue from "vue";
 
-import store from "@/store";
+import { useUiStore } from "@/store/ui";
 
 export default Vue.extend({
-	computed: {
-		hasTemperaturesToDisplay(): boolean { return store.getters["machine/hasTemperaturesToDisplay"]; }
-	}
+	computed: mapState(useUiStore, ["hasTemperaturesToDisplay"])
 });
 </script>

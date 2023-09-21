@@ -1,4 +1,4 @@
-import ObjectModel, { GCodeFileInfo, Plugin, PluginManifest } from "@duet3d/objectmodel";
+import { GCodeFileInfo, Plugin, PluginManifest } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 
 import { NotImplementedError, NetworkError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError, InvalidPasswordError } from "@/utils/errors";
@@ -168,7 +168,7 @@ abstract class BaseConnector {
 	 * @param noWait Whether the call may return as soon as the code has been enqueued for execution
 	 * @returns Code reply unless noWait is true
 	 */
-	abstract sendCode(code: string, noWait: boolean): Promise<string | void>;
+	abstract sendCode<B extends boolean>(code: string, noWait: B): Promise<B extends true ? void : string>;
 
 	/**
 	 * Upload a file

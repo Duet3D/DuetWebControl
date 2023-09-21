@@ -1,11 +1,11 @@
-import i18n from "../i18n";
+import i18n from "@/i18n";
 
 /**
  * Get the message from a thrown error
  * @param e Error item
  * @returns Error message
  */
-export function getErrorMessage(e: any) {
+export function getErrorMessage(e: any): string {
 	return e ? (e.reason ?? (e.message ?? e.toString())) : i18n.t("generic.noValue");
 }
 
