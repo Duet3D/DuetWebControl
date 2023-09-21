@@ -21,11 +21,10 @@ td {
 <template>
 	<div>
 		<v-data-table v-model="innerValue" v-bind="$props" @toggle-select-all="toggleAll" :items="innerFilelist"
-					  item-key="name" :headers="headers || defaultHeaders" show-select
-					  :loading="loading || innerLoading" :custom-sort="sort" :sort-by.sync="internalSortBy"
-					  :sort-desc.sync="internalSortDesc" must-sort disable-pagination hide-default-footer
-					  :mobile-breakpoint="0" class="base-file-list elevation-3"
-					  :class="{ 'empty-table-fix' : !innerFilelist.length, 'loading-cursor' : isLoading }">
+					  item-key="name" :headers="headers || defaultHeaders" show-select :loading="loading || innerLoading"
+					  :custom-sort="sort" v-model:sortBy="internalSortBy" v-model:sortDesc="internalSortDesc" must-sort
+					  disable-pagination hide-default-footer :mobile-breakpoint="0" class="base-file-list elevation-3"
+					  :class="{ 'empty-table-fix': !innerFilelist.length, 'loading-cursor': isLoading }">
 
 			<template #progress>
 				<slot name="progress">
@@ -43,9 +42,8 @@ td {
 
 			<template #item="props">
 				<tr :data-filename="(props.item.isDirectory ? '*' : '') + props.item.name" draggable="true" tabindex="0"
-					@keydown.space.prevent="props.select(!props.isSelected)"
-					@touchstart="onItemTouchStart(props, $event)" @touchend="onItemTouchEnd" @click="onItemClick(props)"
-					@keydown.enter.prevent="onItemClick(props)"
+					@keydown.space.prevent="props.select(!props.isSelected)" @touchstart="onItemTouchStart(props, $event)"
+					@touchend="onItemTouchEnd" @click="onItemClick(props)" @keydown.enter.prevent="onItemClick(props)"
 					@contextmenu.stop.prevent="onItemContextmenu(props, $event)"
 					@keydown.escape.prevent="contextMenu.shown = false" @dragstart="onItemDragStart(props.item, $event)"
 					@dragover="onItemDragOver(props.item, $event)" @drop.prevent="onItemDragDrop(props.item, $event)">
@@ -98,16 +96,17 @@ td {
 			<v-list>
 				<slot name="context-menu"></slot>
 
-				<v-list-item v-show="!noDownload && innerValue.length === 1 && filesSelected" @click="download">
+				<v-list-item v-show="!noDownload && innerValue.length === 1 && filesSelected"
+							 @click="download(innerValue[0])">
 					<v-icon class="mr-1">mdi-cloud-download</v-icon>
-					{{ $tc("list.baseFileList.download", innerValue.length) }}
+					{{ $t("list.baseFileList.download", innerValue.length) }}
 				</v-list-item>
 				<v-list-item v-show="!noEdit && innerValue.length === 1 && filesSelected" :disabled="!canEditFile"
 							 @click="edit(innerValue[0])">
 					<v-icon class="mr-1">mdi-file-document-edit</v-icon>
 					{{ $t("list.baseFileList.edit") }}
 				</v-list-item>
-				<v-list-item v-show="!noRename && innerValue.length === 1" @click="rename">
+				<v-list-item v-show="!noRename && innerValue.length === 1" @click="rename(innerValue[0])">
 					<v-icon class="mr-1">mdi-rename-box</v-icon>
 					{{ $t("list.baseFileList.rename") }}
 				</v-list-item>
@@ -135,8 +134,7 @@ import JSZip from "jszip";
 import saveAs from "file-saver";
 import { mapState } from "pinia";
 import Vue, { PropType } from "vue";
-import { DataItemProps, DataTableHeader } from "vuetify";
-import { VDataTable } from "vuetify/lib";
+import { VDataTable } from 'vuetify/labs/VDataTable'
 
 import i18n from "@/i18n";
 import { SortingTable, useCacheStore } from "@/store/cache";
@@ -148,6 +146,7 @@ import Path from "@/utils/path";
 import { LogType, log } from "@/utils/logging";
 import { makeNotification } from "@/utils/notifications";
 import { displayTime } from "@/utils/display";
+import { defineComponent } from "vue";
 
 /**
  * Maximum permitted size of files to edit (defaults to 32MiB)
@@ -171,7 +170,8 @@ export function isBaseFileListDataTransfer(data: any): data is BaseFileListDataT
 	return (data.type === "dwcFiles" && typeof data.directory === "string" && data.items instanceof Array);
 }
 
-export default VDataTable.extend({
+export default defineComponent({
+	extends: VDataTable,
 	props: {
 		headers: Array as PropType<Array<BaseFileListHeader>>,
 		sortTable: String as PropType<SortingTable>,
@@ -657,7 +657,7 @@ export default VDataTable.extend({
 			const notification = makeNotification(LogType.info, this.$t("notification.compress.title"), this.$t("notification.compress.message"), 0);
 			try {
 				const zip = new JSZip();
-				for(const file of downloadedFiles) {
+				for (const file of downloadedFiles) {
 					zip.file(Path.extractFileName(file.filename), file.content);
 				}
 

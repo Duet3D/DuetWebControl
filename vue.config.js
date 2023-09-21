@@ -1,9 +1,9 @@
-const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
 const fs = require("fs"), path = require("path");
 const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
 const EventHooksPlugin = require("event-hooks-webpack-plugin");
+const { VuetifyPlugin } = require('webpack-plugin-vuetify');
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
@@ -31,7 +31,6 @@ module.exports = {
 			hints: false
 		},
 		plugins: [
-			new AutoImportsPlugin(),
 			new EnvironmentPlugin({
 				"BUILD_DATETIME": (new Date()).toString()
 			}),
@@ -40,6 +39,7 @@ module.exports = {
 			new ProvidePlugin({
 				Buffer: ["buffer", "Buffer"],
 			}),
+			new VuetifyPlugin({ autoImport: true }),
 			...((process.env.NODE_ENV === "production") ? [
 				new CustomImportsPlugin(),
 				new EventHooksPlugin({

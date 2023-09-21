@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue, { PropType } from "vue";
+import { defineComponent, PropType } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
@@ -17,7 +17,7 @@ import { useUiStore } from "@/store/ui";
 import { LogType } from "@/utils/logging";
 import { makeNotification } from "@/utils/notifications";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		disabled: Boolean,
 		label: String,
@@ -73,7 +73,7 @@ export default Vue.extend({
 			const machineStore = useMachineStore();
 			if (this.type === "tool") {
 				if ((this.index >= 0) && (this.index < machineStore.model.tools.length) && (machineStore.model.tools[this.index] !== null)) {
-					const heater = machineStore.model.tools[this.index]!.heaters[this.toolHeaterIndex];
+					const heater = machineStore.model.tools[this.index]!.heaters[this.toolHeaterIndex!];
 					return (heater >= 0) && (heater < machineStore.model.heat.heaters.length) && (machineStore.model.heat.heaters[heater] !== null);
 				}
 			} else if (this.type === "bed") {
@@ -93,8 +93,8 @@ export default Vue.extend({
 				case "tool":
 					if (this.index >= 0 && this.index < machineStore.model.tools.length && machineStore.model.tools[this.index] !== null) {
 						const values = machineStore.model.tools[this.index]![activeOrStandby];
-						if (this.toolHeaterIndex >= 0 && this.toolHeaterIndex < values.length) {
-							return values[this.toolHeaterIndex];
+						if (this.toolHeaterIndex! >= 0 && this.toolHeaterIndex! < values.length) {
+							return values[this.toolHeaterIndex!];
 						}
 					}
 					break;

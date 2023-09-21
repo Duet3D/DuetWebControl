@@ -18,10 +18,11 @@
 
 		<v-card-text class="pt-0">
 			<v-btn-toggle :value="machineStore.model.state.atxPower" @change="toggleAtxPower" mandatory>
-				<v-btn text :value="true" :disabled="uiStore.uiFrozen" :loading="sendingCode" @click="toggleAtxPower(true)">
+				<v-btn variant="text" :value="true" :disabled="uiStore.uiFrozen" :loading="sendingCode"
+					   @click="toggleAtxPower(true)">
 					{{ $t("panel.atx.on") }}
 				</v-btn>
-				<v-btn text :value="false" :disabled="uiStore.uiFrozen" :loading="sendingCode"
+				<v-btn variant="text" :value="false" :disabled="uiStore.uiFrozen" :loading="sendingCode"
 					   @click="toggleAtxPower(false)">
 					{{ $t("panel.atx.off") }}
 				</v-btn>

@@ -40,7 +40,7 @@ import Chart, { ChartDataSets, MajorTickOptions, NestedTickOptions } from "chart
 import dateFnsLocale from "date-fns/locale/en-US";
 import { mapState } from "pinia";
 import { AnalogSensor } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/store/machine";
@@ -113,7 +113,7 @@ function makeDataset(index: number, extra: boolean, label: string, numSamples: n
 		borderDash: extra ? [10, 5] : undefined,
 		borderWidth: 2,
 		data: (new Array<number>(numSamples)).fill(NaN),
-		locale: i18n.locale,
+		locale: i18n.global.locale.value,
 		pointRadius: 0,
 		pointHitRadius: 0,
 		rawLabel: null,
@@ -144,21 +144,21 @@ function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 	});
 
 	// Check if the dataset has to be created first
-	if (!dataset || dataset.locale !== i18n.locale || dataset.rawLabel !== sensor.name) {
+	if (!dataset || dataset.locale !== i18n.global.locale.value || dataset.rawLabel !== sensor.name) {
 		let name;
 		if (sensor.name) {
 			const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
 			name = matches ? matches[1] : sensor.name;
 		} else if (extra) {
-			name = i18n.t("chart.temperature.sensor", [index]);
+			name = i18n.global.t("chart.temperature.sensor", [index]);
 		} else {
-			name = i18n.t("chart.temperature.heater", [index]);
+			name = i18n.global.t("chart.temperature.heater", [index]);
 		}
 
 		if (dataset) {
 			dataset.rawLabel = sensor.name;
 			dataset.label = name;
-			dataset.locale = i18n.locale;
+			dataset.locale = i18n.global.locale.value;
 		} else {
 			dataset = makeDataset(index, extra, name, tempSamples.times.length);
 			tempSamples.temps.push(dataset);
@@ -205,7 +205,7 @@ function recordData() {
 
 let storeSubscribed = false, instances: Array<{ update: () => void }> = []
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, ["isConnected", "maxHeaterTemperature"]),
 		...mapState(useSettingsStore, ["darkTheme"]),

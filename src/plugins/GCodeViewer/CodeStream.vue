@@ -13,11 +13,11 @@
 <script lang="ts">
 import * as monaco from "monaco-editor";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
    props: {
       shown: {
          type: Boolean,

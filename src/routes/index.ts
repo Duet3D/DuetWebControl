@@ -1,6 +1,6 @@
 import { MachineMode } from "@duet3d/objectmodel";
-import Vue, { Component } from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import { Component, nextTick, reactive } from "vue";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 import Status from "./Control/Status.vue";
 import Dashboard from "./Control/Dashboard.vue";
@@ -19,10 +19,10 @@ import Machine from "./Settings/Machine.vue";
 //import Plugins from "./Settings/Plugins.vue";
 
 import Page404 from "./Page404.vue";
+
+import App from "@/main";
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
-
-Vue.use(VueRouter);
 
 /**
  * Menu item
@@ -87,7 +87,7 @@ export interface MenuCategory {
 /**
  * Actual menu structure (name vs. category descriptor)
  */
-export const Menu = Vue.observable<Record<string, MenuCategory>>({
+export const Menu = reactive<Record<string, MenuCategory>>({
 	Control: {
 		icon: "mdi-tune",
 		caption: "menu.control.caption",
@@ -95,7 +95,7 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 			{
 				icon: "mdi-list-status",
 				caption: "menu.control.status",
-				condition: () => Vue.prototype.$vuetify && Vue.prototype.$vuetify.breakpoint.smAndDown,
+				condition: () => true, // FIXME App.config.globalProperties.$vuetify.display.smAndDown,
 				path: "/Status",
 				component: Status
 			},
@@ -202,7 +202,7 @@ export const Menu = Vue.observable<Record<string, MenuCategory>>({
 /**
  * Registered routes
  */
-export const Routes: Array<RouteConfig> = [];
+export const Routes: Array<RouteRecordRaw> = [];
 
 /**
  * Register a new menu category
@@ -226,8 +226,8 @@ export async function registerCategory(name: string, icon: string, caption: stri
 			});
 		}
 
-		Vue.set(Menu, name, category);
-		await Vue.nextTick();			// wait for the DOM to be updated so that more routes can be added safely
+		Menu[name] = category;
+		await nextTick();			// wait for the DOM to be updated so that more routes can be added safely
 	}
 }
 
@@ -299,12 +299,12 @@ interface TabItem {
 /**
  * Tab items in the general settings
  */
-export const GeneralSettingTabs = Vue.observable<Array<TabItem>>([]);
+export const GeneralSettingTabs = reactive<Array<TabItem>>([]);
 
 /**
  * Tab items in the machine settings
  */
-export const MachineSettingTabs = Vue.observable<Array<TabItem>>([]);
+export const MachineSettingTabs = reactive<Array<TabItem>>([]);
 
 /**
  * Register a new settings page and a Vue component
@@ -329,7 +329,7 @@ export function registerSettingTab(general: boolean, name: string, component: Co
 		});
 	}
 
-	Vue.component(name, component as any);
+	App.component(name, component);
 	if (general) {
 		GeneralSettingTabs.push(tab);
 	} else {
@@ -340,11 +340,18 @@ export function registerSettingTab(general: boolean, name: string, component: Co
 /**
  * Router instance
  */
-const router = new VueRouter({
-	mode: "history",
-	base: process.env.BASE_URL,
+const router = createRouter({
+	history: createWebHistory(process.env.BASE_URL),
 	routes: Routes
 });
+
+router.beforeEach((to, from, next) => {
+	if (Routes.some(route => route.path === to.path && !(route as MenuItem).condition)) {
+		next("/");
+	} else {
+		next();
+	}
+})
 
 for (const category in Menu) {
 	for (const page of Menu[category].pages) {
@@ -361,9 +368,11 @@ for (const category in Menu) {
 	}
 }
 
+// FIXME
 router.addRoute(
-    {
-        path: "*",
+	{
+		path: '/:pathMatch(.*)*',
+		name: 'not-found',
         component: Page404
     }
 );

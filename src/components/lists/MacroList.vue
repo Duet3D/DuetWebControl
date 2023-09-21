@@ -46,7 +46,7 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { FileListItem } from "@/store/connector/BaseConnector";
 import { useMachineStore } from "@/store/machine";
@@ -55,7 +55,6 @@ import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { LogType } from "@/utils/logging";
 import Path, { escapeFilename } from "@/utils/path";
-import pathObj from "@/utils/path";
 
 interface MacroItemProperties {
 	displayName: string;
@@ -64,7 +63,7 @@ interface MacroItemProperties {
 
 type MacroItem = FileListItem & MacroItemProperties;
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			isConnected: state => state.isConnected,

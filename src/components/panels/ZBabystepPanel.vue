@@ -28,12 +28,12 @@
 <script lang="ts">
 import { AxisLetter } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useSettingsStore } from "@/store/settings";
 import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			babystepping: state => state.model.move.axes.find(axis => axis.letter === AxisLetter.Z)?.babystep ?? 0

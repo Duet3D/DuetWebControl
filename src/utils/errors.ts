@@ -6,14 +6,14 @@ import i18n from "@/i18n";
  * @returns Error message
  */
 export function getErrorMessage(e: any): string {
-	return e ? (e.reason ?? (e.message ?? e.toString())) : i18n.t("generic.noValue");
+	return e ? (e.reason ?? (e.message ?? e.toString())) : i18n.global.t("generic.noValue");
 }
 
 // Generic Errors
 
 export class NotImplementedError extends Error {
 	constructor(field: string) {
-		super(i18n.t('error.notImplemented', [field]));
+		super(i18n.global.t('error.notImplemented', [field]));
 	}
 }
 
@@ -21,25 +21,25 @@ export class NotImplementedError extends Error {
 
 export class NetworkError extends Error {
 	constructor(msg?: string | null) {
-		super(msg || i18n.t('error.network'));
+		super(msg || i18n.global.t('error.network'));
 	}
 }
 
 export class DisconnectedError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.disconnected'));
+		super(i18n.global.t('error.disconnected'));
 	}
 }
 
 export class TimeoutError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.timeout'));
+		super(i18n.global.t('error.timeout'));
 	}
 }
 
 export class OperationCancelledError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.cancelled'));
+		super(i18n.global.t('error.cancelled'));
 	}
 }
 
@@ -47,7 +47,7 @@ export class OperationFailedError extends NetworkError {
 	reason: string | null = null;
 
 	constructor(reason: string) {
-		super(i18n.t('error.operationFailed', [reason]));
+		super(i18n.global.t('error.operationFailed', [reason]));
 		this.reason = reason;
 	}
 }
@@ -56,19 +56,19 @@ export class OperationFailedError extends NetworkError {
 
 export class DriveUnmountedError extends NetworkError {
 	constructor() {
-		super(i18n.t('error.driveUnmounted', []));
+		super(i18n.global.t('error.driveUnmounted', []));
 	}
 }
 
 export class FileNotFoundError extends NetworkError {
 	constructor(file?: string | null) {
-		super(i18n.t('error.fileNotFound', [file || 'n/a']));
+		super(i18n.global.t('error.fileNotFound', [file || 'n/a']));
 	}
 }
 
 export class DirectoryNotFoundError extends NetworkError {
 	constructor(directory?: string | null) {
-		super(i18n.t('error.directoryNotFound', [directory || 'n/a']));
+		super(i18n.global.t('error.directoryNotFound', [directory || 'n/a']));
 	}
 }
 
@@ -78,19 +78,19 @@ export class LoginError extends Error {}
 
 export class InvalidPasswordError extends LoginError {
 	constructor() {
-		super(i18n.t('error.invalidPassword'));
+		super(i18n.global.t('error.invalidPassword'));
 	}
 }
 
 export class NoFreeSessionError extends LoginError {
 	constructor() {
-		super(i18n.t('error.noFreeSession'));
+		super(i18n.global.t('error.noFreeSession'));
 	}
 }
 
 export class BadVersionError extends LoginError {
 	constructor() {
-		super(i18n.t('error.badVersion'));
+		super(i18n.global.t('error.badVersion'));
 	}
 }
 
@@ -100,13 +100,13 @@ export class CodeError extends Error {}
 
 export class CodeBufferError extends CodeError {
 	constructor() {
-		super(i18n.t('error.codeBuffer'));
+		super(i18n.global.t('error.codeBuffer'));
 	}
 }
 
 export class CodeResponseError extends CodeError {
 	constructor() {
-		super(i18n.t('error.codeResponse'));
+		super(i18n.global.t('error.codeResponse'));
 	}
 }
 
@@ -116,6 +116,6 @@ export class HeightmapError extends Error {}
 
 export class InvalidHeightmapError extends HeightmapError {
 	constructor() {
-		super(i18n.t('error.invalidHeightmap'));
+		super(i18n.global.t('error.invalidHeightmap'));
 	}
 }

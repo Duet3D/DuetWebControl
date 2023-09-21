@@ -21,12 +21,12 @@
 
 <script lang="ts">
 import { mapActions, mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useUiStore, ["uiFrozen"]),
 		speedFactor: {

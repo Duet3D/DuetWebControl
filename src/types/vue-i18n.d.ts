@@ -1,4 +1,4 @@
-import Vue from 'vue';
+import Vue from "vue";
 import VueI18n, { Path, Values, Locale } from "vue-i18n/types";
 
 /**
@@ -12,8 +12,8 @@ declare module "vue-i18n/types" {
 	}
 }
 
-declare module "vue/types/vue" {
-	interface Vue {
+declare module "vue" {
+	interface ComponentCustomProperties {
 		$t: typeof VueI18n.prototype.t;
 	}
 

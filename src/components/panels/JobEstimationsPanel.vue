@@ -49,12 +49,12 @@
 
 <script lang="ts">
 import { MachineStatus, TimesLeft } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { isPrinting } from "@/utils/enums";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		isPrinting(): boolean { return isPrinting(useMachineStore().model.state.status); },
 		timesLeft(): TimesLeft { return useMachineStore().model.job.timesLeft; },

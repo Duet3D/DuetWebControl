@@ -1,5 +1,5 @@
 <template>
-	<v-row :dense="$vuetify.breakpoint.mobile">
+	<v-row :dense="$vuetify.display.mobile">
 		<v-col cols="12" sm="6" md="4" lg="4" xl="4">
 			<status-panel />
 		</v-col>
@@ -8,7 +8,7 @@
 			<tools-panel />
 		</v-col>
 
-		<v-col v-if="$vuetify.breakpoint.mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }" md="3" lg="3" xl="4">
+		<v-col v-if="$vuetify.display.mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }" md="3" lg="3" xl="4">
 			<temperature-chart />
 		</v-col>
 	</v-row>
@@ -16,11 +16,11 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: mapState(useUiStore, ["hasTemperaturesToDisplay"])
 });
 </script>

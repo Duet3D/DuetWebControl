@@ -76,7 +76,7 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { UploadType } from "@/components/buttons/UploadBtn.vue";
 import { isPrinting } from "@/utils/enums";
@@ -86,7 +86,7 @@ import { BaseFileListItem } from "./BaseFileList.vue";
 import { useUiStore } from "@/store/ui";
 import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			boards: state => state.model.boards,

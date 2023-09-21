@@ -24,7 +24,7 @@ th:last-child {
 <template>
 	<div class="component">
 		<v-data-table :headers="headers" :items="events" item-key="date" disable-pagination hide-default-footer
-					  :mobile-breakpoint="0" :custom-sort="sort" :sort-by.sync="sortBy" :sort-desc.sync="sortDesc"
+					  :mobile-breakpoint="0" :custom-sort="sort" v-model:sortBy="sortBy" v-model:sortDesc="sortDesc"
 					  must-sort class="elevation-3" :class="{ 'empty-table-fix' : !events.length }">
 
 			<template #no-data>
@@ -73,7 +73,7 @@ th:last-child {
 
 <script lang="ts">
 import saveAs from "file-saver";
-import Vue from "vue";
+import { defineComponent } from "vue";
 import { DataTableHeader } from "vuetify";
 
 import i18n from "@/i18n";
@@ -89,7 +89,7 @@ interface Message {
 	message: string | null;
 }
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		headers(): Array<DataTableHeader> {
 			return [

@@ -41,10 +41,10 @@
 
 				<v-card-actions>
 					<v-spacer></v-spacer>
-					<v-btn color="blue darken-1" text @click="hide">
+					<v-btn color="blue darken-1" variant="text" @click="hide">
 						{{ $t("generic.cancel") }}
 					</v-btn>
-					<v-btn color="blue darken-1" text type="submit">
+					<v-btn color="blue darken-1" variant="text" type="submit">
 						{{ $t("generic.ok") }}
 					</v-btn>
 				</v-card-actions>
@@ -54,13 +54,13 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import { KinematicsName, ProbeGrid } from "@duet3d/objectmodel";
+import { KinematicsName } from "@duet3d/objectmodel";
+import { mapState } from "pinia";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
-import { mapState } from "pinia";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: mapState(useMachineStore, {
 		probeGrid: state => state.model.move.compensation.probeGrid,
 		isDelta: state => [KinematicsName.delta, KinematicsName.rotaryDelta].includes(state.model.move.kinematics.name)

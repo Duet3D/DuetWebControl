@@ -1,5 +1,5 @@
 <template>
-	<v-row :dense="$vuetify.breakpoint.mobile">
+	<v-row :dense="$vuetify.display.mobile">
 		<v-col>
 			<webcam-panel />
 		</v-col>
@@ -7,7 +7,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-export default Vue.extend({});
+export default defineComponent({});
 </script>

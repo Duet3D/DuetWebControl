@@ -361,7 +361,7 @@ function getHeaterName(heater: StoreState<Heater> | null, heaterIndex: number) {
             return sensor.name;
         }
     }
-    return i18n.t("panel.tools.heater", [heaterIndex]);
+    return i18n.global.t("panel.tools.heater", [heaterIndex]);
 }
 
 function getHeaterValue(heater: StoreState<Heater> | null) {
@@ -371,7 +371,7 @@ function getHeaterValue(heater: StoreState<Heater> | null) {
             return displaySensorValue(sensor);
         }
     }
-    return i18n.t("generic.noValue");
+    return i18n.global.t("generic.noValue");
 }
 
 async function toolHeaterClick(tool: StoreState<Tool>, heater: StoreState<Heater>, heaterIndex: number) {

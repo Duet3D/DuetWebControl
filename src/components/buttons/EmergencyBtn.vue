@@ -1,6 +1,6 @@
 <template>
 	<code-btn v-bind="$props" :code="'M112\nM999'" :log="false" :color="color || 'error'"
-			  :disabled="$props.disabled || isDisabled" :title="$t('button.emergencyStop.title')">
+			  :disabled="disabled || isDisabled" :title="$t('button.emergencyStop.title')">
 		<v-icon class="mr-1">mdi-flash</v-icon>
 		<span class="hidden-xs-only">
 			{{ $t('button.emergencyStop.caption') }}
@@ -9,31 +9,32 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
+import { mapState } from "pinia";
 
-export default Vue.extend({
+import { useUiStore } from "@/store/ui";
+
+export default defineComponent({
 	props: {
-		color: String
+		color: String,
+		disabled: Boolean
 	},
+	computed: mapState(useUiStore, ["dialogOpen"]),
 	data() {
 		return {
 			isDisabled: false
 		}
 	},
-	mounted() {
-		this.$root.$on("dialog-closing", this.onDialogClosing);
-	},
-	beforeDestroy() {
-		this.$root.$off("dialog-closing", this.onDialogClosing);
-	},
-	methods: {
-		onDialogClosing() {
-			this.isDisabled = true;
+	watch: {
+		dialogOpen(to) {
+			if (!to) {
+				this.isDisabled = true;
 
-			const that = this;
-			setTimeout(function () {
-				that.isDisabled = false;
-			}, 500);
+				const that = this;
+				setTimeout(function () {
+					that.isDisabled = false;
+				}, 500);
+			}
 		}
 	}
 });

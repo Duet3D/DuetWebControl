@@ -18,11 +18,11 @@
 				</v-card-text>
 
 				<v-card-actions>
-					<v-spacer></v-spacer>
-					<v-btn v-show="!passwordRequired" color="blue darken-1" text @click="close">
+					<v-spacer />
+					<v-btn v-show="!passwordRequired" color="blue darken-1" variant="text" @click="close">
 						{{ $t("generic.cancel") }}
 					</v-btn>
-					<v-btn color="blue darken-1" text type="submit">
+					<v-btn color="blue darken-1" variant="text" type="submit">
 						{{ $t("dialog.connect.connect") }}
 					</v-btn>
 				</v-card-actions>
@@ -33,13 +33,13 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, ["passwordRequired"]),
 		...mapState(useSettingsStore, ["lastHostname"]),

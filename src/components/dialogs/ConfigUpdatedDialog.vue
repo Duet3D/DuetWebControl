@@ -14,20 +14,26 @@
 
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="blue darken-1" text @click="cancel">{{ $t("generic.cancel") }}</v-btn>
-				<v-btn color="blue darken-1" text @click="reset">{{ $t("dialog.configUpdated.reset") }}</v-btn>
-				<v-btn color="blue darken-1" text @click="runConfig">{{ $t("dialog.configUpdated.runConfig") }}</v-btn>
+				<v-btn color="blue darken-1" variant="text" @click="cancel">
+					{{ $t("generic.cancel") }}
+				</v-btn>
+				<v-btn color="blue darken-1" variant="text" @click="reset">
+					{{ $t("dialog.configUpdated.reset") }}
+				</v-btn>
+				<v-btn color="blue darken-1" variant="text" @click="runConfig">
+					{{ $t("dialog.configUpdated.runConfig") }}
+				</v-btn>
 			</v-card-actions>
 		</v-card>
 	</v-dialog>
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

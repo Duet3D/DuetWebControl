@@ -8,12 +8,12 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import Path from "@/utils/path";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

@@ -77,12 +77,12 @@ if (!pluginManifest.dwcVersion) {
 if (pluginDir.startsWith(dwcPluginDir)) {
 	// Check whether the plugin IDs match
 	if (pluginManifest.id !== param) {
-		error("Plugin id must match the parameter");
+		error("Plugin id must match the paramter");
 		return 1;
 	}
 } else {
-	// Make sure there is a dwc-src or dwc directory
-	const srcDirectory = fs.existsSync(pluginDir + "/dwc-src") ? pluginDir + "/dwc-src" : pluginDir + "/src";
+	// Make sure there is a src directory
+	const srcDirectory = pluginDir + "/src";
 	try {
 		fs.accessSync(srcDirectory + "/", fs.constants.R_OK);
 	} catch {
@@ -98,36 +98,79 @@ if (pluginDir.startsWith(dwcPluginDir)) {
 		return 1;
 	}
 
-	// Copy manifest and src files into DWC
+	// Copy src files into DWC
 	try {
-		fs.cpSync(pluginDir + "/plugin.json", `${dwcPluginDir}/${pluginManifest.id}/plugin.json`);
 		fs.cpSync(srcDirectory, dwcPluginDir + "/" + pluginManifest.id, { recursive: true });
 	} catch {
 		error("Failed to copy src files");
 		return 1;
 	}
-}
 
-// Webpack requires an index.js for proper loading, create it if necessary
-let entryPoint = null;
-if (fs.existsSync(`${dwcPluginDir}/${pluginManifest.id}/dwc-src/index.js`)) {
-	entryPoint = "dwc-src/index.js";
-} else if (fs.existsSync(`${dwcPluginDir}/${pluginManifest.id}/dwc-src/index.ts`)) {
-	entryPoint = "dwc-src/index.ts";
-} else if (fs.existsSync(`${dwcPluginDir}/${pluginManifest.id}/src/index.js`)) {
-	entryPoint = "src/index.js";
-} else if (fs.existsSync(`${dwcPluginDir}/${pluginManifest.id}/src/index.ts`)) {
-	entryPoint = "src/index.ts";
-} else if (fs.existsSync(`${dwcPluginDir}/${pluginManifest.id}/index.ts`)) {
-	fs.renameSync(`${dwcPluginDir}/${pluginManifest.id}/index.ts`, `${dwcPluginDir}/${pluginManifest.id}/index-ts.ts`)
-	entryPoint = "index-ts.ts";
-}
+	// Compile index.ts if it is present. Webpack requires an index.js, else the plugin cannot be loaded
+	if (fs.existsSync(dwcPluginDir + "/" + pluginManifest.id + "/index.ts")) {
+		try {
+			// Unfortunately it is not possible to compile single files with a project config yet, so we must build everything
+			fs.writeFileSync("plugin-tsconfig.json", '{"extends": "./tsconfig.json", "compilerOptions": { "outDir": "tsOut"} }');
+		} catch (e) {
+			error("Failed to create plugin-specific tsconfig");
+			return 1;
+		}
 
-if (entryPoint !== null) {
-	const fd = fs.openSync(`${dwcPluginDir}/${pluginManifest.id}/index.js`, "w");
-	fs.writeFileSync(fd, `import "./${entryPoint}";\n`);
-	fs.closeSync(fd);
-	entryPoint = `${dwcPluginDir}/${pluginManifest.id}/${entryPoint}`;
+		try {
+			execSync("npx tsc --project plugin-tsconfig.json");
+		} catch (e) {
+			error(`Failed to compile index.ts (error code ${e.status}):\n${e.stdout.toString()}`);
+			return 1;
+		}
+
+		try {
+			fs.renameSync(`tsOut/src/plugins/${pluginManifest.id}/index.js`, `${dwcPluginDir}/${pluginManifest.id}/index.js`);
+			fs.rmSync("tsOut", { recursive: true, force: true });
+			fs.rmSync("plugin-tsconfig.json");
+		} catch (e) {
+			error("Failed to move compiled index.js into place");
+			return 1;
+		}
+	}
+
+	// Backup and adjust src/plugins/index.ts
+	try {
+		fs.copyFileSync(dwcPluginDir + "/index.ts", dwcPluginDir + "/index.ts.bak", fs.constants.COPYFILE_EXCL);
+	} catch {
+		// may happen if the .bak file is still present
+	}
+
+	try {
+		const indexFile = fs.readFileSync(dwcPluginDir + "/index.ts.bak", { encoding: "utf8" }).split("\n");
+		let adjustedIndexFile = "", markerFound = false;
+		for (const line of indexFile) {
+			if (line.indexOf("#DWC_PLUGIN#") !== -1) {
+				adjustedIndexFile += "	{\n";
+				adjustedIndexFile += `		id: ${JSON.stringify(pluginManifest.id)},\n`
+				adjustedIndexFile += `		name: ${JSON.stringify(pluginManifest.name)},\n`,
+				adjustedIndexFile += `		author: ${JSON.stringify(pluginManifest.author)},\n`
+				adjustedIndexFile += `		version: ${JSON.stringify(pluginManifest.version)},\n`,
+				adjustedIndexFile += "		loadDwcResources: () => import(\n";
+				adjustedIndexFile += `			/* webpackChunkName: ${JSON.stringify(pluginManifest.id)} */\n`;
+				adjustedIndexFile += `			"./${pluginManifest.id}/index.js"\n`;
+				adjustedIndexFile += "		)\n";
+				adjustedIndexFile += "	},\n";
+				markerFound = true;
+			} else {
+				adjustedIndexFile += line + "\n";
+			}
+		}
+
+		if (markerFound) {
+			fs.writeFileSync(dwcPluginDir + "/index.ts", adjustedIndexFile);
+		} else {
+			error("Error: Failed to find marker in src/plugins/index.ts");
+			return 1;
+		}
+	} catch (e) {
+		error("Failed to adjust src/plugins/index.ts");
+		return 1;
+	}
 }
 
 // Build DWC without ZIP bundles
@@ -223,21 +266,18 @@ service
 			// Generate ZIP
 			archive.finalize();
 
-			// Clean up again
 			if (!pluginDir.startsWith(dwcPluginDir)) {
 				// Remove plugin source files again
 				fs.rmSync(dwcPluginDir + "/" + pluginManifest.id, { recursive: true, force: true });
-			} else if (entryPoint !== null) {
-				// Remove artificial index.js loader file again
-				fs.unlinkSync(`${dwcPluginDir}/${pluginManifest.id}/index.js`);
-				if (entryPoint.endsWith("-ts.ts")) {
-					fs.renameSync(`${dwcPluginDir}/${pluginManifest.id}/index-ts.ts`, `${dwcPluginDir}/${pluginManifest.id}/index.ts`);
-				}
+
+				// Restore src/plugins/index.ts
+				fs.copyFileSync(dwcPluginDir + "/index.ts.bak", dwcPluginDir + "/index.ts");
+				fs.rmSync(dwcPluginDir + "/index.ts.bak");
 			}
 		}
 	})
 	.catch(err => {
 		error(err);
 		process.exit(1);
-	});
+	})
 

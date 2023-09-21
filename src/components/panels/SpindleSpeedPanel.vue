@@ -110,12 +110,12 @@ td {
 <script lang="ts">
 import { Spindle, SpindleState } from "@duet3d/objectmodel";
 import { mapActions, mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			spindles: state => state.model.spindles
@@ -163,10 +163,10 @@ export default Vue.extend({
 				const spindle = this.spindles[i];
 				switch (spindle?.state) {
 					case SpindleState.forward:
-						Vue.set(this.spindleDirections, i, 0);
+						this.spindleDirections[i] = 0;
 						break;
 					case SpindleState.reverse:
-						Vue.set(this.spindleDirections, i, 1);
+						this.spindleDirections[i] = 1;
 						break;
 				}
 			}

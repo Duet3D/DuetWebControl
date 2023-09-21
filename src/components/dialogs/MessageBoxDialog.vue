@@ -38,8 +38,8 @@
 						<v-row no-gutters>
 							<v-col v-for="index in numMoveSteps" :key="index"
 								   :class="getMoveCellClass(numMoveSteps - index)">
-								<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)"
-										  :disabled="!canMove(axis)" no-wait block tile class="move-btn">
+								<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" :disabled="!canMove(axis)"
+										  no-wait block tile class="move-btn">
 									{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
 									<v-icon>mdi-chevron-right</v-icon>
 								</code-btn>
@@ -61,18 +61,20 @@
 			<v-card-actions v-if="hasButtons" class="justify-center">
 				<template v-if="isMultipleChoice">
 					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice" color="blue darken-1"
-						   :text="messageBox.default !== index" :elevation="1" @click="accept(index)">
+						   :variant="(messageBox.default !== index) ? 'text' : undefined" :elevation="1"
+						   @click="accept(index)">
 						{{ choice }}
 					</v-btn>
-					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text :elevation="1" @click="cancel">
+					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" variant="text" :elevation="1"
+						   @click="cancel">
 						{{ $t("generic.cancel") }}
 					</v-btn>
 				</template>
 				<template v-else>
-					<v-btn color="blue darken-1" text @click="ok" :disabled="!canConfirm">
+					<v-btn color="blue darken-1" variant="text" @click="ok" :disabled="!canConfirm">
 						{{ $t(isPersistent ? "generic.ok" : "generic.close") }}
 					</v-btn>
-					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text @click="cancel">
+					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" variant="text" @click="cancel">
 						{{ $t("generic.cancel") }}
 					</v-btn>
 				</template>
@@ -84,14 +86,14 @@
 <script lang="ts">
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 import { isNumber } from "@/utils/numbers";
 import { display, displayZ } from "@/utils/display";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			currentMessageBox: state => state.model.state.messageBox,

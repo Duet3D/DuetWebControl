@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-row :dense="$vuetify.breakpoint.mobile">
+			<v-row :dense="$vuetify.display.mobile">
 				<template v-if="isRestConnector">
 					<v-col cols="6">
 						<v-text-field v-model.number="pingInterval" type="number" step="1" min="0"
@@ -49,14 +49,14 @@
 
 <script lang="ts">
 import { mapWritableState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { useMachineStore } from "@/store/machine";
-import { useSettingsStore } from "@/store/settings";
 import RestConnector from "@/store/connector/RestConnector";
 import PollConnector from "@/store/connector/PollConnector";
+import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapWritableState(useSettingsStore, ["ignoreFileTimestamps", "pingInterval", "updateDelay", "ajaxRetries", "updateInterval", "fileTransferRetryThreshold", "crcUploads"]),
 		isRestConnector(): boolean { return useMachineStore().connector instanceof RestConnector; },

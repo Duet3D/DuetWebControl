@@ -49,30 +49,31 @@
 
 				<v-spacer />
 
-				<v-btn v-if="language === 'gcode'" class="hidden-xs-only" dark text
+				<v-btn v-if="language === 'gcode'" class="hidden-xs-only" dark variant="text"
 					   href="https://docs.duet3d.com/en/User_manual/Reference/Gcodes" target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon>
 					{{ $t("dialog.fileEdit.gcodeReference") }}
 				</v-btn>
-				<v-btn v-if="language === 'gcode' && !isMediumFile" class="hidden-xs-only" dark text @click="indentComments">
+				<v-btn v-if="language === 'gcode' && !isMediumFile" class="hidden-xs-only" dark variant="text"
+					   @click="indentComments">
 					<v-icon class="mr-1">mdi-format-indent-increase</v-icon>
 					{{ $t("dialog.fileEdit.indentComments") }}
 				</v-btn>
-				<v-btn v-if="isMenu" class="hidden-xs-only" dark text
+				<v-btn v-if="isMenu" class="hidden-xs-only" dark variant="text"
 					   href="https://docs.duet3d.com/en/User_manual/Connecting_hardware/Display_12864_menu#menu-files"
 					   target="_blank">
 					<v-icon class="mr-1">mdi-help</v-icon>
 					{{ $t("dialog.fileEdit.menuReference") }}
 				</v-btn>
-				<v-btn dark text @click="save">
+				<v-btn dark variant="text" @click="save">
 					<v-icon class="mr-1">mdi-floppy</v-icon>
 					{{ $t("dialog.fileEdit.save") }}
 				</v-btn>
 			</v-app-bar>
 
 			<div v-if="useMonacoEditor" ref="monacoEditor" class="editor-monaco"></div>
-			<v-textarea v-else ref="textarea" hide-details solo :rows="null" class="editor-textarea"
-						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
+			<v-textarea v-else ref="textarea" hide-details solo class="editor-textarea" autocomplete="off"
+						autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
 						@input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
 						@keydown.tab.exact.prevent="onTextareaTab" @keydown.esc.prevent.stop="close(false)" />
 
@@ -85,7 +86,7 @@
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import "monaco-editor/esm/vs/language/json/monaco.contribution";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
@@ -100,7 +101,7 @@ import { useUiStore } from "@/store/ui";
 const mediumFileThreshold = 4194304;	// 4 MiB
 const bigFileThreshold = 33554432;		// 32 MiB
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,
@@ -165,7 +166,6 @@ export default Vue.extend({
 
 			this.$emit("input", "");
 			this.$emit("update:shown", false);
-			this.$root.$emit("dialog-closing")
 		},
 		indentComments() {
 			if (this.monacoEditor !== null) {
@@ -247,6 +247,7 @@ export default Vue.extend({
 	watch: {
 		shown(to) {
 			// Update textarea
+			useUiStore().dialogOpen = to;
 			this.innerValue = this.value || "";
 			this.$nextTick(() => this.valueChanged = false);
 

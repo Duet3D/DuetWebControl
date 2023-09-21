@@ -18,7 +18,7 @@
 
 				<div v-else-if="isUpdating && boardsBeingUpdated.length > 0" class="d-flex flex-column mt-3">
 					<span class="mb-1">
-						{{ $tc("dialog.connection.boardUpdateMessage", boardsBeingUpdated.length) }}
+						{{ $t("dialog.connection.boardUpdateMessage", boardsBeingUpdated.length) }}
 					</span>
 					<span v-for="canAddress in boardsBeingUpdated.filter(item => item > 0)" :key="canAddress" class="ms-3">
 						<v-icon small class="mr-1" v-text="getBoardIcon(canAddress)" />
@@ -35,14 +35,13 @@
 </template>
 
 <script lang="ts">
-import { MachineStatus, State } from "@duet3d/objectmodel";
+import { MachineStatus } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
-import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			boardBeingUpdated: state => state.boardBeingUpdated,

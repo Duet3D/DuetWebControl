@@ -2,7 +2,7 @@
 	<v-dialog v-model="shown" persistent width="360" @keydown.escape="hide">
 		<v-card>
 			<v-card-title class="headline">
-				{{ $t(tool ? (tool.filament ? "dialog.filament.titleChange" : "dialog.filament.titleLoad") : "generic.noValue") }}
+				{{ $t(tool ? (hasFilamentLoaded ? "dialog.filament.titleChange" : "dialog.filament.titleLoad") : "generic.noValue") }}
 			</v-card-title>
 
 			<v-card-text>
@@ -18,7 +18,7 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="blue darken-1" text @click="hide">
+				<v-btn color="blue darken-1" variant="text" @click="hide">
 					{{ $t("generic.cancel") }}
 				</v-btn>
 				<v-spacer />
@@ -28,20 +28,26 @@
 </template>
 
 <script lang="ts">
-import { mapState } from "pinia";
-import Vue from "vue";
+import { Tool } from "@duet3d/objectmodel";
+import { PropType, defineComponent } from "vue";
 
 import { DisconnectedError, getErrorMessage } from "@/utils/errors"
 import { LogType, log } from "@/utils/logging";
 import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,
 			required: true
 		},
-		tool: Object
+		tool: Object as PropType<Tool>
+	},
+	computed: {
+		hasFilamentLoaded() {
+			const machineStore = useMachineStore();
+			return(this.tool!.filamentExtruder > 0) && (this.tool!.filamentExtruder < machineStore.model.move.extruders.length) && (machineStore.model.move.extruders[this.tool!.filamentExtruder].filament !== "");
+		}
 	},
 	data() {
 		return {
@@ -78,11 +84,11 @@ export default Vue.extend({
 			let code = "";
 			if (machineStore.currentTool !== this.tool) {
 				// Select tool first
-				code = `T${this.tool.number}\n`;
+				code = `T${this.tool!.number}\n`;
 			}
 
-			if (this.tool.filamentExtruder >= 0 && this.tool.filamentExtruder < machineStore.model.move.extruders.length &&
-				machineStore.model.move.extruders[this.tool.filamentExtruder].filament) {
+			if (this.tool!.filamentExtruder >= 0 && this.tool!.filamentExtruder < machineStore.model.move.extruders.length &&
+				machineStore.model.move.extruders[this.tool!.filamentExtruder].filament) {
 				// Unload current filament, normally this should not be necessary
 				code += "M702\n";
 			}

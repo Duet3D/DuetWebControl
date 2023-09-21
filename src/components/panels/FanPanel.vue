@@ -46,12 +46,12 @@
 
 <script lang="ts">
 import { Fan, Tool } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { useUiStore } from "@/store/ui";
 import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		uiFrozen(): boolean {
 			return useUiStore().uiFrozen;

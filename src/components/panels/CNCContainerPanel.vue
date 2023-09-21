@@ -104,19 +104,19 @@
 										<div class="d-flex flex-row">
 											<template v-for="(item, index) in fanRPM">
 												<template v-if="index !== 0">, </template>
-												<span :key="index" :title="item.name" class="mx-0">{{ item.rpm }}</span>
+												<span :title="item.name" class="mx-0">{{ item.rpm }}</span>
 											</template>
 										</div>
 									</v-col>
 
 									<v-col class="d-flex flex-column align-center" v-if="probesPresent">
 										<strong>
-											{{ $tc("panel.status.probe", probes.length) }}
+											{{ $t("panel.status.probe", probes.length) }}
 										</strong>
 										<div class="d-flex-inline">
 											<template v-for="(probe, index) in probes">
-												<span v-if="probe !== null" :key="index"
-													  :class="probeSpanClasses(probe, index)" class="pa-1 probe-span">
+												<span v-if="probe !== null" :class="probeSpanClasses(probe, index)"
+													  class="pa-1 probe-span">
 													{{ formatProbeValue(probe.value) }}
 												</span>
 											</template>
@@ -148,15 +148,14 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-
 import { ProbeType, AnalogSensorType, Board, CurrentMove, Probe, AnalogSensor } from "@duet3d/objectmodel";
+import { defineComponent } from "vue";
 
-import { isPrinting } from "@/utils/enums";
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
+import { isPrinting } from "@/utils/enums";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		currentMove(): CurrentMove { return useMachineStore().model.move.currentMove; },
 		mainboard(): Board | undefined { return useMachineStore().model.boards.find(board => !board.canAddress); },

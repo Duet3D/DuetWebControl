@@ -1,8 +1,7 @@
 import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
-import Vue from "vue";
 
-import i18n, { getBrowserLocale as getBrowserLocale } from "@/i18n";
+import i18n, { getBrowserLocale, messages } from "@/i18n";
 import { FileNotFoundError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
@@ -440,7 +439,7 @@ export const useSettingsStore = defineStore("settings", {
 					for (let axis in settingsToLoad.moveSteps) {
 						const axisMoveSteps = settingsToLoad.moveSteps[axis];
 						if (axisMoveSteps instanceof Array && axisMoveSteps.length === that.moveSteps.default.length) {
-							Vue.set(that.moveSteps, axis, axisMoveSteps);
+							that.moveSteps[axis] = axisMoveSteps;
 						}
 					}
 					delete settingsToLoad.moveSteps;
@@ -534,7 +533,7 @@ export const useSettingsStore = defineStore("settings", {
 			setLocalSetting("lastHostname", hostname);
 		},
 		setLocale(locale: string) {
-			i18n.locale = locale;
+			i18n.global.locale.value = locale as any;
 			this.locale = locale;
 		},
 
@@ -585,7 +584,7 @@ export const useSettingsStore = defineStore("settings", {
 			}
 
 			if (!(plugin in this.plugins)) {
-				Vue.set(this.plugins, plugin, { key: defaultValue });
+				this.plugins[plugin] = { key: defaultValue };
 			}
 			if (!(key in this.plugins[plugin])) {
 				this.plugins[plugin][key] = defaultValue;
@@ -593,7 +592,7 @@ export const useSettingsStore = defineStore("settings", {
 		},
 		setPluginData(plugin: string, key: string, value: any) {
 			if (this.plugins[plugin] === undefined) {
-				Vue.set(this.plugins, plugin, { key: value });
+				this.plugins[plugin] = { key: value };
 			} else {
 				this.plugins[plugin][key] = value;
 			}

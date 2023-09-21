@@ -2,8 +2,8 @@ import Vue from "vue";
 
 import { Axis } from "@duet3d/objectmodel";
 
-declare module "vue/types/vue" {
-    interface Vue {
+declare module "vue" {
+    interface ComponentCustomProperties {
         /**
          * Display a numeric value with a given precision and an optional unit.
          * @param value Value(s) to display

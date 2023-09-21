@@ -32,9 +32,8 @@
 </template>
 
 <script lang="ts">
-import { Directories } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { isBaseFileListDataTransfer } from "@/components/lists/BaseFileList.vue";
 import { getErrorMessage } from "@/utils/errors";
@@ -44,12 +43,12 @@ import { useMachineStore } from "@/store/machine";
 
 interface BreadcrumbItem {
 	showDropdown: boolean;
-	text: string;
+	title: string;
 	disabled: boolean;
 	href: string;
 }
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		value: {
 			type: String,
@@ -116,14 +115,14 @@ export default Vue.extend({
 				if (index === 0) {
 					items.push({
 						showDropdown,
-						text: item.startsWith("0:") ? rootCaption : this.$t("generic.sdCard", [/^(\d+)/.exec(item)![1]]),
+						title: item.startsWith("0:") ? rootCaption : this.$t("generic.sdCard", [/^(\d+)/.exec(item)![1]]),
 						disabled: !showDropdown && (index === pathItems.length - 1),
 						href: path
 					});
 				} else {
 					items.push({
 						showDropdown: false,
-						text: item,
+						title: item,
 						disabled: index === pathItems.length - 1,
 						href: path
 					});

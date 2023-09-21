@@ -11,10 +11,10 @@
 						{{ $t("panel.extrude.mixRatio") }}
 					</p>
 					<v-btn-toggle v-model="mix" mandatory multiple>
-						<v-btn text value="mix" :disabled="uiFrozen" color="primary">
+						<v-btn variant="text" value="mix" :disabled="uiFrozen" color="primary">
 							{{ $t("panel.extrude.mix") }}
 						</v-btn>
-						<v-btn text v-for="extruder in currentTool.extruders" :key="extruder" :value="extruder"
+						<v-btn v-for="extruder in currentTool.extruders" :key="extruder" variant="text" :value="extruder"
 							   :disabled="uiFrozen" color="primary">
 							{{ `E${extruder}` }}
 						</v-btn>
@@ -56,8 +56,8 @@
 		</v-card-text>
 
 		<input-dialog :shown.sync="editAmountDialog.shown" :title="$t('dialog.editExtrusionAmount.title')"
-					  :prompt="$t('dialog.editExtrusionAmount.prompt')" :preset="editAmountDialog.preset"
-					  is-numeric-value @confirmed="setAmount" />
+					  :prompt="$t('dialog.editExtrusionAmount.prompt')" :preset="editAmountDialog.preset" is-numeric-value
+					  @confirmed="setAmount" />
 		<input-dialog :shown.sync="editFeedrateDialog.shown" :title="$t('dialog.editExtrusionFeedrate.title')"
 					  :prompt="$t('dialog.editExtrusionFeedrate.prompt')" :preset="editFeedrateDialog.preset"
 					  is-numeric-value @confirmed="setFeedrate" />
@@ -66,51 +66,51 @@
 
 <script lang="ts">
 import { MachineStatus, Tool } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		uiFrozen(): boolean { return useUiStore().uiFrozen; },
 		currentTool(): Tool | null { return useMachineStore().currentTool; },
 		canExtrude(): boolean {
 			const machineStore = useMachineStore();
 			return (machineStore.model.state.status !== MachineStatus.off &&
-					machineStore.model.state.status !== MachineStatus.pausing &&
-					machineStore.model.state.status !== MachineStatus.processing &&
-					machineStore.model.state.status !== MachineStatus.resuming &&
-					(this.currentTool !== null) && (this.currentTool.extruders.length > 0) &&
-					!this.currentTool.heaters.some(heaterNumber => {
-						if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
-							const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
-							if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
-								const sensor = machineStore.model.sensors.analog[heaterSensor];
-								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldExtrudeTemperature));
-							}
+				machineStore.model.state.status !== MachineStatus.pausing &&
+				machineStore.model.state.status !== MachineStatus.processing &&
+				machineStore.model.state.status !== MachineStatus.resuming &&
+				(this.currentTool !== null) && (this.currentTool.extruders.length > 0) &&
+				!this.currentTool.heaters.some(heaterNumber => {
+					if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
+						const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
+						if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
+							const sensor = machineStore.model.sensors.analog[heaterSensor];
+							return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldExtrudeTemperature));
 						}
-						return true;
-					}, this));
+					}
+					return true;
+				}, this));
 		},
 		canRetract(): boolean {
 			const machineStore = useMachineStore();
 			return (machineStore.model.state.status !== MachineStatus.off &&
-					machineStore.model.state.status !== MachineStatus.pausing &&
-					machineStore.model.state.status !== MachineStatus.processing &&
-					machineStore.model.state.status !== MachineStatus.resuming &&
-					(this.currentTool !== null) && this.currentTool.extruders.length > 0 &&
-					!this.currentTool.heaters.some(heaterNumber => {
-						if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
-							const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
-							if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
-								const sensor = machineStore.model.sensors.analog[heaterSensor];
-								return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldRetractTemperature));
-							}
+				machineStore.model.state.status !== MachineStatus.pausing &&
+				machineStore.model.state.status !== MachineStatus.processing &&
+				machineStore.model.state.status !== MachineStatus.resuming &&
+				(this.currentTool !== null) && this.currentTool.extruders.length > 0 &&
+				!this.currentTool.heaters.some(heaterNumber => {
+					if (heaterNumber >= 0 && heaterNumber < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterNumber] !== null) {
+						const heaterSensor = machineStore.model.heat.heaters[heaterNumber]!.sensor;
+						if (heaterSensor >= 0 && heaterSensor < machineStore.model.sensors.analog.length) {
+							const sensor = machineStore.model.sensors.analog[heaterSensor];
+							return (sensor === null) || ((sensor.lastReading !== null) && (sensor.lastReading < machineStore.model.heat.coldRetractTemperature));
 						}
-						return true;
-					}, this));
+					}
+					return true;
+				}, this));
 		},
 		mix: {
 			get(): Array<number | "mix"> { return this.mixValue; },

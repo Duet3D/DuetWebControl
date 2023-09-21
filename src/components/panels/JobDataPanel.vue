@@ -48,12 +48,12 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { isPrinting } from "@/utils/enums";
 import { useMachineStore } from "@/store/machine";
+import { isPrinting } from "@/utils/enums";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		warmUpDuration(): number | null {
 			const machineStore = useMachineStore();

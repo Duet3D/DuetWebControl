@@ -31,13 +31,13 @@
 <script lang="ts">
 import Chart, { MajorTickOptions, NestedTickOptions } from "chart.js";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { display, displayZ, displayTime } from "@/utils/display";
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			layers: state => state.model.job.layers

@@ -55,7 +55,7 @@
 <template>
 	<v-fade-transition>
 		<v-snackbar v-if="fileTransferNotification !== null" :value="true"
-					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }" :timeout="-1" color="info">
+					:style="{ 'padding-bottom': `${8}px` }" :timeout="-1" color="info">
 			<v-progress-linear :color="progressColor" :indeterminate="fileTransferNotification.progress === 0" striped
 							   :value="fileTransferNotification.progress" class="progress-bar" />
 
@@ -81,7 +81,7 @@
 			</template>
 		</v-snackbar>
 		<v-snackbar v-else-if="notification !== null" :value="true" :timeout="-1" :color="(notification !== null) ? notification.type : 'info'"
-					:style="{ 'padding-bottom': `${$vuetify.application.bottom + 8}px` }"
+					:style="{ 'padding-bottom': `${8}px` }"
 					:class="{ pointer: !!notification.route }" @click.native="clicked">
 			<v-progress-linear v-if="animateProgress" ref="progressBar" :color="progressColor"
 							   :indeterminate="notification.progress === 0" :value="100" class="progress-bar"
@@ -108,17 +108,17 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { ComponentPublicInstance, defineComponent } from "vue";
 
 import { notifications, fileTransferNotifications, FileTransferType, Notification } from "@/utils/notifications";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		animateProgress(): boolean {
 			return (this.notification !== null) && (this.notification.timeout !== null) && (this.notification.timeout > 0)
 		},
 		progressColor(): string {
-			return this.$vuetify.theme.dark ? "grey darken-3" : "grey lighten-4";
+			return (this.$vuetify.theme.name === "dark") ? "grey darken-3" : "grey lighten-4";
 		},
 		fileTransferNotification(): Notification | null {
 			return (this.fileTransferNotifications.length > 0) ? this.fileTransferNotifications[0] : null;
@@ -212,14 +212,14 @@ export default Vue.extend({
 					this.$nextTick(() => {
 						if (this.$refs.progressBar) {
 							// Apply custom CSS animation duration to progress bar
-							const progressDiv = (this.$refs.progressBar as Vue).$el.querySelector(".v-progress-linear__determinate") as HTMLDivElement | undefined;
+							const progressDiv = (this.$refs.progressBar as ComponentPublicInstance).$el.querySelector(".v-progress-linear__determinate") as HTMLDivElement | undefined;
 							if (progressDiv) {
 								progressDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
 								progressDiv.style["animationDuration"] = `${to.timeout}ms`;
 							}
 
 							// Apply custom CSS animation duration to progress bar background
-							const progressBgDiv = (this.$refs.progressBar as Vue).$el.querySelector(".v-progress-linear__background") as HTMLDivElement | undefined;
+							const progressBgDiv = (this.$refs.progressBar as ComponentPublicInstance).$el.querySelector(".v-progress-linear__background") as HTMLDivElement | undefined;
 							if (progressBgDiv) {
 								progressBgDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
 								progressBgDiv.style["animationDuration"] = `${to.timeout}ms`;

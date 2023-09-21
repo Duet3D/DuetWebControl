@@ -12,12 +12,12 @@ span {
 
 <script lang="ts">
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		statusText(): string {
 			const machineStore = useMachineStore();

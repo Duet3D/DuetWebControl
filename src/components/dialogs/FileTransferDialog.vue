@@ -7,10 +7,12 @@ tr {
 	height: 2em;
 }
 
-th, td {
+th,
+td {
 	text-align: left;
 	white-space: nowrap;
 }
+
 td {
 	vertical-align: middle;
 }
@@ -42,8 +44,11 @@ td {
 								{{ getSize(file) }}
 							</td>
 							<td class="py-1" width="35%">
-								<v-progress-linear v-show="file.startTime !== null || file.progress > 0" :color="getProgressColor(file)" height="1.25em"
-									:value="file.progress * 100" :indeterminate="file.progress < 1 && !file.speed && !file.error" rounded striped>
+								<v-progress-linear v-show="file.startTime !== null || file.progress > 0"
+												   :color="getProgressColor(file)" height="1.25em"
+												   :value="file.progress * 100"
+												   :indeterminate="file.progress < 1 && !file.speed && !file.error" rounded
+												   striped>
 									<template #default="{ value }">
 										<span class="white--text">{{ value.toFixed(0) }} %</span>
 									</template>
@@ -59,10 +64,10 @@ td {
 					{{ $t("dialog.fileTransfer.currentSpeed", [$displayTransferSpeed(currentSpeed)]) }}
 				</span>
 				<v-spacer />
-				<v-btn v-show="canCancel" color="blue darken-1" text @click="cancel">
+				<v-btn v-show="canCancel" color="blue darken-1" variant="text" @click="cancel">
 					{{ $t(isUploading ? "dialog.fileTransfer.cancelUploads" : "dialog.fileTransfer.cancelDownloads") }}
 				</v-btn>
-				<v-btn v-show="transfersFinished" ref="closeButton" color="blue darken-1" text @click="close">
+				<v-btn v-show="transfersFinished" ref="closeButton" color="blue darken-1" variant="text" @click="close">
 					{{ $t("generic.close") }}
 				</v-btn>
 			</v-card-actions>
@@ -71,14 +76,14 @@ td {
 </template>
 
 <script lang="ts">
-import Vue from "vue"
+import { defineComponent } from "vue"
 
 import Events from "@/utils/events"
 import { FileTransferItem } from "@/store/machine";
 import { CancellationToken } from "@/store/connector/BaseConnector";
-import { displaySize, displayTransferSpeed } from "@/utils/display";
+import { displaySize } from "@/utils/display";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		shown(): boolean {
 			return this.files.length > 0;
@@ -90,7 +95,7 @@ export default Vue.extend({
 				}
 				return this.$t(this.isUploading ? "dialog.fileTransfer.uploadDoneTitle" : "dialog.fileTransfer.downloadDoneTitle");
 			}
-			
+
 			let fileBeingTransferred = 1, totalProgress = 0;
 			for (let i = 0; i < this.files.length; i++) {
 				const file = this.files[i];
@@ -186,7 +191,7 @@ export default Vue.extend({
 			this.files = [];
 			this.fileNameOffset = 0;
 		},
-		multiUploadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken } : { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
+		multiUploadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken }: { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
 				this.isUploading = true;
 				this.closeProgressOnSuccess = closeProgressOnSuccess;
@@ -195,7 +200,7 @@ export default Vue.extend({
 				this.setFiles(files);
 			}
 		},
-		multiDownloadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken } : { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
+		multiDownloadStarting({ files, showProgress, closeProgressOnSuccess, cancellationToken }: { files: Array<FileTransferItem>, showProgress: boolean, closeProgressOnSuccess: boolean, cancellationToken: CancellationToken }) {
 			if (showProgress) {
 				this.isUploading = false;
 				this.closeProgressOnSuccess = closeProgressOnSuccess;
@@ -229,7 +234,7 @@ export default Vue.extend({
 				} while (offset > 0);
 			}
 		},
-		fileComplete({ num, count } : { num: number, count: number }) {
+		fileComplete({ num, count }: { num: number, count: number }) {
 			if (num + 1 === count && this.closeProgressOnSuccess) {
 				this.close();
 			} else if (this.$refs.fileTable) {

@@ -268,18 +268,18 @@
 								</v-card-text>
 							</v-card>
 							<v-card>
-								<v-btn @click="resetExtruderColors" block class="mt-4" color="warning">{{$tc('plugins.gcodeViewer.resetColor', toolColors.length)}}</v-btn>
+								<v-btn @click="resetExtruderColors" block class="mt-4" color="warning">{{$t('plugins.gcodeViewer.resetColor', toolColors.length)}}</v-btn>
 							</v-card>
 						</v-expansion-panel-content>
 					</v-expansion-panel>
 					<v-expansion-panel @click="scrollIntoView">
 						<v-expansion-panel-header :title="$t('plugins.gcodeViewer.renderMode.title')">
 							<v-icon class="mr-2">mdi-palette</v-icon>
-							<strong>{{$tc('plugins.gcodeViewer.renderMode.caption', 2)}}</strong>
+							<strong>{{$t('plugins.gcodeViewer.renderMode.caption', 2)}}</strong>
 						</v-expansion-panel-header>
 						<v-expansion-panel-content>
 							<v-card>
-								<h4>{{$tc('plugins.gcodeViewer.renderMode.caption', 2)}}</h4>
+								<h4>{{$t('plugins.gcodeViewer.renderMode.caption', 2)}}</h4>
 								<v-btn-toggle block class="btn-toggle d-flex" exclusive v-model="colorMode">
 									<v-btn :disabled="loading" :value="0" block>{{$t("plugins.gcodeViewer.color")}}</v-btn>
 									<v-btn :disabled="loading" :value="1" block>{{$t('plugins.gcodeViewer.feedrate')}}</v-btn>

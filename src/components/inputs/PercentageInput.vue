@@ -41,7 +41,7 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useSettingsStore } from "@/store/settings";
 import { isNumber } from "@/utils/numbers";
@@ -56,7 +56,7 @@ const debounceTime = 500;
  */
 const changeTime = 300, changeInterval = 150;
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		value: {
 			type: Number,

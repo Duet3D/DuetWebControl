@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy"
+		<v-btn v-bind="($props as any)" @click="chooseFile" :disabled="disabled || !canUpload" :loading="isBusy"
 			   :title="title" :color="innerColor" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave"
 			   @drop.prevent.stop="dragDrop">
 			<template #loader>
@@ -20,10 +20,10 @@
 </template>
 
 <script lang="ts">
-import { NetworkInterfaceType, MachineStatus, Board, MessageType } from "@duet3d/objectmodel";
+import { NetworkInterfaceType, MachineStatus, Board } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import { mapState } from "pinia";
-import Vue, { PropType } from "vue";
+import { PropType, defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
@@ -90,10 +90,11 @@ export enum UploadType {
 	update = "update"
 };
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		color: String,
 		directory: String,
+		disabled: Boolean,
 		machine: String,
 		target: {
 			type: String as PropType<UploadType>,

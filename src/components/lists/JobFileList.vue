@@ -102,9 +102,9 @@
 </template>
 
 <script lang="ts">
-import { ThumbnailInfo, Volume } from "@duet3d/objectmodel";
+import { ThumbnailInfo } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import i18n from "@/i18n";
 import { ContextMenuItem, useUiStore } from "@/store/ui";
@@ -129,7 +129,7 @@ interface JobListItemProperties {
 
 type JobListItem = BaseFileListItem & JobListItemProperties;
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			isConnected: state => state.isConnected,

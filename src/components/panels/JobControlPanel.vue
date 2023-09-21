@@ -48,14 +48,14 @@
 
 <script lang="ts">
 import { MachineMode, MachineStatus, ThumbnailInfo } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 import { isPaused, isPrinting } from "@/utils/enums";
 import { escapeFilename } from "@/utils/path";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		uiFrozen(): boolean { return useUiStore().uiFrozen; },
 		isPausing(): boolean { return useMachineStore().model.state.status === MachineStatus.pausing; },

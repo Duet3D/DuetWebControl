@@ -153,7 +153,7 @@
 		</v-card-text>
 
 		<v-alert :value="unhomedAxes.length !== 0" type="warning" class="mb-0">
-			{{ $tc("panel.movement.axesNotHomed", unhomedAxes.length) }}
+			{{ $t("panel.movement.axesNotHomed", unhomedAxes.length) }}
 			<strong>
 				{{ unhomedAxes.map(axis => axis.letter).join(", ") }}
 			</strong>
@@ -171,13 +171,13 @@
 
 <script lang="ts">
 import { Axis, AxisLetter, KinematicsName, MoveCompensationType } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
-import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		uiFrozen(): boolean { return useUiStore().uiFrozen; },
 		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => useSettingsStore().moveSteps[axisLetter]); },

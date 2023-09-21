@@ -1,7 +1,7 @@
 <template>
-	<v-app>
+	<v-app :theme="darkTheme ? 'dark' : 'light'">
 		<v-navigation-drawer v-if="!showBottomNavigation" v-model="drawer" clipped fixed app
-							 :width="$vuetify.breakpoint.smAndDown ? 275 : 256" :expand-on-hover="iconMenu"
+							 :width="$vuetify.display.smAndDown ? 275 : 256" :expand-on-hover="iconMenu"
 							 :mini-variant="iconMenu" :style="`padding-bottom: ${bottomMargin}px`">
 			<div class="mb-3 hidden-sm-and-up">
 				<div class="ma-2">
@@ -10,7 +10,7 @@
 				<upload-btn target="start" :elevation="1" class="ma-2" block />
 			</div>
 
-			<v-list class="pt-0" :dense="!$vuetify.breakpoint.smAndDown" :expand="!$vuetify.breakpoint.smAndDown">
+			<v-list class="pt-0" :dense="!$vuetify.display.smAndDown" :expand="!$vuetify.display.smAndDown">
 				<v-list-group v-for="(category, index) in categories" :key="index" :prepend-icon="category.icon"
 							  no-action :value="isExpanded(category)">
 					<template #activator>
@@ -102,8 +102,7 @@
 import { MachineStatus } from "@duet3d/objectmodel";
 import Piecon from "piecon";
 import { mapState } from "pinia";
-import Vue from "vue";
-import { Route, NavigationGuardNext } from "vue-router";
+import { defineComponent } from "vue";
 
 import { Menu, MenuCategory, MenuItem, Routes } from "@/routes";
 import { isPrinting } from "@/utils/enums";
@@ -112,7 +111,7 @@ import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			name: state => state.model.network.name,
@@ -142,19 +141,19 @@ export default Vue.extend({
 			return Routes.some(route => checkRoute(route as MenuItem));
 		},
 		showBottomNavigation(): boolean {
-			return this.$vuetify.breakpoint.mobile && !this.$vuetify.breakpoint.xsOnly && this.bottomNavigation;
+			return this.$vuetify.display.mobile && !this.$vuetify.display.xs && this.bottomNavigation;
 		}
 	},
 	data() {
 		return {
-			drawer: this.$vuetify.breakpoint.lgAndUp,
+			drawer: true, // this.$vuetify.display.lgAndUp,
 			injectedComponentNames: new Array<string>(),
 			showConnectButton: process.env.NODE_ENV === "development"
 		};
 	},
 	methods: {
 		isExpanded(category: MenuCategory): boolean {
-			if (this.$vuetify.breakpoint.smAndDown) {
+			if (this.$vuetify.display.smAndDown) {
 				const route = this.$route;
 				return category.pages.some(page => page.path === route.path);
 			}
@@ -194,16 +193,6 @@ export default Vue.extend({
 		const settingsStore = useSettingsStore();
 		settingsStore.load();
 
-		// Validate navigation
-		Vue.prototype.$vuetify = this.$vuetify;
-		this.$router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
-			if (Routes.some(route => route.path === to.path && !(route as MenuItem).condition)) {
-				next("/");
-			} else {
-				next();
-			}
-		});
-
 		// Set up Piecon
 		Piecon.setOptions({
 			color: "#00f",			// Pie chart color
@@ -217,9 +206,6 @@ export default Vue.extend({
 			if (!to) {
 				this.$router.push("/");
 			}
-		},
-		darkTheme(to: boolean) {
-			this.$vuetify.theme.dark = to;
 		},
 		isConnecting(to: boolean) {
 			const machineStore = useMachineStore();
@@ -243,7 +229,7 @@ export default Vue.extend({
 				if (printing) {
 					// Go to Job Status when a print starts
 					const settingsStore = useSettingsStore();
-					if (this.$router.currentRoute.path !== "/Job/Status" && !settingsStore.behaviour.jobStart) {
+					if (this.$router.currentRoute.value.path !== "/Job/Status" && !settingsStore.behaviour.jobStart) {
 						this.$router.push("/Job/Status");
 					}
 				} else {

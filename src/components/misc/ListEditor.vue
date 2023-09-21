@@ -78,12 +78,11 @@
 </template>
 
 <script lang="ts">
-import Vue, { PropType } from "vue";
+import { defineComponent, PropType } from "vue";
 
-import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		itemKey: String as PropType<"tool" | "bed" | "chamber" | "spindleRPM">,
 		temperature: Boolean
@@ -91,7 +90,7 @@ export default Vue.extend({
 	computed: {
 		items(): Array<number> | { active: Array<number>, standby: Array<number> } {
 			const settingsStore = useSettingsStore();
-			return (this.itemKey === "spindleRPM") ? settingsStore.spindleRPM : settingsStore.temperatures[this.itemKey];
+			return (this.itemKey === "spindleRPM") ? settingsStore.spindleRPM : settingsStore.temperatures[this.itemKey!];
 		},
 		unit(): string { return this.temperature ? "°C" : "RPM"; },
 
@@ -114,8 +113,8 @@ export default Vue.extend({
 
 			if (this.canAddActive) {
 				const settingsStore = useSettingsStore();
-				settingsStore.temperatures[this.itemKey].active.push(this.activeValue);
-				settingsStore.temperatures[this.itemKey].active.sort((a, b) => b - a);
+				settingsStore.temperatures[this.itemKey!].active.push(this.activeValue);
+				settingsStore.temperatures[this.itemKey!].active.sort((a, b) => b - a);
 			}
 		},
 		removeActive(index: number) {
@@ -124,7 +123,7 @@ export default Vue.extend({
 			}
 
 			const settingsStore = useSettingsStore();
-			settingsStore.temperatures[this.itemKey].active = this.items.active.filter((_, i) => i !== index);
+			settingsStore.temperatures[this.itemKey!].active = this.items.active.filter((_, i) => i !== index);
 		},
 		addStandby() {
 			if (this.itemKey === "chamber" || this.itemKey === "spindleRPM" || this.items instanceof Array) {
@@ -133,8 +132,8 @@ export default Vue.extend({
 
 			if (this.canAddStandby) {
 				const settingsStore = useSettingsStore();
-				settingsStore.temperatures[this.itemKey].standby.push(this.activeValue);
-				settingsStore.temperatures[this.itemKey].standby.sort((a, b) => b - a);
+				settingsStore.temperatures[this.itemKey!].standby.push(this.activeValue);
+				settingsStore.temperatures[this.itemKey!].standby.sort((a, b) => b - a);
 			}
 		},
 		removeStandby(index: number) {
@@ -143,7 +142,7 @@ export default Vue.extend({
 			}
 
 			const settingsStore = useSettingsStore();
-			settingsStore.temperatures[this.itemKey].standby.splice(index, 1);
+			settingsStore.temperatures[this.itemKey!].standby.splice(index, 1);
 		},
 		remove(index: number) {
 			if (this.items instanceof Array) {

@@ -5,7 +5,7 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
@@ -13,7 +13,7 @@ import Path from "@/utils/path";
 import { useMachineStore } from "@/store/machine";
 import { makeNotification } from "@/utils/notifications";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

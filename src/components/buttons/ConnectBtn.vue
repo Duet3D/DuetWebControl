@@ -1,5 +1,5 @@
 <template>
-	<v-btn v-bind="$props" :color="buttonColor" :depressed="isBusy" @click="clicked">
+	<v-btn v-bind="($props as any)" :color="buttonColor" :depressed="isBusy" @click="clicked">
 		<v-icon v-show="!isBusy" v-text="buttonIcon" />
 		<v-progress-circular size="20" v-show="isBusy" indeterminate />
 		<span class="ml-2" v-text="caption"></span>
@@ -8,12 +8,13 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
+import { VBtn } from "vuetify/components/VBtn";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, ["isConnected"]),
 		isBusy(): boolean {

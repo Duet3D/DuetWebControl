@@ -16,10 +16,10 @@
 
 				<v-card-actions>
 					<v-spacer></v-spacer>
-					<v-btn color="blue darken-1" text @click="hide">
+					<v-btn color="blue darken-1" variant="text" @click="hide">
 						{{ $t("generic.cancel") }}
 					</v-btn>
-					<v-btn color="blue darken-1" text type="submit">
+					<v-btn color="blue darken-1" variant="text" type="submit">
 						{{ $t("generic.ok") }}
 					</v-btn>
 				</v-card-actions>
@@ -29,9 +29,9 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

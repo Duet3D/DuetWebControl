@@ -5,7 +5,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-row :dense="$vuetify.breakpoint.mobile">
+			<v-row :dense="$vuetify.display.mobile">
 				<v-col cols="12">
 					<v-switch v-model="webcamEnabled" :label="$t('panel.settingsWebcam.enable')" hide-details />
 				</v-col>
@@ -41,11 +41,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useSettingsStore, WebcamFlip } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		webcamEnabled: {
 			get(): boolean { return useSettingsStore().webcam.enabled; },

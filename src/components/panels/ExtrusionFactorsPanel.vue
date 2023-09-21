@@ -53,13 +53,13 @@
 
 <script lang="ts">
 import { Extruder } from "@duet3d/objectmodel";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { useUiStore } from "@/store/ui";
-import { useSettingsStore } from "@/store/settings";
 import { useMachineStore } from "@/store/machine";
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		uiFrozen(): boolean {
 			return useUiStore().uiFrozen;

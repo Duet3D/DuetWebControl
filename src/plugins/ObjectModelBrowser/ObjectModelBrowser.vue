@@ -62,9 +62,9 @@
 </template>
 
 <script lang="ts">
-import ObjectModel, { DriverId, isDriverId } from "@duet3d/objectmodel";
+import { DriverId, isDriverId } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { getErrorMessage } from "@/utils/errors";
 import { useUiStore } from "@/store/ui";
@@ -100,7 +100,7 @@ interface ModelTreeItem {
 	children: Array<ModelTreeItem>;
 }
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, ["model"]),
 		...mapState(useSettingsStore, ["darkTheme"]),

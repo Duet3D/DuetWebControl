@@ -1,7 +1,7 @@
 <template>
-	<v-row class="pa-3" :dense="$vuetify.breakpoint.mobile">
+	<v-row class="pa-3" :dense="$vuetify.display.mobile">
 		<v-col cols="12" md="4">
-			<v-row :dense="$vuetify.breakpoint.mobile">
+			<v-row :dense="$vuetify.display.mobile">
 				<v-col cols="12" md="12">
 					<settings-electronics-panel />
 				</v-col>
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-export default Vue.extend({});
+export default defineComponent({});
 </script>

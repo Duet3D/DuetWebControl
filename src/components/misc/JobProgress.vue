@@ -15,13 +15,13 @@
 <script lang="ts">
 import { MachineMode, MachineStatus } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { isPrinting } from "@/utils/enums";
 import { extractFileName } from "@/utils/path";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			extruders: state => state.model.move.extruders,

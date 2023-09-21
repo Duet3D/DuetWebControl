@@ -67,16 +67,15 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
+import { useMachineStore } from "@/store/machine";
+import { useUiStore } from "@/store/ui";
 import Path, { escapeFilename } from "@/utils/path"
 
 import { BaseFileListItem } from "./BaseFileList.vue";
-import { useUiStore } from "@/store/ui";
-import { useMachineStore } from "@/store/machine";
-import { StartupError } from "@duet3d/objectmodel";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useUiStore, ["uiFrozen"]),
 		...mapState(useMachineStore, {

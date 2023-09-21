@@ -13,11 +13,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { GeneralSettingTabs } from "..";
 
-export default Vue.extend({
+export default defineComponent({
 	data() {
 		return {
 			tab: "general-tab-0",

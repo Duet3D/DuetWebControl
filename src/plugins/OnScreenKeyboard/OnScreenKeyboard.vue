@@ -34,14 +34,15 @@
 </template>
 
 <script lang="ts">
-import { useSettingsStore } from "@/store/settings";
-import { useUiStore } from "@/store/ui";
 import { mapState } from "pinia";
 import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-export default Vue.extend({
+import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
+
+export default defineComponent({
 	computed: mapState(useSettingsStore, ["darkTheme"]),
 	data() {
 		return {

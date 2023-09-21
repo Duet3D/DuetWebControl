@@ -80,6 +80,11 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Whether a dialog is open or not
+		 */
+		dialogOpen: false,
+
+		/**
 		 * Whether messages are supposed to be hidden (when the Console is open)
 		 */
 		hideCodeReplyNotifications: false,

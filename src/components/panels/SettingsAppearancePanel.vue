@@ -40,19 +40,20 @@
 
 <script lang="ts">
 import { mapWritableState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { DashboardMode, UnitOfMeasure, useSettingsStore } from "@/store/settings";
+import { messages } from "@/i18n";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapWritableState(useSettingsStore, ["darkTheme", "decimalPlaces", "displayUnits", "locale", "useBinaryPrefix", "disableAutoComplete", "bottomNavigation", "iconMenu", "numericInputs"]),
 		languages() {
 			const result: Array<{ code: string, language: string }> = [];
-			for (let key in this.$i18n.messages) {
+			for (let key in messages) {
 				result.push({
 					code: key,
-					language: this.$i18n.messages[key].language as string
+					language: (messages[key] as any).language
 				});
 			}
 			return result;

@@ -85,6 +85,6 @@ function formatExtraName(sensor: { sensor: AnalogSensor, index: number }) {
         }
         return sensor.sensor.name;
     }
-    return i18n.t("panel.tools.extra.sensorIndex", [sensor.index]);
+    return i18n.global.t("panel.tools.extra.sensorIndex", [sensor.index]);
 }
 </script>

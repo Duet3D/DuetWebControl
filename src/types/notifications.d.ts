@@ -3,8 +3,8 @@ import Vue from "vue";
 import { CancellationToken } from "@/store/machine/connector/BaseConnector";
 import type { NotificationType, Notification } from "@/utils/notifications";
 
-declare module "vue/types/vue" {
-	interface Vue {
+declare module "vue" {
+	interface ComponentCustomProperties {
 		/**
 		 * Show a new notification
 		 * @param type Notification type

@@ -17,10 +17,10 @@
 
 			<v-card-actions>
 				<v-spacer></v-spacer>
-				<v-btn color="blue darken-1" text @click="dismissed">
+				<v-btn color="blue darken-1" variant="text" @click="dismissed">
 					{{ $t("generic.no") }}
 				</v-btn>
-				<v-btn color="blue darken-1" text @click="confirmed">
+				<v-btn color="blue darken-1" variant="text" @click="confirmed">
 					{{ $t("generic.yes") }}
 				</v-btn>
 			</v-card-actions>
@@ -29,11 +29,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

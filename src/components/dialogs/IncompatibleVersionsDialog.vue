@@ -17,7 +17,7 @@
 			</v-card-text>
 
 			<v-card-actions>
-				<v-btn color="blue darken1" class="mx-auto" text @click="shown = false">
+				<v-btn color="blue darken1" class="mx-auto" variant="text" @click="shown = false">
 					{{ $t("generic.ok") }}
 				</v-btn>
 			</v-card-actions>
@@ -28,14 +28,14 @@
 <script lang="ts">
 import { mapState } from "pinia";
 import semver from "semver";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import packageInfo from "../../../package.json";
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 import { LogType, log, logToConsole } from "@/utils/logging";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: mapState(useMachineStore, {
 		isConnecting: state => state.isConnecting || state.isReconnecting,
 		upgradeDocs: state => (state.model.sbc !== null) ? "https://docs.duet3d.com/en/User_manual/Machine_configuration/SBC_setup" : "https://docs.duet3d.com/en/User_manual/RepRapFirmware/Updating_firmware"

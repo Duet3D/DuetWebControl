@@ -91,7 +91,7 @@ async function turnEverythingOff() {
         await machineStore.sendCode(code);
     } catch (e) {
         if (!(e instanceof DisconnectedError)) {
-            log(LogType.error, i18n.t("error.turnOffEverythingFailed"), getErrorMessage(e));
+            log(LogType.error, i18n.global.t("error.turnOffEverythingFailed"), getErrorMessage(e));
         }
     }
     turningEverythingOff.value = false;

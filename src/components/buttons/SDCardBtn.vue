@@ -1,7 +1,7 @@
 <template>
 	<v-menu offset-y>
 		<template #activator="{ on }">
-			<v-btn v-bind="$props" v-on="on" color="success" :loading="mounting">
+			<v-btn v-bind="($props as any)" v-on="on" color="success" :loading="mounting">
 				<v-icon class="mr-1">mdi-sd</v-icon>
 				{{ getVolumeName(value) }}
 				<v-icon class="ml-1">mdi-menu-down</v-icon>
@@ -18,15 +18,14 @@
 </template>
 
 <script lang="ts">
-import { Volume } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
+import { useMachineStore } from "@/store/machine";
 import { getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";
-import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		value: {
 			type: Number,

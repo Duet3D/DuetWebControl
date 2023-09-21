@@ -1,9 +1,9 @@
 'use strict'
 
-import { registerRoute } from '../../routes'
+import { registerRoute } from "@/routes";
+import { useCacheStore } from "@/store/cache";
 
-import HeightMap from './HeightMap.vue'
-import { useCacheStore } from '@/store/cache';
+import HeightMap from "./HeightMap.vue"
 
 // Register a route via Control -> Height Map
 registerRoute(HeightMap, {

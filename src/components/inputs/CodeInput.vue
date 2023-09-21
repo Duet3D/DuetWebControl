@@ -25,22 +25,24 @@
 
 		<v-col class="ml-2 flex-shrink-1" cols="auto">
 			<v-btn color="info" :disabled="uiFrozen" :loading="doingCode" @click="send">
-				<v-icon class="mr-2">mdi-send</v-icon> {{ $t("input.code.send") }}
+				<v-icon class="mr-2">mdi-send</v-icon>
+				{{ $t("input.code.send") }}
 			</v-btn>
 		</v-col>
 	</v-row>
 </template>
 
 <script lang="ts">
+import { defineComponent } from "vue";
+
 import { useCacheStore } from "@/store/cache";
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore } from "@/store/ui";
-import Vue from "vue";
 
 const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		displayedCodes(): Array<{ text: string, value: string }> {
 			const settingsStore = useSettingsStore();

@@ -1,5 +1,5 @@
 <template>
-	<v-row :dense="$vuetify.breakpoint.mobile">
+	<v-row :dense="$vuetify.display.mobile">
 		<v-col cols="12" sm="8" md="8" lg="9" xl="9">
 			<movement-panel class="mb-2" />
 
@@ -33,12 +33,12 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useUiStore, ["isFFF", "uiFrozen"]),
 		...mapState(useMachineStore, {

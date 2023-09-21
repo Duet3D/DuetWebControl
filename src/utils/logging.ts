@@ -1,6 +1,5 @@
 import i18n from "@/i18n";
 import { useUiStore } from "@/store/ui";
-import Vue from "vue";
 
 import Events from "./events";
 import { makeNotification } from "./notifications";
@@ -59,8 +58,8 @@ export function logCode(code: string | null, reply: string) {
 	if (!uiStore.hideCodeReplyNotifications) {
 		let title = code || "", message = responseLines.join("<br>");
 		if (responseLines.length > 3 || toLog.length > 128) {
-			title = (!code) ? i18n.t("notification.responseTooLong") : code;
-			message = (!code) ? "" : i18n.t("notification.responseTooLong");
+			title = (!code) ? i18n.global.t("notification.responseTooLong") : code;
+			message = (!code) ? "" : i18n.global.t("notification.responseTooLong");
 		} else if (!code) {
 			title = responseLines[0];
 			message = responseLines.slice(1).join("<br>");
@@ -80,8 +79,3 @@ export function logCode(code: string | null, reply: string) {
 export function logToConsole(type: LogMessageType, title: string, message: string | null = null) {
 	Events.emit("logMessage", { type, title, message });
 }
-
-// Register extensions
-Vue.prototype.$log = log;
-Vue.prototype.$logToConsole = logToConsole;
-Vue.prototype.$logCode = logCode;

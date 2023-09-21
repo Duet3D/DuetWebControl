@@ -7,12 +7,14 @@
 
 <script lang="ts">
 import { mapState } from "pinia";
-import { VBtn } from "vuetify/lib";
+import { VBtn } from "vuetify/components/VBtn";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
+import { defineComponent } from "vue";
 
-export default VBtn.extend({
+export default defineComponent({
+	extends: VBtn,
 	props: {
 		code: {
 			type: String,

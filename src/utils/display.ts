@@ -1,5 +1,4 @@
 import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
-import Vue from "vue";
 
 import i18n from "@/i18n";
 import { UnitOfMeasure, useSettingsStore } from "@/store/settings";
@@ -15,15 +14,15 @@ import { useMachineStore } from "@/store/machine";
 export function display(value: number | Array<number> | string | null | undefined, precision?: number, unit?: string) {
 	if (typeof value === "number") {
 		if (isNaN(value)) {
-			return i18n.t("generic.noValue");
+			return i18n.global.t("generic.noValue");
 		}
 		return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : "");
 	}
 	if (value instanceof Array && value.length > 0) {
 		return value.map(item => (item !== undefined) ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : "")
-			: i18n.t("generic.noValue")).join(", ");
+			: i18n.global.t("generic.noValue")).join(", ");
 	}
-	return (value && value.constructor === String) ? value : i18n.t("generic.noValue");
+	return (value && value.constructor === String) ? value : i18n.global.t("generic.noValue");
 }
 
 /**
@@ -34,7 +33,7 @@ export function display(value: number | Array<number> | string | null | undefine
 export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
 	let position = machinePosition ? axis.machinePosition : axis.userPosition;
 	if (position === null) {
-		return i18n.t("generic.noValue");
+		return i18n.global.t("generic.noValue");
 	}
 
 	const settingsStore = useSettingsStore();
@@ -76,7 +75,7 @@ export function displaySensorValue(sensor: AnalogSensor) {
  */
 export function displaySize(bytes: number | null | undefined) {
 	if (typeof bytes !== "number") {
-		return i18n.t("generic.noValue");
+		return i18n.global.t("generic.noValue");
 	}
 
 	const settingsStore = useSettingsStore();
@@ -112,9 +111,9 @@ export function displaySize(bytes: number | null | undefined) {
 export function displayMoveSpeed(speed: number | null | undefined) {
 	const settingsStore = useSettingsStore();
 	if (typeof speed === "number" && settingsStore.displayUnits === UnitOfMeasure.imperial) {
-		return display(speed * 60 / 25.4, 1, i18n.t("panel.settingsAppearance.unitInchSpeed"));
+		return display(speed * 60 / 25.4, 1, i18n.global.t("panel.settingsAppearance.unitInchSpeed"));
 	}
-	return display(speed, 1, i18n.t("panel.settingsAppearance.unitMmSpeed"));
+	return display(speed, 1, i18n.global.t("panel.settingsAppearance.unitMmSpeed"));
 }
 
 /**
@@ -124,7 +123,7 @@ export function displayMoveSpeed(speed: number | null | undefined) {
  */
 export function displayTransferSpeed(bytesPerSecond: number | null | undefined) {
 	if (typeof bytesPerSecond !== "number") {
-		return i18n.t("generic.noValue");
+		return i18n.global.t("generic.noValue");
 	}
 
 	const settingsStore = useSettingsStore();
@@ -160,7 +159,7 @@ export function displayTransferSpeed(bytesPerSecond: number | null | undefined) 
  */
 export function displayTime(value: number | null | undefined, showTrailingZeroes = false) {
 	if (typeof value !== "number" || isNaN(value)) {
-		return i18n.t('generic.noValue');
+		return i18n.global.t('generic.noValue');
 	}
 
 	value = Math.round(value);
@@ -228,11 +227,3 @@ export function indent(content: string): string {
     return newResult.trim();
 }
 
-// Register display extensions
-Vue.prototype.$display = display;
-Vue.prototype.$displayAxisPosition = displayAxisPosition;
-Vue.prototype.$displayZ = displayZ;
-Vue.prototype.$displaySize = displaySize;
-Vue.prototype.$displayMoveSpeed = displayMoveSpeed;
-Vue.prototype.$displayTransferSpeed = displayTransferSpeed;
-Vue.prototype.$displayTime = displayTime;

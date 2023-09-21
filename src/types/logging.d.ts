@@ -2,8 +2,8 @@ import Vue from "vue";
 
 import { LogMessageType } from "@/utils/logging";
 
-declare module "vue/types/vue" {
-	interface Vue {
+declare module "vue" {
+	interface ComponentCustomProperties  {
 		/**
 		 * Log an arbitrary machine-related message
 		 * @param type Message type

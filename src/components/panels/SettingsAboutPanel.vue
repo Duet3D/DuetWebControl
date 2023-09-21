@@ -38,11 +38,11 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import packageInfo from "../../../package.json";
 
-export default Vue.extend({
+export default defineComponent({
 	data() {
 		return {
 			buildDateTime: process.env.BUILD_DATETIME,

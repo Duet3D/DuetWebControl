@@ -1,5 +1,3 @@
-'use strict'
-
 /**
  * Convert a datetime to an ISO-like string like "2022-10-10T09:51:00" as local time
  * @param time Time to convert

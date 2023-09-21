@@ -1,9 +1,12 @@
-import Vue from "vue";
+import { App } from "vue";
 
 import CodeInput from "./CodeInput.vue";
 import PercentageInput from "./PercentageInput.vue";
 import ControlInput from "./ControlInput.vue";
 
-Vue.component("code-input", CodeInput);
-Vue.component("control-input", ControlInput);
-Vue.component("percentage-input", PercentageInput);
+export function registerInputs(app: App<any>) {
+    app
+        .component("code-input", CodeInput)
+        .component("control-input", ControlInput)
+        .component("percentage-input", PercentageInput);
+}

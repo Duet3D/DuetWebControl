@@ -95,13 +95,13 @@ th {
 <script lang="ts">
 import { NetworkInterfaceType } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import packageInfo from "../../../package.json";
-import { useMachineStore } from "@/store/machine";
 import RestConnector from "@/store/connector/RestConnector";
+import { useMachineStore } from "@/store/machine";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			isConnected: state => state.isConnected,

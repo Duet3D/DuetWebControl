@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { reactive } from "vue";
 
 import i18n from "@/i18n";
 import { extractFileName } from "@/utils/path";
@@ -98,7 +98,7 @@ export interface Notification {
 /**
  * List of active notifications
  */
-export const notifications = Vue.observable(new Array<Notification>());
+export const notifications = reactive(new Array<Notification>());
 
 /**
  * Persistent message notification (see M117)
@@ -108,7 +108,7 @@ let messageNotification: Notification | null = null;
 /**
  * List of active file transfer notifications
  */
-export const fileTransferNotifications = Vue.observable(new Array<Notification>());
+export const fileTransferNotifications = reactive(new Array<Notification>());
 
 /**
  * Show a new notification
@@ -257,7 +257,7 @@ export function showMessage(message: string | null): Notification | null {
     }
 
     if (messageNotification === null) {
-        messageNotification = makeNotification("info", i18n.t("notification.message"), message, 0, null, null, true);
+        messageNotification = makeNotification("info", i18n.global.t("notification.message"), message, 0, null, null, true);
         const closeFn = messageNotification.close;
         messageNotification.close = function () {
             messageNotification = null;
@@ -268,8 +268,3 @@ export function showMessage(message: string | null): Notification | null {
     }
     return messageNotification;
 }
-
-// Register extensions
-Vue.prototype.$makeNotification = makeNotification;
-Vue.prototype.$makeFileTransferNotification = makeFileTransferNotification;
-Vue.prototype.$showMessage = showMessage;

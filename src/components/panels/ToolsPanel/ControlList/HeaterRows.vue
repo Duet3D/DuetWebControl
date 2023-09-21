@@ -122,6 +122,7 @@ import { displaySensorValue } from "@/utils/display";
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
+import { StoreState } from "pinia";
 
 const props = defineProps({
     type: String as PropType<"bed" | "chamber">
@@ -168,9 +169,9 @@ function selectHeater(index: number, heater: Heater | null, heaterIndex: number)
 
 const singleHeaterCaption = computed(() => {
     if (selectedHeater.value === null) {
-        return (props.type === "bed") ? i18n.t("panel.tools.beds") : i18n.t("panel.tools.chambers");
+        return (props.type === "bed") ? i18n.global.t("panel.tools.beds") : i18n.global.t("panel.tools.chambers");
     }
-    return (props.type === "bed") ? i18n.t("panel.tools.bed", [""]) : i18n.t("panel.tools.chamber", [""]);
+    return (props.type === "bed") ? i18n.global.t("panel.tools.bed", [""]) : i18n.global.t("panel.tools.chamber", [""]);
 });
 
 async function allHeatersClick() {
@@ -234,7 +235,7 @@ async function allHeatersClick() {
 }
 
 // Individual heater control
-function getHeaterName(heater: Heater | null, heaterIndex: number) {
+function getHeaterName(heater: StoreState<Heater> | null, heaterIndex: number) {
     if ((heater !== null) && (heater.sensor >= 0) && (heater.sensor < machineStore.model.sensors.analog.length)) {
         const sensor = machineStore.model.sensors.analog[heater.sensor];
         if ((sensor !== null) && sensor.name) {
@@ -245,7 +246,7 @@ function getHeaterName(heater: Heater | null, heaterIndex: number) {
             return sensor.name;
         }
     }
-    return i18n.t("panel.tools.heater", [heaterIndex]);
+    return i18n.global.t("panel.tools.heater", [heaterIndex]);
 }
 
 function getHeaterValue(heater: Heater | null) {
@@ -255,10 +256,10 @@ function getHeaterValue(heater: Heater | null) {
             return displaySensorValue(sensor);
         }
     }
-    return i18n.t("generic.noValue");
+    return i18n.global.t("generic.noValue");
 }
 
-async function heaterClick(index: number, heater: Heater | null) {
+async function heaterClick(index: number, heater: StoreState<Heater> | null) {
     if (uiStore.uiFrozen || !heater) {
         return;
     }
@@ -278,7 +279,7 @@ async function heaterClick(index: number, heater: Heater | null) {
                 break;
 
             case HeaterState.fault:		// Fault -> Ask for reset
-                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater));
+                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater as Heater));
                 break;
         }
     } else {
@@ -290,7 +291,7 @@ async function heaterClick(index: number, heater: Heater | null) {
             // Standby mode for chambers is not officially supported yet (there is no code for standby control)
 
             case HeaterState.fault:		// Fault -> Ask for reset
-                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater));
+                emit("resetHeaterFault", machineStore.model.heat.heaters.indexOf(heater as Heater));
                 break;
 
             default:	// Active -> Off

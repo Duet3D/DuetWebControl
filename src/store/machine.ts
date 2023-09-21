@@ -406,10 +406,10 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			try {
-				let reply: string | void = await this.connector.sendCode(code, noWait ?? false);
+				let reply = await this.connector.sendCode(code, noWait ?? false);
 				if (typeof reply === "string") {
 					reply = translateResponse(reply);
-					Events.emit("codeExecuted", { code, reply });
+					Events.emit("codeExecuted", { code, reply: reply as string });
 				}
 
 				if (logReply && (fromInput || reply)) {
@@ -873,9 +873,9 @@ export const useMachineStore = defineStore("machine", {
 			try {
 				try {
 					await this.connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
-					makeNotification("success", i18n.t("notification.systemPackageInstall.success", [filename]));
+					makeNotification("success", i18n.global.t("notification.systemPackageInstall.success", [filename]));
 				} catch (e) {
-					makeNotification("error", i18n.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
+					makeNotification("error", i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 					throw e;
 				}
 			} finally {
@@ -988,13 +988,13 @@ export const useMachineStore = defineStore("machine", {
 			// Is there a startup error to report?
 			const startupError = this.model.state.startupError;
 			if (startupError !== null && lastStartupError !== JSON.stringify(startupError)) {
-				const errorMessage = i18n.t("error.startupError", [startupError.file, startupError.line, startupError.message])
+				const errorMessage = i18n.global.t("error.startupError", [startupError.file, startupError.line, startupError.message])
 				log("error", errorMessage, undefined);
 			}
 
 			// Has the firmware halted?
 			if (lastStatus !== this.model.state.status && this.model.state.status === MachineStatus.halted) {
-				log("warning", i18n.t("events.emergencyStop"), undefined);
+				log("warning", i18n.global.t("events.emergencyStop"), undefined);
 			}
 		}
 	}

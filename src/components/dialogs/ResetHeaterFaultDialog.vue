@@ -12,11 +12,11 @@
 			<v-card-actions>
 				<v-spacer />
 
-				<v-btn color="blue darken-1" text :disabled="!!counter" @click="resetFault">
+				<v-btn color="blue darken-1" variant="text" :disabled="!!counter" @click="resetFault">
 					{{ $t("dialog.resetHeaterFault.resetFault") + (counter ? ` (${counter})` : "") }}
 				</v-btn>
 
-				<v-btn color="blue darken-1" text @click="hide">
+				<v-btn color="blue darken-1" variant="text" @click="hide">
 					{{ $t("generic.cancel") }}
 				</v-btn>
 			</v-card-actions>
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 
@@ -34,7 +34,7 @@ import { useMachineStore } from "@/store/machine";
  */
 const countdownSeconds = 5;
 
-export default Vue.extend({
+export default defineComponent({
 	props: {
 		shown: {
 			type: Boolean,

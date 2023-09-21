@@ -7,6 +7,7 @@ import { getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/lo
 import Path from "@/utils/path";
 import { useSettingsStore } from "./settings";
 import { useMachineStore } from "./machine";
+import { pl } from "date-fns/locale";
 
 /**
  * Default cache fields defined by third-party plugins
@@ -133,12 +134,12 @@ export const useCacheStore = defineStore("cache", {
 			if (fileOrDirectory) {
 				if (this.fileInfos[fileOrDirectory] !== undefined) {
 					// Delete specific item
-					Vue.delete(this.fileInfos, fileOrDirectory);
+					delete this.fileInfos[fileOrDirectory];
 				} else {
 					// Delete directory items
 					for (let filename in this.fileInfos) {
 						if (Path.equals(fileOrDirectory, Path.extractDirectory(filename))) {
-							Vue.delete(this.fileInfos, filename);
+							delete this.fileInfos[filename];
 						}
 					}
 				}
@@ -158,17 +159,18 @@ export const useCacheStore = defineStore("cache", {
 			}
 
 			if (this.plugins[plugin] === undefined) {
-				Vue.set(this.plugins, plugin, {});
+				this.plugins[plugin] = {};
 			}
 			if (!(key in this.plugins[plugin])) {
-				Vue.set(this.plugins[plugin], key, defaultValue)
+				this.plugins[plugin][key] = defaultValue;
 			}
 		},
 		setPluginData(plugin: string, key: string, value: any) {
 			if (this.plugins[plugin] === undefined) {
-				Vue.set(this.plugins, plugin, { key: value });
+				this.plugins[plugin] = { key: value };
+			} else {
+				this.plugins[plugin][key] = value;
 			}
-			Vue.set(this.plugins[plugin], key, value)
 		}
 	}
 });

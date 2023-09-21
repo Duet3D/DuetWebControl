@@ -1,13 +1,16 @@
-import Vue from "vue";
+import { App } from "vue";
 
-import CodeBtn from "./CodeBtn.vue"
-import ConnectBtn from "./ConnectBtn.vue"
-import EmergencyBtn from "./EmergencyBtn.vue"
-import SDCardBtn from "./SDCardBtn.vue"
-import UploadBtn from "./UploadBtn.vue"
+import CodeBtn from "./CodeBtn.vue";
+import ConnectBtn from "./ConnectBtn.vue";
+import EmergencyBtn from "./EmergencyBtn.vue";
+import SDCardBtn from "./SDCardBtn.vue";
+import UploadBtn from "./UploadBtn.vue";
 
-Vue.component("code-btn", CodeBtn)
-Vue.component("connect-btn", ConnectBtn)
-Vue.component("emergency-btn", EmergencyBtn)
-Vue.component("sd-card-btn", SDCardBtn)
-Vue.component("upload-btn", UploadBtn)
+export function registerButtons(app: App<any>) {
+    app
+        .component("code-btn", CodeBtn)
+        .component("connect-btn", ConnectBtn)
+        .component("emergency-btn", EmergencyBtn)
+        .component("sd-card-btn", SDCardBtn)
+        .component("upload-btn", UploadBtn);
+}

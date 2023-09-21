@@ -78,12 +78,12 @@ img {
 
 <script lang="ts">
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { WebcamFlip, useSettingsStore } from "@/store/settings";
 import { useMachineStore } from "@/store/machine";
+import { WebcamFlip, useSettingsStore } from "@/store/settings";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, ["connector"]),
 		...mapState(useSettingsStore, {

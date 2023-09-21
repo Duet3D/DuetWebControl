@@ -135,7 +135,7 @@
 					  @confirmed="moveStepDialogConfirmed"></input-dialog>
 
 		<v-alert :value="unhomedAxes.length !== 0" type="warning" class="mb-0">
-			{{ $tc("panel.movement.axesNotHomed", unhomedAxes.length) }}
+			{{ $t("panel.movement.axesNotHomed", unhomedAxes.length) }}
 			<strong>
 				{{ unhomedAxes.map(axis => axis.letter).join(", ") }}
 			</strong>
@@ -150,13 +150,13 @@
 <script lang="ts">
 import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";
 import { mapActions, mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
-import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			isConnected: state => state.isConnected,

@@ -220,7 +220,7 @@ a:not(:hover) {
 										<template v-if="index !== 0">
 											,
 										</template>
-										<span :key="index" :title="item.name" class="mx-0">
+										<span :title="item.name" class="mx-0">
 											{{ item.rpm }}
 										</span>
 									</template>
@@ -229,10 +229,10 @@ a:not(:hover) {
 
 							<v-col v-if="validProbes.length > 0" class="d-flex flex-column align-center">
 								<strong>
-									{{ $tc("panel.status.probe", validProbes.length) }}
+									{{ $t("panel.status.probe", validProbes.length) }}
 								</strong>
 								<div class="d-flex-inline">
-									<span v-for="(probe, index) in validProbes" :key="index" class="pa-1 probe-span"
+									<span v-for="(probe, index) in validProbes" class="pa-1 probe-span"
 										  :class="probeSpanClasses(probe, index === 0)">
 										{{ formatProbeValues(probe.value) }}
 									</span>
@@ -252,16 +252,16 @@ a:not(:hover) {
 </template>
 
 <script lang="ts">
-import { Axis, Board, FilamentMonitorEnableMode, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
+import { Axis, Board, FilamentMonitorEnableMode, Probe, ProbeType } from "@duet3d/objectmodel";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useSettingsStore } from "@/store/settings";
 import { useUiStore } from "@/store/ui";
 import { isPrinting } from "@/utils/enums";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, {
 			isConnected: state => state.isConnected,

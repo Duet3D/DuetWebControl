@@ -39,13 +39,13 @@
 
 <script lang="ts">
 import { mapState, mapWritableState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
-import { localStorageSupported } from "@/utils/localStorage";
-import { useUiStore } from "@/store/ui";
 import { useSettingsStore } from "@/store/settings";
+import { useUiStore } from "@/store/ui";
+import { localStorageSupported } from "@/utils/localStorage";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useUiStore, ["uiFrozen"]),
 		...mapWritableState(useSettingsStore, ["darkTheme", "settingsStorageLocal", "settingsSaveDelay", "cacheStorageLocal", "cacheSaveDelay"]),

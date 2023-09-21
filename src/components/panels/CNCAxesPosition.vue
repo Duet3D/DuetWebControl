@@ -46,7 +46,7 @@
 import { useMachineStore } from "@/store/machine";
 import { computed } from "vue";
 
-const props = defineProps<{
+defineProps<{
 	machinePosition: boolean
 }>();
 

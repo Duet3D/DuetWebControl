@@ -76,7 +76,7 @@
 import saveAs from "file-saver";
 import JSZip from "jszip";
 import { mapState } from "pinia";
-import Vue from "vue";
+import { defineComponent } from "vue";
 
 import { useMachineStore } from "@/store/machine";
 import { useUiStore } from "@/store/ui";
@@ -86,7 +86,7 @@ import Path from "@/utils/path";
 
 import { BaseFileListItem } from "./BaseFileList.vue";
 
-export default Vue.extend({
+export default defineComponent({
 	computed: {
 		...mapState(useMachineStore, { filamentsDirectory: state => state.model.directories.filaments }),
 		...mapState(useUiStore, ["uiFrozen"]),
