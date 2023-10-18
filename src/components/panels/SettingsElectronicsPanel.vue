@@ -58,7 +58,7 @@ th {
 				</tr>
 
 				<!-- DSF-->
-				<tr v-if="dsfVersion !== null"> <!-- TODO add build date here when dsf key is added -->
+				<tr v-if="dsfVersion !== null" :title="$t('panel.settingsAbout.buildDateTime', [dsfBuildDateTime])">
 					<td>
 						Duet Software Framework
 					</td>
@@ -107,6 +107,7 @@ export default Vue.extend({
 		boards(): Array<Board> { return store.state.machine.model.boards.filter(board => board !== null); },
 		isDuetFirmware(): boolean { return this.boards.some(board => !board.canAddress && board.firmwareFileName.startsWith("Duet")); },
 		dsfVersion(): string | null { return store.state.machine.model.sbc?.dsf.version ?? null; },
+		dsfBuildDateTime(): string | null { return store.state.machine.model.sbc?.dsf.buildDateTime ?? null; },
 		wifiVersion(): string | null { return store.state.machine.model.network.interfaces.find(iface => iface.type === NetworkInterfaceType.wifi)?.firmwareVersion ?? null; },
 	},
 	data() {
