@@ -24,7 +24,9 @@ a:not(:hover) {
 
 .probe-span {
 	border-radius: 5px;
+	text-align: center;
 	white-space: nowrap;
+	width: 60px;
 }
 
 .probe-span:not(:last-child) {
@@ -231,7 +233,7 @@ a:not(:hover) {
 								<strong>
 									{{ $tc("panel.status.probe", validProbes.length) }}
 								</strong>
-								<div class="d-flex-inline">
+								<div class="d-flex">
 									<span v-for="(probe, index) in validProbes" :key="index" class="pa-1 probe-span"
 										  :class="probeSpanClasses(probe, index === 0)">
 										{{ formatProbeValues(probe.value) }}
