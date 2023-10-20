@@ -269,7 +269,7 @@ export default {
 		durations() {
 			return (this.move.shaping.type === 'custom') ? this.move.shaping.durations.map(duration => (duration / 1000).toFixed(3) + 'ms').reduce((a, b) => a + ', ' + b) : null;
 		},
-		allAxesHomed() { return !this.move.axes.some(axis => !axis.homed); },
+		allAxesHomed() { return !this.move.axes.some(axis => axis.visible && !axis.homed); },
 		accelerometers() {
 			return this.boards
 				.filter(board => board.accelerometer !== null)
