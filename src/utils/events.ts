@@ -57,7 +57,7 @@ enum GlobalEvent {
 	fileDownloading = "fileDownloading",
 
 	// Multiple files are being downloaded
-	// Payload: { machine, files: [{ filename, type, startTime, size, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken }
+	// Payload: { machine, files: [{ filename, type, startTime, size, progress, speed, error }, ...], showProgress, closeProgressOnSuccess, cancellationToken, rawPath }
 	multipleFilesDownloading = "multipleFilesDownloading",
 
 	// File has been downloaded

@@ -159,10 +159,11 @@ export default Vue.extend({
 		if (this.apiFile === null) {
 			try {
 				const apiFileContent = await store.dispatch("machine/download", {
-					filename: "0:/www/DuetAPI.xml",
+					filename: "DuetAPI.xml",
 					type: "text",
 					showError: false,
-					showSuccess: false
+					showSuccess: false,
+					rawPath: true
 				});
 
 				const parser = new DOMParser();

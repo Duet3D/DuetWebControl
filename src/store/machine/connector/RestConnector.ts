@@ -476,9 +476,13 @@ export default class RestConnector extends BaseConnector {
 	 * @param filename Path of the file to download
 	 * @param type Optional type of the received data (defaults to JSON)
 	 * @param cancellationToken Optional cancellation token that may be triggered to cancel this operation
+	 * @param rawPath Obtain file from DWC base path instead of virtual SD card (defaults to false)
 	 * @param onProgress Optional callback for progress reports
 	 */
-	async download(filename: string, type?: XMLHttpRequestResponseType, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<any> {
+	async download(filename: string, type?: XMLHttpRequestResponseType, cancellationToken?: CancellationToken, rawPath?: boolean, onProgress?: OnProgressCallback): Promise<any> {
+		if (rawPath) {
+			return await this.request("GET", filename, null, type, undefined, undefined, filename, cancellationToken, onProgress);
+		}
 		return await this.request("GET", "machine/file/" + encodeURIComponent(filename), null, type, undefined, undefined, filename, cancellationToken, onProgress);
 	}
 

@@ -529,9 +529,10 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.showSuccess Show notification upon successful uploads (for single uploads, defaults to true)
 			 * @param payload.showError Show notification upon error (defaults to true)
 			 * @param payload.closeProgressOnSuccess Automatically close the progress indicator when finished (defaults to false)
+			 * @param payload.rawPath Obtain file from DWC base path instead of virtual SD card
 			 * @returns File transfer item if a single file was requested, else the files list plus content property
 			 */
-			async download({ state, commit }, payload: { filename?: string, type?: XMLHttpRequestResponseType, files?: Array<string>, showProgress?: boolean, showSuccess?: boolean, showError?: boolean, closeProgressOnSuccess?: boolean }): Promise<FileTransferItem | Array<FileTransferItem>> {
+			async download({ state, commit }, payload: { filename?: string, type?: XMLHttpRequestResponseType, files?: Array<string>, showProgress?: boolean, showSuccess?: boolean, showError?: boolean, closeProgressOnSuccess?: boolean, rawPath?: boolean }): Promise<FileTransferItem | Array<FileTransferItem>> {
 				if (connector === null) { throw new OperationFailedError("download is not available in default machine module"); }
 
 				const files = Vue.observable(new Array<FileTransferItem>), cancellationToken: CancellationToken = { cancel() { } };
@@ -539,6 +540,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				const showSuccess = (payload.showSuccess !== undefined) ? payload.showSuccess : true;
 				const showError = (payload.showError !== undefined) ? payload.showError : true;
 				const closeProgressOnSuccess = (payload.closeProgressOnSuccess !== undefined) ? payload.closeProgressOnSuccess : false;
+				const rawPath = (payload.rawPath !== undefined) ? payload.rawPath : false;
 
 				// Prepare the arguments and tell listeners that an upload is about to start
 				let notification: Notification | null = null;
@@ -565,7 +567,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 						showProgress,
 						showSuccess,
 						showError,
-						cancellationToken
+						cancellationToken,
+						rawPath
 					});
 				} else if (payload.files instanceof Array) {
 					if (state.transferringFiles) {
@@ -592,7 +595,8 @@ export default function(connector: BaseConnector | null): MachineModule {
 						files,
 						showProgress,
 						closeProgressOnSuccess,
-						cancellationToken
+						cancellationToken,
+						rawPath
 					});
 				}
 
@@ -607,6 +611,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 								filename,
 								type,
 								cancellationToken,
+								rawPath,
 								(loaded, total, retry) => {
 									if (item.startTime === null) {
 										item.startTime = new Date();

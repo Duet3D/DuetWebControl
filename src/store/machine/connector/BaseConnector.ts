@@ -293,8 +293,9 @@ abstract class BaseConnector {
 	 * @param type Optional type of the received data (defaults to JSON)
 	 * @param cancellationToken Optional cancellation token that may be triggered to cancel this operation
 	 * @param onProgress Optional callback for progress reports
+	 * @param rawPath Obtain file from DWC base path instead of virtual SD card
 	 */
-	abstract download(filename: string, type?: XMLHttpRequestResponseType, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<any>;
+	abstract download(filename: string, type?: XMLHttpRequestResponseType, cancellationToken?: CancellationToken, rawPath?: boolean, onProgress?: OnProgressCallback): Promise<any>;
 
 	/**
 	 * List the files and directories from a given directory
