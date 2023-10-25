@@ -61,10 +61,10 @@
 			<v-card-actions v-if="hasButtons" class="justify-center">
 				<template v-if="isMultipleChoice">
 					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice" color="blue darken-1"
-						   :text="messageBox.default !== index" :elevation="1" @click="accept(index)">
+						   :text="messageBox.default !== index" @click="accept(index)">
 						{{ choice }}
 					</v-btn>
-					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text :elevation="1" @click="cancel">
+					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" text @click="cancel">
 						{{ $t("generic.cancel") }}
 					</v-btn>
 				</template>

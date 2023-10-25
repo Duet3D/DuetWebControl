@@ -9,7 +9,7 @@ export default initCollection(DwcPlugin, [
         id: "GCodeViewer",
         name: "G-Code Viewer",
         author: "Juan Rosario",
-        version: "3.5.0-rc.1",
+        version: "3.5.0-rc.2",
         loadDwcResources: () => import(
             /* webpackChunkName: "GCodeViewer" */
             "./GCodeViewer/index"
@@ -19,7 +19,7 @@ export default initCollection(DwcPlugin, [
         id: "HeightMap",
         name: "Height Map",
         author: "Duet3D Ltd",
-        version: "3.5.0-rc.1",
+        version: "3.5.0-rc.2",
         loadDwcResources: () => import(
             /* webpackChunkName: "HeightMap" */
             "./HeightMap/index"
@@ -29,7 +29,7 @@ export default initCollection(DwcPlugin, [
         id: "InputShaping",
         name: "Input Shaping",
         author: "Duet3D Ltd",
-        version: "3.5.0-rc.1",
+        version: "3.5.0-rc.2",
         loadDwcResources: () => import(
             /* webpackChunkName: "InputShaping" */
             "./InputShaping/index"
@@ -39,7 +39,7 @@ export default initCollection(DwcPlugin, [
         id: "ObjectModelBrowser",
         name: "Object Model Browser",
         author: "Duet3D Ltd",
-        version: "3.5.0-rc.1",
+        version: "3.5.0-rc.2",
         loadDwcResources: () => import(
             /* webpackChunkName: "ObjectModelBrowser" */
             "./ObjectModelBrowser/index"
@@ -49,7 +49,7 @@ export default initCollection(DwcPlugin, [
         id: "OnScreenKeyboard",
         name: "On-Screen Keyboard",
         author: "Duet3D Ltd",
-        version: "3.5.0-rc.1",
+        version: "3.5.0-rc.2",
         loadDwcResources: () => import(
             /* webpackChunkName: "OnScreenKeyboard" */
             "./OnScreenKeyboard/index"
