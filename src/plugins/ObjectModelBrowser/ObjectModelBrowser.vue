@@ -3,7 +3,7 @@
 		<v-col ref="leftContainer" :cols="(active.length === 0) ? 12 : 6">
 			<v-treeview :items="modelTree" open-on-click activatable :active.sync="active">
 				<template #label="{ item }">
-					{{ item.getLabel ? item.getLabel() : item.name }}
+					{{ item.getLabel() }}
 				</template>
 				<template #append="{ item }">
 					<v-chip v-if="item.type">
@@ -177,18 +177,19 @@ export default Vue.extend({
 		this.refresh();
 	},
 	methods: {
-		makeModelTree(obj: object | Array<any> | null, path: Array<string>): Array<ModelTreeItem> {
+		makeModelTree(obj: object | Array<any> | null, path: Array<string>, parentObj?: any): Array<ModelTreeItem> {
 			if (obj instanceof Array) {
 				const that = this;
 				return obj.map((item, index) => {
-					const itemPath = path.slice(0);
+					const itemPath = path.slice(0), parentPropertyName = itemPath[itemPath.length - 1];
 					itemPath[itemPath.length - 1] += `[${index}]`;
 
 					return {
 						id: itemPath.join('.'),
-						getLabel: () => that.getItemLabel(index, item),
+						// FIXME Vue 2 requires the array's parent object to be referenced, should be obsolete in Vue 3
+						getLabel: () => that.getItemLabel(index, parentObj[parentPropertyName][index]),
 						type: that.getItemType(item),
-						children: that.makeModelTree(item, itemPath)
+						children: that.makeModelTree(item, itemPath, obj)
 					}
 				});
 			} else if (obj instanceof Map) {
@@ -202,7 +203,7 @@ export default Vue.extend({
 							id: itemPath.join('.'),
 							getLabel: () => this.getItemLabel(key, obj.get(key)),
 							type: this.getItemType(obj.get(key)),
-							children: this.makeModelTree(obj.get(key), itemPath)
+							children: this.makeModelTree(obj.get(key), itemPath, obj)
 						};
 					}, this);
 			} else if (!isDriverId(obj) && (obj instanceof Object)) {
@@ -216,7 +217,7 @@ export default Vue.extend({
 							id: itemPath.join('.'),
 							getLabel: () => this.getItemLabel(key, (obj as any)[key]),
 							type: this.getItemType((obj as any)[key]),
-							children: this.makeModelTree((obj as any)[key], itemPath)
+							children: this.makeModelTree((obj as any)[key], itemPath, obj)
 						};
 					}, this);
 			}

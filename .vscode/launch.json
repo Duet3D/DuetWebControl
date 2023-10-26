@@ -9,6 +9,8 @@
             "request": "launch",
             "reAttach": true,
             "name": "Firefox debugging",
+            "profile": "default",
+            "keepProfileChanges": true,
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}",
             "skipFiles": [
