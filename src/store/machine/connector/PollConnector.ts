@@ -487,7 +487,7 @@ export default class PollConnector extends BaseConnector {
 					do {
 						const keyResponse = await this.request("GET", "rr_model", {
 							key,
-							flags: (next === 0) ? "d99vn" : `d99vna${next}`
+							flags: (next === 0) ? "d99vno" : `d99vnoa${next}`
 						});
 
 						next = keyResponse.next ? keyResponse.next : 0;
@@ -518,7 +518,7 @@ export default class PollConnector extends BaseConnector {
 			}
 		} else {
 			// Query live values
-			const response = await this.request("GET", "rr_model", { flags: "d99fn" });
+			const response = await this.request("GET", "rr_model", { flags: "d99fno" });
 			jobKey = response.result.job as Job;
 			status = response.result.state.status as MachineStatus;
 
