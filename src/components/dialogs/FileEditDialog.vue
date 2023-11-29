@@ -45,7 +45,7 @@
 				<v-btn icon dark @click="close(false)">
 					<v-icon>mdi-close</v-icon>
 				</v-btn>
-				<v-toolbar-title>{{ filename }}</v-toolbar-title>
+				<v-toolbar-title @click="showSearch">{{ filename }}</v-toolbar-title>
 
 				<v-spacer />
 
@@ -82,8 +82,7 @@
 </template>
 
 <script lang="ts">
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import "monaco-editor/esm/vs/language/json/monaco.contribution";
+import * as monaco from "monaco-editor";
 import Vue from "vue";
 
 import store from "@/store";
@@ -154,6 +153,9 @@ export default Vue.extend({
 		}
 	},
 	methods: {
+		showSearch() {
+			this.monacoEditor!.getAction('actions.find')!.run();
+		},
 		close(fileSaved: boolean) {
 			if (this.valueChanged && !fileSaved && !confirm(this.$t("dialog.fileEdit.confirmClose"))) {
 				return;

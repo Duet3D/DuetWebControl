@@ -191,15 +191,20 @@ export default Vue.extend({
 	data() {
 		return {
 			chart: {} as Chart,
-			pauseUpdate: false
+			lastUpdate: 0
 		}
 	},
 	methods: {
 		update() {
-			this.chart.config.options!.scales!.yAxes![0].ticks!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
-			this.chart.config.options!.scales!.xAxes![0].ticks!.min = (new Date()).getTime() - maxSampleTime;
-			this.chart.config.options!.scales!.xAxes![0].ticks!.max = (new Date()).getTime();
-			this.chart.update();
+			const now = (new Date()).getTime();
+			if (now - this.lastUpdate >= 1000) {
+				this.chart.config.options!.scales!.yAxes![0].ticks!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
+				this.chart.config.options!.scales!.xAxes![0].ticks!.min = (new Date()).getTime() - maxSampleTime;
+				this.chart.config.options!.scales!.xAxes![0].ticks!.max = (new Date()).getTime();
+
+				this.chart.update();
+				this.lastUpdate = now;
+			}
 		},
 		applyDarkTheme(active: boolean) {
 			const ticksColor = active ? "#FFF" : "#666";

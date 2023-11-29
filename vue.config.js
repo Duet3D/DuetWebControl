@@ -19,7 +19,7 @@ module.exports = {
 			splitChunks: {
 				cacheGroups: {
 					monacoEditor: {
-						test: /[\\/]node_modules[\\/]monaco-editor[\\/]/,
+						test: /[\\/]node_modules[\\/]monaco-editor/,
 						name: "monaco-editor",
 						chunks: "all"
 					}
