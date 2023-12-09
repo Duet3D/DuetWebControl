@@ -14,6 +14,7 @@ At this time the following platforms are officially supported:
 * Duet 2 WiFi
 * Duet 2 Ethernet
 * Duet 3 MB 6HC
+* Duet 3 MB 6XD
 * Duet 3 Mini 5+ Ethernet
 * Duet 3 Mini 5+ WiFi
 
