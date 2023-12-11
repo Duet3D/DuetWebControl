@@ -256,12 +256,12 @@ export default Vue.extend({
 							matchBrackets: this.isBigFile ? "near" : "always",
 							language: this.language,
 							lineNumbersMinChars: this.isMediumFile ? 10 : 5,
-							occurrencesHighlight: !this.isBigFile,
+							occurrencesHighlight: this.isBigFile ? "off" :"singleFile",
 							rulers: [255],
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
 							value: this.innerValue,
-							wordBasedSuggestions: false
+							wordBasedSuggestions: "off"
 						});
 						this.monacoEditor.focus();
 					});

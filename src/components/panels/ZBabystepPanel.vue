@@ -1,13 +1,13 @@
 <template>
 	<v-card>
-		<v-card-title>
+		<v-card-title class="pb-0">
 			<v-icon small class="mr-1">mdi-format-vertical-align-center</v-icon> {{ $t('panel.babystepping.caption') }}
 		</v-card-title>
 
-		<v-card-text class="pt-0">
+		<v-card-text class="pt-1">
 			{{ $t('panel.babystepping.current', [$displayZ(babystepping)]) }}
 
-			<v-row no-gutters class="mt-1">
+			<v-row no-gutters class="mt-2">
 				<v-col>
 					<code-btn :code="`M290 R1 Z${-babystepAmount}`" no-wait block>
 						<v-icon>mdi-arrow-collapse-vertical</v-icon> {{ $displayZ(-babystepAmount) }}
@@ -15,7 +15,7 @@
 				</v-col>
 
 				<v-col>
-					<code-btn :code="`M290 R1 Z${babystepAmount}`" no-wait block>
+					<code-btn :code="`M290 R1 Z${babystepAmount}`" class="mt-3" no-wait block>
 						<v-icon>mdi-arrow-split-horizontal</v-icon> +{{ $displayZ(babystepAmount) }}
 					</code-btn>
 				</v-col>

@@ -12,12 +12,12 @@
 				{{ pauseResumeText }}
 			</code-btn>
 
-			<code-btn v-if="isPaused" :disabled="isCancelling" color="error" block code="M0">
+			<code-btn v-if="isPaused" block :disabled="isCancelling" class="mt-3" color="error" code="M0">
 				<v-icon class="mr-1">mdi-stop</v-icon>
 				{{ cancelText }}
 			</code-btn>
 
-			<code-btn v-if="!isPrinting && processAnotherCode" color="success" block :code="processAnotherCode">
+			<code-btn v-if="!isPrinting && processAnotherCode" block class="mt-3" color="success" :code="processAnotherCode">
 				<v-icon class="mr-1">{{ processAnotherIcon }}</v-icon>
 				{{ processAnotherText }}
 			</code-btn>

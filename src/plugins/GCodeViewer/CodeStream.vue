@@ -54,7 +54,7 @@ export default Vue.extend({
             theme: store.state.settings.darkTheme ? 'vs-dark' : 'vs',
             value: this.innerDocument,
             readOnly: true,
-            occurrencesHighlight: false,
+            occurrencesHighlight: 'off',
             matchBrackets: 'never',
             minimap: {
                enabled: false
