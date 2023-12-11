@@ -148,7 +148,7 @@ monaco.languages.setMonarchTokensProvider("gcode", {
 		],
 		varName: [
 			// variable name
-			[/[a-z_$][\w$]*/, "variable.name", "@expression" ],
+			[/[a-zA-Z_$][\w$]*/, "variable.name", "@expression" ],
 
 			// EOL
 			[/\n/, "", "@popall"]
