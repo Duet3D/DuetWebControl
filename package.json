@@ -63,7 +63,7 @@
       "sass": "~1.32",
       "sass-loader": "^13.3.2",
       "semver": "^7.5.4",
-      "simple-keyboard": "^3.7.34",
+      "simple-keyboard": "^3.7.35",
       "stylus": "^0.59.0",
       "stylus-loader": "^7.1.3",
       "turbo-crc32": "^1.0.1",

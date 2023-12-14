@@ -933,7 +933,7 @@ export default class PollConnector extends BaseConnector {
 			deleteexisting: force ? "yes" : "no"
 		}, "json", null, this.requestTimeout, from);
 
-		if (response.err !== 0) {
+		if (!force && response.err !== 0) {
 			throw new OperationFailedError(`err ${response.err}`);
 		}
 	}

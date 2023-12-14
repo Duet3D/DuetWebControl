@@ -193,6 +193,10 @@ export default Vue.extend({
 			this.close(true);
 
 			try {
+				if (this.filename.endsWith("/daemon.g")) {
+					// daemon.g may be still open and running at this time, move it first
+					await store.dispatch("machine/move", { from: this.filename, to: this.filename + ".bak", force: true });
+				}
 				await store.dispatch("machine/upload", { filename: this.filename, content });
 				this.$emit("editComplete", this.filename);
 			} catch (e) {
