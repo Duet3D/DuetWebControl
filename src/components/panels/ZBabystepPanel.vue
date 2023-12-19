@@ -7,16 +7,18 @@
 		<v-card-text class="pt-1">
 			{{ $t('panel.babystepping.current', [$displayZ(babystepping)]) }}
 
-			<v-row no-gutters class="mt-2">
+			<v-row class="mt-1" dense>
 				<v-col>
 					<code-btn :code="`M290 R1 Z${-babystepAmount}`" no-wait block>
-						<v-icon>mdi-arrow-collapse-vertical</v-icon> {{ $displayZ(-babystepAmount) }}
+						<v-icon>mdi-arrow-collapse-vertical</v-icon>
+						{{ $displayZ(-babystepAmount) }}
 					</code-btn>
 				</v-col>
 
 				<v-col>
-					<code-btn :code="`M290 R1 Z${babystepAmount}`" class="mt-3" no-wait block>
-						<v-icon>mdi-arrow-split-horizontal</v-icon> +{{ $displayZ(babystepAmount) }}
+					<code-btn :code="`M290 R1 Z${babystepAmount}`" no-wait block>
+						<v-icon>mdi-arrow-split-horizontal</v-icon>
+						+{{ $displayZ(babystepAmount) }}
 					</code-btn>
 				</v-col>
 			</v-row>
