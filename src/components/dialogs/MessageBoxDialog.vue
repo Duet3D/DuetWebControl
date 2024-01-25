@@ -58,7 +58,7 @@
 				</form>
 			</v-card-text>
 
-			<v-card-actions v-if="hasButtons" class="justify-center">
+			<v-card-actions v-if="hasButtons" class="flex-wrap justify-center">
 				<template v-if="isMultipleChoice">
 					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice" color="blue darken-1"
 						   :text="messageBox.default !== index" @click="accept(index)">
