@@ -318,6 +318,16 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	/**
+	 * Keep track of the last 
+	 */
+	static lastDsfHostname: string | null = null;
+
+	/**
+	 * Keep track of the last 
+	 */
+	static lastDsfVersion: string | null = null;
+
+	/**
 	 * Try to reconnect to the remote machine
 	 */
 	async reconnect() {
@@ -341,7 +351,6 @@ export default class RestConnector extends BaseConnector {
 		// Attempt to reconnect
 		const that = this;
 		await new Promise<void>((resolve, reject) => {
-			const lastDsfVersion = that.model.sbc?.dsf.version;
 			const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 			const socket = new WebSocket(`${socketProtocol}//${that.hostname}${process.env.BASE_URL}machine${(that.sessionKey ? `?sessionKey=${that.sessionKey}` : "")}`);
 			socket.onmessage = (e) => {
@@ -350,9 +359,12 @@ export default class RestConnector extends BaseConnector {
 				that.socket = socket;
 
 				// Check if DSF has been updated
-				if (lastDsfVersion !== that.model.sbc?.dsf.version) {
+				if (this.hostname === RestConnector.lastDsfHostname && that.model.sbc?.dsf.version !== RestConnector.lastDsfVersion) {
+					// Reload DWC if DSF has been updated (e.g. after M997 S2)
 					location.reload();
 				}
+				RestConnector.lastDsfHostname = this.hostname;
+				RestConnector.lastDsfVersion = that.model.sbc?.dsf.version ?? null;
 
 				// Dismiss pending notifications and resolve the connection attempt
 				closeNotifications(true);
