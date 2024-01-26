@@ -232,15 +232,15 @@ export default {
 		plugins: {}
 	},
 	actions: {
-		async applyDefaults({ rootState, state, dispatch }) {
+		async applyDefaults({ rootState, state, commit, dispatch }) {
 			// Load settings that are enabled by default
 			if (state.enabledPlugins) {
-				/*await*/ dispatch("loadDwcPlugins", state.enabledPlugins);
+				/*await*/ dispatch("loadDwcPlugins", state.enabledPlugins, { root: true });
 			}
 
 			// Apply different webcam defaults in SBC mode
 			if (rootState.machine.model.sbc !== null) {
-				this.commit("applySbcWebcamDefaults");
+				commit("applySbcWebcamDefaults");
 			}
 		},
 		async load({ rootGetters, commit, dispatch }) {

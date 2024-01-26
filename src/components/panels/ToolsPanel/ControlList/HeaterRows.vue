@@ -1,5 +1,5 @@
 <template>
-    <fragment>
+    <tbody>
         <template v-if="singleControl && firstHeater !== null">
             <!-- Single Heater Control-->
             <tr>
@@ -111,12 +111,7 @@
                 </template>
             </template>
         </template>
-        <template v-else>
-            <tr class="d-none">
-                <!-- Dummy to keep vue-fragment happy -->
-            </tr>
-        </template>
-    </fragment>
+    </tbody>
 </template>
 
 <script setup lang="ts">

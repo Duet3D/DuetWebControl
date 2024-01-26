@@ -42,30 +42,33 @@ table.tools th {
                 </th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Tools -->
-            <tool-rows @resetHeaterFault="resetHeaterFault" />
 
-            <!-- Divider -->
-            <tr v-if="hasTools && hasBeds">
+        <!-- Tools -->
+        <tool-rows @resetHeaterFault="resetHeaterFault" />
+
+        <!-- Divider -->
+        <tbody v-if="hasTools && hasBeds">
+            <tr>
                 <td colspan="5">
                     <v-divider />
                 </td>
             </tr>
-
-            <!-- Beds -->
-            <heater-rows type="bed" @resetHeaterFault="resetHeaterFault" />
-
-            <!-- Divider -->
-            <tr v-if="(hasTools || hasBeds) && hasChambers">
-                <td colspan="5">
-                    <v-divider />
-                </td>
-            </tr>
-
-            <!-- Chambers -->
-            <heater-rows type="chamber" @resetHeaterFault="resetHeaterFault" />
         </tbody>
+
+        <!-- Beds -->
+        <heater-rows type="bed" @resetHeaterFault="resetHeaterFault" />
+
+        <!-- Divider -->
+        <tbody v-if="(hasTools || hasBeds) && hasChambers">
+            <tr>
+                <td colspan="5">
+                    <v-divider />
+                </td>
+            </tr>
+        </tbody>
+
+        <!-- Chambers -->
+        <heater-rows type="chamber" @resetHeaterFault="resetHeaterFault" />
 
         <!-- Heater faults-->
         <reset-heater-fault-dialog :shown.sync="resettingHeaterFault" :heater="faultyHeaterToReset" />

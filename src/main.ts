@@ -1,5 +1,4 @@
 import "@mdi/font/css/materialdesignicons.css";
-import Fragment from "vue-fragment";
 import Vue from "vue";
 import Vuetify from "vuetify";
 
@@ -17,7 +16,6 @@ import App from "./App.vue";
 (window as any)._duetModelSetArray = (array: object, index: string | number, value: any) => Vue.set(array, index, value);
 
 Vue.config.productionTip = false;
-Vue.use(Fragment.Plugin);			// obsolete when upgraded to Vue 3
 Vue.use(Vuetify);
 
 export default new Vue({

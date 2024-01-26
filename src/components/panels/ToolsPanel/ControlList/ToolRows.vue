@@ -1,5 +1,5 @@
 <template>
-    <fragment>
+    <tbody>
         <template v-if="toolsToDisplay.length > 0">
             <template v-for="(tool, toolIndex) in toolsToDisplay">
                 <!-- Tool -->
@@ -153,12 +153,7 @@
                 </tr>
             </template>
         </template>
-        <template v-else>
-            <tr class="d-none">
-                <!-- Dummy to keep vue-fragment happy -->
-            </tr>
-        </template>
-    </fragment>
+    </tbody>
 </template>
 
 <script setup lang="ts">
