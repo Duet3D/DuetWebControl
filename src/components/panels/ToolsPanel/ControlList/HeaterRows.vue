@@ -67,47 +67,54 @@
                 </td>
             </tr>
         </template>
-        <template v-else v-for="{ index, heater, heaterIndex } in heaterItems">
-            <!-- Individual Heater Control-->
-            <template v-if="heater !== null">
-                <!-- Heater -->
-                <tr :key="index">
-                    <!-- Heater item name -->
-                    <th class="pl-2">
-                        <a href="javascript:void(0)" @click="heaterClick(index, heater)">
-                            <v-icon small v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
-                            {{ (props.type === "bed") ? $t("panel.tools.bed", [(heaterItems.length === 1) ? "" : index]) : $t("panel.tools.chamber", [(heaterItems.length === 1) ? "" : index]) }}
-                        </a>
-                    </th>
+        <template v-else-if="heaterItems.some(item => item.heater !== null)">
+            <template v-for="{ index, heater, heaterIndex } in heaterItems">
+                <!-- Individual Heater Control-->
+                <template v-if="heater !== null">
+                    <!-- Heater -->
+                    <tr :key="index">
+                        <!-- Heater item name -->
+                        <th class="pl-2">
+                            <a href="javascript:void(0)" @click="heaterClick(index, heater)">
+                                <v-icon small v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+                                {{ (props.type === "bed") ? $t("panel.tools.bed", [(heaterItems.length === 1) ? "" : index]) : $t("panel.tools.chamber", [(heaterItems.length === 1) ? "" : index]) }}
+                            </a>
+                        </th>
 
-                    <!-- Heater name -->
-                    <th>
-                        <a href="javascript:void(0)" @click="heaterClick(index, heater)"
-                           :class="getHeaterColor(heaterIndex)">
-                            {{ getHeaterName(heater, heaterIndex) }}
-                        </a>
-                        <br>
-                        <span class="font-weight-regular caption">
-                            {{ $t(`generic.heaterStates.${heater.state}`) }}
-                        </span>
-                    </th>
+                        <!-- Heater name -->
+                        <th>
+                            <a href="javascript:void(0)" @click="heaterClick(index, heater)"
+                            :class="getHeaterColor(heaterIndex)">
+                                {{ getHeaterName(heater, heaterIndex) }}
+                            </a>
+                            <br>
+                            <span class="font-weight-regular caption">
+                                {{ $t(`generic.heaterStates.${heater.state}`) }}
+                            </span>
+                        </th>
 
-                    <!-- Heater value -->
-                    <td>
-                        {{ getHeaterValue(heater) }}
-                    </td>
+                        <!-- Heater value -->
+                        <td>
+                            {{ getHeaterValue(heater) }}
+                        </td>
 
-                    <!-- Heater active -->
-                    <td class="pl-2 pr-1">
-                        <control-input :type="props.type" :index="index" active />
-                    </td>
+                        <!-- Heater active -->
+                        <td class="pl-2 pr-1">
+                            <control-input :type="props.type" :index="index" active />
+                        </td>
 
-                    <!-- Heater standby -->
-                    <td class="pl-1 pr-2">
-                        <control-input :type="props.type" :index="index" standby />
-                    </td>
-                </tr>
+                        <!-- Heater standby -->
+                        <td class="pl-1 pr-2">
+                            <control-input :type="props.type" :index="index" standby />
+                        </td>
+                    </tr>
+                </template>
             </template>
+        </template>
+        <template v-else>
+            <tr class="d-none">
+                <!-- Dummy to keep vue-fragment happy -->
+            </tr>
         </template>
     </fragment>
 </template>
