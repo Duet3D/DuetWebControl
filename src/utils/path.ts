@@ -6,7 +6,7 @@
 export function combine(...args: any[]) {
 	let result = '';
 	for (const arg of args) {
-		if (arg.startsWith('/') || /(\d)+:.*/.test(arg)) {
+		if (arg.startsWith('/') || /^(\d)+:.*/.test(arg)) {
 			if (arg.endsWith('/')) {
 				result = arg.substring(0, arg.length - 1);
 			} else {
@@ -112,7 +112,7 @@ export function filesAffectDirectory(files: Array<string>, directory: string) {
  */
 export function getVolume(path: string) {
 	if (path) {
-		const matches = /(\d+).*/.exec(path);
+		const matches = /^(\d+).*/.exec(path);
 		if (matches) {
 			return parseInt(matches[1]);
 		}
