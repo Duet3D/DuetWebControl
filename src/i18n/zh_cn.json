@@ -24,12 +24,12 @@
       "itemsPerPageAll": "全部",
       "nextPage": "下一页",
       "prevPage": "上一页",
-      "firstPage": "第一页",
-      "lastPage": "最后一页",
-      "pageText": "第{0}-{1}条，共{2}条"
+      "firstPage": "首页",
+      "lastPage": "尾页",
+      "pageText": "第{0}-{1}页，共{2}页"
     },
     "datePicker": {
-      "itemsSelected": "已选择{0}"
+      "itemsSelected": "{0}已选择"
     },
     "noDataText": "没有可用数据",
     "carousel": {
@@ -40,15 +40,15 @@
       }
     },
     "calendar": {
-      "moreEvents": "还有{0}个"
+      "moreEvents": "还有{0}"
     },
     "fileInput": {
-      "counter": "{0}个文件",
-      "counterSize": "{0}个文件，（总计{1}）"
+      "counter": "文件：{0}",
+      "counterSize": "文件：{0}（总计{1}）"
     },
     "timePicker": {
-      "am": "上午",
-      "pm": "下午"
+      "am": "AM",
+      "pm": "PM"
     }
   },
   "button": {
@@ -122,11 +122,11 @@
       },
       "plugin": {
         "caption": "安装插件",
-        "title": "上传冰启动插件（支持拖放）"
+        "title": "上传并启动插件（支持拖放）"
       },
       "update": {
         "caption": "上传更新",
-        "title": "上传更新包（支持拖放）"
+        "title": "上传并安装更新包（支持拖放）"
       }
     }
   },
@@ -157,7 +157,7 @@
     },
     "configUpdated": {
       "title": "应用新配置？",
-      "prompt": "你是要重启主板还是再次执行配置文件？如果你移除了IO端口或更改了驱动器分配，建议重置主板。",
+      "prompt": "你想要重启主板还是重新运行配置文件？如果你移除了IO端口或更改了驱动器分配，建议重置主板。",
       "reset": "重启主板",
       "runConfig": "运行配置文件"
     },
@@ -177,7 +177,7 @@
       "updating": "正在安装更新，请稍候……",
       "reconnecting": "连接丢失，尝试重新连接……",
       "standBy": "请等待……",
-      "boardUpdateMessage": "以下板块正在更新：|以下板块正在更新："
+      "boardUpdateMessage": "下列电路板正在更新：|下列电路板正在更新："
     },
     "editExtrusionAmount": {
       "title": "编辑挤出机进给长度",
@@ -202,7 +202,7 @@
       "menuReference": "菜单参考",
       "save": "保存",
       "confirmClose": "文件已修改。如果继续，你的修改将丢失。",
-      "confirmSaveEmpty": "您要保存的文件似乎是空的。您确定要继续吗？",
+      "confirmSaveEmpty": "您要保存的文件似乎是空的。 您确定要继续吗？",
       "indentComments": "缩进注释"
     },
     "fileTransfer": {
@@ -302,14 +302,14 @@
     },
     "inputRequired": "请输入一个值",
     "numberRequired": "请输入有效的数值",
-    "duplicateFilament": {
-      "prompt": "请输入灯丝副本的名称：",
-      "title": "重复灯丝"
-    },
     "incompatibleVersions": {
-      "prompt": "安装的软件版本不匹配。\n请仅在相同版本上运行您的设置，以避免潜在的不兼容和意外错误。",
       "title": "不兼容的软件版本",
+      "prompt": "安装的软件版本不匹配。 请在相同版本上运行您的设置，以避免潜在的不兼容和意外错误。",
       "upgradeNotice": "请查看有关如何升级 Duet 软件组件的{docs}。"
+    },
+    "duplicateFilament": {
+      "prompt": "请输入细丝副本的名称：",
+      "title": "复制细丝"
     }
   },
   "directory": {
@@ -348,7 +348,7 @@
     "fileinfoRequestFailed": "无法获取文件{0}的信息",
     "filamentsLoadFailed": "无法加载细丝",
     "move": "从{0}移动到{1}失败",
-    "startupError": "启动文件 {0} 第 {1} 行中的错误：{2}"
+    "startupError": "启动文件{0}第{1}行错误：{2}"
   },
   "events": {
     "connected": "已连接到{0}",
@@ -523,7 +523,7 @@
       "title": "正在解压缩文件……",
       "message": "文件已经开始解压缩，请等待……",
       "errorTitle": "解压缩文件失败",
-      "standaloneUpdateInSbcModeError": "您正在尝试在 SBC 模式下上传独立的 DWC 包。\n这是不支持的。\n请使用 apt update/upgrade 来更新您的系统。"
+      "standaloneUpdateInSbcModeError": "你正在尝试在SBC模式下上传独立的DWC捆绑包。不支持此功能。请使用apt update/upgrade命令来更新系统。"
     },
     "delete": {
       "errorTitle": "删除{0}失败",
@@ -542,10 +542,20 @@
       "success": "已成功下载{0}，总计{1}",
       "error": "下载{0}失败"
     },
+    "systemPackageInstall": {
+      "title": "正在安装文件{0}",
+      "message": "正在安装文件，请等待……",
+      "success": "{0}安装成功",
+      "error": "{0}安装失败"
+    },
     "message": "消息",
     "mount": {
       "successTitle": "SD卡已装载",
       "errorTitle": "装载SD卡失败"
+    },
+    "pluginLoad": {
+      "title": "正在加载插件……",
+      "message": "正在加载插件，请等待……"
     },
     "newDirectory": {
       "errorTitle": "创建目录失败",
@@ -581,20 +591,9 @@
       "success": "已成功上传{0}，总计{1}",
       "error": "上传{0}失败"
     },
-    "install": {},
-    "pluginLoad": {
-      "message": "正在加载插件，请稍候...",
-      "title": "加载插件..."
-    },
-    "systemPackageInstall": {
-      "error": "安装 {0} 失败",
-      "message": "正在安装文件，请稍候...",
-      "success": "{0} 安装成功",
-      "title": "安装文件 {0}"
-    },
     "freeSpaceWarning": {
-      "message": "第一卷上几乎没有剩余空间。\n删除一些文件以避免文件上传过程中出现问题。",
-      "title": "磁盘快满了"
+      "title": "磁盘快满了",
+      "message": "几乎没有剩余空间，删除一些文件以避免文件上传过程中出现问题。"
     }
   },
   "panel": {
@@ -651,7 +650,7 @@
       "repeatSimulation": "重新模拟",
       "showPreview": "显示预览",
       "printNow": "立即打印",
-      "startJob": "开始工作"
+      "startJob": "开始任务"
     },
     "jobData": {
       "caption": "采集数据",
@@ -673,7 +672,7 @@
       "height": "高度:",
       "layerHeight": "层高:",
       "filament": "细丝用量:",
-      "generatedBy": "生成软件:"
+      "generatedBy": "切片软件:"
     },
     "movement": {
       "caption": "机器运动",
@@ -692,15 +691,15 @@
       "loadMesh": "从SD卡加载已保存的高度图(G29 S1)",
       "axesNotHomed": "以下轴未归位：|以下轴未归位：",
       "noAxes": "没有轴",
-      "workzero": "归零",
       "set": "设置{0}",
-      "setWorkXYZ": "设置工作 XYZ"
+      "workzero": "归零",
+      "setWorkXYZ": "设置工作XYZ"
     },
     "settingsAbout": {
+      "buildDateTime": "创建于{0}",
       "caption": "关于",
-      "credits": "{author} 为 {Duet3D} 开发的 Web 界面。",
-      "license": "根据 {gpl} 的条款获得许可。",
-      "buildDateTime": "基于 {0}"
+      "credits": "Web界面开发：{author} 来自{Duet3D}。简体中文翻译：宁甲尊",
+      "license": "根据 {gpl} 条款获得许可。"
     },
     "settingsAppearance": {
       "caption": "外观",
@@ -721,9 +720,9 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
-      "singleBedControl": "单床控制",
+      "singleBedControl": "单个热床控制",
       "groupTools": "分组相同的工具",
-      "singleChamberControl": "单室控制"
+      "singleChamberControl": "单个加热室控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -731,20 +730,20 @@
       "updateDelay": "更新延迟（ms）",
       "ajaxRetries": "最大AJAX重试次数",
       "updateInterval": "更新间隔（{0}）",
-      "fileTransferRetryThreshold": "文件传输的重试阈值（{0}）",
+      "fileTransferRetryThreshold": "文件传输重试阈值({0})",
       "crcUploads": "使用CRC32校验和进行上传",
       "unavailable": "没有可用的设置"
     },
     "settingsElectronics": {
-      "caption": "电子器件",
+      "caption": "电子设备",
       "diagnostics": "诊断",
-      "board": "主板：{0}",
+      "board": "电路板：{0}",
       "firmware": "固件：{0} ({1})",
       "dwsFirmware": "Duet WiFi Server版本：{0}",
       "updateNote": "注意：你可以在“系统”页面上安装更新。",
-      "dsfVersion": "DSF 版本：{0}",
       "notConnected": "（未连接）",
-      "dwcVersion": "DWC 版本：{0}"
+      "dsfVersion": "DSF版本：{0}",
+      "dwcVersion": "DWC版本：{0}"
     },
     "settingsEndstops": {
       "caption": "限位开关",
@@ -777,15 +776,15 @@
     "settingsNotifications": {
       "caption": "通知",
       "notificationErrorsPersistent": "不要自动关闭错误消息",
-      "notificationTimeout": "默认通知超时（{0}）"
+      "notificationTimeout": "默认通知超时（{0}"
     },
     "settingsBehaviour": {
       "caption": "行为",
-      "behaviourJobStart": "不要在作业开始时自动切换到状态面板"
+      "behaviourJobStart": "任务开始时不自动切换到状态面板"
     },
     "settingsWebcam": {
       "caption": "网络摄像头",
-      "webcamURL": "网络摄像头网址",
+      "webcamURL": "网络摄像头网址（可选）",
       "webcamUpdateInterval": "网络摄像头更新间隔（{0}）",
       "webcamLiveURL": "点击网络摄像头图像时打开的网址（可选）",
       "webcamFix": "重新加载图像时，请勿附加HTTP限定符",
@@ -831,7 +830,7 @@
       "fanRPM": "风扇转速",
       "probe": "Z轴探针|Z轴探针",
       "noStatus": "没有状态",
-      "extrusionRate": "挤压率",
+      "extrusionRate": "挤出速度",
       "volumetricFlow": "体积流量"
     },
     "tools": {
@@ -862,10 +861,10 @@
         "noItems": "没有附加的传感器"
       },
       "noTools": "没有工具",
-      "allBeds": "所有床位",
-      "beds": "床",
-      "allChambers": "所有商会",
-      "chambers": "钱伯斯"
+      "allBeds": "所有热床",
+      "beds": "热床",
+      "chambers": "加热室",
+      "allChambers": "所有加热室"
     },
     "webcam": {
       "caption": "网络摄像头监控",
@@ -1016,12 +1015,14 @@
       "useSpecular": "使用高光",
       "feature": "材质",
       "g1AsExtrusion": "渲染 G1 (CNC)",
-      "viewGCode": "查看 G 代码",
-      "zBeltAngle": "Z 带龙门角度",
-      "showWorkplace": "显示职场",
+      "viewGCode": "查看G-Code",
       "zBelt": "Z带",
-      "perimeterOnly": "仅限周边",
-      "progressMode": "进度模式"
+      "zBeltAngle": "Z带龙门角度",
+      "showWorkplace": "显示工作区域",
+      "perimeterOnly": "仅周边",
+      "progressMode": "进度模式",
+      "cancelObj": "取消对象",
+      "resumeObj": "恢复对象"
     },
     "heightmap": {
       "menuCaption": "高度图",
@@ -1052,11 +1053,11 @@
     },
     "objectModelBrowser": {
       "menuCaption": "对象模型",
-      "documentationNotAvailable": "文档不可用（/www/DuetAPI.xml 未找到）",
-      "none": "没有任何",
-      "remarks": "评论",
-      "selectedNode": "选定节点：",
-      "summary": "概括"
+      "selectedNode": "选定的节点:",
+      "none": "没有",
+      "documentationNotAvailable": "文档不可用（未找到/www/DuetAPI.xml）",
+      "summary": "摘要",
+      "remarks": "备注"
     }
   },
   "tabs": {
@@ -1064,7 +1065,7 @@
       "caption": "常规"
     },
     "machineSettings": {
-      "caption": "常规"
+      "caption": "机器"
     },
     "plugins": {
       "integratedPlugins": "集成插件",
