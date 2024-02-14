@@ -265,6 +265,9 @@ export default Vue.extend({
 							wordBasedSuggestions: "off"
 						});
 						this.monacoEditor.focus();
+
+						const that = this;
+						this.monacoEditor.getModel()!.onDidChangeContent(() => that.valueChanged = true);
 					});
 				}
 
