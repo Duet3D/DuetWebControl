@@ -1,6 +1,6 @@
 {
    "name": "duetwebcontrol",
-   "version": "3.5.0-rc.3+1",
+   "version": "3.5.0-rc.3+2",
    "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
    "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
    "license": "GPL-3.0",
@@ -55,7 +55,7 @@
       "event-hooks-webpack-plugin": "^2.3.0",
       "file-saver": "^2.0.5",
       "jszip": "^3.10.1",
-      "monaco-editor": "^0.46.0",
+      "monaco-editor": "^0.45.0",
       "piecon": "^0.5.0",
       "qoijs": "^1.0.0",
       "register-service-worker": "^1.7.2",
