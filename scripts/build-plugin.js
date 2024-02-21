@@ -163,17 +163,25 @@ service
 
 			// Add plugin JSON
 			if (pluginManifest.version === "auto" ||
-				pluginManifest.dwcVersion === "auto" ||
-				pluginManifest.dsfVersion === "auto"
+				pluginManifest.dwcVersion === "auto" || pluginManifest.dwcVersion === "auto-major" ||
+				pluginManifest.dsfVersion === "auto" || pluginManifest.dsfVersion === "auto-major"
 			) {
 				if (pluginManifest.version === "auto") {
 					pluginManifest.version = dwcManifest.version;
 				}
+
 				if (pluginManifest.dwcVersion === "auto") {
 					pluginManifest.dwcVersion = dwcManifest.version;
+				} else if (pluginManifest.dwcVersion === "auto-major") {
+					const v = dwcManifest.version.split('.');
+					pluginManifest.dwcVersion = `${v[0]}.${v[1]}`;
 				}
+
 				if (pluginManifest.dsfVersion === "auto") {
 					pluginManifest.dsfVersion = dwcManifest.pkgVersion;
+				} else if (pluginManifest.dsfVersion === "auto-major") {
+					const v = dwcManifest.version.split('.');
+					pluginManifest.dsfVersion = `${v[0]}.${v[1]}`;
 				}
 				archive.append(JSON.stringify(pluginManifest, null, 2), { name: "plugin.json" });
 			} else {
