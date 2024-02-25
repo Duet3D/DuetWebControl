@@ -115,7 +115,7 @@ export default Vue.extend({
 		darkTheme(): boolean { return store.state.settings.darkTheme; },
 		useMonacoEditor(): boolean { return !store.state.oskEnabled && !this.isMobile; },
 		language(): string {
-			if (Path.startsWith(this.filename, this.macrosDirectory) || /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)$/i.test(this.filename)) {
+			if (Path.startsWith(this.filename, this.macrosDirectory) || /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)(\.bak)?$/i.test(this.filename)) {
 				return "gcode";
 			}
 			if (/\.json/i.test(this.filename)) {
@@ -264,12 +264,15 @@ export default Vue.extend({
 							value: this.innerValue,
 							wordBasedSuggestions: "off"
 						});
-						this.monacoEditor.focus();
-
-						const that = this;
-						this.monacoEditor.getModel()!.onDidChangeContent(() => that.valueChanged = true);
+						this.monacoEditor.getModel()!.onDidChangeContent(() => this.valueChanged = true);
 					});
 				}
+
+				// Focus text editor
+				setTimeout(() => {
+					this.monacoEditor?.focus();
+					(this.$refs.textarea as HTMLTextAreaElement | undefined)?.focus();
+				}, 500);
 
 				// Add notification for users in case changes have not been saved yet
 				window.addEventListener("beforeunload", this.onBeforeLeave);

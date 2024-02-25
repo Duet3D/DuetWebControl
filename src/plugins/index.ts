@@ -55,8 +55,8 @@ export function checkManifest(manifest: PluginManifest) {
  */
 export function checkVersion(actual: string, required: string) {
 	if (required) {
-		const actualItems = actual.split(/[+.-ab]/);
-		const requiredItems = required.split(/[+.-ab]/);
+		const actualItems = actual.split(/[+.\-ab]/);
+		const requiredItems = required.split(/[+.\-ab]/);
 		for (let i = 0; i < Math.min(actualItems.length, requiredItems.length); i++) {
 			if (actualItems[i] !== requiredItems[i]) {
 				return false;

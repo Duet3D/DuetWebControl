@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :loading="isBusy"
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :fab="fab" :loading="isBusy"
 			   :title="title" :color="innerColor" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave"
 			   @drop.prevent.stop="dragDrop">
 			<template #loader>
@@ -92,6 +92,7 @@ export default Vue.extend({
 	props: {
 		color: String,
 		directory: String,
+		fab: Boolean,
 		machine: String,
 		target: {
 			type: String as PropType<UploadType>,
