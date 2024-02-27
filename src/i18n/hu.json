@@ -1,0 +1,1093 @@
+{
+  "language": "Hungarian",
+  "$vuetify": {
+    "badge": "Jelvény",
+    "close": "Bezárás",
+    "dataIterator": {
+      "noResultsText": "Nincs egyező rekord",
+      "loadingText": "Elemek betöltése..."
+    },
+    "dataTable": {
+      "itemsPerPageText": "Sorok száma oldalanként:",
+      "ariaLabel": {
+        "sortDescending": "Csökkenő sorrendbe rendezve.",
+        "sortAscending": "Növekvő sorrendbe rendezve.",
+        "sortNone": "Nincs rendezve.",
+        "activateNone": "Aktiválja a rendezés megszüntetéséhez.",
+        "activateDescending": "Aktiválja a csökkenő sorrendbe rendezéshez.",
+        "activateAscending": "Aktiválja a növekvő sorrendbe rendezéshez."
+      },
+      "sortBy": "Rendezés"
+    },
+    "dataFooter": {
+      "itemsPerPageText": "Elem/oldal:",
+      "itemsPerPageAll": "Összes",
+      "nextPage": "Következő oldal",
+      "prevPage": "Előző oldal",
+      "firstPage": "Első oldal",
+      "lastPage": "Utolsó oldal",
+      "pageText": "{0}-{1} / {2}"
+    },
+    "datePicker": {
+      "itemsSelected": "{0} kiválasztva"
+    },
+    "noDataText": "Nincs adat",
+    "carousel": {
+      "prev": "Previous visual",
+      "next": "Next visual",
+      "ariaLabel": {
+        "delimiter": "Carousel slide {0} of {1}"
+      }
+    },
+    "calendar": {
+      "moreEvents": "{0} további"
+    },
+    "fileInput": {
+      "counter": "{0} fájl",
+      "counterSize": "{0} fájl ({1} összesen)"
+    },
+    "timePicker": {
+      "am": "De.",
+      "pm": "Du."
+    }
+  },
+  "button": {
+    "add": {
+      "caption": "Hozzáad"
+    },
+    "connect": {
+      "connect": "Kapcsolódás",
+      "connecting": "Kapcsolódás...",
+      "disconnect": "Kapcsolat bontása",
+      "disconnecting": "Lekapcsolódás..."
+    },
+    "emergencyStop": {
+      "caption": "Vészleállítás",
+      "title": "Azonnali szoftver RESET kikényszerítése (M112+M999)"
+    },
+    "home": {
+      "caption": "{0} nullpont felvétel",
+      "captionAll": "Összes nullpont felvétele",
+      "title": "{0} tengely gépi nullpontra állítása (G28 {0})",
+      "titleAll": "Összes tengely gépi nullpontra állítása (G28)"
+    },
+    "newDirectory": {
+      "caption": "Új Mappa"
+    },
+    "newFilament": {
+      "caption": "Új Filament"
+    },
+    "newFile": {
+      "caption": "Új Fájl"
+    },
+    "refresh": {
+      "caption": "Frissítés"
+    },
+    "reset": {
+      "caption": "Gép Reset",
+      "title": "M999 küldése a gépnek a Reset-eléshez"
+    },
+    "upload": {
+      "gcodes": {
+        "caption": "G-kód fájlok feltöltése",
+        "title": "Egy vagy több G-kód fájl feltöltése (ide is húzhatja a fájlt)"
+      },
+      "start": {
+        "caption": "Feltöltés és Indítás",
+        "title": "Egy vagy több G-kód fájl feltöltése és indítása (ide is húzhatja a fájlt)"
+      },
+      "firmware": {
+        "caption": "Firmware fájlok feltöltése",
+        "title": "Egy vagy több firmware fájl feltöltése (ide is húzhatja a fájlt)"
+      },
+      "macros": {
+        "caption": "Makró fájlok feltöltése",
+        "title": "Egy vagy több makró fájl feltölése (ide is húzhatja a fájlt)"
+      },
+      "filaments": {
+        "caption": "Filament konfiguráció feltöltése",
+        "title": "Egy vagy több filament konfiguráció feltöltése (ide is húzhatja a fájlt)"
+      },
+      "menu": {
+        "caption": "Menü fájl feltöltése",
+        "title": "Egy vagy több menü fájl feltöltése (ide is húzhatja a fájlt)"
+      },
+      "system": {
+        "caption": "Rendszerfájlok feltöltése",
+        "title": "Egy vagy töb rendszerfájl feltöltése (ide is húzhatja a fájlt)"
+      },
+      "web": {
+        "caption": "Web fájlok feltöltése",
+        "title": "Egy vagy több web fájl feltöltése (ide is húzhatja a fájlt)"
+      },
+      "plugin": {
+        "caption": "Plugin telepítése",
+        "title": "Feltölti és elindítja a plugint (ide is húzhatja a fájlt)"
+      },
+      "update": {
+        "caption": "Frissítés telepítése",
+        "title": "Frissítés feltöltése és telepítése (ide is húzhatja a fájlt)"
+      }
+    }
+  },
+  "chart": {
+    "layer": {
+      "caption": "Réteg idő grafikon",
+      "layerTime": "Réteg idő",
+      "showLastLayers": "A legutóbbi {0} réteg mutatása",
+      "showAllLayers": "Összes réteg mutatása",
+      "layer": "Réteg {0}",
+      "layerDuration": "Idő: {0}",
+      "layerHeight": "Rétegvastagság: {0}",
+      "filamentUsage": "Filament felhasználás: {0}",
+      "fractionPrinted": "Fájl előrehaladás: {0}",
+      "temperatures": "hőmérséklet: {0}"
+    },
+    "temperature": {
+      "caption": "Hőmérsékleti grafikon",
+      "heater": "Fűtőelem {0}",
+      "sensor": "Érzékelő {0}",
+      "noData": "Nincs adat"
+    }
+  },
+  "dialog": {
+    "changeMoveStep": {
+      "title": "Más érték hozzárendelése",
+      "prompt": "Adja meg az új léptetési mértéket a gombhoz:"
+    },
+    "configUpdated": {
+      "title": "Új konfiguráció alkalazása?",
+      "prompt": "Újra szeretné indítani a rendszert vagy futtatni a konfig fájlt? Javasolt az egész rendszert újraindítani, ha I/O portokat távolított el, vagy megváltoztatta a motorvezérlők hozzárendelését.",
+      "reset": "Rendszer újraindítása",
+      "runConfig": "Konfig fájl futtatása"
+    },
+    "connect": {
+      "title": "Kapcsolódás a géphez",
+      "prompt": "Kérem adja meg a gép host nevét és jelszavát, amelyhez csatlakozni szeretne:",
+      "hostPlaceholder": "Host név",
+      "hostRequired": "Hostnév kötelező",
+      "passwordPlaceholderOptional": "Jelszó (opcionális)",
+      "passwordPlaceholder": "Jelszó",
+      "passwordRequired": "Jelszó kötelező",
+      "connect": "Kapcsolódás"
+    },
+    "connection": {
+      "connecting": "Kapcsolódás...",
+      "disconnecting": "Szétkapcsolódás...",
+      "updating": "Kérem várjon! Frissítések telepítése...",
+      "reconnecting": "A kapcsolat megszakadt, újrakapcsolódási kísérlet...",
+      "standBy": "Kérem várjon...",
+      "boardUpdateMessage": "Az alábbi modul lett frissítve:|Az alábbi modulok lettek frissítve:"
+    },
+    "editExtrusionAmount": {
+      "title": "Más érték hozzárendelése",
+      "prompt": "Adja meg az új előtolási hosszt a gombhoz:"
+    },
+    "editExtrusionFeedrate": {
+      "title": "Más érték hozzárendelése",
+      "prompt": "Adja meg az új előtolási sebességet a gombhoz:"
+    },
+    "factoryReset": {
+      "title": "Visszaállítja a gyári beállításokat?",
+      "prompt": "Biztos benne, hogy vissza akarja állítani a gyári beállításokat? Minden korábbi elmentett beállítás el fog veszni."
+    },
+    "filament": {
+      "titleChange": "Filament váltás",
+      "titleLoad": "Filament betöltés",
+      "prompt": "Válasszon filamentet:",
+      "noFilaments": "Nem áll rendelkezésre filament"
+    },
+    "fileEdit": {
+      "gcodeReference": "G-kód referencia",
+      "menuReference": "Menü referencia",
+      "save": "Mentés",
+      "confirmClose": "A fájl tartalma megváltozott. Ha folytatja, elvesznek a változások.",
+      "confirmSaveEmpty": "A fájl üres. Valóban üresen akarja elmenteni?",
+      "indentComments": "Kommentek igazíása"
+    },
+    "fileTransfer": {
+      "uploadingTitle": "Fájl {0} / {1} feltöltése, {2}% kész",
+      "uploadDoneTitle": "Feltöltés kész!",
+      "uploadFailedTitle": "Feltöltés sikertelen!",
+      "downloadingTitle": "Fájl {0} / {1} letöltése, {2}% kész",
+      "downloadDoneTitle": "Letöltés kész!",
+      "downloadFailedTitle": "Letöltés sikertelen!",
+      "filename": "Fájlnév",
+      "size": "Fájlméret",
+      "progress": "Előrehaladás",
+      "currentSpeed": "Aktuális sebesség: {0}",
+      "cancelUploads": "Feltöltések megszakítása",
+      "cancelDownloads": "Letöltések megszakítása"
+    },
+    "meshEdit": {
+      "title": "Mesh parémeterek beállítása",
+      "radius": "Próba rádiusz",
+      "spacing": "Osztásköz",
+      "startCoordinate": "Kezdő koordináta {0} irányban",
+      "endCoordinate": "Vég koordináta {0} irányban",
+      "spacingDirection": "Osztásköz {0} irányban"
+    },
+    "newDirectory": {
+      "title": "Új mappa",
+      "prompt": "Kérem adja meg az új mappa nevét:"
+    },
+    "newFilament": {
+      "title": "Új filament",
+      "prompt": "Kérem adja meg az új filament nevét:"
+    },
+    "newFile": {
+      "title": "Új fájl",
+      "prompt": "Kérem adja meg az új fájl nevét:"
+    },
+    "pluginInstallation": {
+      "installation": "Plugin telepítés",
+      "prompt": "Az alábbi plugin-ek lesznek telepítve:",
+      "by": "Készítette: {0}",
+      "license": "Licensz: {0}",
+      "homepage": "Weboldal:",
+      "contents": "Ez a csomag az alábbihoz biztosít szoftver komponenseket: ",
+      "dsf": "Duet Software Framework",
+      "dwc": "Duet Web Control",
+      "rrf": "RepRapFirmware",
+      "prerequisites": "Előfeltételek",
+      "version": "Verzió {0}",
+      "noPluginSupport": "Külső plugin-ek nem támogatottak",
+      "rootSupport": "Rendszergazdai (root) plugin támogatás",
+      "invalidManifest": "Érvénytelen plugin leíró (manifest)",
+      "permissions": "Szükséges engedélyek",
+      "dwcWarning": "Ez a plugin a webfelülethez tartalmaz összetevőket. A böngészőben nincs lehetőség jogosultságok kezelésére. A plugin ezáltal vezérelheti a teljes rendszert, veszélyhelyzetet teremthet vagy fizikai kárt okozhat.",
+      "rootWarning": "Ez a plugin rendszergazdai jogosultságokat igényel, ezzel átkonfigurálhatja a csatlakoztatott SBC-t vagy potenciálisan káros szoftvert telepíthet, ezzel fizikai kárt okozhat a rendszerben.",
+      "sbcPermissions": "Ez a plugin az SBC-n az alábii engedélyeket igényli:",
+      "noSpecialPermissions": "Ez a plugin nem igényel speciális engedélyeket.",
+      "ready": "Telepítés kész",
+      "readyMessage": "A plugin telepítésre kész. Győződjön meg róla, hogy megbízik a készítőben, mielőtt jóváhagyja a követező lépést.",
+      "readyDisclaimer": "Mielőtt folytatja, el kell fogadnia, hogy a Duet3D Ltd nem vonható felelősségre ezen harmadik féltől származó plugin által okozott károkért.",
+      "checkboxDisclaimer": "Megértettem a kockázatokat, telepíteni szeretném a plugin-t",
+      "progress": "Telepítés folyamatban",
+      "progressText": "Kérem várjon! Plugin telepítése...",
+      "installationSuccess": "Telepítés kész!",
+      "installationFailed": "Telepítés sikertelen!",
+      "cancel": "Mégse",
+      "back": "Vissza",
+      "next": "Következő",
+      "finish": "Befejezés",
+      "reloadPrompt": {
+        "title": "DWC újratöltése?",
+        "prompt": "Egy éppen aktív DWC plugin-t frissített. Az új verzió használatához újra kell töltenie a weboldalt. Most kívánja ezt megtenni?"
+      }
+    },
+    "renameFile": {
+      "title": "Fájl vagy mappa átnevezése",
+      "prompt": "Adja meg az új nevet:"
+    },
+    "resetHeaterFault": {
+      "title": "Fűtőelem hibakód törlése",
+      "prompt": "Probléma lépett fel a(z) {0}. számú fűtőelemmel vagy a hőérzékelőjével. Javasolt a gépet kikapcsolni és a kábelezést ellenőrizni. Ha teljesen biztos benne, hogy ez nem fizikai meghibásodás, törölheti a hibát SAJÁT FELELŐSSÉGÉRE! Vegye fontolóra, hogy ez NEM AJÁNLOTT és további problémákat okozhat. Hogyan kívánja folytatni?",
+      "resetFault": "Hibakód törlése"
+    },
+    "runMacro": {
+      "title": "{0}",
+      "prompt": "Futtatni akarja a makrót?"
+    },
+    "startJob": {
+      "title": "Munka indítás",
+      "prompt": "Elindítja ezt a(z) {0} munkát?"
+    },
+    "update": {
+      "title": "Telepíti a firssítéseket?",
+      "prompt": "Firmware frissítést töltött fel. Akarja most telepíteni?",
+      "resetTitle": "Visszaállítja a firmware-t?",
+      "resetPrompt": "Bővítőmodul firssítést telepített. Újra akarja indítani a fő vezérlőpanelt hogy visszaállítsa az előző konfigurációt?",
+      "sbcWarning": "A gépet SBC módban működteti. Csak akkor frissítse a firmware-t a DWC-vel, ha a fejlesztők kimondottan ezt javasolják."
+    },
+    "inputRequired": "Adja meg az értéket",
+    "numberRequired": "Érvényes számot adjon meg",
+    "incompatibleVersions": {
+      "title": "Inkompatibilis szoftver verzió",
+      "prompt": "A telepített szoftver verziók nem egyeznek. Csak összetartozó verziójú szoftverekkel működtesse a rendszert, hogy elkerülje a váratlan hibajelenségeket.",
+      "upgradeNotice": "Kérem ellenőrizze a dokumentációt ({docs}) a Duet szoftver komponensek frissítésével kapcsolatban."
+    },
+    "duplicateFilament": {
+      "prompt": "Kérem adjon meg egy nevet a filament másolathoz:",
+      "title": "Filament megkettőzése"
+    }
+  },
+  "directory": {
+    "menu": "Menü mappa",
+    "filaments": "Filament mappa",
+    "firmware": "Firmware mappa",
+    "gcodes": "G-kód mappa",
+    "macros": "Makrók mappa",
+    "system": "Rendszer mappa",
+    "web": "WWW mappa"
+  },
+  "error": {
+    "notImplemented": "{0} nincs implementálva",
+    "invalidPassword": "Érvénytelen jelszó!",
+    "noFreeSession": "Nincs több szabad munkamanet!",
+    "badVersion": "Inkompatiblis firmware verzió",
+    "connect": "Sikertelen kapcsolódás ehhez: {0}",
+    "disconnect": "Nem sikerült szabályosan lecsatlakozni erről: {0}",
+    "disconnected": "Nem sikerült a műveletet befejezni, mert megszakadt a kapcsolat.",
+    "cancelled": "Művelet megszakítva",
+    "network": "Hálózati hiba",
+    "timeout": "HTTP időtúllépés",
+    "driveUnmounted": "Célmeghajtó leválasztva.",
+    "directoryNotFound": "A(z) {0} mappa nem található.",
+    "fileNotFound": "A(z) {0} fájl nem található",
+    "invalidHeightmap": "Érvénytelen szintezési térkép",
+    "operationFailed": "Művelet sikertelen (oka: {0})",
+    "uploadStartWrongFileCount": "Egyszerre csak egy fájl tölthető fel és indítható",
+    "uploadNoSingleZIP": "Egyszerre csak egy ZIP fájl tölthető fel",
+    "uploadNoFiles": "Ez a ZIP fájl egyetlen használható fájlt sem tartalmaz",
+    "codeResponse": "Could not run code because a bad response has been received",
+    "codeBuffer": "Could run code because the buffer space has been exhausted",
+    "enterValidNumber": "Érvényes számot adjon meg",
+    "turnOffEverythingFailed": "Nem sikerült mindent kikapcsolni",
+    "filelistRequestFailed": "Nem sikerült lekérni a fájl listát",
+    "fileinfoRequestFailed": "Nem sikerült a(z) {0} fájl információit lekérni",
+    "filamentsLoadFailed": "Nem sikerült a Filamentek betöltése",
+    "move": "Nem sikerült áthelyezni innen: {0} ide: {1}",
+    "startupError": "Hiba az indító fájlban: {0} sor {1}: {2}"
+  },
+  "events": {
+    "connected": "Kapcsolódva ehhez: {0}",
+    "connectionLost": "A kapcsolat fenntartása sikertelen ehhez: {0}",
+    "emergencyStop": "Vészleállítás utáni újracsatlakozás...",
+    "reconnecting": "Megszakadt a kapcsolat, újracsatlakozás...",
+    "reconnected": "Kapcsolódás sikeres",
+    "disconnected": "Leválasztva innen: {0}"
+  },
+  "generic": {
+    "ok": "OK",
+    "cancel": "Mégse",
+    "yes": "Igen",
+    "no": "Nem",
+    "close": "Bezárás",
+    "reset": "Reset",
+    "noValue": "N/A",
+    "loading": "betöltés",
+    "error": "Hiba",
+    "info": "Infó",
+    "warning": "Figyelmeztetés",
+    "success": "Sikeres",
+    "heaterStates": {
+      "off": "ki",
+      "standby": "készenlét",
+      "active": "aktív",
+      "fault": "hiba",
+      "tuning": "tuning",
+      "offline": "offline"
+    },
+    "status": {
+      "disconnected": "Nincs kapcsolat",
+      "starting": "Indtítás",
+      "updating": "Frissítés",
+      "off": "Ki",
+      "halted": "Megállítva",
+      "pausing": "Felfüggesztés",
+      "paused": "Felfüggesztve",
+      "resuming": "Folytatás",
+      "cancelling": "Megszakítás",
+      "printing": "Nyomtatás",
+      "processing": "Feldolgozás",
+      "simulating": "Szimulálás",
+      "busy": "Foglalt",
+      "changingTool": "Szerszámcsere",
+      "idle": "Tétlen",
+      "unknown": "Ismeretlen"
+    },
+    "rpm": "RPM",
+    "sdCard": "SD kártya {0}",
+    "mounted": "csatolva",
+    "notMounted": "nincs csatolva",
+    "extracting": "Kibontás",
+    "uploading": "Feltöltés",
+    "active": "Aktív",
+    "standby": "Készenlét"
+  },
+  "input": {
+    "code": {
+      "send": "Küldés",
+      "placeholder": "Kód küldése..."
+    },
+    "addTemperature": "Új hőmérséklet",
+    "addRPM": "Új fordulatszám",
+    "set": "Beállít"
+  },
+  "jobProgress": {
+    "simulating": "Szimuláció: {0}, {1} kész",
+    "simulated": "Szimuláció kész: {0}",
+    "processing": "Feldolgozás: {0}, {1} kész",
+    "processed": "Feldolgozás kész: {0}",
+    "printing": "Nyomtatás: {0}, {1} kész",
+    "printed": "Nyomtatás kész: {0}",
+    "noJob": "Nincs folyamatban lévő munka.",
+    "layer": "Réteg {0} / {1}",
+    "filament": "Filament felhasználás: {0}",
+    "filamentRemaining": "{0} van még hátra"
+  },
+  "list": {
+    "baseFileList": {
+      "fileName": "Fájlnév",
+      "size": "Fájlméret",
+      "lastModified": "Legutóbb módosítva",
+      "download": "Letöltés",
+      "edit": "Szerkesztés",
+      "rename": "Átnevezés",
+      "delete": "Törlés",
+      "downloadZIP": "Letöltés ZIP-ként",
+      "noFiles": "Nincs fájl vagy mappa",
+      "driveUnmounted": "Meghajtó leválasztva",
+      "goUp": "Feljebb egy szinttel"
+    },
+    "menu": {
+      "noFiles": "No Display Files"
+    },
+    "eventLog": {
+      "date": "Dátum",
+      "type": "Típus",
+      "message": "Esemény",
+      "noEvents": "Nincs esemény",
+      "clear": "Törlés",
+      "downloadText": "Letöltés szövegfájlként",
+      "downloadCSV": "Letöltés CSV-ként"
+    },
+    "filament": {
+      "noFilaments": "Nincs filament",
+      "duplicate": "Duplikálás"
+    },
+    "firmware": {
+      "installFile": "Firmware fájl telepítése",
+      "noFiles": "Nincs firmware fájl"
+    },
+    "macro": {
+      "caption": "Makrók",
+      "noMacros": "Nincs makró",
+      "run": "Makró futtatása",
+      "root": "Gyökérmappa"
+    },
+    "jobs": {
+      "height": "Munkadarab magasság",
+      "layerHeight": "Rétegvastagság",
+      "filament": "Filament igény",
+      "printTime": "Nyomtatási időigény",
+      "simulatedTime": "Szimulált időigény",
+      "generatedBy": "Generálva ezzel",
+      "noJobs": "Nincs munka",
+      "start": "Indítás",
+      "simulate": "Szimuláció"
+    },
+    "system": {
+      "noFiles": "Nincs rendszerfájl",
+      "configToolNote": "szerkesztés a konfiguráló eszközzel"
+    }
+  },
+  "menu": {
+    "control": {
+      "caption": "Vezérlés",
+      "status": "Állapot",
+      "dashboard": "Kezelőpult",
+      "console": "Konzol"
+    },
+    "job": {
+      "caption": "Munka",
+      "status": "Állapot",
+      "webcam": "Webkamera"
+    },
+    "files": {
+      "caption": "Fájlok",
+      "jobs": "Munka fájlok",
+      "filaments": "Filament-ek",
+      "macros": "Makrók",
+      "menu": "Display",
+      "system": "Rendszer",
+      "web": "Web"
+    },
+    "plugins": {
+      "caption": "Plugin-ek"
+    },
+    "settings": {
+      "caption": "Beállítsok",
+      "general": "Általános",
+      "machine": "Gép-specifikus"
+    }
+  },
+  "notification": {
+    "compress": {
+      "title": "Fájlok tömörítése...",
+      "message": "Kérem várjon! Fájlok tömörítése...",
+      "errorTitle": "Fájlok tömörítése sikertelen"
+    },
+    "decompress": {
+      "title": "Fájlok kicsomagolása...",
+      "message": "Kérem várjon! Fájlok kicsomagolása...",
+      "errorTitle": "Fájlok kicsomagolása sikertelen",
+      "standaloneUpdateInSbcModeError": "Egy önálló DWC csomagot próbál feltölteni SBC módban. Ez NEM támogatott. Használja az apt update/upgrade parancsot a rendszerfrissítésez."
+    },
+    "delete": {
+      "errorTitle": "A(z) {0} törlése sikertelen",
+      "errorMessageDirectory": "Ellenőrizze, hogy a mappa üres-e.",
+      "success": "{0} törlése sikerült.",
+      "successMultiple": "{0} elem törlése sikeres."
+    },
+    "deleteFilament": {
+      "errorTitle": "Filament(ek) törlése sikertelen.",
+      "errorStillLoaded": "A kiválasztott filamentek egyike még be van töltve. Törlése előtt használja a Kifűzés parancsot.",
+      "errorSubDirectories": "A(z) {0} filament almappákat tartalmaz. Törölje kézzel, majd próbálja újra."
+    },
+    "download": {
+      "title": "Letöltés: {0} @ {1}, {2}% kész",
+      "message": "Kérem várjon amíg a fájl letöltődik...",
+      "success": "{0} sikeresen letöltve {1} alatt",
+      "error": "{0} letöltése sikertelen"
+    },
+    "systemPackageInstall": {
+      "title": "{0} fájl telepítése",
+      "message": "Kérem várjon! A fájl telepítése...",
+      "success": "A(z) {0} telepítése sikeres",
+      "error": "A(z) {0} telepítése sikertelen"
+    },
+    "message": "Üzenet",
+    "mount": {
+      "successTitle": "SD kártya csatolva",
+      "errorTitle": "SD kártya csatolása sikertelen"
+    },
+    "pluginLoad": {
+      "title": "Plugin-ek betöltése...",
+      "message": "Kérem várjon, amíg a plugin-ek betöltődnek..."
+    },
+    "newDirectory": {
+      "errorTitle": "Mappa létrehozása sikertelen",
+      "successTitle": "Mappa létrehozva",
+      "successMessage": "{0} mappa sikeresen létrehozva"
+    },
+    "newFilament": {
+      "errorTitle": "Filament létrehozása sikertelen",
+      "errorTitleMacros": "Filament makrók létrehozása sikertelen",
+      "successTitle": "Filament létrehozva",
+      "successMessage": "{0} filament sikeresen létrehozva"
+    },
+    "plugins": {
+      "started": "Plugin elindítva",
+      "startError": "Plugin indítása sikertelen",
+      "stopped": "Plugin leállítva",
+      "stopError": "Plugin leállítása sikertelen",
+      "uninstalled": "Plugin eltávolítva",
+      "uninstallError": "Plugin eltávolítása sikertelen"
+    },
+    "rename": {
+      "success": "Átnevezés sikeres, erről: {0} erre: {1}",
+      "error": "Átnevezés sikertelen, erről: {0} erre: {1}"
+    },
+    "renameFilament": {
+      "errorTitle": "Filament átnevezése sikertelen",
+      "errorStillLoaded": "A filament még be van töltve. Átnevezés előtt használja a Kifűzés parancsot."
+    },
+    "responseTooLong": "A válasz túl hosszú, nézze meg a Konzol-ban.",
+    "upload": {
+      "title": "Feltöltés: {0} @ {1}, {2}% kész",
+      "message": "Kérem várjon amíg a fájl feltöltődik...",
+      "success": "{0} sikeresen feltöltve {1} alatt",
+      "error": "{0} feltöltése sikertelen"
+    },
+    "freeSpaceWarning": {
+      "title": "A lemez majdnem megtelt",
+      "message": "Alig van szabad hely az első köteten. Töröljön néhány fájlt, hogy elkerülje a feltöltési problémákat."
+    }
+  },
+  "panel": {
+    "atx": {
+      "caption": "ATX táp",
+      "on": "Be",
+      "off": "Ki"
+    },
+    "babystepping": {
+      "caption": "Z Babystepping",
+      "current": "Aktuális offset: {0}"
+    },
+    "extrude": {
+      "caption": "Extruder vezérlés",
+      "mix": "Keverés",
+      "mixRatio": "Keverési arány:",
+      "amount": "Előtolási hossz [{0}]:",
+      "feedrate": "Előtolási sebesség [{0}]:",
+      "retract": "Visszahúzás",
+      "extrude": "Extrudálás"
+    },
+    "extrusionFactors": {
+      "caption": "Extrudálási faktor",
+      "changeVisibility": "Megjelenítés",
+      "extruder": "Extruder {0}",
+      "noExtruders": "Nincs extruder"
+    },
+    "fan": {
+      "caption": "Ventilátor vezérlés",
+      "selection": "Kiválasztás:",
+      "toolFan": "Szerszám ventilátor",
+      "fan": "Ventilátor {0}"
+    },
+    "fans": {
+      "caption": "Ventilátorok",
+      "changeVisibility": "Megjelenítés",
+      "toolFan": "Szerszám ventilátor",
+      "fan": "Ventilátor {0}",
+      "noFans": "Nincs ventilátor"
+    },
+    "jobControl": {
+      "caption": "Munka vezérlés",
+      "cancelJob": "Munka megszakítása",
+      "cancelPrint": "Nyomtatás megszakítása",
+      "cancelSimulation": "Szimuláció megszakítása",
+      "pauseJob": "Munka felfüggesztése",
+      "pausePrint": "Nyomtatás felfüggesztése",
+      "pauseSimulation": "Szimuláció felfüggesztése",
+      "resumeJob": "Munka folytatása",
+      "resumePrint": "Nyomtatás folytatása",
+      "resumeSimulation": "Szimuláció folytatása",
+      "repeatJob": "Újrakezdés",
+      "repeatPrint": "Nyomtatás újra",
+      "repeatSimulation": "Szimuláció újra",
+      "showPreview": "Előnézet megtekintése",
+      "printNow": "Nyomtatás most",
+      "startJob": "Munka indítása"
+    },
+    "jobData": {
+      "caption": "Statisztikai adatok",
+      "warmUpDuration": "Felfűtési idő",
+      "currentLayerTime": "Jelenlegi réteg idő",
+      "lastLayerTime": "Előző réteg idő",
+      "jobDuration": "Munka ideje"
+    },
+    "jobEstimations": {
+      "caption": "Becsült hátralévő idő",
+      "filament": "Filament fogyás alapján",
+      "file": "Eddigi haladás alapján",
+      "layer": "Réteg idő",
+      "slicer": "Slicer által számított",
+      "simulation": "Szimuláció alapján"
+    },
+    "jobInfo": {
+      "caption": "Munka információ",
+      "height": "Munkadarab magasság:",
+      "layerHeight": "Rétegvastagság:",
+      "filament": "Filament igény:",
+      "generatedBy": "Generálva ezzel:"
+    },
+    "movement": {
+      "caption": "Gép mozgatás",
+      "compensation": "Kompenzáció és kalibráció",
+      "runBed": "Valódi asztal szintezés (G32)",
+      "runDelta": "Delta kalibráció (G32)",
+      "compensationInUse": "Aktív kompenzáció: {0}",
+      "compensationType": {
+        "none": "nincs",
+        "mesh": "Mesh"
+      },
+      "disableBedCompensation": "Asztal kompenzáció kikapcsolása (M561)",
+      "disableMeshCompensation": "Mesh kompenzáció kikapcsolása (G29 S2)",
+      "editMesh": "Terület definiálása Mesh kompenzációhoz (M557)",
+      "runMesh": "Mesh kompenzáció futtatása (G29)",
+      "loadMesh": "Az elmentett szintezési térkép betöltése az SD kártyáról (G29 S1)",
+      "axesNotHomed": "Az alábbi tengely gépi nullpontja nincs felvéve:|Az alábbi tengelyek gépi nullpontja nincs felvéve:",
+      "noAxes": "Nincsenek tengelyek",
+      "set": "{0} beállítása",
+      "workzero": "Vissza a nullpontra",
+      "setWorkXYZ": "Set Work XYZ"
+    },
+    "settingsAbout": {
+      "buildDateTime": "Készült: {0}",
+      "caption": "Névjegy",
+      "credits": "A web felületet fejlesztette {author} a {Duet3D} részére.",
+      "license": "License: {gpl}."
+    },
+    "settingsAppearance": {
+      "caption": "Megjelenés",
+      "darkTheme": "Sötét téma",
+      "language": "Nyelv",
+      "binaryFileSizes": "Bináris fájlméretek használata",
+      "binaryFileSizesTitle": "A fájlméretek 1024-es (IEC) alappal számítódnak (kiB, MiB) az 1000-es (SI) helyett (kB, MB)",
+      "disableAutoComplete": "Auto-kitöltés letiltása",
+      "disableAutoCompleteTitle": "Ne mutassa az auo-kitöltés listát gépeléskor",
+      "dashboardModeTitle": "Kezelőpult üzemmód",
+      "bottomNavigation": "Menü alul (Tablet-en)",
+      "numericInputs": "Numerikus mezők megjelenítése csúszkák helyett",
+      "iconMenu": "Kompakt menü (csak ikonok)",
+      "decimalPlaces": "Tizedesjegyek száma a koordináta kijelzőn",
+      "displayUnitsTitle": "Koordinate kijlező mértékegysége",
+      "unitInches": "inch",
+      "unitInch": "in",
+      "unitMm": "mm",
+      "unitInchSpeed": "ipm",
+      "unitMmSpeed": "mm/s",
+      "singleBedControl": "Csoportos asztal vezérlés",
+      "groupTools": "Azonos szerszámok csoportosítása",
+      "singleChamberControl": "Csoportos kamra vezérlés"
+    },
+    "settingsCommunication": {
+      "caption": "Kommunikáció",
+      "pingInterval": "PING intervallum tétlen állapotban (ms)",
+      "updateDelay": "Frissítési késleltetés (ms)",
+      "ajaxRetries": "AJAX újrapróbálkozások maximális száma",
+      "updateInterval": "Frissítési gyakoriság ({0})",
+      "fileTransferRetryThreshold": "Újrapróbálkozási küszöb fájlátvitelhez ({0})",
+      "crcUploads": "CRC32 ellenőrzés használata a feltöltésekhez",
+      "unavailable": "Nem áll rendelkezésre beállítás"
+    },
+    "settingsElectronics": {
+      "caption": "Elektronika",
+      "diagnostics": "Diagnosztika",
+      "board": "{0}",
+      "firmware": "Firmware: {0} ({1})",
+      "dwsFirmware": "Duet WiFi Server verzió: {0}",
+      "updateNote": "Megjegyzés: Frissítéseket a Rendszer menüpontban tud feltölteni és telepíteni.",
+      "notConnected": "(nincs kapcsolat)",
+      "dsfVersion": "DSF verzió: {0}",
+      "dwcVersion": "DWC verzó: {0}"
+    },
+    "settingsEndstops": {
+      "caption": "Végállások",
+      "index": "Index",
+      "triggered": "Aktiválva"
+    },
+    "settingsGeneral": {
+      "caption": "Általános beállítások",
+      "factoryReset": "Gyári beállítások visszaállítása",
+      "settingsStorageLocal": "Beállítások mentése a Local Storage-ba",
+      "settingsSaveDelay": "Frissítési késleltetés beállítások változása esetén ({0})",
+      "cacheStorageLocal": "Gyorsítótár (cache) mentése a Local Storage-ba",
+      "cacheSaveDelay": "Frissítési késleltetés Cache változás esetén ({0})",
+      "ignoreFileTimestamps": "Fájlok dátumának figyelmen kívül hagyása feltöltéskor"
+    },
+    "settingsListItems": {
+      "caption": "Lista elemek",
+      "toolTemperatures": "Szerszám hőmérsékletek",
+      "bedTemperatures": "Asztal hőmérsékletek",
+      "chamberTemperatures": "Kamra hőmérsékletek",
+      "spindleRPM": "Orsó fordulatszámok"
+    },
+    "settingsMachine": {
+      "caption": "Gép-specifikus beállítások",
+      "babystepAmount": "Babystep nagysága [{0}]",
+      "moveFeedrate": "Mozgató gombok előtolási sebessége [{0}]",
+      "toolChangeMacros": "Szerszámcsere makrók",
+      "checkVersions": "Szoftver verziók ellenőrzése és figyelmeztetés inkompatibilitás esetén"
+    },
+    "settingsNotifications": {
+      "caption": "Értesítések",
+      "notificationErrorsPersistent": "Ne zárja be a hibaüzeneteket automatikusan",
+      "notificationTimeout": "Alapértelmezett értesítés eltűnési idő ({0})"
+    },
+    "settingsBehaviour": {
+      "caption": "Viselkedés",
+      "behaviourJobStart": "Ne váltson automatikusan az Állapot panelre a munka indításakor"
+    },
+    "settingsWebcam": {
+      "caption": "Webkamera",
+      "webcamURL": "Webkamera URL",
+      "webcamUpdateInterval": "Webkamera frissítési gyakoriság ({0})",
+      "webcamLiveURL": "Webkamera képére kattintáskor megnyitandó URL (opcionális)",
+      "webcamFix": "Do not append extra HTTP qualifier when reloading images",
+      "webcamEmbedded": "Webkamera képének beágyazása <IFRAME> tag-be",
+      "webcamRotation": "Webkamera képének forgatása",
+      "webcamFlip": "Webkamera képének tükrözése",
+      "flipNone": "Nincs",
+      "flipX": "Vízszintes tükrözés (X)",
+      "flipY": "Függőleges tükrözés (Y)",
+      "flipBoth": "Mindkettő",
+      "enable": "Webkamera engedélyezése"
+    },
+    "speedFactor": {
+      "caption": "Sebesség faktor"
+    },
+    "spindle": {
+      "title": "Orsók",
+      "spindle": "Orsó",
+      "active": "Aktív",
+      "direction": "Forgásirány",
+      "currentRPM": "Jelenlegi RPM",
+      "setRPM": "RPM beállítása",
+      "on": "Be",
+      "off": "Ki",
+      "forward": "előre",
+      "reverse": "hátra"
+    },
+    "status": {
+      "caption": "Állapot",
+      "mode": "Üzemmód: {0}",
+      "toolPosition": "Szerszám pozíció",
+      "machinePosition": "Gép pozíció",
+      "extruders": "Extruderek",
+      "extruderDrive": "Motor {0}",
+      "speeds": "Sebesség",
+      "requestedSpeed": "Kért sebesség",
+      "topSpeed": "Elért sebesség",
+      "sensors": "Érzékelők",
+      "mcuTemp": "MCU hőmérséklet",
+      "minMax": "Minimum: {0}, Maximum {1}",
+      "vIn": "Vin",
+      "v12": "V12",
+      "fanRPM": "Ventilátor RPM",
+      "probe": "Z tapintó|Z tapintók",
+      "noStatus": "Nincs állapot",
+      "extrusionRate": "Extrudálási sebesség",
+      "volumetricFlow": "Térfogatáram"
+    },
+    "tools": {
+      "caption": "Szerszámok",
+      "controlHeaters": "Fűtésvezérlés",
+      "turnEverythingOff": "Minden fűtés kikapcsolása",
+      "setActiveTemperatures": "Aktív hőmérsékletek beállítása",
+      "setStandbyTemperatures": "Készenléti hőmérsékletek beállítása",
+      "setToolTemperatures": "Szerszám hőmérsékletek beállítása",
+      "setBedTemperatures": "Asztalhőmérsékletek beállítása",
+      "setChamberTemperatures": "Kamrahőmérséklet beállítása",
+      "tool": "Szerszám {0}",
+      "loadFilament": "Filament betöltés",
+      "changeFilament": "Filament váltás",
+      "unloadFilament": "Filament kifűzés",
+      "heater": "Fűtőelem {0}",
+      "current": "Aktuális",
+      "active": "Aktív",
+      "standby": "Készenlét",
+      "bed": "Asztal {0}",
+      "chamber": "Kamra {0}",
+      "extra": {
+        "caption": "Egyéb",
+        "sensor": "Érzékelő",
+        "sensorIndex": "Érzékelő {0}",
+        "value": "Érték",
+        "showInChart": "Megjelenítés a grafikonon",
+        "noItems": "Nincs egyéb érzékelő"
+      },
+      "noTools": "Nincs szerszám",
+      "allBeds": "Összes asztal",
+      "beds": "Asztalok",
+      "chambers": "Kamrák",
+      "allChambers": "Összes kamra"
+    },
+    "webcam": {
+      "caption": "Webkamerás megfigyelés",
+      "alt": "(webkamera kép)"
+    }
+  },
+  "pluginPermissions": {
+    "commandExecution": "Általános DSF parancs végrehajtása (pl. G/M/T kódok)",
+    "codeInterceptionRead": "G/M/T kódok olvasása",
+    "codeInterceptionReadWrite": "G/M/T kódok olvasása és manipulációja",
+    "managePlugins": "Harmadik féltől származó plugin-ek telepítése, betöltése, leállítása és eltávolítása",
+    "manageUserSessions": "Felhasználói munkamenetek kezelése",
+    "objectModelRead": "Objektum modell olvasása (R)",
+    "objectModelReadWrite": "Objektum modell olvasása/írása (R/W)",
+    "registerHttpEndpoints": "Új HTTP végpontok létrehozása",
+    "readFilaments": "Filament mappában lévő fájlok olvasása",
+    "writeFilaments": "Filament mappában lévő fájlok írása",
+    "readFirmware": "Firmware mappában lévő fájlok olvasása",
+    "writeFirmware": "Firmware mappában lévő fájlok írása",
+    "readGCodes": "G-kódok mappában lévő fájlok olvasása",
+    "writeGCodes": "G-kódok mappában lévő fájlok írása",
+    "readMacros": "Makrók mappában lévő fájlok olvasása",
+    "writeMacros": "Makrók mappában lévő fájlok írása",
+    "readMenu": "Menü mappában lévő fájlok olvasása",
+    "writeMenu": "Menü mappában lévő fájlok írása",
+    "readSystem": "Redszer mappában lévő fájlok olvasása",
+    "writeSystem": "Makrók mappában lévő fájlok írása",
+    "readWeb": "Web mappában lévő fájlok olvasása",
+    "writeWeb": "Web mappában lévő fájlok írása",
+    "fileSystemAccess": "A virtuális mappákon kívüli egyéb fájlok elérése a fájlrendszeren",
+    "launchProcesses": "Új process indítása",
+    "networkAccess": "Kommunikáció a hálózaton",
+    "webcamAccess": "Hozzáférés webkamerához",
+    "gpioAccess": "Hozzáférés GPIO portokhoz",
+    "superUser": "Root (rendszergazdai) jogosultság (potenciálisan veszélyes)"
+  },
+  "plugins": {
+    "accelerometer": {
+      "name": "Gyorsulásmérő",
+      "listTitle": "CSV fájlok",
+      "none": "Nincs fájl",
+      "chartCaption": "Gyorsulási minták",
+      "noData": "Nincs betöltött minta",
+      "analysis": "Frekvencia analízis",
+      "samplingRate": "Mintavételi frekvencia (Hz)",
+      "start": "Kezdet",
+      "end": "Vég",
+      "wideBand": "Szélessávú analízis",
+      "analyze": "Analizálás",
+      "back": "Vissza",
+      "overflowPrompt": {
+        "title": "Túlcsordulás detektálva",
+        "prompt": "Ez a CSV fájl túlcsordulásokat tartalmaz. Biztosan folytatni akarja?"
+      },
+      "loadError": "CSV fájl betöltése sikertelen",
+      "parseError": "CSV elemzése sikertelen",
+      "frequency": "Frekvencia (Hz)",
+      "amplitudes": "Amplitúdó",
+      "samples": "Minták",
+      "accelerations": "Gyorsulás (g)",
+      "sampleTooltip": "Minta #{0}",
+      "frequencyTooltip": "{0} ± {1} Hz"
+    },
+    "autoUpdate": {
+      "menuCaption": "Frissítés"
+    },
+    "gcodeViewer": {
+      "caption": "3D G-kód megtekintő",
+      "view3D": "Megtekintés 3D-ben",
+      "fullscreen": "Teljes képernyő",
+      "showConfiguration": "Megtekintő beállításai",
+      "resetCamera": {
+        "caption": "Kamera alaphelyzet",
+        "title": "Kamera visszaállítása alaphelyzetbe"
+      },
+      "cancelLoad": "Fájl betöltés megszakítása",
+      "reloadView": {
+        "caption": "Nézet újratöltése",
+        "title": "G-kód újratöltése. Színek, előtolás színek, stb. megváltoztatása esetén szükséges"
+      },
+      "loadCurrentJob": {
+        "caption": "Éppen futó munka betöltése",
+        "title": "A jelenleg nyomtatásban vagy szimuláció alatt lévő munka betöltése"
+      },
+      "unloadGCode": {
+        "caption": "G-kód bezárása",
+        "title": "A betöltött G-kód eltávolítása a megtekintőből"
+      },
+      "loadLocalGCode": {
+        "caption": "Helyi G-kód fájl betöltése",
+        "title": "G-kód fájl betöltése a helyi kliens eszközről (számítógép, stb.)"
+      },
+      "showCursor": "Szerszám mutatása",
+      "showTravels": "Gyorsmenetek mutatása",
+      "renderQuality": {
+        "caption": "Grafikai minőség",
+        "title": "A megjelenítés minősége. Nagyobb érték esetén több vertex vagy renderelési mód lesz elérhető"
+      },
+      "sbc": "SBC",
+      "low": "Alacsony",
+      "medium": "Közepes",
+      "high": "Magas",
+      "ultra": "Ultra",
+      "max": "Max",
+      "forceLineRendering": "Force Line Rendering",
+      "transparency": "Átlátszóság",
+      "showSolid": "Show Solid",
+      "spreadLines": "Spread Lines",
+      "extruders": {
+        "caption": "Extruderek",
+        "title": "Extruder színének beállítása"
+      },
+      "tool": "Szerszám {0}",
+      "resetColor": "Szerszám szín visszaállítása | Szerszám színek visszaállítása",
+      "renderMode": {
+        "caption": "Render Mode | Render Modes",
+        "title": "Render mode allows you to set extruder color or feedrate line coloring in the viewer"
+      },
+      "color": "Szín",
+      "feedrate": "Előtolás",
+      "minFeedrate": "Minimum előtolás (mm/s)",
+      "maxFeedrate": "Maximum eltőolás (mm/s)",
+      "minFeedrateColor": "Minimum előtolás színe",
+      "maxFeedrateColor": "Maximum előtolás színe",
+      "progress": {
+        "caption": "Előrehaladás",
+        "title": "Set the printed color for progress tracking"
+      },
+      "topClipping": "Levágás felül",
+      "bottomClipping": "Levágás alul",
+      "progressColor": "Progress Color",
+      "liveZTracking": "Live Z Tracking",
+      "settings": "Beállítások",
+      "background": "Háttér",
+      "bedRenderMode": "Tárgyasztal megjelenítési mód",
+      "bed": "Asztal",
+      "volume": "Építőtér",
+      "showAxes": "Tengelyek megjelenítése",
+      "showObjectLabels": "Tárgy címkék megjelenítése",
+      "cameraInertia": "Kamera inercia",
+      "showObjectSelection": {
+        "caption": "Tárgy választó mutatása",
+        "title": "Csak akkor lehetséges, ha a munka több tárgyat is tartalmaz."
+      },
+      "renderFailed": "A legutóbbi renderelés sikertelen volt. A renderelési minőség SBC-re visszaállítva!",
+      "showFSOverlay": "Teljes képernzős overlay",
+      "useHQRendering": "High Quality Render (Round)",
+      "useSpecular": "Use Specular Highlight",
+      "feature": "Feature",
+      "g1AsExtrusion": "Render G1 (CNC)",
+      "viewGCode": "G-kód megjelenítése",
+      "zBelt": "Z Belt",
+      "zBeltAngle": "Z Belt Gantry Angle",
+      "showWorkplace": "Munkaterület mutatása",
+      "perimeterOnly": "Csak a körvonalak",
+      "progressMode": "Progress Mode",
+      "cancelObj": "Tárgy megszakítása",
+      "resumeObj": "Tárgy folytatása"
+    },
+    "heightmap": {
+      "menuCaption": "Szintezési térkép",
+      "listTitle": "Szintezési térképek",
+      "none": "Nincs",
+      "scale": "Skála:",
+      "orMore": "vagy több",
+      "orLess": "vagy kevesebb",
+      "axes": "Tengelyek:",
+      "notAvailable": "szintezési térkép nem elérhető",
+      "statistics": "Statisztika",
+      "numPoints": "Pontok száma: {0}",
+      "radius": "Próba rádiusz: {0}",
+      "area": "Próba terület: {0}",
+      "maxDeviations": "Maximális eltérés: {0} / {1}",
+      "meanError": "Átlagos hiba: {0}",
+      "rmsError": "RMS hiba: {0}",
+      "display": "Megjelenítés",
+      "colorScheme": "Színséma:",
+      "terrain": "Domborzat",
+      "heat": "Hőtérkép",
+      "invertZ": "Z koordináták invertálása",
+      "topView": "Felülnézet",
+      "range": "Tartomány",
+      "fixed": "Fix",
+      "deviation": "Eltérés",
+      "resetView": "Nézet visszaállítás"
+    },
+    "objectModelBrowser": {
+      "menuCaption": "Objektum modell",
+      "selectedNode": "Kiválasztott csomópont:",
+      "none": "Nincs",
+      "documentationNotAvailable": "A dokumentáció nem elérhető (/www/DuetAPI.xml nem található)",
+      "summary": "Összesítő",
+      "remarks": "Megjegyzések"
+    }
+  },
+  "tabs": {
+    "generalSettings": {
+      "caption": "Általános"
+    },
+    "machineSettings": {
+      "caption": "Gép-specifikus"
+    },
+    "plugins": {
+      "integratedPlugins": "Beépített Plugin-ek",
+      "externalPlugins": "Külső Plugin-ek",
+      "headers": {
+        "name": "Név",
+        "author": "Szerző",
+        "version": "Verzió",
+        "license": "Licensz",
+        "dependencies": "Függőségek",
+        "status": "Állapot"
+      },
+      "optional": "opcionális",
+      "start": "Indítás",
+      "partiallyStarted": "részlegesen elindítva",
+      "started": "elindítva",
+      "stop": "Leállít",
+      "deactivated": "deaktiválva",
+      "stopped": "leállítva",
+      "uninstall": "Eltávolítás",
+      "noPlugins": "Nincs plugin",
+      "refreshNote": "Bizonyos DWC plugin-ek teljes leállításához az oldal frissítése szükséges!"
+    }
+  }
+}
