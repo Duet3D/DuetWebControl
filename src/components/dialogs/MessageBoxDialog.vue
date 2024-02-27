@@ -27,7 +27,7 @@
 					</v-col>
 
 					<!-- Current position -->
-					<v-col cols="auto" class="px-3">
+					<v-col cols="auto" class="d-flex align-center px-3">
 						<strong>
 							{{ axis.letter + ' = ' + displayAxisPosition(axis) }}
 						</strong>
