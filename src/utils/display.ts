@@ -164,6 +164,13 @@ export function displayTime(value: number | null | undefined, showTrailingZeroes
 	}
 
 	let timeLeft = [], temp;
+	if (value >= 86400) {
+		temp = Math.floor(value / 86400);
+		if (temp > 0) {
+			timeLeft.push(temp + "d");
+			value = value % 86400;
+		}
+	}
 	if (value >= 3600) {
 		temp = Math.floor(value / 3600);
 		if (temp > 0) {
