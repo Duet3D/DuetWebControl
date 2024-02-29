@@ -5,6 +5,7 @@ import de from "./de.json";
 import en from "./en.json";
 import es from "./es.json";
 import fr from "./fr.json";
+import hu from "./hu.json";
 import ja from "./ja.json";
 import nl from "./nl.json";
 import pl from "./pl.json";
@@ -24,6 +25,7 @@ const messages: LocaleMessages & Record<string, { plugins: Record<string, object
 	en,
 	es,
 	fr,
+    hu,
 	ja,
 	nl,
 	pl,
