@@ -25,7 +25,7 @@ const messages: LocaleMessages & Record<string, { plugins: Record<string, object
 	en,
 	es,
 	fr,
-    hu,
+	hu,
 	ja,
 	nl,
 	pl,
