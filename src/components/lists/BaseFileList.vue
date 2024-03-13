@@ -350,7 +350,7 @@ export default VDataTable.extend({
 
 			// Update our path even if we"re still busy loading
 			this.innerDirectory = directory;
-			if (this.innerLoading) {
+			if (this.innerLoading || this.loading) {
 				return;
 			}
 

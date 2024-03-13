@@ -221,10 +221,6 @@ export default Vue.extend({
 		}
 	},
 	methods: {
-		/*
-		...mapActions("machine", ["sendCode", "getFileInfo"]),
-		...mapMutations("machine/cache", ["clearFileInfo", "setFileInfo"]),
-		*/
 		getBigThumbnail(thumbnails: Array<ThumbnailInfo>) {
 			let biggestThumbnail = null;
 			for (const thumbnail of thumbnails) {
