@@ -461,6 +461,30 @@ export default class PollConnector extends BaseConnector {
 	pendingCodes: Array<PendingCode> = []
 
 	/**
+	 * 
+	 * @param key Key to query
+	 * @param requestArray Whether the key is an array
+	 * @returns Object model result
+	 */
+	async queryObjectModel(key: string, flags?: string, requestArray: boolean = false): Promise<any> {
+		let keyResult = null, next = 0;
+		do {
+			const keyResponse = await this.request("GET", "rr_model", {
+				key,
+				flags: flags + ((next !== 0 || requestArray) ? `a${next}` : "")
+			});
+
+			next = keyResponse.next ? keyResponse.next : 0;
+			if (keyResult === null || !(keyResult instanceof Array)) {
+				keyResult = keyResponse.result;
+			} else {
+				keyResult = keyResult.concat(keyResponse.result);
+			}
+		} while (next !== 0);
+		return keyResult;
+	}
+
+	/**
 	 * Method to be called repeatedly to maintain the underlying session
 	 */
 	async updateLoop() {
@@ -483,20 +507,11 @@ export default class PollConnector extends BaseConnector {
 				let keyIndex = 1;
 				for (let i = 0; i < keysToQuery.length; i++) {
 					const key = keysToQuery[i];
-					let keyResult = null, next = 0;
-					do {
-						const keyResponse = await this.request("GET", "rr_model", {
-							key,
-							flags: (next === 0) ? "d99vno" : `d99vnoa${next}`
-						});
 
-						next = keyResponse.next ? keyResponse.next : 0;
-						if (keyResult === null || !(keyResult instanceof Array)) {
-							keyResult = keyResponse.result;
-						} else {
-							keyResult = keyResult.concat(keyResponse.result);
-						}
-					} while (next !== 0);
+					const keyResult = await this.queryObjectModel(key, "d99vno");
+					if (key === "move" && keyResult.axes.length >= 9) {
+						keyResult.axes = await this.queryObjectModel("move.axes", "d99vno", true);
+					}
 
 					try {
 						await this.updateModel({ [key]: keyResult });
@@ -548,20 +563,10 @@ export default class PollConnector extends BaseConnector {
 			// Check if any of the non-live fields have changed and query them if so
 			for (let key of keysToQuery) {
 				if (this.lastSeqs[key] !== seqs[key]) {
-					let keyResult = null, next = 0;
-					do {
-						const keyResponse = await this.request("GET", "rr_model", {
-							key,
-							flags: (next === 0) ? "d99vn" : `d99vna${next}`
-						});
-
-						next = keyResponse.next ? keyResponse.next : 0;
-						if (keyResult === null || !(keyResult instanceof Array)) {
-							keyResult = keyResponse.result;
-						} else {
-							keyResult = keyResult.concat(keyResponse.result);
-						}
-					} while (next !== 0);
+					const keyResult = await this.queryObjectModel(key, "d99vno");
+					if (key === "move" && keyResult.axes.length >= 9) {
+						keyResult.axes = await this.queryObjectModel("move.axes", "d99vno", true);
+					}
 
 					try {
 						await this.updateModel({ [key]: keyResult });
