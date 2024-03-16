@@ -150,7 +150,7 @@ export default Vue.extend({
 			if (axis.userPosition === null) {
 				return this.$t("generic.noValue");
 			}
-			return (axis.letter === AxisLetter.Z) ? this.$displayZ(axis.userPosition, false) : this.$display(axis.userPosition, 1);
+			return this.$displayZ(axis.userPosition, false);
 		},
 		getMoveCellClass(index: number): string {
 			let classes = "";

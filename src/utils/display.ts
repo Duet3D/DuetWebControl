@@ -38,7 +38,7 @@ export function displayAxisPosition(axis: Axis, machinePosition: boolean = false
 	}
 
 	position = position / ((store.state.settings.displayUnits === UnitOfMeasure.imperial) ? 25.4 : 1);
-	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, store.state.settings.decimalPlaces);
+	return displayZ(position, false);
 }
 
 /**
@@ -54,7 +54,7 @@ export function displayZ(value: number | Array<number> | string | null | undefin
 /**
  * Display a sensor value with optional unit from square brackets in the name
  * @param sensor Sensor
- * @returns 
+ * @returns
  */
 export function displaySensorValue(sensor: AnalogSensor) {
     if (sensor.name) {

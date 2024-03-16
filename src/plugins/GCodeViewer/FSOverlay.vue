@@ -90,7 +90,7 @@
 
 .axes-container-viewgcode {
 	position: fixed;
-	right: 50% 
+	right: 50%
 }
 
 .heater-container {
@@ -134,7 +134,7 @@ export default {
         viewgcode: {
             type: Boolean,
             default: false
-        }  
+        }
     },
     mounted() {
         this.$window
@@ -149,8 +149,8 @@ export default {
 	methods: {
 		displayAxisPosition(axis) {
 			const position = axis.userPosition;
-			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, 1);
-		},
+	    	return this.$displayZ(axis.userPosition, false);
+			},
 		getHeaterInfo(heaterIdx) {
 			return this.heat.heaters[heaterIdx];
 		},
