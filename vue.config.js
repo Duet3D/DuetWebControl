@@ -41,7 +41,7 @@ module.exports = {
 			}),
 			new VuetifyPlugin({ autoImport: true }),
 			...((process.env.NODE_ENV === "production") ? [
-				new CustomImportsPlugin(),
+				//new CustomImportsPlugin(),
 				new EventHooksPlugin({
 					beforeCompile() {
 						const apiDocs = path.resolve(__dirname, "./DuetAPI.xml")

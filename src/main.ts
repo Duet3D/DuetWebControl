@@ -10,15 +10,12 @@ import "./plugins";
 import "./registerServiceWorker";
 */
 
-import { registerComponents } from "./components";
 import { registerPlugins } from "./vue-plugins";
-
 import App from "./App.vue";
 
 const app = createApp(App);
 
 registerPlugins(app);
-registerComponents(app);
 
 app.mount("#app");
 

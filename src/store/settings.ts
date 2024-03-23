@@ -5,7 +5,6 @@ import i18n, { getBrowserLocale, messages } from "@/i18n";
 import { FileNotFoundError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
-import patch from "@/utils/patch";
 import Path from "@/utils/path";
 
 import { DefaultPluginSettings } from "./defaults";
@@ -412,7 +411,7 @@ export const useSettingsStore = defineStore("settings", {
 					}
 
 					// Merge general settings
-					patch(settings, settingsToLoad.main);
+					Object.assign(settings, settingsToLoad.main);
 
 					// Merge machine-specific settings if possible
 					if (settingsToLoad.machine instanceof Object) {
@@ -420,11 +419,11 @@ export const useSettingsStore = defineStore("settings", {
 							settings.enabledPlugins.push(...settingsToLoad.machine.enabledPlugins);
 							delete settingsToLoad.machine.enabledPlugins;
 						}
-						patch(settings, settingsToLoad.machine);
+						Object.assign(settings, settingsToLoad.machine);
 					}
 				} else if (settingsToLoad.machine instanceof Object) {
 					// Merge only machine-specific settings
-					patch(settings, settingsToLoad.machine);
+					Object.assign(settings, settingsToLoad.machine);
 				} else {
 					// New format
 					settings = settingsToLoad;
@@ -444,7 +443,7 @@ export const useSettingsStore = defineStore("settings", {
 					}
 					delete settingsToLoad.moveSteps;
 				}
-				patch(that, settingsToLoad, true);
+				Object.assign(that, settingsToLoad);
 
 				// Load plugins
 				await machineStore.loadDwcPlugins(that.enabledPlugins);
