@@ -380,14 +380,13 @@ export default Vue.extend({
 						} else if (iapFileNameSD) {
 							filename = Path.combine(store.state.machine.model.directories.firmware, iapFileNameSD);
 						} else if (!store.state.machine.model.sbc && store.state.machine.model.network.interfaces.some(iface => iface.type === NetworkInterfaceType.wifi)) {
-							if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) || /DuetWiFiServer(.*)\.bin/i.test(content.name))) {
+							if ((/DuetWiFiSocketServer(.*)\.bin/i.test(content.name) ||
+								 /DuetWiFiServer(.*)\.bin/i.test(content.name)) ||
+								 store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === content.name))
+							{
 								// Deprecated; will be removed in v3.6
 								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWiFiServer.bin");
 								this.updates.wifiServer = true;
-							} else if (/DuetWebControl(.*)\.bin/i.test(content.name)) {
-								// Deprecated; will be removed in v3.6
-								filename = Path.combine(store.state.machine.model.directories.firmware, "DuetWebControl.bin");
-								this.updates.wifiServerSpiffs = true;
 							} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
 								filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
 								if (store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === content.name)) {

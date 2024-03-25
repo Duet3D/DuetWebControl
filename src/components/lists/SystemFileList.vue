@@ -92,10 +92,10 @@ export default Vue.extend({
 		isSystemRootDirectory(): boolean { return Path.equals(this.directory, this.systemDirectory); },
 		isFirmwareFile(): boolean {
 			if (this.isFirmwareDirectory && (this.selection.length === 1) && !this.selection[0].isDirectory) {
-				if ((/DuetWiFiSocketServer(.*)\.bin/i.test(this.selection[0].name) || /DuetWiFiServer(.*)\.bin/i.test(this.selection[0].name))) {
-					return true;
-				}
-				if (/DuetWebControl(.*)\.bin/i.test(this.selection[0].name)) {
+				if ((/DuetWiFiSocketServer(.*)\.bin/i.test(this.selection[0].name) ||
+					 /DuetWiFiServer(.*)\.bin/i.test(this.selection[0].name)) ||
+					 store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === this.selection[0].name))
+				{
 					return true;
 				}
 				if (/PanelDue(.*)\.bin/i.test(this.selection[0].name)) {
@@ -164,10 +164,11 @@ export default Vue.extend({
 		},
 		async installFile() {
 			let module = -1, boardIndex = -1;
-			if ((/DuetWiFiSocketServer(.*)\.bin/i.test(this.selection[0].name) || /DuetWiFiServer(.*)\.bin/i.test(this.selection[0].name))) {
+			if ((/DuetWiFiSocketServer(.*)\.bin/i.test(this.selection[0].name) ||
+				 /DuetWiFiServer(.*)\.bin/i.test(this.selection[0].name)) ||
+				 store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === this.selection[0].name))
+			{
 				module = 1;
-			} else if (/DuetWebControl(.*)\.bin/i.test(this.selection[0].name)) {
-				module = 2;
 			} else if (/PanelDue(.*)\.bin/i.test(this.selection[0].name)) {
 				module = 4;
 			} else {
