@@ -98,7 +98,7 @@ export default Vue.extend({
 				{
 					return true;
 				}
-				if (/PanelDue(.*)\.bin/i.test(this.selection[0].name) || this.selection[0].name === "DuetScreen.img") {
+				if (/PanelDue(.*)\.bin/i.test(this.selection[0].name) || /DuetScreen(.*)\.bin/i.test(this.selection[0].name)) {
 					return true;
 				}
 				return store.state.machine.model.boards.some((board, index) => {
@@ -169,7 +169,7 @@ export default Vue.extend({
 				 store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === this.selection[0].name))
 			{
 				module = 1;
-			} else if (/PanelDue(.*)\.bin/i.test(this.selection[0].name) || this.selection[0].name === "DuetScreen.img") {
+			} else if (/PanelDue(.*)\.bin/i.test(this.selection[0].name) || /DuetScreen(.*)\.bin/i.test(this.selection[0].name)) {
 				module = 4;
 			} else {
 				store.state.machine.model.boards.forEach((board, index) => {

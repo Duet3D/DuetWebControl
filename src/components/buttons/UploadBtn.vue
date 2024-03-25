@@ -391,13 +391,13 @@ export default Vue.extend({
 								filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
 								if (store.state.machine.model.boards.some(board => board.wifiFirmwareFileName === content.name)) {
 									this.updates.wifiServer = true;
-								} else if (content.name === "PanelDueFirmware.bin" || content.name === "DuetScreen.img") {
+								} else if (content.name === "PanelDueFirmware.bin" || content.name === "DuetScreen.bin") {
 									this.updates.display = true;
 								}
 							}
-						} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2") || content.name.endsWith(".img")) {
+						} else if (content.name.endsWith(".bin") || content.name.endsWith(".uf2")) {
 							filename = Path.combine(store.state.machine.model.directories.firmware, content.name);
-							if (content.name === "PanelDueFirmware.bin" || content.name === "DuetScreen.img") {
+							if (content.name === "PanelDueFirmware.bin" || content.name === "DuetScreen.bin") {
 								this.updates.display = true;
 							}
 						}
