@@ -133,15 +133,22 @@ export default Vue.extend({
 		},
 		apiDocumentationSummary(): string | null {
 			if (this.apiDocumentation !== null) {
-				const nodes = this.apiDocumentation.getElementsByTagName("summary");
-				return (nodes.length > 0) ? nodes[0].textContent!.replace(/\n/g, "<br>") : null;
+				const nodes: ArrayLike<Element> = this.apiDocumentation.getElementsByTagName("summary");
+					console.log(nodes);
+				return (nodes.length === 0) ? null : nodes[0].innerHTML
+					.trim()
+					.replace(/\n/g, "<br>")
+					.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
 			}
 			return null;
 		},
 		apiDocumentationRemarks() {
 			if (this.apiDocumentation !== null) {
 				const nodes: ArrayLike<Element> = this.apiDocumentation.getElementsByTagName("remarks");
-				return (nodes.length > 0) ? nodes[0].textContent!.replace(/\n/g, "<br>") : null;
+				return (nodes.length === 0) ? null : nodes[0].innerHTML
+					.trim()
+					.replace(/\n/g, "<br>")
+					.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
 			}
 			return null;
 		}
