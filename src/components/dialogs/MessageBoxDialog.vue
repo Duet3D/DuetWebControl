@@ -1,3 +1,11 @@
+<style scoped>
+.persistent {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+</style>
+
 <template>
 	<v-dialog v-model="shown" :persistent="isPersistent">
 		<v-card>
@@ -78,6 +86,10 @@
 				</template>
 			</v-card-actions>
 		</v-card>
+
+		<div class="persistent d-flex justify-end pe-4 pt-3">
+			<emergency-btn />
+		</div>
 	</v-dialog>
 </template>
 
