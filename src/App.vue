@@ -4,6 +4,11 @@
 			<v-container class="fill-height">
 				<v-responsive class="align-center text-center fill-height">
 					nothing to see here yet
+					<template v-if="machineStore.isConnected">
+						<br>
+						<br>
+						Uptime: {{ machineStore.model.state.upTime }}
+					</template>
 				</v-responsive>
 			</v-container>
 		</v-main>
@@ -13,6 +18,9 @@
 <script setup lang="ts">
 import { useMachineStore } from "@/store/machine";
 
-// temp
-useMachineStore().model.job.lastDuration = 123;
+const machineStore = useMachineStore();
+
+if (!machineStore.isConnected) {
+	/*await*/ machineStore.connect("ender5pro");
+}
 </script>
