@@ -6,10 +6,8 @@ import { FileNotFoundError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
-
 import { DefaultPluginSettings } from "./defaults";
 import { useMachineStore } from "./machine";
-
 export enum DashboardMode {
 	default = "Default",
 	fff = "FFF",
@@ -357,8 +355,8 @@ export const useSettingsStore = defineStore("settings", {
 
 			// Load plugins that are enabled by default
 			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
-		},
-		applySbcWebcamDefaults() {
+	    },
+	    applySbcWebcamDefaults() {
 			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
 			this.webcam.updateInterval = 0;
 		},
@@ -377,7 +375,7 @@ export const useSettingsStore = defineStore("settings", {
 					// Upgrade defaults if coming from an old version
 					if (settingsToLoad.main.ignoreFileTimestamps === undefined && settingsToLoad.main.settingsSaveDelay === 2000) {
 						settingsToLoad.main.settingsSaveDelay = 500;
-					}
+				    }
 					if (settingsToLoad.main.ignoreFileTimestamps === undefined && settingsToLoad.main.settingsSaveDelay === 4000) {
 						settingsToLoad.main.cacheSaveDelay = 1000;
 					}
@@ -505,7 +503,7 @@ export const useSettingsStore = defineStore("settings", {
 		setLastHostname(hostname: string) {
 			this.lastHostname = hostname;
 			setLocalSetting("lastHostname", hostname);
-		},
+	    },
 		setLocale(locale: string) {
 			i18n.global.locale.value = locale as any;
 			this.locale = locale;
@@ -570,6 +568,6 @@ export const useSettingsStore = defineStore("settings", {
 			} else {
 				this.plugins[plugin][key] = value;
 			}
-		}
+	    }
 	}
 });
