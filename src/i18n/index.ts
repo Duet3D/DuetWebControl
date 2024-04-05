@@ -3,33 +3,13 @@ import { reactive } from "vue";
 
 import de from "./de.json";
 import en from "./en.json";
-import es from "./es.json";
-import fr from "./fr.json";
-import ja from "./ja.json";
-import nl from "./nl.json";
-import pl from "./pl.json";
-import pt_br from "./pt_br.json";
-import ru from "./ru.json";
-import tr from "./tr.json";
-import uk from "./uk.json";
-import zh_cn from "./zh_cn.json";
 
 /**
  * Supported i18n messages
  */
 export const messages: Record<string, { plugins: Record<string, object> }> = reactive({
 	de,
-	en,
-	es,
-	fr,
-	ja,
-	nl,
-	pl,
-	pt_br,
-	ru,
-	tr,
-	uk,
-	zh_cn
+	en
 });
 
 /**

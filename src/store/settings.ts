@@ -16,11 +16,6 @@ export enum DashboardMode {
 	cnc = "CNC"
 }
 
-export enum UnitOfMeasure {
-	metric = "mm",
-	imperial = "inch"
-}
-
 export enum ToolChangeMacro {
 	free = "free",
 	pre = "pre",
@@ -96,16 +91,6 @@ export const useSettingsStore = defineStore("settings", {
 		iconMenu: false,
 
 		/**
-		 * Units to display
-		 */
-		displayUnits: UnitOfMeasure.metric,
-
-		/**
-		 * Precision of the values to display
-		 */
-		decimalPlaces: 1,
-
-		/**
 		 * Store settings in local storage
 		 */
 		settingsStorageLocal: false,
@@ -138,16 +123,6 @@ export const useSettingsStore = defineStore("settings", {
 			 * Default timeout for messages
 			 */
 			timeout: 5000
-		},
-
-		/**
-		 * UI Behaviour settings
-		 */
-		behaviour: {
-			/**
-			 * Stop auto switch to Status Panel On Job Start
-			 */
-			jobStart: false
 		},
 
 		/**
