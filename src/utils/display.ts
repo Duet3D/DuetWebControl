@@ -1,7 +1,7 @@
 import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
-import { UnitOfMeasure, useSettingsStore } from "@/store/settings";
+import { useSettingsStore } from "@/store/settings";
 import { useMachineStore } from "@/store/machine";
 
 /**
@@ -37,8 +37,7 @@ export function displayAxisPosition(axis: Axis, machinePosition: boolean = false
 	}
 
 	const settingsStore = useSettingsStore();
-	position = position / ((settingsStore.displayUnits === UnitOfMeasure.imperial) ? 25.4 : 1);
-	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, settingsStore.decimalPlaces);
+	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, 2);
 }
 
 /**
@@ -110,10 +109,7 @@ export function displaySize(bytes: number | null | undefined) {
  */
 export function displayMoveSpeed(speed: number | null | undefined) {
 	const settingsStore = useSettingsStore();
-	if (typeof speed === "number" && settingsStore.displayUnits === UnitOfMeasure.imperial) {
-		return display(speed * 60 / 25.4, 1, i18n.global.t("panel.settingsAppearance.unitInchSpeed"));
-	}
-	return display(speed, 1, i18n.global.t("panel.settingsAppearance.unitMmSpeed"));
+	return display(speed, 1, "mm");
 }
 
 /**
