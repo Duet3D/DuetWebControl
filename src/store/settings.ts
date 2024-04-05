@@ -45,11 +45,11 @@ export const useSettingsStore = defineStore("settings", {
 		 */
 		plugins: Object.assign({}, DefaultPluginSettings) as Record<string, any>,
 
-		/**
+    	/**
 		 * Configured locale
-		 */
+		*/
 		locale: getBrowserLocale(),
-
+		
 		/**
 		 * Last hostname (only used in dev mode)
 		 */
