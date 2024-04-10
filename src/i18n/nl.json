@@ -308,7 +308,8 @@
       "resetPrompt": "U hebt zojuist uitbreidingskaartupdates geïnstalleerd. \nWilt u de hoofdcontroller opnieuw opstarten om de vorige configuratie te herstellen?",
       "resetTitle": "Firmware resetten?",
       "sbcWarning": "U bedient uw machine in de SBC-modus. \nUpgrade de firmware alleen met behulp van DWC als dit wordt geadviseerd door de firmware-ontwikkelaars.",
-      "title": "Installeer updates?"
+      "title": "Installeer updates?",
+      "updateWiFiFirmware": "Installeer de meegeleverde WiFi-firmware-update"
     }
   },
   "directory": {
@@ -1020,7 +1021,9 @@
       "viewGCode": "G-Code bekijken",
       "volume": "Volume",
       "zBelt": "Z-riem",
-      "zBeltAngle": "Z-riem portaalhoek"
+      "zBeltAngle": "Z-riem portaalhoek",
+      "cancelObj": "Object annuleren",
+      "resumeObj": "Hervat object"
     },
     "heightmap": {
       "area": "Sondegebied: {0}",

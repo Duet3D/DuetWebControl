@@ -298,7 +298,8 @@
       "prompt": "Wczytałeś co najmniej jedno oprogramowanie sprzętowe. Czy chcesz zainstalować je teraz?",
       "resetTitle": "Zresetować oprogramowanie sprzętowe?",
       "resetPrompt": "Właśnie zainstalowałeś aktualizację rozszerzeń. Czy chcesz ponownie uruchomić główny sterownik aby przywrócić wcześniejszą konfigurację?",
-      "sbcWarning": "Używasz maszyny w trybie SBC. \nUaktualnij oprogramowanie układowe za pomocą DWC tylko wtedy, gdy jest to zalecane przez twórców oprogramowania układowego."
+      "sbcWarning": "Używasz maszyny w trybie SBC. \nUaktualnij oprogramowanie układowe za pomocą DWC tylko wtedy, gdy jest to zalecane przez twórców oprogramowania układowego.",
+      "updateWiFiFirmware": "Zainstaluj dołączoną aktualizację oprogramowania sprzętowego Wi-Fi"
     },
     "inputRequired": "Proszę podać wartość",
     "numberRequired": "Proszę wpisać odpowiednią liczbę",
@@ -1021,7 +1022,9 @@
       "showWorkplace": "Pokaż miejsce pracy",
       "zBelt": "Pas Z",
       "perimeterOnly": "Tylko obwód",
-      "progressMode": "Tryb postępu"
+      "progressMode": "Tryb postępu",
+      "cancelObj": "Anuluj obiekt",
+      "resumeObj": "Wznów obiekt"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",

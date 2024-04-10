@@ -247,7 +247,8 @@
       "prompt": "Vous avez envoyer au moins une mise à jour logiciel. Voulez-vous les installer maintenant?",
       "resetPrompt": "Vous venez d'installer les mises à jour de la carte d'extension. \nVoulez-vous redémarrer le contrôleur principal pour restaurer la configuration précédente ?",
       "resetTitle": "Réinitialiser le micrologiciel ?",
-      "sbcWarning": "Vous utilisez votre machine en mode SBC. \nVeuillez mettre à niveau le micrologiciel à l'aide de DWC uniquement si cela est conseillé par les développeurs du micrologiciel."
+      "sbcWarning": "Vous utilisez votre machine en mode SBC. \nVeuillez mettre à niveau le micrologiciel à l'aide de DWC uniquement si cela est conseillé par les développeurs du micrologiciel.",
+      "updateWiFiFirmware": "Installer la mise à jour du micrologiciel WiFi incluse"
     },
     "inputRequired": "Merci d'entrer une nouvelle valeur",
     "numberRequired": "Merci d'entrer un nombre valide",
@@ -1056,7 +1057,9 @@
       "showWorkplace": "Afficher le lieu de travail",
       "zBelt": "Ceinture Z",
       "perimeterOnly": "Périmètre uniquement",
-      "progressMode": "Mode Progression"
+      "progressMode": "Mode Progression",
+      "cancelObj": "Annuler l'objet",
+      "resumeObj": "Reprendre l'objet"
     }
   },
   "tabs": {

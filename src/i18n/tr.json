@@ -247,7 +247,8 @@
       "prompt": "En az bir ürün yazılımı güncellemesi yüklediniz. Onları şimdi yüklemek ister misiniz?",
       "resetPrompt": "Genişletme kartı güncellemelerini yeni yüklediniz. \nÖnceki yapılandırmayı geri yüklemek için ana denetleyiciyi yeniden başlatmak istiyor musunuz?",
       "resetTitle": "Ürün yazılımı sıfırlansın mı?",
-      "sbcWarning": "Makinenizi SBC modunda çalıştırıyorsunuz. \nLütfen donanım yazılımını yalnızca donanım yazılımı geliştiricileri tarafından tavsiye edilirse DWC kullanarak yükseltin."
+      "sbcWarning": "Makinenizi SBC modunda çalıştırıyorsunuz. \nLütfen donanım yazılımını yalnızca donanım yazılımı geliştiricileri tarafından tavsiye edilirse DWC kullanarak yükseltin.",
+      "updateWiFiFirmware": "Birlikte verilen WiFi Firmware Güncellemesini yükleyin"
     },
     "inputRequired": "Lütfen bir değer girin",
     "numberRequired": "Lütfen geçerli bir sayı girin",
@@ -1026,7 +1027,9 @@
       "showWorkplace": "İşyerini Göster",
       "zBelt": "Z Kayışı",
       "perimeterOnly": "Yalnızca Çevre",
-      "progressMode": "İlerleme Modu"
+      "progressMode": "İlerleme Modu",
+      "cancelObj": "Nesneyi İptal Et",
+      "resumeObj": "Nesneyi Devam Ettir"
     }
   },
   "pluginPermissions": {

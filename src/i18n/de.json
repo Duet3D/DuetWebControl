@@ -298,7 +298,8 @@
       "prompt": "Sie haben gerade mindestens ein Firmwareupdate hochgeladen. Möchten Sie diese jetzt installieren?",
       "resetTitle": "Firmware zurücksetzen?",
       "resetPrompt": "Sie haben gerade Updates für Erweiterungsboards installiert. Möchten Sie den Hauptcontroller jetzt neustarten um die vorige Konfiguration wiederherzustellen?",
-      "sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde."
+      "sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde.",
+      "updateWiFiFirmware": "Enthaltenes WiFi Firmwareupdate installieren "
     },
     "inputRequired": "Bitte Wert eingeben",
     "numberRequired": "Bitte gültige Zahl eingeben",
@@ -1021,7 +1022,9 @@
       "zBelt": "Z-Riemen",
       "zBeltAngle": "Winkel des Z-Riemens",
       "progressMode": "Fortschrittsmodus",
-      "perimeterOnly": "Nur Ränder"
+      "perimeterOnly": "Nur Ränder",
+      "cancelObj": "Objekt abbrechen",
+      "resumeObj": "Objekt fortsetzen"
     },
     "heightmap": {
       "menuCaption": "Höhenkarte",

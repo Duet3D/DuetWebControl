@@ -10,6 +10,10 @@
 			<v-card-text>
 				{{ $t("dialog.update.prompt") }}
 
+				<v-checkbox v-if="includesWiFiFirmware" :input-value="updateWiFiFirmware"
+							@change="$emit('update:updateWiFiFirmware', $event)"
+							:label="$t('dialog.update.updateWiFiFirmware')" class="mt-3" hide-details />
+
 				<v-alert :value="!!dsfVersion && isDuetFirmware" type="warning" class="mt-3">
 					{{ $t("dialog.update.sbcWarning") }}
 				</v-alert>
@@ -35,6 +39,8 @@ import store from "@/store";
 
 export default Vue.extend({
 	props: {
+		multipleUpdates: Boolean,
+		updateWiFiFirmware: Boolean,
 		shown: {
 			type: Boolean,
 			required: true
@@ -58,6 +64,11 @@ export default Vue.extend({
 			}
 		}
 	},
+	data() {
+		return {
+			includesWiFiFirmware: false
+		}
+	},
 	methods: {
 		confirmed() {
 			this.$emit("confirmed");
@@ -66,6 +77,13 @@ export default Vue.extend({
 		dismissed() {
 			this.$emit("dismissed");
 			this.$emit("update:shown", false);
+		}
+	},
+	watch: {
+		shown(value: boolean) {
+			if (value) {
+				this.includesWiFiFirmware = this.multipleUpdates && this.updateWiFiFirmware;
+			}
 		}
 	}
 });

@@ -298,7 +298,8 @@
       "prompt": "Firmware frissítést töltött fel. Akarja most telepíteni?",
       "resetTitle": "Visszaállítja a firmware-t?",
       "resetPrompt": "Bővítőmodul firssítést telepített. Újra akarja indítani a fő vezérlőpanelt hogy visszaállítsa az előző konfigurációt?",
-      "sbcWarning": "A gépet SBC módban működteti. Csak akkor frissítse a firmware-t a DWC-vel, ha a fejlesztők kimondottan ezt javasolják."
+      "sbcWarning": "A gépet SBC módban működteti. Csak akkor frissítse a firmware-t a DWC-vel, ha a fejlesztők kimondottan ezt javasolják.",
+      "updateWiFiFirmware": "Telepítse a mellékelt WiFi firmware-frissítést"
     },
     "inputRequired": "Adja meg az értéket",
     "numberRequired": "Érvényes számot adjon meg",

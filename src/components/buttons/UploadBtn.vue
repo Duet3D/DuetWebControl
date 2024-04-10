@@ -1,26 +1,28 @@
 <template>
 	<div>
-		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :fab="fab" :loading="isBusy"
-			   :title="title" :color="innerColor" @dragover.prevent.stop="dragOver" @dragleave.prevent.stop="dragLeave"
-			   @drop.prevent.stop="dragDrop">
+		<v-btn v-bind="$props" @click="chooseFile" :disabled="$props.disabled || !canUpload" :fab="fab"
+			   :loading="isBusy" :title="title" :color="innerColor" @dragover.prevent.stop="dragOver"
+			   @dragleave.prevent.stop="dragLeave" @drop.prevent.stop="dragDrop">
 			<template #loader>
 				<v-progress-circular indeterminate :size="23" :width="2" class="mr-2" />
 				{{ caption }}
 			</template>
 
 			<slot>
-				<v-icon class="mr-2">mdi-cloud-upload</v-icon> {{ caption }}
+				<v-icon class="mr-2">mdi-cloud-upload</v-icon>
+				{{ caption }}
 			</slot>
 		</v-btn>
 
 		<input ref="fileInput" type="file" :accept="accept" hidden @change="fileSelected" multiple>
-		<firmware-update-dialog :shown.sync="confirmUpdate" @confirmed="startUpdate" />
+		<firmware-update-dialog :shown.sync="confirmUpdate" :multipleUpdates="multipleUpdates"
+								:updateWiFiFirmware.sync="updates.wifiServer" @confirmed="startUpdate" />
 		<config-updated-dialog :shown.sync="confirmFirmwareReset" />
 	</div>
 </template>
 
 <script lang="ts">
-import { NetworkInterfaceType, MachineStatus, Board, MessageType } from "@duet3d/objectmodel";
+import { NetworkInterfaceType, MachineStatus, Board } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import Vue, { PropType } from "vue";
 
@@ -162,6 +164,13 @@ export default Vue.extend({
 		confirmFirmwareReset: {
 			get(): boolean { return !this.confirmUpdate && this.confirmReset; },
 			set(value: boolean): void { this.confirmReset = value; }
+		},
+		multipleUpdates(): boolean {
+			let numUpdates = this.updates.firmwareBoards.length;
+			numUpdates += this.updates.wifiServer ? 1 : 0;
+			numUpdates += this.updates.wifiServerSpiffs ? 1 : 0;
+			numUpdates += this.updates.display ? 1 : 0;
+			return numUpdates > 1;
 		}
 	},
 	data() {

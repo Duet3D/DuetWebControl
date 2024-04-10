@@ -298,7 +298,8 @@
       "prompt": "Has subido al menos una actualización de firmware. ¿Desea instalarla/s ahora?",
       "resetTitle": "¿Restablecer firmware?",
       "resetPrompt": "Acaba de instalar actualizaciones de tarjetas de expansión. ¿Desea reiniciar el controlador principal para restaurar la configuración anterior?",
-      "sbcWarning": "Está operando su máquina en modo SBC. Actualice el firmware utilizando DWC solo si lo recomiendan los desarrolladores de firmware."
+      "sbcWarning": "Está operando su máquina en modo SBC. Actualice el firmware utilizando DWC solo si lo recomiendan los desarrolladores de firmware.",
+      "updateWiFiFirmware": "Instalar la actualización de firmware WiFi incluida"
     },
     "inputRequired": "Por favor, introduzca un valor",
     "numberRequired": "Por favor, introduzca un número válido",
@@ -1021,7 +1022,9 @@
       "showWorkplace": "Mostrar lugar de trabajo",
       "zBelt": "Cinturón Z",
       "perimeterOnly": "Solo perímetro",
-      "progressMode": "Modo de progreso"
+      "progressMode": "Modo de progreso",
+      "cancelObj": "Cancelar objeto",
+      "resumeObj": "Reanudar objeto"
     },
     "heightmap": {
       "menuCaption": "Mapa de altura",
