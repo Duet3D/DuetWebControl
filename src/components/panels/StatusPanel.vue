@@ -84,10 +84,15 @@ a:not(:hover) {
 
 				<v-row align-content="center" no-gutters class="flex-nowrap">
 					<v-col tag="strong" class="category-header">
-						{{ $t("panel.status.extruders") }}
+						<a href="javascript:void(0)" @click="displayVirtualEPos = !displayVirtualEPos">
+							{{ $t(displayVirtualEPos ? "panel.status.virtualEPos" : "panel.status.extruders") }}
+						</a>
 					</v-col>
 
-					<v-col>
+					<v-col v-if="displayVirtualEPos" class="d-flex align-center justify-center">
+						{{ $display(virtualEPos, 1) }}
+					</v-col>
+					<v-col v-else>
 						<v-row align-content="center" no-gutters>
 							<v-col v-for="(extruder, index) in model.move.extruders" :key="index"
 								   class="d-flex flex-column align-center">
@@ -136,7 +141,7 @@ a:not(:hover) {
 									{{ $displayMoveSpeed(model.move.currentMove.topSpeed) }}
 								</span>
 							</v-col>
-							
+
 							<v-col v-if="isFinite(model.move.currentMove.extrusionRate) && isFFForUnset"
 								   class="d-flex flex-column align-center">
 								<strong>
@@ -275,6 +280,9 @@ export default Vue.extend({
 			}
 			return store.state.settings.dashboardMode === DashboardMode.fff;
 		},
+		virtualEPos(): number {
+			return store.state.machine.model.move.virtualEPos;
+		},
 		volumetricFlow(): number {
 			if (this.model.state.currentTool >= 0 && this.model.state.currentTool < this.model.tools.length) {
 				const selectedTool = this.model.tools[this.model.state.currentTool];
@@ -329,6 +337,7 @@ export default Vue.extend({
 	data() {
 		return {
 			displayToolPosition: true,
+			displayVirtualEPos: false,
 			displayVolumetricFlow: true
 		}
 	},

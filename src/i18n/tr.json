@@ -821,7 +821,8 @@
       "probe": "Z-Probu|Z-Probları",
       "noStatus": "Durum yok",
       "extrusionRate": "Ekstrüzyon Oranı",
-      "volumetricFlow": "Hacimsel akış hızı"
+      "volumetricFlow": "Hacimsel akış hızı",
+      "virtualEPos": "Sanal Ekstruder Konumu"
     },
     "tools": {
       "caption": "Takımlar",

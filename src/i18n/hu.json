@@ -832,7 +832,8 @@
       "probe": "Z tapintó|Z tapintók",
       "noStatus": "Nincs állapot",
       "extrusionRate": "Extrudálási sebesség",
-      "volumetricFlow": "Térfogatáram"
+      "volumetricFlow": "Térfogatáram",
+      "virtualEPos": "Virtuális extruder pozíciója"
     },
     "tools": {
       "caption": "Szerszámok",

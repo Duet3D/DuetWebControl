@@ -833,7 +833,8 @@
       "probe": "Sensor-Z|Sensores-Z",
       "noStatus": "Sin Estado",
       "extrusionRate": "Tasa de extrusión",
-      "volumetricFlow": "Tasa de flujo volumétrico"
+      "volumetricFlow": "Tasa de flujo volumétrico",
+      "virtualEPos": "Posición del extrusor virtual"
     },
     "tools": {
       "caption": "Herramientas",

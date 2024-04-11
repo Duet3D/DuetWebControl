@@ -832,7 +832,8 @@
       "probe": "Z-Probe|Z-Probes",
       "noStatus": "No Status",
       "extrusionRate": "Extrusion Rate",
-      "volumetricFlow": "Volumetric Flow"
+      "volumetricFlow": "Volumetric Flow",
+      "virtualEPos": "Virtual Extruder Position"
     },
     "tools": {
       "caption": "Tools",

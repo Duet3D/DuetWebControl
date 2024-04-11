@@ -832,7 +832,8 @@
       "topSpeed": "Top snelheid",
       "v12": "V12",
       "vIn": "Vin",
-      "volumetricFlow": "Volumestroom"
+      "volumetricFlow": "Volumestroom",
+      "virtualEPos": "Virtuele extruderpositie"
     },
     "tools": {
       "active": "Actief",

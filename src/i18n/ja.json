@@ -833,7 +833,8 @@
       "probe": "Zプローブ|Zプローブ",
       "noStatus": "No Status",
       "extrusionRate": "押出率",
-      "volumetricFlow": "体積流量"
+      "volumetricFlow": "体積流量",
+      "virtualEPos": "仮想押出機の位置"
     },
     "tools": {
       "caption": "工具",

@@ -821,7 +821,8 @@
       "probe": "Z-Probe|Z-Probes",
       "noStatus": "Brak statusu",
       "extrusionRate": "Szybkość wytłaczania",
-      "volumetricFlow": "Objętościowe natężenie przepływu"
+      "volumetricFlow": "Objętościowe natężenie przepływu",
+      "virtualEPos": "Wirtualna pozycja wytłaczarki"
     },
     "tools": {
       "caption": "Narzędzia",
