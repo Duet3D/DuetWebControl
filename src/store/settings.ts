@@ -2,11 +2,11 @@ import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n, { getBrowserLocale } from "@/i18n";
-import { FileNotFoundError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
 
+import { FileNotFoundError } from "./connector/errors";
 import { DefaultPluginSettings } from "./defaults";
 import { useMachineStore } from "./machine";
 

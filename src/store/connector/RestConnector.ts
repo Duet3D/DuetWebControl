@@ -1,17 +1,16 @@
 import ObjectModel, { GCodeFileInfo, Plugin, PluginManifest, initObject } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 
+import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
+import ConnectorSettings from "./ConnectorSettings";
+import ConnectorCallbacks from "./ConnectorCallbacks";
+
 import {
 	NetworkError, DisconnectedError, TimeoutError, OperationCancelledError, OperationFailedError,
 	DirectoryNotFoundError, FileNotFoundError,
-	LoginError, InvalidPasswordError, getErrorMessage
-} from "@/utils/errors";
-import { closeNotifications } from "@/utils/notifications";
-import { strToTime } from "@/utils/time";
-
-import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./BaseConnector";
-import { useSettingsStore } from "../settings";
-import { useMachineStore } from "../machine";
+	LoginError, InvalidPasswordError
+} from "./errors";
+import { strToTime } from "./utils";
 
 /**
  * Class for communication between DWC and DSF
@@ -20,21 +19,21 @@ export default class RestConnector extends BaseConnector {
 	/**
 	 * Try to establish a connection to the given machine
 	 * @param hostname Hostname to connect to
-	 * @param username Username for authorization
-	 * @param password Password for authorization
+	 * @param settings Connector settings
+	 * @param callbacks Callbacks invoked by the connector
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {InvalidPasswordError} Invalid password
 	 * @throws {NoFreeSessionError} No more free sessions available
 	 * @throws {BadVersionError} Incompatible firmware version (no object model?)
 	 */
-	static override async connect(hostname: string, username: string, password: string): Promise<BaseConnector> {
+	static override async connect(hostname: string, settings: ConnectorSettings, callbacks: ConnectorCallbacks): Promise<BaseConnector> {
 		const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 
 		// Attempt to get a session key first
 		let sessionKey = null;
 		try {
 			const response = await BaseConnector.request("GET", `${location.protocol}//${hostname}${process.env.BASE_URL}machine/connect`, {
-				password
+				password: settings.password
 			});
 			sessionKey = response.sessionKey;
 		} catch (e) {
@@ -65,7 +64,11 @@ export default class RestConnector extends BaseConnector {
 				}
 			};
 		});
-		return new RestConnector(hostname, password, socket, model as ObjectModel, sessionKey);
+
+		const connector = new RestConnector(hostname, settings, callbacks, socket, model as ObjectModel, sessionKey);
+		await callbacks.onLoadSettings(connector);	// Let the callee load settings from the machine being connected
+		connector.startSocket();
+		return connector;
 	}
 
 	/**
@@ -86,20 +89,20 @@ export default class RestConnector extends BaseConnector {
 	/**
 	 * Constructor of this connector class
 	 * @param hostname Hostname to connect to
-	 * @param password Password for authorization
+	 * @param settings Connector settings
+	 * @param callbacks Callbacks invoked by the connector
 	 * @param socket WebSocket instance for object model updates
 	 * @param model Object model data
 	 * @param sessionKey Session key for authorization
 	 */
-	constructor(hostname: string, password: string, socket: WebSocket, model: ObjectModel, sessionKey: string) {
-		super(hostname, password);
+	constructor(hostname: string, settings: ConnectorSettings, callbacks: ConnectorCallbacks, socket: WebSocket, model: ObjectModel, sessionKey: string) {
+		super(hostname, settings, callbacks);
 		this.requestBase = `${location.protocol}//${(hostname === location.host) ? hostname + process.env.BASE_URL : hostname + '/'}`;
 		this.socket = socket;
 		this.initialModel = model;
 		this.sessionKey = sessionKey;
 
-		useMachineStore().updateModel(model);
-		this.startSocket();
+		callbacks.onUpdate(this, model);
 	}
 
 	/**
@@ -208,19 +211,11 @@ export default class RestConnector extends BaseConnector {
 	}
 
 	/**
-	 * Called when the first connection has been established and the settings + cache have been loaded
-	 */
-	postConnect() {
-		this.startSocket();
-	}
-
-	/**
 	 * Start the web socket connection
 	 */
-	async startSocket() {
+	startSocket() {
 		// Send PING in predefined intervals to detect disconnects from the client side
-		const machineStore = useMachineStore(), settingsStore = useSettingsStore();
-		this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
+		this.pingTask = setTimeout(this.doPing.bind(this), this.settings.pingInterval);
 
 		// Set up socket events
 		this.socket!.onmessage = this.onMessage.bind(this);
@@ -228,7 +223,7 @@ export default class RestConnector extends BaseConnector {
 		this.socket!.onclose = this.onClose.bind(this);
 
 		// Update model and acknowledge receipt
-		await machineStore.updateModel(this.initialModel);
+		this.callbacks.onUpdate(this, this.initialModel);
 		this.socket!.send("OK\n");
 	}
 
@@ -246,9 +241,7 @@ export default class RestConnector extends BaseConnector {
 		// Hence, we rely on our own optional PING-PONG implementation
 		if (this.socket !== null) {
 			this.socket.send("PING\n");
-
-			const settingsStore = useSettingsStore();
-			this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
+			this.pingTask = setTimeout(this.doPing.bind(this), this.settings.pingInterval);
 		}
 	}
 
@@ -261,14 +254,12 @@ export default class RestConnector extends BaseConnector {
 		if (this.socket == null) {
 			return;
 		}
-		const machineStore = useMachineStore(), settingsStore = useSettingsStore();
-
 		// Use PING/PONG messages to detect connection interrupts
 		if (this.pingTask) {
 			// We've just received something, reset the ping task
 			clearTimeout(this.pingTask);
 		}
-		this.pingTask = setTimeout(this.doPing.bind(this), settingsStore.pingInterval);
+		this.pingTask = setTimeout(this.doPing.bind(this), this.settings.pingInterval);
 
 		// It's just a PONG reply, ignore this
 		if (e.data === "PONG\n") {
@@ -277,11 +268,11 @@ export default class RestConnector extends BaseConnector {
 
 		// Process model updates
 		const data = JSON.parse(e.data);
-		await machineStore.updateModel(data);
+		this.callbacks.onUpdate(this, data);
 
 		// Acknowledge receipt
-		if (settingsStore.updateDelay > 0) {
-			setTimeout(() => this.socket?.send("OK\n"), settingsStore.updateDelay);
+		if (this.settings.updateDelay > 0) {
+			setTimeout(() => this.socket?.send("OK\n"), this.settings.updateDelay);
 		} else {
 			this.socket.send("OK\n");
 		}
@@ -301,8 +292,7 @@ export default class RestConnector extends BaseConnector {
 			this.cancelRequests();
 			this.socket = null;
 			
-			const machineStore = useMachineStore();
-			machineStore.handleConnectionError(new NetworkError());
+			this.callbacks.onConnectionError(this, e);
 		}
 	}
 
@@ -320,8 +310,7 @@ export default class RestConnector extends BaseConnector {
 			this.cancelRequests();
 			this.socket = null;
 
-			const machineStore = useMachineStore();
-			machineStore.handleConnectionError(new NetworkError(e.reason));
+			this.callbacks.onConnectionError(this, new NetworkError(e.reason));
 		}
 	}
 
@@ -336,7 +325,7 @@ export default class RestConnector extends BaseConnector {
 		// Attempt to get a session key again
 		try {
 			const response = await this.request("GET", "machine/connect", {
-				password: this.password
+				password: this.settings.password
 			});
 			this.sessionKey = response.sessionKey;
 		} catch (e) {
@@ -347,9 +336,8 @@ export default class RestConnector extends BaseConnector {
 		}
 
 		// Attempt to reconnect
-		const machineStore = useMachineStore();
+		const lastDsfVersion = this.initialModel?.sbc?.dsf?.version;
 		await new Promise<void>((resolve, reject) => {
-			const lastDsfVersion = machineStore.model.sbc?.dsf.version;
 			const socketProtocol = location.protocol === "https:" ? "wss:" : "ws:";
 			const socket = new WebSocket(`${socketProtocol}//${this.hostname}${process.env.BASE_URL}machine${(this.sessionKey ? `?sessionKey=${this.sessionKey}` : "")}`);
 			socket.onmessage = (e) => {
@@ -358,12 +346,12 @@ export default class RestConnector extends BaseConnector {
 				this.socket = socket;
 
 				// Check if DSF has been updated
-				if (lastDsfVersion !== machineStore.model.sbc?.dsf.version) {
+				if (lastDsfVersion !== this.initialModel?.sbc?.dsf?.version) {
 					location.reload();
 				}
 
 				// Dismiss pending notifications and resolve the connection attempt
-				closeNotifications(true);
+				this.callbacks.onReconnected(this);
 				resolve();
 			}
             socket.onerror = (e: Event) => {
@@ -417,8 +405,8 @@ export default class RestConnector extends BaseConnector {
 		try {
 			const response = await this.request("POST", "machine/code", noWait ? { async: true } : null, "text", code);
 			reply = response.trim();
-		} catch (e) {
-			reply = "Error: " + getErrorMessage(e);
+		} catch (e: any) {
+			reply = "Error: " + (e ? (e.reason ?? (e.message ?? e.toString())) : "unknown");
 		}
 		return (noWait ? undefined : reply) as B extends true ? void : string;
 	}
@@ -431,8 +419,8 @@ export default class RestConnector extends BaseConnector {
 	 * @param onProgress Optional callback for progress reports
 	 */
 	async upload(filename: string, content: string | Blob | File, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback): Promise<void> {
-		const payload = (content instanceof(Blob)) ? content : new Blob([content]), settingsStore = useSettingsStore();
-		if (!settingsStore.ignoreFileTimestamps && content instanceof File) {
+		const payload = (content instanceof(Blob)) ? content : new Blob([content]);
+		if (!this.settings.ignoreFileTimestamps && content instanceof File) {
 			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), { lastModified: content.lastModified }, "", payload, 0, filename, cancellationToken, onProgress);
 		} else {
 			await this.request("PUT", "machine/file/" + encodeURIComponent(filename), null, "", payload, 0, filename, cancellationToken, onProgress);

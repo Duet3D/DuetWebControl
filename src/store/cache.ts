@@ -1,9 +1,10 @@
 import { GCodeFileInfo } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
-import { FileNotFoundError } from "@/utils/errors";
 import { getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
+
+import { FileNotFoundError } from "./connector/errors";
 import { useSettingsStore } from "./settings";
 import { useMachineStore } from "./machine";
 

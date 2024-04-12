@@ -1,7 +1,9 @@
 import { GCodeFileInfo, Plugin, PluginManifest } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 
-import { NotImplementedError, NetworkError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError, InvalidPasswordError } from "@/utils/errors";
+import ConnectorCallbacks from "./ConnectorCallbacks";
+import ConnectorSettings from "./ConnectorSettings";
+import { NotImplementedError, NetworkError, TimeoutError, OperationCancelledError, OperationFailedError, FileNotFoundError, InvalidPasswordError } from "./errors";
 
 /**
  * Default timeout for HTTP requests (in ms)
@@ -9,11 +11,9 @@ import { NotImplementedError, NetworkError, TimeoutError, OperationCancelledErro
 export const defaultRequestTimeout = 4000;
 
 /**
- * Base class for network connectors that keep the machine store up-to-date
- * IMPORTANT: When adding new methods with more than one parameter to this class, make sure to
- * encapsulate these parameters in curly braces ({ }) to expand the payload object!
+ * Base class for network connectors that keep the machine data store up-to-date
  */
-abstract class BaseConnector {
+export default abstract class BaseConnector {
 	/**
 	 * Make an arbitrary HTTP request returning JSON data
 	 * @param method HTTP method
@@ -81,14 +81,14 @@ abstract class BaseConnector {
 	 * Try to establish a connection to the given machine.
 	 * This should be overwritten by inherited classes
 	 * @param hostname Hostname to connect to
-	 * @param username Username for authorization
-	 * @param password Password for authorization
+	 * @param settings Connector settings
+	 * @param callbacks Callbacks invoked by the connector
 	 * @throws {NetworkError} Failed to establish a connection
 	 * @throws {InvalidPasswordError} Invalid password
 	 * @throws {NoFreeSessionError} No more free sessions available
 	 * @throws {BadVersionError} Incompatible firmware version (no object model?)
 	 */
-	static async connect(hostname: string, username: string, password: string): Promise<BaseConnector> {
+	static async connect(hostname: string, settings: ConnectorSettings, callbacks: ConnectorCallbacks): Promise<BaseConnector> {
 		throw new NotImplementedError("connect");
 	}
 
@@ -98,9 +98,14 @@ abstract class BaseConnector {
 	hostname: string;
 
 	/**
-	 * Password used for connecting 
+	 * General connector settings
 	 */
-	protected password: string;
+	settings: ConnectorSettings;
+
+	/**
+	 * Callbacks invoked by the connector
+	 */
+	protected callbacks: ConnectorCallbacks;
 
 	/**
 	 * Request base URL for HTTP requests
@@ -112,15 +117,11 @@ abstract class BaseConnector {
 	 * @param host Hostname of the remote machine
 	 * @param pass Optional password used for authentification
 	 */
-	constructor(host: string, pass: string) {
+	constructor(host: string, settings: ConnectorSettings, callbacks: ConnectorCallbacks) {
 		this.hostname = host;
-		this.password = pass;
+		this.settings = settings;
+		this.callbacks = callbacks;
 	}
-
-	/**
-	 * Called when the first connection has been established and the settings + cache have been loaded
-	 */
-	abstract postConnect(): void;
 
 	/**
 	 * Make an arbitrary HTTP request to the machine
@@ -277,7 +278,6 @@ abstract class BaseConnector {
 	 */
 	uninstallSystemPackage(pkg: string): Promise<void> { throw new NotImplementedError("uninstallSystemPackage"); }
 }
-export default BaseConnector
 
 /**
  * Interface for operations that may be cancelled

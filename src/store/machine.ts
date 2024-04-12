@@ -4,6 +4,8 @@ import { defineStore } from "pinia";
 
 import { connect } from "./connector";
 import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
+import { InvalidPasswordError, OperationFailedError, DisconnectedError, CodeBufferError, FileNotFoundError } from "./connector/errors";
+
 import { useCacheStore } from "./cache";
 import { DefaultObjectModel, DefaultUsername, DefaultPassword } from "./defaults";
 import { useSettingsStore } from "./settings";
@@ -12,13 +14,15 @@ import i18n, { translateResponse } from "@/i18n";
 import { checkManifest, checkVersion, loadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
 import { isPrinting } from "@/utils/enums";
-import { DisconnectedError, CodeBufferError, InvalidPasswordError, OperationFailedError, FileNotFoundError, getErrorMessage } from "@/utils/errors";
+import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { log, logCode } from "@/utils/logging";
-import { makeFileTransferNotification, Notification, showMessage, FileTransferType, makeNotification } from "@/utils/notifications";
+import { makeFileTransferNotification, Notification, showMessage, FileTransferType, makeNotification, closeNotifications } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 import packageInfo from "../../package.json";
+import ConnectorCallbacks from "./connector/ConnectorCallbacks";
+import ConnectorSettings from "./connector/ConnectorSettings";
 
 /**
  * Item type for downloads
@@ -231,19 +235,40 @@ export const useMachineStore = defineStore("machine", {
 			this.isConnecting = true;
 			Events.emit("connecting", hostname);
 			try {
-				this.connector = await connect(hostname, username, password);
+				const settingsStore = useSettingsStore();
+				const callbacks: ConnectorCallbacks = {
+					onConnectProgress: function (connector: BaseConnector, progress: number): void {
+						useMachineStore().connectingProgress = progress;
+					},
+					onLoadSettings: async function (connector: BaseConnector): Promise<void> {
+						try {
+							await settingsStore.load();
+						} catch (e) {
+							console.warn("Failed to load settings: " + getErrorMessage(e));
+						}
+					},
+					onConnectionError: function (connector: BaseConnector, reason: unknown): void {
+						useMachineStore().handleConnectionError(reason);
+					},
+					onReconnected: function (connector: BaseConnector): void {
+						closeNotifications(true);
+					},
+					onUpdate: function (connector: BaseConnector, data: any): void {
+						useMachineStore().updateModel(data);
+					},
+					onVolumeChanged: function (connector: BaseConnector, volumeIndex: number): void {
+						Events.emit("filesOrDirectoriesChanged", { volume: volumeIndex });
+					}
+				};
+				const settings = {
+					password,
+					...settingsStore.$state
+				};
+				this.connector = await connect(hostname, settings as any as ConnectorSettings, callbacks);
 				Events.emit("connected");
 
 				// Load the list of installed DWC plugins
 				await this.connector.loadDwcPluginList();
-
-				// Load settings
-				const settingsStore = useSettingsStore();
-				try {
-					await settingsStore.load();
-				} catch (e) {
-					console.warn("Failed to load settings: " + getErrorMessage(e));
-				}
 
 				// Load cache
 				try {
@@ -920,7 +945,7 @@ export const useMachineStore = defineStore("machine", {
 		 * @param context Action context
 		 * @param payload Updated model data
 		 */
-		async updateModel(payload: any) {
+		updateModel(payload: any) {
 			const lastBeepFrequency = this.model.state.beep ? this.model.state.beep.frequency : null;
 			const lastBeepDuration = this.model.state.beep ? this.model.state.beep.duration : null;
 			const lastDisplayMessage = this.model.state.displayMessage, lastStatus = this.model.state.status;

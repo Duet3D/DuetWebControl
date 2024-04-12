@@ -1,12 +1,14 @@
 import i18n from "@/i18n";
 
-import { InvalidPasswordError, OperationCancelledError, getErrorMessage } from "./errors";
+import { getErrorMessage } from "./errors";
 import Events from "./events";
 import Path from "./path";
 import { log, logCode, logToConsole } from "./logging";
 import { displayTime } from "./display";
 import { Notification, closeNotifications, makeNotification } from "./notifications";
+
 import { loadedDwcPlugins } from "@/plugins";
+import { InvalidPasswordError, OperationCancelledError } from "@/store/connector/errors";
 
 Events.on("connected", (hostname) => {
     log("success", i18n.global.t("events.connected", [hostname]));
