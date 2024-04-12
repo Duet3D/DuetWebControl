@@ -48,12 +48,11 @@
 </template>
 
 <script lang="ts">
+import { PollConnector, RestConnector } from "@duet3d/connectors";
 import Vue from "vue";
 
 import store from "@/store";
 import { MachineSettingsState } from "@/store/machine/settings";
-import RestConnector from "@/store/machine/connector/RestConnector";
-import PollConnector from "@/store/machine/connector/PollConnector";
 
 export default Vue.extend({
 	computed: {

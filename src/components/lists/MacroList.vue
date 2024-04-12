@@ -45,11 +45,11 @@
 </template>
 
 <script lang="ts">
+import { FileListItem } from "@duet3d/connectors";
 import { Volume } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import store from "@/store";
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
 import { DisconnectedError, getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { LogType } from "@/utils/logging";

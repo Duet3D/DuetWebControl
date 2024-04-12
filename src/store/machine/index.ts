@@ -1,10 +1,10 @@
+import { BaseConnector, OnProgressCallback, CancellationToken, FileListItem } from "@duet3d/connectors";
 import ObjectModel, { DefaultHostname, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import Vue from "vue";
 import { Module } from "vuex";
 
 import cache, { MachineCacheState } from "./cache";
-import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
 import model from "./model";
 import settings, { MachineSettingsState } from "./settings";
 
@@ -248,7 +248,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			request(_, payload: { method: string, path: string, params?: Record<string, string | number | boolean> | null, responseType?: XMLHttpRequestResponseType, body?: any, timeout?: number, filename?: string, cancellationToken?: CancellationToken, onProgress?: OnProgressCallback, retry?: number }): Promise<any> {
 				if (connector === null) { throw new OperationFailedError("request is not available in default machine module"); }
 
-				return connector.request(payload.method, payload.path, payload.params ?? null, payload.responseType ?? "json", payload.body ?? null, payload.timeout ?? connector.requestTimeout, payload.filename, payload.cancellationToken, payload.onProgress, payload.retry ?? 0);
+				return connector.request(payload.method, payload.path, payload.params ?? null, payload.responseType ?? "json", payload.body ?? null, payload.timeout, payload.filename, payload.cancellationToken, payload.onProgress, payload.retry ?? 0);
 			},
 
 			/**
@@ -611,7 +611,6 @@ export default function(connector: BaseConnector | null): MachineModule {
 								filename,
 								type,
 								cancellationToken,
-								rawPath,
 								(loaded, total, retry) => {
 									if (item.startTime === null) {
 										item.startTime = new Date();
@@ -1076,11 +1075,6 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload Machine event to log
 			 */
 			log: (state, payload) => state.events.push(payload),
-
-			/**
-			 * Notify the machine connector that the module is about to be unregistered from Vuex
-			 */
-			unregister: () => connector?.unregister(),
 
 			/**
 			 * Flag if the machine is attempting to reconnect

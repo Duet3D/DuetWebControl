@@ -71,12 +71,12 @@ td {
 </template>
 
 <script lang="ts">
+import { CancellationToken } from "@duet3d/connectors";
 import Vue from "vue"
 
 import store from "@/store";
-import Events from "@/utils/events"
 import { FileTransferItem } from "@/store/machine";
-import { CancellationToken } from "@/store/machine/connector/BaseConnector";
+import Events from "@/utils/events"
 
 export default Vue.extend({
 	computed: {

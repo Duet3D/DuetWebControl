@@ -93,12 +93,12 @@ th {
 </template>
 
 <script lang="ts">
+import { RestConnector } from "@duet3d/connectors";
 import { Board, NetworkInterfaceType } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import packageInfo from "../../../package.json";
 import store from "@/store";
-import RestConnector from "@/store/machine/connector/RestConnector";
 
 export default Vue.extend({
 	computed: {

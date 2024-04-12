@@ -1,3 +1,4 @@
+import { connect, DefaultConnectorSettings, CancellationToken } from "@duet3d/connectors";
 import Vue from "vue";
 import Vuex, { Module, Store } from "vuex";
 
@@ -8,10 +9,10 @@ import { getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { logGlobal, logToConsole, LogType } from "@/utils/logging";
 import { makeNotification } from "@/utils/notifications";
+import Path from "@/utils/path";
 
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
-import { connect } from "./machine/connector";
-import { CancellationToken } from "./machine/connector/BaseConnector";
+import MachineCallbacks from "./machine/callbacks";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
 import uiInjection, { UiInjectionState } from "./uiInjection";
@@ -139,11 +140,33 @@ const store = new Vuex.Store<InternalRootState>({
 
 			commit("setConnecting", true);
 			try {
-				const connectorInstance = await connect(hostname, username, password);
+				// Establish connection to the machine
+				const connectorSettings = {
+					...(state as RootState).settings,
+					protocol: (hostname === location.hostname) ? location.protocol as "http:" | "https:" : "http:",
+					baseURL: (hostname === location.hostname) ? process.env.BASE_URL ?? "/" : "/",
+					username: "",
+					password,
+					pluginsFile: Path.dwcPluginsFile,
+
+					// The following are all defined by the machine settings
+					maxRetries: DefaultConnectorSettings.maxRetries,
+					ignoreFileTimestamps: DefaultConnectorSettings.ignoreFileTimestamps,
+					crcUploads: DefaultConnectorSettings.crcUploads,
+					fileTransferRetryThreshold: DefaultConnectorSettings.fileTransferRetryThreshold,
+					updateInterval: DefaultConnectorSettings.updateInterval,
+					pingInterval: DefaultConnectorSettings.pingInterval,
+					updateDelay: DefaultConnectorSettings.updateDelay
+				}
+				const connectorCallbacks = new MachineCallbacks(hostname, commit, dispatch);
+				const connectorInstance = await connect(hostname, connectorSettings, connectorCallbacks);
+
+				// Create Vuex module and bind it to the connector
 				const module = machine(connectorInstance);
 				commit("addMachine", { hostname, module });
-				connectorInstance.register(module);
+				connectorCallbacks.machineAdded();
 
+				// Perform post-connect tasks
 				commit("setSelectedMachine", hostname);
 				logGlobal(LogType.success, i18n.t("events.connected", [hostname]));
 
@@ -207,7 +230,6 @@ const store = new Vuex.Store<InternalRootState>({
 				}
 				commit("setDisconnecting", false);
 			}
-			commit(`machines/${hostname}/unregister`);
 
 			if (state.selectedMachine === hostname) {
 				commit("setSelectedMachine", defaultMachine);

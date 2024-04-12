@@ -1,4 +1,5 @@
-import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, SBC, Sensors, State, Tool } from "@duet3d/objectmodel";
+import { BaseConnector } from "@duet3d/connectors";
+import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 import type { Module } from "vuex";
 
@@ -7,7 +8,6 @@ import { isPrinting } from "@/utils/enums";
 import patch from "@/utils/patch";
 
 import { RootState } from "..";
-import BaseConnector from "./connector/BaseConnector";
 
 /**
  * Default object model used to display initial values.

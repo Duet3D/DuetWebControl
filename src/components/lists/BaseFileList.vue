@@ -131,6 +131,7 @@ td {
 </template>
 
 <script lang="ts">
+import { FileListItem } from "@duet3d/connectors";
 import JSZip from "jszip";
 import saveAs from "file-saver";
 import Vue, { PropType } from "vue";
@@ -139,11 +140,10 @@ import { VDataTable } from "vuetify/lib";
 
 import i18n from "@/i18n";
 import store from "@/store";
-import { defaultMachine, FileTransferItem } from "@/store/machine";
+import { FileTransferItem, defaultMachine } from "@/store/machine";
 import { DisconnectedError, getErrorMessage, OperationCancelledError } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
-import { FileListItem } from "@/store/machine/connector/BaseConnector";
 import { LogType } from "@/utils/logging";
 
 /**

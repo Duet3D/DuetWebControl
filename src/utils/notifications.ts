@@ -1,9 +1,9 @@
+import { CancellationToken, OnProgressCallback } from "@duet3d/connectors";
 import Vue from "vue";
 
 import i18n from "@/i18n";
 import store from "@/store";
 import { extractFileName } from "@/utils/path";
-import { CancellationToken, OnProgressCallback } from "@/store/machine/connector/BaseConnector";
 import { LogType } from "./logging";
 
 /**

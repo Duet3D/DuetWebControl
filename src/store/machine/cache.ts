@@ -1,3 +1,4 @@
+import { BaseConnector } from "@duet3d/connectors";
 import { GCodeFileInfo } from "@duet3d/objectmodel";
 import Vue from "vue";
 import { Module } from "vuex";
@@ -8,7 +9,6 @@ import patch from "@/utils/patch";
 import Path from "@/utils/path";
 
 import { RootState } from "..";
-import BaseConnector from "./connector/BaseConnector";
 
 export interface MachineCacheState {
 	/**

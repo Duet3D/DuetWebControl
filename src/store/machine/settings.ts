@@ -1,3 +1,4 @@
+import { BaseConnector } from "@duet3d/connectors";
 import { AxisLetter } from "@duet3d/objectmodel";
 import Vue from "vue";
 import { Module } from "vuex";
@@ -9,7 +10,6 @@ import Path from "@/utils/path";
 
 import { RootState } from "..";
 import { resetSettingsTimer } from "../observer";
-import BaseConnector from "./connector/BaseConnector";
 
 /**
  * Default settings defined by third-party plugins
@@ -202,7 +202,19 @@ export interface MachineSettingsState {
   * @param connector Connector used by the machine module instance
   * @returns Machine cache module
   */
-export default function(connector: BaseConnector | null): MachineSettingsModule {
+export default function (connector: BaseConnector | null): MachineSettingsModule {
+	function applyConnectorSettings(state: MachineSettingsState) {
+		if (connector !== null) {
+			connector.settings.maxRetries = state.ajaxRetries;
+			connector.settings.ignoreFileTimestamps = state.ignoreFileTimestamps;
+			connector.settings.crcUploads = state.crcUploads;
+			connector.settings.fileTransferRetryThreshold = state.fileTransferRetryThreshold;
+			connector.settings.updateInterval = state.updateInterval;
+			connector.settings.pingInterval = state.pingInterval;
+			connector.settings.updateDelay = state.updateDelay;
+		}
+	}
+
 	return {
 		namespaced: true,
 		state: {
@@ -276,6 +288,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				if (!connector) {
 					return;
 				}
+				applyConnectorSettings(state);
 
 				resetSettingsTimer(connector.hostname);
 
@@ -304,7 +317,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 				}
 
 				// Load the list of installed DWC plugins
-				await connector.loadDwcPluginList();
+				await connector.loadPluginList();
 
 				// Load the settings
 				let mainSettings, machineSettings;
@@ -455,6 +468,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 					delete payload.moveSteps;
 				}
 				patch(state, payload, true);
+				applyConnectorSettings(state);
 			},
 			update(state, payload) {
 				if (payload.plugins !== undefined) {
@@ -471,6 +485,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 					delete payload.moveSteps;
 				}
 				patch(state, payload, true);
+				applyConnectorSettings(state);
 			},
 
 			dwcPluginLoaded(state, plugin) {
