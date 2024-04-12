@@ -173,9 +173,9 @@ export const useSettingsStore = defineStore("settings", {
 
 		//#region Poll Connector
 		/**
-		 * Number of maximum AJAX (HTTP request) retries
+		 * Number of maximum HTTP request retries
 		 */
-		ajaxRetries: 2,
+		maxRetries: 2,
 
 		/**
 		 * Time between HTTP object model requests (in ms)
@@ -363,7 +363,7 @@ export const useSettingsStore = defineStore("settings", {
 			this.webcam.updateInterval = 0;
 		},
 
-		async load(connector: BaseConnector) {
+		async load() {
 			// First attempt to load the last hostname from the local storage if running in dev mode
 			if (process.env.NODE_ENV !== "production") {
 				this.lastHostname = getLocalSetting("lastHostname");
@@ -425,17 +425,17 @@ export const useSettingsStore = defineStore("settings", {
 			}
 
 			// Try to load settings from local storage, if that doesn't work, try to load them from the board
-			const localSettings = getLocalSetting("settings");
+			const localSettings = getLocalSetting("settings"), machineModule = useMachineStore();
 			if (localSettings instanceof Object) {
 				applySettings(localSettings);
 			} else {
 				try {
-					const remoteSettings = await connector.download(Path.dwcSettingsFile);
+					const remoteSettings = await machineModule.download(Path.dwcSettingsFile, false, false, false);
 					applySettings(remoteSettings);
 				} catch (e) {
 					if (e instanceof FileNotFoundError) {
 						try {
-							const factoryDefaults = await connector.download(Path.dwcFactoryDefaults);
+							const factoryDefaults = await machineModule.download(Path.dwcFactoryDefaults, false, false, false);
 							applySettings(factoryDefaults);
 						} catch (e) {
 							if (!(e instanceof FileNotFoundError)) {

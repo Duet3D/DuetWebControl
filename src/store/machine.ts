@@ -1,4 +1,4 @@
-import { connect, BaseConnector, ConnectorCallbacks, ConnectorSettings, CancellationToken, FileListItem, OnProgressCallback } from "@duet3d/connectors";
+import { connect, BaseConnector, CancellationToken, FileListItem, OnProgressCallback } from "@duet3d/connectors";
 import { InvalidPasswordError, OperationFailedError, DisconnectedError, CodeBufferError, FileNotFoundError } from "@duet3d/connectors";
 import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
@@ -231,17 +231,29 @@ export const useMachineStore = defineStore("machine", {
 			this.isConnecting = true;
 			Events.emit("connecting", hostname);
 			try {
+				// Prepare connector settings and try to establish a connection
 				const settingsStore = useSettingsStore();
-				const callbacks: ConnectorCallbacks = {
+				const settings = {
+					...settingsStore,
+					protocol: location.protocol as "http:" | "https:",
+					baseURL: process.env.BASE_URL ?? "/",
+					password,
+					username: "",
+					pluginsFile: Path.dwcPluginsFile
+				};
+				this.connector = await connect(hostname, settings);
+
+				// Load settings
+				try {
+					await settingsStore.load();
+				} catch (e) {
+					console.warn("Failed to load settings: " + getErrorMessage(e));
+				}
+
+				// Set connector callbacks
+				this.connector.setCallbacks({
 					onConnectProgress: function (connector: BaseConnector, progress: number): void {
 						useMachineStore().connectingProgress = progress;
-					},
-					onLoadSettings: async function (connector: BaseConnector): Promise<void> {
-						try {
-							await settingsStore.load(connector);
-						} catch (e) {
-							console.warn("Failed to load settings: " + getErrorMessage(e));
-						}
 					},
 					onConnectionError: function (connector: BaseConnector, reason: unknown): void {
 						useMachineStore().handleConnectionError(reason);
@@ -255,21 +267,7 @@ export const useMachineStore = defineStore("machine", {
 					onVolumeChanged: function (connector: BaseConnector, volumeIndex: number): void {
 						Events.emit("filesOrDirectoriesChanged", { volume: volumeIndex });
 					}
-				};
-				const settings = {
-					...settingsStore,
-					protocol: location.protocol as "http:" | "https:",
-					baseURL: process.env.BASE_URL ?? "/",
-					password,
-					username: "",
-					maxRetries: 2,
-					pluginsFile: Path.dwcPluginsFile
-				};
-				this.connector = await connect(hostname, settings, callbacks);
-				Events.emit("connected");
-
-				// Finish loading activated DWC plugins
-				await this.loadDwcPlugins();
+				});
 
 				// Load cache
 				try {
@@ -278,6 +276,9 @@ export const useMachineStore = defineStore("machine", {
 				} catch (e) {
 					console.warn("Failed to load cache: " + getErrorMessage(e));
 				}
+
+				// Finish loading activated DWC plugins
+				await this.loadDwcPlugins();
 
 				// Update last hostname
 				if (settingsStore.lastHostname !== location.host || hostname !== location.host) {
