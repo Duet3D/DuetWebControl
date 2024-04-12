@@ -1,4 +1,4 @@
-import { connect, DefaultConnectorSettings, CancellationToken } from "@duet3d/connectors";
+import { connect, DefaultSettings, CancellationToken, BaseConnector } from "@duet3d/connectors";
 import Vue from "vue";
 import Vuex, { Module, Store } from "vuex";
 
@@ -8,7 +8,7 @@ import Plugins, { checkVersion, loadDwcResources } from "@/plugins";
 import { getErrorMessage, InvalidPasswordError } from "@/utils/errors";
 import Events from "@/utils/events";
 import { logGlobal, logToConsole, LogType } from "@/utils/logging";
-import { makeNotification } from "@/utils/notifications";
+import { closeNotifications, makeNotification } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
@@ -30,68 +30,68 @@ const machines: Record<string, MachineModule> = {
 
 export interface InternalRootState {
 	/**
-	 * True if a connection is being established
-	 */
+	* True if a connection is being established
+	*/
 	isConnecting: boolean;
-
+	
 	/**
-	 * Percentage for reporting the connection progress (0..100)
-	 */
+	* Percentage for reporting the connection progress (0..100)
+	*/
 	connectingProgress: number;
-
+	
 	/**
-	 * Indicates if a connection is being terminated
-	 */
+	* Indicates if a connection is being terminated
+	*/
 	isDisconnecting: boolean;
-
+	
 	/**
-	 * True if the manual connect dialog is shown
-	 */
+	* True if the manual connect dialog is shown
+	*/
 	connectDialogShown: boolean;
-
+	
 	/**
-	 * True when a connection has been refused and a password must be entered
-	 */
+	* True when a connection has been refused and a password must be entered
+	*/
 	passwordRequired: boolean;
-
+	
 	/**
-	 * Hostname of the selected machine (primarily for multi-machine support)
-	 */
+	* Hostname of the selected machine (primarily for multi-machine support)
+	*/
 	selectedMachine: string;
-
+	
 	/**
-	 * Indicates if the configured DWC plugins are being loaded
-	 */
+	* Indicates if the configured DWC plugins are being loaded
+	*/
 	loadingDwcPlugins: boolean;
-
+	
 	/**
-	 * List of loaded DWC plugins
-	 */
+	* List of loaded DWC plugins
+	*/
 	loadedDwcPlugins: Array<string>;
-
+	
 	/**
-	 * Whether code replies may not be shown as notifications (usually true when the Console page is open)
-	 */
+	* Whether code replies may not be shown as notifications (usually true when the Console page is open)
+	*/
 	hideCodeReplyNotifications: boolean;
-
+	
 	/**
-	 * Whether an OSK plugin is active
-	 */
+	* Whether an OSK plugin is active
+	*/
 	oskEnabled: boolean;
-
+	
 	/**
-	 * Bottom margin to add for the on-screen keyboard
-	 */
+	* Bottom margin to add for the on-screen keyboard
+	*/
 	bottomMargin: number;
 }
 
 export interface RootState extends InternalRootState {
 	machine: MachineModuleState;
 	/**
-	 * Do not attempt to reference this any more, it will be removed in v3.6.
-	 * There are better solutions for multi-machine management
-	 * @deprecated
-	 */
+	* Do not attempt to reference this any more, it will be removed in v3.6.
+	* There are better solutions for multi-machine management
+	* @deprecated
+	*/
 	machines: Record<string, MachineModuleState>;
 	settings: SettingsState;
 	uiInjection: UiInjectionState;
@@ -118,15 +118,15 @@ const store = new Vuex.Store<InternalRootState>({
 	},
 	actions: {
 		/**
-		 * Connect to the given hostname using the specified credentials
-		 * @param context Action context
-		 * @param payload Action payload
-		 * @param payload.hostname Hostname to connect to (defaults to the browser's location host)
-		 * @param payload.username Optional username for login
-		 * @param payload.password Optional password
-		 * @param payload.retrying Optionally flags if this is a successive connect attempt, used internally only
-		 * @returns 
-		 */
+		* Connect to the given hostname using the specified credentials
+		* @param context Action context
+		* @param payload Action payload
+		* @param payload.hostname Hostname to connect to (defaults to the browser's location host)
+		* @param payload.username Optional username for login
+		* @param payload.password Optional password
+		* @param payload.retrying Optionally flags if this is a successive connect attempt, used internally only
+		* @returns 
+		*/
 		async connect({ state, commit, dispatch }, { hostname = location.host, username = defaultUsername, password = defaultPassword, retrying = false } = {}) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error("Invalid hostname");
@@ -137,7 +137,7 @@ const store = new Vuex.Store<InternalRootState>({
 			if (state.isConnecting && !retrying) {
 				throw new Error("Already connecting");
 			}
-
+			
 			commit("setConnecting", true);
 			try {
 				// Establish connection to the machine
@@ -148,38 +148,61 @@ const store = new Vuex.Store<InternalRootState>({
 					username: "",
 					password,
 					pluginsFile: Path.dwcPluginsFile,
-
+					
 					// The following are all defined by the machine settings
-					maxRetries: DefaultConnectorSettings.maxRetries,
-					ignoreFileTimestamps: DefaultConnectorSettings.ignoreFileTimestamps,
-					crcUploads: DefaultConnectorSettings.crcUploads,
-					fileTransferRetryThreshold: DefaultConnectorSettings.fileTransferRetryThreshold,
-					updateInterval: DefaultConnectorSettings.updateInterval,
-					pingInterval: DefaultConnectorSettings.pingInterval,
-					updateDelay: DefaultConnectorSettings.updateDelay
+					maxRetries: DefaultSettings.maxRetries,
+					ignoreFileTimestamps: DefaultSettings.ignoreFileTimestamps,
+					crcUploads: DefaultSettings.crcUploads,
+					fileTransferRetryThreshold: DefaultSettings.fileTransferRetryThreshold,
+					updateInterval: DefaultSettings.updateInterval,
+					pingInterval: DefaultSettings.pingInterval,
+					updateDelay: DefaultSettings.updateDelay
 				}
-				const connectorCallbacks = new MachineCallbacks(hostname, commit, dispatch);
-				const connectorInstance = await connect(hostname, connectorSettings, connectorCallbacks);
-
-				// Create Vuex module and bind it to the connector
+				const connectorInstance = await connect(hostname, connectorSettings);
+				
+				// Create Vuex module, register, and activate it
 				const module = machine(connectorInstance);
 				commit("addMachine", { hostname, module });
-				connectorCallbacks.machineAdded();
-
-				// Perform post-connect tasks
 				commit("setSelectedMachine", hostname);
-				logGlobal(LogType.success, i18n.t("events.connected", [hostname]));
-
+				
+				// Load machine settings
 				try {
 					await dispatch("machine/settings/load");
 				} catch (e) {
 					console.warn("Failed to load settings: " + getErrorMessage(e));
 				}
+				
+				// Load cache
 				try {
 					await dispatch("machine/cache/load");
 				} catch (e) {
 					console.warn("Failed to load cache: " + getErrorMessage(e));
 				}
+				
+				// Set up event callbacks
+				connectorInstance.setCallbacks({
+					onConnectProgress(connector: BaseConnector, progress: number) {
+						commit("machine/setConnectingProgress", progress);
+					},
+					async onConnectionError(connector: BaseConnector, reason: unknown) {
+						await dispatch("machine/onConnectionError", reason);
+					},
+					onReconnected(connector: BaseConnector) {
+						closeNotifications(true);
+					},
+					onUpdate(connector: BaseConnector, data: any) {
+						dispatch("machine/update", data);
+					},
+					onVolumeChanged(connector: BaseConnector, volumeIndex: number) {
+						Root.$emit(Events.filesOrDirectoriesChanged, {
+							machine: hostname,
+							volume: volumeIndex
+						});
+					}
+				});
+				
+				// Perform post-connect tasks
+				logGlobal(LogType.success, i18n.t("events.connected", [hostname]));
 
 				if ((state as RootState).settings.lastHostname !== location.host || hostname !== location.host) {
 					commit("settings/setLastHostname", hostname);
@@ -189,7 +212,7 @@ const store = new Vuex.Store<InternalRootState>({
 				if (!isPasswordError || password !== defaultPassword) {
 					logGlobal(isPasswordError ? LogType.warning : LogType.error, i18n.t("error.connect", [hostname]), getErrorMessage(e));
 				}
-
+				
 				if (isPasswordError) {
 					commit("askForPassword");
 				} else if (process.env.NODE_ENV === "production" && hostname === location.host) {
@@ -199,14 +222,14 @@ const store = new Vuex.Store<InternalRootState>({
 			}
 			commit("setConnecting", false);
 		},
-
+		
 		/**
-		 * Disconnect from a connected machine
-		 * @param context Action context
-		 * @param payload Action payload
-		 * @param payload.hostname Hostname to disconnect (defaults to the currently selected machine)
-		 * @param payload.doDisconnect Optionally flag if the connector should send a disconnect request (defaults to true)
-		 */
+		* Disconnect from a connected machine
+		* @param context Action context
+		* @param payload Action payload
+		* @param payload.hostname Hostname to disconnect (defaults to the currently selected machine)
+		* @param payload.doDisconnect Optionally flag if the connector should send a disconnect request (defaults to true)
+		*/
 		async disconnect({ state, commit, dispatch }, { hostname = state.selectedMachine, doDisconnect = true } = {}) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error("Invalid hostname");
@@ -217,7 +240,7 @@ const store = new Vuex.Store<InternalRootState>({
 			if (state.isDisconnecting) {
 				throw new Error("Already disconnecting");
 			}
-
+			
 			if (doDisconnect) {
 				commit("setDisconnecting", true);
 				try {
@@ -230,17 +253,17 @@ const store = new Vuex.Store<InternalRootState>({
 				}
 				commit("setDisconnecting", false);
 			}
-
+			
 			if (state.selectedMachine === hostname) {
 				commit("setSelectedMachine", defaultMachine);
 			}
 			commit("removeMachine", hostname);
 		},
-
+		
 		/**
-		 * Disconnect from all connected machines
-		 * @param context Action context
-		 */
+		* Disconnect from all connected machines
+		* @param context Action context
+		*/
 		async disconnectAll({ dispatch }) {
 			for (let hostname in machines) {
 				if (hostname !== defaultMachine) {
@@ -249,14 +272,14 @@ const store = new Vuex.Store<InternalRootState>({
 				}
 			}
 		},
-
+		
 		/**
-		 * Event to be called when a machine connector cannot say connected
-		 * @param context Action context
-		 * @param payload Action payload
-		 * @param payload.hostname Hostname of the affected machine
-		 * @param payload.error Error causing the connection loss
-		 */
+		* Event to be called when a machine connector cannot say connected
+		* @param context Action context
+		* @param payload Action payload
+		* @param payload.hostname Hostname of the affected machine
+		* @param payload.error Error causing the connection loss
+		*/
 		async onConnectionError({ dispatch, commit }, { hostname, error }: { hostname: string, error: Error }) {
 			if (error instanceof InvalidPasswordError) {
 				logGlobal(LogType.error, i18n.t("events.connectionLost", [hostname]), error.message);
@@ -270,20 +293,20 @@ const store = new Vuex.Store<InternalRootState>({
 				dispatch(`machines/${hostname}/reconnect`);
 			}
 		},
-
+		
 		/**
-		 * Load a DWC plugin
-		 * @param context Action context
-		 * @param payload Action payload 
-		 * @param payload.id Plugin identifier
-		 * @param payload.saveSettings Save settings (including enabled plugins) on successful load
-		 */
+		* Load a DWC plugin
+		* @param context Action context
+		* @param payload Action payload 
+		* @param payload.id Plugin identifier
+		* @param payload.saveSettings Save settings (including enabled plugins) on successful load
+		*/
 		async loadDwcPlugin({ state, dispatch, commit }, { id, saveSettings }: { id: string, saveSettings: boolean }) {
 			// Don't load a DWC plugin twice
 			if (state.loadedDwcPlugins.includes(id)) {
 				return;
 			}
-
+			
 			// Get the plugin
 			let plugin = Plugins.find(item => item.id === id);
 			if (!plugin) {
@@ -292,41 +315,41 @@ const store = new Vuex.Store<InternalRootState>({
 					throw new Error(`Built-in plugin ${id} not found`);
 				}
 			}
-
+			
 			// SBC and RRF dependencies are not checked for built-in plugins
-
+			
 			// Is the plugin compatible to the running DWC version?
 			if (plugin.dwcVersion && !checkVersion(plugin.dwcVersion, packageInfo.version)) {
 				throw new Error(`Plugin ${id} requires incompatible DWC version (need ${plugin.dwcVersion}, got ${packageInfo.version})`);
 			}
-
+			
 			// Load plugin dependencies in DWC
 			for (const dependency of plugin.dwcDependencies) {
 				const dependentPlugin = Plugins.find(item => item.id === dependency);
 				if (!dependentPlugin) {
 					throw new Error(`Failed to find DWC plugin dependency ${dependency} for plugin ${plugin.id}`);
 				}
-
+				
 				if (!state.loadedDwcPlugins.includes(dependentPlugin.id)) {
 					await dispatch("loadPlugin", dependentPlugin.id);
 				}
 			}
-
+			
 			// Load the required web module
 			await loadDwcResources(plugin);
-
+			
 			// DWC plugin has been loaded
 			commit("dwcPluginLoaded", plugin.id);
 			if (saveSettings) {
 				commit("settings/dwcPluginLoaded", plugin.id);
 			}
 		},
-
+		
 		/**
-		 * Unload a DWC plugin again (this does NOT unload active JS code!)
-		 * @param context Action context
-		 * @param plugin Plugin identifier
-		 */
+		* Unload a DWC plugin again (this does NOT unload active JS code!)
+		* @param context Action context
+		* @param plugin Plugin identifier
+		*/
 		async unloadDwcPlugin({ state, dispatch, commit }, plugin: string) {
 			commit("settings/disableDwcPlugin", plugin);
 			if ((state as RootState).settings.enabledPlugins.includes(plugin)) {
@@ -335,12 +358,12 @@ const store = new Vuex.Store<InternalRootState>({
 			}
 			return false;
 		},
-
+		
 		/**
-		 * Load a list of DWC plugins and report progress as content is being loaded
-		 * @param context Action context
-		 * @param pluginList List of plugin IDs to load
-		 */
+		* Load a list of DWC plugins and report progress as content is being loaded
+		* @param context Action context
+		* @param pluginList List of plugin IDs to load
+		*/
 		async loadDwcPlugins({ commit, dispatch }, pluginList: Array<string>) {
 			if (pluginList.length > 0) {
 				let operationCancelled = false;
@@ -349,7 +372,7 @@ const store = new Vuex.Store<InternalRootState>({
 						operationCancelled = true;
 					}
 				}
-
+				
 				commit("setDwcPluginsLoading", true);
 				const notification = makeNotification(LogType.primary, i18n.t("notification.pluginLoad.title"), i18n.t("notification.pluginLoad.message"), 0, null, "mdi-connection");
 				let loadedPlugins = 0;
@@ -367,7 +390,7 @@ const store = new Vuex.Store<InternalRootState>({
 							});
 						}
 						loadedPlugins++;
-
+						
 						if (operationCancelled) {
 							break;
 						}
@@ -380,7 +403,7 @@ const store = new Vuex.Store<InternalRootState>({
 				}
 				notification.close();
 				commit("setDwcPluginsLoading", false);
-
+				
 				if (loadedPlugins != pluginList.length && !operationCancelled) {
 					if (loadedPlugins === 0) {
 						makeNotification(LogType.error, "Failed to load plugins", "Could not load DWC plugins, see Console", null, "/Console");
@@ -393,148 +416,148 @@ const store = new Vuex.Store<InternalRootState>({
 	},
 	mutations: {
 		/**
-		 * Show the connect dialog asking for target hostname etc.
-		 * @param state Vuex state
-		 */
+		* Show the connect dialog asking for target hostname etc.
+		* @param state Vuex state
+		*/
 		showConnectDialog: state => state.connectDialogShown = true,
-
+		
 		/**
-		 * Hide the connect dialog and password prompt again
-		 * @param state Vuex state
-		 */
+		* Hide the connect dialog and password prompt again
+		* @param state Vuex state
+		*/
 		hideConnectDialog(state) {
 			state.connectDialogShown = false;
 			state.passwordRequired = false;
 		},
-
+		
 		/**
-		 * Ask for a password on connect
-		 * @param state Vuex state
-		 */
+		* Ask for a password on connect
+		* @param state Vuex state
+		*/
 		askForPassword(state) {
 			state.connectDialogShown = true;
 			state.passwordRequired = true;
 		},
-
+		
 		/**
-		 * Flag if a connection is being established 
-		 * @param state Vuex state
-		 * @param connecting If a machine is being connected to
-		 */
+		* Flag if a connection is being established 
+		* @param state Vuex state
+		* @param connecting If a machine is being connected to
+		*/
 		setConnecting: (state, connecting: boolean) => state.isConnecting = connecting,
-
+		
 		/**
-		 * Update the progress of the current connection attempt
-		 * @param state Vuex state
-		 * @param progress Current progress in per cent (0..100)
-		 */
+		* Update the progress of the current connection attempt
+		* @param state Vuex state
+		* @param progress Current progress in per cent (0..100)
+		*/
 		setConnectingProgress: (state, progress: number) => state.connectingProgress = progress,
-
+		
 		/**
-		 * Add a new machine module to the Vuex store (via machines)
-		 * @param state Vuex state
-		 * @param payload Mutation payload
-		 * @param payload.hostname Hostname of the machine to add
-		 * @param payload.module Machine module (Vuex)
-		 */
+		* Add a new machine module to the Vuex store (via machines)
+		* @param state Vuex state
+		* @param payload Mutation payload
+		* @param payload.hostname Hostname of the machine to add
+		* @param payload.module Machine module (Vuex)
+		*/
 		addMachine(_, { hostname, module }: { hostname: string, module: MachineModule }) {
 			machines[hostname] = module;
 			store.registerModule(["machines", hostname], module);
 			Root.$emit(Events.machineAdded, hostname);
 		},
-
+		
 		/**
-		 * Flag if a connection is being terminated
-		 * @param state Vuex state
-		 * @param disconnecting If a machine is being disconnected from
-		 */
+		* Flag if a connection is being terminated
+		* @param state Vuex state
+		* @param disconnecting If a machine is being disconnected from
+		*/
 		setDisconnecting: (state, disconnecting: boolean) => state.isDisconnecting = disconnecting,
-
+		
 		/**
-		 * Remove an existing machine from the Vuex store (from machines)
-		 * @param state Vuex state
-		 * @param hostname Hostname of the machine to remove
-		 */
+		* Remove an existing machine from the Vuex store (from machines)
+		* @param state Vuex state
+		* @param hostname Hostname of the machine to remove
+		*/
 		removeMachine(_, hostname: string) {
 			if (!hostname || hostname === defaultMachine) {
 				throw new Error("Invalid hostname");
 			}
-
+			
 			store.unregisterModule(["machines", hostname]);
 			delete machines[hostname];
 			Root.$emit(Events.machineRemoved, hostname);
 		},
-
+		
 		/**
-	 	 * Set the currently selected machine	
-		 * @param state Vuex state
-		 * @param hostname Hostname of the machine to select
-		 */
+		* Set the currently selected machine	
+		* @param state Vuex state
+		* @param hostname Hostname of the machine to select
+		*/
 		setSelectedMachine(state, hostname: string) {
 			if (!hostname) {
 				throw new Error("Invalid hostname");
 			}
-
+			
 			store.unregisterModule("machine");
 			store.registerModule("machine", machines[hostname]);
 			state.selectedMachine = hostname;
 		},
-
+		
 		/**
-		 * Flag if the configured DWC plugins are being loaded
-		 */
+		* Flag if the configured DWC plugins are being loaded
+		*/
 		setDwcPluginsLoading(state, loading: boolean) {
 			state.loadingDwcPlugins = loading;
 		},
-
+		
 		/**
-		 * Callback to be called when a DWC plugin has been loaded
-		 * @param state Vuex state
-		 * @param plugin Plugin identifier of the loaded plugin
-		 */
+		* Callback to be called when a DWC plugin has been loaded
+		* @param state Vuex state
+		* @param plugin Plugin identifier of the loaded plugin
+		*/
 		dwcPluginLoaded(state, plugin: string) {
 			state.loadedDwcPlugins.push(plugin);
 		},
-
+		
 		/**
-		 * Do not show upcoming code reply notifications
-		 * @param state Vuex state
-		 */
+		* Do not show upcoming code reply notifications
+		* @param state Vuex state
+		*/
 		hideCodeReplyNotifications(state) {
 			state.hideCodeReplyNotifications = true;
 		},
-
+		
 		/**
-		 * Show upcoming code reply notifications again
-		 * @param state Vuex state
-		 */
+		* Show upcoming code reply notifications again
+		* @param state Vuex state
+		*/
 		showCodeReplyNotifications(state) {
 			state.hideCodeReplyNotifications = false;
 		},
-
+		
 		/**
-		 * Called by OSK plugins to announce OSK functionality
-		 * @param state Vuex state
-		 */
+		* Called by OSK plugins to announce OSK functionality
+		* @param state Vuex state
+		*/
 		oskEnabled(state) {
 			state.oskEnabled = true;
 		},
-
+		
 		/**
-		 * Set the new bottom margin (reserved for OSK plugins)
-		 * @param state Vuex state
-		 * @param value New bottom margin in px
-		 */
+		* Set the new bottom margin (reserved for OSK plugins)
+		* @param state Vuex state
+		* @param value New bottom margin in px
+		*/
 		setBottomMargin(state, value: number) {
 			state.bottomMargin = value;
 		}
 	},
 	modules: {
 		// machine will provide the currently selected machine
-
+		
 		/**
-		 * Enumeration of all the connected machines
-		 */
+		* Enumeration of all the connected machines
+		*/
 		machines: {
 			namespaced: true,
 			modules: {
@@ -542,21 +565,21 @@ const store = new Vuex.Store<InternalRootState>({
 				// ... other machines are added as submodules here
 			}
 		},
-
+		
 		/**
-		 * Global settings
-		 */
+		* Global settings
+		*/
 		settings: settings as Module<SettingsState, InternalRootState>,
 		
 		/**
-		 * Extra UI functionality for plugins
-		 */
+		* Extra UI functionality for plugins
+		*/
 		uiInjection
 	},
 	plugins: [
 		/**
-		 * Vuex plugin to auto-save the cache and settings
-		 */
+		* Vuex plugin to auto-save the cache and settings
+		*/
 		observer
 	],
 	strict: process.env.NODE_ENV !== "production"
@@ -568,71 +591,71 @@ store.registerModule("machine", defaultMachineModule);
 export default store
 
 /**
- * Available plugin data types
- */
+* Available plugin data types
+*/
 export enum PluginDataType {
 	/**
-	 * Global setting, does not change when the selected machine changes
-	 */
+	* Global setting, does not change when the selected machine changes
+	*/
 	globalSetting = "globalSetting",
-
+	
 	/**
-	 * Machine-dependent cache item
-	 */
+	* Machine-dependent cache item
+	*/
 	machineCache = "machineCache",
-
+	
 	/**
-	 * Machine-dependent setting
-	 */
+	* Machine-dependent setting
+	*/
 	machineSetting = "machineSetting"
 }
 
 /**
- * Register custom plugin data
- * @param plugin Plugin identifier
- * @param dataType Type of the data to register
- * @param key Key to use
- * @param defaultValue Default value on initalization
- */
+* Register custom plugin data
+* @param plugin Plugin identifier
+* @param dataType Type of the data to register
+* @param key Key to use
+* @param defaultValue Default value on initalization
+*/
 export function registerPluginData(plugin: string, dataType: PluginDataType, key: string, defaultValue: any) {
 	switch (dataType) {
 		case PluginDataType.globalSetting:
-			store.commit("settings/registerPluginData", { plugin, key, defaultValue });
-			break;
+		store.commit("settings/registerPluginData", { plugin, key, defaultValue });
+		break;
 		case PluginDataType.machineCache:
-			for (let machine in machines) {
-				store.commit(`machines/${machine}/cache/registerPluginData`, { plugin, key, defaultValue });
-			}
-			break;
+		for (let machine in machines) {
+			store.commit(`machines/${machine}/cache/registerPluginData`, { plugin, key, defaultValue });
+		}
+		break;
 		case PluginDataType.machineSetting:
-			for (let machine in machines) {
-				store.commit(`machines/${machine}/settings/registerPluginData`, { plugin, key, defaultValue });
-			}
-			break;
+		for (let machine in machines) {
+			store.commit(`machines/${machine}/settings/registerPluginData`, { plugin, key, defaultValue });
+		}
+		break;
 		default:
-			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+		throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
 	}
 }
 
 /**
- * Set custom plugin data
- * @param plugin Plugin identifier
- * @param dataType Type of the data
- * @param key Key to use
- * @param value New value
- */
+* Set custom plugin data
+* @param plugin Plugin identifier
+* @param dataType Type of the data
+* @param key Key to use
+* @param value New value
+*/
 export function setPluginData(plugin: string, dataType: PluginDataType, key: string, value: any) {
 	switch (dataType) {
 		case PluginDataType.globalSetting:
-			store.commit("settings/setPluginData", { plugin, key, value });
-			break;
+		store.commit("settings/setPluginData", { plugin, key, value });
+		break;
 		case PluginDataType.machineCache:
-			store.commit("machine/cache/setPluginData", { plugin, key, value });
-			break;
+		store.commit("machine/cache/setPluginData", { plugin, key, value });
+		break;
 		case PluginDataType.machineSetting:
-			store.commit("machine/settings/setPluginData", { plugin, key, value });
-			break;
+		store.commit("machine/settings/setPluginData", { plugin, key, value });
+		break;
 		default:
-			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+		throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
 	}
 }

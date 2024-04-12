@@ -1,12 +1,11 @@
-import { BaseConnector, ConnectorCallbacks } from "@duet3d/connectors";
-import ObjectModel from "@duet3d/objectmodel";
+import { BaseConnector, Callbacks } from "@duet3d/connectors";
 import { Commit, Dispatch } from "vuex";
 
 import Root from "@/main";
 import Events from "@/utils/events";
 import { closeNotifications } from "@/utils/notifications";
 
-export default class MachineCallbacks implements ConnectorCallbacks {
+export default class MachineCallbacks implements Callbacks {
     /**
      * Hostname of the connected machine
      */
@@ -35,19 +34,6 @@ export default class MachineCallbacks implements ConnectorCallbacks {
     }
 
     /**
-     * Initial object model to set when a connection has been established
-     */
-    private initialModel: ObjectModel | null = new ObjectModel();
-
-    /**
-     * Called when the Vuex module has been registered
-     */
-    machineAdded() {
-        this.dispatch(`machines/${this.hostname}/update`, this.initialModel);
-        this.initialModel = null;
-    }
-
-    /**
      * Called to report the progress while establishing a connection
      * @param connector Connector instance
      * @param progress Connection progress in percent (0..100) or -1 when the connect process has finished
@@ -55,15 +41,6 @@ export default class MachineCallbacks implements ConnectorCallbacks {
      */
     onConnectProgress(connector: BaseConnector, progress: number) {
         this.commit(`machines/${this.hostname}/setConnectingProgress`, progress);
-    }
-
-    /**
-     * Called to let the callee load settings from the machine being connected.
-     * This is called before connector.connect() returns the final connector instrance and before the connector starts its update loop
-     * @param connector Connector instance
-     */
-    async onLoadSettings(connector: BaseConnector) {
-        // Not supported in v3.6, settings are loaded after the connector has been created
     }
 
     /**
@@ -90,11 +67,7 @@ export default class MachineCallbacks implements ConnectorCallbacks {
      * Note that this is called before the final connector instance is returned!
      */
     onUpdate(connector: BaseConnector, data: any) {
-        if (this.initialModel === null) {
-            this.dispatch(`machines/${this.hostname}/update`, data);
-        } else {
-            this.initialModel.update(data);
-        }
+        this.dispatch(`machines/${this.hostname}/update`, data);
     }
     
     /**
