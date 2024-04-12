@@ -1,8 +1,8 @@
+import type { CancellationToken } from "@duet3d/connectors";
 import ObjectModel, { MessageType, Plugin } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import mitt from "mitt";
 
-import type { CancellationToken } from "@/store/connector/BaseConnector";
 import { FileTransferItem } from "@/store/machine";
 import { StoreState } from "pinia";
 import { LogMessageType } from "./logging";

@@ -1,10 +1,8 @@
+import { connect, BaseConnector, ConnectorCallbacks, ConnectorSettings, CancellationToken, FileListItem, OnProgressCallback } from "@duet3d/connectors";
+import { InvalidPasswordError, OperationFailedError, DisconnectedError, CodeBufferError, FileNotFoundError } from "@duet3d/connectors";
 import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import { defineStore } from "pinia";
-
-import { connect } from "./connector";
-import BaseConnector, { CancellationToken, FileListItem, OnProgressCallback } from "./connector/BaseConnector";
-import { InvalidPasswordError, OperationFailedError, DisconnectedError, CodeBufferError, FileNotFoundError } from "./connector/errors";
 
 import { useCacheStore } from "./cache";
 import { DefaultObjectModel, DefaultUsername, DefaultPassword } from "./defaults";
@@ -21,8 +19,6 @@ import { makeFileTransferNotification, Notification, showMessage, FileTransferTy
 import Path from "@/utils/path";
 
 import packageInfo from "../../package.json";
-import ConnectorCallbacks from "./connector/ConnectorCallbacks";
-import ConnectorSettings from "./connector/ConnectorSettings";
 
 /**
  * Item type for downloads
@@ -261,10 +257,15 @@ export const useMachineStore = defineStore("machine", {
 					}
 				};
 				const settings = {
+					...settingsStore,
+					protocol: location.protocol as "http:" | "https:",
+					baseURL: process.env.BASE_URL ?? "/",
 					password,
-					...settingsStore.$state
+					username: "",
+					maxRetries: 2,
+					pluginsFile: Path.dwcPluginsFile
 				};
-				this.connector = await connect(hostname, settings as any as ConnectorSettings, callbacks);
+				this.connector = await connect(hostname, settings, callbacks);
 				Events.emit("connected");
 
 				// Load the list of installed DWC plugins

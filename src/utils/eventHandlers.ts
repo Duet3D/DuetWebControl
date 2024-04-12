@@ -1,3 +1,4 @@
+import { InvalidPasswordError, OperationCancelledError } from "@duet3d/connectors";
 import i18n from "@/i18n";
 
 import { getErrorMessage } from "./errors";
@@ -8,7 +9,6 @@ import { displayTime } from "./display";
 import { Notification, closeNotifications, makeNotification } from "./notifications";
 
 import { loadedDwcPlugins } from "@/plugins";
-import { InvalidPasswordError, OperationCancelledError } from "@/store/connector/errors";
 
 Events.on("connected", (hostname) => {
     log("success", i18n.global.t("events.connected", [hostname]));

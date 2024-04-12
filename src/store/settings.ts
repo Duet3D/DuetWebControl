@@ -1,3 +1,4 @@
+import { FileNotFoundError } from "@duet3d/connectors";
 import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
@@ -6,7 +7,6 @@ import Events from "@/utils/events";
 import { localStorageSupported, getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
 
-import { FileNotFoundError } from "./connector/errors";
 import { DefaultPluginSettings } from "./defaults";
 import { useMachineStore } from "./machine";
 
