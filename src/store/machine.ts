@@ -238,7 +238,7 @@ export const useMachineStore = defineStore("machine", {
 					},
 					onLoadSettings: async function (connector: BaseConnector): Promise<void> {
 						try {
-							await settingsStore.load();
+							await settingsStore.load(connector);
 						} catch (e) {
 							console.warn("Failed to load settings: " + getErrorMessage(e));
 						}
@@ -268,8 +268,8 @@ export const useMachineStore = defineStore("machine", {
 				this.connector = await connect(hostname, settings, callbacks);
 				Events.emit("connected");
 
-				// Load the list of installed DWC plugins
-				await this.connector.loadDwcPluginList();
+				// Finish loading activated DWC plugins
+				await this.loadDwcPlugins();
 
 				// Load cache
 				try {
@@ -924,20 +924,20 @@ export const useMachineStore = defineStore("machine", {
 
 		/**
 		 * Load a list of DWC plugins and report progress as content is being loaded
-		 * @param pluginList List of plugin IDs to load
 		 */
-		async loadDwcPlugins(pluginList: Array<string>) {
-			if (pluginList.length > 0) {
-				Events.emit("dwcPluginsLoading", pluginList);
-				for (let i = 0; i < pluginList.length; i++) {
+		async loadDwcPlugins() {
+			const settingsStore = useSettingsStore();
+			if (settingsStore.enabledPlugins.length > 0) {
+				Events.emit("dwcPluginsLoading", settingsStore.enabledPlugins);
+				for (const id of settingsStore.enabledPlugins) {
 					try {
-						await loadDwcPlugin(pluginList[i]);
+						await loadDwcPlugin(id);
 					} catch (e) {
 						// Event is raised before we get here
 						console.warn(e);
 					}
 				}
-				Events.emit("dwcPluginsLoaded", pluginList);
+				Events.emit("dwcPluginsLoaded", settingsStore.enabledPlugins);
 			}
 		},
 

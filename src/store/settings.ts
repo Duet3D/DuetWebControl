@@ -1,4 +1,4 @@
-import { FileNotFoundError } from "@duet3d/connectors";
+import { BaseConnector, FileNotFoundError } from "@duet3d/connectors";
 import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
@@ -356,21 +356,21 @@ export const useSettingsStore = defineStore("settings", {
 			}
 
 			// Load plugins that are enabled by default
-			/*await*/ machineStore.loadDwcPlugins(this.enabledPlugins);
+			/*await*/ machineStore.loadDwcPlugins();
 		},
 		applySbcWebcamDefaults() {
 			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
 			this.webcam.updateInterval = 0;
 		},
 
-		async load() {
+		async load(connector: BaseConnector) {
 			// First attempt to load the last hostname from the local storage if running in dev mode
 			if (process.env.NODE_ENV !== "production") {
 				this.lastHostname = getLocalSetting("lastHostname");
 			}
 
 			// Wrapper that effectively loads the given settings
-			const that = this, machineStore = useMachineStore();
+			const that = this;
 			async function applySettings(settingsToLoad: any) {
 				let settings: any = {};
 				if (settingsToLoad.main instanceof Object) {
@@ -420,25 +420,22 @@ export const useSettingsStore = defineStore("settings", {
 				}
 				Object.assign(that, settingsToLoad);
 
-				// Load plugins
-				await machineStore.loadDwcPlugins(that.enabledPlugins);
-
 				// Done
 				Events.emit("settingsLoaded");
 			}
 
-			// Try to load settings from local storage
+			// Try to load settings from local storage, if that doesn't work, try to load them from the board
 			const localSettings = getLocalSetting("settings");
 			if (localSettings instanceof Object) {
 				applySettings(localSettings);
-			} else if (machineStore.isConnected) {
+			} else {
 				try {
-					const remoteSettings = await machineStore.download([{ filename: Path.dwcSettingsFile }], false, false, false);
+					const remoteSettings = await connector.download(Path.dwcSettingsFile);
 					applySettings(remoteSettings);
 				} catch (e) {
 					if (e instanceof FileNotFoundError) {
 						try {
-							const factoryDefaults = await machineStore.download([{ filename: Path.dwcFactoryDefaults }], false, false, false);
+							const factoryDefaults = await connector.download(Path.dwcFactoryDefaults);
 							applySettings(factoryDefaults);
 						} catch (e) {
 							if (!(e instanceof FileNotFoundError)) {
