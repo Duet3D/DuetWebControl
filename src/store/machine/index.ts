@@ -929,6 +929,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				const lastBeepFrequency = machineState.model.state.beep ? machineState.model.state.beep.frequency : null;
 				const lastBeepDuration = machineState.model.state.beep ? machineState.model.state.beep.duration : null;
 				const lastDisplayMessage = machineState.model.state.displayMessage, lastStatus = machineState.model.state.status;
+				const lastDsfVersion = machineState.model.sbc?.dsf?.version;
 				const lastStartupError = machineState.model.state.startupError ? JSON.stringify(machineState.model.state.startupError) : null;
 
 				// Check if the job has finished and if so, clear the file cache
@@ -977,6 +978,11 @@ export default function(connector: BaseConnector | null): MachineModule {
 				// Is a new message supposed to be shown?
 				if (machineState.model.state.displayMessage !== lastDisplayMessage) {
 					showMessage(machineState.model.state.displayMessage);
+				}
+
+				// Check if DSF has been updated
+				if (machineState.model.sbc?.dsf?.version !== lastDsfVersion) {
+					location.reload();
 				}
 
 				// Is there a startup error to report?
