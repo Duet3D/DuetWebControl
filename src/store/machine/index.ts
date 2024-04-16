@@ -981,7 +981,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 				}
 
 				// Check if DSF has been updated
-				if (machineState.model.sbc?.dsf?.version !== lastDsfVersion) {
+				if (lastDsfVersion && machineState.model.sbc?.dsf?.version !== lastDsfVersion) {
 					location.reload();
 				}
 
