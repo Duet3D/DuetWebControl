@@ -251,18 +251,19 @@ export const useMachineStore = defineStore("machine", {
 				}
 
 				// Set connector callbacks
+				const that = this;
 				this.connector.setCallbacks({
 					onConnectProgress: function (connector: BaseConnector, progress: number): void {
-						useMachineStore().connectingProgress = progress;
+						that.connectingProgress = progress;
 					},
 					onConnectionError: function (connector: BaseConnector, reason: unknown): void {
-						useMachineStore().handleConnectionError(reason);
+						that.handleConnectionError(reason);
 					},
 					onReconnected: function (connector: BaseConnector): void {
 						closeNotifications(true);
 					},
 					onUpdate: function (connector: BaseConnector, data: any): void {
-						useMachineStore().updateModel(data);
+						that.updateModel(data);
 					},
 					onVolumeChanged: function (connector: BaseConnector, volumeIndex: number): void {
 						Events.emit("filesOrDirectoriesChanged", { volume: volumeIndex });
@@ -951,6 +952,7 @@ export const useMachineStore = defineStore("machine", {
 			const lastBeepFrequency = this.model.state.beep ? this.model.state.beep.frequency : null;
 			const lastBeepDuration = this.model.state.beep ? this.model.state.beep.duration : null;
 			const lastDisplayMessage = this.model.state.displayMessage, lastStatus = this.model.state.status;
+			const lastDsfVersion = this.model.sbc?.dsf?.version;
 			const lastStartupError = this.model.state.startupError ? JSON.stringify(this.model.state.startupError) : null;
 
 			// Check if the job has finished and if so, clear the file cache
@@ -1010,6 +1012,11 @@ export const useMachineStore = defineStore("machine", {
 			// Is a new message supposed to be shown?
 			if (this.model.state.displayMessage !== lastDisplayMessage) {
 				showMessage(this.model.state.displayMessage);
+			}
+
+			// Check if DSF has been updated
+			if (lastDsfVersion && this.model.sbc?.dsf?.version !== lastDsfVersion) {
+				location.reload();
 			}
 
 			// Is there a startup error to report?
