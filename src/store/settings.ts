@@ -322,7 +322,7 @@ export default {
 			}
 
 			// Reload the web interface to finish
-			location.reload();
+			location.reload(true);
 		}
 	},
 	mutations: {

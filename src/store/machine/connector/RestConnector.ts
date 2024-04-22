@@ -361,7 +361,7 @@ export default class RestConnector extends BaseConnector {
 				// Check if DSF has been updated
 				if (this.hostname === RestConnector.lastDsfHostname && that.model.sbc?.dsf.version !== RestConnector.lastDsfVersion) {
 					// Reload DWC if DSF has been updated (e.g. after M997 S2)
-					location.reload();
+					location.reload(true);
 				}
 				RestConnector.lastDsfHostname = this.hostname;
 				RestConnector.lastDsfVersion = that.model.sbc?.dsf.version ?? null;
