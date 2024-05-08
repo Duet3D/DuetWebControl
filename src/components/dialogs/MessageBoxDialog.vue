@@ -7,7 +7,7 @@
 </style>
 
 <template>
-	<v-dialog v-model="shown" :persistent="isPersistent">
+	<v-dialog v-model="shown" :no-click-animation="isPersistent" :persistent="isPersistent">
 		<v-card>
 			<v-card-title class="justify-center">
 				<span class="headline">
@@ -87,7 +87,7 @@
 			</v-card-actions>
 		</v-card>
 
-		<div class="persistent d-flex justify-end pe-4 pt-3">
+		<div v-if="showEmergencyStop" class="persistent d-flex justify-end pe-4 pt-3">
 			<emergency-btn />
 		</div>
 	</v-dialog>
@@ -151,6 +151,7 @@ export default Vue.extend({
 			messageBox: new MessageBox(),
 			numberInput: 0,
 			shown: false,
+			showEmergencyStop: false,
 			stringInput: ""
 		}
 	},
@@ -218,6 +219,13 @@ export default Vue.extend({
 				} else {
 					this.shown = false;
 				}
+			}
+		},
+		shown(to) {
+			if (to && this.isPersistent) {
+				setTimeout(() => this.showEmergencyStop = true, 500);
+			} else {
+				this.showEmergencyStop = false;
 			}
 		}
 	}
