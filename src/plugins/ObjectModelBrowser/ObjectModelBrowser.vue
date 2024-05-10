@@ -194,7 +194,12 @@ export default Vue.extend({
 					return {
 						id: itemPath.join('.'),
 						// FIXME Vue 2 requires the array's parent object to be referenced, should be obsolete in Vue 3
-						getLabel: () => parentPropertyName.includes('[') ? item.toString() : that.getItemLabel(index, parentObj[parentPropertyName][index]),
+						getLabel: () => {
+							if (parentObj instanceof Map) {
+								return that.getItemLabel(index, parentObj.get(parentPropertyName)[index]);
+							}
+							return parentPropertyName.includes('[') ? item.toString() : that.getItemLabel(index, parentObj[parentPropertyName][index]);
+						},
 						type: that.getItemType(item),
 						children: that.makeModelTree(item, itemPath, obj)
 					}
