@@ -92,6 +92,8 @@ import "@/utils/monaco-gcode";
 import "@/utils/monaco-menu";
 import "@/utils/monaco-STM32";
 import Path from "@/utils/path";
+import { setMonacoGCodeOptions } from "@/utils/monaco-gcode";
+import { MachineMode } from "@duet3d/objectmodel";
 
 const mediumFileThreshold = 4194304;	// 4 MiB
 const bigFileThreshold = 33554432;		// 32 MiB
@@ -109,6 +111,7 @@ export default Vue.extend({
 		value: String
 	},
 	computed: {
+		fffMode(): boolean { return store.state.machine.model.state.machineMode === MachineMode.fff; },
 		gCodesDirectory(): string { return store.state.machine.model.directories.gCodes; },
 		macrosDirectory(): string { return store.state.machine.model.directories.macros; },
 		menuDirectory(): string { return store.state.machine.model.directories.menu; },
@@ -236,6 +239,9 @@ export default Vue.extend({
 			textArea.selectionEnd = textArea.selectionStart = originalSelectionStart + spacesInserted;
 		}
 	},
+	mounted() {
+		setMonacoGCodeOptions(this.fffMode);
+	},
 	beforeDestroy() {
 		if (this.monacoEditor !== null) {
 			this.monacoEditor.dispose();
@@ -243,6 +249,9 @@ export default Vue.extend({
 		}
 	},
 	watch: {
+		fffMode(to) {
+			setMonacoGCodeOptions(to);
+		},
 		shown(to) {
 			// Update textarea
 			this.innerValue = this.value || "";
