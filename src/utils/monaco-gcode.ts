@@ -18,7 +18,7 @@ export function setMonacoGCodeOptions(fdmMode: boolean) {
 		tokenizer: {
 			root: [
 				// G/M/T-codes
-				[/[gG][01](?=\D)/, "keyword", "moveGcode"],
+				[/[gG][01](?=\D)/, "keyword", fdmMode ? "normalGcode" : "moveGcode"],
 				[/[gGmM]\d+(\.\d+)?/, "keyword", "normalGcode"],
 				[/[tT]-?\d+/, "keyword", "normalGcodeWithT"],
 
@@ -65,13 +65,11 @@ export function setMonacoGCodeOptions(fdmMode: boolean) {
 				{ include: "root" }
 			],
 			moveGcode: [
-				// G0/G1 does not support T parameters, starting a new T-code
-				[/(?=[tT])/, "keyword", "@popall"],
+				// stop if a T-code or a potential meta G-code command follows
+				[/(?=([tT]|[a-zA-Z][a-zA-Z]))/, "keyword", "@popall"],
 
 				// include normal gcode
-				{ include: "gcode" },
-
-				// no EOL to support Fanuc-style G-code
+				{ include: "gcode" }
 			],
 			normalGcode: [
 				// include normal gcode
@@ -89,7 +87,7 @@ export function setMonacoGCodeOptions(fdmMode: boolean) {
 			],
 			expression: [
 				// variables
-				[/(global\.|param\.|var\.)[a-zA-Z]\w*/, "variable.name"],
+				[/(global|param|var)\.[a-zA-Z]\w*/, "variable.name"],
 
 				// object model properties
 				[/(\w+\.(\w+\.?)*|\.\w+(\.\w+)*)/, "variable"],
