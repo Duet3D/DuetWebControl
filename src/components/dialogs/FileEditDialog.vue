@@ -82,18 +82,17 @@
 </template>
 
 <script lang="ts">
+import { MachineMode } from "@duet3d/objectmodel";
 import * as monaco from "monaco-editor";
 import Vue from "vue";
 
 import store from "@/store";
 import { indent } from "@/utils/display";
 import "@/utils/monaco-editor";
-import "@/utils/monaco-gcode";
+import "@/utils/monaco-syntax";
 import "@/utils/monaco-menu";
 import "@/utils/monaco-STM32";
 import Path from "@/utils/path";
-import { setMonacoGCodeOptions } from "@/utils/monaco-gcode";
-import { MachineMode } from "@duet3d/objectmodel";
 
 const mediumFileThreshold = 4194304;	// 4 MiB
 const bigFileThreshold = 33554432;		// 32 MiB
@@ -119,9 +118,9 @@ export default Vue.extend({
 		useMonacoEditor(): boolean { return !store.state.oskEnabled && !this.isMobile; },
 		language(): string {
 			if (Path.startsWith(this.filename, this.macrosDirectory) || /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)(\.bak)?$/i.test(this.filename)) {
-				return "gcode";
+				return this.fffMode ? "gcode-fdm" : "gcode-cnc";
 			}
-			if (/\.json/i.test(this.filename)) {
+			if (/\.json$/i.test(this.filename)) {
 				return "json";
 			}
 			if (Path.startsWith(this.filename, this.menuDirectory)) {
@@ -239,9 +238,6 @@ export default Vue.extend({
 			textArea.selectionEnd = textArea.selectionStart = originalSelectionStart + spacesInserted;
 		}
 	},
-	mounted() {
-		setMonacoGCodeOptions(this.fffMode);
-	},
 	beforeDestroy() {
 		if (this.monacoEditor !== null) {
 			this.monacoEditor.dispose();
@@ -249,9 +245,6 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		fffMode(to) {
-			setMonacoGCodeOptions(to);
-		},
 		shown(to) {
 			// Update textarea
 			this.innerValue = this.value || "";

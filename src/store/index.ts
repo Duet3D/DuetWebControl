@@ -143,7 +143,7 @@ const store = new Vuex.Store<InternalRootState>({
 				// Establish connection to the machine
 				const connectorSettings = {
 					...(state as RootState).settings,
-					protocol: (hostname === location.hostname) ? location.protocol as "http:" | "https:" : "http:",
+					protocol: (hostname === location.hostname) ? location.protocol : "http:",
 					baseURL: (hostname === location.hostname) ? process.env.BASE_URL ?? "/" : "/",
 					username: "",
 					password,
@@ -151,6 +151,7 @@ const store = new Vuex.Store<InternalRootState>({
 					
 					// The following are all defined by the machine settings
 					maxRetries: DefaultSettings.maxRetries,
+					retryDelay: DefaultSettings.retryDelay,
 					ignoreFileTimestamps: DefaultSettings.ignoreFileTimestamps,
 					crcUploads: DefaultSettings.crcUploads,
 					fileTransferRetryThreshold: DefaultSettings.fileTransferRetryThreshold,
