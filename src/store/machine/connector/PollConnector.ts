@@ -166,10 +166,10 @@ export default class PollConnector extends BaseConnector {
 
 		const maxRetries = this.settings!.ajaxRetries, that = this;
 		return new Promise((resolve, reject) => {
-			function attemptRetry(delay: boolean, fetchGCodeReply: boolean) {
+			function attemptRetry(reason: 503 | "error" | "timeout") {
 				if (retry < maxRetries) {
-					// RRF may have run out of output buffers. We usually get here when a code reply is blocking
-					if (retry === 0 && fetchGCodeReply) {
+					if (retry === 0 && reason === 503) {
+						// RRF may have run out of output buffers. We usually get here when a code reply is blocking
 						that.lastSeqs.reply++;	// increase the seq number to resolve potentially blocking codes
 						that.getGCodeReply()
 							.then(function () {
@@ -185,10 +185,14 @@ export default class PollConnector extends BaseConnector {
 							that.request(method, path, params, responseType, body, timeout, filename, cancellationToken, onProgress, retry + 1)
 								.then(result => resolve(result))
 								.catch(error => reject(error));
-						}, delay ? 2000 : 0);
+						}, (reason !== "timeout") ? that.settings!.retryDelay : 0);
 					}
-				} else {
+				} else if (reason === 503) {
 					reject(new OperationFailedError(xhr.responseText || xhr.statusText));
+				} else if (reason === "error") {
+					reject(new NetworkError());
+				} else {
+					reject(new TimeoutError());
 				}
 			}
 
@@ -233,7 +237,7 @@ export default class PollConnector extends BaseConnector {
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
 				} else if (xhr.status === 503) {
-					attemptRetry(true, true);
+					attemptRetry(503);
 				} else if (xhr.status >= 500) {
 					reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 				} else if (xhr.status !== 0) {
@@ -246,11 +250,11 @@ export default class PollConnector extends BaseConnector {
 			}
 			xhr.onerror = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
-				attemptRetry(true, false);
+				attemptRetry("error");
 			};
 			xhr.ontimeout = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
-				attemptRetry(false, false);
+				attemptRetry("timeout");
 			};
 			xhr.send(body);
 		});

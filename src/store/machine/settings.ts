@@ -31,6 +31,11 @@ export interface MachineSettingsState {
 	ajaxRetries: number;
 
 	/**
+	 * Time to wait before retrying AJAX requests (in ms)
+	 */
+	retryDelay: number;
+
+	/**
 	 * Time between HTTP object model requests (in ms)
 	 */
 	updateInterval: number;
@@ -208,6 +213,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 		state: {
 			// Poll Connector
 			ajaxRetries: 2,
+			retryDelay: 2000,
 			updateInterval: 250,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 			crcUploads: true,
