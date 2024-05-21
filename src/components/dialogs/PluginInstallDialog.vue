@@ -404,7 +404,7 @@ export default Vue.extend({
 			this.showReloadPrompt = this.hasDwcFiles && store.state.loadedDwcPlugins.includes(this.pluginManifest.id);
 		},
 		reload() {
-			location.reload();
+			location.reload(true);
 		}
 	},
 	watch: {

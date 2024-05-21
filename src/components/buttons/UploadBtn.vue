@@ -464,7 +464,7 @@ export default Vue.extend({
 				this.confirmUpdate = true;
 			} else if (store.state.selectedMachine === location.host && this.updates.webInterface) {
 				// Reload the web interface immediately if it was the only update
-				location.reload();
+				location.reload(true);
 			}
 
 			// Deal with config files
@@ -573,7 +573,7 @@ export default Vue.extend({
 		isConnected(to: boolean) {
 			if (to && store.state.selectedMachine === location.host && this.updates.codeSent && this.updates.webInterface) {
 				// Reload the web interface when the connection could be established again
-				location.reload();
+				location.reload(true);
 			}
 		}
 	}
