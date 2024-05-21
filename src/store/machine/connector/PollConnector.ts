@@ -166,10 +166,10 @@ export default class PollConnector extends BaseConnector {
 
 		const maxRetries = this.settings!.ajaxRetries, that = this;
 		return new Promise((resolve, reject) => {
-			function attemptRetry(delay: boolean) {
+			function attemptRetry(delay: boolean, fetchGCodeReply: boolean) {
 				if (retry < maxRetries) {
 					// RRF may have run out of output buffers. We usually get here when a code reply is blocking
-					if (retry === 0) {
+					if (retry === 0 && fetchGCodeReply) {
 						that.lastSeqs.reply++;	// increase the seq number to resolve potentially blocking codes
 						that.getGCodeReply()
 							.then(function () {
@@ -233,7 +233,7 @@ export default class PollConnector extends BaseConnector {
 				} else if (xhr.status === 404) {
 					reject(new FileNotFoundError(filename));
 				} else if (xhr.status === 503) {
-					attemptRetry(true);
+					attemptRetry(true, true);
 				} else if (xhr.status >= 500) {
 					reject(new OperationFailedError(xhr.responseText || xhr.statusText));
 				} else if (xhr.status !== 0) {
@@ -246,11 +246,11 @@ export default class PollConnector extends BaseConnector {
 			}
 			xhr.onerror = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
-				attemptRetry(true);
+				attemptRetry(true, false);
 			};
 			xhr.ontimeout = function () {
 				that.requests = that.requests.filter(request => request !== xhr);
-				attemptRetry(false);
+				attemptRetry(false, false);
 			};
 			xhr.send(body);
 		});
