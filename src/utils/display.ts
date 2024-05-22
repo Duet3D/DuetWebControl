@@ -48,7 +48,8 @@ export function displayAxisPosition(axis: Axis, machinePosition: boolean = false
  * @returns Formatted string
  */
 export function displayZ(value: number | Array<number> | string | null | undefined, showUnit = true) {
-	return display(value, (store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? "mm" : undefined);
+	const decimalPlaces = Math.max((store.state.machine.model.state.machineMode === MachineMode.cnc) ? 3 : 2, store.state.settings.decimalPlaces);
+	return display(value, decimalPlaces, showUnit ? "mm" : undefined);
 }
 
 /**
