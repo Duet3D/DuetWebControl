@@ -17,8 +17,8 @@
 				{{ $t("chart.layer.caption") }}
 			</span>
 			<v-spacer />
-			<a v-show="layers.length > 30" href="javascript:void(0)" @click.prevent="showAllLayers = !showAllLayers">
-				{{ showAllLayers ? $t("chart.layer.showLastLayers", [30]) : $t("chart.layer.showAllLayers") }}
+			<a v-show="layers.length > 2" href="javascript:void(0)" @click.prevent="showAllLayers = !showAllLayers">
+				{{ showAllLayers ? $t("chart.layer.showLastLayers", [Math.min(layers.length, 30)]) : $t("chart.layer.showAllLayers") }}
 			</a>
 		</v-card-title>
 
