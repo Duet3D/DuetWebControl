@@ -737,7 +737,8 @@
       "pingInterval": "PING-interval bij inactiviteit (ms)",
       "unavailable": "Geen instellingen beschikbaar",
       "updateDelay": "Updatevertraging (ms)",
-      "updateInterval": "Update-interval ({0})"
+      "updateInterval": "Update-interval ({0})",
+      "retryDelay": "Wachttijd tussen AJAX-pogingen (ms)"
     },
     "settingsElectronics": {
       "board": "{0}",

@@ -213,7 +213,7 @@ export default function(connector: BaseConnector | null): MachineSettingsModule 
 		state: {
 			// Poll Connector
 			ajaxRetries: 2,
-			retryDelay: 2000,
+			retryDelay: 200,
 			updateInterval: 250,
 			fileTransferRetryThreshold: 358400,			// 350 KiB
 			crcUploads: true,

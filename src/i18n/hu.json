@@ -733,7 +733,8 @@
       "updateInterval": "Frissítési gyakoriság ({0})",
       "fileTransferRetryThreshold": "Újrapróbálkozási küszöb fájlátvitelhez ({0})",
       "crcUploads": "CRC32 ellenőrzés használata a feltöltésekhez",
-      "unavailable": "Nem áll rendelkezésre beállítás"
+      "unavailable": "Nem áll rendelkezésre beállítás",
+      "retryDelay": "Az AJAX újrapróbálkozások közötti várakozási idő (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronika",

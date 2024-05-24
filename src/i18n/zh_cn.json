@@ -733,7 +733,8 @@
       "updateInterval": "更新间隔（{0}）",
       "fileTransferRetryThreshold": "文件传输重试阈值({0})",
       "crcUploads": "使用CRC32校验和进行上传",
-      "unavailable": "没有可用的设置"
+      "unavailable": "没有可用的设置",
+      "retryDelay": "AJAX 重试之间的等待时间（毫秒）"
     },
     "settingsElectronics": {
       "caption": "电子设备",

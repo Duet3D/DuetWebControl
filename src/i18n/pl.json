@@ -734,7 +734,8 @@
       "updateInterval": "Aktualizuj interwał ({0})",
       "fileTransferRetryThreshold": "Retry threshold for file transfers({0})",
       "crcUploads": "Użyj sum kontrolnych CRC32 aby sprawdzić aktualizacje",
-      "unavailable": "Brak dostępnych ustawień"
+      "unavailable": "Brak dostępnych ustawień",
+      "retryDelay": "Czas oczekiwania między ponownymi próbami AJAX (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronika",

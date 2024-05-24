@@ -734,7 +734,8 @@
       "fileTransferRetryThreshold": "Dosya aktarımları için yeniden deneme eşiği ({0})",
       "crcUploads": "Yüklemeler için CRC32 sağlama toplamlarını kullanın",
       "unavailable": "Kullanılabilir ayar yok",
-      "updateDelay": "Güncelleme gecikmesi (ms)"
+      "updateDelay": "Güncelleme gecikmesi (ms)",
+      "retryDelay": "AJAX yeniden denemeleri arasında beklenecek süre (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronik",

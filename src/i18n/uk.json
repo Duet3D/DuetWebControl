@@ -733,7 +733,8 @@
       "updateInterval": "Інтервал оновлення ({0})",
       "fileTransferRetryThreshold": "Поріг повторних спроб для передавання файлів ({0})",
       "crcUploads": "Використання контрольних сум CRC32 для відвантажень",
-      "unavailable": "Налаштування відсутні"
+      "unavailable": "Налаштування відсутні",
+      "retryDelay": "Час очікування між повторними спробами AJAX (мс)"
     },
     "settingsElectronics": {
       "caption": "Електроніка",

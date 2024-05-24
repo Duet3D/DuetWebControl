@@ -734,7 +734,8 @@
       "updateInterval": "Intervalle de mise à jour ({0})",
       "fileTransferRetryThreshold": "Limite d'essais pour le transfert de fichiers ({0})",
       "crcUploads": "Utiliser les sommes de contrôle CRC32 pour les téléchargements",
-      "unavailable": "Aucun réglage disponible."
+      "unavailable": "Aucun réglage disponible.",
+      "retryDelay": "Temps d'attente entre les tentatives AJAX (ms)"
     },
     "settingsElectronics": {
       "caption": "Électroniques",

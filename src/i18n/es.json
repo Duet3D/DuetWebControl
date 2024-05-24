@@ -734,7 +734,8 @@
       "updateInterval": "Intervalo de actualización ({0})",
       "fileTransferRetryThreshold": "Máximo número de intentos para transferencia de archivos ({0})",
       "crcUploads": "Usar CRC32 checksums para las subidas",
-      "unavailable": "No hay configuraciones disponibles"
+      "unavailable": "No hay configuraciones disponibles",
+      "retryDelay": "Tiempo de espera entre reintentos de AJAX (ms)"
     },
     "settingsElectronics": {
       "caption": "Electróonica",

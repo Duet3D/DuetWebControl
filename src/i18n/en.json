@@ -733,7 +733,8 @@
       "updateInterval": "Update interval ({0})",
       "fileTransferRetryThreshold": "Retry threshold for file transfers ({0})",
       "crcUploads": "Use CRC32 checksums for uploads",
-      "unavailable": "No settings available"
+      "unavailable": "No settings available",
+      "retryDelay": "Time to wait between AJAX retries (ms)"
     },
     "settingsElectronics": {
       "caption": "Electronics",

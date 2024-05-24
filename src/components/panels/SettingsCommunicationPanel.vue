@@ -22,6 +22,10 @@
 									  :label="$t('panel.settingsCommunication.ajaxRetries')" hide-details />
 					</v-col>
 					<v-col cols="6">
+						<v-text-field v-model.number="retryDelay" type="number" step="1" min="0"
+									  :label="$t('panel.settingsCommunication.retryDelay')" hide-details />
+					</v-col>
+					<v-col cols="6">
 						<v-text-field v-model.number="updateInterval" type="number" step="1" min="0"
 									  :label="$t('panel.settingsCommunication.updateInterval', ['ms'])" hide-details />
 					</v-col>
@@ -74,6 +78,10 @@ export default Vue.extend({
 		ajaxRetries: {
 			get(): number { return store.state.machine.settings.ajaxRetries; },
 			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ ajaxRetries: value }); } }
+		},
+		retryDelay: {
+			get(): number { return store.state.machine.settings.retryDelay; },
+			set(value: number) { if (isFinite(value) && value >= 0) { this.update({ retryDelay: value }); } }
 		},
 		updateInterval: {
 			get(): number { return store.state.machine.settings.updateInterval; },
