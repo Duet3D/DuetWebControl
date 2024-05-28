@@ -35,6 +35,8 @@ import store from "@/store";
 import { LogType } from "@/utils/logging";
 import { MachineStatus } from "@duet3d/objectmodel";
 
+const patchDiffs: Array<semver.ReleaseType | null> = ["patch", "prepatch", "prerelease"];
+
 export default Vue.extend({
 	computed: {
 		isConnecting(): boolean { return store.state.isConnecting; },
@@ -56,7 +58,8 @@ export default Vue.extend({
 						// Check expansion board firmware versions
 						for (const board of store.state.machine.model.boards) {
 							if (board.canAddress && board.firmwareVersion && semver.compare(mainboardVersion, board.firmwareVersion, true) !== 0) {
-								if (semver.satisfies(board.firmwareVersion, '^' + mainboardVersion, true) || semver.satisfies(mainboardVersion, '^' + board.firmwareVersion, true)) {
+								const vDiff = semver.diff(mainboardVersion, board.firmwareVersion);
+								if (patchDiffs.includes(vDiff)) {
 									console.warn(`Expansion board #${board.canAddress} minor version mismatch (MB ${mainboardVersion} != EXP ${board.firmwareVersion})`);
 									patchVersionMismatch = true;
 								} else {
@@ -68,7 +71,8 @@ export default Vue.extend({
 
 						// Check DSF version
 						if (!versionMismatch && store.state.machine.model.sbc !== null && semver.compare(mainboardVersion, store.state.machine.model.sbc.dsf.version, true) !== 0) {
-							if (semver.satisfies(store.state.machine.model.sbc.dsf.version, '^' + mainboardVersion, true) || semver.satisfies(mainboardVersion, '^' + store.state.machine.model.sbc.dsf.version, true)) {
+							const vDiff = semver.diff(mainboardVersion, store.state.machine.model.sbc.dsf.version);
+							if (patchDiffs.includes(vDiff)) {
 								console.warn(`DSF minor version mismatch (MB ${mainboardVersion} != DSF ${store.state.machine.model.sbc.dsf.version})`);
 								patchVersionMismatch = true;
 							} else {
@@ -79,7 +83,8 @@ export default Vue.extend({
 
 						// Check DWC version
 						if (!versionMismatch && semver.compare(mainboardVersion, packageInfo.version, true) !== 0) {
-							if (semver.satisfies(packageInfo.version, '^' + mainboardVersion, true) || semver.satisfies(mainboardVersion, '^' + packageInfo.version, true)) {
+							const vDiff = semver.diff(mainboardVersion, packageInfo.version);
+							if (patchDiffs.includes(vDiff)) {
 								console.warn(`DWC minor version mismatch (MB ${mainboardVersion} != DWC ${packageInfo.version})`);
 								patchVersionMismatch = true;
 							} else {
