@@ -746,7 +746,8 @@
       "updateNote": "Note: システムページからアップデートのインストールができます。",
       "dsfVersion": "DSF バージョン: {0}",
       "notConnected": "（接続されていません）",
-      "dwcVersion": "DWC バージョン: {0}"
+      "dwcVersion": "DWC バージョン: {0}",
+      "canAddress": "CAN アドレス {0}"
     },
     "settingsEndstops": {
       "caption": "エンドストップ",

@@ -746,7 +746,8 @@
       "updateNote": "Notatka: Możesz zainstalować aktualizację na stronie systemu.",
       "dsfVersion": "Wersja DSF: {0}",
       "notConnected": "(nie połączony)",
-      "dwcVersion": "Wersja DWC: {0}"
+      "dwcVersion": "Wersja DWC: {0}",
+      "canAddress": "Adres CAN {0}"
     },
     "settingsEndstops": {
       "caption": "Krańcówka",

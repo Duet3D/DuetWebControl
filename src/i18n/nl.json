@@ -749,7 +749,8 @@
       "dwsFirmware": "Duet wifi-serverversie: {0}",
       "firmware": "Firmware: {0} ({1})",
       "notConnected": "(niet verbonden)",
-      "updateNote": "Opmerking: u kunt updates installeren op de systeempagina."
+      "updateNote": "Opmerking: u kunt updates installeren op de systeempagina.",
+      "canAddress": "CAN-adres {0}"
     },
     "settingsEndstops": {
       "caption": "Eindstops",

@@ -745,7 +745,8 @@
       "updateNote": "注意：你可以在“系统”页面上安装更新。",
       "notConnected": "（未连接）",
       "dsfVersion": "DSF版本：{0}",
-      "dwcVersion": "DWC版本：{0}"
+      "dwcVersion": "DWC版本：{0}",
+      "canAddress": "CAN 地址 {0}"
     },
     "settingsEndstops": {
       "caption": "限位开关",

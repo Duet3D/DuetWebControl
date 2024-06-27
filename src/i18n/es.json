@@ -746,7 +746,8 @@
       "updateNote": "Nota: puede instalar actualizaciones desde la página: Sistema.",
       "dsfVersion": "Versión DSF: {0}",
       "notConnected": "(no conectado)",
-      "dwcVersion": "Versión de DWC: {0}"
+      "dwcVersion": "Versión de DWC: {0}",
+      "canAddress": "Dirección CAN {0}"
     },
     "settingsEndstops": {
       "caption": "Finales de Carrera",

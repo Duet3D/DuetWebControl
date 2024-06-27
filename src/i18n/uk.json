@@ -745,7 +745,8 @@
       "updateNote": "Примітка: Ви можете інсталювати оновлення на сторінці \"Система\".",
       "dsfVersion": "Версія DSF: {0}",
       "notConnected": "(не під'єднано)",
-      "dwcVersion": "Версія DWC: {0}"
+      "dwcVersion": "Версія DWC: {0}",
+      "canAddress": "CAN адреса {0}"
     },
     "settingsEndstops": {
       "caption": "Кінцеві вимикачі",

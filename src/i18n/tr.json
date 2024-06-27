@@ -746,7 +746,8 @@
       "updateNote": "Not: Güncellemeleri Sistem sayfasına yükleyebilirsiniz.",
       "dsfVersion": "DSF Sürümü: {0}",
       "notConnected": "(bağlı değil)",
-      "dwcVersion": "DWC Sürümü: {0}"
+      "dwcVersion": "DWC Sürümü: {0}",
+      "canAddress": "CAN adresi {0}"
     },
     "settingsEndstops": {
       "caption": "Endstops",

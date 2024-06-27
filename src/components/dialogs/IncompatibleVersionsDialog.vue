@@ -45,11 +45,13 @@ export default Vue.extend({
 	},
 	data() {
 		return {
+			checkVersionsTimeout: null as NodeJS.Timeout | null,
 			shown: false
 		}
 	},
 	methods: {
 		checkVersions() {
+			this.checkVersionsTimeout = null;
 			if (store.state.machine.settings.checkVersions) {
 				let versionMismatch = false, patchVersionMismatch = false;
 				try {
@@ -108,14 +110,23 @@ export default Vue.extend({
 	},
 	mounted() {
 		if (!this.isConnecting) {
-			this.checkVersions();
+			// Wait 2s before performing the versions check
+			this.checkVersionsTimeout = setTimeout(this.checkVersions, 2000);
 		}
 	},
 	watch: {
 		state(to: MachineStatus, from: MachineStatus) {
-			if (![MachineStatus.disconnected, MachineStatus.updating, MachineStatus.starting].includes(to) &&
-				[MachineStatus.disconnected, MachineStatus.updating, MachineStatus.starting].includes(from)) {
-				this.checkVersions();
+			if ([MachineStatus.disconnected, MachineStatus.updating, MachineStatus.starting].includes(to)) {
+				// Update/Startup not done yet, don't perform versions check yet
+				if (this.checkVersionsTimeout !== null) {
+					clearTimeout(this.checkVersionsTimeout);
+					this.checkVersionsTimeout = null;
+				}
+			} else if ([MachineStatus.disconnected, MachineStatus.updating, MachineStatus.starting].includes(from)) {
+				if (this.checkVersionsTimeout === null) {
+					// No longer updating or starting, perform versions check in 2s
+					this.checkVersionsTimeout = setTimeout(this.checkVersions, 2000);
+				}
 			}
 		}
 	}

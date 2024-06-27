@@ -746,7 +746,8 @@
       "updateNote": "Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.",
       "notConnected": "(nicht verbunden)",
       "dsfVersion": "DSF Version: {0}",
-      "dwcVersion": "DWC-Version: {0}"
+      "dwcVersion": "DWC-Version: {0}",
+      "canAddress": "CAN-Adresse {0}"
     },
     "settingsEndstops": {
       "caption": "Endlagenschalter",

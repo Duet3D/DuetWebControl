@@ -746,7 +746,8 @@
       "updateNote": "Remarque: Vous pouvez installer les mises à jour sur la page Système.",
       "dsfVersion": "Version DSF : {0}",
       "notConnected": "(pas connecté)",
-      "dwcVersion": "Version DWC : {0}"
+      "dwcVersion": "Version DWC : {0}",
+      "canAddress": "Adresse CAN {0}"
     },
     "settingsEndstops": {
       "caption": "Interrupteur de position",
