@@ -733,7 +733,8 @@
       "updateInterval": "Інтервал оновлення ({0})",
       "fileTransferRetryThreshold": "Поріг повторних спроб для передавання файлів ({0})",
       "crcUploads": "Використання контрольних сум CRC32 для відвантажень",
-      "unavailable": "Налаштування відсутні"
+      "unavailable": "Налаштування відсутні",
+      "retryDelay": "Час очікування між повторними спробами AJAX (мс)"
     },
     "settingsElectronics": {
       "caption": "Електроніка",
@@ -744,7 +745,8 @@
       "updateNote": "Примітка: Ви можете інсталювати оновлення на сторінці \"Система\".",
       "dsfVersion": "Версія DSF: {0}",
       "notConnected": "(не під'єднано)",
-      "dwcVersion": "Версія DWC: {0}"
+      "dwcVersion": "Версія DWC: {0}",
+      "canAddress": "CAN адреса {0}"
     },
     "settingsEndstops": {
       "caption": "Кінцеві вимикачі",

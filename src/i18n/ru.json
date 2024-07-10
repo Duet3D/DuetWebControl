@@ -734,7 +734,8 @@
       "fileTransferRetryThreshold": "Порог повтора для передачи файлов ({0})",
       "crcUploads": "Для загрузки использовать контрольные суммы CRC32",
       "unavailable": "Нет доступных настроек",
-      "updateDelay": "Задержка обновления (мс)"
+      "updateDelay": "Задержка обновления (мс)",
+      "retryDelay": "Время ожидания между повторными попытками AJAX (мс)"
     },
     "settingsElectronics": {
       "caption": "Электроника",
@@ -745,7 +746,8 @@
       "updateNote": "Вы можете установить обновления в Менеджере файлов - Система.",
       "dsfVersion": "Версия DSF: {0}",
       "notConnected": "(Не подключен)",
-      "dwcVersion": "Версия DWC: {0}"
+      "dwcVersion": "Версия DWC: {0}",
+      "canAddress": "CAN-адрес {0}"
     },
     "settingsEndstops": {
       "caption": "Концевик",

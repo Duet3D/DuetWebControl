@@ -734,7 +734,8 @@
       "fileTransferRetryThreshold": "Dosya aktarımları için yeniden deneme eşiği ({0})",
       "crcUploads": "Yüklemeler için CRC32 sağlama toplamlarını kullanın",
       "unavailable": "Kullanılabilir ayar yok",
-      "updateDelay": "Güncelleme gecikmesi (ms)"
+      "updateDelay": "Güncelleme gecikmesi (ms)",
+      "retryDelay": "AJAX yeniden denemeleri arasında beklenecek süre (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronik",
@@ -745,7 +746,8 @@
       "updateNote": "Not: Güncellemeleri Sistem sayfasına yükleyebilirsiniz.",
       "dsfVersion": "DSF Sürümü: {0}",
       "notConnected": "(bağlı değil)",
-      "dwcVersion": "DWC Sürümü: {0}"
+      "dwcVersion": "DWC Sürümü: {0}",
+      "canAddress": "CAN adresi {0}"
     },
     "settingsEndstops": {
       "caption": "Endstops",

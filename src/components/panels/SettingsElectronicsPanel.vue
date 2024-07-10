@@ -35,6 +35,16 @@ th {
 				<tr v-for="(board, index) in boards" :key="index">
 					<td>
 						{{ board.name }}
+						<v-tooltip v-if="board.canAddress" bottom>
+							<template v-slot:activator="{ on, attrs }">
+								<v-icon small v-bind="attrs" v-on="on">
+									mdi-information-outline
+								</v-icon>
+							</template>
+							<span>
+								{{ $t("panel.settingsElectronics.canAddress", [board.canAddress]) }}
+							</span>
+						</v-tooltip>
 					</td>
 					<td>
 						{{ board.shortName }}
@@ -88,7 +98,8 @@ th {
 			{{ $t("panel.settingsElectronics.notConnected") }}
 		</v-card-text>
 
-		<upload-btn v-if="!isRestConnector || !isDuetFirmware" class="my-3 d-flex justify-center" target="update" color="primary" />
+		<upload-btn v-if="!isRestConnector || !isDuetFirmware" class="my-3 d-flex justify-center" target="update"
+					color="primary" />
 	</v-card>
 </template>
 

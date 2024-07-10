@@ -734,7 +734,8 @@
       "updateInterval": "Aktualisierungsintervall ({0})",
       "fileTransferRetryThreshold": "Grenzwert für erneute Versuche von Dateiübertragungen ({0})",
       "crcUploads": "CRC32-Prüfsummen für Uploads verwenden",
-      "unavailable": "Keine Einstellungen verfügbar"
+      "unavailable": "Keine Einstellungen verfügbar",
+      "retryDelay": "Wartezeit zwischen AJAX-Wiederholungsversuchen (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronik",
@@ -745,7 +746,8 @@
       "updateNote": "Hinweis: Sie können Aktualisierungen auf der System-Seite installieren.",
       "notConnected": "(nicht verbunden)",
       "dsfVersion": "DSF Version: {0}",
-      "dwcVersion": "DWC-Version: {0}"
+      "dwcVersion": "DWC-Version: {0}",
+      "canAddress": "CAN-Adresse {0}"
     },
     "settingsEndstops": {
       "caption": "Endlagenschalter",

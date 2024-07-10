@@ -734,7 +734,8 @@
       "updateInterval": "Updateインターバル({0})",
       "fileTransferRetryThreshold": "ファイル転送の再試行しきい値 ({0})",
       "crcUploads": "アップロードにCRC32チェックサムを使用",
-      "unavailable": "利用可能な設定がありません"
+      "unavailable": "利用可能な設定がありません",
+      "retryDelay": "AJAX 再試行間の待機時間 (ミリ秒)"
     },
     "settingsElectronics": {
       "caption": "エレクトロニクス",
@@ -745,7 +746,8 @@
       "updateNote": "Note: システムページからアップデートのインストールができます。",
       "dsfVersion": "DSF バージョン: {0}",
       "notConnected": "（接続されていません）",
-      "dwcVersion": "DWC バージョン: {0}"
+      "dwcVersion": "DWC バージョン: {0}",
+      "canAddress": "CAN アドレス {0}"
     },
     "settingsEndstops": {
       "caption": "エンドストップ",

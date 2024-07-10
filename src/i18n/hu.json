@@ -733,7 +733,8 @@
       "updateInterval": "Frissítési gyakoriság ({0})",
       "fileTransferRetryThreshold": "Újrapróbálkozási küszöb fájlátvitelhez ({0})",
       "crcUploads": "CRC32 ellenőrzés használata a feltöltésekhez",
-      "unavailable": "Nem áll rendelkezésre beállítás"
+      "unavailable": "Nem áll rendelkezésre beállítás",
+      "retryDelay": "Az AJAX újrapróbálkozások közötti várakozási idő (ms)"
     },
     "settingsElectronics": {
       "caption": "Elektronika",
@@ -744,7 +745,8 @@
       "updateNote": "Megjegyzés: Frissítéseket a Rendszer menüpontban tud feltölteni és telepíteni.",
       "notConnected": "(nincs kapcsolat)",
       "dsfVersion": "DSF verzió: {0}",
-      "dwcVersion": "DWC verzó: {0}"
+      "dwcVersion": "DWC verzó: {0}",
+      "canAddress": "CAN cím: {0}"
     },
     "settingsEndstops": {
       "caption": "Végállások",

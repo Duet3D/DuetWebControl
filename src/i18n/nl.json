@@ -737,7 +737,8 @@
       "pingInterval": "PING-interval bij inactiviteit (ms)",
       "unavailable": "Geen instellingen beschikbaar",
       "updateDelay": "Updatevertraging (ms)",
-      "updateInterval": "Update-interval ({0})"
+      "updateInterval": "Update-interval ({0})",
+      "retryDelay": "Wachttijd tussen AJAX-pogingen (ms)"
     },
     "settingsElectronics": {
       "board": "{0}",
@@ -748,7 +749,8 @@
       "dwsFirmware": "Duet wifi-serverversie: {0}",
       "firmware": "Firmware: {0} ({1})",
       "notConnected": "(niet verbonden)",
-      "updateNote": "Opmerking: u kunt updates installeren op de systeempagina."
+      "updateNote": "Opmerking: u kunt updates installeren op de systeempagina.",
+      "canAddress": "CAN-adres {0}"
     },
     "settingsEndstops": {
       "caption": "Eindstops",
