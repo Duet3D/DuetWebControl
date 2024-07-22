@@ -4,7 +4,7 @@ import Vue from "vue";
 import type { Module } from "vuex";
 
 import { translateResponse } from "@/i18n";
-import { isPrinting } from "@/utils/enums";
+import { isPaused, isPrinting } from "@/utils/enums";
 import patch from "@/utils/patch";
 
 import { RootState } from "..";
@@ -132,7 +132,7 @@ export default function (connector: BaseConnector | null): MachineModel {
 			},
 			jobProgress(state, getters) {
 				if (isPrinting(state.state.status)) {
-					if (state.state.status !== MachineStatus.simulating && state.move.extruders.length > 0 && state.job.file !== null && state.job.file.filament.length > 0) {
+					if (!isPaused(state.state.status) && state.state.status !== MachineStatus.simulating && state.move.extruders.length > 0 && state.job.file !== null && state.job.file.filament.length > 0) {
 						// Get the total amount of filament extruded (according to the slicer)
 						let totalRawExtruded = 0;
 						for (const extruder of state.move.extruders) {
