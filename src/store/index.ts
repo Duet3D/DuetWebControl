@@ -183,7 +183,7 @@ const store = new Vuex.Store<InternalRootState>({
 				// Set up event callbacks
 				connectorInstance.setCallbacks({
 					onConnectProgress(connector: BaseConnector, progress: number) {
-						commit("machine/setConnectingProgress", progress);
+						commit("setConnectingProgress", progress);
 					},
 					async onConnectionError(connector: BaseConnector, reason: unknown) {
 						await dispatch("machine/onConnectionError", reason);

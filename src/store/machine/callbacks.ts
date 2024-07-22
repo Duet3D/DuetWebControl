@@ -40,7 +40,7 @@ export default class MachineCallbacks implements Callbacks {
      * @returns
      */
     onConnectProgress(connector: BaseConnector, progress: number) {
-        this.commit(`machines/${this.hostname}/setConnectingProgress`, progress);
+        this.commit(`setConnectingProgress`, progress, { root: true });
     }
 
     /**
