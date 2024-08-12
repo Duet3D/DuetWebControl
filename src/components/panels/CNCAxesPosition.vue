@@ -1,4 +1,8 @@
 <style scoped>
+.axis-span {
+	border-radius: 5px;
+}
+
 @media screen and (max-width: 600px) {
 	.large-font-height {
 		height: 35px;
@@ -29,10 +33,10 @@
 		</v-card-title>
 		<v-card-text>
 			<v-row align-content="center" no-gutters :class="{ 'large-font' : !machinePosition }">
-				<v-col v-for="axis in visibleAxes" :key="axis.letter" class="d-flex flex-column align-center">
-					<div :class="{ 'large-font-height' : !machinePosition }">
+				<v-col v-for="(axis, index) in visibleAxes" :key="axis.letter" class="d-flex flex-column align-center">
+					<span class="axis-span" :class="axisSpanClasses(index)">
 						{{ axis.letter }}
-					</div>
+					</span>
 					<div>
 						{{ $displayAxisPosition(axis, machinePosition) }}
 					</div>
@@ -56,8 +60,26 @@ export default Vue.extend({
 		}
 	},
 	computed: {
+		darkTheme(): boolean {
+			return store.state.settings.darkTheme;
+		},
 		visibleAxes(): Array<Axis> {
 			return store.state.machine.model.move.axes.filter(axis => axis.visible);
+		}
+	},
+	methods: {
+		axisSpanClasses(axisIndex: number) {
+			const classList: Array<string> = [];
+			if (this.machinePosition) {
+				if (axisIndex >= 0 && axisIndex < store.state.machine.model.sensors.endstops.length && store.state.machine.model.sensors.endstops[axisIndex]?.triggered) {
+					classList.push("px-2");
+					classList.push("light-green");
+					classList.push(this.darkTheme ? "darken-3" : "lighten-4");
+				}
+			} else {
+				classList.push("large-font-height");
+			}
+			return classList;
 		}
 	}
 });
