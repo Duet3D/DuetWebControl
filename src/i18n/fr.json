@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "Mot de Passe (optionnel)",
       "passwordPlaceholder": "Mot de Passe",
       "passwordRequired": "Mot de Passe requis",
-      "connect": "Connexion"
+      "connect": "Connexion",
+      "rememberPassword": "Se souvenir du mot de passe"
     },
     "connection": {
       "connecting": "Connexion...",
