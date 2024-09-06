@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "Contraseña (opcional)",
       "passwordPlaceholder": "Contraseña",
       "passwordRequired": "Es obligatorio introducir la contraseña",
-      "connect": "Conectar"
+      "connect": "Conectar",
+      "rememberPassword": "Recordar contraseña"
     },
     "connection": {
       "connecting": "Conectando...",

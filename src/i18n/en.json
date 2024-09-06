@@ -169,6 +169,7 @@
       "passwordPlaceholderOptional": "Password (optional)",
       "passwordPlaceholder": "Password",
       "passwordRequired": "Password is required",
+      "rememberPassword": "Remember Password",
       "connect": "Connect"
     },
     "connection": {

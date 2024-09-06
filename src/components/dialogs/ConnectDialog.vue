@@ -15,6 +15,7 @@
 								  :placeholder="$t(passwordRequired ? 'dialog.connect.passwordPlaceholder' : 'dialog.connect.passwordPlaceholderOptional')"
 								  v-model="password" :autofocus="passwordRequired" :rules="passwordRules"
 								  :required="passwordRequired" />
+					<v-checkbox v-model="rememberPassword" :label="$t('dialog.connect.rememberPassword')" />
 				</v-card-text>
 
 				<v-card-actions>
@@ -52,6 +53,7 @@ export default Vue.extend({
 			passwordRules: [
 				(value: string): string | boolean => (!value && store.state.passwordRequired) ? this.$t("dialog.connect.passwordRequired") : true
 			],
+			rememberPassword: false,
 			shown: false
 		}
 	},
@@ -65,6 +67,11 @@ export default Vue.extend({
 						hostname: this.hostname,
 						password: this.password
 					});
+					if (this.rememberPassword) {
+						this.savePassword();
+					} else {
+						this.clearPassword();
+					}
 					this.password = "";
 				} catch (e) {
 					console.warn(e);
@@ -74,14 +81,33 @@ export default Vue.extend({
 		},
 		close() {
 			store.commit("hideConnectDialog");
+		},
+		savePassword() {
+			localStorage.setItem('dwc-password', this.password);
+		},
+		loadPassword() {
+			const savedPassword = localStorage.getItem('dwc-password');
+			if (savedPassword) {
+				this.password = savedPassword;
+				this.rememberPassword = true;
+			}
+		},
+		clearPassword() {
+			localStorage.removeItem('dwc-password');
 		}
 	},
 	mounted() {
 		this.hostname = this.passwordRequired ? location.host : this.lastHostname;
 		this.shown = this.connectDialogShown;
+		this.loadPassword();
 	},
 	watch: {
-		connectDialogShown(to: boolean) { this.shown = to; },
+		connectDialogShown(to: boolean) { 
+			this.shown = to;
+			if (to) {
+				this.loadPassword();
+			}
+		},
 		lastHostname(to: string) { this.hostname = to; }
 	}
 });

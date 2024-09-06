@@ -1,4 +1,4 @@
-﻿{
+{
   "language": "Русский",
   "$vuetify": {
     "badge": "знак",
@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "Пароль (опционально)",
       "passwordPlaceholder": "Пароль",
       "passwordRequired": "Пароль необходим",
-      "connect": "Подключение"
+      "connect": "Подключение",
+      "rememberPassword": "Запомнить пароль"
     },
     "connection": {
       "connecting": "Подключение...",

@@ -168,7 +168,8 @@
       "passwordPlaceholderOptional": "Wachtwoord (optioneel)",
       "passwordRequired": "Een wachtwoord is verplicht",
       "prompt": "Voer de hostnaam en het wachtwoord in van de machine waarmee u verbinding wilt maken:",
-      "title": "Maak verbinding met automaat"
+      "title": "Maak verbinding met automaat",
+      "rememberPassword": "Wachtwoord onthouden"
     },
     "connection": {
       "connecting": "Verbinden...",
