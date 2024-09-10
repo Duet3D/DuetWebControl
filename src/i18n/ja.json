@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "パスワード (オプション)",
       "passwordPlaceholder": "パスワード",
       "passwordRequired": "パスワードが必要です",
-      "connect": "接続"
+      "connect": "接続",
+      "rememberPassword": "パスワードを記憶する"
     },
     "connection": {
       "connecting": "接続中...",

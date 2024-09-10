@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "Jelszó (opcionális)",
       "passwordPlaceholder": "Jelszó",
       "passwordRequired": "Jelszó kötelező",
-      "connect": "Kapcsolódás"
+      "connect": "Kapcsolódás",
+      "rememberPassword": "Jelszó megjegyzése"
     },
     "connection": {
       "connecting": "Kapcsolódás...",

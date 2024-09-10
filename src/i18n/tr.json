@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "Parola (opsiyonel)",
       "passwordPlaceholder": "Parola",
       "passwordRequired": "Parola gerekli",
-      "connect": "Bağlan"
+      "connect": "Bağlan",
+      "rememberPassword": "Şifreyi hatırla"
     },
     "connection": {
       "connecting": "Bağlanıyor...",

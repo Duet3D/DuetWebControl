@@ -169,7 +169,8 @@
       "passwordPlaceholderOptional": "密码（可选）",
       "passwordPlaceholder": "密码",
       "passwordRequired": "密码是必需的",
-      "connect": "连接"
+      "connect": "连接",
+      "rememberPassword": "记住密码"
     },
     "connection": {
       "connecting": "正在连接……",
