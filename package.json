@@ -35,7 +35,7 @@
    "devDependencies": {
       "@duet3d/connectors": "^3.5.2",
       "@duet3d/motionanalysis": "^3.4.0",
-      "@duet3d/objectmodel": "^3.5.0-rc.1",
+      "@duet3d/objectmodel": "^3.5.1",
       "@mdi/font": "^7.4.47",
       "@sindarius/gcodeviewer": "^3.7.9",
       "@types/chart.js": "^2.9.41",
