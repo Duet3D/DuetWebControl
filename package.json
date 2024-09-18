@@ -1,6 +1,6 @@
 {
    "name": "duetwebcontrol",
-   "version": "3.6.0-alpha.2+1",
+   "version": "3.6.0-beta.1",
    "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
    "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
    "license": "GPL-3.0",

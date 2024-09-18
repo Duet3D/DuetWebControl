@@ -1063,7 +1063,9 @@
       "noPlugins": "Sem Plugins",
       "refreshNote": "Atualize a página para terminar de descarregar alguns plug-ins DWC",
       "externalPlugins": "Plug-ins externos",
-      "integratedPlugins": "Plug-ins integrados"
+      "integratedPlugins": "Plug-ins integrados",
+      "builtIn": "embutido",
+      "installed": "instalado"
     }
   },
   "pluginPermissions": {

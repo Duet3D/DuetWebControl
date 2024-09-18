@@ -1092,7 +1092,9 @@
       "stopped": "leállítva",
       "uninstall": "Eltávolítás",
       "noPlugins": "Nincs plugin",
-      "refreshNote": "Bizonyos DWC plugin-ek teljes leállításához az oldal frissítése szükséges!"
+      "refreshNote": "Bizonyos DWC plugin-ek teljes leállításához az oldal frissítése szükséges!",
+      "builtIn": "beépített",
+      "installed": "telepítve"
     }
   }
 }

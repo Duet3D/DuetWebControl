@@ -1092,7 +1092,9 @@
       "stopped": "已停止",
       "uninstall": "卸载",
       "noPlugins": "没有插件",
-      "refreshNote": "某些DWC插件卸载完成后需要刷新页面"
+      "refreshNote": "某些DWC插件卸载完成后需要刷新页面",
+      "builtIn": "内置",
+      "installed": "已安装"
     }
   }
 }

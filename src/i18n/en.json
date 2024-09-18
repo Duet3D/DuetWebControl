@@ -1083,6 +1083,7 @@
         "dependencies": "Dependencies",
         "status": "Status"
       },
+      "builtIn": "built-in",
       "optional": "optional",
       "start": "Start",
       "partiallyStarted": "partially started",
@@ -1092,7 +1093,9 @@
       "stopped": "stopped",
       "uninstall": "Uninstall",
       "noPlugins": "No Plugins",
-      "refreshNote": "Refresh the page to finish unloading some DWC plugins"
+      "refreshNote": "Refresh the page to finish unloading some DWC plugins",
+      "installed": "installed",
+      "refreshNow": "Refresh now"
     }
   }
 }

@@ -1093,7 +1093,9 @@
       "stopped": "停止中",
       "uninstall": "アンイストール",
       "noPlugins": "プラグインなし",
-      "refreshNote": "DWCプラグインのアンロードを終了するため、ページを更新します"
+      "refreshNote": "DWCプラグインのアンロードを終了するため、ページを更新します",
+      "builtIn": "内蔵",
+      "installed": "インストールされています"
     }
   }
 }

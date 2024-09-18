@@ -1093,7 +1093,9 @@
       "stopped": "Zatrzymane",
       "uninstall": "Odinstaluj",
       "noPlugins": "Brak wtyczek",
-      "refreshNote": "Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC"
+      "refreshNote": "Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC",
+      "builtIn": "wbudowany",
+      "installed": "zainstalowany"
     }
   }
 }

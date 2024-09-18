@@ -1093,7 +1093,9 @@
       "started": "başladı",
       "stop": "Durmak",
       "stopped": "durdu",
-      "uninstall": "Kaldır"
+      "uninstall": "Kaldır",
+      "builtIn": "yerleşik",
+      "installed": "yüklü"
     }
   }
 }

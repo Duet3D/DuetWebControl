@@ -1092,7 +1092,9 @@
       "started": "begonnen",
       "stop": "Stop",
       "stopped": "gestopt",
-      "uninstall": "Verwijderen"
+      "uninstall": "Verwijderen",
+      "builtIn": "ingebouwd",
+      "installed": "geïnstalleerd"
     }
   }
 }

@@ -18,6 +18,11 @@ module.exports = {
 			removeAvailableModules: false,
 			splitChunks: {
 				cacheGroups: {
+					babylon: {
+						test: /babylonjs/,
+						name: "babylon",
+						chunks: "all"
+					},
 					monacoEditor: {
 						test: /[\\/]node_modules[\\/]monaco-editor/,
 						name: "monaco-editor",

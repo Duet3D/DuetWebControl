@@ -1093,7 +1093,9 @@
       "stopped": "gestoppt",
       "uninstall": "Deinstallieren",
       "noPlugins": "Keine Plugins",
-      "refreshNote": "Laden Sie die Seite neu um einige DWC-Plugins zu entladen"
+      "refreshNote": "Laden Sie die Seite neu um einige DWC-Plugins zu entladen",
+      "builtIn": "eingebaut",
+      "installed": "installiert"
     }
   }
 }

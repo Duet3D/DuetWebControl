@@ -1093,7 +1093,9 @@
       "stopped": "detenido",
       "uninstall": "Desinstalar",
       "noPlugins": "Sin complementos",
-      "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC"
+      "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC",
+      "builtIn": "incorporado",
+      "installed": "instalado"
     }
   }
 }
