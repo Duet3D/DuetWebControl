@@ -190,6 +190,7 @@ export default Vue.extend({
 					updateData = {
 						spindleRPM: this.items.slice()
 					};
+					updateData.spindleRPM.push(this.value);
 					updateData.spindleRPM.sort((a, b) => b - a);
 				} else {
 					updateData = {
