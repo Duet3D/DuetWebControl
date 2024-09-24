@@ -1,22 +1,20 @@
-import { createApp } from "vue";
+/**
+ * main.ts
+ *
+ * Bootstraps Vuetify and other plugins then mounts the App`
+ */
 
-/*
-import i18n from "./i18n";
-import store from "./store";
-import router from "./routes";
+// Vue plugins
+import { registerPlugins } from "@/vue-plugins";
 
-import "./components";
-import "./plugins";
-import "./registerServiceWorker";
-*/
-
-import { registerPlugins } from "./vue-plugins";
+// Components
 import App from "./App.vue";
+
+// Composables
+import { createApp } from "vue";
 
 const app = createApp(App);
 
 registerPlugins(app);
 
 app.mount("#app");
-
-export default app;

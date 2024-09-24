@@ -1,11 +1,11 @@
-import type { CancellationToken } from "@duet3d/connectors";
-import ObjectModel, { MessageType, Plugin } from "@duet3d/objectmodel";
-import type JSZip from "jszip";
-import mitt from "mitt";
+import type { CancellationToken } from '@duet3d/connectors'
+import ObjectModel, { MessageType, Plugin } from '@duet3d/objectmodel'
+import type JSZip from 'jszip'
+import mitt from 'mitt'
 
-import { FileTransferItem } from "@/store/machine";
-import { StoreState } from "pinia";
-import { LogMessageType } from "./logging";
+import { FileTransferItem } from '@/stores/machine'
+import { StoreState } from 'pinia'
+import { LogMessageType } from './logging'
 
 type Events = {
 	/**
@@ -128,7 +128,7 @@ type Events = {
 	 * File upload failed
 	 */
 	fileUploadError: { filename: string, content: any, error: any, startTime: Date, num: number, count: number, showProgress: boolean, showSuccess: boolean, showError: boolean };
-	
+
 	/**
 	 * File or directory has been moved
 	 */
@@ -212,10 +212,10 @@ type Events = {
 	dwcPluginUnloaded: string;
 }
 
-const emitter = mitt<Events>();
+const emitter = mitt<Events>()
 
-if (process.env.NODE_ENV === "development") {
-	emitter.on('*', (type, event) => console.debug(type, event));
+if (process.env.NODE_ENV === 'development') {
+  emitter.on('*', (type: any, event: any) => console.debug(type, event))
 }
 
-export default emitter;
+export default emitter
