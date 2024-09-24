@@ -23,6 +23,4 @@ const machineStore = useMachineStore()
 if (!machineStore.isConnected) {
   /* await */ machineStore.connect('ender6')
 }
-
-alert("loaded!");
 </script>

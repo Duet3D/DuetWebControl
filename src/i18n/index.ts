@@ -1,21 +1,23 @@
-import { createI18n } from 'vue-i18n'
-import { reactive } from 'vue'
+import { createI18n } from 'vue-i18n';
+import { reactive } from 'vue';
 
-import de from './de.json'
-import en from './en.json'
+import { de as deVuetify, en as enVuetify } from 'vuetify/locale';
+
+import de from './de.json';
+import en from './en.json';
 
 /**
  * Supported i18n messages
  */
-export const messages: Record<string, { plugins: Record<string, object> }> = reactive({
-  de,
-  en,
-})
+export const messages = reactive({
+  de: { ...deVuetify, ...de },
+  en: { ...enVuetify, ...en },
+});
 
 /**
  * Get the currently configured browser locale that is also part of the i18n messages
  */
-export function getBrowserLocale (): string {
+export function getBrowserLocale(): string {
   // See if there is an absolute match
   for (const locale in messages) {
     if (locale === navigator.language) {
@@ -40,15 +42,15 @@ const i18n = createI18n({
   globalInjection: true,
   locale: process.env.VUE_APP_I18N_LOCALE || getBrowserLocale(),
   fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
-  messages,
-})
+  messages
+});
 
 /**
- * Attempt to translate a string from DSF/RRF returning either the translated response or the original message
- * @param message Message to translate
- * @returns Translated message
- */
-export function translateResponse (message: string): string {
+* Attempt to translate a string from DSF/RRF returning either the translated response or the original message
+* @param message Message to translate
+* @returns Translated message
+*/
+export function translateResponse(message: string): string {
   // Check for message in format #<i18n.str>#arg1(#arg2...)# first
   const matches = /^#(.*)#$/.exec(message.trim())
   if (matches !== null) {
@@ -63,7 +65,7 @@ export function translateResponse (message: string): string {
   if (i18n.global.locale.value !== 'en') {
     const currentMessages = messages[i18n.global.locale.value]
     if ('responses' in messages.en && messages.en.responses instanceof Object &&
-			'responses' in currentMessages && currentMessages.responses instanceof Object) {
+      'responses' in currentMessages && currentMessages.responses instanceof Object) {
       for (const key in messages.en.responses) {
         const regex = new RegExp((messages.en.responses as Record<string, string>)[key])
         const matches = regex.exec(message)
@@ -76,4 +78,4 @@ export function translateResponse (message: string): string {
   return message
 }
 
-export default i18n
+export default i18n;
