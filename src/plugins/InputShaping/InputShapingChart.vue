@@ -30,13 +30,13 @@ export default {
 		inputShaperDamping: Number,         // damping factor to use when computing input shaper damping curves
 
 		customAmplitudes: Array,            // amplitudes for the computation of the custom input shaper
-		customDurations: Array,             // durations for the computation of the custom input shaper
+		customDelays: Array,             	// delays for the computation of the custom input shaper
 
 		estimateShaperEffect: Boolean       // show estimated shaper effect
 	},
 	computed: {
 		...mapState('settings', ['darkTheme']),
-		showReduction() { return ((this.amplitudes && this.durations) || (!!this.inputShapers && this.inputShapers.length > 0)) && !this.estimateShaperEffect; },
+		showReduction() { return ((this.amplitudes && this.delays) || (!!this.inputShapers && this.inputShapers.length > 0)) && !this.estimateShaperEffect; },
 		resolution() { return (this.frequencies && this.frequencies.length > 2) ? (this.frequencies[1] - this.frequencies[0]) : 0; },
 		lineAtPoint() {
 			let point = -1;
@@ -323,8 +323,8 @@ export default {
 			}
 
 			// Compute the damping curve for custom parameters
-			if (this.inputShapers.includes('custom') && this.frequencies && this.frequencies.length > 0 && this.customAmplitudes && this.customDurations && this.customAmplitudes.length > 0 && this.customDurations.length > 0) {
-				const damping = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDurations);
+			if (this.inputShapers.includes('custom') && this.frequencies && this.frequencies.length > 0 && this.customAmplitudes && this.customDelays && this.customAmplitudes.length > 0 && this.customDelays.length > 0) {
+				const damping = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDelays);
 				if (this.estimateShaperEffect) {
 					for (let key in this.value) {
 						const dataset = {
@@ -505,10 +505,10 @@ export default {
 		customAmplitudes: {
 			deep: true,
 			handler() {
-				if (this.customAmplitudes && this.customDurations) {
+				if (this.customAmplitudes && this.customDelays) {
 					for (let dataset in this.chart.data.datasets) {
 						if (dataset.isCustom) {
-							dataset.data = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDurations);
+							dataset.data = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDelays);
 							this.update();
 							return;
 						}
@@ -517,13 +517,13 @@ export default {
 				}
 			}
 		},
-		customDurations: {
+		customDelays: {
 			deep: true,
 			handler() {
-				if (this.customAmplitudes && this.customDurations) {
+				if (this.customAmplitudes && this.customDelays) {
 					for (let dataset in this.chart.data.datasets) {
 						if (dataset.isCustom) {
-							dataset.data = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDurations);
+							dataset.data = getInputShaperDamping(this.frequencies, this.customAmplitudes, this.customDelays);
 							this.update();
 							return;
 						}

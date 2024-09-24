@@ -30,7 +30,7 @@
 							<li v-show="frequency !== null">Shaper Frequency: {{ frequency }}</li>
 							<li v-show="damping !== null">Damping Factor: {{ damping }}</li>
 							<li v-show="amplitudes !== null">Amplitudes: {{ amplitudes }}</li>
-							<li v-show="durations !== null">Durations: {{ durations }}</li>
+							<li v-show="delays !== null">Delays: {{ delays }}</li>
 						</ul>
 
 						<v-alert :value="accelerometers.length === 0" dense text type="error" class="my-3">
@@ -266,8 +266,8 @@ export default {
 		amplitudes() {
 			return (this.move.shaping.type === 'custom') ? this.move.shaping.amplitudes.map(amplitude => amplitude.toString()).reduce((a, b) => a + ', ' + b) : null;
 		},
-		durations() {
-			return (this.move.shaping.type === 'custom') ? this.move.shaping.durations.map(duration => (duration / 1000).toFixed(3) + 'ms').reduce((a, b) => a + ', ' + b) : null;
+		delays() {
+			return (this.move.shaping.type === 'custom') ? this.move.shaping.delays.map(duration => (duration / 1000).toFixed(3) + 'ms').reduce((a, b) => a + ', ' + b) : null;
 		},
 		allAxesHomed() { return !this.move.axes.some(axis => axis.visible && !axis.homed); },
 		accelerometers() {

@@ -152,24 +152,6 @@ export default function (connector: BaseConnector | null): MachineModel {
 			}
 		},
 		mutations: {
-			addPlugin(state, plugin: Plugin) {
-				typedState.plugins.set(plugin.id, plugin);
-
-				const clonedPlugins = new Map<string, Plugin>();
-				for (const [key, value] of typedState.plugins) {
-					clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
-				}
-				Vue.set(state, "plugins", clonedPlugins);
-			},
-			removePlugin(state, plugin: Plugin) {
-				typedState.plugins.delete(plugin.id);
-
-				const clonedPlugins = new Map<string, Plugin>();
-				for (const [key, value] of typedState.plugins) {
-					clonedPlugins.set(key, JSON.parse(JSON.stringify(value)));
-				}
-				Vue.set(state, "plugins", clonedPlugins);
-			},
 			update(state, data: any) {
 				// Check for i18n actions
 				if (data.state instanceof Object) {

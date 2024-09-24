@@ -49,8 +49,7 @@ th {
 							<div v-show="isInputShapingEnabled" class="content flex-grow-1 pa-2">
 								<input-shaping-chart :frequencies="currentFrequencies" :ringing-frequency="frequency"
 													 :input-shapers="inputShapers" :input-shaper-frequency="frequency"
-													 :input-shaper-damping="damping" :custom-amplitudes="customAmplitudes"
-													 :custom-durations="customDurations" />
+													 :input-shaper-damping="damping" />
 							</div>
 						</div>
 					</v-tab-item>
@@ -97,8 +96,6 @@ th {
 															 :input-shapers="inputShapers"
 															 :input-shaper-frequency="frequency"
 															 :input-shaper-damping="damping"
-															 :custom-amplitudes="customAmplitudes"
-															 :custom-durations="customDurations"
 															 :estimate-shaper-effect="estimateShaperEffect"
 															 :show-values="showOriginalValues" />
 									</v-card>
@@ -162,7 +159,7 @@ th {
 											</td>
 											<td>
 												<v-text-field type="number" min="0" step="0.1"
-															  :value="customDurations[index] * 1000"
+															  :value="customDelays[index] * 1000"
 															  @input="setCustomDuration(index, $event)" class="pt-0 mb-1"
 															  hide-details />
 											</td>
@@ -270,23 +267,23 @@ export default {
 			set(value) {
 				if (this.customAmplitudes.length > value) {
 					this.customAmplitudes.splice(value);
-					this.customDurations.splice(value);
+					this.customDelays.splice(value);
 				} else {
 					for (let i = this.customAmplitudes.length; i < value; i++) {
 						this.customAmplitudes.push(0);
-						this.customDurations.push(0);
+						this.customDelays.push(0);
 					}
 				}
 			}
 		},
 		canConfigureCustom() {
-			return this.numCustomCoefficients > 0 && this.customAmplitudes.every(amplitude => amplitude > 0) && this.customDurations.every(duration => duration > 0);
+			return this.numCustomCoefficients > 0 && this.customAmplitudes.every(amplitude => amplitude > 0) && this.customDelays.every(duration => duration > 0);
 		},
 		customShaperCode() {
 			if (this.inputShapers.includes('custom') && this.canConfigureCustom) {
 				const amplitudes = this.customAmplitudes.map(amplitude => amplitude.toFixed(3)).reduce((a, b) => a + ':' + b);
-				const durations = this.customDurations.map(duration => duration.toFixed(4)).reduce((a, b) => a + ':' + b);
-				return `M593 P"custom" H${amplitudes} T${durations}`;
+				const delays = this.customDelays.map(duration => duration.toFixed(4)).reduce((a, b) => a + ':' + b);
+				return `M593 P"custom" H${amplitudes} T${delays}`;
 			}
 			return '';
 		},
@@ -304,7 +301,7 @@ export default {
 
 			inputShapers: [],
 			customAmplitudes: [],
-			customDurations: [],
+			customDelays: [],
 			customMenu: false,
 			configuringCustomShaper: false,
 			frequency: 0,
@@ -344,7 +341,7 @@ export default {
 		setCustomDuration(index, value) {
 			const val = parseFloat(value);
 			if (!isNaN(val) && val >= 0) {
-				Vue.set(this.customDurations, index, val / 1000);
+				Vue.set(this.customDelays, index, val / 1000);
 			}
 		},
 		copy() {
@@ -421,7 +418,7 @@ export default {
 		this.frequency = this.shaping.frequency;
 		this.damping = this.shaping.damping;
 		this.customAmplitudes = this.shaping.amplitudes.slice();
-		this.customDurations = this.shaping.durations.slice();
+		this.customDelays = this.shaping.delays.slice();
 
 		// Keep track of file changes
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
@@ -441,7 +438,7 @@ export default {
 
 				if (to === 'custom') {
 					this.customAmplitudes = this.shaping.amplitudes.slice();
-					this.customDurations = this.shaping.durations.slice();
+					this.customDelays = this.shaping.delays.slice();
 				}
 			}
 		},
@@ -453,11 +450,11 @@ export default {
 				}
 			}
 		},
-		'shaping.durations': {
+		'shaping.delays': {
 			deep: true,
 			handler(to) {
 				if (!this.inputShapers.includes('custom') || this.shaping.type === 'custom') {
-					this.customDurations = to.slice();
+					this.customDelays = to.slice();
 				}
 			}
 		},
