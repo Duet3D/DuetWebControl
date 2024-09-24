@@ -7,29 +7,18 @@ const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
+	css: {
+        extract: { ignoreOrder: true }
+    },
 	configureWebpack: {
 		devtool: "source-map",
 		optimization: {
 			chunkIds: "named",
-			concatenateModules: false,
+			concatenateModules: true,
 			flagIncludedChunks: false,
 			mergeDuplicateChunks: false,
 			moduleIds: "named",
 			removeAvailableModules: false,
-			splitChunks: {
-				cacheGroups: {
-					babylon: {
-						test: /babylonjs/,
-						name: "babylon",
-						chunks: "all"
-					},
-					monacoEditor: {
-						test: /[\\/]node_modules[\\/]monaco-editor/,
-						name: "monaco-editor",
-						chunks: "all"
-					}
-				}
-			},
 			usedExports: false
 		},
 		performance: {
@@ -97,7 +86,21 @@ module.exports = {
 		config.optimization.set("splitChunks", {
 			chunks: "all",
 			cacheGroups: {
-				defaultVendors: false,
+				babylon: {
+					test: /[\\/]node_modules[\\/](@babylonjs|babylon|babylonjs-gltf2interface)[\\/]/,
+					priority: 20,
+					name: "babylon"
+				},
+				monacoEditor: {
+					test: (module) => module.context && /[\\/]node_modules[\\/]monaco-editor[\\/]/.test(module.context),
+					priority: 10,
+					name: "monaco-editor"
+				},
+				defaultVendors: {
+					test: /[\\/]node_modules[\\/]/,
+					priority: -10,
+					name: "vendors"
+				},
 				default: false
 			}
 		});
