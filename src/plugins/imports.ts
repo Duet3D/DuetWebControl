@@ -6,16 +6,6 @@ import DwcPlugin from "./DwcPlugin";
 
 export default initCollection(DwcPlugin, [
 	{
-        id: "ClosedLoopTuning",
-        name: "Closed Loop Tuning",
-        author: "Louis Irwin, Juan Rosario",
-        version: "3.6.0-beta.1",
-        loadDwcResources: () => import(
-            /* webpackChunkName: "ClosedLoopTuning" */
-            "./ClosedLoopTuning/index"
-        )
-    },
-	{
         id: "GCodeViewer",
         name: "G-Code Viewer",
         author: "Juan Rosario",

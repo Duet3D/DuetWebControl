@@ -12,7 +12,6 @@ import { closeNotifications, makeNotification } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 import machine, { defaultMachine, MachineModule, MachineModuleState, MachineState } from "./machine";
-import MachineCallbacks from "./machine/callbacks";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
 import uiInjection, { UiInjectionState } from "./uiInjection";
@@ -166,21 +165,7 @@ const store = new Vuex.Store<InternalRootState>({
 				commit("addMachine", { hostname, module });
 				commit("setSelectedMachine", hostname);
 				
-				// Load machine settings
-				try {
-					await dispatch("machine/settings/load");
-				} catch (e) {
-					console.warn("Failed to load settings: " + getErrorMessage(e));
-				}
-				
-				// Load cache
-				try {
-					await dispatch("machine/cache/load");
-				} catch (e) {
-					console.warn("Failed to load cache: " + getErrorMessage(e));
-				}
-				
-				// Set up event callbacks
+				// Set up event callbacks before loading the settings
 				connectorInstance.setCallbacks({
 					onConnectProgress(connector: BaseConnector, progress: number) {
 						commit("setConnectingProgress", progress);
@@ -201,6 +186,20 @@ const store = new Vuex.Store<InternalRootState>({
 						});
 					}
 				});
+				
+				// Load machine settings
+				try {
+					await dispatch("machine/settings/load");
+				} catch (e) {
+					console.warn("Failed to load settings: " + getErrorMessage(e));
+				}
+				
+				// Load cache
+				try {
+					await dispatch("machine/cache/load");
+				} catch (e) {
+					console.warn("Failed to load cache: " + getErrorMessage(e));
+				}
 				
 				// Perform post-connect tasks
 				logGlobal(LogType.success, i18n.t("events.connected", [hostname]));
