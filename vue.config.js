@@ -2,23 +2,34 @@ const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const CompressionPlugin = require("compression-webpack-plugin");
 const fs = require("fs"), path = require("path");
-const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
+const { EnvironmentPlugin } = require("webpack");
 const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
-	css: {
-        extract: { ignoreOrder: true }
-    },
 	configureWebpack: {
 		devtool: "source-map",
 		optimization: {
 			chunkIds: "named",
-			concatenateModules: true,
+			concatenateModules: false,
 			flagIncludedChunks: false,
 			mergeDuplicateChunks: false,
 			moduleIds: "named",
 			removeAvailableModules: false,
+			splitChunks: {
+				cacheGroups: {
+					babylon: {
+						test: /[\\/]node_modules[\\/](@babylonjs|babylon|babylonjs-gltf2interface)[\\/]/,
+						name: "babylon",
+						chunks: "all"
+					},
+					monacoEditor: {
+						test: (module) => module.context && /[\\/]node_modules[\\/]monaco-editor[\\/]/.test(module.context),
+						name: "monaco-editor",
+						chunks: "all"
+					}
+				}
+			},
 			usedExports: false
 		},
 		performance: {
@@ -28,11 +39,6 @@ module.exports = {
 			new AutoImportsPlugin(),
 			new EnvironmentPlugin({
 				"BUILD_DATETIME": (new Date()).toString()
-			}),
-			// Work around for Buffer is undefined:
-			// https://github.com/webpack/changelog-v5/issues/10
-			new ProvidePlugin({
-				Buffer: ["buffer", "Buffer"],
 			}),
 			...((process.env.NODE_ENV === "production") ? [
 				new CustomImportsPlugin(),
@@ -86,21 +92,7 @@ module.exports = {
 		config.optimization.set("splitChunks", {
 			chunks: "all",
 			cacheGroups: {
-				babylon: {
-					test: /[\\/]node_modules[\\/](@babylonjs|babylon|babylonjs-gltf2interface)[\\/]/,
-					priority: 20,
-					name: "babylon"
-				},
-				monacoEditor: {
-					test: (module) => module.context && /[\\/]node_modules[\\/]monaco-editor[\\/]/.test(module.context),
-					priority: 10,
-					name: "monaco-editor"
-				},
-				defaultVendors: {
-					test: /[\\/]node_modules[\\/]/,
-					priority: -10,
-					name: "vendors"
-				},
+				defaultVendors: false,
 				default: false
 			}
 		});

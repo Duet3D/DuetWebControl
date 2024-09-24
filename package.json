@@ -13,7 +13,7 @@
       "report": "vue-cli-service build --report"
    },
    "dependencies": {
-      "@duet3d/connectors": "~3.6.0-beta.9",
+      "@duet3d/connectors": "~3.6.0-beta.11",
       "@duet3d/monacotokens": "^3.5.3",
       "@duet3d/motionanalysis": "^3.4.0",
       "@duet3d/objectmodel": "~3.6.0-alpha.1",
