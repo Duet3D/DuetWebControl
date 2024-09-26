@@ -32,7 +32,8 @@ export default {
 		customAmplitudes: Array,            // amplitudes for the computation of the custom input shaper
 		customDelays: Array,             	// delays for the computation of the custom input shaper
 
-		estimateShaperEffect: Boolean       // show estimated shaper effect
+		estimateShaperEffect: Boolean,      // show estimated shaper effect
+		wideBand: Boolean					// show more frequencies
 	},
 	computed: {
 		...mapState('settings', ['darkTheme']),
@@ -376,7 +377,7 @@ export default {
 			if (this.frequencies && this.frequencies.length > 0) {
 				let maxFrequencyIndex = -1;
 				for (let freq of this.frequencies) {
-					if (Math.round(freq) > 100) {
+					if (Math.round(freq) > this.wideBand ? 500 : 100) {
 						break;
 					}
 					maxFrequencyIndex++;

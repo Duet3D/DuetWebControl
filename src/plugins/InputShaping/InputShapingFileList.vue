@@ -126,7 +126,8 @@
 				Analyze
 			</v-btn>
 		</div>
-		<v-checkbox v-model="individualFiles" label="Display individual files" hide-details class="ma-3" />
+		<v-checkbox v-model="individualFiles" label="Display individual files" hide-details class="mx-3" />
+		<v-checkbox v-model="wideBand" label="Wide-band analysis" hide-details class="ma-3" />
 	</v-card>
 </template>
 
@@ -161,7 +162,6 @@ export default {
 
 		canDelete: Boolean,
 		canShowSamples: Boolean,
-		wideBand: Boolean,
 
 		selectedFiles: Array,
 		frequencies: Array,
@@ -276,7 +276,8 @@ export default {
 			progressMax: 0,
 			estimateEffect: false,
 			individualFiles: false,
-			showSamples: false
+			showSamples: false,
+			wideBand: Boolean
 		}
 	},
 	methods: {
@@ -477,6 +478,9 @@ export default {
 			if (!to) {
 				this.$emit('update:showOriginalValues', true);
 			}
+		},
+		wideBand() {
+			this.update();
 		}
 	}
 }
