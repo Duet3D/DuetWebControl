@@ -376,8 +376,9 @@ export default {
 			// Limit number of frequencies
 			if (this.frequencies && this.frequencies.length > 0) {
 				let maxFrequencyIndex = -1;
+				const maxFrequency = this.wideBand ? 500 : 100;
 				for (let freq of this.frequencies) {
-					if (Math.round(freq) > this.wideBand ? 500 : 100) {
+					if (Math.round(freq) > maxFrequency) {
 						break;
 					}
 					maxFrequencyIndex++;

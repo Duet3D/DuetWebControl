@@ -127,7 +127,7 @@
 			</v-btn>
 		</div>
 		<v-checkbox v-model="individualFiles" label="Display individual files" hide-details class="mx-3" />
-		<v-checkbox v-model="wideBand" label="Wide-band analysis" hide-details class="ma-3" />
+		<v-checkbox :value="wideBand" @change="$emit('update:wideBand', $event)" label="Wide-band analysis" hide-details class="ma-3" />
 	</v-card>
 </template>
 
@@ -166,7 +166,8 @@ export default {
 		selectedFiles: Array,
 		frequencies: Array,
 		value: Object,
-		hadOverflow: Boolean
+		hadOverflow: Boolean,
+		wideBand: Boolean
 	},
 	computed: {
 		...mapGetters(['uiFrozen']),
@@ -276,8 +277,7 @@ export default {
 			progressMax: 0,
 			estimateEffect: false,
 			individualFiles: false,
-			showSamples: false,
-			wideBand: Boolean
+			showSamples: false
 		}
 	},
 	methods: {

@@ -49,7 +49,7 @@ th {
 							<div v-show="isInputShapingEnabled" class="content flex-grow-1 pa-2">
 								<input-shaping-chart :frequencies="currentFrequencies" :ringing-frequency="frequency"
 													 :input-shapers="inputShapers" :input-shaper-frequency="frequency"
-													 :input-shaper-damping="damping" />
+													 :input-shaper-damping="damping" :wide-band="false" />
 							</div>
 						</div>
 					</v-tab-item>
@@ -76,7 +76,8 @@ th {
 															 :sample-end-index.sync="sampleEndIndex"
 															 :had-overflow.sync="hadOverflow"
 															 :estimate-shaper-effect.sync="estimateShaperEffect"
-															 :show-original-values.sync="showOriginalValues" />
+															 :show-original-values.sync="showOriginalValues"
+															 :wide-band.sync="wideBand" />
 								</v-col>
 								<v-col :class="!!filesToAnalyze.length ? 'd-none' : 'd-flex'"
 									   class="align-center justify-center">
@@ -97,7 +98,8 @@ th {
 															 :input-shaper-frequency="frequency"
 															 :input-shaper-damping="damping"
 															 :estimate-shaper-effect="estimateShaperEffect"
-															 :show-values="showOriginalValues" />
+															 :show-values="showOriginalValues"
+															 :wide-band="wideBand" />
 									</v-card>
 								</v-col>
 							</v-row>
@@ -319,7 +321,9 @@ export default {
 			estimateShaperEffect: false,
 			sampleStartIndex: null,
 			sampleEndIndex: null,
-			hadOverflow: false
+			hadOverflow: false,
+
+			wideBand: false
 		}
 	},
 	methods: {
