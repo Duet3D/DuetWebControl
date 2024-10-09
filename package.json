@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@duet3d/connectors": "~3.6.0-beta.13",
+    "@duet3d/connectors": "~3.6.0-beta.14",
     "@duet3d/objectmodel": "~3.6.0-alpha.3",
     "@mdi/font": "7.4.47",
     "core-js": "^3.38.1",

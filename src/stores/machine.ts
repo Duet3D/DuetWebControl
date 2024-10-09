@@ -1,6 +1,6 @@
 import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError } from "@duet3d/connectors";
 import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType } from "@duet3d/objectmodel";
-import { defineStore } from "pinia";
+import { defineStore, StoreState } from "pinia";
 
 import { useCacheStore } from "./cache";
 import { DefaultObjectModel, DefaultPassword, DefaultUsername } from "./defaults";
@@ -201,7 +201,7 @@ export const useMachineStore = defineStore('machine', {
 				return this.fractionPrinted;
 			}
 			return (this.model.job.lastFileName !== null) ? 1 : 0;
-		},
+		}
 	},
 	actions: {
 		/**
@@ -1001,7 +1001,7 @@ export const useMachineStore = defineStore('machine', {
 
 			// Update typed state
 			this.model.update(payload);
-			Events.emit("modelUpdated", this.model);
+			Events.emit("modelUpdated", this.model as any as StoreState<ObjectModel>);		// FIXME something is broken here
 
 			// Is a new beep requested?
 			if (this.model.state.beep && lastBeepDuration !== this.model.state.beep.duration && lastBeepFrequency !== this.model.state.beep.frequency) {
