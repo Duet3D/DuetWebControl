@@ -9,7 +9,7 @@
             "request": "launch",
             "reAttach": true,
             "name": "Firefox debugging",
-            "url": "http://localhost:8080",
+            "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
             "skipFiles": [
                 "${workspaceFolder}/node_modules/**/*"

@@ -1,1 +1,8 @@
-{}
+{
+    "generic": {
+        "cancel": "Cancel",
+        "close": "Close",
+        "noValue": "n/a",
+        "ok": "OK"
+    }
+}
