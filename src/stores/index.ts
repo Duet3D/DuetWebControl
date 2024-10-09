@@ -1,5 +1,5 @@
-import { useCacheStore } from './cache'
-import { useSettingsStore } from './settings'
+import { useCacheStore } from "./cache";
+import { useSettingsStore } from "./settings";
 
 /**
  * Types of custom plugin data
@@ -25,17 +25,17 @@ export enum PluginDataType {
  * @param defaultValue Default value on initalization
  * @deprecated Use methods from cache/settings stores directly
  */
-export function registerPluginData (plugin: string, dataType: PluginDataType, key: string, defaultValue: any) {
-  switch (dataType) {
-    case PluginDataType.cache:
-      useCacheStore().registerPluginData(plugin, key, defaultValue)
-      break
-    case PluginDataType.setting:
-      useSettingsStore().registerPluginData(plugin, key, defaultValue)
-      break
-    default:
-      throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`)
-  }
+export function registerPluginData(plugin: string, dataType: PluginDataType, key: string, defaultValue: any) {
+	switch (dataType) {
+		case PluginDataType.cache:
+			useCacheStore().registerPluginData(plugin, key, defaultValue);
+			break
+		case PluginDataType.setting:
+			useSettingsStore().registerPluginData(plugin, key, defaultValue);
+			break
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+	}
 }
 
 /**
@@ -47,15 +47,15 @@ export function registerPluginData (plugin: string, dataType: PluginDataType, ke
  * @param value New value
  * @deprecated Use getters/setters from cache/settings stores directly
  */
-export function setPluginData (plugin: string, dataType: PluginDataType, key: string, value: any) {
-  switch (dataType) {
-    case PluginDataType.cache:
-      useCacheStore().setPluginData(plugin, key, value)
-      break
-    case PluginDataType.setting:
-      useSettingsStore().setPluginData(plugin, key, value)
-      break
-    default:
-      throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`)
-  }
+export function setPluginData(plugin: string, dataType: PluginDataType, key: string, value: any) {
+	switch (dataType) {
+		case PluginDataType.cache:
+			useCacheStore().setPluginData(plugin, key, value);
+			break
+		case PluginDataType.setting:
+			useSettingsStore().setPluginData(plugin, key, value);
+			break
+		default:
+			throw new Error(`Invalid plugin data type (plugin ${plugin}, dataType ${dataType}, key ${key})`);
+	}
 }

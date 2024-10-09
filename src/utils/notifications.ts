@@ -1,98 +1,99 @@
-import { CancellationToken, OnProgressCallback } from '@duet3d/connectors'
-import { reactive } from 'vue'
+import { CancellationToken, OnProgressCallback } from "@duet3d/connectors";
+import { reactive } from "vue";
 
-import i18n from '@/i18n'
-import { extractFileName } from '@/utils/path'
-import { LogMessageType } from './logging'
-import { useSettingsStore } from '@/stores/settings'
+import i18n from "@/i18n";
+import { useSettingsStore } from "@/stores/settings";
+import { extractFileName } from "@/utils/path";
+
+import { LogMessageType } from "./logging";
 
 /**
  * Possible file transfer types
  */
 export enum FileTransferType {
-    upload = 'upload',
-    download = 'download',
-    systemPackageInstall = 'systemPackageInstall'
+	upload = "upload",
+	download = "download",
+	systemPackageInstall = "systemPackageInstall"
 }
 
 /**
  * Possible notification types
  */
-export type NotificationType = LogMessageType | FileTransferType;
+export type NotificationType = LogMessageType | FileTransferType
 
 /**
  * Notification item
  */
 export interface Notification {
-    /**
-     * Type of this notification
-     */
-    type: NotificationType;
+		/**
+		 * Type of this notification
+		 */
+		type: NotificationType;
 
-    /**
-     * Title of this notification
-     */
-    title: string | null;
+		/**
+		 * Title of this notification
+		 */
+		title: string | null;
 
-    /**
-     * Message of this notification
-     */
-    message: string | null;
+		/**
+		 * Message of this notification
+		 */
+		message: string | null;
 
-    /**
-     * Timeout of this notification (in ms)
-     */
-    timeout: number | null;
+		/**
+		 * Timeout of this notification (in ms)
+		 */
+		timeout: number | null;
 
-    /**
-     * Vue route to go to on click
-     */
-    route: string | null;
+		/**
+		 * Vue route to go to on click
+		 */
+		route: string | null;
 
-    /**
-     * Optional icon
-     */
-    icon: string | null;
+		/**
+		 * Optional icon
+		 */
+		icon: string | null;
 
-    /**
-     * How long this notification has been displayed (in ms)
-     */
-    timeDisplayed: number;
+		/**
+		 * How long this notification has been displayed (in ms)
+		 */
+		timeDisplayed: number;
 
-    /**
-     * Reset the timeout of this notification
-     */
-    resetTimeout: () => void;
+		/**
+		 * Reset the timeout of this notification
+		 */
+		resetTimeout: () => void;
 
-    /**
-     * Filename for file transfer notifications
-     */
-    filename?: string;
+		/**
+		 * Filename for file transfer notifications
+		 */
+		filename?: string;
 
-    /**
-     * Optional progress value (0..100)
-     */
-    progress: number | null;
+		/**
+		 * Optional progress value (0..100)
+		 */
+		progress: number | null;
 
-    /**
-     * Speed of the file transfer (in bytes/s)
-     */
-    speed?: number;
+		/**
+		 * Speed of the file transfer (in bytes/s)
+		 */
+		speed?: number;
 
-    /**
-     * Optional progress callback
-     */
-    onProgress?: OnProgressCallback;
+		/**
+		 * Optional progress callback
+		 */
+		onProgress?: OnProgressCallback;
 
-    /**
-     * Method to abort the current file transfer
-     */
-    cancel?: () => void;
+		/**
+		 * Method to abort the current file transfer
+		 */
+		cancel?: () => void;
 
-    /**
-     * Method to close this notification
-     */
-    close: () => void;
+		/**
+		 * Method to close this notification
+		 */
+		close: () => void;
 }
 
 /**
@@ -103,7 +104,7 @@ export const notifications = reactive(new Array<Notification>())
 /**
  * Persistent message notification (see M117)
  */
-let messageNotification: Notification | null = null
+let messageNotification: Notification | null = null;
 
 /**
  * List of active file transfer notifications
@@ -121,79 +122,79 @@ export const fileTransferNotifications = reactive(new Array<Notification>())
  * @param pushToEnd Push this notification to the end of the notification list (low priority, defaults to false)
  * @returns Notification instance
  */
-export function makeNotification (type: NotificationType, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, pushToEnd: boolean = false): Notification {
-  if (timeout === null) {
-    const settingsStore = useSettingsStore()
-    timeout = (type === 'error' && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout
-  }
+export function makeNotification(type: NotificationType, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, pushToEnd: boolean = false): Notification {
+	if (timeout === null) {
+		const settingsStore = useSettingsStore();
+		timeout = (type === "error" && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
+	}
 
-  if (icon === null) {
-    switch (type) {
-      case 'info':
-        icon = 'mdi-information-outline'
-        break
-      case 'success':
-        icon = 'mdi-check'
-        break
-      case 'warning':
-        icon = 'mdi-alert-circle-outline'
-        break
-      case 'error':
-        icon = 'mdi-close-circle-outline'
-        break
-      default:
-        icon = ''
-        break
-    }
-  }
+	if (icon === null) {
+		switch (type) {
+			case "info":
+				icon = "mdi-information-outline";
+				break;
+			case "success":
+				icon = "mdi-check";
+				break;
+			case "warning":
+				icon = "mdi-alert-circle-outline";
+				break;
+			case "error":
+				icon = "mdi-close-circle-outline";
+				break;
+			default:
+				icon = "";
+				break;
+		}
+	}
 
-  // If there is already an equal notification, reset its time and don't display a new one
-  const equalNotification = notifications.find(item => item.type === type && item.title === title && item.message === message && item.timeout === timeout && item.route === route)
-  if (equalNotification) {
-    if (timeout !== null && timeout > 0) {
-      equalNotification.resetTimeout()
-    }
-    return equalNotification
-  }
+	// If there is already an equal notification, reset its time and don"t display a new one
+	const equalNotification = notifications.find(item => item.type === type && item.title === title && item.message === message && item.timeout === timeout && item.route === route);
+	if (equalNotification) {
+		if (timeout !== null && timeout > 0) {
+			equalNotification.resetTimeout();
+		}
+		return equalNotification;
+	}
 
-  // Prepare and show new notification
-  const item: Notification = {
-    type,
-    title,
-    message,
-    timeout,
-    route,
-    icon,
-    timeDisplayed: 0,
-    resetTimeout () { item.timeDisplayed = 0 },
-    progress: null,
-    close () {
-      const index = notifications.indexOf(item)
-      if (index !== -1) {
-        notifications.splice(index, 1)
-      }
-    },
-  }
+	// Prepare and show new notification
+	const item: Notification = {
+		type,
+		title,
+		message,
+		timeout,
+		route,
+		icon,
+		timeDisplayed: 0,
+		resetTimeout() { item.timeDisplayed = 0 },
+		progress: null,
+		close() {
+			const index = notifications.indexOf(item)
+			if (index !== -1) {
+				notifications.splice(index, 1)
+			}
+		}
+	};
 
-  if (pushToEnd) {
-    notifications.push(item)
-  } else {
-    notifications.unshift(item)
-  }
-  return item
+	if (pushToEnd) {
+		notifications.push(item);
+	} else {
+		notifications.unshift(item);
+	}
+	return item;
 }
 
 /**
  * Close all pending regular notifications
  * @param includingMessage Whether the message notification (if present) shall be closed as well
  */
-export function closeNotifications (includingMessage = false) {
-  for (let i = notifications.length - 1; i >= 0; i--) {
-    const notification = notifications[i]
-    if (includingMessage || notification !== messageNotification) {
-      notification.close()
-    }
-  }
+export function closeNotifications(includingMessage = false) {
+	for (let i = notifications.length - 1; i >= 0; i--) {
+		const notification = notifications[i];
+		if (includingMessage || notification !== messageNotification) {
+			notification.close();
+		}
+	}
 }
 
 /**
@@ -202,45 +203,45 @@ export function closeNotifications (includingMessage = false) {
  * @param filename Filename of the transfer
  * @param cancellationToken Optional cancellation token cancel the upload if necessary
  */
-export function makeFileTransferNotification (type: NotificationType, filename: string, cancellationToken?: CancellationToken) {
-  const item: Notification = {
-    type,
-    title: null,
-    message: null,
-    timeout: 0,
-    route: null,
-    icon: null,
-    timeDisplayed: 0,
-    resetTimeout () { },
-    filename: extractFileName(filename),
-    progress: 0,
-    speed: 0,
-    onProgress (loaded: number, total: number, speed: number) {
-      this.speed = speed
-      if (loaded === total) {
-        this.close()
-      } else if (total > 0) {
-        this.progress = (loaded / total) * 100
-      }
-    },
-    cancel () {
-      try {
-        if (cancellationToken) {
-          cancellationToken.cancel()
-        }
-      } finally {
-        item.close()
-      }
-    },
-    close () {
-      const index = fileTransferNotifications.indexOf(item)
-      if (index !== -1) {
-        fileTransferNotifications.splice(index, 1)
-      }
-    },
-  }
-  fileTransferNotifications.push(item)
-  return item
+export function makeFileTransferNotification(type: NotificationType, filename: string, cancellationToken?: CancellationToken) {
+	const item: Notification = {
+		type,
+		title: null,
+		message: null,
+		timeout: 0,
+		route: null,
+		icon: null,
+		timeDisplayed: 0,
+		resetTimeout () { },
+		filename: extractFileName(filename),
+		progress: 0,
+		speed: 0,
+		onProgress (loaded: number, total: number, speed: number) {
+			this.speed = speed
+			if (loaded === total) {
+				this.close()
+			} else if (total > 0) {
+				this.progress = (loaded / total) * 100
+			}
+		},
+		cancel () {
+			try {
+				if (cancellationToken) {
+					cancellationToken.cancel()
+				}
+			} finally {
+				item.close()
+			}
+		},
+		close () {
+			const index = fileTransferNotifications.indexOf(item)
+			if (index !== -1) {
+				fileTransferNotifications.splice(index, 1)
+			}
+		}
+	}
+	fileTransferNotifications.push(item);
+	return item;
 }
 
 /**
@@ -248,23 +249,23 @@ export function makeFileTransferNotification (type: NotificationType, filename: 
  * @param message Message content to display
  * @return Notification object
  */
-export function showMessage (message: string | null): Notification | null {
-  if (!message) {
-    if (messageNotification !== null) {
-      messageNotification.close()
-    }
-    return null
-  }
+export function showMessage(message: string | null): Notification | null {
+	if (!message) {
+		if (messageNotification !== null) {
+			messageNotification.close();
+		}
+		return null;
+	}
 
-  if (messageNotification === null) {
-    messageNotification = makeNotification('info', i18n.global.t('notification.message'), message, 0, null, null, true)
-    const closeFn = messageNotification.close
-    messageNotification.close = function () {
-      messageNotification = null
-      closeFn()
-    }
-  } else {
-    messageNotification.message = message
-  }
-  return messageNotification
+	if (messageNotification === null) {
+		messageNotification = makeNotification("info", i18n.global.t("notification.message"), message, 0, null, null, true);
+		const closeFn = messageNotification.close;
+		messageNotification.close = function () {
+			messageNotification = null;
+			closeFn();
+		}
+	} else {
+		messageNotification.message = message;
+	}
+	return messageNotification;
 }

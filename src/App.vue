@@ -23,6 +23,6 @@ import { useMachineStore } from "@/stores/machine";
 const machineStore = useMachineStore();
 
 if (!machineStore.isConnected) {
-  /* await */ machineStore.connect("ender6");
+	/* await */ machineStore.connect("ender6");
 }
 </script>

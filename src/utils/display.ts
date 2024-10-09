@@ -1,8 +1,8 @@
-import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from '@duet3d/objectmodel'
+import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
 
-import i18n from '@/i18n'
-import { useSettingsStore } from '@/stores/settings'
-import { useMachineStore } from '@/stores/machine'
+import i18n from "@/i18n";
+import { useSettingsStore } from "@/stores/settings";
+import { useMachineStore } from "@/stores/machine";
 
 /**
  * Display a numeric value with a given precision and an optional unit.
@@ -11,18 +11,19 @@ import { useMachineStore } from '@/stores/machine'
  * @param unit Optional unit to append
  * @returns Formatted string
  */
-export function display (value: number | Array<number> | string | null | undefined, precision?: number, unit?: string) {
-  if (typeof value === 'number') {
-    if (isNaN(value)) {
-      return i18n.global.t('generic.noValue')
-    }
-    return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : '')
-  }
-  if (value instanceof Array && value.length > 0) {
-    return value.map(item => (item !== undefined) ? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : '')
-      : i18n.global.t('generic.noValue')).join(', ')
-  }
-  return (value && value.constructor === String) ? value : i18n.global.t('generic.noValue')
+export function display(value: number | Array<number> | string | null | undefined, precision?: number, unit?: string) {
+	if (typeof value === "number") {
+		if (isNaN(value)) {
+			return i18n.global.t("generic.noValue");
+		}
+		return value.toFixed((precision !== undefined) ? precision : 2) + (unit ? (' ' + unit) : "");
+	}
+	if (value instanceof Array && value.length > 0) {
+		return value.map(item => (item !== undefined)
+			? item.toFixed((precision !== undefined) ? precision : 0) + (unit ? (' ' + unit) : "")
+			: i18n.global.t("generic.noValue")).join(", ");
+	}
+	return (value && value.constructor === String) ? value : i18n.global.t("generic.noValue");
 }
 
 /**
@@ -30,13 +31,13 @@ export function display (value: number | Array<number> | string | null | undefin
  * @param axis Axis position to display
  * @returns Formatted axis position
  */
-export function displayAxisPosition (axis: Axis, machinePosition: boolean = false) {
-  const position = machinePosition ? axis.machinePosition : axis.userPosition
-  if (position === null) {
-    return i18n.global.t('generic.noValue')
-  }
+export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
+	const position = machinePosition ? axis.machinePosition : axis.userPosition;
+	if (position === null) {
+		return i18n.global.t("generic.noValue");
+	}
 
-  return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, 2)
+	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, 2);
 }
 
 /**
@@ -45,9 +46,9 @@ export function displayAxisPosition (axis: Axis, machinePosition: boolean = fals
  * @param showUnit Append the currently configured distance unit
  * @returns Formatted string
  */
-export function displayZ (value: number | Array<number> | string | null | undefined, showUnit = true) {
-  const machineStore = useMachineStore()
-  return display(value, (machineStore.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? 'mm' : undefined)
+export function displayZ(value: number | Array<number> | string | null | undefined, showUnit = true) {
+	const machineStore = useMachineStore();
+	return display(value, (machineStore.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? "mm" : undefined);
 }
 
 /**
@@ -55,15 +56,15 @@ export function displayZ (value: number | Array<number> | string | null | undefi
  * @param sensor Sensor
  * @returns
  */
-export function displaySensorValue (sensor: AnalogSensor) {
-  if (sensor.name) {
-    const matches = /(.*)\[(.*)\]$/.exec(sensor.name)
-    if (matches) {
-      return display(sensor.lastReading, 1, matches[2])
-    }
-  }
-  const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? '%RH' : '°C'
-  return display(sensor.lastReading, 1, unit)
+export function displaySensorValue(sensor: AnalogSensor) {
+	if (sensor.name) {
+		const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
+		if (matches) {
+			return display(sensor.lastReading, 1, matches[2]);
+		}
+	}
+	const unit = (sensor.type === AnalogSensorType.dhtHumidity) ? "%RH" : "°C";
+	return display(sensor.lastReading, 1, unit);
 }
 
 /**
@@ -71,34 +72,34 @@ export function displaySensorValue (sensor: AnalogSensor) {
  * @param bytes Size to format
  * @returns Formatted string
  */
-export function displaySize (bytes: number | null | undefined) {
-  if (typeof bytes !== 'number') {
-    return i18n.global.t('generic.noValue')
-  }
+export function displaySize(bytes: number | null | undefined) {
+	if (typeof bytes !== "number") {
+		return i18n.global.t("generic.noValue");
+	}
 
-  const settingsStore = useSettingsStore()
-  if (settingsStore.useBinaryPrefix) {
-    if (bytes > 1073741824) {	// GiB
-      return (bytes / 1073741824).toFixed(1) + ' GiB'
-    }
-    if (bytes > 1048576) {		// MiB
-      return (bytes / 1048576).toFixed(1) + ' MiB'
-    }
-    if (bytes > 1024) {			// KiB
-      return (bytes / 1024).toFixed(1) + ' KiB'
-    }
-  } else {
-    if (bytes > 1000000000) {	// GB
-      return (bytes / 1000000000).toFixed(1) + ' GB'
-    }
-    if (bytes > 1000000) {		// MB
-      return (bytes / 1000000).toFixed(1) + ' MB'
-    }
-    if (bytes > 1000) {			// KB
-      return (bytes / 1000).toFixed(1) + ' KB'
-    }
-  }
-  return bytes + ' B'
+	const settingsStore = useSettingsStore();
+	if (settingsStore.useBinaryPrefix) {
+		if (bytes > 1073741824) {	// GiB
+			return (bytes / 1073741824).toFixed(1) + " GiB";
+		}
+		if (bytes > 1048576) {		// MiB
+			return (bytes / 1048576).toFixed(1) + " MiB";
+		}
+		if (bytes > 1024) {			// KiB
+			return (bytes / 1024).toFixed(1) + " KiB";
+		}
+	} else {
+		if (bytes > 1000000000) {	// GB
+			return (bytes / 1000000000).toFixed(1) + " GB";
+		}
+		if (bytes > 1000000) {		// MB
+			return (bytes / 1000000).toFixed(1) + " MB";
+		}
+		if (bytes > 1000) {			// KB
+			return (bytes / 1000).toFixed(1) + " KB";
+		}
+	}
+	return bytes + " B";
 }
 
 /**
@@ -106,8 +107,8 @@ export function displaySize (bytes: number | null | undefined) {
  * @param speed Speed in mm/s
  * @returns Formatted move speed in mm/s or ipm
  */
-export function displayMoveSpeed (speed: number | null | undefined) {
-  return display(speed, 1, 'mm')
+export function displayMoveSpeed(speed: number | null | undefined) {
+	return display(speed, 1, "mm");
 }
 
 /**
@@ -115,34 +116,34 @@ export function displayMoveSpeed (speed: number | null | undefined) {
  * @param bytesPerSecond Speed to format
  * @returns Formatted string
  */
-export function displayTransferSpeed (bytesPerSecond: number | null | undefined) {
-  if (typeof bytesPerSecond !== 'number') {
-    return i18n.global.t('generic.noValue')
-  }
+export function displayTransferSpeed(bytesPerSecond: number | null | undefined) {
+	if (typeof bytesPerSecond !== "number") {
+		return i18n.global.t("generic.noValue");
+	}
 
-  const settingsStore = useSettingsStore()
-  if (settingsStore.useBinaryPrefix) {
-    if (bytesPerSecond > 1073741824) {		// GiB
-      return (bytesPerSecond / 1073741824).toFixed(2) + ' GiB/s'
-    }
-    if (bytesPerSecond > 1048576) {			// MiB
-      return (bytesPerSecond / 1048576).toFixed(2) + ' MiB/s'
-    }
-    if (bytesPerSecond > 1024) {			// KiB
-      return (bytesPerSecond / 1024).toFixed(1) + ' KiB/s'
-    }
-  } else {
-    if (bytesPerSecond > 1000000000) {		// GB
-      return (bytesPerSecond / 1000000000).toFixed(2) + ' GB/s'
-    }
-    if (bytesPerSecond > 1000000) {			// MB
-      return (bytesPerSecond / 1000000).toFixed(2) + ' MB/s'
-    }
-    if (bytesPerSecond > 1000) {			// KB
-      return (bytesPerSecond / 1000).toFixed(1) + ' KB/s'
-    }
-  }
-  return bytesPerSecond.toFixed(1) + ' B/s'
+	const settingsStore = useSettingsStore();
+	if (settingsStore.useBinaryPrefix) {
+		if (bytesPerSecond > 1073741824) {		// GiB
+			return (bytesPerSecond / 1073741824).toFixed(2) + " GiB/s";
+		}
+		if (bytesPerSecond > 1048576) {			// MiB
+			return (bytesPerSecond / 1048576).toFixed(2) + " MiB/s";
+		}
+		if (bytesPerSecond > 1024) {			// KiB
+			return (bytesPerSecond / 1024).toFixed(1) + " KiB/s";
+		}
+	} else {
+		if (bytesPerSecond > 1000000000) {		// GB
+			return (bytesPerSecond / 1000000000).toFixed(2) + " GB/s";
+		}
+		if (bytesPerSecond > 1000000) {			// MB
+			return (bytesPerSecond / 1000000).toFixed(2) + " MB/s";
+		}
+		if (bytesPerSecond > 1000) {			// KB
+			return (bytesPerSecond / 1000).toFixed(1) + " KB/s";
+		}
+	}
+	return bytesPerSecond.toFixed(1) + " B/s";
 }
 
 /**
@@ -151,34 +152,35 @@ export function displayTransferSpeed (bytesPerSecond: number | null | undefined)
  * @param showTrailingZeroes Show trailing zeroes (defaults to false)
  * @returns Formatted string
  */
-export function displayTime (value: number | null | undefined, showTrailingZeroes = false) {
-  if (typeof value !== 'number' || isNaN(value)) {
-    return i18n.global.t('generic.noValue')
-  }
+export function displayTime(value: number | null | undefined, showTrailingZeroes = false) {
+	if (typeof value !== "number" || isNaN(value)) {
+		return i18n.global.t("generic.noValue");
+	}
 
-  value = Math.round(value)
-  if (value < 0) {
-    value = 0
-  }
+	value = Math.round(value);
+	if (value < 0) {
+		value = 0;
+	}
 
-  const timeLeft = []; let temp
-  if (value >= 3600) {
-    temp = Math.floor(value / 3600)
-    if (temp > 0) {
-      timeLeft.push(temp + 'h')
-      value = value % 3600
-    }
-  }
-  if (value >= 60) {
-    temp = Math.floor(value / 60)
-    if (temp > 0) {
-      timeLeft.push(((value > 9 || !showTrailingZeroes) ? temp : '0' + temp) + 'm')
-      value = value % 60
-    }
-  }
-  timeLeft.push(((value > 9 || !showTrailingZeroes) ? value.toFixed(0) : '0' + value.toFixed(0)) + 's')
+	const timeLeft = [];
+	let temp;
+	if (value >= 3600) {
+		temp = Math.floor(value / 3600);
+		if (temp > 0) {
+			timeLeft.push(temp + 'h');
+			value = value % 3600;
+		}
+	}
+	if (value >= 60) {
+		temp = Math.floor(value / 60);
+		if (temp > 0) {
+			timeLeft.push(((value > 9 || !showTrailingZeroes) ? temp : '0' + temp) + 'm');
+			value = value % 60;
+		}
+	}
+	timeLeft.push(((value > 9 || !showTrailingZeroes) ? value.toFixed(0) : '0' + value.toFixed(0)) + 's');
 
-  return timeLeft.join(' ')
+	return timeLeft.join(' ');
 }
 
 /**
@@ -186,37 +188,37 @@ export function displayTime (value: number | null | undefined, showTrailingZeroe
  * @param content File content
  * @returns Indented file content
  */
-export function indent (content: string): string {
-  const lines = content.split('\n')
+export function indent(content: string): string {
+	const lines = content.split('\n');
 
-  // Find out how long the maximum command is
-  let maxCommandLength = 0
-  for (const line of lines) {
-    const commentIndex = line.indexOf(';')
-    if (commentIndex > 0) {
-      const commandLength = line.substring(0, commentIndex).trimEnd().length
-      if (commandLength > maxCommandLength) {
-        maxCommandLength = commandLength
-      }
-    }
-  }
+	// Find out how long the maximum command is
+	let maxCommandLength = 0;
+	for (const line of lines) {
+		const commentIndex = line.indexOf(';');
+		if (commentIndex > 0) {
+			const commandLength = line.substring(0, commentIndex).trimEnd().length;
+			if (commandLength > maxCommandLength) {
+				maxCommandLength = commandLength;
+			}
+		}
+	}
 
-  // Align line comments
-  let newResult = ''
-  for (const line of lines) {
-    const commentIndex = line.indexOf(';')
-    if (commentIndex <= 0) {
-      newResult += line + '\n'
-    } else {
-      const command = line.substring(0, commentIndex).trimEnd(); const comment = line.substring(commentIndex)
+	// Align line comments
+	let newResult = "";
+	for (const line of lines) {
+		const commentIndex = line.indexOf(';');
+		if (commentIndex <= 0) {
+			newResult += line + '\n';
+		} else {
+			const command = line.substring(0, commentIndex).trimEnd(); const comment = line.substring(commentIndex);
 
-      let indentation = ''
-      for (let i = command.length; i < maxCommandLength + 1; i++) {
-        indentation += ' '
-      }
+			let indentation = "";
+			for (let i = command.length; i < maxCommandLength + 1; i++) {
+				indentation += ' ';
+			}
 
-      newResult += command + indentation + comment + '\n'
-    }
-  }
-  return newResult.trim()
+			newResult += command + indentation + comment + '\n';
+		}
+	}
+	return newResult.trim();
 }

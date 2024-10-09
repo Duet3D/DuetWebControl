@@ -1,11 +1,12 @@
-import type { CancellationToken } from '@duet3d/connectors'
-import ObjectModel, { MessageType, Plugin } from '@duet3d/objectmodel'
-import type JSZip from 'jszip'
-import mitt from 'mitt'
+import type { CancellationToken } from "@duet3d/connectors";
+import ObjectModel, { MessageType, Plugin } from "@duet3d/objectmodel";
+import type JSZip from "jszip";
+import mitt from "mitt";
+import { StoreState } from "pinia";
 
-import { FileTransferItem } from '@/stores/machine'
-import { StoreState } from 'pinia'
-import { LogMessageType } from './logging'
+import { FileTransferItem } from "@/stores/machine";
+
+import { LogMessageType } from "./logging";
 
 type Events = {
 	/**
@@ -212,10 +213,10 @@ type Events = {
 	dwcPluginUnloaded: string;
 }
 
-const emitter = mitt<Events>()
+const emitter = mitt<Events>();
 
-if (process.env.NODE_ENV === 'development') {
-  emitter.on('*', (type: any, event: any) => console.debug(type, event))
+if (process.env.NODE_ENV === "development") {
+	emitter.on("*", (type: any, event: any) => console.debug(type, event));
 }
 
 export default emitter
