@@ -47,8 +47,8 @@
 				<!-- Inputs-->
 				<form v-if="needsNumberInput || needsStringInput" class="mt-3" @submit.prevent="ok">
 					<v-text-field v-if="needsNumberInput" type="number" autofocus v-model.number="numberInput"
-								  :min="messageBox.min" :max="messageBox.max"
-								  :step="needsIntInput ? 1 : 'any'" required hide-details />
+								  :min="messageBox.min" :max="messageBox.max" :step="needsIntInput ? 1 : 'any'" required
+								  hide-details />
 					<v-text-field v-else type="text" autofocus v-model="stringInput" :minlength="messageBox.min"
 								  :maxlength="messageBox.max || 100" required hide-details />
 				</form>
@@ -56,18 +56,15 @@
 
 			<v-card-actions v-if="hasButtons" class="flex-wrap justify-center">
 				<template v-if="isMultipleChoice">
-					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice" color="blue darken-1"
-						   :text="(messageBox.default !== index) ? choice : undefined" @click="accept(index)">
-						{{ choice }}
-					</v-btn>
-					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" :text="$t('generic.cancel')"
-						   @click="cancel" />
+					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice"
+						   :variant="(messageBox.default === index) ? 'tonal' : 'text'" :text="choice"
+						   @click="accept(index)" />
+					<v-btn v-if="messageBox.cancelButton" :text="$t('generic.cancel')" @click="cancel" />
 				</template>
 				<template v-else>
-					<v-btn color="blue darken-1" :text="isPersistent ? $t('generic.ok') : $t('generic.close')" @click="ok"
+					<v-btn :text="isPersistent ? $t('generic.ok') : $t('generic.close')" @click="ok"
 						   :disabled="!canConfirm" />
-					<v-btn v-if="messageBox.cancelButton" color="blue darken-1" :text="$t('generic.cancel')"
-						   @click="cancel" />
+					<v-btn v-if="messageBox.cancelButton" :text="$t('generic.cancel')" @click="cancel" />
 				</template>
 			</v-card-actions>
 		</v-card>
