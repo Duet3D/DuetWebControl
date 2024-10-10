@@ -2,22 +2,23 @@
 	<v-dialog v-model="uiStore.showConnectDialog" persistent no-click-animation width="360">
 		<v-card>
 			<v-form ref="form" @submit.prevent="submit">
-				<v-card-title class="headline">
+				<v-card-title>
 					{{ $t("dialog.connect.title") }}
 				</v-card-title>
 
 				<v-card-text>
-					{{ $t("dialog.connect.prompt") }}
+					{{ machineStore.passwordRequired ? $t("dialog.connect.passwordPrompt") : $t("dialog.connect.prompt") }}
 
 					<v-text-field v-show="!machineStore.passwordRequired" v-model="hostname"
 								  :autofocus="!machineStore.passwordRequired"
-								  :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="hostnameRules" required class="mt-3" />
+								  :placeholder="$t('dialog.connect.hostPlaceholder')" :rules="hostnameRules" required
+								  class="mt-3" />
 					<v-text-field type="password"
 								  :placeholder="machineStore.passwordRequired ? $t('dialog.connect.passwordPlaceholder') : $t('dialog.connect.passwordPlaceholderOptional')"
 								  v-model="password" :autofocus="machineStore.passwordRequired" :rules="passwordRules"
 								  :required="machineStore.passwordRequired" />
-					<v-checkbox v-model="rememberPassword" :label="$t('dialog.connect.rememberPassword')"
-								hide-details class="mt-0" />
+					<v-checkbox v-model="rememberPassword" :label="$t('dialog.connect.rememberPassword')" hide-details
+								class="mt-0" />
 					<v-alert v-if="lastError" type="error" :text="lastError" class="mt-3" />
 				</v-card-text>
 
@@ -68,6 +69,9 @@ async function submit() {
 		uiStore.showConnectDialog = false;
 		try {
 			await machineStore.connect(hostname.value, undefined, password.value);
+			if (process.env.NODE_ENV === "development") {
+				setLocalSetting(localStorageHostnameKey, hostname.value);
+			}
 
 			if (rememberPassword.value) {
 				setLocalSetting(localStoragePasswordKey, password.value);
@@ -76,6 +80,7 @@ async function submit() {
 			}
 			password.value = "";
 		} catch (e) {
+			// We only get here in dev mode when connecting to a different machine
 			lastError.value = getErrorMessage(e);
 			uiStore.showConnectDialog = true;
 		}

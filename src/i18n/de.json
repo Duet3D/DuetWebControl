@@ -3,6 +3,7 @@
         "connect": {
             "title": "Zu Maschine verbinden",
             "prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+            "passwordPrompt": "Bitte geben Sie das Passwort der Maschine ein, zu der Sie verbinden möchten:",
             "hostPlaceholder": "Hostname",
             "hostRequired": "Hostname ist erforderlich",
             "passwordPlaceholderOptional": "Passwort (optional)",
