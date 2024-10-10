@@ -51,11 +51,6 @@ export const useSettingsStore = defineStore("settings", {
 		locale: getBrowserLocale(),
 
 		/**
-		 * Last hostname (only used in dev mode)
-		 */
-		lastHostname: location.host,
-
-		/**
 		 * Defines if the dark theme is enabled
 		 */
 		darkTheme: (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || false,
@@ -384,11 +379,6 @@ export const useSettingsStore = defineStore("settings", {
 		 * Load settings
 		 */
 		async load() {
-			// First attempt to load the last hostname from the local storage if running in dev mode
-			if (process.env.NODE_ENV !== "production") {
-				this.lastHostname = getLocalSetting("lastHostname");
-			}
-
 			// Wrapper that effectively loads the given settings
 			const that = this;
 			async function applySettings(settingsToLoad: any) {
@@ -445,10 +435,10 @@ export const useSettingsStore = defineStore("settings", {
 			}
 
 			// Try to load settings from local storage, if that doesn"t work, try to load them from the board
-			const localSettings = getLocalSetting("settings"); const machineModule = useMachineStore();
+			const localSettings = getLocalSetting("settings"), machineModule = useMachineStore();
 			if (localSettings instanceof Object) {
 				applySettings(localSettings);
-			} else {
+			} else if (machineModule.isConnected) {
 				try {
 					const remoteSettings = await machineModule.download(Path.dwcSettingsFile, false, false, false);
 					applySettings(remoteSettings);
@@ -525,15 +515,6 @@ export const useSettingsStore = defineStore("settings", {
 
 			// Reload the web interface to finish
 			location.reload();
-		},
-
-		/**
-		 * Set the hostname this UI was last connected to
-		 * @param hostname Hostname to set
-		 */
-		setLastHostname(hostname: string) {
-			this.lastHostname = hostname;
-			setLocalSetting("lastHostname", hostname);
 		},
 
 		/**

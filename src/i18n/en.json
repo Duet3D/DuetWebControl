@@ -1,4 +1,32 @@
 {
+    "dialog": {
+        "connect": {
+            "title": "Connect to Machine",
+            "prompt": "Please enter the hostname and password of the machine that you would like to connect to:",
+            "hostPlaceholder": "Hostname",
+            "hostRequired": "Hostname is required",
+            "passwordPlaceholderOptional": "Password (optional)",
+            "passwordPlaceholder": "Password",
+            "passwordRequired": "Password is required",
+            "rememberPassword": "Remember Password",
+            "connect": "Connect"
+        },
+        "connectionProgress": {
+            "connecting": "Connecting...",
+            "disconnecting": "Disconnecting...",
+            "updating": "Please wait while updates are being installed...",
+            "reconnecting": "Connection lost, attempting to reconnect...",
+            "standBy": "Please stand by...",
+            "boardUpdateMessage": "The following board is being updated:|The following boards are being updated:",
+            "board": "Board #{0}",
+            "mainboard": "Mainboard",
+            "expansionBoard": "Expansion Board",
+            "resetButton": {
+                "caption": "Reset Machine",
+                "title": "Send M999 to the machine to reset it"
+            }
+        }
+    },
     "generic": {
         "cancel": "Cancel",
         "close": "Close",

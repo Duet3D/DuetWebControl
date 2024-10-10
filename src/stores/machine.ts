@@ -276,11 +276,6 @@ export const useMachineStore = defineStore('machine', {
 				// Finish loading activated DWC plugins
 				// await this.loadDwcPlugins();
 
-				// Update last hostname
-				if (settingsStore.lastHostname !== location.host || hostname !== location.host) {
-					settingsStore.setLastHostname(hostname);
-				}
-
 				// Done
 				Events.emit("fullyConnected");
 			} catch (e) {
@@ -289,11 +284,15 @@ export const useMachineStore = defineStore('machine', {
 				} else {
 					Events.emit("connectError", { hostname, error: e });
 
-					// Keep trying to reconnect in production mode
-					if (process.env.NODE_ENV === "production" && hostname === location.host) {
-						setTimeout(() => this.connect(hostname, username, password, true), 1000);
-						return;
+					// Throw an exception in dev mode...
+					if (process.env.NODE_ENV === "development") {
+						this.isConnecting = false;
+						throw e;
 					}
+
+					// ... but keep retrying in production mode
+					setTimeout(() => this.connect(hostname, username, password, true), 1000);
+					return;
 				}
 			}
 			this.isConnecting = false;

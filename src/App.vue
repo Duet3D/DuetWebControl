@@ -13,6 +13,8 @@
 			</v-container>
 		</v-main>
 
+		<ConnectDialog />
+		<ConnectionProgressDialog />
 		<MessageBoxDialog />
 	</v-app>
 </template>
@@ -22,7 +24,8 @@ import { useMachineStore } from "@/stores/machine";
 
 const machineStore = useMachineStore();
 
-if (!machineStore.isConnected) {
-	/* await */ machineStore.connect("ender6");
+// Attempt to connect straight away unless running in dev mode
+if (process.env.NODE_ENV !== "development") {
+	/*await*/ machineStore.connect();
 }
 </script>

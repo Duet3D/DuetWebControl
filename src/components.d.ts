@@ -8,6 +8,8 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     CodeButton: typeof import('./components/buttons/CodeButton.vue')['default']
+    ConnectDialog: typeof import('./components/dialogs/ConnectDialog.vue')['default']
+    ConnectionProgressDialog: typeof import('./components/dialogs/ConnectionProgressDialog.vue')['default']
     MessageBoxDialog: typeof import('./components/dialogs/MessageBoxDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

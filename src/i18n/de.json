@@ -1,4 +1,32 @@
 {
+    "dialog": {
+        "connect": {
+            "title": "Zu Maschine verbinden",
+            "prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+            "hostPlaceholder": "Hostname",
+            "hostRequired": "Hostname ist erforderlich",
+            "passwordPlaceholderOptional": "Passwort (optional)",
+            "passwordPlaceholder": "Passwort",
+            "passwordRequired": "Passwort ist erforderlich",
+            "connect": "Verbinden",
+            "rememberPassword": "Passwort merken"
+        },
+        "connection": {
+            "connecting": "Verbinde...",
+            "disconnecting": "Trenne...",
+            "updating": "Bitte warten Sie während Updates installiert werden...",
+            "reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
+            "standBy": "Bitte warten...",
+            "boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:",
+            "board": "Board #{0}",
+            "mainboard": "Mainboard",
+            "expansionBoard": "Erweiterungsboard",
+            "resetButton": {
+                "caption": "Maschine zurücksetzen",
+                "title": "M999 an die Maschine senden um sie zurückzusetzen"
+            }
+        }
+    },
     "generic": {
         "cancel": "Abbrechen",
         "close": "Schließen",
