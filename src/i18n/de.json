@@ -1,37 +1,79 @@
 {
-    "dialog": {
-        "connect": {
-            "title": "Zu Maschine verbinden",
-            "prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
-            "passwordPrompt": "Bitte geben Sie das Passwort der Maschine ein, zu der Sie verbinden möchten:",
-            "hostPlaceholder": "Hostname",
-            "hostRequired": "Hostname ist erforderlich",
-            "passwordPlaceholderOptional": "Passwort (optional)",
-            "passwordPlaceholder": "Passwort",
-            "passwordRequired": "Passwort ist erforderlich",
-            "connect": "Verbinden",
-            "rememberPassword": "Passwort merken"
-        },
-        "connection": {
-            "connecting": "Verbinde...",
-            "disconnecting": "Trenne...",
-            "updating": "Bitte warten Sie während Updates installiert werden...",
-            "reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
-            "standBy": "Bitte warten...",
-            "boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:",
-            "board": "Board #{0}",
-            "mainboard": "Mainboard",
-            "expansionBoard": "Erweiterungsboard",
-            "resetButton": {
-                "caption": "Maschine zurücksetzen",
-                "title": "M999 an die Maschine senden um sie zurückzusetzen"
-            }
-        }
-    },
-    "generic": {
-        "cancel": "Abbrechen",
-        "close": "Schließen",
-        "noValue": "n/v",
-        "ok": "OK"
-    }
+		"dialog": {
+				"connect": {
+						"title": "Zu Maschine verbinden",
+						"prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+						"passwordPrompt": "Bitte geben Sie das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+						"hostPlaceholder": "Hostname",
+						"hostRequired": "Hostname ist erforderlich",
+						"passwordPlaceholderOptional": "Passwort (optional)",
+						"passwordPlaceholder": "Passwort",
+						"passwordRequired": "Passwort ist erforderlich",
+						"connect": "Verbinden",
+						"rememberPassword": "Passwort merken"
+				},
+				"connection": {
+						"connecting": "Verbinde...",
+						"disconnecting": "Trenne...",
+						"updating": "Bitte warten Sie während Updates installiert werden...",
+						"reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
+						"standBy": "Bitte warten...",
+						"boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:",
+						"board": "Board #{0}",
+						"mainboard": "Mainboard",
+						"expansionBoard": "Erweiterungsboard",
+						"resetButton": {
+								"caption": "Maschine zurücksetzen",
+								"title": "M999 an die Maschine senden um sie zurückzusetzen"
+						}
+				}
+		},
+		"generic": {
+			"ok": "OK",
+			"cancel": "Abbrechen",
+			"yes": "Ja",
+			"no": "Nein",
+			"close": "Schließen",
+			"reset": "Zurücksetzen",
+			"noValue": "n/v",
+			"loading": "lade",
+			"error": "Fehler",
+			"info": "Info",
+			"warning": "Warnung",
+			"success": "Erfolg",
+			"heaterStates": {
+				"off": "aus",
+				"standby": "standby",
+				"active": "aktiv",
+				"fault": "fehler",
+				"tuning": "kalibriere",
+				"offline": "abgeschaltet"
+			},
+			"status": {
+				"disconnected": "Getrennt",
+				"starting": "Starte",
+				"updating": "Aktualisiere",
+				"off": "Aus",
+				"halted": "Angehalten",
+				"pausing": "Pausiere",
+				"paused": "Pausiert",
+				"resuming": "Wiederaufnahme",
+				"cancelling": "Abbrechen",
+				"printing": "Drucke",
+				"processing": "Verarbeite",
+				"simulating": "Simuliere",
+				"busy": "Beschäftigt",
+				"changingTool": "Wechsle Werkzeug",
+				"idle": "Leerlauf",
+				"unknown": "Unbekannt"
+			},
+			"rpm": "RPM",
+			"sdCard": "SD-Karte {0}",
+			"mounted": "eingebunden",
+			"notMounted": "nicht eingebunden",
+			"extracting": "Extrahiere",
+			"uploading": "Lade hoch",
+			"active": "Aktiv",
+			"standby": "Standby"
+		}
 }
