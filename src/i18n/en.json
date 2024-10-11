@@ -1027,7 +1027,8 @@
       "perimeterOnly": "Perimeter Only",
       "progressMode": "Progress Mode",
       "cancelObj": "Cancel Object",
-      "resumeObj": "Resume Object"
+      "resumeObj": "Resume Object",
+      "persistTravels": "Persist Travels"
     },
     "heightmap": {
       "menuCaption": "Height Map",

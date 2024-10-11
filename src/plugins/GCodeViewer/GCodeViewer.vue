@@ -226,6 +226,7 @@
 					<v-switch :disabled="!canCancelObject" :label="jobSelectionLabel" :title="$t('plugins.gcodeViewer.showObjectSelection.title')" class="mt-4" v-model="showObjectSelection"></v-switch>
 					<v-switch :label="$t('plugins.gcodeViewer.showCursor')" v-model="showCursor"></v-switch>
 					<v-switch :label="$t('plugins.gcodeViewer.showTravels')" v-model="showTravelLines"></v-switch>
+					<v-switch :label="$t('plugins.gcodeViewer.persistTravels')" v-model="persistTravels" />
 					<v-switch :label="$t('plugins.gcodeViewer.viewGCode')" v-model="viewGCode"></v-switch>
 				</v-card>
 				<v-expansion-panels>
@@ -442,6 +443,7 @@ export default {
 			testData: '',
 			showCursor: false,
 			showTravelLines: false,
+			persistTravels: false,
 			selectedFile: '',
 			nthRow: 1,
 			renderQuality: 1,
@@ -939,6 +941,7 @@ export default {
 			viewer.gcodeProcessor.perimeterOnly = this.perimeterOnly;
 			viewer.gcodeProcessor.currentWorkplace = this.currentWorkplace;
 			viewer.gcodeProcessor.progressMode = this.progressMode;
+			viewer.gcodeProcessor.persistTravels = this.persistTravels;
 			viewer.setZBelt(this.zBelt, this.zBeltAngle);
 			if(this.g1AsExtrusion){
 				this.renderQuality = 5;
@@ -1045,6 +1048,12 @@ export default {
 		},
 		'showTravelLines': (newVal) => {
 			viewer.toggleTravels(newVal);
+		},
+		'persistTravels': function(newVal) { 
+			this.showTravelLines = true
+			viewer.gcodeProcessor.setTravelPersistence(newVal);
+			viewer.gcodeProcessor.forceRedraw();
+			
 		},
 		'visualizingCurrentJob': function (newValue) {
 			if (newValue == false) {
