@@ -16,6 +16,7 @@
 		<ConnectDialog />
 		<ConnectionProgressDialog />
 		<MessageBoxDialog />
+		<NotificationDisplay />
 	</v-app>
 </template>
 

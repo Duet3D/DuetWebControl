@@ -2,7 +2,6 @@ import i18n from "@/i18n";
 import { useUiStore } from "@/stores/ui";
 
 import Events from "./events";
-import { makeNotification } from "./notifications";
 
 /**
  * Types of log messages
@@ -27,7 +26,7 @@ export enum LogType {
  * @param message Optional message content
  */
 export function log(type: LogMessageType, title: string, message: string | null = null) {
-	makeNotification(type, title, message);
+	useUiStore().makeNotification(type, title, message);
 	logToConsole(type, title, message);
 }
 
@@ -66,7 +65,7 @@ export function logCode(code: string | null, reply: string) {
 			message = responseLines.slice(1).join("<br>");
 		}
 
-		makeNotification(type, title, message, null, "/Console");
+		useUiStore().makeNotification(type, title, message, null, "/Console");
 	}
 	logToConsole(type, code ?? "", reply);
 }

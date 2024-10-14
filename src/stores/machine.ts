@@ -7,12 +7,12 @@ import { DefaultObjectModel, DefaultPassword, DefaultUsername } from "./defaults
 import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
+import { FileTransferType, Notification, useUiStore } from "./ui";
 import beep from "@/utils/beep";
 import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import { log, logCode } from "@/utils/logging";
-import { closeNotifications, FileTransferType, makeFileTransferNotification, makeNotification, Notification, showMessage } from "@/utils/notifications";
 import Path from "@/utils/path";
 
 /**
@@ -70,7 +70,7 @@ export interface FileTransferItem {
 	error?: any;
 }
 
-export const useMachineStore = defineStore('machine', {
+export const useMachineStore = defineStore("machine", {
 	state: () => ({
 		/**
 		 * Connector used to communicate with the machine
@@ -238,6 +238,9 @@ export const useMachineStore = defineStore('machine', {
 				};
 				this.connector = await connect(hostname, settings);
 
+				// Connection established
+				Events.emit("connected", hostname);	
+
 				// Load settings
 				try {
 					await settingsStore.load();
@@ -255,7 +258,7 @@ export const useMachineStore = defineStore('machine', {
 						that.handleConnectionError(reason);
 					},
 					onReconnected(connector: BaseConnector): void {
-						closeNotifications(true);
+						useUiStore().closeNotifications(true);
 					},
 					onUpdate(connector: BaseConnector, data: any): void {
 						that.updateModel(data);
@@ -380,9 +383,9 @@ export const useMachineStore = defineStore('machine', {
 				await this.connector.reconnect();
 
 				this.isReconnecting = false;
-				Events.emit("reconnected");
+				Events.emit("reconnected", this.connector.hostname);
 			} catch (e) {
-				Events.emit("connectionError", e);
+				Events.emit("connectionError", { hostname: this.connector.hostname, error: e });
 			}
 		},
 
@@ -488,7 +491,8 @@ export const useMachineStore = defineStore('machine', {
 			let notification: Notification | null = null;
 			if (fileOrFiles.length === 1) {
 				if (showProgress) {
-					notification = makeFileTransferNotification(FileTransferType.upload, fileOrFiles[0].filename, cancellationToken);
+					const uiStore = useUiStore();
+					notification = uiStore.makeFileTransferNotification(FileTransferType.upload, fileOrFiles[0].filename, cancellationToken);
 				}
 
 				Events.emit("fileUploading", { filename: fileOrFiles[0].filename, content: fileOrFiles[0].content, showProgress, showSuccess, showError, cancellationToken });
@@ -664,7 +668,8 @@ export const useMachineStore = defineStore('machine', {
 			let notification: Notification | null = null;
 			if (files.length === 1) {
 				if (showProgress) {
-					notification = makeFileTransferNotification(FileTransferType.download, files[0].filename, cancellationToken);
+					const uiStore = useUiStore();
+					notification = uiStore.makeFileTransferNotification(FileTransferType.download, files[0].filename, cancellationToken);
 				}
 
 				Events.emit("fileDownloading", { filename: files[0].filename, type: files[0].type, showProgress, showSuccess, showError, cancellationToken });
@@ -895,13 +900,14 @@ export const useMachineStore = defineStore('machine', {
 				throw new OperationFailedError("installSystemPackage is not available in default machine module");
 			}
 
-			const notification = makeFileTransferNotification(FileTransferType.systemPackageInstall, filename, cancellationToken);
+			const uiStore = useUiStore();
+			const notification = uiStore.makeFileTransferNotification(FileTransferType.systemPackageInstall, filename, cancellationToken);
 			try {
 				try {
 					await this.connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
-					makeNotification("success", i18n.global.t("notification.systemPackageInstall.success", [filename]));
+					uiStore.makeNotification("success", i18n.global.t("notification.systemPackageInstall.success", [filename]));
 				} catch (e) {
-					makeNotification("error", i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
+					uiStore.makeNotification("error", i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 					throw e
 				}
 			} finally {
@@ -1009,7 +1015,7 @@ export const useMachineStore = defineStore('machine', {
 
 			// Is a new message supposed to be shown?
 			if (this.model.state.displayMessage !== lastDisplayMessage) {
-				showMessage(this.model.state.displayMessage);
+				useUiStore().showPersistentMessage(this.model.state.displayMessage);
 			}
 
 			// Check if DSF has been updated
@@ -1020,13 +1026,13 @@ export const useMachineStore = defineStore('machine', {
 			// Is there a startup error to report?
 			const startupError = this.model.state.startupError
 			if (startupError !== null && lastStartupError !== JSON.stringify(startupError)) {
-				const errorMessage = i18n.global.t("error.startupError", [startupError.file, startupError.line, startupError.message])
+				const errorMessage = i18n.global.t("event.startupError", [startupError.file, startupError.line, startupError.message])
 				log("error", errorMessage, undefined);
 			}
 
 			// Has the firmware halted?
 			if (lastStatus !== this.model.state.status && this.model.state.status === MachineStatus.halted) {
-				log("warning", i18n.global.t("events.emergencyStop"), undefined);
+				log("warning", i18n.global.t("event.emergencyStop"), undefined);
 			}
 		}
 	}

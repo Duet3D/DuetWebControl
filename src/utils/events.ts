@@ -27,8 +27,9 @@ type Events = {
 
 	/**
 	 * Connector has established a connection
+	 * Payload: hostname
 	 */
-	connected: void;
+	connected: string;
 
 	/**
 	 * Cache has been loaded
@@ -59,12 +60,13 @@ type Events = {
 	 * Cannot maintain connection to the machine due to a given error
 	 * Payload: Error reason
 	 */
-	connectionError: any;
+	connectionError: { hostname: string, error: any };
 
 	/**
 	 * Connection has been established again after it was lost
+	 * Payload: hostname
 	 */
-	reconnected: void;
+	reconnected: string;
 
 	/**
 	 * Connection to the machine is about to be terminated

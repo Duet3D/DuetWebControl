@@ -1,79 +1,178 @@
 {
-		"dialog": {
-				"connect": {
-						"title": "Zu Maschine verbinden",
-						"prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
-						"passwordPrompt": "Bitte geben Sie das Passwort der Maschine ein, zu der Sie verbinden möchten:",
-						"hostPlaceholder": "Hostname",
-						"hostRequired": "Hostname ist erforderlich",
-						"passwordPlaceholderOptional": "Passwort (optional)",
-						"passwordPlaceholder": "Passwort",
-						"passwordRequired": "Passwort ist erforderlich",
-						"connect": "Verbinden",
-						"rememberPassword": "Passwort merken"
-				},
-				"connection": {
-						"connecting": "Verbinde...",
-						"disconnecting": "Trenne...",
-						"updating": "Bitte warten Sie während Updates installiert werden...",
-						"reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
-						"standBy": "Bitte warten...",
-						"boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:",
-						"board": "Board #{0}",
-						"mainboard": "Mainboard",
-						"expansionBoard": "Erweiterungsboard",
-						"resetButton": {
-								"caption": "Maschine zurücksetzen",
-								"title": "M999 an die Maschine senden um sie zurückzusetzen"
-						}
-				}
+	"dialog": {
+		"connect": {
+			"title": "Zu Maschine verbinden",
+			"prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+			"passwordPrompt": "Bitte geben Sie das Passwort der Maschine ein, zu der Sie verbinden möchten:",
+			"hostPlaceholder": "Hostname",
+			"hostRequired": "Hostname ist erforderlich",
+			"passwordPlaceholderOptional": "Passwort (optional)",
+			"passwordPlaceholder": "Passwort",
+			"passwordRequired": "Passwort ist erforderlich",
+			"connect": "Verbinden",
+			"rememberPassword": "Passwort merken"
 		},
-		"generic": {
-			"ok": "OK",
-			"cancel": "Abbrechen",
-			"yes": "Ja",
-			"no": "Nein",
-			"close": "Schließen",
-			"reset": "Zurücksetzen",
-			"noValue": "n/v",
-			"loading": "lade",
-			"error": "Fehler",
-			"info": "Info",
-			"warning": "Warnung",
-			"success": "Erfolg",
-			"heaterStates": {
-				"off": "aus",
-				"standby": "standby",
-				"active": "aktiv",
-				"fault": "fehler",
-				"tuning": "kalibriere",
-				"offline": "abgeschaltet"
-			},
-			"status": {
-				"disconnected": "Getrennt",
-				"starting": "Starte",
-				"updating": "Aktualisiere",
-				"off": "Aus",
-				"halted": "Angehalten",
-				"pausing": "Pausiere",
-				"paused": "Pausiert",
-				"resuming": "Wiederaufnahme",
-				"cancelling": "Abbrechen",
-				"printing": "Drucke",
-				"processing": "Verarbeite",
-				"simulating": "Simuliere",
-				"busy": "Beschäftigt",
-				"changingTool": "Wechsle Werkzeug",
-				"idle": "Leerlauf",
-				"unknown": "Unbekannt"
-			},
-			"rpm": "RPM",
-			"sdCard": "SD-Karte {0}",
-			"mounted": "eingebunden",
-			"notMounted": "nicht eingebunden",
-			"extracting": "Extrahiere",
-			"uploading": "Lade hoch",
-			"active": "Aktiv",
-			"standby": "Standby"
+		"connectionProgress": {
+			"connecting": "Verbinde...",
+			"disconnecting": "Trenne...",
+			"updating": "Bitte warten Sie während Updates installiert werden...",
+			"reconnecting": "Verbindung verloren, versuche erneut zu verbinden...",
+			"standBy": "Bitte warten...",
+			"boardUpdateMessage": "Das folgende Board wird aktualisiert:|Die folgenden Boards werden aktualisiert:",
+			"board": "Board #{0}",
+			"mainboard": "Mainboard",
+			"expansionBoard": "Erweiterungsboard",
+			"resetButton": {
+				"caption": "Maschine zurücksetzen",
+				"title": "M999 an die Maschine senden um sie zurückzusetzen"
+			}
 		}
+	},
+	"event": {
+		"connectError": "Konnte keine Verbindung zu {0} herstellen",
+		"connected": "Verbindung zu {0} hergestellt",
+		"connectionLost": "Konnte Verbindung zu {0} nicht aufrecht erhalten",
+		"emergencyStop": "NOT-AUS, versuche Verbindung wiederherzustellen...",
+		"reconnecting": "Verbindung unterbrochen, versuche erneut zu verbinden...",
+		"reconnected": "Verbindung hergestellt",
+		"disconnectError": "Konnte Verbindung zu {0} nicht trennen",
+		"disconnected": "Verbindung zu {0} getrennt",
+		"dwcPluginLoadError": "Konnte DWC-Plugin {0} nicht laden: {1}",
+		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
+	},
+	"generic": {
+		"ok": "OK",
+		"cancel": "Abbrechen",
+		"yes": "Ja",
+		"no": "Nein",
+		"close": "Schließen",
+		"reset": "Zurücksetzen",
+		"noValue": "n/v",
+		"loading": "lade",
+		"error": "Fehler",
+		"info": "Info",
+		"warning": "Warnung",
+		"success": "Erfolg",
+		"heaterStates": {
+			"off": "aus",
+			"standby": "standby",
+			"active": "aktiv",
+			"fault": "fehler",
+			"tuning": "kalibriere",
+			"offline": "abgeschaltet"
+		},
+		"status": {
+			"disconnected": "Getrennt",
+			"starting": "Starte",
+			"updating": "Aktualisiere",
+			"off": "Aus",
+			"halted": "Angehalten",
+			"pausing": "Pausiere",
+			"paused": "Pausiert",
+			"resuming": "Wiederaufnahme",
+			"cancelling": "Abbrechen",
+			"printing": "Drucke",
+			"processing": "Verarbeite",
+			"simulating": "Simuliere",
+			"busy": "Beschäftigt",
+			"changingTool": "Wechsle Werkzeug",
+			"idle": "Leerlauf",
+			"unknown": "Unbekannt"
+		},
+		"rpm": "RPM",
+		"sdCard": "SD-Karte {0}",
+		"mounted": "eingebunden",
+		"notMounted": "nicht eingebunden",
+		"extracting": "Extrahiere",
+		"uploading": "Lade hoch",
+		"active": "Aktiv",
+		"standby": "Standby"
+	},
+	"notification": {
+		"fileTransfer": {
+			"download": {
+				"title": "Lade {0} {'@'} {1} herunter, {2}% abgeschlossen",
+				"message": "Bitte warten Sie während die Datei heruntergeladen wird...",
+				"success": "Download von {0} erfolgreich nach {1}",
+				"error": "Konnte {0} nicht herunterladen"
+			},
+			"upload": {
+				"title": "Lade {0} {'@'} {1} hoch, {2}% abgeschlossen",
+				"message": "Bitte warten während die Datei hochgeladen wird...",
+				"success": "Datei {0} erfolgreich nach {1} hochgeladen",
+				"error": "Konnte {0} nicht hochladen"
+			}
+		},
+		"compress": {
+			"title": "Komprimiere Dateien...",
+			"message": "Bitte warten während Ihre Dateien komprimiert werden...",
+			"errorTitle": "Konnte Dateien nicht komprimieren"
+		},
+		"decompress": {
+			"title": "Entpacke Dateien...",
+			"message": "Bitte warten während Ihre Dateien entpackt werden...",
+			"errorTitle": "Konnte Dateien nicht entpacken",
+			"standaloneUpdateInSbcModeError": "Sie versuchen ein DWC-Paket für den Standalone-Modus hochzuladen, obwohl die Maschine im SBC-Modus läuft. Dies wird nicht untersützt. Bitte benutzen Sie apt update/upgrade, um ihr System zu aktualisieren."
+		},
+		"delete": {
+			"errorTitle": "Konnte {0} nicht löschen",
+			"errorMessageDirectory": "Bitte stellen Sie sicher, dass das ausgewählte Verzeichnis leer ist",
+			"success": "{0} wurde erfolgreich gelöscht",
+			"successMultiple": "{0} Elemente sind erfolgreich gelöscht worden"
+		},
+		"deleteFilament": {
+			"errorTitle": "Konnte Filament(e) nicht löschen",
+			"errorStillLoaded": "Mindestens eins der ausgewählten Filamente ist noch geladen. Bitte erst entladen bevor Sie fortfahren",
+			"errorSubDirectories": "Das Filament {0} enthält Unterverzeichnisse. Bitte löschen Sie diese erst händisch und versuchen Sie es erneut"
+		},
+		"message": "Nachricht",
+		"mount": {
+			"successTitle": "SD-Karte eingebunden",
+			"errorTitle": "Konnte SD-Karte nicht einbinden"
+		},
+		"newDirectory": {
+			"errorTitle": "Konnte Verzeichnis nicht erstellen",
+			"successTitle": "Verzeichnis erstellt",
+			"successMessage": "Verzeichnis {0} wurde erfolgreich erstellt"
+		},
+		"newFilament": {
+			"errorTitle": "Konnte Filament nicht anlegen",
+			"errorTitleMacros": "Konnte Filamentmakros nicht anlegen",
+			"successTitle": "Filament erstellt",
+			"successMessage": "Successfully created filament {0}"
+		},
+		"plugins": {
+			"started": "Plugin gestartet",
+			"startError": "Konnte Plugin nicht starten",
+			"stopped": "Plugin gestoppt",
+			"stopError": "Konnte Plugin nicht stoppen",
+			"uninstalled": "Plugin deinstalliert",
+			"uninstallError": "Konnte Plugin nicht deinstallieren"
+		},
+		"rename": {
+			"success": "{0} wurde erfolgreich nach {1} umbenannt",
+			"error": "Konnte {0} nicht nach {1} umbenennen"
+		},
+		"renameFilament": {
+			"errorTitle": "Konnte Filament nicht umbenennen",
+			"errorStillLoaded": "Dieses Filament ist noch geladen. Bitte erst entladen bevor Sie fortfahren"
+		},
+		"responseTooLong": "Nachricht zu lang, siehe Konsole",
+		"install": {},
+		"pluginLoad": {
+			"message": "Bitte warten Sie, während Plugins geladen werden...",
+			"title": "Plugins werden geladen..."
+		},
+		"systemPackageInstall": {
+			"error": "{0} konnte nicht installiert werden",
+			"message": "Bitte warten Sie, während die Datei installiert wird...",
+			"success": "Installation von {0} erfolgreich",
+			"title": "Datei {0} wird installiert"
+		},
+		"freeSpaceWarning": {
+			"message": "Es ist kaum noch freier Speicherplatz auf dem ersten Laufwerk vorhanden. Löschen Sie einige Dateien, um Probleme während Dateiuploads zu vermeiden.",
+			"title": "Laufwerk fast voll"
+		},
+		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
+	}
 }

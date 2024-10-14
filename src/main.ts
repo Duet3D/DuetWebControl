@@ -13,6 +13,9 @@ import App from "./App.vue";
 // Composables
 import { createApp } from "vue";
 
+// Events
+import "@/utils/eventHandlers";
+
 const app = createApp(App);
 
 registerPlugins(app);

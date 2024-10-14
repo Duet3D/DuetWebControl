@@ -28,6 +28,18 @@
 			}
 		}
 	},
+	"event": {
+		"connectError": "Failed to connect to {0}",
+		"connected": "Connected to {0}",
+		"connectionLost": "Failed to maintain connection to {0}",
+		"emergencyStop": "Emergency stop, attemping to reconnect...",
+		"reconnecting": "Connection interrupted, attempting to reconnect...",
+		"reconnected": "Connection established",
+		"disconnectError": "Failed to disconnect from {0}",
+		"disconnected": "Disconnected from {0}",
+		"dwcPluginLoadError": "Failed to load DWC plugin {0}: {1}",
+		"startupError": "Error in start-up file {0} line {1}: {2}"
+	},
 	"generic": {
 	  "ok": "OK",
 	  "cancel": "Cancel",
@@ -75,5 +87,90 @@
 	  "uploading": "Uploading",
 	  "active": "Active",
 	  "standby": "Standby"
+	},
+	"notification": {
+		"fileTransfer": {
+			"download": {
+				"title": "Downloading {0} {'@'} {1}, {2}% complete",
+				"message": "Please stand by while the file is being downloaded...",
+				"success": "Download of {0} successful after {1}",
+				"error": "Failed to download {0}"
+			},
+			"upload": {
+				"title": "Uploading {0} {'@'} {1}, {2}% complete",
+				"message": "Please stand by while the file is being uploaded...",
+				"success": "Upload of {0} successful after {1}",
+				"error": "Failed to upload {0}"
+			}
+		},
+		"compress": {
+			"title": "Compressing files...",
+			"message": "Please stand by while your files are being compressed...",
+			"errorTitle": "Failed to compress files"
+		},
+		"decompress": {
+			"title": "Decompressing files...",
+			"message": "Please stand by while your files are being decompressed...",
+			"errorTitle": "Failed to decompress files",
+			"standaloneUpdateInSbcModeError": "You are trying to upload a standalone DWC bundle in SBC mode. This is NOT supported. Please use apt update/upgrade to update your system."
+		},
+		"delete": {
+			"errorTitle": "Failed to delete {0}",
+			"errorMessageDirectory": "Please make sure that this directory is empty",
+			"success": "Successfully deleted {0}",
+			"successMultiple": "Successfully deleted {0} items"
+		},
+		"deleteFilament": {
+			"errorTitle": "Failed to delete filament(s)",
+			"errorStillLoaded": "At least one of the selected filaments is still loaded. Please unload them before you proceed",
+			"errorSubDirectories": "The filament {0} contains sub-directories. Please delete them manually and try again."
+		},
+		"systemPackageInstall": {
+			"title": "Installing file {0}",
+			"message": "Please stand by while the file is being installed...",
+			"success": "Installation of {0} successful",
+			"error": "Failed to install {0}"
+		},
+		"message": "Message",
+		"mount": {
+			"successTitle": "SD card mounted",
+			"errorTitle": "Failed to mount SD card"
+		},
+		"pluginLoad": {
+			"title": "Loading plugins...",
+			"message": "Please stand by while plugins are being loaded..."
+		},
+		"newDirectory": {
+			"errorTitle": "Failed to create directory",
+			"successTitle": "Directory created",
+			"successMessage": "Successfully created directory {0}"
+		},
+		"newFilament": {
+			"errorTitle": "Failed to create filament",
+			"errorTitleMacros": "Failed to create filament macros",
+			"successTitle": "Filament created",
+			"successMessage": "Successfully created filament {0}"
+		},
+		"plugins": {
+			"started": "Plugin has been started",
+			"startError": "Failed to start plugin",
+			"stopped": "Plugin has been stopped",
+			"stopError": "Failed to start plugin",
+			"uninstalled": "Plugin has been uninstalled",
+			"uninstallError": "Failed to uninstall plugin"
+		},
+		"rename": {
+			"success": "Successfully renamed {0} to {1}",
+			"error": "Failed to rename {0} to {1}"
+		},
+		"renameFilament": {
+			"errorTitle": "Failed to rename filament",
+			"errorStillLoaded": "This filament is still loaded. Please unload it before you proceed"
+		},
+		"responseTooLong": "Response too long, see Console",
+		"freeSpaceWarning": {
+			"title": "Disk almost full",
+			"message": "There is barely any space left on the first volume. Delete some files to avoid problems during file uploads."
+		}
 	}
 }
