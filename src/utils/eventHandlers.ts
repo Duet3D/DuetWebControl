@@ -12,15 +12,15 @@ Events.on("connected", hostname => {;
 })
 
 Events.on("connectError", ({ hostname, error }) => {
-	useUiStore().log(error instanceof InvalidPasswordError ? LogLevel.warning : LogLevel.error, i18n.global.t("event.connectError", [hostname]), getErrorMessage(error));
+	useUiStore().log(error instanceof InvalidPasswordError ? LogLevel.warning : LogLevel.error, i18n.global.t("event.connectError", [hostname]), getErrorMessage(error, true));
 })
 
 Events.on("connectionError", ({ hostname, error }) => {
 	const uiStore = useUiStore();
 	if (error instanceof InvalidPasswordError || process.env.NODE_ENV !== "production") {
-		uiStore.log(LogLevel.error, i18n.global.t("event.connectionLost", [hostname]), getErrorMessage(error));
+		uiStore.log(LogLevel.error, i18n.global.t("event.connectionLost", [hostname]), getErrorMessage(error, true));
 	} else {
-		uiStore.log(LogLevel.warning, i18n.global.t("event.reconnecting", [hostname]), getErrorMessage(error));
+		uiStore.log(LogLevel.warning, i18n.global.t("event.reconnecting", [hostname]), getErrorMessage(error, true));
 	}
 })
 
@@ -35,7 +35,7 @@ Events.on("disconnected", ({ hostname, graceful }) => {
 })
 
 Events.on("disconnectError", ({ hostname, error }) => {
-	useUiStore().log(LogLevel.warning, i18n.global.t("event.disconnectError", [hostname]), getErrorMessage(error));
+	useUiStore().log(LogLevel.warning, i18n.global.t("event.disconnectError", [hostname]), getErrorMessage(error, true));
 })
 
 Events.on("message", ({ content }) => {
@@ -51,7 +51,7 @@ Events.on("fileUploaded", ({ filename, startTime, count, showSuccess }) => {
 
 Events.on("fileUploadError", ({ filename, error, showError }) => {
 	if (showError && !(error instanceof OperationCancelledError)) {
-		useUiStore().log(LogLevel.error, i18n.global.t("notification.fileTransfer.upload.error", [Path.extractFileName(filename)]), getErrorMessage(error));
+		useUiStore().log(LogLevel.error, i18n.global.t("notification.fileTransfer.upload.error", [Path.extractFileName(filename)]), getErrorMessage(error, true));
 	}
 })
 
@@ -65,7 +65,7 @@ Events.on("fileDownloaded", ({ filename, startTime, count, showSuccess }) => {
 Events.on("fileDownloadError", ({ filename, error, showError }) => {
 	if (showError && !(error instanceof OperationCancelledError)) {
 		console.warn(error);
-		useUiStore().log(LogLevel.error, i18n.global.t("notification.fileTransfer.download.error", [Path.extractFileName(filename)]), getErrorMessage(error));
+		useUiStore().log(LogLevel.error, i18n.global.t("notification.fileTransfer.download.error", [Path.extractFileName(filename)]), getErrorMessage(error, true));
 	}
 })
 
