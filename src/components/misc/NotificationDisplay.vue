@@ -57,7 +57,7 @@
 		</div>
 	</v-snackbar>
 	<v-snackbar v-else-if="notification !== null" :model-value="true" :timeout="-1"
-				:color="(notification !== null) ? notification.type : 'info'" :class="{ pointer: !!notification.route }"
+				:color="(notification !== null) ? notification.type : LogLevel.info" :class="{ pointer: !!notification.route }"
 				@click.native="clicked">
 		<v-progress-linear v-if="animateProgress" ref="progressBar" :indeterminate="notification.progress === 0"
 						   :model-value="100" absolute top :class="{ 'animate-progress': animateProgress }" />
@@ -84,7 +84,7 @@
 <script setup lang="ts">
 import { VProgressLinear } from "vuetify/components";
 
-import { FileTransferType, Notification, useUiStore } from "@/stores/ui";
+import { FileTransferType, LogLevel, Notification, useUiStore } from "@/stores/ui";
 import { displayTransferSpeed } from "@/utils/display";
 
 const uiStore = useUiStore();

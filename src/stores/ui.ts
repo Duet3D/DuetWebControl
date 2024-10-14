@@ -3,7 +3,6 @@ import { MachineMode } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n from "@/i18n";
-import { LogMessageType } from "@/utils/logging";
 import { extractFileName } from "@/utils/path";
 
 import { useMachineStore } from "./machine";
@@ -56,9 +55,45 @@ export enum FileTransferType {
 }
 
 /**
+ * Types of log messages
+ */
+export enum LogLevel {
+	success = "success",
+	info = "info",
+	primary = "primary",
+	warning = "warning",
+	error = "error"
+}
+
+/**
+ * Log message to show in the console
+ */
+export interface LogMessage {
+	/**
+	* Datetime of this event
+	*/
+	time: Date;
+
+	/**
+	* Type of this event
+	*/
+	type: LogLevel;
+
+	/**
+	* Title of this event
+	*/
+	title: string;
+
+	/**
+	* Optional message of this event
+	*/
+	message: string | null;
+}
+
+/**
  * Possible notification types
  */
-export type NotificationType = LogMessageType | FileTransferType
+export type NotificationType = LogLevel | FileTransferType
 
 /**
  * Notification item
@@ -152,7 +187,14 @@ export const useUiStore = defineStore("ui", {
 			jobFileList: new Array<ContextMenuItem>()
 		},
 
-		/** Notification data */
+		/**
+		 * Logged messages to display in the console
+		 */
+		logMessages: new Array<LogMessage>,
+
+		/**
+		 * Notification data
+		 */
 		notifications: {
 			/**
 			 * General notifications
@@ -225,6 +267,73 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Log an arbitrary message and display a notification
+		 * @param type Message type
+		 * @param title Title of the message
+		 * @param message Optional message content
+		 */
+		log(type: LogLevel, title: string, message: string | null = null) {
+			this.makeNotification(type, title, message);
+			this.logMessage(type, title, message);
+		},
+
+		/**
+		 * Log a code reply
+		 * @param code G/M/T-code
+		 * @param reply Code reply
+		 * @param hostname Hostname of the machine that produced the reply
+		 */
+		logCode(code: string | null, reply: string) {
+			if (!code && !reply) {
+				// Make sure there is something to log...
+				return
+			}
+
+			// Determine type
+			let type = LogLevel.info;
+			const toLog = reply;
+			if (reply.startsWith("Error: ")) {
+				type = LogLevel.error;
+			} else if (reply.startsWith("Warning: ")) {
+				type = LogLevel.warning;
+			} else if (reply === "") {
+				type = LogLevel.success;
+			}
+
+			// Log it
+			const responseLines = toLog.split('\n');
+			if (!this.hideCodeReplyNotifications) {
+				let title = code || ""; let message = responseLines.join("<br>");
+				if (responseLines.length > 3 || toLog.length > 128) {
+					title = (!code) ? i18n.global.t("notification.responseTooLong") : code;
+					message = (!code) ? "" : i18n.global.t("notification.responseTooLong");
+				} else if (!code) {
+					title = responseLines[0];
+					message = responseLines.slice(1).join("<br>");
+				}
+
+				this.makeNotification(type, title, message, null, "/Console");
+			}
+			this.logMessage(type, code ?? "", reply);
+		},
+
+		/**
+		 * Log an arbitrary message to the console only
+		 * @param type Message type
+		 * @param title Title of the message
+		 * @param message Optional message content
+		 */
+		logMessage(type: LogLevel, title: string, message: string | null = null, time: Date | null = null) {
+			const logMessage = {
+				time: time || new Date(),
+				type,
+				title,
+				message
+			}
+			this.logMessages.push(logMessage);
+		},
+
+		/**
 		 * Show a new notification
 		 * @param type Notification type
 		 * @param title Title of the notification
@@ -238,21 +347,21 @@ export const useUiStore = defineStore("ui", {
 		makeNotification(type: NotificationType, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, pushToEnd: boolean = false): Notification {
 			if (timeout === null) {
 				const settingsStore = useSettingsStore();
-				timeout = (type === "error" && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
+				timeout = (type === LogLevel.error && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
 			}
 
 			if (icon === null) {
 				switch (type) {
-					case "info":
+					case LogLevel.info:
 						icon = "mdi-information-outline";
 						break;
-					case "success":
+					case LogLevel.success:
 						icon = "mdi-check";
 						break;
-					case "warning":
+					case LogLevel.warning:
 						icon = "mdi-alert-circle-outline";
 						break;
-					case "error":
+					case LogLevel.error:
 						icon = "mdi-close-circle-outline";
 						break;
 					default:
@@ -372,7 +481,7 @@ export const useUiStore = defineStore("ui", {
 			}
 
 			if (this.notifications.persistentMessage === null) {
-				this.notifications.persistentMessage = this.makeNotification("info", i18n.global.t("notification.message"), message, 0, null, null, true);
+				this.notifications.persistentMessage = this.makeNotification(LogLevel.info, i18n.global.t("notification.message"), message, 0, null, null, true);
 				const closeFn = this.notifications.persistentMessage.close, notifications = this.notifications;
 				this.notifications.persistentMessage.close = function () {
 					notifications.persistentMessage = null;

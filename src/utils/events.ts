@@ -6,8 +6,6 @@ import { StoreState } from "pinia";
 
 import { FileTransferItem } from "@/stores/machine";
 
-import { LogMessageType } from "./logging";
-
 type Events = {
 	/**
 	 * Attempting to connect to a machine
@@ -99,11 +97,6 @@ type Events = {
 	 * Generic message has been received from the machine
 	 */
 	message: { type: MessageType, content: string };
-
-	/**
-	 * Message is supposed to be written to the console
-	 */
-	logMessage: { type: LogMessageType, title: string, message: string | null };
 
 	/**
 	 * File or directory has been changed. If files is not present, the volume reporting the change is given

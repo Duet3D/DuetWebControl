@@ -7,12 +7,11 @@ import { DefaultObjectModel, DefaultPassword, DefaultUsername } from "./defaults
 import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
-import { FileTransferType, Notification, useUiStore } from "./ui";
+import { FileTransferType, LogLevel, Notification, useUiStore } from "./ui";
 import beep from "@/utils/beep";
 import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
-import { log, logCode } from "@/utils/logging";
 import Path from "@/utils/path";
 
 /**
@@ -438,14 +437,14 @@ export const useMachineStore = defineStore("machine", {
 				}
 
 				if (logReply && (fromInput || reply)) {
-					logCode(code, reply ?? "");
+					useUiStore().logCode(code, reply ?? "");
 				}
 
 				return reply as B extends true ? void : string;
 			} catch (e) {
-				if (!(e instanceof DisconnectedError) && log) {
-					const type = (e instanceof CodeBufferError) ? "warning" : "error";
-					log(type, code, getErrorMessage(e));
+				if (!(e instanceof DisconnectedError) && logReply) {
+					const type = (e instanceof CodeBufferError) ? LogLevel.warning : LogLevel.error;
+					useUiStore().log(type, code, getErrorMessage(e));
 				}
 				throw e
 			}
@@ -905,9 +904,9 @@ export const useMachineStore = defineStore("machine", {
 			try {
 				try {
 					await this.connector.installSystemPackage(filename, packageData, cancellationToken, onProgress);
-					uiStore.makeNotification("success", i18n.global.t("notification.systemPackageInstall.success", [filename]));
+					uiStore.makeNotification(LogLevel.success, i18n.global.t("notification.systemPackageInstall.success", [filename]));
 				} catch (e) {
-					uiStore.makeNotification("error", i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
+					uiStore.makeNotification(LogLevel.error, i18n.global.t("notification.systemPackageInstall.error", [filename]), getErrorMessage(e));
 					throw e
 				}
 			} finally {
@@ -1027,12 +1026,12 @@ export const useMachineStore = defineStore("machine", {
 			const startupError = this.model.state.startupError
 			if (startupError !== null && lastStartupError !== JSON.stringify(startupError)) {
 				const errorMessage = i18n.global.t("event.startupError", [startupError.file, startupError.line, startupError.message])
-				log("error", errorMessage, undefined);
+				useUiStore().log(LogLevel.error, errorMessage, undefined);
 			}
 
 			// Has the firmware halted?
 			if (lastStatus !== this.model.state.status && this.model.state.status === MachineStatus.halted) {
-				log("warning", i18n.global.t("event.emergencyStop"), undefined);
+				useUiStore().log(LogLevel.warning, i18n.global.t("event.emergencyStop"), undefined);
 			}
 		}
 	}
