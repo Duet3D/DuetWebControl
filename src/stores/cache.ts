@@ -125,32 +125,6 @@ export const useCacheStore = defineStore("cache", {
 		},
 
 		/**
-		 * Add a code to the list of last sent codes
-		 */
-		addLastSentCode(code: string) {
-			if (!this.lastSentCodes.includes(code)) {
-				this.lastSentCodes.push(code);
-			}
-		},
-
-		/**
-		 * Remove a code from the list of last sent codes
-		 * @param code Code to remove
-		 */
-		removeLastSentCode(code: string) {
-			this.lastSentCodes = this.lastSentCodes.filter(item => item !== code)
-		},
-
-		/**
-		 * Set parsed file info for a specific file
-		 * @param filename Filename of the job
-		 * @param fileInfo File info
-		 */
-		setFileInfo(filename: string, fileInfo: GCodeFileInfo) {
-			this.fileInfos[filename] = fileInfo;
-		},
-
-		/**
 		 * Clear file info for a specific file or directory
 		 * @param fileOrDirectory File or directory path
 		 */
