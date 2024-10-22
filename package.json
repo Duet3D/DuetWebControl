@@ -14,6 +14,7 @@
     "core-js": "^3.38.1",
     "mitt": "^3.0.1",
     "monaco-editor": "^0.52.0",
+    "qoijs": "^1.0.0",
     "roboto-fontface": "^0.10.0",
     "vue": "^3.4.31",
     "vue-i18n": "^10.0.3",
