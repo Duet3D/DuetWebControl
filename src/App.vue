@@ -33,7 +33,7 @@
 		</v-navigation-drawer>
 
 		<v-app-bar ref="appToolbar" app clipped-left>
-			<v-app-bar-nav-icon v-show="!showBottomNavigation" @click.stop="drawer = !drawer">
+			<v-app-bar-nav-icon v-show="!showBottomNavigation && isAuthenticated && isAdmin" @click.stop="drawer = !drawer">
 				<v-icon>mdi-menu</v-icon>
 			</v-app-bar-nav-icon>
 			<v-toolbar-title class="px-1">
@@ -45,9 +45,23 @@
 
 			<v-spacer />
 
-			<code-input class="mx-3 hidden-sm-and-down" />
+			<!--code-input class="mx-3 hidden-sm-and-down" v-show="!showBottomNavigation" @click.stop="drawer = !drawer"/-->
 
 			<v-spacer />
+
+			<template v-if="isAuthenticated">
+				<v-btn text @click="handleLogout" class="mr-2">
+					<v-icon left>mdi-logout</v-icon>
+					Logout
+				</v-btn>
+				<v-chip color="primary" text-color="white" class="mr-2">
+					{{ capitalizedRole }}
+				</v-chip>
+			</template>
+			<v-btn v-else text @click="showLogin" class="mr-2">
+				<v-icon left>mdi-login</v-icon>
+				Login
+			</v-btn>
 
 			<upload-btn target="start" :elevation="1" class="mr-3 hidden-sm-and-down" />
 			<emergency-btn />
@@ -93,6 +107,7 @@
 		<message-box-dialog />
 		<plugin-install-dialog />
 		<incompatible-versions-dialog />
+		<login-dialog />
 
 		<component v-for="component in injectedComponentNames" :is="component" :key="component" />
 	</v-app>
@@ -109,8 +124,13 @@ import store from "@/store";
 import { DashboardMode } from "@/store/settings";
 import { isPrinting } from "@/utils/enums";
 import { LogType } from "./utils/logging";
+import { closeNotifications } from "@/utils/notifications";
+import LoginDialog from "@/components/LoginDialog.vue";
 
 export default Vue.extend({
+	components: {
+		LoginDialog,
+	},
 	computed: {
 		name(): string { return store.state.machine.model.network.name; },
 		isConnecting(): boolean { return store.state.isConnecting || store.state.machine.isReconnecting; },
@@ -152,11 +172,23 @@ export default Vue.extend({
 		},
 		bottomMargin(): number {
 			return store.state.bottomMargin;
+		},
+		isAuthenticated(): boolean {
+			return store.getters['auth/isAuthenticated']
+		},
+		capitalizedRole(): string {
+			const role = store.getters['auth/userRole'];
+			return role ? role.charAt(0).toUpperCase() + role.slice(1) : '';
+		},
+		isAdmin(): boolean { return store.getters['auth/isAdmin']; },
+		drawer: {
+			get(): boolean { return store.state.drawer; },
+			set(value: boolean) { store.commit('setDrawer', value); }
 		}
 	},
 	data() {
 		return {
-			drawer: this.$vuetify.breakpoint.lgAndUp,
+			// drawer: this.$vuetify.breakpoint.lgAndUp,
 			injectedComponentNames: new Array<string>(),
 			showConnectButton: process.env.NODE_ENV === "development"
 		};
@@ -183,6 +215,22 @@ export default Vue.extend({
 				}
 			}
 		},
+		async handleLogout() {
+			// First disconnect from all machines
+			await store.dispatch("disconnectAll");
+			
+			// Clear any pending notifications
+			closeNotifications(true);
+			
+			// Then perform the logout
+			await store.dispatch('auth/logout');
+			
+			// Show login dialog
+			store.commit('auth/setShowLoginDialog', true);
+		},
+		showLogin() {
+			store.commit('auth/setShowLoginDialog', true);
+		}
 	},
 	mounted() {
 		// Attempt to disconnect from every machine when the page is being unloaded
@@ -195,6 +243,9 @@ export default Vue.extend({
 
 		// Attempt to load the settings
 		store.dispatch("settings/load");
+
+		// Initialize session management
+		store.dispatch("session/init");
 
 		// Validate navigation
 		Vue.prototype.$vuetify = this.$vuetify;

@@ -15,8 +15,11 @@ import { CancellationToken } from "./machine/connector/BaseConnector";
 import observer from "./observer";
 import settings, { SettingsState } from "./settings";
 import uiInjection, { UiInjectionState } from "./uiInjection";
+import auth from "./modules/auth";
+import session from "./modules/session";
 
 import packageInfo from "../../package.json";
+import { UserRole } from '@/types/roles';
 
 Vue.use(Vuex);
 
@@ -82,6 +85,11 @@ export interface InternalRootState {
 	 * Bottom margin to add for the on-screen keyboard
 	 */
 	bottomMargin: number;
+
+	/**
+	 * Whether the drawer is open
+	 */
+	drawer: boolean;
 }
 
 export interface RootState extends InternalRootState {
@@ -94,6 +102,11 @@ export interface RootState extends InternalRootState {
 	machines: Record<string, MachineModuleState>;
 	settings: SettingsState;
 	uiInjection: UiInjectionState;
+	auth: {
+		isAuthenticated: boolean;
+		userRole: UserRole | null;
+		showLoginDialog: boolean;
+	}
 }
 
 const store = new Vuex.Store<InternalRootState>({
@@ -108,8 +121,18 @@ const store = new Vuex.Store<InternalRootState>({
 		loadedDwcPlugins: [],
 		hideCodeReplyNotifications: false,
 		oskEnabled: false,
-		bottomMargin: 0
-	},
+		bottomMargin: 0,
+		machine: defaultMachineModule.state as MachineModuleState,
+		machines: { [defaultMachine]: defaultMachineModule.state as MachineModuleState },
+		settings: settings.state,
+		uiInjection: uiInjection.state,
+		auth: {
+			isAuthenticated: false,
+			userRole: null,
+			showLoginDialog: false
+		},
+		drawer: true
+	} as RootState,
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
 		isConnected: state => state.selectedMachine !== defaultMachine && !(state as RootState).machines[state.selectedMachine].isReconnecting,
@@ -505,6 +528,15 @@ const store = new Vuex.Store<InternalRootState>({
 		 */
 		setBottomMargin(state, value: number) {
 			state.bottomMargin = value;
+		},
+
+		/**
+		 * Set the drawer state
+		 * @param state Current Vuex state
+		 * @param value New drawer state
+		 */
+		setDrawer(state, value: boolean) {
+			state.drawer = value;
 		}
 	},
 	modules: {
@@ -529,7 +561,17 @@ const store = new Vuex.Store<InternalRootState>({
 		/**
 		 * Extra UI functionality for plugins
 		 */
-		uiInjection
+		uiInjection,
+
+		/**
+		 * Authentication module
+		 */
+		auth,
+
+		/**
+		 * Session module
+		 */
+		session
 	},
 	plugins: [
 		/**

@@ -81,6 +81,9 @@ export default Vue.extend({
 		},
 		close() {
 			store.commit("hideConnectDialog");
+			if (process.env.NODE_ENV === "development") {
+				store.commit("auth/setShowLoginDialog", true);
+			}
 		},
 		savePassword() {
 			localStorage.setItem('dwc-password', this.password);

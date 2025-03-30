@@ -1,6 +1,6 @@
 import { MachineMode } from "@duet3d/objectmodel";
 import Vue, { Component } from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
+import VueRouter, { RouteConfig, Route, NavigationGuard } from "vue-router";
 
 import store from "@/store";
 
@@ -367,5 +367,21 @@ router.addRoute(
         component: Page404
     }
 );
+
+// Navigation guard
+router.beforeEach((to, from, next) => {
+	const isAuthenticated = store.getters['auth/isAuthenticated'];
+	
+	if (to.matched.some(record => record.meta.requiresAuth !== false)) {
+		if (!isAuthenticated) {
+			store.commit('auth/setShowLoginDialog', true);
+			next(false);
+		} else {
+			next();
+		}
+	} else {
+		next();
+	}
+});
 
 export default router;
