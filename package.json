@@ -1,6 +1,6 @@
 {
    "name": "duetwebcontrol",
-   "version": "3.6.0",
+   "version": "3.7.0-alpha.1",
    "author": "Christian Hammacher <christian@duet3d.com> (https://www.duet3d.com)",
    "homepage": "https://forum.duet3d.com/category/27/duet-web-control",
    "license": "GPL-3.0",
@@ -17,7 +17,7 @@
       "@duet3d/connectors": "~3.6.0",
       "@duet3d/monacotokens": "~3.6.0",
       "@duet3d/motionanalysis": "~3.4.0",
-      "@duet3d/objectmodel": "~3.6.0",
+      "@duet3d/objectmodel": "~3.7.0-alpha.1",
       "@mdi/font": "^7.4.47",
       "@sindarius/gcodeviewer": "^3.7.13",
       "chart.js": "^2.9.4",
