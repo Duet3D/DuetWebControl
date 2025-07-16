@@ -127,7 +127,7 @@ a:not(:hover) {
 								<strong>
 									{{ $t("panel.status.requestedSpeed") }}
 								</strong>
-								<span>
+								<span class="text-no-wrap">
 									{{ $displayMoveSpeed(model.move.currentMove.requestedSpeed) }}
 								</span>
 							</v-col>
@@ -137,7 +137,7 @@ a:not(:hover) {
 								<strong>
 									{{ $t("panel.status.topSpeed") }}
 								</strong>
-								<span>
+								<span class="text-no-wrap">
 									{{ $displayMoveSpeed(model.move.currentMove.topSpeed) }}
 								</span>
 							</v-col>
@@ -149,7 +149,7 @@ a:not(:hover) {
 										{{ displayVolumetricFlow ? $t("panel.status.volumetricFlow") : $t("panel.status.extrusionRate") }}
 									</a>
 								</strong>
-								<span>
+								<span class="text-no-wrap">
 									{{ displayVolumetricFlow ? $display(volumetricFlow, 1, "mm³/s") : $displayMoveSpeed(model.move.currentMove.extrusionRate) }}
 								</span>
 							</v-col>
