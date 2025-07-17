@@ -1043,7 +1043,8 @@
       "perimeterOnly": "仅周边",
       "progressMode": "进度模式",
       "cancelObj": "取消对象",
-      "resumeObj": "恢复对象"
+      "resumeObj": "恢复对象",
+      "persistTravels": "持续显示路径"
     },
     "heightmap": {
       "menuCaption": "高度图",
@@ -1099,6 +1100,7 @@
         "dependencies": "依赖",
         "status": "状态"
       },
+      "builtIn": "built-in",
       "optional": "可选的",
       "start": "启动",
       "partiallyStarted": "部分已启动",
@@ -1109,8 +1111,8 @@
       "uninstall": "卸载",
       "noPlugins": "没有插件",
       "refreshNote": "某些DWC插件卸载完成后需要刷新页面",
-      "builtIn": "内置",
-      "installed": "已安装"
+      "installed": "已安装",
+      "refreshNow": "立即刷新"
     }
   }
 }
