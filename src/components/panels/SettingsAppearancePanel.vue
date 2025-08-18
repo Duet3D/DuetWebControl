@@ -29,7 +29,7 @@
 					  v-model="bottomNavigation" />
 			<v-switch :label="$t('panel.settingsAppearance.numericInputs')" hide-details v-model="numericInputs" />
 			<v-switch :label="$t('panel.settingsAppearance.iconMenu')" hide-details v-model="iconMenu" />
-			<v-select :items="[0, 1, 2, 3, 4]" v-model.number="decimalPlaces"
+			<v-select :items="[0, 1, 2, 3]" v-model.number="decimalPlaces"
 					  :label="$t('panel.settingsAppearance.decimalPlaces')" hide-details class="mt-3" />
 			<v-select :items="unitsOfMeasure" v-model="displayUnits"
 					  :label="$t('panel.settingsAppearance.displayUnitsTitle')" class="mt-3" hide-details
