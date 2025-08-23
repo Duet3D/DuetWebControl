@@ -736,6 +736,7 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
+      "unitMmPerMinSpeed": "mm/хв",
       "singleBedControl": "Контроль столом",
       "groupTools": "Група ідентичних інструментів",
       "singleChamberControl": "Контроль термокамерою"

@@ -736,6 +736,7 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
+      "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "单个热床控制",
       "groupTools": "分组相同的工具",
       "singleChamberControl": "单个加热室控制"

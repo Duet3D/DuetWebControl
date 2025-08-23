@@ -737,6 +737,7 @@
       "unitInches": "インチ",
       "unitMm": "んん",
       "unitMmSpeed": "mm/秒",
+      "unitMmPerMinSpeed": "mm/分",
       "singleBedControl": "シングルベッドコントロール",
       "groupTools": "同一のツールをグループ化する",
       "singleChamberControl": "シングルチャンバー制御"

@@ -105,11 +105,16 @@ export function displaySize(bytes: number | null | undefined) {
 /**
  * Display a move speed
  * @param speed Speed in mm/s
- * @returns Formatted move speed in mm/s or ipm
+ * @returns Formatted move speed in mm/s (or: mm/min in CNC-Mode) or ipm
  */
 export function displayMoveSpeed(speed: number | null | undefined) {
-	if (typeof speed === "number" && store.state.settings.displayUnits === UnitOfMeasure.imperial) {
-		return display(speed * 60 / 25.4, 1, i18n.t("panel.settingsAppearance.unitInchSpeed"));
+	if (typeof speed === "number") {
+		if (store.state.settings.displayUnits === UnitOfMeasure.imperial) {
+			return display(speed * 60 / 25.4, 1, i18n.t("panel.settingsAppearance.unitInchSpeed"));
+		}
+		if (store.state.machine.model.state.machineMode === MachineMode.cnc) {
+			return display(speed * 60, 1, i18n.t("panel.settingsAppearance.unitMmPerMinSpeed"));
+		}
 	}
 	return display(speed, 1, i18n.t("panel.settingsAppearance.unitMmSpeed"));
 }

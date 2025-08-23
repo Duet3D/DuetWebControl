@@ -736,6 +736,7 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
+      "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Csoportos asztal vezérlés",
       "groupTools": "Azonos szerszámok csoportosítása",
       "singleChamberControl": "Csoportos kamra vezérlés"
