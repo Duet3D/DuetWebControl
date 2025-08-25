@@ -22,13 +22,87 @@
 		</v-card-title>
 		<v-card-text v-show="visibleAxes.length">
 			<v-row dense>
-				<v-col cols="6" order="1" md="2" order-md="1">
+				<v-col cols="6" order="2" md="3" order-md="3">
 					<code-btn block v-show="visibleAxes.length" color="primary" code="G28"
 							  :title="$t('button.home.titleAll')" class="ml-0 move-btn">
 						{{ $t("button.home.captionAll") }}
 					</code-btn>
 				</v-col>
-				<v-col cols="6" order="2" md="8" order-md="2">
+				<v-col cols="12" order="3" md="6" order-md="2">
+					<v-btn color="warning" @click="goToWorkplaceZero" tile block class="move-btn">
+						{{ $t("panel.movement.workzero") }}
+					</v-btn>
+				</v-col>
+				<v-col cols="6" order="1" md="3" order-md="1">
+					<v-btn @click="setWorkplaceZero" block class="move-btn">
+						{{ $t("panel.movement.setWorkXYZ") }}
+					</v-btn>
+				</v-col>
+			</v-row>
+
+			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense>
+				<!-- Regular home buttons -->
+				<v-col cols="2" order="1" sm="4" md="1" order-md="1">
+					<v-row dense>
+						<v-col>
+							<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkplace} ${axis.letter}0`"
+									  class="move-btn">
+								{{ $t("panel.movement.set", [axis.letter]) }}
+							</code-btn>
+						</v-col>
+					</v-row>
+				</v-col>
+
+				<!-- Decreasing movements -->
+				<v-col cols="6" order="3" md="5" order-md="2">
+					<v-row dense>
+						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1)">
+							<code-btn :code="getMoveCode(axis, index - 1, true)" no-wait
+									  @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block tile
+									  class="move-btn">
+								<v-icon>mdi-chevron-left</v-icon>
+								{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
+							</code-btn>
+						</v-col>
+					</v-row>
+				</v-col>
+
+				<!-- Increasing movements -->
+				<v-col cols="6" order="4" md="5" order-md="3">
+					<v-row dense>
+						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
+							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait
+									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
+									  tile class="move-btn">
+								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
+								<v-icon>mdi-chevron-right</v-icon>
+							</code-btn>
+						</v-col>
+					</v-row>
+				</v-col>
+
+				<!-- Set axis-->
+				<v-col cols="2" order="2" offset="8" sm="4" offset-sm="4" md="1" order-md="4" offset-md="0">
+					<v-row dense>
+						<v-col>
+							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen"
+									  :title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
+									  :code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" class="move-btn">
+								{{ $t("button.home.caption", [axis.letter]) }}
+							</code-btn>
+						</v-col>
+					</v-row>
+				</v-col>
+				<v-col cols="12" class="d-md-none">
+					<v-divider class="my-4" />
+				</v-col>
+			</v-row>
+			<v-row dense>
+				<v-col cols="12">
+					<v-divider class="my-4" />
+				</v-col>
+				
+				<v-col cols="12">
 					<v-menu offset-y left :disabled="uiFrozen">
 						<template #activator="{ on }">
 							<v-btn v-show="visibleAxes.length" color="primary" block class="mx-0 move-btn"
@@ -80,74 +154,6 @@
 							</v-list>
 						</v-card>
 					</v-menu>
-				</v-col>
-				<v-col cols="12" order="3" md="2" order-md="3">
-					<v-btn @click="setWorkplaceZero" block class="move-btn">
-						{{ $t("panel.movement.setWorkXYZ") }}
-					</v-btn>
-				</v-col>
-			</v-row>
-
-			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense>
-				<!-- Regular home buttons -->
-				<v-col cols="2" order="1" sm="4" md="1" order-md="1">
-					<v-row dense>
-						<v-col>
-							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen"
-									  :title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
-									  :code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" class="move-btn">
-								{{ $t("button.home.caption", [axis.letter]) }}
-							</code-btn>
-						</v-col>
-					</v-row>
-				</v-col>
-
-				<!-- Decreasing movements -->
-				<v-col cols="6" order="3" md="5" order-md="2">
-					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1)">
-							<code-btn :code="getMoveCode(axis, index - 1, true)" no-wait
-									  @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block tile
-									  class="move-btn">
-								<v-icon>mdi-chevron-left</v-icon>
-								{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
-							</code-btn>
-						</v-col>
-					</v-row>
-				</v-col>
-
-				<!-- Increasing movements -->
-				<v-col cols="6" order="4" md="5" order-md="3">
-					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
-							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait
-									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
-									  tile class="move-btn">
-								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
-								<v-icon>mdi-chevron-right</v-icon>
-							</code-btn>
-						</v-col>
-					</v-row>
-				</v-col>
-
-				<!-- Set axis-->
-				<v-col cols="2" order="2" offset="8" sm="4" offset-sm="4" md="1" order-md="4" offset-md="0">
-					<v-row dense>
-						<v-col>
-							<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkplace} ${axis.letter}0`"
-									  class="move-btn">
-								{{ $t("panel.movement.set", [axis.letter]) }}
-							</code-btn>
-						</v-col>
-					</v-row>
-				</v-col>
-			</v-row>
-
-			<v-row dense>
-				<v-col>
-					<v-btn color="warning" @click="goToWorkplaceZero" tile block class="move-btn">
-						{{ $t("panel.movement.workzero") }}
-					</v-btn>
 				</v-col>
 			</v-row>
 		</v-card-text>
