@@ -1100,7 +1100,7 @@
         "dependencies": "依赖",
         "status": "状态"
       },
-      "builtIn": "built-in",
+      "builtIn": "内置",
       "optional": "可选的",
       "start": "启动",
       "partiallyStarted": "部分已启动",
