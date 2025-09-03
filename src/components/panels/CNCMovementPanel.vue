@@ -134,7 +134,7 @@
 				<v-col cols="2" order="2" offset="8" sm="4" offset-sm="4" md="1" order-md="4" offset-md="0">
 					<v-row dense>
 						<v-col>
-							<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkplace} ${axis.letter}0`"
+							<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkplace} ${axis.letter}0\nM500`"
 									  class="move-btn">
 								{{ $t("panel.movement.set", [axis.letter]) }}
 							</code-btn>
@@ -234,7 +234,7 @@ export default Vue.extend({
 		async setWorkplaceZero() {
 			let code = `G10 L20 P${this.currentWorkplace}`;
 			this.visibleAxes.forEach(axis => (code += ` ${axis.letter}0`));
-			await store.dispatch("machine/sendCode", `${code}\nG10 L20 P${this.currentWorkplace}`);
+			await store.dispatch("machine/sendCode", `${code}\nG10 L20 P${this.currentWorkplace}\nM500`);
 		},
 		async goToWorkplaceZero() {
 			await store.dispatch("machine/sendCode", 'M98 P"workzero.g"');
