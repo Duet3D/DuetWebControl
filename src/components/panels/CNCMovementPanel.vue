@@ -42,7 +42,7 @@
 
 			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense>
 				<!-- Regular home buttons -->
-				<v-col cols="2" order="1" sm="4" md="1" order-md="1">
+				<v-col cols="4" order="1" sm="4" md="1" order-md="1">
 					<v-row dense>
 						<v-col>
 							<code-btn color="warning" tile block :code="`G10 L20 P${currentWorkplace} ${axis.letter}0`"
@@ -51,17 +51,45 @@
 							</code-btn>
 						</v-col>
 					</v-row>
+					<v-divider class="my-4 d-md-none" />
 				</v-col>
 
 				<!-- Decreasing movements -->
 				<v-col cols="6" order="3" md="5" order-md="2">
 					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(index - 1)">
-							<code-btn :code="getMoveCode(axis, index - 1, true)" no-wait
-									  @contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)" block tile
-									  class="move-btn">
+						<v-col
+							v-for="index in numMoveSteps"
+							:key="index"
+							:class="[
+								getMoveCellClass(index - 1),
+								(index === numMoveSteps ? 'd-none d-md-flex' : '')
+							]"
+						>
+							<code-btn
+								:code="getMoveCode(axis, index - 1, true)"
+								no-wait
+								@contextmenu.prevent="showMoveStepDialog(axis.letter, index - 1)"
+								block
+								tile
+								class="move-btn"
+							>
 								<v-icon>mdi-chevron-left</v-icon>
 								{{ axis.letter + showSign(-moveSteps(axis.letter)[index - 1]) }}
+							</code-btn>
+						</v-col>
+					</v-row>
+					<v-row dense class="d-md-none">
+						<v-col v-if="numMoveSteps > 0" :class="getMoveCellClass(numMoveSteps - 1)">
+							<code-btn
+								:code="getMoveCode(axis, numMoveSteps - 1, true)"
+								no-wait
+								@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - 1)"
+								block
+								tile
+								class="move-btn"
+							>
+								<v-icon>mdi-chevron-left</v-icon>
+								{{ axis.letter + showSign(-moveSteps(axis.letter)[numMoveSteps - 1]) }}
 							</code-btn>
 						</v-col>
 					</v-row>
@@ -70,11 +98,38 @@
 				<!-- Increasing movements -->
 				<v-col cols="6" order="4" md="5" order-md="3">
 					<v-row dense>
-						<v-col v-for="index in numMoveSteps" :key="index" :class="getMoveCellClass(numMoveSteps - index)">
-							<code-btn :code="getMoveCode(axis, numMoveSteps - index, false)" no-wait
-									  @contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)" block
-									  tile class="move-btn">
+						<v-col
+							v-for="index in numMoveSteps"
+							:key="index"
+							:class="[
+								getMoveCellClass(numMoveSteps - index),
+								(index === 1 ? 'd-none d-md-flex' : '')
+							]"
+						>
+							<code-btn
+								:code="getMoveCode(axis, numMoveSteps - index, false)"
+								no-wait
+								@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - index)"
+								block
+								tile
+								class="move-btn"
+							>
 								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - index]) }}
+								<v-icon>mdi-chevron-right</v-icon>
+							</code-btn>
+						</v-col>
+					</v-row>
+					<v-row dense class="d-md-none">
+						<v-col v-if="numMoveSteps > 0" :class="getMoveCellClass(numMoveSteps - 1)">
+							<code-btn
+								:code="getMoveCode(axis, numMoveSteps - 1, false)"
+								no-wait
+								@contextmenu.prevent="showMoveStepDialog(axis.letter, numMoveSteps - 1)"
+								block
+								tile
+								class="move-btn"
+							>
+								{{ axis.letter + showSign(moveSteps(axis.letter)[numMoveSteps - 1]) }}
 								<v-icon>mdi-chevron-right</v-icon>
 							</code-btn>
 						</v-col>
@@ -82,7 +137,7 @@
 				</v-col>
 
 				<!-- Set axis-->
-				<v-col cols="2" order="2" offset="8" sm="4" offset-sm="4" md="1" order-md="4" offset-md="0">
+				<v-col cols="4" order="2" offset="4" sm="4" offset-sm="4" md="1" order-md="4" offset-md="0">
 					<v-row dense>
 						<v-col>
 							<code-btn tile block :color="axis.homed ? 'primary' : 'warning'" :disabled="uiFrozen"
@@ -92,6 +147,7 @@
 							</code-btn>
 						</v-col>
 					</v-row>
+					<v-divider class="my-4 d-md-none" />
 				</v-col>
 				<v-col cols="12" class="d-md-none">
 					<v-divider class="my-4" />
