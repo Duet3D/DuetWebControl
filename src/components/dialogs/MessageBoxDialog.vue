@@ -209,6 +209,8 @@ export default Vue.extend({
 		isReconnecting(to: boolean) {
 			if (to) {
 				this.shown = false;
+			} else if (this.currentMessageBox && this.currentMessageBox.mode !== null) {
+				this.shown = true;
 			}
 		},
 		currentMessageBox: {
