@@ -29,57 +29,7 @@
 					</code-btn>
 				</v-col>
 				<v-col cols="6" order="2" md="8" order-md="2">
-					<v-menu offset-y left :disabled="uiFrozen">
-						<template #activator="{ on }">
-							<v-btn v-show="visibleAxes.length" color="primary" block class="mx-0 move-btn"
-								   :disabled="uiFrozen" v-on="on">
-								{{ $t("panel.movement.compensation") }}
-								<v-icon>mdi-menu-down</v-icon>
-							</v-btn>
-						</template>
-
-						<v-card>
-							<v-list>
-								<div v-show="isCompensationEnabled">
-									<v-list-item>
-										<v-spacer />
-										{{ $t("panel.movement.compensationInUse", [compensationType]) }}
-										<v-spacer />
-									</v-list-item>
-
-									<v-divider />
-								</div>
-
-								<v-list-item @click="sendCode('G32')">
-									<v-icon class="mr-1">mdi-format-vertical-align-center</v-icon>
-									{{ $t(isDelta ? "panel.movement.runDelta" : "panel.movement.runBed") }}
-								</v-list-item>
-								<v-list-item :disabled="!isCompensationEnabled" @click="sendCode('M561')">
-									<v-icon class="mr-1">mdi-border-none</v-icon>
-									{{ $t("panel.movement.disableBedCompensation") }}
-								</v-list-item>
-
-								<v-divider />
-
-								<v-list-item @click="sendCode('G29')">
-									<v-icon class="mr-1">mdi-grid</v-icon>
-									{{ $t("panel.movement.runMesh") }}
-								</v-list-item>
-								<v-list-item @click="showMeshEditDialog = true">
-									<v-icon class="mr-1">mdi-pencil</v-icon>
-									{{ $t("panel.movement.editMesh") }}
-								</v-list-item>
-								<v-list-item @click="sendCode('G29 S1')">
-									<v-icon class="mr-1">mdi-content-save</v-icon>
-									{{ $t("panel.movement.loadMesh") }}
-								</v-list-item>
-								<v-list-item :disabled="!isCompensationEnabled" @click="sendCode('G29 S2')">
-									<v-icon class="mr-1">mdi-grid-off</v-icon>
-									{{ $t("panel.movement.disableMeshCompensation") }}
-								</v-list-item>
-							</v-list>
-						</v-card>
-					</v-menu>
+					<compensation-menu />
 				</v-col>
 				<v-col cols="12" order="3" md="2" order-md="3">
 					<v-btn @click="setWorkplaceZero" block class="move-btn">
@@ -162,7 +112,6 @@
 			{{ $t("panel.movement.noAxes") }}
 		</v-alert>
 
-		<mesh-edit-dialog :shown.sync="showMeshEditDialog" />
 		<input-dialog :shown.sync="moveStepDialog.shown" :title="$t('dialog.changeMoveStep.title')"
 					  :prompt="$t('dialog.changeMoveStep.prompt')" :preset="moveStepDialog.preset" is-numeric-value
 					  @confirmed="moveStepDialogConfirmed" />
@@ -170,7 +119,7 @@
 </template>
 
 <script lang="ts">
-import { Axis, AxisLetter, KinematicsName, MoveCompensationType } from "@duet3d/objectmodel";
+import { Axis, AxisLetter } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import store from "@/store";
@@ -180,17 +129,13 @@ export default Vue.extend({
 		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 		moveSteps(): (axisLetter: AxisLetter) => Array<number> { return ((axisLetter: AxisLetter) => store.getters["machine/settings/moveSteps"](axisLetter)); },
 		numMoveSteps(): number { return store.getters["machine/settings/numMoveSteps"]; },
-		isCompensationEnabled(): boolean { return store.state.machine.model.move.compensation.type !== MoveCompensationType.none; },
-		compensationType(): MoveCompensationType { return store.state.machine.model.move.compensation.type; },
 		visibleAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible); },
-		isDelta(): boolean { return [KinematicsName.linearDelta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
 		unhomedAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible && !axis.homed); },
 		workCoordinates(): Array<number> { return [...Array(9).keys()].map(i => i + 1); },
 		workplaceNumber(): number { return store.state.machine.model.move.workplaceNumber; }
 	},
 	data() {
 		return {
-			showMeshEditDialog: false,
 			moveStepDialog: {
 				shown: false,
 				axis: AxisLetter.X,
@@ -258,7 +203,6 @@ export default Vue.extend({
 	watch: {
 		isConnected() {
 			// Hide dialogs when the connection is interrupted
-			this.showMeshEditDialog = false;
 			this.moveStepDialog.shown = false;
 		},
 		workplaceNumber(to: number) {
