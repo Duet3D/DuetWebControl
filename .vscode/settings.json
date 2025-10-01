@@ -2,5 +2,6 @@
     "i18n-ally.localesPaths": "src/i18n",
     "i18n-ally.pathMatcher": "{locale}.json",
     "i18n-ally.keystyle": "nested",
-    "typescript.tsdk": "node_modules/typescript/lib"
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "vue.server.path": "node_modules/@vue/language-server"
 }

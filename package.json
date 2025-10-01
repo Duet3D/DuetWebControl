@@ -20,6 +20,7 @@
       "@duet3d/objectmodel": "~3.7.0-alpha.1",
       "@mdi/font": "^7.4.47",
       "@sindarius/gcodeviewer": "^3.7.13",
+      "@vue/language-server": "~3.0.0",
       "chart.js": "^2.9.4",
       "chartjs-adapter-date-fns": "^1.0.0",
       "date-fns": "^2.30.0",
