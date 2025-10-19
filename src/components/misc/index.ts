@@ -7,6 +7,7 @@ import NotificationDisplay from "./NotificationDisplay.vue";
 import PanelLink from "./PanelLink.vue";
 import StatusLabel from "./StatusLabel.vue";
 import ThumbnailImg from "./ThumbnailImg.vue";
+import CompensationMenu from "./CompensationMenu.vue";
 
 Vue.component("directory-breadcrumbs", DirectoryBreadcrumbs);
 Vue.component("job-progress", JobProgress);
@@ -15,3 +16,4 @@ Vue.component("notification-display", NotificationDisplay);
 Vue.component("panel-link", PanelLink);
 Vue.component("status-label", StatusLabel);
 Vue.component("thumbnail-img", ThumbnailImg);
+Vue.component("compensation-menu", CompensationMenu);
