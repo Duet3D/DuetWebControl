@@ -736,6 +736,7 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
+      "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Single bed control",
       "groupTools": "Group identical tools",
       "singleChamberControl": "Single chamber control"

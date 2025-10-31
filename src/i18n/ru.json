@@ -737,6 +737,7 @@
       "unitInches": "дюймы",
       "unitMm": "мм",
       "unitMmSpeed": "мм/с",
+      "unitMmPerMinSpeed": "мм/мин",
       "singleBedControl": "Раздельное управление столами",
       "groupTools": "Сгруппировать одинаковые инструменты",
       "singleChamberControl": "Раздельное управление термокамерами"

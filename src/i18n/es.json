@@ -737,6 +737,7 @@
       "unitMm": "mm",
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
+      "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Control de cama individual",
       "groupTools": "Agrupar herramientas idénticas",
       "singleChamberControl": "Control de cámara única"

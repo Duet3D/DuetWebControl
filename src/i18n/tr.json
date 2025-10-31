@@ -737,6 +737,7 @@
       "unitInches": "inç",
       "unitMm": "mm",
       "unitMmSpeed": "mm/sn",
+      "unitMmPerMinSpeed": "mm/dk",
       "singleBedControl": "Tek kişilik yatak kontrolü",
       "groupTools": "Grup özdeş araçlar",
       "singleChamberControl": "Tek bölmeli kontrol"
