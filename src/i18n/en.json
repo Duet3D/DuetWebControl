@@ -738,8 +738,17 @@
       "unitMmSpeed": "mm/s",
       "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Single bed control",
-      "groupTools": "Group identical tools",
-      "singleChamberControl": "Single chamber control"
+      "singleChamberControl": "Single chamber control",
+      "showMixingControls": "Show mixing controls for tools with multiple extruders"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Hide Menu Items",
+      "console": "Hide Console",
+      "filamentFiles": "Hide Filament Files",
+      "macroFiles": "Hide Macro Files",
+      "systemFiles": "Hide System Files",
+      "machineSettings": "Hide Machine Settings",
+      "pluginSettings": "Hide Plugin Settings"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -777,6 +786,14 @@
       "cacheStorageLocal": "Save cache in local storage",
       "cacheSaveDelay": "Update delay for cache changes ({0})",
       "ignoreFileTimestamps": "Ignore file timestamps on upload"
+    },
+    "settingsToolGrouping": {
+      "caption": "Tool Grouping",
+      "groupTools": "Combine identical tools in the Tools panel",
+      "groupByExtruders": "Identical tools have the same extruders",
+      "groupByHeaters": "Identical tools have the same heaters",
+      "groupByOffsets": "Identical tools have the same offsets",
+      "groupBySpindle": "Identical tools have the same spindle"
     },
     "settingsListItems": {
       "caption": "List Items",

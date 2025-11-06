@@ -202,12 +202,29 @@ export function displayTime(value: number | null | undefined, showTrailingZeroes
  * @returns Indented file content
  */
 export function indent(content: string): string {
-    const lines = content.split('\n');
+	function findSemicolon(line: string): number {
+		for (let i = 0; i < line.length; i++) {
+			if (inQuotes) {
+				inQuotes = (line[i] !== '"');
+			} else if (line[i] === '"') {
+				inQuotes = true;
+			} else if (inExpression) {
+				inExpression = (line[i] !== '}');
+			} else if (line[i] === '{') {
+				inExpression = true;
+			} else if (line[i] === ';') {
+				return i;
+			}
+		}
+		return -1;
+	}
 
     // Find out how long the maximum command is
-    let maxCommandLength = 0;
-    for (const line of lines) {
-		const commentIndex = line.indexOf(';');
+	const lines = content.split('\n');
+	let maxCommandLength = 0;
+	let inQuotes = false, inExpression = false;
+	for (const line of lines) {
+		const commentIndex = findSemicolon(line);
 		if (commentIndex > 0) {
 			const commandLength = line.substring(0, commentIndex).trimEnd().length;
 			if (commandLength > maxCommandLength) {
@@ -219,7 +236,7 @@ export function indent(content: string): string {
     // Align line comments
     let newResult = "";
     for (const line of lines) {
-        const commentIndex = line.indexOf(';');
+		const commentIndex = findSemicolon(line);
         if (commentIndex <= 0) {
             newResult += line + '\n';
 		} else {

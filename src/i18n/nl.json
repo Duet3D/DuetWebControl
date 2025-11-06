@@ -728,7 +728,6 @@
       "disableAutoComplete": "Schakel automatisch aanvullen uit",
       "disableAutoCompleteTitle": "Lijst voor automatisch aanvullen niet weergeven bij het typen van code of temperatuurinvoer",
       "displayUnitsTitle": "Maateenheid voor weergave van coördinaten",
-      "groupTools": "Groepeer identieke gereedschappen",
       "iconMenu": "Gebruik een compact pictogrammenu",
       "language": "Taal",
       "numericInputs": "Toon numerieke invoervelden in plaats van schuifregelaars",
@@ -739,7 +738,8 @@
       "unitInches": "inches",
       "unitMm": "mm",
       "unitMmSpeed": "mm/sec",
-      "unitMmPerMinSpeed": "mm/min"
+      "unitMmPerMinSpeed": "mm/min",
+      "showMixingControls": "Toon mengregelaars voor gereedschappen met meerdere extruders"
     },
     "settingsBehaviour": {
       "behaviourJobStart": "Schakel niet automatisch over naar Statuspaneel bij het starten van de taak",
@@ -891,6 +891,23 @@
     "webcam": {
       "alt": "(webcambeeld)",
       "caption": "Webcambewaking"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Menu-items verbergen",
+      "console": "Console verbergen",
+      "filamentFiles": "Filamentbestanden verbergen",
+      "machineSettings": "Machine-instellingen verbergen",
+      "macroFiles": "Macrobestanden verbergen",
+      "pluginSettings": "Plug-ininstellingen verbergen",
+      "systemFiles": "Systeembestanden verbergen"
+    },
+    "settingsToolGrouping": {
+      "caption": "Gereedschapgroepering",
+      "groupByExtruders": "Identieke gereedschappen hebben dezelfde extruders",
+      "groupByHeaters": "Identieke gereedschappen hebben dezelfde verwarmingselementen",
+      "groupByOffsets": "Identieke gereedschappen hebben dezelfde offsets",
+      "groupBySpindle": "Identieke gereedschappen hebben dezelfde spil",
+      "groupTools": "Combineer identieke gereedschappen in het deelvenster Gereedschappen"
     }
   },
   "pluginPermissions": {
@@ -1044,7 +1061,8 @@
       "zBelt": "Z-riem",
       "zBeltAngle": "Z-riem portaalhoek",
       "cancelObj": "Object annuleren",
-      "resumeObj": "Hervat object"
+      "resumeObj": "Hervat object",
+      "persistTravels": "Blijven reizen"
     },
     "heightmap": {
       "area": "Sondegebied: {0}",
@@ -1111,7 +1129,8 @@
       "stopped": "gestopt",
       "uninstall": "Verwijderen",
       "builtIn": "ingebouwd",
-      "installed": "geïnstalleerd"
+      "installed": "geïnstalleerd",
+      "refreshNow": "Vernieuw nu"
     }
   }
 }

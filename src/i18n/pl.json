@@ -739,8 +739,8 @@
       "unitMmSpeed": "mm/s",
       "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Sterowanie pojedynczym łóżkiem",
-      "groupTools": "Pogrupuj identyczne narzędzia",
-      "singleChamberControl": "Sterowanie jednokomorowe"
+      "singleChamberControl": "Sterowanie jednokomorowe",
+      "showMixingControls": "Pokaż elementy sterujące mieszaniem dla narzędzi z wieloma wytłaczarkami"
     },
     "settingsCommunication": {
       "caption": "Komunikacja",
@@ -892,6 +892,23 @@
       "setRPM": "Ustaw obroty",
       "spindle": "Wrzeciono",
       "title": "Wrzeciona"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Ukryj pozycje menu",
+      "console": "Ukryj konsolę",
+      "filamentFiles": "Ukryj pliki włókien",
+      "machineSettings": "Ukryj ustawienia urządzenia",
+      "macroFiles": "Ukryj pliki makr",
+      "pluginSettings": "Ukryj ustawienia wtyczki",
+      "systemFiles": "Ukryj pliki systemowe"
+    },
+    "settingsToolGrouping": {
+      "caption": "Grupowanie narzędzi",
+      "groupByExtruders": "Identyczne narzędzia mają te same wytłaczarki",
+      "groupByHeaters": "Identyczne narzędzia mają te same grzałki",
+      "groupByOffsets": "Identyczne narzędzia mają takie same przesunięcia",
+      "groupBySpindle": "Identyczne narzędzia mają to samo wrzeciono",
+      "groupTools": "Połącz identyczne narzędzia w panelu Narzędzia"
     }
   },
   "pluginPermissions": {
@@ -1045,7 +1062,8 @@
       "perimeterOnly": "Tylko obwód",
       "progressMode": "Tryb postępu",
       "cancelObj": "Anuluj obiekt",
-      "resumeObj": "Wznów obiekt"
+      "resumeObj": "Wznów obiekt",
+      "persistTravels": "Kontynuuj podróże"
     },
     "heightmap": {
       "menuCaption": "Mapa wysokości",
@@ -1112,7 +1130,8 @@
       "noPlugins": "Brak wtyczek",
       "refreshNote": "Odśwież stronę aby zakończyć rozpakowywanie niektórych wtyczek DWC",
       "builtIn": "wbudowany",
-      "installed": "zainstalowany"
+      "installed": "zainstalowany",
+      "refreshNow": "Odśwież teraz"
     }
   }
 }

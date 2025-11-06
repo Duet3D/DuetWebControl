@@ -739,8 +739,8 @@
       "unitMmSpeed": "mm/秒",
       "unitMmPerMinSpeed": "mm/分",
       "singleBedControl": "シングルベッドコントロール",
-      "groupTools": "同一のツールをグループ化する",
-      "singleChamberControl": "シングルチャンバー制御"
+      "singleChamberControl": "シングルチャンバー制御",
+      "showMixingControls": "複数の押出機を備えたツールの混合コントロールを表示する"
     },
     "settingsCommunication": {
       "caption": "通信",
@@ -892,6 +892,23 @@
     "webcam": {
       "caption": "ウェブカメラ監視",
       "alt": "(webcam image)"
+    },
+    "settingsHideMenuItems": {
+      "caption": "メニュー項目を非表示にする",
+      "console": "コンソールを隠す",
+      "filamentFiles": "フィラメントファイルを隠す",
+      "machineSettings": "マシン設定を非表示にする",
+      "macroFiles": "マクロファイルを隠す",
+      "pluginSettings": "プラグイン設定を非表示にする",
+      "systemFiles": "システムファイルを隠す"
+    },
+    "settingsToolGrouping": {
+      "caption": "ツールのグループ化",
+      "groupByExtruders": "同じツールには同じ押出機が付いています",
+      "groupByHeaters": "同じツールには同じヒーターが付いています",
+      "groupByOffsets": "同じツールは同じオフセットを持ちます",
+      "groupBySpindle": "同じ工具には同じスピンドルが付いています",
+      "groupTools": "ツールパネルで同一のツールを結合する"
     }
   },
   "pluginPermissions": {
@@ -1045,7 +1062,8 @@
       "perimeterOnly": "周囲のみ",
       "progressMode": "プログレスモード",
       "cancelObj": "オブジェクトのキャンセル",
-      "resumeObj": "再開オブジェクト"
+      "resumeObj": "再開オブジェクト",
+      "persistTravels": "旅行を続ける"
     },
     "heightmap": {
       "menuCaption": "ハイトマップ",
@@ -1112,7 +1130,8 @@
       "noPlugins": "プラグインなし",
       "refreshNote": "DWCプラグインのアンロードを終了するため、ページを更新します",
       "builtIn": "内蔵",
-      "installed": "インストールされています"
+      "installed": "インストールされています",
+      "refreshNow": "今すぐ更新してください"
     }
   }
 }

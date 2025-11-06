@@ -738,8 +738,8 @@
       "unitMmSpeed": "mm/s",
       "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "单个热床控制",
-      "groupTools": "分组相同的工具",
-      "singleChamberControl": "单个加热室控制"
+      "singleChamberControl": "单个加热室控制",
+      "showMixingControls": "显示具有多个挤出机的工具的混合控制"
     },
     "settingsCommunication": {
       "caption": "通讯",
@@ -891,6 +891,23 @@
     "webcam": {
       "caption": "网络摄像头监控",
       "alt": "(网络摄像头图像)"
+    },
+    "settingsHideMenuItems": {
+      "caption": "隐藏菜单项",
+      "console": "隐藏控制台",
+      "filamentFiles": "隐藏灯丝文件",
+      "machineSettings": "隐藏机器设置",
+      "macroFiles": "隐藏宏文件",
+      "pluginSettings": "隐藏插件设置",
+      "systemFiles": "隐藏系统文件"
+    },
+    "settingsToolGrouping": {
+      "caption": "工具分组",
+      "groupByExtruders": "相同的工具具有相同的挤出机",
+      "groupByHeaters": "相同的工具具有相同的加热器",
+      "groupByOffsets": "相同的刀具具有相同的偏移量",
+      "groupBySpindle": "相同的刀具具有相同的主轴",
+      "groupTools": "在“工具”面板中组合相同的工具"
     }
   },
   "pluginPermissions": {

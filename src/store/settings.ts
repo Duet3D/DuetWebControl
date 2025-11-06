@@ -104,6 +104,11 @@ export interface SettingsState {
 	cacheSaveDelay: number;
 
 	/**
+	 * Hidden menu items
+	 */
+	hiddenMenuItems: Array<string>;
+
+	/**
 	 * Notification settings
 	 */
 	notifications: {
@@ -209,6 +214,8 @@ export default {
 		settingsSaveDelay: 500,
 		cacheStorageLocal: localStorageSupported,
 		cacheSaveDelay: 1000,
+
+		hiddenMenuItems: [],
 
 		notifications: {
 			errorsPersistent: true,

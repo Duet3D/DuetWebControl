@@ -15,7 +15,14 @@
 		</v-col>
 
 		<v-col cols="12" md="8">
-			<settings-list-items-panel />
+			<v-row :dense="$vuetify.breakpoint.mobile">
+				<v-col cols="12" md="12">
+					<settings-list-items-panel />
+				</v-col>
+				<v-col cols="12" md="12">
+					<settings-tool-grouping-panel />
+				</v-col>
+			</v-row>
 		</v-col>
 	</v-row>
 </template>

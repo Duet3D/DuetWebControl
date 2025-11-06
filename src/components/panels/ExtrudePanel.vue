@@ -6,7 +6,7 @@
 
 		<v-card-text class="pb-0">
 			<v-row class="pb-1" align="center" justify="center">
-				<v-col v-if="currentTool && currentTool.extruders.length > 1" cols="auto">
+				<v-col v-if="currentTool && currentTool.extruders.length > 1 && showMixingControls" cols="auto">
 					<p class="mb-1">
 						{{ $t("panel.extrude.mixRatio") }}
 					</p>
@@ -76,6 +76,7 @@ export default Vue.extend({
 		currentTool(): Tool | null { return store.getters["machine/model/currentTool"]; },
 		amountUnit(): string { return store.state.machine.model.inputs[CodeChannel.http]?.distanceUnit ?? "mm"; },
 		feedrateUnit(): string { return (store.state.machine.model.inputs[CodeChannel.http]?.distanceUnit ?? "mm") + "/s"; },
+		showMixingControls(): boolean { return store.state.machine.settings.showMixingControls; },
 		canExtrude(): boolean {
 			return (store.state.machine.model.state.status !== MachineStatus.off &&
 					store.state.machine.model.state.status !== MachineStatus.pausing &&
@@ -159,7 +160,7 @@ export default Vue.extend({
 			}
 
 			let amounts;
-			if (this.mixValue[0] === "mix") {
+			if (this.mixValue[0] === "mix" || !this.showMixingControls) {
 				// Split total amount to extrude evenly
 				amounts = [this.amount];
 			} else {

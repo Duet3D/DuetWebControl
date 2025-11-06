@@ -738,8 +738,8 @@
       "unitMmSpeed": "mm/s",
       "unitMmPerMinSpeed": "mm/min",
       "singleBedControl": "Csoportos asztal vezérlés",
-      "groupTools": "Azonos szerszámok csoportosítása",
-      "singleChamberControl": "Csoportos kamra vezérlés"
+      "singleChamberControl": "Csoportos kamra vezérlés",
+      "showMixingControls": "Több extruderrel rendelkező szerszámok keverési vezérlőinek megjelenítése"
     },
     "settingsCommunication": {
       "caption": "Kommunikáció",
@@ -891,6 +891,23 @@
     "webcam": {
       "caption": "Webkamerás megfigyelés",
       "alt": "(webkamera kép)"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Menüelemek elrejtése",
+      "console": "Konzol elrejtése",
+      "filamentFiles": "Filament fájlok elrejtése",
+      "machineSettings": "Gépbeállítások elrejtése",
+      "macroFiles": "Makrófájlok elrejtése",
+      "pluginSettings": "Plugin beállítások elrejtése",
+      "systemFiles": "Rendszerfájlok elrejtése"
+    },
+    "settingsToolGrouping": {
+      "caption": "Eszközcsoportosítás",
+      "groupByExtruders": "Az azonos szerszámok ugyanazokkal az extruderekkel rendelkeznek",
+      "groupByHeaters": "Az azonos szerszámoknak ugyanazok a fűtőtestek",
+      "groupByOffsets": "Az azonos szerszámoknak ugyanazok az eltolások",
+      "groupBySpindle": "Az azonos szerszámoknak ugyanaz az orsójuk",
+      "groupTools": "Kombinálja az azonos eszközöket az Eszközök panelen"
     }
   },
   "pluginPermissions": {
@@ -1044,7 +1061,8 @@
       "perimeterOnly": "Csak a körvonalak",
       "progressMode": "Progress Mode",
       "cancelObj": "Tárgy megszakítása",
-      "resumeObj": "Tárgy folytatása"
+      "resumeObj": "Tárgy folytatása",
+      "persistTravels": "Állandó utazások"
     },
     "heightmap": {
       "menuCaption": "Szintezési térkép",
@@ -1111,7 +1129,8 @@
       "noPlugins": "Nincs plugin",
       "refreshNote": "Bizonyos DWC plugin-ek teljes leállításához az oldal frissítése szükséges!",
       "builtIn": "beépített",
-      "installed": "telepítve"
+      "installed": "telepítve",
+      "refreshNow": "Frissítés most"
     }
   }
 }

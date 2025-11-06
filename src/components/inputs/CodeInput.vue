@@ -10,7 +10,7 @@
 			<v-combobox ref="input" :solo="solo" hide-details :disabled="uiFrozen"
 						:placeholder="$t('input.code.placeholder')"
 						:search-input="(code instanceof Object) ? code.value : (code ?? '')"
-						@update:search-input="code = $event" :loading="doingCode" @keyup.enter="sendOnEnter"
+						@update:search-input="code = $event ?? ''" :loading="doingCode" @keyup.enter="sendOnEnter"
 						@change="change" @blur="wasFocused = showItems = ignoreEnter = false" @click="click"
 						:items="displayedCodes" hide-selected @keyup.down="showItems = true" append-icon=""
 						maxlength="255">
@@ -174,12 +174,6 @@ export default Vue.extend({
 		code(to: string | { value: string }) {
 			if (typeof to === "string" && to.length >= 2) {
 				this.showItems = true;
-			}
-		},
-		uiFrozen(to: boolean) {
-			if (to) {
-				// Clear input when the UI is frozen
-				this.code = "";
 			}
 		},
 		messageBox(to: MessageBox | null) {

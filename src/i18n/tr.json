@@ -739,8 +739,8 @@
       "unitMmSpeed": "mm/sn",
       "unitMmPerMinSpeed": "mm/dk",
       "singleBedControl": "Tek kişilik yatak kontrolü",
-      "groupTools": "Grup özdeş araçlar",
-      "singleChamberControl": "Tek bölmeli kontrol"
+      "singleChamberControl": "Tek bölmeli kontrol",
+      "showMixingControls": "Birden fazla ekstrüdere sahip aletler için karıştırma kontrollerini göster"
     },
     "settingsCommunication": {
       "caption": "İletişim",
@@ -892,6 +892,23 @@
       "setRPM": "RPM'yi ayarla",
       "spindle": "mil",
       "title": "iğler"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Menü Öğelerini Gizle",
+      "console": "Konsolu Gizle",
+      "filamentFiles": "Filament Dosyalarını Gizle",
+      "machineSettings": "Makine Ayarlarını Gizle",
+      "macroFiles": "Makro Dosyalarını Gizle",
+      "pluginSettings": "Eklenti Ayarlarını Gizle",
+      "systemFiles": "Sistem Dosyalarını Gizle"
+    },
+    "settingsToolGrouping": {
+      "caption": "Takım Gruplaması",
+      "groupByExtruders": "Aynı takımlar aynı ekstrüderlere sahiptir",
+      "groupByHeaters": "Aynı aletler aynı ısıtıcılara sahiptir",
+      "groupByOffsets": "Aynı takımlar aynı ofsetlere sahiptir",
+      "groupBySpindle": "Aynı takımlar aynı iş miline sahiptir",
+      "groupTools": "Araçlar panelinde aynı araçları birleştirme"
     }
   },
   "plugins": {
@@ -1050,7 +1067,8 @@
       "perimeterOnly": "Yalnızca Çevre",
       "progressMode": "İlerleme Modu",
       "cancelObj": "Nesneyi İptal Et",
-      "resumeObj": "Nesneyi Devam Ettir"
+      "resumeObj": "Nesneyi Devam Ettir",
+      "persistTravels": "Kalıcı Seyahatler"
     }
   },
   "pluginPermissions": {
@@ -1112,7 +1130,8 @@
       "stopped": "durdu",
       "uninstall": "Kaldır",
       "builtIn": "yerleşik",
-      "installed": "yüklü"
+      "installed": "yüklü",
+      "refreshNow": "Şimdi yenile"
     }
   }
 }
