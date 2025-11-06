@@ -738,8 +738,8 @@
       "unitMm": "milímetros",
       "unitMmSpeed": "mm/s",
       "singleBedControl": "Controle de cama de solteiro",
-      "groupTools": "Agrupar ferramentas idênticas",
-      "singleChamberControl": "Controle de câmara única"
+      "singleChamberControl": "Controle de câmara única",
+      "showMixingControls": "Mostrar controles de mixagem para ferramentas com múltiplas extrusoras"
     },
     "settingsCommunication": {
       "caption": "Comunicação",
@@ -891,6 +891,23 @@
       "setRPM": "Definir RPM",
       "spindle": "Fuso",
       "title": "Fusos"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Ocultar itens do menu",
+      "console": "Ocultar console",
+      "filamentFiles": "Ocultar arquivos de filamento",
+      "machineSettings": "Ocultar configurações da máquina",
+      "macroFiles": "Ocultar arquivos de macro",
+      "pluginSettings": "Ocultar configurações de plug-in",
+      "systemFiles": "Ocultar arquivos do sistema"
+    },
+    "settingsToolGrouping": {
+      "caption": "Agrupamento de ferramentas",
+      "groupByExtruders": "Ferramentas idênticas possuem as mesmas extrusoras",
+      "groupByHeaters": "Ferramentas idênticas têm os mesmos aquecedores",
+      "groupByOffsets": "Ferramentas idênticas têm os mesmos deslocamentos",
+      "groupBySpindle": "Ferramentas idênticas têm o mesmo fuso",
+      "groupTools": "Combine ferramentas idênticas no painel Ferramentas"
     }
   },
   "plugins": {
@@ -988,7 +1005,8 @@
       "perimeterOnly": "Somente Perímetro",
       "progressMode": "Modo de Progresso",
       "cancelObj": "Cancelar objeto",
-      "resumeObj": "Retomar objeto"
+      "resumeObj": "Retomar objeto",
+      "persistTravels": "Persistir viagens"
     },
     "heightmap": {
       "menuCaption": "Mapa de Altura",
@@ -1081,7 +1099,8 @@
       "externalPlugins": "Plug-ins externos",
       "integratedPlugins": "Plug-ins integrados",
       "builtIn": "embutido",
-      "installed": "instalado"
+      "installed": "instalado",
+      "refreshNow": "Atualizar agora"
     }
   },
   "pluginPermissions": {

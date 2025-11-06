@@ -738,8 +738,8 @@
       "unitMm": "millimètre",
       "unitMmSpeed": "mm/s",
       "singleBedControl": "Commande lit simple",
-      "groupTools": "Regrouper les outils identiques",
-      "singleChamberControl": "Commande à chambre unique"
+      "singleChamberControl": "Commande à chambre unique",
+      "showMixingControls": "Afficher les commandes de mélange pour les outils avec plusieurs extrudeuses"
     },
     "settingsCommunication": {
       "caption": "Communication",
@@ -891,6 +891,23 @@
       "setRPM": "Définir le régime",
       "spindle": "Broche",
       "title": "Broches"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Masquer les éléments de menu",
+      "console": "Masquer la console",
+      "filamentFiles": "Masquer les fichiers de filaments",
+      "machineSettings": "Masquer les paramètres de la machine",
+      "macroFiles": "Masquer les fichiers de macros",
+      "pluginSettings": "Masquer les paramètres du plugin",
+      "systemFiles": "Masquer les fichiers système"
+    },
+    "settingsToolGrouping": {
+      "caption": "Regroupement d'outils",
+      "groupByExtruders": "Les outils identiques ont les mêmes extrudeuses",
+      "groupByHeaters": "Les outils identiques ont les mêmes radiateurs",
+      "groupByOffsets": "Des outils identiques ont les mêmes décalages",
+      "groupBySpindle": "Les outils identiques ont la même broche",
+      "groupTools": "Combinez des outils identiques dans le panneau Outils"
     }
   },
   "pluginPermissions": {
@@ -1079,7 +1096,8 @@
       "perimeterOnly": "Périmètre uniquement",
       "progressMode": "Mode Progression",
       "cancelObj": "Annuler l'objet",
-      "resumeObj": "Reprendre l'objet"
+      "resumeObj": "Reprendre l'objet",
+      "persistTravels": "Continuer les voyages"
     }
   },
   "tabs": {
@@ -1111,7 +1129,8 @@
       "noPlugins": "Aucun plugin",
       "refreshNote": "Rafraîchissez la page pour terminer le déchargement de certains plugins DWC.",
       "builtIn": "intégré",
-      "installed": "installé"
+      "installed": "installé",
+      "refreshNow": "Actualiser maintenant"
     }
   }
 }

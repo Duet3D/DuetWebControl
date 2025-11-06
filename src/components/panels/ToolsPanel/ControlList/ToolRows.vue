@@ -209,10 +209,10 @@ const toolsToDisplay = computed<Array<Tool>>(() => {
 
             for (let i = 0; i < tools.length; i++) {
                 const tool = tools[i];
-                if ((item.extruders.length === tool.extruders.length && item.extruders.every((extruder, index) => extruder === tool.extruders[index])) &&
-                    (item.heaters.length === tool.heaters.length && item.heaters.every((heater, index) => heater === tool.heaters[index])) &&
-                    (item.offsets.length === tool.offsets.length && item.offsets.every((offset, index) => offset === tool.offsets[index])) &&
-                    item.spindle === tool.spindle)
+                if ((!store.state.machine.settings.groupByExtruders || (item.extruders.length === tool.extruders.length && item.extruders.every((extruder, index) => extruder === tool.extruders[index]))) &&
+                    (!store.state.machine.settings.groupByHeaters || (item.heaters.length === tool.heaters.length && item.heaters.every((heater, index) => heater === tool.heaters[index]))) &&
+                    (!store.state.machine.settings.groupByOffsets || (item.offsets.length === tool.offsets.length && item.offsets.every((offset, index) => offset === tool.offsets[index]))) &&
+                    (!store.state.machine.settings.groupBySpindle || (item.spindle === tool.spindle)))
                 {
                     // Tool is identical
                     equalToolFound = true;

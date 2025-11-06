@@ -738,8 +738,8 @@
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
       "singleBedControl": "Control de cama individual",
-      "groupTools": "Agrupar herramientas idénticas",
-      "singleChamberControl": "Control de cámara única"
+      "singleChamberControl": "Control de cámara única",
+      "showMixingControls": "Mostrar controles de mezcla para herramientas con múltiples extrusores"
     },
     "settingsCommunication": {
       "caption": "Comunicación",
@@ -891,6 +891,23 @@
     "webcam": {
       "caption": "Vigilancia por webcam",
       "alt": "(imagen de la Webcam)"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Ocultar elementos del menú",
+      "console": "Ocultar consola",
+      "filamentFiles": "Ocultar archivos de filamento",
+      "machineSettings": "Ocultar configuración de la máquina",
+      "macroFiles": "Ocultar archivos de macros",
+      "pluginSettings": "Ocultar configuración del complemento",
+      "systemFiles": "Ocultar archivos del sistema"
+    },
+    "settingsToolGrouping": {
+      "caption": "Agrupación de herramientas",
+      "groupByExtruders": "Herramientas idénticas tienen los mismos extrusores.",
+      "groupByHeaters": "Herramientas idénticas tienen los mismos calentadores.",
+      "groupByOffsets": "Herramientas idénticas tienen las mismas compensaciones.",
+      "groupBySpindle": "Herramientas idénticas tienen el mismo husillo.",
+      "groupTools": "Combina herramientas idénticas en el panel Herramientas"
     }
   },
   "pluginPermissions": {
@@ -1044,7 +1061,8 @@
       "perimeterOnly": "Solo perímetro",
       "progressMode": "Modo de progreso",
       "cancelObj": "Cancelar objeto",
-      "resumeObj": "Reanudar objeto"
+      "resumeObj": "Reanudar objeto",
+      "persistTravels": "Persistir viajes"
     },
     "heightmap": {
       "menuCaption": "Mapa de altura",
@@ -1111,7 +1129,8 @@
       "noPlugins": "Sin complementos",
       "refreshNote": "Actualice la página para terminar de descargar algunos complementos de DWC",
       "builtIn": "incorporado",
-      "installed": "instalado"
+      "installed": "instalado",
+      "refreshNow": "Actualizar ahora"
     }
   }
 }

@@ -170,6 +170,29 @@ export interface MachineSettingsState {
 	groupTools: boolean;
 
 	/**
+	 * Group identical tools by extruders
+	 */
+	groupByExtruders: boolean;
+
+	/**
+	 * Group identical tools by heaters
+	 */
+	groupByHeaters: boolean;
+	
+	/**
+	 * Group identical tools by offsets
+	 */
+	groupByOffsets: boolean;
+
+	/**
+	 * Group identical tools by spindle
+	 */
+	groupBySpindle: boolean;
+
+	/** */
+	showMixingControls: boolean;
+
+	/**
 	 * Provide only a single input field for controlling multiple beds
 	 */
 	singleBedControl: boolean;
@@ -262,11 +285,19 @@ export default function (connector: BaseConnector | null): MachineSettingsModule
 				},
 				chamber: [90, 80, 70, 60, 50, 40, 0]
 			},
-			groupTools: true,
 			singleBedControl: false,
 			singleChamberControl: false,
+			showMixingControls: true,
 			spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
 
+			// Tool grouping
+			groupTools: true,
+			groupByExtruders: true,
+			groupByHeaters: true,
+			groupByOffsets: true,
+			groupBySpindle: true,
+
+			// Plugins
 			enabledPlugins: [],
 			plugins: Object.assign({}, defaultPluginSettingFields)
 		},

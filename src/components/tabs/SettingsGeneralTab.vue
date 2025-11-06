@@ -8,6 +8,9 @@
 				<v-col cols="12" sm="6" md="12">
 					<settings-apperance-panel />
 				</v-col>
+				<v-col cols="12" sm="6" md="12">
+					<settings-hide-menu-items-panel />
+				</v-col>
 			</v-row>
 		</v-col>
 

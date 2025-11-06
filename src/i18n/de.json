@@ -738,8 +738,8 @@
       "unitInchSpeed": "ipm",
       "unitMmSpeed": "mm/s",
       "singleBedControl": "Einzelbettsteuerung",
-      "groupTools": "Identische Werkzeuge gruppieren",
-      "singleChamberControl": "Einkammersteuerung"
+      "singleChamberControl": "Einkammersteuerung",
+      "showMixingControls": "Mischsteuerungen für Werkzeuge mit mehreren Extrudern anzeigen"
     },
     "settingsCommunication": {
       "caption": "Kommunikation",
@@ -891,6 +891,23 @@
     "webcam": {
       "caption": "Webcamüberwachung",
       "alt": "(webcam bild)"
+    },
+    "settingsHideMenuItems": {
+      "caption": "Menüelemente ausblenden",
+      "console": "Konsole ausblenden",
+      "filamentFiles": "Filamentdateien ausblenden",
+      "machineSettings": "Maschineneinstellungen ausblenden",
+      "macroFiles": "Makrodateien ausblenden",
+      "pluginSettings": "Plugin-Einstellungen ausblenden",
+      "systemFiles": "Systemdateien ausblenden"
+    },
+    "settingsToolGrouping": {
+      "caption": "Werkzeuggruppierung",
+      "groupByExtruders": "Identische Werkzeuge haben die gleichen Extruder",
+      "groupByHeaters": "Identische Werkzeuge haben die gleichen Heizungen",
+      "groupByOffsets": "Identische Werkzeuge haben die gleichen Versätze",
+      "groupBySpindle": "Identische Werkzeuge haben die gleiche Spindel",
+      "groupTools": "Kombinieren Sie identische Werkzeuge im Bedienfeld „Werkzeuge“."
     }
   },
   "pluginPermissions": {
@@ -1044,7 +1061,8 @@
       "progressMode": "Fortschrittsmodus",
       "perimeterOnly": "Nur Ränder",
       "cancelObj": "Objekt abbrechen",
-      "resumeObj": "Objekt fortsetzen"
+      "resumeObj": "Objekt fortsetzen",
+      "persistTravels": "Persistenzreisen"
     },
     "heightmap": {
       "menuCaption": "Höhenkarte",
@@ -1111,7 +1129,8 @@
       "noPlugins": "Keine Plugins",
       "refreshNote": "Laden Sie die Seite neu um einige DWC-Plugins zu entladen",
       "builtIn": "eingebaut",
-      "installed": "installiert"
+      "installed": "installiert",
+      "refreshNow": "Jetzt aktualisieren"
     }
   }
 }

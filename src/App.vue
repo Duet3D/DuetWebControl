@@ -122,7 +122,7 @@ export default Vue.extend({
 		categories(): Array<MenuCategory> {
 			return Object.keys(Menu)
 				.map(key => Menu[key])
-				.filter(item => item.pages.some(page => page.condition));
+				.filter(item => item.pages.some(page => page.condition && !store.state.settings.hiddenMenuItems.includes(page.path)));
 		},
 		currentPageCondition(): boolean {
 			const currentRoute = this.$route;
@@ -170,7 +170,7 @@ export default Vue.extend({
 			return true;
 		},
 		getPages(category: MenuCategory): Array<MenuItem> {
-			return category.pages.filter(page => page.condition);
+			return category.pages.filter(page => page.condition && !store.state.settings.hiddenMenuItems.includes(page.path));
 		},
 		updateTitle(): void {
 			if (this.status === MachineStatus.disconnected) {
