@@ -198,6 +198,7 @@ export function displayTime(value: number | null | undefined, showTrailingZeroes
  */
 export function indent(content: string): string {
 	function findSemicolon(line: string): number {
+		let inQuotes = false, inExpression = false;
 		for (let i = 0; i < line.length; i++) {
 			if (inQuotes) {
 				inQuotes = (line[i] !== '"');
@@ -217,7 +218,6 @@ export function indent(content: string): string {
     // Find out how long the maximum command is
 	const lines = content.split('\n');
 	let maxCommandLength = 0;
-	let inQuotes = false, inExpression = false;
 	for (const line of lines) {
 		const commentIndex = findSemicolon(line);
 		if (commentIndex > 0) {
