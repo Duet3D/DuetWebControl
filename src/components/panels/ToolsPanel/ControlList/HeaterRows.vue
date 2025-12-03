@@ -155,7 +155,42 @@ const emit = defineEmits<{
 const disabled = computed<boolean>(() => store.getters["uiFrozen"] || [MachineStatus.pausing, MachineStatus.processing, MachineStatus.resuming].includes(store.state.machine.model.state.status));
 
 // Settings
-const singleControl = computed(() => (props.type === "bed") ? store.state.machine.settings.singleBedControl : store.state.machine.settings.singleChamberControl);
+const singleControl = computed(() => {
+    if (props.type === "bed" && store.state.machine.settings.singleBedControl) {
+        let state: HeaterState | null, active: number | null = null, standby: number | null = null;
+        for (const heaterIndex of store.state.machine.model.heat.bedHeaters) {
+            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                if (heater !== null) {
+                    state ??= heater.state;
+                    active ??= heater.active;
+                    standby ??= heater.standby;
+                    if (heater.state === state || heater.active !== active || heater.standby !== standby) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    } else if (props.type === "chamber" && store.state.machine.settings.singleChamberControl) {
+        let state: HeaterState | null, active: number | null = null, standby: number | null = null;
+        for (const heaterIndex of store.state.machine.model.heat.chamberHeaters) {
+            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                if (heater !== null) {
+                    state ??= heater.state;
+                    active ??= heater.active;
+                    standby ??= heater.standby;
+                    if (heater.state === state || heater.active !== active || heater.standby !== standby) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    return false;
+});
 
 // Heater abstraction
 const heaterItems = computed(() => {

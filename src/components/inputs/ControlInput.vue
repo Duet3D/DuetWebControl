@@ -89,7 +89,25 @@ export default Vue.extend({
 			const activeOrStandby = this.active ? "active" : "standby";
 			switch (this.type) {
 				case "all":
-					// not applicable
+					if (this.controlBeds) {
+						for (const bedHeaterIndex of store.state.machine.model.heat.bedHeaters) {
+							if (bedHeaterIndex >= 0 && bedHeaterIndex < store.state.machine.model.heat.heaters.length) {
+								const heater = store.state.machine.model.heat.heaters[bedHeaterIndex];
+								if (heater !== null) {
+									return heater[activeOrStandby];
+								}
+							}
+						}
+					} else if (this.controlChambers) {
+						for (const chamberHeaterIndex of store.state.machine.model.heat.chamberHeaters) {
+							if (chamberHeaterIndex >= 0 && chamberHeaterIndex < store.state.machine.model.heat.heaters.length) {
+								const heater = store.state.machine.model.heat.heaters[chamberHeaterIndex];
+								if (heater !== null) {
+									return heater[activeOrStandby];
+								}
+							}
+						}
+					}
 					break;
 
 				case "tool":
