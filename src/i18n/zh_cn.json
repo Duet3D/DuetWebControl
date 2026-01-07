@@ -609,6 +609,10 @@
     "freeSpaceWarning": {
       "title": "磁盘快满了",
       "message": "几乎没有剩余空间，删除一些文件以避免文件上传过程中出现问题。"
+    },
+    "daemonG": {
+      "title": "daemon.g 上传成功",
+      "message": "请注意，它仍在运行，因此可能需要重新启动计算机才能应用这些更改。"
     }
   },
   "panel": {

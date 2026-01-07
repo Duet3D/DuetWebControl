@@ -609,6 +609,10 @@
     "freeSpaceWarning": {
       "title": "A lemez majdnem megtelt",
       "message": "Alig van szabad hely az első köteten. Töröljön néhány fájlt, hogy elkerülje a feltöltési problémákat."
+    },
+    "daemonG": {
+      "title": "A daemon.g feltöltése sikeres volt",
+      "message": "Vegye figyelembe, hogy még mindig fut, ezért a módosítások alkalmazásához szükség lehet a gép újraindítására."
     }
   },
   "panel": {

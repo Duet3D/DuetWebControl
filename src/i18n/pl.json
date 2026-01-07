@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "Na pierwszym tomie zostało niewiele miejsca. \nUsuń niektóre pliki, aby uniknąć problemów podczas przesyłania plików.",
       "title": "Dysk prawie pełny"
+    },
+    "daemonG": {
+      "title": "Przesyłanie daemon.g powiodło się",
+      "message": "Pamiętaj, że nadal działa, więc w celu zastosowania tych zmian może być konieczne ponowne uruchomienie komputera."
     }
   },
   "panel": {

@@ -609,6 +609,10 @@
     "freeSpaceWarning": {
       "title": "Disk almost full",
       "message": "There is barely any space left on the first volume. Delete some files to avoid problems during file uploads."
+    },
+    "daemonG": {
+      "title": "Upload of daemon.g successful",
+      "message": "Note that it is still running, so a restart of your machine may be necessary to apply those changes."
     }
   },
   "panel": {

@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "Il ne reste presque plus de place sur le premier tome. \nSupprimez certains fichiers pour éviter les problèmes lors des téléchargements de fichiers.",
       "title": "Disque presque plein"
+    },
+    "daemonG": {
+      "title": "Téléchargement de daemon.g réussi",
+      "message": "Notez qu'il est toujours en cours d'exécution, un redémarrage de votre ordinateur peut donc être nécessaire pour appliquer ces modifications."
     }
   },
   "panel": {

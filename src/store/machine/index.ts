@@ -296,7 +296,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param payload.showProgress Display upload progress (defaults to true)
 			 * @param payload.showSuccess Show notification upon successful uploads (for single uploads, defaults to true)
 			 * @param payload.showError Show notification upon error (defaults to true)
-			 * @param payload.closeProgressOnSuccess Automatically close the progress indicator when finished (defaults to false)
+			 * @param payload.closeProgressOnSuccess Automatically close the progress indicator dialog when finished (defaults to false)
 			 */
 			async upload({ commit, state }, payload: { filename?: string, content?: any, files?: Array<{ filename: string, content: any }>, showProgress?: boolean, showSuccess?: boolean, showError?: boolean, closeProgressOnSuccess?: boolean }) {
 				if (connector === null) { throw new OperationFailedError("upload is not available in default machine module"); }
