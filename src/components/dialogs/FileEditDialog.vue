@@ -88,6 +88,7 @@ import Vue from "vue";
 
 import store from "@/store";
 import { indent } from "@/utils/display";
+import { log, LogType } from "@/utils/logging";
 import "@/utils/monaco-editor";
 import "@/utils/monaco-syntax";
 import "@/utils/monaco-menu";
@@ -195,11 +196,20 @@ export default Vue.extend({
 			this.close(true);
 
 			try {
-				if (this.filename.endsWith("/daemon.g")) {
-					// daemon.g may be still open and running at this time, move it first
+				if (Path.equals(Path.combine(store.state.machine.model.directories.system, "daemon.g"), this.filename)) {
+					// daemon.g may be still open and running at this time, move it to daemon.g.bak first
 					await store.dispatch("machine/move", { from: this.filename, to: this.filename + ".bak", force: true });
+
+					// upload it without success notification
+					await store.dispatch("machine/upload", { filename: this.filename, content, showSuccess: false });
+
+					// display notification in case it is still running
+					if (store.state.machine.model.inputs.some(input => input?.name === "Daemon" && input.inMacro)) {
+						log(LogType.success, this.$t("notification.daemonG.title"), this.$t("notification.daemonG.message"));
+					}
+				} else {
+					await store.dispatch("machine/upload", { filename: this.filename, content });
 				}
-				await store.dispatch("machine/upload", { filename: this.filename, content });
 				this.$emit("editComplete", this.filename);
 			} catch (e) {
 				// TODO Optionally ask user to save file somewhere else

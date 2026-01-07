@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "İlk ciltte neredeyse hiç boşluk kalmadı. \nDosya yüklemeleri sırasında sorun yaşamamak için bazı dosyaları silin.",
       "title": "Disk neredeyse dolu"
+    },
+    "daemonG": {
+      "title": "daemon.g yüklemesi başarılı",
+      "message": "Hala çalışmakta olduğunu unutmayın; bu nedenle, bu değişiklikleri uygulamak için makinenizin yeniden başlatılması gerekebilir."
     }
   },
   "panel": {

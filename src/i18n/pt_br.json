@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "Quase não sobra espaço no primeiro volume. \nExclua alguns arquivos para evitar problemas durante o upload de arquivos.",
       "title": "disco quase cheio"
+    },
+    "daemonG": {
+      "title": "Upload de daemon.g bem-sucedido",
+      "message": "Observe que ele ainda está em execução, portanto, pode ser necessário reiniciar sua máquina para aplicar essas alterações."
     }
   },
   "panel": {

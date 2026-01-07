@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "Apenas queda espacio en el primer volumen. \nElimine algunos archivos para evitar problemas durante la carga de archivos.",
       "title": "Disco casi lleno"
+    },
+    "daemonG": {
+      "title": "Carga exitosa de daemon.g",
+      "message": "Tenga en cuenta que todavía se está ejecutando, por lo que es posible que sea necesario reiniciar su máquina para aplicar esos cambios."
     }
   },
   "panel": {

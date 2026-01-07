@@ -609,6 +609,10 @@
       "message": "Wacht even terwijl het bestand wordt geüpload...",
       "success": "Upload van {0} geslaagd na {1}",
       "title": "Uploaden van {0} @ {1}, {2}% voltooid"
+    },
+    "daemonG": {
+      "title": "Upload van daemon.g succesvol",
+      "message": "Houd er rekening mee dat het nog steeds actief is, dus het kan nodig zijn om uw machine opnieuw op te starten om deze wijzigingen toe te passen."
     }
   },
   "panel": {

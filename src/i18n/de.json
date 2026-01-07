@@ -610,6 +610,10 @@
     "freeSpaceWarning": {
       "message": "Es ist kaum noch freier Speicherplatz auf dem ersten Laufwerk vorhanden. Löschen Sie einige Dateien, um Probleme während Dateiuploads zu vermeiden.",
       "title": "Laufwerk fast voll"
+    },
+    "daemonG": {
+      "title": "Upload von daemon.g erfolgreich",
+      "message": "Beachten Sie, dass es noch läuft. Daher ist möglicherweise ein Neustart Ihres Computers erforderlich, um diese Änderungen zu übernehmen."
     }
   },
   "panel": {
