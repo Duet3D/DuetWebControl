@@ -198,7 +198,7 @@ export default Vue.extend({
 							if (parentObj instanceof Map) {
 								return that.getItemLabel(index, parentObj.get(parentPropertyName)[index]);
 							}
-							return parentPropertyName.includes('[') ? item.toString() : that.getItemLabel(index, parentObj[parentPropertyName][index]);
+							return parentPropertyName.includes('[') ? that.getItemLabel(index, item) : that.getItemLabel(index, parentObj[parentPropertyName][index]);
 						},
 						type: that.getItemType(item),
 						children: that.makeModelTree(item, itemPath, obj)
