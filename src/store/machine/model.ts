@@ -141,18 +141,11 @@ export default function (connector: BaseConnector | null): MachineModel {
 			},
 			jobProgress(state, getters) {
 				if (isPrinting(state.state.status)) {
-					if (!isPaused(state.state.status) && state.state.status !== MachineStatus.simulating && state.move.extruders.length > 0 && state.job.file !== null && state.job.file.filament.length > 0) {
-						// Get the total amount of filament extruded (according to the slicer)
-						let totalRawExtruded = 0;
-						for (const extruder of state.move.extruders) {
-							totalRawExtruded += extruder.rawPosition;
-						}
-
-						// Compute the progress according to the filamet usage
+					if (!isPaused(state.state.status) && state.state.status !== MachineStatus.simulating && state.job.rawExtrusion !== null && state.job.file !== null && state.job.file.filament.length > 0) {
 						const totalFilamentRequired = state.job.file.filament.reduce((a, b) => a + b);
 						if (totalFilamentRequired > 0) {
 							// Limit the maximum in case the user put extra extrusions in the start/end G-code
-							return Math.min(totalRawExtruded / totalFilamentRequired, 1);
+							return Math.min(state.job.rawExtrusion / totalFilamentRequired, 1);
 						}
 					}
 					return getters.fractionPrinted;

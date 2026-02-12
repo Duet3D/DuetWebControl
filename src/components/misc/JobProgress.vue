@@ -57,18 +57,14 @@ export default Vue.extend({
 			if (store.state.machine.model.job.layer !== null && store.state.machine.model.job.file?.numLayers) {
 				details = this.$t("jobProgress.layer", [store.state.machine.model.job.layer, store.state.machine.model.job.file.numLayers]);
 			}
-			if (store.state.machine.model.move.extruders.length > 0) {
+			if (store.state.machine.model.job.rawExtrusion !== null) {
 				if (details !== "") {
 					details += ", ";
 				}
-				const totalRawExtruded = (store.state.machine.model.job.rawExtrusion !== null) ? store.state.machine.model.job.rawExtrusion :
-											store.state.machine.model.move.extruders
-												.map(extruder => extruder.rawPosition)
-												.reduce((a, b) => a + b);
-				details += this.$t("jobProgress.filament", [this.$display(totalRawExtruded, 1, "mm")]);
+				details += this.$t("jobProgress.filament", [this.$display(store.state.machine.model.job.rawExtrusion, 1, "mm")]);
 				if (store.state.machine.model.job.file !== null && store.state.machine.model.job.file.filament.length > 0) {
 					const needed = store.state.machine.model.job.file.filament.reduce((a, b) => a + b);
-					details += " (" + this.$t("jobProgress.filamentRemaining", [this.$display(Math.max(needed - totalRawExtruded, 0), 1, "mm")]) + ")";
+					details += " (" + this.$t("jobProgress.filamentRemaining", [this.$display(Math.max(needed - store.state.machine.model.job.rawExtrusion, 0), 1, "mm")]) + ")";
 				}
 			}
 			return details;
