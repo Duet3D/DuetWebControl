@@ -162,7 +162,7 @@ export default Vue.extend({
 		isCompensationEnabled(): boolean { return store.state.machine.model.move.compensation.type !== MoveCompensationType.none; },
 		compensationType(): MoveCompensationType { return store.state.machine.model.move.compensation.type; },
 		visibleAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible); },
-		isDelta(): boolean { return [KinematicsName.delta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
+		isDelta(): boolean { return [KinematicsName.linearDelta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
 		canHome(): boolean {
 			return !this.uiFrozen && (
 				store.state.machine.model.state.status !== MachineStatus.pausing &&

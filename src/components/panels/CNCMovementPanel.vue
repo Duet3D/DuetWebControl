@@ -245,7 +245,7 @@ export default Vue.extend({
 		isCompensationEnabled(): boolean { return store.state.machine.model.move.compensation.type !== MoveCompensationType.none; },
 		compensationType(): MoveCompensationType { return store.state.machine.model.move.compensation.type; },
 		visibleAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible); },
-		isDelta(): boolean { return [KinematicsName.delta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
+		isDelta(): boolean { return [KinematicsName.linearDelta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
 		unhomedAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible && !axis.homed); },
 		workCoordinates(): Array<number> { return [...Array(9).keys()].map(i => i + 1); },
 		workplaceNumber(): number { return store.state.machine.model.move.workplaceNumber; }

@@ -63,7 +63,7 @@ export default Vue.extend({
 	computed: {
 		probeGrid(): ProbeGrid { return store.state.machine.model.move.compensation.probeGrid; },
 		isDelta(): boolean {
-			return [KinematicsName.delta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name);
+			return [KinematicsName.linearDelta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name);
 		}
 	},
 	data() {
