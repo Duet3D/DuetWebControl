@@ -6,6 +6,7 @@ import Layouts from 'vite-plugin-vue-layouts'
 import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'unplugin-vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import dwcPlugins from './vite/dwc-plugins'
 
 // Utilities
 import { defineConfig } from 'vite'
@@ -46,6 +47,7 @@ export default defineConfig({
 		}
 	},
   plugins: [
+    dwcPlugins(),
     VueRouter({
       dts: 'src/typed-router.d.ts',
     }),

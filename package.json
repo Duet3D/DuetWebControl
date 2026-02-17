@@ -1,41 +1,44 @@
 {
   "name": "duetwebcontrol",
   "productName": "DuetWebControl",
-  "version": "3.6.0",
+  "version": "3.8.0-alpha.1",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build-plugin": "node scripts/build-plugin.js",
+    "build-plugin-pkg": "node scripts/build-plugin-pkg.js"
   },
   "dependencies": {
-    "@duet3d/connectors": "^3.6.0-beta.18",
-    "@duet3d/objectmodel": "~3.6.0-beta.3",
+    "@duet3d/connectors": "~3.6.1",
+    "@duet3d/objectmodel": "~3.6.2",
     "@mdi/font": "7.4.47",
-    "core-js": "^3.38.1",
+    "core-js": "^3.48.0",
     "mitt": "^3.0.1",
-    "monaco-editor": "^0.52.0",
-    "pinia": "^2.3.0",
+    "monaco-editor": "^0.55.1",
+    "pinia": "^3.0.4",
     "qoijs": "^1.0.0",
     "roboto-fontface": "^0.10.0",
-    "vue": "^3.4.31",
-    "vue-i18n": "^10.0.4",
-    "vue-router": "^4.4.5",
-    "vuetify": "^3.7.2"
+    "vue": "^3.5.28",
+    "vue-i18n": "^11.2.8",
+    "vue-router": "^5.0.2",
+    "vuetify": "^3.11.8"
   },
   "devDependencies": {
-    "@babel/types": "^7.25.6",
-    "@types/node": "^22.6.1",
-    "@vitejs/plugin-vue": "^5.1.4",
-    "sass": "~1.77.6",
-    "sass-loader": "~16.0.2",
-    "typescript": "^5.7.3",
-    "unplugin-auto-import": "^19.0.0",
-    "unplugin-fonts": "^1.1.1",
-    "unplugin-vue-components": "^28.0.0",
-    "unplugin-vue-router": "^0.10.8",
-    "vite": "^6.0.7",
+    "@babel/types": "^7.29.0",
+    "@types/node": "^25.2.3",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "sass": "~1.97.3",
+    "sass-loader": "~16.0.7",
+    "typescript": "^5.9.3",
+    "unplugin-auto-import": "^21.0.0",
+    "unplugin-fonts": "^1.4.0",
+    "unplugin-vue-components": "^31.0.0",
+    "unplugin-vue-router": "^0.19.2",
+    "vite": "^7.3.1",
     "vite-plugin-vue-layouts": "^0.11.0",
-    "vite-plugin-vuetify": "^2.0.4",
-    "vue-tsc": "^2.1.6"
+    "vite-plugin-vuetify": "^2.1.3",
+    "vue-tsc": "^3.2.4"
   }
 }

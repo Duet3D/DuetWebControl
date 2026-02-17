@@ -19,7 +19,7 @@
 
 				<div v-else-if="isUpdating" class="d-flex flex-column mt-3">
 					<span class="mb-1">
-						{{ $tc("dialog.connectionProgress.boardUpdateMessage", machineStore.boardsBeingUpdated.length) }}
+						{{ $t("dialog.connectionProgress.boardUpdateMessage", machineStore.boardsBeingUpdated.length) }}
 					</span>
 					<span v-for="canAddress in machineStore.boardsBeingUpdated.filter(item => item > 0)"
 						  :key="canAddress" class="ms-3">

@@ -16,6 +16,9 @@ import router from "../router";
 // Types
 import { subscribeToStore } from "@/stores/observer";
 
+// DWC Plugin System
+import { initPluginSystem } from "@/plugins";
+
 export function registerPlugins(app: App) {
 	const pinia = createPinia();
 	subscribeToStore(pinia);
@@ -26,4 +29,7 @@ export function registerPlugins(app: App) {
 		.use(vuetify)
 		.use(DataLoaderPlugin, { router })
 		.use(router);
+
+	// Initialise the DWC plugin system with the router reference
+	initPluginSystem(router);
 }

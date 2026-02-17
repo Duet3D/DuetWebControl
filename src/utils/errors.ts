@@ -7,7 +7,7 @@ import i18n from "@/i18n";
  * @returns Error message
  */
 export function getErrorMessage<B extends boolean | undefined = undefined>(e: any, optional?: B): B extends true ? string | null : string {
-	return e ? (e.reason ?? (e.message ?? e.toString())) : ((optional !== true) ? i18n.global.t("generic.noValue") : null);
+	return (e ? (e.reason ?? (e.message ?? e.toString())) : ((optional !== true) ? i18n.global.t("generic.noValue") : null)) as B extends true ? string | null : string;
 }
 
 //#region Heightmap errors

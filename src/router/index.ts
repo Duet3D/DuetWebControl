@@ -5,14 +5,18 @@
  */
 
 // Composables
-import { createRouter, createWebHistory } from "vue-router/auto";
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { setupLayouts } from "virtual:generated-layouts";
-import { routes } from "vue-router/auto-routes";
+import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
-	routes: setupLayouts(routes)
+	routes: setupLayouts([...routes] as RouteRecordRaw[]),
 });
+
+if (import.meta.hot) {
+	handleHotUpdate(router);
+}
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {

@@ -1,5 +1,6 @@
 import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError } from "@duet3d/connectors";
-import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType } from "@duet3d/objectmodel";
+import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import type JSZip from "jszip";
 import { defineStore } from "pinia";
 
 import { useCacheStore } from "./cache";
@@ -8,11 +9,15 @@ import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
 import { FileTransferType, LogLevel, Notification, useUiStore } from "./ui";
+import { checkManifest, checkVersion } from "@/plugins";
+import { loadDwcPlugin, loadDwcPlugins, unloadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
 import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
+
+import packageInfo from "../../package.json";
 
 /**
  * Item type for downloads
@@ -276,7 +281,7 @@ export const useMachineStore = defineStore("machine", {
 				}
 
 				// Finish loading activated DWC plugins
-				// await this.loadDwcPlugins();
+				await loadDwcPlugins();
 
 				// Done
 				Events.emit("fullyConnected");
@@ -772,7 +777,6 @@ export const useMachineStore = defineStore("machine", {
 		 * @param zipFile ZIP container to extract (if applicable)
 		 * @param start Whether to start the plugin upon installation
 		 */
-		/*
 		async installPlugin(zipFilename: string, zipBlob: Blob, zipFile: JSZip, start: boolean) {
 			if (this.connector === null) {
 				throw new OperationFailedError("installPlugin is not available in default machine module");
@@ -817,36 +821,36 @@ export const useMachineStore = defineStore("machine", {
 				await loadDwcPlugin(plugin.id);
 			}
 		},
-		*/
 
 		/**
 		 * Uninstall a third-party plugin
 		 * @param plugin Plugin instance to uninstall
 		 */
-		/*
-			async uninstallPlugin(plugin: Plugin): Promise<void> {
-				if (this.connector === null) {
-					throw new OperationFailedError("uninstallPlugin is not available in default machine module");
-				}
-				if (this.changingMultipleFiles) {
-					throw new OperationFailedError("Cannot uninstall plugin while multiple files are being transferred");
-				}
-	
-				try {
-					// About to delete multiple files, avoid unnecessary refreshes
-					this.changingMultipleFiles = true;
-	
-					// Uninstall the plugin
-					await this.connector.uninstallPlugin(plugin);
-				} finally {
-					// Done
-					this.changingMultipleFiles = false;
-				}
-	
-				// Raise an event
-				Events.emit("pluginUninstalled", plugin);
-			},
-			*/
+		async uninstallPlugin(plugin: Plugin): Promise<void> {
+			if (this.connector === null) {
+				throw new OperationFailedError("uninstallPlugin is not available in default machine module");
+			}
+			if (this.changingMultipleFiles) {
+				throw new OperationFailedError("Cannot uninstall plugin while multiple files are being transferred");
+			}
+
+			try {
+				// About to delete multiple files, avoid unnecessary refreshes
+				this.changingMultipleFiles = true;
+
+				// Unload the DWC plugin first (if loaded)
+				await unloadDwcPlugin(plugin.id);
+
+				// Uninstall the plugin
+				await this.connector.uninstallPlugin(plugin);
+			} finally {
+				// Done
+				this.changingMultipleFiles = false;
+			}
+
+			// Raise an event
+			Events.emit("pluginUninstalled", plugin);
+		},
 
 		/**
 		 * Set custom plugin data on the SBC.
@@ -933,23 +937,9 @@ export const useMachineStore = defineStore("machine", {
 		/**
 		 * Load a list of DWC plugins and report progress as content is being loaded
 		 */
-		/*
 		async loadDwcPlugins() {
-			const settingsStore = useSettingsStore();
-			if (settingsStore.enabledPlugins.length > 0) {
-				Events.emit("dwcPluginsLoading", settingsStore.enabledPlugins);
-				for (const id of settingsStore.enabledPlugins) {
-					try {
-						await loadDwcPlugin(id);
-					} catch (e) {
-						// Event is raised before we get here
-						console.warn(e);
-					}
-				}
-				Events.emit("dwcPluginsLoaded", settingsStore.enabledPlugins);
-			}
+			await loadDwcPlugins();
 		},
-		*/
 
 		/**
 		 * Update the machine's object model. This must be used by connectors only!
