@@ -467,20 +467,20 @@ export default VDataTable.extend({
 			}
 		},
 		onItemContextmenu(props: DataItemProps, e: MouseEvent) {
-			if (this.contextMenu.shown) {
-				return;
-			}
 			this.onItemTouchEnd();
 
 			// Deal with selection
-			this.prevSelection = this.innerValue;
+			if (!this.contextMenu.shown) {
+				this.prevSelection = this.innerValue;
+			}
+
+			// Select right-clicked item
 			if (!props.isSelected) {
 				this.innerValue = [];
 				this.$nextTick(() => props.select(true));
 			}
 
-			// Open the context menu
-			this.contextMenu.shown = false;
+			// Open context menu
 			this.contextMenu.x = e.clientX;
 			this.contextMenu.y = e.clientY;
 			this.$nextTick(() => {

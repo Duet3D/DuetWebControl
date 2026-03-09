@@ -32,6 +32,10 @@
 				<v-list-item v-show="isFirmwareFile" @click="installFile">
 					<v-icon class="mr-1">mdi-update</v-icon> {{ $t("list.firmware.installFile") }}
 				</v-list-item>
+				<v-list-item v-show="isMacroFile" @click="runMacroFile(selection[0].name)">
+					<v-icon class="mr-1">mdi-play</v-icon>
+					{{ $t("list.macro.run") }}
+				</v-list-item>
 			</template>
 
 			<template #file.config.json v-if="isSystemRootDirectory">
@@ -113,6 +117,9 @@ export default Vue.extend({
 			}
 			return false;
 		},
+		isMacroFile(): boolean {
+			return (this.selection.length === 1) && !this.selection[0].isDirectory && /(\.g|\.gcode|\.gc|\.gco|\.nc|\.ngc|\.tap)(\.bak)?$/i.test(this.selection[0].name);
+		},
 		noFilesText(): string {
 			if (Path.startsWith(this.directory, store.state.machine.model.directories.menu)) {
 				return "list.system.noFiles";
@@ -187,6 +194,9 @@ export default Vue.extend({
 			} catch {
 				// expected
 			}
+		},
+		async runMacroFile() {
+			await store.dispatch("machine/sendCode", `M98 P"${Path.combine(this.directory, this.selection[0].name)}"`);
 		},
 		async editConfigTemplate() {
 			const jsonTemplate: string = await store.dispatch("machine/download", { filename: Path.combine(this.systemDirectory, "config.json"), type: "text" });
