@@ -1103,6 +1103,11 @@
       "remarks": "Uwagi",
       "selectedNode": "Wybrany węzeł:",
       "summary": "Streszczenie"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Klawiatura ekranowa",
+      "confirmDisable": "Czy chcesz wyłączyć klawiaturę ekranową dla tego urządzenia? \nMożesz ją ponownie włączyć, przełączając wtyczkę Klawiatura ekranowa.",
+      "disable": "wyłącz OSK"
     }
   },
   "tabs": {

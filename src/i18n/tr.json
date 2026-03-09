@@ -1073,6 +1073,11 @@
       "cancelObj": "Nesneyi İptal Et",
       "resumeObj": "Nesneyi Devam Ettir",
       "persistTravels": "Kalıcı Seyahatler"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Ekran Klavyesi",
+      "confirmDisable": "Bu cihazın ekran klavyesini devre dışı bırakmak istiyor musunuz? \nEkran Klavyesi eklentisini değiştirerek yeniden etkinleştirebilirsiniz.",
+      "disable": "OSK'yi devre dışı bırak"
     }
   },
   "pluginPermissions": {

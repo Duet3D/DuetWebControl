@@ -1102,6 +1102,11 @@
       "documentationNotAvailable": "文档不可用（未找到/www/DuetAPI.xml）",
       "summary": "摘要",
       "remarks": "备注"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "屏幕键盘",
+      "confirmDisable": "您想禁用该设备的屏幕键盘吗？\n您可以通过切换屏幕键盘插件来重新启用它。",
+      "disable": "禁用 OSK"
     }
   },
   "tabs": {

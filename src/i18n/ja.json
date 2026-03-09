@@ -1103,6 +1103,11 @@
       "remarks": "備考",
       "selectedNode": "選択したノード:",
       "summary": "概要"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "オンスクリーンキーボード",
+      "confirmDisable": "このデバイスのオンスクリーン キーボードを無効にしますか?\nオンスクリーン キーボード プラグインを切り替えることで、再度有効にすることができます。",
+      "disable": "OSKを無効にする"
     }
   },
   "tabs": {

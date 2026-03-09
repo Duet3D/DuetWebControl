@@ -1102,6 +1102,11 @@
       "documentationNotAvailable": "Documentation is not available (/www/DuetAPI.xml not found)",
       "summary": "Summary",
       "remarks": "Remarks"
+    },
+    "onScreenKeyboard": {
+      "disable": "disable OSK",
+      "confirmTitle": "On-Screen Keyboard",
+      "confirmDisable": "Do you want to disable the on-screen keyboard for this device? You can re-enable it by toggling the On-Screen Keyboard plugin."
     }
   },
   "tabs": {

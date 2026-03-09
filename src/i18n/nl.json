@@ -1102,6 +1102,11 @@
       "remarks": "Opmerkingen",
       "selectedNode": "Geselecteerd knooppunt:",
       "summary": "Samenvatting"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Schermtoetsenbord",
+      "confirmDisable": "Wilt u het schermtoetsenbord voor dit apparaat uitschakelen? \nU kunt het opnieuw inschakelen door de plug-in Schermtoetsenbord in te schakelen.",
+      "disable": "schakel OSK uit"
     }
   },
   "tabs": {

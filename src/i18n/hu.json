@@ -1102,6 +1102,11 @@
       "documentationNotAvailable": "A dokumentáció nem elérhető (/www/DuetAPI.xml nem található)",
       "summary": "Összesítő",
       "remarks": "Megjegyzések"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Képernyő-billentyűzet",
+      "confirmDisable": "Le szeretné tiltani a képernyő-billentyűzetet ezen az eszközön? \nA Képernyő-billentyűzet beépülő modul átváltásával újra engedélyezheti.",
+      "disable": "tiltsa le az OSK-t"
     }
   },
   "tabs": {

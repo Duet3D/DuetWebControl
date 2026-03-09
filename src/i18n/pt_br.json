@@ -1073,6 +1073,11 @@
       "samplingRate": "Taxa de amostragem (em Hz)",
       "start": "Começar",
       "wideBand": "Análise de banda larga"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Teclado na tela",
+      "confirmDisable": "Deseja desativar o teclado na tela deste dispositivo? \nVocê pode reativá-lo alternando o plugin do teclado na tela.",
+      "disable": "desabilitar OSK"
     }
   },
   "tabs": {

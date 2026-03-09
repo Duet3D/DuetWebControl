@@ -1103,6 +1103,11 @@
       "remarks": "Observaciones",
       "selectedNode": "Nodo seleccionado:",
       "summary": "Resumen"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Teclado en pantalla",
+      "confirmDisable": "¿Quieres desactivar el teclado en pantalla para este dispositivo? \nPuede volver a habilitarlo alternando el complemento del teclado en pantalla.",
+      "disable": "deshabilitar OSK"
     }
   },
   "tabs": {

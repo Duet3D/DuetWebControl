@@ -1103,6 +1103,11 @@
       "cancelObj": "Annuler l'objet",
       "resumeObj": "Reprendre l'objet",
       "persistTravels": "Continuer les voyages"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Clavier à l'écran",
+      "confirmDisable": "Voulez-vous désactiver le clavier à l'écran pour cet appareil ? \nVous pouvez le réactiver en activant le plugin On-Screen Keyboard.",
+      "disable": "désactiver OSK"
     }
   },
   "tabs": {

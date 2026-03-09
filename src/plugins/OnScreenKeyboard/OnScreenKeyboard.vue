@@ -27,10 +27,20 @@
 	background: #1c4995;
 	color: white;
 }
+
+.simple-keyboard .hg-button.hg-osk-disable {
+	flex: 0 0 calc((100% - 55px) / 12);
+}
 </style>
 
 <template>
-	<div ref="keyboard" v-if="input" class="simple-keyboard" @click.stop.prevent=""></div>
+	<div>
+		<div ref="keyboard" v-if="oskGenerallyEnabled && input" class="simple-keyboard" @click.stop.prevent=""></div>
+		<confirm-dialog :shown.sync="confirmDialogShown"
+		                :title="$t('plugins.onScreenKeyboard.confirmTitle')"
+		                :prompt="$t('plugins.onScreenKeyboard.confirmDisable')"
+		                @confirmed="applyDisable" />
+	</div>
 </template>
 
 <script lang="ts">
@@ -38,67 +48,113 @@ import Keyboard from "simple-keyboard";
 import "simple-keyboard/build/css/index.css";
 import Vue from "vue";
 
+import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import store from "@/store";
+import { getLocalSetting, setLocalSetting, removeLocalSetting } from "@/utils/localStorage";
+
+const localStorageKey = "OnScreenKeyboard.enabled";
 
 export default Vue.extend({
+	components: { ConfirmDialog },
 	data() {
 		return {
 			input: null as HTMLInputElement | HTMLTextAreaElement | null,
-			keyboard: null as any
+			keyboard: null as any,
+			oskGenerallyEnabled: getLocalSetting(localStorageKey) !== false,
+			confirmDialogShown: false,
+			unwatchPlugins: null as (() => void) | null
 		}
 	},
 	mounted() {
 		store.commit("oskEnabled");
 		window.addEventListener("focusin", this.inputFocused);
 		window.addEventListener("click", this.globalClick);
+
+		// Clear the localStorage key when this plugin is removed from the enabled plugins list
+		this.unwatchPlugins = store.watch(
+			(state: any) => state.settings.enabledPlugins as string[],
+			(plugins: string[], oldPlugins: string[]) => {
+				if (oldPlugins.includes("OnScreenKeyboard") && !plugins.includes("OnScreenKeyboard")) {
+					removeLocalSetting(localStorageKey);
+				}
+			}
+		);
 	},
 	beforeDestroy() {
 		window.removeEventListener("focusin", this.inputFocused);
 		window.removeEventListener("click", this.globalClick);
+		if (this.unwatchPlugins) {
+			this.unwatchPlugins();
+		}
 	},
 	methods: {
 		inputFocused(e: Event) {
-			if (e.target !== this.input && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+			if (this.oskGenerallyEnabled &&
+				e.target !== this.input &&
+				(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
 				this.input = e.target;
-				this.$nextTick(function() {
-					// Create a new keyboard instance
-					if (!this.keyboard) {
-						this.keyboard = new Keyboard({
-							mergeDisplay: true,
-							display: {
-								"{enter}": "enter"
-							},
-							onChange: this.updateValue,
-							onKeyPress: this.onKeyPress,
-							newLineOnEnter: e.target instanceof HTMLTextAreaElement,
-							tabCharOnTab: e.target instanceof HTMLTextAreaElement,
-							theme: store.state.settings.darkTheme ? "hg-theme-default dark" : "hg-theme-default"
-						});
-					}
-					this.keyboard.setInput((e.target as HTMLInputElement | HTMLTextAreaElement).value);
-
-					if (e.target instanceof HTMLInputElement && e.target.type === "number") {
-						// Show numpad for numeric inputs and clear previous input
-						this.keyboard.setOptions({
-							layout: {
-								default: [
-									"{numpad1} {numpad2} {numpad3}",
-									"{numpad4} {numpad5} {numpad6}",
-									"{numpad7} {numpad8} {numpad9}",
-									"{bksp} . {numpad0} , {enter}"
-								]
-							}
-						});
-						this.keyboard.setInput("");
-					}
-
-					// Add some space at the bottom so the keyboard does not cover inputs 
-					store.commit("setBottomMargin", (this.$refs.keyboard as HTMLElement).offsetHeight);
+				this.$nextTick(() => {
+					this.initKeyboard(e.target as HTMLInputElement | HTMLTextAreaElement);
 				});
 			}
 		},
+		initKeyboard(target: HTMLInputElement | HTMLTextAreaElement) {
+			const disableLabel = this.$t("plugins.onScreenKeyboard.disable") as string;
+			if (!this.keyboard) {
+				this.keyboard = new Keyboard({
+					mergeDisplay: true,
+					display: {
+						"{enter}": "enter",
+						"{oskDisable}": disableLabel
+					},
+					buttonTheme: [
+						{ class: "hg-osk-disable", buttons: "{oskDisable}" }
+					],
+					layout: {
+						default: [
+							"` 1 2 3 4 5 6 7 8 9 0 - = {bksp}",
+							"{tab} q w e r t y u i o p [ ] \\",
+							"{lock} a s d f g h j k l ; ' {enter}",
+							"{shift} z x c v b n m , . / {shift}",
+							".com @ {space} {oskDisable}"
+						],
+						shift: [
+							"~ ! @ # $ % ^ & * ( ) _ + {bksp}",
+							"{tab} Q W E R T Y U I O P { } |",
+							"{lock} A S D F G H J K L : \" {enter}",
+							"{shift} Z X C V B N M < > ? {shift}",
+							".com @ {space} {oskDisable}"
+						]
+					},
+					onChange: this.updateValue,
+					onKeyPress: this.onKeyPress,
+					newLineOnEnter: target instanceof HTMLTextAreaElement,
+					tabCharOnTab: target instanceof HTMLTextAreaElement,
+					theme: store.state.settings.darkTheme ? "hg-theme-default dark" : "hg-theme-default"
+				});
+			}
+			this.keyboard.setInput(target.value);
+
+			if (target instanceof HTMLInputElement && target.type === "number") {
+				// Show numpad for numeric inputs and clear previous input
+				this.keyboard.setOptions({
+					layout: {
+						default: [
+							"{numpad1} {numpad2} {numpad3}",
+							"{numpad4} {numpad5} {numpad6}",
+							"{numpad7} {numpad8} {numpad9}",
+							"{bksp} . {numpad0} , {enter}"
+						]
+					}
+				});
+				this.keyboard.setInput("");
+			}
+
+			// Add some space at the bottom so the keyboard does not cover inputs
+			store.commit("setBottomMargin", (this.$refs.keyboard as HTMLElement).offsetHeight);
+		},
 		globalClick() {
-			if (document.activeElement !== this.input) {
+			if (!this.confirmDialogShown && document.activeElement !== this.input) {
 				// Hide the keyboard when a user clicks/taps outside the keyboard and selected input
 				this.hide();
 			}
@@ -126,8 +182,18 @@ export default Vue.extend({
 				this.input.dispatchEvent(ce);
 			}
 		},
+		applyDisable() {
+			this.oskGenerallyEnabled = false;
+			setLocalSetting(localStorageKey, false);
+			this.confirmDialogShown = false;
+			this.keyboard = null;
+			this.input = null;
+			store.commit("setBottomMargin", 0);
+		},
 		onKeyPress(button: string) {
-			if (button === "{shift}" || button === "{lock}") {
+			if (button === "{oskDisable}") {
+				this.confirmDialogShown = true;
+			} else if (button === "{shift}" || button === "{lock}") {
 				// Deal with shift/caps lock
 				const currentLayout = this.keyboard.options.layoutName;
 				this.keyboard.setOptions({

@@ -1103,6 +1103,11 @@
       "none": "Keiner",
       "remarks": "Anmerkungen",
       "summary": "Zusammenfassung"
+    },
+    "onScreenKeyboard": {
+      "confirmTitle": "Bildschirmtastatur",
+      "confirmDisable": "Möchten Sie die Bildschirmtastatur für dieses Gerät deaktivieren? \nSie können es wieder aktivieren, indem Sie das Bildschirmtastatur-Plugin umschalten.",
+      "disable": "OSK deaktivieren"
     }
   },
   "tabs": {
