@@ -97,14 +97,14 @@
                     <tr :key="index">
                         <!-- Heater item name -->
                         <th class="pl-2">
-                            <a href="javascript:void(0)" :class="{ disabled: disabled }" @click="heaterClick(index, heater)">
+                            <a v-if="heaterIndex === 0" href="javascript:void(0)" :class="{ disabled: disabled }" @click="heaterClick(index, heater)">
                                 <v-icon small v-text="(props.type === 'bed') ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
                                 {{ (props.type === "bed") ? $t("panel.tools.bed", [(heaterItems.length === 1) ? "" : index]) : $t("panel.tools.chamber", [(heaterItems.length === 1) ? "" : index]) }}
                             </a>
                         </th>
 
                         <!-- Heater name -->
-                        <th>
+                        <th class="pb-3">
                             <a href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)" @click="heaterClick(index, heater)">
                                 {{ getHeaterName(heater, heaterIndex) }}
                             </a>
@@ -121,12 +121,12 @@
 
                         <!-- Heater active -->
                         <td class="pl-2 pr-1">
-                            <control-input :type="props.type" :index="index" active />
+                            <control-input v-if="heaterIndex === 0" :type="props.type" :index="index" active />
                         </td>
 
                         <!-- Heater standby -->
                         <td class="pl-1 pr-2">
-                            <control-input :type="props.type" :index="index" standby />
+                            <control-input v-if="heaterIndex === 0" :type="props.type" :index="index" standby />
                         </td>
                     </tr>
                 </template>
