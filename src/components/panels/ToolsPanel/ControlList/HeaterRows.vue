@@ -158,15 +158,17 @@ const disabled = computed<boolean>(() => store.getters["uiFrozen"] || [MachineSt
 const singleControl = computed(() => {
     if (props.type === "bed" && store.state.machine.settings.singleBedControl) {
         let state: HeaterState | null, active: number | null = null, standby: number | null = null;
-        for (const heaterIndex of store.state.machine.model.heat.bedHeaters) {
-            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-                const heater = store.state.machine.model.heat.heaters[heaterIndex];
-                if (heater !== null) {
-                    state ??= heater.state;
-                    active ??= heater.active;
-                    standby ??= heater.standby;
-                    if (heater.state === state || heater.active !== active || heater.standby !== standby) {
-                        return false;
+        for (const heaterIndices of store.state.machine.model.heat.bedHeaterMapping) {
+            for (const heaterIndex of heaterIndices) {
+                if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                    const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                    if (heater !== null) {
+                        state ??= heater.state;
+                        active ??= heater.active;
+                        standby ??= heater.standby;
+                        if (heater.state === state || heater.active !== active || heater.standby !== standby) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -174,15 +176,17 @@ const singleControl = computed(() => {
         return true;
     } else if (props.type === "chamber" && store.state.machine.settings.singleChamberControl) {
         let state: HeaterState | null, active: number | null = null, standby: number | null = null;
-        for (const heaterIndex of store.state.machine.model.heat.chamberHeaters) {
-            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-                const heater = store.state.machine.model.heat.heaters[heaterIndex];
-                if (heater !== null) {
-                    state ??= heater.state;
-                    active ??= heater.active;
-                    standby ??= heater.standby;
-                    if (heater.state === state || heater.active !== active || heater.standby !== standby) {
-                        return false;
+        for (const heaterIndices of store.state.machine.model.heat.chamberHeaterMapping) {
+            for (const heaterIndex of heaterIndices) {
+                if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                    const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                    if (heater !== null) {
+                        state ??= heater.state;
+                        active ??= heater.active;
+                        standby ??= heater.standby;
+                        if (heater.state === state || heater.active !== active || heater.standby !== standby) {
+                            return false;
+                        }
                     }
                 }
             }
@@ -194,18 +198,19 @@ const singleControl = computed(() => {
 
 // Heater abstraction
 const heaterItems = computed(() => {
-    const heaterIndices = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const mapping = (props.type === "bed") ? store.state.machine.model.heat.bedHeaterMapping : store.state.machine.model.heat.chamberHeaterMapping;
     const heaterList: Array<{ index: number, heater: Heater, heaterIndex: number }> = [];
-    for (let index = 0; index < heaterIndices.length; index++) {
-        const heaterIndex = heaterIndices[index];
-        if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-            const heater = store.state.machine.model.heat.heaters[heaterIndex];
-            if (heater !== null) {
-                heaterList.push({
-                    index,
-                    heater,
-                    heaterIndex
-                });
+    for (let index = 0; index < mapping.length; index++) {
+        for (const heaterIndex of mapping[index]) {
+            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                if (heater !== null) {
+                    heaterList.push({
+                        index,
+                        heater,
+                        heaterIndex
+                    });
+                }
             }
         }
     }
@@ -235,19 +240,22 @@ async function allHeatersClick() {
     }
 
     // Get valid indices
-    const heaters = (props.type === "bed") ? store.state.machine.model.heat.bedHeaters : store.state.machine.model.heat.chamberHeaters;
+    const mapping = (props.type === "bed") ? store.state.machine.model.heat.bedHeaterMapping : store.state.machine.model.heat.chamberHeaterMapping;
     const indices: Array<number> = [];
-    for (let index = 0; index < heaters.length; index++) {
-        const heaterIndex = heaters[index];
-        if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
-            const bedHeater = store.state.machine.model.heat.heaters[heaterIndex];
-            if (bedHeater !== null) {
-                indices.push(index);
+    for (let index = 0; index < mapping.length; index++) {
+        for (const heaterIndex of mapping[index]) {
+            if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length) {
+                const heater = store.state.machine.model.heat.heaters[heaterIndex];
+                if (heater !== null) {
+                    if (!indices.includes(index)) {
+                        indices.push(index);
+                    }
 
-                // Since there is no dedicate facility for resetting heater faults, check all bed heaters here
-                if (bedHeater.state === HeaterState.fault) {
-                    emit("resetHeaterFault", heaterIndex);
-                    return;
+                    // Since there is no dedicated facility for resetting heater faults, check all heaters here
+                    if (heater.state === HeaterState.fault) {
+                        emit("resetHeaterFault", heaterIndex);
+                        return;
+                    }
                 }
             }
         }

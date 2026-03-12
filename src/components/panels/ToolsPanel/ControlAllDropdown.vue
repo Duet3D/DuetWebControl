@@ -49,19 +49,19 @@ const dropdownShown = ref(false);
 // Turn everything off
 const canTurnEverythingOff = computed(() => {
     const heaters = store.state.machine.model.heat.heaters, tools = store.state.machine.model.tools;
-    const bedHeaters = store.state.machine.model.heat.bedHeaters, chamberHeaters = store.state.machine.model.heat.chamberHeaters;
+    const bedHeaterMapping = store.state.machine.model.heat.bedHeaterMapping, chamberHeaterMapping = store.state.machine.model.heat.chamberHeaterMapping;
     return (!store.getters["uiFrozen"] &&
         tools.some((tool) => (tool !== null) &&
             tool.heaters.some(toolHeater => (toolHeater >= 0) && (toolHeater < heaters.length) &&
                 (heaters[toolHeater] !== null) && (heaters[toolHeater]!.state !== HeaterState.off)
             )
         ) ||
-        bedHeaters.some((bedHeater) => (bedHeater >= 0) && (bedHeater < heaters.length) &&
+        bedHeaterMapping.some(heaterIndices => heaterIndices.some(bedHeater => (bedHeater >= 0) && (bedHeater < heaters.length) &&
             (heaters[bedHeater] !== null) && (heaters[bedHeater]!.state !== HeaterState.off)
-        ) ||
-        chamberHeaters.some(chamberHeater => (chamberHeater >= 0) && (chamberHeater < heaters.length) &&
+        )) ||
+        chamberHeaterMapping.some(heaterIndices => heaterIndices.some(chamberHeater => (chamberHeater >= 0) && (chamberHeater < heaters.length) &&
             (heaters[chamberHeater] !== null) && (heaters[chamberHeater]!.state !== HeaterState.off)
-        ));
+        )));
 });
 
 const turningEverythingOff = ref(false);
@@ -72,13 +72,13 @@ async function turnEverythingOff() {
             code += `M568 P${tool.number} A0\n`;
         }
     }
-    store.state.machine.model.heat.bedHeaters.forEach((bedHeater, index) => {
-        if (bedHeater >= 0 && bedHeater < store.state.machine.model.heat.heaters.length) {
+    store.state.machine.model.heat.bedHeaterMapping.forEach((heaterIndices, index) => {
+        if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length)) {
             code += `M140 P${index} S-273.15\n`;
         }
     });
-    store.state.machine.model.heat.chamberHeaters.forEach((chamberHeater, index) => {
-        if (chamberHeater >= 0 && chamberHeater < store.state.machine.model.heat.heaters.length) {
+    store.state.machine.model.heat.chamberHeaterMapping.forEach((heaterIndices, index) => {
+        if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length)) {
             code += `M141 P${index} S-273.15\n`;
         }
     });
@@ -99,15 +99,15 @@ async function turnEverythingOff() {
 const hasTools = computed(() => store.state.machine.model.tools.some(tool => tool !== null));
 const controlTools = ref(true);
 
-const hasBeds = computed(() => store.state.machine.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) &&
-    (bedHeater < store.state.machine.model.heat.heaters.length) &&
-    (store.state.machine.model.heat.heaters[bedHeater] !== null)
-));
+const hasBeds = computed(() => store.state.machine.model.heat.bedHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIndex => (heaterIndex >= 0) &&
+    (heaterIndex < store.state.machine.model.heat.heaters.length) &&
+    (store.state.machine.model.heat.heaters[heaterIndex] !== null)
+)));
 const controlBeds = ref(false);
 
-const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) &&
-    (chamberHeater < store.state.machine.model.heat.heaters.length) &&
-    (store.state.machine.model.heat.heaters[chamberHeater] !== null)
-));
+const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIndex => (heaterIndex >= 0) &&
+    (heaterIndex < store.state.machine.model.heat.heaters.length) &&
+    (store.state.machine.model.heat.heaters[heaterIndex] !== null)
+)));
 const controlChambers = ref(false);
 </script>

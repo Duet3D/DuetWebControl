@@ -79,9 +79,9 @@ export default Vue.extend({
 					return (heater >= 0) && (heater < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[heater] !== null);
 				}
 			} else if (this.type === "bed") {
-				return (this.index >= 0) && (this.index < store.state.machine.model.heat.bedHeaters.length);
+				return (this.index >= 0) && (this.index < store.state.machine.model.heat.bedHeaterMapping.length) && (store.state.machine.model.heat.bedHeaterMapping[this.index].length > 0);
 			} else if (this.type === "chamber") {
-				return (this.index >= 0) && (this.index < store.state.machine.model.heat.chamberHeaters.length);
+				return (this.index >= 0) && (this.index < store.state.machine.model.heat.chamberHeaterMapping.length) && (store.state.machine.model.heat.chamberHeaterMapping[this.index].length > 0);
 			}
 			return false;
 		},
@@ -90,20 +90,24 @@ export default Vue.extend({
 			switch (this.type) {
 				case "all":
 					if (this.controlBeds) {
-						for (const bedHeaterIndex of store.state.machine.model.heat.bedHeaters) {
-							if (bedHeaterIndex >= 0 && bedHeaterIndex < store.state.machine.model.heat.heaters.length) {
-								const heater = store.state.machine.model.heat.heaters[bedHeaterIndex];
-								if (heater !== null) {
-									return heater[activeOrStandby];
+						for (const heaterIndices of store.state.machine.model.heat.bedHeaterMapping) {
+							for (const bedHeaterIndex of heaterIndices) {
+								if (bedHeaterIndex >= 0 && bedHeaterIndex < store.state.machine.model.heat.heaters.length) {
+									const heater = store.state.machine.model.heat.heaters[bedHeaterIndex];
+									if (heater !== null) {
+										return heater[activeOrStandby];
+									}
 								}
 							}
 						}
 					} else if (this.controlChambers) {
-						for (const chamberHeaterIndex of store.state.machine.model.heat.chamberHeaters) {
-							if (chamberHeaterIndex >= 0 && chamberHeaterIndex < store.state.machine.model.heat.heaters.length) {
-								const heater = store.state.machine.model.heat.heaters[chamberHeaterIndex];
-								if (heater !== null) {
-									return heater[activeOrStandby];
+						for (const heaterIndices of store.state.machine.model.heat.chamberHeaterMapping) {
+							for (const chamberHeaterIndex of heaterIndices) {
+								if (chamberHeaterIndex >= 0 && chamberHeaterIndex < store.state.machine.model.heat.heaters.length) {
+									const heater = store.state.machine.model.heat.heaters[chamberHeaterIndex];
+									if (heater !== null) {
+										return heater[activeOrStandby];
+									}
 								}
 							}
 						}
@@ -126,19 +130,21 @@ export default Vue.extend({
 					break;
 
 				case "bed":
-					if (this.index >= 0 && this.index < store.state.machine.model.heat.bedHeaters.length) {
-						const heaterIndex = store.state.machine.model.heat.bedHeaters[this.index];
-						if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
-							return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
+					if (this.index >= 0 && this.index < store.state.machine.model.heat.bedHeaterMapping.length) {
+						for (const heaterIndex of store.state.machine.model.heat.bedHeaterMapping[this.index]) {
+							if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
+								return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
+							}
 						}
 					}
 					break;
 
 				case "chamber":
-					if (this.index >= 0 && this.index < store.state.machine.model.heat.chamberHeaters.length) {
-						const heaterIndex = store.state.machine.model.heat.chamberHeaters[this.index];
-						if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
-							return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
+					if (this.index >= 0 && this.index < store.state.machine.model.heat.chamberHeaterMapping.length) {
+						for (const heaterIndex of store.state.machine.model.heat.chamberHeaterMapping[this.index]) {
+							if (heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length && store.state.machine.model.heat.heaters[heaterIndex] !== null) {
+								return store.state.machine.model.heat.heaters[heaterIndex]![activeOrStandby];
+							}
 						}
 					}
 					break;
@@ -185,17 +191,15 @@ export default Vue.extend({
 								}
 							}
 							if (this.controlBeds) {
-								for (let i = 0; i < store.state.machine.model.heat.bedHeaters.length; i++) {
-									const bedHeater = store.state.machine.model.heat.bedHeaters[i];
-									if (bedHeater >= 0 && bedHeater <= store.state.machine.model.heat.heaters.length) {
+								for (let i = 0; i < store.state.machine.model.heat.bedHeaterMapping.length; i++) {
+									if (store.state.machine.model.heat.bedHeaterMapping[i].some(heaterIndex => heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length)) {
 										code += `M140 P${i} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
 									}
 								}
 							}
 							if (this.controlChambers) {
-								for (let i = 0; i < store.state.machine.model.heat.chamberHeaters.length; i++) {
-									const chamberHeater = store.state.machine.model.heat.chamberHeaters[i];
-									if (chamberHeater >= 0 && chamberHeater <= store.state.machine.model.heat.heaters.length) {
+								for (let i = 0; i < store.state.machine.model.heat.chamberHeaterMapping.length; i++) {
+									if (store.state.machine.model.heat.chamberHeaterMapping[i].some(heaterIndex => heaterIndex >= 0 && heaterIndex < store.state.machine.model.heat.heaters.length)) {
 										code += `M141 P${i} ${this.active ? 'S' : 'R'}${this.inputValue}\n`;
 									}
 								}

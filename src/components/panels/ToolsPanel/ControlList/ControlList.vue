@@ -88,15 +88,15 @@ import ToolRows from "./ToolRows.vue";
 
 // General appearance
 const hasTools = computed(() => store.state.machine.model.tools.some(tool => tool !== null));
-const hasBeds = computed(() => store.state.machine.model.heat.bedHeaters.some(bedHeater => (bedHeater >= 0) && (bedHeater < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[bedHeater] !== null)));
-const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaters.some(chamberHeater => (chamberHeater >= 0) && (chamberHeater < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[chamberHeater] !== null)));
+const hasBeds = computed(() => store.state.machine.model.heat.bedHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIndex => (heaterIndex >= 0) && (heaterIndex < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[heaterIndex] !== null))));
+const hasChambers = computed(() => store.state.machine.model.heat.chamberHeaterMapping.some(heaterIndices => heaterIndices.some(heaterIndex => (heaterIndex >= 0) && (heaterIndex < store.state.machine.model.heat.heaters.length) && (store.state.machine.model.heat.heaters[heaterIndex] !== null))));
 
 // Bed control
-const bedHeaters = computed(() => store.state.machine.model.heat.bedHeaters);
+const bedHeaterMapping = computed(() => store.state.machine.model.heat.bedHeaterMapping);
 const singleBedControl = computed<boolean>(() => store.state.machine.settings.singleBedControl);
 
 // Chamber control
-const chamberHeaters = computed(() => store.state.machine.model.heat.chamberHeaters);
+const chamberHeaterMapping = computed(() => store.state.machine.model.heat.chamberHeaterMapping);
 
 // Heater fault management
 const resettingHeaterFault = ref(false), faultyHeaterToReset = ref(-1);

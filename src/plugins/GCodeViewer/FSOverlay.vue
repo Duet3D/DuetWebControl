@@ -45,25 +45,29 @@
                         </v-row>
                     </template>
                     <!-- Bed -->
-                    <v-row dense v-for="(heaterIdx, idx) in heat.bedHeaters" :key="'heater' + idx" align="center" justify="center">
-                        <template v-if="heaterIdx >= 0">
-                            <v-col cols="12" :data="(heater = getHeaterInfo(heaterIdx))">
-                                <template v-if="heater">
-                                    <gcodeviewer-gauge class="gauges" :max="120" :curval="heater.current" :settemp="heater.active" :label="getBedLabel(idx)" tool-type="b" :tool-number="idx" :state="heater.state"></gcodeviewer-gauge>
-                                </template>
-                            </v-col>
-                        </template>
-                    </v-row>
+                    <template v-for="(heaterIndices, idx) in heat.bedHeaterMapping">
+                        <v-row dense v-for="(heaterIdx, subIdx) in heaterIndices" :key="'bed' + idx + '-' + subIdx" align="center" justify="center">
+                            <template v-if="heaterIdx >= 0">
+                                <v-col cols="12" :data="(heater = getHeaterInfo(heaterIdx))">
+                                    <template v-if="heater">
+                                        <gcodeviewer-gauge class="gauges" :max="120" :curval="heater.current" :settemp="heater.active" :label="getBedLabel(idx)" tool-type="b" :tool-number="idx" :state="heater.state"></gcodeviewer-gauge>
+                                    </template>
+                                </v-col>
+                            </template>
+                        </v-row>
+                    </template>
                     <!--Chamber -->
-                    <v-row dense v-for="(heaterIdx, idx) in heat.chamberHeaters" :key="idx" align="center" justify="center">
-                        <template v-if="heaterIdx >= 0">
-                            <v-col cols="12" :data="(heater = getHeaterInfo(heaterIdx))">
-                                <template v-if="heater">
-                                    <gcodeviewer-gauge class="gauges" :max="120" :curval="heater.current" :settemp="heater.active" :label="getChamberLabel(idx)" tool-type="c" :tool-number="idx" :state="heater.state"></gcodeviewer-gauge>
-                                </template>
-                            </v-col>
-                        </template>
-                    </v-row>
+                    <template v-for="(heaterIndices, idx) in heat.chamberHeaterMapping">
+                        <v-row dense v-for="(heaterIdx, subIdx) in heaterIndices" :key="'chamber' + idx + '-' + subIdx" align="center" justify="center">
+                            <template v-if="heaterIdx >= 0">
+                                <v-col cols="12" :data="(heater = getHeaterInfo(heaterIdx))">
+                                    <template v-if="heater">
+                                        <gcodeviewer-gauge class="gauges" :max="120" :curval="heater.current" :settemp="heater.active" :label="getChamberLabel(idx)" tool-type="c" :tool-number="idx" :state="heater.state"></gcodeviewer-gauge>
+                                    </template>
+                                </v-col>
+                            </template>
+                        </v-row>
+                    </template>
                 </v-card-text>
             </v-card>
         </div>
@@ -159,10 +163,10 @@ export default {
 			return tool.name === '' ? 'Tool ' + toolIdx : tool.name;
 		},
 		getBedLabel(bedIdx) {
-			return this.heat.bedHeaters.length <= 2 ? 'Bed' : 'Bed ' + bedIdx;
+			return this.heat.bedHeaterMapping.length <= 2 ? 'Bed' : 'Bed ' + bedIdx;
 		},
 		getChamberLabel(chamberIdx) {
-			return this.heat.chamberHeaters.length <= 2 ? 'Chamber' : 'Chamber ' + chamberIdx;
+			return this.heat.chamberHeaterMapping.length <= 2 ? 'Chamber' : 'Chamber ' + chamberIdx;
         },
     },
 };
