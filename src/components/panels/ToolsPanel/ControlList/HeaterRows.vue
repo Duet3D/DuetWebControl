@@ -104,7 +104,7 @@
                         </th>
 
                         <!-- Heater name -->
-                        <th class="pb-3">
+                        <th :class="{ 'pb-3': heaterIndex > 0 }">
                             <a href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)" @click="heaterClick(index, heater)">
                                 {{ getHeaterName(heater, heaterIndex) }}
                             </a>
