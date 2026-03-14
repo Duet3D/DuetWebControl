@@ -1,14 +1,20 @@
 const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
-const CompressionPlugin = require("compression-webpack-plugin");
-const fs = require("fs"), path = require("path");
+const { EsbuildPlugin } = require("esbuild-loader");
+const fs = require("fs"), path = require("path"), zlib = require("zlib");
 const { EnvironmentPlugin } = require("webpack");
 const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
 module.exports = {
 	configureWebpack: {
-		devtool: "source-map",
+		devtool: process.env.NODE_ENV === "production" ? "source-map" : "eval-source-map",
+		cache: {
+			type: "filesystem",
+			buildDependencies: {
+				config: [__filename]
+			}
+		},
 		optimization: {
 			chunkIds: "named",
 			concatenateModules: false,
@@ -59,11 +65,23 @@ module.exports = {
 						if(fs.existsSync(apiDocs)) {
 							fs.unlinkSync(apiDocs);
 						}
+
+						// Gzip all files in dist (except .zip files)
+						const distDir = path.resolve(__dirname, "dist");
+						function gzipDir(dir) {
+							for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+								const fullPath = path.join(dir, entry.name);
+								if (entry.isDirectory()) {
+									gzipDir(fullPath);
+								} else if (!entry.name.endsWith(".zip") && !entry.name.endsWith(".gz")) {
+									const content = fs.readFileSync(fullPath);
+									const compressed = zlib.gzipSync(content, { level: 6 });
+									fs.writeFileSync(fullPath + ".gz", compressed);
+								}
+							}
+						}
+						gzipDir(distDir);
 					}
-				}),
-				new CompressionPlugin({
-					exclude: /\.zip$/,
-					minRatio: Infinity
 				}),
 				...((process.env.NOZIP) ? [] : [
 					new ZipPlugin({
@@ -83,12 +101,12 @@ module.exports = {
 		}
 	},
 	chainWebpack: config => {
-		config.optimization.minimizer("terser").tap(args => {
-			const { terserOptions } = args[0];
-			terserOptions.keep_classnames = true;
-			terserOptions.keep_fnames = true;
-			return args;
-		});
+		config.optimization.minimizers.delete("terser");
+		config.optimization.minimizer("esbuild").use(EsbuildPlugin, [{
+			keepNames: true,
+			target: "es2015",
+			css: true
+		}]);
 		config.optimization.set("splitChunks", {
 			chunks: "all",
 			cacheGroups: {
@@ -107,8 +125,5 @@ module.exports = {
 		workboxOptions: {
 			maximumFileSizeToCacheInBytes: 20000000		// 20MB
 		}
-	},
-	transpileDependencies: [
-		"vuetify"
-	]
+	}
 }

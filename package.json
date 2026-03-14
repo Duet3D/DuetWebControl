@@ -49,7 +49,7 @@
       "archiver": "^7.0.1",
       "babel-plugin-prismjs": "^2.1.0",
       "babel-plugin-transform-builtin-extend": "^1.1.2",
-      "compression-webpack-plugin": "^10.0.0",
+      "esbuild-loader": "^4.4.2",
       "event-hooks-webpack-plugin": "^2.3.0",
       "register-service-worker": "^1.7.2",
       "sass": "~1.32",
