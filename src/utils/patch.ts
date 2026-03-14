@@ -1,19 +1,16 @@
-'use strict'
-
-// This file is now obsolete - it will be removed from v3.6
-
-import Vue from 'vue'
+import Vue from "vue";
 
 export class Dictionary {
-	constructor(initData) {
-		for (let key in initData) {
+	[key: string]: any;
+	constructor(initData: Record<string, any>) {
+		for (const key in initData) {
 			this[key] = initData[key];
 		}
 	}
 	// properties are dynamic in this class
 }
 
-export function arraySizesDiffer(a, b) {
+export function arraySizesDiffer(a: any, b: any): boolean {
 	if (a instanceof Array) {
 		if (a.length !== b.length) {
 			return true;
@@ -27,7 +24,7 @@ export function arraySizesDiffer(a, b) {
 			}
 		}
 	} else if (a instanceof Object) {
-		for (let key in a) {
+		for (const key in a) {
 			if (a[key] instanceof Object && b[key] instanceof Object) {
 				if (arraySizesDiffer(a[key], b[key])) {
 					return true;
@@ -38,7 +35,7 @@ export function arraySizesDiffer(a, b) {
 	return false;
 }
 
-export function quickPatch(a, b) {
+export function quickPatch(a: any, b: any): void {
 	if (a instanceof Array) {
 		for (let i = 0; i < b.length; i++) {
 			if (i < a.length) {
@@ -52,7 +49,7 @@ export function quickPatch(a, b) {
 			}
 		}
 	} else if (b instanceof Object) {
-		for (let key in b) {
+		for (const key in b) {
 			if (a[key] instanceof Object) {
 				quickPatch(a[key], b[key]);
 			} else {
@@ -62,7 +59,7 @@ export function quickPatch(a, b) {
 	}
 }
 
-export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
+export function patch(a: any, b: any, skipNonexistentFields = false, fullPath = ''): void {
 	if (a instanceof Array) {
 		while (a.length > b.length) {
 			a.pop();
@@ -85,7 +82,7 @@ export function patch(a, b, skipNonexistentFields = false, fullPath = '') {
 			}
 		}
 	} else if (a instanceof Object) {
-		for (let key in b) {
+		for (const key in b) {
 			if (skipNonexistentFields && !(key in a)) {
 				if (process.env.NODE_ENV !== 'production') {
 					console.warn(`[patch] Skipped merge of ${fullPath}/${key} because it does not exist in the source. Value: ${JSON.stringify(b[key])}`);

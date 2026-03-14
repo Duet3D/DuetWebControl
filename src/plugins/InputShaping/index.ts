@@ -1,5 +1,3 @@
-'use strict'
-
 import { registerRoute } from '@/routes'
 
 import InputShaping from './InputShaping.vue'

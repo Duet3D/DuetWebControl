@@ -6,6 +6,16 @@ import DwcPlugin from "./DwcPlugin";
 
 export default initCollection(DwcPlugin, [
 	{
+        id: "EndstopsMonitor",
+        name: "Endstops Monitor",
+        author: "Duet3D Ltd",
+        version: "3.7.0-alpha.3",
+        loadDwcResources: () => import(
+            /* webpackChunkName: "EndstopsMonitor" */
+            "./EndstopsMonitor/index"
+        )
+    },
+	{
         id: "GCodeViewer",
         name: "G-Code Viewer",
         author: "Juan Rosario",
