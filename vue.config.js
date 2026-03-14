@@ -12,7 +12,11 @@ module.exports = {
 		cache: {
 			type: "filesystem",
 			buildDependencies: {
-				config: [__filename]
+				config: [
+					__filename,
+					path.resolve(__dirname, "webpack/lib/auto-imports-plugin.js"),
+					path.resolve(__dirname, "webpack/lib/custom-imports-plugin.js")
+				]
 			}
 		},
 		optimization: {
@@ -104,7 +108,7 @@ module.exports = {
 		config.optimization.minimizers.delete("terser");
 		config.optimization.minimizer("esbuild").use(EsbuildPlugin, [{
 			keepNames: true,
-			target: "es2015",
+			target: "es2020",
 			css: true
 		}]);
 		config.optimization.set("splitChunks", {
