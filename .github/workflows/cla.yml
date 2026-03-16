@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: "CLA Assistant"
-        if: (github.event.comment.body == 'recheck' || github.event.comment.body == "I have read the Duet3D CLA v${{ vars.CLA_MAJOR_VERSION }}.${{ vars.CLA_MINOR_VERSION }} and I hereby sign it") || github.event_name == 'pull_request_target'
+        if: (github.event.comment.body == 'recheck' || github.event.comment.body == format('I have read the Duet3D CLA v{0}.{1} and I hereby sign it', vars.CLA_MAJOR_VERSION, vars.CLA_MINOR_VERSION)) || github.event_name == 'pull_request_target'
         uses: contributor-assistant/github-action@v2.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
