@@ -15,7 +15,7 @@
    },
    "dependencies": {
       "@duet3d/connectors": "~3.7.0-alpha.2",
-      "@duet3d/monacotokens": "~3.6.0",
+      "@duet3d/monacotokens": "~3.7.0-alpha.1",
       "@duet3d/motionanalysis": "~3.4.0",
       "@duet3d/objectmodel": "~3.7.0-alpha.3",
       "@mdi/font": "^7.4.47",
@@ -26,7 +26,7 @@
       "date-fns": "^2.30.0",
       "file-saver": "^2.0.5",
       "jszip": "^3.10.1",
-      "monaco-editor": "^0.52.0",
+      "monaco-editor": "^0.55.1",
       "piecon": "^0.5.0",
       "qoijs": "^1.0.0",
       "register-service-worker": "^1.7.2",

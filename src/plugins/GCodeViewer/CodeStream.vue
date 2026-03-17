@@ -1,5 +1,10 @@
 <template>
-   <div ref="editor" class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange"></div>
+   <div class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange">
+      <div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
+         <v-progress-circular indeterminate color="primary" />
+      </div>
+      <div ref="editor" class="fill-height"></div>
+   </div>
 </template>
 
 <style scoped></style>
@@ -11,8 +16,8 @@
 </style>
 
 <script lang="ts">
+import type * as Monaco from 'monaco-editor';
 import Vue from 'vue';
-import * as monaco from 'monaco-editor';
 import store from '@/store';
 
 export default Vue.extend({
@@ -37,7 +42,8 @@ export default Vue.extend({
    data: function () {
       return {
          innerDocument: ' ',
-         editor: null as monaco.editor.IStandaloneCodeEditor | null
+         monacoLoading: false,
+         editor: null as Monaco.editor.IStandaloneCodeEditor | null
       };
    },
    computed: {
@@ -45,7 +51,14 @@ export default Vue.extend({
          return store.state.settings.darkTheme;
       }
    },
-   mounted() {
+   async mounted() {
+      this.monacoLoading = true;
+      const { monaco } = await import(
+         /* webpackChunkName: "monaco" */
+         '@/utils/monaco'
+      );
+      this.monacoLoading = false;
+      (this as any)._monaco = monaco;
       this.$nextTick(() => {
          this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
             automaticLayout: true,
@@ -66,6 +79,8 @@ export default Vue.extend({
    methods: {
       cursorChange(e: any) {
          if (this.isSimulating) return;
+         const monaco: typeof Monaco = (this as any)._monaco;
+         if (!monaco) return;
          const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 9999);
          const newPosition = new monaco.Position(currentPosition.lineNumber, 9999);
          const position = this.editor?.getModel()?.getOffsetAt(newPosition) ?? 0;
@@ -75,6 +90,8 @@ export default Vue.extend({
    watch: {
       currentline(to) {
          if (!this.shown || !this.editor) return;
+         const monaco: typeof Monaco = (this as any)._monaco;
+         if (!monaco) return;
          to = to
          const currentPosition = this.editor.getPosition() ?? new monaco.Position(1,9999);
          const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 9999);

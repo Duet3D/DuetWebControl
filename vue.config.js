@@ -2,7 +2,7 @@ const AutoImportsPlugin = require("./webpack/lib/auto-imports-plugin.js");
 const CustomImportsPlugin = require("./webpack/lib/custom-imports-plugin.js");
 const { EsbuildPlugin } = require("esbuild-loader");
 const fs = require("fs"), path = require("path"), zlib = require("zlib");
-const { EnvironmentPlugin } = require("webpack");
+const { Compilation, EnvironmentPlugin } = require("webpack");
 const EventHooksPlugin = require("event-hooks-webpack-plugin");
 const ZipPlugin = require("zip-webpack-plugin");
 
@@ -23,7 +23,7 @@ module.exports = {
 			chunkIds: "named",
 			concatenateModules: false,
 			flagIncludedChunks: false,
-			mergeDuplicateChunks: false,
+			mergeDuplicateChunks: true,
 			moduleIds: "named",
 			removeAvailableModules: false,
 			splitChunks: {
@@ -31,12 +31,7 @@ module.exports = {
 					babylon: {
 						test: /[\\/]node_modules[\\/](@babylonjs|babylon|babylonjs-gltf2interface)[\\/]/,
 						name: "babylon",
-						chunks: "all"
-					},
-					monacoEditor: {
-						test: (module) => module.context && /[\\/]node_modules[\\/]monaco-editor[\\/]/.test(module.context),
-						name: "monaco-editor",
-						chunks: "all"
+						chunks: "async"
 					}
 				}
 			},
@@ -69,29 +64,39 @@ module.exports = {
 						if(fs.existsSync(apiDocs)) {
 							fs.unlinkSync(apiDocs);
 						}
-
-						// Gzip all files in dist (except .zip files)
-						const distDir = path.resolve(__dirname, "dist");
-						function gzipDir(dir) {
-							for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-								const fullPath = path.join(dir, entry.name);
-								if (entry.isDirectory()) {
-									gzipDir(fullPath);
-								} else if (!entry.name.endsWith(".zip") && !entry.name.endsWith(".gz")) {
-									const content = fs.readFileSync(fullPath);
-									const compressed = zlib.gzipSync(content, { level: 6 });
-									fs.writeFileSync(fullPath + ".gz", compressed);
-								}
-							}
-						}
-						gzipDir(distDir);
 					}
 				}),
+				// Add gzipped versions of every asset into compilation.assets so
+				// ZipPlugin (which runs at PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER)
+				// can include them in DuetWebControl-SD.zip
+				{
+					apply(compiler) {
+						compiler.hooks.thisCompilation.tap("GzipAssetsPlugin", (compilation) => {
+							compilation.hooks.processAssets.tap(
+								{
+									name: "GzipAssetsPlugin",
+									// Must run after HtmlWebpackPlugin (stage 1000) but before
+									// ZipPlugin (PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER = 3000)
+									stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER - 1
+								},
+								(assets) => {
+									for (const [name, asset] of Object.entries(assets)) {
+										if (name.endsWith(".gz") || name.endsWith(".zip")) continue;
+										const content = asset.source();
+										const buf = Buffer.isBuffer(content) ? content : Buffer.from(content);
+										const compressed = zlib.gzipSync(buf, { level: 6 });
+										compilation.emitAsset(name + ".gz", new compiler.webpack.sources.RawSource(compressed));
+									}
+								}
+							);
+						});
+					}
+				},
 				...((process.env.NOZIP) ? [] : [
 					new ZipPlugin({
 						filename: "DuetWebControl-SD.zip",
 						include: [/\.gz$/, /\.woff$/, /\.woff2$/],
-						exclude: ["robots.txt"]
+						exclude: [/robots\.txt/]
 					}),
 					new ZipPlugin({
 						filename: "DuetWebControl-SBC.zip",
@@ -127,7 +132,25 @@ module.exports = {
 		appleMobileWebAppCapable: "yes",
 		appleMobileWebAppStatusBarStyle: "black",
 		workboxOptions: {
-			maximumFileSizeToCacheInBytes: 20000000		// 20MB
+			maximumFileSizeToCacheInBytes: 20000000,	// 20MB
+			// Exclude all lazy chunks from eager precaching (only app.* is initial)
+			exclude: [
+				({ url }) => /\/(js|css)\/(?!app\.)/.test(url)
+			],
+			runtimeCaching: [
+				{
+					// Cache all lazy JS/CSS chunks on first use (cache-first, long TTL)
+					urlPattern: /\/(js|css)\/(?!app\.)[^/]+\.(js|css)(\.gz)?$/,
+					handler: "CacheFirst",
+					options: {
+						cacheName: "lazy-chunks",
+						expiration: {
+							maxEntries: 60,
+							maxAgeSeconds: 30 * 24 * 60 * 60	// 30 days
+						}
+					}
+				}
+			]
 		}
 	}
 }

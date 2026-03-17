@@ -70,7 +70,12 @@
 				</v-btn>
 			</v-app-bar>
 
-			<div v-if="useMonacoEditor" ref="monacoEditor" class="editor-monaco"></div>
+			<div v-if="useMonacoEditor" class="editor-monaco">
+				<div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
+					<v-progress-circular indeterminate color="primary" />
+				</div>
+				<div ref="monacoEditor" class="fill-height"></div>
+			</div>
 			<v-textarea v-else ref="textarea" hide-details solo :rows="null" class="editor-textarea"
 						autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" :value="innerValue"
 						@input.passive="valueChanged = true" @blur="innerValue = $event.target.value"
@@ -83,16 +88,12 @@
 
 <script lang="ts">
 import { MachineMode } from "@duet3d/objectmodel";
-import * as monaco from "monaco-editor";
+import type * as Monaco from "monaco-editor";
 import Vue from "vue";
 
 import store from "@/store";
 import { indent } from "@/utils/display";
 import { log, LogType } from "@/utils/logging";
-import "@/utils/monaco-editor";
-import "@/utils/monaco-syntax";
-import "@/utils/monaco-menu";
-import "@/utils/monaco-STM32";
 import Path from "@/utils/path";
 
 const mediumFileThreshold = 4194304;	// 4 MiB
@@ -153,7 +154,8 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			monacoEditor: null as monaco.editor.IStandaloneCodeEditor | null,
+			monacoEditor: null as Monaco.editor.IStandaloneCodeEditor | null,
+			monacoLoading: false,
 			innerValue: "",
 			valueChanged: false
 		}
@@ -258,7 +260,7 @@ export default Vue.extend({
 		}
 	},
 	watch: {
-		shown(to) {
+		async shown(to) {
 			// Update textarea
 			this.innerValue = this.value || "";
 			this.$nextTick(() => this.valueChanged = false);
@@ -266,13 +268,19 @@ export default Vue.extend({
 			if (to) {
 				// Create Monaco editor if necessary
 				if (this.useMonacoEditor) {
-					this.$nextTick(() => {
+					this.monacoLoading = true;
+					const { monaco } = await import(
+						/* webpackChunkName: "monaco" */
+						"@/utils/monaco"
+					);
+					this.monacoLoading = false;
+					if (this.shown && this.$refs.monacoEditor && !this.monacoEditor) {
 						this.monacoEditor = monaco.editor.create(this.$refs.monacoEditor as HTMLElement, {
 							automaticLayout: true,
 							matchBrackets: this.isBigFile ? "near" : "always",
 							language: this.language,
 							lineNumbersMinChars: this.isMediumFile ? 10 : 5,
-							occurrencesHighlight: this.isBigFile ? "off" :"singleFile",
+							occurrencesHighlight: this.isBigFile ? "off" : "singleFile",
 							rulers: [255],
 							scrollBeyondLastLine: false,
 							theme: store.state.settings.darkTheme ? "vs-dark" : "vs",
@@ -280,7 +288,7 @@ export default Vue.extend({
 							wordBasedSuggestions: "off"
 						});
 						this.monacoEditor.getModel()!.onDidChangeContent(() => this.valueChanged = true);
-					});
+					}
 				}
 
 				// Focus text editor

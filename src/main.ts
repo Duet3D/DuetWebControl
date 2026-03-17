@@ -18,6 +18,13 @@ import App from "./App.vue";
 Vue.config.productionTip = false;
 Vue.use(Vuetify);
 
+// Preload the monaco-editor chunk in the background after the page is fully
+// loaded, so it's already cached when the user first opens the file editor.
+window.addEventListener("load", () => {
+	const schedule = (window as any).requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 2000));
+	schedule(() => import(/* webpackChunkName: "monaco" */ "@/utils/monaco"));
+});
+
 export default new Vue({
 	el: "#app",
 	i18n,
