@@ -129,7 +129,7 @@ export default Vue.extend({
 				case UploadType.filaments: return ".zip";
 				case UploadType.firmware: return ".zip,.bin,.uf2";
 				case UploadType.menu: return "*";
-				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.sbc !== null) ? ",.deb" : "");
+				case UploadType.system: return ".zip,.bin,.uf2,.json,.g,.csv,.xml" + ((store.state.machine.model.sbc !== null) ? ",.deb,.crt,.key" : "");
 				case UploadType.web: return ".zip,.csv,.json,.htm,.html,.ico,.xml,.css,.map,.js,.ttf,.eot,.svg,.woff,.woff2,.jpeg,.jpg,.png,.gz";
 				case UploadType.plugin: return ".zip";
 				case UploadType.update: return ".zip,.bin,.uf2";
