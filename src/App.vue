@@ -1,23 +1,7 @@
+<!-- Root of the application: hosts <router-view> via the layout system (see src/layouts/) -->
+<!-- The Vuetify <v-app> wrapper lives in the layouts so they can drive Vuetify's drawer/app-bar wiring -->
 <template>
-	<v-app>
-		<v-main>
-			<v-container class="fill-height">
-				<v-responsive class="align-center text-center fill-height">
-					nothing to see here yet
-					<template v-if="machineStore.isConnected">
-						<br>
-						<br>
-						Uptime: {{ machineStore.model.state.upTime }}
-					</template>
-				</v-responsive>
-			</v-container>
-		</v-main>
-
-		<ConnectDialog />
-		<ConnectionProgressDialog />
-		<MessageBoxDialog />
-		<NotificationDisplay />
-	</v-app>
+	<router-view />
 </template>
 
 <script setup lang="ts">

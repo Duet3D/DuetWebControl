@@ -175,5 +175,25 @@
   },
   "error": {
     "invalidHeightmap": "Invalid heightmap"
+  },
+  "layout": {
+    "backToHub": "Back to home"
+  },
+  "menu": {
+    "control": {
+      "caption": "Control"
+    },
+    "job": {
+      "caption": "Job"
+    },
+    "files": {
+      "caption": "Files"
+    },
+    "settings": {
+      "caption": "Settings"
+    },
+    "plugins": {
+      "caption": "Plugins"
+    }
   }
 }

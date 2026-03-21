@@ -177,5 +177,25 @@
   },
   "error": {
     "invalidHeightmap": "Ungültige Höhenkarte"
+  },
+  "layout": {
+    "backToHub": "Zur Startseite"
+  },
+  "menu": {
+    "control": {
+      "caption": "Steuerung"
+    },
+    "job": {
+      "caption": "Auftrag"
+    },
+    "files": {
+      "caption": "Dateien"
+    },
+    "settings": {
+      "caption": "Einstellungen"
+    },
+    "plugins": {
+      "caption": "Plugins"
+    }
   }
 }

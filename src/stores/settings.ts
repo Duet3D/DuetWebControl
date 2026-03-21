@@ -30,6 +30,18 @@ export enum WebcamFlip {
 	Both = "both"
 }
 
+export enum LayoutMode {
+	/**
+	 * Static layout (navigation drawer + app bar shell with built-in pages)
+	 */
+	default = "default",
+
+	/**
+	 * User-arrangeable dashboard layout - draggable tiles, configurable per-component (Phase 4 of the modernization plan)
+	 */
+	custom = "custom"
+}
+
 export const useSettingsStore = defineStore("settings", {
 	state: () => ({
 		// #region General Settings
@@ -73,8 +85,15 @@ export const useSettingsStore = defineStore("settings", {
 
 		/**
 		 * Show navigation bar at the bottom on small screen sizes
+		 * @deprecated Replaced by the hub-page + back-button shell on xs/sm in the next-branch app; remove with a schema migration when the settings page is ported
 		 */
 		bottomNavigation: true,
+
+		/**
+		 * Currently selected layout mode. The default static shell is the only one implemented today;
+		 * the user-arrangeable "custom" dashboard is unlocked in Phase 4 of the modernization plan
+		 */
+		layoutMode: LayoutMode.default,
 
 		/**
 		 * Use numeric inputs instead of sliders
