@@ -2,11 +2,12 @@
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import Fonts from 'unplugin-fonts/vite'
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'unplugin-vue-router/vite'
+import VueRouter from 'vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import dwcPlugins from './vite/dwc-plugins'
+import buildOutputs from './vite/build-outputs'
 
 // Utilities
 import { defineConfig } from 'vite'
@@ -52,11 +53,13 @@ export default defineConfig({
       dts: 'src/typed-router.d.ts',
     }),
     Layouts(),
+    // unplugin-auto-import + unplugin-vue-components: a deliberate convenience kept for now;
+    // post-completion cleanup candidate - revisit dropping them once the port is done
     AutoImport({
       imports: [
         'vue',
         {
-          'vue-router/auto': ['useRoute', 'useRouter'],
+          'vue-router': ['useRoute', 'useRouter'],
         },
       ],
       dts: 'src/auto-imports.d.ts',
@@ -76,13 +79,15 @@ export default defineConfig({
       },
     }),
     Fonts({
-      google: {
+      fontsource: {
         families: [{
           name: 'Roboto',
-          styles: 'wght@100;300;400;500;700;900',
+          weights: [100, 300, 400, 500, 700, 900],
+          styles: ['normal', 'italic'],
         }],
       },
     }),
+    buildOutputs(),
   ],
   define: { 'process.env': {} },
   resolve: {

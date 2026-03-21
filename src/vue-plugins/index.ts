@@ -10,7 +10,7 @@ import type { App } from "vue";
 import i18n from "../i18n";
 import { createPinia } from "pinia";
 import vuetify from "./vuetify";
-import { DataLoaderPlugin } from 'unplugin-vue-router/data-loaders'
+import { DataLoaderPlugin } from 'vue-router/experimental'
 import router from "../router";
 
 // Types

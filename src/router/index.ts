@@ -18,23 +18,21 @@ if (import.meta.hot) {
 	handleHotUpdate(router);
 }
 
-// Workaround for https://github.com/vitejs/vite/issues/11804
-router.onError((err, to) => {
-	if (err?.message?.includes?.("Failed to fetch dynamically imported module")) {
-		if (!localStorage.getItem("vuetify:dynamic-reload")) {
-			console.log("Reloading page to fix dynamic import error");
-			localStorage.setItem("vuetify:dynamic-reload", "true");
-			location.assign(to.fullPath);
-		} else {
-			console.error("Dynamic import error, reloading page did not fix it", err);
-		}
-	} else {
-		console.error(err);
+// When a lazily-imported chunk fails to load - typically because the app was
+// redeployed and the old hashed chunks are gone - reload once to pick up the new
+// build. Vite fires `vite:preloadError` for exactly this case; the sessionStorage
+// guard stops a reload loop if the failure persists
+window.addEventListener("vite:preloadError", (event) => {
+	if (sessionStorage.getItem("dwc:preload-reloaded")) {
+		console.error("Chunk preload failed and reloading did not fix it", event);
+		return;
 	}
-})
+	sessionStorage.setItem("dwc:preload-reloaded", "true");
+	window.location.reload();
+});
 
 router.isReady().then(() => {
-	localStorage.removeItem("vuetify:dynamic-reload");
-})
+	sessionStorage.removeItem("dwc:preload-reloaded");
+});
 
 export default router
