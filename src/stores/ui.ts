@@ -175,7 +175,7 @@ export const useUiStore = defineStore("ui", {
 		/**
 		 * Defines if the connect dialog is shown
 		 */
-		showConnectDialog: process.env.NODE_ENV === "development",
+		showConnectDialog: import.meta.env.DEV,
 
 		/**
 		 * Additional context menu items

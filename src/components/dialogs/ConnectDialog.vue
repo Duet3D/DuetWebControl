@@ -69,7 +69,7 @@ async function submit() {
 		uiStore.showConnectDialog = false;
 		try {
 			await machineStore.connect(hostname.value, undefined, password.value);
-			if (process.env.NODE_ENV === "development") {
+			if (import.meta.env.DEV) {
 				setLocalSetting(localStorageHostnameKey, hostname.value);
 			}
 

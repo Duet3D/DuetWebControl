@@ -10,7 +10,7 @@ import { useMachineStore } from "@/stores/machine";
 const machineStore = useMachineStore();
 
 // Attempt to connect straight away unless running in dev mode
-if (process.env.NODE_ENV !== "development") {
+if (!import.meta.env.DEV) {
 	/*await*/ machineStore.connect();
 }
 </script>

@@ -17,7 +17,7 @@ Events.on("connectError", ({ hostname, error }) => {
 
 Events.on("connectionError", ({ hostname, error }) => {
 	const uiStore = useUiStore();
-	if (error instanceof InvalidPasswordError || process.env.NODE_ENV !== "production") {
+	if (error instanceof InvalidPasswordError || !import.meta.env.PROD) {
 		uiStore.log(LogLevel.error, i18n.global.t("event.connectionLost", [hostname]), getErrorMessage(error, true));
 	} else {
 		uiStore.log(LogLevel.warning, i18n.global.t("event.reconnecting", [hostname]), getErrorMessage(error, true));

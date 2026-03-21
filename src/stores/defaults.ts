@@ -58,8 +58,8 @@ export const DefaultObjectModel = initObject(ObjectModel, {
 		])
 	}),
 	network: initObject(Network, {
-		hostname: (process.env.NODE_ENV === 'production') ? location.hostname : '',
-		name: (process.env.NODE_ENV === 'production') ? `(${location.hostname})` : packageInfo.productName
+		hostname: import.meta.env.PROD ? location.hostname : '',
+		name: import.meta.env.PROD ? `(${location.hostname})` : packageInfo.productName
 	}),
 	sensors: initObject(Sensors, {
 		probes: initCollection(Probe, [

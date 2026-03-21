@@ -418,7 +418,7 @@ async function loadExternalPlugin(id: string): Promise<void> {
 		throw new Error(`Plugin "${id}" has no JS entry in dwcFiles`);
 	}
 
-	const baseURL = process.env.BASE_URL ?? '/';
+	const baseURL = import.meta.env.BASE_URL;
 
 	// Load CSS first
 	for (const cssFile of cssFiles) {

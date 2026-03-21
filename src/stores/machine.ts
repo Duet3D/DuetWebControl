@@ -235,7 +235,7 @@ export const useMachineStore = defineStore("machine", {
 				const settings = {
 					...settingsStore.$state,
 					protocol: location.protocol,
-					baseURL: process.env.BASE_URL ?? '/',
+					baseURL: import.meta.env.BASE_URL,
 					username: "",
 					password,
 					pluginsFile: Path.dwcPluginsFile,
@@ -295,7 +295,7 @@ export const useMachineStore = defineStore("machine", {
 					Events.emit("connectError", { hostname, error: e });
 
 					// Throw an exception in dev mode...
-					if (process.env.NODE_ENV === "development") {
+					if (import.meta.env.DEV) {
 						this.isConnecting = false;
 						throw e;
 					}
@@ -358,7 +358,7 @@ export const useMachineStore = defineStore("machine", {
 			if (error instanceof InvalidPasswordError) {
 				await this.disconnect(false);
 				Events.emit("invalidPassword", { hostname: this.connector.hostname, username: DefaultUsername, password: DefaultPassword });
-			} else if (process.env.NODE_ENV !== "production") {
+			} else if (!import.meta.env.PROD) {
 				await this.disconnect(false);
 			} else {
 				await this.reconnect();
