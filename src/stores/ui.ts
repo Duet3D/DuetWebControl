@@ -334,6 +334,13 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Drop every entry from the in-memory console log (does not affect notifications)
+		 */
+		clearLog() {
+			this.logMessages = [];
+		},
+
+		/**
 		 * Show a new notification
 		 * @param type Notification type
 		 * @param title Title of the notification

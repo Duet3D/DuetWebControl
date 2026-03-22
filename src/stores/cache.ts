@@ -108,6 +108,24 @@ export const useCacheStore = defineStore("cache", {
 		},
 
 		/**
+		 * Record a code as the most recently sent one - duplicates are removed before re-appending so the
+		 * code-input history shows the latest send at the bottom
+		 * @param code Code that was sent
+		 */
+		addLastSentCode(code: string) {
+			this.lastSentCodes = this.lastSentCodes.filter(item => item !== code);
+			this.lastSentCodes.push(code);
+		},
+
+		/**
+		 * Drop a code from the last-sent history (used by the code-input dropdown's delete button)
+		 * @param code Code to remove
+		 */
+		removeLastSentCode(code: string) {
+			this.lastSentCodes = this.lastSentCodes.filter(item => item !== code);
+		},
+
+		/**
 		 * Clear file info for a specific file or directory
 		 * @param fileOrDirectory File or directory path
 		 */

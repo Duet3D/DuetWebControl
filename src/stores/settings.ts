@@ -11,6 +11,15 @@ import { DefaultPluginSettings } from "./defaults";
 import { useMachineStore } from "./machine";
 import { resumeSettingsObserver, suspendSettingsObserver } from "./observer";
 
+/**
+ * Persistence record for a single {@link useComponentSettings} instance - the schema version is checked on load
+ * so a component can migrate or fall back to its defaults when its shape evolves
+ */
+export interface ComponentSettingsRecord {
+	schemaVersion: number;
+	data: unknown;
+}
+
 export enum DashboardMode {
 	default = "Default",
 	fff = "FFF",
@@ -345,7 +354,16 @@ export const useSettingsStore = defineStore("settings", {
 		/**
 		 * Spindle RPM presets
 		 */
-		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0]
+		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
+		// #endregion
+
+		// #region Per-component settings (driven by the `useComponentSettings` composable)
+		/**
+		 * Persisted per-component state, keyed by component identity (either an explicit id passed
+		 * to {@link useComponentSettings} or a derived positional path: route plus the inject/provide chain).
+		 * Each value carries its own schema version so callers can migrate or fall back to defaults
+		 */
+		componentSettings: {} as Record<string, ComponentSettingsRecord>
 		// #endregion
 	}),
 	getters: {
@@ -654,6 +672,35 @@ export const useSettingsStore = defineStore("settings", {
 			} else {
 				this.plugins[plugin][key] = value;
 			}
+		},
+
+		/**
+		 * Return the persisted settings record for a component, initialising it from {@link defaults} when missing
+		 * or when the persisted record fails the schema check (and the optional {@link upgrade} handler does not
+		 * yield a usable value). Used by {@link useComponentSettings} - prefer that composable over direct calls
+		 * @param id Stable component identity
+		 * @param defaults Initial settings shape
+		 * @param schemaVersion Current schema version - bump when the shape changes incompatibly
+		 * @param upgrade Optional migration receiving the previously-persisted value (any shape, any version)
+		 * @returns The current data payload (a reactive reference into the store)
+		 */
+		getOrInitComponentSetting<T>(id: string, defaults: T, schemaVersion: number, upgrade?: (old: unknown) => T): T {
+			const existing = this.componentSettings[id];
+			if (existing && existing.schemaVersion === schemaVersion) {
+				return existing.data as T;
+			}
+			if (existing && upgrade) {
+				try {
+					const migrated = upgrade(existing.data);
+					this.componentSettings[id] = { schemaVersion, data: migrated };
+					return migrated;
+				} catch (e) {
+					console.warn(`Component settings upgrade failed for ${id}; falling back to defaults`, e);
+				}
+			}
+			const initialData = JSON.parse(JSON.stringify(defaults)) as T;
+			this.componentSettings[id] = { schemaVersion, data: initialData };
+			return initialData;
 		}
 	}
 })

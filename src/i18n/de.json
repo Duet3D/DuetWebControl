@@ -181,9 +181,28 @@
   "layout": {
     "backToHub": "Zur Startseite"
   },
+  "input": {
+    "code": {
+      "placeholder": "Code senden...",
+      "send": "Senden"
+    }
+  },
+  "list": {
+    "eventLog": {
+      "title": "Ereignisprotokoll",
+      "menu": "Weitere Optionen",
+      "noEvents": "Keine Ereignisse anzuzeigen",
+      "clear": "Leeren",
+      "downloadText": "Als Text herunterladen",
+      "downloadCSV": "Als CSV herunterladen",
+      "sortNewestFirst": "Neueste zuerst",
+      "sortOldestFirst": "Älteste zuerst"
+    }
+  },
   "menu": {
     "control": {
-      "caption": "Steuerung"
+      "caption": "Steuerung",
+      "console": "Konsole"
     },
     "job": {
       "caption": "Auftrag"

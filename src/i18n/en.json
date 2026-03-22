@@ -179,9 +179,28 @@
   "layout": {
     "backToHub": "Back to home"
   },
+  "input": {
+    "code": {
+      "placeholder": "Send code...",
+      "send": "Send"
+    }
+  },
+  "list": {
+    "eventLog": {
+      "title": "Event Log",
+      "menu": "More options",
+      "noEvents": "No events to display",
+      "clear": "Clear",
+      "downloadText": "Download as Text",
+      "downloadCSV": "Download as CSV",
+      "sortNewestFirst": "Sort newest first",
+      "sortOldestFirst": "Sort oldest first"
+    }
+  },
   "menu": {
     "control": {
-      "caption": "Control"
+      "caption": "Control",
+      "console": "Console"
     },
     "job": {
       "caption": "Job"
