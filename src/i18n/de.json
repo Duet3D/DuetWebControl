@@ -126,6 +126,7 @@
       "errorSubDirectories": "Das Filament {0} enthält Unterverzeichnisse. Bitte löschen Sie diese erst händisch und versuchen Sie es erneut"
     },
     "message": "Nachricht",
+    "view": "Anzeigen",
     "mount": {
       "successTitle": "SD-Karte eingebunden",
       "errorTitle": "Konnte SD-Karte nicht einbinden"

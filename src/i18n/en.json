@@ -132,6 +132,7 @@
       "error": "Failed to install {0}"
     },
     "message": "Message",
+    "view": "View",
     "mount": {
       "successTitle": "SD card mounted",
       "errorTitle": "Failed to mount SD card"

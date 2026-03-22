@@ -8,7 +8,7 @@ import { DefaultObjectModel, DefaultPassword, DefaultUsername } from "./defaults
 import { useSettingsStore } from "./settings";
 
 import i18n, { translateResponse } from "@/i18n";
-import { FileTransferType, LogLevel, Notification, useUiStore } from "./ui";
+import { FileTransferNotification, FileTransferType, LogLevel, useUiStore } from "./ui";
 import { checkManifest, checkVersion } from "@/plugins";
 import { loadDwcPlugin, loadDwcPlugins, unloadDwcPlugin } from "@/plugins";
 import beep from "@/utils/beep";
@@ -495,7 +495,7 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			// Prepare the arguments and tell listeners that an upload is about to start
-			let notification: Notification | null = null;
+			let notification: FileTransferNotification | null = null;
 			if (fileOrFiles.length === 1) {
 				if (showProgress) {
 					const uiStore = useUiStore();
@@ -672,7 +672,7 @@ export const useMachineStore = defineStore("machine", {
 			}
 
 			// Prepare the arguments and tell listeners that a download is about to start
-			let notification: Notification | null = null;
+			let notification: FileTransferNotification | null = null;
 			if (files.length === 1) {
 				if (showProgress) {
 					const uiStore = useUiStore();

@@ -1,6 +1,6 @@
 import { InvalidPasswordError, OperationCancelledError } from "@duet3d/connectors";
 import i18n from "@/i18n";
-import { LogLevel, Notification, useUiStore } from "@/stores/ui";
+import { LogLevel, useUiStore } from "@/stores/ui";
 
 import { displayTime } from "./display";
 import { getErrorMessage } from "./errors";
@@ -69,39 +69,19 @@ Events.on("fileDownloadError", ({ filename, error, showError }) => {
 	}
 })
 
-let pluginsLoadingNotification: Notification | null = null, pluginsToLoad = 0, pluginsLoaded = 0;
+let pluginsLoadingNotificationId: string | null = null;
 
-Events.on("dwcPluginsLoading", plugins => {
-	pluginsToLoad = pluginsLoaded = 0
-	pluginsLoadingNotification = useUiStore().makeNotification(LogLevel.primary, i18n.global.t("notification.pluginLoad.title"), i18n.global.t("notification.pluginLoad.message"), 0, null, "mdi-connection");
-})
-
-Events.on("dwcPluginLoaded", plugin => {
-	if (pluginsLoadingNotification !== null) {
-		pluginsLoadingNotification.progress = (++pluginsLoaded / pluginsToLoad) * 100;
-	}
+Events.on("dwcPluginsLoading", () => {
+	pluginsLoadingNotificationId = useUiStore().makeNotification(LogLevel.primary, i18n.global.t("notification.pluginLoad.title"), i18n.global.t("notification.pluginLoad.message"), 0, null, "mdi-connection");
 })
 
 Events.on("dwcPluginLoadError", ({ id, error }) => {
 	useUiStore().logMessage(LogLevel.warning, i18n.global.t("event.dwcPluginLoadError", [id, getErrorMessage(error)]));
-	if (pluginsLoadingNotification !== null) {
-		pluginsLoadingNotification.progress = (++pluginsLoaded / pluginsToLoad) * 100;
-	}
 })
 
-Events.on("dwcPluginsLoaded", plugins => {
-	if (pluginsLoadingNotification !== null) {
-		pluginsLoadingNotification.close();
-		pluginsLoadingNotification = null;
+Events.on("dwcPluginsLoaded", () => {
+	if (pluginsLoadingNotificationId !== null) {
+		useUiStore().dismissNotification(pluginsLoadingNotificationId);
+		pluginsLoadingNotificationId = null;
 	}
-
-	/*
-	if (!plugins.every(id => loadedDwcPlugins.includes(id))) {
-		if (plugins.some(id => loadedDwcPlugins.includes(id))) {
-			makeNotification("warning", "Failed to load some plugins", "Could not load some DWC plugins, see Console", null, "/Console");
-		} else {
-			makeNotification("error", "Failed to load plugins", "Could not load DWC plugins, see Console", null, "/Console");
-		}
-	}
-	*/
 })

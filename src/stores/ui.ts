@@ -91,83 +91,43 @@ export interface LogMessage {
 }
 
 /**
- * Possible notification types
+ * Pop-up notification queued in the v-snackbar-queue. The queue handles auto-dismissal and stacking;
+ * callers identify a notification by its `id` to dismiss it programmatically (e.g. the plugin loader
+ * dismissing its persistent "loading" notification when it finishes)
  */
-export type NotificationType = LogLevel | FileTransferType
+export interface GeneralNotification {
+	/** Stable id used for queue keys and {@link useUiStore.dismissNotification} */
+	id: string;
+	type: LogLevel;
+	title: string | null;
+	message: string | null;
+	/** Auto-dismiss after N ms; 0 (or negative) means persistent until the user closes it */
+	timeout: number;
+	/** When set, the snackbar shows a "view" action that navigates to this route */
+	route: string | null;
+	icon: string | null;
+}
 
 /**
- * Notification item
+ * Ongoing file-transfer notification with live progress and a cancel button. Kept separate from
+ * {@link GeneralNotification} because the v-snackbar-queue model expects one-shot messages, not
+ * long-lived progress indicators. The owning code (uploads / downloads / system-package installs)
+ * holds the returned reference and calls `close()` when the transfer completes
  */
-export interface Notification {
-		/**
-		 * Type of this notification
-		 */
-		type: NotificationType;
-
-		/**
-		 * Title of this notification
-		 */
-		title: string | null;
-
-		/**
-		 * Message of this notification
-		 */
-		message: string | null;
-
-		/**
-		 * Timeout of this notification (in ms)
-		 */
-		timeout: number | null;
-
-		/**
-		 * Vue route to go to on click
-		 */
-		route: string | null;
-
-		/**
-		 * Optional icon
-		 */
-		icon: string | null;
-
-		/**
-		 * How long this notification has been displayed (in ms)
-		 */
-		timeDisplayed: number;
-
-		/**
-		 * Reset the timeout of this notification
-		 */
-		resetTimeout: () => void;
-
-		/**
-		 * Filename for file transfer notifications
-		 */
-		filename?: string;
-
-		/**
-		 * Optional progress value (0..100)
-		 */
-		progress: number | null;
-
-		/**
-		 * Speed of the file transfer (in bytes/s)
-		 */
-		speed?: number;
-
-		/**
-		 * Optional progress callback
-		 */
-		onProgress?: OnProgressCallback;
-
-		/**
-		 * Method to abort the current file transfer
-		 */
-		cancel?: () => void;
-
-		/**
-		 * Method to close this notification
-		 */
-		close: () => void;
+export interface FileTransferNotification {
+	id: string;
+	type: FileTransferType;
+	filename: string;
+	/** Current progress in per cent (0..100); 0 also means indeterminate until the first chunk arrives */
+	progress: number;
+	/** Current throughput in bytes/sec */
+	speed: number;
+	/** Connector callback - wired up by the producer so the connector can push progress updates */
+	onProgress: OnProgressCallback;
+	/** Abort the transfer (cancels the underlying connector token) */
+	cancel: () => void;
+	/** Remove the notification from the UI without cancelling */
+	close: () => void;
 }
 
 export const useUiStore = defineStore("ui", {
@@ -193,23 +153,23 @@ export const useUiStore = defineStore("ui", {
 		logMessages: new Array<LogMessage>,
 
 		/**
-		 * Notification data
+		 * Notification data - three independent channels backed by separate renderers in NotificationDisplay.vue
 		 */
 		notifications: {
 			/**
-			 * General notifications
+			 * Queued one-shot notifications - rendered by v-snackbar-queue
 			 */
-			general: new Array<Notification>(),
+			general: new Array<GeneralNotification>(),
 
 			/**
-			 * File transfer notifications
+			 * Active file-transfer notifications - rendered as a foreground v-snackbar (one at a time)
 			 */
-			fileTransfers: new Array<Notification>(),
+			fileTransfers: new Array<FileTransferNotification>(),
 
 			/**
-			 * Persistent message
+			 * The (singleton) persistent message currently shown to the user (M117 displayMessage)
 			 */
-			persistentMessage: null as Notification | null
+			persistentMessage: null as string | null
 		},
 
 		/**
@@ -341,17 +301,19 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
-		 * Show a new notification
-		 * @param type Notification type
-		 * @param title Title of the notification
-		 * @param message Optional message
-		 * @param timeout Optional timeout in ms or 0 if it is persistent (defaults to configured notification timeout)
-		 * @param route Optional route to navigate to on click (defaults to null)
-		 * @param icon Optional icon or empty string if none is supposed to be displayed (defaults to icon matching notification type)
-		 * @param pushToEnd Push this notification to the end of the notification list (low priority, defaults to false)
-		 * @returns Notification instance
+		 * Queue a notification for display in the v-snackbar-queue. If an equal notification (same type,
+		 * title, message and route) is already in the queue, drops the existing copy so the new one shows
+		 * with a fresh timer instead of stacking two of the same
+		 *
+		 * @param type Notification severity
+		 * @param title Title (rendered bold above the message)
+		 * @param message Optional message body
+		 * @param timeout Auto-dismiss after N ms; 0 (or negative) = persistent. Defaults to the user's settings
+		 * @param route Optional route - the snackbar shows a "view" action that navigates here
+		 * @param icon Optional MDI icon name; falls back to one keyed off {@link type}
+		 * @returns The new notification's id (pass to {@link dismissNotification} to dismiss it programmatically)
 		 */
-		makeNotification(type: NotificationType, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, pushToEnd: boolean = false): Notification {
+		makeNotification(type: LogLevel, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null): string {
 			if (timeout === null) {
 				const settingsStore = useSettingsStore();
 				timeout = (type === LogLevel.error && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
@@ -377,127 +339,91 @@ export const useUiStore = defineStore("ui", {
 				}
 			}
 
-			// If there is already an equal notification, reset its time and don"t display a new one
-			const equalNotification = this.notifications.general.find(item => item.type === type && item.title === title && item.message === message && item.timeout === timeout && item.route === route);
-			if (equalNotification) {
-				if (timeout !== null && timeout > 0) {
-					equalNotification.resetTimeout();
-				}
-				return equalNotification;
-			}
+			// Drop any prior equal notification so the new one re-appears with a fresh timer instead of stacking duplicates
+			this.notifications.general = this.notifications.general.filter(n =>
+				!(n.type === type && n.title === title && n.message === message && n.route === route)
+			);
 
-			// Prepare and show new notification
-			const generalNotifications = this.notifications.general;
-			const item: Notification = reactive({
-				type,
-				title,
-				message,
-				timeout,
-				route,
-				icon,
-				timeDisplayed: 0,
-				resetTimeout() { item.timeDisplayed = 0 },
-				progress: null,
-				close() {
-					const index = generalNotifications.indexOf(item)
-					if (index !== -1) {
-						generalNotifications.splice(index, 1)
-					}
-				}
-			});
-
-			if (pushToEnd) {
-				this.notifications.general.push(item);
-			} else {
-				this.notifications.general.unshift(item);
-			}
-			return item;
+			const id = `gn-${++notificationIdCounter}`;
+			this.notifications.general.push({ id, type, title, message, timeout, route, icon });
+			return id;
 		},
 
 		/**
-		 * Close all pending regular notifications
-		 * @param includingMessage Whether the message notification (if present) shall be closed as well
+		 * Remove a queued notification by its id. No-op if the id is unknown
+		 */
+		dismissNotification(id: string) {
+			this.notifications.general = this.notifications.general.filter(n => n.id !== id);
+		},
+
+		/**
+		 * Close all queued general notifications. Persistent file-transfer notifications stay; the
+		 * persistent M0/M291 message is only cleared when {@link includingMessage} is true
 		 */
 		closeNotifications(includingMessage = false) {
-			for (const notification of this.notifications.general) {
-				if (includingMessage || notification !== this.notifications.persistentMessage) {
-					notification.close();
-				}
+			this.notifications.general = [];
+			if (includingMessage) {
+				this.notifications.persistentMessage = null;
 			}
 		},
 
 		/**
-		 * Show a new file transfer notification
-		 * @param type Upload target type
-		 * @param filename Filename of the transfer
-		 * @param cancellationToken Optional cancellation token cancel the upload if necessary
+		 * Open a file-transfer notification with live progress and (optional) cancellation. The returned
+		 * object's `close()` is what producers call when the transfer finishes
+		 *
+		 * @param type Transfer type - drives the icon and i18n strings
+		 * @param filename Full path or filename being transferred (display is trimmed to the basename)
+		 * @param cancellationToken Optional connector token - {@link FileTransferNotification.cancel} cancels it
 		 */
-		makeFileTransferNotification(type: NotificationType, filename: string, cancellationToken?: CancellationToken) {
+		makeFileTransferNotification(type: FileTransferType, filename: string, cancellationToken?: CancellationToken): FileTransferNotification {
 			const fileTransferNotifications = this.notifications.fileTransfers;
-			const item: Notification = reactive({
+			const id = `ft-${++notificationIdCounter}`;
+			const item: FileTransferNotification = reactive({
+				id,
 				type,
-				title: null,
-				message: null,
-				timeout: 0,
-				route: null,
-				icon: null,
-				timeDisplayed: 0,
-				resetTimeout() { },
 				filename: extractFileName(filename),
 				progress: 0,
 				speed: 0,
 				onProgress(loaded: number, total: number, speed: number) {
-					this.speed = speed
+					this.speed = speed;
 					if (loaded === total) {
-						this.close()
+						this.close();
 					} else if (total > 0) {
-						this.progress = (loaded / total) * 100
+						this.progress = (loaded / total) * 100;
 					}
 				},
 				cancel() {
 					try {
 						if (cancellationToken) {
-							cancellationToken.cancel()
+							cancellationToken.cancel();
 						}
 					} finally {
-						item.close()
+						item.close();
 					}
 				},
 				close() {
-					const index = fileTransferNotifications.indexOf(item)
+					const index = fileTransferNotifications.indexOf(item);
 					if (index !== -1) {
-						fileTransferNotifications.splice(index, 1)
+						fileTransferNotifications.splice(index, 1);
 					}
 				}
-			});
+			}) as FileTransferNotification;
 			this.notifications.fileTransfers.push(item);
 			return item;
 		},
 
 		/**
-		 * Show a persistent message or clear it if the message is empty
-		 * @param message Message content to display
-		 * @return Notification object
+		 * Set (or clear, when {@link message} is null/empty) the persistent message shown at the bottom of
+		 * the viewport. Used to surface the M117 displayMessage and similar machine-driven banners.
+		 * M291 message boxes are a separate channel - handled by MessageBoxDialog, not this notification
 		 */
-		showPersistentMessage(message: string | null): Notification | null {
-			if (!message) {
-				if (this.notifications.persistentMessage !== null) {
-					this.notifications.persistentMessage.close();
-				}
-				return null;
-			}
-
-			if (this.notifications.persistentMessage === null) {
-				this.notifications.persistentMessage = this.makeNotification(LogLevel.info, i18n.global.t("notification.message"), message, 0, null, null, true);
-				const closeFn = this.notifications.persistentMessage.close, notifications = this.notifications;
-				this.notifications.persistentMessage.close = function () {
-					notifications.persistentMessage = null;
-					closeFn();
-				}
-			} else {
-				this.notifications.persistentMessage.message = message;
-			}
-			return this.notifications.persistentMessage;
+		showPersistentMessage(message: string | null) {
+			this.notifications.persistentMessage = message ? message : null;
 		}
 	}
 })
+
+/**
+ * Module-level counter for unique notification ids. Reset implicitly on full page reload
+ */
+let notificationIdCounter = 0;

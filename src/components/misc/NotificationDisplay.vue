@@ -1,220 +1,113 @@
-<style>
-@keyframes animate-progress {
-	from {
-		width: 0%;
-	}
-
-	to {
-		width: 100%;
-	}
-}
-
-@keyframes animate-progress-bg {
-	from {
-		left: 0%;
-		width: 100%;
-	}
-
-	to {
-		left: 100%;
-		width: 0%;
-	}
-}
-
-.animate-progress .v-progress-linear__determinate {
-	animation-name: "animate-progress";
-	animation-duration: 5s;
-	animation-timing-function: linear;
-}
-
-.animate-progress .v-progress-linear__background {
-	animation-name: "animate-progress-bg";
-	animation-duration: 5s;
-	animation-timing-function: linear;
-}
-</style>
-
 <template>
-	<v-snackbar v-if="fileTransferNotification !== null" :model-value="true" :timeout="-1" color="info">
-		<v-progress-linear :indeterminate="fileTransferNotification.progress === 0" striped
-						   :model-value="fileTransferNotification.progress ?? 0" absolute top />
+	<!-- Queued one-shot notifications (info / success / warning / error). v-snackbar-queue gives us the
+		 timer + stacking + dismissal behaviour for free; bound via the computed below so dismissals propagate
+		 to the Pinia store -->
+	<v-snackbar-queue v-model="generalQueue" :timer="true" timer-color="white" closable
+					  location="bottom" :total-visible="totalVisible" display-strategy="hold">
+		<template #actions="{ item, props: itemProps }">
+			<v-btn v-if="(item as QueueMessage).route" variant="text"
+				   :to="(item as QueueMessage).route ?? undefined" @click="itemProps.onClick">
+				{{ $t("notification.view") }}
+			</v-btn>
+		</template>
+	</v-snackbar-queue>
 
-		<div class="d-inline-flex align-center w-100">
-			<v-icon class="mr-4">
-				{{ fileTransferIcon }}
-			</v-icon>
-
-			<div class="d-flex flex-column flex-grow-1">
-				<strong>
-					{{ $t(`notification.fileTransfer.${fileTransferNotification.type}.title`, [fileTransferNotification.filename, displayTransferSpeed(fileTransferNotification.speed), Math.round(fileTransferNotification.progress || 0)]) }}
+	<!-- File-transfer snackbar - foreground single, with live progress and cancel. Shows the first item
+		 in the queue; the next transfer takes its place when the current one completes or is cancelled -->
+	<v-snackbar v-if="activeTransfer" :model-value="true" :timeout="-1" color="info" location="top">
+		<v-progress-linear :indeterminate="activeTransfer.progress === 0" striped absolute location="top"
+						   :model-value="activeTransfer.progress" />
+		<div class="d-flex align-center w-100 pt-1">
+			<v-icon class="me-3">{{ fileTransferIcon(activeTransfer.type) }}</v-icon>
+			<div class="d-flex flex-column flex-grow-1 text-truncate">
+				<strong class="text-truncate">
+					{{ $t(`notification.fileTransfer.${activeTransfer.type}.title`, [
+						activeTransfer.filename,
+						displayTransferSpeed(activeTransfer.speed),
+						Math.round(activeTransfer.progress || 0)
+					]) }}
 				</strong>
-				<p class="mb-0">
-					{{ $t(`notification.fileTransfer.${fileTransferNotification.type}.message`) }}
-				</p>
+				<span class="text-truncate">
+					{{ $t(`notification.fileTransfer.${activeTransfer.type}.message`) }}
+				</span>
 			</div>
-
-			<v-btn variant="text" :text="$t('generic.cancel')" class="ml-2" @click.stop="cancel" />
 		</div>
+		<template #actions>
+			<v-btn variant="text" :text="$t('generic.cancel')" @click="activeTransfer.cancel()" />
+		</template>
 	</v-snackbar>
-	<v-snackbar v-else-if="notification !== null" :model-value="true" :timeout="-1"
-				:color="(notification !== null) ? notification.type : LogLevel.info" :class="{ pointer: !!notification.route }"
-				@click.native="clicked">
-		<v-progress-linear v-if="animateProgress" ref="progressBar" :indeterminate="notification.progress === 0"
-						   :model-value="100" absolute top :class="{ 'animate-progress': animateProgress }" />
-		<v-progress-linear v-else-if="notification.progress !== null" :indeterminate="notification.progress === 0"
-						   :model-value="notification.progress" absolute top />
 
-		<div class="d-inline-flex align-center w-100"
-			 :class="{ 'mt-1': (notification.timeout !== null) && (notification.timeout > 0) }">
-			<v-icon v-if="notification.icon !== null" class="mr-4">
-				{{ notification.icon }}
-			</v-icon>
-
-			<div class="d-flex flex-column flex-grow-1">
-				<strong v-if="notification.title !== null" v-html="notificationTitle"></strong>
-				<p v-if="notification.message !== null" class="mb-0" v-html="notificationMessage"></p>
-			</div>
-
-			<v-btn variant="text" :text="notification.cancel ? $t('generic.cancel') : $t('generic.close')" class="ml-2"
-				   @click.stop="close" />
+	<!-- M117 persistent message - separate channel, never auto-dismissed. User can close it explicitly;
+		 the next M117 update will replace its contents -->
+	<v-snackbar v-if="uiStore.notifications.persistentMessage" :model-value="true" :timeout="-1"
+				color="info" location="bottom" multi-line>
+		<div class="d-flex flex-column">
+			<strong>{{ $t("notification.message") }}</strong>
+			<span v-html="formatMessage(uiStore.notifications.persistentMessage)" />
 		</div>
+		<template #actions>
+			<v-btn variant="text" :text="$t('generic.close')"
+				   @click="uiStore.showPersistentMessage(null)" />
+		</template>
 	</v-snackbar>
 </template>
 
 <script setup lang="ts">
-import { VProgressLinear } from "vuetify/components";
-
-import { FileTransferType, LogLevel, Notification, useUiStore } from "@/stores/ui";
+import { FileTransferType, type GeneralNotification, useUiStore } from "@/stores/ui";
 import { displayTransferSpeed } from "@/utils/display";
 
 const uiStore = useUiStore();
 
-// File Transfer notifications
+// Pre-snackbar shape we feed v-snackbar-queue. Extra fields (id, route) are ignored by Vuetify but kept
+// so the actions slot can wire up navigation and our setter can dedupe dismissals back to the store
+interface QueueMessage {
+	id: string;
+	title: string;
+	text: string;
+	color: string;
+	prependIcon?: string;
+	timeout: number;
+	route: string | null;
+	closable: boolean;
+}
 
-const fileTransferNotification = computed(() => (uiStore.notifications.fileTransfers.length > 0) ? uiStore.notifications.fileTransfers[0] : null);
-const fileTransferIcon = computed(() => {
-	if (fileTransferNotification.value !== null) {
-		const transferType = fileTransferNotification.value.type as FileTransferType;
-		switch (transferType) {
-			case FileTransferType.upload: return "mdi-cloud-upload";
-			case FileTransferType.download: return "mdi-cloud-download";
-			case FileTransferType.systemPackageInstall: return "mdi-cog-sync";
-		}
+const totalVisible = 3;
+
+const generalQueue = computed<Array<QueueMessage>>({
+	get: () => uiStore.notifications.general.map(toQueueMessage),
+	set: (remaining) => {
+		// Vuetify mutates the bound array on dismissal - mirror the surviving ids back to the store
+		const survivingIds = new Set(remaining.map(m => m.id));
+		uiStore.notifications.general = uiStore.notifications.general.filter(n => survivingIds.has(n.id));
 	}
-	return "";
 });
 
-function cancel() {
-	if (fileTransferNotification.value?.cancel) {
-		fileTransferNotification.value.cancel();
+function toQueueMessage(notification: GeneralNotification): QueueMessage {
+	return {
+		id: notification.id,
+		title: notification.title ?? "",
+		text: notification.message ?? "",
+		color: notification.type,
+		prependIcon: notification.icon || undefined,
+		timeout: notification.timeout > 0 ? notification.timeout : -1,
+		route: notification.route,
+		closable: true
+	};
+}
+
+const activeTransfer = computed(() => uiStore.notifications.fileTransfers[0] ?? null);
+
+function fileTransferIcon(type: FileTransferType): string {
+	switch (type) {
+		case FileTransferType.upload: return "mdi-cloud-upload";
+		case FileTransferType.download: return "mdi-cloud-download";
+		case FileTransferType.systemPackageInstall: return "mdi-cog-sync";
 	}
 }
 
-watch(() => fileTransferNotification.value, (to) => {
-	if (notification.value !== null) {
-		if (to !== null) {
-			notificationChanged(null, notification.value);
-		} else {
-			notificationChanged(notification.value, null);
-		}
-	}
-});
-
-// General notifications
-
-const animateProgress = computed(() => (notification.value !== null) && (notification.value.timeout !== null) && (notification.value.timeout > 0));
-
-const notification = computed(() => (uiStore.notifications.general.length > 0) ? uiStore.notifications.general[0] : null);
-const notificationTitle = computed(() => {
-	if (notification.value !== null && notification.value.title !== null) {
-		return notification.value.title.replace(/\n/g, "<br>");
-	}
-	return "";
-});
-
-const notificationMessage = computed(() => {
-	if (notification.value !== null && notification.value.message !== null) {
-		return notification.value.message.replace(/\n/g, "<br>");
-	}
-	return "";
-});
-
-let autoCloseTimer: NodeJS.Timeout | null = null, whenShown: Date | null = null;
-
-function clicked() {
-	if (notification.value !== null && notification.value.route) {
-		const router = useRouter();
-		router.push(notification.value.route);
-
-		notification.value.close();
-	}
-}
-
-function close() {
-	if (notification.value?.cancel) {
-		notification.value.cancel();
-	} else if (notification.value?.close) {
-		notification.value.close();
-	}
-}
-
-watch(() => notification.value, (to, from) => {
-	notificationChanged(to, from);
-});
-
-// Display management
-
-const progressBar = ref<VProgressLinear | null>(null);
-function notificationChanged(to: Notification | null, from: Notification | null) {
-	if (to === from) {
-		// For some reason Vue sometimes triggers this even when nothing has changed
-		return;
-	}
-
-	if (from !== null) {
-		if (whenShown !== null) {
-			from.timeDisplayed = (new Date()).getTime() - whenShown.getTime();
-		}
-
-		if (autoCloseTimer !== null) {
-			clearInterval(autoCloseTimer);
-			autoCloseTimer = null;
-		}
-	}
-
-	if (to !== null) {
-		whenShown = new Date();
-		if (to.timeout !== null && to.timeout > 0) {
-			// Reset animations if needed
-			for (const animation of document.getAnimations()) {
-				if (animation instanceof CSSAnimation && ["animate-progress", "animate-progress-bg"].includes(animation.animationName)) {
-					animation.cancel();
-					animation.play();
-				}
-			}
-
-			// Set CSS animation properties when the notification has been rendered
-			nextTick(() => {
-				if (progressBar.value !== null) {
-					// Apply custom CSS animation duration to progress bar
-					const progressDiv = progressBar.value.$el.querySelector(".v-progress-linear__determinate") as HTMLDivElement | undefined;
-					if (progressDiv) {
-						progressDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
-						progressDiv.style["animationDuration"] = `${to.timeout}ms`;
-					}
-
-					// Apply custom CSS animation duration to progress bar background
-					const progressBgDiv = progressBar.value.$el.querySelector(".v-progress-linear__background") as HTMLDivElement | undefined;
-					if (progressBgDiv) {
-						progressBgDiv.style["animationDelay"] = `${-to.timeDisplayed}ms`;
-						progressBgDiv.style["animationDuration"] = `${to.timeout}ms`;
-					}
-				}
-			});
-
-			// Close the notification automatically when the timeout expires 
-			autoCloseTimer = setInterval(close, Math.max(to.timeout - to.timeDisplayed, 0));
-		}
-	}
+// Producers can embed <br> in titles/messages already (logCode joins reply lines with <br>);
+// just normalise plain newlines so multi-line strings render correctly
+function formatMessage(message: string): string {
+	return message.replace(/\n/g, "<br>");
 }
 </script>
