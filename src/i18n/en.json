@@ -180,6 +180,18 @@
   "layout": {
     "backToHub": "Back to home"
   },
+  "button": {
+    "connect": {
+      "connect": "Connect",
+      "connecting": "Connecting...",
+      "disconnect": "Disconnect",
+      "disconnecting": "Disconnecting..."
+    },
+    "emergencyStop": {
+      "caption": "Emergency Stop",
+      "title": "Enforce an immediate software reset (M112+M999)"
+    }
+  },
   "input": {
     "code": {
       "placeholder": "Send code...",

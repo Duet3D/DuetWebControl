@@ -182,6 +182,18 @@
   "layout": {
     "backToHub": "Zur Startseite"
   },
+  "button": {
+    "connect": {
+      "connect": "Verbinden",
+      "connecting": "Verbinde...",
+      "disconnect": "Trennen",
+      "disconnecting": "Trenne..."
+    },
+    "emergencyStop": {
+      "caption": "NOT-AUS",
+      "title": "Erzwingt einen sofortigen Softwarereset (M112+M999)"
+    }
+  },
   "input": {
     "code": {
       "placeholder": "Code senden...",

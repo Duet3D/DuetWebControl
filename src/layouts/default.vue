@@ -13,8 +13,17 @@
 				</a>
 			</v-app-bar-title>
 
+			<ConnectButton v-if="showConnectButton && isMdAndUp" class="ms-3" />
+
 			<v-spacer />
-			<!-- Phase 3 will port from v3.7-dev: ConnectButton (dev), CodeInput (md+), UploadButton (md+), EmergencyButton -->
+
+			<CodeInput v-if="isMdAndUp" grow class="mx-3" />
+
+			<v-spacer />
+
+			<!-- UploadButton lands here in 3.5 (with the Jobs page); needs the full target/dialog machinery -->
+
+			<EmergencyButton />
 		</v-app-bar>
 
 		<v-navigation-drawer v-if="isMdAndUp" v-model="drawer"
@@ -80,6 +89,10 @@ const isSmAndDown = smAndDown;
 const drawer = ref(lgAndUp.value);
 
 const machineName = computed(() => machineStore.model.network.name || "Duet Web Control");
+
+// In dev mode the user picks a hostname through the connect dialog rather than auto-connecting to localhost,
+// so expose the manual connect button. Production always auto-connects, so the button just adds noise
+const showConnectButton = import.meta.env.DEV;
 
 const isAtHub = computed(() => route.path === "/");
 const showDrawerToggle = computed(() => isMdAndUp.value);

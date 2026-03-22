@@ -13,8 +13,10 @@ declare module 'vue' {
   export interface GlobalComponents {
     CodeButton: typeof import('./components/buttons/CodeButton.vue')['default']
     CodeInput: typeof import('./components/inputs/CodeInput.vue')['default']
+    ConnectButton: typeof import('./components/buttons/ConnectButton.vue')['default']
     ConnectDialog: typeof import('./components/dialogs/ConnectDialog.vue')['default']
     ConnectionProgressDialog: typeof import('./components/dialogs/ConnectionProgressDialog.vue')['default']
+    EmergencyButton: typeof import('./components/buttons/EmergencyButton.vue')['default']
     EventList: typeof import('./components/lists/EventList.vue')['default']
     MessageBoxDialog: typeof import('./components/dialogs/MessageBoxDialog.vue')['default']
     NotificationDisplay: typeof import('./components/misc/NotificationDisplay.vue')['default']
