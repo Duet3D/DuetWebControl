@@ -968,7 +968,14 @@
       "samples": "Monsters",
       "samplingRate": "Bemonsteringsfrequentie (in Hz)",
       "start": "Begin",
-      "wideBand": "Breedbandanalyse"
+      "wideBand": "Breedbandanalyse",
+      "custom": "Aangepast",
+      "reductionFactor": "Reductiefactor",
+      "shaperFrequency": "Shaper-frequentie",
+      "xAxisFrequency": "Frequentie (in Hz)",
+      "xAxisSample": "Steekproef",
+      "yAxisAcceleration": "Versnelling (in g)",
+      "yAxisAmplitude": "Amplitude"
     },
     "autoUpdate": {
       "menuCaption": "Update"

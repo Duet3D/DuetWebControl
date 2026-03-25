@@ -1071,7 +1071,14 @@
       "samples": "Amostras",
       "samplingRate": "Taxa de amostragem (em Hz)",
       "start": "Começar",
-      "wideBand": "Análise de banda larga"
+      "wideBand": "Análise de banda larga",
+      "custom": "Personalizado",
+      "reductionFactor": "Fator de Redução",
+      "shaperFrequency": "Frequência do modelador",
+      "xAxisFrequency": "Frequência (em Hz)",
+      "xAxisSample": "Amostra",
+      "yAxisAcceleration": "Aceleração (em g)",
+      "yAxisAmplitude": "Amplitude"
     }
   },
   "tabs": {

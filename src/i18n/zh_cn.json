@@ -968,7 +968,14 @@
       "samples": "样本",
       "accelerations": "加速度（g）",
       "sampleTooltip": "样本 #{0}",
-      "frequencyTooltip": "{0} ± {1} Hz"
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "custom": "风俗",
+      "reductionFactor": "减少系数",
+      "shaperFrequency": "整形频率",
+      "xAxisFrequency": "频率（赫兹）",
+      "xAxisSample": "样本",
+      "yAxisAcceleration": "加速度（单位：g）",
+      "yAxisAmplitude": "振幅"
     },
     "autoUpdate": {
       "menuCaption": "更新"

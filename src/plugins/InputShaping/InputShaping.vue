@@ -221,9 +221,12 @@ th {
 <script>
 'use strict'
 
+import { DirectoryNotFoundError } from '@duet3d/connectors/dist/errors';
 import { InputShapingType } from '@duet3d/objectmodel';
 import Vue from 'vue';
 import { mapState, mapGetters, mapActions } from 'vuex';
+
+import { getErrorMessage } from '@/utils/errors';
 
 import Events from '@/utils/events';
 import Path from '@/utils/path';
@@ -378,7 +381,7 @@ export default {
 				this.files = [];
 				this.filesLastModified = [];
 				this.loadingFiles = false;
-				this.errorMessage = null;
+				this.filesError = null;
 				return;
 			}
 
@@ -393,6 +396,13 @@ export default {
 				files.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
 				this.files = files.map(file => file.name);
 				this.filesLastModified = files.map(file => file.lastModified);
+			} catch (e) {
+				if (e instanceof DirectoryNotFoundError) {
+					this.files = [];
+					this.filesLastModified = [];
+				} else {
+					this.filesError = getErrorMessage(e);
+				}
 			} finally {
 				this.loadingFiles = false;
 			}

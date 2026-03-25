@@ -968,7 +968,14 @@
       "samples": "Minták",
       "accelerations": "Gyorsulás (g)",
       "sampleTooltip": "Minta #{0}",
-      "frequencyTooltip": "{0} ± {1} Hz"
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "custom": "Szokás",
+      "reductionFactor": "Csökkentési tényező",
+      "shaperFrequency": "Alakító frekvencia",
+      "xAxisFrequency": "Frekvencia (Hz-ben)",
+      "xAxisSample": "Minta",
+      "yAxisAcceleration": "Gyorsulás (g-ban)",
+      "yAxisAmplitude": "Amplitúdó"
     },
     "autoUpdate": {
       "menuCaption": "Frissítés"

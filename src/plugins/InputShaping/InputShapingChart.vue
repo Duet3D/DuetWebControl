@@ -112,7 +112,7 @@ export default {
 						},
 						scaleLabel: {
 							display: true,
-							labelString: (this.frequencies && this.frequencies.length > 0) ? 'Frequency (in Hz)' : 'Sample'
+							labelString: (this.frequencies && this.frequencies.length > 0) ? this.$t('plugins.accelerometer.xAxisFrequency') : this.$t('plugins.accelerometer.xAxisSample')
 						},
 						ticks: {
 							minor: {
@@ -134,7 +134,7 @@ export default {
 						},
 						scaleLabel: {
 							display: true,
-							labelString: (this.frequencies && this.frequencies.length > 0) ? 'Amplitude' : 'Acceleration (in g)'
+							labelString: (this.frequencies && this.frequencies.length > 0) ? this.$t('plugins.accelerometer.yAxisAmplitude') : this.$t('plugins.accelerometer.yAxisAcceleration')
 						},
 						ticks: {
 							minor: {
@@ -154,7 +154,7 @@ export default {
 						position: this.value ? 'right' : 'left',
 						scaleLabel: {
 							display: true,
-							labelString: 'Reduction Factor'
+							labelString: this.$t('plugins.accelerometer.reductionFactor')
 						},
 						ticks: {
 							min: 0,
@@ -269,7 +269,7 @@ export default {
 					borderColor: '#1010FF',
 					backgroundColor: '#1010FF',
 					data: [],
-					label: 'Shaper Frequency',
+					label: this.$t('plugins.accelerometer.shaperFrequency'),
 					isShaperFrequency: true
 				};
 				this.chart.data.datasets.push(dataset);
@@ -337,7 +337,7 @@ export default {
 							borderWidth: 1.25,
 							data: this.value[key].map((value, index) => value * damping[index]),
 							fill: false,
-							label: `${key} + Custom`
+							label: `${key} + ${this.$t('plugins.accelerometer.custom')}`
 						};
 						this.chart.data.datasets.push(dataset);
 					}
@@ -351,7 +351,7 @@ export default {
 						borderWidth: 1.25,
 						data: damping,
 						fill: false,
-						label: 'Custom',
+						label: this.$t('plugins.accelerometer.custom'),
 						yAxisID: 'damping',
 						isCustom: true
 					};
@@ -367,7 +367,7 @@ export default {
 					borderColor: '#1010FF',
 					backgroundColor: '#1010FF',
 					data: [],
-					label: 'Shaper Frequency',
+					label: this.$t('plugins.accelerometer.shaperFrequency'),
 					isShaperFrequency: true
 				};
 				this.chart.data.datasets.push(dataset);
@@ -396,8 +396,8 @@ export default {
 			}
 
 			// Finish setup
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = (this.frequencies && this.frequencies.length > 0) ? 'Frequency (in Hz)' : 'Sample';
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = (this.frequencies && this.frequencies.length > 0) ? 'Amplitude' : 'Acceleration (in g)';
+			this.chart.options.scales.xAxes[0].scaleLabel.labelString = (this.frequencies && this.frequencies.length > 0) ? this.$t('plugins.accelerometer.xAxisFrequency') : this.$t('plugins.accelerometer.xAxisSample');
+			this.chart.options.scales.yAxes[0].scaleLabel.labelString = (this.frequencies && this.frequencies.length > 0) ? this.$t('plugins.accelerometer.yAxisAmplitude') : this.$t('plugins.accelerometer.yAxisAcceleration');
 			this.chart.options.scales.yAxes[0].display = !!this.value;
 			this.chart.options.scales.yAxes[1].display = this.showReduction;
 			this.chart.options.scales.yAxes[1].position = this.value ? 'right' : 'left';
@@ -539,12 +539,7 @@ export default {
 			this.applyDarkTheme(to);
 		},
 		language() {
-			// TODO!
-			/*
-			this.chart.options.scales.xAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.samples' : 'plugins.accelerometer.frequency');
-			this.chart.options.scales.yAxes[0].scaleLabel.labelString = this.$t(this.displaySamples ? 'plugins.accelerometer.accelerations' : 'plugins.accelerometer.amplitudes');
 			this.update();
-			 */
 		},
 		sampleStartIndex(to) {
 			if (!this.frequencies || this.frequencies.length === 0) {

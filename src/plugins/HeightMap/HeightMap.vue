@@ -52,7 +52,7 @@ h1 {
 					</v-alert>
 				</v-card-text>
 				<v-list :disabled="uiFrozen || !ready || loading" class="py-0">
-					<v-list-item-group mandatory :value="files.indexOf(selectedFile)" color="primary">
+					<v-list-item-group mandatory :value="files.indexOf(selectedFile || '')" color="primary">
 						<v-list-item v-for="file in files" :key="file" @click="selectedFile = file">
 							{{ file }}
 						</v-list-item>
@@ -501,7 +501,7 @@ export default {
 			if (machine === this.selectedMachine && files !== undefined) {
 				if (this.selectedFile && files.indexOf(Path.combine(this.systemDirectory, this.selectedFile)) >= 0) {
 					// Current heightmap has been changed, reload it and then refresh the list
-					this.getHeightMap(this.selectedFile).then(this.refresh);
+					this.getHeightMap().then(this.refresh);
 				} else if (files.some((file) => file.endsWith('.csv')) && Path.filesAffectDirectory(files, this.systemDirectory)) {
 					// CSV file or directory has been changed
 					this.refresh();
@@ -527,7 +527,7 @@ export default {
 		this.isActive = true;
 		this.resize();
 	},
-	deactivate() {
+	deactivated() {
 		this.isActive = false;
 	},
 	async mounted() {
@@ -574,7 +574,7 @@ export default {
 	beforeDestroy() {
 		// No longer keep track of file changes
 		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
-		heightMapViewer.destroy();
+		heightMapViewer.dispose();
 	},
 	watch: {
 		colorScheme() {

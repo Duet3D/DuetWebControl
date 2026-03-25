@@ -192,7 +192,7 @@ export default {
 					}
 
 					const shaperTitle = (matches[6] === 'none') ? 'No Shaping' : ((matches[6] === 'custom') ? 'Custom' : `${matches[6].toUpperCase()} @ ${matches[7]}Hz`);
-					const dampingFactor = isNaN(matches[10]) ? null : `Damping Factor ${matches[10]}`;
+					const dampingFactor = isNaN(parseFloat(matches[10])) ? null : `Damping Factor ${matches[10]}`;
 					run.files.push({
 						title: `${matches[2].split('').reduce((a, b) => `${a}+${b}`)} ${matches[3]}-${matches[4]}, accelerometer ${matches[5]}, ${shaperTitle}`,
 						filename,
@@ -217,7 +217,7 @@ export default {
 						}
 
 						const shaperTitle = (toolMatches[7] === 'none') ? 'No Shaping' : ((toolMatches[7] === 'custom') ? 'Custom' : `${toolMatches[7].toUpperCase()} @ ${toolMatches[8]}Hz`);
-						const dampingFactor = isNaN(toolMatches[11]) ? null : `Damping Factor ${toolMatches[11]}`;
+						const dampingFactor = isNaN(parseFloat(toolMatches[11])) ? null : `Damping Factor ${toolMatches[11]}`;
 						run.files.push({
 							title: `T${toolMatches[2]}, ${toolMatches[3].split('').reduce((a, b) => `${a}+${b}`)} ${toolMatches[4]}-${toolMatches[5]}, accelerometer ${toolMatches[6]}, ${shaperTitle}`,
 							filename,
@@ -250,7 +250,7 @@ export default {
 						}
 					}
 					profile.subtitle = `${allEqual ? shaperTitles[0] : 'Multiple configs'}, ${profile.files.length} moves`;
-					profile.secondSubtitle = profile.files[0].dampingFactor;
+					profile.secondSubtitle = profile.files[0].dampingFactor ?? null;
 				} else {
 					profile.subtitle = `${profile.files.length} moves`;
 					profile.secondSubtitle = null;
@@ -264,7 +264,8 @@ export default {
 					title: 'Uncategorized',
 					subtitle: `${uncategorized.length} files`,
 					secondSubtitle: null,
-					files: uncategorized
+					files: uncategorized,
+					lastModified: ''
 				});
 			}
 			return profiles;
@@ -307,7 +308,8 @@ export default {
 		},
 		setShowSamples(value) {
 			if (!value) {
-				this.sampleStartIndex = this.sampleEndIndex = null;
+				this.$emit('update:sampleStartIndex', null);
+				this.$emit('update:sampleEndIndex', null);
 			}
 			this.showSamples = value;
 		},

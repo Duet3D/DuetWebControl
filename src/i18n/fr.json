@@ -1004,7 +1004,14 @@
       "samples": "Échantillons",
       "samplingRate": "Taux d'échantillonnage (en Hz)",
       "start": "Commencer",
-      "wideBand": "Analyse large bande"
+      "wideBand": "Analyse large bande",
+      "custom": "Coutume",
+      "reductionFactor": "Facteur de réduction",
+      "shaperFrequency": "Fréquence de modelage",
+      "xAxisFrequency": "Fréquence (en Hz)",
+      "xAxisSample": "Échantillon",
+      "yAxisAcceleration": "Accélération (en g)",
+      "yAxisAmplitude": "Amplitude"
     },
     "autoUpdate": {
       "menuCaption": "Mise à jour"
