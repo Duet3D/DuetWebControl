@@ -975,7 +975,14 @@
       "samples": "Образцы",
       "samplingRate": "Частота дискретизации (в Гц)",
       "start": "Начинать",
-      "wideBand": "Широкополосный анализ"
+      "wideBand": "Широкополосный анализ",
+      "custom": "Обычай",
+      "reductionFactor": "Коэффициент уменьшения",
+      "shaperFrequency": "Частота формирователя",
+      "xAxisFrequency": "Частота (в Гц)",
+      "xAxisSample": "Образец",
+      "yAxisAcceleration": "Ускорение (в g)",
+      "yAxisAmplitude": "Амплитуда"
     },
     "autoUpdate": {
       "menuCaption": "Обновлять"

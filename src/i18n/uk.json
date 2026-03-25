@@ -969,7 +969,14 @@
       "samples": "Зразки",
       "accelerations": "Прискорення (g)",
       "sampleTooltip": "Зразок #{0}",
-      "frequencyTooltip": "{0} ± {1} Гц"
+      "frequencyTooltip": "{0} ± {1} Гц",
+      "custom": "Custom",
+      "reductionFactor": "Фактор зниження",
+      "shaperFrequency": "Формувач частоти",
+      "xAxisFrequency": "Частота (в Гц)",
+      "xAxisSample": "Зразок",
+      "yAxisAcceleration": "Прискорення (в g)",
+      "yAxisAmplitude": "Амплітуда"
     },
     "autoUpdate": {
       "menuCaption": "Оновити"

@@ -970,7 +970,14 @@
       "samples": "Samples",
       "accelerations": "Accelerations (in g)",
       "sampleTooltip": "Sample #{0}",
-      "frequencyTooltip": "{0} ± {1} Hz"
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "custom": "カスタム",
+      "reductionFactor": "低減係数",
+      "shaperFrequency": "シェイパー周波数",
+      "xAxisFrequency": "周波数 (Hz)",
+      "xAxisSample": "サンプル",
+      "yAxisAcceleration": "加速度 (g)",
+      "yAxisAmplitude": "振幅"
     },
     "autoUpdate": {
       "menuCaption": "アップデート"

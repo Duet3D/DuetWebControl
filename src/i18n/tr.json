@@ -975,7 +975,14 @@
       "samples": "örnekler",
       "samplingRate": "Örnekleme Hızı (Hz olarak)",
       "start": "Başlama",
-      "wideBand": "Geniş bant analizi"
+      "wideBand": "Geniş bant analizi",
+      "custom": "Gelenek",
+      "reductionFactor": "Azaltma Faktörü",
+      "shaperFrequency": "Şekillendirici Frekans",
+      "xAxisFrequency": "Frekans (Hz cinsinden)",
+      "xAxisSample": "Örnek",
+      "yAxisAcceleration": "Hızlanma (g cinsinden)",
+      "yAxisAmplitude": "Genlik"
     },
     "autoUpdate": {
       "menuCaption": "Güncelleme"

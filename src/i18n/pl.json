@@ -970,7 +970,14 @@
       "samples": "próba",
       "accelerations": "Przyspieszenie (w G)",
       "sampleTooltip": "Próba #{0}",
-      "frequencyTooltip": "{0} ± {1} Hz"
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "custom": "Zwyczaj",
+      "reductionFactor": "Współczynnik redukcji",
+      "shaperFrequency": "Częstotliwość Shapera",
+      "xAxisFrequency": "Częstotliwość (w Hz)",
+      "xAxisSample": "Próbka",
+      "yAxisAcceleration": "Przyspieszenie (w g)",
+      "yAxisAmplitude": "Amplituda"
     },
     "autoUpdate": {
       "menuCaption": "Aktualizacja"
