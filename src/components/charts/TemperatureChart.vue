@@ -36,7 +36,8 @@
 </template>
 
 <script lang="ts">
-import Chart, { ChartDataSets, MajorTickOptions, NestedTickOptions } from "chart.js";
+import type { ChartDataset } from "chart.js";
+import { Chart } from "chart.js";
 import dateFnsLocale from "date-fns/locale/en-US";
 import { AnalogSensor } from "@duet3d/objectmodel";
 import Vue from "vue";
@@ -96,7 +97,7 @@ interface ExtraDatasetValues {
 /**
  * Type used for chart datasets in this component
  */
-type TempChartDataset = ChartDataSets & ExtraDatasetValues;
+type TempChartDataset = ChartDataset<"line"> & ExtraDatasetValues;
 
 /**
  * Make a new dataset to render temperature data
@@ -231,7 +232,7 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			chart: {} as Chart,
+			chart: {} as Chart<'line'>,
 			lastUpdate: 0
 		}
 	},
@@ -239,10 +240,10 @@ export default Vue.extend({
 		update() {
 			const now = (new Date()).getTime();
 			if (now - this.lastUpdate >= 1000) {
-				this.chart.config.options!.scales!.yAxes![0].ticks!.min = Math.min(this.minConfiguredTemperature, (this.minHeaterTemperature !== null) ? this.minHeaterTemperature : defaultMinTemperature);
-				this.chart.config.options!.scales!.yAxes![0].ticks!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
-				this.chart.config.options!.scales!.xAxes![0].ticks!.min = (new Date()).getTime() - maxSampleTime;
-				this.chart.config.options!.scales!.xAxes![0].ticks!.max = (new Date()).getTime();
+				this.chart.options!.scales!.y!.min = Math.min(this.minConfiguredTemperature, (this.minHeaterTemperature !== null) ? this.minHeaterTemperature : defaultMinTemperature);
+				this.chart.options!.scales!.y!.max = (this.maxHeaterTemperature !== null) ? this.maxHeaterTemperature : defaultMaxTemperature;
+				this.chart.options!.scales!.x!.min = (new Date()).getTime() - maxSampleTime;
+				this.chart.options!.scales!.x!.max = (new Date()).getTime();
 
 				this.chart.update();
 				this.lastUpdate = now;
@@ -250,16 +251,13 @@ export default Vue.extend({
 		},
 		applyDarkTheme(active: boolean) {
 			const ticksColor = active ? "#FFF" : "#666";
-			this.chart.config.options!.legend!.labels!.fontColor = ticksColor;
-			(this.chart.config.options!.scales!.xAxes![0].ticks!.minor as NestedTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.xAxes![0].ticks!.major as MajorTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.yAxes![0].ticks!.minor as NestedTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.yAxes![0].ticks!.major as MajorTickOptions).fontColor = ticksColor;
+			this.chart.options!.plugins!.legend!.labels!.color = ticksColor;
+			this.chart.options!.scales!.x!.ticks!.color = ticksColor;
+			this.chart.options!.scales!.y!.ticks!.color = ticksColor;
 
 			const gridLineColor = active ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
-			this.chart.config.options!.scales!.xAxes![0].gridLines!.color = gridLineColor;
-			this.chart.config.options!.scales!.yAxes![0].gridLines!.color = gridLineColor;
-			this.chart.config.options!.scales!.yAxes![0].gridLines!.zeroLineColor = gridLineColor;
+			this.chart.options!.scales!.x!.grid!.color = gridLineColor;
+			this.chart.options!.scales!.y!.grid!.color = gridLineColor;
 
 			this.chart.update();
 		}
@@ -277,78 +275,69 @@ export default Vue.extend({
 		this.chart = new Chart(this.$refs.chart as HTMLCanvasElement, {
 			type: "line",
 			options: {
-				animation: {
-					duration: 0					// general animation time
-				},
+				animation: false,
 				elements: {
 					line: {
 						tension: 0				// disable bezier curves
 					}
 				},
-				legend: {
-					labels: {
-						filter: (legendItem, data) => data.datasets![legendItem.datasetIndex!].showLine,
-						fontFamily: "Roboto,sans-serif"
+				plugins: {
+					legend: {
+						labels: {
+							filter: (legendItem, data) => !!(data.datasets[legendItem.datasetIndex!] as TempChartDataset).showLine,
+							font: {
+								family: "Roboto,sans-serif"
+							}
+						}
 					}
 				},
 				maintainAspectRatio: false,
 				responsive: true,
-				responsiveAnimationDuration: 0, // animation duration after a resize
 				scales: {
-					xAxes: [
-						{
-							adapters: {
-								date: {
-									locale: dateFnsLocale
-								}
-							},
-							gridLines: {
-								display: true
-							},
-							ticks: {
-								min: (new Date()).getTime() - maxSampleTime,
-								max: (new Date()).getTime(),
-								minor: {
-									fontFamily: "Roboto,sans-serif"
-								},
-								major: {
-									fontFamily: "Roboto,sans-serif"
-								}
-							},
-							time: {
-								unit: "minute",
-								displayFormats: {
-									minute: "HH:mm"
-								}
-							},
-							type: "time",
-						}
-					],
-					yAxes: [
-						{
-							gridLines: {
-								display: true
-							},
-							ticks: {
-								minor: {
-									fontFamily: "Roboto,sans-serif"
-								},
-								major: {
-									fontFamily: "Roboto,sans-serif"
-								},
-								min: 0,
-								max: defaultMaxTemperature,
-								stepSize: 50
+					x: {
+						type: "time",
+						adapters: {
+							date: {
+								locale: dateFnsLocale
+							}
+						},
+						grid: {
+							display: true
+						},
+						ticks: {
+							font: {
+								family: "Roboto,sans-serif"
+							}
+						},
+						min: (new Date()).getTime() - maxSampleTime,
+						max: (new Date()).getTime(),
+						time: {
+							unit: "minute",
+							displayFormats: {
+								minute: "HH:mm"
 							}
 						}
-					]
+					},
+					y: {
+						grid: {
+							display: true
+						},
+						ticks: {
+							font: {
+								family: "Roboto,sans-serif"
+							},
+							stepSize: 50
+						},
+						min: 0,
+						max: defaultMaxTemperature
+					}
 				}
 			},
 			data: {
 				labels: tempSamples[this.selectedMachine].times,
-				datasets: tempSamples[this.selectedMachine].temps
+				datasets: tempSamples[this.selectedMachine].temps as TempChartDataset[]
 			}
-		});
+		}) as Chart<'line'>;
 		this.applyDarkTheme(this.darkTheme);
 
 		// Keep track of updates

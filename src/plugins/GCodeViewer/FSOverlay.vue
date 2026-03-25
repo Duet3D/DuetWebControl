@@ -125,12 +125,12 @@
 }
 </style>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
+import { Axis, GCodeFileInfo, Heat, Heater, Move, Tool } from "@duet3d/objectmodel";
+import store from "@/store";
 
-import { mapState } from 'vuex';
-
-export default {
+export default Vue.extend({
 	data: function () {
 		return {};
     },
@@ -138,37 +138,40 @@ export default {
         viewgcode: {
             type: Boolean,
             default: false
-        }  
+        }
     },
     mounted() {
-        this.$window
+        // noop
      },
     beforeDestroy(){},
 	computed: {
-		...mapState('machine/model', ['file', 'move', 'heat', 'tools']),
-		visibleAxes() {
-			return this.move.axes.filter(axis => axis.visible);
+		file(): GCodeFileInfo | null { return store.state.machine.model.job.file; },
+		move(): Move { return store.state.machine.model.move; },
+		heat(): Heat { return store.state.machine.model.heat; },
+		tools(): Array<Tool | null> { return store.state.machine.model.tools; },
+		visibleAxes(): Axis[] {
+			return this.move.axes.filter((axis: Axis) => axis.visible);
 		},
 	},
 	methods: {
-		displayAxisPosition(axis) {
+		displayAxisPosition(axis: Axis): string {
 			const position = axis.userPosition;
 			return axis.letter === 'Z' ? this.$displayZ(position, false) : this.$display(position, 1);
 		},
-		getHeaterInfo(heaterIdx) {
+		getHeaterInfo(heaterIdx: number): Heater | null {
 			return this.heat.heaters[heaterIdx];
 		},
-		getToolLabel(tool, toolIdx) {
+		getToolLabel(tool: Tool, toolIdx: number): string {
 			if (toolIdx === undefined) return '';
 			return tool.name === '' ? 'Tool ' + toolIdx : tool.name;
 		},
-		getBedLabel(bedIdx) {
+		getBedLabel(bedIdx: number): string {
 			return this.heat.bedHeaterMapping.length <= 2 ? 'Bed' : 'Bed ' + bedIdx;
 		},
-		getChamberLabel(chamberIdx) {
+		getChamberLabel(chamberIdx: number): string {
 			return this.heat.chamberHeaterMapping.length <= 2 ? 'Chamber' : 'Chamber ' + chamberIdx;
         },
     },
-};
+});
 </script>
 

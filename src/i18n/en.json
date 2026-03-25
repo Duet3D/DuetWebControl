@@ -969,7 +969,14 @@
       "samples": "Samples",
       "accelerations": "Accelerations (in g)",
       "sampleTooltip": "Sample #{0}",
-      "frequencyTooltip": "{0} ± {1} Hz"
+      "frequencyTooltip": "{0} ± {1} Hz",
+      "xAxisFrequency": "Frequency (in Hz)",
+      "xAxisSample": "Sample",
+      "yAxisAmplitude": "Amplitude",
+      "yAxisAcceleration": "Acceleration (in g)",
+      "reductionFactor": "Reduction Factor",
+      "shaperFrequency": "Shaper Frequency",
+      "custom": "Custom"
     },
     "autoUpdate": {
       "menuCaption": "Update"

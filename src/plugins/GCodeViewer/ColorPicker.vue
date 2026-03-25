@@ -22,16 +22,23 @@
 	</v-row>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
 
-export default {
-	props: ["editcolor"],
-	data: () => ({
-		internalTextColor: "#000000",
-		color: "#000000",
-		menu: false,
-	}),
+export default Vue.extend({
+	props: {
+		editcolor: {
+			type: String,
+			required: true
+		}
+	},
+	data() {
+		return {
+			internalTextColor: "#000000",
+			color: "#000000",
+			menu: false,
+		};
+	},
 	computed: {
 		backgroundColorStyle() {
 			return {
@@ -56,7 +63,7 @@ export default {
 		this.internalTextColor = this.editcolor;
 	},
 	methods: {
-		updateValue(val) {
+		updateValue(val: string) {
 			this.color = val;
 			if (!val.startsWith("#")) {
 				this.color = "#" + val;
@@ -68,13 +75,13 @@ export default {
 	},
 	watch: {
 		editcolor: {
-			handler: function (newVal) {
+			handler: function (newVal: string) {
 				this.color = newVal;
 				this.internalTextColor = newVal;
 			},
 		},
 	},
-};
+});
 </script>
 
 <style scoped>

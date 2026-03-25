@@ -9,11 +9,10 @@ import { GridMaterial } from '@babylonjs/materials/grid/gridMaterial';
 import { AdvancedDynamicTexture } from '@babylonjs/gui/2D/advancedDynamicTexture';
 import { TextBlock } from '@babylonjs/gui/2D/controls/textBlock';
 import { Space } from '@babylonjs/core/Maths/math.axis';
-import { PointerEventTypes } from '@babylonjs/core/Events/pointerEvents';
+import { PointerEventTypes, PointerInfo } from '@babylonjs/core/Events/pointerEvents';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { Mesh } from '@babylonjs/core/Meshes/mesh';
 import { Observer } from '@babylonjs/core/Misc/observable';
-import { PointerInfo } from '@babylonjs/core/Events/pointerEvents';
 import Axes from './axes';
 import '@babylonjs/core/Culling';
 
@@ -28,6 +27,12 @@ interface BuildVolume {
 	x: BuildVolumeBounds;
 	y: BuildVolumeBounds;
 	z: BuildVolumeBounds;
+}
+
+export interface HeightMapCoord {
+	x: number;
+	y: number;
+	z: number;
 }
 
 export default class HeightMapViewer {
@@ -55,7 +60,7 @@ export default class HeightMapViewer {
 	bedRendered: boolean | undefined;
 	advancedTexture: AdvancedDynamicTexture | undefined;
 
-	labelCallback: (metadata?: any) => void = () => {};
+	labelCallback: (metadata?: HeightMapCoord) => void = () => {};
 
 	minZ = 0;
 	maxZ = 0;
@@ -151,7 +156,7 @@ export default class HeightMapViewer {
 		this.scene!.render();
 	}
 
-	createHeightPoint(vec: Vector3, metadata: any): void {
+	createHeightPoint(vec: Vector3, metadata: HeightMapCoord): void {
 		const sphere = MeshBuilder.CreateSphere('sphere', { diameter: 8, segments: 8 }, this.scene);
 		sphere.position = vec;
 		sphere.material = this.sphereMaterial!;
@@ -304,10 +309,6 @@ export default class HeightMapViewer {
 			this.axes.dispose();
 		}
 
-		if (this.advancedTexture) {
-			this.advancedTexture.dispose();
-		}
-
 		this.axesLabelMeshes.forEach((m) => m.dispose());
 		this.axesLabelMeshes = [];
 
@@ -335,7 +336,9 @@ export default class HeightMapViewer {
 
 		this.bedMesh.isPickable = false;
 
-		this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI('UI', true, this.scene!);
+		if (!this.advancedTexture) {
+			this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI('UI', true, this.scene!);
+		}
 		//build axes labels
 		this.axesLabelMeshes.forEach((mesh) => mesh.dispose());
 		this.axesLabelMeshes = [];
@@ -432,10 +435,10 @@ export default class HeightMapViewer {
 		}
 	}
 
-	handlePointerMove(pickInfo: any): void {
+	handlePointerMove(pickInfo: PointerInfo['pickInfo']): void {
 		this.heightPointMeshes.forEach((mesh) => (mesh.material = this.sphereMaterial!));
-		if (pickInfo.hit && pickInfo.pickedMesh) {
-			pickInfo.pickedMesh.material = this.highlightMaterial;
+		if (pickInfo && pickInfo.hit && pickInfo.pickedMesh) {
+			pickInfo.pickedMesh.material = this.highlightMaterial!;
 			if (this.labelCallback) {
 				this.labelCallback(pickInfo.pickedMesh.metadata);
 			}
@@ -511,6 +514,11 @@ export default class HeightMapViewer {
 	dispose(): void {
 		if (this.axes) {
 			this.axes.dispose();
+		}
+
+		if (this.advancedTexture) {
+			this.advancedTexture.dispose();
+			this.advancedTexture = undefined;
 		}
 
 		if (this.scene) {

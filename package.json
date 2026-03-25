@@ -21,8 +21,8 @@
       "@mdi/font": "^7.4.47",
       "@sindarius/gcodeviewer": "^3.7.13",
       "@vue/language-server": "~3.0.0",
-      "chart.js": "^2.9.4",
-      "chartjs-adapter-date-fns": "^1.0.0",
+      "chart.js": "^4.4.0",
+      "chartjs-adapter-date-fns": "^3.0.0",
       "date-fns": "^2.30.0",
       "file-saver": "^2.0.5",
       "jszip": "^3.10.1",
@@ -39,7 +39,6 @@
       "vuex": "^3.6.2"
    },
    "devDependencies": {
-      "@types/chart.js": "^2.9.41",
       "@types/d3": "^7.4.3",
       "@types/file-saver": "^2.0.7",
       "@types/semver": "^7.5.8",

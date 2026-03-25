@@ -52,7 +52,7 @@ h1 {
 					</v-alert>
 				</v-card-text>
 				<v-list :disabled="uiFrozen || !ready || loading" class="py-0">
-					<v-list-item-group mandatory :value="files.indexOf(selectedFile)" color="primary">
+					<v-list-item-group mandatory :value="files.indexOf(selectedFile || '')" color="primary">
 						<v-list-item v-for="file in files" :key="file" @click="selectedFile = file">
 							{{ file }}
 						</v-list-item>
@@ -139,76 +139,77 @@ h1 {
 	</v-row>
 </template>
 
-<script>
-'use strict';
+<script lang="ts">
+import Vue from "vue";
+import { Axis, KinematicsName } from '@duet3d/objectmodel';
 
-import { KinematicsName } from '@duet3d/objectmodel';
-import { mapState, mapGetters, mapActions } from 'vuex';
-
-import { setPluginData, PluginDataType } from '@/store';
+import store, { setPluginData, PluginDataType } from '@/store';
 import CSV from '@/utils/csv';
 import Events from '@/utils/events';
 import Path from '@/utils/path';
 
-import HeightMapViewer from './3dbjs';
+import HeightMapViewer, { HeightMapCoord } from './3dbjs';
 
-let heightMapViewer;
-export default {
+let heightMapViewer: HeightMapViewer;
+
+interface FileEntry {
+	isDirectory: boolean;
+	name: string;
+}
+
+export default Vue.extend({
 	computed: {
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
-		...mapState('machine/cache', {
-			pluginCache: (state) => state.plugins.HeightMap,
-		}),
-		...mapState('machine/model', {
-			heightmapFile: (state) => state.move.compensation.file,
-			systemDirectory: (state) => state.directories.system,
-			axes: (state) => state.move.axes,
-			kinematicsName: (state) => state.move.kinematics.name,
-		}),
-		...mapState('settings', ['language']),
+		selectedMachine(): string { return store.state.selectedMachine; },
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		pluginCache(): any { return store.state.machine.cache.plugins.HeightMap; },
+		heightmapFile(): string | null { return store.state.machine.model.move.compensation.file; },
+		systemDirectory(): string { return store.state.machine.model.directories.system; },
+		axes(): Axis[] { return store.state.machine.model.move.axes; },
+		kinematicsName(): KinematicsName { return store.state.machine.model.move.kinematics.name; },
+		language(): string { return store.state.settings.language; },
 		colorScheme: {
-			get() {
-				return this.pluginCache.colorScheme;
+			get(): string {
+				return store.state.machine.cache.plugins.HeightMap.colorScheme;
 			},
-			set(value) {
+			set(value: string) {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'colorScheme', value);
 			},
 		},
 		deviationColoring: {
-			get() {
-				return this.pluginCache.deviationColoring;
+			get(): string {
+				return store.state.machine.cache.plugins.HeightMap.deviationColoring;
 			},
-			set(value) {
+			set(value: string) {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'deviationColoring', value);
 			},
 		},
 		invertZ: {
-			get() {
-				return this.pluginCache.invertZ;
+			get(): boolean {
+				return store.state.machine.cache.plugins.HeightMap.invertZ;
 			},
-			set(value) {
+			set(value: boolean) {
 				setPluginData('HeightMap', PluginDataType.machineCache, 'invertZ', value);
 			},
 		},
-		isDelta() {
-			return this.kinematicsName === KinematicsName.delta || this.kinematicsName === KinematicsName.rotaryDelta;
+		isDelta(): boolean {
+			return this.kinematicsName === KinematicsName.linearDelta || this.kinematicsName === KinematicsName.rotaryDelta;
 		},
-		bedAxesValues() {
-			return this.axes.map((d) => {
+		bedAxesValues(): { letter: string; min: number; max: number }[] {
+			return this.axes.map((d: Axis) => {
 				return { letter: d.letter, min: d.min, max: d.max };
 			});
 		},
 	},
 	data() {
 		return {
-			files: [],
-			selectedFile: null,
+			files: [] as string[],
+			selectedFile: null as string | null,
 
 			isActive: true,
 			ready: false,
 			loading: false,
-			errorMessage: null,
+			errorMessage: null as string | null,
 
 			tooltip: {
 				coord: {
@@ -216,33 +217,32 @@ export default {
 					y: 0,
 					z: 0,
 				},
-				x: undefined,
-				y: undefined,
+				x: undefined as number | undefined,
+				y: undefined as number | undefined,
 				shown: false,
 			},
 			xLabel: 'X',
 			yLabel: 'Y',
-			numPoints: undefined, // points excluding NaN
-			area: undefined,
-			radius: undefined,
-			minDiff: undefined,
-			maxDiff: undefined,
-			meanError: undefined,
-			rmsError: undefined,
+			numPoints: 0 as number,
+			area: 0 as number,
+			radius: 0 as number,
+			minDiff: undefined as number | undefined,
+			maxDiff: undefined as number | undefined,
+			meanError: undefined as number | undefined,
+			rmsError: undefined as number | undefined,
 
-			heightmapPoints: undefined,
-			probeRadius: undefined,
+			heightmapPoints: undefined as number[][][] | undefined,
+			probeRadius: undefined as number | undefined,
 		};
 	},
 	methods: {
-		...mapActions('machine', ['download', 'getFileList']),
 		resize() {
 			if (!this.isActive) {
 				return;
 			}
 
 			// Resize canvas elements
-			const width = Math.max(this.$refs.container.offsetWidth - 80, 0);
+			const width = Math.max((this.$refs.container as HTMLElement).offsetWidth - 80, 0);
 			let height;
 			switch (this.$vuetify.breakpoint.name) {
 				case 'xs':
@@ -261,8 +261,8 @@ export default {
 
 
 			let contentArea = getComputedStyle(document.getElementsByClassName('v-toolbar__content')[0]);
-				let globalContainer =  getComputedStyle(document.getElementById('global-container'));
-				let primaryContainer = getComputedStyle(this.$refs.container);
+				let globalContainer =  getComputedStyle(document.getElementById('global-container')!);
+				let primaryContainer = getComputedStyle((this.$refs.container as HTMLElement));
 				let contentAreaHeight = parseInt(contentArea.height) + parseInt(contentArea.paddingTop) + parseInt(contentArea.paddingBottom);
 				let globalContainerHeight = this.$vuetify.breakpoint.smAndDown ? 0 : parseInt(globalContainer.height) + parseInt(globalContainer.paddingTop) + parseInt(globalContainer.paddingBottom);
 				let viewerHeight = window.innerHeight - contentAreaHeight - globalContainerHeight - parseInt(primaryContainer.marginTop);
@@ -275,50 +275,50 @@ export default {
 				height = 400;
 
 			
-			this.$refs.container.style.height = `${height}px`;
-			this.$refs.legend.style.left = `${width}px`;
-			this.$refs.legend.height = height;
-			this.$refs.canvas.width = width;
-			this.$refs.canvas.height = height;
+			(this.$refs.container as HTMLElement).style.height = `${height}px`;
+			(this.$refs.legend as HTMLCanvasElement).style.left = `${width}px`;
+			(this.$refs.legend as HTMLCanvasElement).height = height;
+			(this.$refs.canvas as HTMLCanvasElement).width = width;
+			(this.$refs.canvas as HTMLCanvasElement).height = height;
 
 			if (heightMapViewer) {
 				heightMapViewer.resize();
 				// Redraw the legend and return the canvas size
-				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
+				heightMapViewer.drawLegend((this.$refs.legend as HTMLCanvasElement), this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			}
 
 			return { width, height };
 		},
-		showCSV(csvData) {
+		showCSV(csvData: string) {
 			// Load the CSV. The first line is a comment that can be removed
 			const csv = new CSV(csvData.substring(csvData.indexOf('\n') + 1));
 			this.xLabel = csv.get('axis0') || 'X';
 			this.yLabel = csv.get('axis1') || 'Y';
-			let radius = parseFloat(csv.get('radius'));
+			let radius: number | undefined = parseFloat(csv.get('radius') || '');
 			if (radius <= 0) {
 				radius = undefined;
 			}
-			let xMin = parseFloat(csv.get('min0'));
+			let xMin = parseFloat(csv.get('min0') || '');
 			if (isNaN(xMin)) {
-				xMin = parseFloat(csv.get('xmin'));
+				xMin = parseFloat(csv.get('xmin') || '');
 			}
-			let yMin = parseFloat(csv.get('min1'));
+			let yMin = parseFloat(csv.get('min1') || '');
 			if (isNaN(yMin)) {
-				yMin = parseFloat(csv.get('ymin'));
+				yMin = parseFloat(csv.get('ymin') || '');
 			}
-			let xSpacing = parseFloat(csv.get('spacing0'));
+			let xSpacing = parseFloat(csv.get('spacing0') || '');
 			if (isNaN(xSpacing)) {
-				xSpacing = parseFloat(csv.get('xspacing'));
+				xSpacing = parseFloat(csv.get('xspacing') || '');
 			}
 			if (isNaN(xSpacing)) {
-				xSpacing = parseFloat(csv.get('spacing'));
+				xSpacing = parseFloat(csv.get('spacing') || '');
 			}
-			let ySpacing = parseFloat(csv.get('spacing1'));
+			let ySpacing = parseFloat(csv.get('spacing1') || '');
 			if (isNaN(ySpacing)) {
-				ySpacing = parseFloat(csv.get('yspacing'));
+				ySpacing = parseFloat(csv.get('yspacing') || '');
 			}
 			if (isNaN(ySpacing)) {
-				ySpacing = parseFloat(csv.get('spacing'));
+				ySpacing = parseFloat(csv.get('spacing') || '');
 			}
 
 			// Convert each point to a vector
@@ -336,11 +336,11 @@ export default {
 			// Display height map and redraw legend
 			this.showHeightMap(points, radius);
 		},
-		showHeightMap(points, probeRadius) {
+		showHeightMap(points: number[][][], probeRadius?: number) {
 			// Generate stats
 			let xMin, xMax, yMin, yMax;
 
-			this.radius = probeRadius;
+			this.radius = probeRadius || 0;
 			this.numPoints = 0;
 			this.minDiff = undefined;
 			this.maxDiff = undefined;
@@ -378,13 +378,13 @@ export default {
 					}
 				}
 
-			this.area = probeRadius ? probeRadius * probeRadius * Math.PI : Math.abs((xMax - xMin) * (yMax - yMin));
+			this.area = probeRadius ? probeRadius * probeRadius * Math.PI : Math.abs(((xMax ?? 0) - (xMin ?? 0)) * ((yMax ?? 0) - (yMin ?? 0)));
 			this.rmsError = Math.sqrt(this.rmsError * this.numPoints - this.meanError * this.meanError) / this.numPoints;
 			this.meanError = this.meanError / this.numPoints;
 			heightMapViewer.renderHeightMap(points, this.invertZ, this.colorScheme, this.deviationColoring);
-			heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
+			heightMapViewer.drawLegend((this.$refs.legend as HTMLCanvasElement), this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 		},
-		canvasMouseMove(e) {
+		canvasMouseMove(e: MouseEvent) {
 			this.tooltip.x = e.clientX;
 			this.tooltip.y = e.clientY;
 		},
@@ -410,16 +410,16 @@ export default {
 
 			this.loading = true;
 			try {
-				const files = await this.getFileList(this.systemDirectory);
+				const files = await store.dispatch("machine/getFileList", this.systemDirectory);
 				this.files = files
-					.filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'))
-					.map(file => file.name)
+					.filter((file: FileEntry) => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'))
+					.map((file: FileEntry) => file.name)
 					.sort();
 			} finally {
 				this.loading = false;
 			}
 
-			if (this.files.indexOf(this.selectedFile) === -1) {
+			if (this.files.indexOf(this.selectedFile!) === -1) {
 				if (this.heightmapFile && this.files.indexOf(Path.extractFileName(this.heightmapFile)) !== -1) {
 					this.selectedFile = Path.extractFileName(this.heightmapFile);
 				} else if (this.files.indexOf(Path.heightmapFile) !== -1) {
@@ -440,7 +440,7 @@ export default {
 			this.loading = true;
 			try {
 				if (this.selectedFile) {
-					const heightmap = await this.download({
+					const heightmap = await store.dispatch("machine/download", {
 						filename: Path.combine(this.systemDirectory, this.selectedFile),
 						type: 'text',
 						showProgress: false,
@@ -453,7 +453,7 @@ export default {
 				}
 			} catch (e) {
 				console.warn(e);
-				this.errorMessage = e.message;
+				this.errorMessage = (e as Error).message;
 			}
 			this.loading = false;
 			this.ready = true;
@@ -464,31 +464,31 @@ export default {
 				'RepRapFirmware height map file v1\nxmin,xmax,ymin,ymax,radius,spacing,xnum,ynum\n-140.00,140.10,-140.00,140.10,150.00,20.00,15,15\n0,0,0,0,0,-0.139,-0.188,-0.139,-0.202,-0.224,0,0,0,0,0\n0,0,0,-0.058,-0.066,-0.109,-0.141,-0.129,-0.186,-0.198,-0.191,-0.176,0,0,0\n0,0,0.013,-0.008,-0.053,-0.071,-0.087,-0.113,-0.162,-0.190,-0.199,-0.267,-0.237,0,0\n0,0.124,0.076,0.025,-0.026,-0.054,-0.078,-0.137,-0.127,-0.165,-0.201,-0.189,-0.227,-0.226,0\n0,0.198,0.120,0.047,0.089,-0.074,-0.097,-0.153,-0.188,-0.477,-0.190,-0.199,-0.237,-0.211,0\n0.312,0.229,0.198,0.098,0.097,0.004,-0.089,-0.516,-0.150,-0.209,-0.197,-0.183,-0.216,-0.296,-0.250\n0.287,0.263,0.292,0.100,0.190,0.015,-0.102,-0.039,-0.125,-0.149,-0.137,-0.198,-0.188,-0.220,-0.192\n0.378,0.289,0.328,0.172,0.133,0.078,-0.086,0.134,-0.100,-0.150,-0.176,-0.234,-0.187,-0.199,-0.221\n0.360,0.291,0.260,0.185,0.111,0.108,0.024,0.073,-0.024,-0.116,-0.187,-0.252,-0.201,-0.215,-0.187\n0.447,0.397,0.336,0.276,0.180,0.164,0.073,-0.050,-0.049,-0.109,-0.151,-0.172,-0.211,-0.175,-0.161\n0,0.337,0.289,0.227,0.179,0.127,0.086,0.034,-0.039,-0.060,-0.113,-0.108,-0.171,-0.153,0\n0,0.478,0.397,0.374,0.270,0.141,0.085,0.074,0.037,-0.048,-0.080,-0.187,-0.126,-0.175,0\n0,0,0.373,0.364,0.265,0.161,0.139,0.212,0.040,0.046,-0.008,-0.149,-0.115,0,0\n0,0,0,0.346,0.295,0.273,0.148,0.136,0.084,0.024,-0.055,-0.078,0,0,0\n0,0,0,0,0,0.240,0.178,0.084,0.090,0.004,0,0,0,0,0';
 			this.showCSV(csvData);
 		},
-		async testBedCompensation(numPoints) {
+		async testBedCompensation(numPoints: number) {
 			let testPoints;
 			switch (numPoints) {
 				case 3:
 					testPoints = [
-						[15.0, 15.0, 0.123],
-						[15.0, 195.0, -0.243],
-						[215.0, 105.0, 0.034],
+						[[15.0, 15.0, 0.123]],
+						[[15.0, 195.0, -0.243]],
+						[[215.0, 105.0, 0.034]],
 					];
 					break;
 				case 4:
 					testPoints = [
-						[15.0, 15.0, 0.015],
-						[15.0, 185.0, -0.193],
-						[175.0, 185.0, 0.156],
-						[175.0, 15.0, 0.105],
+						[[15.0, 15.0, 0.015]],
+						[[15.0, 185.0, -0.193]],
+						[[175.0, 185.0, 0.156]],
+						[[175.0, 15.0, 0.105]],
 					];
 					break;
 				case 5:
 					testPoints = [
-						[15.0, 15.0, 0.007],
-						[15.0, 185.0, -0.121],
-						[175.0, 185.0, -0.019],
-						[175.0, 15.0, 0.193],
-						[95.0, 100.0, 0.05],
+						[[15.0, 15.0, 0.007]],
+						[[15.0, 185.0, -0.121]],
+						[[175.0, 185.0, -0.019]],
+						[[175.0, 15.0, 0.193]],
+						[[95.0, 100.0, 0.05]],
 					];
 					break;
 				default:
@@ -497,11 +497,11 @@ export default {
 			this.showHeightMap(testPoints);
 		},
 
-		filesOrDirectoriesChanged({ machine, files, volume }) {
+		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: string[] | undefined }) {
 			if (machine === this.selectedMachine && files !== undefined) {
 				if (this.selectedFile && files.indexOf(Path.combine(this.systemDirectory, this.selectedFile)) >= 0) {
 					// Current heightmap has been changed, reload it and then refresh the list
-					this.getHeightMap(this.selectedFile).then(this.refresh);
+					this.getHeightMap().then(this.refresh);
 				} else if (files.some((file) => file.endsWith('.csv')) && Path.filesAffectDirectory(files, this.systemDirectory)) {
 					// CSV file or directory has been changed
 					this.refresh();
@@ -514,8 +514,8 @@ export default {
 					let axes = this.axes[axesIdx];
 					if ('XYZ'.includes(axes.letter)) {
 						var letter = axes.letter.toLowerCase();
-						heightMapViewer.buildVolume[letter].min = axes.min;
-						heightMapViewer.buildVolume[letter].max = axes.max;
+						(heightMapViewer.buildVolume as any)[letter].min = axes.min;
+						(heightMapViewer.buildVolume as any)[letter].max = axes.max;
 					}
 				}
 				heightMapViewer.renderBed();
@@ -527,16 +527,16 @@ export default {
 		this.isActive = true;
 		this.resize();
 	},
-	deactivate() {
+	deactivated() {
 		this.isActive = false;
 	},
 	async mounted() {
-		const size = this.resize();
+		const size = this.resize()!;
 		if (size.height <= 0) {
 			size.height = 1;
 		}
 
-		heightMapViewer = new HeightMapViewer(this.$refs.canvas);
+		heightMapViewer = new HeightMapViewer((this.$refs.canvas as HTMLCanvasElement));
 
 		if (this.isDelta) {
 			heightMapViewer.isDelta = this.isDelta;
@@ -544,7 +544,7 @@ export default {
 		await heightMapViewer.init();
 		this.buildBed();
 
-		heightMapViewer.labelCallback = (metadata) => {
+		heightMapViewer.labelCallback = (metadata?: HeightMapCoord) => {
 			if (metadata) {
 				this.tooltip.coord.x = metadata.x;
 				this.tooltip.coord.y = metadata.y;
@@ -564,7 +564,7 @@ export default {
 		this.$root.$on(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 
 		// Kill the wheel on the canvas
-		this.$refs.canvas.addEventListener('wheel', evt => evt.preventDefault());
+		((this.$refs.canvas as HTMLCanvasElement) as HTMLCanvasElement).addEventListener('wheel', (evt: WheelEvent) => evt.preventDefault());
 
 		// Trigger resize event once more to avoid rendering glitches
 		setTimeout(this.resize.bind(this), 1000);
@@ -574,7 +574,7 @@ export default {
 	beforeDestroy() {
 		// No longer keep track of file changes
 		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
-		heightMapViewer.destroy();
+		heightMapViewer.dispose();
 	},
 	watch: {
 		colorScheme() {
@@ -598,7 +598,7 @@ export default {
 		isConnected() {
 			this.refresh();
 		},
-		heightmapFile(to) {
+		heightmapFile(to: string | null) {
 			if (to) {
 				const that = this;
 				this.refresh().then(async function () {
@@ -619,7 +619,7 @@ export default {
 		},
 		language() {
 			if (heightMapViewer) {
-				heightMapViewer.drawLegend(this.$refs.legend, this.colorScheme);
+				heightMapViewer.drawLegend((this.$refs.legend as HTMLCanvasElement), this.colorScheme, this.invertZ, this.xLabel, this.yLabel);
 			}
 		},
 		bedAxesValues: {
@@ -628,7 +628,7 @@ export default {
 				this.buildBed();
 			},
 		},
-		isDelta(to) {
+		isDelta(to: boolean) {
 			if (heightMapViewer) {
 				heightMapViewer.isDelta = to;
 				if (this.heightmapPoints) {
@@ -637,5 +637,5 @@ export default {
 			}
 		},
 	},
-};
+});
 </script>

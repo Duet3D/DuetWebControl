@@ -11,12 +11,11 @@
 }
 </style>
 
-<script>
-'use strict';
-
+<script lang="ts">
+import Vue from "vue";
 import Gauge from './gauge';
 
-export default {
+export default Vue.extend({
 	props: {
 		label: String,
 		max: Number,
@@ -24,13 +23,13 @@ export default {
 		settemp: Number,
 		state: String,
 	},
-	data: function () {
+	data() {
 		return {
-			gauge: Object,
+			gauge: null as any,
 		};
 	},
 	mounted() {
-		this.gauge = new Gauge(this.$refs.gaugeContainer);
+		this.gauge = new Gauge(this.$refs.gaugeContainer as HTMLElement);
 		this.gauge.max = this.max;
 		this.gauge.setTemperature = this.settemp;
 		this.updateGauge();
@@ -39,7 +38,7 @@ export default {
 	beforeDestroy(){
 	},
 	watch: {
-		max : function(to){
+		max : function(to: number){
 			this.gauge.max = to;
 			this.updateGauge();
 		},
@@ -49,7 +48,7 @@ export default {
 		state : function(){
 			this.updateGauge();
 		},
-		settemp : function(to){
+		settemp : function(to: number){
 			this.gauge.setTemperature = to;
 			this.updateGauge();
 		}
@@ -63,5 +62,5 @@ export default {
 			this.gauge.updateState(this.state);
 		}
 	},
-};
+});
 </script>

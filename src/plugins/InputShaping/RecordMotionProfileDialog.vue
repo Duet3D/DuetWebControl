@@ -213,11 +213,11 @@
 	</v-dialog>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue from "vue";
+import { Axis, Board, KinematicsName, MachineStatus, Move, State, Tool } from '@duet3d/objectmodel';
 
-import { Axis, KinematicsName, MachineStatus } from '@duet3d/objectmodel';
-import { mapActions, mapState } from 'vuex';
+import store from "@/store";
 
 import { OperationCancelledError } from '@/utils/errors';
 
@@ -228,7 +228,16 @@ const MoveState = {
 	cancelled: 'cancelled'
 }
 
-export default {
+interface MoveItem {
+	state: string;
+	tool: Tool | null;
+	accelerometer: string | null;
+	axis: string;
+	start: number;
+	end: number;
+}
+
+export default Vue.extend({
 	props: {
 		lastRun: {
 			required: true,
@@ -240,15 +249,18 @@ export default {
 		}
 	},
 	computed: {
-		...mapState('machine/model', ['boards', 'move', 'tools', 'state']),
-		xAxis() { return this.move.axes.find(axis => axis.letter === 'X') || new Axis(); },
-		yAxis() { return this.move.axes.find(axis => axis.letter === 'Y') || new Axis(); },
-		zAxis() { return this.move.axes.find(axis => axis.letter === 'Z') || new Axis(); },
+		boards(): Board[] { return store.state.machine.model.boards; },
+		move(): Move { return store.state.machine.model.move; },
+		tools(): Array<Tool | null> { return store.state.machine.model.tools; },
+		machineState(): State { return store.state.machine.model.state; },
+		xAxis(): Axis { return this.move.axes.find((axis: Axis) => axis.letter === 'X') || new Axis(); },
+		yAxis(): Axis { return this.move.axes.find((axis: Axis) => axis.letter === 'Y') || new Axis(); },
+		zAxis(): Axis { return this.move.axes.find((axis: Axis) => axis.letter === 'Z') || new Axis(); },
 		shownInternal: {
-			get() { return this.shown },
-			set(value) { this.$emit('update:shown', value); }
+			get(): boolean { return this.shown },
+			set(value: boolean) { this.$emit('update:shown', value); }
 		},
-		shaper() {
+		shaper(): string {
 			if (this.move.shaping.type === 'none') {
 				return 'None';
 			}
@@ -257,61 +269,61 @@ export default {
 			}
 			return this.move.shaping.type.toUpperCase();
 		},
-		frequency() {
+		frequency(): string | null {
 			return (this.move.shaping.type === 'none' || this.move.shaping.type === 'custom') ? null : `${this.move.shaping.frequency}Hz`;
 		},
-		damping() {
+		damping(): string | null {
 			return (this.move.shaping.type === 'none' || this.move.shaping.type === 'custom') ? null : this.move.shaping.damping.toString();
 		},
-		amplitudes() {
-			return (this.move.shaping.type === 'custom') ? this.move.shaping.amplitudes.map(amplitude => amplitude.toString()).reduce((a, b) => a + ', ' + b) : null;
+		amplitudes(): string | null {
+			return (this.move.shaping.type === 'custom') ? this.move.shaping.amplitudes.map((amplitude: number) => amplitude.toString()).reduce((a: string, b: string) => a + ', ' + b) : null;
 		},
-		delays() {
-			return (this.move.shaping.type === 'custom') ? this.move.shaping.delays.map(duration => (duration / 1000).toFixed(3) + 'ms').reduce((a, b) => a + ', ' + b) : null;
+		delays(): string | null {
+			return (this.move.shaping.type === 'custom') ? this.move.shaping.delays.map((duration: number) => (duration / 1000).toFixed(3) + 'ms').reduce((a: string, b: string) => a + ', ' + b) : null;
 		},
-		allAxesHomed() { return !this.move.axes.some(axis => axis.visible && !axis.homed); },
-		accelerometers() {
+		allAxesHomed(): boolean { return !this.move.axes.some((axis: Axis) => axis.visible && !axis.homed); },
+		accelerometers(): string[] {
 			return this.boards
-				.filter(board => board.accelerometer !== null)
-				.map(board => board.canAddress ? `${board.canAddress}.0` : '0');
+				.filter((board: Board) => board.accelerometer !== null)
+				.map((board: Board) => board.canAddress ? `${board.canAddress}.0` : '0');
 		},
-		hasExternalAccelerometers() {
-			return this.boards.some(board => (board.canAddress !== 0) && !!board.accelerometer);
+		hasExternalAccelerometers(): boolean {
+			return this.boards.some((board: Board) => (board.canAddress !== 0) && !!board.accelerometer);
 		},
-		toolList() {
-			return [{ text: 'None', value: null }]
+		toolList(): Array<{ text: string; value: Tool | null }> {
+			return ([{ text: 'None', value: null }] as Array<{ text: string; value: Tool | null }>)
 				.concat(
 					this.tools
-						.filter(tool => !!tool)
-						.map(tool => ({
+						.filter((tool: Tool | null): tool is Tool => !!tool)
+						.map((tool: Tool) => ({
 							text: tool.name || tool.number.toString(),
 							value: tool
 						})
 				));
 		},
-		showZCenter() {
-			return [KinematicsName.delta, KinematicsName.rotaryDelta, KinematicsName.coreXZ].includes(this.move.kinematics.name);
+		showZCenter(): boolean {
+			return [KinematicsName.linearDelta, KinematicsName.rotaryDelta, KinematicsName.coreXZ].includes(this.move.kinematics.name);
 		},
-		maxSpeed() {
+		maxSpeed(): number {
 			let maxSpeed = 6000;
 			for (let axis of this.move.axes) {
 				if (axis.speed > maxSpeed) {
 					maxSpeed = axis.speed;
 				}
 			}
-			return this.moves.some(move => move.axis.length > 1) ? Math.round(maxSpeed * Math.sqrt(2)) : maxSpeed;
+			return this.moves.some((move: MoveItem) => move.axis.length > 1) ? Math.round(maxSpeed * Math.sqrt(2)) : maxSpeed;
 		},
-		canGoBack() {
+		canGoBack(): boolean {
 			return this.currentPage === 'config';
 		},
-		canGoNext() {
+		canGoNext(): boolean {
 			switch (this.currentPage) {
 				case 'start': return (this.accelerometers.length > 0) && this.allAxesHomed;
 				case 'config':
 					for (let move of this.moves) {
 						if (!move.accelerometer || !move.axis || move.start >= move.end ||
-							move.start < this.getMin(move, true) || move.start > this.getMax(move, true) ||
-							move.end < this.getMin(move, false) || move.end > this.getMax(move, false)) {
+							move.start < this.getMin(move, true)! || move.start > this.getMax(move, true)! ||
+							move.end < this.getMin(move, false)! || move.end > this.getMax(move, false)!) {
 							return false;
 						}
 					}
@@ -326,7 +338,7 @@ export default {
 	data() {
 		return {
 			currentPage: 'start',
-			moves: [],
+			moves: [] as Array<MoveItem>,
 			centerAxes: true,
 			xAxisCenter: 0,
 			yAxisCenter: 0,
@@ -338,7 +350,6 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
 		refreshCenters() {
 			if (this.currentPage === 'collection') {
 				return;
@@ -354,8 +365,8 @@ export default {
 			}
 
 			this.moves = this.move.axes
-				.filter(axis => axis.letter === 'X' || axis.letter === 'Y')
-				.map(axis => ({
+				.filter((axis: Axis) => axis.letter === 'X' || axis.letter === 'Y')
+				.map((axis: Axis) => ({
 					state: MoveState.idle,
 					tool: null,
 					accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0] : null,
@@ -365,18 +376,18 @@ export default {
 				}));
 		},
 		addMove() {
-			const xAxis = this.move.axes.find(axis => axis.letter === 'X');
+			const xAxis = this.move.axes.find((axis: Axis) => axis.letter === 'X');
 			this.moves.push({
 				state: MoveState.idle,
 				tool: null,
 				accelerometer: (this.accelerometers.length > 0) ? this.accelerometers[0] : null,
 				axis: 'X',
-				start: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 - (xAxis.max - xAxis.min) / 4) : null,
-				end: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 + (xAxis.max - xAxis.min) / 4) : null
-			});
+				start: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 - (xAxis.max - xAxis.min) / 4) : 0,
+				end: xAxis ? Math.round((xAxis.min + xAxis.max) / 2 + (xAxis.max - xAxis.min) / 4) : 0
+			} as MoveItem);
 		},
-		setMoveTool(move, tool) {
-			const axisIndex = this.move.axes.findIndex(axis => axis.letter === move.axis);
+		setMoveTool(move: MoveItem, tool: Tool | null) {
+			const axisIndex = this.move.axes.findIndex((axis: Axis) => axis.letter === move.axis);
 			if (axisIndex >= 0) {
 				if (move.tool) {
 					// Subtract old tool offset
@@ -392,12 +403,12 @@ export default {
 			}
 			move.tool = tool;
 		},
-		setMoveAxis(move, axis) {
-			const axisObj = this.move.axes.find(obj => obj.letter === axis);
+		setMoveAxis(move: MoveItem, axis: string) {
+			const axisObj = this.move.axes.find((obj: Axis) => obj.letter === axis);
 			if (axisObj) {
-				const axisIndex = this.move.axes.findIndex(item => item.letter === axis);
-				move.start = Math.round((axis.min + axis.max) / 2 - (axis.max - axis.min) / 4);
-				move.end = Math.round((axis.min + axis.max) / 2 + (axis.max - axis.min) / 4);
+				const axisIndex = this.move.axes.findIndex((item: Axis) => item.letter === axis);
+				move.start = Math.round((axisObj.min + axisObj.max) / 2 - (axisObj.max - axisObj.min) / 4);
+				move.end = Math.round((axisObj.min + axisObj.max) / 2 + (axisObj.max - axisObj.min) / 4);
 				if (move.tool) {
 					move.start += move.tool.offsets[axisIndex];
 					move.end += move.tool.offsets[axisIndex];
@@ -405,10 +416,10 @@ export default {
 			}
 			move.axis = axis;
 		},
-		removeMove(index) {
+		removeMove(index: number) {
 			this.moves.splice(index, 1);
 		},
-		getMin(move, start) {
+		getMin(move: MoveItem, start: boolean): number | null {
 			if (!move.axis) {
 				return null;
 			}
@@ -430,9 +441,9 @@ export default {
 					}
 				}
 			}
-			return start ? min : Math.max(min, move.start ?? min);
+			return start ? min : (min !== null ? Math.max(min, move.start ?? min) : null);
 		},
-		getMax(move, start) {
+		getMax(move: MoveItem, start: boolean): number | null {
 			if (!move.axis) {
 				return null;
 			}
@@ -454,21 +465,21 @@ export default {
 					}
 				}
 			}
-			return start ? Math.min(max, move.end ?? max) : max;
+			return start ? (max !== null ? Math.min(max, move.end ?? max) : null) : max;
 		},
-		getRules(move, start) {
+		getRules(move: MoveItem, start: boolean) {
 			return [
-				val => val >= this.getMin(move, start),
-				val => val <= this.getMax(move, start)
+				(val: number) => val >= this.getMin(move, start)!,
+				(val: number) => val <= this.getMax(move, start)!
 			];
 		},
-		async doCode(code) {
-			const reply = await this.sendCode(code);
+		async doCode(code: string) {
+			const reply = await store.dispatch("machine/sendCode", code);
 			if (reply.indexOf('Error') === 0) {
 				throw new Error(`Code ${code} failed: ${reply}`);
 			}
 		},
-		getMoveFilename(move) {
+		getMoveFilename(move: MoveItem): string {
 			let filename = this.run.toString();
 			if (move.tool) {
 				filename += '-T' + move.tool.number;
@@ -480,7 +491,7 @@ export default {
 			filename += '.csv';
 			return filename;
 		},
-		async waitForAccelerometerRun(accelerometerId) {
+		async waitForAccelerometerRun(accelerometerId: string) {
 			if (this.cancelled) {
 				throw new OperationCancelledError();
 			}
@@ -498,9 +509,9 @@ export default {
 			}
 
 			// Wait for accelerometer runs to change
-			let resolve, reject;
-			const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
-			const unwatch = this.$watch(() => board.accelerometer.runs || this.cancelled, () => {
+			let resolve!: () => void, reject!: () => void;
+			const promise = new Promise<void>((res, rej) => { resolve = res; reject = rej; });
+			const unwatch = this.$watch(() => board.accelerometer?.runs || this.cancelled, () => {
 				if (this.cancelled) {
 					reject();
 				} else {
@@ -510,7 +521,7 @@ export default {
 			});
 			return promise;
 		},
-		async recordMove(moveIndex, hadSelectedTool = false) {
+		async recordMove(moveIndex: number, hadSelectedTool = false) {
 			const move = this.moves[moveIndex];
 			move.state = MoveState.recording;
 
@@ -556,7 +567,7 @@ export default {
 				} else {
 					await this.doCode(`G1 ${endMoveParameters} F${this.maxSpeed} M400 M956 P${move.accelerometer} S1000 A0 F"${this.getMoveFilename(move)}"`);
 				}
-				await this.waitForAccelerometerRun(move.accelerometer);
+				await this.waitForAccelerometerRun(move.accelerometer!);
 
 				// Done, move on to the next move
 				move.state = MoveState.finished;
@@ -571,12 +582,12 @@ export default {
 					this.finished = true;
 				}
 			} catch (e) {
-				console.warn(`Sampling cancelled at move #${moveIndex}: ${e.message || e}`);
+				console.warn(`Sampling cancelled at move #${moveIndex}: ${(e as Error).message || e}`);
 				move.state = MoveState.cancelled;
 				this.cancelled = true;
 			}
 		},
-		getMoveIcon(move) {
+		getMoveIcon(move: MoveItem) {
 			switch (move.state) {
 				case MoveState.idle: return 'mdi-asterisk';
 				case MoveState.recording: return 'mdi-play';
@@ -626,7 +637,7 @@ export default {
 		'yAxis.max'() { this.makeMoves(); this.refreshCenters(); },
 		'zAxis.min'() { this.refreshCenters(); },
 		'zAxis.max'() { this.refreshCenters(); },
-		shown(to) {
+		shown(to: boolean) {
 			if (to){
 				this.run = this.lastRun + 1;
 			} else {
@@ -638,11 +649,11 @@ export default {
 				this.cancelled = this.finished = false;
 			}
 		},
-		'state.status'(to) {
+		'machineState.status'(to: MachineStatus) {
 			if ((to === MachineStatus.disconnected || to === MachineStatus.off) && this.currentPage === 'collection') {
 				this.cancelled = true;
 			}
 		}
 	}
-}
+});
 </script>

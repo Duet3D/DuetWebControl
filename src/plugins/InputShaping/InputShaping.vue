@@ -218,22 +218,23 @@ th {
 	</v-row>
 </template>
 
-<script>
-'use strict'
-
-import { InputShapingType } from '@duet3d/objectmodel';
+<script lang="ts">
+import { DirectoryNotFoundError } from '@duet3d/connectors/dist/errors';
+import { InputShaping, InputShapingType } from '@duet3d/objectmodel';
 import Vue from 'vue';
-import { mapState, mapGetters, mapActions } from 'vuex';
 
+import { getErrorMessage } from '@/utils/errors';
+
+import store from '@/store';
 import Events from '@/utils/events';
 import Path from '@/utils/path';
 
-import RecordMotionProfileDialog from './RecordMotionProfileDialog';
-import InputShaperCheckbox from './InputShaperCheckbox';
-import InputShapingChart from './InputShapingChart';
-import InputShapingFileList from './InputShapingFileList';
+import RecordMotionProfileDialog from './RecordMotionProfileDialog.vue';
+import InputShaperCheckbox from './InputShaperCheckbox.vue';
+import InputShapingChart from './InputShapingChart.vue';
+import InputShapingFileList from './InputShapingFileList.vue';
 
-export default {
+export default Vue.extend({
 	components: {
 		RecordMotionProfileDialog,
 		InputShaperCheckbox,
@@ -241,16 +242,15 @@ export default {
 		InputShapingFileList
 	},
 	computed: {
-		...mapState('machine/model', {
-			shaping: state => state.move.shaping
-		}),
-		...mapState(['selectedMachine']),
-		...mapGetters(['isConnected', 'uiFrozen']),
+		shaping(): InputShaping { return store.state.machine.model.move.shaping; },
+		selectedMachine(): string { return store.state.selectedMachine; },
+		isConnected(): boolean { return store.getters["isConnected"]; },
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
 
-		isInputShapingEnabled() { return this.shaping.type !== InputShapingType.none; },
-		currentFrequencies() { return Array.from({ length: 81 }, (_, index) => index + 10); },
+		isInputShapingEnabled(): boolean { return this.shaping.type !== InputShapingType.none; },
+		currentFrequencies(): number[] { return Array.from({ length: 81 }, (_: unknown, index: number) => index + 10); },
 
-		lastRun() {
+		lastRun(): number {
 			let lastRun = 0;
 			for (let filename of this.files) {
 				const runMatch = /^(\d+)-/.exec(filename);
@@ -265,8 +265,8 @@ export default {
 		},
 
 		numCustomCoefficients: {
-			get() { return this.customAmplitudes.length; },
-			set(value) {
+			get(): number { return this.customAmplitudes.length; },
+			set(value: number) {
 				if (this.customAmplitudes.length > value) {
 					this.customAmplitudes.splice(value);
 					this.customDelays.splice(value);
@@ -278,57 +278,55 @@ export default {
 				}
 			}
 		},
-		canConfigureCustom() {
-			return this.numCustomCoefficients > 0 && this.customAmplitudes.every(amplitude => amplitude > 0) && this.customDelays.every(duration => duration > 0);
+		canConfigureCustom(): boolean {
+			return this.numCustomCoefficients > 0 && this.customAmplitudes.every((amplitude: number) => amplitude > 0) && this.customDelays.every((duration: number) => duration > 0);
 		},
-		customShaperCode() {
+		customShaperCode(): string {
 			if (this.inputShapers.includes('custom') && this.canConfigureCustom) {
-				const amplitudes = this.customAmplitudes.map(amplitude => amplitude.toFixed(3)).reduce((a, b) => a + ':' + b);
-				const delays = this.customDelays.map(duration => duration.toFixed(4)).reduce((a, b) => a + ':' + b);
+				const amplitudes = this.customAmplitudes.map((amplitude: number) => amplitude.toFixed(3)).reduce((a: string, b: string) => a + ':' + b);
+				const delays = this.customDelays.map((duration: number) => duration.toFixed(4)).reduce((a: string, b: string) => a + ':' + b);
 				return `M593 P"custom" H${amplitudes} T${delays}`;
 			}
 			return '';
 		},
-		canSetFrequency() {
+		canSetFrequency(): boolean {
 			return !this.uiFrozen && !isNaN(this.frequency) && this.frequency !== this.shaping.frequency;
 		},
-		canSetDamping() {
+		canSetDamping(): boolean {
 			return !this.uiFrozen && !isNaN(this.damping) && this.damping !== this.shaping.damping;
 		}
 	},
 	data() {
 		return {
-			tab: null,
+			tab: null as string | null,
 			showDataCollection: false,
 
-			inputShapers: [],
-			customAmplitudes: [],
-			customDelays: [],
+			inputShapers: [] as string[],
+			customAmplitudes: [] as number[],
+			customDelays: [] as number[],
 			customMenu: false,
 			configuringCustomShaper: false,
 			frequency: 0,
 			damping: 0.1,
 
-			files: [],
-			filesLastModified: [],
+			files: [] as string[],
+			filesLastModified: [] as Date[],
 			loadingFiles: false,
-			filesError: null,
+			filesError: null as string | null,
 
-			filesToAnalyze: [],
-			fileFrequenciesToAnalyze: [],
-			fileDataToAnalyze: null,
+			filesToAnalyze: [] as string[],
+			fileFrequenciesToAnalyze: [] as number[],
+			fileDataToAnalyze: null as Record<string, number[]> | null,
 			showOriginalValues: true,
 			estimateShaperEffect: false,
-			sampleStartIndex: null,
-			sampleEndIndex: null,
+			sampleStartIndex: null as number | null,
+			sampleEndIndex: null as number | null,
 			hadOverflow: false,
 
 			wideBand: false
 		}
 	},
 	methods: {
-		...mapActions('machine', ['getFileList', 'sendCode']),
-
 		// Recorder
 		recordingFinished() {
 			this.tab = 'analysis';
@@ -336,39 +334,39 @@ export default {
 		},
 
 		// Input Shaper Settings
-		setCustomAmplitude(index, value) {
+		setCustomAmplitude(index: number, value: string) {
 			const val = parseFloat(value);
 			if (!isNaN(val) && val >= 0) {
 				Vue.set(this.customAmplitudes, index, val);
 			}
 		},
-		setCustomDuration(index, value) {
+		setCustomDuration(index: number, value: string) {
 			const val = parseFloat(value);
 			if (!isNaN(val) && val >= 0) {
 				Vue.set(this.customDelays, index, val / 1000);
 			}
 		},
 		copy() {
-			this.$refs.customShaperCode.focus();
-			this.$refs.customShaperCode.select();
+			(this.$refs.customShaperCode as HTMLInputElement).focus();
+			(this.$refs.customShaperCode as HTMLInputElement).select();
 			document.execCommand('copy');
 		},
 		async configureCustomShaper() {
 			this.configuringCustomShaper = true;
 			try {
-				await this.sendCode(this.customShaperCode);
+				await store.dispatch("machine/sendCode", this.customShaperCode);
 			} finally {
 				this.customMenu = this.configuringCustomShaper = false;
 			}
 		},
 		async setFrequency() {
 			if (this.canSetFrequency) {
-				await this.sendCode(`M593 F${this.frequency}`);
+				await store.dispatch("machine/sendCode", `M593 F${this.frequency}`);
 			}
 		},
 		async setDamping() {
 			if (this.canSetDamping) {
-				await this.sendCode(`M593 S${this.damping}`);
+				await store.dispatch("machine/sendCode", `M593 S${this.damping}`);
 			}
 		},
 
@@ -378,7 +376,7 @@ export default {
 				this.files = [];
 				this.filesLastModified = [];
 				this.loadingFiles = false;
-				this.errorMessage = null;
+				this.filesError = null;
 				return;
 			}
 
@@ -388,16 +386,25 @@ export default {
 			}
 
 			this.loadingFiles = true;
+			this.filesError = null;
 			try {
-				const files = (await this.getFileList(Path.accelerometer)).filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'));
-				files.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+				interface FileEntry { isDirectory: boolean; name: string; lastModified: Date; }
+				const files = (await store.dispatch("machine/getFileList", Path.accelerometer) as FileEntry[]).filter(file => !file.isDirectory && file.name !== Path.filamentsFile && file.name.endsWith('.csv'));
+				files.sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
 				this.files = files.map(file => file.name);
 				this.filesLastModified = files.map(file => file.lastModified);
+			} catch (e) {
+				if (e instanceof DirectoryNotFoundError) {
+					this.files = [];
+					this.filesLastModified = [];
+				} else {
+					this.filesError = getErrorMessage(e);
+				}
 			} finally {
 				this.loadingFiles = false;
 			}
 		},
-		filesOrDirectoriesChanged({ machine, files, volume }) {
+		filesOrDirectoriesChanged({ machine, files }: { machine: string, files: string[] | undefined }) {
 			if (machine === this.selectedMachine && files !== undefined) {
 				if (this.filesToAnalyze.some(fileToAnalyze => files.includes(Path.combine(Path.accelerometer, fileToAnalyze)))) {
 					// Current file being analyzed has bene changed, invalidate it
@@ -432,7 +439,7 @@ export default {
 		this.$root.$off(Events.filesOrDirectoriesChanged, this.filesOrDirectoriesChanged);
 	},
 	watch: {
-		'shaping.type'(to) {
+		'shaping.type'(to: string) {
 			if (to === 'none') {
 				this.inputShapers = [];
 			} else {
@@ -448,7 +455,7 @@ export default {
 		},
 		'shaping.amplitudes': {
 			deep: true,
-			handler(to) {
+			handler(to: number[]) {
 				if (!this.inputShapers.includes('custom') || this.shaping.type === 'custom') {
 					this.customAmplitudes = to.slice();
 				}
@@ -456,22 +463,22 @@ export default {
 		},
 		'shaping.delays': {
 			deep: true,
-			handler(to) {
+			handler(to: number[]) {
 				if (!this.inputShapers.includes('custom') || this.shaping.type === 'custom') {
 					this.customDelays = to.slice();
 				}
 			}
 		},
-		'shaping.frequency'(to) {
+		'shaping.frequency'(to: number) {
 			this.frequency = to;
 		},
-		'shaping.damping'(to) {
+		'shaping.damping'(to: number) {
 			this.damping = to;
 		},
 		numCustomCoefficients() {
 			this.$nextTick(() => {
 				if (this.$refs.customMenu) {
-					this.$refs.customMenu.updateDimensions();
+					(this.$refs.customMenu as any).updateDimensions();
 				}
 			});
 		},
@@ -479,5 +486,5 @@ export default {
 			this.refresh();
 		}
 	}
-}
+});
 </script>

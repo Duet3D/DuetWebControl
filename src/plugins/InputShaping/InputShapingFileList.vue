@@ -131,16 +131,38 @@
 	</v-card>
 </template>
 
-<script>
-'use strict'
-
+<script lang="ts">
+import Vue, { PropType } from "vue";
 import { analyzeAccelerometerData } from '@duet3d/motionanalysis';
-import { mapActions, mapGetters } from 'vuex';
+import store from "@/store";
 
 import Path from "@/utils/path";
 import CSV from "@/utils/csv";
 
-export default {
+
+interface ProfileFile {
+	title: string;
+	filename: string;
+	shaperTitle?: string;
+	dampingFactor?: string | null;
+	lastModified: string;
+}
+
+interface Profile {
+	icon: string;
+	title: string;
+	subtitle: string;
+	secondSubtitle: string | null;
+	files: ProfileFile[];
+	lastModified: string;
+}
+
+interface SampleData {
+	samplingRate: number;
+	samples: number[][];
+}
+
+export default Vue.extend({
 	props: {
 		title: {
 			required: true,
@@ -148,11 +170,11 @@ export default {
 		},
 		files: {
 			required: true,
-			type: Array
+			type: Array as PropType<string[]>
 		},
 		filesLastModified: {
 			required: true,
-			type: Array
+			type: Array as PropType<Date[]>
 		},
 
 		estimateShaperEffect: Boolean,
@@ -163,17 +185,17 @@ export default {
 		canDelete: Boolean,
 		canShowSamples: Boolean,
 
-		selectedFiles: Array,
-		frequencies: Array,
+		selectedFiles: Array as PropType<string[]>,
+		frequencies: Array as PropType<number[]>,
 		value: Object,
 		hadOverflow: Boolean,
 		wideBand: Boolean
 	},
 	computed: {
-		...mapGetters(['uiFrozen']),
-		profiles() {
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		profiles(): Profile[] {
 			// Convert files into profile groups with files
-			const profiles = [], uncategorized = [];
+			const profiles: Profile[] = [], uncategorized: ProfileFile[] = [];
 			for (let i = 0; i < this.files.length; i++) {
 				const filename = this.files[i], lastModified = this.filesLastModified[i].toLocaleString();
 				const matches = /^(\d+)-([a-zA-SU-Z]+)(-?\d+\.?\d*)-(-?\d+\.?\d*)-(\d+\.?\d*)-(\w+)-?(\d+\.?\d*)?(Hz)?(-(\d+\.?\d*))?\.csv/.exec(filename);
@@ -185,15 +207,16 @@ export default {
 							icon: 'mdi-run',
 							title,
 							subtitle: '',
+							secondSubtitle: null,
 							files: [],
 							lastModified
 						};
-						profiles.push(run);
+						profiles.push(run!);
 					}
 
 					const shaperTitle = (matches[6] === 'none') ? 'No Shaping' : ((matches[6] === 'custom') ? 'Custom' : `${matches[6].toUpperCase()} @ ${matches[7]}Hz`);
-					const dampingFactor = isNaN(matches[10]) ? null : `Damping Factor ${matches[10]}`;
-					run.files.push({
+					const dampingFactor = isNaN(parseFloat(matches[10])) ? null : `Damping Factor ${matches[10]}`;
+					run!.files.push({
 						title: `${matches[2].split('').reduce((a, b) => `${a}+${b}`)} ${matches[3]}-${matches[4]}, accelerometer ${matches[5]}, ${shaperTitle}`,
 						filename,
 						shaperTitle,
@@ -210,15 +233,16 @@ export default {
 								icon: 'mdi-run',
 								title,
 								subtitle: '',
+								secondSubtitle: null,
 								files: [],
 								lastModified
 							};
-							profiles.push(run);
+							profiles.push(run!);
 						}
 
 						const shaperTitle = (toolMatches[7] === 'none') ? 'No Shaping' : ((toolMatches[7] === 'custom') ? 'Custom' : `${toolMatches[7].toUpperCase()} @ ${toolMatches[8]}Hz`);
-						const dampingFactor = isNaN(toolMatches[11]) ? null : `Damping Factor ${toolMatches[11]}`;
-						run.files.push({
+						const dampingFactor = isNaN(parseFloat(toolMatches[11])) ? null : `Damping Factor ${toolMatches[11]}`;
+						run!.files.push({
 							title: `T${toolMatches[2]}, ${toolMatches[3].split('').reduce((a, b) => `${a}+${b}`)} ${toolMatches[4]}-${toolMatches[5]}, accelerometer ${toolMatches[6]}, ${shaperTitle}`,
 							filename,
 							shaperTitle,
@@ -240,7 +264,7 @@ export default {
 
 			// Create the subtitles for each group
 			for (let profile of profiles) {
-				const shaperTitles = profile.files.map(file => file.shaperTitle);
+				const shaperTitles = profile.files.map((file: ProfileFile) => file.shaperTitle);
 				if (shaperTitles.length > 0) {
 					let allEqual = true;
 					for (let type of shaperTitles) {
@@ -250,7 +274,7 @@ export default {
 						}
 					}
 					profile.subtitle = `${allEqual ? shaperTitles[0] : 'Multiple configs'}, ${profile.files.length} moves`;
-					profile.secondSubtitle = profile.files[0].dampingFactor;
+					profile.secondSubtitle = profile.files[0].dampingFactor ?? null;
 				} else {
 					profile.subtitle = `${profile.files.length} moves`;
 					profile.secondSubtitle = null;
@@ -264,7 +288,8 @@ export default {
 					title: 'Uncategorized',
 					subtitle: `${uncategorized.length} files`,
 					secondSubtitle: null,
-					files: uncategorized
+					files: uncategorized,
+					lastModified: ''
 				});
 			}
 			return profiles;
@@ -272,7 +297,7 @@ export default {
 	},
 	data() {
 		return {
-			selection: [],
+			selection: [] as string[],
 			progress: 0,
 			progressMax: 0,
 			estimateEffect: false,
@@ -281,13 +306,12 @@ export default {
 		}
 	},
 	methods: {
-		...mapActions('machine', ['delete', 'download']),
-		async deleteProfile(profile) {
+		async deleteProfile(profile: Profile) {
 			this.progress = 0;
 			this.progressMax = profile.files.length;
 			try {
 				for (let file of profile.files) {
-					await this.delete(Path.combine(Path.accelerometer, file.filename));
+					await store.dispatch("machine/delete", Path.combine(Path.accelerometer, file.filename));
 					this.progress++;
 				}
 			} finally {
@@ -295,25 +319,26 @@ export default {
 			}
 			this.$emit('refresh');
 		},
-		async deleteFile(filename) {
+		async deleteFile(filename: string) {
 			this.progress = 0;
 			this.progressMax = 1;
 			try {
-				await this.delete(Path.combine(Path.accelerometer, filename));
+				await store.dispatch("machine/delete", Path.combine(Path.accelerometer, filename));
 			} finally {
 				this.progress = this.progressMax = 0;
 			}
 			this.$emit('refresh');
 		},
-		setShowSamples(value) {
+		setShowSamples(value: boolean) {
 			if (!value) {
-				this.sampleStartIndex = this.sampleEndIndex = null;
+				this.$emit('update:sampleStartIndex', null);
+				this.$emit('update:sampleEndIndex', null);
 			}
 			this.showSamples = value;
 		},
-		async getSamples(filename) {
+		async getSamples(filename: string) {
 			// Download the selected file
-			const csvFile = await this.download({
+			const csvFile = await store.dispatch("machine/download", {
 				filename: Path.combine(Path.accelerometer, filename),
 				type: 'text',
 				showProgress: false,
@@ -342,7 +367,7 @@ export default {
 			// Generate result
 			const result = {
 				samplingRate,
-				samples: Array.from({ length: csv.content[0].length - 1 }, () => [])
+				samples: Array.from({ length: csv.content[0].length - 1 }, () => [] as number[])
 			};
 
 			for (let sample = 0; sample < csv.content.length - 1; sample++) {
@@ -354,7 +379,7 @@ export default {
 
 			return result;
 		},
-		getFrequencyResponse(datasets) {
+		getFrequencyResponse(datasets: SampleData[]) {
 			// Don't do anything if no samples are given
 			if (!datasets || datasets.length === 0) {
 				return {};
@@ -434,9 +459,9 @@ export default {
 						this.$emit('update:selectedFiles', this.selection);
 						this.$emit('update:frequencies', frequencyResponse.frequencies);
 						this.$emit('input', {
-							X: frequencyResponse.amplitudes[0],
-							Y: frequencyResponse.amplitudes[1],
-							Z: frequencyResponse.amplitudes[2]
+							X: frequencyResponse.amplitudes![0],
+							Y: frequencyResponse.amplitudes![1],
+							Z: frequencyResponse.amplitudes![2]
 						});
 					} finally {
 						this.progress = this.progressMax;
@@ -454,14 +479,14 @@ export default {
 		}
 	},
 	watch: {
-		selectedFiles(to) {
+		selectedFiles(to: string[] | null) {
 			this.selection = to || [];
 		},
-		estimateEffect(to) {
+		estimateEffect(to: boolean) {
 			this.$emit('update:showOriginalValues', !to);
 			this.$emit('update:estimateShaperEffect', to);
 		},
-		individualFiles(to) {
+		individualFiles(to: boolean) {
 			this.selection = [];
 			if (!to) {
 				this.$emit('update:showOriginalValues', true);
@@ -473,7 +498,7 @@ export default {
 			this.$emit('update:sampleStartIndex', null);
 			this.$emit('update:sampleEndIndex', null);
 		},
-		showSamples(to) {
+		showSamples(to: boolean) {
 			this.update();
 			if (!to) {
 				this.$emit('update:showOriginalValues', true);
@@ -483,5 +508,5 @@ export default {
 			this.update();
 		}
 	}
-}
+});
 </script>

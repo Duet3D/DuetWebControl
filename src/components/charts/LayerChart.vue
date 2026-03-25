@@ -29,7 +29,7 @@
 </template>
 
 <script lang="ts">
-import Chart, { MajorTickOptions, NestedTickOptions } from "chart.js";
+import { Chart } from "chart.js";
 import { Layer, ModelCollection } from "@duet3d/objectmodel";
 import Vue from "vue";
 
@@ -44,7 +44,7 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			chart: {} as Chart,
+			chart: {} as Chart<'line'>,
 			showAllLayers: false
 		}
 	},
@@ -54,25 +54,22 @@ export default Vue.extend({
 			this.chart.data.datasets![0].data = this.layers.map(layer => layer.duration);
 
 			if (this.showAllLayers) {
-				this.chart.config.options!.scales!.xAxes![0].ticks!.min = 1;
-				this.chart.config.options!.scales!.xAxes![0].ticks!.max = this.layers.length;
+				this.chart.options!.scales!.x!.min = 1;
+				this.chart.options!.scales!.x!.max = this.layers.length;
 			} else {
-				this.chart.config.options!.scales!.xAxes![0].ticks!.min = Math.max((this.layers.length > 2) ? 2 : 1, this.layers.length - 30);
-				this.chart.config.options!.scales!.xAxes![0].ticks!.max = Math.max(30, this.layers.length);
+				this.chart.options!.scales!.x!.min = Math.max((this.layers.length > 2) ? 2 : 1, this.layers.length - 30);
+				this.chart.options!.scales!.x!.max = Math.max(30, this.layers.length);
 			}
 			this.chart.update();
 		},
 		applyDarkTheme(active: boolean) {
 			const ticksColor = active ? "#FFF" : "#666";
-			(this.chart.config.options!.scales!.xAxes![0].ticks!.minor as NestedTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.xAxes![0].ticks!.major as MajorTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.yAxes![0].ticks!.minor as NestedTickOptions).fontColor = ticksColor;
-			(this.chart.config.options!.scales!.yAxes![0].ticks!.major as MajorTickOptions).fontColor = ticksColor;
+			this.chart.options!.scales!.x!.ticks!.color = ticksColor;
+			this.chart.options!.scales!.y!.ticks!.color = ticksColor;
 
 			const gridLineColor = active ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
-			this.chart.config.options!.scales!.xAxes![0].gridLines!.color = gridLineColor;
-			this.chart.config.options!.scales!.yAxes![0].gridLines!.color = gridLineColor;
-			this.chart.config.options!.scales!.yAxes![0].gridLines!.zeroLineColor = gridLineColor;
+			this.chart.options!.scales!.x!.grid!.color = gridLineColor;
+			this.chart.options!.scales!.y!.grid!.color = gridLineColor;
 
 			this.chart.update();
 		}
@@ -87,70 +84,59 @@ export default Vue.extend({
 						tension: 0
 					}
 				},
-				legend: {
-					display: false
+				plugins: {
+					legend: {
+						display: false
+					},
+					tooltip: {
+						displayColors: false,
+						callbacks: {
+							title: tooltipItems => that.$t("chart.layer.layer", [tooltipItems[0].dataIndex + 1]),
+							label(tooltipItem) {
+								const layer = that.layers[tooltipItem.dataIndex];
+								let result = [that.$t("chart.layer.layerDuration", [displayTime(layer.duration, false)])];
+								if (layer.height) { result.push(that.$t("chart.layer.layerHeight", [displayZ(layer.height)])); }
+								if (layer.filamentUsage) { result.push(that.$t("chart.layer.filamentUsage", [display(layer.filamentUsage, 1, "mm")])); }
+								if (layer.fractionPrinted) { result.push(that.$t("chart.layer.fractionPrinted", [display(layer.fractionPrinted * 100, 1, "%")])); }
+								if (layer.temperatures) { result.push(that.$t("chart.layer.temperatures", [layer.temperatures.map(temp => display(temp, 1, "C")).join(", ")])); }
+								return result;
+							}
+						}
+					}
 				},
 				maintainAspectRatio: false,
 				scales: {
-					xAxes: [
-						{
-							gridLines: {
-								color: "rgba(0,0,0,0.2)",
-								display: true
+					x: {
+						grid: {
+							color: "rgba(0,0,0,0.2)",
+							display: true
+						},
+						ticks: {
+							color: "rgba(0,0,0,0.87)",
+							font: {
+								family: "Roboto,sans-serif"
 							},
-							ticks: {
-								minor: {
-									fontColor: "rgba(0,0,0,0.87)",
-									fontFamily: "Roboto,sans-serif"
-								},
-								major: {
-									fontColor: "rgba(0,0,0,0.87)",
-									fontFamily: "Roboto,sans-serif"
-								},
-								beginAtZero: true,
-								maxRotation: 0,
-								stepSize: 5
-							}
-						}
-					],
-					yAxes: [
-						{
-							gridLines: {
-								color: "rgba(0,0,0,0.87)",
-								zeroLineColor: "rgba(0,0,0,0.2)",
-								display: true
+							maxRotation: 0,
+							stepSize: 5
+						},
+						beginAtZero: true
+					},
+					y: {
+						grid: {
+							color: "rgba(0,0,0,0.87)",
+							display: true
+						},
+						ticks: {
+							color: "rgba(0,0,0,0.87)",
+							font: {
+								family: "Roboto,sans-serif"
 							},
-							ticks: {
-								minor: {
-									fontColor: "rgba(0,0,0,0.87)",
-									fontFamily: "Roboto,sans-serif"
-								},
-								major: {
-									fontColor: "rgba(0,0,0,0.87)",
-									fontFamily: "Roboto,sans-serif"
-								},
-								beginAtZero: true,
-								suggestedMax: 30,
-								callback: (value: number) => {
-									return displayTime(value, false);
-								}
+							callback: (value: string | number) => {
+								return displayTime(value as number, false);
 							}
-						}
-					]
-				},
-				tooltips: {
-					displayColors: false,
-					callbacks: {
-						title: tooltipItems => that.$t("chart.layer.layer", [tooltipItems![0].index! + 1]),
-						label(tooltipItem) {
-							const layer = that.layers[tooltipItem.index!];
-							let result = [that.$t("chart.layer.layerDuration", [displayTime(layer.duration, false)])];
-							if (layer.height) { result.push(that.$t("chart.layer.layerHeight", [displayZ(layer.height)])); }
-							if (layer.filamentUsage) { result.push(that.$t("chart.layer.filamentUsage", [display(layer.filamentUsage, 1, "mm")])); }
-							if (layer.fractionPrinted) { result.push(that.$t("chart.layer.fractionPrinted", [display(layer.fractionPrinted * 100, 1, "%")])); }
-							if (layer.temperatures) { result.push(that.$t("chart.layer.temperatures", [layer.temperatures.map(temp => display(temp, 1, "C")).join(", ")])); }
-							return result;
-						}
+						},
+						beginAtZero: true,
+						suggestedMax: 30
 					}
 				}
 				// panning and zooming is not supported until the panning feature of chartjs-plugin-zoom is fixed
@@ -160,7 +146,8 @@ export default Vue.extend({
 					borderColor: "rgba(0, 129, 214, 0.8)",
 					backgroundColor: "rgba(0, 129, 214, 0.8)",
 					fill: false,
-					label: this.$t("chart.layer.layerTime")
+					label: this.$t("chart.layer.layerTime"),
+					data: []
 				}]
 			}
 		});

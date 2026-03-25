@@ -13,14 +13,13 @@
 	</v-checkbox>
 </template>
 
-<script>
-'use strict'
+<script lang="ts">
+import Vue, { PropType } from "vue";
+import store from "@/store"
 
-import { mapActions, mapGetters, mapState } from 'vuex'
-
-export default {
+export default Vue.extend({
 	props: {
-		inputValue: Array,
+		inputValue: Array as PropType<string[]>,
 		value: {
 			required: true,
 			type: String
@@ -36,12 +35,10 @@ export default {
 		event: 'change'
 	},
 	computed: {
-		...mapGetters(['uiFrozen']),
-		...mapState('machine/model', {
-			shapingFrequency: state => state.move.shaping.frequency,
-			shapingType: state => state.move.shaping.type
-		}),
-		label() {
+		uiFrozen(): boolean { return store.getters["uiFrozen"]; },
+		shapingFrequency(): number { return store.state.machine.model.move.shaping.frequency; },
+		shapingType(): string { return store.state.machine.model.move.shaping.type; },
+		label(): string {
 			if (this.value === 'none') {
 				return 'None';
 			}
@@ -50,20 +47,19 @@ export default {
 			}
 			return this.value.toUpperCase();
 		},
-		showApply() {
+		showApply(): boolean {
 			return this.canApply && !this.uiFrozen && (this.current !== this.value) && (this.shapingFrequency > 0);
 		}
 	},
 	methods: {
-		...mapActions('machine', ['sendCode']),
-		change(e) {
+		change(e: any) {
 			if (this.value !== 'none') {
 				this.$emit('change', e);
 			}
 		},
 		async apply() {
-			await this.sendCode(`M593 P"${this.value}"`);
+			await store.dispatch("machine/sendCode", `M593 P"${this.value}"`);
 		}
 	}
-}
+});
 </script>
