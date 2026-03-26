@@ -259,7 +259,7 @@ a:not(:hover) {
 </template>
 
 <script lang="ts">
-import ObjectModel, { Axis, Board, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, Board, FilamentMonitorEnableMode, MachineMode, Probe, ProbeType } from "@duet3d/objectmodel";
 import Vue from "vue";
 
 import store from "@/store";
@@ -281,7 +281,7 @@ export default Vue.extend({
 			return store.state.settings.dashboardMode === DashboardMode.fff;
 		},
 		virtualEPos(): number {
-			return store.state.machine.model.move.virtualEPos;
+			return store.state.machine.model.move.motionSystems[store.state.selectedMotionSystem].virtualEPos;
 		},
 		volumetricFlow(): number {
 			if (this.model.state.currentTool >= 0 && this.model.state.currentTool < this.model.tools.length) {
@@ -350,7 +350,7 @@ export default Vue.extend({
 		},
 		isFilamentSensorPresent(extruderIndex: number) {
 			return (extruderIndex >= 0) && (extruderIndex < this.model.sensors.filamentMonitors.length) &&
-				(this.model.sensors.filamentMonitors[extruderIndex] !== null) && this.model.sensors.filamentMonitors[extruderIndex]!.enabled &&
+				(this.model.sensors.filamentMonitors[extruderIndex] !== null) && this.model.sensors.filamentMonitors[extruderIndex]!.enableMode !== FilamentMonitorEnableMode.disabled &&
 				(typeof (this.model.sensors.filamentMonitors[extruderIndex] as any).filamentPresent === "boolean");
 		},
 		isFilamentPresent(extruderIndex: number) {

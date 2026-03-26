@@ -633,7 +633,7 @@ export default Vue.extend({
 			return offsets;
 		},
 		currentWorkplace(): number {
-			return this.move.workplaceNumber;
+			return this.move.motionSystems[store.state.selectedMotionSystem].workplaceNumber;
 		},
 		showWorkplace: {
 			get(): boolean {

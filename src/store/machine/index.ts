@@ -1,5 +1,5 @@
 import { BaseConnector, OnProgressCallback, CancellationToken, FileListItem } from "@duet3d/connectors";
-import ObjectModel, { DefaultHostname, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import ObjectModel, { CodeChannel, DefaultHostname, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import JSZip from "jszip";
 import Vue from "vue";
 import { Module } from "vuex";
@@ -927,7 +927,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 			 * @param context Action context
 			 * @param payload Updated model data
 			 */
-			async update({ state, commit }, payload: any) {
+			async update({ state, commit, rootState }, payload: any) {
 				const machineState = state as MachineModuleState;
 				const lastBeepFrequency = machineState.model.state.beep ? machineState.model.state.beep.frequency : null;
 				const lastBeepDuration = machineState.model.state.beep ? machineState.model.state.beep.duration : null;
@@ -967,9 +967,20 @@ export default function(connector: BaseConnector | null): MachineModule {
 					delete payload.messages;
 				}
 
+				// Reset selectedMotionSystem if it would become invalid after this update
+				if (payload.move && payload.move.motionSystems !== undefined && rootState.selectedMotionSystem >= payload.move.motionSystems.length) {
+					commit("setSelectedMotionSystem", 0, { root: true });
+				}
+
 				// Merge updates into the object model
 				commit("model/update", payload);
 				Root.$emit(Events.machineModelUpdated, connector ? connector.hostname : defaultMachine);
+
+				// Sync selectedMotionSystem with the HTTP input channel's motionSystem
+				const httpInput = machineState.model.inputs[CodeChannel.http];
+				if (httpInput !== null && rootState.selectedMotionSystem !== httpInput.motionSystem) {
+					commit("setSelectedMotionSystem", httpInput.motionSystem, { root: true });
+				}
 
 				// Is a new beep requested?
 				if (machineState.model.state.beep &&

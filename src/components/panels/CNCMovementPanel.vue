@@ -248,7 +248,7 @@ export default Vue.extend({
 		isDelta(): boolean { return [KinematicsName.linearDelta, KinematicsName.rotaryDelta].includes(store.state.machine.model.move.kinematics.name); },
 		unhomedAxes(): Array<Axis> { return store.state.machine.model.move.axes.filter(axis => axis.visible && !axis.homed); },
 		workCoordinates(): Array<number> { return [...Array(9).keys()].map(i => i + 1); },
-		workplaceNumber(): number { return store.state.machine.model.move.workplaceNumber; }
+		workplaceNumber(): number { return store.state.machine.model.move.motionSystems[store.state.selectedMotionSystem].workplaceNumber; }
 	},
 	data() {
 		return {

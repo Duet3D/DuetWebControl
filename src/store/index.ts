@@ -82,6 +82,11 @@ export interface InternalRootState {
 	* Bottom margin to add for the on-screen keyboard
 	*/
 	bottomMargin: number;
+
+	/**
+	* Index of the currently selected motion system
+	*/
+	selectedMotionSystem: number;
 }
 
 export interface RootState extends InternalRootState {
@@ -108,7 +113,8 @@ const store = new Vuex.Store<InternalRootState>({
 		loadedDwcPlugins: [],
 		hideCodeReplyNotifications: false,
 		oskEnabled: false,
-		bottomMargin: 0
+		bottomMargin: 0,
+		selectedMotionSystem: 0
 	},
 	getters: {
 		connectedMachines: () => Object.keys(machines).filter(machine => machine !== defaultMachine),
@@ -550,6 +556,15 @@ const store = new Vuex.Store<InternalRootState>({
 		*/
 		setBottomMargin(state, value: number) {
 			state.bottomMargin = value;
+		},
+
+		/**
+		* Set the selected motion system index
+		* @param state Vuex state
+		* @param index Motion system index
+		*/
+		setSelectedMotionSystem(state, index: number) {
+			state.selectedMotionSystem = index;
 		}
 	},
 	modules: {

@@ -1,5 +1,5 @@
 import { BaseConnector } from "@duet3d/connectors";
-import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
+import ObjectModel, { Axis, AxisLetter, Board, Extruder, Fan, Heat, Heater, initCollection, initObject, MachineStatus, MotionSystem, Move, Network, Plugin, Probe, Sensors, State, Tool } from "@duet3d/objectmodel";
 import Vue from "vue";
 import type { Module } from "vuex";
 
@@ -51,6 +51,9 @@ export const DefaultModel = initObject(ObjectModel, {
 			}
 		]),
 		extruders: initCollection(Extruder, [
+			{}
+		]),
+		motionSystems: initCollection(MotionSystem, [
 			{}
 		])
 	}),
