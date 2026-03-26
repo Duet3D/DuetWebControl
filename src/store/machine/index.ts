@@ -978,7 +978,7 @@ export default function(connector: BaseConnector | null): MachineModule {
 
 				// Sync selectedMotionSystem with the HTTP input channel's motionSystem
 				const httpInput = machineState.model.inputs[CodeChannel.http];
-				if (httpInput !== null && rootState.selectedMotionSystem !== httpInput.motionSystem) {
+				if (httpInput && rootState.selectedMotionSystem !== httpInput.motionSystem) {
 					commit("setSelectedMotionSystem", httpInput.motionSystem, { root: true });
 				}
 
