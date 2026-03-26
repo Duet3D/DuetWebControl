@@ -56,7 +56,15 @@
 						</v-card>
 					</v-menu>
 				</div>
-				{{ item.name }}
+				<v-tooltip v-if="item.customInfo && item.customInfo.size > 0" bottom>
+					<template #activator="{ on, attrs }">
+						<span v-bind="attrs" v-on="on">{{ item.name }}</span>
+					</template>
+					<div v-for="[key, value] in item.customInfo" :key="key">
+						<strong>{{ key }}:</strong> {{ value }}
+					</div>
+				</v-tooltip>
+				<span v-else>{{ item.name }}</span>
 			</template>
 
 			<template #context-menu>
@@ -123,6 +131,7 @@ interface JobListItemProperties {
 	printTime?: number | bigint | null;
 	simulatedTime: number | bigint | null;
 	thumbnails?: Array<ThumbnailInfo> | null;
+	customInfo?: Map<string, any> | null;
 }
 
 type JobListItem = BaseFileListItem & JobListItemProperties;
@@ -285,6 +294,7 @@ export default Vue.extend({
 								file.printTime = fileInfo.printTime ? fileInfo.printTime : null;
 								file.simulatedTime = fileInfo.simulatedTime ? fileInfo.simulatedTime : null;
 								file.thumbnails = fileInfo.thumbnails ? fileInfo.thumbnails : [];
+								file.customInfo = (fileInfo.customInfo && fileInfo.customInfo.size > 0) ? fileInfo.customInfo : null;
 								if (fileInfo.thumbnails && fileInfo.thumbnails.length !== 0) {
 									this.hasThumbnails = true;
 								}
@@ -306,6 +316,7 @@ export default Vue.extend({
 							file.printTime = null;
 							file.simulatedTime = null;
 							file.thumbnails = null;
+							file.customInfo = null;
 						}
 					}
 
@@ -330,6 +341,7 @@ export default Vue.extend({
 						item.printTime = null;
 						item.simulatedTime = null;
 						item.thumbnails = null;
+						item.customInfo = null;
 					}
 				}
 
