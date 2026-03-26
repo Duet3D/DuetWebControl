@@ -1109,7 +1109,8 @@
       "none": "なし",
       "remarks": "備考",
       "selectedNode": "選択したノード:",
-      "summary": "概要"
+      "summary": "概要",
+      "search": "オブジェクト モデルを検索..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "オンスクリーンキーボード",

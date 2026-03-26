@@ -1108,7 +1108,8 @@
       "none": "Nincs",
       "documentationNotAvailable": "A dokumentáció nem elérhető (/www/DuetAPI.xml nem található)",
       "summary": "Összesítő",
-      "remarks": "Megjegyzések"
+      "remarks": "Megjegyzések",
+      "search": "Objektummodell keresése..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Képernyő-billentyűzet",

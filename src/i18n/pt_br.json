@@ -1046,7 +1046,8 @@
       "none": "Nenhum",
       "remarks": "Observações",
       "selectedNode": "Nó selecionado:",
-      "summary": "Resumo"
+      "summary": "Resumo",
+      "search": "Pesquisar modelo de objeto..."
     },
     "accelerometer": {
       "accelerations": "Aceleração (em g)",

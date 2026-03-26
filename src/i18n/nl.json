@@ -1108,7 +1108,8 @@
       "none": "Geen",
       "remarks": "Opmerkingen",
       "selectedNode": "Geselecteerd knooppunt:",
-      "summary": "Samenvatting"
+      "summary": "Samenvatting",
+      "search": "Objectmodel zoeken..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Schermtoetsenbord",

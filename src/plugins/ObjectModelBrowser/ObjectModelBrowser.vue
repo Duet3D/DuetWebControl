@@ -1,7 +1,9 @@
 <template>
 	<v-row v-scroll="onScroll">
 		<v-col ref="leftContainer" :cols="(active.length === 0) ? 12 : 6">
-			<v-treeview :items="modelTree" open-on-click activatable :active.sync="active">
+			<v-text-field v-model="search" prepend-inner-icon="mdi-magnify" :placeholder="$t('plugins.objectModelBrowser.search')"
+						  clearable dense outlined hide-details class="mb-3" />
+			<v-treeview :items="modelTree" :search="search" :filter="filterItem" open-on-click activatable :active.sync="active">
 				<template #label="{ item }">
 					{{ item.getLabel() }}
 				</template>
@@ -156,6 +158,7 @@ export default Vue.extend({
 	data() {
 		return {
 			active: new Array<string>(),
+			search: "",
 			modelTree: new Array<ModelTreeItem>,
 			apiFile: null as Document | null,
 			apiFileError: null,
@@ -184,6 +187,10 @@ export default Vue.extend({
 		this.refresh();
 	},
 	methods: {
+		filterItem(item: ModelTreeItem, search: string): boolean {
+			const term = search.toLowerCase();
+			return item.id.toLowerCase().includes(term) || String(item.getLabel()).toLowerCase().includes(term);
+		},
 		makeModelTree(obj: object | Array<any> | null, path: Array<string>, parentObj?: any): Array<ModelTreeItem> {
 			if (obj instanceof Array) {
 				const that = this;

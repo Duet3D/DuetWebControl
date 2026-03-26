@@ -1108,7 +1108,8 @@
       "none": "没有",
       "documentationNotAvailable": "文档不可用（未找到/www/DuetAPI.xml）",
       "summary": "摘要",
-      "remarks": "备注"
+      "remarks": "备注",
+      "search": "搜索对象模型..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "屏幕键盘",

@@ -1108,7 +1108,8 @@
       "none": "Жодного",
       "remarks": "Зауваження",
       "selectedNode": "Вибраний вузол:",
-      "summary": "Резюме"
+      "summary": "Резюме",
+      "search": "Пошук об'єктної моделі..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Екранна клавіатура",

@@ -979,7 +979,8 @@
       "remarks": "Remarques",
       "selectedNode": "Nœud sélectionné :",
       "summary": "Sommaire",
-      "menuCaption": "Modèle d'objet"
+      "menuCaption": "Modèle d'objet",
+      "search": "Rechercher un modèle objet..."
     },
     "accelerometer": {
       "accelerations": "Accélérations (en g)",

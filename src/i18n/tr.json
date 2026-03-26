@@ -949,7 +949,8 @@
       "remarks": "Notlar",
       "selectedNode": "Seçilen düğüm:",
       "summary": "Özet",
-      "menuCaption": "Nesne Modeli"
+      "menuCaption": "Nesne Modeli",
+      "search": "Nesne modelini ara..."
     },
     "accelerometer": {
       "accelerations": "Hızlanmalar (g cinsinden)",

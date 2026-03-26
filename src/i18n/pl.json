@@ -1109,7 +1109,8 @@
       "none": "Nic",
       "remarks": "Uwagi",
       "selectedNode": "Wybrany węzeł:",
-      "summary": "Streszczenie"
+      "summary": "Streszczenie",
+      "search": "Wyszukaj model obiektowy..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Klawiatura ekranowa",

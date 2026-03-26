@@ -949,7 +949,8 @@
       "remarks": "Примечания",
       "selectedNode": "Выбранный узел:",
       "summary": "Резюме",
-      "menuCaption": "Объектная модель"
+      "menuCaption": "Объектная модель",
+      "search": "Поиск объектной модели..."
     },
     "accelerometer": {
       "accelerations": "Ускорения (в g)",

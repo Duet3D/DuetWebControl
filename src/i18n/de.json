@@ -1109,7 +1109,8 @@
       "documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
       "none": "Keiner",
       "remarks": "Anmerkungen",
-      "summary": "Zusammenfassung"
+      "summary": "Zusammenfassung",
+      "search": "Objektmodell suchen..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Bildschirmtastatur",

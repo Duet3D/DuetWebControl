@@ -1109,7 +1109,8 @@
       "none": "Ninguna",
       "remarks": "Observaciones",
       "selectedNode": "Nodo seleccionado:",
-      "summary": "Resumen"
+      "summary": "Resumen",
+      "search": "Buscar modelo de objetos..."
     },
     "onScreenKeyboard": {
       "confirmTitle": "Teclado en pantalla",
