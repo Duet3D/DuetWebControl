@@ -182,6 +182,14 @@
   "layout": {
     "backToHub": "Zur Startseite"
   },
+  "chart": {
+    "temperature": {
+      "caption": "Temperaturen",
+      "noData": "Keine Daten zum Anzeigen",
+      "heater": "Heizer {0}",
+      "sensor": "Sensor {0}"
+    }
+  },
   "button": {
     "connect": {
       "connect": "Verbinden",

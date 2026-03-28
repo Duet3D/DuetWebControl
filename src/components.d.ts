@@ -28,6 +28,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     StatusLabel: typeof import('./components/misc/StatusLabel.vue')['default']
     StatusPanel: typeof import('./components/panels/StatusPanel.vue')['default']
+    TemperatureChart: typeof import('./components/charts/TemperatureChart.vue')['default']
     ThumbnailImg: typeof import('./components/misc/ThumbnailImg.vue')['default']
   }
 }

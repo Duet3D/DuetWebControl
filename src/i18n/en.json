@@ -180,6 +180,14 @@
   "layout": {
     "backToHub": "Back to home"
   },
+  "chart": {
+    "temperature": {
+      "caption": "Temperatures",
+      "noData": "No data to display",
+      "heater": "Heater {0}",
+      "sensor": "Sensor {0}"
+    }
+  },
   "button": {
     "connect": {
       "connect": "Connect",
