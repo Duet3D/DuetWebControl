@@ -212,6 +212,42 @@
       "sortOldestFirst": "Älteste zuerst"
     }
   },
+  "jobProgress": {
+    "simulating": "Simuliere {0}, {1} abgeschlossen",
+    "simulated": "Simulation von {0}, 100 % abgeschlossen",
+    "processing": "Verarbeite {0}, {1} abgeschlossen",
+    "processed": "Verarbeitung von {0}, 100 % abgeschlossen",
+    "printing": "Drucke {0}, {1} abgeschlossen",
+    "printed": "Druck von {0}, 100 % abgeschlossen",
+    "noJob": "Kein Auftrag wird ausgeführt.",
+    "layer": "Schicht {0} von {1}",
+    "filament": "Filamentverbrauch: {0}",
+    "filamentRemaining": "{0} verbleibend"
+  },
+  "panel": {
+    "status": {
+      "caption": "Status",
+      "mode": "Modus: {0}",
+      "toolPosition": "Werkzeugposition",
+      "machinePosition": "Maschinenposition",
+      "extruders": "Extruder",
+      "extruderDrive": "Motor {0}",
+      "speeds": "Geschwindigkeiten",
+      "requestedSpeed": "Angeforderte Geschwindigkeit",
+      "topSpeed": "Maximale Geschwindigkeit",
+      "sensors": "Sensoren",
+      "mcuTemp": "MCU-Temperatur",
+      "vIn": "Vin",
+      "v12": "V12",
+      "minMax": "Minimum: {0}, Maximum {1}",
+      "fanRPM": "Lüfter-RPM",
+      "probe": "Z-Sonde|Z-Sonden",
+      "noStatus": "Kein Status",
+      "extrusionRate": "Extrusionsrate",
+      "volumetricFlow": "Volumenstrom",
+      "virtualEPos": "Virtuelle Extruderposition"
+    }
+  },
   "menu": {
     "control": {
       "caption": "Steuerung",

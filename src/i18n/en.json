@@ -210,6 +210,42 @@
       "sortOldestFirst": "Sort oldest first"
     }
   },
+  "jobProgress": {
+    "simulating": "Simulating {0}, {1} complete",
+    "simulated": "Simulated {0}, 100 % complete",
+    "processing": "Processing {0}, {1} complete",
+    "processed": "Processed {0}, 100 % complete",
+    "printing": "Printing {0}, {1} complete",
+    "printed": "Printed {0}, 100 % complete",
+    "noJob": "No Job running.",
+    "layer": "Layer {0} of {1}",
+    "filament": "Filament Usage: {0}",
+    "filamentRemaining": "{0} remaining"
+  },
+  "panel": {
+    "status": {
+      "caption": "Status",
+      "mode": "Mode: {0}",
+      "toolPosition": "Tool Position",
+      "machinePosition": "Machine Position",
+      "extruders": "Extruder Drives",
+      "extruderDrive": "Drive {0}",
+      "speeds": "Speeds",
+      "requestedSpeed": "Requested Speed",
+      "topSpeed": "Top Speed",
+      "sensors": "Sensors",
+      "mcuTemp": "MCU Temperature",
+      "minMax": "Minimum: {0}, Maximum {1}",
+      "vIn": "Vin",
+      "v12": "V12",
+      "fanRPM": "Fan RPM",
+      "probe": "Z-Probe|Z-Probes",
+      "noStatus": "No Status",
+      "extrusionRate": "Extrusion Rate",
+      "volumetricFlow": "Volumetric Flow",
+      "virtualEPos": "Virtual Extruder Position"
+    }
+  },
   "menu": {
     "control": {
       "caption": "Control",

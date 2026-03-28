@@ -58,7 +58,18 @@
 					</v-row>
 				</v-container>
 			</template>
-			<router-view v-else />
+			<template v-else>
+				<!-- Persistent global status panel - md+ only; xs/sm gets the dedicated Status page instead -->
+				<v-container v-if="isMdAndUp" fluid class="pb-0">
+					<FFFContainerPanel v-if="uiStore.isFFF" />
+					<CNCContainerPanel v-else />
+				</v-container>
+				<v-divider v-if="isMdAndUp" />
+
+				<v-container fluid>
+					<router-view />
+				</v-container>
+			</template>
 		</v-main>
 
 		<ConnectDialog />
@@ -74,10 +85,12 @@ import { useDisplay } from "vuetify";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
 import { useSettingsStore } from "@/stores/settings";
+import { useUiStore } from "@/stores/ui";
 
 const machineStore = useMachineStore();
 const menuStore = useMenuStore();
 const settingsStore = useSettingsStore();
+const uiStore = useUiStore();
 
 const route = useRoute();
 const router = useRouter();

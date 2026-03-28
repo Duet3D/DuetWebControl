@@ -11,6 +11,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    CNCAxesPosition: typeof import('./components/panels/CNCAxesPosition.vue')['default']
+    CNCContainerPanel: typeof import('./components/panels/CNCContainerPanel.vue')['default']
     CodeButton: typeof import('./components/buttons/CodeButton.vue')['default']
     CodeInput: typeof import('./components/inputs/CodeInput.vue')['default']
     ConnectButton: typeof import('./components/buttons/ConnectButton.vue')['default']
@@ -18,10 +20,14 @@ declare module 'vue' {
     ConnectionProgressDialog: typeof import('./components/dialogs/ConnectionProgressDialog.vue')['default']
     EmergencyButton: typeof import('./components/buttons/EmergencyButton.vue')['default']
     EventList: typeof import('./components/lists/EventList.vue')['default']
+    FFFContainerPanel: typeof import('./components/panels/FFFContainerPanel.vue')['default']
+    JobProgress: typeof import('./components/misc/JobProgress.vue')['default']
     MessageBoxDialog: typeof import('./components/dialogs/MessageBoxDialog.vue')['default']
     NotificationDisplay: typeof import('./components/misc/NotificationDisplay.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StatusLabel: typeof import('./components/misc/StatusLabel.vue')['default']
+    StatusPanel: typeof import('./components/panels/StatusPanel.vue')['default']
     ThumbnailImg: typeof import('./components/misc/ThumbnailImg.vue')['default']
   }
 }

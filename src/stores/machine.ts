@@ -130,7 +130,14 @@ export const useMachineStore = defineStore("machine", {
 		/**
 		 * List of files being changed
 		 */
-		filesBeingChanged: new Array<string>()
+		filesBeingChanged: new Array<string>(),
+
+		/**
+		 * Index of the motion system currently selected by the UI. Boards with multiple motion systems
+		 * (toolchanger/IDEX) expose `move.motionSystems[]`; this picks which one is the "current" one
+		 * for status displays. Defaults to 0; the settings page exposes the chooser
+		 */
+		selectedMotionSystem: 0
 	}),
 	getters: {
 		/**
