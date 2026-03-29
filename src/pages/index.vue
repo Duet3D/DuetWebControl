@@ -1,5 +1,4 @@
-<!-- Default landing page. Branches between FFF and CNC dashboards on dashboardMode / live machineMode.
-	 The CNC dashboard is not yet ported; until then CNC machines fall through to a placeholder card -->
+<!-- Default landing page. Branches between FFF and CNC dashboards on dashboardMode / live machineMode -->
 <route lang="json">
 {
 	"meta": {
@@ -16,16 +15,14 @@
 <template>
 	<div class="mb-3">
 		<FFFDashboardPanel v-if="isFFForUnset" />
-		<v-card v-else>
-			<v-card-title>{{ $t("panel.cncDashboard.caption") }}</v-card-title>
-			<v-card-text>{{ $t("panel.cncDashboard.notPorted") }}</v-card-text>
-		</v-card>
+		<CNCDashboardPanel v-else />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { MachineMode } from "@duet3d/objectmodel";
 
+import CNCDashboardPanel from "@/components/panels/CNCDashboardPanel.vue";
 import FFFDashboardPanel from "@/components/panels/FFFDashboardPanel.vue";
 import { useMachineStore } from "@/stores/machine";
 import { DashboardMode, useSettingsStore } from "@/stores/settings";

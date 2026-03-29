@@ -224,6 +224,18 @@
     "backToHub": "Zur Startseite"
   },
   "chart": {
+    "layer": {
+      "caption": "Statistik der Druckschichten",
+      "layerTime": "Schichtdauer",
+      "showLastLayers": "Letzte {0} Schichten anzeigen",
+      "showAllLayers": "Alle Schichten anzeigen",
+      "layer": "Schicht {0}",
+      "layerDuration": "Dauer: {0}",
+      "layerHeight": "Schichtdicke: {0}",
+      "filamentUsage": "Filamentverbrauch: {0}",
+      "fractionPrinted": "Dateifortschritt: {0}",
+      "temperatures": "Temperaturen: {0}"
+    },
     "temperature": {
       "caption": "Temperaturen",
       "noData": "Keine Daten zum Anzeigen",
@@ -295,9 +307,75 @@
       "on": "An",
       "off": "Aus"
     },
+    "babystepping": {
+      "caption": "Z-Babystepping",
+      "current": "Aktueller Versatz: {0}"
+    },
     "cncDashboard": {
       "caption": "CNC-Dashboard",
       "notPorted": "Das CNC-Dashboard ist in diesem Build noch nicht verfügbar."
+    },
+    "extrusionFactors": {
+      "caption": "Extrusionsfaktoren",
+      "changeVisibility": "Sichtbarkeit ändern",
+      "extruder": "Extruder {0}",
+      "noExtruders": "Keine Extruder"
+    },
+    "jobControl": {
+      "caption": "Auftragskontrolle",
+      "cancelJob": "Auftrag abbrechen",
+      "cancelPrint": "Druck abbrechen",
+      "cancelSimulation": "Simulation abbrechen",
+      "pauseJob": "Auftrag pausieren",
+      "pausePrint": "Druck pausieren",
+      "pauseSimulation": "Simulation pausieren",
+      "resumeJob": "Auftrag wiederaufnehmen",
+      "resumePrint": "Druck wiederaufnehmen",
+      "resumeSimulation": "Simulation wiederaufnehmen",
+      "repeatJob": "Nochmal starten",
+      "repeatPrint": "Nochmal drucken",
+      "repeatSimulation": "Nochmal simulieren",
+      "showPreview": "Vorschau zeigen",
+      "printNow": "Jetzt drucken",
+      "startJob": "Auftrag starten"
+    },
+    "jobData": {
+      "caption": "Gesammelte Daten",
+      "warmUpDuration": "Aufwärmzeit",
+      "currentLayerTime": "Aktuelle Schichtdauer",
+      "lastLayerTime": "Letzte Schichtdauer",
+      "jobDuration": "Auftragsdauer"
+    },
+    "jobEstimations": {
+      "caption": "Schätzungen basierend auf",
+      "filament": "Filamentverbrauch",
+      "file": "Dateifortschritt",
+      "layer": "Schichtdauer",
+      "slicer": "Slicer",
+      "simulation": "Simulation",
+      "toPause": "Nächste Pause"
+    },
+    "jobInfo": {
+      "caption": "Jobinformationen",
+      "height": "Höhe:",
+      "layerHeight": "Schichtdicke:",
+      "filament": "Filamentverbrauch:",
+      "generatedBy": "Erzeugt durch:"
+    },
+    "spindle": {
+      "title": "Spindeln",
+      "spindle": "Spindel",
+      "active": "Aktiv",
+      "direction": "Richtung",
+      "currentRPM": "Aktuelle RPM",
+      "setRPM": "RPM setzen",
+      "on": "An",
+      "off": "Aus",
+      "forward": "Vorwärts",
+      "reverse": "Rückwärts"
+    },
+    "speedFactor": {
+      "caption": "Geschwindigkeitsfaktor"
     },
     "tools": {
       "caption": "Werkzeuge",
@@ -393,7 +471,11 @@
       "runMesh": "Gitterkompensation durchführen (G29)",
       "loadMesh": "Gespeicherte Höhenkarte laden (G29 S1)",
       "axesNotHomed": "Die folgende Achse ist nicht referenziert:|Die folgenden Achsen sind nicht referenziert:",
-      "noAxes": "Keine Achsen"
+      "noAxes": "Keine Achsen",
+      "set": "Setze {0}",
+      "workzero": "Gehe zum Nullpunkt",
+      "setWorkXYZ": "Setze Arbeits-XYZ",
+      "wcs": "Werkstückkoordinatensystem"
     }
   },
   "menu": {
@@ -403,7 +485,8 @@
       "dashboard": "Dashboard"
     },
     "job": {
-      "caption": "Auftrag"
+      "caption": "Auftrag",
+      "status": "Status"
     },
     "files": {
       "caption": "Dateien"
