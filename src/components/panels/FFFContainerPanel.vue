@@ -1,10 +1,13 @@
 <!-- Always-visible global status panel for FFF dashboards (md+).
-	 Composes StatusPanel + TemperatureChart; ToolsPanel is the remaining piece - lots of subordinate
-	 widgets (ControlInput, HeaterRows, ToolRows, ResetHeaterFaultDialog, ...) - and lands separately -->
+	 Three-column layout: status info, tools (heaters + sensors), and temperature chart -->
 <template>
 	<v-row :dense="mobile">
 		<v-col cols="12" sm="6" md="4" lg="4" xl="4">
 			<StatusPanel />
+		</v-col>
+
+		<v-col cols="12" sm="6" md="5" lg="5" xl="4">
+			<ToolsPanel />
 		</v-col>
 
 		<v-col v-if="hasTemperaturesToDisplay" :class="{ 'd-flex': true }" cols="12" sm="6" md="3" lg="3" xl="4">
@@ -18,6 +21,8 @@ import { useDisplay } from "vuetify";
 
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
+
+import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
 
 // Chart.js is heavy (~70 kB gzipped). Lazy-loading keeps it out of the default-layout chunk so the
 // initial paint doesn't pay for it; the chart's own chunk loads in parallel right after

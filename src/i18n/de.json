@@ -1,5 +1,20 @@
 {
   "dialog": {
+    "filament": {
+      "titleChange": "Filament ändern",
+      "titleLoad": "Filament laden",
+      "prompt": "Bitte wählen Sie ein Filament:",
+      "noFilaments": "Keine Filamente verfügbar",
+      "changePrompt": {
+        "message": "Drücken Sie OK, wenn das Filament gewechselt wurde",
+        "title": "Filamentwechsel"
+      }
+    },
+    "resetHeaterFault": {
+      "title": "Heizerfehler zurücksetzen",
+      "prompt": "Ein Fehler ist bei der Steuerung von Heizer {0} aufgetreten. Es wird dringend empfohlen Ihre Maschine auszuschalten und die Verkabelung zu prüfen bevor Sie fortfahren. Wenn Sie absolut sicher sind, dass es sich dabei um kein physikalisches Problem handelt können sie den Fehler AUF EIGENE GEFAHR zurücksetzen. Dies ist NICHT EMPFOHLEN und kann zu weiteren Problemen führen. Wie möchten Sie fortfahren?",
+      "resetFault": "Fehler zurücksetzen"
+    },
     "connect": {
       "title": "Zu Maschine verbinden",
       "prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
@@ -177,7 +192,10 @@
     "startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
   },
   "error": {
-    "invalidHeightmap": "Ungültige Höhenkarte"
+    "enterValidNumber": "Bitte geben Sie eine gültige Zahl ein",
+    "filamentsLoadFailed": "Konnte Filamente nicht laden",
+    "invalidHeightmap": "Ungültige Höhenkarte",
+    "turnOffEverythingFailed": "Konnte nicht alles abschalten"
   },
   "layout": {
     "backToHub": "Zur Startseite"
@@ -233,6 +251,40 @@
     "filamentRemaining": "{0} verbleibend"
   },
   "panel": {
+    "tools": {
+      "caption": "Werkzeuge",
+      "controlHeaters": "Heizer steuern",
+      "turnEverythingOff": "Alle abschalten",
+      "setActiveTemperatures": "Aktive Temperaturen setzen",
+      "setStandbyTemperatures": "Standby-Temperaturen setzen",
+      "setToolTemperatures": "Werkzeugtemperaturen setzen",
+      "setBedTemperatures": "Betttemperaturen setzen",
+      "setChamberTemperatures": "Kammertemperaturen setzen",
+      "tool": "Werkzeug {0}",
+      "loadFilament": "Filament laden",
+      "changeFilament": "Filament wechseln",
+      "unloadFilament": "Filament entladen",
+      "reassignFilament": "Filament neu zuweisen",
+      "heater": "Heizer {0}",
+      "current": "Aktuell",
+      "active": "Aktiv",
+      "standby": "Standby",
+      "bed": "Bett {0}",
+      "chamber": "Kammer {0}",
+      "allBeds": "Alle Betten",
+      "beds": "Betten",
+      "allChambers": "Alle Kammern",
+      "chambers": "Kammern",
+      "extra": {
+        "caption": "Extra",
+        "sensor": "Sensor",
+        "sensorIndex": "Sensor {0}",
+        "value": "Wert",
+        "showInChart": "Im Temperaturdiagramm anzeigen",
+        "noItems": "Keine zusätzlichen Sensoren"
+      },
+      "noTools": "Keine Werkzeuge"
+    },
     "status": {
       "caption": "Status",
       "mode": "Modus: {0}",

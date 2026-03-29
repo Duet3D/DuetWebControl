@@ -342,6 +342,26 @@ export const useSettingsStore = defineStore("settings", {
 		groupTools: true,
 
 		/**
+		 * Treat tools as identical only when their extruder mapping matches
+		 */
+		groupByExtruders: true,
+
+		/**
+		 * Treat tools as identical only when their heater mapping matches
+		 */
+		groupByHeaters: true,
+
+		/**
+		 * Treat tools as identical only when their offsets match
+		 */
+		groupByOffsets: true,
+
+		/**
+		 * Treat tools as identical only when their spindle assignment matches
+		 */
+		groupBySpindle: true,
+
+		/**
 		 * Provide only a single input field for controlling multiple beds
 		 */
 		singleBedControl: false,
