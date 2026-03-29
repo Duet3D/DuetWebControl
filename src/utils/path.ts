@@ -238,6 +238,7 @@ const pathObj = {
 
 	combine,
 	equals,
+	escapeFilename,
 	extractDirectory,
 	extractFileName,
 	filesAffectDirectory,

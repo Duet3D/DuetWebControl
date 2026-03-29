@@ -297,6 +297,11 @@ export const useSettingsStore = defineStore("settings", {
 		extruderFeedrates: [50, 10, 5, 2, 1],
 
 		/**
+		 * Show per-extruder mixing controls in the extrude panel (multi-extruder tools only)
+		 */
+		showMixingControls: true,
+
+		/**
 		 * Temperature presets
 		 */
 		temperatures: {
@@ -601,6 +606,20 @@ export const useSettingsStore = defineStore("settings", {
 				this.moveSteps[axis] = this.moveSteps.default.slice();
 			}
 			this.moveSteps[axis][index] = value;
+		},
+
+		/**
+		 * Update one of the saved extrusion amounts (mm) shown as preset buttons in the extrude panel
+		 */
+		setExtrusionAmount(index: number, value: number) {
+			this.extruderAmounts[index] = value;
+		},
+
+		/**
+		 * Update one of the saved extrusion feedrates (mm/s) shown as preset buttons in the extrude panel
+		 */
+		setExtrusionFeedrate(index: number, value: number) {
+			this.extruderFeedrates[index] = value;
 		},
 
 		/**

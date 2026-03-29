@@ -15,6 +15,28 @@
       "prompt": "A heater fault has occurred on heater {0}. It is strongly advised to turn off your machine now and to check your wiring before you continue. If you are absolutely sure that this is not a physical problem, you can reset the heater fault ON YOUR OWN RISK. Be aware that this is NOT RECOMMENDED and can lead to further problems. How would you like to proceed?",
       "resetFault": "Reset Fault"
     },
+    "changeMoveStep": {
+      "title": "Change move step",
+      "prompt": "Please enter a new value for the clicked move button:"
+    },
+    "editExtrusionAmount": {
+      "title": "Edit extrusion amount",
+      "prompt": "Please enter a new amount for the clicked button:"
+    },
+    "editExtrusionFeedrate": {
+      "title": "Edit extrusion feedrate",
+      "prompt": "Please enter a new feedrate for the clicked button:"
+    },
+    "meshEdit": {
+      "title": "Set Mesh Parameters",
+      "radius": "Probe Radius",
+      "spacing": "Spacing",
+      "startCoordinate": "Start coordinate in {0} direction",
+      "endCoordinate": "End coordinate in {0} direction",
+      "spacingDirection": "Spacing in {0} direction"
+    },
+    "inputRequired": "Please enter a value",
+    "numberRequired": "Please enter a valid number",
     "connect": {
       "title": "Connect to Machine",
       "prompt": "Please enter the hostname and password of the machine that you would like to connect to:",
@@ -192,6 +214,7 @@
   "error": {
     "enterValidNumber": "Please enter a valid number",
     "filamentsLoadFailed": "Failed to load filaments",
+    "filelistRequestFailed": "Failed to get file list",
     "invalidHeightmap": "Invalid heightmap",
     "turnOffEverythingFailed": "Failed to turn everything off"
   },
@@ -216,13 +239,20 @@
     "emergencyStop": {
       "caption": "Emergency Stop",
       "title": "Enforce an immediate software reset (M112+M999)"
+    },
+    "home": {
+      "caption": "Home {0}",
+      "captionAll": "Home All",
+      "title": "Home the {0} axis (G28 {0})",
+      "titleAll": "Home all axes (G28)"
     }
   },
   "input": {
     "code": {
       "placeholder": "Send code...",
       "send": "Send"
-    }
+    },
+    "set": "Set"
   },
   "list": {
     "eventLog": {
@@ -234,6 +264,15 @@
       "downloadCSV": "Download as CSV",
       "sortNewestFirst": "Sort newest first",
       "sortOldestFirst": "Sort oldest first"
+    },
+    "macro": {
+      "caption": "Macros",
+      "noMacros": "No Macros",
+      "run": "Run Macro",
+      "root": "Root"
+    },
+    "baseFileList": {
+      "goUp": "Go up"
     }
   },
   "jobProgress": {
@@ -249,6 +288,15 @@
     "filamentRemaining": "{0} remaining"
   },
   "panel": {
+    "atx": {
+      "caption": "ATX Power",
+      "on": "On",
+      "off": "Off"
+    },
+    "cncDashboard": {
+      "caption": "CNC Dashboard",
+      "notPorted": "The CNC dashboard is not available yet in this build."
+    },
     "tools": {
       "caption": "Tools",
       "controlHeaters": "Control Heaters",
@@ -304,12 +352,53 @@
       "extrusionRate": "Extrusion Rate",
       "volumetricFlow": "Volumetric Flow",
       "virtualEPos": "Virtual Extruder Position"
+    },
+    "extrude": {
+      "caption": "Extrusion Control",
+      "mix": "Mix",
+      "mixRatio": "Mix Ratio:",
+      "amount": "Feed amount in {0}:",
+      "feedrate": "Feedrate in {0}:",
+      "retract": "Retract",
+      "extrude": "Extrude"
+    },
+    "fan": {
+      "caption": "Fan Control",
+      "selection": "Fan Selection:",
+      "toolFan": "Tool Fan",
+      "fan": "Fan {0}"
+    },
+    "fans": {
+      "caption": "Fans",
+      "changeVisibility": "Change Visibility",
+      "toolFan": "Tool Fan",
+      "fan": "Fan {0}",
+      "noFans": "No Fans"
+    },
+    "movement": {
+      "caption": "Machine Movement",
+      "compensation": "Compensation & Calibration",
+      "runBed": "True Bed Levelling (G32)",
+      "runDelta": "Delta Calibration (G32)",
+      "compensationInUse": "Compensation in use: {0}",
+      "compensationType": {
+        "none": "None",
+        "mesh": "Mesh"
+      },
+      "disableBedCompensation": "Disable Bed Compensation (M561)",
+      "disableMeshCompensation": "Disable Mesh Compensation (G29 S2)",
+      "editMesh": "Define Area for Mesh Compensation (M557)",
+      "runMesh": "Run Mesh Compensation (G29)",
+      "loadMesh": "Load Saved Height Map from SD Card (G29 S1)",
+      "axesNotHomed": "The following axis is not homed:|The following axes are not homed:",
+      "noAxes": "No Axes"
     }
   },
   "menu": {
     "control": {
       "caption": "Control",
-      "console": "Console"
+      "console": "Console",
+      "dashboard": "Dashboard"
     },
     "job": {
       "caption": "Job"

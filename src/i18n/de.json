@@ -15,6 +15,28 @@
       "prompt": "Ein Fehler ist bei der Steuerung von Heizer {0} aufgetreten. Es wird dringend empfohlen Ihre Maschine auszuschalten und die Verkabelung zu prüfen bevor Sie fortfahren. Wenn Sie absolut sicher sind, dass es sich dabei um kein physikalisches Problem handelt können sie den Fehler AUF EIGENE GEFAHR zurücksetzen. Dies ist NICHT EMPFOHLEN und kann zu weiteren Problemen führen. Wie möchten Sie fortfahren?",
       "resetFault": "Fehler zurücksetzen"
     },
+    "changeMoveStep": {
+      "title": "Bewegungsschritt ändern",
+      "prompt": "Bitte geben Sie einen neuen Wert für den angeklickten Bewegungsbutton ein:"
+    },
+    "editExtrusionAmount": {
+      "title": "Extrusionsmenge bearbeiten",
+      "prompt": "Bitte geben Sie eine neue Menge für den angeklickten Button ein:"
+    },
+    "editExtrusionFeedrate": {
+      "title": "Extrusionsgeschwindigkeit bearbeiten",
+      "prompt": "Bitte geben Sie eine neue Vorschubrate für den angeklickten Button ein:"
+    },
+    "meshEdit": {
+      "title": "Gitterparameter ändern",
+      "radius": "Messradius",
+      "spacing": "Abstand",
+      "startCoordinate": "Startkoordinate in {0}-Richtung",
+      "endCoordinate": "Endkoordinate in {0}-Richtung",
+      "spacingDirection": "Abstand in {0}-Richtung"
+    },
+    "inputRequired": "Bitte Wert eingeben",
+    "numberRequired": "Bitte gültige Zahl eingeben",
     "connect": {
       "title": "Zu Maschine verbinden",
       "prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
@@ -194,6 +216,7 @@
   "error": {
     "enterValidNumber": "Bitte geben Sie eine gültige Zahl ein",
     "filamentsLoadFailed": "Konnte Filamente nicht laden",
+    "filelistRequestFailed": "Konnte Dateiliste nicht abfragen",
     "invalidHeightmap": "Ungültige Höhenkarte",
     "turnOffEverythingFailed": "Konnte nicht alles abschalten"
   },
@@ -218,13 +241,20 @@
     "emergencyStop": {
       "caption": "NOT-AUS",
       "title": "Erzwingt einen sofortigen Softwarereset (M112+M999)"
+    },
+    "home": {
+      "caption": "Referenziere {0}",
+      "captionAll": "Alle Referenzieren",
+      "title": "Referenziere die {0}-Achse (G28 {0})",
+      "titleAll": "Alle Achsen referenzieren (G28)"
     }
   },
   "input": {
     "code": {
       "placeholder": "Code senden...",
       "send": "Senden"
-    }
+    },
+    "set": "Setzen"
   },
   "list": {
     "eventLog": {
@@ -236,6 +266,15 @@
       "downloadCSV": "Als CSV herunterladen",
       "sortNewestFirst": "Neueste zuerst",
       "sortOldestFirst": "Älteste zuerst"
+    },
+    "macro": {
+      "caption": "Makros",
+      "noMacros": "Keine Makros",
+      "run": "Makro ausführen",
+      "root": "Stammverzeichnis"
+    },
+    "baseFileList": {
+      "goUp": "Nach oben"
     }
   },
   "jobProgress": {
@@ -251,6 +290,15 @@
     "filamentRemaining": "{0} verbleibend"
   },
   "panel": {
+    "atx": {
+      "caption": "ATX-Zufuhr",
+      "on": "An",
+      "off": "Aus"
+    },
+    "cncDashboard": {
+      "caption": "CNC-Dashboard",
+      "notPorted": "Das CNC-Dashboard ist in diesem Build noch nicht verfügbar."
+    },
     "tools": {
       "caption": "Werkzeuge",
       "controlHeaters": "Heizer steuern",
@@ -306,12 +354,53 @@
       "extrusionRate": "Extrusionsrate",
       "volumetricFlow": "Volumenstrom",
       "virtualEPos": "Virtuelle Extruderposition"
+    },
+    "extrude": {
+      "caption": "Extrusionskontrolle",
+      "mix": "Mischen",
+      "mixRatio": "Mischverhältnis:",
+      "amount": "Extrusionsmenge in {0}:",
+      "feedrate": "Vorschubrate in {0}:",
+      "retract": "Zurückziehen",
+      "extrude": "Extrudieren"
+    },
+    "fan": {
+      "caption": "Lüfterkontrolle",
+      "selection": "Lüfterauswahl:",
+      "toolFan": "Werkzeuglüfter",
+      "fan": "Lüfter {0}"
+    },
+    "fans": {
+      "caption": "Lüfter",
+      "changeVisibility": "Sichtbarkeit ändern",
+      "toolFan": "Werkzeuglüfter",
+      "fan": "Lüfter {0}",
+      "noFans": "Keine Lüfter"
+    },
+    "movement": {
+      "caption": "Maschinenbewegung",
+      "compensation": "Kompensation & Kalibrierung",
+      "runBed": "True Bed Levelling (G32)",
+      "runDelta": "Deltakalibrierung (G32)",
+      "compensationInUse": "Benutzte Kompensation: {0}",
+      "compensationType": {
+        "none": "Keine",
+        "mesh": "Gitterkompensation"
+      },
+      "disableBedCompensation": "Bettkompensation deaktivieren (M561)",
+      "disableMeshCompensation": "Gitterkompensation deaktivieren (G29 S2)",
+      "editMesh": "Bereich der Gitterkompensation definieren (M557)",
+      "runMesh": "Gitterkompensation durchführen (G29)",
+      "loadMesh": "Gespeicherte Höhenkarte laden (G29 S1)",
+      "axesNotHomed": "Die folgende Achse ist nicht referenziert:|Die folgenden Achsen sind nicht referenziert:",
+      "noAxes": "Keine Achsen"
     }
   },
   "menu": {
     "control": {
       "caption": "Steuerung",
-      "console": "Konsole"
+      "console": "Konsole",
+      "dashboard": "Dashboard"
     },
     "job": {
       "caption": "Auftrag"
