@@ -34,6 +34,7 @@ declare module 'vue' {
     FFFContainerPanel: typeof import('./components/panels/FFFContainerPanel.vue')['default']
     FFFDashboardPanel: typeof import('./components/panels/FFFDashboardPanel.vue')['default']
     FilamentDialog: typeof import('./components/dialogs/FilamentDialog.vue')['default']
+    FileList: typeof import('./components/lists/FileList.vue')['default']
     HeaterRows: typeof import('./components/panels/ToolsPanel/ControlList/HeaterRows.vue')['default']
     InputDialog: typeof import('./components/dialogs/InputDialog.vue')['default']
     JobControlPanel: typeof import('./components/panels/JobControlPanel.vue')['default']

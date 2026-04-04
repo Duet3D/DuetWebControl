@@ -254,6 +254,9 @@
       "caption": "NOT-AUS",
       "title": "Erzwingt einen sofortigen Softwarereset (M112+M999)"
     },
+    "refresh": {
+      "caption": "Aktualisieren"
+    },
     "home": {
       "caption": "Referenziere {0}",
       "captionAll": "Alle Referenzieren",
@@ -278,6 +281,18 @@
       "downloadCSV": "Als CSV herunterladen",
       "sortNewestFirst": "Neueste zuerst",
       "sortOldestFirst": "Älteste zuerst"
+    },
+    "jobs": {
+      "height": "Objekthöhe",
+      "layerHeight": "Schichtdicke",
+      "filament": "Filamentverbrauch",
+      "printTime": "Druckdauer",
+      "simulatedTime": "Simulierte Dauer",
+      "generatedBy": "Erstellt durch",
+      "noJobs": "Keine Aufträge",
+      "root": "Aufträge",
+      "start": "Datei starten",
+      "simulate": "Datei simulieren"
     },
     "macro": {
       "caption": "Makros",
@@ -494,7 +509,8 @@
       "webcam": "Webcam"
     },
     "files": {
-      "caption": "Dateien"
+      "caption": "Dateien",
+      "jobs": "Aufträge"
     },
     "settings": {
       "caption": "Einstellungen"
