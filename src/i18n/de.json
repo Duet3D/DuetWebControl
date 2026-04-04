@@ -362,6 +362,10 @@
       "filament": "Filamentverbrauch:",
       "generatedBy": "Erzeugt durch:"
     },
+    "webcam": {
+      "caption": "Webcamüberwachung",
+      "alt": "(Webcam-Bild)"
+    },
     "spindle": {
       "title": "Spindeln",
       "spindle": "Spindel",
@@ -486,7 +490,8 @@
     },
     "job": {
       "caption": "Auftrag",
-      "status": "Status"
+      "status": "Status",
+      "webcam": "Webcam"
     },
     "files": {
       "caption": "Dateien"
