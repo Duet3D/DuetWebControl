@@ -37,8 +37,8 @@ const browserOptions = computed(() => ({
 // height/layer-height/printTime columns once full file-info fetching lands
 const extraHeaders: Array<{ title: string; key: string }> = [];
 
-async function startJob(item: FileBrowserItem) {
-	const filename = Path.combine(gcodesDirectory.value, item.name);
+async function startJob(item: FileBrowserItem, directory: string) {
+	const filename = Path.combine(directory, item.name);
 	await machineStore.sendCode(`M32 "${Path.escapeFilename(filename)}"`);
 }
 </script>

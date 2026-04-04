@@ -83,7 +83,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	fileClick: [item: FileBrowserItem];
+	fileClick: [item: FileBrowserItem, directory: string];
 }>();
 
 const uiStore = useUiStore();
@@ -129,6 +129,6 @@ function onRowClick(_event: unknown, payload: { item: FileBrowserItem }) {
 		browser.navigateInto(item.name);
 		return;
 	}
-	emit("fileClick", item);
+	emit("fileClick", item, browser.directory.value);
 }
 </script>

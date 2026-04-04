@@ -35,6 +35,10 @@
       "endCoordinate": "End coordinate in {0} direction",
       "spacingDirection": "Spacing in {0} direction"
     },
+    "runMacro": {
+      "title": "Run macro {0}?",
+      "prompt": "Do you want to run {0}?"
+    },
     "inputRequired": "Please enter a value",
     "numberRequired": "Please enter a valid number",
     "connect": {
@@ -298,8 +302,28 @@
       "run": "Run Macro",
       "root": "Root"
     },
+    "filament": {
+      "noFilaments": "No Filaments"
+    },
+    "system": {
+      "noFiles": "No Files"
+    },
     "baseFileList": {
-      "goUp": "Go up"
+      "goUp": "Go up",
+      "noFiles": "No Files"
+    },
+    "explorer": {
+      "root": "Files",
+      "newTab": "Open new tab",
+      "closeTab": "Close tab",
+      "tabs": {
+        "macros": "Macros",
+        "filaments": "Filaments",
+        "system": "System",
+        "files": "Files"
+      },
+      "editorNotPorted": "Editor not available yet",
+      "downloadNotPorted": "Download not available yet"
     }
   },
   "jobProgress": {
@@ -508,7 +532,8 @@
     },
     "files": {
       "caption": "Files",
-      "jobs": "Jobs"
+      "jobs": "Jobs",
+      "explorer": "Explorer"
     },
     "settings": {
       "caption": "Settings"

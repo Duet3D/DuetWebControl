@@ -35,6 +35,10 @@
       "endCoordinate": "Endkoordinate in {0}-Richtung",
       "spacingDirection": "Abstand in {0}-Richtung"
     },
+    "runMacro": {
+      "title": "Makro {0} ausführen?",
+      "prompt": "Möchten Sie {0} ausführen?"
+    },
     "inputRequired": "Bitte Wert eingeben",
     "numberRequired": "Bitte gültige Zahl eingeben",
     "connect": {
@@ -300,8 +304,28 @@
       "run": "Makro ausführen",
       "root": "Stammverzeichnis"
     },
+    "filament": {
+      "noFilaments": "Keine Filamente"
+    },
+    "system": {
+      "noFiles": "Keine Dateien"
+    },
     "baseFileList": {
-      "goUp": "Nach oben"
+      "goUp": "Nach oben",
+      "noFiles": "Keine Dateien"
+    },
+    "explorer": {
+      "root": "Dateien",
+      "newTab": "Neuen Tab öffnen",
+      "closeTab": "Tab schliessen",
+      "tabs": {
+        "macros": "Makros",
+        "filaments": "Filamente",
+        "system": "System",
+        "files": "Dateien"
+      },
+      "editorNotPorted": "Editor noch nicht verfügbar",
+      "downloadNotPorted": "Download noch nicht verfügbar"
     }
   },
   "jobProgress": {
@@ -510,7 +534,8 @@
     },
     "files": {
       "caption": "Dateien",
-      "jobs": "Aufträge"
+      "jobs": "Aufträge",
+      "explorer": "Explorer"
     },
     "settings": {
       "caption": "Einstellungen"

@@ -45,6 +45,13 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/Explorer': RouteRecordInfo<
+      '/Explorer',
+      '/Explorer',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
     '/Job/Status': RouteRecordInfo<
       '/Job/Status',
       '/Job/Status',
@@ -88,6 +95,12 @@ declare module 'vue-router/auto-routes' {
     'src/pages/Console.vue': {
       routes:
         | '/Console'
+      views:
+        | never
+    }
+    'src/pages/Explorer.vue': {
+      routes:
+        | '/Explorer'
       views:
         | never
     }
