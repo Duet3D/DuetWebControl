@@ -57,28 +57,15 @@
 		</v-window>
 	</v-card>
 
-	<v-dialog v-model="runMacroDialog.shown" max-width="500">
-		<v-card>
-			<v-card-title>
-				<v-icon class="mr-1">mdi-play</v-icon>
-				{{ $t("dialog.runMacro.title", [runMacroDialog.filename]) }}
-			</v-card-title>
-			<v-card-text>{{ $t("dialog.runMacro.prompt", [runMacroDialog.filename]) }}</v-card-text>
-			<v-card-actions>
-				<v-spacer />
-				<v-btn color="blue-darken-1" variant="text" @click="confirmRunMacro">
-					{{ $t("generic.yes") }}
-				</v-btn>
-				<v-btn color="blue-darken-1" variant="text" @click="runMacroDialog.shown = false">
-					{{ $t("generic.no") }}
-				</v-btn>
-			</v-card-actions>
-		</v-card>
-	</v-dialog>
+	<ConfirmDialog v-model:shown="runMacroDialog.shown"
+				   :title="$t('dialog.runMacro.title', [runMacroDialog.filename])"
+				   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
+				   @confirmed="confirmRunMacro" />
 </template>
 
 <script setup lang="ts">
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
+import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -185,7 +172,6 @@ function onFileClick(item: FileBrowserItem, directory: string) {
 }
 
 async function confirmRunMacro() {
-	runMacroDialog.shown = false;
 	const path = runMacroDialog.fullPath;
 	if (!path) {
 		return;

@@ -39,6 +39,23 @@
       "title": "Makro {0} ausführen?",
       "prompt": "Möchten Sie {0} ausführen?"
     },
+    "newFile": {
+      "title": "Neue Datei",
+      "prompt": "Bitte einen Namen für die neue Datei eingeben:"
+    },
+    "newDirectory": {
+      "title": "Neues Verzeichnis",
+      "prompt": "Bitte einen Namen für das neue Verzeichnis eingeben:"
+    },
+    "rename": {
+      "title": "{0} umbenennen",
+      "prompt": "Bitte den neuen Namen eingeben:"
+    },
+    "delete": {
+      "title": "Löschen bestätigen",
+      "promptSingle": "Soll {0} wirklich gelöscht werden?",
+      "promptMultiple": "Sollen {0} Einträge wirklich gelöscht werden?"
+    },
     "inputRequired": "Bitte Wert eingeben",
     "numberRequired": "Bitte gültige Zahl eingeben",
     "connect": {
@@ -172,6 +189,9 @@
       "successTitle": "SD-Karte eingebunden",
       "errorTitle": "Konnte SD-Karte nicht einbinden"
     },
+    "newFile": {
+      "errorTitle": "Konnte Datei nicht erstellen"
+    },
     "newDirectory": {
       "errorTitle": "Konnte Verzeichnis nicht erstellen",
       "successTitle": "Verzeichnis erstellt",
@@ -260,6 +280,18 @@
     },
     "refresh": {
       "caption": "Aktualisieren"
+    },
+    "newFile": {
+      "caption": "Neue Datei"
+    },
+    "newDirectory": {
+      "caption": "Neues Verzeichnis"
+    },
+    "delete": {
+      "caption": "Löschen"
+    },
+    "rename": {
+      "caption": "Umbenennen"
     },
     "home": {
       "caption": "Referenziere {0}",

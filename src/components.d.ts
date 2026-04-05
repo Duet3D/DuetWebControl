@@ -18,6 +18,7 @@ declare module 'vue' {
     CNCMovementPanel: typeof import('./components/panels/CNCMovementPanel.vue')['default']
     CodeButton: typeof import('./components/buttons/CodeButton.vue')['default']
     CodeInput: typeof import('./components/inputs/CodeInput.vue')['default']
+    ConfirmDialog: typeof import('./components/dialogs/ConfirmDialog.vue')['default']
     ConnectButton: typeof import('./components/buttons/ConnectButton.vue')['default']
     ConnectDialog: typeof import('./components/dialogs/ConnectDialog.vue')['default']
     ConnectionProgressDialog: typeof import('./components/dialogs/ConnectionProgressDialog.vue')['default']

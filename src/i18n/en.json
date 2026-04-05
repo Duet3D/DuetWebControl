@@ -39,6 +39,23 @@
       "title": "Run macro {0}?",
       "prompt": "Do you want to run {0}?"
     },
+    "newFile": {
+      "title": "New File",
+      "prompt": "Please enter a name for the new file:"
+    },
+    "newDirectory": {
+      "title": "New Directory",
+      "prompt": "Please enter a name for the new directory:"
+    },
+    "rename": {
+      "title": "Rename {0}",
+      "prompt": "Please enter the new name:"
+    },
+    "delete": {
+      "title": "Confirm Deletion",
+      "promptSingle": "Are you sure you want to delete {0}?",
+      "promptMultiple": "Are you sure you want to delete {0} items?"
+    },
     "inputRequired": "Please enter a value",
     "numberRequired": "Please enter a valid number",
     "connect": {
@@ -182,6 +199,9 @@
       "title": "Loading plugins...",
       "message": "Please stand by while plugins are being loaded..."
     },
+    "newFile": {
+      "errorTitle": "Failed to create file"
+    },
     "newDirectory": {
       "errorTitle": "Failed to create directory",
       "successTitle": "Directory created",
@@ -258,6 +278,18 @@
     },
     "refresh": {
       "caption": "Refresh"
+    },
+    "newFile": {
+      "caption": "New File"
+    },
+    "newDirectory": {
+      "caption": "New Directory"
+    },
+    "delete": {
+      "caption": "Delete"
+    },
+    "rename": {
+      "caption": "Rename"
     },
     "home": {
       "caption": "Home {0}",
