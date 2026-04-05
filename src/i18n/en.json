@@ -279,6 +279,9 @@
     "refresh": {
       "caption": "Refresh"
     },
+    "upload": {
+      "caption": "Upload"
+    },
     "newFile": {
       "caption": "New File"
     },

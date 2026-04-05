@@ -1,7 +1,8 @@
 <!-- File-browser table. Toolbar shows the current path with click-to-navigate breadcrumbs and the
-	 standard write actions (new file, new directory, delete, rename, refresh). Multi-select via the
-	 checkbox column gates delete (multi) and rename (single). Drag/drop, upload and ZIP download
-	 still live in follow-up commits -->
+	 standard file actions (upload, new file, new directory, delete, rename, refresh). Multi-select
+	 via the checkbox column gates delete (multi) and rename (single). Drop files onto the table to
+	 upload them into the current directory. ZIP/firmware auto-extract and ZIP download still live
+	 in follow-up commits -->
 <template>
 	<v-card>
 		<v-toolbar density="compact" color="surface" class="px-2">
@@ -35,6 +36,11 @@
 				<v-icon>mdi-delete</v-icon>
 			</v-btn>
 
+			<v-btn v-if="!noUpload" variant="text" icon :disabled="uiStore.uiFrozen || uploading"
+				   :loading="uploading" :title="$t('button.upload.caption')" @click="pickFiles">
+				<v-icon>mdi-cloud-upload</v-icon>
+			</v-btn>
+
 			<v-btn v-if="!noNewFile" variant="text" icon :disabled="uiStore.uiFrozen"
 				   :title="$t('button.newFile.caption')" @click="startNewFile">
 				<v-icon>mdi-file-plus</v-icon>
@@ -51,10 +57,13 @@
 			</v-btn>
 		</v-toolbar>
 
-		<v-data-table v-model="selection" :headers="effectiveHeaders" :items="browser.filelist.value"
-					  item-value="name" :loading="browser.loading.value" :sort-by="internalSortBy" must-sort
-					  hide-default-footer items-per-page="-1" density="compact" show-select
-					  :no-data-text="$t(noItemsText)" @click:row="onRowClick">
+		<div :class="{ 'file-drop-target': true, 'file-drop-target--active': dragActive }"
+			 @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
+			 @drop.prevent="onDrop">
+			<v-data-table v-model="selection" :headers="effectiveHeaders" :items="browser.filelist.value"
+						  item-value="name" :loading="browser.loading.value" :sort-by="internalSortBy" must-sort
+						  hide-default-footer items-per-page="-1" density="compact" show-select
+						  :no-data-text="$t(noItemsText)" @click:row="onRowClick">
 			<template #item.name="{ item }">
 				<div class="d-flex align-center">
 					<v-icon size="small" class="mr-2">
@@ -69,8 +78,11 @@
 			<template #item.lastModified="{ item }">
 				{{ item.lastModified ? item.lastModified.toLocaleString() : $t("generic.noValue") }}
 			</template>
-		</v-data-table>
+			</v-data-table>
+		</div>
 	</v-card>
+
+	<input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
 
 	<InputDialog v-model:shown="inputDialog.shown" :title="inputDialog.title" :prompt="inputDialog.prompt"
 				 :preset="inputDialog.preset" @confirmed="onInputConfirmed" />
@@ -127,6 +139,10 @@ const props = defineProps<{
 	 * Hide the rename toolbar button
 	 */
 	noRename?: boolean;
+	/**
+	 * Hide the upload toolbar button (also disables drag/drop)
+	 */
+	noUpload?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -301,4 +317,108 @@ async function performDelete() {
 	}
 	selection.value = [];
 }
+
+// --- Upload ----------------------------------------------------------------------------------
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const uploading = ref(false);
+const dragActive = ref(false);
+let dragDepth = 0;
+
+function pickFiles() {
+	if (uploading.value) {
+		return;
+	}
+	fileInput.value?.click();
+}
+
+async function onFilesPicked(e: Event) {
+	const target = e.target as HTMLInputElement;
+	const files = target.files;
+	if (!files || files.length === 0) {
+		return;
+	}
+	try {
+		await uploadFiles(Array.from(files));
+	} finally {
+		target.value = "";
+	}
+}
+
+async function uploadFiles(files: Array<File>) {
+	if (props.noUpload || files.length === 0) {
+		return;
+	}
+	uploading.value = true;
+	try {
+		const dir = browser.directory.value;
+		const payload = files.map((file) => ({
+			filename: Path.combine(dir, file.name),
+			content: file,
+		}));
+		await machineStore.upload(payload);
+	} catch (e) {
+		console.warn(e);
+	} finally {
+		uploading.value = false;
+	}
+}
+
+// Drag/drop counts enter/leave to keep the active highlight stable across child elements that
+// would otherwise fire spurious dragleave events
+function onDragEnter(event: DragEvent) {
+	if (props.noUpload || !hasFiles(event)) {
+		return;
+	}
+	dragDepth += 1;
+	dragActive.value = true;
+}
+
+function onDragOver(event: DragEvent) {
+	if (props.noUpload || !hasFiles(event)) {
+		return;
+	}
+	if (event.dataTransfer) {
+		event.dataTransfer.dropEffect = "copy";
+	}
+}
+
+function onDragLeave() {
+	if (props.noUpload) {
+		return;
+	}
+	dragDepth = Math.max(0, dragDepth - 1);
+	if (dragDepth === 0) {
+		dragActive.value = false;
+	}
+}
+
+async function onDrop(event: DragEvent) {
+	dragDepth = 0;
+	dragActive.value = false;
+	if (props.noUpload || !event.dataTransfer || event.dataTransfer.files.length === 0) {
+		return;
+	}
+	await uploadFiles(Array.from(event.dataTransfer.files));
+}
+
+function hasFiles(event: DragEvent): boolean {
+	const types = event.dataTransfer?.types;
+	return !!types && Array.from(types).includes("Files");
+}
 </script>
+
+<style scoped>
+.file-drop-target {
+	position: relative;
+}
+
+.file-drop-target--active::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	border: 2px dashed rgb(var(--v-theme-primary));
+	background-color: rgba(var(--v-theme-primary), 0.06);
+	pointer-events: none;
+}
+</style>

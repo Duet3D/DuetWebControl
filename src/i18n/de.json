@@ -281,6 +281,9 @@
     "refresh": {
       "caption": "Aktualisieren"
     },
+    "upload": {
+      "caption": "Hochladen"
+    },
     "newFile": {
       "caption": "Neue Datei"
     },
