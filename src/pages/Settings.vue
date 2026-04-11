@@ -1,0 +1,195 @@
+<!-- Settings page. Single route with tabs for General + Plugins. The future Machine and Webcam
+	 panels go on the General tab once their per-panel UI is ported; plugin install/uninstall,
+	 webcam preview, settings import/export still live in follow-up commits -->
+<route lang="json">
+{
+	"meta": {
+		"menu": {
+			"category": "settings",
+			"icon": "mdi-wrench",
+			"caption": "menu.settings.caption",
+			"order": 10
+		}
+	}
+}
+</route>
+
+<template>
+	<v-card>
+		<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact">
+			<v-tab v-for="tab in settingsTabs" :key="tab.key" :value="tab.key" class="text-none">
+				<v-icon size="small" class="mr-2">{{ tab.icon }}</v-icon>
+				{{ $t(tab.captionKey) }}
+			</v-tab>
+		</v-tabs>
+
+		<v-window v-model="activeTab" :touch="false">
+			<v-window-item value="general" eager>
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-palette</v-icon>
+									{{ $t("settings.appearance.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.darkTheme" color="primary"
+											  :label="$t('settings.appearance.darkTheme')" density="comfortable"
+											  hide-details />
+									<v-select v-model="settingsStore.locale" :items="languageOptions" item-title="label"
+											  item-value="value" :label="$t('settings.appearance.language')"
+											  variant="outlined" density="comfortable" hide-details class="mt-4" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-counter</v-icon>
+									{{ $t("settings.units.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.useBinaryPrefix" color="primary"
+											  :label="$t('settings.units.binaryPrefix')"
+											  :hint="$t('settings.units.binaryPrefixHint')" density="comfortable"
+											  persistent-hint />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-bell</v-icon>
+									{{ $t("settings.notifications.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.notifications.errorsPersistent" color="primary"
+											  :label="$t('settings.notifications.errorsPersistent')" density="comfortable"
+											  hide-details />
+									<v-slider v-model="notificationTimeoutSeconds" :min="1" :max="30" step="1"
+											  :label="$t('settings.notifications.timeout')" thumb-label class="mt-4"
+											  hide-details />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-cog-sync</v-icon>
+									{{ $t("settings.machine.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-text-field v-model.number="settingsStore.updateInterval" type="number"
+												  :label="$t('settings.machine.updateInterval')" :hint="$t('settings.machine.updateIntervalHint')"
+												  variant="outlined" density="comfortable" persistent-hint suffix="ms" />
+									<v-switch v-model="settingsStore.crcUploads" color="primary"
+											  :label="$t('settings.machine.crcUploads')" density="comfortable"
+											  class="mt-2" hide-details />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="plugins">
+				<v-container fluid>
+					<v-alert v-if="plugins.length === 0" type="info" variant="tonal" class="ma-0">
+						{{ $t("settings.plugins.noPlugins") }}
+					</v-alert>
+
+					<v-table v-else density="compact">
+						<thead>
+							<tr>
+								<th class="text-left">{{ $t("settings.plugins.headers.name") }}</th>
+								<th class="text-left">{{ $t("settings.plugins.headers.author") }}</th>
+								<th class="text-left">{{ $t("settings.plugins.headers.version") }}</th>
+								<th class="text-left">{{ $t("settings.plugins.headers.license") }}</th>
+								<th class="text-left">{{ $t("settings.plugins.headers.status") }}</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="plugin in plugins" :key="plugin.id">
+								<td>
+									{{ plugin.name }}
+									<v-chip v-if="isBuiltin(plugin.id)" size="x-small" class="ml-2">
+										{{ $t("settings.plugins.builtin") }}
+									</v-chip>
+								</td>
+								<td>{{ plugin.author }}</td>
+								<td>{{ plugin.version }}</td>
+								<td>{{ plugin.license || $t("generic.noValue") }}</td>
+								<td>
+									<v-chip size="x-small" :color="enabledPluginIds.includes(plugin.id) ? 'success' : 'default'">
+										{{ enabledPluginIds.includes(plugin.id)
+											? $t("settings.plugins.started") : $t("settings.plugins.stopped") }}
+									</v-chip>
+								</td>
+							</tr>
+						</tbody>
+					</v-table>
+				</v-container>
+			</v-window-item>
+		</v-window>
+	</v-card>
+</template>
+
+<script setup lang="ts">
+import type { Plugin } from "@duet3d/objectmodel";
+
+import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore } from "@/stores/settings";
+
+interface SettingsTab {
+	key: string;
+	icon: string;
+	captionKey: string;
+}
+
+const settingsTabs: Array<SettingsTab> = [
+	{ key: "general", icon: "mdi-tune", captionKey: "settings.tabs.general" },
+	{ key: "plugins", icon: "mdi-puzzle", captionKey: "settings.tabs.plugins" },
+];
+
+const machineStore = useMachineStore();
+const settingsStore = useSettingsStore();
+
+const activeTab = ref<string>("general");
+
+const languageOptions = computed(() => [
+	{ label: "English", value: "en" },
+	{ label: "Deutsch", value: "de" },
+]);
+
+// Slider works in seconds; the store keeps milliseconds. Two-way computed bridges the units
+const notificationTimeoutSeconds = computed({
+	get: () => Math.round(settingsStore.notifications.timeout / 1000),
+	set: (v: number) => {
+		settingsStore.notifications.timeout = v * 1000;
+	},
+});
+
+const builtinPluginIds = new Set(["HeightMap", "ObjectModelBrowser"]);
+
+const plugins = computed<Array<Plugin>>(() => {
+	const dictionary = machineStore.model.plugins;
+	const list: Array<Plugin> = [];
+	for (const entry of dictionary.values()) {
+		if (entry !== null) {
+			list.push(entry);
+		}
+	}
+	list.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+	return list;
+});
+
+const enabledPluginIds = computed(() => settingsStore.enabledPlugins);
+
+function isBuiltin(id: string): boolean {
+	return builtinPluginIds.has(id);
+}
+</script>

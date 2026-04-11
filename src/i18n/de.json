@@ -566,6 +566,47 @@
       "wcs": "Werkstückkoordinatensystem"
     }
   },
+  "settings": {
+    "tabs": {
+      "general": "Allgemein",
+      "plugins": "Plugins"
+    },
+    "appearance": {
+      "caption": "Darstellung",
+      "darkTheme": "Dunkles Design",
+      "language": "Sprache"
+    },
+    "units": {
+      "caption": "Einheiten",
+      "binaryPrefix": "Binäre Einheitenpräfixe",
+      "binaryPrefixHint": "KiB/MiB/GiB anstelle von KB/MB/GB verwenden"
+    },
+    "notifications": {
+      "caption": "Benachrichtigungen",
+      "errorsPersistent": "Fehlermeldungen bleiben bis zur Bestätigung sichtbar",
+      "timeout": "Standardzeit für Benachrichtigungen (Sekunden)"
+    },
+    "machine": {
+      "caption": "Maschine",
+      "updateInterval": "Aktualisierungsintervall des Objektmodells",
+      "updateIntervalHint": "Zeit zwischen vollständigen Objektmodell-Aktualisierungen",
+      "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren"
+    },
+    "plugins": {
+      "caption": "Plugins",
+      "noPlugins": "Derzeit sind keine Plugins installiert.",
+      "builtin": "integriert",
+      "started": "Gestartet",
+      "stopped": "Gestoppt",
+      "headers": {
+        "name": "Name",
+        "author": "Autor",
+        "version": "Version",
+        "license": "Lizenz",
+        "status": "Status"
+      }
+    }
+  },
   "menu": {
     "control": {
       "caption": "Steuerung",

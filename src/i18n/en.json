@@ -564,6 +564,47 @@
       "wcs": "Work Coordinate System"
     }
   },
+  "settings": {
+    "tabs": {
+      "general": "General",
+      "plugins": "Plugins"
+    },
+    "appearance": {
+      "caption": "Appearance",
+      "darkTheme": "Dark theme",
+      "language": "Language"
+    },
+    "units": {
+      "caption": "Units",
+      "binaryPrefix": "Binary unit prefixes",
+      "binaryPrefixHint": "Use KiB/MiB/GiB instead of KB/MB/GB"
+    },
+    "notifications": {
+      "caption": "Notifications",
+      "errorsPersistent": "Error messages stay until dismissed",
+      "timeout": "Default notification timeout (seconds)"
+    },
+    "machine": {
+      "caption": "Machine",
+      "updateInterval": "Object model update interval",
+      "updateIntervalHint": "Time between full object-model refreshes",
+      "crcUploads": "Verify uploads with a CRC checksum"
+    },
+    "plugins": {
+      "caption": "Plugins",
+      "noPlugins": "No plugins are currently installed.",
+      "builtin": "built-in",
+      "started": "Started",
+      "stopped": "Stopped",
+      "headers": {
+        "name": "Name",
+        "author": "Author",
+        "version": "Version",
+        "license": "License",
+        "status": "Status"
+      }
+    }
+  },
   "menu": {
     "control": {
       "caption": "Control",
