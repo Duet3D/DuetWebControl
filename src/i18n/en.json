@@ -347,6 +347,11 @@
       "goUp": "Go up",
       "noFiles": "No Files"
     },
+    "fileList": {
+      "open": "Open",
+      "download": "Download",
+      "downloadZIP": "Download as ZIP"
+    },
     "explorer": {
       "root": "Files",
       "newTab": "Open new tab",

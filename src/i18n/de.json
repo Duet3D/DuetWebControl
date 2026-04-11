@@ -349,6 +349,11 @@
       "goUp": "Nach oben",
       "noFiles": "Keine Dateien"
     },
+    "fileList": {
+      "open": "Öffnen",
+      "download": "Herunterladen",
+      "downloadZIP": "Als ZIP herunterladen"
+    },
     "explorer": {
       "root": "Dateien",
       "newTab": "Neuen Tab öffnen",

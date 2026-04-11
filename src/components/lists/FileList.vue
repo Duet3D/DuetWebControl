@@ -63,7 +63,7 @@
 			<v-data-table v-model="selection" :headers="effectiveHeaders" :items="browser.filelist.value"
 						  item-value="name" :loading="browser.loading.value" :sort-by="internalSortBy" must-sort
 						  hide-default-footer items-per-page="-1" density="compact" show-select
-						  :no-data-text="$t(noItemsText)" @click:row="onRowClick">
+						  :row-props="rowProps" :no-data-text="$t(noItemsText)" @click:row="onRowClick">
 			<template #item.name="{ item }">
 				<div class="d-flex align-center">
 					<v-icon size="small" class="mr-2">
@@ -83,6 +83,43 @@
 	</v-card>
 
 	<input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
+
+	<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
+		<v-list density="compact">
+			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory" @click="openFromContext">
+				<template #prepend>
+					<v-icon>{{ openIcon }}</v-icon>
+				</template>
+				<v-list-item-title>{{ openLabel }}</v-list-item-title>
+			</v-list-item>
+			<v-list-item v-if="contextMenu.target && contextMenu.target.isDirectory" @click="navigateFromContext">
+				<template #prepend>
+					<v-icon>mdi-folder-open</v-icon>
+				</template>
+				<v-list-item-title>{{ $t("list.fileList.open") }}</v-list-item-title>
+			</v-list-item>
+			<v-list-item v-if="!noDownload && hasFileInSelection" @click="startDownload">
+				<template #prepend>
+					<v-icon>mdi-cloud-download</v-icon>
+				</template>
+				<v-list-item-title>
+					{{ selection.length > 1 ? $t("list.fileList.downloadZIP") : $t("list.fileList.download") }}
+				</v-list-item-title>
+			</v-list-item>
+			<v-list-item v-if="!noRename && selection.length === 1" @click="startRename">
+				<template #prepend>
+					<v-icon>mdi-rename-box</v-icon>
+				</template>
+				<v-list-item-title>{{ $t("button.rename.caption") }}</v-list-item-title>
+			</v-list-item>
+			<v-list-item v-if="!noDelete && selection.length > 0" @click="startDelete">
+				<template #prepend>
+					<v-icon>mdi-delete</v-icon>
+				</template>
+				<v-list-item-title>{{ $t("button.delete.caption") }}</v-list-item-title>
+			</v-list-item>
+		</v-list>
+	</v-menu>
 
 	<InputDialog v-model:shown="inputDialog.shown" :title="inputDialog.title" :prompt="inputDialog.prompt"
 				 :preset="inputDialog.preset" @confirmed="onInputConfirmed" />
@@ -143,6 +180,10 @@ const props = defineProps<{
 	 * Hide the upload toolbar button (also disables drag/drop)
 	 */
 	noUpload?: boolean;
+	/**
+	 * Hide the download / ZIP-download action
+	 */
+	noDownload?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -405,6 +446,115 @@ async function onDrop(event: DragEvent) {
 function hasFiles(event: DragEvent): boolean {
 	const types = event.dataTransfer?.types;
 	return !!types && Array.from(types).includes("Files");
+}
+
+// --- Context menu + download ----------------------------------------------------------------
+
+const contextMenu = reactive({
+	shown: false,
+	x: 0,
+	y: 0,
+	target: null as FileBrowserItem | null,
+});
+
+const hasFileInSelection = computed(() => browser.filelist.value
+	.some((entry) => selection.value.includes(entry.name) && !entry.isDirectory));
+
+// Macros run via M98 instead of an editor, so the open icon reflects that when we're in a
+// macros directory. Anywhere else, plain "open in editor"
+const inMacrosDirectory = computed(() => Path.startsWith(browser.directory.value,
+	machineStore.model.directories.macros));
+const openIcon = computed(() => inMacrosDirectory.value ? "mdi-play" : "mdi-open-in-new");
+const openLabel = computed(() => inMacrosDirectory.value
+	? i18n.global.t("list.macro.run")
+	: i18n.global.t("list.fileList.open"));
+
+function rowProps({ item }: { item: FileBrowserItem }) {
+	return {
+		onContextmenu: (event: MouseEvent) => onRowContextMenu(event, item),
+	};
+}
+
+function onRowContextMenu(event: MouseEvent, item: FileBrowserItem) {
+	event.preventDefault();
+	event.stopPropagation();
+
+	// Auto-select the right-clicked row unless the user explicitly multi-selected first
+	if (!selection.value.includes(item.name)) {
+		selection.value = [item.name];
+	}
+
+	contextMenu.target = item;
+	contextMenu.x = event.clientX;
+	contextMenu.y = event.clientY;
+	contextMenu.shown = false;
+	nextTick(() => {
+		contextMenu.shown = true;
+	});
+}
+
+function openFromContext() {
+	contextMenu.shown = false;
+	const target = contextMenu.target;
+	if (!target || target.isDirectory) {
+		return;
+	}
+	emit("fileClick", target, browser.directory.value);
+}
+
+function navigateFromContext() {
+	contextMenu.shown = false;
+	const target = contextMenu.target;
+	if (!target || !target.isDirectory) {
+		return;
+	}
+	browser.navigateInto(target.name);
+}
+
+async function startDownload() {
+	contextMenu.shown = false;
+	const items = browser.filelist.value.filter((entry) => selection.value.includes(entry.name));
+	const files = items.filter((entry) => !entry.isDirectory);
+	if (files.length === 0) {
+		return;
+	}
+
+	const dir = browser.directory.value;
+	try {
+		if (files.length === 1) {
+			const file = files[0];
+			const blob = await machineStore.download({ filename: Path.combine(dir, file.name), type: "blob" });
+			saveBlob(file.name, blob);
+		} else {
+			await downloadZip(dir, files.map((file) => file.name));
+		}
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.download.error", [files[0]?.name ?? ""]),
+			getErrorMessage(e));
+	}
+}
+
+async function downloadZip(dir: string, names: Array<string>) {
+	const { default: JSZip } = await import("jszip");
+	const zip = new JSZip();
+	for (const name of names) {
+		const blob = await machineStore.download({ filename: Path.combine(dir, name), type: "blob" }, false);
+		zip.file(name, blob);
+	}
+	const archive = await zip.generateAsync({ type: "blob" });
+	saveBlob("files.zip", archive);
+}
+
+function saveBlob(filename: string, blob: Blob) {
+	const url = URL.createObjectURL(blob);
+	const anchor = document.createElement("a");
+	anchor.href = url;
+	anchor.download = filename;
+	document.body.appendChild(anchor);
+	anchor.click();
+	document.body.removeChild(anchor);
+	URL.revokeObjectURL(url);
 }
 </script>
 
