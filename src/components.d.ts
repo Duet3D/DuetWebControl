@@ -47,6 +47,7 @@ declare module 'vue' {
     MacroList: typeof import('./components/lists/MacroList.vue')['default']
     MeshEditDialog: typeof import('./components/dialogs/MeshEditDialog.vue')['default']
     MessageBoxDialog: typeof import('./components/dialogs/MessageBoxDialog.vue')['default']
+    MonacoEditor: typeof import('./components/editor/MonacoEditor.vue')['default']
     MovementPanel: typeof import('./components/panels/MovementPanel.vue')['default']
     NotificationDisplay: typeof import('./components/misc/NotificationDisplay.vue')['default']
     PanelLink: typeof import('./components/misc/PanelLink.vue')['default']

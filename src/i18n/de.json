@@ -39,6 +39,13 @@
       "title": "Makro {0} ausführen?",
       "prompt": "Möchten Sie {0} ausführen?"
     },
+    "fileEdit": {
+      "save": "Speichern",
+      "revert": "Verwerfen",
+      "saveFailed": "Konnte {0} nicht speichern",
+      "discardTitle": "Änderungen verwerfen?",
+      "discardPrompt": "Es gibt nicht gespeicherte Änderungen. Soll die Datei wirklich geschlossen werden?"
+    },
     "newFile": {
       "title": "Neue Datei",
       "prompt": "Bitte einen Namen für die neue Datei eingeben:"
@@ -363,9 +370,7 @@
         "filaments": "Filamente",
         "system": "System",
         "files": "Dateien"
-      },
-      "editorNotPorted": "Editor noch nicht verfügbar",
-      "downloadNotPorted": "Download noch nicht verfügbar"
+      }
     }
   },
   "jobProgress": {

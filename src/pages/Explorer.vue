@@ -1,8 +1,8 @@
-<!-- Multi-tab file explorer. Each tab hosts its own FileList against a tab-specific entry point
-	 (macros, filaments, system, or the volume root). The "+" menu adds tabs for each kind; tabs
-	 close from the close-x on the v-tab once more than one is open. Per the modernization plan,
-	 deep-linking, multi-select, drag/drop, rename/delete, upload and ZIP download still live in
-	 follow-up commits -->
+<!-- Multi-tab file explorer. Browser tabs host a FileList against a tab-specific entry point
+	 (macros, filaments, system, or the volume root); editor tabs host the Monaco editor for a
+	 single file. The "+" menu adds browser tabs for each kind; files opened via fileClick get
+	 their own editor tab. Per the modernization plan, deep-linking still lives in a follow-up
+	 commit -->
 <route lang="json">
 {
 	"meta": {
@@ -21,8 +21,8 @@
 		<v-toolbar density="compact" color="surface">
 			<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
 				<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none">
-					<v-icon size="small" class="mr-2">{{ tabKinds[tab.kind].icon }}</v-icon>
-					{{ $t(tabKinds[tab.kind].captionKey) }}
+					<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
+					<span class="text-truncate" style="max-width: 16rem">{{ tabLabel(tab) }}</span>
 					<v-btn v-if="tabs.length > 1" variant="plain" size="x-small" density="compact"
 						   class="ml-2" :title="$t('list.explorer.closeTab')" @click.stop="closeTab(tab.id)">
 						<v-icon size="x-small">mdi-close</v-icon>
@@ -38,7 +38,8 @@
 					</v-btn>
 				</template>
 				<v-list density="compact">
-					<v-list-item v-for="(meta, kind) in tabKinds" :key="kind" @click="addTab(kind as TabKind)">
+					<v-list-item v-for="(meta, kind) in browserKinds" :key="kind"
+								 @click="addBrowserTab(kind as BrowserKind)">
 						<template #prepend>
 							<v-icon>{{ meta.icon }}</v-icon>
 						</template>
@@ -50,9 +51,12 @@
 
 		<v-window v-model="activeTab" :touch="false">
 			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager>
-				<FileList :options="{ initialDirectory: tabKinds[tab.kind].directory() }"
+				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename" :filename="tab.filename"
+							  @close="closeTab(tab.id)" />
+				<FileList v-else :options="{ initialDirectory: browserKinds[tab.kind as BrowserKind].directory() }"
 						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
-						  :no-items-text="tabKinds[tab.kind].noItemsKey" @file-click="onFileClick" />
+						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
+						  @file-click="onFileClick" />
 			</v-window-item>
 		</v-window>
 	</v-card>
@@ -67,14 +71,15 @@
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
+import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
 import Path from "@/utils/path";
 
-type TabKind = "macros" | "filaments" | "system" | "files";
+type BrowserKind = "macros" | "filaments" | "system" | "files";
+type TabKind = BrowserKind | "editor";
 
-interface TabKindMeta {
+interface BrowserKindMeta {
 	icon: string;
 	captionKey: string;
 	noItemsKey: string;
@@ -84,12 +89,15 @@ interface TabKindMeta {
 interface ExplorerTab {
 	id: number;
 	kind: TabKind;
+	/**
+	 * Filename for editor tabs (undefined for browser tabs)
+	 */
+	filename?: string;
 }
 
 const machineStore = useMachineStore();
-const uiStore = useUiStore();
 
-const tabKinds: Record<TabKind, TabKindMeta> = {
+const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 	macros: {
 		icon: "mdi-polymer",
 		captionKey: "list.explorer.tabs.macros",
@@ -131,8 +139,34 @@ const runMacroDialog = reactive({
 	fullPath: "",
 });
 
-function addTab(kind: TabKind) {
-	const tab = { id: nextTabId++, kind };
+function tabIcon(tab: ExplorerTab): string {
+	if (tab.kind === "editor") {
+		return "mdi-file-document-edit";
+	}
+	return browserKinds[tab.kind as BrowserKind].icon;
+}
+
+function tabLabel(tab: ExplorerTab): string {
+	if (tab.kind === "editor" && tab.filename) {
+		return Path.extractFileName(tab.filename);
+	}
+	return i18n.global.t(browserKinds[tab.kind as BrowserKind].captionKey);
+}
+
+function addBrowserTab(kind: BrowserKind) {
+	const tab: ExplorerTab = { id: nextTabId++, kind };
+	tabs.value.push(tab);
+	activeTab.value = tab.id;
+}
+
+function openEditorTab(filename: string) {
+	// If we already have an editor tab for this file, just activate it
+	const existing = tabs.value.find((t) => t.kind === "editor" && t.filename === filename);
+	if (existing) {
+		activeTab.value = existing.id;
+		return;
+	}
+	const tab: ExplorerTab = { id: nextTabId++, kind: "editor", filename };
 	tabs.value.push(tab);
 	activeTab.value = tab.id;
 }
@@ -152,7 +186,6 @@ function closeTab(id: number) {
 
 function onFileClick(item: FileBrowserItem, directory: string) {
 	const fullPath = Path.combine(directory, item.name);
-	const lower = item.name.toLowerCase();
 
 	if (Path.startsWith(directory, machineStore.model.directories.macros)) {
 		runMacroDialog.filename = item.name;
@@ -161,14 +194,7 @@ function onFileClick(item: FileBrowserItem, directory: string) {
 		return;
 	}
 
-	if (lower.endsWith(".bin") || lower.endsWith(".uf2")) {
-		// Firmware download is part of the feature-parity work; surface a placeholder until then
-		uiStore.log(LogLevel.warning, i18n.global.t("list.explorer.downloadNotPorted"), item.name);
-		return;
-	}
-
-	// Generic edit path goes through Monaco, which is also not ported yet
-	uiStore.log(LogLevel.warning, i18n.global.t("list.explorer.editorNotPorted"), item.name);
+	openEditorTab(fullPath);
 }
 
 async function confirmRunMacro() {

@@ -39,6 +39,13 @@
       "title": "Run macro {0}?",
       "prompt": "Do you want to run {0}?"
     },
+    "fileEdit": {
+      "save": "Save",
+      "revert": "Revert",
+      "saveFailed": "Failed to save {0}",
+      "discardTitle": "Discard changes?",
+      "discardPrompt": "There are unsaved changes. Are you sure you want to close this file?"
+    },
     "newFile": {
       "title": "New File",
       "prompt": "Please enter a name for the new file:"
@@ -361,9 +368,7 @@
         "filaments": "Filaments",
         "system": "System",
         "files": "Files"
-      },
-      "editorNotPorted": "Editor not available yet",
-      "downloadNotPorted": "Download not available yet"
+      }
     }
   },
   "jobProgress": {
