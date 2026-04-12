@@ -96,6 +96,91 @@
 				</v-container>
 			</v-window-item>
 
+			<v-window-item value="webcam">
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12" md="8">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-webcam</v-icon>
+									{{ $t("settings.webcam.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.webcam.enabled" color="primary"
+											  :label="$t('settings.webcam.enabled')" density="comfortable"
+											  hide-details />
+									<v-text-field v-model="settingsStore.webcam.url"
+												  :label="$t('settings.webcam.url')" variant="outlined"
+												  density="comfortable" hide-details class="mt-4" />
+									<v-text-field v-model="settingsStore.webcam.liveUrl"
+												  :label="$t('settings.webcam.liveUrl')"
+												  :hint="$t('settings.webcam.liveUrlHint')" variant="outlined"
+												  density="comfortable" persistent-hint class="mt-4" />
+									<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
+												  :label="$t('settings.webcam.updateInterval')" variant="outlined"
+												  density="comfortable" hide-details class="mt-4" suffix="ms" />
+									<v-switch v-model="settingsStore.webcam.embedded" color="primary"
+											  :label="$t('settings.webcam.embedded')"
+											  :hint="$t('settings.webcam.embeddedHint')" density="comfortable"
+											  persistent-hint class="mt-2" />
+									<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
+											  item-title="label" item-value="value"
+											  :label="$t('settings.webcam.flip')" variant="outlined"
+											  density="comfortable" hide-details class="mt-4" />
+									<v-text-field v-model.number="settingsStore.webcam.rotation" type="number"
+												  :label="$t('settings.webcam.rotation')" variant="outlined"
+												  density="comfortable" hide-details class="mt-4" suffix="°" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="communication">
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-lan</v-icon>
+									{{ $t("settings.communication.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-text-field v-model.number="settingsStore.maxRetries" type="number"
+												  :label="$t('settings.communication.maxRetries')" variant="outlined"
+												  density="comfortable" hide-details min="0" />
+									<v-text-field v-model.number="settingsStore.retryDelay" type="number"
+												  :label="$t('settings.communication.retryDelay')" variant="outlined"
+												  density="comfortable" hide-details class="mt-4" suffix="ms" />
+									<v-text-field v-model.number="settingsStore.pingInterval" type="number"
+												  :label="$t('settings.communication.pingInterval')" variant="outlined"
+												  density="comfortable" hide-details class="mt-4" suffix="ms" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-file-upload</v-icon>
+									{{ $t("settings.communication.transferCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-text-field v-model.number="settingsStore.fileTransferRetryThreshold"
+												  type="number" :label="$t('settings.communication.retryThreshold')"
+												  :hint="$t('settings.communication.retryThresholdHint')"
+												  variant="outlined" density="comfortable" persistent-hint
+												  suffix="B" />
+									<v-switch v-model="settingsStore.ignoreFileTimestamps" color="primary"
+											  :label="$t('settings.communication.ignoreFileTimestamps')"
+											  density="comfortable" hide-details class="mt-2" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
 			<v-window-item value="plugins">
 				<v-container fluid>
 					<div class="d-flex align-center mb-3">
@@ -162,6 +247,60 @@
 					</v-table>
 				</v-container>
 			</v-window-item>
+
+			<v-window-item value="about">
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-information</v-icon>
+									{{ $t("settings.about.dwc") }}
+								</v-card-title>
+								<v-card-text>
+									<div><strong>{{ $t("settings.about.version") }}:</strong> {{ dwcVersion }}</div>
+									<div class="mt-2">
+										<strong>{{ $t("settings.about.hostname") }}:</strong>
+										{{ machineStore.model.network.hostname || $t("generic.noValue") }}
+									</div>
+								</v-card-text>
+							</v-card>
+						</v-col>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-chip</v-icon>
+									{{ $t("settings.about.boards") }}
+								</v-card-title>
+								<v-card-text>
+									<v-alert v-if="boards.length === 0" type="info" variant="tonal" class="mb-0">
+										{{ $t("settings.about.noBoards") }}
+									</v-alert>
+									<v-table v-else density="compact">
+										<thead>
+											<tr>
+												<th class="text-left">{{ $t("settings.about.boardName") }}</th>
+												<th class="text-left">{{ $t("settings.about.boardFirmware") }}</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr v-for="(board, idx) in boards" :key="idx">
+												<td>{{ board.name || $t("generic.noValue") }}</td>
+												<td>
+													{{ board.firmwareName }} {{ board.firmwareVersion }}
+													<span v-if="board.firmwareDate" class="text-medium-emphasis">
+														({{ board.firmwareDate }})
+													</span>
+												</td>
+											</tr>
+										</tbody>
+									</v-table>
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
 		</v-window>
 	</v-card>
 
@@ -180,9 +319,11 @@ import i18n from "@/i18n";
 import { isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
 import Events from "@/utils/events";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
+import { useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
+
+import packageInfo from "../../package.json";
 
 interface SettingsTab {
 	key: string;
@@ -192,7 +333,10 @@ interface SettingsTab {
 
 const settingsTabs: Array<SettingsTab> = [
 	{ key: "general", icon: "mdi-tune", captionKey: "settings.tabs.general" },
+	{ key: "webcam", icon: "mdi-webcam", captionKey: "settings.tabs.webcam" },
+	{ key: "communication", icon: "mdi-lan", captionKey: "settings.tabs.communication" },
 	{ key: "plugins", icon: "mdi-puzzle", captionKey: "settings.tabs.plugins" },
+	{ key: "about", icon: "mdi-information", captionKey: "settings.tabs.about" },
 ];
 
 const machineStore = useMachineStore();
@@ -205,6 +349,17 @@ const languageOptions = computed(() => [
 	{ label: "English", value: "en" },
 	{ label: "Deutsch", value: "de" },
 ]);
+
+const flipOptions = computed(() => [
+	{ label: i18n.global.t("settings.webcam.flipOptions.none"), value: WebcamFlip.None },
+	{ label: i18n.global.t("settings.webcam.flipOptions.x"), value: WebcamFlip.X },
+	{ label: i18n.global.t("settings.webcam.flipOptions.y"), value: WebcamFlip.Y },
+	{ label: i18n.global.t("settings.webcam.flipOptions.both"), value: WebcamFlip.Both },
+]);
+
+const dwcVersion = packageInfo.version;
+
+const boards = computed(() => machineStore.model.boards.filter((board) => board !== null));
 
 // Slider works in seconds; the store keeps milliseconds. Two-way computed bridges the units
 const notificationTimeoutSeconds = computed({

@@ -569,7 +569,10 @@
   "settings": {
     "tabs": {
       "general": "Allgemein",
-      "plugins": "Plugins"
+      "webcam": "Webcam",
+      "communication": "Kommunikation",
+      "plugins": "Plugins",
+      "about": "Info"
     },
     "appearance": {
       "caption": "Darstellung",
@@ -591,6 +594,43 @@
       "updateInterval": "Aktualisierungsintervall des Objektmodells",
       "updateIntervalHint": "Zeit zwischen vollständigen Objektmodell-Aktualisierungen",
       "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren"
+    },
+    "webcam": {
+      "caption": "Webcam",
+      "enabled": "Webcam anzeigen",
+      "url": "Bild-URL",
+      "liveUrl": "Live-Stream-URL",
+      "liveUrlHint": "Wird beim Klick auf das Webcambild geöffnet",
+      "updateInterval": "Aktualisierungsintervall",
+      "embedded": "Als iframe einbetten",
+      "embeddedHint": "Verwenden, wenn die Quelle eine HTML-Seite und kein einzelnes Bild ist",
+      "flip": "Spiegeln",
+      "rotation": "Drehung",
+      "flipOptions": {
+        "none": "Keine",
+        "x": "Horizontal",
+        "y": "Vertikal",
+        "both": "Beide"
+      }
+    },
+    "communication": {
+      "caption": "Abruf",
+      "transferCaption": "Dateiübertragung",
+      "maxRetries": "Maximale HTTP-Wiederholungen",
+      "retryDelay": "Verzögerung zwischen Wiederholungen",
+      "pingInterval": "Ping-Intervall",
+      "retryThreshold": "Wiederholungsgröße",
+      "retryThresholdHint": "HTTP-Anfragen bis zu dieser Größe werden bei transienten Fehlern wiederholt",
+      "ignoreFileTimestamps": "Letztes Änderungsdatum beim Upload weglassen"
+    },
+    "about": {
+      "dwc": "Duet Web Control",
+      "version": "Version",
+      "hostname": "Verbundener Host",
+      "boards": "Boards",
+      "boardName": "Board",
+      "boardFirmware": "Firmware",
+      "noBoards": "Keine Boardinformationen verfügbar."
     },
     "plugins": {
       "caption": "Plugins",

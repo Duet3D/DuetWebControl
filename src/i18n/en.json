@@ -567,7 +567,10 @@
   "settings": {
     "tabs": {
       "general": "General",
-      "plugins": "Plugins"
+      "webcam": "Webcam",
+      "communication": "Communication",
+      "plugins": "Plugins",
+      "about": "About"
     },
     "appearance": {
       "caption": "Appearance",
@@ -589,6 +592,43 @@
       "updateInterval": "Object model update interval",
       "updateIntervalHint": "Time between full object-model refreshes",
       "crcUploads": "Verify uploads with a CRC checksum"
+    },
+    "webcam": {
+      "caption": "Webcam",
+      "enabled": "Show webcam feed",
+      "url": "Image URL",
+      "liveUrl": "Live stream URL",
+      "liveUrlHint": "Opened when the webcam image is clicked",
+      "updateInterval": "Update interval",
+      "embedded": "Embed as iframe",
+      "embeddedHint": "Use when the source is a full HTML page rather than a single image",
+      "flip": "Flip",
+      "rotation": "Rotation",
+      "flipOptions": {
+        "none": "None",
+        "x": "Horizontal",
+        "y": "Vertical",
+        "both": "Both"
+      }
+    },
+    "communication": {
+      "caption": "Polling",
+      "transferCaption": "File transfers",
+      "maxRetries": "Maximum HTTP retries",
+      "retryDelay": "Retry delay",
+      "pingInterval": "Ping interval",
+      "retryThreshold": "Retry size threshold",
+      "retryThresholdHint": "HTTP requests up to this size are retried on transient errors",
+      "ignoreFileTimestamps": "Skip last-modified date on uploads"
+    },
+    "about": {
+      "dwc": "Duet Web Control",
+      "version": "Version",
+      "hostname": "Connected host",
+      "boards": "Boards",
+      "boardName": "Board",
+      "boardFirmware": "Firmware",
+      "noBoards": "No board information available."
     },
     "plugins": {
       "caption": "Plugins",
