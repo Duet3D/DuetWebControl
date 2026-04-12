@@ -211,11 +211,12 @@ export default class HeightMapViewer {
 			points.push(xpts);
 		}
 
+		const flatColors = ([] as Color4[]).concat(...colors);
 		this.ribbonMesh = MeshBuilder.CreateRibbon(
 			'ribbon',
 			{
 				pathArray: points,
-				colors: ([] as Color4[]).concat(...colors),
+				colors: flatColors.concat(flatColors),
 				sideOrientation: Mesh.DOUBLESIDE
 			},
 			this.scene
@@ -228,11 +229,12 @@ export default class HeightMapViewer {
 			colors[idx] = colors[idx].reverse();
 		}
 
+		const flatColorsReverse = ([] as Color4[]).concat(...colors);
 		this.ribbonMeshReverse = MeshBuilder.CreateRibbon(
 			'ribbon',
 			{
 				pathArray: points,
-				colors: ([] as Color4[]).concat(...colors),
+				colors: flatColorsReverse.concat(flatColorsReverse),
 				sideOrientation: Mesh.DOUBLESIDE
 			},
 			this.scene
