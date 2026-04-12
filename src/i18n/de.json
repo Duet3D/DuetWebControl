@@ -598,12 +598,23 @@
       "builtin": "integriert",
       "started": "Gestartet",
       "stopped": "Gestoppt",
+      "install": "Plugin installieren",
+      "start": "Starten",
+      "stop": "Stoppen",
+      "uninstall": "Deinstallieren",
+      "uninstallTitle": "Plugin deinstallieren?",
+      "uninstallPrompt": "Soll {0} wirklich deinstalliert werden?",
+      "startError": "Konnte Plugin {0} nicht starten",
+      "stopError": "Konnte Plugin {0} nicht stoppen",
+      "installError": "Konnte {0} nicht installieren",
+      "uninstallError": "Konnte {0} nicht deinstallieren",
       "headers": {
         "name": "Name",
         "author": "Autor",
         "version": "Version",
         "license": "Lizenz",
-        "status": "Status"
+        "status": "Status",
+        "actions": "Aktionen"
       }
     }
   },

@@ -596,12 +596,23 @@
       "builtin": "built-in",
       "started": "Started",
       "stopped": "Stopped",
+      "install": "Install plugin",
+      "start": "Start",
+      "stop": "Stop",
+      "uninstall": "Uninstall",
+      "uninstallTitle": "Uninstall plugin?",
+      "uninstallPrompt": "Are you sure you want to uninstall {0}?",
+      "startError": "Failed to start plugin {0}",
+      "stopError": "Failed to stop plugin {0}",
+      "installError": "Failed to install {0}",
+      "uninstallError": "Failed to uninstall {0}",
       "headers": {
         "name": "Name",
         "author": "Author",
         "version": "Version",
         "license": "License",
-        "status": "Status"
+        "status": "Status",
+        "actions": "Actions"
       }
     }
   },

@@ -98,6 +98,15 @@
 
 			<v-window-item value="plugins">
 				<v-container fluid>
+					<div class="d-flex align-center mb-3">
+						<v-spacer />
+						<v-btn color="primary" :loading="installing" :disabled="!machineStore.isConnected"
+							   @click="pickPluginZip">
+							<v-icon class="mr-1">mdi-cloud-upload</v-icon>
+							{{ $t("settings.plugins.install") }}
+						</v-btn>
+					</div>
+
 					<v-alert v-if="plugins.length === 0" type="info" variant="tonal" class="ma-0">
 						{{ $t("settings.plugins.noPlugins") }}
 					</v-alert>
@@ -110,6 +119,7 @@
 								<th class="text-left">{{ $t("settings.plugins.headers.version") }}</th>
 								<th class="text-left">{{ $t("settings.plugins.headers.license") }}</th>
 								<th class="text-left">{{ $t("settings.plugins.headers.status") }}</th>
+								<th class="text-right">{{ $t("settings.plugins.headers.actions") }}</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -124,10 +134,28 @@
 								<td>{{ plugin.version }}</td>
 								<td>{{ plugin.license || $t("generic.noValue") }}</td>
 								<td>
-									<v-chip size="x-small" :color="enabledPluginIds.includes(plugin.id) ? 'success' : 'default'">
-										{{ enabledPluginIds.includes(plugin.id)
+									<v-chip size="x-small"
+											:color="isStarted(plugin.id) ? 'success' : undefined">
+										{{ isStarted(plugin.id)
 											? $t("settings.plugins.started") : $t("settings.plugins.stopped") }}
 									</v-chip>
+								</td>
+								<td class="text-right">
+									<v-btn v-if="isStarted(plugin.id)" size="small" variant="text" color="warning"
+										   :loading="busyPluginId === plugin.id" @click="stop(plugin.id)">
+										<v-icon class="mr-1">mdi-stop</v-icon>
+										{{ $t("settings.plugins.stop") }}
+									</v-btn>
+									<v-btn v-else size="small" variant="text" color="success"
+										   :loading="busyPluginId === plugin.id" @click="start(plugin.id)">
+										<v-icon class="mr-1">mdi-play</v-icon>
+										{{ $t("settings.plugins.start") }}
+									</v-btn>
+									<v-btn v-if="!isBuiltin(plugin.id)" size="small" variant="text" color="error"
+										   :loading="busyPluginId === plugin.id" @click="askUninstall(plugin)">
+										<v-icon class="mr-1">mdi-delete</v-icon>
+										{{ $t("settings.plugins.uninstall") }}
+									</v-btn>
 								</td>
 							</tr>
 						</tbody>
@@ -136,13 +164,25 @@
 			</v-window-item>
 		</v-window>
 	</v-card>
+
+	<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
+
+	<ConfirmDialog v-model:shown="uninstallDialog.shown" :title="$t('settings.plugins.uninstallTitle')"
+				   :prompt="$t('settings.plugins.uninstallPrompt', [uninstallDialog.name])"
+				   icon="mdi-alert" @confirmed="confirmUninstall" />
 </template>
 
 <script setup lang="ts">
 import type { Plugin } from "@duet3d/objectmodel";
 
+import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import i18n from "@/i18n";
+import { isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
+import Events from "@/utils/events";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
+import { LogLevel, useUiStore } from "@/stores/ui";
+import { getErrorMessage } from "@/utils/errors";
 
 interface SettingsTab {
 	key: string;
@@ -157,6 +197,7 @@ const settingsTabs: Array<SettingsTab> = [
 
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
+const uiStore = useUiStore();
 
 const activeTab = ref<string>("general");
 
@@ -173,8 +214,6 @@ const notificationTimeoutSeconds = computed({
 	},
 });
 
-const builtinPluginIds = new Set(["HeightMap", "ObjectModelBrowser"]);
-
 const plugins = computed<Array<Plugin>>(() => {
 	const dictionary = machineStore.model.plugins;
 	const list: Array<Plugin> = [];
@@ -187,9 +226,118 @@ const plugins = computed<Array<Plugin>>(() => {
 	return list;
 });
 
-const enabledPluginIds = computed(() => settingsStore.enabledPlugins);
-
 function isBuiltin(id: string): boolean {
-	return builtinPluginIds.has(id);
+	return isPluginBuiltIn(id);
+}
+
+// The loaded-plugin set in @/plugins is a plain Set, not reactive; the settings store mirrors
+// it via dwcPluginLoaded / disableDwcPlugin, so we look up reactive state through it. The
+// `pluginLoadTick` bump keeps everything in sync when the runtime starts a plugin without a
+// settings change (e.g. on reconnect)
+const pluginLoadTick = ref(0);
+
+Events.on("dwcPluginLoaded", () => {
+	pluginLoadTick.value += 1;
+});
+Events.on("dwcPluginUnloaded", () => {
+	pluginLoadTick.value += 1;
+});
+
+function isStarted(id: string): boolean {
+	pluginLoadTick.value;
+	return isPluginLoaded(id) || settingsStore.enabledPlugins.includes(id);
+}
+
+// ---- Lifecycle actions ----------------------------------------------------------------------
+
+const busyPluginId = ref<string | null>(null);
+
+async function start(id: string) {
+	busyPluginId.value = id;
+	try {
+		await loadDwcPlugin(id);
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("settings.plugins.startError", [id]), getErrorMessage(e));
+	} finally {
+		busyPluginId.value = null;
+	}
+}
+
+async function stop(id: string) {
+	busyPluginId.value = id;
+	try {
+		await unloadDwcPlugin(id);
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("settings.plugins.stopError", [id]), getErrorMessage(e));
+	} finally {
+		busyPluginId.value = null;
+	}
+}
+
+// ---- Install --------------------------------------------------------------------------------
+
+const pluginInput = ref<HTMLInputElement | null>(null);
+const installing = ref(false);
+
+function pickPluginZip() {
+	if (installing.value) {
+		return;
+	}
+	pluginInput.value?.click();
+}
+
+async function onPluginPicked(event: Event) {
+	const target = event.target as HTMLInputElement;
+	const file = target.files?.[0];
+	target.value = "";
+	if (!file) {
+		return;
+	}
+	installing.value = true;
+	try {
+		const { default: JSZip } = await import("jszip");
+		const zipFile = await JSZip.loadAsync(file);
+		await machineStore.installPlugin(file.name, file, zipFile, true);
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("settings.plugins.installError", [file.name]),
+			getErrorMessage(e));
+	} finally {
+		installing.value = false;
+	}
+}
+
+// ---- Uninstall ------------------------------------------------------------------------------
+
+const uninstallDialog = reactive({
+	shown: false,
+	plugin: null as Plugin | null,
+	name: "",
+});
+
+function askUninstall(plugin: Plugin) {
+	uninstallDialog.plugin = plugin;
+	uninstallDialog.name = plugin.name;
+	uninstallDialog.shown = true;
+}
+
+async function confirmUninstall() {
+	const plugin = uninstallDialog.plugin;
+	if (!plugin) {
+		return;
+	}
+	busyPluginId.value = plugin.id;
+	try {
+		await machineStore.uninstallPlugin(plugin);
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("settings.plugins.uninstallError", [plugin.name]),
+			getErrorMessage(e));
+	} finally {
+		busyPluginId.value = null;
+		uninstallDialog.plugin = null;
+	}
 }
 </script>
