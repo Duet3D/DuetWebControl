@@ -188,6 +188,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	fileClick: [item: FileBrowserItem, directory: string];
+	"update:directory": [directory: string];
 }>();
 
 const machineStore = useMachineStore();
@@ -230,9 +231,10 @@ const breadcrumbItems = computed(() => {
 	return items;
 });
 
-// Reset selection whenever the user navigates to a different directory
-watch(() => browser.directory.value, () => {
+// Reset selection whenever the user navigates to a different directory and let the parent know
+watch(() => browser.directory.value, (newDir) => {
 	selection.value = [];
+	emit("update:directory", newDir);
 });
 
 function onRowClick(_event: unknown, payload: { item: FileBrowserItem }) {

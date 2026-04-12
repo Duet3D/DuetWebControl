@@ -53,10 +53,11 @@
 			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager>
 				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename" :filename="tab.filename"
 							  @close="closeTab(tab.id)" />
-				<FileList v-else :options="{ initialDirectory: browserKinds[tab.kind as BrowserKind].directory() }"
+				<FileList v-else :options="{ initialDirectory: initialDirectoryFor(tab) }"
 						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
 						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
-						  @file-click="onFileClick" />
+						  @file-click="onFileClick"
+						  @update:directory="(dir) => onDirectoryChanged(tab.id, dir)" />
 			</v-window-item>
 		</v-window>
 	</v-card>
@@ -93,9 +94,16 @@ interface ExplorerTab {
 	 * Filename for editor tabs (undefined for browser tabs)
 	 */
 	filename?: string;
+	/**
+	 * Most recently observed directory for browser tabs - mirrors the FileList's internal state
+	 * so we can sync the active tab's path to the URL
+	 */
+	directory?: string;
 }
 
 const machineStore = useMachineStore();
+const route = useRoute();
+const router = useRouter();
 
 const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 	macros: {
@@ -130,8 +138,47 @@ const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 const rootDirectory = "0:/";
 
 let nextTabId = 1;
-const tabs = ref<Array<ExplorerTab>>([{ id: nextTabId++, kind: "macros" }]);
+
+// Honour ?path=... on first mount - either a directory (matched by trailing slash or known
+// browser-tab roots) or a filename (anything else). The browser tab kind is inferred from the
+// path so we land at e.g. the macros tab when the URL points inside the macros directory
+function buildInitialTabs(): Array<ExplorerTab> {
+	const queryPath = typeof route.query.path === "string" ? route.query.path : "";
+	if (!queryPath) {
+		return [{ id: nextTabId++, kind: "macros" }];
+	}
+
+	const looksLikeFile = !queryPath.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(queryPath));
+	if (looksLikeFile) {
+		return [{ id: nextTabId++, kind: "editor", filename: queryPath }];
+	}
+
+	const kind = inferBrowserKind(queryPath);
+	return [{ id: nextTabId++, kind, directory: queryPath }];
+}
+
+function inferBrowserKind(dir: string): BrowserKind {
+	if (Path.startsWith(dir, machineStore.model.directories.macros)) {
+		return "macros";
+	}
+	if (Path.startsWith(dir, machineStore.model.directories.filaments)) {
+		return "filaments";
+	}
+	if (Path.startsWith(dir, machineStore.model.directories.system)) {
+		return "system";
+	}
+	return "files";
+}
+
+const tabs = ref<Array<ExplorerTab>>(buildInitialTabs());
 const activeTab = ref<number>(tabs.value[0].id);
+
+function initialDirectoryFor(tab: ExplorerTab): string {
+	if (tab.directory) {
+		return tab.directory;
+	}
+	return browserKinds[tab.kind as BrowserKind].directory();
+}
 
 const runMacroDialog = reactive({
 	shown: false,
@@ -169,6 +216,7 @@ function openEditorTab(filename: string) {
 	const tab: ExplorerTab = { id: nextTabId++, kind: "editor", filename };
 	tabs.value.push(tab);
 	activeTab.value = tab.id;
+	syncUrl(filename);
 }
 
 function closeTab(id: number) {
@@ -208,4 +256,36 @@ async function confirmRunMacro() {
 		console.warn(e);
 	}
 }
+
+// ---- URL sync -------------------------------------------------------------------------------
+
+function onDirectoryChanged(tabId: number, dir: string) {
+	const tab = tabs.value.find((t) => t.id === tabId);
+	if (!tab) {
+		return;
+	}
+	tab.directory = dir;
+	if (tabId === activeTab.value) {
+		syncUrl(dir);
+	}
+}
+
+function syncUrl(path: string) {
+	if (route.query.path === path) {
+		return;
+	}
+	router.replace({ query: { ...route.query, path } });
+}
+
+watch(activeTab, (id) => {
+	const tab = tabs.value.find((t) => t.id === id);
+	if (!tab) {
+		return;
+	}
+	if (tab.kind === "editor" && tab.filename) {
+		syncUrl(tab.filename);
+	} else if (tab.directory) {
+		syncUrl(tab.directory);
+	}
+});
 </script>
