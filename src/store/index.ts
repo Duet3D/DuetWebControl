@@ -545,8 +545,8 @@ const store = new Vuex.Store<InternalRootState>({
 		* Called by OSK plugins to announce OSK functionality
 		* @param state Vuex state
 		*/
-		oskEnabled(state) {
-			state.oskEnabled = true;
+		oskEnabled(state, value: boolean = true) {
+			state.oskEnabled = value;
 		},
 		
 		/**

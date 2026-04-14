@@ -16,8 +16,13 @@ class CustomImportPlugin {
 					stage: Compilation.PROCESS_ASSETS_STAGE_ADDITIONS
 				},
 				(assets) => {
+					// Patch the chunk that contains the webpack runtime (and thus the
+					// chunk filename functions). This is js/runtime* if optimization
+					// .runtimeChunk is enabled, otherwise js/app*.
+					const runtimeChunk = Object.keys(assets).find(p => p.startsWith("js/runtime"));
+					const targetPrefix = runtimeChunk ? "js/runtime" : "js/app";
 					for (const pathname in assets) {
-						if (!pathname.startsWith("js/app")) continue;
+						if (!pathname.startsWith(targetPrefix)) continue;
 
 						let source = assets[pathname].source();
 

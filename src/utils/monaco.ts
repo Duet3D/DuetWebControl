@@ -1,4 +1,5 @@
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import * as monaco from "monaco-editor";
+import { registerDuetLanguages } from "@duet3d/monacotokens";
 
 // Provide Monaco workers
 self.MonacoEnvironment = {
@@ -16,8 +17,6 @@ self.MonacoEnvironment = {
     }
 };
 
-import "./monaco-syntax";
-import "./monaco-menu";
-import "./monaco-STM32";
+registerDuetLanguages(monaco);
 
 export { monaco };

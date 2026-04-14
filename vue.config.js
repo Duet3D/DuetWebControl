@@ -112,10 +112,14 @@ module.exports = {
 	chainWebpack: config => {
 		config.optimization.minimizers.delete("terser");
 		config.optimization.minimizer("esbuild").use(EsbuildPlugin, [{
-			keepNames: true,
 			target: "es2020",
 			css: true
 		}]);
+		// Extract the webpack runtime into its own chunk so the entry chunk
+		// uses the same `webpackChunk.push(...)` form as lazy chunks. Without
+		// this, webpack wraps the entry in an IIFE and never emits a per-module
+		// source map for it, making @duet3d/* and other deps un-debuggable.
+		config.optimization.runtimeChunk("single");
 		config.optimization.set("splitChunks", {
 			chunks: "all",
 			cacheGroups: {

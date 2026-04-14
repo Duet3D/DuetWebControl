@@ -276,7 +276,11 @@ export default Vue.extend({
 					this.monacoLoading = false;
 					if (this.shown && this.$refs.monacoEditor && !this.monacoEditor) {
 						this.monacoEditor = monaco.editor.create(this.$refs.monacoEditor as HTMLElement, {
+							autoIndent: "full",
 							automaticLayout: true,
+							bracketPairColorization: { enabled: true },
+							folding: true,
+							foldingStrategy: "indentation",
 							matchBrackets: this.isBigFile ? "near" : "always",
 							language: this.language,
 							lineNumbersMinChars: this.isMediumFile ? 10 : 5,

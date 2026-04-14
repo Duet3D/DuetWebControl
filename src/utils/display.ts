@@ -233,21 +233,60 @@ export function indent(content: string): string {
         }
     }
 
+    // Helper to get leading whitespace of a line
+    function leadingWhitespace(line: string): string {
+        const match = line.match(/^[\t ]*/);
+        return match ? match[0] : "";
+    }
+
+    // Determine whether a line is a pure-comment (only whitespace before `;`)
+    function isPureComment(line: string): boolean {
+        const idx = findSemicolon(line);
+        return idx >= 0 && line.substring(0, idx).trim().length === 0;
+    }
+
+    // For each pure-comment line, find the indentation of the next code line so comments align with the block that follows
+    const pureCommentIndent = new Array<string | null>(lines.length).fill(null);
+    for (let i = 0; i < lines.length; i++)
+    {
+        if (!isPureComment(lines[i]))
+        {
+            continue;
+        }
+        for (let j = i + 1; j < lines.length; j++)
+        {
+            const next = lines[j];
+            if (next.trim().length === 0 || isPureComment(next))
+            {
+                continue;
+            }
+            pureCommentIndent[i] = leadingWhitespace(next);
+            break;
+        }
+    }
+
     // Align line comments
     let newResult = "";
-    for (const line of lines) {
-		const commentIndex = findSemicolon(line);
-        if (commentIndex <= 0) {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const commentIndex = findSemicolon(line);
+        if (commentIndex < 0) {
             newResult += line + '\n';
-		} else {
-            const command = line.substring(0, commentIndex).trimEnd(), comment = line.substring(commentIndex);
+        } else {
+            const rawPrefix = line.substring(0, commentIndex), command = rawPrefix.trimEnd(), comment = line.substring(commentIndex);
 
-            let indentation = "";
-            for (let i = command.length; i < maxCommandLength + 1; i++) {
-                indentation += ' ';
+            if (command.length === 0) {
+                // Pure comment line - use the indentation of the next code line, falling back to the original leading whitespace
+                const indent = pureCommentIndent[i] ?? rawPrefix;
+                newResult += indent + comment + '\n';
+            } else {
+                let indentation = "";
+                for (let i = command.length; i < maxCommandLength + 1; i++) {
+                    indentation += ' ';
+                }
+
+                newResult += command + indentation + comment + '\n';
             }
-
-            newResult += command + indentation + comment + '\n';
         }
     }
     return newResult.trim();

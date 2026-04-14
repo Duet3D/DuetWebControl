@@ -66,7 +66,7 @@ export default Vue.extend({
 		}
 	},
 	mounted() {
-		store.commit("oskEnabled");
+		store.commit("oskEnabled", this.oskGenerallyEnabled);
 		window.addEventListener("focusin", this.inputFocused);
 		window.addEventListener("click", this.globalClick);
 
@@ -189,6 +189,7 @@ export default Vue.extend({
 			this.keyboard = null;
 			this.input = null;
 			store.commit("setBottomMargin", 0);
+			store.commit("oskEnabled", false);
 		},
 		onKeyPress(button: string) {
 			if (button === "{oskDisable}") {
