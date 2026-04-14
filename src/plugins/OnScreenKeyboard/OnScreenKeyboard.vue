@@ -44,7 +44,8 @@
 </template>
 
 <script lang="ts">
-import Keyboard from "simple-keyboard";
+// Import the modern build directly - the package's `main` field points to a legacy UMD bundle with core-js@3 inlined
+import Keyboard from "simple-keyboard/build/index.modern.js";
 import "simple-keyboard/build/css/index.css";
 import Vue from "vue";
 

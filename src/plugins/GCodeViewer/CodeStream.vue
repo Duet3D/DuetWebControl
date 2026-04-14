@@ -53,10 +53,7 @@ export default Vue.extend({
    },
    async mounted() {
       this.monacoLoading = true;
-      const { monaco } = await import(
-         /* webpackChunkName: "monaco" */
-         '@/utils/monaco'
-      );
+      const { monaco } = await import('@/utils/monaco');
       this.monacoLoading = false;
       (this as any)._monaco = monaco;
       this.$nextTick(() => {

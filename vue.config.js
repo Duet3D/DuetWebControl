@@ -123,6 +123,15 @@ module.exports = {
 		config.optimization.set("splitChunks", {
 			chunks: "all",
 			cacheGroups: {
+				// Pull the wrapper, all of monaco-editor (including its internal dynamic language/feature imports) and
+				// @duet3d/monacotokens into one "monaco" chunk - otherwise every nested async import becomes its own tiny file
+				monaco: {
+					test: /[\\/]node_modules[\\/](monaco-editor|@duet3d[\\/]monacotokens)[\\/]|[\\/]src[\\/]utils[\\/]monaco\.ts$/,
+					name: "monaco",
+					chunks: "async",
+					enforce: true,
+					priority: 10
+				},
 				defaultVendors: false,
 				default: false
 			}

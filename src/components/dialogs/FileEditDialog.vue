@@ -269,10 +269,7 @@ export default Vue.extend({
 				// Create Monaco editor if necessary
 				if (this.useMonacoEditor) {
 					this.monacoLoading = true;
-					const { monaco } = await import(
-						/* webpackChunkName: "monaco" */
-						"@/utils/monaco"
-					);
+					const { monaco } = await import("@/utils/monaco");
 					this.monacoLoading = false;
 					if (this.shown && this.$refs.monacoEditor && !this.monacoEditor) {
 						this.monacoEditor = monaco.editor.create(this.$refs.monacoEditor as HTMLElement, {
