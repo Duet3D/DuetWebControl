@@ -23,10 +23,17 @@ import "monaco-editor/esm/vs/editor/contrib/lineSelection/browser/lineSelection"
 import "monaco-editor/esm/vs/editor/contrib/linesOperations/browser/linesOperations";
 import "monaco-editor/esm/vs/editor/contrib/links/browser/links";
 import "monaco-editor/esm/vs/editor/contrib/multicursor/browser/multicursor";
+import "monaco-editor/esm/vs/editor/contrib/parameterHints/browser/parameterHints";
+import "monaco-editor/esm/vs/editor/contrib/smartSelect/browser/smartSelect";
+import "monaco-editor/esm/vs/editor/contrib/stickyScroll/browser/stickyScrollContribution";
 import "monaco-editor/esm/vs/editor/contrib/suggest/browser/suggestController";
 import "monaco-editor/esm/vs/editor/contrib/tokenization/browser/tokenization";
 import "monaco-editor/esm/vs/editor/contrib/wordHighlighter/browser/wordHighlighter";
 import "monaco-editor/esm/vs/editor/contrib/wordOperations/browser/wordOperations";
+
+// Standalone quick-access providers power the F1 command palette and Ctrl+G go-to-line pickers
+import "monaco-editor/esm/vs/editor/standalone/browser/quickAccess/standaloneCommandsQuickAccess";
+import "monaco-editor/esm/vs/editor/standalone/browser/quickAccess/standaloneGotoLineQuickAccess";
 
 import { registerDuetLanguages } from "@duet3d/monacotokens";
 
