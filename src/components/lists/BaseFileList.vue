@@ -138,11 +138,10 @@ td {
 </template>
 
 <script lang="ts">
-import { FileListItem } from "@duet3d/connectors";
 import JSZip from "jszip";
 import saveAs from "file-saver";
 import Vue, { PropType } from "vue";
-import { DataItemProps, DataTableHeader } from "vuetify";
+import { DataItemProps } from "vuetify";
 import { VDataTable } from "vuetify/lib";
 
 import i18n from "@/i18n";
@@ -154,27 +153,12 @@ import Path from "@/utils/path";
 import { LogType } from "@/utils/logging";
 import ConfirmDialog from "../dialogs/ConfirmDialog.vue";
 
+import { BaseFileListHeader, BaseFileListItem, BaseFileListDataTransfer, isBaseFileListDataTransfer } from "./BaseFileList.types";
+
 /**
  * Maximum permitted size of files to edit (defaults to 32MiB)
  */
 const maxEditFileSize = 33554432;
-
-interface ExtraFileListItemOptions {
-	filaments?: Array<number>;
-}
-
-export type BaseFileListHeader = DataTableHeader & { precision?: number, unit?: string };
-export type BaseFileListItem = FileListItem & ExtraFileListItemOptions;
-
-export interface BaseFileListDataTransfer {
-	type: string;
-	directory: string;
-	items: Array<BaseFileListItem>;
-}
-
-export function isBaseFileListDataTransfer(data: any): data is BaseFileListDataTransfer {
-	return (data.type === "dwcFiles" && typeof data.directory === "string" && data.items instanceof Array);
-}
 
 export default VDataTable.extend({
 	props: {

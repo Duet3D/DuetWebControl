@@ -35,7 +35,7 @@
 import { Directories } from "@duet3d/objectmodel";
 import Vue from "vue";
 
-import { isBaseFileListDataTransfer } from "@/components/lists/BaseFileList.vue";
+import { isBaseFileListDataTransfer } from "@/components/lists/BaseFileList.types";
 import store from "@/store";
 import { getErrorMessage } from "@/utils/errors";
 import { LogType } from "@/utils/logging";

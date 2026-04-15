@@ -84,8 +84,8 @@ import Vue from "vue";
 import store from "@/store";
 import { isPrinting } from "@/utils/enums";
 import Path from "@/utils/path";
-import { UploadType } from "../buttons/UploadBtn.vue";
-import { BaseFileListItem } from "./BaseFileList.vue";
+import { UploadType } from "../buttons/UploadBtn.types";
+import { BaseFileListItem } from "./BaseFileList.types";
 
 export default Vue.extend({
 	computed: {

@@ -34,6 +34,8 @@ import "monaco-editor/esm/vs/editor/contrib/wordOperations/browser/wordOperation
 // Standalone quick-access providers power the F1 command palette and Ctrl+G go-to-line pickers
 import "monaco-editor/esm/vs/editor/standalone/browser/quickAccess/standaloneCommandsQuickAccess";
 import "monaco-editor/esm/vs/editor/standalone/browser/quickAccess/standaloneGotoLineQuickAccess";
+// "Developer: Inspect Tokens" action (handy when tuning the Monarch tokenizer colours)
+import "monaco-editor/esm/vs/editor/standalone/browser/inspectTokens/inspectTokens";
 
 import { registerDuetLanguages } from "@duet3d/monacotokens";
 

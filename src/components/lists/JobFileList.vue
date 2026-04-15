@@ -121,7 +121,7 @@ import { DisconnectedError, getErrorMessage, InvalidPasswordError } from "@/util
 import { LogType } from "@/utils/logging";
 import Path, { escapeFilename } from "@/utils/path";
 
-import { BaseFileListHeader, BaseFileListItem } from "./BaseFileList.vue";
+import { BaseFileListHeader, BaseFileListItem } from "./BaseFileList.types";
 
 interface JobListItemProperties {
 	height?: number | null;

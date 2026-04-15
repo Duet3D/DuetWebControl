@@ -82,7 +82,7 @@ import { DisconnectedError, FileNotFoundError, getErrorMessage, OperationCancell
 import Path from "@/utils/path";
 import { LogType } from "@/utils/logging";
 
-import { BaseFileListItem } from "./BaseFileList.vue";
+import { BaseFileListItem } from "./BaseFileList.types";
 
 export default Vue.extend({
 	computed: {

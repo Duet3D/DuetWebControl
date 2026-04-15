@@ -71,7 +71,7 @@ import Vue from "vue";
 import store from "@/store";
 import Path, { escapeFilename } from "@/utils/path"
 
-import { BaseFileListItem } from "./BaseFileList.vue";
+import { BaseFileListItem } from "./BaseFileList.types";
 
 export default Vue.extend({
 	computed: {
