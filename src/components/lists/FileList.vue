@@ -184,6 +184,10 @@ const props = defineProps<{
 	 * Hide the download / ZIP-download action
 	 */
 	noDownload?: boolean;
+	/**
+	 * Treat .zip uploads as plain files instead of extracting their contents
+	 */
+	noZipExtract?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -395,16 +399,44 @@ async function uploadFiles(files: Array<File>) {
 	uploading.value = true;
 	try {
 		const dir = browser.directory.value;
-		const payload = files.map((file) => ({
-			filename: Path.combine(dir, file.name),
-			content: file,
-		}));
-		await machineStore.upload(payload);
+		const payload: Array<{ filename: string; content: Blob | File }> = [];
+
+		for (const file of files) {
+			if (/\.zip$/i.test(file.name) && !props.noZipExtract) {
+				const extracted = await extractZip(file, dir);
+				payload.push(...extracted);
+			} else {
+				payload.push({ filename: Path.combine(dir, file.name), content: file });
+			}
+		}
+
+		if (payload.length > 0) {
+			await machineStore.upload(payload);
+		}
 	} catch (e) {
 		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.errorTitle"), getErrorMessage(e));
 	} finally {
 		uploading.value = false;
 	}
+}
+
+async function extractZip(zip: File, dir: string): Promise<Array<{ filename: string; content: Blob }>> {
+	const { default: JSZip } = await import("jszip");
+	const archive = await JSZip.loadAsync(zip);
+	const entries: Array<{ filename: string; content: Blob }> = [];
+	const promises: Array<Promise<void>> = [];
+	archive.forEach((relativePath, entry) => {
+		if (entry.dir) {
+			return;
+		}
+		promises.push((async () => {
+			const blob = await entry.async("blob");
+			entries.push({ filename: Path.combine(dir, relativePath), content: blob });
+		})());
+	});
+	await Promise.all(promises);
+	return entries;
 }
 
 // Drag/drop counts enter/leave to keep the active highlight stable across child elements that
