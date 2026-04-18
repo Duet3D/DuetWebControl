@@ -96,6 +96,73 @@
 				</v-container>
 			</v-window-item>
 
+			<v-window-item value="display">
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-view-dashboard</v-icon>
+									{{ $t("settings.display.layoutCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-select v-model="settingsStore.layoutMode" :items="layoutOptions"
+											  item-title="label" item-value="value"
+											  :label="$t('settings.display.layoutMode')" variant="outlined"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.iconMenu" color="primary"
+											  :label="$t('settings.display.iconMenu')"
+											  :hint="$t('settings.display.iconMenuHint')" density="comfortable"
+											  persistent-hint class="mt-2" />
+									<v-switch v-model="settingsStore.numericInputs" color="primary"
+											  :label="$t('settings.display.numericInputs')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
+											  :label="$t('settings.display.disableAutoComplete')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.checkVersions" color="primary"
+											  :label="$t('settings.display.checkVersions')" density="comfortable"
+											  hide-details class="mt-2" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-toolbox</v-icon>
+									{{ $t("settings.display.toolsCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.groupTools" color="primary"
+											  :label="$t('settings.display.groupTools')" density="comfortable"
+											  hide-details />
+									<v-switch v-model="settingsStore.groupByExtruders" color="primary"
+											  :label="$t('settings.display.groupByExtruders')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.groupByHeaters" color="primary"
+											  :label="$t('settings.display.groupByHeaters')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.groupByOffsets" color="primary"
+											  :label="$t('settings.display.groupByOffsets')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.groupBySpindle" color="primary"
+											  :label="$t('settings.display.groupBySpindle')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.showMixingControls" color="primary"
+											  :label="$t('settings.display.showMixingControls')" density="comfortable"
+											  hide-details class="mt-2" />
+									<v-text-field v-model.number="settingsStore.babystepAmount" type="number"
+												  step="0.01" :label="$t('settings.display.babystepAmount')"
+												  variant="outlined" density="comfortable" hide-details
+												  class="mt-4" suffix="mm" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
 			<v-window-item value="webcam">
 				<v-container fluid>
 					<v-row dense>
@@ -319,7 +386,7 @@ import i18n from "@/i18n";
 import { isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
 import Events from "@/utils/events";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore, WebcamFlip } from "@/stores/settings";
+import { LayoutMode, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
 
@@ -333,6 +400,7 @@ interface SettingsTab {
 
 const settingsTabs: Array<SettingsTab> = [
 	{ key: "general", icon: "mdi-tune", captionKey: "settings.tabs.general" },
+	{ key: "display", icon: "mdi-monitor-dashboard", captionKey: "settings.tabs.display" },
 	{ key: "webcam", icon: "mdi-webcam", captionKey: "settings.tabs.webcam" },
 	{ key: "communication", icon: "mdi-lan", captionKey: "settings.tabs.communication" },
 	{ key: "plugins", icon: "mdi-puzzle", captionKey: "settings.tabs.plugins" },
@@ -355,6 +423,11 @@ const flipOptions = computed(() => [
 	{ label: i18n.global.t("settings.webcam.flipOptions.x"), value: WebcamFlip.X },
 	{ label: i18n.global.t("settings.webcam.flipOptions.y"), value: WebcamFlip.Y },
 	{ label: i18n.global.t("settings.webcam.flipOptions.both"), value: WebcamFlip.Both },
+]);
+
+const layoutOptions = computed(() => [
+	{ label: i18n.global.t("settings.display.layoutOptions.default"), value: LayoutMode.default },
+	{ label: i18n.global.t("settings.display.layoutOptions.custom"), value: LayoutMode.custom },
 ]);
 
 const dwcVersion = packageInfo.version;

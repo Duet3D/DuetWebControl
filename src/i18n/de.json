@@ -569,6 +569,7 @@
   "settings": {
     "tabs": {
       "general": "Allgemein",
+      "display": "Anzeige",
       "webcam": "Webcam",
       "communication": "Kommunikation",
       "plugins": "Plugins",
@@ -594,6 +595,27 @@
       "updateInterval": "Aktualisierungsintervall des Objektmodells",
       "updateIntervalHint": "Zeit zwischen vollständigen Objektmodell-Aktualisierungen",
       "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren"
+    },
+    "display": {
+      "layoutCaption": "Layout",
+      "layoutMode": "Layout-Modus",
+      "layoutOptions": {
+        "default": "Eingebaute Seiten",
+        "custom": "Benutzerdefiniertes Dashboard"
+      },
+      "iconMenu": "Schmale Seitenleiste",
+      "iconMenuHint": "Bei eingeklappter Navigationsleiste nur Symbole anzeigen",
+      "numericInputs": "Zahleneingabefelder statt Schieberegler",
+      "disableAutoComplete": "G-Code-Autovervollständigung deaktivieren",
+      "checkVersions": "Plugin- und Firmwareversionen prüfen",
+      "toolsCaption": "Werkzeuge",
+      "groupTools": "Bett-, Kammer- und Extruderheizungen gruppieren",
+      "groupByExtruders": "Nach Extrudern gruppieren",
+      "groupByHeaters": "Nach Heizungen gruppieren",
+      "groupByOffsets": "Nach Werkzeugoffsets gruppieren",
+      "groupBySpindle": "Spindeln gruppieren",
+      "showMixingControls": "Mischsteuerung bei Mehrfach-Extruderwerkzeugen anzeigen",
+      "babystepAmount": "Babystep-Schrittweite"
     },
     "webcam": {
       "caption": "Webcam",

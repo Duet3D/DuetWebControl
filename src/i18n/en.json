@@ -567,6 +567,7 @@
   "settings": {
     "tabs": {
       "general": "General",
+      "display": "Display",
       "webcam": "Webcam",
       "communication": "Communication",
       "plugins": "Plugins",
@@ -592,6 +593,27 @@
       "updateInterval": "Object model update interval",
       "updateIntervalHint": "Time between full object-model refreshes",
       "crcUploads": "Verify uploads with a CRC checksum"
+    },
+    "display": {
+      "layoutCaption": "Layout",
+      "layoutMode": "Layout mode",
+      "layoutOptions": {
+        "default": "Built-in pages",
+        "custom": "Custom dashboard"
+      },
+      "iconMenu": "Compact sidebar",
+      "iconMenuHint": "Show only icons in the navigation drawer when collapsed",
+      "numericInputs": "Numeric inputs instead of sliders",
+      "disableAutoComplete": "Disable G-code auto-complete",
+      "checkVersions": "Check for plugin / firmware version compatibility",
+      "toolsCaption": "Tools",
+      "groupTools": "Group bed / chamber / extruder heaters",
+      "groupByExtruders": "Group by extruders",
+      "groupByHeaters": "Group by heaters",
+      "groupByOffsets": "Group by tool offsets",
+      "groupBySpindle": "Group spindles",
+      "showMixingControls": "Show mixing controls on multi-extruder tools",
+      "babystepAmount": "Babystep amount"
     },
     "webcam": {
       "caption": "Webcam",
