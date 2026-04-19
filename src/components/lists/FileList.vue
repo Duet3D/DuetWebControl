@@ -209,12 +209,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	fileClick: [item: FileBrowserItem, directory: string];
-	"update:directory": [directory: string];
 }>();
+
+// Two-way bind for the current directory. The parent can drive navigation by writing to the
+// model (e.g. when browser back/forward changes the URL); internal navigation flows back out
+// via the same model. When the parent does not provide the model, the file list falls back to
+// FileBrowserOptions.initialDirectory and behaves like a standalone browser
+const directoryModel = defineModel<string>("directory");
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
-const browser = useFileBrowser(props.options);
+const browser = useFileBrowser({
+	initialDirectory: directoryModel.value ?? props.options.initialDirectory,
+	decorate: props.options.decorate,
+});
 const firmwareInstall = useFirmwareInstall();
 
 const defaultHeaders: Array<FileListHeader> = [
@@ -253,10 +261,25 @@ const breadcrumbItems = computed(() => {
 	return items;
 });
 
-// Reset selection whenever the user navigates to a different directory and let the parent know
+// Internal -> external: reset selection on any directory change and push the new directory up
+// through the model. The equality guard keeps the parent's reactive proxy from flagging a
+// no-op write as a change. `immediate` covers the initial mount, when the parent might have
+// passed an undefined model and the browser settled on options.initialDirectory - the parent
+// still needs to learn that landing spot
 watch(() => browser.directory.value, (newDir) => {
 	selection.value = [];
-	emit("update:directory", newDir);
+	if (directoryModel.value !== newDir) {
+		directoryModel.value = newDir;
+	}
+}, { immediate: true });
+
+// External -> internal: when the parent writes a new directory (browser back / deep link),
+// drive the file browser to load it. Skip when the values already match - this happens after
+// the watcher above already echoed an internal navigation back through the model
+watch(directoryModel, (newDir) => {
+	if (newDir !== undefined && newDir !== browser.directory.value) {
+		browser.loadDirectory(newDir);
+	}
 });
 
 function onRowClick(_event: unknown, payload: { item: FileBrowserItem }) {

@@ -53,12 +53,12 @@
 			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager>
 				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename" :filename="tab.filename"
 							  @close="closeTab(tab.id)" />
-				<FileList v-else :options="{ initialDirectory: initialDirectoryFor(tab) }"
+				<FileList v-else v-model:directory="tab.directory"
+						  :options="{ initialDirectory: initialDirectoryFor(tab) }"
 						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
 						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
 						  :firmware-aware="tab.kind === 'system'"
-						  @file-click="onFileClick"
-						  @update:directory="(dir) => onDirectoryChanged(tab.id, dir)" />
+						  @file-click="onFileClick" />
 			</v-window-item>
 		</v-window>
 	</v-card>
@@ -217,7 +217,7 @@ function openEditorTab(filename: string) {
 	const tab: ExplorerTab = { id: nextTabId++, kind: "editor", filename };
 	tabs.value.push(tab);
 	activeTab.value = tab.id;
-	syncUrl(filename);
+	// activeTab watcher pushes the URL once the new tab is current
 }
 
 function closeTab(id: number) {
@@ -260,33 +260,66 @@ async function confirmRunMacro() {
 
 // ---- URL sync -------------------------------------------------------------------------------
 
-function onDirectoryChanged(tabId: number, dir: string) {
-	const tab = tabs.value.find((t) => t.id === tabId);
+// The URL is the source of truth for the active tab's path; tab switches and in-tab navigation
+// both push history entries so the browser back/forward buttons step through prior locations.
+// Tracking the active tab's path through a single computed covers both axes - the value
+// changes when the user switches tabs and when the active tab navigates internally
+const activePath = computed<string | undefined>(() => {
+	const tab = tabs.value.find((t) => t.id === activeTab.value);
 	if (!tab) {
+		return undefined;
+	}
+	return tab.kind === "editor" ? tab.filename : tab.directory;
+});
+
+watch(activePath, (path) => {
+	if (typeof path === "string") {
+		pushUrl(path);
+	}
+});
+
+// Reconcile state when the URL changes externally (browser back/forward, deep link, etc.).
+// Matching an existing tab just activates it; otherwise we navigate the active browser tab to
+// the new path, or open an editor tab if the path looks like a file. Equality check skips
+// the no-op re-emit that follows our own pushUrl
+watch(() => route.query.path, (newPath) => {
+	if (typeof newPath !== "string") {
 		return;
 	}
-	tab.directory = dir;
-	if (tabId === activeTab.value) {
-		syncUrl(dir);
-	}
-}
 
-function syncUrl(path: string) {
+	const matchingTab = tabs.value.find((tab) => {
+		if (tab.kind === "editor") {
+			return tab.filename === newPath;
+		}
+		return tab.directory === newPath;
+	});
+
+	if (matchingTab) {
+		if (activeTab.value !== matchingTab.id) {
+			activeTab.value = matchingTab.id;
+		}
+		return;
+	}
+
+	const looksLikeFile = !newPath.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(newPath));
+	if (looksLikeFile) {
+		openEditorTab(newPath);
+		return;
+	}
+
+	const tab = tabs.value.find((t) => t.id === activeTab.value);
+	if (!tab || tab.kind === "editor") {
+		return;
+	}
+	if (tab.directory !== newPath) {
+		tab.directory = newPath;
+	}
+});
+
+function pushUrl(path: string) {
 	if (route.query.path === path) {
 		return;
 	}
-	router.replace({ query: { ...route.query, path } });
+	router.push({ query: { ...route.query, path } });
 }
-
-watch(activeTab, (id) => {
-	const tab = tabs.value.find((t) => t.id === id);
-	if (!tab) {
-		return;
-	}
-	if (tab.kind === "editor" && tab.filename) {
-		syncUrl(tab.filename);
-	} else if (tab.directory) {
-		syncUrl(tab.directory);
-	}
-});
 </script>
