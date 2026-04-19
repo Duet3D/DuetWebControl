@@ -39,6 +39,22 @@
       "title": "Makro {0} ausführen?",
       "prompt": "Möchten Sie {0} ausführen?"
     },
+    "update": {
+      "title": "Firmware-Update installieren?",
+      "prompt": "Die hochgeladenen Dateien enthalten Firmware-Aktualisierungen. Soll die Installation jetzt gestartet werden?",
+      "mainBoard": "Mainboard-Firmware",
+      "expansionBoard": "Firmware Erweiterungsboard #{0}",
+      "wifiServer": "WLAN-Server-Firmware",
+      "updateWiFiServerSpiffs": "Auch die SPIFFS-Partition des WLAN-Servers aktualisieren",
+      "display": "PanelDue-/DuetScreen-Firmware",
+      "sbcWarning": "Ein Firmware-Update der Duet-Boards über die SBC-Schnittstelle kann den SPI-Übertragungsvorgang unterbrechen. Bitte sicherstellen, dass das Board notfalls manuell wiederhergestellt werden kann, bevor fortgefahren wird."
+    },
+    "configUpdated": {
+      "title": "config.g wurde aktualisiert",
+      "prompt": "Eine neue config.g (oder board.txt) wurde hochgeladen. Soll sie jetzt erneut ausgeführt, ein vollständiger Firmware-Reset durchgeführt oder die Meldung verworfen werden?",
+      "reset": "Firmware zurücksetzen",
+      "runConfig": "config.g ausführen"
+    },
     "fileEdit": {
       "save": "Speichern",
       "revert": "Verwerfen",
@@ -594,7 +610,10 @@
       "caption": "Maschine",
       "updateInterval": "Aktualisierungsintervall des Objektmodells",
       "updateIntervalHint": "Zeit zwischen vollständigen Objektmodell-Aktualisierungen",
-      "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren"
+      "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren",
+      "installCaption": "Firmware-/Webinterface-Update",
+      "installHint": "Lädt ein Firmware-Bundle (.zip), eine einzelne .bin-/.uf2-Datei oder ein DWC-Webbundle hoch. Firmware-Dateien werden nach Abschluss des Uploads automatisch via M997 eingespielt.",
+      "install": "Installieren"
     },
     "display": {
       "layoutCaption": "Layout",

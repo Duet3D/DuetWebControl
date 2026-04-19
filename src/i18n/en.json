@@ -39,6 +39,22 @@
       "title": "Run macro {0}?",
       "prompt": "Do you want to run {0}?"
     },
+    "update": {
+      "title": "Install firmware update?",
+      "prompt": "The uploaded files include firmware updates. Do you want to start installation now?",
+      "mainBoard": "Main board firmware",
+      "expansionBoard": "Expansion board #{0} firmware",
+      "wifiServer": "WiFi server firmware",
+      "updateWiFiServerSpiffs": "Also refresh the WiFi server's SPIFFS partition",
+      "display": "PanelDue / DuetScreen firmware",
+      "sbcWarning": "Updating Duet firmware over the SBC interface can interrupt the SPI handshake mid-write. Make sure you can recover the board manually before you continue."
+    },
+    "configUpdated": {
+      "title": "config.g was updated",
+      "prompt": "A new config.g (or board.txt) was uploaded. Re-run it now, perform a full firmware reset, or dismiss this prompt?",
+      "reset": "Reset firmware",
+      "runConfig": "Run config.g"
+    },
     "fileEdit": {
       "save": "Save",
       "revert": "Revert",
@@ -592,7 +608,10 @@
       "caption": "Machine",
       "updateInterval": "Object model update interval",
       "updateIntervalHint": "Time between full object-model refreshes",
-      "crcUploads": "Verify uploads with a CRC checksum"
+      "crcUploads": "Verify uploads with a CRC checksum",
+      "installCaption": "Firmware / web interface update",
+      "installHint": "Upload a firmware bundle (.zip), a single .bin / .uf2 binary, or a DWC web bundle. Firmware files are dispatched via M997 once the upload finishes.",
+      "install": "Install"
     },
     "display": {
       "layoutCaption": "Layout",

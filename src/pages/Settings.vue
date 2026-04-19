@@ -89,6 +89,23 @@
 									<v-switch v-model="settingsStore.crcUploads" color="primary"
 											  :label="$t('settings.machine.crcUploads')" density="comfortable"
 											  class="mt-2" hide-details />
+
+									<v-divider class="my-3" />
+
+									<div class="d-flex align-center">
+										<div class="flex-grow-1">
+											<div class="text-body-2">{{ $t("settings.machine.installCaption") }}</div>
+											<div class="text-caption text-medium-emphasis">
+												{{ $t("settings.machine.installHint") }}
+											</div>
+										</div>
+										<v-btn color="primary" :loading="installingFirmware"
+											   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+											   @click="pickFirmwareFiles">
+											<v-icon class="mr-1">mdi-package-down</v-icon>
+											{{ $t("settings.machine.install") }}
+										</v-btn>
+									</div>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -372,19 +389,31 @@
 	</v-card>
 
 	<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
+	<input ref="firmwareInput" type="file" multiple accept=".zip,.bin,.uf2,.deb" hidden
+		   @change="onFirmwarePicked" />
 
 	<ConfirmDialog v-model:shown="uninstallDialog.shown" :title="$t('settings.plugins.uninstallTitle')"
 				   :prompt="$t('settings.plugins.uninstallPrompt', [uninstallDialog.name])"
 				   icon="mdi-alert" @confirmed="confirmUninstall" />
+
+	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
+						  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
+
+	<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 </template>
 
 <script setup lang="ts">
 import type { Plugin } from "@duet3d/objectmodel";
 
+import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
+import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
+import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
 import Events from "@/utils/events";
+import { isPrinting } from "@/utils/enums";
 import { useMachineStore } from "@/stores/machine";
 import { LayoutMode, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
@@ -566,6 +595,96 @@ async function confirmUninstall() {
 	} finally {
 		busyPluginId.value = null;
 		uninstallDialog.plugin = null;
+	}
+}
+
+// ---- Firmware install ----------------------------------------------------------------------
+
+const firmwareInstall = useFirmwareInstall();
+const firmwareInput = ref<HTMLInputElement | null>(null);
+const installingFirmware = ref(false);
+
+const firmwareDialog = reactive<{ shown: boolean; plan: FirmwareUpdatePlan | null }>({
+	shown: false,
+	plan: null,
+});
+
+const configUpdatedDialog = reactive({ shown: false });
+
+function pickFirmwareFiles() {
+	if (installingFirmware.value) {
+		return;
+	}
+	firmwareInput.value?.click();
+}
+
+async function onFirmwarePicked(event: Event) {
+	const target = event.target as HTMLInputElement;
+	const files = target.files;
+	target.value = "";
+	if (!files || files.length === 0) {
+		return;
+	}
+	installingFirmware.value = true;
+	try {
+		let plan: FirmwareUpdatePlan;
+		try {
+			plan = await firmwareInstall.planFiles(Array.from(files));
+		} catch (e) {
+			if (e instanceof PluginBundleDetectedError) {
+				await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
+				return;
+			}
+			throw e;
+		}
+
+		if (plan.files.length > 0) {
+			await machineStore.upload(plan.files);
+		}
+
+		if (firmwareInstall.hasPendingUpdates(plan)) {
+			firmwareDialog.plan = plan;
+			firmwareDialog.shown = true;
+			return;
+		}
+
+		maybePromptConfigReset(plan);
+
+		if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
+			location.reload();
+		}
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.errorTitle"), getErrorMessage(e));
+	} finally {
+		installingFirmware.value = false;
+	}
+}
+
+async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
+	const plan = firmwareDialog.plan;
+	firmwareDialog.plan = null;
+	if (!plan) {
+		return;
+	}
+	try {
+		await firmwareInstall.runUpdate(plan, choices);
+	} finally {
+		maybePromptConfigReset(plan);
+	}
+}
+
+function onFirmwareUpdateCancelled() {
+	const plan = firmwareDialog.plan;
+	firmwareDialog.plan = null;
+	if (plan) {
+		maybePromptConfigReset(plan);
+	}
+}
+
+function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
+	if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
+		configUpdatedDialog.shown = true;
 	}
 }
 </script>

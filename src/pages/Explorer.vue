@@ -56,6 +56,7 @@
 				<FileList v-else :options="{ initialDirectory: initialDirectoryFor(tab) }"
 						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
 						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
+						  :firmware-aware="tab.kind === 'system'"
 						  @file-click="onFileClick"
 						  @update:directory="(dir) => onDirectoryChanged(tab.id, dir)" />
 			</v-window-item>

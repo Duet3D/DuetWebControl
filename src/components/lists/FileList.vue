@@ -126,17 +126,27 @@
 
 	<ConfirmDialog v-model:shown="deleteDialog.shown" :title="deleteDialog.title" :prompt="deleteDialog.prompt"
 				   icon="mdi-delete" @confirmed="performDelete" />
+
+	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
+						  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
+
+	<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 </template>
 
 <script setup lang="ts">
 import type { FileBrowserItem, FileBrowserOptions } from "@/composables/useFileBrowser";
+import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
+import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useFileBrowser } from "@/composables/useFileBrowser";
+import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { displaySize } from "@/utils/display";
+import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 import Path from "@/utils/path";
 
@@ -188,6 +198,13 @@ const props = defineProps<{
 	 * Treat .zip uploads as plain files instead of extracting their contents
 	 */
 	noZipExtract?: boolean;
+	/**
+	 * Route uploads through the firmware-install pipeline: classify each file (firmware bundle,
+	 * web asset, IAP/bootloader/WiFi/display binary, SBC .deb, plain config), rewrite paths to
+	 * the right system directory and prompt for M997 / firmware-reset afterwards. Plugin zips
+	 * are detected and forwarded to machineStore.installPlugin
+	 */
+	firmwareAware?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -198,6 +215,7 @@ const emit = defineEmits<{
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const browser = useFileBrowser(props.options);
+const firmwareInstall = useFirmwareInstall();
 
 const defaultHeaders: Array<FileListHeader> = [
 	{ title: "Name", key: "name" },
@@ -398,26 +416,64 @@ async function uploadFiles(files: Array<File>) {
 	}
 	uploading.value = true;
 	try {
-		const dir = browser.directory.value;
-		const payload: Array<{ filename: string; content: Blob | File }> = [];
-
-		for (const file of files) {
-			if (/\.zip$/i.test(file.name) && !props.noZipExtract) {
-				const extracted = await extractZip(file, dir);
-				payload.push(...extracted);
-			} else {
-				payload.push({ filename: Path.combine(dir, file.name), content: file });
-			}
-		}
-
-		if (payload.length > 0) {
-			await machineStore.upload(payload);
+		if (props.firmwareAware) {
+			await runFirmwareUpload(files);
+		} else {
+			await runPlainUpload(files);
 		}
 	} catch (e) {
 		console.warn(e);
 		uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.errorTitle"), getErrorMessage(e));
 	} finally {
 		uploading.value = false;
+	}
+}
+
+async function runPlainUpload(files: Array<File>) {
+	const dir = browser.directory.value;
+	const payload: Array<{ filename: string; content: Blob | File }> = [];
+
+	for (const file of files) {
+		if (/\.zip$/i.test(file.name) && !props.noZipExtract) {
+			const extracted = await extractZip(file, dir);
+			payload.push(...extracted);
+		} else {
+			payload.push({ filename: Path.combine(dir, file.name), content: file });
+		}
+	}
+
+	if (payload.length > 0) {
+		await machineStore.upload(payload);
+	}
+}
+
+async function runFirmwareUpload(files: Array<File>) {
+	let plan: FirmwareUpdatePlan;
+	try {
+		plan = await firmwareInstall.planFiles(files);
+	} catch (e) {
+		if (e instanceof PluginBundleDetectedError) {
+			await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
+			return;
+		}
+		throw e;
+	}
+
+	if (plan.files.length > 0) {
+		await machineStore.upload(plan.files);
+	}
+
+	if (firmwareInstall.hasPendingUpdates(plan)) {
+		firmwareDialog.plan = plan;
+		firmwareDialog.shown = true;
+		return;
+	}
+
+	maybePromptConfigReset(plan);
+
+	// Auto-reload DWC after a www-only refresh of the same host - mirrors runUpdate()
+	if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
+		location.reload();
 	}
 }
 
@@ -480,6 +536,42 @@ async function onDrop(event: DragEvent) {
 function hasFiles(event: DragEvent): boolean {
 	const types = event.dataTransfer?.types;
 	return !!types && Array.from(types).includes("Files");
+}
+
+// --- Firmware install pipeline --------------------------------------------------------------
+
+const firmwareDialog = reactive<{ shown: boolean; plan: FirmwareUpdatePlan | null }>({
+	shown: false,
+	plan: null,
+});
+
+const configUpdatedDialog = reactive({ shown: false });
+
+async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
+	const plan = firmwareDialog.plan;
+	firmwareDialog.plan = null;
+	if (!plan) {
+		return;
+	}
+	try {
+		await firmwareInstall.runUpdate(plan, choices);
+	} finally {
+		maybePromptConfigReset(plan);
+	}
+}
+
+function onFirmwareUpdateCancelled() {
+	const plan = firmwareDialog.plan;
+	firmwareDialog.plan = null;
+	if (plan) {
+		maybePromptConfigReset(plan);
+	}
+}
+
+function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
+	if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
+		configUpdatedDialog.shown = true;
+	}
 }
 
 // --- Context menu + download ----------------------------------------------------------------
