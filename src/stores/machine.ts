@@ -20,9 +20,11 @@ import Path from "@/utils/path";
 import packageInfo from "../../package.json";
 
 /**
- * Item type for downloads
+ * Item type for downloads. `rawPath` bypasses the SD-card prefix and pulls the file straight
+ * from the DWC base path - used by tools that ship documentation alongside the web bundle (e.g.
+ * DuetAPI.xml for the Object Model browser)
  */
-type DownloadItem = { filename: string, type?: XMLHttpRequestResponseType };
+type DownloadItem = { filename: string, type?: XMLHttpRequestResponseType, rawPath?: boolean };
 
 /**
  * Element representing a file transfer
@@ -703,6 +705,7 @@ export const useMachineStore = defineStore("machine", {
 			try {
 				for (let i = 0; i < files.length; i++) {
 					const item = fileTransfers[i]; const filename = item.filename; const type = item.type; const startTime = new Date();
+					const rawPath = files[i].rawPath ?? false;
 					try {
 						// Wait for download to finish
 						item.startTime = startTime
@@ -718,7 +721,8 @@ export const useMachineStore = defineStore("machine", {
 								if (notification && notification.onProgress) {
 									notification.onProgress(loaded, total, item.speed)
 								}
-							}
+							},
+							rawPath
 						);
 						item.progress = 1;
 

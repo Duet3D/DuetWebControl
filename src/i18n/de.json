@@ -721,5 +721,16 @@
     "plugins": {
       "caption": "Plugins"
     }
+  },
+  "plugins": {
+    "objectModelBrowser": {
+      "menuCaption": "Objektmodell",
+      "search": "Objektmodell durchsuchen...",
+      "selectedNode": "Ausgewählter Knoten:",
+      "none": "Keiner",
+      "documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
+      "summary": "Zusammenfassung",
+      "remarks": "Anmerkungen"
+    }
   }
 }

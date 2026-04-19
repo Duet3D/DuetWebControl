@@ -48,6 +48,7 @@ import { registerPluginData, setPluginData, PluginDataType } from "@/stores";
 import { useSettingsStore } from "@/stores/settings";
 import { useMachineStore } from "@/stores/machine";
 import { useCacheStore } from "@/stores/cache";
+import { useMenuStore } from "@/stores/menu";
 import { useUiStore, ContextMenuType } from "@/stores/ui";
 
 import packageInfo from "../../package.json";
@@ -178,7 +179,7 @@ export function initPluginSystem(router: Router) {
  */
 export function registerRoute(
 	component: Component,
-	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; condition?: boolean | (() => boolean); translated?: boolean }>>
+	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; condition?: boolean | (() => boolean); translated?: boolean; order?: number }>>
 ) {
 	if (!_router) {
 		throw new Error("Plugin system not initialised");
@@ -216,6 +217,23 @@ export function registerRoute(
 		path: descriptor.path,
 		component,
 	} as RouteRecordRaw);
+
+	// Surface the item in the navigation drawer. The menu store is the single source the shell
+	// reads from; category keys there are lowercase, hence the .toLowerCase() bridge to the
+	// caller's PascalCase convention (kept from the v3.7-dev registerRoute signature)
+	const caption = typeof descriptor.caption === "string"
+		? descriptor.caption
+		: descriptor.caption();
+	const condition = descriptor.condition;
+	useMenuStore().registerItem({
+		category: category.toLowerCase(),
+		icon: descriptor.icon,
+		caption,
+		translated: descriptor.translated ?? false,
+		path: descriptor.path,
+		order: descriptor.order,
+		condition: typeof condition === "function" ? condition : undefined
+	});
 }
 
 /**
