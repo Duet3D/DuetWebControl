@@ -205,6 +205,13 @@ type Events = {
 	 * Payload: Plugin identifier
 	 */
 	dwcPluginUnloaded: string;
+
+	/**
+	 * Plugin context-menu action: open the 3D viewer for the given file path. Emitted by the
+	 * `view-3d-model` context-menu item that the GCodeViewer plugin registers; the plugin's
+	 * GCodeViewer page subscribes and routes the file through its loader
+	 */
+	"view-3d-model": string;
 }
 
 const emitter = mitt<Events>();
