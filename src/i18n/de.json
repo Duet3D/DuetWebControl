@@ -731,6 +731,33 @@
       "documentationNotAvailable": "Dokumentation ist nicht verfügbar (/www/DuetAPI.xml nicht gefunden)",
       "summary": "Zusammenfassung",
       "remarks": "Anmerkungen"
+    },
+    "heightmap": {
+      "menuCaption": "Höhenkarte",
+      "listTitle": "Höhenkarten",
+      "none": "Keine",
+      "scale": "Skala:",
+      "orMore": "o. mehr",
+      "orLess": "o. weniger",
+      "axes": "Achsen:",
+      "notAvailable": "Höhenkarte nicht verfügbar",
+      "statistics": "Statistiken",
+      "numPoints": "Anzahl der Punkte: {0}",
+      "radius": "Messradius: {0}",
+      "area": "Messfläche: {0}",
+      "maxDeviations": "Maximale Abweichungen: {0} / {1}",
+      "meanError": "Gemittelter Fehler: {0}",
+      "rmsError": "Standardabweichung: {0}",
+      "display": "Ansicht",
+      "colorScheme": "Farbschema:",
+      "terrain": "Terrain",
+      "heat": "Hitze",
+      "invertZ": "Z-Koordinaten invertieren",
+      "topView": "Draufsicht",
+      "range": "Bereich",
+      "fixed": "Fixiert",
+      "deviation": "Abweichung",
+      "resetView": "Ansicht zurücksetzen"
     }
   }
 }
