@@ -51,6 +51,52 @@ export enum LayoutMode {
 	custom = "custom"
 }
 
+// Schema version embedded in persisted settings blobs. Bump SETTINGS_SCHEMA_VERSION and add a
+// step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
+// chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
+// useComponentSettings for per-component records
+const SETTINGS_SCHEMA_VERSION = 1;
+
+/**
+ * One per upgrade step. Index N runs when migrating from version N to N+1. Each step receives
+ * the previous-version blob and returns the next-version blob. Steps must be total - they may
+ * never throw on unexpected input, so a corrupt blob falls back to defaults rather than
+ * bricking saved settings
+ */
+const settingsUpgrades: ReadonlyArray<(blob: any) => any> = [
+	// 0 -> 1: drop the legacy bottomNavigation field. The xs/sm bottom nav was replaced by
+	// the hub-page + back-button shell so the field has no effect; deleting it stops the next
+	// save from carrying the stale key forward
+	(blob: any) => {
+		for (const container of [blob, blob?.main, blob?.machine]) {
+			if (container && typeof container === "object") {
+				delete container.bottomNavigation;
+			}
+		}
+		return blob;
+	},
+];
+
+function upgradeSettings(blob: any): any {
+	if (!blob || typeof blob !== "object") {
+		return blob;
+	}
+	const fromVersion = typeof blob.schemaVersion === "number" ? blob.schemaVersion : 0;
+	let current = blob;
+	for (let v = fromVersion; v < SETTINGS_SCHEMA_VERSION; v++) {
+		const step = settingsUpgrades[v];
+		if (step) {
+			current = step(current);
+		}
+	}
+	// schemaVersion is a save-time decoration; strip it before the merge so it doesn't end up
+	// as an unknown field on the Pinia state
+	if (current && typeof current === "object") {
+		delete current.schemaVersion;
+	}
+	return current;
+}
+
 export const useSettingsStore = defineStore("settings", {
 	state: () => ({
 		// #region General Settings
@@ -66,6 +112,19 @@ export const useSettingsStore = defineStore("settings", {
 		 * Custom plugin settings
 		 */
 		plugins: Object.assign({}, DefaultPluginSettings) as Record<string, any>,
+
+		/**
+		 * Workflow-behaviour preferences. v3.7-dev also exposed `jobStart` (suppress the
+		 * auto-switch to the Status page on print start) - moot in next because the status
+		 * panel renders persistently above the page content, so it was not carried over
+		 */
+		behaviour: {
+			/**
+			 * Show an M291 confirmation prompt after unloading the filament during a filament
+			 * change. The FilamentDialog macro flow only displays the prompt when this is true
+			 */
+			promptDuringFilamentChange: true,
+		},
 
 		/**
 		 * Configured locale
@@ -91,12 +150,6 @@ export const useSettingsStore = defineStore("settings", {
 		 * Configured dashboard mode
 		 */
 		dashboardMode: DashboardMode.default,
-
-		/**
-		 * Show navigation bar at the bottom on small screen sizes
-		 * @deprecated Replaced by the hub-page + back-button shell on xs/sm in the next-branch app; remove with a schema migration when the settings page is ported
-		 */
-		bottomNavigation: true,
 
 		/**
 		 * Currently selected layout mode. The default static shell is the only one implemented today;
@@ -444,7 +497,11 @@ export const useSettingsStore = defineStore("settings", {
 		async load() {
 			// Wrapper that effectively loads the given settings
 			const that = this;
-			async function applySettings(settingsToLoad: any) {
+			async function applySettings(rawSettings: any) {
+				// Run any pending schema-version upgrades before the merge so old persisted blobs
+				// don't carry retired or renamed keys back onto the Pinia state
+				const settingsToLoad = upgradeSettings(rawSettings);
+
 				let settings: any = {};
 				if (settingsToLoad.main instanceof Object) {
 					// Upgrade defaults if coming from an old version
@@ -530,9 +587,12 @@ export const useSettingsStore = defineStore("settings", {
 		 * Save settings
 		 */
 		async save() {
-			// See if we need to save everything in the local storage
+			// Mark the persisted blob with the current schema version so the load path can skip
+			// already-applied upgrades on the next boot
+			const payload = { schemaVersion: SETTINGS_SCHEMA_VERSION, ...this.$state };
+
 			if (this.settingsStorageLocal) {
-				setLocalSetting("settings", this.$state);
+				setLocalSetting("settings", payload);
 			} else {
 				// If not, remove the local settings again
 				removeLocalSetting("settings");
@@ -541,7 +601,7 @@ export const useSettingsStore = defineStore("settings", {
 				const machineStore = useMachineStore();
 				if (machineStore.isConnected) {
 					try {
-						const content = new Blob([JSON.stringify(this.$state)]);
+						const content = new Blob([JSON.stringify(payload)]);
 						await machineStore.upload([{ filename: Path.dwcSettingsFile, content }], false, false, false);
 					} catch (e) {
 						// handled before we get here
