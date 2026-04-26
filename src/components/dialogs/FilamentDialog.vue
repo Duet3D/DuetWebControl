@@ -36,6 +36,7 @@ import type { Tool } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
 
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<{
 const shown = defineModel<boolean>("shown", { required: true });
 
 const machineStore = useMachineStore();
+const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 const filaments = ref<Array<string>>([]);
@@ -99,9 +101,10 @@ async function filamentClick(filament: string) {
 	if (currentFilament) {
 		code += props.runMacros ? "M702\n" : "M702 P0\n";
 
-		// Prompt the user between unload and load so they have a chance to swap the spool before the new
-		// filament is fed
-		if (props.runMacros) {
+		// Prompt the user between unload and load so they have a chance to swap the spool before
+		// the new filament is fed. Gated on the workflow-behaviour setting so an experienced
+		// user can opt out of the extra confirmation
+		if (props.runMacros && settingsStore.behaviour.promptDuringFilamentChange) {
 			code += `M400 M291 P"${i18n.global.t("dialog.filament.changePrompt.message")}" R"${i18n.global.t("dialog.filament.changePrompt.title")}" S2\n`;
 		}
 	}

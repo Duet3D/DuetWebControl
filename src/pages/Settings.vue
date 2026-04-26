@@ -17,9 +17,9 @@
 <template>
 	<v-card>
 		<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact">
-			<v-tab v-for="tab in settingsTabs" :key="tab.key" :value="tab.key" class="text-none">
+			<v-tab v-for="tab in allTabs" :key="tab.key" :value="tab.key" class="text-none">
 				<v-icon size="small" class="mr-2">{{ tab.icon }}</v-icon>
-				{{ $t(tab.captionKey) }}
+				{{ tab.translated ? tab.caption : $t(tab.caption) }}
 			</v-tab>
 		</v-tabs>
 
@@ -55,6 +55,20 @@
 											  :label="$t('settings.units.binaryPrefix')"
 											  :hint="$t('settings.units.binaryPrefixHint')" density="comfortable"
 											  persistent-hint />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-account-cog</v-icon>
+									{{ $t("settings.behaviour.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.behaviour.promptDuringFilamentChange" color="primary"
+											  :label="$t('settings.behaviour.promptDuringFilamentChange')"
+											  density="comfortable" hide-details />
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -385,6 +399,12 @@
 					</v-row>
 				</v-container>
 			</v-window-item>
+
+			<!-- Plugin-registered tabs render their component inside a v-window-item; the tab
+				 itself is contributed via registerSettingTab in the plugin's init code -->
+			<v-window-item v-for="tab in pluginSettingTabs" :key="tab.key" :value="tab.key">
+				<component :is="tab.component" />
+			</v-window-item>
 		</v-window>
 	</v-card>
 
@@ -411,7 +431,9 @@ import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
-import { isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin } from "@/plugins";
+import {
+	getPluginSettingTabs, isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin
+} from "@/plugins";
 import Events from "@/utils/events";
 import { isPrinting } from "@/utils/enums";
 import { useMachineStore } from "@/stores/machine";
@@ -421,20 +443,44 @@ import { getErrorMessage } from "@/utils/errors";
 
 import packageInfo from "../../package.json";
 
-interface SettingsTab {
+// Built-in tabs share the shape used by plugin-registered tabs (caption + translated flag)
+// so the v-tabs render loop can merge them transparently. `order` slots plugin tabs in - the
+// built-ins reserve 10/20/30/... so a plugin order can land between them if needed
+interface BuiltinTab {
 	key: string;
 	icon: string;
-	captionKey: string;
+	caption: string;
+	translated?: boolean;
+	order: number;
 }
 
-const settingsTabs: Array<SettingsTab> = [
-	{ key: "general", icon: "mdi-tune", captionKey: "settings.tabs.general" },
-	{ key: "display", icon: "mdi-monitor-dashboard", captionKey: "settings.tabs.display" },
-	{ key: "webcam", icon: "mdi-webcam", captionKey: "settings.tabs.webcam" },
-	{ key: "communication", icon: "mdi-lan", captionKey: "settings.tabs.communication" },
-	{ key: "plugins", icon: "mdi-puzzle", captionKey: "settings.tabs.plugins" },
-	{ key: "about", icon: "mdi-information", captionKey: "settings.tabs.about" },
+const builtinTabs: Array<BuiltinTab> = [
+	{ key: "general", icon: "mdi-tune", caption: "settings.tabs.general", order: 10 },
+	{ key: "display", icon: "mdi-monitor-dashboard", caption: "settings.tabs.display", order: 20 },
+	{ key: "webcam", icon: "mdi-webcam", caption: "settings.tabs.webcam", order: 30 },
+	{ key: "communication", icon: "mdi-lan", caption: "settings.tabs.communication", order: 40 },
+	{ key: "plugins", icon: "mdi-puzzle", caption: "settings.tabs.plugins", order: 50 },
+	{ key: "about", icon: "mdi-information", caption: "settings.tabs.about", order: 60 },
 ];
+
+const pluginSettingTabs = computed(() => getPluginSettingTabs());
+
+// Resolve plugin captions through the same template branch as built-ins by collapsing the
+// getter form to a plain string at read time
+const allTabs = computed(() => {
+	const merged: Array<{ key: string; icon: string; caption: string; translated: boolean; order: number }> = [
+		...builtinTabs.map((tab) => ({ ...tab, translated: tab.translated ?? false })),
+		...pluginSettingTabs.value.map((tab) => ({
+			key: tab.key,
+			icon: tab.icon,
+			caption: typeof tab.caption === "string" ? tab.caption : tab.caption(),
+			translated: tab.translated ?? false,
+			order: tab.order ?? 100,
+		})),
+	];
+	merged.sort((a, b) => a.order - b.order);
+	return merged;
+});
 
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();

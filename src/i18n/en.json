@@ -604,6 +604,10 @@
       "errorsPersistent": "Error messages stay until dismissed",
       "timeout": "Default notification timeout (seconds)"
     },
+    "behaviour": {
+      "caption": "Behaviour",
+      "promptDuringFilamentChange": "Show message prompt after unloading the filament when changing it"
+    },
     "machine": {
       "caption": "Machine",
       "updateInterval": "Object model update interval",

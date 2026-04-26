@@ -149,6 +149,53 @@ export interface MenuItem {
 
 const _menuCategories = new Map<string, MenuCategory>();
 
+/**
+ * Settings-page tab contributed by a plugin via {@link registerSettingTab}
+ */
+export interface SettingTab {
+	/**
+	 * Stable identifier used as the v-tabs / v-window value
+	 */
+	key: string;
+
+	/**
+	 * Material Design icon
+	 */
+	icon: string;
+
+	/**
+	 * Caption - by default an i18n key; when {@link translated} is true, used verbatim
+	 */
+	caption: string | (() => string);
+
+	/**
+	 * Treat {@link caption} as a literal string instead of an i18n key
+	 */
+	translated?: boolean;
+
+	/**
+	 * Vue component to render inside the tab's v-window-item
+	 */
+	component: Component;
+
+	/**
+	 * Sort order relative to built-in + other plugin tabs (lower = leftmost; defaults to 100)
+	 */
+	order?: number;
+}
+
+// Reactive array so Settings.vue picks up new tabs as they're registered. Each plugin push
+// triggers the Settings page to re-render its tab list without any explicit subscription
+const _settingTabs = Vue.reactive<Array<SettingTab>>([]);
+
+/**
+ * Read-only view of plugin-registered Settings tabs. Settings.vue consumes this and merges
+ * the entries with its built-in tab list, ordering by `order ?? 100`
+ */
+export function getPluginSettingTabs(): ReadonlyArray<SettingTab> {
+	return _settingTabs as ReadonlyArray<SettingTab>;
+}
+
 // ─── Initialisation ──────────────────────────────────────────────────
 
 /**
@@ -251,6 +298,33 @@ export function registerCategory(name: string, icon: string, caption: string | (
 			translated,
 			pages: [],
 		});
+	}
+}
+
+/**
+ * Register a new Settings page tab.
+ *
+ * Plugins call this from their init code; the Settings page picks the new entry up via the
+ * reactive {@link getPluginSettingTabs} read-side. Duplicate keys are ignored so a re-register
+ * on hot reload doesn't end up with two copies.
+ *
+ * @param tab Tab descriptor: key, icon, caption (i18n key or literal), component, optional order
+ */
+export function registerSettingTab(tab: SettingTab) {
+	if (_settingTabs.some((existing) => existing.key === tab.key)) {
+		return;
+	}
+	_settingTabs.push(tab);
+}
+
+/**
+ * Remove a previously registered Settings tab.
+ * @param key Stable identifier passed to {@link registerSettingTab}
+ */
+export function unregisterSettingTab(key: string) {
+	const idx = _settingTabs.findIndex((tab) => tab.key === key);
+	if (idx !== -1) {
+		_settingTabs.splice(idx, 1);
 	}
 }
 
@@ -501,6 +575,8 @@ function exposeGlobalAPI() {
 		registerRoute,
 		registerCategory,
 		registerPluginContextMenuItem,
+		registerSettingTab,
+		unregisterSettingTab,
 
 		// Plugin data
 		registerPluginData,

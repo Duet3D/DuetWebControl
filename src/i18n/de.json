@@ -606,6 +606,10 @@
       "errorsPersistent": "Fehlermeldungen bleiben bis zur Bestätigung sichtbar",
       "timeout": "Standardzeit für Benachrichtigungen (Sekunden)"
     },
+    "behaviour": {
+      "caption": "Verhalten",
+      "promptDuringFilamentChange": "Nach dem Entladen beim Filamentwechsel eine Bestätigung anzeigen"
+    },
     "machine": {
       "caption": "Maschine",
       "updateInterval": "Aktualisierungsintervall des Objektmodells",
