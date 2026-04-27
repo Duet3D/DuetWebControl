@@ -208,7 +208,10 @@
       "save": "保存",
       "confirmClose": "文件已修改。如果继续，你的修改将丢失。",
       "confirmSaveEmpty": "您要保存的文件似乎是空的。 您确定要继续吗？",
-      "indentComments": "缩进注释"
+      "indentComments": "缩进注释",
+      "searchGcodeTooltip": "按描述搜索 G/M 代码 (F4)",
+      "searchGcode": "查找代码",
+      "searchExpressionTooltip": "按描述搜索对象模型路径或表达式函数 (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "正在上传文件第{0}个，共{1}个，已完成{2}%",

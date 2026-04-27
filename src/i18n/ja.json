@@ -208,7 +208,10 @@
       "save": "保存",
       "confirmClose": "ファイルが変更されています。先に進むと、変更内容が失われます",
       "confirmSaveEmpty": "保存しようとしているファイルが空のようです。続行してもよろしいですか？",
-      "indentComments": "コメントのインデント"
+      "indentComments": "コメントのインデント",
+      "searchGcodeTooltip": "説明による G/M コードの検索 (F4)",
+      "searchGcode": "コードの検索",
+      "searchExpressionTooltip": "オブジェクト モデルのパスまたは式関数を説明で検索します (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "ファイルアップロード中 {0} / {1}, {2}% 完了",

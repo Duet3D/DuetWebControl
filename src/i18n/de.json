@@ -208,7 +208,10 @@
       "save": "Speichern",
       "confirmClose": "Die Datei wurde geändert. Wenn Sie fortfahren gehen Ihre Änderungen verloren.",
       "confirmSaveEmpty": "Es scheint so als wäre die Datei, die sie speichern möchten, leer. Sind sie sicher, dass sie fortfahren möchten?",
-      "indentComments": "Kommentare einrücken"
+      "indentComments": "Kommentare einrücken",
+      "searchGcodeTooltip": "G/M-Code nach Beschreibung suchen (F4)",
+      "searchGcode": "Code finden",
+      "searchExpressionTooltip": "Objektmodellpfad oder Ausdrucksfunktion anhand der Beschreibung durchsuchen (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",

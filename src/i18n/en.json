@@ -208,7 +208,11 @@
       "save": "Save",
       "confirmClose": "The file has been changed. If you proceed, your changes will be lost.",
       "confirmSaveEmpty": "It appears that the file you want to save is empty. Are you sure you wish to proceed?",
-      "indentComments": "Indent Comments"
+      "indentComments": "Indent Comments",
+      "searchGcode": "Find Code",
+      "searchGcodeTooltip": "Search G/M-code by description (F4)",
+      "searchExpression": "Find Expression",
+      "searchExpressionTooltip": "Search object-model path or expression function by description (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "Uploading File {0} of {1}, {2}% complete",

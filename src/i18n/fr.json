@@ -208,7 +208,10 @@
       "save": "Sauvegarder",
       "confirmClose": "Le fichier a été modifié. Si vous continuez, vos modifications seront perdues.",
       "confirmSaveEmpty": "Il semble que le fichier que vous souhaitez enregistrer est vide. Êtes-vous sûr de vouloir continuer?",
-      "indentComments": "Indenter les commentaires"
+      "indentComments": "Indenter les commentaires",
+      "searchGcodeTooltip": "Rechercher le code G/M par description (F4)",
+      "searchGcode": "Trouver le code",
+      "searchExpressionTooltip": "Rechercher un chemin de modèle objet ou une fonction d'expression par description (F4)"
     },
     "meshEdit": {
       "title": "Définir Paramètres de Maillage",

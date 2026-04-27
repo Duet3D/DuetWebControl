@@ -208,7 +208,10 @@
       "save": "Salvar",
       "confirmClose": "O arquivo foi alterado. Se você continuar, suas alterações serão perdidas.",
       "confirmSaveEmpty": "Parece que o arquivo que você deseja salvar está vazio. Tem certeza de que deseja prosseguir?",
-      "indentComments": "Comentários de recuo"
+      "indentComments": "Comentários de recuo",
+      "searchGcodeTooltip": "Pesquisar código G/M por descrição (F4)",
+      "searchGcode": "Encontrar código",
+      "searchExpressionTooltip": "Pesquise o caminho do modelo de objeto ou função de expressão por descrição (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "Fazendo Uploading do arquivo {0} de {1}, {2}% completo",

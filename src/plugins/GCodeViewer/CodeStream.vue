@@ -1,3 +1,9 @@
+<style>
+.cm-activeLine {
+   background-color: #333 !important;
+}
+</style>
+
 <template>
    <div class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange">
       <div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
@@ -7,18 +13,11 @@
    </div>
 </template>
 
-<style scoped></style>
-
-<style>
-.cm-activeLine {
-   background-color: #333 !important;
-}
-</style>
-
 <script lang="ts">
-import type * as Monaco from 'monaco-editor';
-import Vue from 'vue';
-import store from '@/store';
+import type * as Monaco from "monaco-editor";
+import Vue from "vue";
+
+import store from "@/store";
 
 export default Vue.extend({
    props: {
@@ -46,6 +45,18 @@ export default Vue.extend({
          editor: null as Monaco.editor.IStandaloneCodeEditor | null
       };
    },
+   created() {
+      // Redefine `editor` as a plain (non-reactive) property. Vue 2's Observer otherwise walks the Monaco
+      // editor instance on assignment and installs getter/setters on its internal state, which breaks
+      // Monaco's internal bookkeeping (widget position caches etc). The template does not bind to
+      // `editor` directly, so losing reactivity is safe
+      Object.defineProperty(this, "editor", {
+         value: null,
+         writable: true,
+         configurable: true,
+         enumerable: true
+      });
+   },
    computed: {
       darkTheme() {
          return store.state.settings.darkTheme;
@@ -55,7 +66,6 @@ export default Vue.extend({
       this.monacoLoading = true;
       const { monaco } = await import('@/utils/monaco');
       this.monacoLoading = false;
-      (this as any)._monaco = monaco;
       this.$nextTick(() => {
          this.editor = monaco.editor.create(this.$refs.editor as HTMLElement, {
             automaticLayout: true,
@@ -75,30 +85,22 @@ export default Vue.extend({
    },
    methods: {
       cursorChange(e: any) {
-         if (this.isSimulating) return;
-         const monaco: typeof Monaco = (this as any)._monaco;
-         if (!monaco) return;
-         const currentPosition = this.editor?.getPosition() ?? new monaco.Position(1, 9999);
-         const newPosition = new monaco.Position(currentPosition.lineNumber, 9999);
-         const position = this.editor?.getModel()?.getOffsetAt(newPosition) ?? 0;
+         if (this.isSimulating || !this.editor) return;
+         const currentPosition = this.editor.getPosition() ?? { lineNumber: 1, column: 9999 };
+         const position = this.editor.getModel()?.getOffsetAt({ lineNumber: currentPosition.lineNumber, column: 9999 }) ?? 0;
          this.$emit('changed', position);
       }
    },
    watch: {
       currentline(to) {
          if (!this.shown || !this.editor) return;
-         const monaco: typeof Monaco = (this as any)._monaco;
-         if (!monaco) return;
-         to = to
-         const currentPosition = this.editor.getPosition() ?? new monaco.Position(1,9999);
-         const position = this.editor.getModel()?.getPositionAt(to) ?? new monaco.Position(1, 9999);
-         if (currentPosition.equals(position)) return;
-         const direction = Math.sign(position.lineNumber - currentPosition?.lineNumber);
-         let newpos = new monaco.Position(position.lineNumber, 9999);
-         if (newpos) {
-            this.editor.setPosition(newpos);
-            this.editor.revealLine(newpos.lineNumber + 5 * direction);
-         }
+         const currentPosition = this.editor.getPosition() ?? { lineNumber: 1, column: 9999 };
+         const position = this.editor.getModel()?.getPositionAt(to) ?? { lineNumber: 1, column: 9999 };
+         if (currentPosition.lineNumber === position.lineNumber && currentPosition.column === position.column) return;
+         const direction = Math.sign(position.lineNumber - currentPosition.lineNumber);
+         const newpos = { lineNumber: position.lineNumber, column: 9999 };
+         this.editor.setPosition(newpos);
+         this.editor.revealLine(newpos.lineNumber + 5 * direction);
       },
       document(to) {
          this.innerDocument = to;

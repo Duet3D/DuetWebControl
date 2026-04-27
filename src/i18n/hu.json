@@ -208,7 +208,10 @@
       "save": "Mentés",
       "confirmClose": "A fájl tartalma megváltozott. Ha folytatja, elvesznek a változások.",
       "confirmSaveEmpty": "A fájl üres. Valóban üresen akarja elmenteni?",
-      "indentComments": "Kommentek igazíása"
+      "indentComments": "Kommentek igazíása",
+      "searchGcodeTooltip": "G/M-kód keresése leírás alapján (F4)",
+      "searchGcode": "Keresse meg a kódot",
+      "searchExpressionTooltip": "Objektummodell elérési út vagy kifejezés függvény keresése leírás alapján (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "Fájl {0} / {1} feltöltése, {2}% kész",

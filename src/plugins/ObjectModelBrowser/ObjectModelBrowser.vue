@@ -65,32 +65,10 @@
 
 <script lang="ts">
 import ObjectModel, { DriverId, isDriverId } from "@duet3d/objectmodel";
-import { getErrorMessage } from "@/utils/errors";
 import Vue from "vue";
 
 import store from "@/store";
-
-// List of regexs to resolve properties in the XML documentation.
-// It's a shame the C# XML compiler doesn't include the property types...
-const propertyAdjustments = [
-	{ pattern: /(\[\d+\])+$/g, substitute: "" },
-	{ pattern: /s\[\d+\]/g, substitute: "" },
-	{ pattern: /.+\.mcutemp\./, substitute: "minmaxcurrent`1." },
-	{ pattern: /.+\.v12\./, substitute: "minmaxcurrent`1." },
-	{ pattern: /.+\.vin\./, substitute: "minmaxcurrent`1." },
-	{ pattern: "fan.thermostatic", substitute: "fanthermostaticcontrol" },
-	{ pattern: /^input\./, substitute: "inputchannel." },
-	{ pattern: "heat.heater.model.pid.", substitute: "heatermodelpid." },
-	{ pattern: "job.file.", substitute: "parsedfileinfo." },
-	{ pattern: "parsedfileinfo.thumbnail.", substitute: "parsedthumbnail." },
-	{ pattern: "move.axe.", substitute: "axis." },
-	{ pattern: /^move.calibration.(final|initial)./, substitute: "movedeviations." },
-	{ pattern: "move.idle.", substitute: "motorsidlecontrol." },
-	{ pattern: /^move.queue\[\d+\]\./, substitute: "movequeueitem." },
-	{ pattern: /^sensors.analog\[\d+\]\./, substitute: "analogsensor." },
-	{ pattern: /^sensors.gpin\[\d+\]\./, substitute: "gpinputport." },
-	{ pattern: /^state.gpout\[\d+\]\./, substitute: "gpoutputport." },
-];
+import { loadDuetApi, getDuetApiDocument, getDuetApiError, lookupApiMember, extractTag } from "@/utils/duetApi";
 
 interface ModelTreeItem {
 	id: string;
@@ -106,53 +84,15 @@ export default Vue.extend({
 		darkTheme(): boolean { return store.state.settings.darkTheme; },
 		apiDocumentation(): Element | null {
 			if (this.apiFile !== null && this.active.length > 0) {
-				let selectedNode = this.active[0].toLowerCase();
-				propertyAdjustments.forEach(item => selectedNode = selectedNode.replace(item.pattern, item.substitute));
-				// NOTE: If kinematics properties are queried, they may need require treatment here
-
-				const propertyNames = [selectedNode], segments = selectedNode.split(".");
-				if (segments.length > 2) {
-					propertyNames.push(`${segments[0]}${segments[1]}.${segments.slice(2).reduce((a, b) => a + "." + b)}`);
-					propertyNames.push(segments.slice(1).reduce((a, b) => a + "." + b));
-					if (segments.length > 3) {
-						propertyNames.push(`${segments[0]}${segments[1]}${segments[2]}.${segments.slice(3).reduce((a, b) => a + "." + b)}`);
-						propertyNames.push(segments.slice(2).reduce((a, b) => a + "." + b));
-					}
-				}
-
-				const members = this.apiFile.documentElement.getElementsByTagName("member");
-				for (let i = 0; i < propertyNames.length; i++) {
-					const propertyName = propertyNames[i];
-					for (let k = 0; k < members.length; k++) {
-						const node = members[k], tagName = node.getAttribute("name");
-						if (tagName!.startsWith("P:") && tagName!.toLowerCase().endsWith(propertyName)) {
-							return node;
-						}
-					}
-				}
+				return lookupApiMember(this.apiFile, this.active[0]);
 			}
 			return null;
 		},
 		apiDocumentationSummary(): string | null {
-			if (this.apiDocumentation !== null) {
-				const nodes: ArrayLike<Element> = this.apiDocumentation.getElementsByTagName("summary");
-					console.log(nodes);
-				return (nodes.length === 0) ? null : nodes[0].innerHTML
-					.trim()
-					.replace(/\n/g, "<br>")
-					.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
-			}
-			return null;
+			return this.apiDocumentation !== null ? extractTag(this.apiDocumentation, "summary") : null;
 		},
-		apiDocumentationRemarks() {
-			if (this.apiDocumentation !== null) {
-				const nodes: ArrayLike<Element> = this.apiDocumentation.getElementsByTagName("remarks");
-				return (nodes.length === 0) ? null : nodes[0].innerHTML
-					.trim()
-					.replace(/\n/g, "<br>")
-					.replace(/<see cref="P:DuetAPI\.ObjectModel\.(.*)".*\/>/g, "$1");
-			}
-			return null;
+		apiDocumentationRemarks(): string | null {
+			return this.apiDocumentation !== null ? extractTag(this.apiDocumentation, "remarks") : null;
 		}
 	},
 	data() {
@@ -161,27 +101,17 @@ export default Vue.extend({
 			search: "",
 			modelTree: new Array<ModelTreeItem>,
 			apiFile: null as Document | null,
-			apiFileError: null,
+			apiFileError: null as string | null,
 			documentationFloating: false
 		}
 	},
 	async activated() {
-		if (this.apiFile === null) {
-			try {
-				const apiFileContent = await store.dispatch("machine/download", {
-					filename: "DuetAPI.xml",
-					type: "text",
-					showError: false,
-					showSuccess: false,
-					rawPath: true
-				});
-
-				const parser = new DOMParser();
-				this.apiFile = parser.parseFromString(apiFileContent, "application/xml");
-				this.apiFileError = null;
-			} catch (e) {
-				this.apiFileError = getErrorMessage(e);
-				console.warn(e);
+		if (this.apiFile === null && this.apiFileError === null) {
+			this.apiFile = await loadDuetApi();
+			this.apiFileError = getDuetApiError();
+			if (this.apiFile === null && this.apiFileError === null) {
+				// Loaded into cache by another caller between our null check and the await - re-read
+				this.apiFile = getDuetApiDocument();
 			}
 		}
 		this.refresh();

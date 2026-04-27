@@ -208,7 +208,10 @@
       "save": "Zapisz",
       "confirmClose": "Plik był modyfikowany. Jeżeli kontynuujesz zmiany zostaną utracone.",
       "confirmSaveEmpty": "Wygląda na to, że plik, który chcesz zapisać, jest pusty. Jesteś pewien, że chcesz kontynuować?",
-      "indentComments": "Komentarze wcięcia"
+      "indentComments": "Komentarze wcięcia",
+      "searchGcodeTooltip": "Wyszukaj kod G/M według opisu (F4)",
+      "searchGcode": "Znajdź kod",
+      "searchExpressionTooltip": "Wyszukaj ścieżkę modelu obiektowego lub funkcję wyrażenia według opisu (F4)"
     },
     "fileTransfer": {
       "uploadingTitle": "Wgrywanie pliku {0} z z{1}, {2}% ukończono",

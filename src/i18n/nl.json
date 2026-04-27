@@ -211,7 +211,10 @@
       "gcodeReference": "G-Code-referentie",
       "indentComments": "Opmerkingen inspringen",
       "menuReference": "Menureferentie",
-      "save": "Redden"
+      "save": "Redden",
+      "searchGcodeTooltip": "Zoek G/M-code op omschrijving (F4)",
+      "searchGcode": "Vind code",
+      "searchExpressionTooltip": "Zoek objectmodelpad of expressiefunctie op beschrijving (F4)"
     },
     "fileTransfer": {
       "cancelDownloads": "Downloads annuleren",

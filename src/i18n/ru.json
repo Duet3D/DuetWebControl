@@ -208,7 +208,10 @@
       "save": "Save",
       "confirmClose": "Файл был изменен. Если вы продолжите, ваши изменения будут потеряны.",
       "confirmSaveEmpty": "Похоже, что файл, который вы хотите сохранить, пуст. Вы уверены, что хотите продолжить?",
-      "indentComments": "Отступ комментариев"
+      "indentComments": "Отступ комментариев",
+      "searchGcodeTooltip": "Поиск G/M-кода по описанию (F4)",
+      "searchGcode": "Найти код",
+      "searchExpressionTooltip": "Поиск пути к объектной модели или функции выражения по описанию (F4)"
     },
     "meshEdit": {
       "title": "Set Mesh Parameters",
