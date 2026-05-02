@@ -126,6 +126,16 @@ export const useCacheStore = defineStore("cache", {
 		},
 
 		/**
+		 * Remember a parsed GCodeFileInfo so subsequent lookups (e.g. another visit to the
+		 * same Jobs directory) skip the expensive per-file fetch. Keyed by full path
+		 * @param filename Full path of the gcode file
+		 * @param info Parsed file info returned by the connector
+		 */
+		setFileInfo(filename: string, info: GCodeFileInfo) {
+			this.fileInfos[filename] = info;
+		},
+
+		/**
 		 * Clear file info for a specific file or directory
 		 * @param fileOrDirectory File or directory path
 		 */

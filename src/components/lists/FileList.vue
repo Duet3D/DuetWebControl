@@ -57,6 +57,10 @@
 			</v-btn>
 		</v-toolbar>
 
+		<!-- Optional progress strip for callers that fetch per-row metadata in the background
+			 (e.g. JobFileList loading gcode file info one entry at a time) -->
+		<slot name="progress" />
+
 		<div :class="{ 'file-drop-target': true, 'file-drop-target--active': dragActive }"
 			 @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
 			 @drop.prevent="onDrop">
@@ -66,9 +70,13 @@
 						  :row-props="rowProps" :no-data-text="$t(noItemsText)" @click:row="onRowClick">
 			<template #item.name="{ item }">
 				<div class="d-flex align-center">
-					<v-icon size="small" class="mr-2">
-						{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
-					</v-icon>
+					<!-- Default leading icon; consumers (e.g. JobFileList) override this slot to
+						 render a per-row gcode thumbnail in place of the generic file icon -->
+					<slot name="nameIcon" :item="item">
+						<v-icon size="small" class="mr-2">
+							{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
+						</v-icon>
+					</slot>
 					{{ item.name }}
 				</div>
 			</template>
@@ -77,6 +85,12 @@
 			</template>
 			<template #item.lastModified="{ item }">
 				{{ item.lastModified ? item.lastModified.toLocaleString() : $t("generic.noValue") }}
+			</template>
+			<!-- Forward arbitrary item slots so the caller can render rich cells (gcode metadata,
+				 thumbnails, etc.) for each extra header it declared -->
+			<template v-for="header in (props.extraHeaders ?? [])" :key="header.key"
+					  #[`item.${header.key}`]="slotProps">
+				<slot :name="`item.${header.key}`" v-bind="slotProps" />
 			</template>
 			</v-data-table>
 		</div>
