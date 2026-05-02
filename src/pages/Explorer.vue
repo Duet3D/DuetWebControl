@@ -16,6 +16,51 @@
 }
 </route>
 
+<script lang="ts">
+// Pre-fetch the active tab's content during navigation: a directory listing for browser tabs,
+// the file contents for editor tabs. Result is consumed in <script setup> to seed either the
+// initial FileList or the MonacoEditor. `lazy: true` keeps the route transition snappy on slow
+// boards - the editor and file list render their own loading state in the meantime
+import { defineBasicLoader } from "vue-router/experimental";
+
+import { useMachineStore } from "@/stores/machine";
+import Path from "@/utils/path";
+
+interface ExplorerInitialPayload {
+	path: string;
+	kind: "directory" | "editor" | "none";
+	files?: unknown[];
+	content?: string;
+}
+
+function looksLikeFile(path: string): boolean {
+	if (!path) return false;
+	return !path.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(path));
+}
+
+export const useExplorerInitialData = defineBasicLoader(async (to): Promise<ExplorerInitialPayload> => {
+	const path = typeof to.query.path === "string" ? to.query.path : "";
+	if (!path) {
+		return { path: "", kind: "none" };
+	}
+	const machineStore = useMachineStore();
+	if (!machineStore.isConnected) {
+		return { path, kind: looksLikeFile(path) ? "editor" : "directory" };
+	}
+	try {
+		if (looksLikeFile(path)) {
+			const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
+			return { path, kind: "editor", content };
+		}
+		const files = await machineStore.getFileList(path);
+		return { path, kind: "directory", files };
+	} catch (e) {
+		console.warn("Explorer loader failed", e);
+		return { path, kind: looksLikeFile(path) ? "editor" : "directory" };
+	}
+}, { lazy: true });
+</script>
+
 <template>
 	<v-card>
 		<v-toolbar density="compact" color="surface">
@@ -52,9 +97,9 @@
 		<v-window v-model="activeTab" :touch="false">
 			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager>
 				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename" :filename="tab.filename"
-							  @close="closeTab(tab.id)" />
+							  :initial-content="tab.initialContent" @close="closeTab(tab.id)" />
 				<FileList v-else v-model:directory="tab.directory"
-						  :options="{ initialDirectory: initialDirectoryFor(tab) }"
+						  :options="optionsForTab(tab)"
 						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
 						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
 						  :firmware-aware="tab.kind === 'system'"
@@ -70,13 +115,13 @@
 </template>
 
 <script setup lang="ts">
+// useMachineStore + Path are already imported in the module-scope <script> block above (the
+// loader needs them); reusing those bindings here avoids duplicate-identifier errors
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
 import i18n from "@/i18n";
-import { useMachineStore } from "@/stores/machine";
-import Path from "@/utils/path";
 
 type BrowserKind = "macros" | "filaments" | "system" | "files";
 type TabKind = BrowserKind | "editor";
@@ -100,11 +145,25 @@ interface ExplorerTab {
 	 * so we can sync the active tab's path to the URL
 	 */
 	directory?: string;
+	/**
+	 * One-shot pre-fetched data from the route loader. Cleared after the first render so a
+	 * later refresh refetches from the board
+	 */
+	initialFiles?: Array<FileBrowserItem>;
+	/**
+	 * Pre-fetched editor content from the route loader (one-shot, like initialFiles)
+	 */
+	initialContent?: string;
 }
 
 const machineStore = useMachineStore();
 const route = useRoute();
 const router = useRouter();
+
+// Loader-supplied initial payload for the URL's ?path= - if present, seeds the first tab so
+// the file list / editor renders with data already in hand. May resolve after the page mounts
+// (lazy loader) so we read it via a watcher on first arrival as well
+const { data: initialPayload } = useExplorerInitialData();
 
 const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 	macros: {
@@ -142,7 +201,9 @@ let nextTabId = 1;
 
 // Honour ?path=... on first mount - either a directory (matched by trailing slash or known
 // browser-tab roots) or a filename (anything else). The browser tab kind is inferred from the
-// path so we land at e.g. the macros tab when the URL points inside the macros directory
+// path so we land at e.g. the macros tab when the URL points inside the macros directory.
+// If the loader resolved synchronously, seed the tab with its result so the first render
+// already has data; otherwise watchPayload() folds the data in once it arrives
 function buildInitialTabs(): Array<ExplorerTab> {
 	const queryPath = typeof route.query.path === "string" ? route.query.path : "";
 	if (!queryPath) {
@@ -150,12 +211,28 @@ function buildInitialTabs(): Array<ExplorerTab> {
 	}
 
 	const looksLikeFile = !queryPath.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(queryPath));
+	const payload = initialPayload.value;
+
 	if (looksLikeFile) {
-		return [{ id: nextTabId++, kind: "editor", filename: queryPath }];
+		return [{
+			id: nextTabId++,
+			kind: "editor",
+			filename: queryPath,
+			initialContent: payload && payload.path === queryPath && payload.kind === "editor"
+				? payload.content
+				: undefined,
+		}];
 	}
 
 	const kind = inferBrowserKind(queryPath);
-	return [{ id: nextTabId++, kind, directory: queryPath }];
+	return [{
+		id: nextTabId++,
+		kind,
+		directory: queryPath,
+		initialFiles: payload && payload.path === queryPath && payload.kind === "directory"
+			? (payload.files as Array<FileBrowserItem> | undefined) ?? undefined
+			: undefined,
+	}];
 }
 
 function inferBrowserKind(dir: string): BrowserKind {
@@ -180,6 +257,33 @@ function initialDirectoryFor(tab: ExplorerTab): string {
 	}
 	return browserKinds[tab.kind as BrowserKind].directory();
 }
+
+function optionsForTab(tab: ExplorerTab) {
+	return {
+		initialDirectory: initialDirectoryFor(tab),
+		initialFiles: tab.initialFiles,
+	};
+}
+
+// The data loader is `lazy: true` so its result may not be available when the page first
+// mounts. When it resolves, fold the result into the active tab if no per-tab navigation has
+// happened in the meantime (i.e. the tab still points at the loader's path)
+watch(initialPayload, (payload) => {
+	if (!payload || payload.kind === "none") {
+		return;
+	}
+	const tab = tabs.value.find((t) => t.id === activeTab.value);
+	if (!tab) {
+		return;
+	}
+	if (payload.kind === "editor" && tab.kind === "editor" && tab.filename === payload.path
+			&& tab.initialContent === undefined) {
+		tab.initialContent = payload.content;
+	} else if (payload.kind === "directory" && tab.kind !== "editor" && tab.directory === payload.path
+			&& tab.initialFiles === undefined) {
+		tab.initialFiles = (payload.files as Array<FileBrowserItem> | undefined) ?? undefined;
+	}
+});
 
 const runMacroDialog = reactive({
 	shown: false,

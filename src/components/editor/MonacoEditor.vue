@@ -56,6 +56,11 @@ import Path from "@/utils/path";
 
 const props = defineProps<{
 	filename: string;
+	/**
+	 * Optional pre-fetched file content (typically supplied by a route data loader). When set,
+	 * the on-mount download is skipped and the editor opens with this text already loaded
+	 */
+	initialContent?: string;
 }>();
 
 const emit = defineEmits<{
@@ -102,14 +107,17 @@ onMounted(async () => {
 		const monaco = await ensureMonaco(machineStore);
 
 		// Fetch the file content first; building the editor with the wrong content forces a
-		// second model swap once it lands which is visually noisy
-		let content = "";
-		try {
-			content = await machineStore.download({ filename: props.filename, type: "text" }, false, false, false);
-		} catch (e) {
-			loadError.value = getErrorMessage(e);
-			loading.value = false;
-			return;
+		// second model swap once it lands which is visually noisy. A route data loader may have
+		// already pre-fetched the text, in which case we skip the download
+		let content = props.initialContent ?? "";
+		if (props.initialContent === undefined) {
+			try {
+				content = await machineStore.download({ filename: props.filename, type: "text" }, false, false, false);
+			} catch (e) {
+				loadError.value = getErrorMessage(e);
+				loading.value = false;
+				return;
+			}
 		}
 
 		originalValue = content;

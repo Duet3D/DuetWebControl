@@ -25,6 +25,12 @@ export interface FileBrowserOptions {
 	 * Optional hook to enrich items before they enter the list (e.g. set displayName, executing flags)
 	 */
 	decorate?: (items: Array<FileBrowserItem>) => void;
+	/**
+	 * Pre-fetched listing for {@link initialDirectory}. When provided, the on-mount refresh is
+	 * skipped and the browser starts with this data; useful when a route data loader has already
+	 * fetched the directory before the component mounts. Subsequent navigation still re-fetches
+	 */
+	initialFiles?: Array<FileBrowserItem>;
 }
 
 /**
@@ -40,6 +46,16 @@ export function useFileBrowser(options: FileBrowserOptions) {
 	const filelist = ref<Array<FileBrowserItem>>([]);
 	const loading = ref(false);
 	let wasMounted = false;
+
+	// One-shot guard: if the caller seeded us with pre-fetched data (typically from a route
+	// data loader), use it for the initial render and skip the on-mount fetch. Subsequent
+	// navigation still goes through loadDirectory normally
+	let initialFilesConsumed = false;
+	if (options.initialFiles && options.initialFiles.length > 0) {
+		const seeded = options.initialFiles.slice();
+		options.decorate?.(seeded);
+		filelist.value = seeded;
+	}
 
 	const volumes = computed<Array<Volume>>(() => machineStore.model.volumes);
 
@@ -87,7 +103,12 @@ export function useFileBrowser(options: FileBrowserOptions) {
 	onMounted(() => {
 		if (machineStore.isConnected) {
 			wasMounted = volumes.value.length > 0 && volumes.value[0].mounted;
-			refresh();
+			if (options.initialFiles && !initialFilesConsumed) {
+				// Pre-fetched data already populated filelist; skip the on-mount refresh
+				initialFilesConsumed = true;
+			} else {
+				refresh();
+			}
 		}
 		Events.on("filesOrDirectoriesChanged", onFilesOrDirectoriesChanged);
 	});
