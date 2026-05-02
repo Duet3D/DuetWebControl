@@ -375,7 +375,11 @@
     "fileList": {
       "open": "Öffnen",
       "download": "Herunterladen",
-      "downloadZIP": "Als ZIP herunterladen"
+      "downloadZIP": "Als ZIP herunterladen",
+      "viewMode": "Ansicht",
+      "viewModeAuto": "Automatisch (Kacheln auf kleinen Bildschirmen)",
+      "viewModeList": "Liste",
+      "viewModeTiles": "Kacheln"
     },
     "explorer": {
       "root": "Dateien",

@@ -373,7 +373,11 @@
     "fileList": {
       "open": "Open",
       "download": "Download",
-      "downloadZIP": "Download as ZIP"
+      "downloadZIP": "Download as ZIP",
+      "viewMode": "View mode",
+      "viewModeAuto": "Auto (tiles on small screens)",
+      "viewModeList": "List",
+      "viewModeTiles": "Tiles"
     },
     "explorer": {
       "root": "Files",

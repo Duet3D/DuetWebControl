@@ -55,6 +55,22 @@
 				   :title="$t('button.refresh.caption')" @click="browser.refresh()">
 				<v-icon>mdi-refresh</v-icon>
 			</v-btn>
+
+			<!-- View-mode picker. The default is "auto" (tiles on xs/sm, list on md+); the user
+				 can pin a specific mode per FileList instance via useComponentSettings -->
+			<v-menu>
+				<template #activator="{ props: activatorProps }">
+					<v-btn v-bind="activatorProps" variant="text" icon
+						   :title="$t('list.fileList.viewMode')">
+						<v-icon>{{ viewModeIcon }}</v-icon>
+					</v-btn>
+				</template>
+				<v-list density="compact">
+					<v-list-item v-for="opt in viewModeOptions" :key="opt.value"
+								 :active="viewMode === opt.value" :prepend-icon="opt.icon"
+								 :title="$t(opt.label)" @click="viewMode = opt.value" />
+				</v-list>
+			</v-menu>
 		</v-toolbar>
 
 		<!-- Optional progress strip for callers that fetch per-row metadata in the background
@@ -64,7 +80,41 @@
 		<div :class="{ 'file-drop-target': true, 'file-drop-target--active': dragActive }"
 			 @dragenter.prevent="onDragEnter" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
 			 @drop.prevent="onDrop">
-			<v-data-table v-model="selection" :headers="effectiveHeaders" :items="browser.filelist.value"
+			<!-- Tile grid: card per file with the standard nameIcon + name + size + lastModified
+				 summary. Consumers can override the summary via #tileSummary to surface other
+				 metadata (e.g. JobFileList shows filament + print time) -->
+			<div v-if="effectiveViewMode === 'tiles'" class="tile-grid pa-2">
+				<v-alert v-if="browser.filelist.value.length === 0 && !browser.loading.value"
+						 type="info" variant="tonal" density="compact" class="tile-grid-empty">
+					{{ $t(noItemsText) }}
+				</v-alert>
+				<v-card v-for="item in browser.filelist.value" :key="item.name"
+						class="tile-card d-flex flex-column" variant="outlined"
+						:class="{ 'tile-card--active': selection.includes(item.name) }"
+						@click="onRowClick(null, { item })"
+						@contextmenu="onRowContextMenu($event, item)">
+					<div class="tile-card-icon d-flex align-center justify-center pt-3">
+						<slot name="nameIcon" :item="item">
+							<v-icon size="40">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
+						</slot>
+					</div>
+					<div class="tile-card-name text-body-2 text-center px-2 pt-2 text-truncate">
+						{{ item.name }}
+					</div>
+					<div class="tile-card-summary text-caption text-medium-emphasis px-2 pb-2 text-center">
+						<slot name="tileSummary" :item="item">
+							<template v-if="!item.isDirectory">
+								{{ displaySize(typeof item.size === "bigint" ? Number(item.size) : item.size) }}
+							</template>
+							<div v-if="item.lastModified" class="text-truncate">
+								{{ item.lastModified.toLocaleString() }}
+							</div>
+						</slot>
+					</div>
+				</v-card>
+			</div>
+
+			<v-data-table v-else v-model="selection" :headers="effectiveHeaders" :items="browser.filelist.value"
 						  item-value="name" :loading="browser.loading.value" :sort-by="internalSortBy" must-sort
 						  hide-default-footer items-per-page="-1" density="compact" show-select
 						  :row-props="rowProps" :no-data-text="$t(noItemsText)" @click:row="onRowClick">
@@ -156,6 +206,8 @@ import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue"
 import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useFileBrowser } from "@/composables/useFileBrowser";
 import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
+import { useComponentSettings } from "@/composables/useComponentSettings";
+import { useDisplay } from "vuetify";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
@@ -238,6 +290,37 @@ const browser = useFileBrowser({
 	decorate: props.options.decorate,
 });
 const firmwareInstall = useFirmwareInstall();
+
+// ---- View mode (list vs tiles) -------------------------------------------------------------
+
+type FileListViewMode = "auto" | "list" | "tiles";
+
+const display = useDisplay();
+const viewModeSetting = useComponentSettings<{ viewMode: FileListViewMode }>({ viewMode: "auto" });
+const viewMode = computed<FileListViewMode>({
+	get: () => viewModeSetting.value.viewMode,
+	set: (mode) => { viewModeSetting.value = { ...viewModeSetting.value, viewMode: mode }; },
+});
+
+// `auto` resolves to tiles on phone-sized screens (the 4.3" / 7" touchscreen target the plan
+// calls out) and stays as the familiar v-data-table on tablet/desktop
+const effectiveViewMode = computed<"list" | "tiles">(() => {
+	if (viewMode.value === "tiles") return "tiles";
+	if (viewMode.value === "list") return "list";
+	return display.smAndDown.value ? "tiles" : "list";
+});
+
+const viewModeIcon = computed(() => {
+	if (viewMode.value === "tiles") return "mdi-view-grid";
+	if (viewMode.value === "list") return "mdi-format-list-bulleted";
+	return "mdi-view-dashboard-variant";
+});
+
+const viewModeOptions: Array<{ value: FileListViewMode; icon: string; label: string }> = [
+	{ value: "auto", icon: "mdi-view-dashboard-variant", label: "list.fileList.viewModeAuto" },
+	{ value: "list", icon: "mdi-format-list-bulleted", label: "list.fileList.viewModeList" },
+	{ value: "tiles", icon: "mdi-view-grid", label: "list.fileList.viewModeTiles" },
+];
 
 const defaultHeaders: Array<FileListHeader> = [
 	{ title: "Name", key: "name" },
@@ -724,6 +807,7 @@ function saveBlob(filename: string, blob: Blob) {
 <style scoped>
 .file-drop-target {
 	position: relative;
+	container-type: inline-size;
 }
 
 .file-drop-target--active::after {
@@ -733,5 +817,30 @@ function saveBlob(filename: string, blob: Blob) {
 	border: 2px dashed rgb(var(--v-theme-primary));
 	background-color: rgba(var(--v-theme-primary), 0.06);
 	pointer-events: none;
+}
+
+/* Tile grid: auto-fills with cards sized to comfortably hold a 48px thumbnail + name + summary
+   on phone-sized screens, expanding to wider cards on tablet/desktop */
+.tile-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+	gap: 8px;
+}
+
+.tile-grid-empty {
+	grid-column: 1 / -1;
+}
+
+.tile-card {
+	cursor: pointer;
+	min-height: 140px;
+}
+
+.tile-card--active {
+	border-color: rgb(var(--v-theme-primary)) !important;
+}
+
+.tile-card-name {
+	font-weight: 500;
 }
 </style>

@@ -26,6 +26,19 @@
 		<template #item.printTime="{ item }">{{ formatTime(item.printTime) }}</template>
 		<template #item.simulatedTime="{ item }">{{ formatTime(item.simulatedTime) }}</template>
 		<template #item.generatedBy="{ item }">{{ item.generatedBy ?? "" }}</template>
+
+		<!-- Tile-mode override: surface print time + filament alongside the size so the most
+			 useful gcode metadata is visible on the touchscreen tiles -->
+		<template #tileSummary="{ item }">
+			<template v-if="!item.isDirectory">
+				<div v-if="formatTime((item as JobBrowserItem).printTime)" class="text-truncate">
+					{{ formatTime((item as JobBrowserItem).printTime) }}
+				</div>
+				<div v-if="formatFilament((item as JobBrowserItem).filament)" class="text-truncate">
+					{{ formatFilament((item as JobBrowserItem).filament) }}
+				</div>
+			</template>
+		</template>
 	</FileList>
 </template>
 
