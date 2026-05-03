@@ -26,7 +26,7 @@
 					<v-col cols="12">
 						<ZBabystepPanel />
 					</v-col>
-					<v-col class="hidden-sm-and-down">
+					<v-col class="d-none d-md-flex">
 						<JobInfoPanel />
 					</v-col>
 					<v-col cols="12" class="d-none d-sm-block d-md-none">
@@ -50,7 +50,7 @@
 					</v-col>
 				</v-row>
 
-				<v-row class="flex-grow-0 flex-shrink-1 hidden-sm-and-up mt-3">
+				<v-row class="flex-grow-0 flex-shrink-1 d-flex d-sm-none mt-3">
 					<v-col cols="6" md="6">
 						<FansPanel />
 					</v-col>
@@ -62,22 +62,22 @@
 
 			<v-col order="2" order-md="3" cols="12" sm="6" md="4" xl="3">
 				<v-row :dense="mobile">
-					<v-col cols="12" class="hidden-md-and-up">
+					<v-col cols="12" class="d-flex d-md-none">
 						<JobEstimationsPanel />
 					</v-col>
-					<v-col cols="12" class="hidden-md-and-up">
+					<v-col cols="12" class="d-flex d-md-none">
 						<JobDataPanel />
 					</v-col>
-					<v-col cols="12" class="hidden-md-and-up">
+					<v-col cols="12" class="d-flex d-md-none">
 						<JobInfoPanel />
 					</v-col>
-					<v-col cols="12" class="hidden-sm-only">
+					<v-col cols="12" class="d-flex d-sm-none d-md-flex">
 						<SpeedFactorPanel />
 					</v-col>
 					<v-col cols="12">
 						<FansPanel />
 					</v-col>
-					<v-col cols="12" class="hidden-sm-only">
+					<v-col cols="12" class="d-flex d-sm-none d-md-flex">
 						<ExtrusionFactorsPanel />
 					</v-col>
 				</v-row>

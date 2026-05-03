@@ -116,12 +116,16 @@ function getChamberLabel(chamberIdx: number): string {
 </script>
 
 <style scoped>
+/* The overlay only renders inside GCodeViewer's fullscreen mode (the v-show guard at
+   GCodeViewer.vue's <FSOverlay v-show="fullscreen && showOverlay">), so the fixed positioning
+   is anchored to a viewport that's already taken over by the .full-screen wrapper - no app-bar
+   overlap risk. z-index 5 keeps it above the canvas but below Vuetify's overlay stack */
 .overlay-container {
 	position: fixed;
 	inset: 0;
 	width: 100%;
 	height: 100%;
-	z-index: 50;
+	z-index: 5;
 	pointer-events: none;
 }
 

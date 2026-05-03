@@ -32,3 +32,4 @@ registerPluginData("GCodeViewer", PluginDataType.cache, "viewGCode", false);
 registerPluginData("GCodeViewer", PluginDataType.cache, "zBelt", false);
 registerPluginData("GCodeViewer", PluginDataType.cache, "zBeltAngle", 45);
 registerPluginData("GCodeViewer", PluginDataType.cache, "showWorkplace", true);
+registerPluginData("GCodeViewer", PluginDataType.cache, "showCursor", false);

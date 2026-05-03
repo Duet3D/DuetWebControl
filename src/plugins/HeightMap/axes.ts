@@ -15,10 +15,11 @@ export default class Axes {
 	size: number;
 	debug: boolean;
 
-	constructor(scene: Scene) {
-		const stored = localStorage.getItem('axesVisible');
-		this.visible = stored === null ? true : JSON.parse(stored);
-
+	// Persistence of `visible` is the owning Vue component's job (HeightMap.vue routes it
+	// through the cache store so the user's preference survives in the same per-plugin cache
+	// blob as everything else). The class itself just owns the in-scene state
+	constructor(scene: Scene, initialVisible: boolean = true) {
+		this.visible = initialVisible;
 		this.scene = scene;
 		this.registerClipIgnore = () => {};
 		this.axesMesh = undefined;
@@ -28,7 +29,7 @@ export default class Axes {
 	}
 
 	show(visible: boolean): void {
-		localStorage.setItem('axesVisible', String(visible));
+		this.visible = visible;
 		if (this.axesMesh) {
 			this.axesMesh.setEnabled(visible);
 		}

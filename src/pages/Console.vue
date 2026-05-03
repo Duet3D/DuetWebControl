@@ -16,7 +16,7 @@
 	<v-container fluid class="pa-2 pa-md-3">
 		<v-row no-gutters>
 			<v-col cols="12">
-				<CodeInput solo />
+				<CodeInput variant="solo" />
 			</v-col>
 			<v-col cols="12" class="mt-3">
 				<EventList />

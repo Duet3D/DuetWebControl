@@ -381,7 +381,8 @@ const drawer = ref(false);
 const backgroundColor = ref("#000000FF");
 const progressColor = ref("#FFFFFFFF");
 const loading = ref(false);
-const showCursor = ref(false);
+// Backed by the cache store below (computed proxy); the ref was a v3.7-dev leftover that
+// stored the value in localStorage directly, bypassing the cache snapshot
 const showTravelLines = ref(false);
 const persistTravels = ref(false);
 const selectedFile = ref("");
@@ -514,6 +515,11 @@ const showWorkplace = computed<boolean>({
 	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "showWorkplace", value),
 });
 
+const showCursor = computed<boolean>({
+	get: () => pluginCache.value?.showCursor ?? false,
+	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "showCursor", value),
+});
+
 // ---- Layout-driven class swaps ------------------------------------------------------------
 
 const viewerClass = computed(() => {
@@ -623,12 +629,11 @@ onMounted(async () => {
 	minColorRate.value = viewer.gcodeProcessor.minColorRate / 60;
 	maxColorRate.value = viewer.gcodeProcessor.maxColorRate / 60;
 	forceWireMode.value = viewer.gcodeProcessor.forceWireMode;
-	showCursor.value = localStorage.getItem("showCursor") === "true";
-
 	if (viewer.lastLoadFailed()) {
 		renderQuality.value = 1;
 		viewer.updateRenderQuality(1);
-		uiStore.makeNotification(LogLevel.warning, "GCode Viewer",
+		uiStore.makeNotification(LogLevel.warning,
+			i18n.global.t("plugins.gcodeViewer.caption"),
 			i18n.global.t("plugins.gcodeViewer.renderFailed"), 5000);
 		viewer.clearLoadFlag();
 	}
@@ -938,7 +943,6 @@ watch(move, (newValue) => {
 
 watch(showCursor, (newValue) => {
 	viewer?.setCursorVisiblity(newValue);
-	localStorage.setItem("showCursor", String(newValue));
 });
 
 watch(showTravelLines, (newValue) => viewer?.toggleTravels(newValue));
@@ -1172,18 +1176,20 @@ watch(progressMode, async () => {
 	left: 355px !important;
 }
 
+/* z-index kept well below Vuetify 4's overlay stack (which starts around 1006 for menus +
+   dialogs) so a popover/dialog opened over the viewer renders above the emergency button */
 .emergency-button-placement {
 	position: absolute;
 	top: 14px;
 	right: 16px;
-	z-index: 999;
+	z-index: 5;
 }
 
 .emergency-button-placement-codeview {
 	position: absolute;
 	top: 14px;
 	right: 30%;
-	z-index: 999;
+	z-index: 5;
 }
 
 .loading-progress {

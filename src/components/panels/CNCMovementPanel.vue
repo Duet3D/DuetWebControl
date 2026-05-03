@@ -237,10 +237,10 @@ function moveSteps(axis: AxisLetter): Array<number> {
 function getMoveCellClass(index: number): string {
 	let classes = "";
 	if (index === 0 || index === 5) {
-		classes += "hidden-lg-and-down";
+		classes += "d-none d-xl-flex";
 	}
 	if (index > 1 && index < 4 && index % 2 === 1) {
-		classes += " hidden-md-and-down";
+		classes += " d-none d-lg-flex";
 	}
 	return classes;
 }

@@ -23,7 +23,7 @@
 			</v-row>
 		</v-col>
 
-		<v-col class="hidden-xs-only" sm="4" md="4" lg="3" xl="3">
+		<v-col class="d-none d-sm-flex" sm="4" md="4" lg="3" xl="3">
 			<MacroList />
 		</v-col>
 	</v-row>

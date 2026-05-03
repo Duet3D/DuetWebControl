@@ -1,9 +1,10 @@
 <template>
-	<v-row class="component flex-shrink-1" :class="{ 'mt-2': solo, 'grow': grow }" no-gutters align="center">
+	<v-row class="component flex-shrink-1" :class="{ 'mt-2': variant === 'solo', 'grow': grow }"
+		   no-gutters align="center">
 		<v-col>
 			<v-combobox v-model="code" :items="displayedCodes" hide-no-data hide-selected
 						:placeholder="$t('input.code.placeholder')" :disabled="uiStore.uiFrozen" :loading="doingCode"
-						:variant="solo ? 'solo' : 'outlined'" maxlength="255" density="compact" hide-details
+						:variant="variant" maxlength="255" density="compact" hide-details
 						menu-icon="" @keydown.enter.prevent="sendOnEnter">
 				<template #item="{ item, props }">
 					<v-list-item v-bind="props" :title="undefined">
@@ -44,10 +45,14 @@ const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
-defineProps<{
+withDefaults(defineProps<{
 	grow?: boolean;
-	solo?: boolean;
-}>();
+	/**
+	 * Vuetify variant for the inner combobox. Defaults to outlined for the app-bar use; the
+	 * Console reference page picks `solo` for the body-of-page surface
+	 */
+	variant?: "solo" | "outlined";
+}>(), { variant: "outlined" });
 
 // Conditional G-code keywords that must keep their original case
 const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];

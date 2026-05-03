@@ -95,11 +95,16 @@ const uiStore = useUiStore();
 const route = useRoute();
 const router = useRouter();
 
-const { mdAndUp, smAndDown, lgAndUp } = useDisplay();
+const { mdAndUp, lgAndUp } = useDisplay();
 const isMdAndUp = mdAndUp;
-const isSmAndDown = smAndDown;
 
+// Drawer starts open on lg+ viewports and follows the lg breakpoint as the user resizes;
+// inside lg the user retains manual control via the hamburger toggle. Pinned to a watcher so a
+// desktop user dragging the window down through the lg/md threshold auto-collapses the drawer
 const drawer = ref(lgAndUp.value);
+watch(lgAndUp, (value) => {
+	drawer.value = value;
+});
 
 const machineName = computed(() => machineStore.model.network.name || "Duet Web Control");
 
@@ -109,9 +114,9 @@ const showConnectButton = import.meta.env.DEV;
 
 const isAtHub = computed(() => route.path === "/");
 const showDrawerToggle = computed(() => isMdAndUp.value);
-const showBackButton = computed(() => isSmAndDown.value && !isAtHub.value);
+const showBackButton = computed(() => !isMdAndUp.value && !isAtHub.value);
 // Only show the hub when there is at least one tile to render; otherwise the placeholder route content renders normally
-const showHub = computed(() => isSmAndDown.value && isAtHub.value && menuStore.allItems.length > 0);
+const showHub = computed(() => !isMdAndUp.value && isAtHub.value && menuStore.allItems.length > 0);
 
 // Auto-expand newly-visible categories without clobbering manual collapses by the user
 const openedCategories = ref<Array<string>>([]);

@@ -136,7 +136,10 @@ function rowClass(type: LogLevel): string {
 	}
 }
 
-// Highlight Error:/Warning: prefixes, opportunistically pretty-print plain JSON responses
+// Highlight Error:/Warning: prefixes, opportunistically pretty-print plain JSON responses.
+// The prefix patterns are deliberately English: RepRapFirmware emits these strings literally
+// regardless of the UI locale, so localising the regex would stop matching real firmware
+// responses
 function formatMessage(message: string): string {
 	const escaped = message
 		.replace(/&/g, "&amp;")

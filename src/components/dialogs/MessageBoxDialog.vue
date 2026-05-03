@@ -107,12 +107,14 @@ watch(() => machineStore.model.state.messageBox, (to) => {
 
 // UI helpers
 function getMoveCellClass(index: number): string {
+	// v-col is a flex item, so d-*-flex is the matching display utility. Reads "hide on these
+	// breakpoints, show as flex from the next one up"
 	let classes = "";
 	if (index === 0 || index === 5) {
-		classes += "hidden-lg-and-down";
+		classes += "d-none d-xl-flex";
 	}
 	if (index > 1 && index < 4 && index % 2 === 1) {
-		classes += "hidden-md-and-down";
+		classes += "d-none d-lg-flex";
 	}
 	return classes;
 }

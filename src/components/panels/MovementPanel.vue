@@ -4,11 +4,11 @@
 	<v-card>
 		<v-card-title class="d-flex align-center py-2">
 			<CodeButton v-show="visibleAxes.length > 0" color="primary" code="G28" :disabled="!canHome"
-						:title="$t('button.home.titleAll')" class="ml-0 hidden-sm-and-down" size="small">
+						:title="$t('button.home.titleAll')" class="ml-0 d-none d-md-flex" size="small">
 				{{ $t("button.home.captionAll") }}
 			</CodeButton>
 
-			<v-spacer class="hidden-sm-and-down" />
+			<v-spacer class="d-none d-md-flex" />
 
 			<v-icon size="small" class="mr-1">mdi-swap-horizontal</v-icon>
 			{{ $t("panel.movement.caption") }}
@@ -78,7 +78,7 @@
 
 		<v-card-text v-show="visibleAxes.length > 0">
 			<!-- Mobile home buttons (hidden on md+ where the per-row home button takes over) -->
-			<v-row class="hidden-md-and-up py-2" no-gutters>
+			<v-row class="d-flex d-md-none py-2" no-gutters>
 				<v-col>
 					<CodeButton color="primary" code="G28" :disabled="!canHome" :title="$t('button.home.titleAll')"
 								block tile>
@@ -98,7 +98,7 @@
 
 			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense>
 				<!-- Per-row home button (md+ only) -->
-				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 hidden-sm-and-down">
+				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 d-none d-md-flex">
 					<CodeButton :color="axis.homed ? 'primary' : 'warning'" :disabled="!canHome"
 								:title="$t('button.home.title', [/[a-z]/.test(axis.letter) ? `'${axis.letter}` : axis.letter])"
 								:code="`G28 ${/[a-z]/.test(axis.letter) ? '\'' : ''}${axis.letter}`" class="ml-0">
@@ -222,10 +222,10 @@ function getMoveCode(axis: Axis, index: number, decrementing: boolean) {
 function getMoveCellClass(index: number): string {
 	let classes = "";
 	if (index === 0 || index === 5) {
-		classes += "hidden-lg-and-down";
+		classes += "d-none d-xl-flex";
 	}
 	if (index > 1 && index < 4 && index % 2 === 1) {
-		classes += " hidden-md-and-down";
+		classes += " d-none d-lg-flex";
 	}
 	return classes;
 }

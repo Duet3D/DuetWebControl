@@ -102,7 +102,7 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 			<v-tabs v-model="activeTab" align-tabs="start" show-arrows density="compact" class="flex-grow-1">
 				<v-tab v-for="tab in tabs" :key="tab.id" :value="tab.id" class="text-none">
 					<v-icon size="small" class="mr-2">{{ tabIcon(tab) }}</v-icon>
-					<span class="text-truncate" style="max-width: 16rem">{{ tabLabel(tab) }}</span>
+					<span class="explorer-tab-label text-truncate">{{ tabLabel(tab) }}</span>
 					<v-btn v-if="tabs.length > 1" variant="plain" size="x-small" density="compact"
 						   class="ml-2" :title="$t('list.explorer.closeTab')" @click.stop="closeTab(tab.id)">
 						<v-icon size="x-small">mdi-close</v-icon>
@@ -487,3 +487,17 @@ function pushUrl(path: string) {
 	router.push({ params: { volume: params.volume, path: params.path } });
 }
 </script>
+
+<style scoped>
+/* Cap tab labels relative to the toolbar so the close button + new-tab menu stay visible.
+   8rem keeps a sensible width on xs while still allowing room to read most directory names */
+.explorer-tab-label {
+	max-width: 8rem;
+}
+@media (min-width: 600px) {
+	.explorer-tab-label { max-width: 12rem; }
+}
+@media (min-width: 960px) {
+	.explorer-tab-label { max-width: 16rem; }
+}
+</style>

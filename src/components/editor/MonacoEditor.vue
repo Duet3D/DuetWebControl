@@ -15,7 +15,7 @@
 			<v-btn variant="text" :disabled="!dirty || saving || loading" :loading="saving"
 				   :title="$t('dialog.fileEdit.save')" @click="save">
 				<v-icon class="mr-1">mdi-content-save</v-icon>
-				<span class="hidden-xs-only">{{ $t("dialog.fileEdit.save") }}</span>
+				<span class="d-none d-sm-inline">{{ $t("dialog.fileEdit.save") }}</span>
 			</v-btn>
 
 			<v-btn variant="text" :disabled="!dirty || saving || loading" :title="$t('dialog.fileEdit.revert')"

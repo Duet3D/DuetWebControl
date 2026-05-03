@@ -4,7 +4,7 @@
 	 expands each run for fine-grained selection and exposes a sample-view toggle so users can dial
 	 in a sample range with the chart's drag-select before running FFT on the trimmed window -->
 <template>
-	<v-card flat class="d-flex flex-column">
+	<v-card variant="flat" class="d-flex flex-column">
 		<v-card-title class="d-flex align-center pt-2 pb-1 flex-nowrap text-no-wrap">
 			<v-icon class="mr-2">mdi-format-list-bulleted</v-icon>
 			{{ title }}
