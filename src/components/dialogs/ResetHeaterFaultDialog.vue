@@ -71,4 +71,13 @@ watch(shown, (to) => {
 		timer = null;
 	}
 });
+
+onBeforeUnmount(() => {
+	// The watcher only clears the timer when shown flips to false; if the parent unmounts the
+	// dialog while it's still open, the countdown keeps firing against a dead counter ref
+	if (timer) {
+		clearTimeout(timer);
+		timer = null;
+	}
+});
 </script>

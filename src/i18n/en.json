@@ -368,7 +368,10 @@
     },
     "baseFileList": {
       "goUp": "Go up",
-      "noFiles": "No Files"
+      "noFiles": "No Files",
+      "fileName": "Name",
+      "size": "Size",
+      "lastModified": "Last Modified"
     },
     "fileList": {
       "open": "Open",

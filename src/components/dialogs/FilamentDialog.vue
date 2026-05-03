@@ -5,11 +5,11 @@
 	<v-dialog v-model="shown" persistent width="360" @keydown.escape="hide">
 		<v-card>
 			<v-card-title>
-				{{ $t(tool ? (tool.filamentExtruder >= 0 && getCurrentFilament() ? "dialog.filament.titleChange" : "dialog.filament.titleLoad") : "generic.noValue") }}
+				{{ titleText }}
 			</v-card-title>
 
 			<v-card-text>
-				{{ $t(filaments.length > 0 ? "dialog.filament.prompt" : "dialog.filament.noFilaments") }}
+				{{ filaments.length > 0 ? $t("dialog.filament.prompt") : $t("dialog.filament.noFilaments") }}
 
 				<v-progress-linear indeterminate v-if="loading" />
 				<v-list v-if="!loading">
@@ -55,6 +55,18 @@ const uiStore = useUiStore();
 
 const filaments = ref<Array<string>>([]);
 const loading = ref(false);
+
+// Resolved separately so each $t key is a literal in source - IDE i18n plugins can statically
+// jump to the matching entry, which a ternary inside $t(...) would defeat
+const titleText = computed(() => {
+	if (!props.tool) {
+		return i18n.global.t("generic.noValue");
+	}
+	if (props.tool.filamentExtruder >= 0 && getCurrentFilament()) {
+		return i18n.global.t("dialog.filament.titleChange");
+	}
+	return i18n.global.t("dialog.filament.titleLoad");
+});
 
 function getCurrentFilament(): string | null {
 	if (!props.tool || props.tool.filamentExtruder < 0 || props.tool.filamentExtruder >= machineStore.model.move.extruders.length) {

@@ -1,6 +1,6 @@
 <template>
 	<v-dialog :model-value="shown" :persistent="isPersistent" width="480">
-		<v-card color="primary" dark>
+		<v-card color="primary" theme="dark">
 			<v-card-title>
 				{{ message }}
 			</v-card-title>
@@ -23,11 +23,11 @@
 					</span>
 					<span v-for="canAddress in machineStore.boardsBeingUpdated.filter(item => item > 0)"
 						  :key="canAddress" class="ms-3">
-						<v-icon small class="mr-1" v-text="getBoardIcon(canAddress)" />
+						<v-icon size="small" class="mr-1" v-text="getBoardIcon(canAddress)" />
 						{{ getBoardName(canAddress) }}
 					</span>
 					<span v-if="machineStore.boardsBeingUpdated.includes(0)" class="ms-3">
-						<v-icon small class="mr-1" v-text="getBoardIcon(0)" />
+						<v-icon size="small" class="mr-1" v-text="getBoardIcon(0)" />
 						{{ getBoardName(0) }}
 					</span>
 				</div>
@@ -112,7 +112,7 @@ watch(() => machineStore.boardBeingUpdated, (to, from) => {
 // Show reset button after a delay when the machine is halted
 
 const displayReset = ref(false);
-let haltedTimer: NodeJS.Timeout | null = null;
+let haltedTimer: ReturnType<typeof setTimeout> | null = null;
 
 watch(() => machineStore.model.state.status, (to: MachineStatus) => {
 	if (to === MachineStatus.halted) {
@@ -126,6 +126,15 @@ watch(() => machineStore.model.state.status, (to: MachineStatus) => {
 			haltedTimer = null;
 		}
 		displayReset.value = false;
+	}
+});
+
+onBeforeUnmount(() => {
+	// The dialog can unmount while the halted-state delay is pending; clearing it stops the
+	// deferred write to displayReset from firing against a torn-down ref
+	if (haltedTimer !== null) {
+		clearTimeout(haltedTimer);
+		haltedTimer = null;
 	}
 });
 </script>

@@ -242,6 +242,11 @@ function resize(): { width: number; height: number } | undefined {
 }
 
 let resizeObserver: ResizeObserver | undefined;
+let settleTimer: ReturnType<typeof setTimeout> | null = null;
+let wheelTarget: HTMLCanvasElement | null = null;
+function preventWheelDefault(evt: WheelEvent) {
+	evt.preventDefault();
+}
 
 function attachResizeObserver() {
 	if (!container.value || resizeObserver) {
@@ -488,16 +493,29 @@ onMounted(async () => {
 	Events.on("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
 
 	// Block wheel-zoom on the canvas itself so the Babylon scene gets the event instead of the
-	// surrounding page scroll
-	canvas.value!.addEventListener("wheel", (evt) => evt.preventDefault());
+	// surrounding page scroll. Track the canvas reference so we can detach the listener on
+	// unmount and avoid leaving the GC with a closure that references it
+	wheelTarget = canvas.value;
+	wheelTarget!.addEventListener("wheel", preventWheelDefault);
 
 	// One delayed resize catches Vuetify layout settling that the first synchronous resize misses
-	setTimeout(() => resize(), 1000);
+	settleTimer = setTimeout(() => {
+		settleTimer = null;
+		resize();
+	}, 1000);
 	ready.value = true;
 });
 
 onBeforeUnmount(() => {
 	Events.off("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
+	if (settleTimer !== null) {
+		clearTimeout(settleTimer);
+		settleTimer = null;
+	}
+	if (wheelTarget) {
+		wheelTarget.removeEventListener("wheel", preventWheelDefault);
+		wheelTarget = null;
+	}
 	resizeObserver?.disconnect();
 	resizeObserver = undefined;
 	heightMapViewer?.dispose();

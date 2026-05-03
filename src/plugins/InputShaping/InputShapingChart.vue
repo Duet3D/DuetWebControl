@@ -456,6 +456,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+	// Drop the document-level mouseup listener if the user unmounted mid-drag - otherwise the
+	// handler keeps firing against a disposed chart instance
+	document.removeEventListener("mouseup", onMouseUp);
 	chart?.destroy();
 	chart = undefined;
 });

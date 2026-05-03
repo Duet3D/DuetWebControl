@@ -153,11 +153,26 @@ async function send() {
 	}
 }
 
-// Suppress Enter briefly after a message box appears so the same keystroke does not immediately send another code
+// Suppress Enter briefly after a message box appears so the same keystroke does not immediately
+// send another code
+let messageBoxIgnoreTimer: ReturnType<typeof setTimeout> | null = null;
 watch(() => machineStore.model.state.messageBox as MessageBox | null, (to) => {
 	if (to) {
 		ignoreEnter.value = true;
-		setTimeout(() => { ignoreEnter.value = false; }, 1000);
+		if (messageBoxIgnoreTimer !== null) {
+			clearTimeout(messageBoxIgnoreTimer);
+		}
+		messageBoxIgnoreTimer = setTimeout(() => {
+			ignoreEnter.value = false;
+			messageBoxIgnoreTimer = null;
+		}, 1000);
+	}
+});
+
+onBeforeUnmount(() => {
+	if (messageBoxIgnoreTimer !== null) {
+		clearTimeout(messageBoxIgnoreTimer);
+		messageBoxIgnoreTimer = null;
 	}
 });
 </script>

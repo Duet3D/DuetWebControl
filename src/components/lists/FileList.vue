@@ -322,13 +322,14 @@ const viewModeOptions: Array<{ value: FileListViewMode; icon: string; label: str
 	{ value: "tiles", icon: "mdi-view-grid", label: "list.fileList.viewModeTiles" },
 ];
 
-const defaultHeaders: Array<FileListHeader> = [
-	{ title: "Name", key: "name" },
-	{ title: "Size", key: "size" },
-	{ title: "Last Modified", key: "lastModified" },
-];
+// Translated at read time so locale switches re-render the header row without remount
+const defaultHeaders = computed<Array<FileListHeader>>(() => [
+	{ title: i18n.global.t("list.baseFileList.fileName"), key: "name" },
+	{ title: i18n.global.t("list.baseFileList.size"), key: "size" },
+	{ title: i18n.global.t("list.baseFileList.lastModified"), key: "lastModified" },
+]);
 
-const effectiveHeaders = computed(() => [...defaultHeaders, ...(props.extraHeaders ?? [])]);
+const effectiveHeaders = computed(() => [...defaultHeaders.value, ...(props.extraHeaders ?? [])]);
 const internalSortBy = ref([{ key: "name", order: "asc" as const }]);
 
 const selection = ref<Array<string>>([]);
@@ -776,7 +777,8 @@ async function startDownload() {
 		}
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("notification.download.error", [files[0]?.name ?? ""]),
+		uiStore.log(LogLevel.error,
+			i18n.global.t("notification.fileTransfer.download.error", [files[0]?.name ?? ""]),
 			getErrorMessage(e));
 	}
 }

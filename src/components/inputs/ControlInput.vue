@@ -1,12 +1,14 @@
-<!-- Numeric input for tool / bed / chamber / spindle active+standby values.
-	 Backed by a v-combobox so preset values can be picked from a dropdown; both typed values (Enter) and
-	 dropdown picks fire @update:model-value, which commits the value via the appropriate M-code -->
+<!-- Numeric input for tool / bed / chamber / spindle active+standby values. Backed by a
+	 v-combobox so preset values can be picked from a dropdown. Vuetify 4's v-combobox emits
+	 @update:model-value on every keystroke, so we deliberately do NOT bind that to commit -
+	 doing so would send one M-code per typed digit. Commit fires on form submit (Enter), on
+	 blur with a changed value, or when the user picks an entry from the dropdown -->
 <template>
 	<v-form @submit.prevent="commit">
 		<v-combobox v-model="inputValue" type="number" min="-273" max="1999" step="any" :label="label"
 					:items="itemStrings" :menu-props="{ maxHeight: '50%' }" :loading="applying"
 					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="outlined"
-					hide-details hide-selected @update:model-value="commit" @blur="onBlur" />
+					hide-details hide-selected @update:model-value="onModelValueChange" @blur="onBlur" />
 	</v-form>
 </template>
 
@@ -250,10 +252,32 @@ async function commit() {
 	applying.value = false;
 }
 
-function onBlur() {
-	if (!applying.value) {
-		inputValue.value = actualValue.value.toString();
+// v-combobox emits @update:model-value both on free-text typing AND on dropdown-item selection.
+// Only the latter should auto-commit; we distinguish them by checking whether the new value
+// matches one of the preset items exactly. A free-text commit goes through the form's @submit
+// (Enter) or through onBlur instead
+function onModelValueChange(newValue: string | null) {
+	if (newValue === null) {
+		return;
 	}
+	if (itemStrings.value.includes(newValue)) {
+		commit();
+	}
+}
+
+// Commit on blur if the user typed a new value and tabbed/clicked away; otherwise revert the
+// display to whatever the machine is currently reporting so the field doesn't get stuck
+// showing an uncommitted draft
+function onBlur() {
+	if (applying.value) {
+		return;
+	}
+	const value = parseFloat(inputValue.value);
+	if (Number.isFinite(value) && value !== actualValue.value) {
+		commit();
+		return;
+	}
+	inputValue.value = actualValue.value.toString();
 }
 
 watch(currentValue, (to) => {

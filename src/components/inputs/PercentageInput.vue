@@ -185,4 +185,15 @@ function increase() {
 	applyStep(props.step);
 	increaseTimer = setTimeout(increase, changeInterval);
 }
+
+onBeforeUnmount(() => {
+	// Auto-repeat timers + the debounce fire async writes against the modelValue ref; clearing
+	// them stops the post-unmount writes that would otherwise hit a torn-down parent
+	for (const handle of [debounceTimer, decreaseTimer, increaseTimer]) {
+		if (handle !== null) {
+			clearTimeout(handle);
+		}
+	}
+	debounceTimer = decreaseTimer = increaseTimer = null;
+});
 </script>

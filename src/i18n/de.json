@@ -370,7 +370,10 @@
     },
     "baseFileList": {
       "goUp": "Nach oben",
-      "noFiles": "Keine Dateien"
+      "noFiles": "Keine Dateien",
+      "fileName": "Name",
+      "size": "Größe",
+      "lastModified": "Zuletzt geändert"
     },
     "fileList": {
       "open": "Öffnen",

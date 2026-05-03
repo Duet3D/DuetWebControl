@@ -21,6 +21,7 @@ const props = defineProps<{
 
 const gaugeContainer = ref<HTMLElement | null>(null);
 let gauge: Gauge | undefined;
+let settleTimer: ReturnType<typeof setTimeout> | null = null;
 
 function refresh() {
 	if (!gauge) return;
@@ -34,9 +35,21 @@ onMounted(() => {
 	if (!gaugeContainer.value) return;
 	gauge = new Gauge(gaugeContainer.value);
 	refresh();
-	// The container can briefly report a 0x0 size before Vuetify finishes its layout pass;
-	// a second draw after 200 ms picks up the correct dimensions
-	setTimeout(refresh, 200);
+	// The container can briefly report a 0x0 size before Vuetify finishes its layout pass; a
+	// second draw after 200 ms picks up the correct dimensions. Tracked so we can cancel it on
+	// unmount and avoid drawing through a disposed Gauge instance
+	settleTimer = setTimeout(() => {
+		settleTimer = null;
+		refresh();
+	}, 200);
+});
+
+onBeforeUnmount(() => {
+	if (settleTimer !== null) {
+		clearTimeout(settleTimer);
+		settleTimer = null;
+	}
+	gauge = undefined;
 });
 
 watch(() => [props.max, props.curval, props.settemp, props.state], () => refresh());
