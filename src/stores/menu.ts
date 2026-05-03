@@ -93,15 +93,23 @@ export const useMenuStore = defineStore("menu", {
 	}),
 	getters: {
 		/**
-		 * Menu items derived from the file-based router - any route that declares `meta.menu` contributes one entry
+		 * Menu items derived from the file-based router - any route that declares `meta.menu`
+		 * contributes one entry. Parameterised routes (paths containing `:`) only show up when
+		 * `menu.path` is set, since the raw template can't be used as a navigation target
 		 */
 		routeItems(): Array<MenuItem> {
 			const items: Array<MenuItem> = [];
 			for (const route of router.getRoutes()) {
-				const menu = (route.meta as { menu?: Omit<MenuItem, "path"> }).menu;
-				if (menu) {
-					items.push({ ...menu, path: route.path });
+				const menu = (route.meta as { menu?: Omit<MenuItem, "path"> & { path?: string } }).menu;
+				if (!menu) {
+					continue;
 				}
+				const path = menu.path ?? route.path;
+				if (path.includes(":")) {
+					// Templated path can't navigate; skip silently
+					continue;
+				}
+				items.push({ ...menu, path });
 			}
 			return items;
 		},

@@ -389,7 +389,8 @@
         "macros": "Makros",
         "filaments": "Filamente",
         "system": "System",
-        "files": "Dateien"
+        "files": "Dateien",
+        "volume": "Dateien (Volume {0})"
       }
     }
   },

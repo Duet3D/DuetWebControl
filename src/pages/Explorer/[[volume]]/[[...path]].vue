@@ -1,8 +1,10 @@
-<!-- Multi-tab file explorer. Browser tabs host a FileList against a tab-specific entry point
-	 (macros, filaments, system, or the volume root); editor tabs host the Monaco editor for a
-	 single file. The "+" menu adds browser tabs for each kind; files opened via fileClick get
-	 their own editor tab. Per the modernization plan, deep-linking still lives in a follow-up
-	 commit -->
+<!-- Multi-tab file explorer. URL scheme `/Explorer/[volume?]/[path*?]` - `volume` is the SD
+	 volume index (defaults to 0) and `path` is the absolute path within that volume. Browser
+	 tabs host a FileList against a tab-specific entry point (macros, filaments, system, or the
+	 volume root); editor tabs host the Monaco editor for a single file. The "+" menu adds
+	 browser tabs for each kind plus a per-volume entry when the machine reports more than one
+	 volume. menu.path is set explicitly because the route template (parametrised) can't be used
+	 as a navigation target -->
 <route lang="json">
 {
 	"meta": {
@@ -10,7 +12,8 @@
 			"category": "files",
 			"icon": "mdi-folder-multiple",
 			"caption": "menu.files.explorer",
-			"order": 20
+			"order": 20,
+			"path": "/Explorer"
 		}
 	}
 }
@@ -38,8 +41,40 @@ function looksLikeFile(path: string): boolean {
 	return !path.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(path));
 }
 
+// Build an SD path like `0:/sys/accelerometer` from the route params. Both segments are
+// optional (default volume 0, default empty path) so the same route file matches the bare
+// `/Explorer` URL and the fully-qualified `/Explorer/0/sys/foo`. vue-router-vite emits the
+// catchall as a single `:path(.*)?` segment (one string with embedded slashes), but we accept
+// both string and array shapes for defensive future-proofing
+function sdPathFromParams(params: Record<string, unknown>): string {
+	const volumeRaw = params.volume;
+	const volume = Array.isArray(volumeRaw)
+		? (volumeRaw[0] as string | undefined) ?? "0"
+		: typeof volumeRaw === "string" ? volumeRaw : "0";
+	const rawPath = params.path;
+	let inner = "";
+	if (Array.isArray(rawPath)) {
+		inner = (rawPath as Array<string>).join("/");
+	} else if (typeof rawPath === "string") {
+		inner = rawPath;
+	}
+	inner = inner.replace(/^\/+|\/+$/g, "");
+	return inner ? `${volume}:/${inner}` : `${volume}:/`;
+}
+
+function isBareExplorerRoute(params: Record<string, unknown>): boolean {
+	const raw = params.path;
+	if (raw === undefined || raw === null || raw === "") return true;
+	if (Array.isArray(raw) && raw.length === 0) return true;
+	return false;
+}
+
 export const useExplorerInitialData = defineBasicLoader(async (to): Promise<ExplorerInitialPayload> => {
-	const path = typeof to.query.path === "string" ? to.query.path : "";
+	const params = to.params as Record<string, unknown>;
+	if (isBareExplorerRoute(params)) {
+		return { path: "", kind: "none" };
+	}
+	const path = sdPathFromParams(params);
 	if (!path) {
 		return { path: "", kind: "none" };
 	}
@@ -90,6 +125,16 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 						</template>
 						<v-list-item-title>{{ $t(meta.captionKey) }}</v-list-item-title>
 					</v-list-item>
+					<v-divider v-if="extraVolumes.length > 0" />
+					<v-list-item v-for="vol in extraVolumes" :key="`vol-${vol}`"
+								 @click="addVolumeTab(vol)">
+						<template #prepend>
+							<v-icon>mdi-sd</v-icon>
+						</template>
+						<v-list-item-title>
+							{{ $t("list.explorer.tabs.volume", [vol]) }}
+						</v-list-item-title>
+					</v-list-item>
 				</v-list>
 			</v-menu>
 		</v-toolbar>
@@ -100,7 +145,7 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 							  :initial-content="tab.initialContent" @close="closeTab(tab.id)" />
 				<FileList v-else v-model:directory="tab.directory"
 						  :options="optionsForTab(tab)"
-						  :root-directory="rootDirectory" :root-label="$t('list.explorer.root')"
+						  :root-directory="rootForTab(tab)" :root-label="$t('list.explorer.root')"
 						  :no-items-text="browserKinds[tab.kind as BrowserKind].noItemsKey"
 						  :firmware-aware="tab.kind === 'system'"
 						  @file-click="onFileClick" />
@@ -115,8 +160,7 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 </template>
 
 <script setup lang="ts">
-// useMachineStore + Path are already imported in the module-scope <script> block above (the
-// loader needs them); reusing those bindings here avoids duplicate-identifier errors
+// useMachineStore + Path are already imported in the module-scope <script> block above
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
@@ -160,9 +204,6 @@ const machineStore = useMachineStore();
 const route = useRoute();
 const router = useRouter();
 
-// Loader-supplied initial payload for the URL's ?path= - if present, seeds the first tab so
-// the file list / editor renders with data already in hand. May resolve after the page mounts
-// (lazy loader) so we read it via a watcher on first arrival as well
 const { data: initialPayload } = useExplorerInitialData();
 
 const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
@@ -192,44 +233,44 @@ const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 	},
 };
 
-// Volume root keeps the Explorer "free" - tabs start at their kind's directory but the user can
-// navigate up to the volume root and across siblings. Multi-volume support comes with the
-// file-browser feature-parity work
-const rootDirectory = "0:/";
+// Per-volume "Files" entries in the +menu: one for each non-default volume the board reports.
+// Volume 0 is already covered by the standard "files" entry
+const extraVolumes = computed<Array<number>>(() => {
+	const volumes = machineStore.model.volumes ?? [];
+	return volumes
+		.map((_, idx) => idx)
+		.filter((idx) => idx > 0);
+});
 
 let nextTabId = 1;
 
-// Honour ?path=... on first mount - either a directory (matched by trailing slash or known
-// browser-tab roots) or a filename (anything else). The browser tab kind is inferred from the
-// path so we land at e.g. the macros tab when the URL points inside the macros directory.
-// If the loader resolved synchronously, seed the tab with its result so the first render
-// already has data; otherwise watchPayload() folds the data in once it arrives
+// First-mount URL → tab seed. Reads the SD path from route params (`/Explorer/0/sys/foo`
+// becomes `0:/sys/foo`); a bare `/Explorer` URL opens the default macros tab. If the loader
+// already resolved, weave its result into the initial tab so the first render has data
 function buildInitialTabs(): Array<ExplorerTab> {
-	const queryPath = typeof route.query.path === "string" ? route.query.path : "";
-	if (!queryPath) {
+	if (isBareExplorerRoute(route.params as Record<string, unknown>)) {
 		return [{ id: nextTabId++, kind: "macros" }];
 	}
+	const initialPath = sdPathFromParams(route.params as Record<string, unknown>);
 
-	const looksLikeFile = !queryPath.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(queryPath));
 	const payload = initialPayload.value;
-
-	if (looksLikeFile) {
+	if (looksLikeFile(initialPath)) {
 		return [{
 			id: nextTabId++,
 			kind: "editor",
-			filename: queryPath,
-			initialContent: payload && payload.path === queryPath && payload.kind === "editor"
+			filename: initialPath,
+			initialContent: payload && payload.path === initialPath && payload.kind === "editor"
 				? payload.content
 				: undefined,
 		}];
 	}
 
-	const kind = inferBrowserKind(queryPath);
+	const kind = inferBrowserKind(initialPath);
 	return [{
 		id: nextTabId++,
 		kind,
-		directory: queryPath,
-		initialFiles: payload && payload.path === queryPath && payload.kind === "directory"
+		directory: initialPath,
+		initialFiles: payload && payload.path === initialPath && payload.kind === "directory"
 			? (payload.files as Array<FileBrowserItem> | undefined) ?? undefined
 			: undefined,
 	}];
@@ -265,9 +306,16 @@ function optionsForTab(tab: ExplorerTab) {
 	};
 }
 
-// The data loader is `lazy: true` so its result may not be available when the page first
-// mounts. When it resolves, fold the result into the active tab if no per-tab navigation has
-// happened in the meantime (i.e. the tab still points at the loader's path)
+// Tabs at non-default volumes need to root the breadcrumbs at *their* volume's root rather
+// than 0:/ so the "up" affordance stops at the right place
+function rootForTab(tab: ExplorerTab): string {
+	const dir = initialDirectoryFor(tab);
+	const match = /^(\d+):/.exec(dir);
+	return match ? `${match[1]}:/` : "0:/";
+}
+
+// Lazy-loader fold-in: when the loader resolves after mount, fold its result into the active
+// tab if that tab still points at the loader's path (i.e. no in-app nav happened in the gap)
 watch(initialPayload, (payload) => {
 	if (!payload || payload.kind === "none") {
 		return;
@@ -311,8 +359,13 @@ function addBrowserTab(kind: BrowserKind) {
 	activeTab.value = tab.id;
 }
 
+function addVolumeTab(volume: number) {
+	const tab: ExplorerTab = { id: nextTabId++, kind: "files", directory: `${volume}:/` };
+	tabs.value.push(tab);
+	activeTab.value = tab.id;
+}
+
 function openEditorTab(filename: string) {
-	// If we already have an editor tab for this file, just activate it
 	const existing = tabs.value.find((t) => t.kind === "editor" && t.filename === filename);
 	if (existing) {
 		activeTab.value = existing.id;
@@ -321,7 +374,6 @@ function openEditorTab(filename: string) {
 	const tab: ExplorerTab = { id: nextTabId++, kind: "editor", filename };
 	tabs.value.push(tab);
 	activeTab.value = tab.id;
-	// activeTab watcher pushes the URL once the new tab is current
 }
 
 function closeTab(id: number) {
@@ -331,7 +383,6 @@ function closeTab(id: number) {
 	}
 	tabs.value.splice(idx, 1);
 	if (activeTab.value === id) {
-		// Prefer the next-left neighbour, fall back to whatever moved into the closed slot
 		const fallback = tabs.value[Math.max(0, idx - 1)] ?? tabs.value[0];
 		activeTab.value = fallback.id;
 	}
@@ -364,10 +415,16 @@ async function confirmRunMacro() {
 
 // ---- URL sync -------------------------------------------------------------------------------
 
-// The URL is the source of truth for the active tab's path; tab switches and in-tab navigation
-// both push history entries so the browser back/forward buttons step through prior locations.
-// Tracking the active tab's path through a single computed covers both axes - the value
-// changes when the user switches tabs and when the active tab navigates internally
+// Pull volume + path string out of an SD path so the router can build the matching URL.
+// vue-router-vite expects the catchall as a single string (one segment with `/` separators)
+function sdPathToRouteParams(sdPath: string): { volume: string; path: string } | null {
+	const match = /^(\d+):\/?(.*)$/.exec(sdPath);
+	if (!match) return null;
+	const volume = match[1];
+	const rest = match[2].replace(/^\/+|\/+$/g, "");
+	return { volume, path: rest };
+}
+
 const activePath = computed<string | undefined>(() => {
 	const tab = tabs.value.find((t) => t.id === activeTab.value);
 	if (!tab) {
@@ -382,12 +439,11 @@ watch(activePath, (path) => {
 	}
 });
 
-// Reconcile state when the URL changes externally (browser back/forward, deep link, etc.).
-// Matching an existing tab just activates it; otherwise we navigate the active browser tab to
-// the new path, or open an editor tab if the path looks like a file. Equality check skips
-// the no-op re-emit that follows our own pushUrl
-watch(() => route.query.path, (newPath) => {
-	if (typeof newPath !== "string") {
+// External URL change (browser back/forward, deep link) → reconcile state to match. The watch
+// fires on every route.params change including our own pushes; equality checks against the
+// current tab's path short-circuit those
+watch(() => sdPathFromParams(route.params as Record<string, unknown>), (newPath) => {
+	if (isBareExplorerRoute(route.params as Record<string, unknown>) || !newPath) {
 		return;
 	}
 
@@ -405,8 +461,7 @@ watch(() => route.query.path, (newPath) => {
 		return;
 	}
 
-	const looksLikeFile = !newPath.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(newPath));
-	if (looksLikeFile) {
+	if (looksLikeFile(newPath)) {
 		openEditorTab(newPath);
 		return;
 	}
@@ -421,9 +476,14 @@ watch(() => route.query.path, (newPath) => {
 });
 
 function pushUrl(path: string) {
-	if (route.query.path === path) {
+	const params = sdPathToRouteParams(path);
+	if (!params) {
 		return;
 	}
-	router.push({ query: { ...route.query, path } });
+	const currentPath = sdPathFromParams(route.params as Record<string, unknown>);
+	if (currentPath === path) {
+		return;
+	}
+	router.push({ params: { volume: params.volume, path: params.path } });
 }
 </script>

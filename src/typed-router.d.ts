@@ -45,11 +45,11 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Explorer': RouteRecordInfo<
-      '/Explorer',
-      '/Explorer',
-      Record<never, never>,
-      Record<never, never>,
+    '/Explorer/[[volume]]/[[...path]]': RouteRecordInfo<
+      '/Explorer/[[volume]]/[[...path]]',
+      '/Explorer/:volume?/:path(.*)?',
+      { volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
+      { volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
       | never
     >,
     '/Job/Status': RouteRecordInfo<
@@ -105,9 +105,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/Explorer.vue': {
+    'src/pages/Explorer/[[volume]]/[[...path]].vue': {
       routes:
-        | '/Explorer'
+        | '/Explorer/[[volume]]/[[...path]]'
       views:
         | never
     }

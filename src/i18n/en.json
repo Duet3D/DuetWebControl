@@ -387,7 +387,8 @@
         "macros": "Macros",
         "filaments": "Filaments",
         "system": "System",
-        "files": "Files"
+        "files": "Files",
+        "volume": "Files (volume {0})"
       }
     }
   },
