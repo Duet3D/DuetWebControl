@@ -201,11 +201,12 @@ export default class {
       points.push(xpts);
     }
 
+    const flatColors = [].concat(...colors);
     this.ribbonMesh = MeshBuilder.CreateRibbon(
       'ribbon',
       {
         pathArray: points,
-        colors: [].concat(...colors),
+        colors: flatColors.concat(flatColors),
         sideOrientation: Mesh.DoubleSide
       },
       this.scene
@@ -218,11 +219,12 @@ export default class {
       colors[idx] = colors[idx].reverse();
     }
 
+    const flatColorsReverse = [].concat(...colors);
     this.ribbonMeshReverse = MeshBuilder.CreateRibbon(
       'ribbon',
       {
         pathArray: points,
-        colors: [].concat(...colors),
+        colors: flatColorsReverse.concat(flatColorsReverse),
         sideOrientation: Mesh.DoubleSide
       },
       this.scene
