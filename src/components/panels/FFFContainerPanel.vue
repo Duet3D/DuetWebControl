@@ -28,6 +28,9 @@ import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
 // initial paint doesn't pay for it; the chart's own chunk loads in parallel right after
 const TemperatureChart = defineAsyncComponent(() => import("@/components/charts/TemperatureChart.vue"));
 
+// Page-level container that fills the main content area - the container width tracks the
+// viewport, so useDisplay is the matching observable. Component-internal adaptation that's
+// genuinely container-aware (FileList's auto view mode) uses a ResizeObserver instead
 const { mobile } = useDisplay();
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();

@@ -4,7 +4,7 @@
 	 upload them into the current directory. ZIP/firmware auto-extract and ZIP download still live
 	 in follow-up commits -->
 <template>
-	<v-card>
+	<v-card ref="cardRef">
 		<v-toolbar density="compact" color="surface" class="px-2">
 			<v-btn v-show="canGoUp" icon variant="text" :title="$t('list.baseFileList.goUp')"
 				   @click="browser.goUp()">
@@ -207,7 +207,6 @@ import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useFileBrowser } from "@/composables/useFileBrowser";
 import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import { useComponentSettings } from "@/composables/useComponentSettings";
-import { useDisplay } from "vuetify";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
@@ -295,19 +294,42 @@ const firmwareInstall = useFirmwareInstall();
 
 type FileListViewMode = "auto" | "list" | "tiles";
 
-const display = useDisplay();
 const viewModeSetting = useComponentSettings<{ viewMode: FileListViewMode }>({ viewMode: "auto" });
 const viewMode = computed<FileListViewMode>({
 	get: () => viewModeSetting.value.viewMode,
 	set: (mode) => { viewModeSetting.value = { ...viewModeSetting.value, viewMode: mode }; },
 });
 
-// `auto` resolves to tiles on phone-sized screens (the 4.3" / 7" touchscreen target the plan
-// calls out) and stays as the familiar v-data-table on tablet/desktop
+// `auto` resolves to tiles when the FileList's *own* container is narrow enough that the
+// detailed table would overflow (around 600px / 38rem - covers the 4.3" / 7" touchscreen
+// target the plan calls out). Container-width driven rather than viewport-driven so a
+// FileList embedded in a narrow column (e.g. a future custom-layout tile on a desktop) still
+// flips to tiles. ResizeObserver populates containerNarrow on mount and on every size change.
+// cardRef binds to a v-card *component* instance; the underlying DOM element is `.$el`
+const containerNarrow = ref(false);
+const cardRef = ref<{ $el?: HTMLElement } | null>(null);
+let cardResizeObserver: ResizeObserver | null = null;
+
+onMounted(() => {
+	const el = cardRef.value?.$el as HTMLElement | undefined;
+	if (!el) return;
+	cardResizeObserver = new ResizeObserver((entries) => {
+		for (const entry of entries) {
+			containerNarrow.value = entry.contentRect.width < 600;
+		}
+	});
+	cardResizeObserver.observe(el);
+});
+
+onBeforeUnmount(() => {
+	cardResizeObserver?.disconnect();
+	cardResizeObserver = null;
+});
+
 const effectiveViewMode = computed<"list" | "tiles">(() => {
 	if (viewMode.value === "tiles") return "tiles";
 	if (viewMode.value === "list") return "list";
-	return display.smAndDown.value ? "tiles" : "list";
+	return containerNarrow.value ? "tiles" : "list";
 });
 
 const viewModeIcon = computed(() => {
