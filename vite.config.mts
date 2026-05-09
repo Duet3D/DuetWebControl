@@ -39,9 +39,22 @@ export default defineConfig({
 					// ref: https://rollupjs.org/guide/en/#outputassetfilenames
 					return "assets/[name]-[hash][extname]";
 				},
+				// Force heavy multi-file libraries into single named chunks. The standalone
+				// Duet's embedded HTTP server only handles ~8 concurrent sockets, so the
+				// default Rollup splitting (~200 chunks once Babylon + Monaco land) would
+				// stall first-load of any page that touches them. One chunk per heavy lib
+				// means a worst case of three async fetches (monaco, babylon, chart)
 				manualChunks: (id) => {
-					if (id.includes("monaco")) {
+					if (id.includes("node_modules/monaco-editor/") || id.includes("/monaco/")) {
 						return "monaco";
+					}
+					if (id.includes("node_modules/@babylonjs/")
+						|| id.includes("node_modules/@sindarius/gcodeviewer/")) {
+						return "babylon";
+					}
+					if (id.includes("node_modules/chart.js/")
+						|| id.includes("node_modules/chartjs-adapter-date-fns/")) {
+						return "chart";
 					}
 				}
 			}
