@@ -16,7 +16,7 @@
 				<v-list>
 					<v-list-item @click="toggleFanVisibility(-1)">
 						<template #prepend>
-							<v-icon>{{ settingsStore.displayedFans.includes(-1) ? "mdi-checkbox-marked" : "mdi-checkbox-blank" }}</v-icon>
+							<v-icon>{{ displayedFans.includes(-1) ? "mdi-checkbox-marked" : "mdi-checkbox-blank" }}</v-icon>
 						</template>
 						<v-list-item-title>{{ $t("panel.fans.toolFan") }}</v-list-item-title>
 					</v-list-item>
@@ -24,7 +24,7 @@
 						<v-list-item v-if="fanModel && fanModel.thermostatic.sensors.length === 0"
 									 @click="toggleFanVisibility(index)">
 							<template #prepend>
-								<v-icon>{{ settingsStore.displayedFans.includes(index) ? "mdi-checkbox-marked" : "mdi-checkbox-blank" }}</v-icon>
+								<v-icon>{{ displayedFans.includes(index) ? "mdi-checkbox-marked" : "mdi-checkbox-blank" }}</v-icon>
 							</template>
 							<v-list-item-title>{{ fanModel.name || $t("panel.fans.fan", [index]) }}</v-list-item-title>
 						</v-list-item>
@@ -34,14 +34,14 @@
 		</v-card-title>
 
 		<v-card-text v-if="hasVisibleFans" class="d-flex flex-column pb-0">
-			<div v-if="settingsStore.displayedFans.includes(-1) && toolFanValue >= 0"
+			<div v-if="displayedFans.includes(-1) && toolFanValue >= 0"
 				 class="d-flex flex-column pt-2">
 				{{ $t("panel.fans.toolFan") }}
 				<PercentageInput :model-value="toolFanValue" :disabled="uiStore.uiFrozen"
 								 @update:model-value="setFanValue(-1, $event)" />
 			</div>
 			<template v-for="(fanModel, index) in fans" :key="index">
-				<div v-if="settingsStore.displayedFans.includes(index) && fanModel
+				<div v-if="displayedFans.includes(index) && fanModel
 								&& fanModel.thermostatic.sensors.length === 0"
 					 class="d-flex flex-column pt-2">
 					{{ fanModel.name || $t("panel.fans.fan", [index]) }}
@@ -61,6 +61,7 @@
 import { Fan } from "@duet3d/objectmodel";
 
 import PercentageInput from "@/components/inputs/PercentageInput.vue";
+import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
@@ -68,6 +69,19 @@ import { useUiStore } from "@/stores/ui";
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+
+// Per-instance visibility overlay over the global default. New panels start with `null` and
+// inherit settingsStore.displayedFans; once the user toggles a fan in *this* panel's menu the
+// override sticks for this positional id. Once the dynamic custom layout lands and the user
+// can place multiple FansPanels, each gets independent visibility without losing the app-wide
+// default that drives a fresh layout
+const localVisibility = useComponentSettings<{ displayedFans: Array<number> | null }>({
+	displayedFans: null,
+});
+
+const displayedFans = computed<Array<number>>(() => {
+	return localVisibility.value.displayedFans ?? settingsStore.displayedFans;
+});
 
 const fans = computed<Array<Fan | null>>(() => machineStore.model.fans);
 const currentTool = computed(() => machineStore.currentTool);
@@ -85,13 +99,13 @@ const hasControllableFans = computed(() => fans.value.some(f => f !== null && f.
 
 const hasVisibleFans = computed(() => {
 	// Any explicitly-displayed manual fan
-	if (fans.value.some((f, index) => settingsStore.displayedFans.includes(index)
+	if (fans.value.some((f, index) => displayedFans.value.includes(index)
 			&& f !== null && f.thermostatic.sensors.length === 0)) {
 		return true;
 	}
 	// Or the tool fan, if visible and currently mapped to a non-thermostatic fan
 	const idx = toolFan.value;
-	return settingsStore.displayedFans.includes(-1) && idx >= 0 && idx < fans.value.length
+	return displayedFans.value.includes(-1) && idx >= 0 && idx < fans.value.length
 		&& fans.value[idx] !== null && fans.value[idx]!.thermostatic.sensors.length === 0;
 });
 
@@ -102,6 +116,16 @@ function setFanValue(fanIndex: number, value: number) {
 }
 
 function toggleFanVisibility(fanIndex: number) {
-	settingsStore.toggleFanVisibility(fanIndex);
+	// Write to the per-instance overlay so this panel's selection diverges from the global
+	// default without changing it. Start from the currently-effective list so the toggle
+	// reflects what the user actually sees
+	const current = displayedFans.value.slice();
+	const idx = current.indexOf(fanIndex);
+	if (idx === -1) {
+		current.push(fanIndex);
+	} else {
+		current.splice(idx, 1);
+	}
+	localVisibility.value = { displayedFans: current };
 }
 </script>
