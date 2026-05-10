@@ -303,7 +303,12 @@
       "caption": "Refresh"
     },
     "upload": {
-      "caption": "Upload"
+      "caption": "Upload",
+      "start": { "caption": "Upload & Start G-Code Job" },
+      "gcodes": { "caption": "Upload G-Code Files" },
+      "macros": { "caption": "Upload Macros" },
+      "filaments": { "caption": "Upload Filaments" },
+      "firmware": { "caption": "Upload System / Firmware" }
     },
     "newFile": {
       "caption": "New File"

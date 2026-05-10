@@ -67,6 +67,7 @@ declare module 'vue' {
     ThumbnailImg: typeof import('./components/misc/ThumbnailImg.vue')['default']
     ToolRows: typeof import('./components/panels/ToolsPanel/ControlList/ToolRows.vue')['default']
     ToolsPanel: typeof import('./components/panels/ToolsPanel/ToolsPanel.vue')['default']
+    UploadButton: typeof import('./components/buttons/UploadButton.vue')['default']
     WebcamPanel: typeof import('./components/panels/WebcamPanel.vue')['default']
     ZBabystepPanel: typeof import('./components/panels/ZBabystepPanel.vue')['default']
   }

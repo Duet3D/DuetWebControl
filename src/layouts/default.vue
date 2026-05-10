@@ -21,7 +21,7 @@
 
 			<v-spacer />
 
-			<!-- UploadButton lands here in 3.5 (with the Jobs page); needs the full target/dialog machinery -->
+			<UploadButton v-if="isMdAndUp" />
 
 			<EmergencyButton />
 		</v-app-bar>

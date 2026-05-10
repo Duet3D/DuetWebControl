@@ -305,7 +305,12 @@
       "caption": "Aktualisieren"
     },
     "upload": {
-      "caption": "Hochladen"
+      "caption": "Hochladen",
+      "start": { "caption": "G-Code-Auftrag hochladen & starten" },
+      "gcodes": { "caption": "G-Code-Dateien hochladen" },
+      "macros": { "caption": "Makros hochladen" },
+      "filaments": { "caption": "Filamente hochladen" },
+      "firmware": { "caption": "System / Firmware hochladen" }
     },
     "newFile": {
       "caption": "Neue Datei"
