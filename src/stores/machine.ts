@@ -1,5 +1,5 @@
 import { BaseConnector, CancellationToken, CodeBufferError, connect, DisconnectedError, FileListItem, FileNotFoundError, InvalidPasswordError, OnProgressCallback, OperationFailedError } from "@duet3d/connectors";
-import ObjectModel, { GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
+import ObjectModel, { CodeChannel, GCodeFileInfo, initObject, MachineStatus, MessageType, Plugin } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 import { defineStore } from "pinia";
 
@@ -964,6 +964,13 @@ export const useMachineStore = defineStore("machine", {
 			const lastDsfVersion = this.model.sbc?.dsf?.version;
 			const lastStartupError = this.model.state.startupError ? JSON.stringify(this.model.state.startupError) : null;
 
+			// Reset selectedMotionSystem if it would become invalid after this update (firmware
+			// shrank the motionSystems[] array, e.g. user reconfigured kinematics)
+			if (payload.move && payload.move.motionSystems !== undefined
+					&& this.selectedMotionSystem >= payload.move.motionSystems.length) {
+				this.selectedMotionSystem = 0;
+			}
+
 			// Check if the job has finished and if so, clear the file cache
 			if (payload.job && payload.job.lastFileName && payload.job.lastFileName !== this.model.job.lastFileName) {
 				const cacheStore = useCacheStore();
@@ -1010,6 +1017,15 @@ export const useMachineStore = defineStore("machine", {
 			// Update typed state
 			this.model.update(payload);
 			Events.emit("modelUpdated", this.model);
+
+			// Sync selectedMotionSystem with the HTTP input channel's motionSystem. The firmware
+			// tracks which motion system the active HTTP session is using; mirroring it here means
+			// movement / status panels always show the right WCS / virtualEPos without the user
+			// having to pick the active system in the UI
+			const httpInput = this.model.inputs[CodeChannel.http];
+			if (httpInput && this.selectedMotionSystem !== httpInput.motionSystem) {
+				this.selectedMotionSystem = httpInput.motionSystem;
+			}
 
 			// Is a new beep requested?
 			if (this.model.state.beep && lastBeepDuration !== this.model.state.beep.duration && lastBeepFrequency !== this.model.state.beep.frequency) {
