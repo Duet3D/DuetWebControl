@@ -191,27 +191,35 @@
 	<ConfirmDialog v-model:shown="deleteDialog.shown" :title="deleteDialog.title" :prompt="deleteDialog.prompt"
 				   icon="mdi-delete" @confirmed="performDelete" />
 
-	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
-						  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
+	<!-- Dialogs only render when this FileList owns its controller (no parent provided one).
+		 When a parent (e.g. Explorer hosting multiple FileList tabs) provides a shared
+		 controller via firmwareInstallControllerKey, the dialogs live there instead and this
+		 FileList just dispatches uploads through the shared instance -->
+	<template v-if="ownsController">
+		<FirmwareUpdateDialog v-model:shown="firmwareController.firmwareDialog.shown"
+							  :plan="firmwareController.firmwareDialog.plan"
+							  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
+							  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
 
-	<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
+		<ConfigUpdatedDialog v-model:shown="firmwareController.configUpdatedDialog.shown" />
+	</template>
 </template>
 
 <script setup lang="ts">
 import type { FileBrowserItem, FileBrowserOptions } from "@/composables/useFileBrowser";
-import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useFileBrowser } from "@/composables/useFileBrowser";
-import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
+import {
+	firmwareInstallControllerKey, useFirmwareInstallController
+} from "@/composables/useFirmwareInstallController";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { displaySize } from "@/utils/display";
-import { isPrinting } from "@/utils/enums";
 import { getErrorMessage } from "@/utils/errors";
 import Path from "@/utils/path";
 
@@ -288,7 +296,14 @@ const browser = useFileBrowser({
 	initialDirectory: directoryModel.value ?? props.options.initialDirectory,
 	decorate: props.options.decorate,
 });
-const firmwareInstall = useFirmwareInstall();
+// Pick up an injected firmware-install controller (parent multi-FileList scenarios like the
+// Explorer share one); fall back to a local one for standalone FileList consumers (Jobs page,
+// any single FileList parent). `ownsController` decides whether to render the dialog pair in
+// the template - only the owner does, so shared-controller scenarios end up with exactly one
+// dialog instance per pipeline
+const injectedController = inject(firmwareInstallControllerKey, null);
+const ownsController = injectedController === null;
+const firmwareController = injectedController ?? useFirmwareInstallController();
 
 // ---- View mode (list vs tiles) -------------------------------------------------------------
 
@@ -590,34 +605,11 @@ async function runPlainUpload(files: Array<File>) {
 	}
 }
 
+// Delegate to the firmware-install controller (shared via inject when a parent provides it,
+// otherwise the local one this FileList instantiated). The controller owns the plan, the
+// post-upload dialog flow and the M997 sequencing
 async function runFirmwareUpload(files: Array<File>) {
-	let plan: FirmwareUpdatePlan;
-	try {
-		plan = await firmwareInstall.planFiles(files);
-	} catch (e) {
-		if (e instanceof PluginBundleDetectedError) {
-			await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
-			return;
-		}
-		throw e;
-	}
-
-	if (plan.files.length > 0) {
-		await machineStore.upload(plan.files);
-	}
-
-	if (firmwareInstall.hasPendingUpdates(plan)) {
-		firmwareDialog.plan = plan;
-		firmwareDialog.shown = true;
-		return;
-	}
-
-	maybePromptConfigReset(plan);
-
-	// Auto-reload DWC after a www-only refresh of the same host - mirrors runUpdate()
-	if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
-		location.reload();
-	}
+	await firmwareController.runFirmwareUpload(files);
 }
 
 async function extractZip(zip: File, dir: string): Promise<Array<{ filename: string; content: Blob }>> {
@@ -679,42 +671,6 @@ async function onDrop(event: DragEvent) {
 function hasFiles(event: DragEvent): boolean {
 	const types = event.dataTransfer?.types;
 	return !!types && Array.from(types).includes("Files");
-}
-
-// --- Firmware install pipeline --------------------------------------------------------------
-
-const firmwareDialog = reactive<{ shown: boolean; plan: FirmwareUpdatePlan | null }>({
-	shown: false,
-	plan: null,
-});
-
-const configUpdatedDialog = reactive({ shown: false });
-
-async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (!plan) {
-		return;
-	}
-	try {
-		await firmwareInstall.runUpdate(plan, choices);
-	} finally {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function onFirmwareUpdateCancelled() {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (plan) {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
-	if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
-		configUpdatedDialog.shown = true;
-	}
 }
 
 // --- Context menu + download ----------------------------------------------------------------

@@ -157,14 +157,28 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 				   :title="$t('dialog.runMacro.title', [runMacroDialog.filename])"
 				   :prompt="$t('dialog.runMacro.prompt', [runMacroDialog.filename])" icon="mdi-play"
 				   @confirmed="confirmRunMacro" />
+
+	<!-- Shared firmware-install dialogs - one pair per Explorer page, fed by whichever child
+		 FileList triggered the upload through the injected controller -->
+	<FirmwareUpdateDialog v-model:shown="sharedFirmwareController.firmwareDialog.shown"
+						  :plan="sharedFirmwareController.firmwareDialog.plan"
+						  @confirmed="sharedFirmwareController.onFirmwareUpdateConfirmed"
+						  @cancelled="sharedFirmwareController.onFirmwareUpdateCancelled" />
+
+	<ConfigUpdatedDialog v-model:shown="sharedFirmwareController.configUpdatedDialog.shown" />
 </template>
 
 <script setup lang="ts">
 // useMachineStore + Path are already imported in the module-scope <script> block above
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
+import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
+import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
+import {
+	firmwareInstallControllerKey, useFirmwareInstallController
+} from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 
 type BrowserKind = "macros" | "filaments" | "system" | "files";
@@ -205,6 +219,13 @@ const route = useRoute();
 const router = useRouter();
 
 const { data: initialPayload } = useExplorerInitialData();
+
+// Single shared firmware-install controller for all child FileLists (one per Explorer tab).
+// Without this, each FileList would mount its own FirmwareUpdateDialog + ConfigUpdatedDialog
+// pair - cheap when hidden but redundant scaffolding. provide() hooks the children up via
+// inject() in FileList.vue
+const sharedFirmwareController = useFirmwareInstallController();
+provide(firmwareInstallControllerKey, sharedFirmwareController);
 
 const browserKinds: Record<BrowserKind, BrowserKindMeta> = {
 	macros: {
