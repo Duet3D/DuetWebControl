@@ -36,37 +36,66 @@ interface ExplorerInitialPayload {
 	content?: string;
 }
 
+// Valid tab kinds for the URL's [tab?] segment. "editor" is implied when the path looks like
+// a file but it's also accepted explicitly. Anything else in the tab slot is treated as a
+// numeric volume that was parsed positionally (see resolveTabAndVolume)
+const VALID_TAB_KINDS = new Set(["macros", "filaments", "system", "files", "editor"]);
+
 function looksLikeFile(path: string): boolean {
 	if (!path) return false;
 	return !path.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(path));
 }
 
-// Build an SD path like `0:/sys/accelerometer` from the route params. Both segments are
-// optional (default volume 0, default empty path) so the same route file matches the bare
-// `/Explorer` URL and the fully-qualified `/Explorer/0/sys/foo`. vue-router-vite emits the
-// catchall as a single `:path(.*)?` segment (one string with embedded slashes), but we accept
-// both string and array shapes for defensive future-proofing
-function sdPathFromParams(params: Record<string, unknown>): string {
-	const volumeRaw = params.volume;
-	const volume = Array.isArray(volumeRaw)
-		? (volumeRaw[0] as string | undefined) ?? "0"
-		: typeof volumeRaw === "string" ? volumeRaw : "0";
-	const rawPath = params.path;
-	let inner = "";
-	if (Array.isArray(rawPath)) {
-		inner = (rawPath as Array<string>).join("/");
-	} else if (typeof rawPath === "string") {
-		inner = rawPath;
+function readParam(params: Record<string, unknown>, key: string): string | undefined {
+	const raw = params[key];
+	if (Array.isArray(raw)) return (raw[0] as string | undefined) ?? undefined;
+	return typeof raw === "string" ? raw : undefined;
+}
+
+/**
+ * Resolve the positional route params into typed (tab, volume, path) values.
+ *
+ * The route shape `/Explorer/:tab?/:volume?/:path*?` puts the tab segment first, but users
+ * often type `/Explorer/0/sys/foo` without the tab. The router parses that positionally as
+ * tab="0", volume="sys" - the disambiguation here detects the numeric first segment and shifts
+ * the values: { tab: undefined, volume: "0", path: "sys/foo" }
+ */
+function resolveTabAndVolume(params: Record<string, unknown>): {
+	tab: string | undefined; volume: string; path: string;
+} {
+	let tab = readParam(params, "tab");
+	let volume = readParam(params, "volume");
+	let path = readParam(params, "path");
+
+	if (tab !== undefined && !VALID_TAB_KINDS.has(tab)) {
+		// First segment isn't a recognised tab kind - assume the user typed without the tab
+		// segment (the most common case for hand-typed URLs). Shift the values one slot left
+		path = volume !== undefined
+			? (path !== undefined ? `${volume}/${path}` : volume)
+			: path;
+		volume = tab;
+		tab = undefined;
 	}
-	inner = inner.replace(/^\/+|\/+$/g, "");
-	return inner ? `${volume}:/${inner}` : `${volume}:/`;
+
+	return {
+		tab,
+		volume: volume ?? "0",
+		path: (path ?? "").replace(/^\/+|\/+$/g, ""),
+	};
+}
+
+// Build an SD path like `0:/sys/accelerometer` from the route params
+function sdPathFromParams(params: Record<string, unknown>): string {
+	const { volume, path } = resolveTabAndVolume(params);
+	return path ? `${volume}:/${path}` : `${volume}:/`;
 }
 
 function isBareExplorerRoute(params: Record<string, unknown>): boolean {
-	const raw = params.path;
-	if (raw === undefined || raw === null || raw === "") return true;
-	if (Array.isArray(raw) && raw.length === 0) return true;
-	return false;
+	// "Bare" = the user landed on /Explorer with no URL segments; pick the default tab.
+	// Any explicit segment (tab kind, volume, or path) means the user wants a specific view
+	return readParam(params, "tab") === undefined
+		&& readParam(params, "volume") === undefined
+		&& readParam(params, "path") === undefined;
 }
 
 export const useExplorerInitialData = defineBasicLoader(async (to): Promise<ExplorerInitialPayload> => {
@@ -269,13 +298,18 @@ let nextTabId = 1;
 // becomes `0:/sys/foo`); a bare `/Explorer` URL opens the default macros tab. If the loader
 // already resolved, weave its result into the initial tab so the first render has data
 function buildInitialTabs(): Array<ExplorerTab> {
-	if (isBareExplorerRoute(route.params as Record<string, unknown>)) {
+	const params = route.params as Record<string, unknown>;
+	if (isBareExplorerRoute(params)) {
 		return [{ id: nextTabId++, kind: "macros" }];
 	}
-	const initialPath = sdPathFromParams(route.params as Record<string, unknown>);
+	const initialPath = sdPathFromParams(params);
+	const { tab: tabFromUrl } = resolveTabAndVolume(params);
 
 	const payload = initialPayload.value;
-	if (looksLikeFile(initialPath)) {
+
+	// Explicit editor tab kind in the URL OR a file-shaped path → editor tab
+	const editorByPath = looksLikeFile(initialPath);
+	if (tabFromUrl === "editor" || (!tabFromUrl && editorByPath)) {
 		return [{
 			id: nextTabId++,
 			kind: "editor",
@@ -286,7 +320,10 @@ function buildInitialTabs(): Array<ExplorerTab> {
 		}];
 	}
 
-	const kind = inferBrowserKind(initialPath);
+	// Honour the URL's explicit tab kind when given; otherwise infer from the path prefix
+	const kind = (tabFromUrl && tabFromUrl !== "editor"
+		? tabFromUrl as BrowserKind
+		: inferBrowserKind(initialPath));
 	return [{
 		id: nextTabId++,
 		kind,
@@ -446,17 +483,24 @@ function sdPathToRouteParams(sdPath: string): { volume: string; path: string } |
 	return { volume, path: rest };
 }
 
-const activePath = computed<string | undefined>(() => {
+// Active tab snapshot - both the kind and the SD path are needed to build the URL with the
+// /Explorer/<tab>/<volume>/<path> shape. The kind is emitted explicitly so a user inside e.g.
+// the "files" tab browsing /sys/foo doesn't get inferred back to the system tab on reload
+const activeTabSnapshot = computed<{ kind: TabKind; sdPath: string } | undefined>(() => {
 	const tab = tabs.value.find((t) => t.id === activeTab.value);
 	if (!tab) {
 		return undefined;
 	}
-	return tab.kind === "editor" ? tab.filename : tab.directory;
+	const sdPath = (tab.kind === "editor" ? tab.filename : tab.directory) ?? "";
+	if (!sdPath) {
+		return undefined;
+	}
+	return { kind: tab.kind, sdPath };
 });
 
-watch(activePath, (path) => {
-	if (typeof path === "string") {
-		pushUrl(path);
+watch(activeTabSnapshot, (snapshot) => {
+	if (snapshot) {
+		pushUrl(snapshot.kind, snapshot.sdPath);
 	}
 });
 
@@ -496,16 +540,17 @@ watch(() => sdPathFromParams(route.params as Record<string, unknown>), (newPath)
 	}
 });
 
-function pushUrl(path: string) {
+function pushUrl(tabKind: TabKind, path: string) {
 	const params = sdPathToRouteParams(path);
 	if (!params) {
 		return;
 	}
 	const currentPath = sdPathFromParams(route.params as Record<string, unknown>);
-	if (currentPath === path) {
+	const currentTab = readParam(route.params as Record<string, unknown>, "tab");
+	if (currentPath === path && currentTab === tabKind) {
 		return;
 	}
-	router.push({ params: { volume: params.volume, path: params.path } });
+	router.push({ params: { tab: tabKind, volume: params.volume, path: params.path } });
 }
 </script>
 

@@ -45,11 +45,11 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Explorer/[[volume]]/[[...path]]': RouteRecordInfo<
-      '/Explorer/[[volume]]/[[...path]]',
-      '/Explorer/:volume?/:path(.*)?',
-      { volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
-      { volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
+    '/Explorer/[[tab]]/[[volume]]/[[...path]]': RouteRecordInfo<
+      '/Explorer/[[tab]]/[[volume]]/[[...path]]',
+      '/Explorer/:tab?/:volume?/:path(.*)?',
+      { tab?: ParamValueZeroOrOne<true>, volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
+      { tab?: ParamValueZeroOrOne<false>, volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
       | never
     >,
     '/Job/Status': RouteRecordInfo<
@@ -105,9 +105,9 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/Explorer/[[volume]]/[[...path]].vue': {
+    'src/pages/Explorer/[[tab]]/[[volume]]/[[...path]].vue': {
       routes:
-        | '/Explorer/[[volume]]/[[...path]]'
+        | '/Explorer/[[tab]]/[[volume]]/[[...path]]'
       views:
         | never
     }
