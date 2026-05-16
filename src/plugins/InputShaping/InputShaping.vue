@@ -30,7 +30,9 @@
 						<div class="d-flex flex-column">
 							<v-alert v-if="!isInputShapingEnabled" type="info" class="mb-0" variant="tonal"
 									 :title="$t('plugins.accelerometer.notConfigured')" />
-							<div v-show="isInputShapingEnabled" class="content flex-grow-1 pa-2">
+							<!-- v-if (not v-show) so the heavy Chart instance only instantiates
+								 when input shaping is actually configured -->
+							<div v-else class="content flex-grow-1 pa-2">
 								<InputShapingChart :frequencies="currentFrequencies" :ringing-frequency="frequency"
 												   :input-shapers="inputShapers" :input-shaper-frequency="frequency"
 												   :input-shaper-damping="damping" :wide-band="false" />
@@ -308,8 +310,7 @@ const canSetFrequency = computed(() =>
 const canSetDamping = computed(() =>
 	!uiStore.uiFrozen && !Number.isNaN(damping.value) && damping.value !== shaping.value.damping);
 
-// ---- Custom-shaper helpers --------------------------------------------------------------
-
+// #region Custom-shaper helpers
 function setCustomAmplitude(index: number, value: string) {
 	const val = parseFloat(value);
 	if (!Number.isNaN(val) && val >= 0) {
@@ -363,8 +364,9 @@ async function setDamping() {
 	}
 }
 
-// ---- Files ------------------------------------------------------------------------------
+// #endregion
 
+// #region Files
 async function refresh() {
 	if (!machineStore.isConnected) {
 		files.value = [];
@@ -416,8 +418,9 @@ function recordingFinished() {
 	refresh();
 }
 
-// ---- Lifecycle / watches ------------------------------------------------------------------
+// #endregion
 
+// #region Lifecycle / watches
 onMounted(() => {
 	refresh();
 
@@ -467,6 +470,8 @@ watch(() => shaping.value.delays, (to) => {
 
 watch(() => shaping.value.frequency, (to) => { frequency.value = to; });
 watch(() => shaping.value.damping, (to) => { damping.value = to; });
+
+// #endregion
 </script>
 
 <style scoped>

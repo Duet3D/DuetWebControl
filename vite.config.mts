@@ -42,8 +42,9 @@ export default defineConfig({
 				// Force heavy multi-file libraries into single named chunks. The standalone
 				// Duet's embedded HTTP server only handles ~8 concurrent sockets, so the
 				// default Rollup splitting (~200 chunks once Babylon + Monaco land) would
-				// stall first-load of any page that touches them. One chunk per heavy lib
-				// means a worst case of three async fetches (monaco, babylon, chart)
+				// stall first-load of any page that touches them. Bundling Vuetify into
+				// one chunk avoids a 20+ chunk waterfall on every page; the framework
+				// code is shared anyway so total bytes stay roughly the same
 				manualChunks: (id) => {
 					if (id.includes("node_modules/monaco-editor/") || id.includes("/monaco/")) {
 						return "monaco";
@@ -55,6 +56,17 @@ export default defineConfig({
 					if (id.includes("node_modules/chart.js/")
 						|| id.includes("node_modules/chartjs-adapter-date-fns/")) {
 						return "chart";
+					}
+					if (id.includes("node_modules/vuetify/")) {
+						return "vuetify";
+					}
+					if (id.includes("node_modules/vue/")
+						|| id.includes("node_modules/@vue/")
+						|| id.includes("node_modules/vue-router/")
+						|| id.includes("node_modules/vue-i18n/")
+						|| id.includes("node_modules/@intlify/")
+						|| id.includes("node_modules/pinia/")) {
+						return "vendor";
 					}
 				}
 			}

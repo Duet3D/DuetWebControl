@@ -980,7 +980,8 @@ export const useMachineStore = defineStore("machine", {
 			// Deal with incoming messages
 			if (payload.messages) {
 				for (const message of payload.messages) {
-					// FIXME the following should not be needed
+					// Surface severity via a text prefix - downstream consumers log the
+					// raw content and don't otherwise differentiate by message.type
 					let reply;
 					switch (message.type) {
 						case MessageType.warning:

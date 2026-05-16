@@ -1,6 +1,8 @@
 import * as d3 from 'd3'
 import './gauge.css'
 
+import i18n from '@/i18n'
+
 type D3Selection = d3.Selection<any, any, any, any>;
 
 export default class Gauge {
@@ -143,7 +145,7 @@ export default class Gauge {
 			return;
 		}
 
-		this.svg.attr('title', `Max Temp : ${this.max}`);
+		this.svg.attr('title', i18n.global.t('plugins.gcodeViewer.maxTemp', [this.max]));
 
 		//Live Temp
 		this.svgCursor

@@ -134,8 +134,7 @@ registerPluginData("HeightMap", PluginDataType.cache, "colorScheme", "terrain");
 registerPluginData("HeightMap", PluginDataType.cache, "deviationColoring", "fixed");
 registerPluginData("HeightMap", PluginDataType.cache, "invertZ", false);
 
-// ---- Reactive state -------------------------------------------------------------------------
-
+// #region Reactive state
 const container = ref<HTMLElement | null>(null);
 const canvas = ref<HTMLCanvasElement | null>(null);
 const legend = ref<HTMLCanvasElement | null>(null);
@@ -169,8 +168,9 @@ let probeRadius: number | undefined = undefined;
 
 let heightMapViewer: HeightMapViewer | undefined;
 
-// ---- Cached plugin settings (round-trip through the cache store) ---------------------------
+// #endregion
 
+// #region Cached plugin settings (round-trip through the cache store)
 const colorScheme = computed<string>({
 	get: () => cacheStore.plugins.HeightMap?.colorScheme ?? "terrain",
 	set: (value) => setPluginData("HeightMap", PluginDataType.cache, "colorScheme", value),
@@ -186,8 +186,9 @@ const invertZ = computed<boolean>({
 	set: (value) => setPluginData("HeightMap", PluginDataType.cache, "invertZ", value),
 });
 
-// ---- OM-derived values -----------------------------------------------------------------------
+// #endregion
 
+// #region OM-derived values
 const isConnected = computed(() => machineStore.isConnected);
 const heightmapFile = computed(() => machineStore.model.move.compensation.file);
 const systemDirectory = computed(() => machineStore.model.directories.system);
@@ -197,8 +198,9 @@ const isDelta = computed(() => kinematicsName.value === KinematicsName.linearDel
 	|| kinematicsName.value === KinematicsName.rotaryDelta);
 const bedAxesValues = computed(() => axes.value.map((a) => ({ letter: a.letter, min: a.min, max: a.max })));
 
-// ---- Sizing ---------------------------------------------------------------------------------
+// #endregion
 
+// #region Sizing
 function resize(): { width: number; height: number } | undefined {
 	if (!container.value || !canvas.value || !legend.value) {
 		return undefined;
@@ -256,8 +258,9 @@ function attachResizeObserver() {
 	resizeObserver.observe(container.value);
 }
 
-// ---- File listing + loading -----------------------------------------------------------------
+// #endregion
 
+// #region File listing + loading
 async function refresh() {
 	if (!isConnected.value) {
 		ready.value = false;
@@ -416,8 +419,9 @@ function showHeightMap(points: number[][][], probeRadius?: number) {
 	heightMapViewer.drawLegend(legend.value, colorScheme.value, invertZ.value, xLabel.value, yLabel.value);
 }
 
-// ---- Viewer interactions --------------------------------------------------------------------
+// #endregion
 
+// #region Viewer interactions
 function canvasMouseMove(e: MouseEvent) {
 	const target = e.currentTarget as HTMLElement;
 	const rect = target.getBoundingClientRect();
@@ -461,8 +465,9 @@ function filesOrDirectoriesChanged(payload: { files?: Array<string>; volume?: nu
 	}
 }
 
-// ---- Lifecycle ------------------------------------------------------------------------------
+// #endregion
 
+// #region Lifecycle
 onMounted(async () => {
 	const size = resize();
 	if (size && size.height <= 0) {
@@ -522,8 +527,9 @@ onBeforeUnmount(() => {
 	heightMapViewer = undefined;
 });
 
-// ---- Watches --------------------------------------------------------------------------------
+// #endregion
 
+// #region Watches
 watch([colorScheme, deviationColoring, invertZ], () => {
 	if (heightmapPoints) {
 		showHeightMap(heightmapPoints, probeRadius);
@@ -566,6 +572,8 @@ watch(isDelta, (to) => {
 		}
 	}
 });
+
+// #endregion
 </script>
 
 <style scoped>

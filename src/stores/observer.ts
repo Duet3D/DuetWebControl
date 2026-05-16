@@ -3,8 +3,8 @@ import { Pinia } from "pinia";
 import { useCacheStore } from "./cache";
 import { useSettingsStore } from "./settings";
 
-let settingsTimer: NodeJS.Timeout | null = null, settingsObserverSuspended = false;
-let cacheTimer: NodeJS.Timeout | null = null, cacheObserverSuspended = false;
+let settingsTimer: ReturnType<typeof setTimeout> | null = null, settingsObserverSuspended = false;
+let cacheTimer: ReturnType<typeof setTimeout> | null = null, cacheObserverSuspended = false;
 
 /**
  * Stop tracking changes to settings

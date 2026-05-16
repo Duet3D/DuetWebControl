@@ -7,7 +7,8 @@
 
 			<v-card-text>
 				<v-progress-linear :indeterminate="machineStore.connectingProgress < 0"
-								   :value="machineStore.connectingProgress" color="white" class="mb-0" />
+								   :model-value="Math.max(0, machineStore.connectingProgress)"
+								   color="white" class="mb-0" />
 
 				<div v-if="displayReset && machineStore.isConnected" class="d-flex">
 					<CodeButton class="mx-auto mt-5" code="M999" :log="false" color="warning"

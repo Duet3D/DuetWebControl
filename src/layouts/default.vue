@@ -74,7 +74,9 @@
 
 		<ConnectDialog />
 		<ConnectionProgressDialog />
+		<IncompatibleVersionsDialog />
 		<MessageBoxDialog />
+		<PluginInstallDialog />
 		<NotificationDisplay />
 	</v-app>
 </template>

@@ -59,7 +59,9 @@ function axisSpanClasses(axisIndex: number): Array<string> {
 	if (props.machinePosition
 		&& axisIndex >= 0 && axisIndex < endstops.length
 		&& endstops[axisIndex]?.triggered) {
-		classList.push("px-2", "bg-light-green", settingsStore.darkTheme ? "darken-3" : "lighten-4");
+		// Vuetify 4 dropped the standalone darken/lighten utility classes; only the combined
+		// `bg-<colour>-<shade>` form ships now
+		classList.push("px-2", settingsStore.darkTheme ? "bg-light-green-darken-3" : "bg-light-green-lighten-4");
 	} else if (!props.machinePosition) {
 		classList.push("large-font-height");
 	}

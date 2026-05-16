@@ -466,21 +466,30 @@ export const useSettingsStore = defineStore("settings", {
 	},
 	actions: {
 		/**
-		 * Apply default settings
+		 * Apply default settings - reset every persisted field to the value declared in the
+		 * store's `state()` initializer, re-apply SBC-specific webcam defaults when running
+		 * against DSF, and reload the built-in plugins so any plugin enabled by default comes
+		 * back online. Called from {@link reset} but exposed separately so other callers can
+		 * trigger a clean state without a full page reload
 		 */
-		/* async */ applyDefaults() {
-			const machineStore = useMachineStore()
+		async applyDefaults() {
+			const machineStore = useMachineStore();
 
 			// Revert to DWC defaults
-			this.$reset()
+			this.$reset();
 
 			// Apply different webcam defaults in SBC mode
 			if (machineStore.model.sbc !== null) {
-				this.applySbcWebcamDefaults()
+				this.applySbcWebcamDefaults();
 			}
 
-			// Load plugins that are enabled by default
-			// await machineStore.loadDwcPlugins();
+			// Re-load default-enabled plugins so the user's "factory" experience matches a
+			// fresh install rather than whatever set was last persisted
+			try {
+				await machineStore.loadDwcPlugins();
+			} catch (e) {
+				console.warn(e);
+			}
 		},
 
 		/**
@@ -555,6 +564,11 @@ export const useSettingsStore = defineStore("settings", {
 				} finally {
 					resumeSettingsObserver();
 				}
+
+				// Persisted preferences may have changed the active locale - re-apply through
+				// the action so vue-i18n + document.lang pick up the loaded value (the assign
+				// above only updated the store field, not the i18n side)
+				that.setLocale(that.locale);
 
 				// Done
 				Events.emit("settingsLoaded");
@@ -652,6 +666,9 @@ export const useSettingsStore = defineStore("settings", {
 		 */
 		setLocale(locale: string) {
 			i18n.global.locale.value = locale as any;
+			if (typeof document !== "undefined") {
+				document.documentElement.lang = locale;
+			}
 			this.locale = locale;
 		},
 

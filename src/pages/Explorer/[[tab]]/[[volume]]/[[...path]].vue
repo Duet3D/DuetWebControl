@@ -471,8 +471,7 @@ async function confirmRunMacro() {
 	}
 }
 
-// ---- URL sync -------------------------------------------------------------------------------
-
+// #region URL sync
 // Pull volume + path string out of an SD path so the router can build the matching URL.
 // vue-router-vite expects the catchall as a single string (one segment with `/` separators)
 function sdPathToRouteParams(sdPath: string): { volume: string; path: string } | null {
@@ -552,6 +551,8 @@ function pushUrl(tabKind: TabKind, path: string) {
 	}
 	router.push({ params: { tab: tabKind, volume: params.volume, path: params.path } });
 }
+
+// #endregion
 </script>
 
 <style scoped>

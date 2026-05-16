@@ -38,14 +38,15 @@ import { useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
 
 import { getLocalSetting, removeLocalSetting, setLocalSetting } from "@/utils/localStorage";
+import type { VForm } from "vuetify/components";
 
 const localStorageHostnameKey = "lastHostname", localStoragePasswordKey = "lastPassword";
 
 const machineStore = useMachineStore(), uiStore = useUiStore();
 
-// Form bindings
-
-const form = ref<HTMLFormElement | null>(null);
+// Form bindings - the ref is the v-form component instance (not a raw HTMLFormElement); the
+// instance exposes the async validate() that returns { valid, errors }
+const form = ref<InstanceType<typeof VForm> | null>(null);
 const hostnameRules = [
 	(value: string): string | boolean => value ? true : i18n.global.t("dialog.connect.hostRequired")
 ];
@@ -64,7 +65,13 @@ const rememberPassword = ref(false);
 
 const lastError = ref("");
 async function submit() {
-	if (uiStore.showConnectDialog && form.value?.validate()) {
+	if (!uiStore.showConnectDialog || !form.value) {
+		return;
+	}
+	// Vuetify 4 validate() is async and returns { valid, errors }; awaiting the boolean keeps
+	// the submit gated on the rules actually passing
+	const result = await form.value.validate();
+	if (result.valid) {
 		lastError.value = "";
 		uiStore.showConnectDialog = false;
 		try {

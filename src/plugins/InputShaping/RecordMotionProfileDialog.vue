@@ -236,8 +236,7 @@ const emit = defineEmits<{
 
 const machineStore = useMachineStore();
 
-// ---- OM-derived computeds ----------------------------------------------------------------
-
+// #region OM-derived computeds
 const boards = computed<Array<Board>>(() => machineStore.model.boards.filter((b): b is Board => b !== null));
 const move = computed(() => machineStore.model.move);
 const tools = computed(() => machineStore.model.tools);
@@ -326,8 +325,9 @@ const maxSpeed = computed(() => {
 	return moves.value.some((m) => m.axis.length > 1) ? Math.round(max * Math.sqrt(2)) : max;
 });
 
-// ---- Wizard state ------------------------------------------------------------------------
+// #endregion
 
+// #region Wizard state
 const currentPage = ref<"start" | "config" | "collection">("start");
 const moves = ref<Array<MoveItem>>([]);
 const centerAxes = ref(true);
@@ -361,8 +361,9 @@ const canGoNext = computed(() => {
 	return false;
 });
 
-// ---- Move building helpers --------------------------------------------------------------
+// #endregion
 
+// #region Move building helpers
 function refreshCenters() {
 	if (currentPage.value === "collection") return;
 	xAxisCenter.value = (xAxis.value.min + xAxis.value.max) / 2;
@@ -465,8 +466,9 @@ function getMax(m: MoveItem, start: boolean): number | null {
 	return start ? (max !== null ? Math.min(max, m.end ?? max) : null) : max;
 }
 
-// ---- Recording loop --------------------------------------------------------------------
+// #endregion
 
+// #region Recording loop
 async function doCode(code: string) {
 	const reply = await machineStore.sendCode(code);
 	if (typeof reply === "string" && reply.indexOf("Error") === 0) {
@@ -653,4 +655,6 @@ watch(() => machineState.value.status, (to) => {
 		cancelled.value = true;
 	}
 });
+
+// #endregion
 </script>

@@ -55,6 +55,12 @@
       "reset": "Firmware zurücksetzen",
       "runConfig": "config.g ausführen"
     },
+    "incompatibleVersions": {
+      "title": "Inkompatible Softwareversionen",
+      "prompt": "Die installierten Softwareversionen stimmen nicht überein. Bitte betreiben Sie den Aufbau nur mit gleichen Softwareversionen, um potentielle Inkompatibilitäten oder unerwartete Fehler zu vermeiden.",
+      "upgradeNotice": "Bitte sehen Sie sich die {docs} an, um zu erfahren, wie Sie Ihre Duet-Softwarekomponenten aktualisieren.",
+      "docsLink": "Dokumentation"
+    },
     "fileEdit": {
       "save": "Speichern",
       "revert": "Verwerfen",
@@ -106,6 +112,43 @@
       "resetButton": {
         "caption": "Maschine zurücksetzen",
         "title": "M999 an die Maschine senden um sie zurückzusetzen"
+      }
+    },
+    "pluginInstallation": {
+      "installation": "Plugininstallation",
+      "prompt": "Das folgende Plugin wird installiert:",
+      "by": "von {0}",
+      "license": "Lizenz: {0}",
+      "homepage": "Webseite:",
+      "contents": "Dieses Paket stellt Softwarekomponenten bereit für",
+      "dsf": "Duet Software Framework",
+      "dwc": "Duet Web Control",
+      "rrf": "RepRapFirmware",
+      "prerequisites": "Voraussetzungen",
+      "version": "Version {0}",
+      "noPluginSupport": "Externe Plugins sind nicht erlaubt",
+      "rootSupport": "Unterstützung für Super-User-Plugins",
+      "invalidManifest": "Ungültiges Pluginmanifest",
+      "permissions": "Erforderliche Berechtigungen",
+      "dwcWarning": "Dieses Plugin stellt Komponenten für die Weboberfläche bereit. Es können im Browser keine Berechtigungsprüfungen durchgeführt werden, daher könnte es Ihr System manipulieren und Sicherheitsrisikos erzeugen, die in physischem Schaden resultieren könnten.",
+      "rootWarning": "Dieses Plugin erfordert Super-User-Berechtigungen, was bedeuetet, dass es den angeschlossenen SBC rekonfigurieren und potentielle Schadsoftware installieren darf. Dies könnte zu physischem Schaden Ihres Aufbaus fuehren.",
+      "sbcPermissions": "Das Plugin auf dem SBC möchte",
+      "noSpecialPermissions": "Dieses Plugin erfordert keine speziellen Berechtigungen.",
+      "ready": "Installation bereit",
+      "readyMessage": "Das Plugin ist jetzt bereit für die Installation. Bitte stellen Sie sicher, dass Sie dem Autor des Plugins vertrauen bevor Sie diesen finalen Schritt bestätigen.",
+      "readyDisclaimer": "Bevor Sie fortfahren können müssen Sie akzeptieren, dass Duet3D Ltd nicht für eventuelle Schäden, die aus der Installation dieses Drittanbieterplugins resultieren könnten, verantwortlich gemacht werden kann.",
+      "checkboxDisclaimer": "Ich akzeptiere das Risiko, Installation fortsetzen",
+      "progress": "Installationsfortschritt",
+      "progressText": "Bitte warten Sie während das Plugin installiert wird...",
+      "installationSuccess": "Installation abgeschlossen!",
+      "installationFailed": "Installation fehlgeschlagen!",
+      "cancel": "Abbrechen",
+      "back": "Zurück",
+      "next": "Weiter",
+      "finish": "Abschließen",
+      "reloadPrompt": {
+        "title": "DWC neu laden?",
+        "prompt": "Sie haben gerade ein aktives DWC-Plugin aktualisiert. Um die neue Version nutzen zu können muss die Weboberfläche neu geladen werden. Möchten Sie dies jetzt tun?"
       }
     }
   },
@@ -306,11 +349,21 @@
     },
     "upload": {
       "caption": "Hochladen",
-      "start": { "caption": "G-Code-Auftrag hochladen & starten" },
-      "gcodes": { "caption": "G-Code-Dateien hochladen" },
-      "macros": { "caption": "Makros hochladen" },
-      "filaments": { "caption": "Filamente hochladen" },
-      "firmware": { "caption": "System / Firmware hochladen" }
+      "start": {
+        "caption": "G-Code-Auftrag hochladen & starten"
+      },
+      "gcodes": {
+        "caption": "G-Code-Dateien hochladen"
+      },
+      "macros": {
+        "caption": "Makros hochladen"
+      },
+      "filaments": {
+        "caption": "Filamente hochladen"
+      },
+      "firmware": {
+        "caption": "System / Firmware hochladen"
+      }
     },
     "newFile": {
       "caption": "Neue Datei"
@@ -329,6 +382,9 @@
       "captionAll": "Alle Referenzieren",
       "title": "Referenziere die {0}-Achse (G28 {0})",
       "titleAll": "Alle Achsen referenzieren (G28)"
+    },
+    "add": {
+      "caption": "Hinzufügen"
     }
   },
   "input": {
@@ -336,7 +392,9 @@
       "placeholder": "Code senden...",
       "send": "Senden"
     },
-    "set": "Setzen"
+    "set": "Setzen",
+    "addTemperature": "Temperatur hinzufügen",
+    "addRPM": "Drehzahl hinzufügen"
   },
   "list": {
     "eventLog": {
@@ -599,10 +657,18 @@
     "tabs": {
       "general": "Allgemein",
       "display": "Anzeige",
+      "presets": "Voreinstellungen",
       "webcam": "Webcam",
       "communication": "Kommunikation",
       "plugins": "Plugins",
       "about": "Info"
+    },
+    "presets": {
+      "caption": "Temperatur- und Spindel-Voreinstellungen",
+      "toolTemperatures": "Werkzeug-Temperaturen",
+      "bedTemperatures": "Bett-Temperaturen",
+      "chamberTemperatures": "Kammer-Temperaturen",
+      "spindleRPM": "Spindeldrehzahl"
     },
     "appearance": {
       "caption": "Darstellung",
@@ -630,7 +696,12 @@
       "crcUploads": "Uploads mit CRC-Prüfsumme verifizieren",
       "installCaption": "Firmware-/Webinterface-Update",
       "installHint": "Lädt ein Firmware-Bundle (.zip), eine einzelne .bin-/.uf2-Datei oder ein DWC-Webbundle hoch. Firmware-Dateien werden nach Abschluss des Uploads automatisch via M997 eingespielt.",
-      "install": "Installieren"
+      "install": "Installieren",
+      "resetCaption": "Werkseinstellungen",
+      "resetHint": "Löscht alle lokal gespeicherten DWC-Einstellungen und den Cache, stellt die auf dem Board hinterlegten Werkseinstellungen (falls vorhanden) wieder her und lädt DWC anschliessend neu.",
+      "reset": "Zurücksetzen",
+      "resetTitle": "DWC-Einstellungen zurücksetzen?",
+      "resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschliessend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen."
     },
     "display": {
       "layoutCaption": "Layout",
@@ -851,18 +922,37 @@
     },
     "gcodeViewer": {
       "caption": "G-Code Betracher",
+      "maxTemp": "Max. Temperatur: {0}",
       "view3D": "3D ansehen",
       "fullscreen": "Vollbild",
       "showConfiguration": "Konfiguration anzeigen",
-      "resetCamera": { "caption": "Kamera zurücksetzen", "title": "Kamera auf Ursprungsposition zurücksetzen" },
+      "resetCamera": {
+        "caption": "Kamera zurücksetzen",
+        "title": "Kamera auf Ursprungsposition zurücksetzen"
+      },
       "cancelLoad": "Laden abbrechen",
-      "reloadView": { "caption": "Ansicht neu laden", "title": "Aktuellen G-Code neu laden, muss benutzt werden wenn Einstellungen wie Farbe, Vorschubrate usw. geändert worden sind" },
-      "loadCurrentJob": { "caption": "Aktuellen Auftrag laden", "title": "Auftrag, der gerade ausgeführt wird, neu laden" },
-      "unloadGCode": { "caption": "G-Code entladen", "title": "Aktuell geladenen G-Code aus der Ansicht entfernen" },
-      "loadLocalGCode": { "caption": "Lokalen G-Code laden", "title": "Eine Datei vom lokalen Laufwerk in die Ansicht laden" },
+      "reloadView": {
+        "caption": "Ansicht neu laden",
+        "title": "Aktuellen G-Code neu laden, muss benutzt werden wenn Einstellungen wie Farbe, Vorschubrate usw. geändert worden sind"
+      },
+      "loadCurrentJob": {
+        "caption": "Aktuellen Auftrag laden",
+        "title": "Auftrag, der gerade ausgeführt wird, neu laden"
+      },
+      "unloadGCode": {
+        "caption": "G-Code entladen",
+        "title": "Aktuell geladenen G-Code aus der Ansicht entfernen"
+      },
+      "loadLocalGCode": {
+        "caption": "Lokalen G-Code laden",
+        "title": "Eine Datei vom lokalen Laufwerk in die Ansicht laden"
+      },
       "showCursor": "Cursor anzeigen",
       "showTravels": "Reisen anzeigen",
-      "renderQuality": { "caption": "Darstellungsqualität", "title": "Darstellungsqualität der Ansicht anpassen. Je höher die Stufe desto mehr Details werden angezeigt" },
+      "renderQuality": {
+        "caption": "Darstellungsqualität",
+        "title": "Darstellungsqualität der Ansicht anpassen. Je höher die Stufe desto mehr Details werden angezeigt"
+      },
       "sbc": "SBC",
       "low": "Niedrig",
       "medium": "Mittel",
@@ -875,17 +965,26 @@
       "g1AsExtrusion": "G1 darstellen (CNC)",
       "forceLineRendering": "Liniendarstellung erzwingen",
       "transparency": "Transparenz",
-      "extruders": { "caption": "Extruder", "title": "Setzt die Farbe, die zur Darstellung eines Extruders genutzt wird" },
+      "extruders": {
+        "caption": "Extruder",
+        "title": "Setzt die Farbe, die zur Darstellung eines Extruders genutzt wird"
+      },
       "tool": "Werkzeug {0}",
       "resetColor": "Werkzeugfarbe zurücksetzen | Werkzeugfarben zurücksetzen",
-      "renderMode": { "caption": "Darstellungsmodus | Darstellungsmodi", "title": "Mit dem Darstellungsmodus können die Farben der Extruder oder Vorschubgeschwindigkeiten geändert werden" },
+      "renderMode": {
+        "caption": "Darstellungsmodus | Darstellungsmodi",
+        "title": "Mit dem Darstellungsmodus können die Farben der Extruder oder Vorschubgeschwindigkeiten geändert werden"
+      },
       "color": "Farbe",
       "feedrate": "Feedrate",
       "minFeedrate": "Minimale Vorschubrate (mm/s)",
       "maxFeedrate": "Maximale Vorschubrate (mm/s)",
       "minFeedrateColor": "Farbe für kleinste Vorschubrate",
       "maxFeedrateColor": "Farbe für größte Vorschubrate",
-      "progress": { "caption": "Fortschritt", "title": "Farbe zur Nachverfolgung des Fortschritts" },
+      "progress": {
+        "caption": "Fortschritt",
+        "title": "Farbe zur Nachverfolgung des Fortschritts"
+      },
       "topClipping": "Oberes Clipping",
       "bottomClipping": "Unteres Clipping",
       "progressColor": "Farbe für Fortschritt",
@@ -897,7 +996,10 @@
       "showAxes": "Achsen anzeigen",
       "showObjectLabels": "Objektnamen anzeigen",
       "cameraInertia": "Kameraträgheit",
-      "showObjectSelection": { "caption": "Objektauswahl anzeigen", "title": "Aktiviert falls Objekte im aktuellen Druck erkannt worden sind" },
+      "showObjectSelection": {
+        "caption": "Objektauswahl anzeigen",
+        "title": "Aktiviert falls Objekte im aktuellen Druck erkannt worden sind"
+      },
       "renderFailed": "Vorige Darstellung fehlgeschlagen. Ändere Darstellungsqualität auf SBC",
       "showFSOverlay": "Overlay bei Vollbild anzeigen",
       "viewGCode": "G-Code anzeigen",
@@ -910,5 +1012,35 @@
       "resumeObj": "Objekt fortsetzen",
       "persistTravels": "Persistenzreisen"
     }
+  },
+  "pluginPermissions": {
+    "commandExecution": "Generische DSF-Befehle ausführen (z.B. G/M/T-Codes)",
+    "codeInterceptionRead": "G/M/T-Codes abfangen",
+    "codeInterceptionReadWrite": "G/M/T-codes abfangen und manipulieren",
+    "managePlugins": "Drittanbieterplugins installieren, laden, entladen und deinstallieren",
+    "manageUserSessions": "Benutzersitzungen verwalten",
+    "objectModelRead": "Objektmodell lesen",
+    "objectModelReadWrite": "Objektmodell lesen und schreiben",
+    "registerHttpEndpoints": "HTTP-Endpunkte erzeugen",
+    "readFilaments": "Dateien aus dem Filamentverzeichnis lesen",
+    "writeFilaments": "Dateien im Filamentverzeichnis schreiben",
+    "readFirmware": "Dateien aus dem Firmwareverzeichnis lesen",
+    "writeFirmware": "Dateien im Firmwareverzeichnis schreiben",
+    "readGCodes": "Dateien aus dem G-Code-Verzeichnis lesen",
+    "writeGCodes": "Dateien im G-Code-Verzeichnis schreiben",
+    "readMacros": "Dateien aus dem Makroverzeichnis lesen",
+    "writeMacros": "Dateien im Makroverzeichnis schreiben",
+    "readMenu": "Dateien aus dem Menüverzeichnis lesen",
+    "writeMenu": "Dateien im Menüverzeichnis schreiben",
+    "readSystem": "Dateien aus dem Systemverzeichnis lesen",
+    "writeSystem": "Dateien im Systemverzeichnis schreiben",
+    "readWeb": "Dateien aus dem Webverzeichnis lesen",
+    "writeWeb": "Dateien im Webverzeichnis schreiben",
+    "fileSystemAccess": "Auf Dateien außerhalb der virtuellen SD-Karte zugreifen",
+    "launchProcesses": "Neue Prozesse starten",
+    "networkAccess": "Über das Netzwerk kommunizieren",
+    "webcamAccess": "Auf Webcams zugreifen",
+    "gpioAccess": "Auf GPIO-Geräte zugreifen",
+    "superUser": "Als root-Benutzer laufen (potentiell gefährlich)"
   }
 }

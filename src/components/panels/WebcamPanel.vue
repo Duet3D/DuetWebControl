@@ -175,13 +175,25 @@ function closeWebRTC() {
 	}
 }
 
+// Restart the polling timer with the current update interval. Called on mount and on every
+// settings change so the user's "update interval" tweak from the Webcam settings tab takes
+// effect immediately instead of after the next page visit
+function restartPollingTimer() {
+	if (updateTimer !== null) {
+		clearInterval(updateTimer);
+		updateTimer = null;
+	}
+	if (!settingsStore.webcam.embedded && !webcamIsRTC.value
+			&& settingsStore.webcam.updateInterval > 0) {
+		updateTimer = setInterval(update, settingsStore.webcam.updateInterval);
+	}
+}
+
 onMounted(() => {
 	active.value = true;
 	if (!settingsStore.webcam.embedded) {
 		update();
-		if (!webcamIsRTC.value && settingsStore.webcam.updateInterval > 0) {
-			updateTimer = setInterval(update, settingsStore.webcam.updateInterval);
-		}
+		restartPollingTimer();
 	}
 });
 
@@ -194,10 +206,14 @@ onBeforeUnmount(() => {
 	active.value = false;
 });
 
-// Persistent images (updateInterval == 0) and RTC streams need re-applying on settings changes
+// Re-render persistent images on any settings change; rebuild the polling timer whenever the
+// update interval changes so the new cadence takes effect right away. Without this, changing
+// the interval at runtime leaves the old timer firing at the old rate forever
 watch(() => settingsStore.webcam, () => {
 	if (settingsStore.webcam.updateInterval === 0) {
 		update();
+	} else {
+		restartPollingTimer();
 	}
 }, { deep: true });
 </script>

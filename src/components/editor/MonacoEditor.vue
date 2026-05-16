@@ -204,8 +204,7 @@ function forceClose() {
 	emit("close");
 }
 
-// ---- Helpers --------------------------------------------------------------------------------
-
+// #region Helpers
 interface DirectoriesShape {
 	macros: string;
 	menu: string;
@@ -242,6 +241,8 @@ async function ensureMonaco(store: ReturnType<typeof useMachineStore>): Promise<
 	}
 	return monacoSetup;
 }
+
+// #endregion
 </script>
 
 <style scoped>

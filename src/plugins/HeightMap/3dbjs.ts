@@ -464,7 +464,10 @@ export default class HeightMapViewer {
 		context.fillStyle = "white";
 		context.fillText(i18n.global.t("plugins.heightmap.scale"), canvas.width / 2, 21);
 		context.fillText(`${invertZ ? -this.maxVisualizationZ : this.maxVisualizationZ} mm`, canvas.width / 2, 44);
-		context.fillText(i18n.global.t(invertZ ? "plugins.heightmap.orLess" : "plugins.heightmap.orMore"), canvas.width / 2, 60);
+		// Two distinct $t calls (not a ternary inside one) so IDE i18n plugins resolve both keys
+		context.fillText(invertZ
+			? i18n.global.t("plugins.heightmap.orLess")
+			: i18n.global.t("plugins.heightmap.orMore"), canvas.width / 2, 60);
 
 		// Gradient itself
 		const showAxes = canvas.height > 180;
@@ -492,7 +495,9 @@ export default class HeightMapViewer {
 		context.fillStyle = "white";
 		if (colorScheme === "terrain") {
 			context.fillText(`${invertZ ? this.maxVisualizationZ : -this.maxVisualizationZ} mm`, canvas.width / 2, scaleHeight + 82);
-			context.fillText(i18n.global.t(invertZ ? "plugins.heightmap.orMore" : "plugins.heightmap.orLess"), canvas.width / 2, scaleHeight + 98);
+			context.fillText(invertZ
+				? i18n.global.t("plugins.heightmap.orMore")
+				: i18n.global.t("plugins.heightmap.orLess"), canvas.width / 2, scaleHeight + 98);
 			scaleHeight += 16;
 		} else {
 			context.fillText("0.00 mm", canvas.width / 2, scaleHeight + 82);

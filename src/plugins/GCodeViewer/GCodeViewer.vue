@@ -425,8 +425,7 @@ const perimeterOnly = ref(false);
 const transparencyPercent = ref(50);
 const progressMode = ref(false);
 
-// ---- OM-derived computeds -----------------------------------------------------------------
-
+// #region OM-derived computeds
 const job = computed<Job>(() => machineStore.model.job);
 const move = computed<Move>(() => machineStore.model.move);
 const state = computed<State>(() => machineStore.model.state);
@@ -467,8 +466,9 @@ const jobSelectionLabel = computed(() => {
 	return label;
 });
 
-// ---- Cached plugin settings ---------------------------------------------------------------
+// #endregion
 
+// #region Cached plugin settings
 const toolColors = computed<string[]>({
 	get: () => pluginCache.value?.toolColors ?? [],
 	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "toolColors", value),
@@ -520,8 +520,9 @@ const showCursor = computed<boolean>({
 	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "showCursor", value),
 });
 
-// ---- Layout-driven class swaps ------------------------------------------------------------
+// #endregion
 
+// #region Layout-driven class swaps
 const viewerClass = computed(() => {
 	nextTick(() => resize());
 	return viewGCode.value ? "babylon-canvas-codeview" : "babylon-canvas";
@@ -555,8 +556,9 @@ const currentWorkplace = computed(() => {
 	return move.value.motionSystems[machineStore.selectedMotionSystem].workplaceNumber;
 });
 
-// ---- Viewer lifecycle ---------------------------------------------------------------------
+// #endregion
 
+// #region Viewer lifecycle
 async function viewModelEvent(path: string) {
 	selectedFile.value = path;
 	if (!viewer) return;
@@ -673,8 +675,9 @@ onBeforeUnmount(() => {
 	viewer = null;
 });
 
-// ---- Methods ------------------------------------------------------------------------------
+// #endregion
 
+// #region Methods
 function simulatePlay() {
 	if (!viewer) return;
 	if (scrubPlaying.value) {
@@ -930,8 +933,9 @@ function updateTools() {
 	}
 }
 
-// ---- Watches ------------------------------------------------------------------------------
+// #endregion
 
+// #region Watches
 watch(move, (newValue) => {
 	if (!viewer) return;
 	const newPosition = newValue.axes.map((axis: Axis) => ({
@@ -1102,6 +1106,8 @@ watch(transparencyPercent, (to) => {
 watch(progressMode, async () => {
 	await reloadviewer();
 });
+
+// #endregion
 </script>
 
 <style scoped>

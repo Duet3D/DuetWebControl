@@ -102,7 +102,7 @@ const effectiveOptions = computed<FileBrowserOptions>(() => ({
 	},
 }));
 
-// ---- Per-row metadata fetch ----------------------------------------------------------------
+// #region Per-row metadata fetch
 
 interface JobBrowserItem extends FileBrowserItem {
 	height?: number | null;
@@ -183,7 +183,9 @@ function applyInfo(item: JobBrowserItem, info: GCodeFileInfo) {
 	item.thumbnails = Array.from(info.thumbnails ?? []);
 }
 
-// ---- Cell formatters ----------------------------------------------------------------------
+// #endregion
+
+// #region Cell formatters
 
 function formatLength(value: number | null | undefined): string {
 	if (typeof value !== "number" || Number.isNaN(value) || value <= 0) {
@@ -209,4 +211,6 @@ function formatTime(value: number | bigint | null | undefined): string {
 	}
 	return displayTime(seconds);
 }
+
+// #endregion
 </script>

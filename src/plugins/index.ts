@@ -53,12 +53,12 @@ import { useUiStore, ContextMenuType } from "@/stores/ui";
 
 import packageInfo from "../../package.json";
 
-// ─── Built-in plugin registry ────────────────────────────────────────
-
+// #region Built-in plugin registry
 const builtInPlugins: ModelCollection<DwcPlugin> = plugins;
 
-// ─── Manifest validation ─────────────────────────────────────────────
+// #endregion
 
+// #region Manifest validation
 /**
  * Validate a plugin manifest.
  * @param manifest Plugin manifest to check
@@ -113,8 +113,9 @@ export function checkVersion(actual: string, required: string): boolean {
 	return true;
 }
 
-// ─── State ───────────────────────────────────────────────────────────
+// #endregion
 
+// #region State
 /**
  * Set of currently loaded plugin IDs
  */
@@ -196,8 +197,9 @@ export function getPluginSettingTabs(): ReadonlyArray<SettingTab> {
 	return _settingTabs as ReadonlyArray<SettingTab>;
 }
 
-// ─── Initialisation ──────────────────────────────────────────────────
+// #endregion
 
+// #region Initialisation
 /**
  * Initialise the plugin system. Must be called once during app startup
  * before any plugins are loaded.
@@ -212,7 +214,9 @@ export function initPluginSystem(router: Router) {
 	exposeGlobalAPI();
 }
 
-// ─── Plugin registration API ─────────────────────────────────────────
+// #endregion
+
+// #region Plugin registration API
 // These functions are called directly by plugins (both built-in and external).
 
 /**
@@ -346,8 +350,9 @@ export function registerPluginContextMenuItem(name: string | (() => string), pat
 	} as ContextMenuItem);
 }
 
-// ─── Query API ───────────────────────────────────────────────────────
+// #endregion
 
+// #region Query API
 /**
  * Get all registered built-in plugin entries
  */
@@ -383,8 +388,9 @@ export function getMenuCategories(): ReadonlyMap<string, MenuCategory> {
 	return _menuCategories;
 }
 
-// ─── Loading ─────────────────────────────────────────────────────────
+// #endregion
 
+// #region Loading
 /**
  * Load and initialise a single DWC plugin by ID.
  *
@@ -453,8 +459,9 @@ export async function unloadDwcPlugin(id: string): Promise<void> {
 	Events.emit("dwcPluginUnloaded", id);
 }
 
-// ─── Built-in plugin loading ─────────────────────────────────────────
+// #endregion
 
+// #region Built-in plugin loading
 /**
  * Load a built-in plugin by executing its dynamic import.
  * The module's side effects handle all registration.
@@ -464,8 +471,9 @@ async function loadBuiltInPlugin(plugin: DwcPlugin): Promise<void> {
 	loadedPlugins.add(plugin.id);
 }
 
-// ─── External plugin loading ─────────────────────────────────────────
+// #endregion
 
+// #region External plugin loading
 /**
  * Load an external plugin by fetching its JS/CSS from the machine.
  *
@@ -557,8 +565,9 @@ function loadExternalJS(pluginId: string, url: string): Promise<void> {
 	});
 }
 
-// ─── Global API for external plugins ─────────────────────────────────
+// #endregion
 
+// #region Global API for external plugins
 /**
  * Expose DWC's plugin API on `window.DWC` so that external plugin bundles
  * (compiled with these modules marked as externals) can access them at runtime.
@@ -605,3 +614,5 @@ function exposeGlobalAPI() {
 		i18n,
 	};
 }
+
+// #endregion

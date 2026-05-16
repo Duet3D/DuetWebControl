@@ -305,8 +305,7 @@ const injectedController = inject(firmwareInstallControllerKey, null);
 const ownsController = injectedController === null;
 const firmwareController = injectedController ?? useFirmwareInstallController();
 
-// ---- View mode (list vs tiles) -------------------------------------------------------------
-
+// #region View mode (list vs tiles)
 type FileListViewMode = "auto" | "list" | "tiles";
 
 const viewModeSetting = useComponentSettings<{ viewMode: FileListViewMode }>({ viewMode: "auto" });
@@ -782,6 +781,8 @@ function saveBlob(filename: string, blob: Blob) {
 	document.body.removeChild(anchor);
 	URL.revokeObjectURL(url);
 }
+
+// #endregion
 </script>
 
 <style scoped>

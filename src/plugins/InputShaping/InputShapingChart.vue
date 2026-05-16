@@ -80,8 +80,7 @@ const lineAtPoint = computed(() => {
 	return delta > resolution.value ? -1 : point;
 });
 
-// ---- Chart setup ----------------------------------------------------------------------------
-
+// #region Chart setup
 function buildOptions(): any {
 	return {
 		animation: false,
@@ -392,8 +391,9 @@ function scheduleUpdate() {
 	}
 }
 
-// ---- Mouse interactions for sample-range selection -----------------------------------------
+// #endregion
 
+// #region Mouse interactions for sample-range selection
 function onMouseDown(e: MouseEvent) {
 	if (!chart || (props.frequencies && props.frequencies.length > 0)) {
 		// Range selection only makes sense in sample-view mode
@@ -442,8 +442,9 @@ function onDoubleClick() {
 	sampleEndIndex.value = null;
 }
 
-// ---- Lifecycle ------------------------------------------------------------------------------
+// #endregion
 
+// #region Lifecycle
 onMounted(() => {
 	if (!chartCanvas.value) return;
 	chart = new Chart(chartCanvas.value, {
@@ -463,8 +464,9 @@ onBeforeUnmount(() => {
 	chart = undefined;
 });
 
-// ---- Watches --------------------------------------------------------------------------------
+// #endregion
 
+// #region Watches
 function arraysDiffer(a: unknown, b: unknown): boolean {
 	if (!(a instanceof Array) || !(b instanceof Array)) {
 		return a !== b;
@@ -552,4 +554,6 @@ watch(sampleEndIndex, (to) => {
 		chart.update();
 	}
 });
+
+// #endregion
 </script>

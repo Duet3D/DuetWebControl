@@ -39,13 +39,20 @@ async function clicked() {
 	if (isBusy.value) {
 		return;
 	}
-	if (machineStore.isConnected) {
-		await machineStore.disconnect();
-	} else if (import.meta.env.DEV) {
-		// In dev mode the user picks a hostname through the connect dialog rather than auto-targeting localhost
-		uiStore.showConnectDialog = true;
-	} else {
-		await machineStore.connect();
+	try {
+		if (machineStore.isConnected) {
+			await machineStore.disconnect();
+		} else if (import.meta.env.DEV) {
+			// Dev mode picks a hostname via the connect dialog instead of auto-targeting localhost
+			uiStore.showConnectDialog = true;
+		} else {
+			await machineStore.connect();
+		}
+	} catch (e) {
+		// The store already surfaces connect/disconnect failures through the connectError /
+		// connectionError event bus; swallowing here just prevents the unhandled-rejection
+		// console noise on the bare click handler
+		console.warn(e);
 	}
 }
 </script>

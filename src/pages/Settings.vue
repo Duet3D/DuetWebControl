@@ -37,9 +37,11 @@
 									<v-switch v-model="settingsStore.darkTheme" color="primary"
 											  :label="$t('settings.appearance.darkTheme')" density="comfortable"
 											  hide-details />
-									<v-select v-model="settingsStore.locale" :items="languageOptions" item-title="label"
-											  item-value="value" :label="$t('settings.appearance.language')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4" />
+									<v-select :model-value="settingsStore.locale" :items="languageOptions"
+											  item-title="label" item-value="value"
+											  :label="$t('settings.appearance.language')" variant="outlined"
+											  density="comfortable" hide-details class="mt-4"
+											  @update:model-value="(value) => settingsStore.setLocale(value as string)" />
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -120,6 +122,22 @@
 											{{ $t("settings.machine.install") }}
 										</v-btn>
 									</div>
+
+									<v-divider class="my-3" />
+
+									<div class="d-flex align-center">
+										<div class="flex-grow-1">
+											<div class="text-body-2">{{ $t("settings.machine.resetCaption") }}</div>
+											<div class="text-caption text-medium-emphasis">
+												{{ $t("settings.machine.resetHint") }}
+											</div>
+										</div>
+										<v-btn color="warning" :loading="resettingSettings"
+											   :disabled="uiStore.uiFrozen" @click="askFactoryReset">
+											<v-icon class="mr-1">mdi-restore</v-icon>
+											{{ $t("settings.machine.reset") }}
+										</v-btn>
+									</div>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -187,6 +205,51 @@
 												  step="0.01" :label="$t('settings.display.babystepAmount')"
 												  variant="outlined" density="comfortable" hide-details
 												  class="mt-4" suffix="mm" />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="presets">
+				<v-container fluid>
+					<v-row dense>
+						<v-col cols="12">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-format-list-numbered</v-icon>
+									{{ $t("settings.presets.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-tabs v-model="presetsTab" align-tabs="start" density="compact">
+										<v-tab value="tool" class="text-none">
+											{{ $t("settings.presets.toolTemperatures") }}
+										</v-tab>
+										<v-tab value="bed" class="text-none">
+											{{ $t("settings.presets.bedTemperatures") }}
+										</v-tab>
+										<v-tab value="chamber" class="text-none">
+											{{ $t("settings.presets.chamberTemperatures") }}
+										</v-tab>
+										<v-tab value="spindleRPM" class="text-none">
+											{{ $t("settings.presets.spindleRPM") }}
+										</v-tab>
+									</v-tabs>
+									<v-window v-model="presetsTab" :touch="false" class="mt-3">
+										<v-window-item value="tool">
+											<ListEditor item-key="tool" temperature />
+										</v-window-item>
+										<v-window-item value="bed">
+											<ListEditor item-key="bed" temperature />
+										</v-window-item>
+										<v-window-item value="chamber">
+											<ListEditor item-key="chamber" temperature />
+										</v-window-item>
+										<v-window-item value="spindleRPM">
+											<ListEditor item-key="spindleRPM" />
+										</v-window-item>
+									</v-window>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -416,6 +479,10 @@
 				   :prompt="$t('settings.plugins.uninstallPrompt', [uninstallDialog.name])"
 				   icon="mdi-alert" @confirmed="confirmUninstall" />
 
+	<ConfirmDialog v-model:shown="factoryResetDialog" :title="$t('settings.machine.resetTitle')"
+				   :prompt="$t('settings.machine.resetPrompt')" icon="mdi-restore"
+				   @confirmed="confirmFactoryReset" />
+
 	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
 						  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
 
@@ -429,6 +496,7 @@ import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
+import ListEditor from "@/components/inputs/ListEditor.vue";
 import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import {
@@ -457,6 +525,7 @@ interface BuiltinTab {
 const builtinTabs: Array<BuiltinTab> = [
 	{ key: "general", icon: "mdi-tune", caption: "settings.tabs.general", order: 10 },
 	{ key: "display", icon: "mdi-monitor-dashboard", caption: "settings.tabs.display", order: 20 },
+	{ key: "presets", icon: "mdi-format-list-numbered", caption: "settings.tabs.presets", order: 25 },
 	{ key: "webcam", icon: "mdi-webcam", caption: "settings.tabs.webcam", order: 30 },
 	{ key: "communication", icon: "mdi-lan", caption: "settings.tabs.communication", order: 40 },
 	{ key: "plugins", icon: "mdi-puzzle", caption: "settings.tabs.plugins", order: 50 },
@@ -487,6 +556,7 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 const activeTab = ref<string>("general");
+const presetsTab = ref<string>("tool");
 
 const languageOptions = computed(() => [
 	{ label: "English", value: "en" },
@@ -551,8 +621,7 @@ function isStarted(id: string): boolean {
 	return isPluginLoaded(id) || settingsStore.enabledPlugins.includes(id);
 }
 
-// ---- Lifecycle actions ----------------------------------------------------------------------
-
+// #region Lifecycle actions
 const busyPluginId = ref<string | null>(null);
 
 async function start(id: string) {
@@ -579,8 +648,9 @@ async function stop(id: string) {
 	}
 }
 
-// ---- Install --------------------------------------------------------------------------------
+// #endregion
 
+// #region Install
 const pluginInput = ref<HTMLInputElement | null>(null);
 const installing = ref(false);
 
@@ -602,7 +672,10 @@ async function onPluginPicked(event: Event) {
 	try {
 		const { default: JSZip } = await import("jszip");
 		const zipFile = await JSZip.loadAsync(file);
-		await machineStore.installPlugin(file.name, file, zipFile, true);
+		// Hand off to PluginInstallDialog (mounted in the default layout) - it walks the
+		// user through manifest preview, prerequisites, permissions and disclaimer before
+		// actually calling machineStore.installPlugin
+		Events.emit("installPlugin", { zipFilename: file.name, zipBlob: file, zipFile, start: true });
 	} catch (e) {
 		console.warn(e);
 		uiStore.log(LogLevel.error, i18n.global.t("settings.plugins.installError", [file.name]),
@@ -612,8 +685,9 @@ async function onPluginPicked(event: Event) {
 	}
 }
 
-// ---- Uninstall ------------------------------------------------------------------------------
+// #endregion
 
+// #region Uninstall
 const uninstallDialog = reactive({
 	shown: false,
 	plugin: null as Plugin | null,
@@ -644,8 +718,9 @@ async function confirmUninstall() {
 	}
 }
 
-// ---- Firmware install ----------------------------------------------------------------------
+// #endregion
 
+// #region Firmware install
 const firmwareInstall = useFirmwareInstall();
 const firmwareInput = ref<HTMLInputElement | null>(null);
 const installingFirmware = ref(false);
@@ -678,7 +753,9 @@ async function onFirmwarePicked(event: Event) {
 			plan = await firmwareInstall.planFiles(Array.from(files));
 		} catch (e) {
 			if (e instanceof PluginBundleDetectedError) {
-				await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
+				// Detour into the install wizard so the user still sees the manifest
+				// preview / disclaimer before the bundle goes onto the machine
+				Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
 				return;
 			}
 			throw e;
@@ -733,4 +810,33 @@ function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
 		configUpdatedDialog.shown = true;
 	}
 }
+
+// #endregion
+
+// #region Factory reset
+
+// Wipes the persisted settings + cache (locally and on the board), drops a fresh copy of the
+// factory-defaults file when one is present on the SD card, then reloads. Wraps
+// settingsStore.reset() with a confirm dialog and a small busy flag so the button can show a
+// spinner during the (typically brief) async file-delete chain
+const factoryResetDialog = ref(false);
+const resettingSettings = ref(false);
+
+function askFactoryReset() {
+	factoryResetDialog.value = true;
+}
+
+async function confirmFactoryReset() {
+	resettingSettings.value = true;
+	try {
+		await settingsStore.reset();
+		// settingsStore.reset() finishes by calling location.reload(); resettingSettings won't
+		// matter after that, but the early-exit paths (no board, delete failures) still need
+		// the flag cleared so the user can retry
+	} finally {
+		resettingSettings.value = false;
+	}
+}
+
+// #endregion
 </script>

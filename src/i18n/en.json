@@ -55,6 +55,12 @@
       "reset": "Reset firmware",
       "runConfig": "Run config.g"
     },
+    "incompatibleVersions": {
+      "title": "Incompatible software versions",
+      "prompt": "The installed software versions do not match. Please operate your setup only at equal versions to avoid potential incompatibilities and unexpected errors.",
+      "upgradeNotice": "Please check out the {docs} on how to upgrade your Duet software components.",
+      "docsLink": "docs"
+    },
     "fileEdit": {
       "save": "Save",
       "revert": "Revert",
@@ -106,6 +112,43 @@
       "resetButton": {
         "caption": "Reset Machine",
         "title": "Send M999 to the machine to reset it"
+      }
+    },
+    "pluginInstallation": {
+      "installation": "Plugin Installation",
+      "prompt": "The following plugin will be installed:",
+      "by": "by {0}",
+      "license": "License: {0}",
+      "homepage": "Homepage:",
+      "contents": "This package provides software components for",
+      "dsf": "Duet Software Framework",
+      "dwc": "Duet Web Control",
+      "rrf": "RepRapFirmware",
+      "prerequisites": "Prerequisites",
+      "version": "Version {0}",
+      "noPluginSupport": "External Plugins not allowed",
+      "rootSupport": "Support for Super-User Plugins",
+      "invalidManifest": "Invalid plugin manifest",
+      "permissions": "Required Permissions",
+      "dwcWarning": "This plugin contains components for the web interface. No permission checks can be enforced in browser sessions so it may manipulate your system and create security hazards that might result in physical damage of your setup.",
+      "rootWarning": "This plugin requires super-user permissions which means it can reconfigure the attached SBC and install potentially malicious software. This might result in physical damage of your setup.",
+      "sbcPermissions": "The plugin running on the SBC wants to",
+      "noSpecialPermissions": "This plugin does not require any special permissions.",
+      "ready": "Installation Ready",
+      "readyMessage": "The plugin is now ready to be installed. Please make sure you trust the plugin author before you confirm this final step.",
+      "readyDisclaimer": "Before you can continue you must accept that Duet3D Ltd cannot be held responsible for potential damage resulting from the installation of this third-party plugin.",
+      "checkboxDisclaimer": "I accept the risks, install this plugin",
+      "progress": "Installation Progress",
+      "progressText": "Please stand by while the plugin is being installed...",
+      "installationSuccess": "Installation complete!",
+      "installationFailed": "Installation failed!",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "reloadPrompt": {
+        "title": "Reload DWC?",
+        "prompt": "You have just updated an active DWC plugin. In order to use the new version, the web interface must be reloaded. Do you want to do this now?"
       }
     }
   },
@@ -304,11 +347,21 @@
     },
     "upload": {
       "caption": "Upload",
-      "start": { "caption": "Upload & Start G-Code Job" },
-      "gcodes": { "caption": "Upload G-Code Files" },
-      "macros": { "caption": "Upload Macros" },
-      "filaments": { "caption": "Upload Filaments" },
-      "firmware": { "caption": "Upload System / Firmware" }
+      "start": {
+        "caption": "Upload & Start G-Code Job"
+      },
+      "gcodes": {
+        "caption": "Upload G-Code Files"
+      },
+      "macros": {
+        "caption": "Upload Macros"
+      },
+      "filaments": {
+        "caption": "Upload Filaments"
+      },
+      "firmware": {
+        "caption": "Upload System / Firmware"
+      }
     },
     "newFile": {
       "caption": "New File"
@@ -327,6 +380,9 @@
       "captionAll": "Home All",
       "title": "Home the {0} axis (G28 {0})",
       "titleAll": "Home all axes (G28)"
+    },
+    "add": {
+      "caption": "Add"
     }
   },
   "input": {
@@ -334,7 +390,9 @@
       "placeholder": "Send code...",
       "send": "Send"
     },
-    "set": "Set"
+    "set": "Set",
+    "addTemperature": "Add temperature",
+    "addRPM": "Add RPM"
   },
   "list": {
     "eventLog": {
@@ -597,10 +655,18 @@
     "tabs": {
       "general": "General",
       "display": "Display",
+      "presets": "Presets",
       "webcam": "Webcam",
       "communication": "Communication",
       "plugins": "Plugins",
       "about": "About"
+    },
+    "presets": {
+      "caption": "Temperature & Spindle Presets",
+      "toolTemperatures": "Tool Temperatures",
+      "bedTemperatures": "Bed Temperatures",
+      "chamberTemperatures": "Chamber Temperatures",
+      "spindleRPM": "Spindle RPM"
     },
     "appearance": {
       "caption": "Appearance",
@@ -628,7 +694,12 @@
       "crcUploads": "Verify uploads with a CRC checksum",
       "installCaption": "Firmware / web interface update",
       "installHint": "Upload a firmware bundle (.zip), a single .bin / .uf2 binary, or a DWC web bundle. Firmware files are dispatched via M997 once the upload finishes.",
-      "install": "Install"
+      "install": "Install",
+      "resetCaption": "Factory reset",
+      "resetHint": "Delete all locally stored DWC settings and cache, restore factory defaults from the board (if present), then reload.",
+      "reset": "Reset",
+      "resetTitle": "Reset DWC settings?",
+      "resetPrompt": "This deletes your saved DWC settings and cache on this browser and on the connected board. Factory defaults (if available) are applied next. DWC will reload afterwards."
     },
     "display": {
       "layoutCaption": "Layout",
@@ -849,18 +920,37 @@
     },
     "gcodeViewer": {
       "caption": "G-Code Viewer",
+      "maxTemp": "Max Temp: {0}",
       "view3D": "View 3D",
       "fullscreen": "Full Screen",
       "showConfiguration": "Show Viewer Configuration",
-      "resetCamera": { "caption": "Reset Camera", "title": "Reset camera to home position" },
+      "resetCamera": {
+        "caption": "Reset Camera",
+        "title": "Reset camera to home position"
+      },
       "cancelLoad": "Cancel File Loading",
-      "reloadView": { "caption": "Reload View", "title": "Reload the current gcode, this is used when changing settings like color, feedrate color, etc." },
-      "loadCurrentJob": { "caption": "Load Current Job", "title": "Load the current printing or simulating job" },
-      "unloadGCode": { "caption": "Unload GCode", "title": "Remove the loaded gcode from the viewer" },
-      "loadLocalGCode": { "caption": "Load Local GCode", "title": "Load a file from your local drive into the viewer" },
+      "reloadView": {
+        "caption": "Reload View",
+        "title": "Reload the current gcode, this is used when changing settings like color, feedrate color, etc."
+      },
+      "loadCurrentJob": {
+        "caption": "Load Current Job",
+        "title": "Load the current printing or simulating job"
+      },
+      "unloadGCode": {
+        "caption": "Unload GCode",
+        "title": "Remove the loaded gcode from the viewer"
+      },
+      "loadLocalGCode": {
+        "caption": "Load Local GCode",
+        "title": "Load a file from your local drive into the viewer"
+      },
       "showCursor": "Show Cursor",
       "showTravels": "Show Travels",
-      "renderQuality": { "caption": "Render Quality", "title": "Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available" },
+      "renderQuality": {
+        "caption": "Render Quality",
+        "title": "Adjust the visualization quality of the viewer. The higher the level the more vertices and render modes become available"
+      },
       "sbc": "SBC",
       "low": "Low",
       "medium": "Medium",
@@ -869,17 +959,26 @@
       "max": "Max",
       "forceLineRendering": "Force Line Rendering",
       "transparency": "Transparency",
-      "extruders": { "caption": "Extruders", "title": "Sets the color used for rendering an extruder" },
+      "extruders": {
+        "caption": "Extruders",
+        "title": "Sets the color used for rendering an extruder"
+      },
       "tool": "Tool {0}",
       "resetColor": "Reset Tool Color | Reset Tool Colors",
-      "renderMode": { "caption": "Render Mode | Render Modes", "title": "Render mode allows you to set extruder color or feedrate line coloring in the viewer" },
+      "renderMode": {
+        "caption": "Render Mode | Render Modes",
+        "title": "Render mode allows you to set extruder color or feedrate line coloring in the viewer"
+      },
       "color": "Color",
       "feedrate": "Feedrate",
       "minFeedrate": "Minimum Feedrate (mm/s)",
       "maxFeedrate": "Maximum Feedrate (mm/s)",
       "minFeedrateColor": "Minimum Feedrate Color",
       "maxFeedrateColor": "Maximum Feedrate Color",
-      "progress": { "caption": "Progress", "title": "Set the printed color for progress tracking" },
+      "progress": {
+        "caption": "Progress",
+        "title": "Set the printed color for progress tracking"
+      },
       "topClipping": "Top Clipping",
       "bottomClipping": "Bottom Clipping",
       "progressColor": "Progress Color",
@@ -891,7 +990,10 @@
       "showAxes": "Show Axes",
       "showObjectLabels": "Show Object Labels",
       "cameraInertia": "Camera Inertia",
-      "showObjectSelection": { "caption": "Show Object Selection", "title": "Enabled if objects could be detected in the current print" },
+      "showObjectSelection": {
+        "caption": "Show Object Selection",
+        "title": "Enabled if objects could be detected in the current print"
+      },
       "renderFailed": "Previous render failed. Setting render quality to SBC",
       "showFSOverlay": "Show Full Screen Overlay",
       "useHQRendering": "High Quality Render (Round)",
@@ -908,5 +1010,35 @@
       "resumeObj": "Resume Object",
       "persistTravels": "Persist Travels"
     }
+  },
+  "pluginPermissions": {
+    "commandExecution": "Execute generic DSF commands (e.g. G/M/T-codes)",
+    "codeInterceptionRead": "Intercept G/M/T-codes",
+    "codeInterceptionReadWrite": "Intercept G/M/T-codes codes and manipulate them",
+    "managePlugins": "Install, load, unload, and uninstall third-party plugins",
+    "manageUserSessions": "Manage user sessions",
+    "objectModelRead": "Read from the object model",
+    "objectModelReadWrite": "Read from and write to the object model",
+    "registerHttpEndpoints": "Create new HTTP endpoints",
+    "readFilaments": "Read files from the filaments directory",
+    "writeFilaments": "Write files to the filaments directory",
+    "readFirmware": "Read files from the firmware directory",
+    "writeFirmware": "Write files to the firmware directory",
+    "readGCodes": "Read files from the G-codes directory",
+    "writeGCodes": "Write files to the G-codes directory",
+    "readMacros": "Read files from the macros directory",
+    "writeMacros": "Write files to the macros directory",
+    "readMenu": "Read files from the menu directory",
+    "writeMenu": "Write files to the menu directory",
+    "readSystem": "Read files from the system directory",
+    "writeSystem": "Write files to the system directory",
+    "readWeb": "Read files from the web directory",
+    "writeWeb": "Write files to the web directory",
+    "fileSystemAccess": "Access files outside the virtual SD directory",
+    "launchProcesses": "Launch new processes",
+    "networkAccess": "Communicate over the network",
+    "webcamAccess": "Access webcam devices",
+    "gpioAccess": "Access GPIO devices",
+    "superUser": "Run as root user (potentially dangerous)"
   }
 }
