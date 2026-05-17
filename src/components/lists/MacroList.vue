@@ -1,18 +1,20 @@
-<!-- Browses the macros directory and runs files on click. Refreshes whenever the file event bus
-	 announces a write inside the current directory or a volume mount/unmount affects it -->
 <template>
-	<v-card>
-		<v-card-title class="d-flex align-center">
+	<v-card class="d-flex flex-column macro-list-card">
+		<v-card-title class="d-flex align-center flex-shrink-0">
 			<v-icon size="small" class="mr-1">mdi-polymer</v-icon>
 			{{ $t("list.macro.caption") }}
 			<v-spacer />
-			<span v-show="machineStore.isConnected" class="text-subtitle-2">{{ currentDirectory }}</span>
+			<span v-show="machineStore.isConnected" class="text-title-small">{{ currentDirectory }}</span>
 		</v-card-title>
 
-		<v-card-text v-show="loading || filelist.length > 0 || !isRootDirectory" class="pa-0">
+		<v-card-text class="pa-0 macro-list-body">
 			<v-progress-linear v-show="loading" indeterminate class="my-0" />
 
-			<v-list density="compact" class="pt-0">
+			<v-alert v-if="!loading && filelist.length === 0 && isRootDirectory" type="info" tile>
+				{{ $t("list.macro.noMacros") }}
+			</v-alert>
+
+			<v-list v-else :density="listDensity" class="pt-0">
 				<v-list-item v-if="!isRootDirectory" @click="goUp">
 					<template #prepend>
 						<v-avatar size="32" color="grey-lighten-1">
@@ -36,21 +38,29 @@
 				</v-list-item>
 			</v-list>
 		</v-card-text>
-
-		<v-alert v-if="!loading && filelist.length === 0 && isRootDirectory" type="info" class="mb-0">
-			{{ $t("list.macro.noMacros") }}
-		</v-alert>
 	</v-card>
 </template>
 
+<style scoped>
+.macro-list-card {
+	min-height: 0;
+}
+.macro-list-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+}
+</style>
+
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
+
 import { DisconnectedError, FileListItem } from "@duet3d/connectors";
 import { Volume } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
 
@@ -61,6 +71,12 @@ interface MacroItem extends FileListItem {
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
+const { mdAndUp } = useDisplay();
+
+// Roomier rows on touch surfaces - same touch-target trade-off the file table makes
+const listDensity = computed<"default" | "comfortable" | "compact">(
+	() => mdAndUp.value ? "compact" : "default"
+);
 
 const loading = ref(false);
 const directory = ref(Path.macros);
@@ -79,7 +95,7 @@ const currentDirectory = computed(() => {
 		}
 		return i18n.global.t("list.macro.root") + (sub.startsWith("/") ? sub : `/${sub}`);
 	}
-	return directory.value;
+	return Path.pretty(directory.value);
 });
 
 async function loadDirectory(target: string) {
@@ -101,7 +117,7 @@ async function loadDirectory(target: string) {
 	} catch (e) {
 		if (!(e instanceof DisconnectedError)) {
 			console.warn(e);
-			uiStore.log(LogLevel.error, i18n.global.t("error.filelistRequestFailed"), getErrorMessage(e));
+			uiStore.notifyError(e, i18n.global.t("error.filelistRequestFailed"));
 		}
 	}
 	loading.value = false;

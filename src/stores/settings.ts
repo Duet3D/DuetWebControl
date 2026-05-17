@@ -2,7 +2,7 @@ import { FileNotFoundError } from "@duet3d/connectors";
 import { AxisLetter } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
-import i18n, { getBrowserLocale } from "@/i18n";
+import i18n, { getBrowserLocale, type Locale } from "@/i18n";
 import Events from "@/utils/events";
 import { getLocalSetting, localStorageSupported, removeLocalSetting, setLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
@@ -24,6 +24,11 @@ export enum DashboardMode {
 	default = "Default",
 	fff = "FFF",
 	cnc = "CNC"
+}
+
+export enum UnitOfMeasure {
+	metric = "mm",
+	imperial = "inch"
 }
 
 export enum ToolChangeMacro {
@@ -114,11 +119,25 @@ export const useSettingsStore = defineStore("settings", {
 		plugins: Object.assign({}, DefaultPluginSettings) as Record<string, any>,
 
 		/**
-		 * Workflow-behaviour preferences. v3.7-dev also exposed `jobStart` (suppress the
-		 * auto-switch to the Status page on print start) - moot in next because the status
-		 * panel renders persistently above the page content, so it was not carried over
+		 * Whether the FFF/CNC container panel (tools, position, temperatures, axes) is rendered
+		 * above the current route. Toggled from the xs/sm Status button in the app bar; md+ is
+		 * always-on (the drawer-toggle has no Status button)
+		 */
+		showStatusPanel: false,
+
+		/**
+		 * Workflow-behaviour preferences
 		 */
 		behaviour: {
+			/**
+			 * Auto-navigate to /Job/Status when a print transitions into a printing state. The
+			 * persistent status row at the top of every page shows the high-level state, but the
+			 * Job page has the full controls (pause/cancel, babystepping, layer chart, estimations)
+			 * so for active prints that's where most users want to land. Off by default to respect
+			 * the user's current page choice
+			 */
+			switchToJobOnPrintStart: false,
+
 			/**
 			 * Show an M291 confirmation prompt after unloading the filament during a filament
 			 * change. The FilamentDialog macro flow only displays the prompt when this is true
@@ -140,6 +159,18 @@ export const useSettingsStore = defineStore("settings", {
 		 * Use binary units (KiB) instead of SI units (KB)
 		 */
 		useBinaryPrefix: true,
+
+		/**
+		 * Length unit used for axis positions, jog steps and move-speed displays. Toggling this
+		 * to imperial converts mm to inches at display time; the firmware always reports mm
+		 */
+		displayUnits: UnitOfMeasure.metric as UnitOfMeasure,
+
+		/**
+		 * Number of decimal places used by the generic number formatter and axis-position
+		 * helpers. Z height and sensor readings use a per-call minimum on top of this value
+		 */
+		decimalPlaces: 1,
 
 		/**
 		 * Disable code auto completion
@@ -166,6 +197,13 @@ export const useSettingsStore = defineStore("settings", {
 		 * Use compact icon menu instead of the full-width sidebar menu
 		 */
 		iconMenu: false,
+
+		/**
+		 * Route paths the user has opted to hide from the navigation drawer / hub page. Items
+		 * remain reachable by direct URL - the entry just hides the link. Compared against
+		 * MenuItem.path in the menu store
+		 */
+		hiddenMenuItems: [] as Array<string>,
 
 		/**
 		 * Store settings in local storage
@@ -200,6 +238,43 @@ export const useSettingsStore = defineStore("settings", {
 			 * Default timeout for messages
 			 */
 			timeout: 5000
+		},
+
+		/**
+		 * Monaco editor preferences. Surfaced in Settings > Editor and consumed by MonacoEditor.vue
+		 * when constructing the IStandaloneCodeEditor instance and via reactive watchers for the
+		 * options that Monaco supports updating on a live editor
+		 */
+		editor: {
+			/** Use Monaco. When false, file edits fall back to a plain v-textarea
+			 * (touch-friendly fallback for mobile) */
+			useMonaco: true,
+			/** Font size in CSS pixels - sensible range 10-24, Monaco default is 14 */
+			fontSize: 14,
+			/** Indent width in spaces (no tab-character setting; DWC files standardize on spaces) */
+			tabSize: 4,
+			/** "off" disables wrap, "on" wraps at viewport edge, "bounded" wraps at the smaller of viewport/wordWrapColumn */
+			wordWrap: "on" as "off" | "on" | "bounded",
+			/** Show the right-side minimap (Monaco's default; kept on so the user sees the affordance) */
+			minimap: true,
+			/** Show line numbers in the gutter */
+			lineNumbers: true,
+			/** Modern auto-complete suggestion popup as you type. Off in comments/strings to avoid noise during macro authoring */
+			quickSuggestions: true,
+			/** Trigger the suggestion widget on punctuation (`.`, `:` etc.) - independent of {@link quickSuggestions} */
+			suggestOnTriggerCharacters: true,
+			/** Show function/parameter hints when typing inside known macro/G-code parameter lists */
+			parameterHints: true,
+			/** Show the hover-info popup when the cursor pauses on a known token */
+			hover: true,
+			/** Inline ghost-text suggestions from registered providers (Monaco 0.34+ - the "Copilot-style" UX) */
+			inlineSuggest: true,
+			/** Colorize matching brackets in the same hue */
+			bracketPairColorization: true,
+			/** Re-format the buffer on paste using the language's default formatter when one is registered */
+			formatOnPaste: false,
+			/** Re-format the line as you type when the formatter signals it */
+			formatOnType: false,
 		},
 
 		/**
@@ -257,7 +332,7 @@ export const useSettingsStore = defineStore("settings", {
 		/**
 		 * Time to wait before retrying a failed HTTP request (in ms)
 		 */
-		retryDelay: 2000,
+		retryDelay: 200,
 
 		/**
 		 * Time between HTTP object model requests (in ms)
@@ -501,11 +576,32 @@ export const useSettingsStore = defineStore("settings", {
 		},
 
 		/**
-		 * Load settings
+		 * Load settings.
+		 *
+		 * Always resumes the settings observer at the end (in finally) so that subsequent user-driven
+		 * mutations are persisted. The observer starts suspended at module load to prevent
+		 * mount-time defaults from racing the load and overwriting the saved file with in-memory
+		 * defaults
 		 */
 		async load() {
 			// Wrapper that effectively loads the given settings
 			const that = this;
+			// Deep-merge so persisted blobs that predate a newly-added nested key don't clobber
+			// the in-memory default (Object.assign would drop {useMonaco: true} from settings.editor
+			// the moment a saved blob carried an `editor` object without that field). Arrays are
+			// treated as scalars - the persisted value wins so user reorderings stick
+			function deepAssign(target: any, source: any) {
+				for (const key of Object.keys(source)) {
+					const src = source[key];
+					const tgt = target[key];
+					if (src && typeof src === "object" && !Array.isArray(src)
+						&& tgt && typeof tgt === "object" && !Array.isArray(tgt)) {
+						deepAssign(tgt, src);
+					} else {
+						target[key] = src;
+					}
+				}
+			}
 			async function applySettings(rawSettings: any) {
 				// Run any pending schema-version upgrades before the merge so old persisted blobs
 				// don't carry retired or renamed keys back onto the Pinia state
@@ -525,7 +621,7 @@ export const useSettingsStore = defineStore("settings", {
 					}
 
 					// Merge general settings
-					Object.assign(settings, settingsToLoad.main);
+					deepAssign(settings, settingsToLoad.main);
 
 					// Merge machine-specific settings if possible
 					if (settingsToLoad.machine instanceof Object) {
@@ -533,11 +629,11 @@ export const useSettingsStore = defineStore("settings", {
 							settings.enabledPlugins.push(...settingsToLoad.machine.enabledPlugins);
 							delete settingsToLoad.machine.enabledPlugins;
 						}
-						Object.assign(settings, settingsToLoad.machine);
+						deepAssign(settings, settingsToLoad.machine);
 					}
 				} else if (settingsToLoad.machine instanceof Object) {
 					// Merge only machine-specific settings
-					Object.assign(settings, settingsToLoad.machine);
+					deepAssign(settings, settingsToLoad.machine);
 				} else {
 					// New format
 					settings = settingsToLoad;
@@ -557,43 +653,61 @@ export const useSettingsStore = defineStore("settings", {
 					}
 					delete settingsToLoad.moveSteps;
 				}
+				// Merge componentSettings rather than replace: components that mounted before the load
+				// (e.g. the dashboard's FansPanel rendered during the connect dialog) have already
+				// pushed their default record into the store via useComponentSettings. A wholesale
+				// Object.assign would drop those keys whenever the file didn't yet contain them and
+				// any subsequent reactive access (panel watchers reading state[id].data) would throw
+				// "cannot read .data of undefined" until the component re-registered on the next tick
+				if (settingsToLoad.componentSettings instanceof Object) {
+					that.componentSettings = { ...that.componentSettings, ...settingsToLoad.componentSettings };
+					delete settingsToLoad.componentSettings;
+				}
 
+				// Apply with the observer suspended so the Object.assign + setLocale mutations
+				// below don't queue a save echoing the values we just loaded
 				try {
 					suspendSettingsObserver();
-					Object.assign(that, settingsToLoad);
+					deepAssign(that, settingsToLoad);
+					// Persisted preferences may have changed the active locale - re-apply through
+					// the action so vue-i18n + document.lang pick up the loaded value (the assign
+					// above only updated the store field, not the i18n side)
+					that.setLocale(that.locale);
 				} finally {
 					resumeSettingsObserver();
 				}
-
-				// Persisted preferences may have changed the active locale - re-apply through
-				// the action so vue-i18n + document.lang pick up the loaded value (the assign
-				// above only updated the store field, not the i18n side)
-				that.setLocale(that.locale);
 
 				// Done
 				Events.emit("settingsLoaded");
 			}
 
-			// Try to load settings from local storage, if that doesn"t work, try to load them from the board
-			const localSettings = getLocalSetting("settings"), machineModule = useMachineStore();
-			if (localSettings instanceof Object) {
-				applySettings(localSettings);
-			} else if (machineModule.isConnected) {
-				try {
-					const remoteSettings = await machineModule.download(Path.dwcSettingsFile, false, false, false);
-					applySettings(remoteSettings);
-				} catch (e) {
-					if (e instanceof FileNotFoundError) {
-						try {
-							const factoryDefaults = await machineModule.download(Path.dwcFactoryDefaults, false, false, false);
-							applySettings(factoryDefaults);
-						} catch (e) {
-							if (!(e instanceof FileNotFoundError)) {
-								throw e;
+			try {
+				// Try to load settings from local storage, if that doesn't work, try to load them from the board
+				const localSettings = getLocalSetting("settings"), machineModule = useMachineStore();
+				if (localSettings instanceof Object) {
+					applySettings(localSettings);
+				} else if (machineModule.isConnected) {
+					try {
+						const remoteSettings = await machineModule.download(Path.dwcSettingsFile, false, false, false);
+						applySettings(remoteSettings);
+					} catch (e) {
+						if (e instanceof FileNotFoundError) {
+							try {
+								const factoryDefaults = await machineModule.download(Path.dwcFactoryDefaults, false, false, false);
+								applySettings(factoryDefaults);
+							} catch (e) {
+								if (!(e instanceof FileNotFoundError)) {
+									throw e;
+								}
 							}
 						}
 					}
 				}
+			} finally {
+				// Always enable autosave after a load attempt - including the case where there was
+				// nothing to load (no localStorage, no machine) - so future user-driven changes
+				// still persist
+				resumeSettingsObserver();
 			}
 		},
 
@@ -664,8 +778,8 @@ export const useSettingsStore = defineStore("settings", {
 		 * Set locale for i18n
 		 * @param locale Locale
 		 */
-		setLocale(locale: string) {
-			i18n.global.locale.value = locale as any;
+		setLocale(locale: Locale) {
+			i18n.global.locale.value = locale;
 			if (typeof document !== "undefined") {
 				document.documentElement.lang = locale;
 			}

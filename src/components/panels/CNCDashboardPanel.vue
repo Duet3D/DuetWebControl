@@ -1,5 +1,3 @@
-<!-- CNC dashboard layout: CNCMovementPanel up top, spindle/job/babystep/speed in the main column,
-	 macros on the right. Mirrors v3.7-dev's CNCDashboardPanel structure -->
 <template>
 	<v-row>
 		<v-col cols="12" class="pt-0 pb-0">
@@ -7,7 +5,7 @@
 		</v-col>
 
 		<v-col cols="12" md="9">
-			<v-row dense>
+			<v-row density="compact">
 				<v-col cols="12">
 					<SpindleSpeedPanel />
 				</v-col>
@@ -30,21 +28,26 @@
 			</v-row>
 		</v-col>
 
-		<v-col cols="12" md="3">
-			<v-row dense>
-				<MacroList class="macro" />
-			</v-row>
+		<v-col v-if="mdAndUp" class="d-flex flex-column" md="3">
+			<div class="macros-wrap">
+				<MacroList />
+			</div>
 		</v-col>
 	</v-row>
 </template>
 
 <style scoped>
-.macro {
-	width: 100%;
+.macros-wrap {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
 }
 </style>
 
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
+
 import CNCMovementPanel from "@/components/panels/CNCMovementPanel.vue";
 import JobControlPanel from "@/components/panels/JobControlPanel.vue";
 import JobProgress from "@/components/misc/JobProgress.vue";
@@ -52,4 +55,6 @@ import MacroList from "@/components/lists/MacroList.vue";
 import SpeedFactorPanel from "@/components/panels/SpeedFactorPanel.vue";
 import SpindleSpeedPanel from "@/components/panels/SpindleSpeedPanel.vue";
 import ZBabystepPanel from "@/components/panels/ZBabystepPanel.vue";
+
+const { mdAndUp } = useDisplay();
 </script>

@@ -1,8 +1,10 @@
 import { AnalogSensor, AnalogSensorType, Axis, AxisLetter, MachineMode } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
-import { useSettingsStore } from "@/stores/settings";
+import { UnitOfMeasure, useSettingsStore } from "@/stores/settings";
 import { useMachineStore } from "@/stores/machine";
+
+const MM_PER_INCH = 25.4;
 
 /**
  * Display a numeric value with a given precision and an optional unit.
@@ -32,12 +34,14 @@ export function display(value: number | Array<number> | string | null | undefine
  * @returns Formatted axis position
  */
 export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
-	const position = machinePosition ? axis.machinePosition : axis.userPosition;
-	if (position === null) {
+	const raw = machinePosition ? axis.machinePosition : axis.userPosition;
+	if (raw === null) {
 		return i18n.global.t("generic.noValue");
 	}
 
-	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, 2);
+	const settingsStore = useSettingsStore();
+	const position = (settingsStore.displayUnits === UnitOfMeasure.imperial) ? raw / MM_PER_INCH : raw;
+	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, settingsStore.decimalPlaces);
 }
 
 /**
@@ -48,7 +52,14 @@ export function displayAxisPosition(axis: Axis, machinePosition: boolean = false
  */
 export function displayZ(value: number | Array<number> | string | null | undefined, showUnit = true) {
 	const machineStore = useMachineStore();
-	return display(value, (machineStore.model.state.machineMode === MachineMode.cnc) ? 3 : 2, showUnit ? "mm" : undefined);
+	const settingsStore = useSettingsStore();
+	const imperial = settingsStore.displayUnits === UnitOfMeasure.imperial;
+	// CNC defaults to 3 decimals for Z, FFF to 2; never go below the user's chosen precision
+	const decimals = Math.max(
+		(machineStore.model.state.machineMode === MachineMode.cnc) ? 3 : 2,
+		settingsStore.decimalPlaces
+	);
+	return display(value, decimals, showUnit ? (imperial ? "in" : "mm") : undefined);
 }
 
 /**
@@ -105,10 +116,20 @@ export function displaySize(bytes: number | null | undefined) {
 /**
  * Display a move speed
  * @param speed Speed in mm/s
- * @returns Formatted move speed in mm/s or ipm
+ * @returns Formatted move speed in mm/s (or mm/min in CNC mode, or ipm in imperial mode)
  */
 export function displayMoveSpeed(speed: number | null | undefined) {
-	return display(speed, 1, "mm");
+	if (typeof speed === "number") {
+		const settingsStore = useSettingsStore();
+		const machineStore = useMachineStore();
+		if (settingsStore.displayUnits === UnitOfMeasure.imperial) {
+			return display(speed * 60 / MM_PER_INCH, 1, "ipm");
+		}
+		if (machineStore.model.state.machineMode === MachineMode.cnc) {
+			return display(speed * 60, 1, "mm/min");
+		}
+	}
+	return display(speed, 1, "mm/s");
 }
 
 /**

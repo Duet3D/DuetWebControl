@@ -1,12 +1,7 @@
-<!-- Chip-list editor for temperature presets + spindle RPM presets. Two shapes:
-	 - `{ active: number[], standby: number[] }` for tool / bed temperatures
-	 - `number[]` for chamber temperatures and spindleRPM
-	 The component reads/writes settingsStore directly; the parent picks which preset list to
-	 edit via the `itemKey` prop -->
 <template>
 	<div>
 		<template v-if="!isFlatList && pairItems">
-			<v-row dense>
+			<v-row density="compact">
 				<v-col cols="6">
 					<h3 class="text-center mt-1">{{ $t("generic.active") }}</h3>
 				</v-col>
@@ -32,10 +27,10 @@
 				</v-col>
 
 				<v-col cols="6">
-					<v-row align="center" dense>
+					<v-row align="center" density="compact" class="mt-3">
 						<v-col>
 							<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999"
-										  :label="$t('input.addTemperature')" density="compact"
+										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
 										  variant="outlined" hide-details
 										  @keyup.enter="addToActive" />
 						</v-col>
@@ -47,10 +42,10 @@
 					</v-row>
 				</v-col>
 				<v-col cols="6">
-					<v-row align="center" dense>
+					<v-row align="center" density="compact" class="mt-3">
 						<v-col>
 							<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999"
-										  :label="$t('input.addTemperature')" density="compact"
+										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
 										  variant="outlined" hide-details
 										  @keyup.enter="addToStandby" />
 						</v-col>
@@ -65,7 +60,7 @@
 		</template>
 
 		<template v-else-if="flatList">
-			<v-row dense>
+			<v-row density="compact">
 				<v-col cols="12">
 					<v-chip v-for="(value, index) in flatList" :key="`f-${value}-${index}`"
 							closable size="small" class="ma-1"
@@ -75,15 +70,15 @@
 					</v-chip>
 				</v-col>
 				<v-col cols="12">
-					<v-row align="center" dense>
+					<v-row align="center" density="compact" class="mt-3">
 						<v-col>
 							<v-text-field v-if="temperature" v-model.number="flatValue" type="number"
 										  min="-273" max="1999" :label="$t('input.addTemperature')"
-										  density="compact" variant="outlined" hide-details
+										  :suffix="unit" density="compact" variant="outlined" hide-details
 										  @keyup.enter="addToFlat" />
 							<v-text-field v-else v-model.number="flatValue" type="number" min="0"
-										  :label="$t('input.addRPM')" density="compact" variant="outlined"
-										  hide-details @keyup.enter="addToFlat" />
+										  :label="$t('input.addRPM')" :suffix="unit" density="compact"
+										  variant="outlined" hide-details @keyup.enter="addToFlat" />
 						</v-col>
 						<v-col cols="auto">
 							<v-btn color="primary" size="small" :disabled="!canAddFlat" @click="addToFlat">
@@ -136,17 +131,23 @@ const canAddStandby = computed(() => Number.isFinite(standbyValue.value)
 	&& !!pairItems.value && !pairItems.value.standby.includes(standbyValue.value));
 
 function addToActive() {
-	if (!canAddActive.value || !pairItems.value) return;
+	if (!canAddActive.value || !pairItems.value) {
+		return;
+	}
 	pairItems.value.active = [...pairItems.value.active, activeValue.value].sort((a, b) => b - a);
 }
 
 function addToStandby() {
-	if (!canAddStandby.value || !pairItems.value) return;
+	if (!canAddStandby.value || !pairItems.value) {
+		return;
+	}
 	pairItems.value.standby = [...pairItems.value.standby, standbyValue.value].sort((a, b) => b - a);
 }
 
 function removeFrom(side: "active" | "standby", index: number) {
-	if (!pairItems.value) return;
+	if (!pairItems.value) {
+		return;
+	}
 	pairItems.value[side] = pairItems.value[side].filter((_, i) => i !== index);
 }
 
@@ -160,13 +161,17 @@ const canAddFlat = computed(() => Number.isFinite(flatValue.value)
 	&& !!flatList.value && !flatList.value.includes(flatValue.value));
 
 function addToFlat() {
-	if (!canAddFlat.value || !flatList.value) return;
+	if (!canAddFlat.value || !flatList.value) {
+		return;
+	}
 	const next = [...flatList.value, flatValue.value].sort((a, b) => b - a);
 	writeFlatList(next);
 }
 
 function removeFromFlat(index: number) {
-	if (!flatList.value) return;
+	if (!flatList.value) {
+		return;
+	}
 	writeFlatList(flatList.value.filter((_, i) => i !== index));
 }
 
