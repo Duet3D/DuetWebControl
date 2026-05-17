@@ -109,7 +109,9 @@ export const useSettingsStore = defineStore("settings", {
 		 * List of enabled plugins
 		 */
 		enabledPlugins: [
+			"GCodeViewer",
 			"HeightMap",
+			"InputShaping",
 			"ObjectModelBrowser",
 		],
 
@@ -133,10 +135,9 @@ export const useSettingsStore = defineStore("settings", {
 			 * Auto-navigate to /Job/Status when a print transitions into a printing state. The
 			 * persistent status row at the top of every page shows the high-level state, but the
 			 * Job page has the full controls (pause/cancel, babystepping, layer chart, estimations)
-			 * so for active prints that's where most users want to land. Off by default to respect
-			 * the user's current page choice
+			 * so for active prints that's where most users want to land
 			 */
-			switchToJobOnPrintStart: false,
+			switchToJobOnPrintStart: true,
 
 			/**
 			 * Show an M291 confirmation prompt after unloading the filament during a filament

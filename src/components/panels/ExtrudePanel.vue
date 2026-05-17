@@ -1,6 +1,3 @@
-<!-- Extrude/retract controls for the current tool. Lets the user pick the amount + feedrate from saved
-	 presets (right-click to edit) and, for multi-extruder tools, choose between mixed and per-extruder
-	 extrusion. Cold-extrude/retract guards mirror RRF's check via heat.coldExtrudeTemperature -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
@@ -8,8 +5,8 @@
 			{{ $t("panel.extrude.caption") }}
 		</v-card-title>
 
-		<v-card-text class="pb-0">
-			<v-row class="pb-1" align="center" justify="center">
+		<v-card-text>
+			<v-row class="pb-1 flex-xl-nowrap" align="center" justify="center">
 				<v-col v-if="currentTool && currentTool.extruders.length > 1 && settingsStore.showMixingControls" cols="auto">
 					<p class="mb-1">{{ $t("panel.extrude.mixRatio") }}</p>
 					<v-btn-toggle v-model="mix" mandatory multiple>
@@ -25,7 +22,7 @@
 
 				<v-col>
 					<p class="mb-1">{{ $t("panel.extrude.amount", [amountUnit]) }}</p>
-					<v-btn-toggle v-model="amount" mandatory class="d-flex">
+					<v-btn-toggle v-model="amount" mandatory variant="outlined" color="primary" divided class="d-flex">
 						<v-btn v-for="(savedAmount, index) in settingsStore.extruderAmounts" :key="index"
 							   :value="savedAmount" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editAmount(index)">
@@ -36,7 +33,7 @@
 
 				<v-col>
 					<p class="mb-1">{{ $t("panel.extrude.feedrate", [feedrateUnit]) }}</p>
-					<v-btn-toggle v-model="feedrate" mandatory class="d-flex">
+					<v-btn-toggle v-model="feedrate" mandatory variant="outlined" color="primary" divided class="d-flex">
 						<v-btn v-for="(savedFeedrate, index) in settingsStore.extruderFeedrates" :key="index"
 							   :value="savedFeedrate" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editFeedrate(index)">
@@ -45,14 +42,14 @@
 					</v-btn-toggle>
 				</v-col>
 
-				<v-col cols="auto" class="flex-shrink-1">
-					<v-btn block tile :disabled="uiStore.uiFrozen || !canRetract" :elevation="1" :loading="busy"
-						   @click="buttonClicked(false)">
+				<v-col cols="12" xl="auto" class="d-flex flex-xl-column ga-2 align-self-xl-end">
+					<v-btn tile :disabled="uiStore.uiFrozen || !canRetract" :elevation="1" :loading="busy"
+						   class="flex-grow-1" @click="buttonClicked(false)">
 						<v-icon start>mdi-arrow-up-bold</v-icon>
 						{{ $t("panel.extrude.retract") }}
 					</v-btn>
-					<v-btn block tile :disabled="uiStore.uiFrozen || !canExtrude" :elevation="1" :loading="busy"
-						   @click="buttonClicked(true)">
+					<v-btn tile :disabled="uiStore.uiFrozen || !canExtrude" :elevation="1" :loading="busy"
+						   class="flex-grow-1" @click="buttonClicked(true)">
 						<v-icon start>mdi-arrow-down-bold</v-icon>
 						{{ $t("panel.extrude.extrude") }}
 					</v-btn>
@@ -94,7 +91,7 @@ const currentTool = computed<Tool | null>(() => machineStore.currentTool);
 const amountUnit = computed(() => machineStore.model.inputs[CodeChannel.http]?.distanceUnit ?? "mm");
 const feedrateUnit = computed(() => `${amountUnit.value}/s`);
 
-// Cold-extrusion guard: every heater assigned to the current tool must report at least coldExtrudeTemperature.
+// Cold-extrusion guard: every heater assigned to the current tool must report at least coldExtrudeTemperature
 // Missing heaters or sensors count as cold so we never let the user blindly extrude with broken telemetry
 function canMove(coldThreshold: number): boolean {
 	const status = machineStore.model.state.status;
@@ -122,7 +119,7 @@ function canMove(coldThreshold: number): boolean {
 const canExtrude = computed(() => canMove(machineStore.model.heat.coldExtrudeTemperature));
 const canRetract = computed(() => canMove(machineStore.model.heat.coldRetractTemperature));
 
-// "mix" + per-extruder buttons are mutually exclusive even though the toggle is in multi-select mode.
+// "mix" + per-extruder buttons are mutually exclusive even though the toggle is in multi-select mode
 // The setter enforces that invariant so the UI never lands in a half-toggled state
 const mix = computed<Array<number | "mix">>({
 	get: () => mixValue.value,

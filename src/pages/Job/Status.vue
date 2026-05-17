@@ -1,13 +1,12 @@
-<!-- Status overview for the active job. Left column = controls + babysteps + job info, middle = layer
-	 chart + estimations/data, right = factors + fans. Layout mirrors v3.7-dev's Job/Status route -->
 <route lang="json">
 {
 	"meta": {
 		"menu": {
 			"category": "job",
-			"icon": "mdi-information-variant",
+			"icon": "mdi-information",
 			"caption": "menu.job.status",
-			"order": 10
+			"order": 10,
+			"badgeKey": "jobProgress"
 		}
 	}
 }
@@ -15,31 +14,31 @@
 
 <template>
 	<div class="d-flex flex-column">
-		<JobProgress />
+		<JobProgress class="px-3 px-md-0 pt-1 pt-md-0" />
 
-		<v-row class="mt-0" :dense="mobile">
+		<v-row class="mt-0" :density="mobile ? 'compact' : 'default'">
 			<v-col order="1" order-md="1" cols="12" sm="6" md="3" xl="2">
-				<v-row align="center" :dense="mobile">
+				<v-row align="center" :density="mobile ? 'compact' : 'default'">
 					<v-col cols="12">
 						<JobControlPanel />
 					</v-col>
 					<v-col cols="12">
 						<ZBabystepPanel />
 					</v-col>
-					<v-col class="d-none d-md-flex">
+					<v-col class="d-none d-md-block">
 						<JobInfoPanel />
 					</v-col>
 					<v-col cols="12" class="d-none d-sm-block d-md-none">
 						<SpeedFactorPanel />
 					</v-col>
-					<v-col cols="12" class="d-none d-sm-block d-md-none">
+					<v-col v-if="uiStore.isFFF" cols="12" class="d-none d-sm-block d-md-none">
 						<ExtrusionFactorsPanel />
 					</v-col>
 				</v-row>
 			</v-col>
 
 			<v-col order="0" order-md="2" cols="12" md="5" xl="7" class="d-none d-sm-flex flex-column">
-				<LayerChart class="chart-height-limit mb-5" />
+				<LayerChart v-if="uiStore.isFFF" class="chart-height-limit mb-0 mb-md-5" />
 
 				<v-row class="flex-grow-0 flex-shrink-1 d-none d-md-flex">
 					<v-col cols="12">
@@ -61,23 +60,23 @@
 			</v-col>
 
 			<v-col order="2" order-md="3" cols="12" sm="6" md="4" xl="3">
-				<v-row :dense="mobile">
-					<v-col cols="12" class="d-flex d-md-none">
+				<v-row :density="mobile ? 'compact' : 'default'">
+					<v-col cols="12" class="d-block d-md-none">
 						<JobEstimationsPanel />
 					</v-col>
-					<v-col cols="12" class="d-flex d-md-none">
+					<v-col cols="12" class="d-block d-md-none">
 						<JobDataPanel />
 					</v-col>
-					<v-col cols="12" class="d-flex d-md-none">
+					<v-col cols="12" class="d-block d-md-none">
 						<JobInfoPanel />
 					</v-col>
-					<v-col cols="12" class="d-flex d-sm-none d-md-flex">
+					<v-col cols="12" class="d-block d-sm-none d-md-block">
 						<SpeedFactorPanel />
 					</v-col>
 					<v-col cols="12">
 						<FansPanel />
 					</v-col>
-					<v-col cols="12" class="d-flex d-sm-none d-md-flex">
+					<v-col v-if="uiStore.isFFF" cols="12" class="d-block d-sm-none d-md-block">
 						<ExtrusionFactorsPanel />
 					</v-col>
 				</v-row>
@@ -104,9 +103,11 @@ import JobInfoPanel from "@/components/panels/JobInfoPanel.vue";
 import SpeedFactorPanel from "@/components/panels/SpeedFactorPanel.vue";
 import ZBabystepPanel from "@/components/panels/ZBabystepPanel.vue";
 import JobProgress from "@/components/misc/JobProgress.vue";
+import { useUiStore } from "@/stores/ui";
 
 // Chart.js is heavy; defer until the route mounts (matches the dashboard's TemperatureChart approach)
 const LayerChart = defineAsyncComponent(() => import("@/components/charts/LayerChart.vue"));
 
 const { mobile } = useDisplay();
+const uiStore = useUiStore();
 </script>
