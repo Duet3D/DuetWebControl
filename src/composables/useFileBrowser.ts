@@ -1,11 +1,10 @@
-import { FileListItem, DisconnectedError } from "@duet3d/connectors";
+import { FileListItem, DirectoryNotFoundError, DisconnectedError } from "@duet3d/connectors";
 import { Volume } from "@duet3d/objectmodel";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
 
@@ -22,9 +21,11 @@ export interface FileBrowserOptions {
 	 */
 	initialDirectory: string;
 	/**
-	 * Optional hook to enrich items before they enter the list (e.g. set displayName, executing flags)
+	 * Optional hook to enrich items before they enter the list (e.g. set displayName, executing flags).
+	 * The directory the items belong to is passed alongside so async decorators don't have to recover
+	 * it from a separate reactive ref that may not have settled by the time decorate runs
 	 */
-	decorate?: (items: Array<FileBrowserItem>) => void;
+	decorate?: (items: Array<FileBrowserItem>, directory: string) => void;
 	/**
 	 * Pre-fetched listing for {@link initialDirectory}. When provided, the on-mount refresh is
 	 * skipped and the browser starts with this data; useful when a route data loader has already
@@ -45,6 +46,11 @@ export function useFileBrowser(options: FileBrowserOptions) {
 	const directory = ref(options.initialDirectory);
 	const filelist = ref<Array<FileBrowserItem>>([]);
 	const loading = ref(false);
+	// Sticky reason for the last failed load - null on success (the list may still be empty, that
+	// just isn't an error), "missing" for a 404 from the connector, "error" for anything else
+	// Consumers branch their no-data alert text/severity on this instead of always showing the
+	// generic "no files" copy when the directory simply doesn't exist or the fetch blew up
+	const errorReason = ref<"missing" | "error" | null>(null);
 	let wasMounted = false;
 
 	// One-shot guard: if the caller seeded us with pre-fetched data (typically from a route
@@ -52,9 +58,9 @@ export function useFileBrowser(options: FileBrowserOptions) {
 	// navigation still goes through loadDirectory normally
 	let initialFilesConsumed = false;
 	if (options.initialFiles && options.initialFiles.length > 0) {
-		const seeded = options.initialFiles.slice();
-		options.decorate?.(seeded);
-		filelist.value = seeded;
+		// Assign before decorating so the decorator gets the reactive proxy - see loadDirectory
+		filelist.value = options.initialFiles.slice();
+		options.decorate?.(filelist.value, options.initialDirectory);
 	}
 
 	const volumes = computed<Array<Volume>>(() => machineStore.model.volumes);
@@ -69,16 +75,34 @@ export function useFileBrowser(options: FileBrowserOptions) {
 			// Stable order: directories first, then case-insensitive name within each group
 			files.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
 			files.sort((a, b) => (a.isDirectory === b.isDirectory) ? 0 : (a.isDirectory ? -1 : 1));
-			options.decorate?.(files);
+			// Assign first so filelist.value wraps `files` in a reactive proxy, then hand the
+			// PROXY (not the raw array) to decorate. Decorators that later mutate items
+			// asynchronously - JobFileList's per-file fileinfo fetch is the live example - need
+			// to write through the proxy or Vue 3 will silently drop the updates (Vue 2's
+			// defineProperty-based reactivity tracked the original target; Vue 3's Proxy doesn't)
 			directory.value = target;
 			filelist.value = files;
+			errorReason.value = null;
+			options.decorate?.(filelist.value, target);
 		} catch (e) {
-			if (!(e instanceof DisconnectedError)) {
+			if (e instanceof DirectoryNotFoundError) {
+				// Surface a missing directory inline instead of as a transient error toast - the
+				// alert in the file list already conveys it more clearly than a snackbar that
+				// vanishes after a few seconds
+				directory.value = target;
+				filelist.value = [];
+				errorReason.value = "missing";
+			} else if (!(e instanceof DisconnectedError)) {
 				console.warn(e);
-				uiStore.log(LogLevel.error, i18n.global.t("error.filelistRequestFailed"), getErrorMessage(e));
+				uiStore.notifyError(e, i18n.global.t("error.filelistRequestFailed"));
+				errorReason.value = "error";
 			}
+		} finally {
+			// finally so the early-return `if (loading.value) return;` at the top can't leave the
+			// browser stuck after a disconnect mid-fetch - the connection-drop watcher below also
+			// resets it defensively, but a try/finally keeps the normal path single-source-of-truth
+			loading.value = false;
 		}
-		loading.value = false;
 	}
 
 	function refresh() {
@@ -123,6 +147,11 @@ export function useFileBrowser(options: FileBrowserOptions) {
 			refresh();
 		} else {
 			filelist.value = [];
+			// If we disconnected while a fetch was in-flight, the awaited promise from the
+			// connector may never settle (and therefore the finally in loadDirectory may never
+			// fire). Clear the flag here so a subsequent reconnect can re-enter loadDirectory
+			// instead of being short-circuited by the "already loading" guard
+			loading.value = false;
 		}
 	});
 
@@ -149,6 +178,7 @@ export function useFileBrowser(options: FileBrowserOptions) {
 		directory,
 		filelist,
 		loading,
+		errorReason,
 		loadDirectory,
 		refresh,
 		navigateInto,

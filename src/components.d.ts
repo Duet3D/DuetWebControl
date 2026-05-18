@@ -55,6 +55,7 @@ declare module 'vue' {
     MessageBoxDialog: typeof import('./components/dialogs/MessageBoxDialog.vue')['default']
     MonacoEditor: typeof import('./components/editor/MonacoEditor.vue')['default']
     MovementPanel: typeof import('./components/panels/MovementPanel.vue')['default']
+    NavMenuBadge: typeof import('./components/misc/NavMenuBadge.vue')['default']
     NotificationDisplay: typeof import('./components/misc/NotificationDisplay.vue')['default']
     PanelLink: typeof import('./components/misc/PanelLink.vue')['default']
     PercentageInput: typeof import('./components/inputs/PercentageInput.vue')['default']

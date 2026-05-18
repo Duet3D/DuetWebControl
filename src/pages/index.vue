@@ -1,10 +1,9 @@
-<!-- Default landing page. Branches between FFF and CNC dashboards on dashboardMode / live machineMode -->
 <route lang="json">
 {
 	"meta": {
 		"menu": {
 			"category": "control",
-			"icon": "mdi-tune",
+			"icon": "mdi-view-dashboard",
 			"caption": "menu.control.dashboard",
 			"order": 10
 		}
@@ -13,10 +12,8 @@
 </route>
 
 <template>
-	<div class="mb-3">
-		<FFFDashboardPanel v-if="isFFForUnset" />
-		<CNCDashboardPanel v-else />
-	</div>
+	<FFFDashboardPanel v-if="isFFForUnset" />
+	<CNCDashboardPanel v-else />
 </template>
 
 <script setup lang="ts">

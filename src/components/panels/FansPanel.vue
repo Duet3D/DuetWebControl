@@ -1,5 +1,3 @@
-<!-- Lists every visible non-thermostatic fan in its own row with a PercentageInput. The "Change visibility"
-	 menu toggles which fans appear (settings.displayedFans). The tool-fan row is always indexed as -1 -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
@@ -9,7 +7,7 @@
 			<v-menu location="bottom end">
 				<template #activator="{ props: activatorProps }">
 					<a v-show="!uiStore.uiFrozen && hasControllableFans" v-bind="activatorProps"
-					   href="javascript:void(0)" class="text-subtitle-2">
+					   href="javascript:void(0)" class="text-title-small">
 						{{ $t("panel.fans.changeVisibility") }}
 					</a>
 				</template>

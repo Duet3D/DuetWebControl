@@ -9,17 +9,21 @@ import en from "./en.json";
 /**
  * Supported i18n messages
  */
+// Vuetify's i18n adapter resolves its strings under the `$vuetify` namespace (e.g.
+// `$vuetify.dismiss`), so nest the framework locales rather than spreading them at the top level
 export const messages = reactive({
-	de: { ...deVuetify, ...de },
-	en: { ...enVuetify, ...en }
+	de: { $vuetify: deVuetify, ...de },
+	en: { $vuetify: enVuetify, ...en }
 });
+
+export type Locale = keyof typeof messages;
 
 /**
  * Get the currently configured browser locale that is also part of the i18n messages
  */
-export function getBrowserLocale(): string {
+export function getBrowserLocale(): Locale {
 	// See if there is an absolute match
-	for (const locale in messages) {
+	for (const locale of Object.keys(messages) as Locale[]) {
 		if (locale === navigator.language) {
 			return locale;
 		}
@@ -27,7 +31,7 @@ export function getBrowserLocale(): string {
 
 	// Check if there is a loose match
 	const code = navigator.language.substring(0, 2);
-	for (const locale in messages) {
+	for (const locale of Object.keys(messages) as Locale[]) {
 		if (locale === code) {
 			return locale;
 		}
@@ -58,10 +62,11 @@ export function translateResponse(message: string): string {
 		return i18n.global.t(args[0], args.slice(1));
 	}
 
-	// Allow built-in RRF strings to be translated using RegExps.
-	// To achieve this create a new "responses" key in "en" with regular expressions matching the non-English target.
-	// These regular expressions must match dynamic parameters (e.g. /Heater (\d+) faulted/) so they can be passed back as args to $t().
-	// When done, create the same key in "responses" for your target language (e.g. German -> "Heizer {0} gestört")
+	// Allow built-in RRF strings to be translated using RegExps. To achieve this create a new
+	// "responses" key in "en" with regular expressions matching the non-English target. These
+	// regular expressions must match dynamic parameters (e.g. /Heater (\d+) faulted/) so they
+	// can be passed back as args to $t(). When done, create the same key in "responses" for
+	// your target language (e.g. German -> "Heizer {0} gestört")
 	if (i18n.global.locale.value !== "en") {
 		const currentMessages = messages[i18n.global.locale.value];
 		if ("responses" in messages.en && messages.en.responses instanceof Object &&

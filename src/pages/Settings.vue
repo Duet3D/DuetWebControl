@@ -494,7 +494,7 @@
 
 						</v-col>
 
-						<v-col cols="12" md="6">
+						<v-col cols="12" sm="6">
 							<v-card>
 								<v-card-title>
 									<v-icon class="mr-2">mdi-axis-arrow</v-icon>
@@ -510,7 +510,7 @@
 							</v-card>
 						</v-col>
 
-						<v-col cols="12" md="6">
+						<v-col cols="12" sm="6">
 							<v-card>
 								<v-card-title>
 									<v-icon class="mr-2">mdi-arrow-expand-vertical</v-icon>
@@ -564,21 +564,21 @@
 						</v-col>
 					</v-row>
 					<v-row density="compact" class="mt-4">
-						<v-col cols="12" sm="4">
+						<v-col cols="4">
 							<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
 									  item-title="label" item-value="value"
 									  :label="$t('settings.webcam.flip')"
 									  :title="$t('settings.webcam.flipHint')"
 									  variant="outlined" density="comfortable" hide-details />
 						</v-col>
-						<v-col cols="12" sm="4">
+						<v-col cols="4">
 							<v-select v-model.number="settingsStore.webcam.rotation"
 									  :items="rotationOptions" item-title="label" item-value="value"
 									  :label="$t('settings.webcam.rotation')"
 									  :title="$t('settings.webcam.rotationHint')"
 									  variant="outlined" density="comfortable" hide-details />
 						</v-col>
-						<v-col cols="12" sm="4">
+						<v-col cols="4">
 							<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
 										  :label="$t('settings.webcam.updateInterval')"
 										  :title="$t('settings.webcam.updateIntervalHint')"

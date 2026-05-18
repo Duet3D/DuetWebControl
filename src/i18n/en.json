@@ -323,7 +323,8 @@
 		"backToHub": "Back to home",
 		"statusPanel": "Status",
 		"showStatusPanel": "Show status panel",
-		"hideStatusPanel": "Hide status panel"
+		"hideStatusPanel": "Hide status panel",
+		"goToJobStatus": "Go to job status"
 	},
 	"page": {
 		"notFound": {

@@ -1,5 +1,3 @@
-<!-- Snapshot timings for the current (or last) job. Reads live OM fields while a job is active and
-	 the lastXxx fields otherwise so the panel stays useful right after a job finishes -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-1">
@@ -8,7 +6,7 @@
 		</v-card-title>
 
 		<v-card-text class="text-center pb-2">
-			<v-row dense>
+			<v-row density="compact">
 				<v-col class="d-flex flex-column">
 					<strong>{{ $t("panel.jobData.warmUpDuration") }}</strong>
 					<span>{{ displayTime(warmUpDuration) }}</span>

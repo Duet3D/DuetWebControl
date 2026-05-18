@@ -1,9 +1,9 @@
-// Firmware-install / DWC self-update pipeline ported from v3.7-dev's UploadBtn. Caller hands in
-// the raw files the user picked or dropped; planFiles() classifies them (firmware bundle vs
-// plain firmware/IAP/bootloader/WiFi/display binaries vs web assets vs SBC .deb packages),
-// rewrites each file's destination path, and reports which boards/modules need an M997 update
-// afterwards. confirmAndRun() drives the M997 sequencing and waits for the firmware to leave the
-// updating state, then optionally reloads DWC when its own web bundle was just replaced.
+// Firmware-install / DWC self-update pipeline. Caller hands in the raw files the user picked
+// or dropped; planFiles() classifies them (firmware bundle vs plain firmware/IAP/bootloader/
+// WiFi/display binaries vs web assets vs SBC .deb packages), rewrites each file's destination
+// path, and reports which boards/modules need an M997 update afterwards. confirmAndRun() drives
+// the M997 sequencing and waits for the firmware to leave the updating state, then optionally
+// reloads DWC when its own web bundle was just replaced
 
 import { DisconnectedError } from "@duet3d/connectors";
 import { type Board, MachineStatus, NetworkInterfaceType } from "@duet3d/objectmodel";
@@ -12,12 +12,12 @@ import type { JSZipObject } from "jszip";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 import Path from "@/utils/path";
 
-// Static list of extensions that always belong under /www on the board. Mirrors v3.7-dev so DWC
-// bundles produced for either of the two release lines drop into the right place
+// Static list of extensions that always belong under /www on the board. Files matching one of
+// these get routed to the web-asset directory regardless of which subfolder of the upload they
+// came from
 const webExtensions: Array<string> = [
 	".htm", ".html", ".ico", ".xml", ".css", ".map", ".js", ".ttf", ".eot", ".svg",
 	".woff", ".woff2", ".jpeg", ".jpg", ".png"
@@ -238,8 +238,8 @@ export function useFirmwareInstall() {
 			return Path.combine(ctx.directories.firmware, name);
 		}
 
-		// Fallback - everything else goes into the system directory of the active context (config
-		// files, JSON descriptors, etc.). This mirrors target=system / target=update in v3.7-dev
+		// Fallback - everything else goes into the system directory of the active context
+		// (config files, JSON descriptors, etc.)
 		return Path.combine(ctx.directories.system, name);
 	}
 
@@ -314,7 +314,7 @@ export function useFirmwareInstall() {
 				} catch (e) {
 					if (!(e instanceof DisconnectedError)) {
 						console.warn(e);
-						uiStore.log(LogLevel.error, i18n.global.t("generic.error"), getErrorMessage(e));
+						uiStore.notifyError(e, i18n.global.t("generic.error"));
 					}
 				}
 			}
@@ -344,7 +344,7 @@ export function useFirmwareInstall() {
 			} catch (e) {
 				if (!(e instanceof DisconnectedError)) {
 					console.warn(e);
-					uiStore.log(LogLevel.error, i18n.global.t("generic.error"), getErrorMessage(e));
+					uiStore.notifyError(e, i18n.global.t("generic.error"));
 				}
 			}
 		}

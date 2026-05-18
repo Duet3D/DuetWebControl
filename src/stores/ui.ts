@@ -3,6 +3,7 @@ import { MachineMode } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n from "@/i18n";
+import { getErrorMessage } from "@/utils/errors";
 import { extractFileName } from "@/utils/path";
 
 import { useMachineStore } from "./machine";
@@ -106,6 +107,13 @@ export interface GeneralNotification {
 	/** When set, the snackbar shows a "view" action that navigates to this route */
 	route: string | null;
 	icon: string | null;
+	/**
+	 * Optional promise driving auto-dismissal: v-snackbar-queue replaces the displayed item with
+	 * a 1 ms-timeout one when this resolves. Use when the notification represents an async
+	 * operation (e.g. "Loading plugins...") so the caller doesn't need to track the id and call
+	 * dismissNotification - the queue would have already consumed the entry by then anyway
+	 */
+	promise?: Promise<unknown>;
 }
 
 /**
@@ -153,13 +161,21 @@ export const useUiStore = defineStore("ui", {
 		logMessages: new Array<LogMessage>,
 
 		/**
-		 * Notification data - three independent channels backed by separate renderers in NotificationDisplay.vue
+		 * Notification data - four independent channels backed by separate renderers in NotificationDisplay.vue
 		 */
 		notifications: {
 			/**
-			 * Queued one-shot notifications - rendered by v-snackbar-queue
+			 * Queued one-shot notifications (auto-dismissed after a timeout) - rendered by v-snackbar-queue
 			 */
 			general: new Array<GeneralNotification>(),
+
+			/**
+			 * Persistent notifications under programmatic control (timeout 0). Rendered as individual
+			 * v-snackbars so callers can dismiss them by id; v-snackbar-queue takes ownership of items
+			 * once visible and exposes no per-item dismissal API, so persistent notifications can't share
+			 * the same channel as the one-shot queue
+			 */
+			persistent: new Array<GeneralNotification>(),
 
 			/**
 			 * Active file-transfer notifications - rendered as a foreground v-snackbar (one at a time)
@@ -175,9 +191,64 @@ export const useUiStore = defineStore("ui", {
 		/**
 		 * Whether messages are supposed to be hidden (when the Console is open)
 		 */
-		hideCodeReplyNotifications: false
+		hideCodeReplyNotifications: false,
+
+		/**
+		 * Number of editor tabs in the Explorer that have unsaved changes - drives the nav menu's
+		 * Explorer chip. Mirrored from the Explorer page via a watch on its tabs ref so the menu
+		 * (which lives in the layout, outside the Explorer route) can read it without coupling
+		 */
+		modifiedEditorCount: 0,
+
+		/**
+		 * Notifications currently shown in the snackbar queue, keyed by id. Tracked separately
+		 * from notifications.general/persistent because v-snackbar-queue drains its input feed
+		 * as soon as it shows each item - the source arrays empty out even though the snackbars
+		 * remain visible. {@link NotificationDisplay} updates this via the queue's onDismiss
+		 * hook so getters like {@link consoleRoutedNotifications} reflect the actual visible set
+		 */
+		activeNotifications: new Map<string, GeneralNotification>()
 	}),
 	getters: {
+		/**
+		 * Visible toast notifications that also feed the Console - i.e. anything emitted by
+		 * processReply (route="/Console") that v-snackbar-queue is currently showing. Sourced
+		 * from {@link activeNotifications} (not the input feeds) so the chip count tracks what
+		 * the user can actually see and dismiss
+		 */
+		consoleRoutedNotifications(): Array<GeneralNotification> {
+			return Array.from(this.activeNotifications.values()).filter(n => n.route === "/Console");
+		},
+
+		/**
+		 * Total number of items the Console nav chip surfaces - Console-routed notifications plus
+		 * the singleton M117 persistent message (counts as 1 when present). Captures everything
+		 * currently shown to the user that the Console would clear
+		 */
+		consoleAttentionCount(): number {
+			return this.consoleRoutedNotifications.length
+				+ (this.notifications.persistentMessage !== null ? 1 : 0);
+		},
+
+		/**
+		 * Highest-severity LogLevel among the Console-routed pending notifications and the M117
+		 * persistent message (treated as info), or null when nothing demands attention. Severity
+		 * ordering: error > warning > success > info
+		 */
+		pendingNotificationSeverity(): LogLevel | null {
+			const types = new Set(this.consoleRoutedNotifications.map(n => n.type));
+			if (this.notifications.persistentMessage !== null) {
+				types.add(LogLevel.info);
+			}
+			const order = [LogLevel.error, LogLevel.warning, LogLevel.success, LogLevel.info];
+			for (const level of order) {
+				if (types.has(level)) {
+					return level;
+				}
+			}
+			return null;
+		},
+
 		/**
 		 * Indicates if the UI is supposed to display FFF controls
 		 * @returns True if the machine is supposed to display FFF controls
@@ -238,6 +309,27 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Log a caught error: keeps callers writing `i18n.global.t(...)` inline (so VSCode's
+		 * i18n plugin can preview the translation) and absorbs the `LogLevel.error` +
+		 * `getErrorMessage(e)` plumbing
+		 * @param e Caught value (any thrown shape)
+		 * @param title Already-translated notification title
+		 */
+		notifyError(e: unknown, title: string) {
+			this.log(LogLevel.error, title, getErrorMessage(e));
+		},
+
+		/**
+		 * Warning sibling of {@link notifyError}; passes `optional: true` to `getErrorMessage` so
+		 * a nullish error renders as no message rather than the localised "no value" string
+		 * @param e Caught value (any thrown shape)
+		 * @param title Already-translated notification title
+		 */
+		notifyWarning(e: unknown, title: string) {
+			this.log(LogLevel.warning, title, getErrorMessage(e, true));
+		},
+
+		/**
 		 * Log a code reply
 		 * @param code G/M/T-code
 		 * @param reply Code reply
@@ -264,7 +356,7 @@ export const useUiStore = defineStore("ui", {
 			const responseLines = toLog.split('\n');
 			if (!this.hideCodeReplyNotifications) {
 				let title = code || ""; let message = responseLines.join("<br>");
-				if (responseLines.length > 3 || toLog.length > 128) {
+				if (responseLines.length > 3 || toLog.length > 160) {
 					title = (!code) ? i18n.global.t("notification.responseTooLong") : code;
 					message = (!code) ? "" : i18n.global.t("notification.responseTooLong");
 				} else if (!code) {
@@ -301,6 +393,37 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Dismiss every pending Console-routed notification across both channels plus the M117
+		 * persistent message. Used by both the Console-entry hook and the nav menu chip's inline
+		 * clear button - non-Console notifications (file transfers, plugin install, ...) are left
+		 * alone since they target other parts of the UI. Routes each dismissal through
+		 * {@link dismissNotification} so v-snackbar-queue gets the resolve call it needs to
+		 * clear the visible toast
+		 */
+		dismissConsoleNotifications() {
+			// Iterate activeNotifications (the authoritative "currently visible" set) - the
+			// notifications.general/persistent input feeds are drained by v-snackbar-queue as
+			// soon as it shows each item, so filtering them after the fact finds nothing
+			const consoleIds = Array.from(this.activeNotifications.values())
+				.filter(n => n.route === "/Console")
+				.map(n => n.id);
+			for (const id of consoleIds) {
+				this.dismissNotification(id);
+			}
+			if (this.notifications.persistentMessage !== null) {
+				this.showPersistentMessage(null);
+			}
+		},
+
+		/**
+		 * Console-entry hook: dismisses everything the Console nav chip was counting so the chip
+		 * and the toasts both clear at once
+		 */
+		markConsoleRead() {
+			this.dismissConsoleNotifications();
+		},
+
+		/**
 		 * Queue a notification for display in the v-snackbar-queue. If an equal notification (same type,
 		 * title, message and route) is already in the queue, drops the existing copy so the new one shows
 		 * with a fresh timer instead of stacking two of the same
@@ -311,9 +434,12 @@ export const useUiStore = defineStore("ui", {
 		 * @param timeout Auto-dismiss after N ms; 0 (or negative) = persistent. Defaults to the user's settings
 		 * @param route Optional route - the snackbar shows a "view" action that navigates here
 		 * @param icon Optional MDI icon name; falls back to one keyed off {@link type}
+		 * @param promise Optional promise driving dismissal - v-snackbar-queue auto-clears the
+		 *                item when it resolves. Use for async-bound notifications instead of
+		 *                tracking the id and calling dismissNotification later
 		 * @returns The new notification's id (pass to {@link dismissNotification} to dismiss it programmatically)
 		 */
-		makeNotification(type: LogLevel, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null): string {
+		makeNotification(type: LogLevel, title: string, message: string | null = null, timeout: number | null = null, route: string | null = null, icon: string | null = null, promise: Promise<unknown> | null = null): string {
 			if (timeout === null) {
 				const settingsStore = useSettingsStore();
 				timeout = (type === LogLevel.error && settingsStore.notifications.errorsPersistent) ? 0 : settingsStore.notifications.timeout;
@@ -339,29 +465,73 @@ export const useUiStore = defineStore("ui", {
 				}
 			}
 
+			const id = `gn-${++notificationIdCounter}`;
+			// Every notification gets an internal "programmatic dismiss" promise. v-snackbar-queue
+			// consumes items from the source array on first render, so a later dismissNotification
+			// can't reach the still-visible snackbar via source mutation - it has to resolve a
+			// promise the queue subscribed to. Race with any caller-supplied promise (e.g. the
+			// plugin loader's dwcPluginsLoaded signal) so either path can drive dismissal
+			const internalDismiss = new Promise<void>((resolve) => {
+				dismissResolvers.set(id, resolve);
+			});
+			const combinedPromise = promise ? Promise.race([promise, internalDismiss]) : internalDismiss;
+			const entry: GeneralNotification = { id, type, title, message, timeout, route, icon, promise: combinedPromise };
+			this.activeNotifications.set(id, entry);
+
+			// Persistent notifications (timeout 0 / negative) get their own channel; v-snackbar-queue takes
+			// ownership of items as it dequeues them and exposes no per-item dismissal API, so a programmatic
+			// dismiss never reaches the still-visible snackbar (the plugin-loading "loading..." was the symptom)
+			if (timeout <= 0) {
+				this.notifications.persistent = this.notifications.persistent.filter(n =>
+					!(n.type === type && n.title === title && n.message === message && n.route === route)
+				);
+				this.notifications.persistent.push(entry);
+				return id;
+			}
+
 			// Drop any prior equal notification so the new one re-appears with a fresh timer instead of stacking duplicates
 			this.notifications.general = this.notifications.general.filter(n =>
 				!(n.type === type && n.title === title && n.message === message && n.route === route)
 			);
-
-			const id = `gn-${++notificationIdCounter}`;
-			this.notifications.general.push({ id, type, title, message, timeout, route, icon });
+			this.notifications.general.push(entry);
 			return id;
 		},
 
 		/**
-		 * Remove a queued notification by its id. No-op if the id is unknown
+		 * Remove a queued notification by its id. Resolves the dismissal promise (drives the
+		 * queue to clear the visible snackbar) AND strips the entry from the source arrays in
+		 * case it hasn't been consumed by the queue yet. No-op if the id is unknown
 		 */
 		dismissNotification(id: string) {
+			dismissResolvers.get(id)?.();
+			dismissResolvers.delete(id);
+			this.activeNotifications.delete(id);
 			this.notifications.general = this.notifications.general.filter(n => n.id !== id);
+			this.notifications.persistent = this.notifications.persistent.filter(n => n.id !== id);
 		},
 
 		/**
-		 * Close all queued general notifications. Persistent file-transfer notifications stay; the
-		 * persistent M0/M291 message is only cleared when {@link includingMessage} is true
+		 * Called by NotificationDisplay when v-snackbar-queue dismisses a visible snackbar on its
+		 * own (timer expiry, user X click, overflow). Cleans up our parallel state without
+		 * touching notifications.general/persistent which the queue already drained itself
+		 */
+		notificationDismissedByQueue(id: string) {
+			dismissResolvers.delete(id);
+			this.activeNotifications.delete(id);
+		},
+
+		/**
+		 * Close all queued and persistent general notifications. Active file-transfer notifications stay;
+		 * the persistent M0/M291 display message is only cleared when {@link includingMessage} is true
 		 */
 		closeNotifications(includingMessage = false) {
+			for (const id of this.activeNotifications.keys()) {
+				dismissResolvers.get(id)?.();
+				dismissResolvers.delete(id);
+			}
+			this.activeNotifications.clear();
 			this.notifications.general = [];
+			this.notifications.persistent = [];
 			if (includingMessage) {
 				this.notifications.persistentMessage = null;
 			}
@@ -427,3 +597,11 @@ export const useUiStore = defineStore("ui", {
  * Module-level counter for unique notification ids. Reset implicitly on full page reload
  */
 let notificationIdCounter = 0;
+
+/**
+ * Resolve functions for each notification's "programmatic dismiss" promise. Calling the resolve
+ * triggers v-snackbar-queue to clear the corresponding visible item via its promise-based
+ * dismissal flow. Indexed by notification id; entries linger until garbage collected (the queue
+ * itself drops its reference once the snackbar exit completes)
+ */
+const dismissResolvers = new Map<string, () => void>();

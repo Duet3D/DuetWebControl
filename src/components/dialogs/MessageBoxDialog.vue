@@ -7,7 +7,7 @@
 				</div>
 
 				<!-- Jog control -->
-				<v-row v-for="axis in displayedAxes" :key="axis.letter" dense>
+				<v-row v-for="axis in displayedAxes" :key="axis.letter" density="compact">
 					<!-- Decreasing movements -->
 					<v-col>
 						<v-row no-gutters>
@@ -44,7 +44,7 @@
 					</v-col>
 				</v-row>
 
-				<!-- Inputs-->
+				<!-- Inputs -->
 				<form v-if="needsNumberInput || needsStringInput" class="mt-3" @submit.prevent="ok">
 					<v-text-field v-if="needsNumberInput" type="number" autofocus v-model.number="numberInput"
 								  :min="messageBox.min" :max="messageBox.max" :step="needsIntInput ? 1 : 'any'" required
@@ -58,12 +58,13 @@
 				<template v-if="isMultipleChoice">
 					<v-btn v-for="(choice, index) in messageBox.choices" :key="choice"
 						   :variant="(messageBox.default === index) ? 'tonal' : 'text'" :text="choice"
-						   @click="accept(index)" />
+						   :autofocus="messageBox.default === index" @click="accept(index)" />
 					<v-btn v-if="messageBox.cancelButton" :text="$t('generic.cancel')" @click="cancel" />
 				</template>
 				<template v-else>
-					<v-btn :text="isPersistent ? $t('generic.ok') : $t('generic.close')" @click="ok"
-						   :disabled="!canConfirm" />
+					<v-btn :text="isPersistent ? $t('generic.ok') : $t('generic.close')"
+						   :disabled="!canConfirm"
+						   :autofocus="!needsNumberInput && !needsStringInput" @click="ok" />
 					<v-btn v-if="messageBox.cancelButton" :text="$t('generic.cancel')" @click="cancel" />
 				</template>
 			</v-card-actions>
@@ -107,16 +108,13 @@ watch(() => machineStore.model.state.messageBox, (to) => {
 
 // UI helpers
 function getMoveCellClass(index: number): string {
-	// v-col is a flex item, so d-*-flex is the matching display utility. Reads "hide on these
-	// breakpoints, show as flex from the next one up"
-	let classes = "";
 	if (index === 0 || index === 5) {
-		classes += "d-none d-xl-flex";
+		return "d-none d-xxl-block";
 	}
 	if (index > 1 && index < 4 && index % 2 === 1) {
-		classes += "d-none d-lg-flex";
+		return "d-none d-xl-block";
 	}
-	return classes;
+	return "";
 }
 
 const displayedAxes = computed(() => {

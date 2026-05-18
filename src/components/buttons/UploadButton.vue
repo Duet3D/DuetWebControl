@@ -1,15 +1,12 @@
-<!-- Quick-upload entry point in the app bar. Click opens a menu with a target picker; each
-	 target maps to a different destination directory. System / firmware uploads go through the
-	 firmware-install pipeline so .bin / .uf2 / firmware bundles get the M997 confirmation flow.
-	 "Upload & Start" picks a single gcode file, uploads it, then issues M32 to start the job -->
 <template>
 	<div>
 		<v-menu>
 			<template #activator="{ props: activatorProps }">
-				<v-btn v-bind="activatorProps" variant="text" icon
+				<v-btn v-bind="activatorProps" :elevation="1"
 					   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-					   :title="$t('button.upload.caption')">
-					<v-icon>mdi-cloud-upload</v-icon>
+					   :title="$t('button.upload.start.caption')">
+					<v-icon class="mr-1">mdi-cloud-upload</v-icon>
+					<span class="d-none d-sm-inline">{{ $t("button.upload.start.caption") }}</span>
 				</v-btn>
 			</template>
 			<v-list density="compact">
@@ -35,9 +32,8 @@ import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue"
 import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
+import { useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
-import { getErrorMessage } from "@/utils/errors";
 import Path from "@/utils/path";
 
 type UploadTarget = "start" | "gcodes" | "macros" | "filaments" | "firmware";
@@ -73,7 +69,9 @@ const configUpdatedDialog = reactive({ shown: false });
 
 function pick(target: TargetMeta) {
 	pendingTarget = target;
-	if (!fileInput.value) return;
+	if (!fileInput.value) {
+		return;
+	}
 	fileInput.value.accept = target.accept ?? "*";
 	fileInput.value.multiple = !target.singleFile;
 	fileInput.value.click();
@@ -97,7 +95,7 @@ async function onFilesPicked(event: Event) {
 		}
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("button.upload.caption"), getErrorMessage(e));
+		uiStore.notifyError(e, i18n.global.t("button.upload.caption"));
 	}
 }
 
@@ -158,7 +156,9 @@ async function runFirmwareUpload(files: Array<File>) {
 async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
 	const plan = firmwareDialog.plan;
 	firmwareDialog.plan = null;
-	if (!plan) return;
+	if (!plan) {
+		return;
+	}
 	try {
 		await firmwareInstall.runUpdate(plan, choices);
 	} finally {

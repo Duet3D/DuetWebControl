@@ -1,6 +1,3 @@
-<!-- Three-way prompt shown after config.g (or board.txt on RRF/LPC) has been replaced via an
-	 upload. The user can re-run config.g without a reset, issue an M999 full firmware reset, or
-	 dismiss without doing anything. Mirrors v3.7-dev's ConfigUpdatedDialog -->
 <template>
 	<v-dialog v-model="shown" persistent width="640" no-click-animation @keydown.escape="cancel">
 		<v-card>
@@ -19,7 +16,7 @@
 				<v-btn color="blue-darken-1" variant="text" @click="reset">
 					{{ $t("dialog.configUpdated.reset") }}
 				</v-btn>
-				<v-btn color="blue-darken-1" variant="text" @click="runConfig">
+				<v-btn color="blue-darken-1" variant="text" autofocus @click="runConfig">
 					{{ $t("dialog.configUpdated.runConfig") }}
 				</v-btn>
 			</v-card-actions>
@@ -30,8 +27,7 @@
 <script setup lang="ts">
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 
 const shown = defineModel<boolean>("shown", { required: true });
 
@@ -48,7 +44,7 @@ async function reset() {
 		await machineStore.sendCode("M999");
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("generic.error"), getErrorMessage(e));
+		uiStore.notifyError(e, i18n.global.t("generic.error"));
 	}
 }
 
@@ -58,7 +54,7 @@ async function runConfig() {
 		await machineStore.sendCode("M98 P\"config.g\"");
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("generic.error"), getErrorMessage(e));
+		uiStore.notifyError(e, i18n.global.t("generic.error"));
 	}
 }
 </script>

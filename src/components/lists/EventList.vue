@@ -1,7 +1,7 @@
 <template>
 	<v-card class="event-log elevation-3">
 		<v-toolbar density="compact" color="surface" class="event-log-header">
-			<v-toolbar-title class="text-body-1">
+			<v-toolbar-title class="text-body-large">
 				{{ $t("list.eventLog.title") }}
 			</v-toolbar-title>
 			<v-spacer />
@@ -131,12 +131,14 @@ function rowClass(type: LogLevel): string {
 		case LogLevel.success: return "level-success";
 		case LogLevel.warning: return "level-warning";
 		case LogLevel.error: return "level-error";
-		case LogLevel.primary: return "level-primary";
-		default: return "";
+		// info + primary share the blue tint - only success/warning/error get their own colour
+		case LogLevel.info:
+		case LogLevel.primary:
+		default: return "level-primary";
 	}
 }
 
-// Highlight Error:/Warning: prefixes, opportunistically pretty-print plain JSON responses.
+// Highlight Error:/Warning: prefixes, opportunistically pretty-print plain JSON responses
 // The prefix patterns are deliberately English: RepRapFirmware emits these strings literally
 // regardless of the UI locale, so localising the regex would stop matching real firmware
 // responses

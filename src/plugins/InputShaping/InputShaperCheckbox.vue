@@ -1,9 +1,5 @@
-<!-- Per-shaper toggle row used in the InputShaping sidebar. Wraps a v-checkbox with a status
-	 chip (configured / apply) and an optional default slot for shaper-specific UI (e.g. the
-	 custom shaper opens an edit menu in that slot). v-model carries the selected-shapers array
-	 with "none" treated specially - it represents "shaping disabled" rather than an item -->
 <template>
-	<v-checkbox v-bind="checkboxBindings" :disabled="uiStore.uiFrozen" :label="label" hide-details
+	<v-checkbox :model-value="isChecked" :disabled="uiStore.uiFrozen" :label="label" hide-details
 				color="primary" @update:model-value="onChange">
 		<template #append>
 			<slot>
@@ -48,12 +44,14 @@ const label = computed(() => {
 
 // "none" is the special "shaping disabled" sentinel; it's checked when the firmware reports
 // type === "none" rather than tracked via the selected-shapers array. Every other row reflects
-// whether its key is in the array
-const checkboxBindings = computed(() => {
+// whether its key is in the array. Driving the checkbox via a plain boolean (instead of the
+// dual model-value + value props pair) avoids Vuetify's array-mode toggling silently dropping
+// the update event when value mismatches model-value's runtime type
+const isChecked = computed(() => {
 	if (props.value === "none") {
-		return { "model-value": shapingType.value === "none" };
+		return shapingType.value === "none";
 	}
-	return { "model-value": selected.value.includes(props.value), value: props.value };
+	return selected.value.includes(props.value);
 });
 
 const showApply = computed(() => {
@@ -61,21 +59,18 @@ const showApply = computed(() => {
 	return enabled && !uiStore.uiFrozen && shapingType.value !== props.value && shapingFrequency.value > 0;
 });
 
-function onChange(next: unknown) {
+function onChange(next: boolean | null) {
 	if (props.value === "none") {
 		// The "none" row is read-only - clearing all shapers happens via M593 P"none" through the
 		// Apply chip rather than the checkbox itself
 		return;
 	}
-	if (Array.isArray(next)) {
-		selected.value = next as Array<string>;
-	} else if (typeof next === "boolean") {
-		const has = selected.value.includes(props.value);
-		if (next && !has) {
-			selected.value = [...selected.value, props.value];
-		} else if (!next && has) {
-			selected.value = selected.value.filter((v) => v !== props.value);
-		}
+	const checked = next === true;
+	const has = selected.value.includes(props.value);
+	if (checked && !has) {
+		selected.value = [...selected.value, props.value];
+	} else if (!checked && has) {
+		selected.value = selected.value.filter((v) => v !== props.value);
 	}
 }
 

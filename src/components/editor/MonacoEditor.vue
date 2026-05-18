@@ -1,44 +1,49 @@
-<!-- Monaco-backed editor for a single file on the machine. Loads the file content on mount,
-	 owns the Monaco editor instance, and offers save + revert + close actions. Lazy-imports
-	 monaco-editor and @duet3d/monacotokens on first use so they land in their own chunks -->
 <template>
-	<div class="monaco-editor-host">
-		<v-toolbar density="compact" color="surface" class="px-2">
+	<div class="monaco-editor-host" :class="{ 'monaco-editor-host--collapsed': !!loadError }">
+		<v-toolbar density="compact" color="surface" class="ps-4 pe-2">
 			<v-icon class="mr-2">{{ languageIcon }}</v-icon>
-			<v-toolbar-title class="text-body-1 text-truncate">
-				{{ filename }}
+			<v-toolbar-title class="text-body-large text-truncate">
+				{{ Path.pretty(filename) }}
 				<span v-if="dirty" class="text-warning">*</span>
 			</v-toolbar-title>
 
 			<v-spacer />
 
-			<v-btn variant="text" :disabled="!dirty || saving || loading" :loading="saving"
-				   :title="$t('dialog.fileEdit.save')" @click="save">
-				<v-icon class="mr-1">mdi-content-save</v-icon>
-				<span class="d-none d-sm-inline">{{ $t("dialog.fileEdit.save") }}</span>
+			<v-btn v-if="isGCode && useMonaco" variant="text" icon
+				   :title="cursorInExpression ? $t('dialog.fileEdit.searchExpression') : $t('dialog.fileEdit.searchGcode')"
+				   @click="searchGcode">
+				<v-icon>mdi-tag-search</v-icon>
 			</v-btn>
 
-			<v-btn variant="text" :disabled="!dirty || saving || loading" :title="$t('dialog.fileEdit.revert')"
+			<v-btn v-if="isGCode" variant="text" icon :title="$t('dialog.fileEdit.gcodeReference')"
+				   :href="gcodeReferenceUrl" target="_blank" rel="noopener noreferrer">
+				<v-icon>mdi-help-circle-outline</v-icon>
+			</v-btn>
+
+			<v-btn variant="text" icon :disabled="!dirty || saving || loading || !canRevert"
+				   :title="canRevert ? $t('dialog.fileEdit.revert') : $t('dialog.fileEdit.revertTooLarge')"
 				   @click="revert">
 				<v-icon>mdi-restore</v-icon>
 			</v-btn>
 
-			<v-btn variant="text" :title="$t('generic.close')" @click="requestClose">
-				<v-icon>mdi-close</v-icon>
+			<v-btn variant="text" icon :disabled="!dirty || saving || loading" :loading="saving"
+				   :title="$t('dialog.fileEdit.save')" @click="save">
+				<v-icon>mdi-content-save</v-icon>
 			</v-btn>
 		</v-toolbar>
 
-		<div v-if="loading" class="d-flex justify-center align-center editor-pane">
-			<v-progress-circular indeterminate color="primary" />
-		</div>
-		<div v-else-if="loadError" class="d-flex justify-center align-center editor-pane pa-4">
-			<v-alert type="error" class="mb-0">{{ loadError }}</v-alert>
-		</div>
-		<div v-show="!loading && !loadError" ref="container" class="editor-pane" />
+		<v-progress-linear v-if="loading || saving" :indeterminate="transferProgress === null"
+						   :model-value="transferProgress ?? 0" height="4" color="primary" />
 
-		<ConfirmDialog v-model:shown="discardDialog.shown" :title="$t('dialog.fileEdit.discardTitle')"
-					   :prompt="$t('dialog.fileEdit.discardPrompt')" icon="mdi-alert"
-					   @confirmed="forceClose" />
+		<div v-if="loading" class="d-flex justify-center align-center editor-pane" />
+		<v-alert v-else-if="loadError" type="error" variant="tonal" tile>{{ loadError }}</v-alert>
+		<!-- Monaco's container is kept in the DOM (v-show) so bootstrap() can attach to the ref
+			 while loading is still true; the textarea branch is v-if since it just binds to text -->
+		<div v-show="useMonaco && !loading && !loadError" ref="container" class="editor-pane" />
+		<textarea v-if="!useMonaco && !loading && !loadError" v-model="textContent"
+				  class="editor-pane editor-textarea"
+				  :style="{ fontSize: settingsStore.editor.fontSize + 'px' }"
+				  spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" />
 	</div>
 </template>
 
@@ -46,12 +51,12 @@
 import { MachineMode } from "@duet3d/objectmodel";
 import type * as Monaco from "monaco-editor";
 
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
+import { useUiStore } from "@/stores/ui";
 import { useSettingsStore } from "@/stores/settings";
 import { getErrorMessage } from "@/utils/errors";
+import { ensureMonaco } from "@/utils/monaco";
 import Path from "@/utils/path";
 
 const props = defineProps<{
@@ -64,8 +69,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	close: [];
 	saved: [filename: string];
+	dirty: [value: boolean];
 }>();
 
 const machineStore = useMachineStore();
@@ -77,13 +82,54 @@ const loading = ref(true);
 const saving = ref(false);
 const loadError = ref<string | null>(null);
 const dirty = ref(false);
+watch(dirty, (value) => emit("dirty", value));
 
 let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
-let originalValue = "";
+let originalValue: string | null = "";
 let detachGcodeFeatures: Monaco.IDisposable | null = null;
+
+// Touch-friendly textarea fallback. Snapshotted at boot so changing the setting mid-session
+// doesn't swap editors out from under an open file; the user has to reopen it
+const useMonaco = ref(true);
+const textContent = ref("");
+let suppressDirty = false;
+watch(textContent, () => {
+	if (!suppressDirty) {
+		dirty.value = true;
+	}
+});
+
+// Files larger than this are loaded into the editor but the original content is dropped from
+// memory once the editor takes over, so we don't keep two copies of a multi-megabyte buffer on
+// devices with limited RAM (the SBC's Pi3 / Duet3 boards). Revert is disabled in that case
+// since we can't restore without the saved original
+const BIG_FILE_THRESHOLD = 32 * 1024 * 1024;
+const canRevert = ref(true);
+
+// 0-100 progress for the active download/upload, or null for "no total known yet" (the bar
+// renders indeterminate in that case). Reset to null between transfers so a stale 100% from a
+// previous save doesn't briefly flash on the next load
+const transferProgress = ref<number | null>(null);
+
+// Whether the cursor sits inside an expression - `{...}` blocks in g-code accept the object-model
+// expression syntax, which has its own dedicated search panel. The toolbar's find button switches
+// its label between "Find Code" and "Find Expression" based on this so the user knows which
+// search widget will open
+const cursorInExpression = ref(false);
+
+// G/M/T-code the cursor currently sits on, used to deep-link the docs button into the matching
+// per-code reference page. Null when the cursor isn't on a code (or outside g-code files)
+const cursorCode = ref<string | null>(null);
 
 const language = computed(() => detectLanguage(props.filename, machineStore.model.directories,
 	machineStore.model.state.machineMode));
+
+const isGCode = computed(() => language.value === "gcode-fdm" || language.value === "gcode-cnc");
+
+const gcodeReferenceUrl = computed(() => {
+	const base = "https://docs.duet3d.com/en/User_manual/Reference/Gcodes";
+	return cursorCode.value ? `${base}/${cursorCode.value}` : base;
+});
 
 const languageIcon = computed(() => {
 	switch (language.value) {
@@ -100,48 +146,147 @@ const languageIcon = computed(() => {
 	}
 });
 
-const discardDialog = reactive({ shown: false });
+// Scroll the page to its bottom so the editor (which is the last thing on the route) sits
+// flush at the viewport's bottom. Using window.scrollTo on the document directly is more
+// reliable than scrollIntoView on the host element - the latter gets clipped by intermediate
+// scroll containers (v-main, the Vuetify layout wrappers) and stops short of the real page end
+//
+// The status row at the top reflows live (MCU temps, Z-probe readings update every tick) which
+// changes the document height after the initial scroll fires. A single scroll-to-end stops
+// short of the *new* bottom once those updates land. Re-fire the scroll a few times over the
+// first half-second to chase the document as it grows; the smooth behaviour keeps the visible
+// movement to a single continuous slide rather than a stuttery sequence of jumps
+watch(loading, (now) => {
+	if (!now) {
+		const scrollToEnd = (smooth: boolean) => {
+			window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+		};
+		nextTick(() => scrollToEnd(true));
+		// Catch-up passes after the persistent status row + any other reactive content has had
+		// a chance to reflow. Each pass uses instant scrolling so we don't queue up multiple
+		// smooth animations that would visibly compete
+		setTimeout(() => scrollToEnd(false), 250);
+		setTimeout(() => scrollToEnd(false), 500);
+	}
+});
 
-onMounted(async () => {
+// Re-run load when a connection is re-established after a failed load. The download is the only
+// thing that can fail with the "disconnected" guard; once the machine is back, retry transparently
+// so the user doesn't have to close and reopen the tab. Guarded on loadError so we don't stomp on
+// an editor that already loaded successfully
+watch(() => machineStore.isConnected, (connected) => {
+	if (connected && loadError.value !== null) {
+		loadError.value = null;
+		loading.value = true;
+		bootstrap();
+	}
+});
+
+async function bootstrap() {
 	try {
-		const monaco = await ensureMonaco(machineStore);
+		// Snapshot the editor choice for this session - swapping mid-edit would lose the buffer
+		useMonaco.value = settingsStore.editor.useMonaco;
+
+		const monaco = useMonaco.value ? await ensureMonaco(machineStore) : null;
 
 		// Fetch the file content first; building the editor with the wrong content forces a
 		// second model swap once it lands which is visually noisy. A route data loader may have
 		// already pre-fetched the text, in which case we skip the download
 		let content = props.initialContent ?? "";
 		if (props.initialContent === undefined) {
+			// Surface the disconnected case with a friendly message instead of the store's raw
+			// "download is not available in default machine module" error - that's an internal
+			// guard, not a user-facing string
+			if (!machineStore.isConnected) {
+				loadError.value = i18n.global.t("dialog.fileEdit.loadDisconnected");
+				loading.value = false;
+				return;
+			}
 			try {
-				content = await machineStore.download({ filename: props.filename, type: "text" }, false, false, false);
+				transferProgress.value = null;
+				content = await machineStore.download(
+					{ filename: props.filename, type: "text" },
+					false, false, false, false,
+					(loaded, total) => {
+						transferProgress.value = total > 0 ? Math.min(100, (loaded / total) * 100) : null;
+					},
+				);
 			} catch (e) {
-				loadError.value = getErrorMessage(e);
+				loadError.value = i18n.global.t("dialog.fileEdit.loadFailed", [Path.pretty(props.filename), getErrorMessage(e)]);
 				loading.value = false;
 				return;
 			}
 		}
 
-		originalValue = content;
+		// For files under the threshold we keep a copy of the original to back the Revert action;
+		// above it, drop the reference so the GC can reclaim - on the SBC's Pi3 holding both the
+		// editor buffer and a 30 MiB string copy is enough to OOM on a heavy print job
+		if (content.length <= BIG_FILE_THRESHOLD) {
+			originalValue = content;
+			canRevert.value = true;
+		} else {
+			originalValue = null;
+			canRevert.value = false;
+		}
+
+		if (!useMonaco.value) {
+			suppressDirty = true;
+			textContent.value = content;
+			await nextTick();
+			suppressDirty = false;
+			loading.value = false;
+			return;
+		}
 
 		if (!container.value) {
 			return;
 		}
-		editor = monaco.editor.create(container.value, {
+		editor = monaco!.editor.create(container.value, {
 			value: content,
 			language: language.value,
 			theme: settingsStore.darkTheme ? "vs-dark" : "vs",
 			automaticLayout: true,
-			minimap: { enabled: false },
-			tabSize: 4,
 			scrollBeyondLastLine: false,
+			...buildEditorOptions(settingsStore.editor),
 		});
+		editor.getModel()?.updateOptions(buildModelOptions(settingsStore.editor));
 
+		// Flip dirty on any change rather than diffing against originalValue - the latter would
+		// have to be null for big files, and value-comparing a multi-megabyte string on every
+		// keystroke is wasted CPU even when the buffer fits in memory. dirty is cleared on save()
+		// and on the revert() restore
 		editor.onDidChangeModelContent(() => {
-			dirty.value = editor!.getValue() !== originalValue;
+			dirty.value = true;
 		});
 
-		if (language.value === "gcode-fdm" || language.value === "gcode-cnc") {
-			const { attachGcodeFeatures } = await import("@duet3d/monacotokens");
-			detachGcodeFeatures = attachGcodeFeatures(monaco, editor);
+		// Ctrl/Cmd+S triggers the toolbar save. addCommand also preventDefaults the browser's
+		// own "Save Page As" dialog that Ctrl+S would otherwise pop up
+		editor.addCommand(monaco!.KeyMod.CtrlCmd | monaco!.KeyCode.KeyS, () => {
+			save();
+		});
+
+		if (isGCode.value) {
+			const { attachGcodeFeatures, isInsideExpression, findCodeAtCursor } = await import("@duet3d/monacotokens");
+			detachGcodeFeatures = attachGcodeFeatures(monaco!, editor);
+
+			// Sync cursor-derived flags on every caret move: cursorInExpression switches the Find
+			// button's label, cursorCode deep-links the docs button into the matching G/M/T page
+			const updateCursorContext = () => {
+				const model = editor!.getModel();
+				const position = editor!.getPosition();
+				if (!model || !position) {
+					cursorInExpression.value = false;
+					cursorCode.value = null;
+					return;
+				}
+				const lineContent = model.getLineContent(position.lineNumber);
+				cursorInExpression.value = isInsideExpression(lineContent.substring(0, position.column - 1));
+				const enclosing = findCodeAtCursor(lineContent, position.column - 1);
+				cursorCode.value = enclosing ? enclosing.code : null;
+			};
+			updateCursorContext();
+			editor.onDidChangeCursorPosition(updateCursorContext);
+			editor.onDidChangeModelContent(updateCursorContext);
 		}
 
 		loading.value = false;
@@ -149,7 +294,9 @@ onMounted(async () => {
 		loadError.value = getErrorMessage(e);
 		loading.value = false;
 	}
-});
+}
+
+onMounted(bootstrap);
 
 onBeforeUnmount(() => {
 	detachGcodeFeatures?.dispose();
@@ -165,46 +312,110 @@ watch(() => settingsStore.darkTheme, (dark) => {
 	}
 });
 
+// Re-apply editor preferences whenever the user tweaks them in Settings > Editor. tabSize lives
+// on the text model rather than the editor itself, so propagate via a separate updateOptions call
+watch(() => settingsStore.editor, (next) => {
+	editor?.updateOptions(buildEditorOptions(next));
+	editor?.getModel()?.updateOptions(buildModelOptions(next));
+}, { deep: true });
+
 async function save() {
-	if (!editor || saving.value) {
+	if (saving.value) {
+		return;
+	}
+	if (useMonaco.value && !editor) {
 		return;
 	}
 	saving.value = true;
+	transferProgress.value = null;
 	try {
-		const content = editor.getValue();
-		await machineStore.upload({ filename: props.filename, content: new Blob([content]) }, false, false);
-		originalValue = content;
+		const content = useMonaco.value ? editor!.getValue() : textContent.value;
+		await machineStore.upload(
+			{ filename: props.filename, content: new Blob([content]) },
+			false, false, true, false,
+			(loaded, total) => {
+				transferProgress.value = total > 0 ? Math.min(100, (loaded / total) * 100) : null;
+			},
+		);
+		// Re-snapshot for the next revert pass only if we're still under the threshold. A user
+		// who grew the file past 32 MiB loses the revert capability on next save
+		if (content.length <= BIG_FILE_THRESHOLD) {
+			originalValue = content;
+			canRevert.value = true;
+		} else {
+			originalValue = null;
+			canRevert.value = false;
+		}
 		dirty.value = false;
 		emit("saved", props.filename);
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, i18n.global.t("dialog.fileEdit.saveFailed", [props.filename]),
-			getErrorMessage(e));
+		uiStore.notifyError(e, i18n.global.t("dialog.fileEdit.saveFailed", [props.filename]));
 	} finally {
 		saving.value = false;
 	}
 }
 
 function revert() {
-	if (editor) {
-		editor.setValue(originalValue);
-		dirty.value = false;
-	}
-}
-
-function requestClose() {
-	if (dirty.value) {
-		discardDialog.shown = true;
+	// originalValue is null for files past the threshold; the button is disabled in that case
+	// but guard here too in case it ever fires through some other path
+	if (originalValue === null) {
 		return;
 	}
-	emit("close");
+	if (useMonaco.value) {
+		editor?.setValue(originalValue);
+	} else {
+		suppressDirty = true;
+		textContent.value = originalValue;
+		nextTick(() => { suppressDirty = false; });
+	}
+	dirty.value = false;
 }
 
-function forceClose() {
-	emit("close");
+// Delegates to the duet.searchGcode action registered by @duet3d/monacotokens. The action
+// itself picks the right search widget based on whether the cursor is in an expression
+function searchGcode() {
+	editor?.getAction("duet.searchGcode")?.run();
 }
 
 // #region Helpers
+
+// Translate the persisted settingsStore.editor shape into Monaco's IEditorOptions. Keeping this
+// pure (no editor ref needed) lets it serve both the initial create() call and the live
+// updateOptions() path triggered when the user changes a setting in Settings > Editor
+// tabSize is excluded here because it belongs on the text model, not the editor - see buildModelOptions
+function buildEditorOptions(prefs: ReturnType<typeof useSettingsStore>["editor"]): Monaco.editor.IEditorOptions {
+	return {
+		fontSize: prefs.fontSize,
+		wordWrap: prefs.wordWrap,
+		minimap: { enabled: prefs.minimap },
+		lineNumbers: prefs.lineNumbers ? "on" : "off",
+		// Monaco's quickSuggestions can be a boolean or an object scoping by context (comments,
+		// strings, other). Mirror the framework default of suppressing in comments/strings when
+		// enabled so macro-author comments don't spam suggestions
+		quickSuggestions: prefs.quickSuggestions
+			? { other: "on", comments: "off", strings: "off" }
+			: false,
+		suggestOnTriggerCharacters: prefs.suggestOnTriggerCharacters,
+		parameterHints: { enabled: prefs.parameterHints },
+		hover: { enabled: prefs.hover },
+		inlineSuggest: { enabled: prefs.inlineSuggest },
+		bracketPairColorization: { enabled: prefs.bracketPairColorization },
+		formatOnPaste: prefs.formatOnPaste,
+		formatOnType: prefs.formatOnType,
+		colorDecorators: false,
+	};
+}
+
+// tabSize is a per-model setting, not an editor setting. It also drives insertSpaces (always true
+// for DWC since the gcode/json/config files we edit never use literal tab characters)
+function buildModelOptions(prefs: ReturnType<typeof useSettingsStore>["editor"]): Monaco.editor.ITextModelUpdateOptions {
+	return {
+		tabSize: prefs.tabSize,
+		insertSpaces: true,
+	};
+}
+
 interface DirectoriesShape {
 	macros: string;
 	menu: string;
@@ -226,22 +437,6 @@ function detectLanguage(filename: string, directories: DirectoriesShape, machine
 	return "plaintext";
 }
 
-let monacoSetup: Promise<typeof Monaco> | null = null;
-async function ensureMonaco(store: ReturnType<typeof useMachineStore>): Promise<typeof Monaco> {
-	if (!monacoSetup) {
-		monacoSetup = (async () => {
-			const [monaco, tokens] = await Promise.all([
-				import("monaco-editor"),
-				import("@duet3d/monacotokens"),
-			]);
-			tokens.registerDuetLanguages(monaco);
-			tokens.setMachineContext({ model: store.model });
-			return monaco;
-		})();
-	}
-	return monacoSetup;
-}
-
 // #endregion
 </script>
 
@@ -249,12 +444,37 @@ async function ensureMonaco(store: ReturnType<typeof useMachineStore>): Promise<
 .monaco-editor-host {
 	display: flex;
 	flex-direction: column;
-	height: 70vh;
-	min-height: 400px;
+	height: 100%;
+	min-height: 320px;
+}
+
+@media (min-width: 960px) {
+	.monaco-editor-host {
+		min-height: 400px;
+	}
+}
+
+.monaco-editor-host--collapsed {
+	height: auto;
+	min-height: 0;
 }
 
 .editor-pane {
 	flex: 1 1 auto;
 	min-height: 0;
+}
+
+.editor-textarea {
+	width: 100%;
+	font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+	background: rgb(var(--v-theme-surface));
+	color: rgb(var(--v-theme-on-surface));
+	border: 0;
+	padding: 8px;
+	resize: none;
+	outline: none;
+	white-space: pre;
+	overflow: auto;
+	tab-size: 4;
 }
 </style>

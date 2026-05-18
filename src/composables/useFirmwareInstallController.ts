@@ -1,7 +1,7 @@
 // Shared firmware-install controller used by FileList. When a parent (e.g. Explorer) provides
 // one via Vue's provide/inject the child FileLists share a single dialog mount instead of each
 // hosting its own pair. A standalone FileList (Jobs page, Settings page's firmware button) just
-// instantiates its own and hosts the dialogs locally.
+// instantiates its own and hosts the dialogs locally
 //
 // The controller owns:
 //   - the firmware-install pipeline state (which files to upload, which boards need M997)
@@ -10,7 +10,7 @@
 //
 // Callers call runFirmwareUpload(files) after the user picks files; the controller takes over,
 // plans the install, uploads, opens the dialog if updates are needed, runs M997 on confirmation
-// and prompts for a firmware reset when config.g was replaced.
+// and prompts for a firmware reset when config.g was replaced
 
 import type { InjectionKey } from "vue";
 
@@ -19,9 +19,8 @@ import {
 } from "@/composables/useFirmwareInstall";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { LogLevel, useUiStore } from "@/stores/ui";
+import { useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
-import { getErrorMessage } from "@/utils/errors";
 
 export interface FirmwareInstallController {
 	runFirmwareUpload(files: Array<File>): Promise<void>;
@@ -86,7 +85,7 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 			}
 		} catch (e) {
 			console.warn(e);
-			uiStore.log(LogLevel.error, i18n.global.t("notification.decompress.errorTitle"), getErrorMessage(e));
+			uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
 		}
 	}
 

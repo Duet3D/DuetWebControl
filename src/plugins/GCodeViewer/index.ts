@@ -10,8 +10,7 @@ registerRoute(GCodeViewer, {
 		GCodeViewer: {
 			icon: "mdi-rotate-3d",
 			caption: "plugins.gcodeViewer.caption",
-			path: "/Plugins/GCodeViewer",
-			order: 30
+			path: "/Plugins/GCodeViewer"
 		}
 	}
 });

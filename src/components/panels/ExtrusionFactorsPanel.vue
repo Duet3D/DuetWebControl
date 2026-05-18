@@ -1,5 +1,3 @@
-<!-- Per-extruder feedrate override (M221 Dnnn Snnn). The "Change Visibility" menu picks which
-	 extruder rows to render; the visibility array lives in the settings store -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
@@ -9,7 +7,7 @@
 			<v-menu location="bottom end">
 				<template #activator="{ props: activatorProps }">
 					<a v-show="!uiStore.uiFrozen && extruders.length > 0" v-bind="activatorProps"
-					   href="javascript:void(0)" class="text-subtitle-2">
+					   href="javascript:void(0)" class="text-title-small">
 						{{ $t("panel.extrusionFactors.changeVisibility") }}
 					</a>
 				</template>
@@ -31,7 +29,7 @@
 					<div class="d-inline-flex">
 						{{ $t("panel.extrusionFactors.extruder", [index]) }}
 						<v-spacer />
-						<a v-show="extruder.factor !== 1" href="javascript:void(0)" class="text-subtitle-2"
+						<a v-show="extruder.factor !== 1" href="javascript:void(0)" class="text-title-small"
 						   :disabled="uiStore.uiFrozen"
 						   @click.prevent="setExtrusionFactor(index, 100)">
 							<v-icon size="small" class="mr-1">mdi-backup-restore</v-icon>

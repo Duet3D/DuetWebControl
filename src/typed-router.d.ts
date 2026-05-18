@@ -38,9 +38,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
+    '/[...notFound]': RouteRecordInfo<
+      '/[...notFound]',
+      '/:notFound(.*)',
+      { notFound: ParamValue<true> },
+      { notFound: ParamValue<false> },
+      | never
+    >,
     '/Console': RouteRecordInfo<
       '/Console',
       '/Console',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/Dashboard': RouteRecordInfo<
+      '/Dashboard',
+      '/Dashboard',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -66,9 +80,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Jobs': RouteRecordInfo<
-      '/Jobs',
-      '/Jobs',
+    '/Jobs/[[volume]]/[[...path]]': RouteRecordInfo<
+      '/Jobs/[[volume]]/[[...path]]',
+      '/Jobs/:volume?/:path(.*)?',
+      { volume?: ParamValueZeroOrOne<true>, path?: ParamValueZeroOrOne<true> },
+      { volume?: ParamValueZeroOrOne<false>, path?: ParamValueZeroOrOne<false> },
+      | never
+    >,
+    '/Macros': RouteRecordInfo<
+      '/Macros',
+      '/Macros',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/Plugins': RouteRecordInfo<
+      '/Plugins',
+      '/Plugins',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -76,6 +104,13 @@ declare module 'vue-router/auto-routes' {
     '/Settings': RouteRecordInfo<
       '/Settings',
       '/Settings',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/Temperatures': RouteRecordInfo<
+      '/Temperatures',
+      '/Temperatures',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -99,9 +134,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
+    'src/pages/[...notFound].vue': {
+      routes:
+        | '/[...notFound]'
+      views:
+        | never
+    }
     'src/pages/Console.vue': {
       routes:
         | '/Console'
+      views:
+        | never
+    }
+    'src/pages/Dashboard.vue': {
+      routes:
+        | '/Dashboard'
       views:
         | never
     }
@@ -123,15 +170,33 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/Jobs.vue': {
+    'src/pages/Jobs/[[volume]]/[[...path]].vue': {
       routes:
-        | '/Jobs'
+        | '/Jobs/[[volume]]/[[...path]]'
+      views:
+        | never
+    }
+    'src/pages/Macros.vue': {
+      routes:
+        | '/Macros'
+      views:
+        | never
+    }
+    'src/pages/Plugins.vue': {
+      routes:
+        | '/Plugins'
       views:
         | never
     }
     'src/pages/Settings.vue': {
       routes:
         | '/Settings'
+      views:
+        | never
+    }
+    'src/pages/Temperatures.vue': {
+      routes:
+        | '/Temperatures'
       views:
         | never
     }

@@ -34,18 +34,31 @@
  *   node scripts/build-plugin.js <path-to-plugin-dir>
  *
  * Output:
- *   <plugin-dir>/dist/                 — compiled IIFE bundle + optional CSS
- *   <plugin-dir>/<id>-<ver>.zip        — ZIP archive (if archiver is installed)
+ *   <plugin-dir>/dist/                 - compiled IIFE bundle + optional CSS
+ *   <plugin-dir>/<id>-<ver>.zip        - ZIP archive
  *
  * See build-plugin-pkg.js for full packaging with file list population.
  */
 
-import { existsSync, readFileSync, createWriteStream } from "fs";
-import { resolve, join } from "path";
+import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from "fs";
+import { resolve, join, relative } from "path";
 import { build } from "vite";
 import vue from "@vitejs/plugin-vue";
 
-// ─── Shared helpers (also used by build-plugin-pkg.js) ───────────────
+const PLUGIN_GLOBALS = {
+	"DuetWebControl": "DWC",
+	"DuetWebControl/components": "DWC.Components",
+	"vuetify/components": "DWC.VuetifyComponents",
+	"@/i18n": "DWC.i18n",
+	"vue": "DWC.Vue",
+	"vue-router": "DWC.VueRouter",
+	"pinia": "DWC.Pinia",
+	"vue-i18n": "DWC.VueI18n",
+	"@duet3d/objectmodel": "DWC.ObjectModel",
+	"@duet3d/connectors": "DWC.Connectors",
+};
+
+// #region Shared helpers (also used by build-plugin-pkg.js)
 
 export function parsePluginDir() {
 	const pluginDir = process.argv[2];
@@ -85,7 +98,9 @@ export function resolveVersionPlaceholders(manifest) {
 	);
 
 	function resolveVersion(value, reference) {
-		if (value === "auto") return reference;
+		if (value === "auto") {
+			return reference;
+		}
 		if (value === "auto-major") {
 			const parts = reference.split(".");
 			return parts.slice(0, 2).join(".");
@@ -139,34 +154,34 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 				fileName: () => `${manifest.id}.js`,
 			},
 			rollupOptions: {
-				external: [
-					"DuetWebControl",
-					"vue",
-					"vue-router",
-					"pinia",
-					"vue-i18n",
-					"@duet3d/objectmodel",
-					"@duet3d/connectors",
-				],
+				// `DuetWebControl` is the canonical alias plugins should use, but accept
+				// `@/plugins`, `@/stores*`, `@/i18n` too so a plugin developed in-tree
+				// (under DWC's src/plugins/) can be shipped as external without changing
+				// its imports. The regex matches both bare segments and sub-paths
+				// (`@/stores`, `@/stores/machine`, etc.) - everything resolves to the
+				// same `window.DWC.*` surface
+				external: (id) => {
+					return id === "DuetWebControl"
+						|| id === "DuetWebControl/components"
+						|| /^@\/(plugins|stores|i18n)(\/.*)?$/.test(id)
+						|| id === "vuetify/components"
+						|| ["vue", "vue-router", "pinia", "vue-i18n",
+							"@duet3d/objectmodel", "@duet3d/connectors"].includes(id);
+				},
 				output: {
-					inlineDynamicImports: true,
 					assetFileNames: `${manifest.id}.[ext]`,
-					globals: {
-						"DuetWebControl": "DWC",
-						"vue": "DWC.Vue",
-						"vue-router": "DWC.VueRouter",
-						"pinia": "DWC.Pinia",
-						"vue-i18n": "DWC.VueI18n",
-						"@duet3d/objectmodel": "DWC.ObjectModel",
-						"@duet3d/connectors": "DWC.Connectors",
+					globals: (id) => {
+						// Named imports like `{ useMachineStore }` from @/plugins or @/stores paths
+						// resolve to `DWC.useMachineStore` at runtime
+						if (/^@\/(plugins|stores)(\/.*)?$/.test(id)) {
+							return "DWC";
+						}
+						return PLUGIN_GLOBALS[id];
 					},
 				},
 			},
-			minify: "terser",
-			terserOptions: {
-				keep_classnames: true,
-				keep_fnames: true,
-			},
+			// Vite 8 ships with rolldown's built-in minifier - no extra deps required
+			minify: true,
 			cssCodeSplit: false,
 		},
 		define: {
@@ -178,24 +193,37 @@ export async function buildPlugin(pluginDir, manifest, entryFile) {
 }
 
 export async function createZip(archiveDir, zipPath) {
-	const archiver = (await import("archiver")).default;
+	// jszip is already a DWC runtime dep (used by the file-list ZIP download / decompress
+	// paths) so we don't add a build-only dep
+	const { default: JSZip } = await import("jszip");
+	const zip = new JSZip();
 
-	const output = createWriteStream(zipPath);
-	const archive = archiver("zip", { zlib: { level: 9 } });
+	function addRecursive(dir, zipFolder) {
+		for (const entry of readdirSync(dir)) {
+			const full = join(dir, entry);
+			const stat = statSync(full);
+			if (stat.isDirectory()) {
+				addRecursive(full, zipFolder.folder(entry));
+			} else {
+				zipFolder.file(entry, readFileSync(full));
+			}
+		}
+	}
 
-	archive.pipe(output);
-	archive.directory(archiveDir, false);
+	addRecursive(archiveDir, zip);
 
-	await archive.finalize();
-	await new Promise((resolve, reject) => {
-		output.on("close", resolve);
-		output.on("error", reject);
+	const buf = await zip.generateAsync({
+		type: "nodebuffer",
+		compression: "DEFLATE",
+		compressionOptions: { level: 9 },
 	});
-
-	return archive.pointer();
+	writeFileSync(zipPath, buf);
+	return buf.length;
 }
 
-// ─── Main ────────────────────────────────────────────────────────────
+// #endregion
+
+// #region Main
 
 const resolvedPluginDir = parsePluginDir();
 const manifest = readManifest(resolvedPluginDir);
@@ -207,12 +235,11 @@ console.log(`Entry point: ${entryFile}`);
 
 const outDir = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
-// ─── Create ZIP archive ─────────────────────────────────────────────
 // Build a simple ZIP containing compiled chunks + optional extra
-// directories + plugin.json. File lists are NOT populated — use
-// build-plugin-pkg.js for that.
+// directories + plugin.json. File lists are NOT populated - use
+// build-plugin-pkg.js for that
 
-import { mkdirSync, writeFileSync, cpSync } from "fs";
+import { mkdirSync, cpSync } from "fs";
 
 const assembleDir = resolve(resolvedPluginDir, "pkg");
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
@@ -256,9 +283,11 @@ try {
 	const zipPath = resolve(resolvedPluginDir, `${manifest.id}-${manifest.version}.zip`);
 	const bytes = await createZip(assembleDir, zipPath);
 	console.log(`\nPlugin ZIP created: ${zipPath} (${bytes} bytes)`);
-} catch {
+} catch (e) {
 	console.log(`\nPlugin assembled in: ${assembleDir}`);
-	console.log("Install 'archiver' (npm i -D archiver) to auto-create ZIP files.");
+	console.warn(`ZIP creation failed: ${e?.message ?? e}`);
 }
 
 console.log("Done!")
+
+// #endregion

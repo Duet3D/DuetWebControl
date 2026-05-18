@@ -1,0 +1,133 @@
+import type { ChartDataset } from "chart.js";
+import type { AnalogSensor } from "@duet3d/objectmodel";
+
+import i18n from "@/i18n";
+import { useMachineStore } from "@/stores/machine";
+import Events from "@/utils/events";
+
+// Sample-recording cadence and the rolling-window length (10 min). Higher cadences eat memory;
+// every consumer that draws from these samples should debounce / cap its own redraw rate
+const sampleInterval = 1000;
+export const maxSampleTime = 600_000;
+
+// Hardcoded Material-style palette. Resolves the heater color synchronously instead of going
+// through a hidden-span + getComputedStyle round-trip, which depended on theme classes that
+// the framework no longer ships
+const heaterPalette = [
+	"#1976D2", "#D32F2F", "#388E3C", "#F57C00", "#616161", "#827717", "#212121",
+	"#7B1FA2", "#FBC02D", "#00796B", "#5D4037", "#E64A19", "#C2185B", "#455A64"
+];
+function getHeaterColor(index: number, isExtra: boolean): string {
+	const slot = isExtra ? heaterPalette.length - index - 1 : index;
+	const wrapped = ((slot % heaterPalette.length) + heaterPalette.length) % heaterPalette.length;
+	return heaterPalette[wrapped];
+}
+
+interface ExtraDatasetValues {
+	index: number;
+	extra: boolean;
+	locale: string;
+	rawLabel: string | null;
+}
+export type TempChartDataset = ChartDataset<"line"> & ExtraDatasetValues;
+
+function makeDataset(index: number, extra: boolean, label: string, numSamples: number): TempChartDataset {
+	const color = getHeaterColor(index, extra);
+	return {
+		index,
+		extra,
+		label,
+		fill: false,
+		backgroundColor: color,
+		borderColor: color,
+		borderDash: extra ? [10, 5] : undefined,
+		borderWidth: 2,
+		data: new Array<number>(numSamples).fill(NaN),
+		locale: i18n.global.locale.value,
+		pointRadius: 0,
+		pointHitRadius: 0,
+		rawLabel: null,
+		showLine: true
+	};
+}
+
+// Shared rolling buffers. Consumers (chart instances) read these directly and call their own
+// redraw on the `sampleAdded` event so a kept-alive or unmounted chart never blocks collection
+export const sampleTimes: Array<number> = [];
+export const sampleSeries: Array<TempChartDataset> = [];
+
+const sampleListeners = new Set<() => void>();
+
+export function onSampleAdded(listener: () => void): () => void {
+	sampleListeners.add(listener);
+	return () => sampleListeners.delete(listener);
+}
+
+function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
+	let dataset = sampleSeries.find(item => item.index === index && item.extra === extra);
+
+	const currentLocale = i18n.global.locale.value;
+	if (!dataset || dataset.locale !== currentLocale || dataset.rawLabel !== sensor.name) {
+		let name: string;
+		if (sensor.name) {
+			const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
+			name = matches ? matches[1] : sensor.name;
+		} else if (extra) {
+			name = i18n.global.t("chart.temperature.sensor", [index]);
+		} else {
+			name = i18n.global.t("chart.temperature.heater", [index]);
+		}
+
+		if (dataset) {
+			dataset.rawLabel = sensor.name;
+			dataset.label = name;
+			dataset.locale = currentLocale;
+		} else {
+			dataset = makeDataset(index, extra, name, sampleTimes.length);
+			sampleSeries.push(dataset);
+		}
+	}
+
+	dataset.data!.push(sensor.lastReading !== null ? sensor.lastReading : NaN);
+}
+
+function recordSamples() {
+	const machineStore = useMachineStore();
+	const now = Date.now();
+	if (sampleTimes.length > 0 && now - sampleTimes[sampleTimes.length - 1] < sampleInterval) {
+		return;
+	}
+	machineStore.model.sensors.analog.forEach((sensor, sensorIndex) => {
+		if (sensor === null) {
+			return;
+		}
+		const heaterIndex = machineStore.model.heat.heaters.findIndex(heater => heater !== null && heater.sensor === sensorIndex);
+		if (heaterIndex !== -1) {
+			pushSeriesData(heaterIndex, false, sensor);
+		} else {
+			pushSeriesData(sensorIndex, true, sensor);
+		}
+	});
+
+	while (sampleTimes.length > 0 && now - sampleTimes[0] > maxSampleTime) {
+		sampleTimes.shift();
+		sampleSeries.forEach(dataset => dataset.data!.shift());
+	}
+	sampleTimes.push(now);
+
+	for (const listener of sampleListeners) {
+		listener();
+	}
+}
+
+let initialized = false;
+
+// Idempotent. Call once at app boot - the listener stays bound forever, so sample collection
+// runs continuously regardless of whether a chart instance is currently rendered
+export function initTemperatureSampling(): void {
+	if (initialized) {
+		return;
+	}
+	initialized = true;
+	Events.on("modelUpdated", recordSamples);
+}

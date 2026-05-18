@@ -1,5 +1,5 @@
 <template>
-	<span class="px-2 text-subtitle-2 status-label" :class="statusClass">
+	<span class="px-2 text-title-small status-label" :class="statusClass">
 		{{ statusText }}
 	</span>
 </template>
@@ -28,8 +28,9 @@ const statusText = computed(() => {
 	return i18n.global.t(`generic.status.${type}`);
 });
 
-// Tints chosen to mirror v3.7-dev's colour mapping. Pure CSS variables would be cleaner long-term, but
-// the existing palette references work fine for the port and let us iterate later without redoing semantics
+// Direct Vuetify utility-class strings per status. A CSS-variable / theme-token mapping would
+// be cleaner once we have a richer status-color palette, but the literal classes are easy to
+// audit and keep the lookup synchronous
 const statusClass = computed(() => {
 	switch (machineStore.model.state.status) {
 		case MachineStatus.disconnected:

@@ -1,8 +1,3 @@
-<!-- Three-step wizard that records a Motion Profile: pre-flight (accelerometer + homing checks),
-	 configure the moves (axis, start/end, optional tool, centring of unused axes), then execute
-	 each move and stream the accelerometer recording to /sys/accelerometer. Each move issues a
-	 G1 ... M956 ... pair and waits for the board's `accelerometer.runs` counter to bump before
-	 advancing. Cancel mid-flight raises OperationCancelledError into the move loop -->
 <template>
 	<v-dialog v-model="dialogShown" max-width="640px" no-click-animation>
 		<v-card>
@@ -248,8 +243,12 @@ const zAxis = computed<Axis>(() => move.value.axes.find((a) => a.letter === "Z")
 
 const shaperLabel = computed(() => {
 	const type = move.value.shaping.type;
-	if (type === "none") return "None";
-	if (type === "custom") return "Custom";
+	if (type === "none") {
+		return "None";
+	}
+	if (type === "custom") {
+		return "Custom";
+	}
 	return (type as string).toUpperCase();
 });
 
@@ -347,12 +346,18 @@ const canGoNext = computed(() => {
 	}
 	if (currentPage.value === "config") {
 		for (const m of moves.value) {
-			if (!m.accelerometer || !m.axis || m.start >= m.end) return false;
+			if (!m.accelerometer || !m.axis || m.start >= m.end) {
+				return false;
+			}
 			if (m.start < (getMin(m, true) ?? -Infinity) || m.start > (getMax(m, true) ?? Infinity)) return false;
 			if (m.end < (getMin(m, false) ?? -Infinity) || m.end > (getMax(m, false) ?? Infinity)) return false;
 		}
-		if (moves.value.length === 0) return false;
-		if (!centerAxes.value) return true;
+		if (moves.value.length === 0) {
+			return false;
+		}
+		if (!centerAxes.value) {
+			return true;
+		}
 		const xOK = !Number.isNaN(xAxisCenter.value) && xAxisCenter.value >= xAxis.value.min && xAxisCenter.value < xAxis.value.max;
 		const yOK = !Number.isNaN(yAxisCenter.value) && yAxisCenter.value >= yAxis.value.min && yAxisCenter.value < yAxis.value.max;
 		const zOK = !showZCenter.value || (!Number.isNaN(zAxisCenter.value) && zAxisCenter.value >= zAxis.value.min && zAxisCenter.value < zAxis.value.max);
@@ -365,14 +370,18 @@ const canGoNext = computed(() => {
 
 // #region Move building helpers
 function refreshCenters() {
-	if (currentPage.value === "collection") return;
+	if (currentPage.value === "collection") {
+		return;
+	}
 	xAxisCenter.value = (xAxis.value.min + xAxis.value.max) / 2;
 	yAxisCenter.value = (yAxis.value.min + yAxis.value.max) / 2;
 	zAxisCenter.value = (zAxis.value.min + zAxis.value.max) / 2;
 }
 
 function makeMoves() {
-	if (currentPage.value === "collection") return;
+	if (currentPage.value === "collection") {
+		return;
+	}
 	moves.value = move.value.axes
 		.filter((axis) => axis.letter === "X" || axis.letter === "Y")
 		.map((axis) => ({
@@ -431,15 +440,21 @@ function removeMove(index: number) {
 }
 
 function getMin(m: MoveItem, start: boolean): number | null {
-	if (!m.axis) return null;
+	if (!m.axis) {
+		return null;
+	}
 	let min: number | null = null;
 	const axes = m.axis.split("+");
 	for (const axis of move.value.axes) {
 		if (axes.includes(axis.letter) && (min === null || min < axis.min)) {
 			if (m.tool !== null) {
-				if (axis.letter === "X") min = axis.min + m.tool.offsets[0];
-				else if (axis.letter === "Y") min = axis.min + m.tool.offsets[1];
-				else min = axis.min;
+				if (axis.letter === "X") {
+					min = axis.min + m.tool.offsets[0];
+				} else if (axis.letter === "Y") {
+					min = axis.min + m.tool.offsets[1];
+				} else {
+					min = axis.min;
+				}
 			} else {
 				min = axis.min;
 			}
@@ -449,15 +464,21 @@ function getMin(m: MoveItem, start: boolean): number | null {
 }
 
 function getMax(m: MoveItem, start: boolean): number | null {
-	if (!m.axis) return null;
+	if (!m.axis) {
+		return null;
+	}
 	let max: number | null = null;
 	const axes = m.axis.split("+");
 	for (const axis of move.value.axes) {
 		if (axes.includes(axis.letter) && (max === null || max > axis.max)) {
 			if (m.tool !== null) {
-				if (axis.letter === "X") max = axis.max + m.tool.offsets[0];
-				else if (axis.letter === "Y") max = axis.max + m.tool.offsets[1];
-				else max = axis.max;
+				if (axis.letter === "X") {
+					max = axis.max + m.tool.offsets[0];
+				} else if (axis.letter === "Y") {
+					max = axis.max + m.tool.offsets[1];
+				} else {
+					max = axis.max;
+				}
 			} else {
 				max = axis.max;
 			}

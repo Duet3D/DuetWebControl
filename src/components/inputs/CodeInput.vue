@@ -1,14 +1,18 @@
 <template>
-	<v-row class="component flex-shrink-1" :class="{ 'mt-2': variant === 'solo', 'grow': grow }"
+	<v-row class="component code-input-row" :class="{ 'mt-2 mt-md-0': variant === 'solo' }"
 		   no-gutters align="center">
 		<v-col>
-			<v-combobox v-model="code" :items="displayedCodes" hide-no-data hide-selected
-						:placeholder="$t('input.code.placeholder')" :disabled="uiStore.uiFrozen" :loading="doingCode"
+			<v-combobox v-model="code" v-model:menu="menuOpen" :items="displayedCodes" :return-object="false"
+						hide-no-data hide-selected
+						:placeholder="$t('input.code.placeholder')" single-line
+						:disabled="uiStore.uiFrozen" :loading="doingCode"
 						:variant="variant" maxlength="255" density="compact" hide-details
-						menu-icon="" @keydown.enter.prevent="sendOnEnter">
+						menu-icon="" @keydown.enter.prevent="sendOnEnter" @blur="menuOpen = false">
 				<template #item="{ item, props }">
-					<v-list-item v-bind="props" :title="undefined">
-						<code>{{ item.title }}</code>
+					<v-list-item v-bind="props">
+						<template #title>
+							<code>{{ item.title }}</code>
+						</template>
 						<template #append>
 							<v-btn icon="mdi-delete" variant="text" size="small" density="compact"
 								   @click.prevent.stop="cacheStore.removeLastSentCode(item.value)" />
@@ -18,8 +22,8 @@
 			</v-combobox>
 		</v-col>
 
-		<v-col class="ml-2 flex-shrink-1" cols="auto">
-			<v-btn color="info" :disabled="uiStore.uiFrozen" :loading="doingCode" @click="send">
+		<v-col class="ml-2" cols="auto">
+			<v-btn color="info" variant="elevated" :elevation="1" :disabled="uiStore.uiFrozen" :loading="doingCode" @click="send">
 				<v-icon class="mr-2">mdi-send</v-icon> {{ $t("input.code.send") }}
 			</v-btn>
 		</v-col>
@@ -27,8 +31,12 @@
 </template>
 
 <style scoped>
-.grow {
-	flex-grow: 1;
+/* Fill the host container at a fixed width instead of growing with input content - callers
+   pin the container width (600px in the app bar, full row in the Console) and the input
+   should respect that envelope rather than auto-sizing to the typed characters */
+.code-input-row {
+	width: 100%;
+	flex-wrap: nowrap;
 }
 </style>
 
@@ -46,7 +54,6 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 withDefaults(defineProps<{
-	grow?: boolean;
 	/**
 	 * Vuetify variant for the inner combobox. Defaults to outlined for the app-bar use; the
 	 * Console reference page picks `solo` for the body-of-page surface
@@ -57,9 +64,15 @@ withDefaults(defineProps<{
 // Conditional G-code keywords that must keep their original case
 const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "break", "continue", "var", "global", "set"];
 
-const code = ref<string>("");
+// v-combobox treats `""` as a populated selection (matches no item, so it still renders as an
+// empty pill that suppresses the placeholder). null is the canonical "no value" - placeholder
+// then shows from the start without forcing the user to type-then-erase to clear it
+const code = ref<string | null>(null);
 const doingCode = ref(false);
 const ignoreEnter = ref(false);
+// v3.7 had a `showItems` flag that flipped false on Enter/blur to close the autocomplete
+// dropdown; Vuetify 4 exposes the same control via the combobox's `menu` v-model
+const menuOpen = ref(false);
 
 // Most-recently-sent codes are appended to lastSentCodes; show them newest-first and filter by current input
 const displayedCodes = computed<Array<{ title: string; value: string }>>(() => {
@@ -80,9 +93,14 @@ const hasUnprecedentedParameters = (input: string) => !input || /(M23|M28|M30|M3
 async function sendOnEnter() {
 	if (ignoreEnter.value) {
 		ignoreEnter.value = false;
-	} else {
-		await send();
+		return;
 	}
+	// Vuetify's v-combobox sets menu.value=true inside its own keydown.enter handler
+	// (VCombobox.js: `if (['Enter', 'ArrowDown'].includes(e.key)) menu.value = true`), so an
+	// immediate menuOpen=false here gets overridden synchronously. Defer the close to the
+	// next tick - after Vuetify's handler has flushed - so the suggestions stay collapsed
+	nextTick(() => { menuOpen.value = false; });
+	await send();
 }
 
 async function send() {

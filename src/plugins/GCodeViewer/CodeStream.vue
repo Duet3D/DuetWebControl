@@ -1,6 +1,3 @@
-<!-- Read-only Monaco editor showing the gcode being simulated by the viewer. Tracks the
-	 viewer's current position via `currentline`; in live (non-simulating) mode the user can
-	 click to reposition the simulation by emitting the new file offset -->
 <template>
 	<div class="editor-monaco" @mouseup="cursorChange" @keydown="cursorChange" @keyup="cursorChange">
 		<div v-if="monacoLoading" class="d-flex justify-center align-center fill-height">
@@ -14,6 +11,7 @@
 import type * as Monaco from "monaco-editor";
 
 import { useSettingsStore } from "@/stores/settings";
+import { ensureMonaco } from "@/utils/monaco";
 
 const props = defineProps<{
 	shown: boolean;
@@ -36,7 +34,9 @@ let editor: Monaco.editor.IStandaloneCodeEditor | null = null;
 let innerDocument = " ";
 
 function cursorChange() {
-	if (props.isSimulating || !editor) return;
+	if (props.isSimulating || !editor) {
+		return;
+	}
 	const currentPosition = editor.getPosition() ?? { lineNumber: 1, column: 9999 };
 	const position = editor.getModel()?.getOffsetAt({
 		lineNumber: currentPosition.lineNumber,
@@ -47,10 +47,12 @@ function cursorChange() {
 
 onMounted(async () => {
 	monacoLoading.value = true;
-	const monaco = await import("monaco-editor");
+	const monaco = await ensureMonaco();
 	monacoLoading.value = false;
 	nextTick(() => {
-		if (!editorHost.value) return;
+		if (!editorHost.value) {
+			return;
+		}
 		editor = monaco.editor.create(editorHost.value, {
 			automaticLayout: true,
 			language: "gcode",
@@ -72,7 +74,9 @@ onBeforeUnmount(() => {
 });
 
 watch(() => props.currentline, (to) => {
-	if (!props.shown || !editor) return;
+	if (!props.shown || !editor) {
+		return;
+	}
 	const currentPosition = editor.getPosition() ?? { lineNumber: 1, column: 9999 };
 	const position = editor.getModel()?.getPositionAt(to) ?? { lineNumber: 1, column: 9999 };
 	if (currentPosition.lineNumber === position.lineNumber && currentPosition.column === position.column) {

@@ -1,12 +1,10 @@
-<!-- Per-layer duration bar chart fed from job.layers. Tooltip annotates each layer with height,
-	 filament use, fraction printed and the recorded temperatures when those fields are populated -->
 <template>
 	<v-card class="d-flex flex-column flex-grow-1">
 		<v-card-title class="d-flex align-center">
 			<v-icon size="small" class="mr-1">mdi-vector-polyline</v-icon>
 			{{ $t("chart.layer.caption") }}
 			<v-spacer />
-			<a v-show="layers.length > 2" href="javascript:void(0)" class="text-subtitle-2"
+			<a v-show="layers.length > 2" href="javascript:void(0)" class="text-title-small"
 			   @click.prevent="showAllLayers = !showAllLayers">
 				{{ showAllLayers
 					? $t("chart.layer.showLastLayers", [Math.min(layers.length, 30)])

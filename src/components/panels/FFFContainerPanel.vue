@@ -1,7 +1,5 @@
-<!-- Always-visible global status panel for FFF dashboards (md+).
-	 Three-column layout: status info, tools (heaters + sensors), and temperature chart -->
 <template>
-	<v-row :dense="mobile">
+	<v-row :density="mobile ? 'compact' : 'default'">
 		<v-col cols="12" sm="6" md="4" lg="4" xl="4">
 			<StatusPanel />
 		</v-col>
@@ -10,7 +8,12 @@
 			<ToolsPanel />
 		</v-col>
 
-		<v-col v-if="hasTemperaturesToDisplay" :class="{ 'd-flex': true }" cols="12" sm="6" md="3" lg="3" xl="4">
+		<!-- Only apply d-flex to the chart column when there's actually data to chart. Without it,
+			 the chart card collapses to fit just the title + noData line on a disconnected dashboard
+			 instead of stretching to match the tallest sibling (StatusPanel) and rendering a tall
+			 empty placeholder -->
+		<v-col v-if="mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }"
+			   cols="12" sm="6" md="3" lg="3" xl="4">
 			<TemperatureChart />
 		</v-col>
 	</v-row>
@@ -21,7 +24,6 @@ import { useDisplay } from "vuetify";
 
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-
 import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
 
 // Chart.js is heavy (~70 kB gzipped). Lazy-loading keeps it out of the default-layout chunk so the
@@ -31,11 +33,13 @@ const TemperatureChart = defineAsyncComponent(() => import("@/components/charts/
 // Page-level container that fills the main content area - the container width tracks the
 // viewport, so useDisplay is the matching observable. Component-internal adaptation that's
 // genuinely container-aware (FileList's auto view mode) uses a ResizeObserver instead
-const { mobile } = useDisplay();
+const { mobile, mdAndUp } = useDisplay();
+
+// Mirrors TemperatureChart.hasTemperaturesToDisplay so the column wrapper can drop its d-flex
+// when the chart has nothing to draw. Cheap to recompute - both sides re-evaluate on the same
+// machine-model patches anyway
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
-
-// Same predicate the chart uses internally - hides the column entirely when nothing would render
 const hasTemperaturesToDisplay = computed(() =>
 	machineStore.model.sensors.analog.some((sensor, sensorIndex) =>
 		sensor !== null && (

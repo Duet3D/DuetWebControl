@@ -15,6 +15,9 @@ declare module 'chart.js' {
 	interface ChartConfiguration {
 		range?: RangeConfig;
 	}
+	interface ChartConfigurationCustomTypesPerDataset {
+		range?: RangeConfig;
+	}
 }
 
 const verticalLinePlugin = {

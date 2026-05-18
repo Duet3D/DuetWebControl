@@ -216,8 +216,4 @@ type Events = {
 
 const emitter = mitt<Events>();
 
-if (import.meta.env.DEV) {
-	emitter.on("*", (type: any, event: any) => console.debug(type, event));
-}
-
 export default emitter

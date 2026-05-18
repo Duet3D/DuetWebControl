@@ -174,6 +174,31 @@ export const useMachineStore = defineStore("machine", {
 		},
 
 		/**
+		 * Effective bed-heater mapping. Prefers the OM's `bedHeaterMapping` (Array<Array<number>>);
+		 * falls back to the deprecated flat `bedHeaters` list (one heater per bed slot) when the
+		 * mapping is empty, so older firmware that still publishes the legacy field still renders
+		 * the bed row in the tools panel
+		 */
+		bedHeaterMapping: state => {
+			const mapping = state.model.heat.bedHeaterMapping;
+			if (mapping.length > 0) {
+				return mapping;
+			}
+			return state.model.heat.bedHeaters.map(h => (h >= 0) ? [h] : []);
+		},
+
+		/**
+		 * Effective chamber-heater mapping. See {@link bedHeaterMapping}
+		 */
+		chamberHeaterMapping: state => {
+			const mapping = state.model.heat.chamberHeaterMapping;
+			if (mapping.length > 0) {
+				return mapping;
+			}
+			return state.model.heat.chamberHeaters.map(h => (h >= 0) ? [h] : []);
+		},
+
+		/**
 		 * Maximum permitted heater temperature (in C)
 		 * @param state Store state
 		 * @returns Maximum permitted heater temperature
@@ -360,10 +385,13 @@ export const useMachineStore = defineStore("machine", {
 		 */
 		async handleConnectionError(error: any) {
 			if (this.connector === null) {
-				throw new OperationFailedError("handleConnectionError is not available in default machine module");
+				// Connector callbacks can fire after disconnect() has already cleared this.connector
+				// (the socket's onClose lands a tick later). Nothing left to do; swallow silently
+				// instead of throwing - that just surfaces as an unhandled promise rejection
+				return;
 			}
 
-			Events.emit("connectionError", error);
+			Events.emit("connectionError", { hostname: this.connector.hostname, error });
 			if (error instanceof InvalidPasswordError) {
 				await this.disconnect(false);
 				Events.emit("invalidPassword", { hostname: this.connector.hostname, username: DefaultUsername, password: DefaultPassword });
@@ -475,7 +503,7 @@ export const useMachineStore = defineStore("machine", {
 		 * @param showError Show notification upon error
 		 * @param closeProgressOnSuccess Automatically close the progress indicator when finished
 		 */
-		async upload(fileOrFiles: Array<{ filename: string, content: any }> | { filename: string, content: any }, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false) {
+		async upload(fileOrFiles: Array<{ filename: string, content: any }> | { filename: string, content: any }, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false, onProgress?: (loaded: number, total: number) => void) {
 			if (this.connector === null) {
 				throw new OperationFailedError("upload is not available in default machine module");
 			}
@@ -560,6 +588,7 @@ export const useMachineStore = defineStore("machine", {
 								if (notification && notification.onProgress) {
 									notification.onProgress(loaded, total, item.speed)
 								}
+								onProgress?.(loaded, total)
 							}
 						);
 						item.progress = 1;
@@ -644,7 +673,7 @@ export const useMachineStore = defineStore("machine", {
 		 * @param closeProgressOnSuccess Automatically close the progress indicator when finished
 		 * @returns Response if a single file was requested, else an array of responses
 		 */
-		async download<T extends Array<DownloadItem> | DownloadItem | string>(fileOrFiles: T, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false): Promise<T extends Array<DownloadItem> ? Array<any> : any> {
+		async download<T extends Array<DownloadItem> | DownloadItem | string>(fileOrFiles: T, showProgress: boolean = true, showSuccess: boolean = true, showError: boolean = true, closeProgressOnSuccess: boolean = false, onProgress?: (loaded: number, total: number) => void): Promise<T extends Array<DownloadItem> ? Array<any> : any> {
 			if (this.connector === null) {
 				throw new OperationFailedError("download is not available in default machine module");
 			}
@@ -721,6 +750,7 @@ export const useMachineStore = defineStore("machine", {
 								if (notification && notification.onProgress) {
 									notification.onProgress(loaded, total, item.speed)
 								}
+								onProgress?.(loaded, total)
 							},
 							rawPath
 						);

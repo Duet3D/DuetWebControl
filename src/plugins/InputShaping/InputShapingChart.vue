@@ -1,17 +1,16 @@
-<!-- Chart panel for the InputShaping plugin. Renders either a frequency-domain view (frequencies
-	 array supplied) or a sample-time view (samples but no frequencies). Plots:
-	 - the raw amplitudes per axis (when `value` is provided)
-	 - one damping curve per selected built-in shaper, plus a curve for the custom shaper
-	 - a vertical line marking the configured ringing frequency
-	 In sample-view mode the user can drag-select a range to feed back via update:sampleStartIndex
-	 / update:sampleEndIndex; double-click clears the range -->
 <template>
 	<canvas ref="chartCanvas" @mousedown="onMouseDown" @mousemove="onMouseMove" @dblclick="onDoubleClick" />
 </template>
 
 <script setup lang="ts">
-import type { ChartConfiguration, ChartDataset, ChartEvent, LegendElement, LegendItem, TooltipItem } from "chart.js";
-import { Chart } from "chart.js";
+import type { ChartDataset, ChartEvent, ChartOptions, LegendElement, LegendItem, TooltipItem } from "chart.js";
+import {
+	CategoryScale, Chart, Filler, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip,
+} from "chart.js";
+
+// Chart.js v4 requires explicit registration of every scale / controller / element used by a
+// chart instance; missing one trips a runtime "X is not a registered scale" error on first draw
+Chart.register(LineController, LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Filler);
 import { getInputShaperDamping, getInputShaperFactors, InputShaperType } from "@duet3d/motionanalysis";
 import { InputShapingType } from "@duet3d/objectmodel";
 
@@ -81,24 +80,33 @@ const lineAtPoint = computed(() => {
 });
 
 // #region Chart setup
-function buildOptions(): any {
+function buildOptions(): ChartOptions<"line"> {
 	return {
 		animation: false,
 		hover: { mode: "nearest", intersect: true },
 		maintainAspectRatio: false,
+		// Chart.js v3 used a default line tension of 0.4 (smooth curves); v4 dropped to 0
+		// (straight segments) which makes the FFT amplitude lines look jagged. Restore the
+		// pre-v4 default so the motion-analysis curve reads as a smooth resonance plot again
+		elements: {
+			line: { tension: 0.3 },
+		},
 		plugins: {
 			legend: {
 				labels: {},
 				onClick(_e: ChartEvent, legendItem: LegendItem, legend: LegendElement<"line">) {
 					const index = legendItem.datasetIndex!;
 					const ci = legend.chart;
-					const meta = ci.getDatasetMeta(index);
-
-					(meta as any).hidden = meta.hidden === null ? !ci.data.datasets[index].hidden : null;
+					const becomingHidden = ci.isDatasetVisible(index);
+					if (becomingHidden) {
+						ci.hide(index);
+					} else {
+						ci.show(index);
+					}
 
 					// Hiding the shaper-frequency overlay drops the vertical-line marker too
 					if ((ci.data.datasets[index] as InputShapingDataset).isShaperFrequency) {
-						(ci.config as ChartConfiguration).lineAtIndex = meta.hidden ? [] : [lineAtPoint.value];
+						ci.config.lineAtIndex = becomingHidden ? [] : [lineAtPoint.value];
 					}
 
 					ci.update();
@@ -130,6 +138,10 @@ function buildOptions(): any {
 		},
 		scales: {
 			x: {
+				// Frequency-domain plots feed amplitudes per axis indexed by a labels[] of
+				// rounded frequency strings; `category` lines those up with the x-axis ticks
+				// natively so the first tick reads 10 Hz instead of 0 (the index)
+				type: "category",
 				display: true,
 				grid: { display: true },
 				title: {
@@ -139,9 +151,9 @@ function buildOptions(): any {
 						: i18n.global.t("plugins.accelerometer.xAxisSample"),
 				},
 				ticks: { font: { family: "Roboto,sans-serif" }, maxTicksLimit: 20 },
-				beginAtZero: true,
 			},
 			y: {
+				type: "linear",
 				display: !!props.value,
 				grid: { display: true },
 				title: {
@@ -153,6 +165,7 @@ function buildOptions(): any {
 				ticks: { font: { family: "Roboto,sans-serif" } },
 			},
 			damping: {
+				type: "linear",
 				display: showReduction.value,
 				grid: { display: true },
 				position: props.value ? "right" : "left",
@@ -173,21 +186,23 @@ function getLineColor(index: number): string {
 }
 
 function applyDarkTheme(active: boolean) {
-	if (!chart) return;
+	if (!chart) {
+		return;
+	}
 	const ticksColor = active ? "#FFF" : "#666";
-	const opt = chart.options as any;
-	opt.plugins.legend.labels.color = ticksColor;
-	opt.scales.x.ticks.color = ticksColor;
-	opt.scales.x.title.color = ticksColor;
-	opt.scales.y.ticks.color = ticksColor;
-	opt.scales.y.title.color = ticksColor;
-	opt.scales.damping.ticks.color = ticksColor;
-	opt.scales.damping.title.color = ticksColor;
+	const scales = chart.options.scales!;
+	chart.options.plugins!.legend!.labels!.color = ticksColor;
+	scales.x!.ticks!.color = ticksColor;
+	scales.x!.title!.color = ticksColor;
+	scales.y!.ticks!.color = ticksColor;
+	scales.y!.title!.color = ticksColor;
+	scales.damping!.ticks!.color = ticksColor;
+	scales.damping!.title!.color = ticksColor;
 
 	const gridLineColor = active ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
-	opt.scales.x.grid.color = gridLineColor;
-	opt.scales.y.grid.color = gridLineColor;
-	opt.scales.damping.grid.color = gridLineColor;
+	scales.x!.grid!.color = gridLineColor;
+	scales.y!.grid!.color = gridLineColor;
+	scales.damping!.grid!.color = gridLineColor;
 
 	chart.update();
 }
@@ -195,7 +210,9 @@ function applyDarkTheme(active: boolean) {
 // Rebuild datasets in-place. Hidden-dataset state is preserved across rebuilds via the
 // dataset.label round-trip so toggling a legend entry survives a re-render
 function updateDatasets() {
-	if (!chart) return;
+	if (!chart) {
+		return;
+	}
 
 	const hiddenLabels = chart.data.datasets
 		.filter((_dataset, index) => !chart!.isDatasetVisible(index))
@@ -225,15 +242,15 @@ function updateDatasets() {
 		}
 	}
 
-	(chart.options as any).scales.x.min = 0;
-	(chart.options as any).scales.x.max = numSamples;
+	chart.options.scales!.x!.min = 0;
+	chart.options.scales!.x!.max = numSamples;
 	chart.data.labels = props.frequencies && props.frequencies.length > 0
 		? props.frequencies.map((freq) => Math.round(freq).toString())
 		: Array.from({ length: numSamples }, (_, i) => i);
 
 	// Add the vertical-line marker dataset whenever there's a ringing frequency we can pin
 	if (lineAtPoint.value !== -1 && chart.data.datasets.length > 0) {
-		(chart.config as ChartConfiguration).lineAtIndex = [lineAtPoint.value];
+		chart.config.lineAtIndex = [lineAtPoint.value];
 		chart.data.datasets.push({
 			borderColor: "#1010FF",
 			backgroundColor: "#1010FF",
@@ -242,7 +259,7 @@ function updateDatasets() {
 			isShaperFrequency: true,
 		} as InputShapingDataset);
 	} else {
-		(chart.config as ChartConfiguration).lineAtIndex = [];
+		chart.config.lineAtIndex = [];
 	}
 
 	// Damping curves for the selected built-in shapers
@@ -331,7 +348,7 @@ function updateDatasets() {
 	const hasShaperFreq = (chart.data.datasets as Array<InputShapingDataset>)
 		.some((d) => d.isShaperFrequency);
 	if (!hasShaperFreq && lineAtPoint.value !== -1 && chart.data.datasets.length > 0) {
-		(chart.config as ChartConfiguration).lineAtIndex = [lineAtPoint.value];
+		chart.config.lineAtIndex = [lineAtPoint.value];
 		chart.data.datasets.push({
 			borderColor: "#1010FF",
 			backgroundColor: "#1010FF",
@@ -341,7 +358,11 @@ function updateDatasets() {
 		} as InputShapingDataset);
 	}
 
-	// Clip the X axis to the wide-band / narrow-band frequency range
+	// Clip the X axis to the wide-band / narrow-band frequency range without mutating the
+	// source data - previously we spliced dataset.data and chart.data.labels in place, but the
+	// dataset.data array is a reference to the parent's `value` prop. After the first narrow
+	// render the parent's array was permanently truncated to 100 Hz, so a later wide-band
+	// toggle couldn't expand it. Adjust the X axis range instead and keep the data intact
 	if (props.frequencies && props.frequencies.length > 0) {
 		const maxFrequency = props.wideBand ? 500 : 100;
 		let maxFrequencyIndex = -1;
@@ -352,26 +373,21 @@ function updateDatasets() {
 			maxFrequencyIndex++;
 		}
 		if (maxFrequencyIndex > 0) {
-			for (const dataset of chart.data.datasets) {
-				if (!(dataset as InputShapingDataset).isShaperFrequency) {
-					dataset.data.splice(maxFrequencyIndex + 1);
-				}
-			}
-			chart.data.labels!.splice(maxFrequencyIndex + 1);
-			(chart.options as any).scales.x.max = maxFrequencyIndex;
+			chart.options.scales!.x!.min = 0;
+			chart.options.scales!.x!.max = maxFrequencyIndex;
 		}
 	}
 
-	const opt = chart.options as any;
-	opt.scales.x.title.text = props.frequencies && props.frequencies.length > 0
+	const scales = chart.options.scales!;
+	scales.x!.title!.text = props.frequencies && props.frequencies.length > 0
 		? i18n.global.t("plugins.accelerometer.xAxisFrequency")
 		: i18n.global.t("plugins.accelerometer.xAxisSample");
-	opt.scales.y.title.text = props.frequencies && props.frequencies.length > 0
+	scales.y!.title!.text = props.frequencies && props.frequencies.length > 0
 		? i18n.global.t("plugins.accelerometer.yAxisAmplitude")
 		: i18n.global.t("plugins.accelerometer.yAxisAcceleration");
-	opt.scales.y.display = !!props.value;
-	opt.scales.damping.display = showReduction.value;
-	opt.scales.damping.position = props.value ? "right" : "left";
+	scales.y!.display = !!props.value;
+	scales.damping!.display = showReduction.value;
+	scales.damping!.position = props.value ? "right" : "left";
 
 	for (const dataset of chart.data.datasets) {
 		if (hiddenLabels.includes(dataset.label)) {
@@ -403,26 +419,28 @@ function onMouseDown(e: MouseEvent) {
 	const activePoints = chart.getElementsAtEventForMode(e, "nearest", { intersect: false }, false);
 	if (activePoints && activePoints.length > 0) {
 		dragStart = activePoints[0].index;
-		(chart.config as ChartConfiguration).range = { start: (e as any).layerX };
+		chart.config.range = { start: e.offsetX };
 		chart.update();
 		document.addEventListener("mouseup", onMouseUp);
 	}
 }
 
 function onMouseMove(e: MouseEvent) {
-	if (!chart) return;
-	const cfg = chart.config as ChartConfiguration;
-	if (cfg.range) {
-		cfg.range.end = (e as any).layerX;
+	if (!chart) {
+		return;
+	}
+	if (chart.config.range) {
+		chart.config.range.end = e.offsetX;
 		chart.update();
 	}
 }
 
 function onMouseUp(e: MouseEvent) {
 	document.removeEventListener("mouseup", onMouseUp);
-	if (!chart) return;
-	const cfg = chart.config as ChartConfiguration;
-	if (cfg.range && cfg.range.end) {
+	if (!chart) {
+		return;
+	}
+	if (chart.config.range && chart.config.range.end) {
 		const activePoints = chart.getElementsAtEventForMode(e, "nearest", { intersect: false }, false);
 		if (activePoints && activePoints.length > 0 && dragStart !== null) {
 			const dragEnd = activePoints[0].index;
@@ -433,7 +451,7 @@ function onMouseUp(e: MouseEvent) {
 			dragStart = null;
 		}
 	}
-	(chart.config as ChartConfiguration).range = undefined;
+	chart.config.range = undefined;
 	chart.update();
 }
 
@@ -446,7 +464,9 @@ function onDoubleClick() {
 
 // #region Lifecycle
 onMounted(() => {
-	if (!chartCanvas.value) return;
+	if (!chartCanvas.value) {
+		return;
+	}
 	chart = new Chart(chartCanvas.value, {
 		type: "line",
 		options: buildOptions(),
@@ -467,9 +487,12 @@ onBeforeUnmount(() => {
 // #endregion
 
 // #region Watches
-function arraysDiffer(a: unknown, b: unknown): boolean {
-	if (!(a instanceof Array) || !(b instanceof Array)) {
-		return a !== b;
+function arraysDiffer<T>(a: ReadonlyArray<T> | undefined, b: ReadonlyArray<T> | undefined): boolean {
+	if (a === b) {
+		return false;
+	}
+	if (!a || !b) {
+		return true;
 	}
 	if (a.length !== b.length) {
 		return true;
@@ -505,7 +528,9 @@ watch(() => props.inputShapers, (to, from) => {
 }, { deep: true });
 
 watch(() => props.customAmplitudes, () => {
-	if (!chart) return;
+	if (!chart) {
+		return;
+	}
 	if (props.customAmplitudes && props.customDelays) {
 		for (const dataset of chart.data.datasets) {
 			if ((dataset as InputShapingDataset).isCustom) {
@@ -521,7 +546,9 @@ watch(() => props.customAmplitudes, () => {
 }, { deep: true });
 
 watch(() => props.customDelays, () => {
-	if (!chart) return;
+	if (!chart) {
+		return;
+	}
 	if (props.customAmplitudes && props.customDelays) {
 		for (const dataset of chart.data.datasets) {
 			if ((dataset as InputShapingDataset).isCustom) {
@@ -541,14 +568,14 @@ watch(() => settingsStore.locale, () => scheduleUpdate());
 
 watch(sampleStartIndex, (to) => {
 	if (chart && (!props.frequencies || props.frequencies.length === 0)) {
-		(chart.options as any).scales.x.min = to === null || Number.isNaN(to) ? 0 : to;
+		chart.options.scales!.x!.min = to === null || Number.isNaN(to) ? 0 : to;
 		chart.update();
 	}
 });
 
 watch(sampleEndIndex, (to) => {
 	if (chart && (!props.frequencies || props.frequencies.length === 0)) {
-		(chart.options as any).scales.x.max = to === null || Number.isNaN(to)
+		chart.options.scales!.x!.max = to === null || Number.isNaN(to)
 			? chart.data.labels!.length
 			: to;
 		chart.update();

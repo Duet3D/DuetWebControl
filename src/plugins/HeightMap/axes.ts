@@ -56,7 +56,9 @@ export default class Axes {
 	}
 
 	render(position?: Vector3): void {
-		if (this.debug) return;
+		if (this.debug) {
+			return;
+		}
 		if (this.axesMesh && !this.axesMesh.isDisposed()) {
 			if (position) {
 				this.axesMesh.position = position;

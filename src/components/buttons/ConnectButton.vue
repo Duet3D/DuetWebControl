@@ -1,5 +1,5 @@
 <template>
-	<v-btn :color="buttonColor" @click="clicked">
+	<v-btn :color="buttonColor" variant="elevated" :elevation="1" @click="clicked">
 		<v-icon v-if="!isBusy" class="me-2">{{ buttonIcon }}</v-icon>
 		<v-progress-circular v-else size="20" indeterminate class="me-2" />
 		{{ caption }}

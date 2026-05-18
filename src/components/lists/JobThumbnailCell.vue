@@ -1,22 +1,28 @@
-<!-- Leading cell in the JobFileList's name column. Renders the gcode's small thumbnail with a
-	 hover popover showing the largest available one; falls back to the generic file/folder
-	 icon when no thumbnail has been parsed yet (or the file lacks one) -->
 <template>
-	<div class="job-thumbnail-cell">
-		<v-menu v-if="smallThumbnail" open-on-hover open-on-focus :close-on-content-click="false"
-				location="end" :min-width="16">
-			<template #activator="{ props: activatorProps }">
-				<div v-bind="activatorProps" tabindex="0" @click.stop>
-					<ThumbnailImg :thumbnail="smallThumbnail" icon />
-				</div>
-			</template>
-			<v-card class="d-flex">
-				<ThumbnailImg :thumbnail="bigThumbnail" />
-			</v-card>
-		</v-menu>
-		<v-icon v-else size="small" class="mr-2">
-			{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
-		</v-icon>
+	<div class="job-thumbnail-cell"
+		 :class="{ 'job-thumbnail-cell--tile': tile, 'job-thumbnail-cell--icon-only': !tile && !smallThumbnail }">
+		<template v-if="tile">
+			<ThumbnailImg v-if="bigThumbnail" :thumbnail="bigThumbnail" class="job-thumbnail-cell__big" />
+			<v-icon v-else size="64">
+				{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
+			</v-icon>
+		</template>
+		<template v-else>
+			<v-menu v-if="smallThumbnail" open-on-hover open-on-focus :close-on-content-click="false"
+					location="end" :min-width="16">
+				<template #activator="{ props: activatorProps }">
+					<div v-bind="activatorProps" tabindex="0" @click.stop>
+						<ThumbnailImg :thumbnail="smallThumbnail" icon />
+					</div>
+				</template>
+				<v-card class="d-flex">
+					<ThumbnailImg :thumbnail="bigThumbnail" />
+				</v-card>
+			</v-menu>
+			<v-icon v-else size="small">
+				{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}
+			</v-icon>
+		</template>
 	</div>
 </template>
 
@@ -32,6 +38,7 @@ interface JobItem extends FileBrowserItem {
 
 const props = defineProps<{
 	item: JobItem;
+	tile?: boolean;
 }>();
 
 const thumbnails = computed<Array<ThumbnailInfo>>(() => props.item.thumbnails ?? []);
@@ -41,7 +48,9 @@ const thumbnails = computed<Array<ThumbnailInfo>>(() => props.item.thumbnails ??
 const smallThumbnail = computed<ThumbnailInfo | null>(() => {
 	let best: ThumbnailInfo | null = null;
 	for (const thumb of thumbnails.value) {
-		if (!thumb.data) continue;
+		if (!thumb.data) {
+			continue;
+		}
 		if (!best || Math.abs(48 - thumb.height) < Math.abs(48 - best.height)) {
 			best = thumb;
 		}
@@ -52,7 +61,9 @@ const smallThumbnail = computed<ThumbnailInfo | null>(() => {
 const bigThumbnail = computed<ThumbnailInfo | null>(() => {
 	let biggest: ThumbnailInfo | null = null;
 	for (const thumb of thumbnails.value) {
-		if (!thumb.data) continue;
+		if (!thumb.data) {
+			continue;
+		}
 		if (!biggest || thumb.height > biggest.height) {
 			biggest = thumb;
 		}
@@ -65,9 +76,25 @@ const bigThumbnail = computed<ThumbnailInfo | null>(() => {
 .job-thumbnail-cell {
 	display: flex;
 	flex-shrink: 0;
-	align-content: center;
-	justify-content: center;
+	align-items: center;
+	justify-content: flex-start;
 	width: 48px;
 	margin-right: 8px;
+}
+
+/* When the row has no thumbnail we fall back to the same small file/folder icon the Explorer
+   uses; shrink the cell to that icon's intrinsic width so the trailing name aligns with
+   non-thumbnail file lists instead of being pushed right by a 48px placeholder */
+.job-thumbnail-cell--icon-only {
+	width: auto;
+}
+
+.job-thumbnail-cell--tile {
+	width: auto;
+	margin-right: 0;
+}
+.job-thumbnail-cell__big {
+	max-width: 100%;
+	max-height: 160px;
 }
 </style>

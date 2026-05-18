@@ -1,10 +1,13 @@
+import { MachineStatus } from "@duet3d/objectmodel";
 import { defineStore } from "pinia";
 
 import i18n from "@/i18n";
 import router from "@/router";
 import { isXsOrSm } from "@/composables/useBreakpoint";
+import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
+import { isPaused, isPrinting } from "@/utils/enums";
 
 /**
  * Named visibility predicates referenced by route meta via `conditionKey`. Route meta is JSON
@@ -58,6 +61,20 @@ const badgeRegistry: Record<string, () => MenuBadge | null> = {
 			color: SEVERITY_COLORS[severity] ?? "warning",
 			onClear: () => ui.dismissConsoleNotifications(),
 		};
+	},
+	jobProgress: () => {
+		const machineStore = useMachineStore();
+		const status = machineStore.model.state.status;
+		if (!isPrinting(status)) {
+			return null;
+		}
+		let color = "success";
+		if (status === MachineStatus.cancelling) {
+			color = "error";
+		} else if (isPaused(status)) {
+			color = "warning";
+		}
+		return { value: `${Math.round(machineStore.jobProgress * 100)}%`, color };
 	},
 };
 

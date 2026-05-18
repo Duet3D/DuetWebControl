@@ -1,5 +1,3 @@
-<!-- Hex-colour input + swatch + popover v-color-picker. Used by the GCodeViewer settings to
-	 customise per-tool path colours. emits `updatecolor` with the normalised #RRGGBB string -->
 <template>
 	<v-row justify="center" align="center">
 		<v-col class="shrink" :style="backgroundColorStyle">

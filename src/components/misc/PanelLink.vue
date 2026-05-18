@@ -1,5 +1,3 @@
-<!-- Header-tab link helper: renders as a clickable anchor when inactive, or plain text when active.
-	 Used by ToolsPanel to switch between the Tools list and the Extra-sensor list -->
 <template>
 	<a v-if="!active" href="javascript:void(0)" @click="$emit('click', $event)">
 		<slot></slot>

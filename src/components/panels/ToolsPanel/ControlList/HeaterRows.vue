@@ -1,8 +1,5 @@
-<!-- Renders bed or chamber heater rows for the ControlList. When the user has enabled the matching
-	 "single control" setting (and all heaters share state/active/standby), a single combined row with one
-	 active+standby ControlInput is rendered instead of one row per heater -->
 <template>
-	<tbody>
+	<tbody class="heater-rows">
 		<template v-if="singleControl && firstHeater !== null">
 			<!-- Single Heater Control-->
 			<tr>
@@ -18,7 +15,7 @@
 							<v-list-item @click="selectHeater(-1, null, -1)">
 								<v-list-item-title>
 									<v-icon size="small"
-											v-text="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+											:icon="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
 									{{ props.type === "bed" ? $t("panel.tools.allBeds") : $t("panel.tools.allChambers") }}
 								</v-list-item-title>
 							</v-list-item>
@@ -28,7 +25,7 @@
 											 @click="selectHeater(index, heater, heaterIndex)">
 									<v-list-item-title>
 										<v-icon size="small" class="mr-1"
-												v-text="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+												:icon="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
 										{{ props.type === "bed" ? $t("panel.tools.bed", [index]) : $t("panel.tools.chamber", [index]) }}
 									</v-list-item-title>
 								</v-list-item>
@@ -43,7 +40,7 @@
 						{{ getHeaterName(selectedHeater, selectedHeaterIndex) }}
 					</a>
 					<br>
-					<span class="font-weight-regular text-caption">
+					<span class="font-weight-regular text-body-small">
 						{{ $t(`generic.heaterStates.${selectedHeater.state}`) }}
 					</span>
 				</th>
@@ -80,7 +77,7 @@
 							<a v-if="heaterIndex === 0" href="javascript:void(0)" :class="{ disabled }"
 							   @click="heaterClick(index, heater)">
 								<v-icon size="small"
-										v-text="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
+										:icon="props.type === 'bed' ? 'mdi-radiator' : 'mdi-heat-pump-outline'" />
 								{{ props.type === "bed" ? $t("panel.tools.bed", [heaterItems.length === 1 ? "" : index]) : $t("panel.tools.chamber", [heaterItems.length === 1 ? "" : index]) }}
 							</a>
 						</th>
@@ -91,7 +88,7 @@
 								{{ getHeaterName(heater, heaterIndex) }}
 							</a>
 							<br>
-							<span class="font-weight-regular text-caption">
+							<span class="font-weight-regular text-body-small">
 								{{ $t(`generic.heaterStates.${heater.state}`) }}
 							</span>
 						</th>
@@ -165,7 +162,7 @@ const singleControl = computed(() => {
 		return false;
 	}
 
-	const mapping = (props.type === "bed") ? machineStore.model.heat.bedHeaterMapping : machineStore.model.heat.chamberHeaterMapping;
+	const mapping = (props.type === "bed") ? machineStore.bedHeaterMapping : machineStore.chamberHeaterMapping;
 	let state: HeaterState | null = null, active: number | null = null, standby: number | null = null;
 	for (const heaterIndices of mapping) {
 		for (const heaterIndex of heaterIndices) {
@@ -187,7 +184,7 @@ const singleControl = computed(() => {
 });
 
 const heaterItems = computed(() => {
-	const mapping = (props.type === "bed") ? machineStore.model.heat.bedHeaterMapping : machineStore.model.heat.chamberHeaterMapping;
+	const mapping = (props.type === "bed") ? machineStore.bedHeaterMapping : machineStore.chamberHeaterMapping;
 	const heaterList: Array<{ index: number; heater: Heater; heaterIndex: number }> = [];
 	for (let index = 0; index < mapping.length; index++) {
 		for (const heaterIndex of mapping[index]) {
@@ -223,7 +220,7 @@ async function allHeatersClick() {
 		return;
 	}
 
-	const mapping = (props.type === "bed") ? machineStore.model.heat.bedHeaterMapping : machineStore.model.heat.chamberHeaterMapping;
+	const mapping = (props.type === "bed") ? machineStore.bedHeaterMapping : machineStore.chamberHeaterMapping;
 	const indices: Array<number> = [];
 	for (let index = 0; index < mapping.length; index++) {
 		for (const heaterIndex of mapping[index]) {

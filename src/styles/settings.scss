@@ -1,10 +1,46 @@
-/**
- * src/styles/settings.scss
- *
- * Configures SASS variables and Vuetify overwrites
- */
 
-// https://vuetifyjs.com/features/sass-variables/`
 @use 'vuetify/settings' with (
-    $button-text-transform: none
+    $button-text-transform: none,
+    $card-title-font-size: 1rem,
+    $card-title-font-weight: 500,
+    $card-title-line-height: 1.5
 );
+
+input[type='number'] {
+    -moz-appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+textarea {
+    line-height: 1.25rem !important;
+}
+
+a:not(:hover) {
+    text-decoration: none;
+}
+
+.v-overlay:not(.v-overlay--active) > .v-overlay__scrim {
+    display: none !important;
+}
+
+.v-window-item:not(.v-window-item--active) {
+    display: none !important;
+}
+
+/* Make a page-level panel fill the visible viewport below the app bar. xs/sm: the layout
+   strips outer padding so the panel only needs to subtract the 64 px app bar; md+: the
+   layout keeps 16 px top + bottom padding so the panel subtracts 96 px (64 + 32). Pages opt
+   in by adding the `dwc-page-fill` class on the element that should fill the remaining
+   viewport (typically a v-card or a div wrapping the page content) */
+.dwc-page-fill {
+    height: calc(100dvh - 64px);
+}
+@media (min-width: 960px) {
+    .dwc-page-fill {
+        height: calc(100dvh - 96px);
+    }
+}

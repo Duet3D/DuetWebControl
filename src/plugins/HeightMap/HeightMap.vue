@@ -1,31 +1,6 @@
-<!-- Heightmap viewer - lists *.csv heightmap files under /sys, renders the selected one through
-	 a Babylon-driven 3D viewport with a colour scale legend, and exposes display controls
-	 (terrain vs heat colour ramp, fixed vs deviation range, invert Z, top view, reset view).
-	 Per-axis statistics (point count, area, deviation extents, RMS error) sit on the right
-	 column. Selected display preferences persist via the cache store under the HeightMap key -->
 <template>
 	<v-row class="ma-0">
-		<v-col cols="12" lg="auto" order="1" order-lg="0" sm="6">
-			<v-card>
-				<v-card-title class="d-flex align-center pt-2 pb-1">
-					<v-icon class="mr-2">mdi-format-list-bulleted</v-icon>
-					{{ $t("plugins.heightmap.listTitle") }}
-					<v-spacer />
-					<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
-				</v-card-title>
-				<v-card-text v-if="files.length === 0" class="pa-0">
-					<v-alert type="info" class="mb-0" :title="$t('plugins.heightmap.none')" />
-				</v-card-text>
-				<v-list v-else :disabled="uiStore.uiFrozen || !ready || loading" class="py-0"
-						density="compact" mandatory>
-					<v-list-item v-for="file in files" :key="file" :title="file"
-								 :active="selectedFile === file" color="primary"
-								 @click="selectedFile = file" />
-				</v-list>
-			</v-card>
-		</v-col>
-
-		<v-col :class="{ 'pa-1': isXs }" class="flex-grow-1" cols="12" lg="auto" order="0">
+		<v-col :class="{ 'pa-1': isXs }" cols="12" md="7" lg="auto" class="flex-grow-1" order="0">
 			<div ref="container" class="heightmap-container">
 				<div class="canvas-container" @mousemove="canvasMouseMove" @mouseleave="tooltip.shown = false">
 					<canvas ref="canvas" />
@@ -40,59 +15,83 @@
 			</div>
 		</v-col>
 
-		<v-col class="d-flex flex-column" cols="12" lg="auto" order="2" sm="6">
-			<v-card class="d-flex flex-column flex-grow-0">
-				<v-card-title class="pt-2 pb-1">
-					<v-icon class="mr-2">mdi-information</v-icon>
-					{{ $t("plugins.heightmap.statistics") }}
-				</v-card-title>
-				<v-card-text class="d-flex flex-column flex-grow-0 justify-space-between pt-2">
-					<span>{{ $t("plugins.heightmap.numPoints", [display(numPoints, 0)]) }}</span>
-					<span v-if="radius > 0">{{ $t("plugins.heightmap.radius", [display(radius, 0, "mm")]) }}</span>
-					<span>{{ $t("plugins.heightmap.area", [display(area / 100, 1, "cm²")]) }}</span>
-					<span>{{ $t("plugins.heightmap.maxDeviations", [display(minDiff, 3), display(maxDiff, 3, "mm")]) }}</span>
-					<span>{{ $t("plugins.heightmap.meanError", [display(meanError, 3, "mm")]) }}</span>
-					<span>{{ $t("plugins.heightmap.rmsError", [display(rmsError, 3, "mm")]) }}</span>
-				</v-card-text>
-			</v-card>
+		<v-col cols="12" md="5" lg="auto" order="1" class="heightmap-sidebar">
+			<v-row class="ma-0">
+				<v-col cols="12" sm="6" md="12" class="pa-0">
+					<v-card>
+						<v-card-title class="d-flex align-center pt-2 pb-1">
+							<v-icon class="mr-2">mdi-format-list-bulleted</v-icon>
+							{{ $t("plugins.heightmap.listTitle") }}
+							<v-spacer />
+							<v-icon class="ml-2" @click="refresh">mdi-refresh</v-icon>
+						</v-card-title>
+						<v-card-text v-if="files.length === 0" class="pa-0">
+							<v-alert type="info" class="mb-0" :title="$t('plugins.heightmap.none')" />
+						</v-card-text>
+						<v-list v-else :disabled="uiStore.uiFrozen || !ready || loading" class="py-0"
+								density="compact" mandatory>
+							<v-list-item v-for="file in files" :key="file" :title="file"
+										 :active="selectedFile === file" color="primary"
+										 @click="selectedFile = file" />
+						</v-list>
+					</v-card>
+				</v-col>
 
-			<v-card class="d-flex flex-column mt-5">
-				<v-card-title class="pt-2 pb-1">
-					<v-icon class="mr-2">mdi-eye</v-icon>
-					{{ $t("plugins.heightmap.display") }}
-				</v-card-title>
-				<v-card-text class="d-flex flex-column">
-					<div class="d-flex flex-column mt-1">
-						{{ $t("plugins.heightmap.colorScheme") }}
-						<v-btn-toggle v-model="colorScheme" mandatory class="mt-1">
-							<v-btn class="flex-grow-1" value="terrain">{{ $t("plugins.heightmap.terrain") }}</v-btn>
-							<v-btn class="flex-grow-1" value="heat">{{ $t("plugins.heightmap.heat") }}</v-btn>
-						</v-btn-toggle>
-					</div>
+				<v-col cols="12" sm="6" md="12" class="pa-0 d-flex flex-column">
+					<v-card class="d-flex flex-column flex-grow-0">
+						<v-card-title class="pt-2 pb-1">
+							<v-icon class="mr-2">mdi-information</v-icon>
+							{{ $t("plugins.heightmap.statistics") }}
+						</v-card-title>
+						<v-card-text class="d-flex flex-column flex-grow-0 justify-space-between pt-2">
+							<span>{{ $t("plugins.heightmap.numPoints", [display(numPoints, 0)]) }}</span>
+							<span v-if="radius > 0">{{ $t("plugins.heightmap.radius", [display(radius, 0, "mm")]) }}</span>
+							<span>{{ $t("plugins.heightmap.area", [display(area / 100, 1, "cm²")]) }}</span>
+							<span>{{ $t("plugins.heightmap.maxDeviations", [display(minDiff, 3), display(maxDiff, 3, "mm")]) }}</span>
+							<span>{{ $t("plugins.heightmap.meanError", [display(meanError, 3, "mm")]) }}</span>
+							<span>{{ $t("plugins.heightmap.rmsError", [display(rmsError, 3, "mm")]) }}</span>
+						</v-card-text>
+					</v-card>
 
-					<div class="d-flex flex-column mt-1">
-						{{ $t("plugins.heightmap.range") }}
-						<v-btn-toggle v-model="deviationColoring" mandatory class="mt-1">
-							<v-btn class="flex-grow-1" value="fixed">{{ $t("plugins.heightmap.fixed") }}</v-btn>
-							<v-btn class="flex-grow-1" value="deviation">{{ $t("plugins.heightmap.deviation") }}</v-btn>
-						</v-btn-toggle>
-					</div>
+					<v-card class="d-flex flex-column mt-5">
+						<v-card-title class="pt-2 pb-1">
+							<v-icon class="mr-2">mdi-eye</v-icon>
+							{{ $t("plugins.heightmap.display") }}
+						</v-card-title>
+						<v-card-text class="d-flex flex-column">
+							<div class="d-flex flex-column mt-1">
+								{{ $t("plugins.heightmap.colorScheme") }}
+								<v-btn-toggle v-model="colorScheme" mandatory divided class="mt-1">
+									<v-btn class="flex-grow-1" variant="outlined" value="terrain">{{ $t("plugins.heightmap.terrain") }}</v-btn>
+									<v-btn class="flex-grow-1" variant="outlined" value="heat">{{ $t("plugins.heightmap.heat") }}</v-btn>
+								</v-btn-toggle>
+							</div>
 
-					<v-switch v-model="invertZ" :disabled="uiStore.uiFrozen || loading || !ready"
-							  :label="$t('plugins.heightmap.invertZ')" hide-details color="primary" />
+							<div class="d-flex flex-column mt-1">
+								{{ $t("plugins.heightmap.range") }}
+								<v-btn-toggle v-model="deviationColoring" mandatory divided class="mt-1">
+									<v-btn class="flex-grow-1" variant="outlined" value="fixed">{{ $t("plugins.heightmap.fixed") }}</v-btn>
+									<v-btn class="flex-grow-1" variant="outlined" value="deviation">{{ $t("plugins.heightmap.deviation") }}</v-btn>
+								</v-btn-toggle>
+							</div>
 
-					<v-btn :disabled="uiStore.uiFrozen || loading || !ready" variant="elevated"
-						   class="ml-0 mt-3" @click="topView">
-						<v-icon class="mr-1" size="small">mdi-format-vertical-align-bottom</v-icon>
-						{{ $t("plugins.heightmap.topView") }}
-					</v-btn>
-					<v-btn :disabled="uiStore.uiFrozen || loading || !ready" variant="elevated"
-						   class="ml-0 mt-3" @click="resetView">
-						<v-icon class="mr-1" size="small">mdi-camera</v-icon>
-						{{ $t("plugins.heightmap.resetView") }}
-					</v-btn>
-				</v-card-text>
-			</v-card>
+							<v-switch v-model="invertZ" :disabled="uiStore.uiFrozen || loading || !ready"
+									  :label="$t('plugins.heightmap.invertZ')" hide-details color="primary" />
+
+							<v-btn :disabled="uiStore.uiFrozen || loading || !ready" variant="elevated"
+								   class="ml-0 mt-3" @click="topView">
+								<v-icon class="mr-1" size="small">mdi-format-vertical-align-bottom</v-icon>
+								{{ $t("plugins.heightmap.topView") }}
+							</v-btn>
+							<v-btn :disabled="uiStore.uiFrozen || loading || !ready" variant="elevated"
+								   class="ml-0 mt-3" @click="resetView">
+								<v-icon class="mr-1" size="small">mdi-camera</v-icon>
+								{{ $t("plugins.heightmap.resetView") }}
+							</v-btn>
+						</v-card-text>
+					</v-card>
+				</v-col>
+			</v-row>
 		</v-col>
 	</v-row>
 </template>
@@ -214,19 +213,25 @@ function resize(): { width: number; height: number } | undefined {
 			height = width;
 			break;
 		case "sm":
-			height = (width * 3) / 4;
+			// Fill the viewport below the app bar. xs/sm chrome is just the 64 px app bar -
+			// matches the .dwc-page-fill formula (`100dvh - 64px`) used elsewhere for
+			// viewport-spanning panels
+			height = window.innerHeight - 64;
 			break;
-		case "xl":
-			height = (width * 10) / 16;
+		case "md":
+			// md uses the sidebar layout (file list + stats stacked on the right of the canvas),
+			// so the canvas owns its column vertically the same way it does on lg+
+			height = window.innerHeight - 96;
 			break;
 		default:
-			height = (width * 9) / 16;
+			// lg+ runs all three columns side-by-side, so the canvas owns its column vertically
+			// too. Fill the viewport (minus app-bar + container padding) so the dark panel has
+			// even spacing top/bottom instead of stopping at a fixed aspect with dead space below
+			height = window.innerHeight - 96;
 			break;
 	}
 
-	// Cap by viewport - leaves room for the surrounding app shell so the canvas stays inside the
-	// visible area without scrolling
-	height = Math.min(height, window.innerHeight - 100);
+	// Floor so a cramped window doesn't shrink the canvas into uselessness
 	height = Math.max(height, 400);
 
 	container.value.style.height = `${height}px`;
@@ -468,14 +473,24 @@ function filesOrDirectoriesChanged(payload: { files?: Array<string>; volume?: nu
 // #endregion
 
 // #region Lifecycle
-onMounted(async () => {
+// Create the Babylon viewer + its surrounding DOM observers. Called on first mount AND on each
+// keep-alive re-activation; pairs with destroyViewer() which fires on deactivate/unmount. We
+// can't just keep the viewer alive across activations because Babylon's AdvancedDynamicTexture
+// reuses the canvas dimensions at the moment of creation - after a few mounts the texture's
+// internal resolution drifts upward and the axis labels render larger each time. Tearing the
+// viewer down and rebuilding it on every show keeps the rendering deterministic
+async function createViewer(): Promise<void> {
+	if (heightMapViewer || !canvas.value || !legend.value) {
+		return;
+	}
+
 	const size = resize();
 	if (size && size.height <= 0) {
 		size.height = 1;
 	}
 	attachResizeObserver();
 
-	heightMapViewer = new HeightMapViewer(canvas.value!);
+	heightMapViewer = new HeightMapViewer(canvas.value);
 	heightMapViewer.isDelta = isDelta.value;
 	await heightMapViewer.init();
 	buildBed();
@@ -495,13 +510,11 @@ onMounted(async () => {
 		refresh();
 	}
 
-	Events.on("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
-
 	// Block wheel-zoom on the canvas itself so the Babylon scene gets the event instead of the
 	// surrounding page scroll. Track the canvas reference so we can detach the listener on
-	// unmount and avoid leaving the GC with a closure that references it
+	// teardown and avoid leaving the GC with a closure that references it
 	wheelTarget = canvas.value;
-	wheelTarget!.addEventListener("wheel", preventWheelDefault);
+	wheelTarget.addEventListener("wheel", preventWheelDefault);
 
 	// One delayed resize catches Vuetify layout settling that the first synchronous resize misses
 	settleTimer = setTimeout(() => {
@@ -509,10 +522,9 @@ onMounted(async () => {
 		resize();
 	}, 1000);
 	ready.value = true;
-});
+}
 
-onBeforeUnmount(() => {
-	Events.off("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
+function destroyViewer(): void {
 	if (settleTimer !== null) {
 		clearTimeout(settleTimer);
 		settleTimer = null;
@@ -525,6 +537,25 @@ onBeforeUnmount(() => {
 	resizeObserver = undefined;
 	heightMapViewer?.dispose();
 	heightMapViewer = undefined;
+	ready.value = false;
+}
+
+onMounted(() => {
+	Events.on("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
+	createViewer();
+});
+
+// keep-alive lifecycle: deactivate when navigating away, activate when navigating back
+onActivated(() => {
+	createViewer();
+});
+onDeactivated(() => {
+	destroyViewer();
+});
+
+onBeforeUnmount(() => {
+	Events.off("filesOrDirectoriesChanged", filesOrDirectoriesChanged);
+	destroyViewer();
 });
 
 // #endregion

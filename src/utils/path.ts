@@ -105,18 +105,28 @@ export function filesAffectDirectory(files: Array<string>, directory: string) {
 }
 
 /**
- * Get the volume from a given path
+ * Get the volume index from a given path. Recognises the SD-style `N:/...` prefix only at the
+ * start of the string; anything else is treated as the default volume (0)
  * @param path Path
  * @returns Volume number
  */
 export function getVolume(path: string) {
 	if (path) {
-		const matches = /(\d+).*/.exec(path);
+		const matches = /^(\d+):/.exec(path);
 		if (matches) {
 			return parseInt(matches[1]);
 		}
 	}
 	return 0;
+}
+
+/**
+ * Build the SD root path for a volume (e.g. 1 -> "1:/")
+ * @param volume Volume index
+ * @returns Root path for the volume
+ */
+export function volumeRoot(volume: number) {
+	return `${volume}:/`;
 }
 
 /**
@@ -206,6 +216,21 @@ export function escapeFilename(filename: string) {
 }
 
 /**
+ * Pretty-print an SD-style path for display. Volume 0 is the implicit default - the leading "0:"
+ * prefix is dropped so users see "/sys/config.g" instead of "0:/sys/config.g". Non-zero volumes
+ * keep their identifier ("1:/extra") so users can still tell volumes apart at a glance. Inputs
+ * that don't carry a volume prefix pass through unchanged
+ * @param path SD-style path, e.g. "0:/sys", "1:/extra/foo", "/already/clean"
+ * @returns Path with the redundant "0:" stripped
+ */
+export function pretty(path: string | null | undefined): string {
+	if (!path) {
+		return "";
+	}
+	return path.startsWith("0:") ? path.substring(2) : path;
+}
+
+/**
  * Enumeration of default directories and files.
  * It exposes the functions above as well
  */
@@ -244,9 +269,11 @@ const pathObj = {
 	filesAffectDirectory,
 	getVolume,
 	startsWith,
+	volumeRoot,
 
 	isGCodePath,
 	isSdPath,
+	pretty,
 	stripMacroFilename,
 }
 

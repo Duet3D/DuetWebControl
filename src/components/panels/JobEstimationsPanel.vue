@@ -1,6 +1,3 @@
-<!-- Time-remaining estimates pulled from RRF's timesLeft block plus slicer/simulation derived values.
-	 The simulating-state latch mirrors JobControlPanel - once a sim is cancelled the OM no longer says
-	 "simulating", but we still want to show the simulation column instead of swapping it out -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-1">
@@ -9,7 +6,7 @@
 		</v-card-title>
 
 		<v-card-text class="text-center pb-2">
-			<v-row dense>
+			<v-row density="compact">
 				<v-col v-if="timesLeft.filament !== null" class="d-flex flex-column">
 					<strong>{{ $t("panel.jobEstimations.filament") }}</strong>
 					<span>{{ displayTime(timesLeft.filament) }}</span>

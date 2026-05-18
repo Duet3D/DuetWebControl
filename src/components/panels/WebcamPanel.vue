@@ -1,6 +1,3 @@
-<!-- Live webcam image/iframe/WebRTC stream. ws(s):// URLs are treated as WebRTC signaling endpoints
-	 and routed through an RTCPeerConnection; plain http(s) URLs are polled at the configured interval
-	 (with a cache-buster suffix unless useFix is set). Supports per-axis flip + 90/180/270 rotation -->
 <template>
 	<v-card>
 		<v-card-title>{{ $t("panel.webcam.caption") }}</v-card-title>
@@ -15,6 +12,10 @@
 				<video v-if="webcamIsRTC" ref="remoteVideo" autoplay playsinline :class="classList" />
 				<img v-else :alt="$t('panel.webcam.alt')" :src="active ? url : ''" :class="classList">
 			</a>
+
+			<v-alert v-else type="info" variant="tonal" tile>
+				{{ $t("panel.webcam.disabled") }}
+			</v-alert>
 		</v-card-text>
 	</v-card>
 </template>

@@ -1,12 +1,10 @@
-<!-- Move speed factor (M220 Snnn). The slider min/max widen around the current value so the user can
-	 always dial up/down by ~50 % without re-bounding -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
 			<v-icon size="small" class="mr-1">mdi-timer</v-icon>
 			{{ $t("panel.speedFactor.caption") }}
 			<v-spacer />
-			<a v-show="speedFactor !== 100 && !uiStore.uiFrozen" href="javascript:void(0)" class="text-subtitle-2"
+			<a v-show="speedFactor !== 100 && !uiStore.uiFrozen" href="javascript:void(0)" class="text-title-small"
 			   @click.prevent="machineStore.sendCode('M220 S100')">
 				<v-icon size="small" class="mr-1">mdi-backup-restore</v-icon>
 				{{ $t("generic.reset") }}

@@ -1,8 +1,5 @@
-<!-- Slider + inc/dec input for 0-100 % values. Holding the +/- buttons auto-repeats after a short
-	 delay. In the numeric-inputs mode the slider is replaced by a v-combobox with snapped values.
-	 The optional lock button blocks accidental slider drags on mobile until explicitly unlocked -->
 <template>
-	<v-row dense align="center">
+	<v-row density="compact" align="center">
 		<v-col cols="auto">
 			<v-btn v-if="!settingsStore.numericInputs && canLock" icon size="large" variant="text" class="me-1"
 				   :color="isLocked ? 'error' : undefined" :disabled="disabled" @click="isLocked = !isLocked">
@@ -18,8 +15,7 @@
 
 		<v-col v-if="settingsStore.numericInputs" class="d-flex align-center">
 			<v-combobox v-model="innerValue" type="number" :min="min" :max="max" step="any"
-						:disabled="disabled" :items="items" hide-selected hide-details
-						:menu-props="{ maxHeight: '50%' }" class="mx-2"
+						:disabled="disabled" :items="items" hide-selected hide-details class="mx-2"
 						@update:search="updateValue" @keyup.enter="apply">
 				<template #append-inner>
 					<v-icon>mdi-percent</v-icon>
@@ -33,7 +29,11 @@
 		<v-col v-else>
 			<v-slider :model-value="innerValue" :min="min" :max="max" :disabled="disabled"
 					  :readonly="isLocked && canLock" hide-details thumb-label="always" class="slider"
-					  @update:model-value="onSliderChange" />
+					  @update:model-value="onSliderChange">
+				<template #thumb-label="{ modelValue: thumbValue }">
+					{{ Math.round(thumbValue) }}&nbsp;%
+				</template>
+			</v-slider>
 		</v-col>
 
 		<v-col cols="auto">

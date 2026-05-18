@@ -1,5 +1,3 @@
-<!-- Axis jog grid + compensation/calibration menu. One row per visible axis, with five symmetric step
-	 sizes per direction; right-clicking a step opens InputDialog to edit that step's value -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center py-2">
@@ -19,7 +17,7 @@
 				<template #activator="{ props: activatorProps }">
 					<v-btn v-show="visibleAxes.length > 0" v-bind="activatorProps" color="primary" size="small"
 						   class="mx-0" :elevation="1">
-						{{ $t("panel.movement.compensation") }}
+						{{ isXs ? $t("panel.movement.compensationShort") : $t("panel.movement.compensation") }}
 						<v-icon end>mdi-menu-down</v-icon>
 					</v-btn>
 				</template>
@@ -96,7 +94,7 @@
 				</template>
 			</v-row>
 
-			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" dense>
+			<v-row v-for="(axis, axisIndex) in visibleAxes" :key="axisIndex" density="compact">
 				<!-- Per-row home button (md+ only) -->
 				<v-col v-if="!isDelta" cols="auto" class="flex-shrink-1 d-none d-md-flex">
 					<CodeButton :color="axis.homed ? 'primary' : 'warning'" :disabled="!canHome"
@@ -153,8 +151,11 @@
 </template>
 
 <style scoped>
+/* Strip the default v-btn horizontal padding so the step labels fit in narrow cells. Don't
+   reset min-width - Vuetify's `.v-btn--block` rule (`min-width: 100%`) loses to `min-width: 0`
+   here in the cascade, which leaves the button at its intrinsic width and produces visible
+   gaps between the buttons and the edges of their flex cells */
 .move-btn {
-	min-width: 0;
 	padding-left: 0 !important;
 	padding-right: 0 !important;
 }
@@ -162,6 +163,7 @@
 
 <script setup lang="ts">
 import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType } from "@duet3d/objectmodel";
+import { useDisplay } from "vuetify";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import InputDialog from "@/components/dialogs/InputDialog.vue";
@@ -172,6 +174,7 @@ import { useUiStore } from "@/stores/ui";
 
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
+const { xs: isXs } = useDisplay();
 const uiStore = useUiStore();
 
 const showMeshEditDialog = ref(false);
@@ -218,16 +221,19 @@ function getMoveCode(axis: Axis, index: number, decrementing: boolean) {
 	return `M120\nG91\nG1 ${prefix}${axis.letter}${sign}${step} F${settingsStore.moveFeedrate}\nM121`;
 }
 
-// Hide intermediate step buttons on smaller breakpoints (the outer ones are the most useful)
+// Progressive disclosure tuned for Vuetify 4's breakpoint defaults (md 840 / lg 1145 / xl 1545 /
+// xxl 2138). Most desktops land in xl (1545-2137 px) and get 4 visible step buttons per direction;
+// xxl reveals the outermost extra-large step, narrower screens drop down to 3 per direction
+// Use d-{bp}-block (not d-{bp}-flex): d-flex on a single-child v-col makes the button shrink to its
+// intrinsic width and leaves gaps; d-block matches v-col's natural display so `block` fills the cell
 function getMoveCellClass(index: number): string {
-	let classes = "";
 	if (index === 0 || index === 5) {
-		classes += "d-none d-xl-flex";
+		return "d-none d-xxl-block";
 	}
 	if (index > 1 && index < 4 && index % 2 === 1) {
-		classes += " d-none d-lg-flex";
+		return "d-none d-sm-block";
 	}
-	return classes;
+	return "";
 }
 
 function showSign(value: number): string {

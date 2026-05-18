@@ -135,12 +135,14 @@ export default class Gauge {
 
 	update(currentValue: number): void {
 		//Prevent transitions from queueing up when the browser goes to background
-		if (document.hidden) return;
+		if (document.hidden) {
+			return;
+		}
 
 		const that = this;
 
 		this.updateTempText();
-		//No need to run an animation if the temperature has not changed.
+		// No need to run an animation if the temperature has not changed
 		if (Math.floor(this.currentValue) === Math.floor(currentValue)) {
 			return;
 		}
@@ -166,7 +168,9 @@ export default class Gauge {
 	}
 
 	updateState(state: string): void {
-		if (document.hidden) return;
+		if (document.hidden) {
+			return;
+		}
 
 		let stateCSS = 'gauge-off';
 		switch (state) {

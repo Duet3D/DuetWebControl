@@ -1,11 +1,12 @@
-// Babylon-based 3D heightmap renderer ported from v3.7-dev's HeightMap plugin. The owning
-// Vue component creates one HeightMapViewer per mount, hands it a <canvas> + the printer's
-// build volume, then feeds it bedPoints / re-renders / disposes.
+// Babylon-based 3D heightmap renderer. The owning Vue component creates one HeightMapViewer
+// per mount, hands it a <canvas> + the printer's build volume, then feeds it bedPoints /
+// re-renders / disposes
 
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { Color3, Color4 } from "@babylonjs/core/Maths/math.color";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { ArcRotateCameraKeyboardMoveInput } from "@babylonjs/core/Cameras/Inputs/arcRotateCameraKeyboardMoveInput";
 import { Vector3, Quaternion } from "@babylonjs/core/Maths/math.vector";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PointLight } from "@babylonjs/core/Lights/pointLight";
@@ -91,7 +92,7 @@ export default class HeightMapViewer {
 			this.engine = new Engine(this.canvas, true);
 
 			this.scene = new Scene(this.engine);
-			this.scene.clearColor = new Color3(0, 0, 0) as any;
+			this.scene.clearColor = new Color4(0, 0, 0, 1);
 
 			// Camera + control: ArcRotate around the bed centre; sensitivities are tuned for a
 			// touchscreen pinch / mouse-wheel mix and shouldn't be tweaked casually
@@ -104,9 +105,10 @@ export default class HeightMapViewer {
 			this.orbitCamera.speed = 500;
 			this.orbitCamera.inertia = 0;
 			this.orbitCamera.panningInertia = 0;
-			(this.orbitCamera.inputs.attached as any).keyboard.angularSpeed = 0.05;
-			(this.orbitCamera.inputs.attached as any).keyboard.zoomingSensibility = 0.5;
-			(this.orbitCamera.inputs.attached as any).keyboard.panningSensibility = 0.5;
+			const keyboardInput = this.orbitCamera.inputs.attached.keyboard as ArcRotateCameraKeyboardMoveInput;
+			keyboardInput.angularSpeed = 0.05;
+			keyboardInput.zoomingSensibility = 0.5;
+			keyboardInput.panningSensibility = 0.5;
 			this.orbitCamera.angularSensibilityX = 200;
 			this.orbitCamera.angularSensibilityY = 200;
 			this.orbitCamera.panningSensibility = 2;
@@ -392,7 +394,7 @@ export default class HeightMapViewer {
 
 	buildGridMaterial(): GridMaterial {
 		const gridMaterial = new GridMaterial("bedMaterial", this.scene!);
-		gridMaterial.mainColor = new Color4(1, 1, 1, 0.2) as any;
+		gridMaterial.mainColor = new Color3(1, 1, 1);
 		gridMaterial.lineColor = Color3.FromHexString("#FFFFFF");
 		gridMaterial.gridRatio = 1;
 		gridMaterial.opacity = 0.8;
@@ -458,8 +460,11 @@ export default class HeightMapViewer {
 		context.fillStyle = "black";
 		context.fill();
 
-		// Annotations above the gradient
-		context.font = "14px Roboto,sans-serif";
+		// Annotations above the gradient. Always reset BOTH weight and size: setting just the
+		// size leaves the previous weight in place, and the bold reassignment below uses string
+		// concatenation - so on a keep-alive remount the prepended "bold " accumulates ("bold
+		// bold 14px ...") which Firefox interprets as a progressively larger font
+		context.font = "normal 14px Roboto,sans-serif";
 		context.textAlign = "center";
 		context.fillStyle = "white";
 		context.fillText(i18n.global.t("plugins.heightmap.scale"), canvas.width / 2, 21);
@@ -506,7 +511,9 @@ export default class HeightMapViewer {
 		// Axes legend
 		if (showAxes) {
 			context.fillText(i18n.global.t("plugins.heightmap.axes"), canvas.width / 2, scaleHeight + 109);
-			context.font = "bold " + context.font;
+			// Set the absolute shorthand instead of prepending - concatenation accumulated
+			// "bold bold ..." across renders in some browsers, growing the legend on each remount
+			context.font = "bold 14px Roboto,sans-serif";
 			context.fillStyle = "rgb(255,0,0)";
 			context.fillText(xLabel, canvas.width / 3, scaleHeight + 129);
 			context.fillStyle = "rgb(0,255,0)";

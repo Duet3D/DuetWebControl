@@ -14,17 +14,17 @@
  *   - An entry point:   index.ts / index.js / src/index.ts / dwc-src/index.ts
  *
  * Optional directories:
- *   - dsf/              — DSF plugin files  → populates dsfFiles[]
- *   - dwc/              — extra DWC assets  → populates dwcFiles[]
- *   - sd/               — SD card files     → populates rrfFiles[]
+ *   - dsf/              - DSF plugin files  -> populates dsfFiles[]
+ *   - dwc/              - extra DWC assets  -> populates dwcFiles[]
+ *   - sd/               - SD card files     -> populates rrfFiles[]
  *
  * Usage:
  *   node scripts/build-plugin-pkg.js <path-to-plugin-dir>
  *
  * Output:
- *   <plugin-dir>/dist/                 — compiled IIFE bundle + optional CSS
- *   <plugin-dir>/pkg/                  — assembled package directory
- *   <plugin-dir>/<id>-<ver>.zip        — ZIP archive (if archiver is installed)
+ *   <plugin-dir>/dist/                 - compiled IIFE bundle + optional CSS
+ *   <plugin-dir>/pkg/                  - assembled package directory
+ *   <plugin-dir>/<id>-<ver>.zip        - ZIP archive
  */
 
 import { existsSync, mkdirSync, writeFileSync, cpSync, readdirSync, lstatSync } from "fs";
@@ -38,7 +38,7 @@ import {
 	createZip,
 } from "./build-plugin.js";
 
-// ─── Helpers ─────────────────────────────────────────────────────────
+// #region Helpers
 
 /**
  * Recursively scan a directory and collect all file paths relative to
@@ -58,7 +58,9 @@ function collectFiles(dir, subDir) {
 	return files;
 }
 
-// ─── Main ────────────────────────────────────────────────────────────
+// #endregion
+
+// #region Main
 
 const resolvedPluginDir = parsePluginDir();
 const manifest = readManifest(resolvedPluginDir);
@@ -70,20 +72,16 @@ console.log(`Entry point: ${entryFile}`);
 
 const outDir = await buildPlugin(resolvedPluginDir, manifest, entryFile);
 
-// ─── Assemble package with file lists ────────────────────────────────
-
 const assembleDir = resolve(resolvedPluginDir, "pkg");
 mkdirSync(join(assembleDir, "dwc", "js"), { recursive: true });
 mkdirSync(join(assembleDir, "dwc", "css"), { recursive: true });
 
 let filesAdded = false;
 
-// Initialize file list arrays
 manifest.dwcFiles ??= [];
 manifest.dsfFiles ??= [];
 manifest.rrfFiles ??= [];
 
-// Copy JS
 const jsFile = join(outDir, `${manifest.id}.js`);
 if (existsSync(jsFile)) {
 	cpSync(jsFile, join(assembleDir, "dwc", "js", `${manifest.id}.js`));
@@ -91,7 +89,6 @@ if (existsSync(jsFile)) {
 	filesAdded = true;
 }
 
-// Copy CSS (if generated)
 const cssFile = join(outDir, `${manifest.id}.css`);
 if (existsSync(cssFile)) {
 	cpSync(cssFile, join(assembleDir, "dwc", "css", `${manifest.id}.css`));
@@ -99,7 +96,6 @@ if (existsSync(cssFile)) {
 	filesAdded = true;
 }
 
-// Copy and scan DSF directory
 const dsfDir = join(resolvedPluginDir, "dsf");
 if (existsSync(dsfDir)) {
 	cpSync(dsfDir, join(assembleDir, "dsf"), { recursive: true });
@@ -107,7 +103,6 @@ if (existsSync(dsfDir)) {
 	filesAdded = true;
 }
 
-// Copy and scan extra DWC directory
 const extraDwcDir = join(resolvedPluginDir, "dwc");
 if (existsSync(extraDwcDir)) {
 	cpSync(extraDwcDir, join(assembleDir, "dwc"), { recursive: true });
@@ -115,7 +110,6 @@ if (existsSync(extraDwcDir)) {
 	filesAdded = true;
 }
 
-// Copy and scan SD directory
 const sdDir = join(resolvedPluginDir, "sd");
 if (existsSync(sdDir)) {
 	cpSync(sdDir, join(assembleDir, "sd"), { recursive: true });
@@ -128,21 +122,26 @@ if (!filesAdded) {
 	process.exit(1);
 }
 
-// Write manifest with file lists populated
 writeFileSync(join(assembleDir, "plugin.json"), JSON.stringify(manifest, null, 2));
-
-// ─── Create ZIP ──────────────────────────────────────────────────────
 
 try {
 	const zipPath = resolve(resolvedPluginDir, `${manifest.id}-${manifest.version}.zip`);
 	const bytes = await createZip(assembleDir, zipPath);
 	console.log(`\nPlugin package ZIP created: ${zipPath} (${bytes} bytes)`);
-} catch {
+} catch (e) {
 	console.log(`\nPlugin package assembled in: ${assembleDir}`);
-	console.log("Install 'archiver' (npm i -D archiver) to auto-create ZIP files.");
+	console.warn(`ZIP creation failed: ${e?.message ?? e}`);
 }
 
 console.log("\nDone! Manifest file lists:");
-if (manifest.dwcFiles.length) console.log(`  dwcFiles: ${manifest.dwcFiles.join(", ")}`);
-if (manifest.dsfFiles.length) console.log(`  dsfFiles: ${manifest.dsfFiles.join(", ")}`);
-if (manifest.rrfFiles.length) console.log(`  rrfFiles: ${manifest.rrfFiles.join(", ")}`);
+if (manifest.dwcFiles.length) {
+	console.log(`  dwcFiles: ${manifest.dwcFiles.join(", ")}`);
+}
+if (manifest.dsfFiles.length) {
+	console.log(`  dsfFiles: ${manifest.dsfFiles.join(", ")}`);
+}
+if (manifest.rrfFiles.length) {
+	console.log(`  rrfFiles: ${manifest.rrfFiles.join(", ")}`);
+}
+
+// #endregion

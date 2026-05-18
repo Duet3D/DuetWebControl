@@ -1,14 +1,9 @@
-<!-- 3D GCode visualiser. Wraps @sindarius/gcodeviewer with a Vuetify settings drawer, a Monaco
-	 code-stream side panel, scrub controls and a fullscreen mode that floats a tool-position +
-	 heater-temperature overlay on top of the canvas. Cached UI prefs (per-tool colour, HQ
-	 rendering, specular, viewGCode toggle, zBelt, workplace overlay) round-trip through the
-	 cache store under the GCodeViewer key. The viewer instance is module-scope (intentionally
-	 not reactive - Vue's proxy would mangle Babylon's internal bookkeeping) -->
 <template>
-	<div ref="primaryContainer" class="primary-container mt-2">
+	<div ref="primaryContainer" class="primary-container">
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
 			<div v-if="fullscreen" :class="emergencyButtonClass">
-				<CodeButton :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')" color="error">
+				<CodeButton :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')"
+							color="error" size="small">
 					<v-icon>mdi-flash</v-icon>
 				</CodeButton>
 			</div>
@@ -51,80 +46,94 @@
 				</v-btn>
 			</div>
 
-			<v-navigation-drawer v-model="drawer" location="left" temporary width="350"
-								 class="drawer-zindex">
-				<v-card>
-					<v-btn :title="$t('plugins.gcodeViewer.resetCamera.title')" block color="primary"
-						   @click="reset">
-						<v-icon class="mr-2">mdi-camera</v-icon>
-						{{ $t("plugins.gcodeViewer.resetCamera.caption") }}
-					</v-btn>
-					<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-						   class="mt-2" color="primary" @click="reloadviewer">
-						<v-icon class="mr-2">mdi-reload-alert</v-icon>
-						{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-					</v-btn>
-					<v-btn :disabled="!isJobRunning || loading || visualizingCurrentJob"
-						   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" block class="mt-2"
-						   color="secondary" @click="loadRunningJob">
-						<v-icon class="mr-2">mdi-printer-3d</v-icon>
-						{{ $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
-					</v-btn>
-					<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')" block
-						   class="mt-2" color="primary" @click="clearScene">
-						<v-icon class="mr-2">mdi-video-3d-off</v-icon>
-						{{ $t("plugins.gcodeViewer.unloadGCode.caption") }}
-					</v-btn>
-					<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.loadLocalGCode.title')" block
-						   class="mt-2" color="primary" @click="chooseFile">
-						<v-icon>mdi-file</v-icon>
-						{{ $t("plugins.gcodeViewer.loadLocalGCode.caption") }}
-					</v-btn>
-					<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden multiple
-						   @change="fileSelected" />
+			<!-- Settings panel: plain absolutely-positioned child of `.viewer-box` rather than a
+				 v-navigation-drawer, because the drawer's teleport + overlay layer fights the
+				 in-component containment we need. Normal mode: viewer-box is
+				 `position: absolute; inset: 0` so the panel stays within the viewer card and
+				 doesn't bleed over the status panel above. Fullscreen mode: viewer-box becomes
+				 `position: fixed; inset: 0` and the panel covers the viewport with it -->
+			<div v-if="drawer" class="gcv-settings-backdrop" @click="drawer = false" />
+			<Transition name="gcv-settings-slide">
+				<aside v-if="drawer" class="gcv-settings-panel">
+					<v-expansion-panels v-model="openDrawerPanel" variant="accordion">
+					<v-expansion-panel value="view">
+						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.viewActions.title')">
+							<v-icon class="mr-2">mdi-eye</v-icon>
+							<strong>{{ $t("plugins.gcodeViewer.viewActions.caption") }}</strong>
+						</v-expansion-panel-title>
+						<v-expansion-panel-text eager>
+							<div class="d-flex flex-column ga-2">
+								<v-btn :title="$t('plugins.gcodeViewer.resetCamera.title')" block color="primary"
+									   prepend-icon="mdi-camera" @click="reset">
+									{{ $t("plugins.gcodeViewer.resetCamera.caption") }}
+								</v-btn>
+								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
+									   color="primary" prepend-icon="mdi-reload-alert" @click="reloadviewer">
+									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
+								</v-btn>
+								<v-btn :disabled="!isJobRunning || loading || visualizingCurrentJob"
+									   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" block
+									   color="secondary" prepend-icon="mdi-printer-3d" @click="loadRunningJob">
+									{{ $t("plugins.gcodeViewer.loadCurrentJob.caption") }}
+								</v-btn>
+								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.unloadGCode.title')" block
+									   color="primary" prepend-icon="mdi-video-3d-off" @click="clearScene">
+									{{ $t("plugins.gcodeViewer.unloadGCode.caption") }}
+								</v-btn>
+								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.loadLocalGCode.title')" block
+									   color="primary" prepend-icon="mdi-file" @click="chooseFile">
+									{{ $t("plugins.gcodeViewer.loadLocalGCode.caption") }}
+								</v-btn>
+								<input ref="fileInput" type="file" accept=".g,.gcode,.gc,.gco,.nc,.ngc,.tap" hidden multiple
+									   @change="fileSelected" />
 
-					<v-switch v-model="showObjectSelection" :disabled="!canCancelObject"
-							  :label="jobSelectionLabel" color="primary" hide-details class="mt-4" />
-					<v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"
-							  color="primary" hide-details />
-					<v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"
-							  color="primary" hide-details />
-					<v-switch v-model="persistTravels" :label="$t('plugins.gcodeViewer.persistTravels')"
-							  color="primary" hide-details />
-					<v-switch v-model="viewGCode" :label="$t('plugins.gcodeViewer.viewGCode')"
-							  color="primary" hide-details />
-				</v-card>
+								<v-divider class="my-1" />
 
-				<v-expansion-panels>
-					<v-expansion-panel>
+								<div class="d-flex flex-column">
+									<v-switch v-model="showObjectSelection" :disabled="!canCancelObject"
+											  :label="jobSelectionLabel" color="primary" hide-details />
+									<v-switch v-model="showCursor" :label="$t('plugins.gcodeViewer.showCursor')"
+											  color="primary" hide-details />
+									<v-switch v-model="showTravelLines" :label="$t('plugins.gcodeViewer.showTravels')"
+											  color="primary" hide-details />
+									<v-switch v-model="persistTravels" :label="$t('plugins.gcodeViewer.persistTravels')"
+											  color="primary" hide-details />
+									<v-switch v-model="viewGCode" :label="$t('plugins.gcodeViewer.viewGCode')"
+											  color="primary" hide-details />
+								</div>
+							</div>
+						</v-expansion-panel-text>
+					</v-expansion-panel>
+
+					<v-expansion-panel value="quality">
 						<v-expansion-panel-title :title="$t('plugins.gcodeViewer.renderQuality.title')">
 							<v-icon class="mr-2">mdi-checkerboard</v-icon>
 							<strong>{{ $t("plugins.gcodeViewer.renderQuality.caption") }}</strong>
 						</v-expansion-panel-title>
 						<v-expansion-panel-text eager>
-							<v-btn-toggle v-model="renderQuality" mandatory class="btn-toggle d-flex">
-								<v-btn :disabled="loading" :value="1" block>{{ $t("plugins.gcodeViewer.sbc") }}</v-btn>
-								<v-btn :disabled="loading" :value="2" block>{{ $t("plugins.gcodeViewer.low") }}</v-btn>
-								<v-btn :disabled="loading" :value="3" block>{{ $t("plugins.gcodeViewer.medium") }}</v-btn>
-								<v-btn :disabled="loading" :value="4" block>{{ $t("plugins.gcodeViewer.high") }}</v-btn>
-								<v-btn :disabled="loading" :value="5" block>{{ $t("plugins.gcodeViewer.ultra") }}</v-btn>
-								<v-btn :disabled="loading" :value="6" block>{{ $t("plugins.gcodeViewer.max") }}</v-btn>
-							</v-btn-toggle>
-							<v-checkbox v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
-										color="primary" hide-details class="mt-4" />
-							<v-checkbox v-model="forceWireMode"
-										:label="$t('plugins.gcodeViewer.forceLineRendering')"
-										color="primary" hide-details />
-							<v-checkbox v-model="perimeterOnly" :label="$t('plugins.gcodeViewer.perimeterOnly')"
-										color="primary" hide-details />
-							<v-checkbox v-model="progressMode" :label="$t('plugins.gcodeViewer.progressMode')"
-										color="primary" hide-details />
-							<v-checkbox v-model="vertexAlpha" :label="$t('plugins.gcodeViewer.transparency')"
-										color="primary" hide-details />
-							<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"
-									  hide-details />
-							<v-checkbox v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
-										color="primary" hide-details />
+							<div class="d-flex flex-column ga-3">
+								<v-select v-model="renderQuality" :items="renderQualityItems"
+										  :label="$t('plugins.gcodeViewer.renderQuality.caption')"
+										  :disabled="loading" density="compact" variant="outlined"
+										  hide-details />
+								<div class="d-flex flex-column">
+									<v-checkbox v-model="useHQRendering" :label="$t('plugins.gcodeViewer.useHQRendering')"
+												color="primary" hide-details />
+									<v-checkbox v-model="forceWireMode"
+												:label="$t('plugins.gcodeViewer.forceLineRendering')"
+												color="primary" hide-details />
+									<v-checkbox v-model="perimeterOnly" :label="$t('plugins.gcodeViewer.perimeterOnly')"
+												color="primary" hide-details />
+									<v-checkbox v-model="progressMode" :label="$t('plugins.gcodeViewer.progressMode')"
+												color="primary" hide-details />
+									<v-checkbox v-model="vertexAlpha" :label="$t('plugins.gcodeViewer.transparency')"
+												color="primary" hide-details />
+									<v-slider v-if="vertexAlpha" v-model="transparencyPercent" min="1" max="100"
+											  hide-details />
+									<v-checkbox v-model="specular" :label="$t('plugins.gcodeViewer.useSpecular')"
+												color="primary" hide-details />
+								</div>
+							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
 
@@ -134,24 +143,20 @@
 							<strong>{{ $t("plugins.gcodeViewer.extruders.caption") }}</strong>
 						</v-expansion-panel-title>
 						<v-expansion-panel-text>
-							<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-								   class="mb-2" color="primary" @click="reloadviewer">
-								{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-							</v-btn>
-							<v-card v-for="(extruder, index) in toolColors" :key="index">
-								<v-card-title>
-									<h3>{{ $t("plugins.gcodeViewer.tool", [index]) }}</h3>
-								</v-card-title>
-								<v-card-text>
+							<div class="d-flex flex-column ga-3">
+								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
+									   color="primary" @click="reloadviewer">
+									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
+								</v-btn>
+								<div v-for="(extruder, index) in toolColors" :key="index">
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.tool", [index]) }}</div>
 									<ColorPicker :editcolor="extruder"
 												 @updatecolor="(value) => updateColor(index, value)" />
-								</v-card-text>
-							</v-card>
-							<v-card>
-								<v-btn block class="mt-4" color="warning" @click="resetExtruderColors">
+								</div>
+								<v-btn block color="warning" @click="resetExtruderColors">
 									{{ $t("plugins.gcodeViewer.resetColor", toolColors.length) }}
 								</v-btn>
-							</v-card>
+							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
 
@@ -161,42 +166,37 @@
 							<strong>{{ $t("plugins.gcodeViewer.renderMode.caption", 2) }}</strong>
 						</v-expansion-panel-title>
 						<v-expansion-panel-text>
-							<v-card>
-								<h4>{{ $t("plugins.gcodeViewer.renderMode.caption", 2) }}</h4>
+							<div class="d-flex flex-column ga-3">
 								<v-btn-toggle v-model="colorMode" mandatory class="btn-toggle d-flex">
 									<v-btn :disabled="loading" :value="0" block>{{ $t("plugins.gcodeViewer.color") }}</v-btn>
 									<v-btn :disabled="loading" :value="1" block>{{ $t("plugins.gcodeViewer.feedrate") }}</v-btn>
 									<v-btn :disabled="loading" :value="2" block>{{ $t("plugins.gcodeViewer.feature") }}</v-btn>
 								</v-btn-toggle>
 								<v-checkbox v-model="g1AsExtrusion" :label="$t('plugins.gcodeViewer.g1AsExtrusion')"
-											color="primary" hide-details class="mt-3" />
-								<h4>{{ $t("plugins.gcodeViewer.minFeedrate") }}</h4>
-								<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details />
-								<h4>{{ $t("plugins.gcodeViewer.maxFeedrate") }}</h4>
-								<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details />
-							</v-card>
-							<v-card>
-								<v-card-title>
-									<h4>{{ $t("plugins.gcodeViewer.minFeedrateColor") }}</h4>
-								</v-card-title>
-								<v-card-text>
+											color="primary" hide-details />
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.minFeedrate") }}</div>
+									<v-slider v-model="minColorRate" :max="500" :min="5" thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.maxFeedrate") }}</div>
+									<v-slider v-model="maxColorRate" :max="500" :min="5" thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.minFeedrateColor") }}</div>
 									<ColorPicker :editcolor="minFeedColor"
 												 @updatecolor="(value) => updateMinFeedColor(value)" />
-								</v-card-text>
-							</v-card>
-							<v-card>
-								<v-card-title>
-									<h4>{{ $t("plugins.gcodeViewer.maxFeedrateColor") }}</h4>
-								</v-card-title>
-								<v-card-text>
+								</div>
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.maxFeedrateColor") }}</div>
 									<ColorPicker :editcolor="maxFeedColor"
 												 @updatecolor="(value) => updateMaxFeedColor(value)" />
-								</v-card-text>
-							</v-card>
-							<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
-								   class="mb-2" color="primary" @click="reloadviewer">
-								{{ $t("plugins.gcodeViewer.reloadView.caption") }}
-							</v-btn>
+								</div>
+								<v-btn :disabled="loading" :title="$t('plugins.gcodeViewer.reloadView.title')" block
+									   color="primary" @click="reloadviewer">
+									{{ $t("plugins.gcodeViewer.reloadView.caption") }}
+								</v-btn>
+							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
 
@@ -206,21 +206,23 @@
 							<strong>{{ $t("plugins.gcodeViewer.progress.caption") }}</strong>
 						</v-expansion-panel-title>
 						<v-expansion-panel-text>
-							<v-card>
-								<div>{{ $t("plugins.gcodeViewer.topClipping") }}</div>
-								<v-slider v-model="sliderHeight" :max="maxHeight" :min="minHeight" step="0.1"
-										  thumb-label hide-details />
-								<div>{{ $t("plugins.gcodeViewer.bottomClipping") }}</div>
-								<v-slider v-model="sliderBottomHeight" :max="maxHeight" :min="minHeight" step="0.1"
-										  thumb-label hide-details />
-							</v-card>
-							<v-card>
-								<v-card-title>{{ $t("plugins.gcodeViewer.progressColor") }}</v-card-title>
-								<v-card-text>
+							<div class="d-flex flex-column ga-3">
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.topClipping") }}</div>
+									<v-slider v-model="sliderHeight" :max="maxHeight" :min="minHeight" step="0.1"
+											  thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-1">{{ $t("plugins.gcodeViewer.bottomClipping") }}</div>
+									<v-slider v-model="sliderBottomHeight" :max="maxHeight" :min="minHeight" step="0.1"
+											  thumb-label hide-details />
+								</div>
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.progressColor") }}</div>
 									<ColorPicker :editcolor="progressColor"
 												 @updatecolor="(value) => updateProgressColor(value)" />
-								</v-card-text>
-							</v-card>
+								</div>
+							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
 
@@ -230,27 +232,22 @@
 							<strong>{{ $t("plugins.gcodeViewer.settings") }}</strong>
 						</v-expansion-panel-title>
 						<v-expansion-panel-text>
-							<v-card>
-								<v-card-title>{{ $t("plugins.gcodeViewer.background") }}</v-card-title>
-								<v-card-text>
+							<div class="d-flex flex-column ga-3">
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.background") }}</div>
 									<ColorPicker :editcolor="backgroundColor"
 												 @updatecolor="(value) => updateBackground(value)" />
-								</v-card-text>
-							</v-card>
-							<v-card>
-								<v-card-title>{{ $t("plugins.gcodeViewer.bedRenderMode") }}</v-card-title>
-								<v-card-text>
-									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex flex-column">
+								</div>
+								<div>
+									<div class="text-title-small mb-2">{{ $t("plugins.gcodeViewer.bedRenderMode") }}</div>
+									<v-btn-toggle v-model="bedRenderMode" mandatory class="d-flex flex-column mb-3">
 										<v-btn :value="0" block>{{ $t("plugins.gcodeViewer.bed") }}</v-btn>
 										<v-btn :value="1" block>{{ $t("plugins.gcodeViewer.volume") }}</v-btn>
 									</v-btn-toggle>
-									<br />
 									<ColorPicker :editcolor="bedColor"
 												 @updatecolor="(value) => updateBedColor(value)" />
-								</v-card-text>
-							</v-card>
-							<v-card>
-								<v-card-text>
+								</div>
+								<div class="d-flex flex-column">
 									<v-checkbox v-model="showOverlay" :label="$t('plugins.gcodeViewer.showFSOverlay')"
 												color="primary" hide-details />
 									<v-checkbox v-model="showAxes" :label="$t('plugins.gcodeViewer.showAxes')"
@@ -265,15 +262,16 @@
 											  color="primary" hide-details />
 									<v-switch v-model="zBelt" :label="$t('plugins.gcodeViewer.zBelt')"
 											  color="primary" hide-details />
-									<v-text-field v-model.number="zBeltAngle" type="number"
-												  :label="$t('plugins.gcodeViewer.zBeltAngle')"
-												  density="compact" variant="outlined" hide-details />
-								</v-card-text>
-							</v-card>
+								</div>
+								<v-text-field v-model.number="zBeltAngle" type="number"
+											  :label="$t('plugins.gcodeViewer.zBeltAngle')"
+											  density="compact" variant="outlined" hide-details />
+							</div>
 						</v-expansion-panel-text>
 					</v-expansion-panel>
-				</v-expansion-panels>
-			</v-navigation-drawer>
+					</v-expansion-panels>
+				</aside>
+			</Transition>
 
 			<div v-show="!visualizingCurrentJob && scrubFileSize > 0"
 				 :class="[{ 'button-container-drawer': drawer }, scrubberClass]">
@@ -284,7 +282,7 @@
 								  @update:model-value="scrubPositionChanged" />
 					</v-col>
 					<v-col cols="2">
-						<v-row dense>
+						<v-row density="compact">
 							<v-col cols="12">
 								<v-btn @click="simulatePlay">
 									<v-icon v-if="scrubPlaying">mdi-stop</v-icon>
@@ -368,6 +366,7 @@ const machineStore = useMachineStore();
 const cacheStore = useCacheStore();
 const uiStore = useUiStore();
 const display = useDisplay();
+const route = useRoute();
 
 // Intentionally module-scope (not a ref) - Babylon's internals don't survive Vue's reactive
 // proxy walk; the template never reads `viewer` directly so losing reactivity is safe
@@ -378,11 +377,21 @@ const viewerCanvas = ref<HTMLCanvasElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const drawer = ref(false);
+// Open the View / Actions group by default when the drawer first comes up - it carries the
+// reset/reload/load buttons + the toggles a user most often reaches for
+const openDrawerPanel = ref<string>("view");
+
+const renderQualityItems = computed(() => [
+	{ title: i18n.global.t("plugins.gcodeViewer.sbc"),    value: 1 },
+	{ title: i18n.global.t("plugins.gcodeViewer.low"),    value: 2 },
+	{ title: i18n.global.t("plugins.gcodeViewer.medium"), value: 3 },
+	{ title: i18n.global.t("plugins.gcodeViewer.high"),   value: 4 },
+	{ title: i18n.global.t("plugins.gcodeViewer.ultra"),  value: 5 },
+	{ title: i18n.global.t("plugins.gcodeViewer.max"),    value: 6 },
+]);
 const backgroundColor = ref("#000000FF");
 const progressColor = ref("#FFFFFFFF");
 const loading = ref(false);
-// Backed by the cache store below (computed proxy); the ref was a v3.7-dev leftover that
-// stored the value in localStorage directly, bypassing the cache snapshot
 const showTravelLines = ref(false);
 const persistTravels = ref(false);
 const selectedFile = ref("");
@@ -553,7 +562,7 @@ const workplaceOffsets = computed(() => {
 });
 
 const currentWorkplace = computed(() => {
-	return move.value.motionSystems[machineStore.selectedMotionSystem].workplaceNumber;
+	return move.value.motionSystems[machineStore.selectedMotionSystem]?.workplaceNumber ?? 0;
 });
 
 // #endregion
@@ -561,7 +570,9 @@ const currentWorkplace = computed(() => {
 // #region Viewer lifecycle
 async function viewModelEvent(path: string) {
 	selectedFile.value = path;
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	try {
 		const blob = await machineStore.download({
 			filename: Path.combine(path),
@@ -594,7 +605,9 @@ function onWindowResize() {
 }
 
 onMounted(async () => {
-	if (!viewerCanvas.value) return;
+	if (!viewerCanvas.value) {
+		return;
+	}
 	viewer = new gcodeViewer(viewerCanvas.value);
 	viewer.fileData = "";
 	await viewer.init();
@@ -664,14 +677,25 @@ onMounted(async () => {
 
 	window.addEventListener("keyup", onKeyUp);
 	window.addEventListener("resize", onWindowResize);
+
+	// Pick up a file passed via query (Jobs list "View 3D" navigation arrives this way; the
+	// global event would race the lazy chunk's mount)
+	const pendingFile = route.query.file;
+	if (typeof pendingFile === "string" && pendingFile.length > 0) {
+		viewModelEvent(pendingFile);
+	}
 });
 
 onBeforeUnmount(() => {
 	Events.off("view-3d-model", viewModelEvent);
 	window.removeEventListener("keyup", onKeyUp);
 	window.removeEventListener("resize", onWindowResize);
-	if (colorDebounce) clearTimeout(colorDebounce);
-	if (resizeDebounce) clearTimeout(resizeDebounce);
+	if (colorDebounce) {
+		clearTimeout(colorDebounce);
+	}
+	if (resizeDebounce) {
+		clearTimeout(resizeDebounce);
+	}
 	viewer = null;
 });
 
@@ -679,7 +703,9 @@ onBeforeUnmount(() => {
 
 // #region Methods
 function simulatePlay() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	if (scrubPlaying.value) {
 		viewer.stopSimulation();
 	} else {
@@ -689,7 +715,9 @@ function simulatePlay() {
 }
 
 function scrubPositionChanged(value: number) {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	const viewerState = viewer.simulation;
 	viewer.simulation = false;
 	nextTick(() => {
@@ -701,7 +729,9 @@ function scrubPositionChanged(value: number) {
 }
 
 function updateColor(index: number, value: string) {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	const next = toolColors.value.slice();
 	next[index] = value;
 	viewer.gcodeProcessor.updateTool(value, 0.4, index);
@@ -742,8 +772,16 @@ function resize() {
 		clearTimeout(resizeDebounce);
 	}
 	resizeDebounce = setTimeout(() => {
-		if (!primaryContainer.value) return;
-		const viewerHeight = Math.max(window.innerHeight - 200, 300);
+		if (!primaryContainer.value) {
+			return;
+		}
+		// Match the heightmap canvas: fill the viewport minus the appbar + container padding,
+		// floored so a cramped window keeps a usable canvas
+		// xs/sm: layout strips its outer padding, but the viewer adds an 8px breathing margin
+		// (top + bottom = 16) on top of the 64px appbar. md+ uses the layout's 16px top/bottom
+		// padding (64 appbar + 32) and the viewer sits flush with that frame
+		const chrome = display.mdAndUp.value ? 96 : 80;
+		const viewerHeight = Math.max(window.innerHeight - chrome, 400);
 		primaryContainer.value.style.height = `${viewerHeight}px`;
 		viewer?.resize();
 	}, 500);
@@ -754,7 +792,9 @@ function reset() {
 }
 
 async function loadRunningJob() {
-	if (!viewer || !job.value.file) return;
+	if (!viewer || !job.value.file) {
+		return;
+	}
 	viewer.simulation = false;
 	if (selectedFile.value !== job.value.file.fileName) {
 		selectedFile.value = "";
@@ -794,7 +834,9 @@ function resetExtruderColors() {
 }
 
 async function reloadviewer() {
-	if (loading.value || !viewer) return;
+	if (loading.value || !viewer) {
+		return;
+	}
 	loading.value = true;
 	preLoadSettings();
 	if (viewer.fileData.length > 0) {
@@ -834,7 +876,9 @@ function chooseFile() {
 }
 
 function setGCodeValues() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	if (!g1AsExtrusion.value) {
 		maxHeight.value = zBelt.value ? 500 : viewer.getMaxHeight();
 		minHeight.value = viewer.getMinHeight();
@@ -849,7 +893,9 @@ function setGCodeValues() {
 }
 
 function preLoadSettings() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.updateForceWireMode(forceWireMode.value);
 	viewer.gcodeProcessor.setLiveTracking(visualizingCurrentJob.value);
 	viewer.gcodeProcessor.useHighQualityExtrusion(useHQRendering.value);
@@ -898,7 +944,9 @@ function cancelLoad() {
 }
 
 function fastForward() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.stopSimulation();
 	scrubPlaying.value = false;
 	scrubPosition.value = scrubFileSize.value;
@@ -906,7 +954,9 @@ function fastForward() {
 }
 
 function updateWorkplaces() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	const axesLetterIdx: Record<string, number> = {};
 	for (let i = 0; i < move.value.axes.length; i++) {
 		axesLetterIdx[move.value.axes[i].letter] = i;
@@ -926,7 +976,9 @@ function updateWorkplaces() {
 }
 
 function updateTools() {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.resetTools();
 	for (const color of toolColors.value) {
 		viewer.gcodeProcessor.addTool(color, 0.4);
@@ -937,7 +989,9 @@ function updateTools() {
 
 // #region Watches
 watch(move, (newValue) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	const newPosition = newValue.axes.map((axis: Axis) => ({
 		axes: axis.letter,
 		position: (axis.userPosition ?? 0) + axis.workplaceOffsets[currentWorkplace.value],
@@ -953,7 +1007,9 @@ watch(showTravelLines, (newValue) => viewer?.toggleTravels(newValue));
 
 watch(persistTravels, (newValue) => {
 	showTravelLines.value = true;
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.setTravelPersistence(newValue);
 	viewer.gcodeProcessor.forceRedraw();
 });
@@ -987,21 +1043,27 @@ watch(renderQuality, (newValue) => {
 });
 
 watch(sliderHeight, (newValue) => {
-	if (sliderBottomHeight.value > newValue) sliderBottomHeight.value = newValue - 1;
+	if (sliderBottomHeight.value > newValue) {
+		sliderBottomHeight.value = newValue - 1;
+	}
 	if (!g1AsExtrusion.value) {
 		viewer?.setZClipPlane(newValue + 1, sliderBottomHeight.value);
 	}
 });
 
 watch(sliderBottomHeight, (newValue) => {
-	if (sliderHeight.value < newValue) sliderHeight.value = newValue + 1;
+	if (sliderHeight.value < newValue) {
+		sliderHeight.value = newValue + 1;
+	}
 	if (!g1AsExtrusion.value) {
 		viewer?.setZClipPlane(sliderHeight.value, newValue - 1);
 	}
 });
 
 watch(vertexAlpha, (newValue) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.setAlpha(newValue);
 	reloadviewer();
 });
@@ -1013,7 +1075,9 @@ watch(() => job.value.build?.objects, (newValue) => {
 }, { deep: true });
 
 watch(showObjectSelection, (newValue) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	if (canCancelObject.value) {
 		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
 		viewer.buildObjects.showObjectSelection(newValue);
@@ -1024,7 +1088,9 @@ watch(showObjectSelection, (newValue) => {
 });
 
 watch(isJobRunning, (newValue) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.setLiveTracking(newValue);
 	if (!newValue) {
 		viewer.gcodeProcessor.doFinalPass();
@@ -1054,7 +1120,9 @@ watch(forceWireMode, (newValue) => {
 watch(useHQRendering, (to) => viewer?.gcodeProcessor.useHighQualityExtrusion(to));
 
 watch(colorMode, async (to) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.setColorMode(to);
 	await reloadviewer();
 });
@@ -1072,7 +1140,9 @@ watch(loading, (to) => {
 watch(specular, (to) => viewer?.gcodeProcessor.useSpecularColor(to));
 
 watch(g1AsExtrusion, async (to) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.g1AsExtrusion = to;
 	await reloadviewer();
 });
@@ -1098,7 +1168,9 @@ watch(showWorkplace, () => updateWorkplaces());
 watch(toolColors, () => updateTools(), { deep: true });
 
 watch(transparencyPercent, (to) => {
-	if (!viewer) return;
+	if (!viewer) {
+		return;
+	}
 	viewer.gcodeProcessor.setTransparencyValue(to / 100);
 	viewer.gcodeProcessor.forceRedraw();
 });
@@ -1151,6 +1223,29 @@ watch(progressMode, async () => {
 	position: relative;
 	width: 100%;
 	height: 100%;
+	/* Round the black canvas's corners and give the layout a small breathing inset at xs/sm
+	   (the surrounding layout strips its padding there). md+ keeps the canvas flush with the
+	   layout's own 16px padding */
+	border-radius: 8px;
+	overflow: hidden;
+	margin: 8px;
+	width: calc(100% - 16px);
+}
+
+/* Drawer cleanup: the previous nested-v-card structure created stacked rounded boxes inside
+   the side menu. Replace with flat groups: action buttons stacked with a consistent gap, a
+   divider between the action stack and the toggles, and a comfortable padding around both */
+.gcv-drawer-actions {
+	padding: 12px;
+}
+.gcv-drawer-switches {
+	padding: 0 12px 12px;
+}
+@media (min-width: 960px) {
+	.primary-container {
+		margin: 0;
+		width: 100%;
+	}
 }
 
 .viewer-box {
@@ -1161,7 +1256,10 @@ watch(progressMode, async () => {
 .full-screen {
 	position: fixed;
 	inset: 0;
-	z-index: 10;
+	/* Vuetify v-app-bar sits at z-index 1008; the fullscreen viewer needs to cover it (the user
+	   asked for the full screen, not "everything below the app bar") so go above that layer */
+	z-index: 1100;
+	background-color: black;
 }
 
 .full-screen-icon {
@@ -1169,7 +1267,39 @@ watch(progressMode, async () => {
 	width: 40px;
 }
 
-.drawer-zindex { z-index: 20; }
+/* Settings slide-in panel + backdrop, scoped to `.viewer-box`. Above the canvas + scrubber +
+   loading bar (z-indexes <=19) but below Vuetify dialogs/overlays (1006+) so a v-dialog opened
+   from inside the panel still renders on top */
+.gcv-settings-backdrop {
+	position: absolute;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.4);
+	z-index: 30;
+}
+
+.gcv-settings-panel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 350px;
+	max-width: 100%;
+	background-color: rgb(var(--v-theme-surface));
+	color: rgb(var(--v-theme-on-surface));
+	z-index: 31;
+	overflow-y: auto;
+	box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.gcv-settings-slide-enter-active,
+.gcv-settings-slide-leave-active {
+	transition: transform 0.25s ease;
+}
+
+.gcv-settings-slide-enter-from,
+.gcv-settings-slide-leave-to {
+	transform: translateX(-100%);
+}
 
 .button-container {
 	position: absolute;
@@ -1183,17 +1313,19 @@ watch(progressMode, async () => {
 }
 
 /* z-index kept well below Vuetify 4's overlay stack (which starts around 1006 for menus +
-   dialogs) so a popover/dialog opened over the viewer renders above the emergency button */
+   dialogs) so a popover/dialog opened over the viewer renders above the emergency button.
+   Pinned to the bottom-right corner so it never sits on top of Babylon's orientation gizmo at
+   the top-right of the viewport */
 .emergency-button-placement {
 	position: absolute;
-	top: 14px;
+	bottom: 14px;
 	right: 16px;
 	z-index: 5;
 }
 
 .emergency-button-placement-codeview {
 	position: absolute;
-	top: 14px;
+	bottom: 14px;
 	right: 30%;
 	z-index: 5;
 }

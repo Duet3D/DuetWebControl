@@ -1,6 +1,3 @@
-<!-- Renders one row per heater/spindle for each tool in the ControlList table.
-	 With groupTools, identical tools collapse into a single row with a dropdown to pick which to select;
-	 filament-bearing tools get a load/change/reassign menu; spindle-bearing tools get rotation buttons -->
 <template>
 	<tbody>
 		<template v-if="toolsToDisplay.length > 0">
@@ -37,7 +34,7 @@
 						</v-menu>
 
 						<br>
-						<span class="font-weight-regular text-caption">
+						<span class="font-weight-regular text-body-small">
 							T{{ tool.number }}
 
 							<template v-if="canLoadFilament(tool)">
@@ -76,7 +73,7 @@
 					<template v-if="!toolHeater && getSpindle(tool)">
 						<td>
 							<template v-if="tool.number === currentToolNumber">
-								<v-row dense>
+								<v-row density="compact">
 									<v-col>
 										<CodeButton code="M4" no-wait size="small">
 											<v-icon>mdi-rotate-left</v-icon>
@@ -86,7 +83,7 @@
 										</CodeButton>
 									</v-col>
 								</v-row>
-								<v-row dense>
+								<v-row density="compact">
 									<v-col>
 										<CodeButton code="M5" no-wait size="small">
 											<v-icon>mdi-stop</v-icon>
@@ -117,7 +114,7 @@
 								</a>
 								<template v-if="toolHeater.state !== null">
 									<br>
-									<span class="font-weight-regular text-caption">
+									<span class="font-weight-regular text-body-small">
 										{{ $t(`generic.heaterStates.${toolHeater.state}`) }}
 									</span>
 								</template>

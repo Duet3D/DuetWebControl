@@ -1,7 +1,3 @@
-<!-- Fullscreen overlay panel for the GCodeViewer. Pins a tool-position card on top of the
-	 viewport and a heater-temperature column on the right via fixed positioning. Heater readouts
-	 reuse the local Gauge component. Layout switches to the "viewgcode" variant when the
-	 settings sidebar is open -->
 <template>
 	<div ref="overlay" class="overlay-container">
 		<div :class="viewgcode ? 'axes-container-viewgcode' : 'axes-container'">
@@ -25,7 +21,7 @@
 
 					<template v-for="tool in toolsFiltered" :key="tool.number">
 						<v-row v-for="(heaterIdx, idx) in tool.heaters" :key="`Tool ${tool.number * 10 + idx}`"
-							   dense align="center" justify="center">
+							   density="compact" align="center" justify="center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges"
@@ -39,7 +35,7 @@
 
 					<template v-for="(heaterIndices, idx) in heat.bedHeaterMapping" :key="`bed-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`bed${idx}-${subIdx}`"
-							   dense align="center" justify="center">
+							   density="compact" align="center" justify="center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges" :max="120"
@@ -54,7 +50,7 @@
 
 					<template v-for="(heaterIndices, idx) in heat.chamberHeaterMapping" :key="`chamber-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`chamber${idx}-${subIdx}`"
-							   dense align="center" justify="center">
+							   density="compact" align="center" justify="center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges" :max="120"

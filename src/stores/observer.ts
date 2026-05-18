@@ -3,7 +3,11 @@ import { Pinia } from "pinia";
 import { useCacheStore } from "./cache";
 import { useSettingsStore } from "./settings";
 
-let settingsTimer: ReturnType<typeof setTimeout> | null = null, settingsObserverSuspended = false;
+// Settings observer starts suspended so component-mount-time mutations (useComponentSettings
+// registrations, defaults applied during initial render) cannot trigger a save before the
+// settings file has been loaded from the machine. settings.load() resumes it in its finally
+// block once the file values have been applied
+let settingsTimer: ReturnType<typeof setTimeout> | null = null, settingsObserverSuspended = true;
 let cacheTimer: ReturnType<typeof setTimeout> | null = null, cacheObserverSuspended = false;
 
 /**

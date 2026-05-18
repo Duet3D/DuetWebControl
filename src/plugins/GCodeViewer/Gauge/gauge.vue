@@ -1,6 +1,3 @@
-<!-- Thin Vue wrapper around the d3-based Gauge class used by the FSOverlay temperature
-	 readouts. Owns its DOM container, recreates the underlying gauge on mount and re-renders
-	 on prop changes (current value, target temperature, state, scale max) -->
 <template>
 	<div>
 		<div class="center-label">{{ label }}</div>
@@ -24,7 +21,9 @@ let gauge: Gauge | undefined;
 let settleTimer: ReturnType<typeof setTimeout> | null = null;
 
 function refresh() {
-	if (!gauge) return;
+	if (!gauge) {
+		return;
+	}
 	gauge.max = props.max;
 	gauge.setTemperature = props.settemp;
 	gauge.update(props.curval);
@@ -32,7 +31,9 @@ function refresh() {
 }
 
 onMounted(() => {
-	if (!gaugeContainer.value) return;
+	if (!gaugeContainer.value) {
+		return;
+	}
 	gauge = new Gauge(gaugeContainer.value);
 	refresh();
 	// The container can briefly report a 0x0 size before Vuetify finishes its layout pass; a

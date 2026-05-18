@@ -1,5 +1,3 @@
-<!-- Static job metadata pulled from the file header: total height, layer height, filament use and
-	 the slicer/generator string. FFF-only fields are hidden when the machine is in CNC mode -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center">

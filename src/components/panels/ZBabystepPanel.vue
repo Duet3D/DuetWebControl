@@ -1,5 +1,3 @@
-<!-- Two-button Z babystep ±babystepAmount. Reads the current babystep value off the Z axis and posts
-	 M290 R1 with the configured amount. The amount lives in settings -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
@@ -9,7 +7,7 @@
 
 		<v-card-text class="pt-1">
 			{{ $t("panel.babystepping.current", [displayZ(babystepping)]) }}
-			<v-row class="mt-1" dense>
+			<v-row class="mt-1" density="compact">
 				<v-col>
 					<CodeButton :code="`M290 R1 Z${-settingsStore.babystepAmount}`" no-wait block>
 						<v-icon>mdi-arrow-collapse-vertical</v-icon>

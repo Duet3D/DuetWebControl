@@ -1,12 +1,12 @@
 <template>
-	<v-row dense>
+	<v-row density="compact" class="mb-4">
 		<v-col cols="12" class="d-flex">
 			<span>{{ printStatus }}</span>
 			<v-spacer />
 			<span>{{ printDetails }}</span>
 		</v-col>
-		<v-col cols="12">
-			<v-progress-linear :model-value="machineStore.jobProgress * 100" class="my-1" />
+		<v-col cols="12" class="pt-0">
+			<v-progress-linear :model-value="machineStore.jobProgress * 100" height="6" />
 		</v-col>
 	</v-row>
 </template>

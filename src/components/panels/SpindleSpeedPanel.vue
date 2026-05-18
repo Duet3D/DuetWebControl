@@ -1,5 +1,3 @@
-<!-- One row per configured spindle: enable/disable, optional forward/reverse, current RPM, and an
-	 RPM combobox prefilled with the user's saved presets clamped to each spindle's allowed range -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center">

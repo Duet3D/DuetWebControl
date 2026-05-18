@@ -1,6 +1,3 @@
-<!-- Filament-selection dialog. Lists the filament subdirectories from the machine and runs M701/M702/M703
-	 to load or change the filament. When runMacros is false, the macros are skipped (P0) and a single
-	 reassignment is performed instead - used by the "Reassign Filament" menu item in ToolRows -->
 <template>
 	<v-dialog v-model="shown" persistent width="360" @keydown.escape="hide">
 		<v-card>
@@ -37,8 +34,7 @@ import type { Tool } from "@duet3d/objectmodel";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
-import { LogLevel, useUiStore } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 
 const props = withDefaults(defineProps<{
 	tool: Tool | null;
@@ -89,7 +85,7 @@ async function loadFilaments() {
 	} catch (e) {
 		if (!(e instanceof DisconnectedError)) {
 			console.warn(e);
-			uiStore.log(LogLevel.error, i18n.global.t("error.filamentsLoadFailed"), getErrorMessage(e));
+			uiStore.notifyError(e, i18n.global.t("error.filamentsLoadFailed"));
 		}
 		hide();
 	}

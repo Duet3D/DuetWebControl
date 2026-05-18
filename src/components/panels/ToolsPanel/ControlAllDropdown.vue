@@ -1,8 +1,5 @@
-<!-- "Control Heaters" dropdown menu in the ToolsPanel header.
-	 Allows turning everything off in one click, and bulk-setting active/standby temperatures across
-	 selected groups (tools, beds, chambers) via a single ControlInput for each -->
 <template>
-	<v-menu v-model="dropdownShown" location="bottom end" :close-on-content-click="false">
+	<v-menu v-if="hasAnyHeater" v-model="dropdownShown" location="bottom end" :close-on-content-click="false">
 		<template #activator="{ props }">
 			<a v-bind="props" href="javascript:void(0)">
 				<v-icon size="small">mdi-menu-down</v-icon>
@@ -11,7 +8,7 @@
 		</template>
 
 		<v-card>
-			<v-layout class="d-flex flex-column justify-center pt-2 pb-3 px-2">
+			<v-layout class="d-flex flex-column justify-center pt-2 pb-3 px-2" style="min-width: 240px">
 				<v-btn block color="primary" class="mb-3 pa-2" :disabled="!canTurnEverythingOff || turningEverythingOff"
 					   :loading="turningEverythingOff" @click="turnEverythingOff">
 					<v-icon class="mr-1">mdi-power-standby</v-icon>
@@ -20,12 +17,19 @@
 
 				<v-divider class="mb-2" />
 
-				<ControlInput :label="$t('panel.tools.setActiveTemperatures')" type="all"
-							  :control-tools="controlTools" :control-beds="controlBeds"
+				<div class="text-body-small text-medium-emphasis mt-1">
+					{{ $t("panel.tools.setActiveTemperatures") }}
+				</div>
+				<ControlInput type="all" :control-tools="controlTools" :control-beds="controlBeds"
 							  :control-chambers="controlChambers" active />
-				<ControlInput :label="$t('panel.tools.setStandbyTemperatures')" type="all"
-							  :control-tools="controlTools" :control-beds="controlBeds"
+
+				<div class="text-body-small text-medium-emphasis mt-2">
+					{{ $t("panel.tools.setStandbyTemperatures") }}
+				</div>
+				<ControlInput type="all" :control-tools="controlTools" :control-beds="controlBeds"
 							  :control-chambers="controlChambers" standby />
+
+				<v-divider class="mt-3 mb-1" />
 
 				<v-switch v-show="hasTools" v-model="controlTools" hide-details density="compact" class="mx-1 mt-0"
 						  :label="$t('panel.tools.setToolTemperatures')" />
@@ -44,8 +48,7 @@ import { DisconnectedError } from "@duet3d/connectors";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useUiStore, LogLevel } from "@/stores/ui";
-import { getErrorMessage } from "@/utils/errors";
+import { useUiStore } from "@/stores/ui";
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
@@ -58,8 +61,11 @@ const canTurnEverythingOff = computed(() => {
 	}
 	const heaters = machineStore.model.heat.heaters;
 	const tools = machineStore.model.tools;
-	const bedHeaterMapping = machineStore.model.heat.bedHeaterMapping;
-	const chamberHeaterMapping = machineStore.model.heat.chamberHeaterMapping;
+	// Use the store getters - they fall back to the legacy flat `bedHeaters` / `chamberHeaters`
+	// arrays when the firmware doesn't emit the newer `bedHeaterMapping` / `chamberHeaterMapping`
+	// fields (RRF reports the deprecated flat form on at least some boards / firmware versions)
+	const bedHeaterMapping = machineStore.bedHeaterMapping;
+	const chamberHeaterMapping = machineStore.chamberHeaterMapping;
 	return tools.some(tool => tool !== null &&
 		tool.heaters.some(toolHeater => toolHeater >= 0 && toolHeater < heaters.length &&
 			heaters[toolHeater] !== null && heaters[toolHeater]!.state !== HeaterState.off))
@@ -77,12 +83,12 @@ async function turnEverythingOff() {
 			code += `M568 P${tool.number} A0\n`;
 		}
 	}
-	machineStore.model.heat.bedHeaterMapping.forEach((heaterIndices, index) => {
+	machineStore.bedHeaterMapping.forEach((heaterIndices, index) => {
 		if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length)) {
 			code += `M140 P${index} S-273.15\n`;
 		}
 	});
-	machineStore.model.heat.chamberHeaterMapping.forEach((heaterIndices, index) => {
+	machineStore.chamberHeaterMapping.forEach((heaterIndices, index) => {
 		if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length)) {
 			code += `M141 P${index} S-273.15\n`;
 		}
@@ -93,7 +99,7 @@ async function turnEverythingOff() {
 		await machineStore.sendCode(code);
 	} catch (e) {
 		if (!(e instanceof DisconnectedError)) {
-			uiStore.log(LogLevel.error, i18n.global.t("error.turnOffEverythingFailed"), getErrorMessage(e));
+			uiStore.notifyError(e, i18n.global.t("error.turnOffEverythingFailed"));
 		}
 	}
 	turningEverythingOff.value = false;
@@ -102,13 +108,19 @@ async function turnEverythingOff() {
 const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
 const controlTools = ref(true);
 
-const hasBeds = computed(() => machineStore.model.heat.bedHeaterMapping.some(heaterIndices =>
+// Use the store getters here too so we pick up beds/chambers reported via the legacy flat
+// `bedHeaters` / `chamberHeaters` arrays
+const hasBeds = computed(() => machineStore.bedHeaterMapping.some(heaterIndices =>
 	heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length &&
 		machineStore.model.heat.heaters[heaterIndex] !== null)));
 const controlBeds = ref(false);
 
-const hasChambers = computed(() => machineStore.model.heat.chamberHeaterMapping.some(heaterIndices =>
+const hasChambers = computed(() => machineStore.chamberHeaterMapping.some(heaterIndices =>
 	heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length &&
 		machineStore.model.heat.heaters[heaterIndex] !== null)));
 const controlChambers = ref(false);
+
+// Hide the entire dropdown when the printer has no heaters of any kind - the menu would only
+// contain disabled controls in that case, which reads as broken
+const hasAnyHeater = computed(() => hasTools.value || hasBeds.value || hasChambers.value);
 </script>

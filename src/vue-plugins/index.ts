@@ -20,6 +20,10 @@ import { useSettingsStore } from "@/stores/settings";
 // DWC Plugin System
 import { initPluginSystem } from "@/plugins";
 
+// Background sampler for the temperature chart - the rolling buffer fills continuously so the
+// chart shows real data on first visit instead of an empty plot
+import { initTemperatureSampling } from "@/composables/useTemperatureSamples";
+
 export function registerPlugins(app: App) {
 	const pinia = createPinia();
 	subscribeToStore(pinia);
@@ -38,6 +42,6 @@ export function registerPlugins(app: App) {
 	bindVuetifyTheme(vuetify.theme);
 	settingsStore.setLocale(settingsStore.locale);
 
-	// Initialise the DWC plugin system with the router reference
-	initPluginSystem(router);
+	initPluginSystem(app, router);
+	initTemperatureSampling();
 }

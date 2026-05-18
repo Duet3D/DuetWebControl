@@ -1,8 +1,3 @@
-<!-- Motion-profile file list for the InputShaping plugin. Groups *.csv files in /sys/accelerometer
-	 by the leading run number, parses the filename to surface shaper/freq/damping in the subtitle,
-	 and (in profile mode) treats a click as "select every file in this run". Individual-file mode
-	 expands each run for fine-grained selection and exposes a sample-view toggle so users can dial
-	 in a sample range with the chart's drag-select before running FFT on the trimmed window -->
 <template>
 	<v-card variant="flat" class="d-flex flex-column">
 		<v-card-title class="d-flex align-center pt-2 pb-1 flex-nowrap text-no-wrap">
@@ -20,7 +15,7 @@
 				<v-list-item v-for="(profile, index) in profiles" :key="index"
 							 :active="isProfileActive(profile)"
 							 :title="profile.title" :subtitle="profile.subtitle"
-							 lines="two" :prepend-icon="profile.icon"
+							 lines="three" :prepend-icon="profile.icon"
 							 @click="toggleProfile(profile)">
 					<template v-if="profile.secondSubtitle" #subtitle>
 						<div class="no-overflow">{{ profile.subtitle }}</div>
@@ -37,7 +32,7 @@
 				<v-list-group v-for="(profile, index) in profiles" :key="index">
 					<template #activator="{ props: activatorProps }">
 						<v-list-item v-bind="activatorProps" :title="profile.title"
-									 :subtitle="profile.subtitle" lines="two"
+									 :subtitle="profile.subtitle" lines="three"
 									 :prepend-icon="profile.icon">
 							<template v-if="profile.secondSubtitle" #subtitle>
 								<div class="no-overflow">{{ profile.subtitle }}</div>
@@ -241,7 +236,9 @@ function pushIntoProfile(grouped: Array<Profile>, lastModified: string, runId: s
 }
 
 function isProfileActive(profile: Profile): boolean {
-	if (profile.files.length === 0) return false;
+	if (profile.files.length === 0) {
+		return false;
+	}
 	return profile.files.every((file) => selection.value.includes(file.filename));
 }
 
@@ -380,7 +377,9 @@ async function update() {
 		progressMax.value = 1;
 		try {
 			const result = await getSamples(selection.value[0]);
-			selectedFiles.value = [...selection.value];
+			if (!arraysShallowEqual(selectedFiles.value ?? [], selection.value)) {
+				selectedFiles.value = [...selection.value];
+			}
 			frequenciesModel.value = null;
 			valueModel.value = {
 				X: result.samples[0],
@@ -424,8 +423,25 @@ async function update() {
 	}
 }
 
+// Shallow-equal guard: defineModel writes back a fresh array each time, so an unconditional
+// assignment would trigger watch(selection) -> update() -> reassign selectedFiles -> ... an
+// infinite loop that ends up looking like the FileList's progress bar jittering forever
+function arraysShallowEqual<T>(a: ReadonlyArray<T>, b: ReadonlyArray<T>): boolean {
+	if (a.length !== b.length) {
+		return false;
+	}
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) {
+			return false;
+		}
+	}
+	return true;
+}
 watch(selectedFiles, (to) => {
-	selection.value = to ?? [];
+	const next = to ?? [];
+	if (!arraysShallowEqual(selection.value, next)) {
+		selection.value = next;
+	}
 });
 
 watch(estimateEffect, (to) => {
@@ -463,8 +479,21 @@ watch(wideBandModel, () => update());
 }
 
 .no-overflow {
-	text-overflow: clip;
-	overflow: hidden;
-	white-space: nowrap;
+	/* Let long subtitles wrap to a second line and ellipsis any extreme overflow rather than
+	   clipping mid-word - the previous nowrap + clip combo dropped trailing characters
+	   ("ZVD @ 62Hz, 2 n" instead of "2 moves") with no indication that they were cut */
+	white-space: normal;
+	overflow-wrap: anywhere;
+}
+
+/* Vuetify 4 wraps the subtitle slot in a `.v-list-item-subtitle` element that uses
+   `display: -webkit-box` with `-webkit-line-clamp: N` (N from the `lines` prop). With two
+   subtitle lines packed inside that single clamp budget, secondary text gets ellipsised even
+   though there's vertical room in the row. Opt out of the webkit-box layout so each child
+   renders as a normal block element and shows its content in full */
+:deep(.v-list-item-subtitle) {
+	display: block;
+	-webkit-line-clamp: unset;
+	overflow: visible;
 }
 </style>

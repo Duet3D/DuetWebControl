@@ -1,5 +1,3 @@
-<!-- "Extra" tab of the ToolsPanel. Lists every analog sensor that is not bound to a heater, with a switch
-	 to add or remove it from the persistent set of sensors plotted in the TemperatureChart -->
 <template>
 	<table v-if="extraSensors.length > 0" class="ml-2 mr-2">
 		<colgroup>

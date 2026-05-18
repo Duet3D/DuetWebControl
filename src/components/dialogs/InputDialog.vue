@@ -1,10 +1,9 @@
-<!-- Generic single-input dialog: prompts for one value, validates, emits "confirmed" with the parsed value -->
 <template>
 	<v-dialog v-model="shown" persistent no-click-animation width="360">
 		<v-card>
 			<v-form ref="form" @submit.prevent="submit">
 				<v-card-title>
-					<span class="text-h5">{{ title }}</span>
+					<span class="text-headline-small">{{ title }}</span>
 				</v-card-title>
 
 				<v-card-text>

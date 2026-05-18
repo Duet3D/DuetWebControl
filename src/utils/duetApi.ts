@@ -1,17 +1,17 @@
-// Shared DuetAPI.xml service.
+// Shared DuetAPI.xml service
 //
 // Fetches the `DuetAPI.xml` documentation file from the connected machine, caches the parsed
 // Document, and exposes lookup helpers for the object-model browser plugin and the Monaco-editor
 // hover provider. Centralising both the download and the path-to-`<member>` resolution keeps
 // the two call sites in lockstep: any mangling tweak (e.g. when RRF adds a new virtual property)
-// applies everywhere.
+// applies everywhere
 
 import { useMachineStore } from "@/stores/machine";
 import { getErrorMessage } from "@/utils/errors";
 
 // Regex-based transforms mapping runtime object-model paths onto the C# property names produced
 // by the XML doc compiler. The compiler drops the type segment (e.g. `ObjectModel.Move`) so we
-// have to infer it from context.
+// have to infer it from context
 const propertyAdjustments: Array<{ pattern: RegExp | string, substitute: string }> = [
 	{ pattern: /(\[\d+\])+$/g, substitute: "" },
 	{ pattern: /s\[\d+\]/g, substitute: "" },
@@ -95,7 +95,7 @@ export function resetDuetApi(): void {
 export function lookupApiMember(doc: Document, path: string): Element | null {
 	let selectedNode = path.toLowerCase().replace(/\[\]/g, "[0]");
 	for (const adj of propertyAdjustments) {
-		selectedNode = selectedNode.replace(adj.pattern as any, adj.substitute);
+		selectedNode = selectedNode.replace(adj.pattern, adj.substitute);
 	}
 
 	// Build a list of candidate names to try, progressively dropping leading segments so a
@@ -113,6 +113,20 @@ export function lookupApiMember(doc: Document, path: string): Element | null {
 	}
 
 	const members = doc.documentElement.getElementsByTagName("member");
+
+	// For top-level paths, anchor on the ObjectModel container so e.g. `boards` doesn't pull
+	// in `Limits.Boards`. The XML form is `P:DuetAPI.ObjectModel.ObjectModel.<Property>`
+	if (segments.length === 1) {
+		const exact = `.objectmodel.${selectedNode}`;
+		for (let k = 0; k < members.length; k++) {
+			const node = members[k];
+			const tagName = node.getAttribute("name");
+			if (tagName && tagName.startsWith("P:") && tagName.toLowerCase().endsWith(exact)) {
+				return node;
+			}
+		}
+	}
+
 	for (const propertyName of propertyNames) {
 		for (let k = 0; k < members.length; k++) {
 			const node = members[k];

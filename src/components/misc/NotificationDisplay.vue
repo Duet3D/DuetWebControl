@@ -1,19 +1,6 @@
 <template>
-	<!-- Queued one-shot notifications (info / success / warning / error). v-snackbar-queue gives us the
-		 timer + stacking + dismissal behaviour for free; bound via the computed below so dismissals propagate
-		 to the Pinia store -->
-	<v-snackbar-queue v-model="generalQueue" :timer="true" timer-color="white" closable
-					  location="bottom" :total-visible="totalVisible" display-strategy="hold">
-		<template #actions="{ item, props: itemProps }">
-			<v-btn v-if="(item as QueueMessage).route" variant="text"
-				   :to="(item as QueueMessage).route ?? undefined" @click="itemProps.onClick">
-				{{ $t("notification.view") }}
-			</v-btn>
-		</template>
-	</v-snackbar-queue>
-
-	<!-- File-transfer snackbar - foreground single, with live progress and cancel. Shows the first item
-		 in the queue; the next transfer takes its place when the current one completes or is cancelled -->
+	<!-- File-transfer snackbar lives at the top with its own live progress bar; it isn't a
+		 "notification" in the queued-message sense, so keep it independent of the bottom queue -->
 	<v-snackbar v-if="activeTransfer" :model-value="true" :timeout="-1" color="info" location="top">
 		<v-progress-linear :indeterminate="activeTransfer.progress === 0" striped absolute location="top"
 						   :model-value="activeTransfer.progress" />
@@ -37,63 +24,133 @@
 		</template>
 	</v-snackbar>
 
-	<!-- M117 persistent message - separate channel, never auto-dismissed. User can close it explicitly;
-		 the next M117 update will replace its contents -->
-	<v-snackbar v-if="uiStore.notifications.persistentMessage" :model-value="true" :timeout="-1"
-				color="info" location="bottom" multi-line>
-		<div class="d-flex flex-column">
-			<strong>{{ $t("notification.message") }}</strong>
-			<span v-html="formatMessage(uiStore.notifications.persistentMessage)" />
-		</div>
-		<template #actions>
-			<v-btn variant="text" :text="$t('generic.close')"
-				   @click="uiStore.showPersistentMessage(null)" />
+	<!-- Single queue for every other notification source: general toasts, persistent toasts and the
+		 M117 persistent message all flow through here, ordered by priority so an error pre-empts
+		 the previously visible items and an active M117 sits above ordinary info/success toasts -->
+	<v-snackbar-queue v-model="unifiedQueue" :timer="true" timer-color="white" closable
+					  location="bottom center" :total-visible="totalVisible">
+		<template #text="{ item }">
+			<div :class="{ 'd-flex flex-column w-100': true, 'notification-clickable': hasRoute(item as QueueMessage) }"
+				 @click="onNotificationClick(item as QueueMessage)">
+				<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
+				<span v-if="(item as QueueMessage).id === PERSISTENT_MESSAGE_ID"
+					  v-html="formatMultilineMessage((item as QueueMessage).text)" />
+				<span v-else-if="(item as QueueMessage).text">{{ (item as QueueMessage).text }}</span>
+			</div>
 		</template>
-	</v-snackbar>
+		<template #actions="{ props: itemProps }">
+			<v-btn icon="mdi-close" variant="text" @click="itemProps.onClick" />
+		</template>
+	</v-snackbar-queue>
 </template>
 
 <script setup lang="ts">
 import { FileTransferType, type GeneralNotification, useUiStore } from "@/stores/ui";
 import { displayTransferSpeed } from "@/utils/display";
+import i18n from "@/i18n";
 
 const uiStore = useUiStore();
+const router = useRouter();
 
-// Pre-snackbar shape we feed v-snackbar-queue. Extra fields (id, route) are ignored by Vuetify but kept
-// so the actions slot can wire up navigation and our setter can dedupe dismissals back to the store
+// Pre-snackbar shape we feed v-snackbar-queue. Extra fields (id, route, headline) are ignored by
+// Vuetify and routed through our #text slot - the field is called `headline` rather than `title`
+// because VSnackbar reads `props.title` and would render it as a second header line of its own.
+// `promise` is read by VSnackbarQueue directly: when it resolves, the queue replaces the item
+// with a 1 ms-timeout one and the snackbar auto-dismisses. `onDismiss` is the queue's per-item
+// hook fired on any dismissal path (timer, X click, overflow, promise-driven) - we use it to
+// keep uiStore.activeNotifications in sync so the chip counter tracks what's visible
 interface QueueMessage {
 	id: string;
-	title: string;
+	headline: string;
 	text: string;
 	color: string;
 	prependIcon?: string;
 	timeout: number;
 	route: string | null;
 	closable: boolean;
+	loading?: boolean;
+	promise?: Promise<unknown>;
+	onDismiss?: () => void;
 }
 
 const totalVisible = 3;
 
-const generalQueue = computed<Array<QueueMessage>>({
-	get: () => uiStore.notifications.general.map(toQueueMessage),
-	set: (remaining) => {
-		// Vuetify mutates the bound array on dismissal - mirror the surviving ids back to the store
-		const survivingIds = new Set(remaining.map(m => m.id));
-		uiStore.notifications.general = uiStore.notifications.general.filter(n => survivingIds.has(n.id));
-	}
-});
+// Sentinel id for the singleton M117 entry. The store keeps `persistentMessage` as a bare string;
+// we lift it into the queue under this id so the same dismissal pipeline can route the close back
+// to `uiStore.showPersistentMessage(null)`
+const PERSISTENT_MESSAGE_ID = "__persistent-message__";
 
 function toQueueMessage(notification: GeneralNotification): QueueMessage {
 	return {
 		id: notification.id,
-		title: notification.title ?? "",
+		headline: notification.title ?? "",
 		text: notification.message ?? "",
 		color: notification.type,
 		prependIcon: notification.icon || undefined,
 		timeout: notification.timeout > 0 ? notification.timeout : -1,
 		route: notification.route,
+		closable: true,
+		// Override v-snackbar-queue's automatic `loading: true` whenever a promise is provided.
+		// We use promises purely as a dismissal hook (every notification has an internal one for
+		// programmatic dismissal); the snackbar shouldn't render a spinner for ordinary replies
+		loading: false,
+		promise: notification.promise,
+		onDismiss: () => uiStore.notificationDismissedByQueue(notification.id)
+	};
+}
+
+function buildPersistentMessageItem(message: string): QueueMessage {
+	return {
+		id: PERSISTENT_MESSAGE_ID,
+		headline: i18n.global.t("notification.message"),
+		text: message,
+		color: "info",
+		prependIcon: "mdi-message-text-outline",
+		timeout: -1,
+		route: null,
 		closable: true
 	};
 }
+
+// Priority ladder: error > persistent message > warning > info > success. Unknown colors fall
+// to the bottom (0) rather than wedge themselves anywhere mid-stack
+const SEVERITY_PRIORITY: Record<string, number> = {
+	error: 100,
+	warning: 60,
+	info: 40,
+	success: 20,
+};
+
+function priorityOf(item: QueueMessage): number {
+	if (item.id === PERSISTENT_MESSAGE_ID) {
+		return 80;
+	}
+	return SEVERITY_PRIORITY[item.color] ?? 0;
+}
+
+const unifiedQueue = computed<Array<QueueMessage>>({
+	get: () => {
+		const items: Array<QueueMessage> = [
+			...uiStore.notifications.general.map(toQueueMessage),
+			...uiStore.notifications.persistent.map(toQueueMessage),
+		];
+		if (uiStore.notifications.persistentMessage !== null) {
+			items.push(buildPersistentMessageItem(uiStore.notifications.persistentMessage));
+		}
+		// Stable sort (V8 since ES2019) - same-priority items keep their arrival order
+		return items.slice().sort((a, b) => priorityOf(b) - priorityOf(a));
+	},
+	set: (remaining) => {
+		// Vuetify mutates the bound array on dismissal - mirror the surviving ids back to each
+		// source, including the singleton persistent message which lives in its own store slot
+		const survivingIds = new Set(remaining.map(m => m.id));
+		uiStore.notifications.general = uiStore.notifications.general.filter(n => survivingIds.has(n.id));
+		uiStore.notifications.persistent = uiStore.notifications.persistent.filter(n => survivingIds.has(n.id));
+		if (!survivingIds.has(PERSISTENT_MESSAGE_ID) && uiStore.notifications.persistentMessage !== null) {
+			uiStore.showPersistentMessage(null);
+		}
+	}
+});
 
 const activeTransfer = computed(() => uiStore.notifications.fileTransfers[0] ?? null);
 
@@ -107,7 +164,37 @@ function fileTransferIcon(type: FileTransferType): string {
 
 // Producers can embed <br> in titles/messages already (logCode joins reply lines with <br>);
 // just normalise plain newlines so multi-line strings render correctly
-function formatMessage(message: string): string {
+function formatMultilineMessage(message: string): string {
 	return message.replace(/\n/g, "<br>");
 }
+
+function hasRoute(item: QueueMessage): boolean {
+	return !!item.route;
+}
+
+// Clicking the body of a routed notification navigates to its target (matches v3.7's behaviour
+// where the only notifications with a destination were code replies pointing at Console) and
+// dismisses the item so the user lands on the page without the snackbar still hovering
+function onNotificationClick(item: QueueMessage) {
+	if (!item.route) {
+		return;
+	}
+	router.push(item.route);
+	if (item.id === PERSISTENT_MESSAGE_ID) {
+		uiStore.showPersistentMessage(null);
+	} else {
+		uiStore.dismissNotification(item.id);
+	}
+}
 </script>
+
+<!-- Unscoped: v-snackbar teleports its wrapper into a top-level v-overlay outside our component
+	 tree, so scoped CSS never lands on it -->
+<style>
+.v-snackbar--bottom > .v-snackbar__wrapper {
+	margin-bottom: 0.5rem;
+}
+.notification-clickable {
+	cursor: pointer;
+}
+</style>

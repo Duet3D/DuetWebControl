@@ -1,7 +1,3 @@
-<!-- Asks the user to confirm an M997 firmware update after a firmware/web bundle was uploaded.
-	 Surfaces a per-target summary line and an opt-in checkbox for the WiFi SPIFFS refresh which
-	 only matters when the WiFi server itself is also being updated. The SBC warning hints that
-	 reflashing Duet firmware from the SBC environment may strand the user mid-process -->
 <template>
 	<v-dialog v-model="shown" persistent width="720" no-click-animation @keydown.escape="cancel">
 		<v-card>

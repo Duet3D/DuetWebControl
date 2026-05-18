@@ -1,4 +1,4 @@
-// Ambient declaration for the piecon library, which has no bundled TypeScript types.
+// Ambient declaration for the piecon library, which has no bundled TypeScript types
 // Surface only the methods actually used by App.vue
 declare module "piecon" {
 	interface PieconOptions {

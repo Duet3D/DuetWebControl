@@ -11,6 +11,9 @@ declare module 'chart.js' {
 	interface ChartConfiguration {
 		lineAtIndex?: number[];
 	}
+	interface ChartConfigurationCustomTypesPerDataset {
+		lineAtIndex?: number[];
+	}
 }
 
 const VLinePlugin = {

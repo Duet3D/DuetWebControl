@@ -1,4 +1,3 @@
-<!-- Placeholder for the future dynamic / user-arrangeable "custom" layout -->
 <!-- Not functional yet - the static "default" layout is the only one that works -->
 <template>
 	<v-app>

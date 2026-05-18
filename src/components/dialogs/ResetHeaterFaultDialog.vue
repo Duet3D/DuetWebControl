@@ -1,5 +1,3 @@
-<!-- Confirmation dialog with a 5 s countdown before the M562 reset can be sent.
-	 Once a heater fault has been reset, the dialog skips the countdown on subsequent appearances for that heater -->
 <template>
 	<v-dialog v-model="shown" max-width="360">
 		<v-card>

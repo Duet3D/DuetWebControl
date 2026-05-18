@@ -7,6 +7,8 @@ import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import dwcPlugins from './vite/dwc-plugins'
+import dwcVuetifySplit from './vite/dwc-vuetify-split'
+import dwcComponents from './vite/dwc-components'
 import buildOutputs from './vite/build-outputs'
 
 // Utilities
@@ -57,6 +59,15 @@ export default defineConfig({
 						|| id.includes("node_modules/chartjs-adapter-date-fns/")) {
 						return "chart";
 					}
+					// Lazy-load chunk that wraps the Vuetify components DWC core doesn't use
+					// (loaded on first external plugin). It's a small re-export bridge - the
+					// real component code lives in the main `vuetify` chunk since Vuetify's
+					// barrel makes every component reachable through whichever chunk imports
+					// it. The runtime value is still real: app.component() registration for
+					// extras only fires when an external plugin loads
+					if (id === "\0virtual:dwc-vuetify-extras") {
+						return "vuetify-extras";
+					}
 					if (id.includes("node_modules/vuetify/")) {
 						return "vuetify";
 					}
@@ -74,6 +85,8 @@ export default defineConfig({
 	},
   plugins: [
     dwcPlugins(),
+    dwcVuetifySplit(),
+    dwcComponents(),
     VueRouter({
       dts: 'src/typed-router.d.ts',
     }),

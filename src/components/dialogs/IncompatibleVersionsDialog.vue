@@ -1,7 +1,3 @@
-<!-- Pops up when the mainboard, expansion boards, DSF and DWC don't all agree on the same
-	 version. Errors on major/minor diffs, logs a warning for patch/prerelease diffs. Gated by
-	 settingsStore.checkVersions; runs ~2s after connect or after the machine leaves an
-	 updating/starting state. Mirrors v3.5-dev's IncompatibleVersionsDialog -->
 <template>
 	<v-dialog v-model="shown" max-width="480">
 		<v-card>
@@ -23,7 +19,7 @@
 
 			<v-card-actions>
 				<v-spacer />
-				<v-btn color="blue-darken-1" variant="text" @click="shown = false">
+				<v-btn ref="okButton" color="blue-darken-1" variant="text" @click="shown = false">
 					{{ $t("generic.ok") }}
 				</v-btn>
 				<v-spacer />
@@ -48,7 +44,24 @@ const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
 const shown = ref(false);
+const okButton = ref<{ $el: HTMLElement } | null>(null);
 let checkVersionsTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Programmatic focus on open: native `autofocus` only fires once at mount, and v-dialog teleports
+// the content tree + runs its own focus-trap on the enter transition, which races with HTML's
+// autofocus. Waiting one tick after `shown` flips true lets the dialog finish mounting before we
+// pull focus to the OK button
+watch(shown, (visible) => {
+	if (!visible) {
+		return;
+	}
+	nextTick(() => {
+		const el = okButton.value?.$el;
+		if (el instanceof HTMLElement) {
+			el.focus();
+		}
+	});
+});
 
 const upgradeDocs = computed(() => machineStore.model.sbc !== null
 	? "https://docs.duet3d.com/en/User_manual/Machine_configuration/SBC_setup"
@@ -75,7 +88,9 @@ function checkVersions() {
 		for (const board of model.boards) {
 			if (board.canAddress && board.firmwareVersion) {
 				const diff = versionDiff(mainboardVersion, board.firmwareVersion);
-				if (diff === null) continue;
+				if (diff === null) {
+					continue;
+				}
 				if (isPatchLevelDiff(diff)) {
 					console.warn(`Expansion board #${board.canAddress} minor version mismatch (MB ${mainboardVersion} != EXP ${board.firmwareVersion})`);
 					patchVersionMismatch = true;

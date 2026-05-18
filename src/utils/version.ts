@@ -15,7 +15,9 @@ interface ParsedVersion {
 function parse(v: string): ParsedVersion | null {
 	const stripped = v.trim().replace(/^[vV]/, "");
 	const match = stripped.match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[-+](.*))?$/);
-	if (!match) return null;
+	if (!match) {
+		return null;
+	}
 	return {
 		major: parseInt(match[1], 10),
 		minor: match[2] ? parseInt(match[2], 10) : 0,
@@ -30,11 +32,21 @@ function parse(v: string): ParsedVersion | null {
 export function versionDiff(a: string, b: string): VersionDiff {
 	const pa = parse(a);
 	const pb = parse(b);
-	if (!pa || !pb) return null;
-	if (pa.major !== pb.major) return "major";
-	if (pa.minor !== pb.minor) return "minor";
-	if (pa.patch !== pb.patch) return "patch";
-	if (pa.prerelease !== pb.prerelease) return "prerelease";
+	if (!pa || !pb) {
+		return null;
+	}
+	if (pa.major !== pb.major) {
+		return "major";
+	}
+	if (pa.minor !== pb.minor) {
+		return "minor";
+	}
+	if (pa.patch !== pb.patch) {
+		return "patch";
+	}
+	if (pa.prerelease !== pb.prerelease) {
+		return "prerelease";
+	}
 	return null;
 }
 

@@ -1,5 +1,3 @@
-<!-- Root of the application: hosts <router-view> via the layout system (see src/layouts/) -->
-<!-- The Vuetify <v-app> wrapper lives in the layouts so they can drive Vuetify's drawer/app-bar wiring -->
 <template>
 	<router-view />
 </template>
@@ -10,11 +8,14 @@ import Piecon from "piecon";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 
 const machineStore = useMachineStore();
+const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const router = useRouter();
 
 // Tune Piecon - blue progress wedge on a grey background, white outer ring; no title-bar
 // fallback (we already overlay the percentage into document.title via the watcher below)
@@ -67,6 +68,24 @@ watch([status, jobProgress], () => {
 
 // #endregion
 
+// #region Auto-switch to Job page on print start
+
+// Watch the state.status edge from not-printing to printing. Gated on the user setting
+// (Settings > General > Behaviour > Switch to Job page on print start). Only navigates when
+// the user is on a page that doesn't already show full job controls - if they're already on
+// /Job/Status or on /Job/Webcam (watching the print live) we leave them alone
+let wasPrintingForNav = isPrinting(status.value);
+watch(status, (current) => {
+	const nowPrinting = isPrinting(current);
+	if (!wasPrintingForNav && nowPrinting && settingsStore.behaviour.switchToJobOnPrintStart
+		&& router.currentRoute.value.path !== "/Job/Status") {
+		router.push("/Job/Status").catch(() => { /* navigation guard rejections are fine */ });
+	}
+	wasPrintingForNav = nowPrinting;
+});
+
+// #endregion
+
 // #region Free-space warning on (re)connect
 
 // Fires once when a freshly-connected machine reports a near-full SD volume (<5% free on the
@@ -80,11 +99,15 @@ watch(() => machineStore.isConnecting, (to, from) => {
 		return;
 	}
 	const volumes = machineStore.model.volumes;
-	if (volumes.length === 0) return;
+	if (volumes.length === 0) {
+		return;
+	}
 	const firstVolume = volumes[0];
 	const capacity = firstVolume.capacity;
 	const freeSpace = firstVolume.freeSpace;
-	if (capacity === null || freeSpace === null) return;
+	if (capacity === null || freeSpace === null) {
+		return;
+	}
 	const capacityNum = typeof capacity === "bigint" ? Number(capacity) : capacity;
 	const freeSpaceNum = typeof freeSpace === "bigint" ? Number(freeSpace) : freeSpace;
 	if (capacityNum > FREE_SPACE_MIN_CAPACITY && freeSpaceNum / capacityNum < FREE_SPACE_RATIO_THRESHOLD) {
@@ -98,10 +121,13 @@ watch(() => machineStore.isConnecting, (to, from) => {
 
 // #region Graceful disconnect on window unload
 
-// Best-effort attempt to send a disconnect when the user closes the tab. We don't await it -
-// the browser doesn't give us time - but firing the request before tearing the page down lets
-// the firmware drop the HTTP session immediately instead of waiting for the keep-alive timeout
-window.addEventListener("beforeunload", () => {
+// Best-effort attempt to send a disconnect when the user closes the tab. `pagehide` fires only
+// after the unload is committed - that way a `beforeunload` prompt the user cancels (e.g. when
+// an editor still has unsaved changes) doesn't trigger a spurious disconnect that leaves the
+// page connected-to-nothing. We don't await it - the browser doesn't give us time - but firing
+// the request before tearing the page down lets the firmware drop the HTTP session immediately
+// instead of waiting for the keep-alive timeout
+window.addEventListener("pagehide", () => {
 	if (machineStore.isConnected) {
 		machineStore.disconnect(false).catch(() => { /* tab is going away */ });
 	}

@@ -1,6 +1,3 @@
-<!-- Pause/resume + cancel + "process again" buttons. Tracks whether the active job is a simulation
-	 separately from the OM (because once "cancelled" / "aborted" the status no longer says so) so the
-	 button text stays consistent across a paused-then-cancelled simulation flow -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-1">

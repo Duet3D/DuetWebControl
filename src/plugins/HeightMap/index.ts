@@ -6,8 +6,7 @@ registerRoute(HeightMap, {
 		HeightMap: {
 			icon: "mdi-grid",
 			caption: "plugins.heightmap.menuCaption",
-			path: "/Plugins/HeightMap",
-			order: 20
+			path: "/Plugins/HeightMap"
 		}
 	}
 });

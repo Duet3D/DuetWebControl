@@ -1,14 +1,9 @@
-<!-- Numeric input for tool / bed / chamber / spindle active+standby values. Backed by a
-	 v-combobox so preset values can be picked from a dropdown. Vuetify 4's v-combobox emits
-	 @update:model-value on every keystroke, so we deliberately do NOT bind that to commit -
-	 doing so would send one M-code per typed digit. Commit fires on form submit (Enter), on
-	 blur with a changed value, or when the user picks an entry from the dropdown -->
 <template>
 	<v-form @submit.prevent="commit">
 		<v-combobox v-model="inputValue" type="number" min="-273" max="1999" step="any" :label="label"
-					:items="itemStrings" :menu-props="{ maxHeight: '50%' }" :loading="applying"
-					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="outlined"
-					hide-details hide-selected @update:model-value="onModelValueChange" @blur="onBlur" />
+					:items="itemStrings" :loading="applying"
+					:disabled="disabled || uiStore.uiFrozen || !isValid" density="compact" variant="underlined"
+					hide-details hide-selected single-line @update:model-value="onModelValueChange" @blur="onBlur" />
 	</v-form>
 </template>
 
@@ -85,12 +80,12 @@ const isValid = computed<boolean>(() => {
 		return false;
 	}
 	if (props.type === "bed") {
-		const mapping = machineStore.model.heat.bedHeaterMapping;
+		const mapping = machineStore.bedHeaterMapping;
 		const idx = props.index ?? -1;
 		return (idx >= 0) && (idx < mapping.length) && (mapping[idx].length > 0);
 	}
 	if (props.type === "chamber") {
-		const mapping = machineStore.model.heat.chamberHeaterMapping;
+		const mapping = machineStore.chamberHeaterMapping;
 		const idx = props.index ?? -1;
 		return (idx >= 0) && (idx < mapping.length) && (mapping[idx].length > 0);
 	}
@@ -103,7 +98,7 @@ const currentValue = computed<number>(() => {
 	switch (props.type) {
 		case "all":
 			if (props.controlBeds) {
-				for (const heaterIndices of machineStore.model.heat.bedHeaterMapping) {
+				for (const heaterIndices of machineStore.bedHeaterMapping) {
 					for (const heaterIndex of heaterIndices) {
 						if (heaterIndex >= 0 && heaterIndex < heaters.length) {
 							const heater = heaters[heaterIndex];
@@ -114,7 +109,7 @@ const currentValue = computed<number>(() => {
 					}
 				}
 			} else if (props.controlChambers) {
-				for (const heaterIndices of machineStore.model.heat.chamberHeaterMapping) {
+				for (const heaterIndices of machineStore.chamberHeaterMapping) {
 					for (const heaterIndex of heaterIndices) {
 						if (heaterIndex >= 0 && heaterIndex < heaters.length) {
 							const heater = heaters[heaterIndex];
@@ -149,7 +144,7 @@ const currentValue = computed<number>(() => {
 
 		case "bed": {
 			const idx = props.index ?? -1;
-			const mapping = machineStore.model.heat.bedHeaterMapping;
+			const mapping = machineStore.bedHeaterMapping;
 			if (idx >= 0 && idx < mapping.length) {
 				for (const heaterIndex of mapping[idx]) {
 					if (heaterIndex >= 0 && heaterIndex < heaters.length && heaters[heaterIndex] !== null) {
@@ -162,7 +157,7 @@ const currentValue = computed<number>(() => {
 
 		case "chamber": {
 			const idx = props.index ?? -1;
-			const mapping = machineStore.model.heat.chamberHeaterMapping;
+			const mapping = machineStore.chamberHeaterMapping;
 			if (idx >= 0 && idx < mapping.length) {
 				for (const heaterIndex of mapping[idx]) {
 					if (heaterIndex >= 0 && heaterIndex < heaters.length && heaters[heaterIndex] !== null) {
@@ -202,18 +197,21 @@ async function commit() {
 					}
 				}
 				if (props.controlBeds) {
-					for (let i = 0; i < machineStore.model.heat.bedHeaterMapping.length; i++) {
-						if (machineStore.model.heat.bedHeaterMapping[i].some(heaterIndex => heaterIndex >= 0 && heaterIndex < heaters.length)) {
+					// Use the store getter - falls back to the legacy flat `bedHeaters` array on
+					// firmware that doesn't emit the newer `bedHeaterMapping`. P-index is the bed
+					// slot index either way (matches M140 P{bed_index} semantics)
+					machineStore.bedHeaterMapping.forEach((heaterIndices, i) => {
+						if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < heaters.length)) {
 							code += `M140 P${i} ${props.active ? "S" : "R"}${inputValue.value}\n`;
 						}
-					}
+					});
 				}
 				if (props.controlChambers) {
-					for (let i = 0; i < machineStore.model.heat.chamberHeaterMapping.length; i++) {
-						if (machineStore.model.heat.chamberHeaterMapping[i].some(heaterIndex => heaterIndex >= 0 && heaterIndex < heaters.length)) {
+					machineStore.chamberHeaterMapping.forEach((heaterIndices, i) => {
+						if (heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < heaters.length)) {
 							code += `M141 P${i} ${props.active ? "S" : "R"}${inputValue.value}\n`;
 						}
-					}
+					});
 				}
 				if (code !== "") {
 					await machineStore.sendCode(code);
@@ -252,7 +250,7 @@ async function commit() {
 	applying.value = false;
 }
 
-// v-combobox emits @update:model-value both on free-text typing AND on dropdown-item selection.
+// v-combobox emits @update:model-value both on free-text typing AND on dropdown-item selection
 // Only the latter should auto-commit; we distinguish them by checking whether the new value
 // matches one of the preset items exactly. A free-text commit goes through the form's @submit
 // (Enter) or through onBlur instead

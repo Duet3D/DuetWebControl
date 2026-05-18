@@ -1,7 +1,3 @@
-<!-- 5-step plugin install wizard: manifest preview -> prerequisites check (RRF/DSF/DWC
-	 versions, SBC plugin support, root permission) -> permissions list -> disclaimer ->
-	 install progress. Triggered via the `installPlugin` event bus message (emitted by the
-	 Settings page when the user picks a plugin .zip). Mirrors v3.5-dev's PluginInstallDialog -->
 <template>
 	<v-dialog v-model="shown" max-width="480" :persistent="isPersistent" no-click-animation>
 		<v-card>
@@ -57,7 +53,7 @@
 									</v-icon>
 									{{ $t("dialog.pluginInstallation.rrf") }}
 								</h3>
-								<span class="ml-8 text-subtitle-2">
+								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [rrfVersion]) }}
 								</span>
 							</div>
@@ -69,7 +65,7 @@
 									</v-icon>
 									{{ $t("dialog.pluginInstallation.dwc") }}
 								</h3>
-								<span class="ml-8 text-subtitle-2">
+								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [dwcVersion]) }}
 								</span>
 							</div>
@@ -81,7 +77,7 @@
 									</v-icon>
 									{{ $t("dialog.pluginInstallation.dsf") }}
 								</h3>
-								<span class="ml-8 text-subtitle-2">
+								<span class="ml-8 text-title-small">
 									{{ $t("dialog.pluginInstallation.version", [dsfVersion]) }}
 								</span>
 							</div>
@@ -113,12 +109,12 @@
 					<!-- #region Page 2: Permissions -->
 					<v-window-item :value="Page.permissions">
 						<v-alert v-show="hasDwcFiles" density="compact" variant="outlined" type="warning"
-								 icon="mdi-alert-outline" class="text-subtitle-2 mb-3">
+								 icon="mdi-alert-outline" class="text-title-small mb-3">
 							{{ $t("dialog.pluginInstallation.dwcWarning") }}
 						</v-alert>
 
 						<v-alert v-if="requiresRoot" density="compact" variant="outlined" type="error"
-								 icon="mdi-alert-circle-outline" class="text-subtitle-2 mb-0"
+								 icon="mdi-alert-circle-outline" class="text-title-small mb-0"
 								 :class="hasDwcFiles ? 'mt-3' : ''">
 							{{ $t("dialog.pluginInstallation.rootWarning") }}
 						</v-alert>
@@ -144,7 +140,10 @@
 						<div class="pl-2 pb-2">
 							<v-checkbox v-model="disclaimerAccepted"
 										:label="$t('dialog.pluginInstallation.checkboxDisclaimer')"
-										class="text-subtitle-2" hide-details />
+										class="text-title-small" hide-details />
+							<v-checkbox v-model="startWhenFinished"
+										:label="$t('dialog.pluginInstallation.checkboxStart')"
+										class="text-title-small" hide-details />
 						</div>
 					</v-window-item>
 					<!-- #endregion -->
@@ -275,7 +274,9 @@ const canNext = computed(() => {
 
 const homepageDomain = computed(() => {
 	const homepage = pluginManifest.value.homepage;
-	if (!homepage) return "";
+	if (!homepage) {
+		return "";
+	}
 	const match = /(?:https?:\/\/)?([\w-]+\.[\w.-]+)/i.exec(homepage);
 	return match?.[1] ?? "";
 });
@@ -293,7 +294,9 @@ const rrfVersion = computed(() => {
 });
 
 const checkRrfVersion = computed(() => {
-	if (!pluginManifest.value.rrfVersion) return true;
+	if (!pluginManifest.value.rrfVersion) {
+		return true;
+	}
 	const boards = machineStore.model.boards;
 	if (boards.length > 0 && boards[0].firmwareVersion) {
 		return checkVersion(boards[0].firmwareVersion, pluginManifest.value.rrfVersion);
@@ -319,7 +322,9 @@ const checkDsfVersion = computed(() => {
 const dwcVersion = computed(() => packageInfo.version);
 
 const checkDwcVersion = computed(() => {
-	if (!pluginManifest.value.dwcVersion) return true;
+	if (!pluginManifest.value.dwcVersion) {
+		return true;
+	}
 	return checkVersion(packageInfo.version, pluginManifest.value.dwcVersion);
 });
 

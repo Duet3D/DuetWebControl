@@ -1,5 +1,3 @@
-<!-- Single-fan selector (current tool's fan or any non-thermostatic fan). The slider talks directly to
-	 the selected fan via M106; thermostatic fans are filtered out since they are RRF-managed -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center pb-0">
@@ -7,11 +5,11 @@
 			{{ $t("panel.fan.caption") }}
 		</v-card-title>
 
-		<v-card-text class="py-0">
+		<v-card-text class="pt-0">
 			<v-row align="start">
 				<v-col cols="12" sm="auto" order="1" order-sm="0">
 					<p class="mb-1">{{ $t("panel.fan.selection") }}</p>
-					<v-btn-toggle v-model="fan" mandatory>
+					<v-btn-toggle v-model="fan" mandatory variant="outlined" color="primary" divided>
 						<v-btn v-if="currentTool && currentTool.fans.length > 0" :value="-1">
 							{{ $t("panel.fan.toolFan") }}
 						</v-btn>

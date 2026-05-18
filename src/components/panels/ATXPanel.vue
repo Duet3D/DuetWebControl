@@ -1,4 +1,3 @@
-<!-- ATX power on/off toggle (M80/M81). Only rendered when atxPower is present in the object model -->
 <template>
 	<v-card>
 		<v-card-title class="d-flex align-center">

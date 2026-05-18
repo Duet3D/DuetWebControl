@@ -1,11 +1,9 @@
-<!-- Define the area + spacing for mesh bed compensation (M557). Form fields branch on delta kinematics
-	 (probe radius + single spacing) vs. cartesian (per-axis min/max + per-axis spacing) -->
 <template>
 	<v-dialog v-model="shown" max-width="600" persistent no-click-animation>
 		<v-card>
 			<v-form ref="form" @submit.prevent="apply">
 				<v-card-title>
-					<span class="text-h5">{{ $t("dialog.meshEdit.title") }}</span>
+					<span class="text-headline-small">{{ $t("dialog.meshEdit.title") }}</span>
 				</v-card-title>
 
 				<v-card-text>

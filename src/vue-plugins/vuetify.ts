@@ -30,6 +30,15 @@ const vuetify = createVuetify({
 		// Boot default - overridden synchronously by bindVuetifyTheme() the moment the store
 		// has resolved its initial value (either browser default or persisted preference)
 		defaultTheme: prefersDarkScheme() ? "dark" : "light"
+	},
+	defaults: {
+		// Vuetify 4 renders v-card-title at font-weight 400 (regular). Dialog titles ("Incompatible
+		// software versions", "Confirm", ...) read as just-another-line-of-body in that weight, so
+		// bring them back to the bold weight v3.x used. Applied globally instead of per-dialog so
+		// new dialogs inherit the same emphasis without each having to remember the class
+		VCardTitle: {
+			class: "font-weight-bold"
+		}
 	}
 });
 
@@ -48,7 +57,7 @@ function prefersDarkScheme(): boolean {
 export function bindVuetifyTheme(theme: ThemeInstance) {
 	const settingsStore = useSettingsStore();
 	const apply = (dark: boolean) => {
-		theme.global.name.value = dark ? "dark" : "light";
+		theme.change(dark ? "dark" : "light");
 	};
 	apply(settingsStore.darkTheme);
 	watch(() => settingsStore.darkTheme, apply);

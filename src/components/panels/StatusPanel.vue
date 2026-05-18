@@ -1,6 +1,6 @@
 <template>
 	<v-card>
-		<v-card-title class="py-2">
+		<v-card-title class="py-2 d-flex align-center">
 			<v-icon size="small" class="mr-1">mdi-information</v-icon>
 			{{ $t("panel.status.caption") }}
 
@@ -57,12 +57,7 @@
 						<v-row align-content="center" no-gutters>
 							<v-col v-for="(extruder, index) in machineStore.model.move.extruders" :key="index"
 								   class="d-flex flex-column align-center">
-								<strong>
-									{{ $t("panel.status.extruderDrive", [index]) }}
-									<v-icon v-if="isFilamentSensorPresent(index)" size="small">
-										{{ isFilamentPresent(index) ? "mdi-check" : "mdi-window-close" }}
-									</v-icon>
-								</strong>
+								<strong>{{ $t("panel.status.extruderDrive", [index]) }}</strong>
 								<span>{{ display(extruder.position, 1) }}</span>
 							</v-col>
 						</v-row>
@@ -205,8 +200,9 @@ strong {
 	flex: 0 0 100px;
 }
 
-a:not(:hover) {
+a {
 	color: inherit;
+	text-decoration: none;
 }
 
 .content span,
@@ -228,7 +224,7 @@ a:not(:hover) {
 </style>
 
 <script setup lang="ts">
-import { FilamentMonitorEnableMode, ProbeType, type Probe } from "@duet3d/objectmodel";
+import { ProbeType, type Probe } from "@duet3d/objectmodel";
 
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -316,18 +312,6 @@ function axisSpanClasses(axisIndex: number): string | null {
 		return settingsStore.darkTheme ? "bg-light-green-darken-3" : "bg-light-green-lighten-4";
 	}
 	return null;
-}
-
-function isFilamentSensorPresent(extruderIndex: number): boolean {
-	const monitors = machineStore.model.sensors.filamentMonitors;
-	return extruderIndex >= 0 && extruderIndex < monitors.length
-		&& monitors[extruderIndex] !== null
-		&& monitors[extruderIndex]!.enableMode !== FilamentMonitorEnableMode.disabled
-		&& typeof (monitors[extruderIndex] as any).filamentPresent === "boolean";
-}
-
-function isFilamentPresent(extruderIndex: number): boolean {
-	return (machineStore.model.sensors.filamentMonitors[extruderIndex] as any).filamentPresent;
 }
 
 function formatProbeValues(values: Array<number>): string | number {

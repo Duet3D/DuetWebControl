@@ -20,7 +20,7 @@ Events.on("connectionError", ({ hostname, error }) => {
 	if (error instanceof InvalidPasswordError || !import.meta.env.PROD) {
 		uiStore.log(LogLevel.error, i18n.global.t("event.connectionLost", [hostname]), getErrorMessage(error, true));
 	} else {
-		uiStore.log(LogLevel.warning, i18n.global.t("event.reconnecting", [hostname]), getErrorMessage(error, true));
+		uiStore.notifyWarning(error, i18n.global.t("event.reconnecting", [hostname]));
 	}
 })
 
@@ -69,10 +69,25 @@ Events.on("fileDownloadError", ({ filename, error, showError }) => {
 	}
 })
 
-let pluginsLoadingNotificationId: string | null = null;
+// Promise-driven dismissal: makeNotification hands the promise to v-snackbar-queue, which clears
+// the item when it resolves. Tracking an id and calling dismissNotification doesn't work here
+// because the queue consumes the entry from notifications.persistent on first render
+let pluginsLoadingResolve: (() => void) | null = null;
 
 Events.on("dwcPluginsLoading", () => {
-	pluginsLoadingNotificationId = useUiStore().makeNotification(LogLevel.primary, i18n.global.t("notification.pluginLoad.title"), i18n.global.t("notification.pluginLoad.message"), 0, null, "mdi-connection");
+	pluginsLoadingResolve?.();
+	const pluginsLoaded = new Promise<void>((resolve) => {
+		pluginsLoadingResolve = resolve;
+	});
+	useUiStore().makeNotification(
+		LogLevel.primary,
+		i18n.global.t("notification.pluginLoad.title"),
+		i18n.global.t("notification.pluginLoad.message"),
+		0,
+		null,
+		"mdi-connection",
+		pluginsLoaded
+	);
 })
 
 Events.on("dwcPluginLoadError", ({ id, error }) => {
@@ -80,8 +95,6 @@ Events.on("dwcPluginLoadError", ({ id, error }) => {
 })
 
 Events.on("dwcPluginsLoaded", () => {
-	if (pluginsLoadingNotificationId !== null) {
-		useUiStore().dismissNotification(pluginsLoadingNotificationId);
-		pluginsLoadingNotificationId = null;
-	}
+	pluginsLoadingResolve?.();
+	pluginsLoadingResolve = null;
 })

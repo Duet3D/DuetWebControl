@@ -1,5 +1,3 @@
-<!-- Aggregates ToolRows + HeaterRows (beds, chambers) into a single five-column table.
-	 Hosts the shared ResetHeaterFaultDialog instance so child rows can raise a single confirmation flow -->
 <template>
 	<table v-if="hasTools || hasBeds || hasChambers" class="tools">
 		<colgroup>
@@ -58,7 +56,11 @@
 	<ResetHeaterFaultDialog v-model:shown="resettingHeaterFault" :heater="faultyHeaterToReset" />
 </template>
 
-<style scoped>
+<!-- Unscoped: the table rows are emitted by ToolRows / HeaterRows (child components). Vue 3
+	 scoped CSS only attaches the parent's data-v hash to elements in the parent's own
+	 template, so `table.tools td` under `<style scoped>` wouldn't match the child-rendered
+	 cells and the centering rule would silently drop -->
+<style>
 table.tools {
 	width: 100%;
 	border-spacing: 0;
@@ -72,6 +74,21 @@ table.tools td,
 table.tools th {
 	text-align: center;
 }
+
+/* Tool rows stretch vertically with their multi-line content (tool name, filament link, sub-line),
+   while bed/chamber rows have only a single short label and would otherwise collapse to ~42px and
+   read as visually squashed against the much taller tool row. Give the heater-row cells a
+   comfortable vertical padding so the table reads as balanced */
+table.tools tbody.heater-rows td,
+table.tools tbody.heater-rows th {
+	padding-block: 0.75rem;
+}
+
+/* Tool / heater names render as anchors for the click handlers - strip the browser default
+   underline so the table reads as data, not a link list. Hover feedback is the cursor */
+table.tools a {
+	text-decoration: none;
+}
 </style>
 
 <script setup lang="ts">
@@ -80,9 +97,11 @@ import { useMachineStore } from "@/stores/machine";
 const machineStore = useMachineStore();
 
 const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
-const hasBeds = computed(() => machineStore.model.heat.bedHeaterMapping.some(heaterIndices =>
+// Use the store getters - they fall back to the deprecated `bedHeaters` / `chamberHeaters`
+// flat lists so older firmware (which doesn't publish the new mapping) still surfaces the rows
+const hasBeds = computed(() => machineStore.bedHeaterMapping.some(heaterIndices =>
 	heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterIndex] !== null)));
-const hasChambers = computed(() => machineStore.model.heat.chamberHeaterMapping.some(heaterIndices =>
+const hasChambers = computed(() => machineStore.chamberHeaterMapping.some(heaterIndices =>
 	heaterIndices.some(heaterIndex => heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length && machineStore.model.heat.heaters[heaterIndex] !== null)));
 
 const resettingHeaterFault = ref(false);

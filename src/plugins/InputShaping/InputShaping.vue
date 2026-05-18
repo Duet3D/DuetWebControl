@@ -1,13 +1,9 @@
-<!-- Input Shaping plugin shell. Two tabs ("Current Settings" shows live damping curves; "Motion
-	 Analysis" lets the user pick a recorded profile and inspect/estimate the shaper effect)
-	 share the same chart component plus a sidebar listing each shaper kind with apply/configured
-	 chips. A "Record Motion Profile" button opens a wizard that captures fresh CSV samples on
-	 the machine. CSV files live under /sys/accelerometer and are filtered out of the regular
-	 Files view -->
 <template>
 	<v-row class="ma-0">
-		<v-col>
-			<v-card>
+		<v-col cols="12" md="9" lg="9" xl="10">
+			<!-- Page-fill only on md+ - at xs/sm the inner layout stacks (file list above chart)
+				 and forcing viewport height would push the chart off the bottom of the card -->
+			<v-card :class="['d-flex', 'flex-column', { 'dwc-page-fill': mdAndUp }]">
 				<v-tabs v-model="tab" density="compact">
 					<v-tab value="current">
 						<v-icon class="mr-1">mdi-information</v-icon>
@@ -23,11 +19,17 @@
 						<v-icon class="mr-1">mdi-record</v-icon>
 						{{ $t("plugins.accelerometer.recordButton") }}
 					</v-btn>
+					<v-btn color="success" icon variant="text"
+						   class="align-self-center ml-auto mr-2 d-md-none"
+						   :disabled="uiStore.uiFrozen" :title="$t('plugins.accelerometer.recordButton')"
+						   @click="showDataCollection = true">
+						<v-icon>mdi-record</v-icon>
+					</v-btn>
 				</v-tabs>
 
-				<v-window v-model="tab" :touch="false">
-					<v-window-item value="current">
-						<div class="d-flex flex-column">
+				<v-window v-model="tab" :touch="false" class="flex-grow-1 d-flex flex-column input-shaping-window">
+					<v-window-item value="current" class="h-100">
+						<div class="d-flex flex-column h-100">
 							<v-alert v-if="!isInputShapingEnabled" type="info" class="mb-0" variant="tonal"
 									 :title="$t('plugins.accelerometer.notConfigured')" />
 							<!-- v-if (not v-show) so the heavy Chart instance only instantiates
@@ -40,8 +42,8 @@
 						</div>
 					</v-window-item>
 
-					<v-window-item value="analysis">
-						<div class="d-flex flex-column">
+					<v-window-item value="analysis" class="h-100">
+						<div class="d-flex flex-column h-100">
 							<v-progress-linear :active="loadingFiles" indeterminate />
 							<v-alert v-if="files.length === 0 && !filesError" type="info" class="mb-0"
 									 variant="tonal">
@@ -53,9 +55,9 @@
 							<v-alert v-if="filesError" type="error" class="mb-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
-							<v-row v-if="files.length > 0" class="content pa-2 ma-0">
-								<v-col cols="auto" class="d-flex pa-0">
-									<InputShapingFileList :title="$t('plugins.accelerometer.motionProfiles')"
+							<v-row v-if="files.length > 0" class="content pa-2 ma-0 flex-grow-1">
+								<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
+									<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
 														  can-delete :files="files"
 														  :files-last-modified="filesLastModified"
 														  v-model:selectedFiles="filesToAnalyze"
@@ -69,15 +71,15 @@
 														  v-model:wideBand="wideBand"
 														  @refresh="refresh" />
 								</v-col>
-								<v-col v-if="filesToAnalyze.length === 0"
+								<v-col v-if="filesToAnalyze.length === 0" cols="12" md="6" lg="7" xl="8"
 									   class="d-flex align-center justify-center">
 									{{ $t("plugins.accelerometer.pickProfile") }}
 								</v-col>
-								<v-col v-else class="d-flex flex-column pa-0">
+								<v-col v-else cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
 									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0">
 										{{ $t("plugins.accelerometer.overflowWarning") }}
 									</v-alert>
-									<v-card variant="outlined" class="d-block fill-height pa-2">
+									<div class="d-block fill-height pa-2">
 										<InputShapingChart can-show-samples
 														   v-model:sampleStartIndex="sampleStartIndex"
 														   v-model:sampleEndIndex="sampleEndIndex"
@@ -90,7 +92,7 @@
 														   :estimate-shaper-effect="estimateShaperEffect"
 														   :show-values="showOriginalValues"
 														   :wide-band="wideBand" />
-									</v-card>
+									</div>
 								</v-col>
 							</v-row>
 						</div>
@@ -99,7 +101,7 @@
 			</v-card>
 		</v-col>
 
-		<v-col cols="auto">
+		<v-col cols="12" md="3" lg="3" xl="2">
 			<v-card>
 				<v-card-title class="pb-2">
 					<v-icon class="mr-1">mdi-transition</v-icon>
@@ -214,6 +216,7 @@
 <script setup lang="ts">
 import { DirectoryNotFoundError } from "@duet3d/connectors";
 import { type InputShaping as InputShapingModel, InputShapingType } from "@duet3d/objectmodel";
+import { useDisplay } from "vuetify";
 
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -228,6 +231,7 @@ import RecordMotionProfileDialog from "./RecordMotionProfileDialog.vue";
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
+const { mdAndUp } = useDisplay();
 
 const shaping = computed<InputShapingModel>(() => machineStore.model.move.shaping);
 
@@ -269,7 +273,9 @@ const lastRun = computed(() => {
 		const match = /^(\d+)-/.exec(filename);
 		if (match) {
 			const run = parseInt(match[1]);
-			if (run > last) last = run;
+			if (run > last) {
+				last = run;
+			}
 		}
 	}
 	return last;
@@ -330,7 +336,9 @@ function selectInput(e: Event) {
 }
 
 async function copyShaperCode() {
-	if (!customShaperCode.value) return;
+	if (!customShaperCode.value) {
+		return;
+	}
 	try {
 		await navigator.clipboard.writeText(customShaperCode.value);
 	} catch {
@@ -477,10 +485,35 @@ watch(() => shaping.value.damping, (to) => { damping.value = to; });
 <style scoped>
 .content {
 	position: relative;
-	min-height: 480px;
+	min-height: 320px;
+}
+@media (min-width: 960px) {
+	.content {
+		min-height: 480px;
+	}
 }
 
 .content canvas {
 	position: absolute;
+}
+
+/* When the Motion Analysis col stacks below the file list (xs/sm) the col has no parent height
+   to fill, so the canvas inside collapses to 0. Give the chart wrapper a sensible minimum so
+   it actually paints on small screens - kept short on sm so the surrounding panels fit in the
+   viewport without scrolling */
+.analysis-chart-col {
+	min-height: 260px;
+}
+@media (min-width: 960px) {
+	.analysis-chart-col {
+		min-height: 0;
+	}
+}
+
+/* Let the v-window inner element grow into the page-fill card and propagate that to each
+   window-item so charts can size against the actual viewport-relative height */
+.input-shaping-window :deep(.v-window__container),
+.input-shaping-window :deep(.v-window-item) {
+	height: 100%;
 }
 </style>
