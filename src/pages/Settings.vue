@@ -759,7 +759,8 @@
 				   @confirmed="confirmFactoryReset" />
 
 	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
-						  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
+						  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
+						  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
 
 	<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 </template>
@@ -770,18 +771,15 @@ import { NetworkInterfaceType } from "@duet3d/objectmodel";
 
 import { useDisplay } from "vuetify";
 
-import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import ListEditor from "@/components/inputs/ListEditor.vue";
-import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
+import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n, { type Locale } from "@/i18n";
 import {
 	getPluginSettingTabs
 } from "@/plugins";
-import Events from "@/utils/events";
-import { isPrinting } from "@/utils/enums";
 import { localStorageSupported } from "@/utils/localStorage";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
@@ -1055,16 +1053,10 @@ const cacheSaveDelayMs = computed({
 });
 
 // #region Firmware install
-const firmwareInstall = useFirmwareInstall();
+const firmwareController = useFirmwareInstallController();
+const { firmwareDialog, configUpdatedDialog } = firmwareController;
 const firmwareInput = ref<HTMLInputElement | null>(null);
 const installingFirmware = ref(false);
-
-const firmwareDialog = reactive<{ shown: boolean; plan: FirmwareUpdatePlan | null }>({
-	shown: false,
-	plan: null,
-});
-
-const configUpdatedDialog = reactive({ shown: false });
 
 function pickFirmwareFiles() {
 	if (installingFirmware.value) {
@@ -1082,66 +1074,9 @@ async function onFirmwarePicked(event: Event) {
 	}
 	installingFirmware.value = true;
 	try {
-		let plan: FirmwareUpdatePlan;
-		try {
-			plan = await firmwareInstall.planFiles(Array.from(files));
-		} catch (e) {
-			if (e instanceof PluginBundleDetectedError) {
-				// Detour into the install wizard so the user still sees the manifest
-				// preview / disclaimer before the bundle goes onto the machine
-				Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
-				return;
-			}
-			throw e;
-		}
-
-		if (plan.files.length > 0) {
-			await machineStore.upload(plan.files);
-		}
-
-		if (firmwareInstall.hasPendingUpdates(plan)) {
-			firmwareDialog.plan = plan;
-			firmwareDialog.shown = true;
-			return;
-		}
-
-		maybePromptConfigReset(plan);
-
-		if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
-			location.reload();
-		}
-	} catch (e) {
-		console.warn(e);
-		uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+		await firmwareController.runFirmwareUpload(Array.from(files));
 	} finally {
 		installingFirmware.value = false;
-	}
-}
-
-async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (!plan) {
-		return;
-	}
-	try {
-		await firmwareInstall.runUpdate(plan, choices);
-	} finally {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function onFirmwareUpdateCancelled() {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (plan) {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
-	if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
-		configUpdatedDialog.shown = true;
 	}
 }
 

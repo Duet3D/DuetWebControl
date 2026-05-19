@@ -124,6 +124,20 @@
 				"title": "M999 an die Maschine senden um sie zurückzusetzen"
 			}
 		},
+		"fileTransfer": {
+			"uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",
+			"uploadDoneTitle": "Uploads abgeschlossen!",
+			"uploadFailedTitle": "Uploads fehlgeschlagen!",
+			"downloadingTitle": "Lade Datei {0} von {1} herunter, {2}% abgeschlossen",
+			"downloadDoneTitle": "Downloads abgeschlossen",
+			"downloadFailedTitle": "Downloads fehlgeschlagen!",
+			"filename": "Dateiname",
+			"size": "Größe",
+			"progress": "Fortschritt",
+			"currentSpeed": "Aktuelle Geschwindigkeit: {0}",
+			"cancelUploads": "Uploads abbrechen",
+			"cancelDownloads": "Downloads abbrechen"
+		},
 		"pluginInstallation": {
 			"installation": "Plugininstallation",
 			"prompt": "Das folgende Plugin wird installiert:",

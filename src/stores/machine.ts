@@ -516,7 +516,7 @@ export const useMachineStore = defineStore("machine", {
 
 			// Set up file transfer items
 			const cancellationToken: CancellationToken = { cancel() { } };
-			const fileTransfers: Array<FileTransferItem> = [];
+			const fileTransfers = reactive<Array<FileTransferItem>>([]);
 			for (const file of fileOrFiles) {
 				fileTransfers.push({
 					filename: file.filename,
@@ -693,7 +693,7 @@ export const useMachineStore = defineStore("machine", {
 
 			// Set up file transfer items
 			const cancellationToken: CancellationToken = { cancel() { } };
-			const fileTransfers: Array<FileTransferItem> = []
+			const fileTransfers = reactive<Array<FileTransferItem>>([]);
 			for (const file of files) {
 				fileTransfers.push({
 					filename: file.filename,

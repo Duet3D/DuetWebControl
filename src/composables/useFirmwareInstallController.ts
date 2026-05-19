@@ -21,6 +21,7 @@ import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
+import Events from "@/utils/events";
 
 export interface FirmwareInstallController {
 	runFirmwareUpload(files: Array<File>): Promise<void>;
@@ -61,7 +62,10 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 				plan = await firmwareInstall.planFiles(files);
 			} catch (e) {
 				if (e instanceof PluginBundleDetectedError) {
-					await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
+					// Detour into the install wizard so the user sees the manifest preview /
+					// prerequisites check / disclaimer before the bundle reaches the machine.
+					// PluginInstallDialog listens for this event and opens the modal
+					Events.emit("installPlugin", { zipFilename: e.file.name, zipBlob: e.file, zipFile: e.archive, start: true });
 					return;
 				}
 				throw e;

@@ -130,6 +130,7 @@
 
 		<ConnectDialog />
 		<ConnectionProgressDialog />
+		<FileTransferDialog />
 		<IncompatibleVersionsDialog />
 		<MessageBoxDialog />
 		<PluginInstallDialog />

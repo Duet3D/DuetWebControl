@@ -19,21 +19,20 @@
 		<input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
 
 		<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
-							  @confirmed="onFirmwareUpdateConfirmed" @cancelled="onFirmwareUpdateCancelled" />
+							  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
+							  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
 
 		<ConfigUpdatedDialog v-model:shown="configUpdatedDialog.shown" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import type { FirmwareUpdatePlan } from "@/composables/useFirmwareInstall";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
-import { PluginBundleDetectedError, useFirmwareInstall } from "@/composables/useFirmwareInstall";
+import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
-import { isPrinting } from "@/utils/enums";
 import Path from "@/utils/path";
 
 type UploadTarget = "start" | "gcodes" | "macros" | "filaments" | "firmware";
@@ -48,7 +47,8 @@ interface TargetMeta {
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
-const firmwareInstall = useFirmwareInstall();
+const firmwareController = useFirmwareInstallController();
+const { firmwareDialog, configUpdatedDialog } = firmwareController;
 
 const targets: Array<TargetMeta> = [
 	{ key: "start", label: "button.upload.start.caption", icon: "mdi-play", accept: ".g,.gcode,.gc,.gco,.nc,.ngc,.tap", singleFile: true },
@@ -60,12 +60,6 @@ const targets: Array<TargetMeta> = [
 
 const fileInput = ref<HTMLInputElement | null>(null);
 let pendingTarget: TargetMeta | null = null;
-
-const firmwareDialog = reactive<{ shown: boolean; plan: FirmwareUpdatePlan | null }>({
-	shown: false,
-	plan: null,
-});
-const configUpdatedDialog = reactive({ shown: false });
 
 function pick(target: TargetMeta) {
 	pendingTarget = target;
@@ -89,7 +83,7 @@ async function onFilesPicked(event: Event) {
 
 	try {
 		if (target.key === "firmware") {
-			await runFirmwareUpload(files);
+			await firmwareController.runFirmwareUpload(files);
 		} else {
 			await runPlainUpload(target.key, files);
 		}
@@ -122,61 +116,6 @@ function directoryForTarget(target: Exclude<UploadTarget, "firmware">): string {
 			return dirs.macros;
 		case "filaments":
 			return dirs.filaments;
-	}
-}
-
-async function runFirmwareUpload(files: Array<File>) {
-	let plan: FirmwareUpdatePlan;
-	try {
-		plan = await firmwareInstall.planFiles(files);
-	} catch (e) {
-		if (e instanceof PluginBundleDetectedError) {
-			await machineStore.installPlugin(e.file.name, e.file, e.archive, true);
-			return;
-		}
-		throw e;
-	}
-
-	if (plan.files.length > 0) {
-		await machineStore.upload(plan.files);
-	}
-
-	if (firmwareInstall.hasPendingUpdates(plan)) {
-		firmwareDialog.plan = plan;
-		firmwareDialog.shown = true;
-		return;
-	}
-
-	maybePromptConfigReset(plan);
-	if (plan.webInterfaceTouched && machineStore.connector?.hostname === location.host) {
-		location.reload();
-	}
-}
-
-async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (!plan) {
-		return;
-	}
-	try {
-		await firmwareInstall.runUpdate(plan, choices);
-	} finally {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function onFirmwareUpdateCancelled() {
-	const plan = firmwareDialog.plan;
-	firmwareDialog.plan = null;
-	if (plan) {
-		maybePromptConfigReset(plan);
-	}
-}
-
-function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
-	if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
-		configUpdatedDialog.shown = true;
 	}
 }
 </script>

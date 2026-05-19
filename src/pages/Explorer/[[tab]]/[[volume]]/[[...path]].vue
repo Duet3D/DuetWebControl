@@ -161,7 +161,7 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 						  :options="optionsForTab(tab)"
 						  :root-directory="rootForTab(tab)" :root-label="rootLabelFor(tab)"
 						  no-items-text="list.baseFileList.noFiles" no-view-mode
-						  :firmware-aware="isUnderSystem(tab.directory)"
+						  :firmware-aware="isFirmwareContext(tab.directory)"
 						  @file-click="onFileClick" @file-edit="onFileEdit"
 						  @file-run-macro="onFileRunMacro"
 						  @refresh="onExplorerRefresh">
@@ -404,11 +404,19 @@ function rootLabelFor(tab: ExplorerTab): string {
 	return volumeCaption(Path.getVolume(tab.directory ?? ""));
 }
 
-function isUnderSystem(dir: string | undefined): boolean {
+// Route uploads through the firmware-install pipeline when the user is browsing a directory
+// where firmware payloads naturally land: the volume root (drag-and-drop of a board image),
+// the firmware directory itself, or the system directory. Anywhere else (e.g. /gcodes,
+// /macros) uses the plain upload path so app-level files don't get reclassified as binaries
+function isFirmwareContext(dir: string | undefined): boolean {
 	if (!dir) {
 		return false;
 	}
-	return Path.startsWith(dir, machineStore.model.directories.system);
+	if (Path.equals(dir, "0:/")) {
+		return true;
+	}
+	const dirs = machineStore.model.directories;
+	return Path.startsWith(dir, dirs.system) || Path.startsWith(dir, dirs.firmware);
 }
 
 // Lazy-loader fold-in: when the loader resolves after mount, fold its result into the active

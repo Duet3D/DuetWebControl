@@ -124,6 +124,20 @@
 				"title": "Send M999 to the machine to reset it"
 			}
 		},
+		"fileTransfer": {
+			"uploadingTitle": "Uploading File {0} of {1}, {2}% complete",
+			"uploadDoneTitle": "Uploads Complete!",
+			"uploadFailedTitle": "Uploads Failed!",
+			"downloadingTitle": "Downloading File {0} of {1}, {2}% complete",
+			"downloadDoneTitle": "Downloads Complete",
+			"downloadFailedTitle": "Downloads Failed!",
+			"filename": "Filename",
+			"size": "Size",
+			"progress": "Progress",
+			"currentSpeed": "Current Speed: {0}",
+			"cancelUploads": "Cancel Uploads",
+			"cancelDownloads": "Cancel Downloads"
+		},
 		"pluginInstallation": {
 			"installation": "Plugin Installation",
 			"prompt": "The following plugin will be installed:",

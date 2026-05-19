@@ -917,8 +917,10 @@ function rowProps({ item }: { item: FileBrowserItem }) {
 // Source rows carry the source directory + the full selection so the user can drag a single
 // row OR a multi-select. Drop targets are directory rows in the same FileList, which trigger
 // a sequential `machineStore.move` per item (force=false; conflicts surface as warnings)
+const ROW_DRAG_TYPE = "dwcFiles";
+
 interface RowDragPayload {
-	type: "dwcFiles";
+	type: typeof ROW_DRAG_TYPE;
 	directory: string;
 	names: Array<string>;
 }
@@ -932,7 +934,7 @@ function onRowDragStart(event: DragEvent, item: FileBrowserItem) {
 	// silently moving the unrelated current selection
 	const names = selection.value.includes(item.name) ? [...selection.value] : [item.name];
 	const payload: RowDragPayload = {
-		type: "dwcFiles",
+		type: ROW_DRAG_TYPE,
 		directory: browser.directory.value,
 		names,
 	};
@@ -950,7 +952,7 @@ function readRowDragPayload(event: DragEvent): RowDragPayload | null {
 	}
 	try {
 		const parsed = JSON.parse(raw);
-		if (parsed && parsed.type === "dwcFiles" && typeof parsed.directory === "string"
+		if (parsed && parsed.type === ROW_DRAG_TYPE && typeof parsed.directory === "string"
 			&& Array.isArray(parsed.names)) {
 			return parsed as RowDragPayload;
 		}
