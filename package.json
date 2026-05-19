@@ -15,7 +15,7 @@
     "@babylonjs/gui": "^8.56.0",
     "@babylonjs/materials": "^8.56.0",
     "@duet3d/connectors": "~3.7.0-alpha.9",
-    "@duet3d/monacotokens": "~3.7.0-alpha.10",
+    "@duet3d/monacotokens": "~3.7.0-alpha.11",
     "@duet3d/motionanalysis": "~3.6.0",
     "@duet3d/objectmodel": "~3.7.0-alpha.9",
     "@fontsource/roboto": "^5.2.10",
