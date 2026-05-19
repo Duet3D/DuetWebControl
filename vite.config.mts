@@ -13,7 +13,15 @@ import buildOutputs from './vite/build-outputs'
 
 // Utilities
 import { defineConfig, type Plugin } from 'vite'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
+
+// Ship sourcemaps for prerelease builds (alpha/beta/rc) so we can debug installs in the wild.
+// Stable releases skip them to keep the SD-card and DSF zips lean. DWC_SOURCEMAP=1 / =0 forces
+// either way, e.g. when probing a stable build locally
+const dwcVersion = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")).version as string
+const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcVersion)
+const sourcemap = process.env.DWC_SOURCEMAP !== undefined ? process.env.DWC_SOURCEMAP !== "0" : isPrerelease
 
 // Monaco emits css/html/json/ts language workers eagerly, but `getWorker` in src/utils/monaco.ts
 // always returns the editor worker - we never spin up a language service. Drop the dead worker
@@ -37,6 +45,7 @@ function dwcStripMonacoLangWorkers(): Plugin {
 export default defineConfig({
   build: {
 		chunkSizeWarningLimit: 5000000,
+		sourcemap,
 		// Skip vite's modulepreload polyfill - it inflates the entry chunk with browser-shim
 		// code we don't need (every browser we ship to supports <link rel="modulepreload">)
 		modulePreload: { polyfill: false },
