@@ -26,10 +26,15 @@
 
 	<!-- Single queue for every other notification source: general toasts, persistent toasts and the
 		 M117 persistent message all flow through here, ordered by priority so an error pre-empts
-		 the previously visible items and an active M117 sits above ordinary info/success toasts -->
-	<v-snackbar-queue v-model="unifiedQueue" :timer="true" timer-color="white" closable
+		 the previously visible items and an active M117 sits above ordinary info/success toasts.
+		 Vuetify's built-in :timer is disabled: it drives the bar via setInterval polling at 5 Hz,
+		 which renders as a stepped/sluggish drain. We render our own bar in the #text slot below,
+		 powered by a single CSS keyframe animation - smooth at any frame rate and free -->
+	<v-snackbar-queue v-model="unifiedQueue" :timer="false" closable
 					  location="bottom center" :total-visible="totalVisible">
 		<template #text="{ item }">
+			<div v-if="(item as QueueMessage).timeout > 0" class="dwc-snackbar-timer"
+				 :style="{ animationDuration: `${(item as QueueMessage).timeout}ms` }" />
 			<div :class="{ 'd-flex flex-column w-100': true, 'notification-clickable': hasRoute(item as QueueMessage) }"
 				 @click="onNotificationClick(item as QueueMessage)">
 				<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
@@ -196,5 +201,24 @@ function onNotificationClick(item: QueueMessage) {
 }
 .notification-clickable {
 	cursor: pointer;
+}
+.dwc-snackbar-timer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background-color: rgba(255, 255, 255, 0.7);
+	transform-origin: left center;
+	animation-name: dwc-snackbar-timer-drain;
+	animation-timing-function: linear;
+	animation-fill-mode: forwards;
+}
+.v-snackbar__wrapper:hover .dwc-snackbar-timer {
+	animation-play-state: paused;
+}
+@keyframes dwc-snackbar-timer-drain {
+	from { transform: scaleX(1); }
+	to { transform: scaleX(0); }
 }
 </style>
