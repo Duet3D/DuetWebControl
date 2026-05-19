@@ -24,11 +24,11 @@
 					</span>
 					<span v-for="canAddress in machineStore.boardsBeingUpdated.filter(item => item > 0)"
 						  :key="canAddress" class="ms-3">
-						<v-icon size="small" class="mr-1" v-text="getBoardIcon(canAddress)" />
+						<v-icon size="small" class="mr-1" :icon="getBoardIcon(canAddress)" />
 						{{ getBoardName(canAddress) }}
 					</span>
 					<span v-if="machineStore.boardsBeingUpdated.includes(0)" class="ms-3">
-						<v-icon size="small" class="mr-1" v-text="getBoardIcon(0)" />
+						<v-icon size="small" class="mr-1" :icon="getBoardIcon(0)" />
 						{{ getBoardName(0) }}
 					</span>
 				</div>
