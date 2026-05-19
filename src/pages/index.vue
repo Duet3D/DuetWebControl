@@ -1,5 +1,6 @@
 <route lang="json">
 {
+	"alias": "/Dashboard",
 	"meta": {
 		"menu": {
 			"category": "control",

@@ -107,8 +107,6 @@ export default function dwcPlugins(): VitePlugin {
 				manifest,
 				entryFile,
 			});
-
-			console.log(`[dwc-plugins] Discovered built-in plugin: ${manifest.id || dir.name}`);
 		}
 
 		return entries;
@@ -144,16 +142,26 @@ export default function dwcPlugins(): VitePlugin {
 			plugins = discoverPlugins();
 		},
 
-		resolveId(id) {
-			if (id === VIRTUAL_MODULE_ID) {
-				return RESOLVED_VIRTUAL_MODULE_ID;
-			}
+		// rolldown hook filters: only invoke the JS callback for our virtual id, so we don't
+		// pay a Rust->JS hop on every other module's resolve / load (cuts this plugin's share
+		// of PLUGIN_TIMINGS from ~50% on full builds because monaco-editor alone has thousands
+		// of internal modules). resolveId requires a regex - string filters aren't supported there
+		resolveId: {
+			filter: { id: /^virtual:dwc-builtin-plugins$/ },
+			handler(id) {
+				if (id === VIRTUAL_MODULE_ID) {
+					return RESOLVED_VIRTUAL_MODULE_ID;
+				}
+			},
 		},
 
-		load(id) {
-			if (id === RESOLVED_VIRTUAL_MODULE_ID) {
-				return generateCode(plugins);
-			}
+		load: {
+			filter: { id: /^\0virtual:dwc-builtin-plugins$/ },
+			handler(id) {
+				if (id === RESOLVED_VIRTUAL_MODULE_ID) {
+					return generateCode(plugins);
+				}
+			},
 		},
 
 		// In dev mode, re-discover plugins when files change in the plugins dir

@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from "monaco-editor-core";
 
 import { useSettingsStore } from "@/stores/settings";
 import { ensureMonaco } from "@/utils/monaco";

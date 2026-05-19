@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { MachineMode } from "@duet3d/objectmodel";
-import type * as Monaco from "monaco-editor";
+import type * as Monaco from "monaco-editor-core";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 
 watch(() => settingsStore.darkTheme, (dark) => {
 	if (editor) {
-		import("monaco-editor").then((monaco) => {
+		import("monaco-editor-core").then((monaco) => {
 			monaco.editor.setTheme(dark ? "vs-dark" : "vs");
 		}).catch(() => {});
 	}

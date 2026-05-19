@@ -103,10 +103,8 @@ import JobInfoPanel from "@/components/panels/JobInfoPanel.vue";
 import SpeedFactorPanel from "@/components/panels/SpeedFactorPanel.vue";
 import ZBabystepPanel from "@/components/panels/ZBabystepPanel.vue";
 import JobProgress from "@/components/misc/JobProgress.vue";
+import LayerChart from "@/components/charts/LayerChart.vue";
 import { useUiStore } from "@/stores/ui";
-
-// Chart.js is heavy; defer until the route mounts (matches the dashboard's TemperatureChart approach)
-const LayerChart = defineAsyncComponent(() => import("@/components/charts/LayerChart.vue"));
 
 const { mobile } = useDisplay();
 const uiStore = useUiStore();

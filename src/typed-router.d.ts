@@ -52,13 +52,6 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Dashboard': RouteRecordInfo<
-      '/Dashboard',
-      '/Dashboard',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
     '/Explorer/[[tab]]/[[volume]]/[[...path]]': RouteRecordInfo<
       '/Explorer/[[tab]]/[[volume]]/[[...path]]',
       '/Explorer/:tab?/:volume?/:path(.*)?',
@@ -143,12 +136,6 @@ declare module 'vue-router/auto-routes' {
     'src/pages/Console.vue': {
       routes:
         | '/Console'
-      views:
-        | never
-    }
-    'src/pages/Dashboard.vue': {
-      routes:
-        | '/Dashboard'
       views:
         | never
     }

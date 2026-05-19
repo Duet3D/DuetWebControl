@@ -16,7 +16,7 @@ import "vuetify/styles";
 // Composables
 import { createVuetify, type ThemeInstance } from "vuetify";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
-import { useI18n } from "vue-i18n";
+import { useI18n, type I18n } from "vue-i18n";
 import { watch } from "vue";
 
 import i18n from "@/i18n";
@@ -24,7 +24,10 @@ import { useSettingsStore } from "@/stores/settings";
 
 const vuetify = createVuetify({
 	locale: {
-		adapter: createVueI18nAdapter({ i18n, useI18n })
+		// Vuetify's adapter is typed against I18n<..., locale: string, legacy: false>; our i18n
+		// narrows the locale to 'de' | 'en' which fails the contravariant ComposerTranslation
+		// parameter check. Widen at this single boundary so app code keeps the strict Locale type
+		adapter: createVueI18nAdapter({ i18n: i18n as I18n<any, {}, {}, string, false>, useI18n })
 	},
 	theme: {
 		// Boot default - overridden synchronously by bindVuetifyTheme() the moment the store

@@ -240,8 +240,6 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 </template>
 
 <script setup lang="ts">
-defineOptions({ name: "Explorer" });
-
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import { useGcodeThumbnails } from "@/composables/useGcodeThumbnails";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
@@ -255,6 +253,8 @@ import {
 } from "@/composables/useFirmwareInstallController";
 import i18n from "@/i18n";
 import { LogLevel, useUiStore } from "@/stores/ui";
+
+defineOptions({ name: "Explorer" });
 
 interface ExplorerTab {
 	id: number;

@@ -24,11 +24,8 @@ import { useDisplay } from "vuetify";
 
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
+import TemperatureChart from "@/components/charts/TemperatureChart.vue";
 import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
-
-// Chart.js is heavy (~70 kB gzipped). Lazy-loading keeps it out of the default-layout chunk so the
-// initial paint doesn't pay for it; the chart's own chunk loads in parallel right after
-const TemperatureChart = defineAsyncComponent(() => import("@/components/charts/TemperatureChart.vue"));
 
 // Page-level container that fills the main content area - the container width tracks the
 // viewport, so useDisplay is the matching observable. Component-internal adaptation that's

@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-const TemperatureChart = defineAsyncComponent(() => import("@/components/charts/TemperatureChart.vue"));
+import TemperatureChart from "@/components/charts/TemperatureChart.vue";
 
 const chartRef = ref<{ hasTemperaturesToDisplay: boolean } | null>(null);
 const hasData = computed(() => chartRef.value?.hasTemperaturesToDisplay ?? false);
