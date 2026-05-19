@@ -52,22 +52,9 @@ export interface FirmwareUpdatePlan {
 	wifiServer: boolean;
 
 	/**
-	 * Whether the WiFi server's SPIFFS partition needs a refresh
-	 */
-	wifiServerSpiffs: boolean;
-
-	/**
 	 * Whether the connected PanelDue/DuetScreen firmware was uploaded
 	 */
 	display: boolean;
-}
-
-export interface FirmwareUpdateChoices {
-	/**
-	 * Whether to also refresh the WiFi server's SPIFFS partition. Only meaningful when
-	 * {@link FirmwareUpdatePlan.wifiServer} is true; the dialog exposes it as an opt-in
-	 */
-	wifiServerSpiffs?: boolean;
 }
 
 interface ClassifyContext {
@@ -256,7 +243,6 @@ export function useFirmwareInstall() {
 			configReplaced: false,
 			firmwareBoards: [],
 			wifiServer: false,
-			wifiServerSpiffs: false,
 			display: false,
 		};
 
@@ -292,16 +278,15 @@ export function useFirmwareInstall() {
 	}
 
 	function hasPendingUpdates(plan: FirmwareUpdatePlan): boolean {
-		return plan.firmwareBoards.length > 0 || plan.wifiServer || plan.wifiServerSpiffs || plan.display;
+		return plan.firmwareBoards.length > 0 || plan.wifiServer || plan.display;
 	}
 
 	/**
-	 * Issue the M997 sequence according to the user's confirmed choices, then wait for the
-	 * machine to leave the "updating" state. Errors other than DisconnectedError surface as
-	 * console warnings + notifications - a lost connection is normal mid-update.
+	 * Issue the M997 sequence for the planned modules, then wait for the machine to leave the
+	 * "updating" state. Errors other than DisconnectedError surface as console warnings +
+	 * notifications - a lost connection is normal mid-update.
 	 */
-	async function runUpdate(plan: FirmwareUpdatePlan, choices: FirmwareUpdateChoices): Promise<void> {
-		plan.wifiServerSpiffs = !!choices.wifiServerSpiffs;
+	async function runUpdate(plan: FirmwareUpdatePlan): Promise<void> {
 		machineStore.boardsBeingUpdated = [...plan.firmwareBoards];
 
 		// Expansion boards first, one M997 per CAN address
@@ -328,10 +313,7 @@ export function useFirmwareInstall() {
 		if (plan.wifiServer) {
 			modules.push(1);
 		}
-		if (plan.wifiServerSpiffs) {
-			modules.push(2);
-		}
-		// Module 3 (WiFi bootloader) is intentionally not exposed here
+		// Modules 2 (WiFi SPIFFS) and 3 (WiFi bootloader) are intentionally not exposed here
 		if (plan.display) {
 			modules.push(4);
 		}

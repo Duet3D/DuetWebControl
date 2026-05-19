@@ -13,9 +13,6 @@
 					<li v-for="(line, idx) in summaryLines" :key="idx">{{ line }}</li>
 				</ul>
 
-				<v-checkbox v-if="plan?.wifiServer" v-model="updateSpiffs" hide-details density="compact"
-							class="mt-3" :label="$t('dialog.update.updateWiFiServerSpiffs')" />
-
 				<v-alert v-if="showSbcWarning" type="warning" variant="tonal" class="mt-3" density="compact">
 					{{ $t("dialog.update.sbcWarning") }}
 				</v-alert>
@@ -45,21 +42,11 @@ const props = defineProps<{
 
 const shown = defineModel<boolean>("shown", { required: true });
 const emit = defineEmits<{
-	confirmed: [choices: { wifiServerSpiffs: boolean }];
+	confirmed: [];
 	cancelled: [];
 }>();
 
 const machineStore = useMachineStore();
-
-const updateSpiffs = ref(false);
-
-// Reset the spiffs opt-in whenever a new plan opens the dialog - we don't want a previous
-// user choice to leak into the next firmware update
-watch(shown, (value) => {
-	if (value) {
-		updateSpiffs.value = false;
-	}
-});
 
 const summaryLines = computed<Array<string>>(() => {
 	const plan = props.plan;
@@ -100,7 +87,7 @@ const showSbcWarning = computed(() => {
 
 function confirm() {
 	shown.value = false;
-	emit("confirmed", { wifiServerSpiffs: updateSpiffs.value });
+	emit("confirmed");
 }
 
 function cancel() {

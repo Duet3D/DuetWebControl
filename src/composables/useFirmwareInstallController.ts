@@ -27,7 +27,7 @@ export interface FirmwareInstallController {
 	runFirmwareUpload(files: Array<File>): Promise<void>;
 	firmwareDialog: { shown: boolean; plan: FirmwareUpdatePlan | null };
 	configUpdatedDialog: { shown: boolean };
-	onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }): Promise<void>;
+	onFirmwareUpdateConfirmed(): Promise<void>;
 	onFirmwareUpdateCancelled(): void;
 }
 
@@ -93,14 +93,14 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 		}
 	}
 
-	async function onFirmwareUpdateConfirmed(choices: { wifiServerSpiffs: boolean }) {
+	async function onFirmwareUpdateConfirmed() {
 		const plan = firmwareDialog.plan;
 		firmwareDialog.plan = null;
 		if (!plan) {
 			return;
 		}
 		try {
-			await firmwareInstall.runUpdate(plan, choices);
+			await firmwareInstall.runUpdate(plan);
 		} finally {
 			maybePromptConfigReset(plan);
 		}

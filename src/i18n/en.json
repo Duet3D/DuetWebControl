@@ -49,7 +49,6 @@
 			"mainBoard": "Main board firmware",
 			"expansionBoard": "Expansion board #{0} firmware",
 			"wifiServer": "WiFi server firmware",
-			"updateWiFiServerSpiffs": "Also refresh the WiFi server's SPIFFS partition",
 			"display": "PanelDue / DuetScreen firmware",
 			"sbcWarning": "Updating Duet firmware over the SBC interface can interrupt the SPI handshake mid-write. Make sure you can recover the board manually before you continue."
 		},

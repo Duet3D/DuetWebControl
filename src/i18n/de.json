@@ -49,7 +49,6 @@
 			"mainBoard": "Mainboard-Firmware",
 			"expansionBoard": "Firmware Erweiterungsboard #{0}",
 			"wifiServer": "WLAN-Server-Firmware",
-			"updateWiFiServerSpiffs": "Auch die SPIFFS-Partition des WLAN-Servers aktualisieren",
 			"display": "PanelDue-/DuetScreen-Firmware",
 			"sbcWarning": "Ein Firmware-Update der Duet-Boards über die SBC-Schnittstelle kann den SPI-Übertragungsvorgang unterbrechen. Bitte sicherstellen, dass das Board notfalls manuell wiederhergestellt werden kann, bevor fortgefahren wird."
 		},
