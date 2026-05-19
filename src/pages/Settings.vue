@@ -751,7 +751,7 @@
 	</v-card>
 	</div>
 
-	<input ref="firmwareInput" type="file" multiple accept=".zip,.bin,.uf2,.deb" hidden
+	<input ref="firmwareInput" type="file" multiple :accept="firmwareAccept" hidden
 		   @change="onFirmwarePicked" />
 
 	<ConfirmDialog v-model:shown="factoryResetDialog" :title="$t('settings.machine.resetTitle')"
@@ -1057,6 +1057,11 @@ const firmwareController = useFirmwareInstallController();
 const { firmwareDialog, configUpdatedDialog } = firmwareController;
 const firmwareInput = ref<HTMLInputElement | null>(null);
 const installingFirmware = ref(false);
+
+// .deb is only usable in SBC mode (installSystemPackage); .crt/.key are HTTPS certs
+const firmwareAccept = computed(() => machineStore.model.sbc !== null
+	? ".zip,.bin,.uf2,.deb,.crt,.key"
+	: ".zip,.bin,.uf2,.crt,.key");
 
 function pickFirmwareFiles() {
 	if (installingFirmware.value) {

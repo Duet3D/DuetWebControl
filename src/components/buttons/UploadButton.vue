@@ -55,8 +55,13 @@ const targets: Array<TargetMeta> = [
 	{ key: "gcodes", label: "button.upload.gcodes.caption", icon: "mdi-file-code", accept: ".g,.gcode,.gc,.gco,.nc,.ngc,.tap" },
 	{ key: "macros", label: "button.upload.macros.caption", icon: "mdi-polymer" },
 	{ key: "filaments", label: "button.upload.filaments.caption", icon: "mdi-radiobox-marked", accept: ".zip" },
-	{ key: "firmware", label: "button.upload.firmware.caption", icon: "mdi-package-down", accept: ".zip,.bin,.uf2,.deb" },
+	{ key: "firmware", label: "button.upload.firmware.caption", icon: "mdi-package-down" },
 ];
+
+// .deb is only usable in SBC mode (installSystemPackage); .crt/.key are HTTPS certs
+function firmwareAccept(): string {
+	return machineStore.model.sbc !== null ? ".zip,.bin,.uf2,.deb,.crt,.key" : ".zip,.bin,.uf2,.crt,.key";
+}
 
 const fileInput = ref<HTMLInputElement | null>(null);
 let pendingTarget: TargetMeta | null = null;
@@ -66,7 +71,7 @@ function pick(target: TargetMeta) {
 	if (!fileInput.value) {
 		return;
 	}
-	fileInput.value.accept = target.accept ?? "*";
+	fileInput.value.accept = target.key === "firmware" ? firmwareAccept() : (target.accept ?? "*");
 	fileInput.value.multiple = !target.singleFile;
 	fileInput.value.click();
 }
