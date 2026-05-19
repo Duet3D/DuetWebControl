@@ -238,9 +238,10 @@ function resolveBadge(item: MenuItem): MenuBadge | null {
 }
 
 // Hub tiles point at each menu item's path. The Dashboard item's path is `/`, but the hub itself
-// also lives at `/`, so a literal `/` link would be a self-navigation that visually does nothing
-// Redirect through the `/Dashboard` route alias declared in src/pages/index.vue so the tile
-// actually reaches the dashboard panels at xs/sm. The drawer's Dashboard link at md+ stays on `/`
+// also lives at `/`, so a literal `/` link would be a self-navigation vue-router treats as a
+// no-op. Route through the wrapper at src/pages/Dashboard.vue (a distinct route record that
+// renders index.vue's content) so the tile actually navigates. The drawer's Dashboard link at
+// md+ stays on `/` because the hub doesn't render at md+ - no self-nav concern there
 function hubTilePath(item: MenuItem): string {
 	return item.path === "/" ? "/Dashboard" : item.path;
 }

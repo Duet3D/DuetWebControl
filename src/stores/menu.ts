@@ -201,10 +201,10 @@ export const useMenuStore = defineStore("menu", {
 		routeItems(): Array<MenuItem> {
 			const items: Array<MenuItem> = [];
 			for (const route of router.getRoutes()) {
-				// vue-router exposes alias records as separate entries with `aliasOf` pointing
-				// back to the canonical record. They share meta, so without this guard each alias
-				// would produce a duplicate menu item (e.g. Dashboard appearing twice when `/`
-				// declares `/Dashboard` as an alias for the hub-tile-clickability fix)
+				// Defensive: vue-router exposes alias records as separate entries with `aliasOf`
+				// pointing back to the canonical record. They share meta, so without this guard
+				// each alias would produce a duplicate menu item. No routes currently use the
+				// `alias` field, but if one ever does the menu shouldn't suddenly grow doubles
 				if (route.aliasOf) {
 					continue;
 				}
