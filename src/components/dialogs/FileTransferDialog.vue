@@ -21,7 +21,7 @@
 							<td class="px-3" width="15%">{{ formattedSize(file) }}</td>
 							<td class="py-1" width="35%">
 								<v-progress-linear v-show="file.startTime !== null || file.progress > 0"
-												   :color="getProgressColor(file)" height="20" rounded="sm"
+												   :color="getProgressColor(file)" height="16" rounded="md"
 												   :striped="file.progress < 1"
 												   :model-value="file.progress * 100"
 												   :indeterminate="file.progress < 1 && !file.speed && !file.error">
