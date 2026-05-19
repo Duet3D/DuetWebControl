@@ -391,14 +391,22 @@ export const useMachineStore = defineStore("machine", {
 				return;
 			}
 
-			Events.emit("connectionError", { hostname: this.connector.hostname, error });
+			console.warn(error);
+
 			if (error instanceof InvalidPasswordError) {
+				Events.emit("connectionError", { hostname: this.connector.hostname, error });
 				await this.disconnect(false);
 				Events.emit("invalidPassword", { hostname: this.connector.hostname, username: DefaultUsername, password: DefaultPassword });
-			} else if (!import.meta.env.PROD) {
-				await this.disconnect(false);
-			} else {
+			} else if (!this.isReconnecting && (this.model.state.status === MachineStatus.halted || this.model.state.status === MachineStatus.updating)) {
+				// Reconnect instantly on emergency stop / firmware update - the connection comes
+				// back as soon as the board finishes rebooting
 				await this.reconnect();
+			} else if (this.isReconnecting) {
+				// Reconnect attempt failed, try again shortly. The board often needs a few seconds
+				// after M999 before its HTTP server is back up
+				setTimeout(() => this.reconnect(), 2000);
+			} else {
+				Events.emit("connectionError", { hostname: this.connector.hostname, error });
 			}
 		},
 
@@ -429,7 +437,9 @@ export const useMachineStore = defineStore("machine", {
 				this.isReconnecting = false;
 				Events.emit("reconnected", this.connector.hostname);
 			} catch (e) {
-				Events.emit("connectionError", { hostname: this.connector.hostname, error: e });
+				// Route through handleConnectionError so the retry-with-delay path fires;
+				// isReconnecting is still true, so it lands in the setTimeout branch
+				await this.handleConnectionError(e);
 			}
 		},
 
