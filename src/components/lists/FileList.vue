@@ -789,6 +789,16 @@ async function runPlainUpload(files: Array<File>) {
 
 	if (payload.length > 0) {
 		await machineStore.upload(payload);
+		// Auto-reload DWC when the user just replaced its index.html under directories.web
+		// (typically an unzipped www bundle dropped into the web directory). The firmware-install
+		// path does the same via plan.webInterfaceTouched - mirror it here for the plain path
+		const webDir = machineStore.model.directories.web;
+		const touchedWebInterface = payload.some((p) =>
+			Path.equals(Path.extractDirectory(p.filename), webDir)
+			&& /^index\.html(\.gz)?$/i.test(Path.extractFileName(p.filename)));
+		if (touchedWebInterface && machineStore.connector?.hostname === location.host) {
+			location.reload();
+		}
 	}
 }
 
