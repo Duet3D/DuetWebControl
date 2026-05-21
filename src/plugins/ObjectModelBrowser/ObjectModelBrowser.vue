@@ -424,7 +424,7 @@ input[readonly] {
 	color: rgb(var(--v-theme-warning));
 }
 
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.doc-panel {
 		position: sticky;
 		top: 80px;

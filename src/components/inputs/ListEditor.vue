@@ -27,7 +27,7 @@
 				</v-col>
 
 				<v-col cols="6">
-					<v-row align="center" density="compact" class="mt-3">
+					<v-row density="compact" class="mt-3 align-center">
 						<v-col>
 							<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999"
 										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
@@ -42,7 +42,7 @@
 					</v-row>
 				</v-col>
 				<v-col cols="6">
-					<v-row align="center" density="compact" class="mt-3">
+					<v-row density="compact" class="mt-3 align-center">
 						<v-col>
 							<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999"
 										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
@@ -70,7 +70,7 @@
 					</v-chip>
 				</v-col>
 				<v-col cols="12">
-					<v-row align="center" density="compact" class="mt-3">
+					<v-row density="compact" class="mt-3 align-center">
 						<v-col>
 							<v-text-field v-if="temperature" v-model.number="flatValue" type="number"
 										  min="-273" max="1999" :label="$t('input.addTemperature')"

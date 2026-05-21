@@ -778,9 +778,13 @@ function resize() {
 		// Match the heightmap canvas: fill the viewport minus the appbar + container padding,
 		// floored so a cramped window keeps a usable canvas
 		// xs/sm: layout strips its outer padding, but the viewer adds an 8px breathing margin
-		// (top + bottom = 16) on top of the 64px appbar. md+ uses the layout's 16px top/bottom
-		// padding (64 appbar + 32) and the viewer sits flush with that frame
-		const chrome = display.mdAndUp.value ? 96 : 80;
+		// (top + bottom = 16) on top of the appbar. md+ uses the layout's 16px top/bottom
+		// padding (32) and the viewer sits flush with that frame
+		const mainElement = document.querySelector(".v-main");
+		const appBarHeight = mainElement
+			? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
+			: 64;
+		const chrome = appBarHeight + (display.mdAndUp.value ? 32 : 16);
 		const viewerHeight = Math.max(window.innerHeight - chrome, 400);
 		primaryContainer.value.style.height = `${viewerHeight}px`;
 		viewer?.resize();
@@ -1241,7 +1245,7 @@ watch(progressMode, async () => {
 .gcv-drawer-switches {
 	padding: 0 12px 12px;
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.primary-container {
 		margin: 0;
 		width: 100%;

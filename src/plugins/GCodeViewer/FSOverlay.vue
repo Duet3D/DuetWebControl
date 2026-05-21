@@ -21,7 +21,7 @@
 
 					<template v-for="tool in toolsFiltered" :key="tool.number">
 						<v-row v-for="(heaterIdx, idx) in tool.heaters" :key="`Tool ${tool.number * 10 + idx}`"
-							   density="compact" align="center" justify="center">
+							   density="compact" class="align-center justify-center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges"
@@ -35,7 +35,7 @@
 
 					<template v-for="(heaterIndices, idx) in heat.bedHeaterMapping" :key="`bed-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`bed${idx}-${subIdx}`"
-							   density="compact" align="center" justify="center">
+							   density="compact" class="align-center justify-center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges" :max="120"
@@ -50,7 +50,7 @@
 
 					<template v-for="(heaterIndices, idx) in heat.chamberHeaterMapping" :key="`chamber-${idx}`">
 						<v-row v-for="(heaterIdx, subIdx) in heaterIndices" :key="`chamber${idx}-${subIdx}`"
-							   density="compact" align="center" justify="center">
+							   density="compact" class="align-center justify-center">
 							<template v-if="heaterIdx >= 0">
 								<v-col cols="12">
 									<GaugeComponent v-if="getHeaterInfo(heaterIdx)" class="gauges" :max="120"

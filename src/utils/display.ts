@@ -79,6 +79,23 @@ export function displaySensorValue(sensor: AnalogSensor) {
 }
 
 /**
+ * Display the name of an extra (non-heater) analog sensor, dropping a trailing [unit] suffix
+ * @param sensor Sensor
+ * @param index Index of the sensor, used as a fallback when it has no name
+ * @returns Formatted sensor name
+ */
+export function formatExtraSensorName(sensor: AnalogSensor, index: number): string {
+	if (sensor.name) {
+		const matches = /(.*)\[(.*)\]$/.exec(sensor.name);
+		if (matches) {
+			return matches[1];
+		}
+		return sensor.name;
+	}
+	return i18n.global.t("panel.tools.extra.sensorIndex", [index]);
+}
+
+/**
  * Display a size with proper units
  * @param bytes Size to format
  * @returns Formatted string

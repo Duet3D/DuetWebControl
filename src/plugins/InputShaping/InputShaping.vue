@@ -30,7 +30,7 @@
 				<v-window v-model="tab" :touch="false" class="flex-grow-1 d-flex flex-column input-shaping-window">
 					<v-window-item value="current" class="h-100">
 						<div class="d-flex flex-column h-100">
-							<v-alert v-if="!isInputShapingEnabled" type="info" class="mb-0" variant="tonal"
+							<v-alert v-if="!isInputShapingEnabled" type="info" class="mb-0 flex-grow-0" variant="tonal"
 									 :title="$t('plugins.accelerometer.notConfigured')" />
 							<!-- v-if (not v-show) so the heavy Chart instance only instantiates
 								 when input shaping is actually configured -->
@@ -45,14 +45,14 @@
 					<v-window-item value="analysis" class="h-100">
 						<div class="d-flex flex-column h-100">
 							<v-progress-linear :active="loadingFiles" indeterminate />
-							<v-alert v-if="files.length === 0 && !filesError" type="info" class="mb-0"
+							<v-alert v-if="files.length === 0 && !filesError" type="info" class="mb-0 flex-grow-0"
 									 variant="tonal">
 								{{ $t("plugins.accelerometer.noMotionProfiles") }}
 								<a href="javascript:void(0)" class="text-decoration-underline" @click="refresh">
 									{{ $t("plugins.accelerometer.refreshLink") }}
 								</a>
 							</v-alert>
-							<v-alert v-if="filesError" type="error" class="mb-0" variant="tonal">
+							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
 							<v-row v-if="files.length > 0" class="content pa-2 ma-0 flex-grow-1">
@@ -76,7 +76,7 @@
 									{{ $t("plugins.accelerometer.pickProfile") }}
 								</v-col>
 								<v-col v-else cols="12" md="6" lg="7" xl="8" class="d-flex flex-column pa-0 analysis-chart-col">
-									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0">
+									<v-alert v-if="hadOverflow" type="warning" variant="tonal" class="mb-0 flex-grow-0">
 										{{ $t("plugins.accelerometer.overflowWarning") }}
 									</v-alert>
 									<div class="d-block fill-height pa-2">
@@ -487,7 +487,7 @@ watch(() => shaping.value.damping, (to) => { damping.value = to; });
 	position: relative;
 	min-height: 320px;
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.content {
 		min-height: 480px;
 	}
@@ -504,7 +504,7 @@ watch(() => shaping.value.damping, (to) => { damping.value = to; });
 .analysis-chart-col {
 	min-height: 260px;
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.analysis-chart-col {
 		min-height: 0;
 	}

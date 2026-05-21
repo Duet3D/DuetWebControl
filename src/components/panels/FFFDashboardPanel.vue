@@ -7,7 +7,7 @@
 				<v-col cols="12" :md="showATXPanel ? 9 : 12" :lg="showATXPanel ? 9 : 12" :xl="showATXPanel ? 10 : 12">
 					<ExtrudePanel />
 				</v-col>
-				<v-col v-if="showATXPanel" md="3" lg="3" xl="2" align-self="center">
+				<v-col v-if="showATXPanel" md="3" lg="3" xl="2" class="align-self-center">
 					<ATXPanel />
 				</v-col>
 				<v-col cols="12">

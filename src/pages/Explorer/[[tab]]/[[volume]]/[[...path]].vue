@@ -895,7 +895,7 @@ function pushUrl(path: string, replace = false) {
 @media (min-width: 600px) {
 	.explorer-tab-label { max-width: 12rem; }
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.explorer-tab-label { max-width: 16rem; }
 }
 

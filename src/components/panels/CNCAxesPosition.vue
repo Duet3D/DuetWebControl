@@ -6,7 +6,7 @@
 			</strong>
 		</v-card-title>
 		<v-card-text>
-			<v-row align-content="center" no-gutters :class="{ 'large-font': !machinePosition }">
+			<v-row no-gutters class="align-content-center" :class="{ 'large-font': !machinePosition }">
 				<v-col v-for="(axis, index) in visibleAxes" :key="axis.letter" class="d-flex flex-column align-center">
 					<span class="axis-span" :class="axisSpanClasses(index)">
 						{{ axis.letter }}

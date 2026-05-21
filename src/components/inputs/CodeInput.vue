@@ -1,6 +1,6 @@
 <template>
-	<v-row class="component code-input-row" :class="{ 'mt-2 mt-md-0': variant === 'solo' }"
-		   no-gutters align="center">
+	<v-row class="component code-input-row align-center" :class="{ 'mt-2 mt-md-0': variant === 'solo' }"
+		   no-gutters>
 		<v-col>
 			<v-combobox v-model="code" v-model:menu="menuOpen" :items="displayedCodes" :return-object="false"
 						hide-no-data hide-selected

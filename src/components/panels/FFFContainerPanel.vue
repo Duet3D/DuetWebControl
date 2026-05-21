@@ -8,11 +8,11 @@
 			<ToolsPanel />
 		</v-col>
 
-		<!-- Only apply d-flex to the chart column when there's actually data to chart. Without it,
-			 the chart card collapses to fit just the title + noData line on a disconnected dashboard
-			 instead of stretching to match the tallest sibling (StatusPanel) and rendering a tall
-			 empty placeholder -->
-		<v-col v-if="mdAndUp" :class="{ 'd-flex': hasTemperaturesToDisplay }"
+		<!-- Only apply d-flex to the chart column when the panel has something to stretch - a chart
+			 to draw or a webcam to show. Without it, the card collapses to just the title on a
+			 disconnected dashboard instead of matching the tallest sibling (StatusPanel) and
+			 rendering a tall empty placeholder -->
+		<v-col v-if="mdAndUp" :class="{ 'd-flex': chartColumnFills }"
 			   cols="12" sm="6" md="3" lg="3" xl="4">
 			<TemperatureChart />
 		</v-col>
@@ -32,17 +32,13 @@ import ToolsPanel from "./ToolsPanel/ToolsPanel.vue";
 // genuinely container-aware (FileList's auto view mode) uses a ResizeObserver instead
 const { mobile, mdAndUp } = useDisplay();
 
-// Mirrors TemperatureChart.hasTemperaturesToDisplay so the column wrapper can drop its d-flex
-// when the chart has nothing to draw. Cheap to recompute - both sides re-evaluate on the same
-// machine-model patches anyway
+// Mirrors TemperatureChart.shouldFill so the column wrapper can drop its d-flex when the panel
+// has nothing to stretch. Cheap to recompute - both sides re-evaluate on the same machine-model
+// patches anyway
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
-const hasTemperaturesToDisplay = computed(() =>
-	machineStore.model.sensors.analog.some((sensor, sensorIndex) =>
-		sensor !== null && (
-			machineStore.model.heat.heaters.some(heater => heater !== null && heater.sensor === sensorIndex)
-			|| settingsStore.displayedExtraTemperatures.includes(sensorIndex)
-		)
-	)
+const chartColumnFills = computed(() =>
+	settingsStore.webcam.enabled
+	|| machineStore.model.sensors.analog.some(sensor => sensor !== null)
 );
 </script>

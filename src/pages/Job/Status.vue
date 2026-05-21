@@ -17,8 +17,8 @@
 		<JobProgress class="px-3 px-md-0 pt-1 pt-md-0" />
 
 		<v-row class="mt-0" :density="mobile ? 'compact' : 'default'">
-			<v-col order="1" order-md="1" cols="12" sm="6" md="3" xl="2">
-				<v-row align="center" :density="mobile ? 'compact' : 'default'">
+			<v-col cols="12" sm="6" md="3" xl="2" class="order-1 order-md-1">
+				<v-row :density="mobile ? 'compact' : 'default'" class="align-center">
 					<v-col cols="12">
 						<JobControlPanel />
 					</v-col>
@@ -37,7 +37,7 @@
 				</v-row>
 			</v-col>
 
-			<v-col order="0" order-md="2" cols="12" md="5" xl="7" class="d-none d-sm-flex flex-column">
+			<v-col cols="12" md="5" xl="7" class="d-none d-sm-flex flex-column order-0 order-md-2">
 				<LayerChart v-if="uiStore.isFFF" class="chart-height-limit mb-0 mb-md-5" />
 
 				<v-row class="flex-grow-0 flex-shrink-1 d-none d-md-flex">
@@ -59,7 +59,7 @@
 				</v-row>
 			</v-col>
 
-			<v-col order="2" order-md="3" cols="12" sm="6" md="4" xl="3">
+			<v-col cols="12" sm="6" md="4" xl="3" class="order-2 order-md-3">
 				<v-row :density="mobile ? 'compact' : 'default'">
 					<v-col cols="12" class="d-block d-md-none">
 						<JobEstimationsPanel />

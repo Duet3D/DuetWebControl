@@ -130,6 +130,24 @@ export default defineConfig({
 			}
 		}
 	},
+	// Pre-bundle the heavy dependencies that otherwise only get discovered when their lazy
+	// plugin/editor chunk is first requested - that late discovery triggers a dep re-optimize
+	// and a full-page reload mid-session. Listing them here bundles them up front
+	optimizeDeps: {
+		include: [
+			"@babylonjs/core",
+			"@babylonjs/gui",
+			"@babylonjs/materials",
+			"@sindarius/gcodeviewer",
+			"monaco-editor-core",
+			"@duet3d/motionanalysis",
+			"chart.js",
+			"chartjs-adapter-date-fns",
+			"d3",
+			"qoijs",
+			"piecon"
+		]
+	},
   plugins: [
     dwcPlugins(),
     dwcVuetifySplit(),

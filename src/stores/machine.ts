@@ -1003,6 +1003,7 @@ export const useMachineStore = defineStore("machine", {
 			const lastDisplayMessage = this.model.state.displayMessage; const lastStatus = this.model.state.status;
 			const lastDsfVersion = this.model.sbc?.dsf?.version;
 			const lastStartupError = this.model.state.startupError ? JSON.stringify(this.model.state.startupError) : null;
+			const lastHttpMotionSystem = this.model.inputs[CodeChannel.http]?.motionSystem;
 
 			// Reset selectedMotionSystem if it would become invalid after this update (firmware
 			// shrank the motionSystems[] array, e.g. user reconfigured kinematics)
@@ -1059,12 +1060,11 @@ export const useMachineStore = defineStore("machine", {
 			this.model.update(payload);
 			Events.emit("modelUpdated", this.model);
 
-			// Sync selectedMotionSystem with the HTTP input channel's motionSystem. The firmware
-			// tracks which motion system the active HTTP session is using; mirroring it here means
-			// movement / status panels always show the right WCS / virtualEPos without the user
-			// having to pick the active system in the UI
+			// Follow the HTTP input channel's motion system, but only when it actually changes -
+			// the firmware tracks which system the active HTTP session uses, yet a manual choice in
+			// the UI must survive subsequent status polls instead of being overwritten every time
 			const httpInput = this.model.inputs[CodeChannel.http];
-			if (httpInput && this.selectedMotionSystem !== httpInput.motionSystem) {
+			if (httpInput && httpInput.motionSystem !== lastHttpMotionSystem) {
 				this.selectedMotionSystem = httpInput.motionSystem;
 			}
 

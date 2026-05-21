@@ -54,17 +54,17 @@
 					{{ getHeaterValue(firstHeater) }}
 				</td>
 
-				<td class="pl-2 pr-1">
+				<td v-if="toolSettings.showActiveTemperatures" class="pl-2 pr-1">
 					<ControlInput type="all"
-								  :control-beds="props.type === 'bed' && settingsStore.singleBedControl"
-								  :control-chambers="props.type === 'chamber' && settingsStore.singleChamberControl"
+								  :control-beds="props.type === 'bed' && toolSettings.singleBedControl"
+								  :control-chambers="props.type === 'chamber' && toolSettings.singleChamberControl"
 								  active />
 				</td>
 
-				<td class="pl-1 pr-2">
+				<td v-if="toolSettings.showStandbyTemperatures" class="pl-1 pr-2">
 					<ControlInput type="all"
-								  :control-beds="props.type === 'bed' && settingsStore.singleBedControl"
-								  :control-chambers="props.type === 'chamber' && settingsStore.singleChamberControl"
+								  :control-beds="props.type === 'bed' && toolSettings.singleBedControl"
+								  :control-chambers="props.type === 'chamber' && toolSettings.singleChamberControl"
 								  standby />
 				</td>
 			</tr>
@@ -97,11 +97,11 @@
 							{{ getHeaterValue(heater) }}
 						</td>
 
-						<td class="pl-2 pr-1">
+						<td v-if="toolSettings.showActiveTemperatures" class="pl-2 pr-1">
 							<ControlInput v-if="heaterIndex === 0" :type="props.type" :index="index" active />
 						</td>
 
-						<td class="pl-1 pr-2">
+						<td v-if="toolSettings.showStandbyTemperatures" class="pl-1 pr-2">
 							<ControlInput v-if="heaterIndex === 0" :type="props.type" :index="index" standby />
 						</td>
 					</tr>
@@ -130,9 +130,9 @@
 <script setup lang="ts">
 import { type Heater, HeaterState, MachineStatus } from "@duet3d/objectmodel";
 
+import { TOOL_DISPLAY_SETTINGS_KEY } from "../toolSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
 import { getHeaterColor } from "@/utils/colors";
 import { displaySensorValue } from "@/utils/display";
@@ -146,8 +146,9 @@ const emit = defineEmits<{
 }>();
 
 const machineStore = useMachineStore();
-const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+
+const toolSettings = inject(TOOL_DISPLAY_SETTINGS_KEY)!;
 
 const disabled = computed<boolean>(() =>
 	uiStore.uiFrozen || [MachineStatus.pausing, MachineStatus.processing, MachineStatus.resuming].includes(machineStore.model.state.status));
@@ -155,10 +156,10 @@ const disabled = computed<boolean>(() =>
 // Single-control is only meaningful when the matching setting is on AND every heater in the mapping
 // shares the same state, active and standby - otherwise the combined input would lie about the values
 const singleControl = computed(() => {
-	if (props.type === "bed" && !settingsStore.singleBedControl) {
+	if (props.type === "bed" && !toolSettings.value.singleBedControl) {
 		return false;
 	}
-	if (props.type === "chamber" && !settingsStore.singleChamberControl) {
+	if (props.type === "chamber" && !toolSettings.value.singleChamberControl) {
 		return false;
 	}
 
@@ -185,8 +186,12 @@ const singleControl = computed(() => {
 
 const heaterItems = computed(() => {
 	const mapping = (props.type === "bed") ? machineStore.bedHeaterMapping : machineStore.chamberHeaterMapping;
+	const displayed = (props.type === "bed") ? toolSettings.value.displayedBeds : toolSettings.value.displayedChambers;
 	const heaterList: Array<{ index: number; heater: Heater; heaterIndex: number }> = [];
 	for (let index = 0; index < mapping.length; index++) {
+		if (displayed !== null && !displayed.includes(index)) {
+			continue;
+		}
 		for (const heaterIndex of mapping[index]) {
 			if (heaterIndex >= 0 && heaterIndex < machineStore.model.heat.heaters.length) {
 				const heater = machineStore.model.heat.heaters[heaterIndex];

@@ -68,9 +68,11 @@ export const useJobsListing = defineBasicLoader(async () => {
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import JobFileList from "@/components/lists/JobFileList.vue";
+import { useCacheStore } from "@/stores/cache";
 import Path from "@/utils/path";
 
 const machineStore = useMachineStore();
+const cacheStore = useCacheStore();
 const router = useRouter();
 const route = useRoute("/Jobs/[[volume]]/[[...path]]");
 const { data: initialFiles } = useJobsListing();
@@ -131,6 +133,14 @@ function applyRouteToState() {
 
 // Seed state from the URL on mount and react to back/forward navigation
 applyRouteToState();
+
+// Opened bare (`/Jobs`, e.g. from the menu)? Restore the last browsed directory from the cache.
+// Setting currentDirectory triggers the watcher below, which mirrors it back into the URL
+if (route.path === "/Jobs" && cacheStore.lastJobDirectory) {
+	selectedVolume.value = Path.getVolume(cacheStore.lastJobDirectory);
+	currentDirectory.value = cacheStore.lastJobDirectory;
+}
+
 watch(() => [route.params.volume, route.params.path], () => {
 	if (!isOnJobsRoute()) {
 		return;
@@ -170,6 +180,7 @@ watch(currentDirectory, (dir) => {
 	if (!dir || !isOnJobsRoute()) {
 		return;
 	}
+	cacheStore.lastJobDirectory = dir;
 	pushUrl(selectedVolume.value, dir);
 });
 

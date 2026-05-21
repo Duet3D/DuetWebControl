@@ -1,6 +1,6 @@
 <template>
 	<v-app>
-		<v-app-bar :elevation="2">
+		<v-app-bar :elevation="2" :height="appBarHeight">
 			<v-app-bar-nav-icon v-if="showDrawerToggle" @click="drawer = !drawer" />
 			<v-btn v-else-if="showBackButton" icon="mdi-arrow-left" variant="text"
 				   :aria-label="$t('layout.backToHub')" @click="goHub" />
@@ -19,7 +19,7 @@
 									 size="40" width="4" class="header-job-progress"
 									 role="button" :title="$t('layout.goToJobStatus')"
 									 @click="router.push('/Job/Status')">
-					<span class="text-caption">{{ Math.round(headerJobProgressValue) }}%</span>
+					<span class="text-body-small">{{ Math.round(headerJobProgressValue) }}%</span>
 				</v-progress-circular>
 				<v-spacer />
 			</template>
@@ -168,8 +168,14 @@ const uiStore = useUiStore();
 const route = useRoute();
 const router = useRouter();
 
-const { mdAndUp, lgAndUp, smAndUp } = useDisplay();
+const { mdAndUp, lgAndUp, smAndUp, name: breakpointName } = useDisplay();
 const isMdAndUp = mdAndUp;
+
+// On small (sm) touchscreens such as 4.3" displays the app bar is enlarged for easier reach.
+// Vuetify exposes the resulting height as the --v-layout-top CSS variable on <v-main>, which
+// the viewport-filling pages and plugin canvases read - no second source of truth to keep synced
+const appBarHeight = computed(() =>
+	(settingsStore.largeAppBar && breakpointName.value === "sm") ? 80 : 64);
 
 // Drawer starts open on lg+ viewports and follows the lg breakpoint as the user resizes;
 // inside lg the user retains manual control via the hamburger toggle. Pinned to a watcher so a
@@ -287,7 +293,7 @@ function shouldFlattenCategory(category: MenuCategoryDef): boolean {
 @media (min-width: 600px) {
 	.machine-name { max-width: 20rem; }
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.machine-name { max-width: none; }
 }
 

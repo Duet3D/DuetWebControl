@@ -1,7 +1,7 @@
 <template>
 	<v-row>
 		<v-col cols="12" class="pt-0 pb-0">
-			<CNCMovementPanel class="mb-2" />
+			<MovementPanel cnc class="mb-2" />
 		</v-col>
 
 		<v-col cols="12" md="9">
@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
 
-import CNCMovementPanel from "@/components/panels/CNCMovementPanel.vue";
+import MovementPanel from "@/components/panels/MovementPanel.vue";
 import JobControlPanel from "@/components/panels/JobControlPanel.vue";
 import JobProgress from "@/components/misc/JobProgress.vue";
 import MacroList from "@/components/lists/MacroList.vue";

@@ -27,6 +27,12 @@ export const useCacheStore = defineStore("cache", {
 		fileInfos: {} as Record<string, GCodeFileInfo>,
 
 		/**
+		 * Full path of the directory last browsed on the Jobs page, restored when the page is
+		 * opened without an explicit path
+		 */
+		lastJobDirectory: "",
+
+		/**
 		 * Custom plugin cache fields
 		 */
 		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>

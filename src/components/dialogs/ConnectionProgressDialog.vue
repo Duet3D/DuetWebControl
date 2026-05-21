@@ -89,8 +89,9 @@ function getBoardIcon(canAddress: number) {
 
 function getBoardName(canAddress: number) {
 	const board = machineStore.model.boards.find(board => board.canAddress === canAddress);
-	if (board) {
-		return canAddress ? `${board.name ?? i18n.global.t("dialog.connectionProgress.expansionBoard")} (#${canAddress})` : board.name;
+	const name = board ? board.name : boardNames.get(canAddress);
+	if (name !== undefined) {
+		return canAddress ? `${name || i18n.global.t("dialog.connectionProgress.expansionBoard")} (#${canAddress})` : name;
 	}
 	return canAddress ? i18n.global.t("dialog.connectionProgress.board", [canAddress]) : i18n.global.t("dialog.connectionProgress.mainboard");
 }
@@ -100,8 +101,20 @@ function getBoardName(canAddress: number) {
 
 const updatedBoards = reactive<Array<number>>([]);
 
-watch(() => machineStore.boardsBeingUpdated, () => {
+// model.boards is emptied while the main board reboots during M997, so a live lookup mid-update
+// loses the real names. Snapshot them when the update starts and fall back to the snapshot
+const boardNames = reactive(new Map<number, string>());
+
+watch(() => machineStore.boardsBeingUpdated, (boards) => {
 	updatedBoards.splice(0);
+
+	boardNames.clear();
+	for (const canAddress of boards) {
+		const board = machineStore.model.boards.find(board => board.canAddress === canAddress);
+		if (board) {
+			boardNames.set(canAddress, board.name);
+		}
+	}
 });
 
 watch(() => machineStore.boardBeingUpdated, (to, from) => {

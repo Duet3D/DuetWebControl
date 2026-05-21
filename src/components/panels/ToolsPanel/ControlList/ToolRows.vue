@@ -37,7 +37,7 @@
 						<span class="font-weight-regular text-body-small">
 							T{{ tool.number }}
 
-							<template v-if="canLoadFilament(tool)">
+							<template v-if="toolSettings.showFilamentControls && canLoadFilament(tool)">
 								-
 								<v-menu v-if="getFilament(tool)" location="bottom" :disabled="disabled">
 									<template #activator="{ props: activatorProps }">
@@ -97,11 +97,11 @@
 							{{ display(getSpindleSpeed(tool), 0, $t("generic.rpm")) }}
 						</td>
 
-						<td>
+						<td v-if="toolSettings.showActiveTemperatures">
 							<ControlInput type="spindle" :index="tool.number" active />
 						</td>
 
-						<td>
+						<td v-if="toolSettings.showStandbyTemperatures">
 							<!-- Spindles do not have a standby value -->
 						</td>
 					</template>
@@ -128,12 +128,12 @@
 							{{ getHeaterValue(toolHeater) }}
 						</td>
 
-						<td class="pl-2 pr-1">
+						<td v-if="toolSettings.showActiveTemperatures" class="pl-2 pr-1">
 							<ControlInput :disabled="isToolBusy(tool)" type="tool" :index="tool.number"
 										  :tool-heater-index="toolHeaterIndex" active />
 						</td>
 
-						<td class="pl-1 pr-2">
+						<td v-if="toolSettings.showStandbyTemperatures" class="pl-1 pr-2">
 							<ControlInput :disabled="isToolBusy(tool)" type="tool" :index="tool.number"
 										  :tool-heater-index="toolHeaterIndex" standby />
 						</td>
@@ -141,7 +141,7 @@
 				</tr>
 
 				<tr v-if="toolIndex < toolsToDisplay.length - 1" :key="`div-tool-${toolIndex}`">
-					<td colspan="5">
+					<td :colspan="columnCount">
 						<v-divider />
 					</td>
 				</tr>
@@ -174,6 +174,7 @@
 import { type Heater, HeaterState, MachineStatus, type Spindle, SpindleState, type Tool } from "@duet3d/objectmodel";
 import { DisconnectedError } from "@duet3d/connectors";
 
+import { TOOL_DISPLAY_SETTINGS_KEY } from "../toolSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -190,24 +191,32 @@ const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 
+const toolSettings = inject(TOOL_DISPLAY_SETTINGS_KEY)!;
+
+// Tool / Heater / Current are always shown; Active and Standby are optional
+const columnCount = computed(() =>
+	3 + (toolSettings.value.showActiveTemperatures ? 1 : 0) + (toolSettings.value.showStandbyTemperatures ? 1 : 0));
+
 const disabled = computed<boolean>(() =>
 	uiStore.uiFrozen || [MachineStatus.pausing, MachineStatus.processing, MachineStatus.resuming, MachineStatus.simulating].includes(machineStore.model.state.status));
 
 const toolsToDisplay = computed<Array<Tool>>(() => {
-	if (!settingsStore.groupTools) {
-		return machineStore.model.tools.filter(tool => tool !== null) as Array<Tool>;
+	const displayed = toolSettings.value.displayedTools;
+	const visible = (tool: Tool) => displayed === null || displayed.includes(tool.number);
+	if (!toolSettings.value.groupTools) {
+		return machineStore.model.tools.filter(tool => tool !== null && visible(tool)) as Array<Tool>;
 	}
 
 	const tools: Array<Tool> = [];
 	for (const item of machineStore.model.tools) {
-		if (item !== null) {
+		if (item !== null && visible(item)) {
 			let equalToolFound = false;
 			for (let i = 0; i < tools.length; i++) {
 				const tool = tools[i];
-				if ((!settingsStore.groupByExtruders || (item.extruders.length === tool.extruders.length && item.extruders.every((extruder, index) => extruder === tool.extruders[index]))) &&
-					(!settingsStore.groupByHeaters || (item.heaters.length === tool.heaters.length && item.heaters.every((heater, index) => heater === tool.heaters[index]))) &&
-					(!settingsStore.groupByOffsets || (item.offsets.length === tool.offsets.length && item.offsets.every((offset, index) => offset === tool.offsets[index]))) &&
-					(!settingsStore.groupBySpindle || (item.spindle === tool.spindle))) {
+				if ((!toolSettings.value.groupByExtruders || (item.extruders.length === tool.extruders.length && item.extruders.every((extruder, index) => extruder === tool.extruders[index]))) &&
+					(!toolSettings.value.groupByHeaters || (item.heaters.length === tool.heaters.length && item.heaters.every((heater, index) => heater === tool.heaters[index]))) &&
+					(!toolSettings.value.groupByOffsets || (item.offsets.length === tool.offsets.length && item.offsets.every((offset, index) => offset === tool.offsets[index]))) &&
+					(!toolSettings.value.groupBySpindle || (item.spindle === tool.spindle))) {
 					equalToolFound = true;
 					if (item.number === machineStore.model.state.currentTool) {
 						// Prefer the currently-selected tool when collapsing identical entries so the row

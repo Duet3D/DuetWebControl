@@ -52,7 +52,7 @@
 				</v-list-group>
 			</v-list>
 		</template>
-		<v-alert v-else type="info" class="mb-0" :title="$t('plugins.accelerometer.noProfiles')" />
+		<v-alert v-else type="info" class="mb-0 flex-grow-0" :title="$t('plugins.accelerometer.noProfiles')" />
 
 		<v-spacer />
 

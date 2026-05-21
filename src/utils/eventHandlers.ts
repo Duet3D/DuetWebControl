@@ -7,12 +7,26 @@ import { getErrorMessage } from "./errors";
 import Events from "./events";
 import Path from "./path";
 
-Events.on("connected", hostname => {;
-	useUiStore().log(LogLevel.success, i18n.global.t("event.connected", [hostname]));
+// Id of the connect error notification currently on screen, if any. Connect attempts retry on
+// a timer, so this keeps only one connect error toast visible at a time and clears it once a
+// connection is established
+let connectErrorNotificationId: string | null = null;
+
+Events.on("connected", hostname => {
+	const uiStore = useUiStore();
+	if (connectErrorNotificationId !== null) {
+		uiStore.dismissNotification(connectErrorNotificationId);
+		connectErrorNotificationId = null;
+	}
+	uiStore.log(LogLevel.success, i18n.global.t("event.connected", [hostname]));
 })
 
 Events.on("connectError", ({ hostname, error }) => {
-	useUiStore().log(error instanceof InvalidPasswordError ? LogLevel.warning : LogLevel.error, i18n.global.t("event.connectError", [hostname]), getErrorMessage(error, true));
+	const uiStore = useUiStore();
+	if (connectErrorNotificationId !== null) {
+		uiStore.dismissNotification(connectErrorNotificationId);
+	}
+	connectErrorNotificationId = uiStore.log(error instanceof InvalidPasswordError ? LogLevel.warning : LogLevel.error, i18n.global.t("event.connectError", [hostname]), getErrorMessage(error, true));
 })
 
 Events.on("connectionError", ({ hostname, error }) => {

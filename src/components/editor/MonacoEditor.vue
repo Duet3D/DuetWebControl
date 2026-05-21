@@ -448,7 +448,7 @@ function detectLanguage(filename: string, directories: DirectoriesShape, machine
 	min-height: 320px;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.monaco-editor-host {
 		min-height: 400px;
 	}

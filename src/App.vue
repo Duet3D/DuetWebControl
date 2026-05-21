@@ -3,7 +3,6 @@
 </template>
 
 <script setup lang="ts">
-import { MachineStatus } from "@duet3d/objectmodel";
 import Piecon from "piecon";
 
 import i18n from "@/i18n";
@@ -35,10 +34,6 @@ const status = computed(() => machineStore.model.state.status);
 const jobProgress = computed(() => machineStore.jobProgress);
 
 watch([machineName, status, jobProgress], () => {
-	if (status.value === MachineStatus.disconnected) {
-		document.title = `(${machineName.value})`;
-		return;
-	}
 	const printing = isPrinting(status.value);
 	const prefix = printing && jobProgress.value > 0
 		? `(${(jobProgress.value * 100).toFixed(1)}%) `

@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 import i18n from "@/i18n";
 import router from "@/router";
-import { isXsOrSm } from "@/composables/useBreakpoint";
+import vuetify from "@/vue-plugins/vuetify";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
@@ -16,7 +16,7 @@ import { isPaused, isPrinting } from "@/utils/enums";
  */
 const conditionRegistry: Record<string, () => boolean> = {
 	webcamEnabled: () => useSettingsStore().webcam.enabled,
-	xsOrSm: isXsOrSm,
+	xsOrSm: () => vuetify.display.smAndDown.value,
 };
 
 /**

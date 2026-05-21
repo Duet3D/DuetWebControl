@@ -47,7 +47,7 @@
 							</v-chip>
 						</div>
 						<div v-if="pluginRequirements(plugin.id)"
-							 class="text-caption text-medium-emphasis">
+							 class="text-body-small text-medium-emphasis">
 							{{ $t("settings.plugins.requires", [pluginRequirements(plugin.id)]) }}
 						</div>
 					</td>
@@ -418,7 +418,7 @@ async function confirmUninstall() {
    matching edges across rows. Not scoped because the v-btn class data-v hash from this page
    isn't reliably applied to Vuetify's inner button element. md+ only - xs/sm renders icon
    buttons through a different template branch and doesn't need (or want) the width cap */
-@media (min-width: 960px) {
+@media (min-width: 840px) {
 	.plugin-action-btn {
 		min-width: 130px;
 	}

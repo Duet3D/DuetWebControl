@@ -4,8 +4,8 @@
 			<col style="width: 25%">
 			<col style="width: 20%">
 			<col style="width: 19%">
-			<col style="width: 18%">
-			<col style="width: 18%">
+			<col v-if="toolSettings.showActiveTemperatures" style="width: 18%">
+			<col v-if="toolSettings.showStandbyTemperatures" style="width: 18%">
 		</colgroup>
 		<thead>
 			<tr>
@@ -18,10 +18,10 @@
 				<th class="px-1">
 					{{ $t("panel.tools.current", [""]) }}
 				</th>
-				<th class="px-1">
+				<th v-if="toolSettings.showActiveTemperatures" class="px-1">
 					{{ $t("panel.tools.active") }}
 				</th>
-				<th class="pr-2">
+				<th v-if="toolSettings.showStandbyTemperatures" class="pr-2">
 					{{ $t("panel.tools.standby") }}
 				</th>
 			</tr>
@@ -31,7 +31,7 @@
 
 		<tbody v-if="hasTools && hasBeds">
 			<tr>
-				<td colspan="5">
+				<td :colspan="columnCount">
 					<v-divider />
 				</td>
 			</tr>
@@ -41,7 +41,7 @@
 
 		<tbody v-if="(hasTools || hasBeds) && hasChambers">
 			<tr>
-				<td colspan="5">
+				<td :colspan="columnCount">
 					<v-divider />
 				</td>
 			</tr>
@@ -92,9 +92,16 @@ table.tools a {
 </style>
 
 <script setup lang="ts">
+import { TOOL_DISPLAY_SETTINGS_KEY } from "../toolSettings";
 import { useMachineStore } from "@/stores/machine";
 
 const machineStore = useMachineStore();
+
+const toolSettings = inject(TOOL_DISPLAY_SETTINGS_KEY)!;
+
+// Tool / Heater / Current are always shown; Active and Standby are optional
+const columnCount = computed(() =>
+	3 + (toolSettings.value.showActiveTemperatures ? 1 : 0) + (toolSettings.value.showStandbyTemperatures ? 1 : 0));
 
 const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== null));
 // Use the store getters - they fall back to the deprecated `bedHeaters` / `chamberHeaters`

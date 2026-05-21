@@ -6,6 +6,11 @@
     $card-title-line-height: 1.5
 );
 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 input[type='number'] {
     -moz-appearance: textfield;
 }
@@ -31,16 +36,16 @@ a:not(:hover) {
     display: none !important;
 }
 
-/* Make a page-level panel fill the visible viewport below the app bar. xs/sm: the layout
-   strips outer padding so the panel only needs to subtract the 64 px app bar; md+: the
-   layout keeps 16 px top + bottom padding so the panel subtracts 96 px (64 + 32). Pages opt
-   in by adding the `dwc-page-fill` class on the element that should fill the remaining
-   viewport (typically a v-card or a div wrapping the page content) */
+/* Make a page-level panel fill the visible viewport below the app bar. --v-layout-top is the
+   app-bar height Vuetify publishes on <v-main> (64 px, or larger on sm touchscreens). xs/sm:
+   the layout strips outer padding so only the app bar is subtracted; md+: the layout keeps
+   16 px top + bottom padding so an extra 32 px comes off. The 840 px breakpoint matches
+   Vuetify's md threshold. Pages opt in by adding the `dwc-page-fill` class */
 .dwc-page-fill {
-    height: calc(100dvh - 64px);
+    height: calc(100dvh - var(--v-layout-top, 64px));
 }
-@media (min-width: 960px) {
+@media (min-width: 840px) {
     .dwc-page-fill {
-        height: calc(100dvh - 96px);
+        height: calc(100dvh - var(--v-layout-top, 64px) - 32px);
     }
 }

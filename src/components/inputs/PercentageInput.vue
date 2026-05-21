@@ -1,5 +1,5 @@
 <template>
-	<v-row density="compact" align="center">
+	<v-row density="compact" class="align-center">
 		<v-col cols="auto">
 			<v-btn v-if="!settingsStore.numericInputs && canLock" icon size="large" variant="text" class="me-1"
 				   :color="isLocked ? 'error' : undefined" :disabled="disabled" @click="isLocked = !isLocked">

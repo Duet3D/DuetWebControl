@@ -1,6 +1,6 @@
 <template>
 	<v-row class="ma-0">
-		<v-col :class="{ 'pa-1': isXs }" cols="12" md="7" lg="auto" class="flex-grow-1" order="0">
+		<v-col :class="{ 'pa-1': isXs }" cols="12" md="7" lg="auto" class="flex-grow-1 order-0">
 			<div ref="container" class="heightmap-container">
 				<div class="canvas-container" @mousemove="canvasMouseMove" @mouseleave="tooltip.shown = false">
 					<canvas ref="canvas" />
@@ -15,7 +15,7 @@
 			</div>
 		</v-col>
 
-		<v-col cols="12" md="5" lg="auto" order="1" class="heightmap-sidebar">
+		<v-col cols="12" md="5" lg="auto" class="heightmap-sidebar order-1">
 			<v-row class="ma-0">
 				<v-col cols="12" sm="6" md="12" class="pa-0">
 					<v-card>
@@ -207,27 +207,31 @@ function resize(): { width: number; height: number } | undefined {
 
 	const width = Math.max(container.value.offsetWidth - 80, 0);
 
+	// App-bar height as published by Vuetify on <v-main> (64 px, or larger on sm touchscreens)
+	const mainElement = document.querySelector(".v-main");
+	const appBarHeight = mainElement
+		? parseInt(getComputedStyle(mainElement).getPropertyValue("--v-layout-top")) || 64
+		: 64;
+
 	let height: number;
 	switch (display_.name.value) {
 		case "xs":
 			height = width;
 			break;
 		case "sm":
-			// Fill the viewport below the app bar. xs/sm chrome is just the 64 px app bar -
-			// matches the .dwc-page-fill formula (`100dvh - 64px`) used elsewhere for
-			// viewport-spanning panels
-			height = window.innerHeight - 64;
+			// Fill the viewport below the app bar; xs/sm chrome is just the app bar
+			height = window.innerHeight - appBarHeight;
 			break;
 		case "md":
 			// md uses the sidebar layout (file list + stats stacked on the right of the canvas),
 			// so the canvas owns its column vertically the same way it does on lg+
-			height = window.innerHeight - 96;
+			height = window.innerHeight - appBarHeight - 32;
 			break;
 		default:
 			// lg+ runs all three columns side-by-side, so the canvas owns its column vertically
-			// too. Fill the viewport (minus app-bar + container padding) so the dark panel has
-			// even spacing top/bottom instead of stopping at a fixed aspect with dead space below
-			height = window.innerHeight - 96;
+			// too. Fill the viewport (minus app bar + the layout's 16px top/bottom padding) so
+			// the dark panel has even spacing top/bottom instead of dead space below
+			height = window.innerHeight - appBarHeight - 32;
 			break;
 	}
 

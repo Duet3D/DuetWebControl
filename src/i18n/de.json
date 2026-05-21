@@ -174,6 +174,16 @@
 				"title": "DWC neu laden?",
 				"prompt": "Sie haben gerade ein aktives DWC-Plugin aktualisiert. Um die neue Version nutzen zu können muss die Weboberfläche neu geladen werden. Möchten Sie dies jetzt tun?"
 			}
+		},
+		"componentSettings": {
+			"title": "Bedienfeldeinstellungen",
+			"edit": "Bedienfeldeinstellungen bearbeiten",
+			"reset": "Zurücksetzen"
+		},
+		"fileInfo": {
+			"customInfo": "Zusätzliche Informationen",
+			"numLayers": "Schichten",
+			"noInfo": "Keine Dateiinformationen verfügbar"
 		}
 	},
 	"event": {
@@ -366,7 +376,12 @@
 			"caption": "Temperaturen",
 			"noData": "Keine Daten zum Anzeigen",
 			"heater": "Heizer {0}",
-			"sensor": "Sensor {0}"
+			"sensor": "Sensor {0}",
+			"download": "CSV herunterladen",
+			"settings": {
+				"heaters": "Heizer",
+				"extraSensors": "Zusätzliche Sensoren"
+			}
 		}
 	},
 	"button": {
@@ -535,7 +550,8 @@
 			"caption": "Extrusionsfaktoren",
 			"changeVisibility": "Sichtbarkeit ändern",
 			"extruder": "Extruder {0}",
-			"noExtruders": "Keine Extruder"
+			"noExtruders": "Keine Extruder",
+			"displayedExtruders": "Angezeigte Extruder"
 		},
 		"jobControl": {
 			"caption": "Auftragskontrolle",
@@ -628,9 +644,19 @@
 				"sensorIndex": "Sensor {0}",
 				"value": "Wert",
 				"showInChart": "Im Temperaturdiagramm anzeigen",
-				"noItems": "Keine zusätzlichen Sensoren"
+				"noItems": "Keine zusätzlichen Sensoren",
+				"showInChartHint": "Diesen Sensor im Temperaturdiagramm anzeigen"
 			},
-			"noTools": "Keine Werkzeuge"
+			"noTools": "Keine Werkzeuge",
+			"displayedTools": "Angezeigte Werkzeuge",
+			"displayedBeds": "Angezeigte Betten",
+			"displayedChambers": "Angezeigte Kammern",
+			"showActiveTemperatures": "Aktive Temperaturen anzeigen",
+			"showActiveTemperaturesHint": "Zeigt die Spalte für die Aktivtemperatur an",
+			"showStandbyTemperatures": "Standby-Temperaturen anzeigen",
+			"showStandbyTemperaturesHint": "Zeigt die Spalte für die Standby-Temperatur an",
+			"showFilamentControls": "Filamentsteuerung anzeigen",
+			"showFilamentControlsHint": "Zeigt die Steuerung zum Laden, Wechseln und Entladen von Filament pro Werkzeug an"
 		},
 		"status": {
 			"caption": "Status",
@@ -652,7 +678,32 @@
 			"noStatus": "Kein Status",
 			"extrusionRate": "Extrusionsrate",
 			"volumetricFlow": "Volumenstrom",
-			"virtualEPos": "Virtuelle Extruderposition"
+			"virtualEPos": "Virtuelle Extruderposition",
+			"motionSystem": "Bewegungssystem: {0}",
+			"motionSystemShort": "BS: {0}",
+			"settings": {
+				"axes": "Achsen",
+				"extruders": "Extruder",
+				"virtualEPos": "Virtuelle Extruderposition anzeigen",
+				"virtualEPosHint": "Zeigt die kombinierte virtuelle Extruderposition anstelle der einzelnen Extruderpositionen an",
+				"probe": "Z-Sonde {0}",
+				"probes": "Z-Sonden",
+				"positionDisplay": "Positionsanzeige",
+				"positionDisplayHint": "Legt fest, ob die Positionszeile Werkzeug- oder Maschinenkoordinaten anzeigt",
+				"positionTool": "Werkzeugposition",
+				"positionMachine": "Maschinenposition",
+				"positionToggle": "Per Klick umschalten",
+				"speedsHint": "Legt fest, welche Geschwindigkeitswerte angezeigt werden",
+				"sensorsHint": "Legt fest, welche Sensorwerte angezeigt werden",
+				"positionBoth": "Werkzeug- und Maschinenposition",
+				"extruderDisplay": "Extruderanzeige",
+				"extruderDisplayHint": "Legt fest, wie Extruderwerte angezeigt werden - Filamentlänge, extrudiertes Volumen oder beides",
+				"extruderLength": "Filamentlänge",
+				"extruderVolume": "Extrudiertes Volumen",
+				"extruderToggle": "Per Klick umschalten",
+				"extruderBoth": "Filamentlänge und Volumen"
+			},
+			"extrudedVolume": "Extrudiertes Volumen"
 		},
 		"extrude": {
 			"caption": "Extrusionskontrolle",
@@ -661,23 +712,28 @@
 			"amount": "Extrusionsmenge in {0}:",
 			"feedrate": "Vorschubrate in {0}:",
 			"retract": "Zurückziehen",
-			"extrude": "Extrudieren"
+			"extrude": "Extrudieren",
+			"showMixingControls": "Mischsteuerung anzeigen",
+			"showMixingControlsHint": "Mischverhältnisse pro Antrieb für Werkzeuge mit mehreren Extrudern anzeigen"
 		},
 		"fan": {
 			"caption": "Lüfterkontrolle",
 			"selection": "Lüfterauswahl:",
 			"toolFan": "Werkzeuglüfter",
-			"fan": "Lüfter {0}"
+			"fan": "Lüfter {0}",
+			"displayedFans": "Angezeigte Lüfter"
 		},
 		"fans": {
 			"caption": "Lüfter",
 			"changeVisibility": "Sichtbarkeit ändern",
 			"toolFan": "Werkzeuglüfter",
 			"fan": "Lüfter {0}",
-			"noFans": "Keine Lüfter"
+			"noFans": "Keine Lüfter",
+			"displayedFans": "Angezeigte Lüfter"
 		},
 		"movement": {
 			"caption": "Maschinenbewegung",
+			"displayedAxes": "Angezeigte Achsen",
 			"compensation": "Kompensation & Kalibrierung",
 			"compensationShort": "Kompensation",
 			"runBed": "True Bed Levelling (G32)",
@@ -776,7 +832,7 @@
 		"machine": {
 			"caption": "Maschine",
 			"updateInterval": "Aktualisierungsintervall des Objektmodells",
-			"updateIntervalHint": "Zeit zwischen vollständigen Objektmodell-Aktualisierungen",
+			"updateIntervalHint": "Zeit zwischen vollständigen Objektmodellaktualisierungen",
 			"crcUploads": "Uploads mit CRC-Prüfsumme verifizieren",
 			"crcUploadsHint": "Eine CRC32-Prüfsumme an Datei-Uploads anhängen, damit das Board Übertragungsfehler erkennen kann",
 			"installCaption": "Firmware- oder Webinterface-Update",
@@ -786,7 +842,11 @@
 			"resetHint": "Löscht alle lokal gespeicherten DWC-Einstellungen und den Cache, stellt die auf dem Board hinterlegten Werkseinstellungen (falls vorhanden) wieder her und lädt DWC anschliessend neu.",
 			"reset": "Zurücksetzen",
 			"resetTitle": "DWC-Einstellungen zurücksetzen?",
-			"resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschliessend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen."
+			"resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschliessend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen.",
+			"resetComponents": "Bedienfeldeinstellungen zurücksetzen",
+			"resetComponentsHint": "Verwirft alle gespeicherten Anzeigeeinstellungen der einzelnen Bedienfelder (sichtbare Achsen, Werkzeuggruppierung, Diagramm-Tabs) und lädt DWC neu. Hilfreich, wenn ein Bedienfeld nach einem Update nicht mehr angezeigt wird.",
+			"resetComponentsTitle": "Bedienfeldeinstellungen zurücksetzen?",
+			"resetComponentsPrompt": "Damit werden die gespeicherten Anzeigeeinstellungen aller Dashboard-Bedienfelder in diesem Browser und auf dem verbundenen Board verworfen. DWC wird anschliessend neu geladen. Die übrigen Einstellungen bleiben erhalten."
 		},
 		"display": {
 			"layoutCaption": "Layout",
@@ -814,9 +874,6 @@
 			"groupByOffsetsHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben X-/Y-/Z-Offsets haben",
 			"groupBySpindle": "Spindeln gruppieren",
 			"groupBySpindleHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselbe Spindel verwenden",
-			"extrudersCaption": "Extruder",
-			"showMixingControls": "Mischsteuerung bei Mehrfach-Extruderwerkzeugen anzeigen",
-			"showMixingControlsHint": "Mischverhältnisse pro Antrieb für Werkzeuge mit mehreren Extrudern anzeigen",
 			"babystepCaption": "Babystepping",
 			"babystepAmount": "Babystep-Schrittweite",
 			"babystepAmountHint": "Schrittweite je Klick auf die Babystep-Tasten",
@@ -838,7 +895,11 @@
 			"singleChamberControlHint": "Eine einzige Eingabe für alle Kammerheizungen anzeigen statt einer je Kammer.",
 			"hideMenuItemsCaption": "Menüeinträge ausblenden",
 			"hideMenuItemsHint": "Einträge aus der Navigationsleiste / Hub-Seite entfernen. Ausgeblendete Einträge bleiben über die URL erreichbar; Dashboard, Auftragsstatus und Einstellungen werden immer angezeigt.",
-			"hideMenuItemsXsSmOnly": "nur xs/sm"
+			"hideMenuItemsXsSmOnly": "nur xs/sm",
+			"enablePanelEditing": "Bedienfeldbearbeitung aktivieren",
+			"enablePanelEditingHint": "Zeigt das Bearbeitungssymbol in den Bedienfeldtiteln an, um die Bedienfelder zu konfigurieren",
+			"largeAppBar": "Große App-Leiste",
+			"largeAppBarHint": "Vergrößert die App-Leiste auf kleinen Touchscreens für eine bessere Erreichbarkeit"
 		},
 		"webcam": {
 			"caption": "Webcam",
@@ -875,7 +936,7 @@
 			"pingInterval": "Ping-Intervall",
 			"pingIntervalHint": "Wie oft im Leerlauf ein Ping an das Board gesendet wird",
 			"updateDelay": "Aktualisierungsverzögerung",
-			"updateDelayHint": "Zusätzliche Wartezeit nach jeder Objektmodell-Aktualisierung",
+			"updateDelayHint": "Zusätzliche Wartezeit nach jeder Objektmodellaktualisierung",
 			"retryThreshold": "Wiederholungsgröße",
 			"retryThresholdHint": "HTTP-Anfragen bis zu dieser Größe werden bei transienten Fehlern wiederholt",
 			"ignoreFileTimestamps": "Letztes Änderungsdatum beim Upload weglassen",

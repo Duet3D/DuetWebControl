@@ -26,7 +26,7 @@
 												   :model-value="file.progress * 100"
 												   :indeterminate="file.progress < 1 && !file.speed && !file.error">
 									<template #default="{ value }">
-										<span class="text-white text-caption">{{ value.toFixed(0) }} %</span>
+										<span class="text-white text-body-small">{{ value.toFixed(0) }} %</span>
 									</template>
 								</v-progress-linear>
 							</td>
@@ -36,7 +36,7 @@
 			</v-card-text>
 
 			<v-card-actions>
-				<span v-show="currentSpeed !== null && currentSpeed > 0" class="ms-3 text-medium-emphasis text-caption">
+				<span v-show="currentSpeed !== null && currentSpeed > 0" class="ms-3 text-medium-emphasis text-body-small">
 					{{ $t("dialog.fileTransfer.currentSpeed", [displayTransferSpeed(currentSpeed)]) }}
 				</span>
 				<v-spacer />

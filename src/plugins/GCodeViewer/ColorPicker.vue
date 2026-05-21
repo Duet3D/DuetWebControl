@@ -1,5 +1,5 @@
 <template>
-	<v-row justify="center" align="center">
+	<v-row class="justify-center align-center">
 		<v-col class="shrink" :style="backgroundColorStyle">
 			<v-text-field v-model="internalTextColor" hide-details density="compact" variant="solo"
 						  class="ma-0 pa-0" @blur="updateValue(internalTextColor)"

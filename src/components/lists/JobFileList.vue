@@ -1,7 +1,8 @@
 <template>
 	<FileList v-model:directory="directory" :options="effectiveOptions" :root-directory="rootDirectory"
 			  :root-label="rootLabel" :extra-headers="extraHeaders" :no-items-text="noItemsText"
-			  mode="jobs" v-bind="$attrs" @refresh="onRefresh">
+			  :item-title="rowTitle" mode="jobs" v-bind="$attrs" @refresh="onRefresh"
+			  @file-info="onFileInfo">
 		<template #progress>
 			<v-progress-linear v-if="fileinfoProgress !== -1" height="2"
 							   :indeterminate="fileinfoTotal === 0"
@@ -35,12 +36,15 @@
 			</template>
 		</template>
 	</FileList>
+
+	<GCodeFileInfoDialog v-model:shown="fileInfoDialog.shown" :item="fileInfoDialog.item" />
 </template>
 
 <script setup lang="ts">
-import type { FileBrowserOptions } from "@/composables/useFileBrowser";
+import type { FileBrowserItem, FileBrowserOptions } from "@/composables/useFileBrowser";
 import { type GcodeThumbnailItem, useGcodeThumbnails } from "@/composables/useGcodeThumbnails";
 import FileList from "@/components/lists/FileList.vue";
+import GCodeFileInfoDialog from "@/components/dialogs/GCodeFileInfoDialog.vue";
 import i18n from "@/i18n";
 import { display, displayTime } from "@/utils/display";
 
@@ -143,6 +147,34 @@ function formatTime(value: number | bigint | null | undefined): string {
 		return i18n.global.t("generic.noValue");
 	}
 	return displayTime(seconds);
+}
+
+// #endregion
+
+// #region File info
+
+const fileInfoDialog = reactive<{ shown: boolean; item: GcodeThumbnailItem | null }>({
+	shown: false,
+	item: null,
+});
+
+// Opened by a long-press on a job tile (FileList emits `fileInfo`)
+function onFileInfo(item: FileBrowserItem) {
+	fileInfoDialog.item = item as GcodeThumbnailItem;
+	fileInfoDialog.shown = true;
+}
+
+// Custom slicer info rendered as the row / tile hover tooltip
+function rowTitle(item: FileBrowserItem): string | undefined {
+	const customInfo = (item as GcodeThumbnailItem).customInfo;
+	if (!customInfo) {
+		return undefined;
+	}
+	const entries = Object.entries(customInfo);
+	if (entries.length === 0) {
+		return undefined;
+	}
+	return entries.map(([key, value]) => `${key}: ${value}`).join("\n");
 }
 
 // #endregion

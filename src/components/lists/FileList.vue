@@ -128,8 +128,11 @@
 				<v-card v-for="item in browser.filelist.value" :key="item.name"
 						class="tile-card d-flex flex-column" variant="flat" rounded="lg"
 						:class="{ 'tile-card--active': selection.includes(item.name) }"
-						@click="onRowClick(null, { item })"
-						@contextmenu="onRowContextMenu($event, item)">
+						:title="itemTitle?.(item)"
+						@click="onTileClick(item)"
+						@contextmenu="onRowContextMenu($event, item)"
+						@touchstart="onTileTouchStart(item)" @touchend="cancelTileLongPress"
+						@touchmove="cancelTileLongPress" @touchcancel="cancelTileLongPress">
 					<div class="tile-card-icon d-flex align-center justify-center pt-3">
 						<slot name="nameIcon" :item="item" :tile="true">
 							<v-icon size="64">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
@@ -361,6 +364,11 @@ const props = defineProps<{
 	 * "files" opens in the editor. Also toggles the Simulate context-menu entry (jobs only)
 	 */
 	mode?: "files" | "macros" | "jobs";
+	/**
+	 * Per-item `title` attribute (hover tooltip) for table rows and tiles - the Jobs list uses
+	 * it to surface a file's custom slicer info
+	 */
+	itemTitle?: (item: FileBrowserItem) => string | undefined;
 }>();
 
 const fileMode = computed(() => props.mode ?? "files");
@@ -370,8 +378,42 @@ const emit = defineEmits<{
 	fileEdit: [item: FileBrowserItem, directory: string];
 	fileRunMacro: [item: FileBrowserItem, directory: string];
 	fileSimulate: [item: FileBrowserItem, directory: string];
+	fileInfo: [item: FileBrowserItem, directory: string];
 	refresh: [directory: string];
 }>();
+
+// Long-press on a tile (touch only) surfaces file details; consumers that care listen for
+// `fileInfo`. A fired long-press swallows the click that the browser synthesises afterwards
+let tileLongPressTimer: number | undefined;
+const suppressTileClick = ref(false);
+
+function onTileTouchStart(item: FileBrowserItem) {
+	suppressTileClick.value = false;
+	if (item.isDirectory) {
+		return;
+	}
+	tileLongPressTimer = window.setTimeout(() => {
+		suppressTileClick.value = true;
+		emit("fileInfo", item, browser.directory.value);
+	}, 500);
+}
+
+function cancelTileLongPress() {
+	if (tileLongPressTimer !== undefined) {
+		clearTimeout(tileLongPressTimer);
+		tileLongPressTimer = undefined;
+	}
+}
+
+function onTileClick(item: FileBrowserItem) {
+	if (suppressTileClick.value) {
+		suppressTileClick.value = false;
+		return;
+	}
+	onRowClick(null, { item });
+}
+
+onBeforeUnmount(cancelTileLongPress);
 
 function onRefreshClicked() {
 	emit("refresh", browser.directory.value);
@@ -914,6 +956,7 @@ const openLabel = computed(() => {
 function rowProps({ item }: { item: FileBrowserItem }) {
 	return {
 		draggable: true,
+		title: props.itemTitle?.(item),
 		onContextmenu: (event: MouseEvent) => onRowContextMenu(event, item),
 		onDragstart: (event: DragEvent) => onRowDragStart(event, item),
 		onDragover: (event: DragEvent) => onRowDragOver(event, item),

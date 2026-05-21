@@ -1,13 +1,9 @@
 <template>
-	<v-card>
-		<v-card-title class="d-flex align-center pb-0">
-			<v-icon size="small" class="mr-1">mdi-opacity</v-icon>
-			{{ $t("panel.extrude.caption") }}
-		</v-card-title>
-
+	<PanelCard icon="mdi-opacity" :title="$t('panel.extrude.caption')">
 		<v-card-text>
-			<v-row class="pb-1 flex-xl-nowrap" align="center" justify="center">
-				<v-col v-if="currentTool && currentTool.extruders.length > 1 && settingsStore.showMixingControls" cols="auto">
+			<v-row class="pb-1 flex-xl-nowrap align-center justify-center">
+				<v-col v-if="currentTool && currentTool.extruders.length > 1 && settings.showMixingControls"
+					   cols="auto">
 					<p class="mb-1">{{ $t("panel.extrude.mixRatio") }}</p>
 					<v-btn-toggle v-model="mix" mandatory multiple>
 						<v-btn value="mix" :disabled="uiStore.uiFrozen" color="primary" variant="text">
@@ -63,13 +59,21 @@
 		<InputDialog v-model:shown="editFeedrateDialog.shown" :title="$t('dialog.editExtrusionFeedrate.title')"
 					 :prompt="$t('dialog.editExtrusionFeedrate.prompt')" :preset="editFeedrateDialog.preset"
 					 is-numeric-value @confirmed="setFeedrate" />
-	</v-card>
+
+		<template #settings>
+			<v-switch v-model="settings.showMixingControls" color="primary"
+					  :label="$t('panel.extrude.showMixingControls')"
+					  :title="$t('panel.extrude.showMixingControlsHint')"
+					  density="comfortable" hide-details />
+		</template>
+	</PanelCard>
 </template>
 
 <script setup lang="ts">
 import { CodeChannel, MachineStatus, Tool } from "@duet3d/objectmodel";
 
 import InputDialog from "@/components/dialogs/InputDialog.vue";
+import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
@@ -77,6 +81,11 @@ import { useUiStore } from "@/stores/ui";
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+
+// Whether to show the per-drive mixing controls for multi-extruder tools; used to be a global setting
+const settings = useComponentSettings<{ showMixingControls: boolean }>({
+	showMixingControls: true,
+});
 
 const busy = ref(false);
 const mixValue = ref<Array<number | "mix">>(["mix"]);
@@ -147,7 +156,7 @@ async function buttonClicked(extrude: boolean) {
 	}
 
 	let amounts: Array<number>;
-	if (mixValue.value[0] === "mix" || !settingsStore.showMixingControls) {
+	if (mixValue.value[0] === "mix" || !settings.value.showMixingControls) {
 		// RRF distributes a single positional value across all extruder drives in mixing mode
 		amounts = [amount.value];
 	} else {

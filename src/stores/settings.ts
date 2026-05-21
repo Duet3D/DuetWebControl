@@ -82,6 +82,30 @@ const settingsUpgrades: ReadonlyArray<(blob: any) => any> = [
 	},
 ];
 
+/**
+ * Defaults registered by {@link useComponentSettings} keyed by component id. Lets the store
+ * backfill keys added to a component's `defaults` since its record was persisted - both at
+ * registration time and after a settings load replaces the persisted records wholesale
+ */
+const componentSettingDefaults = new Map<string, unknown>();
+
+/**
+ * Backfill keys present in `defaults` but missing from `data`. Adding a field with a default is a
+ * schema-compatible change, so it must not require a version bump or upgrade handler. Mutates and
+ * returns `data`
+ */
+function backfillComponentDefaults<T>(data: T, defaults: unknown): T {
+	if (data !== null && typeof data === "object" && defaults !== null && typeof defaults === "object") {
+		const target = data as Record<string, unknown>;
+		for (const [key, value] of Object.entries(defaults as Record<string, unknown>)) {
+			if (!(key in target)) {
+				target[key] = JSON.parse(JSON.stringify(value));
+			}
+		}
+	}
+	return data;
+}
+
 function upgradeSettings(blob: any): any {
 	if (!blob || typeof blob !== "object") {
 		return blob;
@@ -198,6 +222,16 @@ export const useSettingsStore = defineStore("settings", {
 		 * Use compact icon menu instead of the full-width sidebar menu
 		 */
 		iconMenu: false,
+
+		/**
+		 * Show the per-panel edit (pencil) affordance on dashboard panel titles
+		 */
+		enablePanelEditing: true,
+
+		/**
+		 * Enlarge the app bar on small (sm) touchscreens such as 4.3" displays
+		 */
+		largeAppBar: true,
 
 		/**
 		 * Route paths the user has opted to hide from the navigation drawer / hub page. Items
@@ -426,11 +460,6 @@ export const useSettingsStore = defineStore("settings", {
 		extruderFeedrates: [50, 10, 5, 2, 1],
 
 		/**
-		 * Show per-extruder mixing controls in the extrude panel (multi-extruder tools only)
-		 */
-		showMixingControls: true,
-
-		/**
 		 * Temperature presets
 		 */
 		temperatures: {
@@ -469,41 +498,6 @@ export const useSettingsStore = defineStore("settings", {
 			 */
 			chamber: [90, 80, 70, 60, 50, 40, 0]
 		},
-
-		/**
-		 * Group identical tools as a single item
-		 */
-		groupTools: true,
-
-		/**
-		 * Treat tools as identical only when their extruder mapping matches
-		 */
-		groupByExtruders: true,
-
-		/**
-		 * Treat tools as identical only when their heater mapping matches
-		 */
-		groupByHeaters: true,
-
-		/**
-		 * Treat tools as identical only when their offsets match
-		 */
-		groupByOffsets: true,
-
-		/**
-		 * Treat tools as identical only when their spindle assignment matches
-		 */
-		groupBySpindle: true,
-
-		/**
-		 * Provide only a single input field for controlling multiple beds
-		 */
-		singleBedControl: false,
-
-		/**
-		 * Provide only a single input field for controlling multiple beds
-		 */
-		singleChamberControl: false,
 
 		/**
 		 * Spindle RPM presets
@@ -663,6 +657,16 @@ export const useSettingsStore = defineStore("settings", {
 				if (settingsToLoad.componentSettings instanceof Object) {
 					that.componentSettings = { ...that.componentSettings, ...settingsToLoad.componentSettings };
 					delete settingsToLoad.componentSettings;
+
+					// A loaded record may predate keys later added to a component's defaults; backfill
+					// every record whose component has already registered so reactive readers (panel
+					// control rows) never observe a missing field
+					for (const [id, defaults] of componentSettingDefaults) {
+						const record = that.componentSettings[id];
+						if (record) {
+							backfillComponentDefaults(record.data, defaults);
+						}
+					}
 				}
 
 				// Apply with the observer suspended so the Object.assign + setLocale mutations
@@ -773,6 +777,32 @@ export const useSettingsStore = defineStore("settings", {
 
 			// Reload the web interface to finish
 			location.reload();
+		},
+
+		/**
+		 * Discard all persisted per-component settings (the records keyed by useComponentSettings)
+		 * without touching the rest of the configuration. Useful to recover from a stale record that
+		 * predates a component's current settings shape. The page reloads so every component
+		 * re-registers a fresh default record
+		 */
+		async resetComponentSettings() {
+			this.componentSettings = {};
+			componentSettingDefaults.clear();
+			await this.save();
+			location.reload();
+		},
+
+		/**
+		 * Reset a single component's settings to the defaults registered by its useComponentSettings
+		 * call. The record is replaced in place so the panel reacts without a reload
+		 * @param id Stable component identity
+		 */
+		resetComponentSetting(id: string) {
+			const defaults = componentSettingDefaults.get(id);
+			const record = this.componentSettings[id];
+			if (defaults !== undefined && record) {
+				record.data = JSON.parse(JSON.stringify(defaults));
+			}
 		},
 
 		/**
@@ -916,9 +946,13 @@ export const useSettingsStore = defineStore("settings", {
 		 * @returns The current data payload (a reactive reference into the store)
 		 */
 		getOrInitComponentSetting<T>(id: string, defaults: T, schemaVersion: number, upgrade?: (old: unknown) => T): T {
+			// Remember the defaults so a later settings load can re-backfill this record (the load
+			// path replaces componentSettings wholesale, bypassing the check below)
+			componentSettingDefaults.set(id, defaults);
+
 			const existing = this.componentSettings[id];
 			if (existing && existing.schemaVersion === schemaVersion) {
-				return existing.data as T;
+				return backfillComponentDefaults(existing.data, defaults) as T;
 			}
 			if (existing && upgrade) {
 				try {

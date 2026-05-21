@@ -174,6 +174,16 @@
 				"title": "Reload DWC?",
 				"prompt": "You have just updated an active DWC plugin. In order to use the new version, the web interface must be reloaded. Do you want to do this now?"
 			}
+		},
+		"componentSettings": {
+			"title": "Panel Settings",
+			"edit": "Edit panel settings",
+			"reset": "Reset"
+		},
+		"fileInfo": {
+			"customInfo": "Custom info",
+			"numLayers": "Layers",
+			"noInfo": "No file information available"
 		}
 	},
 	"event": {
@@ -364,7 +374,12 @@
 			"caption": "Temperatures",
 			"noData": "No data to display",
 			"heater": "Heater {0}",
-			"sensor": "Sensor {0}"
+			"sensor": "Sensor {0}",
+			"download": "Download CSV",
+			"settings": {
+				"heaters": "Heaters",
+				"extraSensors": "Extra sensors"
+			}
 		}
 	},
 	"button": {
@@ -533,7 +548,8 @@
 			"caption": "Extrusion Factors",
 			"changeVisibility": "Change Visibility",
 			"extruder": "Extruder {0}",
-			"noExtruders": "No Extruders"
+			"noExtruders": "No Extruders",
+			"displayedExtruders": "Displayed extruders"
 		},
 		"jobControl": {
 			"caption": "Job Control",
@@ -626,9 +642,19 @@
 				"sensorIndex": "Sensor {0}",
 				"value": "Value",
 				"showInChart": "Show in Chart",
-				"noItems": "No Extra Sensors"
+				"noItems": "No Extra Sensors",
+				"showInChartHint": "Show this sensor in the temperature chart"
 			},
-			"noTools": "No Tools"
+			"noTools": "No Tools",
+			"displayedTools": "Displayed tools",
+			"displayedBeds": "Displayed beds",
+			"displayedChambers": "Displayed chambers",
+			"showActiveTemperatures": "Show active temperatures",
+			"showActiveTemperaturesHint": "Show the active-temperature input column",
+			"showStandbyTemperatures": "Show standby temperatures",
+			"showStandbyTemperaturesHint": "Show the standby-temperature input column",
+			"showFilamentControls": "Show filament controls",
+			"showFilamentControlsHint": "Show the per-tool filament load, change and unload controls"
 		},
 		"status": {
 			"caption": "Status",
@@ -650,7 +676,32 @@
 			"noStatus": "No Status",
 			"extrusionRate": "Extrusion Rate",
 			"volumetricFlow": "Volumetric Flow",
-			"virtualEPos": "Virtual Extruder Position"
+			"virtualEPos": "Virtual Extruder Position",
+			"motionSystem": "Motion System: {0}",
+			"motionSystemShort": "MS: {0}",
+			"settings": {
+				"axes": "Axes",
+				"extruders": "Extruders",
+				"virtualEPos": "Show virtual extruder position",
+				"virtualEPosHint": "Show the combined virtual extruder position instead of the individual extruder positions",
+				"probe": "Z-Probe {0}",
+				"probes": "Z-Probes",
+				"positionDisplay": "Position display",
+				"positionDisplayHint": "Choose whether the position row shows tool or machine coordinates",
+				"positionTool": "Tool position",
+				"positionMachine": "Machine position",
+				"positionToggle": "Toggle on click",
+				"speedsHint": "Choose which speed readings are shown",
+				"sensorsHint": "Choose which sensor readings are shown",
+				"positionBoth": "Tool and machine position",
+				"extruderDisplay": "Extruder display",
+				"extruderDisplayHint": "Choose how extruder amounts are shown - filament length, extruded volume, or both",
+				"extruderLength": "Filament length",
+				"extruderVolume": "Extruded volume",
+				"extruderToggle": "Toggle on click",
+				"extruderBoth": "Filament length and volume"
+			},
+			"extrudedVolume": "Extruded Volume"
 		},
 		"extrude": {
 			"caption": "Extrusion Control",
@@ -659,23 +710,28 @@
 			"amount": "Feed amount in {0}:",
 			"feedrate": "Feedrate in {0}:",
 			"retract": "Retract",
-			"extrude": "Extrude"
+			"extrude": "Extrude",
+			"showMixingControls": "Show mixing controls",
+			"showMixingControlsHint": "Display per-drive mixing ratios for tools that drive more than one extruder"
 		},
 		"fan": {
 			"caption": "Fan Control",
 			"selection": "Fan Selection:",
 			"toolFan": "Tool Fan",
-			"fan": "Fan {0}"
+			"fan": "Fan {0}",
+			"displayedFans": "Displayed fans"
 		},
 		"fans": {
 			"caption": "Fans",
 			"changeVisibility": "Change Visibility",
 			"toolFan": "Tool Fan",
 			"fan": "Fan {0}",
-			"noFans": "No Fans"
+			"noFans": "No Fans",
+			"displayedFans": "Displayed fans"
 		},
 		"movement": {
 			"caption": "Machine Movement",
+			"displayedAxes": "Displayed axes",
 			"compensation": "Compensation & Calibration",
 			"compensationShort": "Compensation",
 			"runBed": "True Bed Levelling (G32)",
@@ -784,7 +840,11 @@
 			"resetHint": "Delete all locally stored DWC settings and cache, restore factory defaults from the board (if present), then reload.",
 			"reset": "Reset",
 			"resetTitle": "Reset DWC settings?",
-			"resetPrompt": "This deletes your saved DWC settings and cache on this browser and on the connected board. Factory defaults (if available) are applied next. DWC will reload afterwards."
+			"resetPrompt": "This deletes your saved DWC settings and cache on this browser and on the connected board. Factory defaults (if available) are applied next. DWC will reload afterwards.",
+			"resetComponents": "Reset panel settings",
+			"resetComponentsHint": "Discard all saved per-panel display settings (visible axes, tool grouping, chart tabs) and reload. Use this to recover from a panel that no longer renders after an update.",
+			"resetComponentsTitle": "Reset panel settings?",
+			"resetComponentsPrompt": "This discards the saved display settings of all dashboard panels on this browser and on the connected board. DWC will reload afterwards. Your other settings are kept."
 		},
 		"display": {
 			"layoutCaption": "Layout",
@@ -812,9 +872,6 @@
 			"groupByOffsetsHint": "Treat tools as identical only when they have the same X/Y/Z offsets",
 			"groupBySpindle": "Group spindles",
 			"groupBySpindleHint": "Treat tools as identical only when they reference the same spindle",
-			"extrudersCaption": "Extruders",
-			"showMixingControls": "Show mixing controls on multi-extruder tools",
-			"showMixingControlsHint": "Display per-drive mixing ratios for tools that drive more than one extruder",
 			"babystepCaption": "Babystepping",
 			"babystepAmount": "Babystep amount",
 			"babystepAmountHint": "Step size applied per click of the babystep buttons",
@@ -836,7 +893,11 @@
 			"singleChamberControlHint": "Show a single input for all chamber heaters instead of one per chamber.",
 			"hideMenuItemsCaption": "Hide menu items",
 			"hideMenuItemsHint": "Drop entries from the navigation drawer / hub page. Hidden items remain reachable by URL; Dashboard, Job status and Settings are always shown.",
-			"hideMenuItemsXsSmOnly": "xs/sm only"
+			"hideMenuItemsXsSmOnly": "xs/sm only",
+			"enablePanelEditing": "Enable panel editing",
+			"enablePanelEditingHint": "Show the edit icon on panel titles to configure each panel",
+			"largeAppBar": "Large app bar",
+			"largeAppBarHint": "Enlarge the app bar on small touchscreens for easier reach"
 		},
 		"webcam": {
 			"caption": "Webcam",

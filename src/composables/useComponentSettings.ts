@@ -3,6 +3,44 @@ import type { InjectionKey, WritableComputedRef } from "vue";
 import { useSettingsStore } from "@/stores/settings";
 
 /**
+ * Kind of a dynamic component setting - selects which object-model entities the settings dialog
+ * enumerates and how it renders the visibility list for that field
+ */
+export type ComponentSettingKind =
+	"axes" | "extruders" | "tools" | "beds" | "chambers" | "probes"
+	| "fans" | "tachoFans" | "heaters" | "extraSensors";
+
+/**
+ * Describes one dynamic (entity-visibility) field of a component's settings. The settings dialog
+ * renders these automatically; static fields are left to the component's own dialog slot
+ */
+export interface ComponentSettingDescriptor {
+	/**
+	 * Entity kind backing this field
+	 */
+	kind: ComponentSettingKind;
+
+	/**
+	 * Already-translated section label shown above the entity list
+	 */
+	label: string;
+}
+
+/**
+ * Handle a component provides to its descendants (e.g. {@link PanelCard}) so they can open an
+ * editor for this component's settings: the resolved identity plus the dynamic-field schema
+ */
+export interface ComponentSettingsHandle {
+	id: string;
+	schema: Record<string, ComponentSettingDescriptor>;
+}
+
+/**
+ * Injection key carrying the {@link ComponentSettingsHandle} from a component down to descendants
+ */
+export const COMPONENT_SETTINGS_KEY: InjectionKey<ComponentSettingsHandle> = Symbol("dwc-component-settings");
+
+/**
  * Options accepted by {@link useComponentSettings}
  */
 export interface ComponentSettingsOptions<T> {
@@ -26,6 +64,13 @@ export interface ComponentSettingsOptions<T> {
 	 * rather than throwing
 	 */
 	upgrade?: (old: unknown) => T;
+
+	/**
+	 * Dynamic-field schema. Each entry names a field of {@link defaults} that holds an entity-visibility
+	 * overlay (`Array<number> | null`) and describes how the settings dialog should render it. Provided
+	 * to descendants via {@link COMPONENT_SETTINGS_KEY}; never persisted
+	 */
+	schema?: Partial<Record<keyof T, ComponentSettingDescriptor>>;
 }
 
 /**
@@ -95,6 +140,11 @@ export function useComponentSettings<T>(defaults: T, options?: ComponentSettings
 	const schemaVersion = options?.schemaVersion ?? 1;
 
 	settingsStore.getOrInitComponentSetting(id, defaults, schemaVersion, options?.upgrade);
+
+	provide(COMPONENT_SETTINGS_KEY, {
+		id,
+		schema: (options?.schema ?? {}) as Record<string, ComponentSettingDescriptor>
+	});
 
 	return computed<T>({
 		get: () => settingsStore.componentSettings[id].data as T,

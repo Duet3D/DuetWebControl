@@ -302,10 +302,12 @@ export const useUiStore = defineStore("ui", {
 		 * @param type Message type
 		 * @param title Title of the message
 		 * @param message Optional message content
+		 * @returns The new notification's id (pass to {@link dismissNotification} to dismiss it programmatically)
 		 */
-		log(type: LogLevel, title: string, message: string | null = null) {
-			this.makeNotification(type, title, message);
+		log(type: LogLevel, title: string, message: string | null = null): string {
+			const id = this.makeNotification(type, title, message);
 			this.logMessage(type, title, message);
+			return id;
 		},
 
 		/**

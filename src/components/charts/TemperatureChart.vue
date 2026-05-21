@@ -1,17 +1,32 @@
 <template>
-	<v-card :class="['d-flex', 'flex-column', hasTemperaturesToDisplay ? 'flex-grow-1' : '']">
-		<v-card-title class="pt-2 pb-0">
-			<v-icon class="mr-1">mdi-chart-timeline-variant</v-icon>
-			{{ $t("chart.temperature.caption") }}
-		</v-card-title>
-
-		<v-card-text v-show="hasTemperaturesToDisplay" class="content flex-grow-1 px-2 py-0">
+	<PanelCard v-model:active-title="activeTab" :titles="titles"
+			   :class="['d-flex', 'flex-column', shouldFill ? 'flex-grow-1' : '']">
+		<v-card-text v-show="activeTab === 0 && hasTemperaturesToDisplay" class="content flex-grow-1 px-2 py-0">
 			<canvas ref="canvasRef" />
 		</v-card-text>
-		<v-card-text v-if="!hasTemperaturesToDisplay" class="pa-0">
+		<v-card-text v-if="activeTab === 0 && !hasTemperaturesToDisplay" class="pa-0">
 			<v-alert type="info" :text="$t('chart.temperature.noData')" tile density="compact" />
 		</v-card-text>
-	</v-card>
+
+		<WebcamView v-if="activeTab === 1" />
+
+		<!-- Download the displayed temperature samples as CSV -->
+		<template #title-action-0>
+			<v-btn icon="mdi-download" variant="text" size="small" density="comfortable"
+				   :disabled="sampleTimes.length === 0" :title="$t('chart.temperature.download')"
+				   @click="downloadCsv" />
+		</template>
+
+		<!-- Which heater / extra-sensor series the chart draws -->
+		<template #settings-0>
+			<EntityVisibilityList v-if="hasHeaters" kind="heaters"
+								  :label="$t('chart.temperature.settings.heaters')"
+								  v-model="settings.displayedHeaters" />
+			<EntityVisibilityList v-if="hasExtraSensors" kind="extraSensors"
+								  :label="$t('chart.temperature.settings.extraSensors')"
+								  v-model="settings.displayedExtraSensors" class="mt-4" />
+		</template>
+	</PanelCard>
 </template>
 
 <style scoped>
@@ -37,6 +52,8 @@ import {
 	sampleTimes,
 	type TempChartDataset,
 } from "@/composables/useTemperatureSamples";
+import { useComponentSettings } from "@/composables/useComponentSettings";
+import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 
@@ -53,18 +70,45 @@ const settingsStore = useSettingsStore();
 // is mounted; the call is idempotent so multiple chart mounts are fine
 initTemperatureSampling();
 
+// Which series are drawn. `null` shows every heater / extra sensor; the settings dialog edits
+// these. Chart.js legend-click hiding is disabled so this is the single source of visibility
+const settings = useComponentSettings({
+	displayedHeaters: null as Array<number> | null,
+	displayedExtraSensors: null as Array<number> | null
+});
+
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart<"line"> | null = null;
 let lastUpdate = 0;
 
+// Temperatures is always present; Webcam is offered whenever a webcam is configured, matching
+// the visibility condition of the Webcam menu item
+const titles = computed(() => {
+	const list = [{ icon: "mdi-chart-timeline-variant", title: i18n.global.t("chart.temperature.caption") }];
+	if (settingsStore.webcam.enabled) {
+		list.push({ icon: "mdi-webcam", title: i18n.global.t("panel.webcam.caption") });
+	}
+	return list;
+});
+
+// Falls back to the chart automatically once the Webcam tab is no longer offered
+const selectedTab = ref(0);
+const activeTab = computed<number>({
+	get: () => (selectedTab.value === 1 && settingsStore.webcam.enabled) ? 1 : 0,
+	set: (value) => { selectedTab.value = value; }
+});
+
 const hasTemperaturesToDisplay = computed(() =>
-	machineStore.model.sensors.analog.some((sensor, sensorIndex) =>
-		sensor !== null && (
-			machineStore.model.heat.heaters.some(heater => heater !== null && heater.sensor === sensorIndex)
-			|| settingsStore.displayedExtraTemperatures.includes(sensorIndex)
-		)
-	)
-);
+	machineStore.model.sensors.analog.some(sensor => sensor !== null));
+
+const hasHeaters = computed(() => machineStore.model.heat.heaters.some(heater => heater !== null));
+const hasExtraSensors = computed(() =>
+	machineStore.model.sensors.analog.some((sensor, index) =>
+		sensor !== null && !machineStore.model.heat.heaters.some(heater => heater !== null && heater.sensor === index)));
+
+// The card stretches to match its tallest sibling when it has a chart to draw or a webcam to
+// show; otherwise it collapses to the title so a disconnected dashboard stays compact
+const shouldFill = computed(() => hasTemperaturesToDisplay.value || settingsStore.webcam.enabled);
 
 const minConfiguredTemperature = computed(() => {
 	let min = 0;
@@ -130,8 +174,12 @@ function refresh() {
 // Per-frame visibility sync runs before the chart redraws; sample collection itself lives in
 // the shared module so a torn-down chart never blocks the rolling buffer
 function applyVisibility() {
+	const heaters = settings.value.displayedHeaters;
+	const extras = settings.value.displayedExtraSensors;
 	for (const dataset of sampleSeries) {
-		dataset.showLine = !dataset.extra || settingsStore.displayedExtraTemperatures.includes(dataset.index);
+		dataset.showLine = dataset.extra
+			? (extras === null || extras.includes(dataset.index))
+			: (heaters === null || heaters.includes(dataset.index));
 	}
 }
 
@@ -153,6 +201,9 @@ onMounted(() => {
 			elements: { line: { tension: 0 } },
 			plugins: {
 				legend: {
+					// Series visibility is driven by the panel settings, not by clicking the
+					// legend - the no-op keeps chart.js from toggling its own hidden state
+					onClick: () => { /* visibility is controlled through the panel settings */ },
 					labels: {
 						filter: (legendItem, data) => !!(data.datasets[legendItem.datasetIndex!] as TempChartDataset).showLine,
 						font: { family: "Roboto,sans-serif" }
@@ -201,5 +252,34 @@ onBeforeUnmount(() => {
 
 watch(() => settingsStore.darkTheme, (to) => applyDarkTheme(to));
 
-defineExpose({ hasTemperaturesToDisplay });
+// Editing the displayed-series settings takes effect immediately rather than waiting for the
+// next sample tick
+watch(settings, () => {
+	applyVisibility();
+	chart?.update();
+}, { deep: true });
+
+// Build a CSV of every currently-displayed series over the rolling sample window
+function downloadCsv() {
+	const visible = sampleSeries.filter(dataset => dataset.showLine);
+	const header = ["Time", ...visible.map(dataset => dataset.label ?? "")];
+	const rows = sampleTimes.map((time, sampleIndex) => {
+		const cells = visible.map(dataset => {
+			const value = dataset.data[sampleIndex];
+			return (typeof value === "number" && isFinite(value)) ? String(value) : "";
+		});
+		return [new Date(time).toISOString(), ...cells].join(",");
+	});
+	const csv = [header.join(","), ...rows].join("\r\n");
+
+	const blob = new Blob([csv], { type: "text/csv" });
+	const url = URL.createObjectURL(blob);
+	const anchor = document.createElement("a");
+	anchor.href = url;
+	anchor.download = `temperatures-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`;
+	anchor.click();
+	URL.revokeObjectURL(url);
+}
+
+defineExpose({ hasTemperaturesToDisplay, shouldFill });
 </script>

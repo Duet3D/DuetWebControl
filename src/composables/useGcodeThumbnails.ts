@@ -14,11 +14,16 @@ import Path from "@/utils/path";
 export interface GcodeThumbnailItem extends FileBrowserItem {
 	height?: number | null;
 	layerHeight?: number | null;
+	numLayers?: number | null;
 	filament?: Array<number> | null;
 	printTime?: number | bigint | null;
 	simulatedTime?: number | bigint | null;
 	generatedBy?: string | null;
 	thumbnails?: Array<ThumbnailInfo> | null;
+	/**
+	 * Slicer-specific extra fields (key/value), surfaced by the file-info dialog
+	 */
+	customInfo?: Record<string, unknown> | null;
 }
 
 /**
@@ -53,22 +58,29 @@ export function useGcodeThumbnails() {
 			}
 			item.height = null;
 			item.layerHeight = null;
+			item.numLayers = null;
 			item.filament = null;
 			item.printTime = null;
 			item.simulatedTime = null;
 			item.generatedBy = null;
 			item.thumbnails = null;
+			item.customInfo = null;
 		}
 	}
 
 	function applyInfo(item: GcodeThumbnailItem, info: GCodeFileInfo) {
 		item.height = info.height ?? null;
 		item.layerHeight = info.layerHeight ?? null;
+		item.numLayers = info.numLayers ?? null;
 		item.filament = (info.filament && info.filament.length > 0) ? info.filament : null;
 		item.printTime = info.printTime ?? null;
 		item.simulatedTime = info.simulatedTime ?? null;
 		item.generatedBy = info.generatedBy ?? null;
 		item.thumbnails = Array.from(info.thumbnails ?? []);
+		// customInfo is a ModelDictionary (a Map subclass); flatten it to a plain object
+		item.customInfo = (info.customInfo && info.customInfo.size > 0)
+			? Object.fromEntries(info.customInfo)
+			: null;
 	}
 
 	async function fetchAllInfos(items: Array<FileBrowserItem>, token: number, directorySnapshot: string) {

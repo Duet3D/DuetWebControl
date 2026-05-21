@@ -330,6 +330,14 @@
 											  :label="$t('settings.display.numericInputs')"
 											  :title="$t('settings.display.numericInputsHint')"
 											  density="comfortable" hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.enablePanelEditing" color="primary"
+											  :label="$t('settings.display.enablePanelEditing')"
+											  :title="$t('settings.display.enablePanelEditingHint')"
+											  density="comfortable" hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.largeAppBar" color="primary"
+											  :label="$t('settings.display.largeAppBar')"
+											  :title="$t('settings.display.largeAppBarHint')"
+											  density="comfortable" hide-details class="mt-2" />
 									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
 											  :label="$t('settings.display.disableAutoComplete')"
 											  :title="$t('settings.display.disableAutoCompleteHint')"
@@ -338,31 +346,6 @@
 											  :label="$t('settings.display.checkVersions')"
 											  :title="$t('settings.display.checkVersionsHint')"
 											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-eye-off</v-icon>
-									{{ $t("settings.display.hideMenuItemsCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<div class="text-body-small text-medium-emphasis mb-2">
-										{{ $t("settings.display.hideMenuItemsHint") }}
-									</div>
-									<v-switch v-for="item in hideableMenuItems" :key="item.path"
-											  v-model="hiddenMenuPaths" :value="item.path" color="primary"
-											  density="comfortable" hide-details>
-										<template #label>
-											<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
-											{{ item.translated ? item.caption : $t(item.caption) }}
-											<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
-											<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
-													variant="tonal" color="info" class="ml-2">
-												{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
-											</v-chip>
-										</template>
-									</v-switch>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -398,52 +381,26 @@
 
 							<v-card>
 								<v-card-title>
-									<v-icon class="mr-2">mdi-toolbox</v-icon>
-									{{ $t("settings.display.toolsCaption") }}
+									<v-icon class="mr-2">mdi-eye-off</v-icon>
+									{{ $t("settings.display.hideMenuItemsCaption") }}
 								</v-card-title>
 								<v-card-text>
-									<v-switch v-model="settingsStore.groupTools" color="primary"
-											  :label="$t('settings.display.groupTools')"
-											  :title="$t('settings.display.groupToolsHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.groupByExtruders" color="primary"
-											  :label="$t('settings.display.groupByExtruders')"
-											  :title="$t('settings.display.groupByExtrudersHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.groupByHeaters" color="primary"
-											  :label="$t('settings.display.groupByHeaters')"
-											  :title="$t('settings.display.groupByHeatersHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.groupByOffsets" color="primary"
-											  :label="$t('settings.display.groupByOffsets')"
-											  :title="$t('settings.display.groupByOffsetsHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.groupBySpindle" color="primary"
-											  :label="$t('settings.display.groupBySpindle')"
-											  :title="$t('settings.display.groupBySpindleHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-divider class="my-3" />
-									<v-switch v-model="settingsStore.singleBedControl" color="primary"
-											  :label="$t('settings.display.singleBedControl')"
-											  :title="$t('settings.display.singleBedControlHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.singleChamberControl" color="primary"
-											  :label="$t('settings.display.singleChamberControl')"
-											  :title="$t('settings.display.singleChamberControlHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-printer-3d-nozzle</v-icon>
-									{{ $t("settings.display.extrudersCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.showMixingControls" color="primary"
-											  :label="$t('settings.display.showMixingControls')"
-											  :title="$t('settings.display.showMixingControlsHint')"
-											  density="comfortable" hide-details />
+									<div class="text-body-small text-medium-emphasis mb-2">
+										{{ $t("settings.display.hideMenuItemsHint") }}
+									</div>
+									<v-switch v-for="item in hideableMenuItems" :key="item.path"
+											  v-model="hiddenMenuPaths" :value="item.path" color="primary"
+											  density="comfortable" hide-details>
+										<template #label>
+											<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
+											{{ item.translated ? item.caption : $t(item.caption) }}
+											<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
+											<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
+													variant="tonal" color="info" class="ml-2">
+												{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
+											</v-chip>
+										</template>
+									</v-switch>
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -740,6 +697,19 @@
 								{{ $t("settings.machine.reset") }}
 							</v-btn>
 						</div>
+
+						<v-divider class="my-3" />
+
+						<div class="d-flex align-center">
+							<div class="flex-grow-1 text-body-small text-medium-emphasis">
+								{{ $t("settings.machine.resetComponentsHint") }}
+							</div>
+							<v-btn class="ms-2" color="warning" variant="tonal" :loading="resettingComponents"
+								   :disabled="uiStore.uiFrozen" @click="resetComponentsDialog = true">
+								<v-icon class="mr-1">mdi-view-dashboard-outline</v-icon>
+								{{ $t("settings.machine.resetComponents") }}
+							</v-btn>
+						</div>
 					</v-card-text>
 				</v-card>
 			</v-window-item>
@@ -757,6 +727,10 @@
 	<ConfirmDialog v-model:shown="factoryResetDialog" :title="$t('settings.machine.resetTitle')"
 				   :prompt="$t('settings.machine.resetPrompt')" icon="mdi-restore"
 				   @confirmed="confirmFactoryReset" />
+
+	<ConfirmDialog v-model:shown="resetComponentsDialog" :title="$t('settings.machine.resetComponentsTitle')"
+				   :prompt="$t('settings.machine.resetComponentsPrompt')" icon="mdi-view-dashboard-outline"
+				   @confirmed="confirmResetComponents" />
 
 	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
 						  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
@@ -1095,6 +1069,8 @@ async function onFirmwarePicked(event: Event) {
 // spinner during the (typically brief) async file-delete chain
 const factoryResetDialog = ref(false);
 const resettingSettings = ref(false);
+const resetComponentsDialog = ref(false);
+const resettingComponents = ref(false);
 
 function askFactoryReset() {
 	factoryResetDialog.value = true;
@@ -1109,6 +1085,15 @@ async function confirmFactoryReset() {
 		// the flag cleared so the user can retry
 	} finally {
 		resettingSettings.value = false;
+	}
+}
+
+async function confirmResetComponents() {
+	resettingComponents.value = true;
+	try {
+		await settingsStore.resetComponentSettings();
+	} finally {
+		resettingComponents.value = false;
 	}
 }
 
