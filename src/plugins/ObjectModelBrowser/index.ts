@@ -6,7 +6,8 @@ registerRoute(ObjectModelBrowser, {
 		ObjectModel: {
 			icon: "mdi-file-tree",
 			caption: "plugins.objectModelBrowser.menuCaption",
-			path: "/Plugins/ObjectModel"
+			path: "/Plugins/ObjectModel",
+			pageFill: true
 		}
 	}
 });

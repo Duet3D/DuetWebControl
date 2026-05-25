@@ -9,6 +9,8 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router"
 import { setupLayouts } from "virtual:generated-layouts";
 import { routes, handleHotUpdate } from "vue-router/auto-routes";
 
+import { useSettingsStore } from "@/stores/settings";
+
 // unplugin-vue-router translates `[[...path]]` segments to `:path(.*)?`, a single optional
 // string with a `.*` regex. That isn't actually a repeatable catch-all - vue-router percent-
 // encodes the slashes in the captured string (producing /foo%2Fbar URLs) and also can't accept
@@ -30,6 +32,13 @@ function fixCatchAllPath(routesIn: Array<RouteRecordRaw>) {
 const compiledRoutes = setupLayouts([...routes] as RouteRecordRaw[]);
 fixCatchAllPath(compiledRoutes);
 
+// MD breakpoint (Vuetify MD3); the bottom-anchoring below is limited to md and up
+const MD_BREAKPOINT = 840;
+
+// Set by the beforeEach guard from the scroll position of the page being left, consumed by
+// scrollBehavior - true when that page was scrolled to (or past) its bottom edge
+let leftPageAtBottom = false;
+
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
 	routes: compiledRoutes,
@@ -39,6 +48,9 @@ const router = createRouter({
 	// - `#hash` link: smooth-scroll to the anchor
 	// - same top-level route (e.g. navigating between Explorer subdirectories): keep the
 	//   current scroll position so a click on a folder row doesn't jump the page to top
+	// - cross-page navigation from a page scrolled to its bottom (md+): open the next page
+	//   at its bottom too, but only when the destination is a viewport-filling page
+	//   (`meta.pageFill`) - landing at the bottom of a regular flowing page would be disorienting
 	// - otherwise (cross-page navigation): scroll to top
 	scrollBehavior(to, from, savedPosition) {
 		if (savedPosition) {
@@ -53,8 +65,47 @@ const router = createRouter({
 		if (sameRoute) {
 			return false;
 		}
+		if (leftPageAtBottom && window.innerWidth >= MD_BREAKPOINT && to.meta.pageFill === true) {
+			return { top: document.documentElement.scrollHeight };
+		}
 		return { top: 0 };
 	},
+});
+
+// Capture whether the page being left was scrolled to its bottom edge. Read here, before the
+// route component swaps, so window.scrollY still reflects the outgoing page
+router.beforeEach(() => {
+	const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+	leftPageAtBottom = scrollable > 4 && window.scrollY >= scrollable - 4;
+});
+
+// Scroll the page to its bottom edge so a viewport-filling panel (the G-code viewer, the height
+// map, the file editor) opens flush with the status row scrolled off the top. The destination's
+// content settles asynchronously - a canvas sized on a debounce, the status row reflowing live -
+// so the document keeps growing after the first scroll. The scroll is repeated over the first
+// second to chase the growing bottom; the first pass animates, the catch-up passes jump
+// instantly so they don't queue competing smooth animations. A no-op below md, where the
+// stacked layout has no status row to scroll past, and when the user disabled it
+export function scrollPageToBottom() {
+	if (!useSettingsStore().behaviour.autoScroll || window.innerWidth < MD_BREAKPOINT) {
+		return;
+	}
+	const scrollToEnd = (smooth: boolean) => {
+		window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+	};
+	requestAnimationFrame(() => scrollToEnd(true));
+	setTimeout(() => scrollToEnd(false), 300);
+	setTimeout(() => scrollToEnd(false), 700);
+	setTimeout(() => scrollToEnd(false), 1100);
+}
+
+// Pages flagged `meta.scrollToBottom` host a viewport-filling panel that should open at the
+// bottom edge. scrollBehavior only sets a one-shot position before the panel has rendered;
+// the helper above runs afterwards and chases the document as the panel's content settles
+router.afterEach((to) => {
+	if (to.meta.scrollToBottom === true) {
+		scrollPageToBottom();
+	}
 });
 
 if (import.meta.hot) {

@@ -177,9 +177,9 @@ function hasRoute(item: QueueMessage): boolean {
 	return !!item.route;
 }
 
-// Clicking the body of a routed notification navigates to its target (matches v3.7's behaviour
-// where the only notifications with a destination were code replies pointing at Console) and
-// dismisses the item so the user lands on the page without the snackbar still hovering
+// Clicking the body of a routed notification navigates to its target and dismisses the item so
+// the user lands on the page without the snackbar still hovering. Routed notifications are
+// typically code replies pointing at /Console
 function onNotificationClick(item: QueueMessage) {
 	if (!item.route) {
 		return;

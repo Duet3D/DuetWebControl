@@ -1,5 +1,6 @@
 <template>
-	<div class="monaco-editor-host" :class="{ 'monaco-editor-host--collapsed': !!loadError }">
+	<div class="monaco-editor-host" :class="{ 'monaco-editor-host--collapsed': !!loadError }"
+		 @dragover.capture.prevent="onEditorDragOver" @drop.capture.prevent.stop="onEditorDrop">
 		<v-toolbar density="compact" color="surface" class="ps-4 pe-2">
 			<v-icon class="mr-2">{{ languageIcon }}</v-icon>
 			<v-toolbar-title class="text-body-large text-truncate">
@@ -40,11 +41,33 @@
 		<!-- Monaco's container is kept in the DOM (v-show) so bootstrap() can attach to the ref
 			 while loading is still true; the textarea branch is v-if since it just binds to text -->
 		<div v-show="useMonaco && !loading && !loadError" ref="container" class="editor-pane" />
-		<textarea v-if="!useMonaco && !loading && !loadError" v-model="textContent"
+		<textarea v-if="!useMonaco && !loading && !loadError" ref="textarea" v-model="textContent"
 				  class="editor-pane editor-textarea"
 				  :style="{ fontSize: settingsStore.editor.fontSize + 'px' }"
 				  spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" />
 	</div>
+
+	<v-dialog v-model="dropDialog.shown" width="500">
+		<v-card>
+			<v-card-title>
+				<v-icon class="mr-1">mdi-file-import</v-icon>
+				{{ $t("dialog.editorDrop.title") }}
+			</v-card-title>
+			<v-card-text>{{ $t("dialog.editorDrop.prompt", [dropDialog.filename]) }}</v-card-text>
+			<v-card-actions>
+				<v-spacer />
+				<v-btn color="blue-darken-1" variant="text" @click="dropDialog.shown = false">
+					{{ $t("generic.cancel") }}
+				</v-btn>
+				<v-btn color="blue-darken-1" variant="text" @click="applyDroppedFile('insert')">
+					{{ $t("dialog.editorDrop.insert") }}
+				</v-btn>
+				<v-btn color="primary" variant="text" autofocus @click="applyDroppedFile('overwrite')">
+					{{ $t("dialog.editorDrop.overwrite") }}
+				</v-btn>
+			</v-card-actions>
+		</v-card>
+	</v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -52,6 +75,7 @@ import { MachineMode } from "@duet3d/objectmodel";
 import type * as Monaco from "monaco-editor-core";
 
 import i18n from "@/i18n";
+import { scrollPageToBottom } from "@/router";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
 import { useSettingsStore } from "@/stores/settings";
@@ -78,6 +102,7 @@ const uiStore = useUiStore();
 const settingsStore = useSettingsStore();
 
 const container = ref<HTMLDivElement | null>(null);
+const textarea = ref<HTMLTextAreaElement | null>(null);
 const loading = ref(true);
 const saving = ref(false);
 const loadError = ref<string | null>(null);
@@ -146,27 +171,12 @@ const languageIcon = computed(() => {
 	}
 });
 
-// Scroll the page to its bottom so the editor (which is the last thing on the route) sits
-// flush at the viewport's bottom. Using window.scrollTo on the document directly is more
-// reliable than scrollIntoView on the host element - the latter gets clipped by intermediate
-// scroll containers (v-main, the Vuetify layout wrappers) and stops short of the real page end
-//
-// The status row at the top reflows live (MCU temps, Z-probe readings update every tick) which
-// changes the document height after the initial scroll fires. A single scroll-to-end stops
-// short of the *new* bottom once those updates land. Re-fire the scroll a few times over the
-// first half-second to chase the document as it grows; the smooth behaviour keeps the visible
-// movement to a single continuous slide rather than a stuttery sequence of jumps
+// Once the file finishes loading the editor swaps in at full height; scroll the page down so it
+// sits flush at the viewport's bottom. Tied to the load completing rather than to navigation
+// because an editor tab can be opened or switched to without a route change
 watch(loading, (now) => {
 	if (!now) {
-		const scrollToEnd = (smooth: boolean) => {
-			window.scrollTo({ top: document.documentElement.scrollHeight, behavior: smooth ? "smooth" : "auto" });
-		};
-		nextTick(() => scrollToEnd(true));
-		// Catch-up passes after the persistent status row + any other reactive content has had
-		// a chance to reflow. Each pass uses instant scrolling so we don't queue up multiple
-		// smooth animations that would visibly compete
-		setTimeout(() => scrollToEnd(false), 250);
-		setTimeout(() => scrollToEnd(false), 500);
+		scrollPageToBottom();
 	}
 });
 
@@ -319,12 +329,12 @@ watch(() => settingsStore.editor, (next) => {
 	editor?.getModel()?.updateOptions(buildModelOptions(next));
 }, { deep: true });
 
-async function save() {
+async function save(): Promise<boolean> {
 	if (saving.value) {
-		return;
+		return false;
 	}
 	if (useMonaco.value && !editor) {
-		return;
+		return false;
 	}
 	saving.value = true;
 	transferProgress.value = null;
@@ -348,9 +358,11 @@ async function save() {
 		}
 		dirty.value = false;
 		emit("saved", props.filename);
+		return true;
 	} catch (e) {
 		console.warn(e);
 		uiStore.notifyError(e, i18n.global.t("dialog.fileEdit.saveFailed", [props.filename]));
+		return false;
 	} finally {
 		saving.value = false;
 	}
@@ -372,11 +384,75 @@ function revert() {
 	dirty.value = false;
 }
 
+// #region File drop
+// Dropping a file onto the editor either overwrites the buffer or pastes the file in at the
+// cursor. An empty file has nothing to insert, so it always overwrites without asking
+const dropDialog = reactive({ shown: false, filename: "" });
+let droppedContent = "";
+
+function onEditorDragOver(event: DragEvent) {
+	if (event.dataTransfer && Array.from(event.dataTransfer.types).includes("Files")) {
+		event.dataTransfer.dropEffect = "copy";
+	}
+}
+
+async function onEditorDrop(event: DragEvent) {
+	if (loading.value || loadError.value || !event.dataTransfer) {
+		return;
+	}
+	const file = event.dataTransfer.files[0];
+	if (!file) {
+		return;
+	}
+	try {
+		droppedContent = await file.text();
+	} catch (e) {
+		uiStore.notifyError(e, i18n.global.t("dialog.editorDrop.title"));
+		return;
+	}
+	if (file.size === 0) {
+		applyDroppedFile("overwrite");
+	} else {
+		dropDialog.filename = file.name;
+		dropDialog.shown = true;
+	}
+}
+
+function applyDroppedFile(mode: "overwrite" | "insert") {
+	dropDialog.shown = false;
+	if (useMonaco.value) {
+		if (!editor) {
+			return;
+		}
+		if (mode === "overwrite") {
+			editor.setValue(droppedContent);
+		} else {
+			const selection = editor.getSelection();
+			if (selection) {
+				editor.executeEdits("drop", [{ range: selection, text: droppedContent, forceMoveMarkers: true }]);
+			}
+		}
+		editor.focus();
+	} else if (mode === "overwrite") {
+		textContent.value = droppedContent;
+	} else {
+		const element = textarea.value;
+		const start = element ? element.selectionStart : textContent.value.length;
+		const end = element ? element.selectionEnd : textContent.value.length;
+		textContent.value = textContent.value.slice(0, start) + droppedContent + textContent.value.slice(end);
+	}
+	droppedContent = "";
+}
+// #endregion
+
 // Delegates to the duet.searchGcode action registered by @duet3d/monacotokens. The action
 // itself picks the right search widget based on whether the cursor is in an expression
 function searchGcode() {
 	editor?.getAction("duet.searchGcode")?.run();
 }
+
+// Lets the Explorer trigger a save when closing a tab with unsaved changes
+defineExpose({ save });
 
 // #region Helpers
 

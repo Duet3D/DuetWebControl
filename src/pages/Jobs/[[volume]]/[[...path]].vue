@@ -1,6 +1,7 @@
 <route lang="json">
 {
 	"meta": {
+		"pageFill": true,
 		"menu": {
 			"category": "files",
 			"icon": "mdi-play",

@@ -1,6 +1,7 @@
 <route lang="json">
 {
 	"meta": {
+		"pageFill": true,
 		"keepAlive": true,
 		"menu": {
 			"category": "files",
@@ -54,45 +55,49 @@ function looksLikeFile(path: string): boolean {
 	if (!path) {
 		return false;
 	}
-	return !path.endsWith("/") && /\.[^/]+$/.test(Path.extractFileName(path));
+	// A real extension is a dot followed by non-space, non-dot, non-slash characters at the very
+	// end, so a folder whose name merely contains a dot (e.g. "0.4mm Nozzle") is not mistaken for
+	// a file. This is only a hint - when connected the loader verifies against the board
+	return !path.endsWith("/") && /\.[^/.\s]+$/.test(Path.extractFileName(path));
 }
 
-// vue-router-vite parses `/Explorer/0/sys/foo` positionally as tab="0", volume="sys" because
-// `[tab]` comes first. The tab id is always non-numeric (e.g. "t2"); a numeric first segment is
-// really the volume, so shift the values one slot left in that case
-function resolveTabAndVolume(params: ExplorerRouteParams): {
-	tab: string | undefined; volume: string; path: string;
+// The Explorer URL packs up to three things into its segments: an optional `t<n>` tab ordinal
+// (1-based position in the tab strip, dropped for the first tab), an optional numeric volume
+// index (dropped for volume 0), then the directory/file path. unplugin-vue-router hands these
+// back as three positional params regardless of which were actually present, so flatten them
+// into one ordered segment list and parse it front-to-back
+function resolveExplorerRoute(params: ExplorerRouteParams): {
+	tab: number | undefined; volume: number; path: string;
 } {
-	let tab = params.tab;
-	let volume = params.volume;
-	let path = normalisePathParam(params.path);
-
-	if (tab !== undefined && /^\d+$/.test(tab)) {
-		// First segment is a volume number - shift values left
-		path = volume !== undefined
-			? (path !== "" ? `${volume}/${path}` : volume)
-			: path;
-		volume = tab;
-		tab = undefined;
-	} else if (tab !== undefined && !/^t\d+$/.test(tab)) {
-		// First segment is neither a volume id nor a tab id (e.g. `/Explorer/sys/config.g`) -
-		// treat it as a path segment under the default volume, shifting both following slots
-		// into `path` as well
-		const prefix = volume !== undefined ? `${tab}/${volume}` : tab;
-		path = path !== "" ? `${prefix}/${path}` : prefix;
-		volume = undefined;
-		tab = undefined;
+	const segments: Array<string> = [];
+	if (params.tab !== undefined) {
+		segments.push(params.tab);
 	}
+	if (params.volume !== undefined) {
+		segments.push(params.volume);
+	}
+	if (Array.isArray(params.path)) {
+		segments.push(...params.path);
+	} else if (params.path) {
+		segments.push(...params.path.split("/"));
+	}
+	const cleaned = segments.filter((segment) => segment !== "");
 
-	return {
-		tab,
-		volume: volume ?? "0",
-		path: path.replace(/^\/+|\/+$/g, ""),
-	};
+	let tab: number | undefined;
+	if (cleaned.length > 0 && /^t\d+$/.test(cleaned[0])) {
+		tab = Number.parseInt(cleaned[0].substring(1), 10);
+		cleaned.shift();
+	}
+	let volume = 0;
+	if (cleaned.length > 0 && /^\d+$/.test(cleaned[0])) {
+		volume = Number.parseInt(cleaned[0], 10);
+		cleaned.shift();
+	}
+	return { tab, volume, path: cleaned.join("/") };
 }
 
 function sdPathFromParams(params: ExplorerRouteParams): string {
-	const { volume, path } = resolveTabAndVolume(params);
+	const { volume, path } = resolveExplorerRoute(params);
 	return path ? `${volume}:/${path}` : `${volume}:/`;
 }
 
@@ -113,16 +118,27 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 	if (!machineStore.isConnected) {
 		return { path, kind: looksLikeFile(path) ? "editor" : "directory" };
 	}
-	try {
-		if (looksLikeFile(path)) {
-			const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
-			return { path, kind: "editor", content };
-		}
+	// looksLikeFile only decides which kind to try first - the board is the source of truth, so
+	// a wrong guess (a folder whose name contains a dot, an extension-less file) falls back to
+	// the other kind instead of failing outright
+	const loadAsDirectory = async (): Promise<ExplorerInitialPayload> => {
 		const files = await machineStore.getFileList(path);
 		return { path, kind: "directory", files };
-	} catch (e) {
-		console.warn("Explorer loader failed", e);
-		return { path, kind: looksLikeFile(path) ? "editor" : "directory" };
+	};
+	const loadAsFile = async (): Promise<ExplorerInitialPayload> => {
+		const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
+		return { path, kind: "editor", content };
+	};
+	const [first, second] = looksLikeFile(path) ? [loadAsFile, loadAsDirectory] : [loadAsDirectory, loadAsFile];
+	try {
+		return await first();
+	} catch (firstError) {
+		try {
+			return await second();
+		} catch {
+			console.warn("Explorer loader failed", firstError);
+			return { path, kind: looksLikeFile(path) ? "editor" : "directory" };
+		}
 	}
 }, { lazy: true });
 </script>
@@ -155,7 +171,8 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 		<v-window v-model="activeTab" :touch="false" class="explorer-window flex-grow-1">
 			<v-window-item v-for="tab in tabs" :key="tab.id" :value="tab.id" eager
 						   :transition="windowItemTransition" :reverse-transition="windowItemTransition">
-				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename" :filename="tab.filename"
+				<MonacoEditor v-if="tab.kind === 'editor' && tab.filename"
+							  :ref="(el) => setEditorRef(tab.id, el)" :filename="tab.filename"
 							  :initial-content="tab.initialContent" @dirty="tab.dirty = $event" />
 				<FileList v-else v-model:directory="tab.directory"
 						  :options="optionsForTab(tab)"
@@ -227,9 +244,29 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 		</template>
 	</ConfirmDialog>
 
-	<ConfirmDialog v-model:shown="discardDialog.shown" :title="$t('dialog.fileEdit.discardTitle')"
-				   :prompt="$t('dialog.fileEdit.discardPrompt')" icon="mdi-alert"
-				   @confirmed="confirmDiscard" />
+	<v-dialog v-model="discardDialog.shown" width="480" persistent no-click-animation>
+		<v-form @submit.prevent="saveAndClose">
+			<v-card>
+				<v-card-title>
+					<v-icon class="mr-1">mdi-content-save-alert</v-icon>
+					{{ $t("dialog.fileEdit.unsaved.title") }}
+				</v-card-title>
+				<v-card-text>{{ $t("dialog.fileEdit.unsaved.prompt", [discardDialog.filename]) }}</v-card-text>
+				<v-card-actions>
+					<v-spacer />
+					<v-btn color="blue-darken-1" variant="text" type="button" @click="cancelClose">
+						{{ $t("generic.cancel") }}
+					</v-btn>
+					<v-btn color="blue-darken-1" variant="text" type="button" @click="discardAndClose">
+						{{ $t("dialog.fileEdit.unsaved.dontSave") }}
+					</v-btn>
+					<v-btn color="blue-darken-1" variant="text" type="submit" autofocus>
+						{{ $t("dialog.fileEdit.unsaved.save") }}
+					</v-btn>
+				</v-card-actions>
+			</v-card>
+		</v-form>
+	</v-dialog>
 
 	<FirmwareUpdateDialog v-model:shown="sharedFirmwareController.firmwareDialog.shown"
 						  :plan="sharedFirmwareController.firmwareDialog.plan"
@@ -312,10 +349,10 @@ function volumeCaption(index: number): string {
 let nextTabId = 1;
 
 // First-mount URL -> tab seed. Bare `/Explorer` opens a single browser tab at `0:/`;
-// `/Explorer/0/sys/foo` opens the matching directory tab; a file-shaped path opens an editor tab
-// Each path identifies its tab uniquely (a file can only be opened once) so URLs no longer carry
-// a separate `t<n>` tab identifier - the [[tab]] route segment is left in place for legacy URL
-// compatibility but is never populated when DWC pushes a new URL
+// `/Explorer/sys/foo` opens the matching directory tab; a file-shaped path opens an editor tab.
+// A `t<n>` ordinal in the URL only addresses tabs within a live session - it can't reconstruct
+// the sibling tabs that were open when the URL was produced, so a deep link always seeds a
+// single tab and the ordinal is reconciled away on the first URL push
 function buildInitialTabs(): Array<ExplorerTab> {
 	const params = route.params;
 	if (isBareExplorerRoute(params)) {
@@ -543,27 +580,65 @@ function closeTab(id: number) {
 	}
 }
 
-const discardDialog = reactive<{ shown: boolean; pendingId: number | null }>({
+const discardDialog = reactive<{ shown: boolean; pendingId: number | null; filename: string }>({
 	shown: false,
 	pendingId: null,
+	filename: "",
 });
+
+// Editor instances by tab id, populated via the template ref so the close-tab prompt can
+// trigger a save on the right editor
+const editorRefs = new Map<number, { save: () => Promise<boolean> }>();
+
+function setEditorRef(id: number, el: unknown) {
+	if (el) {
+		editorRefs.set(id, el as { save: () => Promise<boolean> });
+	} else {
+		editorRefs.delete(id);
+	}
+}
 
 function requestCloseTab(id: number) {
 	const tab = tabs.value.find((t) => t.id === id);
 	if (tab?.kind === "editor" && tab.dirty) {
 		discardDialog.pendingId = id;
+		discardDialog.filename = tab.filename ?? "";
 		discardDialog.shown = true;
 		return;
 	}
 	closeTab(id);
 }
 
-function confirmDiscard() {
-	const id = discardDialog.pendingId;
+function closeDiscardDialog() {
+	discardDialog.shown = false;
 	discardDialog.pendingId = null;
+}
+
+async function saveAndClose() {
+	const id = discardDialog.pendingId;
+	if (id === null) {
+		closeDiscardDialog();
+		return;
+	}
+	const editorRef = editorRefs.get(id);
+	const saved = editorRef ? await editorRef.save() : true;
+	// A failed save keeps the prompt open so the user can retry or pick another option
+	if (saved) {
+		closeDiscardDialog();
+		closeTab(id);
+	}
+}
+
+function discardAndClose() {
+	const id = discardDialog.pendingId;
+	closeDiscardDialog();
 	if (id !== null) {
 		closeTab(id);
 	}
+}
+
+function cancelClose() {
+	closeDiscardDialog();
 }
 
 // Browser-level guard against accidental tab/window close while an editor still has unsaved
@@ -768,107 +843,130 @@ function sdPathToRouteParams(sdPath: string): { volume: string; path: string } |
 	return { volume, path: rest };
 }
 
-// Active tab snapshot - the SD path is the URL. Each tab is uniquely identified by its path
-// (a file can only be opened once), so the URL no longer needs a separate tab identifier
-const activeTabSnapshot = computed<string | undefined>(() => {
-	const tab = tabs.value.find((t) => t.id === activeTab.value);
-	if (!tab) {
+// The active tab's URL identity: an SD path plus the `t<n>` ordinal that keeps it distinct.
+// Browser tabs use their 1-based strip position so two tabs on the same directory don't collide;
+// editor tabs are already keyed 1:1 by filename (a file opens at most once), so they need no
+// ordinal and report position 1 - their URL stays path-only
+const activeTabSnapshot = computed<{ ordinal: number; path: string } | undefined>(() => {
+	const index = tabs.value.findIndex((t) => t.id === activeTab.value);
+	if (index === -1) {
 		return undefined;
 	}
-	return (tab.kind === "editor" ? tab.filename : tab.directory) ?? undefined;
+	const tab = tabs.value[index];
+	if (tab.kind === "editor") {
+		return tab.filename ? { ordinal: 1, path: tab.filename } : undefined;
+	}
+	return tab.directory ? { ordinal: index + 1, path: tab.directory } : undefined;
 });
 
 let replaceNextUrlChange = false;
 
-watch(activeTabSnapshot, (sdPath) => {
+watch(activeTabSnapshot, (snapshot) => {
 	// Skip while the user has navigated away - the kept-alive component would otherwise push
 	// the URL back to /Explorer/... and steal focus from whatever page they actually went to
-	if (!sdPath || !isOnExplorerRoute()) {
+	if (!snapshot || !isOnExplorerRoute()) {
 		return;
 	}
-	pushUrl(sdPath, replaceNextUrlChange);
+	pushUrl(snapshot.ordinal, snapshot.path, replaceNextUrlChange);
 	replaceNextUrlChange = false;
 });
 
 // External URL change (browser back/forward, deep link) -> reconcile state to match. The watch
-// fires on every route.params change including our own pushes; equality checks against the
-// current tab's path short-circuit those. The default layout wraps router-view in <keep-alive>
-// so this component stays mounted across page changes - guard with isOnExplorerRoute() to
-// avoid feeding e.g. Jobs's `volume`/`path` params back into the Explorer's tab state
+// fires on every route change including our own pushes; the guards below short-circuit those.
+// The default layout wraps router-view in <keep-alive> so this component stays mounted across
+// page changes - isOnExplorerRoute() keeps e.g. Jobs's `volume`/`path` params out of tab state
 function isOnExplorerRoute(): boolean {
 	return route.path === "/Explorer" || route.path.startsWith("/Explorer/");
 }
-watch(() => sdPathFromParams(route.params), (newPath) => {
+watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () => {
 	if (!isOnExplorerRoute()) {
 		return;
 	}
-	// Bare /Explorer (no volume / path) - reset the active browser tab to the default root so a
-	// browser back from `/Explorer/<vol>/<sub>` to `/Explorer` actually drops back to the root
-	// listing instead of leaving the stale subdirectory on screen
+	// Bare /Explorer (no tab / volume / path) - focus the first tab and reset it to the default
+	// root so a browser back from `/Explorer/<sub>` actually drops back to the root listing
+	// instead of leaving the stale subdirectory on screen
 	if (isBareExplorerRoute(route.params)) {
-		const tab = tabs.value.find((t) => t.id === activeTab.value);
-		if (tab && tab.kind === "browser") {
-			const root = `${defaultVolume.value}:/`;
-			if (tab.directory !== root) {
-				tab.directory = root;
+		const first = tabs.value[0];
+		if (first) {
+			if (first.kind === "browser") {
+				const root = `${defaultVolume.value}:/`;
+				if (first.directory !== root) {
+					first.directory = root;
+				}
+			}
+			if (activeTab.value !== first.id) {
+				activeTab.value = first.id;
 			}
 		}
 		return;
 	}
+
+	const newPath = sdPathFromParams(route.params);
 	if (!newPath) {
 		return;
 	}
 
-	const matchingTab = tabs.value.find((tab) => {
-		if (tab.kind === "editor") {
-			return tab.filename === newPath;
-		}
-		return tab.directory === newPath;
-	});
-
-	if (matchingTab) {
-		if (activeTab.value !== matchingTab.id) {
-			activeTab.value = matchingTab.id;
-		}
-		return;
-	}
-
+	// Editor tabs are keyed 1:1 by filename, so a file-shaped URL routes to (or opens) the
+	// matching editor regardless of the ordinal it carries
 	if (looksLikeFile(newPath)) {
 		openEditorTab(newPath);
 		return;
 	}
 
-	const tab = tabs.value.find((t) => t.id === activeTab.value);
-	if (!tab || tab.kind === "editor") {
+	// Directory URL: the `t<n>` ordinal addresses exactly one browser tab, so the same path in
+	// a second tab no longer snaps focus back to the first tab that happens to share it
+	const ordinal = resolveExplorerRoute(route.params).tab ?? 1;
+	const targetTab = tabs.value[ordinal - 1];
+	if (targetTab && targetTab.kind === "browser") {
+		if (targetTab.directory !== newPath) {
+			targetTab.directory = newPath;
+		}
+		if (activeTab.value !== targetTab.id) {
+			activeTab.value = targetTab.id;
+		}
 		return;
 	}
-	if (tab.directory !== newPath) {
-		tab.directory = newPath;
+
+	// Ordinal points past the open tabs (stale deep link) or at an editor tab - fall back to
+	// steering the currently active browser tab
+	const active = tabs.value.find((t) => t.id === activeTab.value);
+	if (active && active.kind === "browser" && active.directory !== newPath) {
+		active.directory = newPath;
 	}
 });
 
-function pushUrl(path: string, replace = false) {
+// Build the URL as a literal string instead of pushing params. vue-router's params-merge for
+// optional segments leaks current-route values through both `undefined` and `null`, so sidestep
+// the merge and let the route matcher parse our URL. Segment order is `[t<n>] [volume] path...`:
+// the tab ordinal is dropped for the first tab and the volume for volume 0, each unless dropping
+// it would let the next segment be misread as the thing that was dropped
+function pushUrl(ordinal: number, path: string, replace = false) {
 	const params = sdPathToRouteParams(path);
 	if (!params) {
 		return;
 	}
-	const currentPath = sdPathFromParams(route.params);
-	if (currentPath === path) {
+	const current = resolveExplorerRoute(route.params);
+	if ((current.tab ?? 1) === ordinal && sdPathFromParams(route.params) === path) {
 		return;
 	}
-	// Build the URL as a literal string instead of pushing params. vue-router's params-merge for
-	// optional segments leaks current-route values through both `undefined` and `null` (renders
-	// the volume twice as a result), so we sidestep the merge entirely and let the route matcher
-	// just parse our URL. The [[tab]] segment in the route file is kept for legacy URLs but
-	// never populated here - resolveTabAndVolume's shift-left handles old-format input
+
 	const pathStr = normalisePathParam(params.path);
 	const pathSegments = pathStr.split("/").filter(Boolean);
-	// Omit the leading `0/` for the default volume unless the first path segment is purely
-	// numeric - `/Explorer/123` would otherwise round-trip as "volume 123" rather than "folder
-	// 123 in the default volume" (covers editor URLs too, they share this builder)
+	// Keep the leading `0/` when the first path segment is purely numeric - `/Explorer/123`
+	// would otherwise round-trip as "volume 123" rather than "folder 123 in the default volume"
 	const omitVolume = params.volume === "0"
 		&& (pathSegments.length === 0 || !/^\d+$/.test(pathSegments[0]));
+	// First segment that ends up in the URL once the optional volume is settled. If it looks
+	// like a tab ordinal, the otherwise-omitted first-tab id has to be emitted so a folder
+	// named `t2` can't be misread as a second tab
+	const leadSegment = omitVolume ? pathSegments[0] : params.volume;
+	const emitTab = ordinal > 1
+		|| (ordinal === 1 && leadSegment !== undefined && /^t\d+$/.test(leadSegment));
+
 	const segments: Array<string> = [];
+	if (emitTab) {
+		segments.push(`t${ordinal}`);
+	}
 	if (!omitVolume) {
 		segments.push(encodeURIComponent(params.volume));
 	}

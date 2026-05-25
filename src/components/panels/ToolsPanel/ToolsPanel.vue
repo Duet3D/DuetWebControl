@@ -5,61 +5,81 @@
 			<ExtraSensorList v-else :sensors="extraSensors" />
 		</v-card-text>
 
-		<!-- Tools / Beds / Chambers settings -->
+		<!-- Tools / Filaments / Beds / Chambers settings -->
 		<template #settings-0>
 			<v-tabs v-model="settingsTab" density="compact" grow>
 				<v-tab v-if="hasTools" :value="0">{{ $t("panel.tools.caption") }}</v-tab>
+				<v-tab v-if="hasTools" :value="3">{{ $t("panel.tools.filaments") }}</v-tab>
 				<v-tab v-if="hasBeds" :value="1">{{ $t("panel.tools.beds") }}</v-tab>
 				<v-tab v-if="hasChambers" :value="2">{{ $t("panel.tools.chambers") }}</v-tab>
 			</v-tabs>
-			<v-window v-model="settingsTab" class="mt-3 pt-3">
+			<v-window v-model="settingsTab" class="mt-3 px-3">
 				<v-window-item v-if="hasTools" :value="0">
 					<EntityVisibilityList kind="tools" :label="$t('panel.tools.displayedTools')"
-										  v-model="settings.displayedTools" />
+										  v-model="settings.displayedTools" class="mt-3" />
 
-					<v-switch v-model="settings.groupTools" color="primary"
-							  :label="$t('settings.display.groupTools')" :title="$t('settings.display.groupToolsHint')"
-							  density="comfortable" hide-details class="mt-2" />
+					<v-autocomplete v-model="settings.toolChangeMacros" :items="toolChangeMacroOptions"
+									:label="$t('panel.tools.toolChangeMacros')"
+									v-hint="$t('panel.tools.toolChangeMacrosHint')"
+									variant="outlined" density="comfortable" hide-details
+									chips closable-chips clearable multiple class="mt-3" />
+
+					<v-switch v-model="settings.groupTools" color="primary" class="mt-1"
+							  :label="$t('settings.display.groupTools')" v-hint="$t('settings.display.groupToolsHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.groupByExtruders" color="primary"
-							  :label="$t('settings.display.groupByExtruders')" :title="$t('settings.display.groupByExtrudersHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  :label="$t('settings.display.groupByExtruders')" v-hint="$t('settings.display.groupByExtrudersHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.groupByHeaters" color="primary"
-							  :label="$t('settings.display.groupByHeaters')" :title="$t('settings.display.groupByHeatersHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  :label="$t('settings.display.groupByHeaters')" v-hint="$t('settings.display.groupByHeatersHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.groupByOffsets" color="primary"
-							  :label="$t('settings.display.groupByOffsets')" :title="$t('settings.display.groupByOffsetsHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  :label="$t('settings.display.groupByOffsets')" v-hint="$t('settings.display.groupByOffsetsHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.groupBySpindle" color="primary"
-							  :label="$t('settings.display.groupBySpindle')" :title="$t('settings.display.groupBySpindleHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  :label="$t('settings.display.groupBySpindle')" v-hint="$t('settings.display.groupBySpindleHint')"
+							  density="comfortable" hide-details />
+
+					<v-divider class="my-1" />
+
+					<v-switch v-model="settings.showToolNumber" color="primary"
+							  :label="$t('panel.tools.showToolNumber')"
+							  v-hint="$t('panel.tools.showToolNumberHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.showActiveTemperatures" color="primary"
 							  :label="$t('panel.tools.showActiveTemperatures')"
-							  :title="$t('panel.tools.showActiveTemperaturesHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  v-hint="$t('panel.tools.showActiveTemperaturesHint')"
+							  density="comfortable" hide-details />
 					<v-switch v-model="settings.showStandbyTemperatures" color="primary"
 							  :label="$t('panel.tools.showStandbyTemperatures')"
-							  :title="$t('panel.tools.showStandbyTemperaturesHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  v-hint="$t('panel.tools.showStandbyTemperaturesHint')"
+							  density="comfortable" hide-details />
+				</v-window-item>
+				<v-window-item v-if="hasTools" :value="3">
 					<v-switch v-model="settings.showFilamentControls" color="primary"
 							  :label="$t('panel.tools.showFilamentControls')"
-							  :title="$t('panel.tools.showFilamentControlsHint')"
-							  density="comfortable" hide-details class="mt-2" />
+							  v-hint="$t('panel.tools.showFilamentControlsHint')"
+							  density="comfortable" hide-details />
+					<v-switch v-model="settings.promptDuringFilamentChange" color="primary"
+							  :label="$t('panel.tools.promptDuringFilamentChange')"
+							  v-hint="$t('panel.tools.promptDuringFilamentChangeHint')"
+							  density="comfortable" hide-details />
 				</v-window-item>
 				<v-window-item v-if="hasBeds" :value="1">
 					<EntityVisibilityList kind="beds" :label="$t('panel.tools.displayedBeds')"
-										  v-model="settings.displayedBeds" />
+										  v-model="settings.displayedBeds" class="mt-3" />
 
-					<v-switch v-model="settings.singleBedControl" color="primary"
-							  :label="$t('settings.display.singleBedControl')" :title="$t('settings.display.singleBedControlHint')"
-							  density="comfortable" hide-details class="mt-2" />
+					<v-switch v-model="settings.singleBedControl" color="primary" class="mt-1"
+							  :label="$t('settings.display.singleBedControl')" v-hint="$t('settings.display.singleBedControlHint')"
+							  density="comfortable" hide-details />
 				</v-window-item>
 				<v-window-item v-if="hasChambers" :value="2">
 					<EntityVisibilityList kind="chambers" :label="$t('panel.tools.displayedChambers')"
-										  v-model="settings.displayedChambers" />
+										  v-model="settings.displayedChambers" class="mt-3" />
 
-					<v-switch v-model="settings.singleChamberControl" color="primary"
-							  :label="$t('settings.display.singleChamberControl')" :title="$t('settings.display.singleChamberControlHint')"
-							  density="comfortable" hide-details class="mt-2" />
+					<v-switch v-model="settings.singleChamberControl" color="primary" class="mt-1"
+							  :label="$t('settings.display.singleChamberControl')" v-hint="$t('settings.display.singleChamberControlHint')"
+							  density="comfortable" hide-details />
 				</v-window-item>
 			</v-window>
 		</template>
@@ -75,6 +95,14 @@ import { TOOL_DISPLAY_SETTINGS_KEY, toolDisplayDefaults, type ToolDisplaySetting
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
+import { ToolChangeMacro } from "@/stores/settings";
+
+// tfree.g / tpre.g / tpost.g entries offered by the tool-change-macros selector
+const toolChangeMacroOptions = [
+	{ title: "tfree.g", value: ToolChangeMacro.free },
+	{ title: "tpre.g", value: ToolChangeMacro.pre },
+	{ title: "tpost.g", value: ToolChangeMacro.post }
+];
 
 interface ExtraSensor {
 	sensor: AnalogSensor;
@@ -127,7 +155,7 @@ const activeTab = computed<number>({
 const availableSettingsTabs = computed<Array<number>>(() => {
 	const tabs: Array<number> = [];
 	if (hasTools.value) {
-		tabs.push(0);
+		tabs.push(0, 3);
 	}
 	if (hasBeds.value) {
 		tabs.push(1);

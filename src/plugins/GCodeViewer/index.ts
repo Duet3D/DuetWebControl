@@ -1,6 +1,6 @@
 import i18n from "@/i18n";
 import { registerPluginContextMenuItem, registerRoute } from "@/plugins";
-import { PluginDataType, registerPluginData } from "@/stores";
+import { useCacheStore } from "@/stores/cache";
 import { ContextMenuType } from "@/stores/ui";
 
 import GCodeViewer from "./GCodeViewer.vue";
@@ -10,7 +10,12 @@ registerRoute(GCodeViewer, {
 		GCodeViewer: {
 			icon: "mdi-rotate-3d",
 			caption: "plugins.gcodeViewer.caption",
-			path: "/Plugins/GCodeViewer"
+			path: "/Plugins/GCodeViewer",
+			// Deep-link form: /Plugins/GCodeViewer/<volume>/<sd-path> previews a specific file,
+			// mirroring the Explorer's volume + catch-all path route
+			routePath: "/Plugins/GCodeViewer/:volume?/:path(.*)?",
+			pageFill: true,
+			scrollToBottom: true
 		}
 	}
 });
@@ -23,12 +28,13 @@ registerPluginContextMenuItem(
 	ContextMenuType.JobFileList
 );
 
-registerPluginData("GCodeViewer", PluginDataType.cache, "toolColors", ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"]);
-registerPluginData("GCodeViewer", PluginDataType.cache, "useHQRendering", false);
-registerPluginData("GCodeViewer", PluginDataType.cache, "useSpecular", true);
-registerPluginData("GCodeViewer", PluginDataType.cache, "g1AsExtrusion", false);
-registerPluginData("GCodeViewer", PluginDataType.cache, "viewGCode", false);
-registerPluginData("GCodeViewer", PluginDataType.cache, "zBelt", false);
-registerPluginData("GCodeViewer", PluginDataType.cache, "zBeltAngle", 45);
-registerPluginData("GCodeViewer", PluginDataType.cache, "showWorkplace", true);
-registerPluginData("GCodeViewer", PluginDataType.cache, "showCursor", false);
+const cacheStore = useCacheStore();
+cacheStore.registerPluginData("GCodeViewer", "toolColors", ["#00FFFF", "#FF00FF", "#FFFF00", "#000000", "#FFFFFF"]);
+cacheStore.registerPluginData("GCodeViewer", "useHQRendering", false);
+cacheStore.registerPluginData("GCodeViewer", "useSpecular", true);
+cacheStore.registerPluginData("GCodeViewer", "g1AsExtrusion", false);
+cacheStore.registerPluginData("GCodeViewer", "viewGCode", false);
+cacheStore.registerPluginData("GCodeViewer", "zBelt", false);
+cacheStore.registerPluginData("GCodeViewer", "zBeltAngle", 45);
+cacheStore.registerPluginData("GCodeViewer", "showWorkplace", true);
+cacheStore.registerPluginData("GCodeViewer", "showCursor", false);

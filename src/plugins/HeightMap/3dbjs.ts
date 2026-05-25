@@ -170,7 +170,7 @@ export default class HeightMapViewer {
 		this.heightPointMeshes.push(sphere);
 	}
 
-	renderHeightMap(bedPoints: number[][][], invertZ: boolean, colorScheme = "terrain", deviationColor = "fixed"): void {
+	renderHeightMap(bedPoints: number[][][], invertZ: boolean, colorScheme = "terrain", deviationColor = "fixed", fixedScale = 0.25): void {
 		this.clearHeightMapData();
 
 		this.minZ = 999999999;
@@ -192,7 +192,7 @@ export default class HeightMapViewer {
 		if (deviationColor === "deviation") {
 			this.maxVisualizationZ = Math.abs(this.maxZ) > Math.abs(this.minZ) ? Math.abs(this.maxZ) : Math.abs(this.minZ);
 		} else {
-			this.maxVisualizationZ = 0.25;
+			this.maxVisualizationZ = fixedScale;
 		}
 
 		const points: Vector3[][] = [];
@@ -316,6 +316,16 @@ export default class HeightMapViewer {
 		this.axesLabelMeshes.forEach((m) => m.dispose());
 		this.axesLabelMeshes = [];
 
+		// Recreate the fullscreen UI on every bed rebuild: the texture's internal resolution
+		// drifts away from the engine's render size across resizes (e.g. device rotation, browser
+		// chrome reflow), and TextBlock fontSize is in texture coords, so the drift makes labels
+		// render at progressively wrong sizes on screen. Rebuilding the ADT pins it back to the
+		// current engine dimensions
+		if (this.advancedTexture) {
+			this.advancedTexture.dispose();
+			this.advancedTexture = undefined;
+		}
+
 		const bedCenter = this.getCenter();
 		const bedSize = this.getSize();
 
@@ -340,16 +350,13 @@ export default class HeightMapViewer {
 
 		this.bedMesh.isPickable = false;
 
-		if (!this.advancedTexture) {
-			this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene!);
-		}
-		// Build axes labels
-		this.axesLabelMeshes.forEach((mesh) => mesh.dispose());
-		this.axesLabelMeshes = [];
+		this.advancedTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, this.scene!);
+
 		const xOff = this.buildVolume.x.min % 25;
 		for (let x = this.buildVolume.x.min - xOff; x <= this.buildVolume.x.max; x += this.gridSize) {
 			const anchor = new Mesh("anchor", this.scene);
 			anchor.position = new Vector3(x, 0, this.buildVolume.y.min);
+			this.axesLabelMeshes.push(anchor);
 			this.buildAxesLabel(anchor, `${x}`);
 		}
 

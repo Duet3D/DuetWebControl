@@ -272,7 +272,7 @@ export const useMenuStore = defineStore("menu", {
 		 * pages. Plugin-registered items are also excluded: each plugin should manage its own
 		 * visibility (via its own settings or by being uninstalled); listing every plugin item
 		 * here would bloat the panel and create a path-collision foot-gun the moment a plugin
-		 * disappears with its hide flag still set. v3.7 only listed the built-in pages too.
+		 * disappears with its hide flag still set.
 		 *
 		 * Items already gated by a *configuration* condition (webcam enabled, future plugin
 		 * enabled flags, ...) are also skipped - if the user wants those gone they turn the

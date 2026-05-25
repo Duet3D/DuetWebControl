@@ -4,7 +4,10 @@
 			<div ref="container" class="heightmap-container">
 				<div class="canvas-container" @mousemove="canvasMouseMove" @mouseleave="tooltip.shown = false">
 					<canvas ref="canvas" />
-					<canvas ref="legend" class="legend" width="80" />
+					<canvas ref="legend" width="80" class="legend"
+							:class="{ clickable: deviationColoring === 'fixed' }"
+							:title="deviationColoring === 'fixed' ? $t('plugins.heightmap.scaleHint') : undefined"
+							@click="onLegendClick" />
 					<div v-if="tooltip.shown" class="hm-tooltip no-cursor"
 						 :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }">
 						<div>{{ xLabel }}: {{ display(tooltip.coord.x, 1, "mm") }}</div>
@@ -94,6 +97,10 @@
 			</v-row>
 		</v-col>
 	</v-row>
+
+	<InputDialog v-model:shown="scaleDialogShown" :title="$t('plugins.heightmap.scaleDialogTitle')"
+				 :prompt="$t('plugins.heightmap.scaleDialogPrompt')" :preset="fixedScale" is-numeric-value
+				 @confirmed="onScaleConfirmed" />
 </template>
 
 <script setup lang="ts">
@@ -101,7 +108,7 @@ import type { Axis } from "@duet3d/objectmodel";
 import { KinematicsName } from "@duet3d/objectmodel";
 import { useDisplay } from "vuetify";
 
-import { PluginDataType, registerPluginData, setPluginData } from "@/stores";
+import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -129,9 +136,10 @@ const isXs = computed(() => display_.name.value === "xs");
 
 // Register the per-plugin cache fields once. registerPluginData is idempotent so a second
 // HeightMap mount in the same session reuses whatever the user already chose
-registerPluginData("HeightMap", PluginDataType.cache, "colorScheme", "terrain");
-registerPluginData("HeightMap", PluginDataType.cache, "deviationColoring", "fixed");
-registerPluginData("HeightMap", PluginDataType.cache, "invertZ", false);
+cacheStore.registerPluginData("HeightMap", "colorScheme", "terrain");
+cacheStore.registerPluginData("HeightMap", "deviationColoring", "fixed");
+cacheStore.registerPluginData("HeightMap", "invertZ", false);
+cacheStore.registerPluginData("HeightMap", "fixedScale", 0.25);
 
 // #region Reactive state
 const container = ref<HTMLElement | null>(null);
@@ -144,6 +152,7 @@ const selectedFile = ref<string | null>(null);
 const ready = ref(false);
 const loading = ref(false);
 const errorMessage = ref<string | null>(null);
+const scaleDialogShown = ref(false);
 
 const tooltip = reactive({
 	coord: { x: 0, y: 0, z: 0 },
@@ -172,17 +181,24 @@ let heightMapViewer: HeightMapViewer | undefined;
 // #region Cached plugin settings (round-trip through the cache store)
 const colorScheme = computed<string>({
 	get: () => cacheStore.plugins.HeightMap?.colorScheme ?? "terrain",
-	set: (value) => setPluginData("HeightMap", PluginDataType.cache, "colorScheme", value),
+	set: (value) => cacheStore.setPluginData("HeightMap", "colorScheme", value),
 });
 
 const deviationColoring = computed<string>({
 	get: () => cacheStore.plugins.HeightMap?.deviationColoring ?? "fixed",
-	set: (value) => setPluginData("HeightMap", PluginDataType.cache, "deviationColoring", value),
+	set: (value) => cacheStore.setPluginData("HeightMap", "deviationColoring", value),
 });
 
 const invertZ = computed<boolean>({
 	get: () => cacheStore.plugins.HeightMap?.invertZ ?? false,
-	set: (value) => setPluginData("HeightMap", PluginDataType.cache, "invertZ", value),
+	set: (value) => cacheStore.setPluginData("HeightMap", "invertZ", value),
+});
+
+// Half-range of the colour scale (mm) used when the range is set to "fixed"; editable by
+// clicking the legend. The "deviation" range ignores this and derives the scale from the data
+const fixedScale = computed<number>({
+	get: () => cacheStore.plugins.HeightMap?.fixedScale ?? 0.25,
+	set: (value) => cacheStore.setPluginData("HeightMap", "fixedScale", value),
 });
 
 // #endregion
@@ -424,7 +440,7 @@ function showHeightMap(points: number[][][], probeRadius?: number) {
 		: 0;
 	meanError.value = numPoints.value > 0 ? mean / numPoints.value : 0;
 
-	heightMapViewer.renderHeightMap(points, invertZ.value, colorScheme.value, deviationColoring.value);
+	heightMapViewer.renderHeightMap(points, invertZ.value, colorScheme.value, deviationColoring.value, fixedScale.value);
 	heightMapViewer.drawLegend(legend.value, colorScheme.value, invertZ.value, xLabel.value, yLabel.value);
 }
 
@@ -436,6 +452,21 @@ function canvasMouseMove(e: MouseEvent) {
 	const rect = target.getBoundingClientRect();
 	tooltip.x = e.clientX - rect.left + 12;
 	tooltip.y = e.clientY - rect.top + 12;
+}
+
+// The legend doubles as the entry point for editing the fixed colour scale; the deviation
+// range derives its scale from the data, so the legend is inert in that mode
+function onLegendClick() {
+	if (deviationColoring.value === "fixed") {
+		scaleDialogShown.value = true;
+	}
+}
+
+function onScaleConfirmed(value: string | number) {
+	const scale = typeof value === "string" ? parseFloat(value) : value;
+	if (isFinite(scale) && scale > 0) {
+		fixedScale.value = scale;
+	}
 }
 
 function topView() {
@@ -496,6 +527,8 @@ async function createViewer(): Promise<void> {
 
 	heightMapViewer = new HeightMapViewer(canvas.value);
 	heightMapViewer.isDelta = isDelta.value;
+	// Seed the scale so the legend is correct even before a height map is selected
+	heightMapViewer.maxVisualizationZ = fixedScale.value;
 	await heightMapViewer.init();
 	buildBed();
 
@@ -565,7 +598,7 @@ onBeforeUnmount(() => {
 // #endregion
 
 // #region Watches
-watch([colorScheme, deviationColoring, invertZ], () => {
+watch([colorScheme, deviationColoring, invertZ, fixedScale], () => {
 	if (heightmapPoints) {
 		showHeightMap(heightmapPoints, probeRadius);
 	}
@@ -640,6 +673,10 @@ watch(isDelta, (to) => {
 
 .canvas-container > .legend {
 	right: 0;
+}
+
+.legend.clickable {
+	cursor: pointer;
 }
 
 .no-cursor {

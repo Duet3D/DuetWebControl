@@ -20,7 +20,9 @@
 				</v-col>
 
 				<v-col cols="12" sm="auto" class="flex-sm-grow-1 order-0 order-sm-1">
-					<PercentageInput v-model="fanValue" :max="maxFanValue" :disabled="uiStore.uiFrozen" />
+					<PercentageInput v-model="fanValue" :max="maxFanValue" :step="settings.stepWidth"
+									 :numeric-input="settings.numericInput" :lockable="settings.enableLock"
+									 :disabled="uiStore.uiFrozen" />
 				</v-col>
 			</v-row>
 		</v-card-text>
@@ -28,6 +30,20 @@
 		<template #settings>
 			<EntityVisibilityList kind="fans" :label="$t('panel.fan.displayedFans')"
 								  v-model="settings.displayedFans" />
+
+			<v-switch v-model="settings.numericInput" color="primary" class="mt-3"
+					  :label="$t('panel.fan.settings.numericInput')"
+					  v-hint="$t('panel.fan.settings.numericInputHint')"
+					  density="comfortable" hide-details />
+			<v-switch v-model="settings.enableLock" color="primary"
+					  :label="$t('panel.fan.settings.enableLock')"
+					  v-hint="$t('panel.fan.settings.enableLockHint')"
+					  density="comfortable" hide-details />
+
+			<v-number-input v-model="settings.stepWidth" :min="1" :step="1" :precision="0" class="mt-3"
+							:label="$t('panel.fan.settings.stepWidth')"
+							v-hint="$t('panel.fan.settings.stepWidthHint')"
+							variant="outlined" density="comfortable" hide-details suffix="%" />
 		</template>
 	</PanelCard>
 </template>
@@ -44,8 +60,16 @@ const machineStore = useMachineStore();
 const uiStore = useUiStore();
 
 // Per-instance fan-visibility overlay; `null` shows every controllable fan
-const settings = useComponentSettings<{ displayedFans: Array<number> | null }>({
+const settings = useComponentSettings<{
+	displayedFans: Array<number> | null;
+	stepWidth: number;
+	numericInput: boolean;
+	enableLock: boolean;
+}>({
 	displayedFans: null,
+	stepWidth: 5,
+	numericInput: false,
+	enableLock: false,
 });
 
 const fan = ref(-1);

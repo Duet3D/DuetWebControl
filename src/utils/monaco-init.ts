@@ -23,6 +23,7 @@ import "monaco-editor-core/esm/vs/editor/contrib/linesOperations/browser/linesOp
 import "monaco-editor-core/esm/vs/editor/contrib/links/browser/links.js";
 import "monaco-editor-core/esm/vs/editor/contrib/multicursor/browser/multicursor.js";
 import "monaco-editor-core/esm/vs/editor/contrib/parameterHints/browser/parameterHints.js";
+import "monaco-editor-core/esm/vs/editor/contrib/placeholderText/browser/placeholderText.contribution.js";
 import "monaco-editor-core/esm/vs/editor/contrib/smartSelect/browser/smartSelect.js";
 import "monaco-editor-core/esm/vs/editor/contrib/stickyScroll/browser/stickyScrollContribution.js";
 import "monaco-editor-core/esm/vs/editor/contrib/suggest/browser/suggestController.js";

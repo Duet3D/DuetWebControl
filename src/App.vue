@@ -1,11 +1,23 @@
 <template>
 	<router-view />
+
+	<!-- App-wide overlays. Mounted here, outside the active layout, so a custom shell registered
+		 via registerLayout() gets them for free without having to re-declare each one -->
+	<GlobalUploadOverlay />
+	<ConnectDialog />
+	<ConnectionProgressDialog />
+	<FileTransferDialog />
+	<IncompatibleVersionsDialog />
+	<MessageBoxDialog />
+	<PluginInstallDialog />
+	<NotificationDisplay />
 </template>
 
 <script setup lang="ts">
 import Piecon from "piecon";
 
 import i18n from "@/i18n";
+import { _markAppMounted } from "@/plugins/layout";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
@@ -26,6 +38,11 @@ Piecon.setOptions({ color: "#1976D2", background: "#BBB", shadow: "#FFF", fallba
 if (!import.meta.env.DEV) {
 	machineStore.connect().catch((e) => console.warn(e));
 }
+
+// Flip the layout module's pre-mount marker. registerLayout reads it to decide whether
+// `locked: true` is honoured (pre-mount: yes; post-mount: downgraded with warning) - the lock
+// installs a router guard that cuts off URL escape and is gated to pre-mount registration only
+onMounted(() => _markAppMounted());
 
 // #region Document title
 

@@ -149,13 +149,33 @@ export default function dwcVuetifySplit(): VitePlugin {
 		},
 
 		configureServer(server) {
-			// Re-scan on every .vue file change so the dev server's virtual modules
-			// stay accurate as templates evolve
-			server.watcher.on("change", (path) => {
-				if (path.endsWith(".vue")) {
-					refresh();
+			// Re-scan when templates change/appear/vanish so the virtual modules stay accurate as
+			// the set of used components evolves. refresh() alone is not enough: Vite caches the
+			// emitted virtual module after its first load(), so a freshly-used <v-foo> would never
+			// reach the browser and would render as an unresolved custom element. When the core
+			// set actually changes, invalidate both virtual modules and force a reload so load()
+			// runs again - the global registration in src/plugins/index.ts happens once at boot,
+			// so an incremental HMR update could not pick up a new component anyway
+			function rescan(path: string) {
+				if (!path.endsWith(".vue")) {
+					return;
 				}
-			});
+				const before = Array.from(coreSet).sort().join(",");
+				refresh();
+				if (Array.from(coreSet).sort().join(",") === before) {
+					return;
+				}
+				for (const id of [RESOLVED_CORE, RESOLVED_EXTRAS]) {
+					const mod = server.moduleGraph.getModuleById(id);
+					if (mod) {
+						server.moduleGraph.invalidateModule(mod);
+					}
+				}
+				server.ws.send({ type: "full-reload" });
+			}
+			server.watcher.on("change", rescan);
+			server.watcher.on("add", rescan);
+			server.watcher.on("unlink", rescan);
 		},
 
 		resolveId(id) {

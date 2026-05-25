@@ -7,9 +7,24 @@
 
 			<v-spacer />
 
-			<span v-if="machineStore.model.state.machineMode">
-				{{ $t("panel.status.mode", [machineStore.model.state.machineMode.toUpperCase()]) }}
-			</span>
+			<template v-if="machineStore.model.state.machineMode">
+				<v-menu v-if="switchableModes.length > 0">
+					<template #activator="{ props: menuProps }">
+						<a v-bind="menuProps" href="javascript:void(0)">
+							{{ $t("panel.status.mode", [machineStore.model.state.machineMode.toUpperCase()]) }}
+						</a>
+					</template>
+					<v-list density="compact">
+						<v-list-item v-for="mode in switchableModes" :key="mode" :title="mode"
+									 :active="mode === machineStore.model.state.machineMode"
+									 :disabled="uiStore.uiFrozen || mode === machineStore.model.state.machineMode"
+									 @click="changeMode(mode)" />
+					</v-list>
+				</v-menu>
+				<span v-else>
+					{{ $t("panel.status.mode", [machineStore.model.state.machineMode.toUpperCase()]) }}
+				</span>
+			</template>
 
 			<a v-if="hasMultipleMotionSystems" href="javascript:void(0)" class="ms-2"
 			   @click="cycleMotionSystem">
@@ -216,31 +231,35 @@
 								  v-model="settings.displayedAxes" />
 			<v-select v-model="settings.positionDisplay" :items="positionDisplayItems"
 					  item-value="value" item-title="title" :label="$t('panel.status.settings.positionDisplay')"
-					  :title="$t('panel.status.settings.positionDisplayHint')" variant="outlined"
+					  v-hint="$t('panel.status.settings.positionDisplayHint')" variant="outlined"
 					  density="comfortable" hide-details class="mt-4" />
 
 			<EntityVisibilityList kind="extruders" :label="$t('panel.status.settings.extruders')"
 								  v-model="settings.displayedExtruders" class="mt-4" />
 			<v-select v-model="settings.extruderDisplay" :items="extruderDisplayItems"
 					  item-value="value" item-title="title" :label="$t('panel.status.settings.extruderDisplay')"
-					  :title="$t('panel.status.settings.extruderDisplayHint')" variant="outlined"
+					  v-hint="$t('panel.status.settings.extruderDisplayHint')" variant="outlined"
 					  density="comfortable" hide-details class="mt-4" />
 			<v-switch v-model="settings.virtualEPos" color="primary" density="compact" hide-details
 					  class="mt-4" :label="$t('panel.status.settings.virtualEPos')"
-					  :title="$t('panel.status.settings.virtualEPosHint')" />
+					  v-hint="$t('panel.status.settings.virtualEPosHint')" />
 
 			<v-autocomplete v-model="checkedSpeeds" :items="speedItems" item-value="value" item-title="title"
-							:label="$t('panel.status.speeds')" :title="$t('panel.status.settings.speedsHint')"
-							variant="outlined" density="comfortable" hide-details chips clearable multiple
+							:label="$t('panel.status.speeds')" v-hint="$t('panel.status.settings.speedsHint')"
+							variant="outlined" density="comfortable" hide-details chips closable-chips clearable multiple
 							class="mt-4" />
 			<v-autocomplete v-if="sensorItems.length > 0" v-model="checkedSensors" :items="sensorItems"
 							item-value="value" item-title="title" :label="$t('panel.status.sensors')"
-							:title="$t('panel.status.settings.sensorsHint')" variant="outlined"
-							density="comfortable" hide-details chips clearable multiple class="mt-4" />
+							v-hint="$t('panel.status.settings.sensorsHint')" variant="outlined"
+							density="comfortable" hide-details chips closable-chips clearable multiple class="mt-4" />
 			<EntityVisibilityList v-if="hasTachoFans" kind="tachoFans" :label="$t('panel.status.fanRPM')"
 								  v-model="settings.displayedFanRPM" class="mt-4" />
 			<EntityVisibilityList v-if="hasProbes" kind="probes" :label="$t('panel.status.settings.probes')"
 								  v-model="settings.displayedProbes" class="mt-4" />
+			<v-autocomplete v-model="settings.machineModes" :items="machineModeItems" item-value="value"
+							item-title="title" :label="$t('panel.status.settings.machineModes')"
+							v-hint="$t('panel.status.settings.machineModesHint')" variant="outlined"
+							density="comfortable" hide-details chips closable-chips clearable multiple class="mt-4" />
 		</template>
 	</PanelCard>
 </template>
@@ -283,7 +302,7 @@ a {
 </style>
 
 <script setup lang="ts">
-import { ProbeType, type Extruder, type Probe } from "@duet3d/objectmodel";
+import { MachineMode, ProbeType, type Extruder, type Probe } from "@duet3d/objectmodel";
 
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
@@ -302,12 +321,14 @@ const settings = useComponentSettings({
 	displayedExtruders: null as Array<number> | null,
 	displayedProbes: null as Array<number> | null,
 	displayedFanRPM: null as Array<number> | null,
-	// Mirrors the v3.7-dev default: extrusion rate is hidden in favour of volumetric flow
-	displayedSpeeds: ["requested", "top", "volumetricFlow"] as Array<string> | null,
+	// Requested + top by default; volumetric flow and extrusion rate are opt-in via the panel settings
+	displayedSpeeds: ["requested", "top"] as Array<string> | null,
 	displayedSensors: null as Array<string> | null,
 	positionDisplay: "toggle" as "tool" | "machine" | "toggle" | "both",
 	extruderDisplay: "length" as "length" | "volume" | "toggle" | "both",
-	virtualEPos: false
+	virtualEPos: false,
+	// Modes offered in the machine-mode dropdown; empty keeps the mode label non-interactive
+	machineModes: [] as Array<MachineMode>
 });
 
 // #region Displayed entities
@@ -458,7 +479,7 @@ const positionDisplayItems = computed(() => [
 ]);
 
 const extruderDisplayItems = computed(() => [
-	{ value: "length", title: i18n.global.t("panel.status.settings.extruderLength") },
+	{ value: "length", title: i18n.global.t("panel.status.settings.userPosition") },
 	{ value: "volume", title: i18n.global.t("panel.status.settings.extruderVolume") },
 	{ value: "toggle", title: i18n.global.t("panel.status.settings.extruderToggle") },
 	{ value: "both", title: i18n.global.t("panel.status.settings.extruderBoth") }
@@ -525,6 +546,39 @@ const virtualEPos = computed(() => {
 	const ms = machineStore.model.move.motionSystems[machineStore.selectedMotionSystem];
 	return ms?.virtualEPos ?? NaN;
 });
+
+// #endregion
+
+// #region Machine mode
+
+const allMachineModes: Array<MachineMode> = [MachineMode.fff, MachineMode.cnc, MachineMode.laser];
+
+// RRF selects the operating mode through these codes; the menu sends the matching one on click
+const machineModeCommands: Record<MachineMode, string> = {
+	[MachineMode.fff]: "M451",
+	[MachineMode.laser]: "M452",
+	[MachineMode.cnc]: "M453"
+};
+
+const machineModeItems = allMachineModes.map(mode => ({ value: mode, title: mode }));
+
+// Configured modes in canonical order rather than the order they were picked in the settings
+const switchableModes = computed(() => allMachineModes.filter(mode => settings.value.machineModes.includes(mode)));
+
+const changingMode = ref(false);
+
+async function changeMode(mode: MachineMode) {
+	if (changingMode.value || mode === machineStore.model.state.machineMode) {
+		return;
+	}
+	changingMode.value = true;
+	try {
+		await machineStore.sendCode(machineModeCommands[mode]);
+	} catch {
+		// sendCode reports failures itself
+	}
+	changingMode.value = false;
+}
 
 // #endregion
 

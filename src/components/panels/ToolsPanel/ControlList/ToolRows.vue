@@ -33,12 +33,13 @@
 							</v-list>
 						</v-menu>
 
-						<br>
-						<span class="font-weight-regular text-body-small">
-							T{{ tool.number }}
+						<br v-if="toolSettings.showToolNumber || (toolSettings.showFilamentControls && canLoadFilament(tool))">
+						<span v-if="toolSettings.showToolNumber || (toolSettings.showFilamentControls && canLoadFilament(tool))"
+							  class="font-weight-regular text-body-small">
+							<template v-if="toolSettings.showToolNumber">T{{ tool.number }}</template>
 
 							<template v-if="toolSettings.showFilamentControls && canLoadFilament(tool)">
-								-
+								<span v-if="toolSettings.showToolNumber"> - </span>
 								<v-menu v-if="getFilament(tool)" location="bottom" :disabled="disabled">
 									<template #activator="{ props: activatorProps }">
 										<a v-bind="activatorProps" href="javascript:void(0)" class="font-weight-regular"
@@ -150,7 +151,7 @@
 
 		<!-- Shared dialog instance (one for the whole list, not per row) -->
 		<FilamentDialog v-model:shown="filamentDialogShown" :run-macros="filamentRunMacros"
-						:tool="filamentDialogTool" />
+						:prompt-during-change="toolSettings.promptDuringFilamentChange" :tool="filamentDialogTool" />
 	</tbody>
 </template>
 
@@ -177,7 +178,7 @@ import { DisconnectedError } from "@duet3d/connectors";
 import { TOOL_DISPLAY_SETTINGS_KEY } from "../toolSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
+import { ToolChangeMacro, useSettingsStore } from "@/stores/settings";
 import { useUiStore, LogLevel } from "@/stores/ui";
 import { getHeaterColor } from "@/utils/colors";
 import { display, displaySensorValue } from "@/utils/display";
@@ -292,6 +293,22 @@ function getToolIcon(tool: Tool): string | null {
 	return null;
 }
 
+// T-command P parameter encoding which tool-change macros run; omitted when all three are enabled
+const toolChangeParameter = computed(() => {
+	const macros = toolSettings.value.toolChangeMacros;
+	let pParam = 0;
+	if (macros.includes(ToolChangeMacro.free)) {
+		pParam |= 1;
+	}
+	if (macros.includes(ToolChangeMacro.pre)) {
+		pParam |= 2;
+	}
+	if (macros.includes(ToolChangeMacro.post)) {
+		pParam |= 4;
+	}
+	return pParam === 7 ? "" : ` P${pParam}`;
+});
+
 async function toolClick(tool: Tool) {
 	if (disabled.value || busyTool.value !== null) {
 		return;
@@ -299,7 +316,7 @@ async function toolClick(tool: Tool) {
 
 	busyTool.value = tool;
 	try {
-		const param = settingsStore.toolChangeParameter;
+		const param = toolChangeParameter.value;
 		if (machineStore.model.state.currentTool === tool.number) {
 			await machineStore.sendCode("T-1" + param);
 		} else {

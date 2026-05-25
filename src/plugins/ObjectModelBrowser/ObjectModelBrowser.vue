@@ -1,6 +1,6 @@
 <template>
-	<v-row class="ma-0 pt-3 pt-md-0 pe-3 pe-md-0">
-		<v-col ref="leftContainer" cols="12" :sm="active.length === 0 ? 12 : 6">
+	<v-row class="ma-0 pt-3 pt-md-0 pe-3 pe-md-0" :class="{ 'dwc-page-fill overflow-hidden flex-nowrap': mdAndUp }">
+		<v-col ref="leftContainer" cols="12" :sm="active.length === 0 ? 12 : 6" class="om-column">
 			<v-text-field v-model="search" prepend-inner-icon="mdi-magnify"
 						  :placeholder="$t('plugins.objectModelBrowser.search')" clearable
 						  density="compact" variant="outlined" hide-details class="mb-3" />
@@ -29,7 +29,8 @@
 			</v-treeview>
 		</v-col>
 
-		<v-col v-show="active.length !== 0" ref="rightContainer" cols="12" sm="6" class="doc-panel">
+		<v-col v-show="active.length !== 0" ref="rightContainer" cols="12" sm="6"
+			   class="om-column om-description">
 			<div class="d-flex align-center flex-wrap ga-2 mb-3">
 				<span>{{ $t("plugins.objectModelBrowser.selectedNode") }}</span>
 				<template v-if="activeId">
@@ -104,6 +105,7 @@ interface PathStep {
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const display = useDisplay();
+const mdAndUp = display.mdAndUp;
 
 const active = ref<Array<ModelTreeItem>>([]);
 const search = ref("");
@@ -425,9 +427,16 @@ input[readonly] {
 }
 
 @media (min-width: 840px) {
-	.doc-panel {
+	.om-column {
+		min-height: 0;
+		overflow-y: auto;
+	}
+}
+
+@media (min-width: 600px) and (max-width: 839.98px) {
+	.om-description {
 		position: sticky;
-		top: 80px;
+		top: calc(var(--v-layout-top, 64px) + 12px);
 		align-self: flex-start;
 	}
 }

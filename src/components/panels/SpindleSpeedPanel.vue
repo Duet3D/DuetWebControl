@@ -6,7 +6,7 @@
 		</v-card-title>
 
 		<v-card-text>
-			<v-table density="compact" class="spindle-table">
+			<v-table v-if="hasConfiguredSpindles" density="compact" class="spindle-table">
 				<thead>
 					<tr>
 						<th>{{ $t("panel.spindle.spindle") }}</th>
@@ -46,6 +46,10 @@
 					</template>
 				</tbody>
 			</v-table>
+
+			<v-alert v-else type="info" class="mb-0">
+				{{ $t("panel.spindle.noSpindles") }}
+			</v-alert>
 		</v-card-text>
 	</v-card>
 </template>
@@ -86,6 +90,8 @@ const spindleDirections = reactive<Record<number, number>>({});
 
 const spindles = computed<Array<Spindle | null>>(() => machineStore.model.spindles);
 const hasReverseableSpindle = computed(() => spindles.value.some(spindle => spindle?.canReverse));
+const hasConfiguredSpindles = computed(() =>
+	spindles.value.some(spindle => spindle !== null && isConfigured(spindle)));
 
 function getName(spindleIndex: number) {
 	return `${i18n.global.t("panel.spindle.spindle")} ${spindleIndex}`;

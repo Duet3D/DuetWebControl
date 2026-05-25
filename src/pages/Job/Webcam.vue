@@ -1,6 +1,7 @@
 <route lang="json">
 {
 	"meta": {
+		"pageFill": true,
 		"menu": {
 			"category": "job",
 			"icon": "mdi-webcam",

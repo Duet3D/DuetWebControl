@@ -3,7 +3,7 @@
 		<v-card>
 			<v-card-title>
 				<v-icon class="mr-1">mdi-cog</v-icon>
-				{{ $t("dialog.componentSettings.title") }}
+				{{ panelTitle ? $t("dialog.componentSettings.titleFor", [panelTitle]) : $t("dialog.componentSettings.title") }}
 			</v-card-title>
 			<v-card-text>
 				<EntityVisibilityList v-for="(descriptor, field) in (schema ?? {})" :key="field"
@@ -32,6 +32,7 @@ import { useSettingsStore } from "@/stores/settings";
 const props = defineProps<{
 	id?: string;
 	schema?: Record<string, ComponentSettingDescriptor>;
+	panelTitle?: string;
 }>();
 
 const shown = defineModel<boolean>("shown", { required: true });

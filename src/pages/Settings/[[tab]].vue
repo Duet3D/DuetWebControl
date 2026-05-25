@@ -1,11 +1,13 @@
 <route lang="json">
 {
 	"meta": {
+		"pageFill": true,
 		"menu": {
 			"category": "preferences",
 			"icon": "mdi-wrench",
 			"caption": "menu.preferences.settings",
-			"order": 10
+			"order": 10,
+			"path": "/Settings"
 		}
 	}
 }
@@ -22,29 +24,10 @@
 		</v-tabs>
 
 		<v-window v-model="activeTab" :touch="false" :transition="false" :reverse-transition="false" class="settings-window">
-			<v-window-item value="general" eager>
+			<v-window-item value="General" eager>
 				<v-container fluid>
 					<v-row density="compact">
 						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-palette</v-icon>
-									{{ $t("settings.appearance.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.darkTheme" color="primary"
-											  :label="$t('settings.appearance.darkTheme')"
-											  :title="$t('settings.appearance.darkThemeHint')"
-											  density="comfortable" hide-details />
-									<v-select :model-value="settingsStore.locale" :items="languageOptions"
-											  item-title="label" item-value="value"
-											  :label="$t('settings.appearance.language')"
-											  :title="$t('settings.appearance.languageHint')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4"
-											  @update:model-value="(value) => settingsStore.setLocale(value as Locale)" />
-								</v-card-text>
-							</v-card>
-
 							<v-card>
 								<v-card-title>
 									<v-icon class="mr-2">mdi-database</v-icon>
@@ -54,29 +37,50 @@
 									<v-switch v-model="settingsStore.settingsStorageLocal" color="primary"
 											  :disabled="!supportsLocalStorage"
 											  :label="$t('settings.storage.settingsStorageLocal')"
-											  :title="$t('settings.storage.settingsStorageLocalHint')"
+											  v-hint="$t('settings.storage.settingsStorageLocalHint')"
 											  density="comfortable" hide-details />
 									<v-switch v-model="settingsStore.cacheStorageLocal" color="primary"
 											  :disabled="!supportsLocalStorage"
 											  :label="$t('settings.storage.cacheStorageLocal')"
-											  :title="$t('settings.storage.cacheStorageLocalHint')"
-											  density="comfortable" hide-details class="mt-2" />
+											  v-hint="$t('settings.storage.cacheStorageLocalHint')"
+											  density="comfortable" hide-details />
 									<v-row density="compact" class="mt-4">
 										<v-col cols="6">
 											<v-text-field v-model.number="settingsSaveDelayMs" type="number" min="0" step="100"
 														  :label="$t('settings.storage.settingsSaveDelay')"
-														  :title="$t('settings.storage.settingsSaveDelayHint')"
+														  v-hint="$t('settings.storage.settingsSaveDelayHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  suffix="ms" />
 										</v-col>
 										<v-col cols="6">
 											<v-text-field v-model.number="cacheSaveDelayMs" type="number" min="0" step="100"
 														  :label="$t('settings.storage.cacheSaveDelay')"
-														  :title="$t('settings.storage.cacheSaveDelayHint')"
+														  v-hint="$t('settings.storage.cacheSaveDelayHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  suffix="ms" />
 										</v-col>
 									</v-row>
+								</v-card-text>
+							</v-card>
+
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-account-cog</v-icon>
+									{{ $t("settings.behaviour.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.behaviour.switchToJobOnPrintStart" color="primary"
+											  :label="$t('settings.behaviour.switchToJobOnPrintStart')"
+											  v-hint="$t('settings.behaviour.switchToJobOnPrintStartHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.checkVersions" color="primary"
+											  :label="$t('settings.behaviour.checkVersions')"
+											  v-hint="$t('settings.behaviour.checkVersionsHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.behaviour.autoScroll" color="primary"
+											  :label="$t('settings.behaviour.autoScroll')"
+											  v-hint="$t('settings.behaviour.autoScrollHint')"
+											  density="comfortable" hide-details />
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -95,14 +99,14 @@
 										<v-col cols="12" sm="6">
 											<v-text-field v-model.number="settingsStore.pingInterval" type="number"
 														  :label="$t('settings.communication.pingInterval')"
-														  :title="$t('settings.communication.pingIntervalHint')"
+														  v-hint="$t('settings.communication.pingIntervalHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="0" suffix="ms" />
 										</v-col>
 										<v-col cols="12" sm="6">
 											<v-text-field v-model.number="settingsStore.updateDelay" type="number"
 														  :label="$t('settings.communication.updateDelay')"
-														  :title="$t('settings.communication.updateDelayHint')"
+														  v-hint="$t('settings.communication.updateDelayHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="0" suffix="ms" />
 										</v-col>
@@ -113,21 +117,21 @@
 										<v-col cols="12" sm="6">
 											<v-text-field v-model.number="settingsStore.maxRetries" type="number"
 														  :label="$t('settings.communication.maxRetries')"
-														  :title="$t('settings.communication.maxRetriesHint')"
+														  v-hint="$t('settings.communication.maxRetriesHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="0" />
 										</v-col>
 										<v-col cols="12" sm="6">
 											<v-text-field v-model.number="settingsStore.retryDelay" type="number"
 														  :label="$t('settings.communication.retryDelay')"
-														  :title="$t('settings.communication.retryDelayHint')"
+														  v-hint="$t('settings.communication.retryDelayHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="0" suffix="ms" />
 										</v-col>
 										<v-col cols="12" sm="6">
 											<v-text-field v-model.number="settingsStore.updateInterval" type="number"
 														  :label="$t('settings.machine.updateInterval')"
-														  :title="$t('settings.machine.updateIntervalHint')"
+														  v-hint="$t('settings.machine.updateIntervalHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="0" suffix="ms" />
 										</v-col>
@@ -135,19 +139,19 @@
 											<v-text-field v-model.number="fileTransferRetryThresholdKiB"
 														  type="number"
 														  :label="$t('settings.communication.retryThreshold')"
-														  :title="$t('settings.communication.retryThresholdHint')"
+														  v-hint="$t('settings.communication.retryThresholdHint')"
 														  variant="outlined" density="comfortable" hide-details
 														  min="1" suffix="KiB" />
 										</v-col>
 									</v-row>
 									<v-switch v-model="settingsStore.ignoreFileTimestamps" color="primary"
 											  :label="$t('settings.communication.ignoreFileTimestamps')"
-											  :title="$t('settings.communication.ignoreFileTimestampsHint')"
+											  v-hint="$t('settings.communication.ignoreFileTimestampsHint')"
 											  density="comfortable" hide-details class="mt-2" />
 									<v-switch v-model="settingsStore.crcUploads" color="primary"
 											  :label="$t('settings.machine.crcUploads')"
-											  :title="$t('settings.machine.crcUploadsHint')"
-											  density="comfortable" hide-details class="mt-2" />
+											  v-hint="$t('settings.machine.crcUploadsHint')"
+											  density="comfortable" hide-details />
 								</v-card-text>
 							</v-card>
 
@@ -159,36 +163,13 @@
 								<v-card-text>
 									<v-switch v-model="settingsStore.notifications.errorsPersistent" color="primary"
 											  :label="$t('settings.notifications.errorsPersistent')"
-											  :title="$t('settings.notifications.errorsPersistentHint')"
+											  v-hint="$t('settings.notifications.errorsPersistentHint')"
 											  density="comfortable" hide-details />
-									<v-text-field v-model.number="notificationTimeoutSeconds" type="number" min="1"
+									<v-text-field v-model.number="settingsStore.notifications.timeout" type="number" min="1000"
 												  :label="$t('settings.notifications.timeout')"
-												  :title="$t('settings.notifications.timeoutHint')"
+												  v-hint="$t('settings.notifications.timeoutHint')"
 												  variant="outlined" density="comfortable" hide-details
-												  class="mt-4" suffix="s" />
-								</v-card-text>
-							</v-card>
-
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-account-cog</v-icon>
-									{{ $t("settings.behaviour.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.behaviour.switchToJobOnPrintStart" color="primary"
-											  :label="$t('settings.behaviour.switchToJobOnPrintStart')"
-											  :title="$t('settings.behaviour.switchToJobOnPrintStartHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.behaviour.promptDuringFilamentChange" color="primary"
-											  :label="$t('settings.behaviour.promptDuringFilamentChange')"
-											  :title="$t('settings.behaviour.promptDuringFilamentChangeHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-autocomplete v-model="settingsStore.toolChangeMacros"
-													:items="toolChangeMacroOptions" item-title="label" item-value="value"
-													:label="$t('settings.display.toolChangeMacros')"
-													:title="$t('settings.display.toolChangeMacrosHint')"
-													variant="outlined" density="comfortable" hide-details
-													chips clearable multiple class="mt-4" />
+												  class="mt-4" suffix="ms" />
 								</v-card-text>
 							</v-card>
 						</v-col>
@@ -196,7 +177,338 @@
 				</v-container>
 			</v-window-item>
 
-			<v-window-item value="boards" eager>
+			<v-window-item value="Display" eager>
+				<v-container fluid>
+					<v-row density="compact">
+						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-palette</v-icon>
+									{{ $t("settings.appearance.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.darkTheme" color="primary"
+											  :label="$t('settings.appearance.darkTheme')"
+											  v-hint="$t('settings.appearance.darkThemeHint')"
+											  density="comfortable" hide-details />
+									<v-select :model-value="settingsStore.locale" :items="languageOptions"
+											  item-title="label" item-value="value"
+											  :label="$t('settings.appearance.language')"
+											  v-hint="$t('settings.appearance.languageHint')"
+											  variant="outlined" density="comfortable" hide-details class="mt-4"
+											  @update:model-value="(value) => settingsStore.setLocale(value as Locale)" />
+								</v-card-text>
+							</v-card>
+
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-view-dashboard</v-icon>
+									{{ $t("settings.display.layoutCaption") }}
+								</v-card-title>
+								<v-card-text class="pt-4">
+									<v-select v-model="settingsStore.dashboardMode" :items="dashboardModeOptions"
+											  item-title="label" item-value="value"
+											  :label="$t('settings.display.dashboardMode')"
+											  v-hint="$t('settings.display.dashboardModeHint')"
+											  variant="outlined" density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.iconMenu" color="primary"
+											  :label="$t('settings.display.iconMenu')"
+											  v-hint="$t('settings.display.iconMenuHint')"
+											  density="comfortable" hide-details class="mt-4" />
+									<v-switch v-model="settingsStore.enablePanelEditing" color="primary"
+											  :label="$t('settings.display.enablePanelEditing')"
+											  v-hint="$t('settings.display.enablePanelEditingHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.largeButtons" color="primary"
+											  v-hint="$t('settings.display.largeButtonsHint')"
+											  density="comfortable" hide-details>
+										<template #label>
+											{{ $t("settings.display.largeButtons") }}
+											<v-chip size="x-small" variant="tonal" color="info" class="ml-2"
+													v-hint="$t('settings.display.largeButtonsSmOnlyHint')">
+												{{ $t("settings.display.largeButtonsSmOnly") }}
+											</v-chip>
+										</template>
+									</v-switch>
+									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
+											  :label="$t('settings.display.disableAutoComplete')"
+											  v-hint="$t('settings.display.disableAutoCompleteHint')"
+											  density="comfortable" hide-details />
+									<v-select v-if="registeredThemes.length > 0"
+											  v-model="settingsStore.themeName"
+											  :items="themeItems" item-title="title" item-value="value"
+											  :label="$t('settings.display.theme')"
+											  v-hint="$t('settings.display.themeHint')"
+											  variant="outlined" density="comfortable" hide-details class="mt-4" />
+									<v-btn v-if="registeredLayout && !registeredLayoutOptions?.locked"
+										   variant="tonal" class="mt-4" @click="onSwitchLayoutClick">
+										{{ switchLayoutLabel }}
+									</v-btn>
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-counter</v-icon>
+									{{ $t("settings.units.caption") }}
+								</v-card-title>
+								<v-card-text class="pt-4">
+									<v-row density="compact">
+										<v-col cols="6">
+											<v-select v-model="settingsStore.displayUnits" :items="displayUnitOptions"
+													  item-title="label" item-value="value"
+													  :label="$t('settings.units.displayUnits')"
+													  v-hint="$t('settings.units.displayUnitsHint')"
+													  variant="outlined" density="comfortable" hide-details />
+										</v-col>
+										<v-col cols="6">
+											<v-select v-model.number="settingsStore.decimalPlaces" :items="decimalPlaceOptions"
+													  :label="$t('settings.units.decimalPlaces')"
+													  v-hint="$t('settings.units.decimalPlacesHint')"
+													  variant="outlined" density="comfortable" hide-details />
+										</v-col>
+									</v-row>
+									<v-switch v-model="settingsStore.useBinaryPrefix" color="primary"
+											  :label="$t('settings.units.binaryPrefix')"
+											  v-hint="$t('settings.units.binaryPrefixHint')"
+											  density="comfortable" hide-details class="mt-2" />
+								</v-card-text>
+							</v-card>
+
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-eye-off</v-icon>
+									{{ $t("settings.display.hideMenuItemsCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<div class="text-body-small text-medium-emphasis mb-2">
+										{{ $t("settings.display.hideMenuItemsHint") }}
+									</div>
+									<v-switch v-for="item in hideableMenuItems" :key="item.path"
+											  v-model="hiddenMenuPaths" :value="item.path" color="primary"
+											  v-hint="$t('settings.display.hideMenuItemSwitchHint')"
+											  density="comfortable" hide-details>
+										<template #label>
+											<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
+											{{ item.translated ? item.caption : $t(item.caption) }}
+											<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
+											<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
+													variant="tonal" color="info" class="ml-2"
+													v-hint="$t('settings.display.hideMenuItemsXsSmOnlyHint')">
+												{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
+											</v-chip>
+										</template>
+									</v-switch>
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="Presets" eager>
+				<v-container fluid>
+					<v-row density="compact">
+						<v-col cols="12" class="d-flex flex-column ga-3">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-format-list-numbered</v-icon>
+									{{ $t("settings.presets.caption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-tabs v-model="presetsTab" align-tabs="start" density="compact">
+										<v-tab value="tool" class="text-none">
+											{{ $t("settings.presets.toolTemperatures") }}
+										</v-tab>
+										<v-tab value="bed" class="text-none">
+											{{ $t("settings.presets.bedTemperatures") }}
+										</v-tab>
+										<v-tab value="chamber" class="text-none">
+											{{ $t("settings.presets.chamberTemperatures") }}
+										</v-tab>
+										<v-tab value="spindleRPM" class="text-none">
+											{{ $t("settings.presets.spindleRPM") }}
+										</v-tab>
+									</v-tabs>
+									<v-window v-model="presetsTab" :touch="false" class="mt-3">
+										<v-window-item value="tool">
+											<ListEditor item-key="tool" temperature />
+										</v-window-item>
+										<v-window-item value="bed">
+											<ListEditor item-key="bed" temperature />
+										</v-window-item>
+										<v-window-item value="chamber">
+											<ListEditor item-key="chamber" temperature />
+										</v-window-item>
+										<v-window-item value="spindleRPM">
+											<ListEditor item-key="spindleRPM" />
+										</v-window-item>
+									</v-window>
+								</v-card-text>
+							</v-card>
+
+						</v-col>
+
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="Webcam" eager>
+				<v-container fluid>
+					<v-switch v-model="settingsStore.webcam.enabled" color="primary"
+							  :label="$t('settings.webcam.enabled')"
+							  v-hint="$t('settings.webcam.enabledHint')"
+							  density="comfortable" hide-details />
+					<v-row density="compact" class="mt-2">
+						<v-col cols="12" lg="6">
+							<v-text-field v-model="settingsStore.webcam.url"
+										  :label="$t('settings.webcam.url')"
+										  v-hint="$t('settings.webcam.urlHint')"
+										  variant="outlined" density="comfortable" hide-details />
+						</v-col>
+						<v-col cols="12" lg="6">
+							<v-text-field v-model="settingsStore.webcam.liveUrl"
+										  :label="$t('settings.webcam.liveUrl')"
+										  v-hint="$t('settings.webcam.liveUrlHint')"
+										  variant="outlined" density="comfortable" hide-details />
+						</v-col>
+					</v-row>
+					<v-row density="compact" class="mt-2">
+						<v-col cols="12" sm="6">
+							<v-switch v-model="settingsStore.webcam.embedded" color="primary"
+									  :label="$t('settings.webcam.embedded')"
+									  v-hint="$t('settings.webcam.embeddedHint')"
+									  density="comfortable" hide-details />
+						</v-col>
+						<v-col cols="12" sm="6">
+							<v-switch v-model="settingsStore.webcam.useFix" color="primary"
+									  :label="$t('settings.webcam.useFix')"
+									  v-hint="$t('settings.webcam.useFixHint')"
+									  density="comfortable" hide-details />
+						</v-col>
+					</v-row>
+					<v-row density="compact" class="mt-4">
+						<v-col cols="4">
+							<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
+									  item-title="label" item-value="value"
+									  :label="$t('settings.webcam.flip')"
+									  v-hint="$t('settings.webcam.flipHint')"
+									  variant="outlined" density="comfortable" hide-details />
+						</v-col>
+						<v-col cols="4">
+							<v-select v-model.number="settingsStore.webcam.rotation"
+									  :items="rotationOptions" item-title="label" item-value="value"
+									  :label="$t('settings.webcam.rotation')"
+									  v-hint="$t('settings.webcam.rotationHint')"
+									  variant="outlined" density="comfortable" hide-details />
+						</v-col>
+						<v-col cols="4">
+							<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
+										  :label="$t('settings.webcam.updateInterval')"
+										  v-hint="$t('settings.webcam.updateIntervalHint')"
+										  variant="outlined" density="comfortable" hide-details
+										  suffix="ms" />
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="Editor" eager>
+				<v-container fluid>
+					<v-row density="compact">
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-format-text</v-icon>
+									{{ $t("settings.editor.appearanceCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.editor.useMonaco" color="primary"
+											  :label="$t('settings.editor.useMonaco')"
+											  v-hint="$t('settings.editor.useMonacoHint')"
+											  density="comfortable" hide-details />
+									<v-row density="compact" class="mt-4">
+										<v-col cols="6">
+											<v-text-field v-model.number="settingsStore.editor.fontSize" type="number"
+														  :label="$t('settings.editor.fontSize')"
+														  v-hint="$t('settings.editor.fontSizeHint')"
+														  variant="outlined" density="comfortable" hide-details
+														  min="8" max="32" suffix="px" />
+										</v-col>
+										<v-col cols="6">
+											<v-select v-model.number="settingsStore.editor.tabSize"
+													  :items="[2, 4, 8]"
+													  :label="$t('settings.editor.tabSize')"
+													  v-hint="$t('settings.editor.tabSizeHint')"
+													  variant="outlined" density="comfortable" hide-details />
+										</v-col>
+									</v-row>
+									<v-select v-model="settingsStore.editor.wordWrap"
+											  :items="wordWrapOptions" item-title="label" item-value="value"
+											  :label="$t('settings.editor.wordWrap')"
+											  v-hint="$t('settings.editor.wordWrapHint')"
+											  variant="outlined" density="comfortable" hide-details class="mt-4" />
+									<v-switch v-model="settingsStore.editor.minimap" color="primary"
+											  :label="$t('settings.editor.minimap')"
+											  v-hint="$t('settings.editor.minimapHint')"
+											  density="comfortable" hide-details class="mt-2" />
+									<v-switch v-model="settingsStore.editor.lineNumbers" color="primary"
+											  :label="$t('settings.editor.lineNumbers')"
+											  v-hint="$t('settings.editor.lineNumbersHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.bracketPairColorization" color="primary"
+											  :label="$t('settings.editor.bracketPairColorization')"
+											  v-hint="$t('settings.editor.bracketPairColorizationHint')"
+											  density="comfortable" hide-details />
+								</v-card-text>
+							</v-card>
+						</v-col>
+
+						<v-col cols="12" md="6">
+							<v-card>
+								<v-card-title>
+									<v-icon class="mr-2">mdi-auto-fix</v-icon>
+									{{ $t("settings.editor.assistanceCaption") }}
+								</v-card-title>
+								<v-card-text>
+									<v-switch v-model="settingsStore.editor.quickSuggestions" color="primary"
+											  :label="$t('settings.editor.quickSuggestions')"
+											  v-hint="$t('settings.editor.quickSuggestionsHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.suggestOnTriggerCharacters" color="primary"
+											  :label="$t('settings.editor.suggestOnTriggerCharacters')"
+											  v-hint="$t('settings.editor.suggestOnTriggerCharactersHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.parameterHints" color="primary"
+											  :label="$t('settings.editor.parameterHints')"
+											  v-hint="$t('settings.editor.parameterHintsHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.hover" color="primary"
+											  :label="$t('settings.editor.hover')"
+											  v-hint="$t('settings.editor.hoverHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.inlineSuggest" color="primary"
+											  :label="$t('settings.editor.inlineSuggest')"
+											  v-hint="$t('settings.editor.inlineSuggestHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.formatOnPaste" color="primary"
+											  :label="$t('settings.editor.formatOnPaste')"
+											  v-hint="$t('settings.editor.formatOnPasteHint')"
+											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.formatOnType" color="primary"
+											  :label="$t('settings.editor.formatOnType')"
+											  v-hint="$t('settings.editor.formatOnTypeHint')"
+											  density="comfortable" hide-details />
+								</v-card-text>
+							</v-card>
+						</v-col>
+					</v-row>
+				</v-container>
+			</v-window-item>
+
+			<v-window-item value="Boards" eager>
 				<v-alert v-if="boards.length === 0" type="info" variant="tonal" tile>
 					{{ $t("settings.about.noBoards") }}
 				</v-alert>
@@ -229,7 +541,7 @@
 								<v-btn v-if="board.canAddress !== null && board.canAddress > 0"
 									   variant="text" density="compact" color="primary"
 									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-									   :title="$t('settings.infrastructure.changeCanAddress')"
+									   v-hint="$t('settings.infrastructure.changeCanAddress')"
 									   @click="openCanAddressDialog(board)">
 									{{ board.canAddress }}
 								</v-btn>
@@ -287,6 +599,7 @@
 								<v-text-field v-model.number="canAddressDialog.newAddress" type="number"
 											  min="1" max="126" step="1" autofocus hide-details
 											  :label="$t('settings.infrastructure.newCanAddress')"
+											  v-hint="$t('settings.infrastructure.newCanAddressHint')"
 											  variant="outlined" density="comfortable" />
 								<v-alert type="info" variant="tonal" class="mt-3" icon="mdi-restart">
 									{{ $t("settings.infrastructure.canAddressRestartHint") }}
@@ -307,339 +620,7 @@
 				</v-dialog>
 			</v-window-item>
 
-			<v-window-item value="display" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-view-dashboard</v-icon>
-									{{ $t("settings.display.layoutCaption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-select v-model="settingsStore.dashboardMode" :items="dashboardModeOptions"
-											  item-title="label" item-value="value"
-											  :label="$t('settings.display.dashboardMode')"
-											  :title="$t('settings.display.dashboardModeHint')"
-											  variant="outlined" density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.iconMenu" color="primary"
-											  :label="$t('settings.display.iconMenu')"
-											  :title="$t('settings.display.iconMenuHint')"
-											  density="comfortable" hide-details class="mt-4" />
-									<v-switch v-model="settingsStore.numericInputs" color="primary"
-											  :label="$t('settings.display.numericInputs')"
-											  :title="$t('settings.display.numericInputsHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.enablePanelEditing" color="primary"
-											  :label="$t('settings.display.enablePanelEditing')"
-											  :title="$t('settings.display.enablePanelEditingHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.largeAppBar" color="primary"
-											  :label="$t('settings.display.largeAppBar')"
-											  :title="$t('settings.display.largeAppBarHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
-											  :label="$t('settings.display.disableAutoComplete')"
-											  :title="$t('settings.display.disableAutoCompleteHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.checkVersions" color="primary"
-											  :label="$t('settings.display.checkVersions')"
-											  :title="$t('settings.display.checkVersionsHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-
-						<v-col cols="12" md="6" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-counter</v-icon>
-									{{ $t("settings.units.caption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-row density="compact">
-										<v-col cols="6">
-											<v-select v-model="settingsStore.displayUnits" :items="displayUnitOptions"
-													  item-title="label" item-value="value"
-													  :label="$t('settings.units.displayUnits')"
-													  :title="$t('settings.units.displayUnitsHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-										<v-col cols="6">
-											<v-select v-model.number="settingsStore.decimalPlaces" :items="decimalPlaceOptions"
-													  :label="$t('settings.units.decimalPlaces')"
-													  :title="$t('settings.units.decimalPlacesHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-									</v-row>
-									<v-switch v-model="settingsStore.useBinaryPrefix" color="primary"
-											  :label="$t('settings.units.binaryPrefix')"
-											  :title="$t('settings.units.binaryPrefixHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-eye-off</v-icon>
-									{{ $t("settings.display.hideMenuItemsCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<div class="text-body-small text-medium-emphasis mb-2">
-										{{ $t("settings.display.hideMenuItemsHint") }}
-									</div>
-									<v-switch v-for="item in hideableMenuItems" :key="item.path"
-											  v-model="hiddenMenuPaths" :value="item.path" color="primary"
-											  density="comfortable" hide-details>
-										<template #label>
-											<v-icon size="small" class="mr-2">{{ item.icon }}</v-icon>
-											{{ item.translated ? item.caption : $t(item.caption) }}
-											<span class="text-medium-emphasis ml-2">{{ item.path }}</span>
-											<v-chip v-if="item.conditionKey === 'xsOrSm'" size="x-small"
-													variant="tonal" color="info" class="ml-2">
-												{{ $t("settings.display.hideMenuItemsXsSmOnly") }}
-											</v-chip>
-										</template>
-									</v-switch>
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="presets" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" class="d-flex flex-column ga-3">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-format-list-numbered</v-icon>
-									{{ $t("settings.presets.caption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-tabs v-model="presetsTab" align-tabs="start" density="compact">
-										<v-tab value="tool" class="text-none">
-											{{ $t("settings.presets.toolTemperatures") }}
-										</v-tab>
-										<v-tab value="bed" class="text-none">
-											{{ $t("settings.presets.bedTemperatures") }}
-										</v-tab>
-										<v-tab value="chamber" class="text-none">
-											{{ $t("settings.presets.chamberTemperatures") }}
-										</v-tab>
-										<v-tab value="spindleRPM" class="text-none">
-											{{ $t("settings.presets.spindleRPM") }}
-										</v-tab>
-									</v-tabs>
-									<v-window v-model="presetsTab" :touch="false" class="mt-3">
-										<v-window-item value="tool">
-											<ListEditor item-key="tool" temperature />
-										</v-window-item>
-										<v-window-item value="bed">
-											<ListEditor item-key="bed" temperature />
-										</v-window-item>
-										<v-window-item value="chamber">
-											<ListEditor item-key="chamber" temperature />
-										</v-window-item>
-										<v-window-item value="spindleRPM">
-											<ListEditor item-key="spindleRPM" />
-										</v-window-item>
-									</v-window>
-								</v-card-text>
-							</v-card>
-
-						</v-col>
-
-						<v-col cols="12" sm="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-axis-arrow</v-icon>
-									{{ $t("settings.display.movementCaption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-text-field v-model.number="moveFeedrate" type="number" min="1" step="any"
-												  :label="$t('settings.display.moveFeedrate')"
-												  :title="$t('settings.display.moveFeedrateHint')"
-												  variant="outlined" density="comfortable" hide-details
-												  suffix="mm/min" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-
-						<v-col cols="12" sm="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-arrow-expand-vertical</v-icon>
-									{{ $t("settings.display.babystepCaption") }}
-								</v-card-title>
-								<v-card-text class="pt-4">
-									<v-text-field v-model.number="settingsStore.babystepAmount" type="number"
-												  step="0.01" :label="$t('settings.display.babystepAmount')"
-												  :title="$t('settings.display.babystepAmountHint')"
-												  variant="outlined" density="comfortable" hide-details
-												  suffix="mm" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="webcam" eager>
-				<v-container fluid>
-					<v-switch v-model="settingsStore.webcam.enabled" color="primary"
-							  :label="$t('settings.webcam.enabled')"
-							  :title="$t('settings.webcam.enabledHint')"
-							  density="comfortable" hide-details />
-					<v-row density="compact" class="mt-2">
-						<v-col cols="12" lg="6">
-							<v-text-field v-model="settingsStore.webcam.url"
-										  :label="$t('settings.webcam.url')"
-										  :title="$t('settings.webcam.urlHint')"
-										  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="12" lg="6">
-							<v-text-field v-model="settingsStore.webcam.liveUrl"
-										  :label="$t('settings.webcam.liveUrl')"
-										  :title="$t('settings.webcam.liveUrlHint')"
-										  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-					</v-row>
-					<v-row density="compact" class="mt-2">
-						<v-col cols="12" sm="6">
-							<v-switch v-model="settingsStore.webcam.embedded" color="primary"
-									  :label="$t('settings.webcam.embedded')"
-									  :title="$t('settings.webcam.embeddedHint')"
-									  density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="12" sm="6">
-							<v-switch v-model="settingsStore.webcam.useFix" color="primary"
-									  :label="$t('settings.webcam.useFix')"
-									  :title="$t('settings.webcam.useFixHint')"
-									  density="comfortable" hide-details />
-						</v-col>
-					</v-row>
-					<v-row density="compact" class="mt-4">
-						<v-col cols="4">
-							<v-select v-model="settingsStore.webcam.flip" :items="flipOptions"
-									  item-title="label" item-value="value"
-									  :label="$t('settings.webcam.flip')"
-									  :title="$t('settings.webcam.flipHint')"
-									  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="4">
-							<v-select v-model.number="settingsStore.webcam.rotation"
-									  :items="rotationOptions" item-title="label" item-value="value"
-									  :label="$t('settings.webcam.rotation')"
-									  :title="$t('settings.webcam.rotationHint')"
-									  variant="outlined" density="comfortable" hide-details />
-						</v-col>
-						<v-col cols="4">
-							<v-text-field v-model.number="settingsStore.webcam.updateInterval" type="number"
-										  :label="$t('settings.webcam.updateInterval')"
-										  :title="$t('settings.webcam.updateIntervalHint')"
-										  variant="outlined" density="comfortable" hide-details
-										  suffix="ms" />
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="editor" eager>
-				<v-container fluid>
-					<v-row density="compact">
-						<v-col cols="12" md="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-format-text</v-icon>
-									{{ $t("settings.editor.appearanceCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.editor.useMonaco" color="primary"
-											  :label="$t('settings.editor.useMonaco')"
-											  :title="$t('settings.editor.useMonacoHint')"
-											  density="comfortable" hide-details />
-									<v-row density="compact" class="mt-4">
-										<v-col cols="6">
-											<v-text-field v-model.number="settingsStore.editor.fontSize" type="number"
-														  :label="$t('settings.editor.fontSize')"
-														  :title="$t('settings.editor.fontSizeHint')"
-														  variant="outlined" density="comfortable" hide-details
-														  min="8" max="32" suffix="px" />
-										</v-col>
-										<v-col cols="6">
-											<v-select v-model.number="settingsStore.editor.tabSize"
-													  :items="[2, 4, 8]"
-													  :label="$t('settings.editor.tabSize')"
-													  :title="$t('settings.editor.tabSizeHint')"
-													  variant="outlined" density="comfortable" hide-details />
-										</v-col>
-									</v-row>
-									<v-select v-model="settingsStore.editor.wordWrap"
-											  :items="wordWrapOptions" item-title="label" item-value="value"
-											  :label="$t('settings.editor.wordWrap')"
-											  :title="$t('settings.editor.wordWrapHint')"
-											  variant="outlined" density="comfortable" hide-details class="mt-4" />
-									<v-switch v-model="settingsStore.editor.minimap" color="primary"
-											  :label="$t('settings.editor.minimap')"
-											  :title="$t('settings.editor.minimapHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.lineNumbers" color="primary"
-											  :label="$t('settings.editor.lineNumbers')"
-											  :title="$t('settings.editor.lineNumbersHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.bracketPairColorization" color="primary"
-											  :label="$t('settings.editor.bracketPairColorization')"
-											  :title="$t('settings.editor.bracketPairColorizationHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-
-						<v-col cols="12" md="6">
-							<v-card>
-								<v-card-title>
-									<v-icon class="mr-2">mdi-auto-fix</v-icon>
-									{{ $t("settings.editor.assistanceCaption") }}
-								</v-card-title>
-								<v-card-text>
-									<v-switch v-model="settingsStore.editor.quickSuggestions" color="primary"
-											  :label="$t('settings.editor.quickSuggestions')"
-											  :title="$t('settings.editor.quickSuggestionsHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.editor.suggestOnTriggerCharacters" color="primary"
-											  :label="$t('settings.editor.suggestOnTriggerCharacters')"
-											  :title="$t('settings.editor.suggestOnTriggerCharactersHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.parameterHints" color="primary"
-											  :label="$t('settings.editor.parameterHints')"
-											  :title="$t('settings.editor.parameterHintsHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.hover" color="primary"
-											  :label="$t('settings.editor.hover')"
-											  :title="$t('settings.editor.hoverHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.inlineSuggest" color="primary"
-											  :label="$t('settings.editor.inlineSuggest')"
-											  :title="$t('settings.editor.inlineSuggestHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.formatOnPaste" color="primary"
-											  :label="$t('settings.editor.formatOnPaste')"
-											  :title="$t('settings.editor.formatOnPasteHint')"
-											  density="comfortable" hide-details class="mt-2" />
-									<v-switch v-model="settingsStore.editor.formatOnType" color="primary"
-											  :label="$t('settings.editor.formatOnType')"
-											  :title="$t('settings.editor.formatOnTypeHint')"
-											  density="comfortable" hide-details class="mt-2" />
-								</v-card-text>
-							</v-card>
-						</v-col>
-					</v-row>
-				</v-container>
-			</v-window-item>
-
-			<v-window-item value="about" class="pa-3" eager>
+			<v-window-item value="About" class="pa-3" eager>
 				<v-card flat>
 					<v-card-title class="d-flex align-center">
 						<v-icon class="mr-2">mdi-information</v-icon>
@@ -754,14 +735,16 @@ import i18n, { type Locale } from "@/i18n";
 import {
 	getPluginSettingTabs
 } from "@/plugins";
+import { registeredLayout, registeredLayoutOptions } from "@/plugins/layout";
+import { registeredThemes } from "@/plugins/theme";
 import { localStorageSupported } from "@/utils/localStorage";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
-import { DashboardMode, ToolChangeMacro, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
+import { DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { getErrorMessage } from "@/utils/errors";
 
-import packageInfo from "../../package.json";
+import packageInfo from "../../../package.json";
 
 // Built-in tabs share the shape used by plugin-registered tabs (caption + translated flag)
 // so the v-tabs render loop can merge them transparently. `order` slots plugin tabs in - the
@@ -775,13 +758,13 @@ interface BuiltinTab {
 }
 
 const builtinTabs: Array<BuiltinTab> = [
-	{ key: "general", icon: "mdi-tune", caption: "settings.tabs.general", order: 10 },
-	{ key: "boards", icon: "mdi-chip", caption: "settings.tabs.infrastructure", order: 15 },
-	{ key: "display", icon: "mdi-monitor-dashboard", caption: "settings.tabs.display", order: 20 },
-	{ key: "presets", icon: "mdi-format-list-numbered", caption: "settings.tabs.presets", order: 25 },
-	{ key: "webcam", icon: "mdi-webcam", caption: "settings.tabs.webcam", order: 30 },
-	{ key: "editor", icon: "mdi-text-box-edit", caption: "settings.tabs.editor", order: 45 },
-	{ key: "about", icon: "mdi-information", caption: "settings.tabs.about", order: 60 },
+	{ key: "General", icon: "mdi-tune", caption: "settings.tabs.general", order: 10 },
+	{ key: "Display", icon: "mdi-monitor-dashboard", caption: "settings.tabs.display", order: 20 },
+	{ key: "Presets", icon: "mdi-format-list-numbered", caption: "settings.tabs.presets", order: 25 },
+	{ key: "Webcam", icon: "mdi-webcam", caption: "settings.tabs.webcam", order: 30 },
+	{ key: "Editor", icon: "mdi-text-box-edit", caption: "settings.tabs.editor", order: 45 },
+	{ key: "Boards", icon: "mdi-chip", caption: "settings.tabs.infrastructure", order: 55 },
+	{ key: "About", icon: "mdi-information", caption: "settings.tabs.about", order: 60 },
 ];
 
 const pluginSettingTabs = computed(() => getPluginSettingTabs());
@@ -807,6 +790,7 @@ const machineStore = useMachineStore();
 const menuStore = useMenuStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const route = useRoute("/Settings/[[tab]]");
 const router = useRouter();
 const { mdAndUp } = useDisplay();
 
@@ -814,14 +798,29 @@ const { mdAndUp } = useDisplay();
 // md+ stays compact since the cursor doesn't need the bigger hit area
 const tabsDensity = computed(() => mdAndUp.value ? "compact" : "default");
 
-const activeTab = ref<string>("general");
+// Each tab is its own sub-route (/Settings/<key>) so tabs are deep-linkable and the browser
+// back button steps through them. A bare /Settings or an unknown key falls back to General
+const activeTab = computed<string>({
+	get: () => {
+		const tab = route.params.tab;
+		const key = Array.isArray(tab) ? tab[0] : tab;
+		if (key) {
+			// Case-insensitive match so legacy lowercase bookmarks (e.g. /Settings/general from
+			// before the casing was normalised) still resolve to the canonical-cased tab
+			const match = allTabs.value.find((t) => t.key.toLowerCase() === key.toLowerCase());
+			if (match) {
+				return match.key;
+			}
+		}
+		return "General";
+	},
+	set: (value) => {
+		if (value !== activeTab.value) {
+			router.push(`/Settings/${value}`);
+		}
+	},
+});
 const presetsTab = ref<string>("tool");
-
-// On tab change, scroll the Settings card to the top of the viewport once the new tab's
-// content has actually mounted and the browser has laid it out. nextTick alone is too early
-// (Vue's reactive flush completes, but the new v-window-item hasn't been measured yet, so
-// scroll target is computed against stale layout). The double-rAF dance waits for the next
-// paint, by which time the new content is in flow and scroll positions are accurate
 
 const languageOptions = computed(() => [
 	{ label: "English", value: "en" },
@@ -848,11 +847,23 @@ const dashboardModeOptions = computed(() => [
 	{ label: i18n.global.t("settings.display.dashboardModeOptions.cnc"), value: DashboardMode.cnc },
 ]);
 
-const toolChangeMacroOptions = [
-	{ label: "tfree.g", value: ToolChangeMacro.free },
-	{ label: "tpre.g", value: ToolChangeMacro.pre },
-	{ label: "tpost.g", value: ToolChangeMacro.post },
-];
+const themeItems = computed(() => [
+	{ title: i18n.global.t("settings.display.themeAuto"), value: null },
+	...registeredThemes.value.map(t => ({ title: t.caption, value: t.name })),
+]);
+
+const switchLayoutLabel = computed(() => {
+	if (settingsStore.useCustomLayout) {
+		return i18n.global.t("settings.display.switchToDefaultLayout");
+	}
+	const caption = registeredLayoutOptions.value?.caption ?? registeredLayoutOptions.value?.id ?? "";
+	return i18n.global.t("settings.display.switchToCustomLayout", { layout: caption });
+});
+
+function onSwitchLayoutClick() {
+	settingsStore.useCustomLayout = !settingsStore.useCustomLayout;
+	settingsStore.layoutUserSet = true;
+}
 
 const displayUnitOptions = computed(() => [
 	{ label: i18n.global.t("settings.units.displayUnitsOptions.metric"), value: UnitOfMeasure.metric },
@@ -860,17 +871,6 @@ const displayUnitOptions = computed(() => [
 ]);
 
 const decimalPlaceOptions = [0, 1, 2, 3];
-
-// Validating bridge for the jog feedrate so an empty / negative entry doesn't silently break
-// the move buttons
-const moveFeedrate = computed({
-	get: () => settingsStore.moveFeedrate,
-	set: (v: number) => {
-		if (Number.isFinite(v) && v > 0) {
-			settingsStore.moveFeedrate = v;
-		}
-	},
-});
 
 const hideableMenuItems = computed(() => menuStore.hideableItems);
 const hiddenMenuPaths = computed({
@@ -985,14 +985,6 @@ const wifiVersion = computed<string | null>(() => {
 // on the SBC and proxies for the firmware. v-if on `dsfVersion` keeps the row out of standalone
 const dsfVersion = computed<string | null>(() => machineStore.model.sbc?.dsf.version ?? null);
 const dsfBuildDateTime = computed<string | null>(() => machineStore.model.sbc?.dsf.buildDateTime ?? null);
-
-// Slider works in seconds; the store keeps milliseconds. Two-way computed bridges the units
-const notificationTimeoutSeconds = computed({
-	get: () => Math.round(settingsStore.notifications.timeout / 1000),
-	set: (v: number) => {
-		settingsStore.notifications.timeout = v * 1000;
-	},
-});
 
 // Store keeps the file transfer retry threshold in bytes; the field shows KiB so values like
 // 350 KiB don't need eight zeroes to dial in

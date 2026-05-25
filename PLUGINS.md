@@ -29,8 +29,11 @@ If you wrote plugins against earlier DWC versions (v3.4 / v3.5 / v3.6 / v3.7), s
 
 A DWC plugin is a small package that extends the UI at runtime. It can:
 
-- Add menu items + routes for new pages
+- Add menu items + routes for new pages (and remove them again on the fly)
 - Add tabs to the Settings page
+- Add tabs to the Job Status view
+- Replace DWC's entire shell with a custom layout (see [CUSTOM-LAYOUT.md](./CUSTOM-LAYOUT.md))
+- Register custom Vuetify themes that the user can pick from Settings
 - Add entries to context menus (e.g. the job-file-list right-click menu)
 - Register translatable messages
 - Persist its own cache + settings in DWC's store
@@ -201,8 +204,7 @@ What's available:
 
 | Import | Runtime source |
 | --- | --- |
-| `registerRoute`, `registerCategory`, `registerSettingTab`, `unregisterSettingTab`, `registerPluginContextMenuItem`, `registerPluginMessages` | `DWC.<name>` |
-| `registerPluginData`, `setPluginData`, `PluginDataType` | `DWC.<name>` |
+| `registerRoute`, `unregisterRoute`, `registerCategory`, `registerSettingTab`, `unregisterSettingTab`, `registerJobViewTab`, `unregisterJobViewTab`, `registerLayout`, `unregisterLayout`, `registerTheme`, `unregisterTheme`, `registerPluginContextMenuItem`, `registerPluginMessages` | `DWC.<name>` |
 | `useMachineStore`, `useSettingsStore`, `useCacheStore`, `useUiStore`, `ContextMenuType` | `DWC.<name>` |
 | `Events` (the global event bus) | `DWC.Events` |
 | `i18n` | `DWC.i18n` |
@@ -233,6 +235,24 @@ registerRoute(MyPage, {
 
 `order` (lower = leftmost / topmost) controls position relative to built-in and other plugin entries. Built-in items typically use `order: 10..50`.
 
+### `unregisterRoute(path)`
+
+Tear down a route previously added via `registerRoute`. Removes both the vue-router record and the matching navigation drawer entry. No-op when the path was never registered.
+
+```ts
+import { registerRoute, unregisterRoute } from "DuetWebControl";
+
+// Earlier, after the user defined a new button page in the plugin's designer
+registerRoute(GeneratedPage, {
+    Plugins: { Generated: { icon: "mdi-grid", caption: "My Grid", path: "/Plugins/MyPlugin/Grid-42" } },
+});
+
+// Later, when the user deletes that page
+unregisterRoute("/Plugins/MyPlugin/Grid-42");
+```
+
+This is what plugins with a built-in editor or designer use to add and remove pages on the fly.
+
 ### `registerCategory(key, icon, caption, order?)`
 
 Add a brand-new top-level menu category. Most plugins don't need this - if you contribute a single entry under an existing category (Control / Job / Files / Plugins / Preferences), call `registerRoute` directly and the category is implicit.
@@ -258,6 +278,72 @@ If `translated: true` is set, `caption` is rendered verbatim. Otherwise it's tre
 
 Remove a tab previously registered with the matching `key`. Useful in plugin hot-reload scenarios.
 
+### `registerJobViewTab(tab)`
+
+Add a tab to the tabbed panel on the Job Status page, alongside the built-in layer chart and the G-code stream view. Same shape as `registerSettingTab`, plus an optional reactive `condition` for visibility:
+
+```ts
+import { registerJobViewTab } from "DuetWebControl";
+import MyJobInsight from "./MyJobInsight.vue";
+
+registerJobViewTab({
+    key: "myJobInsight",                                  // stable identifier
+    icon: "mdi-chart-arc",
+    caption: "plugins.myPlugin.jobInsightCaption",
+    component: MyJobInsight,
+    order: 50,                                            // optional, defaults to 100
+    condition: () => useMachineStore().model.job.file !== null,  // optional reactive gate
+});
+```
+
+The component renders inside DWC's existing Job Status shell - reuse `useMachineStore()` for job state, `useCacheStore()` / `useSettingsStore()` for persistence. As with `registerSettingTab`, duplicate keys are silently ignored.
+
+### `unregisterJobViewTab(key)`
+
+Remove a job-view tab previously registered with the matching `key`.
+
+### `registerLayout(component, options)` / `unregisterLayout(id)`
+
+Replace DWC's entire shell (app bar, navigation drawer, status panel, hub) with a custom one of your own. Single-slot - only one custom layout can be registered at a time; a second registration throws. The user toggles between the built-in shell and your custom layout from the Settings page, or via the `/UseBuiltInLayout` magic URL.
+
+See [CUSTOM-LAYOUT.md](./CUSTOM-LAYOUT.md) for the full guide: lifecycle, route overrides, building the in-shell navigation UI, auto-recovery if the plugin fails to load, and how this interacts with `registerRoute` / `unregisterRoute`.
+
+### `registerTheme(name, definition)` / `unregisterTheme(name)`
+
+Register a Vuetify theme at runtime. The theme becomes selectable from a "Theme" dropdown in **Settings -> Display** that only appears when at least one plugin theme is registered.
+
+```ts
+import { registerTheme, unregisterTheme } from "DuetWebControl";
+
+registerTheme("acme-light", {
+    dark: false,
+    caption: "Acme Light",                       // optional, shown in the Settings dropdown; defaults to the name
+    colors: {
+        // Any subset of Vuetify's color tokens (https://vuetifyjs.com/en/features/theme/).
+        // Tokens you don't list are inherited from the matching built-in base (light or dark
+        // depending on `dark` above), so a minimal palette overriding only primary + secondary
+        // works too
+        primary:   "#ff6b35",
+        secondary: "#004e89",
+    },
+    variables: {                                  // optional - Vuetify theme variables
+        "border-color":      "#1a1a1a",
+        "hover-opacity":     0.08,
+    },
+});
+
+// Later, on plugin teardown
+unregisterTheme("acme-light");
+```
+
+The `name` argument is the Vuetify theme identifier - cannot be `"light"` or `"dark"` (reserved), and a duplicate registration throws. Color tokens are CSS custom properties that update reactively, so `<v-btn color="primary">` and any `bg-surface`, `text-on-surface` etc. classes pick up the new values immediately.
+
+Theme persistence works automatically - if the user had selected a plugin theme in a previous session and the plugin registers it again on load, the active theme switches over the moment `registerTheme` runs. While the plugin is not loaded the binding falls back to `darkTheme ? "dark" : "light"` so the UI never references a missing theme.
+
+`unregisterTheme(name)` is a no-op when the name wasn't registered. If the removed theme is currently active, the binding falls back to the dark/light setting.
+
+**What this doesn't cover**: Vuetify generates typography, spacing and shape classes (`.text-headline-medium`, `.elevation-3`, ...) at build time. Color tokens are reactive CSS variables; type / spacing / shape changes still need a `<style>` override injected into `<head>`. Custom fonts likewise need a `<link>` injection plus a `--v-font-family-*` binding. Drop-in re-skin via colors is supported here; full visual rebrands are still possible but require some CSS plumbing.
+
 ### `registerPluginContextMenuItem(name, path, icon, action, contextMenuType)`
 
 Add a right-click entry to a DWC context menu. Currently the only supported menu is `ContextMenuType.JobFileList` (right-click on a job file in the Jobs page or Explorer).
@@ -282,9 +368,9 @@ For the typed event channel to accept your action name, declare it in `src/utils
 
 Merge the plugin's i18n messages into DWC's shared vue-i18n instance under `plugins.<pluginId>.*`. See [Internationalisation](#internationalisation-i18n).
 
-### `registerPluginData(pluginId, dataType, key, defaultValue)` / `setPluginData(...)`
+### Per-plugin persisted data
 
-Persistent per-plugin storage. See [Plugin data persistence](#plugin-data-persistence).
+Call `registerPluginData(pluginId, key, defaultValue)` on either the cache store or the settings store. See [Plugin data persistence](#plugin-data-persistence).
 
 ## Using Vuetify and DWC components in templates
 
@@ -325,25 +411,28 @@ Browse `src/components/` for the full source and prop documentation.
 
 ## Plugin data persistence
 
-DWC offers two storage tiers backed by Pinia stores - both global, both keyed per plugin:
+DWC offers two storage tiers backed by Pinia stores - both global, both keyed per plugin. Each store exposes `registerPluginData(pluginId, key, defaultValue)` to declare a key with its initial value and `setPluginData(pluginId, key, value)` to update it at runtime.
 
 ```ts
-import { registerPluginData, setPluginData, PluginDataType } from "DuetWebControl";
+import { useCacheStore, useSettingsStore } from "DuetWebControl";
+
+const cacheStore = useCacheStore();
+const settingsStore = useSettingsStore();
 
 // At plugin load time, register defaults so the keys exist for reactive consumers
-registerPluginData("myPlugin", PluginDataType.cache,    "lastViewedTab", "info");
-registerPluginData("myPlugin", PluginDataType.setting, "preferredColor", "#FF8800");
+cacheStore.registerPluginData("myPlugin", "lastViewedTab", "info");
+settingsStore.registerPluginData("myPlugin", "preferredColor", "#FF8800");
 
 // At runtime
-setPluginData("myPlugin", PluginDataType.cache, "lastViewedTab", "advanced");
+cacheStore.setPluginData("myPlugin", "lastViewedTab", "advanced");
 ```
 
-| Type | Persistence | Use for |
+| Store | Persistence | Use for |
 | --- | --- | --- |
-| `PluginDataType.cache` | Browser localStorage, separate from settings file | UI state, last-selected values, cached computations |
-| `PluginDataType.setting` | Persisted with DWC's settings file (round-trips through export / import) | User-configurable preferences |
+| `useCacheStore` | Browser localStorage, separate from settings file | UI state, last-selected values, cached computations |
+| `useSettingsStore` | Persisted with DWC's settings file (round-trips through export / import) | User-configurable preferences |
 
-Read the values via the Pinia stores directly: `useCacheStore().plugins.myPlugin.lastViewedTab` and `useSettingsStore().plugins.myPlugin.preferredColor`.
+Read the values back through the same stores: `useCacheStore().plugins.myPlugin.lastViewedTab`, `useSettingsStore().plugins.myPlugin.preferredColor`.
 
 ## Internationalisation (i18n)
 
@@ -474,7 +563,7 @@ The plugin API surface changed substantially during the Vue 3 / Vuetify 4 / Pini
 | v3.x signature | Current signature |
 | --- | --- |
 | `registerSettingTab(general: boolean, name, component, caption, translated?, icon?)` | `registerSettingTab({ key, icon, caption, component, translated?, order? })` |
-| `registerPluginData(plugin, PluginDataType.globalSetting/machineCache/machineSetting, key, default)` | `registerPluginData(plugin, PluginDataType.cache/setting, key, default)` - per-machine variants collapsed to single global types |
+| `registerPluginData(plugin, PluginDataType.globalSetting/machineCache/machineSetting, key, default)` | `useCacheStore().registerPluginData(plugin, key, default)` or `useSettingsStore().registerPluginData(plugin, key, default)` - per-machine variants collapsed to single global types; the store you call IS the type distinction |
 
 The `injectComponent(name, component)` API from v3.x is gone - it existed to work around Vue 2's lack of `<Teleport>`. Use Vue 3's `<Teleport>` directly if you need to render outside your route.
 
@@ -492,7 +581,7 @@ The webpack-based build pipeline (`vue-cli-service build-plugin`) is replaced by
 
 ### Multi-machine
 
-v3.x's `PluginDataType.machineCache` / `machineSetting` stored values per connected machine. DWC currently runs single-machine; the per-machine variants collapsed to single global types. If you maintained per-machine state, you'll need to namespace it yourself (e.g. by the connection hostname).
+v3.x's `PluginDataType.machineCache` / `machineSetting` stored values per connected machine. DWC currently runs single-machine; the per-machine variants are gone. If you maintained per-machine state, you'll need to namespace it yourself (e.g. by the connection hostname).
 
 ### Events
 

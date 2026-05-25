@@ -6,7 +6,7 @@
 
 		<v-col cols="12" md="9">
 			<v-row density="compact">
-				<v-col cols="12">
+				<v-col v-if="!uiStore.isLaser" cols="12">
 					<SpindleSpeedPanel />
 				</v-col>
 				<v-col cols="12">
@@ -20,7 +20,7 @@
 					<JobControlPanel />
 				</v-col>
 				<v-col cols="4" class="flex-grow-1">
-					<ZBabystepPanel class="fill-height" />
+					<BabystepPanel class="fill-height" />
 				</v-col>
 				<v-col cols="4" class="flex-grow-1">
 					<SpeedFactorPanel class="fill-height" />
@@ -54,7 +54,9 @@ import JobProgress from "@/components/misc/JobProgress.vue";
 import MacroList from "@/components/lists/MacroList.vue";
 import SpeedFactorPanel from "@/components/panels/SpeedFactorPanel.vue";
 import SpindleSpeedPanel from "@/components/panels/SpindleSpeedPanel.vue";
-import ZBabystepPanel from "@/components/panels/ZBabystepPanel.vue";
+import BabystepPanel from "@/components/panels/BabystepPanel.vue";
+import { useUiStore } from "@/stores/ui";
 
 const { mdAndUp } = useDisplay();
+const uiStore = useUiStore();
 </script>

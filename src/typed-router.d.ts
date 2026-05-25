@@ -101,16 +101,23 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/Settings': RouteRecordInfo<
-      '/Settings',
-      '/Settings',
-      Record<never, never>,
-      Record<never, never>,
+    '/Settings/[[tab]]': RouteRecordInfo<
+      '/Settings/[[tab]]',
+      '/Settings/:tab?',
+      { tab?: ParamValueZeroOrOne<true> },
+      { tab?: ParamValueZeroOrOne<false> },
       | never
     >,
     '/Temperatures': RouteRecordInfo<
       '/Temperatures',
       '/Temperatures',
+      Record<never, never>,
+      Record<never, never>,
+      | never
+    >,
+    '/UseBuiltInLayout': RouteRecordInfo<
+      '/UseBuiltInLayout',
+      '/UseBuiltInLayout',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -188,15 +195,21 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/Settings.vue': {
+    'src/pages/Settings/[[tab]].vue': {
       routes:
-        | '/Settings'
+        | '/Settings/[[tab]]'
       views:
         | never
     }
     'src/pages/Temperatures.vue': {
       routes:
         | '/Temperatures'
+      views:
+        | never
+    }
+    'src/pages/UseBuiltInLayout.vue': {
+      routes:
+        | '/UseBuiltInLayout'
       views:
         | never
     }

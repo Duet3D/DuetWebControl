@@ -39,6 +39,24 @@
 			"title": "Run macro {0}?",
 			"prompt": "Do you want to run {0}?"
 		},
+		"forceMove": {
+			"title": "Overwrite existing file?",
+			"prompt": "An item named \"{0}\" already exists in \"{1}\". Overwrite it?"
+		},
+		"dropUpload": {
+			"title": "Upload destination",
+			"prompt": "This G-code file is small enough to be a macro or a system file. Where should it go?",
+			"promptMultiple": "These G-code files are small enough to be macros or system files. Where should they go?",
+			"job": "G-code job",
+			"macro": "Macro",
+			"system": "System file"
+		},
+		"editorDrop": {
+			"title": "Insert dropped file",
+			"prompt": "Replace the editor contents with \"{0}\", or insert it at the cursor position?",
+			"overwrite": "Overwrite",
+			"insert": "Insert at cursor"
+		},
 		"startJob": {
 			"title": "Start {0}",
 			"prompt": "Do you want to start {0}?"
@@ -65,16 +83,20 @@
 			"docsLink": "docs"
 		},
 		"fileEdit": {
-			"save": "Save",
+			"save": "Save (Ctrl+S)",
 			"revert": "Revert",
 			"revertTooLarge": "Revert is disabled for files over 32 MiB",
-			"searchGcode": "Find Code",
-			"searchExpression": "Find Expression",
+			"searchGcode": "Find Code (F4)",
+			"searchExpression": "Find Expression (F4)",
 			"loadDisconnected": "Connect to a machine to load this file.",
 			"loadFailed": "Could not load {0}: {1}",
 			"saveFailed": "Failed to save {0}",
-			"discardTitle": "Discard changes?",
-			"discardPrompt": "There are unsaved changes. Are you sure you want to close this file?",
+			"unsaved": {
+				"title": "Save changes?",
+				"prompt": "\"{0}\" has unsaved changes. Do you want to save them?",
+				"save": "Save",
+				"dontSave": "Don't save"
+			},
 			"gcodeReference": "G-Code Reference"
 		},
 		"newFile": {
@@ -177,6 +199,7 @@
 		},
 		"componentSettings": {
 			"title": "Panel Settings",
+			"titleFor": "Settings for {0}",
 			"edit": "Edit panel settings",
 			"reset": "Reset"
 		},
@@ -333,6 +356,12 @@
 		"freeSpaceWarning": {
 			"title": "Disk almost full",
 			"message": "There is barely any space left on the first volume. Delete some files to avoid problems during file uploads."
+		},
+		"upload": {
+			"ambiguousTitle": "Upload not possible",
+			"ambiguous": "The dropped files were not recognised as G-code or update packages. Open the File Explorer to upload them manually.",
+			"notConnectedTitle": "Not connected",
+			"notConnected": "Connect to a machine before uploading files."
 		}
 	},
 	"error": {
@@ -347,7 +376,11 @@
 		"statusPanel": "Status",
 		"showStatusPanel": "Show status panel",
 		"hideStatusPanel": "Hide status panel",
-		"goToJobStatus": "Go to job status"
+		"goToJobStatus": "Go to job status",
+		"customLayoutMissing": "Your custom layout could not be loaded; reverted to the built-in shell.",
+		"uploadOverlay": {
+			"prompt": "Drop files to upload"
+		}
 	},
 	"page": {
 		"notFound": {
@@ -359,16 +392,22 @@
 	},
 	"chart": {
 		"layer": {
-			"caption": "Layer Chart",
+			"caption": "Layers",
 			"layerTime": "Layer Time",
-			"showLastLayers": "Show Last {0} Layers",
-			"showAllLayers": "Show All Layers",
 			"layer": "Layer {0}",
 			"layerDuration": "Duration: {0}",
 			"layerHeight": "Layer Height: {0}",
 			"filamentUsage": "Filament Usage: {0}",
 			"fractionPrinted": "File Progress: {0}",
-			"temperatures": "Temperatures: {0}"
+			"temperatures": "Temperatures: {0}",
+			"settings": {
+				"hideFirstLayer": "Hide first layer",
+				"hideFirstLayerHint": "Exclude layer 1 from the chart - its duration is often an outlier that flattens the rest",
+				"showAllLayers": "Show all layers",
+				"showAllLayersHint": "Show every layer instead of only the most recent ones",
+				"lastLayerCount": "Recent layer count",
+				"lastLayerCountHint": "How many of the most recent layers to show when not displaying all layers"
+			}
 		},
 		"temperature": {
 			"caption": "Temperatures",
@@ -444,9 +483,10 @@
 			"placeholder": "Send code...",
 			"send": "Send"
 		},
-		"set": "Set",
 		"addTemperature": "Add temperature",
-		"addRPM": "Add RPM"
+		"addTemperatureHint": "Enter a temperature and press the plus button to add it to the list",
+		"addRPM": "Add RPM",
+		"addRPMHint": "Enter a spindle speed and press the plus button to add it to the list"
 	},
 	"list": {
 		"eventLog": {
@@ -477,7 +517,17 @@
 			"caption": "Macros",
 			"noMacros": "No Macros",
 			"run": "Run Macro",
-			"root": "Root"
+			"root": "Root",
+			"settings": {
+				"showDirectories": "Show directories",
+				"showDirectoriesHint": "Allow browsing into macro subdirectories",
+				"startDirectory": "Start directory",
+				"startDirectoryHint": "Directory to list instead of the default macros directory; leave empty for the default",
+				"includeFilter": "Include filter",
+				"includeFilterHint": "Comma-separated name patterns (wildcards * and ?); only matching files are shown",
+				"excludeFilter": "Exclude filter",
+				"excludeFilterHint": "Comma-separated name patterns (wildcards * and ?); matching files are hidden"
+			}
 		},
 		"filament": {
 			"noFilaments": "No Filaments"
@@ -497,6 +547,7 @@
 		"fileList": {
 			"open": "Open",
 			"edit": "Edit",
+			"fileInfo": "File Info",
 			"runMacro": "Run Macro",
 			"download": "Download",
 			"downloadZIP": "Download as ZIP",
@@ -507,6 +558,11 @@
 			"viewModeAuto": "Auto (tiles on small screens)",
 			"viewModeList": "List",
 			"viewModeTiles": "Tiles",
+			"sortBy": "Sort by",
+			"sortDirection": "Sort direction",
+			"sortAscending": "Ascending",
+			"sortDescending": "Descending",
+			"layout": "Layout",
 			"moveError": "Failed to move {0} to {1}",
 			"movedOne": "Moved {0} to {1}",
 			"movedMany": "Moved {0} items to {1}",
@@ -530,6 +586,10 @@
 		"filament": "Filament Usage: {0}",
 		"filamentRemaining": "{0} remaining"
 	},
+	"jobViewPanel": {
+		"gcodeStream": "G-code",
+		"noFileLoaded": "No file loaded"
+	},
 	"panel": {
 		"atx": {
 			"caption": "ATX Power",
@@ -537,8 +597,14 @@
 			"off": "Off"
 		},
 		"babystepping": {
-			"caption": "Z Babystepping",
-			"current": "Current Offset: {0}"
+			"caption": "Babystepping",
+			"current": "Current {0} offset: {1}",
+			"settings": {
+				"babystepAmount": "Babystep amount",
+				"babystepAmountHint": "Step size applied per click of the babystep buttons (in mm)",
+				"babystepAxes": "Babystepping axes",
+				"babystepAxesHint": "Choose which axes are available for babystepping in this panel"
+			}
 		},
 		"cncDashboard": {
 			"caption": "CNC Dashboard",
@@ -549,7 +615,20 @@
 			"changeVisibility": "Change Visibility",
 			"extruder": "Extruder {0}",
 			"noExtruders": "No Extruders",
-			"displayedExtruders": "Displayed extruders"
+			"noExtruderSelected": "No extruder available",
+			"displayedExtruders": "Displayed extruders",
+			"settings": {
+				"stepWidth": "Step width",
+				"stepWidthHint": "Amount applied per click of the + and - buttons",
+				"numericInput": "Numeric inputs",
+				"numericInputHint": "Show numeric entry fields instead of the sliders",
+				"showResetLink": "Show reset links",
+				"showResetLinkHint": "Show a link that resets the extrusion factor to 100%",
+				"showCurrentToolOnly": "Current tool only",
+				"showCurrentToolOnlyHint": "Show only the extruder(s) of the currently selected tool",
+				"enableLock": "Lockable sliders",
+				"enableLockHint": "Show a lock button next to each slider that toggles it readonly to prevent accidental drags"
+			}
 		},
 		"jobControl": {
 			"caption": "Job Control",
@@ -569,28 +648,32 @@
 			"printNow": "Print Now",
 			"startJob": "Start Job"
 		},
-		"jobData": {
-			"caption": "Collected Data",
-			"warmUpDuration": "Warm-Up Time",
-			"currentLayerTime": "Current Layer Time",
-			"lastLayerTime": "Last Layer Time",
-			"jobDuration": "Job Duration"
-		},
-		"jobEstimations": {
-			"caption": "Estimations based on",
-			"filament": "Filament Usage",
-			"file": "File Progress",
-			"layer": "Layer Time",
-			"slicer": "Slicer",
-			"simulation": "Simulation",
-			"toPause": "Next pause"
-		},
 		"jobInfo": {
 			"caption": "Job Information",
 			"height": "Height:",
 			"layerHeight": "Layer Height:",
 			"filament": "Filament Usage:",
-			"generatedBy": "Generated by:"
+			"generatedBy": "Generated by:",
+			"settings": {
+				"displayedLines": "Displayed information",
+				"displayedLinesHint": "Choose which information rows are shown"
+			}
+		},
+		"jobTimes": {
+			"caption": "Estimated / Measured",
+			"filament": "Filament Usage",
+			"file": "File Progress",
+			"slicer": "Slicer",
+			"simulation": "Simulation",
+			"toPause": "Next pause",
+			"warmUpDuration": "Warm-Up Time",
+			"currentLayerTime": "Current Layer Time",
+			"lastLayerTime": "Last Layer Time",
+			"jobDuration": "Job Duration",
+			"settings": {
+				"displayedEstimationsHint": "Choose which estimations are shown",
+				"displayedDataHint": "Choose which collected values are shown"
+			}
 		},
 		"webcam": {
 			"caption": "Webcam Surveillance",
@@ -607,10 +690,21 @@
 			"on": "On",
 			"off": "Off",
 			"forward": "forward",
-			"reverse": "reverse"
+			"reverse": "reverse",
+			"noSpindles": "No spindles available"
 		},
 		"speedFactor": {
-			"caption": "Speed Factor"
+			"caption": "Speed Factor",
+			"settings": {
+				"upperLimit": "Initial upper limit",
+				"upperLimitHint": "Initial maximum of the slider; it scales up automatically when the speed factor exceeds it",
+				"stepWidth": "Step width",
+				"stepWidthHint": "Amount applied per click of the + and - buttons",
+				"numericInput": "Numeric input",
+				"numericInputHint": "Show a numeric entry field instead of the slider",
+				"enableLock": "Lockable slider",
+				"enableLockHint": "Show a lock button next to the slider that toggles it readonly to prevent accidental drags"
+			}
 		},
 		"tools": {
 			"caption": "Tools",
@@ -647,14 +741,21 @@
 			},
 			"noTools": "No Tools",
 			"displayedTools": "Displayed tools",
+			"toolChangeMacros": "Tool change macros",
+			"toolChangeMacrosHint": "Which of tfree.g / tpre.g / tpost.g are run during a T[n] tool change. Encoded as the P parameter in the T command.",
 			"displayedBeds": "Displayed beds",
 			"displayedChambers": "Displayed chambers",
+			"showToolNumber": "Show tool number",
+			"showToolNumberHint": "Show the T-number below each tool name",
 			"showActiveTemperatures": "Show active temperatures",
 			"showActiveTemperaturesHint": "Show the active-temperature input column",
 			"showStandbyTemperatures": "Show standby temperatures",
 			"showStandbyTemperaturesHint": "Show the standby-temperature input column",
 			"showFilamentControls": "Show filament controls",
-			"showFilamentControlsHint": "Show the per-tool filament load, change and unload controls"
+			"showFilamentControlsHint": "Show the per-tool filament load, change and unload controls",
+			"filaments": "Filaments",
+			"promptDuringFilamentChange": "Show message prompt after unloading the filament when changing it",
+			"promptDuringFilamentChangeHint": "Wait for user confirmation after the old filament is unloaded before loading the new one"
 		},
 		"status": {
 			"caption": "Status",
@@ -695,11 +796,13 @@
 				"sensorsHint": "Choose which sensor readings are shown",
 				"positionBoth": "Tool and machine position",
 				"extruderDisplay": "Extruder display",
-				"extruderDisplayHint": "Choose how extruder amounts are shown - filament length, extruded volume, or both",
-				"extruderLength": "Filament length",
+				"extruderDisplayHint": "Choose how extruder amounts are shown - filament position, extruded volume, or both",
+				"userPosition": "Filament position",
 				"extruderVolume": "Extruded volume",
 				"extruderToggle": "Toggle on click",
-				"extruderBoth": "Filament length and volume"
+				"extruderBoth": "Filament position and volume",
+				"machineModes": "Switchable Machine Modes",
+				"machineModesHint": "Choose which machine modes can be switched to from the mode dropdown"
 			},
 			"extrudedVolume": "Extruded Volume"
 		},
@@ -719,7 +822,15 @@
 			"selection": "Fan Selection:",
 			"toolFan": "Tool Fan",
 			"fan": "Fan {0}",
-			"displayedFans": "Displayed fans"
+			"displayedFans": "Displayed fans",
+			"settings": {
+				"stepWidth": "Step width",
+				"stepWidthHint": "Amount applied per click of the + and - buttons",
+				"numericInput": "Numeric input",
+				"numericInputHint": "Show a numeric entry field instead of the slider",
+				"enableLock": "Lockable slider",
+				"enableLockHint": "Show a lock button next to the slider that toggles it readonly to prevent accidental drags"
+			}
 		},
 		"fans": {
 			"caption": "Fans",
@@ -727,11 +838,29 @@
 			"toolFan": "Tool Fan",
 			"fan": "Fan {0}",
 			"noFans": "No Fans",
-			"displayedFans": "Displayed fans"
+			"displayedFans": "Displayed fans",
+			"settings": {
+				"stepWidth": "Step width",
+				"stepWidthHint": "Amount applied per click of the + and - buttons",
+				"numericInput": "Numeric inputs",
+				"numericInputHint": "Show numeric entry fields instead of the sliders",
+				"enableLock": "Lockable sliders",
+				"enableLockHint": "Show a lock button next to each slider that toggles it readonly to prevent accidental drags"
+			}
 		},
 		"movement": {
 			"caption": "Machine Movement",
 			"displayedAxes": "Displayed axes",
+			"settings": {
+				"showHomeAllButton": "Show home-all button",
+				"showHomeAllButtonHint": "Show the button that homes all axes at once",
+				"showAxisHomeButtons": "Show per-axis home buttons",
+				"showAxisHomeButtonsHint": "Show the individual home button for each axis",
+				"compensationItems": "Compensation menu entries",
+				"compensationItemsHint": "Choose which entries appear in the compensation menu",
+				"moveFeedrate": "Jog feedrate",
+				"moveFeedrateHint": "Feedrate sent with the manual move buttons (G1 F[value])"
+			},
 			"compensation": "Compensation & Calibration",
 			"compensationShort": "Compensation",
 			"runBed": "True Bed Levelling (G32)",
@@ -797,15 +926,17 @@
 			"caption": "Notifications",
 			"errorsPersistent": "Error messages stay until dismissed",
 			"errorsPersistentHint": "Keep error notifications on screen until the user closes them, instead of auto-dismissing",
-			"timeout": "Default notification timeout (seconds)",
+			"timeout": "Default notification timeout (milliseconds)",
 			"timeoutHint": "How long info and success notifications stay on screen before disappearing"
 		},
 		"behaviour": {
 			"caption": "Behaviour",
 			"switchToJobOnPrintStart": "Switch to Job page on print start",
 			"switchToJobOnPrintStartHint": "Automatically open the Job Status page when a print begins",
-			"promptDuringFilamentChange": "Show message prompt after unloading the filament when changing it",
-			"promptDuringFilamentChangeHint": "Wait for user confirmation after the old filament is unloaded before loading the new one"
+			"checkVersions": "Check for plugin / firmware version compatibility",
+			"checkVersionsHint": "Show a notification when DWC, RRF or plugin versions do not match",
+			"autoScroll": "Scroll viewer pages into view automatically",
+			"autoScrollHint": "When opening the height map, G-code viewer or file editor, scroll the page down so the panel fills the screen with the status row scrolled off the top. Applies on medium and larger displays."
 		},
 		"communicationCard": {
 			"caption": "Communication"
@@ -821,6 +952,7 @@
 			"changeCanAddress": "Change CAN address",
 			"changeCanAddressPrompt": "Reassign CAN address for {0} (currently {1})",
 			"newCanAddress": "New CAN address",
+			"newCanAddressHint": "Unique CAN bus address to assign to this board (1-126)",
 			"canAddressRestartHint": "The new address is stored when the command runs; restart the board for it to take effect.",
 			"canAddressChanged": "CAN address change requested (B{0} -> A{1})",
 			"canAddressError": "Failed to change CAN address",
@@ -842,25 +974,21 @@
 			"resetTitle": "Reset DWC settings?",
 			"resetPrompt": "This deletes your saved DWC settings and cache on this browser and on the connected board. Factory defaults (if available) are applied next. DWC will reload afterwards.",
 			"resetComponents": "Reset panel settings",
-			"resetComponentsHint": "Discard all saved per-panel display settings (visible axes, tool grouping, chart tabs) and reload. Use this to recover from a panel that no longer renders after an update.",
+			"resetComponentsHint": "Discard all saved per-panel display settings (visible axes, tool grouping, chart tabs) and reload.",
 			"resetComponentsTitle": "Reset panel settings?",
 			"resetComponentsPrompt": "This discards the saved display settings of all dashboard panels on this browser and on the connected board. DWC will reload afterwards. Your other settings are kept."
 		},
 		"display": {
 			"layoutCaption": "Layout",
-			"layoutMode": "Layout mode",
-			"layoutOptions": {
-				"default": "Built-in pages",
-				"custom": "Custom dashboard"
-			},
+			"switchToCustomLayout": "Switch to {layout}",
+			"switchToDefaultLayout": "Switch to built-in layout",
+			"theme": "Theme",
+			"themeHint": "Select a colour theme provided by a plugin, or follow the dark-mode switch",
+			"themeAuto": "Follow dark-mode switch",
 			"iconMenu": "Compact sidebar",
 			"iconMenuHint": "Show only icons in the navigation drawer when collapsed",
-			"numericInputs": "Numeric inputs instead of sliders",
-			"numericInputsHint": "Use number fields for percentage values instead of horizontal sliders",
 			"disableAutoComplete": "Disable G-code auto-complete",
 			"disableAutoCompleteHint": "Do not show the auto-complete suggestion list while typing in code or temperature inputs",
-			"checkVersions": "Check for plugin / firmware version compatibility",
-			"checkVersionsHint": "Show a notification when DWC, RRF or plugin versions do not match",
 			"toolsCaption": "Tools",
 			"groupTools": "Group bed / chamber / extruder heaters",
 			"groupToolsHint": "Combine identical tools into a single row in the Tools panel",
@@ -872,9 +1000,6 @@
 			"groupByOffsetsHint": "Treat tools as identical only when they have the same X/Y/Z offsets",
 			"groupBySpindle": "Group spindles",
 			"groupBySpindleHint": "Treat tools as identical only when they reference the same spindle",
-			"babystepCaption": "Babystepping",
-			"babystepAmount": "Babystep amount",
-			"babystepAmountHint": "Step size applied per click of the babystep buttons",
 			"dashboardMode": "Dashboard mode",
 			"dashboardModeHint": "Choose which dashboard layout to use. Default follows the firmware-reported machine mode (FFF or CNC); pick a fixed mode to override.",
 			"dashboardModeOptions": {
@@ -882,11 +1007,6 @@
 				"fff": "FFF (3D printing)",
 				"cnc": "CNC (milling)"
 			},
-			"movementCaption": "Movement",
-			"moveFeedrate": "Jog feedrate",
-			"moveFeedrateHint": "Feedrate sent with manual move buttons (G1 F[value]). Used by the Movement, Extrude and Jog panels.",
-			"toolChangeMacros": "Tool change macros",
-			"toolChangeMacrosHint": "Which of tfree.g / tpre.g / tpost.g are run during a T[n] tool change. Encoded as the P parameter in the T command.",
 			"singleBedControl": "Single bed control",
 			"singleBedControlHint": "Show a single input for all bed heaters instead of one per bed. Useful when every bed should always run at the same temperature.",
 			"singleChamberControl": "Single chamber control",
@@ -894,10 +1014,14 @@
 			"hideMenuItemsCaption": "Hide menu items",
 			"hideMenuItemsHint": "Drop entries from the navigation drawer / hub page. Hidden items remain reachable by URL; Dashboard, Job status and Settings are always shown.",
 			"hideMenuItemsXsSmOnly": "xs/sm only",
+			"hideMenuItemsXsSmOnlyHint": "This page is only listed in the menu on small (phone and tablet) screens; on larger screens it is reachable another way.",
+			"hideMenuItemSwitchHint": "Hide this entry from the navigation drawer and hub page",
 			"enablePanelEditing": "Enable panel editing",
 			"enablePanelEditingHint": "Show the edit icon on panel titles to configure each panel",
-			"largeAppBar": "Large app bar",
-			"largeAppBarHint": "Enlarge the app bar on small touchscreens for easier reach"
+			"largeButtons": "Large buttons",
+			"largeButtonsHint": "Enlarge the app bar, page toolbars and dashboard panel buttons on small touchscreens for easier reach",
+			"largeButtonsSmOnly": "sm only",
+			"largeButtonsSmOnlyHint": "Only takes effect on small (sm) touchscreens; larger screens always use the standard size."
 		},
 		"webcam": {
 			"caption": "Webcam",
@@ -1028,7 +1152,7 @@
 		},
 		"storage": {
 			"caption": "Storage",
-			"settingsStorageLocal": "Store settings in this browser",
+			"settingsStorageLocal": "Store settings locally in this browser",
 			"settingsStorageLocalHint": "Keep settings in the browser localStorage instead of uploading them to the board. Useful when the same board is reached from multiple machines that need different preferences.",
 			"settingsSaveDelay": "Settings save delay",
 			"settingsSaveDelayHint": "Time to wait after a settings change before persisting them. Higher values reduce write churn when toggling several settings in a row.",
@@ -1104,7 +1228,10 @@
 			"range": "Range",
 			"fixed": "Fixed",
 			"deviation": "Deviation",
-			"resetView": "Reset View"
+			"resetView": "Reset View",
+			"scaleHint": "Click to change the fixed scale",
+			"scaleDialogTitle": "Fixed Scale",
+			"scaleDialogPrompt": "Enter the fixed scale in mm (applied as +/-)"
 		},
 		"accelerometer": {
 			"sampleTooltip": "Sample #{0}",

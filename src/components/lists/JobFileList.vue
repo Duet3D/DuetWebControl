@@ -53,6 +53,7 @@ import JobThumbnailCell from "./JobThumbnailCell.vue";
 interface JobFileListHeader {
 	title: string;
 	key: string;
+	hasValue?: (item: FileBrowserItem) => boolean;
 }
 
 type JobBrowserItem = GcodeThumbnailItem;
@@ -74,13 +75,15 @@ if (!directory.value) {
 	directory.value = props.options.initialDirectory;
 }
 
+// Predicates mirror the cell formatters' "n/a" conditions so a column drops out only when every
+// row would have shown a placeholder
 const extraHeaders = computed<Array<JobFileListHeader>>(() => [
-	{ title: i18n.global.t("list.jobs.height"), key: "height" },
-	{ title: i18n.global.t("list.jobs.layerHeight"), key: "layerHeight" },
-	{ title: i18n.global.t("list.jobs.filament"), key: "filament" },
-	{ title: i18n.global.t("list.jobs.printTime"), key: "printTime" },
-	{ title: i18n.global.t("list.jobs.simulatedTime"), key: "simulatedTime" },
-	{ title: i18n.global.t("list.jobs.generatedBy"), key: "generatedBy" },
+	{ title: i18n.global.t("list.jobs.height"), key: "height", hasValue: (item) => hasLength((item as JobBrowserItem).height) },
+	{ title: i18n.global.t("list.jobs.layerHeight"), key: "layerHeight", hasValue: (item) => hasLength((item as JobBrowserItem).layerHeight) },
+	{ title: i18n.global.t("list.jobs.filament"), key: "filament", hasValue: (item) => hasFilament(item as JobBrowserItem) },
+	{ title: i18n.global.t("list.jobs.printTime"), key: "printTime", hasValue: (item) => hasTime((item as JobBrowserItem).printTime) },
+	{ title: i18n.global.t("list.jobs.simulatedTime"), key: "simulatedTime", hasValue: (item) => hasTime((item as JobBrowserItem).simulatedTime) },
+	{ title: i18n.global.t("list.jobs.generatedBy"), key: "generatedBy", hasValue: (item) => !!(item as JobBrowserItem).generatedBy },
 ]);
 
 const thumbnails = useGcodeThumbnails();
@@ -124,14 +127,23 @@ function formatFilament(values: Array<number> | null | undefined): string {
 	return values.map((v) => display(v, 1, "mm")).join(", ");
 }
 
+// A positive, real length - matches what formatLength treats as a usable value
+function hasLength(value: number | null | undefined): boolean {
+	return typeof value === "number" && !Number.isNaN(value) && value > 0;
+}
+
+// A positive duration - matches what formatTime treats as a usable value
+function hasTime(value: number | bigint | null | undefined): boolean {
+	if (value === null || value === undefined) {
+		return false;
+	}
+	return (typeof value === "bigint" ? Number(value) : value) > 0;
+}
+
 // Tile view skips empty rows entirely rather than showing the "n/a" placeholder that the
 // dense table uses - n/a in a tile reads as noise where a missing line is fine
 function hasPrintTime(item: JobBrowserItem): boolean {
-	const v = item.printTime;
-	if (v === null || v === undefined) {
-		return false;
-	}
-	return (typeof v === "bigint" ? Number(v) : v) > 0;
+	return hasTime(item.printTime);
 }
 
 function hasFilament(item: JobBrowserItem): boolean {

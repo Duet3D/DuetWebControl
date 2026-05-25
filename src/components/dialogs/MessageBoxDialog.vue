@@ -80,6 +80,7 @@ import { useSettingsStore } from "@/stores/settings";
 
 import i18n from "@/i18n";
 import { display, displayZ } from "@/utils/display";
+import { axisGCodeLetter } from "@/utils/gcode";
 import { isNumber } from "@/utils/numbers";
 
 const machineStore = useMachineStore(), settingsStore = useSettingsStore();
@@ -175,8 +176,13 @@ function displayAxisPosition(axis: Axis): string {
 }
 
 
+// Fixed jog feedrate for the message-box axis controls; the per-panel jog feedrate lives on the
+// Movement panel and is not reachable from this firmware-driven dialog
+const moveFeedrate = 6000;
+
 function getMoveCode(axis: Axis, index: number, decrementing: boolean): string {
-	return `M120\nG91\nG1 ${/[a-z]/.test(axis.letter) ? '\'' : ""}${axis.letter}${decrementing ? '-' : ""}${settingsStore.moveSteps[axis.letter][index]} F${settingsStore.moveFeedrate}\nM121`;
+	const sign = decrementing ? "-" : "";
+	return `M120\nG91\nG1 ${axisGCodeLetter(axis.letter)}${sign}${settingsStore.moveSteps[axis.letter][index]} F${moveFeedrate}\nM121`;
 }
 
 function showSign(value: number) {

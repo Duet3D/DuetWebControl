@@ -70,11 +70,13 @@ const settingsStore = useSettingsStore();
 // is mounted; the call is idempotent so multiple chart mounts are fine
 initTemperatureSampling();
 
-// Which series are drawn. `null` shows every heater / extra sensor; the settings dialog edits
-// these. Chart.js legend-click hiding is disabled so this is the single source of visibility
+// Which series are drawn. `null` shows every entity, an array restricts to those indices. Heaters
+// default to all-shown; extra sensors start hidden so an unconfigured chart only plots heaters.
+// The settings dialog edits these; chart.js legend-click hiding is disabled so this is the single
+// source of visibility
 const settings = useComponentSettings({
 	displayedHeaters: null as Array<number> | null,
-	displayedExtraSensors: null as Array<number> | null
+	displayedExtraSensors: [] as Array<number> | null
 });
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);

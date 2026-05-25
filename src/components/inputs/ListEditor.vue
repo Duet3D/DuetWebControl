@@ -27,34 +27,30 @@
 				</v-col>
 
 				<v-col cols="6">
-					<v-row density="compact" class="mt-3 align-center">
-						<v-col>
-							<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999"
-										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
-										  variant="outlined" hide-details
-										  @keyup.enter="addToActive" />
-						</v-col>
-						<v-col cols="auto">
-							<v-btn color="primary" size="small" :disabled="!canAddActive" @click="addToActive">
-								<v-icon class="mr-1">mdi-plus</v-icon> {{ $t("button.add.caption") }}
-							</v-btn>
-						</v-col>
-					</v-row>
+					<v-text-field v-model.number="activeValue" type="number" min="-273" max="1999"
+								  :label="$t('input.addTemperature')" v-hint="$t('input.addTemperatureHint')"
+								  :suffix="unit" density="compact"
+								  variant="outlined" hide-details class="mt-3"
+								  @keyup.enter="addToActive">
+						<template #append-inner>
+							<v-btn icon="mdi-plus" size="small" variant="outlined"
+								   :disabled="!canAddActive" :title="$t('button.add.caption')"
+								   @click="addToActive" />
+						</template>
+					</v-text-field>
 				</v-col>
 				<v-col cols="6">
-					<v-row density="compact" class="mt-3 align-center">
-						<v-col>
-							<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999"
-										  :label="$t('input.addTemperature')" :suffix="unit" density="compact"
-										  variant="outlined" hide-details
-										  @keyup.enter="addToStandby" />
-						</v-col>
-						<v-col cols="auto">
-							<v-btn color="primary" size="small" :disabled="!canAddStandby" @click="addToStandby">
-								<v-icon class="mr-1">mdi-plus</v-icon> {{ $t("button.add.caption") }}
-							</v-btn>
-						</v-col>
-					</v-row>
+					<v-text-field v-model.number="standbyValue" type="number" min="-273" max="1999"
+								  :label="$t('input.addTemperature')" v-hint="$t('input.addTemperatureHint')"
+								  :suffix="unit" density="compact"
+								  variant="outlined" hide-details class="mt-3"
+								  @keyup.enter="addToStandby">
+						<template #append-inner>
+							<v-btn icon="mdi-plus" size="small" variant="outlined"
+								   :disabled="!canAddStandby" :title="$t('button.add.caption')"
+								   @click="addToStandby" />
+						</template>
+					</v-text-field>
 				</v-col>
 			</v-row>
 		</template>
@@ -70,22 +66,27 @@
 					</v-chip>
 				</v-col>
 				<v-col cols="12">
-					<v-row density="compact" class="mt-3 align-center">
-						<v-col>
-							<v-text-field v-if="temperature" v-model.number="flatValue" type="number"
-										  min="-273" max="1999" :label="$t('input.addTemperature')"
-										  :suffix="unit" density="compact" variant="outlined" hide-details
-										  @keyup.enter="addToFlat" />
-							<v-text-field v-else v-model.number="flatValue" type="number" min="0"
-										  :label="$t('input.addRPM')" :suffix="unit" density="compact"
-										  variant="outlined" hide-details @keyup.enter="addToFlat" />
-						</v-col>
-						<v-col cols="auto">
-							<v-btn color="primary" size="small" :disabled="!canAddFlat" @click="addToFlat">
-								<v-icon class="mr-1">mdi-plus</v-icon> {{ $t("button.add.caption") }}
-							</v-btn>
-						</v-col>
-					</v-row>
+					<v-text-field v-if="temperature" v-model.number="flatValue" type="number"
+								  min="-273" max="1999" :label="$t('input.addTemperature')"
+								  v-hint="$t('input.addTemperatureHint')"
+								  :suffix="unit" density="compact" variant="outlined" hide-details
+								  class="mt-3" @keyup.enter="addToFlat">
+						<template #append-inner>
+							<v-btn icon="mdi-plus" size="small" variant="outlined"
+								   :disabled="!canAddFlat" :title="$t('button.add.caption')"
+								   @click="addToFlat" />
+						</template>
+					</v-text-field>
+					<v-text-field v-else v-model.number="flatValue" type="number" min="0"
+								  :label="$t('input.addRPM')" v-hint="$t('input.addRPMHint')"
+								  :suffix="unit" density="compact"
+								  variant="outlined" hide-details class="mt-3" @keyup.enter="addToFlat">
+						<template #append-inner>
+							<v-btn icon="mdi-plus" size="small" variant="outlined"
+								   :disabled="!canAddFlat" :title="$t('button.add.caption')"
+								   @click="addToFlat" />
+						</template>
+					</v-text-field>
 				</v-col>
 			</v-row>
 		</template>

@@ -7,7 +7,8 @@ registerRoute(InputShaping, {
 			icon: "mdi-transition",
 			caption: "Input Shaping",
 			translated: true,
-			path: "/Plugins/InputShaping"
+			path: "/Plugins/InputShaping",
+			pageFill: true
 		}
 	}
 });

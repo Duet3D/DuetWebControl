@@ -1,32 +1,70 @@
 <template>
 	<PanelCard icon="mdi-texture" :title="$t('panel.extrusionFactors.caption')">
-		<v-card-text v-if="hasVisibleExtruders" class="d-flex flex-column pb-0">
+		<template v-if="singleExtruder" #title-append>
+			<v-spacer />
+			<a v-show="settings.showResetLink && singleExtruderNeedsReset && !uiStore.uiFrozen"
+			   href="javascript:void(0)" class="text-title-small"
+			   @click.prevent="setExtrusionFactor(visibleExtruderIndices[0], 100)">
+				<v-icon size="small" class="mr-1">mdi-backup-restore</v-icon>
+				{{ $t("generic.reset") }}
+			</a>
+		</template>
+
+		<v-card-text v-if="hasVisibleExtruders" class="d-flex flex-column pb-2">
 			<template v-for="(extruder, index) in extruders" :key="index">
 				<div v-if="displayedExtruders.includes(index)" class="d-flex flex-column pt-2">
-					<div class="d-inline-flex">
+					<div v-if="!singleExtruder" class="d-inline-flex mb-1">
 						{{ $t("panel.extrusionFactors.extruder", [index]) }}
 						<v-spacer />
-						<a v-show="extruder.factor !== 1" href="javascript:void(0)" class="text-title-small"
-						   :disabled="uiStore.uiFrozen"
+						<a v-show="settings.showResetLink && extruder.factor !== 1" href="javascript:void(0)"
+						   class="text-title-small" :disabled="uiStore.uiFrozen"
 						   @click.prevent="setExtrusionFactor(index, 100)">
 							<v-icon size="small" class="mr-1">mdi-backup-restore</v-icon>
 							{{ $t("generic.reset") }}
 						</a>
 					</div>
 					<PercentageInput :model-value="Math.round(extruder.factor * 100)" :min="0"
-									 :max="getMax(extruder.factor)" :step="1" :disabled="uiStore.uiFrozen"
+									 :max="getMax(extruder.factor)" :step="settings.stepWidth"
+									 :numeric-input="settings.numericInput" :lockable="settings.enableLock"
+									 :disabled="uiStore.uiFrozen"
 									 @update:model-value="setExtrusionFactor(index, $event)" />
 				</div>
 			</template>
 		</v-card-text>
 
+		<v-alert v-else-if="settings.showCurrentToolOnly" type="info" class="mb-0">
+			{{ $t("panel.extrusionFactors.noExtruderSelected") }}
+		</v-alert>
 		<v-alert v-else type="info" class="mb-0">
 			{{ $t("panel.extrusionFactors.noExtruders") }}
 		</v-alert>
 
 		<template #settings>
-			<EntityVisibilityList kind="extruders" :label="$t('panel.extrusionFactors.displayedExtruders')"
+			<v-switch v-model="settings.showCurrentToolOnly" color="primary"
+					  :label="$t('panel.extrusionFactors.settings.showCurrentToolOnly')"
+					  v-hint="$t('panel.extrusionFactors.settings.showCurrentToolOnlyHint')"
+					  density="comfortable" hide-details />
+			<EntityVisibilityList v-if="!settings.showCurrentToolOnly" kind="extruders"
+								  :label="$t('panel.extrusionFactors.displayedExtruders')"
 								  v-model="settings.displayedExtruders" />
+
+			<v-switch v-model="settings.numericInput" color="primary" class="mt-3"
+					  :label="$t('panel.extrusionFactors.settings.numericInput')"
+					  v-hint="$t('panel.extrusionFactors.settings.numericInputHint')"
+					  density="comfortable" hide-details />
+			<v-switch v-model="settings.showResetLink" color="primary"
+					  :label="$t('panel.extrusionFactors.settings.showResetLink')"
+					  v-hint="$t('panel.extrusionFactors.settings.showResetLinkHint')"
+					  density="comfortable" hide-details />
+			<v-switch v-model="settings.enableLock" color="primary"
+					  :label="$t('panel.extrusionFactors.settings.enableLock')"
+					  v-hint="$t('panel.extrusionFactors.settings.enableLockHint')"
+					  density="comfortable" hide-details />
+
+			<v-number-input v-model="settings.stepWidth" :min="1" :step="1" :precision="0" class="mt-3"
+							:label="$t('panel.extrusionFactors.settings.stepWidth')"
+							v-hint="$t('panel.extrusionFactors.settings.stepWidthHint')"
+							variant="outlined" density="comfortable" hide-details suffix="%" />
 		</template>
 	</PanelCard>
 </template>
@@ -41,16 +79,44 @@ const machineStore = useMachineStore();
 const uiStore = useUiStore();
 
 // Per-instance extruder-visibility overlay; `null` shows every extruder
-const settings = useComponentSettings<{ displayedExtruders: Array<number> | null }>({
+const settings = useComponentSettings<{
+	displayedExtruders: Array<number> | null;
+	stepWidth: number;
+	numericInput: boolean;
+	showResetLink: boolean;
+	showCurrentToolOnly: boolean;
+	enableLock: boolean;
+}>({
 	displayedExtruders: null,
+	stepWidth: 1,
+	numericInput: false,
+	showResetLink: true,
+	showCurrentToolOnly: false,
+	enableLock: false,
 });
 
 const extruders = computed(() => machineStore.model.move.extruders);
 
-const displayedExtruders = computed<Array<number>>(() =>
-	settings.value.displayedExtruders ?? extruders.value.map((_, index) => index));
+// With `showCurrentToolOnly` the visible set follows the active tool's extruders; otherwise it
+// follows the manual EntityVisibilityList overlay (`null` shows every extruder)
+const displayedExtruders = computed<Array<number>>(() => {
+	if (settings.value.showCurrentToolOnly) {
+		return machineStore.currentTool?.extruders ?? [];
+	}
+	return settings.value.displayedExtruders ?? extruders.value.map((_, index) => index);
+});
 
-const hasVisibleExtruders = computed(() => extruders.value.some((_, index) => displayedExtruders.value.includes(index)));
+const visibleExtruderIndices = computed(() =>
+	extruders.value.map((_, index) => index).filter((index) => displayedExtruders.value.includes(index)));
+
+const hasVisibleExtruders = computed(() => visibleExtruderIndices.value.length > 0);
+
+// A lone extruder drops its "Extruder N" caption and moves the reset link up into the panel
+// header so the panel stays compact when there is nothing to disambiguate
+const singleExtruder = computed(() => visibleExtruderIndices.value.length === 1);
+
+const singleExtruderNeedsReset = computed(() => singleExtruder.value
+	&& extruders.value[visibleExtruderIndices.value[0]].factor !== 1);
 
 function getMax(factor: number) {
 	return Math.max(150, factor * 100 + 50);

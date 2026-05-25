@@ -6,7 +6,9 @@ registerRoute(HeightMap, {
 		HeightMap: {
 			icon: "mdi-grid",
 			caption: "plugins.heightmap.menuCaption",
-			path: "/Plugins/HeightMap"
+			path: "/Plugins/HeightMap",
+			pageFill: true,
+			scrollToBottom: true
 		}
 	}
 });

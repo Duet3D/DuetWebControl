@@ -25,18 +25,18 @@
 
 			<div :class="{ 'button-container-drawer': drawer }" class="button-container">
 				<v-btn :title="$t('plugins.gcodeViewer.fullscreen')" class="full-screen-icon mb-2"
-					   color="secondary" size="small" @click="toggleFullScreen">
+					   color="primary" size="small" @click="toggleFullScreen">
 					<v-icon>{{ fullscreen ? "mdi-window-restore" : "mdi-window-maximize" }}</v-icon>
 				</v-btn>
 				<br />
 				<v-btn :title="$t('plugins.gcodeViewer.showConfiguration')" class="mb-10"
-					   color="secondary" size="small" @click="drawer = !drawer">
+					   color="primary" size="small" @click="drawer = !drawer">
 					<v-icon>mdi-cog</v-icon>
 				</v-btn>
 				<br />
 				<v-btn v-if="isJobRunning && !loading && !visualizingCurrentJob"
 					   :title="$t('plugins.gcodeViewer.loadCurrentJob.title')" class="mb-10"
-					   color="secondary" size="small" @click="loadRunningJob">
+					   color="primary" size="small" @click="loadRunningJob">
 					<v-icon>mdi-printer-3d</v-icon>
 				</v-btn>
 				<br />
@@ -276,7 +276,7 @@
 			<div v-show="!visualizingCurrentJob && scrubFileSize > 0"
 				 :class="[{ 'button-container-drawer': drawer }, scrubberClass]">
 				<v-row class="scrubber-row">
-					<v-col cols="10" md="6">
+					<v-col cols="10" md="5">
 						<v-slider v-model="scrubPosition" :hint="`${scrubPosition}/${scrubFileSize}`"
 								  :max="scrubFileSize" min="0" density="compact" persistent-hint hide-details
 								  @update:model-value="scrubPositionChanged" />
@@ -294,14 +294,14 @@
 							</v-col>
 						</v-row>
 					</v-col>
-					<v-col cols="12" md="2">
-						<v-btn-toggle v-model="scrubSpeed" mandatory rounded>
-							<v-btn :value="1">1x</v-btn>
-							<v-btn :value="2">2x</v-btn>
-							<v-btn :value="5">5x</v-btn>
-							<v-btn :value="10">10x</v-btn>
-							<v-btn :value="20">20x</v-btn>
-							<v-btn :value="100">100x</v-btn>
+					<v-col cols="12" md="5">
+						<v-btn-toggle v-model="scrubSpeed" mandatory rounded color="secondary" class="w-100">
+							<v-btn :value="1" class="flex-grow-1">1x</v-btn>
+							<v-btn :value="2" class="flex-grow-1">2x</v-btn>
+							<v-btn :value="5" class="flex-grow-1">5x</v-btn>
+							<v-btn :value="10" class="flex-grow-1">10x</v-btn>
+							<v-btn :value="20" class="flex-grow-1">20x</v-btn>
+							<v-btn :value="100" class="flex-grow-1">100x</v-btn>
 						</v-btn-toggle>
 					</v-col>
 				</v-row>
@@ -344,12 +344,10 @@ import gcodeViewer from "@sindarius/gcodeviewer";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
 import i18n from "@/i18n";
-import { PluginDataType, setPluginData } from "@/stores";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
-import Events from "@/utils/events";
 import Path from "@/utils/path";
 
 import CodeStream from "./CodeStream.vue";
@@ -480,28 +478,28 @@ const jobSelectionLabel = computed(() => {
 // #region Cached plugin settings
 const toolColors = computed<string[]>({
 	get: () => pluginCache.value?.toolColors ?? [],
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "toolColors", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "toolColors", value),
 });
 
 const useHQRendering = computed<boolean>({
 	get: () => pluginCache.value?.useHQRendering ?? false,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "useHQRendering", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "useHQRendering", value),
 });
 
 const specular = computed<boolean>({
 	get: () => pluginCache.value?.useSpecular ?? true,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "useSpecular", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "useSpecular", value),
 });
 
 const g1AsExtrusion = computed<boolean>({
 	get: () => pluginCache.value?.g1AsExtrusion ?? false,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "g1AsExtrusion", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "g1AsExtrusion", value),
 });
 
 const viewGCode = computed<boolean>({
 	get: () => pluginCache.value?.viewGCode ?? false,
 	set: (value) => {
-		setPluginData("GCodeViewer", PluginDataType.cache, "viewGCode", value);
+		cacheStore.setPluginData("GCodeViewer", "viewGCode", value);
 		if (viewer) {
 			fileData.value = value ? viewer.fileData : "";
 		}
@@ -511,22 +509,22 @@ const viewGCode = computed<boolean>({
 
 const zBelt = computed<boolean>({
 	get: () => pluginCache.value?.zBelt ?? false,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "zBelt", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "zBelt", value),
 });
 
 const zBeltAngle = computed<number>({
 	get: () => pluginCache.value?.zBeltAngle ?? 45,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "zBeltAngle", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "zBeltAngle", value),
 });
 
 const showWorkplace = computed<boolean>({
 	get: () => pluginCache.value?.showWorkplace ?? true,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "showWorkplace", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "showWorkplace", value),
 });
 
 const showCursor = computed<boolean>({
 	get: () => pluginCache.value?.showCursor ?? false,
-	set: (value) => setPluginData("GCodeViewer", PluginDataType.cache, "showCursor", value),
+	set: (value) => cacheStore.setPluginData("GCodeViewer", "showCursor", value),
 });
 
 // #endregion
@@ -568,7 +566,7 @@ const currentWorkplace = computed(() => {
 // #endregion
 
 // #region Viewer lifecycle
-async function viewModelEvent(path: string) {
+async function loadSdFile(path: string) {
 	selectedFile.value = path;
 	if (!viewer) {
 		return;
@@ -587,8 +585,161 @@ async function viewModelEvent(path: string) {
 		scrubFileSize.value = viewer.fileSize;
 		viewer.gcodeProcessor.setLiveTracking(visualizingCurrentJob.value);
 		setGCodeValues();
+		applyDefaultOrientation();
 	} finally {
 		loading.value = false;
+	}
+}
+
+// Resolve the SD-card file path from the route's `:volume?/:path(.*)?` params. Empty when the
+// page was opened at its bare path with no file to preview
+function sdPathFromRoute(): string {
+	const params = route.params as Record<string, string | string[] | undefined>;
+	const rawVolume = Array.isArray(params.volume) ? params.volume[0] : params.volume;
+	const rawPath = Array.isArray(params.path) ? params.path.join("/") : params.path;
+	const filePath = rawPath ?? "";
+	if (filePath === "") {
+		return "";
+	}
+	const volume = rawVolume && /^\d+$/.test(rawVolume) ? rawVolume : "0";
+	return `${volume}:/${filePath}`;
+}
+
+// Load whatever the route asks for: a deep-linked file, or - at the bare path - the running job
+function loadFromRoute() {
+	const filePath = sdPathFromRoute();
+	if (filePath) {
+		if (filePath !== selectedFile.value) {
+			loadSdFile(filePath);
+		}
+	} else {
+		autoLoadRunningJob();
+	}
+}
+
+// Default camera placement: a front view of the bed tilted 45 deg down. For an ArcRotateCamera
+// alpha -PI/2 faces the bed's front edge and beta PI/4 is the tilt; targeting the bed centre
+// keeps it centred. frameBedToViewport() then sizes the orbit radius to fit
+function applyDefaultOrientation() {
+	const camera = viewer?.scene?.activeCamera;
+	if (!camera) {
+		return;
+	}
+	const center = viewer.bed.getCenter();
+	camera.target = new Vector3(center.x, -2, center.y);
+	camera.alpha = -Math.PI / 2;
+	camera.beta = Math.PI / 4;
+	frameBedToViewport();
+	viewer.scene.render(true);
+}
+
+// Pull the orbit camera back until the bed footprint fills the viewport. The four bed corners
+// are projected with the live view + projection matrices and the radius is rescaled from how
+// much of the clip volume they span, so the fit adapts to any bed size, the camera tilt and
+// the viewport aspect ratio. A strip is reserved at the bottom so the playback controls stay
+// clear of the bed. Perspective makes a single pass approximate, hence the short converging loop
+function frameBedToViewport() {
+	const camera = viewer?.scene?.activeCamera;
+	if (!camera) {
+		return;
+	}
+	const center = viewer.bed.getCenter();
+	const size = viewer.bed.getSize();
+
+	// Before the canvas has a real size the projection matrix is degenerate; fall back to a
+	// rough radius and let the next call (after layout / a file load) frame it properly
+	const engine = viewer.scene.getEngine();
+	if (engine.getRenderWidth() < 1 || engine.getRenderHeight() < 1) {
+		camera.radius = 2 * Math.max(size.x, size.y, 1);
+		return;
+	}
+
+	const hx = size.x / 2, hy = size.y / 2;
+	const corners: Array<[number, number, number]> = [
+		[center.x - hx, -2, center.y - hy],
+		[center.x + hx, -2, center.y - hy],
+		[center.x - hx, -2, center.y + hy],
+		[center.x + hx, -2, center.y + hy],
+	];
+
+	// Start far enough back that every corner is in front of the camera on the first pass
+	camera.radius = 2 * Math.max(size.x, size.y, 1);
+
+	// Zoom so the bed fills 95% of the viewport width or 74% of its height, whichever binds
+	// first - the rest stays as breathing room
+	const targetX = 0.95;
+	const targetY = 0.74;
+	for (let pass = 0; pass < 8; pass++) {
+		const view = camera.getViewMatrix(true).m as Float32Array;
+		const proj = camera.getProjectionMatrix(true).m as Float32Array;
+		let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, behind = false;
+		for (const [x, y, z] of corners) {
+			// World -> view space (the view matrix is affine, so w stays 1)
+			const vx = view[0] * x + view[4] * y + view[8] * z + view[12];
+			const vy = view[1] * x + view[5] * y + view[9] * z + view[13];
+			const vz = view[2] * x + view[6] * y + view[10] * z + view[14];
+			// View -> clip space
+			const cw = proj[3] * vx + proj[7] * vy + proj[11] * vz + proj[15];
+			if (cw <= 0) {
+				behind = true;
+				break;
+			}
+			const ndcX = (proj[0] * vx + proj[4] * vy + proj[8] * vz + proj[12]) / cw;
+			const ndcY = (proj[1] * vx + proj[5] * vy + proj[9] * vz + proj[13]) / cw;
+			minX = Math.min(minX, ndcX); maxX = Math.max(maxX, ndcX);
+			minY = Math.min(minY, ndcY); maxY = Math.max(maxY, ndcY);
+		}
+		if (behind || !Number.isFinite(minX)) {
+			camera.radius *= 2;
+			continue;
+		}
+		// The visible clip range is [-1, 1] on each axis. Rescale by whichever axis overshoots
+		// its target fill fraction the most
+		const xFill = (maxX - minX) / 2;
+		const yFill = (maxY - minY) / 2;
+		if (xFill <= 0 && yFill <= 0) {
+			break;
+		}
+		const nextRadius = camera.radius * Math.max(xFill / targetX, yFill / targetY);
+		const converged = Math.abs(nextRadius - camera.radius) < camera.radius * 0.01;
+		camera.radius = nextRadius;
+		if (converged) {
+			break;
+		}
+	}
+
+	// Centre the bed vertically between the top of the playback controls overlay and the top of
+	// the viewport - clip-space y +0.1 is the midpoint of that band. Perspective skews the
+	// projected box, so the look-at point is nudged until the box centre lands; damped empirical
+	// steps converge without depending on the exact FOV
+	const desiredCenter = 0.1;
+	for (let pass = 0; pass < 6; pass++) {
+		const view = camera.getViewMatrix(true).m as Float32Array;
+		const proj = camera.getProjectionMatrix(true).m as Float32Array;
+		let minY = Infinity, maxY = -Infinity;
+		for (const [x, y, z] of corners) {
+			const vx = view[0] * x + view[4] * y + view[8] * z + view[12];
+			const vy = view[1] * x + view[5] * y + view[9] * z + view[13];
+			const vz = view[2] * x + view[6] * y + view[10] * z + view[14];
+			const cw = proj[3] * vx + proj[7] * vy + proj[11] * vz + proj[15];
+			if (cw <= 0) {
+				continue;
+			}
+			const ndcY = (proj[1] * vx + proj[5] * vy + proj[9] * vz + proj[13]) / cw;
+			minY = Math.min(minY, ndcY);
+			maxY = Math.max(maxY, ndcY);
+		}
+		if (!Number.isFinite(minY)) {
+			break;
+		}
+		const deltaNdc = desiredCenter - (minY + maxY) / 2;
+		if (Math.abs(deltaNdc) < 0.01) {
+			break;
+		}
+		// Lowering the target lifts the scene; ~0.6 radius per NDC unit lands close and the
+		// loop mops up the rest
+		const t = camera.target;
+		camera.target = new Vector3(t.x, t.y - deltaNdc * 0.6 * camera.radius, t.z);
 	}
 }
 
@@ -668,8 +819,6 @@ onMounted(async () => {
 		scrubPlaying.value = false;
 	};
 
-	Events.on("view-3d-model", viewModelEvent);
-
 	nextTick(() => {
 		updateTools();
 		updateWorkplaces();
@@ -678,16 +827,21 @@ onMounted(async () => {
 	window.addEventListener("keyup", onKeyUp);
 	window.addEventListener("resize", onWindowResize);
 
-	// Pick up a file passed via query (Jobs list "View 3D" navigation arrives this way; the
-	// global event would race the lazy chunk's mount)
-	const pendingFile = route.query.file;
-	if (typeof pendingFile === "string" && pendingFile.length > 0) {
-		viewModelEvent(pendingFile);
-	}
+	applyDefaultOrientation();
+
+	// A file deep-linked into the route (Jobs list "View 3D" navigation arrives this way) loads
+	// immediately; at the bare path the viewer falls back to the running job instead
+	loadFromRoute();
 });
 
+// Re-entering the kept-alive page, or navigating to a different file while it stays mounted,
+// re-resolves what the route asks for
+onActivated(() => {
+	loadFromRoute();
+});
+watch(sdPathFromRoute, loadFromRoute);
+
 onBeforeUnmount(() => {
-	Events.off("view-3d-model", viewModelEvent);
 	window.removeEventListener("keyup", onKeyUp);
 	window.removeEventListener("resize", onWindowResize);
 	if (colorDebounce) {
@@ -739,7 +893,7 @@ function updateColor(index: number, value: string) {
 		clearTimeout(colorDebounce);
 	}
 	colorDebounce = setTimeout(() => {
-		setPluginData("GCodeViewer", PluginDataType.cache, "toolColors", next);
+		cacheStore.setPluginData("GCodeViewer", "toolColors", next);
 		viewer?.gcodeProcessor.forceRedraw();
 	}, 200);
 }
@@ -792,7 +946,15 @@ function resize() {
 }
 
 function reset() {
-	viewer?.resetCamera();
+	applyDefaultOrientation();
+}
+
+// Loads the job currently being processed, but only when the viewer is idle and empty - an
+// explicit file selection or an in-progress load is left untouched
+function autoLoadRunningJob() {
+	if (isJobRunning.value && !loading.value && !visualizingCurrentJob.value && selectedFile.value === "") {
+		loadRunningJob();
+	}
 }
 
 async function loadRunningJob() {
@@ -823,6 +985,7 @@ async function loadRunningJob() {
 		}
 		scrubFileSize.value = viewer.fileSize;
 		setGCodeValues();
+		applyDefaultOrientation();
 		viewer.buildObjects.loadObjectBoundaries(job.value.build?.objects ?? []);
 	} finally {
 		viewer.gcodeProcessor.updateFilePosition(0);
@@ -927,6 +1090,7 @@ async function fileSelected(e: Event) {
 		}
 		scrubFileSize.value = viewer?.fileSize ?? 0;
 		setGCodeValues();
+		applyDefaultOrientation();
 	});
 	loading.value = true;
 	const input = e.target as HTMLInputElement;
@@ -1155,7 +1319,7 @@ watch(zBelt, (to) => viewer?.setZBelt(to, zBeltAngle.value));
 
 watch(zBeltAngle, (to) => {
 	if (to < 0 || to > 90) {
-		setPluginData("GCodeViewer", PluginDataType.cache, "zBeltAngle", 45);
+		cacheStore.setPluginData("GCodeViewer", "zBeltAngle", 45);
 		return;
 	}
 	viewer?.setZBelt(zBelt.value, to);
@@ -1227,18 +1391,12 @@ watch(progressMode, async () => {
 	position: relative;
 	width: 100%;
 	height: 100%;
-	/* Round the black canvas's corners and give the layout a small breathing inset at xs/sm
-	   (the surrounding layout strips its padding there). md+ keeps the canvas flush with the
-	   layout's own 16px padding */
 	border-radius: 8px;
 	overflow: hidden;
 	margin: 8px;
 	width: calc(100% - 16px);
 }
 
-/* Drawer cleanup: the previous nested-v-card structure created stacked rounded boxes inside
-   the side menu. Replace with flat groups: action buttons stacked with a consistent gap, a
-   divider between the action stack and the toggles, and a comfortable padding around both */
 .gcv-drawer-actions {
 	padding: 12px;
 }

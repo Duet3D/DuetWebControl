@@ -259,6 +259,17 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
+		 * Indicates if the UI is supposed to display Laser controls
+		 * @returns True if the machine is in Laser mode and no dashboard override is active
+		 */
+		isLaser(): boolean {
+			const machineStore = useMachineStore(); const settingsStore = useSettingsStore();
+			// DashboardMode has no Laser override, so a forced dashboard is never treated as Laser
+			return settingsStore.dashboardMode === DashboardMode.default
+				&& machineStore.model.state.machineMode === MachineMode.laser;
+		},
+
+		/**
 		 * Indicates if the UI is supposed to be frozen
 		 * @param state Store state
 		 * @returns True if the UI is supposed to be frozen
@@ -302,10 +313,11 @@ export const useUiStore = defineStore("ui", {
 		 * @param type Message type
 		 * @param title Title of the message
 		 * @param message Optional message content
+		 * @param route Optional route - the notification shows a clickable target navigating here
 		 * @returns The new notification's id (pass to {@link dismissNotification} to dismiss it programmatically)
 		 */
-		log(type: LogLevel, title: string, message: string | null = null): string {
-			const id = this.makeNotification(type, title, message);
+		log(type: LogLevel, title: string, message: string | null = null, route: string | null = null): string {
+			const id = this.makeNotification(type, title, message, null, route);
 			this.logMessage(type, title, message);
 			return id;
 		},

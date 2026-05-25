@@ -39,6 +39,24 @@
 			"title": "Makro {0} ausführen?",
 			"prompt": "Möchten Sie {0} ausführen?"
 		},
+		"forceMove": {
+			"title": "Vorhandene Datei überschreiben?",
+			"prompt": "Im Zielordner \"{1}\" existiert bereits ein Eintrag namens \"{0}\". Überschreiben?"
+		},
+		"dropUpload": {
+			"title": "Speicherort",
+			"prompt": "Diese G-Code-Datei ist klein genug für ein Makro oder eine Systemdatei. Wohin soll sie?",
+			"promptMultiple": "Diese G-Code-Dateien sind klein genug für Makros oder Systemdateien. Wohin sollen sie?",
+			"job": "G-Code-Auftrag",
+			"macro": "Makro",
+			"system": "Systemdatei"
+		},
+		"editorDrop": {
+			"title": "Abgelegte Datei einfügen",
+			"prompt": "Den Editorinhalt durch \"{0}\" ersetzen oder die Datei an der Cursorposition einfügen?",
+			"overwrite": "Überschreiben",
+			"insert": "An Cursorposition einfügen"
+		},
 		"startJob": {
 			"title": "{0} starten",
 			"prompt": "Möchten Sie {0} starten?"
@@ -65,16 +83,20 @@
 			"docsLink": "Dokumentation"
 		},
 		"fileEdit": {
-			"save": "Speichern",
+			"save": "Speichern (Strg+S)",
 			"revert": "Verwerfen",
 			"revertTooLarge": "Verwerfen ist für Dateien über 32 MiB deaktiviert",
-			"searchGcode": "Code suchen",
-			"searchExpression": "Ausdruck suchen",
+			"searchGcode": "Code suchen (F4)",
+			"searchExpression": "Ausdruck suchen (F4)",
 			"loadDisconnected": "Verbinde dich mit einer Maschine, um diese Datei zu öffnen.",
 			"loadFailed": "Konnte {0} nicht laden: {1}",
 			"saveFailed": "Konnte {0} nicht speichern",
-			"discardTitle": "Änderungen verwerfen?",
-			"discardPrompt": "Es gibt nicht gespeicherte Änderungen. Soll die Datei wirklich geschlossen werden?",
+			"unsaved": {
+				"title": "Änderungen speichern?",
+				"prompt": "\"{0}\" hat nicht gespeicherte Änderungen. Sollen sie gespeichert werden?",
+				"save": "Speichern",
+				"dontSave": "Nicht speichern"
+			},
 			"gcodeReference": "G-Code-Referenz"
 		},
 		"newFile": {
@@ -177,6 +199,7 @@
 		},
 		"componentSettings": {
 			"title": "Bedienfeldeinstellungen",
+			"titleFor": "Einstellungen für {0}",
 			"edit": "Bedienfeldeinstellungen bearbeiten",
 			"reset": "Zurücksetzen"
 		},
@@ -335,6 +358,12 @@
 			"message": "Es ist kaum noch freier Speicherplatz auf dem ersten Laufwerk vorhanden. Löschen Sie einige Dateien, um Probleme während Dateiuploads zu vermeiden.",
 			"title": "Laufwerk fast voll"
 		},
+		"upload": {
+			"ambiguousTitle": "Hochladen nicht möglich",
+			"ambiguous": "Die abgelegten Dateien wurden nicht als G-Code oder Update-Paket erkannt. Öffnen Sie den Datei-Explorer, um sie manuell hochzuladen.",
+			"notConnectedTitle": "Nicht verbunden",
+			"notConnected": "Stellen Sie eine Verbindung zu einer Maschine her, bevor Sie Dateien hochladen."
+		},
 		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
 	},
 	"error": {
@@ -349,7 +378,11 @@
 		"statusPanel": "Status",
 		"showStatusPanel": "Statusbereich anzeigen",
 		"hideStatusPanel": "Statusbereich ausblenden",
-		"goToJobStatus": "Zum Auftragsstatus"
+		"goToJobStatus": "Zum Auftragsstatus",
+		"customLayoutMissing": "Das benutzerdefinierte Layout konnte nicht geladen werden; die Standardoberfläche wird verwendet.",
+		"uploadOverlay": {
+			"prompt": "Dateien zum Hochladen ablegen"
+		}
 	},
 	"page": {
 		"notFound": {
@@ -361,16 +394,22 @@
 	},
 	"chart": {
 		"layer": {
-			"caption": "Statistik der Druckschichten",
+			"caption": "Schichten",
 			"layerTime": "Schichtdauer",
-			"showLastLayers": "Letzte {0} Schichten anzeigen",
-			"showAllLayers": "Alle Schichten anzeigen",
 			"layer": "Schicht {0}",
 			"layerDuration": "Dauer: {0}",
 			"layerHeight": "Schichtdicke: {0}",
 			"filamentUsage": "Filamentverbrauch: {0}",
 			"fractionPrinted": "Dateifortschritt: {0}",
-			"temperatures": "Temperaturen: {0}"
+			"temperatures": "Temperaturen: {0}",
+			"settings": {
+				"hideFirstLayer": "Erste Schicht ausblenden",
+				"hideFirstLayerHint": "Schicht 1 aus dem Diagramm ausschliessen - ihre Dauer ist oft ein Ausreisser, der den Rest verflacht",
+				"showAllLayers": "Alle Schichten anzeigen",
+				"showAllLayersHint": "Alle Schichten anzeigen statt nur der neuesten",
+				"lastLayerCount": "Anzahl neuester Schichten",
+				"lastLayerCountHint": "Wie viele der neuesten Schichten angezeigt werden, wenn nicht alle Schichten dargestellt werden"
+			}
 		},
 		"temperature": {
 			"caption": "Temperaturen",
@@ -446,9 +485,10 @@
 			"placeholder": "Code senden...",
 			"send": "Senden"
 		},
-		"set": "Setzen",
 		"addTemperature": "Temperatur hinzufügen",
-		"addRPM": "Drehzahl hinzufügen"
+		"addTemperatureHint": "Temperatur eingeben und mit der Plus-Schaltfläche zur Liste hinzufügen",
+		"addRPM": "Drehzahl hinzufügen",
+		"addRPMHint": "Spindeldrehzahl eingeben und mit der Plus-Schaltfläche zur Liste hinzufügen"
 	},
 	"list": {
 		"eventLog": {
@@ -479,7 +519,17 @@
 			"caption": "Makros",
 			"noMacros": "Keine Makros",
 			"run": "Makro ausführen",
-			"root": "Stammverzeichnis"
+			"root": "Stammverzeichnis",
+			"settings": {
+				"showDirectories": "Verzeichnisse anzeigen",
+				"showDirectoriesHint": "Das Navigieren in Makro-Unterverzeichnisse erlauben",
+				"startDirectory": "Startverzeichnis",
+				"startDirectoryHint": "Verzeichnis, das anstelle des Standard-Makroverzeichnisses aufgelistet wird; für den Standard leer lassen",
+				"includeFilter": "Einschlussfilter",
+				"includeFilterHint": "Kommagetrennte Namensmuster (Platzhalter * und ?); nur passende Dateien werden angezeigt",
+				"excludeFilter": "Ausschlussfilter",
+				"excludeFilterHint": "Kommagetrennte Namensmuster (Platzhalter * und ?); passende Dateien werden ausgeblendet"
+			}
 		},
 		"filament": {
 			"noFilaments": "Keine Filamente"
@@ -499,6 +549,7 @@
 		"fileList": {
 			"open": "Öffnen",
 			"edit": "Bearbeiten",
+			"fileInfo": "Dateiinfo",
 			"runMacro": "Makro ausführen",
 			"download": "Herunterladen",
 			"downloadZIP": "Als ZIP herunterladen",
@@ -509,6 +560,11 @@
 			"viewModeAuto": "Automatisch (Kacheln auf kleinen Bildschirmen)",
 			"viewModeList": "Liste",
 			"viewModeTiles": "Kacheln",
+			"sortBy": "Sortieren nach",
+			"sortDirection": "Sortierreihenfolge",
+			"sortAscending": "Aufsteigend",
+			"sortDescending": "Absteigend",
+			"layout": "Layout",
 			"moveError": "Konnte {0} nicht nach {1} verschieben",
 			"movedOne": "{0} wurde nach {1} verschoben",
 			"movedMany": "{0} Einträge nach {1} verschoben",
@@ -532,6 +588,10 @@
 		"filament": "Filamentverbrauch: {0}",
 		"filamentRemaining": "{0} verbleibend"
 	},
+	"jobViewPanel": {
+		"gcodeStream": "G-Code",
+		"noFileLoaded": "Keine Datei geladen"
+	},
 	"panel": {
 		"atx": {
 			"caption": "ATX-Zufuhr",
@@ -539,8 +599,14 @@
 			"off": "Aus"
 		},
 		"babystepping": {
-			"caption": "Z-Babystepping",
-			"current": "Aktueller Versatz: {0}"
+			"caption": "Babystepping",
+			"current": "Aktueller {0}-Versatz: {1}",
+			"settings": {
+				"babystepAmount": "Babystep-Schrittweite",
+				"babystepAmountHint": "Schrittweite je Klick auf die Babystep-Tasten (in mm)",
+				"babystepAxes": "Babystepping-Achsen",
+				"babystepAxesHint": "Festlegen, welche Achsen in diesem Bedienfeld für Babystepping verfügbar sind"
+			}
 		},
 		"cncDashboard": {
 			"caption": "CNC-Dashboard",
@@ -551,7 +617,20 @@
 			"changeVisibility": "Sichtbarkeit ändern",
 			"extruder": "Extruder {0}",
 			"noExtruders": "Keine Extruder",
-			"displayedExtruders": "Angezeigte Extruder"
+			"noExtruderSelected": "Kein Extruder verfügbar",
+			"displayedExtruders": "Angezeigte Extruder",
+			"settings": {
+				"stepWidth": "Schrittweite",
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
+				"numericInput": "Numerische Eingaben",
+				"numericInputHint": "Numerische Eingabefelder statt der Schieberegler anzeigen",
+				"showResetLink": "Links zum Zurücksetzen anzeigen",
+				"showResetLinkHint": "Einen Link anzeigen, der den Extrusionsfaktor auf 100 % zurücksetzt",
+				"showCurrentToolOnly": "Nur aktuelles Werkzeug",
+				"showCurrentToolOnlyHint": "Nur die Extruder des aktuell ausgewählten Werkzeugs anzeigen",
+				"enableLock": "Sperrbare Schieberegler",
+				"enableLockHint": "Eine Sperrtaste neben jedem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+			}
 		},
 		"jobControl": {
 			"caption": "Auftragskontrolle",
@@ -571,28 +650,32 @@
 			"printNow": "Jetzt drucken",
 			"startJob": "Auftrag starten"
 		},
-		"jobData": {
-			"caption": "Gesammelte Daten",
-			"warmUpDuration": "Aufwärmzeit",
-			"currentLayerTime": "Aktuelle Schichtdauer",
-			"lastLayerTime": "Letzte Schichtdauer",
-			"jobDuration": "Auftragsdauer"
-		},
-		"jobEstimations": {
-			"caption": "Schätzungen basierend auf",
-			"filament": "Filamentverbrauch",
-			"file": "Dateifortschritt",
-			"layer": "Schichtdauer",
-			"slicer": "Slicer",
-			"simulation": "Simulation",
-			"toPause": "Nächste Pause"
-		},
 		"jobInfo": {
 			"caption": "Jobinformationen",
 			"height": "Höhe:",
 			"layerHeight": "Schichtdicke:",
 			"filament": "Filamentverbrauch:",
-			"generatedBy": "Erzeugt durch:"
+			"generatedBy": "Erzeugt durch:",
+			"settings": {
+				"displayedLines": "Angezeigte Informationen",
+				"displayedLinesHint": "Festlegen, welche Informationszeilen angezeigt werden"
+			}
+		},
+		"jobTimes": {
+			"caption": "Geschätzt / Gemessen",
+			"filament": "Filamentverbrauch",
+			"file": "Dateifortschritt",
+			"slicer": "Slicer",
+			"simulation": "Simulation",
+			"toPause": "Nächste Pause",
+			"warmUpDuration": "Aufwärmzeit",
+			"currentLayerTime": "Aktuelle Schichtdauer",
+			"lastLayerTime": "Letzte Schichtdauer",
+			"jobDuration": "Auftragsdauer",
+			"settings": {
+				"displayedEstimationsHint": "Festlegen, welche Schätzungen angezeigt werden",
+				"displayedDataHint": "Festlegen, welche gesammelten Werte angezeigt werden"
+			}
 		},
 		"webcam": {
 			"caption": "Webcamüberwachung",
@@ -609,10 +692,21 @@
 			"on": "An",
 			"off": "Aus",
 			"forward": "Vorwärts",
-			"reverse": "Rückwärts"
+			"reverse": "Rückwärts",
+			"noSpindles": "Keine Spindeln verfügbar"
 		},
 		"speedFactor": {
-			"caption": "Geschwindigkeitsfaktor"
+			"caption": "Geschwindigkeitsfaktor",
+			"settings": {
+				"upperLimit": "Anfängliche Obergrenze",
+				"upperLimitHint": "Anfängliches Maximum des Schiebereglers; er skaliert automatisch hoch, wenn der Geschwindigkeitsfaktor diesen Wert übersteigt",
+				"stepWidth": "Schrittweite",
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
+				"numericInput": "Numerische Eingabe",
+				"numericInputHint": "Ein numerisches Eingabefeld statt des Schiebereglers anzeigen",
+				"enableLock": "Sperrbarer Schieberegler",
+				"enableLockHint": "Eine Sperrtaste neben dem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+			}
 		},
 		"tools": {
 			"caption": "Werkzeuge",
@@ -649,14 +743,21 @@
 			},
 			"noTools": "Keine Werkzeuge",
 			"displayedTools": "Angezeigte Werkzeuge",
+			"toolChangeMacros": "Makros beim Werkzeugwechsel",
+			"toolChangeMacrosHint": "Welche der Makros tfree.g / tpre.g / tpost.g bei einem Werkzeugwechsel über T[n] ausgeführt werden. Wird als P-Parameter im T-Befehl codiert.",
 			"displayedBeds": "Angezeigte Betten",
 			"displayedChambers": "Angezeigte Kammern",
+			"showToolNumber": "Werkzeugnummer anzeigen",
+			"showToolNumberHint": "Die T-Nummer unter jedem Werkzeugnamen anzeigen",
 			"showActiveTemperatures": "Aktive Temperaturen anzeigen",
 			"showActiveTemperaturesHint": "Zeigt die Spalte für die Aktivtemperatur an",
 			"showStandbyTemperatures": "Standby-Temperaturen anzeigen",
 			"showStandbyTemperaturesHint": "Zeigt die Spalte für die Standby-Temperatur an",
 			"showFilamentControls": "Filamentsteuerung anzeigen",
-			"showFilamentControlsHint": "Zeigt die Steuerung zum Laden, Wechseln und Entladen von Filament pro Werkzeug an"
+			"showFilamentControlsHint": "Zeigt die Steuerung zum Laden, Wechseln und Entladen von Filament pro Werkzeug an",
+			"filaments": "Filamente",
+			"promptDuringFilamentChange": "Nach dem Entladen beim Filamentwechsel eine Bestätigung anzeigen",
+			"promptDuringFilamentChangeHint": "Nach dem Entladen des alten Filaments auf eine Bestätigung warten, bevor das neue geladen wird"
 		},
 		"status": {
 			"caption": "Status",
@@ -697,11 +798,13 @@
 				"sensorsHint": "Legt fest, welche Sensorwerte angezeigt werden",
 				"positionBoth": "Werkzeug- und Maschinenposition",
 				"extruderDisplay": "Extruderanzeige",
-				"extruderDisplayHint": "Legt fest, wie Extruderwerte angezeigt werden - Filamentlänge, extrudiertes Volumen oder beides",
-				"extruderLength": "Filamentlänge",
+				"extruderDisplayHint": "Legt fest, wie Extruderwerte angezeigt werden - Filamentposition, extrudiertes Volumen oder beides",
+				"userPosition": "Filamentposition",
 				"extruderVolume": "Extrudiertes Volumen",
 				"extruderToggle": "Per Klick umschalten",
-				"extruderBoth": "Filamentlänge und Volumen"
+				"extruderBoth": "Filamentposition und Volumen",
+				"machineModes": "Umschaltbare Maschinenmodi",
+				"machineModesHint": "Legt fest, zu welchen Maschinenmodi über das Modus-Menü gewechselt werden kann"
 			},
 			"extrudedVolume": "Extrudiertes Volumen"
 		},
@@ -721,7 +824,15 @@
 			"selection": "Lüfterauswahl:",
 			"toolFan": "Werkzeuglüfter",
 			"fan": "Lüfter {0}",
-			"displayedFans": "Angezeigte Lüfter"
+			"displayedFans": "Angezeigte Lüfter",
+			"settings": {
+				"stepWidth": "Schrittweite",
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
+				"numericInput": "Numerische Eingabe",
+				"numericInputHint": "Ein numerisches Eingabefeld statt des Schiebereglers anzeigen",
+				"enableLock": "Sperrbarer Schieberegler",
+				"enableLockHint": "Eine Sperrtaste neben dem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+			}
 		},
 		"fans": {
 			"caption": "Lüfter",
@@ -729,11 +840,29 @@
 			"toolFan": "Werkzeuglüfter",
 			"fan": "Lüfter {0}",
 			"noFans": "Keine Lüfter",
-			"displayedFans": "Angezeigte Lüfter"
+			"displayedFans": "Angezeigte Lüfter",
+			"settings": {
+				"stepWidth": "Schrittweite",
+				"stepWidthHint": "Wert, der pro Klick auf die +/--Knöpfe angewendet wird",
+				"numericInput": "Numerische Eingaben",
+				"numericInputHint": "Numerische Eingabefelder statt der Schieberegler anzeigen",
+				"enableLock": "Sperrbare Schieberegler",
+				"enableLockHint": "Eine Sperrtaste neben jedem Schieberegler anzeigen, die ihn schreibgeschützt schaltet, um unbeabsichtigte Anpassungen zu verhindern"
+			}
 		},
 		"movement": {
 			"caption": "Maschinenbewegung",
 			"displayedAxes": "Angezeigte Achsen",
+			"settings": {
+				"showHomeAllButton": "Knopf zum Referenzieren aller Achsen anzeigen",
+				"showHomeAllButtonHint": "Den Knopf einblenden, der alle Achsen gleichzeitig referenziert",
+				"showAxisHomeButtons": "Referenzierknöpfe je Achse anzeigen",
+				"showAxisHomeButtonsHint": "Den einzelnen Referenzierknopf für jede Achse einblenden",
+				"compensationItems": "Einträge im Kompensationsmenü",
+				"compensationItemsHint": "Festlegen, welche Einträge im Kompensationsmenü angezeigt werden",
+				"moveFeedrate": "Jog-Vorschub",
+				"moveFeedrateHint": "Vorschub, der mit den manuellen Bewegungstasten gesendet wird (G1 F[Wert])"
+			},
 			"compensation": "Kompensation & Kalibrierung",
 			"compensationShort": "Kompensation",
 			"runBed": "True Bed Levelling (G32)",
@@ -799,15 +928,17 @@
 			"caption": "Benachrichtigungen",
 			"errorsPersistent": "Fehlermeldungen bleiben bis zur Bestätigung sichtbar",
 			"errorsPersistentHint": "Fehlerbenachrichtigungen bleiben sichtbar, bis sie manuell geschlossen werden, statt automatisch zu verschwinden",
-			"timeout": "Standardzeit für Benachrichtigungen (Sekunden)",
+			"timeout": "Standardzeit für Benachrichtigungen (Millisekunden)",
 			"timeoutHint": "Wie lange Informations- und Erfolgsmeldungen angezeigt werden, bevor sie ausgeblendet werden"
 		},
 		"behaviour": {
 			"caption": "Verhalten",
 			"switchToJobOnPrintStart": "Beim Druckstart zur Auftragsseite wechseln",
 			"switchToJobOnPrintStartHint": "Bei Druckbeginn automatisch die Auftragsseite mit allen Steuerungen öffnen",
-			"promptDuringFilamentChange": "Nach dem Entladen beim Filamentwechsel eine Bestätigung anzeigen",
-			"promptDuringFilamentChangeHint": "Nach dem Entladen des alten Filaments auf eine Bestätigung warten, bevor das neue geladen wird"
+			"checkVersions": "Plugin- und Firmwareversionen prüfen",
+			"checkVersionsHint": "Hinweis anzeigen, wenn DWC-, RRF- oder Plugin-Versionen nicht zusammenpassen",
+			"autoScroll": "Ansichtsseiten automatisch einscrollen",
+			"autoScrollHint": "Beim Öffnen der Höhenkarte, des G-Code-Viewers oder des Datei-Editors die Seite nach unten scrollen, sodass das Panel den Bildschirm füllt und die Statuszeile darüber ausgeblendet wird. Gilt auf mittelgroßen und größeren Anzeigen."
 		},
 		"communicationCard": {
 			"caption": "Kommunikation"
@@ -823,6 +954,7 @@
 			"changeCanAddress": "CAN-Adresse ändern",
 			"changeCanAddressPrompt": "CAN-Adresse von {0} ändern (aktuell {1})",
 			"newCanAddress": "Neue CAN-Adresse",
+			"newCanAddressHint": "Eindeutige CAN-Bus-Adresse für dieses Board (1-126)",
 			"canAddressRestartHint": "Die neue Adresse wird gespeichert, sobald der Befehl ausgeführt wird; das Board muss neu gestartet werden, damit sie wirksam wird.",
 			"canAddressChanged": "CAN-Adressänderung angefordert (B{0} -> A{1})",
 			"canAddressError": "CAN-Adresse konnte nicht geändert werden",
@@ -844,25 +976,21 @@
 			"resetTitle": "DWC-Einstellungen zurücksetzen?",
 			"resetPrompt": "Damit werden die gespeicherten DWC-Einstellungen und der Cache in diesem Browser und auf dem verbundenen Board gelöscht. Anschliessend werden Werkseinstellungen (falls verfügbar) übernommen und DWC neu geladen.",
 			"resetComponents": "Bedienfeldeinstellungen zurücksetzen",
-			"resetComponentsHint": "Verwirft alle gespeicherten Anzeigeeinstellungen der einzelnen Bedienfelder (sichtbare Achsen, Werkzeuggruppierung, Diagramm-Tabs) und lädt DWC neu. Hilfreich, wenn ein Bedienfeld nach einem Update nicht mehr angezeigt wird.",
+			"resetComponentsHint": "Verwirft alle gespeicherten Anzeigeeinstellungen der einzelnen Bedienfelder (sichtbare Achsen, Werkzeuggruppierung, Diagramm-Tabs) und lädt DWC neu.",
 			"resetComponentsTitle": "Bedienfeldeinstellungen zurücksetzen?",
 			"resetComponentsPrompt": "Damit werden die gespeicherten Anzeigeeinstellungen aller Dashboard-Bedienfelder in diesem Browser und auf dem verbundenen Board verworfen. DWC wird anschliessend neu geladen. Die übrigen Einstellungen bleiben erhalten."
 		},
 		"display": {
 			"layoutCaption": "Layout",
-			"layoutMode": "Layout-Modus",
-			"layoutOptions": {
-				"default": "Eingebaute Seiten",
-				"custom": "Benutzerdefiniertes Dashboard"
-			},
+			"switchToCustomLayout": "Zu {layout} wechseln",
+			"switchToDefaultLayout": "Zur Standardoberfläche wechseln",
+			"theme": "Farbschema",
+			"themeHint": "Ein von einem Plugin bereitgestelltes Farbschema auswählen, oder dem Dark-Mode-Schalter folgen",
+			"themeAuto": "Dem Dark-Mode-Schalter folgen",
 			"iconMenu": "Schmale Seitenleiste",
 			"iconMenuHint": "Bei eingeklappter Navigationsleiste nur Symbole anzeigen",
-			"numericInputs": "Zahleneingabefelder statt Schieberegler",
-			"numericInputsHint": "Prozentwerte als Eingabefelder statt als Schieberegler anzeigen",
 			"disableAutoComplete": "G-Code-Autovervollständigung deaktivieren",
 			"disableAutoCompleteHint": "Während der Eingabe in Code- und Temperaturfeldern keine Vorschlagsliste anzeigen",
-			"checkVersions": "Plugin- und Firmwareversionen prüfen",
-			"checkVersionsHint": "Hinweis anzeigen, wenn DWC-, RRF- oder Plugin-Versionen nicht zusammenpassen",
 			"toolsCaption": "Werkzeuge",
 			"groupTools": "Bett-, Kammer- und Extruderheizungen gruppieren",
 			"groupToolsHint": "Identische Werkzeuge im Werkzeugbereich zu einer Zeile zusammenfassen",
@@ -874,9 +1002,6 @@
 			"groupByOffsetsHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselben X-/Y-/Z-Offsets haben",
 			"groupBySpindle": "Spindeln gruppieren",
 			"groupBySpindleHint": "Werkzeuge nur dann als identisch behandeln, wenn sie dieselbe Spindel verwenden",
-			"babystepCaption": "Babystepping",
-			"babystepAmount": "Babystep-Schrittweite",
-			"babystepAmountHint": "Schrittweite je Klick auf die Babystep-Tasten",
 			"dashboardMode": "Dashboard-Modus",
 			"dashboardModeHint": "Legt fest, welches Dashboard-Layout verwendet wird. Standard folgt dem von der Firmware gemeldeten Maschinenmodus (FFF oder CNC); zur Erzwingung kann ein fester Modus gewählt werden.",
 			"dashboardModeOptions": {
@@ -884,11 +1009,6 @@
 				"fff": "FFF (3D-Druck)",
 				"cnc": "CNC (Fräsen)"
 			},
-			"movementCaption": "Bewegung",
-			"moveFeedrate": "Jog-Vorschub",
-			"moveFeedrateHint": "Vorschub, der mit manuellen Bewegungstasten gesendet wird (G1 F[Wert]). Wird vom Bewegungs-, Extrude- und Jog-Panel verwendet.",
-			"toolChangeMacros": "Makros beim Werkzeugwechsel",
-			"toolChangeMacrosHint": "Welche der Makros tfree.g / tpre.g / tpost.g bei einem Werkzeugwechsel über T[n] ausgeführt werden. Wird als P-Parameter im T-Befehl codiert.",
 			"singleBedControl": "Gemeinsame Steuerung aller Heizbetten",
 			"singleBedControlHint": "Eine einzige Eingabe für alle Heizbetten anzeigen statt einer je Bett. Praktisch, wenn alle Betten immer dieselbe Temperatur haben sollen.",
 			"singleChamberControl": "Gemeinsame Steuerung aller Kammern",
@@ -896,10 +1016,14 @@
 			"hideMenuItemsCaption": "Menüeinträge ausblenden",
 			"hideMenuItemsHint": "Einträge aus der Navigationsleiste / Hub-Seite entfernen. Ausgeblendete Einträge bleiben über die URL erreichbar; Dashboard, Auftragsstatus und Einstellungen werden immer angezeigt.",
 			"hideMenuItemsXsSmOnly": "nur xs/sm",
+			"hideMenuItemsXsSmOnlyHint": "Diese Seite wird nur auf kleinen Bildschirmen (Smartphone und Tablet) im Menü aufgeführt; auf grösseren Bildschirmen ist sie auf anderem Weg erreichbar.",
+			"hideMenuItemSwitchHint": "Diesen Eintrag aus der Navigationsleiste und Hub-Seite ausblenden",
 			"enablePanelEditing": "Bedienfeldbearbeitung aktivieren",
 			"enablePanelEditingHint": "Zeigt das Bearbeitungssymbol in den Bedienfeldtiteln an, um die Bedienfelder zu konfigurieren",
-			"largeAppBar": "Große App-Leiste",
-			"largeAppBarHint": "Vergrößert die App-Leiste auf kleinen Touchscreens für eine bessere Erreichbarkeit"
+			"largeButtons": "Große Schaltflächen",
+			"largeButtonsHint": "Vergrößert die App-Leiste, die Seitensymbolleisten und die Schaltflächen der Dashboard-Bereiche auf kleinen Touchscreens für eine bessere Erreichbarkeit",
+			"largeButtonsSmOnly": "nur sm",
+			"largeButtonsSmOnlyHint": "Wirkt sich nur auf kleinen (sm) Touchscreens aus; größere Bildschirme verwenden immer die Standardgröße."
 		},
 		"webcam": {
 			"caption": "Webcam",
@@ -1030,7 +1154,7 @@
 		},
 		"storage": {
 			"caption": "Speicherung",
-			"settingsStorageLocal": "Einstellungen in diesem Browser speichern",
+			"settingsStorageLocal": "Einstellungen lokal in diesem Browser speichern",
 			"settingsStorageLocalHint": "Einstellungen im localStorage des Browsers ablegen, statt sie auf das Board hochzuladen. Nützlich, wenn dasselbe Board von mehreren Rechnern mit unterschiedlichen Vorlieben angesprochen wird.",
 			"settingsSaveDelay": "Speicherverzögerung Einstellungen",
 			"settingsSaveDelayHint": "Zeit, die nach einer Einstellungsänderung gewartet wird, bevor sie gespeichert wird. Höhere Werte verringern Schreibvorgänge, wenn mehrere Einstellungen kurz hintereinander geändert werden.",
@@ -1106,7 +1230,10 @@
 			"range": "Bereich",
 			"fixed": "Fixiert",
 			"deviation": "Abweichung",
-			"resetView": "Ansicht zurücksetzen"
+			"resetView": "Ansicht zurücksetzen",
+			"scaleHint": "Klicken, um die fixierte Skala zu ändern",
+			"scaleDialogTitle": "Fixierte Skala",
+			"scaleDialogPrompt": "Fixierte Skala in mm eingeben (wird als +/- angewendet)"
 		},
 		"accelerometer": {
 			"sampleTooltip": "Probe #{0}",

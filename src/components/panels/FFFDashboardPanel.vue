@@ -1,7 +1,7 @@
 <template>
 	<v-row :density="mobile ? 'compact' : 'default'">
 		<v-col cols="12" md="8" lg="8" xl="9">
-			<MovementPanel class="mb-4" />
+			<MovementPanel class="mb-2 mb-lg-6" />
 
 			<v-row :density="mobile ? 'compact' : 'default'">
 				<v-col cols="12" :md="showATXPanel ? 9 : 12" :lg="showATXPanel ? 9 : 12" :xl="showATXPanel ? 10 : 12">

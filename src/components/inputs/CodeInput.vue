@@ -31,9 +31,6 @@
 </template>
 
 <style scoped>
-/* Fill the host container at a fixed width instead of growing with input content - callers
-   pin the container width (600px in the app bar, full row in the Console) and the input
-   should respect that envelope rather than auto-sizing to the typed characters */
 .code-input-row {
 	width: 100%;
 	flex-wrap: nowrap;
@@ -70,8 +67,8 @@ const conditionalKeywords = ["abort", "echo", "if", "elif", "else", "while", "br
 const code = ref<string | null>(null);
 const doingCode = ref(false);
 const ignoreEnter = ref(false);
-// v3.7 had a `showItems` flag that flipped false on Enter/blur to close the autocomplete
-// dropdown; Vuetify 4 exposes the same control via the combobox's `menu` v-model
+// Drives the combobox's `menu` v-model so Enter/blur can close the autocomplete dropdown
+// without dropping focus
 const menuOpen = ref(false);
 
 // Most-recently-sent codes are appended to lastSentCodes; show them newest-first and filter by current input

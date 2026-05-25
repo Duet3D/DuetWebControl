@@ -1,5 +1,5 @@
 <template>
-	<table v-if="sensors.length > 0" class="ml-2 mr-2">
+	<table v-if="sensors.length > 0" class="ml-2 mr-2 mb-2">
 		<colgroup>
 			<col style="width: 50%">
 			<col style="width: 50%">

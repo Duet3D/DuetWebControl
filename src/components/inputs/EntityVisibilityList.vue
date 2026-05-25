@@ -1,7 +1,7 @@
 <template>
 	<v-autocomplete v-model="checked" :items="entities" item-title="label" item-value="index"
-					:label="label" :title="label" :disabled="uiStore.uiFrozen" variant="outlined"
-					density="comfortable" hide-details chips clearable multiple />
+					:label="label" v-hint="label" :disabled="uiStore.uiFrozen" variant="outlined"
+					density="comfortable" hide-details chips closable-chips clearable multiple />
 </template>
 
 <script setup lang="ts">

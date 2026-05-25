@@ -44,18 +44,6 @@ export enum WebcamFlip {
 	Both = "both"
 }
 
-export enum LayoutMode {
-	/**
-	 * Static layout (navigation drawer + app bar shell with built-in pages)
-	 */
-	default = "default",
-
-	/**
-	 * User-arrangeable dashboard layout - draggable tiles, configurable per-component (Phase 4 of the modernization plan)
-	 */
-	custom = "custom"
-}
-
 // Schema version embedded in persisted settings blobs. Bump SETTINGS_SCHEMA_VERSION and add a
 // step to {@link settingsUpgrades} whenever the shape changes incompatibly; the load path
 // chains upgrades from the persisted version up to the current one. Mirrors the pattern used by
@@ -164,10 +152,11 @@ export const useSettingsStore = defineStore("settings", {
 			switchToJobOnPrintStart: true,
 
 			/**
-			 * Show an M291 confirmation prompt after unloading the filament during a filament
-			 * change. The FilamentDialog macro flow only displays the prompt when this is true
+			 * Scroll viewport-filling pages (height map, G-code viewer, file editor) to their
+			 * bottom edge on open so the panel sits flush with the status row scrolled off the top.
+			 * Honoured only on md and larger displays
 			 */
-			promptDuringFilamentChange: true,
+			autoScroll: true,
 		},
 
 		/**
@@ -176,9 +165,19 @@ export const useSettingsStore = defineStore("settings", {
 		locale: getBrowserLocale(),
 
 		/**
-		 * Defines if the dark theme is enabled
+		 * Defines if the dark theme is enabled. Honoured only when `themeName` is null (or the
+		 * named theme isn't registered) - a plugin-supplied theme takes precedence when active
 		 */
 		darkTheme: (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) || false,
+
+		/**
+		 * Plugin-supplied theme to use, or null to follow `darkTheme`. The dropdown in
+		 * Settings -> Display reads from `registeredThemes` in `@/plugins/theme` to populate the
+		 * available options; selecting a named theme overrides the dark/light toggle. Persists
+		 * across reloads; if the providing plugin hasn't loaded yet, the binding falls back to
+		 * `darkTheme` and re-applies as soon as registerTheme runs with this name
+		 */
+		themeName: null as string | null,
 
 		/**
 		 * Use binary units (KiB) instead of SI units (KB)
@@ -208,15 +207,21 @@ export const useSettingsStore = defineStore("settings", {
 		dashboardMode: DashboardMode.default,
 
 		/**
-		 * Currently selected layout mode. The default static shell is the only one implemented today;
-		 * the user-arrangeable "custom" dashboard is unlocked in Phase 4 of the modernization plan
+		 * When true and a custom layout has been registered via `registerLayout()` in `@/plugins/layout`,
+		 * the switcher in `src/layouts/default.vue` renders that layout instead of the built-in static
+		 * shell. Toggled from the Settings -> Display switch button; a registration with
+		 * `takeoverOnFirstLoad: true` also flips this on its first registration so the user does not
+		 * need to opt in
 		 */
-		layoutMode: LayoutMode.default,
+		useCustomLayout: false,
 
 		/**
-		 * Use numeric inputs instead of sliders
+		 * True once the user has explicitly clicked the layout-switch button in Settings. Read by
+		 * `registerLayout({ takeoverOnFirstLoad: true })` to suppress auto-takeover after the user has
+		 * already made a choice. Cleared by the missing-layout recovery path in the switcher so the
+		 * next plugin load can take over again
 		 */
-		numericInputs: false,
+		layoutUserSet: false,
 
 		/**
 		 * Use compact icon menu instead of the full-width sidebar menu
@@ -229,9 +234,10 @@ export const useSettingsStore = defineStore("settings", {
 		enablePanelEditing: true,
 
 		/**
-		 * Enlarge the app bar on small (sm) touchscreens such as 4.3" displays
+		 * Enlarge the app bar, page toolbars and dashboard panel buttons on small (sm)
+		 * touchscreens such as 4.3" displays
 		 */
-		largeAppBar: true,
+		largeButtons: true,
 
 		/**
 		 * Route paths the user has opted to hide from the navigation drawer / hub page. Items
@@ -405,11 +411,6 @@ export const useSettingsStore = defineStore("settings", {
 
 		// #region UI
 		/**
-		 * Amount to move when clicking on the babystep buttons (in mm)
-		 */
-		babystepAmount: 0.05,
-
-		/**
 		 * Check if the DWC/DSF/RRF versions are compatible
 		 */
 		checkVersions: true,
@@ -438,16 +439,6 @@ export const useSettingsStore = defineStore("settings", {
 			Z: [50, 25, 5, 0.5, 0.05],
 			default: [100, 50, 10, 1, 0.1],
 		} as Record<string, Array<number>>,
-
-		/**
-		 * Feedrate to use for move buttons (in mm/min)
-		 */
-		moveFeedrate: 6000,
-
-		/**
-		 * Set of macros to run during tool changes
-		 */
-		toolChangeMacros: [ToolChangeMacro.free, ToolChangeMacro.pre, ToolChangeMacro.post],
 
 		/**
 		 * Extrusion amounts for custom extrude/retract (in mm)
@@ -514,26 +505,6 @@ export const useSettingsStore = defineStore("settings", {
 		componentSettings: {} as Record<string, ComponentSettingsRecord>
 		// #endregion
 	}),
-	getters: {
-		/**
-		 * Get the Tnnn P parameter for tool changes
-		 * @param state Store state
-		 * @returns 
-		 */
-		toolChangeParameter: state => {
-			let pParam = 0
-			if (state.toolChangeMacros.includes(ToolChangeMacro.free)) {
-				pParam |= 1
-			}
-			if (state.toolChangeMacros.includes(ToolChangeMacro.pre)) {
-				pParam |= 2
-			}
-			if (state.toolChangeMacros.includes(ToolChangeMacro.post)) {
-				pParam |= 4
-			}
-			return (pParam === 7) ? "" : ` P${pParam}`
-		}
-	},
 	actions: {
 		/**
 		 * Apply default settings - reset every persisted field to the value declared in the

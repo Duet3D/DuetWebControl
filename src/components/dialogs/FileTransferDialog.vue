@@ -183,8 +183,8 @@ function getProgressColor(file: FileTransferItem): string {
 	return file.retry > 0 ? "warning" : "info";
 }
 
-// Per-machine UX from v3.7 trimmed every common path-prefix character up to the last `/`, so the
-// table only shows the parts that differ. Plain js, no per-character React diff
+// Trim every common path-prefix character up to the last `/` so the table only shows the parts
+// that differ between concurrent transfers
 function computeFileNameOffset(items: Array<FileTransferItem>): number {
 	if (items.length <= 1) {
 		return 0;

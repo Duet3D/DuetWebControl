@@ -21,6 +21,7 @@ import { watch } from "vue";
 
 import i18n from "@/i18n";
 import { useSettingsStore } from "@/stores/settings";
+import Events from "@/utils/events";
 
 const vuetify = createVuetify({
 	locale: {
@@ -37,8 +38,8 @@ const vuetify = createVuetify({
 	defaults: {
 		// Vuetify 4 renders v-card-title at font-weight 400 (regular). Dialog titles ("Incompatible
 		// software versions", "Confirm", ...) read as just-another-line-of-body in that weight, so
-		// bring them back to the bold weight v3.x used. Applied globally instead of per-dialog so
-		// new dialogs inherit the same emphasis without each having to remember the class
+		// re-bold them globally. Applied here rather than per-dialog so new dialogs inherit the
+		// same emphasis without each having to remember the class
 		VCardTitle: {
 			class: "font-weight-bold"
 		}
@@ -55,15 +56,39 @@ function prefersDarkScheme(): boolean {
  * Set Vuetify's active theme from the settings store and keep it in sync. Call once after
  * Pinia is installed (from `registerPlugins` in vue-plugins/index.ts) and after the settings
  * store has been instantiated - the watcher then fires on every subsequent toggle, including
- * the one that runs when persisted settings finish loading
+ * the one that runs when persisted settings finish loading.
+ *
+ * A plugin-registered theme (selected via `settingsStore.themeName`) takes precedence over the
+ * dark/light boolean as long as the providing plugin has registered the theme into Vuetify's
+ * theme map. When the named theme isn't present (plugin not loaded yet, plugin uninstalled),
+ * the binding falls back to `darkTheme ? "dark" : "light"` so the UI never references a missing
+ * theme; the named theme reapplies the moment registerTheme runs with the matching name
  */
 export function bindVuetifyTheme(theme: ThemeInstance) {
 	const settingsStore = useSettingsStore();
-	const apply = (dark: boolean) => {
-		theme.change(dark ? "dark" : "light");
+	const apply = () => {
+		const named = settingsStore.themeName;
+		if (named && theme.themes.value[named]) {
+			theme.change(named);
+		} else {
+			theme.change(settingsStore.darkTheme ? "dark" : "light");
+		}
 	};
-	apply(settingsStore.darkTheme);
+	apply();
 	watch(() => settingsStore.darkTheme, apply);
+	watch(() => settingsStore.themeName, apply);
+
+	// Recovery: once all plugins have had a chance to register their themes, if the persisted
+	// themeName still points at a theme nobody registered (plugin uninstalled, plugin failed to
+	// load), clear the dangling reference so the Settings dropdown stops showing an unreachable
+	// value. The active theme is already on dark/light from the apply() fallback above; this
+	// only synchronises the settings field with reality
+	Events.on("dwcPluginsLoaded", () => {
+		const name = settingsStore.themeName;
+		if (name && !theme.themes.value[name]) {
+			settingsStore.themeName = null;
+		}
+	});
 }
 
 export default vuetify;

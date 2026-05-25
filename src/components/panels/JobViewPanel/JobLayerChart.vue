@@ -1,33 +1,35 @@
 <template>
-	<v-card class="d-flex flex-column flex-grow-1">
-		<v-card-title class="d-flex align-center">
-			<v-icon size="small" class="mr-1">mdi-vector-polyline</v-icon>
-			{{ $t("chart.layer.caption") }}
-			<v-spacer />
-			<a v-show="layers.length > 2" href="javascript:void(0)" class="text-title-small"
-			   @click.prevent="showAllLayers = !showAllLayers">
-				{{ showAllLayers
-					? $t("chart.layer.showLastLayers", [Math.min(layers.length, 30)])
-					: $t("chart.layer.showAllLayers") }}
-			</a>
-		</v-card-title>
-
-		<v-card-text class="content flex-grow-1 px-2 py-0">
-			<canvas ref="canvasRef" />
-		</v-card-text>
-	</v-card>
+	<div class="content flex-grow-1 px-2 py-0">
+		<canvas ref="canvasRef" />
+	</div>
 </template>
 
 <style scoped>
 .content {
 	position: relative;
-	min-height: 180px;
 }
 
 .content > canvas {
 	position: absolute;
 }
 </style>
+
+<script lang="ts">
+export interface LayerChartSettings {
+	// Drop layer 1 from the chart - its duration is often an outlier that flattens the rest
+	hideFirstLayer: boolean;
+	// Show every layer rather than only the most recent ones
+	showAllLayers: boolean;
+	// Number of most recent layers shown when not displaying all layers
+	lastLayerCount: number;
+}
+
+export const layerChartDefaults: LayerChartSettings = {
+	hideFirstLayer: false,
+	showAllLayers: false,
+	lastLayerCount: 30,
+};
+</script>
 
 <script setup lang="ts">
 import { Chart, LineController, LineElement, LinearScale, PointElement, Tooltip, Legend, Filler, CategoryScale } from "chart.js";
@@ -39,30 +41,46 @@ import { display, displayZ, displayTime } from "@/utils/display";
 
 Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend, Filler);
 
+const props = defineProps<{
+	settings: LayerChartSettings;
+}>();
+
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
-const showAllLayers = ref(false);
 
 let chart: Chart<"line"> | null = null;
 
 const layers = computed(() => machineStore.model.job.layers);
 
+// Layer 1 is dropped from the dataset (not just scrolled off) when hidden, so the y-axis
+// autoscale ignores its often-disproportionate duration
+const hideFirst = computed(() => props.settings.hideFirstLayer && layers.value.length > 1);
+const chartLayers = computed(() => hideFirst.value ? layers.value.slice(1) : layers.value);
+const startLayerNumber = computed(() => hideFirst.value ? 2 : 1);
+
 function updateChart() {
 	if (!chart) {
 		return;
 	}
-	chart.data.labels = layers.value.map((_, index) => index + 1);
-	chart.data.datasets[0].data = layers.value.map(layer => layer.duration);
+	const visibleLayers = chartLayers.value;
+	const startNumber = startLayerNumber.value;
+	chart.data.labels = visibleLayers.map((_, index) => index + startNumber);
+	chart.data.datasets[0].data = visibleLayers.map(layer => layer.duration);
 
+	const count = props.settings.lastLayerCount;
+	const endNumber = startNumber + visibleLayers.length - 1;
 	const xScale = chart.options.scales!.x!;
-	if (showAllLayers.value) {
-		xScale.min = 1;
-		xScale.max = layers.value.length;
+	if (visibleLayers.length === 0) {
+		xScale.min = startNumber;
+		xScale.max = startNumber + count - 1;
+	} else if (props.settings.showAllLayers) {
+		xScale.min = startNumber;
+		xScale.max = endNumber;
 	} else {
-		xScale.min = Math.max(layers.value.length > 2 ? 2 : 1, layers.value.length - 30);
-		xScale.max = Math.max(30, layers.value.length);
+		xScale.min = Math.max(startNumber, endNumber - count);
+		xScale.max = Math.max(endNumber, (xScale.min as number) + count);
 	}
 	chart.update();
 }
@@ -87,15 +105,18 @@ onMounted(() => {
 	chart = new Chart(canvasRef.value, {
 		type: "line",
 		options: {
+			// The chart is recreated whenever its tab is reopened; without this it would
+			// replay its entry animation every time, and every new layer would animate in
+			animation: false,
 			elements: { line: { tension: 0 } },
 			plugins: {
 				legend: { display: false },
 				tooltip: {
 					displayColors: false,
 					callbacks: {
-						title: (items) => i18n.global.t("chart.layer.layer", [items[0].dataIndex + 1]),
+						title: (items) => i18n.global.t("chart.layer.layer", [items[0].dataIndex + startLayerNumber.value]),
 						label: (item) => {
-							const layer = layers.value[item.dataIndex];
+							const layer = chartLayers.value[item.dataIndex];
 							const lines: Array<string> = [i18n.global.t("chart.layer.layerDuration", [displayTime(layer.duration, false)])];
 							if (layer.height) {
 								lines.push(i18n.global.t("chart.layer.layerHeight", [displayZ(layer.height)]));
@@ -106,9 +127,16 @@ onMounted(() => {
 							if (layer.fractionPrinted) {
 								lines.push(i18n.global.t("chart.layer.fractionPrinted", [display(layer.fractionPrinted * 100, 1, "%")]));
 							}
+							// job.layers[].temperatures is parallel to sensors.analog; keep only the
+							// entries backed by a heater so extra and humidity sensors are left out
 							if (layer.temperatures && layer.temperatures.length > 0) {
-								lines.push(i18n.global.t("chart.layer.temperatures",
-									[layer.temperatures.map(t => display(t, 1, "C")).join(", ")]));
+								const heaters = machineStore.model.heat.heaters;
+								const heaterTemps = layer.temperatures.filter((_, index) =>
+									heaters.some(heater => heater !== null && heater.sensor === index));
+								if (heaterTemps.length > 0) {
+									lines.push(i18n.global.t("chart.layer.temperatures",
+										[heaterTemps.map(t => display(t, 1, "C")).join(", ")]));
+								}
 							}
 							return lines;
 						},
@@ -161,5 +189,7 @@ watch(() => settingsStore.locale, () => {
 	}
 });
 watch(layers, updateChart, { deep: true });
-watch(showAllLayers, updateChart);
+watch(() => props.settings.showAllLayers, updateChart);
+watch(() => props.settings.hideFirstLayer, updateChart);
+watch(() => props.settings.lastLayerCount, updateChart);
 </script>

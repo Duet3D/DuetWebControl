@@ -33,6 +33,18 @@ export const useCacheStore = defineStore("cache", {
 		lastJobDirectory: "",
 
 		/**
+		 * Stable key of the Job Status view panel tab last viewed, restored across sessions
+		 */
+		activeJobViewTab: "",
+
+		/**
+		 * Persisted file-list sort by mode (`jobs`, `files`, `macros`, ...) - keys map to the
+		 * FileList `mode` prop. Cached here so a column-sort choice survives navigation between
+		 * pages; default is empty until the first header click
+		 */
+		sorting: {} as Record<string, { key: string; order: "asc" | "desc" }>,
+
+		/**
 		 * Custom plugin cache fields
 		 */
 		plugins: Object.assign({}, defaultPluginCacheFields) as Record<string, any>

@@ -5,7 +5,7 @@
 				<v-col v-if="currentTool && currentTool.extruders.length > 1 && settings.showMixingControls"
 					   cols="auto">
 					<p class="mb-1">{{ $t("panel.extrude.mixRatio") }}</p>
-					<v-btn-toggle v-model="mix" mandatory multiple>
+					<v-btn-toggle v-model="mix" mandatory multiple :size="largeBtnSize">
 						<v-btn value="mix" :disabled="uiStore.uiFrozen" color="primary" variant="text">
 							{{ $t("panel.extrude.mix") }}
 						</v-btn>
@@ -18,7 +18,8 @@
 
 				<v-col>
 					<p class="mb-1">{{ $t("panel.extrude.amount", [amountUnit]) }}</p>
-					<v-btn-toggle v-model="amount" mandatory variant="outlined" color="primary" divided class="d-flex">
+					<v-btn-toggle v-model="amount" mandatory variant="outlined" color="primary" divided
+								  :size="largeBtnSize" class="d-flex">
 						<v-btn v-for="(savedAmount, index) in settingsStore.extruderAmounts" :key="index"
 							   :value="savedAmount" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editAmount(index)">
@@ -29,7 +30,8 @@
 
 				<v-col>
 					<p class="mb-1">{{ $t("panel.extrude.feedrate", [feedrateUnit]) }}</p>
-					<v-btn-toggle v-model="feedrate" mandatory variant="outlined" color="primary" divided class="d-flex">
+					<v-btn-toggle v-model="feedrate" mandatory variant="outlined" color="primary" divided
+								  :size="largeBtnSize" class="d-flex">
 						<v-btn v-for="(savedFeedrate, index) in settingsStore.extruderFeedrates" :key="index"
 							   :value="savedFeedrate" :disabled="uiStore.uiFrozen" class="flex-grow-1"
 							   @contextmenu.prevent="editFeedrate(index)">
@@ -39,13 +41,13 @@
 				</v-col>
 
 				<v-col cols="12" xl="auto" class="d-flex flex-xl-column ga-2 align-self-xl-end">
-					<v-btn tile :disabled="uiStore.uiFrozen || !canRetract" :elevation="1" :loading="busy"
-						   class="flex-grow-1" @click="buttonClicked(false)">
+					<v-btn tile :size="largeBtnSize" :disabled="uiStore.uiFrozen || !canRetract" :elevation="1"
+						   :loading="busy" class="flex-grow-1" @click="buttonClicked(false)">
 						<v-icon start>mdi-arrow-up-bold</v-icon>
 						{{ $t("panel.extrude.retract") }}
 					</v-btn>
-					<v-btn tile :disabled="uiStore.uiFrozen || !canExtrude" :elevation="1" :loading="busy"
-						   class="flex-grow-1" @click="buttonClicked(true)">
+					<v-btn tile :size="largeBtnSize" :disabled="uiStore.uiFrozen || !canExtrude" :elevation="1"
+						   :loading="busy" class="flex-grow-1" @click="buttonClicked(true)">
 						<v-icon start>mdi-arrow-down-bold</v-icon>
 						{{ $t("panel.extrude.extrude") }}
 					</v-btn>
@@ -63,7 +65,7 @@
 		<template #settings>
 			<v-switch v-model="settings.showMixingControls" color="primary"
 					  :label="$t('panel.extrude.showMixingControls')"
-					  :title="$t('panel.extrude.showMixingControlsHint')"
+					  v-hint="$t('panel.extrude.showMixingControlsHint')"
 					  density="comfortable" hide-details />
 		</template>
 	</PanelCard>
@@ -74,6 +76,7 @@ import { CodeChannel, MachineStatus, Tool } from "@duet3d/objectmodel";
 
 import InputDialog from "@/components/dialogs/InputDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
@@ -81,6 +84,7 @@ import { useUiStore } from "@/stores/ui";
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const { btnSize: largeBtnSize } = useLargeButtons();
 
 // Whether to show the per-drive mixing controls for multi-extruder tools; used to be a global setting
 const settings = useComponentSettings<{ showMixingControls: boolean }>({

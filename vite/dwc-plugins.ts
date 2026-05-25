@@ -91,8 +91,9 @@ export default function dwcPlugins(): VitePlugin {
 			let entryFile: string | null = null;
 			for (const candidate of candidates) {
 				if (existsSync(join(pluginDir, candidate))) {
-					// Remove extension for import path
-					entryFile = join(dir.name, candidate).replace(/\.\w+$/, "");
+					// Strip the extension and force forward slashes - entryFile is interpolated
+					// into an ESM import specifier, which is invalid with Windows backslashes
+					entryFile = join(dir.name, candidate).replace(/\.\w+$/, "").replace(/\\/g, "/");
 					break;
 				}
 			}

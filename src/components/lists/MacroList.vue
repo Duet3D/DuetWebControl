@@ -1,21 +1,19 @@
 <template>
-	<v-card class="d-flex flex-column macro-list-card">
-		<v-card-title class="d-flex align-center flex-shrink-0">
-			<v-icon size="small" class="mr-1">mdi-polymer</v-icon>
-			{{ $t("list.macro.caption") }}
+	<PanelCard icon="mdi-polymer" :title="$t('list.macro.caption')" class="d-flex flex-column macro-list-card">
+		<template #title-append>
 			<v-spacer />
 			<span v-show="machineStore.isConnected" class="text-title-small">{{ currentDirectory }}</span>
-		</v-card-title>
+		</template>
 
 		<v-card-text class="pa-0 macro-list-body">
 			<v-progress-linear v-show="loading" indeterminate class="my-0" />
 
-			<v-alert v-if="!loading && filelist.length === 0 && isRootDirectory" type="info" tile>
+			<v-alert v-if="!loading && displayedFiles.length === 0 && isRootDirectory" type="info" tile>
 				{{ $t("list.macro.noMacros") }}
 			</v-alert>
 
 			<v-list v-else :density="listDensity" class="pt-0">
-				<v-list-item v-if="!isRootDirectory" @click="goUp">
+				<v-list-item v-if="!isRootDirectory && settings.showDirectories" @click="goUp">
 					<template #prepend>
 						<v-avatar size="32" color="grey-lighten-1">
 							<v-icon size="small" color="white">mdi-arrow-up</v-icon>
@@ -24,7 +22,7 @@
 					<v-list-item-title>{{ $t("list.baseFileList.goUp") }}</v-list-item-title>
 				</v-list-item>
 
-				<v-list-item v-for="item in filelist" :key="item.name" :disabled="uiStore.uiFrozen"
+				<v-list-item v-for="item in displayedFiles" :key="item.name" :disabled="uiStore.uiFrozen"
 							 @click="itemClick(item)">
 					<template #prepend>
 						<v-avatar size="32" :color="item.isDirectory ? 'grey-lighten-1' : 'blue'">
@@ -38,12 +36,38 @@
 				</v-list-item>
 			</v-list>
 		</v-card-text>
-	</v-card>
+
+		<template #settings>
+			<v-switch v-model="settings.showDirectories" color="primary"
+					  :label="$t('list.macro.settings.showDirectories')"
+					  v-hint="$t('list.macro.settings.showDirectoriesHint')"
+					  density="comfortable" hide-details />
+
+			<v-divider class="my-3" />
+
+			<v-text-field v-model="settings.startDirectory"
+						  :label="$t('list.macro.settings.startDirectory')"
+						  v-hint="$t('list.macro.settings.startDirectoryHint')"
+						  :placeholder="macrosDirectory" persistent-placeholder
+						  variant="outlined" density="comfortable" hide-details />
+			<v-text-field v-model="settings.includeFilter" class="mt-3" placeholder="*.g"
+						  :label="$t('list.macro.settings.includeFilter')"
+						  v-hint="$t('list.macro.settings.includeFilterHint')"
+						  variant="outlined" density="comfortable" hide-details />
+			<v-text-field v-model="settings.excludeFilter" class="mt-3"
+						  :label="$t('list.macro.settings.excludeFilter')"
+						  v-hint="$t('list.macro.settings.excludeFilterHint')"
+						  variant="outlined" density="comfortable" hide-details />
+		</template>
+	</PanelCard>
 </template>
 
 <style scoped>
 .macro-list-card {
 	min-height: 0;
+}
+.macro-list-card :deep(.v-card-title) {
+	flex-shrink: 0;
 }
 .macro-list-body {
 	flex: 1 1 auto;
@@ -58,6 +82,7 @@ import { useDisplay } from "vuetify";
 import { DisconnectedError, FileListItem } from "@duet3d/connectors";
 import { Volume } from "@duet3d/objectmodel";
 
+import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -73,6 +98,22 @@ const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const { mdAndUp } = useDisplay();
 
+interface MacroListSettings {
+	showDirectories: boolean;
+	// Empty falls back to the firmware macros directory
+	startDirectory: string;
+	// Comma-separated glob patterns; empty disables that filter
+	includeFilter: string;
+	excludeFilter: string;
+}
+
+const settings = useComponentSettings<MacroListSettings>({
+	showDirectories: true,
+	startDirectory: "",
+	includeFilter: "",
+	excludeFilter: "",
+});
+
 // Roomier rows on touch surfaces - same touch-target trade-off the file table makes
 const listDensity = computed<"default" | "comfortable" | "compact">(
 	() => mdAndUp.value ? "compact" : "default"
@@ -86,10 +127,17 @@ let wasMounted = false;
 const macrosDirectory = computed(() => machineStore.model.directories.macros);
 const volumes = computed<Array<Volume>>(() => machineStore.model.volumes);
 
-const isRootDirectory = computed(() => Path.equals(directory.value, macrosDirectory.value));
+// Empty start directory falls back to the firmware macros directory; a relative value resolves
+// against it, an absolute one (leading slash or volume prefix) replaces it outright
+const rootDirectory = computed(() => {
+	const configured = settings.value.startDirectory.trim();
+	return configured.length === 0 ? macrosDirectory.value : Path.combine(macrosDirectory.value, configured);
+});
+
+const isRootDirectory = computed(() => Path.equals(directory.value, rootDirectory.value));
 const currentDirectory = computed(() => {
-	if (Path.startsWith(directory.value, macrosDirectory.value)) {
-		const sub = directory.value.substring(macrosDirectory.value.length);
+	if (Path.startsWith(directory.value, rootDirectory.value)) {
+		const sub = directory.value.substring(rootDirectory.value.length);
 		if (sub.length === 0 || sub === "/") {
 			return i18n.global.t("list.macro.root");
 		}
@@ -97,6 +145,34 @@ const currentDirectory = computed(() => {
 	}
 	return Path.pretty(directory.value);
 });
+
+// Comma-separated glob patterns (`*` and `?` wildcards) compiled to case-insensitive matchers
+function compileGlobs(filter: string): Array<RegExp> {
+	return filter.split(",")
+		.map(entry => entry.trim())
+		.filter(entry => entry.length > 0)
+		.map(entry => {
+			const escaped = entry.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".");
+			return new RegExp(`^${escaped}$`, "i");
+		});
+}
+
+const includePatterns = computed(() => compileGlobs(settings.value.includeFilter));
+const excludePatterns = computed(() => compileGlobs(settings.value.excludeFilter));
+
+// filelist narrowed to what the panel settings allow: directory entries gated by showDirectories,
+// files run through the optional include/exclude name filters
+const displayedFiles = computed<Array<MacroItem>>(() =>
+	filelist.value.filter(item => {
+		if (item.isDirectory) {
+			return settings.value.showDirectories;
+		}
+		if (includePatterns.value.length > 0 && !includePatterns.value.some(pattern => pattern.test(item.name))) {
+			return false;
+		}
+		return !excludePatterns.value.some(pattern => pattern.test(item.name));
+	})
+);
 
 async function loadDirectory(target: string) {
 	if (loading.value) {
@@ -162,7 +238,7 @@ function onFilesOrDirectoriesChanged(payload: { files?: Array<string>; volume?: 
 }
 
 onMounted(() => {
-	directory.value = macrosDirectory.value;
+	directory.value = rootDirectory.value;
 	if (machineStore.isConnected) {
 		wasMounted = volumes.value.length > 0 && volumes.value[0].mounted;
 		refresh();
@@ -172,12 +248,32 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	Events.off("filesOrDirectoriesChanged", onFilesOrDirectoriesChanged);
+	if (rootChangeTimer !== undefined) {
+		clearTimeout(rootChangeTimer);
+	}
 });
 
-watch(macrosDirectory, (to, from) => {
-	if (Path.equals(directory.value, from) || !Path.startsWith(directory.value, to)) {
-		directory.value = to;
+// Reacts to a firmware macros-directory change and to the user editing the start-directory
+// setting. The setting updates on every keystroke, so debounce: a getFileList for each
+// half-typed path would spam the connector and raise failed-listing notifications
+let rootChangeTimer: number | undefined;
+watch(rootDirectory, (to, from) => {
+	if (rootChangeTimer !== undefined) {
+		clearTimeout(rootChangeTimer);
+	}
+	rootChangeTimer = window.setTimeout(() => {
+		rootChangeTimer = undefined;
+		if (Path.equals(directory.value, from) || !Path.startsWith(directory.value, to)) {
+			directory.value = to;
+		}
 		refresh();
+	}, 400);
+});
+
+// Snap back to the root once directory browsing is turned off so the flat list always reflects it
+watch(() => settings.value.showDirectories, (show) => {
+	if (!show && !isRootDirectory.value) {
+		loadDirectory(rootDirectory.value);
 	}
 });
 
@@ -186,7 +282,7 @@ watch(() => machineStore.isConnected, (connected) => {
 		wasMounted = volumes.value.length > 0 && volumes.value[0].mounted;
 		refresh();
 	} else {
-		directory.value = Path.macros;
+		directory.value = rootDirectory.value;
 		filelist.value = [];
 	}
 });

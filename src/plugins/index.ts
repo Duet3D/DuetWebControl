@@ -33,6 +33,14 @@ import type DwcPlugin from "./DwcPlugin";
 import type { ContextMenuItem } from "@/stores/ui";
 import router from "@/router";
 
+import { registerLayout, unregisterLayout } from "./layout";
+export { registerLayout, unregisterLayout } from "./layout";
+export type { RegisterLayoutOptions } from "./layout";
+
+import { registerTheme, unregisterTheme } from "./theme";
+export { registerTheme, unregisterTheme } from "./theme";
+export type { RegisterThemeDefinition, RegisteredTheme } from "./theme";
+
 import * as Vue from "vue";
 import * as VueRouter from "vue-router";
 import * as Pinia from "pinia";
@@ -55,7 +63,6 @@ import vuetifyCoreComponents from "virtual:dwc-vuetify-core";
 import Events from "@/utils/events";
 import i18n from "@/i18n";
 
-import { registerPluginData, setPluginData, PluginDataType } from "@/stores";
 import { useSettingsStore } from "@/stores/settings";
 import { useMachineStore } from "@/stores/machine";
 import { useCacheStore } from "@/stores/cache";
@@ -176,6 +183,12 @@ export interface MenuItem {
 const _menuCategories = new Map<string, MenuCategory>();
 
 /**
+ * Per-path cleanup functions returned by `router.addRoute()` at registration time, used by
+ * {@link unregisterRoute} to tear down a previously-registered route without leaking matchers
+ */
+const _routeRemovers = new Map<string, Array<() => void>>();
+
+/**
  * Settings-page tab contributed by a plugin via {@link registerSettingTab}
  */
 export interface SettingTab {
@@ -222,6 +235,59 @@ const _settingTabs = Vue.shallowReactive<Array<SettingTab>>([]);
  */
 export function getPluginSettingTabs(): ReadonlyArray<SettingTab> {
 	return _settingTabs as ReadonlyArray<SettingTab>;
+}
+
+/**
+ * Job-view panel tab contributed by a plugin via {@link registerJobViewTab}. The Job Status
+ * page's tabbed view panel merges these with its built-in tabs (layer chart, G-code stream)
+ */
+export interface JobViewTab {
+	/**
+	 * Stable identifier used to track and persist the active tab
+	 */
+	key: string;
+
+	/**
+	 * Material Design icon
+	 */
+	icon: string;
+
+	/**
+	 * Caption - by default an i18n key; when {@link translated} is true, used verbatim
+	 */
+	caption: string | (() => string);
+
+	/**
+	 * Treat {@link caption} as a literal string instead of an i18n key
+	 */
+	translated?: boolean;
+
+	/**
+	 * Vue component rendered as the tab's content
+	 */
+	component: Component;
+
+	/**
+	 * Sort order relative to built-in + other plugin tabs (lower = leftmost; defaults to 100)
+	 */
+	order?: number;
+
+	/**
+	 * Optional visibility predicate - a tab whose condition is false is hidden entirely.
+	 * Useful for tabs that only apply to certain machine modes
+	 */
+	condition?: boolean | (() => boolean);
+}
+
+// shallowReactive for the same reason as _settingTabs: only push/splice need tracking, and
+// deep-proxying would walk the stored Component reference
+const _jobViewTabs = Vue.shallowReactive<Array<JobViewTab>>([]);
+
+/**
+ * Read-only view of plugin-registered Job-view tabs, consumed by the Job Status view panel
+ */
+export function getJobViewTabs(): ReadonlyArray<JobViewTab> {
+	return _jobViewTabs as ReadonlyArray<JobViewTab>;
 }
 
 // #endregion
@@ -304,7 +370,7 @@ async function ensurePluginExtras(): Promise<void> {
  */
 export function registerRoute(
 	component: Component,
-	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; condition?: boolean | (() => boolean); translated?: boolean; order?: number }>>
+	route: Record<string, Record<string, { icon: string; caption: string | (() => string); path: string; routePath?: string; condition?: boolean | (() => boolean); translated?: boolean; order?: number; pageFill?: boolean; scrollToBottom?: boolean }>>
 ) {
 	if (!_router) {
 		throw new Error("Plugin system not initialised");
@@ -339,14 +405,22 @@ export function registerRoute(
 
 	// setupLayouts wraps the bare route in the default layout (app bar + nav drawer + status row),
 	// matching how the static file-based routes get composed at boot. Without this, plugin pages
-	// render their component in isolation and lose the entire shell
+	// render their component in isolation and lose the entire shell.
+	// `routePath` lets a plugin register a parametrised matcher (e.g. a trailing file path) while
+	// the navigation drawer entry still points at the bare `path`; it defaults to `path`
+	// `pageFill` marks a page that fills the viewport, which scrollBehavior reads to decide
+	// whether bottom-anchoring on navigation applies. `scrollToBottom` additionally asks the
+	// router to scroll the page to its bottom edge on open (viewer-style pages)
 	const wrapped = setupLayouts([{
-		path: descriptor.path,
+		path: descriptor.routePath ?? descriptor.path,
 		component,
+		meta: { pageFill: descriptor.pageFill === true, scrollToBottom: descriptor.scrollToBottom === true },
 	}] as Array<RouteRecordRaw>);
+	const removers: Array<() => void> = [];
 	for (const route of wrapped) {
-		_router.addRoute(route);
+		removers.push(_router.addRoute(route));
 	}
+	_routeRemovers.set(descriptor.path, removers);
 
 	// Surface the item in the navigation drawer. The menu store is the single source the shell
 	// reads from; category keys there are lowercase, hence the .toLowerCase() bridge to the
@@ -364,6 +438,24 @@ export function registerRoute(
 		order: descriptor.order,
 		condition: typeof condition === "function" ? condition : undefined
 	});
+}
+
+/**
+ * Tear down a route previously added via {@link registerRoute}. Removes the route from vue-router
+ * via the cleanup functions returned by `router.addRoute()` and drops the matching navigation
+ * drawer entry. No-op when the path was never registered.
+ *
+ * @param path The same `path` value passed to {@link registerRoute}
+ */
+export function unregisterRoute(path: string) {
+	const removers = _routeRemovers.get(path);
+	if (removers) {
+		for (const remove of removers) {
+			remove();
+		}
+		_routeRemovers.delete(path);
+	}
+	useMenuStore().unregisterItem(path);
 }
 
 /**
@@ -411,6 +503,33 @@ export function unregisterSettingTab(key: string) {
 	const idx = _settingTabs.findIndex((tab) => tab.key === key);
 	if (idx !== -1) {
 		_settingTabs.splice(idx, 1);
+	}
+}
+
+/**
+ * Register a new tab for the Job Status view panel.
+ *
+ * Lets a plugin contribute its own view of the running job (e.g. a 3D viewer) alongside the
+ * built-in layer chart and G-code stream. Duplicate keys are ignored so a re-register on hot
+ * reload doesn't end up with two copies.
+ *
+ * @param tab Tab descriptor: key, icon, caption, component, optional order and condition
+ */
+export function registerJobViewTab(tab: JobViewTab) {
+	if (_jobViewTabs.some((existing) => existing.key === tab.key)) {
+		return;
+	}
+	_jobViewTabs.push({ ...tab, component: Vue.markRaw(tab.component) });
+}
+
+/**
+ * Remove a previously registered Job-view tab.
+ * @param key Stable identifier passed to {@link registerJobViewTab}
+ */
+export function unregisterJobViewTab(key: string) {
+	const idx = _jobViewTabs.findIndex((tab) => tab.key === key);
+	if (idx !== -1) {
+		_jobViewTabs.splice(idx, 1);
 	}
 }
 
@@ -529,6 +648,9 @@ export async function loadDwcPlugins(): Promise<void> {
 	const settingsStore = useSettingsStore();
 
 	if (settingsStore.enabledPlugins.length === 0) {
+		// Still signal completion so listeners that wait on plugin loading (e.g. the Babylon
+		// chunk prefetch) run even when there are no external plugins to load
+		Events.emit("dwcPluginsLoaded", []);
 		return;
 	}
 
@@ -694,14 +816,18 @@ function loadExternalJS(pluginId: string, url: string): Promise<void> {
  */
 interface DwcGlobal {
 	registerRoute: typeof registerRoute;
+	unregisterRoute: typeof unregisterRoute;
 	registerCategory: typeof registerCategory;
 	registerPluginContextMenuItem: typeof registerPluginContextMenuItem;
 	registerSettingTab: typeof registerSettingTab;
 	unregisterSettingTab: typeof unregisterSettingTab;
+	registerJobViewTab: typeof registerJobViewTab;
+	unregisterJobViewTab: typeof unregisterJobViewTab;
+	registerLayout: typeof registerLayout;
+	unregisterLayout: typeof unregisterLayout;
+	registerTheme: typeof registerTheme;
+	unregisterTheme: typeof unregisterTheme;
 	registerPluginMessages: typeof registerPluginMessages;
-	registerPluginData: typeof registerPluginData;
-	setPluginData: typeof setPluginData;
-	PluginDataType: typeof PluginDataType;
 	useSettingsStore: typeof useSettingsStore;
 	useMachineStore: typeof useMachineStore;
 	useCacheStore: typeof useCacheStore;
@@ -729,16 +855,18 @@ function exposeGlobalAPI() {
 	window.DWC = {
 		// Plugin registration
 		registerRoute,
+		unregisterRoute,
 		registerCategory,
 		registerPluginContextMenuItem,
 		registerSettingTab,
 		unregisterSettingTab,
+		registerJobViewTab,
+		unregisterJobViewTab,
+		registerLayout,
+		unregisterLayout,
+		registerTheme,
+		unregisterTheme,
 		registerPluginMessages,
-
-		// Plugin data
-		registerPluginData,
-		setPluginData,
-		PluginDataType,
 
 		// Stores
 		useSettingsStore,

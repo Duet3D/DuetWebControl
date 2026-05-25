@@ -2,6 +2,11 @@
   "name": "duetwebcontrol",
   "productName": "DuetWebControl",
   "version": "3.8.0-alpha.1",
+  "author": {
+    "name": "Christian Hammacher",
+    "email": "christian@duet3d.com",
+    "url": "https://www.duet3d.com"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
