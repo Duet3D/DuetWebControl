@@ -34,16 +34,36 @@
 									{{ $t("settings.storage.caption") }}
 								</v-card-title>
 								<v-card-text>
-									<v-switch v-model="settingsStore.settingsStorageLocal" color="primary"
-											  :disabled="!supportsLocalStorage"
-											  :label="$t('settings.storage.settingsStorageLocal')"
-											  v-hint="$t('settings.storage.settingsStorageLocalHint')"
-											  density="comfortable" hide-details />
-									<v-switch v-model="settingsStore.cacheStorageLocal" color="primary"
-											  :disabled="!supportsLocalStorage"
-											  :label="$t('settings.storage.cacheStorageLocal')"
-											  v-hint="$t('settings.storage.cacheStorageLocalHint')"
-											  density="comfortable" hide-details />
+									<div class="d-flex align-center">
+										<v-switch v-model="settingsStore.settingsStorageLocal" color="primary"
+												  :disabled="!supportsLocalStorage"
+												  :label="$t('settings.storage.settingsStorageLocal')"
+												  v-hint="$t('settings.storage.settingsStorageLocalHint')"
+												  density="comfortable" hide-details />
+										<v-spacer />
+										<v-btn v-if="!settingsStore.settingsStorageLocal && machineStore.isConnected"
+											   variant="text" size="small" density="comfortable"
+											   prepend-icon="mdi-refresh" :loading="reloadingSettings"
+											   :title="$t('settings.storage.reloadSettingsHint')"
+											   @click="reloadSettings">
+											{{ $t("settings.storage.reload") }}
+										</v-btn>
+									</div>
+									<div class="d-flex align-center">
+										<v-switch v-model="settingsStore.cacheStorageLocal" color="primary"
+												  :disabled="!supportsLocalStorage"
+												  :label="$t('settings.storage.cacheStorageLocal')"
+												  v-hint="$t('settings.storage.cacheStorageLocalHint')"
+												  density="comfortable" hide-details />
+										<v-spacer />
+										<v-btn v-if="!settingsStore.cacheStorageLocal && machineStore.isConnected"
+											   variant="text" size="small" density="comfortable"
+											   prepend-icon="mdi-refresh" :loading="reloadingCache"
+											   :title="$t('settings.storage.reloadCacheHint')"
+											   @click="reloadCache">
+											{{ $t("settings.storage.reload") }}
+										</v-btn>
+									</div>
 									<v-row density="compact" class="mt-4">
 										<v-col cols="6">
 											<v-text-field v-model.number="settingsSaveDelayMs" type="number" min="0" step="100"
@@ -518,7 +538,13 @@
 							<th class="text-left">{{ $t("settings.infrastructure.product") }}</th>
 							<th class="text-left">{{ $t("settings.infrastructure.shortName") }}</th>
 							<th class="text-center">{{ $t("settings.infrastructure.can") }}</th>
-							<th class="text-left">{{ $t("settings.infrastructure.version") }}</th>
+							<th v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
+								{{ $t("panel.status.vIn") }}
+							</th>
+							<th v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
+								{{ $t("panel.status.v12") }}
+							</th>
+							<th class="text-left">{{ $t("settings.infrastructure.firmwareVersion") }}</th>
 							<th :colspan="mdAndUp ? 2 : 1">
 								<div class="d-flex align-center">
 									<span class="d-none d-md-inline">{{ $t("settings.infrastructure.builtOn") }}</span>
@@ -547,6 +573,28 @@
 								</v-btn>
 								<template v-else>{{ board.canAddress ?? $t("generic.noValue") }}</template>
 							</td>
+							<td v-if="hasAnyVin" class="text-center d-none d-lg-table-cell">
+								<v-tooltip v-if="board.vIn" location="bottom"
+										   :text="$t('panel.status.minMax', [display(board.vIn.min, 1, 'V'), display(board.vIn.max, 1, 'V')])">
+									<template #activator="{ props: tooltipProps }">
+										<span v-bind="tooltipProps" class="text-no-wrap">
+											{{ display(board.vIn.current, 1, "V") }}
+										</span>
+									</template>
+								</v-tooltip>
+								<template v-else>{{ $t("generic.noValue") }}</template>
+							</td>
+							<td v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
+								<v-tooltip v-if="board.v12" location="bottom"
+										   :text="$t('panel.status.minMax', [display(board.v12.min, 1, 'V'), display(board.v12.max, 1, 'V')])">
+									<template #activator="{ props: tooltipProps }">
+										<span v-bind="tooltipProps" class="text-no-wrap">
+											{{ display(board.v12.current, 1, "V") }}
+										</span>
+									</template>
+								</v-tooltip>
+								<template v-else>{{ $t("generic.noValue") }}</template>
+							</td>
 							<td>{{ board.firmwareVersion || $t("generic.noValue") }}</td>
 							<td><span class="d-none d-md-inline">{{ board.firmwareDate || $t("generic.noValue") }}</span></td>
 							<td class="d-none d-md-table-cell text-right">
@@ -563,6 +611,8 @@
 							<td>Duet WiFi Server</td>
 							<td></td>
 							<td></td>
+							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
 							<td>{{ wifiVersion }}</td>
 							<td></td>
 							<td class="d-none d-md-table-cell" />
@@ -572,6 +622,8 @@
 							<td>Duet Software Framework</td>
 							<td>DSF</td>
 							<td></td>
+							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
 							<td>{{ dsfVersion }}</td>
 							<td><span class="d-none d-md-inline">{{ dsfBuildDateTime || $t("generic.noValue") }}</span></td>
 							<td class="d-none d-md-table-cell" />
@@ -581,6 +633,8 @@
 							<td>Duet Web Control</td>
 							<td>DWC</td>
 							<td></td>
+							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
 							<td>{{ dwcVersion }}</td>
 							<td></td>
 							<td class="d-none d-md-table-cell" />
@@ -737,11 +791,13 @@ import {
 } from "@/plugins";
 import { registeredLayout, registeredLayoutOptions } from "@/plugins/layout";
 import { registeredThemes } from "@/plugins/theme";
-import { localStorageSupported } from "@/utils/localStorage";
+import { localStorageSupported, removeLocalSetting } from "@/utils/localStorage";
+import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
 import { DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
+import { display } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
 
 import packageInfo from "../../../package.json";
@@ -786,13 +842,49 @@ const allTabs = computed(() => {
 	return merged;
 });
 
+const cacheStore = useCacheStore();
 const machineStore = useMachineStore();
 const menuStore = useMenuStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+
+const reloadingSettings = ref(false);
+const reloadingCache = ref(false);
+
+// Force a re-fetch from the board for board-stored settings or cache. Clears any stale
+// localStorage entry first so the load() path bypasses its localStorage-preferred branch and
+// actually downloads the file - the button is only visible in board-storage mode
+async function reloadSettings() {
+	reloadingSettings.value = true;
+	try {
+		removeLocalSetting("settings");
+		await settingsStore.load();
+		uiStore.log(LogLevel.success, i18n.global.t("settings.storage.reloadSettingsSuccess"));
+	} catch (e) {
+		uiStore.log(LogLevel.error, i18n.global.t("settings.storage.reloadSettingsError"), getErrorMessage(e, true));
+	} finally {
+		reloadingSettings.value = false;
+	}
+}
+
+async function reloadCache() {
+	reloadingCache.value = true;
+	try {
+		removeLocalSetting("cache");
+		await cacheStore.load();
+		uiStore.log(LogLevel.success, i18n.global.t("settings.storage.reloadCacheSuccess"));
+	} catch (e) {
+		uiStore.log(LogLevel.error, i18n.global.t("settings.storage.reloadCacheError"), getErrorMessage(e, true));
+	} finally {
+		reloadingCache.value = false;
+	}
+}
 const route = useRoute("/Settings/[[tab]]");
 const router = useRouter();
 const { mdAndUp } = useDisplay();
+
+const hasAnyVin = computed(() => boards.value.some(board => board.vIn != null));
+const hasAnyV12 = computed(() => boards.value.some(board => board.v12 != null));
 
 // Tabs run with comfortable density at xs/sm so the touch target is large enough on phones;
 // md+ stays compact since the cursor doesn't need the bigger hit area
@@ -893,7 +985,12 @@ const isRestConnector = computed(() => machineStore.connector instanceof RestCon
 
 const connectorLabel = computed(() => {
 	if (isRestConnector.value) {
-		return i18n.global.t("settings.about.connectorRest");
+		// Distribution is reported by DSF (DuetPi, Debian, Raspbian, ...). Fall back to a
+		// generic "SBC" only when DSF can't name it - hard-coding "DuetPi" everywhere is wrong
+		// for the non-DuetPi installs
+		const distro = machineStore.model.sbc?.distribution || i18n.global.t("settings.about.connectorRestFallback");
+		const bits = machineStore.model.sbc?.dsf?.is64Bit ? "64" : "32";
+		return i18n.global.t("settings.about.connectorRest", { distro, bits });
 	}
 	if (isPollConnector.value) {
 		return i18n.global.t("settings.about.connectorPoll");

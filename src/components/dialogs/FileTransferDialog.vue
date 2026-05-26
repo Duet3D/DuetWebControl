@@ -22,7 +22,8 @@
 							<td class="py-1" width="35%">
 								<v-progress-linear v-show="file.startTime !== null || file.progress > 0"
 												   :color="getProgressColor(file)" height="16" rounded="md"
-												   :striped="file.progress < 1"
+												   striped
+												   :class="{ 'progress-static': file.progress >= 1 }"
 												   :model-value="file.progress * 100"
 												   :indeterminate="file.progress < 1 && !file.speed && !file.error">
 									<template #default="{ value }">
@@ -65,6 +66,9 @@
 }
 .file-transfer-table td {
 	vertical-align: middle;
+}
+.progress-static :deep(.v-progress-linear__determinate) {
+	animation: none;
 }
 </style>
 

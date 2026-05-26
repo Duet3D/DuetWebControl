@@ -48,6 +48,12 @@ Events.on("disconnected", ({ hostname, graceful }) => {
 	useUiStore().log(LogLevel.success, i18n.global.t("event.disconnected", [hostname]));
 })
 
+// Surfaced when another UI session edited keys we also touched since we last synced. Names the
+// affected paths so the user knows which of their changes lost to the local-wins resolution
+Events.on("settingsConflict", ({ paths }) => {
+	useUiStore().log(LogLevel.warning, i18n.global.t("event.settingsConflict"), paths.join(", "));
+})
+
 Events.on("disconnectError", ({ hostname, error }) => {
 	useUiStore().log(LogLevel.warning, i18n.global.t("event.disconnectError", [hostname]), getErrorMessage(error, true));
 })

@@ -219,7 +219,8 @@
 		"disconnectError": "Failed to disconnect from {0}",
 		"disconnected": "Disconnected from {0}",
 		"dwcPluginLoadError": "Failed to load DWC plugin {0}: {1}",
-		"startupError": "Error in start-up file {0} line {1}: {2}"
+		"startupError": "Error in start-up file {0} line {1}: {2}",
+		"settingsConflict": "Another UI session changed settings you also edited; your changes were kept"
 	},
 	"generic": {
 		"ok": "OK",
@@ -598,7 +599,7 @@
 		},
 		"babystepping": {
 			"caption": "Babystepping",
-			"current": "Current {0} offset: {1}",
+			"current": "Current {axis} offset: {value}",
 			"settings": {
 				"babystepAmount": "Babystep amount",
 				"babystepAmountHint": "Step size applied per click of the babystep buttons (in mm)",
@@ -789,6 +790,9 @@
 				"probes": "Z-Probes",
 				"positionDisplay": "Position display",
 				"positionDisplayHint": "Choose whether the position row shows tool or machine coordinates",
+				"showUnits": "Show units",
+				"showAxisUnitsHint": "Append the active distance unit (mm or in) to each axis position",
+				"showExtruderUnitsHint": "Append the unit (mm or mm³) to extruder positions and the virtual extruder position",
 				"positionTool": "Tool position",
 				"positionMachine": "Machine position",
 				"positionToggle": "Toggle on click",
@@ -946,7 +950,7 @@
 			"product": "Product",
 			"shortName": "Short Name",
 			"can": "CAN address",
-			"version": "Version",
+			"firmwareVersion": "Firmware Version",
 			"builtOn": "Built on",
 			"buildDateTime": "Built on {0}",
 			"changeCanAddress": "Change CAN address",
@@ -1108,7 +1112,8 @@
 			"hostname": "Connected host",
 			"connector": "Connector",
 			"connectorPoll": "HTTP polling (standalone RRF)",
-			"connectorRest": "REST (DuetPi / SBC)",
+			"connectorRest": "REST ({distro}, {bits}-bit)",
+			"connectorRestFallback": "SBC",
 			"boards": "Boards",
 			"boardName": "Board",
 			"boardFirmware": "Firmware",
@@ -1159,7 +1164,14 @@
 			"cacheStorageLocal": "Store cache in this browser",
 			"cacheStorageLocalHint": "Keep the connection cache (last hostname, plugin state) in the browser localStorage rather than on the board.",
 			"cacheSaveDelay": "Cache save delay",
-			"cacheSaveDelayHint": "Time to wait after a cache change before persisting it."
+			"cacheSaveDelayHint": "Time to wait after a cache change before persisting it.",
+			"reload": "Reload",
+			"reloadSettingsHint": "Re-fetch settings from the board",
+			"reloadSettingsSuccess": "Settings reloaded from the board",
+			"reloadSettingsError": "Failed to reload settings from the board",
+			"reloadCacheHint": "Re-fetch the cache from the board",
+			"reloadCacheSuccess": "Cache reloaded from the board",
+			"reloadCacheError": "Failed to reload cache from the board"
 		}
 	},
 	"menu": {

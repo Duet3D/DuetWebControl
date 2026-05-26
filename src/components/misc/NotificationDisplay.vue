@@ -191,6 +191,25 @@ function onNotificationClick(item: QueueMessage) {
 		uiStore.dismissNotification(item.id);
 	}
 }
+
+// v-snackbar-queue forces every visible VSnackbar's timeout to -1 while the tab is hidden (its
+// pauseAll mechanism, keyed off document.visibilityState), and the queue's recovery on visibility
+// return is unreliable - a notification queued during a long background period can stay stuck on
+// screen. Drop every auto-timeout notification on return; whatever was on screen had its timer
+// disabled and the user wasn't watching anyway. Persistent toasts (timeout <= 0) are left alone
+function onVisibilityChange() {
+	if (document.visibilityState !== "visible") {
+		return;
+	}
+	for (const [id, notification] of uiStore.activeNotifications) {
+		if (notification.timeout > 0) {
+			uiStore.dismissNotification(id);
+		}
+	}
+}
+
+onMounted(() => document.addEventListener("visibilitychange", onVisibilityChange));
+onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibilityChange));
 </script>
 
 <!-- Unscoped: v-snackbar teleports its wrapper into a top-level v-overlay outside our component

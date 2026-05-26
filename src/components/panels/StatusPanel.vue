@@ -61,7 +61,7 @@
 										{{ item.axis.letter }}
 									</span>
 									<span>
-										{{ displayAxisPosition(item.axis, row.machine) }}
+										{{ displayAxisPosition(item.axis, row.machine, settings.showAxisUnits) }}
 									</span>
 								</v-col>
 							</v-row>
@@ -90,7 +90,7 @@
 								<v-col v-for="item in visibleExtruders" :key="item.index"
 									   class="d-flex flex-column align-center">
 									<strong>{{ $t("panel.status.extruderDrive", [item.index]) }}</strong>
-									<span>{{ displayExtruderAmount(item.extruder, row.volume) }}</span>
+									<span>{{ displayExtruderAmount(item.extruder, row.volume, settings.showExtruderUnits) }}</span>
 								</v-col>
 							</v-row>
 						</v-col>
@@ -107,7 +107,7 @@
 						{{ $t("panel.status.virtualEPos") }}
 					</v-col>
 					<v-col class="d-flex align-center justify-center">
-						{{ display(virtualEPos, 1) }}
+						{{ display(virtualEPos, 1, settings.showExtruderUnits ? "mm" : undefined) }}
 					</v-col>
 				</v-row>
 			</template>
@@ -229,17 +229,35 @@
 		<template #settings>
 			<EntityVisibilityList kind="axes" :label="$t('panel.status.settings.axes')"
 								  v-model="settings.displayedAxes" />
-			<v-select v-model="settings.positionDisplay" :items="positionDisplayItems"
-					  item-value="value" item-title="title" :label="$t('panel.status.settings.positionDisplay')"
-					  v-hint="$t('panel.status.settings.positionDisplayHint')" variant="outlined"
-					  density="comfortable" hide-details class="mt-4" />
+			<v-row no-gutters class="mt-4 align-center">
+				<v-col>
+					<v-select v-model="settings.positionDisplay" :items="positionDisplayItems"
+							  item-value="value" item-title="title" :label="$t('panel.status.settings.positionDisplay')"
+							  v-hint="$t('panel.status.settings.positionDisplayHint')" variant="outlined"
+							  density="comfortable" hide-details />
+				</v-col>
+				<v-col cols="auto" class="ps-5">
+					<v-switch v-model="settings.showAxisUnits" color="primary" density="compact" hide-details
+							  :label="$t('panel.status.settings.showUnits')"
+							  v-hint="$t('panel.status.settings.showAxisUnitsHint')" />
+				</v-col>
+			</v-row>
 
 			<EntityVisibilityList kind="extruders" :label="$t('panel.status.settings.extruders')"
 								  v-model="settings.displayedExtruders" class="mt-4" />
-			<v-select v-model="settings.extruderDisplay" :items="extruderDisplayItems"
-					  item-value="value" item-title="title" :label="$t('panel.status.settings.extruderDisplay')"
-					  v-hint="$t('panel.status.settings.extruderDisplayHint')" variant="outlined"
-					  density="comfortable" hide-details class="mt-4" />
+			<v-row no-gutters class="mt-4 align-center">
+				<v-col>
+					<v-select v-model="settings.extruderDisplay" :items="extruderDisplayItems"
+							  item-value="value" item-title="title" :label="$t('panel.status.settings.extruderDisplay')"
+							  v-hint="$t('panel.status.settings.extruderDisplayHint')" variant="outlined"
+							  density="comfortable" hide-details />
+				</v-col>
+				<v-col cols="auto" class="ps-5">
+					<v-switch v-model="settings.showExtruderUnits" color="primary" density="compact" hide-details
+							  :label="$t('panel.status.settings.showUnits')"
+							  v-hint="$t('panel.status.settings.showExtruderUnitsHint')" />
+				</v-col>
+			</v-row>
 			<v-switch v-model="settings.virtualEPos" color="primary" density="compact" hide-details
 					  class="mt-4" :label="$t('panel.status.settings.virtualEPos')"
 					  v-hint="$t('panel.status.settings.virtualEPosHint')" />
@@ -323,9 +341,13 @@ const settings = useComponentSettings({
 	displayedFanRPM: null as Array<number> | null,
 	// Requested + top by default; volumetric flow and extrusion rate are opt-in via the panel settings
 	displayedSpeeds: ["requested", "top"] as Array<string> | null,
-	displayedSensors: null as Array<string> | null,
+	// Vin/V12 are off by default - the Boards table covers them when needed and most users
+	// don't watch them on the dashboard
+	displayedSensors: ["mcuTemp", "fanRPM"] as Array<string> | null,
 	positionDisplay: "toggle" as "tool" | "machine" | "toggle" | "both",
-	extruderDisplay: "length" as "length" | "volume" | "toggle" | "both",
+	showAxisUnits: true,
+	extruderDisplay: "toggle" as "length" | "volume" | "toggle" | "both",
+	showExtruderUnits: true,
 	virtualEPos: false,
 	// Modes offered in the machine-mode dropdown; empty keeps the mode label non-interactive
 	machineModes: [] as Array<MachineMode>
@@ -419,12 +441,12 @@ const extruderRows = computed<Array<ExtruderRow>>(() => {
 	}
 });
 
-function displayExtruderAmount(extruder: Extruder, volume: boolean): string {
+function displayExtruderAmount(extruder: Extruder, volume: boolean, showUnit: boolean): string {
 	if (volume) {
 		const radius = extruder.filamentDiameter / 2;
-		return display(extruder.position * Math.PI * radius * radius, 1, "mm³");
+		return display(extruder.position * Math.PI * radius * radius, 1, showUnit ? "mm³" : undefined);
 	}
-	return display(extruder.position, 1);
+	return display(extruder.position, 1, showUnit ? "mm" : undefined);
 }
 
 // #endregion

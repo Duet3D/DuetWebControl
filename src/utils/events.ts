@@ -49,6 +49,17 @@ type Events = {
 	settingsSaved: void;
 
 	/**
+	 * Another session changed settings keys that this session also edited since the last load.
+	 * Payload lists the affected dotted paths so the UI can name them in a notification
+	 */
+	settingsConflict: { paths: Array<string> };
+
+	/**
+	 * Another session changed cache keys that this session also edited since the last load
+	 */
+	cacheConflict: { paths: Array<string> };
+
+	/**
 	 * Connection is fully established and the object model is populated
 	 */
 	fullyConnected: void;

@@ -62,7 +62,7 @@
 								</template>
 								<v-list-item-title>{{ $t("panel.movement.editMesh") }}</v-list-item-title>
 							</v-list-item>
-							<v-list-item v-if="hasCompensationItem('loadMesh')" :disabled="uiStore.uiFrozen"
+							<v-list-item v-if="hasCompensationItem('loadMesh')" :disabled="!canHome"
 										 @click="sendCode('G29 S1')">
 								<template #prepend>
 									<v-icon>mdi-content-save</v-icon>

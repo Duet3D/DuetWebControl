@@ -6,10 +6,75 @@ import i18n, { getBrowserLocale, type Locale } from "@/i18n";
 import Events from "@/utils/events";
 import { getLocalSetting, localStorageSupported, removeLocalSetting, setLocalSetting } from "@/utils/localStorage";
 import Path from "@/utils/path";
+import { snapshot, threeWayMerge } from "@/utils/threeWayMerge";
 
 import { DefaultPluginSettings } from "./defaults";
 import { useMachineStore } from "./machine";
 import { resumeSettingsObserver, suspendSettingsObserver } from "./observer";
+
+// Snapshot of the dwc-settings.json blob last loaded from or written to the board. Used by save()
+// to detect what another session changed since this session last synced, so we can merge their
+// edits in instead of clobbering them. Null when the current load came from localStorage or no
+// file was loaded yet - the first board-targeted save will then just upload and seed the baseline
+let settingsBaseline: any = null;
+
+// Top-level paths to merge as a set rather than last-writer. enabledPlugins is the obvious one:
+// two tabs enabling different plugins should end up with both enabled, not whichever saved last
+const SETTINGS_UNION_PATHS: ReadonlySet<string> = new Set(["enabledPlugins"]);
+
+// Deep-assign a plain-object source onto a target. Arrays are scalar (replaced wholesale) so
+// user reorderings (e.g. moveSteps) survive. Used by load() and by the post-merge re-apply path
+function deepAssign(target: any, source: any) {
+	for (const key of Object.keys(source)) {
+		const src = source[key];
+		const tgt = target[key];
+		if (src && typeof src === "object" && !Array.isArray(src)
+			&& tgt && typeof tgt === "object" && !Array.isArray(tgt)) {
+			deepAssign(tgt, src);
+		} else {
+			target[key] = src;
+		}
+	}
+}
+
+// Re-apply a merged-from-remote settings blob onto the live store. Mirrors the special-case
+// handling in load() (componentSettings, moveSteps, plugins, locale side-effect) so panels and
+// vue-i18n stay consistent after a cross-session merge
+function applyMergedSettings(store: any, merged: any) {
+	const remaining = { ...merged };
+
+	if (remaining.plugins instanceof Object) {
+		store.plugins = remaining.plugins;
+		delete remaining.plugins;
+	}
+
+	if (remaining.moveSteps instanceof Object) {
+		for (const axis in remaining.moveSteps) {
+			const axisMoveSteps = remaining.moveSteps[axis];
+			if (Array.isArray(axisMoveSteps) && axisMoveSteps.length === store.moveSteps.default.length) {
+				store.moveSteps[axis] = axisMoveSteps;
+			}
+		}
+		delete remaining.moveSteps;
+	}
+
+	if (remaining.componentSettings instanceof Object) {
+		store.componentSettings = { ...store.componentSettings, ...remaining.componentSettings };
+		for (const [id, defaults] of componentSettingDefaults) {
+			const record = store.componentSettings[id];
+			if (record) {
+				backfillComponentDefaults(record.data, defaults);
+			}
+		}
+		delete remaining.componentSettings;
+	}
+
+	deepAssign(store, remaining);
+
+	if (typeof remaining.locale === "string") {
+		store.setLocale(remaining.locale);
+	}
+}
 
 /**
  * Persistence record for a single {@link useComponentSettings} instance - the schema version is checked on load
@@ -550,24 +615,9 @@ export const useSettingsStore = defineStore("settings", {
 		 * defaults
 		 */
 		async load() {
-			// Wrapper that effectively loads the given settings
+			// Wrapper that effectively loads the given settings. `deepAssign` is module-scope so
+			// the post-merge re-apply path in save() can share it without duplication
 			const that = this;
-			// Deep-merge so persisted blobs that predate a newly-added nested key don't clobber
-			// the in-memory default (Object.assign would drop {useMonaco: true} from settings.editor
-			// the moment a saved blob carried an `editor` object without that field). Arrays are
-			// treated as scalars - the persisted value wins so user reorderings stick
-			function deepAssign(target: any, source: any) {
-				for (const key of Object.keys(source)) {
-					const src = source[key];
-					const tgt = target[key];
-					if (src && typeof src === "object" && !Array.isArray(src)
-						&& tgt && typeof tgt === "object" && !Array.isArray(tgt)) {
-						deepAssign(tgt, src);
-					} else {
-						target[key] = src;
-					}
-				}
-			}
 			async function applySettings(rawSettings: any) {
 				// Run any pending schema-version upgrades before the merge so old persisted blobs
 				// don't carry retired or renamed keys back onto the Pinia state
@@ -657,6 +707,7 @@ export const useSettingsStore = defineStore("settings", {
 				Events.emit("settingsLoaded");
 			}
 
+			let loadedFromBoard = false;
 			try {
 				// Try to load settings from local storage, if that doesn't work, try to load them from the board
 				const localSettings = getLocalSetting("settings"), machineModule = useMachineStore();
@@ -666,11 +717,13 @@ export const useSettingsStore = defineStore("settings", {
 					try {
 						const remoteSettings = await machineModule.download(Path.dwcSettingsFile, false, false, false);
 						applySettings(remoteSettings);
+						loadedFromBoard = true;
 					} catch (e) {
 						if (e instanceof FileNotFoundError) {
 							try {
 								const factoryDefaults = await machineModule.download(Path.dwcFactoryDefaults, false, false, false);
 								applySettings(factoryDefaults);
+								loadedFromBoard = true;
 							} catch (e) {
 								if (!(e instanceof FileNotFoundError)) {
 									throw e;
@@ -685,32 +738,96 @@ export const useSettingsStore = defineStore("settings", {
 				// still persist
 				resumeSettingsObserver();
 			}
+
+			// Anchor the cross-session merge baseline only for loads that came from the board.
+			// localStorage-only loads have no shared remote ancestor; the first board-targeted
+			// save will seed the baseline from the upload itself
+			settingsBaseline = loadedFromBoard ? snapshot(this.$state) : null;
 		},
 
 		/**
-		 * Save settings
+		 * Save settings.
+		 *
+		 * When uploading to the board, pre-fetch the current remote file and three-way merge any
+		 * edits another UI session made since this session last synced. Local edits win on a true
+		 * collision, with a `settingsConflict` event listing the affected paths so the UI can warn
+		 * the user. Pure-remote edits are adopted into the live store before the upload so both
+		 * sessions converge instead of overwriting each other
 		 */
 		async save() {
-			// Mark the persisted blob with the current schema version so the load path can skip
-			// already-applied upgrades on the next boot
-			const payload = { schemaVersion: SETTINGS_SCHEMA_VERSION, ...this.$state };
-
 			if (this.settingsStorageLocal) {
+				const payload = { schemaVersion: SETTINGS_SCHEMA_VERSION, ...this.$state };
 				setLocalSetting("settings", payload);
-			} else {
-				// If not, remove the local settings again
-				removeLocalSetting("settings");
+				Events.emit("settingsSaved");
+				return;
+			}
 
-				// And try to save everything on the selected board
-				const machineStore = useMachineStore();
-				if (machineStore.isConnected) {
-					try {
-						const content = new Blob([JSON.stringify(payload)]);
-						await machineStore.upload([{ filename: Path.dwcSettingsFile, content }], false, false, false);
-					} catch (e) {
-						// handled before we get here
+			removeLocalSetting("settings");
+
+			const machineStore = useMachineStore();
+			if (!machineStore.isConnected) {
+				Events.emit("settingsSaved");
+				return;
+			}
+
+			// Pre-fetch the remote blob and merge in another session's edits. Skipped on the very
+			// first board-targeted save (baseline still null) - that upload seeds the baseline
+			if (settingsBaseline !== null) {
+				let remoteRaw: any = null;
+				let proceed = true;
+				try {
+					remoteRaw = await machineStore.download(Path.dwcSettingsFile, false, false, false);
+				} catch (e) {
+					if (e instanceof FileNotFoundError) {
+						// Remote was deleted between loads - fall through and write ours fresh
+					} else if (e instanceof SyntaxError) {
+						// Corrupt JSON on the board - we can't merge against it; overwrite
+						console.warn("Remote settings unparseable, overwriting:", e);
+					} else {
+						// Network or connection failure - the upload would almost certainly fail too,
+						// so defer this save. The next mutation re-arms the autosave timer
+						console.warn("Pre-save fetch of remote settings failed, deferring:", e);
+						proceed = false;
 					}
 				}
+				if (!proceed) {
+					return;
+				}
+
+				if (remoteRaw && typeof remoteRaw === "object") {
+					const remote = upgradeSettings(remoteRaw);
+					const local = snapshot(this.$state);
+					const result = threeWayMerge(local, settingsBaseline, remote, { unionArrayPaths: SETTINGS_UNION_PATHS });
+
+					if (result.changed) {
+						// Bring remote-only edits into the live store so the UI reflects them.
+						// Observer suspended so the patch doesn't queue another save echoing
+						// what we just applied
+						try {
+							suspendSettingsObserver();
+							applyMergedSettings(this, result.merged);
+						} finally {
+							resumeSettingsObserver();
+						}
+					}
+					if (result.conflicts.length > 0) {
+						Events.emit("settingsConflict", { paths: result.conflicts });
+					}
+				}
+			}
+
+			try {
+				const payload = { schemaVersion: SETTINGS_SCHEMA_VERSION, ...this.$state };
+				const content = new Blob([JSON.stringify(payload)]);
+				// Snapshot what we're about to upload BEFORE the await so user edits during the
+				// upload don't fold into the baseline (otherwise the next save would treat those
+				// edits as already on the board and resolve a conflict against the user's intent)
+				const newBaseline = snapshot(this.$state);
+				await machineStore.upload([{ filename: Path.dwcSettingsFile, content }], false, false, false);
+				settingsBaseline = newBaseline;
+			} catch (e) {
+				// handled before we get here; leaving baseline untouched keeps the next save's merge
+				// anchored on the last value we know reached the board
 			}
 			Events.emit("settingsSaved");
 		},

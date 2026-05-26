@@ -6,9 +6,10 @@
 				<v-btn v-for="axis in availableAxes" :key="axis" :value="axis">{{ axis }}</v-btn>
 			</v-btn-toggle>
 
-			<div class="mb-2">
-				{{ $t("panel.babystepping.current", [selectedAxis, displayZ(babystepping)]) }}
-			</div>
+			<i18n-t keypath="panel.babystepping.current" tag="div" class="mb-2">
+				<template #axis>{{ selectedAxis }}</template>
+				<template #value><span class="text-no-wrap">{{ displayZ(babystepping) }}</span></template>
+			</i18n-t>
 			<v-row density="compact">
 				<v-col>
 					<CodeButton :code="babystepCode(-settings.babystepAmount)" no-wait block :size="largeBtnSize">

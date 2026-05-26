@@ -31,17 +31,23 @@ export function display(value: number | Array<number> | string | null | undefine
 /**
  * Display an axis position
  * @param axis Axis position to display
+ * @param machinePosition Show machine instead of tool (user) coordinates
+ * @param showUnit Append the active distance unit (mm or in)
  * @returns Formatted axis position
  */
-export function displayAxisPosition(axis: Axis, machinePosition: boolean = false) {
+export function displayAxisPosition(axis: Axis, machinePosition: boolean = false, showUnit: boolean = false) {
 	const raw = machinePosition ? axis.machinePosition : axis.userPosition;
 	if (raw === null) {
 		return i18n.global.t("generic.noValue");
 	}
 
 	const settingsStore = useSettingsStore();
-	const position = (settingsStore.displayUnits === UnitOfMeasure.imperial) ? raw / MM_PER_INCH : raw;
-	return axis.letter === AxisLetter.Z ? displayZ(position, false) : display(position, settingsStore.decimalPlaces);
+	const imperial = settingsStore.displayUnits === UnitOfMeasure.imperial;
+	const position = imperial ? raw / MM_PER_INCH : raw;
+	if (axis.letter === AxisLetter.Z) {
+		return displayZ(position, showUnit);
+	}
+	return display(position, settingsStore.decimalPlaces, showUnit ? (imperial ? "in" : "mm") : undefined);
 }
 
 /**

@@ -23,19 +23,6 @@ const dwcVersion = JSON.parse(readFileSync(new URL("./package.json", import.meta
 const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcVersion)
 const sourcemap = process.env.DWC_SOURCEMAP !== undefined ? process.env.DWC_SOURCEMAP !== "0" : isPrerelease
 
-// monaco-init.ts and monaco-worker.ts statically import ~30 deep monaco-editor-core subpaths
-// (editor.api.js, the contribs, the worker boot). Vite's dep optimizer only scans bare package
-// specifiers, so it discovers each deep subpath lazily when the monaco chunk first loads - which
-// triggers a re-optimize and a full-page reload mid-session. Parse the exact subpath list out of
-// those two files and feed it into optimizeDeps.include so they get pre-bundled up front. Parsing
-// instead of hard-coding keeps a single source of truth: adding a contrib stays a one-line edit
-const monacoEntrySources = ["./src/utils/monaco-init.ts", "./src/utils/monaco-worker.ts"]
-	.map((path) => readFileSync(new URL(path, import.meta.url), "utf8"))
-	.join("\n")
-const monacoSubpaths = [...new Set(
-	[...monacoEntrySources.matchAll(/"(monaco-editor-core\/[^"]+)"/g)].map((match) => match[1])
-)]
-
 // Monaco emits css/html/json/ts language workers eagerly, but `getWorker` in src/utils/monaco.ts
 // always returns the editor worker - we never spin up a language service. Drop the dead worker
 // assets from the bundle so they don't get gzipped / zipped / shipped. URL references in the
@@ -143,22 +130,18 @@ export default defineConfig({
 			}
 		}
 	},
-	// Pre-bundle the heavy dependencies that otherwise only get discovered when their lazy
-	// plugin/editor chunk is first requested - that late discovery triggers a dep re-optimize
-	// and a full-page reload mid-session. Listing them here bundles them up front
+	// Vite's default crawl follows static imports from index.html only, so anything first
+	// reached across a dynamic-import boundary (auto-routed pages, plugin entries,
+	// `await import("jszip")`, the prefetched Babylon chunk, monaco-init.ts) is discovered
+	// lazily - which keeps producing "new dependencies optimized: ... reloading" mid-session.
+	// Pointing entries at the source tree forces every .ts/.vue file to be scanned during the
+	// initial prebundle pass, so transitive deps (deep babylonjs subpaths, vuetify labs
+	// components, date-fns locales, jszip, monaco-editor-core subpaths, etc.) land in the
+	// prebundle up front - no explicit `include` list needed
 	optimizeDeps: {
-		include: [
-			"@babylonjs/core",
-			"@babylonjs/gui",
-			"@babylonjs/materials",
-			"@sindarius/gcodeviewer",
-			...monacoSubpaths,
-			"@duet3d/motionanalysis",
-			"chart.js",
-			"chartjs-adapter-date-fns",
-			"d3",
-			"qoijs",
-			"piecon"
+		entries: [
+			"index.html",
+			"src/**/*.{ts,vue}"
 		]
 	},
   plugins: [

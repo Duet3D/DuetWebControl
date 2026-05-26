@@ -219,7 +219,8 @@
 		"disconnectError": "Konnte Verbindung zu {0} nicht trennen",
 		"disconnected": "Verbindung zu {0} getrennt",
 		"dwcPluginLoadError": "Konnte DWC-Plugin {0} nicht laden: {1}",
-		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}"
+		"startupError": "Fehler in Startdatei {0} Zeile {1}: {2}",
+		"settingsConflict": "Eine andere UI-Sitzung hat Einstellungen verändert, die Sie ebenfalls bearbeitet haben; Ihre Änderungen wurden beibehalten"
 	},
 	"generic": {
 		"ok": "OK",
@@ -600,7 +601,7 @@
 		},
 		"babystepping": {
 			"caption": "Babystepping",
-			"current": "Aktueller {0}-Versatz: {1}",
+			"current": "Aktueller {axis}-Versatz: {value}",
 			"settings": {
 				"babystepAmount": "Babystep-Schrittweite",
 				"babystepAmountHint": "Schrittweite je Klick auf die Babystep-Tasten (in mm)",
@@ -791,6 +792,9 @@
 				"probes": "Z-Sonden",
 				"positionDisplay": "Positionsanzeige",
 				"positionDisplayHint": "Legt fest, ob die Positionszeile Werkzeug- oder Maschinenkoordinaten anzeigt",
+				"showUnits": "Einheiten anzeigen",
+				"showAxisUnitsHint": "Fügt die aktive Längeneinheit (mm oder in) an jede Achsposition an",
+				"showExtruderUnitsHint": "Fügt die Einheit (mm oder mm³) an die Extruderpositionen und an die virtuelle Extruderposition an",
 				"positionTool": "Werkzeugposition",
 				"positionMachine": "Maschinenposition",
 				"positionToggle": "Per Klick umschalten",
@@ -948,7 +952,7 @@
 			"product": "Produkt",
 			"shortName": "Kurzname",
 			"can": "CAN-Adresse",
-			"version": "Version",
+			"firmwareVersion": "Firmware-Version",
 			"builtOn": "Gebaut am",
 			"buildDateTime": "Gebaut am {0}",
 			"changeCanAddress": "CAN-Adresse ändern",
@@ -1110,7 +1114,8 @@
 			"hostname": "Verbundener Host",
 			"connector": "Verbindungsart",
 			"connectorPoll": "HTTP-Polling (Standalone RRF)",
-			"connectorRest": "REST (DuetPi / SBC)",
+			"connectorRest": "REST ({distro}, {bits}-bit)",
+			"connectorRestFallback": "SBC",
 			"boards": "Boards",
 			"boardName": "Board",
 			"boardFirmware": "Firmware",
@@ -1161,7 +1166,14 @@
 			"cacheStorageLocal": "Cache in diesem Browser speichern",
 			"cacheStorageLocalHint": "Den Verbindungs-Cache (letzter Hostname, Plugin-Zustand) im localStorage des Browsers ablegen statt auf dem Board.",
 			"cacheSaveDelay": "Speicherverzögerung Cache",
-			"cacheSaveDelayHint": "Zeit, die nach einer Cache-Änderung gewartet wird, bevor sie gespeichert wird."
+			"cacheSaveDelayHint": "Zeit, die nach einer Cache-Änderung gewartet wird, bevor sie gespeichert wird.",
+			"reload": "Neu laden",
+			"reloadSettingsHint": "Einstellungen erneut vom Board laden",
+			"reloadSettingsSuccess": "Einstellungen vom Board neu geladen",
+			"reloadSettingsError": "Einstellungen konnten nicht vom Board neu geladen werden",
+			"reloadCacheHint": "Cache erneut vom Board laden",
+			"reloadCacheSuccess": "Cache vom Board neu geladen",
+			"reloadCacheError": "Cache konnte nicht vom Board neu geladen werden"
 		}
 	},
 	"menu": {

@@ -406,7 +406,10 @@ export const useMachineStore = defineStore("machine", {
 				// after M999 before its HTTP server is back up
 				setTimeout(() => this.reconnect(), 2000);
 			} else {
+				// Surface the loss in the UI and start trying to come back. Common triggers are
+				// tab-throttled timers letting a poll request time out and transient network blips
 				Events.emit("connectionError", { hostname: this.connector.hostname, error });
+				await this.reconnect();
 			}
 		},
 
