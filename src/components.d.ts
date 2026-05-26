@@ -72,7 +72,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SpeedFactorPanel: typeof import('./components/panels/SpeedFactorPanel.vue')['default']
     SpindleSpeedPanel: typeof import('./components/panels/SpindleSpeedPanel.vue')['default']
-    StaticShell: typeof import('./components/StaticShell.vue')['default']
     StatusLabel: typeof import('./components/misc/StatusLabel.vue')['default']
     StatusPanel: typeof import('./components/panels/StatusPanel.vue')['default']
     TemperatureChart: typeof import('./components/charts/TemperatureChart.vue')['default']

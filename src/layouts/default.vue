@@ -6,7 +6,7 @@
 import { computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import StaticShell from "@/components/StaticShell.vue";
+import StaticShell from "@/layouts/static.vue";
 import i18n from "@/i18n";
 import { registeredLayout } from "@/plugins/layout";
 import { useSettingsStore } from "@/stores/settings";

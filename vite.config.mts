@@ -160,7 +160,18 @@ export default defineConfig({
     VueRouter({
       dts: 'src/typed-router.d.ts',
     }),
-    Layouts(),
+    // `static.vue` is the built-in fallback shell, statically imported by `default.vue`. Exclude
+    // it from the auto-scan since it's not a route-meta layout. `importMode: () => "async"` is
+    // required to break a circular-import TDZ on the generated `layouts` const: with the default
+    // mode the plugin emits `import __layout_0 from "/src/layouts/default.vue"` at the top of the
+    // virtual module, and `default.vue`'s transitive imports cycle back into the virtual module
+    // (via `@/plugins/layout -> @/router -> virtual:generated-layouts`), so `setupLayouts` is
+    // reachable before the `export const layouts = {...}` line has run. Async imports turn
+    // `default.vue` into `() => import(...)`, removing it from the static dep graph
+    Layouts({
+      exclude: ['**/static.vue'],
+      importMode: () => 'async',
+    }),
     // unplugin-auto-import + unplugin-vue-components: a deliberate convenience kept for now;
     // post-completion cleanup candidate - revisit dropping them once the port is done
     AutoImport({
