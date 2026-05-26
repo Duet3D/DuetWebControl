@@ -41,6 +41,9 @@ export default function buildOutputs(): Plugin {
 	return {
 		name: "dwc-build-outputs",
 		apply: "build",
+		// Run after vite-plugin-pwa so the SW (service-worker.js, workbox-*.js) is on disk
+		// when we snapshot dist for gzipping and zipping
+		enforce: "post",
 		configResolved(config: ResolvedConfig) {
 			outDir = resolve(config.root, config.build.outDir);
 		},

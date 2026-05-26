@@ -19,6 +19,9 @@ import { vHint } from "@/directives/hint";
 // Events
 import "@/utils/eventHandlers";
 
+// Service worker
+import "@/registerServiceWorker";
+
 const app = createApp(App);
 
 registerPlugins(app);

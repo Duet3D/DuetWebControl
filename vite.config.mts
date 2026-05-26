@@ -6,6 +6,7 @@ import Layouts from 'vite-plugin-vue-layouts-next'
 import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import { VitePWA } from 'vite-plugin-pwa'
 import dwcPlugins from './vite/dwc-plugins'
 import dwcVuetifySplit from './vite/dwc-vuetify-split'
 import dwcComponents from './vite/dwc-components'
@@ -192,6 +193,46 @@ export default defineConfig({
       },
     }),
     dwcStripMonacoLangWorkers(),
+    // Service worker. Filename matches v3.7-dev's URL so kiosks already running an old DWC
+    // pick up this build as a regular SW update (skipWaiting + clientsClaim + cleanupOutdatedCaches
+    // then take over and reload). Manifest is off - DWC isn't an installable PWA, we only want
+    // the caching layer. Registration is done manually from src/registerServiceWorker.ts so we
+    // can reload on controllerchange instead of leaving the page on stale precached chunks
+    VitePWA({
+      injectRegister: false,
+      filename: 'service-worker.js',
+      manifest: false,
+      workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
+        maximumFileSizeToCacheInBytes: 20_000_000,
+        // Precache only the initial app shell. babylon/monaco/per-plugin chunks are fetched
+        // on demand and cached via the runtime rule below
+        globPatterns: [
+          'index.html',
+          'favicon.ico',
+          'js/app-*.js',
+          'js/vuetify-*.js',
+          'css/app-*.css',
+          'css/vuetify-*.css',
+          'fonts/**/*',
+        ],
+        runtimeCaching: [
+          {
+            urlPattern: /\/(js|css)\/(?!(app|vuetify)-)[^/]+\.(js|css)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'lazy-chunks',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 30 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
+      },
+    }),
     buildOutputs(),
   ],
   define: { 'process.env': {} },
