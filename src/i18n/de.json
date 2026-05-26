@@ -963,7 +963,9 @@
 			"canAddressChanged": "CAN-Adressänderung angefordert (B{0} -> A{1})",
 			"canAddressError": "CAN-Adresse konnte nicht geändert werden",
 			"diagnostics": "Diagnose",
-			"diagnosticsError": "Diagnose konnte nicht ausgeführt werden"
+			"diagnosticsHint": "Sendet M122 und öffnet die Konsole mit der Antwort",
+			"diagnosticsError": "Diagnose konnte nicht ausgeführt werden",
+			"freeRam": "Freier RAM"
 		},
 		"machine": {
 			"caption": "Maschine",

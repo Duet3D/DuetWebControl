@@ -544,18 +544,23 @@
 							<th v-if="hasAnyV12" class="text-center d-none d-lg-table-cell">
 								{{ $t("panel.status.v12") }}
 							</th>
+							<th v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
+								{{ $t("panel.status.mcuTemp") }}
+							</th>
 							<th class="text-left">{{ $t("settings.infrastructure.firmwareVersion") }}</th>
-							<th :colspan="mdAndUp ? 2 : 1">
-								<div class="d-flex align-center">
-									<span class="d-none d-md-inline">{{ $t("settings.infrastructure.builtOn") }}</span>
-									<v-spacer />
-									<v-btn color="primary" density="comfortable" :loading="installingFirmware"
-										   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
-										   @click="pickFirmwareFiles">
-										<v-icon class="mr-1">mdi-package-down</v-icon>
-										{{ $t("settings.infrastructure.installUpdate") }}
-									</v-btn>
-								</div>
+							<th class="text-left d-none d-md-table-cell">
+								{{ $t("settings.infrastructure.builtOn") }}
+							</th>
+							<th v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell">
+								{{ $t("settings.infrastructure.freeRam") }}
+							</th>
+							<th class="text-right d-none d-md-table-cell">
+								<v-btn color="primary" density="comfortable" :loading="installingFirmware"
+									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+									   @click="pickFirmwareFiles">
+									<v-icon class="mr-1">mdi-package-down</v-icon>
+									{{ $t("settings.infrastructure.installUpdate") }}
+								</v-btn>
 							</th>
 						</tr>
 					</thead>
@@ -595,12 +600,27 @@
 								</v-tooltip>
 								<template v-else>{{ $t("generic.noValue") }}</template>
 							</td>
+							<td v-if="hasAnyMcuTemp" class="text-center d-none d-xl-table-cell">
+								<v-tooltip v-if="board.mcuTemp" location="bottom"
+										   :text="$t('panel.status.minMax', [display(board.mcuTemp.min, 1, '°C'), display(board.mcuTemp.max, 1, '°C')])">
+									<template #activator="{ props: tooltipProps }">
+										<span v-bind="tooltipProps" class="text-no-wrap">
+											{{ display(board.mcuTemp.current, 1, "°C") }}
+										</span>
+									</template>
+								</v-tooltip>
+								<template v-else>{{ $t("generic.noValue") }}</template>
+							</td>
 							<td>{{ board.firmwareVersion || $t("generic.noValue") }}</td>
-							<td><span class="d-none d-md-inline">{{ board.firmwareDate || $t("generic.noValue") }}</span></td>
+							<td class="d-none d-md-table-cell">{{ board.firmwareDate || $t("generic.noValue") }}</td>
+							<td v-if="hasAnyFreeRam" class="text-center d-none d-xl-table-cell text-no-wrap">
+								{{ displaySize(board.freeRam) }}
+							</td>
 							<td class="d-none d-md-table-cell text-right">
 								<v-btn variant="text" density="comfortable" color="primary"
 									   prepend-icon="mdi-stethoscope"
 									   :disabled="!machineStore.isConnected || uiStore.uiFrozen"
+									   v-hint="$t('settings.infrastructure.diagnosticsHint')"
 									   @click="runDiagnostics(board)">
 									{{ $t("settings.infrastructure.diagnostics") }}
 								</v-btn>
@@ -613,8 +633,10 @@
 							<td></td>
 							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
 							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
 							<td>{{ wifiVersion }}</td>
-							<td></td>
+							<td class="d-none d-md-table-cell" />
+							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
 							<td class="d-none d-md-table-cell" />
 						</tr>
 
@@ -624,8 +646,10 @@
 							<td></td>
 							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
 							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
 							<td>{{ dsfVersion }}</td>
-							<td><span class="d-none d-md-inline">{{ dsfBuildDateTime || $t("generic.noValue") }}</span></td>
+							<td class="d-none d-md-table-cell">{{ dsfBuildDateTime || $t("generic.noValue") }}</td>
+							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
 							<td class="d-none d-md-table-cell" />
 						</tr>
 
@@ -635,8 +659,10 @@
 							<td></td>
 							<td v-if="hasAnyVin" class="d-none d-lg-table-cell" />
 							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
+							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
 							<td>{{ dwcVersion }}</td>
-							<td></td>
+							<td class="d-none d-md-table-cell" />
+							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
 							<td class="d-none d-md-table-cell" />
 						</tr>
 					</tbody>
@@ -797,7 +823,7 @@ import { useMachineStore } from "@/stores/machine";
 import { useMenuStore } from "@/stores/menu";
 import { DashboardMode, UnitOfMeasure, useSettingsStore, WebcamFlip } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
-import { display } from "@/utils/display";
+import { display, displaySize } from "@/utils/display";
 import { getErrorMessage } from "@/utils/errors";
 
 import packageInfo from "../../../package.json";
@@ -885,6 +911,8 @@ const { mdAndUp } = useDisplay();
 
 const hasAnyVin = computed(() => boards.value.some(board => board.vIn != null));
 const hasAnyV12 = computed(() => boards.value.some(board => board.v12 != null));
+const hasAnyMcuTemp = computed(() => boards.value.some(board => board.mcuTemp != null));
+const hasAnyFreeRam = computed(() => boards.value.some(board => board.freeRam != null));
 
 // Tabs run with comfortable density at xs/sm so the touch target is large enough on phones;
 // md+ stays compact since the cursor doesn't need the bigger hit area

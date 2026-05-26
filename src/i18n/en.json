@@ -961,7 +961,9 @@
 			"canAddressChanged": "CAN address change requested (B{0} -> A{1})",
 			"canAddressError": "Failed to change CAN address",
 			"diagnostics": "Diagnostics",
-			"diagnosticsError": "Failed to run diagnostics"
+			"diagnosticsHint": "Send M122 and open the Console with the reply",
+			"diagnosticsError": "Failed to run diagnostics",
+			"freeRam": "Free RAM"
 		},
 		"machine": {
 			"caption": "Machine",
