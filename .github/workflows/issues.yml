@@ -4,20 +4,19 @@ on:
     types: [opened]
 jobs:
   add-comment:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
     steps:
       - name: Check user permission
         id: check
-        uses: scherermichael-oss/action-has-permission@master
+        uses: actions-cool/check-user-permission@v2.3.0
         with:
-          required-permission: write
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - if: steps.check.outputs.has-permission == false && contains(github.event.issue.labels.*.name, 'bug') == false && contains(github.event.issue.labels.*.name, 'enhancement') == false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          require: write
+      - if: steps.check.outputs.require-result == 'false' && contains(github.event.issue.labels.*.name, 'bug') == false && contains(github.event.issue.labels.*.name, 'enhancement') == false
         name: Close Issue
-        uses: peter-evans/close-issue@v1
+        uses: peter-evans/close-issue@v3.0.2
         with:
           comment: |
             This issue has been automatically closed because it does not originate from a Duet3D administrator.
