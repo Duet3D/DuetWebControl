@@ -105,7 +105,12 @@ module.exports = {
 		appleMobileWebAppCapable: "yes",
 		appleMobileWebAppStatusBarStyle: "black",
 		workboxOptions: {
-			maximumFileSizeToCacheInBytes: 20000000		// 20MB
+			maximumFileSizeToCacheInBytes: 20000000,	// 20MB
+			// New SW activates immediately and takes over open clients, so a fresh DSF deploy
+			// reaches users on the next page load instead of waiting for every tab to close
+			skipWaiting: true,
+			clientsClaim: true,
+			cleanupOutdatedCaches: true
 		}
 	},
 	transpileDependencies: [

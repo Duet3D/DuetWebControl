@@ -1,6 +1,19 @@
 import { register } from "register-service-worker";
 
 if (process.env.NODE_ENV === "production") {
+	// Reload once when a new service worker takes control of this page.
+	// Skipped on the very first install (when the page was loaded uncontrolled),
+	// since there is no stale content to flush yet
+	const wasControlled = navigator.serviceWorker?.controller != null;
+	let reloading = false;
+	navigator.serviceWorker?.addEventListener("controllerchange", () => {
+		if (!wasControlled || reloading) {
+			return;
+		}
+		reloading = true;
+		window.location.reload();
+	});
+
 	register(`${process.env.BASE_URL}service-worker.js`, {
 		ready() {
 			console.log(
@@ -18,7 +31,7 @@ if (process.env.NODE_ENV === "production") {
 			console.log("New content is downloading.")
 		},
 		updated() {
-			console.log("New content is available; please refresh.")
+			console.log("New content is available; reloading.")
 		},
 		offline() {
 			console.log("No internet connection found. App is running in offline mode.")
