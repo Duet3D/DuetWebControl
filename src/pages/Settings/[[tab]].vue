@@ -661,7 +661,7 @@
 							<td v-if="hasAnyV12" class="d-none d-lg-table-cell" />
 							<td v-if="hasAnyMcuTemp" class="d-none d-xl-table-cell" />
 							<td>{{ dwcVersion }}</td>
-							<td class="d-none d-md-table-cell" />
+							<td class="d-none d-md-table-cell">{{ dwcBuildDateTime }}</td>
 							<td v-if="hasAnyFreeRam" class="d-none d-xl-table-cell" />
 							<td class="d-none d-md-table-cell" />
 						</tr>
@@ -721,7 +721,7 @@
 							<strong>{{ $t("settings.about.connector") }}:</strong>
 							{{ connectorLabel }}
 						</div>
-						<div class="mt-4">
+						<div class="mt-4 d-flex align-center">
 							<i18n-t keypath="settings.about.credits" tag="span">
 								<template #author>
 									<a href="mailto:christian@duet3d.com">Christian Hammacher</a>
@@ -730,6 +730,11 @@
 									<a href="https://www.duet3d.com" target="_blank" rel="noopener">Duet3D</a>
 								</template>
 							</i18n-t>
+							<v-spacer />
+							<v-btn class="d-lg-none" size="small" variant="tonal"
+								   prepend-icon="mdi-refresh" @click="reloadPage">
+								{{ $t("settings.about.reload") }}
+							</v-btn>
 						</div>
 						<div class="mt-1">
 							<i18n-t keypath="settings.about.license" tag="span">
@@ -1007,6 +1012,11 @@ const wordWrapOptions = computed(() => [
 ]);
 
 const dwcVersion = packageInfo.version;
+const dwcBuildDateTime = __BUILD_DATETIME__;
+
+function reloadPage() {
+	window.location.reload();
+}
 
 const isPollConnector = computed(() => machineStore.connector instanceof PollConnector);
 const isRestConnector = computed(() => machineStore.connector instanceof RestConnector);

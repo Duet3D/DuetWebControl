@@ -1110,6 +1110,7 @@
 		},
 		"about": {
 			"dwc": "Duet Web Control",
+			"reload": "Reload",
 			"version": "Version",
 			"hostname": "Connected host",
 			"connector": "Connector",

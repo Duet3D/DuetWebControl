@@ -30,3 +30,6 @@ declare module 'virtual:dwc-components' {
   const components: Record<string, Component>
   export default components
 }
+
+// Build datetime in "YYYY-MM-DD HH:MM" form, injected by vite.config.mts at build time
+declare const __BUILD_DATETIME__: string

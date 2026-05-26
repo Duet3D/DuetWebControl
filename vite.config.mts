@@ -24,6 +24,14 @@ const dwcVersion = JSON.parse(readFileSync(new URL("./package.json", import.meta
 const isPrerelease = /-(?:alpha|beta|rc)\b/i.test(dwcVersion)
 const sourcemap = process.env.DWC_SOURCEMAP !== undefined ? process.env.DWC_SOURCEMAP !== "0" : isPrerelease
 
+// Build datetime in local time, "YYYY-MM-DD HH:MM" (no seconds) - injected via `define` below
+// and surfaced in Settings -> Infrastructure next to the DSF build datetime
+const buildDateTime = (() => {
+	const d = new Date()
+	const pad = (n: number) => String(n).padStart(2, "0")
+	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+})()
+
 // Monaco emits css/html/json/ts language workers eagerly, but `getWorker` in src/utils/monaco.ts
 // always returns the editor worker - we never spin up a language service. Drop the dead worker
 // assets from the bundle so they don't get gzipped / zipped / shipped. URL references in the
@@ -235,7 +243,10 @@ export default defineConfig({
     }),
     buildOutputs(),
   ],
-  define: { 'process.env': {} },
+  define: {
+    'process.env': {},
+    __BUILD_DATETIME__: JSON.stringify(buildDateTime),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
