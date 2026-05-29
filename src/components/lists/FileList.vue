@@ -1,6 +1,6 @@
 <template>
 	<v-card ref="cardRef" :class="['file-list-card', 'd-flex', 'flex-column', { 'file-list-card--empty': shouldShrink }]">
-		<v-toolbar :density="toolbarDensity" color="surface" class="px-2 flex-shrink-0">
+		<v-toolbar :density="controlDensity" color="surface" class="px-2 flex-shrink-0">
 			<v-btn icon variant="text" :size="toolbarBtnSize"
 				   :disabled="!canGoUp" :title="$t('list.baseFileList.goUp')"
 				   @dragover="onParentDragOver($event, parentDirectory)"
@@ -69,7 +69,7 @@
 							<v-icon>mdi-sort</v-icon>
 						</v-btn>
 					</template>
-					<v-list density="compact">
+					<v-list :density="controlDensity">
 						<v-list-item v-for="opt in sortOptions" :key="opt.key"
 									 :active="activeSortKey === opt.key" :title="opt.label"
 									 @click="onSortOptionClick(opt.key)">
@@ -89,7 +89,7 @@
 							<v-icon>{{ viewModeIcon }}</v-icon>
 						</v-btn>
 					</template>
-					<v-list density="compact">
+					<v-list :density="controlDensity">
 						<v-list-item v-for="opt in viewModeOptions" :key="opt.value"
 									 :active="viewMode === opt.value" :prepend-icon="opt.icon"
 									 :title="$t(opt.label)" @click="viewMode = opt.value" />
@@ -118,7 +118,7 @@
 						<v-icon>mdi-dots-vertical</v-icon>
 					</v-btn>
 				</template>
-				<v-list density="compact">
+				<v-list :density="controlDensity">
 					<v-list-item v-if="!noRename && selection.length === 1"
 								 prepend-icon="mdi-rename-box" :title="$t('button.rename.caption')"
 								 :disabled="uiStore.uiFrozen" @click="startRename" />
@@ -227,7 +227,7 @@
 	<input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
 
 	<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
-		<v-list density="compact">
+		<v-list :density="controlDensity">
 			<v-list-item v-if="contextMenu.target && !contextMenu.target.isDirectory" @click="openFromContext">
 				<template #prepend>
 					<v-icon>{{ openIcon }}</v-icon>
@@ -632,8 +632,7 @@ const collapseToolbar = computed(() => smAndDown.value);
 // Mirrors the default layout's app-bar enlargement: at the sm breakpoint with the user's
 // largeButtons setting on, the toolbar drops its compact density and the buttons jump to
 // large so small-touchscreen users get finger-friendly targets here too
-const { large: isLargeToolbar, btnSize: toolbarBtnSize } = useLargeButtons();
-const toolbarDensity = computed<"default" | "compact">(() => isLargeToolbar.value ? "default" : "compact");
+const { large: isLargeToolbar, btnSize: toolbarBtnSize, controlDensity } = useLargeButtons();
 const breadcrumbTextClass = computed(() => isLargeToolbar.value ? "text-body-large" : "text-body-medium");
 const tableDensity = computed<"default" | "comfortable" | "compact">(
 	() => mdAndUp.value ? "compact" : "default"

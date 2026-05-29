@@ -14,7 +14,7 @@
 						<v-icon>mdi-menu</v-icon>
 					</v-btn>
 				</template>
-				<v-list density="compact">
+				<v-list :density="controlDensity">
 					<v-list-item prepend-icon="mdi-notification-clear-all" :title="$t('list.eventLog.clear')"
 								 @click="uiStore.clearLog()" />
 					<v-list-item prepend-icon="mdi-file-download" :title="$t('list.eventLog.downloadText')"
@@ -98,12 +98,14 @@
 
 <script setup lang="ts">
 import { useComponentSettings } from "@/composables/useComponentSettings";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { LogLevel, type LogMessage, useUiStore } from "@/stores/ui";
 
 const uiStore = useUiStore();
 
 const settings = useComponentSettings({ sortNewestFirst: true });
+const { controlDensity } = useLargeButtons();
 
 interface DisplayEntry extends LogMessage {
 	key: string;

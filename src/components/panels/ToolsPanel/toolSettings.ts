@@ -68,6 +68,23 @@ export interface ToolDisplaySettings {
 	promptDuringFilamentChange: boolean;
 
 	/**
+	 * Show the extra (non-heater) analog sensors directly on the Tools view. When enabled the
+	 * separate Extra tab is hidden and its sensors fold into the Tools list instead
+	 */
+	showExtraOnTools: boolean;
+
+	/**
+	 * Extra sensor indices to show on the Tools view, or null to show every extra sensor.
+	 * Only consulted while showExtraOnTools is enabled
+	 */
+	displayedExtraOnTools: Array<number> | null;
+
+	/**
+	 * Extra sensor indices to show on the Extra tab, or null to show every extra sensor
+	 */
+	displayedExtraSensors: Array<number> | null;
+
+	/**
 	 * Tool numbers to display, or null to show every tool
 	 */
 	displayedTools: Array<number> | null;
@@ -104,6 +121,9 @@ export const toolDisplayDefaults: ToolDisplaySettings = {
 	showToolNumber: true,
 	showFilamentControls: true,
 	promptDuringFilamentChange: true,
+	showExtraOnTools: false,
+	displayedExtraOnTools: null,
+	displayedExtraSensors: null,
 	displayedTools: null,
 	toolChangeMacros: [ToolChangeMacro.free, ToolChangeMacro.pre, ToolChangeMacro.post],
 	displayedBeds: null,

@@ -1,17 +1,22 @@
 <template>
 	<PanelCard v-model:active-title="activeTab" :titles="titles">
 		<v-card-text class="pa-0">
-			<ControlList v-if="activeTab === 0" />
-			<ExtraSensorList v-else :sensors="extraSensors" />
+			<ControlList v-if="activeTab === 0" :sensors="settings.showExtraOnTools ? extraOnToolsSensors : []" />
+			<ExtraSensorList v-else :sensors="extraTabSensors" />
 		</v-card-text>
 
 		<!-- Tools / Filaments / Beds / Chambers settings -->
 		<template #settings-0>
+			<v-switch v-if="extraSensors.length > 0" v-model="settings.showExtraOnTools" color="primary"
+					  class="mb-2" :label="$t('panel.tools.showExtraOnTools')"
+					  v-hint="$t('panel.tools.showExtraOnToolsHint')" density="comfortable" hide-details />
+
 			<v-tabs v-model="settingsTab" density="compact" grow>
 				<v-tab v-if="hasTools" :value="0">{{ $t("panel.tools.caption") }}</v-tab>
 				<v-tab v-if="hasTools" :value="3">{{ $t("panel.tools.filaments") }}</v-tab>
 				<v-tab v-if="hasBeds" :value="1">{{ $t("panel.tools.beds") }}</v-tab>
 				<v-tab v-if="hasChambers" :value="2">{{ $t("panel.tools.chambers") }}</v-tab>
+				<v-tab v-if="canConfigureExtraOnTools" :value="4">{{ $t("panel.tools.extra.caption") }}</v-tab>
 			</v-tabs>
 			<v-window v-model="settingsTab" class="mt-3 px-3">
 				<v-window-item v-if="hasTools" :value="0">
@@ -81,7 +86,22 @@
 							  :label="$t('settings.display.singleChamberControl')" v-hint="$t('settings.display.singleChamberControlHint')"
 							  density="comfortable" hide-details />
 				</v-window-item>
+				<v-window-item v-if="canConfigureExtraOnTools" :value="4">
+					<v-autocomplete v-model="checkedExtraOnTools" :items="extraSensorItems" item-value="value"
+									item-title="title" :label="$t('panel.tools.extra.displayedSensors')"
+									v-hint="$t('panel.tools.extra.displayedSensorsHint')" variant="outlined"
+									density="comfortable" hide-details chips closable-chips clearable multiple
+									class="mt-3" />
+				</v-window-item>
 			</v-window>
+		</template>
+
+		<!-- Extra sensors settings -->
+		<template #settings-1>
+			<v-autocomplete v-model="checkedExtraSensors" :items="extraSensorItems" item-value="value"
+							item-title="title" :label="$t('panel.tools.extra.displayedSensors')"
+							v-hint="$t('panel.tools.extra.displayedSensorsHint')" variant="outlined"
+							density="comfortable" hide-details chips closable-chips clearable multiple class="mt-3" />
 		</template>
 	</PanelCard>
 </template>
@@ -96,6 +116,7 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { ToolChangeMacro } from "@/stores/settings";
+import { formatExtraSensorName } from "@/utils/display";
 
 // tfree.g / tpre.g / tpost.g entries offered by the tool-change-macros selector
 const toolChangeMacroOptions = [
@@ -122,6 +143,31 @@ const extraSensors = computed<Array<ExtraSensor>>(() => {
 		.filter(({ sensor, index }) => sensor !== null && !heaters.some(heater => heater !== null && heater.sensor === index)) as Array<ExtraSensor>;
 });
 
+const extraSensorItems = computed(() =>
+	extraSensors.value.map(({ sensor, index }) => ({ value: index, title: formatExtraSensorName(sensor, index) })));
+
+// The Extra tab honours its own visibility list; the Tools view honours displayedExtraOnTools
+const extraTabSensors = computed(() => {
+	const displayed = settings.value.displayedExtraSensors;
+	return extraSensors.value.filter(({ index }) => displayed === null || displayed.includes(index));
+});
+
+const extraOnToolsSensors = computed(() => {
+	const displayed = settings.value.displayedExtraOnTools;
+	return extraSensors.value.filter(({ index }) => displayed === null || displayed.includes(index));
+});
+
+// Both selectors materialise the explicit index list from the `null` (show-all) overlay on first edit
+const checkedExtraSensors = computed<Array<number>>({
+	get: () => settings.value.displayedExtraSensors ?? extraSensors.value.map(({ index }) => index),
+	set: (value) => { settings.value.displayedExtraSensors = value; }
+});
+
+const checkedExtraOnTools = computed<Array<number>>({
+	get: () => settings.value.displayedExtraOnTools ?? extraSensors.value.map(({ index }) => index),
+	set: (value) => { settings.value.displayedExtraOnTools = value; }
+});
+
 // A bed/chamber slot counts only when one of its mapped heaters is present; firmware pads the
 // mapping with empty slots that must not be treated as real beds/chambers
 function slotHasHeater(heaterIndices: Array<number>): boolean {
@@ -135,10 +181,16 @@ const hasTools = computed(() => machineStore.model.tools.some(tool => tool !== n
 const hasBeds = computed(() => machineStore.bedHeaterMapping.some(slotHasHeater));
 const hasChambers = computed(() => machineStore.chamberHeaterMapping.some(slotHasHeater));
 
-// Tools is always present; Extra is offered only when there are non-heater analog sensors
+// Tools is always present; Extra is offered only when there are non-heater analog sensors and the
+// user hasn't folded them into the Tools view
+const showExtraTab = computed(() => extraSensors.value.length > 0 && !settings.value.showExtraOnTools);
+
+// While the sensors are folded into the Tools view, their visibility list gets its own settings sub-tab
+const canConfigureExtraOnTools = computed(() => extraSensors.value.length > 0 && settings.value.showExtraOnTools);
+
 const titles = computed(() => {
 	const list = [{ icon: "mdi-wrench", title: i18n.global.t("panel.tools.caption") }];
-	if (extraSensors.value.length > 0) {
+	if (showExtraTab.value) {
 		list.push({ icon: "mdi-plus", title: i18n.global.t("panel.tools.extra.caption") });
 	}
 	return list;
@@ -147,7 +199,7 @@ const titles = computed(() => {
 // Falls back to the Tools view automatically once the Extra tab is no longer offered
 const selectedTab = ref(0);
 const activeTab = computed<number>({
-	get: () => (selectedTab.value === 1 && extraSensors.value.length > 0) ? 1 : 0,
+	get: () => (selectedTab.value === 1 && showExtraTab.value) ? 1 : 0,
 	set: (value) => { selectedTab.value = value; }
 });
 
@@ -162,6 +214,9 @@ const availableSettingsTabs = computed<Array<number>>(() => {
 	}
 	if (hasChambers.value) {
 		tabs.push(2);
+	}
+	if (canConfigureExtraOnTools.value) {
+		tabs.push(4);
 	}
 	return tabs;
 });

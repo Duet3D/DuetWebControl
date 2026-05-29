@@ -69,8 +69,22 @@
 				</template>
 			</v-card-actions>
 		</v-card>
+
+		<!-- Emergency stop stays reachable while a persistent box covers the app bar; revealed with a
+			 short delay so it can't catch a tap meant for the dialog as it opens -->
+		<div v-if="settingsStore.showEmergencyStop && emergencyStopReady" class="emergency-overlay pe-4 pt-3">
+			<EmergencyButton />
+		</div>
 	</v-dialog>
 </template>
+
+<style scoped>
+.emergency-overlay {
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+</style>
 
 <script setup lang="ts">
 import { Axis, AxisLetter, MessageBox, MessageBoxMode } from "@duet3d/objectmodel";
@@ -133,6 +147,22 @@ const isMultipleChoice = computed(() => {
 
 const isPersistent = computed(() => {
 	return (messageBox.mode >= MessageBoxMode.okOnly);
+});
+
+// Delay revealing the emergency-stop overlay on persistent boxes so it doesn't flash in during the
+// dialog open transition and can't be hit by a stray tap aimed at the dialog
+const emergencyStopReady = ref(false);
+let emergencyStopTimer: ReturnType<typeof setTimeout> | null = null;
+watch(shown, (to) => {
+	if (emergencyStopTimer !== null) {
+		clearTimeout(emergencyStopTimer);
+		emergencyStopTimer = null;
+	}
+	if (to && isPersistent.value) {
+		emergencyStopTimer = setTimeout(() => { emergencyStopReady.value = true; }, 500);
+	} else {
+		emergencyStopReady.value = false;
+	}
 });
 
 const needsIntInput = computed(() => {

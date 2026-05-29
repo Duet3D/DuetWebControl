@@ -421,6 +421,22 @@
 			"settings": {
 				"heaters": "Heizer",
 				"extraSensors": "Zusätzliche Sensoren"
+			},
+			"custom": {
+				"label": "Eigene Daten",
+				"add": "Eigene Daten hinzufügen",
+				"addTitle": "Eigene Daten hinzufügen",
+				"editTitle": "Eigene Daten bearbeiten",
+				"name": "Name",
+				"value": "Wert",
+				"valueHint": "Ausdruck, der gegen das Objektmodell ausgewertet wird, z.B. heat.heaters[0].avgPwm * 100",
+				"visible": "Sichtbar",
+				"axis": "Achse",
+				"axisLeft": "Links",
+				"axisRight": "Rechts",
+				"rightAxisMin": "Rechte Achse Min",
+				"rightAxisMax": "Rechte Achse Max",
+				"invalidExpression": "Ungültiger Ausdruck"
 			}
 		}
 	},
@@ -1035,7 +1051,9 @@
 			"largeButtons": "Große Schaltflächen",
 			"largeButtonsHint": "Vergrößert die App-Leiste, die Seitensymbolleisten und die Schaltflächen der Dashboard-Bereiche auf kleinen Touchscreens für eine bessere Erreichbarkeit",
 			"largeButtonsSmOnly": "nur sm",
-			"largeButtonsSmOnlyHint": "Wirkt sich nur auf kleinen (sm) Touchscreens aus; größere Bildschirme verwenden immer die Standardgröße."
+			"largeButtonsSmOnlyHint": "Wirkt sich nur auf kleinen (sm) Touchscreens aus; größere Bildschirme verwenden immer die Standardgröße.",
+			"showEmergencyStop": "NOT-AUS-Schaltfläche anzeigen",
+			"showEmergencyStopHint": "Zeigt die NOT-AUS-Schaltfläche in der App-Leiste, im Vollbild-G-Code-Viewer und bei dauerhaften Meldungsfenstern an"
 		},
 		"webcam": {
 			"caption": "Webcam",

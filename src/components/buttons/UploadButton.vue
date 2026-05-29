@@ -9,7 +9,7 @@
 					<span class="d-none d-sm-inline">{{ $t("button.upload.start.caption") }}</span>
 				</v-btn>
 			</template>
-			<v-list density="compact">
+			<v-list :density="controlDensity">
 				<v-list-item v-for="target in targets" :key="target.key"
 							 :prepend-icon="target.icon"
 							 :title="$t(target.label)" @click="pick(target)" />
@@ -30,6 +30,7 @@
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useUiStore } from "@/stores/ui";
@@ -49,6 +50,7 @@ const machineStore = useMachineStore();
 const uiStore = useUiStore();
 const firmwareController = useFirmwareInstallController();
 const { firmwareDialog, configUpdatedDialog } = firmwareController;
+const { controlDensity } = useLargeButtons();
 
 const targets: Array<TargetMeta> = [
 	{ key: "start", label: "button.upload.start.caption", icon: "mdi-play", accept: ".g,.gcode,.gc,.gco,.nc,.ngc,.tap", singleFile: true },

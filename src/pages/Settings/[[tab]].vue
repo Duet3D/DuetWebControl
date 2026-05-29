@@ -250,6 +250,10 @@
 											</v-chip>
 										</template>
 									</v-switch>
+									<v-switch v-model="settingsStore.showEmergencyStop" color="primary"
+											  :label="$t('settings.display.showEmergencyStop')"
+											  v-hint="$t('settings.display.showEmergencyStopHint')"
+											  density="comfortable" hide-details />
 									<v-switch v-model="settingsStore.disableAutoComplete" color="primary"
 											  :label="$t('settings.display.disableAutoComplete')"
 											  v-hint="$t('settings.display.disableAutoCompleteHint')"

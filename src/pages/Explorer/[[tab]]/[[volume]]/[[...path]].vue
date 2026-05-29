@@ -192,7 +192,7 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 									<v-icon>mdi-sd</v-icon>
 								</v-btn>
 							</template>
-							<v-list density="compact">
+							<v-list :density="controlDensity">
 								<v-list-item v-for="vol in availableVolumes" :key="vol"
 											 :active="Path.getVolume(tab.directory ?? '') === vol"
 											 :title="volumeCaption(vol)"
@@ -267,6 +267,7 @@ import { useGcodeThumbnails } from "@/composables/useGcodeThumbnails";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FileList from "@/components/lists/FileList.vue";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import JobThumbnailCell from "@/components/lists/JobThumbnailCell.vue";
 import MonacoEditor from "@/components/editor/MonacoEditor.vue";
@@ -297,6 +298,7 @@ interface ExplorerTab {
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
+const { controlDensity } = useLargeButtons();
 const route = useRoute("/Explorer/[[tab]]/[[volume]]/[[...path]]");
 const router = useRouter();
 

@@ -3,6 +3,8 @@ import type { AnalogSensor } from "@duet3d/objectmodel";
 
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore, type CustomChartItem } from "@/stores/settings";
+import { evaluateExpression } from "@/utils/expression";
 import Events from "@/utils/events";
 
 // Sample-recording cadence and the rolling-window length (10 min). Higher cadences eat memory;
@@ -28,8 +30,17 @@ interface ExtraDatasetValues {
 	extra: boolean;
 	locale: string;
 	rawLabel: string | null;
+	// Custom (user-defined, expression-driven) series carry their definition id instead of a
+	// sensor/heater index
+	custom?: boolean;
+	customId?: string;
 }
 export type TempChartDataset = ChartDataset<"line"> & ExtraDatasetValues;
+
+// Custom series get their own palette so they stay visually distinct from heater/sensor lines
+const customPalette = [
+	"#9C27B0", "#0097A7", "#FF5722", "#3F51B5", "#AFB42B", "#E91E63", "#795548", "#607D8B"
+];
 
 function makeDataset(index: number, extra: boolean, label: string, numSamples: number): TempChartDataset {
 	const color = getHeaterColor(index, extra);
@@ -48,6 +59,28 @@ function makeDataset(index: number, extra: boolean, label: string, numSamples: n
 		pointHitRadius: 0,
 		rawLabel: null,
 		showLine: true
+	};
+}
+
+function makeCustomDataset(item: CustomChartItem, paletteIndex: number, numSamples: number): TempChartDataset {
+	const color = customPalette[((paletteIndex % customPalette.length) + customPalette.length) % customPalette.length];
+	return {
+		index: -1,
+		extra: false,
+		custom: true,
+		customId: item.id,
+		label: item.name,
+		fill: false,
+		backgroundColor: color,
+		borderColor: color,
+		borderWidth: 2,
+		data: new Array<number>(numSamples).fill(NaN),
+		locale: i18n.global.locale.value,
+		pointRadius: 0,
+		pointHitRadius: 0,
+		rawLabel: null,
+		showLine: item.visible,
+		yAxisID: item.axis === "right" ? "y2" : "y"
 	};
 }
 
@@ -91,6 +124,34 @@ function pushSeriesData(index: number, extra: boolean, sensor: AnalogSensor) {
 	dataset.data!.push(sensor.lastReading !== null ? sensor.lastReading : NaN);
 }
 
+// Reconcile the custom datasets with the current definitions and append one evaluated value to each.
+// Runs in the same tick as the sensor samples (before the trim) so all series stay length-aligned
+function recordCustomSamples(model: Record<string, unknown>) {
+	const items = useSettingsStore().customChartData;
+
+	// Drop datasets whose definition no longer exists
+	for (let i = sampleSeries.length - 1; i >= 0; i--) {
+		const dataset = sampleSeries[i];
+		if (dataset.custom && !items.some(item => item.id === dataset.customId)) {
+			sampleSeries.splice(i, 1);
+		}
+	}
+
+	items.forEach((item, paletteIndex) => {
+		let dataset = sampleSeries.find(entry => entry.custom && entry.customId === item.id);
+		if (!dataset) {
+			dataset = makeCustomDataset(item, paletteIndex, sampleTimes.length);
+			sampleSeries.push(dataset);
+		} else {
+			// Reflect edits to name / axis / visibility without dropping the collected history
+			dataset.label = item.name;
+			dataset.yAxisID = item.axis === "right" ? "y2" : "y";
+			dataset.showLine = item.visible;
+		}
+		dataset.data!.push(evaluateExpression(item.value, model));
+	});
+}
+
 function recordSamples() {
 	const machineStore = useMachineStore();
 	const now = Date.now();
@@ -108,6 +169,8 @@ function recordSamples() {
 			pushSeriesData(sensorIndex, true, sensor);
 		}
 	});
+
+	recordCustomSamples(machineStore.model as unknown as Record<string, unknown>);
 
 	while (sampleTimes.length > 0 && now - sampleTimes[0] > maxSampleTime) {
 		sampleTimes.shift();

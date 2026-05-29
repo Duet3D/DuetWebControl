@@ -85,6 +85,21 @@ export interface ComponentSettingsRecord {
 	data: unknown;
 }
 
+export type CustomChartAxis = "left" | "right";
+
+export interface CustomChartItem {
+	id: string;
+	name: string;
+	value: string;
+	visible: boolean;
+	axis: CustomChartAxis;
+}
+
+export interface CustomChartRightAxis {
+	min: number;
+	max: number;
+}
+
 export enum DashboardMode {
 	default = "Default",
 	fff = "FFF",
@@ -303,6 +318,12 @@ export const useSettingsStore = defineStore("settings", {
 		 * touchscreens such as 4.3" displays
 		 */
 		largeButtons: true,
+
+		/**
+		 * Show the emergency stop button in the app bar, the fullscreen G-code viewer and as an
+		 * overlay on persistent message boxes
+		 */
+		showEmergencyStop: true,
 
 		/**
 		 * Route paths the user has opted to hide from the navigation drawer / hub page. Items
@@ -559,6 +580,17 @@ export const useSettingsStore = defineStore("settings", {
 		 * Spindle RPM presets
 		 */
 		spindleRPM: [10000, 75000, 5000, 2500, 1000, 0],
+
+		/**
+		 * User-defined calculated series for the temperature chart, evaluated against the object model
+		 */
+		customChartData: [] as Array<CustomChartItem>,
+
+		/**
+		 * Min/max of the temperature chart's secondary (right-hand) axis, used by custom series that
+		 * opt into the right scale
+		 */
+		customChartRightAxis: { min: 0, max: 100 } as CustomChartRightAxis,
 		// #endregion
 
 		// #region Per-component settings (driven by the `useComponentSettings` composable)
@@ -604,6 +636,33 @@ export const useSettingsStore = defineStore("settings", {
 		applySbcWebcamDefaults() {
 			this.webcam.url = "http://[HOSTNAME]:8081/0/stream";
 			this.webcam.updateInterval = 0;
+		},
+
+		/**
+		 * Add a custom temperature-chart series
+		 */
+		addCustomChartItem(item: CustomChartItem) {
+			this.customChartData.push(item);
+		},
+
+		/**
+		 * Patch an existing custom temperature-chart series by id
+		 */
+		updateCustomChartItem(id: string, patch: Partial<Omit<CustomChartItem, "id">>) {
+			const item = this.customChartData.find(entry => entry.id === id);
+			if (item) {
+				Object.assign(item, patch);
+			}
+		},
+
+		/**
+		 * Remove a custom temperature-chart series by id
+		 */
+		removeCustomChartItem(id: string) {
+			const index = this.customChartData.findIndex(entry => entry.id === id);
+			if (index !== -1) {
+				this.customChartData.splice(index, 1);
+			}
 		},
 
 		/**

@@ -51,7 +51,7 @@
 
 			<UploadButton v-if="lgAndUp" :class="isLargeButtons ? 'ms-5' : 'ms-3'" />
 
-			<EmergencyButton :class="isLargeButtons ? 'ms-5 me-4' : 'ms-3 me-2'" :large="isLargeButtons" />
+			<EmergencyButton v-if="settingsStore.showEmergencyStop" :class="isLargeButtons ? 'ms-5 me-4' : 'ms-3 me-2'" :large="isLargeButtons" />
 		</v-app-bar>
 
 		<v-navigation-drawer v-if="isMdAndUp" v-model="drawer"

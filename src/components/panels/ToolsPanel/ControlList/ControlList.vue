@@ -1,5 +1,5 @@
 <template>
-	<table v-if="hasTools || hasBeds || hasChambers" class="tools">
+	<table v-if="hasTools || hasBeds || hasChambers || hasExtra" class="tools">
 		<colgroup>
 			<col style="width: 25%">
 			<col style="width: 20%">
@@ -48,6 +48,8 @@
 		</tbody>
 
 		<HeaterRows type="chamber" @resetHeaterFault="resetHeaterFault" />
+
+		<ExtraSensorRows :sensors="sensors" />
 	</table>
 	<v-alert v-else type="info" class="mb-0">
 		{{ $t("panel.tools.noTools") }}
@@ -92,12 +94,24 @@ table.tools a {
 </style>
 
 <script setup lang="ts">
+import type { AnalogSensor } from "@duet3d/objectmodel";
+
 import { TOOL_DISPLAY_SETTINGS_KEY } from "../toolSettings";
 import { useMachineStore } from "@/stores/machine";
+
+// Extra (non-heater) analog sensors to fold into the table, already filtered by the panel; empty
+// unless the user enabled "show extra sensors on Tools"
+const props = withDefaults(defineProps<{
+	sensors?: Array<{ sensor: AnalogSensor; index: number }>;
+}>(), {
+	sensors: () => []
+});
 
 const machineStore = useMachineStore();
 
 const toolSettings = inject(TOOL_DISPLAY_SETTINGS_KEY)!;
+
+const hasExtra = computed(() => props.sensors.length > 0);
 
 // Tool / Heater / Current are always shown; Active and Standby are optional
 const columnCount = computed(() =>

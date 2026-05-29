@@ -25,8 +25,40 @@
 			<EntityVisibilityList v-if="hasExtraSensors" kind="extraSensors"
 								  :label="$t('chart.temperature.settings.extraSensors')"
 								  v-model="settings.displayedExtraSensors" class="mt-4" />
+
+			<!-- Custom calculated series -->
+			<div class="d-flex align-center mt-4">
+				<v-autocomplete :model-value="customChartIds" :items="settingsStore.customChartData"
+								item-title="name" item-value="id" :label="$t('chart.temperature.custom.label')"
+								variant="outlined" density="comfortable" hide-details chips multiple readonly
+								class="flex-grow-1">
+					<template #chip="{ item }">
+						<v-chip closable @click.stop="openEdit(customItemOf(item).id)"
+								@click:close="settingsStore.removeCustomChartItem(customItemOf(item).id)">
+							{{ customItemOf(item).name }}
+						</v-chip>
+					</template>
+				</v-autocomplete>
+				<v-btn icon="mdi-plus" variant="text" class="ms-2" :title="$t('chart.temperature.custom.add')"
+					   @click="openAdd" />
+			</div>
+
+			<v-row v-if="hasRightAxisCustom" no-gutters class="mt-4">
+				<v-col cols="6" class="pe-2">
+					<v-text-field v-model.number="settingsStore.customChartRightAxis.min" type="number"
+								  :label="$t('chart.temperature.custom.rightAxisMin')" variant="outlined"
+								  density="comfortable" hide-details />
+				</v-col>
+				<v-col cols="6" class="ps-2">
+					<v-text-field v-model.number="settingsStore.customChartRightAxis.max" type="number"
+								  :label="$t('chart.temperature.custom.rightAxisMax')" variant="outlined"
+								  density="comfortable" hide-details />
+				</v-col>
+			</v-row>
 		</template>
 	</PanelCard>
+
+	<CustomChartDataDialog v-model:shown="customDialogShown" :edit-id="customEditId" />
 </template>
 
 <style scoped>
@@ -52,10 +84,11 @@ import {
 	sampleTimes,
 	type TempChartDataset,
 } from "@/composables/useTemperatureSamples";
+import CustomChartDataDialog from "@/components/dialogs/CustomChartDataDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { useSettingsStore } from "@/stores/settings";
+import { type CustomChartItem, useSettingsStore } from "@/stores/settings";
 
 // Chart.js v4 requires explicit component registration; do it once at module load
 Chart.register(LineController, LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
@@ -78,6 +111,28 @@ const settings = useComponentSettings({
 	displayedHeaters: null as Array<number> | null,
 	displayedExtraSensors: [] as Array<number> | null
 });
+
+// Custom calculated series are stored globally so they sample continuously (see useTemperatureSamples)
+const customChartIds = computed(() => settingsStore.customChartData.map(item => item.id));
+const hasRightAxisCustom = computed(() =>
+	settingsStore.customChartData.some(item => item.visible && item.axis === "right"));
+
+const customDialogShown = ref(false);
+const customEditId = ref<string | null>(null);
+function openAdd() {
+	customEditId.value = null;
+	customDialogShown.value = true;
+}
+function openEdit(id: string) {
+	customEditId.value = id;
+	customDialogShown.value = true;
+}
+
+// The autocomplete chip slot hands over Vuetify's wrapped list item (`.raw` holds our object); fall
+// back to the value itself in case a build passes the raw item directly
+function customItemOf(item: unknown): CustomChartItem {
+	return ((item as { raw?: CustomChartItem }).raw ?? item) as CustomChartItem;
+}
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 let chart: Chart<"line"> | null = null;
@@ -151,6 +206,7 @@ function applyDarkTheme(active: boolean) {
 	const gridColor = active ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)";
 	chart.options!.scales!.x!.grid!.color = gridColor;
 	chart.options!.scales!.y!.grid!.color = gridColor;
+	chart.options!.scales!.y2!.ticks!.color = ticksColor;
 
 	chart.update();
 }
@@ -169,6 +225,12 @@ function refresh() {
 	chart.options!.scales!.y!.max = max !== null ? max : defaultMaxTemperature;
 	chart.options!.scales!.x!.min = now - maxSampleTime;
 	chart.options!.scales!.x!.max = now;
+
+	const y2 = chart.options!.scales!.y2!;
+	y2.display = hasRightAxisCustom.value;
+	y2.min = settingsStore.customChartRightAxis.min;
+	y2.max = settingsStore.customChartRightAxis.max;
+
 	chart.update();
 	lastUpdate = now;
 }
@@ -178,7 +240,16 @@ function refresh() {
 function applyVisibility() {
 	const heaters = settings.value.displayedHeaters;
 	const extras = settings.value.displayedExtraSensors;
+	const customById = new Map(settingsStore.customChartData.map(item => [item.id, item]));
 	for (const dataset of sampleSeries) {
+		if (dataset.custom) {
+			const item = dataset.customId ? customById.get(dataset.customId) : undefined;
+			dataset.showLine = item?.visible ?? false;
+			if (item) {
+				dataset.yAxisID = item.axis === "right" ? "y2" : "y";
+			}
+			continue;
+		}
 		dataset.showLine = dataset.extra
 			? (extras === null || extras.includes(dataset.index))
 			: (heaters === null || heaters.includes(dataset.index));
@@ -229,6 +300,16 @@ onMounted(() => {
 					ticks: { font: { family: "Roboto,sans-serif" }, stepSize: 50 },
 					min: 0,
 					max: defaultMaxTemperature
+				},
+				// Secondary axis for custom series that opt into the right scale; shown only when one
+				// is actually using it (toggled in refresh()). No grid to avoid doubled gridlines
+				y2: {
+					position: "right",
+					display: false,
+					grid: { display: false },
+					ticks: { font: { family: "Roboto,sans-serif" } },
+					min: settingsStore.customChartRightAxis.min,
+					max: settingsStore.customChartRightAxis.max
 				}
 			}
 		},
@@ -259,6 +340,14 @@ watch(() => settingsStore.darkTheme, (to) => applyDarkTheme(to));
 watch(settings, () => {
 	applyVisibility();
 	chart?.update();
+}, { deep: true });
+
+// Custom-data definitions and the right-axis range live in the global settings store; apply edits
+// at once (bypassing refresh()'s 1s throttle) so axis/visibility changes aren't delayed
+watch(() => [settingsStore.customChartData, settingsStore.customChartRightAxis], () => {
+	applyVisibility();
+	lastUpdate = 0;
+	refresh();
 }, { deep: true });
 
 // Build a CSV of every currently-displayed series over the rolling sample window

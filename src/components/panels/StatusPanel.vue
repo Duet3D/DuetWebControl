@@ -14,7 +14,7 @@
 							{{ $t("panel.status.mode", [machineStore.model.state.machineMode.toUpperCase()]) }}
 						</a>
 					</template>
-					<v-list density="compact">
+					<v-list :density="controlDensity">
 						<v-list-item v-for="mode in switchableModes" :key="mode" :title="mode"
 									 :active="mode === machineStore.model.state.machineMode"
 									 :disabled="uiStore.uiFrozen || mode === machineStore.model.state.machineMode"
@@ -336,6 +336,7 @@ import { type FilamentMonitor, MachineMode, ProbeType, type Extruder, type Probe
 
 import FilamentMonitorIndicator from "@/components/misc/FilamentMonitorIndicator.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
+import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -346,6 +347,7 @@ import { isPrinting } from "@/utils/enums";
 const machineStore = useMachineStore();
 const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
+const { controlDensity } = useLargeButtons();
 
 const settings = useComponentSettings({
 	displayedAxes: null as Array<number> | null,

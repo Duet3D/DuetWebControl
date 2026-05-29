@@ -419,6 +419,22 @@
 			"settings": {
 				"heaters": "Heaters",
 				"extraSensors": "Extra sensors"
+			},
+			"custom": {
+				"label": "Custom data",
+				"add": "Add custom data",
+				"addTitle": "Add custom data",
+				"editTitle": "Edit custom data",
+				"name": "Name",
+				"value": "Value",
+				"valueHint": "Expression evaluated against the object model, e.g. heat.heaters[0].avgPwm * 100",
+				"visible": "Visible",
+				"axis": "Axis",
+				"axisLeft": "Left",
+				"axisRight": "Right",
+				"rightAxisMin": "Right axis min",
+				"rightAxisMax": "Right axis max",
+				"invalidExpression": "Invalid expression"
 			}
 		}
 	},
@@ -739,8 +755,12 @@
 				"value": "Value",
 				"showInChart": "Show in Chart",
 				"noItems": "No Extra Sensors",
-				"showInChartHint": "Show this sensor in the temperature chart"
+				"showInChartHint": "Show this sensor in the temperature chart",
+				"displayedSensors": "Displayed sensors",
+				"displayedSensorsHint": "Which extra sensors are shown"
 			},
+			"showExtraOnTools": "Show extra sensors on Tools",
+			"showExtraOnToolsHint": "Fold the extra sensors into the Tools list and hide the separate Extra tab",
 			"noTools": "No Tools",
 			"displayedTools": "Displayed tools",
 			"toolChangeMacros": "Tool change macros",
@@ -1033,7 +1053,9 @@
 			"largeButtons": "Large buttons",
 			"largeButtonsHint": "Enlarge the app bar, page toolbars and dashboard panel buttons on small touchscreens for easier reach",
 			"largeButtonsSmOnly": "sm only",
-			"largeButtonsSmOnlyHint": "Only takes effect on small (sm) touchscreens; larger screens always use the standard size."
+			"largeButtonsSmOnlyHint": "Only takes effect on small (sm) touchscreens; larger screens always use the standard size.",
+			"showEmergencyStop": "Show emergency stop button",
+			"showEmergencyStopHint": "Show the emergency stop button in the app bar, the fullscreen G-code viewer and on persistent message boxes"
 		},
 		"webcam": {
 			"caption": "Webcam",

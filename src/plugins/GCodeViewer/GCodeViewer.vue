@@ -1,7 +1,7 @@
 <template>
 	<div ref="primaryContainer" class="primary-container">
 		<div :class="{ 'full-screen': fullscreen }" class="viewer-box">
-			<div v-if="fullscreen" :class="emergencyButtonClass">
+			<div v-if="fullscreen && settingsStore.showEmergencyStop" :class="emergencyButtonClass">
 				<CodeButton :code="'M112\nM999'" :log="false" :title="$t('button.emergencyStop.title')"
 							color="error" size="small">
 					<v-icon>mdi-flash</v-icon>
@@ -346,6 +346,7 @@ import CodeButton from "@/components/buttons/CodeButton.vue";
 import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
+import { useSettingsStore } from "@/stores/settings";
 import { LogLevel, useUiStore } from "@/stores/ui";
 import { isPrinting } from "@/utils/enums";
 import Path from "@/utils/path";
@@ -362,6 +363,7 @@ interface ObjectInfo {
 
 const machineStore = useMachineStore();
 const cacheStore = useCacheStore();
+const settingsStore = useSettingsStore();
 const uiStore = useUiStore();
 const display = useDisplay();
 const route = useRoute();
