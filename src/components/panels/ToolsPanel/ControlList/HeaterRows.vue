@@ -35,10 +35,14 @@
 				</th>
 
 				<th v-if="selectedHeater !== null">
-					<a href="javascript:void(0)" :class="getHeaterClasses(selectedHeaterIndex)"
-					   @click="heaterClick(selectedIndex, selectedHeater)">
-						{{ getHeaterName(selectedHeater, selectedHeaterIndex) }}
-					</a>
+					<v-tooltip location="top" :text="getHeaterPower(selectedHeater)">
+						<template #activator="{ props: tooltipProps }">
+							<a v-bind="tooltipProps" href="javascript:void(0)" :class="getHeaterClasses(selectedHeaterIndex)"
+							   @click="heaterClick(selectedIndex, selectedHeater)">
+								{{ getHeaterName(selectedHeater, selectedHeaterIndex) }}
+							</a>
+						</template>
+					</v-tooltip>
 					<br>
 					<span class="font-weight-regular text-body-small">
 						{{ $t(`generic.heaterStates.${selectedHeater.state}`) }}
@@ -83,10 +87,14 @@
 						</th>
 
 						<th :class="{ 'pb-3': heaterIndex > 0 }">
-							<a href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)"
-							   @click="heaterClick(index, heater)">
-								{{ getHeaterName(heater, heaterIndex) }}
-							</a>
+							<v-tooltip location="top" :text="getHeaterPower(heater)">
+								<template #activator="{ props: tooltipProps }">
+									<a v-bind="tooltipProps" href="javascript:void(0)" :class="getHeaterClasses(heaterIndex)"
+									   @click="heaterClick(index, heater)">
+										{{ getHeaterName(heater, heaterIndex) }}
+									</a>
+								</template>
+							</v-tooltip>
 							<br>
 							<span class="font-weight-regular text-body-small">
 								{{ $t(`generic.heaterStates.${heater.state}`) }}
@@ -304,6 +312,14 @@ function getHeaterValue(heater: Heater | null) {
 		}
 	}
 	return i18n.global.t("generic.noValue");
+}
+
+// avgPwm is a 0..1 duty cycle; surface it as the current heater output power on hover
+function getHeaterPower(heater: Heater | null) {
+	if (heater === null) {
+		return undefined;
+	}
+	return i18n.global.t("panel.tools.heaterPower", [`${Math.round(heater.avgPwm * 100)}%`]);
 }
 
 async function heaterClick(index: number, heater: Heater | null) {

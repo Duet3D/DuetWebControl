@@ -90,7 +90,10 @@
 								<v-col v-for="item in visibleExtruders" :key="item.index"
 									   class="d-flex flex-column align-center">
 									<strong>{{ $t("panel.status.extruderDrive", [item.index]) }}</strong>
-									<span>{{ displayExtruderAmount(item.extruder, row.volume, settings.showExtruderUnits) }}</span>
+									<filament-monitor-indicator :monitor="filamentMonitor(item.index)"
+																:extruder-index="item.index">
+										<span>{{ displayExtruderAmount(item.extruder, row.volume, settings.showExtruderUnits) }}</span>
+									</filament-monitor-indicator>
 								</v-col>
 							</v-row>
 						</v-col>
@@ -202,7 +205,11 @@
 								<div class="d-flex flex-row">
 									<template v-for="(item, index) in fanRPM" :key="index">
 										<template v-if="index !== 0">,&nbsp;</template>
-										<span :title="item.name" class="mx-0">{{ item.rpm }}</span>
+										<v-tooltip location="bottom" :text="item.name">
+											<template #activator="{ props: tooltipProps }">
+												<span v-bind="tooltipProps" class="mx-0">{{ item.rpm }}</span>
+											</template>
+										</v-tooltip>
 									</template>
 								</div>
 							</v-col>
@@ -210,10 +217,15 @@
 							<v-col v-if="visibleProbes.length > 0" class="d-flex flex-column align-center">
 								<strong>{{ $t("panel.status.probe", visibleProbes.length) }}</strong>
 								<div class="d-flex">
-									<span v-for="(item, index) in visibleProbes" :key="item.index"
-										  class="pa-1 probe-span" :class="probeSpanClasses(item.probe, index === 0)">
-										{{ formatProbeValues(item.probe.value) }}
-									</span>
+									<v-tooltip v-for="(item, index) in visibleProbes" :key="item.index" location="bottom"
+											   :text="probeTooltip(item.probe)" :disabled="!probeTooltip(item.probe)">
+										<template #activator="{ props: tooltipProps }">
+											<span v-bind="tooltipProps" class="pa-1 probe-span"
+												  :class="probeSpanClasses(item.probe, index === 0)">
+												{{ probeDisplay(item.probe) }}
+											</span>
+										</template>
+									</v-tooltip>
 								</div>
 							</v-col>
 						</v-row>
@@ -311,7 +323,7 @@ a {
 	border-radius: 5px;
 	text-align: center;
 	white-space: nowrap;
-	width: 60px;
+	min-width: 60px;
 }
 
 .probe-span:not(:last-child) {
@@ -320,14 +332,15 @@ a {
 </style>
 
 <script setup lang="ts">
-import { MachineMode, ProbeType, type Extruder, type Probe } from "@duet3d/objectmodel";
+import { type FilamentMonitor, MachineMode, ProbeType, type Extruder, type Probe } from "@duet3d/objectmodel";
 
+import FilamentMonitorIndicator from "@/components/misc/FilamentMonitorIndicator.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
-import { display, displayAxisPosition, displayMoveSpeed } from "@/utils/display";
+import { display, displayAxisPosition, displayMoveSpeed, displayZ } from "@/utils/display";
 import { isPrinting } from "@/utils/enums";
 
 const machineStore = useMachineStore();
@@ -341,9 +354,9 @@ const settings = useComponentSettings({
 	displayedFanRPM: null as Array<number> | null,
 	// Requested + top by default; volumetric flow and extrusion rate are opt-in via the panel settings
 	displayedSpeeds: ["requested", "top"] as Array<string> | null,
-	// Vin/V12 are off by default - the Boards table covers them when needed and most users
+	// Vin/V12/MCU temp are off by default - the Boards table covers them when needed and most users
 	// don't watch them on the dashboard
-	displayedSensors: ["mcuTemp", "fanRPM"] as Array<string> | null,
+	displayedSensors: ["fanRPM"] as Array<string> | null,
 	positionDisplay: "toggle" as "tool" | "machine" | "toggle" | "both",
 	showAxisUnits: true,
 	extruderDisplay: "toggle" as "length" | "volume" | "toggle" | "both",
@@ -368,6 +381,12 @@ const visibleExtruders = computed(() => {
 		.map((extruder, index) => ({ extruder, index }))
 		.filter(item => displayed === null || displayed.includes(item.index));
 });
+
+// Filament monitors are indexed by extruder number, so the monitor for extruder i lives at
+// sensors.filamentMonitors[i] (null when none is assigned)
+function filamentMonitor(extruderIndex: number): FilamentMonitor | null {
+	return machineStore.model.sensors.filamentMonitors[extruderIndex] ?? null;
+}
 
 const hasProbes = computed(() =>
 	machineStore.model.sensors.probes.some(probe => probe !== null && probe.type !== ProbeType.none));
@@ -648,6 +667,26 @@ function formatProbeValues(values: Array<number>): string | number {
 	return `${values[0]} (${values.slice(1).join(", ")})`;
 }
 
+function isProbeNearTrigger(probe: Probe): boolean {
+	return probe.value.length > 0 && probe.value[0] > probe.threshold * 0.9 && probe.value[0] < probe.threshold;
+}
+
+function probeHeight(probe: Probe): number | null {
+	return (probe.measuredHeight !== null && isProbeNearTrigger(probe)) ? probe.measuredHeight : null;
+}
+
+function probeDisplay(probe: Probe): string | number {
+	const height = probeHeight(probe);
+	return (height !== null) ? displayZ(height) : formatProbeValues(probe.value);
+}
+
+function probeTooltip(probe: Probe): string | undefined {
+	if (probeHeight(probe) !== null) {
+		return `${formatProbeValues(probe.value)}`;
+	}
+	return (probe.measuredHeight !== null) ? displayZ(probe.measuredHeight) : undefined;
+}
+
 function probeSpanClasses(probe: Probe, isFirstItem: boolean): Array<string> {
 	const result: Array<string> = [];
 	if (!isFirstItem) {
@@ -656,7 +695,7 @@ function probeSpanClasses(probe: Probe, isFirstItem: boolean): Array<string> {
 	if (!isPrinting(machineStore.model.state.status) && probe.value.length > 0) {
 		if (probe.value[0] >= probe.threshold) {
 			result.push(settingsStore.darkTheme ? "bg-red-darken-3" : "bg-red-lighten-4");
-		} else if (probe.value[0] > probe.threshold * 0.9) {
+		} else if (isProbeNearTrigger(probe)) {
 			result.push(settingsStore.darkTheme ? "bg-orange-darken-2" : "bg-orange-lighten-4");
 		}
 	}

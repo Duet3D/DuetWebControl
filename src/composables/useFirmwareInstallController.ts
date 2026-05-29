@@ -102,7 +102,7 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 		try {
 			await firmwareInstall.runUpdate(plan);
 		} finally {
-			maybePromptConfigReset(plan);
+			maybePromptConfigReset(plan, true);
 		}
 	}
 
@@ -114,8 +114,21 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 		}
 	}
 
-	function maybePromptConfigReset(plan: FirmwareUpdatePlan) {
-		if (plan.configReplaced && !isPrinting(machineStore.model.state.status)) {
+	// Decide whether to offer a reset / config re-run. The trigger depends on whether an M997 sequence
+	// actually ran:
+	//   - No update ran (plain config upload, or the user cancelled the update): prompt when config.g
+	//     or board.txt was replaced, so the new configuration gets applied.
+	//   - An update ran: a main-board reflash reboots and reruns config.g on its own, so only prompt
+	//     when expansion/tool boards were reflashed without the main board - those CAN boards rebooted
+	//     into new firmware and need M999 or a config.g re-run to be reinitialised
+	function maybePromptConfigReset(plan: FirmwareUpdatePlan, updateRan = false) {
+		if (isPrinting(machineStore.model.state.status)) {
+			return;
+		}
+		const shouldPrompt = updateRan
+			? !plan.firmwareBoards.includes(0) && plan.firmwareBoards.some((canAddress) => canAddress > 0)
+			: plan.configReplaced;
+		if (shouldPrompt) {
 			configUpdatedDialog.shown = true;
 		}
 	}

@@ -38,6 +38,7 @@ declare module 'vue' {
     FFFContainerPanel: typeof import('./components/panels/FFFContainerPanel.vue')['default']
     FFFDashboardPanel: typeof import('./components/panels/FFFDashboardPanel.vue')['default']
     FilamentDialog: typeof import('./components/dialogs/FilamentDialog.vue')['default']
+    FilamentMonitorIndicator: typeof import('./components/misc/FilamentMonitorIndicator.vue')['default']
     FileList: typeof import('./components/lists/FileList.vue')['default']
     FileTransferDialog: typeof import('./components/dialogs/FileTransferDialog.vue')['default']
     FirmwareUpdateDialog: typeof import('./components/dialogs/FirmwareUpdateDialog.vue')['default']

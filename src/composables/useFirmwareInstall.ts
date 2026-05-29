@@ -37,7 +37,8 @@ export interface FirmwareUpdatePlan {
 	webInterfaceTouched: boolean;
 
 	/**
-	 * Whether any of the files target config.g (drives the post-upload reset prompt)
+	 * Whether a config file that warrants the post-upload reset prompt was replaced: config.g always
+	 * counts, board.txt only on non-Duet mainboards (genuine Duet boards do not use board.txt)
 	 */
 	configReplaced: boolean;
 
@@ -66,6 +67,7 @@ interface ClassifyContext {
 	hasSbc: boolean;
 	hasWifi: boolean;
 	boards: ReadonlyArray<Board | null>;
+	mainboardIsGenuineDuet: boolean;
 }
 
 export function useFirmwareInstall() {
@@ -76,6 +78,9 @@ export function useFirmwareInstall() {
 	// once keeps the per-file loop free of repeated `machineStore.model.*` lookups
 	function buildContext(): ClassifyContext {
 		const model = machineStore.model;
+		// The main board reports a name like "Duet 3 MB6HC"; LPC/STM32 ports configured via board.txt
+		// report a non-Duet name, which is how we tell a genuine board from a fork
+		const mainboard = model.boards[0] ?? null;
 		return {
 			directories: {
 				firmware: model.directories.firmware,
@@ -85,6 +90,7 @@ export function useFirmwareInstall() {
 			hasSbc: model.sbc !== null,
 			hasWifi: model.network.interfaces.some((iface) => iface !== null && iface.type === NetworkInterfaceType.wifi),
 			boards: model.boards as ReadonlyArray<Board | null>,
+			mainboardIsGenuineDuet: mainboard !== null && mainboard.name.includes("Duet"),
 		};
 	}
 
@@ -94,13 +100,19 @@ export function useFirmwareInstall() {
 		return binRegEx.test(fileName) || uf2RegEx.test(fileName);
 	}
 
-	function findFirmwareName(ctx: ClassifyContext, fileName: string): { name: string; canAddress: number } | null {
+	// Match a firmware binary against every board, not just the first hit: identical boards (e.g.
+	// two tool boards of the same type) share one firmwareFileName but sit at distinct CAN
+	// addresses, and each one needs its own M997
+	function findFirmwareName(ctx: ClassifyContext, fileName: string): { name: string; canAddresses: Array<number> } | null {
+		let name: string | null = null;
+		const canAddresses: Array<number> = [];
 		for (const board of ctx.boards) {
 			if (board && board.firmwareFileName && matchesBoardBinary(board.firmwareFileName, fileName)) {
-				return { name: board.firmwareFileName, canAddress: board.canAddress ?? 0 };
+				name = board.firmwareFileName;
+				canAddresses.push(board.canAddress ?? 0);
 			}
 		}
-		return null;
+		return name === null ? null : { name, canAddresses };
 	}
 
 	function findBoardBinary(ctx: ClassifyContext, key: "bootloaderFileName" | "iapFileNameSBC" | "iapFileNameSD",
@@ -186,8 +198,10 @@ export function useFirmwareInstall() {
 
 		const firmware = findFirmwareName(ctx, name);
 		if (firmware) {
-			if (!plan.firmwareBoards.includes(firmware.canAddress)) {
-				plan.firmwareBoards.push(firmware.canAddress);
+			for (const canAddress of firmware.canAddresses) {
+				if (!plan.firmwareBoards.includes(canAddress)) {
+					plan.firmwareBoards.push(canAddress);
+				}
 			}
 			return Path.combine(ctx.directories.firmware, firmware.name);
 		}
@@ -269,7 +283,9 @@ export function useFirmwareInstall() {
 			}
 			plan.files.push({ filename: destination, content: file });
 
-			if (destination === configFile || destination === Path.boardFile) {
+			// config.g always warrants the reset prompt; board.txt only on a non-Duet mainboard, since
+			// genuine Duet boards never read board.txt
+			if (destination === configFile || (destination === Path.boardFile && !ctx.mainboardIsGenuineDuet)) {
 				plan.configReplaced = true;
 			}
 		}

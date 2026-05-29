@@ -1,10 +1,15 @@
 <template>
-	<v-dialog v-model="shown" max-width="720" persistent no-click-animation scrollable>
+	<v-dialog v-model="shown" max-width="800" persistent no-click-animation scrollable>
 		<v-card>
 			<v-card-title>{{ title }}</v-card-title>
 
 			<v-card-text>
 				<table class="file-transfer-table mt-3">
+					<colgroup>
+						<col class="col-filename">
+						<col class="col-size">
+						<col class="col-progress">
+					</colgroup>
 					<thead>
 						<tr>
 							<th>{{ $t("dialog.fileTransfer.filename") }}</th>
@@ -14,12 +19,12 @@
 					</thead>
 					<tbody>
 						<tr v-for="(file, index) in files" :key="file.filename" :ref="el => bindRow(el, index)">
-							<td width="50%">
+							<td class="filename-cell" :title="trimmedName(file)">
 								<v-icon size="small" class="me-1">{{ getFileIcon(file) }}</v-icon>
 								{{ trimmedName(file) }}
 							</td>
-							<td class="px-3" width="15%">{{ formattedSize(file) }}</td>
-							<td class="py-1" width="35%">
+							<td class="px-3">{{ formattedSize(file) }}</td>
+							<td class="py-1">
 								<v-progress-linear v-show="file.startTime !== null || file.progress > 0"
 												   :color="getProgressColor(file)" height="16" rounded="md"
 												   striped
@@ -55,6 +60,17 @@
 <style scoped>
 .file-transfer-table {
 	width: 100%;
+	table-layout: fixed;
+}
+/* table-layout: fixed reads column widths from the colgroup, not the body cells */
+.col-filename {
+	width: 50%;
+}
+.col-size {
+	width: 15%;
+}
+.col-progress {
+	width: 35%;
 }
 .file-transfer-table tr {
 	height: 32px;
@@ -66,6 +82,10 @@
 }
 .file-transfer-table td {
 	vertical-align: middle;
+}
+.filename-cell {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 .progress-static :deep(.v-progress-linear__determinate) {
 	animation: none;

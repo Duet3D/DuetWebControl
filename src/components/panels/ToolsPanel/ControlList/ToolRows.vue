@@ -109,10 +109,15 @@
 					<template v-else>
 						<th>
 							<template v-if="toolHeater">
-								<a href="javascript:void(0)" @click="toolHeaterClick(tool, toolHeater)"
-								   :class="getHeaterClasses(tool.heaters[toolHeaterIndex])">
-									{{ getHeaterName(toolHeater, tool.heaters[toolHeaterIndex]) }}
-								</a>
+								<v-tooltip location="top" :text="getHeaterPower(toolHeater)">
+									<template #activator="{ props: tooltipProps }">
+										<a v-bind="tooltipProps" href="javascript:void(0)"
+										   @click="toolHeaterClick(tool, toolHeater)"
+										   :class="getHeaterClasses(tool.heaters[toolHeaterIndex])">
+											{{ getHeaterName(toolHeater, tool.heaters[toolHeaterIndex]) }}
+										</a>
+									</template>
+								</v-tooltip>
 								<template v-if="toolHeater.state !== null">
 									<br>
 									<span class="font-weight-regular text-body-small">
@@ -411,6 +416,14 @@ function getHeaterValue(heater: Heater | null) {
 		}
 	}
 	return i18n.global.t("generic.noValue");
+}
+
+// avgPwm is a 0..1 duty cycle; surface it as the current heater output power on hover
+function getHeaterPower(heater: Heater | null) {
+	if (heater === null) {
+		return undefined;
+	}
+	return i18n.global.t("panel.tools.heaterPower", [`${Math.round(heater.avgPwm * 100)}%`]);
 }
 
 async function toolHeaterClick(tool: Tool, heater: Heater) {

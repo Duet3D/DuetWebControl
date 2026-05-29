@@ -72,8 +72,8 @@ const summaryLines = computed<Array<string>>(() => {
 	return lines;
 });
 
-// Reflashing Duet firmware while connected through a Duet 3 SBC interrupts the SPI handshake
-// mid-write; warn the user when the active context matches both criteria
+// In SBC mode the Duet firmware is normally managed through the package manager, so flashing it from DWC
+// should only be done when the firmware developers advise it; warn when connected to a Duet board via an SBC
 const showSbcWarning = computed(() => {
 	if (!machineStore.model.sbc) {
 		return false;

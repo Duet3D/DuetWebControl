@@ -68,13 +68,13 @@
 			"expansionBoard": "Firmware Erweiterungsboard #{0}",
 			"wifiServer": "WLAN-Server-Firmware",
 			"display": "PanelDue-/DuetScreen-Firmware",
-			"sbcWarning": "Ein Firmware-Update der Duet-Boards über die SBC-Schnittstelle kann den SPI-Übertragungsvorgang unterbrechen. Bitte sicherstellen, dass das Board notfalls manuell wiederhergestellt werden kann, bevor fortgefahren wird."
+			"sbcWarning": "Sie betreiben ihre Maschine im SBC-Modus. Bitte aktualisieren Sie die Firmware mittels DWC nur sofern dies von den Firmwareentwicklern empfohlen wurde."
 		},
 		"configUpdated": {
-			"title": "config.g wurde aktualisiert",
-			"prompt": "Eine neue config.g (oder board.txt) wurde hochgeladen. Soll sie jetzt erneut ausgeführt, ein vollständiger Firmware-Reset durchgeführt oder die Meldung verworfen werden?",
-			"reset": "Firmware zurücksetzen",
-			"runConfig": "config.g ausführen"
+			"title": "Neue Konfiguration übernehmen?",
+			"prompt": "Möchten Sie das Mainboard neu starten oder die Konfigurationsdatei erneut ausführen? Sofern sich IO-Zuweisungen oder Motorzuordnungen geändert haben wird ein Neustart empfohlen.",
+			"reset": "Mainboard neustarten",
+			"runConfig": "Konfigurationsdatei ausführen"
 		},
 		"incompatibleVersions": {
 			"title": "Inkompatible Softwareversionen",
@@ -724,6 +724,7 @@
 			"unloadFilament": "Filament entladen",
 			"reassignFilament": "Filament neu zuweisen",
 			"heater": "Heizer {0}",
+			"heaterPower": "Leistung: {0}",
 			"current": "Aktuell",
 			"active": "Aktiv",
 			"standby": "Standby",
@@ -810,7 +811,12 @@
 				"machineModes": "Umschaltbare Maschinenmodi",
 				"machineModesHint": "Legt fest, zu welchen Maschinenmodi über das Modus-Menü gewechselt werden kann"
 			},
-			"extrudedVolume": "Extrudiertes Volumen"
+			"extrudedVolume": "Extrudiertes Volumen",
+			"filamentMonitor": {
+				"title": "Extrusionsverhältnis (E{0})",
+				"allowed": "Erlaubt",
+				"current": "Aktuell"
+			}
 		},
 		"extrude": {
 			"caption": "Extrusionskontrolle",

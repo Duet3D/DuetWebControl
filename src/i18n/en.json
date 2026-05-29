@@ -68,13 +68,13 @@
 			"expansionBoard": "Expansion board #{0} firmware",
 			"wifiServer": "WiFi server firmware",
 			"display": "PanelDue / DuetScreen firmware",
-			"sbcWarning": "Updating Duet firmware over the SBC interface can interrupt the SPI handshake mid-write. Make sure you can recover the board manually before you continue."
+			"sbcWarning": "You are operating your machine in SBC mode. Please upgrade the firmware using DWC only if advised by the firmware developers."
 		},
 		"configUpdated": {
-			"title": "config.g was updated",
-			"prompt": "A new config.g (or board.txt) was uploaded. Re-run it now, perform a full firmware reset, or dismiss this prompt?",
-			"reset": "Reset firmware",
-			"runConfig": "Run config.g"
+			"title": "Apply new configuration?",
+			"prompt": "Would you like to restart the mainboard or execute the configuration file again? It is advised to reset the mainboard if you removed IO ports or changed driver allocations.",
+			"reset": "Restart Mainboard",
+			"runConfig": "Run Config File"
 		},
 		"incompatibleVersions": {
 			"title": "Incompatible software versions",
@@ -722,6 +722,7 @@
 			"unloadFilament": "Unload Filament",
 			"reassignFilament": "Reassign Filament",
 			"heater": "Heater {0}",
+			"heaterPower": "Power: {0}",
 			"current": "Current",
 			"active": "Active",
 			"standby": "Standby",
@@ -808,7 +809,12 @@
 				"machineModes": "Switchable Machine Modes",
 				"machineModesHint": "Choose which machine modes can be switched to from the mode dropdown"
 			},
-			"extrudedVolume": "Extruded Volume"
+			"extrudedVolume": "Extruded Volume",
+			"filamentMonitor": {
+				"title": "Extrusion ratio (E{0})",
+				"allowed": "Allowed",
+				"current": "Current"
+			}
 		},
 		"extrude": {
 			"caption": "Extrusion Control",

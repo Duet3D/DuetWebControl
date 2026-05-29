@@ -707,7 +707,17 @@ const internalSortBy = computed<Array<SortEntry>>({
 		const userPart = value.find((entry) => entry.key !== "isDirectory");
 		if (userPart) {
 			cacheStore.sorting[sortingKey.value] = { key: userPart.key, order: userPart.order };
+			return;
 		}
+		// We always inject isDirectory as a fixed primary key, so the user column is the second
+		// entry and the array length is never 1. v-data-table only flips a descending column back
+		// to ascending when the sort length is exactly 1; with two entries it drops the clicked
+		// column instead, emitting a sortBy without a user part. Treat that emission as the intended
+		// toggle so a descending column keeps cycling instead of sticking on descending
+		const current = cacheStore.sorting[sortingKey.value]
+			?? DEFAULT_SORTS[sortingKey.value]
+			?? { key: "name", order: "asc" as const };
+		cacheStore.sorting[sortingKey.value] = { key: current.key, order: current.order === "asc" ? "desc" : "asc" };
 	},
 });
 

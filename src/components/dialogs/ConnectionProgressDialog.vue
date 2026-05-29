@@ -88,7 +88,7 @@ function getBoardIcon(canAddress: number) {
 }
 
 function getBoardName(canAddress: number) {
-	const board = machineStore.model.boards.find(board => board.canAddress === canAddress);
+	const board = machineStore.model.boards.find(board => (board.canAddress ?? 0) === canAddress);
 	const name = board ? board.name : boardNames.get(canAddress);
 	if (name !== undefined) {
 		return canAddress ? `${name || i18n.global.t("dialog.connectionProgress.expansionBoard")} (#${canAddress})` : name;
@@ -110,7 +110,7 @@ watch(() => machineStore.boardsBeingUpdated, (boards) => {
 
 	boardNames.clear();
 	for (const canAddress of boards) {
-		const board = machineStore.model.boards.find(board => board.canAddress === canAddress);
+		const board = machineStore.model.boards.find(board => (board.canAddress ?? 0) === canAddress);
 		if (board) {
 			boardNames.set(canAddress, board.name);
 		}

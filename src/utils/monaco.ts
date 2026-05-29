@@ -4,9 +4,12 @@
  * session, so any editor consumer (MonacoEditor, CodeStream) gets a ready-to-use monaco namespace
  */
 import type * as Monaco from "monaco-editor-core";
+import { watch } from "vue";
+
 import type { useMachineStore } from "@/stores/machine";
 
 let monacoSetup: Promise<typeof Monaco> | null = null;
+let machineContextBound = false;
 
 export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>): Promise<typeof Monaco> {
 	if (!monacoSetup) {
@@ -21,11 +24,21 @@ export function ensureMonaco(machineStore?: ReturnType<typeof useMachineStore>):
 				import("@duet3d/monacotokens"),
 			]);
 			tokens.registerDuetLanguages(monaco);
-			if (machineStore) {
-				tokens.setMachineContext({ model: machineStore.model });
-			}
 			return monaco as unknown as typeof Monaco;
 		})();
 	}
+
+	// Feed the live object model to the completion/hover providers. Kept out of the one-shot setup
+	// above because the first ensureMonaco() caller may not pass a store (e.g. the read-only
+	// GCodeViewer) and because the machine store swaps in a fresh model object on disconnect - a
+	// one-time snapshot would go stale, so we re-bind whenever the model reference changes
+	if (machineStore && !machineContextBound) {
+		machineContextBound = true;
+		void monacoSetup.then(async () => {
+			const tokens = await import("@duet3d/monacotokens");
+			watch(() => machineStore.model, (model) => tokens.setMachineContext({ model }), { immediate: true });
+		});
+	}
+
 	return monacoSetup;
 }
