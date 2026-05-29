@@ -150,9 +150,14 @@ const geom = computed(() => {
 		{ x: rightX, y: yCurrent, anchor: "start", cls: "fm-label fm-label-current", text: `${Math.round(data.current)}%` },
 	];
 	if (data.measMin !== null && data.measMax !== null) {
+		// Keep the measured labels from overlapping the current-reading label by pushing the max above
+		// and the min below it once they come within one line height
+		const gap = 13;
+		const yMeasMax = Math.min(y(data.measMax), yCurrent - gap);
+		const yMeasMin = Math.max(y(data.measMin), yCurrent + gap);
 		labels.push(
-			{ x: rightX, y: y(data.measMax), anchor: "start", cls: "fm-label fm-label-measured", text: `${Math.round(data.measMax)}%` },
-			{ x: rightX, y: y(data.measMin), anchor: "start", cls: "fm-label fm-label-measured", text: `${Math.round(data.measMin)}%` }
+			{ x: rightX, y: yMeasMax, anchor: "start", cls: "fm-label fm-label-measured", text: `${Math.round(data.measMax)}%` },
+			{ x: rightX, y: yMeasMin, anchor: "start", cls: "fm-label fm-label-measured", text: `${Math.round(data.measMin)}%` }
 		);
 	}
 
