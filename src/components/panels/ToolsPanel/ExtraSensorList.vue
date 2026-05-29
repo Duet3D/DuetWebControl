@@ -1,5 +1,5 @@
 <template>
-	<table v-if="sensors.length > 0" class="ml-2 mr-2 mb-2">
+	<table v-if="sensors.length > 0">
 		<colgroup>
 			<col style="width: 50%">
 			<col style="width: 50%">
@@ -11,14 +11,21 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr v-for="extraSensor in sensors" :key="`extra-${extraSensor.index}`">
-				<th class="py-2" :class="getExtraColor(extraSensor.index)">
-					{{ formatExtraSensorName(extraSensor.sensor, extraSensor.index) }}
-				</th>
-				<td class="py-2">
-					{{ displaySensorValue(extraSensor.sensor) }}
-				</td>
-			</tr>
+			<template v-for="(extraSensor, rowIndex) in sensors" :key="`extra-${extraSensor.index}`">
+				<tr v-if="rowIndex > 0">
+					<td colspan="2">
+						<v-divider />
+					</td>
+				</tr>
+				<tr>
+					<th class="py-2" :class="getExtraColor(extraSensor.index)">
+						{{ formatExtraSensorName(extraSensor.sensor, extraSensor.index) }}
+					</th>
+					<td class="py-2">
+						{{ displaySensorValue(extraSensor.sensor) }}
+					</td>
+				</tr>
+			</template>
 		</tbody>
 	</table>
 	<v-alert v-else type="info">

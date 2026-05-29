@@ -49,6 +49,14 @@
 
 		<HeaterRows type="chamber" @resetHeaterFault="resetHeaterFault" />
 
+		<tbody v-if="(hasTools || hasBeds || hasChambers) && hasExtra">
+			<tr>
+				<td :colspan="columnCount">
+					<v-divider />
+				</td>
+			</tr>
+		</tbody>
+
 		<ExtraSensorRows :sensors="sensors" />
 	</table>
 	<v-alert v-else type="info" class="mb-0">

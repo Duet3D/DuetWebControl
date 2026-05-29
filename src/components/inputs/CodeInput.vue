@@ -3,18 +3,18 @@
 		   no-gutters>
 		<v-col>
 			<v-combobox v-model="code" v-model:menu="menuOpen" :items="displayedCodes" :return-object="false"
-						hide-no-data hide-selected
+						auto-select-first hide-no-data hide-selected
 						:placeholder="$t('input.code.placeholder')" single-line
 						:disabled="uiStore.uiFrozen" :loading="doingCode"
 						:variant="variant" maxlength="255" density="compact" hide-details
-						menu-icon="" @keydown.enter.prevent="sendOnEnter" @blur="menuOpen = false">
+						menu-icon="" @keydown.enter.capture.prevent.stop="sendOnEnter" @blur="onBlur">
 				<template #item="{ item, props }">
 					<v-list-item v-bind="props">
 						<template #title>
 							<code>{{ item.title }}</code>
 						</template>
 						<template #append>
-							<v-btn icon="mdi-delete" variant="text" size="small" density="compact"
+							<v-btn icon="mdi-delete" variant="text" size="small" density="compact" tabindex="-1"
 								   @click.prevent.stop="cacheStore.removeLastSentCode(item.value)" />
 						</template>
 					</v-list-item>
@@ -87,16 +87,27 @@ const displayedCodes = computed<Array<{ title: string; value: string }>>(() => {
 // Heuristic: some codes carry unprecedented parameters (filenames, message text) that must NOT be upper-cased
 const hasUnprecedentedParameters = (input: string) => !input || /(M23|M28|M30|M32|M36|M117)[^0-9]/i.test(input);
 
+// ArrowUp/Down move focus into the suggestion list, which lives in a teleported overlay and so
+// fires a blur on the input. Only collapse the dropdown when focus actually leaves the combobox,
+// otherwise keyboard navigation closes the menu the instant it tries to enter the list
+function onBlur(event: FocusEvent) {
+	const next = event.relatedTarget as HTMLElement | null;
+	if (next?.closest(".v-combobox__content")) {
+		return;
+	}
+	menuOpen.value = false;
+}
+
+// Handled in the capture phase so it preempts the combobox's own Enter handler, which would
+// otherwise auto-select the highlighted suggestion (auto-select-first) and send that instead of
+// what the user typed. A command console must send the literal input, so we send and collapse
+// the dropdown ourselves; Vuetify never sees the Enter
 async function sendOnEnter() {
 	if (ignoreEnter.value) {
 		ignoreEnter.value = false;
 		return;
 	}
-	// Vuetify's v-combobox sets menu.value=true inside its own keydown.enter handler
-	// (VCombobox.js: `if (['Enter', 'ArrowDown'].includes(e.key)) menu.value = true`), so an
-	// immediate menuOpen=false here gets overridden synchronously. Defer the close to the
-	// next tick - after Vuetify's handler has flushed - so the suggestions stay collapsed
-	nextTick(() => { menuOpen.value = false; });
+	menuOpen.value = false;
 	await send();
 }
 

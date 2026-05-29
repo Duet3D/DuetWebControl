@@ -170,7 +170,7 @@
 									<v-tooltip location="bottom"
 											   :text="$t('panel.status.minMax', [display(mainboard.vIn!.min, 1, 'V'), display(mainboard.vIn!.max, 1, 'V')])">
 										<template #activator="{ props: tooltipProps }">
-											<span v-bind="tooltipProps" class="text-no-wrap">
+											<span v-bind="tooltipProps" class="text-no-wrap my-auto">
 												{{ display(mainboard.vIn!.current, 1, "V") }}
 											</span>
 										</template>
@@ -181,7 +181,7 @@
 									<v-tooltip location="bottom"
 											   :text="$t('panel.status.minMax', [display(mainboard.v12!.min, 1, 'V'), display(mainboard.v12!.max, 1, 'V')])">
 										<template #activator="{ props: tooltipProps }">
-											<span v-bind="tooltipProps" class="text-no-wrap">
+											<span v-bind="tooltipProps" class="text-no-wrap my-auto">
 												{{ display(mainboard.v12!.current, 1, "V") }}
 											</span>
 										</template>
@@ -192,7 +192,7 @@
 									<v-tooltip location="bottom"
 											   :text="$t('panel.status.minMax', [display(mainboard.mcuTemp!.min, 1, '°C'), display(mainboard.mcuTemp!.max, 1, '°C')])">
 										<template #activator="{ props: tooltipProps }">
-											<span v-bind="tooltipProps" class="text-no-wrap">
+											<span v-bind="tooltipProps" class="text-no-wrap my-auto">
 												{{ display(mainboard.mcuTemp!.current, 1, "°C") }}
 											</span>
 										</template>
@@ -202,7 +202,7 @@
 
 							<v-col v-if="showFanRPM" class="d-flex flex-column align-center">
 								<strong>{{ $t("panel.status.fanRPM") }}</strong>
-								<div class="d-flex flex-row">
+								<div class="d-flex flex-row my-auto">
 									<template v-for="(item, index) in fanRPM" :key="index">
 										<template v-if="index !== 0">,&nbsp;</template>
 										<v-tooltip location="bottom" :text="item.name">
@@ -216,7 +216,7 @@
 
 							<v-col v-if="visibleProbes.length > 0" class="d-flex flex-column align-center">
 								<strong>{{ $t("panel.status.probe", visibleProbes.length) }}</strong>
-								<div class="d-flex">
+								<div class="d-flex my-auto">
 									<v-tooltip v-for="(item, index) in visibleProbes" :key="item.index" location="bottom"
 											   :text="probeTooltip(item.probe)" :disabled="!probeTooltip(item.probe)">
 										<template #activator="{ props: tooltipProps }">
