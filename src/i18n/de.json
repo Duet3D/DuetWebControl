@@ -1157,7 +1157,9 @@
 			"formatOnPaste": "Beim Einfügen formatieren",
 			"formatOnPasteHint": "Eingefügten Code automatisch neu formatieren",
 			"formatOnType": "Während der Eingabe formatieren",
-			"formatOnTypeHint": "Code während der Eingabe automatisch neu formatieren"
+			"formatOnTypeHint": "Code während der Eingabe automatisch neu formatieren",
+			"largeFileOptimizations": "Große Dateien optimieren",
+			"largeFileOptimizationsHint": "Syntaxhervorhebung, Faltung und Klammerpaar-Hervorhebung über ~20 MB deaktivieren, um Speicher zu sparen; ausgeschaltet lassen, damit große G-Code-Dateien farbig bleiben"
 		},
 		"about": {
 			"dwc": "Duet Web Control",

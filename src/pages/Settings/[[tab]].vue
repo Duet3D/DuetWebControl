@@ -525,6 +525,10 @@
 											  :label="$t('settings.editor.formatOnType')"
 											  v-hint="$t('settings.editor.formatOnTypeHint')"
 											  density="comfortable" hide-details />
+									<v-switch v-model="settingsStore.editor.largeFileOptimizations" color="primary"
+											  :label="$t('settings.editor.largeFileOptimizations')"
+											  v-hint="$t('settings.editor.largeFileOptimizationsHint')"
+											  density="comfortable" hide-details />
 								</v-card-text>
 							</v-card>
 						</v-col>

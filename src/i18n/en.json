@@ -1159,7 +1159,9 @@
 			"formatOnPaste": "Format on paste",
 			"formatOnPasteHint": "Automatically reformat pasted code",
 			"formatOnType": "Format on type",
-			"formatOnTypeHint": "Automatically reformat code as it is being typed"
+			"formatOnTypeHint": "Automatically reformat code as it is being typed",
+			"largeFileOptimizations": "Optimize large files",
+			"largeFileOptimizationsHint": "Drop syntax highlighting, folding and bracket matching above ~20 MB to save memory; leave off to keep big G-code files coloured"
 		},
 		"about": {
 			"dwc": "Duet Web Control",
