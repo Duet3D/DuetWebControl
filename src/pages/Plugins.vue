@@ -114,18 +114,13 @@
 	</v-alert>
 
 	<input ref="pluginInput" type="file" accept=".zip" hidden @change="onPluginPicked" />
-
-	<ConfirmDialog v-model:shown="uninstallDialog.shown"
-				   :title="$t('settings.plugins.uninstallTitle')"
-				   :prompt="$t('settings.plugins.uninstallPrompt', [uninstallDialog.name])"
-				   icon="mdi-delete" @confirmed="confirmUninstall" />
 </template>
 
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
 import type { Plugin, PluginManifest } from "@duet3d/objectmodel";
 
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
 import {
 	getBuiltInPlugins, isPluginBuiltIn, isPluginLoaded, loadDwcPlugin, unloadDwcPlugin
@@ -381,21 +376,8 @@ async function onPluginPicked(event: Event) {
 	}
 }
 
-const uninstallDialog = reactive({
-	shown: false,
-	plugin: null as PluginManifest | null,
-	name: "",
-});
-
-function askUninstall(plugin: PluginManifest) {
-	uninstallDialog.plugin = plugin;
-	uninstallDialog.name = plugin.name;
-	uninstallDialog.shown = true;
-}
-
-async function confirmUninstall() {
-	const plugin = uninstallDialog.plugin;
-	if (!plugin) {
+async function askUninstall(plugin: PluginManifest) {
+	if (!(await showConfirmDialog(i18n.global.t("settings.plugins.uninstallTitle"), i18n.global.t("settings.plugins.uninstallPrompt", [plugin.name]), "mdi-delete"))) {
 		return;
 	}
 	busyPluginId.value = plugin.id;
@@ -408,7 +390,6 @@ async function confirmUninstall() {
 		uiStore.notifyError(e, i18n.global.t("settings.plugins.uninstallError", [plugin.name]));
 	} finally {
 		busyPluginId.value = null;
-		uninstallDialog.plugin = null;
 	}
 }
 </script>

@@ -47,7 +47,7 @@
 				</span>
 				<v-spacer />
 				<v-btn v-show="canCancel" color="blue-darken-1" variant="text" @click="cancel">
-					{{ $t(isUploading ? "dialog.fileTransfer.cancelUploads" : "dialog.fileTransfer.cancelDownloads") }}
+					{{ isUploading ? $t("dialog.fileTransfer.cancelUploads") : $t("dialog.fileTransfer.cancelDownloads") }}
 				</v-btn>
 				<v-btn v-show="transfersFinished" color="blue-darken-1" variant="text" autofocus @click="close">
 					{{ $t("generic.close") }}
@@ -93,7 +93,7 @@
 </style>
 
 <script setup lang="ts">
-import type { CancellationToken } from "@duet3d/connectors";
+import { type CancellationToken, OperationCancelledError } from "@duet3d/connectors";
 
 import type { FileTransferItem } from "@/stores/machine";
 import { displaySize, displayTransferSpeed } from "@/utils/display";
@@ -151,10 +151,14 @@ const currentSpeed = computed(() => {
 
 const title = computed(() => {
 	if (transfersFinished.value) {
-		if (files.value.some(file => file.error)) {
-			return i18n.global.t(isUploading.value ? "dialog.fileTransfer.uploadFailedTitle" : "dialog.fileTransfer.downloadFailedTitle");
+		const erroredFile = files.value.find(file => file.error);
+		if (erroredFile) {
+			if (erroredFile.error instanceof OperationCancelledError) {
+				return isUploading.value ? i18n.global.t("dialog.fileTransfer.uploadCancelledTitle") : i18n.global.t("dialog.fileTransfer.downloadCancelledTitle");
+			}
+			return isUploading.value ? i18n.global.t("dialog.fileTransfer.uploadFailedTitle") : i18n.global.t("dialog.fileTransfer.downloadFailedTitle");
 		}
-		return i18n.global.t(isUploading.value ? "dialog.fileTransfer.uploadDoneTitle" : "dialog.fileTransfer.downloadDoneTitle");
+		return isUploading.value ? i18n.global.t("dialog.fileTransfer.uploadDoneTitle") : i18n.global.t("dialog.fileTransfer.downloadDoneTitle");
 	}
 
 	let fileBeingTransferred = 1, totalProgress = 0;

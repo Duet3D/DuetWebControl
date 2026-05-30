@@ -52,7 +52,9 @@ export interface ContextMenuItem {
 export enum FileTransferType {
 	upload = "upload",
 	download = "download",
-	systemPackageInstall = "systemPackageInstall"
+	systemPackageInstall = "systemPackageInstall",
+	index = "index",
+	compress = "compress"
 }
 
 /**
@@ -161,7 +163,7 @@ export const useUiStore = defineStore("ui", {
 		logMessages: new Array<LogMessage>,
 
 		/**
-		 * Notification data - four independent channels backed by separate renderers in NotificationDisplay.vue
+		 * Notification data - four independent channels backed by separate renderers in NotificationQueue.vue
 		 */
 		notifications: {
 			/**
@@ -204,7 +206,7 @@ export const useUiStore = defineStore("ui", {
 		 * Notifications currently shown in the snackbar queue, keyed by id. Tracked separately
 		 * from notifications.general/persistent because v-snackbar-queue drains its input feed
 		 * as soon as it shows each item - the source arrays empty out even though the snackbars
-		 * remain visible. {@link NotificationDisplay} updates this via the queue's onDismiss
+		 * remain visible. {@link NotificationQueue} updates this via the queue's onDismiss
 		 * hook so getters like {@link consoleRoutedNotifications} reflect the actual visible set
 		 */
 		activeNotifications: new Map<string, GeneralNotification>()
@@ -525,7 +527,7 @@ export const useUiStore = defineStore("ui", {
 		},
 
 		/**
-		 * Called by NotificationDisplay when v-snackbar-queue dismisses a visible snackbar on its
+		 * Called by NotificationQueue when v-snackbar-queue dismisses a visible snackbar on its
 		 * own (timer expiry, user X click, overflow). Cleans up our parallel state without
 		 * touching notifications.general/persistent which the queue already drained itself
 		 */

@@ -62,14 +62,10 @@ Events.on("message", ({ content }) => {
 	useUiStore().logCode(null, content);
 })
 
-// Build an Explorer route for the directory a transferred file lives in. The Explorer route
-// reconciler reads `/Explorer/<volume>/<path>`, so clicking the file-transfer notification
-// opens that directory in a browser tab
+// Build an Explorer route for the directory a transferred file lives in, so clicking the
+// file-transfer notification opens that directory in a browser tab
 function explorerRouteForFile(filename: string): string {
-	const match = /^(\d+):\/?(.*)$/.exec(Path.extractDirectory(filename));
-	const volume = match ? match[1] : "0";
-	const path = match ? match[2] : "";
-	return `/Explorer/${volume}/${path}`;
+	return Path.explorerRoute(Path.extractDirectory(filename));
 }
 
 Events.on("fileUploaded", ({ filename, startTime, count, showSuccess }) => {

@@ -315,9 +315,6 @@
 		</v-alert>
 
 		<MeshEditDialog v-model:shown="showMeshEditDialog" />
-		<InputDialog v-model:shown="moveStepDialog.shown" :title="$t('dialog.changeMoveStep.title')"
-					 :prompt="$t('dialog.changeMoveStep.prompt')" :preset="moveStepDialog.preset" is-numeric-value
-					 @confirmed="moveStepDialogConfirmed" />
 
 		<template #settings>
 			<EntityVisibilityList kind="axes" :label="$t('panel.movement.displayedAxes')"
@@ -373,7 +370,7 @@ import { Axis, AxisLetter, KinematicsName, MachineStatus, MoveCompensationType }
 import { useDisplay } from "vuetify";
 
 import CodeButton from "@/components/buttons/CodeButton.vue";
-import InputDialog from "@/components/dialogs/InputDialog.vue";
+import { getNumericInput } from "@/composables/useInputDialog";
 import MeshEditDialog from "@/components/dialogs/MeshEditDialog.vue";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
@@ -423,12 +420,6 @@ const settings = useComponentSettings<MovementPanelSettings>({
 });
 
 const showMeshEditDialog = ref(false);
-const moveStepDialog = reactive({
-	shown: false,
-	axis: AxisLetter.X as AxisLetter,
-	index: 0,
-	preset: 0,
-});
 const currentWorkplace = ref(1);
 
 const visibleAxes = computed<Array<Axis>>(() => {
@@ -529,15 +520,12 @@ function showSign(value: number): string {
 	return value > 0 ? `+${value}` : value.toString();
 }
 
-function showMoveStepDialog(axis: AxisLetter, index: number) {
-	moveStepDialog.axis = axis;
-	moveStepDialog.index = index;
-	moveStepDialog.preset = moveSteps(axis)[index];
-	moveStepDialog.shown = true;
-}
-
-function moveStepDialogConfirmed(value: string | number) {
-	settingsStore.setMoveStep(moveStepDialog.axis, moveStepDialog.index, value as number);
+async function showMoveStepDialog(axis: AxisLetter, index: number) {
+	const value = await getNumericInput(i18n.global.t("dialog.changeMoveStep.title"), i18n.global.t("dialog.changeMoveStep.prompt"), moveSteps(axis)[index]);
+	if (value === null) {
+		return;
+	}
+	settingsStore.setMoveStep(axis, index, value);
 }
 
 async function setWorkplaceZero() {
@@ -567,11 +555,10 @@ watch(workplaceNumber, (to) => {
 	currentWorkplace.value = to + 1;
 });
 
-// Drop dialogs when the connection breaks so we don't end up with a hanging modal on top of a stale page
+// Drop the mesh-edit dialog when the connection breaks so we don't end up with a hanging modal on top of a stale page
 watch(() => machineStore.isConnected, (connected) => {
 	if (!connected) {
 		showMeshEditDialog.value = false;
-		moveStepDialog.shown = false;
 	}
 });
 </script>

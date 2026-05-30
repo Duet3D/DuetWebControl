@@ -160,9 +160,7 @@
 						:class="{ 'tile-card--active': selection.includes(item.name) }"
 						:title="itemTitle?.(item)"
 						@click="onTileClick($event, item)"
-						@contextmenu="onTileContextMenu($event, item)"
-						@touchstart="onTileTouchStart($event, item)" @touchend="cancelTileLongPress"
-						@touchmove="cancelTileLongPress" @touchcancel="cancelTileLongPress">
+						v-context-menu="(x: number, y: number) => openContextMenu(item, x, y)">
 					<div class="tile-card-icon d-flex align-center justify-center pt-3">
 						<slot name="nameIcon" :item="item" :tile="true">
 							<v-icon size="64">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
@@ -274,12 +272,12 @@
 				</template>
 				<v-list-item-title>{{ $t("list.fileList.open") }}</v-list-item-title>
 			</v-list-item>
-			<v-list-item v-if="!noDownload && hasFileInSelection" @click="startDownload">
+			<v-list-item v-if="!noDownload && selectedEntries.length > 0" @click="startDownload">
 				<template #prepend>
 					<v-icon>mdi-cloud-download</v-icon>
 				</template>
 				<v-list-item-title>
-					{{ selection.length > 1 ? $t("list.fileList.downloadZIP") : $t("list.fileList.download") }}
+					{{ isZipDownload ? $t("list.fileList.downloadZIP") : $t("list.fileList.download") }}
 				</v-list-item-title>
 			</v-list-item>
 			<v-list-item v-if="!noRename && selection.length === 1" @click="startRename">
@@ -296,16 +294,6 @@
 			</v-list-item>
 		</v-list>
 	</v-menu>
-
-	<InputDialog v-model:shown="inputDialog.shown" :title="inputDialog.title" :prompt="inputDialog.prompt"
-				 :preset="inputDialog.preset" @confirmed="onInputConfirmed" />
-
-	<ConfirmDialog v-model:shown="deleteDialog.shown" :title="deleteDialog.title" :prompt="deleteDialog.prompt"
-				   icon="mdi-delete" @confirmed="performDelete" />
-
-	<ConfirmDialog v-model:shown="forceMoveDialog.shown" :title="forceMoveDialog.title"
-				   :prompt="forceMoveDialog.prompt" icon="mdi-file-replace-outline"
-				   @confirmed="performForceMove" />
 
 	<v-dialog v-model="layoutDialog.shown" width="480">
 		<v-card>
@@ -346,14 +334,15 @@
 </template>
 
 <script setup lang="ts">
+import { OperationCancelledError } from "@duet3d/connectors";
 import { useDisplay } from "vuetify";
 import { VPullToRefresh } from "vuetify/labs/VPullToRefresh";
 
 import type { FileBrowserItem, FileBrowserOptions } from "@/composables/useFileBrowser";
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
-import InputDialog from "@/components/dialogs/InputDialog.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
+import { getStringInput } from "@/composables/useInputDialog";
 import { useFileDrag } from "@/composables/useFileDrag";
 import { useFileBrowser } from "@/composables/useFileBrowser";
 import { useLargeButtons } from "@/composables/useLargeButtons";
@@ -364,8 +353,9 @@ import {
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
-import { ContextMenuType, LogLevel, useUiStore } from "@/stores/ui";
+import { ContextMenuType, FileTransferType, LogLevel, useUiStore } from "@/stores/ui";
 import { displaySize } from "@/utils/display";
+import { saveBlob } from "@/utils/download";
 import { getErrorMessage } from "@/utils/errors";
 import Events from "@/utils/events";
 import Path from "@/utils/path";
@@ -459,60 +449,7 @@ const emit = defineEmits<{
 	refresh: [directory: string];
 }>();
 
-// Touch long-press on a tile opens the same context menu a desktop right-click would, so
-// touch and mouse behave identically. The synthesised contextmenu fires onRowContextMenu with
-// the touch coordinates so the menu anchors at the finger position. suppressTileClick swallows
-// the click the browser synthesises after a long-press; suppressNativeContextMenu swallows the
-// native contextmenu event Android Chrome also fires for the same long-press
-let tileLongPressTimer: number | undefined;
-let nativeContextMenuClearTimer: number | undefined;
-const suppressTileClick = ref(false);
-let suppressNativeContextMenu = false;
-
-function onTileTouchStart(event: TouchEvent, item: FileBrowserItem) {
-	suppressTileClick.value = false;
-	const touch = event.touches[0];
-	if (!touch) {
-		return;
-	}
-	const clientX = touch.clientX, clientY = touch.clientY;
-	tileLongPressTimer = window.setTimeout(() => {
-		tileLongPressTimer = undefined;
-		suppressTileClick.value = true;
-		suppressNativeContextMenu = true;
-		if (nativeContextMenuClearTimer !== undefined) {
-			clearTimeout(nativeContextMenuClearTimer);
-		}
-		nativeContextMenuClearTimer = window.setTimeout(() => {
-			suppressNativeContextMenu = false;
-			nativeContextMenuClearTimer = undefined;
-		}, 800);
-		const synthetic = new MouseEvent("contextmenu", { clientX, clientY, bubbles: false });
-		onRowContextMenu(synthetic, item);
-	}, 500);
-}
-
-function cancelTileLongPress() {
-	if (tileLongPressTimer !== undefined) {
-		clearTimeout(tileLongPressTimer);
-		tileLongPressTimer = undefined;
-	}
-}
-
-function onTileContextMenu(event: MouseEvent, item: FileBrowserItem) {
-	if (suppressNativeContextMenu) {
-		event.preventDefault();
-		event.stopPropagation();
-		return;
-	}
-	onRowContextMenu(event, item);
-}
-
 function onTileClick(event: MouseEvent, item: FileBrowserItem) {
-	if (suppressTileClick.value) {
-		suppressTileClick.value = false;
-		return;
-	}
 	// Tile view has no checkbox UI, so ctrl/cmd-click is the multi-select gesture; a plain
 	// click still opens the file or navigates into the folder
 	if (event.ctrlKey || event.metaKey) {
@@ -525,14 +462,6 @@ function onTileClick(event: MouseEvent, item: FileBrowserItem) {
 	}
 	onRowClick(null, { item });
 }
-
-onBeforeUnmount(() => {
-	cancelTileLongPress();
-	if (nativeContextMenuClearTimer !== undefined) {
-		clearTimeout(nativeContextMenuClearTimer);
-		nativeContextMenuClearTimer = undefined;
-	}
-});
 
 function onRefreshClicked() {
 	emit("refresh", browser.directory.value);
@@ -905,107 +834,69 @@ function onRowClick(_event: unknown, payload: { item: FileBrowserItem }) {
 
 // #region Input dialog (new file / new directory / rename)
 
-type InputAction = "newFile" | "newDirectory" | "rename";
-
-const inputDialog = reactive({
-	shown: false,
-	action: "newFile" as InputAction,
-	title: "",
-	prompt: "",
-	preset: "",
-});
-
-function startNewFile() {
-	inputDialog.action = "newFile";
-	inputDialog.title = i18n.global.t("dialog.newFile.title");
-	inputDialog.prompt = i18n.global.t("dialog.newFile.prompt");
-	inputDialog.preset = "";
-	inputDialog.shown = true;
+async function startNewFile() {
+	const name = (await getStringInput(i18n.global.t("dialog.newFile.title"), i18n.global.t("dialog.newFile.prompt")))?.trim();
+	if (!name) {
+		return;
+	}
+	try {
+		await machineStore.upload({ filename: Path.combine(browser.directory.value, name), content: new Blob() }, false, false);
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.newFile.errorTitle"), getErrorMessage(e));
+	}
 }
 
-function startNewDirectory() {
-	inputDialog.action = "newDirectory";
-	inputDialog.title = i18n.global.t("dialog.newDirectory.title");
-	inputDialog.prompt = i18n.global.t("dialog.newDirectory.prompt");
-	inputDialog.preset = "";
-	inputDialog.shown = true;
+async function startNewDirectory() {
+	const name = (await getStringInput(i18n.global.t("dialog.newDirectory.title"), i18n.global.t("dialog.newDirectory.prompt")))?.trim();
+	if (!name) {
+		return;
+	}
+	try {
+		await machineStore.makeDirectory(Path.combine(browser.directory.value, name));
+	} catch (e) {
+		console.warn(e);
+		uiStore.log(LogLevel.error, i18n.global.t("notification.newDirectory.errorTitle"), getErrorMessage(e));
+	}
 }
 
-function startRename() {
+async function startRename() {
 	if (selection.value.length !== 1) {
 		return;
 	}
-	const current = selection.value[0];
-	inputDialog.action = "rename";
-	inputDialog.title = i18n.global.t("dialog.rename.title", [current]);
-	inputDialog.prompt = i18n.global.t("dialog.rename.prompt");
-	inputDialog.preset = current;
-	inputDialog.shown = true;
-}
-
-async function onInputConfirmed(value: string | number) {
-	if (typeof value !== "string") {
-		return;
-	}
-	const name = value.trim();
-	if (!name) {
+	const oldName = selection.value[0];
+	const name = (await getStringInput(i18n.global.t("dialog.rename.title", [oldName]), i18n.global.t("dialog.rename.prompt"), oldName))?.trim();
+	if (!name || name === oldName) {
 		return;
 	}
 	const dir = browser.directory.value;
 	try {
-		if (inputDialog.action === "newFile") {
-			await machineStore.upload({ filename: Path.combine(dir, name), content: new Blob() }, false, false);
-		} else if (inputDialog.action === "newDirectory") {
-			await machineStore.makeDirectory(Path.combine(dir, name));
-		} else if (inputDialog.action === "rename") {
-			const oldName = inputDialog.preset;
-			if (name === oldName) {
-				return;
-			}
-			await machineStore.move(Path.combine(dir, oldName), Path.combine(dir, name));
-			selection.value = [];
-		}
+		await machineStore.move(Path.combine(dir, oldName), Path.combine(dir, name));
+		selection.value = [];
 	} catch (e) {
 		console.warn(e);
-		uiStore.log(LogLevel.error, errorTitle(inputDialog.action, name), getErrorMessage(e));
+		uiStore.log(LogLevel.error, i18n.global.t("notification.rename.error", [oldName, name]), getErrorMessage(e));
 	}
-}
-
-function errorTitle(action: InputAction, name: string): string {
-	if (action === "newFile") {
-		return i18n.global.t("notification.newFile.errorTitle");
-	}
-	if (action === "newDirectory") {
-		return i18n.global.t("notification.newDirectory.errorTitle");
-	}
-	return i18n.global.t("notification.rename.error", [inputDialog.preset, name]);
 }
 
 // #endregion
 
 // #region Delete confirmation
 
-const deleteDialog = reactive({
-	shown: false,
-	title: "",
-	prompt: "",
-	items: [] as Array<string>,
-});
-
-function startDelete() {
+async function startDelete() {
 	if (selection.value.length === 0) {
 		return;
 	}
-	deleteDialog.items = [...selection.value];
-	deleteDialog.title = i18n.global.t("dialog.delete.title");
-	deleteDialog.prompt = deleteDialog.items.length === 1
-		? i18n.global.t("dialog.delete.promptSingle", [deleteDialog.items[0]])
-		: i18n.global.t("dialog.delete.promptMultiple", [deleteDialog.items.length]);
-	deleteDialog.shown = true;
+	const items = [...selection.value];
+	const prompt = items.length === 1
+		? i18n.global.t("dialog.delete.promptSingle", [items[0]])
+		: i18n.global.t("dialog.delete.promptMultiple", [items.length]);
+	if (await showConfirmDialog(i18n.global.t("dialog.delete.title"), prompt, "mdi-delete")) {
+		await performDelete(items);
+	}
 }
 
-async function performDelete() {
-	const items = [...deleteDialog.items];
+async function performDelete(items: Array<string>) {
 	for (const name of items) {
 		try {
 			// Recursive delete for directories so non-empty ones do not surface a second prompt
@@ -1070,8 +961,10 @@ async function uploadFiles(files: Array<File>) {
 			await runPlainUpload(files);
 		}
 	} catch (e) {
-		console.warn(e);
-		uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+		if (!(e instanceof OperationCancelledError)) {
+			console.warn(e);
+			uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+		}
 	} finally {
 		uploading.value = false;
 	}
@@ -1154,7 +1047,7 @@ const contextMenu = reactive({
 // selection) operate on it. The previous selection is snapshotted here and restored when the
 // menu dismisses without an action, so a stray right-click doesn't leave a tile visibly
 // "selected" with no checkbox UI to clear it. suppressContextMenuRestore guards the
-// shown=false/true re-open dance in onRowContextMenu - the transient false there is not a
+// shown=false/true re-open dance in openContextMenu - the transient false there is not a
 // real dismissal
 let preContextMenuSelection: Array<string> | null = null;
 let suppressContextMenuRestore = false;
@@ -1166,8 +1059,8 @@ watch(() => contextMenu.shown, (shown) => {
 	}
 });
 
-const hasFileInSelection = computed(() => browser.filelist.value
-	.some((entry) => selection.value.includes(entry.name) && !entry.isDirectory));
+const selectedEntries = computed(() => browser.filelist.value.filter((entry) => selection.value.includes(entry.name)));
+const isZipDownload = computed(() => selectedEntries.value.length > 1 || selectedEntries.value.some((entry) => entry.isDirectory));
 
 // When the list has nothing to show (and isn't loading), drop the card's height: 100% so the
 // panel collapses to toolbar + alert instead of stretching the empty-state strip to the
@@ -1343,17 +1236,8 @@ async function onParentDrop(event: DragEvent, targetDir: string) {
 
 // A single-item move that hits a name collision pops the overwrite dialog; a multi-item drop
 // surfaces a plain error notification because resolving each conflict mid-batch would cascade
-// prompts. The dialog confirm path retries the same move with the connector's force flag and
-// owns the success / refresh side-effects for that branch
-const forceMoveDialog = reactive({
-	shown: false,
-	title: "",
-	prompt: "",
-	from: "",
-	to: "",
-	targetLabel: "",
-});
-
+// prompts. The confirm path retries the same move with the connector's force flag and owns the
+// success / refresh side-effects for that branch
 async function moveDraggedItems(payload: RowDragPayload, targetDir: string) {
 	const targetLabel = targetDir.split("/").filter(Boolean).pop() ?? targetDir;
 	let moved = 0;
@@ -1365,12 +1249,9 @@ async function moveDraggedItems(payload: RowDragPayload, targetDir: string) {
 			moved += 1;
 		} catch (e) {
 			if (payload.names.length === 1) {
-				forceMoveDialog.from = from;
-				forceMoveDialog.to = to;
-				forceMoveDialog.targetLabel = targetLabel;
-				forceMoveDialog.title = i18n.global.t("dialog.forceMove.title");
-				forceMoveDialog.prompt = i18n.global.t("dialog.forceMove.prompt", [name, targetLabel]);
-				forceMoveDialog.shown = true;
+				if (await showConfirmDialog(i18n.global.t("dialog.forceMove.title"), i18n.global.t("dialog.forceMove.prompt", [name, targetLabel]), "mdi-file-replace-outline")) {
+					await performForceMove(from, to, targetLabel);
+				}
 				return;
 			}
 			uiStore.notifyError(e, i18n.global.t("list.fileList.moveError", [name, targetLabel]));
@@ -1387,8 +1268,7 @@ async function moveDraggedItems(payload: RowDragPayload, targetDir: string) {
 	}
 }
 
-async function performForceMove() {
-	const { from, to, targetLabel } = forceMoveDialog;
+async function performForceMove(from: string, to: string, targetLabel: string) {
 	const name = Path.extractFileName(to);
 	try {
 		await machineStore.move(from, to, true);
@@ -1401,10 +1281,14 @@ async function performForceMove() {
 }
 // #endregion
 
+// Table rows are emitted by v-data-table, so they can't host the v-context-menu directive (tiles
+// can) - this adapts their native right-click into the shared opener
 function onRowContextMenu(event: MouseEvent, item: FileBrowserItem) {
 	event.preventDefault();
-	event.stopPropagation();
+	openContextMenu(item, event.clientX, event.clientY);
+}
 
+function openContextMenu(item: FileBrowserItem, x: number, y: number) {
 	// Auto-select the right-clicked target unless the user explicitly multi-selected first;
 	// the previous selection is snapshotted so dismissing the menu without an action restores it
 	if (!selection.value.includes(item.name)) {
@@ -1415,8 +1299,8 @@ function onRowContextMenu(event: MouseEvent, item: FileBrowserItem) {
 	}
 
 	contextMenu.target = item;
-	contextMenu.x = event.clientX;
-	contextMenu.y = event.clientY;
+	contextMenu.x = x;
+	contextMenu.y = y;
 	suppressContextMenuRestore = true;
 	contextMenu.shown = false;
 	nextTick(() => {
@@ -1573,49 +1457,117 @@ function navigateFromContext() {
 	browser.navigateInto(target.name);
 }
 
+// Above these the selection is downloaded as a ZIP only after a confirm, since the whole subtree
+// is buffered in browser memory (the downloaded blobs plus the assembled archive)
+const ZIP_CONFIRM_BYTES = 256 * 1024 * 1024;
+const ZIP_CONFIRM_COUNT = 500;
+
 async function startDownload() {
 	contextMenu.shown = false;
 	const items = browser.filelist.value.filter((entry) => selection.value.includes(entry.name));
-	const files = items.filter((entry) => !entry.isDirectory);
-	if (files.length === 0) {
+	if (items.length === 0) {
 		return;
 	}
 
 	const dir = browser.directory.value;
+	const singleFile = items.length === 1 && !items[0].isDirectory;
 	try {
-		if (files.length === 1) {
-			const file = files[0];
+		if (singleFile) {
+			const file = items[0];
 			const blob = await machineStore.download({ filename: Path.combine(dir, file.name), type: "blob" });
 			saveBlob(file.name, blob);
 		} else {
-			await downloadZip(dir, files.map((file) => file.name));
+			await downloadAsZip(dir, items);
 		}
 	} catch (e) {
-		console.warn(e);
-		uiStore.notifyError(e, i18n.global.t("notification.fileTransfer.download.error", [files[0]?.name ?? ""]));
+		if (!(e instanceof OperationCancelledError)) {
+			console.warn(e);
+			const title = singleFile
+				? i18n.global.t("notification.fileTransfer.download.error", [items[0].name])
+				: i18n.global.t("notification.fileTransfer.compress.errorTitle");
+			uiStore.notifyError(e, title);
+		}
 	}
 }
 
-async function downloadZip(dir: string, names: Array<string>) {
+type ZipEntry = { fullPath: string; relativePath: string; size: number };
+
+// Recursively walk the selected files/directories into a flat list, preserving each file's path
+// relative to the selection root so the archive keeps the directory structure
+async function enumerateZipEntries(dir: string, items: Array<FileBrowserItem>, token: { cancelled: boolean }): Promise<Array<ZipEntry>> {
+	const entries: Array<ZipEntry> = [];
+	async function walk(directory: string, relativePrefix: string) {
+		if (token.cancelled) {
+			throw new OperationCancelledError();
+		}
+		const list = await machineStore.getFileList(directory);
+		for (const item of list) {
+			const fullPath = Path.combine(directory, item.name);
+			const relativePath = relativePrefix ? `${relativePrefix}/${item.name}` : item.name;
+			if (item.isDirectory) {
+				await walk(fullPath, relativePath);
+			} else {
+				entries.push({ fullPath, relativePath, size: Number(item.size ?? 0) });
+			}
+		}
+	}
+	for (const item of items) {
+		const fullPath = Path.combine(dir, item.name);
+		if (item.isDirectory) {
+			await walk(fullPath, item.name);
+		} else {
+			entries.push({ fullPath, relativePath: item.name, size: Number(item.size ?? 0) });
+		}
+	}
+	return entries;
+}
+
+function zipBaseName(dir: string, items: Array<FileBrowserItem>): string {
+	if (items.length === 1 && items[0].isDirectory) {
+		return items[0].name;
+	}
+	return Path.extractFileName(dir) || "download";
+}
+
+async function downloadAsZip(dir: string, items: Array<FileBrowserItem>) {
+	const baseName = zipBaseName(dir, items);
+
+	const indexToken = { cancelled: false, cancel() { this.cancelled = true; } };
+	const indexNotification = uiStore.makeFileTransferNotification(FileTransferType.index, baseName, indexToken);
+	let entries: Array<ZipEntry>;
+	try {
+		entries = await enumerateZipEntries(dir, items, indexToken);
+	} finally {
+		indexNotification.close();
+	}
+	if (entries.length === 0) {
+		return;
+	}
+
+	const totalSize = entries.reduce((sum, entry) => sum + entry.size, 0);
+	if (entries.length > ZIP_CONFIRM_COUNT || totalSize > ZIP_CONFIRM_BYTES) {
+		if (!(await showConfirmDialog(i18n.global.t("dialog.downloadZip.title"), i18n.global.t("dialog.downloadZip.prompt", [entries.length, displaySize(totalSize)]), "mdi-folder-zip"))) {
+			return;
+		}
+	}
+
+	// download() returns the bare content for a one-element request (a directory with a single file)
+	// and an array otherwise - normalise to an array so the zip step can index it either way
+	const downloaded = await machineStore.download(
+		entries.map((entry) => ({ filename: entry.fullPath, type: "blob" as const })),
+		true, false, false, true
+	);
+	const blobs = (Array.isArray(downloaded) ? downloaded : [downloaded]) as Array<Blob>;
+
 	const { default: JSZip } = await import("jszip");
 	const zip = new JSZip();
-	for (const name of names) {
-		const blob = await machineStore.download({ filename: Path.combine(dir, name), type: "blob" }, false);
-		zip.file(name, blob);
-	}
-	const archive = await zip.generateAsync({ type: "blob" });
-	saveBlob("files.zip", archive);
-}
+	entries.forEach((entry, index) => zip.file(entry.relativePath, blobs[index]));
 
-function saveBlob(filename: string, blob: Blob) {
-	const url = URL.createObjectURL(blob);
-	const anchor = document.createElement("a");
-	anchor.href = url;
-	anchor.download = filename;
-	document.body.appendChild(anchor);
-	anchor.click();
-	document.body.removeChild(anchor);
-	URL.revokeObjectURL(url);
+	const zipName = `${baseName}.zip`;
+	const compressNotification = uiStore.makeFileTransferNotification(FileTransferType.compress, zipName);
+	const archive = await zip.generateAsync({ type: "blob" }, (meta) => compressNotification.onProgress(meta.percent, 100, 0));
+	compressNotification.close();
+	saveBlob(zipName, archive);
 }
 
 // #endregion

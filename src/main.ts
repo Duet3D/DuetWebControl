@@ -14,6 +14,7 @@ import App from "./App.vue";
 import { createApp } from "vue";
 
 // Directives
+import { vContextMenu } from "@/directives/contextMenu";
 import { vHint } from "@/directives/hint";
 
 // Events
@@ -25,6 +26,7 @@ import "@/registerServiceWorker";
 const app = createApp(App);
 
 registerPlugins(app);
+app.directive("context-menu", vContextMenu);
 app.directive("hint", vHint);
 
 app.mount("#app");

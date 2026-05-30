@@ -55,13 +55,6 @@
 			</v-row>
 		</v-card-text>
 
-		<InputDialog v-model:shown="editAmountDialog.shown" :title="$t('dialog.editExtrusionAmount.title')"
-					 :prompt="$t('dialog.editExtrusionAmount.prompt')" :preset="editAmountDialog.preset"
-					 is-numeric-value @confirmed="setAmount" />
-		<InputDialog v-model:shown="editFeedrateDialog.shown" :title="$t('dialog.editExtrusionFeedrate.title')"
-					 :prompt="$t('dialog.editExtrusionFeedrate.prompt')" :preset="editFeedrateDialog.preset"
-					 is-numeric-value @confirmed="setFeedrate" />
-
 		<template #settings>
 			<v-switch v-model="settings.showMixingControls" color="primary"
 					  :label="$t('panel.extrude.showMixingControls')"
@@ -74,9 +67,10 @@
 <script setup lang="ts">
 import { CodeChannel, MachineStatus, Tool } from "@duet3d/objectmodel";
 
-import InputDialog from "@/components/dialogs/InputDialog.vue";
+import { getNumericInput } from "@/composables/useInputDialog";
 import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
+import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
 import { useUiStore } from "@/stores/ui";
@@ -96,8 +90,6 @@ const mixValue = ref<Array<number | "mix">>(["mix"]);
 const amount = ref(10);
 const feedrate = ref(5);
 
-const editAmountDialog = reactive({ shown: false, index: 0, preset: 0 });
-const editFeedrateDialog = reactive({ shown: false, index: 0, preset: 0 });
 
 const currentTool = computed<Tool | null>(() => machineStore.currentTool);
 
@@ -177,26 +169,22 @@ async function buttonClicked(extrude: boolean) {
 	busy.value = false;
 }
 
-function editAmount(index: number) {
-	editAmountDialog.index = index;
-	editAmountDialog.preset = settingsStore.extruderAmounts[index];
-	editAmountDialog.shown = true;
+async function editAmount(index: number) {
+	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionAmount.title"), i18n.global.t("dialog.editExtrusionAmount.prompt"), settingsStore.extruderAmounts[index]);
+	if (value === null) {
+		return;
+	}
+	settingsStore.setExtrusionAmount(index, value);
+	amount.value = value;
 }
 
-function setAmount(value: string | number) {
-	settingsStore.setExtrusionAmount(editAmountDialog.index, value as number);
-	amount.value = value as number;
-}
-
-function editFeedrate(index: number) {
-	editFeedrateDialog.index = index;
-	editFeedrateDialog.preset = settingsStore.extruderFeedrates[index];
-	editFeedrateDialog.shown = true;
-}
-
-function setFeedrate(value: string | number) {
-	settingsStore.setExtrusionFeedrate(editFeedrateDialog.index, value as number);
-	feedrate.value = value as number;
+async function editFeedrate(index: number) {
+	const value = await getNumericInput(i18n.global.t("dialog.editExtrusionFeedrate.title"), i18n.global.t("dialog.editExtrusionFeedrate.prompt"), settingsStore.extruderFeedrates[index]);
+	if (value === null) {
+		return;
+	}
+	settingsStore.setExtrusionFeedrate(index, value);
+	feedrate.value = value;
 }
 
 onMounted(() => {

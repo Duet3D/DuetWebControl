@@ -181,10 +181,6 @@
 				</v-btn>
 			</v-card-actions>
 		</v-card>
-
-		<ConfirmDialog v-model:shown="showReloadPrompt" :title="$t('dialog.pluginInstallation.reloadPrompt.title')"
-					   :prompt="$t('dialog.pluginInstallation.reloadPrompt.prompt')" icon="mdi-restart"
-					   @confirmed="reload" />
 	</v-dialog>
 </template>
 
@@ -192,7 +188,7 @@
 import { initObject, PluginManifest, SbcPermission } from "@duet3d/objectmodel";
 import type JSZip from "jszip";
 
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import i18n from "@/i18n";
 import { checkManifest, checkVersion, getBuiltInPlugins, isPluginLoaded } from "@/plugins";
 import { useMachineStore } from "@/stores/machine";
@@ -221,7 +217,6 @@ const disclaimerAccepted = ref(false);
 const isFinished = ref(false);
 const installationError = ref<string | null>(null);
 const startWhenFinished = ref(false);
-const showReloadPrompt = ref(false);
 
 const zipFilename = ref("");
 const zipBlob = ref<Blob | null>(null);
@@ -356,15 +351,16 @@ async function next() {
 	}
 }
 
-function finish() {
+async function finish() {
 	shown.value = false;
 	// If we just replaced a DWC plugin that's currently mounted, the user needs to reload to
 	// pick up the new bundle - otherwise the old code keeps running in the page
-	showReloadPrompt.value = hasDwcFiles.value && isPluginLoaded(pluginManifest.value.id);
-}
-
-function reload() {
-	location.reload();
+	if (!(hasDwcFiles.value && isPluginLoaded(pluginManifest.value.id))) {
+		return;
+	}
+	if (await showConfirmDialog(i18n.global.t("dialog.pluginInstallation.reloadPrompt.title"), i18n.global.t("dialog.pluginInstallation.reloadPrompt.prompt"), "mdi-restart")) {
+		location.reload();
+	}
 }
 
 // #endregion

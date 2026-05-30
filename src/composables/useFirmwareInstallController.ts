@@ -12,6 +12,7 @@
 // plans the install, uploads, opens the dialog if updates are needed, runs M997 on confirmation
 // and prompts for a firmware reset when config.g was replaced
 
+import { OperationCancelledError } from "@duet3d/connectors";
 import type { InjectionKey } from "vue";
 
 import {
@@ -88,8 +89,10 @@ export function useFirmwareInstallController(): FirmwareInstallController {
 				location.reload();
 			}
 		} catch (e) {
-			console.warn(e);
-			uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+			if (!(e instanceof OperationCancelledError)) {
+				console.warn(e);
+				uiStore.notifyError(e, i18n.global.t("notification.decompress.errorTitle"));
+			}
 		}
 	}
 

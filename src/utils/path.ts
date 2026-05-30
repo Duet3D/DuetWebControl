@@ -129,6 +129,37 @@ export function volumeRoot(volume: number) {
 	return `${volume}:/`;
 }
 
+// Volume + path segments for an Explorer URL, dropping the default volume 0 unless the first path
+// segment is itself numeric (a folder named e.g. "0"), which would otherwise be misread as the volume
+function explorerSegments(sdPath: string): Array<string> {
+	const match = /^(\d+):\/?(.*)$/.exec(sdPath);
+	const volume = match ? match[1] : "0";
+	const pathSegments = (match ? match[2] : "").split("/").filter(Boolean);
+	const omitVolume = volume === "0" && (pathSegments.length === 0 || !/^\d+$/.test(pathSegments[0]));
+	return omitVolume ? pathSegments : [volume, ...pathSegments];
+}
+
+/**
+ * Map an SD directory path to its Explorer route, opening it in the file browser
+ * @param sdPath Absolute SD directory path (e.g. "0:/macros")
+ * @returns Router path for the Explorer file browser
+ */
+export function explorerRoute(sdPath: string) {
+	const segments = explorerSegments(sdPath);
+	return segments.length > 0 ? `/Explorer/${segments.join("/")}` : "/Explorer";
+}
+
+/**
+ * Map an SD file path to its Explorer editor route. The `edit` prefix marks it as a file so the
+ * Explorer opens it in the Monaco editor instead of treating it as a directory (vue-router can't
+ * carry a trailing-slash signal, hence the explicit prefix)
+ * @param sdPath Absolute SD file path (e.g. "0:/macros/foo.g")
+ * @returns Router path for the Explorer editor
+ */
+export function editRoute(sdPath: string) {
+	return `/Explorer/${["edit", ...explorerSegments(sdPath)].join("/")}`;
+}
+
 /**
  * Check if a path starts with the given value
  * @param path Path to check
@@ -262,8 +293,10 @@ const pathObj = {
 	closedLoop: "0:/sys/closed-loop",
 
 	combine,
+	editRoute,
 	equals,
 	escapeFilename,
+	explorerRoute,
 	extractDirectory,
 	extractFileName,
 	filesAffectDirectory,

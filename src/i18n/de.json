@@ -116,8 +116,16 @@
 			"promptSingle": "Soll {0} wirklich gelöscht werden?",
 			"promptMultiple": "Sollen {0} Einträge wirklich gelöscht werden?"
 		},
+		"downloadZip": {
+			"title": "Als ZIP herunterladen",
+			"prompt": "Diese Auswahl enthält {0} Dateien ({1}). Sie werden in den Speicher des Browsers geladen, bevor das Archiv erstellt wird. Fortfahren?"
+		},
 		"inputRequired": "Bitte Wert eingeben",
 		"numberRequired": "Bitte gültige Zahl eingeben",
+		"minValue": "Wert muss mindestens {0} sein",
+		"maxValue": "Wert darf höchstens {0} sein",
+		"minLength": "Mindestens {0} Zeichen erforderlich",
+		"maxLength": "Höchstens {0} Zeichen erlaubt",
 		"connect": {
 			"title": "Zu Maschine verbinden",
 			"prompt": "Bitte geben Sie den Hostnamen und das Passwort der Maschine ein, zu der Sie verbinden möchten:",
@@ -149,9 +157,11 @@
 			"uploadingTitle": "Lade Datei {0} von {1} hoch, {2}% abgeschlossen",
 			"uploadDoneTitle": "Uploads abgeschlossen!",
 			"uploadFailedTitle": "Uploads fehlgeschlagen!",
+			"uploadCancelledTitle": "Uploads abgebrochen!",
 			"downloadingTitle": "Lade Datei {0} von {1} herunter, {2}% abgeschlossen",
 			"downloadDoneTitle": "Downloads abgeschlossen",
 			"downloadFailedTitle": "Downloads fehlgeschlagen!",
+			"downloadCancelledTitle": "Downloads abgebrochen!",
 			"filename": "Dateiname",
 			"size": "Größe",
 			"progress": "Fortschritt",
@@ -283,6 +293,15 @@
 				"message": "Bitte warten während die Datei hochgeladen wird...",
 				"success": "Datei {0} erfolgreich nach {1} hochgeladen",
 				"error": "Konnte {0} nicht hochladen"
+			},
+			"index": {
+				"title": "Ermittle Dateien in {0}...",
+				"message": "Bitte warten während die Dateiliste erstellt wird..."
+			},
+			"compress": {
+				"title": "Erstelle ZIP von {0}, {2}% abgeschlossen",
+				"message": "Bitte warten während das Archiv erstellt wird...",
+				"errorTitle": "Konnte ZIP-Archiv nicht erstellen"
 			}
 		},
 		"compress": {
@@ -512,6 +531,9 @@
 			"title": "Ereignisprotokoll",
 			"menu": "Weitere Optionen",
 			"noEvents": "Keine Ereignisse anzuzeigen",
+			"copy": "Kopieren",
+			"copyAll": "Alle kopieren",
+			"copyLog": "Protokoll kopieren",
 			"clear": "Leeren",
 			"downloadText": "Als Text herunterladen",
 			"downloadCSV": "Als CSV herunterladen",
@@ -535,7 +557,10 @@
 		"macro": {
 			"caption": "Makros",
 			"noMacros": "Keine Makros",
+			"directoryNotFound": "Verzeichnis nicht gefunden",
+			"loadFailed": "Verzeichnis konnte nicht geladen werden",
 			"run": "Makro ausführen",
+			"openInExplorer": "Im Explorer öffnen",
 			"root": "Stammverzeichnis",
 			"settings": {
 				"showDirectories": "Verzeichnisse anzeigen",

@@ -10,7 +10,9 @@
 	<IncompatibleVersionsDialog />
 	<MessageBoxDialog />
 	<PluginInstallDialog />
-	<NotificationDisplay />
+	<ConfirmDialogQueue />
+	<InputDialogQueue />
+	<NotificationQueue />
 </template>
 
 <script setup lang="ts">

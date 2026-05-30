@@ -30,8 +30,17 @@
 				<v-window v-model="tab" :touch="false" class="flex-grow-1 d-flex flex-column input-shaping-window">
 					<v-window-item value="current" class="h-100">
 						<div class="d-flex flex-column h-100">
-							<v-alert v-if="!isInputShapingEnabled" type="info" class="mb-0 flex-grow-0" variant="tonal"
-									 :title="$t('plugins.accelerometer.notConfigured')" />
+							<div v-if="!isInputShapingEnabled" class="empty-state flex-grow-1">
+								<v-icon size="64" color="info" class="mb-4">mdi-tune-variant</v-icon>
+								<div class="text-body-1 text-medium-emphasis mb-6">
+									{{ $t("plugins.accelerometer.notConfigured") }}
+								</div>
+								<v-btn color="success" size="large" :disabled="uiStore.uiFrozen"
+									   @click="showDataCollection = true">
+									<v-icon class="mr-1">mdi-record</v-icon>
+									{{ $t("plugins.accelerometer.recordButton") }}
+								</v-btn>
+							</div>
 							<!-- v-if (not v-show) so the heavy Chart instance only instantiates
 								 when input shaping is actually configured -->
 							<div v-else class="content flex-grow-1 pa-2">
@@ -45,16 +54,23 @@
 					<v-window-item value="analysis" class="h-100">
 						<div class="d-flex flex-column h-100">
 							<v-progress-linear :active="loadingFiles" indeterminate />
-							<v-alert v-if="files.length === 0 && !filesError" type="info" class="mb-0 flex-grow-0"
-									 variant="tonal">
-								{{ $t("plugins.accelerometer.noMotionProfiles") }}
-								<a href="javascript:void(0)" class="text-decoration-underline" @click="refresh">
-									{{ $t("plugins.accelerometer.refreshLink") }}
-								</a>
-							</v-alert>
 							<v-alert v-if="filesError" type="error" class="mb-0 flex-grow-0" variant="tonal">
 								{{ filesError }}
 							</v-alert>
+							<div v-else-if="files.length === 0 && !loadingFiles" class="empty-state flex-grow-1">
+								<v-icon size="64" color="info" class="mb-4">mdi-file-search</v-icon>
+								<div class="text-body-1 text-medium-emphasis mb-6">
+									{{ $t("plugins.accelerometer.noMotionProfiles") }}
+									<a href="javascript:void(0)" class="text-decoration-underline ml-1" @click="refresh">
+										{{ $t("plugins.accelerometer.refreshLink") }}
+									</a>
+								</div>
+								<v-btn color="success" size="large" :disabled="uiStore.uiFrozen"
+									   @click="showDataCollection = true">
+									<v-icon class="mr-1">mdi-record</v-icon>
+									{{ $t("plugins.accelerometer.recordButton") }}
+								</v-btn>
+							</div>
 							<v-row v-if="files.length > 0" class="content pa-2 ma-0 flex-grow-1">
 								<v-col cols="12" md="6" lg="5" xl="4" class="d-flex pa-0">
 									<InputShapingFileList class="flex-grow-1" :title="$t('plugins.accelerometer.motionProfiles')"
@@ -483,6 +499,18 @@ watch(() => shaping.value.damping, (to) => { damping.value = to; });
 </script>
 
 <style scoped>
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 2rem;
+}
+.empty-state > div {
+	max-width: 480px;
+}
+
 .content {
 	position: relative;
 	min-height: 320px;

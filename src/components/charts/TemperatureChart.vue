@@ -89,6 +89,7 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import i18n from "@/i18n";
 import { useMachineStore } from "@/stores/machine";
 import { type CustomChartItem, useSettingsStore } from "@/stores/settings";
+import { saveBlob } from "@/utils/download";
 
 // Chart.js v4 requires explicit component registration; do it once at module load
 Chart.register(LineController, LineElement, PointElement, LinearScale, TimeScale, Tooltip, Legend, Filler);
@@ -364,12 +365,7 @@ function downloadCsv() {
 	const csv = [header.join(","), ...rows].join("\r\n");
 
 	const blob = new Blob([csv], { type: "text/csv" });
-	const url = URL.createObjectURL(blob);
-	const anchor = document.createElement("a");
-	anchor.href = url;
-	anchor.download = `temperatures-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`;
-	anchor.click();
-	URL.revokeObjectURL(url);
+	saveBlob(`temperatures-${new Date().toISOString().replace(/[:.]/g, "-")}.csv`, blob);
 }
 
 defineExpose({ hasTemperaturesToDisplay, shouldFill });

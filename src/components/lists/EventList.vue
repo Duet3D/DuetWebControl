@@ -29,7 +29,8 @@
 			{{ $t("list.eventLog.noEvents") }}
 		</v-alert>
 		<ul v-else class="event-log-list">
-			<li v-for="entry in entries" :key="entry.key" class="event-log-row" :class="rowClass(entry.type)">
+			<li v-for="entry in entries" :key="entry.key" class="event-log-row" :class="rowClass(entry.type)"
+				v-context-menu="(x: number, y: number) => openContextMenu(entry, x, y)">
 				<div class="event-log-time">
 					<time :datetime="entry.time.toISOString()">{{ entry.time.toLocaleString() }}</time>
 				</div>
@@ -40,6 +41,17 @@
 				</div>
 			</li>
 		</ul>
+
+		<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
+			<v-list :density="controlDensity">
+				<v-list-item prepend-icon="mdi-content-copy" :title="$t('list.eventLog.copy')"
+							 @click="copyEntry(contextMenu.entry)" />
+				<v-list-item prepend-icon="mdi-content-copy" :title="$t('list.eventLog.copyAll')"
+							 :disabled="!entries.length" @click="copyAll" />
+				<v-list-item prepend-icon="mdi-clipboard-text-clock-outline" :title="$t('list.eventLog.copyLog')"
+							 :disabled="!entries.length" @click="copyLog" />
+			</v-list>
+		</v-menu>
 	</v-card>
 </template>
 
@@ -101,6 +113,8 @@ import { useComponentSettings } from "@/composables/useComponentSettings";
 import { useLargeButtons } from "@/composables/useLargeButtons";
 import i18n from "@/i18n";
 import { LogLevel, type LogMessage, useUiStore } from "@/stores/ui";
+import { copyToClipboard } from "@/utils/clipboard";
+import { saveBlob } from "@/utils/download";
 
 const uiStore = useUiStore();
 
@@ -162,15 +176,47 @@ function formatMessage(message: string): string {
 	return result;
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-	const url = URL.createObjectURL(blob);
-	const link = document.createElement("a");
-	link.href = url;
-	link.download = filename;
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
-	URL.revokeObjectURL(url);
+// Plain-text content of an entry ("title: message", dropping an empty half); formatWithTime
+// prepends the timestamp for the full-log copy
+function formatContent(entry: LogMessage): string {
+	return entry.message ? (entry.title ? `${entry.title}: ${entry.message}` : entry.message) : (entry.title ?? "");
+}
+
+function formatWithTime(entry: LogMessage): string {
+	return `${entry.time.toLocaleString()}: ${formatContent(entry)}`;
+}
+
+const contextMenu = reactive({ shown: false, x: 0, y: 0, entry: null as LogMessage | null });
+
+function openContextMenu(entry: LogMessage, x: number, y: number) {
+	contextMenu.entry = entry;
+	contextMenu.x = x;
+	contextMenu.y = y;
+	// Toggle off first so an already-open menu repositions to the new row instead of staying put
+	contextMenu.shown = false;
+	nextTick(() => { contextMenu.shown = true; });
+}
+
+async function copyText(text: string) {
+	try {
+		await copyToClipboard(text);
+	} catch (e) {
+		console.warn(e);
+	}
+}
+
+function copyEntry(entry: LogMessage | null) {
+	if (entry) {
+		copyText(formatContent(entry));
+	}
+}
+
+function copyAll() {
+	copyText(entries.value.map(formatContent).join("\n"));
+}
+
+function copyLog() {
+	copyText(entries.value.map(formatWithTime).join("\n"));
 }
 
 function downloadText() {
@@ -180,7 +226,7 @@ function downloadText() {
 		const message = entry.message ? entry.message.replace(/\n/g, "\r\n") : "";
 		textContent += `${entry.time.toLocaleString()}: ${message ? `${title}: ${message}` : title}\r\n`;
 	}
-	downloadBlob(new Blob([textContent], { type: "text/plain;charset=utf-8" }), "console.txt");
+	saveBlob("console.txt", new Blob([textContent], { type: "text/plain;charset=utf-8" }));
 }
 
 function downloadCsv() {
@@ -190,6 +236,6 @@ function downloadCsv() {
 		const message = entry.message ? entry.message.replace(/"/g, '""').replace(/\n/g, "\r\n") : "";
 		csv += `"${entry.time.toLocaleDateString()}","${entry.time.toLocaleTimeString()}","${title}","${message}"\r\n`;
 	}
-	downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8" }), "console.csv");
+	saveBlob("console.csv", new Blob([csv], { type: "text/csv;charset=utf-8" }));
 }
 </script>

@@ -8,9 +8,7 @@
 		<v-card-text class="pa-0 macro-list-body">
 			<v-progress-linear v-show="loading" indeterminate class="my-0" />
 
-			<v-alert v-if="!loading && displayedFiles.length === 0 && isRootDirectory" type="info" tile>
-				{{ $t("list.macro.noMacros") }}
-			</v-alert>
+			<v-alert v-if="showEmptyAlert" :type="emptyAlertType" :text="$t(emptyAlertText)" tile density="compact" />
 
 			<v-list v-else :density="listDensity" class="pt-0">
 				<v-list-item v-if="!isRootDirectory && settings.showDirectories" @click="goUp">
@@ -23,7 +21,7 @@
 				</v-list-item>
 
 				<v-list-item v-for="item in displayedFiles" :key="item.name" :disabled="uiStore.uiFrozen"
-							 @click="itemClick(item)">
+							 @click="itemClick(item)" v-context-menu="(x: number, y: number) => openContextMenu(item, x, y)">
 					<template #prepend>
 						<v-avatar size="32" :color="item.isDirectory ? 'grey-lighten-1' : 'blue'">
 							<v-icon size="small" color="white">{{ item.isDirectory ? "mdi-folder" : "mdi-file" }}</v-icon>
@@ -35,6 +33,31 @@
 					</template>
 				</v-list-item>
 			</v-list>
+
+			<v-menu v-model="contextMenu.shown" :target="[contextMenu.x, contextMenu.y]">
+				<v-list :density="listDensity">
+					<template v-if="contextMenu.item && !contextMenu.item.isDirectory">
+						<v-list-item @click="runMacro(contextMenu.item)">
+							<template #prepend>
+								<v-icon>mdi-play</v-icon>
+							</template>
+							<v-list-item-title>{{ $t("list.macro.run") }}</v-list-item-title>
+						</v-list-item>
+						<v-list-item @click="editMacro(contextMenu.item)">
+							<template #prepend>
+								<v-icon>mdi-pencil</v-icon>
+							</template>
+							<v-list-item-title>{{ $t("list.fileList.edit") }}</v-list-item-title>
+						</v-list-item>
+					</template>
+					<v-list-item @click="openInExplorer(contextMenu.item)">
+						<template #prepend>
+							<v-icon>mdi-folder-open</v-icon>
+						</template>
+						<v-list-item-title>{{ $t("list.macro.openInExplorer") }}</v-list-item-title>
+					</v-list-item>
+				</v-list>
+			</v-menu>
 		</v-card-text>
 
 		<template #settings>
@@ -79,7 +102,7 @@
 <script setup lang="ts">
 import { useDisplay } from "vuetify";
 
-import { DisconnectedError, FileListItem } from "@duet3d/connectors";
+import { DirectoryNotFoundError, DisconnectedError, FileListItem } from "@duet3d/connectors";
 import { Volume } from "@duet3d/objectmodel";
 
 import { useComponentSettings } from "@/composables/useComponentSettings";
@@ -96,6 +119,7 @@ interface MacroItem extends FileListItem {
 
 const machineStore = useMachineStore();
 const uiStore = useUiStore();
+const router = useRouter();
 const { mdAndUp } = useDisplay();
 
 interface MacroListSettings {
@@ -122,6 +146,7 @@ const listDensity = computed<"default" | "comfortable" | "compact">(
 const loading = ref(false);
 const directory = ref(Path.macros);
 const filelist = ref<Array<MacroItem>>([]);
+const errorReason = ref<"missing" | "error" | null>(null);
 let wasMounted = false;
 
 const macrosDirectory = computed(() => machineStore.model.directories.macros);
@@ -174,6 +199,18 @@ const displayedFiles = computed<Array<MacroItem>>(() =>
 	})
 );
 
+// No-data alert variant + text keyed off the last load result: "missing" reads as a warning (the
+// directory just doesn't exist), "error" as a hard failure, and an empty existing root as info
+const showEmptyAlert = computed(() => !loading.value && (errorReason.value !== null || (displayedFiles.value.length === 0 && isRootDirectory.value)));
+const emptyAlertType = computed(() => errorReason.value === "missing" ? "warning" : (errorReason.value === "error" ? "error" : "info"));
+const emptyAlertText = computed(() => {
+	switch (errorReason.value) {
+		case "missing": return "list.macro.directoryNotFound";
+		case "error": return "list.macro.loadFailed";
+		default: return "list.macro.noMacros";
+	}
+});
+
 async function loadDirectory(target: string) {
 	if (loading.value) {
 		return;
@@ -190,10 +227,19 @@ async function loadDirectory(target: string) {
 		}
 		directory.value = target;
 		filelist.value = files;
+		errorReason.value = null;
 	} catch (e) {
-		if (!(e instanceof DisconnectedError)) {
+		if (e instanceof DirectoryNotFoundError) {
+			// A missing directory is an expected, recoverable state (the macros dir may simply
+			// not exist yet). Surface it inline via the panel alert instead of a transient toast
+			// that the several refresh triggers would otherwise raise on every retry
+			directory.value = target;
+			filelist.value = [];
+			errorReason.value = "missing";
+		} else if (!(e instanceof DisconnectedError)) {
 			console.warn(e);
-			uiStore.notifyError(e, i18n.global.t("error.filelistRequestFailed"));
+			filelist.value = [];
+			errorReason.value = "error";
 		}
 	}
 	loading.value = false;
@@ -207,23 +253,49 @@ async function itemClick(item: MacroItem) {
 	if (uiStore.uiFrozen) {
 		return;
 	}
-	const filename = Path.combine(directory.value, item.name);
 	if (item.isDirectory) {
-		await loadDirectory(filename);
+		await loadDirectory(Path.combine(directory.value, item.name));
 		return;
 	}
-	if (item.executing) {
+	await runMacro(item);
+}
+
+async function runMacro(item: MacroItem | null) {
+	if (!item || item.executing) {
 		return;
 	}
 	item.executing = true;
 	try {
-		await machineStore.sendCode(`M98 P"${Path.escapeFilename(filename)}"`);
+		await machineStore.sendCode(`M98 P"${Path.escapeFilename(Path.combine(directory.value, item.name))}"`);
 	} catch (e) {
 		if (!(e instanceof DisconnectedError)) {
 			console.warn(e);
 		}
 	}
 	item.executing = false;
+}
+
+const contextMenu = reactive({ shown: false, x: 0, y: 0, item: null as MacroItem | null });
+
+function openContextMenu(item: MacroItem, x: number, y: number) {
+	contextMenu.item = item;
+	contextMenu.x = x;
+	contextMenu.y = y;
+	// Toggle off first so an already-open menu repositions to the new target instead of staying put
+	contextMenu.shown = false;
+	nextTick(() => { contextMenu.shown = true; });
+}
+
+function editMacro(item: MacroItem | null) {
+	if (item) {
+		router.push(Path.editRoute(Path.combine(directory.value, item.name)));
+	}
+}
+
+function openInExplorer(item: MacroItem | null) {
+	if (item) {
+		router.push(Path.explorerRoute(item.isDirectory ? Path.combine(directory.value, item.name) : directory.value));
+	}
 }
 
 function goUp() {
@@ -284,6 +356,7 @@ watch(() => machineStore.isConnected, (connected) => {
 	} else {
 		directory.value = rootDirectory.value;
 		filelist.value = [];
+		errorReason.value = null;
 	}
 });
 

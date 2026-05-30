@@ -57,7 +57,7 @@ function normalisePathParam(value: string | string[] | undefined): string {
 // back as three positional params regardless of which were actually present, so flatten them
 // into one ordered segment list and parse it front-to-back
 function resolveExplorerRoute(params: ExplorerRouteParams): {
-	tab: number | undefined; volume: number; path: string;
+	tab: number | undefined; volume: number; path: string; editor: boolean;
 } {
 	const segments: Array<string> = [];
 	if (params.tab !== undefined) {
@@ -78,12 +78,21 @@ function resolveExplorerRoute(params: ExplorerRouteParams): {
 		tab = Number.parseInt(cleaned[0].substring(1), 10);
 		cleaned.shift();
 	}
+	// A reserved `edit` segment before the volume marks the URL as a file to open in the editor;
+	// vue-router can't carry a trailing-slash signal (strict mode 404s it, non-strict strips it),
+	// so the path itself is unambiguous about file vs directory. Shadows a root folder named "edit"
+	// the same way a `t<n>` ordinal shadows a folder named "t2"
+	let editor = false;
+	if (cleaned.length > 0 && cleaned[0] === "edit") {
+		editor = true;
+		cleaned.shift();
+	}
 	let volume = 0;
 	if (cleaned.length > 0 && /^\d+$/.test(cleaned[0])) {
 		volume = Number.parseInt(cleaned[0], 10);
 		cleaned.shift();
 	}
-	return { tab, volume, path: cleaned.join("/") };
+	return { tab, volume, path: cleaned.join("/"), editor };
 }
 
 function sdPathFromParams(params: ExplorerRouteParams): string {
@@ -104,26 +113,32 @@ export const useExplorerInitialData = defineBasicLoader(async (to): Promise<Expl
 	if (!path) {
 		return { path: "", kind: "none" };
 	}
+	// The URL itself declares file vs directory (the `edit` prefix), so no FS probe / extension
+	// guessing is needed - we only fetch the matching payload to seed the tab
+	const { editor } = resolveExplorerRoute(params);
 	const machineStore = useMachineStore();
+	if (editor) {
+		if (machineStore.isConnected) {
+			try {
+				const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
+				return { path, kind: "editor", content };
+			} catch (e) {
+				// The editor tab still opens and surfaces its own load error/empty state
+				console.warn("Explorer editor preload failed", e);
+			}
+		}
+		return { path, kind: "editor" };
+	}
 	if (!machineStore.isConnected) {
 		// No FS to query; the page renders an empty browser tab until a real connection arrives
 		return { path, kind: "directory" };
 	}
-	// Probe the FS to learn whether the URL points at a file or a directory. Try the directory
-	// listing first - cheaper for the common case (the user navigated a folder) - and fall back
-	// to a file download when that 404s. Both failing means the path doesn't exist; default to
-	// a browser tab so the user lands somewhere usable
 	try {
 		const files = await machineStore.getFileList(path);
 		return { path, kind: "directory", files };
-	} catch (dirError) {
-		try {
-			const content = await machineStore.download({ filename: path, type: "text" }, false, false, false);
-			return { path, kind: "editor", content };
-		} catch {
-			console.warn("Explorer loader failed", dirError);
-			return { path, kind: "directory" };
-		}
+	} catch (e) {
+		console.warn("Explorer directory listing failed", e);
+		return { path, kind: "directory" };
 	}
 }, { lazy: true });
 </script>
@@ -335,13 +350,12 @@ function volumeCaption(index: number): string {
 
 let nextTabId = 1;
 
-// First-mount URL -> tab seed. Bare `/Explorer` opens a single browser tab at `0:/`; otherwise
-// the data loader at the top of this file has already resolved the URL against the FS and
-// stored the kind in `initialPayload`, so we seed the correct kind of tab from that. A `t<n>`
-// ordinal in the URL only addresses tabs within a live session - it can't reconstruct the
-// sibling tabs that were open when the URL was produced, so a deep link always seeds a single
-// tab (or a browser + editor pair for file URLs) and the ordinal is reconciled away on the
-// first URL push
+// First-mount URL -> tab seed. Bare `/Explorer` opens a single browser tab at `0:/`; otherwise the
+// URL's `edit` prefix tells us file vs directory synchronously (no waiting on the lazy loader), and
+// the loader fills in content/listing when it resolves. A `t<n>` ordinal in the URL only addresses
+// tabs within a live session - it can't reconstruct the sibling tabs that were open when the URL
+// was produced, so a deep link always seeds a single tab (or a browser + editor pair for file URLs)
+// and the ordinal is reconciled away on the first URL push
 function buildInitialTabs(): Array<ExplorerTab> {
 	const params = route.params;
 	if (isBareExplorerRoute(params)) {
@@ -349,7 +363,7 @@ function buildInitialTabs(): Array<ExplorerTab> {
 	}
 	const initialPath = sdPathFromParams(params);
 	const payload = initialPayload.value;
-	if (payload?.kind === "editor" && payload.path === initialPath) {
+	if (resolveExplorerRoute(params).editor) {
 		// Editor-only routes still get a sibling browser tab so the user has something to switch
 		// to (and so the `+` button in the multi-tab strip remains reachable). Rooted at the
 		// file's containing volume so it makes sense alongside the open file
@@ -360,7 +374,7 @@ function buildInitialTabs(): Array<ExplorerTab> {
 				id: nextTabId++,
 				kind: "editor",
 				filename: initialPath,
-				initialContent: payload.content,
+				initialContent: payload?.kind === "editor" && payload.path === initialPath ? payload.content : undefined,
 			},
 		];
 	}
@@ -835,16 +849,16 @@ function sdPathToRouteParams(sdPath: string): { volume: string; path: string } |
 // editor tabs are keyed 1:1 by filename (a file opens at most once), so the path alone is
 // unique and the URL stays ordinal-free. The watcher below resolves editor URLs by matching
 // the path against open editor filenames before considering any ordinal interpretation
-const activeTabSnapshot = computed<{ ordinal: number; path: string } | undefined>(() => {
+const activeTabSnapshot = computed<{ ordinal: number; path: string; editor: boolean } | undefined>(() => {
 	const index = tabs.value.findIndex((t) => t.id === activeTab.value);
 	if (index === -1) {
 		return undefined;
 	}
 	const tab = tabs.value[index];
 	if (tab.kind === "editor") {
-		return tab.filename ? { ordinal: 1, path: tab.filename } : undefined;
+		return tab.filename ? { ordinal: 1, path: tab.filename, editor: true } : undefined;
 	}
-	return tab.directory ? { ordinal: index + 1, path: tab.directory } : undefined;
+	return tab.directory ? { ordinal: index + 1, path: tab.directory, editor: false } : undefined;
 });
 
 let replaceNextUrlChange = false;
@@ -855,7 +869,7 @@ watch(activeTabSnapshot, (snapshot) => {
 	if (!snapshot || !isOnExplorerRoute()) {
 		return;
 	}
-	pushUrl(snapshot.ordinal, snapshot.path, replaceNextUrlChange);
+	pushUrl(snapshot.ordinal, snapshot.path, snapshot.editor, replaceNextUrlChange);
 	replaceNextUrlChange = false;
 });
 
@@ -889,19 +903,23 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 		return;
 	}
 
+	const { editor, tab: ordinalParam } = resolveExplorerRoute(route.params);
 	const newPath = sdPathFromParams(route.params);
 	if (!newPath) {
 		return;
 	}
 
-	// Editor first: if any open editor tab's filename matches this path, the URL is for that
-	// editor. Files are unique within the tab strip (openEditorTab enforces 1:1 by filename) so
-	// the match is unambiguous. This handles every editor URL - both our own pushes (which
-	// stay ordinal-free for editors) and back-navigation to a previously open file
-	const editorTab = tabs.value.find((t) => t.kind === "editor" && t.filename === newPath);
-	if (editorTab) {
-		if (activeTab.value !== editorTab.id) {
-			activeTab.value = editorTab.id;
+	// Editor URL (the `edit` prefix): focus the matching open editor (files are 1:1 by filename),
+	// or open one. The latter is the external-navigation case - e.g. macro Edit - where no editor
+	// tab exists yet; without this the file path would fall through to a browser tab and get listed
+	if (editor) {
+		const editorTab = tabs.value.find((t) => t.kind === "editor" && t.filename === newPath);
+		if (editorTab) {
+			if (activeTab.value !== editorTab.id) {
+				activeTab.value = editorTab.id;
+			}
+		} else {
+			openEditorTab(newPath);
 		}
 		return;
 	}
@@ -910,7 +928,7 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 	// in a second tab doesn't snap focus back to the first tab that happens to share it. No
 	// ordinal means tab 1 (or "the first browser tab" when tab 1 is an editor that didn't match
 	// above - rare but possible after closing browser tabs)
-	const ordinal = resolveExplorerRoute(route.params).tab ?? 1;
+	const ordinal = ordinalParam ?? 1;
 	const targetTab = tabs.value[ordinal - 1];
 	if (targetTab?.kind === "browser") {
 		if (targetTab.directory !== newPath) {
@@ -937,16 +955,16 @@ watch(() => `${route.params.tab ?? ""} ${sdPathFromParams(route.params)}`, () =>
 
 // Build the URL as a literal string instead of pushing params. vue-router's params-merge for
 // optional segments leaks current-route values through both `undefined` and `null`, so sidestep
-// the merge and let the route matcher parse our URL. Segment order is `[t<n>] [volume] path...`:
-// the tab ordinal is dropped for the first tab and the volume for volume 0, each unless dropping
-// it would let the next segment be misread as the thing that was dropped
-function pushUrl(ordinal: number, path: string, replace = false) {
+// the merge and let the route matcher parse our URL. Segment order is `[t<n>|edit] [volume] path...`:
+// editor URLs carry the `edit` prefix and no ordinal; browser URLs drop the tab ordinal for the
+// first tab and the volume for volume 0, each unless dropping it would misread the next segment
+function pushUrl(ordinal: number, path: string, editor: boolean, replace = false) {
 	const params = sdPathToRouteParams(path);
 	if (!params) {
 		return;
 	}
 	const current = resolveExplorerRoute(route.params);
-	if ((current.tab ?? 1) === ordinal && sdPathFromParams(route.params) === path) {
+	if ((current.tab ?? 1) === ordinal && current.editor === editor && sdPathFromParams(route.params) === path) {
 		return;
 	}
 
@@ -956,16 +974,21 @@ function pushUrl(ordinal: number, path: string, replace = false) {
 	// would otherwise round-trip as "volume 123" rather than "folder 123 in the default volume"
 	const omitVolume = params.volume === "0"
 		&& (pathSegments.length === 0 || !/^\d+$/.test(pathSegments[0]));
-	// First segment that ends up in the URL once the optional volume is settled. If it looks
-	// like a tab ordinal, the otherwise-omitted first-tab id has to be emitted so a folder
-	// named `t2` can't be misread as a second tab
-	const leadSegment = omitVolume ? pathSegments[0] : params.volume;
-	const emitTab = ordinal > 1
-		|| (ordinal === 1 && leadSegment !== undefined && /^t\d+$/.test(leadSegment));
 
 	const segments: Array<string> = [];
-	if (emitTab) {
-		segments.push(`t${ordinal}`);
+	if (editor) {
+		// Editor URLs are ordinal-free (one open editor per file); the `edit` prefix is the signal
+		segments.push("edit");
+	} else {
+		// First segment that ends up in the URL once the optional volume is settled. If it looks
+		// like a tab ordinal, the otherwise-omitted first-tab id has to be emitted so a folder
+		// named `t2` can't be misread as a second tab
+		const leadSegment = omitVolume ? pathSegments[0] : params.volume;
+		const emitTab = ordinal > 1
+			|| (ordinal === 1 && leadSegment !== undefined && /^t\d+$/.test(leadSegment));
+		if (emitTab) {
+			segments.push(`t${ordinal}`);
+		}
 	}
 	if (!omitVolume) {
 		segments.push(encodeURIComponent(params.volume));

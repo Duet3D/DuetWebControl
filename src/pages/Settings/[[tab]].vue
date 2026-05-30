@@ -775,7 +775,7 @@
 								{{ $t("settings.machine.resetComponentsHint") }}
 							</div>
 							<v-btn class="ms-2" color="warning" variant="tonal" :loading="resettingComponents"
-								   :disabled="uiStore.uiFrozen" @click="resetComponentsDialog = true">
+								   :disabled="uiStore.uiFrozen" @click="resetComponents">
 								<v-icon class="mr-1">mdi-view-dashboard-outline</v-icon>
 								{{ $t("settings.machine.resetComponents") }}
 							</v-btn>
@@ -794,14 +794,6 @@
 	<input ref="firmwareInput" type="file" multiple :accept="firmwareAccept" hidden
 		   @change="onFirmwarePicked" />
 
-	<ConfirmDialog v-model:shown="factoryResetDialog" :title="$t('settings.machine.resetTitle')"
-				   :prompt="$t('settings.machine.resetPrompt')" icon="mdi-restore"
-				   @confirmed="confirmFactoryReset" />
-
-	<ConfirmDialog v-model:shown="resetComponentsDialog" :title="$t('settings.machine.resetComponentsTitle')"
-				   :prompt="$t('settings.machine.resetComponentsPrompt')" icon="mdi-view-dashboard-outline"
-				   @confirmed="confirmResetComponents" />
-
 	<FirmwareUpdateDialog v-model:shown="firmwareDialog.shown" :plan="firmwareDialog.plan"
 						  @confirmed="firmwareController.onFirmwareUpdateConfirmed"
 						  @cancelled="firmwareController.onFirmwareUpdateCancelled" />
@@ -816,7 +808,7 @@ import { NetworkInterfaceType } from "@duet3d/objectmodel";
 import { useDisplay } from "vuetify";
 
 import ConfigUpdatedDialog from "@/components/dialogs/ConfigUpdatedDialog.vue";
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import FirmwareUpdateDialog from "@/components/dialogs/FirmwareUpdateDialog.vue";
 import ListEditor from "@/components/inputs/ListEditor.vue";
 import { useFirmwareInstallController } from "@/composables/useFirmwareInstallController";
@@ -1198,16 +1190,13 @@ async function onFirmwarePicked(event: Event) {
 // factory-defaults file when one is present on the SD card, then reloads. Wraps
 // settingsStore.reset() with a confirm dialog and a small busy flag so the button can show a
 // spinner during the (typically brief) async file-delete chain
-const factoryResetDialog = ref(false);
 const resettingSettings = ref(false);
-const resetComponentsDialog = ref(false);
 const resettingComponents = ref(false);
 
-function askFactoryReset() {
-	factoryResetDialog.value = true;
-}
-
-async function confirmFactoryReset() {
+async function askFactoryReset() {
+	if (!(await showConfirmDialog(i18n.global.t("settings.machine.resetTitle"), i18n.global.t("settings.machine.resetPrompt"), "mdi-restore"))) {
+		return;
+	}
 	resettingSettings.value = true;
 	try {
 		await settingsStore.reset();
@@ -1219,7 +1208,10 @@ async function confirmFactoryReset() {
 	}
 }
 
-async function confirmResetComponents() {
+async function resetComponents() {
+	if (!(await showConfirmDialog(i18n.global.t("settings.machine.resetComponentsTitle"), i18n.global.t("settings.machine.resetComponentsPrompt"), "mdi-view-dashboard-outline"))) {
+		return;
+	}
 	resettingComponents.value = true;
 	try {
 		await settingsStore.resetComponentSettings();

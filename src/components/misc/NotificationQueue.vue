@@ -1,57 +1,38 @@
 <template>
-	<!-- File-transfer snackbar lives at the top with its own live progress bar; it isn't a
-		 "notification" in the queued-message sense, so keep it independent of the bottom queue -->
-	<v-snackbar v-if="activeTransfer" :model-value="true" :timeout="-1" color="info" location="top">
-		<v-progress-linear :indeterminate="activeTransfer.progress === 0" striped absolute location="top"
-						   :model-value="activeTransfer.progress" />
-		<div class="d-flex align-center w-100 pt-1">
-			<v-icon class="me-3">{{ fileTransferIcon(activeTransfer.type) }}</v-icon>
-			<div class="d-flex flex-column flex-grow-1 text-truncate">
-				<strong class="text-truncate">
-					{{ $t(`notification.fileTransfer.${activeTransfer.type}.title`, [
-						activeTransfer.filename,
-						displayTransferSpeed(activeTransfer.speed),
-						Math.round(activeTransfer.progress || 0)
-					]) }}
-				</strong>
-				<span class="text-truncate">
-					{{ $t(`notification.fileTransfer.${activeTransfer.type}.message`) }}
-				</span>
-			</div>
-		</div>
-		<template #actions>
-			<v-btn variant="text" :text="$t('generic.cancel')" @click="activeTransfer.cancel()" />
-		</template>
-	</v-snackbar>
-
-	<!-- Single queue for every other notification source: general toasts, persistent toasts and the
-		 M117 persistent message all flow through here, ordered by priority so an error pre-empts
-		 the previously visible items and an active M117 sits above ordinary info/success toasts.
+	<!-- Single queue for every notification source: file transfers, general toasts, persistent
+		 toasts and the M117 persistent message all flow through here, ordered by priority so an
+		 error pre-empts the previously visible items and a transfer / active M117 sits above
+		 ordinary info/success toasts.
 		 Vuetify's built-in :timer is disabled: it drives the bar via setInterval polling at 5 Hz,
 		 which renders as a stepped/sluggish drain. We render our own bar in the #text slot below,
 		 powered by a single CSS keyframe animation - smooth at any frame rate and free -->
 	<v-snackbar-queue v-model="unifiedQueue" :timer="false" closable
 					  location="bottom center" :total-visible="totalVisible">
 		<template #text="{ item }">
-			<div v-if="(item as QueueMessage).timeout > 0" class="dwc-snackbar-timer"
-				 :style="{ animationDuration: `${(item as QueueMessage).timeout}ms` }" />
-			<div :class="{ 'd-flex flex-column w-100': true, 'notification-clickable': hasRoute(item as QueueMessage) }"
-				 @click="onNotificationClick(item as QueueMessage)">
-				<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
-				<span v-if="(item as QueueMessage).id === PERSISTENT_MESSAGE_ID"
-					  v-html="formatMultilineMessage((item as QueueMessage).text)" />
-				<span v-else-if="(item as QueueMessage).text">{{ (item as QueueMessage).text }}</span>
-			</div>
+			<FileTransferProgress v-if="(item as QueueMessage).transfer" :transfer-id="(item as QueueMessage).id" />
+			<template v-else>
+				<div v-if="(item as QueueMessage).timeout > 0" class="dwc-snackbar-timer"
+					 :style="{ animationDuration: `${(item as QueueMessage).timeout}ms` }" />
+				<div :class="{ 'd-flex flex-column w-100': true, 'notification-clickable': hasRoute(item as QueueMessage) }"
+					 @click="onNotificationClick(item as QueueMessage)">
+					<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
+					<span v-if="(item as QueueMessage).id === PERSISTENT_MESSAGE_ID"
+						  v-html="formatMultilineMessage((item as QueueMessage).text)" />
+					<span v-else-if="(item as QueueMessage).text">{{ (item as QueueMessage).text }}</span>
+				</div>
+			</template>
 		</template>
-		<template #actions="{ props: itemProps }">
-			<v-btn icon="mdi-close" variant="text" @click="itemProps.onClick" />
+		<template #actions="{ item, props: itemProps }">
+			<v-btn v-if="(item as QueueMessage).transfer" variant="text" :text="$t('generic.cancel')"
+				   @click="cancelTransfer((item as QueueMessage).id)" />
+			<v-btn v-else icon="mdi-close" variant="text" @click="itemProps.onClick" />
 		</template>
 	</v-snackbar-queue>
 </template>
 
 <script setup lang="ts">
-import { FileTransferType, type GeneralNotification, useUiStore } from "@/stores/ui";
-import { displayTransferSpeed } from "@/utils/display";
+import FileTransferProgress from "./FileTransferProgress.vue";
+import { type GeneralNotification, useUiStore } from "@/stores/ui";
 import i18n from "@/i18n";
 
 const uiStore = useUiStore();
@@ -76,6 +57,9 @@ interface QueueMessage {
 	loading?: boolean;
 	promise?: Promise<unknown>;
 	onDismiss?: () => void;
+	// Marks a live file-transfer item: rendered via FileTransferProgress and dismissed by its own
+	// promise resolving (see the file-transfer watcher) rather than a timer or the close button
+	transfer?: boolean;
 }
 
 const totalVisible = 3;
@@ -127,17 +111,56 @@ const SEVERITY_PRIORITY: Record<string, number> = {
 };
 
 function priorityOf(item: QueueMessage): number {
-	if (item.id === PERSISTENT_MESSAGE_ID) {
+	if (item.transfer || item.id === PERSISTENT_MESSAGE_ID) {
 		return 80;
 	}
 	return SEVERITY_PRIORITY[item.color] ?? 0;
 }
+
+// File transfers are long-lived, live-progress items - the opposite of the one-shot messages
+// VSnackbarQueue is built around. Each active transfer is mirrored into the queue as its own item
+// (its progress bar lives in FileTransferProgress, which reads the live store object). The queue
+// snapshots and "drains" an item from the model the moment it shows it, so the transfer must not
+// be re-derived from the store on every recompute or it would re-enqueue as a duplicate; instead
+// we add it once here on arrival and resolve a per-item promise on completion so the queue
+// dismisses the snackbar (a timer/close button would make no sense for a transfer)
+const transferItems = ref<Array<QueueMessage>>([]);
+const transferResolvers = new Map<string, () => void>();
+
+watch(() => uiStore.notifications.fileTransfers.map(t => t.id).join("\n"), () => {
+	const transfers = uiStore.notifications.fileTransfers;
+	for (const transfer of transfers) {
+		if (!transferResolvers.has(transfer.id)) {
+			let resolve!: () => void;
+			const promise = new Promise<void>((r) => { resolve = r; });
+			transferResolvers.set(transfer.id, resolve);
+			// loading:false overrides the spinner VSnackbarQueue would otherwise show for any
+			// promise-bound item; timeout -1 keeps the snackbar up until `resolve` fires
+			transferItems.value.push({
+				id: transfer.id, headline: "", text: "", color: "info",
+				timeout: -1, route: null, closable: false, loading: false, transfer: true, promise
+			});
+		}
+	}
+	// Finished transfers: resolve the promise (VSnackbarQueue then auto-dismisses the snackbar) and
+	// forget them. The transferItems copy may already be gone if the snackbar was shown (drained in
+	// the setter below); the filter is then a no-op
+	const presentIds = new Set(transfers.map(t => t.id));
+	for (const id of [...transferResolvers.keys()]) {
+		if (!presentIds.has(id)) {
+			transferResolvers.get(id)!();
+			transferResolvers.delete(id);
+			transferItems.value = transferItems.value.filter(item => item.id !== id);
+		}
+	}
+}, { immediate: true });
 
 const unifiedQueue = computed<Array<QueueMessage>>({
 	get: () => {
 		const items: Array<QueueMessage> = [
 			...uiStore.notifications.general.map(toQueueMessage),
 			...uiStore.notifications.persistent.map(toQueueMessage),
+			...transferItems.value,
 		];
 		if (uiStore.notifications.persistentMessage !== null) {
 			items.push(buildPersistentMessageItem(uiStore.notifications.persistentMessage));
@@ -154,17 +177,15 @@ const unifiedQueue = computed<Array<QueueMessage>>({
 		if (!survivingIds.has(PERSISTENT_MESSAGE_ID) && uiStore.notifications.persistentMessage !== null) {
 			uiStore.showPersistentMessage(null);
 		}
+		// A transfer leaves the model only because the queue took it into its own visible set on
+		// show; drop our copy so a getter recompute can't re-enqueue it. Its resolver lives on in
+		// transferResolvers until the transfer actually finishes
+		transferItems.value = transferItems.value.filter(item => survivingIds.has(item.id));
 	}
 });
 
-const activeTransfer = computed(() => uiStore.notifications.fileTransfers[0] ?? null);
-
-function fileTransferIcon(type: FileTransferType): string {
-	switch (type) {
-		case FileTransferType.upload: return "mdi-cloud-upload";
-		case FileTransferType.download: return "mdi-cloud-download";
-		case FileTransferType.systemPackageInstall: return "mdi-cog-sync";
-	}
+function cancelTransfer(id: string) {
+	uiStore.notifications.fileTransfers.find(t => t.id === id)?.cancel();
 }
 
 // Producers can embed <br> in titles/messages already (logCode joins reply lines with <br>);

@@ -97,10 +97,6 @@
 			</v-row>
 		</v-col>
 	</v-row>
-
-	<InputDialog v-model:shown="scaleDialogShown" :title="$t('plugins.heightmap.scaleDialogTitle')"
-				 :prompt="$t('plugins.heightmap.scaleDialogPrompt')" :preset="fixedScale" is-numeric-value
-				 @confirmed="onScaleConfirmed" />
 </template>
 
 <script setup lang="ts">
@@ -108,7 +104,8 @@ import type { Axis } from "@duet3d/objectmodel";
 import { KinematicsName } from "@duet3d/objectmodel";
 import { useDisplay } from "vuetify";
 
-import InputDialog from "@/components/dialogs/InputDialog.vue";
+import { getNumericInput } from "@/composables/useInputDialog";
+import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import { useMachineStore } from "@/stores/machine";
 import { useSettingsStore } from "@/stores/settings";
@@ -152,7 +149,6 @@ const selectedFile = ref<string | null>(null);
 const ready = ref(false);
 const loading = ref(false);
 const errorMessage = ref<string | null>(null);
-const scaleDialogShown = ref(false);
 
 const tooltip = reactive({
 	coord: { x: 0, y: 0, z: 0 },
@@ -456,15 +452,12 @@ function canvasMouseMove(e: MouseEvent) {
 
 // The legend doubles as the entry point for editing the fixed colour scale; the deviation
 // range derives its scale from the data, so the legend is inert in that mode
-function onLegendClick() {
-	if (deviationColoring.value === "fixed") {
-		scaleDialogShown.value = true;
+async function onLegendClick() {
+	if (deviationColoring.value !== "fixed") {
+		return;
 	}
-}
-
-function onScaleConfirmed(value: string | number) {
-	const scale = typeof value === "string" ? parseFloat(value) : value;
-	if (isFinite(scale) && scale > 0) {
+	const scale = await getNumericInput(i18n.global.t("plugins.heightmap.scaleDialogTitle"), i18n.global.t("plugins.heightmap.scaleDialogPrompt"), fixedScale.value, 0.001);
+	if (scale !== null) {
 		fixedScale.value = scale;
 	}
 }

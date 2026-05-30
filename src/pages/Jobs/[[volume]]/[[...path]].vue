@@ -36,11 +36,6 @@
 			</template>
 		</JobFileList>
 	</div>
-
-	<ConfirmDialog v-model:shown="startJobDialog.shown"
-				   :title="$t('dialog.startJob.title', [startJobDialog.fileName])"
-				   :prompt="$t('dialog.startJob.prompt', [startJobDialog.fileName])"
-				   icon="mdi-play" @confirmed="runQueuedStart" />
 </template>
 
 <script lang="ts">
@@ -67,9 +62,10 @@ export const useJobsListing = defineBasicLoader(async () => {
 
 <script setup lang="ts">
 import type { FileBrowserItem } from "@/composables/useFileBrowser";
-import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import JobFileList from "@/components/lists/JobFileList.vue";
+import { showConfirmDialog } from "@/composables/useConfirmDialog";
 import { useLargeButtons } from "@/composables/useLargeButtons";
+import i18n from "@/i18n";
 import { useCacheStore } from "@/stores/cache";
 import Path from "@/utils/path";
 
@@ -219,35 +215,15 @@ const browserOptions = computed(() => ({
 		: [],
 }));
 
-// Queue the picked file's full path so the ConfirmDialog confirmation handler can dispatch M32
-// without re-deriving the path from the row. fileName is the bare basename for the dialog copy
-const startJobDialog = reactive({
-	shown: false,
-	filePath: "",
-	fileName: "",
-});
-
-function confirmStartJob(item: FileBrowserItem, directory: string) {
-	startJobDialog.filePath = Path.combine(directory, item.name);
-	startJobDialog.fileName = item.name;
-	startJobDialog.shown = true;
-}
-
-async function runQueuedStart() {
-	if (!startJobDialog.filePath) {
-		return;
+async function confirmStartJob(item: FileBrowserItem, directory: string) {
+	if (await showConfirmDialog(i18n.global.t("dialog.startJob.title", [item.name]), i18n.global.t("dialog.startJob.prompt", [item.name]), "mdi-play")) {
+		await machineStore.sendCode(`M32 "${Path.escapeFilename(Path.combine(directory, item.name))}"`);
 	}
-	await machineStore.sendCode(`M32 "${Path.escapeFilename(startJobDialog.filePath)}"`);
 }
 
-// Edit opens the file in the Explorer's Monaco editor. The path is encoded as `/Explorer/<vol>/<...>`
-// and the Explorer route auto-detects file paths and renders the editor tab
+// Edit opens the file in the Explorer's Monaco editor; the `edit` prefix marks it as a file route
 function openInEditor(item: FileBrowserItem, directory: string) {
-	const fullPath = Path.combine(directory, item.name);
-	const match = /^(\d+):\/?(.*)$/.exec(fullPath);
-	const volume = match ? match[1] : "0";
-	const rest = match ? match[2] : fullPath;
-	router.push(`/Explorer/${volume}/${rest}`);
+	router.push(Path.editRoute(Path.combine(directory, item.name)));
 }
 
 // Simulate runs an out-of-process print simulation via M37. The board reports back when done; the
