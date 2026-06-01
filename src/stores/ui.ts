@@ -371,13 +371,13 @@ export const useUiStore = defineStore("ui", {
 			// Log it
 			const responseLines = toLog.split('\n');
 			if (!this.hideCodeReplyNotifications) {
-				let title = code || ""; let message = responseLines.join("<br>");
+				let title = code || ""; let message = toLog;
 				if (responseLines.length > 3 || toLog.length > 160) {
 					title = (!code) ? i18n.global.t("notification.responseTooLong") : code;
 					message = (!code) ? "" : i18n.global.t("notification.responseTooLong");
 				} else if (!code) {
 					title = responseLines[0];
-					message = responseLines.slice(1).join("<br>");
+					message = responseLines.slice(1).join("\n");
 				}
 
 				this.makeNotification(type, title, message, null, "/Console");

@@ -16,9 +16,7 @@
 				<div :class="{ 'd-flex flex-column w-100': true, 'notification-clickable': hasRoute(item as QueueMessage) }"
 					 @click="onNotificationClick(item as QueueMessage)">
 					<strong v-if="(item as QueueMessage).headline">{{ (item as QueueMessage).headline }}</strong>
-					<span v-if="(item as QueueMessage).id === PERSISTENT_MESSAGE_ID"
-						  v-html="formatMultilineMessage((item as QueueMessage).text)" />
-					<span v-else-if="(item as QueueMessage).text">{{ (item as QueueMessage).text }}</span>
+					<span v-if="(item as QueueMessage).text" class="dwc-snackbar-text">{{ (item as QueueMessage).text }}</span>
 				</div>
 			</template>
 		</template>
@@ -188,12 +186,6 @@ function cancelTransfer(id: string) {
 	uiStore.notifications.fileTransfers.find(t => t.id === id)?.cancel();
 }
 
-// Producers can embed <br> in titles/messages already (logCode joins reply lines with <br>);
-// just normalise plain newlines so multi-line strings render correctly
-function formatMultilineMessage(message: string): string {
-	return message.replace(/\n/g, "<br>");
-}
-
 function hasRoute(item: QueueMessage): boolean {
 	return !!item.route;
 }
@@ -241,6 +233,9 @@ onBeforeUnmount(() => document.removeEventListener("visibilitychange", onVisibil
 }
 .notification-clickable {
 	cursor: pointer;
+}
+.dwc-snackbar-text {
+	white-space: pre-wrap;
 }
 .dwc-snackbar-timer {
 	position: absolute;
